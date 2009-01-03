@@ -23,11 +23,11 @@
  *  http://www.itl.nist.gov/fipspubs/fip180-1.htm
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_SHA1_C)
+#if defined(POLARSSL_SHA1_C)
 
-#include "xyssl/sha1.h"
+#include "polarssl/sha1.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -423,7 +423,7 @@ void sha1_hmac( unsigned char *key, int keylen,
     memset( &ctx, 0, sizeof( sha1_context ) );
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 /*
  * FIPS-180-1 test vectors
  */

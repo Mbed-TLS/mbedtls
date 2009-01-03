@@ -26,17 +26,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#include "xyssl/md4.h"
-#include "xyssl/md5.h"
-#include "xyssl/sha1.h"
-#include "xyssl/sha2.h"
-#include "xyssl/arc4.h"
-#include "xyssl/des.h"
-#include "xyssl/aes.h"
-#include "xyssl/rsa.h"
-#include "xyssl/timing.h"
+#include "polarssl/md4.h"
+#include "polarssl/md5.h"
+#include "polarssl/sha1.h"
+#include "polarssl/sha2.h"
+#include "polarssl/arc4.h"
+#include "polarssl/des.h"
+#include "polarssl/aes.h"
+#include "polarssl/rsa.h"
+#include "polarssl/timing.h"
 
 #define BUFSIZE 1024
 
@@ -55,17 +55,17 @@ int main( void )
     int keysize;
     unsigned long i, j, tsc;
     unsigned char tmp[32];
-#if defined(XYSSL_ARC4_C)
+#if defined(POLARSSL_ARC4_C)
     arc4_context arc4;
 #endif
-#if defined(XYSSL_DES_C)
+#if defined(POLARSSL_DES_C)
     des3_context des3;
     des_context des;
 #endif
-#if defined(XYSSL_AES_C)
+#if defined(POLARSSL_AES_C)
     aes_context aes;
 #endif
-#if defined(XYSSL_RSA_C)
+#if defined(POLARSSL_RSA_C)
     rsa_context rsa;
 #endif
 
@@ -73,7 +73,7 @@ int main( void )
 
     printf( "\n" );
 
-#if defined(XYSSL_MD4_C)
+#if defined(POLARSSL_MD4_C)
     printf( "  MD4       :  " );
     fflush( stdout );
 
@@ -89,7 +89,7 @@ int main( void )
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(XYSSL_MD5_C)
+#if defined(POLARSSL_MD5_C)
     printf( "  MD5       :  " );
     fflush( stdout );
 
@@ -105,7 +105,7 @@ int main( void )
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(XYSSL_SHA1_C)
+#if defined(POLARSSL_SHA1_C)
     printf( "  SHA-1     :  " );
     fflush( stdout );
 
@@ -121,7 +121,7 @@ int main( void )
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(XYSSL_SHA2_C)
+#if defined(POLARSSL_SHA2_C)
     printf( "  SHA-256   :  " );
     fflush( stdout );
 
@@ -137,7 +137,7 @@ int main( void )
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(XYSSL_ARC4_C)
+#if defined(POLARSSL_ARC4_C)
     printf( "  ARC4      :  " );
     fflush( stdout );
 
@@ -155,7 +155,7 @@ int main( void )
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(XYSSL_DES_C)
+#if defined(POLARSSL_DES_C)
     printf( "  3DES      :  " );
     fflush( stdout );
 
@@ -189,7 +189,7 @@ int main( void )
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(XYSSL_AES_C)
+#if defined(POLARSSL_AES_C)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
         printf( "  AES-%d   :  ", keysize );
@@ -213,7 +213,7 @@ int main( void )
     }
 #endif
 
-#if defined(XYSSL_RSA_C)
+#if defined(POLARSSL_RSA_C)
     rsa_init( &rsa, RSA_PKCS_V15, 0, myrand, NULL );
     rsa_gen_key( &rsa, 1024, 65537 );
 

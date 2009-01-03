@@ -24,7 +24,7 @@
 
 #include <stdio.h>
 
-#include "xyssl/bignum.h"
+#include "polarssl/bignum.h"
 
 int main( void )
 {

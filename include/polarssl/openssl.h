@@ -4,8 +4,8 @@
 /*
  * OpenSSL wrapper contributed by David Barett
  */
-#ifndef XYSSL_OPENSSL_H
-#define XYSSL_OPENSSL_H
+#ifndef POLARSSL_OPENSSL_H
+#define POLARSSL_OPENSSL_H
 
 #include "polarssl/aes.h"
 #include "polarssl/md5.h"

@@ -24,12 +24,12 @@
  *  http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_AES_C)
+#if defined(POLARSSL_AES_C)
 
-#include "xyssl/aes.h"
-#include "xyssl/padlock.h"
+#include "polarssl/aes.h"
+#include "polarssl/padlock.h"
 
 #include <string.h>
 
@@ -56,7 +56,7 @@
 }
 #endif
 
-#if defined(XYSSL_AES_ROM_TABLES)
+#if defined(POLARSSL_AES_ROM_TABLES)
 /*
  * Forward S-box
  */
@@ -441,7 +441,7 @@ void aes_setkey_enc( aes_context *ctx, unsigned char *key, int keysize )
     int i;
     unsigned long *RK;
 
-#if !defined(XYSSL_AES_ROM_TABLES)
+#if !defined(POLARSSL_AES_ROM_TABLES)
     if( aes_init_done == 0 )
     {
         aes_gen_tables();
@@ -644,7 +644,7 @@ void aes_crypt_ecb( aes_context *ctx,
     int i;
     unsigned long *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 
-#if defined(XYSSL_PADLOCK_C) && defined(XYSSL_HAVE_X86)
+#if defined(POLARSSL_PADLOCK_C) && defined(POLARSSL_HAVE_X86)
     if( padlock_supports( PADLOCK_ACE ) )
     {
         if( padlock_xcryptecb( ctx, mode, input, output ) == 0 )
@@ -747,7 +747,7 @@ void aes_crypt_cbc( aes_context *ctx,
     int i;
     unsigned char temp[16];
 
-#if defined(XYSSL_PADLOCK_C) && defined(XYSSL_HAVE_X86)
+#if defined(POLARSSL_PADLOCK_C) && defined(POLARSSL_HAVE_X86)
     if( padlock_supports( PADLOCK_ACE ) )
     {
         if( padlock_xcryptcbc( ctx, mode, length, iv, input, output ) == 0 )
@@ -832,7 +832,7 @@ void aes_crypt_cfb128( aes_context *ctx,
     *iv_off = n;
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
 #include <stdio.h>
 

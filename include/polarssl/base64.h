@@ -1,11 +1,11 @@
 /**
  * \file base64.h
  */
-#ifndef XYSSL_BASE64_H
-#define XYSSL_BASE64_H
+#ifndef POLARSSL_BASE64_H
+#define POLARSSL_BASE64_H
 
-#define XYSSL_ERR_BASE64_BUFFER_TOO_SMALL               -0x0010
-#define XYSSL_ERR_BASE64_INVALID_CHARACTER              -0x0012
+#define POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL               -0x0010
+#define POLARSSL_ERR_BASE64_INVALID_CHARACTER              -0x0012
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +19,7 @@ extern "C" {
  * \param src      source buffer
  * \param slen     amount of data to be encoded
  *
- * \return         0 if successful, or XYSSL_ERR_BASE64_BUFFER_TOO_SMALL.
+ * \return         0 if successful, or POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL.
  *                 *dlen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
  *
@@ -37,8 +37,8 @@ int base64_encode( unsigned char *dst, int *dlen,
  * \param src      source buffer
  * \param slen     amount of data to be decoded
  *
- * \return         0 if successful, XYSSL_ERR_BASE64_BUFFER_TOO_SMALL, or
- *                 XYSSL_ERR_BASE64_INVALID_DATA if the input data is not
+ * \return         0 if successful, POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL, or
+ *                 POLARSSL_ERR_BASE64_INVALID_DATA if the input data is not
  *                 correct. *dlen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
  *

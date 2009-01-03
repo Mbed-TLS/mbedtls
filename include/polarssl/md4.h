@@ -1,8 +1,8 @@
 /**
  * \file md4.h
  */
-#ifndef XYSSL_MD4_H
-#define XYSSL_MD4_H
+#ifndef POLARSSL_MD4_H
+#define POLARSSL_MD4_H
 
 /**
  * \brief          MD4 context structure

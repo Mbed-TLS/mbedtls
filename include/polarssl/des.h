@@ -1,8 +1,8 @@
 /**
  * \file des.h
  */
-#ifndef XYSSL_DES_H
-#define XYSSL_DES_H
+#ifndef POLARSSL_DES_H
+#define POLARSSL_DES_H
 
 #define DES_ENCRYPT     1
 #define DES_DECRYPT     0

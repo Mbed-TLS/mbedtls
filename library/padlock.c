@@ -24,14 +24,14 @@
  *  programming_guide.pdf
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_PADLOCK_C)
+#if defined(POLARSSL_PADLOCK_C)
 
-#include "xyssl/aes.h"
-#include "xyssl/padlock.h"
+#include "polarssl/aes.h"
+#include "polarssl/padlock.h"
 
-#if defined(XYSSL_HAVE_X86)
+#if defined(POLARSSL_HAVE_X86)
 
 #include <string.h>
 

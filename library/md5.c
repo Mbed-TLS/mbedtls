@@ -23,11 +23,11 @@
  *  http://www.ietf.org/rfc/rfc1321.txt
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_MD5_C)
+#if defined(POLARSSL_MD5_C)
 
-#include "xyssl/md5.h"
+#include "polarssl/md5.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -387,7 +387,7 @@ void md5_hmac( unsigned char *key, int keylen, unsigned char *input, int ilen,
     memset( &ctx, 0, sizeof( md5_context ) );
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 /*
  * RFC 1321 test vectors
  */

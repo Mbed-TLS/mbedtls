@@ -1,8 +1,8 @@
 /**
  * \file sha4.h
  */
-#ifndef XYSSL_SHA4_H
-#define XYSSL_SHA4_H
+#ifndef POLARSSL_SHA4_H
+#define POLARSSL_SHA4_H
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
   #define UL64(x) x##ui64

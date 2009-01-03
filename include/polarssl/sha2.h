@@ -1,8 +1,8 @@
 /**
  * \file sha2.h
  */
-#ifndef XYSSL_SHA2_H
-#define XYSSL_SHA2_H
+#ifndef POLARSSL_SHA2_H
+#define POLARSSL_SHA2_H
 
 /**
  * \brief          SHA-256 context structure

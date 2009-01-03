@@ -1,5 +1,5 @@
 
-# Also see "include/xyssl/config.h"
+# Also see "include/polarssl/config.h"
 
 CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64
 OFLAGS	= -O
@@ -30,21 +30,21 @@ OBJS=	aes.o		arc4.o		base64.o	\
 
 all: static
 
-static: libxyssl.a
+static: libpolarssl.a
 
-shared: libxyssl.$(DLEXT)
+shared: libpolarssl.$(DLEXT)
 
-libxyssl.a: $(OBJS)
+libpolarssl.a: $(OBJS)
 	echo "  AR    $@"
 	ar r $@ $(OBJS)
 	echo "  RL    $@"
 	ranlib $@
 
-libxyssl.so: libxyssl.a
+libpolarssl.so: libpolarssl.a
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS)
 
-libxyssl.dylib: libxyssl.a
+libpolarssl.dylib: libpolarssl.a
 	echo "  LD    $@"
 	$(CC) -dynamiclib -o $@ $(OBJS)
 
@@ -53,5 +53,5 @@ libxyssl.dylib: libxyssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) -c $<
 
 clean:
-	rm -f *.o libxyssl.*
+	rm -f *.o libpolarssl.*
 

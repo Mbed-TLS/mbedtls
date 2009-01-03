@@ -15,12 +15,12 @@
  *         . Alpha                . MIPS32
  *         . C, longlong          . C, generic
  */
-#ifndef XYSSL_BN_MUL_H
-#define XYSSL_BN_MUL_H
+#ifndef POLARSSL_BN_MUL_H
+#define POLARSSL_BN_MUL_H
 
 #include "polarssl/config.h"
 
-#if defined(XYSSL_HAVE_ASM)
+#if defined(POLARSSL_HAVE_ASM)
 
 #if defined(__GNUC__)
 #if defined(__i386__)
@@ -42,7 +42,7 @@
     asm( "movl   %edx,   %ecx   " );            \
     asm( "stosl                 " );
 
-#if defined(XYSSL_HAVE_SSE2)
+#if defined(POLARSSL_HAVE_SSE2)
 
 #define MULADDC_HUIT                            \
     asm( "movd     %ecx,     %mm1     " );      \
@@ -565,7 +565,7 @@
     __asm   mov     ecx, edx                    \
     __asm   stosd
 
-#if defined(XYSSL_HAVE_SSE2)
+#if defined(POLARSSL_HAVE_SSE2)
 
 #define EMIT __asm _emit
 
@@ -648,10 +648,10 @@
 #endif /* SSE2 */
 #endif /* MSVC */
 
-#endif /* XYSSL_HAVE_ASM */
+#endif /* POLARSSL_HAVE_ASM */
 
 #if !defined(MULADDC_CORE)
-#if defined(XYSSL_HAVE_LONGLONG)
+#if defined(POLARSSL_HAVE_LONGLONG)
 
 #define MULADDC_INIT                    \
 {                                       \

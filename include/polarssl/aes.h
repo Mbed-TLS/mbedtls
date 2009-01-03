@@ -1,8 +1,8 @@
 /**
  * \file aes.h
  */
-#ifndef XYSSL_AES_H
-#define XYSSL_AES_H
+#ifndef POLARSSL_AES_H
+#define POLARSSL_AES_H
 
 #define AES_ENCRYPT     1
 #define AES_DECRYPT     0

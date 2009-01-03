@@ -25,12 +25,12 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "xyssl/net.h"
-#include "xyssl/aes.h"
-#include "xyssl/dhm.h"
-#include "xyssl/rsa.h"
-#include "xyssl/sha1.h"
-#include "xyssl/havege.h"
+#include "polarssl/net.h"
+#include "polarssl/aes.h"
+#include "polarssl/dhm.h"
+#include "polarssl/rsa.h"
+#include "polarssl/sha1.h"
+#include "polarssl/havege.h"
 
 #define SERVER_NAME "localhost"
 #define SERVER_PORT 11999

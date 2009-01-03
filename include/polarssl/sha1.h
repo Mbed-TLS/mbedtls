@@ -1,8 +1,8 @@
 /**
  * \file sha1.h
  */
-#ifndef XYSSL_SHA1_H
-#define XYSSL_SHA1_H
+#ifndef POLARSSL_SHA1_H
+#define POLARSSL_SHA1_H
 
 /**
  * \brief          SHA-1 context structure

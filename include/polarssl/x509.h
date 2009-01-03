@@ -1,42 +1,42 @@
 /**
  * \file x509.h
  */
-#ifndef XYSSL_X509_H
-#define XYSSL_X509_H
+#ifndef POLARSSL_X509_H
+#define POLARSSL_X509_H
 
 #include "polarssl/rsa.h"
 
-#define XYSSL_ERR_ASN1_OUT_OF_DATA                      -0x0014
-#define XYSSL_ERR_ASN1_UNEXPECTED_TAG                   -0x0016
-#define XYSSL_ERR_ASN1_INVALID_LENGTH                   -0x0018
-#define XYSSL_ERR_ASN1_LENGTH_MISMATCH                  -0x001A
-#define XYSSL_ERR_ASN1_INVALID_DATA                     -0x001C
+#define POLARSSL_ERR_ASN1_OUT_OF_DATA                      -0x0014
+#define POLARSSL_ERR_ASN1_UNEXPECTED_TAG                   -0x0016
+#define POLARSSL_ERR_ASN1_INVALID_LENGTH                   -0x0018
+#define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  -0x001A
+#define POLARSSL_ERR_ASN1_INVALID_DATA                     -0x001C
 
-#define XYSSL_ERR_X509_FEATURE_UNAVAILABLE              -0x0020
-#define XYSSL_ERR_X509_CERT_INVALID_PEM                 -0x0040
-#define XYSSL_ERR_X509_CERT_INVALID_FORMAT              -0x0060
-#define XYSSL_ERR_X509_CERT_INVALID_VERSION             -0x0080
-#define XYSSL_ERR_X509_CERT_INVALID_SERIAL              -0x00A0
-#define XYSSL_ERR_X509_CERT_INVALID_ALG                 -0x00C0
-#define XYSSL_ERR_X509_CERT_INVALID_NAME                -0x00E0
-#define XYSSL_ERR_X509_CERT_INVALID_DATE                -0x0100
-#define XYSSL_ERR_X509_CERT_INVALID_PUBKEY              -0x0120
-#define XYSSL_ERR_X509_CERT_INVALID_SIGNATURE           -0x0140
-#define XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x0160
-#define XYSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x0180
-#define XYSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x01A0
-#define XYSSL_ERR_X509_CERT_UNKNOWN_PK_ALG              -0x01C0
-#define XYSSL_ERR_X509_CERT_SIG_MISMATCH                -0x01E0
-#define XYSSL_ERR_X509_CERT_VERIFY_FAILED               -0x0200
-#define XYSSL_ERR_X509_KEY_INVALID_PEM                  -0x0220
-#define XYSSL_ERR_X509_KEY_INVALID_VERSION              -0x0240
-#define XYSSL_ERR_X509_KEY_INVALID_FORMAT               -0x0260
-#define XYSSL_ERR_X509_KEY_INVALID_ENC_IV               -0x0280
-#define XYSSL_ERR_X509_KEY_UNKNOWN_ENC_ALG              -0x02A0
-#define XYSSL_ERR_X509_KEY_PASSWORD_REQUIRED            -0x02C0
-#define XYSSL_ERR_X509_KEY_PASSWORD_MISMATCH            -0x02E0
-#define XYSSL_ERR_X509_POINT_ERROR                      -0x0300
-#define XYSSL_ERR_X509_VALUE_TO_LENGTH                  -0x0320
+#define POLARSSL_ERR_X509_FEATURE_UNAVAILABLE              -0x0020
+#define POLARSSL_ERR_X509_CERT_INVALID_PEM                 -0x0040
+#define POLARSSL_ERR_X509_CERT_INVALID_FORMAT              -0x0060
+#define POLARSSL_ERR_X509_CERT_INVALID_VERSION             -0x0080
+#define POLARSSL_ERR_X509_CERT_INVALID_SERIAL              -0x00A0
+#define POLARSSL_ERR_X509_CERT_INVALID_ALG                 -0x00C0
+#define POLARSSL_ERR_X509_CERT_INVALID_NAME                -0x00E0
+#define POLARSSL_ERR_X509_CERT_INVALID_DATE                -0x0100
+#define POLARSSL_ERR_X509_CERT_INVALID_PUBKEY              -0x0120
+#define POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE           -0x0140
+#define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x0160
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x0180
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x01A0
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_PK_ALG              -0x01C0
+#define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x01E0
+#define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x0200
+#define POLARSSL_ERR_X509_KEY_INVALID_PEM                  -0x0220
+#define POLARSSL_ERR_X509_KEY_INVALID_VERSION              -0x0240
+#define POLARSSL_ERR_X509_KEY_INVALID_FORMAT               -0x0260
+#define POLARSSL_ERR_X509_KEY_INVALID_ENC_IV               -0x0280
+#define POLARSSL_ERR_X509_KEY_UNKNOWN_ENC_ALG              -0x02A0
+#define POLARSSL_ERR_X509_KEY_PASSWORD_REQUIRED            -0x02C0
+#define POLARSSL_ERR_X509_KEY_PASSWORD_MISMATCH            -0x02E0
+#define POLARSSL_ERR_X509_POINT_ERROR                      -0x0300
+#define POLARSSL_ERR_X509_VALUE_TO_LENGTH                  -0x0320
 
 #define BADCERT_EXPIRED                 1
 #define BADCERT_REVOKED                 2
@@ -262,7 +262,7 @@ int x509parse_expired( x509_cert *crt );
  *                 NULL if the CN must not be verified)
  * \param flags    result of the verification
  *
- * \return         0 if successful or XYSSL_ERR_X509_SIG_VERIFY_FAILED,
+ * \return         0 if successful or POLARSSL_ERR_X509_SIG_VERIFY_FAILED,
  *                 in which case *flags will have one or more of
  *                 the following values set:
  *                      BADCERT_EXPIRED --

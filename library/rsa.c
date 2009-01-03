@@ -24,11 +24,11 @@
  *  http://www.cacr.math.uwaterloo.ca/hac/about/chap8.pdf
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_RSA_C)
+#if defined(POLARSSL_RSA_C)
 
-#include "xyssl/rsa.h"
+#include "polarssl/rsa.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -52,7 +52,7 @@ void rsa_init( rsa_context *ctx,
     ctx->p_rng = p_rng;
 }
 
-#if defined(XYSSL_GENPRIME)
+#if defined(POLARSSL_GENPRIME)
 
 /*
  * Generate an RSA keypair
@@ -63,7 +63,7 @@ int rsa_gen_key( rsa_context *ctx, int nbits, int exponent )
     mpi P1, Q1, H, G;
 
     if( ctx->f_rng == NULL || nbits < 128 || exponent < 3 )
-        return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
 
@@ -118,7 +118,7 @@ cleanup:
     if( ret != 0 )
     {
         rsa_free( ctx );
-        return( XYSSL_ERR_RSA_KEY_GEN_FAILED | ret );
+        return( POLARSSL_ERR_RSA_KEY_GEN_FAILED | ret );
     }
 
     return( 0 );   
@@ -133,15 +133,15 @@ int rsa_check_pubkey( rsa_context *ctx )
 {
     if( ( ctx->N.p[0] & 1 ) == 0 || 
         ( ctx->E.p[0] & 1 ) == 0 )
-        return( XYSSL_ERR_RSA_KEY_CHECK_FAILED );
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
     if( mpi_msb( &ctx->N ) < 128 ||
         mpi_msb( &ctx->N ) > 4096 )
-        return( XYSSL_ERR_RSA_KEY_CHECK_FAILED );
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
     if( mpi_msb( &ctx->E ) < 2 ||
         mpi_msb( &ctx->E ) > 64 )
-        return( XYSSL_ERR_RSA_KEY_CHECK_FAILED );
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
     return( 0 );
 }
@@ -178,7 +178,7 @@ int rsa_check_privkey( rsa_context *ctx )
 cleanup:
 
     mpi_free( &G, &I, &H, &Q1, &P1, &DE, &PQ, NULL );
-    return( XYSSL_ERR_RSA_KEY_CHECK_FAILED | ret );
+    return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED | ret );
 }
 
 /*
@@ -198,7 +198,7 @@ int rsa_public( rsa_context *ctx,
     if( mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
         mpi_free( &T, NULL );
-        return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
     olen = ctx->len;
@@ -210,7 +210,7 @@ cleanup:
     mpi_free( &T, NULL );
 
     if( ret != 0 )
-        return( XYSSL_ERR_RSA_PUBLIC_FAILED | ret );
+        return( POLARSSL_ERR_RSA_PUBLIC_FAILED | ret );
 
     return( 0 );
 }
@@ -232,7 +232,7 @@ int rsa_private( rsa_context *ctx,
     if( mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
         mpi_free( &T, NULL );
-        return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
 #if 0
@@ -269,7 +269,7 @@ cleanup:
     mpi_free( &T, &T1, &T2, NULL );
 
     if( ret != 0 )
-        return( XYSSL_ERR_RSA_PRIVATE_FAILED | ret );
+        return( POLARSSL_ERR_RSA_PRIVATE_FAILED | ret );
 
     return( 0 );
 }
@@ -292,7 +292,7 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
         case RSA_PKCS_V15:
 
             if( ilen < 0 || olen < ilen + 11 )
-                return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+                return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
             nb_pad = olen - 3 - ilen;
 
@@ -312,7 +312,7 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
 
         default:
 
-            return( XYSSL_ERR_RSA_INVALID_PADDING );
+            return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 
     return( ( mode == RSA_PUBLIC )
@@ -335,7 +335,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
     ilen = ctx->len;
 
     if( ilen < 16 || ilen > (int) sizeof( buf ) )
-        return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     ret = ( mode == RSA_PUBLIC )
           ? rsa_public(  ctx, input, buf )
@@ -351,12 +351,12 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
         case RSA_PKCS_V15:
 
             if( *p++ != 0 || *p++ != RSA_CRYPT )
-                return( XYSSL_ERR_RSA_INVALID_PADDING );
+                return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
             while( *p != 0 )
             {
                 if( p >= buf + ilen - 1 )
-                    return( XYSSL_ERR_RSA_INVALID_PADDING );
+                    return( POLARSSL_ERR_RSA_INVALID_PADDING );
                 p++;
             }
             p++;
@@ -364,7 +364,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
 
         default:
 
-            return( XYSSL_ERR_RSA_INVALID_PADDING );
+            return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 
     *olen = ilen - (int)(p - buf);
@@ -409,11 +409,11 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                     break;
 
                 default:
-                    return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+                    return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
             }
 
             if( nb_pad < 8 )
-                return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+                return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
             *p++ = 0;
             *p++ = RSA_SIGN;
@@ -424,7 +424,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
 
         default:
 
-            return( XYSSL_ERR_RSA_INVALID_PADDING );
+            return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 
     switch( hash_id )
@@ -454,7 +454,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
             break;
 
         default:
-            return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+            return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
     return( ( mode == RSA_PUBLIC )
@@ -479,7 +479,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
     siglen = ctx->len;
 
     if( siglen < 16 || siglen > (int) sizeof( buf ) )
-        return( XYSSL_ERR_RSA_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     ret = ( mode == RSA_PUBLIC )
           ? rsa_public(  ctx, sig, buf )
@@ -495,12 +495,12 @@ int rsa_pkcs1_verify( rsa_context *ctx,
         case RSA_PKCS_V15:
 
             if( *p++ != 0 || *p++ != RSA_SIGN )
-                return( XYSSL_ERR_RSA_INVALID_PADDING );
+                return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
             while( *p != 0 )
             {
                 if( p >= buf + siglen - 1 || *p != 0xFF )
-                    return( XYSSL_ERR_RSA_INVALID_PADDING );
+                    return( POLARSSL_ERR_RSA_INVALID_PADDING );
                 p++;
             }
             p++;
@@ -508,7 +508,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
 
         default:
 
-            return( XYSSL_ERR_RSA_INVALID_PADDING );
+            return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 
     len = siglen - (int)( p - buf );
@@ -519,7 +519,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
         p[13] = 0;
 
         if( memcmp( p, ASN1_HASH_MDX, 18 ) != 0 )
-            return( XYSSL_ERR_RSA_VERIFY_FAILED );
+            return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
         if( ( c == 2 && hash_id == RSA_MD2 ) ||
             ( c == 4 && hash_id == RSA_MD4 ) ||
@@ -528,7 +528,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
             if( memcmp( p + 18, hash, 16 ) == 0 ) 
                 return( 0 );
             else
-                return( XYSSL_ERR_RSA_VERIFY_FAILED );
+                return( POLARSSL_ERR_RSA_VERIFY_FAILED );
         }
     }
 
@@ -538,7 +538,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
             memcmp( p + 15, hash, 20 ) == 0 )
             return( 0 );
         else
-            return( XYSSL_ERR_RSA_VERIFY_FAILED );
+            return( POLARSSL_ERR_RSA_VERIFY_FAILED );
     }
 
     if( len == hashlen && hash_id == RSA_RAW )
@@ -546,10 +546,10 @@ int rsa_pkcs1_verify( rsa_context *ctx,
         if( memcmp( p, hash, hashlen ) == 0 )
             return( 0 );
         else
-            return( XYSSL_ERR_RSA_VERIFY_FAILED );
+            return( POLARSSL_ERR_RSA_VERIFY_FAILED );
     }
 
-    return( XYSSL_ERR_RSA_INVALID_PADDING );
+    return( POLARSSL_ERR_RSA_INVALID_PADDING );
 }
 
 /*
@@ -563,9 +563,9 @@ void rsa_free( rsa_context *ctx )
               &ctx->E,  &ctx->N,  NULL );
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
-#include "xyssl/sha1.h"
+#include "polarssl/sha1.h"
 
 /*
  * Example RSA-1024 keypair, for test purposes

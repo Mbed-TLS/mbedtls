@@ -25,8 +25,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "xyssl/rsa.h"
-#include "xyssl/sha1.h"
+#include "polarssl/rsa.h"
+#include "polarssl/sha1.h"
 
 int main( int argc, char *argv[] )
 {

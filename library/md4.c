@@ -24,11 +24,11 @@
  *  http://www.ietf.org/rfc/rfc1320.txt
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_MD4_C)
+#if defined(POLARSSL_MD4_C)
 
-#include "xyssl/md4.h"
+#include "polarssl/md4.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -368,7 +368,7 @@ void md4_hmac( unsigned char *key, int keylen, unsigned char *input, int ilen,
     memset( &ctx, 0, sizeof( md4_context ) );
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
 /*
  * RFC 1320 test vectors

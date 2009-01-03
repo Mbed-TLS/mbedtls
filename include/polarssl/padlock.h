@@ -1,15 +1,15 @@
 /**
  * \file padlock.h
  */
-#ifndef XYSSL_PADLOCK_H
-#define XYSSL_PADLOCK_H
+#ifndef POLARSSL_PADLOCK_H
+#define POLARSSL_PADLOCK_H
 
 #include "polarssl/aes.h"
 
 #if (defined(__GNUC__) && defined(__i386__))
 
-#ifndef XYSSL_HAVE_X86
-#define XYSSL_HAVE_X86
+#ifndef POLARSSL_HAVE_X86
+#define POLARSSL_HAVE_X86
 #endif
 
 #define PADLOCK_RNG 0x000C

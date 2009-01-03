@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="xyssl" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="polarssl" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=xyssl - Win32 Debug
+CFG=polarssl - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "xyssl.mak".
+!MESSAGE NMAKE /f "polarssl.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "xyssl.mak" CFG="xyssl - Win32 Debug"
+!MESSAGE NMAKE /f "polarssl.mak" CFG="polarssl - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "xyssl - Win32 Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "xyssl - Win32 Debug" (based on "Win32 (x86) Static Library")
+!MESSAGE "polarssl - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "polarssl - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=xyssl - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "xyssl - Win32 Release"
+!IF  "$(CFG)" == "polarssl - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -51,7 +51,7 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
 
-!ELSEIF  "$(CFG)" == "xyssl - Win32 Debug"
+!ELSEIF  "$(CFG)" == "polarssl - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -78,8 +78,8 @@ LIB32=link.exe -lib
 
 # Begin Target
 
-# Name "xyssl - Win32 Release"
-# Name "xyssl - Win32 Debug"
+# Name "polarssl - Win32 Release"
+# Name "polarssl - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -181,95 +181,95 @@ SOURCE=..\library\x509parse.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\include\xyssl\aes.h
+SOURCE=..\include\polarssl\aes.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\arc4.h
+SOURCE=..\include\polarssl\arc4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\base64.h
+SOURCE=..\include\polarssl\base64.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\bignum.h
+SOURCE=..\include\polarssl\bignum.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\bn_mul.h
+SOURCE=..\include\polarssl\bn_mul.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\certs.h
+SOURCE=..\include\polarssl\certs.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\config.h
+SOURCE=..\include\polarssl\config.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\debug.h
+SOURCE=..\include\polarssl\debug.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\des.h
+SOURCE=..\include\polarssl\des.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\dhm.h
+SOURCE=..\include\polarssl\dhm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\havege.h
+SOURCE=..\include\polarssl\havege.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\md2.h
+SOURCE=..\include\polarssl\md2.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\md4.h
+SOURCE=..\include\polarssl\md4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\md5.h
+SOURCE=..\include\polarssl\md5.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\net.h
+SOURCE=..\include\polarssl\net.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\padlock.h
+SOURCE=..\include\polarssl\padlock.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\rsa.h
+SOURCE=..\include\polarssl\rsa.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\sha1.h
+SOURCE=..\include\polarssl\sha1.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\sha2.h
+SOURCE=..\include\polarssl\sha2.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\sha4.h
+SOURCE=..\include\polarssl\sha4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\ssl.h
+SOURCE=..\include\polarssl\ssl.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\timing.h
+SOURCE=..\include\polarssl\timing.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\xyssl\x509.h
+SOURCE=..\include\polarssl\x509.h
 # End Source File
 # End Group
 # End Target

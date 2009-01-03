@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "xyssl/sha2.h"
+#include "polarssl/sha2.h"
 
 static int sha2_wrapper( char *filename, unsigned char *sum )
 {

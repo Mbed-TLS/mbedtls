@@ -24,10 +24,10 @@
 
 #include <stdio.h>
 
-#include "xyssl/havege.h"
-#include "xyssl/bignum.h"
-#include "xyssl/x509.h"
-#include "xyssl/rsa.h"
+#include "polarssl/havege.h"
+#include "polarssl/bignum.h"
+#include "polarssl/x509.h"
+#include "polarssl/rsa.h"
 
 #define KEY_SIZE 1024
 #define EXPONENT 65537

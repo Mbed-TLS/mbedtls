@@ -23,11 +23,11 @@
  *  http://groups.google.com/group/sci.crypt/msg/10a300c9d21afca0
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_ARC4_C)
+#if defined(POLARSSL_ARC4_C)
 
-#include "xyssl/arc4.h"
+#include "polarssl/arc4.h"
 
 /*
  * ARC4 key schedule
@@ -85,7 +85,7 @@ void arc4_crypt( arc4_context *ctx, unsigned char *buf, int buflen )
     ctx->y = y;
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
 #include <string.h>
 #include <stdio.h>

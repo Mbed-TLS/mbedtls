@@ -1,8 +1,8 @@
 /**
  * \file havege.h
  */
-#ifndef XYSSL_HAVEGE_H
-#define XYSSL_HAVEGE_H
+#ifndef POLARSSL_HAVEGE_H
+#define POLARSSL_HAVEGE_H
 
 #define COLLECT_SIZE 1024
 

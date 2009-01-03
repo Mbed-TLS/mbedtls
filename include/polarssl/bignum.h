@@ -1,29 +1,29 @@
 /**
  * \file bignum.h
  */
-#ifndef XYSSL_BIGNUM_H
-#define XYSSL_BIGNUM_H
+#ifndef POLARSSL_BIGNUM_H
+#define POLARSSL_BIGNUM_H
 
 #include <stdio.h>
 
-#define XYSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002
-#define XYSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004
-#define XYSSL_ERR_MPI_INVALID_CHARACTER                 -0x0006
-#define XYSSL_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008
-#define XYSSL_ERR_MPI_NEGATIVE_VALUE                    -0x000A
-#define XYSSL_ERR_MPI_DIVISION_BY_ZERO                  -0x000C
-#define XYSSL_ERR_MPI_NOT_ACCEPTABLE                    -0x000E
+#define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002
+#define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004
+#define POLARSSL_ERR_MPI_INVALID_CHARACTER                 -0x0006
+#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008
+#define POLARSSL_ERR_MPI_NEGATIVE_VALUE                    -0x000A
+#define POLARSSL_ERR_MPI_DIVISION_BY_ZERO                  -0x000C
+#define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    -0x000E
 
 #define MPI_CHK(f) if( ( ret = f ) != 0 ) goto cleanup
 
 /*
  * Define the base integer type, architecture-wise
  */
-#if defined(XYSSL_HAVE_INT8)
+#if defined(POLARSSL_HAVE_INT8)
 typedef unsigned char  t_int;
 typedef unsigned short t_dbl;
 #else
-#if defined(XYSSL_HAVE_INT16)
+#if defined(POLARSSL_HAVE_INT16)
 typedef unsigned short t_int;
 typedef unsigned long  t_dbl;
 #else
@@ -118,7 +118,7 @@ int mpi_size( mpi *X );
  * \param radix    input numeric base
  * \param s        null-terminated string buffer
  *
- * \return         0 if successful, or an XYSSL_ERR_MPI_XXX error code
+ * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
  */
 int mpi_read_string( mpi *X, int radix, char *s );
 
@@ -130,7 +130,7 @@ int mpi_read_string( mpi *X, int radix, char *s );
  * \param s        string buffer
  * \param slen     string buffer size
  *
- * \return         0 if successful, or an XYSSL_ERR_MPI_XXX error code
+ * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
  *
  * \note           Call this function with *slen = 0 to obtain the
  *                 minimum required buffer size in *slen.
@@ -144,7 +144,7 @@ int mpi_write_string( mpi *X, int radix, char *s, int *slen );
  * \param radix    input numeric base
  * \param fin      input file handle
  *
- * \return         0 if successful, or an XYSSL_ERR_MPI_XXX error code
+ * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
  */
 int mpi_read_file( mpi *X, int radix, FILE *fin );
 
@@ -156,7 +156,7 @@ int mpi_read_file( mpi *X, int radix, FILE *fin );
  * \param radix    output numeric base
  * \param fout     output file handle
  *
- * \return         0 if successful, or an XYSSL_ERR_MPI_XXX error code
+ * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
  *
  * \note           Set fout == NULL to print X on the console.
  */
@@ -182,7 +182,7 @@ int mpi_read_binary( mpi *X, unsigned char *buf, int buflen );
  * \param buflen   output buffer size
  *
  * \return         0 if successful,
- *                 XYSSL_ERR_MPI_BUFFER_TOO_SMALL if buf isn't large enough
+ *                 POLARSSL_ERR_MPI_BUFFER_TOO_SMALL if buf isn't large enough
  *
  * \note           Call this function with *buflen = 0 to obtain the
  *                 minimum required buffer size in *buflen.
@@ -244,7 +244,7 @@ int mpi_add_abs( mpi *X, mpi *A, mpi *B );
  * \brief          Unsigned substraction: X = |A| - |B|
  *
  * \return         0 if successful,
- *                 XYSSL_ERR_MPI_NEGATIVE_VALUE if B is greater than A
+ *                 POLARSSL_ERR_MPI_NEGATIVE_VALUE if B is greater than A
  */
 int mpi_sub_abs( mpi *X, mpi *A, mpi *B );
 
@@ -301,7 +301,7 @@ int mpi_mul_int( mpi *X, mpi *A, t_int b );
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
- *                 XYSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0
+ *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0
  *
  * \note           Either Q or R can be NULL.
  */
@@ -312,7 +312,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, mpi *A, mpi *B );
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
- *                 XYSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0
+ *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0
  *
  * \note           Either Q or R can be NULL.
  */
@@ -323,7 +323,7 @@ int mpi_div_int( mpi *Q, mpi *R, mpi *A, int b );
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
- *                 XYSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0
+ *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0
  */
 int mpi_mod_mpi( mpi *R, mpi *A, mpi *B );
 
@@ -332,7 +332,7 @@ int mpi_mod_mpi( mpi *R, mpi *A, mpi *B );
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
- *                 XYSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0
+ *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0
  */
 int mpi_mod_int( t_int *r, mpi *A, int b );
 
@@ -341,7 +341,7 @@ int mpi_mod_int( t_int *r, mpi *A, int b );
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
- *                 XYSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even
  *
  * \note           _RR is used to avoid re-computing R*R mod N across
  *                 multiple calls, which speeds up things a bit. It can
@@ -362,8 +362,8 @@ int mpi_gcd( mpi *G, mpi *A, mpi *B );
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
- *                 XYSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or nil
- *                 XYSSL_ERR_MPI_NOT_ACCEPTABLE if A has no inverse mod N
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or nil
+ *                 POLARSSL_ERR_MPI_NOT_ACCEPTABLE if A has no inverse mod N
  */
 int mpi_inv_mod( mpi *X, mpi *A, mpi *N );
 
@@ -372,7 +372,7 @@ int mpi_inv_mod( mpi *X, mpi *A, mpi *N );
  *
  * \return         0 if successful (probably prime),
  *                 1 if memory allocation failed,
- *                 XYSSL_ERR_MPI_NOT_ACCEPTABLE if X is not prime
+ *                 POLARSSL_ERR_MPI_NOT_ACCEPTABLE if X is not prime
  */
 int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng );
 
@@ -387,7 +387,7 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng );
  *
  * \return         0 if successful (probably prime),
  *                 1 if memory allocation failed,
- *                 XYSSL_ERR_MPI_BAD_INPUT_DATA if nbits is < 3
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if nbits is < 3
  */
 int mpi_gen_prime( mpi *X, int nbits, int dh_flag,
                    int (*f_rng)(void *), void *p_rng );

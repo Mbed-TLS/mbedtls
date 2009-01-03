@@ -25,21 +25,21 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#include "xyssl/md2.h"
-#include "xyssl/md4.h"
-#include "xyssl/md5.h"
-#include "xyssl/sha1.h"
-#include "xyssl/sha2.h"
-#include "xyssl/sha4.h"
-#include "xyssl/arc4.h"
-#include "xyssl/des.h"
-#include "xyssl/aes.h"
-#include "xyssl/base64.h"
-#include "xyssl/bignum.h"
-#include "xyssl/rsa.h"
-#include "xyssl/x509.h"
+#include "polarssl/md2.h"
+#include "polarssl/md4.h"
+#include "polarssl/md5.h"
+#include "polarssl/sha1.h"
+#include "polarssl/sha2.h"
+#include "polarssl/sha4.h"
+#include "polarssl/arc4.h"
+#include "polarssl/des.h"
+#include "polarssl/aes.h"
+#include "polarssl/base64.h"
+#include "polarssl/bignum.h"
+#include "polarssl/rsa.h"
+#include "polarssl/x509.h"
 
 int main( int argc, char *argv[] )
 {
@@ -53,67 +53,67 @@ int main( int argc, char *argv[] )
         printf( "\n" );
     }
 
-#if defined(XYSSL_MD2_C)
+#if defined(POLARSSL_MD2_C)
     if( ( ret = md2_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_MD4_C)
+#if defined(POLARSSL_MD4_C)
     if( ( ret = md4_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_MD5_C)
+#if defined(POLARSSL_MD5_C)
     if( ( ret = md5_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_SHA1_C)
+#if defined(POLARSSL_SHA1_C)
     if( ( ret = sha1_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_SHA2_C)
+#if defined(POLARSSL_SHA2_C)
     if( ( ret = sha2_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_SHA4_C)
+#if defined(POLARSSL_SHA4_C)
     if( ( ret = sha4_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_ARC4_C)
+#if defined(POLARSSL_ARC4_C)
     if( ( ret = arc4_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_DES_C)
+#if defined(POLARSSL_DES_C)
     if( ( ret = des_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_AES_C)
+#if defined(POLARSSL_AES_C)
     if( ( ret = aes_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_BASE64_C)
+#if defined(POLARSSL_BASE64_C)
     if( ( ret = base64_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_BIGNUM_C)
+#if defined(POLARSSL_BIGNUM_C)
     if( ( ret = mpi_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_RSA_C)
+#if defined(POLARSSL_RSA_C)
     if( ( ret = rsa_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(XYSSL_X509_C)
+#if defined(POLARSSL_X509_C)
     if( ( ret = x509_self_test( v ) ) != 0 )
         return( ret );
 #endif

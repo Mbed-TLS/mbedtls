@@ -29,17 +29,17 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_PARSE_C)
 
-#include "xyssl/x509.h"
-#include "xyssl/base64.h"
-#include "xyssl/des.h"
-#include "xyssl/md2.h"
-#include "xyssl/md4.h"
-#include "xyssl/md5.h"
-#include "xyssl/sha1.h"
+#include "polarssl/x509.h"
+#include "polarssl/base64.h"
+#include "polarssl/des.h"
+#include "polarssl/md2.h"
+#include "polarssl/md4.h"
+#include "polarssl/md5.h"
+#include "polarssl/sha1.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -54,7 +54,7 @@ static int asn1_get_len( unsigned char **p,
                          int *len )
 {
     if( ( end - *p ) < 1 )
-        return( XYSSL_ERR_ASN1_OUT_OF_DATA );
+        return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
     if( ( **p & 0x80 ) == 0 )
         *len = *(*p)++;
@@ -64,7 +64,7 @@ static int asn1_get_len( unsigned char **p,
         {
         case 1:
             if( ( end - *p ) < 2 )
-                return( XYSSL_ERR_ASN1_OUT_OF_DATA );
+                return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
             *len = (*p)[1];
             (*p) += 2;
@@ -72,20 +72,20 @@ static int asn1_get_len( unsigned char **p,
 
         case 2:
             if( ( end - *p ) < 3 )
-                return( XYSSL_ERR_ASN1_OUT_OF_DATA );
+                return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
             *len = ( (*p)[1] << 8 ) | (*p)[2];
             (*p) += 3;
             break;
 
         default:
-            return( XYSSL_ERR_ASN1_INVALID_LENGTH );
+            return( POLARSSL_ERR_ASN1_INVALID_LENGTH );
             break;
         }
     }
 
     if( *len > (int) ( end - *p ) )
-        return( XYSSL_ERR_ASN1_OUT_OF_DATA );
+        return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
     return( 0 );
 }
@@ -95,10 +95,10 @@ static int asn1_get_tag( unsigned char **p,
                          int *len, int tag )
 {
     if( ( end - *p ) < 1 )
-        return( XYSSL_ERR_ASN1_OUT_OF_DATA );
+        return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
     if( **p != tag )
-        return( XYSSL_ERR_ASN1_UNEXPECTED_TAG );
+        return( POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 
     (*p)++;
 
@@ -115,7 +115,7 @@ static int asn1_get_bool( unsigned char **p,
         return( ret );
 
     if( len != 1 )
-        return( XYSSL_ERR_ASN1_INVALID_LENGTH );
+        return( POLARSSL_ERR_ASN1_INVALID_LENGTH );
 
     *val = ( **p != 0 ) ? 1 : 0;
     (*p)++;
@@ -133,7 +133,7 @@ static int asn1_get_int( unsigned char **p,
         return( ret );
 
     if( len > (int) sizeof( int ) || ( **p & 0x80 ) != 0 )
-        return( XYSSL_ERR_ASN1_INVALID_LENGTH );
+        return( POLARSSL_ERR_ASN1_INVALID_LENGTH );
 
     *val = 0;
 
@@ -174,7 +174,7 @@ static int x509_get_version( unsigned char **p,
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) != 0 )
     {
-        if( ret == XYSSL_ERR_ASN1_UNEXPECTED_TAG )
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
             return( *ver = 0 );
 
         return( ret );
@@ -183,11 +183,11 @@ static int x509_get_version( unsigned char **p,
     end = *p + len;
 
     if( ( ret = asn1_get_int( p, end, ver ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_VERSION | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_VERSION | ret );
 
     if( *p != end )
-        return( XYSSL_ERR_X509_CERT_INVALID_VERSION |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_VERSION |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }
@@ -202,18 +202,18 @@ static int x509_get_serial( unsigned char **p,
     int ret;
 
     if( ( end - *p ) < 1 )
-        return( XYSSL_ERR_X509_CERT_INVALID_SERIAL |
-                XYSSL_ERR_ASN1_OUT_OF_DATA );
+        return( POLARSSL_ERR_X509_CERT_INVALID_SERIAL |
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
     if( **p != ( ASN1_CONTEXT_SPECIFIC | ASN1_PRIMITIVE | 2 ) &&
         **p !=   ASN1_INTEGER )
-        return( XYSSL_ERR_X509_CERT_INVALID_SERIAL |
-                XYSSL_ERR_ASN1_UNEXPECTED_TAG );
+        return( POLARSSL_ERR_X509_CERT_INVALID_SERIAL |
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 
     serial->tag = *(*p)++;
 
     if( ( ret = asn1_get_len( p, end, &serial->len ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_SERIAL | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_SERIAL | ret );
 
     serial->p = *p;
     *p += serial->len;
@@ -234,13 +234,13 @@ static int x509_get_alg( unsigned char **p,
 
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_ALG | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG | ret );
 
     end = *p + len;
     alg->tag = **p;
 
     if( ( ret = asn1_get_tag( p, end, &alg->len, ASN1_OID ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_ALG | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG | ret );
 
     alg->p = *p;
     *p += alg->len;
@@ -252,11 +252,11 @@ static int x509_get_alg( unsigned char **p,
      * assume the algorithm parameters must be NULL
      */
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_NULL ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_ALG | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG | ret );
 
     if( *p != end )
-        return( XYSSL_ERR_X509_CERT_INVALID_ALG |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }
@@ -284,43 +284,43 @@ static int x509_get_name( unsigned char **p,
 
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SET ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_NAME | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME | ret );
 
     end2 = end;
     end  = *p + len;
 
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_NAME | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME | ret );
 
     if( *p + len != end )
-        return( XYSSL_ERR_X509_CERT_INVALID_NAME |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     oid = &cur->oid;
     oid->tag = **p;
 
     if( ( ret = asn1_get_tag( p, end, &oid->len, ASN1_OID ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_NAME | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME | ret );
 
     oid->p = *p;
     *p += oid->len;
 
     if( ( end - *p ) < 1 )
-        return( XYSSL_ERR_X509_CERT_INVALID_NAME |
-                XYSSL_ERR_ASN1_OUT_OF_DATA );
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME |
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
     if( **p != ASN1_BMP_STRING && **p != ASN1_UTF8_STRING      &&
         **p != ASN1_T61_STRING && **p != ASN1_PRINTABLE_STRING &&
         **p != ASN1_IA5_STRING && **p != ASN1_UNIVERSAL_STRING )
-        return( XYSSL_ERR_X509_CERT_INVALID_NAME |
-                XYSSL_ERR_ASN1_UNEXPECTED_TAG );
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME |
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 
     val = &cur->val;
     val->tag = *(*p)++;
 
     if( ( ret = asn1_get_len( p, end, &val->len ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_NAME | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME | ret );
 
     val->p = *p;
     *p += val->len;
@@ -328,8 +328,8 @@ static int x509_get_name( unsigned char **p,
     cur->next = NULL;
 
     if( *p != end )
-        return( XYSSL_ERR_X509_CERT_INVALID_NAME |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     /*
      * recurse until end of SEQUENCE is reached
@@ -365,7 +365,7 @@ static int x509_get_dates( unsigned char **p,
 
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_DATE | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
 
     end = *p + len;
 
@@ -373,7 +373,7 @@ static int x509_get_dates( unsigned char **p,
      * TODO: also handle GeneralizedTime
      */
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_UTC_TIME ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_DATE | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
 
     memset( date,  0, sizeof( date ) );
     memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
@@ -382,7 +382,7 @@ static int x509_get_dates( unsigned char **p,
     if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
                 &from->year, &from->mon, &from->day,
                 &from->hour, &from->min, &from->sec ) < 5 )
-        return( XYSSL_ERR_X509_CERT_INVALID_DATE );
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
 
     from->year +=  100 * ( from->year < 90 );
     from->year += 1900;
@@ -390,7 +390,7 @@ static int x509_get_dates( unsigned char **p,
     *p += len;
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_UTC_TIME ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_DATE | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
 
     memset( date,  0, sizeof( date ) );
     memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
@@ -399,7 +399,7 @@ static int x509_get_dates( unsigned char **p,
     if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
                 &to->year, &to->mon, &to->day,
                 &to->hour, &to->min, &to->sec ) < 5 ) 
-        return( XYSSL_ERR_X509_CERT_INVALID_DATE );
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
 
     to->year +=  100 * ( to->year < 90 );
     to->year += 1900;
@@ -407,8 +407,8 @@ static int x509_get_dates( unsigned char **p,
     *p += len;
 
     if( *p != end )
-        return( XYSSL_ERR_X509_CERT_INVALID_DATE |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }
@@ -434,19 +434,19 @@ static int x509_get_pubkey( unsigned char **p,
      */
     if( pk_alg_oid->len != 9 ||
         memcmp( pk_alg_oid->p, OID_PKCS1_RSA, 9 ) != 0 )
-        return( XYSSL_ERR_X509_CERT_UNKNOWN_PK_ALG );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_PK_ALG );
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_PUBKEY | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY | ret );
 
     if( ( end - *p ) < 1 )
-        return( XYSSL_ERR_X509_CERT_INVALID_PUBKEY |
-                XYSSL_ERR_ASN1_OUT_OF_DATA );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY |
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
     end2 = *p + len;
 
     if( *(*p)++ != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_PUBKEY );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
 
     /*
      *  RSAPublicKey ::= SEQUENCE {
@@ -456,19 +456,19 @@ static int x509_get_pubkey( unsigned char **p,
      */
     if( ( ret = asn1_get_tag( p, end2, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_PUBKEY | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY | ret );
 
     if( *p + len != end2 )
-        return( XYSSL_ERR_X509_CERT_INVALID_PUBKEY |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     if( ( ret = asn1_get_mpi( p, end2, N ) ) != 0 ||
         ( ret = asn1_get_mpi( p, end2, E ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_PUBKEY | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY | ret );
 
     if( *p != end )
-        return( XYSSL_ERR_X509_CERT_INVALID_PUBKEY |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }
@@ -482,10 +482,10 @@ static int x509_get_sig( unsigned char **p,
     sig->tag = **p;
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_SIGNATURE | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE | ret );
 
     if( --len < 1 || *(*p)++ != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_SIGNATURE );
+        return( POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE );
 
     sig->len = len;
     sig->p = *p;
@@ -512,7 +512,7 @@ static int x509_get_uid( unsigned char **p,
     if( ( ret = asn1_get_tag( p, end, &uid->len,
             ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | n ) ) != 0 )
     {
-        if( ret == XYSSL_ERR_ASN1_UNEXPECTED_TAG )
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
             return( 0 );
 
         return( ret );
@@ -546,7 +546,7 @@ static int x509_get_ext( unsigned char **p,
     if( ( ret = asn1_get_tag( p, end, &ext->len,
             ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) ) != 0 )
     {
-        if( ret == XYSSL_ERR_ASN1_UNEXPECTED_TAG )
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
             return( 0 );
 
         return( ret );
@@ -565,17 +565,17 @@ static int x509_get_ext( unsigned char **p,
      */
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-        return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
     if( end != *p + len )
-        return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     while( *p < end )
     {
         if( ( ret = asn1_get_tag( p, end, &len,
                 ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-            return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
         if( memcmp( *p, "\x06\x03\x55\x1D\x13", 5 ) != 0 )
         {
@@ -586,12 +586,12 @@ static int x509_get_ext( unsigned char **p,
         *p += 5;
 
         if( ( ret = asn1_get_bool( p, end, &is_critical ) ) != 0 &&
-            ( ret != XYSSL_ERR_ASN1_UNEXPECTED_TAG ) )
-            return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+            ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
         if( ( ret = asn1_get_tag( p, end, &len,
                 ASN1_OCTET_STRING ) ) != 0 )
-            return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
         /*
          * BasicConstraints ::= SEQUENCE {
@@ -602,18 +602,18 @@ static int x509_get_ext( unsigned char **p,
 
         if( ( ret = asn1_get_tag( p, end2, &len,
                 ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-            return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
         if( *p == end2 )
             continue;
 
         if( ( ret = asn1_get_bool( p, end2, &is_cacert ) ) != 0 )
         {
-            if( ret == XYSSL_ERR_ASN1_UNEXPECTED_TAG )
+            if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
                 ret = asn1_get_int( p, end2, &is_cacert );
 
             if( ret != 0 )
-                return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+                return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
             if( is_cacert != 0 )
                 is_cacert  = 1;
@@ -623,18 +623,18 @@ static int x509_get_ext( unsigned char **p,
             continue;
 
         if( ( ret = asn1_get_int( p, end2, max_pathlen ) ) != 0 )
-            return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
         if( *p != end2 )
-            return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
-                    XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
         max_pathlen++;
     }
 
     if( *p != end )
-        return( XYSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     *ca_istrue = is_critical & is_cacert;
 
@@ -668,12 +668,12 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
             "-----END CERTIFICATE-----" );
 
         if( s2 == NULL || s2 <= s1 )
-            return( XYSSL_ERR_X509_CERT_INVALID_PEM );
+            return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
 
         s1 += 27;
         if( *s1 == '\r' ) s1++;
         if( *s1 == '\n' ) s1++;
-            else return( XYSSL_ERR_X509_CERT_INVALID_PEM );
+            else return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
 
         /*
          * get the DER data length and decode the buffer
@@ -681,8 +681,8 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
         len = 0;
         ret = base64_decode( NULL, &len, s1, s2 - s1 );
 
-        if( ret == XYSSL_ERR_BASE64_INVALID_CHARACTER )
-            return( XYSSL_ERR_X509_CERT_INVALID_PEM | ret );
+        if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
+            return( POLARSSL_ERR_X509_CERT_INVALID_PEM | ret );
 
         if( ( p = (unsigned char *) malloc( len ) ) == NULL )
             return( 1 );
@@ -690,7 +690,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
         if( ( ret = base64_decode( p, &len, s1, s2 - s1 ) ) != 0 )
         {
             free( p );
-            return( XYSSL_ERR_X509_CERT_INVALID_PEM | ret );
+            return( POLARSSL_ERR_X509_CERT_INVALID_PEM | ret );
         }
 
         /*
@@ -702,7 +702,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
         else
         {
             free( p );
-            return( XYSSL_ERR_X509_CERT_INVALID_PEM );
+            return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
         }
 
         buflen -= s2 - buf;
@@ -737,14 +737,14 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_INVALID_FORMAT );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT );
     }
 
     if( len != (int) ( end - p ) )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_INVALID_FORMAT |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     /*
@@ -756,7 +756,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
     }
 
     end = p + len;
@@ -782,21 +782,21 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
     if( crt->version > 3 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_UNKNOWN_VERSION );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION );
     }
 
     if( crt->sig_oid1.len != 9 ||
         memcmp( crt->sig_oid1.p, OID_PKCS1, 8 ) != 0 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
     }
 
     if( crt->sig_oid1.p[8] < 2 ||
         crt->sig_oid1.p[8] > 5 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
     }
 
     /*
@@ -808,7 +808,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
     }
 
     if( ( ret = x509_get_name( &p, p + len, &crt->issuer ) ) != 0 )
@@ -841,7 +841,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
     }
 
     if( ( ret = x509_get_name( &p, p + len, &crt->subject ) ) != 0 )
@@ -861,7 +861,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
     }
 
     if( ( ret = x509_get_pubkey( &p, p + len, &crt->pk_oid,
@@ -921,8 +921,8 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
     if( p != end )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_INVALID_FORMAT |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     end = crt->raw.p + crt->raw.len;
@@ -940,7 +940,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
     if( memcmp( crt->sig_oid1.p, crt->sig_oid2.p, 9 ) != 0 )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_SIG_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_SIG_MISMATCH );
     }
 
     if( ( ret = x509_get_sig( &p, end, &crt->sig ) ) != 0 )
@@ -952,8 +952,8 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
     if( p != end )
     {
           x509_free( crt );
-        return( XYSSL_ERR_X509_CERT_INVALID_FORMAT |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
@@ -1011,7 +1011,7 @@ int x509parse_crtfile( x509_cert *chain, char *path )
     return( ret );
 }
 
-#if defined(XYSSL_DES_C)
+#if defined(POLARSSL_DES_C)
 /*
  * Read a 16-byte hex string and convert it to binary
  */
@@ -1026,7 +1026,7 @@ static int x509_get_iv( unsigned char *s, unsigned char iv[8] )
         if( *s >= '0' && *s <= '9' ) j = *s - '0'; else
         if( *s >= 'A' && *s <= 'F' ) j = *s - '7'; else
         if( *s >= 'a' && *s <= 'f' ) j = *s - 'W'; else
-            return( XYSSL_ERR_X509_KEY_INVALID_ENC_IV );
+            return( POLARSSL_ERR_X509_KEY_INVALID_ENC_IV );
 
         k = ( ( i & 1 ) != 0 ) ? j : j << 4;
 
@@ -1096,46 +1096,46 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
             "-----END RSA PRIVATE KEY-----" );
 
         if( s2 == NULL || s2 <= s1 )
-            return( XYSSL_ERR_X509_KEY_INVALID_PEM );
+            return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
 
         s1 += 31;
         if( *s1 == '\r' ) s1++;
         if( *s1 == '\n' ) s1++;
-            else return( XYSSL_ERR_X509_KEY_INVALID_PEM );
+            else return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
 
         enc = 0;
 
         if( memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
         {
-#if defined(XYSSL_DES_C)
+#if defined(POLARSSL_DES_C)
             enc++;
 
             s1 += 22;
             if( *s1 == '\r' ) s1++;
             if( *s1 == '\n' ) s1++;
-                else return( XYSSL_ERR_X509_KEY_INVALID_PEM );
+                else return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
 
             if( memcmp( s1, "DEK-Info: DES-EDE3-CBC,", 23 ) != 0 )
-                return( XYSSL_ERR_X509_KEY_UNKNOWN_ENC_ALG );
+                return( POLARSSL_ERR_X509_KEY_UNKNOWN_ENC_ALG );
 
             s1 += 23;
             if( x509_get_iv( s1, des3_iv ) != 0 )
-                return( XYSSL_ERR_X509_KEY_INVALID_ENC_IV );
+                return( POLARSSL_ERR_X509_KEY_INVALID_ENC_IV );
 
             s1 += 16;
             if( *s1 == '\r' ) s1++;
             if( *s1 == '\n' ) s1++;
-                else return( XYSSL_ERR_X509_KEY_INVALID_PEM );
+                else return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
 #else
-            return( XYSSL_ERR_X509_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
 #endif
         }
 
         len = 0;
         ret = base64_decode( NULL, &len, s1, s2 - s1 );
 
-        if( ret == XYSSL_ERR_BASE64_INVALID_CHARACTER )
-            return( ret | XYSSL_ERR_X509_KEY_INVALID_PEM );
+        if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
+            return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
 
         if( ( buf = (unsigned char *) malloc( len ) ) == NULL )
             return( 1 );
@@ -1143,18 +1143,18 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
         if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
         {
             free( buf );
-            return( ret | XYSSL_ERR_X509_KEY_INVALID_PEM );
+            return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
         }
 
         buflen = len;
 
         if( enc != 0 )
         {
-#if defined(XYSSL_DES_C)
+#if defined(POLARSSL_DES_C)
             if( pwd == NULL )
             {
                 free( buf );
-                return( XYSSL_ERR_X509_KEY_PASSWORD_REQUIRED );
+                return( POLARSSL_ERR_X509_KEY_PASSWORD_REQUIRED );
             }
 
             x509_des3_decrypt( des3_iv, buf, buflen, pwd, pwdlen );
@@ -1163,10 +1163,10 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
                 buf[4] != 0x02 || buf[5] != 0x01 )
             {
                 free( buf );
-                return( XYSSL_ERR_X509_KEY_PASSWORD_MISMATCH );
+                return( POLARSSL_ERR_X509_KEY_PASSWORD_MISMATCH );
             }
 #else
-            return( XYSSL_ERR_X509_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
 #endif
         }
     }
@@ -1197,7 +1197,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
             free( buf );
 
         rsa_free( rsa );
-        return( XYSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
     }
 
     end = p + len;
@@ -1208,7 +1208,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
             free( buf );
 
         rsa_free( rsa );
-        return( XYSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
     }
 
     if( rsa->ver != 0 )
@@ -1217,7 +1217,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
             free( buf );
 
         rsa_free( rsa );
-        return( ret | XYSSL_ERR_X509_KEY_INVALID_VERSION );
+        return( ret | POLARSSL_ERR_X509_KEY_INVALID_VERSION );
     }
 
     if( ( ret = asn1_get_mpi( &p, end, &rsa->N  ) ) != 0 ||
@@ -1233,7 +1233,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
             free( buf );
 
         rsa_free( rsa );
-        return( ret | XYSSL_ERR_X509_KEY_INVALID_FORMAT );
+        return( ret | POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
     }
 
     rsa->len = mpi_size( &rsa->N );
@@ -1244,8 +1244,8 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
             free( buf );
 
         rsa_free( rsa );
-        return( XYSSL_ERR_X509_KEY_INVALID_FORMAT |
-                XYSSL_ERR_ASN1_LENGTH_MISMATCH );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     if( ( ret = rsa_check_privkey( rsa ) ) != 0 )
@@ -1483,10 +1483,10 @@ static void x509_hash( unsigned char *in, int len, int alg,
 {
     switch( alg )
     {
-#if defined(XYSSL_MD2_C)
+#if defined(POLARSSL_MD2_C)
         case RSA_MD2  :  md2( in, len, out ); break;
 #endif
-#if defined(XYSSL_MD4_C)
+#if defined(POLARSSL_MD4_C)
         case RSA_MD4  :  md4( in, len, out ); break;
 #endif
         case RSA_MD5  :  md5( in, len, out ); break;
@@ -1559,7 +1559,7 @@ int x509parse_verify( x509_cert *crt,
 
         if( rsa_pkcs1_verify( &cur->rsa, RSA_PUBLIC, hash_id,
                               0, hash, crt->sig.p ) != 0 )
-            return( XYSSL_ERR_X509_CERT_VERIFY_FAILED );
+            return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
 
         pathlen++;
 
@@ -1602,7 +1602,7 @@ int x509parse_verify( x509_cert *crt,
     }
 
     if( *flags != 0 )
-        return( XYSSL_ERR_X509_CERT_VERIFY_FAILED );
+        return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
 
     return( 0 );
 }
@@ -1665,9 +1665,9 @@ void x509_free( x509_cert *crt )
     while( cert_cur != NULL );
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
-#include "xyssl/certs.h"
+#include "polarssl/certs.h"
 
 /*
  * Checkup routine

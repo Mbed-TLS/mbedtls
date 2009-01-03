@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "xyssl/md5.h"
+#include "polarssl/md5.h"
 
 static int md5_wrapper( char *filename, unsigned char *sum )
 {

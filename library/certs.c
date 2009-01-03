@@ -18,9 +18,9 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_CERTS_C)
+#if defined(POLARSSL_CERTS_C)
 
 char test_ca_crt[] =
 "-----BEGIN CERTIFICATE-----\r\n"

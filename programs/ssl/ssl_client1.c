@@ -25,9 +25,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "xyssl/net.h"
-#include "xyssl/ssl.h"
-#include "xyssl/havege.h"
+#include "polarssl/net.h"
+#include "polarssl/ssl.h"
+#include "polarssl/havege.h"
 
 #define SERVER_PORT 443
 /*
@@ -115,7 +115,7 @@ int main( void )
 
     while( ( ret = ssl_write( &ssl, buf, len ) ) <= 0 )
     {
-        if( ret != XYSSL_ERR_NET_TRY_AGAIN )
+        if( ret != POLARSSL_ERR_NET_TRY_AGAIN )
         {
             printf( " failed\n  ! ssl_write returned %d\n\n", ret );
             goto exit;
@@ -137,10 +137,10 @@ int main( void )
         memset( buf, 0, sizeof( buf ) );
         ret = ssl_read( &ssl, buf, len );
 
-        if( ret == XYSSL_ERR_NET_TRY_AGAIN )
+        if( ret == POLARSSL_ERR_NET_TRY_AGAIN )
             continue;
 
-        if( ret == XYSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
+        if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
             break;
 
         if( ret <= 0 )

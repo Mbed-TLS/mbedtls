@@ -18,11 +18,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_DEBUG_C)
+#if defined(POLARSSL_DEBUG_C)
 
-#include "xyssl/debug.h"
+#include "polarssl/debug.h"
 
 #include <stdarg.h>
 #include <stdlib.h>

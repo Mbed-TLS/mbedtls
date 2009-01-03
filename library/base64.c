@@ -18,11 +18,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_BASE64_C)
+#if defined(POLARSSL_BASE64_C)
 
-#include "xyssl/base64.h"
+#include "polarssl/base64.h"
 
 static const unsigned char base64_enc_map[64] =
 {
@@ -77,7 +77,7 @@ int base64_encode( unsigned char *dst, int *dlen,
     if( *dlen < n + 1 )
     {
         *dlen = n + 1;
-        return( XYSSL_ERR_BASE64_BUFFER_TOO_SMALL );
+        return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 
     n = (slen / 3) * 3;
@@ -135,13 +135,13 @@ int base64_decode( unsigned char *dst, int *dlen,
             continue;
 
         if( src[i] == '=' && ++j > 2 )
-            return( XYSSL_ERR_BASE64_INVALID_CHARACTER );
+            return( POLARSSL_ERR_BASE64_INVALID_CHARACTER );
 
         if( src[i] > 127 || base64_dec_map[src[i]] == 127 )
-            return( XYSSL_ERR_BASE64_INVALID_CHARACTER );
+            return( POLARSSL_ERR_BASE64_INVALID_CHARACTER );
 
         if( base64_dec_map[src[i]] < 64 && j != 0 )
-            return( XYSSL_ERR_BASE64_INVALID_CHARACTER );
+            return( POLARSSL_ERR_BASE64_INVALID_CHARACTER );
 
         n++;
     }
@@ -154,7 +154,7 @@ int base64_decode( unsigned char *dst, int *dlen,
     if( *dlen < n )
     {
         *dlen = n;
-        return( XYSSL_ERR_BASE64_BUFFER_TOO_SMALL );
+        return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 
    for( j = 3, n = x = 0, p = dst; i > 0; i--, src++ )
@@ -179,7 +179,7 @@ int base64_decode( unsigned char *dst, int *dlen,
     return( 0 );
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
 #include <string.h>
 #include <stdio.h>

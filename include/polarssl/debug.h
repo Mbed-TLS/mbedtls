@@ -7,7 +7,7 @@
 #include "polarssl/config.h"
 #include "polarssl/ssl.h"
 
-#if defined(XYSSL_DEBUG_MSG)
+#if defined(POLARSSL_DEBUG_MSG)
 
 #define SSL_DEBUG_MSG( level, args )                    \
     debug_print_msg( ssl, level, __FILE__, __LINE__, debug_fmt args );

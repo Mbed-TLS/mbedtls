@@ -24,7 +24,7 @@
 
 #include <stdio.h>
 
-#include "xyssl/md5.h"
+#include "polarssl/md5.h"
 
 int main( void )
 {

@@ -23,11 +23,11 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_SHA4_C)
+#if defined(POLARSSL_SHA4_C)
 
-#include "xyssl/sha4.h"
+#include "polarssl/sha4.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -429,7 +429,7 @@ void sha4_hmac( unsigned char *key, int keylen,
     memset( &ctx, 0, sizeof( sha4_context ) );
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
 /*
  * FIPS-180-2 test vectors

@@ -1,8 +1,8 @@
 /**
  * \file arc4.h
  */
-#ifndef XYSSL_ARC4_H
-#define XYSSL_ARC4_H
+#ifndef POLARSSL_ARC4_H
+#define POLARSSL_ARC4_H
 
 /**
  * \brief          ARC4 context structure

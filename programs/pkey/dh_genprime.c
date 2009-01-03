@@ -24,9 +24,9 @@
 
 #include <stdio.h>
 
-#include "xyssl/bignum.h"
-#include "xyssl/config.h"
-#include "xyssl/havege.h"
+#include "polarssl/bignum.h"
+#include "polarssl/config.h"
+#include "polarssl/havege.h"
 
 /*
  * Note: G = 4 is always a quadratic residue mod P,
@@ -39,7 +39,7 @@ int main( void )
 {
     int ret = 1;
 
-#if defined(XYSSL_GENPRIME)
+#if defined(POLARSSL_GENPRIME)
     mpi G, P, Q;
     havege_state hs;
     FILE *fout;

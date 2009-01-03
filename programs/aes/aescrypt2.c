@@ -35,8 +35,8 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "xyssl/aes.h"
-#include "xyssl/sha2.h"
+#include "polarssl/aes.h"
+#include "polarssl/sha2.h"
 
 #define MODE_ENCRYPT    0
 #define MODE_DECRYPT    1

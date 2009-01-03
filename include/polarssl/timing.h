@@ -1,8 +1,8 @@
 /**
  * \file timing.h
  */
-#ifndef XYSSL_TIMING_H
-#define XYSSL_TIMING_H
+#ifndef POLARSSL_TIMING_H
+#define POLARSSL_TIMING_H
 
 /**
  * \brief          timer structure

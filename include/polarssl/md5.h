@@ -1,8 +1,8 @@
 /**
  * \file md5.h
  */
-#ifndef XYSSL_MD5_H
-#define XYSSL_MD5_H
+#ifndef POLARSSL_MD5_H
+#define POLARSSL_MD5_H
 
 /**
  * \brief          MD5 context structure

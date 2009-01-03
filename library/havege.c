@@ -28,12 +28,12 @@
 #include <string.h>
 #include <time.h>
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_HAVEGE_C)
+#if defined(POLARSSL_HAVEGE_C)
 
-#include "xyssl/havege.h"
-#include "xyssl/timing.h"
+#include "polarssl/havege.h"
+#include "polarssl/timing.h"
 
 /* ------------------------------------------------------------------------
  * On average, one iteration accesses two 8-word blocks in the havege WALK
@@ -209,7 +209,7 @@ int havege_rand( void *p_rng )
     return( ret );
 }
 
-#if defined(XYSSL_RAND_TEST)
+#if defined(POLARSSL_RAND_TEST)
 
 #include <stdio.h>
 

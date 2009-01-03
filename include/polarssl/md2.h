@@ -1,8 +1,8 @@
 /**
  * \file md2.h
  */
-#ifndef XYSSL_MD2_H
-#define XYSSL_MD2_H
+#ifndef POLARSSL_MD2_H
+#define POLARSSL_MD2_H
 
 /**
  * \brief          MD2 context structure

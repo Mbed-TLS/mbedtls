@@ -18,11 +18,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_TIMING_C)
+#if defined(POLARSSL_TIMING_C)
 
-#include "xyssl/timing.h"
+#include "polarssl/timing.h"
 
 #if defined(WIN32)
 

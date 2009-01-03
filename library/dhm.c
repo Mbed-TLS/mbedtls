@@ -23,11 +23,11 @@
  *  http://www.cacr.math.uwaterloo.ca/hac/ (chapter 12)
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_DHM_C)
+#if defined(POLARSSL_DHM_C)
 
-#include "xyssl/dhm.h"
+#include "polarssl/dhm.h"
 
 #include <string.h>
 
@@ -41,16 +41,16 @@ static int dhm_read_bignum( mpi *X,
     int ret, n;
 
     if( end - *p < 2 )
-        return( XYSSL_ERR_DHM_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     n = ( (*p)[0] << 8 ) | (*p)[1];
     (*p) += 2;
 
     if( (int)( end - *p ) < n )
-        return( XYSSL_ERR_DHM_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = mpi_read_binary( X, *p, n ) ) != 0 )
-        return( XYSSL_ERR_DHM_READ_PARAMS_FAILED | ret );
+        return( POLARSSL_ERR_DHM_READ_PARAMS_FAILED | ret );
 
     (*p) += n;
 
@@ -76,13 +76,13 @@ int dhm_read_params( dhm_context *ctx,
     ctx->len = mpi_size( &ctx->P );
 
     if( end - *p < 2 )
-        return( XYSSL_ERR_DHM_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     n = ( (*p)[0] << 8 ) | (*p)[1];
     (*p) += 2;
 
     if( end != *p + n )
-        return( XYSSL_ERR_DHM_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     return( 0 );
 }
@@ -139,7 +139,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
 cleanup:
 
     if( ret != 0 )
-        return( ret | XYSSL_ERR_DHM_MAKE_PARAMS_FAILED );
+        return( ret | POLARSSL_ERR_DHM_MAKE_PARAMS_FAILED );
 
     return( 0 );
 }
@@ -153,10 +153,10 @@ int dhm_read_public( dhm_context *ctx,
     int ret;
 
     if( ctx == NULL || ilen < 1 || ilen > ctx->len )
-        return( XYSSL_ERR_DHM_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = mpi_read_binary( &ctx->GY, input, ilen ) ) != 0 )
-        return( XYSSL_ERR_DHM_READ_PUBLIC_FAILED | ret );
+        return( POLARSSL_ERR_DHM_READ_PUBLIC_FAILED | ret );
 
     return( 0 );
 }
@@ -172,7 +172,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
     unsigned char *p;
 
     if( ctx == NULL || olen < 1 || olen > ctx->len )
-        return( XYSSL_ERR_DHM_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     /*
      * generate X and calculate GX = G^X mod P
@@ -197,7 +197,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
 cleanup:
 
     if( ret != 0 )
-        return( XYSSL_ERR_DHM_MAKE_PUBLIC_FAILED | ret );
+        return( POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED | ret );
 
     return( 0 );
 }
@@ -211,7 +211,7 @@ int dhm_calc_secret( dhm_context *ctx,
     int ret;
 
     if( ctx == NULL || *olen < ctx->len )
-        return( XYSSL_ERR_DHM_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     MPI_CHK( mpi_exp_mod( &ctx->K, &ctx->GY, &ctx->X,
                           &ctx->P, &ctx->RP ) );
@@ -223,7 +223,7 @@ int dhm_calc_secret( dhm_context *ctx,
 cleanup:
 
     if( ret != 0 )
-        return( XYSSL_ERR_DHM_CALC_SECRET_FAILED | ret );
+        return( POLARSSL_ERR_DHM_CALC_SECRET_FAILED | ret );
 
     return( 0 );
 }
@@ -238,7 +238,7 @@ void dhm_free( dhm_context *ctx )
               &ctx->P, NULL );    
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
 /*
  * Checkup routine

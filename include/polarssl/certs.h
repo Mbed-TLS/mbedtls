@@ -1,8 +1,8 @@
 /**
  * \file certs.h
  */
-#ifndef XYSSL_CERTS_H
-#define XYSSL_CERTS_H
+#ifndef POLARSSL_CERTS_H
+#define POLARSSL_CERTS_H
 
 #ifdef __cplusplus
 extern "C" {

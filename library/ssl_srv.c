@@ -18,12 +18,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_SSL_SRV_C)
+#if defined(POLARSSL_SSL_SRV_C)
 
-#include "xyssl/debug.h"
-#include "xyssl/ssl.h"
+#include "polarssl/debug.h"
+#include "polarssl/ssl.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -72,7 +72,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             buf[3] != SSL_MAJOR_VERSION_3 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         n = ( ( buf[0] << 8 ) | buf[1] ) & 0x7FFF;
@@ -80,7 +80,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         if( n < 17 || n > 512 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         ssl->max_major_ver = buf[3];
@@ -125,25 +125,25 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         if( ciph_len < 3 || ( ciph_len % 3 ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         if( sess_len < 0 || sess_len > 32 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         if( chal_len < 8 || chal_len > 32 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         if( n != 6 + ciph_len + sess_len + chal_len )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         SSL_DEBUG_BUF( 3, "client hello, cipherlist",
@@ -196,7 +196,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             buf[1] != SSL_MAJOR_VERSION_3 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         n = ( buf[3] << 8 ) | buf[4];
@@ -204,7 +204,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         if( n < 45 || n > 512 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         if( ( ret = ssl_fetch_input( ssl, 5 + n ) ) != 0 )
@@ -249,7 +249,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             buf[4] != SSL_MAJOR_VERSION_3 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         ssl->major_ver = SSL_MAJOR_VERSION_3;
@@ -267,7 +267,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         if( buf[1] != 0 || n != 4 + ( ( buf[2] << 8 ) | buf[3] ) )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         /*
@@ -278,7 +278,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         if( sess_len < 0 || sess_len > 32 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         ssl->session->length = sess_len;
@@ -294,7 +294,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         if( ciph_len < 2 || ciph_len > 256 || ( ciph_len % 2 ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         /*
@@ -305,7 +305,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         if( comp_len < 1 || comp_len > 16 )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
         SSL_DEBUG_BUF( 3, "client hello, random bytes",
@@ -333,7 +333,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 1, ( "got no ciphers in common" ) );
 
-    return( XYSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
 
 have_cipher:
 
@@ -526,9 +526,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         return( 0 );
     }
 
-#if !defined(XYSSL_DHM_C)
+#if !defined(POLARSSL_DHM_C)
     SSL_DEBUG_MSG( 1, ( "support for dhm is not available" ) );
-    return( XYSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 #else
     /*
      * Ephemeral DH parameters:
@@ -646,21 +646,21 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( XYSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
     if( ssl->in_msg[0] != SSL_HS_CLIENT_KEY_EXCHANGE )
     {
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( XYSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
     if( ssl->session->cipher == SSL_EDH_RSA_DES_168_SHA ||
         ssl->session->cipher == SSL_EDH_RSA_AES_256_SHA )
     {
-#if !defined(XYSSL_DHM_C)
+#if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm is not available" ) );
-        return( XYSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 #else
         /*
          * Receive G^Y mod P, premaster = (G^Y)^X mod P
@@ -671,14 +671,14 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
             n + 6 != ssl->in_hslen )
         {
             SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
 
         if( ( ret = dhm_read_public( &ssl->dhm_ctx,
                                       ssl->in_msg + 6, n ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_read_public", ret );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE | ret );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE | ret );
         }
 
         SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->dhm_ctx.GY );
@@ -689,7 +689,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
                      ssl->premaster, &ssl->pmslen ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE | ret );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE | ret );
         }
 
         SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->dhm_ctx.K  );
@@ -711,14 +711,14 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
                 ssl->in_msg[5] != ( ( n      ) & 0xFF ) )
             {
                 SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-                return( XYSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
             }
         }
 
         if( ssl->in_hslen != i + n )
         {
             SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-            return( XYSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
 
         ret = rsa_pkcs1_decrypt( ssl->rsa_key, RSA_PRIVATE, &ssl->pmslen,
@@ -782,13 +782,13 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( XYSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
     if( ssl->in_msg[0] != SSL_HS_CERTIFICATE_VERIFY )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( XYSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
     n1 = ssl->peer_cert->rsa.len;
@@ -797,7 +797,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     if( n1 + 6 != ssl->in_hslen || n1 != n2 )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( XYSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
     ret = rsa_pkcs1_verify( &ssl->peer_cert->rsa, RSA_PUBLIC,
@@ -915,7 +915,7 @@ int ssl_handshake_server( ssl_context *ssl )
 
             default:
                 SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );
-                return( XYSSL_ERR_SSL_BAD_INPUT_DATA );
+                return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
         }
 
         if( ret != 0 )

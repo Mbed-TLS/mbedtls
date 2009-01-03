@@ -24,11 +24,11 @@
  *  http://csrc.nist.gov/publications/fips/fips46-3/fips46-3.pdf
  */
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
-#if defined(XYSSL_DES_C)
+#if defined(POLARSSL_DES_C)
 
-#include "xyssl/des.h"
+#include "polarssl/des.h"
 
 #include <string.h>
 
@@ -634,7 +634,7 @@ void des3_crypt_cbc( des3_context *ctx,
     }
 }
 
-#if defined(XYSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST)
 
 #include <stdio.h>
 

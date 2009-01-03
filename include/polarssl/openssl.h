@@ -7,10 +7,10 @@
 #ifndef XYSSL_OPENSSL_H
 #define XYSSL_OPENSSL_H
 
-#include "xyssl/aes.h"
-#include "xyssl/md5.h"
-#include "xyssl/rsa.h"
-#include "xyssl/sha1.h"
+#include "polarssl/aes.h"
+#include "polarssl/md5.h"
+#include "polarssl/rsa.h"
+#include "polarssl/sha1.h"
 
 #define AES_SIZE                16
 #define AES_BLOCK_SIZE          16

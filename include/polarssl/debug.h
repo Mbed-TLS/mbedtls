@@ -4,8 +4,8 @@
 #ifndef SSL_DEBUG_H
 #define SSL_DEBUG_H
 
-#include "xyssl/config.h"
-#include "xyssl/ssl.h"
+#include "polarssl/config.h"
+#include "polarssl/ssl.h"
 
 #if defined(XYSSL_DEBUG_MSG)
 

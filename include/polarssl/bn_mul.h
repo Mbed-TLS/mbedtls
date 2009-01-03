@@ -18,7 +18,7 @@
 #ifndef XYSSL_BN_MUL_H
 #define XYSSL_BN_MUL_H
 
-#include "xyssl/config.h"
+#include "polarssl/config.h"
 
 #if defined(XYSSL_HAVE_ASM)
 

@@ -6,12 +6,12 @@
 
 #include <time.h>
 
-#include "xyssl/net.h"
-#include "xyssl/dhm.h"
-#include "xyssl/rsa.h"
-#include "xyssl/md5.h"
-#include "xyssl/sha1.h"
-#include "xyssl/x509.h"
+#include "polarssl/net.h"
+#include "polarssl/dhm.h"
+#include "polarssl/rsa.h"
+#include "polarssl/md5.h"
+#include "polarssl/sha1.h"
+#include "polarssl/x509.h"
 
 #define XYSSL_ERR_SSL_FEATURE_UNAVAILABLE               -0x1000
 #define XYSSL_ERR_SSL_BAD_INPUT_DATA                    -0x1800

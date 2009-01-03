@@ -4,7 +4,7 @@
 #ifndef XYSSL_X509_H
 #define XYSSL_X509_H
 
-#include "xyssl/rsa.h"
+#include "polarssl/rsa.h"
 
 #define XYSSL_ERR_ASN1_OUT_OF_DATA                      -0x0014
 #define XYSSL_ERR_ASN1_UNEXPECTED_TAG                   -0x0016

@@ -4,7 +4,7 @@
 #ifndef XYSSL_DHM_H
 #define XYSSL_DHM_H
 
-#include "xyssl/bignum.h"
+#include "polarssl/bignum.h"
 
 #define XYSSL_ERR_DHM_BAD_INPUT_DATA                    -0x0480
 #define XYSSL_ERR_DHM_READ_PARAMS_FAILED                -0x0490

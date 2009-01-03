@@ -4,7 +4,7 @@
 #ifndef XYSSL_RSA_H
 #define XYSSL_RSA_H
 
-#include "xyssl/bignum.h"
+#include "polarssl/bignum.h"
 
 #define XYSSL_ERR_RSA_BAD_INPUT_DATA                    -0x0400
 #define XYSSL_ERR_RSA_INVALID_PADDING                   -0x0410

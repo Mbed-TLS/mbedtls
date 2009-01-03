@@ -4,7 +4,7 @@
 #ifndef XYSSL_PADLOCK_H
 #define XYSSL_PADLOCK_H
 
-#include "xyssl/aes.h"
+#include "polarssl/aes.h"
 
 #if (defined(__GNUC__) && defined(__i386__))
 

@@ -1,0 +1,155 @@
+
+= Version 0.9 released on 2008-03-16
+
+    * Added support for ciphersuite: SSL_RSA_AES_128_SHA
+    * Enabled support for large files by default in aescrypt2.c
+    * Preliminary openssl wrapper contributed by David Barrett
+    * Fixed a bug in ssl_write() that caused the same payload to
+      be sent twice in non-blocking mode when send returns EAGAIN
+    * Fixed ssl_parse_client_hello(): session id and challenge must
+      not be swapped in the SSLv2 ClientHello (found by Greg Robson)
+    * Added user-defined callback debug function (Krystian Kolodziej)
+    * Before freeing a certificate, properly zero out all cert. data
+    * Fixed the "mode" parameter so that encryption/decryption are
+      not swapped on PadLock; also fixed compilation on older versions
+      of gcc (bug reported by David Barrett)
+    * Correctly handle the case in padlock_xcryptcbc() when input or
+      ouput data is non-aligned by falling back to the software
+      implementation, as VIA Nehemiah cannot handle non-aligned buffers
+    * Fixed a memory leak in x509parse_crt() which was reported by Greg
+      Robson-Garth; some x509write.c fixes by Pascal Vizeli, thanks to
+      Matthew Page who reported several bugs
+    * Fixed x509_get_ext() to accept some rare certificates which have
+      an INTEGER instead of a BOOLEAN for BasicConstraints::cA.
+    * Added support on the client side for the TLS "hostname" extension
+      (patch contributed by David Patino)
+    * Make x509parse_verify() return BADCERT_CN_MISMATCH when an empty
+      string is passed as the CN (bug reported by spoofy)
+    * Added an option to enable/disable the BN assembly code
+    * Updated rsa_check_privkey() to verify that (D*E) = 1 % (P-1)*(Q-1)
+    * Disabled obsolete hash functions by default (MD2, MD4); updated
+      selftest and benchmark to not test ciphers that have been disabled
+    * Updated x509parse_cert_info() to correctly display byte 0 of the
+      serial number, setup correct server port in the ssl client example
+    * Fixed a critical denial-of-service with X.509 cert. verification:
+      peer may cause xyssl to loop indefinitely by sending a certificate
+      for which the RSA signature check fails (bug reported by Benoit)
+    * Added test vectors for: AES-CBC, AES-CFB, DES-CBC and 3DES-CBC,
+      HMAC-MD5, HMAC-SHA1, HMAC-SHA-256, HMAC-SHA-384, and HMAC-SHA-512
+    * Fixed HMAC-SHA-384 and HMAC-SHA-512 (thanks to Josh Sinykin)
+    * Modified ssl_parse_client_key_exchange() to protect against
+      Daniel Bleichenbacher attack on PKCS#1 v1.5 padding, as well
+      as the Klima-Pokorny-Rosa extension of Bleichenbacher's attack
+    * Updated rsa_gen_key() so that ctx->N is always nbits in size
+    * Fixed assembly PPC compilation errors on Mac OS X, thanks to
+      David Barrett and Dusan Semen
+
+= Version 0.8 released on 2007-10-20
+
+    * Modified the HMAC functions to handle keys larger
+      than 64 bytes, thanks to Stephane Desneux and gary ng
+    * Fixed ssl_read_record() to properly update the handshake
+      message digests, which fixes IE6/IE7 client authentication
+    * Cleaned up the XYSSL* #defines, suggested by Azriel Fasten
+    * Fixed net_recv(), thanks to Lorenz Schori and Egon Kocjan
+    * Added user-defined callbacks for handling I/O and sessions
+    * Added lots of debugging output in the SSL/TLS functions
+    * Added preliminary X.509 cert. writing by Pascal Vizeli
+    * Added preliminary support for the VIA PadLock routines
+    * Added AES-CFB mode of operation, contributed by chmike
+    * Added an SSL/TLS stress testing program (ssl_test.c)
+    * Updated the RSA PKCS#1 code to allow choosing between
+      RSA_PUBLIC and RSA_PRIVATE, as suggested by David Barrett
+    * Updated ssl_read() to skip 0-length records from OpenSSL
+    * Fixed the make install target to comply with *BSD make
+    * Fixed a bug in mpi_read_binary() on 64-bit platforms
+    * mpi_is_prime() speedups, thanks to Kevin McLaughlin
+    * Fixed a long standing memory leak in mpi_is_prime()
+    * Replaced realloc with malloc in mpi_grow(), and set
+      the sign of zero as positive in mpi_init() (reported
+      by Jonathan M. McCune)
+
+= Version 0.7 released on 2007-07-07
+
+    * Added support for the MicroBlaze soft-core processor
+    * Fixed a bug in ssl_tls.c which sometimes prevented SSL
+      connections from being established with non-blocking I/O
+    * Fixed a couple bugs in the VS6 and UNIX Makefiles
+    * Fixed the "PIC register ebx clobbered in asm" bug
+    * Added HMAC starts/update/finish support functions
+    * Added the SHA-224, SHA-384 and SHA-512 hash functions
+    * Fixed the net_set_*block routines, thanks to Andreas
+    * Added a few demonstration programs: md5sum, sha1sum,
+      dh_client, dh_server, rsa_genkey, rsa_sign, rsa_verify
+    * Added new bignum import and export helper functions
+    * Rewrote README.txt in program/ssl/ca to better explain
+      how to create a test PKI
+
+= Version 0.6 released on 2007-04-01
+
+    * Ciphers used in SSL/TLS can now be disabled at compile
+      time, to reduce the memory footprint on embedded systems
+    * Added multiply assembly code for the TriCore and modified
+      havege_struct for this processor, thanks to David Patiño
+    * Added multiply assembly code for 64-bit PowerPCs,
+      thanks to Peking University and the OSU Open Source Lab
+    * Added experimental support of Quantum Cryptography
+    * Added support for autoconf, contributed by Arnaud Cornet
+    * Fixed "long long" compilation issues on IA-64 and PPC64
+    * Fixed a bug introduced in xyssl-0.5/timing.c: hardclock
+      was not being correctly defined on ARM and MIPS
+
+= Version 0.5 released on 2007-03-01
+
+    * Added multiply assembly code for SPARC and Alpha
+    * Added (beta) support for non-blocking I/O operations
+    * Implemented session resuming and client authentication
+    * Fixed some portability issues on WinCE, MINIX 3, Plan9
+      (thanks to Benjamin Newman), HP-UX, FreeBSD and Solaris
+    * Improved the performance of the EDH key exchange
+    * Fixed a bug that caused valid packets with a payload
+      size of 16384 bytes to be rejected
+
+= Version 0.4 released on 2007-02-01
+
+    * Added support for Ephemeral Diffie-Hellman key exchange
+    * Added multiply asm code for SSE2, ARM, PPC, MIPS and M68K
+    * Various improvement to the modular exponentiation code
+    * Rewrote the headers to generate the API docs with doxygen
+    * Fixed a bug in ssl_encrypt_buf (incorrect padding was
+      generated) and in ssl_parse_client_hello (max. client
+      version was not properly set), thanks to Didier Rebeix
+    * Fixed another bug in ssl_parse_client_hello: clients with
+      cipherlists larger than 96 bytes were incorrectly rejected
+    * Fixed a couple memory leak in x509_read.c
+
+= Version 0.3 released on 2007-01-01
+
+    * Added server-side SSLv3 and TLSv1.0 support
+    * Multiple fixes to enhance the compatibility with g++,
+      thanks to Xosé Antón Otero Ferreira
+    * Fixed a bug in the CBC code, thanks to dowst; also,
+      the bignum code is no longer dependant on long long
+    * Updated rsa_pkcs1_sign to handle arbitrary large inputs
+    * Updated timing.c for improved compatibility with i386
+      and 486 processors, thanks to Arnaud Cornet
+
+= Version 0.2 released on 2006-12-01
+
+    * Updated timing.c to support ARM and MIPS arch
+    * Updated the MPI code to support 8086 on MSVC 1.5
+    * Added the copyright notice at the top of havege.h
+    * Fixed a bug in sha2_hmac, thanks to newsoft/Wenfang Zhang
+    * Fixed a bug reported by Adrian Rüegsegger in x509_read_key
+    * Fixed a bug reported by Torsten Lauter in ssl_read_record
+    * Fixed a bug in rsa_check_privkey that would wrongly cause
+      valid RSA keys to be dismissed (thanks to oldwolf)
+    * Fixed a bug in mpi_is_prime that caused some primes to fail
+      the Miller-Rabin primality test
+
+    I'd also like to thank Younès Hafri for the CRUX linux port,
+    Khalil Petit who added XySSL into pkgsrc and Arnaud Cornet
+    who maintains the Debian package :-)
+
+= Version 0.1 released on 2006-11-01
+

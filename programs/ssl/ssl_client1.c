@@ -34,10 +34,10 @@
 #define SERVER_NAME "localhost"
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
 */
-#define SERVER_NAME "xyssl.org"
+#define SERVER_NAME "polarssl.org"
 #define GET_REQUEST \
     "GET /hello/ HTTP/1.1\r\n" \
-    "Host: xyssl.org\r\n\r\n"
+    "Host: polarssl.org\r\n\r\n"
 
 #define DEBUG_LEVEL 0
 

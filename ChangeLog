@@ -1,3 +1,15 @@
+PolarSSL ChangeLog
+
+= Version 0.x released on 2009-01-??
+?   * Migrated XySSL to PolarSSL
+?   * Added warning for use of old defines
+?   * Added Camellia symmetric cipher
+?   * Added XTEA symmetric cipher
+?   * Fixed dangerous bug that can cause a heap overflow in
+     rsa_pkcs1_decrypt
+
+================================================================
+XySSL ChangeLog
 
 = Version 0.9 released on 2008-03-16
 

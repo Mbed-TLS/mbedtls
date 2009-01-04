@@ -1,6 +1,6 @@
 
 DESTDIR=/usr/local
-PREFIX=xyssl_
+PREFIX=polarssl_
 
 .SILENT:
 
@@ -9,11 +9,11 @@ all:
 	cd programs && make all && cd ..
 
 install:
-	mkdir -p $(DESTDIR)/include/xyssl
-	cp -r include/xyssl $(DESTDIR)/include
+	mkdir -p $(DESTDIR)/include/polarssl
+	cp -r include/polarssl $(DESTDIR)/include
 	
 	mkdir -p $(DESTDIR)/lib
-	cp library/libxyssl.* $(DESTDIR)/lib
+	cp library/libpolarssl.* $(DESTDIR)/lib
 	
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \

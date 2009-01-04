@@ -299,4 +299,10 @@
  */
 #define POLARSSL_X509_WRITE_C
 
+/*
+ * Module:  library/xtea.c
+ * Caller:
+ */
+#define POLARSSL_XTEA_C
+
 #endif /* config.h */

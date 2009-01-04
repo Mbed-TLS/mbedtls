@@ -42,6 +42,7 @@
 #include "polarssl/bignum.h"
 #include "polarssl/rsa.h"
 #include "polarssl/x509.h"
+#include "polarssl/xtea.h"
 
 int main( int argc, char *argv[] )
 {
@@ -117,6 +118,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_X509_C)
     if( ( ret = x509_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(POLARSSL_XTEA_C)
+    if( ( ret = xtea_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

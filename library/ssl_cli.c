@@ -1,7 +1,9 @@
 /*
  *  SSLv3/TLSv1 client-side functions
  *
- *  Copyright (C) 2006-2007  Christophe Devine
+ *  Based on XySSL: Copyright (C) 2006-2008  Christophe Devine
+ *
+ *  Copyright (C) 2009       Paul Bakker
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

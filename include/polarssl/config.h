@@ -121,6 +121,14 @@
 #define POLARSSL_BIGNUM_C
 
 /*
+ * Module:  library/camellia.c
+ * Caller:
+ *
+ * This module enabled the following cipher suites:
+ */
+#define POLARSSL_CAMELLIA_C
+
+/*
  * Module:  library/certs.c
  * Caller:
  *

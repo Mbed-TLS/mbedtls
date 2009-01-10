@@ -126,6 +126,11 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
+#if defined(POLARSSL_CAMELLIA_C)
+    if( ( ret = camellia_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
     if( v != 0 )
     {
         printf( "  [ All tests passed ]\n\n" );

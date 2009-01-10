@@ -37,6 +37,7 @@
 #include "polarssl/arc4.h"
 #include "polarssl/des.h"
 #include "polarssl/aes.h"
+#include "polarssl/camellia.h"
 #include "polarssl/rsa.h"
 #include "polarssl/timing.h"
 
@@ -66,6 +67,9 @@ int main( void )
 #endif
 #if defined(POLARSSL_AES_C)
     aes_context aes;
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+    camellia_context camellia;
 #endif
 #if defined(POLARSSL_RSA_C)
     rsa_context rsa;
@@ -209,6 +213,30 @@ int main( void )
         tsc = hardclock();
         for( j = 0; j < 4096; j++ )
             aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf );
+
+        printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
+                        ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    }
+#endif
+
+#if defined(POLARSSL_CAMELLIA_C)
+    for( keysize = 128; keysize <= 256; keysize += 64 )
+    {
+        printf( "  CAMELLIA-%d   :  ", keysize );
+        fflush( stdout );
+
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+        camellia_setkey_enc( &camellia, tmp, keysize );
+
+        set_alarm( 1 );
+
+        for( i = 1; ! alarmed; i++ )
+            camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT, BUFSIZE, tmp, buf, buf );
+
+        tsc = hardclock();
+        for( j = 0; j < 4096; j++ )
+            camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT, BUFSIZE, tmp, buf, buf );
 
         printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                         ( hardclock() - tsc ) / ( j * BUFSIZE ) );

@@ -18,10 +18,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /*
- *  The AES block cipher was designed by Vincent Rijmen and Joan Daemen.
+ *  The Camellia block cipher was designed by NTT and Mitsubishi Electric
+ *  Corporation.
  *
- *  http://csrc.nist.gov/encryption/aes/rijndael/Rijndael.pdf
- *  http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
+ *  http://info.isl.ntt.co.jp/crypt/eng/camellia/dl/01espec.pdf
  */
 
 #include "polarssl/config.h"

@@ -391,7 +391,8 @@ exit:
     "    SSL_RSA_RC4_128_MD5         SSL_RSA_RC4_128_SHA\n"      \
     "    SSL_RSA_DES_168_SHA         SSL_EDH_RSA_DES_168_SHA\n"  \
     "    SSL_RSA_AES_128_SHA         SSL_EDH_RSA_AES_256_SHA\n"  \
-    "    SSL_RSA_AES_256_SHA\n\n"
+    "    SSL_RSA_AES_256_SHA         SSL_EDH_RSA_CAMELLIA_256_SHA\n" \
+    "    SSL_RSA_CAMELLIA_128_SHA    SSL_RSA_CAMELLIA_256_SHA\n\n"
 
 int main( int argc, char *argv[] )
 {
@@ -540,6 +541,15 @@ int main( int argc, char *argv[] )
 
             if( strcmp( q, "ssl_edh_rsa_aes_256_sha" ) == 0 )
                 opt.force_cipher[0] = SSL_EDH_RSA_AES_256_SHA;
+
+            if( strcmp( q, "ssl_rsa_camellia_128_sha" ) == 0 )
+                opt.force_cipher[0] = SSL_RSA_CAMELLIA_128_SHA;
+
+            if( strcmp( q, "ssl_rsa_camellia_256_sha" ) == 0 )
+                opt.force_cipher[0] = SSL_RSA_CAMELLIA_256_SHA;
+
+            if( strcmp( q, "ssl_edh_rsa_camellia_256_sha" ) == 0 )
+                opt.force_cipher[0] = SSL_EDH_RSA_CAMELLIA_256_SHA;
 
             if( opt.force_cipher[0] < 0 )
                 goto usage;

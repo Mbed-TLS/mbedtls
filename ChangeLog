@@ -4,7 +4,8 @@ PolarSSL ChangeLog
    * Migrated XySSL to PolarSSL
    * Added XTEA symmetric cipher
    * Added Camellia symmetric cipher
-?   * Added SSL Support for Camellia
+   * Added support for ciphersuites: SSL_RSA_CAMELLIA_128_SHA,
+     SSL_RSA_CAMELLIA_256_SHA and SSL_EDH_RSA_CAMELLIA_256_SHA
 ?   * Fixed dangerous bug that can cause a heap overflow in
      rsa_pkcs1_decrypt
 

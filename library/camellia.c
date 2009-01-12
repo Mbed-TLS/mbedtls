@@ -65,7 +65,9 @@ static const unsigned char SIGMA_CHARS[6][8] =
 	{ 0xb0, 0x56, 0x88, 0xc2, 0xb3, 0xe6, 0xc1, 0xfd }
 };
 
-/*static const unsigned char FSb[256] =
+#ifdef POLARSSL_CAMELLIA_SMALL_MEMORY
+
+static const unsigned char FSb[256] =
 {
 	112,130, 44,236,179, 39,192,229,228,133, 87, 53,234, 12,174, 65,
 	 35,239,107,147, 69, 25,165, 33,237, 14, 79, 78, 29,101,146,189,
@@ -88,7 +90,10 @@ static const unsigned char SIGMA_CHARS[6][8] =
 #define SBOX1(n) FSb[(n)]
 #define SBOX2(n) (unsigned char)((FSb[(n)] >> 7 ^ FSb[(n)] << 1) & 0xff)
 #define SBOX3(n) (unsigned char)((FSb[(n)] >> 1 ^ FSb[(n)] << 7) & 0xff)
-#define SBOX4(n) FSb[((n) << 1 ^ (n) >> 7) &0xff]*/
+#define SBOX4(n) FSb[((n) << 1 ^ (n) >> 7) &0xff]
+
+#else
+
 static const unsigned char FSb[256] =
 {
 	112, 130,  44, 236, 179,  39, 192, 229, 228, 133,  87,  53, 234,  12, 174,  65,
@@ -173,6 +178,8 @@ static const unsigned char FSb4[256] =
 #define SBOX2(n) FSb2[(n)]
 #define SBOX3(n) FSb3[(n)]
 #define SBOX4(n) FSb4[(n)]
+
+#endif
 
 static const unsigned char shifts[2][4][4] =
 {
@@ -832,62 +839,6 @@ int camellia_self_test( int verbose )
         printf( "\n" );
 
     return ( 0 );
-
-    /*
-     * CFB128 mode
-     */
-    /*
-    for( i = 0; i < 6; i++ )
-    {
-        u = i >> 1;
-        v = i  & 1;
-
-        if( verbose != 0 )
-            printf( "  AES-CFB128-%3d (%s): ", 128 + u * 64,
-                    ( v == AES_DECRYPT ) ? "dec" : "enc" );
-
-        memcpy( iv,  aes_test_cfb128_iv, 16 );
-        memcpy( key, aes_test_cfb128_key[u], 16 + u * 8 );
-
-        offset = 0;
-        aes_setkey_enc( &ctx, key, 128 + u * 64 );
-
-        if( v == AES_DECRYPT )
-        {
-            memcpy( buf, aes_test_cfb128_ct[u], 64 );
-            aes_crypt_cfb128( &ctx, v, 64, &offset, iv, buf, buf );
-
-            if( memcmp( buf, aes_test_cfb128_pt, 64 ) != 0 )
-            {
-                if( verbose != 0 )
-                    printf( "failed\n" );
-
-                return( 1 );
-            }
-        }
-        else
-        {
-            memcpy( buf, aes_test_cfb128_pt, 64 );
-            aes_crypt_cfb128( &ctx, v, 64, &offset, iv, buf, buf );
-
-            if( memcmp( buf, aes_test_cfb128_ct[u], 64 ) != 0 )
-            {
-                if( verbose != 0 )
-                    printf( "failed\n" );
-
-                return( 1 );
-            }
-        }
-
-        if( verbose != 0 )
-            printf( "passed\n" );
-    }
-
-
-    if( verbose != 0 )
-        printf( "\n" );
-
-    return( 0 ); */
 }
 
 #endif

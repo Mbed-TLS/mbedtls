@@ -1,13 +1,13 @@
 PolarSSL ChangeLog
 
-= Version 0.x released on 2009-01-??
+= Version 0.10 released on 2009-01-12
    * Migrated XySSL to PolarSSL
    * Added XTEA symmetric cipher
    * Added Camellia symmetric cipher
    * Added support for ciphersuites: SSL_RSA_CAMELLIA_128_SHA,
      SSL_RSA_CAMELLIA_256_SHA and SSL_EDH_RSA_CAMELLIA_256_SHA
-?   * Fixed dangerous bug that can cause a heap overflow in
-     rsa_pkcs1_decrypt
+   * Fixed dangerous bug that can cause a heap overflow in
+     rsa_pkcs1_decrypt (found by Christophe Devine)
 
 ================================================================
 XySSL ChangeLog

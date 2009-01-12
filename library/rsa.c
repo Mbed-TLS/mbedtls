@@ -328,7 +328,8 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
 int rsa_pkcs1_decrypt( rsa_context *ctx,
                        int mode, int *olen,
                        unsigned char *input,
-                       unsigned char *output )
+                       unsigned char *output,
+		       int output_max_len)
 {
     int ret, ilen;
     unsigned char *p;
@@ -368,6 +369,9 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
 
             return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
+
+    if (ilen - (int)(p - buf) > output_max_len)
+    	return( POLARSSL_ERR_RSA_OUTPUT_TO_LARGE );
 
     *olen = ilen - (int)(p - buf);
     memcpy( output, p, *olen );
@@ -677,7 +681,8 @@ int rsa_self_test( int verbose )
         printf( "passed\n  PKCS#1 decryption : " );
 
     if( rsa_pkcs1_decrypt( &rsa, RSA_PRIVATE, &len,
-                           rsa_ciphertext, rsa_decrypted ) != 0 )
+                           rsa_ciphertext, rsa_decrypted,
+			   sizeof(rsa_decrypted) ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );

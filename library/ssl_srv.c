@@ -726,7 +726,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         }
 
         ret = rsa_pkcs1_decrypt( ssl->rsa_key, RSA_PRIVATE, &ssl->pmslen,
-                                 ssl->in_msg + i, ssl->premaster );
+                                 ssl->in_msg + i, ssl->premaster,
+				 sizeof(ssl->premaster) );
 
         if( ret != 0 || ssl->pmslen != 48 ||
             ssl->premaster[0] != ssl->max_major_ver ||

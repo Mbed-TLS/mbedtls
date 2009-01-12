@@ -31,6 +31,7 @@
 #define POLARSSL_ERR_RSA_PUBLIC_FAILED                     -0x0440
 #define POLARSSL_ERR_RSA_PRIVATE_FAILED                    -0x0450
 #define POLARSSL_ERR_RSA_VERIFY_FAILED                     -0x0460
+#define POLARSSL_ERR_RSA_OUTPUT_TO_LARGE                   -0x0470
 
 /*
  * PKCS#1 constants
@@ -216,16 +217,19 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
  * \param input    buffer holding the encrypted data
  * \param output   buffer that will hold the plaintext
  * \param olen     will contain the plaintext length
+ * \param output_max_len	maximum length of the output buffer
  *
  * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
  *
  * \note           The output buffer must be as large as the size
- *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used) otherwise
+ *                 an error is thrown.
  */
 int rsa_pkcs1_decrypt( rsa_context *ctx,
                        int mode, int *olen,
                        unsigned char *input,
-                       unsigned char *output );
+                       unsigned char *output,
+		       int output_max_len);
 
 /**
  * \brief          Do a private RSA to sign a message digest

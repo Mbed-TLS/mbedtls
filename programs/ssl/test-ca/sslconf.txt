@@ -25,12 +25,9 @@ policy                  = my_policy
 x509_extensions         = v3_usr
 
 [ my_policy ]
-countryName             = optional
-stateOrProvinceName     = optional
+countryName             = match
 organizationName        = match
-organizationalUnitName  = optional
 commonName              = supplied
-emailAddress            = optional
 
 [ req ]
 distinguished_name      = my_req_dn
@@ -38,16 +35,11 @@ x509_extensions         = v3_ca
 
 [ my_req_dn ]
 countryName             = Country Name..............
-countryName_min         = 2
-countryName_max         = 2
-stateOrProvinceName     = State or Province Name....
-localityName            = Locality Name.............
-0.organizationName      = Organization Name.........
-organizationalUnitName  = Org. Unit Name............
+countryName_default		= NL
+organizationName      = Organization Name.........
+organizationName_default = PolarSSL
 commonName              = Common Name (required)....
 commonName_max          = 64
-emailAddress            = Email Address.............
-emailAddress_max        = 64
 
 [ v3_ca ]
 basicConstraints        = CA:TRUE

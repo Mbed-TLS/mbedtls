@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 0.10 released on 2009-01-12
+= Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL
    * Added XTEA symmetric cipher
    * Added Camellia symmetric cipher

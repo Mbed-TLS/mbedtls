@@ -1,7 +1,7 @@
 /**
  * \file xtea.h
  *
- *  Copyright (C) 2009       Paul Bakker
+ *  Copyright (C) 2009  Paul Bakker <polarssl_maintainer at polarssl dot org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

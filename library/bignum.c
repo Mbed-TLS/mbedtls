@@ -1478,21 +1478,29 @@ cleanup:
  */
 int mpi_gcd( mpi *G, mpi *A, mpi *B )
 {
-    int ret;
+    int ret, lz, lzt;
     mpi TG, TA, TB;
 
     mpi_init( &TG, &TA, &TB, NULL );
 
-    MPI_CHK( mpi_lset( &TG, 1 ) );
     MPI_CHK( mpi_copy( &TA, A ) );
     MPI_CHK( mpi_copy( &TB, B ) );
+
+    lz = mpi_lsb( &TA );
+    lzt = mpi_lsb( &TB );
+
+    if ( lzt < lz )
+        lz = lzt;
+
+    MPI_CHK( mpi_shift_r( &TA, lz ) );
+    MPI_CHK( mpi_shift_r( &TB, lz ) );
 
     TA.s = TB.s = 1;
 
     while( mpi_cmp_int( &TA, 0 ) != 0 )
     {
-        while( ( TA.p[0] & 1 ) == 0 ) MPI_CHK( mpi_shift_r( &TA, 1 ) );
-        while( ( TB.p[0] & 1 ) == 0 ) MPI_CHK( mpi_shift_r( &TB, 1 ) );
+        MPI_CHK( mpi_shift_r( &TA, mpi_lsb( &TA ) ) );
+        MPI_CHK( mpi_shift_r( &TB, mpi_lsb( &TB ) ) );
 
         if( mpi_cmp_mpi( &TA, &TB ) >= 0 )
         {
@@ -1506,7 +1514,8 @@ int mpi_gcd( mpi *G, mpi *A, mpi *B )
         }
     }
 
-    MPI_CHK( mpi_mul_mpi( G, &TG, &TB ) );
+    MPI_CHK( mpi_shift_l( &TB, lz ) );
+    MPI_CHK( mpi_copy( G, &TB ) );
 
 cleanup:
 
@@ -1820,12 +1829,21 @@ cleanup:
 
 #if defined(POLARSSL_SELF_TEST)
 
+#define GCD_PAIR_COUNT	3
+
+static const int gcd_pairs[GCD_PAIR_COUNT][3] =
+{
+    { 693, 609, 21 },
+    { 1764, 868, 28 },
+    { 768454923, 542167814, 1 }
+};
+
 /*
  * Checkup routine
  */
 int mpi_self_test( int verbose )
 {
-    int ret;
+    int ret, i;
     mpi A, E, N, X, Y, U, V;
 
     mpi_init( &A, &E, &N, &X, &Y, &U, &V, NULL );
@@ -1934,6 +1952,28 @@ int mpi_self_test( int verbose )
             printf( "failed\n" );
 
         return( 1 );
+    }
+
+    if( verbose != 0 )
+        printf( "passed\n" );
+
+    if( verbose != 0 )
+        printf( "  MPI test #5 (simple gcd): " );
+
+    for ( i = 0; i < GCD_PAIR_COUNT; i++)
+    {
+        MPI_CHK( mpi_lset( &X, gcd_pairs[i][0] ) );
+	MPI_CHK( mpi_lset( &Y, gcd_pairs[i][1] ) );
+
+	MPI_CHK( mpi_gcd( &A, &X, &Y ) );
+
+	if( mpi_cmp_int( &A, gcd_pairs[i][2] ) != 0 )
+	{
+		if( verbose != 0 )
+			printf( "failed at %d\n", i );
+
+		return( 1 );
+	}
     }
 
     if( verbose != 0 )

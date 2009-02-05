@@ -2050,9 +2050,10 @@ void ssl_free( ssl_context *ssl )
         ssl->hostname_len = 0;
     }
 
-    memset( ssl, 0, sizeof( ssl_context ) );
-
     SSL_DEBUG_MSG( 2, ( "<= free" ) );
+
+    /* Actually free after last debug message */
+    memset( ssl, 0, sizeof( ssl_context ) );
 }
 
 #endif

@@ -171,7 +171,7 @@ void debug_print_mpi( ssl_context *ssl, int level,
 void debug_print_crt( ssl_context *ssl, int level,
                       char *file, int line, char *text, x509_cert *crt )
 {
-    char str[512], prefix[64], *p;
+    char str[1024], prefix[64], *p;
     int i = 0, maxlen = sizeof( prefix ) - 1;
 
     if( ssl->f_dbg == NULL || crt == NULL )

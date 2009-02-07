@@ -1402,7 +1402,7 @@ char *x509parse_cert_info( char *prefix, x509_cert *crt )
 {
     int i, n;
     char *p, *end;
-    static char buf[512];
+    static char buf[1024];
 
     p = buf;
     end = buf + sizeof( buf ) - 1;

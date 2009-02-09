@@ -57,7 +57,7 @@ int main( void )
 {
     int keysize;
     unsigned long i, j, tsc;
-    unsigned char tmp[32];
+    unsigned char tmp[64];
 #if defined(POLARSSL_ARC4_C)
     arc4_context arc4;
 #endif

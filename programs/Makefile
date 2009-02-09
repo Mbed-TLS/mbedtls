@@ -13,7 +13,8 @@ APPS =	aes/aescrypt2		hash/hello		\
 	pkey/mpi_demo		pkey/rsa_genkey		\
 	pkey/rsa_sign		pkey/rsa_verify		\
 	ssl/ssl_client1		ssl/ssl_client2		\
-	ssl/ssl_server		test/benchmark		\
+	ssl/ssl_server		test/ssl_cert_test	\
+	test/benchmark					\
 	test/selftest		test/ssl_test
 
 .SILENT:
@@ -79,6 +80,10 @@ ssl/ssl_client2: ssl/ssl_client2.c ../library/libpolarssl.a
 ssl/ssl_server: ssl/ssl_server.c ../library/libpolarssl.a
 	echo   "  CC    ssl/ssl_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_server.c   $(LDFLAGS) -o $@
+
+test/ssl_cert_test: test/ssl_cert_test.c ../library/libpolarssl.a
+	echo   "  CC    test/ssl_cert_test.c"
+	$(CC) $(CFLAGS) $(OFLAGS) test/ssl_cert_test.c   $(LDFLAGS) -o $@
 
 test/benchmark: test/benchmark.c ../library/libpolarssl.a
 	echo   "  CC    test/benchmark.c"

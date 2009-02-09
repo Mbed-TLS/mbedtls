@@ -795,7 +795,8 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
     }
 
     if( crt->sig_oid1.p[8] < 2 ||
-        crt->sig_oid1.p[8] > 5 )
+        ( crt->sig_oid1.p[8] > 5 && crt->sig_oid1.p[8] < 11 ) ||
+	crt->sig_oid1.p[8] > 14 )
     {
           x509_free( crt );
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
@@ -1441,10 +1442,14 @@ char *x509parse_cert_info( char *prefix, x509_cert *crt )
 
     switch( crt->sig_oid1.p[8] )
     {
-        case RSA_MD2 : p += snprintf( p, end - p, "MD2"  ); break;
-        case RSA_MD4 : p += snprintf( p, end - p, "MD4"  ); break;
-        case RSA_MD5 : p += snprintf( p, end - p, "MD5"  ); break;
-        case RSA_SHA1: p += snprintf( p, end - p, "SHA1" ); break;
+        case SIG_RSA_MD2    : p += snprintf( p, end - p, "MD2"    ); break;
+        case SIG_RSA_MD4    : p += snprintf( p, end - p, "MD4"    ); break;
+        case SIG_RSA_MD5    : p += snprintf( p, end - p, "MD5"    ); break;
+        case SIG_RSA_SHA1   : p += snprintf( p, end - p, "SHA1"   ); break;
+        case SIG_RSA_SHA224 : p += snprintf( p, end - p, "SHA224" ); break;
+        case SIG_RSA_SHA256 : p += snprintf( p, end - p, "SHA256" ); break;
+        case SIG_RSA_SHA384 : p += snprintf( p, end - p, "SHA384" ); break;
+        case SIG_RSA_SHA512 : p += snprintf( p, end - p, "SHA512" ); break;
         default: p += snprintf( p, end - p, "???"  ); break;
     }
 
@@ -1486,13 +1491,21 @@ static void x509_hash( unsigned char *in, int len, int alg,
     switch( alg )
     {
 #if defined(POLARSSL_MD2_C)
-        case RSA_MD2  :  md2( in, len, out ); break;
+        case SIG_RSA_MD2    :  md2( in, len, out ); break;
 #endif
 #if defined(POLARSSL_MD4_C)
-        case RSA_MD4  :  md4( in, len, out ); break;
+        case SIG_RSA_MD4    :  md4( in, len, out ); break;
 #endif
-        case RSA_MD5  :  md5( in, len, out ); break;
-        case RSA_SHA1 : sha1( in, len, out ); break;
+        case SIG_RSA_MD5    :  md5( in, len, out ); break;
+        case SIG_RSA_SHA1   : sha1( in, len, out ); break;
+#if defined(POLARSSL_SHA2_C)
+        case SIG_RSA_SHA224 : sha2( in, len, out, 1 ); break;
+        case SIG_RSA_SHA256 : sha2( in, len, out, 0 ); break;
+#endif
+#if defined(POLARSSL_SHA2_C)
+        case SIG_RSA_SHA384 : sha4( in, len, out, 1 ); break;
+        case SIG_RSA_SHA512 : sha4( in, len, out, 0 ); break;
+#endif
         default:
             memset( out, '\xFF', len );
             break;
@@ -1511,7 +1524,7 @@ int x509parse_verify( x509_cert *crt,
     int pathlen;
     x509_cert *cur;
     x509_name *name;
-    unsigned char hash[20];
+    unsigned char hash[64];
 
     *flags = x509parse_expired( crt );
 

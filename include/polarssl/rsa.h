@@ -37,11 +37,15 @@
  * PKCS#1 constants
  */
 #define RSA_RAW         0
-#define RSA_MD2         2
-#define RSA_MD4         3
-#define RSA_MD5         4
-#define RSA_SHA1        5
-#define RSA_SHA256      6
+
+#define SIG_RSA_MD2	2
+#define SIG_RSA_MD4	3
+#define SIG_RSA_MD5	4
+#define SIG_RSA_SHA1	5
+#define SIG_RSA_SHA224	14
+#define SIG_RSA_SHA256	11
+#define	SIG_RSA_SHA384	12
+#define SIG_RSA_SHA512	13
 
 #define RSA_PUBLIC      0
 #define RSA_PRIVATE     1
@@ -52,6 +56,29 @@
 #define RSA_SIGN        1
 #define RSA_CRYPT       2
 
+#define ASN1_STR_CONSTRUCTED_SEQUENCE	"\x30"
+#define ASN1_STR_NULL			"\x05"
+#define ASN1_STR_OID			"\x06"
+#define ASN1_STR_OCTET_STRING		"\x04"
+
+#define OID_DIGEST_ALG_MDX	"\x2A\x86\x48\x86\xF7\x0D\x02\x00"
+#define OID_HASH_ALG_SHA1	"\x2b\x0e\x03\x02\x1a"
+#define OID_HASH_ALG_SHA2X	"\x60\x86\x48\x01\x65\x03\x04\x02\x00"
+
+#define OID_ISO_MEMBER_BODIES	"\x2a"
+#define OID_ISO_IDENTIFIED_ORG	"\x2b"
+
+/*
+ * ISO Member bodies OID parts
+ */
+#define OID_COUNTRY_US		"\x86\x48"
+#define OID_RSA_DATA_SECURITY	"\x86\xf7\x0d"
+
+/*
+ * ISO Identified organization OID parts
+ */
+#define OID_OIW_SECSIG_SHA1	"\x0e\x03\x02\x1a"
+
 /*
  * DigestInfo ::= SEQUENCE {
  *   digestAlgorithm DigestAlgorithmIdentifier,
@@ -61,13 +88,31 @@
  *
  * Digest ::= OCTET STRING
  */
-#define ASN1_HASH_MDX                       \
-    "\x30\x20\x30\x0C\x06\x08\x2A\x86\x48"  \
-    "\x86\xF7\x0D\x02\x00\x05\x00\x04\x10"
+#define ASN1_HASH_MDX					\
+(							\
+    ASN1_STR_CONSTRUCTED_SEQUENCE "\x20"		\
+      ASN1_STR_CONSTRUCTED_SEQUENCE "\x0C"		\
+        ASN1_STR_OID "\x08"				\
+	  OID_DIGEST_ALG_MDX				\
+	ASN1_STR_NULL "\x00"				\
+      ASN1_STR_OCTET_STRING "\x10"			\
+)
 
-#define ASN1_HASH_SHA1                      \
-    "\x30\x21\x30\x09\x06\x05\x2B\x0E\x03"  \
-    "\x02\x1A\x05\x00\x04\x14"
+#define ASN1_HASH_SHA1					\
+    ASN1_STR_CONSTRUCTED_SEQUENCE "\x21"		\
+      ASN1_STR_CONSTRUCTED_SEQUENCE "\x09"		\
+        ASN1_STR_OID "\x05"				\
+	  OID_HASH_ALG_SHA1				\
+        ASN1_STR_NULL "\x00"				\
+      ASN1_STR_OCTET_STRING "\x14"
+
+#define ASN1_HASH_SHA2X					\
+    ASN1_STR_CONSTRUCTED_SEQUENCE "\x11"		\
+      ASN1_STR_CONSTRUCTED_SEQUENCE "\x0d"		\
+        ASN1_STR_OID "\x09"				\
+	  OID_HASH_ALG_SHA2X				\
+        ASN1_STR_NULL "\x00"				\
+      ASN1_STR_OCTET_STRING "\x00"
 
 /**
  * \brief          RSA context structure
@@ -236,7 +281,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  *
  * \param ctx      RSA context
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  RSA_RAW, RSA_MD{2,4,5} or RSA_SHA{1,256}
+ * \param hash_id  RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
  * \param hashlen  message digest length (for RSA_RAW only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext

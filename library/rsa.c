@@ -404,13 +404,13 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                     nb_pad = olen - 3 - hashlen;
                     break;
 
-                case RSA_MD2:
-                case RSA_MD4:
-                case RSA_MD5:
+                case SIG_RSA_MD2:
+                case SIG_RSA_MD4:
+                case SIG_RSA_MD5:
                     nb_pad = olen - 3 - 34;
                     break;
 
-                case RSA_SHA1:
+                case SIG_RSA_SHA1:
                     nb_pad = olen - 3 - 35;
                     break;
 
@@ -439,25 +439,45 @@ int rsa_pkcs1_sign( rsa_context *ctx,
             memcpy( p, hash, hashlen );
             break;
 
-        case RSA_MD2:
+        case SIG_RSA_MD2:
             memcpy( p, ASN1_HASH_MDX, 18 );
             memcpy( p + 18, hash, 16 );
             p[13] = 2; break;
 
-        case RSA_MD4:
+        case SIG_RSA_MD4:
             memcpy( p, ASN1_HASH_MDX, 18 );
             memcpy( p + 18, hash, 16 );
             p[13] = 4; break;
 
-        case RSA_MD5:
+        case SIG_RSA_MD5:
             memcpy( p, ASN1_HASH_MDX, 18 );
             memcpy( p + 18, hash, 16 );
             p[13] = 5; break;
 
-        case RSA_SHA1:
+        case SIG_RSA_SHA1:
             memcpy( p, ASN1_HASH_SHA1, 15 );
             memcpy( p + 15, hash, 20 );
             break;
+
+        case SIG_RSA_SHA224:
+            memcpy( p, ASN1_HASH_SHA2X, 19 );
+            memcpy( p + 19, hash, 28 );
+            p[1] += 28; p[14] = 4; p[18] += 28; break;
+
+        case SIG_RSA_SHA256:
+            memcpy( p, ASN1_HASH_SHA2X, 19 );
+            memcpy( p + 19, hash, 32 );
+            p[1] += 32; p[14] = 1; p[18] += 32; break;
+
+        case SIG_RSA_SHA384:
+            memcpy( p, ASN1_HASH_SHA2X, 19 );
+            memcpy( p + 19, hash, 48 );
+            p[1] += 48; p[14] = 2; p[18] += 48; break;
+
+        case SIG_RSA_SHA512:
+            memcpy( p, ASN1_HASH_SHA2X, 19 );
+            memcpy( p + 19, hash, 64 );
+            p[1] += 64; p[14] = 3; p[18] += 64; break;
 
         default:
             return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
@@ -527,9 +547,9 @@ int rsa_pkcs1_verify( rsa_context *ctx,
         if( memcmp( p, ASN1_HASH_MDX, 18 ) != 0 )
             return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
-        if( ( c == 2 && hash_id == RSA_MD2 ) ||
-            ( c == 4 && hash_id == RSA_MD4 ) ||
-            ( c == 5 && hash_id == RSA_MD5 ) )
+        if( ( c == 2 && hash_id == SIG_RSA_MD2 ) ||
+            ( c == 4 && hash_id == SIG_RSA_MD4 ) ||
+            ( c == 5 && hash_id == SIG_RSA_MD5 ) )
         {
             if( memcmp( p + 18, hash, 16 ) == 0 ) 
                 return( 0 );
@@ -538,13 +558,29 @@ int rsa_pkcs1_verify( rsa_context *ctx,
         }
     }
 
-    if( len == 35 && hash_id == RSA_SHA1 )
+    if( len == 35 && hash_id == SIG_RSA_SHA1 )
     {
         if( memcmp( p, ASN1_HASH_SHA1, 15 ) == 0 &&
             memcmp( p + 15, hash, 20 ) == 0 )
             return( 0 );
         else
             return( POLARSSL_ERR_RSA_VERIFY_FAILED );
+    }
+    if( ( len == 19 + 28 && p[14] == 4 && hash_id == SIG_RSA_SHA224 ) ||
+        ( len == 19 + 32 && p[14] == 1 && hash_id == SIG_RSA_SHA256 ) ||
+        ( len == 19 + 48 && p[14] == 2 && hash_id == SIG_RSA_SHA384 ) ||
+        ( len == 19 + 64 && p[14] == 3 && hash_id == SIG_RSA_SHA512 ) )
+    {
+    	c = p[1] - 17;
+	p[1] = 17;
+	p[14] = 0;
+
+        if( p[18] == c &&
+	    memcmp( p, ASN1_HASH_SHA2X, 18 ) == 0 &&
+	    memcmp( p + 19, hash, c ) == 0 )
+	    return( 0 );
+	else
+	    return( POLARSSL_ERR_RSA_VERIFY_FAILED );
     }
 
     if( len == hashlen && hash_id == RSA_RAW )
@@ -703,7 +739,7 @@ int rsa_self_test( int verbose )
 
     sha1( rsa_plaintext, PT_LEN, sha1sum );
 
-    if( rsa_pkcs1_sign( &rsa, RSA_PRIVATE, RSA_SHA1, 20,
+    if( rsa_pkcs1_sign( &rsa, RSA_PRIVATE, SIG_RSA_SHA1, 20,
                         sha1sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )
@@ -715,7 +751,7 @@ int rsa_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n  PKCS#1 sig. verify: " );
 
-    if( rsa_pkcs1_verify( &rsa, RSA_PUBLIC, RSA_SHA1, 20,
+    if( rsa_pkcs1_verify( &rsa, RSA_PUBLIC, SIG_RSA_SHA1, 20,
                           sha1sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )

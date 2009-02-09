@@ -1,12 +1,12 @@
 PolarSSL ChangeLog
 
-= Version 0.10.2 released on 2009-XXXX
+= Version 0.11.0 released on 2009-XXXX
    * Fixed a bug in mpi_gcd() so that it also works when both
      input numbers are even and added testcases to check
      (found by Pierre Habouzit)
-
-= Version 0.10.1 released on 2009-01-25
-   * Added BSD License
+   * Added support for SHA-224, SHA-256, SHA-384 and SHA-512
+     one way hash functions with the PKCS#1 v1.5 signing and
+     verification.
 
 = Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL

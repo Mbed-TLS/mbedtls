@@ -28,7 +28,7 @@ echo "Generating requests"
 cat sslconf.txt > sslconf_use.txt;echo "CN=PolarSSL Server 1" >> sslconf_use.txt
 openssl req -config sslconf_use.txt -new -key server1.key -out server1.req
 
-cat sslconf.txt > sslconf_use.txt;echo "CN=PolarSSL Server 2" >> sslconf_use.txt
+cat sslconf.txt > sslconf_use.txt;echo "CN=localhost" >> sslconf_use.txt
 openssl req -config sslconf_use.txt -new -key server2.key -out server2.req
 
 cat sslconf.txt > sslconf_use.txt;echo "CN=PolarSSL Client 1" >> sslconf_use.txt

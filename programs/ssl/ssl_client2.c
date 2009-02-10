@@ -33,15 +33,10 @@
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
 
-#define SERVER_PORT 443
-/*
+#define SERVER_PORT 4433
+
 #define SERVER_NAME "localhost"
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
-*/
-#define SERVER_NAME "polarssl.org"
-#define GET_REQUEST \
-    "GET /hello/ HTTP/1.1\r\n" \
-    "Host: polarssl.org\r\n\r\n"
 
 #define DEBUG_LEVEL 0
 
@@ -83,8 +78,8 @@ int main( void )
      * Alternatively, you may load the CA certificates from a .pem or
      * .crt file by calling x509parse_crtfile( &cacert, "myca.crt" ).
      */
-    ret = x509parse_crt( &cacert, (unsigned char *) xyssl_ca_crt,
-                         strlen( xyssl_ca_crt ) );
+    ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
+                         strlen( test_ca_crt ) );
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );

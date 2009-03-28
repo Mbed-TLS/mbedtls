@@ -40,10 +40,21 @@ char *client_certificates[MAX_CLIENT_CERTS] =
 	"cert_sha512.crt"
 };
 
+char *client_private_keys[MAX_CLIENT_CERTS] =
+{
+	"client1.key",
+	"client2.key",
+	"cert_sha224.key",
+	"cert_sha256.key",
+	"cert_sha384.key",
+	"cert_sha512.key"
+};
+
 int main( void )
 {
     int ret, i;
     x509_cert cacert, clicert;
+    rsa_context	rsa;
 
     /*
      * 1.1. Load the trusted CA
@@ -69,7 +80,7 @@ int main( void )
     for( i = 0; i < MAX_CLIENT_CERTS; i++ )
     {
         /*
-         * 1.2. Load own certificate and private key
+         * 1.2. Load own certificate
          */
 	char	name[512];
 	snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
@@ -89,9 +100,9 @@ int main( void )
 	printf( " ok\n" );
 
 	/*
-	 * 1.3. Verify certificate validity
+	 * 1.3. Verify certificate validity with CA certificate
 	 */
-	printf( "  . Verify the client certificate..." );
+	printf( "  . Verify the client certificate with CA certificate..." );
 	fflush( stdout );
 
 	int flags;
@@ -100,6 +111,54 @@ int main( void )
 	if( ret != 0 )
 	{
 		printf( " failed\n  !  x509parse_verify returned %d\n\n", ret );
+		goto exit;
+	}
+
+	printf( " ok\n" );
+
+        /*
+         * 1.4. Load own private key
+         */
+	snprintf(name, 512, "ssl/test-ca/%s", client_private_keys[i]);
+
+        printf( "  . Loading the client private key %s...", name );
+        fflush( stdout );
+
+	memset( &rsa, 0, sizeof( rsa_context ) );
+
+	ret = x509parse_keyfile( &rsa, name, NULL );
+	if( ret != 0 )
+	{
+		printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
+		goto exit;
+	}
+
+	printf( " ok\n" );
+
+	/*
+	 * 1.4. Verify certificate validity with private key
+	 */
+	printf( "  . Verify the client certificate with private key..." );
+	fflush( stdout );
+
+	ret = mpi_cmp_mpi(&rsa.N, &clicert.rsa.N);
+	if( ret != 0 )
+	{
+		printf( " failed\n  !  mpi_cmp_mpi for N returned %d\n\n", ret );
+		goto exit;
+	}
+
+	ret = mpi_cmp_mpi(&rsa.E, &clicert.rsa.E);
+	if( ret != 0 )
+	{
+		printf( " failed\n  !  mpi_cmp_mpi for E returned %d\n\n", ret );
+		goto exit;
+	}
+
+	ret = rsa_check_privkey( &rsa );
+	if( ret != 0 )
+	{
+		printf( " failed\n  !  rsa_check_privkey returned %d\n\n", ret );
 		goto exit;
 	}
 

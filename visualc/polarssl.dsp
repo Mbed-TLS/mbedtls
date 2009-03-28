@@ -89,6 +89,10 @@ SOURCE=..\library\aes.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\library\camellia.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\library\arc4.c
 # End Source File
 # Begin Source File
@@ -182,6 +186,10 @@ SOURCE=..\library\x509parse.c
 # Begin Source File
 
 SOURCE=..\include\polarssl\aes.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\polarssl\camellia.h
 # End Source File
 # Begin Source File
 

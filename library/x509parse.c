@@ -663,13 +663,13 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
     if( crt == NULL || buf == NULL )
         return( 1 );
 
-    while( crt->version != 0 || crt->next != NULL )
+    while( crt->version != 0 && crt->next != NULL )
         crt = crt->next;
 
     /*
      * Add new certificate on the end of the chain if needed.
      */
-    if ( crt->next == NULL)
+    if ( crt->version != 0 && crt->next == NULL)
     {
         crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
 

@@ -210,7 +210,8 @@ int rsa_check_privkey( rsa_context *ctx );
  * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
  *
  * \note           This function does NOT take care of message
- *                 padding. Also, be sure to set input[0] = 0.
+ *                 padding. Also, be sure to set input[0] = 0 or assure that
+ *                 input is smaller than N.
  *
  * \note           The input and output buffers must be large
  *                 enough (eg. 128 bytes if RSA-1024 is used).

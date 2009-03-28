@@ -657,8 +657,31 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
 
     crt = chain;
 
-    while( crt->version != 0 )
+    /*
+     * Check for valid input
+     */
+    if( crt == NULL || buf == NULL )
+        return( 1 );
+
+    while( crt->version != 0 || crt->next != NULL )
         crt = crt->next;
+
+    /*
+     * Add new certificate on the end of the chain if needed.
+     */
+    if ( crt->next == NULL)
+    {
+        crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
+
+	if( crt->next == NULL )
+	{
+            x509_free( crt );
+	    return( 1 );
+	}
+
+	crt = crt->next;
+	memset( crt, 0, sizeof( x509_cert ) );
+    }
 
     /*
      * check if the certificate is encoded in base64
@@ -942,7 +965,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
         return( ret );
     }
 
-    if( memcmp( crt->sig_oid1.p, crt->sig_oid2.p, 9 ) != 0 )
+    if( memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 )
     {
           x509_free( crt );
         return( POLARSSL_ERR_X509_CERT_SIG_MISMATCH );
@@ -961,19 +984,21 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
-    crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
-
-    if( crt->next == NULL )
-    {
-          x509_free( crt );
-        return( 1 );
-    }
-
-    crt = crt->next;
-    memset( crt, 0, sizeof( x509_cert ) );
-
     if( buflen > 0 )
+    {
+        crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
+
+	if( crt->next == NULL )
+	{
+            x509_free( crt );
+	    return( 1 );
+	}
+
+	crt = crt->next;
+	memset( crt, 0, sizeof( x509_cert ) );
+
         return( x509parse_crt( crt, buf, buflen ) );
+    }
 
     return( 0 );
 }

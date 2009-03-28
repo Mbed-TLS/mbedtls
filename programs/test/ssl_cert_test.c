@@ -83,6 +83,8 @@ int main( void )
          * 1.2. Load own certificate
          */
 	char	name[512];
+	int flags;
+
 	snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
 
         printf( "  . Loading the client certificatei %s...", name );
@@ -104,8 +106,6 @@ int main( void )
 	 */
 	printf( "  . Verify the client certificate with CA certificate..." );
 	fflush( stdout );
-
-	int flags;
 
 	ret = x509parse_verify( &clicert, &cacert, NULL, &flags );
 	if( ret != 0 )

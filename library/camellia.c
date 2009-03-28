@@ -197,7 +197,7 @@ static const unsigned char shifts[2][4][4] =
 	}
 };
 
-static const char indexes[2][4][20] =
+static const signed char indexes[2][4][20] =
 {
 	{
 		{  0,  1,  2,  3,  8,  9, 10, 11, 38, 39,
@@ -221,7 +221,7 @@ static const char indexes[2][4][20] =
 	}
 };
 
-static const char transposes[2][20] =
+static const signed char transposes[2][20] =
 {
 	{
 		21, 22, 23, 20,
@@ -279,7 +279,6 @@ static const char transposes[2][20] =
 
 void camellia_feistel(unsigned long x[2], unsigned long k[2], unsigned long z[2])
 {
-	unsigned char t[8];
 	unsigned long I0, I1;
 	I0 = x[0] ^ k[0];
 	I1 = x[1] ^ k[1];
@@ -310,6 +309,9 @@ void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize
     int i, idx;
     unsigned long *RK;
     unsigned char t[64];
+    unsigned long SIGMA[6][2];
+    unsigned long KC[16];
+    unsigned long TK[20];
 
     RK = ctx->rk;
 
@@ -335,7 +337,6 @@ void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize
     /*
      * Prepare SIGMA values
      */
-    unsigned long SIGMA[6][2];
     for (i = 0; i < 6; i++) {
     	GET_ULONG_BE(SIGMA[i][0], SIGMA_CHARS[i], 0);
     	GET_ULONG_BE(SIGMA[i][1], SIGMA_CHARS[i], 4);
@@ -345,7 +346,6 @@ void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize
      * Key storage in KC
      * Order: KL, KR, KA, KB
      */
-    unsigned long KC[16];
     memset(KC, 0, sizeof(KC));
 
     /* Store KL, KR */
@@ -377,7 +377,6 @@ void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize
     /*
      * Generating subkeys
      */ 
-    unsigned long TK[20];
 
     /* Manipulating KL */
     SHIFT_AND_PLACE(idx, 0);
@@ -456,8 +455,8 @@ void camellia_crypt_ecb( camellia_context *ctx,
                     unsigned char input[16],
                     unsigned char output[16] )
 {
-    int i, NR;
-    unsigned long *RK, X[4], Y[4], T;
+    int NR;
+    unsigned long *RK, X[4];
 
     NR = ctx->nr;
     RK = ctx->rk;
@@ -736,10 +735,9 @@ static const unsigned char camellia_test_cbc_cipher[3][CAMELLIA_TESTS_CBC][16] =
  */
 int camellia_self_test( int verbose )
 {
-    int i, j, u, v, offset;
+    int i, j, u, v;
     unsigned char key[32];
     unsigned char buf[64];
-    unsigned char prv[16];
     unsigned char src[16];
     unsigned char dst[16];
     unsigned char iv[16];

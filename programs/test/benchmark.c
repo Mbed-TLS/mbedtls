@@ -34,6 +34,7 @@
 #include "polarssl/md5.h"
 #include "polarssl/sha1.h"
 #include "polarssl/sha2.h"
+#include "polarssl/sha4.h"
 #include "polarssl/arc4.h"
 #include "polarssl/des.h"
 #include "polarssl/aes.h"

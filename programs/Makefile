@@ -2,7 +2,7 @@
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 # To compile on MinGW: add "-lws2_32" to LDFLAGS
 
-CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64
+CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement
 OFLAGS	= -O
 LDFLAGS	= -L../library -lpolarssl
 

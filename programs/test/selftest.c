@@ -38,6 +38,7 @@
 #include "polarssl/arc4.h"
 #include "polarssl/des.h"
 #include "polarssl/aes.h"
+#include "polarssl/camellia.h"
 #include "polarssl/base64.h"
 #include "polarssl/bignum.h"
 #include "polarssl/rsa.h"

@@ -41,7 +41,6 @@ int main( void )
     havege_state hs;
     FILE *fpub  = NULL;
     FILE *fpriv = NULL;
-    x509_raw cert;
 
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );

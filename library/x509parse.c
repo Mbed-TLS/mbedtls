@@ -42,6 +42,8 @@
 #include "polarssl/md4.h"
 #include "polarssl/md5.h"
 #include "polarssl/sha1.h"
+#include "polarssl/sha2.h"
+#include "polarssl/sha4.h"
 
 #include <string.h>
 #include <stdlib.h>

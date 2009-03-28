@@ -1825,12 +1825,16 @@ int ssl_default_ciphers[] =
 #endif
 
 #if defined(POLARSSL_AES_C)
-    SSL_RSA_AES_128_SHA,
     SSL_RSA_AES_256_SHA,
 #endif
 #if defined(POLARSSL_CAMELLIA_C)
-    SSL_RSA_CAMELLIA_128_SHA,
     SSL_RSA_CAMELLIA_256_SHA,
+#endif
+#if defined(POLARSSL_AES_C)
+    SSL_RSA_AES_128_SHA,
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+    SSL_RSA_CAMELLIA_128_SHA,
 #endif
 #if defined(POLARSSL_DES_C)
     SSL_RSA_DES_168_SHA,

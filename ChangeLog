@@ -3,12 +3,15 @@ PolarSSL ChangeLog
 = Version 0.11.0 released on 2009-XXXX
    * Fixed a bug in mpi_gcd() so that it also works when both
      input numbers are even and added testcases to check
-     (found by Pierre Habouzit)
+     (found by Pierre Habouzit).
    * Added support for SHA-224, SHA-256, SHA-384 and SHA-512
      one way hash functions with the PKCS#1 v1.5 signing and
      verification.
    * Fixed minor bug regarding mpi_gcd located within the
      POLARSSL_GENPRIME block.
+   * Fixed minor memory leak in x509parse_crt() and added better
+     handling of 'full' certificate chains (found by Mathias
+     Olsson).
 
 = Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL

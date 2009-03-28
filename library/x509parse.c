@@ -1584,7 +1584,7 @@ int x509parse_verify( x509_cert *crt,
 
     pathlen = 1;
 
-    while( cur->version != 0 )
+    while( cur != NULL && cur->version != 0 )
     {
         if( cur->ca_istrue == 0 ||
             crt->issuer_raw.len != cur->subject_raw.len ||
@@ -1612,7 +1612,7 @@ int x509parse_verify( x509_cert *crt,
     /*
      * Atempt to validate topmost cert with our CA chain.
      */
-    while( trust_ca->version != 0 )
+    while( trust_ca != NULL && trust_ca->version != 0 )
     {
         if( crt->issuer_raw.len != trust_ca->subject_raw.len ||
             memcmp( crt->issuer_raw.p, trust_ca->subject_raw.p,

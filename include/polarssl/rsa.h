@@ -241,7 +241,7 @@ int rsa_private( rsa_context *ctx,
  *
  * \param ctx      RSA context
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param ilen     contains the the plaintext length
+ * \param ilen     contains the plaintext length
  * \param input    buffer holding the data to be encrypted
  * \param output   buffer that will hold the ciphertext
  *

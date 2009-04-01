@@ -214,7 +214,7 @@ extern "C" {
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509parse_crt( x509_cert *crt, unsigned char *buf, int buflen );
+int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen );
 
 /**
  * \brief          Load one or more certificates and add them
@@ -225,7 +225,7 @@ int x509parse_crt( x509_cert *crt, unsigned char *buf, int buflen );
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509parse_crtfile( x509_cert *crt, char *path );
+int x509parse_crtfile( x509_cert *chain, char *path );
 
 /**
  * \brief          Parse a private RSA key

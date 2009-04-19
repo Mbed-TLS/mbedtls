@@ -50,6 +50,14 @@
 
 /*
  * Uncomment to enable the use of assembly code.
+ *
+ * Requires support for asm() in compiler.
+ *
+ * Used in:
+ *      library/timing.c
+ *      library/padlock.c
+ *      include/polarssl/bn_mul.h
+ *
  */
 #define POLARSSL_HAVE_ASM
 

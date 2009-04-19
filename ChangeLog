@@ -14,6 +14,8 @@ PolarSSL ChangeLog
      Olsson).
    * Centralized file opening and reading for x509 files into
      load_file()
+   * Made definition of net_htons() endian-clean for big endian
+     systems (Found by Gernot).
 
 = Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL

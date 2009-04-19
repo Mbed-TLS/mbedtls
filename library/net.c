@@ -55,6 +55,7 @@ static int wsa_init_done = 0;
 #include <fcntl.h>
 #include <netdb.h>
 #include <errno.h>
+#include <endian.h>
 
 #endif
 
@@ -64,18 +65,18 @@ static int wsa_init_done = 0;
 #include <time.h>
 
 /*
- * htons() is not always available
+ * htons() is not always available.
+ * By default go for LITTLE_ENDIAN variant. Otherwise hope for _BYTE_ORDER and __BIG_ENDIAN
+ * to help determine endianess.
  */
-static unsigned short net_htons( int port )
-{
-    unsigned char buf[4];
+#if defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN
+#define HTONS(n) (n)
+#else
+#define HTONS(n) (((((unsigned short)(n) & 0xFF)) << 8) | (((unsigned short)(n) & 0xFF00) >> 8))
+#endif
 
-    buf[0] = (unsigned char)( port >> 8 );
-    buf[1] = (unsigned char)( port      );
-    buf[2] = buf[3] = 0;
-
-    return( *(unsigned short *) buf );
-}
+unsigned short net_htons(unsigned short n);
+#define net_htons(n) HTONS(n)
 
 /*
  * Initiate a TCP connection with host:port

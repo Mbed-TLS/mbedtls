@@ -1004,39 +1004,52 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
 }
 
 /*
+ * Load all data from a file into a given buffer.
+ */
+int load_file( char *path, unsigned char **buf,  size_t *n )
+{
+	FILE *f;
+
+	if( ( f = fopen( path, "rb" ) ) == NULL )
+		return( 1 );
+
+	fseek( f, 0, SEEK_END );
+	*n = (size_t) ftell( f );
+	fseek( f, 0, SEEK_SET );
+
+	if( ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
+		return( 1 );
+
+	if( fread( *buf, 1, *n, f ) != *n )
+	{
+		fclose( f );
+		free( *buf );
+		return( 1 );
+	}
+
+	fclose( f );
+
+	(*buf)[*n] = '\0';
+
+	return( 0 );
+}
+
+/*
  * Load one or more certificates and add them to the chained list
  */
 int x509parse_crtfile( x509_cert *chain, char *path )
 {
     int ret;
-    FILE *f;
     size_t n;
     unsigned char *buf;
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if ( load_file( path, &buf, &n ) )
         return( 1 );
-
-    fseek( f, 0, SEEK_END );
-    n = (size_t) ftell( f );
-    fseek( f, 0, SEEK_SET );
-
-    if( ( buf = (unsigned char *) malloc( n + 1 ) ) == NULL )
-        return( 1 );
-
-    if( fread( buf, 1, n, f ) != n )
-    {
-        fclose( f );
-        free( buf );
-        return( 1 );
-    }
-
-    buf[n] = '\0';
 
     ret = x509parse_crt( chain, buf, (int) n );
 
     memset( buf, 0, n + 1 );
     free( buf );
-    fclose( f );
 
     return( ret );
 }
@@ -1299,28 +1312,11 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
 int x509parse_keyfile( rsa_context *rsa, char *path, char *pwd )
 {
     int ret;
-    FILE *f;
     size_t n;
     unsigned char *buf;
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if ( load_file( path, &buf, &n ) )
         return( 1 );
-
-    fseek( f, 0, SEEK_END );
-    n = (size_t) ftell( f );
-    fseek( f, 0, SEEK_SET );
-
-    if( ( buf = (unsigned char *) malloc( n + 1 ) ) == NULL )
-        return( 1 );
-
-    if( fread( buf, 1, n, f ) != n )
-    {
-        fclose( f );
-        free( buf );
-        return( 1 );
-    }
-
-    buf[n] = '\0';
 
     if( pwd == NULL )
         ret = x509parse_key( rsa, buf, (int) n, NULL, 0 );
@@ -1330,7 +1326,6 @@ int x509parse_keyfile( rsa_context *rsa, char *path, char *pwd )
 
     memset( buf, 0, n + 1 );
     free( buf );
-    fclose( f );
 
     return( ret );
 }

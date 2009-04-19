@@ -12,6 +12,8 @@ PolarSSL ChangeLog
    * Fixed minor memory leak in x509parse_crt() and added better
      handling of 'full' certificate chains (found by Mathias
      Olsson).
+   * Centralized file opening and reading for x509 files into
+     load_file()
 
 = Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL

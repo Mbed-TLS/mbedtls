@@ -16,6 +16,8 @@ PolarSSL ChangeLog
      load_file()
    * Made definition of net_htons() endian-clean for big endian
      systems (Found by Gernot).
+   * Undefining POLARSSL_HAVE_ASM now also handles prevents asm in
+     padlock and timing code. 
 
 = Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL

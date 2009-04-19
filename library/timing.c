@@ -51,7 +51,8 @@ struct _hr_time
 
 #endif
 
-#if (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
+#if defined(POLARSSL_HAVE_ASM) && 					\
+	(defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
 
 unsigned long hardclock( void )
 {
@@ -62,7 +63,7 @@ unsigned long hardclock( void )
 }
 
 #else
-#if defined(__GNUC__) && defined(__i386__)
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
 
 unsigned long hardclock( void )
 {
@@ -72,7 +73,8 @@ unsigned long hardclock( void )
 }
 
 #else
-#if defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && 			\
+	(defined(__amd64__) || defined(__x86_64__))
 
 unsigned long hardclock( void )
 {
@@ -82,7 +84,8 @@ unsigned long hardclock( void )
 }
 
 #else
-#if defined(__GNUC__) && (defined(__powerpc__) || defined(__ppc__))
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && 			\
+	(defined(__powerpc__) || defined(__ppc__))
 
 unsigned long hardclock( void )
 {
@@ -100,7 +103,7 @@ unsigned long hardclock( void )
 }
 
 #else
-#if defined(__GNUC__) && defined(__sparc__)
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__sparc__)
 
 unsigned long hardclock( void )
 {
@@ -111,7 +114,7 @@ unsigned long hardclock( void )
 }
 
 #else
-#if defined(__GNUC__) && defined(__alpha__)
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__alpha__)
 
 unsigned long hardclock( void )
 {
@@ -121,7 +124,7 @@ unsigned long hardclock( void )
 }
 
 #else
-#if defined(__GNUC__) && defined(__ia64__)
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__ia64__)
 
 unsigned long hardclock( void )
 {

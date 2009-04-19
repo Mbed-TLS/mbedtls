@@ -24,7 +24,7 @@
 
 #include "polarssl/aes.h"
 
-#if (defined(__GNUC__) && defined(__i386__))
+#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
 
 #ifndef POLARSSL_HAVE_X86
 #define POLARSSL_HAVE_X86

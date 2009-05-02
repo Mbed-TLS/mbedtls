@@ -28,41 +28,47 @@
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
 
-#define MAX_CLIENT_CERTS	6
+#if defined _MSC_VER && !defined snprintf
+#define snprintf _snprintf
+#endif
+
+#define MAX_CLIENT_CERTS    6
 
 char *client_certificates[MAX_CLIENT_CERTS] =
 {
-	"client1.crt",
-	"client2.crt",
-	"cert_sha224.crt",
-	"cert_sha256.crt",
-	"cert_sha384.crt",
-	"cert_sha512.crt"
+    "client1.crt",
+    "client2.crt",
+    "cert_sha224.crt",
+    "cert_sha256.crt",
+    "cert_sha384.crt",
+    "cert_sha512.crt"
 };
 
 char *client_private_keys[MAX_CLIENT_CERTS] =
 {
-	"client1.key",
-	"client2.key",
-	"cert_sha224.key",
-	"cert_sha256.key",
-	"cert_sha384.key",
-	"cert_sha512.key"
+    "client1.key",
+    "client2.key",
+    "cert_sha224.key",
+    "cert_sha256.key",
+    "cert_sha384.key",
+    "cert_sha512.key"
 };
 
 int main( void )
 {
     int ret, i;
-    x509_cert cacert, clicert;
-    rsa_context	rsa;
+    x509_cert cacert;
+    x509_crl crl;
+    char buf[10240];
+
+    memset( &cacert, 0, sizeof( x509_cert ) );
+    memset( &crl, 0, sizeof( x509_crl ) );
 
     /*
      * 1.1. Load the trusted CA
      */
     printf( "\n  . Loading the CA root certificate ..." );
     fflush( stdout );
-
-    memset( &cacert, 0, sizeof( x509_cert ) );
 
     /*
      * Alternatively, you may load the CA certificates from a .pem or
@@ -77,97 +83,119 @@ int main( void )
 
     printf( " ok\n" );
 
+    /*
+     * 1.2. Load the CRL
+     */
+    printf( "  . Loading the CRL ..." );
+    fflush( stdout );
+
+    ret = x509parse_crlfile( &crl, "ssl/test-ca/crl.pem" );
+    if( ret != 0 )
+    {
+        printf( " failed\n  !  x509parse_crlfile returned %d\n\n", ret );
+        goto exit;
+    }
+
+    printf( " ok\n" );
+
+    x509parse_crl_info( buf, 1024, "CRL: ", &crl );
+    printf("%s\n", buf );
+
     for( i = 0; i < MAX_CLIENT_CERTS; i++ )
     {
         /*
-         * 1.2. Load own certificate
+         * 1.3. Load own certificate
          */
-	char	name[512];
-	int flags;
-
-	snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
-
-        printf( "  . Loading the client certificatei %s...", name );
-        fflush( stdout );
+        char    name[512];
+        int flags;
+        x509_cert clicert;
+        rsa_context rsa;
 
         memset( &clicert, 0, sizeof( x509_cert ) );
+        memset( &rsa, 0, sizeof( rsa_context ) );
+
+        snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
+
+        printf( "  . Loading the client certificate %s...", name );
+        fflush( stdout );
 
         ret = x509parse_crtfile( &clicert, name );
-	if( ret != 0 )
-	{
-		printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
-		goto exit;
-	}
+        if( ret != 0 )
+        {
+            printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+            goto exit;
+        }
 
-	printf( " ok\n" );
-
-	/*
-	 * 1.3. Verify certificate validity with CA certificate
-	 */
-	printf( "  . Verify the client certificate with CA certificate..." );
-	fflush( stdout );
-
-	ret = x509parse_verify( &clicert, &cacert, NULL, &flags );
-	if( ret != 0 )
-	{
-		printf( " failed\n  !  x509parse_verify returned %d\n\n", ret );
-		goto exit;
-	}
-
-	printf( " ok\n" );
+        printf( " ok\n" );
 
         /*
-         * 1.4. Load own private key
+         * 1.4. Verify certificate validity with CA certificate
          */
-	snprintf(name, 512, "ssl/test-ca/%s", client_private_keys[i]);
+        printf( "  . Verify the client certificate with CA certificate..." );
+        fflush( stdout );
+
+        ret = x509parse_verify( &clicert, &cacert, NULL, &flags );
+        if( ret != 0 )
+        {
+            printf( " failed\n  !  x509parse_verify returned %d\n\n", ret );
+            goto exit;
+        }
+
+        printf( " ok\n" );
+
+        /*
+         * 1.5. Load own private key
+         */
+        snprintf(name, 512, "ssl/test-ca/%s", client_private_keys[i]);
 
         printf( "  . Loading the client private key %s...", name );
         fflush( stdout );
 
-	memset( &rsa, 0, sizeof( rsa_context ) );
+        ret = x509parse_keyfile( &rsa, name, NULL );
+        if( ret != 0 )
+        {
+            printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
+            goto exit;
+        }
 
-	ret = x509parse_keyfile( &rsa, name, NULL );
-	if( ret != 0 )
-	{
-		printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
-		goto exit;
-	}
+        printf( " ok\n" );
 
-	printf( " ok\n" );
+        /*
+         * 1.5. Verify certificate validity with private key
+         */
+        printf( "  . Verify the client certificate with private key..." );
+        fflush( stdout );
 
-	/*
-	 * 1.4. Verify certificate validity with private key
-	 */
-	printf( "  . Verify the client certificate with private key..." );
-	fflush( stdout );
+        ret = mpi_cmp_mpi(&rsa.N, &clicert.rsa.N);
+        if( ret != 0 )
+        {
+            printf( " failed\n  !  mpi_cmp_mpi for N returned %d\n\n", ret );
+            goto exit;
+        }
 
-	ret = mpi_cmp_mpi(&rsa.N, &clicert.rsa.N);
-	if( ret != 0 )
-	{
-		printf( " failed\n  !  mpi_cmp_mpi for N returned %d\n\n", ret );
-		goto exit;
-	}
+        ret = mpi_cmp_mpi(&rsa.E, &clicert.rsa.E);
+        if( ret != 0 )
+        {
+            printf( " failed\n  !  mpi_cmp_mpi for E returned %d\n\n", ret );
+            goto exit;
+        }
 
-	ret = mpi_cmp_mpi(&rsa.E, &clicert.rsa.E);
-	if( ret != 0 )
-	{
-		printf( " failed\n  !  mpi_cmp_mpi for E returned %d\n\n", ret );
-		goto exit;
-	}
+        ret = rsa_check_privkey( &rsa );
+        if( ret != 0 )
+        {
+            printf( " failed\n  !  rsa_check_privkey returned %d\n\n", ret );
+            goto exit;
+        }
 
-	ret = rsa_check_privkey( &rsa );
-	if( ret != 0 )
-	{
-		printf( " failed\n  !  rsa_check_privkey returned %d\n\n", ret );
-		goto exit;
-	}
+        printf( " ok\n" );
 
-	printf( " ok\n" );
+        x509_free( &clicert );
+        rsa_free( &rsa );
     }
 
 exit:
-    x509_free( &clicert );
     x509_free( &cacert );
+    x509_crl_free( &crl );
 
 #ifdef WIN32
     printf( "  + Press Enter to exit this program.\n" );

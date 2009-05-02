@@ -208,7 +208,8 @@ int main( void )
         printf( " ok\n" );
 
     printf( "  . Peer certificate information    ...\n" );
-    printf( x509parse_cert_info( "      ", ssl.peer_cert ) );
+    x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", ssl.peer_cert );
+    printf( "%s\n", buf );
 
     /*
      * 6. Write the GET request

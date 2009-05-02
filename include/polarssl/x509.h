@@ -169,6 +169,46 @@ typedef struct _x509_cert
 }
 x509_cert;
 
+typedef struct _x509_crl_entry
+{
+    x509_buf raw;
+
+    x509_buf serial;
+
+    x509_time revocation_date;
+
+    x509_buf entry_ext;
+
+    struct _x509_crl_entry *next;
+}
+x509_crl_entry;
+
+typedef struct _x509_crl
+{
+    x509_buf raw;
+    x509_buf tbs;
+
+    int version;
+    x509_buf sig_oid1;
+
+    x509_buf issuer_raw;
+
+    x509_name issuer;
+
+    x509_time this_update;
+    x509_time next_update;
+
+    x509_crl_entry entry;
+
+    x509_buf crl_ext;
+
+    x509_buf sig_oid2;
+    x509_buf sig;
+
+    struct _x509_crl *next; 
+}
+x509_crl;
+
 /*
  * Structures for writing X.509 certificates
  */
@@ -228,6 +268,29 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen );
 int x509parse_crtfile( x509_cert *chain, char *path );
 
 /**
+ * \brief          Parse one or more CRLs and add them
+ *                 to the chained list
+ *
+ * \param chain    points to the start of the chain
+ * \param buf      buffer holding the CRL data
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 error code
+ */
+int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen );
+
+/**
+ * \brief          Load one or more CRLs and add them
+ *                 to the chained list
+ *
+ * \param chain    points to the start of the chain
+ * \param path     filename to read the CRLs from
+ *
+ * \return         0 if successful, or a specific X509 error code
+ */
+int x509parse_crlfile( x509_crl *chain, char *path );
+
+/**
  * \brief          Parse a private RSA key
  *
  * \param rsa      RSA context to be initialized
@@ -255,15 +318,21 @@ int x509parse_keyfile( rsa_context *rsa, char *path, char *password );
 
 /**
  * \brief          Store the certificate DN in printable form into buf;
- *                 no more than (end - buf) characters will be written.
+ *                 no more than size characters will be written.
  */
-int x509parse_dn_gets( char *buf, char *end, x509_name *dn );
+int x509parse_dn_gets( char *buf, size_t size, x509_name *dn );
 
 /**
  * \brief          Returns an informational string about the
  *                 certificate.
  */
-char *x509parse_cert_info( char *prefix, x509_cert *crt );
+int x509parse_cert_info( char *buf, size_t size, char *prefix, x509_cert *crt );
+
+/**
+ * \brief          Returns an informational string about the
+ *                 CRL.
+ */
+int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl );
 
 /**
  * \brief          Return 0 if the certificate is still valid,
@@ -298,6 +367,11 @@ int x509parse_verify( x509_cert *crt,
  * \brief          Unallocate all certificate data
  */
 void x509_free( x509_cert *crt );
+
+/**
+ * \brief          Unallocate all CRL data
+ */
+void x509_crl_free( x509_crl *crl );
 
 /**
  * \brief          Checkup routine

@@ -351,13 +351,42 @@ static int x509_get_name( unsigned char **p,
 }
 
 /*
- *  Validity ::= SEQUENCE {
- *       notBefore      Time,
- *       notAfter       Time }
- *
  *  Time ::= CHOICE {
  *       utcTime        UTCTime,
  *       generalTime    GeneralizedTime }
+ */
+static int x509_get_UTCTime( unsigned char **p,
+                          unsigned char *end,
+                          x509_time *time )
+{
+    int ret, len;
+    char date[64];
+
+    if( ( ret = asn1_get_tag( p, end, &len, ASN1_UTC_TIME ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
+
+    memset( date,  0, sizeof( date ) );
+    memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
+                        len : (int) sizeof( date ) - 1 );
+
+    if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
+                &time->year, &time->mon, &time->day,
+                &time->hour, &time->min, &time->sec ) < 5 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
+
+    time->year +=  100 * ( time->year < 90 );
+    time->year += 1900;
+
+    *p += len;
+
+    return( 0 );
+}
+
+
+/*
+ *  Validity ::= SEQUENCE {
+ *       notBefore      Time,
+ *       notAfter       Time }
  */
 static int x509_get_dates( unsigned char **p,
                            unsigned char *end,
@@ -365,7 +394,6 @@ static int x509_get_dates( unsigned char **p,
                            x509_time *to )
 {
     int ret, len;
-    char date[64];
 
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
@@ -376,39 +404,11 @@ static int x509_get_dates( unsigned char **p,
     /*
      * TODO: also handle GeneralizedTime
      */
-    if( ( ret = asn1_get_tag( p, end, &len, ASN1_UTC_TIME ) ) != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
+    if( ( ret = x509_get_UTCTime( p, end, from ) ) != 0 )
+        return( ret );
 
-    memset( date,  0, sizeof( date ) );
-    memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
-                        len : (int) sizeof( date ) - 1 );
-
-    if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
-                &from->year, &from->mon, &from->day,
-                &from->hour, &from->min, &from->sec ) < 5 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
-
-    from->year +=  100 * ( from->year < 90 );
-    from->year += 1900;
-
-    *p += len;
-
-    if( ( ret = asn1_get_tag( p, end, &len, ASN1_UTC_TIME ) ) != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
-
-    memset( date,  0, sizeof( date ) );
-    memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
-                        len : (int) sizeof( date ) - 1 );
-
-    if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
-                &to->year, &to->mon, &to->day,
-                &to->hour, &to->min, &to->sec ) < 5 ) 
-        return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
-
-    to->year +=  100 * ( to->year < 90 );
-    to->year += 1900;
-
-    *p += len;
+    if( ( ret = x509_get_UTCTime( p, end, to ) ) != 0 )
+        return( ret );
 
     if( *p != end )
         return( POLARSSL_ERR_X509_CERT_INVALID_DATE |
@@ -529,32 +529,23 @@ static int x509_get_uid( unsigned char **p,
 }
 
 /*
- * X.509 v3 extensions (only BasicConstraints are parsed)
+ * X.509 Extensions (No parsing of extensions, pointer should
+ * be either manually updated or extensions should be parsed!
  */
 static int x509_get_ext( unsigned char **p,
                          unsigned char *end,
-                         x509_buf *ext,
-                         int *ca_istrue,
-                         int *max_pathlen )
+                         x509_buf *ext )
 {
     int ret, len;
-    int is_critical = 1;
-    int is_cacert   = 0;
-    unsigned char *end2;
 
     if( *p == end )
         return( 0 );
 
     ext->tag = **p;
-
+    
     if( ( ret = asn1_get_tag( p, end, &ext->len,
             ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) ) != 0 )
-    {
-        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-            return( 0 );
-
         return( ret );
-    }
 
     ext->p = *p;
     end = *p + ext->len;
@@ -574,6 +565,64 @@ static int x509_get_ext( unsigned char **p,
     if( end != *p + len )
         return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+/*
+ * X.509 CRL v2 extensions (no extensions parsed yet.)
+ */
+static int x509_get_crl_ext( unsigned char **p,
+                         unsigned char *end,
+                         x509_buf *ext )
+{
+    int ret, len;
+
+    if( ( ret = x509_get_ext( p, end, ext ) ) != 0 )
+    {
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+            return( 0 );
+
+        return( ret );
+    }
+
+    while( *p < end )
+    {
+        if( ( ret = asn1_get_tag( p, end, &len,
+                ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+
+        *p += len;
+    }
+
+    if( *p != end )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+/*
+ * X.509 v3 extensions (only BasicConstraints are parsed)
+ */
+static int x509_get_crt_ext( unsigned char **p,
+                         unsigned char *end,
+                         x509_buf *ext,
+                         int *ca_istrue,
+                         int *max_pathlen )
+{
+    int ret, len;
+    int is_critical = 1;
+    int is_cacert   = 0;
+    unsigned char *end2;
+
+    if( ( ret = x509_get_ext( p, end, ext ) ) != 0 )
+    {
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+            return( 0 );
+
+        return( ret );
+    }
 
     while( *p < end )
     {
@@ -646,6 +695,65 @@ static int x509_get_ext( unsigned char **p,
 }
 
 /*
+ * X.509 CRL Entries
+ */
+static int x509_get_entries( unsigned char **p,
+                             unsigned char *end,
+                             x509_crl_entry *entry )
+{
+    int ret;
+    x509_crl_entry *cur_entry = entry;
+
+    if( *p == end )
+        return( 0 );
+
+    entry->raw.tag = **p;
+
+    if( ( ret = asn1_get_tag( p, end, &entry->raw.len,
+            ASN1_SEQUENCE | ASN1_CONSTRUCTED ) ) != 0 )
+    {
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+            return( 0 );
+
+        return( ret );
+    }
+
+    entry->raw.p = *p;
+    end = *p + entry->raw.len;
+
+    while( *p < end )
+    {
+        int len2;
+
+        if( ( ret = asn1_get_tag( p, end, &len2,
+                ASN1_SEQUENCE | ASN1_CONSTRUCTED ) ) != 0 )
+        {
+            if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+                return( 0 );
+
+            return( ret );
+        }
+
+        if( ( ret = x509_get_serial( p, end, &cur_entry->serial ) ) != 0 )
+            return( ret );
+
+        if( ( ret = x509_get_UTCTime( p, end, &cur_entry->revocation_date ) ) != 0 )
+            return( ret );
+
+        if( ( ret = x509_get_crl_ext( p, end, &cur_entry->entry_ext ) ) != 0 )
+            return( ret );
+
+        if ( *p < end ) {
+            cur_entry->next = malloc( sizeof( x509_crl_entry ) );
+            cur_entry = cur_entry->next;
+            memset( cur_entry, 0, sizeof( x509_crl_entry ) );
+        }
+    }
+
+    return( 0 );
+}
+
+/*
  * Parse one or more certificates and add them to the chained list
  */
 int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
@@ -673,14 +781,14 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
     {
         crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
 
-	if( crt->next == NULL )
-	{
+    if( crt->next == NULL )
+    {
             x509_free( crt );
-	    return( 1 );
-	}
+        return( 1 );
+    }
 
-	crt = crt->next;
-	memset( crt, 0, sizeof( x509_cert ) );
+    crt = crt->next;
+    memset( crt, 0, sizeof( x509_cert ) );
     }
 
     /*
@@ -821,7 +929,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
 
     if( crt->sig_oid1.p[8] < 2 ||
         ( crt->sig_oid1.p[8] > 5 && crt->sig_oid1.p[8] < 11 ) ||
-	crt->sig_oid1.p[8] > 14 )
+    crt->sig_oid1.p[8] > 14 )
     {
           x509_free( crt );
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
@@ -937,7 +1045,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
 
     if( crt->version == 3 )
     {
-        ret = x509_get_ext( &p, end, &crt->v3_ext,
+        ret = x509_get_crt_ext( &p, end, &crt->v3_ext,
                             &crt->ca_istrue, &crt->max_pathlen );
         if( ret != 0 )
         {
@@ -988,16 +1096,320 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
     {
         crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
 
-	if( crt->next == NULL )
-	{
+    if( crt->next == NULL )
+    {
             x509_free( crt );
-	    return( 1 );
-	}
+        return( 1 );
+    }
 
-	crt = crt->next;
-	memset( crt, 0, sizeof( x509_cert ) );
+    crt = crt->next;
+    memset( crt, 0, sizeof( x509_cert ) );
 
         return( x509parse_crt( crt, buf, buflen ) );
+    }
+
+    return( 0 );
+}
+
+/*
+ * Parse one or more CRLs and add them to the chained list
+ */
+int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen )
+{
+    int ret, len;
+    unsigned char *s1, *s2;
+    unsigned char *p, *end;
+    x509_crl *crl;
+
+    crl = chain;
+
+    /*
+     * Check for valid input
+     */
+    if( crl == NULL || buf == NULL )
+        return( 1 );
+
+    while( crl->version != 0 && crl->next != NULL )
+        crl = crl->next;
+
+    /*
+     * Add new CRL on the end of the chain if needed.
+     */
+    if ( crl->version != 0 && crl->next == NULL)
+    {
+        crl->next = (x509_crl *) malloc( sizeof( x509_crl ) );
+
+    if( crl->next == NULL )
+    {
+            x509_crl_free( crl );
+        return( 1 );
+    }
+
+    crl = crl->next;
+    memset( crl, 0, sizeof( x509_crl ) );
+    }
+
+    /*
+     * check if the CRL is encoded in base64
+     */
+    s1 = (unsigned char *) strstr( (char *) buf,
+        "-----BEGIN X509 CRL-----" );
+
+    if( s1 != NULL )
+    {
+        s2 = (unsigned char *) strstr( (char *) buf,
+            "-----END X509 CRL-----" );
+
+        if( s2 == NULL || s2 <= s1 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
+
+        s1 += 24;
+        if( *s1 == '\r' ) s1++;
+        if( *s1 == '\n' ) s1++;
+            else return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
+
+        /*
+         * get the DER data length and decode the buffer
+         */
+        len = 0;
+        ret = base64_decode( NULL, &len, s1, s2 - s1 );
+
+        if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
+            return( POLARSSL_ERR_X509_CERT_INVALID_PEM | ret );
+
+        if( ( p = (unsigned char *) malloc( len ) ) == NULL )
+            return( 1 );
+            
+        if( ( ret = base64_decode( p, &len, s1, s2 - s1 ) ) != 0 )
+        {
+            free( p );
+            return( POLARSSL_ERR_X509_CERT_INVALID_PEM | ret );
+        }
+
+        /*
+         * update the buffer size and offset
+         */
+        s2 += 22;
+        if( *s2 == '\r' ) s2++;
+        if( *s2 == '\n' ) s2++;
+        else
+        {
+            free( p );
+            return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
+        }
+
+        buflen -= s2 - buf;
+        buf = s2;
+    }
+    else
+    {
+        /*
+         * nope, copy the raw DER data
+         */
+        p = (unsigned char *) malloc( len = buflen );
+
+        if( p == NULL )
+            return( 1 );
+
+        memcpy( p, buf, buflen );
+
+        buflen = 0;
+    }
+
+    crl->raw.p = p;
+    crl->raw.len = len;
+    end = p + len;
+
+    /*
+     * CertificateList  ::=  SEQUENCE  {
+     *      tbsCertList          TBSCertList,
+     *      signatureAlgorithm   AlgorithmIdentifier,
+     *      signatureValue       BIT STRING  }
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT );
+    }
+
+    if( len != (int) ( end - p ) )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+
+    /*
+     * TBSCertList  ::=  SEQUENCE  {
+     */
+    crl->tbs.p = p;
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
+    }
+
+    end = p + len;
+    crl->tbs.len = end - crl->tbs.p;
+
+    /*
+     * Version  ::=  INTEGER  OPTIONAL {  v1(0), v2(1)  }
+     *               -- if present, MUST be v2
+     *
+     * signature            AlgorithmIdentifier
+     */
+    if( ( ret = x509_get_version( &p, end, &crl->version ) ) != 0 ||
+        ( ret = x509_get_alg(  &p, end, &crl->sig_oid1   ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( ret );
+    }
+
+    crl->version++;
+
+    if( crl->version > 2 )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION );
+    }
+
+    if( crl->sig_oid1.len != 9 ||
+        memcmp( crl->sig_oid1.p, OID_PKCS1, 8 ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+    }
+
+    if( crl->sig_oid1.p[8] < 2 ||
+        ( crl->sig_oid1.p[8] > 5 && crl->sig_oid1.p[8] < 11 ) ||
+    crl->sig_oid1.p[8] > 14 )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+    }
+
+    /*
+     * issuer               Name
+     */
+    crl->issuer_raw.p = p;
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
+    }
+
+    if( ( ret = x509_get_name( &p, p + len, &crl->issuer ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( ret );
+    }
+
+    crl->issuer_raw.len = p - crl->issuer_raw.p;
+
+    /*
+     * thisUpdate          Time
+     * nextUpdate          Time OPTIONAL
+     */
+    if( ( ret = x509_get_UTCTime( &p, end, &crl->this_update ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( ret );
+    }
+
+    if( ( ret = x509_get_UTCTime( &p, end, &crl->next_update ) ) != 0 )
+    {
+        if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) {
+            x509_crl_free( crl );
+            return( ret );
+        }
+    }
+
+    /*
+     * revokedCertificates    SEQUENCE OF SEQUENCE   {
+     *      userCertificate        CertificateSerialNumber,
+     *      revocationDate         Time,
+     *      crlEntryExtensions     Extensions OPTIONAL
+     *                                   -- if present, MUST be v2
+     *                        } OPTIONAL
+     */
+    if( ( ret = x509_get_entries( &p, end, &crl->entry ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( ret );
+    }
+
+    /*
+     * crlExtensions          EXPLICIT Extensions OPTIONAL
+     *                              -- if present, MUST be v2
+     */
+    if( crl->version == 2 )
+    {
+        ret = x509_get_crl_ext( &p, end, &crl->crl_ext );
+                            
+        if( ret != 0 )
+        {
+            x509_crl_free( crl );
+            return( ret );
+        }
+    }
+
+    if( p != end )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+
+    end = crl->raw.p + crl->raw.len;
+
+    /*
+     *  signatureAlgorithm   AlgorithmIdentifier,
+     *  signatureValue       BIT STRING
+     */
+    if( ( ret = x509_get_alg( &p, end, &crl->sig_oid2 ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( ret );
+    }
+
+    if( memcmp( crl->sig_oid1.p, crl->sig_oid2.p, crl->sig_oid1.len ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_SIG_MISMATCH );
+    }
+
+    if( ( ret = x509_get_sig( &p, end, &crl->sig ) ) != 0 )
+    {
+        x509_crl_free( crl );
+        return( ret );
+    }
+
+    if( p != end )
+    {
+        x509_crl_free( crl );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+
+    if( buflen > 0 )
+    {
+        crl->next = (x509_crl *) malloc( sizeof( x509_crl ) );
+
+    if( crl->next == NULL )
+    {
+            x509_crl_free( crl );
+        return( 1 );
+    }
+
+    crl = crl->next;
+    memset( crl, 0, sizeof( x509_crl ) );
+
+        return( x509parse_crl( crl, buf, buflen ) );
     }
 
     return( 0 );
@@ -1008,30 +1420,30 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
  */
 int load_file( char *path, unsigned char **buf,  size_t *n )
 {
-	FILE *f;
+    FILE *f;
 
-	if( ( f = fopen( path, "rb" ) ) == NULL )
-		return( 1 );
+    if( ( f = fopen( path, "rb" ) ) == NULL )
+        return( 1 );
 
-	fseek( f, 0, SEEK_END );
-	*n = (size_t) ftell( f );
-	fseek( f, 0, SEEK_SET );
+    fseek( f, 0, SEEK_END );
+    *n = (size_t) ftell( f );
+    fseek( f, 0, SEEK_SET );
 
-	if( ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
-		return( 1 );
+    if( ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
+        return( 1 );
 
-	if( fread( *buf, 1, *n, f ) != *n )
-	{
-		fclose( f );
-		free( *buf );
-		return( 1 );
-	}
+    if( fread( *buf, 1, *n, f ) != *n )
+    {
+        fclose( f );
+        free( *buf );
+        return( 1 );
+    }
 
-	fclose( f );
+    fclose( f );
 
-	(*buf)[*n] = '\0';
+    (*buf)[*n] = '\0';
 
-	return( 0 );
+    return( 0 );
 }
 
 /*
@@ -1047,6 +1459,26 @@ int x509parse_crtfile( x509_cert *chain, char *path )
         return( 1 );
 
     ret = x509parse_crt( chain, buf, (int) n );
+
+    memset( buf, 0, n + 1 );
+    free( buf );
+
+    return( ret );
+}
+
+/*
+ * Load one or more CRLs and add them to the chained list
+ */
+int x509parse_crlfile( x509_crl *chain, char *path )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( load_file( path, &buf, &n ) )
+        return( 1 );
+
+    ret = x509parse_crl( chain, buf, (int) n );
 
     memset( buf, 0, n + 1 );
     free( buf );
@@ -1331,16 +1763,63 @@ int x509parse_keyfile( rsa_context *rsa, char *path, char *pwd )
 }
 
 #if defined _MSC_VER && !defined snprintf
-#define snprintf _snprintf
+#include <stdarg.h>
+
+#if !defined vsnprintf
+#define vsnprintf _vsnprintf
+#endif // vsnprintf
+
+/*
+ * Windows _snprintf and _vsnprintf are not compatible to linux versions.
+ * Result value is not size of buffer needed, but -1 if no fit is possible.
+ *
+ * This fuction tries to 'fix' this by at least suggesting enlarging the
+ * size by 20.
+ */
+int compat_snprintf(char *str, size_t size, const char *format, ...)
+{
+    va_list ap;
+    int res = -1;
+
+    va_start( ap, format );
+
+    res = vsnprintf( str, size, format, ap );
+
+    va_end( ap );
+
+    // No quick fix possible
+    if ( res < 0 )
+        return( size + 20 );
+    
+    return res;
+}
+
+#define snprintf compat_snprintf
 #endif
+
+#define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
+
+#define SAFE_SNPRINTF()                         \
+{                                               \
+    if( ret == -1 )                             \
+        return( -1 );                           \
+                                                \
+    if ( ret > n ) {                            \
+        p[n - 1] = '\0';                        \
+        return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;\
+    }                                           \
+                                                \
+    n -= ret;                                   \
+    p += ret;                                   \
+}
 
 /*
  * Store the name in printable form into buf; no more
- * than (end - buf) characters will be written
+ * than size characters will be written
  */
-int x509parse_dn_gets( char *buf, char *end, x509_name *dn )
+int x509parse_dn_gets( char *buf, size_t size, x509_name *dn )
 {
-    int i;
+    int i, ret, n;
     unsigned char c;
     x509_name *name;
     char s[128], *p;
@@ -1349,55 +1828,63 @@ int x509parse_dn_gets( char *buf, char *end, x509_name *dn )
 
     name = dn;
     p = buf;
+    n = size;
 
     while( name != NULL )
     {
-        if( name != dn )
-            p += snprintf( p, end - p, ", " );
+        if( name != dn ) {
+            ret = snprintf( p, n, ", " );
+            SAFE_SNPRINTF();
+        }
 
         if( memcmp( name->oid.p, OID_X520, 2 ) == 0 )
         {
             switch( name->oid.p[2] )
             {
             case X520_COMMON_NAME:
-                p += snprintf( p, end - p, "CN=" ); break;
+                ret = snprintf( p, n, "CN=" ); break;
 
             case X520_COUNTRY:
-                p += snprintf( p, end - p, "C="  ); break;
+                ret = snprintf( p, n, "C="  ); break;
 
             case X520_LOCALITY:
-                p += snprintf( p, end - p, "L="  ); break;
+                ret = snprintf( p, n, "L="  ); break;
 
             case X520_STATE:
-                p += snprintf( p, end - p, "ST=" ); break;
+                ret = snprintf( p, n, "ST=" ); break;
 
             case X520_ORGANIZATION:
-                p += snprintf( p, end - p, "O="  ); break;
+                ret = snprintf( p, n, "O="  ); break;
 
             case X520_ORG_UNIT:
-                p += snprintf( p, end - p, "OU=" ); break;
+                ret = snprintf( p, n, "OU=" ); break;
 
             default:
-                p += snprintf( p, end - p, "0x%02X=",
+                ret = snprintf( p, n, "0x%02X=",
                                name->oid.p[2] );
                 break;
             }
+        SAFE_SNPRINTF();
         }
         else if( memcmp( name->oid.p, OID_PKCS9, 8 ) == 0 )
         {
             switch( name->oid.p[8] )
             {
             case PKCS9_EMAIL:
-                p += snprintf( p, end - p, "emailAddress=" ); break;
+                ret = snprintf( p, n, "emailAddress=" ); break;
 
             default:
-                p += snprintf( p, end - p, "0x%02X=",
+                ret = snprintf( p, n, "0x%02X=",
                                name->oid.p[8] );
                 break;
             }
+        SAFE_SNPRINTF();
         }
         else
-            p += snprintf( p, end - p, "\?\?=" );
+    {
+            ret = snprintf( p, n, "\?\?=" );
+        SAFE_SNPRINTF();
+        }
 
         for( i = 0; i < name->val.len; i++ )
         {
@@ -1410,75 +1897,174 @@ int x509parse_dn_gets( char *buf, char *end, x509_name *dn )
             else s[i] = c;
         }
         s[i] = '\0';
-        p += snprintf( p, end - p, "%s", s );
+        ret = snprintf( p, n, "%s", s );
+    SAFE_SNPRINTF();
         name = name->next;
     }
 
-    return( p - buf );
+    return( size - n );
 }
 
 /*
- * Return an informational string about the
- * certificate, or NULL if memory allocation failed
+ * Return an informational string about the certificate.
  */
-char *x509parse_cert_info( char *prefix, x509_cert *crt )
+int x509parse_cert_info( char *buf, size_t size, char *prefix, x509_cert *crt )
 {
-    int i, n;
-    char *p, *end;
-    static char buf[1024];
+    int i, n, nr, ret;
+    char *p;
 
     p = buf;
-    end = buf + sizeof( buf ) - 1;
+    n = size;
 
-    p += snprintf( p, end - p, "%scert. version : %d\n",
+    ret = snprintf( p, n, "%scert. version : %d\n",
                                prefix, crt->version );
-    p += snprintf( p, end - p, "%sserial number : ",
+    SAFE_SNPRINTF();
+    ret = snprintf( p, n, "%sserial number : ",
                                prefix );
+    SAFE_SNPRINTF();
 
-    n = ( crt->serial.len <= 32 )
+    nr = ( crt->serial.len <= 32 )
         ? crt->serial.len  : 32;
 
-    for( i = 0; i < n; i++ )
-        p += snprintf( p, end - p, "%02X%s",
-                crt->serial.p[i], ( i < n - 1 ) ? ":" : "" );
+    for( i = 0; i < nr; i++ )
+    {
+        ret = snprintf( p, n, "%02X%s",
+                crt->serial.p[i], ( i < nr - 1 ) ? ":" : "" );
+        SAFE_SNPRINTF();
+    }
 
-    p += snprintf( p, end - p, "\n%sissuer  name  : ", prefix );
-    p += x509parse_dn_gets( p, end, &crt->issuer  );
+    ret = snprintf( p, n, "\n%sissuer name   : ", prefix );
+    SAFE_SNPRINTF();
+    ret = x509parse_dn_gets( p, n, &crt->issuer  );
+    SAFE_SNPRINTF();
 
-    p += snprintf( p, end - p, "\n%ssubject name  : ", prefix );
-    p += x509parse_dn_gets( p, end, &crt->subject );
+    ret = snprintf( p, n, "\n%ssubject name  : ", prefix );
+    SAFE_SNPRINTF();
+    ret = x509parse_dn_gets( p, n, &crt->subject );
+    SAFE_SNPRINTF();
 
-    p += snprintf( p, end - p, "\n%sissued  on    : " \
+    ret = snprintf( p, n, "\n%sissued  on    : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_from.year, crt->valid_from.mon,
                    crt->valid_from.day,  crt->valid_from.hour,
                    crt->valid_from.min,  crt->valid_from.sec );
+    SAFE_SNPRINTF();
 
-    p += snprintf( p, end - p, "\n%sexpires on    : " \
+    ret = snprintf( p, n, "\n%sexpires on    : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_to.year, crt->valid_to.mon,
                    crt->valid_to.day,  crt->valid_to.hour,
                    crt->valid_to.min,  crt->valid_to.sec );
+    SAFE_SNPRINTF();
 
-    p += snprintf( p, end - p, "\n%ssigned using  : RSA+", prefix );
+    ret = snprintf( p, n, "\n%ssigned using  : RSA+", prefix );
+    SAFE_SNPRINTF();
 
     switch( crt->sig_oid1.p[8] )
     {
-        case SIG_RSA_MD2    : p += snprintf( p, end - p, "MD2"    ); break;
-        case SIG_RSA_MD4    : p += snprintf( p, end - p, "MD4"    ); break;
-        case SIG_RSA_MD5    : p += snprintf( p, end - p, "MD5"    ); break;
-        case SIG_RSA_SHA1   : p += snprintf( p, end - p, "SHA1"   ); break;
-        case SIG_RSA_SHA224 : p += snprintf( p, end - p, "SHA224" ); break;
-        case SIG_RSA_SHA256 : p += snprintf( p, end - p, "SHA256" ); break;
-        case SIG_RSA_SHA384 : p += snprintf( p, end - p, "SHA384" ); break;
-        case SIG_RSA_SHA512 : p += snprintf( p, end - p, "SHA512" ); break;
-        default: p += snprintf( p, end - p, "???"  ); break;
+        case SIG_RSA_MD2    : ret = snprintf( p, n, "MD2"    ); break;
+        case SIG_RSA_MD4    : ret = snprintf( p, n, "MD4"    ); break;
+        case SIG_RSA_MD5    : ret = snprintf( p, n, "MD5"    ); break;
+        case SIG_RSA_SHA1   : ret = snprintf( p, n, "SHA1"   ); break;
+        case SIG_RSA_SHA224 : ret = snprintf( p, n, "SHA224" ); break;
+        case SIG_RSA_SHA256 : ret = snprintf( p, n, "SHA256" ); break;
+        case SIG_RSA_SHA384 : ret = snprintf( p, n, "SHA384" ); break;
+        case SIG_RSA_SHA512 : ret = snprintf( p, n, "SHA512" ); break;
+        default: ret = snprintf( p, n, "???"  ); break;
+    }
+    SAFE_SNPRINTF();
+
+    ret = snprintf( p, n, "\n%sRSA key size  : %d bits\n", prefix,
+                   crt->rsa.N.n * (int) sizeof( unsigned long ) * 8 );
+    SAFE_SNPRINTF();
+
+    return( size - n );
+}
+
+/*
+ * Return an informational string about the CRL.
+ */
+int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl )
+{
+    int i, n, nr, ret;
+    char *p;
+    x509_crl_entry *entry;
+
+    p = buf;
+    n = size;
+
+    ret = snprintf( p, n, "%sCRL version   : %d",
+                               prefix, crl->version );
+    SAFE_SNPRINTF();
+
+    ret = snprintf( p, n, "\n%sissuer name   : ", prefix );
+    SAFE_SNPRINTF();
+    ret = x509parse_dn_gets( p, n, &crl->issuer );
+    SAFE_SNPRINTF();
+
+    ret = snprintf( p, n, "\n%sthis update   : " \
+                   "%04d-%02d-%02d %02d:%02d:%02d", prefix,
+                   crl->this_update.year, crl->this_update.mon,
+                   crl->this_update.day,  crl->this_update.hour,
+                   crl->this_update.min,  crl->this_update.sec );
+    SAFE_SNPRINTF();
+
+    ret = snprintf( p, n, "\n%snext update   : " \
+                   "%04d-%02d-%02d %02d:%02d:%02d", prefix,
+                   crl->next_update.year, crl->next_update.mon,
+                   crl->next_update.day,  crl->next_update.hour,
+                   crl->next_update.min,  crl->next_update.sec );
+    SAFE_SNPRINTF();
+
+    entry = &crl->entry;
+
+    ret = snprintf( p, n, "\n%sRevoked certificates:",
+                               prefix );
+    SAFE_SNPRINTF();
+
+    while( entry != NULL )
+    {
+        ret = snprintf( p, n, "\n%sserial number: ",
+                               prefix );
+        SAFE_SNPRINTF();
+
+        nr = ( entry->serial.len <= 32 )
+            ? entry->serial.len  : 32;
+
+        for( i = 0; i < nr; i++ ) {
+            ret = snprintf( p, n, "%02X%s",
+                    entry->serial.p[i], ( i < nr - 1 ) ? ":" : "" );
+            SAFE_SNPRINTF();
+        }
+        
+        ret = snprintf( p, n, " revocation date: " \
+                   "%04d-%02d-%02d %02d:%02d:%02d",
+                   entry->revocation_date.year, entry->revocation_date.mon,
+                   entry->revocation_date.day,  entry->revocation_date.hour,
+                   entry->revocation_date.min,  entry->revocation_date.sec );
+    SAFE_SNPRINTF();
+
+        entry = entry->next;
     }
 
-    p += snprintf( p, end - p, "\n%sRSA key size  : %d bits\n", prefix,
-                   crt->rsa.N.n * (int) sizeof( unsigned long ) * 8 );
+    ret = snprintf( p, n, "\n%ssigned using  : RSA+", prefix );
+    SAFE_SNPRINTF();
 
-    return( buf );
+    switch( crl->sig_oid1.p[8] )
+    {
+        case SIG_RSA_MD2    : ret = snprintf( p, n, "MD2"    ); break;
+        case SIG_RSA_MD4    : ret = snprintf( p, n, "MD4"    ); break;
+        case SIG_RSA_MD5    : ret = snprintf( p, n, "MD5"    ); break;
+        case SIG_RSA_SHA1   : ret = snprintf( p, n, "SHA1"   ); break;
+        case SIG_RSA_SHA224 : ret = snprintf( p, n, "SHA224" ); break;
+        case SIG_RSA_SHA256 : ret = snprintf( p, n, "SHA256" ); break;
+        case SIG_RSA_SHA384 : ret = snprintf( p, n, "SHA384" ); break;
+        case SIG_RSA_SHA512 : ret = snprintf( p, n, "SHA512" ); break;
+        default: ret = snprintf( p, n, "???"  ); break;
+    }
+    SAFE_SNPRINTF();
+
+    return( size - n );
 }
 
 /*
@@ -1700,6 +2286,64 @@ void x509_free( x509_cert *crt )
             free( cert_prv );
     }
     while( cert_cur != NULL );
+}
+
+/*
+ * Unallocate all CRL data
+ */
+void x509_crl_free( x509_crl *crl )
+{
+    x509_crl *crl_cur = crl;
+    x509_crl *crl_prv;
+    x509_name *name_cur;
+    x509_name *name_prv;
+    x509_crl_entry *entry_cur;
+    x509_crl_entry *entry_prv;
+
+    if( crl == NULL )
+        return;
+
+    do
+    {
+        name_cur = crl_cur->issuer.next;
+        while( name_cur != NULL )
+        {
+            name_prv = name_cur;
+            name_cur = name_cur->next;
+            memset( name_prv, 0, sizeof( x509_name ) );
+            free( name_prv );
+        }
+
+        entry_cur = crl_cur->entry.next;
+        while( entry_cur != NULL )
+        {
+            entry_prv = entry_cur;
+            entry_cur = entry_cur->next;
+            memset( entry_prv, 0, sizeof( x509_crl_entry ) );
+            free( entry_prv );
+        }
+
+        if( crl_cur->raw.p != NULL )
+        {
+            memset( crl_cur->raw.p, 0, crl_cur->raw.len );
+            free( crl_cur->raw.p );
+        }
+
+        crl_cur = crl_cur->next;
+    }
+    while( crl_cur != NULL );
+
+    crl_cur = crl;
+    do
+    {
+        crl_prv = crl_cur;
+        crl_cur = crl_cur->next;
+
+        memset( crl_prv, 0, sizeof( x509_crl ) );
+        if( crl_prv != crl )
+            free( crl_prv );
+    }
+    while( crl_cur != NULL );
 }
 
 #if defined(POLARSSL_SELF_TEST)

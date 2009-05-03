@@ -23,7 +23,8 @@ PolarSSL ChangeLog
    * Added support for Certificate Revocation List (CRL) parsing.
    * Added support for CRL revocation to x509parse_verify() and
      SSL/TLS code.
-   * XTEA and Camellia now are 64-bit compatible.
+   * Fixed compatibility of XTEA and Camellia on a 64-bit system
+     (found by Felix von Leitner).
 
 = Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL

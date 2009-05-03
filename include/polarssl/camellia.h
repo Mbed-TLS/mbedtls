@@ -20,6 +20,8 @@
 #ifndef POLARSSL_CAMELLIA_H
 #define POLARSSL_CAMELLIA_H
 
+#include <inttypes.h>
+
 #define CAMELLIA_ENCRYPT     1
 #define CAMELLIA_DECRYPT     0
 
@@ -29,7 +31,7 @@
 typedef struct
 {
     int nr;                     /*!<  number of rounds  */
-    unsigned long rk[68];       /*!<  CAMELLIA round keys    */
+    uint32_t rk[68];            /*!<  CAMELLIA round keys    */
 }
 camellia_context;
 

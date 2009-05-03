@@ -63,8 +63,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir ""
 # PROP Intermediate_Dir "temp"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Z7 /Od /I "../include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /GX /Z7 /Od /I "../include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x40c /d "_DEBUG"
 # ADD RSC /l 0x40c /d "_DEBUG"
 BSC32=bscmake.exe
@@ -89,10 +89,6 @@ SOURCE=..\library\aes.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\camellia.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\library\arc4.c
 # End Source File
 # Begin Source File
@@ -102,6 +98,10 @@ SOURCE=..\library\base64.c
 # Begin Source File
 
 SOURCE=..\library\bignum.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\library\camellia.c
 # End Source File
 # Begin Source File
 
@@ -179,6 +179,10 @@ SOURCE=..\library\timing.c
 
 SOURCE=..\library\x509parse.c
 # End Source File
+# Begin Source File
+
+SOURCE=..\library\xtea.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -186,10 +190,6 @@ SOURCE=..\library\x509parse.c
 # Begin Source File
 
 SOURCE=..\include\polarssl\aes.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\include\polarssl\camellia.h
 # End Source File
 # Begin Source File
 
@@ -206,6 +206,10 @@ SOURCE=..\include\polarssl\bignum.h
 # Begin Source File
 
 SOURCE=..\include\polarssl\bn_mul.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\polarssl\camellia.h
 # End Source File
 # Begin Source File
 
@@ -278,6 +282,10 @@ SOURCE=..\include\polarssl\timing.h
 # Begin Source File
 
 SOURCE=..\include\polarssl\x509.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\polarssl\xtea.h
 # End Source File
 # End Group
 # End Target

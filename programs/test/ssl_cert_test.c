@@ -146,8 +146,18 @@ int main( void )
         {
             if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
             {
-                if( flags == BADCERT_REVOKED )
+                if( flags & BADCERT_CN_MISMATCH )
+                    printf( " CN_MISMATCH " );
+                if( flags & BADCERT_EXPIRED )
+                    printf( " EXPIRED " );
+                if( flags & BADCERT_REVOKED )
                     printf( " REVOKED " );
+                if( flags & BADCERT_NOT_TRUSTED )
+                    printf( " NOT_TRUSTED " );
+                if( flags & BADCRL_NOT_TRUSTED )
+                    printf( " CRL_NOT_TRUSTED " );
+                if( flags & BADCRL_EXPIRED )
+                    printf( " CRL_EXPIRED " );
             } else {
                 printf( " failed\n  !  x509parse_verify returned %d\n\n", ret );
                 goto exit;

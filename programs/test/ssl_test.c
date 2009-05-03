@@ -225,7 +225,7 @@ static int ssl_test( struct options *opt )
 
         ssl_set_endpoint( &ssl, SSL_IS_SERVER );
         ssl_set_dh_param( &ssl, dhm_P, dhm_G );
-        ssl_set_ca_chain( &ssl, srvcert.next, NULL );
+        ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
         ssl_set_own_cert( &ssl, &srvcert, &rsa );
     }
 

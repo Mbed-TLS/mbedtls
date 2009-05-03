@@ -32,12 +32,14 @@
 #define snprintf _snprintf
 #endif
 
-#define MAX_CLIENT_CERTS    6
+#define MAX_CLIENT_CERTS    8
 
 char *client_certificates[MAX_CLIENT_CERTS] =
 {
     "client1.crt",
     "client2.crt",
+    "server1.crt",
+    "server2.crt",
     "cert_sha224.crt",
     "cert_sha256.crt",
     "cert_sha384.crt",
@@ -48,6 +50,8 @@ char *client_private_keys[MAX_CLIENT_CERTS] =
 {
     "client1.key",
     "client2.key",
+    "server1.key",
+    "server2.key",
     "cert_sha224.key",
     "cert_sha256.key",
     "cert_sha384.key",
@@ -82,6 +86,9 @@ int main( void )
     }
 
     printf( " ok\n" );
+
+    x509parse_cert_info( buf, 1024, "CRT: ", &cacert );
+    printf("%s\n", buf );
 
     /*
      * 1.2. Load the CRL
@@ -134,11 +141,17 @@ int main( void )
         printf( "  . Verify the client certificate with CA certificate..." );
         fflush( stdout );
 
-        ret = x509parse_verify( &clicert, &cacert, NULL, &flags );
+        ret = x509parse_verify( &clicert, &cacert, &crl, NULL, &flags );
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_verify returned %d\n\n", ret );
-            goto exit;
+            if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
+            {
+                if( flags == BADCERT_REVOKED )
+                    printf( " REVOKED " );
+            } else {
+                printf( " failed\n  !  x509parse_verify returned %d\n\n", ret );
+                goto exit;
+            }
         }
 
         printf( " ok\n" );

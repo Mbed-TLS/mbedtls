@@ -18,6 +18,10 @@ PolarSSL ChangeLog
      systems (Found by Gernot).
    * Undefining POLARSSL_HAVE_ASM now also handles prevents asm in
      padlock and timing code. 
+   * Fixed an off-by-one buffer allocation in ssl_set_hostname().
+   * Added support for Certificate Revocation List (CRL parsing.
+   * Added support for CRL revocation to x509parse_verify() and
+     SSL/TLS code.
 
 = Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL

@@ -60,6 +60,8 @@
 #define BADCERT_REVOKED                 2
 #define BADCERT_CN_MISMATCH             4
 #define BADCERT_NOT_TRUSTED             8
+#define BADCRL_NOT_TRUSTED             16
+#define BADCRL_EXPIRED                 32
 
 /*
  * DER constants
@@ -335,16 +337,17 @@ int x509parse_cert_info( char *buf, size_t size, char *prefix, x509_cert *crt );
 int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl );
 
 /**
- * \brief          Return 0 if the certificate is still valid,
- *                 or BADCERT_EXPIRED
+ * \brief          Return 0 if the x509_time is still valid,
+ *                 or 1 otherwise.
  */
-int x509parse_expired( x509_cert *crt );
+int x509parse_time_expired( x509_time *time );
 
 /**
  * \brief          Verify the certificate signature
  *
  * \param crt      a certificate to be verified
  * \param trust_ca the trusted CA chain
+ * \param ca_crl   the CRL chain for trusted CA's
  * \param cn       expected Common Name (can be set to
  *                 NULL if the CN must not be verified)
  * \param flags    result of the verification
@@ -361,6 +364,7 @@ int x509parse_expired( x509_cert *crt );
  */
 int x509parse_verify( x509_cert *crt,
                       x509_cert *trust_ca,
+                      x509_crl *ca_crl,
                       char *cn, int *flags );
 
 /**

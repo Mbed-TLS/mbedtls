@@ -158,7 +158,7 @@ int main( void )
     ssl_set_ciphers( &ssl, ssl_default_ciphers );
     ssl_set_session( &ssl, 1, 600, &ssn );
 
-    ssl_set_ca_chain( &ssl, &cacert, SERVER_NAME );
+    ssl_set_ca_chain( &ssl, &cacert, NULL, SERVER_NAME );
     ssl_set_own_cert( &ssl, &clicert, &rsa );
 
     ssl_set_hostname( &ssl, SERVER_NAME );

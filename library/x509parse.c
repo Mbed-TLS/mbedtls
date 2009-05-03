@@ -2068,9 +2068,9 @@ int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl )
 }
 
 /*
- * Return 0 if the certificate is still valid, or BADCERT_EXPIRED
+ * Return 0 if the x509_time is still valid, or 1 otherwise.
  */
-int x509parse_expired( x509_cert *crt )
+int x509parse_time_expired( x509_time *to )
 {
     struct tm *lt;
     time_t tt;
@@ -2078,17 +2078,38 @@ int x509parse_expired( x509_cert *crt )
     tt = time( NULL );
     lt = localtime( &tt );
 
-    if( lt->tm_year  > crt->valid_to.year - 1900 )
-        return( BADCERT_EXPIRED );
+    if( lt->tm_year  > to->year - 1900 )
+        return( 1 );
 
-    if( lt->tm_year == crt->valid_to.year - 1900 &&
-        lt->tm_mon   > crt->valid_to.mon  - 1 )
-        return( BADCERT_EXPIRED );
+    if( lt->tm_year == to->year - 1900 &&
+        lt->tm_mon   > to->mon  - 1 )
+        return( 1 );
 
-    if( lt->tm_year == crt->valid_to.year - 1900 &&
-        lt->tm_mon  == crt->valid_to.mon  - 1    &&
-        lt->tm_mday  > crt->valid_to.day )
-        return( BADCERT_EXPIRED );
+    if( lt->tm_year == to->year - 1900 &&
+        lt->tm_mon  == to->mon  - 1    &&
+        lt->tm_mday  > to->day )
+        return( 1 );
+
+    return( 0 );
+}
+
+/*
+ * Return 1 if the certificate is revoked, or 0 otherwise.
+ */
+int x509parse_revoked( x509_cert *crt, x509_crl *crl )
+{
+    x509_crl_entry *cur = &crl->entry;
+
+    while( cur != NULL && cur->serial.len != 0 )
+    {
+        if( memcmp( crt->serial.p, cur->serial.p, crt->serial.len ) == 0 )
+        {
+            if( x509parse_time_expired( &cur->revocation_date ) )
+                return( 1 );
+        }
+
+        cur = cur->next;
+    }
 
     return( 0 );
 }
@@ -2125,6 +2146,7 @@ static void x509_hash( unsigned char *in, int len, int alg,
  */
 int x509parse_verify( x509_cert *crt,
                       x509_cert *trust_ca,
+                      x509_crl *ca_crl,
                       char *cn, int *flags )
 {
     int cn_len;
@@ -2134,7 +2156,10 @@ int x509parse_verify( x509_cert *crt,
     x509_name *name;
     unsigned char hash[64];
 
-    *flags = x509parse_expired( crt );
+    *flags = 0;
+
+    if( x509parse_time_expired( &crt->valid_to ) )
+        *flags = BADCERT_EXPIRED;
 
     if( cn != NULL )
     {
@@ -2222,6 +2247,61 @@ int x509parse_verify( x509_cert *crt,
         }
 
         trust_ca = trust_ca->next;
+    }
+
+    /*
+     * TODO: What happens if no CRL is present?
+     * Suggestion: Revocation state should be unknown if no CRL is present.
+     * For backwards compatibility this is not yet implemented.
+     */
+
+    /*
+     * Check if the topmost certificate is revoked if the trusted CA is
+     * determined.
+     */
+    while( trust_ca != NULL && ca_crl != NULL && ca_crl->version != 0 )
+    {
+        if( ca_crl->issuer_raw.len != trust_ca->subject_raw.len ||
+            memcmp( ca_crl->issuer_raw.p, trust_ca->subject_raw.p,
+                    ca_crl->issuer_raw.len ) != 0 )
+        {
+            ca_crl = ca_crl->next;
+            continue;
+        }
+
+        /*
+         * Check if CRL is correctry signed by the trusted CA
+         */
+        hash_id = ca_crl->sig_oid1.p[8];
+
+        x509_hash( ca_crl->tbs.p, ca_crl->tbs.len, hash_id, hash );
+
+        if( !rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, hash_id,
+                              0, hash, ca_crl->sig.p ) == 0 )
+        {
+            /*
+             * CRL is not trusted
+             */
+            *flags |= BADCRL_NOT_TRUSTED;
+            break;
+        }
+
+        /*
+         * Check for validity of CRL (Do not drop out)
+         */
+        if( x509parse_time_expired( &ca_crl->next_update ) )
+            *flags |= BADCRL_EXPIRED;
+        
+        /*
+         * Check if certificate is revoked
+         */
+        if( x509parse_revoked(crt, ca_crl) )
+        {
+            *flags |= BADCERT_REVOKED;
+            break;
+        }
+
+        ca_crl = ca_crl->next;
     }
 
     if( *flags != 0 )
@@ -2406,7 +2486,7 @@ int x509_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n  X.509 signature verify: ");
 
-    ret = x509parse_verify( &clicert, &cacert, "Joe User", &i );
+    ret = x509parse_verify( &clicert, &cacert, NULL, "Joe User", &i );
     if( ret != 0 )
     {
         if( verbose != 0 )

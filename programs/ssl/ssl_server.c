@@ -286,7 +286,7 @@ accept:
 
     memset( &ssn, 0, sizeof( ssl_session ) );
 
-    ssl_set_ca_chain( &ssl, srvcert.next, NULL );
+    ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
     ssl_set_own_cert( &ssl, &srvcert, &rsa );
     ssl_set_dh_param( &ssl, my_dhm_P, my_dhm_G );
 

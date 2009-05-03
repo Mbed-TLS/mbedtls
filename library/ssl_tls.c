@@ -1332,7 +1332,7 @@ int ssl_parse_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED );
         }
 
-        ret = x509parse_verify( ssl->peer_cert, ssl->ca_chain,
+        ret = x509parse_verify( ssl->peer_cert, ssl->ca_chain, ssl->ca_crl,
                                 ssl->peer_cn,  &ssl->verify_result );
 
         if( ret != 0 )
@@ -1702,9 +1702,10 @@ void ssl_set_ciphers( ssl_context *ssl, int *ciphers )
 }
 
 void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
-                       char *peer_cn )
+                       x509_crl *ca_crl, char *peer_cn )
 {
     ssl->ca_chain   = ca_chain;
+    ssl->ca_crl     = ca_crl;
     ssl->peer_cn    = peer_cn;
 }
 
@@ -1740,10 +1741,12 @@ int ssl_set_hostname( ssl_context *ssl, char *hostname )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->hostname_len = strlen( hostname );
-    ssl->hostname = (unsigned char *) malloc( ssl->hostname_len );
+    ssl->hostname = (unsigned char *) malloc( ssl->hostname_len + 1 );
 
     memcpy( ssl->hostname, (unsigned char *) hostname,
             ssl->hostname_len );
+    
+    ssl->hostname[ssl->hostname_len] = '\0';
 
     return( 0 );
 }

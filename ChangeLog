@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 0.11.0 released on 2009-XXXX
+= Version 0.11.0 released on 2009-05-03
    * Fixed a bug in mpi_gcd() so that it also works when both
      input numbers are even and added testcases to check
      (found by Pierre Habouzit).
@@ -18,10 +18,12 @@ PolarSSL ChangeLog
      systems (Found by Gernot).
    * Undefining POLARSSL_HAVE_ASM now also handles prevents asm in
      padlock and timing code. 
-   * Fixed an off-by-one buffer allocation in ssl_set_hostname().
-   * Added support for Certificate Revocation List (CRL parsing.
+   * Fixed an off-by-one buffer allocation in ssl_set_hostname()
+     responsible for crashes and unwanted behaviour.
+   * Added support for Certificate Revocation List (CRL) parsing.
    * Added support for CRL revocation to x509parse_verify() and
      SSL/TLS code.
+   * XTEA and Camellia now are 64-bit compatible.
 
 = Version 0.10.0 released on 2009-01-12
    * Migrated XySSL to PolarSSL

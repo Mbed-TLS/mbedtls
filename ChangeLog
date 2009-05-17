@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Version 0.11.1 released on 2009-05-17
+   * Fixed missing functionality for SHA-224, SHA-256, SHA384,
+     SHA-512 in rsa_pkcs1_sign()
+
 = Version 0.11.0 released on 2009-05-03
    * Fixed a bug in mpi_gcd() so that it also works when both
      input numbers are even and added testcases to check

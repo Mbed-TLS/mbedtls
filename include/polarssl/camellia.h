@@ -72,6 +72,8 @@ void camellia_crypt_ecb( camellia_context *ctx,
 
 /**
  * \brief          CAMELLIA-CBC buffer encryption/decryption
+ *                 Length should be a multiple of the block
+ *                 size (16 bytes)
  *
  * \param ctx      CAMELLIA context
  * \param mode     CAMELLIA_ENCRYPT or CAMELLIA_DECRYPT

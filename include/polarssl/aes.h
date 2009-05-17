@@ -73,6 +73,8 @@ void aes_crypt_ecb( aes_context *ctx,
 
 /**
  * \brief          AES-CBC buffer encryption/decryption
+ *                 Length should be a multiple of the block
+ *                 size (16 bytes)
  *
  * \param ctx      AES context
  * \param mode     AES_ENCRYPT or AES_DECRYPT
@@ -89,7 +91,7 @@ void aes_crypt_cbc( aes_context *ctx,
                     unsigned char *output );
 
 /**
- * \brief          AES-CFB128 buffer encryption/decryption
+ * \brief          AES-CFB128 buffer encryption/decryption.
  *
  * \param ctx      AES context
  * \param mode     AES_ENCRYPT or AES_DECRYPT

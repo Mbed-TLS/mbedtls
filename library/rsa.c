@@ -333,7 +333,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
 {
     int ret, ilen;
     unsigned char *p;
-    unsigned char buf[512];
+    unsigned char buf[1024];
 
     ilen = ctx->len;
 
@@ -413,6 +413,23 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                 case SIG_RSA_SHA1:
                     nb_pad = olen - 3 - 35;
                     break;
+
+                case SIG_RSA_SHA224:
+                    nb_pad = olen - 3 - 47;
+                    break;
+
+                case SIG_RSA_SHA256:
+                    nb_pad = olen - 3 - 51;
+                    break;
+
+                case SIG_RSA_SHA384:
+                    nb_pad = olen - 3 - 67;
+                    break;
+
+                case SIG_RSA_SHA512:
+                    nb_pad = olen - 3 - 83;
+                    break;
+
 
                 default:
                     return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
@@ -500,7 +517,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
 {
     int ret, len, siglen;
     unsigned char *p, c;
-    unsigned char buf[512];
+    unsigned char buf[1024];
 
     siglen = ctx->len;
 
@@ -572,15 +589,15 @@ int rsa_pkcs1_verify( rsa_context *ctx,
         ( len == 19 + 64 && p[14] == 3 && hash_id == SIG_RSA_SHA512 ) )
     {
     	c = p[1] - 17;
-	p[1] = 17;
-	p[14] = 0;
+        p[1] = 17;
+        p[14] = 0;
 
         if( p[18] == c &&
-	    memcmp( p, ASN1_HASH_SHA2X, 18 ) == 0 &&
-	    memcmp( p + 19, hash, c ) == 0 )
-	    return( 0 );
-	else
-	    return( POLARSSL_ERR_RSA_VERIFY_FAILED );
+                memcmp( p, ASN1_HASH_SHA2X, 18 ) == 0 &&
+                memcmp( p + 19, hash, c ) == 0 )
+            return( 0 );
+        else
+            return( POLARSSL_ERR_RSA_VERIFY_FAILED );
     }
 
     if( len == hashlen && hash_id == RSA_RAW )

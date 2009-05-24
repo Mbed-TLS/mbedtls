@@ -20,7 +20,12 @@
 #ifndef POLARSSL_CAMELLIA_H
 #define POLARSSL_CAMELLIA_H
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
 #include <inttypes.h>
+#endif
 
 #define CAMELLIA_ENCRYPT     1
 #define CAMELLIA_DECRYPT     0

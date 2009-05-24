@@ -20,7 +20,12 @@
 #ifndef POLARSSL_XTEA_H
 #define POLARSSL_XTEA_H
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
 #include <inttypes.h>
+#endif
 
 #define XTEA_ENCRYPT     1
 #define XTEA_DECRYPT     0

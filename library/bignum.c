@@ -286,7 +286,15 @@ int mpi_read_string( mpi *X, int radix, char *s )
 
             MPI_CHK( mpi_get_digit( &d, radix, s[i] ) );
             MPI_CHK( mpi_mul_int( &T, X, radix ) );
-            MPI_CHK( mpi_add_int( X, &T, d ) );
+
+            if( X->s == 1 )
+            {
+                MPI_CHK( mpi_add_int( X, &T, d ) );
+            }
+            else
+            {
+                MPI_CHK( mpi_sub_int( X, &T, d ) );
+            }
         }
     }
 

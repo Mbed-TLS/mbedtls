@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Version X released on X
+Bug fixes
+   * Fixed incorrect handling of negative strings in
+     mpi_read_string() (found by code coverage tests).
+
 = Version 0.11.1 released on 2009-05-17
    * Fixed missing functionality for SHA-224, SHA-256, SHA384,
      SHA-512 in rsa_pkcs1_sign()

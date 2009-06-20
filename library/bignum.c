@@ -762,6 +762,11 @@ int mpi_sub_abs( mpi *X, mpi *A, mpi *B )
     if( X != A )
         MPI_CHK( mpi_copy( X, A ) );
 
+    /*
+     * X should always be positive as a result of unsigned substractions.
+     */
+    X->s = 1;
+
     ret = 0;
 
     for( n = B->n - 1; n >= 0; n-- )

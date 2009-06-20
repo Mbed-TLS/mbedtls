@@ -683,6 +683,11 @@ int mpi_add_abs( mpi *X, mpi *A, mpi *B )
 
     if( X != A )
         MPI_CHK( mpi_copy( X, A ) );
+   
+    /*
+     * X should always be positive as a result of unsigned additions.
+     */
+    X->s = 1;
 
     for( j = B->n - 1; j >= 0; j-- )
         if( B->p[j] != 0 )

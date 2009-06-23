@@ -308,6 +308,8 @@ int mpi_mul_mpi( mpi *X, mpi *A, mpi *B );
 
 /**
  * \brief          Baseline multiplication: X = A * b
+ *                 Note: b is an unsigned integer type, thus
+ *                 Negative values of b are ignored.
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed
@@ -341,7 +343,8 @@ int mpi_div_int( mpi *Q, mpi *R, mpi *A, int b );
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
- *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0
+ *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0,
+ *                 POLARSSL_ERR_MPI_NEGATIVE_VALUE if B < 0
  */
 int mpi_mod_mpi( mpi *R, mpi *A, mpi *B );
 
@@ -350,7 +353,8 @@ int mpi_mod_mpi( mpi *R, mpi *A, mpi *B );
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
- *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0
+ *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0,
+ *                 POLARSSL_ERR_MPI_NEGATIVE_VALUE if b < 0
  */
 int mpi_mod_int( t_int *r, mpi *A, int b );
 

@@ -8,6 +8,10 @@ Bug fixes
      value in mpi_add_abs() (found by code coverage tests).
    * Fixed incorrect handling of negative first input
      value in mpi_sub_abs() (found by code coverage tests).
+   * Fixed incorrect handling of negative first input
+     value in mpi_mod_mpi() and mpi_mod_int(). Resulting
+	 change also affects mpi_write_string() (found by code
+	 coverage tests).
 
 = Version 0.11.1 released on 2009-05-17
    * Fixed missing functionality for SHA-224, SHA-256, SHA384,

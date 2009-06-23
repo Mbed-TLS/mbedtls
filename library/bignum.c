@@ -382,6 +382,10 @@ int mpi_write_string( mpi *X, int radix, char *s, int *slen )
     else
     {
         MPI_CHK( mpi_copy( &T, X ) );
+
+        if( T.s == -1 )
+            T.s = 1;
+
         MPI_CHK( mpi_write_hlp( &T, radix, &p ) );
     }
 
@@ -1180,6 +1184,9 @@ int mpi_mod_mpi( mpi *R, mpi *A, mpi *B )
 {
     int ret;
 
+    if( mpi_cmp_int( B, 0 ) < 0 )
+        return POLARSSL_ERR_MPI_NEGATIVE_VALUE;
+
     MPI_CHK( mpi_div_mpi( NULL, R, A, B ) );
 
     while( mpi_cmp_int( R, 0 ) < 0 )
@@ -1205,7 +1212,7 @@ int mpi_mod_int( t_int *r, mpi *A, int b )
         return( POLARSSL_ERR_MPI_DIVISION_BY_ZERO );
 
     if( b < 0 )
-        b = -b;
+        return POLARSSL_ERR_MPI_NEGATIVE_VALUE;
 
     /*
      * handle trivial cases
@@ -1237,6 +1244,13 @@ int mpi_mod_int( t_int *r, mpi *A, int b )
         z  = y / b;
         y -= z * b;
     }
+
+    /*
+     * If A is negative, then the current y represents a negative value.
+     * Flipping it to the positive side.
+     */
+    if( A->s < 0 && y != 0 )
+        y = b - y;
 
     *r = y;
 

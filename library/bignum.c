@@ -1683,7 +1683,11 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng )
     mpi W, R, T, A, RR;
     unsigned char *p;
 
-    if( mpi_cmp_int( X, 0 ) == 0 )
+    if( mpi_cmp_int( X, 0 ) == 0 ||
+        mpi_cmp_int( X, 1 ) == 0 )
+        return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
+
+    if( mpi_cmp_int( X, 2 ) == 0 )
         return( 0 );
 
     mpi_init( &W, &R, &T, &A, &RR, NULL );

@@ -1,0 +1,36 @@
+BEGIN_HEADER
+#include <polarssl/base64.h>
+END_HEADER
+
+BEGIN_CASE
+base64_encode:src_string:dst_string
+{
+    unsigned char src_str[1000];
+    unsigned char dst_str[1000];
+    int len = 1000;
+
+    memset(src_str, 0x00, 1000);
+    memset(dst_str, 0x00, 1000);
+
+    strcpy( (char *) src_str, {src_string} );
+    TEST_ASSERT( base64_encode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == 0 );
+    TEST_ASSERT( strcmp( (char *) dst_str, {dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+base64_decode:src_string:dst_string
+{
+    unsigned char src_str[1000];
+    unsigned char dst_str[1000];
+    int len = 1000;
+    int res; 
+
+    memset(src_str, 0x00, 1000);
+    memset(dst_str, 0x00, 1000);
+    
+    strcpy( (char *) src_str, {src_string} );
+    TEST_ASSERT( res = base64_decode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == 0 );
+    TEST_ASSERT( strcmp( (char *) dst_str, {dst_string} ) == 0 );
+}
+END_CASE

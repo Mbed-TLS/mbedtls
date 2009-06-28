@@ -1,0 +1,168 @@
+BEGIN_HEADER
+#include <polarssl/aes.h>
+END_HEADER
+
+BEGIN_CASE
+aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    aes_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    aes_setkey_enc( &ctx, key_str, key_len * 8 );
+    aes_crypt_ecb( &ctx, AES_ENCRYPT, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    aes_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    aes_setkey_dec( &ctx, key_str, key_len * 8 );
+    aes_crypt_ecb( &ctx, AES_DECRYPT, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    aes_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    aes_setkey_enc( &ctx, key_str, key_len * 8 );
+    aes_crypt_cbc( &ctx, AES_ENCRYPT, 16, iv_str, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    aes_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    aes_setkey_dec( &ctx, key_str, key_len * 8 );
+    aes_crypt_cbc( &ctx, AES_DECRYPT, 16, iv_str, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+aes_encrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    aes_context ctx;
+    int iv_offset = 0;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    aes_setkey_enc( &ctx, key_str, key_len * 8 );
+    aes_crypt_cfb128( &ctx, AES_ENCRYPT, 16, &iv_offset, iv_str, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+aes_decrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    aes_context ctx;
+    int iv_offset = 0;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    aes_setkey_enc( &ctx, key_str, key_len * 8 );
+    aes_crypt_cfb128( &ctx, AES_DECRYPT, 16, &iv_offset, iv_str, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+

@@ -1,0 +1,120 @@
+BEGIN_HEADER
+#include <polarssl/sha1.h>
+#include <polarssl/sha2.h>
+#include <polarssl/sha4.h>
+END_HEADER
+
+BEGIN_CASE
+sha1_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+{
+    unsigned char src_str[10000];
+    unsigned char key_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[41];
+
+    memset(src_str, 0x00, 10000);
+    memset(key_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 41);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    sha1_hmac( key_str, key_len, src_str, src_len, output );
+    hexify( hash_str, output, 20 );
+
+    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha224_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+{
+    unsigned char src_str[10000];
+    unsigned char key_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[57];
+
+    memset(src_str, 0x00, 10000);
+    memset(key_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 57);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    sha2_hmac( key_str, key_len, src_str, src_len, output, 1 );
+    hexify( hash_str, output, 28 );
+
+    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha256_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+{
+    unsigned char src_str[10000];
+    unsigned char key_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[65];
+
+    memset(src_str, 0x00, 10000);
+    memset(key_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 65);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    sha2_hmac( key_str, key_len, src_str, src_len, output, 0 );
+    hexify( hash_str, output, 32 );
+
+    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha384_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+{
+    unsigned char src_str[10000];
+    unsigned char key_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[97];
+
+    memset(src_str, 0x00, 10000);
+    memset(key_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 97);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    sha4_hmac( key_str, key_len, src_str, src_len, output, 1 );
+    hexify( hash_str, output, 48 );
+
+    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha512_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+{
+    unsigned char src_str[10000];
+    unsigned char key_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[129];
+
+    memset(src_str, 0x00, 10000);
+    memset(key_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 129);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    sha4_hmac( key_str, key_len, src_str, src_len, output, 0 );
+    hexify( hash_str, output, 64 );
+
+    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+}
+END_CASE

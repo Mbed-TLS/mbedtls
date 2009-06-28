@@ -1,0 +1,5 @@
+add_subdirectory(aes)
+add_subdirectory(hash)
+add_subdirectory(pkey)
+add_subdirectory(ssl)
+add_subdirectory(test)

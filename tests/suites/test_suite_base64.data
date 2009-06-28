@@ -1,0 +1,41 @@
+Test case base64_encode #1
+base64_encode:"":""
+
+Test case base64_encode #2
+base64_encode:"f":"Zg=="
+
+Test case base64_encode #3
+base64_encode:"fo":"Zm8="
+
+Test case base64_encode #4
+base64_encode:"foo":"Zm9v"
+
+Test case base64_encode #5
+base64_encode:"foob":"Zm9vYg=="
+
+Test case base64_encode #6
+base64_encode:"fooba":"Zm9vYmE="
+
+Test case base64_encode #7
+base64_encode:"foobar":"Zm9vYmFy"
+
+Test case base64_decode #1
+base64_decode:"":""
+
+Test case base64_decode #2
+base64_decode:"Zg==":"f"
+
+Test case base64_decode #3
+base64_decode:"Zm8=":"fo"
+
+Test case base64_decode #4
+base64_decode:"Zm9v":"foo"
+
+Test case base64_decode #5
+base64_decode:"Zm9vYg==":"foob"
+
+Test case base64_decode #6
+base64_decode:"Zm9vYmE=":"fooba"
+
+Test case base64_decode #7
+base64_decode:"Zm9vYmFy":"foobar"

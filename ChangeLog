@@ -1,6 +1,11 @@
 PolarSSL ChangeLog
 
 = Version X released on X
+Features
+   * Added CMake makefiles as alternative to regular Makefiles.
+   * Added preliminary Code Coverage tests for AES, ARC4,
+     Base64, MPI, SHA-family, MD-family and  HMAC-SHA-family.
+
 Bug fixes
    * Fixed incorrect handling of negative strings in
      mpi_read_string() (found by code coverage tests).

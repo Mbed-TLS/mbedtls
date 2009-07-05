@@ -103,3 +103,104 @@ sha512:hex_src_string:hex_hash_string
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
 }
 END_CASE
+
+BEGIN_CASE
+sha1_file:filename:hex_hash_string
+{
+    unsigned char hash_str[41];
+    unsigned char output[21];
+
+    memset(hash_str, 0x00, 41);
+    memset(output, 0x00, 21);
+
+    sha1_file( {filename}, output);
+    hexify( hash_str, output, 20 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha224_file:filename:hex_hash_string
+{
+    unsigned char hash_str[57];
+    unsigned char output[29];
+
+    memset(hash_str, 0x00, 57);
+    memset(output, 0x00, 29);
+
+    sha2_file( {filename}, output, 1);
+    hexify( hash_str, output, 28 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha256_file:filename:hex_hash_string
+{
+    unsigned char hash_str[65];
+    unsigned char output[33];
+
+    memset(hash_str, 0x00, 65);
+    memset(output, 0x00, 33);
+
+    sha2_file( {filename}, output, 0);
+    hexify( hash_str, output, 32 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha384_file:filename:hex_hash_string
+{
+    unsigned char hash_str[97];
+    unsigned char output[49];
+
+    memset(hash_str, 0x00, 97);
+    memset(output, 0x00, 49);
+
+    sha4_file( {filename}, output, 1);
+    hexify( hash_str, output, 48 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha512_file:filename:hex_hash_string
+{
+    unsigned char hash_str[129];
+    unsigned char output[65];
+
+    memset(hash_str, 0x00, 129);
+    memset(output, 0x00, 65);
+
+    sha4_file( {filename}, output, 0);
+    hexify( hash_str, output, 64 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha1_selftest:
+{
+    TEST_ASSERT( sha1_self_test( 0 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha2_selftest:
+{
+    TEST_ASSERT( sha2_self_test( 0 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+sha4_selftest:
+{
+    TEST_ASSERT( sha4_self_test( 0 ) == 0 );
+}
+END_CASE

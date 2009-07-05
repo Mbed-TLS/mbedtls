@@ -39,3 +39,6 @@ base64_decode:"Zm9vYmE=":"fooba"
 
 Test case base64_decode #7
 base64_decode:"Zm9vYmFy":"foobar"
+
+Base64 Selftest
+base64_selftest:

@@ -166,3 +166,9 @@ aes_decrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
 }
 END_CASE
 
+BEGIN_CASE
+aes_selftest:
+{
+    TEST_ASSERT( aes_self_test( 0 ) == 0 );
+}
+END_CASE

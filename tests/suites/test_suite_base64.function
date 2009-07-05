@@ -34,3 +34,10 @@ base64_decode:src_string:dst_string
     TEST_ASSERT( strcmp( (char *) dst_str, {dst_string} ) == 0 );
 }
 END_CASE
+
+BEGIN_CASE
+base64_selftest:
+{
+    TEST_ASSERT( base64_self_test( 0 ) == 0 );
+}
+END_CASE

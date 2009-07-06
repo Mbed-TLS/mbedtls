@@ -63,3 +63,141 @@ md5_text:text_src_string:hex_hash_string
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
 }
 END_CASE
+
+BEGIN_CASE
+md2_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+{
+    unsigned char src_str[10000];
+    unsigned char key_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[33];
+
+    memset(src_str, 0x00, 10000);
+    memset(key_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 33);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    md2_hmac( key_str, key_len, src_str, src_len, output );
+    hexify( hash_str, output, 16 );
+
+    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+md4_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+{
+    unsigned char src_str[10000];
+    unsigned char key_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[33];
+
+    memset(src_str, 0x00, 10000);
+    memset(key_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 33);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    md4_hmac( key_str, key_len, src_str, src_len, output );
+    hexify( hash_str, output, 16 );
+
+    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+md5_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+{
+    unsigned char src_str[10000];
+    unsigned char key_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[33];
+
+    memset(src_str, 0x00, 10000);
+    memset(key_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 33);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    md5_hmac( key_str, key_len, src_str, src_len, output );
+    hexify( hash_str, output, 16 );
+
+    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+md2_file:filename:hex_hash_string
+{
+    unsigned char hash_str[65];
+    unsigned char output[33];
+
+    memset(hash_str, 0x00, 65);
+    memset(output, 0x00, 33);
+
+    md2_file( {filename}, output);
+    hexify( hash_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+md4_file:filename:hex_hash_string
+{
+    unsigned char hash_str[65];
+    unsigned char output[33];
+
+    memset(hash_str, 0x00, 65);
+    memset(output, 0x00, 33);
+
+    md4_file( {filename}, output);
+    hexify( hash_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+md5_file:filename:hex_hash_string
+{
+    unsigned char hash_str[65];
+    unsigned char output[33];
+
+    memset(hash_str, 0x00, 65);
+    memset(output, 0x00, 33);
+
+    md5_file( {filename}, output);
+    hexify( hash_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+md2_selftest:
+{
+    TEST_ASSERT( md2_self_test( 0 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+md4_selftest:
+{
+    TEST_ASSERT( md4_self_test( 0 ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+md5_selftest:
+{
+    TEST_ASSERT( md5_self_test( 0 ) == 0 );
+}
+END_CASE

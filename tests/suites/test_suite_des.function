@@ -1,0 +1,246 @@
+BEGIN_HEADER
+#include <polarssl/des.h>
+END_HEADER
+
+BEGIN_CASE
+des_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    des_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    des_setkey_enc( &ctx, key_str );
+    des_crypt_ecb( &ctx, src_str, output );
+    hexify( dst_str, output, 8 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+des_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    des_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    des_setkey_dec( &ctx, key_str );
+    des_crypt_ecb( &ctx, src_str, output );
+    hexify( dst_str, output, 8 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    des_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    des_setkey_enc( &ctx, key_str );
+    des_crypt_cbc( &ctx, DES_ENCRYPT, src_len, iv_str, src_str, output );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    des_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    des_setkey_dec( &ctx, key_str );
+    des_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+des3_encrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    des3_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    if( {key_count} == 2 )
+        des3_set2key_enc( &ctx, key_str );
+    else if( {key_count} == 3 )
+        des3_set3key_enc( &ctx, key_str );
+    else
+        TEST_ASSERT( 0 );
+
+    des3_crypt_ecb( &ctx, src_str, output );
+    hexify( dst_str, output, 8 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+des3_decrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    des3_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    if( {key_count} == 2 )
+        des3_set2key_dec( &ctx, key_str );
+    else if( {key_count} == 3 )
+        des3_set3key_dec( &ctx, key_str );
+    else
+        TEST_ASSERT( 0 );
+
+    des3_crypt_ecb( &ctx, src_str, output );
+    hexify( dst_str, output, 8 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    des3_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    if( {key_count} == 2 )
+        des3_set2key_enc( &ctx, key_str );
+    else if( {key_count} == 3 )
+        des3_set3key_enc( &ctx, key_str );
+    else
+        TEST_ASSERT( 0 );
+
+    des3_crypt_cbc( &ctx, DES_ENCRYPT, src_len, iv_str, src_str, output );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+des3_decrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    des3_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    int src_len = unhexify( src_str, {hex_src_string} );
+
+    if( {key_count} == 2 )
+        des3_set2key_dec( &ctx, key_str );
+    else if( {key_count} == 3 )
+        des3_set3key_dec( &ctx, key_str );
+    else
+        TEST_ASSERT( 0 );
+
+    des3_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+des_selftest:
+{
+    TEST_ASSERT( des_self_test( 0 ) == 0 );
+}
+END_CASE

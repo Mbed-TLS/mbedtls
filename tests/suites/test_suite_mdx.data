@@ -60,3 +60,87 @@ md5_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"d174a
 
 md5 Test vector RFC1321 #7
 md5_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
+
+HMAC-MD2 Hash File OpenSSL test #1
+md2_hmac:16:"61616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"d5732582f494f5ddf35efd166c85af9c"
+
+HMAC-MD2 Hash File OpenSSL test #2
+md2_hmac:16:"61616161616161616161616161616161":"270fcf11f27c27448457d7049a7edb084a3e554e0b2acf5806982213f0ad516402e4c869c4ff2171e18e3489baa3125d2c3056ebb616296f9b6aa97ef68eeabcdc0b6dde47775004096a241efcf0a90d19b34e898cc7340cdc940f8bdd46e23e352f34bca131d4d67a7c2ddb8d0d68b67f06152a128168e1c341c37e0a66c5018999b7059bcc300beed2c19dd1152d2fe062853293b8f3c8b5":"54ab68503f7d1b5c7741340dff2722a9"
+
+HMAC-MD4 Hash File OpenSSL test #1
+md4_hmac:16:"61616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"eabd0fbefb82fb0063a25a6d7b8bdc0f"
+
+HMAC-MD4 Hash File OpenSSL test #2
+md4_hmac:16:"61616161616161616161616161616161":"270fcf11f27c27448457d7049a7edb084a3e554e0b2acf5806982213f0ad516402e4c869c4ff2171e18e3489baa3125d2c3056ebb616296f9b6aa97ef68eeabcdc0b6dde47775004096a241efcf0a90d19b34e898cc7340cdc940f8bdd46e23e352f34bca131d4d67a7c2ddb8d0d68b67f06152a128168e1c341c37e0a66c5018999b7059bcc300beed2c19dd1152d2fe062853293b8f3c8b5":"cec3c5e421a7b783aa89cacf78daf6dc"
+
+HMAC-MD5 Hash File OpenSSL test #1
+md5_hmac:16:"61616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"42552882f00bd4633ea81135a184b284"
+
+HMAC-MD5 Hash File OpenSSL test #2
+md5_hmac:16:"61616161616161616161616161616161":"270fcf11f27c27448457d7049a7edb084a3e554e0b2acf5806982213f0ad516402e4c869c4ff2171e18e3489baa3125d2c3056ebb616296f9b6aa97ef68eeabcdc0b6dde47775004096a241efcf0a90d19b34e898cc7340cdc940f8bdd46e23e352f34bca131d4d67a7c2ddb8d0d68b67f06152a128168e1c341c37e0a66c5018999b7059bcc300beed2c19dd1152d2fe062853293b8f3c8b5":"a16a842891786d01fe50ba7731db7464"
+
+HMAC-MD5 Test Vector RFC2202 #1
+md5_hmac:16:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"9294727a3638bb1c13f48ef8158bfc9d"
+
+HMAC-MD5 Test Vector RFC2202 #2
+md5_hmac:16:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"750c783e6ab0b503eaa86e310a5db738"
+
+HMAC-MD5 Test Vector RFC2202 #3
+md5_hmac:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"56be34521d144c88dbb8c733f0e8b3f6"
+
+HMAC-MD5 Test Vector RFC2202 #4
+md5_hmac:16:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"697eaf0aca3a3aea3a75164746ffaa79"
+
+HMAC-MD5 Test Vector RFC2202 #5
+md5_hmac:12:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"56461ef2342edc00f9bab995"
+
+HMAC-MD5 Test Vector RFC2202 #6
+md5_hmac:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd"
+
+HMAC-MD5 Test Vector RFC2202 #7
+md5_hmac:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"6f630fad67cda0ee1fb1f562db3aa53e"
+
+MD2 Hash file #1
+md2_file:"data_files/hash_file_1":"b593c098712d2e21628c8986695451a8"
+
+MD2 Hash file #2
+md2_file:"data_files/hash_file_2":"3c027b7409909a4c4b26bbab69ad9f4f"
+
+MD2 Hash file #3
+md2_file:"data_files/hash_file_3":"6bb43eb285e81f414083a94cdbe2989d"
+
+MD2 Hash file #4
+md2_file:"data_files/hash_file_4":"8350e5a3e24c153df2275c9f80692773"
+
+MD4 Hash file #1
+md4_file:"data_files/hash_file_1":"8d19772c176bd27153b9486715e2c0b9"
+
+MD4 Hash file #2
+md4_file:"data_files/hash_file_2":"f2ac53b8542882a5a0007c6f84b4d9fd"
+
+MD4 Hash file #3
+md4_file:"data_files/hash_file_3":"195c15158e2d07881d9a654095ce4a42"
+
+MD4 Hash file #4
+md4_file:"data_files/hash_file_4":"31d6cfe0d16ae931b73c59d7e0c089c0"
+
+MD5 Hash file #1
+md5_file:"data_files/hash_file_1":"52bcdc983c9ed64fc148a759b3c7a415"
+
+MD5 Hash file #2
+md5_file:"data_files/hash_file_2":"d17d466f15891df10542207ae78277f0"
+
+MD5 Hash file #3
+md5_file:"data_files/hash_file_3":"d945bcc6200ea95d061a2a818167d920"
+
+MD5 Hash file #4
+md5_file:"data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
+
+MD2 Selftest
+md2_selftest:
+
+MD4 Selftest
+md4_selftest:
+
+MD5 Selftest
+md5_selftest:

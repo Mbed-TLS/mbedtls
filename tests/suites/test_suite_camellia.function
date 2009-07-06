@@ -1,0 +1,174 @@
+BEGIN_HEADER
+#include <polarssl/camellia.h>
+END_HEADER
+
+BEGIN_CASE
+camellia_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    camellia_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    camellia_crypt_ecb( &ctx, CAMELLIA_ENCRYPT, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+camellia_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    camellia_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    camellia_setkey_dec( &ctx, key_str, key_len * 8 );
+    camellia_crypt_ecb( &ctx, CAMELLIA_DECRYPT, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+camellia_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    camellia_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    camellia_crypt_cbc( &ctx, CAMELLIA_ENCRYPT, 16, iv_str, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+camellia_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    camellia_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    camellia_setkey_dec( &ctx, key_str, key_len * 8 );
+    camellia_crypt_cbc( &ctx, CAMELLIA_DECRYPT, 16, iv_str, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+camellia_encrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    camellia_context ctx;
+    int iv_offset = 0;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    camellia_crypt_cfb128( &ctx, CAMELLIA_ENCRYPT, 16, &iv_offset, iv_str, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+camellia_decrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    camellia_context ctx;
+    int iv_offset = 0;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    int key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    camellia_crypt_cfb128( &ctx, CAMELLIA_DECRYPT, 16, &iv_offset, iv_str, src_str, output );
+    hexify( dst_str, output, 16 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+camellia_selftest:
+{
+    TEST_ASSERT( camellia_self_test( 0 ) == 0 );
+}
+END_CASE

@@ -50,15 +50,17 @@
     asm( "movl   %0, %%ecx      " :: "m" (c));  \
     asm( "movl   %0, %%ebx      " :: "m" (b));
 
-#define MULADDC_CORE                            \
-    asm( "lodsl                 " );            \
-    asm( "mull   %ebx           " );            \
-    asm( "addl   %ecx,   %eax   " );            \
-    asm( "adcl   $0,     %edx   " );            \
-    asm( "addl   (%edi), %eax   " );            \
-    asm( "adcl   $0,     %edx   " );            \
-    asm( "movl   %edx,   %ecx   " );            \
-    asm( "stosl                 " );
+#define MULADDC_CORE                \
+    asm( "                          \
+        lodsl;                      \
+        mull   %%ebx;               \
+        addl   %%ecx,   %%eax;      \
+        adcl   $0,      %%edx;      \
+        addl   (%%edi), %%eax;      \
+        adcl   $0,      %%edx;      \
+        movl   %%edx,   %%ecx;      \
+        stosl;               " :::  \
+        "%eax", "%ebx", "%ecx", "%edx", "%edi", "esi");
 
 #if defined(POLARSSL_HAVE_SSE2)
 
@@ -139,8 +141,7 @@
     asm( "movl   %0, %%ebx      " :: "m" (t));  \
     asm( "movl   %%ecx, %0      " : "=m" (c));  \
     asm( "movl   %%edi, %0      " : "=m" (d));  \
-    asm( "movl   %%esi, %0      " : "=m" (s) :: \
-    "eax", "ecx", "edx", "esi", "edi" );
+    asm( "movl   %%esi, %0      " : "=m" (s));
 
 #endif /* SSE2 */
 #endif /* i386 */

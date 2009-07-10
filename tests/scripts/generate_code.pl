@@ -50,8 +50,16 @@ while (my $line = <TEST_DATA>)
     $test_name =~ tr/A-Z \-/a-z__/;
     $test_name =~ tr/a-z0-9_//cd;
 
+    # Carve the case name and variable values
+    #
     my ( $case, $var_value ) = $command_line =~ /^([\w_]+):(.*)$/;
 
+    # Escape the escaped colons (Not really escaped now)
+    #
+    $var_value =~ s/\\:/{colon_sign}/g;
+
+    # Carve the case and variable definition
+    #
     my ( $var_def, $case_code ) = $test_cases =~ /BEGIN_CASE\n$case:([^\n]*)\n(.*?)\nEND_CASE/s;
 
     my @var_def_arr = split(/:/, $var_def);
@@ -66,6 +74,7 @@ while (my $line = <TEST_DATA>)
     }
     $case_code = "int ${test_name}_code_present = 0;\nTEST_ASSERT( ${test_name}_code_present == 1 );" if ($case_code =~ /^\s*$/);
 
+    $case_code =~ s/{colon_sign}/:/g;
     $case_code =~ s/TEST_ASSERT/fct_chk/g;
     $case_code =~ s/TEST_EQUALS/fct_chk/g;
 

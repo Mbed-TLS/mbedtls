@@ -2486,7 +2486,7 @@ int x509_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n  X.509 signature verify: ");
 
-    ret = x509parse_verify( &clicert, &cacert, NULL, "Joe User", &i );
+    ret = x509parse_verify( &clicert, &cacert, NULL, "PolarSSL Client 2", &i );
     if( ret != 0 )
     {
         if( verbose != 0 )

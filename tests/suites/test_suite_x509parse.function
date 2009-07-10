@@ -1,0 +1,126 @@
+BEGIN_HEADER
+#include <polarssl/x509.h>
+END_HEADER
+
+BEGIN_CASE
+x509_cert_info:crt_file:result_str
+{
+    x509_cert   crt;
+    char buf[2000];
+
+    memset( &crt, 0, sizeof( x509_cert ) );
+    memset( buf, 0, 2000 );
+
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
+    int res = x509parse_cert_info( buf, 2000, "", &crt );
+
+    TEST_ASSERT( res != -1 );
+    TEST_ASSERT( res != -2 );
+
+    TEST_ASSERT( strcmp( buf, {result_str} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+x509_crl_info:crl_file:result_str
+{
+    x509_crl   crl;
+    char buf[2000];
+
+    memset( &crl, 0, sizeof( x509_crl ) );
+    memset( buf, 0, 2000 );
+
+    TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
+    int res = x509parse_crl_info( buf, 2000, "", &crl );
+
+    TEST_ASSERT( res != -1 );
+    TEST_ASSERT( res != -2 );
+
+    TEST_ASSERT( strcmp( buf, {result_str} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+x509_verify:crt_file:ca_file:crl_file:cn_name:result
+{
+    x509_cert   crt;
+    x509_cert   ca;
+    x509_crl    crl;
+    int         flags = 0;
+
+    memset( &crt, 0, sizeof( x509_cert ) );
+    memset( &ca, 0, sizeof( x509_cert ) );
+    memset( &crl, 0, sizeof( x509_crl ) );
+
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &ca, {ca_file} ) == 0 );
+    TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
+
+    int res = x509parse_verify( &crt, &ca, &crl, {cn_name}, &flags );
+
+    if( res == 0 )
+    {
+        TEST_ASSERT( res == ( {result} ) );
+    }
+    else
+    {
+        TEST_ASSERT( flags == ( {result} ) );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+x509_dn_gets:crt_file:entity:result_str
+{
+    x509_cert   crt;
+    char buf[2000];
+
+    memset( &crt, 0, sizeof( x509_cert ) );
+    memset( buf, 0, 2000 );
+
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
+    int res =  x509parse_dn_gets( buf, 2000, &crt.{entity} );
+
+    TEST_ASSERT( res != -1 );
+    TEST_ASSERT( res != -2 );
+
+    TEST_ASSERT( strcmp( buf, {result_str} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+x509_time_expired:crt_file:entity:result
+{
+    x509_cert   crt;
+
+    memset( &crt, 0, sizeof( x509_cert ) );
+
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
+    TEST_ASSERT( x509parse_time_expired( &crt.{entity} ) == {result} );
+}
+END_CASE
+
+BEGIN_CASE
+x509parse_key:key_file:password:result
+{
+    rsa_context rsa;
+
+    memset( &rsa, 0, sizeof( rsa_context ) );
+
+    int res = x509parse_keyfile( &rsa, {key_file}, {password} );
+
+    TEST_ASSERT( res == {result} );
+
+    if( res == 0 )
+    {
+        TEST_ASSERT( rsa_check_privkey( &rsa ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+x509_selftest:
+{
+    TEST_ASSERT( x509_self_test( 0 ) == 0 );
+}
+END_CASE

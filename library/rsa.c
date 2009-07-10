@@ -133,6 +133,9 @@ cleanup:
  */
 int rsa_check_pubkey( rsa_context *ctx )
 {
+    if( !ctx->N.p || !ctx->E.p )
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+
     if( ( ctx->N.p[0] & 1 ) == 0 || 
         ( ctx->E.p[0] & 1 ) == 0 )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
@@ -158,6 +161,9 @@ int rsa_check_privkey( rsa_context *ctx )
 
     if( ( ret = rsa_check_pubkey( ctx ) ) != 0 )
         return( ret );
+
+    if( !ctx->P.p || !ctx->Q.p || !ctx->D.p )
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
     mpi_init( &PQ, &DE, &P1, &Q1, &H, &I, &G, NULL );
 

@@ -1,0 +1,68 @@
+X509 Certificate information #1
+x509_cert_info:"data_files/server1.crt":"cert. version \: 3\nserial number \: 01\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on    \: 2009-02-09 21\:12\:35\nexpires on    \: 2011-02-09 21\:12\:35\nsigned using  \: RSA+SHA1\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information #2
+x509_cert_info:"data_files/server2.crt":"cert. version \: 3\nserial number \: 09\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2009-02-10 22\:15\:12\nexpires on    \: 2011-02-10 22\:15\:12\nsigned using  \: RSA+SHA1\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information #2
+x509_cert_info:"data_files/test-ca.crt":"cert. version \: 3\nserial number \: 00\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on    \: 2009-02-09 21\:12\:25\nexpires on    \: 2019-02-10 21\:12\:25\nsigned using  \: RSA+SHA1\nRSA key size  \: 2048 bits\n"
+
+X509 CRL information #1
+x509_crl_info:"data_files/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-02-09 21\:12\:36\nnext update   \: 2009-04-10 21\:12\:36\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+SHA1"
+
+X509 Parse Key #1 (No password when required)
+x509parse_key:"data_files/test-ca.key":NULL:POLARSSL_ERR_X509_KEY_PASSWORD_REQUIRED
+
+X509 Parse Key #2 (Correct password)
+x509parse_key:"data_files/test-ca.key":"PolarSSLTest":0
+
+X509 Parse Key #3 (Wrong password)
+x509parse_key:"data_files/test-ca.key":"PolarSSLWRONG":POLARSSL_ERR_X509_KEY_PASSWORD_MISMATCH
+
+X509 Get Distinguished Name #1
+x509_dn_gets:"data_files/server1.crt":subject:"C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+
+X509 Get Distinguished Name #2
+x509_dn_gets:"data_files/server1.crt":issuer:"C=NL, O=PolarSSL, CN=PolarSSL Test CA"
+
+X509 Get Distinguished Name #3
+x509_dn_gets:"data_files/server2.crt":subject:"C=NL, O=PolarSSL, CN=localhost"
+
+X509 Get Distinguished Name #4
+x509_dn_gets:"data_files/server2.crt":issuer:"C=NL, O=PolarSSL, CN=PolarSSL Test CA"
+
+X509 Time Expired #1
+x509_time_expired:"data_files/server1.crt":valid_from:1
+
+X509 Time Expired #2
+x509_time_expired:"data_files/server1.crt":valid_to:0
+
+X509 Time Expired #3
+x509_time_expired:"data_files/server2.crt":valid_from:1
+
+X509 Time Expired #4
+x509_time_expired:"data_files/server2.crt":valid_to:0
+
+X509 Time Expired #5
+x509_time_expired:"data_files/test-ca.crt":valid_from:1
+
+X509 Time Expired #6
+x509_time_expired:"data_files/test-ca.crt":valid_to:0
+
+X509 Certificate verification #1 (Revoked Cert, Revoked CRL)
+x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":NULL:BADCERT_REVOKED | BADCRL_EXPIRED
+
+X509 Certificate verification #2 (Revoked Cert, Revoked CRL)
+x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Server 1":BADCERT_REVOKED | BADCRL_EXPIRED
+
+X509 Certificate verification #3 (Revoked Cert, Revoked CRL, CN Mismatch)
+x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Wrong CN":BADCERT_REVOKED | BADCRL_EXPIRED | BADCERT_CN_MISMATCH
+
+X509 Certificate verification #4 (Valid Cert, Revoked CRL)
+x509_verify:"data_files/server2.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":NULL:BADCRL_EXPIRED
+
+X509 Certificate verification #5 (Not trusted Cert)
+x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":NULL:BADCERT_NOT_TRUSTED
+
+X509 Parse Selftest
+x509_selftest:

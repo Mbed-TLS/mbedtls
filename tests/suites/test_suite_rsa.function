@@ -180,6 +180,16 @@ rsa_pkcs1_decrypt:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N
 END_CASE
 
 BEGIN_CASE
+rsa_check_privkey_null:
+{
+    rsa_context ctx;
+    memset( &ctx, 0x00, sizeof( rsa_context ) );
+
+    TEST_ASSERT( rsa_check_privkey( &ctx ) == POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+}
+END_CASE
+
+BEGIN_CASE
 rsa_selftest:
 {
     TEST_ASSERT( rsa_self_test( 0 ) == 0 );

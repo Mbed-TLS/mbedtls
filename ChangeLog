@@ -9,6 +9,9 @@ Features
 	 and X509parse.
 
 Bug fixes
+   * Prevented use of long long in bignum if 
+     POLARSSL_HAVE_LONGLONG not defined (found by Giles
+	 Bathgate).
    * Fixed incorrect handling of negative strings in
      mpi_read_string() (found by code coverage tests).
    * Fixed segfault on handling empty rsa_context in

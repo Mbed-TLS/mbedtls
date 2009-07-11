@@ -54,7 +54,9 @@ typedef unsigned long  t_dbl;
         defined(__ia64__)  || defined(__alpha__)
     typedef unsigned int t_dbl __attribute__((mode(TI)));
     #else
-    typedef unsigned long long t_dbl;
+      #if defined(POLARSSL_HAVE_LONGLONG)
+      typedef unsigned long long t_dbl;
+      #endif
     #endif
   #endif
 #endif

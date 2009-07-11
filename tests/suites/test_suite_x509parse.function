@@ -7,12 +7,13 @@ x509_cert_info:crt_file:result_str
 {
     x509_cert   crt;
     char buf[2000];
+    int res;
 
     memset( &crt, 0, sizeof( x509_cert ) );
     memset( buf, 0, 2000 );
 
     TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
-    int res = x509parse_cert_info( buf, 2000, "", &crt );
+    res = x509parse_cert_info( buf, 2000, "", &crt );
 
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
@@ -26,12 +27,13 @@ x509_crl_info:crl_file:result_str
 {
     x509_crl   crl;
     char buf[2000];
+    int res;
 
     memset( &crl, 0, sizeof( x509_crl ) );
     memset( buf, 0, 2000 );
 
     TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
-    int res = x509parse_crl_info( buf, 2000, "", &crl );
+    res = x509parse_crl_info( buf, 2000, "", &crl );
 
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
@@ -47,6 +49,7 @@ x509_verify:crt_file:ca_file:crl_file:cn_name:result
     x509_cert   ca;
     x509_crl    crl;
     int         flags = 0;
+    int         res;
 
     memset( &crt, 0, sizeof( x509_cert ) );
     memset( &ca, 0, sizeof( x509_cert ) );
@@ -56,7 +59,7 @@ x509_verify:crt_file:ca_file:crl_file:cn_name:result
     TEST_ASSERT( x509parse_crtfile( &ca, {ca_file} ) == 0 );
     TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
 
-    int res = x509parse_verify( &crt, &ca, &crl, {cn_name}, &flags );
+    res = x509parse_verify( &crt, &ca, &crl, {cn_name}, &flags );
 
     if( res == 0 )
     {
@@ -74,12 +77,13 @@ x509_dn_gets:crt_file:entity:result_str
 {
     x509_cert   crt;
     char buf[2000];
+    int res;
 
     memset( &crt, 0, sizeof( x509_cert ) );
     memset( buf, 0, 2000 );
 
     TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
-    int res =  x509parse_dn_gets( buf, 2000, &crt.{entity} );
+    res =  x509parse_dn_gets( buf, 2000, &crt.{entity} );
 
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
@@ -104,10 +108,11 @@ BEGIN_CASE
 x509parse_key:key_file:password:result
 {
     rsa_context rsa;
+    int res;
 
     memset( &rsa, 0, sizeof( rsa_context ) );
 
-    int res = x509parse_keyfile( &rsa, {key_file}, {password} );
+    res = x509parse_keyfile( &rsa, {key_file}, {password} );
 
     TEST_ASSERT( res == {result} );
 

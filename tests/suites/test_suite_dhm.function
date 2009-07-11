@@ -25,6 +25,7 @@ dhm_do_dhm:x_size:radix_P:input_P:radix_G:input_G
     int pub_cli_len = 0;
     int sec_srv_len = 1000;
     int sec_cli_len = 1000;
+    int x_size;
 
     memset( &ctx_srv, 0x00, sizeof( dhm_context ) );
     memset( &ctx_cli, 0x00, sizeof( dhm_context ) );
@@ -35,7 +36,7 @@ dhm_do_dhm:x_size:radix_P:input_P:radix_G:input_G
 
     TEST_ASSERT( mpi_read_string( &ctx_srv.P, {radix_P}, {input_P} ) == 0 );
     TEST_ASSERT( mpi_read_string( &ctx_srv.G, {radix_G}, {input_G} ) == 0 );
-    int x_size = mpi_size( &ctx_srv.P );
+    x_size = mpi_size( &ctx_srv.P );
 
     TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &myrand, NULL ) == 0 );
     ske[ske_len++] = 0;

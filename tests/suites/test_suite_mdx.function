@@ -71,14 +71,15 @@ md2_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     unsigned char key_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[33];
+    int key_len, src_len;
 
     memset(src_str, 0x00, 10000);
     memset(key_str, 0x00, 10000);
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 33);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
-    int src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     md2_hmac( key_str, key_len, src_str, src_len, output );
     hexify( hash_str, output, 16 );
@@ -94,14 +95,15 @@ md4_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     unsigned char key_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[33];
+    int key_len, src_len;
 
     memset(src_str, 0x00, 10000);
     memset(key_str, 0x00, 10000);
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 33);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
-    int src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     md4_hmac( key_str, key_len, src_str, src_len, output );
     hexify( hash_str, output, 16 );
@@ -117,14 +119,15 @@ md5_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     unsigned char key_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[33];
+    int key_len, src_len;
 
     memset(src_str, 0x00, 10000);
     memset(key_str, 0x00, 10000);
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 33);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
-    int src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     md5_hmac( key_str, key_len, src_str, src_len, output );
     hexify( hash_str, output, 16 );

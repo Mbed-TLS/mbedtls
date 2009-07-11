@@ -33,10 +33,11 @@ mpi_read_binary:input_X:radix_A:input_A
     unsigned char str[1000];
     unsigned char buf[1000];
     int len = 1000;
+    int input_len;
 
     mpi_init(&X, NULL);
 
-    int input_len = unhexify( buf, {input_X} );
+    input_len = unhexify( buf, {input_X} );
 
     TEST_ASSERT( mpi_read_binary( &X, buf, input_len ) == 0 );
     TEST_ASSERT( mpi_write_string( &X, {radix_A}, (char *) str, &len ) == 0 );
@@ -50,6 +51,7 @@ mpi_write_binary:radix_X:input_X:input_A
     mpi X;
     unsigned char str[1000];
     unsigned char buf[1000];
+    int buflen;
 
     memset( buf, 0x00, 1000 );
     memset( str, 0x00, 1000 );
@@ -58,7 +60,7 @@ mpi_write_binary:radix_X:input_X:input_A
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     
-    int buflen = mpi_size( &X );
+    buflen = mpi_size( &X );
     TEST_ASSERT( mpi_write_binary( &X, buf, buflen ) == 0 );
 
     hexify( str, buf, buflen );
@@ -73,17 +75,19 @@ mpi_read_file:radix_X:input_file:input_A
     mpi X;
     unsigned char str[1000];
     unsigned char buf[1000];
+    int buflen;
+    FILE *file;
 
     memset( buf, 0x00, 1000 );
     memset( str, 0x00, 1000 );
 
     mpi_init(&X, NULL);
 
-    FILE *file = fopen( {input_file}, "r" );
+    file = fopen( {input_file}, "r" );
     TEST_ASSERT( mpi_read_file( &X, {radix_X}, file ) == 0 );
     fclose(file);
 
-    int buflen = mpi_size( &X );
+    buflen = mpi_size( &X );
     TEST_ASSERT( mpi_write_binary( &X, buf, buflen ) == 0 );
 
     hexify( str, buf, buflen );
@@ -96,15 +100,17 @@ BEGIN_CASE
 mpi_write_file:radix_X:input_X:output_radix:output_file
 {
     mpi X, Y;
+    FILE *file_out, *file_in;
+
     mpi_init( &X, &Y, NULL );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
 
-    FILE *file_out = fopen( {output_file}, "w" );
+    file_out = fopen( {output_file}, "w" );
     TEST_ASSERT( mpi_write_file( NULL, &X, {output_radix}, file_out ) == 0 );
     fclose(file_out);
 
-    FILE *file_in = fopen( {output_file}, "r" );
+    file_in = fopen( {output_file}, "r" );
     TEST_ASSERT( mpi_read_file( &Y, {output_radix}, file_in ) == 0 );
     fclose(file_in);
 

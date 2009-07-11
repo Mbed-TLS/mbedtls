@@ -14,6 +14,7 @@ rsa_pkcs1_sign:message_hex_string:digest:mod:radix_P:input_P:radix_Q:input_Q:rad
     unsigned char output_str[1000];
     rsa_context ctx;
     mpi P1, Q1, H, G;
+    int msg_len;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
     rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
@@ -40,7 +41,7 @@ rsa_pkcs1_sign:message_hex_string:digest:mod:radix_P:input_P:radix_Q:input_Q:rad
 
     TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
 
-    int msg_len = unhexify( message_str, {message_hex_string} );
+    msg_len = unhexify( message_str, {message_hex_string} );
 
     if( {digest} == SIG_RSA_SHA1 )
         sha1( message_str, msg_len, hash_result );
@@ -70,6 +71,7 @@ rsa_pkcs1_verify:message_hex_string:digest:mod:radix_N:input_N:radix_E:input_E:r
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
     rsa_context ctx;
+    int msg_len;
 
     rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
     memset( message_str, 0x00, 1000 );
@@ -82,7 +84,7 @@ rsa_pkcs1_verify:message_hex_string:digest:mod:radix_N:input_N:radix_E:input_E:r
 
     TEST_ASSERT( rsa_check_pubkey( &ctx ) == 0 );
 
-    int msg_len = unhexify( message_str, {message_hex_string} );
+    msg_len = unhexify( message_str, {message_hex_string} );
     unhexify( result_str, {result_hex_str} );
 
     if( {digest} == SIG_RSA_SHA1 )
@@ -110,6 +112,7 @@ rsa_pkcs1_encrypt:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_
     unsigned char output[1000];
     unsigned char output_str[1000];
     rsa_context ctx;
+    int msg_len;
 
     rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
     memset( message_str, 0x00, 1000 );
@@ -123,7 +126,7 @@ rsa_pkcs1_encrypt:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_
 
     TEST_ASSERT( rsa_check_pubkey( &ctx ) == 0 );
 
-    int msg_len = unhexify( message_str, {message_hex_string} );
+    msg_len = unhexify( message_str, {message_hex_string} );
 
     TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, RSA_PUBLIC, msg_len, message_str, output ) == 0 );
 
@@ -142,6 +145,7 @@ rsa_pkcs1_decrypt:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N
     unsigned char output_str[1000];
     rsa_context ctx;
     mpi P1, Q1, H, G;
+    int output_len;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
     rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
@@ -169,7 +173,7 @@ rsa_pkcs1_decrypt:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N
     TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
 
     unhexify( message_str, {message_hex_string} );
-    int output_len = 0;
+    output_len = 0;
 
     TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, RSA_PRIVATE, &output_len, message_str, output, 1000 ) == 0 );
 

@@ -8,15 +8,16 @@ arc4_crypt:hex_src_string:hex_key_string:hex_dst_string
     unsigned char src_str[1000];
     unsigned char key_str[1000];
     unsigned char dst_str[2000];
+    int src_len, key_len;
+    arc4_context ctx;
 
     memset(src_str, 0x00, 1000);
     memset(key_str, 0x00, 1000);
     memset(dst_str, 0x00, 2000);
 
-    int src_len = unhexify( src_str, {hex_src_string} );
-    int key_len = unhexify( key_str, {hex_key_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
 
-    arc4_context ctx;
     arc4_setup(&ctx, key_str, key_len);
     arc4_crypt(&ctx, src_str, src_len);
     hexify( dst_str, src_str, src_len );

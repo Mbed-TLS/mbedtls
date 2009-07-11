@@ -10,12 +10,13 @@ sha1:hex_src_string:hex_hash_string
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[41];
+    int src_len;
 
     memset(src_str, 0x00, 10000);
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 41);
 
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     sha1( src_str, src_len, output );
     hexify( hash_str, output, 20 );
@@ -30,12 +31,13 @@ sha224:hex_src_string:hex_hash_string
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[57];
+    int src_len;
 
     memset(src_str, 0x00, 10000);
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 57);
 
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     sha2( src_str, src_len, output, 1 );
     hexify( hash_str, output, 28 );
@@ -50,12 +52,13 @@ sha256:hex_src_string:hex_hash_string
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[65];
+    int src_len;
 
     memset(src_str, 0x00, 10000);
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 65);
 
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     sha2( src_str, src_len, output, 0 );
     hexify( hash_str, output, 32 );
@@ -70,12 +73,13 @@ sha384:hex_src_string:hex_hash_string
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[97];
+    int src_len;
 
     memset(src_str, 0x00, 10000);
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 97);
 
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     sha4( src_str, src_len, output, 1 );
     hexify( hash_str, output, 48 );
@@ -90,12 +94,13 @@ sha512:hex_src_string:hex_hash_string
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
     unsigned char output[129];
+    int src_len;
 
     memset(src_str, 0x00, 10000);
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 129);
 
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     sha4( src_str, src_len, output, 0);
     hexify( hash_str, output, 64 );

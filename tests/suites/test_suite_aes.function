@@ -10,13 +10,14 @@ aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     aes_context ctx;
+    int key_len;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
     unhexify( src_str, {hex_src_string} );
 
     aes_setkey_enc( &ctx, key_str, key_len * 8 );
@@ -35,13 +36,14 @@ aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     aes_context ctx;
+    int key_len;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
     unhexify( src_str, {hex_src_string} );
 
     aes_setkey_dec( &ctx, key_str, key_len * 8 );
@@ -61,6 +63,7 @@ aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     aes_context ctx;
+    int key_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -68,7 +71,7 @@ aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
     unhexify( src_str, {hex_src_string} );
 
@@ -89,6 +92,7 @@ aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     aes_context ctx;
+    int key_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -96,7 +100,7 @@ aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
     unhexify( src_str, {hex_src_string} );
 
@@ -118,6 +122,7 @@ aes_encrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char output[100];
     aes_context ctx;
     int iv_offset = 0;
+    int key_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -125,7 +130,7 @@ aes_encrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
     unhexify( src_str, {hex_src_string} );
 
@@ -147,6 +152,7 @@ aes_decrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char output[100];
     aes_context ctx;
     int iv_offset = 0;
+    int key_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -154,7 +160,7 @@ aes_decrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
 
-    int key_len = unhexify( key_str, {hex_key_string} );
+    key_len = unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
     unhexify( src_str, {hex_src_string} );
 

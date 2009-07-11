@@ -61,6 +61,7 @@ des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     des_context ctx;
+    int src_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -70,7 +71,7 @@ des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
 
     unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     des_setkey_enc( &ctx, key_str );
     des_crypt_cbc( &ctx, DES_ENCRYPT, src_len, iv_str, src_str, output );
@@ -89,6 +90,7 @@ des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     des_context ctx;
+    int src_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -98,7 +100,7 @@ des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
 
     unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     des_setkey_dec( &ctx, key_str );
     des_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output );
@@ -179,6 +181,7 @@ des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
     unsigned char dst_str[100];
     unsigned char output[100];
     des3_context ctx;
+    int src_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -188,7 +191,7 @@ des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
 
     unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     if( {key_count} == 2 )
         des3_set2key_enc( &ctx, key_str );
@@ -213,6 +216,7 @@ des3_decrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
     unsigned char dst_str[100];
     unsigned char output[100];
     des3_context ctx;
+    int src_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -222,7 +226,7 @@ des3_decrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
 
     unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
-    int src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
 
     if( {key_count} == 2 )
         des3_set2key_dec( &ctx, key_str );

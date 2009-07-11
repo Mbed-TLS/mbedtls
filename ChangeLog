@@ -10,7 +10,8 @@ Features
 
 Bug fixes
    * Fixed HMAC-MD2 by modifying md2_starts(), so that the
-     required HMAC ipad and opad variables are not cleared!
+     required HMAC ipad and opad variables are not cleared.
+     (found by code coverage tests)
    * Prevented use of long long in bignum if 
      POLARSSL_HAVE_LONGLONG not defined (found by Giles
      Bathgate).

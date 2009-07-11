@@ -30,6 +30,7 @@ Bug fixes
      coverage tests).
    * Corrected is_prime() results for 0, 1 and 2 (found by
      code coverage tests).
+   * Fixed Camellia and XTEA for 64-bit Windows systems.
 
 = Version 0.11.1 released on 2009-05-17
    * Fixed missing functionality for SHA-224, SHA-256, SHA384,

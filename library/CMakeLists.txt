@@ -1,15 +1,27 @@
 add_library(polarssl STATIC
-     base64.c rsa.c timing.c havege.c
-     md5.c
-     ssl_cli.c 
-     bignum.c    debug.c              sha1.c  x509parse.c
-     aes.c        net.c      ssl_srv.c 
-     camellia.c  des.c                md2.c             sha2.c   xtea.c
+     aes.c
      arc4.c
-     padlock.c
-     ssl_tls.c
+     base64.c
+     bignum.c
+     camellia.c
      certs.c
+     debug.c
+     des.c
      dhm.c
+     havege.c
+     md2.c
      md4.c
+     md5.c
+     net.c
+     padlock.c
+     rsa.c
+     sha1.c
+     sha2.c
      sha4.c
+     ssl_cli.c 
+     ssl_srv.c 
+     ssl_tls.c
+     timing.c
+     x509parse.c
+     xtea.c
 )

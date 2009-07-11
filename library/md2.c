@@ -70,7 +70,10 @@ static const unsigned char PI_SUBST[256] =
  */
 void md2_starts( md2_context *ctx )
 {
-    memset( ctx, 0, sizeof( md2_context ) );
+    memset( ctx->cksum, 0, 16 );
+    memset( ctx->state, 0, 46 );
+    memset( ctx->buffer, 0, 16 );
+    ctx->left = 0;
 }
 
 static void md2_process( md2_context *ctx )

@@ -9,6 +9,8 @@ Features
      and X509parse.
 
 Bug fixes
+   * Fixed HMAC-MD2 by modifying md2_starts(), so that the
+     required HMAC ipad and opad variables are not cleared!
    * Prevented use of long long in bignum if 
      POLARSSL_HAVE_LONGLONG not defined (found by Giles
      Bathgate).

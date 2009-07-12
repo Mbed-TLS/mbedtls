@@ -49,20 +49,59 @@ x509_time_expired:"data_files/test-ca.crt":valid_from:1
 X509 Time Expired #6
 x509_time_expired:"data_files/test-ca.crt":valid_to:0
 
-X509 Certificate verification #1 (Revoked Cert, Revoked CRL)
+X509 Certificate verification #1 (Revoked Cert, Expired CRL)
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":NULL:BADCERT_REVOKED | BADCRL_EXPIRED
 
-X509 Certificate verification #2 (Revoked Cert, Revoked CRL)
+X509 Certificate verification #2 (Revoked Cert, Expired CRL)
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Server 1":BADCERT_REVOKED | BADCRL_EXPIRED
 
-X509 Certificate verification #3 (Revoked Cert, Revoked CRL, CN Mismatch)
+X509 Certificate verification #3 (Revoked Cert, Expired CRL, CN Mismatch)
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Wrong CN":BADCERT_REVOKED | BADCRL_EXPIRED | BADCERT_CN_MISMATCH
 
-X509 Certificate verification #4 (Valid Cert, Revoked CRL)
+X509 Certificate verification #4 (Valid Cert, Expired CRL)
 x509_verify:"data_files/server2.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":NULL:BADCRL_EXPIRED
 
-X509 Certificate verification #5 (Not trusted Cert)
+X509 Certificate verification #5 (Revoked Cert)
+x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:BADCERT_REVOKED
+
+X509 Certificate verification #6 (Revoked Cert)
+x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"PolarSSL Server 1":BADCERT_REVOKED
+
+X509 Certificate verification #7 (Revoked Cert, CN Mismatch)
+x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"PolarSSL Wrong CN":BADCERT_REVOKED | BADCERT_CN_MISMATCH
+
+X509 Certificate verification #8 (Valid Cert)
+x509_verify:"data_files/server2.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
+
+X509 Certificate verification #9 (Not trusted Cert)
+x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl.pem":NULL:BADCERT_NOT_TRUSTED
+
+X509 Certificate verification #10 (Not trusted Cert, Expired CRL)
 x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":NULL:BADCERT_NOT_TRUSTED
+
+X509 Certificate verification #11 (Valid Cert MD2 Digest)
+x509_verify:"data_files/cert_md2.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
+
+X509 Certificate verification #12 (Valid Cert MD4 Digest)
+x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
+
+X509 Certificate verification #13 (Valid Cert MD5 Digest)
+x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
+
+X509 Certificate verification #14 (Valid Cert SHA1 Digest)
+x509_verify:"data_files/cert_sha1.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
+
+X509 Certificate verification #15 (Valid Cert SHA224 Digest)
+x509_verify:"data_files/cert_sha224.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
+
+X509 Certificate verification #16 (Valid Cert SHA256 Digest)
+x509_verify:"data_files/cert_sha256.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
+
+X509 Certificate verification #17 (Valid Cert SHA384 Digest)
+x509_verify:"data_files/cert_sha384.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
+
+X509 Certificate verification #18 (Valid Cert SHA512 Digest)
+x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0
 
 X509 Parse Selftest
 x509_selftest:

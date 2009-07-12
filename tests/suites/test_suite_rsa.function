@@ -1,12 +1,16 @@
 BEGIN_HEADER
 #include <polarssl/rsa.h>
+#include <polarssl/md2.h>
+#include <polarssl/md4.h>
+#include <polarssl/md5.h>
 #include <polarssl/sha1.h>
 #include <polarssl/sha2.h>
 #include <polarssl/sha4.h>
+#include <polarssl/havege.h>
 END_HEADER
 
 BEGIN_CASE
-rsa_pkcs1_sign:message_hex_string:digest:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:result_hex_str
+rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:result_hex_str:result
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
@@ -17,7 +21,7 @@ rsa_pkcs1_sign:message_hex_string:digest:mod:radix_P:input_P:radix_Q:input_Q:rad
     int msg_len;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
-    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
 
     memset( message_str, 0x00, 1000 );
     memset( hash_result, 0x00, 1000 );
@@ -43,7 +47,13 @@ rsa_pkcs1_sign:message_hex_string:digest:mod:radix_P:input_P:radix_Q:input_Q:rad
 
     msg_len = unhexify( message_str, {message_hex_string} );
 
-    if( {digest} == SIG_RSA_SHA1 )
+    if( {digest} == SIG_RSA_MD2 )
+        md2( message_str, msg_len, hash_result );
+    else if( {digest} == SIG_RSA_MD4 )
+        md4( message_str, msg_len, hash_result );
+    else if( {digest} == SIG_RSA_MD5 )
+        md5( message_str, msg_len, hash_result );
+    else if( {digest} == SIG_RSA_SHA1 )
         sha1( message_str, msg_len, hash_result );
     else if( {digest} == SIG_RSA_SHA224 )
         sha2( message_str, msg_len, hash_result, 1 );
@@ -53,19 +63,19 @@ rsa_pkcs1_sign:message_hex_string:digest:mod:radix_P:input_P:radix_Q:input_Q:rad
         sha4( message_str, msg_len, hash_result, 1 );
     else if( {digest} == SIG_RSA_SHA512 )
         sha4( message_str, msg_len, hash_result, 0 );
-    else
-        TEST_ASSERT( 0 );
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, RSA_PRIVATE, {digest}, 0, hash_result, output ) == 0 );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, RSA_PRIVATE, {digest}, 0, hash_result, output ) == {result} );
+    if( {result} == 0 )
+    {
+        hexify( output_str, output, ctx.len );
 
-    hexify( output_str, output, ctx.len );
-
-    TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+    }
 }
 END_CASE
 
 BEGIN_CASE
-rsa_pkcs1_verify:message_hex_string:digest:mod:radix_N:input_N:radix_E:input_E:result_hex_str:correct
+rsa_pkcs1_verify:message_hex_string:padding_mode:digest:mod:radix_N:input_N:radix_E:input_E:result_hex_str:result
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
@@ -73,7 +83,7 @@ rsa_pkcs1_verify:message_hex_string:digest:mod:radix_N:input_N:radix_E:input_E:r
     rsa_context ctx;
     int msg_len;
 
-    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
     memset( message_str, 0x00, 1000 );
     memset( hash_result, 0x00, 1000 );
     memset( result_str, 0x00, 1000 );
@@ -87,7 +97,13 @@ rsa_pkcs1_verify:message_hex_string:digest:mod:radix_N:input_N:radix_E:input_E:r
     msg_len = unhexify( message_str, {message_hex_string} );
     unhexify( result_str, {result_hex_str} );
 
-    if( {digest} == SIG_RSA_SHA1 )
+    if( {digest} == SIG_RSA_MD2 )
+        md2( message_str, msg_len, hash_result );
+    else if( {digest} == SIG_RSA_MD4 )
+        md4( message_str, msg_len, hash_result );
+    else if( {digest} == SIG_RSA_MD5 )
+        md5( message_str, msg_len, hash_result );
+    else if( {digest} == SIG_RSA_SHA1 )
         sha1( message_str, msg_len, hash_result );
     else if( {digest} == SIG_RSA_SHA224 )
         sha2( message_str, msg_len, hash_result, 1 );
@@ -97,26 +113,98 @@ rsa_pkcs1_verify:message_hex_string:digest:mod:radix_N:input_N:radix_E:input_E:r
         sha4( message_str, msg_len, hash_result, 1 );
     else if( {digest} == SIG_RSA_SHA512 )
         sha4( message_str, msg_len, hash_result, 0 );
-    else
-        TEST_ASSERT( 0 );
 
-    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {correct} );
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
 }
 END_CASE
 
+
 BEGIN_CASE
-rsa_pkcs1_encrypt:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_hex_str
+rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:result_hex_str
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char output[1000];
     unsigned char output_str[1000];
     rsa_context ctx;
-    int msg_len;
+    mpi P1, Q1, H, G;
+    int msg_len, hash_len;
 
-    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    mpi_init( &P1, &Q1, &H, &G, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+
     memset( message_str, 0x00, 1000 );
     memset( hash_result, 0x00, 1000 );
+    memset( output, 0x00, 1000 );
+    memset( output_str, 0x00, 1000 );
+
+    ctx.len = {mod} / 8;
+    TEST_ASSERT( mpi_read_string( &ctx.P, {radix_P}, {input_P} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.Q, {radix_Q}, {input_Q} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+
+    TEST_ASSERT( mpi_sub_int( &P1, &ctx.P, 1 ) == 0 );
+    TEST_ASSERT( mpi_sub_int( &Q1, &ctx.Q, 1 ) == 0 );
+    TEST_ASSERT( mpi_mul_mpi( &H, &P1, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_gcd( &G, &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.D , &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DP, &ctx.D, &P1 ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
+
+    TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
+
+    msg_len = unhexify( message_str, {message_hex_string} );
+    hash_len = unhexify( hash_result, {hash_result_string} );
+
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, RSA_PRIVATE, RSA_RAW, hash_len, hash_result, output ) == 0 );
+
+    hexify( output_str, output, ctx.len );
+
+    TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_N:input_N:radix_E:input_E:result_hex_str:correct
+{
+    unsigned char message_str[1000];
+    unsigned char hash_result[1000];
+    unsigned char result_str[1000];
+    rsa_context ctx;
+    int msg_len, hash_len;
+
+    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+    memset( message_str, 0x00, 1000 );
+    memset( hash_result, 0x00, 1000 );
+    memset( result_str, 0x00, 1000 );
+
+    ctx.len = {mod} / 8;
+    TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+
+    TEST_ASSERT( rsa_check_pubkey( &ctx ) == 0 );
+
+    msg_len = unhexify( message_str, {message_hex_string} );
+    hash_len = unhexify( hash_result, {hash_result_string} );
+    unhexify( result_str, {result_hex_str} );
+
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, RSA_RAW, hash_len, hash_result, result_str ) == {correct} );
+}
+END_CASE
+
+BEGIN_CASE
+rsa_pkcs1_encrypt:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:input_E:result_hex_str:result
+{
+    unsigned char message_str[1000];
+    unsigned char output[1000];
+    unsigned char output_str[1000];
+    rsa_context ctx;
+    int msg_len;
+
+    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+    memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
 
@@ -128,19 +216,20 @@ rsa_pkcs1_encrypt:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_
 
     msg_len = unhexify( message_str, {message_hex_string} );
 
-    TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, RSA_PUBLIC, msg_len, message_str, output ) == 0 );
+    TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, RSA_PUBLIC, msg_len, message_str, output ) == {result} );
+    if( {result} == 0 )
+    {
+        hexify( output_str, output, ctx.len );
 
-    hexify( output_str, output, ctx.len );
-
-    TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+    }
 }
 END_CASE
 
 BEGIN_CASE
-rsa_pkcs1_decrypt:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:result_hex_str
+rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:max_output:result_hex_str:result
 {
     unsigned char message_str[1000];
-    unsigned char hash_result[1000];
     unsigned char output[1000];
     unsigned char output_str[1000];
     rsa_context ctx;
@@ -148,10 +237,9 @@ rsa_pkcs1_decrypt:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N
     int output_len;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
-    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
 
     memset( message_str, 0x00, 1000 );
-    memset( hash_result, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
 
@@ -175,11 +263,89 @@ rsa_pkcs1_decrypt:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N
     unhexify( message_str, {message_hex_string} );
     output_len = 0;
 
-    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, RSA_PRIVATE, &output_len, message_str, output, 1000 ) == 0 );
+    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, RSA_PRIVATE, &output_len, message_str, output, {max_output} ) == {result} );
+    if( {result} == 0 )
+    {
+        hexify( output_str, output, ctx.len );
 
-    hexify( output_str, output, ctx.len );
+        TEST_ASSERT( strncasecmp( (char *) output_str, {result_hex_str}, strlen( {result_hex_str} ) ) == 0 );
+    }
+}
+END_CASE
 
-    TEST_ASSERT( strncasecmp( (char *) output_str, {result_hex_str}, strlen( {result_hex_str} ) ) == 0 );
+BEGIN_CASE
+rsa_public:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_hex_str:result
+{
+    unsigned char message_str[1000];
+    unsigned char output[1000];
+    unsigned char output_str[1000];
+    rsa_context ctx;
+
+    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    memset( message_str, 0x00, 1000 );
+    memset( output, 0x00, 1000 );
+    memset( output_str, 0x00, 1000 );
+
+    ctx.len = {mod} / 8;
+    TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+
+    TEST_ASSERT( rsa_check_pubkey( &ctx ) == 0 );
+
+    unhexify( message_str, {message_hex_string} );
+
+    TEST_ASSERT( rsa_public( &ctx, message_str, output ) == {result} );
+    if( {result} == 0 )
+    {
+        hexify( output_str, output, ctx.len );
+
+        TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+rsa_private:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:result_hex_str:result
+{
+    unsigned char message_str[1000];
+    unsigned char output[1000];
+    unsigned char output_str[1000];
+    rsa_context ctx;
+    mpi P1, Q1, H, G;
+
+    mpi_init( &P1, &Q1, &H, &G, NULL );
+    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+
+    memset( message_str, 0x00, 1000 );
+    memset( output, 0x00, 1000 );
+    memset( output_str, 0x00, 1000 );
+
+    ctx.len = {mod} / 8;
+    TEST_ASSERT( mpi_read_string( &ctx.P, {radix_P}, {input_P} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.Q, {radix_Q}, {input_Q} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+
+    TEST_ASSERT( mpi_sub_int( &P1, &ctx.P, 1 ) == 0 );
+    TEST_ASSERT( mpi_sub_int( &Q1, &ctx.Q, 1 ) == 0 );
+    TEST_ASSERT( mpi_mul_mpi( &H, &P1, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_gcd( &G, &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.D , &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DP, &ctx.D, &P1 ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
+
+    TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
+
+    unhexify( message_str, {message_hex_string} );
+
+    TEST_ASSERT( rsa_private( &ctx, message_str, output ) == {result} );
+    if( {result} == 0 )
+    {
+        hexify( output_str, output, ctx.len );
+
+        TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+    }
 }
 END_CASE
 
@@ -190,6 +356,76 @@ rsa_check_privkey_null:
     memset( &ctx, 0x00, sizeof( rsa_context ) );
 
     TEST_ASSERT( rsa_check_privkey( &ctx ) == POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+}
+END_CASE
+
+BEGIN_CASE
+rsa_check_pubkey:radix_N:input_N:radix_E:input_E:result
+{
+    rsa_context ctx;
+
+    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+
+    if( strlen( {input_N} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    }
+    if( strlen( {input_E} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+    }
+
+    TEST_ASSERT( rsa_check_pubkey( &ctx ) == {result} );
+}
+END_CASE
+
+BEGIN_CASE
+rsa_check_privkey:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:radix_D:input_D:result
+{
+    rsa_context ctx;
+
+    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+
+    ctx.len = {mod} / 8;
+    if( strlen( {input_P} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.P, {radix_P}, {input_P} ) == 0 );
+    }
+    if( strlen( {input_Q} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.Q, {radix_Q}, {input_Q} ) == 0 );
+    }
+    if( strlen( {input_N} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    }
+    if( strlen( {input_E} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+    }
+    if( strlen( {input_D} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.D, {radix_D}, {input_D} ) == 0 );
+    }
+
+    TEST_ASSERT( rsa_check_privkey( &ctx ) == {result} );
+}
+END_CASE
+
+BEGIN_CASE
+rsa_gen_key:nrbits:exponent:result
+{
+    rsa_context ctx;
+    havege_state hs;
+
+    havege_init( &hs );
+    rsa_init( &ctx, 0, 0, havege_rand, &hs );
+
+    TEST_ASSERT( rsa_gen_key( &ctx, {nrbits}, {exponent} ) == {result} );
+    if( {result} == 0 )
+    {
+        TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
+    }
 }
 END_CASE
 

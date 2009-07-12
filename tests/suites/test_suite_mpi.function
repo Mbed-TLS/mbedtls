@@ -12,17 +12,23 @@ static int myrand( void *rng_state )
 END_HEADER
 
 BEGIN_CASE
-mpi_read_write_string:radix_X:input_X:radix_A:input_A
+mpi_read_write_string:radix_X:input_X:radix_A:input_A:output_size:result_read:result_write
 {
     mpi X;
     char str[1000];
-    int len = 1000;
+    int len = {output_size};
 
     mpi_init(&X, NULL);
 
-    TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
-    TEST_ASSERT( mpi_write_string( &X, {radix_A}, str, &len ) == 0 );
-    TEST_ASSERT( strcasecmp( str, {input_A} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == {result_read} );
+    if( {result_read} == 0 )
+    {
+        TEST_ASSERT( mpi_write_string( &X, {radix_A}, str, &len ) == {result_write} );
+        if( {result_write} == 0 )
+        {
+            TEST_ASSERT( strcasecmp( str, {input_A} ) == 0 );
+        }
+    }
 }
 END_CASE
 
@@ -46,7 +52,7 @@ mpi_read_binary:input_X:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_write_binary:radix_X:input_X:input_A
+mpi_write_binary:radix_X:input_X:input_A:output_size:result
 {
     mpi X;
     unsigned char str[1000];
@@ -61,16 +67,21 @@ mpi_write_binary:radix_X:input_X:input_A
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     
     buflen = mpi_size( &X );
-    TEST_ASSERT( mpi_write_binary( &X, buf, buflen ) == 0 );
+    if( buflen > {output_size} )
+        buflen = {output_size};
 
-    hexify( str, buf, buflen );
+    TEST_ASSERT( mpi_write_binary( &X, buf, buflen ) == {result} );
+    if( {result} == 0)
+    {
+        hexify( str, buf, buflen );
 
-    TEST_ASSERT( strcasecmp( (char *) str, {input_A} ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) str, {input_A} ) == 0 );
+    }
 }
 END_CASE
 
 BEGIN_CASE
-mpi_read_file:radix_X:input_file:input_A
+mpi_read_file:radix_X:input_file:input_A:result
 {
     mpi X;
     unsigned char str[1000];
@@ -84,15 +95,18 @@ mpi_read_file:radix_X:input_file:input_A
     mpi_init(&X, NULL);
 
     file = fopen( {input_file}, "r" );
-    TEST_ASSERT( mpi_read_file( &X, {radix_X}, file ) == 0 );
+    TEST_ASSERT( mpi_read_file( &X, {radix_X}, file ) == {result} );
     fclose(file);
 
-    buflen = mpi_size( &X );
-    TEST_ASSERT( mpi_write_binary( &X, buf, buflen ) == 0 );
+    if( {result} == 0 )
+    {
+        buflen = mpi_size( &X );
+        TEST_ASSERT( mpi_write_binary( &X, buf, buflen ) == 0 );
 
-    hexify( str, buf, buflen );
+        hexify( str, buf, buflen );
 
-    TEST_ASSERT( strcasecmp( (char *) str, {input_A} ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) str, {input_A} ) == 0 );
+    }
 }
 END_CASE
 
@@ -260,6 +274,34 @@ mpi_add_abs:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_add_abs( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+mpi_add_abs_add_first:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+{
+    mpi X, Y, A;
+    mpi_init(&X, &Y, &A, NULL);
+
+    TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
+    TEST_ASSERT( mpi_add_abs( &X, &X, &Y ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &A ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+mpi_add_abs_add_second:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+{
+    mpi X, Y, A;
+    mpi_init(&X, &Y, &A, NULL);
+
+    TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
+    TEST_ASSERT( mpi_add_abs( &Y, &X, &Y ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &Y, &A ) == 0 );
 }
 END_CASE
 

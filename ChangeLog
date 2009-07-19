@@ -8,6 +8,10 @@ Features
      Camellia, DES, 3-DES, RSA PKCS#1, XTEA, Diffie-Hellman
      and X509parse.
 
+Major Changes
+   * Error codes are not (necessarily) negative anymore. Keep
+     this is mind when writing code.
+
 Bug fixes
    * Fixed HMAC-MD2 by modifying md2_starts(), so that the
      required HMAC ipad and opad variables are not cleared.

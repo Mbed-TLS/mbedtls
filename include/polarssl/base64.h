@@ -22,8 +22,8 @@
 #ifndef POLARSSL_BASE64_H
 #define POLARSSL_BASE64_H
 
-#define POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL               -0x0010
-#define POLARSSL_ERR_BASE64_INVALID_CHARACTER              -0x0012
+#define POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL               0x0010
+#define POLARSSL_ERR_BASE64_INVALID_CHARACTER              0x0012
 
 #ifdef __cplusplus
 extern "C" {

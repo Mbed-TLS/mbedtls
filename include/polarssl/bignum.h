@@ -24,13 +24,13 @@
 
 #include <stdio.h>
 
-#define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002
-#define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004
-#define POLARSSL_ERR_MPI_INVALID_CHARACTER                 -0x0006
-#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008
-#define POLARSSL_ERR_MPI_NEGATIVE_VALUE                    -0x000A
-#define POLARSSL_ERR_MPI_DIVISION_BY_ZERO                  -0x000C
-#define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    -0x000E
+#define POLARSSL_ERR_MPI_FILE_IO_ERROR                     0x0002
+#define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    0x0004
+#define POLARSSL_ERR_MPI_INVALID_CHARACTER                 0x0006
+#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  0x0008
+#define POLARSSL_ERR_MPI_NEGATIVE_VALUE                    0x000A
+#define POLARSSL_ERR_MPI_DIVISION_BY_ZERO                  0x000C
+#define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    0x000E
 
 #define MPI_CHK(f) if( ( ret = f ) != 0 ) goto cleanup
 

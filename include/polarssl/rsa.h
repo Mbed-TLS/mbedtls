@@ -24,14 +24,14 @@
 
 #include "polarssl/bignum.h"
 
-#define POLARSSL_ERR_RSA_BAD_INPUT_DATA                    -0x0400
-#define POLARSSL_ERR_RSA_INVALID_PADDING                   -0x0410
-#define POLARSSL_ERR_RSA_KEY_GEN_FAILED                    -0x0420
-#define POLARSSL_ERR_RSA_KEY_CHECK_FAILED                  -0x0430
-#define POLARSSL_ERR_RSA_PUBLIC_FAILED                     -0x0440
-#define POLARSSL_ERR_RSA_PRIVATE_FAILED                    -0x0450
-#define POLARSSL_ERR_RSA_VERIFY_FAILED                     -0x0460
-#define POLARSSL_ERR_RSA_OUTPUT_TO_LARGE                   -0x0470
+#define POLARSSL_ERR_RSA_BAD_INPUT_DATA                    0x0400
+#define POLARSSL_ERR_RSA_INVALID_PADDING                   0x0410
+#define POLARSSL_ERR_RSA_KEY_GEN_FAILED                    0x0420
+#define POLARSSL_ERR_RSA_KEY_CHECK_FAILED                  0x0430
+#define POLARSSL_ERR_RSA_PUBLIC_FAILED                     0x0440
+#define POLARSSL_ERR_RSA_PRIVATE_FAILED                    0x0450
+#define POLARSSL_ERR_RSA_VERIFY_FAILED                     0x0460
+#define POLARSSL_ERR_RSA_OUTPUT_TO_LARGE                   0x0470
 
 /*
  * PKCS#1 constants

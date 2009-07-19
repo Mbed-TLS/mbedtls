@@ -138,7 +138,7 @@ x509parse_crt:crt_data:result_str:result
     data_len = unhexify( buf, {crt_data} );
 
     res = x509parse_crt( &crt, buf, data_len );
-    printf(" %04x ", res);
+
     TEST_ASSERT( x509parse_crt( &crt, buf, data_len ) == ( {result} ) );
     if( ( {result} ) == 0 )
     {

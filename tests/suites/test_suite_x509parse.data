@@ -4,11 +4,59 @@ x509_cert_info:"data_files/server1.crt":"cert. version \: 3\nserial number \: 01
 X509 Certificate information #2
 x509_cert_info:"data_files/server2.crt":"cert. version \: 3\nserial number \: 09\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2009-02-10 22\:15\:12\nexpires on    \: 2011-02-10 22\:15\:12\nsigned using  \: RSA+SHA1\nRSA key size  \: 2048 bits\n"
 
-X509 Certificate information #2
+X509 Certificate information #3
 x509_cert_info:"data_files/test-ca.crt":"cert. version \: 3\nserial number \: 00\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on    \: 2009-02-09 21\:12\:25\nexpires on    \: 2019-02-10 21\:12\:25\nsigned using  \: RSA+SHA1\nRSA key size  \: 2048 bits\n"
 
+X509 Certificate information MD2 Digest
+x509_cert_info:"data_files/cert_md2.crt":"cert. version \: 3\nserial number \: 09\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD2\nissued  on    \: 2009-07-12 10\:56\:59\nexpires on    \: 2011-07-12 10\:56\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information MD4 Digest
+x509_cert_info:"data_files/cert_md4.crt":"cert. version \: 3\nserial number \: 0A\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD4\nissued  on    \: 2009-07-12 10\:56\:59\nexpires on    \: 2011-07-12 10\:56\:59\nsigned using  \: RSA+MD4\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information MD5 Digest
+x509_cert_info:"data_files/cert_md5.crt":"cert. version \: 3\nserial number \: 0B\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on    \: 2009-07-12 10\:56\:59\nexpires on    \: 2011-07-12 10\:56\:59\nsigned using  \: RSA+MD5\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information SHA1 Digest
+x509_cert_info:"data_files/cert_sha1.crt":"cert. version \: 3\nserial number \: 0C\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA1\nissued  on    \: 2009-07-12 10\:56\:59\nexpires on    \: 2011-07-12 10\:56\:59\nsigned using  \: RSA+SHA1\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information SHA224 Digest
+x509_cert_info:"data_files/cert_sha224.crt":"cert. version \: 3\nserial number \: 0D\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA224\nissued  on    \: 2009-07-12 10\:56\:59\nexpires on    \: 2011-07-12 10\:56\:59\nsigned using  \: RSA+SHA224\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information SHA256 Digest
+x509_cert_info:"data_files/cert_sha256.crt":"cert. version \: 3\nserial number \: 0E\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA256\nissued  on    \: 2009-07-12 10\:56\:59\nexpires on    \: 2011-07-12 10\:56\:59\nsigned using  \: RSA+SHA256\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information SHA384 Digest
+x509_cert_info:"data_files/cert_sha384.crt":"cert. version \: 3\nserial number \: 0F\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA384\nissued  on    \: 2009-07-12 10\:56\:59\nexpires on    \: 2011-07-12 10\:56\:59\nsigned using  \: RSA+SHA384\nRSA key size  \: 2048 bits\n"
+
+X509 Certificate information SHA512 Digest
+x509_cert_info:"data_files/cert_sha512.crt":"cert. version \: 3\nserial number \: 10\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA512\nissued  on    \: 2009-07-12 10\:57\:00\nexpires on    \: 2011-07-12 10\:57\:00\nsigned using  \: RSA+SHA512\nRSA key size  \: 2048 bits\n"
+
 X509 CRL information #1
-x509_crl_info:"data_files/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-02-09 21\:12\:36\nnext update   \: 2009-04-10 21\:12\:36\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+SHA1"
+x509_crl_info:"data_files/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-02-09 21\:12\:36\nnext update   \: 2009-04-10 21\:12\:36\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+SHA1\n"
+
+X509 CRL Information MD2 Digest
+x509_crl_info:"data_files/crl_md2.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+MD2\n"
+
+X509 CRL Information MD4 Digest
+x509_crl_info:"data_files/crl_md4.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+MD4\n"
+
+X509 CRL Information MD5 Digest
+x509_crl_info:"data_files/crl_md5.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+MD5\n"
+
+X509 CRL Information SHA1 Digest
+x509_crl_info:"data_files/crl_sha1.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+SHA1\n"
+
+X509 CRL Information SHA224 Digest
+x509_crl_info:"data_files/crl_sha224.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+SHA224\n"
+
+X509 CRL Information SHA256 Digest
+x509_crl_info:"data_files/crl_sha256.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+SHA256\n"
+
+X509 CRL Information SHA384 Digest
+x509_crl_info:"data_files/crl_sha384.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+SHA384\n"
+
+X509 CRL Information SHA512 Digest
+x509_crl_info:"data_files/crl_sha512.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA+SHA512\n"
 
 X509 Parse Key #1 (No password when required)
 x509parse_key:"data_files/test-ca.key":NULL:POLARSSL_ERR_X509_KEY_PASSWORD_REQUIRED
@@ -114,6 +162,15 @@ x509parse_crt:"300000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT | POLARSSL_ERR_A
 
 X509 Certificate ASN1 (Correct first tag, no more data)
 x509parse_crt:"3000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT | POLARSSL_ERR_ASN1_OUT_OF_DATA
+
+X509 Certificate ASN1 (Correct first tag, length data incomplete)
+x509parse_crt:"30023083":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT | POLARSSL_ERR_ASN1_INVALID_LENGTH
+
+X509 Certificate ASN1 (Correct first tag, length data incomplete)
+x509parse_crt:"30023081":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT | POLARSSL_ERR_ASN1_OUT_OF_DATA
+
+X509 Certificate ASN1 (Correct first tag, length data incomplete)
+x509parse_crt:"3003308200":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT | POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (Correct first tag, second tag no TBSCertificate)
 x509parse_crt:"300100":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT | POLARSSL_ERR_ASN1_UNEXPECTED_TAG
@@ -252,4 +309,31 @@ x509parse_crt:"308197308180a0030201008204deadbeef300d06092a864886f70d01010205003
 
 X509 Certificate ASN1 (correct)
 x509parse_crt:"308196308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: ?\?=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with X520 CN)
+x509parse_crt:"308199308183a0030201008204deadbeef300d06092a864886f70d0101020500300f310d300b0603550403130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: CN=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with X520 C)
+x509parse_crt:"308199308183a0030201008204deadbeef300d06092a864886f70d0101020500300f310d300b0603550406130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: C=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with X520 L)
+x509parse_crt:"308199308183a0030201008204deadbeef300d06092a864886f70d0101020500300f310d300b0603550407130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: L=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with X520 ST)
+x509parse_crt:"308199308183a0030201008204deadbeef300d06092a864886f70d0101020500300f310d300b0603550408130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: ST=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with X520 O)
+x509parse_crt:"308199308183a0030201008204deadbeef300d06092a864886f70d0101020500300f310d300b060355040a130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: O=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with X520 OU)
+x509parse_crt:"308199308183a0030201008204deadbeef300d06092a864886f70d0101020500300f310d300b060355040b130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: OU=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with unknown X520 part)
+x509parse_crt:"308199308183a0030201008204deadbeef300d06092a864886f70d0101020500300f310d300b06035504de130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: 0xDE=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with PKCS9 email)
+x509parse_crt:"30819f308189a0030201008204deadbeef300d06092a864886f70d010102050030153113301106092a864886f70d010901130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: emailAddress=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
+
+X509 Certificate ASN1 (Name with unknown PKCS9 part)
+x509parse_crt:"30819f308189a0030201008204deadbeef300d06092a864886f70d010102050030153113301106092a864886f70d0109ab130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff":"cert. version \: 1\nserial number \: DE\:AD\:BE\:EF\nissuer name   \: 0xAB=Test\nsubject name  \: ?\?=Test\nissued  on    \: 2009-01-01 00\:00\:00\nexpires on    \: 2009-12-31 23\:59\:59\nsigned using  \: RSA+MD2\nRSA key size  \: 128 bits\n":0
 

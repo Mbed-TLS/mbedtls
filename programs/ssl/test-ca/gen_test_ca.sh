@@ -76,6 +76,11 @@ openssl ca -batch -config sslconf.txt -revoke server1.crt -passin pass:$PASSWORD
 openssl ca -batch -config sslconf.txt -revoke client1.crt -passin pass:$PASSWORD
 openssl ca -batch -config sslconf.txt -gencrl -out crl.pem -passin pass:$PASSWORD
 
+for i in md2 md4 md5 sha1 sha224 sha256 sha384 sha512;
+do
+  openssl ca -batch -config sslconf.txt -gencrl -out crl_$i.pem -md $i -passin pass:$PASSWORD
+done
+
 echo "Verifying second"
 openssl x509 -in server2.crt -text -noout
 cat test-ca.crt crl.pem > ca_crl.pem

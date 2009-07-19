@@ -12,6 +12,7 @@ Changes
    * Error codes are not (necessarily) negative anymore. Keep
      this is mind when checking for errors.
    * RSA_RAW renamed to SIG_RSA_RAW for consistency.
+   * Fixed typo in name of POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE.
 
 Bug fixes
    * Fixed HMAC-MD2 by modifying md2_starts(), so that the

@@ -377,7 +377,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
     }
 
     if (ilen - (int)(p - buf) > output_max_len)
-    	return( POLARSSL_ERR_RSA_OUTPUT_TO_LARGE );
+    	return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
 
     *olen = ilen - (int)(p - buf);
     memcpy( output, p, *olen );

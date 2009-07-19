@@ -2064,6 +2064,9 @@ int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl )
     }
     SAFE_SNPRINTF();
 
+    ret = snprintf( p, n, "\n" );
+    SAFE_SNPRINTF();
+
     return( size - n );
 }
 

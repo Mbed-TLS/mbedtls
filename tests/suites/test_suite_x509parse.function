@@ -124,6 +124,35 @@ x509parse_key:key_file:password:result
 END_CASE
 
 BEGIN_CASE
+x509parse_crt:crt_data:result_str:result
+{
+    x509_cert   crt;
+    unsigned char buf[2000];
+    unsigned char output[2000];
+    int data_len, res;
+
+    memset( &crt, 0, sizeof( x509_cert ) );
+    memset( buf, 0, 2000 );
+    memset( output, 0, 2000 );
+
+    data_len = unhexify( buf, {crt_data} );
+
+    res = x509parse_crt( &crt, buf, data_len );
+    printf(" %04x ", res);
+    TEST_ASSERT( x509parse_crt( &crt, buf, data_len ) == ( {result} ) );
+    if( ( {result} ) == 0 )
+    {
+        res = x509parse_cert_info( (char *) output, 2000, "", &crt );
+        
+        TEST_ASSERT( res != -1 );
+        TEST_ASSERT( res != -2 );
+
+        TEST_ASSERT( strcmp( (char *) output, {result_str} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
 x509_selftest:
 {
     TEST_ASSERT( x509_self_test( 0 ) == 0 );

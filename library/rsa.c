@@ -406,7 +406,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
 
             switch( hash_id )
             {
-                case RSA_RAW:
+                case SIG_RSA_RAW:
                     nb_pad = olen - 3 - hashlen;
                     break;
 
@@ -458,7 +458,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
 
     switch( hash_id )
     {
-        case RSA_RAW:
+        case SIG_RSA_RAW:
             memcpy( p, hash, hashlen );
             break;
 
@@ -606,7 +606,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
             return( POLARSSL_ERR_RSA_VERIFY_FAILED );
     }
 
-    if( len == hashlen && hash_id == RSA_RAW )
+    if( len == hashlen && hash_id == SIG_RSA_RAW )
     {
         if( memcmp( p, hash, hashlen ) == 0 )
             return( 0 );

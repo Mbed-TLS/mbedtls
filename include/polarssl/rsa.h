@@ -36,11 +36,10 @@
 /*
  * PKCS#1 constants
  */
-#define RSA_RAW         0
-
-#define SIG_RSA_MD2	2
-#define SIG_RSA_MD4	3
-#define SIG_RSA_MD5	4
+#define SIG_RSA_RAW     0
+#define SIG_RSA_MD2     2
+#define SIG_RSA_MD4     3
+#define SIG_RSA_MD5     4
 #define SIG_RSA_SHA1	5
 #define SIG_RSA_SHA224	14
 #define SIG_RSA_SHA256	11
@@ -282,8 +281,8 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  *
  * \param ctx      RSA context
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
- * \param hashlen  message digest length (for RSA_RAW only)
+ * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
+ * \param hashlen  message digest length (for SIG_RSA_RAW only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
  *
@@ -305,8 +304,8 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  *
  * \param ctx      points to an RSA public key
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  RSA_RAW, RSA_MD{2,4,5} or RSA_SHA{1,256}
- * \param hashlen  message digest length (for RSA_RAW only)
+ * \param hash_id  SIG_RSA_RAW, RSA_MD{2,4,5} or RSA_SHA{1,256}
+ * \param hashlen  message digest length (for SIG_RSA_RAW only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
  *

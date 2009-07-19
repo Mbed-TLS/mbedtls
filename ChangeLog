@@ -8,9 +8,10 @@ Features
      Camellia, DES, 3-DES, RSA PKCS#1, XTEA, Diffie-Hellman
      and X509parse.
 
-Major Changes
+Changes
    * Error codes are not (necessarily) negative anymore. Keep
-     this is mind when writing code.
+     this is mind when checking for errors.
+   * RSA_RAW renamed to SIG_RSA_RAW for consistency.
 
 Bug fixes
    * Fixed HMAC-MD2 by modifying md2_starts(), so that the

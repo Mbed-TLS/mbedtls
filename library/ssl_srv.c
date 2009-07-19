@@ -583,7 +583,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     ssl->out_msg[5 + n] = (unsigned char)( ssl->rsa_key->len      );
 
     ret = rsa_pkcs1_sign( ssl->rsa_key, RSA_PRIVATE,
-                          RSA_RAW, 36, hash, ssl->out_msg + 6 + n );
+                          SIG_RSA_RAW, 36, hash, ssl->out_msg + 6 + n );
     if( ret != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_sign", ret );
@@ -806,7 +806,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     }
 
     ret = rsa_pkcs1_verify( &ssl->peer_cert->rsa, RSA_PUBLIC,
-                            RSA_RAW, 36, hash, ssl->in_msg + 6 );
+                            SIG_RSA_RAW, 36, hash, ssl->in_msg + 6 );
     if( ret != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );

@@ -411,7 +411,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     SSL_DEBUG_BUF( 3, "parameters hash", hash, 36 );
 
     if( ( ret = rsa_pkcs1_verify( &ssl->peer_cert->rsa, RSA_PUBLIC,
-                                  RSA_RAW, 36, hash, p ) ) != 0 )
+                                  SIG_RSA_RAW, 36, hash, p ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );
         return( ret );
@@ -631,7 +631,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     ssl->out_msg[4] = (unsigned char)( n >> 8 );
     ssl->out_msg[5] = (unsigned char)( n      );
 
-    if( ( ret = rsa_pkcs1_sign( ssl->rsa_key, RSA_PRIVATE, RSA_RAW,
+    if( ( ret = rsa_pkcs1_sign( ssl->rsa_key, RSA_PRIVATE, SIG_RSA_RAW,
                                 36, hash, ssl->out_msg + 6 ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_sign", ret );

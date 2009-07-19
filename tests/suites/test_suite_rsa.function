@@ -158,7 +158,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     msg_len = unhexify( message_str, {message_hex_string} );
     hash_len = unhexify( hash_result, {hash_result_string} );
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, RSA_PRIVATE, RSA_RAW, hash_len, hash_result, output ) == 0 );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, RSA_PRIVATE, SIG_RSA_RAW, hash_len, hash_result, output ) == 0 );
 
     hexify( output_str, output, ctx.len );
 
@@ -190,7 +190,7 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     hash_len = unhexify( hash_result, {hash_result_string} );
     unhexify( result_str, {result_hex_str} );
 
-    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, RSA_RAW, hash_len, hash_result, result_str ) == {correct} );
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, SIG_RSA_RAW, hash_len, hash_result, result_str ) == {correct} );
 }
 END_CASE
 

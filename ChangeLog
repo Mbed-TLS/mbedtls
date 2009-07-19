@@ -15,6 +15,8 @@ Changes
    * Fixed typo in name of POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE.
 
 Bug fixes
+   * Fixed include location of endian.h on FreeBSD (found by
+     Gabriel)
    * Fixed HMAC-MD2 by modifying md2_starts(), so that the
      required HMAC ipad and opad variables are not cleared.
      (found by code coverage tests)

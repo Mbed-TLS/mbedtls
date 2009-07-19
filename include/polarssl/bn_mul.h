@@ -43,15 +43,17 @@
 #if defined(__GNUC__)
 #if defined(__i386__)
 
-#define MULADDC_INIT                            \
-    asm( "movl   %%ebx, %0      " : "=m" (t));  \
-    asm( "movl   %0, %%esi      " :: "m" (s));  \
-    asm( "movl   %0, %%edi      " :: "m" (d));  \
-    asm( "movl   %0, %%ecx      " :: "m" (c));  \
-    asm( "movl   %0, %%ebx      " :: "m" (b));
+#define MULADDC_INIT                \
+    asm( "                          \
+        movl   %%ebx, %0;           \
+        movl   %5, %%esi;           \
+        movl   %6, %%edi;           \
+        movl   %7, %%ecx;           \
+        movl   %8, %%ebx;           \
+        "
 
 #define MULADDC_CORE                \
-    asm( "                          \
+        "                           \
         lodsl;                      \
         mull   %%ebx;               \
         addl   %%ecx,   %%eax;      \
@@ -59,90 +61,102 @@
         addl   (%%edi), %%eax;      \
         adcl   $0,      %%edx;      \
         movl   %%edx,   %%ecx;      \
-        stosl;               " :::  \
-        "%eax", "%ebx", "%ecx", "%edx", "%edi", "esi");
+        stosl;                      \
+        "
 
 #if defined(POLARSSL_HAVE_SSE2)
 
-#define MULADDC_HUIT                            \
-    asm( "movd     %ecx,     %mm1     " );      \
-    asm( "movd     %ebx,     %mm0     " );      \
-    asm( "movd     (%edi),   %mm3     " );      \
-    asm( "paddq    %mm3,     %mm1     " );      \
-    asm( "movd     (%esi),   %mm2     " );      \
-    asm( "pmuludq  %mm0,     %mm2     " );      \
-    asm( "movd     4(%esi),  %mm4     " );      \
-    asm( "pmuludq  %mm0,     %mm4     " );      \
-    asm( "movd     8(%esi),  %mm6     " );      \
-    asm( "pmuludq  %mm0,     %mm6     " );      \
-    asm( "movd     12(%esi), %mm7     " );      \
-    asm( "pmuludq  %mm0,     %mm7     " );      \
-    asm( "paddq    %mm2,     %mm1     " );      \
-    asm( "movd     4(%edi),  %mm3     " );      \
-    asm( "paddq    %mm4,     %mm3     " );      \
-    asm( "movd     8(%edi),  %mm5     " );      \
-    asm( "paddq    %mm6,     %mm5     " );      \
-    asm( "movd     12(%edi), %mm4     " );      \
-    asm( "paddq    %mm4,     %mm7     " );      \
-    asm( "movd     %mm1,     (%edi)   " );      \
-    asm( "movd     16(%esi), %mm2     " );      \
-    asm( "pmuludq  %mm0,     %mm2     " );      \
-    asm( "psrlq    $32,      %mm1     " );      \
-    asm( "movd     20(%esi), %mm4     " );      \
-    asm( "pmuludq  %mm0,     %mm4     " );      \
-    asm( "paddq    %mm3,     %mm1     " );      \
-    asm( "movd     24(%esi), %mm6     " );      \
-    asm( "pmuludq  %mm0,     %mm6     " );      \
-    asm( "movd     %mm1,     4(%edi)  " );      \
-    asm( "psrlq    $32,      %mm1     " );      \
-    asm( "movd     28(%esi), %mm3     " );      \
-    asm( "pmuludq  %mm0,     %mm3     " );      \
-    asm( "paddq    %mm5,     %mm1     " );      \
-    asm( "movd     16(%edi), %mm5     " );      \
-    asm( "paddq    %mm5,     %mm2     " );      \
-    asm( "movd     %mm1,     8(%edi)  " );      \
-    asm( "psrlq    $32,      %mm1     " );      \
-    asm( "paddq    %mm7,     %mm1     " );      \
-    asm( "movd     20(%edi), %mm5     " );      \
-    asm( "paddq    %mm5,     %mm4     " );      \
-    asm( "movd     %mm1,     12(%edi) " );      \
-    asm( "psrlq    $32,      %mm1     " );      \
-    asm( "paddq    %mm2,     %mm1     " );      \
-    asm( "movd     24(%edi), %mm5     " );      \
-    asm( "paddq    %mm5,     %mm6     " );      \
-    asm( "movd     %mm1,     16(%edi) " );      \
-    asm( "psrlq    $32,      %mm1     " );      \
-    asm( "paddq    %mm4,     %mm1     " );      \
-    asm( "movd     28(%edi), %mm5     " );      \
-    asm( "paddq    %mm5,     %mm3     " );      \
-    asm( "movd     %mm1,     20(%edi) " );      \
-    asm( "psrlq    $32,      %mm1     " );      \
-    asm( "paddq    %mm6,     %mm1     " );      \
-    asm( "movd     %mm1,     24(%edi) " );      \
-    asm( "psrlq    $32,      %mm1     " );      \
-    asm( "paddq    %mm3,     %mm1     " );      \
-    asm( "movd     %mm1,     28(%edi) " );      \
-    asm( "addl     $32,      %edi     " );      \
-    asm( "addl     $32,      %esi     " );      \
-    asm( "psrlq    $32,      %mm1     " );      \
-    asm( "movd     %mm1,     %ecx     " );
+#define MULADDC_HUIT                    \
+        "                               \
+        movd     %%ecx,     %%mm1;      \
+        movd     %%ebx,     %%mm0;      \
+        movd     (%%edi),   %%mm3;      \
+        paddq    %%mm3,     %%mm1;      \
+        movd     (%%esi),   %%mm2;      \
+        pmuludq  %%mm0,     %%mm2;      \
+        movd     4(%%esi),  %%mm4;      \
+        pmuludq  %%mm0,     %%mm4;      \
+        movd     8(%%esi),  %%mm6;      \
+        pmuludq  %%mm0,     %%mm6;      \
+        movd     12(%%esi), %%mm7;      \
+        pmuludq  %%mm0,     %%mm7;      \
+        paddq    %%mm2,     %%mm1;      \
+        movd     4(%%edi),  %%mm3;      \
+        paddq    %%mm4,     %%mm3;      \
+        movd     8(%%edi),  %%mm5;      \
+        paddq    %%mm6,     %%mm5;      \
+        movd     12(%%edi), %%mm4;      \
+        paddq    %%mm4,     %%mm7;      \
+        movd     %%mm1,     (%%edi);    \
+        movd     16(%%esi), %%mm2;      \
+        pmuludq  %%mm0,     %%mm2;      \
+        psrlq    $32,       %%mm1;      \
+        movd     20(%%esi), %%mm4;      \
+        pmuludq  %%mm0,     %%mm4;      \
+        paddq    %%mm3,     %%mm1;      \
+        movd     24(%%esi), %%mm6;      \
+        pmuludq  %%mm0,     %%mm6;      \
+        movd     %%mm1,     4(%%edi);   \
+        psrlq    $32,       %%mm1;      \
+        movd     28(%%esi), %%mm3;      \
+        pmuludq  %%mm0,     %%mm3;      \
+        paddq    %%mm5,     %%mm1;      \
+        movd     16(%%edi), %%mm5;      \
+        paddq    %%mm5,     %%mm2;      \
+        movd     %%mm1,     8(%%edi);   \
+        psrlq    $32,       %%mm1;      \
+        paddq    %%mm7,     %%mm1;      \
+        movd     20(%%edi), %%mm5;      \
+        paddq    %%mm5,     %%mm4;      \
+        movd     %%mm1,     12(%%edi);  \
+        psrlq    $32,       %%mm1;      \
+        paddq    %%mm2,     %%mm1;      \
+        movd     24(%%edi), %%mm5;      \
+        paddq    %%mm5,     %%mm6;      \
+        movd     %%mm1,     16(%%edi);  \
+        psrlq    $32,       %%mm1;      \
+        paddq    %%mm4,     %%mm1;      \
+        movd     28(%%edi), %%mm5;      \
+        paddq    %%mm5,     %%mm3;      \
+        movd     %%mm1,     20(%%edi);  \
+        psrlq    $32,       %%mm1;      \
+        paddq    %%mm6,     %%mm1;      \
+        movd     %%mm1,     24(%%edi);  \
+        psrlq    $32,       %%mm1;      \
+        paddq    %%mm3,     %%mm1;      \
+        movd     %%mm1,     28(%%edi);  \
+        addl     $32,       %%edi;      \
+        addl     $32,       %%esi;      \
+        psrlq    $32,       %%mm1;      \
+        movd     %%mm1,     %%ecx;      \
+        "
 
-#define MULADDC_STOP                            \
-    asm( "emms                        " );      \
-    asm( "movl   %0, %%ebx      " :: "m" (t));  \
-    asm( "movl   %%ecx, %0      " : "=m" (c));  \
-    asm( "movl   %%edi, %0      " : "=m" (d));  \
-    asm( "movl   %%esi, %0      " : "=m" (s) :: \
-    "eax", "ecx", "edx", "esi", "edi" );
+#define MULADDC_STOP            \
+        "                       \
+        emms;                   \
+        movl   %4, %%ebx;       \
+        movl   %%ecx, %1;       \
+        movl   %%edi, %2;       \
+        movl   %%esi, %3;       \
+        "                       \
+        : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
+        : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
+        : "eax", "ecx", "edx", "esi", "edi"             \
+    );
 
 #else
 
-#define MULADDC_STOP                            \
-    asm( "movl   %0, %%ebx      " :: "m" (t));  \
-    asm( "movl   %%ecx, %0      " : "=m" (c));  \
-    asm( "movl   %%edi, %0      " : "=m" (d));  \
-    asm( "movl   %%esi, %0      " : "=m" (s));
-
+#define MULADDC_STOP            \
+        "                       \
+        movl   %4, %%ebx;       \
+        movl   %%ecx, %1;       \
+        movl   %%edi, %2;       \
+        movl   %%esi, %3;       \
+        "                       \
+        : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
+        : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
+        : "eax", "ecx", "edx", "esi", "edi"             \
+    );
 #endif /* SSE2 */
 #endif /* i386 */
 

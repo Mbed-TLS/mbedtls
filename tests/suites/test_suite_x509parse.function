@@ -105,7 +105,7 @@ x509_time_expired:crt_file:entity:result
 END_CASE
 
 BEGIN_CASE
-x509parse_key:key_file:password:result
+x509parse_keyfile:key_file:password:result
 {
     rsa_context rsa;
     int res;
@@ -137,8 +137,6 @@ x509parse_crt:crt_data:result_str:result
 
     data_len = unhexify( buf, {crt_data} );
 
-    res = x509parse_crt( &crt, buf, data_len );
-
     TEST_ASSERT( x509parse_crt( &crt, buf, data_len ) == ( {result} ) );
     if( ( {result} ) == 0 )
     {
@@ -148,6 +146,57 @@ x509parse_crt:crt_data:result_str:result
         TEST_ASSERT( res != -2 );
 
         TEST_ASSERT( strcmp( (char *) output, {result_str} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+x509parse_crl:crl_data:result_str:result
+{
+    x509_crl   crl;
+    unsigned char buf[2000];
+    unsigned char output[2000];
+    int data_len, res;
+
+    memset( &crl, 0, sizeof( x509_crl ) );
+    memset( buf, 0, 2000 );
+    memset( output, 0, 2000 );
+
+    data_len = unhexify( buf, {crl_data} );
+
+    TEST_ASSERT( x509parse_crl( &crl, buf, data_len ) == ( {result} ) );
+    if( ( {result} ) == 0 )
+    {
+        res = x509parse_crl_info( (char *) output, 2000, "", &crl );
+        
+        TEST_ASSERT( res != -1 );
+        TEST_ASSERT( res != -2 );
+
+        TEST_ASSERT( strcmp( (char *) output, {result_str} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+x509parse_key:key_data:result_str:result
+{
+    rsa_context   rsa;
+    unsigned char buf[2000];
+    unsigned char output[2000];
+    int data_len, res;
+
+    memset( &rsa, 0, sizeof( rsa_context ) );
+    memset( buf, 0, 2000 );
+    memset( output, 0, 2000 );
+
+    data_len = unhexify( buf, {key_data} );
+
+    res = x509parse_key( &rsa, buf, data_len, NULL, 0 );
+
+    TEST_ASSERT( x509parse_key( &rsa, buf, data_len, NULL, 0 ) == ( {result} ) );
+    if( ( {result} ) == 0 )
+    {
+        TEST_ASSERT( 1 );
     }
 }
 END_CASE

@@ -458,6 +458,8 @@ void camellia_crypt_ecb( camellia_context *ctx,
     int NR;
     uint32_t *RK, X[4];
 
+    ( (void) mode );
+
     NR = ctx->nr;
     RK = ctx->rk;
 

@@ -1323,7 +1323,9 @@ int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen )
 
     if( ( ret = x509_get_UTCTime( &p, end, &crl->next_update ) ) != 0 )
     {
-        if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) {
+        if ( ret != ( POLARSSL_ERR_X509_CERT_INVALID_DATE |
+                        POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) )
+        {
             x509_crl_free( crl );
             return( ret );
         }

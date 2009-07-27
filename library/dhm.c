@@ -106,7 +106,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
     MPI_CHK( mpi_grow( &ctx->X, n ) );
     MPI_CHK( mpi_lset( &ctx->X, 0 ) );
 
-    n = x_size >> 3;
+    n = x_size - 1;
     p = (unsigned char *) ctx->X.p;
     for( i = 0; i < n; i++ )
         *p++ = (unsigned char) f_rng( p_rng );
@@ -183,7 +183,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
     MPI_CHK( mpi_grow( &ctx->X, n ) );
     MPI_CHK( mpi_lset( &ctx->X, 0 ) );
 
-    n = x_size >> 3;
+    n = x_size - 1;
     p = (unsigned char *) ctx->X.p;
     for( i = 0; i < n; i++ )
         *p++ = (unsigned char) f_rng( p_rng );

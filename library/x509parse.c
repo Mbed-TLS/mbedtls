@@ -614,7 +614,7 @@ static int x509_get_crt_ext( unsigned char **p,
     int ret, len;
     int is_critical = 1;
     int is_cacert   = 0;
-    unsigned char *end2;
+    unsigned char *end_ext_data, *end_ext_octet;
 
     if( ( ret = x509_get_ext( p, end, ext ) ) != 0 )
     {
@@ -630,6 +630,8 @@ static int x509_get_crt_ext( unsigned char **p,
                 ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
+        end_ext_data = *p + len;
+
         if( memcmp( *p, "\x06\x03\x55\x1D\x13", 5 ) != 0 )
         {
             *p += len;
@@ -638,11 +640,11 @@ static int x509_get_crt_ext( unsigned char **p,
 
         *p += 5;
 
-        if( ( ret = asn1_get_bool( p, end, &is_critical ) ) != 0 &&
+        if( ( ret = asn1_get_bool( p, end_ext_data, &is_critical ) ) != 0 &&
             ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
-        if( ( ret = asn1_get_tag( p, end, &len,
+        if( ( ret = asn1_get_tag( p, end_ext_data, &len,
                 ASN1_OCTET_STRING ) ) != 0 )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
@@ -651,19 +653,23 @@ static int x509_get_crt_ext( unsigned char **p,
          *      cA                      BOOLEAN DEFAULT FALSE,
          *      pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
          */
-        end2 = *p + len;
+        end_ext_octet = *p + len;
+        
+        if( end_ext_octet != end_ext_data )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-        if( ( ret = asn1_get_tag( p, end2, &len,
+        if( ( ret = asn1_get_tag( p, end_ext_octet, &len,
                 ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
-        if( *p == end2 )
+        if( *p == end_ext_octet )
             continue;
 
-        if( ( ret = asn1_get_bool( p, end2, &is_cacert ) ) != 0 )
+        if( ( ret = asn1_get_bool( p, end_ext_octet, &is_cacert ) ) != 0 )
         {
             if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-                ret = asn1_get_int( p, end2, &is_cacert );
+                ret = asn1_get_int( p, end_ext_octet, &is_cacert );
 
             if( ret != 0 )
                 return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
@@ -672,13 +678,13 @@ static int x509_get_crt_ext( unsigned char **p,
                 is_cacert  = 1;
         }
 
-        if( *p == end2 )
+        if( *p == end_ext_octet )
             continue;
 
-        if( ( ret = asn1_get_int( p, end2, max_pathlen ) ) != 0 )
+        if( ( ret = asn1_get_int( p, end_ext_octet, max_pathlen ) ) != 0 )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
-        if( *p != end2 )
+        if( *p != end_ext_octet )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
                     POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 

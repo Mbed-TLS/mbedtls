@@ -25,6 +25,8 @@
 #define AES_ENCRYPT     1
 #define AES_DECRYPT     0
 
+#define POLARSSL_ERR_AES_INVALID_KEY_LENGTH                 0x0800
+
 /**
  * \brief          AES context structure
  */
@@ -46,8 +48,10 @@ extern "C" {
  * \param ctx      AES context to be initialized
  * \param key      encryption key
  * \param keysize  must be 128, 192 or 256
+ *
+ * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
  */
-void aes_setkey_enc( aes_context *ctx, unsigned char *key, int keysize );
+int aes_setkey_enc( aes_context *ctx, unsigned char *key, int keysize );
 
 /**
  * \brief          AES key schedule (decryption)
@@ -55,8 +59,10 @@ void aes_setkey_enc( aes_context *ctx, unsigned char *key, int keysize );
  * \param ctx      AES context to be initialized
  * \param key      decryption key
  * \param keysize  must be 128, 192 or 256
+ *
+ * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
  */
-void aes_setkey_dec( aes_context *ctx, unsigned char *key, int keysize );
+int aes_setkey_dec( aes_context *ctx, unsigned char *key, int keysize );
 
 /**
  * \brief          AES-ECB block encryption/decryption

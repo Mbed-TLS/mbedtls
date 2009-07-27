@@ -3,7 +3,7 @@ BEGIN_HEADER
 END_HEADER
 
 BEGIN_CASE
-aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -20,16 +20,19 @@ aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     key_len = unhexify( key_str, {hex_key_string} );
     unhexify( src_str, {hex_src_string} );
 
-    aes_setkey_enc( &ctx, key_str, key_len * 8 );
-    aes_crypt_ecb( &ctx, AES_ENCRYPT, src_str, output );
-    hexify( dst_str, output, 16 );
+    TEST_ASSERT( aes_setkey_enc( &ctx, key_str, key_len * 8 ) == {setkey_result} );
+    if( {setkey_result} == 0 )
+    {
+        aes_crypt_ecb( &ctx, AES_ENCRYPT, src_str, output );
+        hexify( dst_str, output, 16 );
 
-    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
 }
 END_CASE
 
 BEGIN_CASE
-aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -46,11 +49,14 @@ aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     key_len = unhexify( key_str, {hex_key_string} );
     unhexify( src_str, {hex_src_string} );
 
-    aes_setkey_dec( &ctx, key_str, key_len * 8 );
-    aes_crypt_ecb( &ctx, AES_DECRYPT, src_str, output );
-    hexify( dst_str, output, 16 );
+    TEST_ASSERT( aes_setkey_dec( &ctx, key_str, key_len * 8 ) == {setkey_result} );
+    if( {setkey_result} == 0 )
+    {
+        aes_crypt_ecb( &ctx, AES_DECRYPT, src_str, output );
+        hexify( dst_str, output, 16 );
 
-    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
 }
 END_CASE
 

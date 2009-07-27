@@ -13,6 +13,8 @@ Changes
      this is mind when checking for errors.
    * RSA_RAW renamed to SIG_RSA_RAW for consistency.
    * Fixed typo in name of POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE.
+   * Changed interface for AES and Camellia setkey functions
+     to indicate invalid key lengths.
 
 Bug fixes
    * Fixed include location of endian.h on FreeBSD (found by

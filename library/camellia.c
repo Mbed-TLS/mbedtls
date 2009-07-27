@@ -304,7 +304,7 @@ static void camellia_feistel(uint32_t x[2], uint32_t k[2], uint32_t z[2])
 /*
  * Camellia key schedule (encryption)
  */
-void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize )
+int camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize )
 {
     int i, idx;
     uint32_t *RK;
@@ -323,7 +323,7 @@ void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize
         case 128: ctx->nr = 3; idx = 0; break;
         case 192:
         case 256: ctx->nr = 4; idx = 1; break;
-        default : return;
+        default : return( POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH );
     }
 
     for( i = 0; i < keysize / 8; ++i)
@@ -400,29 +400,34 @@ void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize
             RK[32 + 12 * idx + i] = RK[transposes[idx][i]];
         }
     }
+
+    return( 0 );
 }
 
 /*
  * Camellia key schedule (decryption)
  */
-void camellia_setkey_dec( camellia_context *ctx, unsigned char *key, int keysize )
+int camellia_setkey_dec( camellia_context *ctx, unsigned char *key, int keysize )
 {
     int i, idx;
     camellia_context cty;
     uint32_t *RK;
     uint32_t *SK;
+    int ret;
 
     switch( keysize )
     {
         case 128: ctx->nr = 3; idx = 0; break;
         case 192:
         case 256: ctx->nr = 4; idx = 1; break;
-        default : return;
+        default : return( POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH );
     }
 
     RK = ctx->rk;
 
-    camellia_setkey_enc(&cty, key, keysize);
+    ret = camellia_setkey_enc(&cty, key, keysize);
+    if( ret != 0 )
+        return( ret );
 
     SK = cty.rk + 24 * 2 + 8 * idx * 2;
 
@@ -445,6 +450,8 @@ void camellia_setkey_dec( camellia_context *ctx, unsigned char *key, int keysize
     *RK++ = *SK++;
 
     memset( &cty, 0, sizeof( camellia_context ) );
+
+    return( 0 );
 }
 
 /*

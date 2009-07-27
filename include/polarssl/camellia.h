@@ -30,6 +30,8 @@ typedef UINT32 uint32_t;
 #define CAMELLIA_ENCRYPT     1
 #define CAMELLIA_DECRYPT     0
 
+#define POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH            0x0a00
+
 /**
  * \brief          CAMELLIA context structure
  */
@@ -50,8 +52,10 @@ extern "C" {
  * \param ctx      CAMELLIA context to be initialized
  * \param key      encryption key
  * \param keysize  must be 128, 192 or 256
+ * 
+ * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH
  */
-void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize );
+int camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize );
 
 /**
  * \brief          CAMELLIA key schedule (decryption)
@@ -59,8 +63,10 @@ void camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize
  * \param ctx      CAMELLIA context to be initialized
  * \param key      decryption key
  * \param keysize  must be 128, 192 or 256
+ * 
+ * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH
  */
-void camellia_setkey_dec( camellia_context *ctx, unsigned char *key, int keysize );
+int camellia_setkey_dec( camellia_context *ctx, unsigned char *key, int keysize );
 
 /**
  * \brief          CAMELLIA-ECB block encryption/decryption

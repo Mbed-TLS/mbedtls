@@ -701,15 +701,13 @@ static int x509_get_entries( unsigned char **p,
                              unsigned char *end,
                              x509_crl_entry *entry )
 {
-    int ret;
+    int ret, entry_len;
     x509_crl_entry *cur_entry = entry;
 
     if( *p == end )
         return( 0 );
 
-    entry->raw.tag = **p;
-
-    if( ( ret = asn1_get_tag( p, end, &entry->raw.len,
+    if( ( ret = asn1_get_tag( p, end, &entry_len,
             ASN1_SEQUENCE | ASN1_CONSTRUCTED ) ) != 0 )
     {
         if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
@@ -718,8 +716,7 @@ static int x509_get_entries( unsigned char **p,
         return( ret );
     }
 
-    entry->raw.p = *p;
-    end = *p + entry->raw.len;
+    end = *p + entry_len;
 
     while( *p < end )
     {
@@ -728,11 +725,12 @@ static int x509_get_entries( unsigned char **p,
         if( ( ret = asn1_get_tag( p, end, &len2,
                 ASN1_SEQUENCE | ASN1_CONSTRUCTED ) ) != 0 )
         {
-            if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-                return( 0 );
-
             return( ret );
         }
+
+        cur_entry->raw.tag = **p;
+        cur_entry->raw.p = *p;
+        cur_entry->raw.len = len2;
 
         if( ( ret = x509_get_serial( p, end, &cur_entry->serial ) ) != 0 )
             return( ret );
@@ -1324,7 +1322,9 @@ int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen )
     if( ( ret = x509_get_UTCTime( &p, end, &crl->next_update ) ) != 0 )
     {
         if ( ret != ( POLARSSL_ERR_X509_CERT_INVALID_DATE |
-                        POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) )
+                        POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) &&
+             ret != ( POLARSSL_ERR_X509_CERT_INVALID_DATE |
+                        POLARSSL_ERR_ASN1_OUT_OF_DATA ) )
         {
             x509_crl_free( crl );
             return( ret );
@@ -2024,7 +2024,7 @@ int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl )
                                prefix );
     SAFE_SNPRINTF();
 
-    while( entry != NULL )
+    while( entry != NULL && entry->raw.len != 0 )
     {
         ret = snprintf( p, n, "\n%sserial number: ",
                                prefix );

@@ -55,8 +55,11 @@ static int wsa_init_done = 0;
 #include <fcntl.h>
 #include <netdb.h>
 #include <errno.h>
+
 #if defined(__FreeBSD__)
 #include <sys/endian.h>
+#elif defined(__APPLE__)
+#include <machine/endian.h>
 #else
 #include <endian.h>
 #endif
@@ -74,13 +77,13 @@ static int wsa_init_done = 0;
  * to help determine endianess.
  */
 #if defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN
-#define HTONS(n) (n)
+#define POLARSSL_HTONS(n) (n)
 #else
-#define HTONS(n) (((((unsigned short)(n) & 0xFF)) << 8) | (((unsigned short)(n) & 0xFF00) >> 8))
+#define POLARSSL_HTONS(n) (((((unsigned short)(n) & 0xFF)) << 8) | (((unsigned short)(n) & 0xFF00) >> 8))
 #endif
 
 unsigned short net_htons(unsigned short n);
-#define net_htons(n) HTONS(n)
+#define net_htons(n) POLARSSL_HTONS(n)
 
 /*
  * Initiate a TCP connection with host:port

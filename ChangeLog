@@ -19,6 +19,8 @@ Changes
 Bug fixes
    * Fixed include location of endian.h on FreeBSD (found by
      Gabriel)
+   * Fixed include location of endian.h and name clash on
+     Apples (found by Martin van Hensbergen)
    * Fixed HMAC-MD2 by modifying md2_starts(), so that the
      required HMAC ipad and opad variables are not cleared.
      (found by code coverage tests)

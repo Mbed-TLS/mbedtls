@@ -26,7 +26,7 @@
 #define AES_ENCRYPT     1
 #define AES_DECRYPT     0
 
-#define POLARSSL_ERR_AES_INVALID_KEY_LENGTH                 0x0800
+#define POLARSSL_ERR_AES_INVALID_KEY_LENGTH                 -0x0800
 
 /**
  * \brief          AES context structure

@@ -31,7 +31,7 @@ typedef UINT32 uint32_t;
 #define CAMELLIA_ENCRYPT     1
 #define CAMELLIA_DECRYPT     0
 
-#define POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH            0x0a00
+#define POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH            -0x0a00
 
 /**
  * \brief          CAMELLIA context structure

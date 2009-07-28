@@ -9,7 +9,7 @@ Features
      and X509parse.
 
 Changes
-   * Error codes are not (necessarily) negative anymore. Keep
+   * Error codes are not (necessarily) negative. Keep
      this is mind when checking for errors.
    * RSA_RAW renamed to SIG_RSA_RAW for consistency.
    * Fixed typo in name of POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE.

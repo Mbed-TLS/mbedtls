@@ -80,5 +80,10 @@ clean:
 	rm -f $(APPS) *.c
 
 check: $(APPS)
-	echo "Running checks"
-	for i in $(APPS); do echo " - $${i}"; ./$${i} | grep PASSED; done
+	echo "Running checks (Success if all tests PASSED)"
+	for i in $(APPS);														\
+	do																		\
+		echo " - $${i}";													\
+		./$${i} | grep -v 'PASS$$' | grep -v -- '-----' | grep -v '^$$';	\
+		echo "";															\
+	done

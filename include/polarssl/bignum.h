@@ -90,6 +90,9 @@ void mpi_free( mpi *X, ... );
 /**
  * \brief          Enlarge to the specified number of limbs
  *
+ * \param X        MPI to grow
+ * \param nblimbs  The target number of limbs
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -98,6 +101,9 @@ int mpi_grow( mpi *X, int nblimbs );
 /**
  * \brief          Copy the contents of Y into X
  *
+ * \param X        Destination MPI
+ * \param Y        Source MPI
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -105,11 +111,17 @@ int mpi_copy( mpi *X, mpi *Y );
 
 /**
  * \brief          Swap the contents of X and Y
+ *
+ * \param X        First MPI value
+ * \param Y        Second MPI value
  */
 void mpi_swap( mpi *X, mpi *Y );
 
 /**
  * \brief          Set value from integer
+ *
+ * \param X        MPI to set
+ * \param z        Value to use
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed
@@ -118,25 +130,31 @@ int mpi_lset( mpi *X, int z );
 
 /**
  * \brief          Return the number of least significant bits
+ *
+ * \param X        MPI to use
  */
 int mpi_lsb( mpi *X );
 
 /**
  * \brief          Return the number of most significant bits
+ *
+ * \param X        MPI to use
  */
 int mpi_msb( mpi *X );
 
 /**
  * \brief          Return the total size in bytes
+ *
+ * \param X        MPI to use
  */
 int mpi_size( mpi *X );
 
 /**
  * \brief          Import from an ASCII string
  *
- * \param X        destination mpi
- * \param radix    input numeric base
- * \param s        null-terminated string buffer
+ * \param X        Destination MPI
+ * \param radix    Input numeric base
+ * \param s        Null-terminated string buffer
  *
  * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
  */
@@ -145,10 +163,10 @@ int mpi_read_string( mpi *X, int radix, char *s );
 /**
  * \brief          Export into an ASCII string
  *
- * \param X        source mpi
- * \param radix    output numeric base
- * \param s        string buffer
- * \param slen     string buffer size
+ * \param X        Source MPI
+ * \param radix    Output numeric base
+ * \param s        String buffer
+ * \param slen     String buffer size
  *
  * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
  *
@@ -160,21 +178,21 @@ int mpi_write_string( mpi *X, int radix, char *s, int *slen );
 /**
  * \brief          Read X from an opened file
  *
- * \param X        destination mpi
- * \param radix    input numeric base
- * \param fin      input file handle
+ * \param X        Destination MPI
+ * \param radix    Input numeric base
+ * \param fin      Input file handle
  *
  * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
  */
 int mpi_read_file( mpi *X, int radix, FILE *fin );
 
 /**
- * \brief          Write X into an opened file, or stdout
+ * \brief          Write X into an opened file, or stdout if fout is NULL
  *
- * \param p        prefix, can be NULL
- * \param X        source mpi
- * \param radix    output numeric base
- * \param fout     output file handle
+ * \param p        Prefix, can be NULL
+ * \param X        Source MPI
+ * \param radix    Output numeric base
+ * \param fout     Output file handle (can be NULL)
  *
  * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
  *
@@ -185,9 +203,9 @@ int mpi_write_file( char *p, mpi *X, int radix, FILE *fout );
 /**
  * \brief          Import X from unsigned binary data, big endian
  *
- * \param X        destination mpi
- * \param buf      input buffer
- * \param buflen   input buffer size
+ * \param X        Destination MPI
+ * \param buf      Input buffer
+ * \param buflen   Input buffer size
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed
@@ -197,20 +215,20 @@ int mpi_read_binary( mpi *X, unsigned char *buf, int buflen );
 /**
  * \brief          Export X into unsigned binary data, big endian
  *
- * \param X        source mpi
- * \param buf      output buffer
- * \param buflen   output buffer size
+ * \param X        Source MPI
+ * \param buf      Output buffer
+ * \param buflen   Output buffer size
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_BUFFER_TOO_SMALL if buf isn't large enough
- *
- * \note           Call this function with *buflen = 0 to obtain the
- *                 minimum required buffer size in *buflen.
  */
 int mpi_write_binary( mpi *X, unsigned char *buf, int buflen );
 
 /**
  * \brief          Left-shift: X <<= count
+ *
+ * \param X        MPI to shift
+ * \param count    Amount to shift
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed
@@ -220,6 +238,9 @@ int mpi_shift_l( mpi *X, int count );
 /**
  * \brief          Right-shift: X >>= count
  *
+ * \param X        MPI to shift
+ * \param count    Amount to shift
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -227,6 +248,9 @@ int mpi_shift_r( mpi *X, int count );
 
 /**
  * \brief          Compare unsigned values
+ *
+ * \param X        Left-hand MPI
+ * \param Y        Right-hand MPI
  *
  * \return         1 if |X| is greater than |Y|,
  *                -1 if |X| is lesser  than |Y| or
@@ -237,6 +261,9 @@ int mpi_cmp_abs( mpi *X, mpi *Y );
 /**
  * \brief          Compare signed values
  *
+ * \param X        Left-hand MPI
+ * \param Y        Right-hand MPI
+ *
  * \return         1 if X is greater than Y,
  *                -1 if X is lesser  than Y or
  *                 0 if X is equal to Y
@@ -245,6 +272,9 @@ int mpi_cmp_mpi( mpi *X, mpi *Y );
 
 /**
  * \brief          Compare signed values
+ *
+ * \param X        Left-hand MPI
+ * \param z        The integer value to compare to
  *
  * \return         1 if X is greater than z,
  *                -1 if X is lesser  than z or
@@ -255,6 +285,10 @@ int mpi_cmp_int( mpi *X, int z );
 /**
  * \brief          Unsigned addition: X = |A| + |B|
  *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param B        Right-hand MPI
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -262,6 +296,10 @@ int mpi_add_abs( mpi *X, mpi *A, mpi *B );
 
 /**
  * \brief          Unsigned substraction: X = |A| - |B|
+ *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param B        Right-hand MPI
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_NEGATIVE_VALUE if B is greater than A
@@ -271,6 +309,10 @@ int mpi_sub_abs( mpi *X, mpi *A, mpi *B );
 /**
  * \brief          Signed addition: X = A + B
  *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param B        Right-hand MPI
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -278,6 +320,10 @@ int mpi_add_mpi( mpi *X, mpi *A, mpi *B );
 
 /**
  * \brief          Signed substraction: X = A - B
+ *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param B        Right-hand MPI
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed
@@ -287,6 +333,10 @@ int mpi_sub_mpi( mpi *X, mpi *A, mpi *B );
 /**
  * \brief          Signed addition: X = A + b
  *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param b        The integer value to add
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -295,6 +345,10 @@ int mpi_add_int( mpi *X, mpi *A, int b );
 /**
  * \brief          Signed substraction: X = A - b
  *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param b        The integer value to subtract
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -302,6 +356,10 @@ int mpi_sub_int( mpi *X, mpi *A, int b );
 
 /**
  * \brief          Baseline multiplication: X = A * B
+ *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param B        Right-hand MPI
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed
@@ -313,6 +371,10 @@ int mpi_mul_mpi( mpi *X, mpi *A, mpi *B );
  *                 Note: b is an unsigned integer type, thus
  *                 Negative values of b are ignored.
  *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param b        The integer value to multiply with
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -320,6 +382,11 @@ int mpi_mul_int( mpi *X, mpi *A, t_int b );
 
 /**
  * \brief          Division by mpi: A = Q * B + R
+ *
+ * \param Q        Destination MPI for the quotient
+ * \param R        Destination MPI for the rest value
+ * \param A        Left-hand MPI
+ * \param B        Right-hand MPI
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
@@ -332,6 +399,11 @@ int mpi_div_mpi( mpi *Q, mpi *R, mpi *A, mpi *B );
 /**
  * \brief          Division by int: A = Q * b + R
  *
+ * \param Q        Destination MPI for the quotient
+ * \param R        Destination MPI for the rest value
+ * \param A        Left-hand MPI
+ * \param b        Integer to divide by
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
  *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0
@@ -343,6 +415,10 @@ int mpi_div_int( mpi *Q, mpi *R, mpi *A, int b );
 /**
  * \brief          Modulo: R = A mod B
  *
+ * \param R        Destination MPI for the rest value
+ * \param A        Left-hand MPI
+ * \param B        Right-hand MPI
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
  *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0,
@@ -353,6 +429,10 @@ int mpi_mod_mpi( mpi *R, mpi *A, mpi *B );
 /**
  * \brief          Modulo: r = A mod b
  *
+ * \param a        Destination t_int
+ * \param A        Left-hand MPI
+ * \param b        Integer to divide by
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
  *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0,
@@ -362,6 +442,12 @@ int mpi_mod_int( t_int *r, mpi *A, int b );
 
 /**
  * \brief          Sliding-window exponentiation: X = A^E mod N
+ *
+ * \param X        Destination MPI 
+ * \param A        Left-hand MPI
+ * \param E        Exponent MPI
+ * \param N        Modular MPI
+ * \param _RR      Speed-up MPI used for recalculations
  *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
@@ -376,6 +462,10 @@ int mpi_exp_mod( mpi *X, mpi *A, mpi *E, mpi *N, mpi *_RR );
 /**
  * \brief          Greatest common divisor: G = gcd(A, B)
  *
+ * \param G        Destination MPI
+ * \param A        Left-hand MPI
+ * \param B        Right-hand MPI
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
@@ -384,15 +474,23 @@ int mpi_gcd( mpi *G, mpi *A, mpi *B );
 /**
  * \brief          Modular inverse: X = A^-1 mod N
  *
+ * \param X        Destination MPI
+ * \param A        Left-hand MPI
+ * \param N        Right-hand MPI
+ *
  * \return         0 if successful,
  *                 1 if memory allocation failed,
  *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or nil
- *                 POLARSSL_ERR_MPI_NOT_ACCEPTABLE if A has no inverse mod N
+                   POLARSSL_ERR_MPI_NOT_ACCEPTABLE if A has no inverse mod N
  */
 int mpi_inv_mod( mpi *X, mpi *A, mpi *N );
 
 /**
  * \brief          Miller-Rabin primality test
+ *
+ * \param X        MPI to check
+ * \param f_rng    RNG function
+ * \param p_rng    RNG parameter
  *
  * \return         0 if successful (probably prime),
  *                 1 if memory allocation failed,
@@ -403,9 +501,9 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng );
 /**
  * \brief          Prime number generation
  *
- * \param X        destination mpi
- * \param nbits    required size of X in bits
- * \param dh_flag  if 1, then (X-1)/2 will be prime too
+ * \param X        Destination MPI
+ * \param nbits    Required size of X in bits
+ * \param dh_flag  If 1, then (X-1)/2 will be prime too
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter
  *

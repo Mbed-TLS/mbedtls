@@ -31,6 +31,9 @@
 #include "polarssl/sha1.h"
 #include "polarssl/x509.h"
 
+/*
+ * SSL Error codes
+ */
 #define POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE               0x1000
 #define POLARSSL_ERR_SSL_BAD_INPUT_DATA                    0x1800
 #define POLARSSL_ERR_SSL_INVALID_MAC                       0x2000
@@ -94,8 +97,8 @@
 #define SSL_RSA_AES_256_SHA             53
 #define SSL_EDH_RSA_AES_256_SHA         57
 
-#define SSL_RSA_CAMELLIA_128_SHA	0x41
-#define SSL_RSA_CAMELLIA_256_SHA	0x84
+#define SSL_RSA_CAMELLIA_128_SHA	    0x41
+#define SSL_RSA_CAMELLIA_256_SHA	    0x84
 #define SSL_EDH_RSA_CAMELLIA_256_SHA	0x88
 
 /*
@@ -502,11 +505,15 @@ int ssl_write( ssl_context *ssl, unsigned char *buf, int len );
 
 /**
  * \brief          Notify the peer that the connection is being closed
+ *
+ * \param ssl      SSL context
  */
 int ssl_close_notify( ssl_context *ssl );
 
 /**
  * \brief          Free an SSL context
+ *
+ * \param ssl      SSL context
  */
 void ssl_free( ssl_context *ssl );
 

@@ -40,6 +40,10 @@ extern "C" {
 /**
  * \brief          Initiate a TCP connection with host:port
  *
+ * \param fd       Socket to use
+ * \param host     Host to connect to
+ * \param port     Port to connect to
+ *
  * \return         0 if successful, or one of:
  *                      POLARSSL_ERR_NET_SOCKET_FAILED,
  *                      POLARSSL_ERR_NET_UNKNOWN_HOST,
@@ -51,6 +55,10 @@ int net_connect( int *fd, char *host, int port );
  * \brief          Create a listening socket on bind_ip:port.
  *                 If bind_ip == NULL, all interfaces are binded.
  *
+ * \param fd       Socket to use
+ * \param bind_ip  IP to bind to, can be NULL
+ * \param port     Port number to use
+ *
  * \return         0 if successful, or one of:
  *                      POLARSSL_ERR_NET_SOCKET_FAILED,
  *                      POLARSSL_ERR_NET_BIND_FAILED,
@@ -59,16 +67,22 @@ int net_connect( int *fd, char *host, int port );
 int net_bind( int *fd, char *bind_ip, int port );
 
 /**
- * \brief          Accept a connection from a remote client
+ * \brief           Accept a connection from a remote client
  *
- * \return         0 if successful, POLARSSL_ERR_NET_ACCEPT_FAILED, or
- *                 POLARSSL_ERR_NET_WOULD_BLOCK is bind_fd was set to
- *                 non-blocking and accept() is blocking.
+ * \param bind_fd   Relevant socket
+ * \param client_fd Will contain the connected client socket
+ * \param client_ip Will contain the client IP address
+ *
+ * \return          0 if successful, POLARSSL_ERR_NET_ACCEPT_FAILED, or
+ *                  POLARSSL_ERR_NET_WOULD_BLOCK is bind_fd was set to
+ *                  non-blocking and accept() is blocking.
  */
 int net_accept( int bind_fd, int *client_fd, void *client_ip );
 
 /**
  * \brief          Set the socket blocking
+ *
+ * \param fd       Socket to set
  *
  * \return         0 if successful, or a non-zero error code
  */
@@ -77,6 +91,8 @@ int net_set_block( int fd );
 /**
  * \brief          Set the socket non-blocking
  *
+ * \param fd       Socket to set
+ *
  * \return         0 if successful, or a non-zero error code
  */
 int net_set_nonblock( int fd );
@@ -84,33 +100,45 @@ int net_set_nonblock( int fd );
 /**
  * \brief          Portable usleep helper
  *
+ * \param usec     Amount of microseconds to sleep
+ *
  * \note           Real amount of time slept will not be less than
  *                 select()'s timeout granularity (typically, 10ms).
  */
 void net_usleep( unsigned long usec );
 
 /**
- * \brief          Read at most 'len' characters. len is updated to
- *                 reflect the actual number of characters read.
+ * \brief          Read at most 'len' characters. If no error occurs,
+ *                 the actual amount read is returned.
+ *
+ * \param ctx      Socket
+ * \param buf      The buffer to write to
+ * \param len      Maximum length of the buffer
  *
  * \return         This function returns the number of bytes received,
- *                 or a negative error code; POLARSSL_ERR_NET_TRY_AGAIN
+ *                 or a non-zero error code; POLARSSL_ERR_NET_TRY_AGAIN
  *                 indicates read() is blocking.
  */
 int net_recv( void *ctx, unsigned char *buf, int len );
 
 /**
- * \brief          Write at most 'len' characters. len is updated to
- *                 reflect the number of characters _not_ written.
+ * \brief          Write at most 'len' characters. If no error occurs,
+ *                 the actual amount read is returned.
+ *
+ * \param ctx      Socket
+ * \param buf      The buffer to write to
+ * \param len      Maximum length of the buffer
  *
  * \return         This function returns the number of bytes sent,
- *                 or a negative error code; POLARSSL_ERR_NET_TRY_AGAIN
+ *                 or a non-zero error code; POLARSSL_ERR_NET_TRY_AGAIN
  *                 indicates write() is blocking.
  */
 int net_send( void *ctx, unsigned char *buf, int len );
 
 /**
  * \brief          Gracefully shutdown the connection
+ *
+ * \param fd       The socket to close
  */
 void net_close( int fd );
 

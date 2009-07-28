@@ -49,7 +49,7 @@ void havege_init( havege_state *hs );
 /**
  * \brief          HAVEGE rand function
  *
- * \param rng_st   points to an HAVEGE state
+ * \param p_rng    A HAVEGE state
  *
  * \return         A random int
  */

@@ -130,9 +130,12 @@
 
 /*
  * Module:  library/camellia.c
- * Caller:
+ * Caller:  library/ssl_tls.c
  *
  * This module enabled the following cipher suites:
+ *      SSL_RSA_CAMELLIA_128_SHA
+ *      SSL_RSA_CAMELLIA_256_SHA
+ *      SSL_EDH_RSA_CAMELLIA_256_SHA
  */
 #define POLARSSL_CAMELLIA_C
 
@@ -172,6 +175,7 @@
  * This module enables the following ciphersuites:
  *      SSL_EDH_RSA_DES_168_SHA
  *      SSL_EDH_RSA_AES_256_SHA
+ *      SSL_EDH_RSA_CAMELLIA_256_SHA
  */
 #define POLARSSL_DHM_C
 
@@ -189,8 +193,8 @@
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
  *
-#define POLARSSL_MD2_C
  */
+#define POLARSSL_MD2_C
 
 /*
  * Module:  library/md4.c
@@ -198,8 +202,8 @@
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
  *
-#define POLARSSL_MD4_C
  */
+#define POLARSSL_MD4_C
 
 /*
  * Module:  library/md5.c

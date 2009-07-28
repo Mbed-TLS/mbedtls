@@ -24,12 +24,21 @@
 
 #include "polarssl/rsa.h"
 
+/*
+ * ASN1 Error codes
+ *
+ * These error codes will be OR'ed to X509 error codes for
+ * higher error granularity.
+ */
 #define POLARSSL_ERR_ASN1_OUT_OF_DATA                      0x0014
 #define POLARSSL_ERR_ASN1_UNEXPECTED_TAG                   0x0016
 #define POLARSSL_ERR_ASN1_INVALID_LENGTH                   0x0018
 #define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  0x001A
 #define POLARSSL_ERR_ASN1_INVALID_DATA                     0x001C
 
+/*
+ * X509 Error codes
+ */
 #define POLARSSL_ERR_X509_FEATURE_UNAVAILABLE              0x0020
 #define POLARSSL_ERR_X509_CERT_INVALID_PEM                 0x0040
 #define POLARSSL_ERR_X509_CERT_INVALID_FORMAT              0x0060
@@ -56,6 +65,9 @@
 #define POLARSSL_ERR_X509_POINT_ERROR                      0x0300
 #define POLARSSL_ERR_X509_VALUE_TO_LENGTH                  0x0320
 
+/*
+ * X509 Verify codes
+ */
 #define BADCERT_EXPIRED                 1
 #define BADCERT_REVOKED                 2
 #define BADCERT_CN_MISMATCH             4
@@ -321,23 +333,51 @@ int x509parse_keyfile( rsa_context *rsa, char *path, char *password );
 /**
  * \brief          Store the certificate DN in printable form into buf;
  *                 no more than size characters will be written.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param dn       The X509 name to represent
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
  */
 int x509parse_dn_gets( char *buf, size_t size, x509_name *dn );
 
 /**
  * \brief          Returns an informational string about the
  *                 certificate.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param prefix   A line prefix
+ * \param crt      The X509 certificate to represent
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
  */
 int x509parse_cert_info( char *buf, size_t size, char *prefix, x509_cert *crt );
 
 /**
  * \brief          Returns an informational string about the
  *                 CRL.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param prefix   A line prefix
+ * \param crt      The X509 CRL to represent
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
  */
 int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl );
 
 /**
- * \brief          Return 0 if the x509_time is still valid,
+ * \brief          Check a given x509_time against the system time and check
+ *                 if it is valid.
+ *
+ * \param time     x509_time to check
+ *
+ * \return         Return 0 if the x509_time is still valid,
  *                 or 1 otherwise.
  */
 int x509parse_time_expired( x509_time *time );
@@ -369,11 +409,15 @@ int x509parse_verify( x509_cert *crt,
 
 /**
  * \brief          Unallocate all certificate data
+ *
+ * \param crt      Certificate chain to free
  */
 void x509_free( x509_cert *crt );
 
 /**
  * \brief          Unallocate all CRL data
+ *
+ * \param crt      CRL chain to free
  */
 void x509_crl_free( x509_crl *crl );
 

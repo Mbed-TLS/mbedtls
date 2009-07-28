@@ -58,6 +58,8 @@ void set_alarm( int seconds );
 
 /**
  * \brief          Sleep for a certain amount of time
+ *
+ * \param          Delay in milliseconds
  */
 void m_sleep( int milliseconds );
 

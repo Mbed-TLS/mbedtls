@@ -44,6 +44,8 @@ extern "C" {
 /**
  * \brief          PadLock detection routine
  *
+ * \param          The feature to detect
+ *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
 int padlock_supports( int feature );

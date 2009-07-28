@@ -24,6 +24,9 @@
 
 #include "polarssl/bignum.h"
 
+/*
+ * RSA Error codes
+ */
 #define POLARSSL_ERR_RSA_BAD_INPUT_DATA                    0x0400
 #define POLARSSL_ERR_RSA_INVALID_PADDING                   0x0410
 #define POLARSSL_ERR_RSA_KEY_GEN_FAILED                    0x0420
@@ -56,27 +59,27 @@
 #define RSA_CRYPT       2
 
 #define ASN1_STR_CONSTRUCTED_SEQUENCE	"\x30"
-#define ASN1_STR_NULL			"\x05"
-#define ASN1_STR_OID			"\x06"
-#define ASN1_STR_OCTET_STRING		"\x04"
+#define ASN1_STR_NULL			        "\x05"
+#define ASN1_STR_OID			        "\x06"
+#define ASN1_STR_OCTET_STRING		    "\x04"
 
-#define OID_DIGEST_ALG_MDX	"\x2A\x86\x48\x86\xF7\x0D\x02\x00"
-#define OID_HASH_ALG_SHA1	"\x2b\x0e\x03\x02\x1a"
-#define OID_HASH_ALG_SHA2X	"\x60\x86\x48\x01\x65\x03\x04\x02\x00"
+#define OID_DIGEST_ALG_MDX	        "\x2A\x86\x48\x86\xF7\x0D\x02\x00"
+#define OID_HASH_ALG_SHA1	        "\x2b\x0e\x03\x02\x1a"
+#define OID_HASH_ALG_SHA2X	        "\x60\x86\x48\x01\x65\x03\x04\x02\x00"
 
-#define OID_ISO_MEMBER_BODIES	"\x2a"
-#define OID_ISO_IDENTIFIED_ORG	"\x2b"
+#define OID_ISO_MEMBER_BODIES	    "\x2a"
+#define OID_ISO_IDENTIFIED_ORG	    "\x2b"
 
 /*
  * ISO Member bodies OID parts
  */
-#define OID_COUNTRY_US		"\x86\x48"
-#define OID_RSA_DATA_SECURITY	"\x86\xf7\x0d"
+#define OID_COUNTRY_US		        "\x86\x48"
+#define OID_RSA_DATA_SECURITY	    "\x86\xf7\x0d"
 
 /*
  * ISO Identified organization OID parts
  */
-#define OID_OIW_SECSIG_SHA1	"\x0e\x03\x02\x1a"
+#define OID_OIW_SECSIG_SHA1	        "\x0e\x03\x02\x1a"
 
 /*
  * DigestInfo ::= SEQUENCE {
@@ -87,30 +90,30 @@
  *
  * Digest ::= OCTET STRING
  */
-#define ASN1_HASH_MDX					\
-(							\
+#define ASN1_HASH_MDX					        \
+(							                    \
     ASN1_STR_CONSTRUCTED_SEQUENCE "\x20"		\
       ASN1_STR_CONSTRUCTED_SEQUENCE "\x0C"		\
-        ASN1_STR_OID "\x08"				\
-	  OID_DIGEST_ALG_MDX				\
-	ASN1_STR_NULL "\x00"				\
-      ASN1_STR_OCTET_STRING "\x10"			\
+        ASN1_STR_OID "\x08"				        \
+	  OID_DIGEST_ALG_MDX				        \
+	ASN1_STR_NULL "\x00"				        \
+      ASN1_STR_OCTET_STRING "\x10"			    \
 )
 
-#define ASN1_HASH_SHA1					\
+#define ASN1_HASH_SHA1					        \
     ASN1_STR_CONSTRUCTED_SEQUENCE "\x21"		\
       ASN1_STR_CONSTRUCTED_SEQUENCE "\x09"		\
-        ASN1_STR_OID "\x05"				\
-	  OID_HASH_ALG_SHA1				\
-        ASN1_STR_NULL "\x00"				\
+        ASN1_STR_OID "\x05"				        \
+	  OID_HASH_ALG_SHA1				            \
+        ASN1_STR_NULL "\x00"				    \
       ASN1_STR_OCTET_STRING "\x14"
 
-#define ASN1_HASH_SHA2X					\
+#define ASN1_HASH_SHA2X					        \
     ASN1_STR_CONSTRUCTED_SEQUENCE "\x11"		\
       ASN1_STR_CONSTRUCTED_SEQUENCE "\x0d"		\
-        ASN1_STR_OID "\x09"				\
-	  OID_HASH_ALG_SHA2X				\
-        ASN1_STR_NULL "\x00"				\
+        ASN1_STR_OID "\x09"				        \
+	  OID_HASH_ALG_SHA2X				        \
+        ASN1_STR_NULL "\x00"				    \
       ASN1_STR_OCTET_STRING "\x00"
 
 /**
@@ -274,7 +277,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
                        int mode, int *olen,
                        unsigned char *input,
                        unsigned char *output,
-		       int output_max_len);
+		               int output_max_len );
 
 /**
  * \brief          Do a private RSA to sign a message digest
@@ -324,6 +327,8 @@ int rsa_pkcs1_verify( rsa_context *ctx,
 
 /**
  * \brief          Free the components of an RSA key
+ *
+ * \param ctx      RSA Context to free
  */
 void rsa_free( rsa_context *ctx );
 

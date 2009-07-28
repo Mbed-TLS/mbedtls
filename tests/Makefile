@@ -79,3 +79,6 @@ test_suite_xtea: test_suite_xtea.c ../library/libpolarssl.a
 clean:
 	rm -f $(APPS) *.c
 
+check: $(APPS)
+	echo "Running checks"
+	for i in $(APPS); do echo " - $${i}"; ./$${i} | grep PASSED; done

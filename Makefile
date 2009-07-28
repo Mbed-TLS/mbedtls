@@ -30,3 +30,5 @@ clean:
 	cd programs && make clean && cd ..
 	cd tests && make clean && cd ..
 
+check:
+	( cd tests && make check )

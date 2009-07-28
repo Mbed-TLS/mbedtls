@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version X released on X
+= Version 0.12.0 released on 2009-07-28
 Features
    * Added CMake makefiles as alternative to regular Makefiles.
    * Added preliminary Code Coverage tests for AES, ARC4,

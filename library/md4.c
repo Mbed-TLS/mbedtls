@@ -1,9 +1,10 @@
 /*
  *  RFC 1186/1320 compliant MD4 implementation
  *
- *  Based on XySSL: Copyright (C) 2006-2008  Christophe Devine
+ *  Copyright (C) 2006-2009, Paul Bakker <polarssl_maintainer at polarssl.org>
+ *  All rights reserved.
  *
- *  Copyright (C) 2009  Paul Bakker <polarssl_maintainer at polarssl dot org>
+ *  Joined copyright on original XySSL code with: Christophe Devine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

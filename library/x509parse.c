@@ -1495,7 +1495,7 @@ int x509parse_crlfile( x509_crl *chain, char *path )
     return( ret );
 }
 
-#if defined(POLARSSL_DES_C)
+#if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
 /*
  * Read a 16-byte hex string and convert it to binary
  */
@@ -1569,7 +1569,12 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
     int ret, len, enc;
     unsigned char *s1, *s2;
     unsigned char *p, *end;
+#if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
     unsigned char des3_iv[8];
+#else
+    ((void) pwd);
+    ((void) pwdlen);
+#endif
 
     s1 = (unsigned char *) strstr( (char *) buf,
         "-----BEGIN RSA PRIVATE KEY-----" );
@@ -1591,7 +1596,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
 
         if( memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
         {
-#if defined(POLARSSL_DES_C)
+#if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
             enc++;
 
             s1 += 22;
@@ -1634,7 +1639,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
 
         if( enc != 0 )
         {
-#if defined(POLARSSL_DES_C)
+#if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
             if( pwd == NULL )
             {
                 free( buf );
@@ -2126,6 +2131,11 @@ int x509parse_revoked( x509_cert *crt, x509_crl *crl )
     return( 0 );
 }
 
+/*
+ * Wrapper for x509 hashes.
+ *
+ * @param out   Buffer to receive the hash (Should be at least 64 bytes)
+ */
 static void x509_hash( unsigned char *in, int len, int alg,
                        unsigned char *out )
 {
@@ -2137,8 +2147,12 @@ static void x509_hash( unsigned char *in, int len, int alg,
 #if defined(POLARSSL_MD4_C)
         case SIG_RSA_MD4    :  md4( in, len, out ); break;
 #endif
+#if defined(POLARSSL_MD5_C)
         case SIG_RSA_MD5    :  md5( in, len, out ); break;
+#endif
+#if defined(POLARSSL_SHA1_C)
         case SIG_RSA_SHA1   : sha1( in, len, out ); break;
+#endif
 #if defined(POLARSSL_SHA2_C)
         case SIG_RSA_SHA224 : sha2( in, len, out, 1 ); break;
         case SIG_RSA_SHA256 : sha2( in, len, out, 0 ); break;
@@ -2148,7 +2162,7 @@ static void x509_hash( unsigned char *in, int len, int alg,
         case SIG_RSA_SHA512 : sha4( in, len, out, 0 ); break;
 #endif
         default:
-            memset( out, '\xFF', len );
+            memset( out, '\xFF', 64 );
             break;
     }
 }
@@ -2447,6 +2461,7 @@ void x509_crl_free( x509_crl *crl )
  */
 int x509_self_test( int verbose )
 {
+#if defined(POLARSSL_MD5_C)
     int ret, i, j;
     x509_cert cacert;
     x509_cert clicert;
@@ -2515,6 +2530,10 @@ int x509_self_test( int verbose )
     rsa_free( &rsa );
 
     return( 0 );
+#else
+    ((void) verbose);
+    return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+#endif
 }
 
 #endif

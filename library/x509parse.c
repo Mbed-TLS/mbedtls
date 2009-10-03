@@ -2157,7 +2157,7 @@ static void x509_hash( unsigned char *in, int len, int alg,
         case SIG_RSA_SHA224 : sha2( in, len, out, 1 ); break;
         case SIG_RSA_SHA256 : sha2( in, len, out, 0 ); break;
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA4_C)
         case SIG_RSA_SHA384 : sha4( in, len, out, 1 ); break;
         case SIG_RSA_SHA512 : sha4( in, len, out, 0 ); break;
 #endif

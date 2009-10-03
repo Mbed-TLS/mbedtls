@@ -1,5 +1,12 @@
 PolarSSL ChangeLog
 
+= Version 0.12.1 released on 2009-10-XX
+Changes
+   * Coverage test definitions now support 'depends_on'
+     tagging system.
+   * Tests requiring specific hashing algorithms now honor
+     the defines.
+
 = Version 0.12.0 released on 2009-07-28
 Features
    * Added CMake makefiles as alternative to regular Makefiles.

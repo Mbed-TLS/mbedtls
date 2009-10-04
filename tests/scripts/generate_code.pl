@@ -43,12 +43,35 @@ while (my $line = <TEST_DATA>)
 {
     my $description = $line;
     $line = <TEST_DATA>;
-    my $command_line = $line;
-    $line = <TEST_DATA>;
 
     my $test_name = $description;
     $test_name =~ tr/A-Z \-/a-z__/;
     $test_name =~ tr/a-z0-9_//cd;
+
+    # Carve the defines required for this test case
+    my $requirements;
+    if ($line =~ /^depends_on:/)
+    {
+        my $depends_on_line = $line;
+        $line = <TEST_DATA>;
+
+        ( $requirements ) = $depends_on_line =~ /^depends_on:(.*)$/;
+    }
+    
+    my @var_req_arr = split(/:/, $requirements);
+    my $pre_code;
+    my $post_code;
+
+    while (@var_req_arr)
+    {
+        my $req = shift @var_req_arr;
+
+        $pre_code .= "#ifdef $req\n";
+        $post_code .= "#endif\n";
+    }
+
+    my $command_line = $line;
+    $line = <TEST_DATA>;
 
     # Carve the case name and variable values
     #
@@ -82,10 +105,11 @@ while (my $line = <TEST_DATA>)
 
 
     print TEST_FILE << "END";
+$pre_code
         FCT_TEST_BGN($test_name)
 $case_code
         FCT_TEST_END();
-
+$post_code
 END
 }
 

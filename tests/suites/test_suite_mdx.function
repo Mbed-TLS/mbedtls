@@ -1,4 +1,5 @@
 BEGIN_HEADER
+#include <polarssl/config.h>
 #include <polarssl/md2.h>
 #include <polarssl/md4.h>
 #include <polarssl/md5.h>

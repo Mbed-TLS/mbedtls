@@ -287,10 +287,70 @@ int main( void )
         rsa_private( &rsa, buf, buf );
     }
 
-    printf( "%9lu private/s\n\n", i / 3 );
+    printf( "%9lu private/s\n", i / 3 );
+
+    rsa_free( &rsa );
+
+    rsa_init( &rsa, RSA_PKCS_V15, 0, myrand, NULL );
+    rsa_gen_key( &rsa, 2048, 65537 );
+
+    printf( "  RSA-2048  :  " );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    for( i = 1; ! alarmed; i++ )
+    {
+        buf[0] = 0;
+        rsa_public( &rsa, buf, buf );
+    }
+
+    printf( "%9lu  public/s\n", i / 3 );
+
+    printf( "  RSA-2048  :  " );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    for( i = 1; ! alarmed; i++ )
+    {
+        buf[0] = 0;
+        rsa_private( &rsa, buf, buf );
+    }
+
+    printf( "%9lu private/s\n", i / 3 );
+
+    rsa_free( &rsa );
+
+    rsa_init( &rsa, RSA_PKCS_V15, 0, myrand, NULL );
+    rsa_gen_key( &rsa, 4096, 65537 );
+
+    printf( "  RSA-4096  :  " );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    for( i = 1; ! alarmed; i++ )
+    {
+        buf[0] = 0;
+        rsa_public( &rsa, buf, buf );
+    }
+
+    printf( "%9lu  public/s\n", i / 3 );
+
+    printf( "  RSA-4096  :  " );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    for( i = 1; ! alarmed; i++ )
+    {
+        buf[0] = 0;
+        rsa_private( &rsa, buf, buf );
+    }
+
+    printf( "%9lu private/s\n", i / 3 );
 
     rsa_free( &rsa );
 #endif
+
+    printf( "\n" );
 
 #ifdef WIN32
     printf( "  Press Enter to exit this program.\n" );

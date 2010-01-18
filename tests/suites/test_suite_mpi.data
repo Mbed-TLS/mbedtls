@@ -238,6 +238,18 @@ mpi_sub_abs:10:"-7":10:"5":10:"2":0
 Base test mpi_sub_abs #4
 mpi_sub_abs:10:"7":10:"-5":10:"2":0
 
+Test mpi_sub_abs #1
+mpi_sub_abs:16:"FFFFFFFFFF":16:"01":16:"FFFFFFFFFE":0
+
+Test mpi_sub_abs #2
+mpi_sub_abs:16:"FFFFFFFFF0":16:"01":16:"FFFFFFFFEF":0
+
+Test mpi_sub_abs #3
+mpi_sub_abs:16:"FF00000000":16:"0F00000000":16:"F000000000":0
+
+Test mpi_sub_abs #4
+mpi_sub_abs:16:"FF00000000":16:"0F00000001":16:"EFFFFFFFFF":0
+
 Base test mpi_sub_mpi #1 (Test with negative result)
 mpi_sub_mpi:10:"5":10:"7":10:"-2"
 

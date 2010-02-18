@@ -33,14 +33,8 @@
 #include "polarssl/havege.h"
 
 #define SERVER_PORT 443
-/*
 #define SERVER_NAME "localhost"
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
-*/
-#define SERVER_NAME "mijn.postbank.nl"
-#define GET_REQUEST \
-    "GET /hello/ HTTP/1.1\r\n" \
-    "Host: mijn.postbank.nl\r\n\r\n"
 
 #define DEBUG_LEVEL 4
 

@@ -1,0 +1,38 @@
+BEGIN_HEADER
+#include <polarssl/debug.h>
+
+struct buffer_data
+{
+    char buf[2000];
+    char *ptr;
+};
+
+void string_debug(void *data, int level, char *str)
+{
+    struct buffer_data *buffer = (struct buffer_data *) data;
+
+    memcpy(buffer->ptr, str, strlen(str));
+    buffer->ptr += strlen(str);
+}
+END_HEADER
+
+BEGIN_CASE
+debug_print_crt:crt_file:file:line:prefix:result_str
+{
+    x509_cert   crt;
+    ssl_context ssl;
+    struct buffer_data buffer;
+
+    memset( &crt, 0, sizeof( x509_cert ) );
+    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( buffer.buf, 0, 2000 );
+    buffer.ptr = buffer.buf; 
+
+    ssl_set_dbg(&ssl, string_debug, &buffer);
+
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
+    debug_print_crt( &ssl, 0, {file}, {line}, {prefix}, &crt);
+
+    TEST_ASSERT( strcmp( buffer.buf, {result_str} ) == 0 );
+}
+END_CASE

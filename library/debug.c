@@ -182,7 +182,7 @@ void debug_print_crt( ssl_context *ssl, int level,
     prefix[maxlen] = '\0';
     maxlen = sizeof( str ) - 1;
 
-    while( crt != NULL && crt->next != NULL )
+    while( crt != NULL && crt->version != 0 )
     {
         char buf[1024];
         x509parse_cert_info( buf, sizeof( buf ) - 1, prefix, crt );

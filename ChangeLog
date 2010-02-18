@@ -1,5 +1,11 @@
 PolarSSL ChangeLog
 
+= Version 0.12.2 released on XXXXXXXX
+Bug fixes
+   * Fixed bug resulting in failure to send the last
+     certificate in the chain in ssl_write_certificate() and
+	 ssl_write_certificate_request() (Found by fatbob)
+
 = Version 0.12.1 released on 2009-10-04
 Changes
    * Coverage test definitions now support 'depends_on'

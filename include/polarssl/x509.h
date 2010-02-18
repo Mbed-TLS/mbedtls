@@ -92,6 +92,7 @@
 #define ASN1_T61_STRING              0x14
 #define ASN1_IA5_STRING              0x16
 #define ASN1_UTC_TIME                0x17
+#define ASN1_GENERALIZED_TIME        0x18
 #define ASN1_UNIVERSAL_STRING        0x1C
 #define ASN1_BMP_STRING              0x1E
 #define ASN1_PRIMITIVE               0x00

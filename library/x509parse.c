@@ -356,31 +356,66 @@ static int x509_get_name( unsigned char **p,
  *       utcTime        UTCTime,
  *       generalTime    GeneralizedTime }
  */
-static int x509_get_UTCTime( unsigned char **p,
+static int x509_get_time( unsigned char **p,
                           unsigned char *end,
                           x509_time *time )
 {
     int ret, len;
     char date[64];
+    unsigned char tag;
 
-    if( ( ret = asn1_get_tag( p, end, &len, ASN1_UTC_TIME ) ) != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
+    if( ( end - *p ) < 1 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-    memset( date,  0, sizeof( date ) );
-    memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
-                        len : (int) sizeof( date ) - 1 );
+    tag = **p;
 
-    if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
-                &time->year, &time->mon, &time->day,
-                &time->hour, &time->min, &time->sec ) < 5 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
+    if ( tag == ASN1_UTC_TIME )
+    {
+        (*p)++;
+        ret = asn1_get_len( p, end, &len );
+        
+        if( ret != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
 
-    time->year +=  100 * ( time->year < 90 );
-    time->year += 1900;
+        memset( date,  0, sizeof( date ) );
+        memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
+                len : (int) sizeof( date ) - 1 );
 
-    *p += len;
+        if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
+                    &time->year, &time->mon, &time->day,
+                    &time->hour, &time->min, &time->sec ) < 5 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
 
-    return( 0 );
+        time->year +=  100 * ( time->year < 90 );
+        time->year += 1900;
+
+        *p += len;
+
+        return( 0 );
+    }
+    else if ( tag == ASN1_GENERALIZED_TIME )
+    {
+        (*p)++;
+        ret = asn1_get_len( p, end, &len );
+        
+        if( ret != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_DATE | ret );
+
+        memset( date,  0, sizeof( date ) );
+        memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
+                len : (int) sizeof( date ) - 1 );
+
+        if( sscanf( date, "%4d%2d%2d%2d%2d%2d",
+                    &time->year, &time->mon, &time->day,
+                    &time->hour, &time->min, &time->sec ) < 5 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
+
+        *p += len;
+
+        return( 0 );
+    }
+    else
+        return( POLARSSL_ERR_X509_CERT_INVALID_DATE | POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 }
 
 
@@ -402,13 +437,10 @@ static int x509_get_dates( unsigned char **p,
 
     end = *p + len;
 
-    /*
-     * TODO: also handle GeneralizedTime
-     */
-    if( ( ret = x509_get_UTCTime( p, end, from ) ) != 0 )
+    if( ( ret = x509_get_time( p, end, from ) ) != 0 )
         return( ret );
 
-    if( ( ret = x509_get_UTCTime( p, end, to ) ) != 0 )
+    if( ( ret = x509_get_time( p, end, to ) ) != 0 )
         return( ret );
 
     if( *p != end )
@@ -742,7 +774,7 @@ static int x509_get_entries( unsigned char **p,
         if( ( ret = x509_get_serial( p, end, &cur_entry->serial ) ) != 0 )
             return( ret );
 
-        if( ( ret = x509_get_UTCTime( p, end, &cur_entry->revocation_date ) ) != 0 )
+        if( ( ret = x509_get_time( p, end, &cur_entry->revocation_date ) ) != 0 )
             return( ret );
 
         if( ( ret = x509_get_crl_ext( p, end, &cur_entry->entry_ext ) ) != 0 )
@@ -1320,13 +1352,13 @@ int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen )
      * thisUpdate          Time
      * nextUpdate          Time OPTIONAL
      */
-    if( ( ret = x509_get_UTCTime( &p, end, &crl->this_update ) ) != 0 )
+    if( ( ret = x509_get_time( &p, end, &crl->this_update ) ) != 0 )
     {
         x509_crl_free( crl );
         return( ret );
     }
 
-    if( ( ret = x509_get_UTCTime( &p, end, &crl->next_update ) ) != 0 )
+    if( ( ret = x509_get_time( &p, end, &crl->next_update ) ) != 0 )
     {
         if ( ret != ( POLARSSL_ERR_X509_CERT_INVALID_DATE |
                         POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) &&

@@ -26,6 +26,7 @@
 #endif
 
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 #include "polarssl/net.h"
@@ -34,23 +35,43 @@
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
 
-#define SERVER_PORT 4433
+#define DFL_SERVER_NAME         "localhost"
+#define DFL_SERVER_PORT         4433
+#define DFL_REQUEST_PAGE        "/"
+#define DFL_DEBUG_LEVEL         0
 
-#define SERVER_NAME "localhost"
-#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
+#define GET_REQUEST "GET %s HTTP/1.0\r\n\r\n"
 
-#define DEBUG_LEVEL 0
+/*
+ * global options
+ */
+struct options
+{
+    char *server_name;          /* hostname of the server (client only) */
+    int server_port;            /* port on which the ssl service runs   */
+    int debug_level;            /* level of debugging                   */
+    char *request_page;         /* page on server to request            */
+} opt;
 
 void my_debug( void *ctx, int level, char *str )
 {
-    if( level < DEBUG_LEVEL )
+    if( level < opt.debug_level )
     {
         fprintf( (FILE *) ctx, "%s", str );
         fflush(  (FILE *) ctx  );
     }
 }
 
-int main( void )
+#define USAGE \
+    "\n usage: ssl_client2 param=<>...\n"               \
+    "\n acceptable parameters:\n"                       \
+    "    server_name=%%s      default: localhost\n"     \
+    "    server_port=%%d      default: 4433\n"          \
+    "    debug_level=%%d      default: 0 (disabled)\n"  \
+    "    request_page=%%s     default: \".\"\n"         \
+    "\n"
+
+int main( int argc, char *argv[] )
 {
     int ret, len, server_fd;
     unsigned char buf[1024];
@@ -60,6 +81,56 @@ int main( void )
     x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
+    int i, j, n;
+    char *p, *q;
+
+    if( argc == 0 )
+    {
+    usage:
+        printf( USAGE );
+        goto exit;
+    }
+
+    opt.server_name         = DFL_SERVER_NAME;
+    opt.server_port         = DFL_SERVER_PORT;
+    opt.debug_level         = DFL_DEBUG_LEVEL;
+    opt.request_page        = DFL_REQUEST_PAGE;
+
+    for( i = 1; i < argc; i++ )
+    {
+        n = strlen( argv[i] );
+        printf("a");
+
+        for( j = 0; j < n; j++ )
+        {
+            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
+                argv[i][j] |= 0x20;
+        }
+
+        p = argv[i];
+        if( ( q = strchr( p, '=' ) ) == NULL )
+            goto usage;
+        *q++ = '\0';
+
+        if( strcmp( p, "server_name" ) == 0 )
+            opt.server_name = q;
+        else if( strcmp( p, "server_port" ) == 0 )
+        {
+            opt.server_port = atoi( q );
+            if( opt.server_port < 1 || opt.server_port > 65535 )
+                goto usage;
+        }
+        else if( strcmp( p, "debug_level" ) == 0 )
+        {
+            opt.debug_level = atoi( q );
+            if( opt.debug_level < 0 || opt.debug_level > 65535 )
+                goto usage;
+        }
+        else if( strcmp( p, "request_page" ) == 0 )
+            opt.request_page = q;
+        else
+            goto usage;
+    }
 
     /*
      * 0. Initialize the RNG and the session data
@@ -120,12 +191,12 @@ int main( void )
     /*
      * 2. Start the connection
      */
-    printf( "  . Connecting to tcp/%s/%-4d...", SERVER_NAME,
-                                                SERVER_PORT );
+    printf( "  . Connecting to tcp/%s/%-4d...", opt.server_name,
+                                                opt.server_port );
     fflush( stdout );
 
-    if( ( ret = net_connect( &server_fd, SERVER_NAME,
-                                         SERVER_PORT ) ) != 0 )
+    if( ( ret = net_connect( &server_fd, opt.server_name,
+                                         opt.server_port ) ) != 0 )
     {
         printf( " failed\n  ! net_connect returned %d\n\n", ret );
         goto exit;
@@ -153,16 +224,17 @@ int main( void )
     ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );
 
     ssl_set_rng( &ssl, havege_rand, &hs );
+    ssl_set_dbg( &ssl, my_debug, stdout );
     ssl_set_bio( &ssl, net_recv, &server_fd,
                        net_send, &server_fd );
 
     ssl_set_ciphers( &ssl, ssl_default_ciphers );
     ssl_set_session( &ssl, 1, 600, &ssn );
 
-    ssl_set_ca_chain( &ssl, &cacert, NULL, SERVER_NAME );
+    ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
     ssl_set_own_cert( &ssl, &clicert, &rsa );
 
-    ssl_set_hostname( &ssl, SERVER_NAME );
+    ssl_set_hostname( &ssl, opt.server_name );
 
     /*
      * 4. Handshake
@@ -198,7 +270,7 @@ int main( void )
             printf( "  ! server certificate has been revoked\n" );
 
         if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-            printf( "  ! CN mismatch (expected CN=%s)\n", SERVER_NAME );
+            printf( "  ! CN mismatch (expected CN=%s)\n", opt.server_name );
 
         if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
             printf( "  ! self-signed or not signed by a trusted CA\n" );
@@ -218,7 +290,7 @@ int main( void )
     printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, GET_REQUEST );
+    len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
 
     while( ( ret = ssl_write( &ssl, buf, len ) ) <= 0 )
     {

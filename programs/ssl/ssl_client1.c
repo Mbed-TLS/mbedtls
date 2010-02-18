@@ -32,7 +32,7 @@
 #include "polarssl/ssl.h"
 #include "polarssl/havege.h"
 
-#define SERVER_PORT 443
+#define SERVER_PORT 4433
 #define SERVER_NAME "localhost"
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
 

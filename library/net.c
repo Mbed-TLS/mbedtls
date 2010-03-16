@@ -226,7 +226,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 {
     struct sockaddr_in client_addr;
 
-#if defined(__socklen_t_defined)
+#if defined(__socklen_t_defined) || defined(_SOCKLEN_T)
     socklen_t n = (socklen_t) sizeof( client_addr );
 #else
     int n = (int) sizeof( client_addr );

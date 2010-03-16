@@ -1720,8 +1720,8 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng )
      * W = |X| - 1
      * R = W >> lsb( W )
      */
-    s = mpi_lsb( &W );
     MPI_CHK( mpi_sub_int( &W, X, 1 ) );
+    s = mpi_lsb( &W );
     MPI_CHK( mpi_copy( &R, &W ) );
     MPI_CHK( mpi_shift_r( &R, s ) );
 

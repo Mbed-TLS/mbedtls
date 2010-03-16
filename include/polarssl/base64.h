@@ -46,7 +46,7 @@ extern "C" {
  *                 required buffer size in *dlen
  */
 int base64_encode( unsigned char *dst, int *dlen,
-                   unsigned char *src, int  slen );
+                   const unsigned char *src, int  slen );
 
 /**
  * \brief          Decode a base64-formatted buffer
@@ -65,7 +65,7 @@ int base64_encode( unsigned char *dst, int *dlen,
  *                 required buffer size in *dlen
  */
 int base64_decode( unsigned char *dst, int *dlen,
-                   unsigned char *src, int  slen );
+                   const unsigned char *src, int  slen );
 
 /**
  * \brief          Checkup routine

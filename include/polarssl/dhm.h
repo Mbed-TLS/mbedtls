@@ -60,7 +60,7 @@ extern "C" {
  */
 int dhm_read_params( dhm_context *ctx,
                      unsigned char **p,
-                     unsigned char *end );
+                     const unsigned char *end );
 
 /**
  * \brief          Setup and write the ServerKeyExchange parameters
@@ -92,7 +92,7 @@ int dhm_make_params( dhm_context *ctx, int s_size,
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */
 int dhm_read_public( dhm_context *ctx,
-                     unsigned char *input, int ilen );
+                     const unsigned char *input, int ilen );
 
 /**
  * \brief          Create own private value X and export G^X

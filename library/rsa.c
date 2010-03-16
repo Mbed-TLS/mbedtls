@@ -132,7 +132,7 @@ cleanup:
 /*
  * Check a public RSA key
  */
-int rsa_check_pubkey( rsa_context *ctx )
+int rsa_check_pubkey( const rsa_context *ctx )
 {
     if( !ctx->N.p || !ctx->E.p )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
@@ -155,7 +155,7 @@ int rsa_check_pubkey( rsa_context *ctx )
 /*
  * Check a private RSA key
  */
-int rsa_check_privkey( rsa_context *ctx )
+int rsa_check_privkey( const rsa_context *ctx )
 {
     int ret;
     mpi PQ, DE, P1, Q1, H, I, G;
@@ -194,7 +194,7 @@ cleanup:
  * Do an RSA public key operation
  */
 int rsa_public( rsa_context *ctx,
-                unsigned char *input,
+                const unsigned char *input,
                 unsigned char *output )
 {
     int ret, olen;
@@ -228,7 +228,7 @@ cleanup:
  * Do an RSA private key operation
  */
 int rsa_private( rsa_context *ctx,
-                 unsigned char *input,
+                 const unsigned char *input,
                  unsigned char *output )
 {
     int ret, olen;
@@ -288,7 +288,7 @@ cleanup:
  */
 int rsa_pkcs1_encrypt( rsa_context *ctx,
                        int mode, int  ilen,
-                       unsigned char *input,
+                       const unsigned char *input,
                        unsigned char *output )
 {
     int nb_pad, olen;
@@ -334,9 +334,9 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
  */
 int rsa_pkcs1_decrypt( rsa_context *ctx,
                        int mode, int *olen,
-                       unsigned char *input,
+                       const unsigned char *input,
                        unsigned char *output,
-		       int output_max_len)
+                       int output_max_len)
 {
     int ret, ilen;
     unsigned char *p;
@@ -393,7 +393,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                     int mode,
                     int hash_id,
                     int hashlen,
-                    unsigned char *hash,
+                    const unsigned char *hash,
                     unsigned char *sig )
 {
     int nb_pad, olen;
@@ -519,7 +519,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
                       int mode,
                       int hash_id,
                       int hashlen,
-                      unsigned char *hash,
+                      const unsigned char *hash,
                       unsigned char *sig )
 {
     int ret, len, siglen;

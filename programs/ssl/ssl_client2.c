@@ -53,7 +53,7 @@ struct options
     char *request_page;         /* page on server to request            */
 } opt;
 
-void my_debug( void *ctx, int level, char *str )
+void my_debug( void *ctx, int level, const char *str )
 {
     if( level < opt.debug_level )
     {

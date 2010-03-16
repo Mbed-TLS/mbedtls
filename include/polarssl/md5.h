@@ -55,7 +55,7 @@ void md5_starts( md5_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void md5_update( md5_context *ctx, unsigned char *input, int ilen );
+void md5_update( md5_context *ctx, const unsigned char *input, int ilen );
 
 /**
  * \brief          MD5 final digest
@@ -72,7 +72,7 @@ void md5_finish( md5_context *ctx, unsigned char output[16] );
  * \param ilen     length of the input data
  * \param output   MD5 checksum result
  */
-void md5( unsigned char *input, int ilen, unsigned char output[16] );
+void md5( const unsigned char *input, int ilen, unsigned char output[16] );
 
 /**
  * \brief          Output = MD5( file contents )
@@ -83,7 +83,7 @@ void md5( unsigned char *input, int ilen, unsigned char output[16] );
  * \return         0 if successful, 1 if fopen failed,
  *                 or 2 if fread failed
  */
-int md5_file( char *path, unsigned char output[16] );
+int md5_file( const char *path, unsigned char output[16] );
 
 /**
  * \brief          MD5 HMAC context setup
@@ -92,7 +92,8 @@ int md5_file( char *path, unsigned char output[16] );
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  */
-void md5_hmac_starts( md5_context *ctx, unsigned char *key, int keylen );
+void md5_hmac_starts( md5_context *ctx,
+                      const unsigned char *key, int keylen );
 
 /**
  * \brief          MD5 HMAC process buffer
@@ -101,7 +102,8 @@ void md5_hmac_starts( md5_context *ctx, unsigned char *key, int keylen );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void md5_hmac_update( md5_context *ctx, unsigned char *input, int ilen );
+void md5_hmac_update( md5_context *ctx,
+                      const unsigned char *input, int ilen );
 
 /**
  * \brief          MD5 HMAC final digest
@@ -120,8 +122,8 @@ void md5_hmac_finish( md5_context *ctx, unsigned char output[16] );
  * \param ilen     length of the input data
  * \param output   HMAC-MD5 result
  */
-void md5_hmac( unsigned char *key, int keylen,
-               unsigned char *input, int ilen,
+void md5_hmac( const unsigned char *key, int keylen,
+               const unsigned char *input, int ilen,
                unsigned char output[16] );
 
 /**

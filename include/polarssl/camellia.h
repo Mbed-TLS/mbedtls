@@ -56,7 +56,7 @@ extern "C" {
  * 
  * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH
  */
-int camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize );
+int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key, int keysize );
 
 /**
  * \brief          CAMELLIA key schedule (decryption)
@@ -67,7 +67,7 @@ int camellia_setkey_enc( camellia_context *ctx, unsigned char *key, int keysize 
  * 
  * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH
  */
-int camellia_setkey_dec( camellia_context *ctx, unsigned char *key, int keysize );
+int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key, int keysize );
 
 /**
  * \brief          CAMELLIA-ECB block encryption/decryption
@@ -79,7 +79,7 @@ int camellia_setkey_dec( camellia_context *ctx, unsigned char *key, int keysize 
  */
 void camellia_crypt_ecb( camellia_context *ctx,
                     int mode,
-                    unsigned char input[16],
+                    const unsigned char input[16],
                     unsigned char output[16] );
 
 /**
@@ -98,7 +98,7 @@ void camellia_crypt_cbc( camellia_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[16],
-                    unsigned char *input,
+                    const unsigned char *input,
                     unsigned char *output );
 
 /**
@@ -117,7 +117,7 @@ void camellia_crypt_cfb128( camellia_context *ctx,
                        int length,
                        int *iv_off,
                        unsigned char iv[16],
-                       unsigned char *input,
+                       const unsigned char *input,
                        unsigned char *output );
 
 /**

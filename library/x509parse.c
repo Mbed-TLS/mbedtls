@@ -55,7 +55,7 @@
  * ASN.1 DER decoding routines
  */
 static int asn1_get_len( unsigned char **p,
-                         unsigned char *end,
+                         const unsigned char *end,
                          int *len )
 {
     if( ( end - *p ) < 1 )
@@ -96,7 +96,7 @@ static int asn1_get_len( unsigned char **p,
 }
 
 static int asn1_get_tag( unsigned char **p,
-                         unsigned char *end,
+                         const unsigned char *end,
                          int *len, int tag )
 {
     if( ( end - *p ) < 1 )
@@ -111,7 +111,7 @@ static int asn1_get_tag( unsigned char **p,
 }
 
 static int asn1_get_bool( unsigned char **p,
-                          unsigned char *end,
+                          const unsigned char *end,
                           int *val )
 {
     int ret, len;
@@ -129,7 +129,7 @@ static int asn1_get_bool( unsigned char **p,
 }
 
 static int asn1_get_int( unsigned char **p,
-                         unsigned char *end,
+                         const unsigned char *end,
                          int *val )
 {
     int ret, len;
@@ -152,7 +152,7 @@ static int asn1_get_int( unsigned char **p,
 }
 
 static int asn1_get_mpi( unsigned char **p,
-                         unsigned char *end,
+                         const unsigned char *end,
                          mpi *X )
 {
     int ret, len;
@@ -171,7 +171,7 @@ static int asn1_get_mpi( unsigned char **p,
  *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
 static int x509_get_version( unsigned char **p,
-                             unsigned char *end,
+                             const unsigned char *end,
                              int *ver )
 {
     int ret, len;
@@ -201,7 +201,7 @@ static int x509_get_version( unsigned char **p,
  *  CertificateSerialNumber  ::=  INTEGER
  */
 static int x509_get_serial( unsigned char **p,
-                            unsigned char *end,
+                            const unsigned char *end,
                             x509_buf *serial )
 {
     int ret;
@@ -232,7 +232,7 @@ static int x509_get_serial( unsigned char **p,
  *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
  */
 static int x509_get_alg( unsigned char **p,
-                         unsigned char *end,
+                         const unsigned char *end,
                          x509_buf *alg )
 {
     int ret, len;
@@ -279,11 +279,11 @@ static int x509_get_alg( unsigned char **p,
  *  AttributeValue ::= ANY DEFINED BY AttributeType
  */
 static int x509_get_name( unsigned char **p,
-                          unsigned char *end,
+                          const unsigned char *end,
                           x509_name *cur )
 {
     int ret, len;
-    unsigned char *end2;
+    const unsigned char *end2;
     x509_buf *oid;
     x509_buf *val;
 
@@ -357,7 +357,7 @@ static int x509_get_name( unsigned char **p,
  *       generalTime    GeneralizedTime }
  */
 static int x509_get_time( unsigned char **p,
-                          unsigned char *end,
+                          const unsigned char *end,
                           x509_time *time )
 {
     int ret, len;
@@ -425,7 +425,7 @@ static int x509_get_time( unsigned char **p,
  *       notAfter       Time }
  */
 static int x509_get_dates( unsigned char **p,
-                           unsigned char *end,
+                           const unsigned char *end,
                            x509_time *from,
                            x509_time *to )
 {
@@ -456,7 +456,7 @@ static int x509_get_dates( unsigned char **p,
  *       subjectPublicKey     BIT STRING }
  */
 static int x509_get_pubkey( unsigned char **p,
-                            unsigned char *end,
+                            const unsigned char *end,
                             x509_buf *pk_alg_oid,
                             mpi *N, mpi *E )
 {
@@ -511,7 +511,7 @@ static int x509_get_pubkey( unsigned char **p,
 }
 
 static int x509_get_sig( unsigned char **p,
-                         unsigned char *end,
+                         const unsigned char *end,
                          x509_buf *sig )
 {
     int ret, len;
@@ -536,7 +536,7 @@ static int x509_get_sig( unsigned char **p,
  * X.509 v2/v3 unique identifier (not parsed)
  */
 static int x509_get_uid( unsigned char **p,
-                         unsigned char *end,
+                         const unsigned char *end,
                          x509_buf *uid, int n )
 {
     int ret;
@@ -566,7 +566,7 @@ static int x509_get_uid( unsigned char **p,
  * be either manually updated or extensions should be parsed!
  */
 static int x509_get_ext( unsigned char **p,
-                         unsigned char *end,
+                         const unsigned char *end,
                          x509_buf *ext )
 {
     int ret, len;
@@ -575,7 +575,7 @@ static int x509_get_ext( unsigned char **p,
         return( 0 );
 
     ext->tag = **p;
-    
+
     if( ( ret = asn1_get_tag( p, end, &ext->len,
             ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) ) != 0 )
         return( ret );
@@ -606,8 +606,8 @@ static int x509_get_ext( unsigned char **p,
  * X.509 CRL v2 extensions (no extensions parsed yet.)
  */
 static int x509_get_crl_ext( unsigned char **p,
-                         unsigned char *end,
-                         x509_buf *ext )
+                             const unsigned char *end,
+                             x509_buf *ext )
 {
     int ret, len;
 
@@ -639,10 +639,10 @@ static int x509_get_crl_ext( unsigned char **p,
  * X.509 v3 extensions (only BasicConstraints are parsed)
  */
 static int x509_get_crt_ext( unsigned char **p,
-                         unsigned char *end,
-                         x509_buf *ext,
-                         int *ca_istrue,
-                         int *max_pathlen )
+                             const unsigned char *end,
+                             x509_buf *ext,
+                             int *ca_istrue,
+                             int *max_pathlen )
 {
     int ret, len;
     int is_critical = 1;
@@ -687,7 +687,7 @@ static int x509_get_crt_ext( unsigned char **p,
          *      pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
          */
         end_ext_octet = *p + len;
-        
+
         if( end_ext_octet != end_ext_data )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
                     POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
@@ -737,7 +737,7 @@ static int x509_get_crt_ext( unsigned char **p,
  * X.509 CRL Entries
  */
 static int x509_get_entries( unsigned char **p,
-                             unsigned char *end,
+                             const unsigned char *end,
                              x509_crl_entry *entry )
 {
     int ret, entry_len;
@@ -793,10 +793,10 @@ static int x509_get_entries( unsigned char **p,
 /*
  * Parse one or more certificates and add them to the chained list
  */
-int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
+int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
 {
     int ret, len;
-    unsigned char *s1, *s2;
+    const unsigned char *s1, *s2;
     unsigned char *p, *end;
     x509_cert *crt;
 
@@ -1151,7 +1151,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen )
 /*
  * Parse one or more CRLs and add them to the chained list
  */
-int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen )
+int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen )
 {
     int ret, len;
     unsigned char *s1, *s2;
@@ -1459,7 +1459,7 @@ int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen )
 /*
  * Load all data from a file into a given buffer.
  */
-int load_file( char *path, unsigned char **buf,  size_t *n )
+int load_file( const char *path, unsigned char **buf, size_t *n )
 {
     FILE *f;
 
@@ -1490,7 +1490,7 @@ int load_file( char *path, unsigned char **buf,  size_t *n )
 /*
  * Load one or more certificates and add them to the chained list
  */
-int x509parse_crtfile( x509_cert *chain, char *path )
+int x509parse_crtfile( x509_cert *chain, const char *path )
 {
     int ret;
     size_t n;
@@ -1510,7 +1510,7 @@ int x509parse_crtfile( x509_cert *chain, char *path )
 /*
  * Load one or more CRLs and add them to the chained list
  */
-int x509parse_crlfile( x509_crl *chain, char *path )
+int x509parse_crlfile( x509_crl *chain, const char *path )
 {
     int ret;
     size_t n;
@@ -1531,7 +1531,7 @@ int x509parse_crlfile( x509_crl *chain, char *path )
 /*
  * Read a 16-byte hex string and convert it to binary
  */
-static int x509_get_iv( unsigned char *s, unsigned char iv[8] )
+static int x509_get_iv( const unsigned char *s, unsigned char iv[8] )
 {
     int i, j, k;
 
@@ -1557,7 +1557,7 @@ static int x509_get_iv( unsigned char *s, unsigned char iv[8] )
  */
 static void x509_des3_decrypt( unsigned char des3_iv[8],
                                unsigned char *buf, int buflen,
-                               unsigned char *pwd, int pwdlen )
+                               const unsigned char *pwd, int pwdlen )
 {
     md5_context md5_ctx;
     des3_context des3_ctx;
@@ -1595,11 +1595,11 @@ static void x509_des3_decrypt( unsigned char des3_iv[8],
 /*
  * Parse a private RSA key
  */
-int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
-                                     unsigned char *pwd, int pwdlen )
+int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
+                                     const unsigned char *pwd, int pwdlen )
 {
     int ret, len, enc;
-    unsigned char *s1, *s2;
+    unsigned char *buf, *s1, *s2;
     unsigned char *p, *end;
 #if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
     unsigned char des3_iv[8];
@@ -1608,12 +1608,12 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
     ((void) pwdlen);
 #endif
 
-    s1 = (unsigned char *) strstr( (char *) buf,
+    s1 = (unsigned char *) strstr( (char *) key,
         "-----BEGIN RSA PRIVATE KEY-----" );
 
     if( s1 != NULL )
     {
-        s2 = (unsigned char *) strstr( (char *) buf,
+        s2 = (unsigned char *) strstr( (char *) key,
             "-----END RSA PRIVATE KEY-----" );
 
         if( s2 == NULL || s2 <= s1 )
@@ -1667,7 +1667,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
             return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
         }
 
-        buflen = len;
+        keylen = len;
 
         if( enc != 0 )
         {
@@ -1678,7 +1678,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
                 return( POLARSSL_ERR_X509_KEY_PASSWORD_REQUIRED );
             }
 
-            x509_des3_decrypt( des3_iv, buf, buflen, pwd, pwdlen );
+            x509_des3_decrypt( des3_iv, buf, keylen, pwd, pwdlen );
 
             if( buf[0] != 0x30 || buf[1] != 0x82 ||
                 buf[4] != 0x02 || buf[5] != 0x01 )
@@ -1691,11 +1691,15 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
 #endif
         }
     }
+    else
+    {
+        buf = NULL;
+    }
 
     memset( rsa, 0, sizeof( rsa_context ) );
 
-    p = buf;
-    end = buf + buflen;
+    p = ( s1 != NULL ) ? buf : (unsigned char *) key;
+    end = p + keylen;
 
     /*
      *  RSAPrivateKey ::= SEQUENCE {
@@ -1787,7 +1791,7 @@ int x509parse_key( rsa_context *rsa, unsigned char *buf, int buflen,
 /*
  * Load and parse a private RSA key
  */
-int x509parse_keyfile( rsa_context *rsa, char *path, char *pwd )
+int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
 {
     int ret;
     size_t n;
@@ -1863,11 +1867,11 @@ int compat_snprintf(char *str, size_t size, const char *format, ...)
  * Store the name in printable form into buf; no more
  * than size characters will be written
  */
-int x509parse_dn_gets( char *buf, size_t size, x509_name *dn )
+int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
 {
     int i, ret, n;
     unsigned char c;
-    x509_name *name;
+    const x509_name *name;
     char s[128], *p;
 
     memset( s, 0, sizeof( s ) );
@@ -1954,7 +1958,8 @@ int x509parse_dn_gets( char *buf, size_t size, x509_name *dn )
 /*
  * Return an informational string about the certificate.
  */
-int x509parse_cert_info( char *buf, size_t size, char *prefix, x509_cert *crt )
+int x509parse_cert_info( char *buf, size_t size, const char *prefix,
+                         const x509_cert *crt )
 {
     int i, n, nr, ret;
     char *p;
@@ -2030,11 +2035,12 @@ int x509parse_cert_info( char *buf, size_t size, char *prefix, x509_cert *crt )
 /*
  * Return an informational string about the CRL.
  */
-int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl )
+int x509parse_crl_info( char *buf, size_t size, const char *prefix,
+                        const x509_crl *crl )
 {
     int i, n, nr, ret;
     char *p;
-    x509_crl_entry *entry;
+    const x509_crl_entry *entry;
 
     p = buf;
     n = size;
@@ -2119,7 +2125,7 @@ int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl )
 /*
  * Return 0 if the x509_time is still valid, or 1 otherwise.
  */
-int x509parse_time_expired( x509_time *to )
+int x509parse_time_expired( const x509_time *to )
 {
     struct tm *lt;
     time_t tt;
@@ -2145,9 +2151,9 @@ int x509parse_time_expired( x509_time *to )
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.
  */
-int x509parse_revoked( x509_cert *crt, x509_crl *crl )
+int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
 {
-    x509_crl_entry *cur = &crl->entry;
+    const x509_crl_entry *cur = &crl->entry;
 
     while( cur != NULL && cur->serial.len != 0 )
     {
@@ -2168,7 +2174,7 @@ int x509parse_revoked( x509_cert *crt, x509_crl *crl )
  *
  * @param out   Buffer to receive the hash (Should be at least 64 bytes)
  */
-static void x509_hash( unsigned char *in, int len, int alg,
+static void x509_hash( const unsigned char *in, int len, int alg,
                        unsigned char *out )
 {
     switch( alg )
@@ -2205,7 +2211,7 @@ static void x509_hash( unsigned char *in, int len, int alg,
 int x509parse_verify( x509_cert *crt,
                       x509_cert *trust_ca,
                       x509_crl *ca_crl,
-                      char *cn, int *flags )
+                      const char *cn, int *flags )
 {
     int cn_len;
     int hash_id;

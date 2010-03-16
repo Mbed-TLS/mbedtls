@@ -270,7 +270,7 @@ extern "C" {
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen );
+int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen );
 
 /**
  * \brief          Load one or more certificates and add them
@@ -281,7 +281,7 @@ int x509parse_crt( x509_cert *chain, unsigned char *buf, int buflen );
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509parse_crtfile( x509_cert *chain, char *path );
+int x509parse_crtfile( x509_cert *chain, const char *path );
 
 /**
  * \brief          Parse one or more CRLs and add them
@@ -293,7 +293,7 @@ int x509parse_crtfile( x509_cert *chain, char *path );
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen );
+int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen );
 
 /**
  * \brief          Load one or more CRLs and add them
@@ -304,22 +304,22 @@ int x509parse_crl( x509_crl *chain, unsigned char *buf, int buflen );
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509parse_crlfile( x509_crl *chain, char *path );
+int x509parse_crlfile( x509_crl *chain, const char *path );
 
 /**
  * \brief          Parse a private RSA key
  *
  * \param rsa      RSA context to be initialized
- * \param buf      input buffer
- * \param buflen   size of the buffer
+ * \param key      input buffer
+ * \param keylen   size of the buffer
  * \param pwd      password for decryption (optional)
  * \param pwdlen   size of the password
  *
  * \return         0 if successful, or a specific X509 error code
  */
 int x509parse_key( rsa_context *rsa,
-                   unsigned char *buf, int buflen,
-                   unsigned char *pwd, int pwdlen );
+                   const unsigned char *key, int keylen,
+                   const unsigned char *pwd, int pwdlen );
 
 /**
  * \brief          Load and parse a private RSA key
@@ -330,7 +330,8 @@ int x509parse_key( rsa_context *rsa,
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509parse_keyfile( rsa_context *rsa, char *path, char *password );
+int x509parse_keyfile( rsa_context *rsa, const char *path,
+                       const char *password );
 
 /**
  * \brief          Store the certificate DN in printable form into buf;
@@ -343,7 +344,7 @@ int x509parse_keyfile( rsa_context *rsa, char *path, char *password );
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509parse_dn_gets( char *buf, size_t size, x509_name *dn );
+int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn );
 
 /**
  * \brief          Returns an informational string about the
@@ -357,7 +358,8 @@ int x509parse_dn_gets( char *buf, size_t size, x509_name *dn );
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509parse_cert_info( char *buf, size_t size, char *prefix, x509_cert *crt );
+int x509parse_cert_info( char *buf, size_t size, const char *prefix,
+                         const x509_cert *crt );
 
 /**
  * \brief          Returns an informational string about the
@@ -371,7 +373,8 @@ int x509parse_cert_info( char *buf, size_t size, char *prefix, x509_cert *crt );
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl );
+int x509parse_crl_info( char *buf, size_t size, const char *prefix,
+                        const x509_crl *crl );
 
 /**
  * \brief          Check a given x509_time against the system time and check
@@ -382,7 +385,7 @@ int x509parse_crl_info( char *buf, size_t size, char *prefix, x509_crl *crl );
  * \return         Return 0 if the x509_time is still valid,
  *                 or 1 otherwise.
  */
-int x509parse_time_expired( x509_time *time );
+int x509parse_time_expired( const x509_time *time );
 
 /**
  * \brief          Verify the certificate signature
@@ -407,7 +410,7 @@ int x509parse_time_expired( x509_time *time );
 int x509parse_verify( x509_cert *crt,
                       x509_cert *trust_ca,
                       x509_crl *ca_crl,
-                      char *cn, int *flags );
+                      const char *cn, int *flags );
 
 /**
  * \brief          Unallocate all certificate data

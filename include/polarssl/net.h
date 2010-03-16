@@ -50,7 +50,7 @@ extern "C" {
  *                      POLARSSL_ERR_NET_UNKNOWN_HOST,
  *                      POLARSSL_ERR_NET_CONNECT_FAILED
  */
-int net_connect( int *fd, char *host, int port );
+int net_connect( int *fd, const char *host, int port );
 
 /**
  * \brief          Create a listening socket on bind_ip:port.
@@ -65,7 +65,7 @@ int net_connect( int *fd, char *host, int port );
  *                      POLARSSL_ERR_NET_BIND_FAILED,
  *                      POLARSSL_ERR_NET_LISTEN_FAILED
  */
-int net_bind( int *fd, char *bind_ip, int port );
+int net_bind( int *fd, const char *bind_ip, int port );
 
 /**
  * \brief           Accept a connection from a remote client
@@ -127,8 +127,8 @@ int net_recv( void *ctx, unsigned char *buf, int len );
  *                 the actual amount read is returned.
  *
  * \param ctx      Socket
- * \param buf      The buffer to write to
- * \param len      Maximum length of the buffer
+ * \param buf      The buffer to read from
+ * \param len      The length of the buffer
  *
  * \return         This function returns the number of bytes sent,
  *                 or a non-zero error code; POLARSSL_ERR_NET_TRY_AGAIN

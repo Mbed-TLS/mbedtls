@@ -90,17 +90,17 @@
 /*
  * Supported ciphersuites
  */
-#define SSL_RSA_RC4_128_MD5              4
-#define SSL_RSA_RC4_128_SHA              5
-#define SSL_RSA_DES_168_SHA             10
-#define SSL_EDH_RSA_DES_168_SHA         22
-#define SSL_RSA_AES_128_SHA             47
-#define SSL_RSA_AES_256_SHA             53
-#define SSL_EDH_RSA_AES_256_SHA         57
+#define SSL_RSA_RC4_128_MD5             4
+#define SSL_RSA_RC4_128_SHA             5
+#define SSL_RSA_DES_168_SHA            10
+#define SSL_EDH_RSA_DES_168_SHA        22
+#define SSL_RSA_AES_128_SHA            47
+#define SSL_RSA_AES_256_SHA            53
+#define SSL_EDH_RSA_AES_256_SHA        57
 
-#define SSL_RSA_CAMELLIA_128_SHA	    0x41
-#define SSL_RSA_CAMELLIA_256_SHA	    0x84
-#define SSL_EDH_RSA_CAMELLIA_256_SHA	0x88
+#define SSL_RSA_CAMELLIA_128_SHA     0x41
+#define SSL_RSA_CAMELLIA_256_SHA     0x84
+#define SSL_EDH_RSA_CAMELLIA_256_SHA 0x88
 
 /*
  * Message, alert and handshake types
@@ -189,7 +189,7 @@ struct _ssl_context
      * Callbacks (RNG, debug, I/O)
      */
     int  (*f_rng)(void *);
-    void (*f_dbg)(void *, int, char *);
+    void (*f_dbg)(void *, int, const char *);
     int (*f_recv)(void *, unsigned char *, int);
     int (*f_send)(void *, unsigned char *, int);
 
@@ -251,8 +251,8 @@ struct _ssl_context
     /*
      * Crypto layer
      */
-     dhm_context dhm_ctx;               /*!<  DHM key exchange        */
-     md5_context fin_md5;               /*!<  Finished MD5 checksum   */
+    dhm_context dhm_ctx;                /*!<  DHM key exchange        */
+    md5_context fin_md5;                /*!<  Finished MD5 checksum   */
     sha1_context fin_sha1;              /*!<  Finished SHA-1 checksum */
 
     int do_crypt;                       /*!<  en(de)cryption flag     */
@@ -343,7 +343,7 @@ void ssl_set_rng( ssl_context *ssl,
  * \param p_dbg    debug parameter
  */
 void ssl_set_dbg( ssl_context *ssl,
-                  void (*f_dbg)(void *, int, char *),
+                  void (*f_dbg)(void *, int, const char *),
                   void  *p_dbg );
 
 /**
@@ -422,7 +422,7 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
  *
  * \return         0 if successful
  */
-int ssl_set_dh_param( ssl_context *ssl, char *dhm_P, char *dhm_G );
+int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
 
 /**
  * \brief          Set hostname for ServerName TLS Extension
@@ -433,7 +433,7 @@ int ssl_set_dh_param( ssl_context *ssl, char *dhm_P, char *dhm_G );
  *
  * \return         0 if successful
  */
-int ssl_set_hostname( ssl_context *ssl, char *hostname );
+int ssl_set_hostname( ssl_context *ssl, const char *hostname );
 
 /**
  * \brief          Return the number of data bytes available to read
@@ -442,7 +442,7 @@ int ssl_set_hostname( ssl_context *ssl, char *hostname );
  *
  * \return         how many bytes are available in the read buffer
  */
-int ssl_get_bytes_avail( ssl_context *ssl );
+int ssl_get_bytes_avail( const ssl_context *ssl );
 
 /**
  * \brief          Return the result of the certificate verification
@@ -455,7 +455,7 @@ int ssl_get_bytes_avail( ssl_context *ssl );
  *                      BADCERT_CN_MISMATCH
  *                      BADCERT_NOT_TRUSTED
  */
-int ssl_get_verify_result( ssl_context *ssl );
+int ssl_get_verify_result( const ssl_context *ssl );
 
 /**
  * \brief          Return the name of the current cipher
@@ -464,7 +464,7 @@ int ssl_get_verify_result( ssl_context *ssl );
  *
  * \return         a string containing the cipher name
  */
-char *ssl_get_cipher( ssl_context *ssl );
+const char *ssl_get_cipher( const ssl_context *ssl );
 
 /**
  * \brief          Perform the SSL handshake
@@ -502,7 +502,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, int len );
  *                 it must be called later with the *same* arguments,
  *                 until it returns a positive value.
  */
-int ssl_write( ssl_context *ssl, unsigned char *buf, int len );
+int ssl_write( ssl_context *ssl, const unsigned char *buf, int len );
 
 /**
  * \brief          Notify the peer that the connection is being closed

@@ -439,7 +439,7 @@ static void aes_gen_tables( void )
 /*
  * AES key schedule (encryption)
  */
-int aes_setkey_enc( aes_context *ctx, unsigned char *key, int keysize )
+int aes_setkey_enc( aes_context *ctx, const unsigned char *key, int keysize )
 {
     int i;
     unsigned long *RK;
@@ -544,7 +544,7 @@ int aes_setkey_enc( aes_context *ctx, unsigned char *key, int keysize )
 /*
  * AES key schedule (decryption)
  */
-int aes_setkey_dec( aes_context *ctx, unsigned char *key, int keysize )
+int aes_setkey_dec( aes_context *ctx, const unsigned char *key, int keysize )
 {
     int i, j;
     aes_context cty;
@@ -649,7 +649,7 @@ int aes_setkey_dec( aes_context *ctx, unsigned char *key, int keysize )
  */
 void aes_crypt_ecb( aes_context *ctx,
                     int mode,
-                    unsigned char input[16],
+                    const unsigned char input[16],
                     unsigned char output[16] )
 {
     int i;
@@ -752,7 +752,7 @@ void aes_crypt_cbc( aes_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[16],
-                    unsigned char *input,
+                    const unsigned char *input,
                     unsigned char *output )
 {
     int i;
@@ -808,7 +808,7 @@ void aes_crypt_cfb128( aes_context *ctx,
                        int length,
                        int *iv_off,
                        unsigned char iv[16],
-                       unsigned char *input,
+                       const unsigned char *input,
                        unsigned char *output )
 {
     int c, n = *iv_off;

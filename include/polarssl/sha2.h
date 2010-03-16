@@ -57,7 +57,7 @@ void sha2_starts( sha2_context *ctx, int is224 );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha2_update( sha2_context *ctx, unsigned char *input, int ilen );
+void sha2_update( sha2_context *ctx, const unsigned char *input, int ilen );
 
 /**
  * \brief          SHA-256 final digest
@@ -75,7 +75,7 @@ void sha2_finish( sha2_context *ctx, unsigned char output[32] );
  * \param output   SHA-224/256 checksum result
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha2( unsigned char *input, int ilen,
+void sha2( const unsigned char *input, int ilen,
            unsigned char output[32], int is224 );
 
 /**
@@ -88,7 +88,7 @@ void sha2( unsigned char *input, int ilen,
  * \return         0 if successful, 1 if fopen failed,
  *                 or 2 if fread failed
  */
-int sha2_file( char *path, unsigned char output[32], int is224 );
+int sha2_file( const char *path, unsigned char output[32], int is224 );
 
 /**
  * \brief          SHA-256 HMAC context setup
@@ -98,7 +98,7 @@ int sha2_file( char *path, unsigned char output[32], int is224 );
  * \param keylen   length of the HMAC key
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha2_hmac_starts( sha2_context *ctx, unsigned char *key, int keylen,
+void sha2_hmac_starts( sha2_context *ctx, const unsigned char *key, int keylen,
                        int is224 );
 
 /**
@@ -108,7 +108,7 @@ void sha2_hmac_starts( sha2_context *ctx, unsigned char *key, int keylen,
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha2_hmac_update( sha2_context *ctx, unsigned char *input, int ilen );
+void sha2_hmac_update( sha2_context *ctx, const unsigned char *input, int ilen );
 
 /**
  * \brief          SHA-256 HMAC final digest
@@ -128,8 +128,8 @@ void sha2_hmac_finish( sha2_context *ctx, unsigned char output[32] );
  * \param output   HMAC-SHA-224/256 result
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha2_hmac( unsigned char *key, int keylen,
-                unsigned char *input, int ilen,
+void sha2_hmac( const unsigned char *key, int keylen,
+                const unsigned char *input, int ilen,
                 unsigned char output[32], int is224 );
 
 /**

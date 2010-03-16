@@ -288,7 +288,7 @@ static const unsigned long RHs[16] =
 
 #define SWAP(a,b) { unsigned long t = a; a = b; b = t; t = 0; }
 
-static void des_setkey( unsigned long SK[32], unsigned char key[8] )
+static void des_setkey( unsigned long SK[32], const unsigned char key[8] )
 {
     int i;
     unsigned long X, Y, T;
@@ -360,7 +360,7 @@ static void des_setkey( unsigned long SK[32], unsigned char key[8] )
 /*
  * DES key schedule (56-bit, encryption)
  */
-void des_setkey_enc( des_context *ctx, unsigned char key[8] )
+void des_setkey_enc( des_context *ctx, const unsigned char key[8] )
 {
     des_setkey( ctx->sk, key );
 }
@@ -368,7 +368,7 @@ void des_setkey_enc( des_context *ctx, unsigned char key[8] )
 /*
  * DES key schedule (56-bit, decryption)
  */
-void des_setkey_dec( des_context *ctx, unsigned char key[8] )
+void des_setkey_dec( des_context *ctx, const unsigned char key[8] )
 {
     int i;
 
@@ -383,7 +383,7 @@ void des_setkey_dec( des_context *ctx, unsigned char key[8] )
 
 static void des3_set2key( unsigned long esk[96],
                           unsigned long dsk[96],
-                          unsigned char key[16] )
+                          const unsigned char key[16] )
 {
     int i;
 
@@ -409,7 +409,7 @@ static void des3_set2key( unsigned long esk[96],
 /*
  * Triple-DES key schedule (112-bit, encryption)
  */
-void des3_set2key_enc( des3_context *ctx, unsigned char key[16] )
+void des3_set2key_enc( des3_context *ctx, const unsigned char key[16] )
 {
     unsigned long sk[96];
 
@@ -420,7 +420,7 @@ void des3_set2key_enc( des3_context *ctx, unsigned char key[16] )
 /*
  * Triple-DES key schedule (112-bit, decryption)
  */
-void des3_set2key_dec( des3_context *ctx, unsigned char key[16] )
+void des3_set2key_dec( des3_context *ctx, const unsigned char key[16] )
 {
     unsigned long sk[96];
 
@@ -430,7 +430,7 @@ void des3_set2key_dec( des3_context *ctx, unsigned char key[16] )
 
 static void des3_set3key( unsigned long esk[96],
                           unsigned long dsk[96],
-                          unsigned char key[24] )
+                          const unsigned char key[24] )
 {
     int i;
 
@@ -454,7 +454,7 @@ static void des3_set3key( unsigned long esk[96],
 /*
  * Triple-DES key schedule (168-bit, encryption)
  */
-void des3_set3key_enc( des3_context *ctx, unsigned char key[24] )
+void des3_set3key_enc( des3_context *ctx, const unsigned char key[24] )
 {
     unsigned long sk[96];
 
@@ -465,7 +465,7 @@ void des3_set3key_enc( des3_context *ctx, unsigned char key[24] )
 /*
  * Triple-DES key schedule (168-bit, decryption)
  */
-void des3_set3key_dec( des3_context *ctx, unsigned char key[24] )
+void des3_set3key_dec( des3_context *ctx, const unsigned char key[24] )
 {
     unsigned long sk[96];
 
@@ -477,7 +477,7 @@ void des3_set3key_dec( des3_context *ctx, unsigned char key[24] )
  * DES-ECB block encryption/decryption
  */
 void des_crypt_ecb( des_context *ctx,
-                    unsigned char input[8],
+                    const unsigned char input[8],
                     unsigned char output[8] )
 {
     int i;
@@ -509,7 +509,7 @@ void des_crypt_cbc( des_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[8],
-                    unsigned char *input,
+                    const unsigned char *input,
                     unsigned char *output )
 {
     int i;
@@ -553,7 +553,7 @@ void des_crypt_cbc( des_context *ctx,
  * 3DES-ECB block encryption/decryption
  */
 void des3_crypt_ecb( des3_context *ctx,
-                     unsigned char input[8],
+                     const unsigned char input[8],
                      unsigned char output[8] )
 {
     int i;
@@ -597,7 +597,7 @@ void des3_crypt_cbc( des3_context *ctx,
                      int mode,
                      int length,
                      unsigned char iv[8],
-                     unsigned char *input,
+                     const unsigned char *input,
                      unsigned char *output )
 {
     int i;

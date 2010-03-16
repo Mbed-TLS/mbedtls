@@ -90,7 +90,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
     n = ssl->session->length;
 
     if( n < 16 || n > 32 || ssl->resume == 0 ||
-        t - ssl->session->start > ssl->timeout )
+        ( ssl->timeout != 0 && t - ssl->session->start > ssl->timeout ) )
         n = 0;
 
     *p++ = (unsigned char) n;
@@ -274,7 +274,12 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     else
     {
         ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
-        ssl_derive_keys( ssl );
+
+        if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
+            return( ret );
+        }
     }
 
     SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
@@ -584,7 +589,11 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         }
     }
 
-    ssl_derive_keys( ssl );
+    if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
+        return( ret );
+    }
 
     ssl->out_msglen  = i + n;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;

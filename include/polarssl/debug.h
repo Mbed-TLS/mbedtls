@@ -59,21 +59,24 @@ extern "C" {
 
 char *debug_fmt( const char *format, ... );
 
-void debug_print_msg( ssl_context *ssl, int level,
-                      char *file, int line, char *text );
+void debug_print_msg( const ssl_context *ssl, int level,
+                      const char *file, int line, const char *text );
 
-void debug_print_ret( ssl_context *ssl, int level,
-                      char *file, int line, char *text, int ret );
+void debug_print_ret( const ssl_context *ssl, int level,
+                      const char *file, int line,
+                      const char *text, int ret );
 
-void debug_print_buf( ssl_context *ssl, int level,
-                      char *file, int line, char *text,
+void debug_print_buf( const ssl_context *ssl, int level,
+                      const char *file, int line, const char *text,
                       unsigned char *buf, int len );
 
-void debug_print_mpi( ssl_context *ssl, int level,
-                      char *file, int line, char *text, mpi *X );
+void debug_print_mpi( const ssl_context *ssl, int level,
+                      const char *file, int line,
+                      const char *text, const mpi *X );
 
-void debug_print_crt( ssl_context *ssl, int level,
-                      char *file, int line, char *text, x509_cert *crt );
+void debug_print_crt( const ssl_context *ssl, int level,
+                      const char *file, int line,
+                      const char *text, const x509_cert *crt );
 
 #ifdef __cplusplus
 }

@@ -27,7 +27,7 @@
 
 #include "polarssl/timing.h"
 
-#if defined(WIN32)
+#if defined(_WIN32)
 
 #include <windows.h>
 #include <winbase.h>
@@ -164,7 +164,7 @@ unsigned long hardclock( void )
 
 int alarmed = 0;
 
-#if defined(WIN32)
+#if defined(_WIN32)
 
 unsigned long get_timer( struct hr_time *val, int reset )
 {

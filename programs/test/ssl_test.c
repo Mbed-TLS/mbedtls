@@ -113,7 +113,7 @@ unsigned long int lcppm5( unsigned long int *state )
     return( u );
 }
 
-void my_debug( void *ctx, int level, char *str )
+void my_debug( void *ctx, int level, const char *str )
 {
     if( level < ((struct options *) ctx)->debug_level )
         fprintf( stderr, "%s", str );

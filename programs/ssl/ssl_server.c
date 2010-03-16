@@ -80,7 +80,7 @@ int my_ciphers[] =
 
 #define DEBUG_LEVEL 0
 
-void my_debug( void *ctx, int level, char *str )
+void my_debug( void *ctx, int level, const char *str )
 {
     if( level < DEBUG_LEVEL )
     {

@@ -39,7 +39,7 @@
  */
 static int dhm_read_bignum( mpi *X,
                             unsigned char **p,
-                            unsigned char *end )
+                            const unsigned char *end )
 {
     int ret, n;
 
@@ -65,7 +65,7 @@ static int dhm_read_bignum( mpi *X,
  */
 int dhm_read_params( dhm_context *ctx,
                      unsigned char **p,
-                     unsigned char *end )
+                     const unsigned char *end )
 {
     int ret, n;
 
@@ -151,7 +151,7 @@ cleanup:
  * Import the peer's public value G^Y
  */
 int dhm_read_public( dhm_context *ctx,
-                     unsigned char *input, int ilen )
+                     const unsigned char *input, int ilen )
 {
     int ret;
 

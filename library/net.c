@@ -27,7 +27,7 @@
 
 #include "polarssl/net.h"
 
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32) || defined(_WIN32_WCE)
 
 #include <winsock2.h>
 #include <windows.h>
@@ -89,12 +89,12 @@ unsigned short net_htons(unsigned short n);
 /*
  * Initiate a TCP connection with host:port
  */
-int net_connect( int *fd, char *host, int port )
+int net_connect( int *fd, const char *host, int port )
 {
     struct sockaddr_in server_addr;
     struct hostent *server_host;
 
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32) || defined(_WIN32_WCE)
     WSADATA wsaData;
 
     if( wsa_init_done == 0 )
@@ -134,12 +134,12 @@ int net_connect( int *fd, char *host, int port )
 /*
  * Create a listening socket on bind_ip:port
  */
-int net_bind( int *fd, char *bind_ip, int port )
+int net_bind( int *fd, const char *bind_ip, int port )
 {
     int n, c[4];
     struct sockaddr_in server_addr;
 
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32) || defined(_WIN32_WCE)
     WSADATA wsaData;
 
     if( wsa_init_done == 0 )
@@ -202,7 +202,7 @@ int net_bind( int *fd, char *bind_ip, int port )
  */
 static int net_is_blocking( void )
 {
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32) || defined(_WIN32_WCE)
     return( WSAGetLastError() == WSAEWOULDBLOCK );
 #else
     switch( errno )
@@ -255,7 +255,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
  */
 int net_set_block( int fd )
 {
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32) || defined(_WIN32_WCE)
     long n = 0;
     return( ioctlsocket( fd, FIONBIO, &n ) );
 #else
@@ -265,7 +265,7 @@ int net_set_block( int fd )
 
 int net_set_nonblock( int fd )
 {
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32) || defined(_WIN32_WCE)
     long n = 1;
     return( ioctlsocket( fd, FIONBIO, &n ) );
 #else
@@ -299,7 +299,7 @@ int net_recv( void *ctx, unsigned char *buf, int len )
         if( net_is_blocking() != 0 )
             return( POLARSSL_ERR_NET_TRY_AGAIN );
 
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32) || defined(_WIN32_WCE)
         if( WSAGetLastError() == WSAECONNRESET )
             return( POLARSSL_ERR_NET_CONN_RESET );
 #else
@@ -328,7 +328,7 @@ int net_send( void *ctx, unsigned char *buf, int len )
         if( net_is_blocking() != 0 )
             return( POLARSSL_ERR_NET_TRY_AGAIN );
 
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32) || defined(_WIN32_WCE)
         if( WSAGetLastError() == WSAECONNRESET )
             return( POLARSSL_ERR_NET_CONN_RESET );
 #else

@@ -5,6 +5,7 @@ Changes
    * Added option parsing for host and port selection to
      ssl_client2
    * Added support for GeneralizedTime in X509 parsing
+   * Added const correctness for main code base
 
 Bug fixes
    * Fixed bug resulting in failure to send the last

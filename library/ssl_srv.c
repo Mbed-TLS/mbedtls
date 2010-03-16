@@ -417,7 +417,12 @@ static int ssl_write_server_hello( ssl_context *ssl )
          */
         ssl->resume = 1;
         ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
-        ssl_derive_keys( ssl );
+
+        if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
+            return( ret );
+        }
     }
 
     memcpy( p, ssl->session->id, ssl->session->length );
@@ -451,7 +456,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
 {
     int ret, n;
     unsigned char *buf, *p;
-    x509_cert *crt;
+    const x509_cert *crt;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
@@ -749,7 +754,11 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         }
     }
 
-    ssl_derive_keys( ssl );
+    if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
+        return( ret );
+    }
 
     if( ssl->s_set != NULL )
         ssl->s_set( ssl );

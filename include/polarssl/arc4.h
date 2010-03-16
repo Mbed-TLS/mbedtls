@@ -45,7 +45,7 @@ extern "C" {
  * \param key      the secret key
  * \param keylen   length of the key
  */
-void arc4_setup( arc4_context *ctx, unsigned char *key, int keylen );
+void arc4_setup( arc4_context *ctx, const unsigned char *key, int keylen );
 
 /**
  * \brief          ARC4 cipher function

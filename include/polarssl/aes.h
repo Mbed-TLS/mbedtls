@@ -52,7 +52,7 @@ extern "C" {
  *
  * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
  */
-int aes_setkey_enc( aes_context *ctx, unsigned char *key, int keysize );
+int aes_setkey_enc( aes_context *ctx, const unsigned char *key, int keysize );
 
 /**
  * \brief          AES key schedule (decryption)
@@ -63,7 +63,7 @@ int aes_setkey_enc( aes_context *ctx, unsigned char *key, int keysize );
  *
  * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
  */
-int aes_setkey_dec( aes_context *ctx, unsigned char *key, int keysize );
+int aes_setkey_dec( aes_context *ctx, const unsigned char *key, int keysize );
 
 /**
  * \brief          AES-ECB block encryption/decryption
@@ -75,7 +75,7 @@ int aes_setkey_dec( aes_context *ctx, unsigned char *key, int keysize );
  */
 void aes_crypt_ecb( aes_context *ctx,
                     int mode,
-                    unsigned char input[16],
+                    const unsigned char input[16],
                     unsigned char output[16] );
 
 /**
@@ -94,7 +94,7 @@ void aes_crypt_cbc( aes_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[16],
-                    unsigned char *input,
+                    const unsigned char *input,
                     unsigned char *output );
 
 /**
@@ -113,7 +113,7 @@ void aes_crypt_cfb128( aes_context *ctx,
                        int length,
                        int *iv_off,
                        unsigned char iv[16],
-                       unsigned char *input,
+                       const unsigned char *input,
                        unsigned char *output );
 
 /**

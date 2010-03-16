@@ -73,7 +73,7 @@ void sha1_starts( sha1_context *ctx )
     ctx->state[4] = 0xC3D2E1F0;
 }
 
-static void sha1_process( sha1_context *ctx, unsigned char data[64] )
+static void sha1_process( sha1_context *ctx, const unsigned char data[64] )
 {
     unsigned long temp, W[16], A, B, C, D, E;
 
@@ -232,7 +232,7 @@ static void sha1_process( sha1_context *ctx, unsigned char data[64] )
 /*
  * SHA-1 process buffer
  */
-void sha1_update( sha1_context *ctx, unsigned char *input, int ilen )
+void sha1_update( sha1_context *ctx, const unsigned char *input, int ilen )
 {
     int fill;
     unsigned long left;
@@ -313,7 +313,7 @@ void sha1_finish( sha1_context *ctx, unsigned char output[20] )
 /*
  * output = SHA-1( input buffer )
  */
-void sha1( unsigned char *input, int ilen, unsigned char output[20] )
+void sha1( const unsigned char *input, int ilen, unsigned char output[20] )
 {
     sha1_context ctx;
 
@@ -327,7 +327,7 @@ void sha1( unsigned char *input, int ilen, unsigned char output[20] )
 /*
  * output = SHA-1( file contents )
  */
-int sha1_file( char *path, unsigned char output[20] )
+int sha1_file( const char *path, unsigned char output[20] )
 {
     FILE *f;
     size_t n;
@@ -359,7 +359,7 @@ int sha1_file( char *path, unsigned char output[20] )
 /*
  * SHA-1 HMAC context setup
  */
-void sha1_hmac_starts( sha1_context *ctx, unsigned char *key, int keylen )
+void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key, int keylen )
 {
     int i;
     unsigned char sum[20];
@@ -389,7 +389,7 @@ void sha1_hmac_starts( sha1_context *ctx, unsigned char *key, int keylen )
 /*
  * SHA-1 HMAC process buffer
  */
-void sha1_hmac_update( sha1_context *ctx, unsigned char *input, int ilen )
+void sha1_hmac_update( sha1_context *ctx, const unsigned char *input, int ilen )
 {
     sha1_update( ctx, input, ilen );
 }
@@ -413,8 +413,8 @@ void sha1_hmac_finish( sha1_context *ctx, unsigned char output[20] )
 /*
  * output = HMAC-SHA-1( hmac key, input buffer )
  */
-void sha1_hmac( unsigned char *key, int keylen,
-                unsigned char *input, int ilen,
+void sha1_hmac( const unsigned char *key, int keylen,
+                const unsigned char *input, int ilen,
                 unsigned char output[20] )
 {
     sha1_context ctx;

@@ -73,7 +73,7 @@ void my_debug( void *ctx, int level, const char *str )
 
 int main( int argc, char *argv[] )
 {
-    int ret, len, server_fd;
+    int ret = 0, len, server_fd;
     unsigned char buf[1024];
     havege_state hs;
     ssl_context ssl;

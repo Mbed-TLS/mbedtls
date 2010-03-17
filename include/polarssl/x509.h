@@ -180,6 +180,7 @@ typedef struct _x509_cert
 
     x509_buf sig_oid2;
     x509_buf sig;
+    int sig_alg;
 
     struct _x509_cert *next; 
 }
@@ -220,6 +221,7 @@ typedef struct _x509_crl
 
     x509_buf sig_oid2;
     x509_buf sig;
+    int sig_alg;
 
     struct _x509_crl *next; 
 }

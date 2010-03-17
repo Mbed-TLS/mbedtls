@@ -1,11 +1,15 @@
 PolarSSL ChangeLog
 
 = Version 0.12.2 released on XXXXXXXX
-Changes
+Features
    * Added option parsing for host and port selection to
      ssl_client2
    * Added support for GeneralizedTime in X509 parsing
+
+Changes
    * Added const correctness for main code base
+   * X509 signature algorithm determination is now
+     in a function to allow easy future expansion
 
 Bug fixes
    * Fixed bug resulting in failure to send the last

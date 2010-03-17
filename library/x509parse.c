@@ -790,6 +790,29 @@ static int x509_get_entries( unsigned char **p,
     return( 0 );
 }
 
+static int x509_get_sig_alg( const x509_buf *sig_oid, int *sig_alg )
+{
+    if( sig_oid->len == 9 &&
+        memcmp( sig_oid->p, OID_PKCS1, 8 ) == 0 )
+    {
+        if( sig_oid->p[8] >= 2 && sig_oid->p[8] <= 5 )
+        {
+            *sig_alg = sig_oid->p[8];
+            return( 0 );
+        }
+
+        if ( sig_oid->p[8] >= 11 && sig_oid->p[8] <= 14 )
+        {
+            *sig_alg = sig_oid->p[8];
+            return( 0 );
+        }
+
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+    }
+
+    return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+}
+
 /*
  * Parse one or more certificates and add them to the chained list
  */
@@ -957,19 +980,10 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION );
     }
 
-    if( crt->sig_oid1.len != 9 ||
-        memcmp( crt->sig_oid1.p, OID_PKCS1, 8 ) != 0 )
+    if( ( ret = x509_get_sig_alg( &crt->sig_oid1, &crt->sig_alg ) ) != 0 )
     {
         x509_free( crt );
-        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
-    }
-
-    if( crt->sig_oid1.p[8] < 2 ||
-        ( crt->sig_oid1.p[8] > 5 && crt->sig_oid1.p[8] < 11 ) ||
-        crt->sig_oid1.p[8] > 14 )
-    {
-        x509_free( crt );
-        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+        return( ret );
     }
 
     /*
@@ -1313,16 +1327,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen )
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION );
     }
 
-    if( crl->sig_oid1.len != 9 ||
-        memcmp( crl->sig_oid1.p, OID_PKCS1, 8 ) != 0 )
-    {
-        x509_crl_free( crl );
-        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
-    }
-
-    if( crl->sig_oid1.p[8] < 2 ||
-        ( crl->sig_oid1.p[8] > 5 && crl->sig_oid1.p[8] < 11 ) ||
-    crl->sig_oid1.p[8] > 14 )
+    if( ( ret = x509_get_sig_alg( &crl->sig_oid1, &crl->sig_alg ) ) != 0 )
     {
         x509_crl_free( crl );
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
@@ -2011,7 +2016,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     ret = snprintf( p, n, "\n%ssigned using  : RSA+", prefix );
     SAFE_SNPRINTF();
 
-    switch( crt->sig_oid1.p[8] )
+    switch( crt->sig_alg )
     {
         case SIG_RSA_MD2    : ret = snprintf( p, n, "MD2"    ); break;
         case SIG_RSA_MD4    : ret = snprintf( p, n, "MD4"    ); break;
@@ -2102,7 +2107,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
     ret = snprintf( p, n, "\n%ssigned using  : RSA+", prefix );
     SAFE_SNPRINTF();
 
-    switch( crl->sig_oid1.p[8] )
+    switch( crl->sig_alg )
     {
         case SIG_RSA_MD2    : ret = snprintf( p, n, "MD2"    ); break;
         case SIG_RSA_MD4    : ret = snprintf( p, n, "MD4"    ); break;
@@ -2265,7 +2270,7 @@ int x509parse_verify( x509_cert *crt,
             continue;
         }
 
-        hash_id = crt->sig_oid1.p[8];
+        hash_id = crt->sig_alg;
 
         x509_hash( crt->tbs.p, crt->tbs.len, hash_id, hash );
 
@@ -2296,7 +2301,7 @@ int x509parse_verify( x509_cert *crt,
             trust_ca->max_pathlen < pathlen )
             break;
 
-        hash_id = crt->sig_oid1.p[8];
+        hash_id = crt->sig_alg;
 
         x509_hash( crt->tbs.p, crt->tbs.len, hash_id, hash );
 
@@ -2336,7 +2341,7 @@ int x509parse_verify( x509_cert *crt,
         /*
          * Check if CRL is correctry signed by the trusted CA
          */
-        hash_id = ca_crl->sig_oid1.p[8];
+        hash_id = ca_crl->sig_alg;
 
         x509_hash( ca_crl->tbs.p, ca_crl->tbs.len, hash_id, hash );
 

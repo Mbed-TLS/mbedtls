@@ -14,9 +14,10 @@ Changes
 Bug fixes
    * Fixed bug resulting in failure to send the last
      certificate in the chain in ssl_write_certificate() and
-	 ssl_write_certificate_request() (Found by fatbob)
+	 ssl_write_certificate_request() (found by fatbob)
    * Added small fixes for compiler warnings on a Mac
-   * Fixed algorithmic bug in mpi_is_prime() (Found by
+     (found by Frank de Brabander)
+   * Fixed algorithmic bug in mpi_is_prime() (found by
      Smbat Tonoyan)
 
 = Version 0.12.1 released on 2009-10-04

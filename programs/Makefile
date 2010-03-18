@@ -7,15 +7,15 @@ OFLAGS	= -O
 LDFLAGS	= -L../library -lpolarssl
 
 APPS =	aes/aescrypt2		hash/hello		\
-	hash/md5sum		hash/sha1sum		\
+	hash/md5sum			hash/sha1sum		\
 	hash/sha2sum		pkey/dh_client		\
 	pkey/dh_genprime	pkey/dh_server		\
 	pkey/mpi_demo		pkey/rsa_genkey		\
 	pkey/rsa_sign		pkey/rsa_verify		\
 	ssl/ssl_client1		ssl/ssl_client2		\
 	ssl/ssl_server		test/ssl_cert_test	\
-	test/benchmark					\
-	test/selftest		test/ssl_test
+	test/benchmark		test/selftest		\
+	test/ssl_test		x509/cert_app
 
 .SILENT:
 
@@ -96,6 +96,10 @@ test/selftest: test/selftest.c ../library/libpolarssl.a
 test/ssl_test: test/ssl_test.c ../library/libpolarssl.a
 	echo   "  CC    test/ssl_test.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/ssl_test.c    $(LDFLAGS) -o $@
+
+x509/cert_app: x509/cert_app.c ../library/libpolarssl.a
+	echo   "  CC    x509/cert_app.c"
+	$(CC) $(CFLAGS) $(OFLAGS) x509/cert_app.c    $(LDFLAGS) -o $@
 
 clean:
 	rm -f $(APPS)

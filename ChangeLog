@@ -5,6 +5,9 @@ Features
    * Added option parsing for host and port selection to
      ssl_client2
    * Added support for GeneralizedTime in X509 parsing
+   * Added cert_app program to allow easy reading and
+     printing of X509 certificates from file or SSL
+	 connection.
 
 Changes
    * Added const correctness for main code base

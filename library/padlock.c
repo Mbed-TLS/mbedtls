@@ -126,7 +126,7 @@ int padlock_xcryptcbc( aes_context *ctx,
 
     if( ( (long) input  & 15 ) != 0 ||
         ( (long) output & 15 ) != 0 )
-        return( 1 );
+        return( POLARSSL_ERR_PADLOCK_DATA_MISALIGNED );
 
     rk = ctx->rk;
     iw = PADLOCK_ALIGN16( buf );

@@ -19,7 +19,7 @@ arc4_crypt:hex_src_string:hex_key_string:hex_dst_string
     key_len = unhexify( key_str, {hex_key_string} );
 
     arc4_setup(&ctx, key_str, key_len);
-    arc4_crypt(&ctx, src_str, src_len);
+    TEST_ASSERT( arc4_crypt(&ctx, src_str, src_len) == 0 );
     hexify( dst_str, src_str, src_len );
 
     TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );

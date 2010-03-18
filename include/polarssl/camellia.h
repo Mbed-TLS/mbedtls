@@ -32,6 +32,7 @@ typedef UINT32 uint32_t;
 #define CAMELLIA_DECRYPT     0
 
 #define POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH            -0x0a00
+#define POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH          -0x0a10
 
 /**
  * \brief          CAMELLIA context structure
@@ -76,8 +77,10 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key, int ke
  * \param mode     CAMELLIA_ENCRYPT or CAMELLIA_DECRYPT
  * \param input    16-byte input block
  * \param output   16-byte output block
+ * 
+ * \return         0
  */
-void camellia_crypt_ecb( camellia_context *ctx,
+int camellia_crypt_ecb( camellia_context *ctx,
                     int mode,
                     const unsigned char input[16],
                     unsigned char output[16] );
@@ -93,8 +96,10 @@ void camellia_crypt_ecb( camellia_context *ctx,
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
+ * 
+ * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH
  */
-void camellia_crypt_cbc( camellia_context *ctx,
+int camellia_crypt_cbc( camellia_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[16],
@@ -111,8 +116,10 @@ void camellia_crypt_cbc( camellia_context *ctx,
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
+ * 
+ * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH
  */
-void camellia_crypt_cfb128( camellia_context *ctx,
+int camellia_crypt_cfb128( camellia_context *ctx,
                        int mode,
                        int length,
                        int *iv_off,

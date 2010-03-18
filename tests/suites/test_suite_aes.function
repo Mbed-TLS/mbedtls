@@ -23,7 +23,7 @@ aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
     TEST_ASSERT( aes_setkey_enc( &ctx, key_str, key_len * 8 ) == {setkey_result} );
     if( {setkey_result} == 0 )
     {
-        aes_crypt_ecb( &ctx, AES_ENCRYPT, src_str, output );
+        TEST_ASSERT( aes_crypt_ecb( &ctx, AES_ENCRYPT, src_str, output ) == 0 );
         hexify( dst_str, output, 16 );
 
         TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
@@ -52,7 +52,7 @@ aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
     TEST_ASSERT( aes_setkey_dec( &ctx, key_str, key_len * 8 ) == {setkey_result} );
     if( {setkey_result} == 0 )
     {
-        aes_crypt_ecb( &ctx, AES_DECRYPT, src_str, output );
+        TEST_ASSERT( aes_crypt_ecb( &ctx, AES_DECRYPT, src_str, output ) == 0 );
         hexify( dst_str, output, 16 );
 
         TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
@@ -61,7 +61,7 @@ aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
 END_CASE
 
 BEGIN_CASE
-aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -69,7 +69,7 @@ aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     aes_context ctx;
-    int key_len;
+    int key_len, data_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -79,18 +79,21 @@ aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
 
     key_len = unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
-    unhexify( src_str, {hex_src_string} );
+    data_len = unhexify( src_str, {hex_src_string} );
 
     aes_setkey_enc( &ctx, key_str, key_len * 8 );
-    aes_crypt_cbc( &ctx, AES_ENCRYPT, 16, iv_str, src_str, output );
-    hexify( dst_str, output, 16 );
+    TEST_ASSERT( aes_crypt_cbc( &ctx, AES_ENCRYPT, data_len, iv_str, src_str, output ) == {cbc_result} );
+    if( {cbc_result} == 0 )
+    {
+        hexify( dst_str, output, data_len );
 
-    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
 }
 END_CASE
 
 BEGIN_CASE
-aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -98,7 +101,7 @@ aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     aes_context ctx;
-    int key_len;
+    int key_len, data_len;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -108,13 +111,16 @@ aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
 
     key_len = unhexify( key_str, {hex_key_string} );
     unhexify( iv_str, {hex_iv_string} );
-    unhexify( src_str, {hex_src_string} );
+    data_len = unhexify( src_str, {hex_src_string} );
 
     aes_setkey_dec( &ctx, key_str, key_len * 8 );
-    aes_crypt_cbc( &ctx, AES_DECRYPT, 16, iv_str, src_str, output );
-    hexify( dst_str, output, 16 );
+    TEST_ASSERT( aes_crypt_cbc( &ctx, AES_DECRYPT, data_len, iv_str, src_str, output ) == {cbc_result} );
+    if( {cbc_result} == 0)
+    {
+        hexify( dst_str, output, data_len );
 
-    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
 }
 END_CASE
 
@@ -141,7 +147,7 @@ aes_encrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unhexify( src_str, {hex_src_string} );
 
     aes_setkey_enc( &ctx, key_str, key_len * 8 );
-    aes_crypt_cfb128( &ctx, AES_ENCRYPT, 16, &iv_offset, iv_str, src_str, output );
+    TEST_ASSERT( aes_crypt_cfb128( &ctx, AES_ENCRYPT, 16, &iv_offset, iv_str, src_str, output ) == 0 );
     hexify( dst_str, output, 16 );
 
     TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
@@ -171,7 +177,7 @@ aes_decrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unhexify( src_str, {hex_src_string} );
 
     aes_setkey_enc( &ctx, key_str, key_len * 8 );
-    aes_crypt_cfb128( &ctx, AES_DECRYPT, 16, &iv_offset, iv_str, src_str, output );
+    TEST_ASSERT( aes_crypt_cfb128( &ctx, AES_DECRYPT, 16, &iv_offset, iv_str, src_str, output ) == 0 );
     hexify( dst_str, output, 16 );
 
     TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );

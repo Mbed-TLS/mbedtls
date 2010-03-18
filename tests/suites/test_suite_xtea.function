@@ -20,7 +20,7 @@ xtea_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     unhexify( src_str, {hex_src_string} );
 
     xtea_setup( &ctx, key_str );
-    xtea_crypt_ecb( &ctx, XTEA_ENCRYPT, src_str, output );
+    TEST_ASSERT( xtea_crypt_ecb( &ctx, XTEA_ENCRYPT, src_str, output ) == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
@@ -45,7 +45,7 @@ xtea_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     unhexify( src_str, {hex_src_string} );
 
     xtea_setup( &ctx, key_str );
-    xtea_crypt_ecb( &ctx, XTEA_DECRYPT, src_str, output );
+    TEST_ASSERT( xtea_crypt_ecb( &ctx, XTEA_DECRYPT, src_str, output ) == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );

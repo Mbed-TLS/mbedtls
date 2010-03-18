@@ -53,8 +53,10 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key, int keylen );
  * \param ctx      ARC4 context
  * \param buf      buffer to be processed
  * \param buflen   amount of data in buf
+ *
+ * \return         0
  */
-void arc4_crypt( arc4_context *ctx, unsigned char *buf, int buflen );
+int arc4_crypt( arc4_context *ctx, unsigned char *buf, int buflen );
 
 /*
  * \brief          Checkup routine

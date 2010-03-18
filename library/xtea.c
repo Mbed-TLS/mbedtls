@@ -68,7 +68,7 @@ void xtea_setup( xtea_context *ctx, unsigned char key[16] )
 /*
  * XTEA encrypt function
  */
-void xtea_crypt_ecb( xtea_context *ctx, int mode, unsigned char input[8],
+int xtea_crypt_ecb( xtea_context *ctx, int mode, unsigned char input[8],
                      unsigned char output[8])
 {
     uint32_t *k, v0, v1, i;
@@ -103,6 +103,8 @@ void xtea_crypt_ecb( xtea_context *ctx, int mode, unsigned char input[8],
 
     PUT_ULONG_BE( v0, output, 0 );
     PUT_ULONG_BE( v1, output, 4 );
+
+    return( 0 );
 }
 
 #if defined(POLARSSL_SELF_TEST)

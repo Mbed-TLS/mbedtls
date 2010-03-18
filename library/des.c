@@ -476,7 +476,7 @@ void des3_set3key_dec( des3_context *ctx, const unsigned char key[24] )
 /*
  * DES-ECB block encryption/decryption
  */
-void des_crypt_ecb( des_context *ctx,
+int des_crypt_ecb( des_context *ctx,
                     const unsigned char input[8],
                     unsigned char output[8] )
 {
@@ -500,12 +500,14 @@ void des_crypt_ecb( des_context *ctx,
 
     PUT_ULONG_BE( Y, output, 0 );
     PUT_ULONG_BE( X, output, 4 );
+
+    return( 0 );
 }
 
 /*
  * DES-CBC buffer encryption/decryption
  */
-void des_crypt_cbc( des_context *ctx,
+int des_crypt_cbc( des_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[8],
@@ -514,6 +516,9 @@ void des_crypt_cbc( des_context *ctx,
 {
     int i;
     unsigned char temp[8];
+
+    if( length % 8 )
+        return( POLARSSL_ERR_DES_INVALID_INPUT_LENGTH );
 
     if( mode == DES_ENCRYPT )
     {
@@ -547,12 +552,14 @@ void des_crypt_cbc( des_context *ctx,
             length -= 8;
         }
     }
+
+    return( 0 );
 }
 
 /*
  * 3DES-ECB block encryption/decryption
  */
-void des3_crypt_ecb( des3_context *ctx,
+int des3_crypt_ecb( des3_context *ctx,
                      const unsigned char input[8],
                      unsigned char output[8] )
 {
@@ -588,12 +595,14 @@ void des3_crypt_ecb( des3_context *ctx,
 
     PUT_ULONG_BE( Y, output, 0 );
     PUT_ULONG_BE( X, output, 4 );
+
+    return( 0 );
 }
 
 /*
  * 3DES-CBC buffer encryption/decryption
  */
-void des3_crypt_cbc( des3_context *ctx,
+int des3_crypt_cbc( des3_context *ctx,
                      int mode,
                      int length,
                      unsigned char iv[8],
@@ -602,6 +611,9 @@ void des3_crypt_cbc( des3_context *ctx,
 {
     int i;
     unsigned char temp[8];
+
+    if( length % 8 )
+        return( POLARSSL_ERR_DES_INVALID_INPUT_LENGTH );
 
     if( mode == DES_ENCRYPT )
     {
@@ -635,6 +647,8 @@ void des3_crypt_cbc( des3_context *ctx,
             length -= 8;
         }
     }
+
+    return( 0 );
 }
 
 #if defined(POLARSSL_SELF_TEST)

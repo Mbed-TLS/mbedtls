@@ -60,8 +60,10 @@ void xtea_setup( xtea_context *ctx, unsigned char key[16] );
  * \param mode     XTEA_ENCRYPT or XTEA_DECRYPT
  * \param input    8-byte input block
  * \param output   8-byte output block
+ *
+ * \return         0
  */
-void xtea_crypt_ecb( xtea_context *ctx,
+int xtea_crypt_ecb( xtea_context *ctx,
 		 int mode,
 		 unsigned char input[8],
 		 unsigned char output[8] );

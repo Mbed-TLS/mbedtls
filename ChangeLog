@@ -13,6 +13,8 @@ Changes
    * Added const correctness for main code base
    * X509 signature algorithm determination is now
      in a function to allow easy future expansion
+   * Changed symmetric cipher functions to
+     identical interface (returning int result values)
 
 Bug fixes
    * Fixed bug resulting in failure to send the last

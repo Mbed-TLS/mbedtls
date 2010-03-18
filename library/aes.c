@@ -647,7 +647,7 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, int keysize )
 /*
  * AES-ECB block encryption/decryption
  */
-void aes_crypt_ecb( aes_context *ctx,
+int aes_crypt_ecb( aes_context *ctx,
                     int mode,
                     const unsigned char input[16],
                     unsigned char output[16] )
@@ -659,7 +659,11 @@ void aes_crypt_ecb( aes_context *ctx,
     if( padlock_supports( PADLOCK_ACE ) )
     {
         if( padlock_xcryptecb( ctx, mode, input, output ) == 0 )
-            return;
+            return( 0 );
+
+        // If padlock data misaligned, we just fall back to
+        // unaccelerated mode
+        //
     }
 #endif
 
@@ -743,12 +747,14 @@ void aes_crypt_ecb( aes_context *ctx,
     PUT_ULONG_LE( X1, output,  4 );
     PUT_ULONG_LE( X2, output,  8 );
     PUT_ULONG_LE( X3, output, 12 );
+
+    return( 0 );
 }
 
 /*
  * AES-CBC buffer encryption/decryption
  */
-void aes_crypt_cbc( aes_context *ctx,
+int aes_crypt_cbc( aes_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[16],
@@ -758,11 +764,18 @@ void aes_crypt_cbc( aes_context *ctx,
     int i;
     unsigned char temp[16];
 
+    if( length % 16 )
+        return( POLARSSL_ERR_AES_INVALID_INPUT_LENGTH );
+
 #if defined(POLARSSL_PADLOCK_C) && defined(POLARSSL_HAVE_X86)
     if( padlock_supports( PADLOCK_ACE ) )
     {
         if( padlock_xcryptcbc( ctx, mode, length, iv, input, output ) == 0 )
-            return;
+            return( 0 );
+        
+        // If padlock data misaligned, we just fall back to
+        // unaccelerated mode
+        //
     }
 #endif
 
@@ -798,12 +811,14 @@ void aes_crypt_cbc( aes_context *ctx,
             length -= 16;
         }
     }
+
+    return( 0 );
 }
 
 /*
  * AES-CFB128 buffer encryption/decryption
  */
-void aes_crypt_cfb128( aes_context *ctx,
+int aes_crypt_cfb128( aes_context *ctx,
                        int mode,
                        int length,
                        int *iv_off,
@@ -841,6 +856,8 @@ void aes_crypt_cfb128( aes_context *ctx,
     }
 
     *iv_off = n;
+
+    return( 0 );
 }
 
 #if defined(POLARSSL_SELF_TEST)

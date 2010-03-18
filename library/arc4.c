@@ -63,7 +63,7 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key, int keylen )
 /*
  * ARC4 cipher function
  */
-void arc4_crypt( arc4_context *ctx, unsigned char *buf, int buflen )
+int arc4_crypt( arc4_context *ctx, unsigned char *buf, int buflen )
 {
     int i, x, y, a, b;
     unsigned char *m;
@@ -86,6 +86,8 @@ void arc4_crypt( arc4_context *ctx, unsigned char *buf, int buflen )
 
     ctx->x = x;
     ctx->y = y;
+
+    return( 0 );
 }
 
 #if defined(POLARSSL_SELF_TEST)

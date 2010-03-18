@@ -458,7 +458,7 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key, int ke
 /*
  * Camellia-ECB block encryption/decryption
  */
-void camellia_crypt_ecb( camellia_context *ctx,
+int camellia_crypt_ecb( camellia_context *ctx,
                     int mode,
                     const unsigned char input[16],
                     unsigned char output[16] )
@@ -513,12 +513,14 @@ void camellia_crypt_ecb( camellia_context *ctx,
     PUT_ULONG_BE( X[3], output,  4 );
     PUT_ULONG_BE( X[0], output,  8 );
     PUT_ULONG_BE( X[1], output, 12 );
+
+    return( 0 );
 }
 
 /*
  * Camellia-CBC buffer encryption/decryption
  */
-void camellia_crypt_cbc( camellia_context *ctx,
+int camellia_crypt_cbc( camellia_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[16],
@@ -527,6 +529,9 @@ void camellia_crypt_cbc( camellia_context *ctx,
 {
     int i;
     unsigned char temp[16];
+
+    if( length % 16 )
+        return( POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH );
 
     if( mode == CAMELLIA_DECRYPT )
     {
@@ -560,12 +565,14 @@ void camellia_crypt_cbc( camellia_context *ctx,
             length -= 16;
         }
     }
+
+    return( 0 );
 }
 
 /*
  * Camellia-CFB128 buffer encryption/decryption
  */
-void camellia_crypt_cfb128( camellia_context *ctx,
+int camellia_crypt_cfb128( camellia_context *ctx,
                        int mode,
                        int length,
                        int *iv_off,
@@ -603,6 +610,8 @@ void camellia_crypt_cfb128( camellia_context *ctx,
     }
 
     *iv_off = n;
+
+    return( 0 );
 }
 
 #if defined(POLARSSL_SELF_TEST)

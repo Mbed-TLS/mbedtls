@@ -20,7 +20,7 @@ des_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     unhexify( src_str, {hex_src_string} );
 
     des_setkey_enc( &ctx, key_str );
-    des_crypt_ecb( &ctx, src_str, output );
+    TEST_ASSERT( des_crypt_ecb( &ctx, src_str, output ) == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
@@ -45,7 +45,7 @@ des_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     unhexify( src_str, {hex_src_string} );
 
     des_setkey_dec( &ctx, key_str );
-    des_crypt_ecb( &ctx, src_str, output );
+    TEST_ASSERT( des_crypt_ecb( &ctx, src_str, output ) == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
@@ -53,7 +53,7 @@ des_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
 END_CASE
 
 BEGIN_CASE
-des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -74,15 +74,18 @@ des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     src_len = unhexify( src_str, {hex_src_string} );
 
     des_setkey_enc( &ctx, key_str );
-    des_crypt_cbc( &ctx, DES_ENCRYPT, src_len, iv_str, src_str, output );
-    hexify( dst_str, output, src_len );
+    TEST_ASSERT( des_crypt_cbc( &ctx, DES_ENCRYPT, src_len, iv_str, src_str, output ) == {cbc_result} );
+    if( {cbc_result} == 0 )
+    {
+        hexify( dst_str, output, src_len );
 
-    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
 }
 END_CASE
 
 BEGIN_CASE
-des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -103,10 +106,13 @@ des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     src_len = unhexify( src_str, {hex_src_string} );
 
     des_setkey_dec( &ctx, key_str );
-    des_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output );
-    hexify( dst_str, output, src_len );
+    TEST_ASSERT( des_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output ) == {cbc_result} );
+    if( {cbc_result} == 0 )
+    {
+        hexify( dst_str, output, src_len );
 
-    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
 }
 END_CASE
 
@@ -134,7 +140,7 @@ des3_encrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
     else
         TEST_ASSERT( 0 );
 
-    des3_crypt_ecb( &ctx, src_str, output );
+    TEST_ASSERT( des3_crypt_ecb( &ctx, src_str, output ) == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
@@ -165,7 +171,7 @@ des3_decrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
     else
         TEST_ASSERT( 0 );
 
-    des3_crypt_ecb( &ctx, src_str, output );
+    TEST_ASSERT( des3_crypt_ecb( &ctx, src_str, output ) == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
@@ -173,7 +179,7 @@ des3_decrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
 END_CASE
 
 BEGIN_CASE
-des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -200,15 +206,18 @@ des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
     else
         TEST_ASSERT( 0 );
 
-    des3_crypt_cbc( &ctx, DES_ENCRYPT, src_len, iv_str, src_str, output );
-    hexify( dst_str, output, src_len );
+    TEST_ASSERT( des3_crypt_cbc( &ctx, DES_ENCRYPT, src_len, iv_str, src_str, output ) == {cbc_result} );
+    if( {cbc_result} == 0 )
+    {
+        hexify( dst_str, output, src_len );
 
-    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
 }
 END_CASE
 
 BEGIN_CASE
-des3_decrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+des3_decrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -235,10 +244,13 @@ des3_decrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
     else
         TEST_ASSERT( 0 );
 
-    des3_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output );
-    hexify( dst_str, output, src_len );
+    TEST_ASSERT( des3_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output ) == {cbc_result} )
+    if( {cbc_result} == 0 )
+    {
+        hexify( dst_str, output, src_len );
 
-    TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+        TEST_ASSERT( strcasecmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
 }
 END_CASE
 

@@ -27,6 +27,7 @@
 #define AES_DECRYPT     0
 
 #define POLARSSL_ERR_AES_INVALID_KEY_LENGTH                 -0x0800
+#define POLARSSL_ERR_AES_INVALID_INPUT_LENGTH               -0x0810
 
 /**
  * \brief          AES context structure
@@ -72,8 +73,10 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, int keysize );
  * \param mode     AES_ENCRYPT or AES_DECRYPT
  * \param input    16-byte input block
  * \param output   16-byte output block
+ *
+ * \return         0
  */
-void aes_crypt_ecb( aes_context *ctx,
+int aes_crypt_ecb( aes_context *ctx,
                     int mode,
                     const unsigned char input[16],
                     unsigned char output[16] );
@@ -89,8 +92,10 @@ void aes_crypt_ecb( aes_context *ctx,
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
+ *
+ * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_INPUT_LENGTH
  */
-void aes_crypt_cbc( aes_context *ctx,
+int aes_crypt_cbc( aes_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[16],
@@ -107,8 +112,10 @@ void aes_crypt_cbc( aes_context *ctx,
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
+ *
+ * \return         0
  */
-void aes_crypt_cfb128( aes_context *ctx,
+int aes_crypt_cfb128( aes_context *ctx,
                        int mode,
                        int length,
                        int *iv_off,

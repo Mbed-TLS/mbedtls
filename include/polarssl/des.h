@@ -26,6 +26,8 @@
 #define DES_ENCRYPT     1
 #define DES_DECRYPT     0
 
+#define POLARSSL_ERR_DES_INVALID_INPUT_LENGTH               -0x0C00
+
 /**
  * \brief          DES context structure
  */
@@ -104,8 +106,10 @@ void des3_set3key_dec( des3_context *ctx, const unsigned char key[24] );
  * \param ctx      DES context
  * \param input    64-bit input block
  * \param output   64-bit output block
+ *
+ * \return         0
  */
-void des_crypt_ecb( des_context *ctx,
+int des_crypt_ecb( des_context *ctx,
                     const unsigned char input[8],
                     unsigned char output[8] );
 
@@ -119,7 +123,7 @@ void des_crypt_ecb( des_context *ctx,
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
  */
-void des_crypt_cbc( des_context *ctx,
+int des_crypt_cbc( des_context *ctx,
                     int mode,
                     int length,
                     unsigned char iv[8],
@@ -132,8 +136,10 @@ void des_crypt_cbc( des_context *ctx,
  * \param ctx      3DES context
  * \param input    64-bit input block
  * \param output   64-bit output block
+ *
+ * \return         0
  */
-void des3_crypt_ecb( des3_context *ctx,
+int des3_crypt_ecb( des3_context *ctx,
                      const unsigned char input[8],
                      unsigned char output[8] );
 
@@ -146,8 +152,10 @@ void des3_crypt_ecb( des3_context *ctx,
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
+ *
+ * \return         0 if successful, or POLARSSL_ERR_DES_INVALID_INPUT_LENGTH
  */
-void des3_crypt_cbc( des3_context *ctx,
+int des3_crypt_cbc( des3_context *ctx,
                      int mode,
                      int length,
                      unsigned char iv[8],

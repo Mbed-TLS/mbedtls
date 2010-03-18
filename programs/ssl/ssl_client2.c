@@ -99,7 +99,6 @@ int main( int argc, char *argv[] )
     for( i = 1; i < argc; i++ )
     {
         n = strlen( argv[i] );
-        printf("a");
 
         for( j = 0; j < n; j++ )
         {

@@ -61,7 +61,7 @@ void xtea_setup( xtea_context *ctx, unsigned char key[16] );
  * \param input    8-byte input block
  * \param output   8-byte output block
  *
- * \return         0
+ * \return         0 if successful
  */
 int xtea_crypt_ecb( xtea_context *ctx,
 		 int mode,

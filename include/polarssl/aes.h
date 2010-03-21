@@ -74,7 +74,7 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, int keysize );
  * \param input    16-byte input block
  * \param output   16-byte output block
  *
- * \return         0
+ * \return         0 if successful
  */
 int aes_crypt_ecb( aes_context *ctx,
                     int mode,
@@ -113,7 +113,7 @@ int aes_crypt_cbc( aes_context *ctx,
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
  *
- * \return         0
+ * \return         0 if successful
  */
 int aes_crypt_cfb128( aes_context *ctx,
                        int mode,

@@ -55,7 +55,7 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key, int keylen );
  * \param input    buffer holding the input data
  * \param output   buffer for the output data
  *
- * \return         0
+ * \return         0 if successful
  */
 int arc4_crypt( arc4_context *ctx, int length, const unsigned char *input,
                 unsigned char *output );

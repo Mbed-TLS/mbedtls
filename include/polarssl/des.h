@@ -107,7 +107,7 @@ void des3_set3key_dec( des3_context *ctx, const unsigned char key[24] );
  * \param input    64-bit input block
  * \param output   64-bit output block
  *
- * \return         0
+ * \return         0 if successful
  */
 int des_crypt_ecb( des_context *ctx,
                     const unsigned char input[8],
@@ -137,7 +137,7 @@ int des_crypt_cbc( des_context *ctx,
  * \param input    64-bit input block
  * \param output   64-bit output block
  *
- * \return         0
+ * \return         0 if successful
  */
 int des3_crypt_ecb( des3_context *ctx,
                      const unsigned char input[8],

@@ -78,7 +78,7 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key, int ke
  * \param input    16-byte input block
  * \param output   16-byte output block
  * 
- * \return         0
+ * \return         0 if successful
  */
 int camellia_crypt_ecb( camellia_context *ctx,
                     int mode,

@@ -51,12 +51,14 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key, int keylen );
  * \brief          ARC4 cipher function
  *
  * \param ctx      ARC4 context
- * \param buf      buffer to be processed
- * \param buflen   amount of data in buf
+ * \param length   length of the input data
+ * \param input    buffer holding the input data
+ * \param output   buffer for the output data
  *
  * \return         0
  */
-int arc4_crypt( arc4_context *ctx, unsigned char *buf, int buflen );
+int arc4_crypt( arc4_context *ctx, int length, const unsigned char *input,
+                unsigned char *output );
 
 /*
  * \brief          Checkup routine

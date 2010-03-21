@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 0.12.2 released on XXXXXXXX
+= Version 0.13.0 released on XXXXXXXX
 Features
    * Added option parsing for host and port selection to
      ssl_client2
@@ -15,6 +15,7 @@ Changes
      in a function to allow easy future expansion
    * Changed symmetric cipher functions to
      identical interface (returning int result values)
+   * Changed ARC4 to use seperate input/output buffer
 
 Bug fixes
    * Fixed bug resulting in failure to send the last

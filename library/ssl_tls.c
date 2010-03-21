@@ -531,7 +531,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                        ssl->out_msg, ssl->out_msglen );
 
         arc4_crypt( (arc4_context *) ssl->ctx_enc,
-                    ssl->out_msg, ssl->out_msglen );
+                    ssl->out_msglen, ssl->out_msg,
+                    ssl->out_msg );
 #else
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 #endif
@@ -618,7 +619,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_ARC4_C)
         padlen = 0;
         arc4_crypt( (arc4_context *) ssl->ctx_dec,
-                    ssl->in_msg, ssl->in_msglen );
+                    ssl->in_msglen, ssl->in_msg,
+                    ssl->in_msg );
 #else
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 #endif

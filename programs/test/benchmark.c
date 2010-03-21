@@ -169,11 +169,11 @@ int main( void )
 
     set_alarm( 1 );
     for( i = 1; ! alarmed; i++ )
-        arc4_crypt( &arc4, buf, BUFSIZE );
+        arc4_crypt( &arc4, BUFSIZE, buf, buf );
 
     tsc = hardclock();
     for( j = 0; j < 1024; j++ )
-        arc4_crypt( &arc4, buf, BUFSIZE );
+        arc4_crypt( &arc4, BUFSIZE, buf, buf );
 
     printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );

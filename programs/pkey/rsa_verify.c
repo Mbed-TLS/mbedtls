@@ -1,7 +1,7 @@
 /*
  *  RSA/SHA-1 signature verification program
  *
- *  Copyright (C) 2006-2009, Paul Bakker <polarssl_maintainer at polarssl.org>
+ *  Copyright (C) 2006-2010, Paul Bakker <polarssl_maintainer at polarssl.org>
  *  All rights reserved.
  *
  *  This program is free software; you can redistribute it and/or modify

@@ -1,7 +1,7 @@
 /*
  *  RFC 1186/1320 compliant MD4 implementation
  *
- *  Copyright (C) 2006-2009, Paul Bakker <polarssl_maintainer at polarssl.org>
+ *  Copyright (C) 2006-2010, Paul Bakker <polarssl_maintainer at polarssl.org>
  *  All rights reserved.
  *
  *  This program is free software; you can redistribute it and/or modify

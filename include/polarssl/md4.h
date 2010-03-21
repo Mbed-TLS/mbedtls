@@ -112,6 +112,13 @@ void md4_hmac_update( md4_context *ctx, const unsigned char *input, int ilen );
 void md4_hmac_finish( md4_context *ctx, unsigned char output[16] );
 
 /**
+ * \brief          MD4 HMAC context reset
+ *
+ * \param ctx      HMAC context to be reset
+ */
+void md4_hmac_reset( md4_context *ctx );
+
+/**
  * \brief          Output = HMAC-MD4( hmac key, input buffer )
  *
  * \param key      HMAC secret key

@@ -417,6 +417,15 @@ void sha4_hmac_finish( sha4_context *ctx, unsigned char output[64] )
 }
 
 /*
+ * SHA-512 HMAC context reset
+ */
+void sha4_hmac_reset( sha4_context *ctx )
+{
+    sha4_starts( ctx, ctx->is384 );
+    sha4_update( ctx, ctx->ipad, 128 );
+}
+
+/*
  * output = HMAC-SHA-512( hmac key, input buffer )
  */
 void sha4_hmac( const unsigned char *key, int keylen,

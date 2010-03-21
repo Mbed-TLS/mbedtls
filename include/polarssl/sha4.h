@@ -127,6 +127,13 @@ void sha4_hmac_update( sha4_context *ctx, const unsigned char *input, int ilen )
 void sha4_hmac_finish( sha4_context *ctx, unsigned char output[64] );
 
 /**
+ * \brief          SHA-512 HMAC context reset
+ *
+ * \param ctx      HMAC context to be reset
+ */
+void sha4_hmac_reset( sha4_context *ctx );
+
+/**
  * \brief          Output = HMAC-SHA-512( hmac key, input buffer )
  *
  * \param key      HMAC secret key

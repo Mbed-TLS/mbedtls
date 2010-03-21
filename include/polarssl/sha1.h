@@ -112,6 +112,13 @@ void sha1_hmac_update( sha1_context *ctx, const unsigned char *input, int ilen )
 void sha1_hmac_finish( sha1_context *ctx, unsigned char output[20] );
 
 /**
+ * \brief          SHA-1 HMAC context reset
+ *
+ * \param ctx      HMAC context to be reset
+ */
+void sha1_hmac_reset( sha1_context *ctx );
+
+/**
  * \brief          Output = HMAC-SHA-1( hmac key, input buffer )
  *
  * \param key      HMAC secret key

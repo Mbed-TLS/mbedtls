@@ -376,6 +376,15 @@ void md5_hmac_finish( md5_context *ctx, unsigned char output[16] )
 }
 
 /*
+ * MD5 HMAC context reset
+ */
+void md5_hmac_reset( md5_context *ctx )
+{
+    md5_starts( ctx );
+    md5_update( ctx, ctx->ipad, 64 );
+}
+
+/*
  * output = HMAC-MD5( hmac key, input buffer )
  */
 void md5_hmac( const unsigned char *key, int keylen,

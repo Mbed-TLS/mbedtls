@@ -357,6 +357,15 @@ void md4_hmac_finish( md4_context *ctx, unsigned char output[16] )
 }
 
 /*
+ * MD4 HMAC context reset
+ */
+void md4_hmac_reset( md4_context *ctx )
+{
+    md4_starts( ctx );
+    md4_update( ctx, ctx->ipad, 64 );
+}
+
+/*
  * output = HMAC-MD4( hmac key, input buffer )
  */
 void md4_hmac( const unsigned char *key, int keylen,

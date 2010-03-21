@@ -114,6 +114,13 @@ void md5_hmac_update( md5_context *ctx,
 void md5_hmac_finish( md5_context *ctx, unsigned char output[16] );
 
 /**
+ * \brief          MD5 HMAC context reset
+ *
+ * \param ctx      HMAC context to be reset
+ */
+void md5_hmac_reset( md5_context *ctx );
+
+/**
  * \brief          Output = HMAC-MD5( hmac key, input buffer )
  *
  * \param key      HMAC secret key

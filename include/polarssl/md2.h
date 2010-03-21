@@ -113,6 +113,13 @@ void md2_hmac_update( md2_context *ctx, const unsigned char *input, int ilen );
 void md2_hmac_finish( md2_context *ctx, unsigned char output[16] );
 
 /**
+ * \brief          MD2 HMAC context reset
+ *
+ * \param ctx      HMAC context to be reset
+ */
+void md2_hmac_reset( md2_context *ctx );
+
+/**
  * \brief          Output = HMAC-MD2( hmac key, input buffer )
  *
  * \param key      HMAC secret key

@@ -418,6 +418,15 @@ void sha2_hmac_finish( sha2_context *ctx, unsigned char output[32] )
 }
 
 /*
+ * SHA-256 HMAC context reset
+ */
+void sha2_hmac_reset( sha2_context *ctx )
+{
+    sha2_starts( ctx, ctx->is224 );
+    sha2_update( ctx, ctx->ipad, 64 );
+}
+
+/*
  * output = HMAC-SHA-256( hmac key, input buffer )
  */
 void sha2_hmac( const unsigned char *key, int keylen,

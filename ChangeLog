@@ -7,7 +7,7 @@ Features
    * Added support for GeneralizedTime in X509 parsing
    * Added cert_app program to allow easy reading and
      printing of X509 certificates from file or SSL
-	 connection.
+     connection.
 
 Changes
    * Added const correctness for main code base
@@ -16,11 +16,13 @@ Changes
    * Changed symmetric cipher functions to
      identical interface (returning int result values)
    * Changed ARC4 to use seperate input/output buffer
+   * Added reset function for HMAC context as speed-up
+     for specific use-cases
 
 Bug fixes
    * Fixed bug resulting in failure to send the last
      certificate in the chain in ssl_write_certificate() and
-	 ssl_write_certificate_request() (found by fatbob)
+     ssl_write_certificate_request() (found by fatbob)
    * Added small fixes for compiler warnings on a Mac
      (found by Frank de Brabander)
    * Fixed algorithmic bug in mpi_is_prime() (found by

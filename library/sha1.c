@@ -411,6 +411,15 @@ void sha1_hmac_finish( sha1_context *ctx, unsigned char output[20] )
 }
 
 /*
+ * SHA1 HMAC context reset
+ */
+void sha1_hmac_reset( sha1_context *ctx )
+{
+    sha1_starts( ctx );
+    sha1_update( ctx, ctx->ipad, 64 );
+}
+
+/*
  * output = HMAC-SHA-1( hmac key, input buffer )
  */
 void sha1_hmac( const unsigned char *key, int keylen,

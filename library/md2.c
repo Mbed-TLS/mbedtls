@@ -261,6 +261,15 @@ void md2_hmac_finish( md2_context *ctx, unsigned char output[16] )
 }
 
 /*
+ * MD2 HMAC context reset
+ */
+void md2_hmac_reset( md2_context *ctx )
+{
+    md2_starts( ctx );
+    md2_update( ctx, ctx->ipad, 64 );
+}
+
+/*
  * output = HMAC-MD2( hmac key, input buffer )
  */
 void md2_hmac( const unsigned char *key, int keylen,

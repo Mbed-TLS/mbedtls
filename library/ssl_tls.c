@@ -1160,7 +1160,7 @@ int ssl_write_certificate( ssl_context *ssl )
     i = 7;
     crt = ssl->own_cert;
 
-    while( crt != NULL && crt->version != 0 )
+    while( crt != NULL )
     {
         n = crt->raw.len;
         if( i + 3 + n > SSL_MAX_CONTENT_LEN )

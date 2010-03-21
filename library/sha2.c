@@ -1,10 +1,8 @@
 /*
  *  FIPS-180-2 compliant SHA-256 implementation
  *
- *  Copyright (C) 2006-2009, Paul Bakker <polarssl_maintainer at polarssl.org>
+ *  Copyright (C) 2006-2010, Paul Bakker <polarssl_maintainer at polarssl.org>
  *  All rights reserved.
- *
- *  Joined copyright on original XySSL code with: Christophe Devine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

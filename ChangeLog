@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Version 0.13.1 released on 2010-03-24
+Bug fixes
+   * Fixed Makefile in library that was mistakenly merged
+   * Added missing const string fix in ssl_tls
+
 = Version 0.13.0 released on 2010-03-21
 Features
    * Added option parsing for host and port selection to

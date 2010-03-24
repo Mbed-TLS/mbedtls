@@ -23,7 +23,7 @@
 
 #if defined(POLARSSL_CERTS_C)
 
-char test_ca_crt[] =
+const char test_ca_crt[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDhzCCAm+gAwIBAgIBADANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -46,7 +46,7 @@ char test_ca_crt[] =
 "oX3Yn5p+NZy1aXBoac1KKEu3jzHuB9eS9VRdtcl44abmFTf33T04R0Sx4g==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-char test_ca_key[] =
+const char test_ca_key[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
 "DEK-Info: DES-EDE3-CBC,EB254D9A7718A8E2\r\n"
@@ -78,9 +78,9 @@ char test_ca_key[] =
 "7qq3iAZUX0ZftEsM6sioiDhI/HBkUQOQd/2oxaYcEc480cMxf1DueA==\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-char test_ca_pwd[] = "PolarSSLTest";
+const char test_ca_pwd[] = "PolarSSLTest";
 
-char test_srv_crt[] =
+const char test_srv_crt[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDNzCCAh+gAwIBAgIBCTANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -102,7 +102,7 @@ char test_srv_crt[] =
 "Brn4x0KTWpIPMpc=\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-char test_srv_key[] =
+const char test_srv_key[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEowIBAAKCAQEAsBkdQ0rh8WeAe0Q/JbkQ8PGsr1n7XOPnMknzt6DBkCeDBCwL\r\n"
 "G/g9HtjCQGd6SsDNq1F3NO6urAlressgI7NEsX54oJVQWTaXBFeadmXgCHoJXmEW\r\n"
@@ -131,7 +131,7 @@ char test_srv_key[] =
 "alggV/is0bHz2sGVtWTy0N8jAyFmlDxCWBcqaQ2hVP2910rQgUVd\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-char test_cli_crt[] =
+const char test_cli_crt[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDPzCCAiegAwIBAgIBBDANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -153,7 +153,7 @@ char test_cli_crt[] =
 "7e7c+oTqh+DDfnbkF6NYJQeCvw==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-char test_cli_key[] =
+const char test_cli_key[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEpAIBAAKCAQEAodfTDCz/vIWD4rI8wlsV/pJ8Cbh73pA5GU1RJhvIvdOfZKtm\r\n"
 "eS4eLD/YBwnwSTSe997dSme1lryeerxq5BXyRQw9JjIzp+X+8Rng4x2GMKjksV9g\r\n"

@@ -239,7 +239,7 @@ struct _ssl_context
     x509_cert *ca_chain;                /*!<  own trusted CA chain    */
     x509_crl *ca_crl;                   /*!<  trusted CA CRLs         */
     x509_cert *peer_cert;               /*!<  peer X.509 cert chain   */
-    char *peer_cn;                      /*!<  expected peer CN        */
+    const char *peer_cn;                /*!<  expected peer CN        */
 
     int endpoint;                       /*!<  0: client, 1: server    */
     int authmode;                       /*!<  verification mode       */
@@ -398,7 +398,7 @@ void ssl_set_ciphers( ssl_context *ssl, int *ciphers );
  * \note           TODO: add two more parameters: depth and crl
  */
 void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
-                       x509_crl *ca_crl, char *peer_cn );
+                       x509_crl *ca_crl, const char *peer_cn );
 
 /**
  * \brief          Set own certificate and private key

@@ -1703,7 +1703,7 @@ void ssl_set_ciphers( ssl_context *ssl, int *ciphers )
 }
 
 void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
-                       x509_crl *ca_crl, char *peer_cn )
+                       x509_crl *ca_crl, const char *peer_cn )
 {
     ssl->ca_chain   = ca_chain;
     ssl->ca_crl     = ca_crl;

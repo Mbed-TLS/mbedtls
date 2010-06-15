@@ -525,8 +525,10 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 
     if( ssl->session->cipher != SSL_EDH_RSA_DES_168_SHA &&
+        ssl->session->cipher != SSL_EDH_RSA_AES_128_SHA &&
         ssl->session->cipher != SSL_EDH_RSA_AES_256_SHA &&
-	ssl->session->cipher != SSL_EDH_RSA_CAMELLIA_256_SHA)
+        ssl->session->cipher != SSL_EDH_RSA_CAMELLIA_128_SHA &&
+	    ssl->session->cipher != SSL_EDH_RSA_CAMELLIA_256_SHA)
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;
@@ -663,8 +665,10 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     }
 
     if( ssl->session->cipher == SSL_EDH_RSA_DES_168_SHA ||
+        ssl->session->cipher == SSL_EDH_RSA_AES_128_SHA ||
         ssl->session->cipher == SSL_EDH_RSA_AES_256_SHA ||
-	ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_256_SHA)
+        ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_128_SHA ||
+	    ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_256_SHA)
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm is not available" ) );

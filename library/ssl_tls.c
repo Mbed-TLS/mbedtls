@@ -244,6 +244,7 @@ int ssl_derive_keys( ssl_context *ssl )
 
 #if defined(POLARSSL_AES_C)
         case SSL_RSA_AES_128_SHA:
+        case SSL_EDH_RSA_AES_128_SHA:
             ssl->keylen = 16; ssl->minlen = 32;
             ssl->ivlen  = 16; ssl->maclen = 20;
             break;
@@ -257,6 +258,7 @@ int ssl_derive_keys( ssl_context *ssl )
 
 #if defined(POLARSSL_CAMELLIA_C)
         case SSL_RSA_CAMELLIA_128_SHA:
+        case SSL_EDH_RSA_CAMELLIA_128_SHA:
             ssl->keylen = 16; ssl->minlen = 32;
             ssl->ivlen  = 16; ssl->maclen = 20;
             break;
@@ -325,6 +327,7 @@ int ssl_derive_keys( ssl_context *ssl )
 
 #if defined(POLARSSL_AES_C)
         case SSL_RSA_AES_128_SHA:
+        case SSL_EDH_RSA_AES_128_SHA:
             aes_setkey_enc( (aes_context *) ssl->ctx_enc, key1, 128 );
             aes_setkey_dec( (aes_context *) ssl->ctx_dec, key2, 128 );
             break;
@@ -338,6 +341,7 @@ int ssl_derive_keys( ssl_context *ssl )
 
 #if defined(POLARSSL_CAMELLIA_C)
         case SSL_RSA_CAMELLIA_128_SHA:
+        case SSL_EDH_RSA_CAMELLIA_128_SHA:
             camellia_setkey_enc( (camellia_context *) ssl->ctx_enc, key1, 128 );
             camellia_setkey_dec( (camellia_context *) ssl->ctx_dec, key2, 128 );
             break;
@@ -566,6 +570,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             case 16:
 #if defined(POLARSSL_AES_C)
 		if ( ssl->session->cipher == SSL_RSA_AES_128_SHA ||
+		     ssl->session->cipher == SSL_EDH_RSA_AES_128_SHA ||
 		     ssl->session->cipher == SSL_RSA_AES_256_SHA ||
 		     ssl->session->cipher == SSL_EDH_RSA_AES_256_SHA)
 		{
@@ -578,6 +583,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
 #if defined(POLARSSL_CAMELLIA_C)
 		if ( ssl->session->cipher == SSL_RSA_CAMELLIA_128_SHA ||
+		     ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_128_SHA ||
 		     ssl->session->cipher == SSL_RSA_CAMELLIA_256_SHA ||
 		     ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_256_SHA)
 		{
@@ -648,6 +654,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             case 16:
 #if defined(POLARSSL_AES_C)
 		if ( ssl->session->cipher == SSL_RSA_AES_128_SHA ||
+		     ssl->session->cipher == SSL_EDH_RSA_AES_128_SHA ||
 		     ssl->session->cipher == SSL_RSA_AES_256_SHA ||
 		     ssl->session->cipher == SSL_EDH_RSA_AES_256_SHA)
 		{
@@ -660,6 +667,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
 #if defined(POLARSSL_CAMELLIA_C)
 		if ( ssl->session->cipher == SSL_RSA_CAMELLIA_128_SHA ||
+		     ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_128_SHA ||
 		     ssl->session->cipher == SSL_RSA_CAMELLIA_256_SHA ||
 		     ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_256_SHA)
 		{
@@ -1789,6 +1797,9 @@ const char *ssl_get_cipher( const ssl_context *ssl )
         case SSL_RSA_AES_128_SHA:
             return( "SSL_RSA_AES_128_SHA" );
 
+        case SSL_EDH_RSA_AES_128_SHA:
+            return( "SSL_EDH_RSA_AES_128_SHA" );
+
         case SSL_RSA_AES_256_SHA:
             return( "SSL_RSA_AES_256_SHA" );
 
@@ -1799,6 +1810,9 @@ const char *ssl_get_cipher( const ssl_context *ssl )
 #if defined(POLARSSL_CAMELLIA_C)
         case SSL_RSA_CAMELLIA_128_SHA:
             return( "SSL_RSA_CAMELLIA_128_SHA" );
+
+        case SSL_EDH_RSA_CAMELLIA_128_SHA:
+            return( "SSL_EDH_RSA_CAMELLIA_128_SHA" );
 
         case SSL_RSA_CAMELLIA_256_SHA:
             return( "SSL_RSA_CAMELLIA_256_SHA" );
@@ -1818,9 +1832,11 @@ int ssl_default_ciphers[] =
 {
 #if defined(POLARSSL_DHM_C)
 #if defined(POLARSSL_AES_C)
+    SSL_EDH_RSA_AES_128_SHA,
     SSL_EDH_RSA_AES_256_SHA,
 #endif
 #if defined(POLARSSL_CAMELLIA_C)
+    SSL_EDH_RSA_CAMELLIA_128_SHA,
     SSL_EDH_RSA_CAMELLIA_256_SHA,
 #endif
 #if defined(POLARSSL_DES_C)

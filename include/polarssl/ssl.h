@@ -93,10 +93,12 @@
 #define SSL_RSA_DES_168_SHA            10
 #define SSL_EDH_RSA_DES_168_SHA        22
 #define SSL_RSA_AES_128_SHA            47
+#define SSL_EDH_RSA_AES_128_SHA        51
 #define SSL_RSA_AES_256_SHA            53
 #define SSL_EDH_RSA_AES_256_SHA        57
 
 #define SSL_RSA_CAMELLIA_128_SHA     0x41
+#define SSL_EDH_RSA_CAMELLIA_128_SHA 0x45
 #define SSL_RSA_CAMELLIA_256_SHA     0x84
 #define SSL_EDH_RSA_CAMELLIA_256_SHA 0x88
 

@@ -5,6 +5,9 @@ Features
    * Added support for SSL_EDH_RSA_AES_128_SHA and
      SSL_EDH_RSA_CAMELLIA_128_SHA ciphersuites
 
+Changes
+   * Made Makefile cleaner
+
 = Version 0.13.1 released on 2010-03-24
 Bug fixes
    * Fixed Makefile in library that was mistakenly merged

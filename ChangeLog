@@ -4,9 +4,14 @@ PolarSSL ChangeLog
 Features
    * Added support for SSL_EDH_RSA_AES_128_SHA and
      SSL_EDH_RSA_CAMELLIA_128_SHA ciphersuites
+   * Added compile-time and run-time version information
 
 Changes
    * Made Makefile cleaner
+
+Bug fixes
+   * Fixed CMake out of source build for tests (found by
+     kkert)
 
 = Version 0.13.1 released on 2010-03-24
 Bug fixes

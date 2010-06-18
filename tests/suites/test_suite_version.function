@@ -1,0 +1,60 @@
+BEGIN_HEADER
+#include <polarssl/version.h>
+END_HEADER
+
+BEGIN_CASE
+check_compiletime_version:version_str
+{
+    char build_str[100];
+    char build_str_full[100];
+    unsigned int build_int;
+
+    memset( build_str, 0, 100 );
+    memset( build_str_full, 0, 100 );
+
+    snprintf (build_str, 100, "%d.%d.%d", POLARSSL_VERSION_MAJOR,
+        POLARSSL_VERSION_MINOR, POLARSSL_VERSION_PATCH );
+
+    snprintf( build_str_full, 100, "PolarSSL %d.%d.%d", POLARSSL_VERSION_MAJOR,
+        POLARSSL_VERSION_MINOR, POLARSSL_VERSION_PATCH );
+
+    build_int = POLARSSL_VERSION_MAJOR << 24 |
+            POLARSSL_VERSION_MINOR << 16 |
+            POLARSSL_VERSION_PATCH << 8;
+
+    TEST_ASSERT( build_int == POLARSSL_VERSION_NUMBER );
+    TEST_ASSERT( strcmp( build_str, POLARSSL_VERSION_STRING ) == 0 );
+    TEST_ASSERT( strcmp( build_str_full, POLARSSL_VERSION_STRING_FULL ) == 0 );
+    TEST_ASSERT( strcmp( {version_str}, POLARSSL_VERSION_STRING ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+check_runtime_version:version_str
+{
+    char build_str[100];
+    char get_str[100];
+    char build_str_full[100];
+    char get_str_full[100];
+    unsigned int get_int;
+
+    memset( build_str, 0, 100 );
+    memset( get_str, 0, 100 );
+    memset( build_str_full, 0, 100 );
+    memset( get_str_full, 0, 100 );
+
+    get_int = version_get_number();
+    version_get_string( get_str );
+    version_get_string_full( get_str_full );
+
+    snprintf( build_str, 100, "%d.%d.%d",
+        (get_int >> 24) & 0xFF,
+        (get_int >> 16) & 0xFF,
+        (get_int >> 8) & 0xFF );
+    snprintf( build_str_full, 100, "PolarSSL %s", {version_str} );
+
+    TEST_ASSERT( strcmp( build_str, {version_str} ) == 0 );
+    TEST_ASSERT( strcmp( build_str_full, get_str_full ) == 0 );
+    TEST_ASSERT( strcmp( {version_str}, get_str ) == 0 );
+}
+END_CASE

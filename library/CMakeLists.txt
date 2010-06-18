@@ -22,6 +22,7 @@ add_library(polarssl STATIC
      ssl_srv.c 
      ssl_tls.c
      timing.c
+     version.c
      x509parse.c
      xtea.c
 )

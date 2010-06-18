@@ -77,6 +77,11 @@
 #define POLARSSL_SELF_TEST
 
 /*
+ * Enable run-time version information functions
+ */
+#define POLARSSL_VERSION_C
+
+/*
  * Enable the prime-number generation code.
  */
 #define POLARSSL_GENPRIME

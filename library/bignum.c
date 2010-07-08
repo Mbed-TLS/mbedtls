@@ -434,7 +434,7 @@ int mpi_write_file( const char *p, const mpi *X, int radix, FILE *fout )
     int n, ret;
     size_t slen;
     size_t plen;
-    char s[1024];
+    char s[2048];
 
     n = sizeof( s );
     memset( s, 0, n );

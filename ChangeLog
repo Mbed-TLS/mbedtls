@@ -8,10 +8,16 @@ Features
 
 Changes
    * Made Makefile cleaner
+   * Removed dependency on rand() in rsa_pkcs1_encrypt().
+     Now using random fuction provided to context
+   * Expanded ssl_client2 arguments for more flexibility
 
 Bug fixes
    * Fixed CMake out of source build for tests (found by
      kkert)
+   * rsa_check_private() now supports PKCS1v2 keys as well
+   * Fixed deadlock in rsa_pkcs1_encrypt() on failing random
+     generator
 
 = Version 0.13.1 released on 2010-03-24
 Bug fixes

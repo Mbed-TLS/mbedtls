@@ -34,6 +34,7 @@
 #define POLARSSL_ERR_RSA_PRIVATE_FAILED                    -0x0450
 #define POLARSSL_ERR_RSA_VERIFY_FAILED                     -0x0460
 #define POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE                  -0x0470
+#define POLARSSL_ERR_RSA_RNG_FAILED                        -0x0480
 
 /*
  * PKCS#1 constants

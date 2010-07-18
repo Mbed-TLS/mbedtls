@@ -156,7 +156,7 @@ int rsa_check_pubkey( const rsa_context *ctx )
 int rsa_check_privkey( const rsa_context *ctx )
 {
     int ret;
-    mpi PQ, DE, P1, Q1, H, I, G;
+    mpi PQ, DE, P1, Q1, H, I, G, G2, L1, L2;
 
     if( ( ret = rsa_check_pubkey( ctx ) ) != 0 )
         return( ret );
@@ -164,27 +164,35 @@ int rsa_check_privkey( const rsa_context *ctx )
     if( !ctx->P.p || !ctx->Q.p || !ctx->D.p )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
-    mpi_init( &PQ, &DE, &P1, &Q1, &H, &I, &G, NULL );
+    mpi_init( &PQ, &DE, &P1, &Q1, &H, &I, &G, &G2, &L1, &L2, NULL );
 
     MPI_CHK( mpi_mul_mpi( &PQ, &ctx->P, &ctx->Q ) );
     MPI_CHK( mpi_mul_mpi( &DE, &ctx->D, &ctx->E ) );
     MPI_CHK( mpi_sub_int( &P1, &ctx->P, 1 ) );
     MPI_CHK( mpi_sub_int( &Q1, &ctx->Q, 1 ) );
     MPI_CHK( mpi_mul_mpi( &H, &P1, &Q1 ) );
-    MPI_CHK( mpi_mod_mpi( &I, &DE, &H  ) );
     MPI_CHK( mpi_gcd( &G, &ctx->E, &H  ) );
 
+    MPI_CHK( mpi_gcd( &G2, &P1, &Q1 ) );
+    MPI_CHK( mpi_div_mpi( &L1, &L2, &H, &G2 ) );  
+    MPI_CHK( mpi_mod_mpi( &I, &DE, &L1  ) );
+
+    /*
+     * Check for a valid PKCS1v2 private key
+     */
     if( mpi_cmp_mpi( &PQ, &ctx->N ) == 0 &&
+        mpi_cmp_int( &L2, 0 ) == 0 &&
         mpi_cmp_int( &I, 1 ) == 0 &&
         mpi_cmp_int( &G, 1 ) == 0 )
     {
-        mpi_free( &G, &I, &H, &Q1, &P1, &DE, &PQ, NULL );
+        mpi_free( &G, &I, &H, &Q1, &P1, &DE, &PQ, &G2, &L1, &L2, NULL );
         return( 0 );
     }
 
+    
 cleanup:
 
-    mpi_free( &G, &I, &H, &Q1, &P1, &DE, &PQ, NULL );
+    mpi_free( &G, &I, &H, &Q1, &P1, &DE, &PQ, &G2, &L1, &L2, NULL );
     return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED | ret );
 }
 
@@ -298,7 +306,7 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
     {
         case RSA_PKCS_V15:
 
-            if( ilen < 0 || olen < ilen + 11 )
+            if( ilen < 0 || olen < ilen + 11 || ctx->f_rng == NULL )
                 return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
             nb_pad = olen - 3 - ilen;
@@ -308,9 +316,17 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
 
             while( nb_pad-- > 0 )
             {
+                int rng_dl = 100;
+
                 do {
-                    *p = (unsigned char) rand();
-                } while( *p == 0 );
+                    *p = (unsigned char) ctx->f_rng( ctx->p_rng );
+                } while( *p == 0 && --rng_dl );
+
+                // Check if RNG failed to generate data
+                //
+                if( rng_dl == 0 )
+                    return POLARSSL_ERR_RSA_RNG_FAILED;
+
                 p++;
             }
             *p++ = 0;

@@ -297,7 +297,6 @@ rsa_pkcs1_encrypt_bad_rng:message_hex_string:padding_mode:mod:radix_N:input_N:ra
     unsigned char output_str[1000];
     rsa_context ctx;
     int msg_len;
-    int res;
 
     rsa_init( &ctx, {padding_mode}, 0, &badrand, NULL );
     memset( message_str, 0x00, 1000 );

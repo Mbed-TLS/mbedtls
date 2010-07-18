@@ -161,7 +161,7 @@ extern "C" {
  * \note           The hash_id parameter is actually ignored
  *                 when using RSA_PKCS_V15 padding.
  *
- * \note           Currently (xyssl-0.8), RSA_PKCS_V21 padding
+ * \note           Currently, RSA_PKCS_V21 padding
  *                 is not supported.
  */
 void rsa_init( rsa_context *ctx,

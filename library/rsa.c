@@ -701,6 +701,14 @@ void rsa_free( rsa_context *ctx )
 #define RSA_PT  "\xAA\xBB\xCC\x03\x02\x01\x00\xFF\xFF\xFF\xFF\xFF" \
                 "\x11\x22\x33\x0A\x0B\x0C\xCC\xDD\xDD\xDD\xDD\xDD"
 
+static int myrand( void *rng_state )
+{
+    if( rng_state != NULL )
+        rng_state  = NULL;
+
+    return( rand() );
+}
+
 /*
  * Checkup routine
  */
@@ -713,7 +721,7 @@ int rsa_self_test( int verbose )
     unsigned char rsa_decrypted[PT_LEN];
     unsigned char rsa_ciphertext[KEY_LEN];
 
-    memset( &rsa, 0, sizeof( rsa_context ) );
+    rsa_init( &rsa, RSA_PKCS_V15, 0, &myrand, NULL );
 
     rsa.len = KEY_LEN;
     mpi_read_string( &rsa.N , 16, RSA_N  );

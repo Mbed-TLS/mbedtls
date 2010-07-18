@@ -8,6 +8,14 @@ BEGIN_HEADER
 #include <polarssl/sha2.h>
 #include <polarssl/sha4.h>
 #include <polarssl/havege.h>
+
+static int myrand( void *rng_state )
+{
+    if( rng_state != NULL )
+        rng_state  = NULL;
+
+    return( rand() );
+}
 END_HEADER
 
 BEGIN_CASE
@@ -22,7 +30,7 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
     int msg_len;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
-    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, &myrand, NULL );
 
     memset( message_str, 0x00, 1000 );
     memset( hash_result, 0x00, 1000 );
@@ -107,7 +115,7 @@ rsa_pkcs1_verify:message_hex_string:padding_mode:digest:mod:radix_N:input_N:radi
     rsa_context ctx;
     int msg_len;
 
-    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, &myrand, NULL );
     memset( message_str, 0x00, 1000 );
     memset( hash_result, 0x00, 1000 );
     memset( result_str, 0x00, 1000 );
@@ -178,7 +186,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     int msg_len, hash_len;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
-    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, &myrand, NULL );
 
     memset( message_str, 0x00, 1000 );
     memset( hash_result, 0x00, 1000 );
@@ -222,7 +230,7 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     rsa_context ctx;
     int msg_len, hash_len;
 
-    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, &myrand, NULL );
     memset( message_str, 0x00, 1000 );
     memset( hash_result, 0x00, 1000 );
     memset( result_str, 0x00, 1000 );
@@ -250,7 +258,7 @@ rsa_pkcs1_encrypt:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:in
     rsa_context ctx;
     int msg_len;
 
-    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, &myrand, NULL );
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
@@ -284,7 +292,7 @@ rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:in
     int output_len;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
-    rsa_init( &ctx, {padding_mode}, 0, NULL, NULL );
+    rsa_init( &ctx, {padding_mode}, 0, &myrand, NULL );
 
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
@@ -328,7 +336,7 @@ rsa_public:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_hex_str
     unsigned char output_str[1000];
     rsa_context ctx;
 
-    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    rsa_init( &ctx, RSA_PKCS_V15, 0, &myrand, NULL );
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
@@ -361,7 +369,7 @@ rsa_private:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input
     mpi P1, Q1, H, G;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
-    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    rsa_init( &ctx, RSA_PKCS_V15, 0, &myrand, NULL );
 
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
@@ -411,7 +419,7 @@ rsa_check_pubkey:radix_N:input_N:radix_E:input_E:result
 {
     rsa_context ctx;
 
-    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    rsa_init( &ctx, RSA_PKCS_V15, 0, &myrand, NULL );
 
     if( strlen( {input_N} ) )
     {
@@ -431,7 +439,7 @@ rsa_check_privkey:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:in
 {
     rsa_context ctx;
 
-    rsa_init( &ctx, RSA_PKCS_V15, 0, NULL, NULL );
+    rsa_init( &ctx, RSA_PKCS_V15, 0, &myrand, NULL );
 
     ctx.len = {mod} / 8;
     if( strlen( {input_P} ) )

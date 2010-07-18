@@ -5,12 +5,13 @@ Features
    * Added support for SSL_EDH_RSA_AES_128_SHA and
      SSL_EDH_RSA_CAMELLIA_128_SHA ciphersuites
    * Added compile-time and run-time version information
+   * Expanded ssl_client2 arguments for more flexibility
 
 Changes
    * Made Makefile cleaner
    * Removed dependency on rand() in rsa_pkcs1_encrypt().
-     Now using random fuction provided to context
-   * Expanded ssl_client2 arguments for more flexibility
+     Now using random fuction provided to context.
+	 Requires initialization with rsa_init() before use!
 
 Bug fixes
    * Fixed CMake out of source build for tests (found by

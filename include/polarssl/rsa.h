@@ -307,7 +307,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  *
  * \param ctx      points to an RSA public key
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  SIG_RSA_RAW, RSA_MD{2,4,5} or RSA_SHA{1,256}
+ * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
  * \param hashlen  message digest length (for SIG_RSA_RAW only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext

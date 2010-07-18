@@ -64,7 +64,7 @@ int dhm_read_params( dhm_context *ctx,
  * \brief          Setup and write the ServerKeyExchange parameters
  *
  * \param ctx      DHM context
- * \param x_size   private value size in bits
+ * \param x_size   private value size in bytes
  * \param output   destination buffer
  * \param olen     number of chars written
  * \param f_rng    RNG function

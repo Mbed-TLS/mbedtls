@@ -99,20 +99,22 @@ int dhm_make_params( dhm_context *ctx, int x_size,
     unsigned char *p;
 
     /*
-     * generate X and calculate GX = G^X mod P
+     * Generate X as large as possible ( < P )
      */
     n = x_size / sizeof( t_int );
     MPI_CHK( mpi_grow( &ctx->X, n ) );
     MPI_CHK( mpi_lset( &ctx->X, 0 ) );
 
-    n = x_size - 1;
     p = (unsigned char *) ctx->X.p;
-    for( i = 0; i < n; i++ )
+    for( i = 0; i < x_size - 1; i++ )
         *p++ = (unsigned char) f_rng( p_rng );
 
     while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
            mpi_shift_r( &ctx->X, 1 );
 
+    /*
+     * Calculate GX = G^X mod P
+     */
     MPI_CHK( mpi_exp_mod( &ctx->GX, &ctx->G, &ctx->X,
                           &ctx->P , &ctx->RP ) );
 

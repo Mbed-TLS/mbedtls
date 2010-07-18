@@ -37,6 +37,8 @@
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_DEBUG_LEVEL         0
+#define DFL_CRT_FILE            ""
+#define DFL_KEY_FILE            ""
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\n\r\n"
 
@@ -45,10 +47,12 @@
  */
 struct options
 {
-    char *server_name;          /* hostname of the server (client only) */
-    int server_port;            /* port on which the ssl service runs   */
-    int debug_level;            /* level of debugging                   */
-    char *request_page;         /* page on server to request            */
+    char *server_name;          /* hostname of the server (client only)     */
+    int server_port;            /* port on which the ssl service runs       */
+    int debug_level;            /* level of debugging                       */
+    char *request_page;         /* page on server to request                */
+    char *crt_file;             /* the file with the client certificate     */
+    char *key_file;             /* the file with the client key             */
 } opt;
 
 void my_debug( void *ctx, int level, const char *str )
@@ -61,12 +65,14 @@ void my_debug( void *ctx, int level, const char *str )
 }
 
 #define USAGE \
-    "\n usage: ssl_client2 param=<>...\n"               \
-    "\n acceptable parameters:\n"                       \
-    "    server_name=%%s      default: localhost\n"     \
-    "    server_port=%%d      default: 4433\n"          \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
-    "    request_page=%%s     default: \".\"\n"         \
+    "\n usage: ssl_client2 param=<>...\n"                   \
+    "\n acceptable parameters:\n"                           \
+    "    server_name=%%s      default: localhost\n"         \
+    "    server_port=%%d      default: 4433\n"              \
+    "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "    request_page=%%s     default: \".\"\n"             \
+    "    crt_file=%%s         default: \"\" (pre-loaded)\n" \
+    "    key_file=%%s         default: \"\" (pre-loaded)\n" \
     "\n"
 
 int main( int argc, char *argv[] )
@@ -93,6 +99,8 @@ int main( int argc, char *argv[] )
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.request_page        = DFL_REQUEST_PAGE;
+    opt.crt_file            = DFL_CRT_FILE;
+    opt.key_file            = DFL_KEY_FILE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -125,6 +133,10 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "request_page" ) == 0 )
             opt.request_page = q;
+        else if( strcmp( p, "crt_file" ) == 0 )
+            opt.crt_file = q;
+        else if( strcmp( p, "key_file" ) == 0 )
+            opt.key_file = q;
         else
             goto usage;
     }
@@ -167,16 +179,23 @@ int main( int argc, char *argv[] )
 
     memset( &clicert, 0, sizeof( x509_cert ) );
 
-    ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
-                         strlen( test_cli_crt ) );
+    if( strlen( opt.crt_file ) )
+        ret = x509parse_crtfile( &clicert, opt.crt_file );
+    else 
+        ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
+                strlen( test_cli_crt ) );
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
         goto exit;
     }
 
-    ret = x509parse_key( &rsa, (unsigned char *) test_cli_key,
-                         strlen( test_cli_key ), NULL, 0 );
+    if( strlen( opt.key_file ) )
+        ret = x509parse_keyfile( &rsa, opt.key_file, "" );
+    else
+        ret = x509parse_key( &rsa, (unsigned char *) test_cli_key,
+                strlen( test_cli_key ), NULL, 0 );
+
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_key returned %d\n\n", ret );

@@ -1,7 +1,8 @@
 /*
  *  FIPS-180-2 compliant SHA-384/512 implementation
  *
- *  Copyright (C) 2006-2010, Paul Bakker <polarssl_maintainer at polarssl.org>
+ *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *  All rights reserved.
  *
  *  This program is free software; you can redistribute it and/or modify

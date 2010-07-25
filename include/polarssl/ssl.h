@@ -92,14 +92,14 @@
 /*
  * Supported ciphersuites
  */
-#define SSL_RSA_RC4_128_MD5             4
-#define SSL_RSA_RC4_128_SHA             5
-#define SSL_RSA_DES_168_SHA            10
-#define SSL_EDH_RSA_DES_168_SHA        22
-#define SSL_RSA_AES_128_SHA            47
-#define SSL_EDH_RSA_AES_128_SHA        51
-#define SSL_RSA_AES_256_SHA            53
-#define SSL_EDH_RSA_AES_256_SHA        57
+#define SSL_RSA_RC4_128_MD5          0x04
+#define SSL_RSA_RC4_128_SHA          0x05
+#define SSL_RSA_DES_168_SHA          0x0A
+#define SSL_EDH_RSA_DES_168_SHA      0x16
+#define SSL_RSA_AES_128_SHA          0x2F
+#define SSL_EDH_RSA_AES_128_SHA      0x33
+#define SSL_RSA_AES_256_SHA          0x35
+#define SSL_EDH_RSA_AES_256_SHA      0x39
 
 #define SSL_RSA_CAMELLIA_128_SHA     0x41
 #define SSL_EDH_RSA_CAMELLIA_128_SHA 0x45
@@ -114,10 +114,33 @@
 #define SSL_MSG_HANDSHAKE              22
 #define SSL_MSG_APPLICATION_DATA       23
 
-#define SSL_ALERT_CLOSE_NOTIFY          0
-#define SSL_ALERT_WARNING               1
-#define SSL_ALERT_FATAL                 2
-#define SSL_ALERT_NO_CERTIFICATE       41
+#define SSL_ALERT_LEVEL_WARNING         1
+#define SSL_ALERT_LEVEL_FATAL           2
+
+#define SSL_ALERT_MSG_CLOSE_NOTIFY           0
+#define SSL_ALERT_MSG_UNEXPECTED_MESSAGE    10
+#define SSL_ALERT_MSG_BAD_RECORD_MAD        20
+#define SSL_ALERT_MSG_DECRYPTION_FAILED     21
+#define SSL_ALERT_MSG_RECORD_OVERFLOW       22
+#define SSL_ALERT_MSG_DECOMPRESSION_FAILURE 30
+#define SSL_ALERT_MSG_HANDSHAKE_FAILURE     40
+#define SSL_ALERT_MSG_NO_CERT               41
+#define SSL_ALERT_MSG_BAD_CERT              42
+#define SSL_ALERT_MSG_UNSUPPORTED_CERT      43
+#define SSL_ALERT_MSG_CERT_REVOKED          44
+#define SSL_ALERT_MSG_CERT_EXPIRED          45
+#define SSL_ALERT_MSG_CERT_UNKNOWN          46
+#define SSL_ALERT_MSG_ILLEGAL_PARAMETER     47
+#define SSL_ALERT_MSG_UNKNOWN_CA            48
+#define SSL_ALERT_MSG_ACCESS_DENIED         49
+#define SSL_ALERT_MSG_DECODE_ERROR          50
+#define SSL_ALERT_MSG_DECRYPT_ERROR         51
+#define SSL_ALERT_MSG_EXPORT_RESTRICTION    60
+#define SSL_ALERT_MSG_PROTOCOL_VERSION      70
+#define SSL_ALERT_MSG_INSUFFICIENT_SECURITY 71
+#define SSL_ALERT_MSG_INTERNAL_ERROR        80
+#define SSL_ALERT_MSG_USER_CANCELED         90
+#define SSL_ALERT_MSG_NO_RENEGOTIATION     100
 
 #define SSL_HS_HELLO_REQUEST            0
 #define SSL_HS_CLIENT_HELLO             1

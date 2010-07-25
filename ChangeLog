@@ -6,12 +6,15 @@ Features
      SSL_EDH_RSA_CAMELLIA_128_SHA ciphersuites
    * Added compile-time and run-time version information
    * Expanded ssl_client2 arguments for more flexibility
+   * Added support for TLS v1.1
 
 Changes
    * Made Makefile cleaner
    * Removed dependency on rand() in rsa_pkcs1_encrypt().
      Now using random fuction provided to context.
 	 Requires initialization with rsa_init() before use!
+   * Some SSL defines were renamed in order to avoid
+     future confusion
 
 Bug fixes
    * Fixed CMake out of source build for tests (found by

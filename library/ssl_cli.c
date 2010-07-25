@@ -48,7 +48,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ssl->minor_ver = SSL_MINOR_VERSION_0;
 
     ssl->max_major_ver = SSL_MAJOR_VERSION_3;
-    ssl->max_minor_ver = SSL_MINOR_VERSION_1;
+    ssl->max_minor_ver = SSL_MINOR_VERSION_2;
 
     /*
      *     0  .   0   handshake type
@@ -208,8 +208,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
-    if( buf[5] != SSL_MINOR_VERSION_0 &&
-        buf[5] != SSL_MINOR_VERSION_1 )
+    if( buf[5] > ssl->max_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );

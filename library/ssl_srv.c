@@ -92,8 +92,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         ssl->max_minor_ver = buf[4];
 
         ssl->major_ver = SSL_MAJOR_VERSION_3;
-        ssl->minor_ver = ( buf[4] <= SSL_MINOR_VERSION_1 )
-                         ? buf[4]  : SSL_MINOR_VERSION_1;
+        ssl->minor_ver = ( buf[4] <= SSL_MINOR_VERSION_2 )
+                         ? buf[4]  : SSL_MINOR_VERSION_2;
 
         if( ( ret = ssl_fetch_input( ssl, 2 + n ) ) != 0 )
         {
@@ -258,8 +258,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         }
 
         ssl->major_ver = SSL_MAJOR_VERSION_3;
-        ssl->minor_ver = ( buf[5] <= SSL_MINOR_VERSION_1 )
-                         ? buf[5]  : SSL_MINOR_VERSION_1;
+        ssl->minor_ver = ( buf[5] <= SSL_MINOR_VERSION_2 )
+                         ? buf[5]  : SSL_MINOR_VERSION_2;
 
         ssl->max_major_ver = buf[4];
         ssl->max_minor_ver = buf[5];

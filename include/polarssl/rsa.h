@@ -144,8 +144,6 @@ typedef struct
 
     int padding;                /*!<  1.5 or OAEP/PSS   */
     int hash_id;                /*!<  hash identifier   */
-    int (*f_rng)(void *);       /*!<  RNG function      */
-    void *p_rng;                /*!<  RNG parameter     */
 }
 rsa_context;
 
@@ -159,8 +157,6 @@ extern "C" {
  * \param ctx      RSA context to be initialized
  * \param padding  RSA_PKCS_V15 or RSA_PKCS_V21
  * \param hash_id  RSA_PKCS_V21 hash identifier
- * \param f_rng    RNG function
- * \param p_rng    RNG parameter
  *
  * \note           The hash_id parameter is actually ignored
  *                 when using RSA_PKCS_V15 padding.
@@ -170,23 +166,26 @@ extern "C" {
  */
 void rsa_init( rsa_context *ctx,
                int padding,
-               int hash_id,
-               int (*f_rng)(void *),
-               void *p_rng );
+               int hash_id);
 
 /**
  * \brief          Generate an RSA keypair
  *
  * \param ctx      RSA context that will hold the key
+ * \param f_rng    RNG function
+ * \param p_rng    RNG parameter
  * \param nbits    size of the public key in bits
  * \param exponent public exponent (e.g., 65537)
  *
  * \note           rsa_init() must be called beforehand to setup
- *                 the RSA context (especially f_rng and p_rng).
+ *                 the RSA context.
  *
  * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
  */
-int rsa_gen_key( rsa_context *ctx, int nbits, int exponent );
+int rsa_gen_key( rsa_context *ctx,
+                 int (*f_rng)(void *),
+                 void *p_rng,
+                 int nbits, int exponent );
 
 /**
  * \brief          Check a public RSA key
@@ -246,6 +245,8 @@ int rsa_private( rsa_context *ctx,
  * \brief          Add the message padding, then do an RSA operation
  *
  * \param ctx      RSA context
+ * \param f_rng    RNG function
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param ilen     contains the plaintext length
  * \param input    buffer holding the data to be encrypted
@@ -257,6 +258,8 @@ int rsa_private( rsa_context *ctx,
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  */
 int rsa_pkcs1_encrypt( rsa_context *ctx,
+                       int (*f_rng)(void *),
+                       void *p_rng,
                        int mode, int  ilen,
                        const unsigned char *input,
                        unsigned char *output );

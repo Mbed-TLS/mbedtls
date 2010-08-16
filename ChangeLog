@@ -11,8 +11,9 @@ Features
 Changes
    * Made Makefile cleaner
    * Removed dependency on rand() in rsa_pkcs1_encrypt().
-     Now using random fuction provided to context.
-	 Requires initialization with rsa_init() before use!
+     Now using random fuction provided to function and
+	 changed the prototype of rsa_pkcs1_encrypt(),
+	 rsa_init() and rsa_gen_key().
    * Some SSL defines were renamed in order to avoid
      future confusion
 

@@ -584,7 +584,9 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
             ssl->out_msg[5] = (unsigned char)( n      );
         }
 
-        ret = rsa_pkcs1_encrypt( &ssl->peer_cert->rsa, RSA_PUBLIC,
+        ret = rsa_pkcs1_encrypt( &ssl->peer_cert->rsa,
+                                  ssl->f_rng, ssl->p_rng,
+                                  RSA_PUBLIC,
                                   ssl->pmslen, ssl->premaster,
                                   ssl->out_msg + i );
         if( ret != 0 )

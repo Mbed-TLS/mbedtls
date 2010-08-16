@@ -44,17 +44,12 @@
  */
 void rsa_init( rsa_context *ctx,
                int padding,
-               int hash_id,
-               int (*f_rng)(void *),
-               void *p_rng )
+               int hash_id )
 {
     memset( ctx, 0, sizeof( rsa_context ) );
 
     ctx->padding = padding;
     ctx->hash_id = hash_id;
-
-    ctx->f_rng = f_rng;
-    ctx->p_rng = p_rng;
 }
 
 #if defined(POLARSSL_GENPRIME)
@@ -62,12 +57,15 @@ void rsa_init( rsa_context *ctx,
 /*
  * Generate an RSA keypair
  */
-int rsa_gen_key( rsa_context *ctx, int nbits, int exponent )
+int rsa_gen_key( rsa_context *ctx,
+        int (*f_rng)(void *),
+        void *p_rng,
+        int nbits, int exponent )
 {
     int ret;
     mpi P1, Q1, H, G;
 
-    if( ctx->f_rng == NULL || nbits < 128 || exponent < 3 )
+    if( f_rng == NULL || nbits < 128 || exponent < 3 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
@@ -81,10 +79,10 @@ int rsa_gen_key( rsa_context *ctx, int nbits, int exponent )
     do
     {
         MPI_CHK( mpi_gen_prime( &ctx->P, ( nbits + 1 ) >> 1, 0, 
-                                ctx->f_rng, ctx->p_rng ) );
+                                f_rng, p_rng ) );
 
         MPI_CHK( mpi_gen_prime( &ctx->Q, ( nbits + 1 ) >> 1, 0,
-                                ctx->f_rng, ctx->p_rng ) );
+                                f_rng, p_rng ) );
 
         if( mpi_cmp_mpi( &ctx->P, &ctx->Q ) < 0 )
             mpi_swap( &ctx->P, &ctx->Q );
@@ -297,6 +295,8 @@ cleanup:
  * Add the message padding, then do an RSA operation
  */
 int rsa_pkcs1_encrypt( rsa_context *ctx,
+                       int (*f_rng)(void *),
+                       void *p_rng,
                        int mode, int  ilen,
                        const unsigned char *input,
                        unsigned char *output )
@@ -310,7 +310,7 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
     {
         case RSA_PKCS_V15:
 
-            if( ilen < 0 || olen < ilen + 11 || ctx->f_rng == NULL )
+            if( ilen < 0 || olen < ilen + 11 || f_rng == NULL )
                 return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
             nb_pad = olen - 3 - ilen;
@@ -323,7 +323,7 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
                 int rng_dl = 100;
 
                 do {
-                    *p = (unsigned char) ctx->f_rng( ctx->p_rng );
+                    *p = (unsigned char) f_rng( p_rng );
                 } while( *p == 0 && --rng_dl );
 
                 // Check if RNG failed to generate data
@@ -725,7 +725,7 @@ int rsa_self_test( int verbose )
     unsigned char rsa_decrypted[PT_LEN];
     unsigned char rsa_ciphertext[KEY_LEN];
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0, &myrand, NULL );
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
     rsa.len = KEY_LEN;
     mpi_read_string( &rsa.N , 16, RSA_N  );
@@ -754,7 +754,7 @@ int rsa_self_test( int verbose )
 
     memcpy( rsa_plaintext, RSA_PT, PT_LEN );
 
-    if( rsa_pkcs1_encrypt( &rsa, RSA_PUBLIC, PT_LEN,
+    if( rsa_pkcs1_encrypt( &rsa, &myrand, NULL, RSA_PUBLIC, PT_LEN,
                            rsa_plaintext, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )

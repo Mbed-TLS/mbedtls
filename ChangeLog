@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 0.14.0 released on 2010-XXXXX
+= Version 0.14.0 released on 2010-08-16
 Features
    * Added support for SSL_EDH_RSA_AES_128_SHA and
      SSL_EDH_RSA_CAMELLIA_128_SHA ciphersuites

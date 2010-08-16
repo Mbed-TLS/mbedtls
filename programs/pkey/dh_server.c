@@ -82,7 +82,7 @@ int main( void )
         goto exit;
     }
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0, NULL, NULL );
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
     if( ( ret = mpi_read_file( &rsa.N , 16, f ) ) != 0 ||
         ( ret = mpi_read_file( &rsa.E , 16, f ) ) != 0 ||

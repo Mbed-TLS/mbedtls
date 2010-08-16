@@ -264,8 +264,8 @@ int main( void )
 #endif
 
 #if defined(POLARSSL_RSA_C)
-    rsa_init( &rsa, RSA_PKCS_V15, 0, myrand, NULL );
-    rsa_gen_key( &rsa, 1024, 65537 );
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
+    rsa_gen_key( &rsa, myrand, NULL, 1024, 65537 );
 
     printf( "  RSA-1024  :  " );
     fflush( stdout );
@@ -293,8 +293,8 @@ int main( void )
 
     rsa_free( &rsa );
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0, myrand, NULL );
-    rsa_gen_key( &rsa, 2048, 65537 );
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
+    rsa_gen_key( &rsa, myrand, NULL, 2048, 65537 );
 
     printf( "  RSA-2048  :  " );
     fflush( stdout );
@@ -322,8 +322,8 @@ int main( void )
 
     rsa_free( &rsa );
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0, myrand, NULL );
-    rsa_gen_key( &rsa, 4096, 65537 );
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
+    rsa_gen_key( &rsa, myrand, NULL, 4096, 65537 );
 
     printf( "  RSA-4096  :  " );
     fflush( stdout );

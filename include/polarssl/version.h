@@ -35,17 +35,17 @@
  * Major, Minor, Patchlevel
  */
 #define POLARSSL_VERSION_MAJOR  0
-#define POLARSSL_VERSION_MINOR  13
-#define POLARSSL_VERSION_PATCH  1
+#define POLARSSL_VERSION_MINOR  14
+#define POLARSSL_VERSION_PATCH  0
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define POLARSSL_VERSION_NUMBER         0x000D0100
-#define POLARSSL_VERSION_STRING         "0.13.1"
-#define POLARSSL_VERSION_STRING_FULL    "PolarSSL 0.13.1"
+#define POLARSSL_VERSION_NUMBER         0x000E0000
+#define POLARSSL_VERSION_STRING         "0.14.0"
+#define POLARSSL_VERSION_STRING_FULL    "PolarSSL 0.14.0"
 
 #if defined(POLARSSL_VERSION_C)
 

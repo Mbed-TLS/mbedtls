@@ -1,4 +1,6 @@
-add_library(polarssl STATIC
+OPTION(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL as a shared library." OFF)
+
+set(src
      aes.c
      arc4.c
      base64.c
@@ -26,6 +28,17 @@ add_library(polarssl STATIC
      x509parse.c
      xtea.c
 )
+
+if(NOT USE_SHARED_POLARSSL_LIBRARY)
+
+add_library(polarssl STATIC ${src})
+
+else(NOT USE_SHARED_POLARSSL_LIBRARY)
+
+ADD_LIBRARY(polarssl SHARED ${src})
+SET_TARGET_PROPERTIES(polarssl PROPERTIES VERSION 0.14.1 SOVERSION 0)
+
+endif(NOT USE_SHARED_POLARSSL_LIBRARY)
 
 INSTALL(TARGETS polarssl
         DESTINATION lib

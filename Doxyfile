@@ -1,0 +1,4 @@
+PROJECT_NAME    = PolarSSL
+INPUT           = include/polarssl
+HTML_OUTPUT     = apidoc
+GENERATE_LATEX  = NO

@@ -17,3 +17,7 @@ add_subdirectory(library)
 add_subdirectory(include)
 add_subdirectory(tests)
 add_subdirectory(programs)
+
+ADD_CUSTOM_TARGET(apidoc
+                  COMMAND doxygen Doxyfile
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

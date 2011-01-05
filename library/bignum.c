@@ -1746,8 +1746,11 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng )
         for( j = 0; j < A.n * ciL; j++ )
             *p++ = (unsigned char) f_rng( p_rng );
 
-        j = mpi_msb( &A ) - mpi_msb( &W );
-        MPI_CHK( mpi_shift_r( &A, j + 1 ) );
+        if( mpi_cmp_mpi( &A, &W ) >= 0 )
+        {
+            j = mpi_msb( &A ) - mpi_msb( &W );
+            MPI_CHK( mpi_shift_r( &A, j + 1 ) );
+        }
         A.p[0] |= 3;
 
         /*

@@ -18,3 +18,7 @@ target_link_libraries(rsa_sign polarssl)
 
 add_executable(rsa_verify rsa_verify.c)
 target_link_libraries(rsa_verify polarssl)
+
+INSTALL(TARGETS dh_client dh_genprime dh_server mpi_demo rsa_genkey rsa_sign rsa_verify
+        DESTINATION "bin"
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

@@ -14,5 +14,6 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 include_directories(include/)
 
 add_subdirectory(library)
+add_subdirectory(include)
 add_subdirectory(tests)
 add_subdirectory(programs)

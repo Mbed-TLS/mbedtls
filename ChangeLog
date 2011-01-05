@@ -245,7 +245,7 @@ XySSL ChangeLog
     * Ciphers used in SSL/TLS can now be disabled at compile
       time, to reduce the memory footprint on embedded systems
     * Added multiply assembly code for the TriCore and modified
-      havege_struct for this processor, thanks to David Patiño
+      havege_struct for this processor, thanks to David PatiÃ±o
     * Added multiply assembly code for 64-bit PowerPCs,
       thanks to Peking University and the OSU Open Source Lab
     * Added experimental support of Quantum Cryptography
@@ -282,7 +282,7 @@ XySSL ChangeLog
 
     * Added server-side SSLv3 and TLSv1.0 support
     * Multiple fixes to enhance the compatibility with g++,
-      thanks to Xosé Antón Otero Ferreira
+      thanks to XosÃ© AntÃ³n Otero Ferreira
     * Fixed a bug in the CBC code, thanks to dowst; also,
       the bignum code is no longer dependant on long long
     * Updated rsa_pkcs1_sign to handle arbitrary large inputs
@@ -295,14 +295,14 @@ XySSL ChangeLog
     * Updated the MPI code to support 8086 on MSVC 1.5
     * Added the copyright notice at the top of havege.h
     * Fixed a bug in sha2_hmac, thanks to newsoft/Wenfang Zhang
-    * Fixed a bug reported by Adrian Rüegsegger in x509_read_key
+    * Fixed a bug reported by Adrian RÃ¼egsegger in x509_read_key
     * Fixed a bug reported by Torsten Lauter in ssl_read_record
     * Fixed a bug in rsa_check_privkey that would wrongly cause
       valid RSA keys to be dismissed (thanks to oldwolf)
     * Fixed a bug in mpi_is_prime that caused some primes to fail
       the Miller-Rabin primality test
 
-    I'd also like to thank Younès Hafri for the CRUX linux port,
+    I'd also like to thank YounÃ¨s Hafri for the CRUX linux port,
     Khalil Petit who added XySSL into pkgsrc and Arnaud Cornet
     who maintains the Debian package :-)
 

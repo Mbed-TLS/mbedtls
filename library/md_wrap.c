@@ -451,7 +451,7 @@ void sha256_hmac_wrap( const unsigned char *key, int keylen,
 
 void * sha256_ctx_alloc( void )
 {
-    return malloc( sizeof( sha2_context ) `);
+    return malloc( sizeof( sha2_context ) );
 }
 
 void sha256_ctx_free( void *ctx )

@@ -11,6 +11,8 @@ set(src
      des.c
      dhm.c
      havege.c
+     md.c
+     md_wrap.c
      md2.c
      md4.c
      md5.c

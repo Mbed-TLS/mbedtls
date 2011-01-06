@@ -198,6 +198,14 @@
 #define POLARSSL_HAVEGE_C
 
 /*
+ * Module:  library/md.c
+ * Caller:
+ *
+ * Uncomment to enable generic message digest wrappers.
+ */
+#define POLARSSL_MD_C
+
+/*
  * Module:  library/md2.c
  * Caller:  library/x509parse.c
  *

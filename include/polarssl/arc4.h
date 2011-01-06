@@ -1,6 +1,8 @@
 /**
  * \file arc4.h
  *
+ * \brief The ARCFOUR stream cipher
+ *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)

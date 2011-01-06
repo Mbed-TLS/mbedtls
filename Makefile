@@ -32,3 +32,13 @@ clean:
 
 check:
 	( cd tests && $(MAKE) check )
+
+apidoc:
+	mkdir -p apidoc
+	doxygen doxygen/polarssl.doxyfile
+
+apidoc_clean:
+	if [ -d apidoc ] ;			\
+	then				    	\
+		rm -rf apidoc ;			\
+	fi

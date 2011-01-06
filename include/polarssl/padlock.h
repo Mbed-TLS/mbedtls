@@ -1,6 +1,8 @@
 /**
  * \file padlock.h
  *
+ * \brief VIA PadLock ACE for HW encryption/decryption supported by some processors
+ *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)

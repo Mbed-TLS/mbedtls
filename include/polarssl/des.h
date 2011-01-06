@@ -1,6 +1,8 @@
 /**
  * \file des.h
  *
+ * \brief Debug functions
+ *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)

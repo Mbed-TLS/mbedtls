@@ -1,6 +1,8 @@
 /**
  * \file ssl.h
  *
+ * \brief SSL/TLS functions.
+ *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
@@ -336,7 +338,7 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint );
  * \brief          Set the certificate verification mode
  *
  * \param ssl      SSL context
- * \param mode     can be:
+ * \param authmode can be:
  *
  *  SSL_VERIFY_NONE:      peer certificate is not checked (default),
  *                        this is insecure and SHOULD be avoided.

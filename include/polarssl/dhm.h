@@ -1,6 +1,8 @@
 /**
  * \file dhm.h
  *
+ * \brief Diffie-Hellman-Merkle key exchange
+ *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
@@ -108,7 +110,7 @@ int dhm_read_public( dhm_context *ctx,
  *
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */
-int dhm_make_public( dhm_context *ctx, int s_size,
+int dhm_make_public( dhm_context *ctx, int x_size,
                      unsigned char *output, int olen,
                      int (*f_rng)(void *), void *p_rng );
 

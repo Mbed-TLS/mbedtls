@@ -19,5 +19,5 @@ add_subdirectory(tests)
 add_subdirectory(programs)
 
 ADD_CUSTOM_TARGET(apidoc
-                  COMMAND doxygen Doxyfile
+                  COMMAND doxygen doxygen/polarssl.doxyfile
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

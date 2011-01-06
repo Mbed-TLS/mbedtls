@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Version Trunk
+Features
+   * Added Doxygen source code documentation parts donated
+     by Fox-IT
+
 = Version 0.14.0 released on 2010-08-16
 Features
    * Added support for SSL_EDH_RSA_AES_128_SHA and

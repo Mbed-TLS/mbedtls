@@ -1,6 +1,8 @@
 /**
  * \file timing.h
  *
+ * \brief Portable interface to the CPU cycle counter
+ *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
@@ -62,7 +64,7 @@ void set_alarm( int seconds );
 /**
  * \brief          Sleep for a certain amount of time
  *
- * \param          Delay in milliseconds
+ * \param milliseconds  delay in milliseconds
  */
 void m_sleep( int milliseconds );
 

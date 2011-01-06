@@ -15,7 +15,8 @@ APPS =	test_suite_aes			test_suite_arc4		\
 		test_suite_mpi			test_suite_rsa		\
 		test_suite_shax			test_suite_x509parse\
 		test_suite_xtea			test_suite_debug	\
-		test_suite_version		test_suite_md
+		test_suite_version		test_suite_md		\
+		test_suite_cipher
 
 .SILENT:
 
@@ -38,6 +39,10 @@ test_suite_base64: test_suite_base64.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_camellia: test_suite_camellia.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_cipher: test_suite_cipher.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

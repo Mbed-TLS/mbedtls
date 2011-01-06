@@ -61,48 +61,60 @@ extern "C" {
  *
  * \param ctx      DES context to be initialized
  * \param key      8-byte secret key
+ *
+ * \return         0
  */
-void des_setkey_enc( des_context *ctx, const unsigned char key[8] );
+int des_setkey_enc( des_context *ctx, const unsigned char key[8] );
 
 /**
  * \brief          DES key schedule (56-bit, decryption)
  *
  * \param ctx      DES context to be initialized
  * \param key      8-byte secret key
+ *
+ * \return         0
  */
-void des_setkey_dec( des_context *ctx, const unsigned char key[8] );
+int des_setkey_dec( des_context *ctx, const unsigned char key[8] );
 
 /**
  * \brief          Triple-DES key schedule (112-bit, encryption)
  *
  * \param ctx      3DES context to be initialized
  * \param key      16-byte secret key
+ *
+ * \return         0
  */
-void des3_set2key_enc( des3_context *ctx, const unsigned char key[16] );
+int des3_set2key_enc( des3_context *ctx, const unsigned char key[16] );
 
 /**
  * \brief          Triple-DES key schedule (112-bit, decryption)
  *
  * \param ctx      3DES context to be initialized
  * \param key      16-byte secret key
+ *
+ * \return         0
  */
-void des3_set2key_dec( des3_context *ctx, const unsigned char key[16] );
+int des3_set2key_dec( des3_context *ctx, const unsigned char key[16] );
 
 /**
  * \brief          Triple-DES key schedule (168-bit, encryption)
  *
  * \param ctx      3DES context to be initialized
  * \param key      24-byte secret key
+ *
+ * \return         0
  */
-void des3_set3key_enc( des3_context *ctx, const unsigned char key[24] );
+int des3_set3key_enc( des3_context *ctx, const unsigned char key[24] );
 
 /**
  * \brief          Triple-DES key schedule (168-bit, decryption)
  *
  * \param ctx      3DES context to be initialized
  * \param key      24-byte secret key
+ *
+ * \return         0
  */
-void des3_set3key_dec( des3_context *ctx, const unsigned char key[24] );
+int des3_set3key_dec( des3_context *ctx, const unsigned char key[24] );
 
 /**
  * \brief          DES-ECB block encryption/decryption

@@ -362,15 +362,17 @@ static void des_setkey( unsigned long SK[32], const unsigned char key[8] )
 /*
  * DES key schedule (56-bit, encryption)
  */
-void des_setkey_enc( des_context *ctx, const unsigned char key[8] )
+int des_setkey_enc( des_context *ctx, const unsigned char key[8] )
 {
     des_setkey( ctx->sk, key );
+
+    return( 0 );
 }
 
 /*
  * DES key schedule (56-bit, decryption)
  */
-void des_setkey_dec( des_context *ctx, const unsigned char key[8] )
+int des_setkey_dec( des_context *ctx, const unsigned char key[8] )
 {
     int i;
 
@@ -381,6 +383,8 @@ void des_setkey_dec( des_context *ctx, const unsigned char key[8] )
         SWAP( ctx->sk[i    ], ctx->sk[30 - i] );
         SWAP( ctx->sk[i + 1], ctx->sk[31 - i] );
     }
+
+    return( 0 );
 }
 
 static void des3_set2key( unsigned long esk[96],
@@ -411,23 +415,27 @@ static void des3_set2key( unsigned long esk[96],
 /*
  * Triple-DES key schedule (112-bit, encryption)
  */
-void des3_set2key_enc( des3_context *ctx, const unsigned char key[16] )
+int des3_set2key_enc( des3_context *ctx, const unsigned char key[16] )
 {
     unsigned long sk[96];
 
     des3_set2key( ctx->sk, sk, key );
     memset( sk,  0, sizeof( sk ) );
+
+    return( 0 );
 }
 
 /*
  * Triple-DES key schedule (112-bit, decryption)
  */
-void des3_set2key_dec( des3_context *ctx, const unsigned char key[16] )
+int des3_set2key_dec( des3_context *ctx, const unsigned char key[16] )
 {
     unsigned long sk[96];
 
     des3_set2key( sk, ctx->sk, key );
     memset( sk,  0, sizeof( sk ) );
+
+    return( 0 );
 }
 
 static void des3_set3key( unsigned long esk[96],
@@ -456,23 +464,27 @@ static void des3_set3key( unsigned long esk[96],
 /*
  * Triple-DES key schedule (168-bit, encryption)
  */
-void des3_set3key_enc( des3_context *ctx, const unsigned char key[24] )
+int des3_set3key_enc( des3_context *ctx, const unsigned char key[24] )
 {
     unsigned long sk[96];
 
     des3_set3key( ctx->sk, sk, key );
     memset( sk, 0, sizeof( sk ) );
+
+    return( 0 );
 }
 
 /*
  * Triple-DES key schedule (168-bit, decryption)
  */
-void des3_set3key_dec( des3_context *ctx, const unsigned char key[24] )
+int des3_set3key_dec( des3_context *ctx, const unsigned char key[24] )
 {
     unsigned long sk[96];
 
     des3_set3key( sk, ctx->sk, key );
     memset( sk, 0, sizeof( sk ) );
+
+    return( 0 );
 }
 
 /*

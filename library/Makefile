@@ -26,7 +26,8 @@ OBJS=	aes.o		arc4.o		base64.o	\
 	ssl_cli.o	ssl_srv.o	ssl_tls.o	\
 	timing.o	x509parse.o	xtea.o		\
 	camellia.o  version.o   md.o		\
-	md_wrap.o
+	md_wrap.o	cipher.o 	cipher_wrap.o
+	
 
 .SILENT:
 

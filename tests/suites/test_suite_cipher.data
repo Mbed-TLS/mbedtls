@@ -1,0 +1,707 @@
+Cipher Selftest
+cipher_selftest:
+
+Decrypt empty buffer
+dec_empty_buf:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:16:16:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:16:16:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:16:16:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_128_CBC:CAMELLIA-128-CBC:128:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_128_CBC:128:16:16:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_192_CBC:CAMELLIA-192-CBC:192:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_192_CBC:192:16:16:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_CAMELLIA_256_CBC:CAMELLIA-256-CBC:256:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_CAMELLIA_256_CBC:256:16:16:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:16:16:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:16:16:
+
+Encrypt and decrypt 0 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:0
+
+Encrypt and decrypt 1 byte
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:1
+
+Encrypt and decrypt 2 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:2
+
+Encrypt and decrypt 7 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:7
+
+Encrypt and decrypt 8 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:8
+
+Encrypt and decrypt 9 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:9
+
+Encrypt and decrypt 15 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:15
+
+Encrypt and decrypt 16 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:16
+
+Encrypt and decrypt 17 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:17
+
+Encrypt and decrypt 31 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:31
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:32
+
+Encrypt and decrypt 32 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:33
+
+Encrypt and decrypt 47 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:47
+
+Encrypt and decrypt 48 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:48
+
+Encrypt and decrypt 49 bytes
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:49
+
+Encrypt and decrypt 0 bytes in multiple parts
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:0:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:1:0:
+
+Encrypt and decrypt 1 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:0:1:
+
+Encrypt and decrypt 16 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:16:0:
+
+Encrypt and decrypt 16 bytes in multiple parts 2
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:0:16:
+
+Encrypt and decrypt 16 bytes in multiple parts 3
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:1:15:
+
+Encrypt and decrypt 16 bytes in multiple parts 4
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:15:1:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:15:7:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:16:6:
+
+Encrypt and decrypt 22 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:17:6:
+
+Encrypt and decrypt 32 bytes in multiple parts 1
+enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE3_CBC:168:16:16:

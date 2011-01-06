@@ -158,6 +158,14 @@
 #define POLARSSL_CERTS_C
 
 /*
+ * Module:  library/cipher.c
+ * Caller:
+ *
+ * Uncomment to enable generic cipher wrappers.
+ */
+#define POLARSSL_CIPHER_C
+
+/*
  * Module:  library/debug.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c

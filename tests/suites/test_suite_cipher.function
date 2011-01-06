@@ -1,0 +1,184 @@
+BEGIN_HEADER
+#include <polarssl/config.h>
+#include <polarssl/cipher.h>
+END_HEADER
+
+BEGIN_CASE
+enc_dec_buf:cipher_id:cipher_string:key_len:length:
+    int length = {length};
+    unsigned char key[32];
+    unsigned char iv[16];
+
+    const cipher_info_t *cipher_info;
+    cipher_context_t ctx_dec;
+    cipher_context_t ctx_enc;
+
+    unsigned char inbuf[64];
+    unsigned char encbuf[64];
+    unsigned char decbuf[64];
+
+    int outlen = 0;
+    int enclen = 0;
+
+    memset( key, 0, 32 );
+    memset( iv , 0, 16 );
+    
+    memset( &ctx_dec, 0, sizeof( ctx_dec ) );
+    memset( &ctx_enc, 0, sizeof( ctx_enc ) );
+    
+    memset( inbuf, 5, 64 );
+    memset( encbuf, 0, 64 );
+    memset( decbuf, 0, 64 );
+
+    /* Check and get info structures */
+    cipher_info = cipher_info_from_type( {cipher_id} );
+    TEST_ASSERT( NULL != cipher_info );
+    TEST_ASSERT( cipher_info_from_string( "{cipher_string}" ) == cipher_info );
+
+    /* Initialise enc and dec contexts */
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx_dec, cipher_info ) );
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx_enc, cipher_info ) );
+    
+    TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, {key_len}, POLARSSL_DECRYPT ) );
+    TEST_ASSERT( 0 == cipher_setkey( &ctx_enc, key, {key_len}, POLARSSL_ENCRYPT ) );
+
+    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );
+
+    enclen = cipher_get_block_size( &ctx_enc )
+                    * ( 1 + length / cipher_get_block_size( &ctx_enc ) );
+
+    /* encode length number of bytes from inbuf */
+    TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, length, encbuf, &outlen ) );
+    TEST_ASSERT( outlen == enclen - cipher_get_block_size ( &ctx_enc ) );
+    TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + outlen, &outlen ) );
+    TEST_ASSERT( outlen == cipher_get_block_size ( &ctx_enc ) );
+
+    /* decode the previously encoded string */
+    TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, enclen, decbuf, &outlen ) );
+    TEST_ASSERT( enclen - cipher_get_block_size ( &ctx_enc ) == outlen );
+    TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
+    TEST_ASSERT( length - enclen + cipher_get_block_size ( &ctx_enc ) == outlen );
+
+    TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );
+
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_enc ) );
+END_CASE
+
+BEGIN_CASE
+dec_empty_buf:
+    unsigned char key[32];
+    unsigned char iv[16];
+
+    cipher_context_t ctx_dec;
+    const cipher_info_t *cipher_info;
+
+    unsigned char encbuf[64];
+    unsigned char decbuf[64];
+
+    int outlen = 0;
+
+    memset( key, 0, 32 );
+    memset( iv , 0, 16 );
+    
+    memset( &ctx_dec, 0, sizeof( ctx_dec ) );
+    
+    memset( encbuf, 0, 64 );
+    memset( decbuf, 0, 64 );
+
+    /* Initialise enc and dec contexts */
+    cipher_info = cipher_info_from_type( POLARSSL_CIPHER_AES_128_CBC );
+    TEST_ASSERT( NULL != cipher_info);
+    
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx_dec, cipher_info ) );
+
+    TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, 128, POLARSSL_DECRYPT ) );
+
+    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
+
+    /* decode 0-byte string */
+    TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, 0, decbuf, &outlen ) );
+    TEST_ASSERT( 0 == outlen );
+    TEST_ASSERT( 1 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
+    TEST_ASSERT( 0 == outlen );
+
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
+END_CASE
+
+BEGIN_CASE
+enc_dec_buf_multipart:cipher_id:key_len:first_length:second_length:
+    int first_length = {first_length};
+    int second_length = {second_length};
+    int length = first_length + second_length;
+    unsigned char key[32];
+    unsigned char iv[16];
+
+    cipher_context_t ctx_dec;
+    cipher_context_t ctx_enc;
+    const cipher_info_t *cipher_info;
+
+    unsigned char inbuf[64];
+    unsigned char encbuf[64];
+    unsigned char decbuf[64];
+
+    int outlen = 0;
+    int totaloutlen = 0;
+    int enclen = 0;
+
+    memset( key, 0, 32 );
+    memset( iv , 0, 16 );
+    
+    memset( &ctx_dec, 0, sizeof( ctx_dec ) );
+    memset( &ctx_enc, 0, sizeof( ctx_enc ) );
+        
+    memset( inbuf, 5, 64 );
+    memset( encbuf, 0, 64 );
+    memset( decbuf, 0, 64 );
+
+    /* Initialise enc and dec contexts */
+    cipher_info = cipher_info_from_type( {cipher_id} );
+    TEST_ASSERT( NULL != cipher_info);
+    
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx_dec, cipher_info ) );
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx_enc, cipher_info ) );
+    
+    TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, {key_len}, POLARSSL_DECRYPT ) );
+    TEST_ASSERT( 0 == cipher_setkey( &ctx_enc, key, {key_len}, POLARSSL_ENCRYPT ) );
+
+    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );
+
+    enclen = cipher_get_block_size(&ctx_enc )
+                    * ( 1 + length / cipher_get_block_size( &ctx_enc ) );
+
+    /* encode length number of bytes from inbuf */
+    TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, first_length, encbuf, &outlen ) );
+    totaloutlen = outlen;
+    TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf + first_length, second_length, encbuf + totaloutlen, &outlen ) );
+    totaloutlen += outlen;
+    TEST_ASSERT( totaloutlen == enclen - cipher_get_block_size ( &ctx_enc ) );
+    TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + totaloutlen, &outlen ) );
+    totaloutlen += outlen;
+    TEST_ASSERT( outlen == cipher_get_block_size ( &ctx_enc ) );
+
+    /* decode the previously encoded string */
+    TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, enclen, decbuf, &outlen ) );
+    TEST_ASSERT( enclen - cipher_get_block_size ( &ctx_enc ) == outlen );
+    TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
+    TEST_ASSERT( length - enclen + cipher_get_block_size ( &ctx_enc ) == outlen );
+    
+
+    TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );
+
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_enc ) );
+END_CASE
+
+
+BEGIN_CASE
+cipher_selftest:
+{
+    TEST_ASSERT( cipher_self_test( 0 ) == 0 );
+}
+END_CASE

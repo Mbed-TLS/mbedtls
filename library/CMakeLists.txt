@@ -7,6 +7,8 @@ set(src
      bignum.c
      camellia.c
      certs.c
+     cipher.c
+     cipher_wrap.c
      debug.c
      des.c
      dhm.c

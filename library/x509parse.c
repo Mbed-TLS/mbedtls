@@ -47,6 +47,7 @@
 #include "polarssl/sha1.h"
 #include "polarssl/sha2.h"
 #include "polarssl/sha4.h"
+#include "polarssl/dhm.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -1819,6 +1820,122 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
     return( ret );
 }
 
+/*
+ * Parse DHM parameters
+ */
+int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen )
+{
+    int ret, len;
+    unsigned char *buf, *s1, *s2;
+    unsigned char *p, *end;
+
+    s1 = (unsigned char *) strstr( (char *) dhmin,
+        "-----BEGIN DH PARAMETERS-----" );
+
+    if( s1 != NULL )
+    {
+        s2 = (unsigned char *) strstr( (char *) dhmin,
+            "-----END DH PARAMETERS-----" );
+
+        if( s2 == NULL || s2 <= s1 )
+            return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
+
+        s1 += 29;
+        if( *s1 == '\r' ) s1++;
+        if( *s1 == '\n' ) s1++;
+            else return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
+
+        len = 0;
+        ret = base64_decode( NULL, &len, s1, s2 - s1 );
+
+        if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
+            return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
+
+        if( ( buf = (unsigned char *) malloc( len ) ) == NULL )
+            return( 1 );
+
+        if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
+        {
+            free( buf );
+            return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
+        }
+
+        dhminlen = len;
+    }
+    else
+    {
+        buf = NULL;
+    }
+
+    memset( dhm, 0, sizeof( dhm_context ) );
+
+    p = ( s1 != NULL ) ? buf : (unsigned char *) dhmin;
+    end = p + dhminlen;
+
+    /*
+     *  DHParams ::= SEQUENCE {
+     *      prime            INTEGER,  -- P
+     *      generator        INTEGER,  -- g
+     *  }
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        if( s1 != NULL )
+            free( buf );
+
+        dhm_free( dhm );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
+    }
+
+    end = p + len;
+
+    if( ( ret = asn1_get_mpi( &p, end, &dhm->P  ) ) != 0 ||
+        ( ret = asn1_get_mpi( &p, end, &dhm->G ) ) != 0 )
+    {
+        if( s1 != NULL )
+            free( buf );
+
+        dhm_free( dhm );
+        return( ret | POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
+    }
+
+    if( p != end )
+    {
+        if( s1 != NULL )
+            free( buf );
+
+        dhm_free( dhm );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+
+    if( s1 != NULL )
+        free( buf );
+
+    return( 0 );
+}
+
+/*
+ * Load and parse a private RSA key
+ */
+int x509parse_dhmfile( dhm_context *dhm, const char *path )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( load_file( path, &buf, &n ) )
+        return( 1 );
+
+    ret = x509parse_dhm( dhm, buf, (int) n);
+
+    memset( buf, 0, n + 1 );
+    free( buf );
+
+    return( ret );
+}
+
 #if defined _MSC_VER && !defined snprintf
 #include <stdarg.h>
 
@@ -2511,6 +2628,7 @@ int x509_self_test( int verbose )
     x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
+    dhm_context dhm;
 
     if( verbose != 0 )
         printf( "  X.509 certificate load: " );
@@ -2568,11 +2686,26 @@ int x509_self_test( int verbose )
     }
 
     if( verbose != 0 )
+        printf( "passed\n  X.509 DHM parameter load: " );
+
+    i = strlen( test_dhm_params );
+    j = strlen( test_ca_pwd );
+
+    if( ( ret = x509parse_dhm( &dhm, (unsigned char *) test_dhm_params, i ) ) != 0 )
+    {
+        if( verbose != 0 )
+            printf( "failed\n" );
+
+        return( ret );
+    }
+
+    if( verbose != 0 )
         printf( "passed\n\n" );
 
     x509_free( &cacert  );
     x509_free( &clicert );
     rsa_free( &rsa );
+    dhm_free( &dhm );
 
     return( 0 );
 #else

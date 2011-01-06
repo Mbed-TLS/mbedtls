@@ -38,6 +38,7 @@ extern const char test_srv_crt[];
 extern const char test_srv_key[];
 extern const char test_cli_crt[];
 extern const char test_cli_key[];
+extern const char test_dhm_params[];
 
 #ifdef __cplusplus
 }

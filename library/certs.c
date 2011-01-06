@@ -186,4 +186,11 @@ const char test_cli_key[] =
 "3vMGjy6jnBSaKoktW8ikY+4FHq+t5z63UN3RF367Iz0dWzIVocbxAQ==\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
+const char test_dhm_params[] =
+"-----BEGIN DH PARAMETERS-----\r\n"
+"MIGHAoGBAJ419DBEOgmQTzo5qXl5fQcN9TN455wkOL7052HzxxRVMyhYmwQcgJvh\r\n"
+"1sa18fyfR9OiVEMYglOpkqVoGLN7qd5aQNNi5W7/C+VBdHTBJcGZJyyP5B3qcz32\r\n"
+"9mLJKudlVudV0Qxk5qUJaPZ/xupz0NyoVpviuiBOI1gNi8ovSXWzAgEC\r\n"
+"-----END DH PARAMETERS-----\r\n";
+
 #endif

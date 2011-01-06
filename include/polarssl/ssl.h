@@ -454,6 +454,17 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
 int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
 
 /**
+ * \brief          Set the Diffie-Hellman public P and G values,
+ *                 read from existing context (server-side only)
+ *
+ * \param ssl      SSL context
+ * \param dhm_ctx  Diffie-Hellman-Merkle context
+ *
+ * \return         0 if successful
+ */
+int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
+
+/**
  * \brief          Set hostname for ServerName TLS Extension
  *                 
  *

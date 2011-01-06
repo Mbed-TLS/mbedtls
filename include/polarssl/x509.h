@@ -28,6 +28,7 @@
 #define POLARSSL_X509_H
 
 #include "polarssl/rsa.h"
+#include "polarssl/dhm.h"
 
 /** 
  * @addtogroup x509_module
@@ -322,7 +323,7 @@ extern "C" {
 #endif
 
 /**
- * @name Functions to read in a certificate, CRL or private RSA key 
+ * @name Functions to read in DHM parameters, a certificate, CRL or private RSA key
  * @{
  */
 
@@ -404,7 +405,31 @@ int x509parse_key( rsa_context *rsa,
  */
 int x509parse_keyfile( rsa_context *rsa, const char *path,
                        const char *password );
-/** @} name Functions to read in a certificate, CRL or private RSA key */ 
+
+/** @ingroup x509_module */
+/**
+ * \brief          Parse DHM parameters
+ *
+ * \param dhm      DHM context to be initialized
+ * \param dhmin    input buffer
+ * \param dhminlen size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 error code
+ */
+int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen );
+
+/** @ingroup x509_module */
+/**
+ * \brief          Load and parse DHM parameters
+ *
+ * \param dhm      DHM context to be initialized
+ * \param path     filename to read the DHM Parameters from
+ *
+ * \return         0 if successful, or a specific X509 error code
+ */
+int x509parse_dhmfile( dhm_context *rsa, const char *path );
+
+/** @} name Functions to read in DHM parameters, a certificate, CRL or private RSA key */
 
 
 

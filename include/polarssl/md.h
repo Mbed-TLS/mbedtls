@@ -41,6 +41,8 @@ typedef enum {
     POLARSSL_MD_SHA512,
 } md_type_t;
 
+#define POLARSSL_MD_MAX_SIZE         64  /* longest known is SHA512 */
+
 /**
  * Message digest information. Allows message digest functions to be called
  * in a generic way.

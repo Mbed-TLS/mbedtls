@@ -8,6 +8,7 @@ Features
      with OpenVPN (donated by Fox-IT)
    * Added generic cipher wrapper for integration
      with OpenVPN (donated by Fox-IT)
+   * Added reading of DHM context from memory and file
 
 = Version 0.14.0 released on 2010-08-16
 Features

@@ -2,13 +2,15 @@ PolarSSL ChangeLog
 
 = Version Trunk
 Features
-   * Added Doxygen source code documentation parts (donated
-     by Fox-IT)
+Note: Most of these features have been donated by Fox-IT
+   * Added Doxygen source code documentation parts
    * Added generic message digest wrapper for integration
-     with OpenVPN (donated by Fox-IT)
+     with OpenVPN
    * Added generic cipher wrapper for integration
-     with OpenVPN (donated by Fox-IT)
+     with OpenVPN
    * Added reading of DHM context from memory and file
+   * Added verification callback on certificate chain
+     verification to allow external blacklisting.
 
 = Version 0.14.0 released on 2010-08-16
 Features

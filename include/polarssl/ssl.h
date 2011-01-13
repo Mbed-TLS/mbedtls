@@ -215,17 +215,19 @@ struct _ssl_context
     int max_minor_ver;          /*!< max. minor version from client   */
 
     /*
-     * Callbacks (RNG, debug, I/O)
+     * Callbacks (RNG, debug, I/O, verification)
      */
     int  (*f_rng)(void *);
     void (*f_dbg)(void *, int, const char *);
     int (*f_recv)(void *, unsigned char *, int);
     int (*f_send)(void *, unsigned char *, int);
+    int (*f_vrfy)(void *, x509_cert *, int, int);
 
     void *p_rng;                /*!< context for the RNG function     */
     void *p_dbg;                /*!< context for the debug function   */
     void *p_recv;               /*!< context for reading operations   */
     void *p_send;               /*!< context for writing operations   */
+    void *p_vrfy;               /*!< context for verification */
 
     /*
      * Session layer
@@ -352,6 +354,23 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint );
  *                        handshake is aborted if verification failed.
  */
 void ssl_set_authmode( ssl_context *ssl, int authmode );
+
+/**
+ * \brief          Set the verification callback (Optional).
+ *
+ *                 If set, the verification callback is called once for every
+ *                 certificate in the chain. The verification function has the
+ *                 following parameter: (void *parameter, x509_cert certificate,
+ *                 int certifcate_depth, int preverify_ok). It should
+ *                 return 0 on SUCCESS.
+ *
+ * \param ssl      SSL context
+ * \param f_vrfy   verification function
+ * \param p_vrfy   verification parameter
+ */
+void ssl_set_verify( ssl_context *ssl,
+                     int (*f_vrfy)(void *, x509_cert *, int, int),
+                     void *p_vrfy );
 
 /**
  * \brief          Set the random number generator callback

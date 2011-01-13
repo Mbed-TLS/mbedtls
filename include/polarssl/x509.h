@@ -501,6 +501,8 @@ int x509parse_time_expired( const x509_time *time );
  * \param cn       expected Common Name (can be set to
  *                 NULL if the CN must not be verified)
  * \param flags    result of the verification
+ * \param f_vrfy   verification function
+ * \param p_vrfy   verification parameter
  *
  * \return         0 if successful or POLARSSL_ERR_X509_SIG_VERIFY_FAILED,
  *                 in which case *flags will have one or more of
@@ -515,7 +517,9 @@ int x509parse_time_expired( const x509_time *time );
 int x509parse_verify( x509_cert *crt,
                       x509_cert *trust_ca,
                       x509_crl *ca_crl,
-                      const char *cn, int *flags );
+                      const char *cn, int *flags,
+                      int (*f_vrfy)(void *, x509_cert *, int, int),
+                      void *p_vrfy );
 
 /** @} name Functions to verify a certificate */
 

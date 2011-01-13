@@ -2335,7 +2335,9 @@ static void x509_hash( const unsigned char *in, int len, int alg,
 int x509parse_verify( x509_cert *crt,
                       x509_cert *trust_ca,
                       x509_crl *ca_crl,
-                      const char *cn, int *flags )
+                      const char *cn, int *flags,
+                      int (*f_vrfy)(void *, x509_cert *, int, int),
+                      void *p_vrfy )
 {
     int cn_len;
     int hash_id;
@@ -2380,6 +2382,8 @@ int x509parse_verify( x509_cert *crt,
 
     while( cur != NULL && cur->version != 0 )
     {
+        int verify_ok = 1;
+
         if( cur->ca_istrue == 0 ||
             crt->issuer_raw.len != cur->subject_raw.len ||
             memcmp( crt->issuer_raw.p, cur->subject_raw.p,
@@ -2395,7 +2399,15 @@ int x509parse_verify( x509_cert *crt,
 
         if( rsa_pkcs1_verify( &cur->rsa, RSA_PUBLIC, hash_id,
                               0, hash, crt->sig.p ) != 0 )
+            verify_ok = 0;
+
+        /* crt is verified to be a child of the parent cur, call verify callback */
+        if( NULL != f_vrfy ) {
+            if ( f_vrfy( p_vrfy, crt, pathlen-1, verify_ok ) != 0 )
+                return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+        } else if ( verify_ok == 0 ) {
             return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+        }
 
         pathlen++;
 
@@ -2494,6 +2506,13 @@ int x509parse_verify( x509_cert *crt,
 
     if( *flags != 0 )
         return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+
+
+    /* Verification succeeded, call callback on top cert */
+    if( NULL != f_vrfy ) {
+        if ( f_vrfy(p_vrfy, crt, pathlen - 1, 1) != 0 )
+            return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+    }
 
     return( 0 );
 }
@@ -2676,7 +2695,7 @@ int x509_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n  X.509 signature verify: ");
 
-    ret = x509parse_verify( &clicert, &cacert, NULL, "PolarSSL Client 2", &i );
+    ret = x509parse_verify( &clicert, &cacert, NULL, "PolarSSL Client 2", &i, NULL, NULL );
     if( ret != 0 )
     {
         if( verbose != 0 )

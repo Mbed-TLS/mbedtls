@@ -1,5 +1,17 @@
 BEGIN_HEADER
+#include <polarssl/config.h>
 #include <polarssl/x509.h>
+
+int verify_none( void *data, x509_cert *crt, int certificate_depth, int preverify_ok )
+{
+    return 1;
+}
+
+int verify_all( void *data, x509_cert *crt, int certificate_depth, int preverify_ok )
+{
+    return 0;
+}
+
 END_HEADER
 
 BEGIN_CASE
@@ -43,7 +55,7 @@ x509_crl_info:crl_file:result_str
 END_CASE
 
 BEGIN_CASE
-x509_verify:crt_file:ca_file:crl_file:cn_name:result
+x509_verify:crt_file:ca_file:crl_file:cn_name:result:flags:verify_callback
 {
     x509_cert   crt;
     x509_cert   ca;
@@ -59,16 +71,10 @@ x509_verify:crt_file:ca_file:crl_file:cn_name:result
     TEST_ASSERT( x509parse_crtfile( &ca, {ca_file} ) == 0 );
     TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
 
-    res = x509parse_verify( &crt, &ca, &crl, {cn_name}, &flags );
+    res = x509parse_verify( &crt, &ca, &crl, {cn_name}, &flags, {verify_callback}, NULL );
 
-    if( res == 0 )
-    {
-        TEST_ASSERT( res == ( {result} ) );
-    }
-    else
-    {
-        TEST_ASSERT( flags == ( {result} ) );
-    }
+    TEST_ASSERT( res == ( {result} ) );
+    TEST_ASSERT( flags == ( {flags} ) );
 }
 END_CASE
 

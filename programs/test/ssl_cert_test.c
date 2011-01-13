@@ -146,7 +146,7 @@ int main( void )
         printf( "  . Verify the client certificate with CA certificate..." );
         fflush( stdout );
 
-        ret = x509parse_verify( &clicert, &cacert, &crl, NULL, &flags );
+        ret = x509parse_verify( &clicert, &cacert, &crl, NULL, &flags, NULL, NULL );
         if( ret != 0 )
         {
             if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )

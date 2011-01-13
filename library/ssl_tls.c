@@ -1404,7 +1404,8 @@ int ssl_parse_certificate( ssl_context *ssl )
         }
 
         ret = x509parse_verify( ssl->peer_cert, ssl->ca_chain, ssl->ca_crl,
-                                ssl->peer_cn,  &ssl->verify_result );
+                                ssl->peer_cn,  &ssl->verify_result,
+                                ssl->f_vrfy, ssl->p_vrfy );
 
         if( ret != 0 )
             SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
@@ -1723,6 +1724,14 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint )
 void ssl_set_authmode( ssl_context *ssl, int authmode )
 {
     ssl->authmode   = authmode;
+}
+
+void ssl_set_verify( ssl_context *ssl,
+                     int (*f_vrfy)(void *, x509_cert *, int, int),
+                     void *p_vrfy )
+{
+    ssl->f_vrfy      = f_vrfy;
+    ssl->p_vrfy      = p_vrfy;
 }
 
 void ssl_set_rng( ssl_context *ssl,

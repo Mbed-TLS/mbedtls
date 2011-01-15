@@ -144,13 +144,132 @@
 #define X509_ISSUER                  0x01
 #define X509_SUBJECT                 0x02
 
+/** Returns the size of the binary string, without the trailing \0 */
+#define OID_SIZE(x) (sizeof(x) - 1)
+
 #define OID_X520                "\x55\x04"
-#define OID_CN                  "\x55\x04\x03"
+#define OID_CN                  OID_X520 "\x03"
+
 #define OID_PKCS1               "\x2A\x86\x48\x86\xF7\x0D\x01\x01"
-#define OID_PKCS1_RSA           "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01"
-#define OID_PKCS1_RSA_SHA       "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x05"
+#define OID_PKCS1_RSA           OID_PKCS1 "\x01"
+#define OID_PKCS1_RSA_SHA       OID_PKCS1 "\x05"
+
 #define OID_PKCS9               "\x2A\x86\x48\x86\xF7\x0D\x01\x09"
-#define OID_PKCS9_EMAIL         "\x2A\x86\x48\x86\xF7\x0D\x01\x09\x01"
+#define OID_PKCS9_EMAIL         OID_PKCS9 "\x01"
+
+/** ISO arc for standard certificate and CRL extensions */
+#define OID_ID_CE               "\x55\x1D" /**< id-ce OBJECT IDENTIFIER  ::=  {joint-iso-ccitt(2) ds(5) 29} */
+
+/**
+ * Private Internet Extensions
+ * { iso(1) identified-organization(3) dod(6) internet(1)
+ *                      security(5) mechanisms(5) pkix(7) }
+ */
+#define OID_PKIX                "\x2B\x06\x01\x05\x05\x07"
+
+/*
+ * OIDs for standard certificate extensions
+ */
+#define OID_AUTHORITY_KEY_IDENTIFIER    OID_ID_CE "\x23" /**< id-ce-authorityKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 35 } */
+#define OID_SUBJECT_KEY_IDENTIFIER      OID_ID_CE "\x0E" /**< id-ce-subjectKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 14 } */
+#define OID_KEY_USAGE                   OID_ID_CE "\x0F" /**< id-ce-keyUsage OBJECT IDENTIFIER ::=  { id-ce 15 } */
+#define OID_CERTIFICATE_POLICIES        OID_ID_CE "\x20" /**< id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 } */
+#define OID_POLICY_MAPPINGS             OID_ID_CE "\x21" /**< id-ce-policyMappings OBJECT IDENTIFIER ::=  { id-ce 33 } */
+#define OID_SUBJECT_ALT_NAME            OID_ID_CE "\x11" /**< id-ce-subjectAltName OBJECT IDENTIFIER ::=  { id-ce 17 } */
+#define OID_ISSUER_ALT_NAME             OID_ID_CE "\x12" /**< id-ce-issuerAltName OBJECT IDENTIFIER ::=  { id-ce 18 } */
+#define OID_SUBJECT_DIRECTORY_ATTRS     OID_ID_CE "\x09" /**< id-ce-subjectDirectoryAttributes OBJECT IDENTIFIER ::=  { id-ce 9 } */
+#define OID_BASIC_CONSTRAINTS           OID_ID_CE "\x13" /**< id-ce-basicConstraints OBJECT IDENTIFIER ::=  { id-ce 19 } */
+#define OID_NAME_CONSTRAINTS            OID_ID_CE "\x1E" /**< id-ce-nameConstraints OBJECT IDENTIFIER ::=  { id-ce 30 } */
+#define OID_POLICY_CONSTRAINTS          OID_ID_CE "\x24" /**< id-ce-policyConstraints OBJECT IDENTIFIER ::=  { id-ce 36 } */
+#define OID_EXTENDED_KEY_USAGE          OID_ID_CE "\x25" /**< id-ce-extKeyUsage OBJECT IDENTIFIER ::= { id-ce 37 } */
+#define OID_CRL_DISTRIBUTION_POINTS     OID_ID_CE "\x1F" /**< id-ce-cRLDistributionPoints OBJECT IDENTIFIER ::=  { id-ce 31 } */
+#define OID_INIHIBIT_ANYPOLICY          OID_ID_CE "\x36" /**< id-ce-inhibitAnyPolicy OBJECT IDENTIFIER ::=  { id-ce 54 } */
+#define OID_FRESHEST_CRL                OID_ID_CE "\x2E" /**< id-ce-freshestCRL OBJECT IDENTIFIER ::=  { id-ce 46 } */
+
+/*
+ * X.509 v3 Key Usage Extension flags
+ */
+#define KU_DIGITAL_SIGNATURE            (0x80)  /* bit 0 */
+#define KU_NON_REPUDIATION              (0x40)  /* bit 1 */
+#define KU_KEY_ENCIPHERMENT             (0x20)  /* bit 2 */
+#define KU_DATA_ENCIPHERMENT            (0x10)  /* bit 3 */
+#define KU_KEY_AGREEMENT                (0x08)  /* bit 4 */
+#define KU_KEY_CERT_SIGN                (0x04)  /* bit 5 */
+#define KU_CRL_SIGN                     (0x02)  /* bit 6 */
+
+/*
+ * X.509 v3 Extended key usage OIDs
+ */
+#define OID_ANY_EXTENDED_KEY_USAGE      OID_EXTENDED_KEY_USAGE "\x00" /**< anyExtendedKeyUsage OBJECT IDENTIFIER ::= { id-ce-extKeyUsage 0 } */
+
+#define OID_KP                          OID_PKIX "\x03" /**< id-kp OBJECT IDENTIFIER ::= { id-pkix 3 } */
+#define OID_SERVER_AUTH                 OID_KP "\x01" /**< id-kp-serverAuth OBJECT IDENTIFIER ::= { id-kp 1 } */
+#define OID_CLIENT_AUTH                 OID_KP "\x02" /**< id-kp-clientAuth OBJECT IDENTIFIER ::= { id-kp 2 } */
+#define OID_CODE_SIGNING                OID_KP "\x03" /**< id-kp-codeSigning OBJECT IDENTIFIER ::= { id-kp 3 } */
+#define OID_EMAIL_PROTECTION            OID_KP "\x04" /**< id-kp-emailProtection OBJECT IDENTIFIER ::= { id-kp 4 } */
+#define OID_TIME_STAMPING               OID_KP "\x08" /**< id-kp-timeStamping OBJECT IDENTIFIER ::= { id-kp 8 } */
+#define OID_OCSP_SIGNING                OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
+
+#define STRING_SERVER_AUTH              "TLS Web Server Authentication"
+#define STRING_CLIENT_AUTH              "TLS Web Client Authentication"
+#define STRING_CODE_SIGNING             "Code Signing"
+#define STRING_EMAIL_PROTECTION         "E-mail Protection"
+#define STRING_TIME_STAMPING            "Time Stamping"
+#define STRING_OCSP_SIGNING             "OCSP Signing"
+
+/*
+ * OIDs for CRL extensions
+ */
+#define OID_PRIVATE_KEY_USAGE_PERIOD    OID_ID_CE "\x10"
+#define OID_CRL_NUMBER                  OID_ID_CE "\x14" /**< id-ce-cRLNumber OBJECT IDENTIFIER ::= { id-ce 20 } */
+
+/*
+ * Netscape certificate extensions
+ */
+#define OID_NETSCAPE                "\x60\x86\x48\x01\x86\xF8\x42" /**< Netscape OID */
+#define OID_NS_CERT                 OID_NETSCAPE "\x01"
+#define OID_NS_CERT_TYPE            OID_NS_CERT  "\x01"
+#define OID_NS_BASE_URL             OID_NS_CERT  "\x02"
+#define OID_NS_REVOCATION_URL       OID_NS_CERT  "\x03"
+#define OID_NS_CA_REVOCATION_URL    OID_NS_CERT  "\x04"
+#define OID_NS_RENEWAL_URL          OID_NS_CERT  "\x07"
+#define OID_NS_CA_POLICY_URL        OID_NS_CERT  "\x08"
+#define OID_NS_SSL_SERVER_NAME      OID_NS_CERT  "\x0C"
+#define OID_NS_COMMENT              OID_NS_CERT  "\x0D"
+#define OID_NS_DATA_TYPE            OID_NETSCAPE "\x02"
+#define OID_NS_CERT_SEQUENCE        OID_NS_DATA_TYPE "\x05"
+
+/*
+ * Netscape certificate types
+ * (http://www.mozilla.org/projects/security/pki/nss/tech-notes/tn3.html)
+ */
+
+#define NS_CERT_TYPE_SSL_CLIENT         (0x80)  /* bit 0 */
+#define NS_CERT_TYPE_SSL_SERVER         (0x40)  /* bit 1 */
+#define NS_CERT_TYPE_EMAIL              (0x20)  /* bit 2 */
+#define NS_CERT_TYPE_OBJECT_SIGNING     (0x10)  /* bit 3 */
+#define NS_CERT_TYPE_RESERVED           (0x08)  /* bit 4 */
+#define NS_CERT_TYPE_SSL_CA             (0x04)  /* bit 5 */
+#define NS_CERT_TYPE_EMAIL_CA           (0x02)  /* bit 6 */
+#define NS_CERT_TYPE_OBJECT_SIGNING_CA  (0x01)  /* bit 7 */
+
+#define EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
+#define EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
+#define EXT_KEY_USAGE                   (1 << 2)
+#define EXT_CERTIFICATE_POLICIES        (1 << 3)
+#define EXT_POLICY_MAPPINGS             (1 << 4)
+#define EXT_SUBJECT_ALT_NAME            (1 << 5)
+#define EXT_ISSUER_ALT_NAME             (1 << 6)
+#define EXT_SUBJECT_DIRECTORY_ATTRS     (1 << 7)
+#define EXT_BASIC_CONSTRAINTS           (1 << 8)
+#define EXT_NAME_CONSTRAINTS            (1 << 9)
+#define EXT_POLICY_CONSTRAINTS          (1 << 10)
+#define EXT_EXTENDED_KEY_USAGE          (1 << 11)
+#define EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
+#define EXT_INIHIBIT_ANYPOLICY          (1 << 13)
+#define EXT_FRESHEST_CRL                (1 << 14)
+
+#define EXT_NS_CERT_TYPE                (1 << 16)
 
 /** 
  * @addtogroup x509_module
@@ -173,6 +292,17 @@ typedef struct _x509_buf
 x509_buf;
 
 /**
+ * Container for ASN1 bit strings.
+ */
+typedef struct _x509_bitstring
+{
+    int len;                    /**< ASN1 length, e.g. in octets. */
+    unsigned char unused_bits;  /**< Number of unused bits at the end of the string */
+    unsigned char *p;           /**< Raw ASN1 data for the bit string */
+}
+x509_bitstring;
+
+/**
  * Container for ASN1 named information objects. 
  * It allows for Relative Distinguished Names (e.g. cn=polarssl,ou=code,etc.).
  */
@@ -183,6 +313,16 @@ typedef struct _x509_name
     struct _x509_name *next;    /**< The next named information object. */
 }
 x509_name;
+
+/**
+ * Container for a sequence of ASN.1 items
+ */
+typedef struct _x509_sequence
+{
+    x509_buf buf;                   /**< Buffer containing the given ASN.1 item. */
+    struct _x509_sequence *next;    /**< The next entry in the sequence. */
+}
+x509_sequence;
 
 /** Container for date and time (precision in seconds). */
 typedef struct _x509_time
@@ -220,8 +360,15 @@ typedef struct _x509_cert
     x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
     x509_buf v3_ext;            /**< Optional X.509 v3 extensions. Only Basic Contraints are supported at this time. */
 
+    int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
     int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. */
+
+    unsigned char key_usage;    /**< Optional key usage extension value: See the values below */
+
+    x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
+
+    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values below */
 
     x509_buf sig_oid2;          /**< Signature algorithm. Must match sig_oid1. */
     x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
@@ -477,6 +624,28 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
                         const x509_crl *crl );
 
 /**
+ * \brief          Give an known OID, return its descriptive string.
+ *
+ * \param oid      buffer containing the oid
+ *
+ * \return         Return a string if the OID is known,
+ *                 or NULL otherwise.
+ */
+const char *x509_oid_get_description( x509_buf *oid );
+
+/*
+ * \brief          Give an OID, return a string version of its OID number.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param oid      Buffer containing the OID
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
+ */
+int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
+
+/**
  * \brief          Check a given x509_time against the system time and check
  *                 if it is valid.
  *
@@ -520,6 +689,17 @@ int x509parse_verify( x509_cert *crt,
                       const char *cn, int *flags,
                       int (*f_vrfy)(void *, x509_cert *, int, int),
                       void *p_vrfy );
+
+/**
+ * \brief          Verify the certificate signature
+ *
+ * \param crt      a certificate to be verified
+ * \param crl      the CRL to verify against
+ *
+ * \return         1 if the certificate is revoked, 0 otherwise
+ *
+ */
+int x509parse_revoked( const x509_cert *crt, const x509_crl *crl );
 
 /** @} name Functions to verify a certificate */
 

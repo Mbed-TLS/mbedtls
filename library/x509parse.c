@@ -170,6 +170,89 @@ static int asn1_get_mpi( unsigned char **p,
     return( ret );
 }
 
+static int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
+        x509_bitstring *bs)
+{
+    int ret;
+
+    /* Certificate type is a single byte bitstring */
+    if( ( ret = asn1_get_tag( p, end, &bs->len, ASN1_BIT_STRING ) ) != 0 )
+        return( ret );
+
+    /* Check length, subtract one for actual bit string length */
+    if ( bs->len < 1 )
+        return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
+    bs->len -= 1;
+
+    /* Get number of unused bits, ensure unused bits <= 7 */
+    bs->unused_bits = **p;
+    if( bs->unused_bits > 7 )
+        return( POLARSSL_ERR_ASN1_INVALID_LENGTH );
+    (*p)++;
+
+    /* Get actual bitstring */
+    bs->p = *p;
+    *p += bs->len;
+
+    if( *p != end )
+        return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return 0;
+}
+
+
+/*
+ *  Parses and splits an ASN.1 "SEQUENCE OF <tag>"
+ */
+static int asn1_get_sequence_of( unsigned char **p,
+                          const unsigned char *end,
+                          x509_sequence *cur,
+                          int tag)
+{
+    int ret, len;
+    x509_buf *buf;
+
+    /* Get main sequence tag */
+    if( ( ret = asn1_get_tag( p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    if( *p + len != end )
+        return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    while( *p < end )
+    {
+        buf = &(cur->buf);
+        buf->tag = **p;
+
+        if( ( ret = asn1_get_tag( p, end, &buf->len, tag ) ) != 0 )
+            return( ret );
+
+        buf->p = *p;
+        *p += buf->len;
+
+        /* Allocate and assign next pointer */
+        if (*p < end)
+        {
+            cur->next = (x509_sequence *) malloc(
+                 sizeof( x509_sequence ) );
+
+            if( cur->next == NULL )
+                return( 1 );
+
+            cur = cur->next;
+        }
+    }
+
+    /* Set final sequence entry's next pointer to NULL */
+    cur->next = NULL;
+
+    if( *p != end )
+        return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
 /*
  *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
@@ -524,6 +607,7 @@ static int x509_get_sig( unsigned char **p,
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE | ret );
 
+
     if( --len < 1 || *(*p)++ != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE );
 
@@ -638,21 +722,132 @@ static int x509_get_crl_ext( unsigned char **p,
     return( 0 );
 }
 
+static int x509_get_basic_constraints( unsigned char **p,
+                                       const unsigned char *end,
+                                       int is_critical,
+                                       int *ca_istrue,
+                                       int *max_pathlen )
+{
+    int ret, len;
+
+    /*
+     * BasicConstraints ::= SEQUENCE {
+     *      cA                      BOOLEAN DEFAULT FALSE,
+     *      pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
+     */
+    int is_cacert = 0; /* DEFAULT FALSE */
+    *max_pathlen = 0; /* endless */
+
+    if( ( ret = asn1_get_tag( p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+
+    if( *p == end )
+        return 0;
+
+    if( ( ret = asn1_get_bool( p, end, &is_cacert ) ) != 0 )
+    {
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+            ret = asn1_get_int( p, end, &is_cacert );
+
+        if( ret != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+
+        if( is_cacert != 0 )
+            is_cacert = 1;
+    }
+
+    if( *p == end )
+        return 0;
+
+    if( ( ret = asn1_get_int( p, end, max_pathlen ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+
+    if( *p != end )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    (*max_pathlen)++;
+
+    *ca_istrue = is_critical & is_cacert;
+    return 0;
+}
+
+static int x509_get_ns_cert_type( unsigned char **p,
+                                       const unsigned char *end,
+                                       unsigned char *ns_cert_type)
+{
+    int ret;
+    x509_bitstring bs = {0};
+
+    if( ( ret = asn1_get_bitstring( p, end, &bs ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+
+    if( bs.len != 1 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                POLARSSL_ERR_ASN1_INVALID_LENGTH );
+
+    /* Get actual bitstring */
+    *ns_cert_type = *bs.p;
+    return 0;
+}
+
+static int x509_get_key_usage( unsigned char **p,
+                               const unsigned char *end,
+                               unsigned char *key_usage)
+{
+    int ret;
+    x509_bitstring bs = {0};
+
+    if( ( ret = asn1_get_bitstring( p, end, &bs ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+
+    if( bs.len != 1 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                POLARSSL_ERR_ASN1_INVALID_LENGTH );
+
+    /* Get actual bitstring */
+    *key_usage = *bs.p;
+    return 0;
+}
+
 /*
- * X.509 v3 extensions (only BasicConstraints are parsed)
+ * ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
+ *
+ * KeyPurposeId ::= OBJECT IDENTIFIER
+ */
+static int x509_get_ext_key_usage( unsigned char **p,
+                               const unsigned char *end,
+                               x509_sequence *ext_key_usage)
+{
+    int ret;
+
+    if( ( ret = asn1_get_sequence_of( p, end, ext_key_usage, ASN1_OID ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
+
+    /* Sequence length must be >= 1 */
+    if( ext_key_usage->buf.p == NULL )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                POLARSSL_ERR_ASN1_INVALID_LENGTH );
+
+    return 0;
+}
+
+/*
+ * X.509 v3 extensions
+ *
+ * TODO: Perform all of the basic constraints tests required by the RFC
+ * TODO: Set values for undetected extensions to a sane default?
+ *
  */
 static int x509_get_crt_ext( unsigned char **p,
                              const unsigned char *end,
-                             x509_buf *ext,
-                             int *ca_istrue,
-                             int *max_pathlen )
+                             x509_cert *crt )
 {
     int ret, len;
-    int is_critical = 1;
-    int is_cacert   = 0;
     unsigned char *end_ext_data, *end_ext_octet;
 
-    if( ( ret = x509_get_ext( p, end, ext ) ) != 0 )
+    if( ( ret = x509_get_ext( p, end, &crt->v3_ext ) ) != 0 )
     {
         if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
             return( 0 );
@@ -662,76 +857,106 @@ static int x509_get_crt_ext( unsigned char **p,
 
     while( *p < end )
     {
+        /*
+         * Extension  ::=  SEQUENCE  {
+         *      extnID      OBJECT IDENTIFIER,
+         *      critical    BOOLEAN DEFAULT FALSE,
+         *      extnValue   OCTET STRING  }
+         */
+        x509_buf extn_oid = {0, 0, NULL};
+        int is_critical = 0; /* DEFAULT FALSE */
+
         if( ( ret = asn1_get_tag( p, end, &len,
                 ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
         end_ext_data = *p + len;
 
-        if( memcmp( *p, "\x06\x03\x55\x1D\x13", 5 ) != 0 )
-        {
-            *p += len;
-            continue;
-        }
+        /* Get extension ID */
+        extn_oid.tag = **p;
 
-        *p += 5;
+        if( ( ret = asn1_get_tag( p, end, &extn_oid.len, ASN1_OID ) ) != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
+        extn_oid.p = *p;
+        *p += extn_oid.len;
+
+        if( ( end - *p ) < 1 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                    POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
+        /* Get optional critical */
         if( ( ret = asn1_get_bool( p, end_ext_data, &is_critical ) ) != 0 &&
             ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG ) )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
+        /* Data should be octet string type */
         if( ( ret = asn1_get_tag( p, end_ext_data, &len,
                 ASN1_OCTET_STRING ) ) != 0 )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
-        /*
-         * BasicConstraints ::= SEQUENCE {
-         *      cA                      BOOLEAN DEFAULT FALSE,
-         *      pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
-         */
         end_ext_octet = *p + len;
 
         if( end_ext_octet != end_ext_data )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
                     POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-        if( ( ret = asn1_get_tag( p, end_ext_octet, &len,
-                ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
-
-        if( *p == end_ext_octet )
-            continue;
-
-        if( ( ret = asn1_get_bool( p, end_ext_octet, &is_cacert ) ) != 0 )
+        /*
+         * Detect supported extensions
+         */
+        if( ( OID_SIZE( OID_BASIC_CONSTRAINTS ) == extn_oid.len ) &&
+                memcmp( extn_oid.p, OID_BASIC_CONSTRAINTS, extn_oid.len ) == 0 )
         {
-            if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-                ret = asn1_get_int( p, end_ext_octet, &is_cacert );
-
-            if( ret != 0 )
-                return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
-
-            if( is_cacert != 0 )
-                is_cacert  = 1;
+            /* Parse basic constraints */
+            if( ( ret = x509_get_basic_constraints( p, end_ext_octet,
+                    is_critical, &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
+                return ( ret );
+            crt->ext_types |= EXT_BASIC_CONSTRAINTS;
         }
+        else if( ( OID_SIZE( OID_NS_CERT_TYPE ) == extn_oid.len ) &&
+                memcmp( extn_oid.p, OID_NS_CERT_TYPE, extn_oid.len ) == 0 )
+        {
+            /* Parse netscape certificate type */
+            if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
+                    &crt->ns_cert_type ) ) != 0 )
+                return ( ret );
+            crt->ext_types |= EXT_NS_CERT_TYPE;
+        }
+        else if( ( OID_SIZE( OID_KEY_USAGE ) == extn_oid.len ) &&
+                memcmp( extn_oid.p, OID_KEY_USAGE, extn_oid.len ) == 0 )
+        {
+            /* Parse key usage */
+            if( ( ret = x509_get_key_usage( p, end_ext_octet,
+                    &crt->key_usage ) ) != 0 )
+                return ( ret );
+            crt->ext_types |= EXT_KEY_USAGE;
+        }
+        else if( ( OID_SIZE( OID_EXTENDED_KEY_USAGE ) == extn_oid.len ) &&
+                memcmp( extn_oid.p, OID_EXTENDED_KEY_USAGE, extn_oid.len ) == 0 )
+        {
+            /* Parse extended key usage */
+            if( ( ret = x509_get_ext_key_usage( p, end_ext_octet,
+                    &crt->ext_key_usage ) ) != 0 )
+                return ( ret );
+            crt->ext_types |= EXT_EXTENDED_KEY_USAGE;
+        }
+        else
+        {
+            /* No parser found, skip extension */
+            *p = end_ext_octet;
 
-        if( *p == end_ext_octet )
-            continue;
-
-        if( ( ret = asn1_get_int( p, end_ext_octet, max_pathlen ) ) != 0 )
-            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
-
-        if( *p != end_ext_octet )
-            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
-                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
-
-        max_pathlen++;
+            if( is_critical )
+            {
+                /* Data is marked as critical: fail */
+                return ( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
+                        POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
+            }
+        }
     }
 
     if( *p != end )
         return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS |
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
-
-    *ca_istrue = is_critical & is_cacert;
 
     return( 0 );
 }
@@ -783,7 +1008,8 @@ static int x509_get_entries( unsigned char **p,
         if( ( ret = x509_get_crl_ext( p, end, &cur_entry->entry_ext ) ) != 0 )
             return( ret );
 
-        if ( *p < end ) {
+        if ( *p < end )
+        {
             cur_entry->next = malloc( sizeof( x509_crl_entry ) );
             cur_entry = cur_entry->next;
             memset( cur_entry, 0, sizeof( x509_crl_entry ) );
@@ -1099,8 +1325,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
 
     if( crt->version == 3 )
     {
-        ret = x509_get_crt_ext( &p, end, &crt->v3_ext,
-                            &crt->ca_istrue, &crt->max_pathlen );
+        ret = x509_get_crt_ext( &p, end, crt);
         if( ret != 0 )
         {
             x509_free( crt );
@@ -2006,7 +2231,8 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
 
     while( name != NULL )
     {
-        if( name != dn ) {
+        if( name != dn )
+        {
             ret = snprintf( p, n, ", " );
             SAFE_SNPRINTF();
         }
@@ -2055,9 +2281,9 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
         SAFE_SNPRINTF();
         }
         else
-    {
+        {
             ret = snprintf( p, n, "\?\?=" );
-        SAFE_SNPRINTF();
+            SAFE_SNPRINTF();
         }
 
         for( i = 0; i < name->val.len; i++ )
@@ -2156,6 +2382,76 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     return( size - n );
 }
 
+/* Compare a given OID string with an OID x509_buf * */
+#define OID_CMP(oid_str, oid_buf) \
+        ( ( OID_SIZE(oid_str) == (oid_buf)->len ) && \
+                memcmp( (oid_str), (oid_buf)->p, (oid_buf)->len) == 0)
+
+/*
+ * Return an informational string describing the given OID
+ */
+const char *x509_oid_get_description( x509_buf *oid )
+{
+    if ( oid == NULL )
+        return ( NULL );
+    
+    else if( OID_CMP( OID_SERVER_AUTH, oid ) )
+        return( STRING_SERVER_AUTH );
+    
+    else if( OID_CMP( OID_CLIENT_AUTH, oid ) )
+        return( STRING_CLIENT_AUTH );
+    
+    else if( OID_CMP( OID_CODE_SIGNING, oid ) )
+        return( STRING_CODE_SIGNING );
+    
+    else if( OID_CMP( OID_EMAIL_PROTECTION, oid ) )
+        return( STRING_EMAIL_PROTECTION );
+    
+    else if( OID_CMP( OID_TIME_STAMPING, oid ) )
+        return( STRING_TIME_STAMPING );
+
+    else if( OID_CMP( OID_OCSP_SIGNING, oid ) )
+        return( STRING_OCSP_SIGNING );
+
+    return( NULL );
+}
+
+/* Return the x.y.z.... style numeric string for the given OID */
+int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
+{
+    int ret, n, i;
+    unsigned int value;
+    char *p;
+
+    p = buf;
+    n = size;
+
+    /* First byte contains first two dots */
+    if( oid->len > 0 )
+    {
+        ret = snprintf( p, n, "%d.%d", oid->p[0]/40, oid->p[0]%40 );
+        SAFE_SNPRINTF();
+    }
+
+    /* TODO: value can overflow in value. */
+    value = 0;
+    for( i=1; i < oid->len; i++ )
+    {
+        value <<= 7;
+        value += oid->p[i] & 0x7F;
+
+        if( !( oid->p[i] & 0x80 ) )
+        {
+            /* Last byte */
+            ret = snprintf( p, n, ".%d", value );
+            SAFE_SNPRINTF();
+            value = 0;
+        }
+    }
+
+    return( size - n );
+}
+
 /*
  * Return an informational string about the CRL.
  */
@@ -2207,7 +2503,8 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
         nr = ( entry->serial.len <= 32 )
             ? entry->serial.len  : 32;
 
-        for( i = 0; i < nr; i++ ) {
+        for( i = 0; i < nr; i++ )
+        {
             ret = snprintf( p, n, "%02X%s",
                     entry->serial.p[i], ( i < nr - 1 ) ? ":" : "" );
             SAFE_SNPRINTF();
@@ -2402,7 +2699,8 @@ int x509parse_verify( x509_cert *crt,
             verify_ok = 0;
 
         /* crt is verified to be a child of the parent cur, call verify callback */
-        if( NULL != f_vrfy ) {
+        if( NULL != f_vrfy )
+        {
             if ( f_vrfy( p_vrfy, crt, pathlen-1, verify_ok ) != 0 )
                 return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
         } else if ( verify_ok == 0 ) {
@@ -2509,7 +2807,8 @@ int x509parse_verify( x509_cert *crt,
 
 
     /* Verification succeeded, call callback on top cert */
-    if( NULL != f_vrfy ) {
+    if( NULL != f_vrfy )
+    {
         if ( f_vrfy(p_vrfy, crt, pathlen - 1, 1) != 0 )
             return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
     }
@@ -2526,6 +2825,8 @@ void x509_free( x509_cert *crt )
     x509_cert *cert_prv;
     x509_name *name_cur;
     x509_name *name_prv;
+    x509_sequence *seq_cur;
+    x509_sequence *seq_prv;
 
     if( crt == NULL )
         return;
@@ -2550,6 +2851,15 @@ void x509_free( x509_cert *crt )
             name_cur = name_cur->next;
             memset( name_prv, 0, sizeof( x509_name ) );
             free( name_prv );
+        }
+
+        seq_cur = cert_cur->ext_key_usage.next;
+        while( seq_cur != NULL )
+        {
+            seq_prv = seq_cur;
+            seq_cur = seq_cur->next;
+            memset( seq_prv, 0, sizeof( x509_sequence ) );
+            free( seq_prv );
         }
 
         if( cert_cur->raw.p != NULL )

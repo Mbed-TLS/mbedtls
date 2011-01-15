@@ -159,7 +159,7 @@ depends_on:POLARSSL_MD2_C
 md2_file:"data_files/hash_file_3":"6bb43eb285e81f414083a94cdbe2989d"
 
 MD2 Hash file #4
-depends_on:POLARSSL_MD4_C
+depends_on:POLARSSL_MD2_C
 md2_file:"data_files/hash_file_4":"8350e5a3e24c153df2275c9f80692773"
 
 MD4 Hash file #1

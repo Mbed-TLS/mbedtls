@@ -526,6 +526,15 @@ int ssl_get_verify_result( const ssl_context *ssl );
 const char *ssl_get_cipher( const ssl_context *ssl );
 
 /**
+ * \brief          Return the current SSL version (SSLv3/TLSv1/etc)
+ *
+ * \param ssl      SSL context
+ *
+ * \return         a string containing the SSL version
+ */
+const char *ssl_get_version( const ssl_context *ssl );
+
+/**
  * \brief          Perform the SSL handshake
  *
  * \param ssl      SSL context

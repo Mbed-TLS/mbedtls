@@ -1918,6 +1918,25 @@ const char *ssl_get_cipher( const ssl_context *ssl )
     return( "unknown" );
 }
 
+const char *ssl_get_version( const ssl_context *ssl )
+{
+    switch( ssl->minor_ver )
+    {
+        case SSL_MINOR_VERSION_0:
+            return( "SSLv3.0" );
+
+        case SSL_MINOR_VERSION_1:
+            return( "TLSv1.0" );
+
+        case SSL_MINOR_VERSION_2:
+            return( "TLSv1.1" );
+
+        default:
+            break;
+    }
+    return( "unknown" );
+}
+
 int ssl_default_ciphers[] =
 {
 #if defined(POLARSSL_DHM_C)

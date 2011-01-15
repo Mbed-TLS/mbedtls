@@ -4,10 +4,8 @@ PolarSSL ChangeLog
 Features
 Note: Most of these features have been donated by Fox-IT
    * Added Doxygen source code documentation parts
-   * Added generic message digest wrapper for integration
-     with OpenVPN
-   * Added generic cipher wrapper for integration
-     with OpenVPN
+   * Added generic message digest and cipher wrapper
+     for integration with OpenVPN
    * Added reading of DHM context from memory and file
    * Added verification callback on certificate chain
      verification to allow external blacklisting.

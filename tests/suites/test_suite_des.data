@@ -232,5 +232,8 @@ des_encrypt_cbc:"0123456789abcdef":"fedcba9876543210":"37363534333231204E6F77206
 3DES-CBC 3Key Encrypt (Invalid input length)
 des3_encrypt_cbc:3:"0123456789abcdeff1e0d3c2b5a49786fedcba9876543210":"fedcba9876543210":"37363534333231204E6F77206973207468652074696D65":"":POLARSSL_ERR_DES_INVALID_INPUT_LENGTH
 
+Run through parity bit tests
+des_key_parity_run:
+
 DES Selftest
 des_selftest:

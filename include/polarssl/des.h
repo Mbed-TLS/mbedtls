@@ -32,6 +32,8 @@
 
 #define POLARSSL_ERR_DES_INVALID_INPUT_LENGTH               -0x0C00
 
+#define DES_KEY_SIZE    8
+
 /**
  * \brief          DES context structure
  */
@@ -57,6 +59,34 @@ extern "C" {
 #endif
 
 /**
+ * \brief          Set key parity on the given key to odd.
+ *
+ *                 DES keys are 56 bits long, but each byte is padded with
+ *                 a parity bit to allow verification.
+ *
+ * \param key      8-byte secret key
+ */
+void des_key_set_parity( unsigned char key[DES_KEY_SIZE] );
+
+/**
+ * \brief          Check that key parity on the given key is odd.
+ *
+ *                 DES keys are 56 bits long, but each byte is padded with
+ *                 a parity bit to allow verification.
+ *
+ * \param key      8-byte secret key
+ */
+int des_key_check_key_parity( const unsigned char key[DES_KEY_SIZE] );
+
+
+/**
+ * \brief          Check that key is not a weak or semi-weak DES key
+ *
+ * \param key      8-byte secret key
+ */
+int des_key_check_weak( const unsigned char key[DES_KEY_SIZE] );
+
+/**
  * \brief          DES key schedule (56-bit, encryption)
  *
  * \param ctx      DES context to be initialized
@@ -64,7 +94,7 @@ extern "C" {
  *
  * \return         0
  */
-int des_setkey_enc( des_context *ctx, const unsigned char key[8] );
+int des_setkey_enc( des_context *ctx, const unsigned char key[DES_KEY_SIZE] );
 
 /**
  * \brief          DES key schedule (56-bit, decryption)
@@ -74,7 +104,7 @@ int des_setkey_enc( des_context *ctx, const unsigned char key[8] );
  *
  * \return         0
  */
-int des_setkey_dec( des_context *ctx, const unsigned char key[8] );
+int des_setkey_dec( des_context *ctx, const unsigned char key[DES_KEY_SIZE] );
 
 /**
  * \brief          Triple-DES key schedule (112-bit, encryption)
@@ -84,7 +114,7 @@ int des_setkey_dec( des_context *ctx, const unsigned char key[8] );
  *
  * \return         0
  */
-int des3_set2key_enc( des3_context *ctx, const unsigned char key[16] );
+int des3_set2key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 2] );
 
 /**
  * \brief          Triple-DES key schedule (112-bit, decryption)
@@ -94,7 +124,7 @@ int des3_set2key_enc( des3_context *ctx, const unsigned char key[16] );
  *
  * \return         0
  */
-int des3_set2key_dec( des3_context *ctx, const unsigned char key[16] );
+int des3_set2key_dec( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 2] );
 
 /**
  * \brief          Triple-DES key schedule (168-bit, encryption)
@@ -104,7 +134,7 @@ int des3_set2key_dec( des3_context *ctx, const unsigned char key[16] );
  *
  * \return         0
  */
-int des3_set3key_enc( des3_context *ctx, const unsigned char key[24] );
+int des3_set3key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 3] );
 
 /**
  * \brief          Triple-DES key schedule (168-bit, decryption)
@@ -114,7 +144,7 @@ int des3_set3key_enc( des3_context *ctx, const unsigned char key[24] );
  *
  * \return         0
  */
-int des3_set3key_dec( des3_context *ctx, const unsigned char key[24] );
+int des3_set3key_dec( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 3] );
 
 /**
  * \brief          DES-ECB block encryption/decryption

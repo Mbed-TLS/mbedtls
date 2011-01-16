@@ -2596,7 +2596,8 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
 
     while( cur != NULL && cur->serial.len != 0 )
     {
-        if( memcmp( crt->serial.p, cur->serial.p, crt->serial.len ) == 0 )
+        if( crt->serial.len == cur->serial.len &&
+            memcmp( crt->serial.p, cur->serial.p, crt->serial.len ) == 0 )
         {
             if( x509parse_time_expired( &cur->revocation_date ) )
                 return( 1 );

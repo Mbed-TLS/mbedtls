@@ -2627,6 +2627,69 @@ static void x509_hash( const unsigned char *in, int len, int alg,
 }
 
 /*
+ * Check that the given certificate is valid accoring to the CRL.
+ */
+static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
+        x509_crl *crl_list)
+{
+    int flags = 0;
+    int hash_id;
+    unsigned char hash[64];
+
+    /*
+     * TODO: What happens if no CRL is present?
+     * Suggestion: Revocation state should be unknown if no CRL is present.
+     * For backwards compatibility this is not yet implemented.
+     */
+
+    while( ca != NULL && crl_list != NULL && crl_list->version != 0 )
+    {
+        if( crl_list->issuer_raw.len != ca->subject_raw.len ||
+            memcmp( crl_list->issuer_raw.p, ca->subject_raw.p,
+                    crl_list->issuer_raw.len ) != 0 )
+        {
+            crl_list = crl_list->next;
+            continue;
+        }
+
+        /*
+         * Check if CRL is correctly signed by the trusted CA
+         */
+        hash_id = crl_list->sig_alg;
+
+        x509_hash( crl_list->tbs.p, crl_list->tbs.len, hash_id, hash );
+
+        if( !rsa_pkcs1_verify( &ca->rsa, RSA_PUBLIC, hash_id,
+                              0, hash, crl_list->sig.p ) == 0 )
+        {
+            /*
+             * CRL is not trusted
+             */
+            flags |= BADCRL_NOT_TRUSTED;
+            break;
+        }
+
+        /*
+         * Check for validity of CRL (Do not drop out)
+         */
+        if( x509parse_time_expired( &crl_list->next_update ) )
+            flags |= BADCRL_EXPIRED;
+
+        /*
+         * Check if certificate is revoked
+         */
+        if( x509parse_revoked(crt, crl_list) )
+        {
+            flags |= BADCERT_REVOKED;
+            break;
+        }
+
+        crl_list = crl_list->next;
+    }
+    return flags;
+}
+
+/*
  * Verify the certificate validity
  */
 int x509parse_verify( x509_cert *crt,
@@ -2639,7 +2702,7 @@ int x509parse_verify( x509_cert *crt,
     int cn_len;
     int hash_id;
     int pathlen;
-    x509_cert *cur;
+    x509_cert *parent;
     x509_name *name;
     unsigned char hash[64];
 
@@ -2667,26 +2730,22 @@ int x509parse_verify( x509_cert *crt,
             *flags |= BADCERT_CN_MISMATCH;
     }
 
-    *flags |= BADCERT_NOT_TRUSTED;
-
     /*
      * Iterate upwards in the given cert chain,
      * ignoring any upper cert with CA != TRUE.
      */
-    cur = crt->next;
+    parent = crt->next;
 
     pathlen = 1;
 
-    while( cur != NULL && cur->version != 0 )
+    while( parent != NULL && parent->version != 0 )
     {
-        int verify_ok = 1;
-
-        if( cur->ca_istrue == 0 ||
-            crt->issuer_raw.len != cur->subject_raw.len ||
-            memcmp( crt->issuer_raw.p, cur->subject_raw.p,
+        if( parent->ca_istrue == 0 ||
+            crt->issuer_raw.len != parent->subject_raw.len ||
+            memcmp( crt->issuer_raw.p, parent->subject_raw.p,
                     crt->issuer_raw.len ) != 0 )
         {
-            cur = cur->next;
+            parent = parent->next;
             continue;
         }
 
@@ -2694,28 +2753,35 @@ int x509parse_verify( x509_cert *crt,
 
         x509_hash( crt->tbs.p, crt->tbs.len, hash_id, hash );
 
-        if( rsa_pkcs1_verify( &cur->rsa, RSA_PUBLIC, hash_id,
-                              0, hash, crt->sig.p ) != 0 )
-            verify_ok = 0;
+        if( rsa_pkcs1_verify( &parent->rsa, RSA_PUBLIC, hash_id, 0, hash,
+                    crt->sig.p ) != 0 )
+            *flags |= BADCERT_NOT_TRUSTED;
+        
+        /* Check trusted CA's CRL for the given crt */
+        *flags |= x509parse_verifycrl(crt, parent, ca_crl);
 
         /* crt is verified to be a child of the parent cur, call verify callback */
         if( NULL != f_vrfy )
         {
-            if ( f_vrfy( p_vrfy, crt, pathlen-1, verify_ok ) != 0 )
+            if( f_vrfy( p_vrfy, crt, pathlen - 1, ( *flags == 0 ) ) != 0 )
                 return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
-        } else if ( verify_ok == 0 ) {
-            return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+            else
+                *flags = 0;
         }
+        else if( *flags != 0 )
+            return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
 
         pathlen++;
 
-        crt = cur;
-        cur = crt->next;
+        crt = parent;
+        parent = crt->next;
     }
 
     /*
-     * Atempt to validate topmost cert with our CA chain.
+     * Attempt to validate topmost cert with our CA chain.
      */
+    *flags |= BADCERT_NOT_TRUSTED;
+
     while( trust_ca != NULL && trust_ca->version != 0 )
     {
         if( crt->issuer_raw.len != trust_ca->subject_raw.len ||
@@ -2747,71 +2813,19 @@ int x509parse_verify( x509_cert *crt,
         trust_ca = trust_ca->next;
     }
 
-    /*
-     * TODO: What happens if no CRL is present?
-     * Suggestion: Revocation state should be unknown if no CRL is present.
-     * For backwards compatibility this is not yet implemented.
-     */
-
-    /*
-     * Check if the topmost certificate is revoked if the trusted CA is
-     * determined.
-     */
-    while( trust_ca != NULL && ca_crl != NULL && ca_crl->version != 0 )
-    {
-        if( ca_crl->issuer_raw.len != trust_ca->subject_raw.len ||
-            memcmp( ca_crl->issuer_raw.p, trust_ca->subject_raw.p,
-                    ca_crl->issuer_raw.len ) != 0 )
-        {
-            ca_crl = ca_crl->next;
-            continue;
-        }
-
-        /*
-         * Check if CRL is correctry signed by the trusted CA
-         */
-        hash_id = ca_crl->sig_alg;
-
-        x509_hash( ca_crl->tbs.p, ca_crl->tbs.len, hash_id, hash );
-
-        if( !rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, hash_id,
-                              0, hash, ca_crl->sig.p ) == 0 )
-        {
-            /*
-             * CRL is not trusted
-             */
-            *flags |= BADCRL_NOT_TRUSTED;
-            break;
-        }
-
-        /*
-         * Check for validity of CRL (Do not drop out)
-         */
-        if( x509parse_time_expired( &ca_crl->next_update ) )
-            *flags |= BADCRL_EXPIRED;
-        
-        /*
-         * Check if certificate is revoked
-         */
-        if( x509parse_revoked(crt, ca_crl) )
-        {
-            *flags |= BADCERT_REVOKED;
-            break;
-        }
-
-        ca_crl = ca_crl->next;
-    }
-
-    if( *flags != 0 )
-        return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
-
+    /* Check trusted CA's CRL for the given crt */
+    *flags |= x509parse_verifycrl( crt, trust_ca, ca_crl );
 
     /* Verification succeeded, call callback on top cert */
     if( NULL != f_vrfy )
     {
-        if ( f_vrfy(p_vrfy, crt, pathlen - 1, 1) != 0 )
+        if( f_vrfy(p_vrfy, crt, pathlen-1, ( *flags == 0 ) ) != 0 ) 
             return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+        else
+            *flags = 0;
     }
+    else if( *flags != 0 )
+        return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
 
     return( 0 );
 }

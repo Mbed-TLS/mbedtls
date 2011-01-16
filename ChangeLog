@@ -18,6 +18,10 @@ Note: Most of these features have been donated by Fox-IT
        + Added verification callback on certificate chain
          verification to allow external blacklisting
 
+Changes
+   * x509parse_time_expired() checks time in addition to
+     the existing date check
+
 = Version 0.14.0 released on 2010-08-16
 Features
    * Added support for SSL_EDH_RSA_AES_128_SHA and

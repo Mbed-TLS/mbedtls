@@ -2584,6 +2584,27 @@ int x509parse_time_expired( const x509_time *to )
         lt->tm_mday  > to->day )
         return( 1 );
 
+    if( lt->tm_year == to->year - 1900 &&
+        lt->tm_mon  == to->mon  - 1    &&
+        lt->tm_mday == to->day         &&
+        lt->tm_hour  > to->hour - 1)
+        return( 1 );
+
+    if( lt->tm_year == to->year - 1900 &&
+        lt->tm_mon  == to->mon  - 1    &&
+        lt->tm_mday == to->day         &&
+        lt->tm_hour == to->hour - 1    &&
+        lt->tm_min   > to->min  - 1 )
+        return( 1 );
+
+    if( lt->tm_year == to->year - 1900 &&
+        lt->tm_mon  == to->mon  - 1    &&
+        lt->tm_mday == to->day         &&
+        lt->tm_hour == to->hour - 1    &&
+        lt->tm_min  == to->min  - 1    &&
+        lt->tm_sec   > to->sec  - 1 )
+        return( 1 );
+
     return( 0 );
 }
 

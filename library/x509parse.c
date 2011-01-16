@@ -2306,12 +2306,37 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
 }
 
 /*
+ * Store the serial in printable form into buf; no more
+ * than size characters will be written
+ */
+int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
+{
+    int i, ret, nr, n;
+    char *p;
+
+    p = buf;
+    n = size;
+
+    nr = ( serial->len <= 32 )
+        ? serial->len  : 32;
+
+    for( i = 0; i < nr; i++ )
+    {
+        ret = snprintf( p, n, "%02X%s",
+                serial->p[i], ( i < nr - 1 ) ? ":" : "" );
+        SAFE_SNPRINTF();
+    }
+
+    return( size - n );
+}
+
+/*
  * Return an informational string about the certificate.
  */
 int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                          const x509_cert *crt )
 {
-    int i, n, nr, ret;
+    int n, ret;
     char *p;
 
     p = buf;
@@ -2324,15 +2349,8 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                                prefix );
     SAFE_SNPRINTF();
 
-    nr = ( crt->serial.len <= 32 )
-        ? crt->serial.len  : 32;
-
-    for( i = 0; i < nr; i++ )
-    {
-        ret = snprintf( p, n, "%02X%s",
-                crt->serial.p[i], ( i < nr - 1 ) ? ":" : "" );
-        SAFE_SNPRINTF();
-    }
+    ret = x509parse_serial_gets( p, n, &crt->serial);
+    SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%sissuer name   : ", prefix );
     SAFE_SNPRINTF();

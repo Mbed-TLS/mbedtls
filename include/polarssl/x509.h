@@ -594,6 +594,19 @@ int x509parse_dhmfile( dhm_context *rsa, const char *path );
 int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn );
 
 /**
+ * \brief          Store the certificate serial in printable form into buf;
+ *                 no more than size characters will be written.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param serial   The X509 serial to represent
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
+ */
+int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial );
+
+/**
  * \brief          Returns an informational string about the
  *                 certificate.
  *

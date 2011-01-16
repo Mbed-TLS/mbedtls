@@ -724,7 +724,6 @@ static int x509_get_crl_ext( unsigned char **p,
 
 static int x509_get_basic_constraints( unsigned char **p,
                                        const unsigned char *end,
-                                       int is_critical,
                                        int *ca_istrue,
                                        int *max_pathlen )
 {
@@ -735,7 +734,7 @@ static int x509_get_basic_constraints( unsigned char **p,
      *      cA                      BOOLEAN DEFAULT FALSE,
      *      pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
      */
-    int is_cacert = 0; /* DEFAULT FALSE */
+    *ca_istrue = 0; /* DEFAULT FALSE */
     *max_pathlen = 0; /* endless */
 
     if( ( ret = asn1_get_tag( p, end, &len,
@@ -745,16 +744,16 @@ static int x509_get_basic_constraints( unsigned char **p,
     if( *p == end )
         return 0;
 
-    if( ( ret = asn1_get_bool( p, end, &is_cacert ) ) != 0 )
+    if( ( ret = asn1_get_bool( p, end, ca_istrue ) ) != 0 )
     {
         if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-            ret = asn1_get_int( p, end, &is_cacert );
+            ret = asn1_get_int( p, end, ca_istrue );
 
         if( ret != 0 )
             return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
 
-        if( is_cacert != 0 )
-            is_cacert = 1;
+        if( *ca_istrue != 0 )
+            *ca_istrue = 1;
     }
 
     if( *p == end )
@@ -769,7 +768,6 @@ static int x509_get_basic_constraints( unsigned char **p,
 
     (*max_pathlen)++;
 
-    *ca_istrue = is_critical & is_cacert;
     return 0;
 }
 
@@ -909,7 +907,7 @@ static int x509_get_crt_ext( unsigned char **p,
         {
             /* Parse basic constraints */
             if( ( ret = x509_get_basic_constraints( p, end_ext_octet,
-                    is_critical, &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
+                    &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
                 return ( ret );
             crt->ext_types |= EXT_BASIC_CONSTRAINTS;
         }

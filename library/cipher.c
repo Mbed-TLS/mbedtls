@@ -37,6 +37,34 @@
 #include <string.h>
 #include <stdlib.h>
 
+static const int supported_ciphers[] = {
+
+#if defined(POLARSSL_AES_C)
+        POLARSSL_CIPHER_AES_128_CBC,
+        POLARSSL_CIPHER_AES_192_CBC,
+        POLARSSL_CIPHER_AES_256_CBC,
+#endif /* defined(POLARSSL_AES_C) */
+
+#if defined(POLARSSL_CAMELLIA_C)
+        POLARSSL_CIPHER_CAMELLIA_128_CBC,
+        POLARSSL_CIPHER_CAMELLIA_192_CBC,
+        POLARSSL_CIPHER_CAMELLIA_256_CBC,
+#endif /* defined(POLARSSL_CAMELLIA_C) */
+
+#if defined(POLARSSL_DES_C)
+        POLARSSL_CIPHER_DES_CBC,
+        POLARSSL_CIPHER_DES_EDE_CBC,
+        POLARSSL_CIPHER_DES_EDE3_CBC,
+#endif /* defined(POLARSSL_DES_C) */
+
+        0
+};
+
+const int *cipher_list( void )
+{
+    return supported_ciphers;
+}
+
 const cipher_info_t *cipher_info_from_type( cipher_type_t cipher_type )
 {
     /* Find static cipher information */

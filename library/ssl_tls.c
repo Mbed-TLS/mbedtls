@@ -1863,52 +1863,52 @@ int ssl_get_verify_result( const ssl_context *ssl )
     return( ssl->verify_result );
 }
 
-const char *ssl_get_cipher( const ssl_context *ssl )
+const char *ssl_get_cipher_name( const int cipher_id )
 {
-    switch( ssl->session->cipher )
+    switch( cipher_id )
     {
 #if defined(POLARSSL_ARC4_C)
         case SSL_RSA_RC4_128_MD5:
-            return( "SSL_RSA_RC4_128_MD5" );
+            return( "SSL-RSA-RC4-128-MD5" );
 
         case SSL_RSA_RC4_128_SHA:
-            return( "SSL_RSA_RC4_128_SHA" );
+            return( "SSL-RSA-RC4-128-SHA" );
 #endif
 
 #if defined(POLARSSL_DES_C)
         case SSL_RSA_DES_168_SHA:
-            return( "SSL_RSA_DES_168_SHA" );
+            return( "SSL-RSA-DES-168-SHA" );
 
         case SSL_EDH_RSA_DES_168_SHA:
-            return( "SSL_EDH_RSA_DES_168_SHA" );
+            return( "SSL-EDH-RSA-DES-168-SHA" );
 #endif
 
 #if defined(POLARSSL_AES_C)
         case SSL_RSA_AES_128_SHA:
-            return( "SSL_RSA_AES_128_SHA" );
+            return( "SSL-RSA-AES-128-SHA" );
 
         case SSL_EDH_RSA_AES_128_SHA:
-            return( "SSL_EDH_RSA_AES_128_SHA" );
+            return( "SSL-EDH-RSA-AES-128-SHA" );
 
         case SSL_RSA_AES_256_SHA:
-            return( "SSL_RSA_AES_256_SHA" );
+            return( "SSL-RSA-AES-256-SHA" );
 
         case SSL_EDH_RSA_AES_256_SHA:
-            return( "SSL_EDH_RSA_AES_256_SHA" );
+            return( "SSL-EDH-RSA-AES-256-SHA" );
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
         case SSL_RSA_CAMELLIA_128_SHA:
-            return( "SSL_RSA_CAMELLIA_128_SHA" );
+            return( "SSL-RSA-CAMELLIA-128-SHA" );
 
         case SSL_EDH_RSA_CAMELLIA_128_SHA:
-            return( "SSL_EDH_RSA_CAMELLIA_128_SHA" );
+            return( "SSL-EDH-RSA-CAMELLIA-128-SHA" );
 
         case SSL_RSA_CAMELLIA_256_SHA:
-            return( "SSL_RSA_CAMELLIA_256_SHA" );
+            return( "SSL-RSA-CAMELLIA-256-SHA" );
 
         case SSL_EDH_RSA_CAMELLIA_256_SHA:
-            return( "SSL_EDH_RSA_CAMELLIA_256_SHA" );
+            return( "SSL-EDH-RSA-CAMELLIA-256-SHA" );
 #endif
 
     default:
@@ -1916,6 +1916,52 @@ const char *ssl_get_cipher( const ssl_context *ssl )
     }
 
     return( "unknown" );
+}
+
+int ssl_get_cipher_id( const char *cipher_name )
+{
+#if defined(POLARSSL_ARC4_C)
+    if (0 == strcasecmp(cipher_name, "SSL-RSA-RC4-128-MD5"))
+        return( SSL_RSA_RC4_128_MD5 );
+    if (0 == strcasecmp(cipher_name, "SSL-RSA-RC4-128-SHA"))
+        return( SSL_RSA_RC4_128_SHA );
+#endif
+
+#if defined(POLARSSL_DES_C)
+    if (0 == strcasecmp(cipher_name, "SSL-RSA-DES-168-SHA"))
+        return( SSL_RSA_DES_168_SHA );
+    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-DES-168-SHA"))
+        return( SSL_EDH_RSA_DES_168_SHA );
+#endif
+
+#if defined(POLARSSL_AES_C)
+    if (0 == strcasecmp(cipher_name, "SSL-RSA-AES-128-SHA"))
+        return( SSL_RSA_AES_128_SHA );
+    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-AES-128-SHA"))
+        return( SSL_EDH_RSA_AES_128_SHA );
+    if (0 == strcasecmp(cipher_name, "SSL-RSA-AES-256-SHA"))
+        return( SSL_RSA_AES_256_SHA );
+    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-AES-256-SHA"))
+        return( SSL_EDH_RSA_AES_256_SHA );
+#endif
+
+#if defined(POLARSSL_CAMELLIA_C)
+    if (0 == strcasecmp(cipher_name, "SSL-RSA-CAMELLIA-128-SHA"))
+        return( SSL_RSA_CAMELLIA_128_SHA );
+    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-CAMELLIA-128-SHA"))
+        return( SSL_EDH_RSA_CAMELLIA_128_SHA );
+    if (0 == strcasecmp(cipher_name, "SSL-RSA-CAMELLIA-256-SHA"))
+        return( SSL_RSA_CAMELLIA_256_SHA );
+    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-CAMELLIA-256-SHA"))
+        return( SSL_EDH_RSA_CAMELLIA_256_SHA );
+#endif
+
+    return( 0 );
+}
+
+const char *ssl_get_cipher( const ssl_context *ssl )
+{
+    return ssl_get_cipher_name( ssl->session->cipher );
 }
 
 const char *ssl_get_version( const ssl_context *ssl )

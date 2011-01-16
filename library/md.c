@@ -37,6 +37,42 @@
 #include <string.h>
 #include <stdlib.h>
 
+static const int supported_digests[] = {
+
+#if defined(POLARSSL_MD2_C)
+        POLARSSL_MD_MD2,
+#endif
+
+#if defined(POLARSSL_MD4_C)
+        POLARSSL_MD_MD4,
+#endif
+
+#if defined(POLARSSL_MD5_C)
+        POLARSSL_MD_MD5,
+#endif
+
+#if defined(POLARSSL_SHA1_C)
+        POLARSSL_MD_SHA1,
+#endif
+
+#if defined(POLARSSL_SHA2_C)
+        POLARSSL_MD_SHA224,
+        POLARSSL_MD_SHA256,
+#endif
+
+#if defined(POLARSSL_SHA4_C)
+        POLARSSL_MD_SHA384,
+        POLARSSL_MD_SHA512,
+#endif
+
+        0
+};
+
+const int *md_list( void )
+{
+    return supported_digests;
+}
+
 const md_info_t *md_info_from_string( const char *md_name )
 {
     if( NULL == md_name )

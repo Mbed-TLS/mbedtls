@@ -152,6 +152,14 @@ extern "C" {
 #endif
 
 /**
+ * \brief Returns the list of ciphers supported by the generic cipher module.
+ *
+ * \return              a statically allocated array of ciphers, the last entry
+ *                      is 0.
+ */
+const int *cipher_list( void );
+
+/**
  * \brief               Returns the cipher information structure associated
  *                      with the given cipher name.
  *

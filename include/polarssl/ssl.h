@@ -320,6 +320,26 @@ extern "C" {
 extern int ssl_default_ciphers[];
 
 /**
+ * \brief Returns the list of ciphers supported by the SSL/TLS module.
+ *
+ * \return              a statically allocated array of ciphers, the last entry
+ *                      is 0.
+ */
+static inline const int *ssl_list_ciphers( void )
+{
+    return ssl_default_ciphers;
+}
+
+/**
+ * \brief          Return the name of the cipher associated with the given ID
+ *
+ * \param cipher_id     SSL cipher ID
+ *
+ * \return              a string containing the cipher name
+ */
+const char *ssl_get_cipher_name( const int cipher_id );
+
+/**
  * \brief          Initialize an SSL context
  *
  * \param ssl      SSL context

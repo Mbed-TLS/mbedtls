@@ -119,6 +119,14 @@ extern "C" {
 #endif
 
 /**
+ * \brief Returns the list of digests supported by the generic digest module.
+ *
+ * \return          a statically allocated array of digests, the last entry
+ *                  is 0.
+ */
+const int *md_list( void );
+
+/**
  * \brief           Returns the message digest information associated with the
  *                  given digest name.
  *

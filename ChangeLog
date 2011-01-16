@@ -4,16 +4,19 @@ PolarSSL ChangeLog
 Features
 Note: Most of these features have been donated by Fox-IT
    * Added Doxygen source code documentation parts
-   * Added generic message digest and cipher wrapper
-     for integration with OpenVPN
    * Added reading of DHM context from memory and file
-   * Added verification callback on certificate chain
-     verification to allow external blacklisting
    * Improved X509 certificate parsing to include extended
      certificate fields, including Key Usage
    * Improved certificate verification and verification
      against the available CRLs
    * Detection for DES weak keys and parity bits added
+   * Improvements to support integration in other
+     applications:
+       + Added generic message digest and cipher wrapper
+       + Improved information about current capabilities,
+         status, objects and configuration
+       + Added verification callback on certificate chain
+         verification to allow external blacklisting
 
 = Version 0.14.0 released on 2010-08-16
 Features

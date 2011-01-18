@@ -35,6 +35,11 @@
 #include "polarssl/md5.h"
 #include "polarssl/sha1.h"
 #include "polarssl/x509.h"
+#include "polarssl/config.h"
+
+#if defined(POLARSSL_PKCS11_C)
+#include "polarssl/pkcs11.h"
+#endif
 
 /*
  * SSL Error codes
@@ -268,6 +273,9 @@ struct _ssl_context
      * PKI layer
      */
     rsa_context *rsa_key;               /*!<  own RSA private key     */
+#if defined(POLARSSL_PKCS11_C)
+    pkcs11_context *pkcs11_key;         /*!<  own PKCS#11 RSA private key */
+#endif
     x509_cert *own_cert;                /*!<  own X.509 certificate   */
     x509_cert *ca_chain;                /*!<  own trusted CA chain    */
     x509_crl *ca_crl;                   /*!<  trusted CA CRLs         */
@@ -479,6 +487,18 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
  */
 void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
                        rsa_context *rsa_key );
+
+#if defined(POLARSSL_PKCS11_C)
+/**
+ * \brief          Set own certificate and PKCS#11 private key
+ *
+ * \param ssl      SSL context
+ * \param own_cert own public certificate
+ * \param pkcs11_key    own PKCS#11 RSA key
+ */
+void ssl_set_own_cert_pkcs11( ssl_context *ssl, x509_cert *own_cert,
+                       pkcs11_context *pkcs11_key );
+#endif
 
 /**
  * \brief          Set the Diffie-Hellman public P and G values,

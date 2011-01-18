@@ -17,6 +17,8 @@ Note: Most of these features have been donated by Fox-IT
          status, objects and configuration
        + Added verification callback on certificate chain
          verification to allow external blacklisting
+   * Added support for PKCS#11 through the use of the
+     libpkcs11-helper library
 
 Changes
    * x509parse_time_expired() checks time in addition to

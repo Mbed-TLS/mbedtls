@@ -30,6 +30,10 @@
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 
+#if defined(POLARSSL_PKCS11_C)
+#include "polarssl/pkcs11.h"
+#endif /* defined(POLARSSL_PKCS11_C) */
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -635,8 +639,15 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 
     if( ssl->rsa_key == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "got no private key" ) );
-        return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
+#if defined(POLARSSL_PKCS11_C)
+        if( ssl->pkcs11_key == NULL )
+        {
+#endif /* defined(POLARSSL_PKCS11_C) */
+            SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+            return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
+#if defined(POLARSSL_PKCS11_C)
+        }
+#endif /* defined(POLARSSL_PKCS11_C) */
     }
 
     /*
@@ -644,14 +655,30 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
      */
     ssl_calc_verify( ssl, hash );
 
-    n = ssl->rsa_key->len;
+    if ( ssl->rsa_key )
+        n = ssl->rsa_key->len;
+#if defined(POLARSSL_PKCS11_C)
+    else
+        n = ssl->pkcs11_key->len;
+#endif  /* defined(POLARSSL_PKCS11_C) */
+
     ssl->out_msg[4] = (unsigned char)( n >> 8 );
     ssl->out_msg[5] = (unsigned char)( n      );
 
-    if( ( ret = rsa_pkcs1_sign( ssl->rsa_key, RSA_PRIVATE, SIG_RSA_RAW,
-                                36, hash, ssl->out_msg + 6 ) ) != 0 )
+    if( ssl->rsa_key )
     {
-        SSL_DEBUG_RET( 1, "rsa_pkcs1_sign", ret );
+        ret = rsa_pkcs1_sign( ssl->rsa_key, RSA_PRIVATE, SIG_RSA_RAW,
+                                    36, hash, ssl->out_msg + 6 );
+    } else {
+#if defined(POLARSSL_PKCS11_C)
+        ret = pkcs11_sign( ssl->pkcs11_key, RSA_PRIVATE, SIG_RSA_RAW,
+                                    36, hash, ssl->out_msg + 6 );
+#endif  /* defined(POLARSSL_PKCS11_C) */
+    }
+
+    if (ret != 0)
+    {
+        SSL_DEBUG_RET( 1, "pkcs1_sign", ret );
         return( ret );
     }
 

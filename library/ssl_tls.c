@@ -1796,6 +1796,15 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
     ssl->rsa_key    = rsa_key;
 }
 
+#if defined(POLARSSL_PKCS11_C)
+void ssl_set_own_cert_pkcs11( ssl_context *ssl, x509_cert *own_cert,
+                       pkcs11_context *pkcs11_key )
+{
+    ssl->own_cert   = own_cert;
+    ssl->pkcs11_key = pkcs11_key;
+}
+#endif
+
 int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G )
 {
     int ret;

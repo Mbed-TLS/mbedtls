@@ -1,3 +1,11 @@
+set(libs
+     polarssl
+)
+
+if(USE_PKCS11_HELPER_LIBRARY)
+    set(libs ${libs} pkcs11-helper)
+endif(USE_PKCS11_HELPER_LIBRARY)
+
 function(add_test_suite suite_name)
     add_custom_command(
         OUTPUT test_suite_${suite_name}.c
@@ -7,7 +15,7 @@ function(add_test_suite suite_name)
   
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
     add_executable(test_suite_${suite_name} test_suite_${suite_name}.c)
-    target_link_libraries(test_suite_${suite_name} polarssl)
+    target_link_libraries(test_suite_${suite_name} ${libs})
     add_test(${suite_name}-suite test_suite_${suite_name})
 endfunction(add_test_suite)
 

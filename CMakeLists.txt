@@ -11,6 +11,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 set(CMAKE_SHARED_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
+option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library." OFF)
+
 include_directories(include/)
 
 add_subdirectory(library)

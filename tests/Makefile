@@ -3,7 +3,7 @@
 # To compile on MinGW: add "-lws2_32" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
-CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement \
+CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement \
 			-Wno-unused-function -Wno-unused-value
 
 OFLAGS	= -O

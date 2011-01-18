@@ -1,7 +1,7 @@
 
 # Also see "include/polarssl/config.h"
 
-CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement
+CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
 OFLAGS	= -O
 
 # MicroBlaze specific options:

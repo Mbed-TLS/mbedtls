@@ -52,7 +52,7 @@
 /**
  * Get the version number.
  *
- * @return          The constructed version number in the format
+ * \return          The constructed version number in the format
  *                  MMNNPP00 (Major, Minor, Patch).
  */
 unsigned int version_get_number();
@@ -60,7 +60,7 @@ unsigned int version_get_number();
 /**
  * Get the version string ("x.y.z").
  *
- * @param string    The string that will receive the value.
+ * \param string    The string that will receive the value.
  *                  (Should be at least 9 bytes in size)
  */
 void version_get_string( char *string );
@@ -68,7 +68,7 @@ void version_get_string( char *string );
 /**
  * Get the full version string ("PolarSSL x.y.z").
  *
- * @param string    The string that will receive the value.
+ * \param string    The string that will receive the value.
  *                  (Should be at least 18 bytes in size)
  */
 void version_get_string_full( char *string );

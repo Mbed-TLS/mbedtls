@@ -31,27 +31,27 @@
 #include "polarssl/dhm.h"
 
 /** 
- * @addtogroup x509_module
- * @{ 
+ * \addtogroup x509_module
+ * \{ 
  */
  
 /**
- * @name ASN1 Error codes
+ * \name ASN1 Error codes
  * These error codes are OR'ed to X509 error codes for
  * higher error granularity. 
  * ASN1 is a standard to specify data structures.
- * @{
+ * \{
  */
 #define POLARSSL_ERR_ASN1_OUT_OF_DATA                      0x0014   /**< Out of data when parsing an ASN1 data structure. */
 #define POLARSSL_ERR_ASN1_UNEXPECTED_TAG                   0x0016   /**< ASN1 tag was of an unexpected value. */
 #define POLARSSL_ERR_ASN1_INVALID_LENGTH                   0x0018   /**< Error when trying to determine the length or invalid length. */
 #define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  0x001A   /**< Actual length differs from expected length. */
 #define POLARSSL_ERR_ASN1_INVALID_DATA                     0x001C   /**< Data is invalid. (not used) */
-/* @} name */
+/* \} name */
 
 /** 
- * @name X509 Error codes
- * @{
+ * \name X509 Error codes
+ * \{
  */
 #define POLARSSL_ERR_X509_FEATURE_UNAVAILABLE              -0x0020  /**< Unavailable feature, e.g. RSA hashing/encryption combination. */
 #define POLARSSL_ERR_X509_CERT_INVALID_PEM                 -0x0040  /**< The PEM-encoded certificate contains invalid elements, e.g. invalid character. */ 
@@ -78,12 +78,12 @@
 #define POLARSSL_ERR_X509_KEY_PASSWORD_MISMATCH            -0x02E0  /**< Given private key password does not allow for correct decryption. */
 #define POLARSSL_ERR_X509_POINT_ERROR                      -0x0300  /**< Not used. */
 #define POLARSSL_ERR_X509_VALUE_TO_LENGTH                  -0x0320  /**< Not used. */
-/* @} name */
+/* \} name */
 
 
 /**
- * @name X509 Verify codes
- * @{
+ * \name X509 Verify codes
+ * \{
  */
 #define BADCERT_EXPIRED                 1   /**< The certificate validity has expired. */
 #define BADCERT_REVOKED                 2   /**< The certificate has been revoked (is on a CRL). */
@@ -91,11 +91,11 @@
 #define BADCERT_NOT_TRUSTED             8   /**< The certificate is not correctly signed by the trusted CA. */
 #define BADCRL_NOT_TRUSTED             16   /**< CRL is not correctly signed by the trusted CA. */
 #define BADCRL_EXPIRED                 32   /**< CRL is expired. */
-/* @} name */
+/* \} name */
 
 
 /**
- * @name DER constants
+ * \name DER constants
  * These constants comply with DER encoded the ANS1 type tags.
  * DER encoding uses hexadecimal representation.
  * An example DER sequence is:\n
@@ -103,7 +103,7 @@
  * - 0x01 -- length in octets
  * - 0x05 -- value
  * Such sequences are typically read into \c ::x509_buf.
- * @{
+ * \{
  */
 #define ASN1_BOOLEAN                 0x01
 #define ASN1_INTEGER                 0x02
@@ -124,8 +124,8 @@
 #define ASN1_PRIMITIVE               0x00
 #define ASN1_CONSTRUCTED             0x20
 #define ASN1_CONTEXT_SPECIFIC        0x80
-/* @} name */
-/* @} addtogroup x509_module */
+/* \} name */
+/* \} addtogroup x509_module */
 
 /*
  * various object identifiers
@@ -272,12 +272,12 @@
 #define EXT_NS_CERT_TYPE                (1 << 16)
 
 /** 
- * @addtogroup x509_module
- * @{ */
+ * \addtogroup x509_module
+ * \{ */
 
 /**
- * @name Structures for parsing X.509 certificates and CRLs
- * @{
+ * \name Structures for parsing X.509 certificates and CRLs
+ * \{
  */
  
 /** 
@@ -426,11 +426,11 @@ typedef struct _x509_crl
     struct _x509_crl *next; 
 }
 x509_crl;
-/** @} name Structures for parsing X.509 certificates and CRLs */
-/** @} addtogroup x509_module */
+/** \} name Structures for parsing X.509 certificates and CRLs */
+/** \} addtogroup x509_module */
 
 /**
- * @name Structures for writing X.509 certificates.
+ * \name Structures for writing X.509 certificates.
  * XvP: commented out as they are not used.
  * - <tt>typedef struct _x509_node x509_node;</tt>
  * - <tt>typedef struct _x509_raw x509_raw;</tt>
@@ -470,11 +470,11 @@ extern "C" {
 #endif
 
 /**
- * @name Functions to read in DHM parameters, a certificate, CRL or private RSA key
- * @{
+ * \name Functions to read in DHM parameters, a certificate, CRL or private RSA key
+ * \{
  */
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Parse one or more certificates and add them
  *                 to the chained list
@@ -487,7 +487,7 @@ extern "C" {
  */
 int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen );
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Load one or more certificates and add them
  *                 to the chained list
@@ -499,7 +499,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen );
  */
 int x509parse_crtfile( x509_cert *chain, const char *path );
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Parse one or more CRLs and add them
  *                 to the chained list
@@ -512,7 +512,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path );
  */
 int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen );
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Load one or more CRLs and add them
  *                 to the chained list
@@ -524,7 +524,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen );
  */
 int x509parse_crlfile( x509_crl *chain, const char *path );
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Parse a private RSA key
  *
@@ -540,7 +540,7 @@ int x509parse_key( rsa_context *rsa,
                    const unsigned char *key, int keylen,
                    const unsigned char *pwd, int pwdlen );
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Load and parse a private RSA key
  *
@@ -553,7 +553,7 @@ int x509parse_key( rsa_context *rsa,
 int x509parse_keyfile( rsa_context *rsa, const char *path,
                        const char *password );
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Parse DHM parameters
  *
@@ -565,7 +565,7 @@ int x509parse_keyfile( rsa_context *rsa, const char *path,
  */
 int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen );
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Load and parse DHM parameters
  *
@@ -576,7 +576,7 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen );
  */
 int x509parse_dhmfile( dhm_context *rsa, const char *path );
 
-/** @} name Functions to read in DHM parameters, a certificate, CRL or private RSA key */
+/** \} name Functions to read in DHM parameters, a certificate, CRL or private RSA key */
 
 
 
@@ -670,10 +670,10 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
 int x509parse_time_expired( const x509_time *time );
 
 /**
- * @name Functions to verify a certificate
- * @{
+ * \name Functions to verify a certificate
+ * \{
  */
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Verify the certificate signature
  *
@@ -714,15 +714,15 @@ int x509parse_verify( x509_cert *crt,
  */
 int x509parse_revoked( const x509_cert *crt, const x509_crl *crl );
 
-/** @} name Functions to verify a certificate */
+/** \} name Functions to verify a certificate */
 
 
 
 /**
- * @name Functions to clear a certificate, CRL or private RSA key 
- * @{
+ * \name Functions to clear a certificate, CRL or private RSA key 
+ * \{
  */
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Unallocate all certificate data
  *
@@ -730,7 +730,7 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl );
  */
 void x509_free( x509_cert *crt );
 
-/** @ingroup x509_module */
+/** \ingroup x509_module */
 /**
  * \brief          Unallocate all CRL data
  *
@@ -738,7 +738,7 @@ void x509_free( x509_cert *crt );
  */
 void x509_crl_free( x509_crl *crl );
 
-/** @} name Functions to clear a certificate, CRL or private RSA key */
+/** \} name Functions to clear a certificate, CRL or private RSA key */
 
 
 /**

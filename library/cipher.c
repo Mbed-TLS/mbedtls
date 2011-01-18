@@ -366,6 +366,8 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, int *olen)
 
 int cipher_self_test( int verbose )
 {
+    ((void) verbose);
+
     return( 0 );
 }
 

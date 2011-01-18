@@ -776,7 +776,7 @@ static int x509_get_ns_cert_type( unsigned char **p,
                                        unsigned char *ns_cert_type)
 {
     int ret;
-    x509_bitstring bs = {0};
+    x509_bitstring bs = { 0, 0, NULL };
 
     if( ( ret = asn1_get_bitstring( p, end, &bs ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );
@@ -795,7 +795,7 @@ static int x509_get_key_usage( unsigned char **p,
                                unsigned char *key_usage)
 {
     int ret;
-    x509_bitstring bs = {0};
+    x509_bitstring bs = { 0, 0, NULL };
 
     if( ( ret = asn1_get_bitstring( p, end, &bs ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS | ret );

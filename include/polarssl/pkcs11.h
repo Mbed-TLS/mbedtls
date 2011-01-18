@@ -97,7 +97,7 @@ int pkcs11_decrypt( pkcs11_context *ctx,
                        int mode, int *olen,
                        const unsigned char *input,
                        unsigned char *output,
-                       int output_max_len );
+                       unsigned int output_max_len );
 
 /**
  * \brief          Do a private RSA to sign a message digest

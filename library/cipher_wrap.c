@@ -203,31 +203,43 @@ int des3_crypt_cbc_wrap( void *ctx, operation_t operation, int length,
 
 int des_setkey_dec_wrap( void *ctx, const unsigned char *key, int key_length )
 {
+    ((void) key_length);
+
     return des_setkey_dec( (des_context *) ctx, key );
 }
 
 int des_setkey_enc_wrap( void *ctx, const unsigned char *key, int key_length )
 {
+    ((void) key_length);
+
     return des_setkey_enc( (des_context *) ctx, key );
 }
 
 int des3_set2key_dec_wrap( void *ctx, const unsigned char *key, int key_length )
 {
+    ((void) key_length);
+
     return des3_set2key_dec( (des3_context *) ctx, key );
 }
 
 int des3_set2key_enc_wrap( void *ctx, const unsigned char *key, int key_length )
 {
+    ((void) key_length);
+
     return des3_set2key_enc( (des3_context *) ctx, key );
 }
 
 int des3_set3key_dec_wrap( void *ctx, const unsigned char *key, int key_length )
 {
+    ((void) key_length);
+
     return des3_set3key_dec( (des3_context *) ctx, key );
 }
 
 int des3_set3key_enc_wrap( void *ctx, const unsigned char *key, int key_length )
 {
+    ((void) key_length);
+
     return des3_set3key_enc( (des3_context *) ctx, key );
 }
 

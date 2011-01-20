@@ -147,7 +147,7 @@ const md_info_t *md_info_from_type( md_type_t md_type )
     }
 }
 
-int md_starts( const md_info_t *md_info, md_context_t *ctx )
+int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
 {
     if( md_info == NULL )
         return 1;
@@ -161,6 +161,27 @@ int md_starts( const md_info_t *md_info, md_context_t *ctx )
     ctx->md_info = md_info;
 
     md_info->starts_func( ctx->md_ctx );
+
+    return 0;
+}
+
+int md_free_ctx( md_context_t *ctx )
+{
+    if( ctx == NULL || ctx->md_info == NULL )
+        return 1;
+
+    ctx->md_info->ctx_free_func( ctx->md_ctx );
+    ctx->md_ctx = NULL;
+
+    return 0;
+}
+
+int md_starts( md_context_t *ctx )
+{
+    if( ctx == NULL || ctx->md_info == NULL )
+        return 1;
+
+    ctx->md_info->starts_func( ctx->md_ctx );
 
     return 0;
 }
@@ -185,16 +206,6 @@ int md_finish( md_context_t *ctx, unsigned char *output )
     return 0;
 }
 
-int md_free_ctx( md_context_t *ctx )
-{
-    if( ctx == NULL || ctx->md_info == NULL )
-        return 1;
-
-    ctx->md_info->ctx_free_func( ctx->md_ctx );
-
-    return 0;
-}
-
 int md( const md_info_t *md_info, const unsigned char *input, int ilen,
             unsigned char *output )
 {
@@ -214,21 +225,12 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
     return md_info->file_func( path, output );
 }
 
-int md_hmac_starts( const md_info_t *md_info, md_context_t *ctx,
-                        const unsigned char *key, int keylen )
+int md_hmac_starts( md_context_t *ctx, const unsigned char *key, int keylen )
 {
-    if(md_info == NULL )
+    if( ctx == NULL || ctx->md_info == NULL )
         return 1;
 
-    if( ctx == NULL || ctx->md_ctx != NULL )
-        return 1;
-
-    if( ( ctx->md_ctx = md_info->ctx_alloc_func() ) == NULL )
-        return 1;
-
-    ctx->md_info = md_info;
-
-    md_info->hmac_starts_func( ctx->md_ctx, key, keylen);
+    ctx->md_info->hmac_starts_func( ctx->md_ctx, key, keylen);
 
     return 0;
 }

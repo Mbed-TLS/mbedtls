@@ -31,7 +31,8 @@
 #define POLARSSL_MD_H
 
 typedef enum {
-    POLARSSL_MD_MD2=0,
+    POLARSSL_MD_NONE=0,
+    POLARSSL_MD_MD2,
     POLARSSL_MD_MD4,
     POLARSSL_MD_MD5,
     POLARSSL_MD_SHA1,
@@ -149,6 +150,31 @@ const md_info_t *md_info_from_string( const char *md_name );
 const md_info_t *md_info_from_type( md_type_t md_type );
 
 /**
+ * \brief          Initialises and fills the message digest context structure with
+ *                 the appropriate values.
+ *
+ * \param ctx      context to initialise. May not be NULL. The
+ *                 digest-specific context (ctx->md_ctx) must be NULL. It will
+ *                 be allocated, and must be freed using md_free_ctx() later.
+ * \param md_info  message digest to use.
+ *
+ * \returns        \c 0 on success, \c 1 on parameter failure, \c 2 if
+ *                 allocation of the cipher-specific context failed.
+ */
+int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
+
+/**
+ * \brief          Free the message-specific context of ctx. Freeing ctx itself
+ *                 remains the responsibility of the caller.
+ *
+ * \param ctx      Free the -specific context
+ * \param output   Generic message digest checksum result
+ *
+ * \returns        0 on success, 1 if parameter verification fails.
+ */
+int md_free_ctx( md_context_t *ctx );
+
+/**
  * \brief           Returns the size of the message digest output.
  *
  * \param md_info   message digest info
@@ -185,16 +211,13 @@ static inline const char *md_get_name ( const md_info_t *md_info )
 }
 
 /**
- * \brief          Generic message digest context setup.
+ * \brief          Set-up the given context for a new message digest
  *
- * \param md_info  message digest info
- * \param ctx      generic message digest context. May not be NULL. The
- *                 digest-specific context (ctx->md_ctx) must be NULL. It will
- *                 be allocated, and must be freed using md_free() later.
+ * \param ctx      generic message digest context.
  *
  * \returns        0 on success, 1 if parameter verification fails.
  */
-int md_starts( const md_info_t *md_info, md_context_t *ctx );
+int md_starts( md_context_t *ctx );
 
 /**
  * \brief          Generic message digest process buffer
@@ -216,17 +239,6 @@ int md_update( md_context_t *ctx, const unsigned char *input, int ilen );
  * \returns        0 on success, 1 if parameter verification fails.
  */
 int md_finish( md_context_t *ctx, unsigned char *output );
-
-/**
- * \brief          Free the message-specific context of ctx. Freeing ctx itself
- *                 remains the responsibility of the caller.
- *
- * \param ctx      Free the -specific context
- * \param output   Generic message digest checksum result
- *
- * \returns        0 on success, 1 if parameter verification fails.
- */
-int md_free_ctx( md_context_t *ctx );
 
 /**
  * \brief          Output = message_digest( input buffer )
@@ -256,15 +268,13 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
 /**
  * \brief          Generic HMAC context setup
  *
- * \param md_info  message digest info
  * \param ctx      HMAC context to be initialized
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  *
  * \returns        0 on success, 1 if parameter verification fails.
  */
-int md_hmac_starts( const md_info_t *md_info, md_context_t *ctx,
-                    const unsigned char *key, int keylen );
+int md_hmac_starts( md_context_t *ctx, const unsigned char *key, int keylen );
 
 /**
  * \brief          Generic HMAC process buffer

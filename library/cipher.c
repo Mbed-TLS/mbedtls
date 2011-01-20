@@ -197,8 +197,11 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, int ilen,
 {
     int copy_len = 0;
 
-    if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
+    if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen ||
+        input == output )
+    {
         return 1;
+    }
 
     *olen = 0;
 
@@ -295,16 +298,16 @@ static int get_pkcs_padding( unsigned char *input, unsigned char input_len,
     int i = 0;
     unsigned char padding_len = 0;
 
-    if ( NULL == input || NULL == data_len )
+    if( NULL == input || NULL == data_len )
         return 1;
 
     padding_len = input[input_len - 1];
 
-    if ( padding_len > input_len )
+    if( padding_len > input_len )
         return 2;
 
-    for ( i = input_len - padding_len; i < input_len; i++ )
-        if ( input[i] != padding_len )
+    for( i = input_len - padding_len; i < input_len; i++ )
+        if( input[i] != padding_len )
             return 2;
 
     *data_len = input_len - padding_len;

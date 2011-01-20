@@ -42,7 +42,7 @@ typedef enum {
 
 typedef enum {
     POLARSSL_CIPHER_NONE = 0,
-    POLARSSL_CIPHER_CAMELLIA_128_CBC = 0,
+    POLARSSL_CIPHER_CAMELLIA_128_CBC,
     POLARSSL_CIPHER_CAMELLIA_192_CBC,
     POLARSSL_CIPHER_CAMELLIA_256_CBC,
     POLARSSL_CIPHER_AES_128_CBC,
@@ -288,7 +288,7 @@ static inline int cipher_get_key_size ( const cipher_context_t *ctx )
  *
  * \param ctx           generic cipher context. May not be NULL. Must have been
  *                      initialised using cipher_context_from_type or
- *                      cipher_context_from_name.
+ *                      cipher_context_from_string.
  * \param key           The key to use.
  * \param key_length    key length to use, in bits.
  * \param operation     Operation that the key will be used for, either
@@ -321,7 +321,8 @@ int cipher_reset( cipher_context_t *ctx, const unsigned char *iv );
  * \param input         buffer holding the input data
  * \param ilen          length of the input data
  * \param output        buffer for the output data. Should be able to hold at
- *                      least ilen + block_size
+ *                      least ilen + block_size. Cannot be the same buffer as
+ *                      input!
  * \param olen          length of the output data, will be filled with the
  *                      actual number of bytes written.
  *

@@ -7,7 +7,8 @@ CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statem
 OFLAGS	= -O
 LDFLAGS	= -L../library -lpolarssl
 
-APPS =	aes/aescrypt2		hash/hello		\
+APPS =	aes/aescrypt2	aes/crypt_and_hash	\
+	hash/hello								\
 	hash/md5sum			hash/sha1sum		\
 	hash/sha2sum		pkey/dh_client		\
 	pkey/dh_genprime	pkey/dh_server		\
@@ -25,6 +26,10 @@ all: $(APPS)
 aes/aescrypt2: aes/aescrypt2.c ../library/libpolarssl.a
 	echo   "  CC    aes/aescrypt2.c"
 	$(CC) $(CFLAGS) $(OFLAGS) aes/aescrypt2.c    $(LDFLAGS) -o $@
+
+aes/crypt_and_hash: aes/crypt_and_hash.c ../library/libpolarssl.a
+	echo   "  CC    aes/crypt_and_hash.c"
+	$(CC) $(CFLAGS) $(OFLAGS) aes/crypt_and_hash.c $(LDFLAGS) -o $@
 
 hash/hello: hash/hello.c ../library/libpolarssl.a
 	echo   "  CC    hash/hello.c"

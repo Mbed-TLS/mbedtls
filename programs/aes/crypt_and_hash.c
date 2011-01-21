@@ -1,5 +1,6 @@
 /*
- *  AES-256 file encryption program
+ *  \brief  Generic file encryption program using generic wrappers for configured
+ *          security.
  *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *
@@ -40,33 +41,35 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "polarssl/aes.h"
-#include "polarssl/sha2.h"
+#include "polarssl/cipher.h"
+#include "polarssl/md.h"
 
 #define MODE_ENCRYPT    0
 #define MODE_DECRYPT    1
 
 #define USAGE   \
-    "\n  aescrypt2 <mode> <input filename> <output filename> <key>\n" \
+    "\n  crypt_and_hash <mode> <input filename> <output filename> <cipher> <md> <key>\n" \
     "\n   <mode>: 0 = encrypt, 1 = decrypt\n" \
-    "\n  example: aescrypt2 0 file file.aes hex:E76B2413958B00E193\n" \
+    "\n  example: crypt_and_hash 0 file file.aes AES-128-CBC SHA1 hex:E76B2413958B00E193\n" \
     "\n"
 
 int main( int argc, char *argv[] )
 {
     int ret = 1, i, n;
-    int keylen, mode, lastn;
+    int keylen, mode, lastn, olen;
     FILE *fkey, *fin = NULL, *fout = NULL;
 
     char *p;
     unsigned char IV[16];
     unsigned char key[512];
-    unsigned char digest[32];
+    unsigned char digest[POLARSSL_MD_MAX_SIZE];
     unsigned char buffer[1024];
+    unsigned char output[1024];
 
-    aes_context aes_ctx;
-    sha2_context sha_ctx;
-
+    const cipher_info_t *cipher_info;
+    const md_info_t *md_info;
+    cipher_context_t cipher_ctx;
+    md_context_t md_ctx;
 #if defined(WIN32)
        LARGE_INTEGER li_size;
     __int64 filesize, offset;
@@ -74,12 +77,35 @@ int main( int argc, char *argv[] )
       off_t filesize, offset;
 #endif
 
+    memset( &cipher_ctx, 0, sizeof( cipher_context_t ));
+    memset( &md_ctx, 0, sizeof( md_context_t ));
+
     /*
      * Parse the command-line arguments.
      */
-    if( argc != 5 )
+    if( argc != 7 )
     {
+        const int *list;
+
         printf( USAGE );
+
+        printf( "Available ciphers:\n" );
+        list = cipher_list();
+        while( *list )
+        {
+            cipher_info = cipher_info_from_type( *list );
+            printf( "  %s\n", cipher_info->name );
+            list++;
+        }
+
+        printf( "\nAvailable message digests:\n" );
+        list = md_list();
+        while( *list )
+        {
+            md_info = md_info_from_type( *list );
+            printf( "  %s\n", md_info->name );
+            list++;
+        }
 
 #if defined(WIN32)
         printf( "\n  Press Enter to exit this program.\n" );
@@ -93,7 +119,7 @@ int main( int argc, char *argv[] )
 
     if( mode != MODE_ENCRYPT && mode != MODE_DECRYPT )
     {
-        fprintf( stderr, "invalide operation mode\n" );
+        fprintf( stderr, "invalid operation mode\n" );
         goto exit;
     }
 
@@ -116,18 +142,37 @@ int main( int argc, char *argv[] )
     }
 
     /*
+     * Read the Cipher and MD from the command line
+     */
+    cipher_info = cipher_info_from_string( argv[4] );
+    if( cipher_info == NULL )
+    {
+        fprintf( stderr, "Cipher '%s' not found\n", argv[4] );
+        goto exit;
+    }
+    cipher_init_ctx( &cipher_ctx, cipher_info);
+
+    md_info = md_info_from_string( argv[5] );
+    if( md_info == NULL )
+    {
+        fprintf( stderr, "Message Digest '%s' not found\n", argv[5] );
+        goto exit;
+    }
+    md_init_ctx( &md_ctx, md_info);
+
+    /*
      * Read the secret key and clean the command line.
      */
-    if( ( fkey = fopen( argv[4], "rb" ) ) != NULL )
+    if( ( fkey = fopen( argv[6], "rb" ) ) != NULL )
     {
         keylen = fread( key, 1, sizeof( key ), fkey );
         fclose( fkey );
     }
     else
     {
-        if( memcmp( argv[4], "hex:", 4 ) == 0 )
+        if( memcmp( argv[6], "hex:", 4 ) == 0 )
         {
-            p = &argv[4][4];
+            p = &argv[6][4];
             keylen = 0;
 
             while( sscanf( p, "%02X", &n ) > 0 &&
@@ -139,16 +184,16 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            keylen = strlen( argv[4] );
+            keylen = strlen( argv[6] );
 
             if( keylen > (int) sizeof( key ) )
                 keylen = (int) sizeof( key );
 
-            memcpy( key, argv[4], keylen );
+            memcpy( key, argv[6], keylen );
         }
     }
 
-    memset( argv[4], 0, strlen( argv[4] ) );
+    memset( argv[6], 0, strlen( argv[6] ) );
 
 #if defined(WIN32)
     /*
@@ -191,10 +236,10 @@ int main( int argc, char *argv[] )
 
         p = argv[2];
 
-        sha2_starts( &sha_ctx, 0 );
-        sha2_update( &sha_ctx, buffer, 8 );
-        sha2_update( &sha_ctx, (unsigned char *) p, strlen( p ) );
-        sha2_finish( &sha_ctx, digest );
+        md_starts( &md_ctx );
+        md_update( &md_ctx, buffer, 8 );
+        md_update( &md_ctx, (unsigned char *) p, strlen( p ) );
+        md_finish( &md_ctx, digest );
 
         memcpy( IV, digest, 16 );
 
@@ -225,23 +270,28 @@ int main( int argc, char *argv[] )
 
         for( i = 0; i < 8192; i++ )
         {
-            sha2_starts( &sha_ctx, 0 );
-            sha2_update( &sha_ctx, digest, 32 );
-            sha2_update( &sha_ctx, key, keylen );
-            sha2_finish( &sha_ctx, digest );
+            md_starts( &md_ctx );
+            md_update( &md_ctx, digest, 32 );
+            md_update( &md_ctx, key, keylen );
+            md_finish( &md_ctx, digest );
+
         }
 
         memset( key, 0, sizeof( key ) );
-          aes_setkey_enc( &aes_ctx, digest, 256 );
-        sha2_hmac_starts( &sha_ctx, digest, 32, 0 );
+
+        cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
+            POLARSSL_ENCRYPT );
+        cipher_reset( &cipher_ctx, IV);
+
+        md_hmac_starts( &md_ctx, digest, 32 );
 
         /*
          * Encrypt and write the ciphertext.
          */
-        for( offset = 0; offset < filesize; offset += 16 )
+        for( offset = 0; offset < filesize; offset += cipher_get_block_size( &cipher_ctx ) )
         {
-            n = ( filesize - offset > 16 ) ? 16 : (int)
-                ( filesize - offset );
+            n = ( filesize - offset > cipher_get_block_size( &cipher_ctx ) ) ?
+                cipher_get_block_size( &cipher_ctx ) : (int) ( filesize - offset );
 
             if( fread( buffer, 1, n, fin ) != (size_t) n )
             {
@@ -249,37 +299,38 @@ int main( int argc, char *argv[] )
                 goto exit;
             }
 
-            for( i = 0; i < 16; i++ )
-                buffer[i] = (unsigned char)( buffer[i] ^ IV[i] );
+            cipher_update( &cipher_ctx, buffer, n, output, &olen );
+            md_hmac_update( &md_ctx, output, olen );
 
-            aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, buffer, buffer );
-            sha2_hmac_update( &sha_ctx, buffer, 16 );
-
-            if( fwrite( buffer, 1, 16, fout ) != 16 )
+            if( fwrite( output, 1, olen, fout ) != (size_t) olen )
             {
-                fprintf( stderr, "fwrite(%d bytes) failed\n", 16 );
+                fprintf( stderr, "fwrite(%d bytes) failed\n", olen );
                 goto exit;
             }
-
-            memcpy( IV, buffer, 16 );
         }
 
+        cipher_finish( &cipher_ctx, output, &olen );
+        md_hmac_update( &md_ctx, output, olen );
+
+        if( fwrite( output, 1, olen, fout ) != (size_t) olen )
+        {
+            fprintf( stderr, "fwrite(%d bytes) failed\n", n );
+            goto exit;
+        }
         /*
          * Finally write the HMAC.
          */
-        sha2_hmac_finish( &sha_ctx, digest );
+        md_hmac_finish( &md_ctx, digest );
 
-        if( fwrite( digest, 1, 32, fout ) != 32 )
+        if( fwrite( digest, 1, md_get_size( md_info), fout ) != md_get_size( md_info) )
         {
-            fprintf( stderr, "fwrite(%d bytes) failed\n", 16 );
+            fprintf( stderr, "fwrite(%d bytes) failed\n", md_get_size( md_info) );
             goto exit;
         }
     }
 
     if( mode == MODE_DECRYPT )
     {
-        unsigned char tmp[16];
-
         /*
          *  The encrypted file must be structured as follows:
          *
@@ -289,7 +340,7 @@ int main( int argc, char *argv[] )
          *      N*16 .. (N+1)*16 - 1    AES Encrypted Block #N
          *  (N+1)*16 .. (N+1)*16 + 32   HMAC-SHA-256(ciphertext)
          */
-        if( filesize < 48 )
+        if( filesize < 16 + md_get_size( md_info) )
         {
             fprintf( stderr, "File too short to be encrypted.\n" );
             goto exit;
@@ -304,7 +355,7 @@ int main( int argc, char *argv[] )
         /*
          * Substract the IV + HMAC length.
          */
-        filesize -= ( 16 + 32 );
+        filesize -= ( 16 + md_get_size( md_info ) );
 
         /*
          * Read the IV and original filesize modulo 16.
@@ -327,59 +378,67 @@ int main( int argc, char *argv[] )
 
         for( i = 0; i < 8192; i++ )
         {
-            sha2_starts( &sha_ctx, 0 );
-            sha2_update( &sha_ctx, digest, 32 );
-            sha2_update( &sha_ctx, key, keylen );
-            sha2_finish( &sha_ctx, digest );
+            md_starts( &md_ctx );
+            md_update( &md_ctx, digest, 32 );
+            md_update( &md_ctx, key, keylen );
+            md_finish( &md_ctx, digest );
         }
 
         memset( key, 0, sizeof( key ) );
-          aes_setkey_dec( &aes_ctx, digest, 256 );
-        sha2_hmac_starts( &sha_ctx, digest, 32, 0 );
+
+        cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
+            POLARSSL_DECRYPT );
+        cipher_reset( &cipher_ctx, IV);
+
+        md_hmac_starts( &md_ctx, digest, 32 );
 
         /*
          * Decrypt and write the plaintext.
          */
-        for( offset = 0; offset < filesize; offset += 16 )
+        for( offset = 0; offset < filesize; offset += cipher_get_block_size( &cipher_ctx ) )
         {
-            if( fread( buffer, 1, 16, fin ) != 16 )
+            if( fread( buffer, 1, cipher_get_block_size( &cipher_ctx ), fin ) !=
+                (size_t) cipher_get_block_size( &cipher_ctx ) )
             {
-                fprintf( stderr, "fread(%d bytes) failed\n", 16 );
+                fprintf( stderr, "fread(%d bytes) failed\n",
+                    cipher_get_block_size( &cipher_ctx ) );
                 goto exit;
             }
 
-            memcpy( tmp, buffer, 16 );
- 
-            sha2_hmac_update( &sha_ctx, buffer, 16 );
-            aes_crypt_ecb( &aes_ctx, AES_DECRYPT, buffer, buffer );
-   
-            for( i = 0; i < 16; i++ )
-                buffer[i] = (unsigned char)( buffer[i] ^ IV[i] );
+            md_hmac_update( &md_ctx, buffer, cipher_get_block_size( &cipher_ctx ) );
+            cipher_update( &cipher_ctx, buffer, cipher_get_block_size( &cipher_ctx ),
+                output, &olen );
 
-            memcpy( IV, tmp, 16 );
-
-            n = ( lastn > 0 && offset == filesize - 16 )
-                ? lastn : 16;
-
-            if( fwrite( buffer, 1, n, fout ) != (size_t) n )
+            if( fwrite( output, 1, olen, fout ) != (size_t) olen )
             {
-                fprintf( stderr, "fwrite(%d bytes) failed\n", n );
+                fprintf( stderr, "fwrite(%d bytes) failed\n", olen );
                 goto exit;
             }
+        }
+
+        /*
+         * Write the final block of data
+         */
+        cipher_finish( &cipher_ctx, output, &olen );
+
+        if( fwrite( output, 1, olen, fout ) != (size_t) olen )
+        {
+            fprintf( stderr, "fwrite(%d bytes) failed\n", olen );
+            goto exit;
         }
 
         /*
          * Verify the message authentication code.
          */
-        sha2_hmac_finish( &sha_ctx, digest );
+        md_hmac_finish( &md_ctx, digest );
 
-        if( fread( buffer, 1, 32, fin ) != 32 )
+        if( fread( buffer, 1, md_get_size( md_info ), fin ) != md_get_size( md_info ) )
         {
-            fprintf( stderr, "fread(%d bytes) failed\n", 32 );
+            fprintf( stderr, "fread(%d bytes) failed\n", md_get_size( md_info ) );
             goto exit;
         }
 
-        if( memcmp( digest, buffer, 32 ) != 0 )
+        if( memcmp( digest, buffer, md_get_size( md_info ) ) != 0 )
         {
             fprintf( stderr, "HMAC check failed: wrong key, "
                              "or file corrupted.\n" );
@@ -396,8 +455,8 @@ exit:
     memset( buffer, 0, sizeof( buffer ) );
     memset( digest, 0, sizeof( digest ) );
 
-    memset( &aes_ctx, 0, sizeof(  aes_context ) );
-    memset( &sha_ctx, 0, sizeof( sha2_context ) );
+    cipher_free_ctx( &cipher_ctx );
+    md_free_ctx( &md_ctx );
 
     return( ret );
 }

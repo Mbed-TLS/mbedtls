@@ -8,7 +8,7 @@ OFLAGS	= -O
 LDFLAGS	= -L../library -lpolarssl
 
 APPS =	aes/aescrypt2	aes/crypt_and_hash	\
-	hash/hello								\
+	hash/hello			hash/generic_sum	\
 	hash/md5sum			hash/sha1sum		\
 	hash/sha2sum		pkey/dh_client		\
 	pkey/dh_genprime	pkey/dh_server		\
@@ -34,6 +34,10 @@ aes/crypt_and_hash: aes/crypt_and_hash.c ../library/libpolarssl.a
 hash/hello: hash/hello.c ../library/libpolarssl.a
 	echo   "  CC    hash/hello.c"
 	$(CC) $(CFLAGS) $(OFLAGS) hash/hello.c       $(LDFLAGS) -o $@
+
+hash/generic_sum: hash/generic_sum.c ../library/libpolarssl.a
+	echo   "  CC    hash/generic_sum.c"
+	$(CC) $(CFLAGS) $(OFLAGS) hash/generic_sum.c $(LDFLAGS) -o $@
 
 hash/md5sum: hash/md5sum.c ../library/libpolarssl.a
 	echo   "  CC    hash/md5sum.c"

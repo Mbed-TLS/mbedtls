@@ -36,6 +36,13 @@
 #endif
 
 /*
+ * \name SECTION: System support
+ *
+ * This section sets system specific settings.
+ * \{
+ */
+
+/*
  * Uncomment if native integers are 8-bit wide.
  *
 #define POLARSSL_HAVE_INT8
@@ -71,6 +78,15 @@
  *
 #define POLARSSL_HAVE_SSE2
  */
+/* \} name */
+
+/*
+ * \name SECTION: PolarSSL feature support
+ *
+ * This section sets support for features that are or are not needed
+ * within the modules that are enabled.
+ * \{
+ */
 
 /*
  * Enable all SSL/TLS debugging messages.
@@ -83,11 +99,6 @@
 #define POLARSSL_SELF_TEST
 
 /*
- * Enable run-time version information functions
- */
-#define POLARSSL_VERSION_C
-
-/*
  * Enable the prime-number generation code.
  */
 #define POLARSSL_GENPRIME
@@ -96,6 +107,14 @@
  * Uncomment this macro to store the AES tables in ROM.
  *
 #define POLARSSL_AES_ROM_TABLES
+ */
+/* \} name */
+
+/*
+ * \name SECTION: PolarSSL modules
+ *
+ * This section enables or disables entire modules in PolarSSL
+ * \{
  */
 
 /*
@@ -338,6 +357,13 @@
 #define POLARSSL_TIMING_C
 
 /*
+ * Module:  library/version.c
+ *
+ * This module provides run-time version information.
+ */
+#define POLARSSL_VERSION_C
+
+/*
  * Module:  library/x509parse.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
@@ -360,5 +386,6 @@
  * Caller:
  */
 #define POLARSSL_XTEA_C
+/* \} name */
 
 #endif /* config.h */

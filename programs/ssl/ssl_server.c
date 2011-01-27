@@ -66,7 +66,7 @@ char *my_dhm_G = "4";
 /*
  * Sorted by order of preference
  */
-int my_ciphers[] =
+int my_ciphersuites[] =
 {
     SSL_EDH_RSA_AES_256_SHA,
     SSL_EDH_RSA_CAMELLIA_256_SHA,
@@ -119,7 +119,7 @@ static int my_get_session( ssl_context *ssl )
         if( ssl->timeout != 0 && t - prv->start > ssl->timeout )
             continue;
 
-        if( ssl->session->cipher != prv->cipher ||
+        if( ssl->session->ciphersuite != prv->ciphersuite ||
             ssl->session->length != prv->length )
             continue;
 
@@ -287,7 +287,7 @@ accept:
     ssl_set_scb( &ssl, my_get_session,
                        my_set_session );
 
-    ssl_set_ciphers( &ssl, my_ciphers );
+    ssl_set_ciphersuites( &ssl, my_ciphersuites );
     ssl_set_session( &ssl, 1, 0, &ssn );
 
     memset( &ssn, 0, sizeof( ssl_session ) );
@@ -360,7 +360,7 @@ accept:
     fflush( stdout );
 
     len = sprintf( (char *) buf, HTTP_RESPONSE,
-                   ssl_get_cipher( &ssl ) );
+                   ssl_get_ciphersuite( &ssl ) );
 
     while( ( ret = ssl_write( &ssl, buf, len ) ) <= 0 )
     {

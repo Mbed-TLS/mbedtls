@@ -199,7 +199,7 @@ typedef struct _ssl_context ssl_context;
 struct _ssl_session
 {
     time_t start;               /*!< starting time      */
-    int cipher;                 /*!< chosen cipher      */
+    int ciphersuite;            /*!< chosen ciphersuite */
     int length;                 /*!< session id length  */
     unsigned char id[32];       /*!< session identifier */
     unsigned char master[48];   /*!< the master secret  */
@@ -295,7 +295,7 @@ struct _ssl_context
     sha1_context fin_sha1;              /*!<  Finished SHA-1 checksum */
 
     int do_crypt;                       /*!<  en(de)cryption flag     */
-    int *ciphers;                       /*!<  allowed ciphersuites    */
+    int *ciphersuites;                  /*!<  allowed ciphersuites    */
     int pmslen;                         /*!<  premaster length        */
     int keylen;                         /*!<  symmetric key length    */
     int minlen;                         /*!<  min. ciphertext length  */
@@ -325,27 +325,38 @@ struct _ssl_context
 extern "C" {
 #endif
 
-extern int ssl_default_ciphers[];
+extern int ssl_default_ciphersuites[];
 
 /**
- * \brief Returns the list of ciphers supported by the SSL/TLS module.
+ * \brief Returns the list of ciphersuites supported by the SSL/TLS module.
  *
- * \return              a statically allocated array of ciphers, the last entry
- *                      is 0.
+ * \return              a statically allocated array of ciphersuites, the last
+ *                      entry is 0.
  */
-static inline const int *ssl_list_ciphers( void )
+static inline const int *ssl_list_ciphersuites( void )
 {
-    return ssl_default_ciphers;
+    return ssl_default_ciphersuites;
 }
 
 /**
- * \brief          Return the name of the cipher associated with the given ID
+ * \brief               Return the name of the ciphersuite associated with the given
+ *                      ID
  *
- * \param cipher_id     SSL cipher ID
+ * \param ciphersuite_id SSL ciphersuite ID
  *
- * \return              a string containing the cipher name
+ * \return              a string containing the ciphersuite name
  */
-const char *ssl_get_cipher_name( const int cipher_id );
+const char *ssl_get_ciphersuite_name( const int ciphersuite_id );
+
+/**
+ * \brief               Return the ID of the ciphersuite associated with the given
+ *                      name
+ *
+ * \param ciphersuite_name SSL ciphersuite name
+ *
+ * \return              the ID with the ciphersuite or 0 if not found
+ */
+int ssl_get_ciphersuite_id( const char *ciphersuite_name );
 
 /**
  * \brief          Initialize an SSL context
@@ -458,12 +469,12 @@ void ssl_set_session( ssl_context *ssl, int resume, int timeout,
                       ssl_session *session );
 
 /**
- * \brief          Set the list of allowed ciphersuites
+ * \brief               Set the list of allowed ciphersuites
  *
- * \param ssl      SSL context
- * \param ciphers  0-terminated list of allowed ciphers
+ * \param ssl           SSL context
+ * \param ciphersuites  0-terminated list of allowed ciphersuites
  */
-void ssl_set_ciphers( ssl_context *ssl, int *ciphers );
+void ssl_set_ciphersuites( ssl_context *ssl, int *ciphersuites );
 
 /**
  * \brief          Set the data required to verify peer certificate
@@ -557,13 +568,13 @@ int ssl_get_bytes_avail( const ssl_context *ssl );
 int ssl_get_verify_result( const ssl_context *ssl );
 
 /**
- * \brief          Return the name of the current cipher
+ * \brief          Return the name of the current ciphersuite
  *
  * \param ssl      SSL context
  *
- * \return         a string containing the cipher name
+ * \return         a string containing the ciphersuite name
  */
-const char *ssl_get_cipher( const ssl_context *ssl );
+const char *ssl_get_ciphersuite( const ssl_context *ssl );
 
 /**
  * \brief          Return the current SSL version (SSLv3/TLSv1/etc)

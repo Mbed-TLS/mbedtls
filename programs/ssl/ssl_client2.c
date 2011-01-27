@@ -248,7 +248,7 @@ int main( int argc, char *argv[] )
     ssl_set_bio( &ssl, net_recv, &server_fd,
                        net_send, &server_fd );
 
-    ssl_set_ciphers( &ssl, ssl_default_ciphers );
+    ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
     ssl_set_session( &ssl, 1, 600, &ssn );
 
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
@@ -271,8 +271,8 @@ int main( int argc, char *argv[] )
         }
     }
 
-    printf( " ok\n    [ Cipher is %s ]\n",
-            ssl_get_cipher( &ssl ) );
+    printf( " ok\n    [ Ciphersuite is %s ]\n",
+            ssl_get_ciphersuite( &ssl ) );
 
     /*
      * 5. Verify the server certificate

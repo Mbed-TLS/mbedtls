@@ -91,7 +91,7 @@ struct options
     int max_connections;        /* max. number of reconnections         */
     int session_reuse;          /* flag to reuse the keying material    */
     int session_lifetime;       /* if reached, session data is expired  */
-    int force_cipher[2];        /* protocol/cipher to use, or all       */
+    int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all  */
 };
 
 /*
@@ -242,9 +242,9 @@ static int ssl_test( struct options *opt )
     ssl_set_session( &ssl, opt->session_reuse,
                            opt->session_lifetime, &ssn );
 
-    if( opt->force_cipher[0] == DFL_FORCE_CIPHER )
-          ssl_set_ciphers( &ssl, ssl_default_ciphers );
-    else  ssl_set_ciphers( &ssl, opt->force_cipher );
+    if( opt->force_ciphersuite[0] == DFL_FORCE_CIPHER )
+          ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
+    else  ssl_set_ciphersuites( &ssl, opt->force_ciphersuite );
 
     if( opt->iomode == IOMODE_NONBLOCK )
         net_set_nonblock( client_fd );
@@ -389,17 +389,13 @@ exit:
     "    max_connections=%%d          default: 0 (no limit)\n"   \
     "    session_reuse=on/off        default: on (enabled)\n"    \
     "    session_lifetime=%%d (s)     default: 86400\n"          \
-    "    force_cipher=<name>         default: all enabled\n"     \
-    " acceptable cipher names:\n"                                \
-    "    SSL_RSA_RC4_128_MD5         SSL_RSA_RC4_128_SHA\n"      \
-    "    SSL_RSA_DES_168_SHA         SSL_EDH_RSA_DES_168_SHA\n"  \
-    "    SSL_RSA_AES_128_SHA         SSL_EDH_RSA_AES_256_SHA\n"  \
-    "    SSL_RSA_AES_256_SHA         SSL_EDH_RSA_CAMELLIA_256_SHA\n" \
-    "    SSL_RSA_CAMELLIA_128_SHA    SSL_RSA_CAMELLIA_256_SHA\n\n"
+    "    force_ciphersuite=<name>    default: all enabled\n"     \
+    " acceptable ciphersuite names:\n" 
 
 int main( int argc, char *argv[] )
 {
     int i, j, n;
+    const int *list;
     int ret = 1;
     int nb_conn;
     char *p, *q;
@@ -409,6 +405,14 @@ int main( int argc, char *argv[] )
     {
     usage:
         printf( USAGE );
+        
+        list = ssl_list_ciphersuites();
+        while( *list )
+        {
+            printf("    %s\n", ssl_get_ciphersuite_name( *list ) );
+            list++;
+        }
+        printf("\n");
         goto exit;
     }
 
@@ -424,7 +428,7 @@ int main( int argc, char *argv[] )
     opt.max_connections         = DFL_MAX_CONNECTIONS;
     opt.session_reuse           = DFL_SESSION_REUSE;
     opt.session_lifetime        = DFL_SESSION_LIFETIME;
-    opt.force_cipher[0]         = DFL_FORCE_CIPHER;
+    opt.force_ciphersuite[0]    = DFL_FORCE_CIPHER;
 
     for( i = 1; i < argc; i++ )
     {
@@ -520,44 +524,16 @@ int main( int argc, char *argv[] )
         if( strcmp( p, "session_lifetime" ) == 0 )
             opt.session_lifetime = atoi( q );
 
-        if( strcmp( p, "force_cipher" ) == 0 )
+        if( strcmp( p, "force_ciphersuite" ) == 0 )
         {
-            opt.force_cipher[0] = -1;
+            opt.force_ciphersuite[0] = -1;
 
-            if( strcmp( q, "ssl_rsa_rc4_128_md5" ) == 0 )
-                opt.force_cipher[0] = SSL_RSA_RC4_128_MD5;
+            opt.force_ciphersuite[0] = ssl_get_ciphersuite_id( q );
 
-            if( strcmp( q, "ssl_rsa_rc4_128_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_RSA_RC4_128_SHA;
-
-            if( strcmp( q, "ssl_rsa_des_168_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_RSA_DES_168_SHA;
-
-            if( strcmp( q, "ssl_edh_rsa_des_168_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_EDH_RSA_DES_168_SHA;
-
-            if( strcmp( q, "ssl_rsa_aes_128_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_RSA_AES_128_SHA;
-
-            if( strcmp( q, "ssl_rsa_aes_256_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_RSA_AES_256_SHA;
-
-            if( strcmp( q, "ssl_edh_rsa_aes_256_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_EDH_RSA_AES_256_SHA;
-
-            if( strcmp( q, "ssl_rsa_camellia_128_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_RSA_CAMELLIA_128_SHA;
-
-            if( strcmp( q, "ssl_rsa_camellia_256_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_RSA_CAMELLIA_256_SHA;
-
-            if( strcmp( q, "ssl_edh_rsa_camellia_256_sha" ) == 0 )
-                opt.force_cipher[0] = SSL_EDH_RSA_CAMELLIA_256_SHA;
-
-            if( opt.force_cipher[0] < 0 )
+            if( opt.force_ciphersuite[0] <= 0 )
                 goto usage;
 
-            opt.force_cipher[1] = 0;
+            opt.force_ciphersuite[1] = 0;
         }
     }
 

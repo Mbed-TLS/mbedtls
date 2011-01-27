@@ -88,8 +88,8 @@ static int ssl_write_client_hello( ssl_context *ssl )
     /*
      *    38  .  38   session id length
      *    39  . 39+n  session id
-     *   40+n . 41+n  cipherlist length
-     *   42+n . ..    cipherlist
+     *   40+n . 41+n  ciphersuitelist length
+     *   42+n . ..    ciphersuitelist
      *   ..   . ..    compression alg. (0)
      *   ..   . ..    extensions (unused)
      */
@@ -107,19 +107,19 @@ static int ssl_write_client_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "client hello, session id len.: %d", n ) );
     SSL_DEBUG_BUF( 3,   "client hello, session id", buf + 39, n );
 
-    for( n = 0; ssl->ciphers[n] != 0; n++ );
+    for( n = 0; ssl->ciphersuites[n] != 0; n++ );
     *p++ = (unsigned char)( n >> 7 );
     *p++ = (unsigned char)( n << 1 );
 
-    SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphers", n ) );
+    SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphersuites", n ) );
 
     for( i = 0; i < n; i++ )
     {
-        SSL_DEBUG_MSG( 3, ( "client hello, add cipher: %2d",
-                       ssl->ciphers[i] ) );
+        SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
+                       ssl->ciphersuites[i] ) );
 
-        *p++ = (unsigned char)( ssl->ciphers[i] >> 8 );
-        *p++ = (unsigned char)( ssl->ciphers[i]      );
+        *p++ = (unsigned char)( ssl->ciphersuites[i] >> 8 );
+        *p++ = (unsigned char)( ssl->ciphersuites[i]      );
     }
 
     SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 1 ) );
@@ -235,7 +235,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     /*
      *    38  .  38   session id length
      *    39  . 38+n  session id
-     *   39+n . 40+n  chosen cipher
+     *   39+n . 40+n  chosen ciphersuite
      *   41+n . 41+n  chosen compression alg.
      *   42+n . 43+n  extensions length
      *   44+n . 44+n+m extensions
@@ -265,14 +265,14 @@ static int ssl_parse_server_hello( ssl_context *ssl )
      * Check if the session can be resumed
      */
     if( ssl->resume == 0 || n == 0 ||
-        ssl->session->cipher  != i ||
-        ssl->session->length  != n ||
+        ssl->session->ciphersuite != i ||
+        ssl->session->length != n ||
         memcmp( ssl->session->id, buf + 39, n ) != 0 )
     {
         ssl->state++;
         ssl->resume = 0;
         ssl->session->start = time( NULL );
-        ssl->session->cipher = i;
+        ssl->session->ciphersuite = i;
         ssl->session->length = n;
         memcpy( ssl->session->id, buf + 39, n );
     }
@@ -290,19 +290,19 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
                    ssl->resume ? "a" : "no" ) );
 
-    SSL_DEBUG_MSG( 3, ( "server hello, chosen cipher: %d", i ) );
+    SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d", i ) );
     SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[41 + n] ) );
 
     i = 0;
     while( 1 )
     {
-        if( ssl->ciphers[i] == 0 )
+        if( ssl->ciphersuites[i] == 0 )
         {
             SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
-        if( ssl->ciphers[i++] == ssl->session->cipher )
+        if( ssl->ciphersuites[i++] == ssl->session->ciphersuite )
             break;
     }
 
@@ -329,11 +329,11 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 
-    if( ssl->session->cipher != SSL_EDH_RSA_DES_168_SHA &&
-        ssl->session->cipher != SSL_EDH_RSA_AES_128_SHA &&
-        ssl->session->cipher != SSL_EDH_RSA_AES_256_SHA &&
-        ssl->session->cipher != SSL_EDH_RSA_CAMELLIA_128_SHA &&
-	    ssl->session->cipher != SSL_EDH_RSA_CAMELLIA_256_SHA)
+    if( ssl->session->ciphersuite != SSL_EDH_RSA_DES_168_SHA &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_SHA &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_SHA &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
+	    ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA)
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;
@@ -522,11 +522,11 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write client key exchange" ) );
 
-    if( ssl->session->cipher == SSL_EDH_RSA_DES_168_SHA ||
-        ssl->session->cipher == SSL_EDH_RSA_AES_128_SHA ||
-        ssl->session->cipher == SSL_EDH_RSA_AES_256_SHA ||
-        ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_128_SHA ||
-	    ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_256_SHA)
+    if( ssl->session->ciphersuite == SSL_EDH_RSA_DES_168_SHA ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
+	    ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA)
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm in not available" ) );

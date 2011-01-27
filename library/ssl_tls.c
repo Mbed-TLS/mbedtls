@@ -214,7 +214,7 @@ int ssl_derive_keys( ssl_context *ssl )
         tls1_prf( ssl->session->master, 48, "key expansion",
                   ssl->randbytes, 64, keyblk, 256 );
 
-    SSL_DEBUG_MSG( 3, ( "cipher = %s", ssl_get_cipher( ssl ) ) );
+    SSL_DEBUG_MSG( 3, ( "ciphersuite = %s", ssl_get_ciphersuite( ssl ) ) );
     SSL_DEBUG_BUF( 3, "master secret", ssl->session->master, 48 );
     SSL_DEBUG_BUF( 4, "random bytes", ssl->randbytes, 64 );
     SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
@@ -224,7 +224,7 @@ int ssl_derive_keys( ssl_context *ssl )
     /*
      * Determine the appropriate key, IV and MAC length.
      */
-    switch( ssl->session->cipher )
+    switch( ssl->session->ciphersuite )
     {
 #if defined(POLARSSL_ARC4_C)
         case SSL_RSA_RC4_128_MD5:
@@ -275,8 +275,8 @@ int ssl_derive_keys( ssl_context *ssl )
 #endif
 
         default:
-            SSL_DEBUG_MSG( 1, ( "cipher %s is not available",
-                           ssl_get_cipher( ssl ) ) );
+            SSL_DEBUG_MSG( 1, ( "ciphersuite %s is not available",
+                           ssl_get_ciphersuite( ssl ) ) );
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
@@ -317,7 +317,7 @@ int ssl_derive_keys( ssl_context *ssl )
                 ssl->ivlen );
     }
 
-    switch( ssl->session->cipher )
+    switch( ssl->session->ciphersuite )
     {
 #if defined(POLARSSL_ARC4_C)
         case SSL_RSA_RC4_128_MD5:
@@ -611,10 +611,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
             case 16:
 #if defined(POLARSSL_AES_C)
-		if ( ssl->session->cipher == SSL_RSA_AES_128_SHA ||
-		     ssl->session->cipher == SSL_EDH_RSA_AES_128_SHA ||
-		     ssl->session->cipher == SSL_RSA_AES_256_SHA ||
-		     ssl->session->cipher == SSL_EDH_RSA_AES_256_SHA)
+		if ( ssl->session->ciphersuite == SSL_RSA_AES_128_SHA ||
+		     ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
+		     ssl->session->ciphersuite == SSL_RSA_AES_256_SHA ||
+		     ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA)
 		{
                     aes_crypt_cbc( (aes_context *) ssl->ctx_enc,
                         AES_ENCRYPT, enc_msglen,
@@ -624,10 +624,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
-		if ( ssl->session->cipher == SSL_RSA_CAMELLIA_128_SHA ||
-		     ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_128_SHA ||
-		     ssl->session->cipher == SSL_RSA_CAMELLIA_256_SHA ||
-		     ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_256_SHA)
+		if ( ssl->session->ciphersuite == SSL_RSA_CAMELLIA_128_SHA ||
+		     ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
+		     ssl->session->ciphersuite == SSL_RSA_CAMELLIA_256_SHA ||
+		     ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA)
 		{
                     camellia_crypt_cbc( (camellia_context *) ssl->ctx_enc,
                         CAMELLIA_ENCRYPT, enc_msglen,
@@ -716,10 +716,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
             case 16:
 #if defined(POLARSSL_AES_C)
-		if ( ssl->session->cipher == SSL_RSA_AES_128_SHA ||
-		     ssl->session->cipher == SSL_EDH_RSA_AES_128_SHA ||
-		     ssl->session->cipher == SSL_RSA_AES_256_SHA ||
-		     ssl->session->cipher == SSL_EDH_RSA_AES_256_SHA)
+		if ( ssl->session->ciphersuite == SSL_RSA_AES_128_SHA ||
+		     ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
+		     ssl->session->ciphersuite == SSL_RSA_AES_256_SHA ||
+		     ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA)
 		{
                     aes_crypt_cbc( (aes_context *) ssl->ctx_dec,
                        AES_DECRYPT, dec_msglen,
@@ -729,10 +729,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
-		if ( ssl->session->cipher == SSL_RSA_CAMELLIA_128_SHA ||
-		     ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_128_SHA ||
-		     ssl->session->cipher == SSL_RSA_CAMELLIA_256_SHA ||
-		     ssl->session->cipher == SSL_EDH_RSA_CAMELLIA_256_SHA)
+		if ( ssl->session->ciphersuite == SSL_RSA_CAMELLIA_128_SHA ||
+		     ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
+		     ssl->session->ciphersuite == SSL_RSA_CAMELLIA_256_SHA ||
+		     ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA)
 		{
                     camellia_crypt_cbc( (camellia_context *) ssl->ctx_dec,
                        CAMELLIA_DECRYPT, dec_msglen,
@@ -1776,9 +1776,9 @@ void ssl_set_session( ssl_context *ssl, int resume, int timeout,
     ssl->session    = session;
 }
 
-void ssl_set_ciphers( ssl_context *ssl, int *ciphers )
+void ssl_set_ciphersuites( ssl_context *ssl, int *ciphersuites )
 {
-    ssl->ciphers    = ciphers;
+    ssl->ciphersuites    = ciphersuites;
 }
 
 void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
@@ -1872,9 +1872,9 @@ int ssl_get_verify_result( const ssl_context *ssl )
     return( ssl->verify_result );
 }
 
-const char *ssl_get_cipher_name( const int cipher_id )
+const char *ssl_get_ciphersuite_name( const int ciphersuite_id )
 {
-    switch( cipher_id )
+    switch( ciphersuite_id )
     {
 #if defined(POLARSSL_ARC4_C)
         case SSL_RSA_RC4_128_MD5:
@@ -1927,50 +1927,50 @@ const char *ssl_get_cipher_name( const int cipher_id )
     return( "unknown" );
 }
 
-int ssl_get_cipher_id( const char *cipher_name )
+int ssl_get_ciphersuite_id( const char *ciphersuite_name )
 {
 #if defined(POLARSSL_ARC4_C)
-    if (0 == strcasecmp(cipher_name, "SSL-RSA-RC4-128-MD5"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-RC4-128-MD5"))
         return( SSL_RSA_RC4_128_MD5 );
-    if (0 == strcasecmp(cipher_name, "SSL-RSA-RC4-128-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-RC4-128-SHA"))
         return( SSL_RSA_RC4_128_SHA );
 #endif
 
 #if defined(POLARSSL_DES_C)
-    if (0 == strcasecmp(cipher_name, "SSL-RSA-DES-168-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-DES-168-SHA"))
         return( SSL_RSA_DES_168_SHA );
-    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-DES-168-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-EDH-RSA-DES-168-SHA"))
         return( SSL_EDH_RSA_DES_168_SHA );
 #endif
 
 #if defined(POLARSSL_AES_C)
-    if (0 == strcasecmp(cipher_name, "SSL-RSA-AES-128-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-AES-128-SHA"))
         return( SSL_RSA_AES_128_SHA );
-    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-AES-128-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-EDH-RSA-AES-128-SHA"))
         return( SSL_EDH_RSA_AES_128_SHA );
-    if (0 == strcasecmp(cipher_name, "SSL-RSA-AES-256-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-AES-256-SHA"))
         return( SSL_RSA_AES_256_SHA );
-    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-AES-256-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-EDH-RSA-AES-256-SHA"))
         return( SSL_EDH_RSA_AES_256_SHA );
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
-    if (0 == strcasecmp(cipher_name, "SSL-RSA-CAMELLIA-128-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-CAMELLIA-128-SHA"))
         return( SSL_RSA_CAMELLIA_128_SHA );
-    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-CAMELLIA-128-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-EDH-RSA-CAMELLIA-128-SHA"))
         return( SSL_EDH_RSA_CAMELLIA_128_SHA );
-    if (0 == strcasecmp(cipher_name, "SSL-RSA-CAMELLIA-256-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-CAMELLIA-256-SHA"))
         return( SSL_RSA_CAMELLIA_256_SHA );
-    if (0 == strcasecmp(cipher_name, "SSL-EDH-RSA-CAMELLIA-256-SHA"))
+    if (0 == strcasecmp(ciphersuite_name, "SSL-EDH-RSA-CAMELLIA-256-SHA"))
         return( SSL_EDH_RSA_CAMELLIA_256_SHA );
 #endif
 
     return( 0 );
 }
 
-const char *ssl_get_cipher( const ssl_context *ssl )
+const char *ssl_get_ciphersuite( const ssl_context *ssl )
 {
-    return ssl_get_cipher_name( ssl->session->cipher );
+    return ssl_get_ciphersuite_name( ssl->session->ciphersuite );
 }
 
 const char *ssl_get_version( const ssl_context *ssl )
@@ -1992,7 +1992,7 @@ const char *ssl_get_version( const ssl_context *ssl )
     return( "unknown" );
 }
 
-int ssl_default_ciphers[] =
+int ssl_default_ciphersuites[] =
 {
 #if defined(POLARSSL_DHM_C)
 #if defined(POLARSSL_AES_C)

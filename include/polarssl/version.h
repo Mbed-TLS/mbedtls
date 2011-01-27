@@ -1,6 +1,8 @@
 /**
  * \file version.h
  *
+ * \brief Run-time version information
+ *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
@@ -21,7 +23,8 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ */
+/*
  * This set of compile-time defines and run-time variables can be used to
  * determine the version number of the PolarSSL library used.
  */

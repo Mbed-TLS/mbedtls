@@ -1,7 +1,7 @@
 /**
  * \file certs.h
  *
- * \brief Camellia block cipher
+ * \brief Sample certificates and DHM parameters for testing
  *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *

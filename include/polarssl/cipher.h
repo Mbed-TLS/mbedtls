@@ -296,7 +296,7 @@ static inline int cipher_get_key_size ( const cipher_context_t *ctx )
  *
  * \returns             0 on success, 1 if parameter verification fails.
  */
-int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_len,
+int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_length,
         const operation_t operation );
 
 /**

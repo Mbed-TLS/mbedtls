@@ -1,7 +1,7 @@
 /**
  * \file sha2.h
  *
- * \brief SHA-256 cryptographic hash function
+ * \brief SHA-224 and SHA-256 cryptographic hash function
  *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *

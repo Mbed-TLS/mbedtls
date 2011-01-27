@@ -1,7 +1,7 @@
 /**
  * \file havege.h
  *
- * \brief Diffie-Hellman-Merkle key exchange
+ * \brief HAVEGE: HArdware Volatile Entropy Gathering and Expansion
  *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *

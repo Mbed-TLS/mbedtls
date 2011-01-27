@@ -35,32 +35,45 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
-/*
+/**
  * \name SECTION: System support
  *
  * This section sets system specific settings.
  * \{
  */
 
-/*
- * Uncomment if native integers are 8-bit wide.
+/**
+ * \def POLARSSL_HAVE_INT8
  *
+ * The system uses 8-bit wide native integers.
+ *
+ * Uncomment if native integers are 8-bit wide.
 #define POLARSSL_HAVE_INT8
  */
 
-/*
- * Uncomment if native integers are 16-bit wide.
+/**
+ * \def POLARSSL_HAVE_INT16
  *
+ * The system uses 16-bit wide native integers.
+ *
+ * Uncomment if native integers are 16-bit wide.
 #define POLARSSL_HAVE_INT16
  */
 
-/*
- * Uncomment if the compiler supports long long.
+/**
+ * \def POLARSSL_HAVE_LONGLONG
  *
+ * The compiler supports the use of long long.
+ *
+ * Uncomment if the compiler supports long long.
 #define POLARSSL_HAVE_LONGLONG
  */
 
-/*
+/**
+ * \def POLARSSL_HAVE_ASM
+ *
+ * The compiler has support for asm()
+ *
  * Uncomment to enable the use of assembly code.
  *
  * Requires support for asm() in compiler.
@@ -73,14 +86,18 @@
  */
 #define POLARSSL_HAVE_ASM
 
-/*
+/**
+ * \def POLARSSL_HAVE_SSE2
+ *
+ * CPI supports SSE2 instruction set.
+ *
  * Uncomment if the CPU supports SSE2 (IA-32 specific).
  *
 #define POLARSSL_HAVE_SSE2
  */
 /* \} name */
 
-/*
+/**
  * \name SECTION: PolarSSL feature support
  *
  * This section sets support for features that are or are not needed
@@ -88,36 +105,50 @@
  * \{
  */
 
-/*
+/**
+ * \def POLARSSL_DEBUG_MSG
+ *
  * Enable all SSL/TLS debugging messages.
  */
 #define POLARSSL_DEBUG_MSG
 
-/*
+/**
+ * \def POLARSSL_SELF_TEST
+ *
  * Enable the checkup functions (*_self_test).
  */
 #define POLARSSL_SELF_TEST
 
-/*
+/**
+ * \def POLARSSL_GENPRIME
+ *
  * Enable the prime-number generation code.
  */
 #define POLARSSL_GENPRIME
 
-/*
+/**
+ * \def POLARSSL_AES_ROM_TABLES
+ *
+ * Store the AES tables in ROM.
+ *
  * Uncomment this macro to store the AES tables in ROM.
  *
 #define POLARSSL_AES_ROM_TABLES
  */
 /* \} name */
 
-/*
+/**
  * \name SECTION: PolarSSL modules
  *
  * This section enables or disables entire modules in PolarSSL
  * \{
  */
 
-/*
+/**
+ * \def POLARSSL_AES_C
+ *
+ * Enable the AES block cipher.
+ *
  * Module:  library/aes.c
  * Caller:  library/ssl_tls.c
  *
@@ -128,7 +159,11 @@
  */
 #define POLARSSL_AES_C
 
-/*
+/**
+ * \def POLARSSL_ARC4_C
+ *
+ * Enable the ARCFOUR stream cipher.
+ *
  * Module:  library/arc4.c
  * Caller:  library/ssl_tls.c
  *
@@ -138,7 +173,11 @@
  */
 #define POLARSSL_ARC4_C
 
-/*
+/**
+ * \def POLARSSL_BASE64_C
+ *
+ * Enable the Base64 module.
+ *
  * Module:  library/base64.c
  * Caller:  library/x509parse.c
  *
@@ -146,7 +185,11 @@
  */
 #define POLARSSL_BASE64_C
 
-/*
+/**
+ * \def POLARSSL_BIGNUM_C
+ *
+ * Enable the multo-precision integer library.
+ *
  * Module:  library/bignum.c
  * Caller:  library/dhm.c
  *          library/rsa.c
@@ -157,7 +200,11 @@
  */
 #define POLARSSL_BIGNUM_C
 
-/*
+/**
+ * \def POLARSSL_CAMELLIA_C
+ *
+ * Enable the Camellia block cipher.
+ *
  * Module:  library/camellia.c
  * Caller:  library/ssl_tls.c
  *
@@ -168,7 +215,11 @@
  */
 #define POLARSSL_CAMELLIA_C
 
-/*
+/**
+ * \def POLARSSL_CERTS_C
+ *
+ * Enable the test certificates.
+ *
  * Module:  library/certs.c
  * Caller:
  *
@@ -176,7 +227,11 @@
  */
 #define POLARSSL_CERTS_C
 
-/*
+/**
+ * \def POLARSSL_CIPHER_C
+ *
+ * Enable the generic cipher layer.
+ *
  * Module:  library/cipher.c
  * Caller:
  *
@@ -184,7 +239,11 @@
  */
 #define POLARSSL_CIPHER_C
 
-/*
+/**
+ * \def POLARSSL_DEBUG_C
+ *
+ * Enable the debug functions.
+ *
  * Module:  library/debug.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
@@ -194,7 +253,11 @@
  */
 #define POLARSSL_DEBUG_C
 
-/*
+/**
+ * \def POLARSSL_DES_C
+ *
+ * Enable the DES block cipher.
+ *
  * Module:  library/des.c
  * Caller:  library/ssl_tls.c
  *
@@ -204,7 +267,11 @@
  */
 #define POLARSSL_DES_C
 
-/*
+/**
+ * \def POLARSSL_DHM_C
+ *
+ * Enable the Diffie-Hellman-Merkle key exchange.
+ *
  * Module:  library/dhm.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
@@ -216,7 +283,11 @@
  */
 #define POLARSSL_DHM_C
 
-/*
+/**
+ * \def POLARSSL_HAVEGE_C
+ *
+ * Enable the HAVEGE random generator.
+ *
  * Module:  library/havege.c
  * Caller:
  *
@@ -224,7 +295,11 @@
  */
 #define POLARSSL_HAVEGE_C
 
-/*
+/**
+ * \def POLARSSL_MD_C
+ *
+ * Enable the generic message digest layer.
+ *
  * Module:  library/md.c
  * Caller:
  *
@@ -232,7 +307,11 @@
  */
 #define POLARSSL_MD_C
 
-/*
+/**
+ * \def POLARSSL_MD2_C
+ *
+ * Enable the MD2 hash algorithm
+ *
  * Module:  library/md2.c
  * Caller:  library/x509parse.c
  *
@@ -241,7 +320,11 @@
 #define POLARSSL_MD2_C
  */
 
-/*
+/**
+ * \def POLARSSL_MD4_C
+ *
+ * Enable the MD4 hash algorithm
+ *
  * Module:  library/md4.c
  * Caller:  library/x509parse.c
  *
@@ -250,7 +333,11 @@
 #define POLARSSL_MD4_C
  */
 
-/*
+/**
+ * \def POLARSSL_MD5_C
+ *
+ * Enable the MD5 hash algorithm
+ *
  * Module:  library/md5.c
  * Caller:  library/ssl_tls.c
  *          library/x509parse.c
@@ -259,7 +346,11 @@
  */
 #define POLARSSL_MD5_C
 
-/*
+/**
+ * \def POLARSSL_NET_C
+ *
+ * Enable the TCP/IP networking routines.
+ *
  * Module:  library/net.c
  * Caller:
  *
@@ -267,7 +358,11 @@
  */
 #define POLARSSL_NET_C
 
-/*
+/**
+ * \def POLARSSL_PADLOCK_C
+ *
+ * Enable VIA Padlock support on x86.
+ *
  * Module:  library/padlock.c
  * Caller:  library/aes.c
  *
@@ -275,7 +370,11 @@
  */
 #define POLARSSL_PADLOCK_C
 
-/*
+/**
+ * \def POLARSSL_RSA_C
+ *
+ * Enable the RSA public-key cryptosystem.
+ *
  * Module:  library/rsa.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
@@ -286,7 +385,11 @@
  */
 #define POLARSSL_RSA_C
 
-/*
+/**
+ * \def POLARSSL_SHA1_C
+ *
+ * Enable the SHA1 cryptographic hash algorithm.
+ *
  * Module:  library/sha1.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
@@ -297,23 +400,37 @@
  */
 #define POLARSSL_SHA1_C
 
-/*
+/**
+ * \def POLARSSL_SHA2_C
+ *
+ * Enable the SHA-224 and SHA-256 cryptographic hash algorithms.
+ *
  * Module:  library/sha2.c
- * Caller:
+ * Caller:  library/md_wrap.c
+ *          library/x509parse.c
  *
  * This module adds support for SHA-224 and SHA-256.
  */
 #define POLARSSL_SHA2_C
 
-/*
+/**
+ * \def POLARSSL_SHA4_C
+ *
+ * Enable the SHA-384 and SHA-512 cryptographic hash algorithms.
+ *
  * Module:  library/sha4.c
- * Caller:
+ * Caller:  library/md_wrap.c
+ *          library/x509parse.c
  *
  * This module adds support for SHA-384 and SHA-512.
  */
 #define POLARSSL_SHA4_C
 
-/*
+/**
+ * \def POLARSSL_SSL_CLI_C
+ *
+ * Enable the SSL/TLS client code.
+ *
  * Module:  library/ssl_cli.c
  * Caller:
  *
@@ -322,6 +439,10 @@
 #define POLARSSL_SSL_CLI_C
 
 /*
+ * \def POLARSSL_SSL_SRV_C
+ *
+ * Enable the SSL/TLS server code.
+ *
  * Module:  library/ssl_srv.c
  * Caller:
  *
@@ -329,7 +450,11 @@
  */
 #define POLARSSL_SSL_SRV_C
 
-/*
+/**
+ * \def POLARSSL_SSL_TLS_C
+ *
+ * Enable the generic SSL/RLS code.
+ *
  * Module:  library/ssl_tls.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
@@ -338,7 +463,11 @@
  */
 #define POLARSSL_SSL_TLS_C
 
-/*
+/**
+ * \def POLARSSL_PKCS11_C
+ *
+ * Enable support for PKCS#11 smartcard support.
+ *
  * Module:  library/ssl_srv.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
@@ -348,7 +477,11 @@
 #define POLARSSL_PKCS11_C
  */
 
-/*
+/**
+ * \def POLARSSL_TIMING_C
+ *
+ * Enable the portable timing interface.
+ *
  * Module:  library/timing.c
  * Caller:  library/havege.c
  *
@@ -356,14 +489,22 @@
  */
 #define POLARSSL_TIMING_C
 
-/*
+/**
+ * \def POLARSSL_VERSION_C
+ *
+ * Enable run-time version information.
+ *
  * Module:  library/version.c
  *
  * This module provides run-time version information.
  */
 #define POLARSSL_VERSION_C
 
-/*
+/**
+ * \def POLARSSL_X509_PARSE_C
+ *
+ * Enable X.509 certificate parsing.
+ *
  * Module:  library/x509parse.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
@@ -373,15 +514,11 @@
  */
 #define POLARSSL_X509_PARSE_C
 
-/*
- * Module:  library/x509_write.c
- * Caller:
+/**
+ * \def POLARSSL_XTEA_C
  *
- * This module is required for X.509 certificate writing.
- */
-#define POLARSSL_X509_WRITE_C
-
-/*
+ * Enable the XTEA block cipher.
+ *
  * Module:  library/xtea.c
  * Caller:
  */

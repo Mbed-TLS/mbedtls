@@ -1,7 +1,7 @@
 /**
  * \file sha4.h
  *
- * \brief SHA-384/512 cryptographic hash function
+ * \brief SHA-384 and SHA-512 cryptographic hash function
  *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *

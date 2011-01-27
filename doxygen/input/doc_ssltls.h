@@ -11,7 +11,7 @@
  * The basic provisions are:
  * - initialise an SSL/TLS context (see \c ssl_init()).
  * - perform an SSL/TLS handshake (see \c ssl_handshake()).
- * - read/write (see \c ssl_read() and\c ssl_write()).
+ * - read/write (see \c ssl_read() and \c ssl_write()).
  * - notify a peer that conection is being closed (see \c ssl_close_notify()).
  *
  *

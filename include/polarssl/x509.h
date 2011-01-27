@@ -144,7 +144,7 @@
 #define X509_ISSUER                  0x01
 #define X509_SUBJECT                 0x02
 
-/** Returns the size of the binary string, without the trailing \0 */
+/** Returns the size of the binary string, without the trailing \\0 */
 #define OID_SIZE(x) (sizeof(x) - 1)
 
 #define OID_X520                "\x55\x04"
@@ -574,7 +574,7 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen );
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int x509parse_dhmfile( dhm_context *rsa, const char *path );
+int x509parse_dhmfile( dhm_context *dhm, const char *path );
 
 /** \} name Functions to read in DHM parameters, a certificate, CRL or private RSA key */
 

@@ -1,7 +1,7 @@
 /**
  * \file des.h
  *
- * \brief Debug functions
+ * \brief DES block cipher
  *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *

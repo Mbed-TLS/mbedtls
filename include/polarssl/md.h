@@ -167,8 +167,7 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
  * \brief          Free the message-specific context of ctx. Freeing ctx itself
  *                 remains the responsibility of the caller.
  *
- * \param ctx      Free the -specific context
- * \param output   Generic message digest checksum result
+ * \param ctx      Free the message-specific context
  *
  * \returns        0 on success, 1 if parameter verification fails.
  */

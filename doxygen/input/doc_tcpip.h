@@ -15,7 +15,7 @@
  * its basic provisions:
  * - listening on a port (see \c net_bind()).
  * - accepting a connection (through \c net_accept()).
- * - read/write (through \c net_recv/\c net_send()).
+ * - read/write (through \c net_recv()/\c net_send()).
  * - close a connection (through \c net_close()).
  *
  * This way you have the means to, for example, implement and use an UDP or 

@@ -1,7 +1,7 @@
 /**
  * \file aes.h
  *
- * \brief AES block cipher encryption
+ * \brief AES block cipher
  *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *

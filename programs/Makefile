@@ -15,9 +15,10 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	pkey/mpi_demo		pkey/rsa_genkey		\
 	pkey/rsa_sign		pkey/rsa_verify		\
 	ssl/ssl_client1		ssl/ssl_client2		\
-	ssl/ssl_server		test/ssl_cert_test	\
-	test/benchmark		test/selftest		\
-	test/ssl_test		x509/cert_app
+	ssl/ssl_server		random/gen_random	\
+	test/ssl_cert_test	test/benchmark		\
+	test/selftest		test/ssl_test		\
+	x509/cert_app
 
 .SILENT:
 
@@ -78,6 +79,10 @@ pkey/rsa_sign: pkey/rsa_sign.c ../library/libpolarssl.a
 pkey/rsa_verify: pkey/rsa_verify.c ../library/libpolarssl.a
 	echo   "  CC    pkey/rsa_verify.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_verify.c  $(LDFLAGS) -o $@
+
+random/gen_random: random/gen_random.c ../library/libpolarssl.a
+	echo   "  CC    random/gen_random.c"
+	$(CC) $(CFLAGS) $(OFLAGS) random/gen_random.c $(LDFLAGS) -o $@
 
 ssl/ssl_client1: ssl/ssl_client1.c ../library/libpolarssl.a
 	echo   "  CC    ssl/ssl_client1.c"

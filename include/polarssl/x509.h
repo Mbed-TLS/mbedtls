@@ -85,12 +85,14 @@
  * \name X509 Verify codes
  * \{
  */
-#define BADCERT_EXPIRED                 1   /**< The certificate validity has expired. */
-#define BADCERT_REVOKED                 2   /**< The certificate has been revoked (is on a CRL). */
-#define BADCERT_CN_MISMATCH             4   /**< The certificate Common Name (CN) does not match with the expected CN. */
-#define BADCERT_NOT_TRUSTED             8   /**< The certificate is not correctly signed by the trusted CA. */
-#define BADCRL_NOT_TRUSTED             16   /**< CRL is not correctly signed by the trusted CA. */
-#define BADCRL_EXPIRED                 32   /**< CRL is expired. */
+#define BADCERT_EXPIRED             0x01  /**< The certificate validity has expired. */
+#define BADCERT_REVOKED             0x02  /**< The certificate has been revoked (is on a CRL). */
+#define BADCERT_CN_MISMATCH         0x04  /**< The certificate Common Name (CN) does not match with the expected CN. */
+#define BADCERT_NOT_TRUSTED         0x08  /**< The certificate is not correctly signed by the trusted CA. */
+#define BADCRL_NOT_TRUSTED          0x10  /**< CRL is not correctly signed by the trusted CA. */
+#define BADCRL_EXPIRED              0x20  /**< CRL is expired. */
+#define BADCERT_MISSING             0x40  /**< Certificate was missing. */
+#define BADCERT_SKIP_VERIFY         0x80  /**< Certificate verification was skipped. */
 /* \} name */
 
 

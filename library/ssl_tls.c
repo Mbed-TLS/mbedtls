@@ -1280,6 +1280,7 @@ int ssl_parse_certificate( ssl_context *ssl )
     if( ssl->endpoint == SSL_IS_SERVER &&
         ssl->authmode == SSL_VERIFY_NONE )
     {
+        ssl->verify_result = BADCERT_SKIP_VERIFY;
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
         return( 0 );
@@ -1306,6 +1307,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
 
+            ssl->verify_result = BADCERT_MISSING;
             if( ssl->authmode == SSL_VERIFY_OPTIONAL )
                 return( 0 );
             else
@@ -1323,6 +1325,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
 
+            ssl->verify_result = BADCERT_MISSING;
             if( ssl->authmode == SSL_VERIFY_REQUIRED )
                 return( POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE );
             else

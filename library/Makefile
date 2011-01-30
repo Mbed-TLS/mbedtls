@@ -1,7 +1,7 @@
 
 # Also see "include/polarssl/config.h"
 
-CFLAGS	= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
+CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
 OFLAGS	= -O
 
 # MicroBlaze specific options:
@@ -46,11 +46,11 @@ libpolarssl.a: $(OBJS)
 
 libpolarssl.so: libpolarssl.a
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS)
+	$(CC) ${LDFLAGS} -shared -Wl,-soname,$@ -o $@ $(OBJS)
 
 libpolarssl.dylib: libpolarssl.a
 	echo "  LD    $@"
-	$(CC) -dynamiclib -o $@ $(OBJS)
+	$(CC) ${LDFLAGS} -dynamiclib -o $@ $(OBJS)
 
 .c.o:
 	echo "  CC    $<"

@@ -390,8 +390,10 @@ int main( int argc, char *argv[] )
     ret = 0;
 
 exit:
-    fclose( fin );
-    fclose( fout );
+    if( fin )
+        fclose( fin );
+    if( fout )
+        fclose( fout );
 
     memset( buffer, 0, sizeof( buffer ) );
     memset( digest, 0, sizeof( digest ) );

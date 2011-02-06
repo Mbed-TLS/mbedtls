@@ -92,6 +92,16 @@ int main( int argc, char *argv[] )
     int i, j, n;
     char *p, *q;
 
+    /*
+     * Make sure memory references are valid.
+     */
+    server_fd = 0;
+    memset( &ssn, 0, sizeof( ssl_session ) );
+    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &cacert, 0, sizeof( x509_cert ) );
+    memset( &clicert, 0, sizeof( x509_cert ) );
+    memset( &rsa, 0, sizeof( rsa_context ) );
+
     if( argc == 0 )
     {
     usage:
@@ -149,15 +159,12 @@ int main( int argc, char *argv[] )
      * 0. Initialize the RNG and the session data
      */
     havege_init( &hs );
-    memset( &ssn, 0, sizeof( ssl_session ) );
 
     /*
      * 1.1. Load the trusted CA
      */
     printf( "\n  . Loading the CA root certificate ..." );
     fflush( stdout );
-
-    memset( &cacert, 0, sizeof( x509_cert ) );
 
     /*
      * Alternatively, you may load the CA certificates from a .pem or
@@ -180,8 +187,6 @@ int main( int argc, char *argv[] )
      */
     printf( "  . Loading the client cert. and key..." );
     fflush( stdout );
-
-    memset( &clicert, 0, sizeof( x509_cert ) );
 
     if( strlen( opt.crt_file ) )
         ret = x509parse_crtfile( &clicert, opt.crt_file );
@@ -357,7 +362,8 @@ int main( int argc, char *argv[] )
 
 exit:
 
-    net_close( server_fd );
+    if( server_fd )
+        net_close( server_fd );
     x509_free( &clicert );
     x509_free( &cacert );
     rsa_free( &rsa );

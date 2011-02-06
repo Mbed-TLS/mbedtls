@@ -62,6 +62,7 @@ int main( void )
      */
     havege_init( &hs );
     memset( &ssn, 0, sizeof( ssl_session ) );
+    memset( &ssl, 0, sizeof( ssl_context ) );
 
     /*
      * 1. Start the connection

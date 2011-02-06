@@ -89,6 +89,15 @@ int main( int argc, char *argv[] )
     int i, j, n;
     char *p, *q;
 
+    /*
+     * Set to sane values
+     */
+    server_fd = 0;
+    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &ssn, 0, sizeof( ssl_session ) );
+    memset( &clicert, 0, sizeof( x509_cert ) );
+    memset( &rsa, 0, sizeof( rsa_context ) );
+
     if( argc == 0 )
     {
     usage:
@@ -149,7 +158,6 @@ int main( int argc, char *argv[] )
     if( opt.mode == MODE_FILE )
     {
         x509_cert crt;
-
         memset( &crt, 0, sizeof( x509_cert ) );
 
         /*
@@ -191,7 +199,6 @@ int main( int argc, char *argv[] )
          * 1. Initialize the RNG and the session data
          */
         havege_init( &hs );
-        memset( &ssn, 0, sizeof( ssl_session ) );
 
         /*
          * 2. Start the connection
@@ -265,7 +272,8 @@ int main( int argc, char *argv[] )
 
 exit:
 
-    net_close( server_fd );
+    if( server_fd )
+        net_close( server_fd );
     x509_free( &clicert );
     rsa_free( &rsa );
     ssl_free( &ssl );

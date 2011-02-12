@@ -39,7 +39,7 @@
 #if defined(POLARSSL_X509_PARSE_C)
 
 #include "polarssl/x509.h"
-#include "polarssl/base64.h"
+#include "polarssl/pem.h"
 #include "polarssl/des.h"
 #include "polarssl/md2.h"
 #include "polarssl/md4.h"
@@ -1045,10 +1045,12 @@ static int x509_get_sig_alg( const x509_buf *sig_oid, int *sig_alg )
  */
 int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
 {
-    int ret, len;
-    const unsigned char *s1, *s2;
+    int ret, len, use_len;
     unsigned char *p, *end;
     x509_cert *crt;
+#if defined(POLARSSL_PEM_C)
+    pem_context pem;
+#endif
 
     crt = chain;
 
@@ -1078,57 +1080,33 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
         memset( crt, 0, sizeof( x509_cert ) );
     }
 
-    /*
-     * check if the certificate is encoded in base64
-     */
-    s1 = (unsigned char *) strstr( (char *) buf,
-        "-----BEGIN CERTIFICATE-----" );
+#if defined(POLARSSL_PEM_C)
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN CERTIFICATE-----",
+                           "-----END CERTIFICATE-----",
+                           buf, NULL, 0, &use_len );
 
-    if( s1 != NULL )
+    if( ret == 0 )
     {
-        s2 = (unsigned char *) strstr( (char *) buf,
-            "-----END CERTIFICATE-----" );
-
-        if( s2 == NULL || s2 <= s1 )
-            return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
-
-        s1 += 27;
-        if( *s1 == '\r' ) s1++;
-        if( *s1 == '\n' ) s1++;
-            else return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
+        /*
+         * Was PEM encoded
+         */
+        buflen -= use_len;
+        buf += use_len;
 
         /*
-         * get the DER data length and decode the buffer
+         * Steal PEM buffer
          */
-        len = 0;
-        ret = base64_decode( NULL, &len, s1, s2 - s1 );
-
-        if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
-            return( POLARSSL_ERR_X509_CERT_INVALID_PEM | ret );
-
-        if( ( p = (unsigned char *) malloc( len ) ) == NULL )
-            return( 1 );
-            
-        if( ( ret = base64_decode( p, &len, s1, s2 - s1 ) ) != 0 )
-        {
-            free( p );
-            return( POLARSSL_ERR_X509_CERT_INVALID_PEM | ret );
-        }
-
-        /*
-         * update the buffer size and offset
-         */
-        s2 += 25;
-        if( *s2 == '\r' ) s2++;
-        if( *s2 == '\n' ) s2++;
-        else
-        {
-            free( p );
-            return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
-        }
-
-        buflen -= s2 - buf;
-        buf = s2;
+        p = pem.buf;
+        pem.buf = NULL;
+        len = pem.buflen;
+        pem_free( &pem );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
     }
     else
     {
@@ -1144,6 +1122,16 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
 
         buflen = 0;
     }
+#else
+    p = (unsigned char *) malloc( len = buflen );
+
+    if( p == NULL )
+        return( 1 );
+
+    memcpy( p, buf, buflen );
+
+    buflen = 0;
+#endif
 
     crt->raw.p = p;
     crt->raw.len = len;
@@ -1393,10 +1381,12 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
  */
 int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen )
 {
-    int ret, len;
-    unsigned char *s1, *s2;
+    int ret, len, use_len;
     unsigned char *p, *end;
     x509_crl *crl;
+#if defined(POLARSSL_PEM_C)
+    pem_context pem;
+#endif
 
     crl = chain;
 
@@ -1426,57 +1416,33 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen )
         memset( crl, 0, sizeof( x509_crl ) );
     }
 
-    /*
-     * check if the CRL is encoded in base64
-     */
-    s1 = (unsigned char *) strstr( (char *) buf,
-        "-----BEGIN X509 CRL-----" );
+#if defined(POLARSSL_PEM_C)
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN X509 CRL-----",
+                           "-----END X509 CRL-----",
+                           buf, NULL, 0, &use_len );
 
-    if( s1 != NULL )
+    if( ret == 0 )
     {
-        s2 = (unsigned char *) strstr( (char *) buf,
-            "-----END X509 CRL-----" );
-
-        if( s2 == NULL || s2 <= s1 )
-            return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
-
-        s1 += 24;
-        if( *s1 == '\r' ) s1++;
-        if( *s1 == '\n' ) s1++;
-            else return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
+        /*
+         * Was PEM encoded
+         */
+        buflen -= use_len;
+        buf += use_len;
 
         /*
-         * get the DER data length and decode the buffer
+         * Steal PEM buffer
          */
-        len = 0;
-        ret = base64_decode( NULL, &len, s1, s2 - s1 );
-
-        if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
-            return( POLARSSL_ERR_X509_CERT_INVALID_PEM | ret );
-
-        if( ( p = (unsigned char *) malloc( len ) ) == NULL )
-            return( 1 );
-            
-        if( ( ret = base64_decode( p, &len, s1, s2 - s1 ) ) != 0 )
-        {
-            free( p );
-            return( POLARSSL_ERR_X509_CERT_INVALID_PEM | ret );
-        }
-
-        /*
-         * update the buffer size and offset
-         */
-        s2 += 22;
-        if( *s2 == '\r' ) s2++;
-        if( *s2 == '\n' ) s2++;
-        else
-        {
-            free( p );
-            return( POLARSSL_ERR_X509_CERT_INVALID_PEM );
-        }
-
-        buflen -= s2 - buf;
-        buf = s2;
+        p = pem.buf;
+        pem.buf = NULL;
+        len = pem.buflen;
+        pem_free( &pem );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
     }
     else
     {
@@ -1492,6 +1458,16 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen )
 
         buflen = 0;
     }
+#else
+    p = (unsigned char *) malloc( len = buflen );
+
+    if( p == NULL )
+        return( 1 );
+
+    memcpy( p, buf, buflen );
+
+    buflen = 0;
+#endif
 
     crl->raw.p = p;
     crl->raw.len = len;
@@ -1758,179 +1734,43 @@ int x509parse_crlfile( x509_crl *chain, const char *path )
     return( ret );
 }
 
-#if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
-/*
- * Read a 16-byte hex string and convert it to binary
- */
-static int x509_get_iv( const unsigned char *s, unsigned char iv[8] )
-{
-    int i, j, k;
-
-    memset( iv, 0, 8 );
-
-    for( i = 0; i < 16; i++, s++ )
-    {
-        if( *s >= '0' && *s <= '9' ) j = *s - '0'; else
-        if( *s >= 'A' && *s <= 'F' ) j = *s - '7'; else
-        if( *s >= 'a' && *s <= 'f' ) j = *s - 'W'; else
-            return( POLARSSL_ERR_X509_KEY_INVALID_ENC_IV );
-
-        k = ( ( i & 1 ) != 0 ) ? j : j << 4;
-
-        iv[i >> 1] = (unsigned char)( iv[i >> 1] | k );
-    }
-
-    return( 0 );
-}
-
-/*
- * Decrypt with 3DES-CBC, using PBKDF1 for key derivation
- */
-static void x509_des3_decrypt( unsigned char des3_iv[8],
-                               unsigned char *buf, int buflen,
-                               const unsigned char *pwd, int pwdlen )
-{
-    md5_context md5_ctx;
-    des3_context des3_ctx;
-    unsigned char md5sum[16];
-    unsigned char des3_key[24];
-
-    /*
-     * 3DES key[ 0..15] = MD5(pwd || IV)
-     *      key[16..23] = MD5(pwd || IV || 3DES key[ 0..15])
-     */
-    md5_starts( &md5_ctx );
-    md5_update( &md5_ctx, pwd, pwdlen );
-    md5_update( &md5_ctx, des3_iv,  8 );
-    md5_finish( &md5_ctx, md5sum );
-    memcpy( des3_key, md5sum, 16 );
-
-    md5_starts( &md5_ctx );
-    md5_update( &md5_ctx, md5sum,  16 );
-    md5_update( &md5_ctx, pwd, pwdlen );
-    md5_update( &md5_ctx, des3_iv,  8 );
-    md5_finish( &md5_ctx, md5sum );
-    memcpy( des3_key + 16, md5sum, 8 );
-
-    des3_set3key_dec( &des3_ctx, des3_key );
-    des3_crypt_cbc( &des3_ctx, DES_DECRYPT, buflen,
-                     des3_iv, buf, buf );
-
-    memset(  &md5_ctx, 0, sizeof(  md5_ctx ) );
-    memset( &des3_ctx, 0, sizeof( des3_ctx ) );
-    memset( md5sum, 0, 16 );
-    memset( des3_key, 0, 24 );
-}
-#endif
-
 /*
  * Parse a private RSA key
  */
 int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
                                      const unsigned char *pwd, int pwdlen )
 {
-    int ret, len, enc;
-    unsigned char *buf, *s1, *s2;
+    int ret, len;
     unsigned char *p, *end;
-#if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
-    unsigned char des3_iv[8];
-#else
-    ((void) pwd);
-    ((void) pwdlen);
-#endif
+#if defined(POLARSSL_PEM_C)
+    pem_context pem;
 
-    s1 = (unsigned char *) strstr( (char *) key,
-        "-----BEGIN RSA PRIVATE KEY-----" );
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN RSA PRIVATE KEY-----",
+                           "-----END RSA PRIVATE KEY-----",
+                           key, pwd, pwdlen, &len );
 
-    if( s1 != NULL )
+    if( ret == 0 )
     {
-        s2 = (unsigned char *) strstr( (char *) key,
-            "-----END RSA PRIVATE KEY-----" );
-
-        if( s2 == NULL || s2 <= s1 )
-            return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
-
-        s1 += 31;
-        if( *s1 == '\r' ) s1++;
-        if( *s1 == '\n' ) s1++;
-            else return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
-
-        enc = 0;
-
-        if( memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
-        {
-#if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
-            enc++;
-
-            s1 += 22;
-            if( *s1 == '\r' ) s1++;
-            if( *s1 == '\n' ) s1++;
-                else return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
-
-            if( memcmp( s1, "DEK-Info: DES-EDE3-CBC,", 23 ) != 0 )
-                return( POLARSSL_ERR_X509_KEY_UNKNOWN_ENC_ALG );
-
-            s1 += 23;
-            if( x509_get_iv( s1, des3_iv ) != 0 )
-                return( POLARSSL_ERR_X509_KEY_INVALID_ENC_IV );
-
-            s1 += 16;
-            if( *s1 == '\r' ) s1++;
-            if( *s1 == '\n' ) s1++;
-                else return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
-#else
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-#endif
-        }
-
-        len = 0;
-        ret = base64_decode( NULL, &len, s1, s2 - s1 );
-
-        if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
-            return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
-
-        if( ( buf = (unsigned char *) malloc( len ) ) == NULL )
-            return( 1 );
-
-        if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
-        {
-            free( buf );
-            return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
-        }
-
-        keylen = len;
-
-        if( enc != 0 )
-        {
-#if defined(POLARSSL_DES_C) && defined(POLARSSL_MD5_C)
-            if( pwd == NULL )
-            {
-                free( buf );
-                return( POLARSSL_ERR_X509_KEY_PASSWORD_REQUIRED );
-            }
-
-            x509_des3_decrypt( des3_iv, buf, keylen, pwd, pwdlen );
-
-            if( buf[0] != 0x30 || buf[1] != 0x82 ||
-                buf[4] != 0x02 || buf[5] != 0x01 )
-            {
-                free( buf );
-                return( POLARSSL_ERR_X509_KEY_PASSWORD_MISMATCH );
-            }
-#else
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-#endif
-        }
+        /*
+         * Was PEM encoded
+         */
+        keylen = pem.buflen;
     }
-    else
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
     {
-        buf = NULL;
+        pem_free( &pem );
+        return( ret );
     }
+
+    p = ( ret == 0 ) ? pem.buf : (unsigned char *) key;
+#else
+    p = (unsigned char *) key;
+#endif
+    end = p + keylen;
 
     memset( rsa, 0, sizeof( rsa_context ) );
-
-    p = ( s1 != NULL ) ? buf : (unsigned char *) key;
-    end = p + keylen;
 
     /*
      *  RSAPrivateKey ::= SEQUENCE {
@@ -1949,9 +1789,9 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
     if( ( ret = asn1_get_tag( &p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
-        if( s1 != NULL )
-            free( buf );
-
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
     }
@@ -1960,18 +1800,18 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
 
     if( ( ret = asn1_get_int( &p, end, &rsa->ver ) ) != 0 )
     {
-        if( s1 != NULL )
-            free( buf );
-
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
     }
 
     if( rsa->ver != 0 )
     {
-        if( s1 != NULL )
-            free( buf );
-
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         rsa_free( rsa );
         return( ret | POLARSSL_ERR_X509_KEY_INVALID_VERSION );
     }
@@ -1985,9 +1825,9 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
         ( ret = asn1_get_mpi( &p, end, &rsa->DQ ) ) != 0 ||
         ( ret = asn1_get_mpi( &p, end, &rsa->QP ) ) != 0 )
     {
-        if( s1 != NULL )
-            free( buf );
-
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         rsa_free( rsa );
         return( ret | POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
     }
@@ -1996,9 +1836,9 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
 
     if( p != end )
     {
-        if( s1 != NULL )
-            free( buf );
-
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT |
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
@@ -2006,15 +1846,16 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
 
     if( ( ret = rsa_check_privkey( rsa ) ) != 0 )
     {
-        if( s1 != NULL )
-            free( buf );
-
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         rsa_free( rsa );
         return( ret );
     }
 
-    if( s1 != NULL )
-        free( buf );
+#if defined(POLARSSL_PEM_C)
+    pem_free( &pem );
+#endif
 
     return( 0 );
 }
@@ -2049,51 +1890,37 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
 int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen )
 {
     int ret, len;
-    unsigned char *buf, *s1, *s2;
     unsigned char *p, *end;
+#if defined(POLARSSL_PEM_C)
+    pem_context pem;
 
-    s1 = (unsigned char *) strstr( (char *) dhmin,
-        "-----BEGIN DH PARAMETERS-----" );
+    pem_init( &pem );
 
-    if( s1 != NULL )
+    ret = pem_read_buffer( &pem, 
+                           "-----BEGIN DH PARAMETERS-----",
+                           "-----END DH PARAMETERS-----",
+                           dhmin, NULL, 0, &dhminlen );
+
+    if( ret == 0 )
     {
-        s2 = (unsigned char *) strstr( (char *) dhmin,
-            "-----END DH PARAMETERS-----" );
-
-        if( s2 == NULL || s2 <= s1 )
-            return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
-
-        s1 += 29;
-        if( *s1 == '\r' ) s1++;
-        if( *s1 == '\n' ) s1++;
-            else return( POLARSSL_ERR_X509_KEY_INVALID_PEM );
-
-        len = 0;
-        ret = base64_decode( NULL, &len, s1, s2 - s1 );
-
-        if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
-            return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
-
-        if( ( buf = (unsigned char *) malloc( len ) ) == NULL )
-            return( 1 );
-
-        if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
-        {
-            free( buf );
-            return( ret | POLARSSL_ERR_X509_KEY_INVALID_PEM );
-        }
-
-        dhminlen = len;
+        /*
+         * Was PEM encoded
+         */
+        dhminlen = pem.buflen;
     }
-    else
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
     {
-        buf = NULL;
+        pem_free( &pem );
+        return( ret );
     }
+
+    p = ( ret == 0 ) ? pem.buf : (unsigned char *) dhmin;
+#else
+    p = (unsigned char *) dhmin;
+#endif
+    end = p + dhminlen;
 
     memset( dhm, 0, sizeof( dhm_context ) );
-
-    p = ( s1 != NULL ) ? buf : (unsigned char *) dhmin;
-    end = p + dhminlen;
 
     /*
      *  DHParams ::= SEQUENCE {
@@ -2104,10 +1931,9 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen )
     if( ( ret = asn1_get_tag( &p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
-        if( s1 != NULL )
-            free( buf );
-
-        dhm_free( dhm );
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
     }
 
@@ -2116,25 +1942,26 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen )
     if( ( ret = asn1_get_mpi( &p, end, &dhm->P  ) ) != 0 ||
         ( ret = asn1_get_mpi( &p, end, &dhm->G ) ) != 0 )
     {
-        if( s1 != NULL )
-            free( buf );
-
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         dhm_free( dhm );
         return( ret | POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
     }
 
     if( p != end )
     {
-        if( s1 != NULL )
-            free( buf );
-
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
         dhm_free( dhm );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT |
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
-    if( s1 != NULL )
-        free( buf );
+#if defined(POLARSSL_PEM_C)
+    pem_free( &pem );
+#endif
 
     return( 0 );
 }

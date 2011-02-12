@@ -151,6 +151,7 @@
  *
  * Module:  library/aes.c
  * Caller:  library/ssl_tls.c
+ *          library/pem.c
  *
  * This module enables the following ciphersuites:
  *      SSL_RSA_AES_128_SHA
@@ -369,6 +370,18 @@
  * This modules adds support for the VIA PadLock on x86.
  */
 #define POLARSSL_PADLOCK_C
+
+/**
+ * \def POLARSSL_PEM_C
+ *
+ * Enable PEM decoding
+ *
+ * Module:  library/pem.c
+ * Caller:  library/x509parse.c
+ *
+ * This modules adds support for decoding PEM files.
+ */
+#define POLARSSL_PEM_C
 
 /**
  * \def POLARSSL_RSA_C

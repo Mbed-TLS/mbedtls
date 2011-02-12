@@ -1,5 +1,15 @@
 PolarSSL ChangeLog
 
+= Version 0.99-pre2 released on XXXXXX
+Features
+   * Parsing PEM private keys encrypted with DES and AES
+     are now supported as well (Fixes ticket #5)
+
+Changes
+   * Parsing of PEM files moved to separate module (Fixes 
+     ticket #13). Also possible to remove PEM support for
+	 systems only using DER encoding
+
 = Version 0.99-pre1 released on 2011-01-30
 Features
 Note: Most of these features have been donated by Fox-IT

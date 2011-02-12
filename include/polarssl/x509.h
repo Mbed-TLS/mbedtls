@@ -69,13 +69,8 @@
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_PK_ALG              -0x01C0  /**< Public key algorithm is unsupported (only RSA is supported). */
 #define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x01E0  /**< Certificate signature algorithms do not match. (see \c ::x509_cert sig_oid) */
 #define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x0200  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
-#define POLARSSL_ERR_X509_KEY_INVALID_PEM                  -0x0220  /**< PEM key string is not as expected. */
 #define POLARSSL_ERR_X509_KEY_INVALID_VERSION              -0x0240  /**< Unsupported RSA key version */
 #define POLARSSL_ERR_X509_KEY_INVALID_FORMAT               -0x0260  /**< Invalid RSA key tag or value. */
-#define POLARSSL_ERR_X509_KEY_INVALID_ENC_IV               -0x0280  /**< RSA IV is not in hex-format. */
-#define POLARSSL_ERR_X509_KEY_UNKNOWN_ENC_ALG              -0x02A0  /**< Unsupported key encryption algorithm. */
-#define POLARSSL_ERR_X509_KEY_PASSWORD_REQUIRED            -0x02C0  /**< Private key password can't be empty. */
-#define POLARSSL_ERR_X509_KEY_PASSWORD_MISMATCH            -0x02E0  /**< Given private key password does not allow for correct decryption. */
 #define POLARSSL_ERR_X509_POINT_ERROR                      -0x0300  /**< Not used. */
 #define POLARSSL_ERR_X509_VALUE_TO_LENGTH                  -0x0320  /**< Not used. */
 /* \} name */
@@ -485,7 +480,7 @@ extern "C" {
  * \param buf      buffer holding the certificate data
  * \param buflen   size of the buffer
  *
- * \return         0 if successful, or a specific X509 error code
+ * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen );
 
@@ -497,7 +492,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen );
  * \param chain    points to the start of the chain
  * \param path     filename to read the certificates from
  *
- * \return         0 if successful, or a specific X509 error code
+ * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_crtfile( x509_cert *chain, const char *path );
 
@@ -510,7 +505,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path );
  * \param buf      buffer holding the CRL data
  * \param buflen   size of the buffer
  *
- * \return         0 if successful, or a specific X509 error code
+ * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen );
 
@@ -522,7 +517,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen );
  * \param chain    points to the start of the chain
  * \param path     filename to read the CRLs from
  *
- * \return         0 if successful, or a specific X509 error code
+ * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_crlfile( x509_crl *chain, const char *path );
 
@@ -536,7 +531,7 @@ int x509parse_crlfile( x509_crl *chain, const char *path );
  * \param pwd      password for decryption (optional)
  * \param pwdlen   size of the password
  *
- * \return         0 if successful, or a specific X509 error code
+ * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_key( rsa_context *rsa,
                    const unsigned char *key, int keylen,
@@ -550,7 +545,7 @@ int x509parse_key( rsa_context *rsa,
  * \param path     filename to read the private key from
  * \param password password to decrypt the file (can be NULL)
  *
- * \return         0 if successful, or a specific X509 error code
+ * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_keyfile( rsa_context *rsa, const char *path,
                        const char *password );
@@ -563,7 +558,7 @@ int x509parse_keyfile( rsa_context *rsa, const char *path,
  * \param dhmin    input buffer
  * \param dhminlen size of the buffer
  *
- * \return         0 if successful, or a specific X509 error code
+ * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen );
 
@@ -574,7 +569,7 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen );
  * \param dhm      DHM context to be initialized
  * \param path     filename to read the DHM Parameters from
  *
- * \return         0 if successful, or a specific X509 error code
+ * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_dhmfile( dhm_context *dhm, const char *path );
 

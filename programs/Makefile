@@ -18,7 +18,7 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	ssl/ssl_server		random/gen_random	\
 	test/ssl_cert_test	test/benchmark		\
 	test/selftest		test/ssl_test		\
-	x509/cert_app
+	x509/cert_app		x509/crl_app
 
 .SILENT:
 
@@ -115,6 +115,10 @@ test/ssl_test: test/ssl_test.c ../library/libpolarssl.a
 x509/cert_app: x509/cert_app.c ../library/libpolarssl.a
 	echo   "  CC    x509/cert_app.c"
 	$(CC) $(CFLAGS) $(OFLAGS) x509/cert_app.c    $(LDFLAGS) -o $@
+
+x509/crl_app: x509/crl_app.c ../library/libpolarssl.a
+	echo   "  CC    x509/crl_app.c"
+	$(CC) $(CFLAGS) $(OFLAGS) x509/crl_app.c    $(LDFLAGS) -o $@
 
 clean:
 	rm -f $(APPS)

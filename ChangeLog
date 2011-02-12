@@ -4,6 +4,8 @@ PolarSSL ChangeLog
 Features
    * Parsing PEM private keys encrypted with DES and AES
      are now supported as well (Fixes ticket #5)
+   * Added crl_app program to allow easy reading and
+     printing of X509 CRLs from file
 
 Changes
    * Parsing of PEM files moved to separate module (Fixes 

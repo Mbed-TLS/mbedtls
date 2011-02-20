@@ -54,5 +54,8 @@ dhm_do_dhm:x_size:radix_P:input_P:radix_G:input_G
     TEST_ASSERT( sec_srv_len == sec_cli_len );
     TEST_ASSERT( sec_srv_len != 0 );
     TEST_ASSERT( memcmp( sec_srv, sec_cli, sec_srv_len ) == 0 );
+
+    dhm_free( &ctx_srv );
+    dhm_free( &ctx_cli );
 }
 END_CASE

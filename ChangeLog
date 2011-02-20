@@ -16,9 +16,13 @@ Bugfixes
    * Corrected parsing of UTCTime dates before 1990 and
      after 1950
    * Support more exotic OID's when parsing certificates
+   	 (found by Mads Kiilerich)
    * Support more exotic name representations when parsing
-     certificates
+     certificates (found by Mads Kiilerich)
    * Replaced the expired test certificates
+   * Do not bail out if no client certificate specified. Try
+     to negotiate anonymous connection (Fixes ticket #12,
+	 found by Boris Krasnovskiy)
 
 = Version 0.99-pre1 released on 2011-01-30
 Features

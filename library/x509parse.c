@@ -353,9 +353,6 @@ static int x509_get_alg( unsigned char **p,
 }
 
 /*
- *  RelativeDistinguishedName ::=
- *    SET OF AttributeTypeAndValue
- *
  *  AttributeTypeAndValue ::= SEQUENCE {
  *    type     AttributeType,
  *    value    AttributeValue }
@@ -364,29 +361,17 @@ static int x509_get_alg( unsigned char **p,
  *
  *  AttributeValue ::= ANY DEFINED BY AttributeType
  */
-static int x509_get_name( unsigned char **p,
-                          const unsigned char *end,
-                          x509_name *cur )
+static int x509_get_attr_type_value( unsigned char **p,
+                                     const unsigned char *end,
+                                     x509_name *cur )
 {
     int ret, len;
-    const unsigned char *end2;
     x509_buf *oid;
     x509_buf *val;
 
     if( ( ret = asn1_get_tag( p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SET ) ) != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_NAME | ret );
-
-    end2 = end;
-    end  = *p + len;
-
-    if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_NAME | ret );
-
-    if( *p + len != end )
-        return( POLARSSL_ERR_X509_CERT_INVALID_NAME |
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     oid = &cur->oid;
     oid->tag = **p;
@@ -418,9 +403,56 @@ static int x509_get_name( unsigned char **p,
 
     cur->next = NULL;
 
-    if( *p != end )
-        return( POLARSSL_ERR_X509_CERT_INVALID_NAME |
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    return( 0 );
+}
+
+/*
+ *  RelativeDistinguishedName ::=
+ *    SET OF AttributeTypeAndValue
+ *
+ *  AttributeTypeAndValue ::= SEQUENCE {
+ *    type     AttributeType,
+ *    value    AttributeValue }
+ *
+ *  AttributeType ::= OBJECT IDENTIFIER
+ *
+ *  AttributeValue ::= ANY DEFINED BY AttributeType
+ */
+static int x509_get_name( unsigned char **p,
+                          const unsigned char *end,
+                          x509_name *cur )
+{
+    int ret, len;
+    const unsigned char *end2;
+    x509_name *use; 
+    
+    if( ( ret = asn1_get_tag( p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SET ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME | ret );
+
+    end2 = end;
+    end  = *p + len;
+    use = cur;
+
+    do
+    {
+        if( ( ret = x509_get_attr_type_value( p, end, use ) ) != 0 )
+            return( ret );
+        
+        if( *p != end )
+        {
+            use->next = (x509_name *) malloc(
+                    sizeof( x509_name ) );
+
+            if( use->next == NULL )
+                return( 1 );
+            
+            memset( use->next, 0, sizeof( x509_name ) );
+
+            use = use->next;
+        }
+    }
+    while( *p != end );
 
     /*
      * recurse until end of SEQUENCE is reached
@@ -472,7 +504,7 @@ static int x509_get_time( unsigned char **p,
                     &time->hour, &time->min, &time->sec ) < 5 )
             return( POLARSSL_ERR_X509_CERT_INVALID_DATE );
 
-        time->year +=  100 * ( time->year < 90 );
+        time->year +=  100 * ( time->year < 50 );
         time->year += 1900;
 
         *p += len;
@@ -546,7 +578,7 @@ static int x509_get_pubkey( unsigned char **p,
                             x509_buf *pk_alg_oid,
                             mpi *N, mpi *E )
 {
-    int ret, len;
+    int ret, len, can_handle;
     unsigned char *end2;
 
     if( ( ret = x509_get_alg( p, end, pk_alg_oid ) ) != 0 )
@@ -555,8 +587,27 @@ static int x509_get_pubkey( unsigned char **p,
     /*
      * only RSA public keys handled at this time
      */
-    if( pk_alg_oid->len != 9 ||
-        memcmp( pk_alg_oid->p, OID_PKCS1_RSA, 9 ) != 0 )
+    can_handle = 0;
+
+    if( pk_alg_oid->len == 9 &&
+        memcmp( pk_alg_oid->p, OID_PKCS1_RSA, 9 ) == 0 )
+        can_handle = 1;
+
+    if( pk_alg_oid->len == 9 &&
+        memcmp( pk_alg_oid->p, OID_PKCS1, 8 ) == 0 )
+    {
+        if( pk_alg_oid->p[8] >= 2 && pk_alg_oid->p[8] <= 5 )
+            can_handle = 1;
+
+        if ( pk_alg_oid->p[8] >= 11 && pk_alg_oid->p[8] <= 14 )
+            can_handle = 1;
+    }
+
+    if( pk_alg_oid->len == 5 &&
+        memcmp( pk_alg_oid->p, OID_RSA_SHA_OBS, 5 ) == 0 )
+        can_handle = 1;
+
+    if( can_handle == 0 )
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_PK_ALG );
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
@@ -1035,6 +1086,12 @@ static int x509_get_sig_alg( const x509_buf *sig_oid, int *sig_alg )
         }
 
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+    }
+    if( sig_oid->len == 5 &&
+        memcmp( sig_oid->p, OID_RSA_SHA_OBS, 5 ) == 0 )
+    {
+        *sig_alg = SIG_RSA_SHA1;
+        return( 0 );
     }
 
     return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
@@ -2887,6 +2944,7 @@ int x509_self_test( int verbose )
     ret = x509parse_verify( &clicert, &cacert, NULL, "PolarSSL Client 2", &i, NULL, NULL );
     if( ret != 0 )
     {
+        printf("%02x", i);
         if( verbose != 0 )
             printf( "failed\n" );
 

@@ -12,6 +12,14 @@ Changes
      ticket #13). Also possible to remove PEM support for
 	 systems only using DER encoding
 
+Bugfixes
+   * Corrected parsing of UTCTime dates before 1990 and
+     after 1950
+   * Support more exotic OID's when parsing certificates
+   * Support more exotic name representations when parsing
+     certificates
+   * Replaced the expired test certificates
+
 = Version 0.99-pre1 released on 2011-01-30
 Features
 Note: Most of these features have been donated by Fox-IT

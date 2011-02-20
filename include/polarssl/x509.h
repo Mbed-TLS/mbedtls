@@ -149,7 +149,8 @@
 
 #define OID_PKCS1               "\x2A\x86\x48\x86\xF7\x0D\x01\x01"
 #define OID_PKCS1_RSA           OID_PKCS1 "\x01"
-#define OID_PKCS1_RSA_SHA       OID_PKCS1 "\x05"
+
+#define OID_RSA_SHA_OBS         "\x2B\x0E\x03\x02\x1D"
 
 #define OID_PKCS9               "\x2A\x86\x48\x86\xF7\x0D\x01\x09"
 #define OID_PKCS9_EMAIL         OID_PKCS9 "\x01"

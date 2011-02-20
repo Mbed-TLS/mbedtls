@@ -43,6 +43,7 @@
 #define DFL_DEBUG_LEVEL         0
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
+#define DFL_FORCE_CIPHER        0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\n\r\n"
 
@@ -57,6 +58,7 @@ struct options
     char *request_page;         /* page on server to request                */
     char *crt_file;             /* the file with the client certificate     */
     char *key_file;             /* the file with the client key             */
+    int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
 } opt;
 
 void my_debug( void *ctx, int level, const char *str )
@@ -77,7 +79,8 @@ void my_debug( void *ctx, int level, const char *str )
     "    request_page=%%s     default: \".\"\n"             \
     "    crt_file=%%s         default: \"\" (pre-loaded)\n" \
     "    key_file=%%s         default: \"\" (pre-loaded)\n" \
-    "\n"
+    "    force_ciphersuite=<name>    default: all enabled\n"\
+    " acceptable ciphersuite names:\n"
 
 int main( int argc, char *argv[] )
 {
@@ -91,6 +94,7 @@ int main( int argc, char *argv[] )
     rsa_context rsa;
     int i, j, n;
     char *p, *q;
+    const int *list;
 
     /*
      * Make sure memory references are valid.
@@ -106,6 +110,14 @@ int main( int argc, char *argv[] )
     {
     usage:
         printf( USAGE );
+
+        list = ssl_list_ciphersuites();
+        while( *list )
+        {
+            printf("    %s\n", ssl_get_ciphersuite_name( *list ) );
+            list++;
+        }
+        printf("\n");
         goto exit;
     }
 
@@ -115,6 +127,7 @@ int main( int argc, char *argv[] )
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
+    opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
 
     for( i = 1; i < argc; i++ )
     {
@@ -151,6 +164,17 @@ int main( int argc, char *argv[] )
             opt.crt_file = q;
         else if( strcmp( p, "key_file" ) == 0 )
             opt.key_file = q;
+        else if( strcmp( p, "force_ciphersuite" ) == 0 )
+        {
+            opt.force_ciphersuite[0] = -1;
+
+            opt.force_ciphersuite[0] = ssl_get_ciphersuite_id( q );
+
+            if( opt.force_ciphersuite[0] <= 0 )
+                goto usage;
+
+            opt.force_ciphersuite[1] = 0;
+        }
         else
             goto usage;
     }
@@ -253,7 +277,11 @@ int main( int argc, char *argv[] )
     ssl_set_bio( &ssl, net_recv, &server_fd,
                        net_send, &server_fd );
 
-    ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
+    if( opt.force_ciphersuite[0] == DFL_FORCE_CIPHER )
+        ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
+    else
+        ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
+
     ssl_set_session( &ssl, 1, 600, &ssn );
 
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );

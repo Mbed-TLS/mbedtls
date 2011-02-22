@@ -63,6 +63,37 @@ static int dhm_read_bignum( mpi *X,
 }
 
 /*
+ * Verify sanity of public value with regards to P
+ */
+static int dhm_verifypub( const mpi *P,  const mpi *pub_value )
+{
+    mpi X;
+
+    mpi_init( &X, NULL );
+    mpi_lset( &X, 1 );
+
+    /* Check G^Y or G^X is valid */
+    if( mpi_cmp_mpi( pub_value, &X ) <= 0 )
+    {
+        mpi_free( &X, NULL );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
+    }
+
+    /* Reset: x = P - 1 */
+    mpi_sub_int( &X, P, 1 );
+
+    if( mpi_cmp_mpi( pub_value, &X ) >= 0 )
+    {
+        mpi_free( &X, NULL );
+        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
+    }
+
+    mpi_free( &X, NULL );
+
+    return( 0 );
+}
+
+/*
  * Parse the ServerKeyExchange parameters
  */
 int dhm_read_params( dhm_context *ctx,
@@ -89,6 +120,9 @@ int dhm_read_params( dhm_context *ctx,
     if( end != *p + n )
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
+    if( ( ret = dhm_verifypub( &ctx->P, &ctx->GY ) ) != 0 )
+        return( ret );
+
     return( 0 );
 }
 
@@ -105,12 +139,12 @@ int dhm_make_params( dhm_context *ctx, int x_size,
     /*
      * Generate X as large as possible ( < P )
      */
-    n = x_size / sizeof( t_int );
+    n = x_size / sizeof( t_int ) + 1;
     MPI_CHK( mpi_grow( &ctx->X, n ) );
     MPI_CHK( mpi_lset( &ctx->X, 0 ) );
 
     p = (unsigned char *) ctx->X.p;
-    for( i = 0; i < x_size - 1; i++ )
+    for( i = 0; i < x_size; i++ )
         *p++ = (unsigned char) f_rng( p_rng );
 
     while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
@@ -121,6 +155,9 @@ int dhm_make_params( dhm_context *ctx, int x_size,
      */
     MPI_CHK( mpi_exp_mod( &ctx->GX, &ctx->G, &ctx->X,
                           &ctx->P , &ctx->RP ) );
+
+    if( ( ret = dhm_verifypub( &ctx->P, &ctx->GX ) ) != 0 )
+        return( ret );
 
     /*
      * export P, G, GX
@@ -184,13 +221,12 @@ int dhm_make_public( dhm_context *ctx, int x_size,
     /*
      * generate X and calculate GX = G^X mod P
      */
-    n = x_size / sizeof( t_int );
+    n = x_size / sizeof( t_int ) + 1;
     MPI_CHK( mpi_grow( &ctx->X, n ) );
     MPI_CHK( mpi_lset( &ctx->X, 0 ) );
 
-    n = x_size - 1;
     p = (unsigned char *) ctx->X.p;
-    for( i = 0; i < n; i++ )
+    for( i = 0; i < x_size; i++ )
         *p++ = (unsigned char) f_rng( p_rng );
 
     while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
@@ -198,6 +234,9 @@ int dhm_make_public( dhm_context *ctx, int x_size,
 
     MPI_CHK( mpi_exp_mod( &ctx->GX, &ctx->G, &ctx->X,
                           &ctx->P , &ctx->RP ) );
+
+    if( dhm_verifypub( &ctx->P, &ctx->GX ) != 0 )
+        return( POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED );
 
     MPI_CHK( mpi_write_binary( &ctx->GX, output, olen ) );
 
@@ -222,6 +261,9 @@ int dhm_calc_secret( dhm_context *ctx,
 
     MPI_CHK( mpi_exp_mod( &ctx->K, &ctx->GY, &ctx->X,
                           &ctx->P, &ctx->RP ) );
+
+    if( ( ret = dhm_verifypub( &ctx->P, &ctx->GY ) ) != 0 )
+        return( ret );
 
     *olen = mpi_size( &ctx->K );
 

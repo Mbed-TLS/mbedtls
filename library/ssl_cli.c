@@ -626,7 +626,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
-    if( ssl->client_auth == 0 )
+    if( ssl->client_auth == 0 || ssl->own_cert == NULL )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
         ssl->state++;

@@ -57,10 +57,10 @@ char *client_private_keys[MAX_CLIENT_CERTS] =
     "client2.key",
     "server1.key",
     "server2.key",
-    "cert_sha224.key",
-    "cert_sha256.key",
-    "cert_sha384.key",
-    "cert_sha512.key"
+    "cert_digest.key",
+    "cert_digest.key",
+    "cert_digest.key",
+    "cert_digest.key"
 };
 
 int main( void )

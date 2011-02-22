@@ -18,8 +18,8 @@ database                = index
 serial                  = serial
 
 new_certs_dir           = newcerts
-default_crl_days        = 60
-default_days            = 730
+default_crl_days        = 5
+default_days            = 3653
 default_md              = sha1
 policy                  = my_policy
 x509_extensions         = v3_usr

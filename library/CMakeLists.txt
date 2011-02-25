@@ -20,6 +20,7 @@ set(src
      md5.c
      net.c
      padlock.c
+     pem.c
      pkcs11.c
      rsa.c
      sha1.c

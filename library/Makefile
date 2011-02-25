@@ -27,7 +27,7 @@ OBJS=	aes.o		arc4.o		base64.o	\
 	timing.o	x509parse.o	xtea.o		\
 	camellia.o  version.o   md.o		\
 	md_wrap.o	cipher.o 	cipher_wrap.o \
-	pkcs11.o
+	pkcs11.o    pem.o
 	
 
 .SILENT:

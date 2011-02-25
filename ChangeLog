@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 0.99-pre2 released on XXXXXX
+= Version 0.99-pre2 released on 2011-02-25
 Features
    * Parsing PEM private keys encrypted with DES and AES
      are now supported as well (Fixes ticket #5)

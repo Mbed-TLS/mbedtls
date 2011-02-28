@@ -63,34 +63,32 @@ static int dhm_read_bignum( mpi *X,
 }
 
 /*
- * Verify sanity of public value with regards to P
+ * Verify sanity of public parameter with regards to P
+ *
+ * Public parameter should be: 2 <= public_param <= P - 2
+ *
+ * For more information on the attack, see:
+ *  http://www.cl.cam.ac.uk/~rja14/Papers/psandqs.pdf
+ *  http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2005-2643
  */
-static int dhm_verifypub( const mpi *P,  const mpi *pub_value )
+static int dhm_check_range( const mpi *public_param, const mpi *P )
 {
-    mpi X;
+    mpi L, U;
+    int ret = POLARSSL_ERR_DHM_BAD_INPUT_DATA;
 
-    mpi_init( &X, NULL );
-    mpi_lset( &X, 1 );
+    mpi_init( &L, &U, NULL );
+    mpi_lset( &L, 2 );
+    mpi_sub_int( &U, P, 2 );
 
-    /* Check G^Y or G^X is valid */
-    if( mpi_cmp_mpi( pub_value, &X ) <= 0 )
+    if( mpi_cmp_mpi( public_param, &L ) >= 0 &&
+        mpi_cmp_mpi( public_param, &U ) <= 0 )
     {
-        mpi_free( &X, NULL );
-        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
+        ret = 0;
     }
 
-    /* Reset: x = P - 1 */
-    mpi_sub_int( &X, P, 1 );
+    mpi_free( &L, &U, NULL );
 
-    if( mpi_cmp_mpi( pub_value, &X ) >= 0 )
-    {
-        mpi_free( &X, NULL );
-        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
-    }
-
-    mpi_free( &X, NULL );
-
-    return( 0 );
+    return( ret );
 }
 
 /*
@@ -109,6 +107,9 @@ int dhm_read_params( dhm_context *ctx,
         ( ret = dhm_read_bignum( &ctx->GY, p, end ) ) != 0 )
         return( ret );
 
+    if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
+        return( ret );
+
     ctx->len = mpi_size( &ctx->P );
 
     if( end - *p < 2 )
@@ -119,9 +120,6 @@ int dhm_read_params( dhm_context *ctx,
 
     if( end != *p + n )
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
-
-    if( ( ret = dhm_verifypub( &ctx->P, &ctx->GY ) ) != 0 )
-        return( ret );
 
     return( 0 );
 }
@@ -156,7 +154,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
     MPI_CHK( mpi_exp_mod( &ctx->GX, &ctx->G, &ctx->X,
                           &ctx->P , &ctx->RP ) );
 
-    if( ( ret = dhm_verifypub( &ctx->P, &ctx->GX ) ) != 0 )
+    if( ( ret = dhm_check_range( &ctx->GX, &ctx->P ) ) != 0 )
         return( ret );
 
     /*
@@ -235,8 +233,8 @@ int dhm_make_public( dhm_context *ctx, int x_size,
     MPI_CHK( mpi_exp_mod( &ctx->GX, &ctx->G, &ctx->X,
                           &ctx->P , &ctx->RP ) );
 
-    if( dhm_verifypub( &ctx->P, &ctx->GX ) != 0 )
-        return( POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED );
+    if( ( ret = dhm_check_range( &ctx->GX, &ctx->P ) ) != 0 )
+        return( ret );
 
     MPI_CHK( mpi_write_binary( &ctx->GX, output, olen ) );
 
@@ -262,7 +260,7 @@ int dhm_calc_secret( dhm_context *ctx,
     MPI_CHK( mpi_exp_mod( &ctx->K, &ctx->GY, &ctx->X,
                           &ctx->P, &ctx->RP ) );
 
-    if( ( ret = dhm_verifypub( &ctx->P, &ctx->GY ) ) != 0 )
+    if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
         return( ret );
 
     *olen = mpi_size( &ctx->K );

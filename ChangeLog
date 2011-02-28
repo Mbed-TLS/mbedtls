@@ -1,6 +1,7 @@
 PolarSSL ChangeLog
 
-= Version 0.14.1 released on 2011-02-22
+= Version 0.14.2 released on 2011-02-28
+This release replaces version 0.14.1 which had possible copyright issues.
 Bugfixes
    * Corrected parsing of UTCTime dates before 1990 and
      after 1950
@@ -12,6 +13,11 @@ Bugfixes
    * Do not bail out if no client certificate specified. Try
      to negotiate anonymous connection (Fixes ticket #12,
 	 found by Boris Krasnovskiy)
+
+Security fixes
+   * Fixed a possible Man-in-the-Middle attack on the
+     Diffie Hellman key exchange (thanks to Larry Highsmith,
+	 Subreption LLC)
 
 = Version 0.14.0 released on 2010-08-16
 Features

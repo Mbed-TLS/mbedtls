@@ -1,6 +1,7 @@
 PolarSSL ChangeLog
 
-= Version 0.99-pre2 released on 2011-02-25
+= Version 0.99-pre3 released on 2011-02-28
+This release replaces version 0.99-pre2 which had possible copyright issues.
 Features
    * Parsing PEM private keys encrypted with DES and AES
      are now supported as well (Fixes ticket #5)
@@ -23,6 +24,11 @@ Bugfixes
    * Do not bail out if no client certificate specified. Try
      to negotiate anonymous connection (Fixes ticket #12,
 	 found by Boris Krasnovskiy)
+
+Security fixes
+   * Fixed a possible Man-in-the-Middle attack on the
+     Diffie Hellman key exchange (thanks to Larry Highsmith,
+	 Subreption LLC)
 
 = Version 0.99-pre1 released on 2011-01-30
 Features

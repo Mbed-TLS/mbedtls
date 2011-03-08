@@ -104,7 +104,7 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
 #endif
     }
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, RSA_PRIVATE, {digest}, 0, hash_result, output ) == {result} );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, {digest}, 0, hash_result, output ) == {result} );
     if( {result} == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -221,7 +221,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     msg_len = unhexify( message_str, {message_hex_string} );
     hash_len = unhexify( hash_result, {hash_result_string} );
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, RSA_PRIVATE, SIG_RSA_RAW, hash_len, hash_result, output ) == 0 );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, SIG_RSA_RAW, hash_len, hash_result, output ) == 0 );
 
     hexify( output_str, output, ctx.len );
 

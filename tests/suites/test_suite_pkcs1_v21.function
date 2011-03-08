@@ -1,0 +1,257 @@
+BEGIN_HEADER
+#include <polarssl/config.h>
+#include <polarssl/rsa.h>
+#include <polarssl/md.h>
+#include <polarssl/md2.h>
+#include <polarssl/md4.h>
+#include <polarssl/md5.h>
+#include <polarssl/sha1.h>
+#include <polarssl/sha2.h>
+#include <polarssl/sha4.h>
+END_HEADER
+
+BEGIN_CASE
+pkcs1_rsaes_oaep_encrypt:mod:radix_N:input_N:radix_E:input_E:hash:message_hex_string:seed:result_hex_str:result
+{
+    unsigned char message_str[1000];
+    unsigned char output[1000];
+    unsigned char output_str[1000];
+    unsigned char rnd_buf[1000];
+    rsa_context ctx;
+    int msg_len;
+    rnd_info info;
+
+    info.length = unhexify( rnd_buf, {seed} );
+    info.buf = rnd_buf;
+    info.per_call = 1;
+
+    rsa_init( &ctx, RSA_PKCS_V21, {hash} );
+    memset( message_str, 0x00, 1000 );
+    memset( output, 0x00, 1000 );
+    memset( output_str, 0x00, 1000 );
+
+    ctx.len = {mod} / 8 + ( ( {mod} % 8 ) ? 1 : 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+
+    TEST_ASSERT( rsa_check_pubkey( &ctx ) == 0 );
+
+    msg_len = unhexify( message_str, {message_hex_string} );
+
+    TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, &rnd_buffer_rand, &info, RSA_PUBLIC, msg_len, message_str, output ) == {result} );
+    if( {result} == 0 )
+    {
+        hexify( output_str, output, ctx.len );
+
+        TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:hash:result_hex_str:seed:message_hex_string:result
+{
+    unsigned char message_str[1000];
+    unsigned char output[1000];
+    unsigned char output_str[1000];
+    rsa_context ctx;
+    mpi P1, Q1, H, G;
+    int output_len;
+    int msg_len;
+
+    mpi_init( &P1, &Q1, &H, &G, NULL );
+    rsa_init( &ctx, RSA_PKCS_V21, {hash} );
+
+    memset( message_str, 0x00, 1000 );
+    memset( output, 0x00, 1000 );
+    memset( output_str, 0x00, 1000 );
+
+    ctx.len = {mod} / 8 + ( ( {mod} % 8 ) ? 1 : 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.P, {radix_P}, {input_P} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.Q, {radix_Q}, {input_Q} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+                
+    TEST_ASSERT( mpi_sub_int( &P1, &ctx.P, 1 ) == 0 );
+    TEST_ASSERT( mpi_sub_int( &Q1, &ctx.Q, 1 ) == 0 );
+    TEST_ASSERT( mpi_mul_mpi( &H, &P1, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_gcd( &G, &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.D , &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DP, &ctx.D, &P1 ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
+
+    TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
+
+    msg_len = unhexify( message_str, {message_hex_string} );
+
+    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, RSA_PRIVATE, &output_len, message_str, output, 1000 ) == {result} );
+    if( {result} == 0 )
+    {
+        hexify( output_str, output, ctx.len );
+
+        TEST_ASSERT( strncasecmp( (char *) output_str, {result_hex_str}, strlen( {result_hex_str} ) ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+pkcs1_rsassa_pss_sign:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:digest:hash:message_hex_string:salt:result_hex_str:result
+{
+    unsigned char message_str[1000];
+    unsigned char hash_result[1000];
+    unsigned char output[1000];
+    unsigned char output_str[1000];
+    unsigned char rnd_buf[1000];
+    rsa_context ctx;
+    mpi P1, Q1, H, G;
+    int msg_len;
+    rnd_info info;
+
+    info.length = unhexify( rnd_buf, {salt} );
+    info.buf = rnd_buf;
+    info.per_call = 1;
+
+    mpi_init( &P1, &Q1, &H, &G, NULL );
+    rsa_init( &ctx, RSA_PKCS_V21, {hash} );
+
+    memset( message_str, 0x00, 1000 );
+    memset( hash_result, 0x00, 1000 );
+    memset( output, 0x00, 1000 );
+    memset( output_str, 0x00, 1000 );
+
+    ctx.len = {mod} / 8 + ( ( {mod} % 8 ) ? 1 : 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.P, {radix_P}, {input_P} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.Q, {radix_Q}, {input_Q} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+
+    TEST_ASSERT( mpi_sub_int( &P1, &ctx.P, 1 ) == 0 );
+    TEST_ASSERT( mpi_sub_int( &Q1, &ctx.Q, 1 ) == 0 );
+    TEST_ASSERT( mpi_mul_mpi( &H, &P1, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_gcd( &G, &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.D , &ctx.E, &H  ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DP, &ctx.D, &P1 ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &ctx.DQ, &ctx.D, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &ctx.QP, &ctx.Q, &ctx.P ) == 0 );
+
+    TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
+
+    msg_len = unhexify( message_str, {message_hex_string} );
+
+    switch( {digest} )
+    {
+#ifdef POLARSSL_MD2_C
+    case SIG_RSA_MD2:
+        md2( message_str, msg_len, hash_result );
+        break;
+#endif
+#ifdef POLARSSL_MD4_C
+    case SIG_RSA_MD4:
+        md4( message_str, msg_len, hash_result );
+        break;
+#endif
+#ifdef POLARSSL_MD5_C
+    case SIG_RSA_MD5:
+        md5( message_str, msg_len, hash_result );
+        break;
+#endif
+#ifdef POLARSSL_SHA1_C
+    case SIG_RSA_SHA1:
+        sha1( message_str, msg_len, hash_result );
+        break;
+#endif
+#ifdef POLARSSL_SHA2_C
+    case SIG_RSA_SHA224:
+        sha2( message_str, msg_len, hash_result, 1 );
+        break;
+    case SIG_RSA_SHA256:
+        sha2( message_str, msg_len, hash_result, 0 );
+        break;
+#endif
+#ifdef POLARSSL_SHA4_C
+    case SIG_RSA_SHA384:
+        sha4( message_str, msg_len, hash_result, 1 );
+        break;
+    case SIG_RSA_SHA512:
+        sha4( message_str, msg_len, hash_result, 0 );
+        break;
+#endif
+    }
+
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, &rnd_buffer_rand, &info, RSA_PRIVATE, {digest}, 0, hash_result, output ) == {result} );
+    if( {result} == 0 )
+    {
+        hexify( output_str, output, ctx.len);
+
+        TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+pkcs1_rsassa_pss_verify:mod:radix_N:input_N:radix_E:input_E:digest:hash:message_hex_string:salt:result_hex_str:result
+{
+    unsigned char message_str[1000];
+    unsigned char hash_result[1000];
+    unsigned char result_str[1000];
+    rsa_context ctx;
+    int msg_len;
+
+    rsa_init( &ctx, RSA_PKCS_V21, {hash} );
+    memset( message_str, 0x00, 1000 );
+    memset( hash_result, 0x00, 1000 );
+    memset( result_str, 0x00, 1000 );
+
+    ctx.len = {mod} / 8 + ( ( {mod} % 8 ) ? 1 : 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx.E, {radix_E}, {input_E} ) == 0 );
+
+    TEST_ASSERT( rsa_check_pubkey( &ctx ) == 0 );
+
+    msg_len = unhexify( message_str, {message_hex_string} );
+    unhexify( result_str, {result_hex_str} );
+
+    switch( {digest} )
+    {
+#ifdef POLARSSL_MD2_C
+    case SIG_RSA_MD2:
+        md2( message_str, msg_len, hash_result );
+        break;
+#endif
+#ifdef POLARSSL_MD4_C
+    case SIG_RSA_MD4:
+        md4( message_str, msg_len, hash_result );
+        break;
+#endif
+#ifdef POLARSSL_MD5_C
+    case SIG_RSA_MD5:
+        md5( message_str, msg_len, hash_result );
+        break;
+#endif
+#ifdef POLARSSL_SHA1_C
+    case SIG_RSA_SHA1:
+        sha1( message_str, msg_len, hash_result );
+        break;
+#endif
+#ifdef POLARSSL_SHA2_C
+    case SIG_RSA_SHA224:
+        sha2( message_str, msg_len, hash_result, 1 );
+        break;
+    case SIG_RSA_SHA256:
+        sha2( message_str, msg_len, hash_result, 0 );
+        break;
+#endif
+#ifdef POLARSSL_SHA4_C
+    case SIG_RSA_SHA384:
+        sha4( message_str, msg_len, hash_result, 1 );
+        break;
+    case SIG_RSA_SHA512:
+        sha4( message_str, msg_len, hash_result, 0 );
+        break;
+#endif
+    }
+
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
+}
+END_CASE

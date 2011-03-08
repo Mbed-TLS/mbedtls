@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Version trunk
+Features
+   * Added support for PKCS#1 v2.1 encoding and thus support
+     for the RSAES-OAEP and RSASSA-PSS operations.
+
 = Version 0.99-pre3 released on 2011-02-28
 This release replaces version 0.99-pre2 which had possible copyright issues.
 Features

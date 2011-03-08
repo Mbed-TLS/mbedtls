@@ -120,6 +120,14 @@
 #define POLARSSL_SELF_TEST
 
 /**
+ * \def POLARSSL_PKCS1_V21
+ *
+ * Enable support for PKCS#1 v2.1 encoding.
+ * This enables support for RSAES-OAEP and RSASSA-PSS operations.
+ */
+#define POLARSSL_PKCS1_V21
+
+/**
  * \def POLARSSL_GENPRIME
  *
  * Enable the prime-number generation code.

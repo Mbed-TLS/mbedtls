@@ -667,7 +667,8 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 
     if( ssl->rsa_key )
     {
-        ret = rsa_pkcs1_sign( ssl->rsa_key, RSA_PRIVATE, SIG_RSA_RAW,
+        ret = rsa_pkcs1_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
+                                    RSA_PRIVATE, SIG_RSA_RAW,
                                     36, hash, ssl->out_msg + 6 );
     } else {
 #if defined(POLARSSL_PKCS11_C)

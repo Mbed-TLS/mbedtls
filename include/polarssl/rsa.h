@@ -144,8 +144,12 @@ typedef struct
     mpi RP;                     /*!<  cached R^2 mod P  */
     mpi RQ;                     /*!<  cached R^2 mod Q  */
 
-    int padding;                /*!<  1.5 or OAEP/PSS   */
-    int hash_id;                /*!<  hash identifier   */
+    int padding;                /*!<  RSA_PKCS_V15 for 1.5 padding and
+                                      RSA_PKCS_v21 for OAEP/PSS         */
+    int hash_id;                /*!<  Hash identifier of md_type_t as
+                                      specified in the md.h header file
+                                      for the EME-OAEP and EMSA-PSS
+                                      encoding                          */
 }
 rsa_context;
 
@@ -162,9 +166,6 @@ extern "C" {
  *
  * \note           The hash_id parameter is actually ignored
  *                 when using RSA_PKCS_V15 padding.
- *
- * \note           Currently, RSA_PKCS_V21 padding
- *                 is not supported.
  */
 void rsa_init( rsa_context *ctx,
                int padding,
@@ -247,7 +248,7 @@ int rsa_private( rsa_context *ctx,
  * \brief          Add the message padding, then do an RSA operation
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function
+ * \param f_rng    RNG function (Needed for padding and PKCS#1 v2.1 encoding)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param ilen     contains the plaintext length
@@ -292,6 +293,8 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  * \brief          Do a private RSA to sign a message digest
  *
  * \param ctx      RSA context
+ * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding)
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
  * \param hashlen  message digest length (for SIG_RSA_RAW only)
@@ -303,8 +306,16 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  *
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
+ * \note           In case of PKCS#1 v2.1 encoding keep in mind that
+ *                 the hash_id in the RSA context is the one used for the
+ *                 encoding. hash_id in the function call is the type of hash
+ *                 that is encoded. According to RFC 3447 it is advised to
+ *                 keep both hashes the same.
  */
 int rsa_pkcs1_sign( rsa_context *ctx,
+                    int (*f_rng)(void *),
+                    void *p_rng,
                     int mode,
                     int hash_id,
                     int hashlen,
@@ -326,6 +337,12 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  *
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
+ * \note           In case of PKCS#1 v2.1 encoding keep in mind that
+ *                 the hash_id in the RSA context is the one used for the
+ *                 verification. hash_id in the function call is the type of hash
+ *                 that is verified. According to RFC 3447 it is advised to
+ *                 keep both hashes the same.
  */
 int rsa_pkcs1_verify( rsa_context *ctx,
                       int mode,

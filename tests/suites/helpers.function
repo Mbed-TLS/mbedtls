@@ -1,3 +1,33 @@
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+
+/*
+ * 32-bit integer manipulation macros (big endian)
+ */
+#ifndef GET_ULONG_BE
+#define GET_ULONG_BE(n,b,i)                             \
+{                                                       \
+    (n) = ( (unsigned long) (b)[(i)    ] << 24 )        \
+        | ( (unsigned long) (b)[(i) + 1] << 16 )        \
+        | ( (unsigned long) (b)[(i) + 2] <<  8 )        \
+        | ( (unsigned long) (b)[(i) + 3]       );       \
+}
+#endif
+
+#ifndef PUT_ULONG_BE
+#define PUT_ULONG_BE(n,b,i)                             \
+{                                                       \
+    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
+    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
+    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
+    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
+}
+#endif
+
 int unhexify(unsigned char *obuf, const char *ibuf)
 {
     unsigned char c, c2;
@@ -138,11 +168,12 @@ static int rnd_buffer_rand( void *rng_state )
  * Info structure for the pseudo random function
  *
  * Key should be set at the start to a test-unique value.
+ * Do not forget endianness!
  * State( v0, v1 ) should be set to zero.
  */
 typedef struct
 {
-    unsigned char key[16];
+    uint32_t key[16];
     uint32_t v0, v1;
 } rnd_pseudo_info;
 
@@ -157,12 +188,12 @@ typedef struct
 static int rnd_pseudo_rand( void *rng_state )
 {
     rnd_pseudo_info *info = (rnd_pseudo_info *) rng_state;
-    uint32_t i, *k, sum, delta=0x9E3779B9;
+    uint32_t i, *k, sum = 0, delta=0x9E3779B9;
 
     if( rng_state == NULL )
         return( rand() );
 
-    k = (uint32_t *) info->key;
+    k = info->key;
     for( i = 0; i < 32; i++ )
     {
         info->v0 += (((info->v1 << 4) ^ (info->v1 >> 5)) + info->v1) ^ (sum + k[sum & 3]);

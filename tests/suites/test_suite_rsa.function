@@ -9,14 +9,6 @@ BEGIN_HEADER
 #include <polarssl/sha4.h>
 #include <polarssl/havege.h>
 
-static int myrand( void *rng_state )
-{
-    if( rng_state != NULL )
-        rng_state  = NULL;
-
-    return( rand() );
-}
-
 static int badrand( void *rng_state )
 {
     if( rng_state != NULL )
@@ -265,6 +257,9 @@ rsa_pkcs1_encrypt:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:in
     unsigned char output_str[1000];
     rsa_context ctx;
     int msg_len;
+    rnd_pseudo_info rnd_info;
+
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     rsa_init( &ctx, {padding_mode}, 0 );
     memset( message_str, 0x00, 1000 );
@@ -279,7 +274,7 @@ rsa_pkcs1_encrypt:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:in
 
     msg_len = unhexify( message_str, {message_hex_string} );
 
-    TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, &myrand, NULL, RSA_PUBLIC, msg_len, message_str, output ) == {result} );
+    TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, &rnd_pseudo_rand, &rnd_info, RSA_PUBLIC, msg_len, message_str, output ) == {result} );
     if( {result} == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -311,7 +306,7 @@ rsa_pkcs1_encrypt_bad_rng:message_hex_string:padding_mode:mod:radix_N:input_N:ra
 
     msg_len = unhexify( message_str, {message_hex_string} );
 
-    TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, &badrand, NULL, RSA_PUBLIC, msg_len, message_str, output ) == {result} );
+    TEST_ASSERT( rsa_pkcs1_encrypt( &ctx, &rnd_zero_rand, NULL, RSA_PUBLIC, msg_len, message_str, output ) == {result} );
     if( {result} == 0 )
     {
         hexify( output_str, output, ctx.len );

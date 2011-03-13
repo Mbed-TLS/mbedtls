@@ -58,6 +58,10 @@ void hexify(unsigned char *obuf, const unsigned char *ibuf, int len)
 
 /**
  * This function just returns data from rand().
+ * Although predictable and often similar on multiple
+ * runs, this does not result in identical random on
+ * each run. So do not use this if the results of a
+ * test depend on the random data that is generated.
  *
  * rng_state shall be NULL.
  */
@@ -87,22 +91,31 @@ typedef struct
     unsigned char *buf;
     int length;
     int per_call;
-} rnd_info;
+} rnd_buf_info;
 
 /**
  * This function returns random based on a buffer it receives.
  *
- * rng_state shall be a pointer to a rnd_buf structure.
+ * rng_state shall be a pointer to a rnd_buf_info structure.
+ * 
+ * The number of bytes released from the buffer on each call to
+ * the random function is specified by per_call. (Can be between
+ * 1 and 4)
  *
  * After the buffer is empty it will return rand();
  */
 static int rnd_buffer_rand( void *rng_state )
 {
-    rnd_info *info = (rnd_info *) rng_state;
+    rnd_buf_info *info = (rnd_buf_info *) rng_state;
     int res;
 
     if( rng_state == NULL )
         return( rand() );
+
+    if( info->per_call > 4 )
+        info->per_call = 4;
+    else if( info->per_call < 1 )
+        info->per_call = 1;
 
     res = rand();
 
@@ -119,4 +132,43 @@ static int rnd_buffer_rand( void *rng_state )
     }
 
     return( res );
+}
+
+/**
+ * Info structure for the pseudo random function
+ *
+ * Key should be set at the start to a test-unique value.
+ * State( v0, v1 ) should be set to zero.
+ */
+typedef struct
+{
+    unsigned char key[16];
+    uint32_t v0, v1;
+} rnd_pseudo_info;
+
+/**
+ * This function returns random based on a pseudo random function.
+ * This means the results should be identical on all systems.
+ * Pseudo random is based on the XTEA encryption algorithm to
+ * generate pseudorandom.
+ *
+ * rng_state shall be a pointer to a rnd_pseudo_info structure.
+ */
+static int rnd_pseudo_rand( void *rng_state )
+{
+    rnd_pseudo_info *info = (rnd_pseudo_info *) rng_state;
+    uint32_t i, *k, sum, delta=0x9E3779B9;
+
+    if( rng_state == NULL )
+        return( rand() );
+
+    k = (uint32_t *) info->key;
+    for( i = 0; i < 32; i++ )
+    {
+        info->v0 += (((info->v1 << 4) ^ (info->v1 >> 5)) + info->v1) ^ (sum + k[sum & 3]);
+        sum += delta;
+        info->v1 += (((info->v0 << 4) ^ (info->v0 >> 5)) + info->v0) ^ (sum + k[(sum>>11) & 3]);
+    }
+
+    return( info->v0 );
 }

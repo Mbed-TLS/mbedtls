@@ -23,7 +23,7 @@ APPS =	test_suite_aes			test_suite_arc4		\
 
 all: $(APPS)
 
-%.c : suites/%.function suites/%.data scripts/generate_code.pl
+%.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites $*
 

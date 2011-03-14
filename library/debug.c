@@ -132,43 +132,67 @@ void debug_print_mpi( const ssl_context *ssl, int level,
                       const char *text, const mpi *X )
 {
     char str[512];
-    int i, j, k, n, maxlen = sizeof( str ) - 1;
+    int i, j, k, n, maxlen = sizeof( str ) - 1, zeros = 1;
 
     if( ssl->f_dbg == NULL || X == NULL )
         return;
 
-    for( n = X->n - 1; n >= 0; n-- )
+    for( n = X->n - 1; n > 0; n-- )
         if( X->p[n] != 0 )
+            break;
+
+    for( j = ( sizeof(t_int) << 3 ) - 1; j >= 0; j-- )
+        if( ( ( X->p[n] >> j ) & 1 ) != 0 )
             break;
 
     snprintf( str, maxlen, "%s(%04d): value of '%s' (%lu bits) is:\n",
               file, line, text, 
-              (unsigned long) ((n + 1) * sizeof( t_int )) << 3 );
+              (unsigned long) ( ( n * ( sizeof(t_int) << 3 ) ) + j + 1 ) );
 
     str[maxlen] = '\0';
     ssl->f_dbg( ssl->p_dbg, level, str );
 
-    for( i = n, j = 0; i >= 0; i--, j++ )
+    for( i = n, j = 0; i >= 0; i-- )
     {
-        if( j % ( 16 / sizeof( t_int ) ) == 0 )
-        {
-            if( j > 0 )
-                ssl->f_dbg( ssl->p_dbg, level, "\n" );
-
-            snprintf( str, maxlen, "%s(%04d): ", file, line );
-
-            str[maxlen] = '\0';
-            ssl->f_dbg( ssl->p_dbg, level, str );
-        }
+        if( zeros && X->p[i] == 0 )
+            continue;
 
         for( k = sizeof( t_int ) - 1; k >= 0; k-- )
         {
+            if( zeros && ( ( X->p[i] >> (k << 3) ) & 0xFF ) == 0 )
+                continue;
+            else
+                zeros = 0;
+
+            if( j % 16 == 0 )
+            {
+                if( j > 0 )
+                    ssl->f_dbg( ssl->p_dbg, level, "\n" );
+
+                snprintf( str, maxlen, "%s(%04d): ", file, line );
+
+                str[maxlen] = '\0';
+                ssl->f_dbg( ssl->p_dbg, level, str );
+            }
+
             snprintf( str, maxlen, " %02x", (unsigned int)
                       ( X->p[i] >> (k << 3) ) & 0xFF );
 
             str[maxlen] = '\0';
             ssl->f_dbg( ssl->p_dbg, level, str );
+
+            j++;
         }
+
+    }
+
+    if( zeros == 1 )
+    {
+        snprintf( str, maxlen, "%s(%04d): ", file, line );
+
+        str[maxlen] = '\0';
+        ssl->f_dbg( ssl->p_dbg, level, str );
+        ssl->f_dbg( ssl->p_dbg, level, " 00" );
     }
 
     ssl->f_dbg( ssl->p_dbg, level, "\n" );

@@ -37,3 +37,27 @@ debug_print_crt:crt_file:file:line:prefix:result_str
     TEST_ASSERT( strcmp( buffer.buf, {result_str} ) == 0 );
 }
 END_CASE
+
+BEGIN_CASE
+debug_print_mpi:radix:value:file:line:prefix:result_str
+{
+    ssl_context ssl;
+    struct buffer_data buffer;
+    mpi val;
+
+    mpi_init( &val, NULL );
+
+    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( buffer.buf, 0, 2000 );
+    buffer.ptr = buffer.buf; 
+
+    TEST_ASSERT( mpi_read_string( &val, {radix}, {value} ) == 0 );
+    ssl_set_dbg(&ssl, string_debug, &buffer);
+
+    debug_print_mpi( &ssl, 0, {file}, {line}, {prefix}, &val);
+
+    TEST_ASSERT( strcmp( buffer.buf, {result_str} ) == 0 );
+}
+END_CASE
+
+    

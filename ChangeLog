@@ -13,6 +13,8 @@ Bugfix
    * Debug output of MPI's now the same independent of underlying
      platform (32-bit / 64-bit) (Fixes ticket #19, found by Mads
 	 Kiilerich and Mihai Militaru)
+   * Fixed bug in ssl_write() when flushing old data (Fixed ticket
+     #18, found by Nikolay Epifanov)
 
 = Version 0.99-pre3 released on 2011-02-28
 This release replaces version 0.99-pre2 which had possible copyright issues.

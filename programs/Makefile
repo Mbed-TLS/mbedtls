@@ -89,7 +89,7 @@ pkey/rsa_verify_pss: pkey/rsa_verify_pss.c ../library/libpolarssl.a
 	echo   "  CC    pkey/rsa_verify_pss.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_verify_pss.c  $(LDFLAGS) -o $@
 
-Random/gen_random: random/gen_random.c ../library/libpolarssl.a
+random/gen_random: random/gen_random.c ../library/libpolarssl.a
 	echo   "  CC    random/gen_random.c"
 	$(CC) $(CFLAGS) $(OFLAGS) random/gen_random.c $(LDFLAGS) -o $@
 

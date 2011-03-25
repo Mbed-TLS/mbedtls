@@ -4,6 +4,8 @@ PolarSSL ChangeLog
 Features
    * Added support for PKCS#1 v2.1 encoding and thus support
      for the RSAES-OAEP and RSASSA-PSS operations.
+   * Reading of Public Key files incorporated into default x509
+     functionality as well.
 
 Changes
    * Debug print of MPI now removes leading zero octets and 
@@ -15,6 +17,8 @@ Bugfix
 	 Kiilerich and Mihai Militaru)
    * Fixed bug in ssl_write() when flushing old data (Fixed ticket
      #18, found by Nikolay Epifanov)
+   * Fixed proper handling of RSASSA-PSS verification with variable
+     length salt lengths
 
 = Version 0.99-pre3 released on 2011-02-28
 This release replaces version 0.99-pre2 which had possible copyright issues.

@@ -553,6 +553,30 @@ int x509parse_keyfile( rsa_context *rsa, const char *path,
 
 /** \ingroup x509_module */
 /**
+ * \brief          Parse a public RSA key
+ *
+ * \param rsa      RSA context to be initialized
+ * \param key      input buffer
+ * \param keylen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_public_key( rsa_context *rsa,
+                   const unsigned char *key, int keylen );
+
+/** \ingroup x509_module */
+/**
+ * \brief          Load and parse a public RSA key
+ *
+ * \param rsa      RSA context to be initialized
+ * \param path     filename to read the private key from
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_public_keyfile( rsa_context *rsa, const char *path );
+
+/** \ingroup x509_module */
+/**
  * \brief          Parse DHM parameters
  *
  * \param dhm      DHM context to be initialized

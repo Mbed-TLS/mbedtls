@@ -3036,6 +3036,8 @@ int x509_self_test( int verbose )
     i = strlen( test_ca_key );
     j = strlen( test_ca_pwd );
 
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
+
     if( ( ret = x509parse_key( &rsa,
                     (unsigned char *) test_ca_key, i,
                     (unsigned char *) test_ca_pwd, j ) ) != 0 )

@@ -580,7 +580,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
     unsigned char salt[POLARSSL_MD_MAX_SIZE];
     const md_info_t *md_info;
     md_context_t md_ctx;
-    int i, hlen, msb, offset = 0;
+    int i, slen, hlen, msb, offset = 0;
 #else
     (void) f_rng;
     (void) p_rng;
@@ -733,6 +733,8 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                 return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
                 
             hlen = md_get_size( md_info );
+            slen = hlen;
+
             memset( sig, 0, olen );
             memset( &md_ctx, 0, sizeof( md_context_t ) );
 
@@ -740,9 +742,9 @@ int rsa_pkcs1_sign( rsa_context *ctx,
 
             msb = mpi_msb( &ctx->N ) - 1;
 
-            // Generate salt of length hlen
+            // Generate salt of length slen
             //
-            for( i = 0; i < hlen; ++i )
+            for( i = 0; i < slen; ++i )
                 salt[i] = (unsigned char) f_rng( p_rng ); 
 
             // Note: EMSA-PSS encoding is over the length of N - 1 bits
@@ -750,15 +752,15 @@ int rsa_pkcs1_sign( rsa_context *ctx,
             msb = mpi_msb( &ctx->N ) - 1;
             p += olen - hlen * 2 - 2;
             *p++ = 0x01;
-            memcpy( p, salt, hlen );
-            p += hlen;
+            memcpy( p, salt, slen );
+            p += slen;
 
             // Generate H = Hash( M' )
             //
             md_starts( &md_ctx );
             md_update( &md_ctx, p, 8 );
             md_update( &md_ctx, hash, hashlen );
-            md_update( &md_ctx, salt, hlen );
+            md_update( &md_ctx, salt, slen );
             md_finish( &md_ctx, p );
 
             // Compensate for boundary condition when applying mask
@@ -805,7 +807,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
     unsigned char zeros[8];
     const md_info_t *md_info;
     md_context_t md_ctx;
-    int hlen, msb;
+    int slen, hlen, msb;
 #endif
     siglen = ctx->len;
 
@@ -935,6 +937,8 @@ int rsa_pkcs1_verify( rsa_context *ctx,
                 return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
                 
             hlen = md_get_size( md_info );
+            slen = siglen - hlen - 1;
+
             memset( &md_ctx, 0, sizeof( md_context_t ) );
             memset( zeros, 0, 8 );
 
@@ -967,15 +971,17 @@ int rsa_pkcs1_verify( rsa_context *ctx,
             if( *p++ != 0x01 )
                 return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
+            slen -= p - buf;
+
             // Generate H = Hash( M' )
             //
             md_starts( &md_ctx );
             md_update( &md_ctx, zeros, 8 );
             md_update( &md_ctx, hash, hashlen );
-            md_update( &md_ctx, p, hlen );
+            md_update( &md_ctx, p, slen );
             md_finish( &md_ctx, p );
 
-            if( memcmp( p, p + hlen, hlen ) == 0 )
+            if( memcmp( p, p + slen, hlen ) == 0 )
                 return( 0 );
             else
                 return( POLARSSL_ERR_RSA_VERIFY_FAILED );

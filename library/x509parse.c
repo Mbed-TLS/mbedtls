@@ -1827,8 +1827,6 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
 #endif
     end = p + keylen;
 
-    memset( rsa, 0, sizeof( rsa_context ) );
-
     /*
      *  RSAPrivateKey ::= SEQUENCE {
      *      version           Version,
@@ -1934,6 +1932,116 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
     else
         ret = x509parse_key( rsa, buf, (int) n,
                 (unsigned char *) pwd, strlen( pwd ) );
+
+    memset( buf, 0, n + 1 );
+    free( buf );
+
+    return( ret );
+}
+
+/*
+ * Parse a public RSA key
+ */
+int x509parse_public_key( rsa_context *rsa, const unsigned char *key, int keylen )
+{
+    int ret, len;
+    unsigned char *p, *end;
+    x509_buf alg_oid;
+#if defined(POLARSSL_PEM_C)
+    pem_context pem;
+
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+            "-----BEGIN PUBLIC KEY-----",
+            "-----END PUBLIC KEY-----",
+            key, NULL, 0, &len );
+
+    if( ret == 0 )
+    {
+        /*
+         * Was PEM encoded
+         */
+        keylen = pem.buflen;
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
+    }
+
+    p = ( ret == 0 ) ? pem.buf : (unsigned char *) key;
+#else
+    p = (unsigned char *) key;
+#endif
+    end = p + keylen;
+
+    /*
+     *  PublicKeyInfo ::= SEQUENCE {
+     *    algorithm       AlgorithmIdentifier,
+     *    PublicKey       BIT STRING
+     *  }
+     *
+     *  AlgorithmIdentifier ::= SEQUENCE {
+     *    algorithm       OBJECT IDENTIFIER,
+     *    parameters      ANY DEFINED BY algorithm OPTIONAL
+     *  }
+     *
+     *  RSAPublicKey ::= SEQUENCE {
+     *      modulus           INTEGER,  -- n
+     *      publicExponent    INTEGER   -- e
+     *  }
+     */
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
+        rsa_free( rsa );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT | ret );
+    }
+
+    if( ( ret = x509_get_pubkey( &p, end, &alg_oid, &rsa->N, &rsa->E ) ) != 0 )
+    {
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
+        rsa_free( rsa );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT | ret );
+    }
+
+    if( ( ret = rsa_check_pubkey( rsa ) ) != 0 )
+    {
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
+        rsa_free( rsa );
+        return( ret );
+    }
+
+    rsa->len = mpi_size( &rsa->N );
+
+#if defined(POLARSSL_PEM_C)
+    pem_free( &pem );
+#endif
+
+    return( 0 );
+}
+
+/*
+ * Load and parse a public RSA key
+ */
+int x509parse_public_keyfile( rsa_context *rsa, const char *path )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( load_file( path, &buf, &n ) )
+        return( 1 );
+
+    ret = x509parse_public_key( rsa, buf, (int) n );
 
     memset( buf, 0, n + 1 );
     free( buf );

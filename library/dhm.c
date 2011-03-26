@@ -138,12 +138,8 @@ int dhm_make_params( dhm_context *ctx, int x_size,
      * Generate X as large as possible ( < P )
      */
     n = x_size / sizeof( t_int ) + 1;
-    MPI_CHK( mpi_grow( &ctx->X, n ) );
-    MPI_CHK( mpi_lset( &ctx->X, 0 ) );
 
-    p = (unsigned char *) ctx->X.p;
-    for( i = 0; i < x_size; i++ )
-        *p++ = (unsigned char) f_rng( p_rng );
+    mpi_fill_random( &ctx->X, n, f_rng, p_rng );
 
     while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
            mpi_shift_r( &ctx->X, 1 );
@@ -220,12 +216,8 @@ int dhm_make_public( dhm_context *ctx, int x_size,
      * generate X and calculate GX = G^X mod P
      */
     n = x_size / sizeof( t_int ) + 1;
-    MPI_CHK( mpi_grow( &ctx->X, n ) );
-    MPI_CHK( mpi_lset( &ctx->X, 0 ) );
 
-    p = (unsigned char *) ctx->X.p;
-    for( i = 0; i < x_size; i++ )
-        *p++ = (unsigned char) f_rng( p_rng );
+    mpi_fill_random( &ctx->X, n, f_rng, p_rng );
 
     while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
            mpi_shift_r( &ctx->X, 1 );

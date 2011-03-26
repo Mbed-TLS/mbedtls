@@ -1559,6 +1559,22 @@ cleanup:
     return( ret );
 }
 
+int mpi_fill_random( mpi *X, int size, int (*f_rng)(void *), void *p_rng )
+{
+    int ret, k;
+    unsigned char *p;
+
+    MPI_CHK( mpi_grow( X, size ) );
+    MPI_CHK( mpi_lset( X, 0 ) );
+
+    p = (unsigned char *) X->p;
+    for( k = 0; k < X->n * ciL; k++ )
+        *p++ = (unsigned char) f_rng( p_rng );
+
+cleanup:
+    return( ret );
+}
+
 #if defined(POLARSSL_GENPRIME)
 
 /*
@@ -1686,7 +1702,6 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng )
 {
     int ret, i, j, n, s, xs;
     mpi W, R, T, A, RR;
-    unsigned char *p;
 
     if( mpi_cmp_int( X, 0 ) == 0 ||
         mpi_cmp_int( X, 1 ) == 0 )
@@ -1740,11 +1755,7 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng )
         /*
          * pick a random A, 1 < A < |X| - 1
          */
-        MPI_CHK( mpi_grow( &A, X->n ) );
-
-        p = (unsigned char *) A.p;
-        for( j = 0; j < A.n * ciL; j++ )
-            *p++ = (unsigned char) f_rng( p_rng );
+        mpi_fill_random( &A, X->n, f_rng, p_rng );
 
         if( mpi_cmp_mpi( &A, &W ) >= 0 )
         {
@@ -1804,7 +1815,6 @@ int mpi_gen_prime( mpi *X, int nbits, int dh_flag,
                    int (*f_rng)(void *), void *p_rng )
 {
     int ret, k, n;
-    unsigned char *p;
     mpi Y;
 
     if( nbits < 3 )
@@ -1814,12 +1824,7 @@ int mpi_gen_prime( mpi *X, int nbits, int dh_flag,
 
     n = BITS_TO_LIMBS( nbits );
 
-    MPI_CHK( mpi_grow( X, n ) );
-    MPI_CHK( mpi_lset( X, 0 ) );
-
-    p = (unsigned char *) X->p;
-    for( k = 0; k < X->n * ciL; k++ )
-        *p++ = (unsigned char) f_rng( p_rng );
+    mpi_fill_random( X, n, f_rng, p_rng );
 
     k = mpi_msb( X );
     if( k < nbits ) MPI_CHK( mpi_shift_l( X, nbits - k ) );

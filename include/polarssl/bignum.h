@@ -467,6 +467,19 @@ int mpi_mod_int( t_int *r, const mpi *A, int b );
 int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR );
 
 /**
+ * \brief          Fill an MPI X with size bytes of random
+ *
+ * \param X        Destination MPI
+ * \param size     Size in bytes
+ * \param f_rng    RNG function
+ * \param p_rng    RNG parameter
+ *
+ * \return         0 if successful,
+ *                 1 if memory allocation failed
+ */
+int mpi_fill_random( mpi *X, int size, int (*f_rng)(void *), void *p_rng );
+
+/**
  * \brief          Greatest common divisor: G = gcd(A, B)
  *
  * \param G        Destination MPI

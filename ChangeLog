@@ -6,6 +6,8 @@ Features
      for the RSAES-OAEP and RSASSA-PSS operations.
    * Reading of Public Key files incorporated into default x509
      functionality as well.
+   * Added mpi_fill_random() for centralized filling of big numbers
+     with random data (Fixed ticket #10)
 
 Changes
    * Debug print of MPI now removes leading zero octets and 

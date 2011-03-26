@@ -253,7 +253,7 @@ int rsa_private( rsa_context *ctx,
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
-#if 0
+#if defined(POLARSSL_RSA_NO_CRT)
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
 #else
     /*

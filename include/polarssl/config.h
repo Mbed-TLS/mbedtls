@@ -143,6 +143,16 @@
  *
 #define POLARSSL_AES_ROM_TABLES
  */
+
+/**
+ * \def POLARSSL_RSA_NO_CRT
+ *
+ * Do not use the Chinese Remainder Theorem for the RSA private operation.
+ *
+ * Uncomment this macro to disable the use of CRT in RSA.
+ *
+#define POLARSSL_RSA_NO_CRT
+ */
 /* \} name */
 
 /**

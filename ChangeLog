@@ -10,6 +10,9 @@ Features
 Changes
    * Debug print of MPI now removes leading zero octets and 
      displays actual bit size of the value.
+   * x509parse_key() (and as a consequence x509parse_keyfile()) 
+     does not zeroize memory in advance anymore. Use rsa_init()
+	 before parsing a key or keyfile!
 
 Bugfix
    * Debug output of MPI's now the same independent of underlying

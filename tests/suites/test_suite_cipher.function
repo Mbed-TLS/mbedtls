@@ -1,5 +1,4 @@
 BEGIN_HEADER
-#include <polarssl/config.h>
 #include <polarssl/cipher.h>
 END_HEADER
 

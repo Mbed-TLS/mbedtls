@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Version 0.14.3 released on 2011-04-01
+Bugfixes
+   * Fixed mistake in default certificates
+
 = Version 0.14.2 released on 2011-02-28
 This release replaces version 0.14.1 which had possible copyright issues.
 Bugfixes

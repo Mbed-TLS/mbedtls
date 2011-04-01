@@ -131,7 +131,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
                      unsigned char *output, int *olen,
                      int (*f_rng)(void *), void *p_rng )
 {
-    int i, ret, n, n1, n2, n3;
+    int ret, n, n1, n2, n3;
     unsigned char *p;
 
     /*
@@ -206,8 +206,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
                      unsigned char *output, int olen,
                      int (*f_rng)(void *), void *p_rng )
 {
-    int ret, i, n;
-    unsigned char *p;
+    int ret, n;
 
     if( ctx == NULL || olen < 1 || olen > ctx->len )
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );

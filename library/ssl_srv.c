@@ -681,7 +681,7 @@ static int ssl_write_server_hello_done( ssl_context *ssl )
 
 static int ssl_parse_client_key_exchange( ssl_context *ssl )
 {
-    int ret, i, n;
+    int ret, i, n = 0;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 

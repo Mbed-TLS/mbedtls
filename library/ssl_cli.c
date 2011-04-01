@@ -625,7 +625,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
-    int ret, n;
+    int ret = 0, n = 0;
     unsigned char hash[36];
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );

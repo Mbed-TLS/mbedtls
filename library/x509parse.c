@@ -2049,6 +2049,7 @@ int x509parse_public_keyfile( rsa_context *rsa, const char *path )
     return( ret );
 }
 
+#if defined(POLARSSL_DHM_C)
 /*
  * Parse DHM parameters
  */
@@ -2150,6 +2151,7 @@ int x509parse_dhmfile( dhm_context *dhm, const char *path )
 
     return( ret );
 }
+#endif /* POLARSSL_DHM_C */
 
 #if defined _MSC_VER && !defined snprintf
 #include <stdarg.h>

@@ -37,6 +37,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#if defined _MSC_VER && !defined strcasecmp
+#define strcasecmp _stricmp
+#endif
+
 static const int supported_ciphers[] = {
 
 #if defined(POLARSSL_AES_C)

@@ -30,12 +30,12 @@
  *  Contact: seznec(at)irisa_dot_fr - orocheco(at)irisa_dot_fr
  */
 
-#include <string.h>
-#include <time.h>
-
 #include "polarssl/config.h"
 
 #if defined(POLARSSL_HAVEGE_C)
+
+#include <string.h>
+#include <time.h>
 
 #include "polarssl/havege.h"
 #include "polarssl/timing.h"

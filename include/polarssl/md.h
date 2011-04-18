@@ -30,6 +30,10 @@
 #ifndef POLARSSL_MD_H
 #define POLARSSL_MD_H
 
+#ifdef _MSC_VER
+#define inline _inline
+#endif
+
 typedef enum {
     POLARSSL_MD_NONE=0,
     POLARSSL_MD_MD2,

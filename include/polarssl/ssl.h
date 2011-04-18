@@ -41,6 +41,10 @@
 #include "polarssl/pkcs11.h"
 #endif
 
+#ifdef _MSC_VER
+#define inline _inline
+#endif
+
 /*
  * SSL Error codes
  */

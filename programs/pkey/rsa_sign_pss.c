@@ -36,6 +36,10 @@
 #include "polarssl/sha1.h"
 #include "polarssl/x509.h"
 
+#if defined _MSC_VER && !defined snprintf
+#define snprintf _snprintf
+#endif
+
 int main( int argc, char *argv[] )
 {
     FILE *f;

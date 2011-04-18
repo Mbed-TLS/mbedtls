@@ -32,6 +32,10 @@
 
 #include <string.h>
 
+#ifdef _MSC_VER
+#define inline _inline
+#endif
+
 typedef enum {
     POLARSSL_CIPHER_ID_NONE = 0,
     POLARSSL_CIPHER_ID_AES,

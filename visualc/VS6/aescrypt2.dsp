@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="ssl_client2" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="aescrypt2" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=ssl_client2 - Win32 Debug
+CFG=aescrypt2 - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "ssl_client2.mak".
+!MESSAGE NMAKE /f "aescrypt2.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "ssl_client2.mak" CFG="ssl_client2 - Win32 Debug"
+!MESSAGE NMAKE /f "aescrypt2.mak" CFG="aescrypt2 - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "ssl_client2 - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "ssl_client2 - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "aescrypt2 - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "aescrypt2 - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=ssl_client2 - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "ssl_client2 - Win32 Release"
+!IF  "$(CFG)" == "aescrypt2 - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -51,7 +51,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 
-!ELSEIF  "$(CFG)" == "ssl_client2 - Win32 Debug"
+!ELSEIF  "$(CFG)" == "aescrypt2 - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -78,15 +78,15 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "ssl_client2 - Win32 Release"
-# Name "ssl_client2 - Win32 Debug"
+# Name "aescrypt2 - Win32 Release"
+# Name "aescrypt2 - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\programs\ssl\ssl_client2.c
-# ADD CPP /I "../include"
+SOURCE=..\..\programs\aes\aescrypt2.c
+# ADD CPP /I "../../include"
 # End Source File
 # End Group
 # Begin Group "Header Files"

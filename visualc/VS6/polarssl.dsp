@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "temp"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../../include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x40c /d "NDEBUG"
 # ADD RSC /l 0x40c /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "temp"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /GX /Z7 /Od /I "../include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /GX /Z7 /Od /I "../../include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x40c /d "_DEBUG"
 # ADD RSC /l 0x40c /d "_DEBUG"
 BSC32=bscmake.exe
@@ -85,103 +85,123 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\library\aes.c
+SOURCE=..\..\library\aes.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\arc4.c
+SOURCE=..\..\library\arc4.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\base64.c
+SOURCE=..\..\library\base64.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\bignum.c
+SOURCE=..\..\library\bignum.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\camellia.c
+SOURCE=..\..\library\camellia.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\certs.c
+SOURCE=..\..\library\certs.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\debug.c
+SOURCE=..\..\library\cipher.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\des.c
+SOURCE=..\..\library\cipher_wrap.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\dhm.c
+SOURCE=..\..\library\debug.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\havege.c
+SOURCE=..\..\library\des.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\md2.c
+SOURCE=..\..\library\dhm.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\md4.c
+SOURCE=..\..\library\havege.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\md5.c
+SOURCE=..\..\library\md.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\net.c
+SOURCE=..\..\library\md_wrap.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\padlock.c
+SOURCE=..\..\library\md2.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\rsa.c
+SOURCE=..\..\library\md4.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\sha1.c
+SOURCE=..\..\library\md5.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\sha2.c
+SOURCE=..\..\library\net.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\sha4.c
+SOURCE=..\..\library\padlock.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\ssl_cli.c
+SOURCE=..\..\library\pem.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\ssl_srv.c
+SOURCE=..\..\library\rsa.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\ssl_tls.c
+SOURCE=..\..\library\sha1.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\timing.c
+SOURCE=..\..\library\sha2.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\x509parse.c
+SOURCE=..\..\library\sha4.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\library\xtea.c
+SOURCE=..\..\library\ssl_cli.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\ssl_srv.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\ssl_tls.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\timing.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\x509parse.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\xtea.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -189,103 +209,123 @@ SOURCE=..\library\xtea.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\include\polarssl\aes.h
+SOURCE=..\..\include\polarssl\aes.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\arc4.h
+SOURCE=..\..\include\polarssl\arc4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\base64.h
+SOURCE=..\..\include\polarssl\base64.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\bignum.h
+SOURCE=..\..\include\polarssl\bignum.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\bn_mul.h
+SOURCE=..\..\include\polarssl\bn_mul.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\camellia.h
+SOURCE=..\..\include\polarssl\camellia.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\certs.h
+SOURCE=..\..\include\polarssl\certs.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\config.h
+SOURCE=..\..\include\polarssl\cipher.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\debug.h
+SOURCE=..\..\include\polarssl\cipher_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\des.h
+SOURCE=..\..\include\polarssl\config.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\dhm.h
+SOURCE=..\..\include\polarssl\debug.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\havege.h
+SOURCE=..\..\include\polarssl\des.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\md2.h
+SOURCE=..\..\include\polarssl\dhm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\md4.h
+SOURCE=..\..\include\polarssl\havege.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\md5.h
+SOURCE=..\..\include\polarssl\md.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\net.h
+SOURCE=..\..\include\polarssl\md_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\padlock.h
+SOURCE=..\..\include\polarssl\md2.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\rsa.h
+SOURCE=..\..\include\polarssl\md4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\sha1.h
+SOURCE=..\..\include\polarssl\md5.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\sha2.h
+SOURCE=..\..\include\polarssl\net.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\sha4.h
+SOURCE=..\..\include\polarssl\padlock.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\ssl.h
+SOURCE=..\..\include\polarssl\pem.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\timing.h
+SOURCE=..\..\include\polarssl\rsa.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\x509.h
+SOURCE=..\..\include\polarssl\sha1.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\polarssl\xtea.h
+SOURCE=..\..\include\polarssl\sha2.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\sha4.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\ssl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\timing.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\x509.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\xtea.h
 # End Source File
 # End Group
 # End Target

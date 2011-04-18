@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="mpi_demo" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="dh_client" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=mpi_demo - Win32 Debug
+CFG=dh_client - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "mpi_demo.mak".
+!MESSAGE NMAKE /f "dh_client.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "mpi_demo.mak" CFG="mpi_demo - Win32 Debug"
+!MESSAGE NMAKE /f "dh_client.mak" CFG="dh_client - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "mpi_demo - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "mpi_demo - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "dh_client - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "dh_client - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=mpi_demo - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "mpi_demo - Win32 Release"
+!IF  "$(CFG)" == "dh_client - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -51,7 +51,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 
-!ELSEIF  "$(CFG)" == "mpi_demo - Win32 Debug"
+!ELSEIF  "$(CFG)" == "dh_client - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -78,15 +78,15 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "mpi_demo - Win32 Release"
-# Name "mpi_demo - Win32 Debug"
+# Name "dh_client - Win32 Release"
+# Name "dh_client - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\programs\pkey\mpi_demo.c
-# ADD CPP /I "../include"
+SOURCE=..\..\programs\pkey\dh_client.c
+# ADD CPP /I "../../include"
 # End Source File
 # End Group
 # Begin Group "Header Files"

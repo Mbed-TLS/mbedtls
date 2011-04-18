@@ -86,8 +86,8 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\programs\test\selftest.c
-# ADD CPP /I "../include"
+SOURCE=..\..\programs\test\selftest.c
+# ADD CPP /I "../../include"
 # End Source File
 # End Group
 # Begin Group "Header Files"

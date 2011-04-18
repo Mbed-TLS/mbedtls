@@ -68,48 +68,48 @@ static void aes_ctx_free( void *ctx )
 }
 
 const cipher_info_t aes_128_cbc_info = {
-    .type = POLARSSL_CIPHER_AES_128_CBC,
-    .cipher = POLARSSL_CIPHER_ID_AES,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = 128,
-    .name = "AES-128-CBC",
-    .iv_size = 16,
-    .block_size = 16,
-    .cbc_func = aes_crypt_cbc_wrap,
-    .setkey_enc_func = aes_setkey_enc_wrap,
-    .setkey_dec_func = aes_setkey_dec_wrap,
-    .ctx_alloc_func = aes_ctx_alloc,
-    .ctx_free_func = aes_ctx_free
+	POLARSSL_CIPHER_AES_128_CBC,
+	POLARSSL_CIPHER_ID_AES,
+	POLARSSL_MODE_CBC,
+	128,
+	"AES-128-CBC",
+	16,
+	16,
+	aes_crypt_cbc_wrap,
+	aes_setkey_enc_wrap,
+	aes_setkey_dec_wrap,
+	aes_ctx_alloc,
+	aes_ctx_free
 };
 
 const cipher_info_t aes_192_cbc_info = {
-    .type = POLARSSL_CIPHER_AES_192_CBC,
-    .cipher = POLARSSL_CIPHER_ID_AES,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = 192,
-    .name = "AES-192-CBC",
-    .iv_size = 16,
-    .block_size = 16,
-    .cbc_func = aes_crypt_cbc_wrap,
-    .setkey_enc_func = aes_setkey_enc_wrap,
-    .setkey_dec_func = aes_setkey_dec_wrap,
-    .ctx_alloc_func = aes_ctx_alloc,
-    .ctx_free_func = aes_ctx_free
+	POLARSSL_CIPHER_AES_192_CBC,
+	POLARSSL_CIPHER_ID_AES,
+	POLARSSL_MODE_CBC,
+	192,
+	"AES-192-CBC",
+	16,
+	16,
+	aes_crypt_cbc_wrap,
+	aes_setkey_enc_wrap,
+	aes_setkey_dec_wrap,
+	aes_ctx_alloc,
+	aes_ctx_free
 };
 
 const cipher_info_t aes_256_cbc_info = {
-    .type = POLARSSL_CIPHER_AES_256_CBC,
-    .cipher = POLARSSL_CIPHER_ID_AES,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = 256,
-    .name = "AES-256-CBC",
-    .iv_size = 16,
-    .block_size = 16,
-    .cbc_func = aes_crypt_cbc_wrap,
-    .setkey_enc_func = aes_setkey_enc_wrap,
-    .setkey_dec_func = aes_setkey_dec_wrap,
-    .ctx_alloc_func = aes_ctx_alloc,
-    .ctx_free_func = aes_ctx_free
+	POLARSSL_CIPHER_AES_256_CBC,
+	POLARSSL_CIPHER_ID_AES,
+	POLARSSL_MODE_CBC,
+	256,
+	"AES-256-CBC",
+	16,
+	16,
+	aes_crypt_cbc_wrap,
+	aes_setkey_enc_wrap,
+	aes_setkey_dec_wrap,
+	aes_ctx_alloc,
+	aes_ctx_free
 };
 #endif
 
@@ -142,48 +142,48 @@ static void camellia_ctx_free( void *ctx )
 }
 
 const cipher_info_t camellia_128_cbc_info = {
-    .type = POLARSSL_CIPHER_CAMELLIA_128_CBC,
-    .cipher = POLARSSL_CIPHER_ID_CAMELLIA,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = 128,
-    .name = "CAMELLIA-128-CBC",
-    .iv_size = 16,
-    .block_size = 16,
-    .cbc_func = camellia_crypt_cbc_wrap,
-    .setkey_enc_func = camellia_setkey_enc_wrap,
-    .setkey_dec_func = camellia_setkey_dec_wrap,
-    .ctx_alloc_func = camellia_ctx_alloc,
-    .ctx_free_func = camellia_ctx_free
+	POLARSSL_CIPHER_CAMELLIA_128_CBC,
+	POLARSSL_CIPHER_ID_CAMELLIA,
+	POLARSSL_MODE_CBC,
+	128,
+	"CAMELLIA-128-CBC",
+	16,
+	16,
+	camellia_crypt_cbc_wrap,
+	camellia_setkey_enc_wrap,
+	camellia_setkey_dec_wrap,
+	camellia_ctx_alloc,
+	camellia_ctx_free
 };
 
 const cipher_info_t camellia_192_cbc_info = {
-    .type = POLARSSL_CIPHER_CAMELLIA_192_CBC,
-    .cipher = POLARSSL_CIPHER_ID_CAMELLIA,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = 192,
-    .name = "CAMELLIA-192-CBC",
-    .iv_size = 16,
-    .block_size = 16,
-    .cbc_func = camellia_crypt_cbc_wrap,
-    .setkey_enc_func = camellia_setkey_enc_wrap,
-    .setkey_dec_func = camellia_setkey_dec_wrap,
-    .ctx_alloc_func = camellia_ctx_alloc,
-    .ctx_free_func = camellia_ctx_free
+	POLARSSL_CIPHER_CAMELLIA_192_CBC,
+	POLARSSL_CIPHER_ID_CAMELLIA,
+	POLARSSL_MODE_CBC,
+	192,
+	"CAMELLIA-192-CBC",
+	16,
+	16,
+	camellia_crypt_cbc_wrap,
+	camellia_setkey_enc_wrap,
+	camellia_setkey_dec_wrap,
+	camellia_ctx_alloc,
+	camellia_ctx_free
 };
 
 const cipher_info_t camellia_256_cbc_info = {
-    .type = POLARSSL_CIPHER_CAMELLIA_256_CBC,
-    .cipher = POLARSSL_CIPHER_ID_CAMELLIA,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = 256,
-    .name = "CAMELLIA-256-CBC",
-    .iv_size = 16,
-    .block_size = 16,
-    .cbc_func = camellia_crypt_cbc_wrap,
-    .setkey_enc_func = camellia_setkey_enc_wrap,
-    .setkey_dec_func = camellia_setkey_dec_wrap,
-    .ctx_alloc_func = camellia_ctx_alloc,
-    .ctx_free_func = camellia_ctx_free
+	POLARSSL_CIPHER_CAMELLIA_256_CBC,
+	POLARSSL_CIPHER_ID_CAMELLIA,
+	POLARSSL_MODE_CBC,
+	256,
+	"CAMELLIA-256-CBC",
+	16,
+	16,
+	camellia_crypt_cbc_wrap,
+	camellia_setkey_enc_wrap,
+	camellia_setkey_dec_wrap,
+	camellia_ctx_alloc,
+	camellia_ctx_free
 };
 #endif
 
@@ -259,48 +259,48 @@ static void des_ctx_free( void *ctx )
 }
 
 const cipher_info_t des_cbc_info = {
-    .type = POLARSSL_CIPHER_DES_CBC,
-    .cipher = POLARSSL_CIPHER_ID_DES,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = POLARSSL_KEY_LENGTH_DES,
-    .name = "DES-CBC",
-    .iv_size = 8,
-    .block_size = 8,
-    .cbc_func = des_crypt_cbc_wrap,
-    .setkey_enc_func = des_setkey_enc_wrap,
-    .setkey_dec_func = des_setkey_dec_wrap,
-    .ctx_alloc_func = des_ctx_alloc,
-    .ctx_free_func = des_ctx_free
+	POLARSSL_CIPHER_DES_CBC,
+	POLARSSL_CIPHER_ID_DES,
+	POLARSSL_MODE_CBC,
+	POLARSSL_KEY_LENGTH_DES,
+	"DES-CBC",
+	8,
+	8,
+	des_crypt_cbc_wrap,
+	des_setkey_enc_wrap,
+	des_setkey_dec_wrap,
+	des_ctx_alloc,
+	des_ctx_free
 };
 
 const cipher_info_t des_ede_cbc_info = {
-    .type = POLARSSL_CIPHER_DES_EDE_CBC,
-    .cipher = POLARSSL_CIPHER_ID_DES,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = POLARSSL_KEY_LENGTH_DES_EDE,
-    .name = "DES-EDE-CBC",
-    .iv_size = 16,
-    .block_size = 16,
-    .cbc_func = des3_crypt_cbc_wrap,
-    .setkey_enc_func = des3_set2key_enc_wrap,
-    .setkey_dec_func = des3_set2key_dec_wrap,
-    .ctx_alloc_func = des3_ctx_alloc,
-    .ctx_free_func = des_ctx_free
+	POLARSSL_CIPHER_DES_EDE_CBC,
+	POLARSSL_CIPHER_ID_DES,
+	POLARSSL_MODE_CBC,
+	POLARSSL_KEY_LENGTH_DES_EDE,
+	"DES-EDE-CBC",
+	16,
+	16,
+	des3_crypt_cbc_wrap,
+	des3_set2key_enc_wrap,
+	des3_set2key_dec_wrap,
+	des3_ctx_alloc,
+	des_ctx_free
 };
 
 const cipher_info_t des_ede3_cbc_info = {
-    .type = POLARSSL_CIPHER_DES_EDE3_CBC,
-    .cipher = POLARSSL_CIPHER_ID_DES,
-    .mode = POLARSSL_MODE_CBC,
-    .key_length = POLARSSL_KEY_LENGTH_DES_EDE3,
-    .name = "DES-EDE3-CBC",
-    .iv_size = 8,
-    .block_size = 8,
-    .cbc_func = des3_crypt_cbc_wrap,
-    .setkey_enc_func = des3_set3key_enc_wrap,
-    .setkey_dec_func = des3_set3key_dec_wrap,
-    .ctx_alloc_func = des3_ctx_alloc,
-    .ctx_free_func = des_ctx_free
+	POLARSSL_CIPHER_DES_EDE3_CBC,
+	POLARSSL_CIPHER_ID_DES,
+	POLARSSL_MODE_CBC,
+	POLARSSL_KEY_LENGTH_DES_EDE3,
+	"DES-EDE3-CBC",
+	8,
+	8,
+	des3_crypt_cbc_wrap,
+	des3_set3key_enc_wrap,
+	des3_set3key_dec_wrap,
+	des3_ctx_alloc,
+	des_ctx_free
 };
 #endif
 

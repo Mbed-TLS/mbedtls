@@ -37,6 +37,7 @@ typedef UINT32 uint32_t;
 #define XTEA_ENCRYPT     1
 #define XTEA_DECRYPT     0
 
+#define POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH               -0x0820
 
 /**
  * \brief          XTEA context structure
@@ -73,6 +74,26 @@ int xtea_crypt_ecb( xtea_context *ctx,
 		 int mode,
 		 unsigned char input[8],
 		 unsigned char output[8] );
+
+/**
+ * \brief          XTEA CBC cipher function
+ *
+ * \param ctx      XTEA context
+ * \param mode     XTEA_ENCRYPT or XTEA_DECRYPT
+ * \param length   the length of input, multiple of 8
+ * \param iv       initialization vector for CBC mode
+ * \param input    input block
+ * \param output   output block
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH if the length % 8 != 0
+ */
+int xtea_crypt_cbc( xtea_context *ctx,
+                    int mode,
+                    int length,
+                    unsigned char iv[8],
+                    unsigned char *input,
+                    unsigned char *output);
 
 /*
  * \brief          Checkup routine

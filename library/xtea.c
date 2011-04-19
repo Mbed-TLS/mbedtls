@@ -111,6 +111,58 @@ int xtea_crypt_ecb( xtea_context *ctx, int mode, unsigned char input[8],
     return( 0 );
 }
 
+/*
+ * XTEA-CBC buffer encryption/decryption
+ */
+int xtea_crypt_cbc( xtea_context *ctx,
+                    int mode,
+                    int length,
+                    unsigned char iv[8],
+                    unsigned char *input,
+                    unsigned char *output)
+{
+    int i;
+    unsigned char temp[8];
+
+    if(length % 8)
+        return( POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH );
+
+    if( mode == XTEA_DECRYPT ) 
+    {
+        while( length > 0 )
+        {
+            memcpy( temp, input, 8 );
+            xtea_crypt_ecb( ctx, mode, input, output );
+
+            for(i = 0; i < 8; i++) 
+                output[i] = (unsigned char)( output[i] ^ iv[i] );
+
+            memcpy( iv, temp, 8 );
+
+            input  += 8;
+            output += 8;
+            length -= 8;
+        }
+    } 
+    else 
+    {
+        while( length > 0 )
+        {
+            for( i = 0; i < 8; i++ )
+                output[i] = (unsigned char)( input[i] ^ iv[i] );
+
+            xtea_crypt_ecb( ctx, mode, output, output );
+            memcpy( iv, output, 8 );
+            
+            input  += 8;
+            output += 8;
+            length -= 8;
+        }
+    }
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_SELF_TEST)
 
 #include <string.h>

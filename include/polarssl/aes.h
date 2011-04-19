@@ -127,6 +127,30 @@ int aes_crypt_cfb128( aes_context *ctx,
                        const unsigned char *input,
                        unsigned char *output );
 
+/*
+ * \brief               AES-CTR buffer encryption/decryption
+ *
+ * Warning: You have to keep the maximum use of your counter in mind!
+ *
+ * \param length        The length of the data
+ * \param nc_off        The offset in the current stream_block (for resuming
+ *                      within current cipher stream). The offset pointer to
+ *                      should be 0 at the start of a stream.
+ * \param nonce_counter The 128-bit nonce and counter.
+ * \param stream_block  The saved stream-block for resuming. Is overwritten
+ *                      by the function.
+ * \param input         The input data stream
+ * \param output        The output data stream
+ *
+ * \return         0 if successful
+ */
+int aes_crypt_ctr( aes_context *ctx,
+                       int length,
+                       int *nc_off,
+                       unsigned char nonce_counter[16],
+                       unsigned char stream_block[16],
+                       const unsigned char *input,
+                       unsigned char *output );
 /**
  * \brief          Checkup routine
  *

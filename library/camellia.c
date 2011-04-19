@@ -573,6 +573,7 @@ int camellia_crypt_cbc( camellia_context *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
 /*
  * Camellia-CFB128 buffer encryption/decryption
  */
@@ -617,6 +618,45 @@ int camellia_crypt_cfb128( camellia_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+/*
+ * Camellia-CTR buffer encryption/decryption
+ */
+int camellia_crypt_ctr( camellia_context *ctx,
+                       int length,
+                       int *nc_off,
+                       unsigned char nonce_counter[16],
+                       unsigned char stream_block[16],
+                       const unsigned char *input,
+                       unsigned char *output )
+{
+    int c, n = *nc_off, i, cb;
+
+    while( length-- )
+    {
+        if( n == 0 ) {
+            camellia_crypt_ecb( ctx, CAMELLIA_ENCRYPT, nonce_counter, stream_block );
+
+            i = 15;
+            do {
+               nonce_counter[i]++;
+               cb = nonce_counter[i] == 0;
+            } while( i-- && cb );
+
+        }
+        c = *input++;
+        *output++ = (unsigned char)( c ^ stream_block[n] );
+
+        n = (n + 1) & 0x0F;
+    }
+
+    *nc_off = n;
+
+    return( 0 );
+}
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #if defined(POLARSSL_SELF_TEST)
 
@@ -752,6 +792,68 @@ static const unsigned char camellia_test_cbc_cipher[3][CAMELLIA_TESTS_CBC][16] =
     }
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+/*
+ * Camellia-CTR test vectors from:
+ *
+ * http://www.faqs.org/rfcs/rfc5528.html
+ */
+
+static const unsigned char camellia_test_ctr_key[3][16] =
+{
+    { 0xAE, 0x68, 0x52, 0xF8, 0x12, 0x10, 0x67, 0xCC,
+      0x4B, 0xF7, 0xA5, 0x76, 0x55, 0x77, 0xF3, 0x9E },
+    { 0x7E, 0x24, 0x06, 0x78, 0x17, 0xFA, 0xE0, 0xD7,
+      0x43, 0xD6, 0xCE, 0x1F, 0x32, 0x53, 0x91, 0x63 },
+    { 0x76, 0x91, 0xBE, 0x03, 0x5E, 0x50, 0x20, 0xA8,
+      0xAC, 0x6E, 0x61, 0x85, 0x29, 0xF9, 0xA0, 0xDC }
+};
+
+static const unsigned char camellia_test_ctr_nonce_counter[3][16] =
+{
+    { 0x00, 0x00, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 },
+    { 0x00, 0x6C, 0xB6, 0xDB, 0xC0, 0x54, 0x3B, 0x59,
+      0xDA, 0x48, 0xD9, 0x0B, 0x00, 0x00, 0x00, 0x01 },
+    { 0x00, 0xE0, 0x01, 0x7B, 0x27, 0x77, 0x7F, 0x3F,
+      0x4A, 0x17, 0x86, 0xF0, 0x00, 0x00, 0x00, 0x01 }
+};
+
+static const unsigned char camellia_test_ctr_pt[3][48] =
+{
+    { 0x53, 0x69, 0x6E, 0x67, 0x6C, 0x65, 0x20, 0x62,
+      0x6C, 0x6F, 0x63, 0x6B, 0x20, 0x6D, 0x73, 0x67 },
+
+    { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+      0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+      0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F },
+
+    { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+      0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+      0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+      0x20, 0x21, 0x22, 0x23 }
+};
+
+static const unsigned char camellia_test_ctr_ct[3][48] =
+{
+    { 0xD0, 0x9D, 0xC2, 0x9A, 0x82, 0x14, 0x61, 0x9A,
+      0x20, 0x87, 0x7C, 0x76, 0xDB, 0x1F, 0x0B, 0x3F },
+    { 0xDB, 0xF3, 0xC7, 0x8D, 0xC0, 0x83, 0x96, 0xD4,
+      0xDA, 0x7C, 0x90, 0x77, 0x65, 0xBB, 0xCB, 0x44,
+      0x2B, 0x8E, 0x8E, 0x0F, 0x31, 0xF0, 0xDC, 0xA7,
+      0x2C, 0x74, 0x17, 0xE3, 0x53, 0x60, 0xE0, 0x48 },
+    { 0xB1, 0x9D, 0x1F, 0xCD, 0xCB, 0x75, 0xEB, 0x88,
+      0x2F, 0x84, 0x9C, 0xE2, 0x4D, 0x85, 0xCF, 0x73,
+      0x9C, 0xE6, 0x4B, 0x2B, 0x5C, 0x9D, 0x73, 0xF1,
+      0x4F, 0x2D, 0x5D, 0x9D, 0xCE, 0x98, 0x89, 0xCD,
+      0xDF, 0x50, 0x86, 0x96 }
+};
+
+static const int camellia_test_ctr_len[3] =
+    { 16, 32, 36 };
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 /*
  * Checkup routine
@@ -764,6 +866,12 @@ int camellia_self_test( int verbose )
     unsigned char src[16];
     unsigned char dst[16];
     unsigned char iv[16];
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    int offset, len;
+    unsigned char nonce_counter[16];
+    unsigned char stream_block[16];
+#endif
+
     camellia_context ctx;
 
     memset( key, 0, 32 );
@@ -858,6 +966,64 @@ int camellia_self_test( int verbose )
 
     if( verbose != 0 )
         printf( "\n" );
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    /*
+     * CTR mode
+     */
+    for( i = 0; i < 6; i++ )
+    {
+        u = i >> 1;
+        v = i  & 1;
+
+        if( verbose != 0 )
+            printf( "  CAMELLIA-CTR-128 (%s): ",
+                    ( v == CAMELLIA_DECRYPT ) ? "dec" : "enc" );
+
+        memcpy( nonce_counter, camellia_test_ctr_nonce_counter[u], 16 );
+        memcpy( key, camellia_test_ctr_key[u], 16 );
+
+        offset = 0;
+        camellia_setkey_enc( &ctx, key, 128 );
+
+        if( v == CAMELLIA_DECRYPT )
+        {
+            len = camellia_test_ctr_len[u];
+            memcpy( buf, camellia_test_ctr_ct[u], len );
+
+            camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block, buf, buf );
+
+            if( memcmp( buf, camellia_test_ctr_pt[u], len ) != 0 )
+            {
+                if( verbose != 0 )
+                    printf( "failed\n" );
+
+                return( 1 );
+            }
+        }
+        else
+        {
+            len = camellia_test_ctr_len[u];
+            memcpy( buf, camellia_test_ctr_pt[u], len );
+
+            camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block, buf, buf );
+
+            if( memcmp( buf, camellia_test_ctr_ct[u], len ) != 0 )
+            {
+                if( verbose != 0 )
+                    printf( "failed\n" );
+
+                return( 1 );
+            }
+        }
+
+        if( verbose != 0 )
+            printf( "passed\n" );
+    }
+
+    if( verbose != 0 )
+        printf( "\n" );
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
     return ( 0 );
 }

@@ -106,6 +106,20 @@
  */
 
 /**
+ * \def POLARSSL_CIPHER_MODE_CFB
+ *
+ * Enable Cipher Feedback mode (CFB) for symmetric ciphers.
+ */
+#define POLARSSL_CIPHER_MODE_CFB
+
+/**
+ * \def POLARSSL_CIPHER_MODE_CTR
+ *
+ * Enable Counter Block Cipher mode (CTR) for symmetric ciphers.
+ */
+#define POLARSSL_CIPHER_MODE_CTR
+
+/**
  * \def POLARSSL_DEBUG_MSG
  *
  * Enable all SSL/TLS debugging messages.
@@ -130,7 +144,7 @@
 /**
  * \def POLARSSL_GENPRIME
  *
- * Enable the prime-number generation code.
+ * Enable the RSA prime-number generation code.
  */
 #define POLARSSL_GENPRIME
 

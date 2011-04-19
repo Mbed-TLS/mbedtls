@@ -817,6 +817,7 @@ int aes_crypt_cbc( aes_context *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
 /*
  * AES-CFB128 buffer encryption/decryption
  */
@@ -861,6 +862,45 @@ int aes_crypt_cfb128( aes_context *ctx,
 
     return( 0 );
 }
+#endif /*POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+/*
+ * AES-CTR buffer encryption/decryption
+ */
+int aes_crypt_ctr( aes_context *ctx,
+                       int length,
+                       int *nc_off,
+                       unsigned char nonce_counter[16],
+                       unsigned char stream_block[16],
+                       const unsigned char *input,
+                       unsigned char *output )
+{
+    int c, n = *nc_off, i, cb;
+
+    while( length-- )
+    {
+        if( n == 0 ) {
+            aes_crypt_ecb( ctx, AES_ENCRYPT, nonce_counter, stream_block );
+
+            i = 15;
+            do {
+               nonce_counter[i]++;
+               cb = nonce_counter[i] == 0;
+            } while( i-- && cb );
+
+        }
+        c = *input++;
+        *output++ = (unsigned char)( c ^ stream_block[n] );
+
+        n = (n + 1) & 0x0F;
+    }
+
+    *nc_off = n;
+
+    return( 0 );
+}
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #if defined(POLARSSL_SELF_TEST)
 
@@ -911,6 +951,7 @@ static const unsigned char aes_test_cbc_enc[3][16] =
       0x6F, 0xCD, 0x88, 0xB2, 0xCC, 0x89, 0x8F, 0xF0 }
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
 /*
  * AES-CFB128 test vectors from:
  *
@@ -974,17 +1015,86 @@ static const unsigned char aes_test_cfb128_ct[3][64] =
       0x75, 0xA3, 0x85, 0x74, 0x1A, 0xB9, 0xCE, 0xF8,
       0x20, 0x31, 0x62, 0x3D, 0x55, 0xB1, 0xE4, 0x71 }
 };
+#endif /* POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+/*
+ * AES-CTR test vectors from:
+ *
+ * http://www.faqs.org/rfcs/rfc3686.html
+ */
+
+static const unsigned char aes_test_ctr_key[3][16] =
+{
+    { 0xAE, 0x68, 0x52, 0xF8, 0x12, 0x10, 0x67, 0xCC,
+      0x4B, 0xF7, 0xA5, 0x76, 0x55, 0x77, 0xF3, 0x9E },
+    { 0x7E, 0x24, 0x06, 0x78, 0x17, 0xFA, 0xE0, 0xD7,
+      0x43, 0xD6, 0xCE, 0x1F, 0x32, 0x53, 0x91, 0x63 },
+    { 0x76, 0x91, 0xBE, 0x03, 0x5E, 0x50, 0x20, 0xA8,
+      0xAC, 0x6E, 0x61, 0x85, 0x29, 0xF9, 0xA0, 0xDC }
+};
+
+static const unsigned char aes_test_ctr_nonce_counter[3][16] =
+{
+    { 0x00, 0x00, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 },
+    { 0x00, 0x6C, 0xB6, 0xDB, 0xC0, 0x54, 0x3B, 0x59,
+      0xDA, 0x48, 0xD9, 0x0B, 0x00, 0x00, 0x00, 0x01 },
+    { 0x00, 0xE0, 0x01, 0x7B, 0x27, 0x77, 0x7F, 0x3F,
+      0x4A, 0x17, 0x86, 0xF0, 0x00, 0x00, 0x00, 0x01 }
+};
+
+static const unsigned char aes_test_ctr_pt[3][48] =
+{
+    { 0x53, 0x69, 0x6E, 0x67, 0x6C, 0x65, 0x20, 0x62,
+      0x6C, 0x6F, 0x63, 0x6B, 0x20, 0x6D, 0x73, 0x67 },
+
+    { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+      0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+      0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F },
+
+    { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+      0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+      0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+      0x20, 0x21, 0x22, 0x23 }
+};
+
+static const unsigned char aes_test_ctr_ct[3][48] =
+{
+    { 0xE4, 0x09, 0x5D, 0x4F, 0xB7, 0xA7, 0xB3, 0x79,
+      0x2D, 0x61, 0x75, 0xA3, 0x26, 0x13, 0x11, 0xB8 },
+    { 0x51, 0x04, 0xA1, 0x06, 0x16, 0x8A, 0x72, 0xD9,
+      0x79, 0x0D, 0x41, 0xEE, 0x8E, 0xDA, 0xD3, 0x88,
+      0xEB, 0x2E, 0x1E, 0xFC, 0x46, 0xDA, 0x57, 0xC8,
+      0xFC, 0xE6, 0x30, 0xDF, 0x91, 0x41, 0xBE, 0x28 },
+    { 0xC1, 0xCF, 0x48, 0xA8, 0x9F, 0x2F, 0xFD, 0xD9,
+      0xCF, 0x46, 0x52, 0xE9, 0xEF, 0xDB, 0x72, 0xD7,
+      0x45, 0x40, 0xA4, 0x2B, 0xDE, 0x6D, 0x78, 0x36,
+      0xD5, 0x9A, 0x5C, 0xEA, 0xAE, 0xF3, 0x10, 0x53,
+      0x25, 0xB2, 0x07, 0x2F }
+};
+
+static const int aes_test_ctr_len[3] =
+    { 16, 32, 36 };
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 /*
  * Checkup routine
  */
 int aes_self_test( int verbose )
 {
-    int i, j, u, v, offset;
+    int i, j, u, v;
     unsigned char key[32];
     unsigned char buf[64];
     unsigned char prv[16];
     unsigned char iv[16];
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    int offset, len;
+    unsigned char nonce_counter[16];
+    unsigned char stream_block[16];
+#endif
     aes_context ctx;
 
     memset( key, 0, 32 );
@@ -1103,6 +1213,7 @@ int aes_self_test( int verbose )
     if( verbose != 0 )
         printf( "\n" );
 
+#if defined(POLARSSL_CIPHERY_MODE_CFB)
     /*
      * CFB128 mode
      */
@@ -1152,9 +1263,67 @@ int aes_self_test( int verbose )
             printf( "passed\n" );
     }
 
+    if( verbose != 0 )
+        printf( "\n" );
+#endif /* POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    /*
+     * CTR mode
+     */
+    for( i = 0; i < 6; i++ )
+    {
+        u = i >> 1;
+        v = i  & 1;
+
+        if( verbose != 0 )
+            printf( "  AES-CTR-128 (%s): ",
+                    ( v == AES_DECRYPT ) ? "dec" : "enc" );
+
+        memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
+        memcpy( key, aes_test_ctr_key[u], 16 );
+
+        offset = 0;
+        aes_setkey_enc( &ctx, key, 128 );
+
+        if( v == AES_DECRYPT )
+        {
+            len = aes_test_ctr_len[u];
+            memcpy( buf, aes_test_ctr_ct[u], len );
+
+            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block, buf, buf );
+
+            if( memcmp( buf, aes_test_ctr_pt[u], len ) != 0 )
+            {
+                if( verbose != 0 )
+                    printf( "failed\n" );
+
+                return( 1 );
+            }
+        }
+        else
+        {
+            len = aes_test_ctr_len[u];
+            memcpy( buf, aes_test_ctr_pt[u], len );
+
+            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block, buf, buf );
+
+            if( memcmp( buf, aes_test_ctr_ct[u], len ) != 0 )
+            {
+                if( verbose != 0 )
+                    printf( "failed\n" );
+
+                return( 1 );
+            }
+        }
+
+        if( verbose != 0 )
+            printf( "passed\n" );
+    }
 
     if( verbose != 0 )
         printf( "\n" );
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
     return( 0 );
 }

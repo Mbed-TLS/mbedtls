@@ -98,7 +98,7 @@ typedef struct {
     /** Cipher key length, in bits (default length for variable sized ciphers) */
     int key_length;
 
-    /** Name of the message digest */
+    /** Name of the cipher */
     const char * name;
 
     /** IV size, in bytes */

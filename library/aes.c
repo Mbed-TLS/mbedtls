@@ -1090,8 +1090,11 @@ int aes_self_test( int verbose )
     unsigned char buf[64];
     unsigned char prv[16];
     unsigned char iv[16];
+#if defined(POLARSSL_CIPHER_MODE_CTR) || defined(POLARSSL_CIPHER_MODE_CFB)
+    int offset;
+#endif
 #if defined(POLARSSL_CIPHER_MODE_CTR)
-    int offset, len;
+    int len;
     unsigned char nonce_counter[16];
     unsigned char stream_block[16];
 #endif
@@ -1213,7 +1216,7 @@ int aes_self_test( int verbose )
     if( verbose != 0 )
         printf( "\n" );
 
-#if defined(POLARSSL_CIPHERY_MODE_CFB)
+#if defined(POLARSSL_CIPHER_MODE_CFB)
     /*
      * CFB128 mode
      */

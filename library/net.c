@@ -40,8 +40,8 @@
 #pragma comment( lib, "ws2_32.lib" )
 #endif
 
-#define read(fd,buf,len)        recv(fd,buf,(int) len,0)
-#define write(fd,buf,len)       send(fd,buf,(int) len,0)
+#define read(fd,buf,len)        recv(fd,(char*)buf,(int) len,0)
+#define write(fd,buf,len)       send(fd,(char*)buf,(int) len,0)
 #define close(fd)               closesocket(fd)
 
 static int wsa_init_done = 0;
@@ -257,7 +257,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 int net_set_block( int fd )
 {
 #if defined(_WIN32) || defined(_WIN32_WCE)
-    long n = 0;
+    u_long n = 0;
     return( ioctlsocket( fd, FIONBIO, &n ) );
 #else
     return( fcntl( fd, F_SETFL, fcntl( fd, F_GETFL ) & ~O_NONBLOCK ) );
@@ -267,7 +267,7 @@ int net_set_block( int fd )
 int net_set_nonblock( int fd )
 {
 #if defined(_WIN32) || defined(_WIN32_WCE)
-    long n = 1;
+    u_long n = 1;
     return( ioctlsocket( fd, FIONBIO, &n ) );
 #else
     return( fcntl( fd, F_SETFL, fcntl( fd, F_GETFL ) | O_NONBLOCK ) );

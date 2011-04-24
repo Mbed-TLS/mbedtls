@@ -96,7 +96,7 @@ void debug_print_buf( const ssl_context *ssl, int level,
         return;
 
     snprintf( str, maxlen, "%s(%04d): dumping '%s' (%d bytes)\n",
-              file, line, text, len );
+              file, line, text, (unsigned int) len );
 
     str[maxlen] = '\0';
     ssl->f_dbg( ssl->p_dbg, level, str );
@@ -111,7 +111,8 @@ void debug_print_buf( const ssl_context *ssl, int level,
             if( i > 0 )
                 ssl->f_dbg( ssl->p_dbg, level, "\n" );
 
-            snprintf( str, maxlen, "%s(%04d): %04x: ", file, line, i );
+            snprintf( str, maxlen, "%s(%04d): %04x: ", file, line,
+                      (unsigned int) i );
 
             str[maxlen] = '\0';
             ssl->f_dbg( ssl->p_dbg, level, str );

@@ -27,7 +27,7 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <windows.h>
 #include <io.h>
 #else

@@ -106,6 +106,16 @@
  */
 
 /**
+ * \def POLARSSL_AES_ROM_TABLES
+ *
+ * Store the AES tables in ROM.
+ *
+ * Uncomment this macro to store the AES tables in ROM.
+ *
+#define POLARSSL_AES_ROM_TABLES
+ */
+
+/**
  * \def POLARSSL_CIPHER_MODE_CFB
  *
  * Enable Cipher Feedback mode (CFB) for symmetric ciphers.
@@ -127,11 +137,11 @@
 #define POLARSSL_DEBUG_MSG
 
 /**
- * \def POLARSSL_SELF_TEST
+ * \def POLARSSL_GENPRIME
  *
- * Enable the checkup functions (*_self_test).
+ * Enable the RSA prime-number generation code.
  */
-#define POLARSSL_SELF_TEST
+#define POLARSSL_GENPRIME
 
 /**
  * \def POLARSSL_PKCS1_V21
@@ -142,23 +152,6 @@
 #define POLARSSL_PKCS1_V21
 
 /**
- * \def POLARSSL_GENPRIME
- *
- * Enable the RSA prime-number generation code.
- */
-#define POLARSSL_GENPRIME
-
-/**
- * \def POLARSSL_AES_ROM_TABLES
- *
- * Store the AES tables in ROM.
- *
- * Uncomment this macro to store the AES tables in ROM.
- *
-#define POLARSSL_AES_ROM_TABLES
- */
-
-/**
  * \def POLARSSL_RSA_NO_CRT
  *
  * Do not use the Chinese Remainder Theorem for the RSA private operation.
@@ -167,6 +160,13 @@
  *
 #define POLARSSL_RSA_NO_CRT
  */
+
+/**
+ * \def POLARSSL_SELF_TEST
+ *
+ * Enable the checkup functions (*_self_test).
+ */
+#define POLARSSL_SELF_TEST
 /* \} name */
 
 /**

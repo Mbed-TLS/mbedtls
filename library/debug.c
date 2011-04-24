@@ -87,12 +87,12 @@ void debug_print_ret( const ssl_context *ssl, int level,
 
 void debug_print_buf( const ssl_context *ssl, int level,
                       const char *file, int line, const char *text,
-                      unsigned char *buf, int len )
+                      unsigned char *buf, size_t len )
 {
     char str[512];
-    int i, maxlen = sizeof( str ) - 1;
+    size_t i, maxlen = sizeof( str ) - 1;
 
-    if( ssl->f_dbg == NULL || len < 0 )
+    if( ssl->f_dbg == NULL )
         return;
 
     snprintf( str, maxlen, "%s(%04d): dumping '%s' (%d bytes)\n",
@@ -132,7 +132,8 @@ void debug_print_mpi( const ssl_context *ssl, int level,
                       const char *text, const mpi *X )
 {
     char str[512];
-    int i, j, k, n, maxlen = sizeof( str ) - 1, zeros = 1;
+    int j, k, maxlen = sizeof( str ) - 1, zeros = 1;
+    size_t i, n;
 
     if( ssl->f_dbg == NULL || X == NULL )
         return;
@@ -152,14 +153,14 @@ void debug_print_mpi( const ssl_context *ssl, int level,
     str[maxlen] = '\0';
     ssl->f_dbg( ssl->p_dbg, level, str );
 
-    for( i = n, j = 0; i >= 0; i-- )
+    for( i = n + 1, j = 0; i > 0; i-- )
     {
-        if( zeros && X->p[i] == 0 )
+        if( zeros && X->p[i - 1] == 0 )
             continue;
 
         for( k = sizeof( t_int ) - 1; k >= 0; k-- )
         {
-            if( zeros && ( ( X->p[i] >> (k << 3) ) & 0xFF ) == 0 )
+            if( zeros && ( ( X->p[i - 1] >> (k << 3) ) & 0xFF ) == 0 )
                 continue;
             else
                 zeros = 0;
@@ -176,7 +177,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
             }
 
             snprintf( str, maxlen, " %02x", (unsigned int)
-                      ( X->p[i] >> (k << 3) ) & 0xFF );
+                      ( X->p[i - 1] >> (k << 3) ) & 0xFF );
 
             str[maxlen] = '\0';
             ssl->f_dbg( ssl->p_dbg, level, str );

@@ -36,8 +36,6 @@
 #include "polarssl/aes.h"
 #include "polarssl/padlock.h"
 
-#include <string.h>
-
 /*
  * 32-bit integer manipulation macros (little endian)
  */
@@ -441,9 +439,9 @@ static void aes_gen_tables( void )
 /*
  * AES key schedule (encryption)
  */
-int aes_setkey_enc( aes_context *ctx, const unsigned char *key, int keysize )
+int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int keysize )
 {
-    int i;
+    unsigned int i;
     unsigned long *RK;
 
 #if !defined(POLARSSL_AES_ROM_TABLES)
@@ -546,7 +544,7 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, int keysize )
 /*
  * AES key schedule (decryption)
  */
-int aes_setkey_dec( aes_context *ctx, const unsigned char *key, int keysize )
+int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int keysize )
 {
     int i, j;
     aes_context cty;
@@ -758,7 +756,7 @@ int aes_crypt_ecb( aes_context *ctx,
  */
 int aes_crypt_cbc( aes_context *ctx,
                     int mode,
-                    int length,
+                    size_t length,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output )
@@ -823,7 +821,7 @@ int aes_crypt_cbc( aes_context *ctx,
  */
 int aes_crypt_cfb128( aes_context *ctx,
                        int mode,
-                       int length,
+                       size_t length,
                        int *iv_off,
                        unsigned char iv[16],
                        const unsigned char *input,

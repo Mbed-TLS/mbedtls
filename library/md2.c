@@ -35,7 +35,6 @@
 
 #include "polarssl/md2.h"
 
-#include <string.h>
 #include <stdio.h>
 
 static const unsigned char PI_SUBST[256] =
@@ -116,9 +115,9 @@ static void md2_process( md2_context *ctx )
 /*
  * MD2 process buffer
  */
-void md2_update( md2_context *ctx, const unsigned char *input, int ilen )
+void md2_update( md2_context *ctx, const unsigned char *input, size_t ilen )
 {
-    int fill;
+    size_t fill;
 
     while( ilen > 0 )
     {
@@ -146,7 +145,7 @@ void md2_update( md2_context *ctx, const unsigned char *input, int ilen )
  */
 void md2_finish( md2_context *ctx, unsigned char output[16] )
 {
-    int i;
+    size_t i;
     unsigned char x;
 
     x = (unsigned char)( 16 - ctx->left );
@@ -165,7 +164,7 @@ void md2_finish( md2_context *ctx, unsigned char output[16] )
 /*
  * output = MD2( input buffer )
  */
-void md2( const unsigned char *input, int ilen, unsigned char output[16] )
+void md2( const unsigned char *input, size_t ilen, unsigned char output[16] )
 {
     md2_context ctx;
 
@@ -211,9 +210,9 @@ int md2_file( const char *path, unsigned char output[16] )
 /*
  * MD2 HMAC context setup
  */
-void md2_hmac_starts( md2_context *ctx, const unsigned char *key, int keylen )
+void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen )
 {
-    int i;
+    size_t i;
     unsigned char sum[16];
 
     if( keylen > 64 )
@@ -241,7 +240,7 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key, int keylen )
 /*
  * MD2 HMAC process buffer
  */
-void md2_hmac_update( md2_context *ctx, const unsigned char *input, int ilen )
+void md2_hmac_update( md2_context *ctx, const unsigned char *input, size_t ilen )
 {
     md2_update( ctx, input, ilen );
 }
@@ -274,8 +273,8 @@ void md2_hmac_reset( md2_context *ctx )
 /*
  * output = HMAC-MD2( hmac key, input buffer )
  */
-void md2_hmac( const unsigned char *key, int keylen,
-               const unsigned char *input, int ilen,
+void md2_hmac( const unsigned char *key, size_t keylen,
+               const unsigned char *input, size_t ilen,
                unsigned char output[16] )
 {
     md2_context ctx;

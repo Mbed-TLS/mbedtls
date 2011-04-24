@@ -27,6 +27,8 @@
 #ifndef POLARSSL_MD2_H
 #define POLARSSL_MD2_H
 
+#include <string.h>
+
 /**
  * \brief          MD2 context structure
  */
@@ -38,7 +40,7 @@ typedef struct
 
     unsigned char ipad[64];     /*!< HMAC: inner padding        */
     unsigned char opad[64];     /*!< HMAC: outer padding        */
-    int left;                   /*!< amount of data in buffer   */
+    size_t left;                /*!< amount of data in buffer   */
 }
 md2_context;
 
@@ -60,7 +62,7 @@ void md2_starts( md2_context *ctx );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void md2_update( md2_context *ctx, const unsigned char *input, int ilen );
+void md2_update( md2_context *ctx, const unsigned char *input, size_t ilen );
 
 /**
  * \brief          MD2 final digest
@@ -77,7 +79,7 @@ void md2_finish( md2_context *ctx, unsigned char output[16] );
  * \param ilen     length of the input data
  * \param output   MD2 checksum result
  */
-void md2( const unsigned char *input, int ilen, unsigned char output[16] );
+void md2( const unsigned char *input, size_t ilen, unsigned char output[16] );
 
 /**
  * \brief          Output = MD2( file contents )
@@ -97,7 +99,7 @@ int md2_file( const char *path, unsigned char output[16] );
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  */
-void md2_hmac_starts( md2_context *ctx, const unsigned char *key, int keylen );
+void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen );
 
 /**
  * \brief          MD2 HMAC process buffer
@@ -106,7 +108,7 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key, int keylen );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void md2_hmac_update( md2_context *ctx, const unsigned char *input, int ilen );
+void md2_hmac_update( md2_context *ctx, const unsigned char *input, size_t ilen );
 
 /**
  * \brief          MD2 HMAC final digest
@@ -132,8 +134,8 @@ void md2_hmac_reset( md2_context *ctx );
  * \param ilen     length of the input data
  * \param output   HMAC-MD2 result
  */
-void md2_hmac( const unsigned char *key, int keylen,
-               const unsigned char *input, int ilen,
+void md2_hmac( const unsigned char *key, size_t keylen,
+               const unsigned char *input, size_t ilen,
                unsigned char output[16] );
 
 /**

@@ -27,6 +27,8 @@
 #ifndef POLARSSL_DES_H
 #define POLARSSL_DES_H
 
+#include <string.h>
+
 #define DES_ENCRYPT     1
 #define DES_DECRYPT     0
 
@@ -171,7 +173,7 @@ int des_crypt_ecb( des_context *ctx,
  */
 int des_crypt_cbc( des_context *ctx,
                     int mode,
-                    int length,
+                    size_t length,
                     unsigned char iv[8],
                     const unsigned char *input,
                     unsigned char *output );
@@ -203,7 +205,7 @@ int des3_crypt_ecb( des3_context *ctx,
  */
 int des3_crypt_cbc( des3_context *ctx,
                      int mode,
-                     int length,
+                     size_t length,
                      unsigned char iv[8],
                      const unsigned char *input,
                      unsigned char *output );

@@ -94,7 +94,7 @@ void pkcs11_priv_key_free( pkcs11_context *priv_key );
  *                 an error is thrown.
  */
 int pkcs11_decrypt( pkcs11_context *ctx,
-                       int mode, int *olen,
+                       int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
                        unsigned int output_max_len );
@@ -118,7 +118,7 @@ int pkcs11_decrypt( pkcs11_context *ctx,
 int pkcs11_sign( pkcs11_context *ctx,
                     int mode,
                     int hash_id,
-                    int hashlen,
+                    unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig );
 

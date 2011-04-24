@@ -27,6 +27,8 @@
 #ifndef POLARSSL_XTEA_H
 #define POLARSSL_XTEA_H
 
+#include <string.h>
+
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;
@@ -71,9 +73,9 @@ void xtea_setup( xtea_context *ctx, unsigned char key[16] );
  * \return         0 if successful
  */
 int xtea_crypt_ecb( xtea_context *ctx,
-		 int mode,
-		 unsigned char input[8],
-		 unsigned char output[8] );
+                    int mode,
+                    unsigned char input[8],
+                    unsigned char output[8] );
 
 /**
  * \brief          XTEA CBC cipher function
@@ -90,7 +92,7 @@ int xtea_crypt_ecb( xtea_context *ctx,
  */
 int xtea_crypt_cbc( xtea_context *ctx,
                     int mode,
-                    int length,
+                    size_t length,
                     unsigned char iv[8],
                     unsigned char *input,
                     unsigned char *output);

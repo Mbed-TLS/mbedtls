@@ -34,7 +34,6 @@
 #include "polarssl/md.h"
 #include "polarssl/md_wrap.h"
 
-#include <string.h>
 #include <stdlib.h>
 
 #if defined _MSC_VER && !defined strcasecmp
@@ -190,7 +189,7 @@ int md_starts( md_context_t *ctx )
     return 0;
 }
 
-int md_update( md_context_t *ctx, const unsigned char *input, int ilen )
+int md_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
 {
     if( ctx == NULL || ctx->md_info == NULL )
         return 1;
@@ -210,7 +209,7 @@ int md_finish( md_context_t *ctx, unsigned char *output )
     return 0;
 }
 
-int md( const md_info_t *md_info, const unsigned char *input, int ilen,
+int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
             unsigned char *output )
 {
     if ( md_info == NULL )
@@ -229,7 +228,7 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
     return md_info->file_func( path, output );
 }
 
-int md_hmac_starts( md_context_t *ctx, const unsigned char *key, int keylen )
+int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
 {
     if( ctx == NULL || ctx->md_info == NULL )
         return 1;
@@ -239,7 +238,7 @@ int md_hmac_starts( md_context_t *ctx, const unsigned char *key, int keylen )
     return 0;
 }
 
-int md_hmac_update( md_context_t *ctx, const unsigned char *input, int ilen )
+int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
 {
     if( ctx == NULL || ctx->md_info == NULL )
         return 1;
@@ -269,8 +268,8 @@ int md_hmac_reset( md_context_t *ctx )
     return 0;
 }
 
-int md_hmac( const md_info_t *md_info, const unsigned char *key, int keylen,
-                const unsigned char *input, int ilen,
+int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
+                const unsigned char *input, size_t ilen,
                 unsigned char *output )
 {
     if( md_info == NULL )

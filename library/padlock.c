@@ -33,12 +33,9 @@
 
 #if defined(POLARSSL_PADLOCK_C)
 
-#include "polarssl/aes.h"
 #include "polarssl/padlock.h"
 
 #if defined(POLARSSL_HAVE_X86)
-
-#include <string.h>
 
 /*
  * PadLock detection routine
@@ -115,12 +112,13 @@ int padlock_xcryptecb( aes_context *ctx,
  */
 int padlock_xcryptcbc( aes_context *ctx,
                        int mode,
-                       int length,
+                       size_t length,
                        unsigned char iv[16],
                        const unsigned char *input,
                        unsigned char *output )
 {
-    int ebx, count;
+    int ebx;
+    size_t count;
     unsigned long *rk;
     unsigned long *iw;
     unsigned long *ctrl;

@@ -44,7 +44,8 @@ int main( void )
 {
     FILE *f;
 
-    int ret, n, buflen;
+    int ret;
+    size_t n, buflen;
     int server_fd = -1;
 
     unsigned char *p, *end;
@@ -123,7 +124,7 @@ int main( void )
     }
 
     n = buflen = ( buf[0] << 8 ) | buf[1];
-    if( buflen < 1 || buflen > (int) sizeof( buf ) )
+    if( buflen < 1 || buflen > sizeof( buf ) )
     {
         printf( " failed\n  ! Got an invalid buffer length\n\n" );
         goto exit;
@@ -134,7 +135,7 @@ int main( void )
      */
     memset( buf, 0, sizeof( buf ) );
 
-    if( ( ret = net_recv( &server_fd, buf, n ) ) != n )
+    if( ( ret = net_recv( &server_fd, buf, n ) ) != (int) n )
     {
         printf( " failed\n  ! net_recv returned %d\n\n", ret );
         goto exit;
@@ -162,7 +163,7 @@ int main( void )
     printf( "\n  . Verifying the server's RSA signature" );
     fflush( stdout );
 
-    if( ( n = (int)( end - p ) ) != rsa.len )
+    if( ( n = (size_t) ( end - p ) ) != rsa.len )
     {
         ret = 1;
         printf( " failed\n  ! Invalid RSA signature size\n\n" );
@@ -192,7 +193,7 @@ int main( void )
         goto exit;
     }
 
-    if( ( ret = net_send( &server_fd, buf, n ) ) != n )
+    if( ( ret = net_send( &server_fd, buf, n ) ) != (int) n )
     {
         printf( " failed\n  ! net_send returned %d\n\n", ret );
         goto exit;

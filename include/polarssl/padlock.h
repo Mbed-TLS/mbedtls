@@ -86,7 +86,7 @@ int padlock_xcryptecb( aes_context *ctx,
  */
 int padlock_xcryptcbc( aes_context *ctx,
                        int mode,
-                       int length,
+                       size_t length,
                        unsigned char iv[16],
                        const unsigned char *input,
                        unsigned char *output );

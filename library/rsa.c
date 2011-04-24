@@ -37,7 +37,6 @@
 #include "polarssl/md.h"
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 
 /*
@@ -61,7 +60,7 @@ void rsa_init( rsa_context *ctx,
 int rsa_gen_key( rsa_context *ctx,
         int (*f_rng)(void *),
         void *p_rng,
-        int nbits, int exponent )
+        unsigned int nbits, int exponent )
 {
     int ret;
     mpi P1, Q1, H, G;
@@ -206,7 +205,8 @@ int rsa_public( rsa_context *ctx,
                 const unsigned char *input,
                 unsigned char *output )
 {
-    int ret, olen;
+    int ret;
+    size_t olen;
     mpi T;
 
     mpi_init( &T, NULL );
@@ -240,7 +240,8 @@ int rsa_private( rsa_context *ctx,
                  const unsigned char *input,
                  unsigned char *output )
 {
-    int ret, olen;
+    int ret;
+    size_t olen;
     mpi T, T1, T2;
 
     mpi_init( &T, &T1, &T2, NULL );
@@ -301,15 +302,15 @@ cleanup:
  * @param src       source of the mask generation
  * @param slen      length of the source buffer
  * @param md_ctx    message digest context to use
- * @param hlen      length of the digest result
  */
-static void mgf_mask( unsigned char *dst, int dlen, unsigned char *src, int slen,  
+static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src, size_t slen,  
                        md_context_t *md_ctx )
 {
     unsigned char mask[POLARSSL_MD_MAX_SIZE];
     unsigned char counter[4];
     unsigned char *p;
-    int i, use_len, hlen;
+    unsigned int hlen;
+    size_t i, use_len;
 
     memset( mask, 0, POLARSSL_MD_MAX_SIZE );
     memset( counter, 0, 4 );
@@ -347,16 +348,16 @@ static void mgf_mask( unsigned char *dst, int dlen, unsigned char *src, int slen
 int rsa_pkcs1_encrypt( rsa_context *ctx,
                        int (*f_rng)(void *),
                        void *p_rng,
-                       int mode, int  ilen,
+                       int mode, size_t ilen,
                        const unsigned char *input,
                        unsigned char *output )
 {
-    int nb_pad, olen;
+    size_t nb_pad, olen;
     unsigned char *p = output;
 #if defined(POLARSSL_PKCS1_V21)
+    unsigned int i, hlen;
     const md_info_t *md_info;
     md_context_t md_ctx;
-    int i, hlen;
 #endif
 
     olen = ctx->len;
@@ -368,7 +369,7 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
     {
         case RSA_PKCS_V15:
 
-            if( ilen < 0 || olen < ilen + 11 )
+            if( olen < ilen + 11 )
                 return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
             nb_pad = olen - 3 - ilen;
@@ -404,7 +405,7 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
 
             hlen = md_get_size( md_info );
 
-            if( ilen < 0 || olen < ilen + 2 * hlen + 2 || f_rng == NULL )
+            if( olen < ilen + 2 * hlen + 2 || f_rng == NULL )
                 return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
             memset( output, 0, olen );
@@ -453,19 +454,20 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
  * Do an RSA operation, then remove the message padding
  */
 int rsa_pkcs1_decrypt( rsa_context *ctx,
-                       int mode, int *olen,
+                       int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
-                       int output_max_len)
+                       size_t output_max_len)
 {
-    int ret, ilen;
+    int ret;
+    size_t ilen;
     unsigned char *p;
     unsigned char buf[1024];
 #if defined(POLARSSL_PKCS1_V21)
     unsigned char lhash[POLARSSL_MD_MAX_SIZE];
+    unsigned int hlen;
     const md_info_t *md_info;
     md_context_t md_ctx;
-    int hlen;
 #endif
 
     ilen = ctx->len;
@@ -554,7 +556,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
     }
 
     if (ilen - (int)(p - buf) > output_max_len)
-    	return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
+        return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
 
     *olen = ilen - (int)(p - buf);
     memcpy( output, p, *olen );
@@ -570,17 +572,18 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                     void *p_rng,
                     int mode,
                     int hash_id,
-                    int hashlen,
+                    unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig )
 {
-    int nb_pad, olen;
+    size_t nb_pad, olen;
     unsigned char *p = sig;
 #if defined(POLARSSL_PKCS1_V21)
     unsigned char salt[POLARSSL_MD_MAX_SIZE];
+    unsigned int i, slen, hlen, offset = 0;
+    size_t msb;
     const md_info_t *md_info;
     md_context_t md_ctx;
-    int i, slen, hlen, msb, offset = 0;
 #else
     (void) f_rng;
     (void) p_rng;
@@ -796,18 +799,20 @@ int rsa_pkcs1_sign( rsa_context *ctx,
 int rsa_pkcs1_verify( rsa_context *ctx,
                       int mode,
                       int hash_id,
-                      int hashlen,
+                      unsigned int hashlen,
                       const unsigned char *hash,
                       unsigned char *sig )
 {
-    int ret, len, siglen;
+    int ret;
+    size_t len, siglen;
     unsigned char *p, c;
     unsigned char buf[1024];
 #if defined(POLARSSL_PKCS1_V21)
     unsigned char zeros[8];
+    unsigned int hlen;
+    size_t slen, msb;
     const md_info_t *md_info;
     md_context_t md_ctx;
-    int slen, hlen, msb;
 #endif
     siglen = ctx->len;
 
@@ -1078,7 +1083,7 @@ static int myrand( void *rng_state )
  */
 int rsa_self_test( int verbose )
 {
-    int len;
+    size_t len;
     rsa_context rsa;
     unsigned char sha1sum[20];
     unsigned char rsa_plaintext[PT_LEN];
@@ -1128,7 +1133,7 @@ int rsa_self_test( int verbose )
 
     if( rsa_pkcs1_decrypt( &rsa, RSA_PRIVATE, &len,
                            rsa_ciphertext, rsa_decrypted,
-			   sizeof(rsa_decrypted) ) != 0 )
+                           sizeof(rsa_decrypted) ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );

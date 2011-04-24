@@ -34,14 +34,14 @@
 #include "polarssl/pkcs11.h"
 #endif /* defined(POLARSSL_PKCS11_C) */
 
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 
 static int ssl_write_client_hello( ssl_context *ssl )
 {
-    int ret, i, n;
+    int ret;
+    size_t i, n;
     unsigned char *buf;
     unsigned char *p;
     time_t t;
@@ -174,7 +174,8 @@ static int ssl_write_client_hello( ssl_context *ssl )
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
     time_t t;
-    int ret, i, n;
+    int ret, i;
+    size_t n;
     int ext_len;
     unsigned char *buf;
 
@@ -240,7 +241,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
      *   42+n . 43+n  extensions length
      *   44+n . 44+n+m extensions
      */
-    if( n < 0 || n > 32 || ssl->in_hslen > 42 + n )
+    if( n > 32 || ssl->in_hslen > 42 + n )
     {
         ext_len = ( ( buf[42 + n] <<  8 )
                   | ( buf[43 + n]       ) ) + 2;
@@ -250,7 +251,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         ext_len = 0;
     }
 
-    if( n < 0 || n > 32 || ssl->in_hslen != 42 + n + ext_len )
+    if( n > 32 || ssl->in_hslen != 42 + n + ext_len )
     {
         SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
@@ -321,7 +322,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
 static int ssl_parse_server_key_exchange( ssl_context *ssl )
 {
-    int ret, n;
+    int ret;
+    size_t n;
     unsigned char *p, *end;
     unsigned char hash[36];
     md5_context md5;
@@ -333,7 +335,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
-	    ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA)
+        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA)
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;
@@ -380,7 +382,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    if( (int)( end - p ) != ssl->peer_cert->rsa.len )
+    if( (unsigned int)( end - p ) != ssl->peer_cert->rsa.len )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
@@ -518,7 +520,8 @@ static int ssl_parse_server_hello_done( ssl_context *ssl )
 
 static int ssl_write_client_key_exchange( ssl_context *ssl )
 {
-    int ret, i, n;
+    int ret;
+    size_t i, n;
 
     SSL_DEBUG_MSG( 2, ( "=> write client key exchange" ) );
 
@@ -526,7 +529,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
-	    ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA)
+        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA)
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm in not available" ) );
@@ -625,7 +628,8 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
-    int ret = 0, n = 0;
+    int ret = 0;
+    size_t n = 0;
     unsigned char hash[36];
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );

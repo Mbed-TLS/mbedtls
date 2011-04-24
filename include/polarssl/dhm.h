@@ -44,7 +44,7 @@
  */
 typedef struct
 {
-    int len;    /*!<  size(P) in chars  */
+    size_t len; /*!<  size(P) in chars  */
     mpi P;      /*!<  prime modulus     */
     mpi G;      /*!<  generator         */
     mpi X;      /*!<  secret value      */
@@ -89,7 +89,7 @@ int dhm_read_params( dhm_context *ctx,
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */
 int dhm_make_params( dhm_context *ctx, int x_size,
-                     unsigned char *output, int *olen,
+                     unsigned char *output, size_t *olen,
                      int (*f_rng)(void *), void *p_rng );
 
 /**
@@ -102,7 +102,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */
 int dhm_read_public( dhm_context *ctx,
-                     const unsigned char *input, int ilen );
+                     const unsigned char *input, size_t ilen );
 
 /**
  * \brief          Create own private value X and export G^X
@@ -117,7 +117,7 @@ int dhm_read_public( dhm_context *ctx,
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */
 int dhm_make_public( dhm_context *ctx, int x_size,
-                     unsigned char *output, int olen,
+                     unsigned char *output, size_t olen,
                      int (*f_rng)(void *), void *p_rng );
 
 /**
@@ -130,7 +130,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */
 int dhm_calc_secret( dhm_context *ctx,
-                     unsigned char *output, int *olen );
+                     unsigned char *output, size_t *olen );
 
 /*
  * \brief          Free the components of a DHM key

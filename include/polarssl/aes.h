@@ -27,6 +27,8 @@
 #ifndef POLARSSL_AES_H
 #define POLARSSL_AES_H
 
+#include <string.h>
+
 #define AES_ENCRYPT     1
 #define AES_DECRYPT     0
 
@@ -57,7 +59,7 @@ extern "C" {
  *
  * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
  */
-int aes_setkey_enc( aes_context *ctx, const unsigned char *key, int keysize );
+int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int keysize );
 
 /**
  * \brief          AES key schedule (decryption)
@@ -68,7 +70,7 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, int keysize );
  *
  * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
  */
-int aes_setkey_dec( aes_context *ctx, const unsigned char *key, int keysize );
+int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int keysize );
 
 /**
  * \brief          AES-ECB block encryption/decryption
@@ -101,7 +103,7 @@ int aes_crypt_ecb( aes_context *ctx,
  */
 int aes_crypt_cbc( aes_context *ctx,
                     int mode,
-                    int length,
+                    size_t length,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output );
@@ -121,7 +123,7 @@ int aes_crypt_cbc( aes_context *ctx,
  */
 int aes_crypt_cfb128( aes_context *ctx,
                        int mode,
-                       int length,
+                       size_t length,
                        int *iv_off,
                        unsigned char iv[16],
                        const unsigned char *input,

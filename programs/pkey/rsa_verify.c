@@ -36,7 +36,8 @@
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret, i, c;
+    int ret, c;
+    size_t i;
     rsa_context rsa;
     unsigned char hash[20];
     unsigned char buf[512];

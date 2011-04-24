@@ -35,8 +35,6 @@
 
 #include "polarssl/camellia.h"
 
-#include <string.h>
-
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -309,9 +307,10 @@ static void camellia_feistel(const uint32_t x[2], const uint32_t k[2], uint32_t 
 /*
  * Camellia key schedule (encryption)
  */
-int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key, int keysize )
+int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key, unsigned int keysize )
 {
-    int i, idx;
+    int idx;
+    size_t i;
     uint32_t *RK;
     unsigned char t[64];
     uint32_t SIGMA[6][2];
@@ -412,9 +411,10 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key, int ke
 /*
  * Camellia key schedule (decryption)
  */
-int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key, int keysize )
+int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key, unsigned int keysize )
 {
-    int i, idx;
+    int idx;
+    size_t i;
     camellia_context cty;
     uint32_t *RK;
     uint32_t *SK;
@@ -526,7 +526,7 @@ int camellia_crypt_ecb( camellia_context *ctx,
  */
 int camellia_crypt_cbc( camellia_context *ctx,
                     int mode,
-                    int length,
+                    size_t length,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output )
@@ -579,7 +579,7 @@ int camellia_crypt_cbc( camellia_context *ctx,
  */
 int camellia_crypt_cfb128( camellia_context *ctx,
                        int mode,
-                       int length,
+                       size_t length,
                        int *iv_off,
                        unsigned char iv[16],
                        const unsigned char *input,

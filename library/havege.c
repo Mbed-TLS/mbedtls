@@ -34,11 +34,11 @@
 
 #if defined(POLARSSL_HAVEGE_C)
 
-#include <string.h>
-#include <time.h>
-
 #include "polarssl/havege.h"
 #include "polarssl/timing.h"
+
+#include <string.h>
+#include <time.h>
 
 /* ------------------------------------------------------------------------
  * On average, one iteration accesses two 8-word blocks in the havege WALK

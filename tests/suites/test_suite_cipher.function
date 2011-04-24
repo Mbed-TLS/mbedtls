@@ -4,7 +4,7 @@ END_HEADER
 
 BEGIN_CASE
 enc_dec_buf:cipher_id:cipher_string:key_len:length:
-    int length = {length};
+    size_t length = {length};
     unsigned char key[32];
     unsigned char iv[16];
 
@@ -16,8 +16,8 @@ enc_dec_buf:cipher_id:cipher_string:key_len:length:
     unsigned char encbuf[64];
     unsigned char decbuf[64];
 
-    int outlen = 0;
-    int enclen = 0;
+    size_t outlen = 0;
+    size_t enclen = 0;
 
     memset( key, 0, 32 );
     memset( iv , 0, 16 );
@@ -107,9 +107,9 @@ END_CASE
 
 BEGIN_CASE
 enc_dec_buf_multipart:cipher_id:key_len:first_length:second_length:
-    int first_length = {first_length};
-    int second_length = {second_length};
-    int length = first_length + second_length;
+    size_t first_length = {first_length};
+    size_t second_length = {second_length};
+    size_t length = first_length + second_length;
     unsigned char key[32];
     unsigned char iv[16];
 
@@ -121,9 +121,9 @@ enc_dec_buf_multipart:cipher_id:key_len:first_length:second_length:
     unsigned char encbuf[64];
     unsigned char decbuf[64];
 
-    int outlen = 0;
-    int totaloutlen = 0;
-    int enclen = 0;
+    size_t outlen = 0;
+    size_t totaloutlen = 0;
+    size_t enclen = 0;
 
     memset( key, 0, 32 );
     memset( iv , 0, 16 );

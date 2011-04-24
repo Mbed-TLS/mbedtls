@@ -30,6 +30,8 @@
 #ifndef POLARSSL_MD_H
 #define POLARSSL_MD_H
 
+#include <string.h>
+
 #ifdef _MSC_VER
 #define inline _inline
 #endif
@@ -66,23 +68,23 @@ typedef struct {
     void (*starts_func)( void *ctx );
 
     /** Digest update function */
-    void (*update_func)( void *ctx, const unsigned char *input, int ilen );
+    void (*update_func)( void *ctx, const unsigned char *input, size_t ilen );
 
     /** Digest finalisation function */
     void (*finish_func)( void *ctx, unsigned char *output );
 
     /** Generic digest function */
-    void (*digest_func)( const unsigned char *input, int ilen,
+    void (*digest_func)( const unsigned char *input, size_t ilen,
                             unsigned char *output );
 
     /** Generic file digest function */
     int (*file_func)( const char *path, unsigned char *output );
 
     /** HMAC Initialisation function */
-    void (*hmac_starts_func)( void *ctx, const unsigned char *key, int keylen );
+    void (*hmac_starts_func)( void *ctx, const unsigned char *key, size_t keylen );
 
     /** HMAC update function */
-    void (*hmac_update_func)( void *ctx, const unsigned char *input, int ilen );
+    void (*hmac_update_func)( void *ctx, const unsigned char *input, size_t ilen );
 
     /** HMAC finalisation function */
     void (*hmac_finish_func)( void *ctx, unsigned char *output);
@@ -91,8 +93,8 @@ typedef struct {
     void (*hmac_reset_func)( void *ctx );
 
     /** Generic HMAC function */
-    void (*hmac_func)( const unsigned char *key, int keylen,
-                    const unsigned char *input, int ilen,
+    void (*hmac_func)( const unsigned char *key, size_t keylen,
+                    const unsigned char *input, size_t ilen,
                     unsigned char *output );
 
     /** Allocate a new context */
@@ -135,7 +137,7 @@ const int *md_list( void );
  * \brief           Returns the message digest information associated with the
  *                  given digest name.
  *
- * \param md_name	Name of the digest to search for.
+ * \param md_name   Name of the digest to search for.
  *
  * \return          The message digest information associated with md_name or
  *                  NULL if not found.
@@ -184,7 +186,7 @@ int md_free_ctx( md_context_t *ctx );
  *
  * \return          size of the message digest output.
  */
-static inline unsigned char md_get_size ( const md_info_t *md_info)
+static inline unsigned char md_get_size( const md_info_t *md_info )
 {
     return md_info->size;
 }
@@ -196,7 +198,7 @@ static inline unsigned char md_get_size ( const md_info_t *md_info)
  *
  * \return          type of the message digest output.
  */
-static inline md_type_t md_get_type ( const md_info_t *md_info )
+static inline md_type_t md_get_type( const md_info_t *md_info )
 {
     return md_info->type;
 }
@@ -208,7 +210,7 @@ static inline md_type_t md_get_type ( const md_info_t *md_info )
  *
  * \return          name of the message digest output.
  */
-static inline const char *md_get_name ( const md_info_t *md_info )
+static inline const char *md_get_name( const md_info_t *md_info )
 {
     return md_info->name;
 }
@@ -231,7 +233,7 @@ int md_starts( md_context_t *ctx );
  *
  * \returns        0 on success, 1 if parameter verification fails.
  */
-int md_update( md_context_t *ctx, const unsigned char *input, int ilen );
+int md_update( md_context_t *ctx, const unsigned char *input, size_t ilen );
 
 /**
  * \brief          Generic message digest final digest
@@ -253,7 +255,7 @@ int md_finish( md_context_t *ctx, unsigned char *output );
  *
  * \returns        0 on success, 1 if parameter verification fails.
  */
-int md( const md_info_t *md_info, const unsigned char *input, int ilen,
+int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
         unsigned char *output );
 
 /**
@@ -277,7 +279,7 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
  *
  * \returns        0 on success, 1 if parameter verification fails.
  */
-int md_hmac_starts( md_context_t *ctx, const unsigned char *key, int keylen );
+int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen );
 
 /**
  * \brief          Generic HMAC process buffer
@@ -288,7 +290,7 @@ int md_hmac_starts( md_context_t *ctx, const unsigned char *key, int keylen );
  *
  * \returns        0 on success, 1 if parameter verification fails.
  */
-int md_hmac_update( md_context_t *ctx, const unsigned char *input, int ilen );
+int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen );
 
 /**
  * \brief          Generic HMAC final digest
@@ -321,8 +323,8 @@ int md_hmac_reset( md_context_t *ctx );
  *
  * \returns        0 on success, 1 if parameter verification fails.
  */
-int md_hmac( const md_info_t *md_info, const unsigned char *key, int keylen,
-                const unsigned char *input, int ilen,
+int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
+                const unsigned char *input, size_t ilen,
                 unsigned char *output );
 
 #ifdef __cplusplus

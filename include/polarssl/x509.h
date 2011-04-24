@@ -284,7 +284,7 @@
 typedef struct _x509_buf
 {
     int tag;                /**< ASN1 type, e.g. ASN1_UTF8_STRING. */
-    int len;                /**< ASN1 length, e.g. in octets. */
+    size_t len;             /**< ASN1 length, e.g. in octets. */
     unsigned char *p;       /**< ASN1 data, e.g. in ASCII. */
 }
 x509_buf;
@@ -294,7 +294,7 @@ x509_buf;
  */
 typedef struct _x509_bitstring
 {
-    int len;                    /**< ASN1 length, e.g. in octets. */
+    size_t len;                 /**< ASN1 length, e.g. in octets. */
     unsigned char unused_bits;  /**< Number of unused bits at the end of the string */
     unsigned char *p;           /**< Raw ASN1 data for the bit string */
 }
@@ -483,7 +483,7 @@ extern "C" {
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen );
+int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen );
 
 /** \ingroup x509_module */
 /**
@@ -508,7 +508,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen );
+int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen );
 
 /** \ingroup x509_module */
 /**
@@ -535,8 +535,8 @@ int x509parse_crlfile( x509_crl *chain, const char *path );
  * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_key( rsa_context *rsa,
-                   const unsigned char *key, int keylen,
-                   const unsigned char *pwd, int pwdlen );
+                   const unsigned char *key, size_t keylen,
+                   const unsigned char *pwd, size_t pwdlen );
 
 /** \ingroup x509_module */
 /**
@@ -562,7 +562,7 @@ int x509parse_keyfile( rsa_context *rsa, const char *path,
  * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_public_key( rsa_context *rsa,
-                   const unsigned char *key, int keylen );
+                   const unsigned char *key, size_t keylen );
 
 /** \ingroup x509_module */
 /**
@@ -585,7 +585,7 @@ int x509parse_public_keyfile( rsa_context *rsa, const char *path );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen );
+int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen );
 
 /** \ingroup x509_module */
 /**

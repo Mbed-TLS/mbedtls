@@ -27,6 +27,8 @@
 #ifndef POLARSSL_PEM_H
 #define POLARSSL_PEM_H
 
+#include <string.h>
+
 /**
  * \name PEM Error codes
  * These error codes are returned in case of errors reading the
@@ -49,7 +51,7 @@
 typedef struct
 {
     unsigned char *buf;     /*!< buffer for decoded data             */
-    int buflen;             /*!< length of the buffer                */
+    size_t buflen;          /*!< length of the buffer                */
     unsigned char *info;    /*!< buffer for extra header information */
 }
 pem_context;
@@ -82,7 +84,7 @@ void pem_init( pem_context *ctx );
 int pem_read_buffer( pem_context *ctx, char *header, char *footer,
                      const unsigned char *data,
                      const unsigned char *pwd,
-                     int pwdlen, int *use_len );
+                     size_t pwdlen, size_t *use_len );
 
 /**
  * \brief       PEM context memory freeing

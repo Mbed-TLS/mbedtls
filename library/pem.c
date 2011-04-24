@@ -35,7 +35,6 @@
 #include "polarssl/cipher.h"
 
 #include <stdlib.h>
-#include <string.h>
 
 void pem_init( pem_context *ctx )
 {
@@ -46,9 +45,9 @@ void pem_init( pem_context *ctx )
 /*
  * Read a 16-byte hex string and convert it to binary
  */
-static int pem_get_iv( const unsigned char *s, unsigned char *iv, int iv_len )
+static int pem_get_iv( const unsigned char *s, unsigned char *iv, size_t iv_len )
 {
-    int i, j, k;
+    size_t i, j, k;
 
     memset( iv, 0, iv_len );
 
@@ -67,13 +66,13 @@ static int pem_get_iv( const unsigned char *s, unsigned char *iv, int iv_len )
     return( 0 );
 }
 
-static void pem_pbkdf1( unsigned char *key, int keylen,
+static void pem_pbkdf1( unsigned char *key, size_t keylen,
                         unsigned char *iv,
-                        const unsigned char *pwd, int pwdlen )
+                        const unsigned char *pwd, size_t pwdlen )
 {
     md5_context md5_ctx;
     unsigned char md5sum[16];
-    int use_len;
+    size_t use_len;
 
     /*
      * key[ 0..15] = MD5(pwd || IV)
@@ -118,8 +117,8 @@ static void pem_pbkdf1( unsigned char *key, int keylen,
  * Decrypt with DES-CBC, using PBKDF1 for key derivation
  */
 static void pem_des_decrypt( unsigned char des_iv[8],
-                               unsigned char *buf, int buflen,
-                               const unsigned char *pwd, int pwdlen )
+                               unsigned char *buf, size_t buflen,
+                               const unsigned char *pwd, size_t pwdlen )
 {
     des_context des_ctx;
     unsigned char des_key[8];
@@ -138,8 +137,8 @@ static void pem_des_decrypt( unsigned char des_iv[8],
  * Decrypt with 3DES-CBC, using PBKDF1 for key derivation
  */
 static void pem_des3_decrypt( unsigned char des3_iv[8],
-                               unsigned char *buf, int buflen,
-                               const unsigned char *pwd, int pwdlen )
+                               unsigned char *buf, size_t buflen,
+                               const unsigned char *pwd, size_t pwdlen )
 {
     des3_context des3_ctx;
     unsigned char des3_key[24];
@@ -159,9 +158,9 @@ static void pem_des3_decrypt( unsigned char des3_iv[8],
 /*
  * Decrypt with AES-XXX-CBC, using PBKDF1 for key derivation
  */
-static void pem_aes_decrypt( unsigned char aes_iv[16], int keylen,
-                               unsigned char *buf, int buflen,
-                               const unsigned char *pwd, int pwdlen )
+static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
+                               unsigned char *buf, size_t buflen,
+                               const unsigned char *pwd, size_t pwdlen )
 {
     aes_context aes_ctx;
     unsigned char aes_key[32];
@@ -179,9 +178,10 @@ static void pem_aes_decrypt( unsigned char aes_iv[16], int keylen,
 
 #endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
 
-int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigned char *data, const unsigned char *pwd, int pwdlen, int *use_len )
+int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigned char *data, const unsigned char *pwd, size_t pwdlen, size_t *use_len )
 {
-    int ret, len, enc;
+    int ret, enc;
+    size_t len;
     unsigned char *buf;
     unsigned char *s1, *s2;
 #if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))

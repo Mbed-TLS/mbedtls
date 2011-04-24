@@ -35,8 +35,6 @@
 
 #include "polarssl/des.h"
 
-#include <string.h>
-
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -611,7 +609,7 @@ int des_crypt_ecb( des_context *ctx,
  */
 int des_crypt_cbc( des_context *ctx,
                     int mode,
-                    int length,
+                    size_t length,
                     unsigned char iv[8],
                     const unsigned char *input,
                     unsigned char *output )
@@ -706,7 +704,7 @@ int des3_crypt_ecb( des3_context *ctx,
  */
 int des3_crypt_cbc( des3_context *ctx,
                      int mode,
-                     int length,
+                     size_t length,
                      unsigned char iv[8],
                      const unsigned char *input,
                      unsigned char *output )

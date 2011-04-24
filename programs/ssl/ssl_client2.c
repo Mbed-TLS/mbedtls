@@ -92,7 +92,8 @@ int main( int argc, char *argv[] )
     x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
-    int i, j, n;
+    int i;
+    size_t j, n;
     char *p, *q;
     const int *list;
 

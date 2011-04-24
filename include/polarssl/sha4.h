@@ -27,6 +27,8 @@
 #ifndef POLARSSL_SHA4_H
 #define POLARSSL_SHA4_H
 
+#include <string.h>
+
 #if defined(_MSC_VER) || defined(__WATCOMC__)
   #define UL64(x) x##ui64
   #define int64 __int64
@@ -69,7 +71,7 @@ void sha4_starts( sha4_context *ctx, int is384 );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha4_update( sha4_context *ctx, const unsigned char *input, int ilen );
+void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen );
 
 /**
  * \brief          SHA-512 final digest
@@ -87,7 +89,7 @@ void sha4_finish( sha4_context *ctx, unsigned char output[64] );
  * \param output   SHA-384/512 checksum result
  * \param is384    0 = use SHA512, 1 = use SHA384
  */
-void sha4( const unsigned char *input, int ilen,
+void sha4( const unsigned char *input, size_t ilen,
            unsigned char output[64], int is384 );
 
 /**
@@ -110,7 +112,7 @@ int sha4_file( const char *path, unsigned char output[64], int is384 );
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  */
-void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, int keylen,
+void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, size_t keylen,
                        int is384 );
 
 /**
@@ -120,7 +122,7 @@ void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, int keylen,
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha4_hmac_update( sha4_context *ctx, const unsigned char *input, int ilen );
+void sha4_hmac_update( sha4_context *ctx, const unsigned char *input, size_t ilen );
 
 /**
  * \brief          SHA-512 HMAC final digest
@@ -147,8 +149,8 @@ void sha4_hmac_reset( sha4_context *ctx );
  * \param output   HMAC-SHA-384/512 result
  * \param is384    0 = use SHA512, 1 = use SHA384
  */
-void sha4_hmac( const unsigned char *key, int keylen,
-                const unsigned char *input, int ilen,
+void sha4_hmac( const unsigned char *key, size_t keylen,
+                const unsigned char *input, size_t ilen,
                 unsigned char output[64], int is384 );
 
 /**

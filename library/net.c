@@ -40,8 +40,8 @@
 #pragma comment( lib, "ws2_32.lib" )
 #endif
 
-#define read(fd,buf,len)        recv(fd,buf,len,0)
-#define write(fd,buf,len)       send(fd,buf,len,0)
+#define read(fd,buf,len)        recv(fd,buf,(int) len,0)
+#define write(fd,buf,len)       send(fd,buf,(int) len,0)
 #define close(fd)               closesocket(fd)
 
 static int wsa_init_done = 0;
@@ -69,7 +69,6 @@ static int wsa_init_done = 0;
 
 #endif
 
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -289,7 +288,7 @@ void net_usleep( unsigned long usec )
 /*
  * Read at most 'len' characters
  */
-int net_recv( void *ctx, unsigned char *buf, int len )
+int net_recv( void *ctx, unsigned char *buf, size_t len )
 { 
     int ret = read( *((int *) ctx), buf, len );
 
@@ -321,7 +320,7 @@ int net_recv( void *ctx, unsigned char *buf, int len )
 /*
  * Write at most 'len' characters
  */
-int net_send( void *ctx, unsigned char *buf, int len )
+int net_send( void *ctx, unsigned char *buf, size_t len )
 {
     int ret = write( *((int *) ctx), buf, len );
 

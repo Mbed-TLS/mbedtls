@@ -34,8 +34,6 @@
 
 #include "polarssl/dhm.h"
 
-#include <string.h>
-
 /*
  * helper to validate the mpi size and import it
  */
@@ -128,10 +126,11 @@ int dhm_read_params( dhm_context *ctx,
  * Setup and write the ServerKeyExchange parameters
  */
 int dhm_make_params( dhm_context *ctx, int x_size,
-                     unsigned char *output, int *olen,
+                     unsigned char *output, size_t *olen,
                      int (*f_rng)(void *), void *p_rng )
 {
-    int ret, n, n1, n2, n3;
+    int ret, n;
+    size_t n1, n2, n3;
     unsigned char *p;
 
     /*
@@ -186,7 +185,7 @@ cleanup:
  * Import the peer's public value G^Y
  */
 int dhm_read_public( dhm_context *ctx,
-                     const unsigned char *input, int ilen )
+                     const unsigned char *input, size_t ilen )
 {
     int ret;
 
@@ -203,7 +202,7 @@ int dhm_read_public( dhm_context *ctx,
  * Create own private value X and export G^X
  */
 int dhm_make_public( dhm_context *ctx, int x_size,
-                     unsigned char *output, int olen,
+                     unsigned char *output, size_t olen,
                      int (*f_rng)(void *), void *p_rng )
 {
     int ret, n;
@@ -241,7 +240,7 @@ cleanup:
  * Derive and export the shared secret (G^Y)^X mod P
  */
 int dhm_calc_secret( dhm_context *ctx,
-                     unsigned char *output, int *olen )
+                     unsigned char *output, size_t *olen )
 {
     int ret;
 

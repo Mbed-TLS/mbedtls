@@ -96,26 +96,26 @@ typedef struct {
     cipher_mode_t mode;
 
     /** Cipher key length, in bits (default length for variable sized ciphers) */
-    int key_length;
+    unsigned int key_length;
 
     /** Name of the cipher */
     const char * name;
 
     /** IV size, in bytes */
-    int iv_size;
+    unsigned int iv_size;
 
     /** block size, in bytes */
-    int block_size;
+    unsigned int block_size;
 
     /** Encrypt using CBC */
-    int (*cbc_func)( void *ctx, operation_t mode, int length, unsigned char *iv,
+    int (*cbc_func)( void *ctx, operation_t mode, size_t length, unsigned char *iv,
             const unsigned char *input, unsigned char *output );
 
     /** Set key for encryption purposes */
-    int (*setkey_enc_func)( void *ctx, const unsigned char *key, int key_length);
+    int (*setkey_enc_func)( void *ctx, const unsigned char *key, unsigned int key_length);
 
     /** Set key for decryption purposes */
-    int (*setkey_dec_func)( void *ctx, const unsigned char *key, int key_length);
+    int (*setkey_dec_func)( void *ctx, const unsigned char *key, unsigned int key_length);
 
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
@@ -142,7 +142,7 @@ typedef struct {
     unsigned char unprocessed_data[POLARSSL_MAX_IV_LENGTH];
 
     /** Number of bytes that still need processing */
-    int unprocessed_len;
+    size_t unprocessed_len;
 
     /** Current IV */
     unsigned char iv[POLARSSL_MAX_IV_LENGTH];
@@ -167,7 +167,7 @@ const int *cipher_list( void );
  * \brief               Returns the cipher information structure associated
  *                      with the given cipher name.
  *
- * \param cipher_name	Name of the cipher to search for.
+ * \param cipher_name   Name of the cipher to search for.
  *
  * \return              the cipher information structure associated with the
  *                      given cipher_name, or NULL if not found.
@@ -215,7 +215,7 @@ int cipher_free_ctx( cipher_context_t *ctx );
  * \return              size of the cipher's blocks, or 0 if ctx has not been
  *                      initialised.
  */
-static inline int cipher_get_block_size( const cipher_context_t *ctx )
+static inline unsigned int cipher_get_block_size( const cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return 0;
@@ -332,8 +332,8 @@ int cipher_reset( cipher_context_t *ctx, const unsigned char *iv );
  *
  * \returns             0 on success, 1 if parameter verification fails.
  */
-int cipher_update( cipher_context_t *ctx, const unsigned char *input, int ilen,
-        unsigned char *output, int *olen );
+int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
+        unsigned char *output, size_t *olen );
 
 /**
  * \brief               Generic cipher finalisation function. If data still
@@ -347,7 +347,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, int ilen,
  *
  * \returns             0 on success, 1 if parameter verification fails.
  */
-int cipher_finish( cipher_context_t *ctx, unsigned char *output, int *olen);
+int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen);
 
 
 /**

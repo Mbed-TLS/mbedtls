@@ -83,7 +83,7 @@ static int sha1_check( char *filename )
 
     n = sizeof( line );
 
-    while( fgets( line, n - 1, f ) != NULL )
+    while( fgets( line, (int) n - 1, f ) != NULL )
     {
         n = strlen( line );
 

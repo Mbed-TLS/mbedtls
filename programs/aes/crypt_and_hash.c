@@ -56,7 +56,8 @@
 int main( int argc, char *argv[] )
 {
     int ret = 1, i, n;
-    int keylen, mode, lastn, olen;
+    int mode, lastn;
+    size_t keylen, olen;
     FILE *fkey, *fin = NULL, *fout = NULL;
 
     char *p;
@@ -291,7 +292,7 @@ int main( int argc, char *argv[] )
         for( offset = 0; offset < filesize; offset += cipher_get_block_size( &cipher_ctx ) )
         {
             n = ( filesize - offset > cipher_get_block_size( &cipher_ctx ) ) ?
-                cipher_get_block_size( &cipher_ctx ) : (int) ( filesize - offset );
+                cipher_get_block_size( &cipher_ctx ) : (unsigned int) ( filesize - offset );
 
             if( fread( buffer, 1, n, fin ) != (size_t) n )
             {

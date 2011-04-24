@@ -34,7 +34,6 @@
 
 #include "polarssl/sha4.h"
 
-#include <string.h>
 #include <stdio.h>
 
 /*
@@ -223,9 +222,9 @@ static void sha4_process( sha4_context *ctx, const unsigned char data[128] )
 /*
  * SHA-512 process buffer
  */
-void sha4_update( sha4_context *ctx, const unsigned char *input, int ilen )
+void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
 {
-    int fill;
+    size_t fill;
     unsigned int64 left;
 
     if( ilen <= 0 )
@@ -234,7 +233,7 @@ void sha4_update( sha4_context *ctx, const unsigned char *input, int ilen )
     left = ctx->total[0] & 0x7F;
     fill = (int)( 128 - left );
 
-    ctx->total[0] += ilen;
+    ctx->total[0] += (unsigned int64) ilen;
 
     if( ctx->total[0] < (unsigned int64) ilen )
         ctx->total[1]++;
@@ -314,7 +313,7 @@ void sha4_finish( sha4_context *ctx, unsigned char output[64] )
 /*
  * output = SHA-512( input buffer )
  */
-void sha4( const unsigned char *input, int ilen,
+void sha4( const unsigned char *input, size_t ilen,
            unsigned char output[64], int is384 )
 {
     sha4_context ctx;
@@ -361,10 +360,10 @@ int sha4_file( const char *path, unsigned char output[64], int is384 )
 /*
  * SHA-512 HMAC context setup
  */
-void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, int keylen,
+void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, size_t keylen,
                        int is384 )
 {
-    int i;
+    size_t i;
     unsigned char sum[64];
 
     if( keylen > 128 )
@@ -393,7 +392,7 @@ void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, int keylen,
  * SHA-512 HMAC process buffer
  */
 void sha4_hmac_update( sha4_context  *ctx,
-                       const unsigned char *input, int ilen )
+                       const unsigned char *input, size_t ilen )
 {
     sha4_update( ctx, input, ilen );
 }
@@ -430,8 +429,8 @@ void sha4_hmac_reset( sha4_context *ctx )
 /*
  * output = HMAC-SHA-512( hmac key, input buffer )
  */
-void sha4_hmac( const unsigned char *key, int keylen,
-                const unsigned char *input, int ilen,
+void sha4_hmac( const unsigned char *key, size_t keylen,
+                const unsigned char *input, size_t ilen,
                 unsigned char output[64], int is384 )
 {
     sha4_context ctx;

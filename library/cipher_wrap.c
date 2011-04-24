@@ -36,23 +36,22 @@
 #include "polarssl/camellia.h"
 #include "polarssl/des.h"
 
-#include <string.h>
 #include <stdlib.h>
 
 #if defined(POLARSSL_AES_C)
 
-int aes_crypt_cbc_wrap( void *ctx, operation_t operation, int length,
+int aes_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return aes_crypt_cbc( (aes_context *) ctx, operation, length, iv, input, output );
 }
 
-int aes_setkey_dec_wrap( void *ctx, const unsigned char *key, int key_length )
+int aes_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return aes_setkey_dec( (aes_context *) ctx, key, key_length );
 }
 
-int aes_setkey_enc_wrap( void *ctx, const unsigned char *key, int key_length )
+int aes_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return aes_setkey_enc( (aes_context *) ctx, key, key_length );
 }
@@ -68,65 +67,65 @@ static void aes_ctx_free( void *ctx )
 }
 
 const cipher_info_t aes_128_cbc_info = {
-	POLARSSL_CIPHER_AES_128_CBC,
-	POLARSSL_CIPHER_ID_AES,
-	POLARSSL_MODE_CBC,
-	128,
-	"AES-128-CBC",
-	16,
-	16,
-	aes_crypt_cbc_wrap,
-	aes_setkey_enc_wrap,
-	aes_setkey_dec_wrap,
-	aes_ctx_alloc,
-	aes_ctx_free
+    POLARSSL_CIPHER_AES_128_CBC,
+    POLARSSL_CIPHER_ID_AES,
+    POLARSSL_MODE_CBC,
+    128,
+    "AES-128-CBC",
+    16,
+    16,
+    aes_crypt_cbc_wrap,
+    aes_setkey_enc_wrap,
+    aes_setkey_dec_wrap,
+    aes_ctx_alloc,
+    aes_ctx_free
 };
 
 const cipher_info_t aes_192_cbc_info = {
-	POLARSSL_CIPHER_AES_192_CBC,
-	POLARSSL_CIPHER_ID_AES,
-	POLARSSL_MODE_CBC,
-	192,
-	"AES-192-CBC",
-	16,
-	16,
-	aes_crypt_cbc_wrap,
-	aes_setkey_enc_wrap,
-	aes_setkey_dec_wrap,
-	aes_ctx_alloc,
-	aes_ctx_free
+    POLARSSL_CIPHER_AES_192_CBC,
+    POLARSSL_CIPHER_ID_AES,
+    POLARSSL_MODE_CBC,
+    192,
+    "AES-192-CBC",
+    16,
+    16,
+    aes_crypt_cbc_wrap,
+    aes_setkey_enc_wrap,
+    aes_setkey_dec_wrap,
+    aes_ctx_alloc,
+    aes_ctx_free
 };
 
 const cipher_info_t aes_256_cbc_info = {
-	POLARSSL_CIPHER_AES_256_CBC,
-	POLARSSL_CIPHER_ID_AES,
-	POLARSSL_MODE_CBC,
-	256,
-	"AES-256-CBC",
-	16,
-	16,
-	aes_crypt_cbc_wrap,
-	aes_setkey_enc_wrap,
-	aes_setkey_dec_wrap,
-	aes_ctx_alloc,
-	aes_ctx_free
+    POLARSSL_CIPHER_AES_256_CBC,
+    POLARSSL_CIPHER_ID_AES,
+    POLARSSL_MODE_CBC,
+    256,
+    "AES-256-CBC",
+    16,
+    16,
+    aes_crypt_cbc_wrap,
+    aes_setkey_enc_wrap,
+    aes_setkey_dec_wrap,
+    aes_ctx_alloc,
+    aes_ctx_free
 };
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
 
-int camellia_crypt_cbc_wrap( void *ctx, operation_t operation, int length,
+int camellia_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return camellia_crypt_cbc( (camellia_context *) ctx, operation, length, iv, input, output );
 }
 
-int camellia_setkey_dec_wrap( void *ctx, const unsigned char *key, int key_length )
+int camellia_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return camellia_setkey_dec( (camellia_context *) ctx, key, key_length );
 }
 
-int camellia_setkey_enc_wrap( void *ctx, const unsigned char *key, int key_length )
+int camellia_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return camellia_setkey_enc( (camellia_context *) ctx, key, key_length );
 }
@@ -142,101 +141,101 @@ static void camellia_ctx_free( void *ctx )
 }
 
 const cipher_info_t camellia_128_cbc_info = {
-	POLARSSL_CIPHER_CAMELLIA_128_CBC,
-	POLARSSL_CIPHER_ID_CAMELLIA,
-	POLARSSL_MODE_CBC,
-	128,
-	"CAMELLIA-128-CBC",
-	16,
-	16,
-	camellia_crypt_cbc_wrap,
-	camellia_setkey_enc_wrap,
-	camellia_setkey_dec_wrap,
-	camellia_ctx_alloc,
-	camellia_ctx_free
+    POLARSSL_CIPHER_CAMELLIA_128_CBC,
+    POLARSSL_CIPHER_ID_CAMELLIA,
+    POLARSSL_MODE_CBC,
+    128,
+    "CAMELLIA-128-CBC",
+    16,
+    16,
+    camellia_crypt_cbc_wrap,
+    camellia_setkey_enc_wrap,
+    camellia_setkey_dec_wrap,
+    camellia_ctx_alloc,
+    camellia_ctx_free
 };
 
 const cipher_info_t camellia_192_cbc_info = {
-	POLARSSL_CIPHER_CAMELLIA_192_CBC,
-	POLARSSL_CIPHER_ID_CAMELLIA,
-	POLARSSL_MODE_CBC,
-	192,
-	"CAMELLIA-192-CBC",
-	16,
-	16,
-	camellia_crypt_cbc_wrap,
-	camellia_setkey_enc_wrap,
-	camellia_setkey_dec_wrap,
-	camellia_ctx_alloc,
-	camellia_ctx_free
+    POLARSSL_CIPHER_CAMELLIA_192_CBC,
+    POLARSSL_CIPHER_ID_CAMELLIA,
+    POLARSSL_MODE_CBC,
+    192,
+    "CAMELLIA-192-CBC",
+    16,
+    16,
+    camellia_crypt_cbc_wrap,
+    camellia_setkey_enc_wrap,
+    camellia_setkey_dec_wrap,
+    camellia_ctx_alloc,
+    camellia_ctx_free
 };
 
 const cipher_info_t camellia_256_cbc_info = {
-	POLARSSL_CIPHER_CAMELLIA_256_CBC,
-	POLARSSL_CIPHER_ID_CAMELLIA,
-	POLARSSL_MODE_CBC,
-	256,
-	"CAMELLIA-256-CBC",
-	16,
-	16,
-	camellia_crypt_cbc_wrap,
-	camellia_setkey_enc_wrap,
-	camellia_setkey_dec_wrap,
-	camellia_ctx_alloc,
-	camellia_ctx_free
+    POLARSSL_CIPHER_CAMELLIA_256_CBC,
+    POLARSSL_CIPHER_ID_CAMELLIA,
+    POLARSSL_MODE_CBC,
+    256,
+    "CAMELLIA-256-CBC",
+    16,
+    16,
+    camellia_crypt_cbc_wrap,
+    camellia_setkey_enc_wrap,
+    camellia_setkey_dec_wrap,
+    camellia_ctx_alloc,
+    camellia_ctx_free
 };
 #endif
 
 #if defined(POLARSSL_DES_C)
 
-int des_crypt_cbc_wrap( void *ctx, operation_t operation, int length,
+int des_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return des_crypt_cbc( (des_context *) ctx, operation, length, iv, input, output );
 }
 
-int des3_crypt_cbc_wrap( void *ctx, operation_t operation, int length,
+int des3_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return des3_crypt_cbc( (des3_context *) ctx, operation, length, iv, input, output );
 }
 
-int des_setkey_dec_wrap( void *ctx, const unsigned char *key, int key_length )
+int des_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des_setkey_dec( (des_context *) ctx, key );
 }
 
-int des_setkey_enc_wrap( void *ctx, const unsigned char *key, int key_length )
+int des_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des_setkey_enc( (des_context *) ctx, key );
 }
 
-int des3_set2key_dec_wrap( void *ctx, const unsigned char *key, int key_length )
+int des3_set2key_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des3_set2key_dec( (des3_context *) ctx, key );
 }
 
-int des3_set2key_enc_wrap( void *ctx, const unsigned char *key, int key_length )
+int des3_set2key_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des3_set2key_enc( (des3_context *) ctx, key );
 }
 
-int des3_set3key_dec_wrap( void *ctx, const unsigned char *key, int key_length )
+int des3_set3key_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des3_set3key_dec( (des3_context *) ctx, key );
 }
 
-int des3_set3key_enc_wrap( void *ctx, const unsigned char *key, int key_length )
+int des3_set3key_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
@@ -259,48 +258,48 @@ static void des_ctx_free( void *ctx )
 }
 
 const cipher_info_t des_cbc_info = {
-	POLARSSL_CIPHER_DES_CBC,
-	POLARSSL_CIPHER_ID_DES,
-	POLARSSL_MODE_CBC,
-	POLARSSL_KEY_LENGTH_DES,
-	"DES-CBC",
-	8,
-	8,
-	des_crypt_cbc_wrap,
-	des_setkey_enc_wrap,
-	des_setkey_dec_wrap,
-	des_ctx_alloc,
-	des_ctx_free
+    POLARSSL_CIPHER_DES_CBC,
+    POLARSSL_CIPHER_ID_DES,
+    POLARSSL_MODE_CBC,
+    POLARSSL_KEY_LENGTH_DES,
+    "DES-CBC",
+    8,
+    8,
+    des_crypt_cbc_wrap,
+    des_setkey_enc_wrap,
+    des_setkey_dec_wrap,
+    des_ctx_alloc,
+    des_ctx_free
 };
 
 const cipher_info_t des_ede_cbc_info = {
-	POLARSSL_CIPHER_DES_EDE_CBC,
-	POLARSSL_CIPHER_ID_DES,
-	POLARSSL_MODE_CBC,
-	POLARSSL_KEY_LENGTH_DES_EDE,
-	"DES-EDE-CBC",
-	16,
-	16,
-	des3_crypt_cbc_wrap,
-	des3_set2key_enc_wrap,
-	des3_set2key_dec_wrap,
-	des3_ctx_alloc,
-	des_ctx_free
+    POLARSSL_CIPHER_DES_EDE_CBC,
+    POLARSSL_CIPHER_ID_DES,
+    POLARSSL_MODE_CBC,
+    POLARSSL_KEY_LENGTH_DES_EDE,
+    "DES-EDE-CBC",
+    16,
+    16,
+    des3_crypt_cbc_wrap,
+    des3_set2key_enc_wrap,
+    des3_set2key_dec_wrap,
+    des3_ctx_alloc,
+    des_ctx_free
 };
 
 const cipher_info_t des_ede3_cbc_info = {
-	POLARSSL_CIPHER_DES_EDE3_CBC,
-	POLARSSL_CIPHER_ID_DES,
-	POLARSSL_MODE_CBC,
-	POLARSSL_KEY_LENGTH_DES_EDE3,
-	"DES-EDE3-CBC",
-	8,
-	8,
-	des3_crypt_cbc_wrap,
-	des3_set3key_enc_wrap,
-	des3_set3key_dec_wrap,
-	des3_ctx_alloc,
-	des_ctx_free
+    POLARSSL_CIPHER_DES_EDE3_CBC,
+    POLARSSL_CIPHER_ID_DES,
+    POLARSSL_MODE_CBC,
+    POLARSSL_KEY_LENGTH_DES_EDE3,
+    "DES-EDE3-CBC",
+    8,
+    8,
+    des3_crypt_cbc_wrap,
+    des3_set3key_enc_wrap,
+    des3_set3key_dec_wrap,
+    des3_ctx_alloc,
+    des_ctx_free
 };
 #endif
 

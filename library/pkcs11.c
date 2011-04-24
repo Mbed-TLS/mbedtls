@@ -32,7 +32,6 @@
 #if defined(POLARSSL_PKCS11_C)
 
 #include <stdlib.h>
-#include <string.h>
 
 int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
 {
@@ -113,7 +112,7 @@ void pkcs11_priv_key_free( pkcs11_context *priv_key )
 }
 
 int pkcs11_decrypt( pkcs11_context *ctx,
-                       int mode, int *olen,
+                       int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
                        unsigned int output_max_len )
@@ -153,7 +152,7 @@ int pkcs11_decrypt( pkcs11_context *ctx,
 int pkcs11_sign( pkcs11_context *ctx,
                     int mode,
                     int hash_id,
-                    int hashlen,
+                    unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig )
 {

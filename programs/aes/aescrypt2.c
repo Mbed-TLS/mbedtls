@@ -55,7 +55,8 @@
 int main( int argc, char *argv[] )
 {
     int ret = 1, i, n;
-    int keylen, mode, lastn;
+    int mode, lastn;
+    size_t keylen;
     FILE *fkey, *fin = NULL, *fout = NULL;
 
     char *p;

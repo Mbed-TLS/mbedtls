@@ -34,7 +34,6 @@
 #include "polarssl/cipher.h"
 #include "polarssl/cipher_wrap.h"
 
-#include <string.h>
 #include <stdlib.h>
 
 #if defined _MSC_VER && !defined strcasecmp
@@ -196,10 +195,10 @@ int cipher_reset( cipher_context_t *ctx, const unsigned char *iv )
     return 0;
 }
 
-int cipher_update( cipher_context_t *ctx, const unsigned char *input, int ilen,
-        unsigned char *output, int *olen )
+int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
+        unsigned char *output, size_t *olen )
 {
-    int copy_len = 0;
+    size_t copy_len = 0;
 
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen ||
         input == output )
@@ -286,18 +285,18 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, int ilen,
     return 1;
 }
 
-static void add_pkcs_padding( unsigned char *output, unsigned char output_len,
-        int data_len )
+static void add_pkcs_padding( unsigned char *output, size_t output_len,
+        size_t data_len )
 {
-    unsigned char padding_len = output_len - data_len;
+    size_t padding_len = output_len - data_len;
     unsigned char i = 0;
 
     for( i = 0; i < padding_len; i++ )
-        output[data_len + i] = padding_len;
+        output[data_len + i] = (unsigned char) padding_len;
 }
 
 static int get_pkcs_padding( unsigned char *input, unsigned char input_len,
-        int *data_len)
+        size_t *data_len)
 {
     int i = 0;
     unsigned char padding_len = 0;
@@ -319,7 +318,7 @@ static int get_pkcs_padding( unsigned char *input, unsigned char input_len,
     return 0;
 }
 
-int cipher_finish( cipher_context_t *ctx, unsigned char *output, int *olen)
+int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 {
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
         return 1;

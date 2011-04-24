@@ -27,6 +27,8 @@
 #ifndef POLARSSL_NET_H
 #define POLARSSL_NET_H
 
+#include <string.h>
+
 #define POLARSSL_ERR_NET_UNKNOWN_HOST                      -0x0F00
 #define POLARSSL_ERR_NET_SOCKET_FAILED                     -0x0F10
 #define POLARSSL_ERR_NET_CONNECT_FAILED                    -0x0F20
@@ -124,7 +126,7 @@ void net_usleep( unsigned long usec );
  *                 or a non-zero error code; POLARSSL_ERR_NET_TRY_AGAIN
  *                 indicates read() is blocking.
  */
-int net_recv( void *ctx, unsigned char *buf, int len );
+int net_recv( void *ctx, unsigned char *buf, size_t len );
 
 /**
  * \brief          Write at most 'len' characters. If no error occurs,
@@ -138,7 +140,7 @@ int net_recv( void *ctx, unsigned char *buf, int len );
  *                 or a non-zero error code; POLARSSL_ERR_NET_TRY_AGAIN
  *                 indicates write() is blocking.
  */
-int net_send( void *ctx, unsigned char *buf, int len );
+int net_send( void *ctx, unsigned char *buf, size_t len );
 
 /**
  * \brief          Gracefully shutdown the connection

@@ -59,7 +59,7 @@
  */
 static int asn1_get_len( unsigned char **p,
                          const unsigned char *end,
-                         int *len )
+                         size_t *len )
 {
     if( ( end - *p ) < 1 )
         return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
@@ -92,7 +92,7 @@ static int asn1_get_len( unsigned char **p,
         }
     }
 
-    if( *len > (int) ( end - *p ) )
+    if( *len > (size_t) ( end - *p ) )
         return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
     return( 0 );
@@ -100,7 +100,7 @@ static int asn1_get_len( unsigned char **p,
 
 static int asn1_get_tag( unsigned char **p,
                          const unsigned char *end,
-                         int *len, int tag )
+                         size_t *len, int tag )
 {
     if( ( end - *p ) < 1 )
         return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
@@ -117,7 +117,8 @@ static int asn1_get_bool( unsigned char **p,
                           const unsigned char *end,
                           int *val )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BOOLEAN ) ) != 0 )
         return( ret );
@@ -135,7 +136,8 @@ static int asn1_get_int( unsigned char **p,
                          const unsigned char *end,
                          int *val )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_INTEGER ) ) != 0 )
         return( ret );
@@ -158,7 +160,8 @@ static int asn1_get_mpi( unsigned char **p,
                          const unsigned char *end,
                          mpi *X )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_INTEGER ) ) != 0 )
         return( ret );
@@ -209,7 +212,8 @@ static int asn1_get_sequence_of( unsigned char **p,
                           x509_sequence *cur,
                           int tag)
 {
-    int ret, len;
+    int ret;
+    size_t len;
     x509_buf *buf;
 
     /* Get main sequence tag */
@@ -260,7 +264,8 @@ static int x509_get_version( unsigned char **p,
                              const unsigned char *end,
                              int *ver )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) != 0 )
@@ -321,7 +326,8 @@ static int x509_get_alg( unsigned char **p,
                          const unsigned char *end,
                          x509_buf *alg )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
@@ -365,7 +371,8 @@ static int x509_get_attr_type_value( unsigned char **p,
                                      const unsigned char *end,
                                      x509_name *cur )
 {
-    int ret, len;
+    int ret;
+    size_t len;
     x509_buf *oid;
     x509_buf *val;
 
@@ -422,7 +429,8 @@ static int x509_get_name( unsigned char **p,
                           const unsigned char *end,
                           x509_name *cur )
 {
-    int ret, len;
+    int ret;
+    size_t len;
     const unsigned char *end2;
     x509_name *use; 
     
@@ -478,7 +486,8 @@ static int x509_get_time( unsigned char **p,
                           const unsigned char *end,
                           x509_time *time )
 {
-    int ret, len;
+    int ret;
+    size_t len;
     char date[64];
     unsigned char tag;
 
@@ -547,7 +556,8 @@ static int x509_get_dates( unsigned char **p,
                            x509_time *from,
                            x509_time *to )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     if( ( ret = asn1_get_tag( p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
@@ -578,7 +588,8 @@ static int x509_get_pubkey( unsigned char **p,
                             x509_buf *pk_alg_oid,
                             mpi *N, mpi *E )
 {
-    int ret, len, can_handle;
+    int ret, can_handle;
+    size_t len;
     unsigned char *end2;
 
     if( ( ret = x509_get_alg( p, end, pk_alg_oid ) ) != 0 )
@@ -651,7 +662,8 @@ static int x509_get_sig( unsigned char **p,
                          const unsigned char *end,
                          x509_buf *sig )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     sig->tag = **p;
 
@@ -707,7 +719,8 @@ static int x509_get_ext( unsigned char **p,
                          const unsigned char *end,
                          x509_buf *ext )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     if( *p == end )
         return( 0 );
@@ -747,7 +760,8 @@ static int x509_get_crl_ext( unsigned char **p,
                              const unsigned char *end,
                              x509_buf *ext )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     if( ( ret = x509_get_ext( p, end, ext ) ) != 0 )
     {
@@ -778,7 +792,8 @@ static int x509_get_basic_constraints( unsigned char **p,
                                        int *ca_istrue,
                                        int *max_pathlen )
 {
-    int ret, len;
+    int ret;
+    size_t len;
 
     /*
      * BasicConstraints ::= SEQUENCE {
@@ -893,7 +908,8 @@ static int x509_get_crt_ext( unsigned char **p,
                              const unsigned char *end,
                              x509_cert *crt )
 {
-    int ret, len;
+    int ret;
+    size_t len;
     unsigned char *end_ext_data, *end_ext_octet;
 
     if( ( ret = x509_get_ext( p, end, &crt->v3_ext ) ) != 0 )
@@ -1017,7 +1033,8 @@ static int x509_get_entries( unsigned char **p,
                              const unsigned char *end,
                              x509_crl_entry *entry )
 {
-    int ret, entry_len;
+    int ret;
+    size_t entry_len;
     x509_crl_entry *cur_entry = entry;
 
     if( *p == end )
@@ -1036,7 +1053,7 @@ static int x509_get_entries( unsigned char **p,
 
     while( *p < end )
     {
-        int len2;
+        size_t len2;
 
         if( ( ret = asn1_get_tag( p, end, &len2,
                 ASN1_SEQUENCE | ASN1_CONSTRUCTED ) ) != 0 )
@@ -1100,9 +1117,10 @@ static int x509_get_sig_alg( const x509_buf *sig_oid, int *sig_alg )
 /*
  * Parse one or more certificates and add them to the chained list
  */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
+int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 {
-    int ret, len, use_len;
+    int ret;
+    size_t len, use_len;
     unsigned char *p, *end;
     x509_cert *crt;
 #if defined(POLARSSL_PEM_C)
@@ -1207,7 +1225,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT );
     }
 
-    if( len != (int) ( end - p ) )
+    if( len != (size_t) ( end - p ) )
     {
         x509_free( crt );
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT |
@@ -1436,9 +1454,10 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, int buflen )
 /*
  * Parse one or more CRLs and add them to the chained list
  */
-int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen )
+int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
 {
-    int ret, len, use_len;
+    int ret;
+    size_t len, use_len;
     unsigned char *p, *end;
     x509_crl *crl;
 #if defined(POLARSSL_PEM_C)
@@ -1543,7 +1562,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, int buflen )
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT );
     }
 
-    if( len != (int) ( end - p ) )
+    if( len != (size_t) ( end - p ) )
     {
         x509_crl_free( crl );
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT |
@@ -1794,10 +1813,11 @@ int x509parse_crlfile( x509_crl *chain, const char *path )
 /*
  * Parse a private RSA key
  */
-int x509parse_key( rsa_context *rsa, const unsigned char *key, int keylen,
-                                     const unsigned char *pwd, int pwdlen )
+int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
+                                     const unsigned char *pwd, size_t pwdlen )
 {
-    int ret, len;
+    int ret;
+    size_t len;
     unsigned char *p, *end;
 #if defined(POLARSSL_PEM_C)
     pem_context pem;
@@ -1942,9 +1962,10 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
 /*
  * Parse a public RSA key
  */
-int x509parse_public_key( rsa_context *rsa, const unsigned char *key, int keylen )
+int x509parse_public_key( rsa_context *rsa, const unsigned char *key, size_t keylen )
 {
-    int ret, len;
+    int ret;
+    size_t len;
     unsigned char *p, *end;
     x509_buf alg_oid;
 #if defined(POLARSSL_PEM_C)
@@ -2053,9 +2074,10 @@ int x509parse_public_keyfile( rsa_context *rsa, const char *path )
 /*
  * Parse DHM parameters
  */
-int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, int dhminlen )
+int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen )
 {
-    int ret, len;
+    int ret;
+    size_t len;
     unsigned char *p, *end;
 #if defined(POLARSSL_PEM_C)
     pem_context pem;
@@ -2180,7 +2202,7 @@ int compat_snprintf(char *str, size_t size, const char *format, ...)
 
     // No quick fix possible
     if ( res < 0 )
-        return( size + 20 );
+        return( (int) size + 20 );
     
     return res;
 }
@@ -2195,13 +2217,13 @@ int compat_snprintf(char *str, size_t size, const char *format, ...)
     if( ret == -1 )                             \
         return( -1 );                           \
                                                 \
-    if ( ret > n ) {                            \
+    if ( (unsigned int) ret > n ) {             \
         p[n - 1] = '\0';                        \
         return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;\
     }                                           \
                                                 \
-    n -= ret;                                   \
-    p += ret;                                   \
+    n -= (unsigned int) ret;                    \
+    p += (unsigned int) ret;                    \
 }
 
 /*
@@ -2210,7 +2232,8 @@ int compat_snprintf(char *str, size_t size, const char *format, ...)
  */
 int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
 {
-    int i, ret, n;
+    int ret;
+    size_t i, n;
     unsigned char c;
     const x509_name *name;
     char s[128], *p;
@@ -2294,7 +2317,7 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
         name = name->next;
     }
 
-    return( size - n );
+    return( (int) ( size - n ) );
 }
 
 /*
@@ -2303,7 +2326,8 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
  */
 int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
 {
-    int i, ret, nr, n;
+    int ret;
+    size_t i, n, nr;
     char *p;
 
     p = buf;
@@ -2319,7 +2343,7 @@ int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
         SAFE_SNPRINTF();
     }
 
-    return( size - n );
+    return( (int) ( size - n ) );
 }
 
 /*
@@ -2328,7 +2352,8 @@ int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
 int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                          const x509_cert *crt )
 {
-    int n, ret;
+    int ret;
+    size_t n;
     char *p;
 
     p = buf;
@@ -2389,7 +2414,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                    crt->rsa.N.n * (int) sizeof( unsigned long ) * 8 );
     SAFE_SNPRINTF();
 
-    return( size - n );
+    return( (int) ( size - n ) );
 }
 
 /* Compare a given OID string with an OID x509_buf * */
@@ -2429,7 +2454,8 @@ const char *x509_oid_get_description( x509_buf *oid )
 /* Return the x.y.z.... style numeric string for the given OID */
 int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
 {
-    int ret, n, i;
+    int ret;
+    size_t i, n;
     unsigned int value;
     char *p;
 
@@ -2445,7 +2471,7 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
 
     /* TODO: value can overflow in value. */
     value = 0;
-    for( i=1; i < oid->len; i++ )
+    for( i = 1; i < oid->len; i++ )
     {
         value <<= 7;
         value += oid->p[i] & 0x7F;
@@ -2459,7 +2485,7 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
         }
     }
 
-    return( size - n );
+    return( (int) ( size - n ) );
 }
 
 /*
@@ -2468,7 +2494,8 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
 int x509parse_crl_info( char *buf, size_t size, const char *prefix,
                         const x509_crl *crl )
 {
-    int i, n, nr, ret;
+    int ret;
+    size_t i, n, nr;
     char *p;
     const x509_crl_entry *entry;
 
@@ -2550,7 +2577,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
     ret = snprintf( p, n, "\n" );
     SAFE_SNPRINTF();
 
-    return( size - n );
+    return( (int) ( size - n ) );
 }
 
 /*
@@ -2627,7 +2654,7 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
  *
  * \param out   Buffer to receive the hash (Should be at least 64 bytes)
  */
-static void x509_hash( const unsigned char *in, int len, int alg,
+static void x509_hash( const unsigned char *in, size_t len, int alg,
                        unsigned char *out )
 {
     switch( alg )
@@ -2731,7 +2758,7 @@ int x509parse_verify( x509_cert *crt,
                       int (*f_vrfy)(void *, x509_cert *, int, int),
                       void *p_vrfy )
 {
-    int cn_len;
+    size_t cn_len;
     int hash_id;
     int pathlen;
     x509_cert *parent;
@@ -2999,7 +3026,9 @@ void x509_crl_free( x509_crl *crl )
 int x509_self_test( int verbose )
 {
 #if defined(POLARSSL_MD5_C)
-    int ret, i, j;
+    int ret;
+    int flags;
+    size_t i, j;
     x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
@@ -3053,10 +3082,10 @@ int x509_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n  X.509 signature verify: ");
 
-    ret = x509parse_verify( &clicert, &cacert, NULL, "PolarSSL Client 2", &i, NULL, NULL );
+    ret = x509parse_verify( &clicert, &cacert, NULL, "PolarSSL Client 2", &flags, NULL, NULL );
     if( ret != 0 )
     {
-        printf("%02x", i);
+        printf("%02x", flags);
         if( verbose != 0 )
             printf( "failed\n" );
 

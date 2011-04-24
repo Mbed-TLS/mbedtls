@@ -44,7 +44,8 @@ int main( void )
 {
     FILE *f;
 
-    int ret, n, buflen;
+    int ret;
+    size_t n, buflen;
     int listen_fd = -1;
     int client_fd = -1;
 
@@ -177,7 +178,7 @@ int main( void )
     buf2[1] = (unsigned char)( buflen      );
 
     if( ( ret = net_send( &client_fd, buf2, 2 ) ) != 2 ||
-        ( ret = net_send( &client_fd, buf, buflen ) ) != buflen )
+        ( ret = net_send( &client_fd, buf, buflen ) ) != (int) buflen )
     {
         printf( " failed\n  ! net_send returned %d\n\n", ret );
         goto exit;
@@ -192,7 +193,7 @@ int main( void )
     memset( buf, 0, sizeof( buf ) );
     n = dhm.len;
 
-    if( ( ret = net_recv( &client_fd, buf, n ) ) != n )
+    if( ( ret = net_recv( &client_fd, buf, n ) ) != (int) n )
     {
         printf( " failed\n  ! net_recv returned %d\n\n", ret );
         goto exit;

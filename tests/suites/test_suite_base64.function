@@ -7,7 +7,7 @@ base64_encode:src_string:dst_string:dst_buf_size:result
 {
     unsigned char src_str[1000];
     unsigned char dst_str[1000];
-    int len = {dst_buf_size};
+    size_t len = {dst_buf_size};
 
     memset(src_str, 0x00, 1000);
     memset(dst_str, 0x00, 1000);
@@ -26,7 +26,7 @@ base64_decode:src_string:dst_string:result
 {
     unsigned char src_str[1000];
     unsigned char dst_str[1000];
-    int len = 1000;
+    size_t len = 1000;
     int res; 
 
     memset(src_str, 0x00, 1000);

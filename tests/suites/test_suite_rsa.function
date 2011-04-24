@@ -227,7 +227,7 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
     rsa_context ctx;
-    int msg_len, hash_len;
+    size_t msg_len, hash_len;
 
     rsa_init( &ctx, {padding_mode}, 0 );
     memset( message_str, 0x00, 1000 );
@@ -255,7 +255,7 @@ rsa_pkcs1_encrypt:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:in
     unsigned char output[1000];
     unsigned char output_str[1000];
     rsa_context ctx;
-    int msg_len;
+    size_t msg_len;
     rnd_pseudo_info rnd_info;
 
     memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
@@ -290,7 +290,7 @@ rsa_pkcs1_encrypt_bad_rng:message_hex_string:padding_mode:mod:radix_N:input_N:ra
     unsigned char output[1000];
     unsigned char output_str[1000];
     rsa_context ctx;
-    int msg_len;
+    size_t msg_len;
 
     rsa_init( &ctx, {padding_mode}, 0 );
     memset( message_str, 0x00, 1000 );
@@ -323,7 +323,7 @@ rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:in
     unsigned char output_str[1000];
     rsa_context ctx;
     mpi P1, Q1, H, G;
-    int output_len;
+    size_t output_len;
 
     mpi_init( &P1, &Q1, &H, &G, NULL );
     rsa_init( &ctx, {padding_mode}, 0 );

@@ -76,7 +76,7 @@ dec_empty_buf:
     unsigned char encbuf[64];
     unsigned char decbuf[64];
 
-    int outlen = 0;
+    size_t outlen = 0;
 
     memset( key, 0, 32 );
     memset( iv , 0, 16 );

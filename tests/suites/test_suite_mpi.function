@@ -16,7 +16,7 @@ mpi_read_write_string:radix_X:input_X:radix_A:input_A:output_size:result_read:re
 {
     mpi X;
     char str[1000];
-    int len = {output_size};
+    size_t len = {output_size};
 
     mpi_init(&X, NULL);
 
@@ -38,8 +38,8 @@ mpi_read_binary:input_X:radix_A:input_A
     mpi X;
     unsigned char str[1000];
     unsigned char buf[1000];
-    int len = 1000;
-    int input_len;
+    size_t len = 1000;
+    size_t input_len;
 
     mpi_init(&X, NULL);
 
@@ -57,7 +57,7 @@ mpi_write_binary:radix_X:input_X:input_A:output_size:result
     mpi X;
     unsigned char str[1000];
     unsigned char buf[1000];
-    int buflen;
+    size_t buflen;
 
     memset( buf, 0x00, 1000 );
     memset( str, 0x00, 1000 );
@@ -86,7 +86,7 @@ mpi_read_file:radix_X:input_file:input_A:result
     mpi X;
     unsigned char str[1000];
     unsigned char buf[1000];
-    int buflen;
+    size_t buflen;
     FILE *file;
 
     memset( buf, 0x00, 1000 );

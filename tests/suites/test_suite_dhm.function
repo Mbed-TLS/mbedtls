@@ -12,10 +12,10 @@ dhm_do_dhm:x_size:radix_P:input_P:radix_G:input_G
     unsigned char pub_cli[1000];
     unsigned char sec_srv[1000];
     unsigned char sec_cli[1000];
-    int ske_len = 0;
-    int pub_cli_len = 0;
-    int sec_srv_len = 1000;
-    int sec_cli_len = 1000;
+    size_t ske_len = 0;
+    size_t pub_cli_len = 0;
+    size_t sec_srv_len = 1000;
+    size_t sec_cli_len = 1000;
     int x_size;
     rnd_pseudo_info rnd_info;
 

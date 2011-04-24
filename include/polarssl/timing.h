@@ -39,7 +39,7 @@ struct hr_time
 extern "C" {
 #endif
 
-extern int alarmed;
+extern volatile int alarmed;
 
 /**
  * \brief          Return the CPU cycle counter value

@@ -136,7 +136,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
     /*
      * Generate X as large as possible ( < P )
      */
-    n = x_size / sizeof( t_int ) + 1;
+    n = x_size / sizeof( t_uint ) + 1;
 
     mpi_fill_random( &ctx->X, n, f_rng, p_rng );
 
@@ -213,7 +213,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
     /*
      * generate X and calculate GX = G^X mod P
      */
-    n = x_size / sizeof( t_int ) + 1;
+    n = x_size / sizeof( t_uint ) + 1;
 
     mpi_fill_random( &ctx->X, n, f_rng, p_rng );
 

@@ -44,27 +44,27 @@
  * Define the base integer type, architecture-wise
  */
 #if defined(POLARSSL_HAVE_INT8)
-typedef signed char t_s_int;
-typedef unsigned char  t_int;
-typedef unsigned short t_dbl;
+typedef   signed char  t_sint;
+typedef unsigned char  t_uint;
+typedef unsigned short t_udbl;
 #else
 #if defined(POLARSSL_HAVE_INT16)
-typedef signed short t_s_int;
-typedef unsigned short t_int;
-typedef unsigned long  t_dbl;
+typedef   signed short t_sint;
+typedef unsigned short t_uint;
+typedef unsigned long  t_udbl;
 #else
-  typedef signed long t_s_int;
-  typedef unsigned long t_int;
+  typedef   signed long t_sint;
+  typedef unsigned long t_uint;
   #if defined(_MSC_VER) && defined(_M_IX86)
-  typedef unsigned __int64 t_dbl;
+  typedef unsigned __int64 t_udbl;
   #else
     #if defined(__amd64__) || defined(__x86_64__)    || \
         defined(__ppc64__) || defined(__powerpc64__) || \
         defined(__ia64__)  || defined(__alpha__)
-    typedef unsigned int t_dbl __attribute__((mode(TI)));
+    typedef unsigned int t_udbl __attribute__((mode(TI)));
     #else
       #if defined(POLARSSL_HAVE_LONGLONG)
-      typedef unsigned long long t_dbl;
+      typedef unsigned long long t_udbl;
       #endif
     #endif
   #endif
@@ -78,7 +78,7 @@ typedef struct
 {
     int s;              /*!<  integer sign      */
     size_t n;           /*!<  total # of limbs  */
-    t_int *p;           /*!<  pointer to limbs  */
+    t_uint *p;          /*!<  pointer to limbs  */
 }
 mpi;
 
@@ -135,7 +135,7 @@ void mpi_swap( mpi *X, mpi *Y );
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
-int mpi_lset( mpi *X, t_s_int z );
+int mpi_lset( mpi *X, t_sint z );
 
 /**
  * \brief          Return the number of least significant bits
@@ -291,7 +291,7 @@ int mpi_cmp_mpi( const mpi *X, const mpi *Y );
  *                -1 if X is lesser  than z or
  *                 0 if X is equal to z
  */
-int mpi_cmp_int( const mpi *X, t_s_int z );
+int mpi_cmp_int( const mpi *X, t_sint z );
 
 /**
  * \brief          Unsigned addition: X = |A| + |B|
@@ -351,7 +351,7 @@ int mpi_sub_mpi( mpi *X, const mpi *A, const mpi *B );
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
-int mpi_add_int( mpi *X, const mpi *A, t_s_int b );
+int mpi_add_int( mpi *X, const mpi *A, t_sint b );
 
 /**
  * \brief          Signed substraction: X = A - b
@@ -363,7 +363,7 @@ int mpi_add_int( mpi *X, const mpi *A, t_s_int b );
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
-int mpi_sub_int( mpi *X, const mpi *A, t_s_int b );
+int mpi_sub_int( mpi *X, const mpi *A, t_sint b );
 
 /**
  * \brief          Baseline multiplication: X = A * B
@@ -389,7 +389,7 @@ int mpi_mul_mpi( mpi *X, const mpi *A, const mpi *B );
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
-int mpi_mul_int( mpi *X, const mpi *A, t_s_int b );
+int mpi_mul_int( mpi *X, const mpi *A, t_sint b );
 
 /**
  * \brief          Division by mpi: A = Q * B + R
@@ -421,7 +421,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B );
  *
  * \note           Either Q or R can be NULL.
  */
-int mpi_div_int( mpi *Q, mpi *R, const mpi *A, t_s_int b );
+int mpi_div_int( mpi *Q, mpi *R, const mpi *A, t_sint b );
 
 /**
  * \brief          Modulo: R = A mod B
@@ -440,7 +440,7 @@ int mpi_mod_mpi( mpi *R, const mpi *A, const mpi *B );
 /**
  * \brief          Modulo: r = A mod b
  *
- * \param r        Destination t_int
+ * \param r        Destination t_uint
  * \param A        Left-hand MPI
  * \param b        Integer to divide by
  *
@@ -449,7 +449,7 @@ int mpi_mod_mpi( mpi *R, const mpi *A, const mpi *B );
  *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0,
  *                 POLARSSL_ERR_MPI_NEGATIVE_VALUE if b < 0
  */
-int mpi_mod_int( t_int *r, const mpi *A, t_s_int b );
+int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
 
 /**
  * \brief          Sliding-window exponentiation: X = A^E mod N

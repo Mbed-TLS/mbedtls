@@ -455,7 +455,7 @@ mpi_mod_int:radix_X:input_X:input_Y:input_A:div_result
 {
     mpi X;
     int res;
-    t_int r;
+    t_uint r;
     mpi_init(&X, NULL);
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );

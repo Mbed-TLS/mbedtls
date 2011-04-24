@@ -9,7 +9,8 @@ Features
 Changes
    * Major argument / variable rewrite. Introduced use of size_t
      instead of int for buffer lengths and loop variables for
-	 better unsigned / signed use
+	 better unsigned / signed use. Renamed internal bigint types
+	 t_int and t_dbl to t_uint and t_udbl in the process
 
 = Version 0.99-pre4 released on 2011-04-01
 Features

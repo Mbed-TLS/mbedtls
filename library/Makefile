@@ -18,16 +18,16 @@ DLEXT=so
 # DLEXT=dylib
 
 OBJS=	aes.o		arc4.o		base64.o	\
-	bignum.o	certs.o		debug.o		\
-	des.o		dhm.o		havege.o	\
-	md2.o		md4.o		md5.o		\
-	net.o		padlock.o	rsa.o		\
-	sha1.o		sha2.o		sha4.o		\
-	ssl_cli.o	ssl_srv.o	ssl_tls.o	\
-	timing.o	x509parse.o	xtea.o		\
-	camellia.o  version.o   md.o		\
-	md_wrap.o	cipher.o 	cipher_wrap.o \
-	pkcs11.o    pem.o
+		bignum.o	camellia.o	certs.o		\
+		cipher.o	cipher_wrap.o	debug.o	\
+		des.o		dhm.o		havege.o	\
+		md.o		md_wrap.o	md2.o		\
+		md4.o		md5.o		net.o		\
+		padlock.o	pem.o		pkcs11.o	\
+		rsa.o		sha1.o		sha2.o		\
+		sha4.o		ssl_cli.o	ssl_srv.o	\
+		ssl_tls.o	timing.o	version.o	\
+		x509parse.o	xtea.o
 	
 
 .SILENT:

@@ -35,7 +35,9 @@
 
 #include "polarssl/md4.h"
 
+#if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
+#endif
 
 /*
  * 32-bit integer manipulation macros (little endian)
@@ -271,6 +273,7 @@ void md4( const unsigned char *input, size_t ilen, unsigned char output[16] )
     memset( &ctx, 0, sizeof( md4_context ) );
 }
 
+#if defined(POLARSSL_FS_IO)
 /*
  * output = MD4( file contents )
  */
@@ -302,6 +305,7 @@ int md4_file( const char *path, unsigned char output[16] )
     fclose( f );
     return( 0 );
 }
+#endif /* POLARSSL_FS_IO */
 
 /*
  * MD4 HMAC context setup

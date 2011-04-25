@@ -179,29 +179,29 @@ depends_on:POLARSSL_MD4_C
 md4_file:"data_files/hash_file_4":"31d6cfe0d16ae931b73c59d7e0c089c0"
 
 MD5 Hash file #1
-depends_on:POLARSSL_MD5_C
+depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO
 md5_file:"data_files/hash_file_1":"52bcdc983c9ed64fc148a759b3c7a415"
 
 MD5 Hash file #2
-depends_on:POLARSSL_MD5_C
+depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO
 md5_file:"data_files/hash_file_2":"d17d466f15891df10542207ae78277f0"
 
 MD5 Hash file #3
-depends_on:POLARSSL_MD5_C
+depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO
 md5_file:"data_files/hash_file_3":"d945bcc6200ea95d061a2a818167d920"
 
 MD5 Hash file #4
-depends_on:POLARSSL_MD5_C
+depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO
 md5_file:"data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
 
 MD2 Selftest
-depends_on:POLARSSL_MD2_C
+depends_on:POLARSSL_MD2_C:POLARSSL_SELF_TEST
 md2_selftest:
 
 MD4 Selftest
-depends_on:POLARSSL_MD4_C
+depends_on:POLARSSL_MD4_C:POLARSSL_SELF_TEST
 md4_selftest:
 
 MD5 Selftest
-depends_on:POLARSSL_MD5_C
+depends_on:POLARSSL_MD5_C:POLARSSL_SELF_TEST
 md5_selftest:

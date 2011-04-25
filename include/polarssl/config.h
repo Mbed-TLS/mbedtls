@@ -144,6 +144,13 @@
 #define POLARSSL_GENPRIME
 
 /**
+ * \def POLARSSL_FS_IO
+ *
+ * Enable functions that use the filesystem.
+ */
+#define POLARSSL_FS_IO
+
+/**
  * \def POLARSSL_PKCS1_V21
  *
  * Enable support for PKCS#1 v2.1 encoding.

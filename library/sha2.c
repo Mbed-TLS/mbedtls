@@ -34,7 +34,9 @@
 
 #include "polarssl/sha2.h"
 
+#if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
+#endif
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -327,6 +329,7 @@ void sha2( const unsigned char *input, size_t ilen,
     memset( &ctx, 0, sizeof( sha2_context ) );
 }
 
+#if defined(POLARSSL_FS_IO)
 /*
  * output = SHA-256( file contents )
  */
@@ -358,6 +361,7 @@ int sha2_file( const char *path, unsigned char output[32], int is224 )
     fclose( f );
     return( 0 );
 }
+#endif /* POLARSSL_FS_IO */
 
 /*
  * SHA-256 HMAC context setup

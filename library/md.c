@@ -225,7 +225,14 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
     if( md_info == NULL )
         return 3;
 
+#if defined(POLARSSL_FS_IO)
     return md_info->file_func( path, output );
+#else
+    ((void) path);
+    ((void) output);
+
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
 }
 
 int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )

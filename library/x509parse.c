@@ -51,8 +51,11 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <time.h>
+
+#if defined(POLARSSL_FS_IO)
+#include <stdio.h>
+#endif
 
 /*
  * ASN.1 DER decoding routines
@@ -1739,6 +1742,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
     return( 0 );
 }
 
+#if defined(POLARSSL_FS_IO)
 /*
  * Load all data from a file into a given buffer.
  */
@@ -1809,6 +1813,51 @@ int x509parse_crlfile( x509_crl *chain, const char *path )
 
     return( ret );
 }
+
+/*
+ * Load and parse a private RSA key
+ */
+int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( load_file( path, &buf, &n ) )
+        return( 1 );
+
+    if( pwd == NULL )
+        ret = x509parse_key( rsa, buf, (int) n, NULL, 0 );
+    else
+        ret = x509parse_key( rsa, buf, (int) n,
+                (unsigned char *) pwd, strlen( pwd ) );
+
+    memset( buf, 0, n + 1 );
+    free( buf );
+
+    return( ret );
+}
+
+/*
+ * Load and parse a public RSA key
+ */
+int x509parse_public_keyfile( rsa_context *rsa, const char *path )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( load_file( path, &buf, &n ) )
+        return( 1 );
+
+    ret = x509parse_public_key( rsa, buf, (int) n );
+
+    memset( buf, 0, n + 1 );
+    free( buf );
+
+    return( ret );
+}
+#endif /* POLARSSL_FS_IO */
 
 /*
  * Parse a private RSA key
@@ -1936,30 +1985,6 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
 }
 
 /*
- * Load and parse a private RSA key
- */
-int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
-{
-    int ret;
-    size_t n;
-    unsigned char *buf;
-
-    if ( load_file( path, &buf, &n ) )
-        return( 1 );
-
-    if( pwd == NULL )
-        ret = x509parse_key( rsa, buf, (int) n, NULL, 0 );
-    else
-        ret = x509parse_key( rsa, buf, (int) n,
-                (unsigned char *) pwd, strlen( pwd ) );
-
-    memset( buf, 0, n + 1 );
-    free( buf );
-
-    return( ret );
-}
-
-/*
  * Parse a public RSA key
  */
 int x509parse_public_key( rsa_context *rsa, const unsigned char *key, size_t keylen )
@@ -2050,26 +2075,6 @@ int x509parse_public_key( rsa_context *rsa, const unsigned char *key, size_t key
     return( 0 );
 }
 
-/*
- * Load and parse a public RSA key
- */
-int x509parse_public_keyfile( rsa_context *rsa, const char *path )
-{
-    int ret;
-    size_t n;
-    unsigned char *buf;
-
-    if ( load_file( path, &buf, &n ) )
-        return( 1 );
-
-    ret = x509parse_public_key( rsa, buf, (int) n );
-
-    memset( buf, 0, n + 1 );
-    free( buf );
-
-    return( ret );
-}
-
 #if defined(POLARSSL_DHM_C)
 /*
  * Parse DHM parameters
@@ -2154,6 +2159,7 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
     return( 0 );
 }
 
+#if defined(POLARSSL_FS_IO)
 /*
  * Load and parse a private RSA key
  */
@@ -2173,6 +2179,7 @@ int x509parse_dhmfile( dhm_context *dhm, const char *path )
 
     return( ret );
 }
+#endif /* POLARSSL_FS_IO */
 #endif /* POLARSSL_DHM_C */
 
 #if defined _MSC_VER && !defined snprintf

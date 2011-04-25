@@ -407,6 +407,7 @@ cleanup:
     return( ret );
 }
 
+#if defined(POLARSSL_FS_IO)
 /*
  * Read X from an opened file
  */
@@ -468,6 +469,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* POLARSSL_FS_IO */
 
 /*
  * Import X from unsigned binary data, big endian

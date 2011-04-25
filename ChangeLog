@@ -5,6 +5,8 @@ Features
    * Added additional Cipher Block Modes to symmetric ciphers
      (AES CTR, Camellia CTR, XTEA CBC) including the option to
 	 enable and disable individual modes when needed
+   * Functions requiring File System functions can now be disabled
+     by undefining POLARSSL_FS_IO
 
 Changes
    * Major argument / variable rewrite. Introduced use of size_t

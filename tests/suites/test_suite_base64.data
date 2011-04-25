@@ -56,4 +56,5 @@ Base64 decode (Invalid char after equal signs)
 base64_decode:"zm=masd":"":POLARSSL_ERR_BASE64_INVALID_CHARACTER
 
 Base64 Selftest
+depends_on:POLARSSL_SELF_TEST
 base64_selftest:

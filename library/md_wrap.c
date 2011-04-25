@@ -58,6 +58,17 @@ static void md2_finish_wrap( void *ctx, unsigned char *output )
     md2_finish( (md2_context *) ctx, output );
 }
 
+int md2_file_wrap( const char *path, unsigned char *output )
+{
+#if defined(POLARSSL_FS_IO)
+    return md2_file( path, output );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
+}
+
 static void md2_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
 {
     md2_hmac_starts( (md2_context *) ctx, key, keylen );
@@ -96,7 +107,7 @@ const md_info_t md2_info = {
     md2_update_wrap,
     md2_finish_wrap,
     md2,
-    md2_file,
+    md2_file_wrap,
     md2_hmac_starts_wrap,
     md2_hmac_update_wrap,
     md2_hmac_finish_wrap,
@@ -123,6 +134,17 @@ void md4_update_wrap( void *ctx, const unsigned char *input, size_t ilen )
 void md4_finish_wrap( void *ctx, unsigned char *output )
 {
     md4_finish( (md4_context *) ctx, output );
+}
+
+int md4_file_wrap( const char *path, unsigned char *output )
+{
+#if defined(POLARSSL_FS_IO)
+    return md4_file( path, output );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
 }
 
 void md4_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
@@ -163,7 +185,7 @@ const md_info_t md4_info = {
     md4_update_wrap,
     md4_finish_wrap,
     md4,
-    md4_file,
+    md4_file_wrap,
     md4_hmac_starts_wrap,
     md4_hmac_update_wrap,
     md4_hmac_finish_wrap,
@@ -190,6 +212,17 @@ static void md5_update_wrap( void *ctx, const unsigned char *input, size_t ilen 
 static void md5_finish_wrap( void *ctx, unsigned char *output )
 {
     md5_finish( (md5_context *) ctx, output );
+}
+
+int md5_file_wrap( const char *path, unsigned char *output )
+{
+#if defined(POLARSSL_FS_IO)
+    return md5_file( path, output );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
 }
 
 static void md5_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
@@ -230,7 +263,7 @@ const md_info_t md5_info = {
     md5_update_wrap,
     md5_finish_wrap,
     md5,
-    md5_file,
+    md5_file_wrap,
     md5_hmac_starts_wrap,
     md5_hmac_update_wrap,
     md5_hmac_finish_wrap,
@@ -257,6 +290,17 @@ void sha1_update_wrap( void *ctx, const unsigned char *input, size_t ilen )
 void sha1_finish_wrap( void *ctx, unsigned char *output )
 {
     sha1_finish( (sha1_context *) ctx, output );
+}
+
+int sha1_file_wrap( const char *path, unsigned char *output )
+{
+#if defined(POLARSSL_FS_IO)
+    return sha1_file( path, output );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
 }
 
 void sha1_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
@@ -297,7 +341,7 @@ const md_info_t sha1_info = {
     sha1_update_wrap,
     sha1_finish_wrap,
     sha1,
-    sha1_file,
+    sha1_file_wrap,
     sha1_hmac_starts_wrap,
     sha1_hmac_update_wrap,
     sha1_hmac_finish_wrap,
@@ -337,7 +381,13 @@ void sha224_wrap( const unsigned char *input, size_t ilen,
 
 int sha224_file_wrap( const char *path, unsigned char *output )
 {
+#if defined(POLARSSL_FS_IO)
     return sha2_file( path, output, 1 );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
 }
 
 void sha224_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
@@ -418,7 +468,13 @@ void sha256_wrap( const unsigned char *input, size_t ilen,
 
 int sha256_file_wrap( const char *path, unsigned char *output )
 {
+#if defined(POLARSSL_FS_IO)
     return sha2_file( path, output, 0 );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
 }
 
 void sha256_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
@@ -503,7 +559,13 @@ void sha384_wrap( const unsigned char *input, size_t ilen,
 
 int sha384_file_wrap( const char *path, unsigned char *output )
 {
+#if defined(POLARSSL_FS_IO)
     return sha4_file( path, output, 1 );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
 }
 
 void sha384_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
@@ -584,7 +646,13 @@ void sha512_wrap( const unsigned char *input, size_t ilen,
 
 int sha512_file_wrap( const char *path, unsigned char *output )
 {
+#if defined(POLARSSL_FS_IO)
     return sha4_file( path, output, 0 );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
 }
 
 void sha512_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )

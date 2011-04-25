@@ -34,7 +34,9 @@
 
 #include "polarssl/md5.h"
 
+#if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
+#endif
 
 /*
  * 32-bit integer manipulation macros (little endian)
@@ -290,6 +292,7 @@ void md5( const unsigned char *input, size_t ilen, unsigned char output[16] )
     memset( &ctx, 0, sizeof( md5_context ) );
 }
 
+#if defined(POLARSSL_FS_IO)
 /*
  * output = MD5( file contents )
  */
@@ -321,6 +324,7 @@ int md5_file( const char *path, unsigned char output[16] )
     fclose( f );
     return( 0 );
 }
+#endif /* POLARSSL_FS_IO */
 
 /*
  * MD5 HMAC context setup

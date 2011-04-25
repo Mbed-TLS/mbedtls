@@ -36,6 +36,8 @@
 #define inline _inline
 #endif
 
+#define POLARSSL_ERR_MD_FEATURE_UNAVAILABLE                     -0x0830
+
 typedef enum {
     POLARSSL_MD_NONE=0,
     POLARSSL_MD_MD2,

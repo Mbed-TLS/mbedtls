@@ -1,4 +1,5 @@
 Cipher Selftest
+depends_on:POLARSSL_SELF_TEST
 cipher_selftest:
 
 Decrypt empty buffer

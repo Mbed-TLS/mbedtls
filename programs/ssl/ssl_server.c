@@ -210,6 +210,7 @@ int main( void )
         goto exit;
     }
 
+    rsa_init( &rsa, RSA_PKCS_V15, 0 );
     ret =  x509parse_key( &rsa, (unsigned char *) test_srv_key,
                           strlen( test_srv_key ), NULL, 0 );
     if( ret != 0 )

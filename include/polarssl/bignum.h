@@ -92,14 +92,18 @@ extern "C" {
 #endif
 
 /**
- * \brief          Initialize one or more mpi
+ * \brief           Initialize one MPI
+ *
+ * \param X         One MPI to initialize.
  */
-void mpi_init( mpi *X, ... );
+void mpi_init( mpi *X );
 
 /**
- * \brief          Unallocate one or more mpi
+ * \brief          Unallocate one MPI
+ *
+ * \param X        One MPI to unallocate.
  */
-void mpi_free( mpi *X, ... );
+void mpi_free( mpi *X );
 
 /**
  * \brief          Enlarge to the specified number of limbs

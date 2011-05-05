@@ -28,7 +28,7 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
     mpi P1, Q1, H, G;
     int msg_len;
 
-    mpi_init( &P1, &Q1, &H, &G, NULL );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, {padding_mode}, 0 );
 
     memset( message_str, 0x00, 1000 );
@@ -102,6 +102,8 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
 
         TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
     }
+
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
 }
 END_CASE
 
@@ -184,7 +186,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     mpi P1, Q1, H, G;
     int msg_len, hash_len;
 
-    mpi_init( &P1, &Q1, &H, &G, NULL );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, {padding_mode}, 0 );
 
     memset( message_str, 0x00, 1000 );
@@ -217,6 +219,8 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     hexify( output_str, output, ctx.len );
 
     TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
 }
 END_CASE
 
@@ -325,7 +329,7 @@ rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:in
     mpi P1, Q1, H, G;
     size_t output_len;
 
-    mpi_init( &P1, &Q1, &H, &G, NULL );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, {padding_mode}, 0 );
 
     memset( message_str, 0x00, 1000 );
@@ -359,6 +363,8 @@ rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:in
 
         TEST_ASSERT( strncasecmp( (char *) output_str, {result_hex_str}, strlen( {result_hex_str} ) ) == 0 );
     }
+
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
 }
 END_CASE
 
@@ -402,7 +408,7 @@ rsa_private:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input
     rsa_context ctx;
     mpi P1, Q1, H, G;
 
-    mpi_init( &P1, &Q1, &H, &G, NULL );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V15, 0 );
 
     memset( message_str, 0x00, 1000 );
@@ -435,6 +441,8 @@ rsa_private:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input
 
         TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
     }
+
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
 }
 END_CASE
 

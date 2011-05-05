@@ -49,7 +49,7 @@ int main( void )
     havege_state hs;
     FILE *fout;
 
-    mpi_init( &G, &P, &Q, NULL );
+    mpi_init( &G ); mpi_init( &P ); mpi_init( &Q );
     mpi_read_string( &G, 10, GENERATOR );
 
     printf( "\n  . Seeding the random number generator..." );
@@ -113,7 +113,7 @@ int main( void )
 
 exit:
 
-    mpi_free( &Q, &P, &G, NULL );
+    mpi_free( &G ); mpi_free( &P ); mpi_free( &Q );
 #else
     printf( "\n  ! Prime-number generation is not available.\n\n" );
 #endif

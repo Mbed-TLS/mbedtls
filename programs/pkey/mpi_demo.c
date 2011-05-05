@@ -35,8 +35,9 @@ int main( void )
 {
     mpi E, P, Q, N, H, D, X, Y, Z;
 
-    mpi_init( &E, &P, &Q, &N, &H,
-              &D, &X, &Y, &Z, NULL );
+    mpi_init( &E ); mpi_init( &P ); mpi_init( &Q ); mpi_init( &N );
+    mpi_init( &H ); mpi_init( &D ); mpi_init( &X ); mpi_init( &Y );
+    mpi_init( &Z );
 
     mpi_read_string( &P, 10, "2789" );
     mpi_read_string( &Q, 10, "3203" );
@@ -69,8 +70,9 @@ int main( void )
     mpi_write_file( "  Z (decrypted)  = Y^D mod N = ", &Z, 10, NULL );
     printf( "\n" );
 
-    mpi_free( &Z, &Y, &X, &D, &H,
-              &N, &Q, &P, &E, NULL );
+    mpi_free( &E ); mpi_free( &P ); mpi_free( &Q ); mpi_free( &N );
+    mpi_free( &H ); mpi_free( &D ); mpi_free( &X ); mpi_free( &Y );
+    mpi_free( &Z );
 
 #ifdef WIN32
     printf( "  Press Enter to exit this program.\n" );

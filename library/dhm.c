@@ -74,7 +74,7 @@ static int dhm_check_range( const mpi *public_param, const mpi *P )
     mpi L, U;
     int ret = POLARSSL_ERR_DHM_BAD_INPUT_DATA;
 
-    mpi_init( &L, &U, NULL );
+    mpi_init( &L ); mpi_init( &U );
     mpi_lset( &L, 2 );
     mpi_sub_int( &U, P, 2 );
 
@@ -84,7 +84,7 @@ static int dhm_check_range( const mpi *public_param, const mpi *P )
         ret = 0;
     }
 
-    mpi_free( &L, &U, NULL );
+    mpi_free( &L ); mpi_free( &U );
 
     return( ret );
 }
@@ -270,9 +270,9 @@ cleanup:
  */
 void dhm_free( dhm_context *ctx )
 {
-    mpi_free( &ctx->RP, &ctx->K, &ctx->GY,
-              &ctx->GX, &ctx->X, &ctx->G,
-              &ctx->P, NULL );    
+    mpi_free( &ctx->RP ); mpi_free( &ctx->K ); mpi_free( &ctx->GY );
+    mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
+    mpi_free( &ctx->P );
 }
 
 #if defined(POLARSSL_SELF_TEST)

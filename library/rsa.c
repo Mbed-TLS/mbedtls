@@ -68,7 +68,7 @@ int rsa_gen_key( rsa_context *ctx,
     if( f_rng == NULL || nbits < 128 || exponent < 3 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    mpi_init( &P1, &Q1, &H, &G, NULL );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
 
     /*
      * find primes P and Q with Q < P so that:
@@ -116,7 +116,7 @@ int rsa_gen_key( rsa_context *ctx,
 
 cleanup:
 
-    mpi_free( &G, &H, &Q1, &P1, NULL );
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
 
     if( ret != 0 )
     {
@@ -166,7 +166,9 @@ int rsa_check_privkey( const rsa_context *ctx )
     if( !ctx->P.p || !ctx->Q.p || !ctx->D.p )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
-    mpi_init( &PQ, &DE, &P1, &Q1, &H, &I, &G, &G2, &L1, &L2, NULL );
+    mpi_init( &PQ ); mpi_init( &DE ); mpi_init( &P1 ); mpi_init( &Q1 );
+    mpi_init( &H  ); mpi_init( &I  ); mpi_init( &G  ); mpi_init( &G2 );
+    mpi_init( &L1 ); mpi_init( &L2 );
 
     MPI_CHK( mpi_mul_mpi( &PQ, &ctx->P, &ctx->Q ) );
     MPI_CHK( mpi_mul_mpi( &DE, &ctx->D, &ctx->E ) );
@@ -182,20 +184,25 @@ int rsa_check_privkey( const rsa_context *ctx )
     /*
      * Check for a valid PKCS1v2 private key
      */
-    if( mpi_cmp_mpi( &PQ, &ctx->N ) == 0 &&
-        mpi_cmp_int( &L2, 0 ) == 0 &&
-        mpi_cmp_int( &I, 1 ) == 0 &&
-        mpi_cmp_int( &G, 1 ) == 0 )
+    if( mpi_cmp_mpi( &PQ, &ctx->N ) != 0 ||
+        mpi_cmp_int( &L2, 0 ) != 0 ||
+        mpi_cmp_int( &I, 1 ) != 0 ||
+        mpi_cmp_int( &G, 1 ) != 0 )
     {
-        mpi_free( &G, &I, &H, &Q1, &P1, &DE, &PQ, &G2, &L1, &L2, NULL );
-        return( 0 );
+        ret = POLARSSL_ERR_RSA_KEY_CHECK_FAILED;
     }
 
     
 cleanup:
 
-    mpi_free( &G, &I, &H, &Q1, &P1, &DE, &PQ, &G2, &L1, &L2, NULL );
-    return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED | ret );
+    mpi_free( &PQ ); mpi_free( &DE ); mpi_free( &P1 ); mpi_free( &Q1 );
+    mpi_free( &H  ); mpi_free( &I  ); mpi_free( &G  ); mpi_free( &G2 );
+    mpi_free( &L1 ); mpi_free( &L2 );
+
+    if( ret != 0 )
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED | ret );
+
+    return( 0 );
 }
 
 /*
@@ -209,13 +216,13 @@ int rsa_public( rsa_context *ctx,
     size_t olen;
     mpi T;
 
-    mpi_init( &T, NULL );
+    mpi_init( &T );
 
     MPI_CHK( mpi_read_binary( &T, input, ctx->len ) );
 
     if( mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
-        mpi_free( &T, NULL );
+        mpi_free( &T );
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
@@ -225,7 +232,7 @@ int rsa_public( rsa_context *ctx,
 
 cleanup:
 
-    mpi_free( &T, NULL );
+    mpi_free( &T );
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PUBLIC_FAILED | ret );
@@ -244,13 +251,13 @@ int rsa_private( rsa_context *ctx,
     size_t olen;
     mpi T, T1, T2;
 
-    mpi_init( &T, &T1, &T2, NULL );
+    mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
 
     MPI_CHK( mpi_read_binary( &T, input, ctx->len ) );
 
     if( mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
-        mpi_free( &T, NULL );
+        mpi_free( &T );
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
@@ -285,7 +292,7 @@ int rsa_private( rsa_context *ctx,
 
 cleanup:
 
-    mpi_free( &T, &T1, &T2, NULL );
+    mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PRIVATE_FAILED | ret );
@@ -1006,10 +1013,10 @@ int rsa_pkcs1_verify( rsa_context *ctx,
  */
 void rsa_free( rsa_context *ctx )
 {
-    mpi_free( &ctx->RQ, &ctx->RP, &ctx->RN,
-              &ctx->QP, &ctx->DQ, &ctx->DP,
-              &ctx->Q,  &ctx->P,  &ctx->D,
-              &ctx->E,  &ctx->N,  NULL );
+    mpi_free( &ctx->RQ ); mpi_free( &ctx->RP ); mpi_free( &ctx->RN );
+    mpi_free( &ctx->QP ); mpi_free( &ctx->DQ ); mpi_free( &ctx->DP );
+    mpi_free( &ctx->Q  ); mpi_free( &ctx->P  ); mpi_free( &ctx->D );
+    mpi_free( &ctx->E  ); mpi_free( &ctx->N  );
 }
 
 #if defined(POLARSSL_SELF_TEST)

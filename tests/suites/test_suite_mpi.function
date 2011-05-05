@@ -18,7 +18,7 @@ mpi_read_write_string:radix_X:input_X:radix_A:input_A:output_size:result_read:re
     char str[1000];
     size_t len = {output_size};
 
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == {result_read} );
     if( {result_read} == 0 )
@@ -29,6 +29,8 @@ mpi_read_write_string:radix_X:input_X:radix_A:input_A:output_size:result_read:re
             TEST_ASSERT( strcasecmp( str, {input_A} ) == 0 );
         }
     }
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -41,13 +43,15 @@ mpi_read_binary:input_X:radix_A:input_A
     size_t len = 1000;
     size_t input_len;
 
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     input_len = unhexify( buf, {input_X} );
 
     TEST_ASSERT( mpi_read_binary( &X, buf, input_len ) == 0 );
     TEST_ASSERT( mpi_write_string( &X, {radix_A}, (char *) str, &len ) == 0 );
     TEST_ASSERT( strcmp( (char *) str, {input_A} ) == 0 );
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -62,7 +66,7 @@ mpi_write_binary:radix_X:input_X:input_A:output_size:result
     memset( buf, 0x00, 1000 );
     memset( str, 0x00, 1000 );
 
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     
@@ -77,6 +81,8 @@ mpi_write_binary:radix_X:input_X:input_A:output_size:result
 
         TEST_ASSERT( strcasecmp( (char *) str, {input_A} ) == 0 );
     }
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -92,7 +98,7 @@ mpi_read_file:radix_X:input_file:input_A:result
     memset( buf, 0x00, 1000 );
     memset( str, 0x00, 1000 );
 
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     file = fopen( {input_file}, "r" );
     TEST_ASSERT( mpi_read_file( &X, {radix_X}, file ) == {result} );
@@ -107,6 +113,8 @@ mpi_read_file:radix_X:input_file:input_A:result
 
         TEST_ASSERT( strcasecmp( (char *) str, {input_A} ) == 0 );
     }
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -116,7 +124,7 @@ mpi_write_file:radix_X:input_X:output_radix:output_file
     mpi X, Y;
     FILE *file_out, *file_in;
 
-    mpi_init( &X, &Y, NULL );
+    mpi_init( &X ); mpi_init( &Y );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
 
@@ -129,6 +137,8 @@ mpi_write_file:radix_X:input_X:output_radix:output_file
     fclose(file_in);
 
     TEST_ASSERT( mpi_cmp_mpi( &X, &Y ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y );
 }
 END_CASE
 
@@ -136,10 +146,12 @@ BEGIN_CASE
 mpi_lsb:radix_X:input_X:nr_bits
 {
     mpi X;
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_lsb( &X ) == {nr_bits} );
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -147,10 +159,12 @@ BEGIN_CASE
 mpi_msb:radix_X:input_X:nr_bits
 {
     mpi X;
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_msb( &X ) == {nr_bits} );
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -158,13 +172,15 @@ BEGIN_CASE
 mpi_gcd:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 {
     mpi A, X, Y, Z;
-    mpi_init(&A, &X, &Y, &Z, NULL);
+    mpi_init( &A ); mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_gcd( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    mpi_free( &A ); mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
 }
 END_CASE
 
@@ -172,10 +188,12 @@ BEGIN_CASE
 mpi_cmp_int:input_X:input_A:result_CMP
 {
     mpi X;
-    mpi_init(&X, NULL);
+    mpi_init( &X  );
 
     TEST_ASSERT( mpi_lset( &X, {input_X} ) == 0);
     TEST_ASSERT( mpi_cmp_int( &X, {input_A} ) == {result_CMP});
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -183,11 +201,13 @@ BEGIN_CASE
 mpi_cmp_mpi:radix_X:input_X:radix_Y:input_Y:input_A
 {
     mpi X, Y;
-    mpi_init(&X, &Y, NULL);
+    mpi_init( &X ); mpi_init( &Y );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &X, &Y ) == {input_A} );
+
+    mpi_free( &X ); mpi_free( &Y );
 }
 END_CASE
 
@@ -195,11 +215,13 @@ BEGIN_CASE
 mpi_cmp_abs:radix_X:input_X:radix_Y:input_Y:input_A
 {
     mpi X, Y;
-    mpi_init(&X, &Y, NULL);
+    mpi_init( &X ); mpi_init( &Y );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_cmp_abs( &X, &Y ) == {input_A} );
+
+    mpi_free( &X ); mpi_free( &Y );
 }
 END_CASE
 
@@ -207,7 +229,7 @@ BEGIN_CASE
 mpi_copy:input_X:input_A
 {
     mpi X, Y, A;
-    mpi_init(&X, &Y, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
 
     TEST_ASSERT( mpi_lset( &X, {input_X} ) == 0 );
     TEST_ASSERT( mpi_lset( &Y, {input_A} ) == 0 );
@@ -217,6 +239,8 @@ mpi_copy:input_X:input_A
     TEST_ASSERT( mpi_copy( &Y, &X ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Y, &A ) != 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &A );
 }
 END_CASE
 
@@ -224,11 +248,13 @@ BEGIN_CASE
 mpi_copy_self:input_X
 {
     mpi X;
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     TEST_ASSERT( mpi_lset( &X, {input_X} ) == 0 );
     TEST_ASSERT( mpi_copy( &X, &X ) == 0 );
     TEST_ASSERT( mpi_cmp_int( &X, {input_X} ) == 0 );
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -236,7 +262,7 @@ BEGIN_CASE
 mpi_swap:input_X:input_Y
 {
     mpi X, Y, A;
-    mpi_init(&X, &Y, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
 
     TEST_ASSERT( mpi_lset( &X, {input_X} ) == 0 );
     TEST_ASSERT( mpi_lset( &Y, {input_Y} ) == 0 );
@@ -246,6 +272,8 @@ mpi_swap:input_X:input_Y
     mpi_swap( &X, &Y );
     TEST_ASSERT( mpi_cmp_mpi( &X, &Y ) != 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Y, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &A );
 }
 END_CASE
 
@@ -253,13 +281,15 @@ BEGIN_CASE
 mpi_add_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 {
     mpi X, Y, Z, A;
-    mpi_init(&X, &Y, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_add_mpi( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -267,13 +297,15 @@ BEGIN_CASE
 mpi_add_abs:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 {
     mpi X, Y, Z, A;
-    mpi_init(&X, &Y, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_add_abs( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -281,13 +313,15 @@ BEGIN_CASE
 mpi_add_abs_add_first:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 {
     mpi X, Y, A;
-    mpi_init(&X, &Y, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_add_abs( &X, &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &X, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &A );
 }
 END_CASE
 
@@ -295,13 +329,15 @@ BEGIN_CASE
 mpi_add_abs_add_second:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 {
     mpi X, Y, A;
-    mpi_init(&X, &Y, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_add_abs( &Y, &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Y, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &A );
 }
 END_CASE
 
@@ -309,12 +345,14 @@ BEGIN_CASE
 mpi_add_int:radix_X:input_X:input_Y:radix_A:input_A
 {
     mpi X, Z, A;
-    mpi_init(&X, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_add_int( &Z, &X, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -322,13 +360,15 @@ BEGIN_CASE
 mpi_sub_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 {
     mpi X, Y, Z, A;
-    mpi_init(&X, &Y, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_sub_mpi( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -337,7 +377,7 @@ mpi_sub_abs:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:sub_result
 {
     mpi X, Y, Z, A;
     int res;
-    mpi_init(&X, &Y, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
@@ -347,6 +387,8 @@ mpi_sub_abs:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:sub_result
     TEST_ASSERT( res == {sub_result} );
     if( res == 0 )
         TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -354,12 +396,14 @@ BEGIN_CASE
 mpi_sub_int:radix_X:input_X:input_Y:radix_A:input_A
 {
     mpi X, Z, A;
-    mpi_init(&X, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_sub_int( &Z, &X, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -367,13 +411,15 @@ BEGIN_CASE
 mpi_mul_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 {
     mpi X, Y, Z, A;
-    mpi_init(&X, &Y, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_mul_mpi( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -381,12 +427,14 @@ BEGIN_CASE
 mpi_mul_int:radix_X:input_X:input_Y:radix_A:input_A:result_comparison
 {
     mpi X, Z, A;
-    mpi_init(&X, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_mul_int( &Z, &X, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) {result_comparison} 0 );
+
+    mpi_free( &X ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -395,7 +443,8 @@ mpi_div_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:radix_B:input_B:div_
 {
     mpi X, Y, Q, R, A, B;
     int res;
-    mpi_init(&X, &Y, &Q, &R, &A, &B, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Q ); mpi_init( &R );
+    mpi_init( &A ); mpi_init( &B );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
@@ -408,6 +457,9 @@ mpi_div_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:radix_B:input_B:div_
         TEST_ASSERT( mpi_cmp_mpi( &Q, &A ) == 0 );
         TEST_ASSERT( mpi_cmp_mpi( &R, &B ) == 0 );
     }
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Q ); mpi_free( &R );
+    mpi_free( &A ); mpi_free( &B );
 }
 END_CASE
 
@@ -416,7 +468,8 @@ mpi_div_int:radix_X:input_X:input_Y:radix_A:input_A:radix_B:input_B:div_result
 {
     mpi X, Q, R, A, B;
     int res;
-    mpi_init(&X, &Q, &R, &A, &B, NULL);
+    mpi_init( &X ); mpi_init( &Q ); mpi_init( &R ); mpi_init( &A );
+    mpi_init( &B );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
@@ -428,6 +481,9 @@ mpi_div_int:radix_X:input_X:input_Y:radix_A:input_A:radix_B:input_B:div_result
         TEST_ASSERT( mpi_cmp_mpi( &Q, &A ) == 0 );
         TEST_ASSERT( mpi_cmp_mpi( &R, &B ) == 0 );
     }
+
+    mpi_free( &X ); mpi_free( &Q ); mpi_free( &R ); mpi_free( &A );
+    mpi_free( &B );
 }
 END_CASE
 
@@ -436,7 +492,7 @@ mpi_mod_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
 {
     mpi X, Y, Z, A;
     int res;
-    mpi_init(&X, &Y, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
@@ -447,6 +503,8 @@ mpi_mod_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
     {
         TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
     }
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -456,7 +514,7 @@ mpi_mod_int:radix_X:input_X:input_Y:input_A:div_result
     mpi X;
     int res;
     t_uint r;
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     res = mpi_mod_int( &r, &X, {input_Y} );
@@ -465,6 +523,8 @@ mpi_mod_int:radix_X:input_X:input_Y:input_A:div_result
     {
         TEST_ASSERT( r == {input_A} );
     }
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -473,7 +533,8 @@ mpi_exp_mod:radix_A:input_A:radix_E:input_E:radix_N:input_N:radix_RR:input_RR:ra
 {
     mpi A, E, N, RR, Z, X;
     int res;
-    mpi_init(&A, &E, &N, &RR, &Z, &X, NULL);
+    mpi_init( &A  ); mpi_init( &E ); mpi_init( &N );
+    mpi_init( &RR ); mpi_init( &Z ); mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_read_string( &E, {radix_E}, {input_E} ) == 0 );
@@ -489,6 +550,9 @@ mpi_exp_mod:radix_A:input_A:radix_E:input_E:radix_N:input_N:radix_RR:input_RR:ra
     {
         TEST_ASSERT( mpi_cmp_mpi( &Z, &X ) == 0 );
     }
+
+    mpi_free( &A  ); mpi_free( &E ); mpi_free( &N );
+    mpi_free( &RR ); mpi_free( &Z ); mpi_free( &X );
 }
 END_CASE
 
@@ -497,7 +561,7 @@ mpi_inv_mod:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
 {
     mpi X, Y, Z, A;
     int res;
-    mpi_init(&X, &Y, &Z, &A, NULL);
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
@@ -508,6 +572,8 @@ mpi_inv_mod:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
     {
         TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
     }
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
@@ -516,11 +582,13 @@ mpi_is_prime:radix_X:input_X:div_result
 {
     mpi X;
     int res;
-    mpi_init(&X, NULL);
+    mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     res = mpi_is_prime( &X, myrand, NULL );
     TEST_ASSERT( res == {div_result} );
+
+    mpi_free( &X );
 }
 END_CASE
 
@@ -528,12 +596,14 @@ BEGIN_CASE
 mpi_shift_l:radix_X:input_X:shift_X:radix_A:input_A
 {
     mpi X, A;
-    mpi_init(&X, &A, NULL);
+    mpi_init( &X ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_shift_l( &X, {shift_X} ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &X, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &A );
 }
 END_CASE
 
@@ -541,12 +611,14 @@ BEGIN_CASE
 mpi_shift_r:radix_X:input_X:shift_X:radix_A:input_A
 {
     mpi X, A;
-    mpi_init(&X, &A, NULL);
+    mpi_init( &X ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_shift_r( &X, {shift_X} ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &X, &A ) == 0 );
+
+    mpi_free( &X ); mpi_free( &A );
 }
 END_CASE
 

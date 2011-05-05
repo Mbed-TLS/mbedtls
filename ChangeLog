@@ -13,6 +13,8 @@ Changes
      instead of int for buffer lengths and loop variables for
 	 better unsigned / signed use. Renamed internal bigint types
 	 t_int and t_dbl to t_uint and t_udbl in the process
+   * mpi_init() and mpi_free() now only accept a single MPI
+     argument and do not accept variable argument lists anymore.
 
 = Version 0.99-pre4 released on 2011-04-01
 Features

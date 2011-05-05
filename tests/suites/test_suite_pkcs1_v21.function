@@ -58,7 +58,7 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
     size_t output_len;
     size_t msg_len;
 
-    mpi_init( &P1, &Q1, &H, &G, NULL );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V21, {hash} );
 
     memset( message_str, 0x00, 1000 );
@@ -91,6 +91,8 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
 
         TEST_ASSERT( strncasecmp( (char *) output_str, {result_hex_str}, strlen( {result_hex_str} ) ) == 0 );
     }
+
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
 }
 END_CASE
 
@@ -111,7 +113,7 @@ pkcs1_rsassa_pss_sign:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_
     info.buf = rnd_buf;
     info.per_call = 1;
 
-    mpi_init( &P1, &Q1, &H, &G, NULL );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V21, {hash} );
 
     memset( message_str, 0x00, 1000 );
@@ -185,6 +187,8 @@ pkcs1_rsassa_pss_sign:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_
 
         TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
     }
+
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
 }
 END_CASE
 

@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#define ciL    ((int) sizeof(t_uint))   /* chars in limb  */
+#define ciL    (sizeof(t_uint))         /* chars in limb  */
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
 
@@ -104,6 +104,9 @@ void mpi_free( mpi *X, ... )
 int mpi_grow( mpi *X, size_t nblimbs )
 {
     t_uint *p;
+
+    if( nblimbs > POLARSSL_MPI_MAX_LIMBS )
+        return( 1 );
 
     if( X->n < nblimbs )
     {
@@ -192,7 +195,7 @@ size_t mpi_lsb( const mpi *X )
     size_t i, j, count = 0;
 
     for( i = 0; i < X->n; i++ )
-        for( j = 0; j < (int) biL; j++, count++ )
+        for( j = 0; j < biL; j++, count++ )
             if( ( ( X->p[i] >> j ) & 1 ) != 0 )
                 return( count );
 
@@ -528,7 +531,7 @@ int mpi_shift_l( mpi *X, size_t count )
 
     i = mpi_msb( X ) + count;
 
-    if( X->n * (int) biL < i )
+    if( X->n * biL < i )
         MPI_CHK( mpi_grow( X, BITS_TO_LIMBS( i ) ) );
 
     ret = 0;
@@ -1041,7 +1044,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
     MPI_CHK( mpi_grow( &T2, 3 ) );
 
     k = mpi_msb( &Y ) % biL;
-    if( k < (int) biL - 1 )
+    if( k < biL - 1 )
     {
         k = biL - 1 - k;
         MPI_CHK( mpi_shift_l( &X, k ) );
@@ -1833,7 +1836,7 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
     size_t k, n;
     mpi Y;
 
-    if( nbits < 3 )
+    if( nbits < 3 || nbits > 4096 )
         return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
     mpi_init( &Y, NULL );

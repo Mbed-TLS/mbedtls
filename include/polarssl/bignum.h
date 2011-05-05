@@ -41,6 +41,11 @@
 #define MPI_CHK(f) if( ( ret = f ) != 0 ) goto cleanup
 
 /*
+ * Maximum size MPIs are allowed to grow to in number of limbs.
+ */
+#define POLARSSL_MPI_MAX_LIMBS                             10000
+
+/*
  * Define the base integer type, architecture-wise
  */
 #if defined(POLARSSL_HAVE_INT8)
@@ -526,7 +531,7 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng );
  * \brief          Prime number generation
  *
  * \param X        Destination MPI
- * \param nbits    Required size of X in bits
+ * \param nbits    Required size of X in bits ( 3 <= nbits <= 4096 )
  * \param dh_flag  If 1, then (X-1)/2 will be prime too
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter

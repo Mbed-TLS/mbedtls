@@ -53,7 +53,7 @@ static int dhm_read_bignum( mpi *X,
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = mpi_read_binary( X, *p, n ) ) != 0 )
-        return( POLARSSL_ERR_DHM_READ_PARAMS_FAILED | ret );
+        return( POLARSSL_ERR_DHM_READ_PARAMS_FAILED + ret );
 
     (*p) += n;
 
@@ -176,7 +176,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
 cleanup:
 
     if( ret != 0 )
-        return( ret | POLARSSL_ERR_DHM_MAKE_PARAMS_FAILED );
+        return( POLARSSL_ERR_DHM_MAKE_PARAMS_FAILED + ret );
 
     return( 0 );
 }
@@ -193,7 +193,7 @@ int dhm_read_public( dhm_context *ctx,
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = mpi_read_binary( &ctx->GY, input, ilen ) ) != 0 )
-        return( POLARSSL_ERR_DHM_READ_PUBLIC_FAILED | ret );
+        return( POLARSSL_ERR_DHM_READ_PUBLIC_FAILED + ret );
 
     return( 0 );
 }
@@ -231,7 +231,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
 cleanup:
 
     if( ret != 0 )
-        return( POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED | ret );
+        return( POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED + ret );
 
     return( 0 );
 }
@@ -260,7 +260,7 @@ int dhm_calc_secret( dhm_context *ctx,
 cleanup:
 
     if( ret != 0 )
-        return( POLARSSL_ERR_DHM_CALC_SECRET_FAILED | ret );
+        return( POLARSSL_ERR_DHM_CALC_SECRET_FAILED + ret );
 
     return( 0 );
 }

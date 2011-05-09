@@ -32,15 +32,15 @@
 /*
  * RSA Error codes
  */
-#define POLARSSL_ERR_RSA_BAD_INPUT_DATA                    -0x0400
-#define POLARSSL_ERR_RSA_INVALID_PADDING                   -0x0410
-#define POLARSSL_ERR_RSA_KEY_GEN_FAILED                    -0x0420
-#define POLARSSL_ERR_RSA_KEY_CHECK_FAILED                  -0x0430
-#define POLARSSL_ERR_RSA_PUBLIC_FAILED                     -0x0440
-#define POLARSSL_ERR_RSA_PRIVATE_FAILED                    -0x0450
-#define POLARSSL_ERR_RSA_VERIFY_FAILED                     -0x0460
-#define POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE                  -0x0470
-#define POLARSSL_ERR_RSA_RNG_FAILED                        -0x0480
+#define POLARSSL_ERR_RSA_BAD_INPUT_DATA                    -0x4080  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_RSA_INVALID_PADDING                   -0x4100  /**< Input data contains invalid padding and is rejected. */
+#define POLARSSL_ERR_RSA_KEY_GEN_FAILED                    -0x4180  /**< Something failed during generation of a key. */
+#define POLARSSL_ERR_RSA_KEY_CHECK_FAILED                  -0x4200  /**< Key failed to pass the libraries validity check. */
+#define POLARSSL_ERR_RSA_PUBLIC_FAILED                     -0x4280  /**< The public key operation failed. */
+#define POLARSSL_ERR_RSA_PRIVATE_FAILED                    -0x4300  /**< The private key operation failed. */
+#define POLARSSL_ERR_RSA_VERIFY_FAILED                     -0x4380  /**< The PKCS#1 verification failed. */
+#define POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE                  -0x4400  /**< The output buffer for decryption is not large enough. */
+#define POLARSSL_ERR_RSA_RNG_FAILED                        -0x4480  /**< The random generator failed to generate non-zeros. */
 
 /*
  * PKCS#1 constants

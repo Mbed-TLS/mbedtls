@@ -324,6 +324,18 @@
 #define POLARSSL_DHM_C
 
 /**
+ * \def POLARSSL_ERROR_C
+ *
+ * Enable error code to error string conversion.
+ *
+ * Module:  library/error.c
+ * Caller:
+ *
+ * This module enables err_strerror().
+ */
+#define POLARSSL_ERROR_C
+
+/**
  * \def POLARSSL_HAVEGE_C
  *
  * Enable the HAVEGE random generator.

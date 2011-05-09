@@ -733,7 +733,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
                                       ssl->in_msg + 6, n ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_read_public", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE | ret );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_RP );
         }
 
         SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->dhm_ctx.GY );
@@ -744,7 +744,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
                      ssl->premaster, &ssl->pmslen ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE | ret );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_CS );
         }
 
         SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->dhm_ctx.K  );

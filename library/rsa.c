@@ -121,7 +121,7 @@ cleanup:
     if( ret != 0 )
     {
         rsa_free( ctx );
-        return( POLARSSL_ERR_RSA_KEY_GEN_FAILED | ret );
+        return( POLARSSL_ERR_RSA_KEY_GEN_FAILED + ret );
     }
 
     return( 0 );   
@@ -199,8 +199,11 @@ cleanup:
     mpi_free( &H  ); mpi_free( &I  ); mpi_free( &G  ); mpi_free( &G2 );
     mpi_free( &L1 ); mpi_free( &L2 );
 
+    if( ret == POLARSSL_ERR_RSA_KEY_CHECK_FAILED )
+        return( ret );
+
     if( ret != 0 )
-        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED | ret );
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED + ret );
 
     return( 0 );
 }
@@ -235,7 +238,7 @@ cleanup:
     mpi_free( &T );
 
     if( ret != 0 )
-        return( POLARSSL_ERR_RSA_PUBLIC_FAILED | ret );
+        return( POLARSSL_ERR_RSA_PUBLIC_FAILED + ret );
 
     return( 0 );
 }
@@ -295,7 +298,7 @@ cleanup:
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
 
     if( ret != 0 )
-        return( POLARSSL_ERR_RSA_PRIVATE_FAILED | ret );
+        return( POLARSSL_ERR_RSA_PRIVATE_FAILED + ret );
 
     return( 0 );
 }

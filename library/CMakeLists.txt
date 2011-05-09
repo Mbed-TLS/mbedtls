@@ -12,6 +12,7 @@ set(src
      debug.c
      des.c
      dhm.c
+     error.c
      havege.c
      md.c
      md_wrap.c

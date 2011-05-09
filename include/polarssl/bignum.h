@@ -30,13 +30,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#define POLARSSL_ERR_MPI_FILE_IO_ERROR                     0x0002
-#define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    0x0004
-#define POLARSSL_ERR_MPI_INVALID_CHARACTER                 0x0006
-#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  0x0008
-#define POLARSSL_ERR_MPI_NEGATIVE_VALUE                    0x000A
-#define POLARSSL_ERR_MPI_DIVISION_BY_ZERO                  0x000C
-#define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    0x000E
+#define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
+#define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_MPI_INVALID_CHARACTER                 -0x0006  /**< There is an invalid character in the digit string. */
+#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008  /**< The output buffer is too small to write too. */
+#define POLARSSL_ERR_MPI_NEGATIVE_VALUE                    -0x000A  /**< The input arguments are negative or result in illegal output. */
+#define POLARSSL_ERR_MPI_DIVISION_BY_ZERO                  -0x000C  /**< The input argument for division is zero, which is not allowed. */
+#define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    -0x000E  /**< The input arguments are not acceptable. */
 
 #define MPI_CHK(f) if( ( ret = f ) != 0 ) goto cleanup
 

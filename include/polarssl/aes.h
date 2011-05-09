@@ -32,8 +32,8 @@
 #define AES_ENCRYPT     1
 #define AES_DECRYPT     0
 
-#define POLARSSL_ERR_AES_INVALID_KEY_LENGTH                 -0x0800
-#define POLARSSL_ERR_AES_INVALID_INPUT_LENGTH               -0x0810
+#define POLARSSL_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
+#define POLARSSL_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
 
 /**
  * \brief          AES context structure

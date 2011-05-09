@@ -29,16 +29,16 @@
 
 #include <string.h>
 
-#define POLARSSL_ERR_NET_UNKNOWN_HOST                      -0x0F00
-#define POLARSSL_ERR_NET_SOCKET_FAILED                     -0x0F10
-#define POLARSSL_ERR_NET_CONNECT_FAILED                    -0x0F20
-#define POLARSSL_ERR_NET_BIND_FAILED                       -0x0F30
-#define POLARSSL_ERR_NET_LISTEN_FAILED                     -0x0F40
-#define POLARSSL_ERR_NET_ACCEPT_FAILED                     -0x0F50
-#define POLARSSL_ERR_NET_RECV_FAILED                       -0x0F60
-#define POLARSSL_ERR_NET_SEND_FAILED                       -0x0F70
-#define POLARSSL_ERR_NET_CONN_RESET                        -0x0F80
-#define POLARSSL_ERR_NET_TRY_AGAIN                         -0x0F90
+#define POLARSSL_ERR_NET_UNKNOWN_HOST                      -0x0040  /**< Failed to get an IP address for the given hostname. */
+#define POLARSSL_ERR_NET_SOCKET_FAILED                     -0x0042  /**< Failed to open a socket. */
+#define POLARSSL_ERR_NET_CONNECT_FAILED                    -0x0044  /**< The connection to the given server / port failed. */
+#define POLARSSL_ERR_NET_BIND_FAILED                       -0x0046  /**< Binding of the socket failed. */
+#define POLARSSL_ERR_NET_LISTEN_FAILED                     -0x0048  /**< Could not listen on the socket. */
+#define POLARSSL_ERR_NET_ACCEPT_FAILED                     -0x004A  /**< Could not accept the incoming connection. */
+#define POLARSSL_ERR_NET_RECV_FAILED                       -0x004C  /**< Reading information from the socket failed. */
+#define POLARSSL_ERR_NET_SEND_FAILED                       -0x004E  /**< Sending information through the socket failed. */
+#define POLARSSL_ERR_NET_CONN_RESET                        -0x0050  /**< Connection was reset by peer. */
+#define POLARSSL_ERR_NET_TRY_AGAIN                         -0x0052  /**< Connection was busy, try again. */
 
 #ifdef __cplusplus
 extern "C" {

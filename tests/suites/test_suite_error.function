@@ -1,0 +1,14 @@
+BEGIN_HEADER
+#include <polarssl/error.h>
+END_HEADER
+
+BEGIN_CASE
+error_strerror:code:result_str
+{
+    char buf[500];
+
+    error_strerror( {code}, buf, 500 );
+
+    TEST_ASSERT( strcmp( buf, {result_str} ) == 0 );
+}
+END_CASE

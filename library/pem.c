@@ -281,7 +281,7 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
     ret = base64_decode( NULL, &len, s1, s2 - s1 );
 
     if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
-        return( ret | POLARSSL_ERR_PEM_INVALID_DATA );
+        return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
 
     if( ( buf = (unsigned char *) malloc( len ) ) == NULL )
         return( POLARSSL_ERR_PEM_MALLOC_FAILED );
@@ -289,7 +289,7 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
     if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
     {
         free( buf );
-        return( ret | POLARSSL_ERR_PEM_INVALID_DATA );
+        return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
     }
     
     if( enc != 0 )

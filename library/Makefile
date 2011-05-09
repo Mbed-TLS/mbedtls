@@ -21,6 +21,7 @@ OBJS=	aes.o		arc4.o		base64.o	\
 		bignum.o	camellia.o	certs.o		\
 		cipher.o	cipher_wrap.o	debug.o	\
 		des.o		dhm.o		havege.o	\
+		error.o \
 		md.o		md_wrap.o	md2.o		\
 		md4.o		md5.o		net.o		\
 		padlock.o	pem.o		pkcs11.o	\

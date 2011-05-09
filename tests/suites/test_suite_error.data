@@ -1,0 +1,24 @@
+Single low error
+depends_on:POLARSSL_ERROR_C:POLARSSL_AES_C
+error_strerror:-0x0020:"AES - Invalid key length"
+
+Single high error
+depends_on:POLARSSL_ERROR_C:POLARSSL_RSA_C
+error_strerror:-0x4080:"RSA - Bad input parameters to function"
+
+Low and high error
+depends_on:POLARSSL_ERROR_C:POLARSSL_AES_C:POLARSSL_RSA_C
+error_strerror:-0x40A0:"RSA - Bad input parameters to function \: AES - Invalid key length"
+
+Non existing high error
+depends_on:POLARSSL_ERROR_C
+error_strerror:-0x8880:"UNKNOWN ERROR CODE (8880)"
+
+Non existing low error
+depends_on:POLARSSL_ERROR_C
+error_strerror:-0x0001:"UNKNOWN ERROR CODE (0001)"
+
+Non existing low and high error
+depends_on:POLARSSL_ERROR_C
+error_strerror:-0x8881:"UNKNOWN ERROR CODE (8880) \: UNKNOWN ERROR CODE (0001)"
+

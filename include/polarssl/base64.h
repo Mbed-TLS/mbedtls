@@ -29,8 +29,8 @@
 
 #include <string.h>
 
-#define POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL               0x0010
-#define POLARSSL_ERR_BASE64_INVALID_CHARACTER              0x0012
+#define POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL               -0x0010  /**< Output buffer too small. */
+#define POLARSSL_ERR_BASE64_INVALID_CHARACTER              -0x0012  /**< Invalid character in input. */
 
 #ifdef __cplusplus
 extern "C" {

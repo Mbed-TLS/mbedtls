@@ -32,7 +32,7 @@
 #define DES_ENCRYPT     1
 #define DES_DECRYPT     0
 
-#define POLARSSL_ERR_DES_INVALID_INPUT_LENGTH               -0x0C00
+#define POLARSSL_ERR_DES_INVALID_INPUT_LENGTH              -0x0032  /**< The data input has an invalid length. */
 
 #define DES_KEY_SIZE    8
 

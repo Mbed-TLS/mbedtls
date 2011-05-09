@@ -42,37 +42,37 @@
  * ASN1 is a standard to specify data structures.
  * \{
  */
-#define POLARSSL_ERR_ASN1_OUT_OF_DATA                      0x0014   /**< Out of data when parsing an ASN1 data structure. */
-#define POLARSSL_ERR_ASN1_UNEXPECTED_TAG                   0x0016   /**< ASN1 tag was of an unexpected value. */
-#define POLARSSL_ERR_ASN1_INVALID_LENGTH                   0x0018   /**< Error when trying to determine the length or invalid length. */
-#define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  0x001A   /**< Actual length differs from expected length. */
-#define POLARSSL_ERR_ASN1_INVALID_DATA                     0x001C   /**< Data is invalid. (not used) */
+#define POLARSSL_ERR_ASN1_OUT_OF_DATA                      -0x0014  /**< Out of data when parsing an ASN1 data structure. */
+#define POLARSSL_ERR_ASN1_UNEXPECTED_TAG                   -0x0016  /**< ASN1 tag was of an unexpected value. */
+#define POLARSSL_ERR_ASN1_INVALID_LENGTH                   -0x0018  /**< Error when trying to determine the length or invalid length. */
+#define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  -0x001A  /**< Actual length differs from expected length. */
+#define POLARSSL_ERR_ASN1_INVALID_DATA                     -0x001C  /**< Data is invalid. (not used) */
 /* \} name */
 
 /** 
  * \name X509 Error codes
  * \{
  */
-#define POLARSSL_ERR_X509_FEATURE_UNAVAILABLE              -0x0020  /**< Unavailable feature, e.g. RSA hashing/encryption combination. */
-#define POLARSSL_ERR_X509_CERT_INVALID_PEM                 -0x0040  /**< The PEM-encoded certificate contains invalid elements, e.g. invalid character. */ 
-#define POLARSSL_ERR_X509_CERT_INVALID_FORMAT              -0x0060  /**< The certificate format is invalid, e.g. different type expected. */
-#define POLARSSL_ERR_X509_CERT_INVALID_VERSION             -0x0080  /**< The certificate version element is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_SERIAL              -0x00A0  /**< The serial tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_ALG                 -0x00C0  /**< The algorithm tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_NAME                -0x00E0  /**< The name tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_DATE                -0x0100  /**< The date tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_PUBKEY              -0x0120  /**< The pubkey tag or value is invalid (only RSA is supported). */
-#define POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE           -0x0140  /**< The signature tag or value invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x0160  /**< The extension tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x0180  /**< Certificate or CRL has an unsupported version number. */
-#define POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x01A0  /**< Signature algorithm (oid) is unsupported. */
-#define POLARSSL_ERR_X509_CERT_UNKNOWN_PK_ALG              -0x01C0  /**< Public key algorithm is unsupported (only RSA is supported). */
-#define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x01E0  /**< Certificate signature algorithms do not match. (see \c ::x509_cert sig_oid) */
-#define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x0200  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
-#define POLARSSL_ERR_X509_KEY_INVALID_VERSION              -0x0240  /**< Unsupported RSA key version */
-#define POLARSSL_ERR_X509_KEY_INVALID_FORMAT               -0x0260  /**< Invalid RSA key tag or value. */
-#define POLARSSL_ERR_X509_POINT_ERROR                      -0x0300  /**< Not used. */
-#define POLARSSL_ERR_X509_VALUE_TO_LENGTH                  -0x0320  /**< Not used. */
+#define POLARSSL_ERR_X509_FEATURE_UNAVAILABLE              -0x2080  /**< Unavailable feature, e.g. RSA hashing/encryption combination. */
+#define POLARSSL_ERR_X509_CERT_INVALID_PEM                 -0x2100  /**< The PEM-encoded certificate contains invalid elements, e.g. invalid character. */ 
+#define POLARSSL_ERR_X509_CERT_INVALID_FORMAT              -0x2180  /**< The certificate format is invalid, e.g. different type expected. */
+#define POLARSSL_ERR_X509_CERT_INVALID_VERSION             -0x2200  /**< The certificate version element is invalid. */
+#define POLARSSL_ERR_X509_CERT_INVALID_SERIAL              -0x2280  /**< The serial tag or value is invalid. */
+#define POLARSSL_ERR_X509_CERT_INVALID_ALG                 -0x2300  /**< The algorithm tag or value is invalid. */
+#define POLARSSL_ERR_X509_CERT_INVALID_NAME                -0x2380  /**< The name tag or value is invalid. */
+#define POLARSSL_ERR_X509_CERT_INVALID_DATE                -0x2400  /**< The date tag or value is invalid. */
+#define POLARSSL_ERR_X509_CERT_INVALID_PUBKEY              -0x2480  /**< The pubkey tag or value is invalid (only RSA is supported). */
+#define POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE           -0x2500  /**< The signature tag or value invalid. */
+#define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x2580  /**< The extension tag or value is invalid. */
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x2600  /**< Certificate or CRL has an unsupported version number. */
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x2680  /**< Signature algorithm (oid) is unsupported. */
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_PK_ALG              -0x2700  /**< Public key algorithm is unsupported (only RSA is supported). */
+#define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x2780  /**< Certificate signature algorithms do not match. (see \c ::x509_cert sig_oid) */
+#define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x2800  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
+#define POLARSSL_ERR_X509_KEY_INVALID_VERSION              -0x2880  /**< Unsupported RSA key version */
+#define POLARSSL_ERR_X509_KEY_INVALID_FORMAT               -0x2900  /**< Invalid RSA key tag or value. */
+#define POLARSSL_ERR_X509_POINT_ERROR                      -0x2980  /**< Not used. */
+#define POLARSSL_ERR_X509_VALUE_TO_LENGTH                  -0x2A00  /**< Not used. */
 /* \} name */
 
 

@@ -48,33 +48,35 @@
 /*
  * SSL Error codes
  */
-#define POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE               -0x1000
-#define POLARSSL_ERR_SSL_BAD_INPUT_DATA                    -0x1800
-#define POLARSSL_ERR_SSL_INVALID_MAC                       -0x2000
-#define POLARSSL_ERR_SSL_INVALID_RECORD                    -0x2800
-#define POLARSSL_ERR_SSL_INVALID_MODULUS_SIZE              -0x3000
-#define POLARSSL_ERR_SSL_UNKNOWN_CIPHER                    -0x3800
-#define POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN                  -0x4000
-#define POLARSSL_ERR_SSL_NO_SESSION_FOUND                  -0x4800
-#define POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE             -0x5000
-#define POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE             -0x5800
-#define POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED              -0x6000
-#define POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED              -0x6800
-#define POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED                 -0x7000
-#define POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE                -0x7800
-#define POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE               -0x8000
-#define POLARSSL_ERR_SSL_PEER_VERIFY_FAILED                -0x8800
-#define POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY                 -0x9000
-#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO               -0x9800
-#define POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO               -0xA000
-#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE                -0xA800
-#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST        -0xB000
-#define POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE        -0xB800
-#define POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO_DONE          -0xC000
-#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE        -0xC800
-#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY         -0xD000
-#define POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC         -0xD800
-#define POLARSSL_ERR_SSL_BAD_HS_FINISHED                   -0xE000
+#define POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE               -0x7080  /**< The requested feature is not available. */
+#define POLARSSL_ERR_SSL_BAD_INPUT_DATA                    -0x7100  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_SSL_INVALID_MAC                       -0x7180  /**< Verification of the message MAC failed. */
+#define POLARSSL_ERR_SSL_INVALID_RECORD                    -0x7200  /**< An invalid SSL record was received. */
+#define POLARSSL_ERR_SSL_INVALID_MODULUS_SIZE              -0x7280  /**< An invalid modulus size was received. */
+#define POLARSSL_ERR_SSL_UNKNOWN_CIPHER                    -0x7300  /**< An unknown cipher was received. */
+#define POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN                  -0x7380  /**< The server has no ciphersuites in common with the client. */
+#define POLARSSL_ERR_SSL_NO_SESSION_FOUND                  -0x7400  /**< No session to recover was found. */
+#define POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE             -0x7480  /**< No client certification received from the client, but required by the authentication mode. */
+#define POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE             -0x7500  /**< Our own certificate(s) is/are too large to send in an SSL message.*/
+#define POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED              -0x7580  /**< The own certificate is not set, but needed by the server. */
+#define POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED              -0x7600  /**< The own private key is not set, but needed. */
+#define POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED                 -0x7680  /**< No CA Chain is set, but required to operate. */
+#define POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE                -0x7700  /**< An unexpected message was received from our peer. */
+#define POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE               -0x7780  /**< A fatal alert message was received from our peer. */
+#define POLARSSL_ERR_SSL_PEER_VERIFY_FAILED                -0x7800  /**< Verification of our peer failed. */
+#define POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY                 -0x7880  /**< The peer notified us that the connection is going to be closed. */
+#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO               -0x7900  /**< Processing of the ClientHello handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO               -0x7980  /**< Processing of the ServerHello handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE                -0x7A00  /**< Processing of the Certificate handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST        -0x7A80  /**< Processing of the CertificateRequest handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE        -0x7B00  /**< Processing of the ServerKeyExchange handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO_DONE          -0x7B80  /**< Processing of the ServerHelloDone handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE        -0x7C00  /**< Processing of the ClientKeyExchange handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_RP -0x7C80  /**< Processing of the ClientKeyExchange handshake message failed in DHM Read Public. */
+#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_CS -0x7D00  /**< Processing of the ClientKeyExchange handshake message failed in DHM Calculate Secret. */
+#define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY         -0x7D80  /**< Processing of the CertificateVerify handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC         -0x7E00  /**< Processing of the ChangeCipherSpec handshake message failed. */
+#define POLARSSL_ERR_SSL_BAD_HS_FINISHED                   -0x7E80  /**< Processing of the Finished handshake message failed. */
 
 /*
  * Various constants

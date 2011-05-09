@@ -1159,7 +1159,11 @@ int ssl_read_record( ssl_context *ssl )
         if( ssl->in_msg[0] == SSL_ALERT_LEVEL_FATAL )
         {
             SSL_DEBUG_MSG( 1, ( "is a fatal alert message" ) );
-            return( POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE | ssl->in_msg[1] );
+            /**
+             * Subtract from error code as ssl->in_msg[1] is 7-bit positive
+             * error identifier.
+             */
+            return( POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE - ssl->in_msg[1] );
         }
 
         if( ssl->in_msg[0] == SSL_ALERT_LEVEL_WARNING &&

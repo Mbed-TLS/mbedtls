@@ -42,7 +42,7 @@
 
 #define PADLOCK_ALIGN16(x) (unsigned long *) (16 + ((long) x & ~15))
 
-#define POLARSSL_ERR_PADLOCK_DATA_MISALIGNED                    -0x08E0
+#define POLARSSL_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 
 #ifdef __cplusplus
 extern "C" {

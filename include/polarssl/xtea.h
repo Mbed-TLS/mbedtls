@@ -39,7 +39,7 @@ typedef UINT32 uint32_t;
 #define XTEA_ENCRYPT     1
 #define XTEA_DECRYPT     0
 
-#define POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH               -0x0820
+#define POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH             -0x0028  /**< The data input has an invalid length. */
 
 /**
  * \brief          XTEA context structure

@@ -35,14 +35,14 @@
  * PEM data.
  * \{
  */
-#define POLARSSL_ERR_PEM_NO_HEADER_PRESENT                 -0x0500  /**< No PEM header found. */
-#define POLARSSL_ERR_PEM_INVALID_DATA                      -0x0520  /**< PEM string is not as expected. */
-#define POLARSSL_ERR_PEM_MALLOC_FAILED                     -0x0540  /**< Failed to allocate memory. */
-#define POLARSSL_ERR_PEM_INVALID_ENC_IV                    -0x0560  /**< RSA IV is not in hex-format. */
-#define POLARSSL_ERR_PEM_UNKNOWN_ENC_ALG                   -0x0580  /**< Unsupported key encryption algorithm. */
-#define POLARSSL_ERR_PEM_PASSWORD_REQUIRED                 -0x05A0  /**< Private key password can't be empty. */
-#define POLARSSL_ERR_PEM_PASSWORD_MISMATCH                 -0x05C0  /**< Given private key password does not allow for correct decryption. */
-#define POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE               -0x05E0  /**< Unavailable feature, e.g. hashing/encryption combination. */
+#define POLARSSL_ERR_PEM_NO_HEADER_PRESENT                 -0x1080  /**< No PEM header found. */
+#define POLARSSL_ERR_PEM_INVALID_DATA                      -0x1100  /**< PEM string is not as expected. */
+#define POLARSSL_ERR_PEM_MALLOC_FAILED                     -0x1180  /**< Failed to allocate memory. */
+#define POLARSSL_ERR_PEM_INVALID_ENC_IV                    -0x1200  /**< RSA IV is not in hex-format. */
+#define POLARSSL_ERR_PEM_UNKNOWN_ENC_ALG                   -0x1280  /**< Unsupported key encryption algorithm. */
+#define POLARSSL_ERR_PEM_PASSWORD_REQUIRED                 -0x1300  /**< Private key password can't be empty. */
+#define POLARSSL_ERR_PEM_PASSWORD_MISMATCH                 -0x1380  /**< Given private key password does not allow for correct decryption. */
+#define POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE               -0x1400  /**< Unavailable feature, e.g. hashing/encryption combination. */
 /* \} name */
 
 /**

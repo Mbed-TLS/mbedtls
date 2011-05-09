@@ -36,7 +36,7 @@
 #define inline _inline
 #endif
 
-#define POLARSSL_ERR_MD_FEATURE_UNAVAILABLE                     -0x0830
+#define POLARSSL_ERR_MD_FEATURE_UNAVAILABLE                -0x5080  /**< The selected feature is not available. */
 
 typedef enum {
     POLARSSL_MD_NONE=0,

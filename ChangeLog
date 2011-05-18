@@ -9,6 +9,8 @@ Features
      by undefining POLARSSL_FS_IO
    * A error_strerror function() has been added to translate between
      error codes and their description.
+   * Added mpi_get_bit() and mpi_set_bit() individual bit setter/getter
+     functions.
 
 Changes
    * Major argument / variable rewrite. Introduced use of size_t

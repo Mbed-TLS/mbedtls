@@ -171,6 +171,44 @@ cleanup:
 }
 
 /*
+ * Get a specific bit
+ */
+int mpi_get_bit( mpi *X, size_t pos )
+{
+    if( X->n * biL <= pos )
+        return( 0 );
+
+    return ( X->p[pos / biL] >> ( pos % biL ) ) & 0x01;
+}
+
+/*
+ * Set a bit to a specific value of 0 or 1
+ */
+int mpi_set_bit( mpi *X, size_t pos, unsigned char val )
+{
+    int ret = 0;
+    size_t off = pos / biL;
+    size_t idx = pos % biL;
+
+    if( val != 0 && val != 1 )
+        return POLARSSL_ERR_MPI_BAD_INPUT_DATA;
+        
+    if( X->n * biL <= pos )
+    {
+        if( val == 0 )
+            return ( 0 );
+
+        MPI_CHK( mpi_grow( X, off + 1 ) );
+    }
+
+    X->p[off] = ( X->p[off] & ~( 0x01 << idx ) ) | ( val << idx );
+
+cleanup:
+    
+    return( ret );
+}
+
+/*
  * Return the number of least significant bits
  */
 size_t mpi_lsb( const mpi *X )

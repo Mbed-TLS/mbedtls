@@ -143,6 +143,33 @@ mpi_write_file:radix_X:input_X:output_radix:output_file
 END_CASE
 
 BEGIN_CASE
+mpi_get_bit:radix_X:input_X:pos:val
+{
+    mpi X;
+    mpi_init( &X );
+    TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
+    TEST_ASSERT( mpi_get_bit( &X, {pos} ) == {val} );
+
+    mpi_free( &X );
+}
+END_CASE
+
+BEGIN_CASE
+mpi_set_bit:radix_X:input_X:pos:val:radix_Y:output_Y
+{
+    mpi X, Y;
+    mpi_init( &X ); mpi_init( &Y );
+
+    TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {output_Y} ) == 0 );
+    TEST_ASSERT( mpi_set_bit( &X, {pos}, {val} ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &Y ) == 0 );
+
+    mpi_free( &X );
+}
+END_CASE
+
+BEGIN_CASE
 mpi_lsb:radix_X:input_X:nr_bits
 {
     mpi X;

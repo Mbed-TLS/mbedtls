@@ -146,6 +146,32 @@ void mpi_swap( mpi *X, mpi *Y );
  */
 int mpi_lset( mpi *X, t_sint z );
 
+/*
+ * \brief          Get a specific bit from X
+ *
+ * \param X        MPI to use
+ * \param pos      Zero-based index of the bit in X
+ *
+ * \return         Either a 0 or a 1
+ */
+int mpi_get_bit( mpi *X, size_t pos );
+
+/*
+ * \brief          Set a bit of X to a specific value of 0 or 1
+ *
+ * \note           Will grow X if necessary to set a bit to 1 in a not yet
+ *                 existing limb. Will not grow if bit should be set to 0
+ *
+ * \param X        MPI to use
+ * \param pos      Zero-based index of the bit in X
+ * \param val      The value to set the bit to (0 or 1)
+ *
+ * \return         0 if successful,
+ *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if val is not 0 or 1
+ */
+int mpi_set_bit( mpi *X, size_t pos, unsigned char val );
+
 /**
  * \brief          Return the number of least significant bits
  *

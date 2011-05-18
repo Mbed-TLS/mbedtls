@@ -518,6 +518,33 @@ mpi_is_prime:10:"32452867":0
 Test mpi_is_prime #20
 mpi_is_prime:10:"49979687":0
 
+Test bit getting (Value bit 25)
+mpi_get_bit:10:"49979687":25:1
+
+Test bit getting (Larger but same limb)
+mpi_get_bit:10:"49979687":26:0
+
+Test bit getting (Larger and non-existing limb)
+mpi_get_bit:10:"49979687":500:0
+
+Test bit getting (Value bit 24)
+mpi_get_bit:10:"49979687":24:0
+
+Test bit getting (Value bit 23)
+mpi_get_bit:10:"49979687":23:1
+
+Test bit set (Change existing value with a 1)
+mpi_set_bit:10:"49979687":24:1:10:"66756903"
+
+Test bit set (Change existing value with a 0)
+mpi_set_bit:10:"49979687":25:0:10:"16425255"
+
+Test bit set (Add above existing limbs with a 0)
+mpi_set_bit:10:"49979687":80:0:10:"49979687"
+
+Test bit set (Add above existing limbs with a 1)
+mpi_set_bit:10:"49979687":80:1:10:"1208925819614629224685863"
+
 MPI Selftest
 depends_on:POLARSSL_SELF_TEST
 mpi_selftest:

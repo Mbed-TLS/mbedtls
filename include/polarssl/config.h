@@ -517,7 +517,7 @@
 /**
  * \def POLARSSL_SSL_TLS_C
  *
- * Enable the generic SSL/RLS code.
+ * Enable the generic SSL/TLS code.
  *
  * Module:  library/ssl_tls.c
  * Caller:  library/ssl_cli.c

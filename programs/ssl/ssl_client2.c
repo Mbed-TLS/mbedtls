@@ -298,7 +298,7 @@ int main( int argc, char *argv[] )
 
     while( ( ret = ssl_handshake( &ssl ) ) != 0 )
     {
-        if( ret != POLARSSL_ERR_NET_TRY_AGAIN )
+        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
             printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
             goto exit;
@@ -348,7 +348,7 @@ int main( int argc, char *argv[] )
 
     while( ( ret = ssl_write( &ssl, buf, len ) ) <= 0 )
     {
-        if( ret != POLARSSL_ERR_NET_TRY_AGAIN )
+        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
             printf( " failed\n  ! ssl_write returned %d\n\n", ret );
             goto exit;
@@ -370,7 +370,7 @@ int main( int argc, char *argv[] )
         memset( buf, 0, sizeof( buf ) );
         ret = ssl_read( &ssl, buf, len );
 
-        if( ret == POLARSSL_ERR_NET_TRY_AGAIN )
+        if( ret == POLARSSL_ERR_NET_WANT_READ || ret == POLARSSL_ERR_NET_WANT_WRITE )
             continue;
 
         if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )

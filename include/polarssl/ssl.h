@@ -52,7 +52,7 @@
 #define POLARSSL_ERR_SSL_BAD_INPUT_DATA                    -0x7100  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_SSL_INVALID_MAC                       -0x7180  /**< Verification of the message MAC failed. */
 #define POLARSSL_ERR_SSL_INVALID_RECORD                    -0x7200  /**< An invalid SSL record was received. */
-#define POLARSSL_ERR_SSL_INVALID_MODULUS_SIZE              -0x7280  /**< An invalid modulus size was received. */
+#define POLARSSL_ERR_SSL_CONN_EOF                          -0x7280  /**< The connection indicated an EOF. */
 #define POLARSSL_ERR_SSL_UNKNOWN_CIPHER                    -0x7300  /**< An unknown cipher was received. */
 #define POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN                  -0x7380  /**< The server has no ciphersuites in common with the client. */
 #define POLARSSL_ERR_SSL_NO_SESSION_FOUND                  -0x7400  /**< No session to recover was found. */
@@ -596,8 +596,8 @@ const char *ssl_get_version( const ssl_context *ssl );
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, POLARSSL_ERR_NET_TRY_AGAIN,
- *                 or a specific SSL error code.
+ * \return         0 if successful, POLARSSL_ERR_NET_WANT_READ,
+ *                 POLARSSL_ERR_NET_WANT_WRITE, or a specific SSL error code.
  */
 int ssl_handshake( ssl_context *ssl );
 
@@ -608,7 +608,7 @@ int ssl_handshake( ssl_context *ssl );
  * \param buf      buffer that will hold the data
  * \param len      how many bytes must be read
  *
- * \return         This function returns the number of bytes read,
+ * \return         This function returns the number of bytes read, 0 for EOF,
  *                 or a negative error code.
  */
 int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
@@ -623,7 +623,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
  * \return         This function returns the number of bytes written,
  *                 or a negative error code.
  *
- * \note           When this function returns POLARSSL_ERR_NET_TRY_AGAIN,
+ * \note           When this function returns POLARSSL_ERR_NET_WANT_WRITE,
  *                 it must be called later with the *same* arguments,
  *                 until it returns a positive value.
  */
@@ -653,6 +653,10 @@ int ssl_derive_keys( ssl_context *ssl );
 void ssl_calc_verify( ssl_context *ssl, unsigned char hash[36] );
 
 int ssl_read_record( ssl_context *ssl );
+/**
+ * \return         0 if successful, POLARSSL_ERR_SSL_CONN_EOF on EOF or
+ *                 another negative error code.
+ */
 int ssl_fetch_input( ssl_context *ssl, size_t nb_want );
 
 int ssl_write_record( ssl_context *ssl );

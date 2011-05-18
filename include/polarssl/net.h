@@ -38,7 +38,8 @@
 #define POLARSSL_ERR_NET_RECV_FAILED                       -0x004C  /**< Reading information from the socket failed. */
 #define POLARSSL_ERR_NET_SEND_FAILED                       -0x004E  /**< Sending information through the socket failed. */
 #define POLARSSL_ERR_NET_CONN_RESET                        -0x0050  /**< Connection was reset by peer. */
-#define POLARSSL_ERR_NET_TRY_AGAIN                         -0x0052  /**< Connection was busy, try again. */
+#define POLARSSL_ERR_NET_WANT_READ                         -0x0052  /**< Connection requires a read call. */
+#define POLARSSL_ERR_NET_WANT_WRITE                        -0x0054  /**< Connection requires a write call. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -123,7 +124,7 @@ void net_usleep( unsigned long usec );
  * \param len      Maximum length of the buffer
  *
  * \return         This function returns the number of bytes received,
- *                 or a non-zero error code; POLARSSL_ERR_NET_TRY_AGAIN
+ *                 or a non-zero error code; POLARSSL_ERR_NET_WANT_READ
  *                 indicates read() is blocking.
  */
 int net_recv( void *ctx, unsigned char *buf, size_t len );
@@ -137,7 +138,7 @@ int net_recv( void *ctx, unsigned char *buf, size_t len );
  * \param len      The length of the buffer
  *
  * \return         This function returns the number of bytes sent,
- *                 or a non-zero error code; POLARSSL_ERR_NET_TRY_AGAIN
+ *                 or a non-zero error code; POLARSSL_ERR_NET_WANT_WRITE
  *                 indicates write() is blocking.
  */
 int net_send( void *ctx, unsigned char *buf, size_t len );

@@ -878,6 +878,9 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
                        ssl->in_left, nb_want ) );
         SSL_DEBUG_RET( 2, "ssl->f_recv", ret );
 
+        if( ret == 0 )
+            return( POLARSSL_ERR_SSL_CONN_EOF );
+
         if( ret < 0 )
             return( ret );
 
@@ -2092,6 +2095,9 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
     {
         if( ( ret = ssl_read_record( ssl ) ) != 0 )
         {
+            if( ret == POLARSSL_ERR_SSL_CONN_EOF )
+                return( 0 );
+
             SSL_DEBUG_RET( 1, "ssl_read_record", ret );
             return( ret );
         }
@@ -2104,6 +2110,9 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
              */
             if( ( ret = ssl_read_record( ssl ) ) != 0 )
             {
+                if( ret == POLARSSL_ERR_SSL_CONN_EOF )
+                    return( 0 );
+
                 SSL_DEBUG_RET( 1, "ssl_read_record", ret );
                 return( ret );
             }

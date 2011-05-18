@@ -56,7 +56,7 @@
  * XTEA      1  0x0028-0x0028
  * PADLOCK   1  0x0030-0x0030
  * DES       1  0x0032-0x0032
- * NET      10  0x0040-0x0052
+ * NET      11  0x0040-0x0054
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
  * Name     ID  Nr of Errors

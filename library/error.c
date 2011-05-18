@@ -71,7 +71,7 @@
 #include "polarssl/rsa.h"
 #endif
 
-#if defined(POLARSSL_SSL_C)
+#if defined(POLARSSL_SSL_TLS_C)
 #include "polarssl/ssl.h"
 #endif
 
@@ -162,7 +162,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "RSA - The random generator failed to generate non-zeros" );
 #endif /* POLARSSL_RSA_C */
 
-#if defined(POLARSSL_SSL_C)
+#if defined(POLARSSL_SSL_TLS_C)
         if( use_ret == -(POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "SSL - The requested feature is not available" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_INPUT_DATA) )
@@ -171,8 +171,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Verification of the message MAC failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_INVALID_RECORD) )
             snprintf( buf, buflen, "SSL - An invalid SSL record was received" );
-        if( use_ret == -(POLARSSL_ERR_SSL_INVALID_MODULUS_SIZE) )
-            snprintf( buf, buflen, "SSL - An invalid modulus size was received" );
+        if( use_ret == -(POLARSSL_ERR_SSL_CONN_EOF) )
+            snprintf( buf, buflen, "SSL - The connection indicated an EOF" );
         if( use_ret == -(POLARSSL_ERR_SSL_UNKNOWN_CIPHER) )
             snprintf( buf, buflen, "SSL - An unknown cipher was received" );
         if( use_ret == -(POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN) )
@@ -221,7 +221,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Processing of the ChangeCipherSpec handshake message failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_FINISHED) )
             snprintf( buf, buflen, "SSL - Processing of the Finished handshake message failed" );
-#endif /* POLARSSL_SSL_C */
+#endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_PARSE_C)
         if( use_ret == -(POLARSSL_ERR_X509_FEATURE_UNAVAILABLE) )
@@ -355,8 +355,10 @@ void error_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "NET - Sending information through the socket failed" );
     if( use_ret == -(POLARSSL_ERR_NET_CONN_RESET) )
         snprintf( buf, buflen, "NET - Connection was reset by peer" );
-    if( use_ret == -(POLARSSL_ERR_NET_TRY_AGAIN) )
-        snprintf( buf, buflen, "NET - Connection was busy, try again" );
+    if( use_ret == -(POLARSSL_ERR_NET_WANT_READ) )
+        snprintf( buf, buflen, "NET - Connection requires a read call" );
+    if( use_ret == -(POLARSSL_ERR_NET_WANT_WRITE) )
+        snprintf( buf, buflen, "NET - Connection requires a write call" );
 #endif /* POLARSSL_NET_C */
 
 #if defined(POLARSSL_PADLOCK_C)

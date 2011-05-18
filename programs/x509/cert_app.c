@@ -243,7 +243,7 @@ int main( int argc, char *argv[] )
          */
         while( ( ret = ssl_handshake( &ssl ) ) != 0 )
         {
-            if( ret != POLARSSL_ERR_NET_TRY_AGAIN )
+            if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
                 printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
                 goto exit;

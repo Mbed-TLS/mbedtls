@@ -20,6 +20,15 @@ Changes
    * The error codes have been remapped and combining error codes
      is now done with a PLUS instead of an OR as error codes
 	 used are negative.
+   * Changed behaviour of net_read(), ssl_fetch_input() and ssl_recv().
+     net_recv() now returns 0 on EOF instead of
+	 POLARSSL_ERR_NET_CONN_RESET. ssl_fetch_input() returns
+	 POLARSSL_ERR_SSL_CONN_EOF on an EOF from its f_recv() function.
+	 ssl_read() returns 0 if a POLARSSL_ERR_SSL_CONN_EOF is received
+	 after the handshake.
+   * Network functions now return POLARSSL_ERR_NET_WANT_READ or
+     POLARSSL_ERR_NET_WANT_WRITE instead of the ambiguous
+	 POLARSSL_ERR_NET_TRY_AGAIN
 
 = Version 0.99-pre4 released on 2011-04-01
 Features

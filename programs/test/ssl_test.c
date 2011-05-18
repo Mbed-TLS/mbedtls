@@ -293,7 +293,8 @@ static int ssl_test( struct options *opt )
                 goto exit;
             }
 
-            if( ret < 0 && ret != POLARSSL_ERR_NET_TRY_AGAIN )
+            if( ret < 0 && ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
                 printf( "  ! ssl_write returned %d\n\n", ret );
                 break;
@@ -336,7 +337,8 @@ static int ssl_test( struct options *opt )
                 goto exit;
             }
 
-            if( ret < 0 && ret != POLARSSL_ERR_NET_TRY_AGAIN )
+            if( ret < 0 && ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
                 printf( "  ! ssl_read returned %d\n\n", ret );
                 break;

@@ -239,7 +239,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
     if( *client_fd < 0 )
     {
         if( net_is_blocking() != 0 )
-            return( POLARSSL_ERR_NET_TRY_AGAIN );
+            return( POLARSSL_ERR_NET_WANT_READ );
 
         return( POLARSSL_ERR_NET_ACCEPT_FAILED );
     }
@@ -292,13 +292,10 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
 { 
     int ret = read( *((int *) ctx), buf, len );
 
-    if( len > 0 && ret == 0 )
-        return( POLARSSL_ERR_NET_CONN_RESET );
-
     if( ret < 0 )
     {
         if( net_is_blocking() != 0 )
-            return( POLARSSL_ERR_NET_TRY_AGAIN );
+            return( POLARSSL_ERR_NET_WANT_READ );
 
 #if defined(_WIN32) || defined(_WIN32_WCE)
         if( WSAGetLastError() == WSAECONNRESET )
@@ -308,7 +305,7 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
             return( POLARSSL_ERR_NET_CONN_RESET );
 
         if( errno == EINTR )
-            return( POLARSSL_ERR_NET_TRY_AGAIN );
+            return( POLARSSL_ERR_NET_WANT_READ );
 #endif
 
         return( POLARSSL_ERR_NET_RECV_FAILED );
@@ -327,7 +324,7 @@ int net_send( void *ctx, unsigned char *buf, size_t len )
     if( ret < 0 )
     {
         if( net_is_blocking() != 0 )
-            return( POLARSSL_ERR_NET_TRY_AGAIN );
+            return( POLARSSL_ERR_NET_WANT_WRITE );
 
 #if defined(_WIN32) || defined(_WIN32_WCE)
         if( WSAGetLastError() == WSAECONNRESET )
@@ -337,7 +334,7 @@ int net_send( void *ctx, unsigned char *buf, size_t len )
             return( POLARSSL_ERR_NET_CONN_RESET );
 
         if( errno == EINTR )
-            return( POLARSSL_ERR_NET_TRY_AGAIN );
+            return( POLARSSL_ERR_NET_WANT_WRITE );
 #endif
 
         return( POLARSSL_ERR_NET_SEND_FAILED );

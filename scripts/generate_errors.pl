@@ -46,6 +46,7 @@ while (my $line = <GREP>)
     my $define_name = $module_name;
     $define_name = "X509_PARSE" if ($define_name eq "X509");
     $define_name = "X509_PARSE" if ($define_name eq "ASN1");
+    $define_name = "SSL_TLS" if ($define_name eq "SSL");
 
     my $include_name = $module_name;
     $include_name =~ tr/A-Z/a-z/;

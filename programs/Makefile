@@ -16,7 +16,8 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	pkey/rsa_sign		pkey/rsa_verify		\
 	pkey/rsa_sign_pss	pkey/rsa_verify_pss \
 	ssl/ssl_client1		ssl/ssl_client2		\
-	ssl/ssl_server		random/gen_random	\
+	ssl/ssl_server		ssl/ssl_fork_server	\
+	random/gen_random						\
 	test/ssl_cert_test	test/benchmark		\
 	test/selftest		test/ssl_test		\
 	x509/cert_app		x509/crl_app
@@ -104,6 +105,10 @@ ssl/ssl_client2: ssl/ssl_client2.c ../library/libpolarssl.a
 ssl/ssl_server: ssl/ssl_server.c ../library/libpolarssl.a
 	echo   "  CC    ssl/ssl_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_server.c   $(LDFLAGS) -o $@
+
+ssl/ssl_fork_server: ssl/ssl_fork_server.c ../library/libpolarssl.a
+	echo   "  CC    ssl/ssl_fork_server.c"
+	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_fork_server.c   $(LDFLAGS) -o $@
 
 test/ssl_cert_test: test/ssl_cert_test.c ../library/libpolarssl.a
 	echo   "  CC    test/ssl_cert_test.c"

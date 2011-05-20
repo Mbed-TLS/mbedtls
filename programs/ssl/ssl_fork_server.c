@@ -1,5 +1,5 @@
 /*
- *  SSL server demonstration program
+ *  SSL server demonstration program using fork() for handling multiple clients
  *
  *  Copyright (C) 2006-2010, Brainspark B.V.
  *

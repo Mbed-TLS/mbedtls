@@ -41,6 +41,8 @@
 #define POLARSSL_ERR_NET_WANT_READ                         -0x0052  /**< Connection requires a read call. */
 #define POLARSSL_ERR_NET_WANT_WRITE                        -0x0054  /**< Connection requires a write call. */
 
+#define POLARSSL_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

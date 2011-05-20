@@ -189,7 +189,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
         return( POLARSSL_ERR_NET_BIND_FAILED );
     }
 
-    if( listen( *fd, 10 ) != 0 )
+    if( listen( *fd, POLARSSL_NET_LISTEN_BACKLOG ) != 0 )
     {
         close( *fd );
         return( POLARSSL_ERR_NET_LISTEN_FAILED );

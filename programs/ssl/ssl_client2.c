@@ -385,7 +385,7 @@ int main( int argc, char *argv[] )
         len = ret;
         printf( " %d bytes read\n\n%s", len, (char *) buf );
     }
-    while( 0 );
+    while( 1 );
 
     ssl_close_notify( &ssl );
 

@@ -71,6 +71,10 @@
  * Module dependent error code (5 bits 0x.08.-0x.F8.)
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief Translate a PolarSSL error code into a string representation,
  *        Result is truncated if necessary and always includes a terminating
@@ -81,5 +85,9 @@
  * \param buflen    length of the buffer
  */
 void error_strerror( int errnum, char *buffer, size_t buflen );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* error.h */

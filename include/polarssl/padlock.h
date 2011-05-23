@@ -29,6 +29,8 @@
 
 #include "polarssl/aes.h"
 
+#define POLARSSL_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
+
 #if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
 
 #ifndef POLARSSL_HAVE_X86
@@ -41,8 +43,6 @@
 #define PADLOCK_PMM 0x3000
 
 #define PADLOCK_ALIGN16(x) (unsigned long *) (16 + ((long) x & ~15))
-
-#define POLARSSL_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 
 #ifdef __cplusplus
 extern "C" {

@@ -11,6 +11,7 @@ Features
      error codes and their description.
    * Added mpi_get_bit() and mpi_set_bit() individual bit setter/getter
      functions.
+   * Added ssl_mail_client and ssl_fork_server as example programs.
 
 Changes
    * Major argument / variable rewrite. Introduced use of size_t

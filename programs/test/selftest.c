@@ -50,7 +50,7 @@
 
 int main( int argc, char *argv[] )
 {
-    int ret, v;
+    int ret = 0, v;
 
     if( argc == 2 && strcmp( argv[1], "-quiet" ) == 0 )
         v = 0;
@@ -59,6 +59,8 @@ int main( int argc, char *argv[] )
         v = 1;
         printf( "\n" );
     }
+
+#if defined(POLARSSL_SELF_TEST)
 
 #if defined(POLARSSL_MD2_C)
     if( ( ret = md2_self_test( v ) ) != 0 )
@@ -133,6 +135,10 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_CAMELLIA_C)
     if( ( ret = camellia_self_test( v ) ) != 0 )
         return( ret );
+#endif
+
+#else
+    printf( " POLARSSL_SELF_TEST not defined.\n" );
 #endif
 
     if( v != 0 )

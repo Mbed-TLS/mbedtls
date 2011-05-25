@@ -207,6 +207,7 @@ des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
         TEST_ASSERT( 0 );
 
     TEST_ASSERT( des3_crypt_cbc( &ctx, DES_ENCRYPT, src_len, iv_str, src_str, output ) == {cbc_result} );
+
     if( {cbc_result} == 0 )
     {
         hexify( dst_str, output, src_len );
@@ -244,7 +245,8 @@ des3_decrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
     else
         TEST_ASSERT( 0 );
 
-    TEST_ASSERT( des3_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output ) == {cbc_result} )
+    TEST_ASSERT( des3_crypt_cbc( &ctx, DES_DECRYPT, src_len, iv_str, src_str, output ) == {cbc_result} );
+
     if( {cbc_result} == 0 )
     {
         hexify( dst_str, output, src_len );

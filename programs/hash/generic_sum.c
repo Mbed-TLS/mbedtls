@@ -185,7 +185,6 @@ int main( int argc, char *argv[] )
         fprintf( stderr, "Failed to initialize context.\n" );
         return( 1 );
     }
-    printf("%08x\n", (unsigned int) md_ctx.md_ctx );
 
     ret = 0;
     if( argc == 4 && strcmp( "-c", argv[2] ) == 0 )
@@ -194,12 +193,10 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    printf("%08x\n", (unsigned int) md_ctx.md_ctx );
     for( i = 2; i < argc; i++ )
         ret |= generic_print( md_info, argv[i] );
 
 exit:
-    printf("%08x\n", (unsigned int) md_ctx.md_ctx );
     md_free_ctx( &md_ctx );
 
     return( ret );

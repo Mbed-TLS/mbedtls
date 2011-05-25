@@ -55,9 +55,9 @@
 
 int main( int argc, char *argv[] )
 {
-    int ret = 1, i, n;
+    int ret = 1, i;
     int mode, lastn;
-    size_t keylen, olen;
+    size_t keylen, olen, n;
     FILE *fkey, *fin = NULL, *fout = NULL;
 
     char *p;
@@ -291,21 +291,21 @@ int main( int argc, char *argv[] )
          */
         for( offset = 0; offset < filesize; offset += cipher_get_block_size( &cipher_ctx ) )
         {
-            n = ( filesize - offset > cipher_get_block_size( &cipher_ctx ) ) ?
+            n = ( (unsigned int) filesize - offset > cipher_get_block_size( &cipher_ctx ) ) ?
                 cipher_get_block_size( &cipher_ctx ) : (unsigned int) ( filesize - offset );
 
-            if( fread( buffer, 1, n, fin ) != (size_t) n )
+            if( fread( buffer, 1, n, fin ) != n )
             {
-                fprintf( stderr, "fread(%d bytes) failed\n", n );
+                fprintf( stderr, "fread(%ld bytes) failed\n", (long) n );
                 goto exit;
             }
 
             cipher_update( &cipher_ctx, buffer, n, output, &olen );
             md_hmac_update( &md_ctx, output, olen );
 
-            if( fwrite( output, 1, olen, fout ) != (size_t) olen )
+            if( fwrite( output, 1, olen, fout ) != olen )
             {
-                fprintf( stderr, "fwrite(%d bytes) failed\n", olen );
+                fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
                 goto exit;
             }
         }
@@ -313,7 +313,7 @@ int main( int argc, char *argv[] )
         cipher_finish( &cipher_ctx, output, &olen );
         md_hmac_update( &md_ctx, output, olen );
 
-        if( fwrite( output, 1, olen, fout ) != (size_t) olen )
+        if( fwrite( output, 1, olen, fout ) != olen )
         {
             fprintf( stderr, "fwrite(%d bytes) failed\n", n );
             goto exit;
@@ -410,9 +410,9 @@ int main( int argc, char *argv[] )
             cipher_update( &cipher_ctx, buffer, cipher_get_block_size( &cipher_ctx ),
                 output, &olen );
 
-            if( fwrite( output, 1, olen, fout ) != (size_t) olen )
+            if( fwrite( output, 1, olen, fout ) != olen )
             {
-                fprintf( stderr, "fwrite(%d bytes) failed\n", olen );
+                fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
                 goto exit;
             }
         }
@@ -422,9 +422,9 @@ int main( int argc, char *argv[] )
          */
         cipher_finish( &cipher_ctx, output, &olen );
 
-        if( fwrite( output, 1, olen, fout ) != (size_t) olen )
+        if( fwrite( output, 1, olen, fout ) != olen )
         {
-            fprintf( stderr, "fwrite(%d bytes) failed\n", olen );
+            fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
             goto exit;
         }
 

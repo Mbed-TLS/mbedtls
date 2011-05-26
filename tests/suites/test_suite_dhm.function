@@ -2,6 +2,10 @@ BEGIN_HEADER
 #include <polarssl/dhm.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_DHM_C:POLARSSL_BIGNUM_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 dhm_do_dhm:x_size:radix_P:input_P:radix_G:input_G
 {

@@ -32,6 +32,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/base64.h"
 #include "polarssl/error.h"
 #include "polarssl/net.h"
@@ -47,6 +49,7 @@
 #define DFL_MAIL_FROM           ""
 #define DFL_MAIL_TO             ""
 #define DFL_DEBUG_LEVEL         0
+#define DFL_CA_FILE             ""
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
 #define DFL_FORCE_CIPHER        0
@@ -70,6 +73,7 @@ struct options
     char *user_pwd;             /* password to use for authentication       */
     char *mail_from;            /* E-Mail address to use as sender          */
     char *mail_to;              /* E-Mail address to use as recipient       */
+    char *ca_file;              /* the file with the CA certificate(s)      */
     char *crt_file;             /* the file with the client certificate     */
     char *key_file;             /* the file with the client key             */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
@@ -84,10 +88,22 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C not defined.\n");
+    return( 0 );
+}
+#else
 int do_handshake( ssl_context *ssl, struct options *opt )
 {
     int ret;
     unsigned char buf[1024];
+    memset(buf, 0, 1024);
 
     /*
      * 4. Handshake
@@ -99,7 +115,9 @@ int do_handshake( ssl_context *ssl, struct options *opt )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
+#if defined(POLARSSL_ERROR_C)
             error_strerror( ret, (char *) buf, 1024 );
+#endif
             printf( " failed\n  ! ssl_handshake returned %d: %s\n\n", ret, buf );
             return( -1 );
         }
@@ -265,20 +283,37 @@ int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
     while( 1 );
 }
 
+#if defined(POLARSSL_BASE64_C)
+#define USAGE_AUTH \
+    "    authentication=%%d   default: 0 (disabled)\n"      \
+    "    user_name=%%s        default: \"user\"\n"          \
+    "    user_pwd=%%s         default: \"password\"\n"      
+#else
+#define USAGE_AUTH \
+    "    authentication options disabled. (Require POLARSSL_BASE64_C)\n"
+#endif /* POLARSSL_BASE64_C */
+
+#if defined(POLARSSL_FS_IO)
+#define USAGE_IO \
+    "    ca_file=%%s          default: \"\" (pre-loaded)\n" \
+    "    crt_file=%%s         default: \"\" (pre-loaded)\n" \
+    "    key_file=%%s         default: \"\" (pre-loaded)\n"
+#else
+#define USAGE_IO \
+    "    No file operations available (POLARSSL_FS_IO not defined)\n"
+#endif /* POLARSSL_FS_IO */
+
 #define USAGE \
     "\n usage: ssl_mail_client param=<>...\n"               \
     "\n acceptable parameters:\n"                           \
     "    server_name=%%s      default: localhost\n"         \
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
-    "    authentication=%%d   default: 0 (disabled)\n"      \
     "    mode=%%d             default: 0 (SSL/TLS) (1 for STARTTLS)\n"  \
-    "    user_name=%%s        default: \"user\"\n"          \
-    "    user_pwd=%%s         default: \"password\"\n"      \
+    USAGE_AUTH                                              \
     "    mail_from=%%s        default: \"\"\n"              \
     "    mail_to=%%s          default: \"\"\n"              \
-    "    crt_file=%%s         default: \"\" (pre-loaded)\n" \
-    "    key_file=%%s         default: \"\" (pre-loaded)\n" \
+    USAGE_IO                                                \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
@@ -286,7 +321,9 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, server_fd;
     unsigned char buf[1024];
+#if defined(POLARSSL_BASE64_C)
     unsigned char base[1024];
+#endif
     char hostname[32];
     havege_state hs;
     ssl_context ssl;
@@ -333,6 +370,7 @@ int main( int argc, char *argv[] )
     opt.user_pwd            = DFL_USER_PWD;
     opt.mail_from           = DFL_MAIL_FROM;
     opt.mail_to             = DFL_MAIL_TO;
+    opt.ca_file             = DFL_CA_FILE;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
@@ -389,6 +427,8 @@ int main( int argc, char *argv[] )
             opt.mail_from = q;
         else if( strcmp( p, "mail_to" ) == 0 )
             opt.mail_to = q;
+        else if( strcmp( p, "ca_file" ) == 0 )
+            opt.ca_file = q;
         else if( strcmp( p, "crt_file" ) == 0 )
             opt.crt_file = q;
         else if( strcmp( p, "key_file" ) == 0 )
@@ -419,12 +459,20 @@ int main( int argc, char *argv[] )
     printf( "\n  . Loading the CA root certificate ..." );
     fflush( stdout );
 
-    /*
-     * Alternatively, you may load the CA certificates from a .pem or
-     * .crt file by calling x509parse_crtfile( &cacert, "myca.crt" ).
-     */
-    ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ) );
+#if defined(POLARSSL_FS_IO)
+    if( strlen( opt.ca_file ) )
+        ret = x509parse_crtfile( &cacert, opt.ca_file );
+    else
+#endif
+#if defined(POLARSSL_CERTS_C)
+        ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
+                strlen( test_ca_crt ) );
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
@@ -441,23 +489,40 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the client cert. and key..." );
     fflush( stdout );
 
+#if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
         ret = x509parse_crtfile( &clicert, opt.crt_file );
     else 
+#endif
+#if defined(POLARSSL_CERTS_C)
         ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
                 strlen( test_cli_crt ) );
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
         goto exit;
     }
 
+#if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
         ret = x509parse_keyfile( &rsa, opt.key_file, "" );
     else
+#endif
+#if defined(POLARSSL_CERTS_C)
         ret = x509parse_key( &rsa, (unsigned char *) test_cli_key,
                 strlen( test_cli_key ), NULL, 0 );
-
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
@@ -593,6 +658,7 @@ int main( int argc, char *argv[] )
             goto exit;
     }
 
+#if defined(POLARSSL_BASE64_C)
     if( opt.authentication )
     {
         printf( "  > Write AUTH LOGIN to server:" );
@@ -637,6 +703,7 @@ int main( int argc, char *argv[] )
 
         printf(" ok\n" );
     }
+#endif
 
     printf( "  > Write MAIL FROM to server:" );
     fflush( stdout );
@@ -717,3 +784,5 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_SSL_TLS_C &&
+          POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C */

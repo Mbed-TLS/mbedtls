@@ -2,6 +2,10 @@ BEGIN_HEADER
 #include <polarssl/arc4.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_ARC4_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 arc4_crypt:hex_src_string:hex_key_string:hex_dst_string
 {

@@ -2,6 +2,10 @@ BEGIN_HEADER
 #include <polarssl/error.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_ERROR_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 error_strerror:code:result_str
 {

@@ -29,6 +29,8 @@
 
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/havege.h"
 #include "polarssl/bignum.h"
 #include "polarssl/x509.h"
@@ -37,6 +39,17 @@
 #define KEY_SIZE 1024
 #define EXPONENT 65537
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_GENPRIME) ||      \
+    !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+           "POLARSSL_RSA_C and/or POLARSSL_GENPRIME and/or "
+           "POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 int main( void )
 {
     int ret;
@@ -132,3 +145,5 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_RSA_C &&
+          POLARSSL_GENPRIME && POLARSSL_FS_IO */

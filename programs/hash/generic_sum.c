@@ -30,8 +30,17 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/md.h"
 
+#if !defined(POLARSSL_MD_C)
+int main( void )
+{
+    printf("POLARSSL_MD_C not defined.\n");
+    return( 0 );
+}
+#else
 static int generic_wrapper( const md_info_t *md_info, char *filename, unsigned char *sum )
 {
     int ret = md_file( md_info, filename, sum );
@@ -201,3 +210,4 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_MD_C */

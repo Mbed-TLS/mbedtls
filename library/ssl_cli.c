@@ -322,12 +322,14 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
 static int ssl_parse_server_key_exchange( ssl_context *ssl )
 {
+#if defined(POLARSSL_DHM_C)
     int ret;
     size_t n;
     unsigned char *p, *end;
     unsigned char hash[36];
     md5_context md5;
     sha1_context sha1;
+#endif
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 

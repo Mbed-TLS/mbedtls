@@ -57,6 +57,13 @@ static int myrand( void *rng_state )
 
 unsigned char buf[BUFSIZE];
 
+#if !defined(POLARSSL_TIMING_C)
+int main( void )
+{
+    printf("POLARSSL_TIMING_C not defined.\n");
+    return( 0 );
+}
+#else
 int main( void )
 {
     int keysize;
@@ -75,7 +82,8 @@ int main( void )
 #if defined(POLARSSL_CAMELLIA_C)
     camellia_context camellia;
 #endif
-#if defined(POLARSSL_RSA_C)
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_BIGNUM_C) &&    \
+    defined(POLARSSL_GENPRIME)
     rsa_context rsa;
 #endif
 
@@ -263,7 +271,8 @@ int main( void )
     }
 #endif
 
-#if defined(POLARSSL_RSA_C)
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_BIGNUM_C) &&    \
+    defined(POLARSSL_GENPRIME)
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
     rsa_gen_key( &rsa, myrand, NULL, 1024, 65537 );
 
@@ -361,3 +370,4 @@ int main( void )
 
     return( 0 );
 }
+#endif /* POLARSSL_TIMING_C */

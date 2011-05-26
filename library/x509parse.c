@@ -1124,11 +1124,12 @@ static int x509_get_sig_alg( const x509_buf *sig_oid, int *sig_alg )
 int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 {
     int ret;
-    size_t len, use_len;
+    size_t len;
     unsigned char *p, *end;
     x509_cert *crt;
 #if defined(POLARSSL_PEM_C)
     pem_context pem;
+    size_t use_len;
 #endif
 
     crt = chain;
@@ -1461,10 +1462,11 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
 {
     int ret;
-    size_t len, use_len;
+    size_t len;
     unsigned char *p, *end;
     x509_crl *crl;
 #if defined(POLARSSL_PEM_C)
+    size_t use_len;
     pem_context pem;
 #endif
 
@@ -1893,6 +1895,8 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
 
     p = ( ret == 0 ) ? pem.buf : (unsigned char *) key;
 #else
+    ((void) pwd);
+    ((void) pwdlen);
     p = (unsigned char *) key;
 #endif
     end = p + keylen;
@@ -3033,14 +3037,16 @@ void x509_crl_free( x509_crl *crl )
  */
 int x509_self_test( int verbose )
 {
-#if defined(POLARSSL_MD5_C)
+#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_MD5_C)
     int ret;
     int flags;
     size_t i, j;
     x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
+#if defined(POLARSSL_DHM_C)
     dhm_context dhm;
+#endif
 
     if( verbose != 0 )
         printf( "  X.509 certificate load: " );
@@ -3100,6 +3106,7 @@ int x509_self_test( int verbose )
         return( ret );
     }
 
+#if defined(POLARSSL_DHM_C)
     if( verbose != 0 )
         printf( "passed\n  X.509 DHM parameter load: " );
 
@@ -3116,11 +3123,14 @@ int x509_self_test( int verbose )
 
     if( verbose != 0 )
         printf( "passed\n\n" );
+#endif
 
     x509_free( &cacert  );
     x509_free( &clicert );
     rsa_free( &rsa );
+#if defined(POLARSSL_DHM_C)
     dhm_free( &dhm );
+#endif
 
     return( 0 );
 #else

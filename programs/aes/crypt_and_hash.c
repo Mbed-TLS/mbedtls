@@ -41,6 +41,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/cipher.h"
 #include "polarssl/md.h"
 
@@ -53,6 +55,13 @@
     "\n  example: crypt_and_hash 0 file file.aes AES-128-CBC SHA1 hex:E76B2413958B00E193\n" \
     "\n"
 
+#if !defined(POLARSSL_CIPHER_C) || !defined(POLARSSL_MD_C)
+int main( void )
+{
+    printf("POLARSSL_CIPHER_C and/or POLARSSL_MD_C not defined.\n");
+    return( 0 );
+}
+#else
 int main( int argc, char *argv[] )
 {
     int ret = 1, i;
@@ -463,3 +472,4 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_CIPHER_C && POLARSSL_MD_C */

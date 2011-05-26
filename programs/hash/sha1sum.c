@@ -30,8 +30,17 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/sha1.h"
 
+#if !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    printf("POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 static int sha1_wrapper( char *filename, unsigned char *sum )
 {
     int ret = sha1_file( filename, sum );
@@ -159,3 +168,4 @@ int main( int argc, char *argv[] )
 
     return( ret );
 }
+#endif /* POLARSSL_SHA1_C && POLARSSL_FS_IO */

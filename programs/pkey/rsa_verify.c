@@ -30,9 +30,20 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/rsa.h"
 #include "polarssl/sha1.h"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
+    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 int main( int argc, char *argv[] )
 {
     FILE *f;
@@ -137,3 +148,5 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_SHA1_C &&
+          POLARSSL_FS_IO */

@@ -30,6 +30,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
 
@@ -63,6 +65,15 @@ char *client_private_keys[MAX_CLIENT_CERTS] =
     "cert_digest.key"
 };
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
+    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 int main( void )
 {
     int ret, i;
@@ -232,3 +243,5 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_X509_PARSE_C &&
+          POLARSSL_FS_IO */

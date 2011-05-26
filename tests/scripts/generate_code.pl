@@ -23,18 +23,40 @@ open(TEST_CASES, "$test_case_file") or die "Opening test cases '$test_case_file'
 my $test_cases = <TEST_CASES>;
 close(TEST_CASES);
 my ( $suite_header ) = $test_cases =~ /BEGIN_HEADER\n(.*?)\nEND_HEADER/s;
+my ( $suite_defines ) = $test_cases =~ /BEGIN_DEPENDENCIES\n(.*?)\nEND_DEPENDENCIES/s;
+
+my $requirements;
+if ($suite_defines =~ /^depends_on:/)
+{
+    ( $requirements ) = $suite_defines =~ /^depends_on:(.*)$/;
+}
+    
+my @var_req_arr = split(/:/, $requirements);
+my $suite_pre_code;
+my $suite_post_code;
+
+while (@var_req_arr)
+{
+    my $req = shift @var_req_arr;
+
+    $suite_pre_code .= "#ifdef $req\n";
+    $suite_post_code .= "#endif /* $req */\n";
+}
 
 $/ = $line_separator;
 
 open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
 print TEST_FILE << "END";
 #include "fct.h"
+
 $suite_header
 
 $test_helpers
 
 FCT_BGN()
 {
+$suite_pre_code
+
     FCT_SUITE_BGN($suite_name)
     {
 END
@@ -67,7 +89,7 @@ while (my $line = <TEST_DATA>)
         my $req = shift @var_req_arr;
 
         $pre_code .= "#ifdef $req\n";
-        $post_code .= "#endif\n";
+        $post_code .= "#endif /* $req */\n";
     }
 
     my $command_line = $line;
@@ -116,8 +138,11 @@ END
 print TEST_FILE << "END";
     }
     FCT_SUITE_END();
+
+$suite_post_code
 }
 FCT_END();
+
 END
 
 close(TEST_DATA);

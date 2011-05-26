@@ -2,6 +2,10 @@ BEGIN_HEADER
 #include <polarssl/cipher.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_CIPHER_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 enc_dec_buf:cipher_id:cipher_string:key_len:length:
     size_t length = {length};

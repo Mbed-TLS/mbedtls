@@ -8,6 +8,10 @@ BEGIN_HEADER
 #include <polarssl/sha4.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_MD_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 md_text:text_md_name:text_src_string:hex_hash_string
 {

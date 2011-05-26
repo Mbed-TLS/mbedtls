@@ -37,6 +37,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/havege.h"
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
@@ -171,6 +173,18 @@ static int my_set_session( ssl_context *ssl )
     return( 0 );
 }
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
+    !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_SSL_TLS_C) ||  \
+    !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
+    !defined(POLARSSL_RSA_C)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_HAVEGE_C "
+           "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C not defined.\n");
+    return( 0 );
+}
+#else
 int main( void )
 {
     int ret, len, cnt = 0, pid;
@@ -436,3 +450,6 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_CERTS_C && POLARSSL_HAVEGE_C &&
+          POLARSSL_SSL_TLS_C && POLARSSL_SSL_SRV_C && POLARSSL_NET_C &&
+          POLARSSL_RSA_C */

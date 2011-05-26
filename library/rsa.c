@@ -1095,10 +1095,12 @@ int rsa_self_test( int verbose )
 {
     size_t len;
     rsa_context rsa;
-    unsigned char sha1sum[20];
     unsigned char rsa_plaintext[PT_LEN];
     unsigned char rsa_decrypted[PT_LEN];
     unsigned char rsa_ciphertext[KEY_LEN];
+#if defined(POLARSSL_SHA1_C)
+    unsigned char sha1sum[20];
+#endif
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
@@ -1159,6 +1161,7 @@ int rsa_self_test( int verbose )
         return( 1 );
     }
 
+#if defined(POLARSSL_SHA1_C)
     if( verbose != 0 )
         printf( "passed\n  PKCS#1 data sign  : " );
 
@@ -1187,6 +1190,7 @@ int rsa_self_test( int verbose )
 
     if( verbose != 0 )
         printf( "passed\n\n" );
+#endif /* POLARSSL_SHA1_C */
 
     rsa_free( &rsa );
 

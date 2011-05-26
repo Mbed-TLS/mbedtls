@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/havege.h"
@@ -121,6 +123,19 @@ void my_debug( void *ctx, int level, const char *str )
         fprintf( stderr, "%s", str );
 }
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
+    !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_NET_C) ||     \
+    !defined(POLARSSL_RSA_C)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
+           "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
+           "POLARSSL_RSA_C not defined.\n");
+    return( 0 );
+}
+#else
 /*
  * perform a single SSL connection
  */
@@ -180,6 +195,10 @@ static int ssl_test( struct options *opt )
 
     if( opt->opmode == OPMODE_SERVER )
     {
+#if !defined(POLARSSL_CERTS_C)
+        printf("POLARSSL_CERTS_C not defined.\n");
+        goto exit;
+#else
         ret =  x509parse_crt( &srvcert, (unsigned char *) test_srv_crt,
                               strlen( test_srv_crt ) );
         if( ret != 0 )
@@ -203,6 +222,7 @@ static int ssl_test( struct options *opt )
             printf( "  !  x509parse_key returned %d\n\n", ret );
             goto exit;
         }
+#endif
 
         if( server_fd < 0 )
         {
@@ -571,3 +591,6 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_SSL_TLS_C &&
+          POLARSSL_SSL_SRV_C && POLARSSL_SSL_CLI_C && POLARSSL_NET_C &&
+          POLARSSL_RSA_C */

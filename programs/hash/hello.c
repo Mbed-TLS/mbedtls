@@ -29,8 +29,17 @@
 
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/md5.h"
 
+#if !defined(POLARSSL_MD5_C)
+int main( void )
+{
+    printf("POLARSSL_MD5_C not defined.\n");
+    return( 0 );
+}
+#else
 int main( void )
 {
     int i;
@@ -53,3 +62,4 @@ int main( void )
 
     return( 0 );
 }
+#endif /* POLARSSL_MD5_C */

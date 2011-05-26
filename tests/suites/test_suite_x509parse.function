@@ -24,6 +24,10 @@ int verify_all( void *data, x509_cert *crt, int certificate_depth, int preverify
 
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_X509_PARSE_C:POLARSSL_BIGNUM_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 x509_cert_info:crt_file:result_str
 {

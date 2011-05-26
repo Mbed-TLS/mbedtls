@@ -17,6 +17,10 @@ void string_debug(void *data, int level, const char *str)
 }
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_DEBUG_C:POLARSSL_BIGNUM_C:POLARSSL_SSL_TLS_C:POLARSSL_RSA_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 debug_print_crt:crt_file:file:line:prefix:result_str
 {

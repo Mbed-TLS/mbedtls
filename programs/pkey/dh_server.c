@@ -30,6 +30,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/net.h"
 #include "polarssl/aes.h"
 #include "polarssl/dhm.h"
@@ -40,6 +42,18 @@
 #define SERVER_PORT 11999
 #define PLAINTEXT "==Hello there!=="
 
+#if !defined(POLARSSL_AES_C) || !defined(POLARSSL_DHM_C) ||     \
+    !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_NET_C) ||  \
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_SHA1_C) ||    \
+    !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    printf("POLARSSL_AES_C and/or POLARSSL_DHM_C and/or POLARSSL_HAVEGE_C "
+           "and/or POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 int main( void )
 {
     FILE *f;
@@ -256,3 +270,6 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_AES_C && POLARSSL_DHM_C && POLARSSL_HAVEGE_C &&
+          POLARSSL_NET_C && POLARSSL_RSA_C && POLARSSL_SHA1_C &&
+          POLARSSL_FS_IO */

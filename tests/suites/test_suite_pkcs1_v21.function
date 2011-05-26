@@ -9,6 +9,10 @@ BEGIN_HEADER
 #include <polarssl/sha4.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_PKCS1_V21:POLARSSL_RSA_C:POLARSSL_BIGNUM_C:POLARSSL_SHA1_C:POLARSSL_GENRPIME
+END_DEPENDENCIES
+
 BEGIN_CASE
 pkcs1_rsaes_oaep_encrypt:mod:radix_N:input_N:radix_E:input_E:hash:message_hex_string:seed:result_hex_str:result
 {

@@ -2,6 +2,10 @@ BEGIN_HEADER
 #include <polarssl/version.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_VERSION_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 check_compiletime_version:version_str
 {

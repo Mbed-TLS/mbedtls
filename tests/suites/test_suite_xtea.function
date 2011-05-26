@@ -2,6 +2,10 @@ BEGIN_HEADER
 #include <polarssl/xtea.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_XTEA_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 xtea_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
 {

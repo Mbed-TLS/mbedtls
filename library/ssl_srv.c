@@ -527,11 +527,13 @@ static int ssl_write_certificate_request( ssl_context *ssl )
 
 static int ssl_write_server_key_exchange( ssl_context *ssl )
 {
+#if defined(POLARSSL_DHM_C)
     int ret;
     size_t n, rsa_key_len = 0;
     unsigned char hash[36];
     md5_context md5;
     sha1_context sha1;
+#endif
 
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 

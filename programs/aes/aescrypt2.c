@@ -40,6 +40,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/aes.h"
 #include "polarssl/sha2.h"
 
@@ -52,9 +54,18 @@
     "\n  example: aescrypt2 0 file file.aes hex:E76B2413958B00E193\n" \
     "\n"
 
+#if !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA2_C)
+int main( void )
+{
+    printf("POLARSSL_AES_C and/or POLARSSL_SHA2_C not defined.\n");
+    return( 0 );
+}
+#else
 int main( int argc, char *argv[] )
 {
-    int ret = 1, i, n;
+    int ret = 1;
+
+    int i, n;
     int mode, lastn;
     size_t keylen;
     FILE *fkey, *fin = NULL, *fout = NULL;
@@ -404,3 +415,4 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_AES_C && POLARSSL_SHA2_C */

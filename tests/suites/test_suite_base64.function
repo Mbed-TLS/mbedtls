@@ -2,6 +2,10 @@ BEGIN_HEADER
 #include <polarssl/base64.h>
 END_HEADER
 
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_BASE64_C
+END_DEPENDENCIES
+
 BEGIN_CASE
 base64_encode:src_string:dst_string:dst_buf_size:result
 {

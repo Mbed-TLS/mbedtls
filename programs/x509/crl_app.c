@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/x509.h"
 
 #define DFL_FILENAME            "crl.pem"
@@ -61,6 +63,15 @@ void my_debug( void *ctx, int level, const char *str )
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "\n"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
+    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 int main( int argc, char *argv[] )
 {
     int ret = 0;
@@ -152,3 +163,5 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_X509_PARSE_C &&
+          POLARSSL_FS_IO */

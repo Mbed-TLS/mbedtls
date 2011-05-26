@@ -24,10 +24,19 @@
  */
 
 #include "polarssl/config.h"
+
 #include "polarssl/havege.h"
+
 #include <time.h>
 #include <stdio.h>
 
+#if !defined(POLARSSL_HAVEGE_C)
+int main( void )
+{
+    printf("POLARSSL_HAVEGE_C not defined.\n");
+    return( 0 );
+}
+#else
 int main( int argc, char *argv[] )
 {
     FILE *f;
@@ -70,3 +79,4 @@ int main( int argc, char *argv[] )
     fclose( f );
     return( 0 );
 }
+#endif /* POLARSSL_HAVEGE_C */

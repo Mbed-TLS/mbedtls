@@ -29,8 +29,9 @@
 
 #include <stdio.h>
 
-#include "polarssl/bignum.h"
 #include "polarssl/config.h"
+
+#include "polarssl/bignum.h"
 #include "polarssl/havege.h"
 
 /*
@@ -40,6 +41,15 @@
 #define DH_P_SIZE 1024
 #define GENERATOR "4"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+    !defined(POLARSSL_FS_IO)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+           "POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 int main( void )
 {
     int ret = 1;
@@ -125,3 +135,4 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_FS_IO */

@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/havege.h"
@@ -41,6 +43,7 @@
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_DEBUG_LEVEL         0
+#define DFL_CA_FILE             ""
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
 #define DFL_FORCE_CIPHER        0
@@ -56,6 +59,7 @@ struct options
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     char *request_page;         /* page on server to request                */
+    char *ca_file;              /* the file with the CA certificate(s)      */
     char *crt_file;             /* the file with the client certificate     */
     char *key_file;             /* the file with the client key             */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
@@ -70,18 +74,38 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
+#if defined(POLARSSL_FS_IO)
+#define USAGE_IO \
+    "    ca_file=%%s          default: \"\" (pre-loaded)\n" \
+    "    crt_file=%%s         default: \"\" (pre-loaded)\n" \
+    "    key_file=%%s         default: \"\" (pre-loaded)\n"
+#else
+#define USAGE_IO \
+    "    No file operations available (POLARSSL_FS_IO not defined)\n"
+#endif /* POLARSSL_FS_IO */
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
     "    server_name=%%s      default: localhost\n"         \
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
+    USAGE_IO                                                \
     "    request_page=%%s     default: \".\"\n"             \
-    "    crt_file=%%s         default: \"\" (pre-loaded)\n" \
-    "    key_file=%%s         default: \"\" (pre-loaded)\n" \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C not defined.\n");
+    return( 0 );
+}
+#else
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, server_fd;
@@ -126,6 +150,7 @@ int main( int argc, char *argv[] )
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.request_page        = DFL_REQUEST_PAGE;
+    opt.ca_file             = DFL_CA_FILE;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
@@ -161,6 +186,8 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "request_page" ) == 0 )
             opt.request_page = q;
+        else if( strcmp( p, "ca_file" ) == 0 )
+            opt.ca_file = q;
         else if( strcmp( p, "crt_file" ) == 0 )
             opt.crt_file = q;
         else if( strcmp( p, "key_file" ) == 0 )
@@ -191,12 +218,20 @@ int main( int argc, char *argv[] )
     printf( "\n  . Loading the CA root certificate ..." );
     fflush( stdout );
 
-    /*
-     * Alternatively, you may load the CA certificates from a .pem or
-     * .crt file by calling x509parse_crtfile( &cacert, "myca.crt" ).
-     */
-    ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ) );
+#if defined(POLARSSL_FS_IO)
+    if( strlen( opt.ca_file ) )
+        ret = x509parse_crtfile( &cacert, opt.ca_file );
+    else 
+#endif
+#if defined(POLARSSL_CERTS_C)
+        ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
+                strlen( test_ca_crt ) );
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
@@ -213,23 +248,40 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the client cert. and key..." );
     fflush( stdout );
 
+#if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
         ret = x509parse_crtfile( &clicert, opt.crt_file );
     else 
+#endif
+#if defined(POLARSSL_CERTS_C)
         ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
                 strlen( test_cli_crt ) );
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
         goto exit;
     }
 
+#if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
         ret = x509parse_keyfile( &rsa, opt.key_file, "" );
     else
+#endif
+#if defined(POLARSSL_CERTS_C)
         ret = x509parse_key( &rsa, (unsigned char *) test_cli_key,
                 strlen( test_cli_key ), NULL, 0 );
-
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
@@ -376,9 +428,15 @@ int main( int argc, char *argv[] )
         if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
             break;
 
-        if( ret <= 0 )
+        if( ret < 0 )
         {
             printf( "failed\n  ! ssl_read returned %d\n\n", ret );
+            break;
+        }
+
+        if( ret == 0 )
+        {
+            printf("\n\nEOF\n\n");
             break;
         }
 
@@ -407,3 +465,5 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_SSL_TLS_C &&
+          POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C */

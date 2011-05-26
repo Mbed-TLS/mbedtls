@@ -30,6 +30,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "polarssl/config.h"
+
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/havege.h"
@@ -49,6 +51,17 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C)
+int main( void )
+{
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C not defined.\n");
+    return( 0 );
+}
+#else
 int main( void )
 {
     int ret, len, server_fd;
@@ -170,3 +183,5 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_SSL_TLS_C &&
+          POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C */

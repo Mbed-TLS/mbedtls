@@ -147,35 +147,35 @@ depends_on:POLARSSL_MD5_C
 md5_hmac:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"6f630fad67cda0ee1fb1f562db3aa53e"
 
 MD2 Hash file #1
-depends_on:POLARSSL_MD2_C
+depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO
 md2_file:"data_files/hash_file_1":"b593c098712d2e21628c8986695451a8"
 
 MD2 Hash file #2
-depends_on:POLARSSL_MD2_C
+depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO
 md2_file:"data_files/hash_file_2":"3c027b7409909a4c4b26bbab69ad9f4f"
 
 MD2 Hash file #3
-depends_on:POLARSSL_MD2_C
+depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO
 md2_file:"data_files/hash_file_3":"6bb43eb285e81f414083a94cdbe2989d"
 
 MD2 Hash file #4
-depends_on:POLARSSL_MD2_C
+depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO
 md2_file:"data_files/hash_file_4":"8350e5a3e24c153df2275c9f80692773"
 
 MD4 Hash file #1
-depends_on:POLARSSL_MD4_C
+depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO
 md4_file:"data_files/hash_file_1":"8d19772c176bd27153b9486715e2c0b9"
 
 MD4 Hash file #2
-depends_on:POLARSSL_MD4_C
+depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO
 md4_file:"data_files/hash_file_2":"f2ac53b8542882a5a0007c6f84b4d9fd"
 
 MD4 Hash file #3
-depends_on:POLARSSL_MD4_C
+depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO
 md4_file:"data_files/hash_file_3":"195c15158e2d07881d9a654095ce4a42"
 
 MD4 Hash file #4
-depends_on:POLARSSL_MD4_C
+depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO
 md4_file:"data_files/hash_file_4":"31d6cfe0d16ae931b73c59d7e0c089c0"
 
 MD5 Hash file #1

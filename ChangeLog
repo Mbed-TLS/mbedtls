@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version trunk
+= Version 0.99-pre5 released on 2011-05-26
 Features
    * Added additional Cipher Block Modes to symmetric ciphers
      (AES CTR, Camellia CTR, XTEA CBC) including the option to

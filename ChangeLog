@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Version trunk
+Bugfix
+   * Undid faulty bug fix in ssl_write() when flushing old data (Ticket
+     #18)
+
 = Version 0.99-pre5 released on 2011-05-26
 Features
    * Added additional Cipher Block Modes to symmetric ciphers

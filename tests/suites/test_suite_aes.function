@@ -137,7 +137,7 @@ aes_encrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     aes_context ctx;
-    int iv_offset = 0;
+    size_t iv_offset = 0;
     int key_len;
 
     memset(key_str, 0x00, 100);
@@ -167,7 +167,7 @@ aes_decrypt_cfb128:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
     unsigned char dst_str[100];
     unsigned char output[100];
     aes_context ctx;
-    int iv_offset = 0;
+    size_t iv_offset = 0;
     int key_len;
 
     memset(key_str, 0x00, 100);

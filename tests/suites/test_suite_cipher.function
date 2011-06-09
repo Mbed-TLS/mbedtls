@@ -142,7 +142,7 @@ dec_empty_buf:
     /* decode 0-byte string */
     TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, 0, decbuf, &outlen ) );
     TEST_ASSERT( 0 == outlen );
-    TEST_ASSERT( 1 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
+    TEST_ASSERT( POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
     TEST_ASSERT( 0 == outlen );
 
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );

@@ -233,7 +233,7 @@ void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
         return;
 
     left = ctx->total[0] & 0x7F;
-    fill = (int)( 128 - left );
+    fill = 128 - left;
 
     ctx->total[0] += (unsigned int64) ilen;
 
@@ -281,7 +281,7 @@ static const unsigned char sha4_padding[128] =
  */
 void sha4_finish( sha4_context *ctx, unsigned char output[64] )
 {
-    int last, padn;
+    size_t last, padn;
     unsigned int64 high, low;
     unsigned char msglen[16];
 
@@ -292,7 +292,7 @@ void sha4_finish( sha4_context *ctx, unsigned char output[64] )
     PUT_UINT64_BE( high, msglen, 0 );
     PUT_UINT64_BE( low,  msglen, 8 );
 
-    last = (int)( ctx->total[0] & 0x7F );
+    last = (size_t)( ctx->total[0] & 0x7F );
     padn = ( last < 112 ) ? ( 112 - last ) : ( 240 - last );
 
     sha4_update( ctx, (unsigned char *) sha4_padding, padn );
@@ -344,7 +344,7 @@ int sha4_file( const char *path, unsigned char output[64], int is384 )
     sha4_starts( &ctx, is384 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        sha4_update( &ctx, buf, (int) n );
+        sha4_update( &ctx, buf, n );
 
     sha4_finish( &ctx, output );
 

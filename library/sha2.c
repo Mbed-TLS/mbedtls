@@ -346,7 +346,7 @@ int sha2_file( const char *path, unsigned char output[32], int is224 )
     sha2_starts( &ctx, is224 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        sha2_update( &ctx, buf, (int) n );
+        sha2_update( &ctx, buf, n );
 
     sha2_finish( &ctx, output );
 

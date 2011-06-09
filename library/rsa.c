@@ -482,7 +482,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
 
     ilen = ctx->len;
 
-    if( ilen < 16 || ilen > (int) sizeof( buf ) )
+    if( ilen < 16 || ilen > sizeof( buf ) )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     ret = ( mode == RSA_PUBLIC )
@@ -565,10 +565,10 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
             return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 
-    if (ilen - (int)(p - buf) > output_max_len)
+    if (ilen - (p - buf) > output_max_len)
         return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
 
-    *olen = ilen - (int)(p - buf);
+    *olen = ilen - (p - buf);
     memcpy( output, p, *olen );
 
     return( 0 );
@@ -826,7 +826,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
 #endif
     siglen = ctx->len;
 
-    if( siglen < 16 || siglen > (int) sizeof( buf ) )
+    if( siglen < 16 || siglen > sizeof( buf ) )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     ret = ( mode == RSA_PUBLIC )
@@ -853,7 +853,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
             }
             p++;
 
-            len = siglen - (int)( p - buf );
+            len = siglen - ( p - buf );
 
             if( len == 34 )
             {

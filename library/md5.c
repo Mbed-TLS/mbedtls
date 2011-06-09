@@ -309,7 +309,7 @@ int md5_file( const char *path, unsigned char output[16] )
     md5_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        md5_update( &ctx, buf, (int) n );
+        md5_update( &ctx, buf, n );
 
     md5_finish( &ctx, output );
 

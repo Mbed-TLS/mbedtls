@@ -145,7 +145,7 @@ static int asn1_get_int( unsigned char **p,
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_INTEGER ) ) != 0 )
         return( ret );
 
-    if( len > (int) sizeof( int ) || ( **p & 0x80 ) != 0 )
+    if( len > sizeof( int ) || ( **p & 0x80 ) != 0 )
         return( POLARSSL_ERR_ASN1_INVALID_LENGTH );
 
     *val = 0;
@@ -509,8 +509,8 @@ static int x509_get_time( unsigned char **p,
             return( POLARSSL_ERR_X509_CERT_INVALID_DATE + ret );
 
         memset( date,  0, sizeof( date ) );
-        memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
-                len : (int) sizeof( date ) - 1 );
+        memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
+                len : sizeof( date ) - 1 );
 
         if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
                     &time->year, &time->mon, &time->day,
@@ -533,8 +533,8 @@ static int x509_get_time( unsigned char **p,
             return( POLARSSL_ERR_X509_CERT_INVALID_DATE + ret );
 
         memset( date,  0, sizeof( date ) );
-        memcpy( date, *p, ( len < (int) sizeof( date ) - 1 ) ?
-                len : (int) sizeof( date ) - 1 );
+        memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
+                len : sizeof( date ) - 1 );
 
         if( sscanf( date, "%4d%2d%2d%2d%2d%2d",
                     &time->year, &time->mon, &time->day,
@@ -1789,7 +1789,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path )
     if ( load_file( path, &buf, &n ) )
         return( 1 );
 
-    ret = x509parse_crt( chain, buf, (int) n );
+    ret = x509parse_crt( chain, buf, n );
 
     memset( buf, 0, n + 1 );
     free( buf );
@@ -1809,7 +1809,7 @@ int x509parse_crlfile( x509_crl *chain, const char *path )
     if ( load_file( path, &buf, &n ) )
         return( 1 );
 
-    ret = x509parse_crl( chain, buf, (int) n );
+    ret = x509parse_crl( chain, buf, n );
 
     memset( buf, 0, n + 1 );
     free( buf );
@@ -1830,9 +1830,9 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
         return( 1 );
 
     if( pwd == NULL )
-        ret = x509parse_key( rsa, buf, (int) n, NULL, 0 );
+        ret = x509parse_key( rsa, buf, n, NULL, 0 );
     else
-        ret = x509parse_key( rsa, buf, (int) n,
+        ret = x509parse_key( rsa, buf, n,
                 (unsigned char *) pwd, strlen( pwd ) );
 
     memset( buf, 0, n + 1 );
@@ -1853,7 +1853,7 @@ int x509parse_public_keyfile( rsa_context *rsa, const char *path )
     if ( load_file( path, &buf, &n ) )
         return( 1 );
 
-    ret = x509parse_public_key( rsa, buf, (int) n );
+    ret = x509parse_public_key( rsa, buf, n );
 
     memset( buf, 0, n + 1 );
     free( buf );
@@ -2177,7 +2177,7 @@ int x509parse_dhmfile( dhm_context *dhm, const char *path )
     if ( load_file( path, &buf, &n ) )
         return( 1 );
 
-    ret = x509parse_dhm( dhm, buf, (int) n);
+    ret = x509parse_dhm( dhm, buf, n );
 
     memset( buf, 0, n + 1 );
     free( buf );
@@ -2315,7 +2315,7 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
 
         for( i = 0; i < name->val.len; i++ )
         {
-            if( i >= (int) sizeof( s ) - 1 )
+            if( i >= sizeof( s ) - 1 )
                 break;
 
             c = name->val.p[i];

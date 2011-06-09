@@ -290,7 +290,7 @@ int md4_file( const char *path, unsigned char output[16] )
     md4_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        md4_update( &ctx, buf, (int) n );
+        md4_update( &ctx, buf, n );
 
     md4_finish( &ctx, output );
 

@@ -344,7 +344,7 @@ int sha1_file( const char *path, unsigned char output[20] )
     sha1_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        sha1_update( &ctx, buf, (int) n );
+        sha1_update( &ctx, buf, n );
 
     sha1_finish( &ctx, output );
 

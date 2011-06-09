@@ -822,12 +822,13 @@ int aes_crypt_cbc( aes_context *ctx,
 int aes_crypt_cfb128( aes_context *ctx,
                        int mode,
                        size_t length,
-                       int *iv_off,
+                       size_t *iv_off,
                        unsigned char iv[16],
                        const unsigned char *input,
                        unsigned char *output )
 {
-    int c, n = *iv_off;
+    int c;
+    size_t n = *iv_off;
 
     if( mode == AES_DECRYPT )
     {
@@ -867,14 +868,15 @@ int aes_crypt_cfb128( aes_context *ctx,
  * AES-CTR buffer encryption/decryption
  */
 int aes_crypt_ctr( aes_context *ctx,
-                       int length,
-                       int *nc_off,
+                       size_t length,
+                       size_t *nc_off,
                        unsigned char nonce_counter[16],
                        unsigned char stream_block[16],
                        const unsigned char *input,
                        unsigned char *output )
 {
-    int c, n = *nc_off, i, cb;
+    int c, i, cb;
+    size_t n = *nc_off;
 
     while( length-- )
     {
@@ -1089,7 +1091,7 @@ int aes_self_test( int verbose )
     unsigned char prv[16];
     unsigned char iv[16];
 #if defined(POLARSSL_CIPHER_MODE_CTR) || defined(POLARSSL_CIPHER_MODE_CFB)
-    int offset;
+    size_t offset;
 #endif
 #if defined(POLARSSL_CIPHER_MODE_CTR)
     int len;

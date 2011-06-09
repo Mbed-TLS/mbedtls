@@ -194,7 +194,7 @@ int md2_file( const char *path, unsigned char output[16] )
     md2_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        md2_update( &ctx, buf, (int) n );
+        md2_update( &ctx, buf, n );
 
     md2_finish( &ctx, output );
 

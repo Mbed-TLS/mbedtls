@@ -43,6 +43,10 @@
 #include "polarssl/camellia.h"
 #endif
 
+#if defined(POLARSSL_CIPHER_C)
+#include "polarssl/cipher.h"
+#endif
+
 #if defined(POLARSSL_DES_C)
 #include "polarssl/des.h"
 #endif
@@ -102,6 +106,19 @@ void error_strerror( int ret, char *buf, size_t buflen )
 
         // High level error codes
         //
+#if defined(POLARSSL_CIPHER_C)
+        if( use_ret == -(POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE) )
+            snprintf( buf, buflen, "CIPHER - The selected feature is not available" );
+        if( use_ret == -(POLARSSL_ERR_CIPHER_BAD_INPUT_DATA) )
+            snprintf( buf, buflen, "CIPHER - Bad input parameters to function" );
+        if( use_ret == -(POLARSSL_ERR_CIPHER_ALLOC_FAILED) )
+            snprintf( buf, buflen, "CIPHER - Failed to allocate memory" );
+        if( use_ret == -(POLARSSL_ERR_CIPHER_INVALID_PADDING) )
+            snprintf( buf, buflen, "CIPHER - Input data contains invalid padding and is rejected" );
+        if( use_ret == -(POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED) )
+            snprintf( buf, buflen, "CIPHER - Decryption of block requires a full block" );
+#endif /* POLARSSL_CIPHER_C */
+
 #if defined(POLARSSL_DHM_C)
         if( use_ret == -(POLARSSL_ERR_DHM_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "DHM - Bad input parameters to function" );

@@ -37,6 +37,10 @@
 #endif
 
 #define POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE            -0x6080  /**< The selected feature is not available. */
+#define POLARSSL_ERR_CIPHER_BAD_INPUT_DATA                 -0x6100  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_CIPHER_ALLOC_FAILED                   -0x6180  /**< Failed to allocate memory. */
+#define POLARSSL_ERR_CIPHER_INVALID_PADDING                -0x6200  /**< Input data contains invalid padding and is rejected. */
+#define POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED            -0x6280  /**< Decryption of block requires a full block. */
 
 typedef enum {
     POLARSSL_CIPHER_ID_NONE = 0,
@@ -225,8 +229,10 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type );
  * \param ctx           context to initialise. May not be NULL.
  * \param cipher_info   cipher to use.
  *
- * \return              \c 0 on success, \c 1 on parameter failure, \c 2 if
- *                      allocation of the cipher-specific context failed.
+ * \return              \c 0 on success,
+ *                      \c POLARSSL_ERR_CIPHER_BAD_INPUT_DATA on parameter failure,
+ *                      \c POLARSSL_ERR_CIPHER_ALLOC_FAILED if allocation of the
+ *                      cipher-specific context failed.
  */
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
 
@@ -236,7 +242,8 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
  *
  * \param ctx           Free the cipher-specific context
  *
- * \returns             0 on success, 1 if parameter verification fails.
+ * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
+ *                      parameter verification fails.
  */
 int cipher_free_ctx( cipher_context_t *ctx );
 
@@ -331,7 +338,9 @@ static inline int cipher_get_key_size ( const cipher_context_t *ctx )
  * \param operation     Operation that the key will be used for, either
  *                      POLARSSL_ENCRYPT or POLARSSL_DECRYPT.
  *
- * \returns             0 on success, 1 if parameter verification fails.
+ * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
+ *                      parameter verification fails or a cipher specific
+ *                      error code.
  */
 int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_length,
         const operation_t operation );
@@ -342,7 +351,8 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_leng
  * \param ctx           generic cipher context
  * \param iv            IV to use or NONCE_COUNTER in the case of a CTR-mode cipher
  *
- * \returns             0 on success, 1 if parameter verification fails.
+ * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+ *                      if parameter verification fails.
  */
 int cipher_reset( cipher_context_t *ctx, const unsigned char *iv );
 
@@ -363,7 +373,11 @@ int cipher_reset( cipher_context_t *ctx, const unsigned char *iv );
  * \param olen          length of the output data, will be filled with the
  *                      actual number of bytes written.
  *
- * \returns             0 on success, 1 if parameter verification fails.
+ * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
+ *                      parameter verification fails,
+ *                      POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE on an
+ *                      unsupported mode for a cipher or a cipher specific
+ *                      error code.
  */
 int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
         unsigned char *output, size_t *olen );
@@ -378,7 +392,12 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  * \param output        buffer to write data to. Needs block_size data available.
  * \param olen          length of the data written to the output buffer.
  *
- * \returns             0 on success, 1 if parameter verification fails.
+ * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
+ *                      parameter verification fails,
+ *                      POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED if decryption
+ *                      expected a full block but was not provided one,
+ *                      POLARSSL_ERR_CIPHER_INVALID_PADDING on invalid padding
+ *                      while decrypting or a cipher specific error code.
  */
 int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen);
 

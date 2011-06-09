@@ -243,12 +243,12 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 {
     if( NULL == cipher_info || NULL == ctx )
-        return 1;
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     memset( ctx, 0, sizeof( ctx ) );
 
     if( NULL == ( ctx->cipher_ctx = cipher_info->base->ctx_alloc_func() ) )
-        return 2;
+        return POLARSSL_ERR_CIPHER_ALLOC_FAILED;
 
     ctx->cipher_info = cipher_info;
 
@@ -258,7 +258,7 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 int cipher_free_ctx( cipher_context_t *ctx )
 {
     if( ctx == NULL || ctx->cipher_info == NULL )
-        return 1;
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     ctx->cipher_info->base->ctx_free_func( ctx->cipher_ctx );
 
@@ -269,7 +269,7 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
         int key_length, const operation_t operation )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
-        return 1;
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     ctx->key_length = key_length;
     ctx->operation = operation;
@@ -289,13 +289,13 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
         return ctx->cipher_info->base->setkey_dec_func( ctx->cipher_ctx, key,
                 ctx->key_length );
 
-    return 1;
+    return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 }
 
 int cipher_reset( cipher_context_t *ctx, const unsigned char *iv )
 {
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )
-        return 1;
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     ctx->unprocessed_len = 0;
 
@@ -307,12 +307,13 @@ int cipher_reset( cipher_context_t *ctx, const unsigned char *iv )
 int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
         unsigned char *output, size_t *olen )
 {
+    int ret;
     size_t copy_len = 0;
 
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen ||
         input == output )
     {
-        return 1;
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
     *olen = 0;
@@ -344,11 +345,11 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
             memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
                     copy_len );
 
-            if( 0 != ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
+            if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
                     ctx->operation, cipher_get_block_size( ctx ), ctx->iv,
-                    ctx->unprocessed_data, output) )
+                    ctx->unprocessed_data, output ) ) )
             {
-                return 1;
+                return ret;
             }
 
             *olen += cipher_get_block_size( ctx );
@@ -380,10 +381,10 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
          */
         if( ilen )
         {
-            if( 0 != ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
-                    ctx->operation, ilen, ctx->iv, input, output ) )
+            if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
+                    ctx->operation, ilen, ctx->iv, input, output ) ) )
             {
-                return 1;
+                return ret;
             }
             *olen += ilen;
         }
@@ -393,11 +394,11 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
     if( ctx->cipher_info->mode == POLARSSL_MODE_CFB128 )
     {
-        if( 0 != ctx->cipher_info->base->cfb128_func( ctx->cipher_ctx,
+        if( 0 != ( ret = ctx->cipher_info->base->cfb128_func( ctx->cipher_ctx,
                 ctx->operation, ilen, &ctx->unprocessed_len, ctx->iv,
-                input, output ) )
+                input, output ) ) )
         {
-            return 1;
+            return ret;
         }
 
         *olen = ilen;
@@ -407,11 +408,11 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
     if( ctx->cipher_info->mode == POLARSSL_MODE_CTR )
     {
-        if( 0 != ctx->cipher_info->base->ctr_func( ctx->cipher_ctx,
+        if( 0 != ( ret = ctx->cipher_info->base->ctr_func( ctx->cipher_ctx,
                 ilen, &ctx->unprocessed_len, ctx->iv,
-                ctx->unprocessed_data, input, output ) )
+                ctx->unprocessed_data, input, output ) ) )
         {
-            return 1;
+            return ret;
         }
 
         *olen = ilen;
@@ -419,7 +420,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
         return 0;
     }
 
-    return 1;
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
 static void add_pkcs_padding( unsigned char *output, size_t output_len,
@@ -439,16 +440,16 @@ static int get_pkcs_padding( unsigned char *input, unsigned char input_len,
     unsigned char padding_len = 0;
 
     if( NULL == input || NULL == data_len )
-        return 1;
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     padding_len = input[input_len - 1];
 
     if( padding_len > input_len )
-        return 2;
+        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
 
     for( i = input_len - padding_len; i < input_len; i++ )
         if( input[i] != padding_len )
-            return 2;
+            return POLARSSL_ERR_CIPHER_INVALID_PADDING;
 
     *data_len = input_len - padding_len;
 
@@ -457,8 +458,10 @@ static int get_pkcs_padding( unsigned char *input, unsigned char input_len,
 
 int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 {
+    int ret = 0;
+
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
-        return 1;
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     *olen = 0;
 
@@ -478,15 +481,15 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
         else if ( cipher_get_block_size( ctx ) != ctx->unprocessed_len )
         {
             /* For decrypt operations, expect a full block */
-            return 1;
+            return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
         }
 
         /* cipher block */
-        if( 0 != ctx->cipher_info->base->cbc_func( ctx->cipher_ctx, ctx->operation,
-                cipher_get_block_size( ctx ), ctx->iv, ctx->unprocessed_data,
-                output ) )
+        if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
+                ctx->operation, cipher_get_block_size( ctx ), ctx->iv,
+                ctx->unprocessed_data, output ) ) )
         {
-            return 1;
+            return ret;
         }
 
         /* Set output size for decryption */
@@ -498,7 +501,7 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
         return 0;
     }
 
-    return 1;
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
 #if defined(POLARSSL_SELF_TEST)

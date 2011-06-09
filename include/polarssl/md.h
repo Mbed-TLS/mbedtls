@@ -37,6 +37,10 @@
 #endif
 
 #define POLARSSL_ERR_MD_FEATURE_UNAVAILABLE                -0x5080  /**< The selected feature is not available. */
+#define POLARSSL_ERR_MD_BAD_INPUT_DATA                     -0x5100  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_MD_ALLOC_FAILED                       -0x5180  /**< Failed to allocate memory. */
+#define POLARSSL_ERR_MD_FILE_OPEN_FAILED                   -0x5200  /**< Opening of file failed. */
+#define POLARSSL_ERR_MD_FILE_READ_FAILED                   -0x5280  /**< Failure when reading from file. */
 
 typedef enum {
     POLARSSL_MD_NONE=0,
@@ -166,7 +170,8 @@ const md_info_t *md_info_from_type( md_type_t md_type );
  *                 be allocated, and must be freed using md_free_ctx() later.
  * \param md_info  message digest to use.
  *
- * \returns        \c 0 on success, \c 1 on parameter failure, \c 2 if
+ * \returns        \c 0 on success, \c POLARSSL_ERR_MD_BAD_INPUT_DATA on
+ *                 parameter failure, \c POLARSSL_ERR_MD_ALLOC_FAILED if
  *                 allocation of the cipher-specific context failed.
  */
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
@@ -177,7 +182,8 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
  *
  * \param ctx      Free the message-specific context
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_free_ctx( md_context_t *ctx );
 
@@ -222,7 +228,8 @@ static inline const char *md_get_name( const md_info_t *md_info )
  *
  * \param ctx      generic message digest context.
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_starts( md_context_t *ctx );
 
@@ -233,7 +240,8 @@ int md_starts( md_context_t *ctx );
  * \param input    buffer holding the  datal
  * \param ilen     length of the input data
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_update( md_context_t *ctx, const unsigned char *input, size_t ilen );
 
@@ -243,7 +251,8 @@ int md_update( md_context_t *ctx, const unsigned char *input, size_t ilen );
  * \param ctx      Generic message digest context
  * \param output   Generic message digest checksum result
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_finish( md_context_t *ctx, unsigned char *output );
 
@@ -255,7 +264,8 @@ int md_finish( md_context_t *ctx, unsigned char *output );
  * \param ilen     length of the input data
  * \param output   Generic message digest checksum result
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
         unsigned char *output );
@@ -267,8 +277,9 @@ int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
  * \param path     input file name
  * \param output   generic message digest checksum result
  *
- * \return         0 if successful, 1 if fopen failed,
- *                 2 if fread failed, 3 if md_info was NULL
+ * \return         0 if successful, POLARSSL_ERR_MD_FILE_OPEN_FAILED if fopen
+ *                 failed, POLARSSL_ERR_MD_FILE_READ_FAILED if fread failed,
+ *                 POLARSSL_ERR_MD_BAD_INPUT_DATA if md_info was NULL.
  */
 int md_file( const md_info_t *md_info, const char *path, unsigned char *output );
 
@@ -279,7 +290,8 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen );
 
@@ -290,7 +302,8 @@ int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen );
 
@@ -300,7 +313,8 @@ int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
  * \param ctx      HMAC context
  * \param output   Generic HMAC checksum result
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_hmac_finish( md_context_t *ctx, unsigned char *output);
 
@@ -309,7 +323,8 @@ int md_hmac_finish( md_context_t *ctx, unsigned char *output);
  *
  * \param ctx      HMAC context to be reset
  *
- * \returns        0 on success, 1 if ctx is NULL.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_hmac_reset( md_context_t *ctx );
 
@@ -323,7 +338,8 @@ int md_hmac_reset( md_context_t *ctx );
  * \param ilen     length of the input data
  * \param output   Generic HMAC-result
  *
- * \returns        0 on success, 1 if parameter verification fails.
+ * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
+ *                 verification fails.
  */
 int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
                 const unsigned char *input, size_t ilen,

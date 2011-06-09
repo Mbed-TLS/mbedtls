@@ -4,6 +4,10 @@ PolarSSL ChangeLog
 Features
    * Expanded cipher layer with support for CFB128 and CTR mode
 
+Changes
+   * The generic cipher and message digest layer now have normal error
+     codes instead of integers
+
 Bugfix
    * Undid faulty bug fix in ssl_write() when flushing old data (Ticket
      #18)

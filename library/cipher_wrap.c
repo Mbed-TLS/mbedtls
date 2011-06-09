@@ -46,6 +46,44 @@ int aes_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
     return aes_crypt_cbc( (aes_context *) ctx, operation, length, iv, input, output );
 }
 
+int aes_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
+        size_t *iv_off, unsigned char *iv, const unsigned char *input, unsigned char *output )
+{
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+    return aes_crypt_cfb128( (aes_context *) ctx, operation, length, iv_off, iv, input, output );
+#else
+    ((void) ctx);
+    ((void) operation);
+    ((void) length);
+    ((void) iv_off);
+    ((void) iv);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif
+}
+
+int aes_crypt_ctr_wrap( void *ctx, size_t length,
+        size_t *nc_off, unsigned char *nonce_counter, unsigned char *stream_block,
+        const unsigned char *input, unsigned char *output )
+{
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    return aes_crypt_ctr( (aes_context *) ctx, length, nc_off, nonce_counter,
+                          stream_block, input, output );
+#else
+    ((void) ctx);
+    ((void) length);
+    ((void) nc_off);
+    ((void) nonce_counter);
+    ((void) stream_block);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif
+}
+
 int aes_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return aes_setkey_dec( (aes_context *) ctx, key, key_length );
@@ -66,50 +104,111 @@ static void aes_ctx_free( void *ctx )
     free( ctx );
 }
 
+const cipher_base_t aes_info = {
+    POLARSSL_CIPHER_ID_AES,
+    aes_crypt_cbc_wrap,
+    aes_crypt_cfb128_wrap,
+    aes_crypt_ctr_wrap,
+    aes_setkey_enc_wrap,
+    aes_setkey_dec_wrap,
+    aes_ctx_alloc,
+    aes_ctx_free
+};
+
 const cipher_info_t aes_128_cbc_info = {
     POLARSSL_CIPHER_AES_128_CBC,
-    POLARSSL_CIPHER_ID_AES,
     POLARSSL_MODE_CBC,
     128,
     "AES-128-CBC",
     16,
     16,
-    aes_crypt_cbc_wrap,
-    aes_setkey_enc_wrap,
-    aes_setkey_dec_wrap,
-    aes_ctx_alloc,
-    aes_ctx_free
+    &aes_info
 };
 
 const cipher_info_t aes_192_cbc_info = {
     POLARSSL_CIPHER_AES_192_CBC,
-    POLARSSL_CIPHER_ID_AES,
     POLARSSL_MODE_CBC,
     192,
     "AES-192-CBC",
     16,
     16,
-    aes_crypt_cbc_wrap,
-    aes_setkey_enc_wrap,
-    aes_setkey_dec_wrap,
-    aes_ctx_alloc,
-    aes_ctx_free
+    &aes_info
 };
 
 const cipher_info_t aes_256_cbc_info = {
     POLARSSL_CIPHER_AES_256_CBC,
-    POLARSSL_CIPHER_ID_AES,
     POLARSSL_MODE_CBC,
     256,
     "AES-256-CBC",
     16,
     16,
-    aes_crypt_cbc_wrap,
-    aes_setkey_enc_wrap,
-    aes_setkey_dec_wrap,
-    aes_ctx_alloc,
-    aes_ctx_free
+    &aes_info
 };
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+const cipher_info_t aes_128_cfb128_info = {
+    POLARSSL_CIPHER_AES_128_CFB128,
+    POLARSSL_MODE_CFB128,
+    128,
+    "AES-128-CFB128",
+    16,
+    16,
+    &aes_info
+};
+
+const cipher_info_t aes_192_cfb128_info = {
+    POLARSSL_CIPHER_AES_192_CFB128,
+    POLARSSL_MODE_CFB128,
+    192,
+    "AES-192-CFB128",
+    16,
+    16,
+    &aes_info
+};
+
+const cipher_info_t aes_256_cfb128_info = {
+    POLARSSL_CIPHER_AES_256_CFB128,
+    POLARSSL_MODE_CFB128,
+    256,
+    "AES-256-CFB128",
+    16,
+    16,
+    &aes_info
+};
+#endif /* POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+const cipher_info_t aes_128_ctr_info = {
+    POLARSSL_CIPHER_AES_128_CTR,
+    POLARSSL_MODE_CTR,
+    128,
+    "AES-128-CTR",
+    16,
+    16,
+    &aes_info
+};
+
+const cipher_info_t aes_192_ctr_info = {
+    POLARSSL_CIPHER_AES_192_CTR,
+    POLARSSL_MODE_CTR,
+    192,
+    "AES-192-CTR",
+    16,
+    16,
+    &aes_info
+};
+
+const cipher_info_t aes_256_ctr_info = {
+    POLARSSL_CIPHER_AES_256_CTR,
+    POLARSSL_MODE_CTR,
+    256,
+    "AES-256-CTR",
+    16,
+    16,
+    &aes_info
+};
+#endif /* POLARSSL_CIPHER_MODE_CTR */
+
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -118,6 +217,44 @@ int camellia_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return camellia_crypt_cbc( (camellia_context *) ctx, operation, length, iv, input, output );
+}
+
+int camellia_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
+        size_t *iv_off, unsigned char *iv, const unsigned char *input, unsigned char *output )
+{
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+    return camellia_crypt_cfb128( (camellia_context *) ctx, operation, length, iv_off, iv, input, output );
+#else
+    ((void) ctx);
+    ((void) operation);
+    ((void) length);
+    ((void) iv_off);
+    ((void) iv);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif
+}
+
+int camellia_crypt_ctr_wrap( void *ctx, size_t length,
+        size_t *nc_off, unsigned char *nonce_counter, unsigned char *stream_block,
+        const unsigned char *input, unsigned char *output )
+{
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    return camellia_crypt_ctr( (camellia_context *) ctx, length, nc_off, nonce_counter,
+                          stream_block, input, output );
+#else
+    ((void) ctx);
+    ((void) length);
+    ((void) nc_off);
+    ((void) nonce_counter);
+    ((void) stream_block);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif
 }
 
 int camellia_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
@@ -140,50 +277,111 @@ static void camellia_ctx_free( void *ctx )
     free( ctx );
 }
 
+const cipher_base_t camellia_info = {
+    POLARSSL_CIPHER_ID_CAMELLIA,
+    camellia_crypt_cbc_wrap,
+    camellia_crypt_cfb128_wrap,
+    camellia_crypt_ctr_wrap,
+    camellia_setkey_enc_wrap,
+    camellia_setkey_dec_wrap,
+    camellia_ctx_alloc,
+    camellia_ctx_free
+};
+
 const cipher_info_t camellia_128_cbc_info = {
     POLARSSL_CIPHER_CAMELLIA_128_CBC,
-    POLARSSL_CIPHER_ID_CAMELLIA,
     POLARSSL_MODE_CBC,
     128,
     "CAMELLIA-128-CBC",
     16,
     16,
-    camellia_crypt_cbc_wrap,
-    camellia_setkey_enc_wrap,
-    camellia_setkey_dec_wrap,
-    camellia_ctx_alloc,
-    camellia_ctx_free
+    &camellia_info
 };
 
 const cipher_info_t camellia_192_cbc_info = {
     POLARSSL_CIPHER_CAMELLIA_192_CBC,
-    POLARSSL_CIPHER_ID_CAMELLIA,
     POLARSSL_MODE_CBC,
     192,
     "CAMELLIA-192-CBC",
     16,
     16,
-    camellia_crypt_cbc_wrap,
-    camellia_setkey_enc_wrap,
-    camellia_setkey_dec_wrap,
-    camellia_ctx_alloc,
-    camellia_ctx_free
+    &camellia_info
 };
 
 const cipher_info_t camellia_256_cbc_info = {
     POLARSSL_CIPHER_CAMELLIA_256_CBC,
-    POLARSSL_CIPHER_ID_CAMELLIA,
     POLARSSL_MODE_CBC,
     256,
     "CAMELLIA-256-CBC",
     16,
     16,
-    camellia_crypt_cbc_wrap,
-    camellia_setkey_enc_wrap,
-    camellia_setkey_dec_wrap,
-    camellia_ctx_alloc,
-    camellia_ctx_free
+    &camellia_info
 };
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+const cipher_info_t camellia_128_cfb128_info = {
+    POLARSSL_CIPHER_CAMELLIA_128_CFB128,
+    POLARSSL_MODE_CFB128,
+    128,
+    "CAMELLIA-128-CFB128",
+    16,
+    16,
+    &camellia_info
+};
+
+const cipher_info_t camellia_192_cfb128_info = {
+    POLARSSL_CIPHER_CAMELLIA_192_CFB128,
+    POLARSSL_MODE_CFB128,
+    192,
+    "CAMELLIA-192-CFB128",
+    16,
+    16,
+    &camellia_info
+};
+
+const cipher_info_t camellia_256_cfb128_info = {
+    POLARSSL_CIPHER_CAMELLIA_256_CFB128,
+    POLARSSL_MODE_CFB128,
+    256,
+    "CAMELLIA-256-CFB128",
+    16,
+    16,
+    &camellia_info
+};
+#endif /* POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+const cipher_info_t camellia_128_ctr_info = {
+    POLARSSL_CIPHER_CAMELLIA_128_CTR,
+    POLARSSL_MODE_CTR,
+    128,
+    "CAMELLIA-128-CTR",
+    16,
+    16,
+    &camellia_info
+};
+
+const cipher_info_t camellia_192_ctr_info = {
+    POLARSSL_CIPHER_CAMELLIA_192_CTR,
+    POLARSSL_MODE_CTR,
+    192,
+    "CAMELLIA-192-CTR",
+    16,
+    16,
+    &camellia_info
+};
+
+const cipher_info_t camellia_256_ctr_info = {
+    POLARSSL_CIPHER_CAMELLIA_256_CTR,
+    POLARSSL_MODE_CTR,
+    256,
+    "CAMELLIA-256-CTR",
+    16,
+    16,
+    &camellia_info
+};
+#endif /* POLARSSL_CIPHER_MODE_CTR */
+
 #endif
 
 #if defined(POLARSSL_DES_C)
@@ -199,6 +397,36 @@ int des3_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
 {
     return des3_crypt_cbc( (des3_context *) ctx, operation, length, iv, input, output );
 }
+
+int des_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
+        size_t *iv_off, unsigned char *iv, const unsigned char *input, unsigned char *output )
+{
+    ((void) ctx);
+    ((void) operation);
+    ((void) length);
+    ((void) iv_off);
+    ((void) iv);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+}
+
+int des_crypt_ctr_wrap( void *ctx, size_t length,
+        size_t *nc_off, unsigned char *nonce_counter, unsigned char *stream_block,
+        const unsigned char *input, unsigned char *output )
+{
+    ((void) ctx);
+    ((void) length);
+    ((void) nc_off);
+    ((void) nonce_counter);
+    ((void) stream_block);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+}
+
 
 int des_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
@@ -257,49 +485,67 @@ static void des_ctx_free( void *ctx )
     free( ctx );
 }
 
-const cipher_info_t des_cbc_info = {
-    POLARSSL_CIPHER_DES_CBC,
+const cipher_base_t des_info = {
     POLARSSL_CIPHER_ID_DES,
-    POLARSSL_MODE_CBC,
-    POLARSSL_KEY_LENGTH_DES,
-    "DES-CBC",
-    8,
-    8,
     des_crypt_cbc_wrap,
+    des_crypt_cfb128_wrap,
+    des_crypt_ctr_wrap,
     des_setkey_enc_wrap,
     des_setkey_dec_wrap,
     des_ctx_alloc,
     des_ctx_free
 };
 
-const cipher_info_t des_ede_cbc_info = {
-    POLARSSL_CIPHER_DES_EDE_CBC,
-    POLARSSL_CIPHER_ID_DES,
+const cipher_info_t des_cbc_info = {
+    POLARSSL_CIPHER_DES_CBC,
     POLARSSL_MODE_CBC,
-    POLARSSL_KEY_LENGTH_DES_EDE,
-    "DES-EDE-CBC",
-    16,
-    16,
+    POLARSSL_KEY_LENGTH_DES,
+    "DES-CBC",
+    8,
+    8,
+    &des_info
+};
+
+const cipher_base_t des_ede_info = {
+    POLARSSL_CIPHER_ID_DES,
     des3_crypt_cbc_wrap,
+    des_crypt_cfb128_wrap,
+    des_crypt_ctr_wrap,
     des3_set2key_enc_wrap,
     des3_set2key_dec_wrap,
     des3_ctx_alloc,
     des_ctx_free
 };
 
+const cipher_info_t des_ede_cbc_info = {
+    POLARSSL_CIPHER_DES_EDE_CBC,
+    POLARSSL_MODE_CBC,
+    POLARSSL_KEY_LENGTH_DES_EDE,
+    "DES-EDE-CBC",
+    16,
+    16,
+    &des_ede_info
+};
+
+const cipher_base_t des_ede3_info = {
+    POLARSSL_CIPHER_ID_DES,
+    des3_crypt_cbc_wrap,
+    des_crypt_cfb128_wrap,
+    des_crypt_ctr_wrap,
+    des3_set3key_enc_wrap,
+    des3_set3key_dec_wrap,
+    des3_ctx_alloc,
+    des_ctx_free
+};
+
 const cipher_info_t des_ede3_cbc_info = {
     POLARSSL_CIPHER_DES_EDE3_CBC,
-    POLARSSL_CIPHER_ID_DES,
     POLARSSL_MODE_CBC,
     POLARSSL_KEY_LENGTH_DES_EDE3,
     "DES-EDE3-CBC",
     8,
     8,
-    des3_crypt_cbc_wrap,
-    des3_set3key_enc_wrap,
-    des3_set3key_dec_wrap,
-    des3_ctx_alloc,
-    des_ctx_free
+    &des_ede3_info
 };
 #endif
 

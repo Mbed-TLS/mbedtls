@@ -48,20 +48,59 @@ enc_dec_buf:cipher_id:cipher_string:key_len:length:
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );
 
-    enclen = cipher_get_block_size( &ctx_enc )
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        enclen = cipher_get_block_size( &ctx_enc )
                     * ( 1 + length / cipher_get_block_size( &ctx_enc ) );
+    }
+    else
+    {
+        enclen = length;
+    }
 
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, length, encbuf, &outlen ) );
-    TEST_ASSERT( outlen == enclen - cipher_get_block_size ( &ctx_enc ) );
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        TEST_ASSERT( outlen == enclen - cipher_get_block_size ( &ctx_enc ) );
+    }
+    else
+    {
+        TEST_ASSERT( outlen == enclen );
+    }
+
     TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + outlen, &outlen ) );
-    TEST_ASSERT( outlen == cipher_get_block_size ( &ctx_enc ) );
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        TEST_ASSERT( outlen == cipher_get_block_size ( &ctx_enc ) );
+    }
+    else
+    {
+        TEST_ASSERT( outlen == 0 );
+    }
+
 
     /* decode the previously encoded string */
     TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, enclen, decbuf, &outlen ) );
-    TEST_ASSERT( enclen - cipher_get_block_size ( &ctx_enc ) == outlen );
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        TEST_ASSERT( enclen - cipher_get_block_size ( &ctx_enc ) == outlen );
+    }
+    else
+    {
+        TEST_ASSERT( enclen == outlen );
+    }
+
     TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
-    TEST_ASSERT( length - enclen + cipher_get_block_size ( &ctx_enc ) == outlen );
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        TEST_ASSERT( length - enclen + cipher_get_block_size ( &ctx_enc ) == outlen );
+    }
+    else
+    {
+        TEST_ASSERT( outlen == 0 );
+    }
+
 
     TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );
 
@@ -152,24 +191,59 @@ enc_dec_buf_multipart:cipher_id:key_len:first_length:second_length:
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );
 
-    enclen = cipher_get_block_size(&ctx_enc )
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        enclen = cipher_get_block_size(&ctx_enc )
                     * ( 1 + length / cipher_get_block_size( &ctx_enc ) );
+    }
+    else
+    {
+        enclen = length;
+    }
 
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, first_length, encbuf, &outlen ) );
     totaloutlen = outlen;
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf + first_length, second_length, encbuf + totaloutlen, &outlen ) );
     totaloutlen += outlen;
-    TEST_ASSERT( totaloutlen == enclen - cipher_get_block_size ( &ctx_enc ) );
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        TEST_ASSERT( totaloutlen == enclen - cipher_get_block_size ( &ctx_enc ) );
+    }
+    else
+    {
+        TEST_ASSERT( totaloutlen == enclen );
+    }
     TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + totaloutlen, &outlen ) );
     totaloutlen += outlen;
-    TEST_ASSERT( outlen == cipher_get_block_size ( &ctx_enc ) );
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        TEST_ASSERT( outlen == cipher_get_block_size ( &ctx_enc ) );
+    }
+    else
+    {
+        TEST_ASSERT( outlen == 0 );
+    }
 
     /* decode the previously encoded string */
     TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, enclen, decbuf, &outlen ) );
-    TEST_ASSERT( enclen - cipher_get_block_size ( &ctx_enc ) == outlen );
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        TEST_ASSERT( enclen - cipher_get_block_size ( &ctx_enc ) == outlen );
+    }
+    else
+    {
+        TEST_ASSERT( enclen == outlen );
+    }
     TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
-    TEST_ASSERT( length - enclen + cipher_get_block_size ( &ctx_enc ) == outlen );
+    if( POLARSSL_MODE_CBC == cipher_info->mode )
+    {
+        TEST_ASSERT( length - enclen + cipher_get_block_size ( &ctx_enc ) == outlen );
+    }
+    else
+    {
+        TEST_ASSERT( outlen == 0 );
+    }
     
 
     TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );

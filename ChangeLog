@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
 = Version trunk
+Features
+   * Expanded cipher layer with support for CFB128 and CTR mode
+
 Bugfix
    * Undid faulty bug fix in ssl_write() when flushing old data (Ticket
      #18)

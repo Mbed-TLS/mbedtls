@@ -36,6 +36,8 @@
 #define inline _inline
 #endif
 
+#define POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE            -0x6080  /**< The selected feature is not available. */
+
 typedef enum {
     POLARSSL_CIPHER_ID_NONE = 0,
     POLARSSL_CIPHER_ID_AES,
@@ -46,12 +48,24 @@ typedef enum {
 
 typedef enum {
     POLARSSL_CIPHER_NONE = 0,
-    POLARSSL_CIPHER_CAMELLIA_128_CBC,
-    POLARSSL_CIPHER_CAMELLIA_192_CBC,
-    POLARSSL_CIPHER_CAMELLIA_256_CBC,
     POLARSSL_CIPHER_AES_128_CBC,
     POLARSSL_CIPHER_AES_192_CBC,
     POLARSSL_CIPHER_AES_256_CBC,
+    POLARSSL_CIPHER_AES_128_CFB128,
+    POLARSSL_CIPHER_AES_192_CFB128,
+    POLARSSL_CIPHER_AES_256_CFB128,
+    POLARSSL_CIPHER_AES_128_CTR,
+    POLARSSL_CIPHER_AES_192_CTR,
+    POLARSSL_CIPHER_AES_256_CTR,
+    POLARSSL_CIPHER_CAMELLIA_128_CBC,
+    POLARSSL_CIPHER_CAMELLIA_192_CBC,
+    POLARSSL_CIPHER_CAMELLIA_256_CBC,
+    POLARSSL_CIPHER_CAMELLIA_128_CFB128,
+    POLARSSL_CIPHER_CAMELLIA_192_CFB128,
+    POLARSSL_CIPHER_CAMELLIA_256_CFB128,
+    POLARSSL_CIPHER_CAMELLIA_128_CTR,
+    POLARSSL_CIPHER_CAMELLIA_192_CTR,
+    POLARSSL_CIPHER_CAMELLIA_256_CTR,
     POLARSSL_CIPHER_DES_CBC,
     POLARSSL_CIPHER_DES_EDE_CBC,
     POLARSSL_CIPHER_DES_EDE3_CBC
@@ -60,8 +74,9 @@ typedef enum {
 typedef enum {
     POLARSSL_MODE_NONE = 0,
     POLARSSL_MODE_CBC,
-    POLARSSL_MODE_CFB,
+    POLARSSL_MODE_CFB128,
     POLARSSL_MODE_OFB,
+    POLARSSL_MODE_CTR,
 } cipher_mode_t;
 
 typedef enum {
@@ -83,14 +98,45 @@ enum {
 };
 
 /**
+ * Base cipher information. The non-mode specific functions and values.
+ */
+typedef struct {
+
+    /** Base Cipher type (e.g. POLARSSL_CIPHER_ID_AES) */
+    cipher_id_t cipher;
+
+    /** Encrypt using CBC */
+    int (*cbc_func)( void *ctx, operation_t mode, size_t length, unsigned char *iv,
+            const unsigned char *input, unsigned char *output );
+
+    /** Encrypt using CFB128 */
+    int (*cfb128_func)( void *ctx, operation_t mode, size_t length, size_t *iv_off,
+            unsigned char *iv, const unsigned char *input, unsigned char *output );
+
+    /** Encrypt using CTR */
+    int (*ctr_func)( void *ctx, size_t length, size_t *nc_off, unsigned char *nonce_counter,
+            unsigned char *stream_block, const unsigned char *input, unsigned char *output );
+
+    /** Set key for encryption purposes */
+    int (*setkey_enc_func)( void *ctx, const unsigned char *key, unsigned int key_length);
+
+    /** Set key for decryption purposes */
+    int (*setkey_dec_func)( void *ctx, const unsigned char *key, unsigned int key_length);
+
+    /** Allocate a new context */
+    void * (*ctx_alloc_func)( void );
+
+    /** Free the given context */
+    void (*ctx_free_func)( void *ctx );
+
+} cipher_base_t;
+
+/**
  * Cipher information. Allows cipher functions to be called in a generic way.
  */
 typedef struct {
     /** Full cipher identifier (e.g. POLARSSL_CIPHER_AES_256_CBC) */
     cipher_type_t type;
-
-    /** Base Cipher type (e.g. POLARSSL_CIPHER_ID_AES) */
-    cipher_id_t cipher;
 
     /** Cipher mode (e.g. POLARSSL_CIPHER_MODE_CBC) */
     cipher_mode_t mode;
@@ -107,21 +153,8 @@ typedef struct {
     /** block size, in bytes */
     unsigned int block_size;
 
-    /** Encrypt using CBC */
-    int (*cbc_func)( void *ctx, operation_t mode, size_t length, unsigned char *iv,
-            const unsigned char *input, unsigned char *output );
-
-    /** Set key for encryption purposes */
-    int (*setkey_enc_func)( void *ctx, const unsigned char *key, unsigned int key_length);
-
-    /** Set key for decryption purposes */
-    int (*setkey_dec_func)( void *ctx, const unsigned char *key, unsigned int key_length);
-
-    /** Allocate a new context */
-    void * (*ctx_alloc_func)( void );
-
-    /** Free the given context */
-    void (*ctx_free_func)( void *ctx );
+    /** Base cipher information and functions */
+    const cipher_base_t *base;
 
 } cipher_info_t;
 
@@ -144,7 +177,7 @@ typedef struct {
     /** Number of bytes that still need processing */
     size_t unprocessed_len;
 
-    /** Current IV */
+    /** Current IV or NONCE_COUNTER for CTR-mode */
     unsigned char iv[POLARSSL_MAX_IV_LENGTH];
 
     /** Cipher-specific context */
@@ -307,7 +340,7 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_leng
  * \brief               Reset the given context, setting the IV to iv
  *
  * \param ctx           generic cipher context
- * \param iv            IV to use
+ * \param iv            IV to use or NONCE_COUNTER in the case of a CTR-mode cipher
  *
  * \returns             0 on success, 1 if parameter verification fails.
  */

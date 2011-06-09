@@ -43,6 +43,18 @@ extern const cipher_info_t aes_128_cbc_info;
 extern const cipher_info_t aes_192_cbc_info;
 extern const cipher_info_t aes_256_cbc_info;
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+extern const cipher_info_t aes_128_cfb128_info;
+extern const cipher_info_t aes_192_cfb128_info;
+extern const cipher_info_t aes_256_cfb128_info;
+#endif /* POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+extern const cipher_info_t aes_128_ctr_info;
+extern const cipher_info_t aes_192_ctr_info;
+extern const cipher_info_t aes_256_ctr_info;
+#endif /* POLARSSL_CIPHER_MODE_CTR */
+
 #endif /* defined(POLARSSL_AES_C) */
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -50,6 +62,18 @@ extern const cipher_info_t aes_256_cbc_info;
 extern const cipher_info_t camellia_128_cbc_info;
 extern const cipher_info_t camellia_192_cbc_info;
 extern const cipher_info_t camellia_256_cbc_info;
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+extern const cipher_info_t camellia_128_cfb128_info;
+extern const cipher_info_t camellia_192_cfb128_info;
+extern const cipher_info_t camellia_256_cfb128_info;
+#endif /* POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+extern const cipher_info_t camellia_128_ctr_info;
+extern const cipher_info_t camellia_192_ctr_info;
+extern const cipher_info_t camellia_256_ctr_info;
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #endif /* defined(POLARSSL_CAMELLIA_C) */
 

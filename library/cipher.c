@@ -46,12 +46,38 @@ static const int supported_ciphers[] = {
         POLARSSL_CIPHER_AES_128_CBC,
         POLARSSL_CIPHER_AES_192_CBC,
         POLARSSL_CIPHER_AES_256_CBC,
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        POLARSSL_CIPHER_AES_128_CFB128,
+        POLARSSL_CIPHER_AES_192_CFB128,
+        POLARSSL_CIPHER_AES_256_CFB128,
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        POLARSSL_CIPHER_AES_128_CTR,
+        POLARSSL_CIPHER_AES_192_CTR,
+        POLARSSL_CIPHER_AES_256_CTR,
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+
 #endif /* defined(POLARSSL_AES_C) */
 
 #if defined(POLARSSL_CAMELLIA_C)
         POLARSSL_CIPHER_CAMELLIA_128_CBC,
         POLARSSL_CIPHER_CAMELLIA_192_CBC,
         POLARSSL_CIPHER_CAMELLIA_256_CBC,
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        POLARSSL_CIPHER_CAMELLIA_128_CFB128,
+        POLARSSL_CIPHER_CAMELLIA_192_CFB128,
+        POLARSSL_CIPHER_CAMELLIA_256_CFB128,
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        POLARSSL_CIPHER_CAMELLIA_128_CTR,
+        POLARSSL_CIPHER_CAMELLIA_192_CTR,
+        POLARSSL_CIPHER_CAMELLIA_256_CTR,
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+
 #endif /* defined(POLARSSL_CAMELLIA_C) */
 
 #if defined(POLARSSL_DES_C)
@@ -80,6 +106,25 @@ const cipher_info_t *cipher_info_from_type( cipher_type_t cipher_type )
             return &aes_192_cbc_info;
         case POLARSSL_CIPHER_AES_256_CBC:
             return &aes_256_cbc_info;
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        case POLARSSL_CIPHER_AES_128_CFB128:
+            return &aes_128_cfb128_info;
+        case POLARSSL_CIPHER_AES_192_CFB128:
+            return &aes_192_cfb128_info;
+        case POLARSSL_CIPHER_AES_256_CFB128:
+            return &aes_256_cfb128_info;
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        case POLARSSL_CIPHER_AES_128_CTR:
+            return &aes_128_ctr_info;
+        case POLARSSL_CIPHER_AES_192_CTR:
+            return &aes_192_ctr_info;
+        case POLARSSL_CIPHER_AES_256_CTR:
+            return &aes_256_ctr_info;
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -89,6 +134,25 @@ const cipher_info_t *cipher_info_from_type( cipher_type_t cipher_type )
             return &camellia_192_cbc_info;
         case POLARSSL_CIPHER_CAMELLIA_256_CBC:
             return &camellia_256_cbc_info;
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        case POLARSSL_CIPHER_CAMELLIA_128_CFB128:
+            return &camellia_128_cfb128_info;
+        case POLARSSL_CIPHER_CAMELLIA_192_CFB128:
+            return &camellia_192_cfb128_info;
+        case POLARSSL_CIPHER_CAMELLIA_256_CFB128:
+            return &camellia_256_cfb128_info;
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        case POLARSSL_CIPHER_CAMELLIA_128_CTR:
+            return &camellia_128_ctr_info;
+        case POLARSSL_CIPHER_CAMELLIA_192_CTR:
+            return &camellia_192_ctr_info;
+        case POLARSSL_CIPHER_CAMELLIA_256_CTR:
+            return &camellia_256_ctr_info;
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+
 #endif
 
 #if defined(POLARSSL_DES_C)
@@ -110,7 +174,7 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
     if( NULL == cipher_name )
         return NULL;
 
-    /* Get the appropriate digest information */
+    /* Get the appropriate cipher information */
 #if defined(POLARSSL_CAMELLIA_C)
     if( !strcasecmp( "CAMELLIA-128-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CBC );
@@ -118,7 +182,26 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
         return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CBC );
     if( !strcasecmp( "CAMELLIA-256-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CBC );
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+    if( !strcasecmp( "CAMELLIA-128-CFB128", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CFB128 );
+    if( !strcasecmp( "CAMELLIA-192-CFB128", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CFB128 );
+    if( !strcasecmp( "CAMELLIA-256-CFB128", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CFB128 );
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    if( !strcasecmp( "CAMELLIA-128-CTR", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CTR );
+    if( !strcasecmp( "CAMELLIA-192-CTR", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CTR );
+    if( !strcasecmp( "CAMELLIA-256-CTR", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CTR );
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
 #endif
+
 #if defined(POLARSSL_AES_C)
     if( !strcasecmp( "AES-128-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CBC );
@@ -126,7 +209,26 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CBC );
     if( !strcasecmp( "AES-256-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CBC );
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+    if( !strcasecmp( "AES-128-CFB128", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CFB128 );
+    if( !strcasecmp( "AES-192-CFB128", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CFB128 );
+    if( !strcasecmp( "AES-256-CFB128", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CFB128 );
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    if( !strcasecmp( "AES-128-CTR", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CTR );
+    if( !strcasecmp( "AES-192-CTR", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CTR );
+    if( !strcasecmp( "AES-256-CTR", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CTR );
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
 #endif
+
 #if defined(POLARSSL_DES_C)
     if( !strcasecmp( "DES-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_DES_CBC );
@@ -145,7 +247,7 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 
     memset( ctx, 0, sizeof( ctx ) );
 
-    if( NULL == ( ctx->cipher_ctx = cipher_info->ctx_alloc_func() ) )
+    if( NULL == ( ctx->cipher_ctx = cipher_info->base->ctx_alloc_func() ) )
         return 2;
 
     ctx->cipher_info = cipher_info;
@@ -158,7 +260,7 @@ int cipher_free_ctx( cipher_context_t *ctx )
     if( ctx == NULL || ctx->cipher_info == NULL )
         return 1;
 
-    ctx->cipher_info->ctx_free_func( ctx->cipher_ctx );
+    ctx->cipher_info->base->ctx_free_func( ctx->cipher_ctx );
 
     return 0;
 }
@@ -172,12 +274,19 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     ctx->key_length = key_length;
     ctx->operation = operation;
 
-    if (POLARSSL_ENCRYPT == operation)
-        return ctx->cipher_info->setkey_enc_func( ctx->cipher_ctx, key,
+    /*
+     * For CFB128 and CTR mode always use the encryption key schedule
+     */
+    if( POLARSSL_ENCRYPT == operation ||
+        POLARSSL_MODE_CFB128 == ctx->cipher_info->mode ||
+        POLARSSL_MODE_CTR == ctx->cipher_info->mode )
+    {
+        return ctx->cipher_info->base->setkey_enc_func( ctx->cipher_ctx, key,
                 ctx->key_length );
+    }
 
-    if (POLARSSL_DECRYPT == operation)
-        return ctx->cipher_info->setkey_dec_func( ctx->cipher_ctx, key,
+    if( POLARSSL_DECRYPT == operation )
+        return ctx->cipher_info->base->setkey_dec_func( ctx->cipher_ctx, key,
                 ctx->key_length );
 
     return 1;
@@ -235,7 +344,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
             memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
                     copy_len );
 
-            if( 0 != ctx->cipher_info->cbc_func( ctx->cipher_ctx,
+            if( 0 != ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
                     ctx->operation, cipher_get_block_size( ctx ), ctx->iv,
                     ctx->unprocessed_data, output) )
             {
@@ -271,13 +380,41 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
          */
         if( ilen )
         {
-            if( 0 != ctx->cipher_info->cbc_func( ctx->cipher_ctx,
+            if( 0 != ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
                     ctx->operation, ilen, ctx->iv, input, output ) )
             {
                 return 1;
             }
             *olen += ilen;
         }
+
+        return 0;
+    }
+
+    if( ctx->cipher_info->mode == POLARSSL_MODE_CFB128 )
+    {
+        if( 0 != ctx->cipher_info->base->cfb128_func( ctx->cipher_ctx,
+                ctx->operation, ilen, &ctx->unprocessed_len, ctx->iv,
+                input, output ) )
+        {
+            return 1;
+        }
+
+        *olen = ilen;
+
+        return 0;
+    }
+
+    if( ctx->cipher_info->mode == POLARSSL_MODE_CTR )
+    {
+        if( 0 != ctx->cipher_info->base->ctr_func( ctx->cipher_ctx,
+                ilen, &ctx->unprocessed_len, ctx->iv,
+                ctx->unprocessed_data, input, output ) )
+        {
+            return 1;
+        }
+
+        *olen = ilen;
 
         return 0;
     }
@@ -325,6 +462,12 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 
     *olen = 0;
 
+    if( POLARSSL_MODE_CFB128 == ctx->cipher_info->mode ||
+        POLARSSL_MODE_CTR == ctx->cipher_info->mode )
+    {
+        return 0;
+    }
+
     if( POLARSSL_MODE_CBC == ctx->cipher_info->mode )
     {
         if( POLARSSL_ENCRYPT == ctx->operation )
@@ -339,7 +482,7 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
         }
 
         /* cipher block */
-        if( 0 != ctx->cipher_info->cbc_func( ctx->cipher_ctx, ctx->operation,
+        if( 0 != ctx->cipher_info->base->cbc_func( ctx->cipher_ctx, ctx->operation,
                 cipher_get_block_size( ctx ), ctx->iv, ctx->unprocessed_data,
                 output ) )
         {

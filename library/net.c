@@ -317,7 +317,7 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
 /*
  * Write at most 'len' characters
  */
-int net_send( void *ctx, unsigned char *buf, size_t len )
+int net_send( void *ctx, const unsigned char *buf, size_t len )
 {
     int ret = write( *((int *) ctx), buf, len );
 

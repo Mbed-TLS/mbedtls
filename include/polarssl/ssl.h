@@ -231,7 +231,7 @@ struct _ssl_context
     int  (*f_rng)(void *);
     void (*f_dbg)(void *, int, const char *);
     int (*f_recv)(void *, unsigned char *, size_t);
-    int (*f_send)(void *, unsigned char *, size_t);
+    int (*f_send)(void *, const unsigned char *, size_t);
     int (*f_vrfy)(void *, x509_cert *, int, int);
 
     void *p_rng;                /*!< context for the RNG function     */
@@ -450,7 +450,7 @@ void ssl_set_dbg( ssl_context *ssl,
  */
 void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
-        int (*f_send)(void *, unsigned char *, size_t), void *p_send );
+        int (*f_send)(void *, const unsigned char *, size_t), void *p_send );
 
 /**
  * \brief          Set the session callbacks (server-side only)

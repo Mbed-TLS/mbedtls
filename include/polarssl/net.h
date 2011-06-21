@@ -143,7 +143,7 @@ int net_recv( void *ctx, unsigned char *buf, size_t len );
  *                 or a non-zero error code; POLARSSL_ERR_NET_WANT_WRITE
  *                 indicates write() is blocking.
  */
-int net_send( void *ctx, unsigned char *buf, size_t len );
+int net_send( void *ctx, const unsigned char *buf, size_t len );
 
 /**
  * \brief          Gracefully shutdown the connection

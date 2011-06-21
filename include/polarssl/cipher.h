@@ -35,9 +35,9 @@
 #if defined(_MSC_VER)
 #define inline _inline
 #else
-#if defined(ARMCC_VERSION)
+#if defined(__ARMCC_VERSION)
 #define inline __inline
-#endif /* ARMCC_VERSION */
+#endif /* __ARMCC_VERSION */
 #endif /*_MSC_VER */
 
 #define POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE            -0x6080  /**< The selected feature is not available. */

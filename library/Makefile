@@ -17,6 +17,9 @@ DLEXT=so
 # OSX shared library extension:
 # DLEXT=dylib
 
+# Windows shared library extension:
+# DLEXT=dll
+
 OBJS=	aes.o		arc4.o		base64.o	\
 		bignum.o	camellia.o	certs.o		\
 		cipher.o	cipher_wrap.o	debug.o	\
@@ -33,7 +36,7 @@ OBJS=	aes.o		arc4.o		base64.o	\
 
 .SILENT:
 
-all: static
+all: static shared
 
 static: libpolarssl.a
 
@@ -41,9 +44,9 @@ shared: libpolarssl.$(DLEXT)
 
 libpolarssl.a: $(OBJS)
 	echo "  AR    $@"
-	ar r $@ $(OBJS)
+	$(AR) r $@ $(OBJS)
 	echo "  RL    $@"
-	ranlib $@
+	$(AR) s $@
 
 libpolarssl.so: libpolarssl.a
 	echo "  LD    $@"
@@ -52,6 +55,10 @@ libpolarssl.so: libpolarssl.a
 libpolarssl.dylib: libpolarssl.a
 	echo "  LD    $@"
 	$(CC) ${LDFLAGS} -dynamiclib -o $@ $(OBJS)
+
+libpolarssl.dll: libpolarssl.a 
+	echo "  LD    $@" 
+	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32 
 
 .c.o:
 	echo "  CC    $<"

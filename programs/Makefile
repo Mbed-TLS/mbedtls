@@ -5,7 +5,7 @@
 
 CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
 OFLAGS	= -O
-LDFLAGS	+= -L../library -lpolarssl
+LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
 
 APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	hash/hello			hash/generic_sum	\

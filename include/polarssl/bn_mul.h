@@ -697,7 +697,7 @@
     t_uint r0, r1;
 
 #define MULADDC_CORE                    \
-    r   = *(s++) * (t_dbl) b;           \
+    r   = *(s++) * (t_udbl) b;           \
     r0  = r;                            \
     r1  = r >> biL;                     \
     r0 += c;  r1 += (r0 <  c);          \

@@ -41,9 +41,13 @@
 #include "polarssl/pkcs11.h"
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #define inline _inline
-#endif
+#else
+#if defined(ARMCC_VERSION)
+#define inline __inline
+#endif /* ARMCC_VERSION */
+#endif /*_MSC_VER */
 
 /*
  * SSL Error codes

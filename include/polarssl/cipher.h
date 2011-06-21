@@ -32,9 +32,13 @@
 
 #include <string.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #define inline _inline
-#endif
+#else
+#if defined(ARMCC_VERSION)
+#define inline __inline
+#endif /* ARMCC_VERSION */
+#endif /*_MSC_VER */
 
 #define POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE            -0x6080  /**< The selected feature is not available. */
 #define POLARSSL_ERR_CIPHER_BAD_INPUT_DATA                 -0x6100  /**< Bad input parameters to function. */

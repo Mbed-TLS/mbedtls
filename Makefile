@@ -7,7 +7,7 @@ PREFIX=polarssl_
 all:
 	cd library  && $(MAKE) all && cd ..
 	cd programs && $(MAKE) all && cd ..
-	cd tests && $(MAKE) all && cd ..
+	cd tests    && $(MAKE) all && cd ..
 
 install:
 	mkdir -p $(DESTDIR)/include/polarssl
@@ -28,7 +28,7 @@ install:
 clean:
 	cd library  && $(MAKE) clean && cd ..
 	cd programs && $(MAKE) clean && cd ..
-	cd tests && $(MAKE) clean && cd ..
+	cd tests    && $(MAKE) clean && cd ..
 
 check:
 	( cd tests && $(MAKE) check )

@@ -58,7 +58,7 @@
  * \return          The constructed version number in the format
  *                  MMNNPP00 (Major, Minor, Patch).
  */
-unsigned int version_get_number();
+unsigned int version_get_number( void );
 
 /**
  * Get the version string ("x.y.z").

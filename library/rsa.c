@@ -1000,7 +1000,6 @@ int rsa_pkcs1_verify( rsa_context *ctx,
                 return( 0 );
             else
                 return( POLARSSL_ERR_RSA_VERIFY_FAILED );
-            break;
 #endif
 
         default:

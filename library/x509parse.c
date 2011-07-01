@@ -91,7 +91,6 @@ static int asn1_get_len( unsigned char **p,
 
         default:
             return( POLARSSL_ERR_ASN1_INVALID_LENGTH );
-            break;
         }
     }
 

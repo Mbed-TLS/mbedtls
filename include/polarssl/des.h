@@ -77,14 +77,17 @@ void des_key_set_parity( unsigned char key[DES_KEY_SIZE] );
  *                 a parity bit to allow verification.
  *
  * \param key      8-byte secret key
+ *
+ * \return         0 is parity was ok, 1 if parity was not correct.
  */
 int des_key_check_key_parity( const unsigned char key[DES_KEY_SIZE] );
-
 
 /**
  * \brief          Check that key is not a weak or semi-weak DES key
  *
  * \param key      8-byte secret key
+ *
+ * \resurn         0 if no weak key was found, 1 if a weak key was identified.
  */
 int des_key_check_weak( const unsigned char key[DES_KEY_SIZE] );
 

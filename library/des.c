@@ -371,9 +371,9 @@ int des_key_check_weak( const unsigned char key[DES_KEY_SIZE] )
 
     for( i = 0; i < WEAK_KEY_COUNT; i++ )
         if( memcmp( weak_key_table[i], key, DES_KEY_SIZE) == 0)
-            return( 0 );
+            return( 1 );
 
-    return( 1 );
+    return( 0 );
 }
 
 static void des_setkey( unsigned long SK[32], const unsigned char key[DES_KEY_SIZE] )

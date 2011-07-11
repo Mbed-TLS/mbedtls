@@ -227,12 +227,12 @@ static void sha4_process( sha4_context *ctx, const unsigned char data[128] )
 void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
 {
     size_t fill;
-    unsigned int64 left;
+    unsigned int left;
 
     if( ilen <= 0 )
         return;
 
-    left = ctx->total[0] & 0x7F;
+    left = (unsigned int) (ctx->total[0] & 0x7F);
     fill = 128 - left;
 
     ctx->total[0] += (unsigned int64) ilen;

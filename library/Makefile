@@ -36,7 +36,7 @@ OBJS=	aes.o		arc4.o		base64.o	\
 
 .SILENT:
 
-all: static shared
+all: static
 
 static: libpolarssl.a
 

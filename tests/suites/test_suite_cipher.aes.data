@@ -1,0 +1,526 @@
+Cipher Selftest
+depends_on:POLARSSL_SELF_TEST
+cipher_selftest:
+
+Decrypt empty buffer
+dec_empty_buf:
+
+AES Encrypt and decrypt 0 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:0
+
+AES Encrypt and decrypt 1 byte
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:1
+
+AES Encrypt and decrypt 2 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:2
+
+AES Encrypt and decrypt 7 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:7
+
+AES Encrypt and decrypt 8 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:8
+
+AES Encrypt and decrypt 9 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:9
+
+AES Encrypt and decrypt 15 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:15
+
+AES Encrypt and decrypt 16 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:16
+
+AES Encrypt and decrypt 17 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:17
+
+AES Encrypt and decrypt 31 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:31
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:32
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:33
+
+AES Encrypt and decrypt 47 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:47
+
+AES Encrypt and decrypt 48 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:48
+
+AES Encrypt and decrypt 49 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:49
+
+AES Encrypt and decrypt 0 bytes in multiple parts
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:0:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:1:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:0:1:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:16:0:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:0:16:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:1:15:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:15:1:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:15:7:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:16:6:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:17:6:
+
+AES Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:16:16:
+
+AES Encrypt and decrypt 0 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:0
+
+AES Encrypt and decrypt 1 byte
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:1
+
+AES Encrypt and decrypt 2 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:2
+
+AES Encrypt and decrypt 7 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:7
+
+AES Encrypt and decrypt 8 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:8
+
+AES Encrypt and decrypt 9 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:9
+
+AES Encrypt and decrypt 15 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:15
+
+AES Encrypt and decrypt 16 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:16
+
+AES Encrypt and decrypt 17 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:17
+
+AES Encrypt and decrypt 31 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:31
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:32
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:33
+
+AES Encrypt and decrypt 47 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:47
+
+AES Encrypt and decrypt 48 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:48
+
+AES Encrypt and decrypt 49 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CFB128:AES-128-CFB128:128:49
+
+AES Encrypt and decrypt 0 bytes in multiple parts
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:0:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:1:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:0:1:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:16:0:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:0:16:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:1:15:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:15:1:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:15:7:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:16:6:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:17:6:
+
+AES Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CFB128:128:16:16:
+
+AES Encrypt and decrypt 0 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:0
+
+AES Encrypt and decrypt 1 byte
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:1
+
+AES Encrypt and decrypt 2 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:2
+
+AES Encrypt and decrypt 7 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:7
+
+AES Encrypt and decrypt 8 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:8
+
+AES Encrypt and decrypt 9 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:9
+
+AES Encrypt and decrypt 15 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:15
+
+AES Encrypt and decrypt 16 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:16
+
+AES Encrypt and decrypt 17 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:17
+
+AES Encrypt and decrypt 31 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:31
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:32
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:33
+
+AES Encrypt and decrypt 47 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:47
+
+AES Encrypt and decrypt 48 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:48
+
+AES Encrypt and decrypt 49 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CTR:AES-128-CTR:128:49
+
+AES Encrypt and decrypt 0 bytes in multiple parts
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:0:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:1:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:0:1:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:16:0:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:0:16:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:1:15:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:15:1:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:15:7:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:16:6:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:17:6:
+
+AES Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CTR:128:16:16:
+
+AES Encrypt and decrypt 0 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:0
+
+AES Encrypt and decrypt 1 byte
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:1
+
+AES Encrypt and decrypt 2 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:2
+
+AES Encrypt and decrypt 7 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:7
+
+AES Encrypt and decrypt 8 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:8
+
+AES Encrypt and decrypt 9 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:9
+
+AES Encrypt and decrypt 15 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:15
+
+AES Encrypt and decrypt 16 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:16
+
+AES Encrypt and decrypt 17 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:17
+
+AES Encrypt and decrypt 31 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:31
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:32
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:33
+
+AES Encrypt and decrypt 47 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:47
+
+AES Encrypt and decrypt 48 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:48
+
+AES Encrypt and decrypt 49 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_192_CBC:AES-192-CBC:192:49
+
+AES Encrypt and decrypt 0 bytes in multiple parts
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:0:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:1:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:0:1:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:16:0:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:0:16:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:1:15:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:15:1:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:15:7:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:16:6:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:17:6:
+
+AES Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_192_CBC:192:16:16:
+
+AES Encrypt and decrypt 0 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:0
+
+AES Encrypt and decrypt 1 byte
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:1
+
+AES Encrypt and decrypt 2 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:2
+
+AES Encrypt and decrypt 7 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:7
+
+AES Encrypt and decrypt 8 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:8
+
+AES Encrypt and decrypt 9 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:9
+
+AES Encrypt and decrypt 15 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:15
+
+AES Encrypt and decrypt 16 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:16
+
+AES Encrypt and decrypt 17 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:17
+
+AES Encrypt and decrypt 31 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:31
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:32
+
+AES Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:33
+
+AES Encrypt and decrypt 47 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:47
+
+AES Encrypt and decrypt 48 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:48
+
+AES Encrypt and decrypt 49 bytes
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_256_CBC:AES-256-CBC:256:49
+
+AES Encrypt and decrypt 0 bytes in multiple parts
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:0:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:1:0:
+
+AES Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:0:1:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:16:0:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:0:16:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:1:15:
+
+AES Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:15:1:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:15:7:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:16:6:
+
+AES Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:17:6:
+
+AES Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_256_CBC:256:16:16:

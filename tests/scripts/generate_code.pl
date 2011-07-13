@@ -5,10 +5,11 @@ use strict;
 
 my $suite_dir = shift or die "Missing suite directory";
 my $suite_name = shift or die "Missing suite name";
-my $test_file = $suite_name.".c";
+my $data_name = shift or die "Missing data name";
+my $test_file = $data_name.".c";
 my $test_helper_file = $suite_dir."/helpers.function";
 my $test_case_file = $suite_dir."/".$suite_name.".function";
-my $test_data_file = $suite_dir."/".$suite_name.".data";
+my $test_data_file = $suite_dir."/".$data_name.".data";
 
 open(TEST_DATA, "$test_data_file") or die "Opening test cases '$test_data_file': $!";
 

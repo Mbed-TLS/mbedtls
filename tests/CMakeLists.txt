@@ -6,11 +6,15 @@ if(USE_PKCS11_HELPER_LIBRARY)
     set(libs ${libs} pkcs11-helper)
 endif(USE_PKCS11_HELPER_LIBRARY)
 
-function(add_test_suite suite_name)
+function(add_test_suite suite_name data_name)
+    if(!data_name)
+    set(data_name ${suite_name})
+    endif()
+
     add_custom_command(
         OUTPUT test_suite_${suite_name}.c
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl ${CMAKE_CURRENT_SOURCE_DIR}/suites test_suite_${suite_name}
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl polarssl fct.h suites/helpers.function suites/test_suite_${suite_name}.function suites/test_suite_${suite_name}.data
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl ${CMAKE_CURRENT_SOURCE_DIR}/suites test_suite_${suite_name} test_suite_${data_name}
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl polarssl fct.h suites/helpers.function suites/test_suite_${suite_name}.function suites/test_suite_${data_name}.data
     )
   
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -25,7 +29,9 @@ add_test_suite(aes)
 add_test_suite(arc4)
 add_test_suite(base64)
 add_test_suite(camellia)
-add_test_suite(cipher)
+add_test_suite(cipher cipher.aes)
+add_test_suite(cipher cipher.camellia)
+add_test_suite(cipher cipher.des)
 add_test_suite(debug)
 add_test_suite(des)
 add_test_suite(dhm)

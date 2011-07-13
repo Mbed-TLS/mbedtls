@@ -144,6 +144,25 @@ x509parse_keyfile:key_file:password:result
 END_CASE
 
 BEGIN_CASE
+x509parse_public_keyfile:key_file:result
+{
+    rsa_context rsa;
+    int res;
+
+    memset( &rsa, 0, sizeof( rsa_context ) );
+
+    res = x509parse_public_keyfile( &rsa, {key_file} );
+
+    TEST_ASSERT( res == {result} );
+
+    if( res == 0 )
+    {
+        TEST_ASSERT( rsa_check_pubkey( &rsa ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
 x509parse_crt:crt_data:result_str:result
 {
     x509_cert   crt;

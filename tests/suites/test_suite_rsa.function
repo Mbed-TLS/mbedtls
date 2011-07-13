@@ -180,7 +180,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     unsigned char output_str[1000];
     rsa_context ctx;
     mpi P1, Q1, H, G;
-    int msg_len, hash_len;
+    int hash_len;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, {padding_mode}, 0 );
@@ -207,7 +207,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
 
     TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
 
-    msg_len = unhexify( message_str, {message_hex_string} );
+    unhexify( message_str, {message_hex_string} );
     hash_len = unhexify( hash_result, {hash_result_string} );
 
     TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, SIG_RSA_RAW, hash_len, hash_result, output ) == 0 );
@@ -227,7 +227,7 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
     rsa_context ctx;
-    size_t msg_len, hash_len;
+    size_t hash_len;
 
     rsa_init( &ctx, {padding_mode}, 0 );
     memset( message_str, 0x00, 1000 );
@@ -240,7 +240,7 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
 
     TEST_ASSERT( rsa_check_pubkey( &ctx ) == 0 );
 
-    msg_len = unhexify( message_str, {message_hex_string} );
+    unhexify( message_str, {message_hex_string} );
     hash_len = unhexify( hash_result, {hash_result_string} );
     unhexify( result_str, {result_hex_str} );
 

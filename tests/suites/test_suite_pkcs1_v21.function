@@ -60,7 +60,6 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
     rsa_context ctx;
     mpi P1, Q1, H, G;
     size_t output_len;
-    size_t msg_len;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V21, {hash} );
@@ -86,7 +85,7 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
 
     TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
 
-    msg_len = unhexify( message_str, {message_hex_string} );
+    unhexify( message_str, {message_hex_string} );
 
     TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, RSA_PRIVATE, &output_len, message_str, output, 1000 ) == {result} );
     if( {result} == 0 )

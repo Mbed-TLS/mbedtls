@@ -622,7 +622,7 @@ static int x509_get_pubkey( unsigned char **p,
         can_handle = 1;
 
     if( can_handle == 0 )
-        return( POLARSSL_ERR_X509_CERT_UNKNOWN_PK_ALG );
+        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
@@ -1870,6 +1870,9 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
     int ret;
     size_t len;
     unsigned char *p, *end;
+    unsigned char *p_alt;
+    x509_buf pk_alg_oid;
+
 #if defined(POLARSSL_PEM_C)
     pem_context pem;
 
@@ -1878,6 +1881,14 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
                            "-----BEGIN RSA PRIVATE KEY-----",
                            "-----END RSA PRIVATE KEY-----",
                            key, pwd, pwdlen, &len );
+
+    if( ret == POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    {
+        ret = pem_read_buffer( &pem,
+                           "-----BEGIN PRIVATE KEY-----",
+                           "-----END PRIVATE KEY-----",
+                           key, pwd, pwdlen, &len );
+    }
 
     if( ret == 0 )
     {
@@ -1901,6 +1912,19 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
     end = p + keylen;
 
     /*
+     * Note: Depending on the type of private key file one can expect either a
+     * PrivatKeyInfo object (PKCS#8) or a RSAPrivateKey (PKCS#1) directly.
+     *
+     *  PrivateKeyInfo ::= SEQUENCE {
+     *    algorithm       AlgorithmIdentifier,
+     *    PrivateKey      BIT STRING
+     *  }
+     *
+     *  AlgorithmIdentifier ::= SEQUENCE {
+     *    algorithm       OBJECT IDENTIFIER,
+     *    parameters      ANY DEFINED BY algorithm OPTIONAL
+     *  }
+     *
      *  RSAPrivateKey ::= SEQUENCE {
      *      version           Version,
      *      modulus           INTEGER,  -- n
@@ -1942,6 +1966,110 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
 #endif
         rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
+    }
+
+    p_alt = p;
+
+    if( ( ret = x509_get_alg( &p_alt, end, &pk_alg_oid ) ) != 0 )
+    {
+        // Assume that we have the PKCS#1 format if wrong
+        // tag was encountered
+        //
+        if( ret != POLARSSL_ERR_X509_CERT_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        {
+#if defined(POLARSSL_PEM_C)
+            pem_free( &pem );
+#endif
+            rsa_free( rsa );
+            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
+        } 
+    }
+    else
+    {
+        int can_handle;
+
+        /*
+         * only RSA keys handled at this time
+         */
+        can_handle = 0;
+
+        if( pk_alg_oid.len == 9 &&
+                memcmp( pk_alg_oid.p, OID_PKCS1_RSA, 9 ) == 0 )
+            can_handle = 1;
+
+        if( pk_alg_oid.len == 9 &&
+                memcmp( pk_alg_oid.p, OID_PKCS1, 8 ) == 0 )
+        {
+            if( pk_alg_oid.p[8] >= 2 && pk_alg_oid.p[8] <= 5 )
+                can_handle = 1;
+
+            if ( pk_alg_oid.p[8] >= 11 && pk_alg_oid.p[8] <= 14 )
+                can_handle = 1;
+        }
+
+        if( pk_alg_oid.len == 5 &&
+                memcmp( pk_alg_oid.p, OID_RSA_SHA_OBS, 5 ) == 0 )
+            can_handle = 1;
+
+        if( can_handle == 0 )
+            return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+        /*
+         * Parse the PKCS#8 format
+         */
+        
+        p = p_alt;
+        if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
+        {
+#if defined(POLARSSL_PEM_C)
+            pem_free( &pem );
+#endif
+            rsa_free( rsa );
+            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+        }
+
+        if( ( end - p ) < 1 )
+        {
+#if defined(POLARSSL_PEM_C)
+            pem_free( &pem );
+#endif
+            rsa_free( rsa );
+            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
+                    POLARSSL_ERR_ASN1_OUT_OF_DATA );
+        }
+
+        end = p + len;
+
+        if( ( ret = asn1_get_tag( &p, end, &len,
+                        ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+        {
+#if defined(POLARSSL_PEM_C)
+            pem_free( &pem );
+#endif
+            rsa_free( rsa );
+            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+        }
+
+        end = p + len;
+
+        if( ( ret = asn1_get_int( &p, end, &rsa->ver ) ) != 0 )
+        {
+#if defined(POLARSSL_PEM_C)
+            pem_free( &pem );
+#endif
+            rsa_free( rsa );
+            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+        }
+
+        if( rsa->ver != 0 )
+        {
+#if defined(POLARSSL_PEM_C)
+            pem_free( &pem );
+#endif
+            rsa_free( rsa );
+            return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
+        }
     }
 
     if( ( ret = asn1_get_mpi( &p, end, &rsa->N  ) ) != 0 ||

@@ -12,6 +12,7 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	hash/md5sum			hash/sha1sum		\
 	hash/sha2sum		pkey/dh_client		\
 	pkey/dh_genprime	pkey/dh_server		\
+	pkey/key_app							\
 	pkey/mpi_demo		pkey/rsa_genkey		\
 	pkey/rsa_sign		pkey/rsa_verify		\
 	pkey/rsa_sign_pss	pkey/rsa_verify_pss \
@@ -65,6 +66,10 @@ pkey/dh_genprime: pkey/dh_genprime.c ../library/libpolarssl.a
 pkey/dh_server: pkey/dh_server.c ../library/libpolarssl.a
 	echo   "  CC    pkey/dh_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/dh_server.c   $(LDFLAGS) -o $@
+
+pkey/key_app: pkey/key_app.c ../library/libpolarssl.a
+	echo   "  CC    pkey/key_app.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/key_app.c   $(LDFLAGS) -o $@
 
 pkey/mpi_demo: pkey/mpi_demo.c ../library/libpolarssl.a
 	echo   "  CC    pkey/mpi_demo.c"

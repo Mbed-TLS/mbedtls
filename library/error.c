@@ -275,8 +275,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "X509 - Certificate or CRL has an unsupported version number" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG) )
             snprintf( buf, buflen, "X509 - Signature algorithm (oid) is unsupported" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_PK_ALG) )
-            snprintf( buf, buflen, "X509 - Public key algorithm is unsupported (only RSA is supported)" );
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_PK_ALG) )
+            snprintf( buf, buflen, "X509 - Key algorithm is unsupported (only RSA is supported)" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_SIG_MISMATCH) )
             snprintf( buf, buflen, "X509 - Certificate signature algorithms do not match. (see \\c ::x509_cert sig_oid)" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_VERIFY_FAILED) )

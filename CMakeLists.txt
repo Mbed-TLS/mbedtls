@@ -13,6 +13,11 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library." OFF)
 
+if(LIB_INSTALL_DIR)
+else()
+set(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib)
+endif()
+
 include_directories(include/)
 
 add_subdirectory(library)

@@ -10,7 +10,7 @@ struct buffer_data
 void string_debug(void *data, int level, const char *str)
 {
     struct buffer_data *buffer = (struct buffer_data *) data;
-    level = 0;
+    ((void) level);
 
     memcpy(buffer->ptr, str, strlen(str));
     buffer->ptr += strlen(str);

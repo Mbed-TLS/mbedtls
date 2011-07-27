@@ -41,10 +41,10 @@
 #include "polarssl/pkcs11.h"
 #endif
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
 #else
-#if defined(__ARMCC_VERSION)
+#if defined(__ARMCC_VERSION) && !defined(inline)
 #define inline __inline
 #endif /* __ARMCC_VERSION */
 #endif /*_MSC_VER */

@@ -1013,12 +1013,14 @@ static int x509_get_crt_ext( unsigned char **p,
             /* No parser found, skip extension */
             *p = end_ext_octet;
 
+#if !defined(POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
             if( is_critical )
             {
                 /* Data is marked as critical: fail */
                 return ( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
                         POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
             }
+#endif
         }
     }
 
@@ -1916,6 +1918,7 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
      * PrivatKeyInfo object (PKCS#8) or a RSAPrivateKey (PKCS#1) directly.
      *
      *  PrivateKeyInfo ::= SEQUENCE {
+     *    version           Version,
      *    algorithm       AlgorithmIdentifier,
      *    PrivateKey      BIT STRING
      *  }

@@ -180,6 +180,17 @@
  * Enable the checkup functions (*_self_test).
  */
 #define POLARSSL_SELF_TEST
+
+/**
+ * \def POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
+ *
+ * If set, the X509 parser will not break-off when parsing an X509 certificate
+ * and encountering an unknown critical extension.
+ *
+ * Uncomment to prevent an error.
+ *
+#define POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
+ */
 /* \} name */
 
 /**

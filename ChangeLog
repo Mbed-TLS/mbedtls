@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version trunk
+= Version 1.0.0 released on 2011-07-27
 Features
    * Expanded cipher layer with support for CFB128 and CTR mode
 

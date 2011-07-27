@@ -3,12 +3,16 @@ project(POLARSSL C)
 
 enable_testing()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -Wdeclaration-after-statement")
-set(CMAKE_C_FLAGS_DEBUG "-g -O0")
-set(CMAKE_C_FLAGS_COVERAGE "-g -O0 -fprofile-arcs -ftest-coverage -lgcov")
-
+if(CMAKE_COMPILER_IS_GNUCC)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -Wdeclaration-after-statement")
+  set(CMAKE_C_FLAGS_DEBUG "-g -O0")
+  set(CMAKE_C_FLAGS_COVERAGE "-g -O0 -fprofile-arcs -ftest-coverage -lgcov")
+endif(CMAKE_COMPILER_IS_GNUCC)
+ 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-set(CMAKE_SHARED_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
+  if(CMAKE_COMPILER_IS_GNUCC)
+    set(CMAKE_SHARED_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
+  endif(CMAKE_COMPILER_IS_GNUCC)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library." OFF)
@@ -22,7 +26,11 @@ include_directories(include/)
 
 add_subdirectory(library)
 add_subdirectory(include)
-add_subdirectory(tests)
+
+if(CMAKE_COMPILER_IS_GNUCC)
+  add_subdirectory(tests)
+endif(CMAKE_COMPILER_IS_GNUCC)
+
 add_subdirectory(programs)
 
 ADD_CUSTOM_TARGET(apidoc

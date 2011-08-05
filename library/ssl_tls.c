@@ -996,7 +996,7 @@ int ssl_read_record( ssl_context *ssl )
          */
         ssl->in_msglen -= ssl->in_hslen;
 
-        memcpy( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
+        memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
                 ssl->in_msglen );
 
         ssl->in_hslen  = 4;

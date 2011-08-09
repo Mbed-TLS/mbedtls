@@ -3,6 +3,7 @@ PolarSSL ChangeLog
 = Version 1.0.0 released on 2011-07-27
 Features
    * Expanded cipher layer with support for CFB128 and CTR mode
+   * Added rsa_encrypt and rsa_decrypt simple example programs.
 
 Changes
    * The generic cipher and message digest layer now have normal error

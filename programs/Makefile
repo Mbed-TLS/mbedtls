@@ -14,6 +14,7 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	pkey/dh_genprime	pkey/dh_server		\
 	pkey/key_app							\
 	pkey/mpi_demo		pkey/rsa_genkey		\
+	pkey/rsa_decrypt	pkey/rsa_encrypt	\
 	pkey/rsa_sign		pkey/rsa_verify		\
 	pkey/rsa_sign_pss	pkey/rsa_verify_pss \
 	ssl/ssl_client1		ssl/ssl_client2		\
@@ -94,6 +95,14 @@ pkey/rsa_sign_pss: pkey/rsa_sign_pss.c ../library/libpolarssl.a
 pkey/rsa_verify_pss: pkey/rsa_verify_pss.c ../library/libpolarssl.a
 	echo   "  CC    pkey/rsa_verify_pss.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_verify_pss.c  $(LDFLAGS) -o $@
+
+pkey/rsa_decrypt: pkey/rsa_decrypt.c ../library/libpolarssl.a
+	echo   "  CC    pkey/rsa_decrypt.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_decrypt.c    $(LDFLAGS) -o $@
+
+pkey/rsa_encrypt: pkey/rsa_encrypt.c ../library/libpolarssl.a
+	echo   "  CC    pkey/rsa_encrypt.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_encrypt.c    $(LDFLAGS) -o $@
 
 random/gen_random: random/gen_random.c ../library/libpolarssl.a
 	echo   "  CC    random/gen_random.c"

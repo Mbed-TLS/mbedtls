@@ -272,9 +272,9 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
  *
  * \param ctx      RSA context
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param olen     will contain the plaintext length
  * \param input    buffer holding the encrypted data
  * \param output   buffer that will hold the plaintext
- * \param olen     will contain the plaintext length
  * \param output_max_len    maximum length of the output buffer
  *
  * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code

@@ -13,6 +13,8 @@ OFLAGS	= -O
 # To compile as a shared library:
 # CFLAGS += -fPIC
 
+SONAME=libpolarssl.so.0
+
 DLEXT=so
 # OSX shared library extension:
 # DLEXT=dylib
@@ -50,7 +52,7 @@ libpolarssl.a: $(OBJS)
 
 libpolarssl.so: libpolarssl.a
 	echo "  LD    $@"
-	$(CC) ${LDFLAGS} -shared -Wl,-soname,$@ -o $@ $(OBJS)
+	$(CC) ${LDFLAGS} -shared -Wl,-soname,$(SONAME) -o $@ $(OBJS)
 
 libpolarssl.dylib: libpolarssl.a
 	echo "  LD    $@"

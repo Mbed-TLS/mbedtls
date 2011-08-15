@@ -29,16 +29,16 @@
 
 #include <time.h>
 
-#include "polarssl/net.h"
-#include "polarssl/dhm.h"
-#include "polarssl/rsa.h"
-#include "polarssl/md5.h"
-#include "polarssl/sha1.h"
-#include "polarssl/x509.h"
-#include "polarssl/config.h"
+#include "net.h"
+#include "dhm.h"
+#include "rsa.h"
+#include "md5.h"
+#include "sha1.h"
+#include "x509.h"
+#include "config.h"
 
 #if defined(POLARSSL_PKCS11_C)
-#include "polarssl/pkcs11.h"
+#include "pkcs11.h"
 #endif
 
 #if defined(_MSC_VER) && !defined(inline)

@@ -27,8 +27,8 @@
 #ifndef SSL_DEBUG_H
 #define SSL_DEBUG_H
 
-#include "polarssl/config.h"
-#include "polarssl/ssl.h"
+#include "config.h"
+#include "ssl.h"
 
 #if defined(POLARSSL_DEBUG_MSG) && defined(POLARSSL_DEBUG_C)
 

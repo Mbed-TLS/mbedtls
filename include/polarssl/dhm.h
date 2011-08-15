@@ -27,7 +27,7 @@
 #ifndef POLARSSL_DHM_H
 #define POLARSSL_DHM_H
 
-#include "polarssl/bignum.h"
+#include "bignum.h"
 
 /*
  * DHM Error codes

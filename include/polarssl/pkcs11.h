@@ -30,11 +30,11 @@
 #ifndef PKCS11_H_
 #define PKCS11_H_
 
-#include "polarssl/config.h"
+#include "config.h"
 
 #if defined(POLARSSL_PKCS11_C)
 
-#include "polarssl/x509.h"
+#include "x509.h"
 
 #include <pkcs11-helper-1.0/pkcs11h-certificate.h>
 

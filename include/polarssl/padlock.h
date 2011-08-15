@@ -27,7 +27,7 @@
 #ifndef POLARSSL_PADLOCK_H
 #define POLARSSL_PADLOCK_H
 
-#include "polarssl/aes.h"
+#include "aes.h"
 
 #define POLARSSL_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 

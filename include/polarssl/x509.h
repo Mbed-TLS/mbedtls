@@ -27,8 +27,8 @@
 #ifndef POLARSSL_X509_H
 #define POLARSSL_X509_H
 
-#include "polarssl/rsa.h"
-#include "polarssl/dhm.h"
+#include "rsa.h"
+#include "dhm.h"
 
 /** 
  * \addtogroup x509_module

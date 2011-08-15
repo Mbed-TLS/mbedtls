@@ -27,8 +27,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "polarssl/config.h"
-#include "polarssl/cipher.h"
+#include "config.h"
+#include "cipher.h"
 
 #ifndef POLARSSL_CIPHER_WRAP_H
 #define POLARSSL_CIPHER_WRAP_H

@@ -87,7 +87,7 @@ int des_key_check_key_parity( const unsigned char key[DES_KEY_SIZE] );
  *
  * \param key      8-byte secret key
  *
- * \resurn         0 if no weak key was found, 1 if a weak key was identified.
+ * \return         0 if no weak key was found, 1 if a weak key was identified.
  */
 int des_key_check_weak( const unsigned char key[DES_KEY_SIZE] );
 

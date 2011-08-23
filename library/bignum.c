@@ -1092,13 +1092,13 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
         else
         {
 #if defined(POLARSSL_HAVE_LONGLONG)
-            t_dbl r;
+            t_udbl r;
 
-            r  = (t_dbl) X.p[i] << biL;
-            r |= (t_dbl) X.p[i - 1];
+            r  = (t_udbl) X.p[i] << biL;
+            r |= (t_udbl) X.p[i - 1];
             r /= Y.p[t];
-            if( r > ((t_dbl) 1 << biL) - 1)
-                r = ((t_dbl) 1 << biL) - 1;
+            if( r > ((t_udbl) 1 << biL) - 1)
+                r = ((t_udbl) 1 << biL) - 1;
 
             Z.p[i - t - 1] = (t_uint) r;
 #else

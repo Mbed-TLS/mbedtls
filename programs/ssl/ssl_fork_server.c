@@ -184,6 +184,13 @@ int main( void )
            "POLARSSL_NET_C and/or POLARSSL_RSA_C not defined.\n");
     return( 0 );
 }
+#elif defined(WIN32)
+int main( void )
+{
+    printf("WIN32 defined. This application requires fork() and signals "
+           "to work correctly.\n");
+    return( 0 );
+}
 #else
 int main( void )
 {

@@ -219,15 +219,15 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen 
     size_t i;
     unsigned char sum[16];
 
-    if( keylen > 64 )
+    if( keylen > 16 )
     {
         md2( key, keylen, sum );
         keylen = 16;
         key = sum;
     }
 
-    memset( ctx->ipad, 0x36, 64 );
-    memset( ctx->opad, 0x5C, 64 );
+    memset( ctx->ipad, 0x36, 16 );
+    memset( ctx->opad, 0x5C, 16 );
 
     for( i = 0; i < keylen; i++ )
     {
@@ -236,7 +236,7 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen 
     }
 
     md2_starts( ctx );
-    md2_update( ctx, ctx->ipad, 64 );
+    md2_update( ctx, ctx->ipad, 16 );
 
     memset( sum, 0, sizeof( sum ) );
 }
@@ -258,7 +258,7 @@ void md2_hmac_finish( md2_context *ctx, unsigned char output[16] )
 
     md2_finish( ctx, tmpbuf );
     md2_starts( ctx );
-    md2_update( ctx, ctx->opad, 64 );
+    md2_update( ctx, ctx->opad, 16 );
     md2_update( ctx, tmpbuf, 16 );
     md2_finish( ctx, output );
 
@@ -271,7 +271,7 @@ void md2_hmac_finish( md2_context *ctx, unsigned char output[16] )
 void md2_hmac_reset( md2_context *ctx )
 {
     md2_starts( ctx );
-    md2_update( ctx, ctx->ipad, 64 );
+    md2_update( ctx, ctx->ipad, 16 );
 }
 
 /*

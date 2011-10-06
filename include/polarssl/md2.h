@@ -38,8 +38,8 @@ typedef struct
     unsigned char state[48];    /*!< intermediate digest state  */
     unsigned char buffer[16];   /*!< data block being processed */
 
-    unsigned char ipad[64];     /*!< HMAC: inner padding        */
-    unsigned char opad[64];     /*!< HMAC: outer padding        */
+    unsigned char ipad[16];     /*!< HMAC: inner padding        */
+    unsigned char opad[16];     /*!< HMAC: outer padding        */
     size_t left;                /*!< amount of data in buffer   */
 }
 md2_context;

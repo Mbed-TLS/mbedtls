@@ -14,6 +14,10 @@ Changes
    * Fixed rsa_encrypt and rsa_decrypt examples to use public key for
      encryption and private key for decryption. (Closes ticket #34)
 
+Bugfix
+   * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes
+     ticket #37)
+
 = Version 1.0.0 released on 2011-07-27
 Features
    * Expanded cipher layer with support for CFB128 and CTR mode

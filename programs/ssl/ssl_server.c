@@ -186,7 +186,7 @@ int main( void )
 {
     int ret, len;
     int listen_fd;
-    int client_fd;
+    int client_fd = -1;
     unsigned char buf[1024];
 
     havege_state hs;
@@ -250,44 +250,18 @@ int main( void )
     printf( " ok\n" );
 
     /*
-     * 3. Wait until a client connects
-     */
-#ifdef WIN32
-    ShellExecute( NULL, "open", "https://localhost:4433/",
-                  NULL, NULL, SW_SHOWNORMAL );
-#endif
-
-    client_fd = -1;
-    memset( &ssl, 0, sizeof( ssl ) );
-
-accept:
-
-    net_close( client_fd );
-    ssl_free( &ssl );
-
-    printf( "  . Waiting for a remote connection ..." );
-    fflush( stdout );
-
-    if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
-    {
-        printf( " failed\n  ! net_accept returned %d\n\n", ret );
-        goto exit;
-    }
-
-    printf( " ok\n" );
-
-    /*
      * 4. Setup stuff
      */
     printf( "  . Setting up the RNG and SSL data...." );
     fflush( stdout );
 
+    memset( &ssl, 0, sizeof( ssl ) );
     havege_init( &hs );
 
     if( ( ret = ssl_init( &ssl ) ) != 0 )
     {
         printf( " failed\n  ! ssl_init returned %d\n\n", ret );
-        goto accept;
+        goto exit;
     }
 
     printf( " ok\n" );
@@ -297,8 +271,7 @@ accept:
 
     ssl_set_rng( &ssl, havege_rand, &hs );
     ssl_set_dbg( &ssl, my_debug, stdout );
-    ssl_set_bio( &ssl, net_recv, &client_fd,
-                       net_send, &client_fd );
+
     ssl_set_scb( &ssl, my_get_session,
                        my_set_session );
 
@@ -311,6 +284,38 @@ accept:
     ssl_set_own_cert( &ssl, &srvcert, &rsa );
     ssl_set_dh_param( &ssl, my_dhm_P, my_dhm_G );
 
+    printf( " ok\n" );
+
+reset:
+    if( client_fd != -1 )
+        net_close( client_fd );
+
+    ssl_session_reset( &ssl );
+
+    /*
+     * 3. Wait until a client connects
+     */
+#ifdef WIN32
+    ShellExecute( NULL, "open", "https://localhost:4433/",
+                  NULL, NULL, SW_SHOWNORMAL );
+#endif
+
+    client_fd = -1;
+
+    printf( "  . Waiting for a remote connection ..." );
+    fflush( stdout );
+
+    if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
+    {
+        printf( " failed\n  ! net_accept returned %d\n\n", ret );
+        goto exit;
+    }
+
+    ssl_set_bio( &ssl, net_recv, &client_fd,
+                       net_send, &client_fd );
+
+    printf( " ok\n" );
+
     /*
      * 5. Handshake
      */
@@ -322,7 +327,7 @@ accept:
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
             printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
-            goto accept;
+            goto reset;
         }
     }
 
@@ -382,7 +387,7 @@ accept:
         if( ret == POLARSSL_ERR_NET_CONN_RESET )
         {
             printf( " failed\n  ! peer closed the connection\n\n" );
-            goto accept;
+            goto reset;
         }
 
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
@@ -396,7 +401,7 @@ accept:
     printf( " %d bytes written\n\n%s\n", len, (char *) buf );
 
     ssl_close_notify( &ssl );
-    goto accept;
+    goto reset;
 
 exit:
 

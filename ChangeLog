@@ -1,5 +1,11 @@
 PolarSSL ChangeLog
 
+= Version Trunk
+Features
+   * Added ssl_session_reset() to allow better multi-connection pools of
+     SSL contexts without needing to set all non-connection-specific
+	 data and pointers again. Adapted ssl_server to use this functionality.
+
 = Version 1.0.0 released on 2011-07-27
 Features
    * Expanded cipher layer with support for CFB128 and CTR mode

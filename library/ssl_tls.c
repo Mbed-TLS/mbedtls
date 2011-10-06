@@ -1732,6 +1732,49 @@ int ssl_init( ssl_context *ssl )
 }
 
 /*
+ * Reset an initialized and used SSL context for re-use while retaining
+ * all application-set variables, function pointers and data.
+ */
+void ssl_session_reset( ssl_context *ssl )
+{
+    ssl->state = SSL_HELLO_REQUEST;
+    
+    ssl->in_offt = NULL;
+
+    ssl->in_msgtype = 0;
+    ssl->in_msglen = 0;
+    ssl->in_left = 0;
+
+    ssl->in_hslen = 0;
+    ssl->nb_zero = 0;
+
+    ssl->out_msgtype = 0;
+    ssl->out_msglen = 0;
+    ssl->out_left = 0;
+
+    ssl->do_crypt = 0;
+    ssl->pmslen = 0;
+    ssl->keylen = 0;
+    ssl->minlen = 0;
+    ssl->ivlen = 0;
+    ssl->maclen = 0;
+
+    memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
+    memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
+    memset( ssl->randbytes, 0, 64 );
+    memset( ssl->premaster, 0, 256 );
+    memset( ssl->iv_enc, 0, 16 );
+    memset( ssl->iv_dec, 0, 16 );
+    memset( ssl->mac_enc, 0, 32 );
+    memset( ssl->mac_dec, 0, 32 );
+    memset( ssl->ctx_enc, 0, 128 );
+    memset( ssl->ctx_dec, 0, 128 );
+
+     md5_starts( &ssl->fin_md5  );
+    sha1_starts( &ssl->fin_sha1 );
+}
+
+/*
  * SSL set accessors
  */
 void ssl_set_endpoint( ssl_context *ssl, int endpoint )

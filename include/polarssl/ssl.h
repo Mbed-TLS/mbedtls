@@ -378,6 +378,15 @@ int ssl_get_ciphersuite_id( const char *ciphersuite_name );
 int ssl_init( ssl_context *ssl );
 
 /**
+ * \brief          Reset an already initialized SSL context for re-use
+ *                 while retaining application-set variables, function
+ *                 pointers and data.
+ *
+ * \param ssl      SSL context
+ */
+void ssl_session_reset( ssl_context *ssl );
+
+/**
  * \brief          Set the current endpoint type
  *
  * \param ssl      SSL context

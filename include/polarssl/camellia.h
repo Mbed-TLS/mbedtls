@@ -117,6 +117,10 @@ int camellia_crypt_cbc( camellia_context *ctx,
 /**
  * \brief          CAMELLIA-CFB128 buffer encryption/decryption
  *
+ * Note: Due to the nature of CFB you should use the same key schedule for
+ * both encryption and decryption. So a context initialized with
+ * camellia_setkey_enc() for both CAMELLIA_ENCRYPT and CAMELLIE_DECRYPT.
+ *
  * \param ctx      CAMELLIA context
  * \param mode     CAMELLIA_ENCRYPT or CAMELLIA_DECRYPT
  * \param length   length of the input data
@@ -139,6 +143,10 @@ int camellia_crypt_cfb128( camellia_context *ctx,
  * \brief               CAMELLIA-CTR buffer encryption/decryption
  *
  * Warning: You have to keep the maximum use of your counter in mind!
+ *
+ * Note: Due to the nature of CTR you should use the same key schedule for
+ * both encryption and decryption. So a context initialized with
+ * camellia_setkey_enc() for both CAMELLIA_ENCRYPT and CAMELLIA_DECRYPT.
  *
  * \param length        The length of the data
  * \param nc_off        The offset in the current stream_block (for resuming

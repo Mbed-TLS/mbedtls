@@ -9,6 +9,9 @@ Features
      supported version to a server to help buggy server implementations.
 	 (Closes ticket #36)
 
+Changes
+   * Documentation for AES and Camellia in modes CTR and CFB128 clarified.
+
 = Version 1.0.0 released on 2011-07-27
 Features
    * Expanded cipher layer with support for CFB128 and CTR mode

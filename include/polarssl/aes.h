@@ -111,6 +111,11 @@ int aes_crypt_cbc( aes_context *ctx,
 /**
  * \brief          AES-CFB128 buffer encryption/decryption.
  *
+ * Note: Due to the nature of CFB you should use the same key schedule for
+ * both encryption and decryption. So a context initialized with
+ * aes_setkey_enc() for both AES_ENCRYPT and AES_DECRYPT.
+ *
+ * both 
  * \param ctx      AES context
  * \param mode     AES_ENCRYPT or AES_DECRYPT
  * \param length   length of the input data
@@ -133,6 +138,10 @@ int aes_crypt_cfb128( aes_context *ctx,
  * \brief               AES-CTR buffer encryption/decryption
  *
  * Warning: You have to keep the maximum use of your counter in mind!
+ *
+ * Note: Due to the nature of CTR you should use the same key schedule for
+ * both encryption and decryption. So a context initialized with
+ * aes_setkey_enc() for both AES_ENCRYPT and AES_DECRYPT.
  *
  * \param length        The length of the data
  * \param nc_off        The offset in the current stream_block (for resuming

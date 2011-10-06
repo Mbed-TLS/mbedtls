@@ -51,8 +51,11 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ssl->major_ver = SSL_MAJOR_VERSION_3;
     ssl->minor_ver = SSL_MINOR_VERSION_0;
 
-    ssl->max_major_ver = SSL_MAJOR_VERSION_3;
-    ssl->max_minor_ver = SSL_MINOR_VERSION_2;
+    if( ssl->max_major_ver == 0 && ssl->max_minor_ver == 0 )
+    {
+        ssl->max_major_ver = SSL_MAJOR_VERSION_3;
+        ssl->max_minor_ver = SSL_MINOR_VERSION_2;
+    }
 
     /*
      *     0  .   0   handshake type

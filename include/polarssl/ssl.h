@@ -565,6 +565,16 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
 int ssl_set_hostname( ssl_context *ssl, const char *hostname );
 
 /**
+ * \brief          Set the maximum supported version sent from the client side
+ * 
+ * \param ssl      SSL context
+ * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
+ * \param minor    Minor version number (SSL_MINOR_VERSION_0,
+ *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2 supported)
+ */
+void ssl_set_max_version( ssl_context *ssl, int major, int minor );
+
+/**
  * \brief          Return the number of data bytes available to read
  *
  * \param ssl      SSL context

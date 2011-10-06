@@ -65,20 +65,26 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    printf( "\n  . Reading public key from rsa_pub.txt" );
+    printf( "\n  . Reading private key from rsa_priv.txt" );
     fflush( stdout );
 
-    if( ( f = fopen( "rsa_pub.txt", "rb" ) ) == NULL )
+    if( ( f = fopen( "rsa_priv.txt", "rb" ) ) == NULL )
     {
-        printf( " failed\n  ! Could not open rsa_pub.txt\n" \
+        printf( " failed\n  ! Could not open rsa_priv.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
-    if( ( ret = mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
-        ( ret = mpi_read_file( &rsa.E, 16, f ) ) != 0 )
+    if( ( ret = mpi_read_file( &rsa.N , 16, f ) ) != 0 ||
+        ( ret = mpi_read_file( &rsa.E , 16, f ) ) != 0 ||
+        ( ret = mpi_read_file( &rsa.D , 16, f ) ) != 0 ||
+        ( ret = mpi_read_file( &rsa.P , 16, f ) ) != 0 ||
+        ( ret = mpi_read_file( &rsa.Q , 16, f ) ) != 0 ||
+        ( ret = mpi_read_file( &rsa.DP, 16, f ) ) != 0 ||
+        ( ret = mpi_read_file( &rsa.DQ, 16, f ) ) != 0 ||
+        ( ret = mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
     {
         printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
         goto exit;
@@ -119,7 +125,7 @@ int main( int argc, char *argv[] )
     printf( "\n  . Decrypting the encrypted data" );
     fflush( stdout );
 
-    if( ( ret = rsa_pkcs1_decrypt( &rsa, RSA_PUBLIC, &i, buf, result,
+    if( ( ret = rsa_pkcs1_decrypt( &rsa, RSA_PRIVATE, &i, buf, result,
                                    1024 ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );

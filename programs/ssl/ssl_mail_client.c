@@ -32,6 +32,18 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#if defined(_WIN32) || defined(_WIN32_WCE)
+
+#include <winsock2.h>
+#include <windows.h>
+
+#if defined(_WIN32_WCE)
+#pragma comment( lib, "ws2.lib" )
+#else
+#pragma comment( lib, "ws2_32.lib" )
+#endif
+#endif
+
 #include "polarssl/config.h"
 
 #include "polarssl/base64.h"

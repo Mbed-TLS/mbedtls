@@ -307,6 +307,26 @@ static int x509_get_version( unsigned char **p,
 }
 
 /*
+ *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
+ */
+static int x509_crl_get_version( unsigned char **p,
+                             const unsigned char *end,
+                             int *ver )
+{
+    int ret;
+
+    if( ( ret = asn1_get_int( p, end, ver ) ) != 0 )
+    {
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+            return( *ver = 0 );
+
+        return( POLARSSL_ERR_X509_CERT_INVALID_VERSION + ret );
+    }
+
+    return( 0 );
+}
+
+/*
  *  CertificateSerialNumber  ::=  INTEGER
  */
 static int x509_get_serial( unsigned char **p,
@@ -1613,7 +1633,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
      *
      * signature            AlgorithmIdentifier
      */
-    if( ( ret = x509_get_version( &p, end, &crl->version ) ) != 0 ||
+    if( ( ret = x509_crl_get_version( &p, end, &crl->version ) ) != 0 ||
         ( ret = x509_get_alg(  &p, end, &crl->sig_oid1   ) ) != 0 )
     {
         x509_crl_free( crl );

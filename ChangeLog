@@ -18,6 +18,8 @@ Changes
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes
      ticket #37)
+   * Fixed a bug where the CRL parser expected an EXPLICIT ASN.1 tag
+     before version numbers
 
 = Version 1.0.0 released on 2011-07-27
 Features

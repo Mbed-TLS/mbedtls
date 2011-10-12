@@ -89,6 +89,22 @@ static int asn1_get_len( unsigned char **p,
             (*p) += 3;
             break;
 
+        case 3:
+            if( ( end - *p ) < 4 )
+                return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
+            *len = ( (*p)[1] << 16 ) | ( (*p)[2] << 8 ) | (*p)[3];
+            (*p) += 4;
+            break;
+
+        case 4:
+            if( ( end - *p ) < 5 )
+                return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
+            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) | (*p)[4];
+            (*p) += 5;
+            break;
+
         default:
             return( POLARSSL_ERR_ASN1_INVALID_LENGTH );
         }

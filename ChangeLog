@@ -13,6 +13,7 @@ Changes
    * Documentation for AES and Camellia in modes CTR and CFB128 clarified.
    * Fixed rsa_encrypt and rsa_decrypt examples to use public key for
      encryption and private key for decryption. (Closes ticket #34)
+   * Inceased maximum size of ASN1 length reads to 32-bits.
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

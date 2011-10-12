@@ -59,7 +59,7 @@ void my_debug( void *ctx, int level, const char *str )
 #define USAGE \
     "\n usage: crl_app param=<>...\n"                   \
     "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: cert.crt\n"      \
+    "    filename=%%s         default: crl.pem\n"      \
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "\n"
 

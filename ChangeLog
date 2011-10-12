@@ -15,6 +15,7 @@ Changes
      encryption and private key for decryption. (Closes ticket #34)
    * Inceased maximum size of ASN1 length reads to 32-bits.
    * Added an EXPLICIT tag number parameter to x509_get_ext()
+   * Added a separate CRL entry extension parsing function
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

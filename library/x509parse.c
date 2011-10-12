@@ -827,6 +827,60 @@ static int x509_get_crl_ext( unsigned char **p,
     return( 0 );
 }
 
+/*
+ * X.509 CRL v2 entry extensions (no extensions parsed yet.)
+ */
+static int x509_get_crl_entry_ext( unsigned char **p,
+                             const unsigned char *end,
+                             x509_buf *ext )
+{
+    int ret;
+    size_t len = 0;
+
+    /* OPTIONAL */
+    if (end <= *p)
+        return( 0 );
+
+    ext->tag = **p;
+    ext->p = *p;
+
+    /*
+     * Get CRL-entry extension sequence header
+     * crlEntryExtensions      Extensions OPTIONAL  -- if present, MUST be v2
+     */
+    if( ( ret = asn1_get_tag( p, end, &ext->len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        {
+            ext->p = NULL;
+            return( 0 );
+        }
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + ret );
+    }
+
+	end = *p + ext->len;
+
+    if( end != *p + ext->len )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    while( *p < end )
+    {
+        if( ( ret = asn1_get_tag( p, end, &len,
+                ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + ret );
+
+        *p += len;
+    }
+
+    if( *p != end )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
 static int x509_get_basic_constraints( unsigned char **p,
                                        const unsigned char *end,
                                        int *ca_istrue,
@@ -1096,6 +1150,7 @@ static int x509_get_entries( unsigned char **p,
     while( *p < end )
     {
         size_t len2;
+        const unsigned char *end2;
 
         if( ( ret = asn1_get_tag( p, end, &len2,
                 ASN1_SEQUENCE | ASN1_CONSTRUCTED ) ) != 0 )
@@ -1106,14 +1161,15 @@ static int x509_get_entries( unsigned char **p,
         cur_entry->raw.tag = **p;
         cur_entry->raw.p = *p;
         cur_entry->raw.len = len2;
+        end2 = *p + len2;
 
-        if( ( ret = x509_get_serial( p, end, &cur_entry->serial ) ) != 0 )
+        if( ( ret = x509_get_serial( p, end2, &cur_entry->serial ) ) != 0 )
             return( ret );
 
-        if( ( ret = x509_get_time( p, end, &cur_entry->revocation_date ) ) != 0 )
+        if( ( ret = x509_get_time( p, end2, &cur_entry->revocation_date ) ) != 0 )
             return( ret );
 
-        if( ( ret = x509_get_crl_ext( p, end, &cur_entry->entry_ext ) ) != 0 )
+        if( ( ret = x509_get_crl_entry_ext( p, end2, &cur_entry->entry_ext ) ) != 0 )
             return( ret );
 
         if ( *p < end )

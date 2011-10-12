@@ -307,7 +307,7 @@ static int x509_get_version( unsigned char **p,
 }
 
 /*
- *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
+ *  Version  ::=  INTEGER  {  v1(0), v2(1)  }
  */
 static int x509_crl_get_version( unsigned char **p,
                              const unsigned char *end,

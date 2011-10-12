@@ -756,7 +756,7 @@ static int x509_get_uid( unsigned char **p,
  */
 static int x509_get_ext( unsigned char **p,
                          const unsigned char *end,
-                         x509_buf *ext )
+                         x509_buf *ext, int tag )
 {
     int ret;
     size_t len;
@@ -767,7 +767,7 @@ static int x509_get_ext( unsigned char **p,
     ext->tag = **p;
 
     if( ( ret = asn1_get_tag( p, end, &ext->len,
-            ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) ) != 0 )
+            ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | tag ) ) != 0 )
         return( ret );
 
     ext->p = *p;
@@ -800,9 +800,10 @@ static int x509_get_crl_ext( unsigned char **p,
                              x509_buf *ext )
 {
     int ret;
-    size_t len;
+    size_t len = 0;
 
-    if( ( ret = x509_get_ext( p, end, ext ) ) != 0 )
+    /* Get explicit tag */
+    if( ( ret = x509_get_ext( p, end, ext, 0) ) != 0 )
     {
         if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
             return( 0 );
@@ -951,7 +952,7 @@ static int x509_get_crt_ext( unsigned char **p,
     size_t len;
     unsigned char *end_ext_data, *end_ext_octet;
 
-    if( ( ret = x509_get_ext( p, end, &crt->v3_ext ) ) != 0 )
+    if( ( ret = x509_get_ext( p, end, &crt->v3_ext, 3 ) ) != 0 )
     {
         if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
             return( 0 );

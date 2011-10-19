@@ -289,7 +289,10 @@ static int x509_get_version( unsigned char **p,
             ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) != 0 )
     {
         if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-            return( *ver = 0 );
+        {
+            *ver = 0;
+            return( 0 );
+        }
 
         return( ret );
     }
@@ -318,7 +321,10 @@ static int x509_crl_get_version( unsigned char **p,
     if( ( ret = asn1_get_int( p, end, ver ) ) != 0 )
     {
         if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-            return( *ver = 0 );
+        {
+            *ver = 0;
+            return( 0 );
+        }
 
         return( POLARSSL_ERR_X509_CERT_INVALID_VERSION + ret );
     }

@@ -3,7 +3,7 @@
  *
  * \brief Configuration options (set of defines)
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -229,6 +229,16 @@
  *      SSL_RSA_RC4_128_SHA
  */
 #define POLARSSL_ARC4_C
+
+/**
+ * \def POLARSSL_ASN1_PARSE_C
+ *
+ * Enable the generic ASN1 parser.
+ *
+ * Module:  library/asn1.c
+ * Caller:  library/x509parse.c
+ */
+#define POLARSSL_ASN1_PARSE_C
 
 /**
  * \def POLARSSL_BASE64_C
@@ -605,7 +615,7 @@
  *          library/ssl_srv.c
  *          library/ssl_tls.c
  *
- * Requires: POLARSSL_BIGNUM_C, POLARSSL_RSA_C
+ * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_BIGNUM_C, POLARSSL_RSA_C
  *
  * This module is required for X.509 certificate parsing.
  */

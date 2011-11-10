@@ -22,7 +22,8 @@ DLEXT=so
 # Windows shared library extension:
 # DLEXT=dll
 
-OBJS=	aes.o		arc4.o		base64.o	\
+OBJS=	aes.o		arc4.o		asn1parse.o	\
+		base64.o	\
 		bignum.o	camellia.o	certs.o		\
 		cipher.o	cipher_wrap.o	debug.o	\
 		des.o		dhm.o		havege.o	\

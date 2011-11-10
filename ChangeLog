@@ -16,6 +16,8 @@ Changes
    * Inceased maximum size of ASN1 length reads to 32-bits.
    * Added an EXPLICIT tag number parameter to x509_get_ext()
    * Added a separate CRL entry extension parsing function
+   * Separated the ASN.1 parsing code from the X.509 specific parsing code.
+     So now there is a module that is controlled with POLARSSL_ASN1_PARSE_C.
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

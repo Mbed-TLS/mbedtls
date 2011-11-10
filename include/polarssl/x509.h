@@ -3,7 +3,7 @@
  *
  * \brief X.509 certificate and private key decoding
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,7 @@
 #ifndef POLARSSL_X509_H
 #define POLARSSL_X509_H
 
+#include "asn1.h"
 #include "rsa.h"
 #include "dhm.h"
 
@@ -35,20 +36,6 @@
  * \{ 
  */
  
-/**
- * \name ASN1 Error codes
- * These error codes are OR'ed to X509 error codes for
- * higher error granularity. 
- * ASN1 is a standard to specify data structures.
- * \{
- */
-#define POLARSSL_ERR_ASN1_OUT_OF_DATA                      -0x0014  /**< Out of data when parsing an ASN1 data structure. */
-#define POLARSSL_ERR_ASN1_UNEXPECTED_TAG                   -0x0016  /**< ASN1 tag was of an unexpected value. */
-#define POLARSSL_ERR_ASN1_INVALID_LENGTH                   -0x0018  /**< Error when trying to determine the length or invalid length. */
-#define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  -0x001A  /**< Actual length differs from expected length. */
-#define POLARSSL_ERR_ASN1_INVALID_DATA                     -0x001C  /**< Data is invalid. (not used) */
-/* \} name */
-
 /** 
  * \name X509 Error codes
  * \{
@@ -89,39 +76,6 @@
 #define BADCERT_MISSING             0x40  /**< Certificate was missing. */
 #define BADCERT_SKIP_VERIFY         0x80  /**< Certificate verification was skipped. */
 /* \} name */
-
-
-/**
- * \name DER constants
- * These constants comply with DER encoded the ANS1 type tags.
- * DER encoding uses hexadecimal representation.
- * An example DER sequence is:\n
- * - 0x02 -- tag indicating INTEGER
- * - 0x01 -- length in octets
- * - 0x05 -- value
- * Such sequences are typically read into \c ::x509_buf.
- * \{
- */
-#define ASN1_BOOLEAN                 0x01
-#define ASN1_INTEGER                 0x02
-#define ASN1_BIT_STRING              0x03
-#define ASN1_OCTET_STRING            0x04
-#define ASN1_NULL                    0x05
-#define ASN1_OID                     0x06
-#define ASN1_UTF8_STRING             0x0C
-#define ASN1_SEQUENCE                0x10
-#define ASN1_SET                     0x11
-#define ASN1_PRINTABLE_STRING        0x13
-#define ASN1_T61_STRING              0x14
-#define ASN1_IA5_STRING              0x16
-#define ASN1_UTC_TIME                0x17
-#define ASN1_GENERALIZED_TIME        0x18
-#define ASN1_UNIVERSAL_STRING        0x1C
-#define ASN1_BMP_STRING              0x1E
-#define ASN1_PRIMITIVE               0x00
-#define ASN1_CONSTRUCTED             0x20
-#define ASN1_CONTEXT_SPECIFIC        0x80
-/* \} name */
 /* \} addtogroup x509_module */
 
 /*
@@ -140,9 +94,6 @@
 #define PEM_LINE_LENGTH                72
 #define X509_ISSUER                  0x01
 #define X509_SUBJECT                 0x02
-
-/** Returns the size of the binary string, without the trailing \\0 */
-#define OID_SIZE(x) (sizeof(x) - 1)
 
 #define OID_X520                "\x55\x04"
 #define OID_CN                  OID_X520 "\x03"
@@ -281,24 +232,12 @@
 /** 
  * Type-length-value structure that allows for ASN1 using DER.
  */
-typedef struct _x509_buf
-{
-    int tag;                /**< ASN1 type, e.g. ASN1_UTF8_STRING. */
-    size_t len;             /**< ASN1 length, e.g. in octets. */
-    unsigned char *p;       /**< ASN1 data, e.g. in ASCII. */
-}
-x509_buf;
+typedef asn1_buf x509_buf;
 
 /**
  * Container for ASN1 bit strings.
  */
-typedef struct _x509_bitstring
-{
-    size_t len;                 /**< ASN1 length, e.g. in octets. */
-    unsigned char unused_bits;  /**< Number of unused bits at the end of the string */
-    unsigned char *p;           /**< Raw ASN1 data for the bit string */
-}
-x509_bitstring;
+typedef asn1_bitstring x509_bitstring;
 
 /**
  * Container for ASN1 named information objects. 
@@ -315,12 +254,7 @@ x509_name;
 /**
  * Container for a sequence of ASN.1 items
  */
-typedef struct _x509_sequence
-{
-    x509_buf buf;                   /**< Buffer containing the given ASN.1 item. */
-    struct _x509_sequence *next;    /**< The next entry in the sequence. */
-}
-x509_sequence;
+typedef asn1_sequence x509_sequence;
 
 /** Container for date and time (precision in seconds). */
 typedef struct _x509_time

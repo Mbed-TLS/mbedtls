@@ -31,6 +31,10 @@ HEADER_INCLUDED
 
 #include <string.h>
 
+#if defined _MSC_VER && !defined  snprintf
+#define  snprintf  _snprintf
+#endif
+
 void error_strerror( int ret, char *buf, size_t buflen )
 {
     size_t len;

@@ -1,7 +1,7 @@
 /*
  *  The RSA public-key cryptosystem
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -307,11 +307,11 @@ cleanup:
 /**
  * Generate and apply the MGF1 operation (from PKCS#1 v2.1) to a buffer.
  *
- * @param dst       buffer to mask
- * @param dlen      length of destination buffer
- * @param src       source of the mask generation
- * @param slen      length of the source buffer
- * @param md_ctx    message digest context to use
+ * \param dst       buffer to mask
+ * \param dlen      length of destination buffer
+ * \param src       source of the mask generation
+ * \param slen      length of the source buffer
+ * \param md_ctx    message digest context to use
  */
 static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src, size_t slen,  
                        md_context_t *md_ctx )

@@ -264,8 +264,6 @@ int main( void )
         goto exit;
     }
 
-    printf( " ok\n" );
-
     ssl_set_endpoint( &ssl, SSL_IS_SERVER );
     ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
 

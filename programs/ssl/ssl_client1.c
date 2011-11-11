@@ -156,16 +156,22 @@ int main( void )
         if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
             break;
 
-        if( ret <= 0 )
+        if( ret < 0 )
         {
             printf( "failed\n  ! ssl_read returned %d\n\n", ret );
+            break;
+        }
+
+        if( ret == 0 )
+        {
+            printf( "\n\nEOF\n\n" );
             break;
         }
 
         len = ret;
         printf( " %d bytes read\n\n%s", len, (char *) buf );
     }
-    while( 0 );
+    while( 1 );
 
     ssl_close_notify( &ssl );
 

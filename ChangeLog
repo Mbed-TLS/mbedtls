@@ -26,6 +26,8 @@ Bugfix
      ticket #37)
    * Fixed a bug where the CRL parser expected an EXPLICIT ASN.1 tag
      before version numbers
+   * Allowed X509 key usage parsing to accept 4 byte values instead of the
+     standard 1 byte version sometimes used by Microsoft. (Closes ticket #38)
 
 = Version 1.0.0 released on 2011-07-27
 Features

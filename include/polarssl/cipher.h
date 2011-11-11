@@ -88,6 +88,7 @@ typedef enum {
 } cipher_mode_t;
 
 typedef enum {
+    POLARSSL_OPERATION_NONE = -1,
     POLARSSL_DECRYPT = 0,
     POLARSSL_ENCRYPT,
 } operation_t;
@@ -146,7 +147,7 @@ typedef struct {
     /** Full cipher identifier (e.g. POLARSSL_CIPHER_AES_256_CBC) */
     cipher_type_t type;
 
-    /** Cipher mode (e.g. POLARSSL_CIPHER_MODE_CBC) */
+    /** Cipher mode (e.g. POLARSSL_MODE_CBC) */
     cipher_mode_t mode;
 
     /** Cipher key length, in bits (default length for variable sized ciphers) */
@@ -268,6 +269,23 @@ static inline unsigned int cipher_get_block_size( const cipher_context_t *ctx )
 }
 
 /**
+ * \brief               Returns the mode of operation for the cipher.
+ *                      (e.g. POLARSSL_MODE_CBC)
+ *
+ * \param ctx           cipher's context. Must have been initialised.
+ *
+ * \return              mode of operation, or POLARSSL_MODE_NONE if ctx
+ *                      has not been initialised.
+ */
+static inline cipher_mode_t cipher_get_cipher_mode( const cipher_context_t *ctx )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info )
+        return POLARSSL_MODE_NONE;
+
+    return ctx->cipher_info->mode;
+}
+
+/**
  * \brief               Returns the size of the cipher's IV.
  *
  * \param ctx           cipher's context. Must have been initialised.
@@ -329,6 +347,23 @@ static inline int cipher_get_key_size ( const cipher_context_t *ctx )
         return POLARSSL_KEY_LENGTH_NONE;
 
     return ctx->key_length;
+}
+
+/**
+ * \brief               Returns the operation of the given cipher.
+ *
+ * \param ctx           cipher's context. Must have been initialised.
+ *
+ * \return              operation (POLARSSL_ENCRYPT or POLARSSL_DECRYPT),
+ *                      or POLARSSL_OPERATION_NONE if ctx has not been
+ *                      initialised.
+ */
+static inline operation_t cipher_get_operation( const cipher_context_t *ctx )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info )
+        return POLARSSL_OPERATION_NONE;
+
+    return ctx->operation;
 }
 
 /**

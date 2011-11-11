@@ -8,6 +8,8 @@ Features
    * Added ssl_set_max_version() to allow clients to offer a lower maximum
      supported version to a server to help buggy server implementations.
 	 (Closes ticket #36)
+   * Added cipher_get_cipher_mode() and cipher_get_cipher_operation()
+     introspection functions (Closes ticket #40)
 
 Changes
    * Documentation for AES and Camellia in modes CTR and CFB128 clarified.

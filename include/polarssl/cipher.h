@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -167,7 +167,7 @@ typedef struct {
 } cipher_info_t;
 
 /**
- * Generic message digest context.
+ * Generic cipher context.
  */
 typedef struct {
     /** Information about the associated cipher */
@@ -392,7 +392,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  *                      contained within it will be padded with the size of
  *                      the last block, and written to the output buffer.
  *
- * \param ctx           Generic message digest context
+ * \param ctx           Generic cipher context
  * \param output        buffer to write data to. Needs block_size data available.
  * \param olen          length of the data written to the output buffer.
  *

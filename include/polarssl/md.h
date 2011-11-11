@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -176,7 +176,7 @@ const md_info_t *md_info_from_type( md_type_t md_type );
  *
  * \returns        \c 0 on success, \c POLARSSL_ERR_MD_BAD_INPUT_DATA on
  *                 parameter failure, \c POLARSSL_ERR_MD_ALLOC_FAILED if
- *                 allocation of the cipher-specific context failed.
+ *                 allocation of the digest-specific context failed.
  */
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info );
 

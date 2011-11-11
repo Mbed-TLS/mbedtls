@@ -1,11 +1,11 @@
 /**
  * \file md_wrap.c
  * 
- * \brief Generic message digest wrapper for PolarSSL
+ * \brief Generic cipher wrapper for PolarSSL
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>

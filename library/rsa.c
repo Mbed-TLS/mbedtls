@@ -818,6 +818,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
     unsigned char *p, c;
     unsigned char buf[1024];
 #if defined(POLARSSL_PKCS1_V21)
+    unsigned char result[POLARSSL_MD_MAX_SIZE];
     unsigned char zeros[8];
     unsigned int hlen;
     size_t slen, msb;
@@ -994,9 +995,9 @@ int rsa_pkcs1_verify( rsa_context *ctx,
             md_update( &md_ctx, zeros, 8 );
             md_update( &md_ctx, hash, hashlen );
             md_update( &md_ctx, p, slen );
-            md_finish( &md_ctx, p );
+            md_finish( &md_ctx, result );
 
-            if( memcmp( p, p + slen, hlen ) == 0 )
+            if( memcmp( p + slen, result, hlen ) == 0 )
                 return( 0 );
             else
                 return( POLARSSL_ERR_RSA_VERIFY_FAILED );

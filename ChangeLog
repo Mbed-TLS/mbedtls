@@ -28,6 +28,8 @@ Bugfix
      before version numbers
    * Allowed X509 key usage parsing to accept 4 byte values instead of the
      standard 1 byte version sometimes used by Microsoft. (Closes ticket #38)
+   * Fixed incorrect behaviour in case of RSASSA-PSS with a salt length
+     smaller than the hash length. (Closes ticket #41)
 
 = Version 1.0.0 released on 2011-07-27
 Features

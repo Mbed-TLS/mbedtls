@@ -90,6 +90,10 @@
 
 #include <string.h>
 
+#if defined _MSC_VER && !defined  snprintf
+#define  snprintf  _snprintf
+#endif
+
 void error_strerror( int ret, char *buf, size_t buflen )
 {
     size_t len;
@@ -325,6 +329,19 @@ void error_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "AES - Invalid data input length" );
 #endif /* POLARSSL_AES_C */
 
+#if defined(POLARSSL_ASN1_PARSE_C)
+    if( use_ret == -(POLARSSL_ERR_ASN1_OUT_OF_DATA) )
+        snprintf( buf, buflen, "ASN1 - Out of data when parsing an ASN1 data structure" );
+    if( use_ret == -(POLARSSL_ERR_ASN1_UNEXPECTED_TAG) )
+        snprintf( buf, buflen, "ASN1 - ASN1 tag was of an unexpected value" );
+    if( use_ret == -(POLARSSL_ERR_ASN1_INVALID_LENGTH) )
+        snprintf( buf, buflen, "ASN1 - Error when trying to determine the length or invalid length" );
+    if( use_ret == -(POLARSSL_ERR_ASN1_LENGTH_MISMATCH) )
+        snprintf( buf, buflen, "ASN1 - Actual length differs from expected length" );
+    if( use_ret == -(POLARSSL_ERR_ASN1_INVALID_DATA) )
+        snprintf( buf, buflen, "ASN1 - Data is invalid. (not used)" );
+#endif /* POLARSSL_ASN1_PARSE_C */
+
 #if defined(POLARSSL_BASE64_C)
     if( use_ret == -(POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL) )
         snprintf( buf, buflen, "BASE64 - Output buffer too small" );
@@ -390,19 +407,6 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_PADLOCK_DATA_MISALIGNED) )
         snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* POLARSSL_PADLOCK_C */
-
-#if defined(POLARSSL_X509_PARSE_C)
-    if( use_ret == -(POLARSSL_ERR_ASN1_OUT_OF_DATA) )
-        snprintf( buf, buflen, "ASN1 - Out of data when parsing an ASN1 data structure" );
-    if( use_ret == -(POLARSSL_ERR_ASN1_UNEXPECTED_TAG) )
-        snprintf( buf, buflen, "ASN1 - ASN1 tag was of an unexpected value" );
-    if( use_ret == -(POLARSSL_ERR_ASN1_INVALID_LENGTH) )
-        snprintf( buf, buflen, "ASN1 - Error when trying to determine the length or invalid length" );
-    if( use_ret == -(POLARSSL_ERR_ASN1_LENGTH_MISMATCH) )
-        snprintf( buf, buflen, "ASN1 - Actual length differs from expected length" );
-    if( use_ret == -(POLARSSL_ERR_ASN1_INVALID_DATA) )
-        snprintf( buf, buflen, "ASN1 - Data is invalid. (not used)" );
-#endif /* POLARSSL_X509_PARSE_C */
 
 #if defined(POLARSSL_XTEA_C)
     if( use_ret == -(POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH) )

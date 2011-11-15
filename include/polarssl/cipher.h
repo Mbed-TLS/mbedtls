@@ -96,12 +96,12 @@ typedef enum {
 enum {
     /** Undefined key length */
     POLARSSL_KEY_LENGTH_NONE = 0,
-    /** Key length, in bits, for DES keys */
-    POLARSSL_KEY_LENGTH_DES  = 56,
-    /** Key length, in bits, for DES in two key EDE */
-    POLARSSL_KEY_LENGTH_DES_EDE = 112,
-    /** Key length, in bits, for DES in three-key EDE */
-    POLARSSL_KEY_LENGTH_DES_EDE3 = 168,
+    /** Key length, in bits (including parity), for DES keys */
+    POLARSSL_KEY_LENGTH_DES  = 64,
+    /** Key length, in bits (including parity), for DES in two key EDE */
+    POLARSSL_KEY_LENGTH_DES_EDE = 128,
+    /** Key length, in bits (including parity), for DES in three-key EDE */
+    POLARSSL_KEY_LENGTH_DES_EDE3 = 192,
     /** Maximum length of any IV, in bytes */
     POLARSSL_MAX_IV_LENGTH = 16,
 };
@@ -150,7 +150,8 @@ typedef struct {
     /** Cipher mode (e.g. POLARSSL_MODE_CBC) */
     cipher_mode_t mode;
 
-    /** Cipher key length, in bits (default length for variable sized ciphers) */
+    /** Cipher key length, in bits (default length for variable sized ciphers)
+     *  (Includes parity bits for ciphers like DES) */
     unsigned int key_length;
 
     /** Name of the cipher */

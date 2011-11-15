@@ -20,6 +20,8 @@ Changes
    * Added a separate CRL entry extension parsing function
    * Separated the ASN.1 parsing code from the X.509 specific parsing code.
      So now there is a module that is controlled with POLARSSL_ASN1_PARSE_C.
+   * Changed the defined key-length of DES ciphers in cipher.h to include the
+     parity bits, to prevent mistakes in copying data. (Closes ticket #33)
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

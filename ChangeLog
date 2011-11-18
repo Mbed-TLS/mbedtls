@@ -23,6 +23,7 @@ Changes
    * Changed the defined key-length of DES ciphers in cipher.h to include the
      parity bits, to prevent mistakes in copying data. (Closes ticket #33)
    * Loads of minimal changes to better support WINCE as a build target
+     (Credits go to Marco Lizza)
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

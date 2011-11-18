@@ -1,7 +1,7 @@
 /*
  *  Benchmark demonstration program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -58,13 +58,16 @@ static int myrand( void *rng_state )
 unsigned char buf[BUFSIZE];
 
 #if !defined(POLARSSL_TIMING_C)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_TIMING_C not defined.\n");
     return( 0 );
 }
 #else
-int main( void )
+int main( int argc, char *argv[] )
 {
     int keysize;
     unsigned long i, j, tsc;
@@ -86,6 +89,9 @@ int main( void )
     defined(POLARSSL_GENPRIME)
     rsa_context rsa;
 #endif
+
+    ((void) argc);
+    ((void) argv);
 
     memset( buf, 0xAA, sizeof( buf ) );
 
@@ -363,7 +369,7 @@ int main( void )
 
     printf( "\n" );
 
-#ifdef WIN32
+#if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif

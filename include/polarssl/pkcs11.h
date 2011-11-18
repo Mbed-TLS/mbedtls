@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -26,9 +26,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
-#ifndef PKCS11_H_
-#define PKCS11_H_
+#ifndef POLARSSL_PKCS11_H
+#define POLARSSL_PKCS11_H
 
 #include "config.h"
 
@@ -124,4 +123,4 @@ int pkcs11_sign( pkcs11_context *ctx,
 
 #endif /* POLARSSL_PKCS11_C */
 
-#endif /* PKCS11_H_ */
+#endif /* POLARSSL_PKCS11_H */

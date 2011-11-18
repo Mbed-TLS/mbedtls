@@ -1,7 +1,7 @@
 /*
  *  RSASSA-PSS/SHA-1 signature verification program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -45,8 +45,11 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||      \
     !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_X509_PARSE_C) || \
     !defined(POLARSSL_FS_IO)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_SHA1_C and/or POLARSSL_X509_PARSE_C and/or "
            "POLARSSL_FS_IO not defined.\n");
@@ -68,7 +71,7 @@ int main( int argc, char *argv[] )
     {
         printf( "usage: rsa_verify_pss <key_file> <filename>\n" );
 
-#ifdef WIN32
+#if defined(_WIN32)
         printf( "\n" );
 #endif
 
@@ -134,7 +137,7 @@ int main( int argc, char *argv[] )
 
 exit:
 
-#ifdef WIN32
+#if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif

@@ -1,7 +1,7 @@
 /*
  *  SSL server demonstration program using fork() for handling multiple clients
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,7 +27,7 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
-#ifdef WIN32
+#if defined(_WIN32)
 #include <windows.h>
 #endif
 
@@ -55,17 +55,23 @@
     !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_SSL_TLS_C) ||  \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
     !defined(POLARSSL_RSA_C)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_HAVEGE_C "
            "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C not defined.\n");
     return( 0 );
 }
-#elif defined(WIN32)
-int main( void )
+#elif defined(_WIN32)
+int main( int argc, char *argv[] )
 {
-    printf("WIN32 defined. This application requires fork() and signals "
+    ((void) argc);
+    ((void) argv);
+
+    printf("_WIN32 defined. This application requires fork() and signals "
            "to work correctly.\n");
     return( 0 );
 }
@@ -192,7 +198,7 @@ static int my_set_session( ssl_context *ssl )
     return( 0 );
 }
 
-int main( void )
+int main( int argc, char *argv[] )
 {
     int ret, len, cnt = 0, pid;
     int listen_fd;
@@ -204,6 +210,9 @@ int main( void )
     ssl_session ssn;
     x509_cert srvcert;
     rsa_context rsa;
+
+    ((void) argc);
+    ((void) argv);
 
     signal( SIGCHLD, SIG_IGN );
 
@@ -450,7 +459,7 @@ exit:
 
     memset( &ssl, 0, sizeof( ssl_context ) );
 
-#ifdef WIN32
+#if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif

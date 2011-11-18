@@ -1,7 +1,7 @@
 /*
  *  Key reading application
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -74,8 +74,11 @@ void my_debug( void *ctx, int level, const char *str )
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
     !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
@@ -213,7 +216,7 @@ exit:
 
     rsa_free( &rsa );
 
-#ifdef WIN32
+#if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif

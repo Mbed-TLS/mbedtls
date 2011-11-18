@@ -1,7 +1,7 @@
 /*
  *  sha2sum demonstration program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -35,8 +35,11 @@
 #include "polarssl/sha2.h"
 
 #if !defined(POLARSSL_SHA2_C) || !defined(POLARSSL_FS_IO)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_SHA2_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
@@ -151,7 +154,7 @@ int main( int argc, char *argv[] )
         printf( "print mode:  sha2sum <file> <file> ...\n" );
         printf( "check mode:  sha2sum -c <checksum file>\n" );
 
-#ifdef WIN32
+#if defined(_WIN32)
         printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif

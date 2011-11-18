@@ -1,7 +1,7 @@
 /**
  *  \brief Generate random data into a file
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -31,8 +31,11 @@
 #include <stdio.h>
 
 #if !defined(POLARSSL_HAVEGE_C)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_HAVEGE_C not defined.\n");
     return( 0 );
 }

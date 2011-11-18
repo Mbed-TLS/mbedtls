@@ -31,7 +31,7 @@
 #ifndef POLARSSL_CONFIG_H
 #define POLARSSL_CONFIG_H
 
-#ifndef _CRT_SECURE_NO_DEPRECATE
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 

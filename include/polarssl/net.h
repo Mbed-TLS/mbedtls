@@ -1,9 +1,9 @@
 /**
  * \file net.h
  *
- * \brief MD5 message digest algorithm (hash function)
+ * \brief Network communication functions
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>

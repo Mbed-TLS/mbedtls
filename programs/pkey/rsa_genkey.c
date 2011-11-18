@@ -1,7 +1,7 @@
 /*
  *  Example RSA key generation program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -42,21 +42,27 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_GENPRIME) ||      \
     !defined(POLARSSL_FS_IO)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
            "POLARSSL_RSA_C and/or POLARSSL_GENPRIME and/or "
            "POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
-int main( void )
+int main( int argc, char *argv[] )
 {
     int ret;
     rsa_context rsa;
     havege_state hs;
     FILE *fpub  = NULL;
     FILE *fpriv = NULL;
+
+    ((void) argc);
+    ((void) argv);
 
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
@@ -138,7 +144,7 @@ exit:
 
     rsa_free( &rsa );
 
-#ifdef WIN32
+#if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif

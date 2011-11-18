@@ -1,7 +1,7 @@
 /*
  *  Self-test demonstration program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -144,7 +144,7 @@ int main( int argc, char *argv[] )
     if( v != 0 )
     {
         printf( "  [ All tests passed ]\n\n" );
-#ifdef WIN32
+#if defined(_WIN32)
         printf( "  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif

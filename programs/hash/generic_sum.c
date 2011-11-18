@@ -1,7 +1,7 @@
 /*
  *  generic message digest layer demonstration program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -35,8 +35,11 @@
 #include "polarssl/md.h"
 
 #if !defined(POLARSSL_MD_C)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_MD_C not defined.\n");
     return( 0 );
 }
@@ -172,7 +175,7 @@ int main( int argc, char *argv[] )
             list++;
         }
 
-#ifdef WIN32
+#if defined(_WIN32)
         printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif

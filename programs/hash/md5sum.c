@@ -1,7 +1,7 @@
 /*
  *  md5sum demonstration program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -35,8 +35,11 @@
 #include "polarssl/md5.h"
 
 #if !defined(POLARSSL_MD5_C) || !defined(POLARSSL_FS_IO)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_MD5_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
@@ -151,7 +154,7 @@ int main( int argc, char *argv[] )
         printf( "print mode:  md5sum <file> <file> ...\n" );
         printf( "check mode:  md5sum -c <checksum file>\n" );
 
-#ifdef WIN32
+#if defined(_WIN32)
         printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif

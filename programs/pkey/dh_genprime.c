@@ -1,7 +1,7 @@
 /*
  *  Diffie-Hellman-Merkle key exchange (prime generation)
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -43,14 +43,17 @@
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
     !defined(POLARSSL_FS_IO)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
            "POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
-int main( void )
+int main( int argc, char *argv[] )
 {
     int ret = 1;
 
@@ -58,6 +61,9 @@ int main( void )
     mpi G, P, Q;
     havege_state hs;
     FILE *fout;
+
+    ((void) argc);
+    ((void) argv);
 
     mpi_init( &G ); mpi_init( &P ); mpi_init( &Q );
     mpi_read_string( &G, 10, GENERATOR );
@@ -128,7 +134,7 @@ exit:
     printf( "\n  ! Prime-number generation is not available.\n\n" );
 #endif
 
-#ifdef WIN32
+#if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif

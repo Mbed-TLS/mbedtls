@@ -1,7 +1,7 @@
 /*
  *  SSL server demonstration program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,7 +27,7 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
-#ifdef WIN32
+#if defined(_WIN32)
 #include <windows.h>
 #endif
 
@@ -118,7 +118,7 @@ static int my_get_session( ssl_context *ssl )
         prv = cur;
         cur = cur->next;
 
-        if( ssl->timeout != 0 && t - prv->start > ssl->timeout )
+        if( ssl->timeout != 0 && (int) ( t - prv->start ) > ssl->timeout )
             continue;
 
         if( ssl->session->ciphersuite != prv->ciphersuite ||
@@ -144,7 +144,7 @@ static int my_set_session( ssl_context *ssl )
 
     while( cur != NULL )
     {
-        if( ssl->timeout != 0 && t - cur->start > ssl->timeout )
+        if( ssl->timeout != 0 && (int) ( t - cur->start ) > ssl->timeout )
             break; /* expired, reuse this slot */
 
         if( memcmp( ssl->session->id, cur->id, cur->length ) == 0 )
@@ -174,15 +174,18 @@ static int my_set_session( ssl_context *ssl )
     !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_SSL_TLS_C) ||  \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||   \
     !defined(POLARSSL_RSA_C)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
+
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_HAVEGE_C "
            "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C not defined.\n");
     return( 0 );
 }
 #else
-int main( void )
+int main( int argc, char *argv[] )
 {
     int ret, len;
     int listen_fd;
@@ -194,6 +197,9 @@ int main( void )
     ssl_session ssn;
     x509_cert srvcert;
     rsa_context rsa;
+
+    ((void) argc);
+    ((void) argv);
 
     /*
      * 1. Load the certificates and private RSA key
@@ -293,7 +299,24 @@ reset:
     /*
      * 3. Wait until a client connects
      */
-#ifdef WIN32
+#if defined(_WIN32_WCE)
+    {
+        SHELLEXECUTEINFO sei;
+
+        ZeroMemory( &sei, sizeof( SHELLEXECUTEINFO ) );
+
+        sei.cbSize = sizeof( SHELLEXECUTEINFO );
+        sei.fMask = 0;
+        sei.hwnd = 0;
+        sei.lpVerb = _T( "open" );
+        sei.lpFile = _T( "https://localhost:4433/" );
+        sei.lpParameters = NULL;
+        sei.lpDirectory = NULL;
+        sei.nShow = SW_SHOWNORMAL;
+
+        ShellExecuteEx( &sei );
+    }
+#elif defined(_WIN32)
     ShellExecute( NULL, "open", "https://localhost:4433/",
                   NULL, NULL, SW_SHOWNORMAL );
 #endif
@@ -419,7 +442,7 @@ exit:
 
     memset( &ssl, 0, sizeof( ssl_context ) );
 
-#ifdef WIN32
+#if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif

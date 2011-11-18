@@ -1,7 +1,7 @@
 /*
  *  AES-256 file encryption program
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2011, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,7 +29,9 @@
 
 #if defined(_WIN32)
 #include <windows.h>
+#if !defined(_WIN32_WCE)
 #include <io.h>
+#endif
 #else
 #include <sys/types.h>
 #include <unistd.h>
@@ -55,8 +57,10 @@
     "\n"
 
 #if !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA2_C)
-int main( void )
+int main( int argc, char *argv[] )
 {
+    ((void) argc);
+    ((void) argv);
     printf("POLARSSL_AES_C and/or POLARSSL_SHA2_C not defined.\n");
     return( 0 );
 }
@@ -79,7 +83,9 @@ int main( int argc, char *argv[] )
     aes_context aes_ctx;
     sha2_context sha_ctx;
 
-#if defined(WIN32)
+#if defined(_WIN32_WCE)
+    long filesize, offset;
+#elif defined(_WIN32)
        LARGE_INTEGER li_size;
     __int64 filesize, offset;
 #else
@@ -93,7 +99,7 @@ int main( int argc, char *argv[] )
     {
         printf( USAGE );
 
-#if defined(WIN32)
+#if defined(_WIN32)
         printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
@@ -162,7 +168,10 @@ int main( int argc, char *argv[] )
 
     memset( argv[4], 0, strlen( argv[4] ) );
 
-#if defined(WIN32)
+#if defined(_WIN32_WCE)
+    filesize = fseek( fin, 0L, SEEK_END );
+#else
+#if defined(_WIN32)
     /*
      * Support large files (> 2Gb) on Win32
      */
@@ -184,6 +193,7 @@ int main( int argc, char *argv[] )
         perror( "lseek" );
         goto exit;
     }
+#endif
 #endif
 
     if( fseek( fin, 0, SEEK_SET ) < 0 )

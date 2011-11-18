@@ -52,7 +52,11 @@
 
 #include <string.h>
 #include <stdlib.h>
+#if defined(_WIN32_WCE)
+#include <windows.h>
+#else
 #include <time.h>
+#endif
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
@@ -2609,43 +2613,66 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
  */
 int x509parse_time_expired( const x509_time *to )
 {
+    int year, mon, day;
+    int hour, min, sec;
+
+#if defined(_WIN32)
+    SYSTEMTIME st;
+
+    GetLocalTime(&st);
+
+    year = st.wYear;
+    mon = st.wMonth;
+    day = st.wDay;
+    hour = st.wHour;
+    min = st.wMinute;
+    sec = st.wSecond;
+#else
     struct tm *lt;
     time_t tt;
 
     tt = time( NULL );
     lt = localtime( &tt );
 
-    if( lt->tm_year  > to->year - 1900 )
+    year = lt->tm_year + 1900;
+    mon = lt->tm_mon + 1;
+    day = lt->tm_mday;
+    hour = lt->tm_hour;
+    min = lt->tm_min;
+    sec = lt->tm_sec;
+#endif
+
+    if( year  > to->year )
         return( 1 );
 
-    if( lt->tm_year == to->year - 1900 &&
-        lt->tm_mon   > to->mon  - 1 )
+    if( year == to->year &&
+        mon   > to->mon )
         return( 1 );
 
-    if( lt->tm_year == to->year - 1900 &&
-        lt->tm_mon  == to->mon  - 1    &&
-        lt->tm_mday  > to->day )
+    if( year == to->year &&
+        mon  == to->mon  &&
+        day   > to->day )
         return( 1 );
 
-    if( lt->tm_year == to->year - 1900 &&
-        lt->tm_mon  == to->mon  - 1    &&
-        lt->tm_mday == to->day         &&
-        lt->tm_hour  > to->hour - 1)
+    if( year == to->year &&
+        mon  == to->mon  &&
+        day  == to->day  &&
+        hour  > to->hour )
         return( 1 );
 
-    if( lt->tm_year == to->year - 1900 &&
-        lt->tm_mon  == to->mon  - 1    &&
-        lt->tm_mday == to->day         &&
-        lt->tm_hour == to->hour - 1    &&
-        lt->tm_min   > to->min  - 1 )
+    if( year == to->year &&
+        mon  == to->mon  &&
+        day  == to->day  &&
+        hour == to->hour &&
+        min   > to->min  )
         return( 1 );
 
-    if( lt->tm_year == to->year - 1900 &&
-        lt->tm_mon  == to->mon  - 1    &&
-        lt->tm_mday == to->day         &&
-        lt->tm_hour == to->hour - 1    &&
-        lt->tm_min  == to->min  - 1    &&
-        lt->tm_sec   > to->sec  - 1 )
+    if( year == to->year &&
+        mon  == to->mon  &&
+        day  == to->day  &&
+        hour == to->hour &&
+        min  == to->min  &&
+        sec   > to->sec  )
         return( 1 );
 
     return( 0 );

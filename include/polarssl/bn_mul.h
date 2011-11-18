@@ -498,6 +498,8 @@
 
 #if defined(__arm__)
 
+#if !defined(__thumb__)
+
 #define MULADDC_INIT                            \
     asm( "ldr    r0, %0         " :: "m" (s));  \
     asm( "ldr    r1, %0         " :: "m" (d));  \
@@ -518,6 +520,8 @@
     asm( "str    r1, %0         " : "=m" (d));  \
     asm( "str    r0, %0         " : "=m" (s) :: \
     "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7" );
+
+#endif /* Thumb */
 
 #endif /* ARMv3 */
 

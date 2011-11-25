@@ -202,7 +202,7 @@ int main( int argc, char *argv[] )
         while( cur != NULL )
         {
             printf( "  . Peer certificate information    ...\n" );
-            ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", &crt );
+            ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", cur );
             if( ret == -1 )
             {
                 printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );

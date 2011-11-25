@@ -1377,7 +1377,7 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
     size_t i, j, nblimbs;
     size_t bufsize, nbits;
     t_uint ei, mm, state;
-    mpi RR, T, W[64];
+    mpi RR, T, W[ 2 << POLARSSL_MPI_WINDOW_SIZE ];
 
     if( mpi_cmp_int( N, 0 ) < 0 || ( N->p[0] & 1 ) == 0 )
         return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
@@ -1393,6 +1393,9 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
 
     wsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
             ( i >  79 ) ? 4 : ( i >  23 ) ? 3 : 1;
+
+    if( wsize > POLARSSL_MPI_WINDOW_SIZE )
+        wsize = POLARSSL_MPI_WINDOW_SIZE;
 
     j = N->n + 1;
     MPI_CHK( mpi_grow( X, j ) );

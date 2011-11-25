@@ -46,6 +46,17 @@
 #define POLARSSL_MPI_MAX_LIMBS                             10000
 
 /*
+ * Maximum window size used for modular exponentiation. Default: 6
+ * Minimum value: 1. Maximum value: 6.
+ *
+ * Result is an array of ( 2 << POLARSSL_MPI_WINDOW_SIZE ) MPIs used
+ * for the sliding window calculation. (So 64 by default)
+ *
+ * Reduction in size, reduces speed.
+ */
+#define POLARSSL_MPI_WINDOW_SIZE                           6        /**< Maximum windows size used. */
+
+/*
  * Define the base integer type, architecture-wise
  */
 #if defined(POLARSSL_HAVE_INT8)

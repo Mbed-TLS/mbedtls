@@ -24,6 +24,8 @@ Changes
      parity bits, to prevent mistakes in copying data. (Closes ticket #33)
    * Loads of minimal changes to better support WINCE as a build target
      (Credits go to Marco Lizza)
+   * Added POLARSSL_MPI_WINDOW_SIZE definition to allow easier time to memory
+     trade-off
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

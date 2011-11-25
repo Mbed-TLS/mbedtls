@@ -176,12 +176,13 @@ int main( int argc, char *argv[] )
     if( opt.mode == MODE_FILE )
     {
         x509_cert crt;
+        x509_cert *cur = &crt;
         memset( &crt, 0, sizeof( x509_cert ) );
 
         /*
-         * 1.1. Load the certificate
+         * 1.1. Load the certificate(s)
          */
-        printf( "\n  . Loading the certificate ..." );
+        printf( "\n  . Loading the certificate(s) ..." );
         fflush( stdout );
 
         ret = x509parse_crtfile( &crt, opt.filename );
@@ -196,18 +197,23 @@ int main( int argc, char *argv[] )
         printf( " ok\n" );
 
         /*
-         * 1.2 Print the certificate
+         * 1.2 Print the certificate(s)
          */
-        printf( "  . Peer certificate information    ...\n" );
-        ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", &crt );
-        if( ret == -1 )
+        while( cur != NULL )
         {
-            printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
-            x509_free( &crt );
-            goto exit;
-        }
+            printf( "  . Peer certificate information    ...\n" );
+            ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", &crt );
+            if( ret == -1 )
+            {
+                printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
+                x509_free( &crt );
+                goto exit;
+            }
 
-        printf( "%s\n", buf );
+            printf( "%s\n", buf );
+
+            cur = cur->next;
+        }
 
         x509_free( &crt );
     }

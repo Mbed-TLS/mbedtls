@@ -57,6 +57,16 @@
 #define POLARSSL_MPI_WINDOW_SIZE                           6        /**< Maximum windows size used. */
 
 /*
+ * Maximum size of MPIs allowed in bits and bytes for user-MPIs.
+ * ( Default: 512 bytes => 4096 bits )
+ *
+ * Note: Calculations can results temporarily in larger MPIs. So the number
+ * of limbs required (POLARSSL_MPI_MAX_LIMBS) is higher.
+ */
+#define POLARSSL_MPI_MAX_SIZE                              512      /**< Maximum number of bytes for usable MPIs. */
+#define POLARSSL_MPI_MAX_BITS                              ( 8 * POLARSSL_MPI_MAX_SIZE )    /**< Maximum number of bits for usable MPIs. */
+
+/*
  * Define the base integer type, architecture-wise
  */
 #if defined(POLARSSL_HAVE_INT8)
@@ -572,7 +582,7 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng );
  * \brief          Prime number generation
  *
  * \param X        Destination MPI
- * \param nbits    Required size of X in bits ( 3 <= nbits <= 4096 )
+ * \param nbits    Required size of X in bits ( 3 <= nbits <= POLARSSL_MPI_MAX_BITS )
  * \param dh_flag  If 1, then (X-1)/2 will be prime too
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter

@@ -26,6 +26,8 @@ Changes
      (Credits go to Marco Lizza)
    * Added POLARSSL_MPI_WINDOW_SIZE definition to allow easier time to memory
      trade-off
+   * Introduced POLARSSL_MPI_MAX_SIZE and POLARSSL_MPI_MAX_BITS for MPI size
+     management (Closes ticket #44)
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

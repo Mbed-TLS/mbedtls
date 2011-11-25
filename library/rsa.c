@@ -142,7 +142,7 @@ int rsa_check_pubkey( const rsa_context *ctx )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
     if( mpi_msb( &ctx->N ) < 128 ||
-        mpi_msb( &ctx->N ) > 4096 )
+        mpi_msb( &ctx->N ) > POLARSSL_MPI_MAX_BITS )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
     if( mpi_msb( &ctx->E ) < 2 ||

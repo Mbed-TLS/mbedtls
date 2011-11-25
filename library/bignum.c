@@ -440,7 +440,10 @@ int mpi_read_file( mpi *X, int radix, FILE *fin )
     t_uint d;
     size_t slen;
     char *p;
-    char s[1024];
+    /*
+     * Buffer should have space for (short) label and hexified MPI and '\0'
+     */
+    char s[ 2 * POLARSSL_MPI_MAX_SIZE + 10 ];
 
     memset( s, 0, sizeof( s ) );
     if( fgets( s, sizeof( s ) - 1, fin ) == NULL )
@@ -465,7 +468,10 @@ int mpi_write_file( const char *p, const mpi *X, int radix, FILE *fout )
 {
     int ret;
     size_t n, slen, plen;
-    char s[2048];
+    /*
+     * Buffer should have space for minus sign, hexified MPI and '\0'
+     */
+    char s[ 2 * POLARSSL_MPI_MAX_SIZE + 2 ];
 
     n = sizeof( s );
     memset( s, 0, n );
@@ -1867,7 +1873,7 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
     size_t k, n;
     mpi Y;
 
-    if( nbits < 3 || nbits > 4096 )
+    if( nbits < 3 || nbits > POLARSSL_MPI_MAX_BITS )
         return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
     mpi_init( &Y );

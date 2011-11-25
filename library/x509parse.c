@@ -2362,12 +2362,18 @@ int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
     n = size;
 
     nr = ( serial->len <= 32 )
-        ? serial->len  : 32;
+        ? serial->len  : 28;
 
     for( i = 0; i < nr; i++ )
     {
         ret = snprintf( p, n, "%02X%s",
                 serial->p[i], ( i < nr - 1 ) ? ":" : "" );
+        SAFE_SNPRINTF();
+    }
+
+    if( nr != serial->len )
+    {
+        ret = snprintf( p, n, "...." );
         SAFE_SNPRINTF();
     }
 

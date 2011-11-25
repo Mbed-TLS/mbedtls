@@ -38,6 +38,8 @@ Bugfix
      standard 1 byte version sometimes used by Microsoft. (Closes ticket #38)
    * Fixed incorrect behaviour in case of RSASSA-PSS with a salt length
      smaller than the hash length. (Closes ticket #41)
+   * If certificate serial is longer than 32 octets, serial number is now
+     appended with '....' after first 28 octets
 
 = Version 1.0.0 released on 2011-07-27
 Features

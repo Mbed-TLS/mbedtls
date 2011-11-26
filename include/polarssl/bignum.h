@@ -86,7 +86,9 @@ typedef unsigned long  t_udbl;
   #else
     #if defined(__amd64__) || defined(__x86_64__)    || \
         defined(__ppc64__) || defined(__powerpc64__) || \
-        defined(__ia64__)  || defined(__alpha__)
+        defined(__ia64__)  || defined(__alpha__)     || \
+        (defined(__sparc__) && defined(__arch64__))  || \
+        defined(__s390x__)
     typedef unsigned int t_udbl __attribute__((mode(TI)));
     #else
       #if defined(POLARSSL_HAVE_LONGLONG)

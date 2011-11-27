@@ -47,6 +47,10 @@
 #include "polarssl/cipher.h"
 #endif
 
+#if defined(POLARSSL_CTR_DRBG_C)
+#include "polarssl/ctr_drbg.h"
+#endif
+
 #if defined(POLARSSL_DES_C)
 #include "polarssl/des.h"
 #endif
@@ -372,6 +376,15 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH) )
         snprintf( buf, buflen, "CAMELLIA - Invalid data input length" );
 #endif /* POLARSSL_CAMELLIA_C */
+
+#if defined(POLARSSL_CTR_DRBG_C)
+    if( use_ret == -(POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED) )
+        snprintf( buf, buflen, "CTR_DRBG - The entropy source failed" );
+    if( use_ret == -(POLARSSL_ERR_CTR_DRBG_REQUEST_TOO_BIG) )
+        snprintf( buf, buflen, "CTR_DRBG - Too many random requested in single call" );
+    if( use_ret == -(POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG) )
+        snprintf( buf, buflen, "CTR_DRBG - Input too large (Entropy + additional)" );
+#endif /* POLARSSL_CTR_DRBG_C */
 
 #if defined(POLARSSL_DES_C)
     if( use_ret == -(POLARSSL_ERR_DES_INVALID_INPUT_LENGTH) )

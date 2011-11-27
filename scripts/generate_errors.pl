@@ -9,7 +9,7 @@ my $error_file = shift or die "Missing destination file";
 my $error_format_file = $data_dir.'/error.fmt';
 
 my @low_level_modules = ( "AES", "ASN1", "CAMELLIA", "BIGNUM", "BASE64", "XTEA",
-                          "PADLOCK", "DES", "NET" );
+                          "PADLOCK", "DES", "NET", "CTR_DRBG" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "MD", "CIPHER", "SSL" );
 
 my $line_separator = $/;
@@ -42,6 +42,7 @@ while (my $line = <GREP>)
 
     # Fix faulty ones
     $module_name = "BIGNUM" if ($module_name eq "MPI");
+    $module_name = "CTR_DRBG" if ($module_name eq "CTR");
 
     my $define_name = $module_name;
     $define_name = "X509_PARSE" if ($define_name eq "X509");

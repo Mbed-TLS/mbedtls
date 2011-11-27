@@ -257,7 +257,7 @@ static int ssl_test( struct options *opt )
 
     ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
 
-    ssl_set_rng( &ssl, havege_rand, &hs );
+    ssl_set_rng( &ssl, havege_random, &hs );
     ssl_set_dbg( &ssl, my_debug, opt );
     ssl_set_bio( &ssl, net_recv, &client_fd,
                        net_send, &client_fd );

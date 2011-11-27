@@ -1608,18 +1608,16 @@ cleanup:
     return( ret );
 }
 
-int mpi_fill_random( mpi *X, size_t size, int (*f_rng)(void *), void *p_rng )
+int mpi_fill_random( mpi *X, size_t size,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng )
 {
     int ret;
-    size_t k;
-    unsigned char *p;
 
     MPI_CHK( mpi_grow( X, size ) );
     MPI_CHK( mpi_lset( X, 0 ) );
 
-    p = (unsigned char *) X->p;
-    for( k = 0; k < X->n * ciL; k++ )
-        *p++ = (unsigned char) f_rng( p_rng );
+    MPI_CHK( f_rng( p_rng, (unsigned char *) X->p, X->n * ciL ) );
 
 cleanup:
     return( ret );
@@ -1750,7 +1748,9 @@ static const int small_prime[] =
 /*
  * Miller-Rabin primality test  (HAC 4.24)
  */
-int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng )
+int mpi_is_prime( mpi *X,
+                  int (*f_rng)(void *, unsigned char *, size_t),
+                  void *p_rng )
 {
     int ret, xs;
     size_t i, j, n, s;
@@ -1809,7 +1809,7 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng )
         /*
          * pick a random A, 1 < A < |X| - 1
          */
-        mpi_fill_random( &A, X->n, f_rng, p_rng );
+        MPI_CHK( mpi_fill_random( &A, X->n, f_rng, p_rng ) );
 
         if( mpi_cmp_mpi( &A, &W ) >= 0 )
         {
@@ -1867,7 +1867,8 @@ cleanup:
  * Prime number generation
  */
 int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
-                   int (*f_rng)(void *), void *p_rng )
+                   int (*f_rng)(void *, unsigned char *, size_t),
+                   void *p_rng )
 {
     int ret;
     size_t k, n;
@@ -1880,7 +1881,7 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
 
     n = BITS_TO_LIMBS( nbits );
 
-    mpi_fill_random( X, n, f_rng, p_rng );
+    MPI_CHK( mpi_fill_random( X, n, f_rng, p_rng ) );
 
     k = mpi_msb( X );
     if( k < nbits ) MPI_CHK( mpi_shift_l( X, nbits - k ) );

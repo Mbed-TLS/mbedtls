@@ -27,6 +27,8 @@
 #ifndef POLARSSL_HAVEGE_H
 #define POLARSSL_HAVEGE_H
 
+#include <string.h>
+
 #define COLLECT_SIZE 1024
 
 /**
@@ -55,10 +57,12 @@ void havege_init( havege_state *hs );
  * \brief          HAVEGE rand function
  *
  * \param p_rng    A HAVEGE state
+ * \param output   Buffer to fill
+ * \param len      Length of buffer
  *
  * \return         A random int
  */
-int havege_rand( void *p_rng );
+int havege_random( void *p_rng, unsigned char *output, size_t len );
 
 #ifdef __cplusplus
 }

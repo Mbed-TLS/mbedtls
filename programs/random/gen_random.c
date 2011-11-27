@@ -44,7 +44,7 @@ int main( int argc, char *argv[] )
 {
     FILE *f;
     time_t t;
-    int i, j, k;
+    int i, k;
     havege_state hs;
     unsigned char buf[1024];
 
@@ -66,8 +66,12 @@ int main( int argc, char *argv[] )
 
     for( i = 0, k = 768; i < k; i++ )
     {
-        for( j = 0; j < (int) sizeof( buf ); j++ )
-            buf[j] = havege_rand( &hs );
+        if( havege_random( &hs, buf, sizeof( buf ) ) != 0 )
+        {
+            printf( "Failed to get random from source.\n" );
+            fclose( f );
+            return( 1 );
+        }
 
         fwrite( buf, sizeof( buf ), 1, f );
 

@@ -47,12 +47,27 @@
 
 #define BUFSIZE 1024
 
-static int myrand( void *rng_state )
+static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
+    size_t use_len;
+    int rnd;
+
     if( rng_state != NULL )
         rng_state  = NULL;
 
-    return( rand() );
+    while( len > 0 )
+    {
+        use_len = len;
+        if( use_len > sizeof(int) )
+            use_len = sizeof(int);
+
+        rnd = rand();
+        memcpy( output, &rnd, use_len );
+        output += use_len;
+        len -= use_len;
+    }
+
+    return( 0 );
 }
 
 unsigned char buf[BUFSIZE];

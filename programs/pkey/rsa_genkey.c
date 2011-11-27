@@ -74,7 +74,7 @@ int main( int argc, char *argv[] )
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
     
-    if( ( ret = rsa_gen_key( &rsa, havege_rand, &hs, KEY_SIZE, EXPONENT ) ) != 0 )
+    if( ( ret = rsa_gen_key( &rsa, havege_random, &hs, KEY_SIZE, EXPONENT ) ) != 0 )
     {
         printf( " failed\n  ! rsa_gen_key returned %d\n\n", ret );
         goto exit;

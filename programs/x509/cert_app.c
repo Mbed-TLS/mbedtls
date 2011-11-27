@@ -250,7 +250,7 @@ int main( int argc, char *argv[] )
         ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
         ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
 
-        ssl_set_rng( &ssl, havege_rand, &hs );
+        ssl_set_rng( &ssl, havege_random, &hs );
         ssl_set_dbg( &ssl, my_debug, stdout );
         ssl_set_bio( &ssl, net_recv, &server_fd,
                 net_send, &server_fd );

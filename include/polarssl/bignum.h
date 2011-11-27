@@ -539,7 +539,9 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR );
  * \return         0 if successful,
  *                 1 if memory allocation failed
  */
-int mpi_fill_random( mpi *X, size_t size, int (*f_rng)(void *), void *p_rng );
+int mpi_fill_random( mpi *X, size_t size,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng );
 
 /**
  * \brief          Greatest common divisor: G = gcd(A, B)
@@ -578,7 +580,9 @@ int mpi_inv_mod( mpi *X, const mpi *A, const mpi *N );
  *                 1 if memory allocation failed,
  *                 POLARSSL_ERR_MPI_NOT_ACCEPTABLE if X is not prime
  */
-int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng );
+int mpi_is_prime( mpi *X,
+                  int (*f_rng)(void *, unsigned char *, size_t),
+                  void *p_rng );
 
 /**
  * \brief          Prime number generation
@@ -594,7 +598,8 @@ int mpi_is_prime( mpi *X, int (*f_rng)(void *), void *p_rng );
  *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if nbits is < 3
  */
 int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
-                   int (*f_rng)(void *), void *p_rng );
+                   int (*f_rng)(void *, unsigned char *, size_t),
+                   void *p_rng );
 
 /**
  * \brief          Checkup routine

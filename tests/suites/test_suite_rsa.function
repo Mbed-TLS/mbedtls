@@ -514,7 +514,7 @@ rsa_gen_key:nrbits:exponent:result
     havege_init( &hs );
     rsa_init( &ctx, 0, 0 );
 
-    TEST_ASSERT( rsa_gen_key( &ctx, havege_rand, &hs, {nrbits}, {exponent} ) == {result} );
+    TEST_ASSERT( rsa_gen_key( &ctx, havege_random, &hs, {nrbits}, {exponent} ) == {result} );
     if( {result} == 0 )
     {
         TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );

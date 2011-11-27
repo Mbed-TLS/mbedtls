@@ -42,6 +42,7 @@
 #include "polarssl/x509.h"
 #include "polarssl/ssl.h"
 #include "polarssl/net.h"
+#include "polarssl/error.h"
 
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
@@ -261,7 +262,6 @@ int main( int argc, char *argv[] )
     printf( "  . Setting up the RNG and SSL data...." );
     fflush( stdout );
 
-    memset( &ssl, 0, sizeof( ssl ) );
     havege_init( &hs );
 
     if( ( ret = ssl_init( &ssl ) ) != 0 )
@@ -273,7 +273,7 @@ int main( int argc, char *argv[] )
     ssl_set_endpoint( &ssl, SSL_IS_SERVER );
     ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
 
-    ssl_set_rng( &ssl, havege_rand, &hs );
+    ssl_set_rng( &ssl, havege_random, &hs );
     ssl_set_dbg( &ssl, my_debug, stdout );
 
     ssl_set_scb( &ssl, my_get_session,
@@ -291,6 +291,15 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 
 reset:
+#ifdef POLARSSL_ERROR_C
+    if( ret != 0 )
+    {
+        char error_buf[100];
+        error_strerror( ret, error_buf, 100 );
+        printf("Last error was: %d - %s\n\n", ret, error_buf );
+    }
+#endif
+
     if( client_fd != -1 )
         net_close( client_fd );
 
@@ -420,11 +429,21 @@ reset:
 
     len = ret;
     printf( " %d bytes written\n\n%s\n", len, (char *) buf );
-
+    
     ssl_close_notify( &ssl );
+    ret = 0;
     goto reset;
 
 exit:
+
+#ifdef POLARSSL_ERROR_C
+    if( ret != 0 )
+    {
+        char error_buf[100];
+        error_strerror( ret, error_buf, 100 );
+        printf("Last error was: %d - %s\n\n", ret, error_buf );
+    }
+#endif
 
     net_close( client_fd );
     x509_free( &srvcert );

@@ -38,6 +38,7 @@
 #include "polarssl/havege.h"
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
+#include "polarssl/error.h"
 
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_PORT         4433
@@ -328,7 +329,7 @@ int main( int argc, char *argv[] )
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
     ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );
 
-    ssl_set_rng( &ssl, havege_rand, &hs );
+    ssl_set_rng( &ssl, havege_random, &hs );
     ssl_set_dbg( &ssl, my_debug, stdout );
     ssl_set_bio( &ssl, net_recv, &server_fd,
                        net_send, &server_fd );
@@ -451,6 +452,15 @@ int main( int argc, char *argv[] )
     ssl_close_notify( &ssl );
 
 exit:
+
+#ifdef POLARSSL_ERROR_C
+    if( ret != 0 )
+    {
+        char error_buf[100];
+        error_strerror( ret, error_buf, 100 );
+        printf("Last error was: %d - %s\n\n", ret, error_buf );
+    }
+#endif
 
     if( server_fd )
         net_close( server_fd );

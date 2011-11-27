@@ -578,8 +578,9 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             /*
              * Generate IV
              */
-            for( i = 0; i < ssl->ivlen; i++ )
-                ssl->iv_enc[i] = ssl->f_rng( ssl->p_rng );
+            int ret = ssl->f_rng( ssl->p_rng, ssl->iv_enc, ssl->ivlen );
+            if( ret != 0 )
+                return( ret );
 
             /*
              * Shift message for ivlen bytes and prepend IV
@@ -1796,7 +1797,7 @@ void ssl_set_verify( ssl_context *ssl,
 }
 
 void ssl_set_rng( ssl_context *ssl,
-                  int (*f_rng)(void *),
+                  int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {
     ssl->f_rng      = f_rng;

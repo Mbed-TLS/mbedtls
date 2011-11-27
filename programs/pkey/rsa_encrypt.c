@@ -110,7 +110,7 @@ int main( int argc, char *argv[] )
     printf( "\n  . Generating the RSA encrypted value" );
     fflush( stdout );
 
-    if( ( ret = rsa_pkcs1_encrypt( &rsa, havege_rand, &hs, RSA_PUBLIC, strlen( argv[1] ), input, buf ) ) != 0 )
+    if( ( ret = rsa_pkcs1_encrypt( &rsa, havege_random, &hs, RSA_PUBLIC, strlen( argv[1] ), input, buf ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
         goto exit;

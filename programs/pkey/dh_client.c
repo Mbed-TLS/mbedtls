@@ -207,7 +207,7 @@ int main( int argc, char *argv[] )
 
     n = dhm.len;
     if( ( ret = dhm_make_public( &dhm, 256, buf, n,
-                                 havege_rand, &hs ) ) != 0 )
+                                 havege_random, &hs ) ) != 0 )
     {
         printf( " failed\n  ! dhm_make_public returned %d\n\n", ret );
         goto exit;

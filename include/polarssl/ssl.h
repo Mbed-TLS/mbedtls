@@ -232,7 +232,7 @@ struct _ssl_context
     /*
      * Callbacks (RNG, debug, I/O, verification)
      */
-    int  (*f_rng)(void *);
+    int  (*f_rng)(void *, unsigned char *, size_t);
     void (*f_dbg)(void *, int, const char *);
     int (*f_recv)(void *, unsigned char *, size_t);
     int (*f_send)(void *, const unsigned char *, size_t);
@@ -438,7 +438,7 @@ void ssl_set_verify( ssl_context *ssl,
  * \param p_rng    RNG parameter
  */
 void ssl_set_rng( ssl_context *ssl,
-                  int (*f_rng)(void *),
+                  int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng );
 
 /**

@@ -58,9 +58,9 @@ void rsa_init( rsa_context *ctx,
  * Generate an RSA keypair
  */
 int rsa_gen_key( rsa_context *ctx,
-        int (*f_rng)(void *),
-        void *p_rng,
-        unsigned int nbits, int exponent )
+                 int (*f_rng)(void *, unsigned char *, size_t),
+                 void *p_rng,
+                 unsigned int nbits, int exponent )
 {
     int ret;
     mpi P1, Q1, H, G;
@@ -356,16 +356,16 @@ static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src, size_
  * Add the message padding, then do an RSA operation
  */
 int rsa_pkcs1_encrypt( rsa_context *ctx,
-                       int (*f_rng)(void *),
+                       int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng,
                        int mode, size_t ilen,
                        const unsigned char *input,
                        unsigned char *output )
 {
-    size_t nb_pad, olen;
+    size_t nb_pad, olen, ret;
     unsigned char *p = output;
 #if defined(POLARSSL_PKCS1_V21)
-    unsigned int i, hlen;
+    unsigned int hlen;
     const md_info_t *md_info;
     md_context_t md_ctx;
 #endif
@@ -392,13 +392,13 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
                 int rng_dl = 100;
 
                 do {
-                    *p = (unsigned char) f_rng( p_rng );
-                } while( *p == 0 && --rng_dl );
+                    ret = f_rng( p_rng, p, 1 );
+                } while( *p == 0 && --rng_dl && ret == 0 );
 
                 // Check if RNG failed to generate data
                 //
-                if( rng_dl == 0 )
-                    return POLARSSL_ERR_RSA_RNG_FAILED;
+                if( rng_dl == 0 || ret != 0)
+                    return POLARSSL_ERR_RSA_RNG_FAILED + ret;
 
                 p++;
             }
@@ -427,8 +427,10 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
 
             // Generate a random octet string seed
             //
-            for( i = 0; i < hlen; ++i )
-                *p++ = (unsigned char) f_rng( p_rng ); 
+            if( ( ret = f_rng( p_rng, p, hlen ) ) != 0 )
+                return( POLARSSL_ERR_RSA_RNG_FAILED + ret );
+
+            p += hlen;
 
             // Construct DB
             //
@@ -578,7 +580,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  * Do an RSA operation to sign the message digest
  */
 int rsa_pkcs1_sign( rsa_context *ctx,
-                    int (*f_rng)(void *),
+                    int (*f_rng)(void *, unsigned char *, size_t),
                     void *p_rng,
                     int mode,
                     int hash_id,
@@ -590,7 +592,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
     unsigned char *p = sig;
 #if defined(POLARSSL_PKCS1_V21)
     unsigned char salt[POLARSSL_MD_MAX_SIZE];
-    unsigned int i, slen, hlen, offset = 0;
+    unsigned int slen, hlen, offset = 0, ret;
     size_t msb;
     const md_info_t *md_info;
     md_context_t md_ctx;
@@ -757,8 +759,8 @@ int rsa_pkcs1_sign( rsa_context *ctx,
 
             // Generate salt of length slen
             //
-            for( i = 0; i < slen; ++i )
-                salt[i] = (unsigned char) f_rng( p_rng ); 
+            if( ( ret = f_rng( p_rng, salt, slen ) ) != 0 )
+                return( POLARSSL_ERR_RSA_RNG_FAILED + ret );
 
             // Note: EMSA-PSS encoding is over the length of N - 1 bits
             //
@@ -1080,12 +1082,17 @@ void rsa_free( rsa_context *ctx )
 #define RSA_PT  "\xAA\xBB\xCC\x03\x02\x01\x00\xFF\xFF\xFF\xFF\xFF" \
                 "\x11\x22\x33\x0A\x0B\x0C\xCC\xDD\xDD\xDD\xDD\xDD"
 
-static int myrand( void *rng_state )
+static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
+    size_t i;
+
     if( rng_state != NULL )
         rng_state  = NULL;
 
-    return( rand() );
+    for( i = 0; i < len; ++i )
+        output[i] = rand();
+    
+    return( 0 );
 }
 
 /*

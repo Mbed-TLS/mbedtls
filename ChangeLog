@@ -29,6 +29,9 @@ Changes
      trade-off
    * Introduced POLARSSL_MPI_MAX_SIZE and POLARSSL_MPI_MAX_BITS for MPI size
      management (Closes ticket #44)
+   * Changed the used random function pointer to more flexible format. Renamed
+     havege_rand() to havege_random() to prevent mistakes. Lots of changes as
+	 a consequence in library code and programs
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

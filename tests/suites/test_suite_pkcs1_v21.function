@@ -26,7 +26,6 @@ pkcs1_rsaes_oaep_encrypt:mod:radix_N:input_N:radix_E:input_E:hash:message_hex_st
 
     info.length = unhexify( rnd_buf, {seed} );
     info.buf = rnd_buf;
-    info.per_call = 1;
 
     rsa_init( &ctx, RSA_PKCS_V21, {hash} );
     memset( message_str, 0x00, 1000 );
@@ -114,7 +113,6 @@ pkcs1_rsassa_pss_sign:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_
 
     info.length = unhexify( rnd_buf, {salt} );
     info.buf = rnd_buf;
-    info.per_call = 1;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V21, {hash} );

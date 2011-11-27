@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
      * This can take a long time...
      */
     if( ( ret = mpi_gen_prime( &P, DH_P_SIZE, 1,
-                               havege_rand, &hs ) ) != 0 )
+                               havege_random, &hs ) ) != 0 )
     {
         printf( " failed\n  ! mpi_gen_prime returned %d\n\n", ret );
         goto exit;
@@ -101,7 +101,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mpi_is_prime( &Q, havege_rand, &hs ) ) != 0 )
+    if( ( ret = mpi_is_prime( &Q, havege_random, &hs ) ) != 0 )
     {
         printf( " failed\n  ! mpi_is_prime returned %d\n\n", ret );
         goto exit;

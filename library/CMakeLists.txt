@@ -10,6 +10,7 @@ set(src
      certs.c
      cipher.c
      cipher_wrap.c
+     ctr_drbg.c
      debug.c
      des.c
      dhm.c

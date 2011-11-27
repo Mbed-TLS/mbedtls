@@ -10,6 +10,7 @@ Features
 	 (Closes ticket #36)
    * Added cipher_get_cipher_mode() and cipher_get_cipher_operation()
      introspection functions (Closes ticket #40)
+   * Added CTR_DRBG based on AES-256-CTR (NIST SP 800-90) random generator
 
 Changes
    * Documentation for AES and Camellia in modes CTR and CFB128 clarified.

@@ -32,6 +32,7 @@
 
 #include "polarssl/config.h"
 
+#include "polarssl/ctr_drbg.h"
 #include "polarssl/md2.h"
 #include "polarssl/md4.h"
 #include "polarssl/md5.h"
@@ -134,6 +135,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_CAMELLIA_C)
     if( ( ret = camellia_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(POLARSSL_CTR_DRBG_C)
+    if( ( ret = ctr_drbg_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

@@ -12,7 +12,8 @@ LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
 APPS =	test_suite_aes			test_suite_arc4			\
 		test_suite_base64		test_suite_camellia		\
 		test_suite_cipher.aes	test_suite_cipher.camellia	\
-		test_suite_cipher.des	test_suite_debug		\
+		test_suite_cipher.des	test_suite_ctr_drbg		\
+		test_suite_debug		\
 		test_suite_des			test_suite_dhm			\
 		test_suite_error		test_suite_hmac_shax	\
 		test_suite_md			test_suite_mdx			\
@@ -62,6 +63,10 @@ test_suite_cipher.aes: test_suite_cipher.aes.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_cipher.camellia: test_suite_cipher.camellia.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_ctr_drbg: test_suite_ctr_drbg.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

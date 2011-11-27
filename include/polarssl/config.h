@@ -307,6 +307,18 @@
 #define POLARSSL_CIPHER_C
 
 /**
+ * \def POLARSSL_CTR_DRBG_C
+ *
+ * Enable the CTR_DRBG AES-256-based random generator
+ *
+ * Module:  library/ctr_drbg.c
+ * Caller:
+ *
+ * This module provides the CTR_DRBG AES-256 random number generator.
+ */
+#define POLARSSL_CTR_DRBG_C
+
+/**
  * \def POLARSSL_DEBUG_C
  *
  * Enable the debug functions.

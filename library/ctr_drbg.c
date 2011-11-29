@@ -41,10 +41,10 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
                    size_t len )
 {
     int ret;
-    unsigned char key[32];
+    unsigned char key[CTR_DRBG_KEYSIZE];
 
     memset( ctx, 0, sizeof(ctr_drbg_context) );
-    memset( key, 0, 32 );
+    memset( key, 0, CTR_DRBG_KEYSIZE );
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
@@ -55,7 +55,7 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
     /*
      * Initialize with an empty key
      */
-    aes_setkey_enc( &ctx->aes_ctx, key, 256 );
+    aes_setkey_enc( &ctx->aes_ctx, key, CTR_DRBG_KEYBITS );
 
     if( ( ret = ctr_drbg_reseed( ctx, custom, len ) ) != 0 )
         return( ret );
@@ -80,16 +80,16 @@ void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx, int interval )
     
 int block_cipher_df( unsigned char *output, unsigned char *data, size_t data_len )
 {
-    unsigned char buf[CTR_DRBG_MAX_INPUT + 32];
+    unsigned char buf[CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16];
     unsigned char tmp[CTR_DRBG_SEEDLEN];
-    unsigned char key[32];
-    unsigned char chain[16];
-    unsigned char *p, *iv;
+    unsigned char key[CTR_DRBG_KEYSIZE];
+    unsigned char chain[CTR_DRBG_BLOCKSIZE];
+    unsigned char *p = buf, *iv;
     aes_context aes_ctx;
 
     int i, j, buf_len, use_len;
 
-    memset( buf, 0, CTR_DRBG_MAX_INPUT + 32 );
+    memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
 
     /*
      * Construct IV (16 bytes) and S in buffer
@@ -98,41 +98,43 @@ int block_cipher_df( unsigned char *output, unsigned char *data, size_t data_len
      *     data || 0x80
      *     (Total is padded to a multiple of 16-bytes with zeroes)
      */
-    buf[16] = ( data_len >> 24 ) & 0xff;
-    buf[17] = ( data_len >> 16 ) & 0xff;
-    buf[18] = ( data_len >> 8  ) & 0xff;
-    buf[19] = ( data_len       ) & 0xff;
-    buf[23] = CTR_DRBG_SEEDLEN;
-    memcpy( buf + 24, data, data_len );
-    buf[24 + data_len] = 0x80;
+    p = buf + CTR_DRBG_BLOCKSIZE;
+    *p++ = ( data_len >> 24 ) & 0xff;
+    *p++ = ( data_len >> 16 ) & 0xff;
+    *p++ = ( data_len >> 8  ) & 0xff;
+    *p++ = ( data_len       ) & 0xff;
+    p += 3;
+    *p++ = CTR_DRBG_SEEDLEN;
+    memcpy( p, data, data_len );
+    p[data_len] = 0x80;
 
-    buf_len = 24 + data_len + 1;
+    buf_len = CTR_DRBG_BLOCKSIZE + 8 + data_len + 1;
 
-    for( i = 0; i < 32; i++ )
+    for( i = 0; i < CTR_DRBG_KEYSIZE; i++ )
         key[i] = i;
 
-    aes_setkey_enc( &aes_ctx, key, 256 );
+    aes_setkey_enc( &aes_ctx, key, CTR_DRBG_KEYBITS );
 
     /*
      * Reduce data to POLARSSL_CTR_DRBG_SEEDLEN bytes of data
      */
-    for( j = 0; j < CTR_DRBG_SEEDLEN; j += 16 )
+    for( j = 0; j < CTR_DRBG_SEEDLEN; j += CTR_DRBG_BLOCKSIZE )
     {
         p = buf;
-        memset( chain, 0, 16 );
+        memset( chain, 0, CTR_DRBG_BLOCKSIZE );
         use_len = buf_len;
 
         while( use_len > 0 )
         {
-            for( i = 0; i < 16; i++ )
+            for( i = 0; i < CTR_DRBG_BLOCKSIZE; i++ )
                 chain[i] ^= p[i];
-            p += 16;
-            use_len -= 16;
+            p += CTR_DRBG_BLOCKSIZE;
+            use_len -= CTR_DRBG_BLOCKSIZE;
 
             aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, chain, chain );
         }
         
-        memcpy( tmp + j, chain, 16 );
+        memcpy( tmp + j, chain, CTR_DRBG_BLOCKSIZE );
 
         /*
          * Update IV
@@ -143,15 +145,15 @@ int block_cipher_df( unsigned char *output, unsigned char *data, size_t data_len
     /*
      * Do final encryption with reduced data
      */
-    aes_setkey_enc( &aes_ctx, tmp, 256 );
-    iv = tmp + 32;
+    aes_setkey_enc( &aes_ctx, tmp, CTR_DRBG_KEYBITS );
+    iv = tmp + CTR_DRBG_KEYSIZE;
     p = output;
 
-    for( j = 0; j < CTR_DRBG_SEEDLEN; j += 16 )
+    for( j = 0; j < CTR_DRBG_SEEDLEN; j += CTR_DRBG_BLOCKSIZE )
     {
         aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, iv, iv );
-        memcpy( p, iv, 16 );
-        p += 16;
+        memcpy( p, iv, CTR_DRBG_BLOCKSIZE );
+        p += CTR_DRBG_BLOCKSIZE;
     }
 
     return( 0 );
@@ -162,7 +164,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx, unsigned char *additional, size_t le
     unsigned char seed[CTR_DRBG_MAX_SEED_INPUT];
     size_t seedlen = 0;
 
-    if( ctx->entropy_len + len > CTR_DRBG_MAX_INPUT )
+    if( ctx->entropy_len + len > CTR_DRBG_MAX_SEED_INPUT )
         return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
     memset( seed, 0, CTR_DRBG_MAX_SEED_INPUT );
@@ -210,12 +212,12 @@ int ctr_drbg_update( ctr_drbg_context *ctx,
 
     memset( tmp, 0, CTR_DRBG_SEEDLEN );
 
-    for( j = 0; j < CTR_DRBG_SEEDLEN; j += 16 )
+    for( j = 0; j < CTR_DRBG_SEEDLEN; j += CTR_DRBG_BLOCKSIZE )
     {
         /*
          * Increase counter
          */
-        i = 15;
+        i = CTR_DRBG_BLOCKSIZE - 1;
         do {
             ctx->counter[i]++;
             cb = ctx->counter[i] == 0;
@@ -226,7 +228,7 @@ int ctr_drbg_update( ctr_drbg_context *ctx,
          */
         aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->counter, p );
 
-        p += 16;
+        p += CTR_DRBG_BLOCKSIZE;
     }
 
     for( i = 0; i < CTR_DRBG_SEEDLEN; i++ )
@@ -235,8 +237,8 @@ int ctr_drbg_update( ctr_drbg_context *ctx,
     /*
      * Update key and counter
      */
-    aes_setkey_enc( &ctx->aes_ctx, tmp, 256 );
-    memcpy( ctx->counter, tmp + 32, 16 );
+    aes_setkey_enc( &ctx->aes_ctx, tmp, CTR_DRBG_KEYBITS );
+    memcpy( ctx->counter, tmp + CTR_DRBG_KEYSIZE, CTR_DRBG_BLOCKSIZE );
 
     return( 0 );
 }
@@ -249,7 +251,7 @@ int ctr_drbg_random_with_add( void *p_rng,
     ctr_drbg_context *ctx = (ctr_drbg_context *) p_rng;
     unsigned char add_input[CTR_DRBG_SEEDLEN];
     unsigned char *p = output;
-    unsigned char tmp[16];
+    unsigned char tmp[CTR_DRBG_BLOCKSIZE];
     int cb, i;
 
     if( output_len > CTR_DRBG_MAX_REQUEST )
@@ -280,7 +282,7 @@ int ctr_drbg_random_with_add( void *p_rng,
         /*
          * Increase counter
          */
-        i = 15;
+        i = CTR_DRBG_BLOCKSIZE - 1;
         do {
             ctx->counter[i]++;
             cb = ctx->counter[i] == 0;
@@ -294,9 +296,9 @@ int ctr_drbg_random_with_add( void *p_rng,
         /*
          * Copy random block to destination
          */
-        memcpy( p, tmp, (output_len > 16 ) ? 16 : output_len );
-        p += 16;
-        output_len -= 16;
+        memcpy( p, tmp, (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE : output_len );
+        p += CTR_DRBG_BLOCKSIZE;
+        output_len -= CTR_DRBG_BLOCKSIZE;
     }
 
     ctr_drbg_update( ctx, add_input );
@@ -387,7 +389,7 @@ int ctr_drbg_self_test( int verbose )
     }
     ctr_drbg_set_prediction_resistance( &ctx, CTR_DRBG_PR_ON );
 
-    if( ctr_drbg_random( &ctx, buf, 16 ) != 0 )
+    if( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );
@@ -395,7 +397,7 @@ int ctr_drbg_self_test( int verbose )
         return( 1 );
     }
 
-    if( ctr_drbg_random( &ctx, buf, 16 ) != 0 )
+    if( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );
@@ -403,7 +405,7 @@ int ctr_drbg_self_test( int verbose )
         return( 1 );
     }
 
-    if( memcmp( buf, result_pr, 16 ) != 0 )
+    if( memcmp( buf, result_pr, CTR_DRBG_BLOCKSIZE ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );

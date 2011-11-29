@@ -35,11 +35,15 @@
 #define POLARSSL_ERR_CTR_DRBG_REQUEST_TOO_BIG              -0x0036  /**< Too many random requested in single call. */
 #define POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG                -0x0038  /**< Input too large (Entropy + additional). */
 
-#define CTR_DRBG_SEEDLEN            48      /**< The seed length (counter + AES key)            */
+#define CTR_DRBG_BLOCKSIZE          16      /**< Block size used by the cipher                  */
+#define CTR_DRBG_KEYSIZE            32      /**< Key size used by the cipher                    */
+#define CTR_DRBG_KEYBITS            ( CTR_DRBG_KEYSIZE * 8 )
+#define CTR_DRBG_SEEDLEN            ( CTR_DRBG_KEYSIZE + CTR_DRBG_BLOCKSIZE )
+                                            /**< The seed length (counter + AES key)            */
 #define CTR_DRBG_ENTROPY_LEN        32      /**< Amount of entropy used per seed by default     */
 #define CTR_DRBG_RESEED_INTERVAL    10000   /**< Interval before reseed is performed by default */
 #define CTR_DRBG_MAX_INPUT          256     /**< Maximum number of additional input bytes       */
-#define CTR_DRBG_MAX_REQUEST        500     /**< Maximum number of requested bytes per call     */
+#define CTR_DRBG_MAX_REQUEST        1024    /**< Maximum number of requested bytes per call     */
 #define CTR_DRBG_MAX_SEED_INPUT     384     /**< Maximum size of (re)seed buffer                */
 
 #define CTR_DRBG_PR_OFF             0       /**< No prediction resistance       */
@@ -83,6 +87,7 @@ ctr_drbg_context;
  *                      length)
  * \param p_entropy     Entropy context
  * \param custom        Personalization data (Device specific identifiers)
+ *                      (Can be NULL)
  * \param len           Length of personalization data
  *
  * \return              0 if successful, or
@@ -130,7 +135,7 @@ void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx,
  * \brief               CTR_DRBG reseeding (extracts data from entropy source)
  * 
  * \param ctx           CTR_DRBG context
- * \param additional    Additional data to add to state
+ * \param additional    Additional data to add to state (Can be NULL)
  * \param len           Length of additional data
  *
  * \return              0 if successful, or
@@ -158,7 +163,7 @@ int ctr_drbg_update( ctr_drbg_context *ctx,
  * \param p_rng         CTR_DRBG context
  * \param output        Buffer to fill
  * \param output_len    Length of the buffer
- * \param additional    Additional data to update with
+ * \param additional    Additional data to update with (Can be NULL)
  * \param add_len       Length of additional data
  *
  * \return              0 if successful, or

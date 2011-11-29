@@ -44,8 +44,11 @@
 #include "polarssl/camellia.h"
 #include "polarssl/rsa.h"
 #include "polarssl/timing.h"
+#include "polarssl/havege.h"
+#include "polarssl/ctr_drbg.h"
 
-#define BUFSIZE 1024
+#define BUFSIZE         1024
+#define HEADER_FORMAT   "  %-15s :  "
 
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
@@ -104,7 +107,12 @@ int main( int argc, char *argv[] )
     defined(POLARSSL_GENPRIME)
     rsa_context rsa;
 #endif
-
+#if defined(POLARSSL_HAVEGE_C)
+    havege_state hs;
+#endif
+#if defined(POLARSSL_CTR_DRBG_C)
+    ctr_drbg_context    ctr_drbg;
+#endif
     ((void) argc);
     ((void) argv);
 
@@ -113,7 +121,7 @@ int main( int argc, char *argv[] )
     printf( "\n" );
 
 #if defined(POLARSSL_MD4_C)
-    printf( "  MD4       :  " );
+    printf( HEADER_FORMAT, "MD4" );
     fflush( stdout );
 
     set_alarm( 1 );
@@ -129,7 +137,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_MD5_C)
-    printf( "  MD5       :  " );
+    printf( HEADER_FORMAT, "MD5" );
     fflush( stdout );
 
     set_alarm( 1 );
@@ -145,7 +153,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_SHA1_C)
-    printf( "  SHA-1     :  " );
+    printf( HEADER_FORMAT, "SHA-1" );
     fflush( stdout );
 
     set_alarm( 1 );
@@ -161,7 +169,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_SHA2_C)
-    printf( "  SHA-256   :  " );
+    printf( HEADER_FORMAT, "SHA-256" );
     fflush( stdout );
 
     set_alarm( 1 );
@@ -177,7 +185,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_SHA4_C)
-    printf( "  SHA-512   :  " );
+    printf( HEADER_FORMAT, "SHA-512" );
     fflush( stdout );
 
     set_alarm( 1 );
@@ -193,7 +201,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_ARC4_C)
-    printf( "  ARC4      :  " );
+    printf( HEADER_FORMAT, "ARC4" );
     fflush( stdout );
 
     arc4_setup( &arc4, tmp, 32 );
@@ -211,7 +219,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_DES_C)
-    printf( "  3DES      :  " );
+    printf( HEADER_FORMAT, "3DES" );
     fflush( stdout );
 
     des3_set3key_enc( &des3, tmp );
@@ -227,7 +235,7 @@ int main( int argc, char *argv[] )
     printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 
-    printf( "  DES       :  " );
+    printf( HEADER_FORMAT, "DES" );
     fflush( stdout );
 
     des_setkey_enc( &des, tmp );
@@ -247,7 +255,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_AES_C)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
-        printf( "  AES-%d   :  ", keysize );
+        printf( "  AES-%d         :  ", keysize );
         fflush( stdout );
 
         memset( buf, 0, sizeof( buf ) );
@@ -271,7 +279,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_CAMELLIA_C)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
-        printf( "  CAMELLIA-%d   :  ", keysize );
+        printf( "  CAMELLIA-%d    :  ", keysize );
         fflush( stdout );
 
         memset( buf, 0, sizeof( buf ) );
@@ -292,12 +300,72 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if defined(POLARSSL_HAVEGE_C)
+    printf( HEADER_FORMAT, "HAVEGE" );
+    fflush( stdout );
+
+    havege_init( &hs );
+
+    set_alarm( 1 );
+    for( i = 1; ! alarmed; i++ )
+        havege_random( &hs, buf, BUFSIZE );
+
+    tsc = hardclock();
+    for( j = 1; j < 1024; j++ )
+        havege_random( &hs, buf, BUFSIZE );
+
+    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
+                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+#endif
+
+#if defined(POLARSSL_CTR_DRBG_C)
+    printf( HEADER_FORMAT, "CTR_DRBG (NOPR)" );
+    fflush( stdout );
+
+    if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
+        exit(1);
+
+    set_alarm( 1 );
+    for( i = 1; ! alarmed; i++ )
+        if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+            exit(1);
+
+    tsc = hardclock();
+    for( j = 1; j < 1024; j++ )
+        if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+            exit(1);
+
+    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
+                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+
+    printf( HEADER_FORMAT, "CTR_DRBG (PR)" );
+    fflush( stdout );
+
+    if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
+        exit(1);
+
+    ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_ON );
+
+    set_alarm( 1 );
+    for( i = 1; ! alarmed; i++ )
+        if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+            exit(1);
+
+    tsc = hardclock();
+    for( j = 1; j < 1024; j++ )
+        if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+            exit(1);
+
+    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
+                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+#endif
+
 #if defined(POLARSSL_RSA_C) && defined(POLARSSL_BIGNUM_C) &&    \
     defined(POLARSSL_GENPRIME)
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
     rsa_gen_key( &rsa, myrand, NULL, 1024, 65537 );
 
-    printf( "  RSA-1024  :  " );
+    printf( HEADER_FORMAT, "RSA-1024" );
     fflush( stdout );
     set_alarm( 3 );
 
@@ -309,7 +377,7 @@ int main( int argc, char *argv[] )
 
     printf( "%9lu  public/s\n", i / 3 );
 
-    printf( "  RSA-1024  :  " );
+    printf( HEADER_FORMAT, "RSA-1024" );
     fflush( stdout );
     set_alarm( 3 );
 
@@ -326,7 +394,7 @@ int main( int argc, char *argv[] )
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
     rsa_gen_key( &rsa, myrand, NULL, 2048, 65537 );
 
-    printf( "  RSA-2048  :  " );
+    printf( HEADER_FORMAT, "RSA-2048" );
     fflush( stdout );
     set_alarm( 3 );
 
@@ -338,7 +406,7 @@ int main( int argc, char *argv[] )
 
     printf( "%9lu  public/s\n", i / 3 );
 
-    printf( "  RSA-2048  :  " );
+    printf( HEADER_FORMAT, "RSA-2048" );
     fflush( stdout );
     set_alarm( 3 );
 
@@ -355,7 +423,7 @@ int main( int argc, char *argv[] )
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
     rsa_gen_key( &rsa, myrand, NULL, 4096, 65537 );
 
-    printf( "  RSA-4096  :  " );
+    printf( HEADER_FORMAT, "RSA-4096" );
     fflush( stdout );
     set_alarm( 3 );
 
@@ -367,7 +435,7 @@ int main( int argc, char *argv[] )
 
     printf( "%9lu  public/s\n", i / 3 );
 
-    printf( "  RSA-4096  :  " );
+    printf( HEADER_FORMAT, "RSA-4096" );
     fflush( stdout );
     set_alarm( 3 );
 

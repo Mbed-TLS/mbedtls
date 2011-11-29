@@ -253,6 +253,7 @@ int ctr_drbg_random_with_add( void *p_rng,
     unsigned char *p = output;
     unsigned char tmp[CTR_DRBG_BLOCKSIZE];
     int cb, i;
+    size_t use_len;
 
     if( output_len > CTR_DRBG_MAX_REQUEST )
         return( POLARSSL_ERR_CTR_DRBG_REQUEST_TOO_BIG );
@@ -293,12 +294,13 @@ int ctr_drbg_random_with_add( void *p_rng,
          */
         aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->counter, tmp );
 
+        use_len = (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE : output_len;
         /*
          * Copy random block to destination
          */
-        memcpy( p, tmp, (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE : output_len );
-        p += CTR_DRBG_BLOCKSIZE;
-        output_len -= CTR_DRBG_BLOCKSIZE;
+        memcpy( p, tmp, use_len );
+        p += use_len;
+        output_len -= use_len;
     }
 
     ctr_drbg_update( ctx, add_input );

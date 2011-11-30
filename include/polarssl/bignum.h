@@ -33,7 +33,7 @@
 #define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
 #define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_MPI_INVALID_CHARACTER                 -0x0006  /**< There is an invalid character in the digit string. */
-#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008  /**< The output buffer is too small to write too. */
+#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008  /**< The buffer is too small to write too. */
 #define POLARSSL_ERR_MPI_NEGATIVE_VALUE                    -0x000A  /**< The input arguments are negative or result in illegal output. */
 #define POLARSSL_ERR_MPI_DIVISION_BY_ZERO                  -0x000C  /**< The input argument for division is zero, which is not allowed. */
 #define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    -0x000E  /**< The input arguments are not acceptable. */
@@ -65,6 +65,16 @@
  */
 #define POLARSSL_MPI_MAX_SIZE                              512      /**< Maximum number of bytes for usable MPIs. */
 #define POLARSSL_MPI_MAX_BITS                              ( 8 * POLARSSL_MPI_MAX_SIZE )    /**< Maximum number of bits for usable MPIs. */
+
+/*
+ * When reading from files with mpi_read_file() the buffer should have space
+ * for a (short) label, the MPI (in the provided radix), the newline
+ * characters and the '\0'.
+ *
+ * By default we assume at least a 10 char label, a minimum radix of 10
+ * (decimal) and a maximum of 4096 bit numbers (1234 decimal chars).
+ */
+#define POLARSSL_MPI_READ_BUFFER_SIZE                       1250   
 
 /*
  * Define the base integer type, architecture-wise
@@ -223,7 +233,7 @@ size_t mpi_size( const mpi *X );
  * \param radix    Input numeric base
  * \param s        Null-terminated string buffer
  *
- * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
+ * \return         0 if successful, or a POLARSSL_ERR_MPI_XXX error code
  */
 int mpi_read_string( mpi *X, int radix, const char *s );
 
@@ -235,7 +245,7 @@ int mpi_read_string( mpi *X, int radix, const char *s );
  * \param s        String buffer
  * \param slen     String buffer size
  *
- * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code.
+ * \return         0 if successful, or a POLARSSL_ERR_MPI_XXX error code.
  *                 *slen is always updated to reflect the amount
  *                 of data that has (or would have) been written.
  *
@@ -251,7 +261,9 @@ int mpi_write_string( const mpi *X, int radix, char *s, size_t *slen );
  * \param radix    Input numeric base
  * \param fin      Input file handle
  *
- * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
+ * \return         0 if successful, POLARSSL_ERR_MPI_BUFFER_TOO_SMALL if
+ *                 the file read buffer is too small or a
+ *                 POLARSSL_ERR_MPI_XXX error code
  */
 int mpi_read_file( mpi *X, int radix, FILE *fin );
 
@@ -263,7 +275,7 @@ int mpi_read_file( mpi *X, int radix, FILE *fin );
  * \param radix    Output numeric base
  * \param fout     Output file handle (can be NULL)
  *
- * \return         0 if successful, or an POLARSSL_ERR_MPI_XXX error code
+ * \return         0 if successful, or a POLARSSL_ERR_MPI_XXX error code
  *
  * \note           Set fout == NULL to print X on the console.
  */

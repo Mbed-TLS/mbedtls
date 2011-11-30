@@ -441,15 +441,19 @@ int mpi_read_file( mpi *X, int radix, FILE *fin )
     size_t slen;
     char *p;
     /*
-     * Buffer should have space for (short) label and hexified MPI and '\0'
+     * Buffer should have space for (short) label and decimal formatted MPI,
+     * newline characters and '\0'
      */
-    char s[ 2 * POLARSSL_MPI_MAX_SIZE + 10 ];
+    char s[ POLARSSL_MPI_READ_BUFFER_SIZE ];
 
     memset( s, 0, sizeof( s ) );
     if( fgets( s, sizeof( s ) - 1, fin ) == NULL )
         return( POLARSSL_ERR_MPI_FILE_IO_ERROR );
 
     slen = strlen( s );
+    if( slen == sizeof( s ) - 2 )
+        return( POLARSSL_ERR_MPI_BUFFER_TOO_SMALL );
+
     if( s[slen - 1] == '\n' ) { slen--; s[slen] = '\0'; }
     if( s[slen - 1] == '\r' ) { slen--; s[slen] = '\0'; }
 

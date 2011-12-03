@@ -96,7 +96,7 @@ ctr_drbg_context;
 int ctr_drbg_init( ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
-                   unsigned char *custom,
+                   const unsigned char *custom,
                    size_t len );
 
 /**
@@ -142,18 +142,17 @@ void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx,
  *                      POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED
  */
 int ctr_drbg_reseed( ctr_drbg_context *ctx,
-                     unsigned char *additional, size_t len );
+                     const unsigned char *additional, size_t len );
 
 /**
  * \brief               CTR_DRBG update state
  *
  * \param ctx           CTR_DRBG context
- * \param data          Data to update with
- *
- * \return              0 if successful
+ * \param additional    Additional data to update state with
+ * \param add_len       Length of additional data
  */
-int ctr_drbg_update( ctr_drbg_context *ctx,
-                     unsigned char data[CTR_DRBG_SEEDLEN] );
+void ctr_drbg_update( ctr_drbg_context *ctx,
+                     const unsigned char *additional, size_t add_len );
 
 /**
  * \brief               CTR_DRBG generate random with additional update input
@@ -172,7 +171,7 @@ int ctr_drbg_update( ctr_drbg_context *ctx,
  */
 int ctr_drbg_random_with_add( void *p_rng,
                               unsigned char *output, size_t output_len,
-                              unsigned char *additional, size_t add_len );
+                              const unsigned char *additional, size_t add_len );
 
 /**
  * \brief               CTR_DRBG generate random

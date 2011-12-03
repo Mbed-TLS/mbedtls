@@ -37,7 +37,7 @@
 int ctr_drbg_init( ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
-                   unsigned char *custom,
+                   const unsigned char *custom,
                    size_t len )
 {
     int ret;
@@ -78,7 +78,8 @@ void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx, int interval )
     ctx->reseed_interval = interval;
 }
     
-int block_cipher_df( unsigned char *output, unsigned char *data, size_t data_len )
+int block_cipher_df( unsigned char *output,
+                     const unsigned char *data, size_t data_len )
 {
     unsigned char buf[CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16];
     unsigned char tmp[CTR_DRBG_SEEDLEN];
@@ -159,52 +160,8 @@ int block_cipher_df( unsigned char *output, unsigned char *data, size_t data_len
     return( 0 );
 }
 
-int ctr_drbg_reseed( ctr_drbg_context *ctx, unsigned char *additional, size_t len )
-{
-    unsigned char seed[CTR_DRBG_MAX_SEED_INPUT];
-    size_t seedlen = 0;
-
-    if( ctx->entropy_len + len > CTR_DRBG_MAX_SEED_INPUT )
-        return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
-
-    memset( seed, 0, CTR_DRBG_MAX_SEED_INPUT );
-
-    /*
-     * Gather POLARSSL_CTR_DRBG_ENTROPYLEN bytes of entropy to seed state
-     */
-    if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
-                             ctx->entropy_len ) )
-    {
-        return( POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED );
-    }
-
-    seedlen += ctx->entropy_len;
-
-    /*
-     * Add additional data
-     */
-    if( additional && len )
-    {
-        memcpy( seed + seedlen, additional, len );
-        seedlen += len;
-    }
-
-    /*
-     * Reduce to 384 bits
-     */
-    block_cipher_df( seed, seed, seedlen );
-
-    /*
-     * Update state
-     */
-    ctr_drbg_update( ctx, seed );
-    ctx->reseed_counter = 1;
-
-    return( 0 );
-}
-    
-int ctr_drbg_update( ctr_drbg_context *ctx,
-                     unsigned char data[CTR_DRBG_SEEDLEN] )
+int ctr_drbg_update_internal( ctr_drbg_context *ctx,
+                              const unsigned char data[CTR_DRBG_SEEDLEN] )
 {
     unsigned char tmp[CTR_DRBG_SEEDLEN];
     unsigned char *p = tmp;
@@ -243,9 +200,66 @@ int ctr_drbg_update( ctr_drbg_context *ctx,
     return( 0 );
 }
 
+void ctr_drbg_update( ctr_drbg_context *ctx,
+                      const unsigned char *additional, size_t add_len )
+{
+    unsigned char add_input[CTR_DRBG_SEEDLEN];
+
+    if( add_len > 0 )
+    {
+        block_cipher_df( add_input, additional, add_len );
+        ctr_drbg_update_internal( ctx, add_input );
+    }
+}
+
+int ctr_drbg_reseed( ctr_drbg_context *ctx,
+                     const unsigned char *additional, size_t len )
+{
+    unsigned char seed[CTR_DRBG_MAX_SEED_INPUT];
+    size_t seedlen = 0;
+
+    if( ctx->entropy_len + len > CTR_DRBG_MAX_SEED_INPUT )
+        return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+
+    memset( seed, 0, CTR_DRBG_MAX_SEED_INPUT );
+
+    /*
+     * Gather POLARSSL_CTR_DRBG_ENTROPYLEN bytes of entropy to seed state
+     */
+    if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
+                             ctx->entropy_len ) )
+    {
+        return( POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED );
+    }
+
+    seedlen += ctx->entropy_len;
+
+    /*
+     * Add additional data
+     */
+    if( additional && len )
+    {
+        memcpy( seed + seedlen, additional, len );
+        seedlen += len;
+    }
+
+    /*
+     * Reduce to 384 bits
+     */
+    block_cipher_df( seed, seed, seedlen );
+
+    /*
+     * Update state
+     */
+    ctr_drbg_update_internal( ctx, seed );
+    ctx->reseed_counter = 1;
+
+    return( 0 );
+}
+    
 int ctr_drbg_random_with_add( void *p_rng,
                               unsigned char *output, size_t output_len,
-                              unsigned char *additional, size_t add_len )
+                              const unsigned char *additional, size_t add_len )
 {
     int ret = 0;
     ctr_drbg_context *ctx = (ctr_drbg_context *) p_rng;
@@ -275,7 +289,7 @@ int ctr_drbg_random_with_add( void *p_rng,
     if( add_len > 0 )
     {
         block_cipher_df( add_input, additional, add_len );
-        ctr_drbg_update( ctx, add_input );
+        ctr_drbg_update_internal( ctx, add_input );
     }
 
     while( output_len > 0 )
@@ -303,7 +317,7 @@ int ctr_drbg_random_with_add( void *p_rng,
         output_len -= use_len;
     }
 
-    ctr_drbg_update( ctx, add_input );
+    ctr_drbg_update_internal( ctx, add_input );
 
     ctx->reseed_counter++;
 
@@ -360,8 +374,9 @@ unsigned char result_nopr[16] =
       0x9d, 0x90, 0x3e, 0x07, 0x7c, 0x6f, 0x21, 0x8f };
 
 int test_offset;
-int ctr_drbg_self_test_entropy( void *p, unsigned char *buf, size_t len )
+int ctr_drbg_self_test_entropy( void *data, unsigned char *buf, size_t len )
 {
+    unsigned char *p = data;
     memcpy( buf, p + test_offset, len );
     test_offset += 32;
     return( 0 );

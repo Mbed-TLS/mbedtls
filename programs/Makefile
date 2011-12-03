@@ -19,7 +19,9 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	pkey/rsa_sign_pss	pkey/rsa_verify_pss \
 	ssl/ssl_client1		ssl/ssl_client2		\
 	ssl/ssl_server		ssl/ssl_fork_server	\
-	ssl/ssl_mail_client	random/gen_random	\
+	ssl/ssl_mail_client	random/gen_entropy	\
+	random/gen_random_havege				\
+	random/gen_random_ctr_drbg				\
 	test/ssl_cert_test	test/benchmark		\
 	test/selftest		test/ssl_test		\
 	x509/cert_app		x509/crl_app
@@ -104,9 +106,17 @@ pkey/rsa_encrypt: pkey/rsa_encrypt.c ../library/libpolarssl.a
 	echo   "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_encrypt.c    $(LDFLAGS) -o $@
 
-random/gen_random: random/gen_random.c ../library/libpolarssl.a
-	echo   "  CC    random/gen_random.c"
-	$(CC) $(CFLAGS) $(OFLAGS) random/gen_random.c $(LDFLAGS) -o $@
+random/gen_entropy: random/gen_entropy.c ../library/libpolarssl.a
+	echo   "  CC    random/gen_entropy.c"
+	$(CC) $(CFLAGS) $(OFLAGS) random/gen_entropy.c $(LDFLAGS) -o $@
+
+random/gen_random_havege: random/gen_random_havege.c ../library/libpolarssl.a
+	echo   "  CC    random/gen_random_havege.c"
+	$(CC) $(CFLAGS) $(OFLAGS) random/gen_random_havege.c $(LDFLAGS) -o $@
+
+random/gen_random_ctr_drbg: random/gen_random_ctr_drbg.c ../library/libpolarssl.a
+	echo   "  CC    random/gen_random_ctr_drbg.c"
+	$(CC) $(CFLAGS) $(OFLAGS) random/gen_random_ctr_drbg.c $(LDFLAGS) -o $@
 
 ssl/ssl_client1: ssl/ssl_client1.c ../library/libpolarssl.a
 	echo   "  CC    ssl/ssl_client1.c"

@@ -22,18 +22,18 @@ DLEXT=so
 # Windows shared library extension:
 # DLEXT=dll
 
-OBJS=	aes.o		arc4.o		asn1parse.o	\
-		base64.o	bignum.o	camellia.o	\
+OBJS=	aes.o		arc4.o		asn1parse.o		\
+		base64.o	bignum.o	camellia.o		\
 		certs.o		cipher.o	cipher_wrap.o	\
-		ctr_drbg.o	debug.o	\
-		des.o		dhm.o		havege.o	\
-		error.o \
-		md.o		md_wrap.o	md2.o		\
-		md4.o		md5.o		net.o		\
-		padlock.o	pem.o		pkcs11.o	\
-		rsa.o		sha1.o		sha2.o		\
-		sha4.o		ssl_cli.o	ssl_srv.o	\
-		ssl_tls.o	timing.o	version.o	\
+		ctr_drbg.o	debug.o		des.o			\
+		dhm.o		entropy.o	entropy_poll.o	\
+		error.o		havege.o					\
+		md.o		md_wrap.o	md2.o			\
+		md4.o		md5.o		net.o			\
+		padlock.o	pem.o		pkcs11.o		\
+		rsa.o		sha1.o		sha2.o			\
+		sha4.o		ssl_cli.o	ssl_srv.o		\
+		ssl_tls.o	timing.o	version.o		\
 		x509parse.o	xtea.o
 	
 

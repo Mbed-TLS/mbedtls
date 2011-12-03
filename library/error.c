@@ -59,6 +59,10 @@
 #include "polarssl/dhm.h"
 #endif
 
+#if defined(POLARSSL_ENTROPY_C)
+#include "polarssl/entropy.h"
+#endif
+
 #if defined(POLARSSL_MD_C)
 #include "polarssl/md.h"
 #endif
@@ -390,6 +394,13 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_DES_INVALID_INPUT_LENGTH) )
         snprintf( buf, buflen, "DES - The data input has an invalid length" );
 #endif /* POLARSSL_DES_C */
+
+#if defined(POLARSSL_ENTROPY_C)
+    if( use_ret == -(POLARSSL_ERR_ENTROPY_SOURCE_FAILED) )
+        snprintf( buf, buflen, "ENTROPY - Critical entropy source failure" );
+    if( use_ret == -(POLARSSL_ERR_ENTROPY_MAX_SOURCES) )
+        snprintf( buf, buflen, "ENTROPY - No more sources can be added" );
+#endif /* POLARSSL_ENTROPY_C */
 
 #if defined(POLARSSL_NET_C)
     if( use_ret == -(POLARSSL_ERR_NET_UNKNOWN_HOST) )

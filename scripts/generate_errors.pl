@@ -9,7 +9,7 @@ my $error_file = shift or die "Missing destination file";
 my $error_format_file = $data_dir.'/error.fmt';
 
 my @low_level_modules = ( "AES", "ASN1", "CAMELLIA", "BIGNUM", "BASE64", "XTEA",
-                          "PADLOCK", "DES", "NET", "CTR_DRBG" );
+                          "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "MD", "CIPHER", "SSL" );
 
 my $line_separator = $/;

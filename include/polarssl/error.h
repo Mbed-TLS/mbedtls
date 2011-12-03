@@ -58,6 +58,7 @@
  * DES       1  0x0032-0x0032
  * NET      11  0x0040-0x0054
  * CTR_DBRG  3  0x0034-0x0038
+ * ENTROPY   2  0x003A-0x003C
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
  * Name     ID  Nr of Errors

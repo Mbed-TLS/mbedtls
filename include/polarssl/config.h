@@ -155,6 +155,17 @@
 #define POLARSSL_FS_IO
 
 /**
+ * \def POLARSSL_NO_PLATFORM_ENTROPY
+ *
+ * Do not use built-in platform entropy functions.
+ * This is useful if your platform does not support
+ * standards like the /dev/urandom or Windows CryptoAPI.
+ *
+ * Uncomment this macro to disable the built-in platform entropy functions.
+#define POLARSSL_NO_PLATFORM_ENTROPY
+ */
+
+/**
  * \def POLARSSL_PKCS1_V21
  *
  * Requires: POLARSSL_MD_C, POLARSSL_RSA_C
@@ -208,6 +219,7 @@
  * Module:  library/aes.c
  * Caller:  library/ssl_tls.c
  *          library/pem.c
+ *          library/ctr_drbg.c
  *
  * This module enables the following ciphersuites:
  *      SSL_RSA_AES_128_SHA
@@ -314,6 +326,8 @@
  * Module:  library/ctr_drbg.c
  * Caller:
  *
+ * Requires: POLARSSL_AES_C
+ *
  * This module provides the CTR_DRBG AES-256 random number generator.
  */
 #define POLARSSL_CTR_DRBG_C
@@ -361,6 +375,20 @@
  *      SSL_EDH_RSA_CAMELLIA_256_SHA
  */
 #define POLARSSL_DHM_C
+
+/**
+ * \def POLARSSL_ENTROPY_C
+ *
+ * Enable the platform-specific entropy code.
+ *
+ * Module:  library/entropy.c
+ * Caller:
+ *
+ * Requires: POLARSSL_SHA4_C
+ *
+ * This module provides a generic entropy pool
+ */
+#define POLARSSL_ENTROPY_C
 
 /**
  * \def POLARSSL_ERROR_C

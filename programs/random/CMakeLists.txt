@@ -1,4 +1,4 @@
-add_executable(gen_random_havege gen_random.c)
+add_executable(gen_random_havege gen_random_havege.c)
 target_link_libraries(gen_random_havege polarssl)
 
 add_executable(gen_random_ctr_drbg gen_random_ctr_drbg.c)

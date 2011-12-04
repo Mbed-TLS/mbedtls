@@ -50,7 +50,8 @@
 #include "polarssl/error.h"
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
-#include "polarssl/havege.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
 
@@ -100,17 +101,19 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C)
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
+    !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_RSA_C not defined.\n");
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -340,7 +343,10 @@ int main( int argc, char *argv[] )
     unsigned char base[1024];
 #endif
     char hostname[32];
-    havege_state hs;
+    char *pers = "ssl_mail_client";
+
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
     ssl_context ssl;
     ssl_session ssn;
     x509_cert cacert;
@@ -466,12 +472,23 @@ int main( int argc, char *argv[] )
     /*
      * 0. Initialize the RNG and the session data
      */
-    havege_init( &hs );
+    printf( "\n  . Seeding the random number generator..." );
+    fflush( stdout );
+
+    entropy_init( &entropy );
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+    {
+        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        goto exit;
+    }
+
+    printf( " ok\n" );
 
     /*
      * 1.1. Load the trusted CA
      */
-    printf( "\n  . Loading the CA root certificate ..." );
+    printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
 
 #if defined(POLARSSL_FS_IO)
@@ -568,8 +585,6 @@ int main( int argc, char *argv[] )
     printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
-    havege_init( &hs );
-
     if( ( ret = ssl_init( &ssl ) ) != 0 )
     {
         printf( " failed\n  ! ssl_init returned %d\n\n", ret );
@@ -581,7 +596,7 @@ int main( int argc, char *argv[] )
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
     ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );
 
-    ssl_set_rng( &ssl, havege_random, &hs );
+    ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );
     ssl_set_bio( &ssl, net_recv, &server_fd,
             net_send, &server_fd );
@@ -799,5 +814,6 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_SSL_TLS_C &&
-          POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C */
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&
+          POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C **
+          POLARSSL_CTR_DRBG_C */

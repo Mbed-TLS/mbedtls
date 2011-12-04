@@ -33,7 +33,8 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/havege.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
 #include "polarssl/x509.h"
@@ -82,19 +83,21 @@ void my_debug( void *ctx, int level, const char *str )
     "    permissive=%%d       default: 0 (disabled)\n"  \
     "\n"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO) ||  \
+    !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -102,13 +105,15 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, server_fd;
     unsigned char buf[1024];
-    havege_state hs;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
     ssl_context ssl;
     ssl_session ssn;
     x509_cert clicert;
     rsa_context rsa;
     int i, j, n;
     char *p, *q;
+    char *pers = "cert_app";
 
     /*
      * Set to sane values
@@ -232,7 +237,16 @@ int main( int argc, char *argv[] )
         /*
          * 1. Initialize the RNG and the session data
          */
-        havege_init( &hs );
+        printf( "\n  . Seeding the random number generator..." );
+        fflush( stdout );
+
+        entropy_init( &entropy );
+        if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+        {
+            printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+            goto exit;
+        }
 
         /*
          * 2. Start the connection
@@ -260,7 +274,7 @@ int main( int argc, char *argv[] )
         ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
         ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
 
-        ssl_set_rng( &ssl, havege_random, &hs );
+        ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
         ssl_set_dbg( &ssl, my_debug, stdout );
         ssl_set_bio( &ssl, net_recv, &server_fd,
                 net_send, &server_fd );
@@ -321,6 +335,6 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_SSL_TLS_C &&
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&
           POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C &&
-          POLARSSL_X509_PARSE_C && POLARSSL_FS_IO */
+          POLARSSL_X509_PARSE_C && POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */

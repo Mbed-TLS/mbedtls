@@ -35,6 +35,7 @@ Changes
    * Changed the used random function pointer to more flexible format. Renamed
      havege_rand() to havege_random() to prevent mistakes. Lots of changes as
 	 a consequence in library code and programs
+   * Moved all examples programs to use the new entropy and CTR_DRBG
    * Added permissive certificate parsing to x509parse_crt() and
      x509parse_crtfile(). With permissive parsing the parsing does not stop on
 	 encountering a parse-error

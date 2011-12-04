@@ -37,23 +37,25 @@
 #include "polarssl/dhm.h"
 #include "polarssl/rsa.h"
 #include "polarssl/sha1.h"
-#include "polarssl/havege.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
 
 #define SERVER_PORT 11999
 #define PLAINTEXT "==Hello there!=="
 
 #if !defined(POLARSSL_AES_C) || !defined(POLARSSL_DHM_C) ||     \
-    !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_NET_C) ||  \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_NET_C) ||  \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_SHA1_C) ||    \
-    !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_FS_IO) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_AES_C and/or POLARSSL_DHM_C and/or POLARSSL_HAVEGE_C "
+    printf("POLARSSL_AES_C and/or POLARSSL_DHM_C and/or POLARSSL_ENTROPY_C "
            "and/or POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_SHA1_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_CTR_DBRG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -69,8 +71,10 @@ int main( int argc, char *argv[] )
     unsigned char buf[1024];
     unsigned char hash[20];
     unsigned char buf2[2];
+    char *pers = "dh_server";
 
-    havege_state hs;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
     rsa_context rsa;
     dhm_context dhm;
     aes_context aes;
@@ -87,7 +91,13 @@ int main( int argc, char *argv[] )
     printf( "\n  . Seeding the random number generator" );
     fflush( stdout );
 
-    havege_init( &hs );
+    entropy_init( &entropy );
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+    {
+        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        goto exit;
+    }
 
     /*
      * 2a. Read the server's private RSA key
@@ -172,7 +182,7 @@ int main( int argc, char *argv[] )
     memset( buf, 0, sizeof( buf ) );
 
     if( ( ret = dhm_make_params( &dhm, 256, buf, &n,
-                                 havege_random, &hs ) ) != 0 )
+                                 ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         printf( " failed\n  ! dhm_make_params returned %d\n\n", ret );
         goto exit;
@@ -276,6 +286,6 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_AES_C && POLARSSL_DHM_C && POLARSSL_HAVEGE_C &&
+#endif /* POLARSSL_AES_C && POLARSSL_DHM_C && POLARSSL_ENTROPY_C &&
           POLARSSL_NET_C && POLARSSL_RSA_C && POLARSSL_SHA1_C &&
-          POLARSSL_FS_IO */
+          POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */

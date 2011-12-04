@@ -88,4 +88,4 @@ cleanup:
 
     return( ret );
 }
-#endif /* POLARSSL_HAVEGE_C && POLARSSL_ENTROPY_C */
+#endif /* POLARSSL_CTR_DRBG_C && POLARSSL_ENTROPY_C */

@@ -31,7 +31,8 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/havege.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
 #include "polarssl/bignum.h"
 #include "polarssl/x509.h"
 #include "polarssl/rsa.h"
@@ -39,17 +40,17 @@
 #define KEY_SIZE 1024
 #define EXPONENT 65537
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||   \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_GENPRIME) ||      \
-    !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_FS_IO) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_RSA_C and/or POLARSSL_GENPRIME and/or "
-           "POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_FS_IO and/or POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -57,9 +58,11 @@ int main( int argc, char *argv[] )
 {
     int ret;
     rsa_context rsa;
-    havege_state hs;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
     FILE *fpub  = NULL;
     FILE *fpriv = NULL;
+    char *pers = "rsa_genkey";
 
     ((void) argc);
     ((void) argv);
@@ -67,14 +70,21 @@ int main( int argc, char *argv[] )
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    havege_init( &hs );
+    entropy_init( &entropy );
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+    {
+        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        goto exit;
+    }
 
     printf( " ok\n  . Generating the RSA key [ %d-bit ]...", KEY_SIZE );
     fflush( stdout );
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
     
-    if( ( ret = rsa_gen_key( &rsa, havege_random, &hs, KEY_SIZE, EXPONENT ) ) != 0 )
+    if( ( ret = rsa_gen_key( &rsa, ctr_drbg_random, &ctr_drbg, KEY_SIZE,
+                             EXPONENT ) ) != 0 )
     {
         printf( " failed\n  ! rsa_gen_key returned %d\n\n", ret );
         goto exit;
@@ -151,5 +161,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_RSA_C &&
-          POLARSSL_GENPRIME && POLARSSL_FS_IO */
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_RSA_C &&
+          POLARSSL_GENPRIME && POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */

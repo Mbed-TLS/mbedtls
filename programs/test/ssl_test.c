@@ -35,7 +35,8 @@
 
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
-#include "polarssl/havege.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
 #include "polarssl/timing.h"
 #include "polarssl/certs.h"
 
@@ -123,19 +124,19 @@ void my_debug( void *ctx, int level, const char *str )
         fprintf( stderr, "%s", str );
 }
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
     !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_NET_C) ||     \
-    !defined(POLARSSL_RSA_C)
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
-           "POLARSSL_RSA_C not defined.\n");
+           "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -160,8 +161,11 @@ static int ssl_test( struct options *opt )
     unsigned char *read_buf = NULL;
     unsigned char *write_buf = NULL;
 
+    char *pers = "ssl_test";
+
     struct hr_time t;
-    havege_state hs;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
     ssl_context ssl;
     ssl_session ssn;
     x509_cert srvcert;
@@ -169,7 +173,14 @@ static int ssl_test( struct options *opt )
 
     ret = 1;
 
-    havege_init( &hs );
+    entropy_init( &entropy );
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+    {
+        printf( "  ! ctr_drbg_init returned %d\n", ret );
+        goto exit;
+    }
+
     get_timer( &t, 1 );
 
     memset( read_state, 0, sizeof( read_state ) );
@@ -257,7 +268,7 @@ static int ssl_test( struct options *opt )
 
     ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
 
-    ssl_set_rng( &ssl, havege_random, &hs );
+    ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, opt );
     ssl_set_bio( &ssl, net_recv, &client_fd,
                        net_send, &client_fd );
@@ -594,6 +605,6 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_SSL_TLS_C &&
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&
           POLARSSL_SSL_SRV_C && POLARSSL_SSL_CLI_C && POLARSSL_NET_C &&
-          POLARSSL_RSA_C */
+          POLARSSL_RSA_C && POLARSSL_CTR_DRBG_C */

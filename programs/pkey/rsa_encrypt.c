@@ -33,17 +33,20 @@
 #include "polarssl/config.h"
 
 #include "polarssl/rsa.h"
-#include "polarssl/havege.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_HAVEGE_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_FS_IO) || \
+    !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_HAVEGE_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_ENTROPY_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -53,11 +56,11 @@ int main( int argc, char *argv[] )
     int ret;
     size_t i;
     rsa_context rsa;
-    havege_state hs;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
     unsigned char input[1024];
     unsigned char buf[512];
-
-    havege_init( &hs );
+    char *pers = "rsa_encrypt";
 
     ret = 1;
 
@@ -69,6 +72,17 @@ int main( int argc, char *argv[] )
         printf( "\n" );
 #endif
 
+        goto exit;
+    }
+
+    printf( "\n  . Seeding the random number generator..." );
+    fflush( stdout );
+
+    entropy_init( &entropy );
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+    {
+        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
@@ -110,7 +124,9 @@ int main( int argc, char *argv[] )
     printf( "\n  . Generating the RSA encrypted value" );
     fflush( stdout );
 
-    if( ( ret = rsa_pkcs1_encrypt( &rsa, havege_random, &hs, RSA_PUBLIC, strlen( argv[1] ), input, buf ) ) != 0 )
+    if( ( ret = rsa_pkcs1_encrypt( &rsa, ctr_drbg_random, &ctr_drbg,
+                                   RSA_PUBLIC, strlen( argv[1] ),
+                                   input, buf ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
         goto exit;
@@ -143,5 +159,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_HAVEGE_C &&
-          POLARSSL_FS_IO */
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_ENTROPY_C &&
+          POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */

@@ -32,7 +32,8 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/havege.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
 #include "polarssl/md.h"
 #include "polarssl/rsa.h"
 #include "polarssl/sha1.h"
@@ -42,17 +43,19 @@
 #define snprintf _snprintf
 #endif
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_SHA1_C) ||        \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO) ||  \
+    !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_HAVEGE_C and/or "
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_RSA_C and/or POLARSSL_SHA1_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -61,10 +64,12 @@ int main( int argc, char *argv[] )
     FILE *f;
     int ret;
     rsa_context rsa;
-    havege_state hs;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
     unsigned char hash[20];
     unsigned char buf[512];
     char filename[512];
+    char *pers = "rsa_sign_pss";
 
     ret = 1;
 
@@ -79,10 +84,20 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    printf( "\n  . Seeding the random number generator..." );
+    fflush( stdout );
+
+    entropy_init( &entropy );
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+    {
+        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        goto exit;
+    }
+
     printf( "\n  . Reading private key from '%s'", argv[1] );
     fflush( stdout );
 
-    havege_init( &hs );
     rsa_init( &rsa, RSA_PKCS_V21, POLARSSL_MD_SHA1 );
 
     if( ( ret = x509parse_keyfile( &rsa, argv[1], "" ) ) != 0 )
@@ -105,7 +120,8 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = rsa_pkcs1_sign( &rsa, havege_random, &hs, RSA_PRIVATE, SIG_RSA_SHA1,
+    if( ( ret = rsa_pkcs1_sign( &rsa, ctr_drbg_random, &ctr_drbg,
+                                RSA_PRIVATE, SIG_RSA_SHA1,
                                 20, hash, buf ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_sign returned %d\n\n", ret );
@@ -143,5 +159,6 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_HAVEGE_C && POLARSSL_RSA_C &&
-          POLARSSL_SHA1_C && POLARSSL_X509_PARSE_C && POLARSSL_FS_IO */
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_RSA_C &&
+          POLARSSL_SHA1_C && POLARSSL_X509_PARSE_C && POLARSSL_FS_IO &&
+          POLARSSL_CTR_DRBG_C */

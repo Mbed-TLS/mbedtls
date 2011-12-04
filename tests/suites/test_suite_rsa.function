@@ -6,7 +6,8 @@ BEGIN_HEADER
 #include <polarssl/sha1.h>
 #include <polarssl/sha2.h>
 #include <polarssl/sha4.h>
-#include <polarssl/havege.h>
+#include <polarssl/entropy.h>
+#include <polarssl/ctr_drbg.h>
 END_HEADER
 
 BEGIN_DEPENDENCIES
@@ -509,12 +510,17 @@ BEGIN_CASE
 rsa_gen_key:nrbits:exponent:result
 {
     rsa_context ctx;
-    havege_state hs;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
+    char *pers = "test_suite_rsa";
 
-    havege_init( &hs );
+    entropy_init( &entropy );
+    TEST_ASSERT( ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                                (unsigned char *) pers, strlen( pers ) ) == 0 );
+
     rsa_init( &ctx, 0, 0 );
 
-    TEST_ASSERT( rsa_gen_key( &ctx, havege_random, &hs, {nrbits}, {exponent} ) == {result} );
+    TEST_ASSERT( rsa_gen_key( &ctx, ctr_drbg_random, &ctr_drbg, {nrbits}, {exponent} ) == {result} );
     if( {result} == 0 )
     {
         TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );

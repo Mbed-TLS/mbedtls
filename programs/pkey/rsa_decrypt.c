@@ -56,7 +56,9 @@ int main( int argc, char *argv[] )
     unsigned char buf[512];
     ((void) argv);
 
+    memset(result, 0, sizeof( result ) );
     ret = 1;
+
     if( argc != 1 )
     {
         printf( "usage: rsa_decrypt\n" );

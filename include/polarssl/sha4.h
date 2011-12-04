@@ -31,10 +31,10 @@
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
   #define UL64(x) x##ui64
-  #define int64 __int64
+  #define long64 __int64
 #else
   #define UL64(x) x##ULL
-  #define int64 long long
+  #define long64 long long
 #endif
 
 /**
@@ -42,8 +42,8 @@
  */
 typedef struct
 {
-    unsigned int64 total[2];    /*!< number of bytes processed  */
-    unsigned int64 state[8];    /*!< intermediate digest state  */
+    unsigned long64 total[2];    /*!< number of bytes processed  */
+    unsigned long64 state[8];    /*!< intermediate digest state  */
     unsigned char buffer[128];  /*!< data block being processed */
 
     unsigned char ipad[128];    /*!< HMAC: inner padding        */

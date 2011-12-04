@@ -44,14 +44,14 @@
 #ifndef GET_UINT64_BE
 #define GET_UINT64_BE(n,b,i)                            \
 {                                                       \
-    (n) = ( (unsigned int64) (b)[(i)    ] << 56 )       \
-        | ( (unsigned int64) (b)[(i) + 1] << 48 )       \
-        | ( (unsigned int64) (b)[(i) + 2] << 40 )       \
-        | ( (unsigned int64) (b)[(i) + 3] << 32 )       \
-        | ( (unsigned int64) (b)[(i) + 4] << 24 )       \
-        | ( (unsigned int64) (b)[(i) + 5] << 16 )       \
-        | ( (unsigned int64) (b)[(i) + 6] <<  8 )       \
-        | ( (unsigned int64) (b)[(i) + 7]       );      \
+    (n) = ( (unsigned long64) (b)[(i)    ] << 56 )       \
+        | ( (unsigned long64) (b)[(i) + 1] << 48 )       \
+        | ( (unsigned long64) (b)[(i) + 2] << 40 )       \
+        | ( (unsigned long64) (b)[(i) + 3] << 32 )       \
+        | ( (unsigned long64) (b)[(i) + 4] << 24 )       \
+        | ( (unsigned long64) (b)[(i) + 5] << 16 )       \
+        | ( (unsigned long64) (b)[(i) + 6] <<  8 )       \
+        | ( (unsigned long64) (b)[(i) + 7]       );      \
 }
 #endif
 
@@ -72,7 +72,7 @@
 /*
  * Round constants
  */
-static const unsigned int64 K[80] =
+static const unsigned long64 K[80] =
 {
     UL64(0x428A2F98D728AE22),  UL64(0x7137449123EF65CD),
     UL64(0xB5C0FBCFEC4D3B2F),  UL64(0xE9B5DBA58189DBBC),
@@ -155,8 +155,8 @@ void sha4_starts( sha4_context *ctx, int is384 )
 static void sha4_process( sha4_context *ctx, const unsigned char data[128] )
 {
     int i;
-    unsigned int64 temp1, temp2, W[80];
-    unsigned int64 A, B, C, D, E, F, G, H;
+    unsigned long64 temp1, temp2, W[80];
+    unsigned long64 A, B, C, D, E, F, G, H;
 
 #define  SHR(x,n) (x >> n)
 #define ROTR(x,n) (SHR(x,n) | (x << (64 - n)))
@@ -235,9 +235,9 @@ void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
     left = (unsigned int) (ctx->total[0] & 0x7F);
     fill = 128 - left;
 
-    ctx->total[0] += (unsigned int64) ilen;
+    ctx->total[0] += (unsigned long64) ilen;
 
-    if( ctx->total[0] < (unsigned int64) ilen )
+    if( ctx->total[0] < (unsigned long64) ilen )
         ctx->total[1]++;
 
     if( left && ilen >= fill )
@@ -282,7 +282,7 @@ static const unsigned char sha4_padding[128] =
 void sha4_finish( sha4_context *ctx, unsigned char output[64] )
 {
     size_t last, padn;
-    unsigned int64 high, low;
+    unsigned long64 high, low;
     unsigned char msglen[16];
 
     high = ( ctx->total[0] >> 61 )

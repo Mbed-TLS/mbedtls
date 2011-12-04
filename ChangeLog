@@ -52,6 +52,7 @@ Bugfix
    * If certificate serial is longer than 32 octets, serial number is now
      appended with '....' after first 28 octets
    * Improved build support for s390x and sparc64 in bignum.h
+   * Fixed MS Visual C++ name clash with int64 in sha4.h
 
 = Version 1.0.0 released on 2011-07-27
 Features

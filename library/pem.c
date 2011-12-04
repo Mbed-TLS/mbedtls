@@ -345,6 +345,8 @@ void pem_free( pem_context *ctx )
 
     if( ctx->info )
         free( ctx->info );
+
+    memset( ctx, 0, sizeof( pem_context ) );
 }
 
 #endif

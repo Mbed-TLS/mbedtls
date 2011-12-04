@@ -47,6 +47,7 @@
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_PORT         4433
 #define DFL_DEBUG_LEVEL         0
+#define DFL_PERMISSIVE          0
 
 /*
  * global options
@@ -58,6 +59,7 @@ struct options
     char *server_name;          /* hostname of the server (client only) */
     int server_port;            /* port on which the ssl service runs   */
     int debug_level;            /* level of debugging                   */
+    int permissive;             /* permissive parsing                   */
 } opt;
 
 void my_debug( void *ctx, int level, const char *str )
@@ -77,6 +79,7 @@ void my_debug( void *ctx, int level, const char *str )
     "    server_name=%%s      default: localhost\n"     \
     "    server_port=%%d      default: 4433\n"          \
     "    debug_level=%%d      default: 0 (disabled)\n"  \
+    "    permissive=%%d       default: 0 (disabled)\n"  \
     "\n"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_HAVEGE_C) ||   \
@@ -128,6 +131,7 @@ int main( int argc, char *argv[] )
     opt.server_name         = DFL_SERVER_NAME;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
+    opt.permissive          = DFL_PERMISSIVE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -169,6 +173,12 @@ int main( int argc, char *argv[] )
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
                 goto usage;
         }
+        else if( strcmp( p, "permissive" ) == 0 )
+        {
+            opt.permissive = atoi( q );
+            if( opt.permissive < 0 || opt.permissive > 1 )
+                goto usage;
+        }
         else
             goto usage;
     }
@@ -185,7 +195,7 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the certificate(s) ..." );
         fflush( stdout );
 
-        ret = x509parse_crtfile( &crt, opt.filename );
+        ret = x509parse_crtfile( &crt, opt.filename, opt.permissive );
 
         if( ret != 0 )
         {

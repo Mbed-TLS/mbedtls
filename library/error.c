@@ -297,8 +297,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "X509 - Unsupported RSA key version" );
         if( use_ret == -(POLARSSL_ERR_X509_KEY_INVALID_FORMAT) )
             snprintf( buf, buflen, "X509 - Invalid RSA key tag or value" );
-        if( use_ret == -(POLARSSL_ERR_X509_POINT_ERROR) )
-            snprintf( buf, buflen, "X509 - Not used" );
+        if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT) )
+            snprintf( buf, buflen, "X509 - Format not recognized as DER or PEM" );
         if( use_ret == -(POLARSSL_ERR_X509_VALUE_TO_LENGTH) )
             snprintf( buf, buflen, "X509 - Not used" );
 #endif /* POLARSSL_X509_PARSE_C */

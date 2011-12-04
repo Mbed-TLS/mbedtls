@@ -35,6 +35,9 @@ Changes
    * Changed the used random function pointer to more flexible format. Renamed
      havege_rand() to havege_random() to prevent mistakes. Lots of changes as
 	 a consequence in library code and programs
+   * Added permissive certificate parsing to x509parse_crt() and
+     x509parse_crtfile(). With permissive parsing the parsing does not stop on
+	 encountering a parse-error
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

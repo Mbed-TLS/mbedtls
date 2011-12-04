@@ -1006,20 +1006,13 @@ static int x509_get_sig_alg( const x509_buf *sig_oid, int *sig_alg )
 }
 
 /*
- * Parse one or more certificates and add them to the chained list
+ * Parse and fill a single X.509 certificate in DER format
  */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
+int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
     unsigned char *p, *end;
-    x509_cert *crt;
-#if defined(POLARSSL_PEM_C)
-    pem_context pem;
-    size_t use_len;
-#endif
-
-    crt = chain;
 
     /*
      * Check for valid input
@@ -1027,69 +1020,6 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
     if( crt == NULL || buf == NULL )
         return( 1 );
 
-    while( crt->version != 0 && crt->next != NULL )
-        crt = crt->next;
-
-    /*
-     * Add new certificate on the end of the chain if needed.
-     */
-    if ( crt->version != 0 && crt->next == NULL)
-    {
-        crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
-
-        if( crt->next == NULL )
-        {
-            x509_free( crt );
-            return( 1 );
-        }
-
-        crt = crt->next;
-        memset( crt, 0, sizeof( x509_cert ) );
-    }
-
-#if defined(POLARSSL_PEM_C)
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
-                           "-----BEGIN CERTIFICATE-----",
-                           "-----END CERTIFICATE-----",
-                           buf, NULL, 0, &use_len );
-
-    if( ret == 0 )
-    {
-        /*
-         * Was PEM encoded
-         */
-        buflen -= use_len;
-        buf += use_len;
-
-        /*
-         * Steal PEM buffer
-         */
-        p = pem.buf;
-        pem.buf = NULL;
-        len = pem.buflen;
-        pem_free( &pem );
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
-    else
-    {
-        /*
-         * nope, copy the raw DER data
-         */
-        p = (unsigned char *) malloc( len = buflen );
-
-        if( p == NULL )
-            return( 1 );
-
-        memcpy( p, buf, buflen );
-
-        buflen = 0;
-    }
-#else
     p = (unsigned char *) malloc( len = buflen );
 
     if( p == NULL )
@@ -1098,7 +1028,6 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
     memcpy( p, buf, buflen );
 
     buflen = 0;
-#endif
 
     crt->raw.p = p;
     crt->raw.len = len;
@@ -1324,23 +1253,154 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
-    if( buflen > 0 )
+    return( 0 );
+}
+
+/*
+ * Parse one or more PEM certificates from a buffer and add them to the chained list
+ */
+int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
+                   int permissive )
+{
+    int ret, success = 0, first_error = 0;
+    x509_cert *crt, *prev = NULL;
+    int buf_format = X509_FORMAT_DER;
+
+    crt = chain;
+
+    /*
+     * Check for valid input
+     */
+    if( crt == NULL || buf == NULL )
+        return( 1 );
+
+    while( crt->version != 0 && crt->next != NULL )
+    {
+        prev = crt;
+        crt = crt->next;
+    }
+
+    /*
+     * Add new certificate on the end of the chain if needed.
+     */
+    if ( crt->version != 0 && crt->next == NULL)
     {
         crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
 
         if( crt->next == NULL )
-        {
-            x509_free( crt );
             return( 1 );
-        }
 
+        prev = crt;
         crt = crt->next;
         memset( crt, 0, sizeof( x509_cert ) );
-
-        return( x509parse_crt( crt, buf, buflen ) );
     }
 
-    return( 0 );
+    /*
+     * Determine buffer content. Buffer contains either one DER certificate or
+     * one or more PEM certificates.
+     */
+#if defined(POLARSSL_PEM_C)
+    if( strstr( (char *) buf, "-----BEGIN CERTIFICATE-----" ) != NULL )
+        buf_format = X509_FORMAT_PEM;
+#endif
+
+    if( buf_format == X509_FORMAT_DER )
+        return x509parse_crt_der( crt, buf, buflen );
+    
+#if defined(POLARSSL_PEM_C)
+    if( buf_format == X509_FORMAT_PEM )
+    {
+        pem_context pem;
+
+        while( buflen > 0 )
+        {
+            size_t use_len;
+            pem_init( &pem );
+
+            ret = pem_read_buffer( &pem,
+                           "-----BEGIN CERTIFICATE-----",
+                           "-----END CERTIFICATE-----",
+                           buf, NULL, 0, &use_len );
+
+            if( ret == 0 )
+            {
+                /*
+                 * Was PEM encoded
+                 */
+                buflen -= use_len;
+                buf += use_len;
+            }
+            else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+            {
+                pem_free( &pem );
+
+                if( first_error == 0 )
+                    first_error = ret;
+
+                continue;
+            }
+            else
+                break;
+
+            ret = x509parse_crt_der( crt, pem.buf, pem.buflen );
+
+            pem_free( &pem );
+
+            if( ret != 0 )
+            {
+                /*
+                 * quit parsing on a memory error or if in non-permissive parsing mode
+                 */
+                if( ret == 1 || permissive != 1 )
+                {
+                    if( prev )
+                        prev->next = NULL;
+
+                    if( crt != chain )
+                        free( crt );
+
+                    return( ret );
+                }
+
+                if( first_error == 0 )
+                    first_error = ret;
+
+                memset( crt, 0, sizeof( x509_cert ) );
+                continue;
+            }
+
+            success = 1;
+
+            /*
+             * Add new certificate to the list
+             */
+            crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
+
+            if( crt->next == NULL )
+                return( 1 );
+
+            prev = crt;
+            crt = crt->next;
+            memset( crt, 0, sizeof( x509_cert ) );
+        }
+    }
+#endif
+
+    if( crt->version == 0 )
+    {
+        if( prev )
+            prev->next = NULL;
+
+        if( crt != chain )
+            free( crt );
+    }
+
+    if( success )
+        return( 0 );
+    else if( first_error )
+        return( first_error );
+    else
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT );
 }
 
 /*
@@ -1667,7 +1727,7 @@ int load_file( const char *path, unsigned char **buf, size_t *n )
 /*
  * Load one or more certificates and add them to the chained list
  */
-int x509parse_crtfile( x509_cert *chain, const char *path )
+int x509parse_crtfile( x509_cert *chain, const char *path, int permissive )
 {
     int ret;
     size_t n;
@@ -1676,7 +1736,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path )
     if ( load_file( path, &buf, &n ) )
         return( 1 );
 
-    ret = x509parse_crt( chain, buf, n );
+    ret = x509parse_crt( chain, buf, n, permissive );
 
     memset( buf, 0, n + 1 );
     free( buf );
@@ -3099,7 +3159,7 @@ int x509_self_test( int verbose )
     memset( &clicert, 0, sizeof( x509_cert ) );
 
     ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
-                         strlen( test_cli_crt ) );
+                         strlen( test_cli_crt ), X509_NON_PERMISSIVE );
     if( ret != 0 )
     {
         if( verbose != 0 )
@@ -3111,7 +3171,7 @@ int x509_self_test( int verbose )
     memset( &cacert, 0, sizeof( x509_cert ) );
 
     ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ) );
+                         strlen( test_ca_crt ), X509_NON_PERMISSIVE );
     if( ret != 0 )
     {
         if( verbose != 0 )

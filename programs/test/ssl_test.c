@@ -203,7 +203,7 @@ static int ssl_test( struct options *opt )
         goto exit;
 #else
         ret =  x509parse_crt( &srvcert, (unsigned char *) test_srv_crt,
-                              strlen( test_srv_crt ) );
+                              strlen( test_srv_crt ), X509_NON_PERMISSIVE );
         if( ret != 0 )
         {
             printf( "  !  x509parse_crt returned %d\n\n", ret );
@@ -211,7 +211,7 @@ static int ssl_test( struct options *opt )
         }
 
         ret =  x509parse_crt( &srvcert, (unsigned char *) test_ca_crt,
-                              strlen( test_ca_crt ) );
+                              strlen( test_ca_crt ), X509_NON_PERMISSIVE );
         if( ret != 0 )
         {
             printf( "  !  x509parse_crt returned %d\n\n", ret );

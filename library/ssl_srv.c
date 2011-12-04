@@ -415,6 +415,12 @@ static int ssl_write_server_hello( ssl_context *ssl )
         ssl->resume = 0;
         ssl->state++;
 
+        if( ssl->session == NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "No session struct set" ) );
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        }
+
         if( ( ret = ssl->f_rng( ssl->p_rng, ssl->session->id, n ) ) != 0 )
             return( ret );
     }

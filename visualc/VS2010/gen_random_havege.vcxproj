@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\programs\random\gen_random.c" />
+    <ClCompile Include="..\..\programs\random\gen_random_havege.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="PolarSSL.vcxproj">
@@ -29,7 +29,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CFA36CC7-515C-4E18-8F8F-5B56AB903352}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>gen_random</RootNamespace>
+    <RootNamespace>gen_random_havege</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

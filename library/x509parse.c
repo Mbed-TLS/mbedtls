@@ -52,7 +52,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#if defined(_WIN32_WCE)
+#if defined(_WIN32)
 #include <windows.h>
 #else
 #include <time.h>

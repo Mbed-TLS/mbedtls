@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version Trunk
+= Version 1.1.0 released on 2011-12-05
 Features
    * Added ssl_session_reset() to allow better multi-connection pools of
      SSL contexts without needing to set all non-connection-specific
@@ -53,7 +53,7 @@ Bugfix
      appended with '....' after first 28 octets
    * Improved build support for s390x and sparc64 in bignum.h
    * Fixed MS Visual C++ name clash with int64 in sha4.h
-   * Corrected removal of leading '00:' in printing serial numbers in
+   * Corrected removal of leading "00:" in printing serial numbers in
      certificates and CRLs
 
 = Version 1.0.0 released on 2011-07-27

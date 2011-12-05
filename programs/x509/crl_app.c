@@ -78,7 +78,7 @@ int main( int argc, char *argv[] )
 int main( int argc, char *argv[] )
 {
     int ret = 0;
-    unsigned char buf[1024];
+    unsigned char buf[100000];
     x509_crl crl;
     int i, j, n;
     char *p, *q;

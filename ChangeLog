@@ -53,6 +53,8 @@ Bugfix
      appended with '....' after first 28 octets
    * Improved build support for s390x and sparc64 in bignum.h
    * Fixed MS Visual C++ name clash with int64 in sha4.h
+   * Corrected removal of leading '00:' in printing serial numbers in
+     certificates and CRLs
 
 = Version 1.0.0 released on 2011-07-27
 Features

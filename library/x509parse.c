@@ -2426,6 +2426,9 @@ int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
 
     for( i = 0; i < nr; i++ )
     {
+        if( i == 0 && serial->p[i] == 0x0 )
+            continue;
+
         ret = snprintf( p, n, "%02X%s",
                 serial->p[i], ( i < nr - 1 ) ? ":" : "" );
         SAFE_SNPRINTF();
@@ -2589,7 +2592,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
                         const x509_crl *crl )
 {
     int ret;
-    size_t i, n, nr;
+    size_t n;
     char *p;
     const x509_crl_entry *entry;
 
@@ -2631,22 +2634,15 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
                                prefix );
         SAFE_SNPRINTF();
 
-        nr = ( entry->serial.len <= 32 )
-            ? entry->serial.len  : 32;
+        ret = x509parse_serial_gets( p, n, &entry->serial);
+        SAFE_SNPRINTF();
 
-        for( i = 0; i < nr; i++ )
-        {
-            ret = snprintf( p, n, "%02X%s",
-                    entry->serial.p[i], ( i < nr - 1 ) ? ":" : "" );
-            SAFE_SNPRINTF();
-        }
-        
         ret = snprintf( p, n, " revocation date: " \
                    "%04d-%02d-%02d %02d:%02d:%02d",
                    entry->revocation_date.year, entry->revocation_date.mon,
                    entry->revocation_date.day,  entry->revocation_date.hour,
                    entry->revocation_date.min,  entry->revocation_date.sec );
-    SAFE_SNPRINTF();
+        SAFE_SNPRINTF();
 
         entry = entry->next;
     }

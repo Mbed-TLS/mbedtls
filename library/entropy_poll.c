@@ -50,6 +50,7 @@ int platform_entropy_poll( void *data, unsigned char *output, size_t len,
                            size_t *olen )
 {
     HCRYPTPROV provider;
+    ((void) data);
     *olen = 0;
 
     if( CryptAcquireContext( &provider, NULL, NULL,

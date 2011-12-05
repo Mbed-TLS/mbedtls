@@ -152,7 +152,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
  * \param add_len       Length of additional data
  */
 void ctr_drbg_update( ctr_drbg_context *ctx,
-                     const unsigned char *additional, size_t add_len );
+                      const unsigned char *additional, size_t add_len );
 
 /**
  * \brief               CTR_DRBG generate random with additional update input
@@ -188,6 +188,30 @@ int ctr_drbg_random_with_add( void *p_rng,
  */
 int ctr_drbg_random( void *p_rng,
                      unsigned char *output, size_t output_len );
+
+#if defined(POLARSSL_FS_IO)
+/**
+ * \brief               Write a seed file
+ *
+ * \param path          Name of the file
+ *
+ * \return              0 if successful, 1 on file error, or
+ *                      POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED
+ */
+int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path );
+
+/**
+ * \brief               Read and update a seed file. Seed is added to this
+ *                      instance
+ *
+ * \param path          Name of the file
+ *
+ * \return              0 if successful, 1 on file error,
+ *                      POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
+ *                      POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG
+ */
+int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path );
+#endif
 
 /**
  * \brief               Checkup routine

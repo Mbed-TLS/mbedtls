@@ -34,6 +34,10 @@
 
 #include "polarssl/ctr_drbg.h"
 
+#if defined(POLARSSL_FS_IO)
+#include <stdio.h>
+#endif
+
 int ctr_drbg_init( ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
@@ -328,6 +332,59 @@ int ctr_drbg_random( void *p_rng, unsigned char *output, size_t output_len )
 {
     return ctr_drbg_random_with_add( p_rng, output, output_len, NULL, 0 );
 }
+
+#if defined(POLARSSL_FS_IO)
+int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path )
+{
+    int ret;
+    FILE *f;
+    unsigned char buf[ CTR_DRBG_MAX_INPUT ];
+
+    if( ( f = fopen( path, "wb" ) ) == NULL )
+        return( 1 );
+
+    if( ( ret = ctr_drbg_random( ctx, buf, CTR_DRBG_MAX_INPUT ) ) != 0 )
+        return( ret );
+
+    if( fwrite( buf, 1, CTR_DRBG_MAX_INPUT, f ) != CTR_DRBG_MAX_INPUT )
+    {
+        fclose( f );
+        return( 1 );
+    }
+
+    fclose( f );
+    return( 0 );
+}
+
+int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
+{
+    FILE *f;
+    size_t n;
+    unsigned char buf[ CTR_DRBG_MAX_INPUT ];
+
+    if( ( f = fopen( path, "rb" ) ) == NULL )
+        return( 1 );
+
+    fseek( f, 0, SEEK_END );
+    n = (size_t) ftell( f );
+    fseek( f, 0, SEEK_SET );
+
+    if( n > CTR_DRBG_MAX_INPUT )
+        return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+
+    if( fread( buf, 1, n, f ) != n )
+    {
+        fclose( f );
+        return( 1 );
+    }
+
+    ctr_drbg_update( ctx, buf, n );
+    
+    fclose( f );
+    
+    return( ctr_drbg_write_seed_file( ctx, path ) );
+}
+#endif /* POLARSSL_FS_IO */
 
 #if defined(POLARSSL_SELF_TEST)
 

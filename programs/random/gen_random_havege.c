@@ -83,6 +83,8 @@ int main( int argc, char *argv[] )
     if( t == time( NULL ) )
         t--;
 
+    printf(" \n ");
+
     fclose( f );
     return( 0 );
 }

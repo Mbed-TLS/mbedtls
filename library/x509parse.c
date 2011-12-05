@@ -2426,7 +2426,7 @@ int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
 
     for( i = 0; i < nr; i++ )
     {
-        if( i == 0 && serial->p[i] == 0x0 )
+        if( i == 0 && nr > 1 && serial->p[i] == 0x0 )
             continue;
 
         ret = snprintf( p, n, "%02X%s",

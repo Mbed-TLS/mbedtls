@@ -33,10 +33,11 @@
 #define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
 #define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_MPI_INVALID_CHARACTER                 -0x0006  /**< There is an invalid character in the digit string. */
-#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008  /**< The buffer is too small to write too. */
+#define POLARSSL_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008  /**< The buffer is too small to write to. */
 #define POLARSSL_ERR_MPI_NEGATIVE_VALUE                    -0x000A  /**< The input arguments are negative or result in illegal output. */
 #define POLARSSL_ERR_MPI_DIVISION_BY_ZERO                  -0x000C  /**< The input argument for division is zero, which is not allowed. */
 #define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    -0x000E  /**< The input arguments are not acceptable. */
+#define POLARSSL_ERR_MPI_MALLOC_FAILED                     -0x0010  /**< Memory allocation failed. */
 
 #define MPI_CHK(f) if( ( ret = f ) != 0 ) goto cleanup
 
@@ -145,7 +146,7 @@ void mpi_free( mpi *X );
  * \param nblimbs  The target number of limbs
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_grow( mpi *X, size_t nblimbs );
 
@@ -156,7 +157,7 @@ int mpi_grow( mpi *X, size_t nblimbs );
  * \param Y        Source MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_copy( mpi *X, const mpi *Y );
 
@@ -175,7 +176,7 @@ void mpi_swap( mpi *X, mpi *Y );
  * \param z        Value to use
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_lset( mpi *X, t_sint z );
 
@@ -200,7 +201,7 @@ int mpi_get_bit( mpi *X, size_t pos );
  * \param val      The value to set the bit to (0 or 1)
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if val is not 0 or 1
  */
 int mpi_set_bit( mpi *X, size_t pos, unsigned char val );
@@ -289,7 +290,7 @@ int mpi_write_file( const char *p, const mpi *X, int radix, FILE *fout );
  * \param buflen   Input buffer size
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_read_binary( mpi *X, const unsigned char *buf, size_t buflen );
 
@@ -312,7 +313,7 @@ int mpi_write_binary( const mpi *X, unsigned char *buf, size_t buflen );
  * \param count    Amount to shift
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_shift_l( mpi *X, size_t count );
 
@@ -323,7 +324,7 @@ int mpi_shift_l( mpi *X, size_t count );
  * \param count    Amount to shift
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_shift_r( mpi *X, size_t count );
 
@@ -371,7 +372,7 @@ int mpi_cmp_int( const mpi *X, t_sint z );
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_add_abs( mpi *X, const mpi *A, const mpi *B );
 
@@ -395,7 +396,7 @@ int mpi_sub_abs( mpi *X, const mpi *A, const mpi *B );
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_add_mpi( mpi *X, const mpi *A, const mpi *B );
 
@@ -407,7 +408,7 @@ int mpi_add_mpi( mpi *X, const mpi *A, const mpi *B );
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_sub_mpi( mpi *X, const mpi *A, const mpi *B );
 
@@ -419,7 +420,7 @@ int mpi_sub_mpi( mpi *X, const mpi *A, const mpi *B );
  * \param b        The integer value to add
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_add_int( mpi *X, const mpi *A, t_sint b );
 
@@ -431,7 +432,7 @@ int mpi_add_int( mpi *X, const mpi *A, t_sint b );
  * \param b        The integer value to subtract
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_sub_int( mpi *X, const mpi *A, t_sint b );
 
@@ -443,7 +444,7 @@ int mpi_sub_int( mpi *X, const mpi *A, t_sint b );
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_mul_mpi( mpi *X, const mpi *A, const mpi *B );
 
@@ -457,7 +458,7 @@ int mpi_mul_mpi( mpi *X, const mpi *A, const mpi *B );
  * \param b        The integer value to multiply with
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_mul_int( mpi *X, const mpi *A, t_sint b );
 
@@ -470,7 +471,7 @@ int mpi_mul_int( mpi *X, const mpi *A, t_sint b );
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0
  *
  * \note           Either Q or R can be NULL.
@@ -486,7 +487,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B );
  * \param b        Integer to divide by
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0
  *
  * \note           Either Q or R can be NULL.
@@ -501,7 +502,7 @@ int mpi_div_int( mpi *Q, mpi *R, const mpi *A, t_sint b );
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if B == 0,
  *                 POLARSSL_ERR_MPI_NEGATIVE_VALUE if B < 0
  */
@@ -515,7 +516,7 @@ int mpi_mod_mpi( mpi *R, const mpi *A, const mpi *B );
  * \param b        Integer to divide by
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0,
  *                 POLARSSL_ERR_MPI_NEGATIVE_VALUE if b < 0
  */
@@ -531,7 +532,7 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
  * \param _RR      Speed-up MPI used for recalculations
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even
  *
  * \note           _RR is used to avoid re-computing R*R mod N across
@@ -549,7 +550,7 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR );
  * \param p_rng    RNG parameter
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_fill_random( mpi *X, size_t size,
                      int (*f_rng)(void *, unsigned char *, size_t),
@@ -563,7 +564,7 @@ int mpi_fill_random( mpi *X, size_t size,
  * \param B        Right-hand MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int mpi_gcd( mpi *G, const mpi *A, const mpi *B );
 
@@ -575,7 +576,7 @@ int mpi_gcd( mpi *G, const mpi *A, const mpi *B );
  * \param N        Right-hand MPI
  *
  * \return         0 if successful,
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or nil
                    POLARSSL_ERR_MPI_NOT_ACCEPTABLE if A has no inverse mod N
  */
@@ -589,7 +590,7 @@ int mpi_inv_mod( mpi *X, const mpi *A, const mpi *N );
  * \param p_rng    RNG parameter
  *
  * \return         0 if successful (probably prime),
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_NOT_ACCEPTABLE if X is not prime
  */
 int mpi_is_prime( mpi *X,
@@ -606,7 +607,7 @@ int mpi_is_prime( mpi *X,
  * \param p_rng    RNG parameter
  *
  * \return         0 if successful (probably prime),
- *                 1 if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if nbits is < 3
  */
 int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,

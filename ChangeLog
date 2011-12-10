@@ -38,7 +38,9 @@ Changes
    * Moved all examples programs to use the new entropy and CTR_DRBG
    * Added permissive certificate parsing to x509parse_crt() and
      x509parse_crtfile(). With permissive parsing the parsing does not stop on
-	 encountering a parse-error
+	 encountering a parse-error. Beware that the meaning of return values has
+	 changed!
+   * All error codes are now negative. Even on mermory failures and IO errors.
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes

@@ -52,6 +52,7 @@
 #define POLARSSL_ERR_ASN1_INVALID_LENGTH                   -0x0018  /**< Error when trying to determine the length or invalid length. */
 #define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  -0x001A  /**< Actual length differs from expected length. */
 #define POLARSSL_ERR_ASN1_INVALID_DATA                     -0x001C  /**< Data is invalid. (not used) */
+#define POLARSSL_ERR_ASN1_MALLOC_FAILED                    -0x001E  /**< Memory allocation failed */
 /* \} name */
 
 /**

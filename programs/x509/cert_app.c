@@ -200,17 +200,25 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the certificate(s) ..." );
         fflush( stdout );
 
-        ret = x509parse_crtfile( &crt, opt.filename, opt.permissive );
+        ret = x509parse_crtfile( &crt, opt.filename );
 
-        if( ret != 0 )
+        if( ret < 0 )
         {
             printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
             x509_free( &crt );
             goto exit;
         }
 
+        if( opt.permissive == 0 && ret > 0 )
+        {
+            printf( " failed\n  !  x509parse_crt failed to parse %d certificates\n\n", ret );
+            x509_free( &crt );
+            goto exit;
+        }
+
         printf( " ok\n" );
 
+    
         /*
          * 1.2 Print the certificate(s)
          */

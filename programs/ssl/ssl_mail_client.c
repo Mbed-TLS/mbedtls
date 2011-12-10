@@ -493,12 +493,12 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.ca_file ) )
-        ret = x509parse_crtfile( &cacert, opt.ca_file, X509_NON_PERMISSIVE );
+        ret = x509parse_crtfile( &cacert, opt.ca_file );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
         ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
-                strlen( test_ca_crt ), X509_NON_PERMISSIVE );
+                strlen( test_ca_crt ) );
 #else
     {
         ret = 1;
@@ -523,15 +523,15 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
-        ret = x509parse_crtfile( &clicert, opt.crt_file, X509_NON_PERMISSIVE );
+        ret = x509parse_crtfile( &clicert, opt.crt_file );
     else 
 #endif
 #if defined(POLARSSL_CERTS_C)
         ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
-                strlen( test_cli_crt ), X509_NON_PERMISSIVE );
+                strlen( test_cli_crt ) );
 #else
     {
-        ret = 1;
+        ret = -1;
         printf("POLARSSL_CERTS_C not defined.");
     }
 #endif
@@ -551,7 +551,7 @@ int main( int argc, char *argv[] )
                 strlen( test_cli_key ), NULL, 0 );
 #else
     {
-        ret = 1;
+        ret = -1;
         printf("POLARSSL_CERTS_C not defined.");
     }
 #endif

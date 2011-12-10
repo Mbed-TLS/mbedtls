@@ -100,7 +100,7 @@ int main( int argc, char *argv[] )
      * Alternatively, you may load the CA certificates from a .pem or
      * .crt file by calling x509parse_crtfile( &cacert, "myca.crt" ).
      */
-    ret = x509parse_crtfile( &cacert, "ssl/test-ca/test-ca.crt", X509_NON_PERMISSIVE );
+    ret = x509parse_crtfile( &cacert, "ssl/test-ca/test-ca.crt" );
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crtfile returned %d\n\n", ret );
@@ -148,7 +148,7 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the client certificate %s...", name );
         fflush( stdout );
 
-        ret = x509parse_crtfile( &clicert, name, X509_NON_PERMISSIVE );
+        ret = x509parse_crtfile( &clicert, name );
         if( ret != 0 )
         {
             printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );

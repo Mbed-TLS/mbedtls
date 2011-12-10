@@ -1376,7 +1376,7 @@ int ssl_parse_certificate( ssl_context *ssl )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
                        sizeof( x509_cert ) ) );
-        return( 1 );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
     memset( ssl->peer_cert, 0, sizeof( x509_cert ) );
@@ -1401,8 +1401,7 @@ int ssl_parse_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
-        ret = x509parse_crt( ssl->peer_cert, ssl->in_msg + i, n,
-                             X509_NON_PERMISSIVE );
+        ret = x509parse_crt( ssl->peer_cert, ssl->in_msg + i, n );
         if( ret != 0 )
         {
             SSL_DEBUG_RET( 1, " x509parse_crt", ret );
@@ -1707,7 +1706,7 @@ int ssl_init( ssl_context *ssl )
     if( ssl->in_ctr == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
-        return( 1 );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
     ssl->out_ctr = (unsigned char *) malloc( len );
@@ -1718,7 +1717,7 @@ int ssl_init( ssl_context *ssl )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
         free( ssl-> in_ctr );
-        return( 1 );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );

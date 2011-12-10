@@ -31,8 +31,8 @@
 
 #include "sha4.h"
 
-#define POLARSSL_ERR_ENTROPY_SOURCE_FAILED                 -0x003A  /**< Critical entropy source failure. */
-#define POLARSSL_ERR_ENTROPY_MAX_SOURCES                   -0x003C  /**< No more sources can be added. */
+#define POLARSSL_ERR_ENTROPY_SOURCE_FAILED                 -0x003C  /**< Critical entropy source failure. */
+#define POLARSSL_ERR_ENTROPY_MAX_SOURCES                   -0x003E  /**< No more sources can be added. */
 
 #define ENTROPY_MAX_SOURCES     20      /**< Maximum number of sources supported */
 #define ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */

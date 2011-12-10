@@ -40,7 +40,7 @@
 #define CTR_DRBG_KEYBITS            ( CTR_DRBG_KEYSIZE * 8 )
 #define CTR_DRBG_SEEDLEN            ( CTR_DRBG_KEYSIZE + CTR_DRBG_BLOCKSIZE )
                                             /**< The seed length (counter + AES key)            */
-#define CTR_DRBG_ENTROPY_LEN        32      /**< Amount of entropy used per seed by default     */
+#define CTR_DRBG_ENTROPY_LEN        48      /**< Amount of entropy used per seed by default     */
 #define CTR_DRBG_RESEED_INTERVAL    10000   /**< Interval before reseed is performed by default */
 #define CTR_DRBG_MAX_INPUT          256     /**< Maximum number of additional input bytes       */
 #define CTR_DRBG_MAX_REQUEST        1024    /**< Maximum number of requested bytes per call     */

@@ -39,21 +39,26 @@ void entropy_init( entropy_context *ctx )
     sha4_starts( &ctx->accumulator, 0 );
 
 #if !defined(POLARSSL_NO_PLATFORM_ENTROPY)
-    entropy_add_source( ctx, platform_entropy_poll, NULL );
+    entropy_add_source( ctx, platform_entropy_poll, NULL,
+                        ENTROPY_MIN_PLATFORM );
 #endif
 #if defined(POLARSSL_TIMING_C)
-    entropy_add_source( ctx, hardclock_poll, NULL );
+    entropy_add_source( ctx, hardclock_poll, NULL, ENTROPY_MIN_HARDCLOCK );
 #endif
 }
 
 int entropy_add_source( entropy_context *ctx,
-                        f_source_ptr f_source, void *p_source )
+                        f_source_ptr f_source, void *p_source,
+                        size_t threshold )
 {
-    if( ctx->source_count >= ENTROPY_MAX_SOURCES )
+    int index = ctx->source_count;
+
+    if( index >= ENTROPY_MAX_SOURCES )
         return( POLARSSL_ERR_ENTROPY_MAX_SOURCES );
 
-    ctx->f_source[ctx->source_count] = f_source;
-    ctx->p_source[ctx->source_count] = p_source;
+    ctx->source[index].f_source = f_source;
+    ctx->source[index].p_source = p_source;
+    ctx->source[index].threshold = threshold;
 
     ctx->source_count++;
 
@@ -85,8 +90,6 @@ int entropy_update( entropy_context *ctx, unsigned char source_id,
     sha4_update( &ctx->accumulator, header, 2 );
     sha4_update( &ctx->accumulator, p, use_len );
     
-    ctx->size += use_len;
-
     return( 0 );
 }
 
@@ -111,7 +114,7 @@ int entropy_gather( entropy_context *ctx )
     for( i = 0; i < ctx->source_count; i++ )
     {
         olen = 0;
-        if ( ( ret = ctx->f_source[i]( ctx->p_source[i],
+        if ( ( ret = ctx->source[i].f_source( ctx->source[i].p_source,
                         buf, ENTROPY_MAX_GATHER, &olen ) ) != 0 )
         {
             return( ret );
@@ -121,7 +124,10 @@ int entropy_gather( entropy_context *ctx )
          * Add if we actually gathered something
          */
         if( olen > 0 )
+        {
             entropy_update( ctx, (unsigned char) i, buf, olen );
+            ctx->source[i].size += olen;
+        }
     }
 
     return( 0 );
@@ -129,7 +135,7 @@ int entropy_gather( entropy_context *ctx )
 
 int entropy_func( void *data, unsigned char *output, size_t len )
 {
-    int ret, count = 0;
+    int ret, count = 0, i, reached;
     entropy_context *ctx = (entropy_context *) data;
     unsigned char buf[ENTROPY_BLOCK_SIZE];
 
@@ -146,8 +152,14 @@ int entropy_func( void *data, unsigned char *output, size_t len )
 
         if( ( ret = entropy_gather( ctx ) ) != 0 )
             return( ret );
+
+        reached = 0;
+
+        for( i = 0; i < ctx->source_count; i++ )
+            if( ctx->source[i].size >= ctx->source[i].threshold )
+                reached++;
     }
-    while( ctx->size < ENTROPY_MIN_POOL );
+    while( reached != ctx->source_count );
 
     memset( buf, 0, ENTROPY_BLOCK_SIZE );
 
@@ -159,11 +171,14 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     sha4( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
 
     /*
-     * Reset accumulator
+     * Reset accumulator and counters and recycle existing entropy
      */
     memset( &ctx->accumulator, 0, sizeof( sha4_context ) );
     sha4_starts( &ctx->accumulator, 0 );
-    ctx->size = 0;
+    sha4_update( &ctx->accumulator, buf, ENTROPY_BLOCK_SIZE );
+
+    for( i = 0; i < ctx->source_count; i++ )
+        ctx->source[i].size = 0;
 
     memcpy( output, buf, len );
 

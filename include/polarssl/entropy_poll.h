@@ -35,6 +35,13 @@
 extern "C" {
 #endif
 
+/*
+ * Default thresholds for built-in sources
+ */
+#define ENTROPY_MIN_PLATFORM    128     /**< Minimum for platform source    */
+#define ENTROPY_MIN_HAVEGE      128     /**< Minimum for HAVEGE             */
+#define ENTROPY_MIN_HARDCLOCK    32     /**< Minimum for hardclock()        */
+
 #if !defined(POLARSSL_NO_PLATFORM_ENTROPY)
 /**
  * \brief           Platform-specific entropy poll callback

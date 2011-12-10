@@ -34,7 +34,6 @@
 #define POLARSSL_ERR_ENTROPY_SOURCE_FAILED                 -0x003A  /**< Critical entropy source failure. */
 #define POLARSSL_ERR_ENTROPY_MAX_SOURCES                   -0x003C  /**< No more sources can be added. */
 
-#define ENTROPY_MIN_POOL        128     /**< Minimum amount of pool entropy needed for release */
 #define ENTROPY_MAX_SOURCES     20      /**< Maximum number of sources supported */
 #define ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */
 #define ENTROPY_BLOCK_SIZE      64      /**< Block size of entropy accumulator (SHA-512) */
@@ -59,15 +58,25 @@ extern "C" {
 typedef int (*f_source_ptr)(void *, unsigned char *, size_t, size_t *);
 
 /**
+ * \brief           Entropy source state
+ */
+typedef struct
+{
+    f_source_ptr    f_source;   /**< The entropy source callback */
+    void *          p_source;   /**< The callback data pointer */
+    size_t          size;       /**< Amount received */
+    size_t          threshold;  /**< Minimum level required before release */
+}
+source_state;
+
+/**
  * \brief           Entropy context structure
  */
 typedef struct 
 {
     sha4_context    accumulator;
-    size_t          size;
     int             source_count;
-    f_source_ptr    f_source[ENTROPY_MAX_SOURCES];
-    void *          p_source[ENTROPY_MAX_SOURCES];
+    source_state    source[ENTROPY_MAX_SOURCES];
 }
 entropy_context;
 
@@ -84,11 +93,14 @@ void entropy_init( entropy_context *ctx );
  * \param ctx       Entropy context
  * \param f_source  Entropy function
  * \param p_source  Function data
+ * \param threshold Minimum required from source before entropy is released
+ *                  ( with entropy_func() )
  *
  * \return          0 is successful or POLARSSL_ERR_ENTROPY_MAX_SOURCES
  */
 int entropy_add_source( entropy_context *ctx,
-                        f_source_ptr f_source, void *p_source );
+                        f_source_ptr f_source, void *p_source,
+                        size_t threshold );
 
 /**
  * \brief           Trigger an extra gather poll for the accumulator

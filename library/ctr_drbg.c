@@ -38,11 +38,17 @@
 #include <stdio.h>
 #endif
 
-int ctr_drbg_init( ctr_drbg_context *ctx,
+/*
+ * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
+ * tests to succeed (which require known length fixed entropy)
+ */
+int ctr_drbg_init_entropy_len(
+                   ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
                    const unsigned char *custom,
-                   size_t len )
+                   size_t len,
+                   size_t entropy_len )
 {
     int ret;
     unsigned char key[CTR_DRBG_KEYSIZE];
@@ -53,7 +59,7 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
 
-    ctx->entropy_len = CTR_DRBG_ENTROPY_LEN;
+    ctx->entropy_len = entropy_len;
     ctx->reseed_interval = CTR_DRBG_RESEED_INTERVAL;
 
     /*
@@ -65,6 +71,16 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
         return( ret );
 
     return( 0 );
+}
+
+int ctr_drbg_init( ctr_drbg_context *ctx,
+                   int (*f_entropy)(void *, unsigned char *, size_t),
+                   void *p_entropy,
+                   const unsigned char *custom,
+                   size_t len )
+{
+    return( ctr_drbg_init_entropy_len( ctx, f_entropy, p_entropy, custom, len,
+                                       CTR_DRBG_ENTROPY_LEN ) );
 }
 
 void ctr_drbg_set_prediction_resistance( ctr_drbg_context *ctx, int resistance )

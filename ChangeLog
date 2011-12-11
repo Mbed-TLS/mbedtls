@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.1.0 released on 2011-12-05
+= Version 1.1.0 (Release Candidate 1) released on 2011-12-11
 Features
    * Added ssl_session_reset() to allow better multi-connection pools of
      SSL contexts without needing to set all non-connection-specific

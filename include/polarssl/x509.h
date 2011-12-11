@@ -59,7 +59,9 @@
 #define POLARSSL_ERR_X509_KEY_INVALID_VERSION              -0x2880  /**< Unsupported RSA key version */
 #define POLARSSL_ERR_X509_KEY_INVALID_FORMAT               -0x2900  /**< Invalid RSA key tag or value. */
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT              -0x2980  /**< Format not recognized as DER or PEM. */
-#define POLARSSL_ERR_X509_VALUE_TO_LENGTH                  -0x2A00  /**< Not used. */
+#define POLARSSL_ERR_X509_INVALID_INPUT                    -0x2A00  /**< Input invalid. */
+#define POLARSSL_ERR_X509_MALLOC_FAILED                    -0x2A80  /**< Allocation of memory failed. */
+#define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2B00  /**< Read/write of file failed. */
 /* \} name */
 
 
@@ -226,10 +228,6 @@
  */
 #define X509_FORMAT_DER                 1
 #define X509_FORMAT_PEM                 2
-
-#define X509_NON_PERMISSIVE             0
-#define X509_PERMISSIVE                 1
-
 
 /** 
  * \addtogroup x509_module
@@ -420,34 +418,35 @@ extern "C" {
 /** \ingroup x509_module */
 /**
  * \brief          Parse one or more certificates and add them
- *                 to the chained list. With permissive parsing enabled
- *                 all certificates that cannot be parsed are ignored.
- *                 If none complete correctly, the first error is returned.
+ *                 to the chained list. Parses permissively. If some
+ *                 certificates can be parsed, the result is the number
+ *                 of failed certificates it encountered. If none complete
+ *                 correctly, the first error is returned.
  *
  * \param chain    points to the start of the chain
  * \param buf      buffer holding the certificate data
  * \param buflen   size of the buffer
- * \param permissive    X509_PERMISSIVE or X509_NON_PERMISSIVE
  *
- * \return         0 if successful, or a specific X509 or PEM error code
+ * \return         0 if all certificates parsed successfully, a positive number
+ *                 if partly successful or a specific X509 or PEM error code
  */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
-                   int permissive );
+int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen );
 
 /** \ingroup x509_module */
 /**
  * \brief          Load one or more certificates and add them
- *                 to the chained list. With permissive parsing enabled
- *                 all certificates that cannot be parsed are ignored.
- *                 If none complete correctly, the first error is returned.
+ *                 to the chained list. Parses permissively. If some
+ *                 certificates can be parsed, the result is the number
+ *                 of failed certificates it encountered. If none complete
+ *                 correctly, the first error is returned.
  *
  * \param chain    points to the start of the chain
  * \param path     filename to read the certificates from
- * \param permissive    X509_PERMISSIVE or X509_NON_PERMISSIVE
  *
- * \return         0 if successful, or a specific X509 or PEM error code
+ * \return         0 if all certificates parsed successfully, a positive number
+ *                 if partly successful or a specific X509 or PEM error code
  */
-int x509parse_crtfile( x509_cert *chain, const char *path, int permissive );
+int x509parse_crtfile( x509_cert *chain, const char *path );
 
 /** \ingroup x509_module */
 /**
@@ -551,8 +550,6 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
 int x509parse_dhmfile( dhm_context *dhm, const char *path );
 
 /** \} name Functions to read in DHM parameters, a certificate, CRL or private RSA key */
-
-
 
 /**
  * \brief          Store the certificate DN in printable form into buf;

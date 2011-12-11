@@ -48,27 +48,33 @@
  * Low-level module errors (0x007E-0x0002)
  *
  * Module   Nr  Codes assigned 
- * MPI       7  0x0002-0x000E
- * BASE64    2  0x0010-0x0012
- * ASN1      5  0x0014-0x001C
+ * MPI       7  0x0002-0x0010
+ * ASN1      6  0x0014-0x001E
  * AES       2  0x0020-0x0022
  * CAMELLIA  2  0x0024-0x0026
  * XTEA      1  0x0028-0x0028
+ * BASE64    2  0x002A-0x002C
  * PADLOCK   1  0x0030-0x0030
  * DES       1  0x0032-0x0032
  * NET      11  0x0040-0x0054
- * CTR_DBRG  3  0x0034-0x0038
- * ENTROPY   2  0x003A-0x003C
+ * CTR_DBRG  3  0x0034-0x003A
+ * ENTROPY   2  0x003C-0x003E
+ * MD2       1  0x0070-0x0070
+ * MD4       1  0x0072-0x0072
+ * MD5       1  0x0074-0x0074
+ * SHA1      1  0x0076-0x0076
+ * SHA2      1  0x0078-0x0078
+ * SHA4      1  0x007A-0x007A
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
  * Name     ID  Nr of Errors
  * PEM      1   8
- * X509     2   20
+ * X509     2   21
  * DHM      3   6
  * RSA      4   9
  * MD       5   1
  * CIPER    6   1
- * SSL      7   27
+ * SSL      7   30
  *
  * Module dependent error code (5 bits 0x.08.-0x.F8.)
  */

@@ -220,7 +220,7 @@ int main( int argc, char *argv[] )
      * server and CA certificates, as well as x509parse_keyfile().
      */
     ret = x509parse_crt( &srvcert, (unsigned char *) test_srv_crt,
-                         strlen( test_srv_crt ), X509_NON_PERMISSIVE );
+                         strlen( test_srv_crt ) );
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
@@ -228,7 +228,7 @@ int main( int argc, char *argv[] )
     }
 
     ret = x509parse_crt( &srvcert, (unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ), X509_NON_PERMISSIVE );
+                         strlen( test_ca_crt ) );
     if( ret != 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );

@@ -284,7 +284,7 @@ static int x509_get_name( unsigned char **p,
                     sizeof( x509_name ) );
 
             if( use->next == NULL )
-                return( 1 );
+                return( POLARSSL_ERR_X509_MALLOC_FAILED );
             
             memset( use->next, 0, sizeof( x509_name ) );
 
@@ -303,7 +303,7 @@ static int x509_get_name( unsigned char **p,
          sizeof( x509_name ) );
 
     if( cur->next == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
     return( x509_get_name( p, end2, cur->next ) );
 }
@@ -1018,12 +1018,12 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
      * Check for valid input
      */
     if( crt == NULL || buf == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_X509_INVALID_INPUT );
 
     p = (unsigned char *) malloc( len = buflen );
 
     if( p == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );
 
@@ -1259,10 +1259,9 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
 /*
  * Parse one or more PEM certificates from a buffer and add them to the chained list
  */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
-                   int permissive )
+int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 {
-    int ret, success = 0, first_error = 0;
+    int ret, success = 0, first_error = 0, total_failed = 0;
     x509_cert *crt, *prev = NULL;
     int buf_format = X509_FORMAT_DER;
 
@@ -1272,7 +1271,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
      * Check for valid input
      */
     if( crt == NULL || buf == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_X509_INVALID_INPUT );
 
     while( crt->version != 0 && crt->next != NULL )
     {
@@ -1288,7 +1287,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
         crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
 
         if( crt->next == NULL )
-            return( 1 );
+            return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
         prev = crt;
         crt = crt->next;
@@ -1349,9 +1348,9 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
             if( ret != 0 )
             {
                 /*
-                 * quit parsing on a memory error or if in non-permissive parsing mode
+                 * quit parsing on a memory error
                  */
-                if( ret == 1 || permissive != 1 )
+                if( ret == POLARSSL_ERR_X509_MALLOC_FAILED )
                 {
                     if( prev )
                         prev->next = NULL;
@@ -1364,6 +1363,8 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
 
                 if( first_error == 0 )
                     first_error = ret;
+                
+                total_failed++;
 
                 memset( crt, 0, sizeof( x509_cert ) );
                 continue;
@@ -1377,7 +1378,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
             crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
 
             if( crt->next == NULL )
-                return( 1 );
+                return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
             prev = crt;
             crt = crt->next;
@@ -1396,7 +1397,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen,
     }
 
     if( success )
-        return( 0 );
+        return( total_failed );
     else if( first_error )
         return( first_error );
     else
@@ -1423,7 +1424,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
      * Check for valid input
      */
     if( crl == NULL || buf == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_X509_INVALID_INPUT );
 
     while( crl->version != 0 && crl->next != NULL )
         crl = crl->next;
@@ -1438,7 +1439,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         if( crl->next == NULL )
         {
             x509_crl_free( crl );
-            return( 1 );
+            return( POLARSSL_ERR_X509_MALLOC_FAILED );
         }
 
         crl = crl->next;
@@ -1481,7 +1482,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         p = (unsigned char *) malloc( len = buflen );
 
         if( p == NULL )
-            return( 1 );
+            return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
         memcpy( p, buf, buflen );
 
@@ -1491,7 +1492,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
     p = (unsigned char *) malloc( len = buflen );
 
     if( p == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );
 
@@ -1680,7 +1681,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         if( crl->next == NULL )
         {
             x509_crl_free( crl );
-            return( 1 );
+            return( POLARSSL_ERR_X509_MALLOC_FAILED );
         }
 
         crl = crl->next;
@@ -1701,20 +1702,20 @@ int load_file( const char *path, unsigned char **buf, size_t *n )
     FILE *f;
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );
     *n = (size_t) ftell( f );
     fseek( f, 0, SEEK_SET );
 
     if( ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
     if( fread( *buf, 1, *n, f ) != *n )
     {
         fclose( f );
         free( *buf );
-        return( 1 );
+        return( POLARSSL_ERR_X509_FILE_IO_ERROR );
     }
 
     fclose( f );
@@ -1727,16 +1728,16 @@ int load_file( const char *path, unsigned char **buf, size_t *n )
 /*
  * Load one or more certificates and add them to the chained list
  */
-int x509parse_crtfile( x509_cert *chain, const char *path, int permissive )
+int x509parse_crtfile( x509_cert *chain, const char *path )
 {
     int ret;
     size_t n;
     unsigned char *buf;
 
-    if ( load_file( path, &buf, &n ) )
-        return( 1 );
+    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
 
-    ret = x509parse_crt( chain, buf, n, permissive );
+    ret = x509parse_crt( chain, buf, n );
 
     memset( buf, 0, n + 1 );
     free( buf );
@@ -1753,8 +1754,8 @@ int x509parse_crlfile( x509_crl *chain, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( load_file( path, &buf, &n ) )
-        return( 1 );
+    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
 
     ret = x509parse_crl( chain, buf, n );
 
@@ -1773,8 +1774,8 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
     size_t n;
     unsigned char *buf;
 
-    if ( load_file( path, &buf, &n ) )
-        return( 1 );
+    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
 
     if( pwd == NULL )
         ret = x509parse_key( rsa, buf, n, NULL, 0 );
@@ -1797,8 +1798,8 @@ int x509parse_public_keyfile( rsa_context *rsa, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( load_file( path, &buf, &n ) )
-        return( 1 );
+    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
 
     ret = x509parse_public_key( rsa, buf, n );
 
@@ -2250,8 +2251,8 @@ int x509parse_dhmfile( dhm_context *dhm, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( load_file( path, &buf, &n ) )
-        return( 1 );
+    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
 
     ret = x509parse_dhm( dhm, buf, n );
 
@@ -3155,7 +3156,7 @@ int x509_self_test( int verbose )
     memset( &clicert, 0, sizeof( x509_cert ) );
 
     ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
-                         strlen( test_cli_crt ), X509_NON_PERMISSIVE );
+                         strlen( test_cli_crt ) );
     if( ret != 0 )
     {
         if( verbose != 0 )
@@ -3167,7 +3168,7 @@ int x509_self_test( int verbose )
     memset( &cacert, 0, sizeof( x509_cert ) );
 
     ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ), X509_NON_PERMISSIVE );
+                         strlen( test_ca_crt ) );
     if( ret != 0 )
     {
         if( verbose != 0 )

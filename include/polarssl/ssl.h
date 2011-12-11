@@ -81,6 +81,7 @@
 #define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY         -0x7D80  /**< Processing of the CertificateVerify handshake message failed. */
 #define POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC         -0x7E00  /**< Processing of the ChangeCipherSpec handshake message failed. */
 #define POLARSSL_ERR_SSL_BAD_HS_FINISHED                   -0x7E80  /**< Processing of the Finished handshake message failed. */
+#define POLARSSL_ERR_SSL_MALLOC_FAILED                     -0x7F00  /**< Memory allocation failed */
 
 /*
  * Various constants
@@ -373,7 +374,8 @@ int ssl_get_ciphersuite_id( const char *ciphersuite_name );
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or 1 if memory allocation failed
+ * \return         0 if successful, or POLARSSL_ERR_SSL_MALLOC_FAILED if
+ *                 memory allocation failed
  */
 int ssl_init( ssl_context *ssl );
 

@@ -34,13 +34,14 @@
 #define POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED        -0x0034  /**< The entropy source failed. */
 #define POLARSSL_ERR_CTR_DRBG_REQUEST_TOO_BIG              -0x0036  /**< Too many random requested in single call. */
 #define POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG                -0x0038  /**< Input too large (Entropy + additional). */
+#define POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A  /**< Read/write error in file. */
 
 #define CTR_DRBG_BLOCKSIZE          16      /**< Block size used by the cipher                  */
 #define CTR_DRBG_KEYSIZE            32      /**< Key size used by the cipher                    */
 #define CTR_DRBG_KEYBITS            ( CTR_DRBG_KEYSIZE * 8 )
 #define CTR_DRBG_SEEDLEN            ( CTR_DRBG_KEYSIZE + CTR_DRBG_BLOCKSIZE )
                                             /**< The seed length (counter + AES key)            */
-#define CTR_DRBG_ENTROPY_LEN        32      /**< Amount of entropy used per seed by default     */
+#define CTR_DRBG_ENTROPY_LEN        48      /**< Amount of entropy used per seed by default     */
 #define CTR_DRBG_RESEED_INTERVAL    10000   /**< Interval before reseed is performed by default */
 #define CTR_DRBG_MAX_INPUT          256     /**< Maximum number of additional input bytes       */
 #define CTR_DRBG_MAX_REQUEST        1024    /**< Maximum number of requested bytes per call     */

@@ -29,6 +29,8 @@
 
 #include <string.h>
 
+#define POLARSSL_ERR_SHA2_FILE_IO_ERROR                -0x0078  /**< Read/write error in file. */
+
 /**
  * \brief          SHA-256 context structure
  */
@@ -91,8 +93,7 @@ void sha2( const unsigned char *input, size_t ilen,
  * \param output   SHA-224/256 checksum result
  * \param is224    0 = use SHA256, 1 = use SHA224
  *
- * \return         0 if successful, 1 if fopen failed,
- *                 or 2 if fread failed
+ * \return         0 if successful, or POLARSSL_ERR_SHA2_FILE_IO_ERROR
  */
 int sha2_file( const char *path, unsigned char output[32], int is224 );
 

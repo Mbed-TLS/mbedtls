@@ -189,7 +189,7 @@ int md2_file( const char *path, unsigned char output[16] )
     unsigned char buf[1024];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( 1 );
+        return( POLARSSL_ERR_MD2_FILE_IO_ERROR );
 
     md2_starts( &ctx );
 
@@ -203,7 +203,7 @@ int md2_file( const char *path, unsigned char output[16] )
     if( ferror( f ) != 0 )
     {
         fclose( f );
-        return( 2 );
+        return( POLARSSL_ERR_MD2_FILE_IO_ERROR );
     }
 
     fclose( f );

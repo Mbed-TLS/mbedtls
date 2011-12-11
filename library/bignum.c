@@ -89,12 +89,12 @@ int mpi_grow( mpi *X, size_t nblimbs )
     t_uint *p;
 
     if( nblimbs > POLARSSL_MPI_MAX_LIMBS )
-        return( 1 );
+        return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
     if( X->n < nblimbs )
     {
         if( ( p = (t_uint *) malloc( nblimbs * ciL ) ) == NULL )
-            return( 1 );
+            return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
         memset( p, 0, nblimbs * ciL );
 

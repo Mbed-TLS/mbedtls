@@ -1,4 +1,4 @@
-OPTION(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL as a shared library." OFF)
+option(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL as a shared library." OFF)
 
 set(src
      aes.c
@@ -46,11 +46,11 @@ add_library(polarssl STATIC ${src})
 
 else(NOT USE_SHARED_POLARSSL_LIBRARY)
 
-ADD_LIBRARY(polarssl SHARED ${src})
-SET_TARGET_PROPERTIES(polarssl PROPERTIES VERSION 1.1.0 SOVERSION 1)
+add_library(polarssl SHARED ${src})
+set_target_properties(polarssl PROPERTIES VERSION 1.1.0 SOVERSION 1)
 
 endif(NOT USE_SHARED_POLARSSL_LIBRARY)
 
-INSTALL(TARGETS polarssl
+install(TARGETS polarssl
         DESTINATION ${LIB_INSTALL_DIR}
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

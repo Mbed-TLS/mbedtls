@@ -242,7 +242,7 @@ int asn1_get_sequence_of( unsigned char **p,
                  sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )
-                return( 1 );
+                return( POLARSSL_ERR_ASN1_MALLOC_FAILED );
 
             cur = cur->next;
         }

@@ -38,7 +38,7 @@ x509_cert_info:crt_file:result_str
     memset( &crt, 0, sizeof( x509_cert ) );
     memset( buf, 0, 2000 );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file}, X509_NON_PERMISSIVE ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
     res = x509parse_cert_info( buf, 2000, "", &crt );
 
     TEST_ASSERT( res != -1 );
@@ -81,8 +81,8 @@ x509_verify:crt_file:ca_file:crl_file:cn_name:result:flags:verify_callback
     memset( &ca, 0, sizeof( x509_cert ) );
     memset( &crl, 0, sizeof( x509_crl ) );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file}, X509_NON_PERMISSIVE ) == 0 );
-    TEST_ASSERT( x509parse_crtfile( &ca, {ca_file}, X509_NON_PERMISSIVE ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &ca, {ca_file} ) == 0 );
     TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
 
     res = x509parse_verify( &crt, &ca, &crl, {cn_name}, &flags, {verify_callback}, NULL );
@@ -102,7 +102,7 @@ x509_dn_gets:crt_file:entity:result_str
     memset( &crt, 0, sizeof( x509_cert ) );
     memset( buf, 0, 2000 );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file}, X509_NON_PERMISSIVE ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
     res =  x509parse_dn_gets( buf, 2000, &crt.{entity} );
 
     TEST_ASSERT( res != -1 );
@@ -119,7 +119,7 @@ x509_time_expired:crt_file:entity:result
 
     memset( &crt, 0, sizeof( x509_cert ) );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file}, X509_NON_PERMISSIVE ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
     TEST_ASSERT( x509parse_time_expired( &crt.{entity} ) == {result} );
 }
 END_CASE
@@ -176,7 +176,7 @@ x509parse_crt:crt_data:result_str:result
 
     data_len = unhexify( buf, {crt_data} );
 
-    TEST_ASSERT( x509parse_crt( &crt, buf, data_len, X509_NON_PERMISSIVE ) == ( {result} ) );
+    TEST_ASSERT( x509parse_crt( &crt, buf, data_len ) == ( {result} ) );
     if( ( {result} ) == 0 )
     {
         res = x509parse_cert_info( (char *) output, 2000, "", &crt );

@@ -19,7 +19,7 @@ option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library.
 
 if(LIB_INSTALL_DIR)
 else()
-set(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib)
+set(LIB_INSTALL_DIR lib)
 endif()
 
 include_directories(include/)

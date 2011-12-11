@@ -35,7 +35,7 @@ debug_print_crt:crt_file:file:line:prefix:result_str
 
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file}, X509_NON_PERMISSIVE ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
     debug_print_crt( &ssl, 0, {file}, {line}, {prefix}, &crt);
 
     TEST_ASSERT( strcmp( buffer.buf, {result_str} ) == 0 );

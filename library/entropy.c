@@ -30,6 +30,10 @@
 #include "polarssl/entropy.h"
 #include "polarssl/entropy_poll.h"
 
+#if defined(POLARSSL_HAVEGE_C)
+#include "polarssl/havege.h"
+#endif
+
 #define ENTROPY_MAX_LOOP    256     /**< Maximum amount to loop before error */
 
 void entropy_init( entropy_context *ctx )
@@ -44,6 +48,11 @@ void entropy_init( entropy_context *ctx )
 #endif
 #if defined(POLARSSL_TIMING_C)
     entropy_add_source( ctx, hardclock_poll, NULL, ENTROPY_MIN_HARDCLOCK );
+#endif
+#if defined(POLARSSL_HAVEGE_C)
+    havege_init( &ctx->havege_data );
+    entropy_add_source( ctx, havege_poll, &ctx->havege_data,
+                        ENTROPY_MIN_HAVEGE );
 #endif
 }
 

@@ -61,7 +61,12 @@ int main( int argc, char *argv[] )
     }
 
     entropy_init( &entropy );
-    ctr_drbg_init( &ctr_drbg, entropy_func, &entropy, (unsigned char *) "RANDOM_GEN", 10 );
+    ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy, (unsigned char *) "RANDOM_GEN", 10 );
+    if( ret != 0 )
+    {
+        printf( "failed in ctr_drbg_init: %d\n", ret );
+        goto cleanup;
+    }
     ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_OFF );
 
 #if defined(POLARSSL_FS_IO)
@@ -69,17 +74,17 @@ int main( int argc, char *argv[] )
 
     if( ret == POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR )
     {
-        printf("Failed to open seedfile. Generating one.\n");
+        printf( "Failed to open seedfile. Generating one.\n" );
         ret = ctr_drbg_write_seed_file( &ctr_drbg, "seedfile" );
         if( ret != 0 )
         {
-            printf("failed in ctr_drbg_write_seed_file: %d\n", ret );
+            printf( "failed in ctr_drbg_write_seed_file: %d\n", ret );
             goto cleanup;
         }
     }
     else if( ret != 0 )
     {
-        printf("failed in ctr_drbg_update_seed_file: %d\n", ret );
+        printf( "failed in ctr_drbg_update_seed_file: %d\n", ret );
         goto cleanup;
     }
 #endif

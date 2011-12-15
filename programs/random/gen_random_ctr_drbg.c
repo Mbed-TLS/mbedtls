@@ -67,7 +67,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_FS_IO)
     ret = ctr_drbg_update_seed_file( &ctr_drbg, "seedfile" );
 
-    if( ret == 1 )
+    if( ret == POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR )
     {
         printf("Failed to open seedfile. Generating one.\n");
         ret = ctr_drbg_write_seed_file( &ctr_drbg, "seedfile" );

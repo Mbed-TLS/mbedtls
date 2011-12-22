@@ -29,10 +29,16 @@
 
 #include <string.h>
 
+#include "config.h"
+
 #include "sha4.h"
+#if defined(POLARSSL_HAVEGE_C)
+#include "havege.h"
+#endif
 
 #define POLARSSL_ERR_ENTROPY_SOURCE_FAILED                 -0x003C  /**< Critical entropy source failure. */
 #define POLARSSL_ERR_ENTROPY_MAX_SOURCES                   -0x003E  /**< No more sources can be added. */
+#define POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED            -0x0040  /**< No sources have been added to poll. */
 
 #define ENTROPY_MAX_SOURCES     20      /**< Maximum number of sources supported */
 #define ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */
@@ -77,6 +83,9 @@ typedef struct
     sha4_context    accumulator;
     int             source_count;
     source_state    source[ENTROPY_MAX_SOURCES];
+#if defined(POLARSSL_HAVEGE_C)
+    havege_state    havege_data;
+#endif
 }
 entropy_context;
 
@@ -96,7 +105,7 @@ void entropy_init( entropy_context *ctx );
  * \param threshold Minimum required from source before entropy is released
  *                  ( with entropy_func() )
  *
- * \return          0 is successful or POLARSSL_ERR_ENTROPY_MAX_SOURCES
+ * \return          0 if successful or POLARSSL_ERR_ENTROPY_MAX_SOURCES
  */
 int entropy_add_source( entropy_context *ctx,
                         f_source_ptr f_source, void *p_source,

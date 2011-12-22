@@ -30,6 +30,10 @@
 #include "polarssl/entropy.h"
 #include "polarssl/entropy_poll.h"
 
+#if defined(POLARSSL_HAVEGE_C)
+#include "polarssl/havege.h"
+#endif
+
 #define ENTROPY_MAX_LOOP    256     /**< Maximum amount to loop before error */
 
 void entropy_init( entropy_context *ctx )
@@ -37,7 +41,11 @@ void entropy_init( entropy_context *ctx )
     memset( ctx, 0, sizeof(entropy_context) );
 
     sha4_starts( &ctx->accumulator, 0 );
+#if defined(POLARSSL_HAVEGE_C)
+    havege_init( &ctx->havege_data );
+#endif
 
+#if !defined(POLARSSL_NO_DEFAULT_ENTROPY_SOURCES)
 #if !defined(POLARSSL_NO_PLATFORM_ENTROPY)
     entropy_add_source( ctx, platform_entropy_poll, NULL,
                         ENTROPY_MIN_PLATFORM );
@@ -45,6 +53,11 @@ void entropy_init( entropy_context *ctx )
 #if defined(POLARSSL_TIMING_C)
     entropy_add_source( ctx, hardclock_poll, NULL, ENTROPY_MIN_HARDCLOCK );
 #endif
+#if defined(POLARSSL_HAVEGE_C)
+    entropy_add_source( ctx, havege_poll, &ctx->havege_data,
+                        ENTROPY_MIN_HAVEGE );
+#endif
+#endif /* POLARSSL_NO_DEFAULT_ENTROPY_SOURCES */
 }
 
 int entropy_add_source( entropy_context *ctx,
@@ -108,6 +121,9 @@ int entropy_gather( entropy_context *ctx )
     unsigned char buf[ENTROPY_MAX_GATHER];
     size_t olen;
     
+    if( ctx->source_count == 0 )
+        return( POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED );
+
     /*
      * Run through our entropy sources
      */

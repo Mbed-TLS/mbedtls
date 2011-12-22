@@ -155,6 +155,19 @@
 #define POLARSSL_FS_IO
 
 /**
+ * \def POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
+ *
+ * Do not add default entropy sources. These are the platform specific,
+ * hardclock and HAVEGE based poll functions.
+ *
+ * This is useful to have more control over the added entropy sources in an 
+ * application.
+ *
+ * Uncomment this macro to prevent loading of default entropy functions.
+#define POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
+ */
+
+/**
  * \def POLARSSL_NO_PLATFORM_ENTROPY
  *
  * Do not use built-in platform entropy functions.

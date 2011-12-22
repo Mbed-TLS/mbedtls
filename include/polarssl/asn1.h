@@ -27,10 +27,10 @@
 #ifndef POLARSSL_ASN1_H
 #define POLARSSL_ASN1_H
 
-#include "polarssl/config.h"
+#include "config.h"
 
 #if defined(POLARSSL_BIGNUM_C)
-#include "polarssl/bignum.h"
+#include "bignum.h"
 #endif
 
 #include <string.h>

@@ -968,6 +968,10 @@ static int x509_get_entries( unsigned char **p,
         if ( *p < end )
         {
             cur_entry->next = malloc( sizeof( x509_crl_entry ) );
+
+            if( cur_entry->next == NULL )
+                return( POLARSSL_ERR_X509_MALLOC_FAILED );
+
             cur_entry = cur_entry->next;
             memset( cur_entry, 0, sizeof( x509_crl_entry ) );
         }

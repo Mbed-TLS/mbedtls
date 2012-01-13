@@ -212,6 +212,7 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
  * \param p     The position in the ASN.1 data
  * \param end   End of data
  * \param cur   First variable in the chain to fill
+ * \param tag   Type of sequence
  *
  * \return      0 if successful or a specific ASN.1 error code.
  */

@@ -222,19 +222,19 @@ int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
 
 int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
 {
+#if defined(POLARSSL_FS_IO)
     int ret;
+#endif
 
     if( md_info == NULL )
         return POLARSSL_ERR_MD_BAD_INPUT_DATA;
 
 #if defined(POLARSSL_FS_IO)
     ret = md_info->file_func( path, output );
-    if( ret == 2 )
-        return POLARSSL_ERR_MD_FILE_OPEN_FAILED;
-    if( ret == 3 )
-        return POLARSSL_ERR_MD_FILE_READ_FAILED;
+    if( ret != 0 )
+        return( POLARSSL_ERR_MD_FILE_IO_ERROR + ret );
 
-    return ret;
+    return( ret );
 #else
     ((void) path);
     ((void) output);

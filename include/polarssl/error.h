@@ -72,8 +72,8 @@
  * X509     2   21
  * DHM      3   6
  * RSA      4   9
- * MD       5   1
- * CIPER    6   1
+ * MD       5   4
+ * CIPHER   6   5
  * SSL      7   30
  *
  * Module dependent error code (5 bits 0x.08.-0x.F8.)

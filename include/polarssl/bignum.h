@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "config.h"
+
 #define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
 #define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_MPI_INVALID_CHARACTER                 -0x0006  /**< There is an invalid character in the digit string. */
@@ -95,11 +97,12 @@ typedef unsigned long  t_udbl;
   #if defined(_MSC_VER) && defined(_M_IX86)
   typedef unsigned __int64 t_udbl;
   #else
-    #if defined(__amd64__) || defined(__x86_64__)    || \
+    #if defined(__GNUC__) && (                          \
+        defined(__amd64__) || defined(__x86_64__)    || \
         defined(__ppc64__) || defined(__powerpc64__) || \
         defined(__ia64__)  || defined(__alpha__)     || \
         (defined(__sparc__) && defined(__arch64__))  || \
-        defined(__s390x__)
+        defined(__s390x__) )
     typedef unsigned int t_udbl __attribute__((mode(TI)));
     #else
       #if defined(POLARSSL_HAVE_LONGLONG)

@@ -4,6 +4,7 @@ PolarSSL ChangeLog
 Bugfix
    * Check for failed malloc() in ssl_set_hostname() and x509_get_entries()
      (Closes ticket #47, found by Hugo Leisink)
+   * Fixed issues with Intel compiler on 64-bit systems (Closes ticket #50)
 
 = Version 1.1.0 released on 2011-12-22
 Features

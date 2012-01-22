@@ -104,6 +104,7 @@ typedef unsigned long  t_udbl;
         (defined(__sparc__) && defined(__arch64__))  || \
         defined(__s390x__) )
     typedef unsigned int t_udbl __attribute__((mode(TI)));
+    #define POLARSSL_HAVE_LONGLONG
     #else
       #if defined(POLARSSL_HAVE_LONGLONG)
       typedef unsigned long long t_udbl;

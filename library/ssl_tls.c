@@ -1913,6 +1913,9 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
     ssl->hostname_len = strlen( hostname );
     ssl->hostname = (unsigned char *) malloc( ssl->hostname_len + 1 );
 
+    if( ssl->hostname == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
     memcpy( ssl->hostname, (unsigned char *) hostname,
             ssl->hostname_len );
     

@@ -41,7 +41,7 @@
 #ifndef POLARSSL_BN_MUL_H
 #define POLARSSL_BN_MUL_H
 
-#include "config.h"
+#include "bignum.h"
 
 #if defined(POLARSSL_HAVE_ASM)
 

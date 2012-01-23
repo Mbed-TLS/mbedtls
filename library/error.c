@@ -177,10 +177,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "MD - Bad input parameters to function" );
         if( use_ret == -(POLARSSL_ERR_MD_ALLOC_FAILED) )
             snprintf( buf, buflen, "MD - Failed to allocate memory" );
-        if( use_ret == -(POLARSSL_ERR_MD_FILE_OPEN_FAILED) )
-            snprintf( buf, buflen, "MD - Opening of file failed" );
-        if( use_ret == -(POLARSSL_ERR_MD_FILE_READ_FAILED) )
-            snprintf( buf, buflen, "MD - Failure when reading from file" );
+        if( use_ret == -(POLARSSL_ERR_MD_FILE_IO_ERROR) )
+            snprintf( buf, buflen, "MD - Opening or reading of file failed" );
 #endif /* POLARSSL_MD_C */
 
 #if defined(POLARSSL_PEM_C)

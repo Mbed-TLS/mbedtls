@@ -470,7 +470,7 @@ int ctr_drbg_self_test( int verbose )
         printf( "  CTR_DRBG (PR = TRUE) : " );
 
     test_offset = 0;
-    if( ctr_drbg_init( &ctx, ctr_drbg_self_test_entropy, entropy_source_pr, nonce_pers_pr, 16 ) != 0 )
+    if( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy, entropy_source_pr, nonce_pers_pr, 16, 32 ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );
@@ -513,7 +513,7 @@ int ctr_drbg_self_test( int verbose )
         printf( "  CTR_DRBG (PR = FALSE): " );
 
     test_offset = 0;
-    if( ctr_drbg_init( &ctx, ctr_drbg_self_test_entropy, entropy_source_nopr, nonce_pers_nopr, 16 ) != 0 )
+    if( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy, entropy_source_nopr, nonce_pers_nopr, 16, 32 ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );

@@ -362,7 +362,8 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
                        const unsigned char *input,
                        unsigned char *output )
 {
-    size_t nb_pad, olen, ret;
+    size_t nb_pad, olen;
+    int ret;
     unsigned char *p = output;
 #if defined(POLARSSL_PKCS1_V21)
     unsigned int hlen;
@@ -592,7 +593,8 @@ int rsa_pkcs1_sign( rsa_context *ctx,
     unsigned char *p = sig;
 #if defined(POLARSSL_PKCS1_V21)
     unsigned char salt[POLARSSL_MD_MAX_SIZE];
-    unsigned int slen, hlen, offset = 0, ret;
+    unsigned int slen, hlen, offset = 0;
+    int ret;
     size_t msb;
     const md_info_t *md_info;
     md_context_t md_ctx;

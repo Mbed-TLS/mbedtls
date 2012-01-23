@@ -37,7 +37,7 @@
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
     !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_FS_IO)
-int 5ain( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);

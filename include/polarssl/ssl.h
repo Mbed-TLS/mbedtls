@@ -562,7 +562,7 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
  * \param ssl      SSL context
  * \param hostname the server hostname
  *
- * \return         0 if successful
+ * \return         0 if successful or POLARSSL_ERR_SSL_MALLOC_FAILED
  */
 int ssl_set_hostname( ssl_context *ssl, const char *hostname );
 

@@ -178,7 +178,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
+#if defined(POLARSSL_DEBUG_MSG) && defined(POLARSSL_DEBUG_C)
     time_t t;
+#endif
     int ret, i;
     size_t n;
     int ext_len;
@@ -226,10 +228,12 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
     ssl->minor_ver = buf[5];
 
+#if defined(POLARSSL_DEBUG_MSG) && defined(POLARSSL_DEBUG_C)
     t = ( (time_t) buf[6] << 24 )
       | ( (time_t) buf[7] << 16 )
       | ( (time_t) buf[8] <<  8 )
       | ( (time_t) buf[9]       );
+#endif
 
     memcpy( ssl->randbytes + 32, buf + 6, 32 );
 

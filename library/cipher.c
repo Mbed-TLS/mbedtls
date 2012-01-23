@@ -94,7 +94,7 @@ const int *cipher_list( void )
     return supported_ciphers;
 }
 
-const cipher_info_t *cipher_info_from_type( cipher_type_t cipher_type )
+const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
 {
     /* Find static cipher information */
     switch ( cipher_type )
@@ -433,11 +433,10 @@ static void add_pkcs_padding( unsigned char *output, size_t output_len,
         output[data_len + i] = (unsigned char) padding_len;
 }
 
-static int get_pkcs_padding( unsigned char *input, unsigned char input_len,
+static int get_pkcs_padding( unsigned char *input, unsigned int input_len,
         size_t *data_len)
 {
-    int i = 0;
-    unsigned char padding_len = 0;
+    unsigned int i, padding_len = 0;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;

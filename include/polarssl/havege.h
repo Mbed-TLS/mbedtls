@@ -60,7 +60,7 @@ void havege_init( havege_state *hs );
  * \param output   Buffer to fill
  * \param len      Length of buffer
  *
- * \return         A random int
+ * \return         0
  */
 int havege_random( void *p_rng, unsigned char *output, size_t len );
 

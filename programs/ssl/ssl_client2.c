@@ -153,6 +153,7 @@ int main( int argc, char *argv[] )
             list++;
         }
         printf("\n");
+        ret = 1;
         goto exit;
     }
 

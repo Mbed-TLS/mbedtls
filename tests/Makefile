@@ -12,8 +12,8 @@ LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
 APPS =	test_suite_aes			test_suite_arc4			\
 		test_suite_base64		test_suite_camellia		\
 		test_suite_cipher.aes	test_suite_cipher.camellia	\
-		test_suite_cipher.des	test_suite_ctr_drbg		\
-		test_suite_debug		\
+		test_suite_cipher.des	test_suite_cipher.null	\
+		test_suite_ctr_drbg		test_suite_debug		\
 		test_suite_des			test_suite_dhm			\
 		test_suite_error		test_suite_hmac_shax	\
 		test_suite_md			test_suite_mdx			\
@@ -37,6 +37,10 @@ test_suite_cipher.camellia.c : suites/test_suite_cipher.function suites/test_sui
 test_suite_cipher.des.c : suites/test_suite_cipher.function suites/test_suite_cipher.des.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.des
+
+test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.null
 
 %.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
@@ -66,11 +70,15 @@ test_suite_cipher.camellia: test_suite_cipher.camellia.c ../library/libpolarssl.
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_ctr_drbg: test_suite_ctr_drbg.c ../library/libpolarssl.a
+test_suite_cipher.des: test_suite_cipher.des.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.des: test_suite_cipher.des.c ../library/libpolarssl.a
+test_suite_cipher.null: test_suite_cipher.null.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_ctr_drbg: test_suite_ctr_drbg.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

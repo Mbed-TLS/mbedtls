@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -48,6 +48,7 @@
 
 typedef enum {
     POLARSSL_CIPHER_ID_NONE = 0,
+    POLARSSL_CIPHER_ID_NULL,
     POLARSSL_CIPHER_ID_AES,
     POLARSSL_CIPHER_ID_DES,
     POLARSSL_CIPHER_ID_3DES,
@@ -56,6 +57,7 @@ typedef enum {
 
 typedef enum {
     POLARSSL_CIPHER_NONE = 0,
+    POLARSSL_CIPHER_NULL,
     POLARSSL_CIPHER_AES_128_CBC,
     POLARSSL_CIPHER_AES_192_CBC,
     POLARSSL_CIPHER_AES_256_CBC,
@@ -81,6 +83,7 @@ typedef enum {
 
 typedef enum {
     POLARSSL_MODE_NONE = 0,
+    POLARSSL_MODE_NULL,
     POLARSSL_MODE_CBC,
     POLARSSL_MODE_CFB128,
     POLARSSL_MODE_OFB,

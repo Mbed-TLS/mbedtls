@@ -130,6 +130,23 @@
 #define POLARSSL_CIPHER_MODE_CTR
 
 /**
+ * \def POLARSSL_CIPHER_NULL_CIPHER
+ *
+ * Enable NULL cipher.
+ * Warning: Only do so when you know what you are doing. This allows for
+ * encryption or channels without any security!
+ *
+ * Requires POLARSSL_ENABLE_WEAK_CIPHERSUITES as well to enable
+ * the following ciphersuites:
+ *      SSL_RSA_NULL_MD5
+ *      SSL_RSA_NULL_SHA
+ *      SSL_RSA_NULL_SHA256
+ *
+ * Uncomment this macro to enable the NULL cipher and ciphersuites
+#define POLARSSL_CIPHER_NULL_CIPHER
+ */
+
+/**
  * \def POLARSSL_DEBUG_MSG
  *
  * Requires: POLARSSL_DEBUG_C
@@ -137,6 +154,21 @@
  * Enable all SSL/TLS debugging messages.
  */
 #define POLARSSL_DEBUG_MSG
+
+/**
+ * \def POLARSSL_ENABLE_WEAK_CIPHERSUITES
+ *
+ * Enable weak ciphersuites in SSL / TLS (like RC4_40)
+ * Warning: Only do so when you know what you are doing. This allows for
+ * channels without virtually no security at all!
+ *
+ * This enables the following ciphersuites:
+ *      SSL_RSA_DES_SHA
+ *      SSL_EDH_RSA_DES_SHA
+ *
+ * Uncomment this macro to enable weak ciphersuites
+#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
+ */
 
 /**
  * \def POLARSSL_GENPRIME

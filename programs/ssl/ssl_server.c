@@ -84,6 +84,15 @@ int my_ciphersuites[] =
     SSL_RSA_DES_168_SHA,
     SSL_RSA_RC4_128_SHA,
     SSL_RSA_RC4_128_MD5,
+#if defined(POLARSSL_ENABLE_WEAK_CIPHERSUITES)
+    SSL_EDH_RSA_DES_SHA,
+    SSL_RSA_DES_SHA,
+#if defined(POLARSSL_CIPHER_NULL_CIPHER)
+    SSL_RSA_NULL_MD5,
+    SSL_RSA_NULL_SHA,
+    SSL_RSA_NULL_SHA256,
+#endif
+#endif
     0
 };
 
@@ -205,6 +214,8 @@ int main( int argc, char *argv[] )
 
     ((void) argc);
     ((void) argv);
+
+    memset( &ssl, 0, sizeof( ssl_context ) );
 
     /*
      * 1. Load the certificates and private RSA key
@@ -448,7 +459,6 @@ reset:
     len = ret;
     printf( " %d bytes written\n\n%s\n", len, (char *) buf );
     
-    ssl_close_notify( &ssl );
     ret = 0;
     goto reset;
 

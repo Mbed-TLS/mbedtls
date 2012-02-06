@@ -1,5 +1,11 @@
 PolarSSL ChangeLog
 
+= Version Trunk
+Features
+   * Added support for NULL cipher (POLARSSL_CIPHER_NULL_CIPHER) and weak
+     ciphersuites (POLARSSL_ENABLE_WEAK_CIPHERSUITES). They are disabled by
+     default!
+
 = Version 1.1.1 released on 2012-01-23
 Bugfix
    * Check for failed malloc() in ssl_set_hostname() and x509_get_entries()

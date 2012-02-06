@@ -3,7 +3,7 @@
  *
  * \brief SSL/TLS functions.
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -110,6 +110,12 @@
 /*
  * Supported ciphersuites
  */
+#define SSL_RSA_NULL_MD5             0x01   /**< Weak! */
+#define SSL_RSA_NULL_SHA             0x02   /**< Weak! */
+#define SSL_RSA_NULL_SHA256          0x3B   /**< Weak! */
+#define SSL_RSA_DES_SHA              0x09   /**< Weak! */
+#define SSL_EDH_RSA_DES_SHA          0x15   /**< Weak! */
+
 #define SSL_RSA_RC4_128_MD5          0x04
 #define SSL_RSA_RC4_128_SHA          0x05
 #define SSL_RSA_DES_168_SHA          0x0A

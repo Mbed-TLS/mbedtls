@@ -1,7 +1,7 @@
 /*
  *  SSLv3/TLSv1 server-side functions
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -544,7 +544,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 
-    if( ssl->session->ciphersuite != SSL_EDH_RSA_DES_168_SHA &&
+    if( ssl->session->ciphersuite != SSL_EDH_RSA_DES_SHA &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_DES_168_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
@@ -716,7 +717,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( ssl->session->ciphersuite == SSL_EDH_RSA_DES_168_SHA ||
+    if( ssl->session->ciphersuite == SSL_EDH_RSA_DES_SHA ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_DES_168_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||

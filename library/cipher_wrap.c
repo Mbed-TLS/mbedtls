@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -548,5 +548,39 @@ const cipher_info_t des_ede3_cbc_info = {
     &des_ede3_info
 };
 #endif
+
+#if defined(POLARSSL_CIPHER_NULL_CIPHER)
+static void * null_ctx_alloc( void )
+{
+    return (void *) 1;
+}
+
+
+static void null_ctx_free( void *ctx )
+{
+    ((void) ctx);
+}
+
+const cipher_base_t null_base_info = {
+    POLARSSL_CIPHER_ID_NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    null_ctx_alloc,
+    null_ctx_free
+};
+
+const cipher_info_t null_cipher_info = {
+    POLARSSL_CIPHER_NULL,
+    POLARSSL_MODE_NULL,
+    0,
+    "NULL",
+    1,
+    1,
+    &null_base_info
+};
+#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
 
 #endif

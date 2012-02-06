@@ -144,6 +144,9 @@ int main( int argc, char *argv[] )
     if( argc == 0 )
     {
     usage:
+        if( ret == 0 )
+            ret = 1;
+
         printf( USAGE );
 
         list = ssl_list_ciphersuites();
@@ -153,7 +156,6 @@ int main( int argc, char *argv[] )
             list++;
         }
         printf("\n");
-        ret = 1;
         goto exit;
     }
 
@@ -210,8 +212,10 @@ int main( int argc, char *argv[] )
             opt.force_ciphersuite[0] = ssl_get_ciphersuite_id( q );
 
             if( opt.force_ciphersuite[0] <= 0 )
+            {
+                ret = 2;
                 goto usage;
-
+            }
             opt.force_ciphersuite[1] = 0;
         }
         else

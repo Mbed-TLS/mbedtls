@@ -497,6 +497,10 @@ static int x509_get_sig( unsigned char **p,
     int ret;
     size_t len;
 
+    if( ( end - *p ) < 1 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE +
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
     sig->tag = **p;
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
@@ -3207,6 +3211,15 @@ void x509_free( x509_cert *crt )
         }
 
         seq_cur = cert_cur->ext_key_usage.next;
+        while( seq_cur != NULL )
+        {
+            seq_prv = seq_cur;
+            seq_cur = seq_cur->next;
+            memset( seq_prv, 0, sizeof( x509_sequence ) );
+            free( seq_prv );
+        }
+
+        seq_cur = cert_cur->subject_alt_names.next;
         while( seq_cur != NULL )
         {
             seq_prv = seq_cur;

@@ -266,6 +266,14 @@ X509 Certificate verification #27 (domain not matching multi certificate)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"bexample.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
 
+X509 Certificate verification #28 (domain not matching wildcard in multi certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.org":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
+
+X509 Certificate verification #29 (domain matching wildcard in multi certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.org":0:0:NULL
+
 X509 Parse Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_SELF_TEST
 x509_selftest:

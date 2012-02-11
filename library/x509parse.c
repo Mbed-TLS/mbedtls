@@ -2971,12 +2971,12 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
     return flags;
 }
 
-int x509_wildcard_verify( const char *cn, x509_name *name )
+int x509_wildcard_verify( const char *cn, x509_buf *name )
 {
     size_t i;
     size_t cn_idx = 0;
 
-    if( name->val.len < 3 || name->val.p[0] != '*' || name->val.p[1] != '.' )
+    if( name->len < 3 || name->p[0] != '*' || name->p[1] != '.' )
         return( 0 );
 
     for( i = 0; i < strlen( cn ); ++i )
@@ -2991,8 +2991,8 @@ int x509_wildcard_verify( const char *cn, x509_name *name )
     if( cn_idx == 0 )
         return( 0 );
 
-    if( memcmp( name->val.p + 1, cn + cn_idx, name->val.len - 1 ) == 0 &&
-        strlen( cn ) - cn_idx == name->val.len - 1 )
+    if( memcmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 &&
+        strlen( cn ) - cn_idx == name->len - 1 )
     {
         return( 1 );
     }
@@ -3037,7 +3037,7 @@ int x509parse_verify( x509_cert *crt,
                     break;
 
                 if( memcmp( name->val.p, "*.", 2 ) == 0 &&
-                    x509_wildcard_verify( cn, name ) )
+                    x509_wildcard_verify( cn, &name->val ) )
                     break;
             }
 
@@ -3054,6 +3054,10 @@ int x509parse_verify( x509_cert *crt,
                 {
                     if( memcmp( cn, cur->buf.p, cn_len ) == 0 &&
                         cur->buf.len == cn_len )
+                        break;
+
+                    if( memcmp( cur->buf.p, "*.", 2 ) == 0 &&
+                        x509_wildcard_verify( cn, &cur->buf ) )
                         break;
 
                     cur = cur->next;

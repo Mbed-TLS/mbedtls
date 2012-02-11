@@ -58,6 +58,20 @@ openssl req -config sslconf_use.txt -new -key cert_digest.key -out cert_sha384.r
 cat sslconf.txt > sslconf_use.txt;echo "CN=PolarSSL Cert SHA512" >> sslconf_use.txt
 openssl req -config sslconf_use.txt -new -key cert_digest.key -out cert_sha512.req -sha512
 
+cat sslconf.txt > sslconf_use.txt;echo "CN=*.example.com" >> sslconf_use.txt
+openssl req -config sslconf_use.txt -new -key cert_digest.key -out cert_example_wildcard.req
+
+cat sslconf.txt > sslconf_use.txt;echo "CN=example.com" >> sslconf_use.txt
+openssl req -config sslconf_use.txt -new -key cert_digest.key -out cert_example.req
+
+cat sslconf.txt > sslconf_use.txt;echo "CN=www.example.com" >> sslconf_use.txt
+openssl req -config sslconf_use.txt -new -key cert_digest.key -out cert_example_www.req
+
+cat sslconf.txt > sslconf_use.txt;echo "CN=www.example.com" >> sslconf_use.txt
+echo "[ v3_req ]" >> sslconf_use.txt
+echo "subjectAltName = \"DNS:www.example.com,DNS:example.com,DNS:example.net\"" >> sslconf_use.txt
+openssl req -config sslconf_use.txt -new -key cert_digest.key -out cert_example_multi.req -reqexts "v3_req"
+
 echo "Signing requests"
 for i in server1 server2 client1 client2;
 do
@@ -69,6 +83,12 @@ for i in md2 md4 md5 sha1 sha224 sha256 sha384 sha512;
 do
   openssl ca -config sslconf.txt -out cert_$i.crt -passin pass:$PASSWORD \
 	-batch -in cert_$i.req -md $i
+done
+
+for i in example_wildcard example example_www example_multi;
+do
+  openssl ca -config sslconf.txt -out cert_$i.crt -passin pass:$PASSWORD \
+	-batch -in cert_$i.req
 done
 
 echo "Revoking firsts"

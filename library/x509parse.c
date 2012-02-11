@@ -785,6 +785,102 @@ static int x509_get_ext_key_usage( unsigned char **p,
 }
 
 /*
+ * SubjectAltName ::= GeneralNames
+ *
+ * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
+ *
+ * GeneralName ::= CHOICE {
+ *      otherName                       [0]     OtherName,
+ *      rfc822Name                      [1]     IA5String,
+ *      dNSName                         [2]     IA5String,
+ *      x400Address                     [3]     ORAddress,
+ *      directoryName                   [4]     Name,
+ *      ediPartyName                    [5]     EDIPartyName,
+ *      uniformResourceIdentifier       [6]     IA5String,
+ *      iPAddress                       [7]     OCTET STRING,
+ *      registeredID                    [8]     OBJECT IDENTIFIER }
+ *
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ *
+ * EDIPartyName ::= SEQUENCE {
+ *      nameAssigner            [0]     DirectoryString OPTIONAL,
+ *      partyName               [1]     DirectoryString }
+ *
+ * NOTE: PolarSSL only parses and uses dNSName at this point.
+ */
+static int x509_get_subject_alt_name( unsigned char **p,
+                                      const unsigned char *end,
+                                      x509_sequence *subject_alt_name )
+{
+    int ret;
+    size_t len, tag_len;
+    asn1_buf *buf;
+    unsigned char tag;
+    asn1_sequence *cur = subject_alt_name;
+
+    /* Get main sequence tag */
+    if( ( ret = asn1_get_tag( p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + ret );
+
+    if( *p + len != end )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    while( *p < end )
+    {
+        if( ( end - *p ) < 1 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
+                    POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
+        tag = **p;
+        (*p)++;
+        if( ( ret = asn1_get_len( p, end, &tag_len ) ) != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + ret );
+
+        if( ( tag & ASN1_CONTEXT_SPECIFIC ) != ASN1_CONTEXT_SPECIFIC )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
+                    POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
+
+        if( tag != ( ASN1_CONTEXT_SPECIFIC | 2 ) )
+        {
+            *p += tag_len;
+            continue;
+        }
+
+        buf = &(cur->buf);
+        buf->tag = tag;
+        buf->p = *p;
+        buf->len = tag_len;
+        *p += buf->len;
+
+        /* Allocate and assign next pointer */
+        if (*p < end)
+        {
+            cur->next = (asn1_sequence *) malloc(
+                 sizeof( asn1_sequence ) );
+
+            if( cur->next == NULL )
+                return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
+                        POLARSSL_ERR_ASN1_MALLOC_FAILED );
+
+            cur = cur->next;
+        }
+    }
+
+    /* Set final sequence entry's next pointer to NULL */
+    cur->next = NULL;
+
+    if( *p != end )
+        return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+/*
  * X.509 v3 extensions
  *
  * TODO: Perform all of the basic constraints tests required by the RFC
@@ -891,6 +987,15 @@ static int x509_get_crt_ext( unsigned char **p,
                     &crt->ext_key_usage ) ) != 0 )
                 return ( ret );
             crt->ext_types |= EXT_EXTENDED_KEY_USAGE;
+        }
+        else if( ( OID_SIZE( OID_SUBJECT_ALT_NAME ) == extn_oid.len ) &&
+                memcmp( extn_oid.p, OID_SUBJECT_ALT_NAME, extn_oid.len ) == 0 )
+        {
+            /* Parse extended key usage */
+            if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
+                    &crt->subject_alt_names ) ) != 0 )
+                return ( ret );
+            crt->ext_types |= EXT_SUBJECT_ALT_NAME;
         }
         else
         {
@@ -2866,6 +2971,35 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
     return flags;
 }
 
+int x509_wildcard_verify( const char *cn, x509_name *name )
+{
+    size_t i;
+    size_t cn_idx = 0;
+
+    if( name->val.len < 3 || name->val.p[0] != '*' || name->val.p[1] != '.' )
+        return( 0 );
+
+    for( i = 0; i < strlen( cn ); ++i )
+    {
+        if( cn[i] == '.' )
+        {
+            cn_idx = i;
+            break;
+        }
+    }
+
+    if( cn_idx == 0 )
+        return( 0 );
+
+    if( memcmp( name->val.p + 1, cn + cn_idx, name->val.len - 1 ) == 0 &&
+        strlen( cn ) - cn_idx == name->val.len - 1 )
+    {
+        return( 1 );
+    }
+
+    return( 0 );
+}
+
 /*
  * Verify the certificate validity
  */
@@ -2882,6 +3016,7 @@ int x509parse_verify( x509_cert *crt,
     x509_cert *parent;
     x509_name *name;
     unsigned char hash[64];
+    x509_sequence *cur = NULL;
 
     *flags = 0;
 
@@ -2895,16 +3030,39 @@ int x509parse_verify( x509_cert *crt,
 
         while( name != NULL )
         {
-            if( memcmp( name->oid.p, OID_CN,  3 ) == 0 &&
-                memcmp( name->val.p, cn, cn_len ) == 0 &&
-                name->val.len == cn_len )
-                break;
+            if( memcmp( name->oid.p, OID_CN,  3 ) == 0 )
+            {
+                if( memcmp( name->val.p, cn, cn_len ) == 0 &&
+                    name->val.len == cn_len )
+                    break;
+
+                if( memcmp( name->val.p, "*.", 2 ) == 0 &&
+                    x509_wildcard_verify( cn, name ) )
+                    break;
+            }
 
             name = name->next;
         }
 
         if( name == NULL )
-            *flags |= BADCERT_CN_MISMATCH;
+        {
+            if( crt->ext_types & EXT_SUBJECT_ALT_NAME )
+            {
+                cur = &crt->subject_alt_names;
+
+                while( cur != NULL )
+                {
+                    if( memcmp( cn, cur->buf.p, cn_len ) == 0 &&
+                        cur->buf.len == cn_len )
+                        break;
+
+                    cur = cur->next;
+                }
+            }
+
+            if( cur == NULL )
+                *flags |= BADCERT_CN_MISMATCH;
+        }
     }
 
     /*

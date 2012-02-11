@@ -5,6 +5,9 @@ Features
    * Added support for NULL cipher (POLARSSL_CIPHER_NULL_CIPHER) and weak
      ciphersuites (POLARSSL_ENABLE_WEAK_CIPHERSUITES). They are disabled by
      default!
+   * Added support for wildcard certificates
+   * Added support for multi-domain certificates through the X509 Subject
+     Alternative Name extension
 
 = Version 1.1.1 released on 2012-01-23
 Bugfix

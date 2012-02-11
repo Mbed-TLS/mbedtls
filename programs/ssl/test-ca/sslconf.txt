@@ -23,6 +23,7 @@ default_days            = 3653
 default_md              = sha1
 policy                  = my_policy
 x509_extensions         = v3_usr
+copy_extensions         = copy
 
 [ my_policy ]
 countryName             = supplied
@@ -32,7 +33,7 @@ commonName              = supplied
 [ req ]
 distinguished_name      = my_req_dn
 x509_extensions         = v3_ca
-prompt			= no
+prompt			        = no
 
 [ v3_ca ]
 basicConstraints        = CA:TRUE

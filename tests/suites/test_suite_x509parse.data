@@ -234,6 +234,38 @@ X509 Certificate verification #20 (Not trusted Cert, allowing callback)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":NULL:0:0:&verify_all
 
+X509 Certificate verification #21 (domain matching wildcard certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.com":0:0:NULL
+
+X509 Certificate verification #22 (domain not matching wildcard certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
+
+X509 Certificate verification #23 (domain not matching wildcard certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.com":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
+
+X509 Certificate verification #24 (domain matching multi certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.com":0:0:NULL
+
+X509 Certificate verification #25 (domain matching multi certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.net":0:0:NULL
+
+X509 Certificate verification #26 (domain not matching multi certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
+
+X509 Certificate verification #27 (domain not matching multi certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"xample.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
+
+X509 Certificate verification #27 (domain not matching multi certificate)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"bexample.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
+
 X509 Parse Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_SELF_TEST
 x509_selftest:

@@ -9,3 +9,7 @@ V	210212144407Z		08	unknown	/C=NL/O=PolarSSL/CN=PolarSSL Cert SHA224
 V	210212144407Z		09	unknown	/C=NL/O=PolarSSL/CN=PolarSSL Cert SHA256
 V	210212144407Z		0A	unknown	/C=NL/O=PolarSSL/CN=PolarSSL Cert SHA384
 V	210212144407Z		0B	unknown	/C=NL/O=PolarSSL/CN=PolarSSL Cert SHA512
+V	220207160636Z		0C	unknown	/C=NL/O=PolarSSL/CN=*.example.com
+V	220207160636Z		0D	unknown	/C=NL/O=PolarSSL/CN=example.com
+V	220207160636Z		0E	unknown	/C=NL/O=PolarSSL/CN=www.example.com
+V	220207160636Z		0F	unknown	/C=NL/O=PolarSSL/CN=www.example.com

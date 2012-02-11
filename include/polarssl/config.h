@@ -147,15 +147,6 @@
  */
 
 /**
- * \def POLARSSL_DEBUG_MSG
- *
- * Requires: POLARSSL_DEBUG_C
- *
- * Enable all SSL/TLS debugging messages.
- */
-#define POLARSSL_DEBUG_MSG
-
-/**
  * \def POLARSSL_ENABLE_WEAK_CIPHERSUITES
  *
  * Enable weak ciphersuites in SSL / TLS (like RC4_40)

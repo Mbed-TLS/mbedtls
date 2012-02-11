@@ -30,7 +30,7 @@
 #include "config.h"
 #include "ssl.h"
 
-#if defined(POLARSSL_DEBUG_MSG) && defined(POLARSSL_DEBUG_C)
+#if defined(POLARSSL_DEBUG_C)
 
 #define SSL_DEBUG_MSG( level, args )                    \
     debug_print_msg( ssl, level, __FILE__, __LINE__, debug_fmt args );

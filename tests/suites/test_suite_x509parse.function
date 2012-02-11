@@ -41,6 +41,8 @@ x509_cert_info:crt_file:result_str
     TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
     res = x509parse_cert_info( buf, 2000, "", &crt );
 
+    x509_free( &crt );
+
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
@@ -60,6 +62,8 @@ x509_crl_info:crl_file:result_str
 
     TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
     res = x509parse_crl_info( buf, 2000, "", &crl );
+
+    x509_crl_free( &crl );
 
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
@@ -87,6 +91,10 @@ x509_verify:crt_file:ca_file:crl_file:cn_name:result:flags:verify_callback
 
     res = x509parse_verify( &crt, &ca, &crl, {cn_name}, &flags, {verify_callback}, NULL );
 
+    x509_free( &crt );
+    x509_free( &ca );
+    x509_crl_free( &crl );
+
     TEST_ASSERT( res == ( {result} ) );
     TEST_ASSERT( flags == ( {flags} ) );
 }
@@ -105,6 +113,8 @@ x509_dn_gets:crt_file:entity:result_str
     TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
     res =  x509parse_dn_gets( buf, 2000, &crt.{entity} );
 
+    x509_free( &crt );
+
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
@@ -121,6 +131,8 @@ x509_time_expired:crt_file:entity:result
 
     TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
     TEST_ASSERT( x509parse_time_expired( &crt.{entity} ) == {result} );
+
+    x509_free( &crt );
 }
 END_CASE
 
@@ -140,6 +152,8 @@ x509parse_keyfile:key_file:password:result
     {
         TEST_ASSERT( rsa_check_privkey( &rsa ) == 0 );
     }
+
+    rsa_free( &rsa );
 }
 END_CASE
 
@@ -159,6 +173,8 @@ x509parse_public_keyfile:key_file:result
     {
         TEST_ASSERT( rsa_check_pubkey( &rsa ) == 0 );
     }
+
+    rsa_free( &rsa );
 }
 END_CASE
 
@@ -186,6 +202,8 @@ x509parse_crt:crt_data:result_str:result
 
         TEST_ASSERT( strcmp( (char *) output, {result_str} ) == 0 );
     }
+
+    x509_free( &crt );
 }
 END_CASE
 
@@ -213,6 +231,8 @@ x509parse_crl:crl_data:result_str:result
 
         TEST_ASSERT( strcmp( (char *) output, {result_str} ) == 0 );
     }
+
+    x509_crl_free( &crl );
 }
 END_CASE
 
@@ -230,13 +250,13 @@ x509parse_key:key_data:result_str:result
 
     data_len = unhexify( buf, {key_data} );
 
-    x509parse_key( &rsa, buf, data_len, NULL, 0 );
-
     TEST_ASSERT( x509parse_key( &rsa, buf, data_len, NULL, 0 ) == ( {result} ) );
     if( ( {result} ) == 0 )
     {
         TEST_ASSERT( 1 );
     }
+
+    rsa_free( &rsa );
 }
 END_CASE
 

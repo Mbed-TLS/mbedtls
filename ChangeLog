@@ -11,6 +11,7 @@ Features
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define
+   * AES code only check for Padlock once
 
 = Version 1.1.1 released on 2012-01-23
 Bugfix

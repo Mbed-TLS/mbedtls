@@ -59,6 +59,10 @@
 }
 #endif
 
+#if defined(POLARSSL_PADLOCK_C)
+static int aes_padlock_ace = -1;
+#endif
+
 #if defined(POLARSSL_AES_ROM_TABLES)
 /*
  * Forward S-box
@@ -449,6 +453,7 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int key
     {
         aes_gen_tables();
         aes_init_done = 1;
+
     }
 #endif
 
@@ -460,11 +465,15 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int key
         default : return( POLARSSL_ERR_AES_INVALID_KEY_LENGTH );
     }
 
-#if defined(PADLOCK_ALIGN16)
-    ctx->rk = RK = PADLOCK_ALIGN16( ctx->buf );
-#else
-    ctx->rk = RK = ctx->buf;
+#if defined(POLARSSL_PADLOCK_C) && defined(PADLOCK_ALIGN16)
+    if( aes_padlock_ace == -1 )
+        aes_padlock_ace = padlock_supports( PADLOCK_ACE );
+
+    if( aes_padlock_ace )
+        ctx->rk = RK = PADLOCK_ALIGN16( ctx->buf );
+    else
 #endif
+    ctx->rk = RK = ctx->buf;
 
     for( i = 0; i < (keysize >> 5); i++ )
     {
@@ -560,11 +569,15 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int key
         default : return( POLARSSL_ERR_AES_INVALID_KEY_LENGTH );
     }
 
-#if defined(PADLOCK_ALIGN16)
-    ctx->rk = RK = PADLOCK_ALIGN16( ctx->buf );
-#else
-    ctx->rk = RK = ctx->buf;
+#if defined(POLARSSL_PADLOCK_C) && defined(PADLOCK_ALIGN16)
+    if( aes_padlock_ace == -1 )
+        aes_padlock_ace = padlock_supports( PADLOCK_ACE );
+
+    if( aes_padlock_ace )
+        ctx->rk = RK = PADLOCK_ALIGN16( ctx->buf );
+    else
 #endif
+    ctx->rk = RK = ctx->buf;
 
     ret = aes_setkey_enc( &cty, key, keysize );
     if( ret != 0 )
@@ -656,7 +669,7 @@ int aes_crypt_ecb( aes_context *ctx,
     unsigned long *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 
 #if defined(POLARSSL_PADLOCK_C) && defined(POLARSSL_HAVE_X86)
-    if( padlock_supports( PADLOCK_ACE ) )
+    if( aes_padlock_ace )
     {
         if( padlock_xcryptecb( ctx, mode, input, output ) == 0 )
             return( 0 );
@@ -768,7 +781,7 @@ int aes_crypt_cbc( aes_context *ctx,
         return( POLARSSL_ERR_AES_INVALID_INPUT_LENGTH );
 
 #if defined(POLARSSL_PADLOCK_C) && defined(POLARSSL_HAVE_X86)
-    if( padlock_supports( PADLOCK_ACE ) )
+    if( aes_padlock_ace )
     {
         if( padlock_xcryptcbc( ctx, mode, length, iv, input, output ) == 0 )
             return( 0 );

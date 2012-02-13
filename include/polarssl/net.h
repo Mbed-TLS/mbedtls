@@ -29,7 +29,7 @@
 
 #include <string.h>
 
-#define POLARSSL_ERR_NET_UNKNOWN_HOST                      -0x0040  /**< Failed to get an IP address for the given hostname. */
+#define POLARSSL_ERR_NET_UNKNOWN_HOST                      -0x0056  /**< Failed to get an IP address for the given hostname. */
 #define POLARSSL_ERR_NET_SOCKET_FAILED                     -0x0042  /**< Failed to open a socket. */
 #define POLARSSL_ERR_NET_CONNECT_FAILED                    -0x0044  /**< The connection to the given server / port failed. */
 #define POLARSSL_ERR_NET_BIND_FAILED                       -0x0046  /**< Binding of the socket failed. */

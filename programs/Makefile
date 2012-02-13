@@ -12,7 +12,7 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	hash/md5sum			hash/sha1sum		\
 	hash/sha2sum		pkey/dh_client		\
 	pkey/dh_genprime	pkey/dh_server		\
-	pkey/key_app							\
+	pkey/key_app		pkey/key_app_writer	\
 	pkey/mpi_demo		pkey/rsa_genkey		\
 	pkey/rsa_decrypt	pkey/rsa_encrypt	\
 	pkey/rsa_sign		pkey/rsa_verify		\
@@ -24,7 +24,8 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	random/gen_random_ctr_drbg				\
 	test/ssl_cert_test	test/benchmark		\
 	test/selftest		test/ssl_test		\
-	x509/cert_app		x509/crl_app
+	x509/cert_app		x509/crl_app		\
+	x509/cert_req
 
 .SILENT:
 
@@ -73,6 +74,10 @@ pkey/dh_server: pkey/dh_server.c ../library/libpolarssl.a
 pkey/key_app: pkey/key_app.c ../library/libpolarssl.a
 	echo   "  CC    pkey/key_app.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/key_app.c   $(LDFLAGS) -o $@
+
+pkey/key_app_writer: pkey/key_app_writer.c ../library/libpolarssl.a
+	echo   "  CC    pkey/key_app_writer.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/key_app_writer.c   $(LDFLAGS) -o $@
 
 pkey/mpi_demo: pkey/mpi_demo.c ../library/libpolarssl.a
 	echo   "  CC    pkey/mpi_demo.c"
@@ -161,6 +166,10 @@ x509/cert_app: x509/cert_app.c ../library/libpolarssl.a
 x509/crl_app: x509/crl_app.c ../library/libpolarssl.a
 	echo   "  CC    x509/crl_app.c"
 	$(CC) $(CFLAGS) $(OFLAGS) x509/crl_app.c    $(LDFLAGS) -o $@
+
+x509/cert_req: x509/cert_req.c ../library/libpolarssl.a
+	echo   "  CC    x509/cert_req.c"
+	$(CC) $(CFLAGS) $(OFLAGS) x509/cert_req.c    $(LDFLAGS) -o $@
 
 clean:
 	rm -f $(APPS)

@@ -47,12 +47,12 @@
  * ASN1 is a standard to specify data structures.
  * \{
  */
-#define POLARSSL_ERR_ASN1_OUT_OF_DATA                      -0x0014  /**< Out of data when parsing an ASN1 data structure. */
-#define POLARSSL_ERR_ASN1_UNEXPECTED_TAG                   -0x0016  /**< ASN1 tag was of an unexpected value. */
-#define POLARSSL_ERR_ASN1_INVALID_LENGTH                   -0x0018  /**< Error when trying to determine the length or invalid length. */
-#define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  -0x001A  /**< Actual length differs from expected length. */
-#define POLARSSL_ERR_ASN1_INVALID_DATA                     -0x001C  /**< Data is invalid. (not used) */
-#define POLARSSL_ERR_ASN1_MALLOC_FAILED                    -0x001E  /**< Memory allocation failed */
+#define POLARSSL_ERR_ASN1_OUT_OF_DATA                      -0x0060  /**< Out of data when parsing an ASN1 data structure. */
+#define POLARSSL_ERR_ASN1_UNEXPECTED_TAG                   -0x0062  /**< ASN1 tag was of an unexpected value. */
+#define POLARSSL_ERR_ASN1_INVALID_LENGTH                   -0x0064  /**< Error when trying to determine the length or invalid length. */
+#define POLARSSL_ERR_ASN1_LENGTH_MISMATCH                  -0x0066  /**< Actual length differs from expected length. */
+#define POLARSSL_ERR_ASN1_INVALID_DATA                     -0x0068  /**< Data is invalid. (not used) */
+#define POLARSSL_ERR_ASN1_MALLOC_FAILED                    -0x006A  /**< Memory allocation failed */
 /* \} name */
 
 /**

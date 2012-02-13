@@ -23,6 +23,7 @@ DLEXT=so
 # DLEXT=dll
 
 OBJS=	aes.o		arc4.o		asn1parse.o		\
+		asn1write.o								\
 		base64.o	bignum.o	camellia.o		\
 		certs.o		cipher.o	cipher_wrap.o	\
 		ctr_drbg.o	debug.o		des.o			\
@@ -34,7 +35,7 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		rsa.o		sha1.o		sha2.o			\
 		sha4.o		ssl_cli.o	ssl_srv.o		\
 		ssl_tls.o	timing.o	version.o		\
-		x509parse.o	xtea.o
+		x509parse.o	x509write.o	xtea.o
 	
 
 .SILENT:

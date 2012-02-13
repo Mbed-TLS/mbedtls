@@ -289,6 +289,15 @@
 #define POLARSSL_ASN1_PARSE_C
 
 /**
+ * \def POLARSSL_ASN1_WRITE_C
+ *
+ * Enable the generic ASN1 writer.
+ *
+ * Module:  library/asn1write.c
+ */
+#define POLARSSL_ASN1_WRITE_C
+
+/**
  * \def POLARSSL_BASE64_C
  *
  * Enable the Base64 module.
@@ -696,6 +705,19 @@
  * This module is required for X.509 certificate parsing.
  */
 #define POLARSSL_X509_PARSE_C
+
+/**
+ * \def POLARSSL_X509_WRITE_C
+ *
+ * Enable X.509 buffer writing.
+ *
+ * Module:  library/x509write.c
+ *
+ * Requires: POLARSSL_BIGNUM_C, POLARSSL_RSA_C
+ *
+ * This module is required for X.509 certificate request writing.
+ */
+#define POLARSSL_X509_WRITE_C
 
 /**
  * \def POLARSSL_XTEA_C

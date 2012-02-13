@@ -99,9 +99,15 @@
 
 #define OID_X520                "\x55\x04"
 #define OID_CN                  OID_X520 "\x03"
+#define OID_COUNTRY             OID_X520 "\x06"
+#define OID_LOCALITY            OID_X520 "\x07"
+#define OID_STATE               OID_X520 "\x08"
+#define OID_ORGANIZATION        OID_X520 "\x0A"
+#define OID_ORG_UNIT            OID_X520 "\x0B"
 
 #define OID_PKCS1               "\x2A\x86\x48\x86\xF7\x0D\x01\x01"
 #define OID_PKCS1_RSA           OID_PKCS1 "\x01"
+#define OID_PKCS1_SHA1          OID_PKCS1 "\x05"
 
 #define OID_RSA_SHA_OBS         "\x2B\x0E\x03\x02\x1D"
 

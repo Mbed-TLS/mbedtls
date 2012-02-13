@@ -4,6 +4,7 @@ set(src
      aes.c
      arc4.c
      asn1parse.c
+     asn1write.c
      base64.c
      bignum.c
      camellia.c

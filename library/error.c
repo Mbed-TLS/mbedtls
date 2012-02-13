@@ -378,6 +378,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "ASN1 - Data is invalid. (not used)" );
     if( use_ret == -(POLARSSL_ERR_ASN1_MALLOC_FAILED) )
         snprintf( buf, buflen, "ASN1 - Memory allocation failed" );
+    if( use_ret == -(POLARSSL_ERR_ASN1_BUF_TOO_SMALL) )
+        snprintf( buf, buflen, "ASN1 - Buffer too small when writing ASN.1 data structure" );
 #endif /* POLARSSL_ASN1_PARSE_C */
 
 #if defined(POLARSSL_BASE64_C)

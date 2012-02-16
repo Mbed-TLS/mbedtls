@@ -181,7 +181,6 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "subject_name" ) == 0 )
         {
-            printf("p: '%s', q: '%s'\n", p, q);
             opt.subject_name = q;
         }
         else

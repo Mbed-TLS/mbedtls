@@ -105,4 +105,4 @@ echo "Generating PKCS12"
 openssl pkcs12 -export -in client2.crt -inkey client2.key \
                       -out client2.pfx -passout pass:$PASSWORD
 
-rm *.old *.req sslconf_use.txt
+rm *.old sslconf_use.txt

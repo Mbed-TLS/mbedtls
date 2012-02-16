@@ -29,8 +29,6 @@
 
 #include "asn1.h"
 
-#define POLARSSL_ERR_ASN1_BUF_TOO_SMALL                    -0x006C  /**< Buffer too small when writing ASN.1 data structure. */
-
 #define ASN1_CHK_ADD(g, f) if( ( ret = f ) < 0 ) return( ret ); else g += ret
 
 int asn1_write_len( unsigned char **p, unsigned char *start, size_t len );
@@ -41,6 +39,8 @@ int asn1_write_oid( unsigned char **p, unsigned char *start, char *oid );
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start, char *algorithm_oid );
 int asn1_write_int( unsigned char **p, unsigned char *start, int val );
 int asn1_write_printable_string( unsigned char **p, unsigned char *start,
+                                 char *text );
+int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
                                  char *text );
 
 #endif /* POLARSSL_ASN1_WRITE_H */

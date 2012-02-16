@@ -215,4 +215,27 @@ int asn1_write_printable_string( unsigned char **p, unsigned char *start,
     return( len );
 }
     
+int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
+                          char *text )
+{
+    int ret;
+    size_t len = 0;
+
+    // Write string
+    //
+    len = strlen( text );
+
+    if( *p - start < (int) len )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
+
+    (*p) -= len;
+    memcpy( *p, text, len );
+
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_IA5_STRING ) );
+
+    return( len );
+}
+    
+
 #endif

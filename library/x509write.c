@@ -116,9 +116,15 @@ int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
     size_t oid_len = 0;
     size_t len = 0;
 
-    // Write PrintableString
+    // Write PrintableString for all except OID_PKCS9_EMAIL
     //
-    ASN1_CHK_ADD( string_len, asn1_write_printable_string( p, start, name ) );
+    if( OID_SIZE( OID_PKCS9_EMAIL ) == strlen( oid ) &&
+        memcmp( oid, OID_PKCS9_EMAIL, strlen( oid ) ) == 0 )
+    {
+        ASN1_CHK_ADD( string_len, asn1_write_ia5_string( p, start, name ) );
+    }
+    else
+        ASN1_CHK_ADD( string_len, asn1_write_printable_string( p, start, name ) );
 
     // Write OID
     //

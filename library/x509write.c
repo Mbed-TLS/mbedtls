@@ -31,6 +31,10 @@
 #include "polarssl/x509write.h"
 #include "polarssl/x509.h"
 #include "polarssl/sha1.h"
+#include "polarssl/sha2.h"
+#include "polarssl/sha4.h"
+#include "polarssl/md4.h"
+#include "polarssl/md5.h"
 
 int x509_write_pubkey_der( unsigned char *buf, size_t size, rsa_context *rsa )
 {
@@ -140,6 +144,42 @@ int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
     return( len );
 }
 
+/*
+ * Wrapper for x509 hashes.
+ *
+ * \param out   Buffer to receive the hash (Should be at least 64 bytes)
+ */
+static void x509_hash( const unsigned char *in, size_t len, int alg,
+                       unsigned char *out )
+{
+    switch( alg )
+    {
+#if defined(POLARSSL_MD2_C)
+        case SIG_RSA_MD2    :  md2( in, len, out ); break;
+#endif
+#if defined(POLARSSL_MD4_C)
+        case SIG_RSA_MD4    :  md4( in, len, out ); break;
+#endif
+#if defined(POLARSSL_MD5_C)
+        case SIG_RSA_MD5    :  md5( in, len, out ); break;
+#endif
+#if defined(POLARSSL_SHA1_C)
+        case SIG_RSA_SHA1   : sha1( in, len, out ); break;
+#endif
+#if defined(POLARSSL_SHA2_C)
+        case SIG_RSA_SHA224 : sha2( in, len, out, 1 ); break;
+        case SIG_RSA_SHA256 : sha2( in, len, out, 0 ); break;
+#endif
+#if defined(POLARSSL_SHA4_C)
+        case SIG_RSA_SHA384 : sha4( in, len, out, 1 ); break;
+        case SIG_RSA_SHA512 : sha4( in, len, out, 0 ); break;
+#endif
+        default:
+            memset( out, '\xFF', 64 );
+            break;
+    }
+}
+
 int x509_write_sig( unsigned char **p, unsigned char *start, char *oid,
                     unsigned char *sig, size_t size )
 {
@@ -167,12 +207,13 @@ int x509_write_sig( unsigned char **p, unsigned char *start, char *oid,
 }
 
 int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
-                         x509_req_name *req_name )
+                         x509_req_name *req_name, int hash_id )
 {
     int ret;
+    char sig_oid[10];
     unsigned char *c, *c2;
-    unsigned char hash[20];
-    unsigned char sig[512];
+    unsigned char hash[64];
+    unsigned char sig[POLARSSL_MPI_MAX_SIZE];
     unsigned char tmp_buf[2048];
     size_t sub_len = 0, pub_len = 0, sig_len = 0;
     size_t len = 0;
@@ -220,11 +261,18 @@ int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
     
-    sha1( c, len, hash );
-    rsa_pkcs1_sign( rsa, NULL, NULL, RSA_PRIVATE, SIG_RSA_SHA1, 0, hash, sig );
+    x509_hash( c, len, hash_id, hash );
+
+    rsa_pkcs1_sign( rsa, NULL, NULL, RSA_PRIVATE, hash_id, 0, hash, sig );
+
+    // Generate correct OID
+    //
+    memcpy( sig_oid, OID_PKCS1, 8 );
+    sig_oid[8] = hash_id;
+    sig_oid[9] = '\0';
 
     c2 = buf + size - 1;
-    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, OID_PKCS1_SHA1, sig, rsa->len ) );
+    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig, rsa->len ) );
     
     c2 -= len;
     memcpy( c2, c, len ); 

@@ -23,10 +23,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /*
- *  The ITU-T X.509 standard defines a certificat format for PKI.
+ *  The ITU-T X.509 standard defines a certificate format for PKI.
  *
- *  http://www.ietf.org/rfc/rfc2459.txt
  *  http://www.ietf.org/rfc/rfc3279.txt
+ *  http://www.ietf.org/rfc/rfc3280.txt
  *
  *  ftp://ftp.rsasecurity.com/pub/pkcs/ascii/pkcs-1v2.asc
  *

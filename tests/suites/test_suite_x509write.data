@@ -1,0 +1,27 @@
+Certificate Request check Server1 SHA1
+depends_on:POLARSSL_SHA1_C
+x509_cert_req_check:"data_files/server1.key":SIG_RSA_SHA1:"data_files/server1.req.sha1"
+
+Certificate Request check Server1 SHA224
+depends_on:POLARSSL_SHA2_C
+x509_cert_req_check:"data_files/server1.key":SIG_RSA_SHA224:"data_files/server1.req.sha224"
+
+Certificate Request check Server1 SHA256
+depends_on:POLARSSL_SHA2_C
+x509_cert_req_check:"data_files/server1.key":SIG_RSA_SHA256:"data_files/server1.req.sha256"
+
+Certificate Request check Server1 SHA384
+depends_on:POLARSSL_SHA4_C
+x509_cert_req_check:"data_files/server1.key":SIG_RSA_SHA384:"data_files/server1.req.sha384"
+
+Certificate Request check Server1 SHA512
+depends_on:POLARSSL_SHA4_C
+x509_cert_req_check:"data_files/server1.key":SIG_RSA_SHA512:"data_files/server1.req.sha512"
+
+Certificate Request check Server1 MD4
+depends_on:POLARSSL_MD4_C
+x509_cert_req_check:"data_files/server1.key":SIG_RSA_MD4:"data_files/server1.req.md4"
+
+Certificate Request check Server1 MD5
+depends_on:POLARSSL_MD5_C
+x509_cert_req_check:"data_files/server1.key":SIG_RSA_MD5:"data_files/server1.req.md5"

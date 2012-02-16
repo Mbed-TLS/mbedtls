@@ -1,0 +1,64 @@
+BEGIN_HEADER
+#include <polarssl/x509write.h>
+#include <polarssl/x509.h>
+#include <polarssl/pem.h>
+END_HEADER
+
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_X509_WRITE_C:POLARSSL_BIGNUM_C
+END_DEPENDENCIES
+
+BEGIN_CASE
+x509_cert_req_check:key_file:md_type:cert_req_check_file
+{
+    rsa_context rsa;
+    pem_context pem;
+    x509_req_name req_name, *cur;
+    unsigned char *c;
+    unsigned char buf[4000];
+    unsigned char check_buf[4000];
+    int ret;
+    size_t olen = 2000;
+    FILE *f;
+
+    cur = &req_name;
+
+    memset( cur, 0, sizeof(x509_req_name) );
+    strcpy( cur->oid, OID_CN );
+    strcpy( cur->name, "PolarSSL Server 1" );
+    cur->next = malloc( sizeof(x509_req_name) );
+    cur = cur->next;
+
+    memset( cur, 0, sizeof(x509_req_name) );
+    strcpy( cur->oid, OID_ORGANIZATION );
+    strcpy( cur->name, "PolarSSL" );
+    cur->next = malloc( sizeof(x509_req_name) );
+    cur = cur->next;
+
+    memset( cur, 0, sizeof(x509_req_name) );
+    strcpy( cur->oid, OID_COUNTRY );
+    strcpy( cur->name, "NL" );
+
+    memset( &rsa, 0, sizeof(rsa_context) );
+    ret = x509parse_keyfile( &rsa, {key_file}, NULL );
+    TEST_ASSERT( ret == 0 );
+    if( ret != 0 )
+        return 0;
+
+    ret = x509_write_cert_req( buf, 4000, &rsa, &req_name, {md_type} );
+    TEST_ASSERT( ret >= 0 );
+
+    c = buf + 3999 - ret;
+
+    f = fopen( {cert_req_check_file}, "r" );
+    TEST_ASSERT( f != NULL );
+    fread( check_buf, 1, 4000, f );
+    fclose( f );
+
+    pem_init( &pem );
+    pem_read_buffer( &pem, "-----BEGIN CERTIFICATE REQUEST-----", "-----END CERTIFICATE REQUEST-----", check_buf, NULL, 0, &olen );
+
+    TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
+    TEST_ASSERT( pem.buflen == (size_t) ret );
+}
+END_CASE

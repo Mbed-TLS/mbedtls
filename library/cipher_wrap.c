@@ -32,9 +32,18 @@
 #if defined(POLARSSL_CIPHER_C)
 
 #include "polarssl/cipher_wrap.h"
+
+#if defined(POLARSSL_AES_C)
 #include "polarssl/aes.h"
+#endif
+
+#if defined(POLARSSL_CAMELLIA_C)
 #include "polarssl/camellia.h"
+#endif
+
+#if defined(POLARSSL_DES_C)
 #include "polarssl/des.h"
+#endif;
 
 #include <stdlib.h>
 

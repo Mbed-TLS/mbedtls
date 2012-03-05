@@ -75,7 +75,7 @@ void write_certificate_request( rsa_context *rsa, x509_req_name *req_name,
     size_t len = 0, olen = 4096;
 
     memset(output_buf, 0, 4096);
-    ret = x509_write_cert_req( output_buf, 4096, rsa, req_name );
+    ret = x509_write_cert_req( output_buf, 4096, rsa, req_name, SIG_RSA_SHA1 );
 
     if( ret < 0 )
         return;

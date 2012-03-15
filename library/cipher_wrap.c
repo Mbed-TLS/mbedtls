@@ -43,7 +43,7 @@
 
 #if defined(POLARSSL_DES_C)
 #include "polarssl/des.h"
-#endif;
+#endif
 
 #include <stdlib.h>
 

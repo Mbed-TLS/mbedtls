@@ -183,11 +183,9 @@ int gcm_crypt_and_tag( gcm_context *ctx,
                        size_t tag_len,
                        unsigned char *tag )
 {
-    unsigned char h[16];
     unsigned char y[16];
     unsigned char ectr[16];
     unsigned char buf[16];
-    unsigned char ghash[16];
     unsigned char work_buf[16];
     size_t i;
     unsigned char cb;
@@ -198,10 +196,8 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     size_t orig_add_len = add_len * 8;
     unsigned char **xor_p;
 
-    memset( h, 0x00, 16 );
     memset( y, 0x00, 16 );
     memset( work_buf, 0x00, 16 );
-    memset( ghash, 0x00, 16 );
     memset( tag, 0x00, tag_len );
     memset( buf, 0x00, 16 );
 

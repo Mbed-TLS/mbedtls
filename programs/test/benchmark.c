@@ -42,6 +42,7 @@
 #include "polarssl/des.h"
 #include "polarssl/aes.h"
 #include "polarssl/camellia.h"
+#include "polarssl/gcm.h"
 #include "polarssl/rsa.h"
 #include "polarssl/timing.h"
 #include "polarssl/havege.h"
@@ -99,6 +100,9 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_AES_C)
     aes_context aes;
+#if defined(POLARSSL_GCM_C)
+    gcm_context gcm;
+#endif
 #endif
 #if defined(POLARSSL_CAMELLIA_C)
     camellia_context camellia;
@@ -255,7 +259,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_AES_C)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
-        printf( "  AES-%d         :  ", keysize );
+        printf( "  AES-CBC-%d     :  ", keysize );
         fflush( stdout );
 
         memset( buf, 0, sizeof( buf ) );
@@ -274,12 +278,35 @@ int main( int argc, char *argv[] )
         printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                         ( hardclock() - tsc ) / ( j * BUFSIZE ) );
     }
+#if defined(POLARSSL_GCM_C)
+    for( keysize = 128; keysize <= 256; keysize += 64 )
+    {
+        printf( "  AES-GCM-%d     :  ", keysize );
+        fflush( stdout );
+
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+        gcm_init( &gcm, tmp, keysize );
+
+        set_alarm( 1 );
+
+        for( i = 1; ! alarmed; i++ )
+            gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 16, NULL, 0, buf, buf, 16, tmp );
+
+        tsc = hardclock();
+        for( j = 0; j < 4096; j++ )
+            gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 16, NULL, 0, buf, buf, 16, tmp );
+
+        printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
+                        ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    }
+#endif
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
-        printf( "  CAMELLIA-%d    :  ", keysize );
+        printf( "  CAMELLIA-CBC-%d:  ", keysize );
         fflush( stdout );
 
         memset( buf, 0, sizeof( buf ) );

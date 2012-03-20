@@ -18,6 +18,7 @@ set(src
      entropy.c
      entropy_poll.c
      error.c
+     gcm.c
      havege.c
      md.c
      md_wrap.c

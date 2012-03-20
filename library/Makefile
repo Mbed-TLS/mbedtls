@@ -28,7 +28,7 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		certs.o		cipher.o	cipher_wrap.o	\
 		ctr_drbg.o	debug.o		des.o			\
 		dhm.o		entropy.o	entropy_poll.o	\
-		error.o		havege.o					\
+		error.o		gcm.o		havege.o		\
 		md.o		md_wrap.o	md2.o			\
 		md4.o		md5.o		net.o			\
 		padlock.o	pem.o		pkcs11.o		\

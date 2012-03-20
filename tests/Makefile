@@ -15,7 +15,8 @@ APPS =	test_suite_aes			test_suite_arc4			\
 		test_suite_cipher.des	test_suite_cipher.null	\
 		test_suite_ctr_drbg		test_suite_debug		\
 		test_suite_des			test_suite_dhm			\
-		test_suite_error		test_suite_hmac_shax	\
+		test_suite_error		test_suite_gcm.decrypt	\
+		test_suite_gcm.decrypt	test_suite_hmac_shax	\
 		test_suite_md			test_suite_mdx			\
 		test_suite_mpi			test_suite_pkcs1_v21	\
 		test_suite_rsa			test_suite_shax			\
@@ -41,6 +42,14 @@ test_suite_cipher.des.c : suites/test_suite_cipher.function suites/test_suite_ci
 test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.null
+
+test_suite_gcm.decrypt.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt
+
+test_suite_gcm.encrypt.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt
 
 %.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
@@ -91,6 +100,14 @@ test_suite_dhm: test_suite_dhm.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_error: test_suite_error.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_gcm.decrypt: test_suite_gcm.decrypt.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_gcm.encrypt: test_suite_gcm.encrypt.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

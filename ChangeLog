@@ -12,6 +12,7 @@ Features
    * Added preliminary X509 Certificate Request writing support
    * Added key_app_writer example application
    * Added cert_req example application
+   * Added base Galois Counter Mode (GCM) for AES
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

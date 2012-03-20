@@ -448,6 +448,17 @@
 #define POLARSSL_ERROR_C
 
 /**
+ * \def POLARSSL_GCM_C
+ *
+ * Enable the Galois/Counter Mode (GCM) for AES
+ *
+ * Module:  library/gcm.c
+ *
+ * Requires: POLARSSL_AES_C
+ */
+#define POLARSSL_GCM_C
+
+/**
  * \def POLARSSL_HAVEGE_C
  *
  * Enable the HAVEGE random generator.

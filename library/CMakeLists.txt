@@ -38,6 +38,7 @@ set(src
      timing.c
      version.c
      x509parse.c
+     x509write.c
      xtea.c
 )
 

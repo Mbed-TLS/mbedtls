@@ -291,11 +291,11 @@ int main( int argc, char *argv[] )
         set_alarm( 1 );
 
         for( i = 1; ! alarmed; i++ )
-            gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 16, NULL, 0, buf, buf, 16, tmp );
+            gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 12, NULL, 0, buf, buf, 16, tmp );
 
         tsc = hardclock();
         for( j = 0; j < 4096; j++ )
-            gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 16, NULL, 0, buf, buf, 16, tmp );
+            gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 12, NULL, 0, buf, buf, 16, tmp );
 
         printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                         ( hardclock() - tsc ) / ( j * BUFSIZE ) );

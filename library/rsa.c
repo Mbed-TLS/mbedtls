@@ -860,6 +860,14 @@ int rsa_pkcs1_verify( rsa_context *ctx,
 
             len = siglen - ( p - buf );
 
+            if( len == 33 && hash_id == SIG_RSA_SHA1 )
+            {
+                if( memcmp( p, ASN1_HASH_SHA1_ALT, 13 ) == 0 &&
+                        memcmp( p + 13, hash, 20 ) == 0 )
+                    return( 0 );
+                else
+                    return( POLARSSL_ERR_RSA_VERIFY_FAILED );
+            }
             if( len == 34 )
             {
                 c = p[13];

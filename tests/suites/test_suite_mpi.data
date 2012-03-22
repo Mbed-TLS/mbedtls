@@ -138,6 +138,15 @@ mpi_cmp_mpi:10:"-2":10:"-3":1
 Base test mpi_cmp_mpi (Negative values) #3
 mpi_cmp_mpi:10:"-2":10:"-1":-1
 
+Base test mpi_cmp_mpi (Mixed values) #4
+mpi_cmp_mpi:10:"-3":10:"2":-1
+
+Base test mpi_cmp_mpi (Mixed values) #5
+mpi_cmp_mpi:10:"2":10:"-3":1
+
+Base test mpi_cmp_mpi (Mixed values) #6
+mpi_cmp_mpi:10:"-2":10:"31231231289798":-1
+
 Base test mpi_cmp_abs #1
 mpi_cmp_abs:10:"693":10:"693":0
 

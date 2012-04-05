@@ -4,6 +4,10 @@
 CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
 OFLAGS	= -O
 
+ifdef DEBUG
+CFLAGS += -g3
+endif
+
 # MicroBlaze specific options:
 # CFLAGS += -mno-xl-soft-mul -mxl-barrel-shift
 
@@ -65,7 +69,7 @@ libpolarssl.dll: libpolarssl.a
 	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32 
 
 .c.o:
-	echo "  CC    $<"
+	echo "  CC    $<  $(CFLAGS)"
 	$(CC) $(CFLAGS) $(OFLAGS) -c $<
 
 clean:

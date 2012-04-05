@@ -9,6 +9,10 @@ CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-state
 OFLAGS	= -O
 LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
 
+ifdef DEBUG
+CFLAGS += -g3
+endif
+
 APPS =	test_suite_aes			test_suite_arc4			\
 		test_suite_base64		test_suite_camellia		\
 		test_suite_cipher.aes	test_suite_cipher.camellia	\

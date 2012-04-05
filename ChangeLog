@@ -22,6 +22,10 @@ Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by
      Hui Dong)
 
+Security
+   * Fixed potential memory corruption on miscrafted client messages (found by
+     Frama-C team at CEA LIST)
+
 = Version 1.1.1 released on 2012-01-23
 Bugfix
    * Check for failed malloc() in ssl_set_hostname() and x509_get_entries()

@@ -9,6 +9,13 @@ all:
 	cd programs && $(MAKE) all && cd ..
 	cd tests    && $(MAKE) all && cd ..
 
+no_test:
+	cd library  && $(MAKE) all && cd ..
+	cd programs && $(MAKE) all && cd ..
+
+lib:
+	cd library  && $(MAKE) all && cd ..
+
 install:
 	mkdir -p $(DESTDIR)/include/polarssl
 	cp -r include/polarssl $(DESTDIR)/include

@@ -69,7 +69,7 @@ libpolarssl.dll: libpolarssl.a
 	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32 
 
 .c.o:
-	echo "  CC    $<  $(CFLAGS)"
+	echo "  CC    $<"
 	$(CC) $(CFLAGS) $(OFLAGS) -c $<
 
 clean:

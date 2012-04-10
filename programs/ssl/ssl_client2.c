@@ -478,7 +478,7 @@ exit:
     {
         char error_buf[100];
         error_strerror( ret, error_buf, 100 );
-        printf("Last error was: %d - %s\n\n", ret, error_buf );
+        printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
 

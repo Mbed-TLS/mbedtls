@@ -1,6 +1,14 @@
 killall -q openssl ssl_server
 
-openssl s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL &
+#MODES="ssl2 ssl3 tls1 tls1_1 tls1_2"
+MODES=tls1_2
+
+for MODE in $MODES;
+do
+echo "Running for $MODE"
+echo "-----------"
+
+openssl s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL -$MODE &
 PROCESS_ID=$!
 
 sleep 1
@@ -70,7 +78,7 @@ CIPHERS="                           \
 #    Not supported by OpenSSL: NULL-SHA256
 for i in $CIPHERS;
 do
-    RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | openssl s_client -cipher $i 2>&1)"
+    RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | openssl s_client -$MODE -cipher $i 2>&1)"
     EXIT=$?
     echo -n "PolarSSL Server - OpenSSL Client - $i : $EXIT - "
 
@@ -133,4 +141,6 @@ do
     fi
 done
 kill $PROCESS_ID
+
+done
 

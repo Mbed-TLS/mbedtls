@@ -180,6 +180,7 @@
 #define SSL_ALERT_MSG_INTERNAL_ERROR        80  /* 0x50 */
 #define SSL_ALERT_MSG_USER_CANCELED         90  /* 0x5A */
 #define SSL_ALERT_MSG_NO_RENEGOTIATION     100  /* 0x64 */
+#define SSL_ALERT_MSG_UNSUPPORTED_EXT      110  /* 0x6E */
 
 #define SSL_HS_HELLO_REQUEST            0
 #define SSL_HS_CLIENT_HELLO             1
@@ -197,6 +198,8 @@
  */
 #define TLS_EXT_SERVERNAME              0
 #define TLS_EXT_SERVERNAME_HOSTNAME     0
+
+#define TLS_EXT_SIG_ALG                13
 
 /*
  * SSL state machine

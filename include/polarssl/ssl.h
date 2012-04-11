@@ -34,6 +34,7 @@
 #include "rsa.h"
 #include "md5.h"
 #include "sha1.h"
+#include "sha2.h"
 #include "x509.h"
 #include "config.h"
 
@@ -90,6 +91,7 @@
 #define SSL_MINOR_VERSION_0             0   /*!< SSL v3.0 */
 #define SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
 #define SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
+#define SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 
 #define SSL_IS_CLIENT                   0
 #define SSL_IS_SERVER                   1
@@ -129,6 +131,19 @@
 #define SSL_EDH_RSA_CAMELLIA_128_SHA 0x45
 #define SSL_RSA_CAMELLIA_256_SHA     0x84
 #define SSL_EDH_RSA_CAMELLIA_256_SHA 0x88
+
+/*
+ * Supported Signature and Hash algorithms (For TLS 1.2)
+ */
+#define SSL_HASH_NONE                0
+#define SSL_HASH_MD5                 1
+#define SSL_HASH_SHA1                2
+#define SSL_HASH_SHA224              3
+#define SSL_HASH_SHA256              4
+#define SSL_HASH_SHA384              5
+#define SSL_HASH_SHA512              6
+
+#define SSL_SIG_RSA                  1
 
 /*
  * Message, alert and handshake types
@@ -310,6 +325,12 @@ struct _ssl_context
     dhm_context dhm_ctx;                /*!<  DHM key exchange        */
     md5_context fin_md5;                /*!<  Finished MD5 checksum   */
     sha1_context fin_sha1;              /*!<  Finished SHA-1 checksum */
+    sha2_context fin_sha2;              /*!<  Finished SHA-256 checksum */
+
+    void (*calc_finished)(ssl_context *, unsigned char *, int);
+    int  (*tls_prf)(unsigned char *, size_t, char *,
+                    unsigned char *, size_t,
+                    unsigned char *, size_t);
 
     int do_crypt;                       /*!<  en(de)cryption flag     */
     int *ciphersuites;                  /*!<  allowed ciphersuites    */
@@ -578,7 +599,8 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname );
  * \param ssl      SSL context
  * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (SSL_MINOR_VERSION_0,
- *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2 supported)
+ *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
+ *                 SSL_MINOR_VERSION_3 supported)
  */
 void ssl_set_max_version( ssl_context *ssl, int major, int minor );
 

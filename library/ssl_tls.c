@@ -113,6 +113,49 @@ static int tls1_prf( unsigned char *secret, size_t slen, char *label,
     return( 0 );
 }
 
+static int tls_prf_sha256( unsigned char *secret, size_t slen, char *label,
+                           unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen )
+{
+    size_t nb;
+    size_t i, j, k;
+    unsigned char tmp[128];
+    unsigned char h_i[32];
+
+    if( sizeof( tmp ) < 32 + strlen( label ) + rlen )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    nb = strlen( label );
+    memcpy( tmp + 32, label, nb );
+    memcpy( tmp + 32 + nb, random, rlen );
+    nb += rlen;
+
+    /*
+     * Compute P_<hash>(secret, label + random)[0..dlen]
+     */
+    sha2_hmac( secret, slen, tmp + 32, nb, tmp, 0 );
+
+    for( i = 0; i < dlen; i += 32 )
+    {
+        sha2_hmac( secret, slen, tmp, 32 + nb, h_i, 0 );
+        sha2_hmac( secret, slen, tmp, 32,      tmp, 0 );
+
+        k = ( i + 32 > dlen ) ? dlen % 32 : 32;
+
+        for( j = 0; j < k; j++ )
+            dstbuf[i + j]  = h_i[j];
+    }
+
+    memset( tmp, 0, sizeof( tmp ) );
+    memset( h_i, 0, sizeof( h_i ) );
+
+    return( 0 );
+}
+
+static void ssl_calc_finished_ssl   (ssl_context *,unsigned char *,int);
+static void ssl_calc_finished_tls   (ssl_context *,unsigned char *,int);
+static void ssl_calc_finished_tls1_2(ssl_context *,unsigned char *,int);
+
 int ssl_derive_keys( ssl_context *ssl )
 {
     int i;
@@ -126,6 +169,24 @@ int ssl_derive_keys( ssl_context *ssl )
     unsigned char *key2;
 
     SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
+
+    /*
+     * Set appropriate PRF function.
+     */
+    if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
+        ssl->tls_prf = tls1_prf;
+    else
+        ssl->tls_prf = tls_prf_sha256;
+
+    /*
+     * Set appropriate SSL / TLS / TLS1.2 functions
+     */
+    if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+        ssl->calc_finished = ssl_calc_finished_ssl;
+    else if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
+        ssl->calc_finished = ssl_calc_finished_tls;
+    else
+        ssl->calc_finished = ssl_calc_finished_tls1_2;
 
     /*
      * SSLv3:
@@ -161,9 +222,9 @@ int ssl_derive_keys( ssl_context *ssl )
                 md5_finish( &md5, ssl->session->master + i * 16 );
             }
         }
-        else
-            tls1_prf( ssl->premaster, len, "master secret",
-                      ssl->randbytes, 64, ssl->session->master, 48 );
+        else 
+            ssl->tls_prf( ssl->premaster, len, "master secret",
+                          ssl->randbytes, 64, ssl->session->master, 48 );
 
         memset( ssl->premaster, 0, sizeof( ssl->premaster ) );
     }
@@ -215,8 +276,8 @@ int ssl_derive_keys( ssl_context *ssl )
         memset( sha1sum, 0, sizeof( sha1sum ) );
     }
     else
-        tls1_prf( ssl->session->master, 48, "key expansion",
-                  ssl->randbytes, 64, keyblk, 256 );
+        ssl->tls_prf( ssl->session->master, 48, "key expansion",
+                      ssl->randbytes, 64, keyblk, 256 );
 
     SSL_DEBUG_MSG( 3, ( "ciphersuite = %s", ssl_get_ciphersuite( ssl ) ) );
     SSL_DEBUG_BUF( 3, "master secret", ssl->session->master, 48 );
@@ -426,6 +487,7 @@ void ssl_calc_verify( ssl_context *ssl, unsigned char hash[36] )
 {
     md5_context md5;
     sha1_context sha1;
+    sha2_context sha2;
     unsigned char pad_1[48];
     unsigned char pad_2[48];
 
@@ -433,6 +495,7 @@ void ssl_calc_verify( ssl_context *ssl, unsigned char hash[36] )
 
     memcpy( &md5 , &ssl->fin_md5 , sizeof(  md5_context ) );
     memcpy( &sha1, &ssl->fin_sha1, sizeof( sha1_context ) );
+    memcpy( &sha2, &ssl->fin_sha2, sizeof( sha2_context ) );
 
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
@@ -459,10 +522,14 @@ void ssl_calc_verify( ssl_context *ssl, unsigned char hash[36] )
         sha1_update( &sha1, hash + 16, 20 );
         sha1_finish( &sha1, hash + 16 );
     }
-    else /* TLSv1 */
+    else if( ssl->minor_ver != SSL_MINOR_VERSION_3 ) /* TLSv1 */
     {
          md5_finish( &md5,  hash );
         sha1_finish( &sha1, hash + 16 );
+    }
+    else
+    {
+        sha2_finish( &sha2, hash );
     }
 
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
@@ -630,10 +697,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         enc_msg = ssl->out_msg;
 
         /*
-         * Prepend per-record IV for block cipher in TLS v1.1 as per
-         * Method 1 (6.2.3.2. in RFC4346)
+         * Prepend per-record IV for block cipher in TLS v1.1 and up as per
+         * Method 1 (6.2.3.2. in RFC4346 and RFC5246)
          */
-        if( ssl->minor_ver == SSL_MINOR_VERSION_2 )
+        if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
         {
             /*
              * Generate IV
@@ -781,9 +848,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         dec_msg_result = ssl->in_msg;
 
         /*
-         * Initialize for prepended IV for block cipher in TLS v1.1
+         * Initialize for prepended IV for block cipher in TLS v1.1 and up
          */
-        if( ssl->minor_ver == SSL_MINOR_VERSION_2 )
+        if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
         {
             dec_msg += ssl->ivlen;
             dec_msglen -= ssl->ivlen;
@@ -1053,6 +1120,7 @@ int ssl_write_record( ssl_context *ssl )
 
          md5_update( &ssl->fin_md5 , ssl->out_msg, len );
         sha1_update( &ssl->fin_sha1, ssl->out_msg, len );
+        sha2_update( &ssl->fin_sha2, ssl->out_msg, len );
     }
 
     if( ssl->do_crypt != 0 )
@@ -1127,6 +1195,7 @@ int ssl_read_record( ssl_context *ssl )
 
          md5_update( &ssl->fin_md5 , ssl->in_msg, ssl->in_hslen );
         sha1_update( &ssl->fin_sha1, ssl->in_msg, ssl->in_hslen );
+        sha2_update( &ssl->fin_sha2, ssl->in_msg, ssl->in_hslen );
 
         return( 0 );
     }
@@ -1192,7 +1261,7 @@ int ssl_read_record( ssl_context *ssl )
         /*
          * TLS encrypted messages can have up to 256 bytes of padding
          */
-        if( ssl->minor_ver == SSL_MINOR_VERSION_1 &&
+        if( ssl->minor_ver >= SSL_MINOR_VERSION_1 &&
             ssl->in_msglen > ssl->minlen + SSL_MAX_CONTENT_LEN + 256 )
         {
             SSL_DEBUG_MSG( 1, ( "bad message length" ) );
@@ -1256,6 +1325,7 @@ int ssl_read_record( ssl_context *ssl )
 
          md5_update( &ssl->fin_md5 , ssl->in_msg, ssl->in_hslen );
         sha1_update( &ssl->fin_sha1, ssl->in_msg, ssl->in_hslen );
+        sha2_update( &ssl->fin_sha2, ssl->in_msg, ssl->in_hslen );
     }
 
     if( ssl->in_msgtype == SSL_MSG_ALERT )
@@ -1600,17 +1670,21 @@ int ssl_parse_change_cipher_spec( ssl_context *ssl )
     return( 0 );
 }
 
-static void ssl_calc_finished(
-                ssl_context *ssl, unsigned char *buf, int from,
-                md5_context *md5, sha1_context *sha1 )
+static void ssl_calc_finished_ssl(
+                ssl_context *ssl, unsigned char *buf, int from )
 {
-    int len = 12;
     char *sender;
+    md5_context  md5;
+    sha1_context sha1;
+
     unsigned char padbuf[48];
     unsigned char md5sum[16];
     unsigned char sha1sum[20];
 
-    SSL_DEBUG_MSG( 2, ( "=> calc  finished" ) );
+    SSL_DEBUG_MSG( 2, ( "=> calc  finished ssl" ) );
+
+    memcpy( &md5 , &ssl->fin_md5 , sizeof(  md5_context ) );
+    memcpy( &sha1, &ssl->fin_sha1, sizeof( sha1_context ) );
 
     /*
      * SSLv3:
@@ -1619,68 +1693,47 @@ static void ssl_calc_finished(
      *          MD5( handshake + sender + master + pad1 ) )
      *   + SHA1( master + pad2 +
      *         SHA1( handshake + sender + master + pad1 ) )
-     *
-     * TLSv1:
-     *   hash = PRF( master, finished_label,
-     *               MD5( handshake ) + SHA1( handshake ) )[0..11]
      */
 
     SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
-                    md5->state, sizeof(  md5->state ) );
+                    md5.state, sizeof(  md5.state ) );
 
     SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
-                   sha1->state, sizeof( sha1->state ) );
+                   sha1.state, sizeof( sha1.state ) );
 
-    if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
-    {
-        sender = ( from == SSL_IS_CLIENT ) ? (char *) "CLNT"
-                                           : (char *) "SRVR";
+    sender = ( from == SSL_IS_CLIENT ) ? (char *) "CLNT"
+                                       : (char *) "SRVR";
 
-        memset( padbuf, 0x36, 48 );
+    memset( padbuf, 0x36, 48 );
 
-        md5_update( md5, (unsigned char *) sender, 4 );
-        md5_update( md5, ssl->session->master, 48 );
-        md5_update( md5, padbuf, 48 );
-        md5_finish( md5, md5sum );
+    md5_update( &md5, (unsigned char *) sender, 4 );
+    md5_update( &md5, ssl->session->master, 48 );
+    md5_update( &md5, padbuf, 48 );
+    md5_finish( &md5, md5sum );
 
-        sha1_update( sha1, (unsigned char *) sender, 4 );
-        sha1_update( sha1, ssl->session->master, 48 );
-        sha1_update( sha1, padbuf, 40 );
-        sha1_finish( sha1, sha1sum );
+    sha1_update( &sha1, (unsigned char *) sender, 4 );
+    sha1_update( &sha1, ssl->session->master, 48 );
+    sha1_update( &sha1, padbuf, 40 );
+    sha1_finish( &sha1, sha1sum );
 
-        memset( padbuf, 0x5C, 48 );
+    memset( padbuf, 0x5C, 48 );
 
-        md5_starts( md5 );
-        md5_update( md5, ssl->session->master, 48 );
-        md5_update( md5, padbuf, 48 );
-        md5_update( md5, md5sum, 16 );
-        md5_finish( md5, buf );
+    md5_starts( &md5 );
+    md5_update( &md5, ssl->session->master, 48 );
+    md5_update( &md5, padbuf, 48 );
+    md5_update( &md5, md5sum, 16 );
+    md5_finish( &md5, buf );
 
-        sha1_starts( sha1 );
-        sha1_update( sha1, ssl->session->master, 48 );
-        sha1_update( sha1, padbuf , 40 );
-        sha1_update( sha1, sha1sum, 20 );
-        sha1_finish( sha1, buf + 16 );
+    sha1_starts( &sha1 );
+    sha1_update( &sha1, ssl->session->master, 48 );
+    sha1_update( &sha1, padbuf , 40 );
+    sha1_update( &sha1, sha1sum, 20 );
+    sha1_finish( &sha1, buf + 16 );
 
-        len += 24;
-    }
-    else
-    {
-        sender = ( from == SSL_IS_CLIENT )
-                 ? (char *) "client finished"
-                 : (char *) "server finished";
+    SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
 
-         md5_finish(  md5, padbuf );
-        sha1_finish( sha1, padbuf + 16 );
-
-        tls1_prf( ssl->session->master, 48, sender,
-                  padbuf, 36, buf, len );
-    }
-
-    SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
-
-    memset(  md5, 0, sizeof(  md5_context ) );
-    memset( sha1, 0, sizeof( sha1_context ) );
+    memset(  &md5, 0, sizeof(  md5_context ) );
+    memset( &sha1, 0, sizeof( sha1_context ) );
 
     memset(  padbuf, 0, sizeof(  padbuf ) );
     memset(  md5sum, 0, sizeof(  md5sum ) );
@@ -1689,20 +1742,100 @@ static void ssl_calc_finished(
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
 
-int ssl_write_finished( ssl_context *ssl )
+static void ssl_calc_finished_tls(
+                ssl_context *ssl, unsigned char *buf, int from )
 {
-    int ret, hash_len;
-     md5_context  md5;
+    int len = 12;
+    char *sender;
+    md5_context  md5;
     sha1_context sha1;
+    unsigned char padbuf[36];
 
-    SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
+    SSL_DEBUG_MSG( 2, ( "=> calc  finished tls" ) );
 
     memcpy( &md5 , &ssl->fin_md5 , sizeof(  md5_context ) );
     memcpy( &sha1, &ssl->fin_sha1, sizeof( sha1_context ) );
 
-    ssl_calc_finished( ssl, ssl->out_msg + 4,
-                       ssl->endpoint, &md5, &sha1 );
+    /*
+     * TLSv1:
+     *   hash = PRF( master, finished_label,
+     *               MD5( handshake ) + SHA1( handshake ) )[0..11]
+     */
 
+    SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
+                    md5.state, sizeof(  md5.state ) );
+
+    SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
+                   sha1.state, sizeof( sha1.state ) );
+
+    sender = ( from == SSL_IS_CLIENT )
+             ? (char *) "client finished"
+             : (char *) "server finished";
+
+    md5_finish(  &md5, padbuf );
+    sha1_finish( &sha1, padbuf + 16 );
+
+    ssl->tls_prf( ssl->session->master, 48, sender,
+            padbuf, 36, buf, len );
+
+    SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
+
+    memset(  &md5, 0, sizeof(  md5_context ) );
+    memset( &sha1, 0, sizeof( sha1_context ) );
+
+    memset(  padbuf, 0, sizeof(  padbuf ) );
+
+    SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
+}
+
+static void ssl_calc_finished_tls1_2(
+                ssl_context *ssl, unsigned char *buf, int from )
+{
+    int len = 12;
+    char *sender;
+    sha2_context sha2;
+    unsigned char padbuf[32];
+
+    SSL_DEBUG_MSG( 2, ( "=> calc  finished tls 1.2" ) );
+
+    memcpy( &sha2, &ssl->fin_sha2, sizeof( sha2_context ) );
+
+    /*
+     * TLSv1.2:
+     *   hash = PRF( master, finished_label,
+     *               Hash( handshake ) )[0.11]
+     */
+
+    SSL_DEBUG_BUF( 4, "finished sha2 state", (unsigned char *)
+                   sha2.state, sizeof( sha2.state ) );
+
+    sender = ( from == SSL_IS_CLIENT )
+             ? (char *) "client finished"
+             : (char *) "server finished";
+
+    sha2_finish( &sha2, padbuf );
+
+    ssl->tls_prf( ssl->session->master, 48, sender,
+                  padbuf, 32, buf, len );
+
+    SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
+
+    memset( &sha2, 0, sizeof( sha2_context ) );
+
+    memset(  padbuf, 0, sizeof(  padbuf ) );
+
+    SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
+}
+
+int ssl_write_finished( ssl_context *ssl )
+{
+    int ret, hash_len;
+
+    SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
+
+    ssl->calc_finished( ssl, ssl->out_msg + 4, ssl->endpoint );
+
+    // TODO TLS/1.2 Hash length is determined by cipher suite (Page 63)
     hash_len = ( ssl->minor_ver == SSL_MINOR_VERSION_0 ) ? 36 : 12;
 
     ssl->out_msglen  = 4 + hash_len;
@@ -1741,13 +1874,10 @@ int ssl_parse_finished( ssl_context *ssl )
     int ret;
     unsigned int hash_len;
     unsigned char buf[36];
-    md5_context  md5;
-    sha1_context sha1;
 
     SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
 
-    memcpy( &md5 , &ssl->fin_md5 , sizeof(  md5_context ) );
-    memcpy( &sha1, &ssl->fin_sha1, sizeof( sha1_context ) );
+    ssl->calc_finished( ssl, buf, ssl->endpoint ^ 1 );
 
     ssl->do_crypt = 1;
 
@@ -1763,6 +1893,7 @@ int ssl_parse_finished( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
+    // TODO TLS/1.2 Hash length is determined by cipher suite (Page 63)
     hash_len = ( ssl->minor_ver == SSL_MINOR_VERSION_0 ) ? 36 : 12;
 
     if( ssl->in_msg[0] != SSL_HS_FINISHED ||
@@ -1771,8 +1902,6 @@ int ssl_parse_finished( ssl_context *ssl )
         SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_FINISHED );
     }
-
-    ssl_calc_finished( ssl, buf, ssl->endpoint ^ 1, &md5, &sha1 );
 
     if( memcmp( ssl->in_msg + 4, buf, hash_len ) != 0 )
     {
@@ -1834,6 +1963,7 @@ int ssl_init( ssl_context *ssl )
 
      md5_starts( &ssl->fin_md5  );
     sha1_starts( &ssl->fin_sha1 );
+    sha2_starts( &ssl->fin_sha2, 0 );
 
     return( 0 );
 }
@@ -1879,6 +2009,7 @@ void ssl_session_reset( ssl_context *ssl )
 
      md5_starts( &ssl->fin_md5  );
     sha1_starts( &ssl->fin_sha1 );
+    sha2_starts( &ssl->fin_sha2, 0 );
 }
 
 /*
@@ -2198,6 +2329,9 @@ const char *ssl_get_version( const ssl_context *ssl )
 
         case SSL_MINOR_VERSION_2:
             return( "TLSv1.1" );
+
+        case SSL_MINOR_VERSION_3:
+            return( "TLSv1.2" );
 
         default:
             break;

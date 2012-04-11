@@ -97,8 +97,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         ssl->max_minor_ver = buf[4];
 
         ssl->major_ver = SSL_MAJOR_VERSION_3;
-        ssl->minor_ver = ( buf[4] <= SSL_MINOR_VERSION_2 )
-                         ? buf[4]  : SSL_MINOR_VERSION_2;
+        ssl->minor_ver = ( buf[4] <= SSL_MINOR_VERSION_3 )
+                         ? buf[4]  : SSL_MINOR_VERSION_3;
 
         if( ( ret = ssl_fetch_input( ssl, 2 + n ) ) != 0 )
         {
@@ -108,6 +108,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
          md5_update( &ssl->fin_md5 , buf + 2, n );
         sha1_update( &ssl->fin_sha1, buf + 2, n );
+        sha2_update( &ssl->fin_sha2, buf + 2, n );
 
         buf = ssl->in_msg;
         n = ssl->in_left - 5;
@@ -228,6 +229,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
          md5_update( &ssl->fin_md5 , buf, n );
         sha1_update( &ssl->fin_sha1, buf, n );
+        sha2_update( &ssl->fin_sha2, buf, n );
 
         /*
          * SSL layer:
@@ -263,8 +265,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         }
 
         ssl->major_ver = SSL_MAJOR_VERSION_3;
-        ssl->minor_ver = ( buf[5] <= SSL_MINOR_VERSION_2 )
-                         ? buf[5]  : SSL_MINOR_VERSION_2;
+        ssl->minor_ver = ( buf[5] <= SSL_MINOR_VERSION_3 )
+                         ? buf[5]  : SSL_MINOR_VERSION_3;
 
         ssl->max_major_ver = buf[4];
         ssl->max_minor_ver = buf[5];
@@ -540,6 +542,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     unsigned char hash[36];
     md5_context md5;
     sha1_context sha1;
+    int hash_id;
+    unsigned int hashlen;
 #endif
 
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
@@ -595,30 +599,55 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     SSL_DEBUG_MPI( 3, "DHM: G ", &ssl->dhm_ctx.G  );
     SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->dhm_ctx.GX );
 
-    /*
-     * digitally-signed struct {
-     *     opaque md5_hash[16];
-     *     opaque sha_hash[20];
-     * };
-     *
-     * md5_hash
-     *     MD5(ClientHello.random + ServerHello.random
-     *                            + ServerParams);
-     * sha_hash
-     *     SHA(ClientHello.random + ServerHello.random
-     *                            + ServerParams);
-     */
-    md5_starts( &md5 );
-    md5_update( &md5, ssl->randbytes,  64 );
-    md5_update( &md5, ssl->out_msg + 4, n );
-    md5_finish( &md5, hash );
+    if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
+    {
+        /*
+         * digitally-signed struct {
+         *     opaque md5_hash[16];
+         *     opaque sha_hash[20];
+         * };
+         *
+         * md5_hash
+         *     MD5(ClientHello.random + ServerHello.random
+         *                            + ServerParams);
+         * sha_hash
+         *     SHA(ClientHello.random + ServerHello.random
+         *                            + ServerParams);
+         */
+        md5_starts( &md5 );
+        md5_update( &md5, ssl->randbytes,  64 );
+        md5_update( &md5, ssl->out_msg + 4, n );
+        md5_finish( &md5, hash );
 
-    sha1_starts( &sha1 );
-    sha1_update( &sha1, ssl->randbytes,  64 );
-    sha1_update( &sha1, ssl->out_msg + 4, n );
-    sha1_finish( &sha1, hash + 16 );
+        sha1_starts( &sha1 );
+        sha1_update( &sha1, ssl->randbytes,  64 );
+        sha1_update( &sha1, ssl->out_msg + 4, n );
+        sha1_finish( &sha1, hash + 16 );
 
-    SSL_DEBUG_BUF( 3, "parameters hash", hash, 36 );
+        hashlen = 36;
+        hash_id = SIG_RSA_RAW;
+    }
+    else
+    {
+        /*
+         * digitally-signed struct {
+         *     opaque client_random[32];
+         *     opaque server_random[32];
+         *     ServerDHParams params;
+         * };
+         */
+        /* TODO TLS1.2 Get Hash algorithm from ciphersuite! */
+     
+        sha1_starts( &sha1 );
+        sha1_update( &sha1, ssl->randbytes, 64 );
+        sha1_update( &sha1, ssl->out_msg + 4, n );
+        sha1_finish( &sha1, hash );
+
+        hashlen = 20;
+        hash_id = SIG_RSA_SHA1;
+    }
+
+    SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
     if ( ssl->rsa_key )
         rsa_key_len = ssl->rsa_key->len;
@@ -627,6 +656,15 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         rsa_key_len = ssl->pkcs11_key->len;
 #endif /* defined(POLARSSL_PKCS11_C) */
 
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        // TODO TLS1.2 Base on signature algorithm extension received
+        ssl->out_msg[4 + n] = SSL_HASH_SHA1;
+        ssl->out_msg[5 + n] = SSL_SIG_RSA;
+
+        n += 2;
+    }
+
     ssl->out_msg[4 + n] = (unsigned char)( rsa_key_len >> 8 );
     ssl->out_msg[5 + n] = (unsigned char)( rsa_key_len      );
 
@@ -634,12 +672,12 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     {
         ret = rsa_pkcs1_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
                               RSA_PRIVATE,
-                              SIG_RSA_RAW, 36, hash, ssl->out_msg + 6 + n );
+                              hash_id, hashlen, hash, ssl->out_msg + 6 + n );
     }
 #if defined(POLARSSL_PKCS11_C)
     else {
         ret = pkcs11_sign( ssl->pkcs11_key, RSA_PRIVATE,
-                              SIG_RSA_RAW, 36, hash, ssl->out_msg + 6 + n );
+                              hash_id, hashlen, hash, ssl->out_msg + 6 + n );
     }
 #endif  /* defined(POLARSSL_PKCS11_C) */
 

@@ -113,12 +113,6 @@ int dhm_read_params( dhm_context *ctx,
     if( end - *p < 2 )
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
-    n = ( (*p)[0] << 8 ) | (*p)[1];
-    (*p) += 2;
-
-    if( end != *p + n )
-        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
-
     return( 0 );
 }
 

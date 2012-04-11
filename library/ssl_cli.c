@@ -54,7 +54,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
     if( ssl->max_major_ver == 0 && ssl->max_minor_ver == 0 )
     {
         ssl->max_major_ver = SSL_MAJOR_VERSION_3;
-        ssl->max_minor_ver = SSL_MINOR_VERSION_2;
+        ssl->max_minor_ver = SSL_MINOR_VERSION_3;
     }
 
     /*
@@ -335,9 +335,11 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     int ret;
     size_t n;
     unsigned char *p, *end;
-    unsigned char hash[36];
+    unsigned char hash[64];
     md5_context md5;
     sha1_context sha1;
+    int hash_id = SIG_RSA_RAW;
+    unsigned int hashlen;
 #endif
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
@@ -376,6 +378,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
+    SSL_DEBUG_BUF( 3,   "server key exchange", ssl->in_msg + 4, ssl->in_hslen - 4 );
+
     /*
      * Ephemeral DH parameters:
      *
@@ -389,6 +393,63 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     end = ssl->in_msg + ssl->in_hslen;
 
     if( ( ret = dhm_read_params( &ssl->dhm_ctx, &p, end ) ) != 0 )
+    {
+        SSL_DEBUG_MSG( 2, ( "DHM Read Params returned -0x%x", -ret ) );
+        SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE ); 
+    }
+
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        // TODO TLS 1.2 Check if valid hash and sig
+        if( p[1] != SSL_SIG_RSA )
+        {
+            SSL_DEBUG_MSG( 2, ( "Server used unsupported SignatureAlgorithm %d", p[1] ) );
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE ); 
+        }
+
+        switch( p[0] )
+        {
+#if defined(POLARSSL_MD5_C)
+            case SSL_HASH_MD5:
+                hash_id = SIG_RSA_MD5;
+                break;
+#endif
+#if defined(POLARSSL_SHA1_C)
+            case SSL_HASH_SHA1:
+                hash_id = SIG_RSA_SHA1;
+                break;
+#endif
+#if defined(POLARSSL_SHA2_C)
+            case SSL_HASH_SHA224:
+                hash_id = SIG_RSA_SHA224;
+                break;
+            case SSL_HASH_SHA256:
+                hash_id = SIG_RSA_SHA256;
+                break;
+#endif
+#if defined(POLARSSL_SHA4_C)
+            case SSL_HASH_SHA384:
+                hash_id = SIG_RSA_SHA384;
+                break;
+            case SSL_HASH_SHA512:
+                hash_id = SIG_RSA_SHA512;
+                break;
+#endif
+            default:
+                SSL_DEBUG_MSG( 2, ( "Server used unsupported HashAlgorithm %d", p[1] ) );
+                SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+                return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE ); 
+        }      
+
+        p += 2;
+    }
+
+    n = ( p[0] << 8 ) | p[1];
+    p += 2;
+
+    if( end != p + n )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
@@ -410,35 +471,61 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     SSL_DEBUG_MPI( 3, "DHM: G ", &ssl->dhm_ctx.G  );
     SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->dhm_ctx.GY );
 
-    /*
-     * digitally-signed struct {
-     *     opaque md5_hash[16];
-     *     opaque sha_hash[20];
-     * };
-     *
-     * md5_hash
-     *     MD5(ClientHello.random + ServerHello.random
-     *                            + ServerParams);
-     * sha_hash
-     *     SHA(ClientHello.random + ServerHello.random
-     *                            + ServerParams);
-     */
-    n = ssl->in_hslen - ( end - p ) - 6;
+    if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
+    {
+        /*
+         * digitally-signed struct {
+         *     opaque md5_hash[16];
+         *     opaque sha_hash[20];
+         * };
+         *
+         * md5_hash
+         *     MD5(ClientHello.random + ServerHello.random
+         *                            + ServerParams);
+         * sha_hash
+         *     SHA(ClientHello.random + ServerHello.random
+         *                            + ServerParams);
+         */
+        n = ssl->in_hslen - ( end - p ) - 6;
 
-    md5_starts( &md5 );
-    md5_update( &md5, ssl->randbytes, 64 );
-    md5_update( &md5, ssl->in_msg + 4, n );
-    md5_finish( &md5, hash );
+        md5_starts( &md5 );
+        md5_update( &md5, ssl->randbytes, 64 );
+        md5_update( &md5, ssl->in_msg + 4, n );
+        md5_finish( &md5, hash );
 
-    sha1_starts( &sha1 );
-    sha1_update( &sha1, ssl->randbytes, 64 );
-    sha1_update( &sha1, ssl->in_msg + 4, n );
-    sha1_finish( &sha1, hash + 16 );
+        sha1_starts( &sha1 );
+        sha1_update( &sha1, ssl->randbytes, 64 );
+        sha1_update( &sha1, ssl->in_msg + 4, n );
+        sha1_finish( &sha1, hash + 16 );
 
-    SSL_DEBUG_BUF( 3, "parameters hash", hash, 36 );
+        hash_id = SIG_RSA_RAW;
+        hashlen = 36;
+    }
+    else
+    {
+        n = ssl->in_hslen - ( end - p ) - 8;
+
+        /*
+         * digitally-signed struct {
+         *     opaque client_random[32];
+         *     opaque server_random[32];
+         *     ServerDHParams params;
+         * };
+         */
+        /* TODO TLS1.2 Get Hash algorithm from hash and signature extension! */
+
+        sha1_starts( &sha1 );
+        sha1_update( &sha1, ssl->randbytes, 64 );
+        sha1_update( &sha1, ssl->in_msg + 4, n );
+        sha1_finish( &sha1, hash );
+
+        hashlen = 20;
+    }
+    
+    SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
     if( ( ret = rsa_pkcs1_verify( &ssl->peer_cert->rsa, RSA_PUBLIC,
-                                  SIG_RSA_RAW, 36, hash, p ) ) != 0 )
+                                  hash_id, hashlen, hash, p ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );
         return( ret );
@@ -643,8 +730,10 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
     int ret = 0;
-    size_t n = 0;
+    size_t n = 0, offset = 0;
     unsigned char hash[36];
+    int hash_id = SIG_RSA_RAW;
+    unsigned int hashlen = 36;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
@@ -653,6 +742,12 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
         ssl->state++;
         return( 0 );
+    }
+
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        hash_id = SIG_RSA_SHA256;
+        hashlen = 32;
     }
 
     if( ssl->rsa_key == NULL )
@@ -680,18 +775,27 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         n = ssl->pkcs11_key->len;
 #endif  /* defined(POLARSSL_PKCS11_C) */
 
-    ssl->out_msg[4] = (unsigned char)( n >> 8 );
-    ssl->out_msg[5] = (unsigned char)( n      );
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        // TODO TLS1.2 Base on signature algorithm extension received
+        ssl->out_msg[4] = SSL_HASH_SHA1;
+        ssl->out_msg[5] = SSL_SIG_RSA;
+
+        offset = 2;
+    }
+
+    ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
+    ssl->out_msg[5 + offset] = (unsigned char)( n      );
 
     if( ssl->rsa_key )
     {
         ret = rsa_pkcs1_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
-                                    RSA_PRIVATE, SIG_RSA_RAW,
-                                    36, hash, ssl->out_msg + 6 );
+                                   RSA_PRIVATE, hash_id,
+                                   hashlen, hash, ssl->out_msg + 6 + offset );
     } else {
 #if defined(POLARSSL_PKCS11_C)
-        ret = pkcs11_sign( ssl->pkcs11_key, RSA_PRIVATE, SIG_RSA_RAW,
-                                    36, hash, ssl->out_msg + 6 );
+        ret = pkcs11_sign( ssl->pkcs11_key, RSA_PRIVATE, hash_id,
+                                    hashlen, hash, ssl->out_msg + 6 + offset );
 #endif  /* defined(POLARSSL_PKCS11_C) */
     }
 
@@ -701,7 +805,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         return( ret );
     }
 
-    ssl->out_msglen  = 6 + n;
+    ssl->out_msglen  = 6 + n + offset;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = SSL_HS_CERTIFICATE_VERIFY;
 

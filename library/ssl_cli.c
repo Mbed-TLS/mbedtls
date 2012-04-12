@@ -616,8 +616,6 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
          *     ServerDHParams params;
          * };
          */
-        /* TODO TLS1.2 Get Hash algorithm from hash and signature extension! */
-
         switch( hash_id )
         {
 #if defined(POLARSSL_MD5_C)
@@ -928,7 +926,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
-        // TODO TLS1.2 Base on signature algorithm extension received
+        // TODO TLS1.2 Base on signature algorithm received in Certificate Request
         ssl->out_msg[4] = SSL_HASH_SHA256;
         ssl->out_msg[5] = SSL_SIG_RSA;
 

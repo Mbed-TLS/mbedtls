@@ -636,7 +636,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ServerDHParams params;
          * };
          */
-        /* TODO TLS1.2 Get Hash algorithm from ciphersuite! */
+        /* TODO TLS1.2 Get a supported hash algorithm from the
+         * signature_algorithms extension, Otherwise SHA1 + RSA!
+         */
      
         sha1_starts( &sha1 );
         sha1_update( &sha1, ssl->randbytes, 64 );
@@ -658,7 +660,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
-        // TODO TLS1.2 Base on signature algorithm extension received
+        // TODO TLS1.2 Base on selection above (SHA1 + RSA is default choice)
         ssl->out_msg[4 + n] = SSL_HASH_SHA1;
         ssl->out_msg[5 + n] = SSL_SIG_RSA;
 

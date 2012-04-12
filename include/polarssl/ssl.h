@@ -115,22 +115,32 @@
 #define SSL_RSA_NULL_MD5             0x01   /**< Weak! */
 #define SSL_RSA_NULL_SHA             0x02   /**< Weak! */
 #define SSL_RSA_NULL_SHA256          0x3B   /**< Weak! */
-#define SSL_RSA_DES_SHA              0x09   /**< Weak! */
-#define SSL_EDH_RSA_DES_SHA          0x15   /**< Weak! */
+#define SSL_RSA_DES_SHA              0x09   /**< Weak! Not in TLS 1.2 */
+#define SSL_EDH_RSA_DES_SHA          0x15   /**< Weak! Not in TLS 1.2 */
 
 #define SSL_RSA_RC4_128_MD5          0x04
 #define SSL_RSA_RC4_128_SHA          0x05
+
 #define SSL_RSA_DES_168_SHA          0x0A
 #define SSL_EDH_RSA_DES_168_SHA      0x16
+
 #define SSL_RSA_AES_128_SHA          0x2F
 #define SSL_EDH_RSA_AES_128_SHA      0x33
 #define SSL_RSA_AES_256_SHA          0x35
 #define SSL_EDH_RSA_AES_256_SHA      0x39
+#define SSL_RSA_AES_128_SHA256       0x3C   /**< TLS 1.2 */
+#define SSL_RSA_AES_256_SHA256       0x3D   /**< TLS 1.2 */
+#define SSL_EDH_RSA_AES_128_SHA256   0x67   /**< TLS 1.2 */
+#define SSL_EDH_RSA_AES_256_SHA256   0x6B   /**< TLS 1.2 */
 
-#define SSL_RSA_CAMELLIA_128_SHA     0x41
-#define SSL_EDH_RSA_CAMELLIA_128_SHA 0x45
-#define SSL_RSA_CAMELLIA_256_SHA     0x84
-#define SSL_EDH_RSA_CAMELLIA_256_SHA 0x88
+#define SSL_RSA_CAMELLIA_128_SHA        0x41
+#define SSL_EDH_RSA_CAMELLIA_128_SHA    0x45
+#define SSL_RSA_CAMELLIA_256_SHA        0x84
+#define SSL_EDH_RSA_CAMELLIA_256_SHA    0x88
+#define SSL_RSA_CAMELLIA_128_SHA256     0xBA   /**< TLS 1.2 */
+#define SSL_EDH_RSA_CAMELLIA_128_SHA256 0xBE   /**< TLS 1.2 */
+#define SSL_RSA_CAMELLIA_256_SHA256     0xC0   /**< TLS 1.2 */
+#define SSL_EDH_RSA_CAMELLIA_256_SHA256 0xC4   /**< TLS 1.2 */
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)

@@ -72,21 +72,64 @@ char *my_dhm_G = "4";
  */
 int my_ciphersuites[] =
 {
+#if defined(POLARSSL_DHM_C)
+#if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_SHA2_C)
+    SSL_EDH_RSA_AES_256_SHA256,
+    SSL_EDH_RSA_AES_128_SHA256,
+#endif /* POLARSSL_SHA2_C */
     SSL_EDH_RSA_AES_256_SHA,
-    SSL_EDH_RSA_CAMELLIA_256_SHA,
     SSL_EDH_RSA_AES_128_SHA,
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_SHA2_C)
+    SSL_EDH_RSA_CAMELLIA_256_SHA256,
+    SSL_EDH_RSA_CAMELLIA_128_SHA256,
+#endif /* POLARSSL_SHA2_C */
+    SSL_EDH_RSA_CAMELLIA_256_SHA,
     SSL_EDH_RSA_CAMELLIA_128_SHA,
+#endif
+#if defined(POLARSSL_DES_C)
     SSL_EDH_RSA_DES_168_SHA,
+#endif
+#endif
+
+#if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_SHA2_C)
+    SSL_RSA_AES_256_SHA256,
+#endif /* POLARSSL_SHA2_C */
     SSL_RSA_AES_256_SHA,
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_SHA2_C)
+    SSL_RSA_CAMELLIA_256_SHA256,
+#endif /* POLARSSL_SHA2_C */
     SSL_RSA_CAMELLIA_256_SHA,
+#endif
+#if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_SHA2_C)
+    SSL_RSA_AES_128_SHA256,
+#endif /* POLARSSL_SHA2_C */
     SSL_RSA_AES_128_SHA,
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_SHA2_C)
+    SSL_RSA_CAMELLIA_128_SHA256,
+#endif /* POLARSSL_SHA2_C */
     SSL_RSA_CAMELLIA_128_SHA,
+#endif
+#if defined(POLARSSL_DES_C)
     SSL_RSA_DES_168_SHA,
+#endif
+#if defined(POLARSSL_ARC4_C)
     SSL_RSA_RC4_128_SHA,
     SSL_RSA_RC4_128_MD5,
+#endif
 #if defined(POLARSSL_ENABLE_WEAK_CIPHERSUITES)
+#if defined(POLARSSL_DES_C)
     SSL_EDH_RSA_DES_SHA,
     SSL_RSA_DES_SHA,
+#endif
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
     SSL_RSA_NULL_MD5,
     SSL_RSA_NULL_SHA,

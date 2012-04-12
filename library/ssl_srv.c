@@ -552,8 +552,12 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         ssl->session->ciphersuite != SSL_EDH_RSA_DES_168_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_SHA &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_SHA256 &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_SHA256 &&
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA)
+        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA256 &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA256 )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;
@@ -761,8 +765,12 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         ssl->session->ciphersuite == SSL_EDH_RSA_DES_168_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA256 ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA256 ||
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA)
+        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA256 ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA256 )
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm is not available" ) );

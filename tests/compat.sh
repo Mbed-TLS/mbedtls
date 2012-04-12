@@ -1,19 +1,21 @@
 killall -q openssl ssl_server
 
-#MODES="ssl2 ssl3 tls1 tls1_1 tls1_2"
-MODES=tls1_2
+MODES="ssl3 tls1 tls1_1 tls1_2"
+#VERIFY="YES"
+VERIFY=""
+
+if [ "X$VERIFY" = "XYES" ];
+then
+    P_CLIENT_ARGS="crt_file=data_files/server2.crt key_file=data_files/server2.key"
+    O_SERVER_ARGS="-verify 10"
+fi
 
 for MODE in $MODES;
 do
 echo "Running for $MODE"
 echo "-----------"
 
-openssl s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL -$MODE &
-PROCESS_ID=$!
-
-sleep 1
-
-CIPHERS="                               \
+P_CIPHERS="                             \
     SSL-EDH-RSA-AES-128-SHA             \
     SSL-EDH-RSA-AES-256-SHA             \
     SSL-EDH-RSA-CAMELLIA-128-SHA        \
@@ -32,10 +34,52 @@ CIPHERS="                               \
     SSL-EDH-RSA-DES-SHA                 \
     "
 
-#    Not supported by OpenSSL: SSL-RSA-NULL-SHA256
-for i in $CIPHERS;
+O_CIPHERS="                         \
+    DHE-RSA-AES128-SHA              \
+    DHE-RSA-AES256-SHA              \
+    DHE-RSA-CAMELLIA128-SHA         \
+    DHE-RSA-CAMELLIA256-SHA         \
+    EDH-RSA-DES-CBC3-SHA            \
+    AES256-SHA                      \
+    CAMELLIA256-SHA                 \
+    AES128-SHA                      \
+    CAMELLIA128-SHA                 \
+    DES-CBC3-SHA                    \
+    RC4-SHA                         \
+    RC4-MD5                         \
+    NULL-MD5                        \
+    NULL-SHA                        \
+    DES-CBC-SHA                     \
+    EDH-RSA-DES-CBC-SHA             \
+    "
+
+if [ "$MODE" = "tls1_2" ];
+then
+    P_CIPHERS="$P_CIPHERS               \
+        SSL-RSA-NULL-SHA256             \
+        SSL-RSA-AES-128-SHA256          \
+        SSL-EDH-RSA-AES-128-SHA256      \
+        SSL-RSA-AES-256-SHA256          \
+        SSL-EDH-RSA-AES-256-SHA256      \
+        "
+
+    O_CIPHERS="$O_CIPHERS           \
+        NULL-SHA256                 \
+        AES128-SHA256               \
+        DHE-RSA-AES128-SHA256       \
+        AES256-SHA256               \
+        DHE-RSA-AES256-SHA256       \
+        "
+fi
+
+openssl s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE &
+PROCESS_ID=$!
+
+sleep 1
+
+for i in $P_CIPHERS;
 do
-    RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i )"
+    RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i )"
     EXIT=$?
     echo -n "OpenSSL Server - PolarSSL Client - $i : $EXIT - "
     if [ "$EXIT" = "2" ];
@@ -56,27 +100,7 @@ PROCESS_ID=$!
 
 sleep 1
 
-CIPHERS="                           \
-    DHE-RSA-AES128-SHA              \
-    DHE-RSA-AES256-SHA              \
-    DHE-RSA-CAMELLIA128-SHA         \
-    DHE-RSA-CAMELLIA256-SHA         \
-    EDH-RSA-DES-CBC3-SHA            \
-    AES256-SHA                      \
-    CAMELLIA256-SHA                 \
-    AES128-SHA                      \
-    CAMELLIA128-SHA                 \
-    DES-CBC3-SHA                    \
-    RC4-SHA                         \
-    RC4-MD5                         \
-    NULL-MD5                        \
-    NULL-SHA                        \
-    DES-CBC-SHA                     \
-    EDH-RSA-DES-CBC-SHA             \
-    "
-
-#    Not supported by OpenSSL: NULL-SHA256
-for i in $CIPHERS;
+for i in $O_CIPHERS;
 do
     RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | openssl s_client -$MODE -cipher $i 2>&1)"
     EXIT=$?
@@ -104,27 +128,20 @@ PROCESS_ID=$!
 
 sleep 1
 
-CIPHERS="                               \
-    SSL-RSA-RC4-128-SHA                 \
-    SSL-RSA-NULL-MD5                    \
-    SSL-EDH-RSA-AES-128-SHA             \
-    SSL-EDH-RSA-AES-256-SHA             \
-    SSL-EDH-RSA-CAMELLIA-128-SHA        \
-    SSL-EDH-RSA-CAMELLIA-256-SHA        \
-    SSL-EDH-RSA-DES-168-SHA             \
-    SSL-RSA-NULL-SHA                    \
-    SSL-RSA-AES-256-SHA                 \
-    SSL-RSA-CAMELLIA-256-SHA            \
-    SSL-RSA-AES-128-SHA                 \
-    SSL-RSA-CAMELLIA-128-SHA            \
-    SSL-RSA-DES-168-SHA                 \
-    SSL-RSA-RC4-128-MD5                 \
-    SSL-RSA-DES-SHA                     \
-    SSL-EDH-RSA-DES-SHA                 \
-    SSL-RSA-NULL-SHA256                 \
-    "
+# OpenSSL does not support RFC5246 Camellia ciphers with SHA256
+# Add for PolarSSL only test, which does support them.
+#
+if [ "$MODE" = "tls1_2" ];
+then
+    P_CIPHERS="$P_CIPHERS               \
+        SSL-RSA-CAMELLIA-128-SHA256     \
+        SSL-EDH-RSA-CAMELLIA-128-SHA256 \
+        SSL-RSA-CAMELLIA-256-SHA256     \
+        SSL-EDH-RSA-CAMELLIA-256-SHA256 \
+        "
+fi
 
-for i in $CIPHERS;
+for i in $P_CIPHERS;
 do
     RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i )"
     EXIT=$?

@@ -96,7 +96,7 @@ int dhm_read_params( dhm_context *ctx,
                      unsigned char **p,
                      const unsigned char *end )
 {
-    int ret, n;
+    int ret;
 
     memset( ctx, 0, sizeof( dhm_context ) );
 

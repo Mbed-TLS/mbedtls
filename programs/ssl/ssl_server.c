@@ -463,7 +463,7 @@ reset:
                     break;
 
                 default:
-                    printf( " ssl_read returned %d\n", ret );
+                    printf( " ssl_read returned -0x%x\n", -ret );
                     break;
             }
 

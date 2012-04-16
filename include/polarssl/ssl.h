@@ -696,6 +696,19 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
 int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len );
 
 /**
+ * \brief           Send an alert message
+ *
+ * \param ssl       SSL context
+ * \param level     The alert level of the message
+ *                  (SSL_ALERT_LEVEL_WARNING or SSL_ALERT_LEVEL_FATAL)
+ * \param message   The alert message (SSL_ALERT_MSG_*)
+ *
+ * \return          1 if successful, or a specific SSL error code.
+ */
+int ssl_send_alert_message( ssl_context *ssl,
+                            unsigned char level,
+                            unsigned char message );
+/**
  * \brief          Notify the peer that the connection is being closed
  *
  * \param ssl      SSL context

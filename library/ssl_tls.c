@@ -1359,6 +1359,22 @@ int ssl_read_record( ssl_context *ssl )
         }
     }
 
+    if( ssl->in_msgtype != SSL_MSG_HANDSHAKE &&
+        ssl->in_msgtype != SSL_MSG_ALERT &&
+        ssl->in_msgtype != SSL_MSG_CHANGE_CIPHER_SPEC &&
+        ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
+    {
+        SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
+
+        if( ( ret = ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
+              SSL_ALERT_MSG_UNEXPECTED_MESSAGE ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+    }
+
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
     {
         ssl->in_hslen  = 4;
@@ -1417,6 +1433,30 @@ int ssl_read_record( ssl_context *ssl )
     ssl->in_left = 0;
 
     SSL_DEBUG_MSG( 2, ( "<= read record" ) );
+
+    return( 0 );
+}
+
+int ssl_send_alert_message( ssl_context *ssl,
+                            unsigned char level,
+                            unsigned char message )
+{
+    int ret;
+
+    SSL_DEBUG_MSG( 2, ( "=> send alert message" ) );
+
+    ssl->out_msgtype = SSL_MSG_ALERT;
+    ssl->out_msglen = 2;
+    ssl->out_msg[0] = level;
+    ssl->out_msg[1] = message;
+
+    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        return( ret );
+    }
+
+    SSL_DEBUG_MSG( 2, ( "<= send alert message" ) );
 
     return( 0 );
 }

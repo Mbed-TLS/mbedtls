@@ -63,6 +63,10 @@
 #include "polarssl/entropy.h"
 #endif
 
+#if defined(POLARSSL_GCM_C)
+#include "polarssl/gcm.h"
+#endif
+
 #if defined(POLARSSL_MD_C)
 #include "polarssl/md.h"
 #endif
@@ -439,6 +443,11 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED) )
         snprintf( buf, buflen, "ENTROPY - No sources have been added to poll" );
 #endif /* POLARSSL_ENTROPY_C */
+
+#if defined(POLARSSL_GCM_C)
+    if( use_ret == -(POLARSSL_ERR_GCM_AUTH_FAILED) )
+        snprintf( buf, buflen, "GCM - Authenticated decryption failed" );
+#endif /* POLARSSL_GCM_C */
 
 #if defined(POLARSSL_MD2_C)
     if( use_ret == -(POLARSSL_ERR_MD2_FILE_IO_ERROR) )

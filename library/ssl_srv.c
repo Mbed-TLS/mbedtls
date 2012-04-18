@@ -106,10 +106,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             return( ret );
         }
 
-         md5_update( &ssl->fin_md5 , buf + 2, n );
-        sha1_update( &ssl->fin_sha1, buf + 2, n );
-        sha2_update( &ssl->fin_sha2, buf + 2, n );
-        sha4_update( &ssl->fin_sha4, buf + 2, n );
+        ssl->update_checksum( ssl, buf + 2, n );
 
         buf = ssl->in_msg;
         n = ssl->in_left - 5;
@@ -228,10 +225,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         buf = ssl->in_msg;
         n = ssl->in_left - 5;
 
-         md5_update( &ssl->fin_md5 , buf, n );
-        sha1_update( &ssl->fin_sha1, buf, n );
-        sha2_update( &ssl->fin_sha2, buf, n );
-        sha4_update( &ssl->fin_sha4, buf, n );
+        ssl->update_checksum( ssl, buf, n );
 
         /*
          * SSL layer:
@@ -352,6 +346,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 have_ciphersuite:
 
     ssl->session->ciphersuite = ssl->ciphersuites[i];
+    ssl_kickstart_checksum( ssl, ssl->session->ciphersuite, buf, n );
+
     ssl->in_left = 0;
     ssl->state++;
 
@@ -912,7 +908,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 {
     int ret;
     size_t n1, n2;
-    unsigned char hash[36];
+    unsigned char hash[48];
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
@@ -923,7 +919,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
-    ssl_calc_verify( ssl, hash );
+    ssl->calc_verify( ssl, hash );
 
     if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {

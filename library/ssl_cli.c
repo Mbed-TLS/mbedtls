@@ -368,6 +368,11 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
     i = ( buf[39 + n] << 8 ) | buf[40 + n];
 
+    /*
+     * Initialize update checksum functions
+     */
+    ssl_kickstart_checksum( ssl, i, buf, ssl->in_hslen );
+
     SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
 
@@ -940,7 +945,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     /*
      * Make an RSA signature of the handshake digests
      */
-    ssl_calc_verify( ssl, hash );
+    ssl->calc_verify( ssl, hash );
 
     if ( ssl->rsa_key )
         n = ssl->rsa_key->len;

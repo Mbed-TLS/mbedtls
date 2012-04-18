@@ -342,11 +342,10 @@ struct _ssl_context
      * Crypto layer
      */
     dhm_context dhm_ctx;                /*!<  DHM key exchange        */
-    md5_context fin_md5;                /*!<  Finished MD5 checksum   */
-    sha1_context fin_sha1;              /*!<  Finished SHA-1 checksum */
-    sha2_context fin_sha2;              /*!<  Finished SHA-256 checksum */
-    sha4_context fin_sha4;              /*!<  Finished SHA-384 checksum */
+    unsigned char ctx_checksum[500];    /*!<  Checksum context(s)     */
 
+    void (*update_checksum)(ssl_context *, unsigned char *, size_t);
+    void (*calc_verify)(ssl_context *, unsigned char *);
     void (*calc_finished)(ssl_context *, unsigned char *, int);
     int  (*tls_prf)(unsigned char *, size_t, char *,
                     unsigned char *, size_t,
@@ -737,7 +736,6 @@ int ssl_handshake_client( ssl_context *ssl );
 int ssl_handshake_server( ssl_context *ssl );
 
 int ssl_derive_keys( ssl_context *ssl );
-void ssl_calc_verify( ssl_context *ssl, unsigned char hash[36] );
 
 int ssl_read_record( ssl_context *ssl );
 /**
@@ -757,6 +755,9 @@ int ssl_write_change_cipher_spec( ssl_context *ssl );
 
 int ssl_parse_finished( ssl_context *ssl );
 int ssl_write_finished( ssl_context *ssl );
+
+void ssl_kickstart_checksum( ssl_context *ssl, int ciphersuite,
+                             unsigned char *input_buf, size_t len );
 
 #ifdef __cplusplus
 }

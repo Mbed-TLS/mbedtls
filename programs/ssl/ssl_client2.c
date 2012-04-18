@@ -232,7 +232,7 @@ int main( int argc, char *argv[] )
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (unsigned char *) pers, strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        printf( " failed\n  ! ctr_drbg_init returned -0x%x\n", -ret );
         goto exit;
     }
 
@@ -260,7 +260,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -290,7 +290,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -310,7 +310,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
+        printf( " failed\n  !  x509parse_key returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -326,7 +326,7 @@ int main( int argc, char *argv[] )
     if( ( ret = net_connect( &server_fd, opt.server_name,
                                          opt.server_port ) ) != 0 )
     {
-        printf( " failed\n  ! net_connect returned %d\n\n", ret );
+        printf( " failed\n  ! net_connect returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -340,7 +340,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = ssl_init( &ssl ) ) != 0 )
     {
-        printf( " failed\n  ! ssl_init returned %d\n\n", ret );
+        printf( " failed\n  ! ssl_init returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -376,7 +376,7 @@ int main( int argc, char *argv[] )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
-            printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
+            printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
             goto exit;
         }
     }
@@ -426,7 +426,7 @@ int main( int argc, char *argv[] )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
-            printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+            printf( " failed\n  ! ssl_write returned -0x%x\n\n", -ret );
             goto exit;
         }
     }
@@ -454,7 +454,7 @@ int main( int argc, char *argv[] )
 
         if( ret < 0 )
         {
-            printf( "failed\n  ! ssl_read returned %d\n\n", ret );
+            printf( "failed\n  ! ssl_read returned -0x%x\n\n", -ret );
             break;
         }
 

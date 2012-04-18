@@ -109,6 +109,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
          md5_update( &ssl->fin_md5 , buf + 2, n );
         sha1_update( &ssl->fin_sha1, buf + 2, n );
         sha2_update( &ssl->fin_sha2, buf + 2, n );
+        sha4_update( &ssl->fin_sha4, buf + 2, n );
 
         buf = ssl->in_msg;
         n = ssl->in_left - 5;
@@ -230,6 +231,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
          md5_update( &ssl->fin_md5 , buf, n );
         sha1_update( &ssl->fin_sha1, buf, n );
         sha2_update( &ssl->fin_sha2, buf, n );
+        sha4_update( &ssl->fin_sha4, buf, n );
 
         /*
          * SSL layer:
@@ -539,7 +541,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_DHM_C)
     int ret;
     size_t n, rsa_key_len = 0;
-    unsigned char hash[36];
+    unsigned char hash[48];
     md5_context md5;
     sha1_context sha1;
     int hash_id;
@@ -557,7 +559,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA256 &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA256 )
+        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA256 &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_GCM_SHA256 &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_GCM_SHA384 )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;
@@ -770,7 +774,9 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA256 ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA256 )
+        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA256 ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_GCM_SHA256 ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm is not available" ) );

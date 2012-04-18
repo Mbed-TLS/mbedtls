@@ -35,6 +35,7 @@
 #define GCM_DECRYPT     0
 
 #define POLARSSL_ERR_GCM_AUTH_FAILED                       -0x0012  /**< Authenticated decryption failed. */
+#define POLARSSL_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
 
 /**
  * \brief          GCM context structure
@@ -64,6 +65,11 @@ int gcm_init( gcm_context *ctx, const unsigned char *key, unsigned int keysize )
 /**
  * \brief           GCM buffer encryption/decryption using AES
  *
+ * \note On encryption, the output buffer can be the same as the input buffer.
+ *       On decryption, the output buffer cannot be the same as input buffer.
+ *       If buffers overlap, the output buffer must trail at least 8 bytes
+ *       behind the input buffer.
+ *
  * \param ctx       GCM context
  * \param mode      GCM_ENCRYPT or GCM_DECRYPT
  * \param length    length of the input data
@@ -92,6 +98,10 @@ int gcm_crypt_and_tag( gcm_context *ctx,
 
 /**
  * \brief           GCM buffer authenticated decryption using AES
+ *
+ * \note On decryption, the output buffer cannot be the same as input buffer.
+ *       If buffers overlap, the output buffer must trail at least 8 bytes
+ *       behind the input buffer.
  *
  * \param ctx       GCM context
  * \param length    length of the input data

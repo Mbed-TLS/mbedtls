@@ -43,6 +43,10 @@
 #include "polarssl/ssl.h"
 #include "polarssl/sha2.h"
 
+#if defined(POLARSSL_GCM_C)
+#include "polarssl/gcm.h"
+#endif
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -152,9 +156,49 @@ static int tls_prf_sha256( unsigned char *secret, size_t slen, char *label,
     return( 0 );
 }
 
-static void ssl_calc_finished_ssl   (ssl_context *,unsigned char *,int);
-static void ssl_calc_finished_tls   (ssl_context *,unsigned char *,int);
-static void ssl_calc_finished_tls1_2(ssl_context *,unsigned char *,int);
+static int tls_prf_sha384( unsigned char *secret, size_t slen, char *label,
+                           unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen )
+{
+    size_t nb;
+    size_t i, j, k;
+    unsigned char tmp[128];
+    unsigned char h_i[48];
+
+    if( sizeof( tmp ) < 48 + strlen( label ) + rlen )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    nb = strlen( label );
+    memcpy( tmp + 48, label, nb );
+    memcpy( tmp + 48 + nb, random, rlen );
+    nb += rlen;
+
+    /*
+     * Compute P_<hash>(secret, label + random)[0..dlen]
+     */
+    sha4_hmac( secret, slen, tmp + 48, nb, tmp, 1 );
+
+    for( i = 0; i < dlen; i += 48 )
+    {
+        sha4_hmac( secret, slen, tmp, 48 + nb, h_i, 1 );
+        sha4_hmac( secret, slen, tmp, 48,      tmp, 1 );
+
+        k = ( i + 48 > dlen ) ? dlen % 48 : 48;
+
+        for( j = 0; j < k; j++ )
+            dstbuf[i + j]  = h_i[j];
+    }
+
+    memset( tmp, 0, sizeof( tmp ) );
+    memset( h_i, 0, sizeof( h_i ) );
+
+    return( 0 );
+}
+
+static void ssl_calc_finished_ssl(ssl_context *,unsigned char *,int);
+static void ssl_calc_finished_tls(ssl_context *,unsigned char *,int);
+static void ssl_calc_finished_tls_sha256(ssl_context *,unsigned char *,int);
+static void ssl_calc_finished_tls_sha384(ssl_context *,unsigned char *,int);
 
 int ssl_derive_keys( ssl_context *ssl )
 {
@@ -167,26 +211,34 @@ int ssl_derive_keys( ssl_context *ssl )
     unsigned char keyblk[256];
     unsigned char *key1;
     unsigned char *key2;
+    unsigned int iv_copy_len;
 
     SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
 
     /*
-     * Set appropriate PRF function.
-     */
-    if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
-        ssl->tls_prf = tls1_prf;
-    else
-        ssl->tls_prf = tls_prf_sha256;
-
-    /*
-     * Set appropriate SSL / TLS / TLS1.2 functions
+     * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions
      */
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+    {
+        ssl->tls_prf = tls1_prf;
         ssl->calc_finished = ssl_calc_finished_ssl;
+    }
     else if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
+    {
+        ssl->tls_prf = tls1_prf;
         ssl->calc_finished = ssl_calc_finished_tls;
+    }
+    else if( ssl->session->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
+            ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+    {
+        ssl->tls_prf = tls_prf_sha384;
+        ssl->calc_finished = ssl_calc_finished_tls_sha384;
+    }
     else
-        ssl->calc_finished = ssl_calc_finished_tls1_2;
+    {
+        ssl->tls_prf = tls_prf_sha256;
+        ssl->calc_finished = ssl_calc_finished_tls_sha256;
+    }
 
     /*
      * SSLv3:
@@ -337,6 +389,21 @@ int ssl_derive_keys( ssl_context *ssl )
             ssl->ivlen  = 16; ssl->maclen = 32;
             break;
 #endif
+#if defined(POLARSSL_GCM_C)
+        case SSL_RSA_AES_128_GCM_SHA256:
+        case SSL_EDH_RSA_AES_128_GCM_SHA256:
+            ssl->keylen = 16; ssl->minlen = 1;
+            ssl->ivlen  = 12; ssl->maclen = 0;
+            ssl->fixed_ivlen = 4;
+            break;
+
+        case SSL_RSA_AES_256_GCM_SHA384:
+        case SSL_EDH_RSA_AES_256_GCM_SHA384:
+            ssl->keylen = 32; ssl->minlen = 1;
+            ssl->ivlen  = 12; ssl->maclen = 0;
+            ssl->fixed_ivlen = 4;
+            break;
+#endif
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -417,9 +484,10 @@ int ssl_derive_keys( ssl_context *ssl )
         /*
          * This is not used in TLS v1.1.
          */
-        memcpy( ssl->iv_enc, key2 + ssl->keylen,  ssl->ivlen );
-        memcpy( ssl->iv_dec, key2 + ssl->keylen + ssl->ivlen,
-                ssl->ivlen );
+        iv_copy_len = ( ssl->fixed_ivlen ) ? ssl->fixed_ivlen : ssl->ivlen;
+        memcpy( ssl->iv_enc, key2 + ssl->keylen,  iv_copy_len );
+        memcpy( ssl->iv_dec, key2 + ssl->keylen + iv_copy_len,
+                iv_copy_len );
     }
     else
     {
@@ -432,9 +500,10 @@ int ssl_derive_keys( ssl_context *ssl )
         /*
          * This is not used in TLS v1.1.
          */
-        memcpy( ssl->iv_dec, key1 + ssl->keylen,  ssl->ivlen );
-        memcpy( ssl->iv_enc, key1 + ssl->keylen + ssl->ivlen,
-                ssl->ivlen );
+        iv_copy_len = ( ssl->fixed_ivlen ) ? ssl->fixed_ivlen : ssl->ivlen;
+        memcpy( ssl->iv_dec, key1 + ssl->keylen,  iv_copy_len );
+        memcpy( ssl->iv_enc, key1 + ssl->keylen + iv_copy_len,
+                iv_copy_len );
     }
 
     switch( ssl->session->ciphersuite )
@@ -458,42 +527,48 @@ int ssl_derive_keys( ssl_context *ssl )
 #if defined(POLARSSL_AES_C)
         case SSL_RSA_AES_128_SHA:
         case SSL_EDH_RSA_AES_128_SHA:
-#if defined(POLARSSL_SHA2_C)
         case SSL_RSA_AES_128_SHA256:
         case SSL_EDH_RSA_AES_128_SHA256:
-#endif
             aes_setkey_enc( (aes_context *) ssl->ctx_enc, key1, 128 );
             aes_setkey_dec( (aes_context *) ssl->ctx_dec, key2, 128 );
             break;
 
         case SSL_RSA_AES_256_SHA:
         case SSL_EDH_RSA_AES_256_SHA:
-#if defined(POLARSSL_SHA2_C)
         case SSL_RSA_AES_256_SHA256:
         case SSL_EDH_RSA_AES_256_SHA256:
-#endif
             aes_setkey_enc( (aes_context *) ssl->ctx_enc, key1, 256 );
             aes_setkey_dec( (aes_context *) ssl->ctx_dec, key2, 256 );
             break;
+
+#if defined(POLARSSL_GCM_C)
+        case SSL_RSA_AES_128_GCM_SHA256:
+        case SSL_EDH_RSA_AES_128_GCM_SHA256:
+            gcm_init( (gcm_context *) ssl->ctx_enc, key1, 128 );
+            gcm_init( (gcm_context *) ssl->ctx_dec, key2, 128 );
+            break;
+
+        case SSL_RSA_AES_256_GCM_SHA384:
+        case SSL_EDH_RSA_AES_256_GCM_SHA384:
+            gcm_init( (gcm_context *) ssl->ctx_enc, key1, 256 );
+            gcm_init( (gcm_context *) ssl->ctx_dec, key2, 256 );
+            break;
+#endif
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
         case SSL_RSA_CAMELLIA_128_SHA:
         case SSL_EDH_RSA_CAMELLIA_128_SHA:
-#if defined(POLARSSL_SHA2_C)
         case SSL_RSA_CAMELLIA_128_SHA256:
         case SSL_EDH_RSA_CAMELLIA_128_SHA256:
-#endif
             camellia_setkey_enc( (camellia_context *) ssl->ctx_enc, key1, 128 );
             camellia_setkey_dec( (camellia_context *) ssl->ctx_dec, key2, 128 );
             break;
 
         case SSL_RSA_CAMELLIA_256_SHA:
         case SSL_EDH_RSA_CAMELLIA_256_SHA:
-#if defined(POLARSSL_SHA2_C)
         case SSL_RSA_CAMELLIA_256_SHA256:
         case SSL_EDH_RSA_CAMELLIA_256_SHA256:
-#endif
             camellia_setkey_enc( (camellia_context *) ssl->ctx_enc, key1, 256 );
             camellia_setkey_dec( (camellia_context *) ssl->ctx_dec, key2, 256 );
             break;
@@ -527,11 +602,12 @@ int ssl_derive_keys( ssl_context *ssl )
     return( 0 );
 }
 
-void ssl_calc_verify( ssl_context *ssl, unsigned char hash[36] )
+void ssl_calc_verify( ssl_context *ssl, unsigned char hash[48] )
 {
     md5_context md5;
     sha1_context sha1;
     sha2_context sha2;
+    sha4_context sha4;
     unsigned char pad_1[48];
     unsigned char pad_2[48];
 
@@ -540,6 +616,7 @@ void ssl_calc_verify( ssl_context *ssl, unsigned char hash[36] )
     memcpy( &md5 , &ssl->fin_md5 , sizeof(  md5_context ) );
     memcpy( &sha1, &ssl->fin_sha1, sizeof( sha1_context ) );
     memcpy( &sha2, &ssl->fin_sha2, sizeof( sha2_context ) );
+    memcpy( &sha4, &ssl->fin_sha4, sizeof( sha4_context ) );
 
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
@@ -571,12 +648,17 @@ void ssl_calc_verify( ssl_context *ssl, unsigned char hash[36] )
          md5_finish( &md5,  hash );
         sha1_finish( &sha1, hash + 16 );
     }
+    else if( ssl->session->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
+             ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+    {
+        sha4_finish( &sha4, hash );
+    }
     else
     {
         sha2_finish( &sha2, hash );
     }
 
-    SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
+    SSL_DEBUG_BUF( 3, "calculated verify result", hash, 48 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
     return;
@@ -690,10 +772,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
     ssl->out_msglen += ssl->maclen;
 
-    for( i = 8; i > 0; i-- )
-        if( ++ssl->out_ctr[i - 1] != 0 )
-            break;
-
     if( ssl->ivlen == 0 )
     {
         padlen = 0;
@@ -722,6 +800,82 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         } else
 #endif
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+    else if( ssl->ivlen == 12 )
+    {
+        size_t enc_msglen;
+        unsigned char *enc_msg;
+        unsigned char add_data[13];
+        int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+
+        padlen = 0;
+        enc_msglen = ssl->out_msglen;
+
+        memcpy( add_data, ssl->out_ctr, 8 );
+        add_data[8]  = ssl->out_msgtype;
+        add_data[9]  = ssl->major_ver;
+        add_data[10] = ssl->minor_ver;
+        add_data[11] = ( ssl->out_msglen >> 8 ) & 0xFF;
+        add_data[12] = ssl->out_msglen & 0xFF;
+
+        SSL_DEBUG_BUF( 4, "additional data used for AEAD",
+                       add_data, 13 );
+
+#if defined(POLARSSL_AES_C) && defined(POLARSSL_GCM_C)
+
+        if( ssl->session->ciphersuite == SSL_RSA_AES_128_GCM_SHA256 ||
+            ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_GCM_SHA256 ||
+            ssl->session->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
+            ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+        {
+            /*
+             * Generate IV
+             */
+            ret = ssl->f_rng( ssl->p_rng, ssl->iv_enc + ssl->fixed_ivlen,
+                                  ssl->ivlen - ssl->fixed_ivlen );
+            if( ret != 0 )
+                return( ret );
+
+            /*
+             * Shift message for ivlen bytes and prepend IV
+             */
+            memmove( ssl->out_msg + ssl->ivlen - ssl->fixed_ivlen,
+                     ssl->out_msg, ssl->out_msglen );
+            memcpy( ssl->out_msg, ssl->iv_enc + ssl->fixed_ivlen,
+                    ssl->ivlen - ssl->fixed_ivlen );
+
+            /*
+             * Fix pointer positions and message length with added IV
+             */
+            enc_msg = ssl->out_msg + ssl->ivlen - ssl->fixed_ivlen;
+            enc_msglen = ssl->out_msglen;
+            ssl->out_msglen += ssl->ivlen - ssl->fixed_ivlen;
+
+            SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
+                                "including %d bytes of padding",
+                           ssl->out_msglen, 0 ) );
+
+            SSL_DEBUG_BUF( 4, "before encrypt: output payload",
+                           ssl->out_msg, ssl->out_msglen );
+
+            /*
+             * Adjust for tag
+             */
+            ssl->out_msglen += 16;
+            
+            gcm_crypt_and_tag( (gcm_context *) ssl->ctx_enc,
+                    GCM_ENCRYPT, enc_msglen,
+                    ssl->iv_enc, ssl->ivlen,
+                    add_data, 13,
+                    enc_msg, enc_msg,
+                    16, enc_msg + enc_msglen );
+
+            SSL_DEBUG_BUF( 4, "after encrypt: tag",
+                           enc_msg + enc_msglen, 16 );
+
+        } else
+#endif
+        return( ret );
     }
     else
     {
@@ -834,6 +988,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         }
     }
 
+    for( i = 8; i > 0; i-- )
+        if( ++ssl->out_ctr[i - 1] != 0 )
+            break;
+
     SSL_DEBUG_MSG( 2, ( "<= encrypt buf" ) );
 
     return( 0 );
@@ -878,6 +1036,65 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         } else
 #endif
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+    else if( ssl->ivlen == 12 )
+    {
+        unsigned char *dec_msg;
+        unsigned char *dec_msg_result;
+        size_t dec_msglen;
+        unsigned char add_data[13];
+        int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+
+        padlen = 0;
+
+#if defined(POLARSSL_AES_C) && defined(POLARSSL_GCM_C)
+        if( ssl->session->ciphersuite == SSL_RSA_AES_128_GCM_SHA256 ||
+            ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_GCM_SHA256 ||
+            ssl->session->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
+            ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+        {
+            dec_msglen = ssl->in_msglen - ( ssl->ivlen - ssl->fixed_ivlen );
+            dec_msglen -= 16;
+            dec_msg = ssl->in_msg + ( ssl->ivlen - ssl->fixed_ivlen );
+            dec_msg_result = ssl->in_msg;
+            ssl->in_msglen = dec_msglen;
+
+            memcpy( add_data, ssl->in_ctr, 8 );
+            add_data[8]  = ssl->in_msgtype;
+            add_data[9]  = ssl->major_ver;
+            add_data[10] = ssl->minor_ver;
+            add_data[11] = ( ssl->in_msglen >> 8 ) & 0xFF;
+            add_data[12] = ssl->in_msglen & 0xFF;
+
+            SSL_DEBUG_BUF( 4, "additional data used for AEAD",
+                           add_data, 13 );
+
+            memcpy( ssl->iv_dec + ssl->fixed_ivlen, ssl->in_msg,
+                    ssl->ivlen - ssl->fixed_ivlen );
+
+            SSL_DEBUG_BUF( 4, "IV used", ssl->iv_dec, ssl->ivlen );
+            SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, 16 );
+
+            memcpy( ssl->iv_dec + ssl->fixed_ivlen, ssl->in_msg,
+                    ssl->ivlen - ssl->fixed_ivlen );
+
+            ret = gcm_auth_decrypt( (gcm_context *) ssl->ctx_dec,
+                                     dec_msglen,
+                                     ssl->iv_dec, ssl->ivlen,
+                                     add_data, 13,
+                                     dec_msg + dec_msglen, 16,
+                                     dec_msg, dec_msg_result );
+            
+            if( ret != 0 )
+            {
+                SSL_DEBUG_MSG( 1, ( "AEAD decrypt failed on validation (ret = -0x%02x)",
+                                    -ret ) );
+
+                return( POLARSSL_ERR_SSL_INVALID_MAC );
+            }
+        } else
+#endif
+        return( ret );
     }
     else
     {
@@ -1063,7 +1280,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
      * Finally check the padding length; bad padding
      * will produce the same error as an invalid MAC.
      */
-    if( ssl->ivlen != 0 && padlen == 0 )
+    if( ssl->ivlen != 0 && ssl->ivlen != 12 && padlen == 0 )
         return( POLARSSL_ERR_SSL_INVALID_MAC );
 
     if( ssl->in_msglen == 0 )
@@ -1181,6 +1398,7 @@ int ssl_write_record( ssl_context *ssl )
          md5_update( &ssl->fin_md5 , ssl->out_msg, len );
         sha1_update( &ssl->fin_sha1, ssl->out_msg, len );
         sha2_update( &ssl->fin_sha2, ssl->out_msg, len );
+        sha4_update( &ssl->fin_sha4, ssl->out_msg, len );
     }
 
     if( ssl->do_crypt != 0 )
@@ -1256,6 +1474,7 @@ int ssl_read_record( ssl_context *ssl )
          md5_update( &ssl->fin_md5 , ssl->in_msg, ssl->in_hslen );
         sha1_update( &ssl->fin_sha1, ssl->in_msg, ssl->in_hslen );
         sha2_update( &ssl->fin_sha2, ssl->in_msg, ssl->in_hslen );
+        sha4_update( &ssl->fin_sha4, ssl->in_msg, ssl->in_hslen );
 
         return( 0 );
     }
@@ -1402,6 +1621,7 @@ int ssl_read_record( ssl_context *ssl )
          md5_update( &ssl->fin_md5 , ssl->in_msg, ssl->in_hslen );
         sha1_update( &ssl->fin_sha1, ssl->in_msg, ssl->in_hslen );
         sha2_update( &ssl->fin_sha2, ssl->in_msg, ssl->in_hslen );
+        sha4_update( &ssl->fin_sha4, ssl->in_msg, ssl->in_hslen );
     }
 
     if( ssl->in_msgtype == SSL_MSG_ALERT )
@@ -1888,7 +2108,7 @@ static void ssl_calc_finished_tls(
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
 
-static void ssl_calc_finished_tls1_2(
+static void ssl_calc_finished_tls_sha256(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
@@ -1921,6 +2141,45 @@ static void ssl_calc_finished_tls1_2(
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
     memset( &sha2, 0, sizeof( sha2_context ) );
+
+    memset(  padbuf, 0, sizeof(  padbuf ) );
+
+    SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
+}
+
+static void ssl_calc_finished_tls_sha384(
+                ssl_context *ssl, unsigned char *buf, int from )
+{
+    int len = 12;
+    char *sender;
+    sha4_context sha4;
+    unsigned char padbuf[48];
+
+    SSL_DEBUG_MSG( 2, ( "=> calc  finished tls 1.2" ) );
+
+    memcpy( &sha4, &ssl->fin_sha4, sizeof( sha4_context ) );
+
+    /*
+     * TLSv1.2:
+     *   hash = PRF( master, finished_label,
+     *               Hash( handshake ) )[0.11]
+     */
+
+    SSL_DEBUG_BUF( 4, "finished sha4 state", (unsigned char *)
+                   sha4.state, sizeof( sha4.state ) );
+
+    sender = ( from == SSL_IS_CLIENT )
+             ? (char *) "client finished"
+             : (char *) "server finished";
+
+    sha4_finish( &sha4, padbuf );
+
+    ssl->tls_prf( ssl->session->master, 48, sender,
+                  padbuf, 48, buf, len );
+
+    SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
+
+    memset( &sha4, 0, sizeof( sha4_context ) );
 
     memset(  padbuf, 0, sizeof(  padbuf ) );
 
@@ -2064,6 +2323,7 @@ int ssl_init( ssl_context *ssl )
      md5_starts( &ssl->fin_md5  );
     sha1_starts( &ssl->fin_sha1 );
     sha2_starts( &ssl->fin_sha2, 0 );
+    sha4_starts( &ssl->fin_sha4, 1 );
 
     return( 0 );
 }
@@ -2110,6 +2370,7 @@ void ssl_session_reset( ssl_context *ssl )
      md5_starts( &ssl->fin_md5  );
     sha1_starts( &ssl->fin_sha1 );
     sha2_starts( &ssl->fin_sha2, 0 );
+    sha4_starts( &ssl->fin_sha4, 1 );
 }
 
 /*
@@ -2326,7 +2587,23 @@ const char *ssl_get_ciphersuite_name( const int ciphersuite_id )
         case SSL_EDH_RSA_AES_256_SHA256:
             return( "SSL-EDH-RSA-AES-256-SHA256" );
 #endif
+
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+        case SSL_RSA_AES_128_GCM_SHA256:
+            return( "SSL-RSA-AES-128-GCM-SHA256" );
+
+        case SSL_EDH_RSA_AES_128_GCM_SHA256:
+            return( "SSL-EDH-RSA-AES-128-GCM-SHA256" );
 #endif
+
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
+        case SSL_RSA_AES_256_GCM_SHA384:
+            return( "SSL-RSA-AES-256-GCM-SHA384" );
+
+        case SSL_EDH_RSA_AES_256_GCM_SHA384:
+            return( "SSL-EDH-RSA-AES-256-GCM-SHA384" );
+#endif
+#endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_CAMELLIA_C)
         case SSL_RSA_CAMELLIA_128_SHA:
@@ -2417,6 +2694,20 @@ int ssl_get_ciphersuite_id( const char *ciphersuite_name )
     if (0 == strcasecmp(ciphersuite_name, "SSL-EDH-RSA-AES-256-SHA256"))
         return( SSL_EDH_RSA_AES_256_SHA256 );
 #endif
+
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-AES-128-GCM-SHA256"))
+        return( SSL_RSA_AES_128_GCM_SHA256 );
+    if (0 == strcasecmp(ciphersuite_name, "SSL-EDH-RSA-AES-128-GCM-SHA256"))
+        return( SSL_EDH_RSA_AES_128_GCM_SHA256 );
+#endif
+
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+    if (0 == strcasecmp(ciphersuite_name, "SSL-RSA-AES-256-GCM-SHA384"))
+        return( SSL_RSA_AES_256_GCM_SHA384 );
+    if (0 == strcasecmp(ciphersuite_name, "SSL-EDH-RSA-AES-256-GCM-SHA384"))
+        return( SSL_EDH_RSA_AES_256_GCM_SHA384 );
+#endif
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -2495,17 +2786,27 @@ int ssl_default_ciphersuites[] =
 #if defined(POLARSSL_AES_C)
 #if defined(POLARSSL_SHA2_C)
     SSL_EDH_RSA_AES_256_SHA256,
-    SSL_EDH_RSA_AES_128_SHA256,
 #endif /* POLARSSL_SHA2_C */
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
+    SSL_EDH_RSA_AES_256_GCM_SHA384,
+#endif
     SSL_EDH_RSA_AES_256_SHA,
+#if defined(POLARSSL_SHA2_C)
+    SSL_EDH_RSA_AES_128_SHA256,
+#endif
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+    SSL_EDH_RSA_AES_128_GCM_SHA256,
+#endif
     SSL_EDH_RSA_AES_128_SHA,
 #endif
 #if defined(POLARSSL_CAMELLIA_C)
 #if defined(POLARSSL_SHA2_C)
     SSL_EDH_RSA_CAMELLIA_256_SHA256,
-    SSL_EDH_RSA_CAMELLIA_128_SHA256,
 #endif /* POLARSSL_SHA2_C */
     SSL_EDH_RSA_CAMELLIA_256_SHA,
+#if defined(POLARSSL_SHA2_C)
+    SSL_EDH_RSA_CAMELLIA_128_SHA256,
+#endif /* POLARSSL_SHA2_C */
     SSL_EDH_RSA_CAMELLIA_128_SHA,
 #endif
 #if defined(POLARSSL_DES_C)
@@ -2516,6 +2817,9 @@ int ssl_default_ciphersuites[] =
 #if defined(POLARSSL_AES_C)
 #if defined(POLARSSL_SHA2_C)
     SSL_RSA_AES_256_SHA256,
+#endif /* POLARSSL_SHA2_C */
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
+    SSL_RSA_AES_256_GCM_SHA384,
 #endif /* POLARSSL_SHA2_C */
     SSL_RSA_AES_256_SHA,
 #endif
@@ -2528,6 +2832,9 @@ int ssl_default_ciphersuites[] =
 #if defined(POLARSSL_AES_C)
 #if defined(POLARSSL_SHA2_C)
     SSL_RSA_AES_128_SHA256,
+#endif /* POLARSSL_SHA2_C */
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+    SSL_RSA_AES_128_GCM_SHA256,
 #endif /* POLARSSL_SHA2_C */
     SSL_RSA_AES_128_SHA,
 #endif

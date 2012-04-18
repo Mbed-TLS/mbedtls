@@ -80,6 +80,12 @@ int my_ciphersuites[] =
 #endif /* POLARSSL_SHA2_C */
     SSL_EDH_RSA_AES_256_SHA,
     SSL_EDH_RSA_AES_128_SHA,
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
+    SSL_EDH_RSA_AES_256_GCM_SHA384,
+#endif
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+    SSL_EDH_RSA_AES_128_GCM_SHA256,
+#endif
 #endif
 #if defined(POLARSSL_CAMELLIA_C)
 #if defined(POLARSSL_SHA2_C)
@@ -111,6 +117,12 @@ int my_ciphersuites[] =
     SSL_RSA_AES_128_SHA256,
 #endif /* POLARSSL_SHA2_C */
     SSL_RSA_AES_128_SHA,
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
+    SSL_RSA_AES_256_GCM_SHA384,
+#endif
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+    SSL_RSA_AES_128_GCM_SHA256,
+#endif
 #endif
 #if defined(POLARSSL_CAMELLIA_C)
 #if defined(POLARSSL_SHA2_C)

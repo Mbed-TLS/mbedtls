@@ -7,7 +7,7 @@ VERIFY=""
 if [ "X$VERIFY" = "XYES" ];
 then
     P_CLIENT_ARGS="crt_file=data_files/server2.crt key_file=data_files/server2.key"
-    O_SERVER_ARGS="-verify 10"
+    O_SERVER_ARGS="-verify 10 -CAfile data_files/test-ca.crt"
 fi
 
 for MODE in $MODES;
@@ -61,6 +61,10 @@ then
         SSL-EDH-RSA-AES-128-SHA256      \
         SSL-RSA-AES-256-SHA256          \
         SSL-EDH-RSA-AES-256-SHA256      \
+        SSL-RSA-AES-128-GCM-SHA256      \
+        SSL-EDH-RSA-AES-128-GCM-SHA256  \
+        SSL-RSA-AES-256-GCM-SHA384      \
+        SSL-EDH-RSA-AES-256-GCM-SHA384  \
         "
 
     O_CIPHERS="$O_CIPHERS           \
@@ -69,6 +73,10 @@ then
         DHE-RSA-AES128-SHA256       \
         AES256-SHA256               \
         DHE-RSA-AES256-SHA256       \
+        AES128-GCM-SHA256           \
+        DHE-RSA-AES128-GCM-SHA256   \
+        AES256-GCM-SHA384           \
+        DHE-RSA-AES256-GCM-SHA384   \
         "
 fi
 

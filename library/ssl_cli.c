@@ -453,7 +453,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA &&
         ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA256 &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA256 )
+        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA256 &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_GCM_SHA256 &&
+        ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_GCM_SHA384 )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;
@@ -786,7 +788,9 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA ||
         ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA256 ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA256 )
+        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA256 ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_GCM_SHA256 ||
+        ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm in not available" ) );
@@ -888,7 +892,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 {
     int ret = 0;
     size_t n = 0, offset = 0;
-    unsigned char hash[36];
+    unsigned char hash[48];
     int hash_id = SIG_RSA_RAW;
     unsigned int hashlen = 36;
 
@@ -903,8 +907,21 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
-        hash_id = SIG_RSA_SHA256;
-        hashlen = 32;
+        // TODO TLS1.2 Should be based on allowed signature algorithm received in
+        // Certificate Request according to RFC 5246. But OpenSSL only allows
+        // SHA256 and SHA384. Find out why OpenSSL does this.
+        //
+        if( ssl->session->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
+            ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+        {
+            hash_id = SIG_RSA_SHA384;
+            hashlen = 48;
+        }
+        else
+        {
+            hash_id = SIG_RSA_SHA256;
+            hashlen = 32;
+        }
     }
 
     if( ssl->rsa_key == NULL )
@@ -934,9 +951,21 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
-        // TODO TLS1.2 Base on signature algorithm received in Certificate Request
-        ssl->out_msg[4] = SSL_HASH_SHA256;
-        ssl->out_msg[5] = SSL_SIG_RSA;
+        // TODO TLS1.2 Should be based on allowed signature algorithm received in
+        // Certificate Request according to RFC 5246. But OpenSSL only allows
+        // SHA256 and SHA384. Find out why OpenSSL does this.
+        //
+        if( ssl->session->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
+            ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+        {
+            ssl->out_msg[4] = SSL_HASH_SHA384;
+            ssl->out_msg[5] = SSL_SIG_RSA;
+        }
+        else
+        {
+            ssl->out_msg[4] = SSL_HASH_SHA256;
+            ssl->out_msg[5] = SSL_SIG_RSA;
+        }
 
         offset = 2;
     }

@@ -35,6 +35,7 @@
 #include "md5.h"
 #include "sha1.h"
 #include "sha2.h"
+#include "sha4.h"
 #include "x509.h"
 #include "config.h"
 
@@ -142,6 +143,11 @@
 #define SSL_RSA_CAMELLIA_256_SHA256     0xC0   /**< TLS 1.2 */
 #define SSL_EDH_RSA_CAMELLIA_256_SHA256 0xC4   /**< TLS 1.2 */
 
+#define SSL_RSA_AES_128_GCM_SHA256      0x9C
+#define SSL_RSA_AES_256_GCM_SHA384      0x9D
+#define SSL_EDH_RSA_AES_128_GCM_SHA256  0x9E
+#define SSL_EDH_RSA_AES_256_GCM_SHA384  0x9F
+
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)
  */
@@ -172,7 +178,7 @@
 #define SSL_ALERT_MSG_DECRYPTION_FAILED     21  /* 0x15 */
 #define SSL_ALERT_MSG_RECORD_OVERFLOW       22  /* 0x16 */
 #define SSL_ALERT_MSG_DECOMPRESSION_FAILURE 30  /* 0x1E */
-#define SSL_ALERT_MSG_HANDSHAKE_FAILURE     41  /* 0x29 */
+#define SSL_ALERT_MSG_HANDSHAKE_FAILURE     40  /* 0x28 */
 #define SSL_ALERT_MSG_NO_CERT               41  /* 0x29 */
 #define SSL_ALERT_MSG_BAD_CERT              42  /* 0x2A */
 #define SSL_ALERT_MSG_UNSUPPORTED_CERT      43  /* 0x2B */
@@ -339,6 +345,7 @@ struct _ssl_context
     md5_context fin_md5;                /*!<  Finished MD5 checksum   */
     sha1_context fin_sha1;              /*!<  Finished SHA-1 checksum */
     sha2_context fin_sha2;              /*!<  Finished SHA-256 checksum */
+    sha4_context fin_sha4;              /*!<  Finished SHA-384 checksum */
 
     void (*calc_finished)(ssl_context *, unsigned char *, int);
     int  (*tls_prf)(unsigned char *, size_t, char *,
@@ -351,6 +358,7 @@ struct _ssl_context
     unsigned int keylen;                /*!<  symmetric key length    */
     size_t minlen;                      /*!<  min. ciphertext length  */
     size_t ivlen;                       /*!<  IV length               */
+    size_t fixed_ivlen;                 /*!<  Fixed part of IV (AEAD) */
     size_t maclen;                      /*!<  MAC length              */
 
     unsigned char randbytes[64];        /*!<  random bytes            */
@@ -362,8 +370,8 @@ struct _ssl_context
     unsigned char mac_enc[32];          /*!<  MAC (encryption)        */
     unsigned char mac_dec[32];          /*!<  MAC (decryption)        */
 
-    unsigned long ctx_enc[128];         /*!<  encryption context      */
-    unsigned long ctx_dec[128];         /*!<  decryption context      */
+    unsigned long ctx_enc[134];         /*!<  encryption context      */
+    unsigned long ctx_dec[134];         /*!<  decryption context      */
 
     /*
      * TLS extensions

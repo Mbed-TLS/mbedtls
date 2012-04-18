@@ -49,7 +49,7 @@
  *
  * Module   Nr  Codes assigned 
  * MPI       7  0x0002-0x0010
- * GCM       1  0x0012-0x0012
+ * GCM       2  0x0012-0x0014
  * AES       2  0x0020-0x0022
  * CAMELLIA  2  0x0024-0x0026
  * XTEA      1  0x0028-0x0028

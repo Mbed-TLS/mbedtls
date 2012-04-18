@@ -447,6 +447,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
 #if defined(POLARSSL_GCM_C)
     if( use_ret == -(POLARSSL_ERR_GCM_AUTH_FAILED) )
         snprintf( buf, buflen, "GCM - Authenticated decryption failed" );
+    if( use_ret == -(POLARSSL_ERR_GCM_BAD_INPUT) )
+        snprintf( buf, buflen, "GCM - Bad input parameters to function" );
 #endif /* POLARSSL_GCM_C */
 
 #if defined(POLARSSL_MD2_C)

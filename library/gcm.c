@@ -188,7 +188,6 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     unsigned char buf[16];
     unsigned char work_buf[16];
     size_t i;
-    unsigned char cb;
     const unsigned char *p;
     unsigned char *out_p = output;
     size_t use_len;
@@ -200,6 +199,12 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     memset( work_buf, 0x00, 16 );
     memset( tag, 0x00, tag_len );
     memset( buf, 0x00, 16 );
+
+    if( ( mode == GCM_DECRYPT && output <= input && ( input - output ) < 8 ) ||
+        ( output > input && (size_t) ( output - input ) < length ) )
+    {
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+    }
 
     if( mode == GCM_ENCRYPT )
         xor_p = (unsigned char **) &out_p;
@@ -270,11 +275,9 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     {
         use_len = ( length < 16 ) ? length : 16;
 
-        i = 15;
-        do {
-            y[i]++;
-            cb = y[i] == 0;
-        } while( i-- && cb );
+        for( i = 16; i > 0; i-- )
+            if( ++y[i - 1] != 0 )
+                break;
 
         aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, y, ectr );
 
@@ -282,21 +285,18 @@ int gcm_crypt_and_tag( gcm_context *ctx,
         {
             ((uint64_t *) out_p)[0] = ((uint64_t *) ectr)[0] ^
                                       ((uint64_t *) p)[0];
+            ((uint64_t *) buf)[0] ^= ((uint64_t *) (*xor_p))[0];
+
             ((uint64_t *) out_p)[1] = ((uint64_t *) ectr)[1] ^
                                       ((uint64_t *) p)[1];
-        }
-        else
-            for( i = 0; i < use_len; i++ )
-                out_p[i] = ectr[i] ^ p[i];
-
-        if( use_len == 16 )
-        {
-            ((uint64_t *) buf)[0] ^= ((uint64_t *) (*xor_p))[0];
             ((uint64_t *) buf)[1] ^= ((uint64_t *) (*xor_p))[1];
         }
         else
             for( i = 0; i < use_len; i++ )
+            {
+                out_p[i] = ectr[i] ^ p[i];
                 buf[i] ^= (*xor_p)[i];
+            }
         
         gcm_mult( ctx, buf, buf );
         

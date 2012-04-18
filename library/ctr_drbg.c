@@ -185,7 +185,7 @@ int ctr_drbg_update_internal( ctr_drbg_context *ctx,
 {
     unsigned char tmp[CTR_DRBG_SEEDLEN];
     unsigned char *p = tmp;
-    int cb, i, j;
+    int i, j;
 
     memset( tmp, 0, CTR_DRBG_SEEDLEN );
 
@@ -194,11 +194,9 @@ int ctr_drbg_update_internal( ctr_drbg_context *ctx,
         /*
          * Increase counter
          */
-        i = CTR_DRBG_BLOCKSIZE - 1;
-        do {
-            ctx->counter[i]++;
-            cb = ctx->counter[i] == 0;
-        } while( i-- && cb );
+        for( i = CTR_DRBG_BLOCKSIZE; i >= 0; i-- )
+            if( ++ctx->counter[i - 1] != 0 )
+                break;
 
         /*
          * Crypt counter block
@@ -286,7 +284,7 @@ int ctr_drbg_random_with_add( void *p_rng,
     unsigned char add_input[CTR_DRBG_SEEDLEN];
     unsigned char *p = output;
     unsigned char tmp[CTR_DRBG_BLOCKSIZE];
-    int cb, i;
+    int i;
     size_t use_len;
 
     if( output_len > CTR_DRBG_MAX_REQUEST )
@@ -317,11 +315,9 @@ int ctr_drbg_random_with_add( void *p_rng,
         /*
          * Increase counter
          */
-        i = CTR_DRBG_BLOCKSIZE - 1;
-        do {
-            ctx->counter[i]++;
-            cb = ctx->counter[i] == 0;
-        } while( i-- && cb );
+        for( i = CTR_DRBG_BLOCKSIZE; i > 0; i-- )
+            if( ++ctx->counter[i - 1] != 0 )
+                break;
 
         /*
          * Crypt counter block

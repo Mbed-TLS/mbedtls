@@ -633,7 +633,7 @@ int camellia_crypt_ctr( camellia_context *ctx,
                        const unsigned char *input,
                        unsigned char *output )
 {
-    int c, i, cb;
+    int c, i;
     size_t n = *nc_off;
 
     while( length-- )
@@ -641,12 +641,9 @@ int camellia_crypt_ctr( camellia_context *ctx,
         if( n == 0 ) {
             camellia_crypt_ecb( ctx, CAMELLIA_ENCRYPT, nonce_counter, stream_block );
 
-            i = 15;
-            do {
-               nonce_counter[i]++;
-               cb = nonce_counter[i] == 0;
-            } while( i-- && cb );
-
+            for( i = 16; i > 0; i-- )
+                if( ++nonce_counter[i - 1] != 0 )
+                    break;
         }
         c = *input++;
         *output++ = (unsigned char)( c ^ stream_block[n] );

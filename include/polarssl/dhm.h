@@ -109,7 +109,7 @@ int dhm_read_public( dhm_context *ctx,
  * \brief          Create own private value X and export G^X
  *
  * \param ctx      DHM context
- * \param x_size   private value size in bits
+ * \param x_size   private value size in bytes
  * \param output   destination buffer
  * \param olen     must be equal to ctx->P.len
  * \param f_rng    RNG function

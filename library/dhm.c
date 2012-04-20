@@ -124,16 +124,14 @@ int dhm_make_params( dhm_context *ctx, int x_size,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int ret, n;
+    int ret;
     size_t n1, n2, n3;
     unsigned char *p;
 
     /*
      * Generate X as large as possible ( < P )
      */
-    n = x_size / sizeof( t_uint ) + 1;
-
-    mpi_fill_random( &ctx->X, n, f_rng, p_rng );
+    mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
 
     while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
            mpi_shift_r( &ctx->X, 1 );
@@ -201,7 +199,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int ret, n;
+    int ret;
 
     if( ctx == NULL || olen < 1 || olen > ctx->len )
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
@@ -209,9 +207,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
     /*
      * generate X and calculate GX = G^X mod P
      */
-    n = x_size / sizeof( t_uint ) + 1;
-
-    mpi_fill_random( &ctx->X, n, f_rng, p_rng );
+    mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
 
     while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
            mpi_shift_r( &ctx->X, 1 );

@@ -1813,7 +1813,7 @@ int mpi_is_prime( mpi *X,
         /*
          * pick a random A, 1 < A < |X| - 1
          */
-        MPI_CHK( mpi_fill_random( &A, X->n, f_rng, p_rng ) );
+        MPI_CHK( mpi_fill_random( &A, X->n * ciL, f_rng, p_rng ) );
 
         if( mpi_cmp_mpi( &A, &W ) >= 0 )
         {
@@ -1885,7 +1885,7 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
 
     n = BITS_TO_LIMBS( nbits );
 
-    MPI_CHK( mpi_fill_random( X, n, f_rng, p_rng ) );
+    MPI_CHK( mpi_fill_random( X, n * ciL, f_rng, p_rng ) );
 
     k = mpi_msb( X );
     if( k < nbits ) MPI_CHK( mpi_shift_l( X, nbits - k ) );

@@ -687,7 +687,7 @@ int mpi_cmp_mpi( const mpi *X, const mpi *Y )
         return( 0 );
 
     if( i > j ) return(  X->s );
-    if( j > i ) return( -X->s );
+    if( j > i ) return( -Y->s );
 
     if( X->s > 0 && Y->s < 0 ) return(  1 );
     if( Y->s > 0 && X->s < 0 ) return( -1 );

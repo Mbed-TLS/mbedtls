@@ -8,7 +8,7 @@ Bugfix
 Security
    * Fixed potential memory corruption on miscrafted client messages (found by
      Frama-C team at CEA LIST)
-   * Fixed generate of DHM parameters to correct length
+   * Fixed generation of DHM parameters to correct length
 
 = Version 1.1.1 released on 2012-01-23
 Bugfix

@@ -1,5 +1,11 @@
 PolarSSL ChangeLog
 
+= Version 1.1.2 released on 2012-04-20
+Security
+   * Fixed potential memory corruption on miscrafted client messages (found by
+     Frama-C team at CEA LIST)
+   * Fixed generate of DHM parameters to correct length
+
 = Version 1.1.1 released on 2012-01-23
 Bugfix
    * Check for failed malloc() in ssl_set_hostname() and x509_get_entries()

@@ -785,6 +785,13 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     /*
      * Always compute the MAC (RFC4346, CBCTIME).
      */
+    if( ssl->in_msglen <= ssl->maclen + padlen )
+    {
+        SSL_DEBUG_MSG( 1, ( "msglen (%d) < maclen (%d) + padlen (%d)",
+                    ssl->in_msglen, ssl->maclen, padlen ) );
+        return( POLARSSL_ERR_SSL_INVALID_MAC );
+    }
+
     ssl->in_msglen -= ( ssl->maclen + padlen );
 
     ssl->in_hdr[3] = (unsigned char)( ssl->in_msglen >> 8 );

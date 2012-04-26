@@ -193,6 +193,8 @@ int main( int argc, char *argv[] )
     printf( "\n  . Verifying the server's RSA signature" );
     fflush( stdout );
 
+    p += 2;
+
     if( ( n = (size_t) ( end - p ) ) != rsa.len )
     {
         ret = 1;

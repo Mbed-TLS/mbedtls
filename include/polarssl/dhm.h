@@ -36,7 +36,7 @@
 #define POLARSSL_ERR_DHM_READ_PARAMS_FAILED                -0x3100  /**< Reading of the DHM parameters failed. */
 #define POLARSSL_ERR_DHM_MAKE_PARAMS_FAILED                -0x3180  /**< Making of the DHM parameters failed. */
 #define POLARSSL_ERR_DHM_READ_PUBLIC_FAILED                -0x3200  /**< Reading of the public values failed. */
-#define POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED                -0x3280  /**< Makeing of the public value failed. */
+#define POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED                -0x3280  /**< Making of the public value failed. */
 #define POLARSSL_ERR_DHM_CALC_SECRET_FAILED                -0x3300  /**< Calculation of the DHM secret failed. */
 
 /**
@@ -109,7 +109,7 @@ int dhm_read_public( dhm_context *ctx,
  * \brief          Create own private value X and export G^X
  *
  * \param ctx      DHM context
- * \param x_size   private value size in bits
+ * \param x_size   private value size in bytes
  * \param output   destination buffer
  * \param olen     must be equal to ctx->P.len
  * \param f_rng    RNG function

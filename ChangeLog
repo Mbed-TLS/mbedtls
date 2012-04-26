@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.1.2 released on 2012-04-20
+= Version 1.1.2 released on 2012-04-26
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by
      Hui Dong)

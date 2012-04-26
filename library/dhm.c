@@ -61,15 +61,15 @@ static int dhm_read_bignum( mpi *X,
 }
 
 /*
- * Verify sanity of public parameter with regards to P
+ * Verify sanity of parameter with regards to P
  *
- * Public parameter should be: 2 <= public_param <= P - 2
+ * Parameter should be: 2 <= public_param <= P - 2
  *
  * For more information on the attack, see:
  *  http://www.cl.cam.ac.uk/~rja14/Papers/psandqs.pdf
  *  http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2005-2643
  */
-static int dhm_check_range( const mpi *public_param, const mpi *P )
+static int dhm_check_range( const mpi *param, const mpi *P )
 {
     mpi L, U;
     int ret = POLARSSL_ERR_DHM_BAD_INPUT_DATA;
@@ -78,8 +78,8 @@ static int dhm_check_range( const mpi *public_param, const mpi *P )
     mpi_lset( &L, 2 );
     mpi_sub_int( &U, P, 2 );
 
-    if( mpi_cmp_mpi( public_param, &L ) >= 0 &&
-        mpi_cmp_mpi( public_param, &U ) <= 0 )
+    if( mpi_cmp_mpi( param, &L ) >= 0 &&
+        mpi_cmp_mpi( param, &U ) <= 0 )
     {
         ret = 0;
     }
@@ -130,17 +130,24 @@ int dhm_make_params( dhm_context *ctx, int x_size,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int ret;
+    int ret, count = 0;
     size_t n1, n2, n3;
     unsigned char *p;
 
     /*
      * Generate X as large as possible ( < P )
      */
-    mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
+    do
+    {
+        mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
 
-    while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-           mpi_shift_r( &ctx->X, 1 );
+        while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
+            mpi_shift_r( &ctx->X, 1 );
+
+        if( count++ > 10 )
+            return( POLARSSL_ERR_DHM_MAKE_PARAMS_FAILED );
+    }
+    while( dhm_check_range( &ctx->X, &ctx->P ) != 0 );
 
     /*
      * Calculate GX = G^X mod P
@@ -205,7 +212,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int ret;
+    int ret, count = 0;
 
     if( ctx == NULL || olen < 1 || olen > ctx->len )
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
@@ -213,10 +220,17 @@ int dhm_make_public( dhm_context *ctx, int x_size,
     /*
      * generate X and calculate GX = G^X mod P
      */
-    mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
+    do
+    {
+        mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
 
-    while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-           mpi_shift_r( &ctx->X, 1 );
+        while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
+            mpi_shift_r( &ctx->X, 1 );
+
+        if( count++ > 10 )
+            return( POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED );
+    }
+    while( dhm_check_range( &ctx->X, &ctx->P ) != 0 );
 
     MPI_CHK( mpi_exp_mod( &ctx->GX, &ctx->G, &ctx->X,
                           &ctx->P , &ctx->RP ) );

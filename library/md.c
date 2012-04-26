@@ -152,11 +152,10 @@ const md_info_t *md_info_from_type( md_type_t md_type )
 
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
 {
-    if( md_info == NULL )
+    if( md_info == NULL || ctx == NULL )
         return POLARSSL_ERR_MD_BAD_INPUT_DATA;
 
-    if( ctx == NULL || ctx->md_ctx != NULL )
-        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+    memset( ctx, 0, sizeof( md_context_t ) );
 
     if( ( ctx->md_ctx = md_info->ctx_alloc_func() ) == NULL )
         return POLARSSL_ERR_MD_ALLOC_FAILED;

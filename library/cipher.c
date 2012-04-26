@@ -245,7 +245,7 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
     if( NULL == cipher_info || NULL == ctx )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
-    memset( ctx, 0, sizeof( ctx ) );
+    memset( ctx, 0, sizeof( cipher_context_t ) );
 
     if( NULL == ( ctx->cipher_ctx = cipher_info->base->ctx_alloc_func() ) )
         return POLARSSL_ERR_CIPHER_ALLOC_FAILED;

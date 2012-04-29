@@ -1618,10 +1618,10 @@ int mpi_fill_random( mpi *X, size_t size,
 {
     int ret;
 
-    MPI_CHK( mpi_grow( X, size ) );
+    MPI_CHK( mpi_grow( X, CHARS_TO_LIMBS( size ) ) );
     MPI_CHK( mpi_lset( X, 0 ) );
 
-    MPI_CHK( f_rng( p_rng, (unsigned char *) X->p, X->n * ciL ) );
+    MPI_CHK( f_rng( p_rng, (unsigned char *) X->p, size ) );
 
 cleanup:
     return( ret );

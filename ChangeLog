@@ -23,6 +23,7 @@ Changes
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by
      Hui Dong)
+   * Fixed potential heap corruption in x509_name allocation
 
 Security
    * Fixed potential memory corruption on miscrafted client messages (found by

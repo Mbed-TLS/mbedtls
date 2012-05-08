@@ -15,6 +15,7 @@ Features
    * Added base Galois Counter Mode (GCM) for AES
    * Added TLS 1.2 support
    * Added GCM suites to TLS 1.2 (RFC 5288)
+   * Added commandline error code convertor (util/strerror)
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

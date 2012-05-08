@@ -32,6 +32,21 @@ Security
    * Fixed generation of DHM parameters to correct length (found by Ruslan
      Yushchenko)
 
+= Version 1.1.3 released on 2012-04-29
+Bugfix
+   * Fixed random MPI generation to not generate more size than requested.
+
+= Version 1.1.2 released on 2012-04-26
+Bugfix
+   * Fixed handling error in mpi_cmp_mpi() on longer B values (found by
+     Hui Dong)
+
+Security
+   * Fixed potential memory corruption on miscrafted client messages (found by
+     Frama-C team at CEA LIST)
+   * Fixed generation of DHM parameters to correct length (found by Ruslan
+     Yushchenko)
+
 = Version 1.1.1 released on 2012-01-23
 Bugfix
    * Check for failed malloc() in ssl_set_hostname() and x509_get_entries()

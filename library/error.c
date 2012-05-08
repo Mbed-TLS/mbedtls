@@ -255,7 +255,10 @@ void error_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE) )
             snprintf( buf, buflen, "SSL - An unexpected message was received from our peer" );
         if( use_ret == -(POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE) )
+        {
             snprintf( buf, buflen, "SSL - A fatal alert message was received from our peer" );
+            return;
+        }
         if( use_ret == -(POLARSSL_ERR_SSL_PEER_VERIFY_FAILED) )
             snprintf( buf, buflen, "SSL - Verification of our peer failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY) )

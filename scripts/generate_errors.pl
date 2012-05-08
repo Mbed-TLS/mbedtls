@@ -93,8 +93,19 @@ while (my $line = <GREP>)
         ${$old_define} = $define_name;
     }
 
-    ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                      "${white_space}    snprintf( buf, buflen, \"$module_name - $description\" );\n"
+    if ($error_name eq "POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE")
+    {
+        ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
+                          "${white_space}\{\n".
+                          "${white_space}    snprintf( buf, buflen, \"$module_name - $description\" );\n".
+                          "${white_space}    return;\n".
+                          "${white_space}}\n"
+    }
+    else
+    {
+        ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
+                          "${white_space}    snprintf( buf, buflen, \"$module_name - $description\" );\n"
+    }
 };
 
 if ($ll_old_define ne "")

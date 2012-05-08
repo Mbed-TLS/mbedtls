@@ -21,6 +21,8 @@ Features
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define
    * AES code only check for Padlock once
+   * Fixed const-correctness mpi_get_bit()
+   * Documentation for mpi_lsb() and mpi_msb()
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by

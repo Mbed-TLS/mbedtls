@@ -173,7 +173,7 @@ cleanup:
 /*
  * Get a specific bit
  */
-int mpi_get_bit( mpi *X, size_t pos )
+int mpi_get_bit( const mpi *X, size_t pos )
 {
     if( X->n * biL <= pos )
         return( 0 );

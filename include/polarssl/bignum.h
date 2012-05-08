@@ -192,7 +192,7 @@ int mpi_lset( mpi *X, t_sint z );
  *
  * \return         Either a 0 or a 1
  */
-int mpi_get_bit( mpi *X, size_t pos );
+int mpi_get_bit( const mpi *X, size_t pos );
 
 /*
  * \brief          Set a bit of X to a specific value of 0 or 1
@@ -211,14 +211,20 @@ int mpi_get_bit( mpi *X, size_t pos );
 int mpi_set_bit( mpi *X, size_t pos, unsigned char val );
 
 /**
- * \brief          Return the number of least significant bits
+ * \brief          Return the number of zero-bits before the least significant
+ *                 '1' bit
+ *
+ * Note: Thus also the zero-based index of the least significant '1' bit
  *
  * \param X        MPI to use
  */
 size_t mpi_lsb( const mpi *X );
 
 /**
- * \brief          Return the number of most significant bits
+ * \brief          Return the number of bits up to and including the most
+ *                 significant '1' bit'
+ *
+ * Note: Thus also the one-based index of the most significant '1' bit
  *
  * \param X        MPI to use
  */

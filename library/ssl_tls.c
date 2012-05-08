@@ -824,19 +824,34 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     else
     {
         if( ssl->maclen == 16 )
-             md5_hmac( ssl->mac_enc, 16,
-                       ssl->out_ctr,  ssl->out_msglen + 13,
-                       ssl->out_msg + ssl->out_msglen );
+        {
+            md5_context ctx;
+            md5_hmac_starts( &ctx, ssl->mac_enc, 16 );
+            md5_hmac_update( &ctx, ssl->out_ctr, 13 );
+            md5_hmac_update( &ctx, ssl->out_msg, ssl->out_msglen );
+            md5_hmac_finish( &ctx, ssl->out_msg + ssl->out_msglen );
+            memset( &ctx, 0, sizeof(md5_context));
+        }
 
         if( ssl->maclen == 20 )
-            sha1_hmac( ssl->mac_enc, 20,
-                       ssl->out_ctr,  ssl->out_msglen + 13,
-                       ssl->out_msg + ssl->out_msglen );
+        {
+            sha1_context ctx;
+            sha1_hmac_starts( &ctx, ssl->mac_enc, 20 );
+            sha1_hmac_update( &ctx, ssl->out_ctr, 13 );
+            sha1_hmac_update( &ctx, ssl->out_msg, ssl->out_msglen );
+            sha1_hmac_finish( &ctx, ssl->out_msg + ssl->out_msglen );
+            memset( &ctx, 0, sizeof(sha1_context));
+        }
 
         if( ssl->maclen == 32 )
-            sha2_hmac( ssl->mac_enc, 32,
-                       ssl->out_ctr,  ssl->out_msglen + 13,
-                       ssl->out_msg + ssl->out_msglen, 0);
+        {
+            sha2_context ctx;
+            sha2_hmac_starts( &ctx, ssl->mac_enc, 32, 0 );
+            sha2_hmac_update( &ctx, ssl->out_ctr, 13 );
+            sha2_hmac_update( &ctx, ssl->out_msg, ssl->out_msglen );
+            sha2_hmac_finish( &ctx, ssl->out_msg + ssl->out_msglen );
+            memset( &ctx, 0, sizeof(sha2_context));
+        }
     }
 
     SSL_DEBUG_BUF( 4, "computed mac",
@@ -1430,8 +1445,24 @@ int ssl_flush_output( ssl_context *ssl )
         SSL_DEBUG_MSG( 2, ( "message length: %d, out_left: %d",
                        5 + ssl->out_msglen, ssl->out_left ) );
 
-        buf = ssl->out_hdr + 5 + ssl->out_msglen - ssl->out_left;
+        if( ssl->out_msglen < ssl->out_left )
+        {
+            size_t header_left = ssl->out_left - ssl->out_msglen;
+
+            buf = ssl->out_hdr + 5 - header_left;
+            ret = ssl->f_send( ssl->p_send, buf, header_left );
+            
+            SSL_DEBUG_RET( 2, "ssl->f_send (header)", ret );
+
+            if( ret <= 0 )
+                return( ret );
+
+            ssl->out_left -= ret;
+        }
+        
+        buf = ssl->out_msg + ssl->out_msglen - ssl->out_left;
         ret = ssl->f_send( ssl->p_send, buf, ssl->out_left );
+
         SSL_DEBUG_RET( 2, "ssl->f_send", ret );
 
         if( ret <= 0 )
@@ -1506,8 +1537,10 @@ int ssl_write_record( ssl_context *ssl )
                        ssl->out_hdr[0], ssl->out_hdr[1], ssl->out_hdr[2],
                      ( ssl->out_hdr[3] << 8 ) | ssl->out_hdr[4] ) );
 
+        SSL_DEBUG_BUF( 4, "output record header sent to network",
+                       ssl->out_hdr, 5 );
         SSL_DEBUG_BUF( 4, "output record sent to network",
-                       ssl->out_hdr, 5 + ssl->out_msglen );
+                       ssl->out_hdr + 32, ssl->out_msglen );
     }
 
     if( ( ret = ssl_flush_output( ssl ) ) != 0 )
@@ -2457,7 +2490,7 @@ int ssl_init( ssl_context *ssl )
 
     ssl->out_ctr = (unsigned char *) malloc( len );
     ssl->out_hdr = ssl->out_ctr +  8;
-    ssl->out_msg = ssl->out_ctr + 13;
+    ssl->out_msg = ssl->out_ctr + 40;
 
     if( ssl->out_ctr == NULL )
     {

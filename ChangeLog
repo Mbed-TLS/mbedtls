@@ -23,6 +23,7 @@ Changes
    * AES code only check for Padlock once
    * Fixed const-correctness mpi_get_bit()
    * Documentation for mpi_lsb() and mpi_msb()
+   * Moved out_msg to out_hdr + 32 to support hardware acceleration
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by

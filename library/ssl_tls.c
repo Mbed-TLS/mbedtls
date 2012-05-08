@@ -54,6 +54,17 @@
 #define strcasecmp _stricmp
 #endif
 
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+int (*ssl_hw_record_init)(ssl_context *ssl,
+                       const unsigned char *key_enc, const unsigned char *key_dec,
+                       const unsigned char *iv_enc,  const unsigned char *iv_dec,
+                       const unsigned char *mac_enc, const unsigned char *mac_dec) = NULL;
+int (*ssl_hw_record_reset)(ssl_context *ssl) = NULL;
+int (*ssl_hw_record_write)(ssl_context *ssl) = NULL;
+int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
+int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
+#endif
+
 /*
  * Key material generation
  */
@@ -519,6 +530,23 @@ int ssl_derive_keys( ssl_context *ssl )
         memcpy( ssl->iv_enc, key1 + ssl->keylen + iv_copy_len,
                 iv_copy_len );
     }
+
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_init != NULL)
+    {
+        int ret = 0;
+
+        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_init()" ) );
+
+        if( ( ret = ssl_hw_record_init( ssl, key1, key2, ssl->iv_enc,
+                                        ssl->iv_dec, ssl->mac_enc,
+                                        ssl->mac_dec ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_hw_record_init", ret );
+            return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
+        }
+    }
+#endif
 
     switch( ssl->session->ciphersuite )
     {
@@ -1422,16 +1450,10 @@ int ssl_flush_output( ssl_context *ssl )
  */
 int ssl_write_record( ssl_context *ssl )
 {
-    int ret;
+    int ret, done = 0;
     size_t len = ssl->out_msglen;
 
     SSL_DEBUG_MSG( 2, ( "=> write record" ) );
-
-    ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
-    ssl->out_hdr[1] = (unsigned char) ssl->major_ver;
-    ssl->out_hdr[2] = (unsigned char) ssl->minor_ver;
-    ssl->out_hdr[3] = (unsigned char)( len >> 8 );
-    ssl->out_hdr[4] = (unsigned char)( len      );
 
     if( ssl->out_msgtype == SSL_MSG_HANDSHAKE )
     {
@@ -1442,28 +1464,51 @@ int ssl_write_record( ssl_context *ssl )
         ssl->update_checksum( ssl, ssl->out_msg, len );
     }
 
-    if( ssl->do_crypt != 0 )
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_write != NULL)
     {
-        if( ( ret = ssl_encrypt_buf( ssl ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ssl_encrypt_buf", ret );
-            return( ret );
-        }
+        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_write()" ) );
 
-        len = ssl->out_msglen;
+        ret = ssl_hw_record_write( ssl );
+        if( ret != 0 && ret != POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH )
+        {
+            SSL_DEBUG_RET( 1, "ssl_hw_record_write", ret );
+            return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        done = 1;
+    }
+#endif
+    if( !done )
+    {
+        ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
+        ssl->out_hdr[1] = (unsigned char) ssl->major_ver;
+        ssl->out_hdr[2] = (unsigned char) ssl->minor_ver;
         ssl->out_hdr[3] = (unsigned char)( len >> 8 );
         ssl->out_hdr[4] = (unsigned char)( len      );
+
+        if( ssl->do_crypt != 0 )
+        {
+            if( ( ret = ssl_encrypt_buf( ssl ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "ssl_encrypt_buf", ret );
+                return( ret );
+            }
+
+            len = ssl->out_msglen;
+            ssl->out_hdr[3] = (unsigned char)( len >> 8 );
+            ssl->out_hdr[4] = (unsigned char)( len      );
+        }
+
+        ssl->out_left = 5 + ssl->out_msglen;
+
+        SSL_DEBUG_MSG( 3, ( "output record: msgtype = %d, "
+                            "version = [%d:%d], msglen = %d",
+                       ssl->out_hdr[0], ssl->out_hdr[1], ssl->out_hdr[2],
+                     ( ssl->out_hdr[3] << 8 ) | ssl->out_hdr[4] ) );
+
+        SSL_DEBUG_BUF( 4, "output record sent to network",
+                       ssl->out_hdr, 5 + ssl->out_msglen );
     }
-
-    ssl->out_left = 5 + ssl->out_msglen;
-
-    SSL_DEBUG_MSG( 3, ( "output record: msgtype = %d, "
-                        "version = [%d:%d], msglen = %d",
-                   ssl->out_hdr[0], ssl->out_hdr[1], ssl->out_hdr[2],
-                 ( ssl->out_hdr[3] << 8 ) | ssl->out_hdr[4] ) );
-
-    SSL_DEBUG_BUF( 4, "output record sent to network",
-                   ssl->out_hdr, 5 + ssl->out_msglen );
 
     if( ( ret = ssl_flush_output( ssl ) ) != 0 )
     {
@@ -1478,7 +1523,7 @@ int ssl_write_record( ssl_context *ssl )
 
 int ssl_read_record( ssl_context *ssl )
 {
-    int ret;
+    int ret, done = 0;
 
     SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
@@ -1598,7 +1643,21 @@ int ssl_read_record( ssl_context *ssl )
     SSL_DEBUG_BUF( 4, "input record from network",
                    ssl->in_hdr, 5 + ssl->in_msglen );
 
-    if( ssl->do_crypt != 0 )
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_read != NULL)
+    {
+        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_read()" ) );
+
+        ret = ssl_hw_record_read( ssl );
+        if( ret != 0 && ret != POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH )
+        {
+            SSL_DEBUG_RET( 1, "ssl_hw_record_read", ret );
+            return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        done = 1;
+    }
+#endif
+    if( !done && ssl->do_crypt != 0 )
     {
         if( ( ret = ssl_decrypt_buf( ssl ) ) != 0 )
         {
@@ -2458,6 +2517,14 @@ void ssl_session_reset( ssl_context *ssl )
     memset( ssl->ctx_dec, 0, 128 );
 
     ssl->update_checksum = ssl_update_checksum_start;
+
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_reset != NULL)
+    {
+        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_reset()" ) );
+        ssl_hw_record_reset( ssl );
+    }
+#endif
 }
 
 /*
@@ -3156,6 +3223,14 @@ void ssl_free( ssl_context *ssl )
         free( ssl->hostname );
         ssl->hostname_len = 0;
     }
+
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_finish != NULL )
+    {
+        SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_finish()" ) );
+        ssl_hw_record_finish( ssl );
+    }
+#endif
 
     SSL_DEBUG_MSG( 2, ( "<= free" ) );
 

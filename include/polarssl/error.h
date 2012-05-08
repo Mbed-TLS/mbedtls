@@ -75,7 +75,8 @@
  * RSA      4   9
  * MD       5   4
  * CIPHER   6   5
- * SSL      7   30
+ * SSL      6   1 (Started from top)
+ * SSL      7   31
  *
  * Module dependent error code (5 bits 0x.08.-0x.F8.)
  */

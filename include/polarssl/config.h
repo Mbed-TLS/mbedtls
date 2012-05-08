@@ -229,6 +229,16 @@
 #define POLARSSL_SELF_TEST
 
 /**
+ * \def POLARSSL_SSL_HW_RECORD_ACCEL
+ *
+ * Enable hooking functions in SSL module for hardware acceleration of
+ * individual records.
+ *
+ * Uncomment this macro to enable hooking functions.
+#define POLARSSL_SSL_HW_RECORD_ACCEL
+ */
+
+/**
  * \def POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate

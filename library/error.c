@@ -169,7 +169,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_DHM_READ_PUBLIC_FAILED) )
             snprintf( buf, buflen, "DHM - Reading of the public values failed" );
         if( use_ret == -(POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED) )
-            snprintf( buf, buflen, "DHM - Makeing of the public value failed" );
+            snprintf( buf, buflen, "DHM - Making of the public value failed" );
         if( use_ret == -(POLARSSL_ERR_DHM_CALC_SECRET_FAILED) )
             snprintf( buf, buflen, "DHM - Calculation of the DHM secret failed" );
 #endif /* POLARSSL_DHM_C */
@@ -286,6 +286,10 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Processing of the Finished handshake message failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_MALLOC_FAILED) )
             snprintf( buf, buflen, "SSL - Memory allocation failed" );
+        if( use_ret == -(POLARSSL_ERR_SSL_HW_ACCEL_FAILED) )
+            snprintf( buf, buflen, "SSL - Hardware acceleration function returned with error" );
+        if( use_ret == -(POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH) )
+            snprintf( buf, buflen, "SSL - Hardware acceleration function skipped / left alone data" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_PARSE_C)

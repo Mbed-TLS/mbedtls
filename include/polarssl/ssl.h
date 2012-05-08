@@ -84,6 +84,8 @@
 #define POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC         -0x7E00  /**< Processing of the ChangeCipherSpec handshake message failed. */
 #define POLARSSL_ERR_SSL_BAD_HS_FINISHED                   -0x7E80  /**< Processing of the Finished handshake message failed. */
 #define POLARSSL_ERR_SSL_MALLOC_FAILED                     -0x7F00  /**< Memory allocation failed */
+#define POLARSSL_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
+#define POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
 
 /*
  * Various constants
@@ -384,6 +386,17 @@ extern "C" {
 #endif
 
 extern int ssl_default_ciphersuites[];
+
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+extern int (*ssl_hw_record_init)(ssl_context *ssl,
+                const unsigned char *key_enc, const unsigned char *key_dec,
+                const unsigned char *iv_enc,  const unsigned char *iv_dec,
+                const unsigned char *mac_enc, const unsigned char *mac_dec);
+extern int (*ssl_hw_record_reset)(ssl_context *ssl);
+extern int (*ssl_hw_record_write)(ssl_context *ssl);
+extern int (*ssl_hw_record_read)(ssl_context *ssl);
+extern int (*ssl_hw_record_finish)(ssl_context *ssl);
+#endif
 
 /**
  * \brief Returns the list of ciphersuites supported by the SSL/TLS module.

@@ -167,10 +167,19 @@ clean:
 	rm -f $(APPS) *.c
 
 check: $(APPS)
-	echo "Running checks (Success if all tests PASSED)"
+	echo "Running checks (Success if all tests PASSED)"	
+	RETURN=0;																\
 	for i in $(APPS);														\
 	do																		\
 		echo " - $${i}";													\
-		./$${i} | grep -v 'PASS$$' | grep -v -- '-----' | grep -v '^$$';	\
+		RESULT=`./$${i} | grep -v 'PASS$$' | grep -v -- '-----' | grep -v '^$$'`;	\
+		FAILED=`echo $$RESULT |grep FAILED`; 								\
+		echo "   $$RESULT";													\
+		if [ "$$FAILED" != "" ];											\
+		then																\
+			echo "**** Failed ***************";								\
+			RETURN=1;														\
+		fi; 																\
 		echo "";															\
-	done
+	done;																	\
+	if [ "$$RETURN" -eq 1 ]; then exit 1; fi

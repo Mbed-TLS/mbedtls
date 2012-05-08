@@ -93,6 +93,10 @@ SOURCE=..\..\library\arc4.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\asn1parse.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\base64.c
 # End Source File
 # Begin Source File
@@ -117,6 +121,10 @@ SOURCE=..\..\library\cipher_wrap.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\ctr_drbg.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\debug.c
 # End Source File
 # Begin Source File
@@ -126,6 +134,18 @@ SOURCE=..\..\library\des.c
 # Begin Source File
 
 SOURCE=..\..\library\dhm.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\entropy.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\entropy_poll.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\error.c
 # End Source File
 # Begin Source File
 
@@ -217,6 +237,10 @@ SOURCE=..\..\include\polarssl\arc4.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\asn1.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\base64.h
 # End Source File
 # Begin Source File
@@ -249,6 +273,10 @@ SOURCE=..\..\include\polarssl\config.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\ctr_drbg.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\debug.h
 # End Source File
 # Begin Source File
@@ -258,6 +286,18 @@ SOURCE=..\..\include\polarssl\des.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\dhm.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\entropy.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\entropy_poll.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\error.h
 # End Source File
 # Begin Source File
 

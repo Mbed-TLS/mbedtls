@@ -334,7 +334,7 @@ fctstr_clone_lower(char const *s)
     k = (char*)malloc(sizeof(char)*klen+1);
     for ( i=0; i != klen; ++i )
     {
-        k[i] = (char)tolower(s[i]);
+        k[i] = (char)tolower((int)s[i]);
     }
     return k;
 }
@@ -428,7 +428,7 @@ fctstr_ieq(char const *s1, char const *s2)
     {
         return 0;
     }
-    while (tolower(*s1) == tolower(*s2))
+    while (tolower((int)*s1) == tolower((int)*s2))
     {
         if (*s1 == '\0')
             return 1;
@@ -574,7 +574,7 @@ fctstr_iendswith(char const *str, char const *check)
     }
     for ( ; check_i != 0; --check_i, --str_i)
     {
-        if ( tolower(str[str_i]) != tolower(check[check_i]) )
+        if ( tolower((int)str[str_i]) != tolower((int)check[check_i]) )
         {
             return 0; /* Found a case where they are not equal. */
         }

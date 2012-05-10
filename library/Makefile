@@ -1,6 +1,9 @@
 
 # Also see "include/polarssl/config.h"
 
+# To compile on MinGW: add "-lws2_32" to LDFLAGS or define WINDOWS in your
+# environment
+#
 CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
 OFLAGS	= -O
 
@@ -26,6 +29,7 @@ DLEXT=so
 # Windows shared library extension:
 ifdef WINDOWS
 DLEXT=dll
+LDFLAGS += -lws2_32
 endif
 
 OBJS=	aes.o		arc4.o		asn1parse.o		\
@@ -75,5 +79,9 @@ libpolarssl.dll: libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) -c $<
 
 clean:
+ifndef WINDOWS
 	rm -f *.o libpolarssl.*
-
+endif
+ifdef WINDOWS
+	del /Q /F *.o libpolarssl.*
+endif

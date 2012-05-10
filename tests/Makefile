@@ -1,6 +1,6 @@
 
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
-# To compile on MinGW: add "-lws2_32" to LDFLAGS
+# To compile on MinGW: add "-lws2_32" to LDFLAGS or define WINDOWS in your env
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
 CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement \
@@ -168,9 +168,15 @@ test_suite_version: test_suite_version.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 clean:
+ifndef WINDOWS
 	rm -f $(APPS) *.c
+endif
+ifdef WINDOWS
+	del /Q /F *.c *.exe
+endif
 
 check: $(APPS)
+ifndef WINDOWS
 	echo "Running checks (Success if all tests PASSED)"	
 	RETURN=0;																\
 	for i in $(APPS);														\
@@ -187,3 +193,4 @@ check: $(APPS)
 		echo "";															\
 	done;																	\
 	if [ "$$RETURN" -eq 1 ]; then exit 1; fi
+endif

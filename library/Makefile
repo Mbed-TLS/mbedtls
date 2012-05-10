@@ -24,7 +24,9 @@ DLEXT=so
 # DLEXT=dylib
 
 # Windows shared library extension:
-# DLEXT=dll
+ifdef WINDOWS
+DLEXT=dll
+endif
 
 OBJS=	aes.o		arc4.o		asn1parse.o		\
 		asn1write.o								\

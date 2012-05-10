@@ -11,6 +11,10 @@ ifdef DEBUG
 CFLAGS += -g3
 endif
 
+ifdef WINDOWS
+LDFLAGS += -lws2_32
+endif
+
 APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	hash/hello			hash/generic_sum	\
 	hash/md5sum			hash/sha1sum		\

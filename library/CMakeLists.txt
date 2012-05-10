@@ -43,6 +43,10 @@ set(src
      xtea.c
 )
 
+if(WIN32)
+set(libs ws2_32)
+endif(WIN32)
+
 if(NOT USE_SHARED_POLARSSL_LIBRARY)
 
 add_library(polarssl STATIC ${src})
@@ -53,6 +57,8 @@ add_library(polarssl SHARED ${src})
 set_target_properties(polarssl PROPERTIES VERSION 1.1.1 SOVERSION 1)
 
 endif(NOT USE_SHARED_POLARSSL_LIBRARY)
+
+target_link_libraries(polarssl ${libs})
 
 install(TARGETS polarssl
         DESTINATION ${LIB_INSTALL_DIR}

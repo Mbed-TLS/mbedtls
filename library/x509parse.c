@@ -3034,43 +3034,45 @@ int x509parse_verify( x509_cert *crt,
         name = &crt->subject;
         cn_len = strlen( cn );
 
-        while( name != NULL )
+        if( crt->ext_types & EXT_SUBJECT_ALT_NAME )
         {
-            if( memcmp( name->oid.p, OID_CN,  3 ) == 0 )
+            cur = &crt->subject_alt_names;
+
+            while( cur != NULL )
             {
-                if( memcmp( name->val.p, cn, cn_len ) == 0 &&
-                    name->val.len == cn_len )
+                if( memcmp( cn, cur->buf.p, cn_len ) == 0 &&
+                            cur->buf.len == cn_len )
                     break;
 
-                if( memcmp( name->val.p, "*.", 2 ) == 0 &&
-                    x509_wildcard_verify( cn, &name->val ) )
+                if( memcmp( cur->buf.p, "*.", 2 ) == 0 &&
+                            x509_wildcard_verify( cn, &cur->buf ) )
                     break;
-            }
 
-            name = name->next;
-        }
-
-        if( name == NULL )
-        {
-            if( crt->ext_types & EXT_SUBJECT_ALT_NAME )
-            {
-                cur = &crt->subject_alt_names;
-
-                while( cur != NULL )
-                {
-                    if( memcmp( cn, cur->buf.p, cn_len ) == 0 &&
-                        cur->buf.len == cn_len )
-                        break;
-
-                    if( memcmp( cur->buf.p, "*.", 2 ) == 0 &&
-                        x509_wildcard_verify( cn, &cur->buf ) )
-                        break;
-
-                    cur = cur->next;
-                }
+                cur = cur->next;
             }
 
             if( cur == NULL )
+                *flags |= BADCERT_CN_MISMATCH;
+        }
+        else
+        {
+            while( name != NULL )
+            {
+                if( memcmp( name->oid.p, OID_CN,  3 ) == 0 )
+                {
+                    if( memcmp( name->val.p, cn, cn_len ) == 0 &&
+                                name->val.len == cn_len )
+                        break;
+
+                    if( memcmp( name->val.p, "*.", 2 ) == 0 &&
+                                x509_wildcard_verify( cn, &name->val ) )
+                        break;
+                }
+
+                name = name->next;
+            }
+
+            if( name == NULL )
                 *flags |= BADCERT_CN_MISMATCH;
         }
     }

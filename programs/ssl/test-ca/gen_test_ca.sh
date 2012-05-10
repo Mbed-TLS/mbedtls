@@ -63,7 +63,7 @@ openssl req -config sslconf_use.txt -new -key cert_digest.key -out cert_example_
 
 cat sslconf.txt > sslconf_use.txt;echo "CN=www.example.com" >> sslconf_use.txt
 echo "[ v3_req ]" >> sslconf_use.txt
-echo "subjectAltName = \"DNS:www.example.com,DNS:example.com,DNS:example.net,DNS:*.example.org\"" >> sslconf_use.txt
+echo "subjectAltName = \"DNS:example.com,DNS:example.net,DNS:*.example.org\"" >> sslconf_use.txt
 openssl req -config sslconf_use.txt -new -key cert_digest.key -out cert_example_multi.req -reqexts "v3_req"
 
 echo "Signing requests"

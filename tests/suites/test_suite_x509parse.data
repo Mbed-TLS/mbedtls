@@ -246,9 +246,9 @@ X509 Certificate verification #23 (domain not matching wildcard certificate)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.com":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
 
-X509 Certificate verification #24 (domain matching multi certificate)
+X509 Certificate verification #24 (domain matching CN of multi certificate)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
-x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.com":0:0:NULL
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.com":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:NULL
 
 X509 Certificate verification #25 (domain matching multi certificate)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO

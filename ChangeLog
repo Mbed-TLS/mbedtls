@@ -25,12 +25,13 @@ Changes
    * Documentation for mpi_lsb() and mpi_msb()
    * Moved out_msg to out_hdr + 32 to support hardware acceleration
    * Changed certificate verify behaviour to comply with RFC 6125 section 6.3
-     to not match CN if subjectAltName extension is present.
+     to not match CN if subjectAltName extension is present (Closes ticket #56)
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by
      Hui Dong)
    * Fixed potential heap corruption in x509_name allocation
+   * Fixed single RSA test that failed on Big Endian systems (Closes ticket #54)
 
 Security
    * Fixed potential memory corruption on miscrafted client messages (found by

@@ -505,13 +505,13 @@ int main( int argc, char *argv[] )
         printf("POLARSSL_CERTS_C not defined.");
     }
 #endif
-    if( ret != 0 )
+    if( ret < 0 )
     {
         printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    printf( " ok (%d skipped)\n", ret );
 
     /*
      * 1.2. Load own certificate and private key

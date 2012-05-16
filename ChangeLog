@@ -32,6 +32,8 @@ Bugfix
      Hui Dong)
    * Fixed potential heap corruption in x509_name allocation
    * Fixed single RSA test that failed on Big Endian systems (Closes ticket #54)
+   * mpi_exp_mod() now correctly handles negative base numbers (Closes ticket
+     #52)
 
 Security
    * Fixed potential memory corruption on miscrafted client messages (found by

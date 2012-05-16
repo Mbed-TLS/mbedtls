@@ -537,7 +537,8 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
- *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even or if
+ *                 E is negative
  *
  * \note           _RR is used to avoid re-computing R*R mod N across
  *                 multiple calls, which speeds up things a bit. It can

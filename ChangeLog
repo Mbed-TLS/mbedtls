@@ -8,6 +8,8 @@ Bugfix
      with carry rollover
    * Moved mpi_inv_mod() outside POLARSSL_GENPRIME
    * Prevent reading over buffer boundaries on X509 certificate parsing
+   * mpi_exp_mod() now correctly handles negative base numbers (Closes ticket
+     #52)
 
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi

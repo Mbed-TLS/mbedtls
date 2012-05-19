@@ -1397,19 +1397,6 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
         return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
     /*
-     * Compensate for negative A (and correct at the end)
-     */
-    neg = ( A->s == -1 );
-
-    mpi_init( &Apos );
-    if( neg )
-    {
-        MPI_CHK( mpi_copy( &Apos, A ) );
-        Apos.s = 1;
-        A = &Apos;
-    }
-
-    /*
      * Init temps and window size
      */
     mpi_montg_init( &mm, N );
@@ -1428,6 +1415,19 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
     MPI_CHK( mpi_grow( X, j ) );
     MPI_CHK( mpi_grow( &W[1],  j ) );
     MPI_CHK( mpi_grow( &T, j * 2 ) );
+
+    /*
+     * Compensate for negative A (and correct at the end)
+     */
+    neg = ( A->s == -1 );
+
+    mpi_init( &Apos );
+    if( neg )
+    {
+        MPI_CHK( mpi_copy( &Apos, A ) );
+        Apos.s = 1;
+        A = &Apos;
+    }
 
     /*
      * If 1st call, pre-compute R^2 mod N

@@ -36,6 +36,10 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	x509/cert_app		x509/crl_app		\
 	x509/cert_req
 
+ifdef OPENSSL
+APPS +=	test/o_p_test
+endif
+
 .SILENT:
 
 all: $(APPS)
@@ -167,6 +171,10 @@ test/selftest: test/selftest.c ../library/libpolarssl.a
 test/ssl_test: test/ssl_test.c ../library/libpolarssl.a
 	echo   "  CC    test/ssl_test.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/ssl_test.c    $(LDFLAGS) -o $@
+
+test/o_p_test: test/o_p_test.c ../library/libpolarssl.a
+	echo   "  CC    test/o_p_test.c"
+	$(CC) $(CFLAGS) $(OFLAGS) test/o_p_test.c    $(LDFLAGS) -o $@ -lssl -lcrypto
 
 util/strerror: util/strerror.c ../library/libpolarssl.a
 	echo   "  CC    util/strerror.c"

@@ -305,6 +305,8 @@ static int x509_get_name( unsigned char **p,
     if( cur->next == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
+    memset( cur->next, 0, sizeof( x509_name ) );
+
     return( x509_get_name( p, end2, cur->next ) );
 }
 

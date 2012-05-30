@@ -2,6 +2,7 @@ PolarSSL ChangeLog
 
 = Version 1.1.4 released on 2012-05-30
 Bugfix
+   * Correctly handle empty packets (Found by James Yonan)
    * Fixed potential heap corruption in x509_name allocation
    * Fixed single RSA test that failed on Big Endian systems (Closes ticket #54)
 

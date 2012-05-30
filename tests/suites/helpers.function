@@ -192,6 +192,7 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 {
     rnd_pseudo_info *info = (rnd_pseudo_info *) rng_state;
     uint32_t i, *k, sum, delta=0x9E3779B9;
+    unsigned char result[4];
 
     if( rng_state == NULL )
         return( rnd_std_rand( NULL, output, len ) );
@@ -200,10 +201,8 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 
     while( len > 0 )
     {
-        size_t use_len = len;
+        size_t use_len = ( len > 4 ) ? 4 : len;
         sum = 0;
-
-        use_len = 1;
 
         for( i = 0; i < 32; i++ )
         {
@@ -212,7 +211,8 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
             info->v1 += (((info->v0 << 4) ^ (info->v0 >> 5)) + info->v0) ^ (sum + k[(sum>>11) & 3]);
         }
 
-        memcpy( output, &info->v0, use_len );
+        PUT_ULONG_BE( info->v0, result, 0 );
+        memcpy( output, result, use_len );
         len -= use_len;
     }
 

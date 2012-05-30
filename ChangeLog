@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Version 1.1.4 released on 2012-05-30
+Bugfix
+   * Fixed potential heap corruption in x509_name allocation
+
 = Version 1.1.3 released on 2012-04-29
 Bugfix
    * Fixed random MPI generation to not generate more size than requested.

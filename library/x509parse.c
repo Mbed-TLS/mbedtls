@@ -60,7 +60,9 @@
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <strsafe.h>
+#else
 #include <sys/types.h>
 #include <dirent.h>
 #endif
@@ -1883,7 +1885,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 
     do
     {
-        if( file_data.dwAttributes & FILE_ATTRIBUTE_DIRECTORY )
+        if( file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             continue;
 
         t_ret = x509parse_crtfile( chain, entry_name );

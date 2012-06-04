@@ -457,6 +457,22 @@ int x509parse_crtfile( x509_cert *chain, const char *path );
 
 /** \ingroup x509_module */
 /**
+ * \brief          Load one or more certificate files from a path and add them
+ *                 to the chained list. Parses permissively. If some
+ *                 certificates can be parsed, the result is the number
+ *                 of failed certificates it encountered. If none complete
+ *                 correctly, the first error is returned.
+ *
+ * \param chain    points to the start of the chain
+ * \param path     directory / folder to read the certificate files from
+ *
+ * \return         0 if all certificates parsed successfully, a positive number
+ *                 if partly successful or a specific X509 or PEM error code
+ */
+int x509parse_crtpath( x509_cert *chain, const char *path );
+
+/** \ingroup x509_module */
+/**
  * \brief          Parse one or more CRLs and add them
  *                 to the chained list
  *

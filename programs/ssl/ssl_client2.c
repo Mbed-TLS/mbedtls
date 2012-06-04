@@ -46,6 +46,7 @@
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_DEBUG_LEVEL         0
 #define DFL_CA_FILE             ""
+#define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
 #define DFL_FORCE_CIPHER        0
@@ -62,6 +63,7 @@ struct options
     int debug_level;            /* level of debugging                       */
     char *request_page;         /* page on server to request                */
     char *ca_file;              /* the file with the CA certificate(s)      */
+    char *ca_path;              /* the path with the CA certificate(s) reside */
     char *crt_file;             /* the file with the client certificate     */
     char *key_file;             /* the file with the client key             */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
@@ -79,6 +81,7 @@ void my_debug( void *ctx, int level, const char *str )
 #if defined(POLARSSL_FS_IO)
 #define USAGE_IO \
     "    ca_file=%%s          default: \"\" (pre-loaded)\n" \
+    "    ca_path=%%s          default: \"\" (pre-loaded) (overrides ca_file)\n" \
     "    crt_file=%%s         default: \"\" (pre-loaded)\n" \
     "    key_file=%%s         default: \"\" (pre-loaded)\n"
 #else
@@ -164,6 +167,7 @@ int main( int argc, char *argv[] )
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.ca_file             = DFL_CA_FILE;
+    opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
@@ -201,6 +205,8 @@ int main( int argc, char *argv[] )
             opt.request_page = q;
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
+        else if( strcmp( p, "ca_path" ) == 0 )
+            opt.ca_path = q;
         else if( strcmp( p, "crt_file" ) == 0 )
             opt.crt_file = q;
         else if( strcmp( p, "key_file" ) == 0 )
@@ -245,7 +251,9 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
 #if defined(POLARSSL_FS_IO)
-    if( strlen( opt.ca_file ) )
+    if( strlen( opt.ca_path ) )
+        ret = x509parse_crtpath( &cacert, opt.ca_path );
+    else if( strlen( opt.ca_file ) )
         ret = x509parse_crtfile( &cacert, opt.ca_file );
     else 
 #endif

@@ -60,6 +60,10 @@
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
+#if !defined(_WIN32)
+#include <sys/types.h>
+#include <dirent.h>
+#endif
 #endif
 
 /*
@@ -1856,6 +1860,68 @@ int x509parse_crtfile( x509_cert *chain, const char *path )
 
     memset( buf, 0, n + 1 );
     free( buf );
+
+    return( ret );
+}
+
+int x509parse_crtpath( x509_cert *chain, const char *path )
+{
+    int ret = 0;
+#if defined(_WIN32)
+    int t_ret;
+    TCHAR szDir[MAX_PATH];
+    WIN32_FIND_DATA file_data;
+    HANDLE hFind;
+    DWORD dwError = 0;
+
+    StringCchCopy(szDir, MAX_PATH, path);
+    StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
+
+    hFind = FindFirstFile( szDir, &file_data );
+    if (hFind == INVALID_HANDLE_VALUE) 
+        return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+
+    do
+    {
+        if( file_data.dwAttributes & FILE_ATTRIBUTE_DIRECTORY )
+            continue;
+
+        t_ret = x509parse_crtfile( chain, entry_name );
+        if( t_ret < 0 )
+            return( t_ret );
+
+        ret += t_ret;
+    }
+    while( FindNextFile( hFind, &file_data ) != 0 );
+
+    dwError = GetLastError();
+    if (dwError != ERROR_NO_MORE_FILES) 
+        return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+
+    FindClose( hFind );
+#else
+    int t_ret;
+    struct dirent *entry;
+    char entry_name[255];
+    DIR *dir = opendir( path );
+
+    if( dir == NULL)
+        return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+
+    while( ( entry = readdir( dir ) ) != NULL )
+    {
+        if( entry->d_type != DT_REG )
+            continue;
+
+        snprintf( entry_name, sizeof(entry_name), "%s/%s", path, entry->d_name );
+        t_ret = x509parse_crtfile( chain, entry_name );
+        if( t_ret < 0 )
+            return( t_ret );
+
+        ret += t_ret;
+    }
+    closedir( dir );
+#endif
 
     return( ret );
 }

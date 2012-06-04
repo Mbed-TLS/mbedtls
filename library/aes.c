@@ -34,7 +34,9 @@
 #if defined(POLARSSL_AES_C)
 
 #include "polarssl/aes.h"
+#if defined(POLARSSL_PADLOCK_C)
 #include "polarssl/padlock.h"
+#endif
 
 /*
  * 32-bit integer manipulation macros (little endian)

@@ -39,6 +39,7 @@ Bugfix
      #52)
    * Handle encryption with private key and decryption with public key as per
    	 RFC 2313
+   * Handle empty certificate subject names
 
 Security
    * Fixed potential memory corruption on miscrafted client messages (found by

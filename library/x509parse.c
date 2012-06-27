@@ -1263,7 +1263,7 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = x509_get_name( &p, p + len, &crt->subject ) ) != 0 )
+    if( len && ( ret = x509_get_name( &p, p + len, &crt->subject ) ) != 0 )
     {
         x509_free( crt );
         return( ret );
@@ -2518,6 +2518,12 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
 
     while( name != NULL )
     {
+        if( !name->oid.p )
+        {
+            name = name->next;
+            continue;
+        }
+
         if( name != dn )
         {
             ret = snprintf( p, n, ", " );

@@ -20,6 +20,7 @@ Features
    * Added OpenSSL / PolarSSL compatibility script (tests/compat.sh) and
      example application (programs/ssl/o_p_test) (Requires OpenSSL)
    * Added X509 CA Path support
+   * Added Thumb assembly optimizations
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

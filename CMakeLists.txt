@@ -17,12 +17,22 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library." OFF)
 
+option(ENABLE_ZLIB_SUPPORT "Build PolarSSL with zlib library." OFF)
+
 if(LIB_INSTALL_DIR)
 else()
 set(LIB_INSTALL_DIR lib)
 endif()
 
 include_directories(include/)
+
+if(ENABLE_ZLIB_SUPPORT)
+  find_package(ZLIB)
+
+  if(ZLIB_FOUND)
+    include_directories(ZLIB_INCLUDE_DIR)
+  endif(ZLIB_FOUND)
+endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(library)
 add_subdirectory(include)

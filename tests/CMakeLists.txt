@@ -6,6 +6,10 @@ if(USE_PKCS11_HELPER_LIBRARY)
     set(libs ${libs} pkcs11-helper)
 endif(USE_PKCS11_HELPER_LIBRARY)
 
+if(ENABLE_ZLIB_SUPPORT)
+    set(libs ${libs} ${ZLIB_LIBRARIES})
+endif(ENABLE_ZLIB_SUPPORT)
+
 function(add_test_suite suite_name)
     if(ARGV1)
     set(data_name ${ARGV1})

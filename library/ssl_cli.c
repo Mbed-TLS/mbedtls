@@ -135,11 +135,21 @@ static int ssl_write_client_hello( ssl_context *ssl )
         *p++ = (unsigned char)( ssl->ciphersuites[i]      );
     }
 
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 2 ) );
+    SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d %d",
+                        SSL_COMPRESS_NULL, SSL_COMPRESS_DEFLATE ) );
+
+    *p++ = 2;
+    *p++ = SSL_COMPRESS_NULL;
+    *p++ = SSL_COMPRESS_DEFLATE;
+#else
     SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 1 ) );
-    SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d", 0 ) );
+    SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d", SSL_COMPRESS_NULL ) );
 
     *p++ = 1;
     *p++ = SSL_COMPRESS_NULL;
+#endif
 
     if ( ssl->hostname != NULL )
     {
@@ -281,7 +291,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 #if defined(POLARSSL_DEBUG_C)
     time_t t;
 #endif
-    int ret, i;
+    int ret, i, comp;
     size_t n;
     int ext_len;
     unsigned char *buf;
@@ -367,6 +377,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     }
 
     i = ( buf[39 + n] << 8 ) | buf[40 + n];
+    comp = buf[41 + n];
 
     /*
      * Initialize update checksum functions
@@ -381,6 +392,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
      */
     if( ssl->resume == 0 || n == 0 ||
         ssl->session->ciphersuite != i ||
+        ssl->session->compression != comp ||
         ssl->session->length != n ||
         memcmp( ssl->session->id, buf + 39, n ) != 0 )
     {
@@ -388,6 +400,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         ssl->resume = 0;
         ssl->session->start = time( NULL );
         ssl->session->ciphersuite = i;
+        ssl->session->compression = comp;
         ssl->session->length = n;
         memcpy( ssl->session->id, buf + 39, n );
     }
@@ -421,11 +434,16 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             break;
     }
 
-    if( buf[41 + n] != SSL_COMPRESS_NULL )
+    if( comp != SSL_COMPRESS_NULL
+#if defined(POLARSSL_ZLIB_SUPPORT)
+        && comp != SSL_COMPRESS_DEFLATE
+#endif
+      )
     {
         SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
+    ssl->session->compression = comp;
 
     /* TODO: Process extensions */
 

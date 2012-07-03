@@ -21,6 +21,7 @@ Features
      example application (programs/ssl/o_p_test) (Requires OpenSSL)
    * Added X509 CA Path support
    * Added Thumb assembly optimizations
+   * Added DEFLATE compression support as per RFC3749 (requires zlib)
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

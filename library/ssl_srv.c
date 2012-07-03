@@ -316,6 +316,18 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
+        ssl->session->compression = SSL_COMPRESS_NULL;
+#if defined(POLARSSL_ZLIB_SUPPORT)
+        for( i = 0; i < comp_len; ++i )
+        {
+            if( buf[41 + sess_len + ciph_len + i] == SSL_COMPRESS_DEFLATE )
+            {
+                ssl->session->compression = SSL_COMPRESS_DEFLATE;
+                break;
+            }
+        }
+#endif
+
         SSL_DEBUG_BUF( 3, "client hello, random bytes",
                        buf +  6,  32 );
         SSL_DEBUG_BUF( 3, "client hello, session id",
@@ -449,11 +461,12 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
     *p++ = (unsigned char)( ssl->session->ciphersuite >> 8 );
     *p++ = (unsigned char)( ssl->session->ciphersuite      );
-    *p++ = SSL_COMPRESS_NULL;
+    *p++ = (unsigned char)( ssl->session->compression      );
 
     SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d",
                    ssl->session->ciphersuite ) );
-    SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", 0 ) );
+    SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d",
+                   ssl->session->compression ) );
 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;

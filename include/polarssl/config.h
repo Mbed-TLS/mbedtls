@@ -248,6 +248,22 @@
  *
 #define POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
  */
+
+/**
+ * \def POLARSSL_ZLIB_SUPPORT
+ *
+ * If set, the SSL/TLS module uses ZLIB to support compression and
+ * decompression of packet data.
+ *
+ * Used in: library/ssl_tls.c
+ *          library/ssl_cli.c
+ *          library/ssl_srv.c
+ *
+ * This feature requires zlib library and headers to be present.
+ *
+ * Uncomment to enable use of ZLIB
+#define POLARSSL_ZLIB_SUPPORT
+ */
 /* \} name */
 
 /**

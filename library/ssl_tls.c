@@ -639,6 +639,25 @@ int ssl_derive_keys( ssl_context *ssl )
 
     memset( keyblk, 0, sizeof( keyblk ) );
 
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    // Initialize compression
+    //
+    if( ssl->session->compression == SSL_COMPRESS_DEFLATE )
+    {
+        SSL_DEBUG_MSG( 3, ( "Initializing zlib states" ) );
+
+        memset( &ssl->ctx_deflate, 0, sizeof( ssl->ctx_deflate ) );
+        memset( &ssl->ctx_inflate, 0, sizeof( ssl->ctx_inflate ) );
+
+        if( deflateInit( &ssl->ctx_deflate, Z_DEFAULT_COMPRESSION ) != Z_OK ||
+            inflateInit( &ssl->ctx_inflate ) != Z_OK )
+        {
+            SSL_DEBUG_MSG( 1, ( "Failed to initialize compression" ) );
+            return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
+        }
+    }
+#endif /* POLARSSL_ZLIB_SUPPORT */
+
     SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
 
     return( 0 );
@@ -1397,6 +1416,113 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(POLARSSL_ZLIB_SUPPORT)
+/*
+ * Compression/decompression functions
+ */
+static int ssl_compress_buf( ssl_context *ssl )
+{
+    int ret;
+    unsigned char *msg_post = ssl->out_msg;
+    size_t len_pre = ssl->out_msglen;
+    unsigned char *msg_pre;
+
+    SSL_DEBUG_MSG( 2, ( "=> compress buf" ) );
+
+    msg_pre = (unsigned char*) malloc( len_pre );
+    if( msg_pre == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len_pre ) );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    }
+
+    memcpy( msg_pre, ssl->out_msg, len_pre );
+
+    SSL_DEBUG_MSG( 3, ( "before compression: msglen = %d, ",
+                   ssl->out_msglen ) );
+
+    SSL_DEBUG_BUF( 4, "before compression: output payload",
+                   ssl->out_msg, ssl->out_msglen );
+
+    ssl->ctx_deflate.next_in = msg_pre;
+    ssl->ctx_deflate.avail_in = len_pre;
+    ssl->ctx_deflate.next_out = msg_post;
+    ssl->ctx_deflate.avail_out = SSL_BUFFER_LEN;
+
+    ret = deflate( &ssl->ctx_deflate, Z_SYNC_FLUSH );
+    if( ret != Z_OK )
+    {
+        SSL_DEBUG_MSG( 1, ( "failed to perform compression (%d)", ret ) );
+        return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
+    }
+
+    ssl->out_msglen = SSL_BUFFER_LEN - ssl->ctx_deflate.avail_out;
+
+    free( msg_pre );
+
+    SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
+                   ssl->out_msglen ) );
+
+    SSL_DEBUG_BUF( 4, "after compression: output payload",
+                   ssl->out_msg, ssl->out_msglen );
+
+    SSL_DEBUG_MSG( 2, ( "<= compress buf" ) );
+
+    return( 0 );
+}
+
+static int ssl_decompress_buf( ssl_context *ssl )
+{
+    int ret;
+    unsigned char *msg_post = ssl->in_msg;
+    size_t len_pre = ssl->in_msglen;
+    unsigned char *msg_pre;
+
+    SSL_DEBUG_MSG( 2, ( "=> decompress buf" ) );
+
+    msg_pre = (unsigned char*) malloc( len_pre );
+    if( msg_pre == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len_pre ) );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    }
+
+    memcpy( msg_pre, ssl->in_msg, len_pre );
+
+    SSL_DEBUG_MSG( 3, ( "before decompression: msglen = %d, ",
+                   ssl->in_msglen ) );
+
+    SSL_DEBUG_BUF( 4, "before decompression: input payload",
+                   ssl->in_msg, ssl->in_msglen );
+
+    ssl->ctx_inflate.next_in = msg_pre;
+    ssl->ctx_inflate.avail_in = len_pre;
+    ssl->ctx_inflate.next_out = msg_post;
+    ssl->ctx_inflate.avail_out = SSL_MAX_CONTENT_LEN;
+
+    ret = inflate( &ssl->ctx_inflate, Z_SYNC_FLUSH );
+    if( ret != Z_OK )
+    {
+        SSL_DEBUG_MSG( 1, ( "failed to perform decompression (%d)", ret ) );
+        return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
+    }
+
+    ssl->in_msglen = SSL_MAX_CONTENT_LEN - ssl->ctx_inflate.avail_out;
+
+    free( msg_pre );
+
+    SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
+                   ssl->in_msglen ) );
+
+    SSL_DEBUG_BUF( 4, "after decompression: input payload",
+                   ssl->in_msg, ssl->in_msglen );
+
+    SSL_DEBUG_MSG( 2, ( "<= decompress buf" ) );
+
+    return( 0 );
+}
+#endif /* POLARSSL_ZLIB_SUPPORT */
+
 /*
  * Fill the input message buffer
  */
@@ -1494,6 +1620,20 @@ int ssl_write_record( ssl_context *ssl )
 
         ssl->update_checksum( ssl, ssl->out_msg, len );
     }
+
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    if( ssl->do_crypt != 0 &&
+        ssl->session->compression == SSL_COMPRESS_DEFLATE )
+    {
+        if( ( ret = ssl_compress_buf( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_compress_buf", ret );
+            return( ret );
+        }
+
+        len = ssl->out_msglen;
+    }
+#endif /*POLARSSL_ZLIB_SUPPORT */
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_write != NULL)
@@ -1708,6 +1848,21 @@ int ssl_read_record( ssl_context *ssl )
         }
     }
 
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    if( ssl->do_crypt != 0 &&
+        ssl->session->compression == SSL_COMPRESS_DEFLATE )
+    {
+        if( ( ret = ssl_decompress_buf( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_decompress_buf", ret );
+            return( ret );
+        }
+
+        ssl->in_hdr[3] = (unsigned char)( ssl->in_msglen >> 8 );
+        ssl->in_hdr[4] = (unsigned char)( ssl->in_msglen      );
+    }
+#endif /* POLARSSL_ZLIB_SUPPORT */
+
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE &&
         ssl->in_msgtype != SSL_MSG_ALERT &&
         ssl->in_msgtype != SSL_MSG_CHANGE_CIPHER_SPEC &&
@@ -1761,12 +1916,13 @@ int ssl_read_record( ssl_context *ssl )
          */
         if( ssl->in_msg[0] == SSL_ALERT_LEVEL_FATAL )
         {
-            SSL_DEBUG_MSG( 1, ( "is a fatal alert message" ) );
+            SSL_DEBUG_MSG( 1, ( "is a fatal alert message (msg %d)",
+                           ssl->in_msg[1] ) );
             /**
              * Subtract from error code as ssl->in_msg[1] is 7-bit positive
              * error identifier.
              */
-            return( POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE - ssl->in_msg[1] );
+            return( POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE );
         }
 
         if( ssl->in_msg[0] == SSL_ALERT_LEVEL_WARNING &&
@@ -2514,7 +2670,7 @@ int ssl_init( ssl_context *ssl )
  * Reset an initialized and used SSL context for re-use while retaining
  * all application-set variables, function pointers and data.
  */
-void ssl_session_reset( ssl_context *ssl )
+int ssl_session_reset( ssl_context *ssl )
 {
     ssl->state = SSL_HELLO_REQUEST;
     
@@ -2555,9 +2711,39 @@ void ssl_session_reset( ssl_context *ssl )
     if( ssl_hw_record_reset != NULL)
     {
         SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_reset()" ) );
-        ssl_hw_record_reset( ssl );
+        if( ssl_hw_record_reset( ssl ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_hw_record_reset", ret );
+            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+        }
     }
 #endif
+
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    // Reset compression state
+    //
+    if( ssl->session->compression == SSL_COMPRESS_DEFLATE )
+    {
+        ssl->ctx_deflate.next_in = Z_NULL;
+        ssl->ctx_deflate.next_out = Z_NULL;
+        ssl->ctx_deflate.avail_in = 0;
+        ssl->ctx_deflate.avail_out = 0;
+
+        ssl->ctx_inflate.next_in = Z_NULL;
+        ssl->ctx_inflate.next_out = Z_NULL;
+        ssl->ctx_inflate.avail_in = 0;
+        ssl->ctx_inflate.avail_out = 0;
+
+        if( deflateReset( &ssl->ctx_deflate ) != Z_OK ||
+            inflateReset( &ssl->ctx_inflate ) != Z_OK )
+        {
+            SSL_DEBUG_MSG( 1, ( "Failed to reset compression" ) );
+            return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
+        }
+    }
+#endif /* POLARSSL_ZLIB_SUPPORT */
+
+    return( 0 );
 }
 
 /*
@@ -3263,6 +3449,11 @@ void ssl_free( ssl_context *ssl )
         SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_finish()" ) );
         ssl_hw_record_finish( ssl );
     }
+#endif
+
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    deflateEnd( &ssl->ctx_deflate );
+    inflateEnd( &ssl->ctx_inflate );
 #endif
 
     SSL_DEBUG_MSG( 2, ( "<= free" ) );

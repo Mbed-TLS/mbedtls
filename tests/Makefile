@@ -17,6 +17,11 @@ ifdef WINDOWS
 LDFLAGS += -lws2_32
 endif
 
+# Zlib shared library extensions:
+ifdef ZLIB
+LDFLAGS += -lz
+endif
+
 APPS =	test_suite_aes			test_suite_arc4			\
 		test_suite_base64		test_suite_camellia		\
 		test_suite_cipher.aes	test_suite_cipher.camellia	\

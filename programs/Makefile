@@ -15,6 +15,11 @@ ifdef WINDOWS
 LDFLAGS += -lws2_32
 endif
 
+# Zlib shared library extensions:
+ifdef ZLIB
+LDFLAGS += -lz
+endif
+
 APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	hash/hello			hash/generic_sum	\
 	hash/md5sum			hash/sha1sum		\

@@ -43,6 +43,10 @@
 #include "pkcs11.h"
 #endif
 
+#if defined(POLARSSL_ZLIB_SUPPORT)
+#include "zlib.h"
+#endif
+
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
 #else
@@ -86,6 +90,7 @@
 #define POLARSSL_ERR_SSL_MALLOC_FAILED                     -0x7F00  /**< Memory allocation failed */
 #define POLARSSL_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
 #define POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
+#define POLARSSL_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
 
 /*
  * Various constants
@@ -99,6 +104,7 @@
 #define SSL_IS_CLIENT                   0
 #define SSL_IS_SERVER                   1
 #define SSL_COMPRESS_NULL               0
+#define SSL_COMPRESS_DEFLATE            1
 
 #define SSL_VERIFY_NONE                 0
 #define SSL_VERIFY_OPTIONAL             1
@@ -108,9 +114,17 @@
 
 /*
  * Allow an extra 512 bytes for the record header
- * and encryption overhead (counter + MAC + padding).
+ * and encryption overhead (counter + MAC + padding)
+ * and allow for a maximum of 1024 of compression expansion if
+ * enabled.
  */
-#define SSL_BUFFER_LEN (SSL_MAX_CONTENT_LEN + 512)
+#if defined(POLARSSL_ZLIB_SUPPORT)
+#define SSL_COMPRESSION_ADD          1024
+#else
+#define SSL_COMPRESSION_ADD             0
+#endif
+
+#define SSL_BUFFER_LEN (SSL_MAX_CONTENT_LEN + SSL_COMPRESSION_ADD + 512)
 
 /*
  * Supported ciphersuites
@@ -253,6 +267,7 @@ struct _ssl_session
 {
     time_t start;               /*!< starting time      */
     int ciphersuite;            /*!< chosen ciphersuite */
+    int compression;            /*!< chosen compression */
     size_t length;              /*!< session id length  */
     unsigned char id[32];       /*!< session identifier */
     unsigned char master[48];   /*!< the master secret  */
@@ -374,6 +389,11 @@ struct _ssl_context
     unsigned long ctx_enc[134];         /*!<  encryption context      */
     unsigned long ctx_dec[134];         /*!<  decryption context      */
 
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    z_stream ctx_deflate;               /*!<  compression context     */
+    z_stream ctx_inflate;               /*!<  decompression context   */
+#endif
+
     /*
      * TLS extensions
      */
@@ -445,8 +465,10 @@ int ssl_init( ssl_context *ssl );
  *                 pointers and data.
  *
  * \param ssl      SSL context
+ * \return         0 if successful, or POLARSSL_ERR_SSL_HW_ACCEL_FAILED or
+ *                 POLARSSL_ERR_SSL_COMPRESSION_FAILED
  */
-void ssl_session_reset( ssl_context *ssl );
+int ssl_session_reset( ssl_context *ssl );
 
 /**
  * \brief          Set the current endpoint type

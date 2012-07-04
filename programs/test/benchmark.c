@@ -41,6 +41,7 @@
 #include "polarssl/arc4.h"
 #include "polarssl/des.h"
 #include "polarssl/aes.h"
+#include "polarssl/blowfish.h"
 #include "polarssl/camellia.h"
 #include "polarssl/gcm.h"
 #include "polarssl/rsa.h"
@@ -103,6 +104,9 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_GCM_C)
     gcm_context gcm;
 #endif
+#endif
+#if defined(POLARSSL_BLOWFISH_C)
+    blowfish_context blowfish;
 #endif
 #if defined(POLARSSL_CAMELLIA_C)
     camellia_context camellia;
@@ -321,6 +325,30 @@ int main( int argc, char *argv[] )
         tsc = hardclock();
         for( j = 0; j < 4096; j++ )
             camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT, BUFSIZE, tmp, buf, buf );
+
+        printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
+                        ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    }
+#endif
+
+#if defined(POLARSSL_BLOWFISH_C)
+    for( keysize = 128; keysize <= 256; keysize += 64 )
+    {
+        printf( "  BLOWFISH-CBC-%d:  ", keysize );
+        fflush( stdout );
+
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+        blowfish_setkey( &blowfish, tmp, keysize );
+
+        set_alarm( 1 );
+
+        for( i = 1; ! alarmed; i++ )
+            blowfish_crypt_cbc( &blowfish, BLOWFISH_ENCRYPT, BUFSIZE, tmp, buf, buf );
+
+        tsc = hardclock();
+        for( j = 0; j < 4096; j++ )
+            blowfish_crypt_cbc( &blowfish, BLOWFISH_ENCRYPT, BUFSIZE, tmp, buf, buf );
 
         printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                         ( hardclock() - tsc ) / ( j * BUFSIZE ) );

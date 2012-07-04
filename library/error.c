@@ -39,6 +39,10 @@
 #include "polarssl/bignum.h"
 #endif
 
+#if defined(POLARSSL_BLOWFISH_C)
+#include "polarssl/blowfish.h"
+#endif
+
 #if defined(POLARSSL_CAMELLIA_C)
 #include "polarssl/camellia.h"
 #endif
@@ -293,6 +297,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Hardware acceleration function returned with error" );
         if( use_ret == -(POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH) )
             snprintf( buf, buflen, "SSL - Hardware acceleration function skipped / left alone data" );
+        if( use_ret == -(POLARSSL_ERR_SSL_COMPRESSION_FAILED) )
+            snprintf( buf, buflen, "SSL - Processing of the compression / decompression failed" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_PARSE_C)
@@ -418,6 +424,13 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_MPI_MALLOC_FAILED) )
         snprintf( buf, buflen, "BIGNUM - Memory allocation failed" );
 #endif /* POLARSSL_BIGNUM_C */
+
+#if defined(POLARSSL_BLOWFISH_C)
+    if( use_ret == -(POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH) )
+        snprintf( buf, buflen, "BLOWFISH - Invalid key length" );
+    if( use_ret == -(POLARSSL_ERR_BLOWFISH_INVALID_INPUT_LENGTH) )
+        snprintf( buf, buflen, "BLOWFISH - Invalid data input length" );
+#endif /* POLARSSL_BLOWFISH_C */
 
 #if defined(POLARSSL_CAMELLIA_C)
     if( use_ret == -(POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH) )

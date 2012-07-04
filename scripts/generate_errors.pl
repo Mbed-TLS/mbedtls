@@ -8,7 +8,8 @@ my $data_dir = shift or die "Missing data directory";
 my $error_file = shift or die "Missing destination file";
 my $error_format_file = $data_dir.'/error.fmt';
 
-my @low_level_modules = ( "AES", "ASN1", "CAMELLIA", "BIGNUM", "BASE64", "XTEA",
+my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
+                          "BASE64", "XTEA",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
                           "MD2", "MD4", "MD5", "SHA1", "SHA2", "SHA4", "GCM" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "MD", "CIPHER", "SSL" );

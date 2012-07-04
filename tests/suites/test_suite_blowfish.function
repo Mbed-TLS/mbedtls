@@ -1,0 +1,222 @@
+BEGIN_HEADER
+#include "polarssl/blowfish.h"
+END_HEADER
+
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_BLOWFISH_C
+END_DEPENDENCIES
+
+BEGIN_CASE
+blowfish_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    blowfish_context ctx;
+    int key_len;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    TEST_ASSERT( blowfish_setkey( &ctx, key_str, key_len * 8 ) == {setkey_result} );
+    if( {setkey_result} == 0 )
+    {
+        TEST_ASSERT( blowfish_crypt_ecb( &ctx, BLOWFISH_ENCRYPT, src_str, output ) == 0 );
+        hexify( dst_str, output, 8 );
+
+        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+blowfish_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    blowfish_context ctx;
+    int key_len;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( src_str, {hex_src_string} );
+
+    TEST_ASSERT( blowfish_setkey( &ctx, key_str, key_len * 8 ) == {setkey_result} );
+    if( {setkey_result} == 0 )
+    {
+        TEST_ASSERT( blowfish_crypt_ecb( &ctx, BLOWFISH_DECRYPT, src_str, output ) == 0 );
+        hexify( dst_str, output, 8 );
+
+        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+blowfish_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    blowfish_context ctx;
+    int key_len, data_len;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    data_len = unhexify( src_str, {hex_src_string} );
+
+    blowfish_setkey( &ctx, key_str, key_len * 8 );
+
+    TEST_ASSERT( blowfish_crypt_cbc( &ctx, BLOWFISH_ENCRYPT, data_len , iv_str, src_str, output ) == {cbc_result} );
+    if( {cbc_result} == 0 )
+    {
+        hexify( dst_str, output, data_len );
+
+        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+blowfish_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    blowfish_context ctx;
+    int key_len, data_len;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    data_len = unhexify( src_str, {hex_src_string} );
+
+    blowfish_setkey( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( blowfish_crypt_cbc( &ctx, BLOWFISH_DECRYPT, data_len , iv_str, src_str, output ) == {cbc_result} );
+    if( {cbc_result} == 0)
+    {
+        hexify( dst_str, output, data_len );
+
+        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    }
+}
+END_CASE
+
+BEGIN_CASE
+blowfish_encrypt_cfb64:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    blowfish_context ctx;
+    size_t iv_offset = 0;
+    int key_len, src_len;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
+
+    blowfish_setkey( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( blowfish_crypt_cfb64( &ctx, BLOWFISH_ENCRYPT, src_len, &iv_offset, iv_str, src_str, output ) == 0 );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+blowfish_decrypt_cfb64:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    blowfish_context ctx;
+    size_t iv_offset = 0;
+    int key_len, src_len;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
+
+    blowfish_setkey( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( blowfish_crypt_cfb64( &ctx, BLOWFISH_DECRYPT, src_len, &iv_offset, iv_str, src_str, output ) == 0 );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE
+
+BEGIN_CASE
+blowfish_encrypt_ctr:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char stream_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    blowfish_context ctx;
+    size_t iv_offset = 0;
+    int key_len, src_len;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(stream_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, {hex_key_string} );
+    unhexify( iv_str, {hex_iv_string} );
+    src_len = unhexify( src_str, {hex_src_string} );
+
+    blowfish_setkey( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( blowfish_crypt_ctr( &ctx, src_len, &iv_offset, iv_str, stream_str, src_str, output ) == 0 );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+}
+END_CASE

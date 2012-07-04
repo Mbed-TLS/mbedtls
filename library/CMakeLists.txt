@@ -7,6 +7,7 @@ set(src
      asn1write.c
      base64.c
      bignum.c
+     blowfish.c
      camellia.c
      certs.c
      cipher.c

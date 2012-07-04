@@ -351,6 +351,15 @@
 #define POLARSSL_BIGNUM_C
 
 /**
+ * \def POLARSSL_BLOWFISH_C
+ *
+ * Enable the Blowfish block cipher.
+ *
+ * Module:  library/blowfish.c
+ */
+#define POLARSSL_BLOWFISH_C
+
+/**
  * \def POLARSSL_CAMELLIA_C
  *
  * Enable the Camellia block cipher.

@@ -23,7 +23,8 @@ LDFLAGS += -lz
 endif
 
 APPS =	test_suite_aes			test_suite_arc4			\
-		test_suite_base64		test_suite_camellia		\
+		test_suite_base64		test_suite_blowfish		\
+		test_suite_camellia								\
 		test_suite_cipher.aes	test_suite_cipher.camellia	\
 		test_suite_cipher.des	test_suite_cipher.null	\
 		test_suite_ctr_drbg		test_suite_debug		\
@@ -77,6 +78,10 @@ test_suite_arc4: test_suite_arc4.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_base64: test_suite_base64.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_blowfish: test_suite_blowfish.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

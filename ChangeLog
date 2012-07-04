@@ -22,6 +22,7 @@ Features
    * Added X509 CA Path support
    * Added Thumb assembly optimizations
    * Added DEFLATE compression support as per RFC3749 (requires zlib)
+   * Added base blowfish algorithm
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

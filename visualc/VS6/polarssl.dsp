@@ -105,6 +105,10 @@ SOURCE=..\..\library\bignum.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\blowfish.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\camellia.c
 # End Source File
 # Begin Source File
@@ -246,6 +250,10 @@ SOURCE=..\..\include\polarssl\base64.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\bignum.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\blowfish.h
 # End Source File
 # Begin Source File
 

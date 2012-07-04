@@ -204,4 +204,3 @@ endif
 ifdef WINDOWS
 	del /S /Q /F *.o *.exe
 endif
-

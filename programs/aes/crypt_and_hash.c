@@ -300,9 +300,17 @@ int main( int argc, char *argv[] )
 
         memset( key, 0, sizeof( key ) );
 
-        cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
-            POLARSSL_ENCRYPT );
-        cipher_reset( &cipher_ctx, IV);
+        if( cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
+                           POLARSSL_ENCRYPT ) != 0 )
+        {
+            fprintf( stderr, "cipher_setkey() returned error\n");
+            goto exit;
+        }
+        if( cipher_reset( &cipher_ctx, IV ) != 0 )
+        {
+            fprintf( stderr, "cipher_reset() returned error\n");
+            goto exit;
+        }
 
         md_hmac_starts( &md_ctx, digest, 32 );
 
@@ -330,7 +338,11 @@ int main( int argc, char *argv[] )
             }
         }
 
-        cipher_finish( &cipher_ctx, output, &olen );
+        if( cipher_finish( &cipher_ctx, output, &olen ) != 0 )
+        {
+            fprintf( stderr, "cipher_finish() returned error\n" );
+            goto exit;
+        }
         md_hmac_update( &md_ctx, output, olen );
 
         if( fwrite( output, 1, olen, fout ) != olen )
@@ -338,14 +350,15 @@ int main( int argc, char *argv[] )
             fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
             goto exit;
         }
+
         /*
          * Finally write the HMAC.
          */
         md_hmac_finish( &md_ctx, digest );
 
-        if( fwrite( digest, 1, md_get_size( md_info), fout ) != md_get_size( md_info) )
+        if( fwrite( digest, 1, md_get_size( md_info ), fout ) != md_get_size( md_info ) )
         {
-            fprintf( stderr, "fwrite(%d bytes) failed\n", md_get_size( md_info) );
+            fprintf( stderr, "fwrite(%d bytes) failed\n", md_get_size( md_info ) );
             goto exit;
         }
     }
@@ -361,15 +374,17 @@ int main( int argc, char *argv[] )
          *      N*16 .. (N+1)*16 - 1    AES Encrypted Block #N
          *  (N+1)*16 .. (N+1)*16 + 32   HMAC-SHA-256(ciphertext)
          */
-        if( filesize < 16 + md_get_size( md_info) )
+        if( filesize < 16 + md_get_size( md_info ) )
         {
             fprintf( stderr, "File too short to be encrypted.\n" );
             goto exit;
         }
 
-        if( ( filesize & 0x0F ) != 0 )
+        if( ( ( filesize - md_get_size( md_info ) ) % 
+                cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {
-            fprintf( stderr, "File size not a multiple of 16.\n" );
+            fprintf( stderr, "File content not a multiple of the block size (%d).\n",
+                     cipher_get_block_size( &cipher_ctx ));
             goto exit;
         }
 

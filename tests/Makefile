@@ -24,8 +24,9 @@ endif
 
 APPS =	test_suite_aes			test_suite_arc4			\
 		test_suite_base64		test_suite_blowfish		\
-		test_suite_camellia								\
-		test_suite_cipher.aes	test_suite_cipher.camellia	\
+		test_suite_camellia		test_suite_cipher.aes	\
+		test_suite_cipher.blowfish						\
+		test_suite_cipher.camellia						\
 		test_suite_cipher.des	test_suite_cipher.null	\
 		test_suite_ctr_drbg		test_suite_debug		\
 		test_suite_des			test_suite_dhm			\
@@ -44,6 +45,10 @@ all: $(APPS)
 test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.aes
+
+test_suite_cipher.blowfish.c : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.blowfish
 
 test_suite_cipher.camellia.c : suites/test_suite_cipher.function suites/test_suite_cipher.camellia.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
@@ -90,6 +95,10 @@ test_suite_camellia: test_suite_camellia.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_cipher.aes: test_suite_cipher.aes.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_cipher.blowfish: test_suite_cipher.blowfish.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

@@ -54,7 +54,7 @@ extern "C" {
 #endif
 
 /**
- * \brief          Blowfish key schedule (encryption)
+ * \brief          Blowfish key schedule
  *
  * \param ctx      Blowfish context to be initialized
  * \param key      encryption key

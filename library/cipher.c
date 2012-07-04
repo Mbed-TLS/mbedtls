@@ -86,6 +86,19 @@ static const int supported_ciphers[] = {
         POLARSSL_CIPHER_DES_EDE3_CBC,
 #endif /* defined(POLARSSL_DES_C) */
 
+#if defined(POLARSSL_BLOWFISH_C)
+        POLARSSL_CIPHER_BLOWFISH_CBC,
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        POLARSSL_CIPHER_BLOWFISH_CFB64,
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        POLARSSL_CIPHER_BLOWFISH_CTR,
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+
+#endif /* defined(POLARSSL_BLOWFISH_C) */
+
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
         POLARSSL_CIPHER_NULL,
 #endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
@@ -168,6 +181,22 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
             return &des_ede3_cbc_info;
 #endif
 
+#if defined(POLARSSL_BLOWFISH_C)
+        case POLARSSL_CIPHER_BLOWFISH_CBC:
+            return &blowfish_cbc_info;
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        case POLARSSL_CIPHER_BLOWFISH_CFB64:
+            return &blowfish_cfb64_info;
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        case POLARSSL_CIPHER_BLOWFISH_CTR:
+            return &blowfish_ctr_info;
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+
+#endif
+
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
         case POLARSSL_CIPHER_NULL:
             return &null_cipher_info;
@@ -247,6 +276,21 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
         return cipher_info_from_type( POLARSSL_CIPHER_DES_EDE3_CBC );
 #endif
 
+#if defined(POLARSSL_BLOWFISH_C)
+    if( !strcasecmp( "BLOWFISH-CBC", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CBC );
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+    if( !strcasecmp( "BLOWFISH-CFB64", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CFB64 );
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    if( !strcasecmp( "BLOWFISH-CTR", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CTR );
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+#endif
+
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
     if( !strcasecmp( "NULL", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_NULL );
@@ -295,10 +339,10 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
 #endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
 
     /*
-     * For CFB128 and CTR mode always use the encryption key schedule
+     * For CFB and CTR mode always use the encryption key schedule
      */
     if( POLARSSL_ENCRYPT == operation ||
-        POLARSSL_MODE_CFB128 == ctx->cipher_info->mode ||
+        POLARSSL_MODE_CFB == ctx->cipher_info->mode ||
         POLARSSL_MODE_CTR == ctx->cipher_info->mode )
     {
         return ctx->cipher_info->base->setkey_enc_func( ctx->cipher_ctx, key,
@@ -421,9 +465,9 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
         return 0;
     }
 
-    if( ctx->cipher_info->mode == POLARSSL_MODE_CFB128 )
+    if( ctx->cipher_info->mode == POLARSSL_MODE_CFB )
     {
-        if( 0 != ( ret = ctx->cipher_info->base->cfb128_func( ctx->cipher_ctx,
+        if( 0 != ( ret = ctx->cipher_info->base->cfb_func( ctx->cipher_ctx,
                 ctx->operation, ilen, &ctx->unprocessed_len, ctx->iv,
                 input, output ) ) )
         {
@@ -493,7 +537,7 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 
     *olen = 0;
 
-    if( POLARSSL_MODE_CFB128 == ctx->cipher_info->mode ||
+    if( POLARSSL_MODE_CFB == ctx->cipher_info->mode ||
         POLARSSL_MODE_CTR == ctx->cipher_info->mode ||
         POLARSSL_MODE_NULL == ctx->cipher_info->mode )
     {

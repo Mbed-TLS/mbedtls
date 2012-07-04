@@ -22,7 +22,7 @@ Features
    * Added X509 CA Path support
    * Added Thumb assembly optimizations
    * Added DEFLATE compression support as per RFC3749 (requires zlib)
-   * Added base blowfish algorithm
+   * Added blowfish algorithm (Generic and cipher layer)
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define
@@ -32,6 +32,8 @@ Changes
    * Moved out_msg to out_hdr + 32 to support hardware acceleration
    * Changed certificate verify behaviour to comply with RFC 6125 section 6.3
      to not match CN if subjectAltName extension is present (Closes ticket #56)
+   * Cipher layer cipher_mode_t POLARSSL_MODE_CFB128 is renamed to
+     POLARSSL_MODE_CFB, to also handle different block size CFB modes.
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by

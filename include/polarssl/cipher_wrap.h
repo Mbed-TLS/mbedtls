@@ -84,6 +84,18 @@ extern const cipher_info_t des_ede3_cbc_info;
 
 #endif /* defined(POLARSSL_DES_C) */
 
+#if defined(POLARSSL_BLOWFISH_C)
+extern const cipher_info_t blowfish_cbc_info;
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+extern const cipher_info_t blowfish_cfb64_info;
+#endif /* POLARSSL_CIPHER_MODE_CFB */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+extern const cipher_info_t blowfish_ctr_info;
+#endif /* POLARSSL_CIPHER_MODE_CTR */
+#endif /* defined(POLARSSL_BLOWFISH_C) */
+
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
 extern const cipher_info_t null_cipher_info;
 #endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */

@@ -53,6 +53,7 @@ typedef enum {
     POLARSSL_CIPHER_ID_DES,
     POLARSSL_CIPHER_ID_3DES,
     POLARSSL_CIPHER_ID_CAMELLIA,
+    POLARSSL_CIPHER_ID_BLOWFISH,
 } cipher_id_t;
 
 typedef enum {
@@ -78,14 +79,17 @@ typedef enum {
     POLARSSL_CIPHER_CAMELLIA_256_CTR,
     POLARSSL_CIPHER_DES_CBC,
     POLARSSL_CIPHER_DES_EDE_CBC,
-    POLARSSL_CIPHER_DES_EDE3_CBC
+    POLARSSL_CIPHER_DES_EDE3_CBC,
+    POLARSSL_CIPHER_BLOWFISH_CBC,
+    POLARSSL_CIPHER_BLOWFISH_CFB64,
+    POLARSSL_CIPHER_BLOWFISH_CTR,
 } cipher_type_t;
 
 typedef enum {
     POLARSSL_MODE_NONE = 0,
     POLARSSL_MODE_NULL,
     POLARSSL_MODE_CBC,
-    POLARSSL_MODE_CFB128,
+    POLARSSL_MODE_CFB,
     POLARSSL_MODE_OFB,
     POLARSSL_MODE_CTR,
 } cipher_mode_t;
@@ -121,8 +125,8 @@ typedef struct {
     int (*cbc_func)( void *ctx, operation_t mode, size_t length, unsigned char *iv,
             const unsigned char *input, unsigned char *output );
 
-    /** Encrypt using CFB128 */
-    int (*cfb128_func)( void *ctx, operation_t mode, size_t length, size_t *iv_off,
+    /** Encrypt using CFB (Full length) */
+    int (*cfb_func)( void *ctx, operation_t mode, size_t length, size_t *iv_off,
             unsigned char *iv, const unsigned char *input, unsigned char *output );
 
     /** Encrypt using CTR */

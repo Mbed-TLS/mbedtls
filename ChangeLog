@@ -51,6 +51,8 @@ Security
      Frama-C team at CEA LIST)
    * Fixed generation of DHM parameters to correct length (found by Ruslan
      Yushchenko)
+   * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
+     Vanderbeken)
 
 = Version 1.1.3 released on 2012-04-29
 Bugfix

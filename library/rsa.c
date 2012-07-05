@@ -679,7 +679,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                     return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
             }
 
-            if( nb_pad < 8 )
+            if( ( nb_pad < 8 ) || ( nb_pad > olen ) )
                 return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
             *p++ = 0;

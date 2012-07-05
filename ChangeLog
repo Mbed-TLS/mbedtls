@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Branch 1.1
+Security
+   * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
+     Vanderbeken)
+
 = Version 1.1.4 released on 2012-05-31
 Bugfix
    * Correctly handle empty SSL/TLS packets (Found by James Yonan)

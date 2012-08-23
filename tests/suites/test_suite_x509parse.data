@@ -274,6 +274,14 @@ X509 Certificate verification #29 (domain matching wildcard in multi certificate
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.org":0:0:NULL
 
+X509 Certificate verification #30 (domain matching multi certificate without CN)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.shotokan-braunschweig.de":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:NULL
+
+X509 Certificate verification #31 (domain not matching multi certificate without CN)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH + BADCERT_NOT_TRUSTED:NULL
+
 X509 Parse Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_SELF_TEST
 x509_selftest:

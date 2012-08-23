@@ -765,7 +765,7 @@ static int x509_get_key_usage( unsigned char **p,
     if( ( ret = asn1_get_bitstring( p, end, &bs ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + ret );
 
-    if( bs.len > 1 )
+    if( bs.len < 1 )
         return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
                 POLARSSL_ERR_ASN1_INVALID_LENGTH );
 

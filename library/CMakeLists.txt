@@ -28,6 +28,7 @@ set(src
      md5.c
      net.c
      padlock.c
+     pbkdf2.c
      pem.c
      pkcs11.c
      rsa.c

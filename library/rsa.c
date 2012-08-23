@@ -34,7 +34,10 @@
 #if defined(POLARSSL_RSA_C)
 
 #include "polarssl/rsa.h"
+
+#if defined(POLARSSL_PKCS1_V21)
 #include "polarssl/md.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>

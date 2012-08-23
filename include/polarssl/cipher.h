@@ -320,7 +320,7 @@ static inline int cipher_get_iv_size( const cipher_context_t *ctx )
 static inline cipher_type_t cipher_get_type( const cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
-        return 0;
+        return POLARSSL_CIPHER_NONE;
 
     return ctx->cipher_info->type;
 }

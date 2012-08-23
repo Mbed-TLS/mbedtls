@@ -878,6 +878,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
                 return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS +
                         POLARSSL_ERR_ASN1_MALLOC_FAILED );
 
+            memset( cur->next, 0, sizeof( asn1_sequence ) );
             cur = cur->next;
         }
     }
@@ -1355,7 +1356,8 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
         return( ret );
     }
 
-    if( memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 )
+    if( crt->sig_oid1.len != crt->sig_oid2.len ||
+        memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 )
     {
         x509_free( crt );
         return( POLARSSL_ERR_X509_CERT_SIG_MISMATCH );
@@ -1776,7 +1778,8 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         return( ret );
     }
 
-    if( memcmp( crl->sig_oid1.p, crl->sig_oid2.p, crl->sig_oid1.len ) != 0 )
+    if( crl->sig_oid1.len != crl->sig_oid2.len ||
+        memcmp( crl->sig_oid1.p, crl->sig_oid2.p, crl->sig_oid1.len ) != 0 )
     {
         x509_crl_free( crl );
         return( POLARSSL_ERR_X509_CERT_SIG_MISMATCH );
@@ -2530,7 +2533,8 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
             SAFE_SNPRINTF();
         }
 
-        if( memcmp( name->oid.p, OID_X520, 2 ) == 0 )
+        if( name->oid.len == 3 &&
+            memcmp( name->oid.p, OID_X520, 2 ) == 0 )
         {
             switch( name->oid.p[2] )
             {
@@ -2559,7 +2563,8 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
             }
         SAFE_SNPRINTF();
         }
-        else if( memcmp( name->oid.p, OID_PKCS9, 8 ) == 0 )
+        else if( name->oid.len == 9 &&
+                 memcmp( name->oid.p, OID_PKCS9, 8 ) == 0 )
         {
             switch( name->oid.p[8] )
             {
@@ -3071,8 +3076,8 @@ int x509_wildcard_verify( const char *cn, x509_buf *name )
     if( cn_idx == 0 )
         return( 0 );
 
-    if( memcmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 &&
-        strlen( cn ) - cn_idx == name->len - 1 )
+    if( strlen( cn ) - cn_idx == name->len - 1 &&
+        memcmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
     {
         return( 1 );
     }
@@ -3114,11 +3119,12 @@ int x509parse_verify( x509_cert *crt,
 
             while( cur != NULL )
             {
-                if( memcmp( cn, cur->buf.p, cn_len ) == 0 &&
-                            cur->buf.len == cn_len )
+                if( cur->buf.len == cn_len &&
+                    memcmp( cn, cur->buf.p, cn_len ) == 0 )
                     break;
 
-                if( memcmp( cur->buf.p, "*.", 2 ) == 0 &&
+                if( cur->buf.len > 2 &&
+                    memcmp( cur->buf.p, "*.", 2 ) == 0 &&
                             x509_wildcard_verify( cn, &cur->buf ) )
                     break;
 
@@ -3132,13 +3138,15 @@ int x509parse_verify( x509_cert *crt,
         {
             while( name != NULL )
             {
-                if( memcmp( name->oid.p, OID_CN,  3 ) == 0 )
+                if( name->oid.len == 3 &&
+                    memcmp( name->oid.p, OID_CN,  3 ) == 0 )
                 {
-                    if( memcmp( name->val.p, cn, cn_len ) == 0 &&
-                                name->val.len == cn_len )
+                    if( name->val.len == cn_len &&
+                        memcmp( name->val.p, cn, cn_len ) == 0 )
                         break;
 
-                    if( memcmp( name->val.p, "*.", 2 ) == 0 &&
+                    if( name->val.len > 2 &&
+                        memcmp( name->val.p, "*.", 2 ) == 0 &&
                                 x509_wildcard_verify( cn, &name->val ) )
                         break;
                 }

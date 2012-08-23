@@ -2809,7 +2809,7 @@ void ssl_set_session( ssl_context *ssl, int resume, int timeout,
     ssl->session    = session;
 }
 
-void ssl_set_ciphersuites( ssl_context *ssl, int *ciphersuites )
+void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites )
 {
     ssl->ciphersuites    = ciphersuites;
 }
@@ -3153,7 +3153,7 @@ const char *ssl_get_version( const ssl_context *ssl )
     return( "unknown" );
 }
 
-int ssl_default_ciphersuites[] =
+const int ssl_default_ciphersuites[] =
 {
 #if defined(POLARSSL_DHM_C)
 #if defined(POLARSSL_AES_C)

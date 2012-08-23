@@ -369,7 +369,7 @@ struct _ssl_context
                     unsigned char *, size_t);
 
     int do_crypt;                       /*!<  en(de)cryption flag     */
-    int *ciphersuites;                  /*!<  allowed ciphersuites    */
+    const int *ciphersuites;            /*!<  allowed ciphersuites    */
     size_t pmslen;                      /*!<  premaster length        */
     unsigned int keylen;                /*!<  symmetric key length    */
     size_t minlen;                      /*!<  min. ciphertext length  */
@@ -405,7 +405,7 @@ struct _ssl_context
 extern "C" {
 #endif
 
-extern int ssl_default_ciphersuites[];
+extern const int ssl_default_ciphersuites[];
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 extern int (*ssl_hw_record_init)(ssl_context *ssl,
@@ -577,7 +577,7 @@ void ssl_set_session( ssl_context *ssl, int resume, int timeout,
  * \param ssl           SSL context
  * \param ciphersuites  0-terminated list of allowed ciphersuites
  */
-void ssl_set_ciphersuites( ssl_context *ssl, int *ciphersuites );
+void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites );
 
 /**
  * \brief          Set the data required to verify peer certificate

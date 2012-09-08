@@ -23,7 +23,7 @@ gcm_encrypt_and_tag:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:h
 
     memset(key_str, 0x00, 128);
     memset(src_str, 0x00, 128);
-    memset(dst_str, 0x00, 256);
+    memset(dst_str, 0x00, 257);
     memset(iv_str, 0x00, 128);
     memset(add_str, 0x00, 128);
     memset(tag_str, 0x00, 128);
@@ -65,7 +65,7 @@ gcm_decrypt_and_verify:hex_key_string:hex_src_string:hex_iv_string:hex_add_strin
 
     memset(key_str, 0x00, 128);
     memset(src_str, 0x00, 128);
-    memset(dst_str, 0x00, 256);
+    memset(dst_str, 0x00, 257);
     memset(iv_str, 0x00, 128);
     memset(add_str, 0x00, 128);
     memset(tag_str, 0x00, 128);

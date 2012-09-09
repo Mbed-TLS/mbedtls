@@ -44,7 +44,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     unsigned int i, j;
     size_t n;
     unsigned int ciph_len, sess_len;
-    unsigned int chal_len, comp_len;
+    unsigned int comp_len;
     unsigned char *buf, *p;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
@@ -57,297 +57,169 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     buf = ssl->in_hdr;
 
-    if( ( buf[0] & 0x80 ) != 0 )
+    SSL_DEBUG_BUF( 4, "record header", buf, 5 );
+
+    SSL_DEBUG_MSG( 3, ( "client hello v3, message type: %d",
+                   buf[0] ) );
+    SSL_DEBUG_MSG( 3, ( "client hello v3, message len.: %d",
+                   ( buf[3] << 8 ) | buf[4] ) );
+    SSL_DEBUG_MSG( 3, ( "client hello v3, protocol ver: [%d:%d]",
+                   buf[1], buf[2] ) );
+
+    /*
+     * SSLv3 Client Hello
+     *
+     * Record layer:
+     *     0  .   0   message type
+     *     1  .   2   protocol version
+     *     3  .   4   message length
+     */
+    if( buf[0] != SSL_MSG_HANDSHAKE ||
+        buf[1] != SSL_MAJOR_VERSION_3 )
     {
-        SSL_DEBUG_BUF( 4, "record header", buf, 5 );
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
 
-        SSL_DEBUG_MSG( 3, ( "client hello v2, message type: %d",
-                       buf[2] ) );
-        SSL_DEBUG_MSG( 3, ( "client hello v2, message len.: %d",
-                       ( ( buf[0] & 0x7F ) << 8 ) | buf[1] ) );
-        SSL_DEBUG_MSG( 3, ( "client hello v2, max. version: [%d:%d]",
-                       buf[3], buf[4] ) );
+    n = ( buf[3] << 8 ) | buf[4];
 
-        /*
-         * SSLv2 Client Hello
-         *
-         * Record layer:
-         *     0  .   1   message length
-         *
-         * SSL layer:
-         *     2  .   2   message type
-         *     3  .   4   protocol version
-         */
-        if( buf[2] != SSL_HS_CLIENT_HELLO ||
-            buf[3] != SSL_MAJOR_VERSION_3 )
+    if( n < 45 || n > 512 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    if( ( ret = ssl_fetch_input( ssl, 5 + n ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+        return( ret );
+    }
+
+    buf = ssl->in_msg;
+    n = ssl->in_left - 5;
+
+    ssl->update_checksum( ssl, buf, n );
+
+    /*
+     * SSL layer:
+     *     0  .   0   handshake type
+     *     1  .   3   handshake length
+     *     4  .   5   protocol version
+     *     6  .   9   UNIX time()
+     *    10  .  37   random bytes
+     *    38  .  38   session id length
+     *    39  . 38+x  session id
+     *   39+x . 40+x  ciphersuitelist length
+     *   41+x .  ..   ciphersuitelist
+     *    ..  .  ..   compression alg.
+     *    ..  .  ..   extensions
+     */
+    SSL_DEBUG_BUF( 4, "record contents", buf, n );
+
+    SSL_DEBUG_MSG( 3, ( "client hello v3, handshake type: %d",
+                   buf[0] ) );
+    SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %d",
+                   ( buf[1] << 16 ) | ( buf[2] << 8 ) | buf[3] ) );
+    SSL_DEBUG_MSG( 3, ( "client hello v3, max. version: [%d:%d]",
+                   buf[4], buf[5] ) );
+
+    /*
+     * Check the handshake type and protocol version
+     */
+    if( buf[0] != SSL_HS_CLIENT_HELLO ||
+        buf[4] != SSL_MAJOR_VERSION_3 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    ssl->major_ver = SSL_MAJOR_VERSION_3;
+    ssl->minor_ver = ( buf[5] <= SSL_MINOR_VERSION_3 )
+                     ? buf[5]  : SSL_MINOR_VERSION_3;
+
+    ssl->max_major_ver = buf[4];
+    ssl->max_minor_ver = buf[5];
+
+    memcpy( ssl->randbytes, buf + 6, 32 );
+
+    /*
+     * Check the handshake message length
+     */
+    if( buf[1] != 0 || n != (unsigned int) 4 + ( ( buf[2] << 8 ) | buf[3] ) )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    /*
+     * Check the session length
+     */
+    sess_len = buf[38];
+
+    if( sess_len > 32 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    ssl->session->length = sess_len;
+    memset( ssl->session->id, 0, sizeof( ssl->session->id ) );
+    memcpy( ssl->session->id, buf + 39 , ssl->session->length );
+
+    /*
+     * Check the ciphersuitelist length
+     */
+    ciph_len = ( buf[39 + sess_len] << 8 )
+             | ( buf[40 + sess_len]      );
+
+    if( ciph_len < 2 || ciph_len > 256 || ( ciph_len % 2 ) != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    /*
+     * Check the compression algorithms length
+     */
+    comp_len = buf[41 + sess_len + ciph_len];
+
+    if( comp_len < 1 || comp_len > 16 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    ssl->session->compression = SSL_COMPRESS_NULL;
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    for( i = 0; i < comp_len; ++i )
+    {
+        if( buf[41 + sess_len + ciph_len + i] == SSL_COMPRESS_DEFLATE )
         {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        n = ( ( buf[0] << 8 ) | buf[1] ) & 0x7FFF;
-
-        if( n < 17 || n > 512 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        ssl->max_major_ver = buf[3];
-        ssl->max_minor_ver = buf[4];
-
-        ssl->major_ver = SSL_MAJOR_VERSION_3;
-        ssl->minor_ver = ( buf[4] <= SSL_MINOR_VERSION_3 )
-                         ? buf[4]  : SSL_MINOR_VERSION_3;
-
-        if( ( ret = ssl_fetch_input( ssl, 2 + n ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
-            return( ret );
-        }
-
-        ssl->update_checksum( ssl, buf + 2, n );
-
-        buf = ssl->in_msg;
-        n = ssl->in_left - 5;
-
-        /*
-         *    0  .   1   ciphersuitelist length
-         *    2  .   3   session id length
-         *    4  .   5   challenge length
-         *    6  .  ..   ciphersuitelist
-         *   ..  .  ..   session id
-         *   ..  .  ..   challenge
-         */
-        SSL_DEBUG_BUF( 4, "record contents", buf, n );
-
-        ciph_len = ( buf[0] << 8 ) | buf[1];
-        sess_len = ( buf[2] << 8 ) | buf[3];
-        chal_len = ( buf[4] << 8 ) | buf[5];
-
-        SSL_DEBUG_MSG( 3, ( "ciph_len: %d, sess_len: %d, chal_len: %d",
-                       ciph_len, sess_len, chal_len ) );
-
-        /*
-         * Make sure each parameter length is valid
-         */
-        if( ciph_len < 3 || ( ciph_len % 3 ) != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        if( sess_len > 32 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        if( chal_len < 8 || chal_len > 32 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        if( n != 6 + ciph_len + sess_len + chal_len )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
-                       buf + 6,  ciph_len );
-        SSL_DEBUG_BUF( 3, "client hello, session id",
-                       buf + 6 + ciph_len,  sess_len );
-        SSL_DEBUG_BUF( 3, "client hello, challenge",
-                       buf + 6 + ciph_len + sess_len,  chal_len );
-
-        p = buf + 6 + ciph_len;
-        ssl->session->length = sess_len;
-        memset( ssl->session->id, 0, sizeof( ssl->session->id ) );
-        memcpy( ssl->session->id, p, ssl->session->length );
-
-        p += sess_len;
-        memset( ssl->randbytes, 0, 64 );
-        memcpy( ssl->randbytes + 32 - chal_len, p, chal_len );
-
-        for( i = 0; ssl->ciphersuites[i] != 0; i++ )
-        {
-            for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
-            {
-                if( p[0] == 0 &&
-                    p[1] == 0 &&
-                    p[2] == ssl->ciphersuites[i] )
-                    goto have_ciphersuite;
-            }
+            ssl->session->compression = SSL_COMPRESS_DEFLATE;
+            break;
         }
     }
-    else
-    {
-        SSL_DEBUG_BUF( 4, "record header", buf, 5 );
-
-        SSL_DEBUG_MSG( 3, ( "client hello v3, message type: %d",
-                       buf[0] ) );
-        SSL_DEBUG_MSG( 3, ( "client hello v3, message len.: %d",
-                       ( buf[3] << 8 ) | buf[4] ) );
-        SSL_DEBUG_MSG( 3, ( "client hello v3, protocol ver: [%d:%d]",
-                       buf[1], buf[2] ) );
-
-        /*
-         * SSLv3 Client Hello
-         *
-         * Record layer:
-         *     0  .   0   message type
-         *     1  .   2   protocol version
-         *     3  .   4   message length
-         */
-        if( buf[0] != SSL_MSG_HANDSHAKE ||
-            buf[1] != SSL_MAJOR_VERSION_3 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        n = ( buf[3] << 8 ) | buf[4];
-
-        if( n < 45 || n > 512 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        if( ( ret = ssl_fetch_input( ssl, 5 + n ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
-            return( ret );
-        }
-
-        buf = ssl->in_msg;
-        n = ssl->in_left - 5;
-
-        ssl->update_checksum( ssl, buf, n );
-
-        /*
-         * SSL layer:
-         *     0  .   0   handshake type
-         *     1  .   3   handshake length
-         *     4  .   5   protocol version
-         *     6  .   9   UNIX time()
-         *    10  .  37   random bytes
-         *    38  .  38   session id length
-         *    39  . 38+x  session id
-         *   39+x . 40+x  ciphersuitelist length
-         *   41+x .  ..   ciphersuitelist
-         *    ..  .  ..   compression alg.
-         *    ..  .  ..   extensions
-         */
-        SSL_DEBUG_BUF( 4, "record contents", buf, n );
-
-        SSL_DEBUG_MSG( 3, ( "client hello v3, handshake type: %d",
-                       buf[0] ) );
-        SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %d",
-                       ( buf[1] << 16 ) | ( buf[2] << 8 ) | buf[3] ) );
-        SSL_DEBUG_MSG( 3, ( "client hello v3, max. version: [%d:%d]",
-                       buf[4], buf[5] ) );
-
-        /*
-         * Check the handshake type and protocol version
-         */
-        if( buf[0] != SSL_HS_CLIENT_HELLO ||
-            buf[4] != SSL_MAJOR_VERSION_3 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        ssl->major_ver = SSL_MAJOR_VERSION_3;
-        ssl->minor_ver = ( buf[5] <= SSL_MINOR_VERSION_3 )
-                         ? buf[5]  : SSL_MINOR_VERSION_3;
-
-        ssl->max_major_ver = buf[4];
-        ssl->max_minor_ver = buf[5];
-
-        memcpy( ssl->randbytes, buf + 6, 32 );
-
-        /*
-         * Check the handshake message length
-         */
-        if( buf[1] != 0 || n != (unsigned int) 4 + ( ( buf[2] << 8 ) | buf[3] ) )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        /*
-         * Check the session length
-         */
-        sess_len = buf[38];
-
-        if( sess_len > 32 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        ssl->session->length = sess_len;
-        memset( ssl->session->id, 0, sizeof( ssl->session->id ) );
-        memcpy( ssl->session->id, buf + 39 , ssl->session->length );
-
-        /*
-         * Check the ciphersuitelist length
-         */
-        ciph_len = ( buf[39 + sess_len] << 8 )
-                 | ( buf[40 + sess_len]      );
-
-        if( ciph_len < 2 || ciph_len > 256 || ( ciph_len % 2 ) != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        /*
-         * Check the compression algorithms length
-         */
-        comp_len = buf[41 + sess_len + ciph_len];
-
-        if( comp_len < 1 || comp_len > 16 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        ssl->session->compression = SSL_COMPRESS_NULL;
-#if defined(POLARSSL_ZLIB_SUPPORT)
-        for( i = 0; i < comp_len; ++i )
-        {
-            if( buf[41 + sess_len + ciph_len + i] == SSL_COMPRESS_DEFLATE )
-            {
-                ssl->session->compression = SSL_COMPRESS_DEFLATE;
-                break;
-            }
-        }
 #endif
 
-        SSL_DEBUG_BUF( 3, "client hello, random bytes",
-                       buf +  6,  32 );
-        SSL_DEBUG_BUF( 3, "client hello, session id",
-                       buf + 38,  sess_len );
-        SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
-                       buf + 41 + sess_len,  ciph_len );
-        SSL_DEBUG_BUF( 3, "client hello, compression",
-                       buf + 42 + sess_len + ciph_len, comp_len );
+    SSL_DEBUG_BUF( 3, "client hello, random bytes",
+                   buf +  6,  32 );
+    SSL_DEBUG_BUF( 3, "client hello, session id",
+                   buf + 38,  sess_len );
+    SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
+                   buf + 41 + sess_len,  ciph_len );
+    SSL_DEBUG_BUF( 3, "client hello, compression",
+                   buf + 42 + sess_len + ciph_len, comp_len );
 
-        /*
-         * Search for a matching ciphersuite
-         */
-        for( i = 0; ssl->ciphersuites[i] != 0; i++ )
+    /*
+     * Search for a matching ciphersuite
+     */
+    for( i = 0; ssl->ciphersuites[i] != 0; i++ )
+    {
+        for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
+            j += 2, p += 2 )
         {
-            for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
-                j += 2, p += 2 )
-            {
-                if( p[0] == 0 && p[1] == ssl->ciphersuites[i] )
-                    goto have_ciphersuite;
-            }
+            if( p[0] == 0 && p[1] == ssl->ciphersuites[i] )
+                goto have_ciphersuite;
         }
     }
 

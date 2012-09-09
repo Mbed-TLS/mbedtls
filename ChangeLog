@@ -35,6 +35,7 @@ Changes
      to not match CN if subjectAltName extension is present (Closes ticket #56)
    * Cipher layer cipher_mode_t POLARSSL_MODE_CFB128 is renamed to
      POLARSSL_MODE_CFB, to also handle different block size CFB modes.
+   * Removed handling for SSLv2 Client Hello (as per RFC 5246 recommendation)
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by

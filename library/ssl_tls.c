@@ -68,6 +68,50 @@ int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
 /*
  * Key material generation
  */
+static int ssl3_prf( unsigned char *secret, size_t slen, char *label,
+                     unsigned char *random, size_t rlen,
+                     unsigned char *dstbuf, size_t dlen )
+{
+    size_t i;
+    md5_context md5;
+    sha1_context sha1;
+    unsigned char padding[16];
+    unsigned char sha1sum[20];
+    ((void)label);
+
+    /*
+     *  SSLv3:
+     *    block =
+     *      MD5( secret + SHA1( 'A'    + secret + random ) ) +
+     *      MD5( secret + SHA1( 'BB'   + secret + random ) ) +
+     *      MD5( secret + SHA1( 'CCC'  + secret + random ) ) +
+     *      ...
+     */
+    for( i = 0; i < dlen / 16; i++ )
+    {
+        memset( padding, 'A' + i, 1 + i );
+
+        sha1_starts( &sha1 );
+        sha1_update( &sha1, padding, 1 + i );
+        sha1_update( &sha1, secret, slen );
+        sha1_update( &sha1, random, rlen );
+        sha1_finish( &sha1, sha1sum );
+
+        md5_starts( &md5 );
+        md5_update( &md5, secret, slen );
+        md5_update( &md5, sha1sum, 20 );
+        md5_finish( &md5, dstbuf + i * 16 );
+    }
+
+    memset( &md5,  0, sizeof( md5  ) );
+    memset( &sha1, 0, sizeof( sha1 ) );
+
+    memset( padding, 0, sizeof( padding ) );
+    memset( sha1sum, 0, sizeof( sha1sum ) );
+
+    return( 0 );
+}
+
 static int tls1_prf( unsigned char *secret, size_t slen, char *label,
                      unsigned char *random, size_t rlen,
                      unsigned char *dstbuf, size_t dlen )
@@ -223,12 +267,7 @@ static void ssl_calc_finished_tls_sha384(ssl_context *,unsigned char *,int);
 
 int ssl_derive_keys( ssl_context *ssl )
 {
-    int i;
-    md5_context md5;
-    sha1_context sha1;
     unsigned char tmp[64];
-    unsigned char padding[16];
-    unsigned char sha1sum[20];
     unsigned char keyblk[256];
     unsigned char *key1;
     unsigned char *key2;
@@ -241,7 +280,7 @@ int ssl_derive_keys( ssl_context *ssl )
      */
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
-        ssl->tls_prf = tls1_prf;
+        ssl->tls_prf = ssl3_prf;
         ssl->calc_verify = ssl_calc_verify_ssl;
         ssl->calc_finished = ssl_calc_finished_ssl;
     }
@@ -271,37 +310,16 @@ int ssl_derive_keys( ssl_context *ssl )
      *     MD5( premaster + SHA1( 'A'   + premaster + randbytes ) ) +
      *     MD5( premaster + SHA1( 'BB'  + premaster + randbytes ) ) +
      *     MD5( premaster + SHA1( 'CCC' + premaster + randbytes ) )
-     *
+     *   
      * TLSv1:
      *   master = PRF( premaster, "master secret", randbytes )[0..47]
      */
     if( ssl->resume == 0 )
     {
-        size_t len = ssl->pmslen;
+        SSL_DEBUG_BUF( 3, "premaster secret", ssl->premaster, ssl->pmslen );
 
-        SSL_DEBUG_BUF( 3, "premaster secret", ssl->premaster, len );
-
-        if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
-        {
-            for( i = 0; i < 3; i++ )
-            {
-                memset( padding, 'A' + i, 1 + i );
-
-                sha1_starts( &sha1 );
-                sha1_update( &sha1, padding, 1 + i );
-                sha1_update( &sha1, ssl->premaster, len );
-                sha1_update( &sha1, ssl->randbytes,  64 );
-                sha1_finish( &sha1, sha1sum );
-
-                md5_starts( &md5 );
-                md5_update( &md5, ssl->premaster, len );
-                md5_update( &md5, sha1sum, 20 );
-                md5_finish( &md5, ssl->session->master + i * 16 );
-            }
-        }
-        else 
-            ssl->tls_prf( ssl->premaster, len, "master secret",
-                          ssl->randbytes, 64, ssl->session->master, 48 );
+        ssl->tls_prf( ssl->premaster, ssl->pmslen, "master secret",
+                      ssl->randbytes, 64, ssl->session->master, 48 );
 
         memset( ssl->premaster, 0, sizeof( ssl->premaster ) );
     }
@@ -328,33 +346,8 @@ int ssl_derive_keys( ssl_context *ssl )
      *  TLSv1:
      *    key block = PRF( master, "key expansion", randbytes )
      */
-    if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
-    {
-        for( i = 0; i < 16; i++ )
-        {
-            memset( padding, 'A' + i, 1 + i );
-
-            sha1_starts( &sha1 );
-            sha1_update( &sha1, padding, 1 + i );
-            sha1_update( &sha1, ssl->session->master, 48 );
-            sha1_update( &sha1, ssl->randbytes, 64 );
-            sha1_finish( &sha1, sha1sum );
-
-            md5_starts( &md5 );
-            md5_update( &md5, ssl->session->master, 48 );
-            md5_update( &md5, sha1sum, 20 );
-            md5_finish( &md5, keyblk + i * 16 );
-        }
-
-        memset( &md5,  0, sizeof( md5  ) );
-        memset( &sha1, 0, sizeof( sha1 ) );
-
-        memset( padding, 0, sizeof( padding ) );
-        memset( sha1sum, 0, sizeof( sha1sum ) );
-    }
-    else
-        ssl->tls_prf( ssl->session->master, 48, "key expansion",
-                      ssl->randbytes, 64, keyblk, 256 );
+    ssl->tls_prf( ssl->session->master, 48, "key expansion",
+                  ssl->randbytes, 64, keyblk, 256 );
 
     SSL_DEBUG_MSG( 3, ( "ciphersuite = %s", ssl_get_ciphersuite( ssl ) ) );
     SSL_DEBUG_BUF( 3, "master secret", ssl->session->master, 48 );
@@ -816,6 +809,35 @@ static void ssl_mac_sha1( unsigned char *secret,
     sha1_finish( &sha1, buf + len );
 }
 
+static void ssl_mac_sha2( unsigned char *secret,
+                          unsigned char *buf, size_t len,
+                          unsigned char *ctr, int type )
+{
+    unsigned char header[11];
+    unsigned char padding[32];
+    sha2_context sha2;
+
+    memcpy( header, ctr, 8 );
+    header[ 8] = (unsigned char)  type;
+    header[ 9] = (unsigned char)( len >> 8 );
+    header[10] = (unsigned char)( len      );
+
+    memset( padding, 0x36, 32 );
+    sha2_starts( &sha2, 0 );
+    sha2_update( &sha2, secret,  32 );
+    sha2_update( &sha2, padding, 32 );
+    sha2_update( &sha2, header,  11 );
+    sha2_update( &sha2, buf,  len );
+    sha2_finish( &sha2, buf + len );
+
+    memset( padding, 0x5C, 32 );
+    sha2_starts( &sha2, 0 );
+    sha2_update( &sha2, secret,  32 );
+    sha2_update( &sha2, padding, 32 );
+    sha2_update( &sha2, buf + len, 32 );
+    sha2_finish( &sha2, buf + len );
+}
+
 /*
  * Encryption/decryption functions
  */ 
@@ -834,11 +856,19 @@ static int ssl_encrypt_buf( ssl_context *ssl )
              ssl_mac_md5( ssl->mac_enc,
                           ssl->out_msg, ssl->out_msglen,
                           ssl->out_ctr, ssl->out_msgtype );
-
-        if( ssl->maclen == 20 )
+        else if( ssl->maclen == 20 )
             ssl_mac_sha1( ssl->mac_enc,
                           ssl->out_msg, ssl->out_msglen,
                           ssl->out_ctr, ssl->out_msgtype );
+        else if( ssl->maclen == 32 )
+            ssl_mac_sha2( ssl->mac_enc,
+                          ssl->out_msg, ssl->out_msglen,
+                          ssl->out_ctr, ssl->out_msgtype );
+        else if( ssl->maclen != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "invalid MAC len: %d", ssl->maclen ) );
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
     }
     else
     {
@@ -851,8 +881,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             md5_hmac_finish( &ctx, ssl->out_msg + ssl->out_msglen );
             memset( &ctx, 0, sizeof(md5_context));
         }
-
-        if( ssl->maclen == 20 )
+        else if( ssl->maclen == 20 )
         {
             sha1_context ctx;
             sha1_hmac_starts( &ctx, ssl->mac_enc, 20 );
@@ -861,8 +890,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             sha1_hmac_finish( &ctx, ssl->out_msg + ssl->out_msglen );
             memset( &ctx, 0, sizeof(sha1_context));
         }
-
-        if( ssl->maclen == 32 )
+        else if( ssl->maclen == 32 )
         {
             sha2_context ctx;
             sha2_hmac_starts( &ctx, ssl->mac_enc, 32, 0 );
@@ -870,6 +898,11 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             sha2_hmac_update( &ctx, ssl->out_msg, ssl->out_msglen );
             sha2_hmac_finish( &ctx, ssl->out_msg + ssl->out_msglen );
             memset( &ctx, 0, sizeof(sha2_context));
+        }
+        else if( ssl->maclen != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "invalid MAC len: %d", ssl->maclen ) );
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
         }
     }
 

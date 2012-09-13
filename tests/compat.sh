@@ -3,6 +3,7 @@ killall -q openssl ssl_server
 MODES="ssl3 tls1 tls1_1 tls1_2"
 #VERIFY="YES"
 VERIFY=""
+OPENSSL=openssl
 
 if [ "X$VERIFY" = "XYES" ];
 then
@@ -53,14 +54,27 @@ O_CIPHERS="                         \
     EDH-RSA-DES-CBC-SHA             \
     "
 
+# Also add SHA256 ciphersuites
+#
+P_CIPHERS="$P_CIPHERS               \
+    SSL-RSA-NULL-SHA256             \
+    SSL-RSA-AES-128-SHA256          \
+    SSL-EDH-RSA-AES-128-SHA256      \
+    SSL-RSA-AES-256-SHA256          \
+    SSL-EDH-RSA-AES-256-SHA256      \
+    "
+
+O_CIPHERS="$O_CIPHERS           \
+    NULL-SHA256                 \
+    AES128-SHA256               \
+    DHE-RSA-AES128-SHA256       \
+    AES256-SHA256               \
+    DHE-RSA-AES256-SHA256       \
+    "
+
 if [ "$MODE" = "tls1_2" ];
 then
     P_CIPHERS="$P_CIPHERS               \
-        SSL-RSA-NULL-SHA256             \
-        SSL-RSA-AES-128-SHA256          \
-        SSL-EDH-RSA-AES-128-SHA256      \
-        SSL-RSA-AES-256-SHA256          \
-        SSL-EDH-RSA-AES-256-SHA256      \
         SSL-RSA-AES-128-GCM-SHA256      \
         SSL-EDH-RSA-AES-128-GCM-SHA256  \
         SSL-RSA-AES-256-GCM-SHA384      \
@@ -68,11 +82,6 @@ then
         "
 
     O_CIPHERS="$O_CIPHERS           \
-        NULL-SHA256                 \
-        AES128-SHA256               \
-        DHE-RSA-AES128-SHA256       \
-        AES256-SHA256               \
-        DHE-RSA-AES256-SHA256       \
         AES128-GCM-SHA256           \
         DHE-RSA-AES128-GCM-SHA256   \
         AES256-GCM-SHA384           \
@@ -80,7 +89,7 @@ then
         "
 fi
 
-openssl s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE &
+$OPENSSL s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE &
 PROCESS_ID=$!
 
 sleep 1
@@ -110,7 +119,7 @@ sleep 1
 
 for i in $O_CIPHERS;
 do
-    RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | openssl s_client -$MODE -cipher $i 2>&1)"
+    RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $OPENSSL s_client -$MODE -cipher $i 2>&1)"
     EXIT=$?
     echo -n "PolarSSL Server - OpenSSL Client - $i : $EXIT - "
 

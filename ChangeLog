@@ -13,7 +13,7 @@ Features
    * Added key_app_writer example application
    * Added cert_req example application
    * Added base Galois Counter Mode (GCM) for AES
-   * Added TLS 1.2 support
+   * Added TLS 1.2 support (RFC 5246)
    * Added GCM suites to TLS 1.2 (RFC 5288)
    * Added commandline error code convertor (util/strerror)
    * Added support for Hardware Acceleration hooking in SSL/TLS
@@ -24,6 +24,7 @@ Features
    * Added DEFLATE compression support as per RFC3749 (requires zlib)
    * Added blowfish algorithm (Generic and cipher layer)
    * Added PKCS#5 PBKDF2 key derivation function
+   * Added Secure Renegotiation (RFC 5746)
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

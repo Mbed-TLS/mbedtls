@@ -370,7 +370,9 @@ int main( int argc, char *argv[] )
 
     ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
     ssl_set_own_cert( &ssl, &srvcert, &rsa );
+#if defined(POLARSSL_DHM_C)
     ssl_set_dh_param( &ssl, my_dhm_P, my_dhm_G );
+#endif
 
     printf( " ok\n" );
 
@@ -484,8 +486,11 @@ reset:
 
         len = ret;
         printf( " %d bytes read\n\n%s", len, (char *) buf );
+
+        if( ret > 0 )
+            break;
     }
-    while( 0 );
+    while( 1 );
 
     /*
      * 7. Write the 200 Response
@@ -531,18 +536,9 @@ exit:
     net_close( client_fd );
     x509_free( &srvcert );
     rsa_free( &rsa );
+    ssl_session_free( &ssn );
+    ssl_session_free( s_list_1st );
     ssl_free( &ssl );
-
-    cur = s_list_1st;
-    while( cur != NULL )
-    {
-        prv = cur;
-        cur = cur->next;
-        memset( prv, 0, sizeof( ssl_session ) );
-        free( prv );
-    }
-
-    memset( &ssl, 0, sizeof( ssl_context ) );
 
 #if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );

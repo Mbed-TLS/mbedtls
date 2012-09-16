@@ -30,7 +30,6 @@
 #include <time.h>
 
 #include "net.h"
-#include "dhm.h"
 #include "rsa.h"
 #include "md5.h"
 #include "sha1.h"
@@ -38,6 +37,10 @@
 #include "sha4.h"
 #include "x509.h"
 #include "config.h"
+
+#if defined(POLARSSL_DHM_C)
+#include "dhm.h"
+#endif
 
 #if defined(POLARSSL_PKCS11_C)
 #include "pkcs11.h"
@@ -110,6 +113,18 @@
 #define SSL_VERIFY_OPTIONAL             1
 #define SSL_VERIFY_REQUIRED             2
 
+#define SSL_INITIAL_HANDSHAKE           0
+#define SSL_RENEGOTIATION               1
+
+#define SSL_LEGACY_RENEGOTIATION        0
+#define SSL_SECURE_RENEGOTIATION        1
+
+#define SSL_RENEGOTIATION_ENABLED       0
+#define SSL_RENEGOTIATION_DISABLED      1
+
+#define SSL_NO_LEGACY_RENEGOTIATION     0
+#define SSL_ALLOW_LEGACY_RENEGOTIATION  1
+
 #define SSL_MAX_CONTENT_LEN         16384
 
 /*
@@ -163,6 +178,8 @@
 #define SSL_RSA_AES_256_GCM_SHA384      0x9D
 #define SSL_EDH_RSA_AES_128_GCM_SHA256  0x9E
 #define SSL_EDH_RSA_AES_256_GCM_SHA384  0x9F
+
+#define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */ 
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)
@@ -233,6 +250,8 @@
 
 #define TLS_EXT_SIG_ALG                13
 
+#define TLS_EXT_RENEGOTIATION_INFO 0xFF01
+
 /*
  * SSL state machine
  */
@@ -253,12 +272,15 @@ typedef enum
     SSL_SERVER_CHANGE_CIPHER_SPEC,
     SSL_SERVER_FINISHED,
     SSL_FLUSH_BUFFERS,
+    SSL_HANDSHAKE_WRAPUP,
     SSL_HANDSHAKE_OVER
 }
 ssl_states;
 
 typedef struct _ssl_session ssl_session;
 typedef struct _ssl_context ssl_context;
+typedef struct _ssl_transform ssl_transform;
+typedef struct _ssl_handshake_params ssl_handshake_params;
 
 /*
  * This structure is used for session resuming.
@@ -271,7 +293,74 @@ struct _ssl_session
     size_t length;              /*!< session id length  */
     unsigned char id[32];       /*!< session identifier */
     unsigned char master[48];   /*!< the master secret  */
+    x509_cert *peer_cert;       /*!< peer X.509 cert chain */
     ssl_session *next;          /*!< next session entry */
+};
+
+/*
+ * This structure contains a full set of runtime transform parameters
+ * either in negotiation or active.
+ */
+struct _ssl_transform
+{
+    /*
+     * Session specific crypto layer
+     */
+    unsigned int keylen;                /*!<  symmetric key length    */
+    size_t minlen;                      /*!<  min. ciphertext length  */
+    size_t ivlen;                       /*!<  IV length               */
+    size_t fixed_ivlen;                 /*!<  Fixed part of IV (AEAD) */
+    size_t maclen;                      /*!<  MAC length              */
+
+    unsigned char iv_enc[16];           /*!<  IV (encryption)         */
+    unsigned char iv_dec[16];           /*!<  IV (decryption)         */
+
+    unsigned char mac_enc[32];          /*!<  MAC (encryption)        */
+    unsigned char mac_dec[32];          /*!<  MAC (decryption)        */
+
+    unsigned long ctx_enc[134];         /*!<  encryption context      */
+    unsigned long ctx_dec[134];         /*!<  decryption context      */
+
+    /*
+     * Session specific compression layer
+     */
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    z_stream ctx_deflate;               /*!<  compression context     */
+    z_stream ctx_inflate;               /*!<  decompression context   */
+#endif
+};
+
+/*
+ * This structure contains the parameters only needed during handshake.
+ */
+struct _ssl_handshake_params
+{
+    /*
+     * Handshake specific crypto variables
+     */
+#if defined(POLARSSL_DHM_C)
+    dhm_context dhm_ctx;                /*!<  DHM key exchange        */
+#endif
+
+    /*
+     * Checksum contexts
+     */
+     md5_context fin_md5;
+    sha1_context fin_sha1;
+    sha2_context fin_sha2;
+    sha4_context fin_sha4;
+
+    void (*update_checksum)(ssl_context *, unsigned char *, size_t);
+    void (*calc_verify)(ssl_context *, unsigned char *);
+    void (*calc_finished)(ssl_context *, unsigned char *, int);
+    int  (*tls_prf)(unsigned char *, size_t, char *,
+                    unsigned char *, size_t,
+                    unsigned char *, size_t);
+
+    size_t pmslen;                      /*!<  premaster length        */
+
+    unsigned char randbytes[64];        /*!<  random bytes            */
+    unsigned char premaster[256];       /*!<  premaster secret        */
 };
 
 struct _ssl_context
@@ -280,6 +369,7 @@ struct _ssl_context
      * Miscellaneous
      */
     int state;                  /*!< SSL handshake: current state     */
+    int renegotiation;          /*!< Initial or renegotiation         */
 
     int major_ver;              /*!< equal to  SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
@@ -307,9 +397,23 @@ struct _ssl_context
      */
     int resume;                         /*!<  session resuming flag   */
     int timeout;                        /*!<  sess. expiration time   */
-    ssl_session *session;               /*!<  current session data    */
+    ssl_session *session_in;            /*!<  current session data (in)   */
+    ssl_session *session_out;           /*!<  current session data (out)  */
+    ssl_session *session;               /*!<  negotiated session data     */
+    ssl_session *session_negotiate;     /*!<  session data in negotiation */
     int (*s_get)(ssl_context *);        /*!<  (server) get callback   */
     int (*s_set)(ssl_context *);        /*!<  (server) set callback   */
+
+    ssl_handshake_params *handshake;    /*!<  params required only during
+                                              the handshake process        */
+
+    /*
+     * Record layer transformations
+     */
+    ssl_transform *transform_in;        /*!<  current transform params (in)   */
+    ssl_transform *transform_out;       /*!<  current transform params (in)   */
+    ssl_transform *transform;           /*!<  negotiated transform params     */
+    ssl_transform *transform_negotiate; /*!<  transform params in negotiation */
 
     /*
      * Record layer (incoming data)
@@ -347,51 +451,22 @@ struct _ssl_context
     x509_cert *own_cert;                /*!<  own X.509 certificate   */
     x509_cert *ca_chain;                /*!<  own trusted CA chain    */
     x509_crl *ca_crl;                   /*!<  trusted CA CRLs         */
-    x509_cert *peer_cert;               /*!<  peer X.509 cert chain   */
     const char *peer_cn;                /*!<  expected peer CN        */
 
+    /*
+     * User settings
+     */
     int endpoint;                       /*!<  0: client, 1: server    */
     int authmode;                       /*!<  verification mode       */
     int client_auth;                    /*!<  flag for client auth.   */
     int verify_result;                  /*!<  verification result     */
-
-    /*
-     * Crypto layer
-     */
-    dhm_context dhm_ctx;                /*!<  DHM key exchange        */
-    unsigned char ctx_checksum[500];    /*!<  Checksum context(s)     */
-
-    void (*update_checksum)(ssl_context *, unsigned char *, size_t);
-    void (*calc_verify)(ssl_context *, unsigned char *);
-    void (*calc_finished)(ssl_context *, unsigned char *, int);
-    int  (*tls_prf)(unsigned char *, size_t, char *,
-                    unsigned char *, size_t,
-                    unsigned char *, size_t);
-
-    int do_crypt;                       /*!<  en(de)cryption flag     */
+    int disable_renegotiation;          /*!<  enable/disable renegotiation   */
+    int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuites;            /*!<  allowed ciphersuites    */
-    size_t pmslen;                      /*!<  premaster length        */
-    unsigned int keylen;                /*!<  symmetric key length    */
-    size_t minlen;                      /*!<  min. ciphertext length  */
-    size_t ivlen;                       /*!<  IV length               */
-    size_t fixed_ivlen;                 /*!<  Fixed part of IV (AEAD) */
-    size_t maclen;                      /*!<  MAC length              */
 
-    unsigned char randbytes[64];        /*!<  random bytes            */
-    unsigned char premaster[256];       /*!<  premaster secret        */
-
-    unsigned char iv_enc[16];           /*!<  IV (encryption)         */
-    unsigned char iv_dec[16];           /*!<  IV (decryption)         */
-
-    unsigned char mac_enc[32];          /*!<  MAC (encryption)        */
-    unsigned char mac_dec[32];          /*!<  MAC (decryption)        */
-
-    unsigned long ctx_enc[134];         /*!<  encryption context      */
-    unsigned long ctx_dec[134];         /*!<  decryption context      */
-
-#if defined(POLARSSL_ZLIB_SUPPORT)
-    z_stream ctx_deflate;               /*!<  compression context     */
-    z_stream ctx_inflate;               /*!<  decompression context   */
+#if defined(POLARSSL_DHM_C)
+    mpi dhm_P;                          /*!<  prime modulus for DHM   */
+    mpi dhm_G;                          /*!<  generator for DHM       */
 #endif
 
     /*
@@ -399,6 +474,15 @@ struct _ssl_context
      */
     unsigned char *hostname;
     size_t         hostname_len;
+
+    /*
+     * Secure renegotiation
+     */
+    int secure_renegotiation;           /*!<  does peer support legacy or
+                                              secure renegotiation           */
+    size_t verify_data_len;             /*!<  length of verify data stored   */
+    char own_verify_data[36];           /*!<  previous handshake verify data */
+    char peer_verify_data[36];          /*!<  previous handshake verify data */
 };
 
 #ifdef __cplusplus
@@ -465,7 +549,8 @@ int ssl_init( ssl_context *ssl );
  *                 pointers and data.
  *
  * \param ssl      SSL context
- * \return         0 if successful, or POLARSSL_ERR_SSL_HW_ACCEL_FAILED or
+ * \return         0 if successful, or POLASSL_ERR_SSL_MALLOC_FAILED,
+                   POLARSSL_ERR_SSL_HW_ACCEL_FAILED or
  *                 POLARSSL_ERR_SSL_COMPRESSION_FAILED
  */
 int ssl_session_reset( ssl_context *ssl );
@@ -614,6 +699,7 @@ void ssl_set_own_cert_pkcs11( ssl_context *ssl, x509_cert *own_cert,
                        pkcs11_context *pkcs11_key );
 #endif
 
+#if defined(POLARSSL_DHM_C)
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
@@ -636,6 +722,7 @@ int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
  * \return         0 if successful
  */
 int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
+#endif
 
 /**
  * \brief          Set hostname for ServerName TLS Extension
@@ -658,6 +745,29 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname );
  *                 SSL_MINOR_VERSION_3 supported)
  */
 void ssl_set_max_version( ssl_context *ssl, int major, int minor );
+
+/**
+ * \brief          Enable / Disable renegotiation support for connection
+ *                 (Default: SSL_RENEGOTIATION_ENABLED)
+ *
+ * \param ssl      SSL context
+ * \param renegotiation     Enable or disable (SSL_RENEGOTIATION_ENABLED or
+ *                                             SSL_RENEGOTIATION_DISABLED)
+ */
+void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
+
+/**
+ * \brief          Prevent or allow legacy renegotiation.
+ *                 (Default: SSL_NO_LEGACY_RENEGOTIATION)
+ *                 Allowing legacy renegotiation makes the connection
+ *                 vulnerable to specific man in the middle attacks.
+ *                 (See RFC 5746)
+ *
+ * \param ssl      SSL context
+ * \param allow_legacy  Prevent or allow (SSL_NO_LEGACY_RENEGOTIATION or
+ *                                        SSL_ALLOW_LEGACY_RENEGOTIATION)
+ */
+void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
 
 /**
  * \brief          Return the number of data bytes available to read
@@ -710,6 +820,15 @@ const char *ssl_get_version( const ssl_context *ssl );
 int ssl_handshake( ssl_context *ssl );
 
 /**
+ * \brief          Perform an SSL renegotiation on the running connection
+ *
+ * \param ssl      SSL context
+ *
+ * \return         0 if succesful, or any ssl_handshake() return value.
+ */
+int ssl_renegotiate( ssl_context *ssl );
+
+/**
  * \brief          Read at most 'len' application data bytes
  *
  * \param ssl      SSL context
@@ -758,17 +877,42 @@ int ssl_send_alert_message( ssl_context *ssl,
 int ssl_close_notify( ssl_context *ssl );
 
 /**
- * \brief          Free an SSL context
+ * \brief          Free referenced items in an SSL context and clear memory
  *
  * \param ssl      SSL context
  */
 void ssl_free( ssl_context *ssl );
+
+/**
+ * \brief          Free referenced items in an SSL session and free all
+ *                 sessions in the chain. Memory is cleared
+ *
+ * \param session  SSL session
+ */
+void ssl_session_free( ssl_session *session );
+
+/**
+ * \brief           Free referenced items in an SSL transform context and clear
+ *                  memory
+ *
+ * \param transform SSL transform context
+ */
+void ssl_transform_free( ssl_transform *transform );
+
+/**
+ * \brief           Free referenced items in an SSL handshake context and clear
+ *                  memory
+ *
+ * \param handshake SSL handshake context
+ */
+void ssl_handshake_free( ssl_handshake_params *handshake );
 
 /*
  * Internal functions (do not call directly)
  */
 int ssl_handshake_client( ssl_context *ssl );
 int ssl_handshake_server( ssl_context *ssl );
+void ssl_handshake_wrapup( ssl_context *ssl );
 
 int ssl_derive_keys( ssl_context *ssl );
 
@@ -791,8 +935,7 @@ int ssl_write_change_cipher_spec( ssl_context *ssl );
 int ssl_parse_finished( ssl_context *ssl );
 int ssl_write_finished( ssl_context *ssl );
 
-void ssl_kickstart_checksum( ssl_context *ssl, int ciphersuite,
-                             unsigned char *input_buf, size_t len );
+void ssl_optimize_checksum( ssl_context *ssl, int ciphersuite );
 
 #ifdef __cplusplus
 }

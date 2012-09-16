@@ -312,7 +312,8 @@ int main( int argc, char *argv[] )
          * 5. Print the certificate
          */
         printf( "  . Peer certificate information    ...\n" );
-        ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", ssl.peer_cert );
+        ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                                   ssl.session->peer_cert );
         if( ret == -1 )
         {
             printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
@@ -332,9 +333,8 @@ exit:
         net_close( server_fd );
     x509_free( &clicert );
     rsa_free( &rsa );
+    ssl_session_free( &ssn );
     ssl_free( &ssl );
-
-    memset( &ssl, 0, sizeof( ssl ) );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

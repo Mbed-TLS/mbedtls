@@ -54,8 +54,11 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
-    ssl->major_ver = SSL_MAJOR_VERSION_3;
-    ssl->minor_ver = SSL_MINOR_VERSION_0;
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+    {
+        ssl->major_ver = SSL_MAJOR_VERSION_3;
+        ssl->minor_ver = SSL_MINOR_VERSION_0;
+    }
 
     if( ssl->max_major_ver == 0 && ssl->max_minor_ver == 0 )
     {
@@ -92,7 +95,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     p += 28;
 
-    memcpy( ssl->randbytes, buf + 6, 32 );
+    memcpy( ssl->handshake->randbytes, buf + 6, 32 );
 
     SSL_DEBUG_BUF( 3, "client hello, random bytes", buf + 6, 32 );
 
@@ -106,23 +109,35 @@ static int ssl_write_client_hello( ssl_context *ssl )
      *   ..   . ..    extensions length
      *   ..   . ..    extensions
      */
-    n = ssl->session->length;
+    n = ssl->session_negotiate->length;
 
     if( n < 16 || n > 32 || ssl->resume == 0 ||
-        ( ssl->timeout != 0 && t - ssl->session->start > ssl->timeout ) )
+        ( ssl->timeout != 0 &&
+          t - ssl->session_negotiate->start > ssl->timeout ) )
         n = 0;
 
     *p++ = (unsigned char) n;
 
     for( i = 0; i < n; i++ )
-        *p++ = ssl->session->id[i];
+        *p++ = ssl->session_negotiate->id[i];
 
     SSL_DEBUG_MSG( 3, ( "client hello, session id len.: %d", n ) );
     SSL_DEBUG_BUF( 3,   "client hello, session id", buf + 39, n );
 
     for( n = 0; ssl->ciphersuites[n] != 0; n++ );
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE ) n++;
     *p++ = (unsigned char)( n >> 7 );
     *p++ = (unsigned char)( n << 1 );
+
+    /*
+     * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+     */
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+    {
+        *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
+        *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO      );
+        n--;
+    }
 
     SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphersuites", n ) );
 
@@ -138,11 +153,11 @@ static int ssl_write_client_hello( ssl_context *ssl )
 #if defined(POLARSSL_ZLIB_SUPPORT)
     SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 2 ) );
     SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d %d",
-                        SSL_COMPRESS_NULL, SSL_COMPRESS_DEFLATE ) );
+                        SSL_COMPRESS_DEFLATE, SSL_COMPRESS_NULL ) );
 
     *p++ = 2;
-    *p++ = SSL_COMPRESS_NULL;
     *p++ = SSL_COMPRESS_DEFLATE;
+    *p++ = SSL_COMPRESS_NULL;
 #else
     SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 1 ) );
     SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d", SSL_COMPRESS_NULL ) );
@@ -157,6 +172,12 @@ static int ssl_write_client_hello( ssl_context *ssl )
                        ssl->hostname ) );
 
         ext_len += ssl->hostname_len + 9;
+    }
+
+    if( ssl->renegotiation == SSL_RENEGOTIATION )
+    {
+        SSL_DEBUG_MSG( 3, ( "client hello, prepping for renegotiation extension" ) );
+        ext_len += 5 + ssl->verify_data_len;
     }
 
     /*
@@ -184,7 +205,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
         sig_alg_list[sig_alg_len++] = SSL_HASH_MD5;
         sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
 #endif
-        ext_len = 6 + sig_alg_len;
+        ext_len += 6 + sig_alg_len;
     }
 
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
@@ -230,8 +251,25 @@ static int ssl_write_client_hello( ssl_context *ssl )
         *p++ = (unsigned char)( ( ssl->hostname_len      ) & 0xFF );
 
         memcpy( p, ssl->hostname, ssl->hostname_len );
-
         p += ssl->hostname_len;
+    }
+
+    if( ssl->renegotiation == SSL_RENEGOTIATION )
+    {
+        /*
+         * Secure renegotiation
+         */
+        SSL_DEBUG_MSG( 3, ( "client hello, renegotiation info extension" ) );
+
+        *p++ = (unsigned char)( ( TLS_EXT_RENEGOTIATION_INFO >> 8 ) & 0xFF );
+        *p++ = (unsigned char)( ( TLS_EXT_RENEGOTIATION_INFO      ) & 0xFF );
+
+        *p++ = 0x00;
+        *p++ = ( ssl->verify_data_len + 1 ) & 0xFF;
+        *p++ = ssl->verify_data_len & 0xFF;
+
+        memcpy( p, ssl->own_verify_data, ssl->verify_data_len );
+        p += ssl->verify_data_len;
     }
 
     if( ssl->max_minor_ver == SSL_MINOR_VERSION_3 )
@@ -286,6 +324,38 @@ static int ssl_write_client_hello( ssl_context *ssl )
     return( 0 );
 }
 
+static int ssl_parse_renegotiation_info( ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t len )
+{
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+    {
+        if( len != 1 || buf[0] != 0x0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "non-zero length renegotiated connection field" ) );
+            /* TODO: Send handshake failure alert */
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+        }
+
+        ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
+    }
+    else
+    {
+        if( len    != 1 + ssl->verify_data_len * 2 ||
+            buf[0] !=     ssl->verify_data_len * 2 ||
+            memcmp( buf + 1, ssl->own_verify_data,  ssl->verify_data_len ) != 0 ||
+            memcmp( buf + 1 + ssl->verify_data_len,
+                    ssl->peer_verify_data, ssl->verify_data_len ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "non-matching renegotiated connection field" ) );
+            /* TODO: Send handshake failure alert */
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+        }
+    }
+
+    return( 0 );
+}
+
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
 #if defined(POLARSSL_DEBUG_C)
@@ -293,8 +363,9 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 #endif
     int ret, i, comp;
     size_t n;
-    int ext_len;
-    unsigned char *buf;
+    size_t ext_len = 0;
+    unsigned char *buf, *ext;
+    int renegotiation_info_seen = 0;
 
     SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
@@ -345,12 +416,18 @@ static int ssl_parse_server_hello( ssl_context *ssl )
       | ( (time_t) buf[9]       );
 #endif
 
-    memcpy( ssl->randbytes + 32, buf + 6, 32 );
+    memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
 
     n = buf[38];
 
     SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
     SSL_DEBUG_BUF( 3,   "server hello, random bytes", buf + 6, 32 );
+
+    if( n > 32 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
 
     /*
      *    38  .  38   session id length
@@ -360,20 +437,17 @@ static int ssl_parse_server_hello( ssl_context *ssl )
      *   42+n . 43+n  extensions length
      *   44+n . 44+n+m extensions
      */
-    if( n > 32 || ssl->in_hslen > 42 + n )
+    if( ssl->in_hslen > 42 + n )
     {
         ext_len = ( ( buf[42 + n] <<  8 )
-                  | ( buf[43 + n]       ) ) + 2;
-    }
-    else
-    {
-        ext_len = 0;
-    }
+                  | ( buf[43 + n]       ) );
 
-    if( n > 32 || ssl->in_hslen != 42 + n + ext_len )
-    {
-        SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+        if( ( ext_len > 0 && ext_len < 4 ) ||
+            ssl->in_hslen != 44 + n + ext_len )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+        }
     }
 
     i = ( buf[39 + n] << 8 ) | buf[40 + n];
@@ -382,7 +456,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     /*
      * Initialize update checksum functions
      */
-    ssl_kickstart_checksum( ssl, i, buf, ssl->in_hslen );
+    ssl_optimize_checksum( ssl, i );
 
     SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
@@ -391,18 +465,18 @@ static int ssl_parse_server_hello( ssl_context *ssl )
      * Check if the session can be resumed
      */
     if( ssl->resume == 0 || n == 0 ||
-        ssl->session->ciphersuite != i ||
-        ssl->session->compression != comp ||
-        ssl->session->length != n ||
-        memcmp( ssl->session->id, buf + 39, n ) != 0 )
+        ssl->session_negotiate->ciphersuite != i ||
+        ssl->session_negotiate->compression != comp ||
+        ssl->session_negotiate->length != n ||
+        memcmp( ssl->session_negotiate->id, buf + 39, n ) != 0 )
     {
         ssl->state++;
         ssl->resume = 0;
-        ssl->session->start = time( NULL );
-        ssl->session->ciphersuite = i;
-        ssl->session->compression = comp;
-        ssl->session->length = n;
-        memcpy( ssl->session->id, buf + 39, n );
+        ssl->session_negotiate->start = time( NULL );
+        ssl->session_negotiate->ciphersuite = i;
+        ssl->session_negotiate->compression = comp;
+        ssl->session_negotiate->length = n;
+        memcpy( ssl->session_negotiate->id, buf + 39, n );
     }
     else
     {
@@ -430,7 +504,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
-        if( ssl->ciphersuites[i++] == ssl->session->ciphersuite )
+        if( ssl->ciphersuites[i++] == ssl->session_negotiate->ciphersuite )
             break;
     }
 
@@ -443,9 +517,66 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
-    ssl->session->compression = comp;
+    ssl->session_negotiate->compression = comp;
 
-    /* TODO: Process extensions */
+    ext = buf + 44 + n;
+
+    while( ext_len )
+    {
+        unsigned int ext_id   = ( ( ext[0] <<  8 )
+                                | ( ext[1]       ) );
+        unsigned int ext_size = ( ( ext[2] <<  8 )
+                                | ( ext[3]       ) );
+
+        if( ext_size + 4 > ext_len )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+        }
+
+        switch( ext_id )
+        {
+        case TLS_EXT_RENEGOTIATION_INFO:
+            SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
+            renegotiation_info_seen = 1;
+
+            if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size ) ) != 0 )
+                return( ret );
+
+            break;
+
+        default:
+            SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
+                           ext_id ) );
+        }
+
+        ext_len -= 4 + ext_size;
+        ext += 4 + ext_size;
+
+        if( ext_len > 0 && ext_len < 4 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+        }
+    }
+
+    /*
+     * Renegotiation security checks
+     */
+    if( ssl->renegotiation == SSL_RENEGOTIATION &&
+        ssl->secure_renegotiation == SSL_SECURE_RENEGOTIATION &&
+        renegotiation_info_seen == 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "renegotiation_info extension missing" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    if( !ssl->allow_legacy_renegotiation &&
+        ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION )
+    {
+        SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
 
     SSL_DEBUG_MSG( 2, ( "<= parse server hello" ) );
 
@@ -467,18 +598,18 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 
-    if( ssl->session->ciphersuite != SSL_EDH_RSA_DES_SHA &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_DES_168_SHA &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_SHA &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_SHA &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_SHA256 &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_SHA256 &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA256 &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA256 &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_AES_128_GCM_SHA256 &&
-        ssl->session->ciphersuite != SSL_EDH_RSA_AES_256_GCM_SHA384 )
+    if( ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_DES_SHA &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_DES_168_SHA &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_128_SHA &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_256_SHA &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_128_SHA256 &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_256_SHA256 &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA256 &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA256 &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_128_GCM_SHA256 &&
+        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_256_GCM_SHA384 )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;
@@ -521,7 +652,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     p   = ssl->in_msg + 4;
     end = ssl->in_msg + ssl->in_hslen;
 
-    if( ( ret = dhm_read_params( &ssl->dhm_ctx, &p, end ) ) != 0 )
+    if( ( ret = dhm_read_params( &ssl->handshake->dhm_ctx, &p, end ) ) != 0 )
     {
         SSL_DEBUG_MSG( 2, ( "DHM Read Params returned -0x%x", -ret ) );
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
@@ -585,21 +716,22 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    if( (unsigned int)( end - p ) != ssl->peer_cert->rsa.len )
+    if( (unsigned int)( end - p ) !=
+        ssl->session_negotiate->peer_cert->rsa.len )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    if( ssl->dhm_ctx.len < 64 || ssl->dhm_ctx.len > 512 )
+    if( ssl->handshake->dhm_ctx.len < 64 || ssl->handshake->dhm_ctx.len > 512 )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    SSL_DEBUG_MPI( 3, "DHM: P ", &ssl->dhm_ctx.P  );
-    SSL_DEBUG_MPI( 3, "DHM: G ", &ssl->dhm_ctx.G  );
-    SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->dhm_ctx.GY );
+    SSL_DEBUG_MPI( 3, "DHM: P ", &ssl->handshake->dhm_ctx.P  );
+    SSL_DEBUG_MPI( 3, "DHM: G ", &ssl->handshake->dhm_ctx.G  );
+    SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
 
     if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
     {
@@ -619,12 +751,12 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         n = ssl->in_hslen - ( end - p ) - 6;
 
         md5_starts( &md5 );
-        md5_update( &md5, ssl->randbytes, 64 );
+        md5_update( &md5, ssl->handshake->randbytes, 64 );
         md5_update( &md5, ssl->in_msg + 4, n );
         md5_finish( &md5, hash );
 
         sha1_starts( &sha1 );
-        sha1_update( &sha1, ssl->randbytes, 64 );
+        sha1_update( &sha1, ssl->handshake->randbytes, 64 );
         sha1_update( &sha1, ssl->in_msg + 4, n );
         sha1_finish( &sha1, hash + 16 );
 
@@ -650,7 +782,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_MD5_C)
             case SIG_RSA_MD5:
                 md5_starts( &md5 );
-                md5_update( &md5, ssl->randbytes, 64 );
+                md5_update( &md5, ssl->handshake->randbytes, 64 );
                 md5_update( &md5, ssl->in_msg + 4, n );
                 md5_finish( &md5, hash );
                 hashlen = 16;
@@ -659,7 +791,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_SHA1_C)
             case SIG_RSA_SHA1:
                 sha1_starts( &sha1 );
-                sha1_update( &sha1, ssl->randbytes, 64 );
+                sha1_update( &sha1, ssl->handshake->randbytes, 64 );
                 sha1_update( &sha1, ssl->in_msg + 4, n );
                 sha1_finish( &sha1, hash );
                 hashlen = 20;
@@ -668,14 +800,14 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_SHA2_C)
             case SIG_RSA_SHA224:
                 sha2_starts( &sha2, 1 );
-                sha2_update( &sha2, ssl->randbytes, 64 );
+                sha2_update( &sha2, ssl->handshake->randbytes, 64 );
                 sha2_update( &sha2, ssl->in_msg + 4, n );
                 sha2_finish( &sha2, hash );
                 hashlen = 28;
                 break;
             case SIG_RSA_SHA256:
                 sha2_starts( &sha2, 0 );
-                sha2_update( &sha2, ssl->randbytes, 64 );
+                sha2_update( &sha2, ssl->handshake->randbytes, 64 );
                 sha2_update( &sha2, ssl->in_msg + 4, n );
                 sha2_finish( &sha2, hash );
                 hashlen = 32;
@@ -684,14 +816,14 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_SHA4_C)
             case SIG_RSA_SHA384:
                 sha4_starts( &sha4, 1 );
-                sha4_update( &sha4, ssl->randbytes, 64 );
+                sha4_update( &sha4, ssl->handshake->randbytes, 64 );
                 sha4_update( &sha4, ssl->in_msg + 4, n );
                 sha4_finish( &sha4, hash );
                 hashlen = 48;
                 break;
             case SIG_RSA_SHA512:
                 sha4_starts( &sha4, 0 );
-                sha4_update( &sha4, ssl->randbytes, 64 );
+                sha4_update( &sha4, ssl->handshake->randbytes, 64 );
                 sha4_update( &sha4, ssl->in_msg + 4, n );
                 sha4_finish( &sha4, hash );
                 hashlen = 64;
@@ -702,7 +834,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     
     SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
-    if( ( ret = rsa_pkcs1_verify( &ssl->peer_cert->rsa, RSA_PUBLIC,
+    if( ( ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa,
+                                  RSA_PUBLIC,
                                   hash_id, hashlen, hash, p ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );
@@ -802,18 +935,18 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write client key exchange" ) );
 
-    if( ssl->session->ciphersuite == SSL_EDH_RSA_DES_SHA ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_DES_168_SHA ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_SHA256 ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_SHA256 ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA256 ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA256 ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_AES_128_GCM_SHA256 ||
-        ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+    if( ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_DES_SHA ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_DES_168_SHA ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_SHA ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_128_SHA256 ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_SHA256 ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA256 ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA256 ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_128_GCM_SHA256 ||
+        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm in not available" ) );
@@ -822,13 +955,13 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         /*
          * DHM key exchange -- send G^X mod P
          */
-        n = ssl->dhm_ctx.len;
+        n = ssl->handshake->dhm_ctx.len;
 
         ssl->out_msg[4] = (unsigned char)( n >> 8 );
         ssl->out_msg[5] = (unsigned char)( n      );
         i = 6;
 
-        ret = dhm_make_public( &ssl->dhm_ctx, 256,
+        ret = dhm_make_public( &ssl->handshake->dhm_ctx, 256,
                                &ssl->out_msg[i], n,
                                 ssl->f_rng, ssl->p_rng );
         if( ret != 0 )
@@ -837,20 +970,20 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
             return( ret );
         }
 
-        SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->dhm_ctx.X  );
-        SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->dhm_ctx.GX );
+        SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->handshake->dhm_ctx.X  );
+        SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->handshake->dhm_ctx.GX );
 
-        ssl->pmslen = ssl->dhm_ctx.len;
+        ssl->handshake->pmslen = ssl->handshake->dhm_ctx.len;
 
-        if( ( ret = dhm_calc_secret( &ssl->dhm_ctx,
-                                      ssl->premaster,
-                                     &ssl->pmslen ) ) != 0 )
+        if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
+                                      ssl->handshake->premaster,
+                                     &ssl->handshake->pmslen ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
             return( ret );
         }
 
-        SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->dhm_ctx.K  );
+        SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
 #endif
     }
     else
@@ -858,16 +991,17 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         /*
          * RSA key exchange -- send rsa_public(pkcs1 v1.5(premaster))
          */
-        ssl->premaster[0] = (unsigned char) ssl->max_major_ver;
-        ssl->premaster[1] = (unsigned char) ssl->max_minor_ver;
-        ssl->pmslen = 48;
+        ssl->handshake->premaster[0] = (unsigned char) ssl->max_major_ver;
+        ssl->handshake->premaster[1] = (unsigned char) ssl->max_minor_ver;
+        ssl->handshake->pmslen = 48;
 
-        ret = ssl->f_rng( ssl->p_rng, ssl->premaster + 2, ssl->pmslen - 2 );
+        ret = ssl->f_rng( ssl->p_rng, ssl->handshake->premaster + 2,
+                          ssl->handshake->pmslen - 2 );
         if( ret != 0 )
             return( ret );
 
         i = 4;
-        n = ssl->peer_cert->rsa.len;
+        n = ssl->session_negotiate->peer_cert->rsa.len;
 
         if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
         {
@@ -876,10 +1010,11 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
             ssl->out_msg[5] = (unsigned char)( n      );
         }
 
-        ret = rsa_pkcs1_encrypt( &ssl->peer_cert->rsa,
+        ret = rsa_pkcs1_encrypt( &ssl->session_negotiate->peer_cert->rsa,
                                   ssl->f_rng, ssl->p_rng,
                                   RSA_PUBLIC,
-                                  ssl->pmslen, ssl->premaster,
+                                  ssl->handshake->pmslen,
+                                  ssl->handshake->premaster,
                                   ssl->out_msg + i );
         if( ret != 0 )
         {
@@ -934,8 +1069,8 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         // Certificate Request according to RFC 5246. But OpenSSL only allows
         // SHA256 and SHA384. Find out why OpenSSL does this.
         //
-        if( ssl->session->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
-            ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+        if( ssl->session_negotiate->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
+            ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
         {
             hash_id = SIG_RSA_SHA384;
             hashlen = 48;
@@ -963,7 +1098,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     /*
      * Make an RSA signature of the handshake digests
      */
-    ssl->calc_verify( ssl, hash );
+    ssl->handshake->calc_verify( ssl, hash );
 
     if ( ssl->rsa_key )
         n = ssl->rsa_key->len;
@@ -978,8 +1113,8 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         // Certificate Request according to RFC 5246. But OpenSSL only allows
         // SHA256 and SHA384. Find out why OpenSSL does this.
         //
-        if( ssl->session->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
-            ssl->session->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+        if( ssl->session_negotiate->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
+            ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
         {
             ssl->out_msg[4] = SSL_HASH_SHA384;
             ssl->out_msg[5] = SSL_SIG_RSA;
@@ -999,12 +1134,12 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     if( ssl->rsa_key )
     {
         ret = rsa_pkcs1_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
-                                   RSA_PRIVATE, hash_id,
-                                   hashlen, hash, ssl->out_msg + 6 + offset );
+                              RSA_PRIVATE, hash_id,
+                              hashlen, hash, ssl->out_msg + 6 + offset );
     } else {
 #if defined(POLARSSL_PKCS11_C)
         ret = pkcs11_sign( ssl->pkcs11_key, RSA_PRIVATE, hash_id,
-                                    hashlen, hash, ssl->out_msg + 6 + offset );
+                           hashlen, hash, ssl->out_msg + 6 + offset );
 #endif  /* defined(POLARSSL_PKCS11_C) */
     }
 
@@ -1128,7 +1263,11 @@ int ssl_handshake_client( ssl_context *ssl )
 
             case SSL_FLUSH_BUFFERS:
                 SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
-                ssl->state = SSL_HANDSHAKE_OVER;
+                ssl->state = SSL_HANDSHAKE_WRAPUP;
+                break;
+
+            case SSL_HANDSHAKE_WRAPUP:
+                ssl_handshake_wrapup( ssl );
                 break;
 
             default:

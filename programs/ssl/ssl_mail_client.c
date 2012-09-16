@@ -171,7 +171,8 @@ int do_handshake( ssl_context *ssl, struct options *opt )
         printf( " ok\n" );
 
     printf( "  . Peer certificate information    ...\n" );
-    x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", ssl->peer_cert );
+    x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                         ssl->session->peer_cert );
     printf( "%s\n", buf );
 
     return( 0 );
@@ -803,6 +804,7 @@ exit:
     x509_free( &clicert );
     x509_free( &cacert );
     rsa_free( &rsa );
+    ssl_session_free( &ssn );
     ssl_free( &ssl );
 
     memset( &ssl, 0, sizeof( ssl ) );

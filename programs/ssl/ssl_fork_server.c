@@ -379,7 +379,9 @@ int main( int argc, char *argv[] )
 
         ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
         ssl_set_own_cert( &ssl, &srvcert, &rsa );
+#if defined(POLARSSL_DHM_C)
         ssl_set_dh_param( &ssl, my_dhm_P, my_dhm_G );
+#endif
 
         /*
          * 5. Handshake

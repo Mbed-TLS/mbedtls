@@ -50,6 +50,8 @@
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
 #define DFL_FORCE_CIPHER        0
+#define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
+#define DFL_ALLOW_LEGACY        SSL_NO_LEGACY_RENEGOTIATION
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\n\r\n"
 
@@ -67,6 +69,8 @@ struct options
     char *crt_file;             /* the file with the client certificate     */
     char *key_file;             /* the file with the client key             */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
+    int renegotiation;          /* enable / disable renegotiation           */
+    int allow_legacy;           /* allow legacy renegotiation               */
 } opt;
 
 void my_debug( void *ctx, int level, const char *str )
@@ -97,6 +101,8 @@ void my_debug( void *ctx, int level, const char *str )
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     USAGE_IO                                                \
     "    request_page=%%s     default: \".\"\n"             \
+    "    renegotiation=%%d    default: 1 (enabled)\n"       \
+    "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
@@ -171,6 +177,8 @@ int main( int argc, char *argv[] )
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
+    opt.renegotiation       = DFL_RENEGOTIATION;
+    opt.allow_legacy        = DFL_ALLOW_LEGACY;
 
     for( i = 1; i < argc; i++ )
     {
@@ -223,6 +231,17 @@ int main( int argc, char *argv[] )
                 goto usage;
             }
             opt.force_ciphersuite[1] = 0;
+        }
+        else if( strcmp( p, "renegotiation" ) == 0 )
+        {
+            opt.renegotiation = (atoi( q )) ? SSL_RENEGOTIATION_ENABLED :
+                                              SSL_RENEGOTIATION_DISABLED;
+        }
+        else if( strcmp( p, "allow_legacy" ) == 0 )
+        {
+            opt.allow_legacy = atoi( q );
+            if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
+                goto usage;
         }
         else
             goto usage;
@@ -367,6 +386,9 @@ int main( int argc, char *argv[] )
     else
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 
+    ssl_set_renegotiation( &ssl, opt.renegotiation );
+    ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+
     ssl_set_session( &ssl, 1, 600, &ssn );
 
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
@@ -419,7 +441,8 @@ int main( int argc, char *argv[] )
         printf( " ok\n" );
 
     printf( "  . Peer certificate information    ...\n" );
-    x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", ssl.peer_cert );
+    x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                         ssl.session->peer_cert );
     printf( "%s\n", buf );
 
     /*
@@ -495,6 +518,7 @@ exit:
     x509_free( &clicert );
     x509_free( &cacert );
     rsa_free( &rsa );
+    ssl_session_free( &ssn );
     ssl_free( &ssl );
 
     memset( &ssl, 0, sizeof( ssl ) );

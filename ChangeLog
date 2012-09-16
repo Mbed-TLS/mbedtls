@@ -4,6 +4,8 @@ PolarSSL ChangeLog
 Bugfix
    * Fixed MPI assembly for SPARC64 platform
    * Handle existence of OpenSSL Trust Extensions at end of X.509 DER blob
+   * mpi_add_abs() now correctly handles adding short numbers to long numbers
+     with carry rollover
 
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi

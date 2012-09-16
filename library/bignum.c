@@ -761,7 +761,7 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
             p = X->p + i;
         }
 
-        *p += c; c = ( *p < c ); i++;
+        *p += c; c = ( *p < c ); i++; p++;
     }
 
 cleanup:

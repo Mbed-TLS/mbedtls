@@ -198,6 +198,12 @@ mpi_add_abs_add_first:10:"123123":10:"123123":10:"246246"
 Test mpi_add_abs #3 (add to second value)
 mpi_add_abs_add_second:10:"123123":10:"123123":10:"246246"
 
+Regression mpi_add_abs (add small to very large MPI with carry rollover)
+mpi_add_abs:16:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFF8":16:"08":16:"1000000000000000000000000000000"
+
+Regression mpi_add_abs (add small to very large MPI with carry rollover)
+mpi_add_abs:16:"08":16:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFF8":16:"1000000000000000000000000000000"
+
 Base test mpi_add_mpi #1
 mpi_add_mpi:10:"12345678":10:"642531":10:"12988209"
 

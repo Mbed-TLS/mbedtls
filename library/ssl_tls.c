@@ -2020,6 +2020,20 @@ int ssl_read_record( ssl_context *ssl )
     return( 0 );
 }
 
+int ssl_send_fatal_handshake_failure( ssl_context *ssl )
+{
+    int ret;
+
+    if( ( ret = ssl_send_alert_message( ssl,
+                    SSL_ALERT_LEVEL_FATAL,
+                    SSL_ALERT_MSG_HANDSHAKE_FAILURE ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
+
 int ssl_send_alert_message( ssl_context *ssl,
                             unsigned char level,
                             unsigned char message )
@@ -3513,15 +3527,28 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                 return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
             }
 
-            if( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED )
+            if( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
+                ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+                  ssl->allow_legacy_renegotiation == SSL_LEGACY_NO_RENEGOTIATION ) )
             {
                 SSL_DEBUG_MSG( 3, ( "ignoring renegotiation, sending alert" ) );
 
-                if( ( ret = ssl_send_alert_message( ssl,
-                                SSL_ALERT_LEVEL_WARNING,
-                                SSL_ALERT_MSG_NO_RENEGOTIATION ) ) != 0 )
+                if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
                 {
-                    return( ret );
+                    /*
+                     * SSLv3 does not have a "no_renegotiation" alert
+                     */
+                    if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                        return( ret );
+                }
+                else
+                {
+                    if( ( ret = ssl_send_alert_message( ssl,
+                                    SSL_ALERT_LEVEL_WARNING,
+                                    SSL_ALERT_MSG_NO_RENEGOTIATION ) ) != 0 )
+                    {
+                        return( ret );
+                    }
                 }
             }
             else

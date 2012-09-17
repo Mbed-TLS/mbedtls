@@ -328,12 +328,17 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
                                          unsigned char *buf,
                                          size_t len )
 {
+    int ret;
+
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
     {
         if( len != 1 || buf[0] != 0x0 )
         {
             SSL_DEBUG_MSG( 1, ( "non-zero length renegotiated connection field" ) );
-            /* TODO: Send handshake failure alert */
+
+            if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                return( ret );
+
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
@@ -348,7 +353,10 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
                     ssl->peer_verify_data, ssl->verify_data_len ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "non-matching renegotiated connection field" ) );
-            /* TODO: Send handshake failure alert */
+
+            if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                return( ret );
+
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
     }
@@ -366,6 +374,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     size_t ext_len = 0;
     unsigned char *buf, *ext;
     int renegotiation_info_seen = 0;
+    int handshake_failure = 0;
 
     SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
@@ -563,18 +572,39 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     /*
      * Renegotiation security checks
      */
-    if( ssl->renegotiation == SSL_RENEGOTIATION &&
-        ssl->secure_renegotiation == SSL_SECURE_RENEGOTIATION &&
-        renegotiation_info_seen == 0 )
+    if( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+        ssl->allow_legacy_renegotiation == SSL_LEGACY_BREAK_HANDSHAKE )
     {
-        SSL_DEBUG_MSG( 1, ( "renegotiation_info extension missing" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+        SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
+        handshake_failure = 1;
+    } 
+    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+             ssl->secure_renegotiation == SSL_SECURE_RENEGOTIATION &&
+             renegotiation_info_seen == 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "renegotiation_info extension missing (secure)" ) );
+        handshake_failure = 1;
     }
-
-    if( !ssl->allow_legacy_renegotiation &&
-        ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION )
+    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+             ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+             ssl->allow_legacy_renegotiation == SSL_LEGACY_NO_RENEGOTIATION )
     {
         SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
+        handshake_failure = 1;
+    }
+    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+             ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+             renegotiation_info_seen == 1 )
+    {
+        SSL_DEBUG_MSG( 1, ( "renegotiation_info extension present (legacy)" ) );
+        handshake_failure = 1;
+    }
+
+    if( handshake_failure == 1 )
+    {
+        if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+            return( ret );
+
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 

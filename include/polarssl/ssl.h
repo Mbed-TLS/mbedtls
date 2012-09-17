@@ -122,8 +122,9 @@
 #define SSL_RENEGOTIATION_ENABLED       0
 #define SSL_RENEGOTIATION_DISABLED      1
 
-#define SSL_NO_LEGACY_RENEGOTIATION     0
-#define SSL_ALLOW_LEGACY_RENEGOTIATION  1
+#define SSL_LEGACY_NO_RENEGOTIATION     0
+#define SSL_LEGACY_ALLOW_RENEGOTIATION  1
+#define SSL_LEGACY_BREAK_HANDSHAKE      2
 
 #define SSL_MAX_CONTENT_LEN         16384
 
@@ -758,10 +759,25 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
 
 /**
  * \brief          Prevent or allow legacy renegotiation.
- *                 (Default: SSL_NO_LEGACY_RENEGOTIATION)
- *                 Allowing legacy renegotiation makes the connection
- *                 vulnerable to specific man in the middle attacks.
- *                 (See RFC 5746)
+ *                 (Default: SSL_LEGACY_NO_RENEGOTIATION)
+ *                 
+ *                 SSL_LEGACY_NO_RENEGOTIATION allows connections to
+ *                 be established even if the peer does not support
+ *                 secure renegotiation, but does not allow renegotiation
+ *                 to take place if not secure.
+ *                 (Interoperable and secure option)
+ *
+ *                 SSL_LEGACY_ALLOW_RENEGOTIATION allows renegotiations
+ *                 with non-upgraded peers. Allowing legacy renegotiation
+ *                 makes the connection vulnerable to specific man in the
+ *                 middle attacks. (See RFC 5746)
+ *                 (Most interoperable and least secure option)
+ *
+ *                 SSL_LEGACY_BREAK_HANDSHAKE breaks off connections
+ *                 if peer does not support secure renegotiation. Results
+ *                 in interoperability issues with non-upgraded peers
+ *                 that do not support renegotiation altogether.
+ *                 (Most secure option, interoperability issues)
  *
  * \param ssl      SSL context
  * \param allow_legacy  Prevent or allow (SSL_NO_LEGACY_RENEGOTIATION or
@@ -913,6 +929,8 @@ void ssl_handshake_free( ssl_handshake_params *handshake );
 int ssl_handshake_client( ssl_context *ssl );
 int ssl_handshake_server( ssl_context *ssl );
 void ssl_handshake_wrapup( ssl_context *ssl );
+
+int ssl_send_fatal_handshake_failure( ssl_context *ssl );
 
 int ssl_derive_keys( ssl_context *ssl );
 

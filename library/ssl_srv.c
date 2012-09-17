@@ -42,12 +42,17 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
                                          unsigned char *buf,
                                          size_t len )
 {
+    int ret;
+
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
     {
         if( len != 1 || buf[0] != 0x0 )
         {
             SSL_DEBUG_MSG( 1, ( "non-zero length renegotiated connection field" ) );
-            /* TODO: Send handshake failure alert */
+
+            if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                return( ret );
+
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
@@ -60,7 +65,10 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
             memcmp( buf + 1, ssl->peer_verify_data, ssl->verify_data_len ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "non-matching renegotiated connection field" ) );
-            /* TODO: Send handshake failure alert */
+
+            if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                return( ret );
+
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
     }
@@ -77,7 +85,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     unsigned int comp_len;
     unsigned int ext_len = 0;
     unsigned char *buf, *p, *ext;
-    int renegotiation_info_seen;
+    int renegotiation_info_seen = 0;
+    int handshake_failure = 0;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
@@ -277,6 +286,10 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             if( ssl->renegotiation == SSL_RENEGOTIATION )
             {
                 SSL_DEBUG_MSG( 1, ( "received RENEGOTIATION SCSV during renegotiation" ) );
+
+                if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                    return( ret );
+
                 return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
             }
             ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
@@ -306,7 +319,6 @@ have_ciphersuite:
     ssl_optimize_checksum( ssl, ssl->session_negotiate->ciphersuite );
 
     ext = buf + 44 + sess_len + ciph_len + comp_len;
-    renegotiation_info_seen = 0;
 
     while( ext_len )
     {
@@ -349,26 +361,39 @@ have_ciphersuite:
     /*
      * Renegotiation security checks
      */
-    if( ssl->renegotiation == SSL_RENEGOTIATION &&
-        ssl->secure_renegotiation == SSL_SECURE_RENEGOTIATION &&
-        renegotiation_info_seen == 0 )
+    if( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+        ssl->allow_legacy_renegotiation == SSL_LEGACY_BREAK_HANDSHAKE )
+    {
+        SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
+        handshake_failure = 1;
+    }
+    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+             ssl->secure_renegotiation == SSL_SECURE_RENEGOTIATION &&
+             renegotiation_info_seen == 0 )
     {
         SSL_DEBUG_MSG( 1, ( "renegotiation_info extension missing (secure)" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        handshake_failure = 1;
     }
-
-    if( ssl->renegotiation == SSL_RENEGOTIATION &&
-        ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
-        renegotiation_info_seen == 1 )
-    {
-        SSL_DEBUG_MSG( 1, ( "renegotiation_info extension present (legacy)" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-    }
-
-    if( !ssl->allow_legacy_renegotiation &&
-        ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION )
+    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+             ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+             ssl->allow_legacy_renegotiation == SSL_LEGACY_NO_RENEGOTIATION )
     {
         SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
+        handshake_failure = 1;
+    }
+    else if( ssl->renegotiation == SSL_RENEGOTIATION &&
+             ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+             renegotiation_info_seen == 1 )
+    {
+        SSL_DEBUG_MSG( 1, ( "renegotiation_info extension present (legacy)" ) );
+        handshake_failure = 1;
+    }
+
+    if( handshake_failure == 1 )
+    {
+        if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+            return( ret );
+
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 

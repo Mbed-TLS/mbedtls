@@ -290,7 +290,7 @@ X509 Certificate ASN1 (Incorrect first tag)
 x509parse_crt:"":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT
 
 X509 Certificate ASN1 (Correct first tag, data length does not match)
-x509parse_crt:"300000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"300000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (Correct first tag, no more data)
 x509parse_crt:"3000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA

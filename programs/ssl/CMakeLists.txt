@@ -19,6 +19,9 @@ target_link_libraries(ssl_client2 ${libs})
 add_executable(ssl_server ssl_server.c)
 target_link_libraries(ssl_server ${libs})
 
+add_executable(ssl_server2 ssl_server2.c)
+target_link_libraries(ssl_server2 ${libs})
+
 add_executable(ssl_fork_server ssl_fork_server.c)
 target_link_libraries(ssl_fork_server ${libs})
 

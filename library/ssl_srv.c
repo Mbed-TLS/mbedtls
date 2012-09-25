@@ -676,7 +676,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         return( ret );
     }
 
-    if( ( ret = dhm_make_params( &ssl->handshake->dhm_ctx, 256, ssl->out_msg + 4,
+    if( ( ret = dhm_make_params( &ssl->handshake->dhm_ctx,
+                                  mpi_size( &ssl->handshake->dhm_ctx.P ),
+                                  ssl->out_msg + 4,
                                   &n, ssl->f_rng, ssl->p_rng ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "dhm_make_params", ret );

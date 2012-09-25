@@ -62,21 +62,12 @@
     "<p>Successful connection using: %s</p>\r\n"
 
 /*
- * Computing a "safe" DH-1024 prime can take a very
- * long time, so a precomputed value is provided below.
- * You may run dh_genprime to generate a new value.
+ * Computing a "safe" DH prime can take a very
+ * long time. RFC 5114 provides precomputed and standardized
+ * values.
  */
-char *my_dhm_P =
-    "E4004C1F94182000103D883A448B3F80" \
-    "2CE4B44A83301270002C20D0321CFD00" \
-    "11CCEF784C26A400F43DFB901BCA7538" \
-    "F2C6B176001CF5A0FD16D2C48B1D0C1C" \
-    "F6AC8E1DA6BCC3B4E1F96B0564965300" \
-    "FFA1D0B601EB2800F489AA512C4B248C" \
-    "01F76949A60BB7F00A40B1EAB64BDD48" \
-    "E8A700D60B7F1200FA8E77B0A979DABF";
-
-char *my_dhm_G = "4";
+char *my_dhm_P = POLARSSL_DHM_RFC5114_MODP_2048_P;
+char *my_dhm_G = POLARSSL_DHM_RFC5114_MODP_2048_G;
 
 /*
  * global options

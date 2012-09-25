@@ -991,7 +991,8 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         ssl->out_msg[5] = (unsigned char)( n      );
         i = 6;
 
-        ret = dhm_make_public( &ssl->handshake->dhm_ctx, 256,
+        ret = dhm_make_public( &ssl->handshake->dhm_ctx,
+                                mpi_size( &ssl->handshake->dhm_ctx.P ),
                                &ssl->out_msg[i], n,
                                 ssl->f_rng, ssl->p_rng );
         if( ret != 0 )

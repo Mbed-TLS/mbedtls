@@ -25,6 +25,7 @@ Features
    * Added blowfish algorithm (Generic and cipher layer)
    * Added PKCS#5 PBKDF2 key derivation function
    * Added Secure Renegotiation (RFC 5746)
+   * Added predefined DHM groups from RFC 5114
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

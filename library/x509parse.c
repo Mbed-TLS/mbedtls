@@ -1134,7 +1134,7 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
-    unsigned char *p, *end;
+    unsigned char *p, *end, *crt_end;
 
     /*
      * Check for valid input
@@ -1168,13 +1168,14 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT );
     }
 
-    if( len != (size_t) ( end - p ) )
+    if( len > (size_t) ( end - p ) )
     {
         x509_free( crt );
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
-
+    crt_end = p + len;
+    
     /*
      * TBSCertificate  ::=  SEQUENCE  {
      */
@@ -1344,7 +1345,7 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
-    end = crt->raw.p + crt->raw.len;
+    end = crt_end;
 
     /*
      *  signatureAlgorithm   AlgorithmIdentifier,

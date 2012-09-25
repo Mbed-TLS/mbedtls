@@ -349,7 +349,6 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    ssl_session ssn;
     x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
@@ -362,8 +361,6 @@ int main( int argc, char *argv[] )
      * Make sure memory references are valid.
      */
     server_fd = 0;
-    memset( &ssn, 0, sizeof( ssl_session ) );
-    memset( &ssl, 0, sizeof( ssl_context ) );
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &clicert, 0, sizeof( x509_cert ) );
     memset( &rsa, 0, sizeof( rsa_context ) );
@@ -607,8 +604,6 @@ int main( int argc, char *argv[] )
     else
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 
-    ssl_set_session( &ssl, 1, 600, &ssn );
-
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
     ssl_set_own_cert( &ssl, &clicert, &rsa );
 
@@ -804,10 +799,7 @@ exit:
     x509_free( &clicert );
     x509_free( &cacert );
     rsa_free( &rsa );
-    ssl_session_free( &ssn );
     ssl_free( &ssl );
-
-    memset( &ssl, 0, sizeof( ssl ) );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

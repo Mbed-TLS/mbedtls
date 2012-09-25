@@ -3,7 +3,7 @@
  *
  * \brief Configuration options (set of defines)
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -682,6 +682,18 @@
  * This module adds support for SHA-384 and SHA-512.
  */
 #define POLARSSL_SHA4_C
+
+/**
+ * \def POLARSSL_SSL_CACHE_C
+ *
+ * Enable simple SSL cache implementation.
+ *
+ * Module:  library/ssl_cache.c
+ * Caller:
+ *
+ * Requires: POLARSSL_SSL_CACHE_C
+ */
+#define POLARSSL_SSL_CACHE_C
 
 /**
  * \def POLARSSL_SSL_CLI_C

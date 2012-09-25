@@ -108,7 +108,6 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    ssl_session ssn;
     x509_cert clicert;
     rsa_context rsa;
     int i, j, n;
@@ -119,8 +118,6 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     server_fd = 0;
-    memset( &ssl, 0, sizeof( ssl_context ) );
-    memset( &ssn, 0, sizeof( ssl_session ) );
     memset( &clicert, 0, sizeof( x509_cert ) );
     memset( &rsa, 0, sizeof( rsa_context ) );
 
@@ -288,7 +285,6 @@ int main( int argc, char *argv[] )
                 net_send, &server_fd );
 
         ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
-        ssl_set_session( &ssl, 1, 600, &ssn );
 
         ssl_set_own_cert( &ssl, &clicert, &rsa );
 
@@ -333,7 +329,6 @@ exit:
         net_close( server_fd );
     x509_free( &clicert );
     rsa_free( &rsa );
-    ssl_session_free( &ssn );
     ssl_free( &ssl );
 
 #if defined(_WIN32)

@@ -45,6 +45,10 @@
 #include "polarssl/net.h"
 #include "polarssl/error.h"
 
+#if defined(POLARSSL_SSL_CACHE_C)
+#include "polarssl/ssl_cache.h"
+#endif
+
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
     "<h2>PolarSSL Test Server</h2>\r\n" \
@@ -153,80 +157,6 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-/*
- * These session callbacks use a simple chained list
- * to store and retrieve the session information.
- */
-ssl_session *s_list_1st = NULL;
-ssl_session *cur, *prv;
-
-static int my_get_session( ssl_context *ssl )
-{
-    time_t t = time( NULL );
-
-    if( ssl->resume == 0 )
-        return( 1 );
-
-    cur = s_list_1st;
-    prv = NULL;
-
-    while( cur != NULL )
-    {
-        prv = cur;
-        cur = cur->next;
-
-        if( ssl->timeout != 0 && (int) ( t - prv->start ) > ssl->timeout )
-            continue;
-
-        if( ssl->session->ciphersuite != prv->ciphersuite ||
-            ssl->session->length != prv->length )
-            continue;
-
-        if( memcmp( ssl->session->id, prv->id, prv->length ) != 0 )
-            continue;
-
-        memcpy( ssl->session->master, prv->master, 48 );
-        return( 0 );
-    }
-
-    return( 1 );
-}
-
-static int my_set_session( ssl_context *ssl )
-{
-    time_t t = time( NULL );
-
-    cur = s_list_1st;
-    prv = NULL;
-
-    while( cur != NULL )
-    {
-        if( ssl->timeout != 0 && (int) ( t - cur->start ) > ssl->timeout )
-            break; /* expired, reuse this slot */
-
-        if( memcmp( ssl->session->id, cur->id, cur->length ) == 0 )
-            break; /* client reconnected */
-
-        prv = cur;
-        cur = cur->next;
-    }
-
-    if( cur == NULL )
-    {
-        cur = (ssl_session *) malloc( sizeof( ssl_session ) );
-        if( cur == NULL )
-            return( 1 );
-
-        if( prv == NULL )
-              s_list_1st = cur;
-        else  prv->next  = cur;
-    }
-
-    memcpy( cur, ssl->session, sizeof( ssl_session ) );
-
-    return( 0 );
-}
-
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||   \
@@ -254,14 +184,17 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    ssl_session ssn;
     x509_cert srvcert;
     rsa_context rsa;
 
     ((void) argc);
     ((void) argv);
 
-    memset( &ssl, 0, sizeof( ssl_context ) );
+#if defined(POLARSSL_SSL_CACHE_C)
+    ssl_cache_context cache;
+
+    ssl_cache_init( &cache );
+#endif
 
     /*
      * 1. Load the certificates and private RSA key
@@ -351,13 +284,12 @@ int main( int argc, char *argv[] )
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );
 
-    ssl_set_scb( &ssl, my_get_session,
-                       my_set_session );
+#if defined(POLARSSL_SSL_CACHE_C)
+    ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
+                                 ssl_cache_set, &cache );
+#endif
 
     ssl_set_ciphersuites( &ssl, my_ciphersuites );
-    ssl_set_session( &ssl, 1, 0, &ssn );
-
-    memset( &ssn, 0, sizeof( ssl_session ) );
 
     ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
     ssl_set_own_cert( &ssl, &srvcert, &rsa );
@@ -527,9 +459,10 @@ exit:
     net_close( client_fd );
     x509_free( &srvcert );
     rsa_free( &rsa );
-    ssl_session_free( &ssn );
-    ssl_session_free( s_list_1st );
     ssl_free( &ssl );
+#if defined(POLARSSL_SSL_CACHE_C)
+    ssl_cache_free( &cache );
+#endif
 
 #if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );

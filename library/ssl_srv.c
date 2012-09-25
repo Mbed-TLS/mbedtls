@@ -456,20 +456,15 @@ static int ssl_write_server_hello( ssl_context *ssl )
     ssl->session_negotiate->length = n = 32;
     *p++ = (unsigned char) ssl->session_negotiate->length;
 
-    if( ssl->s_get == NULL ||
-        ssl->s_get( ssl ) != 0 )
+    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE ||
+        ssl->f_get_cache == NULL ||
+        ssl->f_get_cache( ssl->p_get_cache, ssl->session_negotiate ) != 0 )
     {
         /*
          * Not found, create a new session id
          */
-        ssl->resume = 0;
+        ssl->handshake->resume = 0;
         ssl->state++;
-
-        if( ssl->session_negotiate == NULL )
-        {
-            SSL_DEBUG_MSG( 1, ( "No session struct set" ) );
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-        }
 
         if( ( ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id,
                                 n ) ) != 0 )
@@ -478,9 +473,9 @@ static int ssl_write_server_hello( ssl_context *ssl )
     else
     {
         /*
-         * Found a matching session, resume it
+         * Found a matching session, resuming it
          */
-        ssl->resume = 1;
+        ssl->handshake->resume = 1;
         ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
 
         if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
@@ -496,7 +491,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
     SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
-                   ssl->resume ? "a" : "no" ) );
+                   ssl->handshake->resume ? "a" : "no" ) );
 
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite >> 8 );
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite      );
@@ -986,9 +981,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
         return( ret );
     }
-
-    if( ssl->s_set != NULL )
-        ssl->s_set( ssl );
 
     ssl->state++;
 

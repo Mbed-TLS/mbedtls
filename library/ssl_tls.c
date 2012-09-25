@@ -317,7 +317,7 @@ int ssl_derive_keys( ssl_context *ssl )
      * TLSv1:
      *   master = PRF( premaster, "master secret", randbytes )[0..47]
      */
-    if( ssl->resume == 0 )
+    if( handshake->resume == 0 )
     {
         SSL_DEBUG_BUF( 3, "premaster secret", handshake->premaster,
                        handshake->pmslen );
@@ -2641,24 +2641,20 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     ssl->transform = ssl->transform_negotiate;
     ssl->transform_negotiate = NULL;
 
-    /*
-     * Migrate data to existing session structure (in chain)
-     * Step 1. Clear existing data (but not the rest of the chain)
-     * Step 2. Migrate data to existing object in chain
-     * Step 3. Remove negotiation session object without removing items pointed
-     *         to
-     */
-    ssl->session_negotiate->next = ssl->session->next;
-    ssl->session->next = NULL;
-    ssl_session_free( ssl->session );
-
-    memcpy( ssl->session, ssl->session_negotiate, sizeof(ssl_session) );
-    ssl->session_in = ssl->session;
-    ssl->session_out = ssl->session;
-
-    memset( ssl->session_negotiate, 0, sizeof(ssl_session) );
-    free( ssl->session_negotiate );
+    if( ssl->session )
+    {
+        ssl_session_free( ssl->session );
+        free( ssl->session );
+    }
+    ssl->session = ssl->session_negotiate;
     ssl->session_negotiate = NULL;
+
+    /*
+     * Add cache entry
+     */
+    if( ssl->f_set_cache != NULL )
+        if( ssl->f_set_cache( ssl->p_set_cache, ssl->session ) != 0 )
+            SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
 
     ssl->state++;
 
@@ -2687,7 +2683,7 @@ int ssl_write_finished( ssl_context *ssl )
      * In case of session resuming, invert the client and server
      * ChangeCipherSpec messages order.
      */
-    if( ssl->resume != 0 )
+    if( ssl->handshake->resume != 0 )
     {
         if( ssl->endpoint == SSL_IS_CLIENT )
             ssl->state = SSL_HANDSHAKE_WRAPUP;
@@ -2765,7 +2761,7 @@ int ssl_parse_finished( ssl_context *ssl )
     ssl->verify_data_len = hash_len;
     memcpy( ssl->peer_verify_data, buf, hash_len );
 
-    if( ssl->resume != 0 )
+    if( ssl->handshake->resume != 0 )
     {
         if( ssl->endpoint == SSL_IS_CLIENT )
             ssl->state = SSL_CLIENT_CHANGE_CIPHER_SPEC;
@@ -2970,20 +2966,20 @@ void ssl_set_bio( ssl_context *ssl,
     ssl->p_send     = p_send;
 }
 
-void ssl_set_scb( ssl_context *ssl,
-                  int (*s_get)(ssl_context *),
-                  int (*s_set)(ssl_context *) )
+void ssl_set_session_cache( ssl_context *ssl,
+        int (*f_get_cache)(void *, ssl_session *), void *p_get_cache,
+        int (*f_set_cache)(void *, const ssl_session *), void *p_set_cache )
 {
-    ssl->s_get      = s_get;
-    ssl->s_set      = s_set;
+    ssl->f_get_cache = f_get_cache;
+    ssl->p_get_cache = p_get_cache;
+    ssl->f_set_cache = f_set_cache;
+    ssl->p_set_cache = p_set_cache;
 }
 
-void ssl_set_session( ssl_context *ssl, int resume, int timeout,
-                      ssl_session *session )
+void ssl_set_session( ssl_context *ssl, const ssl_session *session )
 {
-    ssl->resume     = resume;
-    ssl->timeout    = timeout;
-    ssl->session    = session;
+    memcpy( ssl->session_negotiate, session, sizeof(ssl_session) );
+    ssl->handshake->resume = 1;
 }
 
 void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites )
@@ -3687,23 +3683,13 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 
 void ssl_session_free( ssl_session *session )
 {
-    ssl_session *cur = session, *prv;
-
-    while( cur != NULL )
+    if( session->peer_cert != NULL )
     {
-        prv = cur;
-        cur = cur->next;
-
-        if( prv->peer_cert != NULL )
-        {
-            x509_free( prv->peer_cert );
-            free( prv->peer_cert );
-        }
-
-        memset( prv, 0, sizeof( ssl_session ) );
-        if( prv != session )
-            free( prv );
+        x509_free( session->peer_cert );
+        free( session->peer_cert );
     }
+
+    memset( session, 0, sizeof( ssl_session ) );
 }
 
 /*

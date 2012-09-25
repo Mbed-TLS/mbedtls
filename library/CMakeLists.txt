@@ -35,6 +35,7 @@ set(src
      sha1.c
      sha2.c
      sha4.c
+     ssl_cache.c
      ssl_cli.c 
      ssl_srv.c 
      ssl_tls.c

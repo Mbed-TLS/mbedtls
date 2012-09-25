@@ -167,7 +167,6 @@ static int ssl_test( struct options *opt )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    ssl_session ssn;
     x509_cert srvcert;
     rsa_context rsa;
 
@@ -272,9 +271,6 @@ static int ssl_test( struct options *opt )
     ssl_set_dbg( &ssl, my_debug, opt );
     ssl_set_bio( &ssl, net_recv, &client_fd,
                        net_send, &client_fd );
-
-    ssl_set_session( &ssl, opt->session_reuse,
-                           opt->session_lifetime, &ssn );
 
     if( opt->force_ciphersuite[0] == DFL_FORCE_CIPHER )
           ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );

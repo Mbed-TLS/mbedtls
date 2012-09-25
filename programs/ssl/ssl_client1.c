@@ -78,7 +78,6 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    ssl_session ssn;
 
     ((void) argc);
     ((void) argv);
@@ -86,7 +85,6 @@ int main( int argc, char *argv[] )
     /*
      * 0. Initialize the RNG and the session data
      */
-    memset( &ssn, 0, sizeof( ssl_session ) );
     memset( &ssl, 0, sizeof( ssl_context ) );
 
     printf( "\n  . Seeding the random number generator..." );
@@ -141,7 +139,6 @@ int main( int argc, char *argv[] )
                        net_send, &server_fd );
 
     ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
-    ssl_set_session( &ssl, 1, 600, &ssn );
 
     /*
      * 3. Write the GET request

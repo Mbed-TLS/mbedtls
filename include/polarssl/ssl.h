@@ -284,7 +284,7 @@ typedef struct _ssl_transform ssl_transform;
 typedef struct _ssl_handshake_params ssl_handshake_params;
 
 /*
- * This structure is used for session resuming.
+ * This structure is used for storing current session data.
  */
 struct _ssl_session
 {
@@ -295,7 +295,6 @@ struct _ssl_session
     unsigned char id[32];       /*!< session identifier */
     unsigned char master[48];   /*!< the master secret  */
     x509_cert *peer_cert;       /*!< peer X.509 cert chain */
-    ssl_session *next;          /*!< next session entry */
 };
 
 /*
@@ -362,6 +361,8 @@ struct _ssl_handshake_params
 
     unsigned char randbytes[64];        /*!<  random bytes            */
     unsigned char premaster[256];       /*!<  premaster secret        */
+
+    int resume;                         /*!<  session resume indicator*/
 };
 
 struct _ssl_context
@@ -386,24 +387,24 @@ struct _ssl_context
     int (*f_recv)(void *, unsigned char *, size_t);
     int (*f_send)(void *, const unsigned char *, size_t);
     int (*f_vrfy)(void *, x509_cert *, int, int);
+    int (*f_get_cache)(void *, ssl_session *);
+    int (*f_set_cache)(void *, const ssl_session *);
 
     void *p_rng;                /*!< context for the RNG function     */
     void *p_dbg;                /*!< context for the debug function   */
     void *p_recv;               /*!< context for reading operations   */
     void *p_send;               /*!< context for writing operations   */
-    void *p_vrfy;               /*!< context for verification */
+    void *p_vrfy;               /*!< context for verification         */
+    void *p_get_cache;          /*!< context for cache retrieval      */
+    void *p_set_cache;          /*!< context for cache store          */
 
     /*
      * Session layer
      */
-    int resume;                         /*!<  session resuming flag   */
-    int timeout;                        /*!<  sess. expiration time   */
     ssl_session *session_in;            /*!<  current session data (in)   */
     ssl_session *session_out;           /*!<  current session data (out)  */
     ssl_session *session;               /*!<  negotiated session data     */
     ssl_session *session_negotiate;     /*!<  session data in negotiation */
-    int (*s_get)(ssl_context *);        /*!<  (server) get callback   */
-    int (*s_set)(ssl_context *);        /*!<  (server) set callback   */
 
     ssl_handshake_params *handshake;    /*!<  params required only during
                                               the handshake process        */
@@ -636,26 +637,59 @@ void ssl_set_bio( ssl_context *ssl,
         int (*f_send)(void *, const unsigned char *, size_t), void *p_send );
 
 /**
- * \brief          Set the session callbacks (server-side only)
+ * \brief          Set the session cache callbacks (server-side only)
+ *                 If not set, no session resuming is done.
  *
- * \param ssl      SSL context
- * \param s_get    session get callback
- * \param s_set    session set callback
+ *                 The session cache has the responsibility to check for stale
+ *                 entries based on timeout. See RFC 5246 for recommendations.
+ *
+ *                 Warning: session.peer_cert is cleared by the SSL/TLS layer on
+ *                 connection shutdown, so do not cache the pointer! Either set
+ *                 it to NULL or make a full copy of the certificate.
+ *
+ *                 The get callback is called once during the initial handshake
+ *                 to enable session resuming. The get function has the
+ *                 following parameters: (void *parameter, ssl_session *session)
+ *                 If a valid entry is found, it should fill the master of
+ *                 the session object with the cached values and return 0,
+ *                 return 1 otherwise. Optionally peer_cert can be set as well
+ *                 if it is properly present in cache entry.
+ *
+ *                 The set callback is called once during the initial handshake
+ *                 to enable session resuming after the entire handshake has
+ *                 been finished. The set function has the following parameters:
+ *                 (void *parameter, const ssl_session *session). The function
+ *                 should create a cache entry for future retrieval based on
+ *                 the data in the session structure and should keep in mind
+ *                 that the ssl_session object presented (and all its referenced
+ *                 data) is cleared by the SSL/TLS layer when the connection is
+ *                 terminated. It is recommended to add metadata to determine if
+ *                 an entry is still valid in the future. Return 0 if
+ *                 successfully cached, return 0 otherwise.
+ *
+ * \param ssl            SSL context
+ * \param f_get_cache    session get callback
+ * \param p_get_cache    session get parameter
+ * \param f_set_cache    session set callback
+ * \param p_set_cache    session set parameter
  */
-void ssl_set_scb( ssl_context *ssl,
-                  int (*s_get)(ssl_context *),
-                  int (*s_set)(ssl_context *) );
+void ssl_set_session_cache( ssl_context *ssl,
+        int (*f_get_cache)(void *, ssl_session *), void *p_get_cache,
+        int (*f_set_cache)(void *, const ssl_session *), void *p_set_cache );
 
 /**
- * \brief          Set the session resuming flag, timeout and data
+ * \brief          Request resumption of session (client-side only)
+ *                 Session data is copied from presented session structure.
+ *
+ *                 Warning: session.peer_cert is cleared by the SSL/TLS layer on
+ *                 connection shutdown, so do not cache the pointer! Either set
+ *                 it to NULL or make a full copy of the certificate when
+ *                 storing the session for use in this function.
  *
  * \param ssl      SSL context
- * \param resume   if 0 (default), the session will not be resumed
- * \param timeout  session timeout in seconds, or 0 (no timeout)
  * \param session  session context
  */
-void ssl_set_session( ssl_context *ssl, int resume, int timeout,
-                      ssl_session *session );
+void ssl_set_session( ssl_context *ssl, const ssl_session *session );
 
 /**
  * \brief               Set the list of allowed ciphersuites
@@ -900,8 +934,8 @@ int ssl_close_notify( ssl_context *ssl );
 void ssl_free( ssl_context *ssl );
 
 /**
- * \brief          Free referenced items in an SSL session and free all
- *                 sessions in the chain. Memory is cleared
+ * \brief          Free referenced items in an SSL session including the
+ *                 peer certificate and clear memory
  *
  * \param session  SSL session
  */

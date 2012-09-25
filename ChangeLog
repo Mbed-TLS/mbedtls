@@ -26,6 +26,7 @@ Features
    * Added PKCS#5 PBKDF2 key derivation function
    * Added Secure Renegotiation (RFC 5746)
    * Added predefined DHM groups from RFC 5114
+   * Added simple SSL session cache implementation
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define
@@ -38,6 +39,7 @@ Changes
    * Cipher layer cipher_mode_t POLARSSL_MODE_CFB128 is renamed to
      POLARSSL_MODE_CFB, to also handle different block size CFB modes.
    * Removed handling for SSLv2 Client Hello (as per RFC 5246 recommendation)
+   * Revamped session resumption handling
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by

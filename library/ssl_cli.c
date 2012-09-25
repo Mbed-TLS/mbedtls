@@ -111,9 +111,8 @@ static int ssl_write_client_hello( ssl_context *ssl )
      */
     n = ssl->session_negotiate->length;
 
-    if( n < 16 || n > 32 || ssl->resume == 0 ||
-        ( ssl->timeout != 0 &&
-          t - ssl->session_negotiate->start > ssl->timeout ) )
+    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE || n < 16 || n > 32 ||
+        ssl->handshake->resume == 0 )
         n = 0;
 
     *p++ = (unsigned char) n;
@@ -473,14 +472,15 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     /*
      * Check if the session can be resumed
      */
-    if( ssl->resume == 0 || n == 0 ||
+    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE ||
+        ssl->handshake->resume == 0 || n == 0 ||
         ssl->session_negotiate->ciphersuite != i ||
         ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->length != n ||
         memcmp( ssl->session_negotiate->id, buf + 39, n ) != 0 )
     {
         ssl->state++;
-        ssl->resume = 0;
+        ssl->handshake->resume = 0;
         ssl->session_negotiate->start = time( NULL );
         ssl->session_negotiate->ciphersuite = i;
         ssl->session_negotiate->compression = comp;
@@ -499,7 +499,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     }
 
     SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
-                   ssl->resume ? "a" : "no" ) );
+                   ssl->handshake->resume ? "a" : "no" ) );
 
     SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d", i ) );
     SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[41 + n] ) );

@@ -44,10 +44,10 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		padlock.o	pbkdf2.o	pem.o			\
 		pkcs11.o								\
 		rsa.o		sha1.o		sha2.o			\
-		sha4.o		ssl_cli.o	ssl_srv.o		\
+		sha4.o		ssl_cache.o	ssl_cli.o		\
+		ssl_srv.o								\
 		ssl_tls.o	timing.o	version.o		\
 		x509parse.o	x509write.o	xtea.o
-	
 
 .SILENT:
 

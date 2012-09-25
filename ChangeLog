@@ -50,7 +50,7 @@ Bugfix
    * Handle empty certificate subject names
    * Prevent reading over buffer boundaries on X509 certificate parsing
    * mpi_add_abs() now correctly handles adding short numbers to long numbers
-     with carry rollover
+     with carry rollover (found by Ruslan Yushchenko)
 
 Security
    * Fixed potential memory corruption on miscrafted client messages (found by

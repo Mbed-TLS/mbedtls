@@ -444,7 +444,7 @@ int mpi_read_file( mpi *X, int radix, FILE *fin )
      * Buffer should have space for (short) label and decimal formatted MPI,
      * newline characters and '\0'
      */
-    char s[ POLARSSL_MPI_READ_BUFFER_SIZE ];
+    char s[ POLARSSL_MPI_RW_BUFFER_SIZE ];
 
     memset( s, 0, sizeof( s ) );
     if( fgets( s, sizeof( s ) - 1, fin ) == NULL )
@@ -473,9 +473,10 @@ int mpi_write_file( const char *p, const mpi *X, int radix, FILE *fout )
     int ret;
     size_t n, slen, plen;
     /*
-     * Buffer should have space for minus sign, hexified MPI and '\0'
+     * Buffer should have space for (short) label and decimal formatted MPI,
+     * newline characters and '\0'
      */
-    char s[ 2 * POLARSSL_MPI_MAX_SIZE + 2 ];
+    char s[ POLARSSL_MPI_RW_BUFFER_SIZE ];
 
     n = sizeof( s );
     memset( s, 0, n );

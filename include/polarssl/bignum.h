@@ -70,14 +70,15 @@
 #define POLARSSL_MPI_MAX_BITS                              ( 8 * POLARSSL_MPI_MAX_SIZE )    /**< Maximum number of bits for usable MPIs. */
 
 /*
- * When reading from files with mpi_read_file() the buffer should have space
+ * When reading from files with mpi_read_file() and writing to files with
+ * mpi_write_file() the buffer should have space
  * for a (short) label, the MPI (in the provided radix), the newline
  * characters and the '\0'.
  *
  * By default we assume at least a 10 char label, a minimum radix of 10
  * (decimal) and a maximum of 4096 bit numbers (1234 decimal chars).
  */
-#define POLARSSL_MPI_READ_BUFFER_SIZE                       1250   
+#define POLARSSL_MPI_RW_BUFFER_SIZE                       1250   
 
 /*
  * Define the base integer type, architecture-wise

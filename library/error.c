@@ -95,6 +95,10 @@
 #include "polarssl/padlock.h"
 #endif
 
+#if defined(POLARSSL_PBKDF2_C)
+#include "polarssl/pbkdf2.h"
+#endif
+
 #if defined(POLARSSL_PEM_C)
 #include "polarssl/pem.h"
 #endif
@@ -515,6 +519,11 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_PADLOCK_DATA_MISALIGNED) )
         snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* POLARSSL_PADLOCK_C */
+
+#if defined(POLARSSL_PBKDF2_C)
+    if( use_ret == -(POLARSSL_ERR_PBKDF2_BAD_INPUT_DATA) )
+        snprintf( buf, buflen, "PBKDF2 - Bad input parameters to function" );
+#endif /* POLARSSL_PBKDF2_C */
 
 #if defined(POLARSSL_SHA1_C)
     if( use_ret == -(POLARSSL_ERR_SHA1_FILE_IO_ERROR) )

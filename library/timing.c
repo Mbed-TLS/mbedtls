@@ -243,6 +243,14 @@ unsigned long get_timer( struct hr_time *val, int reset )
     return( delta );
 }
 
+#if defined(INTEGRITY)
+void m_sleep( int milliseconds )
+{
+    usleep( milliseconds * 1000 );
+}
+
+#else
+
 static void sighandler( int signum )
 {   
     alarmed = 1;
@@ -265,6 +273,7 @@ void m_sleep( int milliseconds )
 
     select( 0, NULL, NULL, NULL, &tv );
 }
+#endif /* INTEGRITY */
 
 #endif
 

@@ -66,14 +66,6 @@
     "<p>Successful connection using: %s</p>\r\n"
 
 /*
- * Computing a "safe" DH prime can take a very
- * long time. RFC 5114 provides precomputed and standardized
- * values.
- */
-char *my_dhm_P = POLARSSL_DHM_RFC5114_MODP_2048_P;
-char *my_dhm_G = POLARSSL_DHM_RFC5114_MODP_2048_G;
-
-/*
  * global options
  */
 struct options
@@ -405,7 +397,8 @@ int main( int argc, char *argv[] )
     ssl_set_own_cert( &ssl, &srvcert, &rsa );
 
 #if defined(POLARSSL_DHM_C)
-    ssl_set_dh_param( &ssl, my_dhm_P, my_dhm_G );
+    ssl_set_dh_param( &ssl, POLARSSL_DHM_RFC5114_MODP_2048_P,
+                            POLARSSL_DHM_RFC5114_MODP_2048_G );
 #endif
 
     printf( " ok\n" );

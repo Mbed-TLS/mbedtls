@@ -40,6 +40,8 @@ Changes
      POLARSSL_MODE_CFB, to also handle different block size CFB modes.
    * Removed handling for SSLv2 Client Hello (as per RFC 5246 recommendation)
    * Revamped session resumption handling
+   * Generalized external private key implementation handling (like PKCS#11)
+     in SSL/TLS
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by

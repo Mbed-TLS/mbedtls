@@ -42,10 +42,6 @@
 #include "dhm.h"
 #endif
 
-#if defined(POLARSSL_PKCS11_C)
-#include "pkcs11.h"
-#endif
-
 #if defined(POLARSSL_ZLIB_SUPPORT)
 #include "zlib.h"
 #endif
@@ -253,6 +249,20 @@
 
 #define TLS_EXT_RENEGOTIATION_INFO 0xFF01
 
+
+/*
+ * Generic function pointers for allowing external RSA private key
+ * implementations.
+ */
+typedef int (*rsa_decrypt_func)( void *ctx, int mode, size_t *olen,
+                        const unsigned char *input, unsigned char *output,
+                        size_t output_max_len ); 
+typedef int (*rsa_sign_func)( void *ctx,
+                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                     int mode, int hash_id, unsigned int hashlen,
+                     const unsigned char *hash, unsigned char *sig );
+typedef size_t (*rsa_key_len_func)( void *ctx );
+
 /*
  * SSL state machine
  */
@@ -446,10 +456,11 @@ struct _ssl_context
     /*
      * PKI layer
      */
-    rsa_context *rsa_key;               /*!<  own RSA private key     */
-#if defined(POLARSSL_PKCS11_C)
-    pkcs11_context *pkcs11_key;         /*!<  own PKCS#11 RSA private key */
-#endif
+    void *rsa_key;                      /*!<  own RSA private key     */
+    rsa_decrypt_func rsa_decrypt;       /*!<  function for RSA decrypt*/
+    rsa_sign_func rsa_sign;             /*!<  function for RSA sign   */
+    rsa_key_len_func rsa_key_len;       /*!<  function for RSA key len*/
+
     x509_cert *own_cert;                /*!<  own X.509 certificate   */
     x509_cert *ca_chain;                /*!<  own trusted CA chain    */
     x509_crl *ca_crl;                   /*!<  trusted CA CRLs         */
@@ -722,17 +733,26 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
 void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
                        rsa_context *rsa_key );
 
-#if defined(POLARSSL_PKCS11_C)
 /**
- * \brief          Set own certificate and PKCS#11 private key
+ * \brief          Set own certificate and alternate non-PolarSSL private
+ *                 key and handling callbacks, such as the PKCS#11 wrappers
+ *                 or any other external private key handler.
+ *                 (see the respective RSA functions in rsa.h for documentation
+ *                 of the callback parameters, with the only change being
+ *                 that the rsa_context * is a void * in the callbacks)
  *
  * \param ssl      SSL context
  * \param own_cert own public certificate
- * \param pkcs11_key    own PKCS#11 RSA key
+ * \param rsa_key  alternate implementation private RSA key
+ * \param rsa_decrypt_func  alternate implementation of \c rsa_pkcs1_decrypt()
+ * \param rsa_sign_func     alternate implementation of \c rsa_pkcs1_sign()
+ * \param rsa_key_len_func  function returning length of RSA key in bytes
  */
-void ssl_set_own_cert_pkcs11( ssl_context *ssl, x509_cert *own_cert,
-                       pkcs11_context *pkcs11_key );
-#endif
+void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
+                           void *rsa_key,
+                           rsa_decrypt_func rsa_decrypt,
+                           rsa_sign_func rsa_sign,
+                           rsa_key_len_func rsa_key_len );
 
 #if defined(POLARSSL_DHM_C)
 /**

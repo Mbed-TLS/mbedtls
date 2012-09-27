@@ -612,7 +612,7 @@
 /**
  * \def POLARSSL_PKCS11_C
  *
- * Enable support for PKCS#11 smartcard support.
+ * Enable wrapper for PKCS#11 smartcard support.
  *
  * Module:  library/ssl_srv.c
  * Caller:  library/ssl_cli.c
@@ -620,7 +620,7 @@
  *
  * Requires: POLARSSL_SSL_TLS_C
  *
- * This module is required for SSL/TLS PKCS #11 smartcard support.
+ * This module enables SSL/TLS PKCS #11 smartcard support.
  * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
 #define POLARSSL_PKCS11_C
  */

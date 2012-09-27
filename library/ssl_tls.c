@@ -65,6 +65,28 @@ int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
 #endif
 
+static int ssl_rsa_decrypt( void *ctx, int mode, size_t *olen,
+                        const unsigned char *input, unsigned char *output,
+                        size_t output_max_len )
+{
+    return rsa_pkcs1_decrypt( (rsa_context *) ctx, mode, olen, input, output,
+                              output_max_len );
+}
+
+static int ssl_rsa_sign( void *ctx,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                    int mode, int hash_id, unsigned int hashlen,
+                    const unsigned char *hash, unsigned char *sig )
+{
+    return rsa_pkcs1_sign( (rsa_context *) ctx, f_rng, p_rng, mode, hash_id,
+                           hashlen, hash, sig );
+}
+
+static size_t ssl_rsa_key_len( void *ctx )
+{
+    return ( (rsa_context *) ctx )->len;
+}
+
 /*
  * Key material generation
  */
@@ -2826,6 +2848,10 @@ int ssl_init( ssl_context *ssl )
 
     memset( ssl, 0, sizeof( ssl_context ) );
 
+    ssl->rsa_decrypt = ssl_rsa_decrypt;
+    ssl->rsa_sign = ssl_rsa_sign;
+    ssl->rsa_key_len = ssl_rsa_key_len;
+
     ssl->in_ctr = (unsigned char *) malloc( len );
     ssl->in_hdr = ssl->in_ctr +  8;
     ssl->in_msg = ssl->in_ctr + 13;
@@ -3002,14 +3028,19 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
     ssl->rsa_key    = rsa_key;
 }
 
-#if defined(POLARSSL_PKCS11_C)
-void ssl_set_own_cert_pkcs11( ssl_context *ssl, x509_cert *own_cert,
-                       pkcs11_context *pkcs11_key )
+void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
+                           void *rsa_key,
+                           rsa_decrypt_func rsa_decrypt,
+                           rsa_sign_func rsa_sign,
+                           rsa_key_len_func rsa_key_len )
 {
     ssl->own_cert   = own_cert;
-    ssl->pkcs11_key = pkcs11_key;
+    ssl->rsa_key    = rsa_key;
+    ssl->rsa_decrypt = rsa_decrypt;
+    ssl->rsa_sign = rsa_sign;
+    ssl->rsa_key_len = rsa_key_len;
 }
-#endif
+
 
 #if defined(POLARSSL_DHM_C)
 int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G )

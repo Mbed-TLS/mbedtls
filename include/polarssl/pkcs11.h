@@ -37,6 +37,14 @@
 
 #include <pkcs11-helper-1.0/pkcs11h-certificate.h>
 
+#if defined(_MSC_VER) && !defined(inline)
+#define inline _inline
+#else
+#if defined(__ARMCC_VERSION) && !defined(inline)
+#define inline __inline
+#endif /* __ARMCC_VERSION */
+#endif /*_MSC_VER */
+
 /**
  * Context for PKCS #11 private keys.
  */
@@ -120,6 +128,33 @@ int pkcs11_sign( pkcs11_context *ctx,
                     unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig );
+
+/**
+ * SSL/TLS wrappers for PKCS#11 functions
+ */
+static inline int ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
+                        const unsigned char *input, unsigned char *output,
+                        unsigned int output_max_len )
+{
+    return pkcs11_decrypt( (pkcs11_context *) ctx, mode, olen, input, output,
+                           output_max_len );
+}
+
+static inline int ssl_pkcs11_sign( void *ctx, 
+                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                     int mode, int hash_id, unsigned int hashlen,
+                     const unsigned char *hash, unsigned char *sig )
+{
+    ((void) f_rng);
+    ((void) p_rng);
+    return pkcs11_sign( (pkcs11_context *) ctx, mode, hash_id,
+                        hashlen, hash, sig );
+}
+
+static inline size_t ssl_pkcs11_key_len( void *ctx )
+{
+    return ( (pkcs11_context *) ctx )->len;
+}
 
 #endif /* POLARSSL_PKCS11_C */
 

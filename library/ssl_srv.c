@@ -30,10 +30,6 @@
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 
-#if defined(POLARSSL_PKCS11_C)
-#include "polarssl/pkcs11.h"
-#endif /* defined(POLARSSL_PKCS11_C) */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -644,15 +640,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
     if( ssl->rsa_key == NULL )
     {
-#if defined(POLARSSL_PKCS11_C)
-        if( ssl->pkcs11_key == NULL )
-        {
-#endif /* defined(POLARSSL_PKCS11_C) */
-            SSL_DEBUG_MSG( 1, ( "got no private key" ) );
-            return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
-#if defined(POLARSSL_PKCS11_C)
-        }
-#endif /* defined(POLARSSL_PKCS11_C) */
+        SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+        return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
 
     /*
@@ -738,11 +727,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
     if ( ssl->rsa_key )
-        rsa_key_len = ssl->rsa_key->len;
-#if defined(POLARSSL_PKCS11_C)
-    else
-        rsa_key_len = ssl->pkcs11_key->len;
-#endif /* defined(POLARSSL_PKCS11_C) */
+        rsa_key_len = ssl->rsa_key_len( ssl->rsa_key );
 
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
@@ -758,16 +743,11 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
     if ( ssl->rsa_key )
     {
-        ret = rsa_pkcs1_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
-                              RSA_PRIVATE,
-                              hash_id, hashlen, hash, ssl->out_msg + 6 + n );
+        ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
+                             RSA_PRIVATE,
+                             hash_id, hashlen, hash,
+                             ssl->out_msg + 6 + n );
     }
-#if defined(POLARSSL_PKCS11_C)
-    else {
-        ret = pkcs11_sign( ssl->pkcs11_key, RSA_PRIVATE,
-                              hash_id, hashlen, hash, ssl->out_msg + 6 + n );
-    }
-#endif  /* defined(POLARSSL_PKCS11_C) */
 
     if( ret != 0 )
     {
@@ -898,15 +878,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     {
         if( ssl->rsa_key == NULL )
         {
-#if defined(POLARSSL_PKCS11_C)
-                if( ssl->pkcs11_key == NULL )
-                {
-#endif
-                    SSL_DEBUG_MSG( 1, ( "got no private key" ) );
-                    return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
-#if defined(POLARSSL_PKCS11_C)
-                }
-#endif
+            SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+            return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
         }
 
         /*
@@ -914,11 +887,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
          */
         i = 4;
         if( ssl->rsa_key )
-            n = ssl->rsa_key->len;
-#if defined(POLARSSL_PKCS11_C)
-        else
-            n = ssl->pkcs11_key->len;
-#endif
+            n = ssl->rsa_key_len( ssl->rsa_key );
         ssl->handshake->pmslen = 48;
 
         if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
@@ -939,21 +908,12 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         }
 
         if( ssl->rsa_key ) {
-            ret = rsa_pkcs1_decrypt(  ssl->rsa_key, RSA_PRIVATE,
-                                     &ssl->handshake->pmslen,
-                                      ssl->in_msg + i,
-                                      ssl->handshake->premaster,
-                                      sizeof(ssl->handshake->premaster) );
+            ret = ssl->rsa_decrypt( ssl->rsa_key, RSA_PRIVATE,
+                                   &ssl->handshake->pmslen,
+                                    ssl->in_msg + i,
+                                    ssl->handshake->premaster,
+                                    sizeof(ssl->handshake->premaster) );
         }
-#if defined(POLARSSL_PKCS11_C)
-        else {
-            ret = pkcs11_decrypt(  ssl->pkcs11_key, RSA_PRIVATE,
-                                  &ssl->handshake->pmslen,
-                                   ssl->in_msg + i,
-                                   ssl->handshake->premaster,
-                                   sizeof(ssl->handshake->premaster) );
-        }
-#endif  /* defined(POLARSSL_PKCS11_C) */
 
         if( ret != 0 || ssl->handshake->pmslen != 48 ||
             ssl->handshake->premaster[0] != ssl->max_major_ver ||

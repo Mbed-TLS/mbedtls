@@ -77,8 +77,19 @@
  *
  * By default we assume at least a 10 char label, a minimum radix of 10
  * (decimal) and a maximum of 4096 bit numbers (1234 decimal chars).
+ * Autosized at compile time for at least a 10 char label, a minimum radix
+ * of 10 (decimal) for a number of POLARSSL_MPI_MAX_BITS size.
+ *
+ * This used to be statically sized to 1250 for a maximum of 4096 bit
+ * numbers (1234 decimal chars).
+ *
+ * Calculate using the formula:
+ *  POLARSSL_MPI_RW_BUFFER_SIZE = ceil(POLARSSL_MPI_MAX_BITS / ln(10) * ln(2)) +
+ *                                LabelSize + 6
  */
-#define POLARSSL_MPI_RW_BUFFER_SIZE                       1250   
+#define POLARSSL_MPI_MAX_BITS_SCALE100          ( 100 * POLARSSL_MPI_MAX_BITS )
+#define LN_2_DIV_LN_10_SCALE100                 332
+#define POLARSSL_MPI_RW_BUFFER_SIZE             ( ((POLARSSL_MPI_MAX_BITS_SCALE100 + LN_2_DIV_LN_10_SCALE100 - 1) / LN_2_DIV_LN_10_SCALE100) + 10 + 6 )
 
 /*
  * Define the base integer type, architecture-wise

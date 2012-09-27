@@ -161,7 +161,7 @@ int rsa_check_pubkey( const rsa_context *ctx )
 int rsa_check_privkey( const rsa_context *ctx )
 {
     int ret;
-    mpi PQ, DE, P1, Q1, H, I, G, G2, L1, L2;
+    mpi PQ, DE, P1, Q1, H, I, G, G2, L1, L2, DP, DQ, QP;
 
     if( ( ret = rsa_check_pubkey( ctx ) ) != 0 )
         return( ret );
@@ -171,7 +171,8 @@ int rsa_check_privkey( const rsa_context *ctx )
 
     mpi_init( &PQ ); mpi_init( &DE ); mpi_init( &P1 ); mpi_init( &Q1 );
     mpi_init( &H  ); mpi_init( &I  ); mpi_init( &G  ); mpi_init( &G2 );
-    mpi_init( &L1 ); mpi_init( &L2 );
+    mpi_init( &L1 ); mpi_init( &L2 ); mpi_init( &DP ); mpi_init( &DQ );
+    mpi_init( &QP );
 
     MPI_CHK( mpi_mul_mpi( &PQ, &ctx->P, &ctx->Q ) );
     MPI_CHK( mpi_mul_mpi( &DE, &ctx->D, &ctx->E ) );
@@ -184,23 +185,28 @@ int rsa_check_privkey( const rsa_context *ctx )
     MPI_CHK( mpi_div_mpi( &L1, &L2, &H, &G2 ) );  
     MPI_CHK( mpi_mod_mpi( &I, &DE, &L1  ) );
 
+    MPI_CHK( mpi_mod_mpi( &DP, &ctx->D, &P1 ) );
+    MPI_CHK( mpi_mod_mpi( &DQ, &ctx->D, &Q1 ) );
+    MPI_CHK( mpi_inv_mod( &QP, &ctx->Q, &ctx->P ) );
     /*
      * Check for a valid PKCS1v2 private key
      */
     if( mpi_cmp_mpi( &PQ, &ctx->N ) != 0 ||
+        mpi_cmp_mpi( &DP, &ctx->DP ) != 0 ||
+        mpi_cmp_mpi( &DQ, &ctx->DQ ) != 0 ||
+        mpi_cmp_mpi( &QP, &ctx->QP ) != 0 ||
         mpi_cmp_int( &L2, 0 ) != 0 ||
         mpi_cmp_int( &I, 1 ) != 0 ||
         mpi_cmp_int( &G, 1 ) != 0 )
     {
         ret = POLARSSL_ERR_RSA_KEY_CHECK_FAILED;
     }
-
     
 cleanup:
-
     mpi_free( &PQ ); mpi_free( &DE ); mpi_free( &P1 ); mpi_free( &Q1 );
     mpi_free( &H  ); mpi_free( &I  ); mpi_free( &G  ); mpi_free( &G2 );
-    mpi_free( &L1 ); mpi_free( &L2 );
+    mpi_free( &L1 ); mpi_free( &L2 ); mpi_free( &DP ); mpi_free( &DQ );
+    mpi_free( &QP );
 
     if( ret == POLARSSL_ERR_RSA_KEY_CHECK_FAILED )
         return( ret );

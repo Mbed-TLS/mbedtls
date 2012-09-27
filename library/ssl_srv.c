@@ -34,6 +34,49 @@
 #include <stdio.h>
 #include <time.h>
 
+static int ssl_parse_servername_ext( ssl_context *ssl,
+                                     unsigned char *buf,
+                                     size_t len )
+{
+    int ret;
+    size_t servername_list_size, hostname_len;
+    unsigned char *p;
+
+    servername_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
+    if( servername_list_size + 2 != len )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    p = buf + 2;
+    while( servername_list_size > 0 )
+    {
+        hostname_len = ( ( p[1] << 8 ) | p[2] );
+        if( hostname_len + 3 > servername_list_size )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
+
+        if( p[0] == TLS_EXT_SERVERNAME_HOSTNAME )
+        {
+            ret = ssl->f_sni( ssl->p_sni, ssl, p + 3, hostname_len );
+            if( ret != 0 )
+            {
+                ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
+                        SSL_ALERT_MSG_UNRECOGNIZED_NAME );
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+            break;
+        }
+
+        servername_list_size -= hostname_len + 3;
+    }
+
+    return( 0 );
+}
+
 static int ssl_parse_renegotiation_info( ssl_context *ssl,
                                          unsigned char *buf,
                                          size_t len )
@@ -330,6 +373,16 @@ have_ciphersuite:
         }
         switch( ext_id )
         {
+        case TLS_EXT_SERVERNAME:
+            SSL_DEBUG_MSG( 3, ( "found ServerName extension" ) );
+            if( ssl->f_sni == NULL )
+                break;
+
+            ret = ssl_parse_servername_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+
         case TLS_EXT_RENEGOTIATION_INFO:
             SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
             renegotiation_info_seen = 1;

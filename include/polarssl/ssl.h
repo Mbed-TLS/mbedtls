@@ -227,6 +227,7 @@
 #define SSL_ALERT_MSG_USER_CANCELED         90  /* 0x5A */
 #define SSL_ALERT_MSG_NO_RENEGOTIATION     100  /* 0x64 */
 #define SSL_ALERT_MSG_UNSUPPORTED_EXT      110  /* 0x6E */
+#define SSL_ALERT_MSG_UNRECOGNIZED_NAME    112  /* 0x70 */
 
 #define SSL_HS_HELLO_REQUEST            0
 #define SSL_HS_CLIENT_HELLO             1
@@ -399,6 +400,7 @@ struct _ssl_context
     int (*f_vrfy)(void *, x509_cert *, int, int);
     int (*f_get_cache)(void *, ssl_session *);
     int (*f_set_cache)(void *, const ssl_session *);
+    int (*f_sni)(void *, ssl_context *, const unsigned char *, size_t);
 
     void *p_rng;                /*!< context for the RNG function     */
     void *p_dbg;                /*!< context for the debug function   */
@@ -407,6 +409,7 @@ struct _ssl_context
     void *p_vrfy;               /*!< context for verification         */
     void *p_get_cache;          /*!< context for cache retrieval      */
     void *p_set_cache;          /*!< context for cache store          */
+    void *p_sni;                /*!< context for SNI extension        */
 
     /*
      * Session layer
@@ -780,7 +783,8 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
 #endif
 
 /**
- * \brief          Set hostname for ServerName TLS Extension
+ * \brief          Set hostname for ServerName TLS extension
+ *                 (client-side only)
  *                 
  *
  * \param ssl      SSL context
@@ -789,6 +793,30 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
  * \return         0 if successful or POLARSSL_ERR_SSL_MALLOC_FAILED
  */
 int ssl_set_hostname( ssl_context *ssl, const char *hostname );
+
+/**
+ * \brief          Set server side ServerName TLS extension callback
+ *                 (optional, server-side only).
+ *
+ *                 If set, the ServerName callback is called whenever the
+ *                 server receives a ServerName TLS extension from the client
+ *                 during a handshake. The ServerName callback has the
+ *                 following parameters: (void *parameter, ssl_context *ssl,
+ *                 const unsigned char *hostname, size_t len). If a suitable
+ *                 certificate is found, the callback should set the
+ *                 certificate and key to use with ssl_set_own_cert() (and
+ *                 possibly adjust the CA chain as well) and return 0. The
+ *                 callback should return -1 to abort the handshake at this
+ *                 point.
+ *
+ * \param ssl      SSL context
+ * \param f_sni    verification function
+ * \param p_sni    verification parameter
+ */
+void ssl_set_sni( ssl_context *ssl,
+                  int (*f_sni)(void *, ssl_context *, const unsigned char *,
+                               size_t),
+                  void *p_sni );
 
 /**
  * \brief          Set the maximum supported version sent from the client side

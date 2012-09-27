@@ -27,6 +27,7 @@ Features
    * Added Secure Renegotiation (RFC 5746)
    * Added predefined DHM groups from RFC 5114
    * Added simple SSL session cache implementation
+   * Added ServerName extension parsing (SNI) at server side
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

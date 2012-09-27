@@ -3101,6 +3101,15 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
     return( 0 );
 }
 
+void ssl_set_sni( ssl_context *ssl,
+                  int (*f_sni)(void *, ssl_context *,
+                                const unsigned char *, size_t),
+                  void *p_sni )
+{
+    ssl->f_sni = f_sni;
+    ssl->p_sni = p_sni;
+}
+
 void ssl_set_max_version( ssl_context *ssl, int major, int minor )
 {
     ssl->max_major_ver = major;

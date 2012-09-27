@@ -474,7 +474,7 @@ rsa_check_pubkey:radix_N:input_N:radix_E:input_E:result
 END_CASE
 
 BEGIN_CASE
-rsa_check_privkey:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:radix_D:input_D:result
+rsa_check_privkey:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:radix_D:input_D:radix_DP:input_DP:radix_DQ:input_DQ:radix_QP:input_QP:result
 {
     rsa_context ctx;
 
@@ -500,6 +500,18 @@ rsa_check_privkey:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:in
     if( strlen( {input_D} ) )
     {
         TEST_ASSERT( mpi_read_string( &ctx.D, {radix_D}, {input_D} ) == 0 );
+    }
+    if( strlen( {input_DP} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.DP, {radix_DP}, {input_DP} ) == 0 );
+    }
+    if( strlen( {input_DQ} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.DQ, {radix_DQ}, {input_DQ} ) == 0 );
+    }
+    if( strlen( {input_QP} ) )
+    {
+        TEST_ASSERT( mpi_read_string( &ctx.QP, {radix_QP}, {input_QP} ) == 0 );
     }
 
     TEST_ASSERT( rsa_check_privkey( &ctx ) == {result} );

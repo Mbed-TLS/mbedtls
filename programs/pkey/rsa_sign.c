@@ -99,6 +99,14 @@ int main( int argc, char *argv[] )
 
     fclose( f );
 
+    printf( "\n  . Checking the private key" );
+    fflush( stdout );
+    if( ( ret = rsa_check_privkey( &rsa ) ) != 0 )
+    {
+        printf( " failed\n  ! rsa_check_privkey failed with -0x%0x\n", -ret );
+        goto exit;
+    }
+
     /*
      * Compute the SHA-1 hash of the input file,
      * then calculate the RSA signature of the hash.
@@ -115,7 +123,7 @@ int main( int argc, char *argv[] )
     if( ( ret = rsa_pkcs1_sign( &rsa, NULL, NULL, RSA_PRIVATE, SIG_RSA_SHA1,
                                 20, hash, buf ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_sign returned %d\n\n", ret );
+        printf( " failed\n  ! rsa_pkcs1_sign returned -0x%0x\n\n", -ret );
         goto exit;
     }
 

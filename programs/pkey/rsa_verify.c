@@ -134,7 +134,7 @@ int main( int argc, char *argv[] )
     if( ( ret = rsa_pkcs1_verify( &rsa, RSA_PUBLIC, SIG_RSA_SHA1,
                                   20, hash, buf ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_verify returned %d\n\n", ret );
+        printf( " failed\n  ! rsa_pkcs1_verify returned -0x%0x\n\n", -ret );
         goto exit;
     }
 

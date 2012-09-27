@@ -1,7 +1,7 @@
 /*
  *  Key reading application
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -43,6 +43,8 @@
 
 #define DFL_MODE                MODE_NONE
 #define DFL_FILENAME            "keyfile.key"
+#define DFL_PASSWORD            ""
+#define DFL_PASSWORD_FILE       ""
 #define DFL_DEBUG_LEVEL         0
 
 /*
@@ -52,6 +54,8 @@ struct options
 {
     int mode;                   /* the mode to run the application in   */
     char *filename;             /* filename of the key file             */
+    char *password;             /* password for the private key         */
+    char *password_file;        /* password_file for the private key    */
     int debug_level;            /* level of debugging                   */
 } opt;
 
@@ -69,6 +73,8 @@ void my_debug( void *ctx, int level, const char *str )
     "\n acceptable parameters:\n"                       \
     "    mode=private|public default: none\n"           \
     "    filename=%%s         default: keyfile.key\n"   \
+    "    password=%%s         default: \"\"\n"          \
+    "    password_file=%%s    default: \"\"\n"          \
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "\n"
 
@@ -89,7 +95,7 @@ int main( int argc, char *argv[] )
     int ret = 0;
     rsa_context rsa;
     char buf[1024];
-    int i, j, n;
+    int i;
     char *p, *q;
 
     /*
@@ -107,18 +113,12 @@ int main( int argc, char *argv[] )
 
     opt.mode                = DFL_MODE;
     opt.filename            = DFL_FILENAME;
+    opt.password            = DFL_PASSWORD;
+    opt.password_file       = DFL_PASSWORD_FILE;
     opt.debug_level         = DFL_DEBUG_LEVEL;
 
     for( i = 1; i < argc; i++ )
     {
-        n = strlen( argv[i] );
-
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
-
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;
@@ -135,6 +135,10 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "filename" ) == 0 )
             opt.filename = q;
+        else if( strcmp( p, "password" ) == 0 )
+            opt.password = q;
+        else if( strcmp( p, "password_file" ) == 0 )
+            opt.password_file = q;
         else if( strcmp( p, "debug_level" ) == 0 )
         {
             opt.debug_level = atoi( q );
@@ -147,13 +151,38 @@ int main( int argc, char *argv[] )
 
     if( opt.mode == MODE_PRIVATE )
     {
+        if( strlen( opt.password ) && strlen( opt.password_file ) )
+        {
+            printf( "Error: cannot have both password and password_file\n" );
+            goto usage;
+        }
+
+        if( strlen( opt.password_file ) )
+        {
+            FILE *f;
+
+            printf( "\n  . Loading the password file ..." );
+            if( ( f = fopen( opt.password_file, "rb" ) ) == NULL )
+            {
+                printf( " failed\n  !  fopen returned NULL\n" );
+                goto exit;
+            }
+            fgets( buf, 1024, f );
+            fclose( f );
+
+            i = strlen( buf );
+            if( buf[i - 1] == '\n' ) buf[i - 1] = '\0';
+            if( buf[i - 2] == '\r' ) buf[i - 2] = '\0';
+            opt.password = buf;
+        }
+
         /*
          * 1.1. Load the key
          */
         printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = x509parse_keyfile( &rsa, opt.filename, NULL );
+        ret = x509parse_keyfile( &rsa, opt.filename, opt.password );
 
         if( ret != 0 )
         {

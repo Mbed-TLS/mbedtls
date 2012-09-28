@@ -35,12 +35,12 @@
 #include <time.h>
 
 static int ssl_parse_servername_ext( ssl_context *ssl,
-                                     unsigned char *buf,
+                                     const unsigned char *buf,
                                      size_t len )
 {
     int ret;
     size_t servername_list_size, hostname_len;
-    unsigned char *p;
+    const unsigned char *p;
 
     servername_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( servername_list_size + 2 != len )
@@ -72,13 +72,20 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
         }
 
         servername_list_size -= hostname_len + 3;
+        p += hostname_len + 3;
+    }
+
+    if( servername_list_size != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
     return( 0 );
 }
 
 static int ssl_parse_renegotiation_info( ssl_context *ssl,
-                                         unsigned char *buf,
+                                         const unsigned char *buf,
                                          size_t len )
 {
     int ret;
@@ -111,6 +118,71 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
     }
+
+    return( 0 );
+}
+
+static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
+                                               const unsigned char *buf,
+                                               size_t len )
+{
+    size_t sig_alg_list_size;
+    const unsigned char *p;
+
+    sig_alg_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
+    if( sig_alg_list_size + 2 != len ||
+        sig_alg_list_size %2 != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    p = buf + 2;
+    while( sig_alg_list_size > 0 )
+    {
+        if( p[1] != SSL_SIG_RSA )
+            continue;
+#if defined(POLARSSL_SHA4_C)
+        if( p[0] == SSL_HASH_SHA512 )
+        {
+            ssl->handshake->sig_alg = SSL_HASH_SHA512;
+            break;
+        }
+        if( p[0] == SSL_HASH_SHA384 )
+        {
+            ssl->handshake->sig_alg = SSL_HASH_SHA384;
+            break;
+        }
+#endif
+#if defined(POLARSSL_SHA2_C)
+        if( p[0] == SSL_HASH_SHA256 )
+        {
+            ssl->handshake->sig_alg = SSL_HASH_SHA256;
+            break;
+        }
+        if( p[0] == SSL_HASH_SHA224 )
+        {
+            ssl->handshake->sig_alg = SSL_HASH_SHA224;
+            break;
+        }
+#endif
+        if( p[0] == SSL_HASH_SHA1 )
+        {
+            ssl->handshake->sig_alg = SSL_HASH_SHA1;
+            break;
+        }
+        if( p[0] == SSL_HASH_MD5 )
+        {
+            ssl->handshake->sig_alg = SSL_HASH_MD5;
+            break;
+        }
+
+        sig_alg_list_size -= 2;
+        p += 2;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %d",
+                   ssl->handshake->sig_alg ) );
 
     return( 0 );
 }
@@ -399,9 +471,19 @@ have_ciphersuite:
             SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
             renegotiation_info_seen = 1;
 
-            if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size ) ) != 0 )
+            ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size );
+            if( ret != 0 )
                 return( ret );
+            break;
 
+        case TLS_EXT_SIG_ALG:
+            SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
+            if( ssl->renegotiation == SSL_RENEGOTIATION )
+                break;
+
+            ret = ssl_parse_signature_algorithms_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
             break;
 
         default:
@@ -671,9 +753,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_DHM_C)
     int ret;
     size_t n, rsa_key_len = 0;
-    unsigned char hash[48];
-    md5_context md5;
-    sha1_context sha1;
+    unsigned char hash[64];
     int hash_id;
     unsigned int hashlen;
 #endif
@@ -741,6 +821,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
     if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
     {
+        md5_context md5;
+        sha1_context sha1;
+
         /*
          * digitally-signed struct {
          *     opaque md5_hash[16];
@@ -776,17 +859,82 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ServerDHParams params;
          * };
          */
-        /* TODO TLS1.2 Get a supported hash algorithm from the
-         * signature_algorithms extension, Otherwise SHA1 + RSA!
-         */
-     
-        sha1_starts( &sha1 );
-        sha1_update( &sha1, ssl->handshake->randbytes, 64 );
-        sha1_update( &sha1, ssl->out_msg + 4, n );
-        sha1_finish( &sha1, hash );
+#if defined(POLARSSL_SHA4_C)
+        if( ssl->handshake->sig_alg == SSL_HASH_SHA512 )
+        {
+            sha4_context sha4;
 
-        hashlen = 20;
-        hash_id = SIG_RSA_SHA1;
+            sha4_starts( &sha4, 0 );
+            sha4_update( &sha4, ssl->handshake->randbytes, 64 );
+            sha4_update( &sha4, ssl->out_msg + 4, n );
+            sha4_finish( &sha4, hash );
+
+            hashlen = 64;
+            hash_id = SIG_RSA_SHA512;
+        }
+        if( ssl->handshake->sig_alg == SSL_HASH_SHA384 )
+        {
+            sha4_context sha4;
+
+            sha4_starts( &sha4, 1 );
+            sha4_update( &sha4, ssl->handshake->randbytes, 64 );
+            sha4_update( &sha4, ssl->out_msg + 4, n );
+            sha4_finish( &sha4, hash );
+
+            hashlen = 48;
+            hash_id = SIG_RSA_SHA384;
+        }
+#endif
+#if defined(POLARSSL_SHA2_C)
+        if( ssl->handshake->sig_alg == SSL_HASH_SHA256 )
+        {
+            sha2_context sha2;
+
+            sha2_starts( &sha2, 0 );
+            sha2_update( &sha2, ssl->handshake->randbytes, 64 );
+            sha2_update( &sha2, ssl->out_msg + 4, n );
+            sha2_finish( &sha2, hash );
+
+            hashlen = 32;
+            hash_id = SIG_RSA_SHA256;
+        }
+        if( ssl->handshake->sig_alg == SSL_HASH_SHA224 )
+        {
+            sha2_context sha2;
+
+            sha2_starts( &sha2, 1 );
+            sha2_update( &sha2, ssl->handshake->randbytes, 64 );
+            sha2_update( &sha2, ssl->out_msg + 4, n );
+            sha2_finish( &sha2, hash );
+
+            hashlen = 24;
+            hash_id = SIG_RSA_SHA224;
+        }
+#endif
+        if( ssl->handshake->sig_alg == SSL_HASH_SHA1 )
+        {
+            sha1_context sha1;
+
+            sha1_starts( &sha1 );
+            sha1_update( &sha1, ssl->handshake->randbytes, 64 );
+            sha1_update( &sha1, ssl->out_msg + 4, n );
+            sha1_finish( &sha1, hash );
+
+            hashlen = 20;
+            hash_id = SIG_RSA_SHA1;
+        }
+        if( ssl->handshake->sig_alg == SSL_HASH_MD5 )
+        {
+            md5_context md5;
+
+            md5_starts( &md5 );
+            md5_update( &md5, ssl->handshake->randbytes, 64 );
+            md5_update( &md5, ssl->out_msg + 4, n );
+            md5_finish( &md5, hash );
+
+            hashlen = 16;
+            hash_id = SIG_RSA_MD5;
+        }
     }
 
     SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
@@ -796,8 +944,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
-        // TODO TLS1.2 Base on selection above (SHA1 + RSA is default choice)
-        ssl->out_msg[4 + n] = SSL_HASH_SHA1;
+        ssl->out_msg[4 + n] = ssl->handshake->sig_alg;
         ssl->out_msg[5 + n] = SSL_SIG_RSA;
 
         n += 2;

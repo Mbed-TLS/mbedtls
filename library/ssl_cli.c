@@ -701,7 +701,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     {
         if( p[1] != SSL_SIG_RSA )
         {
-            SSL_DEBUG_MSG( 2, ( "Server used unsupported SignatureAlgorithm %d", p[1] ) );
+            SSL_DEBUG_MSG( 2, ( "server used unsupported SignatureAlgorithm %d", p[1] ) );
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE ); 
         }

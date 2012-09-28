@@ -350,6 +350,7 @@ struct _ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
+    int sig_alg;                        /*!<  Signature algorithm     */
 #if defined(POLARSSL_DHM_C)
     dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif

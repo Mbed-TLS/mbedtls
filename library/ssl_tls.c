@@ -2834,7 +2834,8 @@ int ssl_handshake_init( ssl_context *ssl )
     sha4_starts( &ssl->handshake->fin_sha4, 1 );
 
     ssl->handshake->update_checksum = ssl_update_checksum_start;
-
+    ssl->handshake->sig_alg = SSL_HASH_SHA1;
+    
     return( 0 );
 }
 

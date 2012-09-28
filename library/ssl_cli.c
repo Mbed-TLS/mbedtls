@@ -52,8 +52,8 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
     {
-        ssl->major_ver = SSL_MAJOR_VERSION_3;
-        ssl->minor_ver = SSL_MINOR_VERSION_0;
+        ssl->major_ver = ssl->min_major_ver;
+        ssl->minor_ver = ssl->min_minor_ver;
     }
 
     if( ssl->max_major_ver == 0 && ssl->max_minor_ver == 0 )

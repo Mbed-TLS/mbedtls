@@ -43,6 +43,7 @@ Changes
    * Revamped session resumption handling
    * Generalized external private key implementation handling (like PKCS#11)
      in SSL/TLS
+   * Revamped x509_verify() and the SSL f_vrfy callback implementations
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by

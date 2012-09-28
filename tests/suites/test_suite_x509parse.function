@@ -2,22 +2,22 @@ BEGIN_HEADER
 #include <polarssl/x509.h>
 #include <polarssl/pem.h>
 
-int verify_none( void *data, x509_cert *crt, int certificate_depth, int preverify_ok )
+int verify_none( void *data, x509_cert *crt, int certificate_depth, int *flags )
 {
     ((void) data);
     ((void) crt);
     ((void) certificate_depth);
-    ((void) preverify_ok);
-
-    return 1;
+    *flags |= BADCERT_OTHER;
+    
+    return 0;
 }
 
-int verify_all( void *data, x509_cert *crt, int certificate_depth, int preverify_ok )
+int verify_all( void *data, x509_cert *crt, int certificate_depth, int *flags )
 {
     ((void) data);
     ((void) crt);
     ((void) certificate_depth);
-    ((void) preverify_ok);
+    *flags = 0;
 
     return 0;
 }

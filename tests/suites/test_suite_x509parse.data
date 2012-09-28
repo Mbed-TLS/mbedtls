@@ -228,11 +228,11 @@ x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/cr
 
 X509 Certificate verification #19 (Valid Cert, denying callback)
 depends_on:POLARSSL_SHA4_C:POLARSSL_PEM_C:POLARSSL_FS_IO
-x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:POLARSSL_ERR_X509_CERT_VERIFY_FAILED:0:&verify_none
+x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_OTHER:verify_none
 
 X509 Certificate verification #20 (Not trusted Cert, allowing callback)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
-x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":NULL:0:0:&verify_all
+x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":NULL:0:0:verify_all
 
 X509 Certificate verification #21 (domain matching wildcard certificate)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO

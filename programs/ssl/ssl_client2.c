@@ -82,6 +82,45 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
+/*
+ * Enabled if debug_level > 1 in code below
+ */
+int my_verify( void *data, x509_cert *crt, int depth, int *flags )
+{
+    char buf[1024];
+    ((void) data);
+
+    printf( "\nVerify requested for (Depth %d):\n", depth );
+    x509parse_cert_info( buf, sizeof( buf ) - 1, "", crt );
+    printf( "%s", buf );
+
+    if( ( (*flags) & BADCERT_EXPIRED ) != 0 )
+        printf( "  ! server certificate has expired\n" );
+
+    if( ( (*flags) & BADCERT_REVOKED ) != 0 )
+        printf( "  ! server certificate has been revoked\n" );
+
+    if( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
+        printf( "  ! CN mismatch\n" );
+
+    if( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
+        printf( "  ! self-signed or not signed by a trusted CA\n" );
+
+    if( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
+        printf( "  ! CRL not trusted\n" );
+
+    if( ( (*flags) & BADCRL_EXPIRED ) != 0 )
+        printf( "  ! CRL expired\n" );
+
+    if( ( (*flags) & BADCERT_OTHER ) != 0 )
+        printf( "  ! other (unknown) flag\n" );
+
+    if ( ( *flags ) == 0 )
+        printf( "  This certificate has no flags\n" );
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_FS_IO)
 #define USAGE_IO \
     "    ca_file=%%s          default: \"\" (pre-loaded)\n" \
@@ -135,7 +174,6 @@ int main( int argc, char *argv[] )
     x509_cert clicert;
     rsa_context rsa;
     int i;
-    size_t j, n;
     char *p, *q;
     const int *list;
 
@@ -180,14 +218,6 @@ int main( int argc, char *argv[] )
 
     for( i = 1; i < argc; i++ )
     {
-        n = strlen( argv[i] );
-
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
-
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;
@@ -370,6 +400,9 @@ int main( int argc, char *argv[] )
     }
 
     printf( " ok\n" );
+
+    if( opt.debug_level > 0 )
+        ssl_set_verify( &ssl, my_verify, NULL );
 
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
     ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );

@@ -397,7 +397,7 @@ struct _ssl_context
     void (*f_dbg)(void *, int, const char *);
     int (*f_recv)(void *, unsigned char *, size_t);
     int (*f_send)(void *, const unsigned char *, size_t);
-    int (*f_vrfy)(void *, x509_cert *, int, int);
+    int (*f_vrfy)(void *, x509_cert *, int, int *);
     int (*f_get_cache)(void *, ssl_session *);
     int (*f_set_cache)(void *, const ssl_session *);
     int (*f_sni)(void *, ssl_context *, const unsigned char *, size_t);
@@ -601,18 +601,16 @@ void ssl_set_authmode( ssl_context *ssl, int authmode );
 /**
  * \brief          Set the verification callback (Optional).
  *
- *                 If set, the verification callback is called once for every
- *                 certificate in the chain. The verification function has the
- *                 following parameter: (void *parameter, x509_cert certificate,
- *                 int certifcate_depth, int preverify_ok). It should
- *                 return 0 on SUCCESS.
+ *                 If set, the verify callback is called for each
+ *                 certificate in the chain. For implementation
+ *                 information, please see \c x509parse_verify()
  *
  * \param ssl      SSL context
  * \param f_vrfy   verification function
  * \param p_vrfy   verification parameter
  */
 void ssl_set_verify( ssl_context *ssl,
-                     int (*f_vrfy)(void *, x509_cert *, int, int),
+                     int (*f_vrfy)(void *, x509_cert *, int, int *),
                      void *p_vrfy );
 
 /**

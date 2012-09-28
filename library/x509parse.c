@@ -3004,15 +3004,19 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
     int hash_id;
     unsigned char hash[64];
 
+    if( ca == NULL )
+        return( flags );
+
     /*
      * TODO: What happens if no CRL is present?
      * Suggestion: Revocation state should be unknown if no CRL is present.
      * For backwards compatibility this is not yet implemented.
      */
 
-    while( ca != NULL && crl_list != NULL && crl_list->version != 0 )
+    while( crl_list != NULL )
     {
-        if( crl_list->issuer_raw.len != ca->subject_raw.len ||
+        if( crl_list->version == 0 ||
+            crl_list->issuer_raw.len != ca->subject_raw.len ||
             memcmp( crl_list->issuer_raw.p, ca->subject_raw.p,
                     crl_list->issuer_raw.len ) != 0 )
         {
@@ -3086,6 +3090,168 @@ int x509_wildcard_verify( const char *cn, x509_buf *name )
     return( 0 );
 }
 
+static int x509parse_verify_top(
+                x509_cert *child, x509_cert *trust_ca,
+                x509_crl *ca_crl, int *path_cnt, int *flags,
+                int (*f_vrfy)(void *, x509_cert *, int, int *),
+                void *p_vrfy )
+{
+    int hash_id, ret;
+    int ca_flags = 0;
+    unsigned char hash[64];
+
+    if( x509parse_time_expired( &child->valid_to ) )
+        *flags |= BADCERT_EXPIRED;
+
+    /*
+     * Child is the top of the chain. Check against the trust_ca list.
+     */
+    *flags |= BADCERT_NOT_TRUSTED;
+
+    while( trust_ca != NULL )
+    {
+        if( trust_ca->version == 0 ||
+            child->issuer_raw.len != trust_ca->subject_raw.len ||
+            memcmp( child->issuer_raw.p, trust_ca->subject_raw.p,
+                    child->issuer_raw.len ) != 0 )
+        {
+            trust_ca = trust_ca->next;
+            continue;
+        }
+
+        if( trust_ca->max_pathlen > 0 &&
+            trust_ca->max_pathlen < *path_cnt )
+        {
+            trust_ca = trust_ca->next;
+            continue;
+        }
+
+        hash_id = child->sig_alg;
+
+        x509_hash( child->tbs.p, child->tbs.len, hash_id, hash );
+
+        if( rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, hash_id,
+                    0, hash, child->sig.p ) != 0 )
+        {
+            trust_ca = trust_ca->next;
+            continue;
+        }
+
+        /*
+         * Top of chain is signed by a trusted CA
+         */
+        *flags &= ~BADCERT_NOT_TRUSTED;
+        break;
+    }
+
+    if( trust_ca != NULL )
+    {
+        /* Check trusted CA's CRL for then chain's top crt */
+        *flags |= x509parse_verifycrl( child, trust_ca, ca_crl );
+
+        if( x509parse_time_expired( &trust_ca->valid_to ) )
+            ca_flags |= BADCERT_EXPIRED;
+
+        hash_id = trust_ca->sig_alg;
+
+        x509_hash( trust_ca->tbs.p, trust_ca->tbs.len, hash_id, hash );
+
+        if( rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, hash_id,
+                    0, hash, trust_ca->sig.p ) != 0 )
+        {
+            ca_flags |= BADCERT_NOT_TRUSTED;
+        }
+
+        if( NULL != f_vrfy )
+        {
+            if( ( ret = f_vrfy( p_vrfy, trust_ca, 0, &ca_flags ) ) != 0 )
+                return( ret );
+        }
+    }
+
+    /* Call callback on top cert */
+    if( NULL != f_vrfy )
+    {
+        if( ( ret = f_vrfy(p_vrfy, child, 1, flags ) ) != 0 )
+            return( ret );
+    }
+
+    *path_cnt = 2;
+
+    *flags |= ca_flags;
+
+    return( 0 );
+}
+
+static int x509parse_verify_child(
+                x509_cert *child, x509_cert *parent, x509_cert *trust_ca,
+                x509_crl *ca_crl, int *path_cnt, int *flags,
+                int (*f_vrfy)(void *, x509_cert *, int, int *),
+                void *p_vrfy )
+{
+    int hash_id, ret;
+    int parent_flags = 0;
+    unsigned char hash[64];
+    x509_cert *grandparent;
+
+    if( x509parse_time_expired( &child->valid_to ) )
+        *flags |= BADCERT_EXPIRED;
+
+    hash_id = child->sig_alg;
+
+    x509_hash( child->tbs.p, child->tbs.len, hash_id, hash );
+
+    if( rsa_pkcs1_verify( &parent->rsa, RSA_PUBLIC, hash_id, 0, hash,
+                           child->sig.p ) != 0 )
+        *flags |= BADCERT_NOT_TRUSTED;
+        
+    /* Check trusted CA's CRL for the given crt */
+    *flags |= x509parse_verifycrl(child, parent, ca_crl);
+
+    grandparent = parent->next;
+
+    while( grandparent != NULL )
+    {
+        if( grandparent->version == 0 ||
+            grandparent->ca_istrue == 0 ||
+            parent->issuer_raw.len != grandparent->subject_raw.len ||
+            memcmp( parent->issuer_raw.p, grandparent->subject_raw.p,
+                    parent->issuer_raw.len ) != 0 )
+        {
+            grandparent = grandparent->next;
+            continue;
+        }
+        break;
+    }
+
+    (*path_cnt)++;
+    if( grandparent != NULL )
+    {
+        /*
+         * Part of the chain
+         */
+        ret = x509parse_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt, &parent_flags, f_vrfy, p_vrfy );
+        if( ret != 0 )
+            return( ret );
+    } 
+    else
+    {
+        ret = x509parse_verify_top( parent, trust_ca, ca_crl, path_cnt, &parent_flags, f_vrfy, p_vrfy );
+        if( ret != 0 )
+            return( ret );
+    }
+
+    /* child is verified to be a child of the parent, call verify callback */
+    if( NULL != f_vrfy )
+        if( ( ret = f_vrfy( p_vrfy, child, *path_cnt, flags ) ) != 0 )
+            return( ret );
+    (*path_cnt)++;
+
+    *flags |= parent_flags;
+
+    return( 0 );
+}
+
 /*
  * Verify the certificate validity
  */
@@ -3093,21 +3259,17 @@ int x509parse_verify( x509_cert *crt,
                       x509_cert *trust_ca,
                       x509_crl *ca_crl,
                       const char *cn, int *flags,
-                      int (*f_vrfy)(void *, x509_cert *, int, int),
+                      int (*f_vrfy)(void *, x509_cert *, int, int *),
                       void *p_vrfy )
 {
     size_t cn_len;
-    int hash_id;
-    int pathlen;
+    int ret;
+    int pathlen = 1;
     x509_cert *parent;
     x509_name *name;
-    unsigned char hash[64];
     x509_sequence *cur = NULL;
 
     *flags = 0;
-
-    if( x509parse_time_expired( &crt->valid_to ) )
-        *flags = BADCERT_EXPIRED;
 
     if( cn != NULL )
     {
@@ -3161,12 +3323,10 @@ int x509parse_verify( x509_cert *crt,
     }
 
     /*
-     * Iterate upwards in the given cert chain,
-     * ignoring any upper cert with CA != TRUE.
+     * Iterate upwards in the given cert chain, to find our crt parent.
+     * Ignore any upper cert with CA != TRUE.
      */
     parent = crt->next;
-
-    pathlen = 1;
 
     while( parent != NULL && parent->version != 0 )
     {
@@ -3178,83 +3338,26 @@ int x509parse_verify( x509_cert *crt,
             parent = parent->next;
             continue;
         }
-
-        hash_id = crt->sig_alg;
-
-        x509_hash( crt->tbs.p, crt->tbs.len, hash_id, hash );
-
-        if( rsa_pkcs1_verify( &parent->rsa, RSA_PUBLIC, hash_id, 0, hash,
-                    crt->sig.p ) != 0 )
-            *flags |= BADCERT_NOT_TRUSTED;
-        
-        /* Check trusted CA's CRL for the given crt */
-        *flags |= x509parse_verifycrl(crt, parent, ca_crl);
-
-        /* crt is verified to be a child of the parent cur, call verify callback */
-        if( NULL != f_vrfy )
-        {
-            if( f_vrfy( p_vrfy, crt, pathlen - 1, ( *flags == 0 ) ) != 0 )
-                return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
-            else
-                *flags = 0;
-        }
-        else if( *flags != 0 )
-            return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
-
-        pathlen++;
-
-        crt = parent;
-        parent = crt->next;
+        break;
     }
 
-    /*
-     * Attempt to validate topmost cert with our CA chain.
-     */
-    *flags |= BADCERT_NOT_TRUSTED;
-
-    while( trust_ca != NULL && trust_ca->version != 0 )
+    if( parent != NULL )
     {
-        if( crt->issuer_raw.len != trust_ca->subject_raw.len ||
-            memcmp( crt->issuer_raw.p, trust_ca->subject_raw.p,
-                    crt->issuer_raw.len ) != 0 )
-        {
-            trust_ca = trust_ca->next;
-            continue;
-        }
-
-        if( trust_ca->max_pathlen > 0 &&
-            trust_ca->max_pathlen < pathlen )
-            break;
-
-        hash_id = crt->sig_alg;
-
-        x509_hash( crt->tbs.p, crt->tbs.len, hash_id, hash );
-
-        if( rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, hash_id,
-                              0, hash, crt->sig.p ) == 0 )
-        {
-            /*
-             * cert. is signed by a trusted CA
-             */
-            *flags &= ~BADCERT_NOT_TRUSTED;
-            break;
-        }
-
-        trust_ca = trust_ca->next;
-    }
-
-    /* Check trusted CA's CRL for the given crt */
-    *flags |= x509parse_verifycrl( crt, trust_ca, ca_crl );
-
-    /* Verification succeeded, call callback on top cert */
-    if( NULL != f_vrfy )
+        /*
+         * Part of the chain
+         */
+        ret = x509parse_verify_child( crt, parent, trust_ca, ca_crl, &pathlen, flags, f_vrfy, p_vrfy );
+        if( ret != 0 )
+            return( ret );
+    } 
+    else
     {
-        if( f_vrfy(p_vrfy, crt, pathlen-1, ( *flags == 0 ) ) != 0 ) 
-            return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
-        else
-            *flags = 0;
+        ret = x509parse_verify_top( crt, trust_ca, ca_crl, &pathlen, flags, f_vrfy, p_vrfy );
+        if( ret != 0 )
+            return( ret );
     }
-    else if( *flags != 0 )
+
+    if( *flags != 0 )
         return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
 
     return( 0 );

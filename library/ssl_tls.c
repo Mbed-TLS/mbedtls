@@ -2959,7 +2959,7 @@ void ssl_set_authmode( ssl_context *ssl, int authmode )
 }
 
 void ssl_set_verify( ssl_context *ssl,
-                     int (*f_vrfy)(void *, x509_cert *, int, int),
+                     int (*f_vrfy)(void *, x509_cert *, int, int *),
                      void *p_vrfy )
 {
     ssl->f_vrfy      = f_vrfy;

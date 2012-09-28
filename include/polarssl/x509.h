@@ -77,6 +77,7 @@
 #define BADCRL_EXPIRED              0x20  /**< CRL is expired. */
 #define BADCERT_MISSING             0x40  /**< Certificate was missing. */
 #define BADCERT_SKIP_VERIFY         0x80  /**< Certificate verification was skipped. */
+#define BADCERT_OTHER             0x0100  /**< Other reason (can be used by verify callback) */
 /* \} name */
 /* \} addtogroup x509_module */
 
@@ -310,7 +311,7 @@ typedef struct _x509_cert
 
     int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
-    int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. */
+    int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
 
     unsigned char key_usage;    /**< Optional key usage extension value: See the values below */
 
@@ -671,6 +672,20 @@ int x509parse_time_expired( const x509_time *time );
 /**
  * \brief          Verify the certificate signature
  *
+ *                 The verify callback is a user-supplied callback that
+ *                 can clear / modify / add flags for a certificate. If set,
+ *                 the verification callback is called for each
+ *                 certificate in the chain (from the trust-ca down to the
+ *                 presented crt). The parameters for the callback are:
+ *                 (void *parameter, x509_cert *crt, int certificate_depth,
+ *                 int *flags). With the flags representing current flags for
+ *                 that specific certificate and the certificate depth from
+ *                 the top (Trust CA depth = 0).
+ *
+ *                 All flags left after returning from the callback
+ *                 are also returned to the application. The function should
+ *                 return 0 for anything but a fatal error.
+ *
  * \param crt      a certificate to be verified
  * \param trust_ca the trusted CA chain
  * \param ca_crl   the CRL chain for trusted CA's
@@ -687,14 +702,14 @@ int x509parse_time_expired( const x509_time *time );
  *                      BADCERT_REVOKED --
  *                      BADCERT_CN_MISMATCH --
  *                      BADCERT_NOT_TRUSTED
- *
- * \note           TODO: add two arguments, depth and crl
+ *                 or another error in case of a fatal error encountered
+ *                 during the verification process.
  */
 int x509parse_verify( x509_cert *crt,
                       x509_cert *trust_ca,
                       x509_crl *ca_crl,
                       const char *cn, int *flags,
-                      int (*f_vrfy)(void *, x509_cert *, int, int),
+                      int (*f_vrfy)(void *, x509_cert *, int, int *),
                       void *p_vrfy );
 
 /**

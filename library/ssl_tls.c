@@ -2855,6 +2855,9 @@ int ssl_init( ssl_context *ssl )
     ssl->rsa_sign = ssl_rsa_sign;
     ssl->rsa_key_len = ssl_rsa_key_len;
 
+    ssl->min_major_ver = SSL_MAJOR_VERSION_3;
+    ssl->min_minor_ver = SSL_MINOR_VERSION_0;
+
 #if defined(POLARSSL_DHM_C)
     if( ( ret = mpi_read_string( &ssl->dhm_P, 16,
                                  POLARSSL_DHM_RFC5114_MODP_1024_P) ) != 0 ||
@@ -3131,6 +3134,12 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor )
 {
     ssl->max_major_ver = major;
     ssl->max_minor_ver = minor;
+}
+
+void ssl_set_min_version( ssl_context *ssl, int major, int minor )
+{
+    ssl->min_major_ver = major;
+    ssl->min_minor_ver = minor;
 }
 
 void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )

@@ -413,6 +413,18 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
     ssl->minor_ver = buf[5];
 
+    if( ssl->minor_ver < ssl->min_minor_ver )
+    {
+        SSL_DEBUG_MSG( 1, ( "server only supports ssl smaller than minimum"
+                            " [%d:%d] < [%d:%d]", ssl->major_ver, ssl->minor_ver,
+                            buf[4], buf[5] ) );
+
+        ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
+                                     SSL_ALERT_MSG_PROTOCOL_VERSION );
+
+        return( POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+    }
+
 #if defined(POLARSSL_DEBUG_C)
     t = ( (time_t) buf[6] << 24 )
       | ( (time_t) buf[7] << 16 )

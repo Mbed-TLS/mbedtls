@@ -90,6 +90,7 @@
 #define POLARSSL_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
 #define POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
 #define POLARSSL_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
+#define POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION           -0x6E80  /**< Handshake protocol not within min/max boundaries */
 
 /*
  * Various constants
@@ -389,6 +390,8 @@ struct _ssl_context
 
     int max_major_ver;          /*!< max. major version from client   */
     int max_minor_ver;          /*!< max. minor version from client   */
+    int min_minor_ver;          /*!< min. major version accepted      */
+    int min_major_ver;          /*!< min. minor version accepted      */
 
     /*
      * Callbacks (RNG, debug, I/O, verification)
@@ -827,6 +830,19 @@ void ssl_set_sni( ssl_context *ssl,
  *                 SSL_MINOR_VERSION_3 supported)
  */
 void ssl_set_max_version( ssl_context *ssl, int major, int minor );
+
+
+/**
+ * \brief          Set the minimum accepted SSL/TLS protocol version
+ *                 (Default: SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_0)
+ *
+ * \param ssl      SSL context
+ * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
+ * \param minor    Minor version number (SSL_MINOR_VERSION_0,
+ *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
+ *                 SSL_MINOR_VERSION_3 supported)
+ */
+void ssl_set_min_version( ssl_context *ssl, int major, int minor );
 
 /**
  * \brief          Enable / Disable renegotiation support for connection

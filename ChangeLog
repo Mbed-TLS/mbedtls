@@ -28,6 +28,7 @@ Features
    * Added predefined DHM groups from RFC 5114
    * Added simple SSL session cache implementation
    * Added ServerName extension parsing (SNI) at server side
+   * Added option to add minimum accepted SSL/TLS protocol version
 
 Changes
    * Removed redundant POLARSSL_DEBUG_MSG define

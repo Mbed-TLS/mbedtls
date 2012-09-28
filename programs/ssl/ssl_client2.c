@@ -52,6 +52,8 @@
 #define DFL_FORCE_CIPHER        0
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
+#define DFL_MIN_VERSION         -1
+#define DFL_MAX_VERSION         -1
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\n\r\n"
 
@@ -71,6 +73,8 @@ struct options
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
+    int min_version;            /* minimum protocol version accepted        */
+    int max_version;            /* maximum protocol version accepted        */
 } opt;
 
 void my_debug( void *ctx, int level, const char *str )
@@ -142,6 +146,12 @@ int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "    request_page=%%s     default: \".\"\n"             \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
+    "\n"                                                    \
+    "    min_version=%%s      default: \"\" (ssl3)\n"       \
+    "    max_version=%%s      default: \"\" (tls1_2)\n"     \
+    "    force_version=%%s    default: \"\" (none)\n"       \
+    "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
+    "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
@@ -215,6 +225,8 @@ int main( int argc, char *argv[] )
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
+    opt.min_version         = DFL_MIN_VERSION;
+    opt.max_version         = DFL_MAX_VERSION;
 
     for( i = 1; i < argc; i++ )
     {
@@ -269,6 +281,57 @@ int main( int argc, char *argv[] )
         {
             opt.allow_legacy = atoi( q );
             if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "min_version" ) == 0 )
+        {
+            if( strcmp( q, "ssl3" ) == 0 )
+                opt.min_version = SSL_MINOR_VERSION_0;
+            else if( strcmp( q, "tls1" ) == 0 )
+                opt.min_version = SSL_MINOR_VERSION_1;
+            else if( strcmp( q, "tls1_1" ) == 0 )
+                opt.min_version = SSL_MINOR_VERSION_2;
+            else if( strcmp( q, "tls1_2" ) == 0 )
+                opt.min_version = SSL_MINOR_VERSION_3;
+            else
+                goto usage;
+        }
+        else if( strcmp( p, "max_version" ) == 0 )
+        {
+            if( strcmp( q, "ssl3" ) == 0 )
+                opt.max_version = SSL_MINOR_VERSION_0;
+            else if( strcmp( q, "tls1" ) == 0 )
+                opt.max_version = SSL_MINOR_VERSION_1;
+            else if( strcmp( q, "tls1_1" ) == 0 )
+                opt.max_version = SSL_MINOR_VERSION_2;
+            else if( strcmp( q, "tls1_2" ) == 0 )
+                opt.max_version = SSL_MINOR_VERSION_3;
+            else
+                goto usage;
+        }
+        else if( strcmp( p, "force_version" ) == 0 )
+        {
+            if( strcmp( q, "ssl3" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_0;
+                opt.max_version = SSL_MINOR_VERSION_0;
+            }
+            else if( strcmp( q, "tls1" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_1;
+                opt.max_version = SSL_MINOR_VERSION_1;
+            }
+            else if( strcmp( q, "tls1_1" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_2;
+                opt.max_version = SSL_MINOR_VERSION_2;
+            }
+            else if( strcmp( q, "tls1_2" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_3;
+                opt.max_version = SSL_MINOR_VERSION_3;
+            }
+            else
                 goto usage;
         }
         else
@@ -424,6 +487,11 @@ int main( int argc, char *argv[] )
     ssl_set_own_cert( &ssl, &clicert, &rsa );
 
     ssl_set_hostname( &ssl, opt.server_name );
+
+    if( opt.min_version != -1 )
+        ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
+    if( opt.max_version != -1 )
+        ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
 
     /*
      * 4. Handshake

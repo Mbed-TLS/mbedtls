@@ -759,6 +759,7 @@ void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
+ *                 (Default: POLARSSL_DHM_RFC5114_MODP_1024_[PG])
  *
  * \param ssl      SSL context
  * \param dhm_P    Diffie-Hellman-Merkle modulus

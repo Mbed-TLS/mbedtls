@@ -388,6 +388,9 @@ int main( int argc, char *argv[] )
     ssl_set_own_cert( &ssl, &srvcert, &rsa );
 
 #if defined(POLARSSL_DHM_C)
+    /*
+     * Use different group than default DHM group
+     */
     ssl_set_dh_param( &ssl, POLARSSL_DHM_RFC5114_MODP_2048_P,
                             POLARSSL_DHM_RFC5114_MODP_2048_G );
 #endif

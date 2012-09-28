@@ -148,7 +148,6 @@ int main( int argc, char *argv[] )
 #endif
 
     int i;
-    size_t j, n;
     char *p, *q;
     const int *list;
 
@@ -193,14 +192,6 @@ int main( int argc, char *argv[] )
 
     for( i = 1; i < argc; i++ )
     {
-        n = strlen( argv[i] );
-
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
-
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;

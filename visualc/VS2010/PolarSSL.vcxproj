@@ -202,6 +202,7 @@
     <ClCompile Include="..\..\library\entropy.c" />
     <ClCompile Include="..\..\library\entropy_poll.c" />
     <ClCompile Include="..\..\library\error.c" />
+    <ClCompile Include="..\..\library\gcm.c" />
     <ClCompile Include="..\..\library\havege.c" />
     <ClCompile Include="..\..\library\md.c" />
     <ClCompile Include="..\..\library\md2.c" />
@@ -216,6 +217,7 @@
     <ClCompile Include="..\..\library\sha1.c" />
     <ClCompile Include="..\..\library\sha2.c" />
     <ClCompile Include="..\..\library\sha4.c" />
+    <ClCompile Include="..\..\library\ssl_cache.c" />
     <ClCompile Include="..\..\library\ssl_cli.c" />
     <ClCompile Include="..\..\library\ssl_srv.c" />
     <ClCompile Include="..\..\library\ssl_tls.c" />

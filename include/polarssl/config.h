@@ -90,7 +90,7 @@
 /**
  * \def POLARSSL_HAVE_SSE2
  *
- * CPI supports SSE2 instruction set.
+ * CPU supports SSE2 instruction set.
  *
  * Uncomment if the CPU supports SSE2 (IA-32 specific).
  *

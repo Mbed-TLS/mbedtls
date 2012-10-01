@@ -29,6 +29,13 @@
 
 #include <string.h>
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+
 #define AES_ENCRYPT     1
 #define AES_DECRYPT     0
 
@@ -41,8 +48,8 @@
 typedef struct
 {
     int nr;                     /*!<  number of rounds  */
-    unsigned long *rk;          /*!<  AES round keys    */
-    unsigned long buf[68];      /*!<  unaligned data    */
+    uint32_t *rk;               /*!<  AES round keys    */
+    uint32_t buf[68];           /*!<  unaligned data    */
 }
 aes_context;
 

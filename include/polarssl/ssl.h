@@ -330,8 +330,8 @@ struct _ssl_transform
     unsigned char mac_enc[32];          /*!<  MAC (encryption)        */
     unsigned char mac_dec[32];          /*!<  MAC (decryption)        */
 
-    unsigned long ctx_enc[134];         /*!<  encryption context      */
-    unsigned long ctx_dec[134];         /*!<  decryption context      */
+    uint32_t ctx_enc[134];              /*!<  encryption context      */
+    uint32_t ctx_dec[134];              /*!<  decryption context      */
 
     /*
      * Session specific compression layer

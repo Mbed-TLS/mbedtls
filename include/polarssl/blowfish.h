@@ -29,6 +29,13 @@
 
 #include <string.h>
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+
 #define BLOWFISH_ENCRYPT     1
 #define BLOWFISH_DECRYPT     0
 #define BLOWFISH_MAX_KEY     448
@@ -44,8 +51,8 @@
  */
 typedef struct
 {
-    unsigned long P[BLOWFISH_ROUNDS + 2];       /*!<  Blowfish round keys    */
-    unsigned long S[4][256];                    /*!<  key dependent S-boxes  */
+    uint32_t P[BLOWFISH_ROUNDS + 2];    /*!<  Blowfish round keys    */
+    uint32_t S[4][256];                 /*!<  key dependent S-boxes  */
 }
 blowfish_context;
 

@@ -33,6 +33,13 @@
 
 #include "md.h"
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+
 #define POLARSSL_ERR_PBKDF2_BAD_INPUT_DATA                 -0x007C  /**< Bad input parameters to function. */
 
 #ifdef __cplusplus
@@ -56,7 +63,7 @@ extern "C" {
 int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
                  size_t plen, const unsigned char *salt, size_t slen,
                  unsigned int iteration_count,
-                 unsigned long key_length, unsigned char *output );
+                 uint32_t key_length, unsigned char *output );
 
 
 /**

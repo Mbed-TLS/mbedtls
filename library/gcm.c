@@ -34,18 +34,18 @@
 /*
  * 32-bit integer manipulation macros (big endian)
  */
-#ifndef GET_ULONG_BE
-#define GET_ULONG_BE(n,b,i)                             \
+#ifndef GET_UINT32_BE
+#define GET_UINT32_BE(n,b,i)                            \
 {                                                       \
-    (n) = ( (unsigned long) (b)[(i)    ] << 24 )        \
-        | ( (unsigned long) (b)[(i) + 1] << 16 )        \
-        | ( (unsigned long) (b)[(i) + 2] <<  8 )        \
-        | ( (unsigned long) (b)[(i) + 3]       );       \
+    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
+        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
+        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
+        | ( (uint32_t) (b)[(i) + 3]       );            \
 }
 #endif
 
-#ifndef PUT_ULONG_BE
-#define PUT_ULONG_BE(n,b,i)                             \
+#ifndef PUT_UINT32_BE
+#define PUT_UINT32_BE(n,b,i)                            \
 {                                                       \
     (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
     (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
@@ -67,12 +67,12 @@ static void gcm_gen_table( gcm_context *ctx )
     ctx->HH[0] = 0;
     ctx->HL[0] = 0;
 
-    GET_ULONG_BE( hi, h,  0  );
-    GET_ULONG_BE( lo, h,  4  );
+    GET_UINT32_BE( hi, h,  0  );
+    GET_UINT32_BE( lo, h,  4  );
     vh = (uint64_t) hi << 32 | lo;
 
-    GET_ULONG_BE( hi, h,  8  );
-    GET_ULONG_BE( lo, h,  12 );
+    GET_UINT32_BE( hi, h,  8  );
+    GET_UINT32_BE( lo, h,  12 );
     vl = (uint64_t) hi << 32 | lo;
     
     ctx->HL[8] = vl;
@@ -165,10 +165,10 @@ void gcm_mult( gcm_context *ctx, const unsigned char x[16], unsigned char output
         zl ^= ctx->HL[hi];
     }
 
-    PUT_ULONG_BE( zh >> 32, output, 0 );
-    PUT_ULONG_BE( zh, output, 4 );
-    PUT_ULONG_BE( zl >> 32, output, 8 );
-    PUT_ULONG_BE( zl, output, 12 );
+    PUT_UINT32_BE( zh >> 32, output, 0 );
+    PUT_UINT32_BE( zh, output, 4 );
+    PUT_UINT32_BE( zl >> 32, output, 8 );
+    PUT_UINT32_BE( zl, output, 12 );
 }
 
 int gcm_crypt_and_tag( gcm_context *ctx,
@@ -219,7 +219,7 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     else
     {
         memset( work_buf, 0x00, 16 );
-        PUT_ULONG_BE( iv_len * 8, work_buf, 12 );
+        PUT_UINT32_BE( iv_len * 8, work_buf, 12 );
 
         p = iv;
         while( iv_len > 0 )
@@ -309,8 +309,8 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     {
         memset( work_buf, 0x00, 16 );
 
-        PUT_ULONG_BE( orig_add_len , work_buf, 4 );
-        PUT_ULONG_BE( orig_len , work_buf, 12 );
+        PUT_UINT32_BE( orig_add_len , work_buf, 4 );
+        PUT_UINT32_BE( orig_len , work_buf, 12 );
 
         ((uint64_t *) buf)[0] ^= ((uint64_t *) work_buf)[0];
         ((uint64_t *) buf)[1] ^= ((uint64_t *) work_buf)[1];

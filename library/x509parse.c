@@ -2704,7 +2704,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%sRSA key size  : %d bits\n", prefix,
-                   (int) crt->rsa.N.n * (int) sizeof( unsigned long ) * 8 );
+                   (int) crt->rsa.N.n * (int) sizeof( t_uint ) * 8 );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );

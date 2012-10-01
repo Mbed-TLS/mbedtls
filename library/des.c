@@ -38,18 +38,18 @@
 /*
  * 32-bit integer manipulation macros (big endian)
  */
-#ifndef GET_ULONG_BE
-#define GET_ULONG_BE(n,b,i)                             \
+#ifndef GET_UINT32_BE
+#define GET_UINT32_BE(n,b,i)                            \
 {                                                       \
-    (n) = ( (unsigned long) (b)[(i)    ] << 24 )        \
-        | ( (unsigned long) (b)[(i) + 1] << 16 )        \
-        | ( (unsigned long) (b)[(i) + 2] <<  8 )        \
-        | ( (unsigned long) (b)[(i) + 3]       );       \
+    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
+        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
+        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
+        | ( (uint32_t) (b)[(i) + 3]       );            \
 }
 #endif
 
-#ifndef PUT_ULONG_BE
-#define PUT_ULONG_BE(n,b,i)                             \
+#ifndef PUT_UINT32_BE
+#define PUT_UINT32_BE(n,b,i)                            \
 {                                                       \
     (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
     (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
@@ -61,7 +61,7 @@
 /*
  * Expanded DES S-boxes
  */
-static const unsigned long SB1[64] =
+static const uint32_t SB1[64] =
 {
     0x01010400, 0x00000000, 0x00010000, 0x01010404,
     0x01010004, 0x00010404, 0x00000004, 0x00010000,
@@ -81,7 +81,7 @@ static const unsigned long SB1[64] =
     0x00010004, 0x00010400, 0x00000000, 0x01010004
 };
 
-static const unsigned long SB2[64] =
+static const uint32_t SB2[64] =
 {
     0x80108020, 0x80008000, 0x00008000, 0x00108020,
     0x00100000, 0x00000020, 0x80100020, 0x80008020,
@@ -101,7 +101,7 @@ static const unsigned long SB2[64] =
     0x80000000, 0x80100020, 0x80108020, 0x00108000
 };
 
-static const unsigned long SB3[64] =
+static const uint32_t SB3[64] =
 {
     0x00000208, 0x08020200, 0x00000000, 0x08020008,
     0x08000200, 0x00000000, 0x00020208, 0x08000200,
@@ -121,7 +121,7 @@ static const unsigned long SB3[64] =
     0x00020208, 0x00000008, 0x08020008, 0x00020200
 };
 
-static const unsigned long SB4[64] =
+static const uint32_t SB4[64] =
 {
     0x00802001, 0x00002081, 0x00002081, 0x00000080,
     0x00802080, 0x00800081, 0x00800001, 0x00002001,
@@ -141,7 +141,7 @@ static const unsigned long SB4[64] =
     0x00000080, 0x00800000, 0x00002000, 0x00802080
 };
 
-static const unsigned long SB5[64] =
+static const uint32_t SB5[64] =
 {
     0x00000100, 0x02080100, 0x02080000, 0x42000100,
     0x00080000, 0x00000100, 0x40000000, 0x02080000,
@@ -161,7 +161,7 @@ static const unsigned long SB5[64] =
     0x00000000, 0x40080000, 0x02080100, 0x40000100
 };
 
-static const unsigned long SB6[64] =
+static const uint32_t SB6[64] =
 {
     0x20000010, 0x20400000, 0x00004000, 0x20404010,
     0x20400000, 0x00000010, 0x20404010, 0x00400000,
@@ -181,7 +181,7 @@ static const unsigned long SB6[64] =
     0x20404000, 0x20000000, 0x00400010, 0x20004010
 };
 
-static const unsigned long SB7[64] =
+static const uint32_t SB7[64] =
 {
     0x00200000, 0x04200002, 0x04000802, 0x00000000,
     0x00000800, 0x04000802, 0x00200802, 0x04200800,
@@ -201,7 +201,7 @@ static const unsigned long SB7[64] =
     0x04000002, 0x04000800, 0x00000800, 0x00200002
 };
 
-static const unsigned long SB8[64] =
+static const uint32_t SB8[64] =
 {
     0x10001040, 0x00001000, 0x00040000, 0x10041040,
     0x10000000, 0x10001040, 0x00000040, 0x10000000,
@@ -224,7 +224,7 @@ static const unsigned long SB8[64] =
 /*
  * PC1: left and right halves bit-swap
  */
-static const unsigned long LHs[16] =
+static const uint32_t LHs[16] =
 {
     0x00000000, 0x00000001, 0x00000100, 0x00000101,
     0x00010000, 0x00010001, 0x00010100, 0x00010101,
@@ -232,7 +232,7 @@ static const unsigned long LHs[16] =
     0x01010000, 0x01010001, 0x01010100, 0x01010101
 };
 
-static const unsigned long RHs[16] =
+static const uint32_t RHs[16] =
 {
     0x00000000, 0x01000000, 0x00010000, 0x01010000,
     0x00000100, 0x01000100, 0x00010100, 0x01010100,
@@ -286,7 +286,7 @@ static const unsigned long RHs[16] =
          SB1[ (T >> 24) & 0x3F ];               \
 }
 
-#define SWAP(a,b) { unsigned long t = a; a = b; b = t; t = 0; }
+#define SWAP(a,b) { uint32_t t = a; a = b; b = t; t = 0; }
 
 static const unsigned char odd_parity_table[128] = { 1,  2,  4,  7,  8,
         11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31, 32, 35, 37, 38, 41, 42, 44,
@@ -376,13 +376,13 @@ int des_key_check_weak( const unsigned char key[DES_KEY_SIZE] )
     return( 0 );
 }
 
-static void des_setkey( unsigned long SK[32], const unsigned char key[DES_KEY_SIZE] )
+static void des_setkey( uint32_t SK[32], const unsigned char key[DES_KEY_SIZE] )
 {
     int i;
-    unsigned long X, Y, T;
+    uint32_t X, Y, T;
 
-    GET_ULONG_BE( X, key, 0 );
-    GET_ULONG_BE( Y, key, 4 );
+    GET_UINT32_BE( X, key, 0 );
+    GET_UINT32_BE( Y, key, 4 );
 
     /*
      * Permuted Choice 1
@@ -473,8 +473,8 @@ int des_setkey_dec( des_context *ctx, const unsigned char key[DES_KEY_SIZE] )
     return( 0 );
 }
 
-static void des3_set2key( unsigned long esk[96],
-                          unsigned long dsk[96],
+static void des3_set2key( uint32_t esk[96],
+                          uint32_t dsk[96],
                           const unsigned char key[DES_KEY_SIZE*2] )
 {
     int i;
@@ -503,7 +503,7 @@ static void des3_set2key( unsigned long esk[96],
  */
 int des3_set2key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 2] )
 {
-    unsigned long sk[96];
+    uint32_t sk[96];
 
     des3_set2key( ctx->sk, sk, key );
     memset( sk,  0, sizeof( sk ) );
@@ -516,7 +516,7 @@ int des3_set2key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 
  */
 int des3_set2key_dec( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 2] )
 {
-    unsigned long sk[96];
+    uint32_t sk[96];
 
     des3_set2key( sk, ctx->sk, key );
     memset( sk,  0, sizeof( sk ) );
@@ -524,8 +524,8 @@ int des3_set2key_dec( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 
     return( 0 );
 }
 
-static void des3_set3key( unsigned long esk[96],
-                          unsigned long dsk[96],
+static void des3_set3key( uint32_t esk[96],
+                          uint32_t dsk[96],
                           const unsigned char key[24] )
 {
     int i;
@@ -552,7 +552,7 @@ static void des3_set3key( unsigned long esk[96],
  */
 int des3_set3key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 3] )
 {
-    unsigned long sk[96];
+    uint32_t sk[96];
 
     des3_set3key( ctx->sk, sk, key );
     memset( sk, 0, sizeof( sk ) );
@@ -565,7 +565,7 @@ int des3_set3key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 
  */
 int des3_set3key_dec( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 3] )
 {
-    unsigned long sk[96];
+    uint32_t sk[96];
 
     des3_set3key( sk, ctx->sk, key );
     memset( sk, 0, sizeof( sk ) );
@@ -581,12 +581,12 @@ int des_crypt_ecb( des_context *ctx,
                     unsigned char output[8] )
 {
     int i;
-    unsigned long X, Y, T, *SK;
+    uint32_t X, Y, T, *SK;
 
     SK = ctx->sk;
 
-    GET_ULONG_BE( X, input, 0 );
-    GET_ULONG_BE( Y, input, 4 );
+    GET_UINT32_BE( X, input, 0 );
+    GET_UINT32_BE( Y, input, 4 );
 
     DES_IP( X, Y );
 
@@ -598,8 +598,8 @@ int des_crypt_ecb( des_context *ctx,
 
     DES_FP( Y, X );
 
-    PUT_ULONG_BE( Y, output, 0 );
-    PUT_ULONG_BE( X, output, 4 );
+    PUT_UINT32_BE( Y, output, 0 );
+    PUT_UINT32_BE( X, output, 4 );
 
     return( 0 );
 }
@@ -664,12 +664,12 @@ int des3_crypt_ecb( des3_context *ctx,
                      unsigned char output[8] )
 {
     int i;
-    unsigned long X, Y, T, *SK;
+    uint32_t X, Y, T, *SK;
 
     SK = ctx->sk;
 
-    GET_ULONG_BE( X, input, 0 );
-    GET_ULONG_BE( Y, input, 4 );
+    GET_UINT32_BE( X, input, 0 );
+    GET_UINT32_BE( Y, input, 4 );
 
     DES_IP( X, Y );
 
@@ -693,8 +693,8 @@ int des3_crypt_ecb( des3_context *ctx,
 
     DES_FP( Y, X );
 
-    PUT_ULONG_BE( Y, output, 0 );
-    PUT_ULONG_BE( X, output, 4 );
+    PUT_UINT32_BE( Y, output, 0 );
+    PUT_UINT32_BE( X, output, 4 );
 
     return( 0 );
 }

@@ -29,6 +29,13 @@
 
 #include <string.h>
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+
 #define DES_ENCRYPT     1
 #define DES_DECRYPT     0
 
@@ -42,7 +49,7 @@
 typedef struct
 {
     int mode;                   /*!<  encrypt/decrypt   */
-    unsigned long sk[32];       /*!<  DES subkeys       */
+    uint32_t sk[32];            /*!<  DES subkeys       */
 }
 des_context;
 
@@ -52,7 +59,7 @@ des_context;
 typedef struct
 {
     int mode;                   /*!<  encrypt/decrypt   */
-    unsigned long sk[96];       /*!<  3DES subkeys      */
+    uint32_t sk[96];            /*!<  3DES subkeys      */
 }
 des3_context;
 

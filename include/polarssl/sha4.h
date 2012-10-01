@@ -29,23 +29,23 @@
 
 #include <string.h>
 
-#define POLARSSL_ERR_SHA4_FILE_IO_ERROR                -0x007A  /**< Read/write error in file. */
-
 #if defined(_MSC_VER) || defined(__WATCOMC__)
   #define UL64(x) x##ui64
-  #define long64 __int64
+  typedef unsigned __int64 uint64_t;
 #else
+  #include <inttypes.h>
   #define UL64(x) x##ULL
-  #define long64 long long
 #endif
+
+#define POLARSSL_ERR_SHA4_FILE_IO_ERROR                -0x007A  /**< Read/write error in file. */
 
 /**
  * \brief          SHA-512 context structure
  */
 typedef struct
 {
-    unsigned long64 total[2];    /*!< number of bytes processed  */
-    unsigned long64 state[8];    /*!< intermediate digest state  */
+    uint64_t total[2];          /*!< number of bytes processed  */
+    uint64_t state[8];          /*!< intermediate digest state  */
     unsigned char buffer[128];  /*!< data block being processed */
 
     unsigned char ipad[128];    /*!< HMAC: inner padding        */

@@ -76,6 +76,13 @@ static int wsa_init_done = 0;
 #include <stdio.h>
 #include <time.h>
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+
 /*
  * htons() is not always available.
  * By default go for LITTLE_ENDIAN variant. Otherwise hope for _BYTE_ORDER and __BIG_ENDIAN
@@ -179,10 +186,10 @@ int net_bind( int *fd, const char *bind_ip, int port )
 
         if( n == 4 )
             server_addr.sin_addr.s_addr =
-                ( (unsigned long) c[0] << 24 ) |
-                ( (unsigned long) c[1] << 16 ) |
-                ( (unsigned long) c[2] <<  8 ) |
-                ( (unsigned long) c[3]       );
+                ( (uint32_t) c[0] << 24 ) |
+                ( (uint32_t) c[1] << 16 ) |
+                ( (uint32_t) c[2] <<  8 ) |
+                ( (uint32_t) c[3]       );
     }
 
     if( bind( *fd, (struct sockaddr *) &server_addr,

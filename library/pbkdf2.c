@@ -42,7 +42,7 @@
 int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password, size_t plen,
                  const unsigned char *salt, size_t slen,
                  unsigned int iteration_count,
-                 unsigned long key_length, unsigned char *output )
+                 uint32_t key_length, unsigned char *output )
 {
     int ret, j;
     unsigned int i;
@@ -143,10 +143,10 @@ unsigned char salt[MAX_TESTS][40] =
     "sa\0lt",
 };
 
-unsigned long it_cnt[MAX_TESTS] =
+uint32_t it_cnt[MAX_TESTS] =
     { 1, 2, 4096, 16777216, 4096, 4096 };
 
-unsigned long key_len[MAX_TESTS] =
+uint32_t key_len[MAX_TESTS] =
     { 20, 20, 20, 20, 25, 16 };
 
 

@@ -38,18 +38,18 @@
 /*
  * 32-bit integer manipulation macros (big endian)
  */
-#ifndef GET_ULONG_BE
-#define GET_ULONG_BE(n,b,i)                             \
+#ifndef GET_UINT32_BE
+#define GET_UINT32_BE(n,b,i)                            \
 {                                                       \
-    (n) = ( (unsigned long) (b)[(i)    ] << 24 )        \
-        | ( (unsigned long) (b)[(i) + 1] << 16 )        \
-        | ( (unsigned long) (b)[(i) + 2] <<  8 )        \
-        | ( (unsigned long) (b)[(i) + 3]       );       \
+    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
+        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
+        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
+        | ( (uint32_t) (b)[(i) + 3]       );            \
 }
 #endif
 
-#ifndef PUT_ULONG_BE
-#define PUT_ULONG_BE(n,b,i)                             \
+#ifndef PUT_UINT32_BE
+#define PUT_UINT32_BE(n,b,i)                            \
 {                                                       \
     (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
     (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
@@ -59,13 +59,13 @@
 #endif
 
 /* declarations of data at the end of this file */
-static const unsigned long P[];
-static const unsigned long S[4][256];
+static const uint32_t P[];
+static const uint32_t S[4][256];
 
-static unsigned long F(blowfish_context *ctx, unsigned long x) 
+static uint32_t F(blowfish_context *ctx, uint32_t x) 
 {
    unsigned short a, b, c, d;
-   unsigned long  y;
+   uint32_t  y;
 
    d = (unsigned short)(x & 0xFF);
    x >>= 8;
@@ -81,9 +81,9 @@ static unsigned long F(blowfish_context *ctx, unsigned long x)
    return y;
 }
 
-static void blowfish_enc(blowfish_context *ctx, unsigned long *xl, unsigned long *xr) 
+static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr) 
 {
-    unsigned long  Xl, Xr, temp;
+    uint32_t  Xl, Xr, temp;
     short i;
 
     Xl = *xl;
@@ -110,9 +110,9 @@ static void blowfish_enc(blowfish_context *ctx, unsigned long *xl, unsigned long
     *xr = Xr;
 }
 
-static void blowfish_dec(blowfish_context *ctx, unsigned long *xl, unsigned long *xr) 
+static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr) 
 {
-    unsigned long  Xl, Xr, temp;
+    uint32_t  Xl, Xr, temp;
     short i;
 
     Xl = *xl;
@@ -145,7 +145,7 @@ static void blowfish_dec(blowfish_context *ctx, unsigned long *xl, unsigned long
 int blowfish_setkey( blowfish_context *ctx, const unsigned char *key, unsigned int keysize )
 {
     unsigned int i, j, k;
-    unsigned long data, datal, datar;
+    uint32_t data, datal, datar;
 
     if( keysize < BLOWFISH_MIN_KEY || keysize > BLOWFISH_MAX_KEY ||
         ( keysize % 8 ) ) 
@@ -204,10 +204,10 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
                     const unsigned char input[BLOWFISH_BLOCKSIZE],
                     unsigned char output[BLOWFISH_BLOCKSIZE] )
 {
-    unsigned long X0, X1;
+    uint32_t X0, X1;
 
-    GET_ULONG_BE( X0, input,  0 ); 
-    GET_ULONG_BE( X1, input,  4 ); 
+    GET_UINT32_BE( X0, input,  0 ); 
+    GET_UINT32_BE( X1, input,  4 ); 
 
     if( mode == BLOWFISH_DECRYPT )
     {
@@ -218,8 +218,8 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
         blowfish_enc(ctx, &X0, &X1);
     }
 
-    PUT_ULONG_BE( X0, output,  0 );
-    PUT_ULONG_BE( X1, output,  4 );
+    PUT_UINT32_BE( X0, output,  0 );
+    PUT_UINT32_BE( X1, output,  4 );
 
     return( 0 );
 }
@@ -360,7 +360,7 @@ int blowfish_crypt_ctr( blowfish_context *ctx,
 }
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 
-static const unsigned long P[BLOWFISH_ROUNDS + 2] = {
+static const uint32_t P[BLOWFISH_ROUNDS + 2] = {
         0x243F6A88L, 0x85A308D3L, 0x13198A2EL, 0x03707344L,
         0xA4093822L, 0x299F31D0L, 0x082EFA98L, 0xEC4E6C89L,
         0x452821E6L, 0x38D01377L, 0xBE5466CFL, 0x34E90C6CL,
@@ -368,7 +368,7 @@ static const unsigned long P[BLOWFISH_ROUNDS + 2] = {
         0x9216D5D9L, 0x8979FB1BL
 };
 
-static const unsigned long S[4][256] = {
+static const uint32_t S[4][256] = {
     {   0xD1310BA6L, 0x98DFB5ACL, 0x2FFD72DBL, 0xD01ADFB7L,
         0xB8E1AFEDL, 0x6A267E96L, 0xBA7C9045L, 0xF12C7F99L,
         0x24A19947L, 0xB3916CF7L, 0x0801F2E2L, 0x858EFC16L,

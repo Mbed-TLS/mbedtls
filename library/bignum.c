@@ -1102,7 +1102,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
             Z.p[i - t - 1] = ~0;
         else
         {
-#if defined(POLARSSL_HAVE_LONGLONG)
+#if defined(POLARSSL_HAVE_INT64)
             t_udbl r;
 
             r  = (t_udbl) X.p[i] << biL;

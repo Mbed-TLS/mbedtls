@@ -77,9 +77,9 @@ int padlock_xcryptecb( aes_context *ctx,
                        unsigned char output[16] )
 {
     int ebx;
-    unsigned long *rk;
-    unsigned long *blk;
-    unsigned long *ctrl;
+    uint32_t *rk;
+    uint32_t *blk;
+    uint32_t *ctrl;
     unsigned char buf[256];
 
     rk  = ctx->rk;
@@ -119,9 +119,9 @@ int padlock_xcryptcbc( aes_context *ctx,
 {
     int ebx;
     size_t count;
-    unsigned long *rk;
-    unsigned long *iw;
-    unsigned long *ctrl;
+    uint32_t *rk;
+    uint32_t *iw;
+    uint32_t *ctrl;
     unsigned char buf[256];
 
     if( ( (long) input  & 15 ) != 0 ||

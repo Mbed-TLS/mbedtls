@@ -29,6 +29,13 @@
 
 #include "polarssl/base64.h"
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+
 static const unsigned char base64_enc_map[64] =
 {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
@@ -126,8 +133,8 @@ int base64_encode( unsigned char *dst, size_t *dlen,
 int base64_decode( unsigned char *dst, size_t *dlen,
                    const unsigned char *src, size_t slen )
 {
-    size_t i, j, n;
-    unsigned long x;
+    size_t i, n;
+    uint32_t j, x;
     unsigned char *p;
 
     for( i = j = n = 0; i < slen; i++ )

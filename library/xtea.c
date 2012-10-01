@@ -32,18 +32,18 @@
 /*
  * 32-bit integer manipulation macros (big endian)
  */
-#ifndef GET_ULONG_BE
-#define GET_ULONG_BE(n,b,i)                             \
+#ifndef GET_UINT32_BE
+#define GET_UINT32_BE(n,b,i)                            \
 {                                                       \
-    (n) = ( (unsigned long) (b)[(i)    ] << 24 )        \
-        | ( (unsigned long) (b)[(i) + 1] << 16 )        \
-        | ( (unsigned long) (b)[(i) + 2] <<  8 )        \
-        | ( (unsigned long) (b)[(i) + 3]       );       \
+    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
+        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
+        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
+        | ( (uint32_t) (b)[(i) + 3]       );            \
 }
 #endif
 
-#ifndef PUT_ULONG_BE
-#define PUT_ULONG_BE(n,b,i)                             \
+#ifndef PUT_UINT32_BE
+#define PUT_UINT32_BE(n,b,i)                            \
 {                                                       \
     (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
     (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
@@ -63,7 +63,7 @@ void xtea_setup( xtea_context *ctx, unsigned char key[16] )
 
     for( i = 0; i < 4; i++ )
     {
-        GET_ULONG_BE( ctx->k[i], key, i << 2 );
+        GET_UINT32_BE( ctx->k[i], key, i << 2 );
     }
 }
 
@@ -77,8 +77,8 @@ int xtea_crypt_ecb( xtea_context *ctx, int mode, unsigned char input[8],
 
     k = ctx->k;
     
-    GET_ULONG_BE( v0, input, 0 );
-    GET_ULONG_BE( v1, input, 4 );
+    GET_UINT32_BE( v0, input, 0 );
+    GET_UINT32_BE( v1, input, 4 );
 
     if( mode == XTEA_ENCRYPT )
     {
@@ -103,8 +103,8 @@ int xtea_crypt_ecb( xtea_context *ctx, int mode, unsigned char input[8],
         }
     }
 
-    PUT_ULONG_BE( v0, output, 0 );
-    PUT_ULONG_BE( v1, output, 4 );
+    PUT_UINT32_BE( v0, output, 0 );
+    PUT_UINT32_BE( v1, output, 4 );
 
     return( 0 );
 }

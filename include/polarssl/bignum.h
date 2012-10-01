@@ -32,6 +32,16 @@
 
 #include "config.h"
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef  INT16  int16_t;
+typedef UINT16 uint16_t;
+typedef UINT32 uint32_t;
+typedef UINT64 uint64_t;
+#else
+#include <inttypes.h>
+#endif
+
 #define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
 #define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_MPI_INVALID_CHARACTER                 -0x0006  /**< There is an invalid character in the digit string. */
@@ -97,34 +107,29 @@
 #if defined(POLARSSL_HAVE_INT8)
 typedef   signed char  t_sint;
 typedef unsigned char  t_uint;
-typedef unsigned short t_udbl;
+typedef uint16_t       t_udbl;
 #else
 #if defined(POLARSSL_HAVE_INT16)
-typedef   signed short t_sint;
-typedef unsigned short t_uint;
-typedef unsigned long  t_udbl;
+typedef  int16_t t_sint;
+typedef uint16_t t_uint;
+typedef uint32_t t_udbl;
 #else
-  typedef   signed long t_sint;
-  typedef unsigned long t_uint;
-  #if defined(_MSC_VER) && defined(_M_IX86)
-  typedef unsigned __int64 t_udbl;
-  #else
-    #if defined(__GNUC__) && (                          \
+  typedef  int32_t t_sint;
+  typedef uint32_t t_uint;
+  #if ( defined(_MSC_VER) && defined(_M_IX86) )      || \
+      ( defined(__GNUC__) && (                          \
         defined(__amd64__) || defined(__x86_64__)    || \
         defined(__ppc64__) || defined(__powerpc64__) || \
         defined(__ia64__)  || defined(__alpha__)     || \
         (defined(__sparc__) && defined(__arch64__))  || \
-        defined(__s390x__) )
-    typedef unsigned int t_udbl __attribute__((mode(TI)));
-    #define POLARSSL_HAVE_LONGLONG
-    #else
-      #if defined(POLARSSL_HAVE_LONGLONG)
-      typedef unsigned long long t_udbl;
-      #endif
-    #endif
+        defined(__s390x__) ) )
+      #define POLARSSL_HAVE_INT64
   #endif
-#endif
-#endif
+  #if defined(POLARSSL_HAVE_INT64)
+    typedef uint64_t t_udbl;
+  #endif
+#endif /* POLARSSL_HAVE_INT16 */
+#endif /* POLARSSL_HAVE_INT8  */
 
 /**
  * \brief          MPI structure

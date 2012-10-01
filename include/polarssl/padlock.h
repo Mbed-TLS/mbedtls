@@ -37,12 +37,20 @@
 #define POLARSSL_HAVE_X86
 #endif
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef INT32 int32_t;
+#else
+#include <inttypes.h>
+#endif
+
+
 #define PADLOCK_RNG 0x000C
 #define PADLOCK_ACE 0x00C0
 #define PADLOCK_PHE 0x0C00
 #define PADLOCK_PMM 0x3000
 
-#define PADLOCK_ALIGN16(x) (unsigned long *) (16 + ((long) x & ~15))
+#define PADLOCK_ALIGN16(x) (uint32_t *) (16 + ((int32_t) x & ~15))
 
 #ifdef __cplusplus
 extern "C" {

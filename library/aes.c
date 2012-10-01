@@ -61,7 +61,8 @@
 }
 #endif
 
-#if defined(POLARSSL_PADLOCK_C)
+#if defined(POLARSSL_PADLOCK_C) &&                      \
+    ( defined(POLARSSL_HAVE_X86) || defined(PADLOCK_ALIGN16) )
 static int aes_padlock_ace = -1;
 #endif
 

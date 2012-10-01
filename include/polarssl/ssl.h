@@ -391,8 +391,8 @@ struct _ssl_context
 
     int max_major_ver;          /*!< max. major version from client   */
     int max_minor_ver;          /*!< max. minor version from client   */
-    int min_minor_ver;          /*!< min. major version accepted      */
-    int min_major_ver;          /*!< min. minor version accepted      */
+    int min_major_ver;          /*!< min. major version accepted      */
+    int min_minor_ver;          /*!< min. minor version accepted      */
 
     /*
      * Callbacks (RNG, debug, I/O, verification)

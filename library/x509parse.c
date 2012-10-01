@@ -1874,14 +1874,25 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 {
     int ret = 0;
 #if defined(_WIN32)
-    int t_ret;
-    TCHAR szDir[MAX_PATH];
-    WIN32_FIND_DATA file_data;
+    int w_ret;
+    WCHAR szDir[MAX_PATH];
+    char filename[MAX_PATH];
+	char *p;
+
+	WIN32_FIND_DATA file_data;
     HANDLE hFind;
     DWORD dwError = 0;
 
-    StringCchCopy(szDir, MAX_PATH, path);
-    StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
+	memset( szDir, 0, sizeof(szDir) );
+	memset( filename, 0, MAX_PATH );
+	memcpy( filename, path, strlen( path ) );
+	filename[strlen( path )] = '\\';
+	p = filename + strlen( path ) + 1;
+
+	w_ret = MultiByteToWideChar( CP_ACP, 0, path, strlen(path), szDir, MAX_PATH - 3 );
+
+	StringCchCopyW(szDir, MAX_PATH, szDir);
+    StringCchCatW(szDir, MAX_PATH, TEXT("\\*"));
 
     hFind = FindFirstFile( szDir, &file_data );
     if (hFind == INVALID_HANDLE_VALUE) 
@@ -1889,14 +1900,21 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 
     do
     {
+		memset( p, 0, filename + MAX_PATH - p - 1 );
+
         if( file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             continue;
 
-        t_ret = x509parse_crtfile( chain, entry_name );
-        if( t_ret < 0 )
-            return( t_ret );
+		w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
+									 lstrlenW(file_data.cFileName),
+									 p,
+									 filename + MAX_PATH - p - 2, NULL, NULL );
 
-        ret += t_ret;
+        w_ret = x509parse_crtfile( chain, filename );
+        if( w_ret < 0 )
+            return( w_ret );
+
+        ret += w_ret;
     }
     while( FindNextFile( hFind, &file_data ) != 0 );
 

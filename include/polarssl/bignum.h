@@ -109,25 +109,41 @@ typedef UINT64 uint64_t;
 typedef   signed char  t_sint;
 typedef unsigned char  t_uint;
 typedef uint16_t       t_udbl;
+#define POLARSSL_HAVE_UDBL
 #else
 #if defined(POLARSSL_HAVE_INT16)
 typedef  int16_t t_sint;
 typedef uint16_t t_uint;
 typedef uint32_t t_udbl;
+#define POLARSSL_HAVE_UDBL
 #else
-  typedef  int32_t t_sint;
-  typedef uint32_t t_uint;
-  #if ( defined(_MSC_VER) && defined(_M_IX86) )      || \
-      ( defined(__GNUC__) && (                          \
-        defined(__amd64__) || defined(__x86_64__)    || \
-        defined(__ppc64__) || defined(__powerpc64__) || \
-        defined(__ia64__)  || defined(__alpha__)     || \
-        (defined(__sparc__) && defined(__arch64__))  || \
-        defined(__s390x__) ) )
-      #define POLARSSL_HAVE_INT64
-  #endif
-  #if defined(POLARSSL_HAVE_INT64)
-    typedef uint64_t t_udbl;
+  #if ( defined(__MSC_VER) && defined(_M_AMD64) )
+    typedef  int64_t t_sint;
+    typedef uint64_t t_uint;
+  #else
+    #if ( defined(__GNUC__) && (                          \
+          defined(__amd64__) || defined(__x86_64__)    || \
+          defined(__ppc64__) || defined(__powerpc64__) || \
+          defined(__ia64__)  || defined(__alpha__)     || \
+          (defined(__sparc__) && defined(__arch64__))  || \
+          defined(__s390x__) ) )
+       typedef  int64_t t_sint;
+       typedef uint64_t t_uint;
+       typedef unsigned int t_udbl __attribute__((mode(TI)));
+       #define POLARSSL_HAVE_UDBL
+    #else
+       typedef  int32_t t_sint;
+       typedef uint32_t t_uint;
+       #if ( defined(_MSC_VER) && defined(_M_IX86) )
+         typedef uint64_t t_udbl;
+         #define POLARSSL_HAVE_UDBL
+       #else
+         #if defined( POLARSSL_HAVE_LONGLONG )
+           typedef unsigned long long t_udbl;
+           #define POLARSSL_HAVE_UDBL
+         #endif
+       #endif
+    #endif
   #endif
 #endif /* POLARSSL_HAVE_INT16 */
 #endif /* POLARSSL_HAVE_INT8  */

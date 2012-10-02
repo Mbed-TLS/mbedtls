@@ -61,14 +61,12 @@
  */
 
 /**
- * \def POLARSSL_HAVE_INT64
+ * \def POLARSSL_HAVE_LONGLONG
  *
- * The compiler supports the use of 64-bit types.
- * Code automatically enables on known working systems.
- *
- * Uncomment if the compiler supports 64-bit data types.
-#define POLARSSL_HAVE_INT64
+ * The compiler supports the 'long long' type.
+ * (Only used on 32-bit platforms)
  */
+#define POLARSSL_HAVE_LONGLONG
 
 /**
  * \def POLARSSL_HAVE_ASM

@@ -57,7 +57,7 @@ add_library(polarssl STATIC ${src})
 else(NOT USE_SHARED_POLARSSL_LIBRARY)
 
 add_library(polarssl SHARED ${src})
-set_target_properties(polarssl PROPERTIES VERSION 1.1.1 SOVERSION 1)
+set_target_properties(polarssl PROPERTIES VERSION 1.2.0 SOVERSION 2)
 
 endif(NOT USE_SHARED_POLARSSL_LIBRARY)
 

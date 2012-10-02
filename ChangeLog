@@ -70,6 +70,12 @@ Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
      Vanderbeken)
 
+= Version 1.1.4 released on 2012-05-31
+Bugfix
+   * Correctly handle empty SSL/TLS packets (Found by James Yonan)
+   * Fixed potential heap corruption in x509_name allocation
+   * Fixed single RSA test that failed on Big Endian systems (Closes ticket #54)
+
 = Version 1.1.3 released on 2012-04-29
 Bugfix
    * Fixed random MPI generation to not generate more size than requested.

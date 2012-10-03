@@ -1,7 +1,7 @@
 /*
  *  Diffie-Hellman-Merkle key exchange (prime generation)
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -70,6 +70,13 @@ int main( int argc, char *argv[] )
 
     mpi_init( &G ); mpi_init( &P ); mpi_init( &Q );
     mpi_read_string( &G, 10, GENERATOR );
+
+    printf( "\nWARNING: You should not generate and use your own DHM primes\n" );
+    printf( "         unless you are very certain of what you are doing!\n" );
+    printf( "         Failing to follow this instruction may result in\n" );
+    printf( "         weak security for your connections! Use the\n" );
+    printf( "         predefined DHM parameters from dhm.h instead!\n\n" );
+    printf( "============================================================\n\n" );
 
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );

@@ -67,7 +67,7 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     unsigned char hash[20];
-    unsigned char buf[512];
+    unsigned char buf[POLARSSL_MPI_MAX_SIZE];
     char filename[512];
     char *pers = "rsa_sign_pss";
 

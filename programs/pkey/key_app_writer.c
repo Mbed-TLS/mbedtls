@@ -77,20 +77,20 @@ void my_debug( void *ctx, int level, const char *str )
 void write_public_key( rsa_context *rsa, char *output_file )
 {
     FILE *f;
-    unsigned char output_buf[4096];
-    unsigned char base_buf[4096];
+    unsigned char output_buf[16000];
+    unsigned char base_buf[16000];
     unsigned char *c;
     int ret;
-    size_t len = 0, olen = 4096;
+    size_t len = 0, olen = 16000;
 
-    memset(output_buf, 0, 4096);
-    ret = x509_write_pubkey_der( output_buf, 4096, rsa );
+    memset(output_buf, 0, 16000);
+    ret = x509_write_pubkey_der( output_buf, 16000, rsa );
 
     if( ret < 0 )
         return;
 
     len = ret;
-    c = output_buf + 4095 - len;
+    c = output_buf + 15999 - len;
 
     base64_encode( base_buf, &olen, c, len );
 
@@ -114,19 +114,19 @@ void write_public_key( rsa_context *rsa, char *output_file )
 void write_private_key( rsa_context *rsa, char *output_file )
 {
     FILE *f;
-    unsigned char output_buf[4096];
-    unsigned char base_buf[4096];
+    unsigned char output_buf[16000];
+    unsigned char base_buf[16000];
     unsigned char *c;
     int ret;
-    size_t len = 0, olen = 4096;
+    size_t len = 0, olen = 16000;
 
-    memset(output_buf, 0, 4096);
-    ret = x509_write_key_der( output_buf, 4096, rsa );
+    memset(output_buf, 0, 16000);
+    ret = x509_write_key_der( output_buf, 16000, rsa );
     if( ret < 0 )
         return;
 
     len = ret;
-    c = output_buf + 4095 - len;
+    c = output_buf + 15999 - len;
 
     base64_encode( base_buf, &olen, c, len );
 
@@ -174,7 +174,7 @@ int main( int argc, char *argv[] )
     int ret = 0;
     rsa_context rsa;
     char buf[1024];
-    int i, j, n;
+    int i;
     char *p, *q;
 
     /*
@@ -198,14 +198,6 @@ int main( int argc, char *argv[] )
 
     for( i = 1; i < argc; i++ )
     {
-        n = strlen( argv[i] );
-
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
-
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;

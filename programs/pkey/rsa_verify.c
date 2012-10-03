@@ -54,7 +54,7 @@ int main( int argc, char *argv[] )
     size_t i;
     rsa_context rsa;
     unsigned char hash[20];
-    unsigned char buf[512];
+    unsigned char buf[POLARSSL_MPI_MAX_SIZE];
 
     ret = 1;
     if( argc != 2 )

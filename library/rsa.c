@@ -496,7 +496,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
     size_t ilen;
     unsigned char *p;
     unsigned char bt;
-    unsigned char buf[1024];
+    unsigned char buf[POLARSSL_MPI_MAX_SIZE];
 #if defined(POLARSSL_PKCS1_V21)
     unsigned char lhash[POLARSSL_MD_MAX_SIZE];
     unsigned int hlen;
@@ -862,7 +862,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
     int ret;
     size_t len, siglen;
     unsigned char *p, c;
-    unsigned char buf[1024];
+    unsigned char buf[POLARSSL_MPI_MAX_SIZE];
 #if defined(POLARSSL_PKCS1_V21)
     unsigned char result[POLARSSL_MD_MAX_SIZE];
     unsigned char zeros[8];

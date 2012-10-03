@@ -10,6 +10,9 @@ target_link_libraries(dh_server polarssl)
 add_executable(key_app key_app.c)
 target_link_libraries(key_app polarssl)
 
+add_executable(key_app_writer key_app_writer.c)
+target_link_libraries(key_app_writer polarssl)
+
 add_executable(mpi_demo mpi_demo.c)
 target_link_libraries(mpi_demo polarssl)
 

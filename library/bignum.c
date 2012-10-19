@@ -1087,7 +1087,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
 
     n = X.n - 1;
     t = Y.n - 1;
-    mpi_shift_l( &Y, biL * (n - t) );
+    MPI_CHK( mpi_shift_l( &Y, biL * (n - t) ) );
 
     while( mpi_cmp_mpi( &X, &Y ) >= 0 )
     {

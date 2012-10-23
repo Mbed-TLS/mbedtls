@@ -29,7 +29,8 @@
 
 #include "ssl.h"
 
-#define SSL_CACHE_DEFAULT_TIMEOUT 86400 /*!< 1 day  */
+#define SSL_CACHE_DEFAULT_TIMEOUT       86400   /*!< 1 day  */
+#define SSL_CACHE_DEFAULT_MAX_ENTRIES      50   /*!< Maximum entries in cache */
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,8 +54,9 @@ struct _ssl_cache_entry
  */
 struct _ssl_cache_context
 {
-    ssl_cache_entry *chain;     /*!< start of the chain */
-    int timeout;                /*!< cache timeout      */
+    ssl_cache_entry *chain;     /*!< start of the chain     */
+    int timeout;                /*!< cache entry timeout    */
+    int max_entries;            /*!< maximum entries        */
 };
 
 /**
@@ -90,6 +92,15 @@ int ssl_cache_set( void *data, const ssl_session *session );
  * \param timeout  cache entry timeout
  */
 void ssl_cache_set_timeout( ssl_cache_context *cache, int timeout );
+
+/**
+ * \brief          Set the cache timeout
+ *                 (Default: SSL_CACHE_DEFAULT_MAX_ENTRIES (50))
+ *
+ * \param cache    SSL cache context
+ * \param max      cache entry maximum
+ */
+void ssl_cache_set_max_entries( ssl_cache_context *cache, int max );
 
 /**
  * \brief          Free referenced items in a cache context and clear memory

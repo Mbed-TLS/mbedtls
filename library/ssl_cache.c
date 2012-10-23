@@ -40,6 +40,7 @@ void ssl_cache_init( ssl_cache_context *cache )
     memset( cache, 0, sizeof( ssl_cache_context ) );
 
     cache->timeout = SSL_CACHE_DEFAULT_TIMEOUT;
+    cache->max_entries = SSL_CACHE_DEFAULT_MAX_ENTRIES;
 }
 
 int ssl_cache_get( void *data, ssl_session *session )
@@ -78,15 +79,18 @@ int ssl_cache_get( void *data, ssl_session *session )
 
 int ssl_cache_set( void *data, const ssl_session *session )
 {
-    time_t t = time( NULL );
+    time_t t = time( NULL ), oldest = 0;
     ssl_cache_context *cache = (ssl_cache_context *) data;
-    ssl_cache_entry *cur, *prv;
+    ssl_cache_entry *cur, *prv, *old = NULL;
+    int count = 0;
 
     cur = cache->chain;
     prv = NULL;
 
     while( cur != NULL )
     {
+        count++;
+
         if( cache->timeout != 0 &&
             (int) ( t - cur->timestamp ) > cache->timeout )
         {
@@ -97,22 +101,39 @@ int ssl_cache_set( void *data, const ssl_session *session )
         if( memcmp( session->id, cur->session.id, cur->session.length ) == 0 )
             break; /* client reconnected, keep timestamp for session id */
 
+        if( oldest == 0 || cur->timestamp < oldest )
+        {
+            oldest = cur->timestamp;
+            old = cur;
+        }
+
         prv = cur;
         cur = cur->next;
     }
 
     if( cur == NULL )
     {
-        cur = (ssl_cache_entry *) malloc( sizeof( ssl_cache_entry ) );
-        if( cur == NULL )
-            return( 1 );
-
-        memset( cur, 0, sizeof( ssl_cache_entry ) );
-
-        if( prv == NULL )
-            cache->chain = cur;
+        /*
+         * Reuse oldest entry if max_entries reached
+         */
+        if( old != NULL && count >= cache->max_entries )
+        {
+            cur = old;
+            memset( &cur->session, 0, sizeof( ssl_session ) );
+        }
         else
-            prv->next = cur;
+        {
+            cur = (ssl_cache_entry *) malloc( sizeof( ssl_cache_entry ) );
+            if( cur == NULL )
+                return( 1 );
+
+            memset( cur, 0, sizeof( ssl_cache_entry ) );
+
+            if( prv == NULL )
+                cache->chain = cur;
+            else
+                prv->next = cur;
+        }
 
         cur->timestamp = t;
     }
@@ -131,6 +152,13 @@ void ssl_cache_set_timeout( ssl_cache_context *cache, int timeout )
     if( timeout < 0 ) timeout = 0;
 
     cache->timeout = timeout;
+}
+
+void ssl_cache_set_max_entries( ssl_cache_context *cache, int max )
+{
+    if( max < 0 ) max = 0;
+
+    cache->max_entries = max;
 }
 
 void ssl_cache_free( ssl_cache_context *cache )

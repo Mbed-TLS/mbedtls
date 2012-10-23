@@ -226,14 +226,8 @@ int gcm_crypt_and_tag( gcm_context *ctx,
         {
             use_len = ( iv_len < 16 ) ? iv_len : 16;
 
-            if( use_len == 16 )
-            {
-                ((uint64_t *) y)[0] ^= ((uint64_t *) p)[0];
-                ((uint64_t *) y)[1] ^= ((uint64_t *) p)[1];
-            }
-            else
-                for( i = 0; i < use_len; i++ )
-                    y[i] ^= p[i];
+            for( i = 0; i < use_len; i++ )
+                y[i] ^= p[i];
         
             gcm_mult( ctx, y, y );
 
@@ -241,8 +235,8 @@ int gcm_crypt_and_tag( gcm_context *ctx,
             p += use_len;
         }
 
-        ((uint64_t *) y)[0] ^= ((uint64_t *) work_buf)[0];
-        ((uint64_t *) y)[1] ^= ((uint64_t *) work_buf)[1];
+        for( i = 0; i < 16; i++ )
+            y[i] ^= work_buf[i];
 
         gcm_mult( ctx, y, y );
     }
@@ -255,14 +249,8 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     {
         use_len = ( add_len < 16 ) ? add_len : 16;
 
-        if( use_len == 16 )
-        {
-            ((uint64_t *) buf)[0] ^= ((uint64_t *) p)[0];
-            ((uint64_t *) buf)[1] ^= ((uint64_t *) p)[1];
-        }
-        else
-            for( i = 0; i < use_len; i++ )
-                buf[i] ^= p[i];
+        for( i = 0; i < use_len; i++ )
+            buf[i] ^= p[i];
         
         gcm_mult( ctx, buf, buf );
 
@@ -281,22 +269,11 @@ int gcm_crypt_and_tag( gcm_context *ctx,
 
         aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, y, ectr );
 
-        if( use_len == 16 )
+        for( i = 0; i < use_len; i++ )
         {
-            ((uint64_t *) out_p)[0] = ((uint64_t *) ectr)[0] ^
-                                      ((uint64_t *) p)[0];
-            ((uint64_t *) buf)[0] ^= ((uint64_t *) (*xor_p))[0];
-
-            ((uint64_t *) out_p)[1] = ((uint64_t *) ectr)[1] ^
-                                      ((uint64_t *) p)[1];
-            ((uint64_t *) buf)[1] ^= ((uint64_t *) (*xor_p))[1];
+            out_p[i] = ectr[i] ^ p[i];
+            buf[i] ^= (*xor_p)[i];
         }
-        else
-            for( i = 0; i < use_len; i++ )
-            {
-                out_p[i] = ectr[i] ^ p[i];
-                buf[i] ^= (*xor_p)[i];
-            }
         
         gcm_mult( ctx, buf, buf );
         
@@ -312,19 +289,13 @@ int gcm_crypt_and_tag( gcm_context *ctx,
         PUT_UINT32_BE( orig_add_len , work_buf, 4 );
         PUT_UINT32_BE( orig_len , work_buf, 12 );
 
-        ((uint64_t *) buf)[0] ^= ((uint64_t *) work_buf)[0];
-        ((uint64_t *) buf)[1] ^= ((uint64_t *) work_buf)[1];
+        for( i = 0; i < 16; i++ )
+            buf[i] ^= work_buf[i];
 
         gcm_mult( ctx, buf, buf );
 
-        if( tag_len == 16 )
-        {
-            ((uint64_t *) tag)[0] ^= ((uint64_t *) buf)[0];
-            ((uint64_t *) tag)[1] ^= ((uint64_t *) buf)[1];
-        }
-        else
-            for( i = 0; i < tag_len; i++ )
-                tag[i] ^= buf[i];
+        for( i = 0; i < tag_len; i++ )
+            tag[i] ^= buf[i];
     }
 
     return( 0 );

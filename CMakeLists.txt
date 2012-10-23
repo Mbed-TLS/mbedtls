@@ -4,9 +4,9 @@ project(POLARSSL C)
 enable_testing()
 
 if(CMAKE_COMPILER_IS_GNUCC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -Wdeclaration-after-statement")
-  set(CMAKE_C_FLAGS_DEBUG "-g -O0")
-  set(CMAKE_C_FLAGS_COVERAGE "-g -O0 -fprofile-arcs -ftest-coverage -lgcov")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
+  set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
+  set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 -fprofile-arcs -ftest-coverage -lgcov")
 endif(CMAKE_COMPILER_IS_GNUCC)
  
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")

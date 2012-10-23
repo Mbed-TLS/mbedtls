@@ -6,7 +6,7 @@
 CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement \
 			-Wno-unused-function -Wno-unused-value
 
-OFLAGS	= -O
+OFLAGS	= -O2
 LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
 
 ifdef DEBUG

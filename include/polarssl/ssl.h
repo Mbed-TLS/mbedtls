@@ -846,8 +846,12 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor );
 void ssl_set_min_version( ssl_context *ssl, int major, int minor );
 
 /**
- * \brief          Enable / Disable renegotiation support for connection
- *                 (Default: SSL_RENEGOTIATION_ENABLED)
+ * \brief          Enable / Disable renegotiation support for connection when
+ *                 initiated by peer
+ *                 (Default: SSL_RENEGOTIATION_DISABLED)
+ *
+ *                 Note: A server with support enabled is more vulnerable for a
+ *                 resource DoS by a malicious client.
  *
  * \param ssl      SSL context
  * \param renegotiation     Enable or disable (SSL_RENEGOTIATION_ENABLED or

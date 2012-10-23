@@ -68,7 +68,7 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
                         SSL_ALERT_MSG_UNRECOGNIZED_NAME );
                 return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
             }
-            break;
+            return( 0 );
         }
 
         servername_list_size -= hostname_len + 3;
@@ -298,7 +298,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     {
         SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]", ssl->major_ver, ssl->minor_ver,
-                            buf[4], buf[5] ) );
+                            ssl->min_major_ver, ssl->min_minor_ver ) );
 
         ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
                                      SSL_ALERT_MSG_PROTOCOL_VERSION );

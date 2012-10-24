@@ -406,7 +406,7 @@ int mpi_write_string( const mpi *X, int radix, char *s, size_t *slen )
                 if( c == 0 && k == 0 && ( i + j + 3 ) != 0 )
                     continue;
 
-                p += sprintf( p, "%02X", c );
+                p += snprintf( p, 2, "%02X", c );
                 k = 1;
             }
         }

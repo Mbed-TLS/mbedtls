@@ -373,7 +373,8 @@ struct _ssl_handshake_params
     size_t pmslen;                      /*!<  premaster length        */
 
     unsigned char randbytes[64];        /*!<  random bytes            */
-    unsigned char premaster[256];       /*!<  premaster secret        */
+    unsigned char premaster[POLARSSL_MPI_MAX_SIZE];
+                                        /*!<  premaster secret        */
 
     int resume;                         /*!<  session resume indicator*/
 };

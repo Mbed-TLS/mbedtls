@@ -68,7 +68,7 @@ int main( int argc, char *argv[] )
     int server_fd = -1;
 
     unsigned char *p, *end;
-    unsigned char buf[1024];
+    unsigned char buf[2048];
     unsigned char hash[20];
     char *pers = "dh_client";
 
@@ -179,7 +179,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( dhm.len < 64 || dhm.len > 256 )
+    if( dhm.len < 64 || dhm.len > 512 )
     {
         ret = 1;
         printf( " failed\n  ! Invalid DHM modulus size\n\n" );
@@ -218,7 +218,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     n = dhm.len;
-    if( ( ret = dhm_make_public( &dhm, 256, buf, n,
+    if( ( ret = dhm_make_public( &dhm, dhm.len, buf, n,
                                  ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         printf( " failed\n  ! dhm_make_public returned %d\n\n", ret );

@@ -68,7 +68,7 @@ int main( int argc, char *argv[] )
     int listen_fd = -1;
     int client_fd = -1;
 
-    unsigned char buf[1024];
+    unsigned char buf[2048];
     unsigned char hash[20];
     unsigned char buf2[2];
     char *pers = "dh_server";
@@ -181,7 +181,7 @@ int main( int argc, char *argv[] )
 
     memset( buf, 0, sizeof( buf ) );
 
-    if( ( ret = dhm_make_params( &dhm, 256, buf, &n,
+    if( ( ret = dhm_make_params( &dhm, mpi_size( &dhm.P ), buf, &n,
                                  ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         printf( " failed\n  ! dhm_make_params returned %d\n\n", ret );

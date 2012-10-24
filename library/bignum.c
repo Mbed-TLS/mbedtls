@@ -406,7 +406,8 @@ int mpi_write_string( const mpi *X, int radix, char *s, size_t *slen )
                 if( c == 0 && k == 0 && ( i + j + 3 ) != 0 )
                     continue;
 
-                p += snprintf( p, 2, "%02X", c );
+                *(p++) = "0123456789ABCDEF" [c % 16];
+                *(p++) = "0123456789ABCDEF" [c / 16];
                 k = 1;
             }
         }

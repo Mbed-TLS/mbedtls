@@ -141,7 +141,11 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
     while( sig_alg_list_size > 0 )
     {
         if( p[1] != SSL_SIG_RSA )
+        {
+            sig_alg_list_size -= 2;
+            p += 2;
             continue;
+        }
 #if defined(POLARSSL_SHA4_C)
         if( p[0] == SSL_HASH_SHA512 )
         {

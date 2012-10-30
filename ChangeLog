@@ -61,6 +61,7 @@ Bugfix
    * mpi_add_abs() now correctly handles adding short numbers to long numbers
      with carry rollover (found by Ruslan Yushchenko)
    * Handle existence of OpenSSL Trust Extensions at end of X.509 DER blob
+   * Fixed MPI assembly for SPARC64 platform
 
 Security
    * Fixed potential memory corruption on miscrafted client messages (found by

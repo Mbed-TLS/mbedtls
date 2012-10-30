@@ -3405,6 +3405,14 @@ const char *ssl_get_version( const ssl_context *ssl )
     return( "unknown" );
 }
 
+const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
+{
+    if( ssl == NULL || ssl->session == NULL )
+        return NULL;
+
+    return ssl->session->peer_cert;
+}
+
 const int ssl_default_ciphersuites[] =
 {
 #if defined(POLARSSL_DHM_C)

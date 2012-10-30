@@ -929,6 +929,22 @@ const char *ssl_get_ciphersuite( const ssl_context *ssl );
 const char *ssl_get_version( const ssl_context *ssl );
 
 /**
+ * \brief          Return the peer certificate from the current connection
+ *
+ *                 Note: Can be NULL in case no certificate was sent during
+ *                 the handshake. Different calls for the same connection can
+ *                 return the same or different pointers for the same
+ *                 certificate and even a different certificate altogether.
+ *                 The peer cert CAN change in a single connection if
+ *                 renegotiation is performed.
+ *
+ * \param ssl      SSL context
+ *
+ * \return         the current peer certificate
+ */
+const x509_cert *ssl_get_peer_cert( const ssl_context *ssl );
+
+/**
  * \brief          Perform the SSL handshake
  *
  * \param ssl      SSL context

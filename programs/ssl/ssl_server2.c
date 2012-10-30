@@ -501,7 +501,7 @@ reset:
     {
         printf( " failed\n" );
 
-        if( !ssl.session->peer_cert )
+        if( !ssl_get_peer_cert( &ssl ) )
             printf( "  ! no client certificate sent\n" );
 
         if( ( ret & BADCERT_EXPIRED ) != 0 )
@@ -518,11 +518,11 @@ reset:
     else
         printf( " ok\n" );
 
-    if( ssl.session->peer_cert )
+    if( ssl_get_peer_cert( &ssl ) )
     {
         printf( "  . Peer certificate information    ...\n" );
         x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                             ssl.session->peer_cert );
+                             ssl_get_peer_cert( &ssl ) );
         printf( "%s\n", buf );
     }
 

@@ -172,7 +172,7 @@ int do_handshake( ssl_context *ssl, struct options *opt )
 
     printf( "  . Peer certificate information    ...\n" );
     x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                         ssl->session->peer_cert );
+                         ssl_get_peer_cert( &ssl ) );
     printf( "%s\n", buf );
 
     return( 0 );

@@ -829,6 +829,18 @@
  * Caller:
  */
 #define POLARSSL_XTEA_C
+
+/**
+ * \def POLARSSL_ECP_C
+ *
+ * Enable the elliptic curve over GF(p) library.
+ *
+ * Module:  library/ecp.c
+ * Caller:
+ *
+ * Requires: POLARSSL_BIGNUM_C
+ */
+#define POLARSSL_ECP_C
 /* \} name */
 
 #endif /* config.h */

@@ -138,8 +138,6 @@ int main( int argc, char *argv[] )
     ssl_set_bio( &ssl, net_recv, &server_fd,
                        net_send, &server_fd );
 
-    ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
-
     /*
      * 3. Write the GET request
      */

@@ -54,90 +54,6 @@
     "<h2>PolarSSL Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n"
 
-/*
- * Sorted by order of preference
- */
-int my_ciphersuites[] =
-{
-#if defined(POLARSSL_DHM_C)
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_SHA2_C)
-    SSL_EDH_RSA_AES_256_SHA256,
-    SSL_EDH_RSA_AES_128_SHA256,
-#endif /* POLARSSL_SHA2_C */
-    SSL_EDH_RSA_AES_256_SHA,
-    SSL_EDH_RSA_AES_128_SHA,
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
-    SSL_EDH_RSA_AES_256_GCM_SHA384,
-#endif
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
-    SSL_EDH_RSA_AES_128_GCM_SHA256,
-#endif
-#endif
-#if defined(POLARSSL_CAMELLIA_C)
-#if defined(POLARSSL_SHA2_C)
-    SSL_EDH_RSA_CAMELLIA_256_SHA256,
-    SSL_EDH_RSA_CAMELLIA_128_SHA256,
-#endif /* POLARSSL_SHA2_C */
-    SSL_EDH_RSA_CAMELLIA_256_SHA,
-    SSL_EDH_RSA_CAMELLIA_128_SHA,
-#endif
-#if defined(POLARSSL_DES_C)
-    SSL_EDH_RSA_DES_168_SHA,
-#endif
-#endif
-
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_SHA2_C)
-    SSL_RSA_AES_256_SHA256,
-#endif /* POLARSSL_SHA2_C */
-    SSL_RSA_AES_256_SHA,
-#endif
-#if defined(POLARSSL_CAMELLIA_C)
-#if defined(POLARSSL_SHA2_C)
-    SSL_RSA_CAMELLIA_256_SHA256,
-#endif /* POLARSSL_SHA2_C */
-    SSL_RSA_CAMELLIA_256_SHA,
-#endif
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_SHA2_C)
-    SSL_RSA_AES_128_SHA256,
-#endif /* POLARSSL_SHA2_C */
-    SSL_RSA_AES_128_SHA,
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
-    SSL_RSA_AES_256_GCM_SHA384,
-#endif
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
-    SSL_RSA_AES_128_GCM_SHA256,
-#endif
-#endif
-#if defined(POLARSSL_CAMELLIA_C)
-#if defined(POLARSSL_SHA2_C)
-    SSL_RSA_CAMELLIA_128_SHA256,
-#endif /* POLARSSL_SHA2_C */
-    SSL_RSA_CAMELLIA_128_SHA,
-#endif
-#if defined(POLARSSL_DES_C)
-    SSL_RSA_DES_168_SHA,
-#endif
-#if defined(POLARSSL_ARC4_C)
-    SSL_RSA_RC4_128_SHA,
-    SSL_RSA_RC4_128_MD5,
-#endif
-#if defined(POLARSSL_ENABLE_WEAK_CIPHERSUITES)
-#if defined(POLARSSL_DES_C)
-    SSL_EDH_RSA_DES_SHA,
-    SSL_RSA_DES_SHA,
-#endif
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    SSL_RSA_NULL_MD5,
-    SSL_RSA_NULL_SHA,
-    SSL_RSA_NULL_SHA256,
-#endif
-#endif
-    0
-};
-
 #define DEBUG_LEVEL 0
 
 void my_debug( void *ctx, int level, const char *str )
@@ -281,8 +197,6 @@ int main( int argc, char *argv[] )
     ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
                                  ssl_cache_set, &cache );
 #endif
-
-    ssl_set_ciphersuites( &ssl, my_ciphersuites );
 
     ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
     ssl_set_own_cert( &ssl, &srvcert, &rsa );

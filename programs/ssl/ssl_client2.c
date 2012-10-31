@@ -475,9 +475,7 @@ int main( int argc, char *argv[] )
     ssl_set_bio( &ssl, net_recv, &server_fd,
                        net_send, &server_fd );
 
-    if( opt.force_ciphersuite[0] == DFL_FORCE_CIPHER )
-        ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
-    else
+    if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 
     ssl_set_renegotiation( &ssl, opt.renegotiation );

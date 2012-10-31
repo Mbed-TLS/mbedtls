@@ -636,18 +636,18 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 
-    if( ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_DES_SHA &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_DES_168_SHA &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_128_SHA &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_256_SHA &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_128_SHA256 &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_256_SHA256 &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_CAMELLIA_128_SHA256 &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_CAMELLIA_256_SHA256 &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_128_GCM_SHA256 &&
-        ssl->session_negotiate->ciphersuite != SSL_EDH_RSA_AES_256_GCM_SHA384 )
+    if( ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_DES_CBC_SHA &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_128_CBC_SHA &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_256_CBC_SHA &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 &&
+        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;
@@ -973,18 +973,18 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write client key exchange" ) );
 
-    if( ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_DES_SHA ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_DES_168_SHA ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_128_SHA ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_SHA ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_128_SHA256 ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_SHA256 ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_CAMELLIA_128_SHA256 ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_CAMELLIA_256_SHA256 ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_128_GCM_SHA256 ||
-        ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+    if( ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_DES_CBC_SHA ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_128_CBC_SHA ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_CBC_SHA ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ||
+        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm in not available" ) );
@@ -1108,8 +1108,8 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         // Certificate Request according to RFC 5246. But OpenSSL only allows
         // SHA256 and SHA384. Find out why OpenSSL does this.
         //
-        if( ssl->session_negotiate->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
-            ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+        if( ssl->session_negotiate->ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
+            ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
         {
             hash_id = SIG_RSA_SHA384;
             hashlen = 48;
@@ -1141,8 +1141,8 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         // Certificate Request according to RFC 5246. But OpenSSL only allows
         // SHA256 and SHA384. Find out why OpenSSL does this.
         //
-        if( ssl->session_negotiate->ciphersuite == SSL_RSA_AES_256_GCM_SHA384 ||
-            ssl->session_negotiate->ciphersuite == SSL_EDH_RSA_AES_256_GCM_SHA384 )
+        if( ssl->session_negotiate->ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
+            ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
         {
             ssl->out_msg[4] = SSL_HASH_SHA384;
             ssl->out_msg[5] = SSL_SIG_RSA;

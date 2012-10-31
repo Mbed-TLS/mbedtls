@@ -140,42 +140,42 @@
 #define SSL_BUFFER_LEN (SSL_MAX_CONTENT_LEN + SSL_COMPRESSION_ADD + 512)
 
 /*
- * Supported ciphersuites
+ * Supported ciphersuites (Official IANA names)
  */
-#define SSL_RSA_NULL_MD5             0x01   /**< Weak! */
-#define SSL_RSA_NULL_SHA             0x02   /**< Weak! */
-#define SSL_RSA_NULL_SHA256          0x3B   /**< Weak! */
-#define SSL_RSA_DES_SHA              0x09   /**< Weak! Not in TLS 1.2 */
-#define SSL_EDH_RSA_DES_SHA          0x15   /**< Weak! Not in TLS 1.2 */
+#define TLS_RSA_WITH_NULL_MD5                    0x01   /**< Weak! */
+#define TLS_RSA_WITH_NULL_SHA                    0x02   /**< Weak! */
+#define TLS_RSA_WITH_NULL_SHA256                 0x3B   /**< Weak! */
+#define TLS_RSA_WITH_DES_CBC_SHA                 0x09   /**< Weak! Not in TLS 1.2 */
+#define TLS_DHE_RSA_WITH_DES_CBC_SHA             0x15   /**< Weak! Not in TLS 1.2 */
 
-#define SSL_RSA_RC4_128_MD5          0x04
-#define SSL_RSA_RC4_128_SHA          0x05
+#define TLS_RSA_WITH_RC4_128_MD5                 0x04
+#define TLS_RSA_WITH_RC4_128_SHA                 0x05
 
-#define SSL_RSA_DES_168_SHA          0x0A
-#define SSL_EDH_RSA_DES_168_SHA      0x16
+#define TLS_RSA_WITH_3DES_EDE_CBC_SHA            0x0A
+#define TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA        0x16
 
-#define SSL_RSA_AES_128_SHA          0x2F
-#define SSL_EDH_RSA_AES_128_SHA      0x33
-#define SSL_RSA_AES_256_SHA          0x35
-#define SSL_EDH_RSA_AES_256_SHA      0x39
-#define SSL_RSA_AES_128_SHA256       0x3C   /**< TLS 1.2 */
-#define SSL_RSA_AES_256_SHA256       0x3D   /**< TLS 1.2 */
-#define SSL_EDH_RSA_AES_128_SHA256   0x67   /**< TLS 1.2 */
-#define SSL_EDH_RSA_AES_256_SHA256   0x6B   /**< TLS 1.2 */
+#define TLS_RSA_WITH_AES_128_CBC_SHA             0x2F
+#define TLS_DHE_RSA_WITH_AES_128_CBC_SHA         0x33
+#define TLS_RSA_WITH_AES_256_CBC_SHA             0x35
+#define TLS_DHE_RSA_WITH_AES_256_CBC_SHA         0x39
+#define TLS_RSA_WITH_AES_128_CBC_SHA256          0x3C   /**< TLS 1.2 */
+#define TLS_RSA_WITH_AES_256_CBC_SHA256          0x3D   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_128_CBC_SHA256      0x67   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_256_CBC_SHA256      0x6B   /**< TLS 1.2 */
 
-#define SSL_RSA_CAMELLIA_128_SHA        0x41
-#define SSL_EDH_RSA_CAMELLIA_128_SHA    0x45
-#define SSL_RSA_CAMELLIA_256_SHA        0x84
-#define SSL_EDH_RSA_CAMELLIA_256_SHA    0x88
-#define SSL_RSA_CAMELLIA_128_SHA256     0xBA   /**< TLS 1.2 */
-#define SSL_EDH_RSA_CAMELLIA_128_SHA256 0xBE   /**< TLS 1.2 */
-#define SSL_RSA_CAMELLIA_256_SHA256     0xC0   /**< TLS 1.2 */
-#define SSL_EDH_RSA_CAMELLIA_256_SHA256 0xC4   /**< TLS 1.2 */
+#define TLS_RSA_WITH_CAMELLIA_128_CBC_SHA        0x41
+#define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA    0x45
+#define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA        0x84
+#define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA    0x88
+#define TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256     0xBA   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 0xBE   /**< TLS 1.2 */
+#define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256     0xC0   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 0xC4   /**< TLS 1.2 */
 
-#define SSL_RSA_AES_128_GCM_SHA256      0x9C
-#define SSL_RSA_AES_256_GCM_SHA384      0x9D
-#define SSL_EDH_RSA_AES_128_GCM_SHA256  0x9E
-#define SSL_EDH_RSA_AES_256_GCM_SHA384  0x9F
+#define TLS_RSA_WITH_AES_128_GCM_SHA256          0x9C
+#define TLS_RSA_WITH_AES_256_GCM_SHA384          0x9D
+#define TLS_DHE_RSA_WITH_AES_128_GCM_SHA256      0x9E
+#define TLS_DHE_RSA_WITH_AES_256_GCM_SHA384      0x9F
 
 #define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */ 
 

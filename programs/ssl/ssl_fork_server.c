@@ -78,42 +78,6 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-/*
- * Computing a "safe" DH-1024 prime can take a very
- * long time, so a precomputed value is provided below.
- * You may run dh_genprime to generate a new value.
- */
-char *my_dhm_P = 
-    "E4004C1F94182000103D883A448B3F80" \
-    "2CE4B44A83301270002C20D0321CFD00" \
-    "11CCEF784C26A400F43DFB901BCA7538" \
-    "F2C6B176001CF5A0FD16D2C48B1D0C1C" \
-    "F6AC8E1DA6BCC3B4E1F96B0564965300" \
-    "FFA1D0B601EB2800F489AA512C4B248C" \
-    "01F76949A60BB7F00A40B1EAB64BDD48" \
-    "E8A700D60B7F1200FA8E77B0A979DABF";
-
-char *my_dhm_G = "4";
-
-/*
- * Sorted by order of preference
- */
-int my_ciphersuites[] =
-{
-    SSL_EDH_RSA_AES_256_SHA,
-    SSL_EDH_RSA_CAMELLIA_256_SHA,
-    SSL_EDH_RSA_AES_128_SHA,
-    SSL_EDH_RSA_CAMELLIA_128_SHA,
-    SSL_EDH_RSA_DES_168_SHA,
-    SSL_RSA_AES_256_SHA,
-    SSL_RSA_CAMELLIA_256_SHA,
-    SSL_RSA_AES_128_SHA,
-    SSL_RSA_CAMELLIA_128_SHA,
-    SSL_RSA_DES_168_SHA,
-    SSL_RSA_RC4_128_SHA,
-    SSL_RSA_RC4_128_MD5,
-    0
-};
 
 #define DEBUG_LEVEL 0
 
@@ -295,13 +259,8 @@ int main( int argc, char *argv[] )
         ssl_set_bio( &ssl, net_recv, &client_fd,
                            net_send, &client_fd );
 
-        ssl_set_ciphersuites( &ssl, my_ciphersuites );
-
         ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
         ssl_set_own_cert( &ssl, &srvcert, &rsa );
-#if defined(POLARSSL_DHM_C)
-        ssl_set_dh_param( &ssl, my_dhm_P, my_dhm_G );
-#endif
 
         /*
          * 5. Handshake

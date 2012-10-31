@@ -46,6 +46,7 @@ Changes
      in SSL/TLS
    * Revamped x509_verify() and the SSL f_vrfy callback implementations
    * Moved from unsigned long to fixed width uint32_t types throughout code
+   * Renamed ciphersuites naming scheme to IANA reserved names
 
 Bugfix
    * Fixed handling error in mpi_cmp_mpi() on longer B values (found by

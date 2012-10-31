@@ -137,9 +137,9 @@
  *
  * Requires POLARSSL_ENABLE_WEAK_CIPHERSUITES as well to enable
  * the following ciphersuites:
- *      SSL_RSA_NULL_MD5
- *      SSL_RSA_NULL_SHA
- *      SSL_RSA_NULL_SHA256
+ *      TLS_RSA_WITH_NULL_MD5
+ *      TLS_RSA_WITH_NULL_SHA
+ *      TLS_RSA_WITH_NULL_SHA256
  *
  * Uncomment this macro to enable the NULL cipher and ciphersuites
 #define POLARSSL_CIPHER_NULL_CIPHER
@@ -148,13 +148,13 @@
 /**
  * \def POLARSSL_ENABLE_WEAK_CIPHERSUITES
  *
- * Enable weak ciphersuites in SSL / TLS (like RC4_40)
+ * Enable weak ciphersuites in SSL / TLS
  * Warning: Only do so when you know what you are doing. This allows for
  * channels without virtually no security at all!
  *
  * This enables the following ciphersuites:
- *      SSL_RSA_DES_SHA
- *      SSL_EDH_RSA_DES_SHA
+ *      TLS_RSA_WITH_DES_CBC_SHA
+ *      TLS_DHE_RSA_WITH_DES_CBC_SHA
  *
  * Uncomment this macro to enable weak ciphersuites
 #define POLARSSL_ENABLE_WEAK_CIPHERSUITES
@@ -282,10 +282,18 @@
  *          library/pem.c
  *          library/ctr_drbg.c
  *
- * This module enables the following ciphersuites:
- *      SSL_RSA_AES_128_SHA
- *      SSL_RSA_AES_256_SHA
- *      SSL_EDH_RSA_AES_256_SHA
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_RSA_WITH_AES_128_CBC_SHA
+ *      TLS_RSA_WITH_AES_256_CBC_SHA
+ *      TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+ *      TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+ *      TLS_RSA_WITH_AES_128_CBC_SHA256
+ *      TLS_RSA_WITH_AES_256_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+ *      TLS_RSA_WITH_AES_128_GCM_SHA256
+ *      TLS_RSA_WITH_AES_256_GCM_SHA384
  */
 #define POLARSSL_AES_C
 
@@ -298,8 +306,8 @@
  * Caller:  library/ssl_tls.c
  *
  * This module enables the following ciphersuites:
- *      SSL_RSA_RC4_128_MD5
- *      SSL_RSA_RC4_128_SHA
+ *      TLS_RSA_WITH_RC4_128_MD5
+ *      TLS_RSA_WITH_RC4_128_SHA
  */
 #define POLARSSL_ARC4_C
 
@@ -366,10 +374,16 @@
  * Module:  library/camellia.c
  * Caller:  library/ssl_tls.c
  *
- * This module enabled the following cipher suites:
- *      SSL_RSA_CAMELLIA_128_SHA
- *      SSL_RSA_CAMELLIA_256_SHA
- *      SSL_EDH_RSA_CAMELLIA_256_SHA
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
+ *      TLS_RSA_WITH_CAMELLIA_256_CBC_SHA
+ *      TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA
+ *      TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA
+ *      TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256
  */
 #define POLARSSL_CAMELLIA_C
 
@@ -433,9 +447,10 @@
  * Module:  library/des.c
  * Caller:  library/ssl_tls.c
  *
- * This module enables the following ciphersuites:
- *      SSL_RSA_DES_168_SHA
- *      SSL_EDH_RSA_DES_168_SHA
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_RSA_WITH_3DES_EDE_CBC_SHA
+ *      TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
  */
 #define POLARSSL_DES_C
 
@@ -448,10 +463,20 @@
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * This module enables the following ciphersuites:
- *      SSL_EDH_RSA_DES_168_SHA
- *      SSL_EDH_RSA_AES_256_SHA
- *      SSL_EDH_RSA_CAMELLIA_256_SHA
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_DHE_RSA_WITH_DES_CBC_SHA
+ *      TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+ *      TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+ *      TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+ *      TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA
+ *      TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA
+ *      TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+ *      TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
  */
 #define POLARSSL_DHM_C
 
@@ -489,6 +514,11 @@
  * Module:  library/gcm.c
  *
  * Requires: POLARSSL_AES_C
+ *
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_RSA_WITH_AES_128_GCM_SHA256
+ *      TLS_RSA_WITH_AES_256_GCM_SHA384
  */
 #define POLARSSL_GCM_C
 

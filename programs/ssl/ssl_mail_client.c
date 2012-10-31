@@ -172,7 +172,7 @@ int do_handshake( ssl_context *ssl, struct options *opt )
 
     printf( "  . Peer certificate information    ...\n" );
     x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                         ssl_get_peer_cert( &ssl ) );
+                         ssl_get_peer_cert( ssl ) );
     printf( "%s\n", buf );
 
     return( 0 );
@@ -588,9 +588,7 @@ int main( int argc, char *argv[] )
     ssl_set_bio( &ssl, net_recv, &server_fd,
             net_send, &server_fd );
 
-    if( opt.force_ciphersuite[0] == DFL_FORCE_CIPHER )
-        ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
-    else
+    if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );

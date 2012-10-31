@@ -92,6 +92,96 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
+/*
+ * Sorted by order of preference
+ */
+int my_ciphersuites[] =
+{
+#if defined(POLARSSL_DHM_C)
+#if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_SHA2_C)
+    TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+#endif /* POLARSSL_SHA2_C */
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
+    TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+#endif
+    TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+#if defined(POLARSSL_SHA2_C)
+    TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
+#endif
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+    TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+#endif
+    TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_SHA2_C)
+    TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256,
+#endif /* POLARSSL_SHA2_C */
+    TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA,
+#if defined(POLARSSL_SHA2_C)
+    TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
+#endif /* POLARSSL_SHA2_C */
+    TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA,
+#endif
+#if defined(POLARSSL_DES_C)
+    TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
+#endif
+#endif
+
+#if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_SHA2_C)
+    TLS_RSA_WITH_AES_256_CBC_SHA256,
+#endif /* POLARSSL_SHA2_C */
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
+    TLS_RSA_WITH_AES_256_GCM_SHA384,
+#endif /* POLARSSL_SHA2_C */
+    TLS_RSA_WITH_AES_256_CBC_SHA,
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_SHA2_C)
+    TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256,
+#endif /* POLARSSL_SHA2_C */
+    TLS_RSA_WITH_CAMELLIA_256_CBC_SHA,
+#endif
+#if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_SHA2_C)
+    TLS_RSA_WITH_AES_128_CBC_SHA256,
+#endif /* POLARSSL_SHA2_C */
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
+    TLS_RSA_WITH_AES_128_GCM_SHA256,
+#endif /* POLARSSL_SHA2_C */
+    TLS_RSA_WITH_AES_128_CBC_SHA,
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_SHA2_C)
+    TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256,
+#endif /* POLARSSL_SHA2_C */
+    TLS_RSA_WITH_CAMELLIA_128_CBC_SHA,
+#endif
+#if defined(POLARSSL_DES_C)
+    TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+#endif
+#if defined(POLARSSL_ARC4_C)
+    TLS_RSA_WITH_RC4_128_SHA,
+    TLS_RSA_WITH_RC4_128_MD5,
+#endif
+
+#if defined(POLARSSL_ENABLE_WEAK_CIPHERSUITES)
+#if defined(POLARSSL_DES_C)
+    TLS_DHE_RSA_WITH_DES_CBC_SHA,
+    TLS_RSA_WITH_DES_CBC_SHA,
+#endif
+#if defined(POLARSSL_CIPHER_NULL_CIPHER)
+    TLS_RSA_WITH_NULL_MD5,
+    TLS_RSA_WITH_NULL_SHA,
+    TLS_RSA_WITH_NULL_SHA256,
+#endif
+#endif
+    0
+};
+
+
 #if defined(POLARSSL_FS_IO)
 #define USAGE_IO \
     "    ca_file=%%s          default: \"\" (pre-loaded)\n" \
@@ -395,7 +485,7 @@ int main( int argc, char *argv[] )
 #endif
 
     if( opt.force_ciphersuite[0] == DFL_FORCE_CIPHER )
-        ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
+        ssl_set_ciphersuites( &ssl, my_ciphersuites );
     else
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 

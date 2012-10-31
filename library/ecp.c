@@ -44,6 +44,7 @@ void ecp_point_free( ecp_point *pt )
     if( pt == NULL )
         return;
 
+    pt->is_zero = 1;
     mpi_free( &( pt->X ) );
     mpi_free( &( pt->Y ) );
 }
@@ -61,6 +62,8 @@ void ecp_group_free( ecp_group *grp )
     mpi_free( &( grp->N ) );
     ecp_point_free( &( grp->G ) );
 }
+
+
 
 #if defined(POLARSSL_SELF_TEST)
 

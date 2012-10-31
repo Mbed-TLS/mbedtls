@@ -38,8 +38,9 @@
  */
 typedef struct
 {
-    mpi X;      /*!<  the point's X coordinate  */
-    mpi Y;      /*!<  the point's Y coordinate  */
+    char is_zero;   /*!<  true if point at infinity */
+    mpi X;          /*!<  the point's X coordinate  */
+    mpi Y;          /*!<  the point's Y coordinate  */
 }
 ecp_point;
 
@@ -157,18 +158,6 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q );
 
 /**
- * \brief           Duplication: R = 2 P
- *
- * \param grp       ECP group
- * \param R         Destination point
- * \param P         Point to double
- *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
- */
-int ecp_double( const ecp_group *grp, ecp_point *R,
-                const ecp_point *P );
-
-/**
  * \brief           Multiplication by an integer: R = m * P
  *
  * \param grp       ECP group
@@ -178,8 +167,8 @@ int ecp_double( const ecp_group *grp, ecp_point *R,
  *
  * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
  */
-int ecp_multiply( const ecp_group *grp, ecp_point *R,
-                  const mpi *m, const ecp_point *P );
+int ecp_mul( const ecp_group *grp, ecp_point *R,
+             const mpi *m, const ecp_point *P );
 
 /**
  * \brief           Free the components of a point

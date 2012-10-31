@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version Trunk
+= Version 1.2.0 released 2012-10-31
 Features
    * Added support for NULL cipher (POLARSSL_CIPHER_NULL_CIPHER) and weak
      ciphersuites (POLARSSL_ENABLE_WEAK_CIPHERSUITES). They are disabled by
@@ -18,7 +18,7 @@ Features
    * Added commandline error code convertor (util/strerror)
    * Added support for Hardware Acceleration hooking in SSL/TLS
    * Added OpenSSL / PolarSSL compatibility script (tests/compat.sh) and
-     example application (programs/ssl/o_p_test) (Requires OpenSSL)
+     example application (programs/ssl/o_p_test) (requires OpenSSL)
    * Added X509 CA Path support
    * Added Thumb assembly optimizations
    * Added DEFLATE compression support as per RFC3749 (requires zlib)
@@ -65,10 +65,6 @@ Bugfix
    * Fixed MPI assembly for SPARC64 platform
 
 Security
-   * Fixed potential memory corruption on miscrafted client messages (found by
-     Frama-C team at CEA LIST)
-   * Fixed generation of DHM parameters to correct length (found by Ruslan
-     Yushchenko)
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
      Vanderbeken)
 

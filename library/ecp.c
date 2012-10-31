@@ -36,6 +36,31 @@
 
 #include "polarssl/ecp.h"
 
+/*
+ * Unallocate (the components of) a point
+ */
+void ecp_point_free( ecp_point *pt )
+{
+    if( pt == NULL )
+        return;
+
+    mpi_free( &( pt->X ) );
+    mpi_free( &( pt->Y ) );
+}
+
+/*
+ * Unallocate (the components of) a group
+ */
+void ecp_group_free( ecp_group *grp )
+{
+    if( grp == NULL )
+        return;
+
+    mpi_free( &( grp->P ) );
+    mpi_free( &( grp->B ) );
+    mpi_free( &( grp->N ) );
+    ecp_point_free( &( grp->G ) );
+}
 
 #if defined(POLARSSL_SELF_TEST)
 

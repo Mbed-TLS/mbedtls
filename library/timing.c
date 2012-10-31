@@ -54,8 +54,10 @@ struct _hr_time
 
 #endif
 
-#if defined(POLARSSL_HAVE_ASM) && 					\
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
 	(defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
@@ -64,9 +66,12 @@ unsigned long hardclock( void )
     __asm   mov  [tsc], eax
     return( tsc );
 }
+#endif
 
-#else
-#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
+    defined(__GNUC__) && defined(__i386__)
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
@@ -74,10 +79,12 @@ unsigned long hardclock( void )
     asm( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo );
 }
+#endif
 
-#else
-#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && 			\
-	(defined(__amd64__) || defined(__x86_64__))
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
+    defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
@@ -85,10 +92,12 @@ unsigned long hardclock( void )
     asm( "rdtsc" : "=a" (lo), "=d" (hi) ); 
     return( lo | (hi << 32) );
 }
+#endif
 
-#else
-#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && 			\
-	(defined(__powerpc__) || defined(__ppc__))
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
+    defined(__GNUC__) && (defined(__powerpc__) || defined(__ppc__))
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
@@ -104,9 +113,29 @@ unsigned long hardclock( void )
 
     return( tbl );
 }
+#endif
 
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
+    defined(__GNUC__) && defined(__sparc64__)
+
+#if defined(__OpenBSD__)
+#warning OpenBSD does not allow access to tick register using software version instead
 #else
-#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__sparc__)
+#define POLARSSL_HAVE_HARDCLOCK
+
+unsigned long hardclock( void )
+{
+    unsigned long tick;
+    asm( "rdpr %%tick, %0;" : "=&r" (tick) );
+    return( tick );
+}
+#endif
+#endif
+
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
+    defined(__GNUC__) && defined(__sparc__) && !defined(__sparc64__)
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
@@ -115,9 +144,12 @@ unsigned long hardclock( void )
     asm( "mov   %%g1, %0" : "=r" (tick) );
     return( tick );
 }
+#endif
 
-#else
-#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__alpha__)
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&      \
+    defined(__GNUC__) && defined(__alpha__)
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
@@ -125,9 +157,12 @@ unsigned long hardclock( void )
     asm( "rpcc %0" : "=r" (cc) );
     return( cc & 0xFFFFFFFF );
 }
+#endif
 
-#else
-#if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__ia64__)
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&      \
+    defined(__GNUC__) && defined(__ia64__)
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
@@ -135,9 +170,11 @@ unsigned long hardclock( void )
     asm( "mov %0 = ar.itc" : "=r" (itc) );
     return( itc );
 }
+#endif
 
-#else
-#if defined(_MSC_VER)
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(_MSC_VER)
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
@@ -147,8 +184,11 @@ unsigned long hardclock( void )
 
 	return (unsigned long)( offset.QuadPart );
 }
+#endif
 
-#else
+#if !defined(POLARSSL_HAVE_HARDCLOCK)
+
+#define POLARSSL_HAVE_HARDCLOCK
 
 static int hardclock_init = 0;
 static struct timeval tv_init;
@@ -167,15 +207,7 @@ unsigned long hardclock( void )
     return( ( tv_cur.tv_sec  - tv_init.tv_sec  ) * 1000000
           + ( tv_cur.tv_usec - tv_init.tv_usec ) );
 }
-
-#endif /* generic */
-#endif /* WIN32   */
-#endif /* IA-64   */
-#endif /* Alpha   */
-#endif /* SPARC8  */
-#endif /* PowerPC */
-#endif /* AMD64   */
-#endif /* i586+   */
+#endif
 
 volatile int alarmed = 0;
 

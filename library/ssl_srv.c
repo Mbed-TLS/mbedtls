@@ -758,8 +758,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     int ret;
     size_t n, rsa_key_len = 0;
     unsigned char hash[64];
-    int hash_id;
-    unsigned int hashlen;
+    int hash_id = 0;
+    unsigned int hashlen = 0;
 #endif
 
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
@@ -876,7 +876,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             hashlen = 64;
             hash_id = SIG_RSA_SHA512;
         }
-        if( ssl->handshake->sig_alg == SSL_HASH_SHA384 )
+        else if( ssl->handshake->sig_alg == SSL_HASH_SHA384 )
         {
             sha4_context sha4;
 
@@ -888,6 +888,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             hashlen = 48;
             hash_id = SIG_RSA_SHA384;
         }
+        else
 #endif
 #if defined(POLARSSL_SHA2_C)
         if( ssl->handshake->sig_alg == SSL_HASH_SHA256 )
@@ -902,7 +903,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             hashlen = 32;
             hash_id = SIG_RSA_SHA256;
         }
-        if( ssl->handshake->sig_alg == SSL_HASH_SHA224 )
+        else if( ssl->handshake->sig_alg == SSL_HASH_SHA224 )
         {
             sha2_context sha2;
 
@@ -914,6 +915,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             hashlen = 24;
             hash_id = SIG_RSA_SHA224;
         }
+        else
 #endif
         if( ssl->handshake->sig_alg == SSL_HASH_SHA1 )
         {
@@ -927,7 +929,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             hashlen = 20;
             hash_id = SIG_RSA_SHA1;
         }
-        if( ssl->handshake->sig_alg == SSL_HASH_MD5 )
+        else if( ssl->handshake->sig_alg == SSL_HASH_MD5 )
         {
             md5_context md5;
 

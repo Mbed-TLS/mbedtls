@@ -1878,7 +1878,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 	char *p;
     int len = strlen( path );
 
-	WIN32_FIND_DATA file_data;
+	WIN32_FIND_DATAW file_data;
     HANDLE hFind;
 
     if( len > MAX_PATH - 3 )
@@ -1893,7 +1893,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 
 	w_ret = MultiByteToWideChar( CP_ACP, 0, path, len, szDir, MAX_PATH - 3 );
 
-    hFind = FindFirstFile( szDir, &file_data );
+    hFind = FindFirstFileW( szDir, &file_data );
     if (hFind == INVALID_HANDLE_VALUE) 
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
@@ -1919,7 +1919,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 
         ret += w_ret;
     }
-    while( FindNextFile( hFind, &file_data ) != 0 );
+    while( FindNextFileW( hFind, &file_data ) != 0 );
 
     if (GetLastError() != ERROR_NO_MORE_FILES) 
         ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
@@ -1943,7 +1943,10 @@ cleanup:
         snprintf( entry_name, sizeof(entry_name), "%s/%s", path, entry->d_name );
         t_ret = x509parse_crtfile( chain, entry_name );
         if( t_ret < 0 )
-            return( t_ret );
+        {
+            ret = t_ret;
+            break;
+        }
 
         ret += t_ret;
     }

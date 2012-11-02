@@ -682,7 +682,7 @@ void ssl_set_bio( ssl_context *ssl,
  *                 data) is cleared by the SSL/TLS layer when the connection is
  *                 terminated. It is recommended to add metadata to determine if
  *                 an entry is still valid in the future. Return 0 if
- *                 successfully cached, return 0 otherwise.
+ *                 successfully cached, return 1 otherwise.
  *
  * \param ssl            SSL context
  * \param f_get_cache    session get callback

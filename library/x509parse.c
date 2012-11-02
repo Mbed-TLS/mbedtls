@@ -60,9 +60,7 @@
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
-#if defined(_WIN32)
-#include <strsafe.h>
-#else
+#if !defined(_WIN32)
 #include <sys/types.h>
 #include <dirent.h>
 #endif
@@ -1878,50 +1876,55 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
 	char *p;
+    int len = strlen( path );
 
 	WIN32_FIND_DATA file_data;
     HANDLE hFind;
-    DWORD dwError = 0;
+
+    if( len > MAX_PATH - 3 )
+        return( POLARSSL_ERR_X509_INVALID_INPUT );
 
 	memset( szDir, 0, sizeof(szDir) );
 	memset( filename, 0, MAX_PATH );
-	memcpy( filename, path, strlen( path ) );
-	filename[strlen( path )] = '\\';
-	p = filename + strlen( path ) + 1;
+	memcpy( filename, path, len );
+	filename[len++] = '\\';
+	p = filename + len;
+    filename[len++] = '*';
 
-	w_ret = MultiByteToWideChar( CP_ACP, 0, path, strlen(path), szDir, MAX_PATH - 3 );
-
-	StringCchCopyW(szDir, MAX_PATH, szDir);
-    StringCchCatW(szDir, MAX_PATH, TEXT("\\*"));
+	w_ret = MultiByteToWideChar( CP_ACP, 0, path, len, szDir, MAX_PATH - 3 );
 
     hFind = FindFirstFile( szDir, &file_data );
     if (hFind == INVALID_HANDLE_VALUE) 
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
+    len = MAX_PATH - len;
     do
     {
-		memset( p, 0, filename + MAX_PATH - p - 1 );
+		memset( p, 0, len );
 
         if( file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             continue;
 
 		w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
 									 lstrlenW(file_data.cFileName),
-									 p,
-									 filename + MAX_PATH - p - 2, NULL, NULL );
+									 p, len - 1,
+									 NULL, NULL );
 
         w_ret = x509parse_crtfile( chain, filename );
         if( w_ret < 0 )
-            return( w_ret );
+        {
+            ret = w_ret;
+            goto cleanup;
+        }
 
         ret += w_ret;
     }
     while( FindNextFile( hFind, &file_data ) != 0 );
 
-    dwError = GetLastError();
-    if (dwError != ERROR_NO_MORE_FILES) 
-        return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+    if (GetLastError() != ERROR_NO_MORE_FILES) 
+        ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
 
+cleanup:
     FindClose( hFind );
 #else
     int t_ret;

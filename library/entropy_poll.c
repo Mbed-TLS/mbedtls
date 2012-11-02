@@ -40,10 +40,10 @@
 #if !defined(POLARSSL_NO_PLATFORM_ENTROPY)
 #if defined(_WIN32)
 
-#include <windows.h>
 #if !defined(_WIN32_WINNT)
 #define _WIN32_WINNT 0x0400
 #endif
+#include <windows.h>
 #include <wincrypt.h>
 
 int platform_entropy_poll( void *data, unsigned char *output, size_t len,

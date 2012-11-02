@@ -34,8 +34,13 @@
 
 #ifdef _MSC_VER
 #include <basetsd.h>
+#if (_MSC_VER <= 1200)
+typedef   signed short  int16_t;
+typedef unsigned short uint16_t;
+#else
 typedef  INT16  int16_t;
 typedef UINT16 uint16_t;
+#endif
 typedef  INT32  int32_t;
 typedef UINT32 uint32_t;
 typedef UINT64 uint64_t;

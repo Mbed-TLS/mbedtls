@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Version Trunk
+Bugfixes
+   * Fixes for MSVC6
+   * Moved mpi_inv_mod() outside POLARSSL_GENPRIME
+
 = Version 1.2.0 released 2012-10-31
 Features
    * Added support for NULL cipher (POLARSSL_CIPHER_NULL_CIPHER) and weak

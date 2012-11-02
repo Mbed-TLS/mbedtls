@@ -148,7 +148,7 @@ void gcm_mult( gcm_context *ctx, const unsigned char x[16], unsigned char output
 
         if( i != 15 )
         {
-            rem = zl & 0xf;
+            rem = (unsigned char) zl & 0xf;
             zl = ( zh << 60 ) | ( zl >> 4 );
             zh = ( zh >> 4 );
             zh ^= (uint64_t) last4[rem] << 48;
@@ -157,7 +157,7 @@ void gcm_mult( gcm_context *ctx, const unsigned char x[16], unsigned char output
 
         }
 
-        rem = zl & 0xf;
+        rem = (unsigned char) zl & 0xf;
         zl = ( zh << 60 ) | ( zl >> 4 );
         zh = ( zh >> 4 );
         zh ^= (uint64_t) last4[rem] << 48;

@@ -29,7 +29,12 @@
 
 #include "aes.h"
 
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT64 uint64_t;
+#else
 #include <stdint.h>
+#endif
 
 #define GCM_ENCRYPT     1
 #define GCM_DECRYPT     0

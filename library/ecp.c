@@ -37,6 +37,19 @@
 #include "polarssl/ecp.h"
 
 /*
+ * Initialize a point
+ */
+void ecp_point_init( ecp_point *pt )
+{
+    if( pt == NULL )
+        return;
+
+    pt->is_zero = 1;
+    mpi_init( &( pt->X ) );
+    mpi_init( &( pt->Y ) );
+}
+
+/*
  * Unallocate (the components of) a point
  */
 void ecp_point_free( ecp_point *pt )
@@ -64,11 +77,21 @@ void ecp_group_free( ecp_group *grp )
 }
 
 /*
+ * Set point to zero
+ */
+void ecp_set_zero( ecp_point *pt )
+{
+    pt->is_zero = 1;
+    mpi_free( &( pt->X ) );
+    mpi_free( &( pt->Y ) );
+}
+
+/*
  * Copy the contents of Q into P
  */
 int ecp_copy( ecp_point *P, const ecp_point *Q )
 {
-    int ret;
+    int ret = 0;
 
     P->is_zero = Q->is_zero;
     MPI_CHK( mpi_copy( &P->X, &Q->X ) );
@@ -76,6 +99,114 @@ int ecp_copy( ecp_point *P, const ecp_point *Q )
 
 cleanup:
     return( ret );
+}
+
+/*
+ * Addition: R = P + Q, generic case (P != Q, P != 0, Q != 0, R != 0)
+ * Cf SEC1 v2 p. 7, item 4
+ */
+static int ecp_add_generic( const ecp_group *grp, ecp_point *R,
+                            const ecp_point *P, const ecp_point *Q )
+{
+    int ret = 0;
+    mpi DX, DY, K, L, LL, M, X, Y;
+
+    mpi_init( &DX ); mpi_init( &DY ); mpi_init( &K ); mpi_init( &L );
+    mpi_init( &LL ); mpi_init( &M ); mpi_init( &X ); mpi_init( &Y );
+
+    /*
+     * L = (Q.Y - P.Y) / (Q.X - P.X)  mod p
+     */
+    MPI_CHK( mpi_sub_mpi( &DY, &Q->Y, &P->Y ) );
+    MPI_CHK( mpi_sub_mpi( &DX, &Q->X, &P->X ) );
+    MPI_CHK( mpi_inv_mod( &K, &DX, &grp->P ) );
+    MPI_CHK( mpi_mul_mpi( &K, &K, &DY ) );
+    MPI_CHK( mpi_mod_mpi( &L, &K, &grp->P ) );
+
+    /*
+     * LL = L^2  mod p
+     * M  = L^2 - Q.X
+     * X  = L^2 - P.X - Q.X
+     */
+    MPI_CHK( mpi_mul_mpi( &LL, &L, &L ) );
+    MPI_CHK( mpi_mod_mpi( &LL, &LL, &grp->P ) );
+    MPI_CHK( mpi_sub_mpi( &M, &LL, &Q->X ) );
+    MPI_CHK( mpi_sub_mpi( &X, &M, &P->X ) );
+
+    /*
+     * Y = L * (P.X - X) - P.Y = L * (-M) - P.Y
+     */
+    MPI_CHK( mpi_copy( &Y, &M ) );
+    Y.s = - Y.s;
+    MPI_CHK( mpi_mul_mpi( &Y, &Y, &L ) );
+    MPI_CHK( mpi_sub_mpi( &Y, &Y, &P->Y ) );
+
+    /*
+     * R = (X mod p, Y mod p)
+     */
+    R->is_zero = 0;
+    MPI_CHK( mpi_mod_mpi( &R->X, &X, &grp->P ) );
+    MPI_CHK( mpi_mod_mpi( &R->Y, &Y, &grp->P ) );
+
+cleanup:
+
+    mpi_free( &DX ); mpi_free( &DY ); mpi_free( &K ); mpi_free( &L );
+    mpi_free( &LL ); mpi_free( &M ); mpi_free( &X ); mpi_free( &Y );
+
+    return( ret );
+}
+
+/*
+ * Doubling: R = 2 * P, generic case (P != 0, R != 0)
+ *
+ * Returns POLARSSL_ERR_MPI_XXX on error.
+ */
+static int ecp_double_generic( const ecp_group *grp, ecp_point *R,
+                               const ecp_point *P )
+{
+    int ret = 0;
+
+    (void) grp;
+    (void) R;
+    (void) P;
+
+    return( ret );
+}
+
+/*
+ * Addition: R = P + Q, cf p. 7 of SEC1 v2
+ */
+int ecp_add( const ecp_group *grp, ecp_point *R,
+             const ecp_point *P, const ecp_point *Q )
+{
+    int ret = 0;
+
+    if( P->is_zero )
+    {
+        ret = ecp_copy( R, Q );
+    }
+    else if( Q->is_zero )
+    {
+        ret = ecp_copy( R, P );
+    }
+    else if( mpi_cmp_mpi( &P->X, &Q->X ) != 0 )
+    {
+        ret = ecp_add_generic( grp, R, P, Q );
+    }
+    else if( mpi_cmp_int( &P->Y, 0 ) == 0 ||
+             mpi_cmp_mpi( &P->Y, &Q->Y ) != 0 )
+    {
+        ecp_set_zero( R );
+    }
+    else
+    {
+        /*
+         * P == Q
+         */
+        ret = ecp_double_generic( grp, R, P );
+    }
+
+    return ret;
 }
 
 

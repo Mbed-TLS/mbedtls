@@ -36,6 +36,8 @@
 
 /**
  * \brief           ECP point structure (affine coordinates)
+ *
+ * Note: if the point is zero, X and Y are irrelevant and should be freed.
  */
 typedef struct
 {
@@ -146,6 +148,11 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Initialize a point
+ */
+void ecp_point_init( ecp_point *pt );
+
+/**
  * \brief           Free the components of a point
  */
 void ecp_point_free( ecp_point *pt );
@@ -154,6 +161,11 @@ void ecp_point_free( ecp_point *pt );
  * \brief           Free the components of an ECP group
  */
 void ecp_group_free( ecp_group *grp );
+
+/**
+ * \brief           Set a point to zero
+ */
+void ecp_set_zero( ecp_point *pt );
 
 /**
  * \brief           Copy the contents of point Q into P

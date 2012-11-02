@@ -18,6 +18,7 @@ Bugfix
    * Memory leak when using RSA_PKCS_V21 operations fixed
    * Handle encryption with private key and decryption with public key as per
      RFC 2313
+   * Fixes for MSVC6
 
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi

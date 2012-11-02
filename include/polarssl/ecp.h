@@ -33,6 +33,7 @@
  * ECP Error codes
  */
 
+
 /**
  * \brief           ECP point structure (affine coordinates)
  */
@@ -145,6 +146,26 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Free the components of a point
+ */
+void ecp_point_free( ecp_point *pt );
+
+/**
+ * \brief           Free the components of an ECP group
+ */
+void ecp_group_free( ecp_group *grp );
+
+/**
+ * \brief           Copy the contents of point Q into P
+ *
+ * \param P         Destination point
+ * \param Q         Source point
+ *
+ * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ */
+int ecp_copy( ecp_point *P, const ecp_point *Q );
+
+/**
  * \brief           Addition: R = P + Q
  *
  * \param grp       ECP group
@@ -169,16 +190,6 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );
-
-/**
- * \brief           Free the components of a point
- */
-void ecp_point_free( ecp_point *pt );
-
-/**
- * \brief           Free the components of an ECP group
- */
-void ecp_group_free( ecp_group *grp );
 
 /**
  * \brief          Checkup routine

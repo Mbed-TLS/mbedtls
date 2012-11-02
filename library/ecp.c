@@ -26,7 +26,7 @@
 /*
  * References:
  *
- * SEC1-v2 (XXX: insert url)
+ * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
  * Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
  */
 
@@ -57,12 +57,26 @@ void ecp_group_free( ecp_group *grp )
     if( grp == NULL )
         return;
 
-    mpi_free( &( grp->P ) );
-    mpi_free( &( grp->B ) );
-    mpi_free( &( grp->N ) );
-    ecp_point_free( &( grp->G ) );
+    mpi_free( &grp->P );
+    mpi_free( &grp->B );
+    ecp_point_free( &grp->G );
+    mpi_free( &grp->N );
 }
 
+/*
+ * Copy the contents of Q into P
+ */
+int ecp_copy( ecp_point *P, const ecp_point *Q )
+{
+    int ret;
+
+    P->is_zero = Q->is_zero;
+    MPI_CHK( mpi_copy( &P->X, &Q->X ) );
+    MPI_CHK( mpi_copy( &P->Y, &Q->Y ) );
+
+cleanup:
+    return( ret );
+}
 
 
 #if defined(POLARSSL_SELF_TEST)

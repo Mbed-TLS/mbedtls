@@ -116,8 +116,8 @@
 #define SSL_LEGACY_RENEGOTIATION        0
 #define SSL_SECURE_RENEGOTIATION        1
 
-#define SSL_RENEGOTIATION_ENABLED       0
-#define SSL_RENEGOTIATION_DISABLED      1
+#define SSL_RENEGOTIATION_DISABLED      0
+#define SSL_RENEGOTIATION_ENABLED       1
 
 #define SSL_LEGACY_NO_RENEGOTIATION     0
 #define SSL_LEGACY_ALLOW_RENEGOTIATION  1
@@ -852,7 +852,8 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor );
  *                 (Default: SSL_RENEGOTIATION_DISABLED)
  *
  *                 Note: A server with support enabled is more vulnerable for a
- *                 resource DoS by a malicious client.
+ *                 resource DoS by a malicious client. You should enable this on
+ *                 a client to enable server-initiated renegotiation.
  *
  * \param ssl      SSL context
  * \param renegotiation     Enable or disable (SSL_RENEGOTIATION_ENABLED or

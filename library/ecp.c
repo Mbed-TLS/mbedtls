@@ -37,7 +37,7 @@
 #include "polarssl/ecp.h"
 
 /*
- * Initialize a point
+ * Initialize (the components of) a point
  */
 void ecp_point_init( ecp_point *pt )
 {
@@ -45,8 +45,22 @@ void ecp_point_init( ecp_point *pt )
         return;
 
     pt->is_zero = 1;
-    mpi_init( &( pt->X ) );
-    mpi_init( &( pt->Y ) );
+    mpi_init( &pt->X );
+    mpi_init( &pt->Y );
+}
+
+/*
+ * Initialize (the components of) a group
+ */
+void ecp_group_init( ecp_group *grp )
+{
+    if( grp == NULL )
+        return;
+
+    mpi_init( &grp->P );
+    mpi_init( &grp->B );
+    ecp_point_init( &grp->G );
+    mpi_init( &grp->N );
 }
 
 /*
@@ -82,8 +96,8 @@ void ecp_group_free( ecp_group *grp )
 void ecp_set_zero( ecp_point *pt )
 {
     pt->is_zero = 1;
-    mpi_free( &( pt->X ) );
-    mpi_free( &( pt->Y ) );
+    mpi_free( &pt->X );
+    mpi_free( &pt->Y );
 }
 
 /*
@@ -92,6 +106,11 @@ void ecp_set_zero( ecp_point *pt )
 int ecp_copy( ecp_point *P, const ecp_point *Q )
 {
     int ret = 0;
+
+    if( Q->is_zero ) {
+        ecp_set_zero( P );
+        return( ret );
+    }
 
     P->is_zero = Q->is_zero;
     MPI_CHK( mpi_copy( &P->X, &Q->X ) );
@@ -257,24 +276,39 @@ static int ecp_point_eq( const ecp_point *P, const ecp_point *Q )
 }
 
 /*
+ * Print a point assuming its components are small
+ */
+static void ecp_point_print( const ecp_point *P )
+{
+    if( P->is_zero )
+        printf("zero\n");
+    else
+        printf("(%lu, %lu)\n", P->X.p[0], P->Y.p[0]);
+}
+
+
+/*
  * Checkup routine
  *
- * Data gathered from http://danher6.100webspace.net/ecc/#EFp_interactivo
- * and double-checked using Pari-GP
+ * Data for basic tests with small values gathered from
+ * http://danher6.100webspace.net/ecc/#EFp_interactivo and double-checked
+ * using Pari-GP.
  */
 int ecp_self_test( int verbose )
 {
     int ret = 0;
-    size_t i;
+    unsigned i;
     ecp_group grp;
     ecp_point O, A, B, C, D, E, F, G, TMP;
-    ecp_point add_table[][3] =
+    ecp_point *add_tbl[][3] =
     {
-        {O, O, O},  {O, A, A},  {A, O, A},
-        {A, A, O},  {B, C, O},  {C, B, O},
-        {A, D, E},  {D, A, E},  {B, D, F},  {D, B, F},
-        {D, D, G},
+        {&O, &O, &O},
     };
+
+    ecp_group_init( &grp );
+    ecp_point_init( &O ); ecp_point_init( &A ); ecp_point_init( &B );
+    ecp_point_init( &C ); ecp_point_init( &D ); ecp_point_init( &E );
+    ecp_point_init( &F ); ecp_point_init( &G ); ecp_point_init( &TMP );
 
     ecp_set_zero( &O );
     MPI_CHK( ecp_group_read_string( &grp, 10, "47", "4", "17", "42", "13" ) );
@@ -284,22 +318,31 @@ int ecp_self_test( int verbose )
     MPI_CHK( ecp_point_read_string( &D, 10, "37", "31" ) );
     MPI_CHK( ecp_point_read_string( &E, 10, "34", "14" ) );
     MPI_CHK( ecp_point_read_string( &F, 10, "45",  "7" ) );
-    MPI_CHK( ecp_point_read_string( &E, 10, "21", "32" ) );
+    MPI_CHK( ecp_point_read_string( &G, 10, "21", "32" ) );
 
     if( verbose != 0 )
         printf( "  ECP test #1 (ecp_add): " );
 
-    for( i = 0; i < sizeof( add_table ) / sizeof( add_table[0] ); i++ )
+    for( i = 0; i < sizeof( add_tbl ) / sizeof( add_tbl[0] ); i++ )
     {
-        MPI_CHK( ecp_add( &grp, &TMP, &add_table[i][0], &add_table[i][1] ) );
-        if( ! ecp_point_eq( &TMP, &add_table[i][2] ) )
+        MPI_CHK( ecp_add( &grp, &TMP, add_tbl[i][0], add_tbl[i][1] ) );
+        if( ! ecp_point_eq( &TMP, add_tbl[i][2] ) )
         {
             if( verbose != 0 )
-                printf(" failed (%zu)\n", i);
+            {
+                printf(" failed\n");
+                printf("        GOT: ");
+                ecp_point_print( &TMP );
+                printf("   EXPECTED: ");
+                ecp_point_print( add_tbl[i][2] );
+            }
 
             return( 1 );
         }
     }
+
+    if (verbose != 0 )
+        printf( " passed\n" );
 
 cleanup:
 

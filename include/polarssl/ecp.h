@@ -155,6 +155,11 @@ extern "C" {
 void ecp_point_init( ecp_point *pt );
 
 /**
+ * \brief           Initialize a group (to something meaningless)
+ */
+void ecp_group_init( ecp_group *grp );
+
+/**
  * \brief           Free the components of a point
  */
 void ecp_point_free( ecp_point *pt );
@@ -197,7 +202,7 @@ int ecp_point_read_string( ecp_point *P, int radix,
  * \brief           Import an ECP group from null-terminated ASCII strings
  *
  * \param grp       Destination group
- * \param radix     Input numric base
+ * \param radix     Input numeric base
  * \param p         Prime modulus of the base field
  * \param b         Constant term in the equation
  * \param gx        The generator's X coordinate
@@ -222,7 +227,7 @@ int ecp_group_read_string( ecp_group *grp, int radix,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                  POLARSSL_ERR_MPI_DIVISION_BY_ZERO (shouldn't happen)
  *                  (temporary, a faster version not using division will be
- *                  used in the furture)
+ *                  used in the future)
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q );
@@ -239,7 +244,7 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                  POLARSSL_ERR_MPI_DIVISION_BY_ZERO (shouldn't happen)
  *                  (temporary, a faster version not using division will be
- *                  used in the furture)
+ *                  used in the future)
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );

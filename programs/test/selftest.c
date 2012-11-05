@@ -155,6 +155,11 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
+#if defined(POLARSSL_ECP_C)
+    if( ( ret = ecp_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
 #else
     printf( " POLARSSL_SELF_TEST not defined.\n" );
 #endif

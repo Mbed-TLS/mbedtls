@@ -154,6 +154,8 @@ cleanup:
     return( ret );
 }
 
+#define dbg(X)  printf(#X " = %s%lu\n", X.s < 0 ? "-" : "", X.p[0])
+
 /*
  * Addition: R = P + Q, generic case (P != Q, P != 0, Q != 0, R != 0)
  * Cf SEC1 v2 p. 7, item 4
@@ -162,10 +164,10 @@ static int ecp_add_generic( const ecp_group *grp, ecp_point *R,
                             const ecp_point *P, const ecp_point *Q )
 {
     int ret = 0;
-    mpi DX, DY, K, L, LL, M, X, Y;
+    mpi DX, DY, K, L, LL, X, Y;
 
     mpi_init( &DX ); mpi_init( &DY ); mpi_init( &K ); mpi_init( &L );
-    mpi_init( &LL ); mpi_init( &M ); mpi_init( &X ); mpi_init( &Y );
+    mpi_init( &LL ); mpi_init( &X ); mpi_init( &Y );
 
     /*
      * L = (Q.Y - P.Y) / (Q.X - P.X)  mod p
@@ -178,19 +180,21 @@ static int ecp_add_generic( const ecp_group *grp, ecp_point *R,
 
     /*
      * LL = L^2  mod p
-     * M  = L^2 - Q.X
      * X  = L^2 - P.X - Q.X
      */
     MPI_CHK( mpi_mul_mpi( &LL, &L, &L ) );
     MPI_CHK( mpi_mod_mpi( &LL, &LL, &grp->P ) );
-    MPI_CHK( mpi_sub_mpi( &M, &LL, &Q->X ) );
-    MPI_CHK( mpi_sub_mpi( &X, &M, &P->X ) );
 
     /*
-     * Y = L * (P.X - X) - P.Y = L * (-M) - P.Y
+     * X  = L^2 - P.X - Q.X
      */
-    MPI_CHK( mpi_copy( &Y, &M ) );
-    Y.s = - Y.s;
+    MPI_CHK( mpi_sub_mpi( &X, &LL, &P->X ) );
+    MPI_CHK( mpi_sub_mpi( &X, &X,  &Q->X ) );
+
+    /*
+     * Y = L * (P.X - X) - P.Y
+     */
+    MPI_CHK( mpi_sub_mpi( &Y, &P->X, &X) );
     MPI_CHK( mpi_mul_mpi( &Y, &Y, &L ) );
     MPI_CHK( mpi_sub_mpi( &Y, &Y, &P->Y ) );
 
@@ -204,7 +208,7 @@ static int ecp_add_generic( const ecp_group *grp, ecp_point *R,
 cleanup:
 
     mpi_free( &DX ); mpi_free( &DY ); mpi_free( &K ); mpi_free( &L );
-    mpi_free( &LL ); mpi_free( &M ); mpi_free( &X ); mpi_free( &Y );
+    mpi_free( &LL ); mpi_free( &X ); mpi_free( &Y );
 
     return( ret );
 }
@@ -276,14 +280,14 @@ static int ecp_point_eq( const ecp_point *P, const ecp_point *Q )
 }
 
 /*
- * Print a point assuming its components are small
+ * Print a point assuming its coordinates are small
  */
 static void ecp_point_print( const ecp_point *P )
 {
     if( P->is_zero )
-        printf("zero\n");
+        printf( "zero\n" );
     else
-        printf("(%lu, %lu)\n", P->X.p[0], P->Y.p[0]);
+        printf( "(%lu, %lu)\n", P->X.p[0], P->Y.p[0] );
 }
 
 
@@ -302,7 +306,11 @@ int ecp_self_test( int verbose )
     ecp_point O, A, B, C, D, E, F, G, TMP;
     ecp_point *add_tbl[][3] =
     {
-        {&O, &O, &O},
+        {&O, &O, &O}, {&O, &A, &A}, {&A, &O, &A},
+        {&A, &A, &O}, {&B, &C, &O}, {&C, &B, &O},
+        {&A, &D, &E}, {&D, &A, &E},
+        {&B, &D, &F}, {&D, &B, &F},
+        // {&D, &D, &G},
     };
 
     ecp_group_init( &grp );
@@ -330,10 +338,10 @@ int ecp_self_test( int verbose )
         {
             if( verbose != 0 )
             {
-                printf(" failed\n");
-                printf("        GOT: ");
+                printf(" failed (%u)\n", i );
+                printf( "        GOT: " );
                 ecp_point_print( &TMP );
-                printf("   EXPECTED: ");
+                printf( "   EXPECTED: " );
                 ecp_point_print( add_tbl[i][2] );
             }
 

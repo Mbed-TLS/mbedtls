@@ -158,8 +158,6 @@ cleanup:
 
 /*
  * Doubling: R = 2 * P, generic case (P != 0, R != 0)
- *
- * Returns POLARSSL_ERR_MPI_XXX on error.
  */
 static int ecp_double_generic( const ecp_group *grp, ecp_point *R,
                                const ecp_point *P )

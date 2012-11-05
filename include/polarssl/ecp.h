@@ -30,7 +30,9 @@
 #include "bignum.h"
 
 /*
- * ECP Error codes
+ * ECP error codes
+ *
+ * (The functions written up to now return MPI error codes only.)
  */
 
 
@@ -173,7 +175,8 @@ void ecp_set_zero( ecp_point *pt );
  * \param P         Destination point
  * \param Q         Source point
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int ecp_copy( ecp_point *P, const ecp_point *Q );
 
@@ -185,7 +188,11 @@ int ecp_copy( ecp_point *P, const ecp_point *Q );
  * \param P         Left-hand point
  * \param Q         Right-hand point
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                  POLARSSL_ERR_MPI_DIVISION_BY_ZERO (shouldn't happen)
+ *                  (temporary, a faster version not using division will be
+ *                  used in the furture)
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q );
@@ -198,7 +205,11 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
  * \param m         Integer by which to multiply
  * \param P         Point to multiply
  *
- * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                  POLARSSL_ERR_MPI_DIVISION_BY_ZERO (shouldn't happen)
+ *                  (temporary, a faster version not using division will be
+ *                  used in the furture)
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );

@@ -245,11 +245,76 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
 #if defined(POLARSSL_SELF_TEST)
 
 /*
+ * Return true iff P and Q are the same point
+ */
+static int ecp_point_eq( const ecp_point *P, const ecp_point *Q )
+{
+    if( P->is_zero || Q->is_zero )
+        return( P->is_zero && Q->is_zero );
+
+    return( mpi_cmp_mpi( &P->X, &Q->X ) == 0 &&
+            mpi_cmp_mpi( &P->Y, &Q->Y ) == 0 );
+}
+
+/*
  * Checkup routine
+ *
+ * Data gathered from http://danher6.100webspace.net/ecc/#EFp_interactivo
+ * and double-checked using Pari-GP
  */
 int ecp_self_test( int verbose )
 {
-    return( verbose++ );
+    int ret = 0;
+    size_t i;
+    ecp_group grp;
+    ecp_point O, A, B, C, D, E, F, G, TMP;
+    ecp_point add_table[][3] =
+    {
+        {O, O, O},  {O, A, A},  {A, O, A},
+        {A, A, O},  {B, C, O},  {C, B, O},
+        {A, D, E},  {D, A, E},  {B, D, F},  {D, B, F},
+        {D, D, G},
+    };
+
+    ecp_set_zero( &O );
+    MPI_CHK( ecp_group_read_string( &grp, 10, "47", "4", "17", "42", "13" ) );
+    MPI_CHK( ecp_point_read_string( &A, 10, "13",  "0" ) );
+    MPI_CHK( ecp_point_read_string( &B, 10, "14", "11" ) );
+    MPI_CHK( ecp_point_read_string( &C, 10, "14", "36" ) );
+    MPI_CHK( ecp_point_read_string( &D, 10, "37", "31" ) );
+    MPI_CHK( ecp_point_read_string( &E, 10, "34", "14" ) );
+    MPI_CHK( ecp_point_read_string( &F, 10, "45",  "7" ) );
+    MPI_CHK( ecp_point_read_string( &E, 10, "21", "32" ) );
+
+    if( verbose != 0 )
+        printf( "  ECP test #1 (ecp_add): " );
+
+    for( i = 0; i < sizeof( add_table ) / sizeof( add_table[0] ); i++ )
+    {
+        MPI_CHK( ecp_add( &grp, &TMP, &add_table[i][0], &add_table[i][1] ) );
+        if( ! ecp_point_eq( &TMP, &add_table[i][2] ) )
+        {
+            if( verbose != 0 )
+                printf(" failed (%zu)\n", i);
+
+            return( 1 );
+        }
+    }
+
+cleanup:
+
+    if( ret != 0 && verbose != 0 )
+        printf( "Unexpected error, return code = %08X\n", ret );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &O ); ecp_point_free( &A ); ecp_point_free( &B );
+    ecp_point_free( &C ); ecp_point_free( &D ); ecp_point_free( &E );
+    ecp_point_free( &F ); ecp_point_free( &G );
+
+    if( verbose != 0 )
+        printf( "\n" );
+
+    return( ret );
 }
 
 #endif

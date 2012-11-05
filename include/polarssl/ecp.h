@@ -150,7 +150,7 @@ extern "C" {
 #endif
 
 /**
- * \brief           Initialize a point
+ * \brief           Initialize a point (as zero)
  */
 void ecp_point_init( ecp_point *pt );
 
@@ -179,6 +179,36 @@ void ecp_set_zero( ecp_point *pt );
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int ecp_copy( ecp_point *P, const ecp_point *Q );
+
+/**
+ * \brief           Import a non-zero point from two ASCII strings
+ *
+ * \param P         Destination point
+ * \param radix     Input numeric base
+ * \param x         First affine coordinate as a null-terminated string
+ * \param y         Second affine coordinate as a null-terminated string
+ *
+ * \return          0 if successful, or a POLARSSL_ERR_MPI_XXX error code
+ */
+int ecp_point_read_string( ecp_point *P, int radix,
+                           const char *x, const char *y );
+
+/**
+ * \brief           Import an ECP group from null-terminated ASCII strings
+ *
+ * \param grp       Destination group
+ * \param radix     Input numric base
+ * \param p         Prime modulus of the base field
+ * \param b         Constant term in the equation
+ * \param gx        The generator's X coordinate
+ * \param gy        The generator's Y coordinate
+ * \param n         The generator's order
+ *
+ * \return          0 if successful, or a POLARSSL_ERR_MPI_XXX error code
+ */
+int ecp_group_read_string( ecp_group *grp, int radix,
+                           const char *p, const char *b,
+                           const char *gx, const char *gy, const char *n);
 
 /**
  * \brief           Addition: R = P + Q

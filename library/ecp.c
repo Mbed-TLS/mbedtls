@@ -102,6 +102,40 @@ cleanup:
 }
 
 /*
+ * Import a non-zero point from ASCII strings
+ */
+int ecp_point_read_string( ecp_point *P, int radix,
+                           const char *x, const char *y )
+{
+    int ret = 0;
+
+    P->is_zero = 0;
+    MPI_CHK( mpi_read_string( &P->X, radix, x ) );
+    MPI_CHK( mpi_read_string( &P->Y, radix, y ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Import an ECP group from ASCII strings
+ */
+int ecp_group_read_string( ecp_group *grp, int radix,
+                           const char *p, const char *b,
+                           const char *gx, const char *gy, const char *n)
+{
+    int ret = 0;
+
+    MPI_CHK( mpi_read_string( &grp->P, radix, p ) );
+    MPI_CHK( mpi_read_string( &grp->B, radix, b ) );
+    MPI_CHK( ecp_point_read_string( &grp->G, radix, gx, gy ) );
+    MPI_CHK( mpi_read_string( &grp->N, radix, n ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Addition: R = P + Q, generic case (P != Q, P != 0, Q != 0, R != 0)
  * Cf SEC1 v2 p. 7, item 4
  */

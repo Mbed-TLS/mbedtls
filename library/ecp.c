@@ -266,8 +266,8 @@ static int ecp_double_generic( const ecp_group *grp, ecp_point *R,
 
 cleanup:
 
-    mpi_free( &LN ); mpi_init( &LD ); mpi_init( &K ); mpi_init( &L );
-    mpi_free( &LL ); mpi_init( &X ); mpi_init( &Y );
+    mpi_free( &LN ); mpi_free( &LD ); mpi_free( &K ); mpi_free( &L );
+    mpi_free( &LL ); mpi_free( &X ); mpi_free( &Y );
 
     return( ret );
 }

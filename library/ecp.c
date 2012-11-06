@@ -308,7 +308,65 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
     return ret;
 }
 
+/*
+ * Integer multiplication: R = m * P
+ * Using Montgomery's Ladder to avoid leaking information about m
+ */
+int ecp_mul( const ecp_group *grp, ecp_point *R,
+             const mpi *m, const ecp_point *P )
+{
+    int ret = 0;
+    size_t pos;
+    ecp_point A, B;
+
+    ecp_point_init( &A ); ecp_point_init( &B );
+
+    /*
+     * The general method works only for m >= 2
+     */
+    if( mpi_cmp_int( m, 0 ) == 0 ) {
+        ecp_set_zero( R );
+        goto cleanup;
+    }
+
+    if( mpi_cmp_int( m, 1 ) == 0 ) {
+        MPI_CHK( ecp_copy( R, P ) );
+        goto cleanup;
+    }
+
+    MPI_CHK( ecp_copy( &A, P ) );
+    MPI_CHK( ecp_add( grp, &B, P, P ) );
+
+    for( pos = mpi_msb( m ) - 2; ; pos-- )
+    {
+        if( mpi_get_bit( m, pos ) == 0 )
+        {
+            MPI_CHK( ecp_add( grp, &B, &A, &B ) );
+            MPI_CHK( ecp_add( grp, &A, &A, &A ) ) ;
+        }
+        else
+        {
+            MPI_CHK( ecp_add( grp, &A, &A, &B ) );
+            MPI_CHK( ecp_add( grp, &B, &B, &B ) ) ;
+        }
+
+        if( pos == 0 )
+            break;
+    }
+
+    MPI_CHK( ecp_copy( R, &A ) );
+
+cleanup:
+
+    ecp_point_free( &A ); ecp_point_free( &B );
+
+    return( ret );
+}
+
+
 #if defined(POLARSSL_SELF_TEST)
+
+#include "polarssl/error.h"
 
 /*
  * Return true iff P and Q are the same point
@@ -333,6 +391,8 @@ static void ecp_point_print( const ecp_point *P )
         printf( "(%lu, %lu)\n", P->X.p[0], P->Y.p[0] );
 }
 
+#define TEST_GROUP_ORDER 13
+
 /*
  * Checkup routine
  *
@@ -348,27 +408,50 @@ int ecp_self_test( int verbose )
     ecp_point O, A, B, C, D, E, F, G, H, TMP;
     ecp_point *add_tbl[][3] =
     {
-        {&O, &O, &O}, {&O, &A, &A}, {&A, &O, &A},
-        {&A, &A, &O}, {&B, &C, &O}, {&C, &B, &O},
-        {&A, &D, &E}, {&D, &A, &E},
-        {&B, &D, &F}, {&D, &B, &F},
-        {&D, &D, &G}, {&B, &B, &H},
+        { &O, &O, &O }, { &O, &A, &A }, { &A, &O, &A },
+        { &A, &A, &O }, { &B, &C, &O }, { &C, &B, &O },
+        { &A, &D, &E }, { &D, &A, &E },
+        { &B, &D, &F }, { &D, &B, &F },
+        { &D, &D, &G }, { &B, &B, &H },
+    };
+    mpi m;
+    ecp_point mul_tbl[TEST_GROUP_ORDER + 1];
+    char *mul_tbl_s[TEST_GROUP_ORDER - 1][2] =
+    {
+        { "17", "42" },
+        { "20", "01" },
+        { "14", "11" },
+        { "34", "33" },
+        { "21", "32" },
+        { "27", "30" },
+        { "27", "17" },
+        { "21", "15" },
+        { "34", "14" },
+        { "14", "36" },
+        { "20", "46" },
+        { "17", "05" },
     };
 
     ecp_group_init( &grp );
+
     ecp_point_init( &O ); ecp_point_init( &A ); ecp_point_init( &B );
     ecp_point_init( &C ); ecp_point_init( &D ); ecp_point_init( &E );
     ecp_point_init( &F ); ecp_point_init( &G ); ecp_point_init( &H );
     ecp_point_init( &TMP );
 
+    mpi_init( &m );
+
+    for( i = 0; i <= TEST_GROUP_ORDER; i++ )
+        ecp_point_init( &mul_tbl[i] );
+
     ecp_set_zero( &O );
     MPI_CHK( ecp_group_read_string( &grp, 10, "47", "4", "17", "42", "13" ) );
-    MPI_CHK( ecp_point_read_string( &A, 10, "13",  "0" ) );
+    MPI_CHK( ecp_point_read_string( &A, 10, "13", "00" ) );
     MPI_CHK( ecp_point_read_string( &B, 10, "14", "11" ) );
     MPI_CHK( ecp_point_read_string( &C, 10, "14", "36" ) );
     MPI_CHK( ecp_point_read_string( &D, 10, "37", "31" ) );
     MPI_CHK( ecp_point_read_string( &E, 10, "34", "14" ) );
-    MPI_CHK( ecp_point_read_string( &F, 10, "45",  "7" ) );
+    MPI_CHK( ecp_point_read_string( &F, 10, "45", "07" ) );
     MPI_CHK( ecp_point_read_string( &G, 10, "21", "32" ) );
     MPI_CHK( ecp_point_read_string( &H, 10, "27", "30" ) );
 
@@ -382,7 +465,7 @@ int ecp_self_test( int verbose )
         {
             if( verbose != 0 )
             {
-                printf(" failed (%u)\n", i );
+                printf( " failed (%u)\n", i );
                 printf( "        GOT: " );
                 ecp_point_print( &TMP );
                 printf( "   EXPECTED: " );
@@ -396,16 +479,60 @@ int ecp_self_test( int verbose )
     if (verbose != 0 )
         printf( "passed\n" );
 
+    MPI_CHK( ecp_copy( &mul_tbl[0], &O ) );
+    for( i = 1; i <= TEST_GROUP_ORDER - 1; i++ )
+        MPI_CHK( ecp_point_read_string( &mul_tbl[i], 10,
+                    mul_tbl_s[i-1][0], mul_tbl_s[i-1][1] ) );
+    MPI_CHK( ecp_copy( &mul_tbl[TEST_GROUP_ORDER], &O ) );
+
+    if( verbose != 0 )
+        printf( "  ECP test #2 (ecp_mul): " );
+
+    for( i = 0; i <= TEST_GROUP_ORDER; i++ )
+    {
+        MPI_CHK( mpi_lset( &m, i ) );
+        MPI_CHK( ecp_mul( &grp, &TMP, &m, &grp.G ) );
+        if( ! ecp_point_eq( &TMP, &mul_tbl[i] ) )
+        {
+            if( verbose != 0 )
+            {
+                printf( " failed (%u)\n", i );
+                printf( "        GOT: " );
+                ecp_point_print( &TMP );
+                printf( "   EXPECTED: " );
+                ecp_point_print( &mul_tbl[i] );
+            }
+
+            return( 1 );
+        }
+    }
+
+    if (verbose != 0 )
+        printf( "passed\n" );
+
 cleanup:
 
     if( ret != 0 && verbose != 0 )
-        printf( "Unexpected error, return code = %08X\n", ret );
+    {
+#if defined(POLARSSL_ERROR_C)
+        char error_buf[200];
+        error_strerror( ret, error_buf, 200 );
+        printf( "Unexpected error: %d - %s\n\n", ret, error_buf );
+#else
+        printf( "Unexpected error: %08X\n", ret );
+#endif
+    }
 
-    ecp_group_free( &grp );
-    ecp_point_free( &O ); ecp_point_free( &A ); ecp_point_free( &B );
-    ecp_point_free( &C ); ecp_point_free( &D ); ecp_point_free( &E );
-    ecp_point_free( &F ); ecp_point_free( &G ); ecp_point_free( &H );
-    ecp_point_free( &TMP );
+    ecp_group_free( &grp ); ecp_point_free( &O ); ecp_point_free( &TMP );
+
+    ecp_point_free( &A ); ecp_point_free( &B ); ecp_point_free( &C );
+    ecp_point_free( &D ); ecp_point_free( &E ); ecp_point_free( &F );
+    ecp_point_free( &G ); ecp_point_free( &H );
+
+    mpi_free( &m );
+
+    for( i = 0; i <= TEST_GROUP_ORDER; i++ )
+        ecp_point_free( &mul_tbl[i] );
 
     if( verbose != 0 )
         printf( "\n" );

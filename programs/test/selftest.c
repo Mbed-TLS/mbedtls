@@ -50,6 +50,7 @@
 #include "polarssl/x509.h"
 #include "polarssl/xtea.h"
 #include "polarssl/pbkdf2.h"
+#include "polarssl/ecp.h"
 
 int main( int argc, char *argv[] )
 {

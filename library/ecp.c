@@ -154,7 +154,57 @@ cleanup:
     return( ret );
 }
 
-#define dbg(X)  printf(#X " = %s%lu\n", X.s < 0 ? "-" : "", X.p[0])
+/*
+ * Set a group using well-known domain parameters
+ */
+int ecp_use_known_dp( ecp_group *grp, size_t index )
+{
+    switch( index )
+    {
+        case POLARSSL_ECP_DP_SECP192R1:
+            return( ecp_group_read_string( grp, 16,
+                        POLARSSL_ECP_SECP192R1_P,
+                        POLARSSL_ECP_SECP192R1_B,
+                        POLARSSL_ECP_SECP192R1_GX,
+                        POLARSSL_ECP_SECP192R1_GY,
+                        POLARSSL_ECP_SECP192R1_N )
+                    );
+        case POLARSSL_ECP_DP_SECP224R1:
+            return( ecp_group_read_string( grp, 16,
+                        POLARSSL_ECP_SECP224R1_P,
+                        POLARSSL_ECP_SECP224R1_B,
+                        POLARSSL_ECP_SECP224R1_GX,
+                        POLARSSL_ECP_SECP224R1_GY,
+                        POLARSSL_ECP_SECP224R1_N )
+                    );
+        case POLARSSL_ECP_DP_SECP256R1:
+            return( ecp_group_read_string( grp, 16,
+                        POLARSSL_ECP_SECP256R1_P,
+                        POLARSSL_ECP_SECP256R1_B,
+                        POLARSSL_ECP_SECP256R1_GX,
+                        POLARSSL_ECP_SECP256R1_GY,
+                        POLARSSL_ECP_SECP256R1_N )
+                    );
+        case POLARSSL_ECP_DP_SECP384R1:
+            return( ecp_group_read_string( grp, 16,
+                        POLARSSL_ECP_SECP384R1_P,
+                        POLARSSL_ECP_SECP384R1_B,
+                        POLARSSL_ECP_SECP384R1_GX,
+                        POLARSSL_ECP_SECP384R1_GY,
+                        POLARSSL_ECP_SECP384R1_N )
+                    );
+        case POLARSSL_ECP_DP_SECP521R1:
+            return( ecp_group_read_string( grp, 16,
+                        POLARSSL_ECP_SECP521R1_P,
+                        POLARSSL_ECP_SECP521R1_B,
+                        POLARSSL_ECP_SECP521R1_GX,
+                        POLARSSL_ECP_SECP521R1_GY,
+                        POLARSSL_ECP_SECP521R1_N )
+                    );
+    }
+
+    return( POLARSSL_ERR_ECP_GENERIC );
+}
 
 /*
  * Addition: R = P + Q, generic case (P != Q, P != 0, Q != 0, R != 0)
@@ -476,7 +526,7 @@ int ecp_self_test( int verbose )
         }
     }
 
-    if (verbose != 0 )
+    if( verbose != 0 )
         printf( "passed\n" );
 
     MPI_CHK( ecp_copy( &mul_tbl[0], &O ) );
@@ -507,8 +557,20 @@ int ecp_self_test( int verbose )
         }
     }
 
-    if (verbose != 0 )
+    if( verbose != 0 )
         printf( "passed\n" );
+
+    if( verbose != 0 )
+        printf( "  ECP test #3 (use_known_dp): " );
+
+    for( i = 0; i <= POLARSSL_ECP_DP_SECP521R1; i++ )
+    {
+        MPI_CHK( ecp_use_known_dp( &grp, i ) );
+    }
+
+    if( verbose != 0 )
+        printf( "passed\n" );
+
 
 cleanup:
 

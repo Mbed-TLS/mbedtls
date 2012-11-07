@@ -32,9 +32,9 @@
 /*
  * ECP error codes
  *
- * (The functions written up to now return MPI error codes only.)
+ * (Only one error code available...)
  */
-
+#define POLARSSL_ERR_ECP_GENERIC    -0x007E  /**<  Generic ECP error */
 
 /**
  * \brief           ECP point structure (affine coordinates)
@@ -75,6 +75,12 @@ ecp_group;
  * parameters. Therefore, only well-known domain parameters from trusted
  * sources (such as the ones below) should be used.
  */
+#define POLARSSL_ECP_DP_SECP192R1   0
+#define POLARSSL_ECP_DP_SECP224R1   1
+#define POLARSSL_ECP_DP_SECP256R1   2
+#define POLARSSL_ECP_DP_SECP384R1   3
+#define POLARSSL_ECP_DP_SECP521R1   4
+
 #define POLARSSL_ECP_SECP192R1_P \
     "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFF"
 #define POLARSSL_ECP_SECP192R1_B \
@@ -214,6 +220,20 @@ int ecp_point_read_string( ecp_point *P, int radix,
 int ecp_group_read_string( ecp_group *grp, int radix,
                            const char *p, const char *b,
                            const char *gx, const char *gy, const char *n);
+
+/**
+ * \brief           Set a group using well-known domain parameters
+ *
+ * \param grp       Destination group
+ * \param index     Index in the list of well-known domain parameters
+ *
+ * \return          O if successul,
+ *                  POLARSSL_ERR_MPI_XXX if initialization failed
+ *                  POLARSSL_ERR_ECP_GENERIC if index is out of range
+ *
+ * \note            Index should be a POLARSSL_ECP_DP_XXX macro.
+ */
+int ecp_use_known_dp( ecp_group *grp, size_t index );
 
 /**
  * \brief           Addition: R = P + Q

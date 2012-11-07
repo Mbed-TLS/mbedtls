@@ -641,7 +641,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
  */
 const char *x509_oid_get_description( x509_buf *oid );
 
-/*
+/**
  * \brief          Give an OID, return a string version of its OID number.
  *
  * \param buf      Buffer to write to

@@ -738,7 +738,7 @@
  */
 #define POLARSSL_SSL_CLI_C
 
-/*
+/**
  * \def POLARSSL_SSL_SRV_C
  *
  * Enable the SSL/TLS server code.

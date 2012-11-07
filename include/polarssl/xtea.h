@@ -97,7 +97,7 @@ int xtea_crypt_cbc( xtea_context *ctx,
                     unsigned char *input,
                     unsigned char *output);
 
-/*
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

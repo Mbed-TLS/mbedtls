@@ -129,7 +129,7 @@ int blowfish_crypt_cfb64( blowfish_context *ctx,
                           const unsigned char *input,
                           unsigned char *output );
 
-/*
+/**
  * \brief               Blowfish-CTR buffer encryption/decryption
  *
  * Warning: You have to keep the maximum use of your counter in mind!

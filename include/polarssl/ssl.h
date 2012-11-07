@@ -884,8 +884,9 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
  *                 (Most secure option, interoperability issues)
  *
  * \param ssl      SSL context
- * \param allow_legacy  Prevent or allow (SSL_NO_LEGACY_RENEGOTIATION or
- *                                        SSL_ALLOW_LEGACY_RENEGOTIATION)
+ * \param allow_legacy  Prevent or allow (SSL_NO_LEGACY_RENEGOTIATION,
+ *                                        SSL_ALLOW_LEGACY_RENEGOTIATION or
+ *                                        SSL_LEGACY_BREAK_HANDSHAKE)
  */
 void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
 
@@ -1000,7 +1001,7 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len );
  *                  (SSL_ALERT_LEVEL_WARNING or SSL_ALERT_LEVEL_FATAL)
  * \param message   The alert message (SSL_ALERT_MSG_*)
  *
- * \return          1 if successful, or a specific SSL error code.
+ * \return          0 if successful, or a specific SSL error code.
  */
 int ssl_send_alert_message( ssl_context *ssl,
                             unsigned char level,

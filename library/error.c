@@ -1,7 +1,7 @@
 /*
  *  Error message information
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -509,4 +509,4 @@ void error_strerror( int ret, char *buf, size_t buflen )
     snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
 }
 
-#endif /* POLARSSL_VERBOSE_ERROR */
+#endif /* POLARSSL_ERROR_C */

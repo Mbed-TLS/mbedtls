@@ -280,7 +280,7 @@
 /**
  * \def POLARSSL_BIGNUM_C
  *
- * Enable the multo-precision integer library.
+ * Enable the multi-precision integer library.
  *
  * Module:  library/bignum.c
  * Caller:  library/dhm.c

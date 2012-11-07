@@ -134,7 +134,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
 int dhm_calc_secret( dhm_context *ctx,
                      unsigned char *output, size_t *olen );
 
-/*
+/**
  * \brief          Free the components of a DHM key
  */
 void dhm_free( dhm_context *ctx );

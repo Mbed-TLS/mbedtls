@@ -213,7 +213,7 @@ int des3_crypt_cbc( des3_context *ctx,
                      const unsigned char *input,
                      unsigned char *output );
 
-/*
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

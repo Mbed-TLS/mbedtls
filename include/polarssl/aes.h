@@ -134,7 +134,7 @@ int aes_crypt_cfb128( aes_context *ctx,
                        const unsigned char *input,
                        unsigned char *output );
 
-/*
+/**
  * \brief               AES-CTR buffer encryption/decryption
  *
  * Warning: You have to keep the maximum use of your counter in mind!

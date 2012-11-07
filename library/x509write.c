@@ -146,8 +146,6 @@ int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
 
 /*
  * Wrapper for x509 hashes.
- *
- * \param out   Buffer to receive the hash (Should be at least 64 bytes)
  */
 static void x509_hash( const unsigned char *in, size_t len, int alg,
                        unsigned char *out )

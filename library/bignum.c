@@ -1212,10 +1212,6 @@ cleanup:
 
 /*
  * Division by int: A = Q * b + R
- *
- * Returns 0 if successful
- *         1 if memory allocation failed
- *         POLARSSL_ERR_MPI_DIVISION_BY_ZERO if b == 0
  */
 int mpi_div_int( mpi *Q, mpi *R, const mpi *A, t_sint b )
 {

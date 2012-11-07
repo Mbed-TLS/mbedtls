@@ -1,0 +1,99 @@
+BEGIN_HEADER
+#include <polarssl/ecp.h>
+END_HEADER
+
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
+END_DEPENDENCIES
+
+BEGIN_CASE
+ecp_small_add:a_zero:x_a:y_a:b_zero:x_b:y_b:c_zero:x_c:y_c
+{
+    ecp_group grp;
+    ecp_point A, B, C;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &A ); ecp_point_init( &B ); ecp_point_init( &C );
+
+    TEST_ASSERT( ecp_group_read_string( &grp, 10,
+                "47", "4", "17", "42", "13" ) == 0 );
+
+    if( {a_zero} )
+        ecp_set_zero( &A );
+    else
+        TEST_ASSERT( ecp_point_read_string( &A, 10, {x_a}, {y_a} ) == 0 );
+
+    if( {b_zero} )
+        ecp_set_zero( &B );
+    else
+        TEST_ASSERT( ecp_point_read_string( &B, 10, {x_b}, {y_b} ) == 0 );
+
+    TEST_ASSERT( ecp_add( &grp, &C, &A, &B ) == 0 );
+
+    if( {c_zero} )
+        TEST_ASSERT( C.is_zero );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &C.X, {x_c} ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &C.Y, {y_c} ) == 0 );
+    }
+
+    TEST_ASSERT( ecp_add( &grp, &C, &B, &A ) == 0 );
+
+    if( {c_zero} )
+        TEST_ASSERT( C.is_zero );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &C.X, {x_c} ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &C.Y, {y_c} ) == 0 );
+    }
+
+    ecp_group_free( &grp );
+    ecp_point_free( &A ); ecp_point_free( &B ); ecp_point_free( &C );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_small_mul:m:r_zero:x_r:y_r
+{
+    ecp_group grp;
+    ecp_point R;
+    mpi m;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &R );
+    mpi_init( &m );
+
+    TEST_ASSERT( ecp_group_read_string( &grp, 10,
+                "47", "4", "17", "42", "13" ) == 0 );
+
+    TEST_ASSERT( mpi_lset( &m, {m} ) == 0 );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G ) == 0 );
+
+    if( {r_zero} )
+        TEST_ASSERT( R.is_zero );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &R.X, {x_r} ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &R.Y, {y_r} ) == 0 );
+    }
+
+    ecp_group_free( &grp );
+    ecp_point_free( &R );
+    mpi_free( &m );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_test_vect:id
+{
+    ecp_group grp;
+
+    ecp_group_init( &grp );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    ecp_group_free( &grp );
+}
+END_CASE

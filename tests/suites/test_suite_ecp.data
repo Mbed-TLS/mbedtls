@@ -1,0 +1,80 @@
+ECP small addition #1
+ecp_small_add:1:"":"":1:"":"":1:0:0
+
+ECP small addition #2
+ecp_small_add:1:"":"":0:"14":"11":0:14:11
+
+ECP small addition #3
+ecp_small_add:0:"13":"00":0:"13":"00":1:0:0
+
+ECP small addition #4
+ecp_small_add:0:"14":"11":0:"14":"36":1:0:0
+
+ECP small addition #5
+ecp_small_add:0:"13":"00":0:"37":"31":0:34:14
+
+ECP small addition #6
+ecp_small_add:0:"14":"11":0:"37":"31":0:45:07
+
+ECP small addition #7
+ecp_small_add:0:"37":"31":0:"37":"31":0:21:32
+
+ECP small addition #8
+ecp_small_add:0:"14":"11":0:"14":"11":0:27:30
+
+ECP small multiplication #0
+ecp_small_mul:0:1:0:0
+
+ECP small multiplication #1
+ecp_small_mul:1:0:17:42
+
+ECP small multiplication #2
+ecp_small_mul:2:0:20:01
+
+ECP small multiplication #3
+ecp_small_mul:3:0:14:11
+
+ECP small multiplication #4
+ecp_small_mul:4:0:34:33
+
+ECP small multiplication #5
+ecp_small_mul:5:0:21:32
+
+ECP small multiplication #6
+ecp_small_mul:6:0:27:30
+
+ECP small multiplication #7
+ecp_small_mul:7:0:27:17
+
+ECP small multiplication #8
+ecp_small_mul:8:0:21:15
+
+ECP small multiplication #9
+ecp_small_mul:9:0:34:14
+
+ECP small multiplication #10
+ecp_small_mul:10:0:14:36
+
+ECP small multiplication #11
+ecp_small_mul:11:0:20:46
+
+ECP small multiplication #12
+ecp_small_mul:12:0:17:05
+
+ECP small multiplication #13
+ecp_small_mul:13:1:0:0
+
+ECP test vectors secp192r1
+ecp_test_vect:SECP192R1
+
+ECP test vectors secp224r1
+ecp_test_vect:SECP224R1
+
+ECP test vectors secp256r1
+ecp_test_vect:SECP256R1
+
+ECP test vectors secp384r1
+ecp_test_vect:SECP384R1
+
+ECP test vectors secp521r1
+ecp_test_vect:SECP521R1

@@ -27,7 +27,7 @@
  * References:
  *
  * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
- * Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
+ * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
  */
 
 #include "polarssl/config.h"
@@ -204,6 +204,80 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
     }
 
     return( POLARSSL_ERR_ECP_GENERIC );
+}
+
+/*
+ * Internal point format used for fast addition/doubling/multiplication:
+ * Jacobian coordinates (GECC example 3.20)
+ */
+typedef struct
+{
+    mpi X, Y, Z;
+}
+ecp_ptjac;
+
+/*
+ * Convert from affine to Jacobian coordinates
+ */
+static int ecp_aff_to_jac( ecp_ptjac *jac, ecp_point *aff )
+{
+    int ret = 0;
+
+    if( aff->is_zero )
+    {
+        MPI_CHK( mpi_lset( &jac->X, 1 ) );
+        MPI_CHK( mpi_lset( &jac->Y, 1 ) );
+        MPI_CHK( mpi_lset( &jac->Z, 0 ) );
+    }
+    else
+    {
+        MPI_CHK( mpi_copy( &jac->X, &aff->X ) );
+        MPI_CHK( mpi_copy( &jac->Y, &aff->Y ) );
+        MPI_CHK( mpi_lset( &jac->Z, 1 ) );
+    }
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Convert from Jacobian to affine coordinates
+ */
+static int ecp_jac_to_aff( const ecp_group *grp,
+                           ecp_point *aff, ecp_ptjac *jac )
+{
+    int ret = 0;
+    mpi Zi, ZZi, T;
+
+    if( mpi_cmp_int( &jac->Z, 0 ) == 0 ) {
+        ecp_set_zero( aff );
+        return( 0 );
+    }
+
+    mpi_init( &Zi ); mpi_init( &ZZi ); mpi_init( &T );
+
+    aff->is_zero = 0;
+
+    /*
+     * aff.X = jac.X / (jac.Z)^2  mod p
+     */
+    MPI_CHK( mpi_inv_mod( &Zi, &jac->Z, &grp->P ) );
+    MPI_CHK( mpi_mul_mpi( &ZZi, &Zi, &Zi ) );
+    MPI_CHK( mpi_mul_mpi( &T, &jac->X, &ZZi ) );
+    MPI_CHK( mpi_mod_mpi( &aff->X, &T, &grp->P ) );
+
+    /*
+     * aff.Y = jac.Y / (jac.Z)^3  mod p
+     */
+    MPI_CHK( mpi_mul_mpi( &T, &jac->Y, &ZZi ) );
+    MPI_CHK( mpi_mul_mpi( &T, &T, &Zi ) );
+    MPI_CHK( mpi_mod_mpi( &aff->Y, &T, &grp->P ) );
+
+cleanup:
+
+    mpi_free( &Zi ); mpi_free( &ZZi ); mpi_free( &T );
+
+    return( ret );
 }
 
 /*

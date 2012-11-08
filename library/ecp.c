@@ -225,11 +225,41 @@ static void ecp_ptjac_init( ecp_ptjac *P )
 }
 
 /*
- * Free a point in Jacobian cooridnates
+ * Free a point in Jacobian coordinates
  */
 static void ecp_ptjac_free( ecp_ptjac *P )
 {
     mpi_free( &P->X ); mpi_free( &P->Y ); mpi_free( &P->Z );
+}
+
+/*
+ * Copy P to R in Jacobian coordinates
+ */
+static int ecp_ptjac_copy( ecp_ptjac *R, const ecp_ptjac *P )
+{
+    int ret = 0;
+
+    MPI_CHK( mpi_copy( &R->X, &P->X ) );
+    MPI_CHK( mpi_copy( &R->Y, &P->Y ) );
+    MPI_CHK( mpi_copy( &R->Z, &P->Z ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Set P to zero in Jacobian coordinates
+ */
+static int ecp_ptjac_set_zero( ecp_ptjac *P )
+{
+    int ret = 0;
+
+    MPI_CHK( mpi_lset( &P->X, 1 ) );
+    MPI_CHK( mpi_lset( &P->Y, 1 ) );
+    MPI_CHK( mpi_lset( &P->Z, 0 ) );
+
+cleanup:
+    return( ret );
 }
 
 /*
@@ -240,17 +270,11 @@ static int ecp_aff_to_jac( ecp_ptjac *jac, const ecp_point *aff )
     int ret = 0;
 
     if( aff->is_zero )
-    {
-        MPI_CHK( mpi_lset( &jac->X, 1 ) );
-        MPI_CHK( mpi_lset( &jac->Y, 1 ) );
-        MPI_CHK( mpi_lset( &jac->Z, 0 ) );
-    }
-    else
-    {
-        MPI_CHK( mpi_copy( &jac->X, &aff->X ) );
-        MPI_CHK( mpi_copy( &jac->Y, &aff->Y ) );
-        MPI_CHK( mpi_lset( &jac->Z, 1 ) );
-    }
+        return( ecp_ptjac_set_zero( jac ) );
+
+    MPI_CHK( mpi_copy( &jac->X, &aff->X ) );
+    MPI_CHK( mpi_copy( &jac->Y, &aff->Y ) );
+    MPI_CHK( mpi_lset( &jac->Z, 1 ) );
 
 cleanup:
     return( ret );
@@ -305,16 +329,11 @@ static int ecp_double_jac( const ecp_group *grp, ecp_ptjac *R,
     int ret = 0;
     mpi T1, T2, T3, X, Y, Z;
 
+    if( mpi_cmp_int( &P->Z, 0 ) == 0 )
+        return( ecp_ptjac_set_zero( R ) );
+
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 );
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
-
-    if( mpi_cmp_int( &P->Z, 0 ) == 0 )
-    {
-        MPI_CHK( mpi_lset( &R->X, 1 ) );
-        MPI_CHK( mpi_lset( &R->Y, 1 ) );
-        MPI_CHK( mpi_lset( &R->Z, 0 ) );
-        goto cleanup;
-    }
 
     MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );
     MPI_CHK( mpi_sub_mpi( &T2,  &P->X,  &T1   ) );
@@ -349,63 +368,74 @@ cleanup:
 }
 
 /*
- * Addition: R = P + Q, generic case (P != Q, P != 0, Q != 0, R != 0)
- * Cf SEC1 v2 p. 7, item 4
+ * Addition: R = P + Q, mixed affine-Jacobian coordinates (GECC 3.22)
  */
-static int ecp_add_generic( const ecp_group *grp, ecp_point *R,
-                            const ecp_point *P, const ecp_point *Q )
+static int ecp_add_mixed( const ecp_group *grp, ecp_ptjac *R,
+                          const ecp_ptjac *P, const ecp_point *Q )
 {
     int ret = 0;
-    mpi DX, DY, K, L, LL, X, Y;
-
-    mpi_init( &DX ); mpi_init( &DY ); mpi_init( &K ); mpi_init( &L );
-    mpi_init( &LL ); mpi_init( &X ); mpi_init( &Y );
+    mpi T1, T2, T3, T4, X, Y, Z;
 
     /*
-     * L = (Q.Y - P.Y) / (Q.X - P.X)  mod p
+     * Trivial cases: P == 0 or Q == 0
      */
-    MPI_CHK( mpi_sub_mpi( &DY, &Q->Y, &P->Y ) );
-    MPI_CHK( mpi_sub_mpi( &DX, &Q->X, &P->X ) );
-    MPI_CHK( mpi_inv_mod( &K, &DX, &grp->P ) );
-    MPI_CHK( mpi_mul_mpi( &K, &K, &DY ) );
-    MPI_CHK( mpi_mod_mpi( &L, &K, &grp->P ) );
+    if( mpi_cmp_int( &P->Z, 0 ) == 0 )
+        return( ecp_aff_to_jac( R, Q ) );
 
-    /*
-     * LL = L^2  mod p
-     */
-    MPI_CHK( mpi_mul_mpi( &LL, &L, &L ) );
-    MPI_CHK( mpi_mod_mpi( &LL, &LL, &grp->P ) );
+    if( Q->is_zero )
+        return( ecp_ptjac_copy( R, P ) );
 
-    /*
-     * X  = L^2 - P.X - Q.X
-     */
-    MPI_CHK( mpi_sub_mpi( &X, &LL, &P->X ) );
-    MPI_CHK( mpi_sub_mpi( &X, &X,  &Q->X ) );
+    mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 ); mpi_init( &T4 );
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
 
-    /*
-     * Y = L * (P.X - X) - P.Y
-     */
-    MPI_CHK( mpi_sub_mpi( &Y, &P->X, &X) );
-    MPI_CHK( mpi_mul_mpi( &Y, &Y, &L ) );
-    MPI_CHK( mpi_sub_mpi( &Y, &Y, &P->Y ) );
+    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T1,    &P->Z ) );
+    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &Q->X ) );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &Q->Y ) );
+    MPI_CHK( mpi_sub_mpi( &T1,  &T1,    &P->X ) );
+    MPI_CHK( mpi_sub_mpi( &T2,  &T2,    &P->Y ) );
 
-    /*
-     * R = (X mod p, Y mod p)
-     */
-    R->is_zero = 0;
+    if( mpi_cmp_int( &T1, 0 ) == 0 )
+    {
+        if( mpi_cmp_int( &T2, 0 ) == 0 )
+        {
+            ret = ecp_double_jac( grp, R, P );
+            goto cleanup;
+        }
+        else
+        {
+            ret = ecp_ptjac_set_zero( R );
+            goto cleanup;
+        }
+    }
+
+    MPI_CHK( mpi_mul_mpi( &Z,   &P->Z,  &T1   ) );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T1,    &T1   ) );
+    MPI_CHK( mpi_mul_mpi( &T4,  &T3,    &T1   ) );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &P->X ) );
+    MPI_CHK( mpi_mul_int( &T1,  &T3,    2     ) );
+    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T4   ) );
+    MPI_CHK( mpi_sub_mpi( &T3,  &T3,    &X    ) );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &T2   ) );
+    MPI_CHK( mpi_mul_mpi( &T4,  &T4,    &P->Y ) );
+    MPI_CHK( mpi_sub_mpi( &Y,   &T3,    &T4   ) );
+
     MPI_CHK( mpi_mod_mpi( &R->X, &X, &grp->P ) );
     MPI_CHK( mpi_mod_mpi( &R->Y, &Y, &grp->P ) );
+    MPI_CHK( mpi_mod_mpi( &R->Z, &Z, &grp->P ) );
 
 cleanup:
 
-    mpi_free( &DX ); mpi_free( &DY ); mpi_free( &K ); mpi_free( &L );
-    mpi_free( &LL ); mpi_free( &X ); mpi_free( &Y );
+    mpi_free( &T1 ); mpi_free( &T2 ); mpi_free( &T3 ); mpi_free( &T4 );
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
 
     return( ret );
 }
 
 /*
- * Addition: R = P + Q, cf p. 7 of SEC1 v2
+ * Addition: R = P + Q, affine wrapper
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )
@@ -415,37 +445,15 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
 
     ecp_ptjac_init( &J );
 
-    if( P->is_zero )
-    {
-        ret = ecp_copy( R, Q );
-    }
-    else if( Q->is_zero )
-    {
-        ret = ecp_copy( R, P );
-    }
-    else if( mpi_cmp_mpi( &P->X, &Q->X ) != 0 )
-    {
-        ret = ecp_add_generic( grp, R, P, Q );
-    }
-    else if( mpi_cmp_mpi( &P->Y, &Q->Y ) != 0 )
-    {
-        ecp_set_zero( R );
-    }
-    else
-    {
-        /*
-         * P == Q
-         */
-        ecp_aff_to_jac( &J, P );
-        MPI_CHK( ecp_double_jac( grp, &J, &J ) );
-        MPI_CHK( ecp_jac_to_aff( grp, R, &J ) );
-    }
+    MPI_CHK( ecp_aff_to_jac( &J, P ) );
+    MPI_CHK( ecp_add_mixed( grp, &J, &J, Q ) );
+    MPI_CHK( ecp_jac_to_aff( grp, R, &J ) );
 
 cleanup:
 
     ecp_ptjac_free( &J );
 
-    return ret;
+    return( ret );
 }
 
 /*

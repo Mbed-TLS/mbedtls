@@ -434,55 +434,42 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
 
 /*
  * Integer multiplication: R = m * P
- * Using Montgomery's Ladder to avoid leaking information about m
+ * GECC 5.7 (SPA-resistant algorithm)
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P )
 {
     int ret = 0;
     size_t pos;
-    ecp_point A, B;
+    ecp_point Q[2];
 
-    ecp_point_init( &A ); ecp_point_init( &B );
+    ecp_point_init( &Q[0] ); ecp_point_init( &Q[1] );
 
     /*
-     * The general method works only for m >= 2
+     * The general method works only for m >= 1
      */
     if( mpi_cmp_int( m, 0 ) == 0 ) {
         ecp_set_zero( R );
         goto cleanup;
     }
 
-    if( mpi_cmp_int( m, 1 ) == 0 ) {
-        MPI_CHK( ecp_copy( R, P ) );
-        goto cleanup;
-    }
+    ecp_set_zero( &Q[0] );
 
-    MPI_CHK( ecp_copy( &A, P ) );
-    MPI_CHK( ecp_add( grp, &B, P, P ) );
-
-    for( pos = mpi_msb( m ) - 2; ; pos-- )
+    for( pos = mpi_msb( m ) - 1; ; pos-- )
     {
-        if( mpi_get_bit( m, pos ) == 0 )
-        {
-            MPI_CHK( ecp_add( grp, &B, &A, &B ) );
-            MPI_CHK( ecp_add( grp, &A, &A, &A ) ) ;
-        }
-        else
-        {
-            MPI_CHK( ecp_add( grp, &A, &A, &B ) );
-            MPI_CHK( ecp_add( grp, &B, &B, &B ) ) ;
-        }
+        MPI_CHK( ecp_add( grp, &Q[0], &Q[0], &Q[0] ) );
+        MPI_CHK( ecp_add( grp, &Q[1], &Q[0], P ) );
+        MPI_CHK( ecp_copy( &Q[0], &Q[ mpi_get_bit( m, pos ) ] ) );
 
         if( pos == 0 )
             break;
     }
 
-    MPI_CHK( ecp_copy( R, &A ) );
+    MPI_CHK( ecp_copy( R, &Q[0] ) );
 
 cleanup:
 
-    ecp_point_free( &A ); ecp_point_free( &B );
+    ecp_point_free( &Q[0] ); ecp_point_free( &Q[1] );
 
     return( ret );
 }

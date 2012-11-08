@@ -217,9 +217,25 @@ typedef struct
 ecp_ptjac;
 
 /*
+ * Initialize a point in Jacobian coordinates
+ */
+static void ecp_ptjac_init( ecp_ptjac *P )
+{
+    mpi_init( &P->X ); mpi_init( &P->Y ); mpi_init( &P->Z );
+}
+
+/*
+ * Free a point in Jacobian cooridnates
+ */
+static void ecp_ptjac_free( ecp_ptjac *P )
+{
+    mpi_free( &P->X ); mpi_free( &P->Y ); mpi_free( &P->Z );
+}
+
+/*
  * Convert from affine to Jacobian coordinates
  */
-static int ecp_aff_to_jac( ecp_ptjac *jac, ecp_point *aff )
+static int ecp_aff_to_jac( ecp_ptjac *jac, const ecp_point *aff )
 {
     int ret = 0;
 
@@ -244,7 +260,7 @@ cleanup:
  * Convert from Jacobian to affine coordinates
  */
 static int ecp_jac_to_aff( const ecp_group *grp,
-                           ecp_point *aff, ecp_ptjac *jac )
+                           ecp_point *aff, const ecp_ptjac *jac )
 {
     int ret = 0;
     mpi Zi, ZZi, T;
@@ -276,6 +292,58 @@ static int ecp_jac_to_aff( const ecp_group *grp,
 cleanup:
 
     mpi_free( &Zi ); mpi_free( &ZZi ); mpi_free( &T );
+
+    return( ret );
+}
+
+/*
+ * Point doubling R = 2 P, Jacobian coordinates (GECC 3.21)
+ */
+static int ecp_double_jac( const ecp_group *grp, ecp_ptjac *R,
+                           const ecp_ptjac *P )
+{
+    int ret = 0;
+    mpi T1, T2, T3, X, Y, Z;
+
+    mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 );
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
+
+    if( mpi_cmp_int( &P->Z, 0 ) == 0 )
+    {
+        MPI_CHK( mpi_lset( &R->X, 1 ) );
+        MPI_CHK( mpi_lset( &R->Y, 1 ) );
+        MPI_CHK( mpi_lset( &R->Z, 0 ) );
+        goto cleanup;
+    }
+
+    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );
+    MPI_CHK( mpi_sub_mpi( &T2,  &P->X,  &T1   ) );
+    MPI_CHK( mpi_add_mpi( &T1,  &P->X,  &T1   ) );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &T1   ) );
+    MPI_CHK( mpi_mul_int( &T2,  &T2,    3     ) );
+    MPI_CHK( mpi_copy   ( &Y,   &P->Y         ) );
+    MPI_CHK( mpi_shift_l( &Y,   1             ) );
+    MPI_CHK( mpi_mul_mpi( &Z,   &Y,     &P->Z ) );
+    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) );
+    MPI_CHK( mpi_mul_mpi( &T3,  &Y,     &P->X ) );
+    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) );
+    MPI_CHK( mpi_shift_r( &Y,   1             ) );
+    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) );
+    MPI_CHK( mpi_copy   ( &T1,  &T3           ) );
+    MPI_CHK( mpi_shift_l( &T1,  1             ) );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) );
+    MPI_CHK( mpi_sub_mpi( &T1,  &T3,    &X    ) );
+    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &T2   ) );
+    MPI_CHK( mpi_sub_mpi( &Y,   &T1,    &Y    ) );
+
+    MPI_CHK( mpi_mod_mpi( &R->X, &X, &grp->P ) );
+    MPI_CHK( mpi_mod_mpi( &R->Y, &Y, &grp->P ) );
+    MPI_CHK( mpi_mod_mpi( &R->Z, &Z, &grp->P ) );
+
+cleanup:
+
+    mpi_free( &T1 ); mpi_free( &T2 ); mpi_free( &T3 );
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
 
     return( ret );
 }
@@ -337,72 +405,15 @@ cleanup:
 }
 
 /*
- * Doubling: R = 2 * P, generic case (P != 0, R != 0)
- * Cf SEC1 v2 p. 7, item 5
- */
-static int ecp_double_generic( const ecp_group *grp, ecp_point *R,
-                               const ecp_point *P )
-{
-    int ret = 0;
-    mpi LN, LD, K, L, LL, X, Y;
-
-    mpi_init( &LN ); mpi_init( &LD ); mpi_init( &K ); mpi_init( &L );
-    mpi_init( &LL ); mpi_init( &X ); mpi_init( &Y );
-
-    /*
-     * L = 3 (P.X - 1) (P.X + 1) / (2 P.Y) mod p
-     */
-    MPI_CHK( mpi_copy( &LD, &P->Y ) );
-    MPI_CHK( mpi_shift_l( &LD, 1 ) );
-    MPI_CHK( mpi_inv_mod( &K, &LD, &grp->P ) );
-    MPI_CHK( mpi_mul_int( &K, &K, 3 ) );
-    MPI_CHK( mpi_sub_int( &LN, &P->X, 1 ) );
-    MPI_CHK( mpi_mul_mpi( &K, &K, &LN ) );
-    MPI_CHK( mpi_add_int( &LN, &P->X, 1 ) );
-    MPI_CHK( mpi_mul_mpi( &K, &K, &LN ) );
-    MPI_CHK( mpi_mod_mpi( &L, &K, &grp->P ) );
-
-    /*
-     * LL = L^2  mod p
-     */
-    MPI_CHK( mpi_mul_mpi( &LL, &L, &L ) );
-    MPI_CHK( mpi_mod_mpi( &LL, &LL, &grp->P ) );
-
-    /*
-     * X  = L^2 - 2 * P.X
-     */
-    MPI_CHK( mpi_sub_mpi( &X, &LL, &P->X ) );
-    MPI_CHK( mpi_sub_mpi( &X, &X,  &P->X ) );
-
-    /*
-     * Y = L * (P.X - X) - P.Y
-     */
-    MPI_CHK( mpi_sub_mpi( &Y, &P->X, &X) );
-    MPI_CHK( mpi_mul_mpi( &Y, &Y, &L ) );
-    MPI_CHK( mpi_sub_mpi( &Y, &Y, &P->Y ) );
-
-    /*
-     * R = (X mod p, Y mod p)
-     */
-    R->is_zero = 0;
-    MPI_CHK( mpi_mod_mpi( &R->X, &X, &grp->P ) );
-    MPI_CHK( mpi_mod_mpi( &R->Y, &Y, &grp->P ) );
-
-cleanup:
-
-    mpi_free( &LN ); mpi_free( &LD ); mpi_free( &K ); mpi_free( &L );
-    mpi_free( &LL ); mpi_free( &X ); mpi_free( &Y );
-
-    return( ret );
-}
-
-/*
  * Addition: R = P + Q, cf p. 7 of SEC1 v2
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )
 {
     int ret = 0;
+    ecp_ptjac J;
+
+    ecp_ptjac_init( &J );
 
     if( P->is_zero )
     {
@@ -416,8 +427,7 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
     {
         ret = ecp_add_generic( grp, R, P, Q );
     }
-    else if( mpi_cmp_int( &P->Y, 0 ) == 0 ||
-             mpi_cmp_mpi( &P->Y, &Q->Y ) != 0 )
+    else if( mpi_cmp_mpi( &P->Y, &Q->Y ) != 0 )
     {
         ecp_set_zero( R );
     }
@@ -426,15 +436,20 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
         /*
          * P == Q
          */
-        ret = ecp_double_generic( grp, R, P );
+        ecp_aff_to_jac( &J, P );
+        MPI_CHK( ecp_double_jac( grp, &J, &J ) );
+        MPI_CHK( ecp_jac_to_aff( grp, R, &J ) );
     }
+
+cleanup:
+
+    ecp_ptjac_free( &J );
 
     return ret;
 }
 
 /*
- * Integer multiplication: R = m * P
- * GECC 5.7 (SPA-resistant algorithm)
+ * Integer multiplication: R = m * P (GECC 5.7, SPA-resistant variant)
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P )
@@ -455,7 +470,7 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
 
     ecp_set_zero( &Q[0] );
 
-    for( pos = mpi_msb( m ) - 1; ; pos-- )
+    for( pos = mpi_msb( m ) - 1 ; ; pos-- )
     {
         MPI_CHK( ecp_add( grp, &Q[0], &Q[0], &Q[0] ) );
         MPI_CHK( ecp_add( grp, &Q[1], &Q[0], P ) );

@@ -45,6 +45,7 @@
 #include "polarssl/camellia.h"
 #include "polarssl/gcm.h"
 #include "polarssl/rsa.h"
+#include "polarssl/dhm.h"
 #include "polarssl/timing.h"
 #include "polarssl/havege.h"
 #include "polarssl/ctr_drbg.h"
@@ -120,6 +121,10 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_CTR_DRBG_C)
     ctr_drbg_context    ctr_drbg;
+#endif
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_BIGNUM_C)
+    dhm_context dhm;
+    size_t olen = BUFSIZE;
 #endif
     ((void) argc);
     ((void) argv);
@@ -503,6 +508,74 @@ int main( int argc, char *argv[] )
     printf( "%9lu private/s\n", i / 3 );
 
     rsa_free( &rsa );
+#endif
+
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_BIGNUM_C)
+    memset( &dhm, 0, sizeof( dhm_context ) );
+
+    mpi_read_string( &dhm.P, 16, POLARSSL_DHM_RFC5114_MODP_1024_P );
+    mpi_read_string( &dhm.G, 16, POLARSSL_DHM_RFC5114_MODP_1024_G );
+    dhm.len = mpi_size( &dhm.P );
+    dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+    mpi_copy( &dhm.GY, &dhm.GX );
+
+    printf( HEADER_FORMAT, "DHM-1024" );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    for( i = 1; ! alarmed; i++ )
+    {
+        dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+        dhm_calc_secret( &dhm, buf, &olen );
+    }
+
+    printf( "%9lu handshake/s\n", i / 3 );
+
+    dhm_free( &dhm );
+
+    memset( &dhm, 0, sizeof( dhm_context ) );
+
+    mpi_read_string( &dhm.P, 16, POLARSSL_DHM_RFC3526_MODP_2048_P );
+    mpi_read_string( &dhm.G, 16, POLARSSL_DHM_RFC3526_MODP_2048_G );
+    dhm.len = mpi_size( &dhm.P );
+    dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+    mpi_copy( &dhm.GY, &dhm.GX );
+
+    printf( HEADER_FORMAT, "DHM-2048" );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    for( i = 1; ! alarmed; i++ )
+    {
+        dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+        dhm_calc_secret( &dhm, buf, &olen );
+    }
+
+    printf( "%9lu handshake/s\n", i / 3 );
+
+    dhm_free( &dhm );
+
+    memset( &dhm, 0, sizeof( dhm_context ) );
+
+    mpi_read_string( &dhm.P, 16, POLARSSL_DHM_RFC3526_MODP_3072_P );
+    mpi_read_string( &dhm.G, 16, POLARSSL_DHM_RFC3526_MODP_3072_G );
+    dhm.len = mpi_size( &dhm.P );
+    dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+    mpi_copy( &dhm.GY, &dhm.GX );
+
+    printf( HEADER_FORMAT, "DHM-3072" );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    for( i = 1; ! alarmed; i++ )
+    {
+        dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+        dhm_calc_secret( &dhm, buf, &olen );
+    }
+
+    printf( "%9lu handshake/s\n", i / 3 );
+
+    dhm_free( &dhm );
 #endif
 
     printf( "\n" );

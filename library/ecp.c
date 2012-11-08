@@ -464,9 +464,9 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
 {
     int ret = 0;
     size_t pos;
-    ecp_point Q[2];
+    ecp_ptjac Q[2];
 
-    ecp_point_init( &Q[0] ); ecp_point_init( &Q[1] );
+    ecp_ptjac_init( &Q[0] ); ecp_ptjac_init( &Q[1] );
 
     /*
      * The general method works only for m >= 1
@@ -476,23 +476,23 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
         goto cleanup;
     }
 
-    ecp_set_zero( &Q[0] );
+    ecp_ptjac_set_zero( &Q[0] );
 
     for( pos = mpi_msb( m ) - 1 ; ; pos-- )
     {
-        MPI_CHK( ecp_add( grp, &Q[0], &Q[0], &Q[0] ) );
-        MPI_CHK( ecp_add( grp, &Q[1], &Q[0], P ) );
-        MPI_CHK( ecp_copy( &Q[0], &Q[ mpi_get_bit( m, pos ) ] ) );
+        MPI_CHK( ecp_double_jac( grp, &Q[0], &Q[0] ) );
+        MPI_CHK( ecp_add_mixed( grp, &Q[1], &Q[0], P ) );
+        MPI_CHK( ecp_ptjac_copy( &Q[0], &Q[ mpi_get_bit( m, pos ) ] ) );
 
         if( pos == 0 )
             break;
     }
 
-    MPI_CHK( ecp_copy( R, &Q[0] ) );
+    MPI_CHK( ecp_jac_to_aff( grp, R, &Q[0] ) );
 
 cleanup:
 
-    ecp_point_free( &Q[0] ); ecp_point_free( &Q[1] );
+    ecp_ptjac_free( &Q[0] ); ecp_ptjac_free( &Q[1] );
 
     return( ret );
 }

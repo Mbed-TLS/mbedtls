@@ -245,9 +245,6 @@ int ecp_use_known_dp( ecp_group *grp, size_t index );
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
- *                  POLARSSL_ERR_MPI_DIVISION_BY_ZERO (shouldn't happen)
- *                  (temporary, a faster version not using division will be
- *                  used in the future)
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q );
@@ -262,9 +259,6 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
- *                  POLARSSL_ERR_MPI_DIVISION_BY_ZERO (shouldn't happen)
- *                  (temporary, a faster version not using division will be
- *                  used in the future)
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );

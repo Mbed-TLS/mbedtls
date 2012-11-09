@@ -207,6 +207,25 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
 }
 
 /*
+ * Reduce a mpi mod p in-place, general case, to use after mpi_mul_mpi
+ */
+#define MOD_MUL( N )    MPI_CHK( mpi_mod_mpi( &N, &N, &grp->P ) )
+
+/*
+ * Reduce a mpi mod p in-place, to use after mpi_sub_mpi
+ */
+#define MOD_SUB( N )                                \
+    while( mpi_cmp_int( &N, 0 ) < 0 )               \
+        MPI_CHK( mpi_add_mpi( &N, &N, &grp->P ) )
+
+/*
+ * Reduce a mpi mod p in-place, to use after mpi_add_mpi and mpi_mul_int
+ */
+#define MOD_ADD( N )                                \
+    while( mpi_cmp_mpi( &N, &grp->P ) >= 0 )        \
+        MPI_CHK( mpi_sub_mpi( &N, &N, &grp->P ) )
+
+/*
  * Internal point format used for fast addition/doubling/multiplication:
  * Jacobian coordinates (GECC example 3.20)
  */
@@ -274,7 +293,7 @@ static int ecp_aff_to_jac( ecp_ptjac *jac, const ecp_point *aff )
 
     MPI_CHK( mpi_copy( &jac->X, &aff->X ) );
     MPI_CHK( mpi_copy( &jac->Y, &aff->Y ) );
-    MPI_CHK( mpi_lset( &jac->Z, 1 ) );
+    MPI_CHK( mpi_lset( &jac->Z, 1       ) );
 
 cleanup:
     return( ret );
@@ -301,17 +320,15 @@ static int ecp_jac_to_aff( const ecp_group *grp,
     /*
      * aff.X = jac.X / (jac.Z)^2  mod p
      */
-    MPI_CHK( mpi_inv_mod( &Zi, &jac->Z, &grp->P ) );
-    MPI_CHK( mpi_mul_mpi( &ZZi, &Zi, &Zi ) );
-    MPI_CHK( mpi_mul_mpi( &T, &jac->X, &ZZi ) );
-    MPI_CHK( mpi_mod_mpi( &aff->X, &T, &grp->P ) );
+    MPI_CHK( mpi_inv_mod( &Zi,      &jac->Z,  &grp->P ) );
+    MPI_CHK( mpi_mul_mpi( &ZZi,     &Zi,      &Zi     ) ); MOD_MUL( ZZi );
+    MPI_CHK( mpi_mul_mpi( &aff->X,  &jac->X,  &ZZi    ) ); MOD_MUL( aff->X );
 
     /*
      * aff.Y = jac.Y / (jac.Z)^3  mod p
      */
-    MPI_CHK( mpi_mul_mpi( &T, &jac->Y, &ZZi ) );
-    MPI_CHK( mpi_mul_mpi( &T, &T, &Zi ) );
-    MPI_CHK( mpi_mod_mpi( &aff->Y, &T, &grp->P ) );
+    MPI_CHK( mpi_mul_mpi( &aff->Y,  &jac->Y,  &ZZi    ) ); MOD_MUL( aff->Y );
+    MPI_CHK( mpi_mul_mpi( &aff->Y,  &aff->Y,  &Zi     ) ); MOD_MUL( aff->Y );
 
 cleanup:
 
@@ -335,29 +352,37 @@ static int ecp_double_jac( const ecp_group *grp, ecp_ptjac *R,
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 );
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
 
-    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );
-    MPI_CHK( mpi_sub_mpi( &T2,  &P->X,  &T1   ) );
-    MPI_CHK( mpi_add_mpi( &T1,  &P->X,  &T1   ) );
-    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &T1   ) );
-    MPI_CHK( mpi_mul_int( &T2,  &T2,    3     ) );
+    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) ); MOD_MUL( T1 );
+    MPI_CHK( mpi_sub_mpi( &T2,  &P->X,  &T1   ) ); MOD_SUB( T2 );
+    MPI_CHK( mpi_add_mpi( &T1,  &P->X,  &T1   ) ); MOD_ADD( T1 );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &T1   ) ); MOD_MUL( T2 );
+    MPI_CHK( mpi_mul_int( &T2,  &T2,    3     ) ); MOD_ADD( T2 );
     MPI_CHK( mpi_copy   ( &Y,   &P->Y         ) );
-    MPI_CHK( mpi_shift_l( &Y,   1             ) );
-    MPI_CHK( mpi_mul_mpi( &Z,   &Y,     &P->Z ) );
-    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) );
-    MPI_CHK( mpi_mul_mpi( &T3,  &Y,     &P->X ) );
-    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) );
-    MPI_CHK( mpi_shift_r( &Y,   1             ) );
-    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) );
-    MPI_CHK( mpi_copy   ( &T1,  &T3           ) );
-    MPI_CHK( mpi_shift_l( &T1,  1             ) );
-    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) );
-    MPI_CHK( mpi_sub_mpi( &T1,  &T3,    &X    ) );
-    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &T2   ) );
-    MPI_CHK( mpi_sub_mpi( &Y,   &T1,    &Y    ) );
+    MPI_CHK( mpi_shift_l( &Y,   1             ) ); MOD_ADD( Y  );
+    MPI_CHK( mpi_mul_mpi( &Z,   &Y,     &P->Z ) ); MOD_MUL( Z  );
+    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) ); MOD_MUL( Y  );
+    MPI_CHK( mpi_mul_mpi( &T3,  &Y,     &P->X ) ); MOD_MUL( T3 );
+    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) ); MOD_MUL( Y  );
 
-    MPI_CHK( mpi_mod_mpi( &R->X, &X, &grp->P ) );
-    MPI_CHK( mpi_mod_mpi( &R->Y, &Y, &grp->P ) );
-    MPI_CHK( mpi_mod_mpi( &R->Z, &Z, &grp->P ) );
+    /*
+     * For Y = Y / 2 mod p, we must make sure that Y is even before
+     * using right-shift. No need to reduce mod p afterwards.
+     */
+    if( mpi_get_bit( &Y, 0 ) == 1 )
+        MPI_CHK( mpi_add_mpi( &Y, &Y, &grp->P ) );
+    MPI_CHK( mpi_shift_r( &Y,   1             ) );
+
+    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) ); MOD_MUL( X  );
+    MPI_CHK( mpi_copy   ( &T1,  &T3           ) );
+    MPI_CHK( mpi_shift_l( &T1,  1             ) ); MOD_ADD( T1 );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) ); MOD_SUB( X  );
+    MPI_CHK( mpi_sub_mpi( &T1,  &T3,    &X    ) ); MOD_SUB( T1 );
+    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &T2   ) ); MOD_MUL( T1 );
+    MPI_CHK( mpi_sub_mpi( &Y,   &T1,    &Y    ) ); MOD_SUB( Y  );
+
+    MPI_CHK( mpi_copy( &R->X, &X ) );
+    MPI_CHK( mpi_copy( &R->Y, &Y ) );
+    MPI_CHK( mpi_copy( &R->Z, &Z ) );
 
 cleanup:
 
@@ -388,12 +413,12 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_ptjac *R,
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 ); mpi_init( &T4 );
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
 
-    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );
-    MPI_CHK( mpi_mul_mpi( &T2,  &T1,    &P->Z ) );
-    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &Q->X ) );
-    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &Q->Y ) );
-    MPI_CHK( mpi_sub_mpi( &T1,  &T1,    &P->X ) );
-    MPI_CHK( mpi_sub_mpi( &T2,  &T2,    &P->Y ) );
+    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) ); MOD_MUL( T1 );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T1,    &P->Z ) ); MOD_MUL( T2 );
+    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &Q->X ) ); MOD_MUL( T1 );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &Q->Y ) ); MOD_MUL( T2 );
+    MPI_CHK( mpi_sub_mpi( &T1,  &T1,    &P->X ) ); MOD_SUB( T1 );
+    MPI_CHK( mpi_sub_mpi( &T2,  &T2,    &P->Y ) ); MOD_SUB( T2 );
 
     if( mpi_cmp_int( &T1, 0 ) == 0 )
     {
@@ -409,22 +434,22 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_ptjac *R,
         }
     }
 
-    MPI_CHK( mpi_mul_mpi( &Z,   &P->Z,  &T1   ) );
-    MPI_CHK( mpi_mul_mpi( &T3,  &T1,    &T1   ) );
-    MPI_CHK( mpi_mul_mpi( &T4,  &T3,    &T1   ) );
-    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &P->X ) );
-    MPI_CHK( mpi_mul_int( &T1,  &T3,    2     ) );
-    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) );
-    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) );
-    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T4   ) );
-    MPI_CHK( mpi_sub_mpi( &T3,  &T3,    &X    ) );
-    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &T2   ) );
-    MPI_CHK( mpi_mul_mpi( &T4,  &T4,    &P->Y ) );
-    MPI_CHK( mpi_sub_mpi( &Y,   &T3,    &T4   ) );
+    MPI_CHK( mpi_mul_mpi( &Z,   &P->Z,  &T1   ) ); MOD_MUL( Z  );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T1,    &T1   ) ); MOD_MUL( T3 );
+    MPI_CHK( mpi_mul_mpi( &T4,  &T3,    &T1   ) ); MOD_MUL( T4 );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &P->X ) ); MOD_MUL( T3 );
+    MPI_CHK( mpi_mul_int( &T1,  &T3,    2     ) ); MOD_ADD( T1 );
+    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) ); MOD_MUL( X  );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) ); MOD_SUB( X  );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T4   ) ); MOD_SUB( X  );
+    MPI_CHK( mpi_sub_mpi( &T3,  &T3,    &X    ) ); MOD_SUB( T3 );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &T2   ) ); MOD_MUL( T3 );
+    MPI_CHK( mpi_mul_mpi( &T4,  &T4,    &P->Y ) ); MOD_MUL( T4 );
+    MPI_CHK( mpi_sub_mpi( &Y,   &T3,    &T4   ) ); MOD_SUB( Y  );
 
-    MPI_CHK( mpi_mod_mpi( &R->X, &X, &grp->P ) );
-    MPI_CHK( mpi_mod_mpi( &R->Y, &Y, &grp->P ) );
-    MPI_CHK( mpi_mod_mpi( &R->Z, &Z, &grp->P ) );
+    MPI_CHK( mpi_copy( &R->X, &X ) );
+    MPI_CHK( mpi_copy( &R->Y, &Y ) );
+    MPI_CHK( mpi_copy( &R->Z, &Z ) );
 
 cleanup:
 

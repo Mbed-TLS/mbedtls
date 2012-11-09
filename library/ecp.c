@@ -28,6 +28,7 @@
  *
  * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
  * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
+ * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  */
 
 #include "polarssl/config.h"
@@ -61,6 +62,9 @@ void ecp_group_init( ecp_group *grp )
     mpi_init( &grp->B );
     ecp_point_init( &grp->G );
     mpi_init( &grp->N );
+
+    grp->modp = NULL;
+    grp->pbits = 0;
 }
 
 /*
@@ -155,6 +159,80 @@ cleanup:
 }
 
 /*
+ * Wrapper around fast quasi-modp functions, with fallback to mpi_mod_mpi
+ *
+ * The quasi-modp functions expect an mpi N such that 0 <= N < 2^(2*pbits)
+ * and change it in-place so that it can easily be brought in the 0..P-1
+ * range by a few additions or substractions.
+ */
+static int ecp_modp( mpi *N, const ecp_group *grp )
+{
+    int ret = 0;
+
+    if( grp->modp == NULL )
+        return( mpi_mod_mpi( N, N, &grp->P ) );
+
+    if( mpi_cmp_int( N, 0 ) < 0 || mpi_msb( N ) > 2 * grp->pbits )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    MPI_CHK( grp->modp( N ) );
+
+    while( mpi_cmp_int( N, 0 ) < 0 )
+        MPI_CHK( mpi_add_mpi( N, N, &grp->P ) );
+
+    while( mpi_cmp_mpi( N, &grp->P ) >= 0 )
+        MPI_CHK( mpi_sub_mpi( N, N, &grp->P ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Size of p521 in terms of t_uint
+ */
+#define P521_SIZE_INT   ( 521 / (sizeof( t_uint ) << 3) + 1 )
+
+/*
+ * Bits to keep in the most significant t_uint
+ */
+#if defined(POLARSS_HAVE_INT8)
+#define P521_MASK       0x01
+#else
+#define P521_MASK       0x01FF
+#endif
+
+/*
+ * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)
+ *
+ * It is required that 0 <= N < 2^(2*521) on entry.
+ * On exit, it is only guaranteed that 0 <= N < 2^(521+1).
+ */
+static int ecp_mod_p521( mpi *N )
+{
+    int ret = 0;
+    t_uint Mp[P521_SIZE_INT];
+    mpi M;
+
+    if( N->n < P521_SIZE_INT )
+        return( 0 );
+
+    memset( Mp, 0, P521_SIZE_INT * sizeof( t_uint ) );
+    memcpy( Mp, N->p, P521_SIZE_INT * sizeof( t_uint ) );
+    Mp[P521_SIZE_INT - 1] &= P521_MASK;
+
+    M.s = 1;
+    M.n = P521_SIZE_INT;
+    M.p = Mp;
+
+    MPI_CHK( mpi_shift_r( N, 521 ) );
+
+    MPI_CHK( mpi_add_abs( N, N, &M ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Set a group using well-known domain parameters
  */
 int ecp_use_known_dp( ecp_group *grp, size_t index )
@@ -194,6 +272,8 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
                         POLARSSL_ECP_SECP384R1_N )
                     );
         case POLARSSL_ECP_DP_SECP521R1:
+            grp->modp = ecp_mod_p521;
+            grp->pbits = 521;
             return( ecp_group_read_string( grp, 16,
                         POLARSSL_ECP_SECP521R1_P,
                         POLARSSL_ECP_SECP521R1_B,
@@ -209,7 +289,7 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
 /*
  * Reduce a mpi mod p in-place, general case, to use after mpi_mul_mpi
  */
-#define MOD_MUL( N )    MPI_CHK( mpi_mod_mpi( &N, &N, &grp->P ) )
+#define MOD_MUL( N )    MPI_CHK( ecp_modp( &N, grp ) )
 
 /*
  * Reduce a mpi mod p in-place, to use after mpi_sub_mpi

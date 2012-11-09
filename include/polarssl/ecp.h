@@ -54,6 +54,8 @@ ecp_point;
  *
  * The curves we consider are defined by y^2 = x^3 - 3x + b mod p,
  * and a generator for a large subgroup is fixed.
+ *
+ * modp may be NULL; pbits will not be used in this case.
  */
 typedef struct
 {
@@ -61,6 +63,8 @@ typedef struct
     mpi B;              /*!<  constant term in the equation     */
     ecp_point G;        /*!<  generator of the subgroup used    */
     mpi N;              /*!<  the order of G                    */
+    int (*modp)(mpi *); /*!<  function for fast reduction mod P */
+    unsigned pbits;     /*!<  number of bits in P               */
 }
 ecp_group;
 
@@ -244,7 +248,7 @@ int ecp_use_known_dp( ecp_group *grp, size_t index );
  * \param Q         Right-hand point
  *
  * \return          0 if successful,
- *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q );
@@ -258,7 +262,7 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
  * \param P         Point to multiply
  *
  * \return          0 if successful,
- *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );

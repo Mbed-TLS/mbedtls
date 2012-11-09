@@ -194,7 +194,7 @@ int ctr_drbg_update_internal( ctr_drbg_context *ctx,
         /*
          * Increase counter
          */
-        for( i = CTR_DRBG_BLOCKSIZE; i >= 0; i-- )
+        for( i = CTR_DRBG_BLOCKSIZE; i > 0; i-- )
             if( ++ctx->counter[i - 1] != 0 )
                 break;
 

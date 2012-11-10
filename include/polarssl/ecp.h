@@ -55,7 +55,15 @@ ecp_point;
  * The curves we consider are defined by y^2 = x^3 - 3x + b mod p,
  * and a generator for a large subgroup is fixed.
  *
- * modp may be NULL; pbits will not be used in this case.
+ * If modp is NULL, pbits will not be used, and reduction modulo P is
+ * done using a generic algorithm.
+ *
+ * If modp is not NULL, pbits must be the size of P in bits and modp
+ * must be a function that takes an mpi in the range 0..2^(2*pbits) and
+ * transforms it in-place in an integer of little more than pbits, so
+ * that the integer may be efficiently brought in the 0..P range by a
+ * few additions or substractions. It must return 0 on success and a
+ * POLARSSL_ERR_ECP_XXX error on failure.
  */
 typedef struct
 {
@@ -77,7 +85,7 @@ ecp_group;
  *
  * \warning This library does not support validation of arbitrary domain
  * parameters. Therefore, only well-known domain parameters from trusted
- * sources (such as the ones below) should be used. See ecp_use_known_dp().
+ * sources should be used. See ecp_use_known_dp().
  */
 #define POLARSSL_ECP_DP_SECP192R1   0
 #define POLARSSL_ECP_DP_SECP224R1   1
@@ -161,7 +169,7 @@ int ecp_group_read_string( ecp_group *grp, int radix,
  * \param grp       Destination group
  * \param index     Index in the list of well-known domain parameters
  *
- * \return          O if successul,
+ * \return          O if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
  *                  POLARSSL_ERR_ECP_GENERIC if index is out of range
  *

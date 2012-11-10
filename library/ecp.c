@@ -109,11 +109,11 @@ void ecp_set_zero( ecp_point *pt )
  */
 int ecp_copy( ecp_point *P, const ecp_point *Q )
 {
-    int ret = 0;
+    int ret;
 
     if( Q->is_zero ) {
         ecp_set_zero( P );
-        return( ret );
+        return( 0 );
     }
 
     P->is_zero = Q->is_zero;
@@ -130,7 +130,7 @@ cleanup:
 int ecp_point_read_string( ecp_point *P, int radix,
                            const char *x, const char *y )
 {
-    int ret = 0;
+    int ret;
 
     P->is_zero = 0;
     MPI_CHK( mpi_read_string( &P->X, radix, x ) );
@@ -147,7 +147,7 @@ int ecp_group_read_string( ecp_group *grp, int radix,
                            const char *p, const char *b,
                            const char *gx, const char *gy, const char *n)
 {
-    int ret = 0;
+    int ret;
 
     MPI_CHK( mpi_read_string( &grp->P, radix, p ) );
     MPI_CHK( mpi_read_string( &grp->B, radix, b ) );
@@ -159,15 +159,11 @@ cleanup:
 }
 
 /*
- * Wrapper around fast quasi-modp functions, with fallback to mpi_mod_mpi
- *
- * The quasi-modp functions expect an mpi N such that 0 <= N < 2^(2*pbits)
- * and change it in-place so that it can easily be brought in the 0..P-1
- * range by a few additions or substractions.
+ * Wrapper around fast quasi-modp functions, with fall-back to mpi_mod_mpi
  */
 static int ecp_modp( mpi *N, const ecp_group *grp )
 {
-    int ret = 0;
+    int ret;
 
     if( grp->modp == NULL )
         return( mpi_mod_mpi( N, N, &grp->P ) );
@@ -206,7 +202,7 @@ cleanup:
  */
 static int ecp_mod_p521( mpi *N )
 {
-    int ret = 0;
+    int ret;
     t_uint Mp[P521_SIZE_INT];
     mpi M;
 
@@ -353,13 +349,13 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
 }
 
 /*
- * Fast mod-p functions expect an argument in the 0 .. p^2 range.
+ * Fast mod-p functions expect their argument to be in the 0..p^2 range.
  *
- * In order to garantee that, we need to ensure that operands of
- * mpi_mul_mpi are in the 0 .. p range. So, after each operation we will
+ * In order to guarantee that, we need to ensure that operands of
+ * mpi_mul_mpi are in the 0..p range. So, after each operation we will
  * bring the result back to this range.
  *
- * The following macros are helpers for that.
+ * The following macros are shortcuts for doing that.
  */
 
 /*
@@ -412,7 +408,7 @@ static void ecp_ptjac_free( ecp_ptjac *P )
  */
 static int ecp_ptjac_copy( ecp_ptjac *R, const ecp_ptjac *P )
 {
-    int ret = 0;
+    int ret;
 
     MPI_CHK( mpi_copy( &R->X, &P->X ) );
     MPI_CHK( mpi_copy( &R->Y, &P->Y ) );
@@ -427,7 +423,7 @@ cleanup:
  */
 static int ecp_ptjac_set_zero( ecp_ptjac *P )
 {
-    int ret = 0;
+    int ret;
 
     MPI_CHK( mpi_lset( &P->X, 1 ) );
     MPI_CHK( mpi_lset( &P->Y, 1 ) );
@@ -442,7 +438,7 @@ cleanup:
  */
 static int ecp_aff_to_jac( ecp_ptjac *jac, const ecp_point *aff )
 {
-    int ret = 0;
+    int ret;
 
     if( aff->is_zero )
         return( ecp_ptjac_set_zero( jac ) );
@@ -461,7 +457,7 @@ cleanup:
 static int ecp_jac_to_aff( const ecp_group *grp,
                            ecp_point *aff, const ecp_ptjac *jac )
 {
-    int ret = 0;
+    int ret;
     mpi Zi, ZZi, T;
 
     if( mpi_cmp_int( &jac->Z, 0 ) == 0 ) {
@@ -499,7 +495,7 @@ cleanup:
 static int ecp_double_jac( const ecp_group *grp, ecp_ptjac *R,
                            const ecp_ptjac *P )
 {
-    int ret = 0;
+    int ret;
     mpi T1, T2, T3, X, Y, Z;
 
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
@@ -508,17 +504,16 @@ static int ecp_double_jac( const ecp_group *grp, ecp_ptjac *R,
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 );
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
 
-    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) ); MOD_MUL( T1 );
-    MPI_CHK( mpi_sub_mpi( &T2,  &P->X,  &T1   ) ); MOD_SUB( T2 );
-    MPI_CHK( mpi_add_mpi( &T1,  &P->X,  &T1   ) ); MOD_ADD( T1 );
-    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &T1   ) ); MOD_MUL( T2 );
-    MPI_CHK( mpi_mul_int( &T2,  &T2,    3     ) ); MOD_ADD( T2 );
-    MPI_CHK( mpi_copy   ( &Y,   &P->Y         ) );
-    MPI_CHK( mpi_shift_l( &Y,   1             ) ); MOD_ADD( Y  );
-    MPI_CHK( mpi_mul_mpi( &Z,   &Y,     &P->Z ) ); MOD_MUL( Z  );
-    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) ); MOD_MUL( Y  );
-    MPI_CHK( mpi_mul_mpi( &T3,  &Y,     &P->X ) ); MOD_MUL( T3 );
-    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) ); MOD_MUL( Y  );
+    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );  MOD_MUL( T1 );
+    MPI_CHK( mpi_sub_mpi( &T2,  &P->X,  &T1   ) );  MOD_SUB( T2 );
+    MPI_CHK( mpi_add_mpi( &T1,  &P->X,  &T1   ) );  MOD_ADD( T1 );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &T1   ) );  MOD_MUL( T2 );
+    MPI_CHK( mpi_mul_int( &T2,  &T2,    3     ) );  MOD_ADD( T2 );
+    MPI_CHK( mpi_mul_int( &Y,   &P->Y,  2     ) );  MOD_ADD( Y  );
+    MPI_CHK( mpi_mul_mpi( &Z,   &Y,     &P->Z ) );  MOD_MUL( Z  );
+    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) );  MOD_MUL( Y  );
+    MPI_CHK( mpi_mul_mpi( &T3,  &Y,     &P->X ) );  MOD_MUL( T3 );
+    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) );  MOD_MUL( Y  );
 
     /*
      * For Y = Y / 2 mod p, we must make sure that Y is even before
@@ -528,13 +523,12 @@ static int ecp_double_jac( const ecp_group *grp, ecp_ptjac *R,
         MPI_CHK( mpi_add_mpi( &Y, &Y, &grp->P ) );
     MPI_CHK( mpi_shift_r( &Y,   1             ) );
 
-    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) ); MOD_MUL( X  );
-    MPI_CHK( mpi_copy   ( &T1,  &T3           ) );
-    MPI_CHK( mpi_shift_l( &T1,  1             ) ); MOD_ADD( T1 );
-    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) ); MOD_SUB( X  );
-    MPI_CHK( mpi_sub_mpi( &T1,  &T3,    &X    ) ); MOD_SUB( T1 );
-    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &T2   ) ); MOD_MUL( T1 );
-    MPI_CHK( mpi_sub_mpi( &Y,   &T1,    &Y    ) ); MOD_SUB( Y  );
+    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) );  MOD_MUL( X  );
+    MPI_CHK( mpi_mul_int( &T1,  &T3,    2     ) );  MOD_ADD( T1 );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) );  MOD_SUB( X  );
+    MPI_CHK( mpi_sub_mpi( &T1,  &T3,    &X    ) );  MOD_SUB( T1 );
+    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &T2   ) );  MOD_MUL( T1 );
+    MPI_CHK( mpi_sub_mpi( &Y,   &T1,    &Y    ) );  MOD_SUB( Y  );
 
     MPI_CHK( mpi_copy( &R->X, &X ) );
     MPI_CHK( mpi_copy( &R->Y, &Y ) );
@@ -554,7 +548,7 @@ cleanup:
 static int ecp_add_mixed( const ecp_group *grp, ecp_ptjac *R,
                           const ecp_ptjac *P, const ecp_point *Q )
 {
-    int ret = 0;
+    int ret;
     mpi T1, T2, T3, T4, X, Y, Z;
 
     /*
@@ -569,12 +563,12 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_ptjac *R,
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 ); mpi_init( &T4 );
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
 
-    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) ); MOD_MUL( T1 );
-    MPI_CHK( mpi_mul_mpi( &T2,  &T1,    &P->Z ) ); MOD_MUL( T2 );
-    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &Q->X ) ); MOD_MUL( T1 );
-    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &Q->Y ) ); MOD_MUL( T2 );
-    MPI_CHK( mpi_sub_mpi( &T1,  &T1,    &P->X ) ); MOD_SUB( T1 );
-    MPI_CHK( mpi_sub_mpi( &T2,  &T2,    &P->Y ) ); MOD_SUB( T2 );
+    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );  MOD_MUL( T1 );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T1,    &P->Z ) );  MOD_MUL( T2 );
+    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &Q->X ) );  MOD_MUL( T1 );
+    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &Q->Y ) );  MOD_MUL( T2 );
+    MPI_CHK( mpi_sub_mpi( &T1,  &T1,    &P->X ) );  MOD_SUB( T1 );
+    MPI_CHK( mpi_sub_mpi( &T2,  &T2,    &P->Y ) );  MOD_SUB( T2 );
 
     if( mpi_cmp_int( &T1, 0 ) == 0 )
     {
@@ -590,18 +584,18 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_ptjac *R,
         }
     }
 
-    MPI_CHK( mpi_mul_mpi( &Z,   &P->Z,  &T1   ) ); MOD_MUL( Z  );
-    MPI_CHK( mpi_mul_mpi( &T3,  &T1,    &T1   ) ); MOD_MUL( T3 );
-    MPI_CHK( mpi_mul_mpi( &T4,  &T3,    &T1   ) ); MOD_MUL( T4 );
-    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &P->X ) ); MOD_MUL( T3 );
-    MPI_CHK( mpi_mul_int( &T1,  &T3,    2     ) ); MOD_ADD( T1 );
-    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) ); MOD_MUL( X  );
-    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) ); MOD_SUB( X  );
-    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T4   ) ); MOD_SUB( X  );
-    MPI_CHK( mpi_sub_mpi( &T3,  &T3,    &X    ) ); MOD_SUB( T3 );
-    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &T2   ) ); MOD_MUL( T3 );
-    MPI_CHK( mpi_mul_mpi( &T4,  &T4,    &P->Y ) ); MOD_MUL( T4 );
-    MPI_CHK( mpi_sub_mpi( &Y,   &T3,    &T4   ) ); MOD_SUB( Y  );
+    MPI_CHK( mpi_mul_mpi( &Z,   &P->Z,  &T1   ) );  MOD_MUL( Z  );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T1,    &T1   ) );  MOD_MUL( T3 );
+    MPI_CHK( mpi_mul_mpi( &T4,  &T3,    &T1   ) );  MOD_MUL( T4 );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &P->X ) );  MOD_MUL( T3 );
+    MPI_CHK( mpi_mul_int( &T1,  &T3,    2     ) );  MOD_ADD( T1 );
+    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) );  MOD_MUL( X  );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) );  MOD_SUB( X  );
+    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T4   ) );  MOD_SUB( X  );
+    MPI_CHK( mpi_sub_mpi( &T3,  &T3,    &X    ) );  MOD_SUB( T3 );
+    MPI_CHK( mpi_mul_mpi( &T3,  &T3,    &T2   ) );  MOD_MUL( T3 );
+    MPI_CHK( mpi_mul_mpi( &T4,  &T4,    &P->Y ) );  MOD_MUL( T4 );
+    MPI_CHK( mpi_sub_mpi( &Y,   &T3,    &T4   ) );  MOD_SUB( Y  );
 
     MPI_CHK( mpi_copy( &R->X, &X ) );
     MPI_CHK( mpi_copy( &R->Y, &Y ) );
@@ -621,7 +615,7 @@ cleanup:
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )
 {
-    int ret = 0;
+    int ret;
     ecp_ptjac J;
 
     ecp_ptjac_init( &J );
@@ -643,19 +637,19 @@ cleanup:
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P )
 {
-    int ret = 0;
+    int ret;
     size_t pos;
     ecp_ptjac Q[2];
-
-    ecp_ptjac_init( &Q[0] ); ecp_ptjac_init( &Q[1] );
 
     /*
      * The general method works only for m >= 1
      */
     if( mpi_cmp_int( m, 0 ) == 0 ) {
         ecp_set_zero( R );
-        goto cleanup;
+        return( 0 );
     }
+
+    ecp_ptjac_init( &Q[0] ); ecp_ptjac_init( &Q[1] );
 
     ecp_ptjac_set_zero( &Q[0] );
 

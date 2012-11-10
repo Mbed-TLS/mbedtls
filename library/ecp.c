@@ -190,7 +190,7 @@ cleanup:
 /*
  * Size of p521 in terms of t_uint
  */
-#define P521_SIZE_INT   ( 521 / (sizeof( t_uint ) << 3) + 1 )
+#define P521_SIZE_INT   ( 521 / ( sizeof( t_uint ) << 3 ) + 1 )
 
 /*
  * Bits to keep in the most significant t_uint
@@ -203,9 +203,6 @@ cleanup:
 
 /*
  * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)
- *
- * It is required that 0 <= N < 2^(2*521) on entry.
- * On exit, it is only guaranteed that 0 <= N < 2^(521+1).
  */
 static int ecp_mod_p521( mpi *N )
 {
@@ -233,6 +230,91 @@ cleanup:
 }
 
 /*
+ * Domain parameters for secp192r1
+ */
+#define SECP192R1_P \
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFF"
+#define SECP192R1_B \
+    "64210519E59C80E70FA7E9AB72243049FEB8DEECC146B9B1"
+#define SECP192R1_GX \
+    "188DA80EB03090F67CBF20EB43A18800F4FF0AFD82FF1012"
+#define SECP192R1_GY \
+    "07192B95FFC8DA78631011ED6B24CDD573F977A11E794811"
+#define SECP192R1_N \
+    "FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22831"
+
+/*
+ * Domain parameters for secp224r1
+ */
+#define SECP224R1_P \
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000001"
+#define SECP224R1_B \
+    "B4050A850C04B3ABF54132565044B0B7D7BFD8BA270B39432355FFB4"
+#define SECP224R1_GX \
+    "B70E0CBD6BB4BF7F321390B94A03C1D356C21122343280D6115C1D21"
+#define SECP224R1_GY \
+    "BD376388B5F723FB4C22DFE6CD4375A05A07476444D5819985007E34"
+#define SECP224R1_N \
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFF16A2E0B8F03E13DD29455C5C2A3D"
+
+/*
+ * Domain parameters for secp256r1
+ */
+#define SECP256R1_P \
+    "FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"
+#define SECP256R1_B \
+    "5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B"
+#define SECP256R1_GX \
+    "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296"
+#define SECP256R1_GY \
+    "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5"
+#define SECP256R1_N \
+    "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551"
+
+/*
+ * Domain parameters for secp384r1
+ */
+#define SECP384R1_P \
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" \
+    "FFFFFFFFFFFFFFFEFFFFFFFF0000000000000000FFFFFFFF"
+#define SECP384R1_B \
+    "B3312FA7E23EE7E4988E056BE3F82D19181D9C6EFE814112" \
+    "0314088F5013875AC656398D8A2ED19D2A85C8EDD3EC2AEF"
+#define SECP384R1_GX \
+    "AA87CA22BE8B05378EB1C71EF320AD746E1D3B628BA79B98" \
+    "59F741E082542A385502F25DBF55296C3A545E3872760AB7"
+#define SECP384R1_GY \
+    "3617DE4A96262C6F5D9E98BF9292DC29F8F41DBD289A147C" \
+    "E9DA3113B5F0B8C00A60B1CE1D7E819D7A431D7C90EA0E5F"
+#define SECP384R1_N \
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" \
+    "C7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973"
+
+/*
+ * Domain parameters for secp521r1
+ */
+#define SECP521R1_P \
+    "000001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" \
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" \
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+#define SECP521R1_B \
+    "00000051953EB9618E1C9A1F929A21A0B68540EEA2DA725B" \
+    "99B315F3B8B489918EF109E156193951EC7E937B1652C0BD" \
+    "3BB1BF073573DF883D2C34F1EF451FD46B503F00"
+#define SECP521R1_GX \
+    "000000C6858E06B70404E9CD9E3ECB662395B4429C648139" \
+    "053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127" \
+    "A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66"
+#define SECP521R1_GY \
+    "0000011839296A789A3BC0045C8A5FB42C7D1BD998F54449" \
+    "579B446817AFBD17273E662C97EE72995EF42640C550B901" \
+    "3FAD0761353C7086A272C24088BE94769FD16650"
+#define SECP521R1_N \
+    "000001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" \
+    "FFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148" \
+    "F709A5D03BB5C9B8899C47AEBB6FB71E91386409"
+
+/*
  * Set a group using well-known domain parameters
  */
 int ecp_use_known_dp( ecp_group *grp, size_t index )
@@ -241,50 +323,44 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
     {
         case POLARSSL_ECP_DP_SECP192R1:
             return( ecp_group_read_string( grp, 16,
-                        POLARSSL_ECP_SECP192R1_P,
-                        POLARSSL_ECP_SECP192R1_B,
-                        POLARSSL_ECP_SECP192R1_GX,
-                        POLARSSL_ECP_SECP192R1_GY,
-                        POLARSSL_ECP_SECP192R1_N )
-                    );
+                        SECP192R1_P, SECP192R1_B,
+                        SECP192R1_GX, SECP192R1_GY, SECP192R1_N ) );
+
         case POLARSSL_ECP_DP_SECP224R1:
             return( ecp_group_read_string( grp, 16,
-                        POLARSSL_ECP_SECP224R1_P,
-                        POLARSSL_ECP_SECP224R1_B,
-                        POLARSSL_ECP_SECP224R1_GX,
-                        POLARSSL_ECP_SECP224R1_GY,
-                        POLARSSL_ECP_SECP224R1_N )
-                    );
+                        SECP224R1_P, SECP224R1_B,
+                        SECP224R1_GX, SECP224R1_GY, SECP224R1_N ) );
+
         case POLARSSL_ECP_DP_SECP256R1:
             return( ecp_group_read_string( grp, 16,
-                        POLARSSL_ECP_SECP256R1_P,
-                        POLARSSL_ECP_SECP256R1_B,
-                        POLARSSL_ECP_SECP256R1_GX,
-                        POLARSSL_ECP_SECP256R1_GY,
-                        POLARSSL_ECP_SECP256R1_N )
-                    );
+                        SECP256R1_P, SECP256R1_B,
+                        SECP256R1_GX, SECP256R1_GY, SECP256R1_N ) );
+
         case POLARSSL_ECP_DP_SECP384R1:
             return( ecp_group_read_string( grp, 16,
-                        POLARSSL_ECP_SECP384R1_P,
-                        POLARSSL_ECP_SECP384R1_B,
-                        POLARSSL_ECP_SECP384R1_GX,
-                        POLARSSL_ECP_SECP384R1_GY,
-                        POLARSSL_ECP_SECP384R1_N )
-                    );
+                        SECP384R1_P, SECP384R1_B,
+                        SECP384R1_GX, SECP384R1_GY, SECP384R1_N ) );
+
         case POLARSSL_ECP_DP_SECP521R1:
             grp->modp = ecp_mod_p521;
             grp->pbits = 521;
             return( ecp_group_read_string( grp, 16,
-                        POLARSSL_ECP_SECP521R1_P,
-                        POLARSSL_ECP_SECP521R1_B,
-                        POLARSSL_ECP_SECP521R1_GX,
-                        POLARSSL_ECP_SECP521R1_GY,
-                        POLARSSL_ECP_SECP521R1_N )
-                    );
+                        SECP521R1_P, SECP521R1_B,
+                        SECP521R1_GX, SECP521R1_GY, SECP521R1_N ) );
     }
 
     return( POLARSSL_ERR_ECP_GENERIC );
 }
+
+/*
+ * Fast mod-p functions expect an argument in the 0 .. p^2 range.
+ *
+ * In order to garantee that, we need to ensure that operands of
+ * mpi_mul_mpi are in the 0 .. p range. So, after each operation we will
+ * bring the result back to this range.
+ *
+ * The following macros are helpers for that.
+ */
 
 /*
  * Reduce a mpi mod p in-place, general case, to use after mpi_mul_mpi
@@ -306,8 +382,8 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
         MPI_CHK( mpi_sub_mpi( &N, &N, &grp->P ) )
 
 /*
- * Internal point format used for fast addition/doubling/multiplication:
- * Jacobian coordinates (GECC example 3.20)
+ * Internal point format used for fast (that is, without mpi_inv_mod)
+ * addition/doubling/multiplication: Jacobian coordinates (GECC ex 3.20)
  */
 typedef struct
 {

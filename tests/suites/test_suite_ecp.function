@@ -54,7 +54,7 @@ ecp_small_add:a_zero:x_a:y_a:b_zero:x_b:y_b:c_zero:x_c:y_c
 END_CASE
 
 BEGIN_CASE
-ecp_small_mul:m:r_zero:x_r:y_r
+ecp_small_mul:m:r_zero:x_r:y_r:ret
 {
     ecp_group grp;
     ecp_point R;
@@ -69,7 +69,7 @@ ecp_small_mul:m:r_zero:x_r:y_r
 
     TEST_ASSERT( mpi_lset( &m, {m} ) == 0 );
 
-    TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G ) == {ret} );
 
     if( {r_zero} )
         TEST_ASSERT( R.is_zero );

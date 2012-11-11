@@ -201,6 +201,7 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                  POLARSSL_ERR_ECP_GENERIC if m < 0
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );

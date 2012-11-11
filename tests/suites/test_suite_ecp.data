@@ -22,47 +22,50 @@ ecp_small_add:0:"37":"31":0:"37":"31":0:21:32
 ECP small addition #8
 ecp_small_add:0:"14":"11":0:"14":"11":0:27:30
 
+ECP small multiplication negative
+ecp_small_mul:-1:0:0:0:POLARSSL_ERR_ECP_GENERIC
+
 ECP small multiplication #0
-ecp_small_mul:0:1:0:0
+ecp_small_mul:0:1:0:0:0
 
 ECP small multiplication #1
-ecp_small_mul:1:0:17:42
+ecp_small_mul:1:0:17:42:0
 
 ECP small multiplication #2
-ecp_small_mul:2:0:20:01
+ecp_small_mul:2:0:20:01:0
 
 ECP small multiplication #3
-ecp_small_mul:3:0:14:11
+ecp_small_mul:3:0:14:11:0
 
 ECP small multiplication #4
-ecp_small_mul:4:0:34:33
+ecp_small_mul:4:0:34:33:0
 
 ECP small multiplication #5
-ecp_small_mul:5:0:21:32
+ecp_small_mul:5:0:21:32:0
 
 ECP small multiplication #6
-ecp_small_mul:6:0:27:30
+ecp_small_mul:6:0:27:30:0
 
 ECP small multiplication #7
-ecp_small_mul:7:0:27:17
+ecp_small_mul:7:0:27:17:0
 
 ECP small multiplication #8
-ecp_small_mul:8:0:21:15
+ecp_small_mul:8:0:21:15:0
 
 ECP small multiplication #9
-ecp_small_mul:9:0:34:14
+ecp_small_mul:9:0:34:14:0
 
 ECP small multiplication #10
-ecp_small_mul:10:0:14:36
+ecp_small_mul:10:0:14:36:0
 
 ECP small multiplication #11
-ecp_small_mul:11:0:20:46
+ecp_small_mul:11:0:20:46:0
 
 ECP small multiplication #12
-ecp_small_mul:12:0:17:05
+ecp_small_mul:12:0:17:05:0
 
 ECP small multiplication #13
-ecp_small_mul:13:1:0:0
+ecp_small_mul:13:1:0:0:0
 
 ECP mod p192 readable
 ecp_fast_mod:SECP192R1:"000000000000010500000000000001040000000000000103000000000000010200000000000001010000000000000100"

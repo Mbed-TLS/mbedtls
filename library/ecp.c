@@ -709,19 +709,24 @@ cleanup:
 }
 
 /*
- * Integer multiplication: R = m * P (GECC 5.7, SPA-resistant variant)
+ * Integer multiplication: R = m * P (GECC 5.7, SPA-resistant)
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P )
 {
-    int ret;
+    int ret, cmp;
     size_t pos;
     ecp_ptjac Q[2];
 
+    cmp = mpi_cmp_int( m, 0 );
+
+    if( cmp < 0 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
     /*
-     * The general method works only for m >= 1
+     * The general method works only for m != 0
      */
-    if( mpi_cmp_int( m, 0 ) == 0 ) {
+    if( cmp == 0 ) {
         ecp_set_zero( R );
         return( 0 );
     }

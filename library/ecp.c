@@ -36,6 +36,7 @@
 #if defined(POLARSSL_ECP_C)
 
 #include "polarssl/ecp.h"
+#include <limits.h>
 
 /*
  * Initialize (the components of) a point
@@ -184,9 +185,83 @@ cleanup:
 }
 
 /*
+ * 192 bits in terms of t_uint
+ */
+#define P192_SIZE_INT   ( 192 / CHAR_BIT / sizeof( t_uint ) )
+
+/*
+ * Table to get S1, S2, S3 of FIPS 186-3 D.2.1:
+ * -1 means let this chunk be 0
+ * a positive value i means A_i.
+ */
+#define P192_CHUNKS         3
+#define P192_CHUNK_CHAR     ( 64 / CHAR_BIT )
+#define P192_CHUNK_INT      ( P192_CHUNK_CHAR / sizeof( t_uint ) )
+
+const signed char p192_tbl[][P192_CHUNKS] = {
+    { -1,   3,  3   }, /* S1 */
+    { 4,    4,  -1  }, /* S2 */
+    { 5,    5,  5   }, /* S3 */
+};
+
+/*
+ * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
+ */
+static int ecp_mod_p192( mpi *N )
+{
+    int ret;
+    unsigned char i, j, offset;
+    signed char chunk;
+    mpi tmp, acc;
+    t_uint tmp_p[P192_SIZE_INT], acc_p[P192_SIZE_INT + 1];
+
+    tmp.s = 1;
+    tmp.n = sizeof( tmp_p ) / sizeof( tmp_p[0] );
+    tmp.p = tmp_p;
+
+    acc.s = 1;
+    acc.n = sizeof( acc_p ) / sizeof( acc_p[0] );
+    acc.p = acc_p;
+
+    MPI_CHK( mpi_grow( N, P192_SIZE_INT * 2 ) );
+
+    /*
+     * acc = T
+     */
+    memset( acc_p, 0, sizeof( acc_p ) );
+    memcpy( acc_p, N->p, P192_CHUNK_CHAR * P192_CHUNKS );
+
+    for( i = 0; i < sizeof( p192_tbl ) / sizeof( p192_tbl[0] ); i++)
+    {
+        /*
+         * tmp = S_i
+         */
+        memset( tmp_p, 0, sizeof( tmp_p ) );
+        for( j = 0, offset = P192_CHUNKS - 1; j < P192_CHUNKS; j++, offset-- )
+        {
+            chunk = p192_tbl[i][j];
+            if( chunk >= 0 )
+                memcpy( tmp_p + offset * P192_CHUNK_INT,
+                        N->p + chunk * P192_CHUNK_INT,
+                        P192_CHUNK_CHAR );
+        }
+
+        /*
+         * acc += tmp
+         */
+        MPI_CHK( mpi_add_abs( &acc, &acc, &tmp ) );
+    }
+
+    MPI_CHK( mpi_copy( N, &acc ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Size of p521 in terms of t_uint
  */
-#define P521_SIZE_INT   ( 521 / ( sizeof( t_uint ) << 3 ) + 1 )
+#define P521_SIZE_INT   ( 521 / CHAR_BIT / sizeof( t_uint ) + 1 )
 
 /*
  * Bits to keep in the most significant t_uint
@@ -318,6 +393,8 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
     switch( index )
     {
         case POLARSSL_ECP_DP_SECP192R1:
+            grp->modp = ecp_mod_p192;
+            grp->pbits = 192;
             return( ecp_group_read_string( grp, 16,
                         SECP192R1_P, SECP192R1_B,
                         SECP192R1_GX, SECP192R1_GY, SECP192R1_N ) );

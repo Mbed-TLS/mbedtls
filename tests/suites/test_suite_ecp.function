@@ -126,3 +126,34 @@ ecp_test_vect:id:dA:xA:yA:dB:xB:yB:xZ:yZ
     mpi_free( &xB ); mpi_free( &yB ); mpi_free( &xZ ); mpi_free( &yZ );
 }
 END_CASE
+
+BEGIN_CASE
+ecp_fast_mod:id:N
+{
+    ecp_group grp;
+    mpi N, R;
+
+    mpi_init( &N ); mpi_init( &R );
+    ecp_group_init( &grp );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &N, 16, {N} ) == 0 );
+
+    /*
+     * Store correct result before we touch N
+     */
+    TEST_ASSERT( mpi_mod_mpi( &R, &N, &grp.P ) == 0 );
+
+    TEST_ASSERT( grp.modp( &N ) == 0 );
+    TEST_ASSERT( mpi_msb( &N ) <= grp.pbits + 3 );
+
+    /*
+     * Use mod rather than addition/substraction in case previous test fails
+     */
+    TEST_ASSERT( mpi_mod_mpi( &N, &N, &grp.P ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &N, &R ) == 0 );
+
+    mpi_free( &N ); mpi_free( &R );
+    ecp_group_free( &grp );
+}
+END_CASE

@@ -752,6 +752,9 @@ int rsa_pkcs1_sign( rsa_context *ctx,
             hlen = md_get_size( md_info );
             slen = hlen;
 
+            if( olen < hlen + slen + 2 )
+                return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
             memset( sig, 0, olen );
             memset( &md_ctx, 0, sizeof( md_context_t ) );
 

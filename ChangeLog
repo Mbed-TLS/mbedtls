@@ -12,6 +12,8 @@ Bugfix
      #52)
    * Fixed possible segfault in mpi_shift_r() (found by Manuel
      Pégourié-Gonnard)
+   * Allow R and A to point to same mpi in mpi_div_mpi (found by Manuel
+     Pégourié-Gonnard)
 
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi

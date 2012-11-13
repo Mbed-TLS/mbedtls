@@ -32,6 +32,18 @@ install:
 	    fi                                  \
 	done
 
+uninstall:
+	rm -rf $(DESTDIR)/include/polarssl
+	rm -f $(DESTDIR)/lib/libpolarssl.*
+	
+	for p in programs/*/* ; do              \
+	    if [ -x $$p ] && [ ! -d $$p ] ;     \
+	    then                                \
+	        f=$(PREFIX)`basename $$p` ;     \
+	        rm -f $(DESTDIR)/bin/$$f ;      \
+	    fi                                  \
+	done
+
 clean:
 	cd library  && $(MAKE) clean && cd ..
 	cd programs && $(MAKE) clean && cd ..

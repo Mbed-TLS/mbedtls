@@ -4,7 +4,7 @@
  */
 
 /**
- * @mainpage PolarSSL v1.2.0 source code documentation
+ * @mainpage PolarSSL v1.2.1 source code documentation
  * 
  * This documentation describes the internal structure of PolarSSL.  It was
  * automatically generated from specially formatted comment blocks in
@@ -21,7 +21,7 @@
  * 
  * @section mainpage_modules Modules
  * 
- * PolarSSL supports SSLv3 up to TLSv1.1 communication by providing the 
+ * PolarSSL supports SSLv3 up to TLSv1.2 communication by providing the 
  * following:
  * - TCP/IP communication functions: listen, connect, accept, read/write.
  * - SSL/TLS communication functions: init, handshake, read/write.

@@ -18,7 +18,9 @@ endif
 # CFLAGS += -D_BSD_EXTENSION
 
 # To compile as a shared library:
-# CFLAGS += -fPIC
+ifdef SHARED
+CFLAGS += -fPIC
+endif
 
 SONAME=libpolarssl.so.0
 

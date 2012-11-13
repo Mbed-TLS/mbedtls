@@ -4,6 +4,8 @@ PolarSSL ChangeLog
 Bugfixes
    * Fixes for MSVC6
    * Moved mpi_inv_mod() outside POLARSSL_GENPRIME
+   * Allow R and A to point to same mpi in mpi_div_mpi (found by Manuel
+     Pégourié-Gonnard)
 
 = Version 1.2.0 released 2012-10-31
 Features

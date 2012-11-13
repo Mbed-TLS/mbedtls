@@ -1195,9 +1195,9 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
     if( R != NULL )
     {
         mpi_shift_r( &X, k );
+        X.s = A->s;
         mpi_copy( R, &X );
 
-        R->s = A->s;
         if( mpi_cmp_int( R, 0 ) == 0 )
             R->s = 1;
     }

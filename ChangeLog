@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version Trunk
+= Version 1.2.1 released 2012-11-13
 Bugfixes
    * Fixes for MSVC6
    * Moved mpi_inv_mod() outside POLARSSL_GENPRIME

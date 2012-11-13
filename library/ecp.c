@@ -38,6 +38,14 @@
 #include "polarssl/ecp.h"
 #include <limits.h>
 
+#if defined(POLARSSL_SELF_TEST)
+/*
+ * Counts of point addition and doubling operations.
+ * Used to test resistance of point multiplication to SPA/timing attacks.
+ */
+unsigned long add_count, dbl_count;
+#endif
+
 /*
  * Initialize (the components of) a point
  */
@@ -505,6 +513,10 @@ static int ecp_double_jac( const ecp_group *grp, ecp_point *R,
     int ret;
     mpi T1, T2, T3, X, Y, Z;
 
+#if defined(POLARSSL_SELF_TEST)
+    dbl_count++;
+#endif
+
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
         return( ecp_set_zero( R ) );
 
@@ -566,6 +578,10 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
 {
     int ret;
     mpi T1, T2, T3, T4, X, Y, Z;
+
+#if defined(POLARSSL_SELF_TEST)
+    add_count++;
+#endif
 
     /*
      * Trivial cases: P == 0 or Q == 0
@@ -738,7 +754,71 @@ cleanup:
  */
 int ecp_self_test( int verbose )
 {
-    return( verbose++ );
+    int ret;
+    size_t i;
+    ecp_group grp;
+    ecp_point R;
+    mpi m;
+    unsigned long add_c_prev, dbl_c_prev;
+    char *exponents[] =
+    {
+        "400000000000000000000000000000000000000000000000",
+        "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        "555555555555555555555555555555555555555555555555",
+        "5EA6F389A38B8BC81E767753B15AA5569E1782E30ABE7D25",
+        "000000000000000000000000000000000000000000000010",
+    };
+
+    ecp_group_init( &grp );
+    ecp_point_init( &R );
+    mpi_init( &m );
+
+    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP192R1 ) );
+
+    if( verbose != 0 )
+        printf( "  ECP test #1 (SPA resistance): " );
+
+    add_count = 0;
+    dbl_count = 0;
+    MPI_CHK( mpi_read_string( &m, 16, exponents[0] ) );
+    MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G ) );
+
+    for( i = 1; i < sizeof( exponents ) / sizeof( exponents[0] ); i++ )
+    {
+        add_c_prev = add_count;
+        dbl_c_prev = dbl_count;
+        add_count = 0;
+        dbl_count = 0;
+
+        MPI_CHK( mpi_read_string( &m, 16, exponents[i] ) );
+        MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G ) );
+
+        if( add_count != add_c_prev || dbl_count != dbl_c_prev )
+        {
+            if( verbose != 0 )
+                printf( "failed (%zu)\n", i );
+
+            ret = 1;
+            goto cleanup;
+        }
+    }
+
+    if( verbose != 0 )
+        printf( "passed\n" );
+
+cleanup:
+
+    if( ret < 0 && verbose != 0 )
+        printf( "Unexpected error, return code = %08X\n", ret );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &R );
+    mpi_free( &m );
+
+    if( verbose != 0 )
+        printf( "\n" );
+
+    return( ret );
 }
 
 #endif

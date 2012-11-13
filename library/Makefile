@@ -53,7 +53,11 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 
 .SILENT:
 
+ifndef SHARED
 all: static
+else
+all: shared
+endif
 
 static: libpolarssl.a
 

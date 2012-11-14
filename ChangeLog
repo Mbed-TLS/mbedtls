@@ -1,6 +1,10 @@
 PolarSSL ChangeLog
 
 = Version 1.2.1 released 2012-11-13
+Changes
+   * Depth that the certificate verify callback receives is now numbered
+     bottom-up (Peer cert depth is 0)
+
 Bugfixes
    * Fixes for MSVC6
    * Moved mpi_inv_mod() outside POLARSSL_GENPRIME

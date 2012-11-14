@@ -298,6 +298,7 @@ int main( int argc, char *argv[] )
             if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
                 printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
+                ssl_free( &ssl );
                 goto exit;
             }
         }
@@ -313,12 +314,14 @@ int main( int argc, char *argv[] )
         if( ret == -1 )
         {
             printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
+            ssl_free( &ssl );
             goto exit;
         }
 
         printf( "%s\n", buf );
 
         ssl_close_notify( &ssl );
+        ssl_free( &ssl );
     }
     else
         goto usage;
@@ -329,7 +332,6 @@ exit:
         net_close( server_fd );
     x509_free( &clicert );
     rsa_free( &rsa );
-    ssl_free( &ssl );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

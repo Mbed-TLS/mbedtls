@@ -514,21 +514,21 @@ END_CASE
 BEGIN_CASE
 mpi_mod_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
 {
-    mpi X, Y, Z, A;
+    mpi X, Y, A;
     int res;
-    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &Y, {radix_Y}, {input_Y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
-    res = mpi_mod_mpi( &Z, &X, &Y );
+    res = mpi_mod_mpi( &X, &X, &Y );
     TEST_ASSERT( res == {div_result} );
     if( res == 0 )
     {
-        TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+        TEST_ASSERT( mpi_cmp_mpi( &X, &A ) == 0 );
     }
 
-    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z ); mpi_free( &A );
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &A );
 }
 END_CASE
 

@@ -66,7 +66,7 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key, unsigned int keyle
 int arc4_crypt( arc4_context *ctx, size_t length, const unsigned char *input,
                 unsigned char *output );
 
-/*
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

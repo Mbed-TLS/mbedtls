@@ -223,7 +223,7 @@ void mpi_swap( mpi *X, mpi *Y );
  */
 int mpi_lset( mpi *X, t_sint z );
 
-/*
+/**
  * \brief          Get a specific bit from X
  *
  * \param X        MPI to use
@@ -233,7 +233,7 @@ int mpi_lset( mpi *X, t_sint z );
  */
 int mpi_get_bit( const mpi *X, size_t pos );
 
-/*
+/**
  * \brief          Set a bit of X to a specific value of 0 or 1
  *
  * \note           Will grow X if necessary to set a bit to 1 in a not yet

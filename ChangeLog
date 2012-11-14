@@ -1,9 +1,16 @@
 PolarSSL ChangeLog
 
-= Version Trunk
+= Version 1.2.1 released 2012-11-13
+Changes
+   * Depth that the certificate verify callback receives is now numbered
+     bottom-up (Peer cert depth is 0)
+
 Bugfixes
    * Fixes for MSVC6
    * Moved mpi_inv_mod() outside POLARSSL_GENPRIME
+   * Allow R and A to point to same mpi in mpi_div_mpi (found by Manuel
+     Pégourié-Gonnard)
+   * Added max length check for rsa_pkcs1_sign with PKCS#1 v2.1
 
 = Version 1.2.0 released 2012-10-31
 Features

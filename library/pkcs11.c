@@ -115,7 +115,7 @@ int pkcs11_decrypt( pkcs11_context *ctx,
                        int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
-                       unsigned int output_max_len )
+                       size_t output_max_len )
 {
     size_t input_len, output_len;
 

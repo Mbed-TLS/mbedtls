@@ -641,7 +641,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
  */
 const char *x509_oid_get_description( x509_buf *oid );
 
-/*
+/**
  * \brief          Give an OID, return a string version of its OID number.
  *
  * \param buf      Buffer to write to
@@ -680,7 +680,7 @@ int x509parse_time_expired( const x509_time *time );
  *                 (void *parameter, x509_cert *crt, int certificate_depth,
  *                 int *flags). With the flags representing current flags for
  *                 that specific certificate and the certificate depth from
- *                 the top (Trust CA depth = 0).
+ *                 the bottom (Peer cert depth = 0).
  *
  *                 All flags left after returning from the callback
  *                 are also returned to the application. The function should

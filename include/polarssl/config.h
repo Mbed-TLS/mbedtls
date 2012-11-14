@@ -150,7 +150,7 @@
  *
  * Enable weak ciphersuites in SSL / TLS
  * Warning: Only do so when you know what you are doing. This allows for
- * channels without virtually no security at all!
+ * channels with virtually no security at all!
  *
  * This enables the following ciphersuites:
  *      TLS_RSA_WITH_DES_CBC_SHA
@@ -345,7 +345,7 @@
 /**
  * \def POLARSSL_BIGNUM_C
  *
- * Enable the multo-precision integer library.
+ * Enable the multi-precision integer library.
  *
  * Module:  library/bignum.c
  * Caller:  library/dhm.c
@@ -738,7 +738,7 @@
  */
 #define POLARSSL_SSL_CLI_C
 
-/*
+/**
  * \def POLARSSL_SSL_SRV_C
  *
  * Enable the SSL/TLS server code.

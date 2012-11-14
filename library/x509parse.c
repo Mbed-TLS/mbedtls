@@ -2984,8 +2984,6 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
 
 /*
  * Wrapper for x509 hashes.
- *
- * \param out   Buffer to receive the hash (Should be at least 64 bytes)
  */
 static void x509_hash( const unsigned char *in, size_t len, int alg,
                        unsigned char *out )
@@ -3116,12 +3114,12 @@ int x509_wildcard_verify( const char *cn, x509_buf *name )
 
 static int x509parse_verify_top(
                 x509_cert *child, x509_cert *trust_ca,
-                x509_crl *ca_crl, int *path_cnt, int *flags,
+                x509_crl *ca_crl, int path_cnt, int *flags,
                 int (*f_vrfy)(void *, x509_cert *, int, int *),
                 void *p_vrfy )
 {
     int hash_id, ret;
-    int ca_flags = 0;
+    int ca_flags = 0, check_path_cnt = path_cnt + 1;
     unsigned char hash[64];
 
     if( x509parse_time_expired( &child->valid_to ) )
@@ -3143,8 +3141,19 @@ static int x509parse_verify_top(
             continue;
         }
 
+        /*
+         * Reduce path_len to check against if top of the chain is
+         * the same as the trusted CA
+         */
+        if( child->subject_raw.len == trust_ca->subject_raw.len &&
+            memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
+                            child->issuer_raw.len ) == 0 ) 
+        {
+            check_path_cnt--;
+        }
+
         if( trust_ca->max_pathlen > 0 &&
-            trust_ca->max_pathlen < *path_cnt )
+            trust_ca->max_pathlen < check_path_cnt )
         {
             trust_ca = trust_ca->next;
             continue;
@@ -3168,7 +3177,13 @@ static int x509parse_verify_top(
         break;
     }
 
-    if( trust_ca != NULL )
+    /*
+     * If top of chain is not the same as the trusted CA
+     */
+    if( trust_ca != NULL &&
+        ( child->subject_raw.len != trust_ca->subject_raw.len ||
+          memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
+                            child->issuer_raw.len ) != 0 ) )
     {
         /* Check trusted CA's CRL for then chain's top crt */
         *flags |= x509parse_verifycrl( child, trust_ca, ca_crl );
@@ -3188,7 +3203,7 @@ static int x509parse_verify_top(
 
         if( NULL != f_vrfy )
         {
-            if( ( ret = f_vrfy( p_vrfy, trust_ca, 0, &ca_flags ) ) != 0 )
+            if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1, &ca_flags ) ) != 0 )
                 return( ret );
         }
     }
@@ -3196,11 +3211,9 @@ static int x509parse_verify_top(
     /* Call callback on top cert */
     if( NULL != f_vrfy )
     {
-        if( ( ret = f_vrfy(p_vrfy, child, 1, flags ) ) != 0 )
+        if( ( ret = f_vrfy(p_vrfy, child, path_cnt, flags ) ) != 0 )
             return( ret );
     }
-
-    *path_cnt = 2;
 
     *flags |= ca_flags;
 
@@ -3209,7 +3222,7 @@ static int x509parse_verify_top(
 
 static int x509parse_verify_child(
                 x509_cert *child, x509_cert *parent, x509_cert *trust_ca,
-                x509_crl *ca_crl, int *path_cnt, int *flags,
+                x509_crl *ca_crl, int path_cnt, int *flags,
                 int (*f_vrfy)(void *, x509_cert *, int, int *),
                 void *p_vrfy )
 {
@@ -3248,28 +3261,26 @@ static int x509parse_verify_child(
         break;
     }
 
-    (*path_cnt)++;
     if( grandparent != NULL )
     {
         /*
          * Part of the chain
          */
-        ret = x509parse_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509parse_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     } 
     else
     {
-        ret = x509parse_verify_top( parent, trust_ca, ca_crl, path_cnt, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509parse_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
 
     /* child is verified to be a child of the parent, call verify callback */
     if( NULL != f_vrfy )
-        if( ( ret = f_vrfy( p_vrfy, child, *path_cnt, flags ) ) != 0 )
+        if( ( ret = f_vrfy( p_vrfy, child, path_cnt, flags ) ) != 0 )
             return( ret );
-    (*path_cnt)++;
 
     *flags |= parent_flags;
 
@@ -3288,7 +3299,7 @@ int x509parse_verify( x509_cert *crt,
 {
     size_t cn_len;
     int ret;
-    int pathlen = 1;
+    int pathlen = 0;
     x509_cert *parent;
     x509_name *name;
     x509_sequence *cur = NULL;
@@ -3370,13 +3381,13 @@ int x509parse_verify( x509_cert *crt,
         /*
          * Part of the chain
          */
-        ret = x509parse_verify_child( crt, parent, trust_ca, ca_crl, &pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509parse_verify_child( crt, parent, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     } 
     else
     {
-        ret = x509parse_verify_top( crt, trust_ca, ca_crl, &pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509parse_verify_top( crt, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }

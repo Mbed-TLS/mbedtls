@@ -167,6 +167,9 @@ extern "C" {
 /**
  * \brief          Initialize an RSA context
  *
+ *                 Note: Set padding to RSA_PKCS_V21 for the RSAES-OAEP
+ *                 encryption scheme and the RSASSA-PSS signature scheme.
+ *
  * \param ctx      RSA context to be initialized
  * \param padding  RSA_PKCS_V15 or RSA_PKCS_V21
  * \param hash_id  RSA_PKCS_V21 hash identifier

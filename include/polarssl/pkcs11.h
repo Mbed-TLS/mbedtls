@@ -104,7 +104,7 @@ int pkcs11_decrypt( pkcs11_context *ctx,
                        int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
-                       unsigned int output_max_len );
+                       size_t output_max_len );
 
 /**
  * \brief          Do a private RSA to sign a message digest
@@ -134,7 +134,7 @@ int pkcs11_sign( pkcs11_context *ctx,
  */
 static inline int ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
-                        unsigned int output_max_len )
+                        size_t output_max_len )
 {
     return pkcs11_decrypt( (pkcs11_context *) ctx, mode, olen, input, output,
                            output_max_len );

@@ -162,7 +162,7 @@ mpi_set_bit:radix_X:input_X:pos:val:radix_Y:output_Y
     TEST_ASSERT( mpi_set_bit( &X, {pos}, {val} ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &X, &Y ) == 0 );
 
-    mpi_free( &X );
+    mpi_free( &X ); mpi_free( &Y );
 }
 END_CASE
 

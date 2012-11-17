@@ -10,6 +10,8 @@ Bugfix
    * Prevent reading over buffer boundaries on X509 certificate parsing
    * mpi_exp_mod() now correctly handles negative base numbers (Closes ticket
      #52)
+   * Fixed possible segfault in mpi_shift_r() (found by Manuel
+     Pégourié-Gonnard)
 
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi

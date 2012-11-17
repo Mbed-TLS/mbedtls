@@ -701,6 +701,70 @@ cleanup:
 }
 
 /*
+ * Compute a modified width-w non-adjacent form (NAF) of a number,
+ * with a fixed pattern for resistance to SPA/timing attacks,
+ * see <http://rd.springer.com/chapter/10.1007/3-540-36563-X_23>.
+ * (The resulting multiplication algorithm can also been seen as a
+ * modification of 2^w-ary multiplication, with signed coefficients,
+ * all of them odd.)
+ *
+ * Input:
+ * m must be an odd positive mpi less than w * k bits long
+ * x must be an array of k elements
+ * w must be less than a certain maximum (currently 8)
+ *
+ * The result is a sequence x[0], ..., x[k-1] with x[i] in the range
+ * - 2^(width - 1) .. 2^(width - 1) - 1 such that
+ * m = (2 * x[0] + 1) + 2^width * (2 * x[1] + 1) + ...
+ *     + 2^((k-1) * width) * (2 * x[k-1] + 1)
+ *
+ * Compared to "Algorithm SPA-resistant Width-w NAF with Odd Scalar"
+ * p. 335 of the cited reference, here we return only u, not d_w since
+ * it is known that the other d_w[j] will be 0.  Moreover, the returned
+ * string doesn't actually store u_i but x_i = u_i / 2 since it is known
+ * that u_i is odd. Also, since we always select a positive value for d
+ * mod 2^w, we don't need to check the sign of u[i-1] when the reference
+ * does. Finally, there is an off-by-one error in the reference: the
+ * last index should be k-1, not k.
+ */
+static int ecp_w_naf_fixed( signed char x[], size_t k, unsigned char w,
+                            const mpi *m )
+{
+    int ret;
+    unsigned int i, u, mask, carry;
+    mpi M;
+
+    mpi_init( &M );
+
+    MPI_CHK( mpi_copy( &M, m ) );
+    mask = ( 1 << w ) - 1;
+    carry = 1 << ( w - 1 );
+
+    for( i = 0; i < k; i++ )
+    {
+        u = M.p[0] & mask;
+
+        if( ( u & 1 ) == 0 && i > 0 )
+            x[i - 1] -= carry;
+
+        x[i] = u >> 1;
+        mpi_shift_r( &M, w );
+    }
+
+    /*
+     * We should have consumed all the bits now
+     */
+    if( mpi_cmp_int( &M, 0 ) != 0 )
+        ret = POLARSSL_ERR_ECP_GENERIC;
+
+cleanup:
+
+    mpi_free( &M );
+
+    return( ret );
+}
+
+/*
  * Integer multiplication: R = m * P (GECC 5.7, SPA-resistant)
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
@@ -756,6 +820,7 @@ int ecp_self_test( int verbose )
 {
     int ret;
     size_t i;
+    int j, jj;
     ecp_group grp;
     ecp_point R;
     mpi m;
@@ -766,12 +831,60 @@ int ecp_self_test( int verbose )
         "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         "555555555555555555555555555555555555555555555555",
         "5EA6F389A38B8BC81E767753B15AA5569E1782E30ABE7D25",
-        "000000000000000000000000000000000000000000000010",
+        /* "000000000000000000000000000000000000000000000010", TODO */
     };
+    signed char x[3];
 
     ecp_group_init( &grp );
     ecp_point_init( &R );
     mpi_init( &m );
+
+    if( verbose != 0 )
+        printf( "  ECP test #0 (naf): " );
+
+    for( j = 1; j < 32; j += 2 )
+    {
+        mpi_lset( &m, j );
+
+        x[0] = x[1] = x[2] = 0;
+        MPI_CHK( ecp_w_naf_fixed( x, 3, 2, &m ) );
+        jj = ( 2 * x[0] + 1 ) + 4 * ( 2 * x[1] + 1 ) + 16 * ( 2 * x[2] + 1 );
+
+        if( j != jj ||
+            x[0] > 1 || x[0] < -2 ||
+            x[1] > 1 || x[1] < -2 ||
+            x[2] > 1 || x[2] < -2 )
+        {
+            if( verbose != 0 )
+                printf( "failed\n" );
+
+            printf( "%i != %i (%i, %i, %i)\n", j, jj, x[0], x[1], x[2] );
+
+            ret = 1;
+            goto cleanup;
+        }
+
+        x[0] = x[1] = x[2] = 0;
+        MPI_CHK( ecp_w_naf_fixed( x, 2, 3, &m ) );
+        jj = ( 2 * x[0] + 1 ) + 8 * ( 2 * x[1] + 1 );
+
+        if( j != jj ||
+            x[0] > 3 || x[0] < -4 ||
+            x[1] > 3 || x[1] < -4 ||
+            x[2] != 0 )
+        {
+            if( verbose != 0 )
+                printf( "failed\n" );
+
+            printf( "%i != %i (%i, %i)\n", j, jj, x[0], x[1] );
+
+            ret = 1;
+            goto cleanup;
+        }
+    }
+
+    if( verbose != 0 )
+        printf( "passed\n" );
 
     MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP192R1 ) );
 

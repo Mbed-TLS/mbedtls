@@ -97,6 +97,18 @@ ecp_group;
 #define POLARSSL_ECP_DP_SECP384R1   3
 #define POLARSSL_ECP_DP_SECP521R1   4
 
+/*
+ * Maximum NAF width used for point multipliation. Default: 7.
+ * Minimum value: 2. Maximum value: 8.
+ *
+ * Result is an array of at most ( 1 << ( POLARSSL_ECP_NAF_WIDTH - 1 ) )
+ * points used for point multiplication, so at most 64 by default.
+ * In practice, most curves will use less precomputed points.
+ *
+ * Reduction in size may reduce speed for big curves.
+ */
+#define POLARSSL_ECP_NAF_WIDTH      7   /**< Maximum NAF width used. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

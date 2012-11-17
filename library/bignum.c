@@ -611,6 +611,9 @@ int mpi_shift_r( mpi *X, size_t count )
     v0 = count /  biL;
     v1 = count & (biL - 1);
 
+    if( v0 > X->n || ( v0 == X->n && v1 > 0 ) )
+        return mpi_lset( X, 0 );
+
     /*
      * shift by count / limb_size
      */

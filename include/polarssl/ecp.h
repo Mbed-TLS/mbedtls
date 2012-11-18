@@ -52,18 +52,17 @@ ecp_point;
 /**
  * \brief           ECP group structure
  *
- * The curves we consider are defined by y^2 = x^3 - 3x + b mod p,
- * and a generator for a large subgroup is fixed.
+ * The curves we consider are defined by y^2 = x^3 - 3x + B mod P,
+ * and a generator for a large subgroup of order N is fixed.
  *
- * If modp is NULL, pbits will not be used, and reduction modulo P is
- * done using a generic algorithm.
+ * pbits and nbits must be the size of P and N in bits.
  *
- * If modp is not NULL, pbits must be the size of P in bits and modp
- * must be a function that takes an mpi in the range 0..2^(2*pbits) and
- * transforms it in-place in an integer of little more than pbits, so
- * that the integer may be efficiently brought in the 0..P range by a
- * few additions or substractions. It must return 0 on success and a
- * POLARSSL_ERR_ECP_XXX error on failure.
+ * If modp is NULL, reduction modulo P is done using a generic
+ * algorithm. Otherwise, it must point to a function that takes an mpi
+ * in the range 0..2^(2*pbits) and transforms it in-place in an integer
+ * of little more than pbits, so that the integer may be efficiently
+ * brought in the 0..P range by a few additions or substractions. It
+ * must return 0 on success and a POLARSSL_ERR_ECP_XXX error on failure.
  */
 typedef struct
 {
@@ -71,8 +70,9 @@ typedef struct
     mpi B;              /*!<  constant term in the equation     */
     ecp_point G;        /*!<  generator of the subgroup used    */
     mpi N;              /*!<  the order of G                    */
+    size_t pbits;       /*!<  number of bits in P               */
+    size_t nbits;       /*!<  number of bits in N               */
     int (*modp)(mpi *); /*!<  function for fast reduction mod P */
-    unsigned pbits;     /*!<  number of bits in P               */
 }
 ecp_group;
 
@@ -158,6 +158,8 @@ int ecp_point_read_string( ecp_point *P, int radix,
  * \param n         The generator's order
  *
  * \return          0 if successful, or a POLARSSL_ERR_MPI_XXX error code
+ *
+ * \note            Sets all fields except modp.
  */
 int ecp_group_read_string( ecp_group *grp, int radix,
                            const char *p, const char *b,

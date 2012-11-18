@@ -64,8 +64,10 @@ void ecp_group_init( ecp_group *grp )
     ecp_point_init( &grp->G );
     mpi_init( &grp->N );
 
-    grp->modp = NULL;
     grp->pbits = 0;
+    grp->nbits = 0;
+
+    grp->modp = NULL;
 }
 
 /*
@@ -155,12 +157,16 @@ int ecp_group_read_string( ecp_group *grp, int radix,
     MPI_CHK( ecp_point_read_string( &grp->G, radix, gx, gy ) );
     MPI_CHK( mpi_read_string( &grp->N, radix, n ) );
 
+    grp->pbits = mpi_msb( &grp->P );
+    grp->nbits = mpi_msb( &grp->N );
+
 cleanup:
     return( ret );
 }
 
 /*
- * Wrapper around fast quasi-modp functions, with fall-back to mpi_mod_mpi
+ * Wrapper around fast quasi-modp functions, with fall-back to mpi_mod_mpi.
+ * See the documentation of struct ecp_group.
  */
 static int ecp_modp( mpi *N, const ecp_group *grp )
 {
@@ -394,7 +400,6 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
     {
         case POLARSSL_ECP_DP_SECP192R1:
             grp->modp = ecp_mod_p192;
-            grp->pbits = 192;
             return( ecp_group_read_string( grp, 16,
                         SECP192R1_P, SECP192R1_B,
                         SECP192R1_GX, SECP192R1_GY, SECP192R1_N ) );
@@ -416,7 +421,6 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
 
         case POLARSSL_ECP_DP_SECP521R1:
             grp->modp = ecp_mod_p521;
-            grp->pbits = 521;
             return( ecp_group_read_string( grp, 16,
                         SECP521R1_P, SECP521R1_B,
                         SECP521R1_GX, SECP521R1_GY, SECP521R1_N ) );

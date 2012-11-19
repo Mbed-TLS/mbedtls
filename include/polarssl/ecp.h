@@ -37,15 +37,19 @@
 #define POLARSSL_ERR_ECP_GENERIC    -0x007E  /**<  Generic ECP error */
 
 /**
- * \brief           ECP point structure (affine coordinates)
+ * \brief           ECP point structure (jacobian coordinates)
  *
- * Note: if the point is zero, X and Y are irrelevant and should be freed.
+ * \note            All functions expect and return points satisfying
+ *                  the following condition: Z == 0 or Z == 1. (Other
+ *                  values of Z are used by internal functions only.)
+ *                  The point is zero, or "at infinity", if Z == 0.
+ *                  Otherwise, X and Y are its standard (affine) coordinates.
  */
 typedef struct
 {
-    char is_zero;   /*!<  true if point at infinity */
     mpi X;          /*!<  the point's X coordinate  */
     mpi Y;          /*!<  the point's Y coordinate  */
+    mpi Z;          /*!<  the point's Z coordinate  */
 }
 ecp_point;
 
@@ -119,8 +123,11 @@ void ecp_group_free( ecp_group *grp );
 
 /**
  * \brief           Set a point to zero
+ *
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
-void ecp_set_zero( ecp_point *pt );
+int ecp_set_zero( ecp_point *pt );
 
 /**
  * \brief           Copy the contents of point Q into P

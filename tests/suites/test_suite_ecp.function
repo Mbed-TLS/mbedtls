@@ -31,7 +31,7 @@ ecp_small_add:a_zero:x_a:y_a:b_zero:x_b:y_b:c_zero:x_c:y_c
     TEST_ASSERT( ecp_add( &grp, &C, &A, &B ) == 0 );
 
     if( {c_zero} )
-        TEST_ASSERT( C.is_zero );
+        TEST_ASSERT( mpi_cmp_int( &C.Z, 0 ) == 0 );
     else
     {
         TEST_ASSERT( mpi_cmp_int( &C.X, {x_c} ) == 0 );
@@ -41,7 +41,7 @@ ecp_small_add:a_zero:x_a:y_a:b_zero:x_b:y_b:c_zero:x_c:y_c
     TEST_ASSERT( ecp_add( &grp, &C, &B, &A ) == 0 );
 
     if( {c_zero} )
-        TEST_ASSERT( C.is_zero );
+        TEST_ASSERT( mpi_cmp_int( &C.Z, 0 ) == 0 );
     else
     {
         TEST_ASSERT( mpi_cmp_int( &C.X, {x_c} ) == 0 );
@@ -72,7 +72,7 @@ ecp_small_mul:m:r_zero:x_r:y_r:ret
     TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G ) == {ret} );
 
     if( {r_zero} )
-        TEST_ASSERT( R.is_zero );
+        TEST_ASSERT( mpi_cmp_int( &R.Z, 0 ) == 0 );
     else
     {
         TEST_ASSERT( mpi_cmp_int( &R.X, {x_r} ) == 0 );

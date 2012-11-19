@@ -54,6 +54,43 @@ ecp_small_add:a_zero:x_a:y_a:b_zero:x_b:y_b:c_zero:x_c:y_c
 END_CASE
 
 BEGIN_CASE
+ecp_small_sub:a_zero:x_a:y_a:b_zero:x_b:y_b:c_zero:x_c:y_c
+{
+    ecp_group grp;
+    ecp_point A, B, C;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &A ); ecp_point_init( &B ); ecp_point_init( &C );
+
+    TEST_ASSERT( ecp_group_read_string( &grp, 10,
+                "47", "4", "17", "42", "13" ) == 0 );
+
+    if( {a_zero} )
+        ecp_set_zero( &A );
+    else
+        TEST_ASSERT( ecp_point_read_string( &A, 10, {x_a}, {y_a} ) == 0 );
+
+    if( {b_zero} )
+        ecp_set_zero( &B );
+    else
+        TEST_ASSERT( ecp_point_read_string( &B, 10, {x_b}, {y_b} ) == 0 );
+
+    TEST_ASSERT( ecp_sub( &grp, &C, &A, &B ) == 0 );
+
+    if( {c_zero} )
+        TEST_ASSERT( mpi_cmp_int( &C.Z, 0 ) == 0 );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &C.X, {x_c} ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &C.Y, {y_c} ) == 0 );
+    }
+
+    ecp_group_free( &grp );
+    ecp_point_free( &A ); ecp_point_free( &B ); ecp_point_free( &C );
+}
+END_CASE
+
+BEGIN_CASE
 ecp_small_mul:m:r_zero:x_r:y_r:ret
 {
     ecp_group grp;

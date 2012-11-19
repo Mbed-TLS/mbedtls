@@ -22,6 +22,33 @@ ecp_small_add:0:"37":"31":0:"37":"31":0:21:32
 ECP small addition #8
 ecp_small_add:0:"14":"11":0:"14":"11":0:27:30
 
+ECP small subtraction #1
+ecp_small_sub:1:"":"":1:"":"":1:0:0
+
+ECP small subtraction #2
+ecp_small_sub:1:"":"":0:"14":"11":0:14:36
+
+ECP small subtraction #3
+ecp_small_sub:1:"":"":0:"13":"00":0:13:00
+
+ECP small subtraction #4
+ecp_small_sub:0:"13":"00":0:"13":"00":1:0:0
+
+ECP small subtraction #5
+ecp_small_sub:0:"14":"11":0:"14":"11":1:0:0
+
+ECP small subtraction #6
+ecp_small_sub:0:"13":"00":0:"37":"16":0:34:14
+
+ECP small subtraction #7
+ecp_small_sub:0:"14":"11":0:"37":"16":0:45:07
+
+ECP small subtraction #8
+ecp_small_sub:0:"37":"31":0:"37":"16":0:21:32
+
+ECP small subtraction #9
+ecp_small_sub:0:"14":"11":0:"14":"36":0:27:30
+
 ECP small multiplication negative
 ecp_small_mul:-1:0:0:0:POLARSSL_ERR_ECP_GENERIC
 

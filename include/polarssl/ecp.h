@@ -201,6 +201,20 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q );
 
 /**
+ * \brief           Subtraction: R = P - Q
+ *
+ * \param grp       ECP group
+ * \param R         Destination point
+ * \param P         Left-hand point
+ * \param Q         Right-hand point
+ *
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ */
+int ecp_sub( const ecp_group *grp, ecp_point *R,
+             const ecp_point *P, const ecp_point *Q );
+
+/**
  * \brief           Multiplication by an integer: R = m * P
  *
  * \param grp       ECP group

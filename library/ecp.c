@@ -550,23 +550,43 @@ cleanup:
 }
 
 /*
- * Addition: R = P + Q, mixed affine-Jacobian coordinates (GECC 3.22)
- * The coordinates of Q must be normalized (= affine).
+ * Addition or subtraction: R = P + Q or R = P + Q,
+ * mixed affine-Jacobian coordinates (GECC 3.22)
+ *
+ * The coordinates of Q must be normalized (= affine),
+ * but those of P don't need to. R is not normalized.
+ *
+ * If sign >= 0, perform addition, otherwise perform subtraction,
+ * taking advantage of the fact that, for Q != 0, we have
+ * -Q = (Q.X, -Q.Y, Q.Z)
  */
 static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
-                          const ecp_point *P, const ecp_point *Q )
+                          const ecp_point *P, const ecp_point *Q,
+                          signed char sign )
 {
     int ret;
     mpi T1, T2, T3, T4, X, Y, Z;
 
     /*
      * Trivial cases: P == 0 or Q == 0
+     * (Check Q first, so that we know Q != 0 when we compute -Q.)
      */
-    if( mpi_cmp_int( &P->Z, 0 ) == 0 )
-        return( ecp_copy( R, Q ) );
-
     if( mpi_cmp_int( &Q->Z, 0 ) == 0 )
         return( ecp_copy( R, P ) );
+
+    if( mpi_cmp_int( &P->Z, 0 ) == 0 )
+    {
+        ret = ecp_copy( R, Q );
+
+        /*
+         * -R.Y mod P = P - R.Y unless R.Y == 0
+         */
+        if( ret == 0 && sign < 0)
+            if( mpi_cmp_int( &R->Y, 0 ) != 0 )
+                ret = mpi_sub_mpi( &R->Y, &grp->P, &R->Y );
+
+        return( ret );
+    }
 
     /*
      * Make sure Q coordinates are normalized
@@ -581,6 +601,17 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
     MPI_CHK( mpi_mul_mpi( &T2,  &T1,    &P->Z ) );  MOD_MUL( T2 );
     MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &Q->X ) );  MOD_MUL( T1 );
     MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &Q->Y ) );  MOD_MUL( T2 );
+
+    /*
+     * For subtraction, -Q.Y should have been used instead of Q.Y,
+     * so we replace T2 by -T2, which is P - T2 mod P
+     */
+    if( sign < 0 )
+    {
+        MPI_CHK( mpi_sub_mpi( &T2, &grp->P, &T2 ) );
+        MOD_SUB( T2 );
+    }
+
     MPI_CHK( mpi_sub_mpi( &T1,  &T1,    &P->X ) );  MOD_SUB( T1 );
     MPI_CHK( mpi_sub_mpi( &T2,  &T2,    &P->Y ) );  MOD_SUB( T2 );
 
@@ -631,7 +662,22 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
 {
     int ret;
 
-    MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
+    MPI_CHK( ecp_add_mixed( grp, R, P, Q , 1 ) );
+    MPI_CHK( ecp_normalize( grp, R ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Subtraction: R = P - Q, result's coordinates normalized
+ */
+int ecp_sub( const ecp_group *grp, ecp_point *R,
+             const ecp_point *P, const ecp_point *Q )
+{
+    int ret;
+
+    MPI_CHK( ecp_add_mixed( grp, R, P, Q, -1 ) );
     MPI_CHK( ecp_normalize( grp, R ) );
 
 cleanup:
@@ -667,7 +713,7 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
     for( pos = mpi_msb( m ) - 1 ; ; pos-- )
     {
         MPI_CHK( ecp_double_jac( grp, &Q[0], &Q[0] ) );
-        MPI_CHK( ecp_add_mixed( grp, &Q[1], &Q[0], P ) );
+        MPI_CHK( ecp_add_mixed( grp, &Q[1], &Q[0], P, 1 ) );
         MPI_CHK( ecp_copy( &Q[0], &Q[ mpi_get_bit( m, pos ) ] ) );
 
         if( pos == 0 )

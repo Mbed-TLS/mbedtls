@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.2.1 released 2012-11-13
+= Version 1.2.1 released 2012-11-20
 Changes
    * Depth that the certificate verify callback receives is now numbered
      bottom-up (Peer cert depth is 0)

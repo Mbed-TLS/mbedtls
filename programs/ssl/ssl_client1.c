@@ -37,6 +37,7 @@
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/error.h"
+#include "polarssl/certs.h"
 
 #define SERVER_PORT 4433
 #define SERVER_NAME "localhost"
@@ -78,6 +79,7 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
+    x509_cert cacert;
 
     ((void) argc);
     ((void) argv);
@@ -86,6 +88,7 @@ int main( int argc, char *argv[] )
      * 0. Initialize the RNG and the session data
      */
     memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &cacert, 0, sizeof( x509_cert ) );
 
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
@@ -99,6 +102,28 @@ int main( int argc, char *argv[] )
     }
 
     printf( " ok\n" );
+
+    /*
+     * 0. Initialize certificates
+     */
+    printf( "  . Loading the CA root certificate ..." );
+    fflush( stdout );
+
+#if defined(POLARSSL_CERTS_C)
+    ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
+                         strlen( test_ca_crt ) );
+#else
+    ret = 1;
+    printf("POLARSSL_CERTS_C not defined.");
+#endif
+
+    if( ret < 0 )
+    {
+        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
+    printf( " ok (%d skipped)\n", ret );
 
     /*
      * 1. Start the connection
@@ -131,12 +156,56 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
-    ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
+    ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );
+    ssl_set_ca_chain( &ssl, &cacert, NULL, "PolarSSL Server 1" );
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );
     ssl_set_bio( &ssl, net_recv, &server_fd,
                        net_send, &server_fd );
+
+    /*
+     * 4. Handshake
+     */
+    printf( "  . Performing the SSL/TLS handshake..." );
+    fflush( stdout );
+
+    while( ( ret = ssl_handshake( &ssl ) ) != 0 )
+    {
+        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        {
+            printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+    }
+
+    printf( " ok\n" );
+
+    /*
+     * 5. Verify the server certificate
+     */
+    printf( "  . Verifying peer X.509 certificate..." );
+
+    if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
+    {
+        printf( " failed\n" );
+
+        if( ( ret & BADCERT_EXPIRED ) != 0 )
+            printf( "  ! server certificate has expired\n" );
+
+        if( ( ret & BADCERT_REVOKED ) != 0 )
+            printf( "  ! server certificate has been revoked\n" );
+
+        if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
+            printf( "  ! CN mismatch (expected CN=%s)\n", "PolarSSL Server 1" );
+
+        if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
+            printf( "  ! self-signed or not signed by a trusted CA\n" );
+
+        printf( "\n" );
+    }
+    else
+        printf( " ok\n" );
 
     /*
      * 3. Write the GET request
@@ -206,6 +275,7 @@ exit:
     }
 #endif
 
+    x509_free( &cacert );
     net_close( server_fd );
     ssl_free( &ssl );
 

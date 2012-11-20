@@ -127,9 +127,12 @@ int my_verify( void *data, x509_cert *crt, int depth, int *flags )
 
 #if defined(POLARSSL_FS_IO)
 #define USAGE_IO \
-    "    ca_file=%%s          default: \"\" (pre-loaded)\n" \
-    "    ca_path=%%s          default: \"\" (pre-loaded) (overrides ca_file)\n" \
-    "    crt_file=%%s         default: \"\" (pre-loaded)\n" \
+    "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
+    "                        default: \"\" (pre-loaded)\n" \
+    "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
+    "                        default: \"\" (pre-loaded) (overrides ca_file)\n" \
+    "    crt_file=%%s         Your own cert and chain (in bottom to top order, top may be omitted)\n" \
+    "                        default: \"\" (pre-loaded)\n" \
     "    key_file=%%s         default: \"\" (pre-loaded)\n"
 #else
 #define USAGE_IO \

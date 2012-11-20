@@ -720,20 +720,22 @@ void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites );
  * \brief          Set the data required to verify peer certificate
  *
  * \param ssl      SSL context
- * \param ca_chain trusted CA chain
+ * \param ca_chain trusted CA chain (meaning all fully trusted top-level CAs)
  * \param ca_crl   trusted CA CRLs
  * \param peer_cn  expected peer CommonName (or NULL)
- *
- * \note           TODO: add two more parameters: depth and crl
  */
 void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
                        x509_crl *ca_crl, const char *peer_cn );
 
 /**
- * \brief          Set own certificate and private key
+ * \brief          Set own certificate chain and private key
+ *
+ *                 Note: own_cert should contain IN order from the bottom
+ *                 up your certificate chain. The top certificate (self-signed)
+ *                 can be omitted.
  *
  * \param ssl      SSL context
- * \param own_cert own public certificate
+ * \param own_cert own public certificate chain
  * \param rsa_key  own private RSA key
  */
 void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
@@ -747,8 +749,12 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
  *                 of the callback parameters, with the only change being
  *                 that the rsa_context * is a void * in the callbacks)
  *
+ *                 Note: own_cert should contain IN order from the bottom
+ *                 up your certificate chain. The top certificate (self-signed)
+ *                 can be omitted.
+ *
  * \param ssl      SSL context
- * \param own_cert own public certificate
+ * \param own_cert own public certificate chain
  * \param rsa_key  alternate implementation private RSA key
  * \param rsa_decrypt_func  alternate implementation of \c rsa_pkcs1_decrypt()
  * \param rsa_sign_func     alternate implementation of \c rsa_pkcs1_sign()

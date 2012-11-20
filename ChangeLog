@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Version Master
+Changes
+   * Added p_hw_data to ssl_context for context specific hardware acceleration
+     data
+
 = Version 1.2.1 released 2012-11-20
 Changes
    * Depth that the certificate verify callback receives is now numbered

@@ -415,6 +415,7 @@ struct _ssl_context
     void *p_get_cache;          /*!< context for cache retrieval      */
     void *p_set_cache;          /*!< context for cache store          */
     void *p_sni;                /*!< context for SNI extension        */
+    void *p_hw_data;            /*!< context for HW acceleration      */
 
     /*
      * Session layer

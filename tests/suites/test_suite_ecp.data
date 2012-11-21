@@ -94,6 +94,15 @@ ecp_small_mul:12:0:17:05:0
 ECP small multiplication #13
 ecp_small_mul:13:1:0:0:0
 
+ECP small multiplication #14
+ecp_small_mul:1:0:17:42:0
+
+ECP small multiplication #15
+ecp_small_mul:2:0:20:01:0
+
+ECP small multiplication too big
+ecp_small_mul:-1:0:0:0:POLARSSL_ERR_ECP_GENERIC
+
 ECP mod p192 readable
 ecp_fast_mod:SECP192R1:"000000000000010500000000000001040000000000000103000000000000010200000000000001010000000000000100"
 

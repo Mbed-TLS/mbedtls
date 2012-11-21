@@ -768,8 +768,9 @@ cleanup:
  * Precompute odd multiples of P up to (2 * t_len - 1) P.
  * The table is filled with T[i] = (2 * i + 1) P.
  */
-static int ecp_precompute( ecp_point T[], size_t t_len,
-                           const ecp_group *grp, const ecp_point *P )
+static int ecp_precompute( const ecp_group *grp,
+                           ecp_point T[], size_t t_len,
+                           const ecp_point *P )
 {
     int ret;
     size_t i;
@@ -795,47 +796,114 @@ cleanup:
 }
 
 /*
- * Integer multiplication: R = m * P (GECC 5.7, SPA-resistant)
+ * Maximum length of the precomputed table
+ */
+#define MAX_PRE_LEN     ( 1 << (POLARSSL_ECP_WINDOW_SIZE - 1) )
+
+/*
+ * Maximum length of the NAF: ceil( grp->nbits + 1 ) / w
+ * (that is: grp->nbits / w + 1)
+ * Allow p_bits + 1 bits in case M = grp->N + 1 is one bit longer than N.
+ */
+#define MAX_NAF_LEN     ( POLARSSL_ECP_MAX_N_BITS / 2 + 1 )
+
+/*
+ * Integer multiplication: R = m * P
+ *
+ * Based on fixed-pattern width-w NAF, see comments of ecp_w_naf_fixed()
+ * and <http://rd.springer.com/chapter/10.1007/3-540-36563-X_23>.
+ *
+ * This function executes a fixed number of operations for
+ * random m in the range 0 .. 2^nbits - 1.
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P )
 {
-    int ret, cmp;
-    size_t pos;
-    ecp_point Q[2];
+    int ret;
+    unsigned char w, m_is_odd;
+    size_t pre_len, naf_len, i, j;
+    signed char naf[ MAX_NAF_LEN ];
+    ecp_point Q, T[ MAX_PRE_LEN ];
+    mpi M;
 
-    cmp = mpi_cmp_int( m, 0 );
-
-    if( cmp < 0 )
+    if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
         return( POLARSSL_ERR_ECP_GENERIC );
 
+    w = 3; // TODO: find optimal values once precompute() is optimized
+
+    if( w < 2 )
+        w = 2;
+    if( w > POLARSSL_ECP_WINDOW_SIZE )
+        w = POLARSSL_ECP_WINDOW_SIZE;
+
+    pre_len = 1 << ( w - 1 );
+    naf_len = grp->nbits / w + 1;
+
+    mpi_init( &M );
+    ecp_point_init( &Q );
+    for( i = 0; i < pre_len; i++ )
+        ecp_point_init( &T[i] );
+
+    m_is_odd = ( mpi_get_bit( m, 0 ) == 1 );
+
     /*
-     * The general method works only for m != 0
+     * Make sure M is odd:
+     * later we'll get m * P by subtracting * P or 2 * P to M * P.
      */
-    if( cmp == 0 ) {
-        return( ecp_set_zero( R ) );
-    }
+    MPI_CHK( mpi_copy( &M, m ) );
+    MPI_CHK( mpi_add_int( &M, &M, 1 + m_is_odd ) );
 
-    ecp_point_init( &Q[0] ); ecp_point_init( &Q[1] );
+    /*
+     * Compute the fixed-pattern NAF and precompute odd multiples
+     */
+    MPI_CHK( ecp_w_naf_fixed( naf, naf_len, w, &M ) );
+    MPI_CHK( ecp_precompute( grp, T, pre_len, P ) );
 
-    MPI_CHK( ecp_set_zero( &Q[0] ) );
-
-    for( pos = mpi_msb( m ) - 1 ; ; pos-- )
+    /*
+     * Compute M * P, using a variant of left-to-right 2^w-ary multiplication:
+     * at each step we add (2 * naf[i] + 1) P, then multiply by 2^w.
+     *
+     * If naf[i] >= 0, we have (2 * naf[i] + 1) P == T[ naf[i] ]
+     * Otherwise, (2 * naf[i] + 1) P == - ( 2 * ( - naf[i] - 1 ) + 1) P
+     *                               == T[ - naf[i] - 1 ]
+     */
+    MPI_CHK( ecp_set_zero( &Q ) );
+    i = naf_len - 1;
+    while( 1 )
     {
-        MPI_CHK( ecp_double_jac( grp, &Q[0], &Q[0] ) );
-        MPI_CHK( ecp_add_mixed( grp, &Q[1], &Q[0], P, 1 ) );
-        MPI_CHK( ecp_copy( &Q[0], &Q[ mpi_get_bit( m, pos ) ] ) );
+        if( naf[i] < 0 )
+        {
+            MPI_CHK( ecp_add_mixed( grp, &Q, &Q, &T[ - naf[i] - 1 ], -1 ) );
+        }
+        else
+        {
+            MPI_CHK( ecp_add_mixed( grp, &Q, &Q, &T[ naf[i] ], +1 ) );
+        }
 
-        if( pos == 0 )
+        if( i == 0 )
             break;
+        i--;
+
+        for( j = 0; j < w; j++ )
+        {
+            MPI_CHK( ecp_double_jac( grp, &Q, &Q ) );
+        }
     }
 
-    MPI_CHK( ecp_copy( R, &Q[0] ) );
-    MPI_CHK( ecp_normalize( grp, R ) );
+    /*
+     * Now get m * P from M * P.
+     * Since we don't need T[] any more, we can recycle it:
+     * we already have T[0] = P, now set T[1] = 2 * P.
+     */
+    MPI_CHK( ecp_add( grp, &T[1], P, P ) );
+    MPI_CHK( ecp_sub( grp, R, &Q, &T[m_is_odd] ) );
 
 cleanup:
 
-    ecp_point_free( &Q[0] ); ecp_point_free( &Q[1] );
+    mpi_free( &M );
+    ecp_point_free( &Q );
+    for( i = 0; i < pre_len; i++ )
+        ecp_point_free( &T[i] );
 
     return( ret );
 }
@@ -850,71 +918,24 @@ int ecp_self_test( int verbose )
 {
     int ret;
     size_t i;
-    int j, jj;
     ecp_group grp;
     ecp_point R;
     mpi m;
     unsigned long add_c_prev, dbl_c_prev;
     char *exponents[] =
     {
+        "000000000000000000000000000000000000000000000000", /* zero */
+        "000000000000000000000000000000000000000000000001", /* one */
+        "FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22831", /* N */
+        "5EA6F389A38B8BC81E767753B15AA5569E1782E30ABE7D25", /* random */
         "400000000000000000000000000000000000000000000000",
         "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         "555555555555555555555555555555555555555555555555",
-        "5EA6F389A38B8BC81E767753B15AA5569E1782E30ABE7D25",
-        /* "000000000000000000000000000000000000000000000010", TODO */
     };
-    signed char x[3];
 
     ecp_group_init( &grp );
     ecp_point_init( &R );
     mpi_init( &m );
-
-    if( verbose != 0 )
-        printf( "  ECP test #0 (naf): " );
-
-    for( j = 1; j < 32; j += 2 )
-    {
-        mpi_lset( &m, j );
-
-        x[0] = x[1] = x[2] = 0;
-        MPI_CHK( ecp_w_naf_fixed( x, 3, 2, &m ) );
-        jj = ( 2 * x[0] + 1 ) + 4 * ( 2 * x[1] + 1 ) + 16 * ( 2 * x[2] + 1 );
-
-        if( j != jj ||
-            x[0] > 1 || x[0] < -2 ||
-            x[1] > 1 || x[1] < -2 ||
-            x[2] > 1 || x[2] < -2 )
-        {
-            if( verbose != 0 )
-                printf( "failed\n" );
-
-            printf( "%i != %i (%i, %i, %i)\n", j, jj, x[0], x[1], x[2] );
-
-            ret = 1;
-            goto cleanup;
-        }
-
-        x[0] = x[1] = x[2] = 0;
-        MPI_CHK( ecp_w_naf_fixed( x, 2, 3, &m ) );
-        jj = ( 2 * x[0] + 1 ) + 8 * ( 2 * x[1] + 1 );
-
-        if( j != jj ||
-            x[0] > 3 || x[0] < -4 ||
-            x[1] > 3 || x[1] < -4 ||
-            x[2] != 0 )
-        {
-            if( verbose != 0 )
-                printf( "failed\n" );
-
-            printf( "%i != %i (%i, %i)\n", j, jj, x[0], x[1] );
-
-            ret = 1;
-            goto cleanup;
-        }
-    }
-
-    if( verbose != 0 )
-        printf( "passed\n" );
 
     MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP192R1 ) );
 

@@ -97,17 +97,23 @@ ecp_group;
 #define POLARSSL_ECP_DP_SECP384R1   3
 #define POLARSSL_ECP_DP_SECP521R1   4
 
+/**
+ * Maximum bit size of the groups (that is, of N)
+ */
+#define POLARSSL_ECP_MAX_N_BITS     521
+
 /*
- * Maximum NAF width used for point multipliation. Default: 7.
+ * Maximum window size (actually, NAF width) used for point multipliation.
+ * Default: 7.
  * Minimum value: 2. Maximum value: 8.
  *
- * Result is an array of at most ( 1 << ( POLARSSL_ECP_NAF_WIDTH - 1 ) )
+ * Result is an array of at most ( 1 << ( POLARSSL_ECP_WINDOW_SIZE - 1 ) )
  * points used for point multiplication, so at most 64 by default.
  * In practice, most curves will use less precomputed points.
  *
  * Reduction in size may reduce speed for big curves.
  */
-#define POLARSSL_ECP_NAF_WIDTH      7   /**< Maximum NAF width used. */
+#define POLARSSL_ECP_WINDOW_SIZE    7   /**< Maximum NAF width used. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -236,7 +242,11 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
- *                  POLARSSL_ERR_ECP_GENERIC if m < 0
+ *                  POLARSSL_ERR_ECP_GENERIC if m < 0 of m has greater bit
+ *                  length than N, the number of points in the group.
+ *
+ * \note            This function executes a constant number of operations
+ *                  for random m in the allowed range.
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );

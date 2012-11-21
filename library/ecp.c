@@ -37,6 +37,7 @@
 
 #include "polarssl/ecp.h"
 #include <limits.h>
+#include <stdlib.h>
 
 #if defined(POLARSSL_SELF_TEST)
 /*
@@ -472,12 +473,12 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
 static int ecp_normalize( const ecp_group *grp, ecp_point *pt )
 {
     int ret;
-    mpi Zi, ZZi, T;
+    mpi Zi, ZZi;
 
     if( mpi_cmp_int( &pt->Z, 0 ) == 0 )
         return( 0 );
 
-    mpi_init( &Zi ); mpi_init( &ZZi ); mpi_init( &T );
+    mpi_init( &Zi ); mpi_init( &ZZi );
 
     /*
      * X = X / Z^2  mod p
@@ -499,10 +500,89 @@ static int ecp_normalize( const ecp_group *grp, ecp_point *pt )
 
 cleanup:
 
-    mpi_free( &Zi ); mpi_free( &ZZi ); mpi_free( &T );
+    mpi_free( &Zi ); mpi_free( &ZZi );
 
     return( ret );
 }
+
+/*
+ * Normalize jacobian coordinates of an array of points,
+ * using Montgomery's trick to perform only one division.
+ * (See for example Cohen's "A Course in Computational Algebraic Number
+ * Theory", Algorithm 10.3.4.)
+ *
+ * FIXME: assumes all points are non zero
+ */
+static int ecp_normalize_many( const ecp_group *grp,
+                               ecp_point T[], size_t t_len )
+{
+    int ret;
+    size_t i;
+    mpi *c, u, Zi, ZZi;
+
+    if( t_len < 2 )
+        return( ecp_normalize( grp, T ) );
+
+    if( ( c = (mpi *) malloc( t_len * sizeof( mpi ) ) ) == NULL )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    mpi_init( &u ); mpi_init( &Zi ); mpi_init( &ZZi );
+    for( i = 0; i < t_len; i++ )
+        mpi_init( &c[i] );
+
+    /*
+     * c[i] = Z_0 * ... * Z_i
+     */
+    MPI_CHK( mpi_copy( &c[0], &T[0].Z ) );
+    for( i = 1; i < t_len; i++ )
+    {
+        MPI_CHK( mpi_mul_mpi( &c[i], &c[i-1], &T[i].Z ) );
+        MOD_MUL( c[i] );
+    }
+
+    /*
+     * u = 1 / (Z_0 * ... * Z_n) mod P
+     */
+    MPI_CHK( mpi_inv_mod( &u, &c[t_len-1], &grp->P ) );
+
+    for( i = t_len - 1; ; i-- )
+    {
+        /*
+         * Zi = 1 / Z_i mod p
+         * u = 1 / (Z_0 * ... * Z_i) mod P
+         */
+        if( i == 0 ) {
+            MPI_CHK( mpi_copy( &Zi, &u ) );
+        }
+        else
+        {
+            MPI_CHK( mpi_mul_mpi( &Zi, &u, &c[i-1] ) ); MOD_MUL( Zi );
+            MPI_CHK( mpi_mul_mpi( &u,  &u, &T[i].Z ) ); MOD_MUL( u );
+        }
+
+        /*
+         * proceed as in normalize()
+         */
+        MPI_CHK( mpi_mul_mpi( &ZZi,    &Zi,     &Zi     ) ); MOD_MUL( ZZi );
+        MPI_CHK( mpi_mul_mpi( &T[i].X, &T[i].X, &ZZi    ) ); MOD_MUL( T[i].X );
+        MPI_CHK( mpi_mul_mpi( &T[i].Y, &T[i].Y, &ZZi    ) ); MOD_MUL( T[i].Y );
+        MPI_CHK( mpi_mul_mpi( &T[i].Y, &T[i].Y, &Zi     ) ); MOD_MUL( T[i].Y );
+        MPI_CHK( mpi_lset( &T[i].Z, 1 ) );
+
+        if( i == 0 )
+            break;
+    }
+
+cleanup:
+
+    mpi_free( &u ); mpi_free( &Zi ); mpi_free( &ZZi );
+    for( i = 0; i < t_len; i++ )
+        mpi_free( &c[i] );
+    free( c );
+
+    return( ret );
+}
+
 
 /*
  * Point doubling R = 2 P, Jacobian coordinates (GECC 3.21)
@@ -782,11 +862,13 @@ static int ecp_precompute( const ecp_group *grp,
 
     MPI_CHK( ecp_copy( &T[0], P ) );
 
-    /*
-     * TODO: use Montgomery's trick for less inversions
-     */
     for( i = 1; i < t_len; i++ )
-        MPI_CHK( ecp_add( grp, &T[i], &T[i-1], &PP ) );
+        MPI_CHK( ecp_add_mixed( grp, &T[i], &T[i-1], &PP, +1 ) );
+
+    /*
+     * T[0] = P already has normalized coordinates
+     */
+    ecp_normalize_many( grp, T + 1, t_len - 1 );
 
 cleanup:
 
@@ -829,7 +911,7 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
     if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
         return( POLARSSL_ERR_ECP_GENERIC );
 
-    w = 3; // TODO: find optimal values once precompute() is optimized
+    w = 5; // TODO: find optimal values once precompute() is optimized
 
     if( w < 2 )
         w = 2;

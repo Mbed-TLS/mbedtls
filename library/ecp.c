@@ -727,8 +727,8 @@ cleanup:
  * does. Finally, there is an off-by-one error in the reference: the
  * last index should be k-1, not k.
  */
-static int ecp_w_naf_fixed( signed char x[], size_t k, unsigned char w,
-                            const mpi *m )
+static int ecp_w_naf_fixed( signed char x[], size_t k,
+                            unsigned char w, const mpi *m )
 {
     int ret;
     unsigned int i, u, mask, carry;
@@ -760,6 +760,36 @@ static int ecp_w_naf_fixed( signed char x[], size_t k, unsigned char w,
 cleanup:
 
     mpi_free( &M );
+
+    return( ret );
+}
+
+/*
+ * Precompute odd multiples of P up to (2 * t_len - 1) P.
+ * The table is filled with T[i] = (2 * i + 1) P.
+ */
+static int ecp_precompute( ecp_point T[], size_t t_len,
+                           const ecp_group *grp, const ecp_point *P )
+{
+    int ret;
+    size_t i;
+    ecp_point PP;
+
+    ecp_point_init( &PP );
+
+    MPI_CHK( ecp_add( grp, &PP, P, P ) );
+
+    MPI_CHK( ecp_copy( &T[0], P ) );
+
+    /*
+     * TODO: use Montgomery's trick for less inversions
+     */
+    for( i = 1; i < t_len; i++ )
+        MPI_CHK( ecp_add( grp, &T[i], &T[i-1], &PP ) );
+
+cleanup:
+
+    ecp_point_free( &PP );
 
     return( ret );
 }

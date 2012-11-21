@@ -507,11 +507,12 @@ cleanup:
 
 /*
  * Normalize jacobian coordinates of an array of points,
- * using Montgomery's trick to perform only one division.
+ * using Montgomery's trick to perform only one inversion mod P.
  * (See for example Cohen's "A Course in Computational Algebraic Number
  * Theory", Algorithm 10.3.4.)
  *
- * FIXME: assumes all points are non zero
+ * Warning: fails if one of the points is zero!
+ * This should never happen, see choice of w in ecp_mul().
  */
 static int ecp_normalize_many( const ecp_group *grp,
                                ecp_point T[], size_t t_len )
@@ -868,7 +869,7 @@ static int ecp_precompute( const ecp_group *grp,
     /*
      * T[0] = P already has normalized coordinates
      */
-    ecp_normalize_many( grp, T + 1, t_len - 1 );
+    MPI_CHK( ecp_normalize_many( grp, T + 1, t_len - 1 ) );
 
 cleanup:
 
@@ -911,12 +912,20 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
     if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
         return( POLARSSL_ERR_ECP_GENERIC );
 
-    w = 5; // TODO: find optimal values once precompute() is optimized
+    w = grp->nbits >= 521 ? 6 :
+        grp->nbits >= 224 ? 5 :
+        4;
 
-    if( w < 2 )
-        w = 2;
+    /*
+     * Make sure w is within the limits.
+     * The last test ensures that none of the precomputed points is zero,
+     * which wouldn't be handled correctly by ecp_normalize_many().
+     * It is only useful for small curves, as used in the test suite.
+     */
     if( w > POLARSSL_ECP_WINDOW_SIZE )
         w = POLARSSL_ECP_WINDOW_SIZE;
+    if( w < 2 || w >= grp->nbits )
+        w = 2;
 
     pre_len = 1 << ( w - 1 );
     naf_len = grp->nbits / w + 1;
@@ -979,6 +988,7 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
      */
     MPI_CHK( ecp_add( grp, &T[1], P, P ) );
     MPI_CHK( ecp_sub( grp, R, &Q, &T[m_is_odd] ) );
+
 
 cleanup:
 

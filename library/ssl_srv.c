@@ -1271,7 +1271,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     }
 
     n1 = ssl->session_negotiate->peer_cert->rsa.len;
-    n2 = ( ssl->in_msg[4 + n] << 8 ) | ssl->in_msg[5 + 2];
+    n2 = ( ssl->in_msg[4 + n] << 8 ) | ssl->in_msg[5 + n];
 
     if( n + n1 + 6 != ssl->in_hslen || n1 != n2 )
     {

@@ -60,6 +60,7 @@
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_MIN_VERSION         -1
+#define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
@@ -81,6 +82,7 @@ struct options
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
     int min_version;            /* minimum protocol version accepted        */
+    int auth_mode;              /* verify mode for connection               */
 } opt;
 
 void my_debug( void *ctx, int level, const char *str )
@@ -207,6 +209,8 @@ int my_ciphersuites[] =
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
+    "    auth_mode=%%s        default: \"optional\"\n"          \
+    "                        options: none, optional, required\n" \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
@@ -287,6 +291,7 @@ int main( int argc, char *argv[] )
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.min_version         = DFL_MIN_VERSION;
+    opt.auth_mode           = DFL_AUTH_MODE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -349,6 +354,17 @@ int main( int argc, char *argv[] )
                 opt.min_version = SSL_MINOR_VERSION_2;
             else if( strcmp( q, "tls1_2" ) == 0 )
                 opt.min_version = SSL_MINOR_VERSION_3;
+            else
+                goto usage;
+        }
+        else if( strcmp( p, "auth_mode" ) == 0 )
+        {
+            if( strcmp( q, "none" ) == 0 )
+                opt.auth_mode = SSL_VERIFY_NONE;
+            else if( strcmp( q, "optional" ) == 0 )
+                opt.auth_mode = SSL_VERIFY_OPTIONAL;
+            else if( strcmp( q, "required" ) == 0 )
+                opt.auth_mode = SSL_VERIFY_REQUIRED;
             else
                 goto usage;
         }
@@ -477,7 +493,7 @@ int main( int argc, char *argv[] )
     }
 
     ssl_set_endpoint( &ssl, SSL_IS_SERVER );
-    ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
+    ssl_set_authmode( &ssl, opt.auth_mode );
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );

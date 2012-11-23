@@ -689,7 +689,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
 static int ssl_write_certificate_request( ssl_context *ssl )
 {
     int ret;
-    size_t n;
+    size_t n = 0, dn_size, total_dn_size;
     unsigned char *buf, *p;
     const x509_cert *crt;
 
@@ -707,7 +707,9 @@ static int ssl_write_certificate_request( ssl_context *ssl )
      *     0  .   0   handshake type
      *     1  .   3   handshake length
      *     4  .   4   cert type count
-     *     5  .. n-1  cert types
+     *     5  .. m-1  cert types
+     *     m  .. m+1  sig alg length (TLS 1.2 only)
+     *    m+1 .. n-1  SignatureAndHashAlgorithms (TLS 1.2 only) 
      *     n  .. n+1  length of all DNs
      *    n+2 .. n+3  length of DN 1
      *    n+4 .. ...  Distinguished Name #1
@@ -720,30 +722,60 @@ static int ssl_write_certificate_request( ssl_context *ssl )
      * At the moment, only RSA certificates are supported
      */
     *p++ = 1;
-    *p++ = 1;
+    *p++ = SSL_CERT_TYPE_RSA_SIGN;
+
+    /*
+     * Add signature_algorithms for verify (TLS 1.2)
+     * Only add current running algorithm that is already required for
+     * requested ciphersuite.
+     *
+     * Length is always 2
+     */
+    if( ssl->max_minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        ssl->handshake->verify_sig_alg = SSL_HASH_SHA256;
+
+        *p++ = 0;
+        *p++ = 2;
+
+        if( ssl->session_negotiate->ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
+            ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
+        {
+            ssl->handshake->verify_sig_alg = SSL_HASH_SHA384;
+        }
+        
+        *p++ = ssl->handshake->verify_sig_alg;
+        *p++ = SSL_SIG_RSA;
+
+        n += 4;
+    }
 
     p += 2;
     crt = ssl->ca_chain;
 
+    total_dn_size = 2;
     while( crt != NULL )
     {
         if( p - buf > 4096 )
             break;
 
-        n = crt->subject_raw.len;
-        *p++ = (unsigned char)( n >> 8 );
-        *p++ = (unsigned char)( n      );
-        memcpy( p, crt->subject_raw.p, n );
+        dn_size = crt->subject_raw.len;
+        *p++ = (unsigned char)( dn_size >> 8 );
+        *p++ = (unsigned char)( dn_size      );
+        memcpy( p, crt->subject_raw.p, dn_size );
+        p += dn_size;
 
-        SSL_DEBUG_BUF( 3, "requested DN", p, n );
-        p += n; crt = crt->next;
+        SSL_DEBUG_BUF( 3, "requested DN", p, dn_size );
+
+        total_dn_size += dn_size;
+        crt = crt->next;
     }
 
-    ssl->out_msglen  = n = p - buf;
+    ssl->out_msglen  = p - buf;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = SSL_HS_CERTIFICATE_REQUEST;
-    ssl->out_msg[6]  = (unsigned char)( ( n - 8 ) >> 8 );
-    ssl->out_msg[7]  = (unsigned char)( ( n - 8 )      );
+    ssl->out_msg[6 + n]  = (unsigned char)( total_dn_size  >> 8 );
+    ssl->out_msg[7 + n]  = (unsigned char)( total_dn_size       );
 
     ret = ssl_write_record( ssl );
 
@@ -1170,8 +1202,10 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 static int ssl_parse_certificate_verify( ssl_context *ssl )
 {
     int ret;
-    size_t n1, n2;
+    size_t n = 0, n1, n2;
     unsigned char hash[48];
+    int hash_id;
+    unsigned int hashlen;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
@@ -1204,17 +1238,49 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-    n1 = ssl->session_negotiate->peer_cert->rsa.len;
-    n2 = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        /*
+         * As server we know we either have SSL_HASH_SHA384 or
+         * SSL_HASH_SHA256
+         */
+        if( ssl->in_msg[4] != ssl->handshake->verify_sig_alg ||
+            ssl->in_msg[5] != SSL_SIG_RSA )
+        {
+            SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg for verify message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        }
 
-    if( n1 + 6 != ssl->in_hslen || n1 != n2 )
+        if( ssl->handshake->verify_sig_alg == SSL_HASH_SHA384 )
+        {
+            hashlen = 48;
+            hash_id = SIG_RSA_SHA384;
+        }
+        else
+        {
+            hashlen = 32;
+            hash_id = SIG_RSA_SHA256;
+        }
+
+        n += 2;
+    }
+    else
+    {
+        hashlen = 36;
+        hash_id = SIG_RSA_RAW;
+    }
+
+    n1 = ssl->session_negotiate->peer_cert->rsa.len;
+    n2 = ( ssl->in_msg[4 + n] << 8 ) | ssl->in_msg[5 + 2];
+
+    if( n + n1 + 6 != ssl->in_hslen || n1 != n2 )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
     ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa, RSA_PUBLIC,
-                            SIG_RSA_RAW, 36, hash, ssl->in_msg + 6 );
+                            hash_id, hashlen, hash, ssl->in_msg + 6 + n );
     if( ret != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );

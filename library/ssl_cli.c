@@ -891,15 +891,19 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 static int ssl_parse_certificate_request( ssl_context *ssl )
 {
     int ret;
+    unsigned char *buf, *p;
+    size_t n = 0;
+    size_t cert_type_len = 0, sig_alg_len = 0, dn_len = 0;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
 
     /*
      *     0  .   0   handshake type
      *     1  .   3   handshake length
-     *     4  .   5   SSL version
-     *     6  .   6   cert type count
-     *     7  .. n-1  cert types
+     *     4  .   4   cert type count
+     *     5  .. m-1  cert types
+     *     m  .. m+1  sig alg length (TLS 1.2 only)
+     *    m+1 .. n-1  SignatureAndHashAlgorithms (TLS 1.2 only)
      *     n  .. n+1  length of all DNs
      *    n+2 .. n+3  length of DN 1
      *    n+4 .. ...  Distinguished Name #1
@@ -926,6 +930,70 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "got %s certificate request",
                         ssl->client_auth ? "a" : "no" ) );
 
+    if( ssl->client_auth == 0 )
+        goto exit;
+
+    // TODO: handshake_failure alert for an anonymous server to request
+    // client authentication
+
+    buf = ssl->in_msg;
+    
+    // Retrieve cert types
+    //
+    cert_type_len = buf[4];
+    n = cert_type_len;
+
+    if( ssl->in_hslen < 6 + n )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+    }
+
+    p = buf + 4;
+    while( cert_type_len > 0 )
+    {
+        if( *p == SSL_CERT_TYPE_RSA_SIGN )
+        {
+            ssl->handshake->cert_type = SSL_CERT_TYPE_RSA_SIGN;
+            break;
+        }
+
+        cert_type_len--;
+        p++;
+    }
+
+    if( ssl->handshake->cert_type == 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "no known cert_type provided" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+    }
+
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    {
+        sig_alg_len = ( ( buf[5 + n] <<  8 )
+                      | ( buf[6 + n]       ) );
+
+        p = buf + 7 + n;
+        n += sig_alg_len;
+
+        if( ssl->in_hslen < 6 + n )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+        }
+    } 
+
+    dn_len = ( ( buf[7 + n] <<  8 )
+             | ( buf[8 + n]       ) );
+
+    n += dn_len;
+    if( ssl->in_hslen != 9 + n )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+    }
+
+exit:
     SSL_DEBUG_MSG( 2, ( "<= parse certificate request" ) );
 
     return( 0 );
@@ -1102,25 +1170,6 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
-    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
-    {
-        // TODO TLS1.2 Should be based on allowed signature algorithm received in
-        // Certificate Request according to RFC 5246. But OpenSSL only allows
-        // SHA256 and SHA384. Find out why OpenSSL does this.
-        //
-        if( ssl->session_negotiate->ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
-            ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
-        {
-            hash_id = SIG_RSA_SHA384;
-            hashlen = 48;
-        }
-        else
-        {
-            hash_id = SIG_RSA_SHA256;
-            hashlen = 32;
-        }
-    }
-
     if( ssl->rsa_key == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "got no private key" ) );
@@ -1132,29 +1181,61 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
      */
     ssl->handshake->calc_verify( ssl, hash );
 
-    if ( ssl->rsa_key )
-        n = ssl->rsa_key_len ( ssl->rsa_key );
-
-    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
     {
-        // TODO TLS1.2 Should be based on allowed signature algorithm received in
-        // Certificate Request according to RFC 5246. But OpenSSL only allows
-        // SHA256 and SHA384. Find out why OpenSSL does this.
-        //
+        /*
+         * digitally-signed struct {
+         *     opaque md5_hash[16];
+         *     opaque sha_hash[20];
+         * };
+         *
+         * md5_hash
+         *     MD5(handshake_messages);
+         *
+         * sha_hash
+         *     SHA(handshake_messages);
+         */
+        hashlen = 36;
+        hash_id = SIG_RSA_RAW;
+    }
+    else
+    {
+        /*
+         * digitally-signed struct {
+         *     opaque handshake_messages[handshake_messages_length];
+         * };
+         *
+         * Taking shortcut here. We assume that the server always allows the
+         * PRF Hash function and has sent it in the allowed signature
+         * algorithms list received in the Certificate Request message.
+         *
+         * Until we encounter a server that does not, we will take this
+         * shortcut.
+         *
+         * Reason: Otherwise we should have running hashes for SHA512 and SHA224
+         *         in order to satisfy 'weird' needs from the server side.
+         */
         if( ssl->session_negotiate->ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
             ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
         {
+            hash_id = SIG_RSA_SHA384;
+            hashlen = 48;
             ssl->out_msg[4] = SSL_HASH_SHA384;
             ssl->out_msg[5] = SSL_SIG_RSA;
         }
         else
         {
+            hash_id = SIG_RSA_SHA256;
+            hashlen = 32;
             ssl->out_msg[4] = SSL_HASH_SHA256;
             ssl->out_msg[5] = SSL_SIG_RSA;
         }
 
         offset = 2;
     }
+
+    if ( ssl->rsa_key )
+        n = ssl->rsa_key_len ( ssl->rsa_key );
 
     ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
     ssl->out_msg[5 + offset] = (unsigned char)( n      );

@@ -193,6 +193,11 @@
 #define SSL_SIG_RSA                  1
 
 /*
+ * Client Certificate Types
+ */
+#define SSL_CERT_TYPE_RSA_SIGN       1
+
+/*
  * Message, alert and handshake types
  */
 #define SSL_MSG_CHANGE_CIPHER_SPEC     20
@@ -351,6 +356,8 @@ struct _ssl_handshake_params
      * Handshake specific crypto variables
      */
     int sig_alg;                        /*!<  Signature algorithm     */
+    int cert_type;                      /*!<  Requested cert type     */
+    int verify_sig_alg;                 /*!<  Signature algorithm for verify */
 #if defined(POLARSSL_DHM_C)
     dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif

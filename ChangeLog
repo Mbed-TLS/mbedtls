@@ -5,6 +5,9 @@ Changes
    * Added p_hw_data to ssl_context for context specific hardware acceleration
      data
 
+Bugfixes
+   * Fixed client authentication compatibility with TLS 1.2
+
 = Version 1.2.1 released 2012-11-20
 Changes
    * Depth that the certificate verify callback receives is now numbered

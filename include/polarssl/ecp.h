@@ -210,6 +210,20 @@ int ecp_group_read_string( ecp_group *grp, int radix,
                            const char *gx, const char *gy, const char *n);
 
 /**
+ * \brief           Export a point into unsigned binary data, uncompressed
+ *
+ * \param grp       Group the point belongs to
+ * \param P         Point to export
+ * \param olen      Length of the actual ouput
+ * \param buf       Output buffer
+ * \param buflen    Length of the output buffer
+ *
+ * \return          0 if successful, or POLARSSL_ERR_ECP_GENERIC
+ */
+int ecp_write_binary( const ecp_group *grp, const ecp_point *P,
+                      size_t *olen, unsigned char *buf, size_t buflen );
+
+/**
  * \brief           Set a group using well-known domain parameters
  *
  * \param grp       Destination group

@@ -174,6 +174,43 @@ cleanup:
 }
 
 /*
+ * Export a point into unsigned binary data, uncompressed format (SEC1 2.3.3)
+ */
+int ecp_write_binary( const ecp_group *grp, const ecp_point *P,
+                      size_t *olen, unsigned char *buf, size_t buflen )
+{
+    int ret;
+    size_t plen;
+
+    /*
+     * Case P == 0
+     */
+    if( mpi_cmp_int( &P->Z, 0 ) == 0 )
+    {
+        if( buflen < 1 )
+            return( POLARSSL_ERR_ECP_GENERIC );
+
+        buf[0] = 0x00;
+        *olen = 1;
+
+        return( 0 );
+    }
+
+    plen = mpi_size( &grp->P );
+    *olen = 2 * plen + 1;
+
+    if( buflen < *olen )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    buf[0] = 0x04;
+    MPI_CHK( mpi_write_binary( &P->X, buf + 1, plen ) );
+    MPI_CHK( mpi_write_binary( &P->Y, buf + 1 + plen, plen ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Wrapper around fast quasi-modp functions, with fall-back to mpi_mod_mpi.
  * See the documentation of struct ecp_group.
  */

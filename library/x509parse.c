@@ -3178,7 +3178,9 @@ static int x509parse_verify_top(
     }
 
     /*
-     * If top of chain is not the same as the trusted CA
+     * If top of chain is not the same as the trusted CA send a verify request
+     * to the callback for any issues with validity and CRL presence for the
+     * trusted CA certificate.
      */
     if( trust_ca != NULL &&
         ( child->subject_raw.len != trust_ca->subject_raw.len ||
@@ -3190,16 +3192,6 @@ static int x509parse_verify_top(
 
         if( x509parse_time_expired( &trust_ca->valid_to ) )
             ca_flags |= BADCERT_EXPIRED;
-
-        hash_id = trust_ca->sig_alg;
-
-        x509_hash( trust_ca->tbs.p, trust_ca->tbs.len, hash_id, hash );
-
-        if( rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, hash_id,
-                    0, hash, trust_ca->sig.p ) != 0 )
-        {
-            ca_flags |= BADCERT_NOT_TRUSTED;
-        }
 
         if( NULL != f_vrfy )
         {

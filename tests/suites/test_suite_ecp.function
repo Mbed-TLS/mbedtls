@@ -123,6 +123,29 @@ ecp_small_mul:m:r_zero:x_r:y_r:ret
 END_CASE
 
 BEGIN_CASE
+ecp_small_check_pub:x:y:z:ret
+{
+    ecp_group grp;
+    ecp_point P;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &P );
+
+    TEST_ASSERT( ecp_group_read_string( &grp, 10,
+                "47", "4", "17", "42", "13" ) == 0 );
+
+    TEST_ASSERT( mpi_lset( &P.X, {x} ) == 0 );
+    TEST_ASSERT( mpi_lset( &P.Y, {y} ) == 0 );
+    TEST_ASSERT( mpi_lset( &P.Z, {z} ) == 0 );
+
+    TEST_ASSERT( ecp_check_pubkey( &grp, &P ) == {ret} );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &P );
+}
+END_CASE
+
+BEGIN_CASE
 ecp_test_vect:id:dA:xA:yA:dB:xB:yB:xZ:yZ
 {
     ecp_group grp;
@@ -134,6 +157,8 @@ ecp_test_vect:id:dA:xA:yA:dB:xB:yB:xZ:yZ
     mpi_init( &xB ); mpi_init( &yB ); mpi_init( &xZ ); mpi_init( &yZ );
 
     TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( ecp_check_pubkey( &grp, &grp.G ) == 0 );
 
     TEST_ASSERT( mpi_read_string( &dA, 16, {dA} ) == 0 );
     TEST_ASSERT( mpi_read_string( &xA, 16, {xA} ) == 0 );
@@ -147,16 +172,20 @@ ecp_test_vect:id:dA:xA:yA:dB:xB:yB:xZ:yZ
     TEST_ASSERT( ecp_mul( &grp, &R, &dA, &grp.G ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xA ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yA ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
     TEST_ASSERT( ecp_mul( &grp, &R, &dB, &R ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xZ ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
 
     TEST_ASSERT( ecp_mul( &grp, &R, &dB, &grp.G ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xB ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yB ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
     TEST_ASSERT( ecp_mul( &grp, &R, &dA, &R ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xZ ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
 
     ecp_group_free( &grp ); ecp_point_free( &R );
     mpi_free( &dA ); mpi_free( &xA ); mpi_free( &yA ); mpi_free( &dB );

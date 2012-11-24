@@ -103,6 +103,36 @@ ecp_small_mul:2:0:20:01:0
 ECP small multiplication too big
 ecp_small_mul:-1:0:0:0:POLARSSL_ERR_ECP_GENERIC
 
+ECP small check pubkey #1
+ecp_small_check_pub:1:1:0:POLARSSL_ERR_ECP_GENERIC
+
+ECP small check pubkey #2
+ecp_small_check_pub:9:-1:1:POLARSSL_ERR_ECP_GENERIC
+
+ECP small check pubkey #3
+ecp_small_check_pub:9:46:1:0
+
+ECP small check pubkey #4
+ecp_small_check_pub:13:47:1:POLARSSL_ERR_ECP_GENERIC
+
+ECP small check pubkey #5
+ecp_small_check_pub:13:0:1:0
+
+ECP small check pubkey #6
+ecp_small_check_pub:-1:10:1:POLARSSL_ERR_ECP_GENERIC
+
+ECP small check pubkey #7
+ecp_small_check_pub:46:10:1:0
+
+ECP small check pubkey #8
+ecp_small_check_pub:47:2:1:POLARSSL_ERR_ECP_GENERIC
+
+ECP small check pubkey #9
+ecp_small_check_pub:0:2:1:0
+
+ECP small check pubkey #10
+ecp_small_check_pub:10:25:1:POLARSSL_ERR_ECP_GENERIC
+
 ECP mod p192 readable
 ecp_fast_mod:SECP192R1:"000000000000010500000000000001040000000000000103000000000000010200000000000001010000000000000100"
 

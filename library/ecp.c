@@ -468,6 +468,51 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
         MPI_CHK( mpi_sub_mpi( &N, &N, &grp->P ) )
 
 /*
+ * Check that a point is valid as a public key (SEC1 3.2.3.1)
+ */
+int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
+{
+    int ret;
+    mpi YY, RHS;
+
+    if( mpi_cmp_int( &pt->Z, 0 ) == 0 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    /*
+     * pt coordinates must be normalized for our checks
+     */
+    if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
+        mpi_cmp_int( &pt->Y, 0 ) < 0 ||
+        mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
+        mpi_cmp_mpi( &pt->Y, &grp->P ) >= 0 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    mpi_init( &YY ); mpi_init( &RHS );
+
+    /*
+     * YY = Y^2
+     * RHS = X (X^2 - 3) + B = X^3 - 3X + B
+     */
+    MPI_CHK( mpi_mul_mpi( &YY,  &pt->Y,  &pt->Y   ) );  MOD_MUL( YY  );
+    MPI_CHK( mpi_mul_mpi( &RHS, &pt->X,  &pt->X   ) );  MOD_MUL( RHS );
+    MPI_CHK( mpi_sub_int( &RHS, &RHS,    3        ) );  MOD_SUB( RHS );
+    MPI_CHK( mpi_mul_mpi( &RHS, &RHS,    &pt->X   ) );  MOD_MUL( RHS );
+    MPI_CHK( mpi_add_mpi( &RHS, &RHS,    &grp->B  ) );  MOD_ADD( RHS );
+
+    if( mpi_cmp_mpi( &YY, &RHS ) != 0 )
+        ret = POLARSSL_ERR_ECP_GENERIC;
+
+cleanup:
+
+    mpi_free( &YY ); mpi_free( &RHS );
+
+    return( ret );
+}
+
+/*
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)
  */
 static int ecp_normalize( const ecp_group *grp, ecp_point *pt )

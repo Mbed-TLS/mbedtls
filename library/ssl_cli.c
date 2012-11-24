@@ -804,7 +804,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     else
     {
         sha2_context sha2;
+#if defined(POLARSSL_SHA4_C)
         sha4_context sha4;
+#endif
 
         n = ssl->in_hslen - ( end - p ) - 8;
 

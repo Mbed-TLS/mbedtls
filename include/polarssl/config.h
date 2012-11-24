@@ -696,6 +696,7 @@
  *          library/x509parse.c
  *
  * This module adds support for SHA-224 and SHA-256.
+ * This module is required for the SSL/TLS 1.2 PRF function.
  */
 #define POLARSSL_SHA2_C
 

@@ -233,6 +233,7 @@ static int tls_prf_sha256( unsigned char *secret, size_t slen, char *label,
     return( 0 );
 }
 
+#if defined(POLARSSL_SHA4_C)
 static int tls_prf_sha384( unsigned char *secret, size_t slen, char *label,
                            unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
@@ -271,21 +272,25 @@ static int tls_prf_sha384( unsigned char *secret, size_t slen, char *label,
 
     return( 0 );
 }
+#endif
 
 static void ssl_update_checksum_start(ssl_context *, unsigned char *, size_t);
 static void ssl_update_checksum_md5sha1(ssl_context *, unsigned char *, size_t);
 static void ssl_update_checksum_sha256(ssl_context *, unsigned char *, size_t);
-static void ssl_update_checksum_sha384(ssl_context *, unsigned char *, size_t);
 
 static void ssl_calc_verify_ssl(ssl_context *,unsigned char *);
 static void ssl_calc_verify_tls(ssl_context *,unsigned char *);
 static void ssl_calc_verify_tls_sha256(ssl_context *,unsigned char *);
-static void ssl_calc_verify_tls_sha384(ssl_context *,unsigned char *);
 
 static void ssl_calc_finished_ssl(ssl_context *,unsigned char *,int);
 static void ssl_calc_finished_tls(ssl_context *,unsigned char *,int);
 static void ssl_calc_finished_tls_sha256(ssl_context *,unsigned char *,int);
+
+#if defined(POLARSSL_SHA4_C)
+static void ssl_update_checksum_sha384(ssl_context *, unsigned char *, size_t);
+static void ssl_calc_verify_tls_sha384(ssl_context *,unsigned char *);
 static void ssl_calc_finished_tls_sha384(ssl_context *,unsigned char *,int);
+#endif
 
 int ssl_derive_keys( ssl_context *ssl )
 {
@@ -315,6 +320,7 @@ int ssl_derive_keys( ssl_context *ssl )
         handshake->calc_verify = ssl_calc_verify_tls;
         handshake->calc_finished = ssl_calc_finished_tls;
     }
+#if defined(POLARSSL_SHA4_C)
     else if( session->ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
              session->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
     {
@@ -322,6 +328,7 @@ int ssl_derive_keys( ssl_context *ssl )
         handshake->calc_verify = ssl_calc_verify_tls_sha384;
         handshake->calc_finished = ssl_calc_finished_tls_sha384;
     }
+#endif
     else
     {
         handshake->tls_prf = tls_prf_sha256;
@@ -766,6 +773,7 @@ void ssl_calc_verify_tls_sha256( ssl_context *ssl, unsigned char hash[32] )
     return;
 }
 
+#if defined(POLARSSL_SHA4_C)
 void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
 {
     sha4_context sha4;
@@ -780,6 +788,7 @@ void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
 
     return;
 }
+#endif
 
 /*
  * SSLv3.0 MAC functions
@@ -2390,13 +2399,19 @@ int ssl_parse_change_cipher_spec( ssl_context *ssl )
 
 void ssl_optimize_checksum( ssl_context *ssl, int ciphersuite )
 {
+#if !defined(POLARSSL_SHA4_C)
+    ((void) ciphersuite);
+#endif
+
     if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
         ssl->handshake->update_checksum = ssl_update_checksum_md5sha1;
+#if defined(POLARSSL_SHA4_C)
     else if ( ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
               ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
     {
         ssl->handshake->update_checksum = ssl_update_checksum_sha384;
     }
+#endif
     else
         ssl->handshake->update_checksum = ssl_update_checksum_sha256;
 }
@@ -2407,7 +2422,9 @@ static void ssl_update_checksum_start( ssl_context *ssl, unsigned char *buf,
      md5_update( &ssl->handshake->fin_md5 , buf, len );
     sha1_update( &ssl->handshake->fin_sha1, buf, len );
     sha2_update( &ssl->handshake->fin_sha2, buf, len );
+#if defined(POLARSSL_SHA4_C)
     sha4_update( &ssl->handshake->fin_sha4, buf, len );
+#endif
 }
 
 static void ssl_update_checksum_md5sha1( ssl_context *ssl, unsigned char *buf,
@@ -2423,11 +2440,13 @@ static void ssl_update_checksum_sha256( ssl_context *ssl, unsigned char *buf,
     sha2_update( &ssl->handshake->fin_sha2, buf, len );
 }
 
+#if defined(POLARSSL_SHA4_C)
 static void ssl_update_checksum_sha384( ssl_context *ssl, unsigned char *buf,
                                         size_t len )
 {
     sha4_update( &ssl->handshake->fin_sha4, buf, len );
 }
+#endif
 
 static void ssl_calc_finished_ssl(
                 ssl_context *ssl, unsigned char *buf, int from )
@@ -2598,6 +2617,7 @@ static void ssl_calc_finished_tls_sha256(
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
 
+#if defined(POLARSSL_SHA4_C)
 static void ssl_calc_finished_tls_sha384(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
@@ -2640,6 +2660,7 @@ static void ssl_calc_finished_tls_sha384(
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
+#endif
 
 void ssl_handshake_wrapup( ssl_context *ssl )
 {
@@ -2831,7 +2852,9 @@ int ssl_handshake_init( ssl_context *ssl )
      md5_starts( &ssl->handshake->fin_md5 );
     sha1_starts( &ssl->handshake->fin_sha1 );
     sha2_starts( &ssl->handshake->fin_sha2, 0 );
+#if defined(POLARSSL_SHA4_C)
     sha4_starts( &ssl->handshake->fin_sha4, 1 );
+#endif
 
     ssl->handshake->update_checksum = ssl_update_checksum_start;
     ssl->handshake->sig_alg = SSL_HASH_SHA1;

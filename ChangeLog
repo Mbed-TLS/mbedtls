@@ -1,12 +1,14 @@
 PolarSSL ChangeLog
 
-= Version Master
+= Version 1.2.2 released 2012-11-24
 Changes
    * Added p_hw_data to ssl_context for context specific hardware acceleration
      data
+   * During verify trust-CA is only checked for expiration and CRL presence  
 
 Bugfixes
-   * Fixed client authentication compatibility with TLS 1.2
+   * Fixed client authentication compatibility
+   * Fixed dependency on POLARSSL_SHA4_C in SSL modules
 
 = Version 1.2.1 released 2012-11-20
 Changes

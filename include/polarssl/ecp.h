@@ -218,7 +218,7 @@ int ecp_group_read_string( ecp_group *grp, int radix,
 /**
  * \brief           Export a point into unsigned binary data
  *
- * \param grp       Group the point belongs to
+ * \param grp       Group to which the point should belong
  * \param P         Point to export
  * \param format    Point format, should be a POLARSSL_ECP_PF_XXX macro
  * \param olen      Length of the actual ouput
@@ -230,6 +230,25 @@ int ecp_group_read_string( ecp_group *grp, int radix,
 int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
                       size_t *olen, unsigned char *buf, size_t buflen );
 
+/**
+ * \brief           Import a point from unsigned binary data
+ *
+ * \param grp       Group to which the point should belong
+ * \param P         Point to import
+ * \param format    Point format, must be POLARSSL_ECP_PF_UNCOMPRESSED for now
+ * \param buf       Input buffer
+ * \param ilen      Actual length of input
+ *
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_ECP_GENERIC if input is invalid
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *
+ * \note            This function does NOT check that the point actually
+ *                  belongs to the given group, see ecp_check_pubkey() for
+ *                  that.
+ */
+int ecp_read_binary( const ecp_group *grp, ecp_point *P, int format,
+                     const unsigned char *buf, size_t ilen );
 /**
  * \brief           Set a group using well-known domain parameters
  *

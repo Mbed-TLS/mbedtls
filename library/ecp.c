@@ -229,6 +229,33 @@ cleanup:
 }
 
 /*
+ * Import a point from unsigned binary data (SEC1 2.3.4)
+ */
+int ecp_read_binary( const ecp_group *grp, ecp_point *P, int format,
+                     const unsigned char *buf, size_t ilen ) {
+    int ret;
+    size_t plen;
+
+    if( format != POLARSSL_ECP_PF_UNCOMPRESSED )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    if( ilen == 1 && buf[0] == 0x00 )
+        return( ecp_set_zero( P ) );
+
+    plen = mpi_size( &grp-> P );
+
+    if( ilen != 2 * plen + 1 || buf[0] != 0x04 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    MPI_CHK( mpi_read_binary( &P->X, buf + 1, plen ) );
+    MPI_CHK( mpi_read_binary( &P->Y, buf + 1 + plen, plen ) );
+    MPI_CHK( mpi_lset( &P->Z, 1 ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Wrapper around fast quasi-modp functions, with fall-back to mpi_mod_mpi.
  * See the documentation of struct ecp_group.
  */

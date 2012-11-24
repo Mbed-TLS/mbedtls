@@ -133,17 +133,35 @@ ecp_small_check_pub:0:2:1:0
 ECP small check pubkey #10
 ecp_small_check_pub:10:25:1:POLARSSL_ERR_ECP_GENERIC
 
-ECP write binary #1 (zero, buffer just fits)
-ecp_write_binary:SECP192R1:"01":"01":"00":"00":1:0
+ECP write binary #0 (zero, bad format)
+ecp_write_binary:SECP192R1:"01":"01":"00":UNKNOWN:"00":1:POLARSSL_ERR_ECP_GENERIC
+
+ECP write binary #1 (zero, uncompressed, buffer just fits)
+ecp_write_binary:SECP192R1:"01":"01":"00":UNCOMPRESSED:"00":1:0
 
 ECP write binary #2 (zero, buffer too small)
-ecp_write_binary:SECP192R1:"01":"01":"00":"00":0:POLARSSL_ERR_ECP_GENERIC
+ecp_write_binary:SECP192R1:"01":"01":"00":UNCOMPRESSED:"00":0:POLARSSL_ERR_ECP_GENERIC
 
-ECP write binary #3 (non-zero, buffer just fits)
-ecp_write_binary:SECP192R1:"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":"0448d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":49:0
+ECP write binary #3 (non-zero, uncompressed, buffer just fits)
+ecp_write_binary:SECP192R1:"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":UNCOMPRESSED:"0448d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":49:0
 
-ECP write binary #4 (non-zero, buffer too small)
-ecp_write_binary:SECP192R1:"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":"0448d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":48:POLARSSL_ERR_ECP_GENERIC
+ECP write binary #4 (non-zero, uncompressed, buffer too small)
+ecp_write_binary:SECP192R1:"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":UNCOMPRESSED:"0448d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":48:POLARSSL_ERR_ECP_GENERIC
+
+ECP write binary #5 (zero, compressed, buffer just fits)
+ecp_write_binary:SECP192R1:"01":"01":"00":COMPRESSED:"00":1:0
+
+ECP write binary #6 (zero, buffer too small)
+ecp_write_binary:SECP192R1:"01":"01":"00":COMPRESSED:"00":0:POLARSSL_ERR_ECP_GENERIC
+
+ECP write binary #7 (even, compressed, buffer just fits)
+ecp_write_binary:SECP192R1:"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":COMPRESSED:"0248d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":25:0
+
+ECP write binary #8 (even, compressed, buffer too small)
+ecp_write_binary:SECP192R1:"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":COMPRESSED:"0248d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":24:POLARSSL_ERR_ECP_GENERIC
+
+ECP write binary #7 (odd, compressed, buffer just fits)
+ecp_write_binary:SECP192R1:"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"93112b28345b7d1d7799611e49bea9d8290cb2d7afe1f9f3":"01":COMPRESSED:"0348d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":25:0
 
 ECP mod p192 readable
 ecp_fast_mod:SECP192R1:"000000000000010500000000000001040000000000000103000000000000010200000000000001010000000000000100"

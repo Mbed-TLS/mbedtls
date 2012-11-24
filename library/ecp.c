@@ -174,16 +174,20 @@ cleanup:
 }
 
 /*
- * Export a point into unsigned binary data, uncompressed format (SEC1 2.3.3)
+ * Export a point into unsigned binary data (SEC1 2.3.3)
  */
-int ecp_write_binary( const ecp_group *grp, const ecp_point *P,
+int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
                       size_t *olen, unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t plen;
 
+    if( format != POLARSSL_ECP_PF_UNCOMPRESSED &&
+        format != POLARSSL_ECP_PF_COMPRESSED )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
     /*
-     * Case P == 0
+     * Common case: P == 0
      */
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
     {
@@ -197,14 +201,28 @@ int ecp_write_binary( const ecp_group *grp, const ecp_point *P,
     }
 
     plen = mpi_size( &grp->P );
-    *olen = 2 * plen + 1;
 
-    if( buflen < *olen )
-        return( POLARSSL_ERR_ECP_GENERIC );
+    if( format == POLARSSL_ECP_PF_UNCOMPRESSED )
+    {
+        *olen = 2 * plen + 1;
 
-    buf[0] = 0x04;
-    MPI_CHK( mpi_write_binary( &P->X, buf + 1, plen ) );
-    MPI_CHK( mpi_write_binary( &P->Y, buf + 1 + plen, plen ) );
+        if( buflen < *olen )
+            return( POLARSSL_ERR_ECP_GENERIC );
+
+        buf[0] = 0x04;
+        MPI_CHK( mpi_write_binary( &P->X, buf + 1, plen ) );
+        MPI_CHK( mpi_write_binary( &P->Y, buf + 1 + plen, plen ) );
+    }
+    else if( format == POLARSSL_ECP_PF_COMPRESSED )
+    {
+        *olen = plen + 1;
+
+        if( buflen < *olen )
+            return( POLARSSL_ERR_ECP_GENERIC );
+
+        buf[0] = 0x02 + mpi_get_bit( &P->Y, 0 );
+        MPI_CHK( mpi_write_binary( &P->X, buf + 1, plen ) );
+    }
 
 cleanup:
     return( ret );

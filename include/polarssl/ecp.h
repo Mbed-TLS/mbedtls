@@ -115,6 +115,12 @@ ecp_group;
  */
 #define POLARSSL_ECP_WINDOW_SIZE    7   /**< Maximum NAF width used. */
 
+/*
+ * Point formats
+ */
+#define POLARSSL_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format */
+#define POLARSSL_ECP_PF_COMPRESSED      1   /**< Compressed point format */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -210,17 +216,18 @@ int ecp_group_read_string( ecp_group *grp, int radix,
                            const char *gx, const char *gy, const char *n);
 
 /**
- * \brief           Export a point into unsigned binary data, uncompressed
+ * \brief           Export a point into unsigned binary data
  *
  * \param grp       Group the point belongs to
  * \param P         Point to export
+ * \param format    Point format, should be a POLARSSL_ECP_PF_XXX macro
  * \param olen      Length of the actual ouput
  * \param buf       Output buffer
  * \param buflen    Length of the output buffer
  *
  * \return          0 if successful, or POLARSSL_ERR_ECP_GENERIC
  */
-int ecp_write_binary( const ecp_group *grp, const ecp_point *P,
+int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
                       size_t *olen, unsigned char *buf, size_t buflen );
 
 /**

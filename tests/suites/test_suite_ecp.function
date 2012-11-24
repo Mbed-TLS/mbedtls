@@ -225,7 +225,7 @@ ecp_fast_mod:id:N
 END_CASE
 
 BEGIN_CASE
-ecp_write_binary:id:x:y:z:out:blen:ret
+ecp_write_binary:id:x:y:z:format:out:blen:ret
 {
     ecp_group grp;
     ecp_point P;
@@ -243,13 +243,13 @@ ecp_write_binary:id:x:y:z:out:blen:ret
     TEST_ASSERT( mpi_read_string( &P.Y, 16, {y} ) == 0 );
     TEST_ASSERT( mpi_read_string( &P.Z, 16, {z} ) == 0 );
 
-    TEST_ASSERT( ecp_write_binary( &grp, &P, &olen, buf, {blen} ) == {ret} );
+#define POLARSSL_ECP_PF_UNKNOWN     -1
+    TEST_ASSERT( ecp_write_binary( &grp, &P, POLARSSL_ECP_PF_{format},
+                                   &olen, buf, {blen} ) == {ret} );
 
     if( {ret} == 0 )
     {
-        TEST_ASSERT( olen == strlen({out}) / 2 );
-
-        hexify( str, buf, {blen} );
+        hexify( str, buf, olen );
         TEST_ASSERT( strcasecmp( (char *) str, {out} ) == 0 );
     }
 

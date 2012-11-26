@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Version 1.2.3 released 2012-11-26
+Bugfix
+   * Server not always sending correct CertificateRequest message
+
 = Version 1.2.2 released 2012-11-24
 Changes
    * Added p_hw_data to ssl_context for context specific hardware acceleration

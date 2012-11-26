@@ -753,7 +753,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     p += 2;
     crt = ssl->ca_chain;
 
-    total_dn_size = 2;
+    total_dn_size = 0;
     while( crt != NULL )
     {
         if( p - buf > 4096 )
@@ -767,7 +767,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
 
         SSL_DEBUG_BUF( 3, "requested DN", p, dn_size );
 
-        total_dn_size += dn_size;
+        total_dn_size += 2 + dn_size;
         crt = crt->next;
     }
 

@@ -1793,7 +1793,9 @@ int ssl_write_record( ssl_context *ssl )
             SSL_DEBUG_RET( 1, "ssl_hw_record_write", ret );
             return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
         }
-        done = 1;
+
+        if( ret == 0 )
+            done = 1;
     }
 #endif
     if( !done )
@@ -1972,7 +1974,9 @@ int ssl_read_record( ssl_context *ssl )
             SSL_DEBUG_RET( 1, "ssl_hw_record_read", ret );
             return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
         }
-        done = 1;
+
+        if( ret == 0 )
+            done = 1;
     }
 #endif
     if( !done && ssl->transform_in != NULL )

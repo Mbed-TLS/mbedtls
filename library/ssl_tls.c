@@ -57,8 +57,12 @@
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 int (*ssl_hw_record_init)(ssl_context *ssl,
                        const unsigned char *key_enc, const unsigned char *key_dec,
+                       size_t keylen,
                        const unsigned char *iv_enc,  const unsigned char *iv_dec,
-                       const unsigned char *mac_enc, const unsigned char *mac_dec) = NULL;
+                       size_t ivlen,
+                       const unsigned char *mac_enc, const unsigned char *mac_dec,
+                       size_t maclen) = NULL;
+int (*ssl_hw_record_activate)(ssl_context *ssl, int direction) = NULL;
 int (*ssl_hw_record_reset)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_write)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
@@ -571,9 +575,11 @@ int ssl_derive_keys( ssl_context *ssl )
 
         SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_init()" ) );
 
-        if( ( ret = ssl_hw_record_init( ssl, key1, key2, transform->iv_enc,
-                                        transform->iv_dec, transform->mac_enc,
-                                        transform->mac_dec ) ) != 0 )
+        if( ( ret = ssl_hw_record_init( ssl, key1, key2, transform->keylen,
+                                        transform->iv_enc, transform->iv_dec,
+                                        iv_copy_len,
+                                        transform->mac_enc, transform->mac_dec,
+                                        transform->maclen ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ssl_hw_record_init", ret );
             return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
@@ -2792,6 +2798,17 @@ int ssl_write_finished( ssl_context *ssl )
     ssl->session_out = ssl->session_negotiate;
     memset( ssl->out_ctr, 0, 8 );
 
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_activate != NULL)
+    {
+        if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_OUTBOUND ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_hw_record_activate", ret );
+            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+        }
+    }
+#endif
+
     if( ( ret = ssl_write_record( ssl ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_write_record", ret );
@@ -2820,6 +2837,17 @@ int ssl_parse_finished( ssl_context *ssl )
     ssl->transform_in = ssl->transform_negotiate;
     ssl->session_in = ssl->session_negotiate;
     memset( ssl->in_ctr, 0, 8 );
+
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_activate != NULL)
+    {
+        if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_INBOUND ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_hw_record_activate", ret );
+            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+        }
+    }
+#endif
 
     if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {
@@ -3018,7 +3046,7 @@ int ssl_session_reset( ssl_context *ssl )
     if( ssl_hw_record_reset != NULL)
     {
         SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_reset()" ) );
-        if( ssl_hw_record_reset( ssl ) != 0 )
+        if( ( ret = ssl_hw_record_reset( ssl ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ssl_hw_record_reset", ret );
             return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );

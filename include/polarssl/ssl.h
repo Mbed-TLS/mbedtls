@@ -521,10 +521,18 @@ extern "C" {
 extern const int ssl_default_ciphersuites[];
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+
+#define SSL_CHANNEL_OUTBOUND    0
+#define SSL_CHANNEL_INBOUND     1
+
 extern int (*ssl_hw_record_init)(ssl_context *ssl,
                 const unsigned char *key_enc, const unsigned char *key_dec,
+                size_t keylen,
                 const unsigned char *iv_enc,  const unsigned char *iv_dec,
-                const unsigned char *mac_enc, const unsigned char *mac_dec);
+                size_t ivlen,
+                const unsigned char *mac_enc, const unsigned char *mac_dec,
+                size_t maclen);
+extern int (*ssl_hw_record_activate)(ssl_context *ssl, int direction);
 extern int (*ssl_hw_record_reset)(ssl_context *ssl);
 extern int (*ssl_hw_record_write)(ssl_context *ssl);
 extern int (*ssl_hw_record_read)(ssl_context *ssl);

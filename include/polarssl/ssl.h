@@ -463,7 +463,7 @@ struct _ssl_context
      */
     unsigned char *out_ctr;     /*!< 64-bit outgoing message counter  */
     unsigned char *out_hdr;     /*!< 5-byte record header (out_ctr+8) */
-    unsigned char *out_msg;     /*!< the message contents (out_hdr+32)*/
+    unsigned char *out_msg;     /*!< the message contents (out_hdr+5) */
 
     int out_msgtype;            /*!< record header: message type      */
     size_t out_msglen;          /*!< record header: message length    */

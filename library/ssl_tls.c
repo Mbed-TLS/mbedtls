@@ -923,21 +923,27 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     {
         if( ssl->transform_out->maclen == 16 )
         {
-            md5_hmac( ssl->transform_out->mac_enc, 16,
-                      ssl->out_ctr,  ssl->out_msglen + 13,
-                      ssl->out_msg + ssl->out_msglen );
+            md5_context md5;
+            md5_hmac_starts( &md5, ssl->transform_out->mac_enc, 16 );
+            md5_hmac_update( &md5, ssl->out_ctr, 13 );
+            md5_hmac_update( &md5, ssl->out_msg, ssl->out_msglen );
+            md5_hmac_finish( &md5, ssl->out_msg + ssl->out_msglen );
         }
         else if( ssl->transform_out->maclen == 20 )
         {
-            sha1_hmac( ssl->transform_out->mac_enc, 20,
-                      ssl->out_ctr,  ssl->out_msglen + 13,
-                      ssl->out_msg + ssl->out_msglen );
+            sha1_context sha1;
+            sha1_hmac_starts( &sha1, ssl->transform_out->mac_enc, 20 );
+            sha1_hmac_update( &sha1, ssl->out_ctr, 13 );
+            sha1_hmac_update( &sha1, ssl->out_msg, ssl->out_msglen );
+            sha1_hmac_finish( &sha1, ssl->out_msg + ssl->out_msglen );
         }
         else if( ssl->transform_out->maclen == 32 )
         {
-            sha2_hmac( ssl->transform_out->mac_enc, 32,
-                      ssl->out_ctr,  ssl->out_msglen + 13,
-                      ssl->out_msg + ssl->out_msglen, 0 );
+            sha2_context sha2;
+            sha2_hmac_starts( &sha2, ssl->transform_out->mac_enc, 32, 0 );
+            sha2_hmac_update( &sha2, ssl->out_ctr, 13 );
+            sha2_hmac_update( &sha2, ssl->out_msg, ssl->out_msglen );
+            sha2_hmac_finish( &sha2, ssl->out_msg + ssl->out_msglen );
         }
         else if( ssl->transform_out->maclen != 0 )
         {
@@ -1017,21 +1023,14 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             if( ret != 0 )
                 return( ret );
 
-            /*
-             * Shift message for ivlen bytes and prepend IV
-             */
-            memmove( ssl->out_msg + ssl->transform_out->ivlen -
-                     ssl->transform_out->fixed_ivlen,
-                     ssl->out_msg, ssl->out_msglen );
-            memcpy( ssl->out_msg,
+            memcpy( ssl->out_iv,
                     ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
                     ssl->transform_out->ivlen  - ssl->transform_out->fixed_ivlen );
 
             /*
              * Fix pointer positions and message length with added IV
              */
-            enc_msg = ssl->out_msg + ssl->transform_out->ivlen -
-                      ssl->transform_out->fixed_ivlen;
+            enc_msg = ssl->out_msg;
             enc_msglen = ssl->out_msglen;
             ssl->out_msglen += ssl->transform_out->ivlen -
                                ssl->transform_out->fixed_ivlen;
@@ -1041,7 +1040,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                            ssl->out_msglen, 0 ) );
 
             SSL_DEBUG_BUF( 4, "before encrypt: output payload",
-                           ssl->out_msg, ssl->out_msglen );
+                           ssl->out_iv, ssl->out_msglen );
 
             /*
              * Adjust for tag
@@ -1094,18 +1093,13 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             if( ret != 0 )
                 return( ret );
 
-            /*
-             * Shift message for ivlen bytes and prepend IV
-             */
-            memmove( ssl->out_msg + ssl->transform_out->ivlen, ssl->out_msg,
-                     ssl->out_msglen );
-            memcpy( ssl->out_msg, ssl->transform_out->iv_enc,
+            memcpy( ssl->out_iv, ssl->transform_out->iv_enc,
                     ssl->transform_out->ivlen );
 
             /*
              * Fix pointer positions and message length with added IV
              */
-            enc_msg = ssl->out_msg + ssl->transform_out->ivlen;
+            enc_msg = ssl->out_msg;
             enc_msglen = ssl->out_msglen;
             ssl->out_msglen += ssl->transform_out->ivlen;
         }
@@ -1115,7 +1109,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                        ssl->out_msglen, ssl->transform_out->ivlen, padlen + 1 ) );
 
         SSL_DEBUG_BUF( 4, "before encrypt: output payload",
-                       ssl->out_msg, ssl->out_msglen );
+                       ssl->out_iv, ssl->out_msglen );
 
         switch( ssl->transform_out->ivlen )
         {
@@ -1242,8 +1236,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             dec_msglen = ssl->in_msglen - ( ssl->transform_in->ivlen -
                                             ssl->transform_in->fixed_ivlen );
             dec_msglen -= 16;
-            dec_msg = ssl->in_msg + ( ssl->transform_in->ivlen -
-                                      ssl->transform_in->fixed_ivlen );
+            dec_msg = ssl->in_msg;
             dec_msg_result = ssl->in_msg;
             ssl->in_msglen = dec_msglen;
 
@@ -1258,16 +1251,12 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                            add_data, 13 );
 
             memcpy( ssl->transform_in->iv_dec + ssl->transform_in->fixed_ivlen,
-                    ssl->in_msg,
+                    ssl->in_iv,
                     ssl->transform_in->ivlen - ssl->transform_in->fixed_ivlen );
 
             SSL_DEBUG_BUF( 4, "IV used", ssl->transform_in->iv_dec,
                                          ssl->transform_in->ivlen );
             SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, 16 );
-
-            memcpy( ssl->transform_in->iv_dec + ssl->transform_in->fixed_ivlen,
-                    ssl->in_msg,
-                    ssl->transform_in->ivlen - ssl->transform_in->fixed_ivlen );
 
             ret = gcm_auth_decrypt( (gcm_context *) ssl->transform_in->ctx_dec,
                                      dec_msglen,
@@ -1328,12 +1317,11 @@ static int ssl_decrypt_buf( ssl_context *ssl )
          */
         if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
         {
-            dec_msg += ssl->transform_in->ivlen;
             dec_msglen -= ssl->transform_in->ivlen;
             ssl->in_msglen -= ssl->transform_in->ivlen;
 
             for( i = 0; i < ssl->transform_in->ivlen; i++ )
-                ssl->transform_in->iv_dec[i] = ssl->in_msg[i];
+                ssl->transform_in->iv_dec[i] = ssl->in_iv[i];
         }
 
         switch( ssl->transform_in->ivlen )
@@ -1502,33 +1490,36 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         if( ssl->transform_in->maclen == 16 )
         {
-            md5_context ctx;
-            md5_hmac_starts( &ctx, ssl->transform_in->mac_dec, 16 );
-            md5_hmac_update( &ctx, ssl->in_ctr,  ssl->in_msglen + 13 );
-            md5_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
+            md5_context md5;
+            md5_hmac_starts( &md5, ssl->transform_in->mac_dec, 16 );
+            md5_hmac_update( &md5, ssl->in_ctr, 13 );
+            md5_hmac_update( &md5, ssl->in_msg, ssl->in_msglen );
+            md5_hmac_finish( &md5, ssl->in_msg + ssl->in_msglen );
 
             for( j = 0; j < extra_run; j++ )
-                md5_process( &ctx, ssl->in_msg ); 
+                md5_process( &md5, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen == 20 )
         {
-            sha1_context ctx;
-            sha1_hmac_starts( &ctx, ssl->transform_in->mac_dec, 20 );
-            sha1_hmac_update( &ctx, ssl->in_ctr,  ssl->in_msglen + 13 );
-            sha1_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
+            sha1_context sha1;
+            sha1_hmac_starts( &sha1, ssl->transform_in->mac_dec, 20 );
+            sha1_hmac_update( &sha1, ssl->in_ctr, 13 );
+            sha1_hmac_update( &sha1, ssl->in_msg, ssl->in_msglen );
+            sha1_hmac_finish( &sha1, ssl->in_msg + ssl->in_msglen );
 
             for( j = 0; j < extra_run; j++ )
-                sha1_process( &ctx, ssl->in_msg ); 
+                sha1_process( &sha1, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen == 32 )
         {
-            sha2_context ctx;
-            sha2_hmac_starts( &ctx, ssl->transform_in->mac_dec, 32, 0 );
-            sha2_hmac_update( &ctx, ssl->in_ctr,  ssl->in_msglen + 13 );
-            sha2_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
+            sha2_context sha2;
+            sha2_hmac_starts( &sha2, ssl->transform_in->mac_dec, 32, 0 );
+            sha2_hmac_update( &sha2, ssl->in_ctr, 13 );
+            sha2_hmac_update( &sha2, ssl->in_msg, ssl->in_msglen );
+            sha2_hmac_finish( &sha2, ssl->in_msg + ssl->in_msglen );
 
             for( j = 0; j < extra_run; j++ )
-                sha2_process( &ctx, ssl->in_msg ); 
+                sha2_process( &sha2, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen != 0 )
         {
@@ -2764,6 +2755,17 @@ int ssl_write_finished( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
 
+    /*
+     * Set the out_msg pointer to the correct location based on IV length
+     */
+    if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+    {
+        ssl->out_msg = ssl->out_iv + ssl->transform_negotiate->ivlen -
+                       ssl->transform_negotiate->fixed_ivlen;
+    }
+    else
+        ssl->out_msg = ssl->out_iv;
+
     ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->endpoint );
 
     // TODO TLS/1.2 Hash length is determined by cipher suite (Page 63)
@@ -2837,6 +2839,17 @@ int ssl_parse_finished( ssl_context *ssl )
     ssl->transform_in = ssl->transform_negotiate;
     ssl->session_in = ssl->session_negotiate;
     memset( ssl->in_ctr, 0, 8 );
+
+    /*
+     * Set the in_msg pointer to the correct location based on IV length
+     */
+    if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+    {
+        ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen -
+                      ssl->transform_negotiate->fixed_ivlen;
+    }
+    else
+        ssl->in_msg = ssl->in_iv;
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_activate != NULL)
@@ -2976,6 +2989,7 @@ int ssl_init( ssl_context *ssl )
      */
     ssl->in_ctr = (unsigned char *) malloc( len );
     ssl->in_hdr = ssl->in_ctr +  8;
+    ssl->in_iv  = ssl->in_ctr + 13;
     ssl->in_msg = ssl->in_ctr + 13;
 
     if( ssl->in_ctr == NULL )
@@ -2986,6 +3000,7 @@ int ssl_init( ssl_context *ssl )
 
     ssl->out_ctr = (unsigned char *) malloc( len );
     ssl->out_hdr = ssl->out_ctr +  8;
+    ssl->out_iv  = ssl->out_ctr + 13;
     ssl->out_msg = ssl->out_ctr + 13;
 
     if( ssl->out_ctr == NULL )
@@ -3025,6 +3040,7 @@ int ssl_session_reset( ssl_context *ssl )
 
     ssl->in_offt = NULL;
 
+    ssl->in_msg = ssl->in_ctr + 13;
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
     ssl->in_left = 0;
@@ -3032,6 +3048,7 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->in_hslen = 0;
     ssl->nb_zero = 0;
 
+    ssl->out_msg = ssl->out_ctr + 13;
     ssl->out_msgtype = 0;
     ssl->out_msglen = 0;
     ssl->out_left = 0;

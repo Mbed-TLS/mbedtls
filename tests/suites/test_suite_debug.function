@@ -39,6 +39,8 @@ debug_print_crt:crt_file:file:line:prefix:result_str
     debug_print_crt( &ssl, 0, {file}, {line}, {prefix}, &crt);
 
     TEST_ASSERT( strcmp( buffer.buf, {result_str} ) == 0 );
+
+    x509_free( &crt );
 }
 END_CASE
 

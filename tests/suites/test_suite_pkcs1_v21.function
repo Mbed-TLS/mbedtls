@@ -47,6 +47,8 @@ pkcs1_rsaes_oaep_encrypt:mod:radix_N:input_N:radix_E:input_E:hash:message_hex_st
 
         TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
     }
+
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -95,6 +97,7 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
     }
 
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -190,6 +193,7 @@ pkcs1_rsassa_pss_sign:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_
     }
 
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -257,5 +261,7 @@ pkcs1_rsassa_pss_verify:mod:radix_N:input_N:radix_E:input_E:digest:hash:message_
     }
 
     TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
+
+    rsa_free( &ctx );
 }
 END_CASE

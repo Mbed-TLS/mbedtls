@@ -101,6 +101,7 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
     }
 
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -168,6 +169,8 @@ rsa_pkcs1_verify:message_hex_string:padding_mode:digest:mod:radix_N:input_N:radi
     }
 
     TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
+
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -218,6 +221,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
 
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -246,6 +250,8 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     unhexify( result_str, {result_hex_str} );
 
     TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, SIG_RSA_RAW, hash_len, hash_result, result_str ) == {correct} );
+
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -281,6 +287,8 @@ rsa_pkcs1_encrypt:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:in
 
         TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
     }
+
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -313,6 +321,8 @@ rsa_pkcs1_encrypt_bad_rng:message_hex_string:padding_mode:mod:radix_N:input_N:ra
 
         TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
     }
+
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -362,6 +372,7 @@ rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:in
     }
 
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -393,6 +404,8 @@ rsa_public:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_hex_str
 
         TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
     }
+
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -440,6 +453,7 @@ rsa_private:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input
     }
 
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -470,6 +484,8 @@ rsa_check_pubkey:radix_N:input_N:radix_E:input_E:result
     }
 
     TEST_ASSERT( rsa_check_pubkey( &ctx ) == {result} );
+
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -515,6 +531,8 @@ rsa_check_privkey:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:in
     }
 
     TEST_ASSERT( rsa_check_privkey( &ctx ) == {result} );
+
+    rsa_free( &ctx );
 }
 END_CASE
 
@@ -537,6 +555,8 @@ rsa_gen_key:nrbits:exponent:result
     {
         TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
     }
+
+    rsa_free( &ctx );
 }
 END_CASE
 

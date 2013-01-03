@@ -60,5 +60,14 @@ x509_cert_req_check:key_file:md_type:cert_req_check_file
 
     TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
     TEST_ASSERT( pem.buflen == (size_t) ret );
+
+    while( ( cur = req_name.next ) != NULL )
+    {
+        req_name.next = cur->next;
+        free( cur );
+    }
+
+    rsa_free( &rsa );
+    pem_free( &pem );
 }
 END_CASE

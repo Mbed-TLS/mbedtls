@@ -731,7 +731,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
      *
      * Length is always 2
      */
-    if( ssl->max_minor_ver == SSL_MINOR_VERSION_3 )
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
         ssl->handshake->verify_sig_alg = SSL_HASH_SHA256;
 

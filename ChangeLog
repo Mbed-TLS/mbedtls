@@ -2,6 +2,8 @@ PolarSSL ChangeLog
 
 = Development
 Changes
+   * Introduced separate SSL Ciphersuites module that is based on
+     Cipher and MD information
    * Internals for SSL module adapted to have separate IV pointer that is
      dynamically set (Better support for hardware acceleration)
 
@@ -47,6 +49,8 @@ Security
 
 = Version 1.2.4 released 2013-01-25
 Changes
+   * More advanced SSL ciphersuite representation and moved to more dynamic
+     SSL core
    * Added ssl_handshake_step() to allow single stepping the handshake process
 
 Bugfix

@@ -36,6 +36,7 @@ set(src
      sha2.c
      sha4.c
      ssl_cache.c
+     ssl_ciphersuites.c
      ssl_cli.c 
      ssl_srv.c 
      ssl_tls.c

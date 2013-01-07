@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -54,6 +54,7 @@ typedef enum {
     POLARSSL_CIPHER_ID_3DES,
     POLARSSL_CIPHER_ID_CAMELLIA,
     POLARSSL_CIPHER_ID_BLOWFISH,
+    POLARSSL_CIPHER_ID_ARC4,
 } cipher_id_t;
 
 typedef enum {
@@ -68,6 +69,8 @@ typedef enum {
     POLARSSL_CIPHER_AES_128_CTR,
     POLARSSL_CIPHER_AES_192_CTR,
     POLARSSL_CIPHER_AES_256_CTR,
+    POLARSSL_CIPHER_AES_128_GCM,
+    POLARSSL_CIPHER_AES_256_GCM,
     POLARSSL_CIPHER_CAMELLIA_128_CBC,
     POLARSSL_CIPHER_CAMELLIA_192_CBC,
     POLARSSL_CIPHER_CAMELLIA_256_CBC,
@@ -83,6 +86,7 @@ typedef enum {
     POLARSSL_CIPHER_BLOWFISH_CBC,
     POLARSSL_CIPHER_BLOWFISH_CFB64,
     POLARSSL_CIPHER_BLOWFISH_CTR,
+    POLARSSL_CIPHER_ARC4_128,
 } cipher_type_t;
 
 typedef enum {
@@ -92,6 +96,8 @@ typedef enum {
     POLARSSL_MODE_CFB,
     POLARSSL_MODE_OFB,
     POLARSSL_MODE_CTR,
+    POLARSSL_MODE_GCM,
+    POLARSSL_MODE_STREAM,
 } cipher_mode_t;
 
 typedef enum {
@@ -351,10 +357,10 @@ static inline const char *cipher_get_name( const cipher_context_t *ctx )
  */
 static inline int cipher_get_key_size ( const cipher_context_t *ctx )
 {
-    if( NULL == ctx )
+    if( NULL == ctx || NULL == ctx->cipher_info )
         return POLARSSL_KEY_LENGTH_NONE;
 
-    return ctx->key_length;
+    return ctx->cipher_info->key_length;
 }
 
 /**
@@ -447,7 +453,6 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  *                      while decrypting or a cipher specific error code.
  */
 int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen);
-
 
 /**
  * \brief          Checkup routine

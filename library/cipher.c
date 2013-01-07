@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -142,6 +142,13 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
             return &aes_256_ctr_info;
 #endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
 
+#if defined(POLARSSL_GCM_C)
+        case POLARSSL_CIPHER_AES_128_GCM:
+            return &aes_128_gcm_info;
+        case POLARSSL_CIPHER_AES_256_GCM:
+            return &aes_256_gcm_info;
+#endif /* defined(POLARSSL_GCM_C) */
+
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -179,6 +186,11 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
             return &des_ede_cbc_info;
         case POLARSSL_CIPHER_DES_EDE3_CBC:
             return &des_ede3_cbc_info;
+#endif
+
+#if defined(POLARSSL_ARC4_C)
+        case POLARSSL_CIPHER_ARC4_128:
+            return &arc4_128_info;
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
@@ -374,19 +386,28 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
     int ret;
     size_t copy_len = 0;
 
-    if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen ||
-        input == output )
+    *olen = 0;
+
+    if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
     {
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    *olen = 0;
+    if( input == output &&
+       ( ctx->unprocessed_len != 0 || ilen % cipher_get_block_size( ctx ) ) )
+    {
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
 
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
     if( ctx->cipher_info->mode == POLARSSL_MODE_NULL )
     {
-        memcpy( output, input, ilen );
         *olen = ilen;
+
+        if( output == input )
+            return( 0 );
+
+        memcpy( output, input, ilen );
         return 0;
     }
 #endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
@@ -465,6 +486,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
         return 0;
     }
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
     if( ctx->cipher_info->mode == POLARSSL_MODE_CFB )
     {
         if( 0 != ( ret = ctx->cipher_info->base->cfb_func( ctx->cipher_ctx,
@@ -478,7 +500,9 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
         return 0;
     }
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
     if( ctx->cipher_info->mode == POLARSSL_MODE_CTR )
     {
         if( 0 != ( ret = ctx->cipher_info->base->ctr_func( ctx->cipher_ctx,
@@ -492,6 +516,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
         return 0;
     }
+#endif
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }

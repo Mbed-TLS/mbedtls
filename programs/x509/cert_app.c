@@ -1,7 +1,7 @@
 /*
  *  Certificate reading application
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -283,8 +283,6 @@ int main( int argc, char *argv[] )
         ssl_set_dbg( &ssl, my_debug, stdout );
         ssl_set_bio( &ssl, net_recv, &server_fd,
                 net_send, &server_fd );
-
-        ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
 
         ssl_set_own_cert( &ssl, &clicert, &rsa );
 

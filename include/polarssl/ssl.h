@@ -3,7 +3,7 @@
  *
  * \brief SSL/TLS functions.
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -37,6 +37,7 @@
 #include "sha4.h"
 #include "x509.h"
 #include "config.h"
+#include "ssl_ciphersuites.h"
 
 #if defined(POLARSSL_DHM_C)
 #include "dhm.h"
@@ -323,6 +324,8 @@ struct _ssl_transform
     /*
      * Session specific crypto layer
      */
+    const ssl_ciphersuite_t *ciphersuite_info;
+                                        /*!<  Chosen cipersuite_info  */
     unsigned int keylen;                /*!<  symmetric key length    */
     size_t minlen;                      /*!<  min. ciphertext length  */
     size_t ivlen;                       /*!<  IV length               */
@@ -332,8 +335,12 @@ struct _ssl_transform
     unsigned char iv_enc[16];           /*!<  IV (encryption)         */
     unsigned char iv_dec[16];           /*!<  IV (decryption)         */
 
-    unsigned char mac_enc[32];          /*!<  MAC (encryption)        */
-    unsigned char mac_dec[32];          /*!<  MAC (decryption)        */
+    /* Needed only for SSL v3.0 secret */
+    unsigned char mac_enc[32];          /*!<  SSL v3.0 secret (enc)   */
+    unsigned char mac_dec[32];          /*!<  SSL v3.0 secret (dec)   */
+
+    md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
+    md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
 
     uint32_t ctx_enc[136];              /*!<  encryption context      */
     uint32_t ctx_dec[136];              /*!<  decryption context      */
@@ -520,8 +527,6 @@ struct _ssl_context
 extern "C" {
 #endif
 
-extern const int ssl_default_ciphersuites[];
-
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 
 #define SSL_CHANNEL_OUTBOUND    0
@@ -547,10 +552,7 @@ extern int (*ssl_hw_record_finish)(ssl_context *ssl);
  * \return              a statically allocated array of ciphersuites, the last
  *                      entry is 0.
  */
-static inline const int *ssl_list_ciphersuites( void )
-{
-    return ssl_default_ciphersuites;
-}
+const int *ssl_list_ciphersuites( void );
 
 /**
  * \brief               Return the name of the ciphersuite associated with the given

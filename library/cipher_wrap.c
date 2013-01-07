@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -221,6 +221,28 @@ const cipher_info_t aes_256_ctr_info = {
     &aes_info
 };
 #endif /* POLARSSL_CIPHER_MODE_CTR */
+
+#if defined(POLARSSL_GCM_C)
+const cipher_info_t aes_128_gcm_info = {
+    POLARSSL_CIPHER_AES_128_GCM,
+    POLARSSL_MODE_GCM,
+    128,
+    "AES-128-GCM",
+    16,
+    16,
+    &aes_info
+};
+
+const cipher_info_t aes_256_gcm_info = {
+    POLARSSL_CIPHER_AES_256_GCM,
+    POLARSSL_MODE_GCM,
+    256,
+    "AES-256-GCM",
+    16,
+    16,
+    &aes_info
+};
+#endif /* POLARSSL_GCM_C */
 
 #endif
 
@@ -439,7 +461,6 @@ static int des_crypt_ctr_wrap( void *ctx, size_t length,
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
-
 
 static int des_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
@@ -674,6 +695,40 @@ const cipher_info_t blowfish_ctr_info = {
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 #endif /* POLARSSL_BLOWFISH_C */
 
+#if defined(POLARSSL_ARC4_C)
+static void * arc4_ctx_alloc( void )
+{
+    return (void *) 1;
+}
+
+
+static void arc4_ctx_free( void *ctx )
+{
+    ((void) ctx);
+}
+
+const cipher_base_t arc4_base_info = {
+    POLARSSL_CIPHER_ID_ARC4,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    arc4_ctx_alloc,
+    arc4_ctx_free
+};
+
+const cipher_info_t arc4_128_info = {
+    POLARSSL_CIPHER_ARC4_128,
+    POLARSSL_MODE_STREAM,
+    128,
+    "ARC4-128",
+    0,
+    1,
+    &arc4_base_info
+};
+#endif /* POLARSSL_ARC4_C */
+
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
 static void * null_ctx_alloc( void )
 {
@@ -702,7 +757,7 @@ const cipher_info_t null_cipher_info = {
     POLARSSL_MODE_NULL,
     0,
     "NULL",
-    1,
+    0,
     1,
     &null_base_info
 };

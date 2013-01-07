@@ -1,7 +1,7 @@
 /*
  *  SSLv3/TLSv1 server-side functions
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -658,6 +658,16 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
 have_ciphersuite:
     ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
+    ssl->transform_negotiate->ciphersuite_info =
+        ssl_ciphersuite_from_id( ssl->ciphersuites[i] );
+
+    if( ssl->transform_negotiate->ciphersuite_info == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
+                          ssl->ciphersuites[i] ) );
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     ssl_optimize_checksum( ssl, ssl->session_negotiate->ciphersuite );
 
     ext = buf + 44 + sess_len + ciph_len + comp_len;
@@ -1011,18 +1021,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 
-    if( ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_DES_CBC_SHA &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_128_CBC_SHA &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_256_CBC_SHA &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 &&
-        ssl->session_negotiate->ciphersuite != TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
+    if( ssl->transform_negotiate->ciphersuite_info->key_exchange !=
+        POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;
@@ -1288,18 +1288,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_DES_CBC_SHA ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_128_CBC_SHA ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_CBC_SHA ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ||
-        ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
+    if( ssl->transform_negotiate->ciphersuite_info->key_exchange ==
+        POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
 #if !defined(POLARSSL_DHM_C)
         SSL_DEBUG_MSG( 1, ( "support for dhm is not available" ) );

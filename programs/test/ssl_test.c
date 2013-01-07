@@ -1,7 +1,7 @@
 /*
  *  SSL/TLS stress testing program
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -272,9 +272,8 @@ static int ssl_test( struct options *opt )
     ssl_set_bio( &ssl, net_recv, &client_fd,
                        net_send, &client_fd );
 
-    if( opt->force_ciphersuite[0] == DFL_FORCE_CIPHER )
-          ssl_set_ciphersuites( &ssl, ssl_default_ciphersuites );
-    else  ssl_set_ciphersuites( &ssl, opt->force_ciphersuite );
+    if( opt->force_ciphersuite[0] != DFL_FORCE_CIPHER )
+        ssl_set_ciphersuites( &ssl, opt->force_ciphersuite );
 
     if( opt->iomode == IOMODE_NONBLOCK )
         net_set_nonblock( client_fd );

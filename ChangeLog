@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
 = Branch 1.1
+Bugfix
+   * Fixed MPI assembly for SPARC64 platform
+
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
      Vanderbeken)

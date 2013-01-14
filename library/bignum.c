@@ -1627,8 +1627,6 @@ cleanup:
     return( ret );
 }
 
-#if defined(POLARSSL_GENPRIME)
-
 /*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
@@ -1723,6 +1721,8 @@ cleanup:
 
     return( ret );
 }
+
+#if defined(POLARSSL_GENPRIME)
 
 static const int small_prime[] =
 {

@@ -6,6 +6,7 @@ Bugfix
    * Handle existence of OpenSSL Trust Extensions at end of X.509 DER blob
    * mpi_add_abs() now correctly handles adding short numbers to long numbers
      with carry rollover
+   * Moved mpi_inv_mod() outside POLARSSL_GENPRIME
 
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi

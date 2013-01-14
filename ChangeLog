@@ -3,6 +3,7 @@ PolarSSL ChangeLog
 = Branch 1.1
 Bugfix
    * Fixed MPI assembly for SPARC64 platform
+   * Handle existence of OpenSSL Trust Extensions at end of X.509 DER blob
 
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi

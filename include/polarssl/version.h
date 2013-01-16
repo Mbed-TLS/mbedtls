@@ -3,7 +3,7 @@
  *
  * \brief Run-time version information
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -39,16 +39,16 @@
  */
 #define POLARSSL_VERSION_MAJOR  1
 #define POLARSSL_VERSION_MINOR  1
-#define POLARSSL_VERSION_PATCH  4
+#define POLARSSL_VERSION_PATCH  5
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define POLARSSL_VERSION_NUMBER         0x01010400
-#define POLARSSL_VERSION_STRING         "1.1.4"
-#define POLARSSL_VERSION_STRING_FULL    "PolarSSL 1.1.4"
+#define POLARSSL_VERSION_NUMBER         0x01010500
+#define POLARSSL_VERSION_STRING         "1.1.5"
+#define POLARSSL_VERSION_STRING_FULL    "PolarSSL 1.1.5"
 
 #if defined(POLARSSL_VERSION_C)
 

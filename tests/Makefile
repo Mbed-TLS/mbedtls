@@ -30,6 +30,7 @@ APPS =	test_suite_aes			test_suite_arc4			\
 		test_suite_cipher.des	test_suite_cipher.null	\
 		test_suite_ctr_drbg		test_suite_debug		\
 		test_suite_des			test_suite_dhm			\
+		test_suite_ecp									\
 		test_suite_error		test_suite_gcm.decrypt	\
 		test_suite_gcm.decrypt	test_suite_hmac_shax	\
 		test_suite_md			test_suite_mdx			\
@@ -124,6 +125,10 @@ test_suite_des: test_suite_des.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_dhm: test_suite_dhm.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_ecp: test_suite_ecp.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

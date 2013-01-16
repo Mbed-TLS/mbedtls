@@ -7,6 +7,7 @@ Bugfix
    * mpi_add_abs() now correctly handles adding short numbers to long numbers
      with carry rollover
    * Moved mpi_inv_mod() outside POLARSSL_GENPRIME
+   * Prevent reading over buffer boundaries on X509 certificate parsing
 
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi

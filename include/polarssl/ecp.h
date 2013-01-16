@@ -3,7 +3,7 @@
  *
  * \brief Elliptic curves over GF(p)
  *
- *  Copyright (C) 2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -31,10 +31,9 @@
 
 /*
  * ECP error codes
- *
- * (Only one error code available...)
  */
-#define POLARSSL_ERR_ECP_GENERIC    -0x007E  /**<  Generic ECP error */
+#define POLARSSL_ERR_ECP_BAD_INPUT_DATA                    -0x4F80  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_ECP_GENERIC                           -0x4F00  /**<  Generic ECP error */
 
 /**
  * \brief           ECP point structure (jacobian coordinates)

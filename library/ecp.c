@@ -1,7 +1,7 @@
 /*
  *  Elliptic curves over GF(p)
  *
- *  Copyright (C) 2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>

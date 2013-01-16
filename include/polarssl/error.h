@@ -3,7 +3,7 @@
  *
  * \brief Error to string translation
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -76,6 +76,7 @@
  * X509     2   21
  * DHM      3   6
  * RSA      4   9
+ * ECP      4   1 (Started from top)
  * MD       5   4
  * CIPHER   6   5
  * SSL      6   2 (Started from top)

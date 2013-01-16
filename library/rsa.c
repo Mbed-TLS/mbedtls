@@ -386,23 +386,34 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
             nb_pad = olen - 3 - ilen;
 
             *p++ = 0;
-            *p++ = RSA_CRYPT;
-
-            while( nb_pad-- > 0 )
+            if( mode == RSA_PUBLIC )
             {
-                int rng_dl = 100;
+                *p++ = RSA_CRYPT;
 
-                do {
-                    ret = f_rng( p_rng, p, 1 );
-                } while( *p == 0 && --rng_dl && ret == 0 );
+                while( nb_pad-- > 0 )
+                {
+                    int rng_dl = 100;
 
-                // Check if RNG failed to generate data
-                //
-                if( rng_dl == 0 || ret != 0)
-                    return POLARSSL_ERR_RSA_RNG_FAILED + ret;
+                    do {
+                        ret = f_rng( p_rng, p, 1 );
+                    } while( *p == 0 && --rng_dl && ret == 0 );
 
-                p++;
+                    // Check if RNG failed to generate data
+                    //
+                    if( rng_dl == 0 || ret != 0)
+                        return POLARSSL_ERR_RSA_RNG_FAILED + ret;
+
+                    p++;
+                }
             }
+            else
+            {
+                *p++ = RSA_SIGN;
+
+                while( nb_pad-- > 0 )
+                    *p++ = 0xFF;
+            }
+
             *p++ = 0;
             memcpy( p, input, ilen );
             break;
@@ -476,6 +487,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
     int ret;
     size_t ilen;
     unsigned char *p;
+    unsigned char bt;
     unsigned char buf[1024];
 #if defined(POLARSSL_PKCS1_V21)
     unsigned char lhash[POLARSSL_MD_MAX_SIZE];
@@ -502,16 +514,37 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
     {
         case RSA_PKCS_V15:
 
-            if( *p++ != 0 || *p++ != RSA_CRYPT )
+            if( *p++ != 0 )
                 return( POLARSSL_ERR_RSA_INVALID_PADDING );
-
-            while( *p != 0 )
+            
+            bt = *p++;
+            if( ( bt != RSA_CRYPT && mode == RSA_PRIVATE ) ||
+                ( bt != RSA_SIGN && mode == RSA_PUBLIC ) )
             {
-                if( p >= buf + ilen - 1 )
+                return( POLARSSL_ERR_RSA_INVALID_PADDING );
+            }
+
+            if( bt == RSA_CRYPT )
+            {
+                while( *p != 0 && p < buf + ilen - 1 )
+                    p++;
+
+                if( *p != 0 || p >= buf + ilen - 1 )
                     return( POLARSSL_ERR_RSA_INVALID_PADDING );
+
                 p++;
             }
-            p++;
+            else
+            {
+                while( *p == 0xFF && p < buf + ilen - 1 )
+                    p++;
+
+                if( *p != 0 || p >= buf + ilen - 1 )
+                    return( POLARSSL_ERR_RSA_INVALID_PADDING );
+
+                p++;
+            }
+
             break;
 
 #if defined(POLARSSL_PKCS1_V21)

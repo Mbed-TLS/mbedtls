@@ -77,7 +77,7 @@ typedef UINT64 uint64_t;
 
 /*
  * Maximum size of MPIs allowed in bits and bytes for user-MPIs.
- * ( Default: 512 bytes => 4096 bits, Maximum: 1024 bytes => 8192 bits )
+ * ( Default: 512 bytes => 4096 bits, Maximum tested: 2048 bytes => 16384 bits )
  *
  * Note: Calculations can results temporarily in larger MPIs. So the number
  * of limbs required (POLARSSL_MPI_MAX_LIMBS) is higher.

@@ -4,6 +4,8 @@ PolarSSL ChangeLog
 Bugfix
    * Memory leak when using RSA_PKCS_V21 operations fixed
    * Handle future version properly in ssl_write_certificate_request()
+   * Correctly handle CertificateRequest message in client for <= TLS 1.1
+     without DN list
 
 = Version 1.2.3 released 2012-11-26
 Bugfix

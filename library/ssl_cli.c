@@ -894,7 +894,7 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
 {
     int ret;
     unsigned char *buf, *p;
-    size_t n = 0;
+    size_t n = 0, m = 0;
     size_t cert_type_len = 0, sig_alg_len = 0, dn_len = 0;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
@@ -976,6 +976,7 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
                       | ( buf[6 + n]       ) );
 
         p = buf + 7 + n;
+        m += 2;
         n += sig_alg_len;
 
         if( ssl->in_hslen < 6 + n )
@@ -985,11 +986,11 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
         }
     } 
 
-    dn_len = ( ( buf[7 + n] <<  8 )
-             | ( buf[8 + n]       ) );
+    dn_len = ( ( buf[5 + m + n] <<  8 )
+             | ( buf[6 + m + n]       ) );
 
     n += dn_len;
-    if( ssl->in_hslen != 9 + n )
+    if( ssl->in_hslen != 7 + m + n )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );

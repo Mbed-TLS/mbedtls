@@ -106,6 +106,30 @@ Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
      Vanderbeken)
 
+= Version 1.1.5 released on 2013-01-16
+Bugfix
+   * Fixed MPI assembly for SPARC64 platform
+   * Handle existence of OpenSSL Trust Extensions at end of X.509 DER blob
+   * mpi_add_abs() now correctly handles adding short numbers to long numbers
+     with carry rollover
+   * Moved mpi_inv_mod() outside POLARSSL_GENPRIME
+   * Prevent reading over buffer boundaries on X509 certificate parsing
+   * mpi_exp_mod() now correctly handles negative base numbers (Closes ticket
+     #52)
+   * Fixed possible segfault in mpi_shift_r() (found by Manuel
+     Pégourié-Gonnard)
+   * Allow R and A to point to same mpi in mpi_div_mpi (found by Manuel
+     Pégourié-Gonnard)
+   * Added max length check for rsa_pkcs1_sign with PKCS#1 v2.1
+   * Memory leak when using RSA_PKCS_V21 operations fixed
+   * Handle encryption with private key and decryption with public key as per
+     RFC 2313
+   * Fixes for MSVC6
+
+Security
+   * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
+     Vanderbeken)
+
 = Version 1.1.4 released on 2012-05-31
 Bugfix
    * Correctly handle empty SSL/TLS packets (Found by James Yonan)

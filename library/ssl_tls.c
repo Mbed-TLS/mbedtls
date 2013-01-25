@@ -3513,23 +3513,41 @@ const int ssl_default_ciphersuites[] =
 };
 
 /*
- * Perform the SSL handshake
+ * Perform a single step of the SSL handshake
  */
-int ssl_handshake( ssl_context *ssl )
+int ssl_handshake_step( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-    SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
-
 #if defined(POLARSSL_SSL_CLI_C)
     if( ssl->endpoint == SSL_IS_CLIENT )
-        ret = ssl_handshake_client( ssl );
+        ret = ssl_handshake_client_step( ssl );
 #endif
 
 #if defined(POLARSSL_SSL_SRV_C)
     if( ssl->endpoint == SSL_IS_SERVER )
-        ret = ssl_handshake_server( ssl );
+        ret = ssl_handshake_server_step( ssl );
 #endif
+
+    return( ret );
+}
+
+/*
+ * Perform the SSL handshake
+ */
+int ssl_handshake( ssl_context *ssl )
+{
+    int ret = 0;
+
+    SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
+
+    while( ssl->state != SSL_HANDSHAKE_OVER )
+    {
+        ret = ssl_handshake_step( ssl );
+
+        if( ret != 0 )
+            break;
+    }
 
     SSL_DEBUG_MSG( 2, ( "<= handshake" ) );
 

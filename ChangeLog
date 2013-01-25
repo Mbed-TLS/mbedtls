@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
 = Version Master
+Changes
+   * Added ssl_handshake_step() to allow single stepping the handshake process
+
 Bugfix
    * Memory leak when using RSA_PKCS_V21 operations fixed
    * Handle future version properly in ssl_write_certificate_request()

@@ -971,6 +971,20 @@ const x509_cert *ssl_get_peer_cert( const ssl_context *ssl );
 int ssl_handshake( ssl_context *ssl );
 
 /**
+ * \brief          Perform a single step of the SSL handshake
+ *
+ *                 Note: the state of the context (ssl->state) will be at
+ *                 the following state after execution of this function.
+ *                 Do not call this function if state is SSL_HANDSHAKE_OVER.
+ *
+ * \param ssl      SSL context
+ *
+ * \return         0 if successful, POLARSSL_ERR_NET_WANT_READ,
+ *                 POLARSSL_ERR_NET_WANT_WRITE, or a specific SSL error code.
+ */
+int ssl_handshake_step( ssl_context *ssl );
+
+/**
  * \brief          Perform an SSL renegotiation on the running connection
  *
  * \param ssl      SSL context
@@ -1061,8 +1075,8 @@ void ssl_handshake_free( ssl_handshake_params *handshake );
 /*
  * Internal functions (do not call directly)
  */
-int ssl_handshake_client( ssl_context *ssl );
-int ssl_handshake_server( ssl_context *ssl );
+int ssl_handshake_client_step( ssl_context *ssl );
+int ssl_handshake_server_step( ssl_context *ssl );
 void ssl_handshake_wrapup( ssl_context *ssl );
 
 int ssl_send_fatal_handshake_failure( ssl_context *ssl );

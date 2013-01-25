@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version Master
+= Version 1.2.4 released 2013-01-25
 Changes
    * Added ssl_handshake_step() to allow single stepping the handshake process
 

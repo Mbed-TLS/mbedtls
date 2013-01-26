@@ -1,0 +1,15 @@
+ECDSA sign-verify #1
+ecdsa_sign_verify:SECP192R1
+
+ECDSA sign-verify #2
+ecdsa_sign_verify:SECP224R1
+
+ECDSA sign-verify #3
+ecdsa_sign_verify:SECP256R1
+
+ECDSA sign-verify #4
+ecdsa_sign_verify:SECP384R1
+
+ECDSA sign-verify #5
+ecdsa_sign_verify:SECP521R1
+

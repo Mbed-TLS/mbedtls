@@ -53,6 +53,24 @@ int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
+ * \brief           Verify ECDSA signature of a previously hashed message
+ *
+ * \param grp       ECP group
+ * \param buf       Message hash
+ * \param blen      Length of buf
+ * \param Q         Public key to use for verification
+ * \param r         First integer of the signature
+ * \param s         Second integer of the signature
+ *
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ */
+int ecdsa_verify( const ecp_group *grp,
+                  const unsigned char *buf, size_t blen,
+                  const ecp_point *Q, const mpi *r, const mpi *s);
+
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

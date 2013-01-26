@@ -1127,6 +1127,33 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Generate a keypair (SEC1 3.2.1)
+ */
+int ecp_gen_keypair( const ecp_group *grp, mpi *d, ecp_point *Q,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng )
+{
+    int count = 0;
+    size_t n_size = (grp->nbits + 7) / 8;
+
+    /*
+     * Generate d such that 1 <= n < N
+     */
+    do
+    {
+        mpi_fill_random( d, n_size, f_rng, p_rng );
+
+        while( mpi_cmp_mpi( d, &grp->N ) >= 0 )
+            mpi_shift_r( d, 1 );
+
+        if( count++ > 10 )
+            return( POLARSSL_ERR_ECP_GENERIC );
+    }
+    while( mpi_cmp_int( d, 1 ) < 0 );
+
+    return( ecp_mul( grp, Q, d, &grp->G ) );
+}
 
 #if defined(POLARSSL_SELF_TEST)
 

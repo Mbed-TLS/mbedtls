@@ -310,6 +310,22 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );
 
 /**
+ * \brief           Generate a keypair
+ *
+ * \param grp       ECP group
+ * \param d         Destination MPI (secret part)
+ * \param Q         Destination point (public part)
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ */
+int ecp_gen_keypair( const ecp_group *grp, mpi *d, ecp_point *Q,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng );
+
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

@@ -296,6 +296,33 @@ ecp_read_binary:id:input:format:x:y:z:ret
 END_CASE
 
 BEGIN_CASE
+ecp_gen_keypair:id
+{
+    ecp_group grp;
+    ecp_point Q;
+    mpi d;
+    rnd_pseudo_info rnd_info;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &Q );
+    mpi_init( &d );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( ecp_gen_keypair( &grp, &d, &Q, &rnd_pseudo_rand, &rnd_info )
+                 == 0 );
+
+    TEST_ASSERT( mpi_cmp_mpi( &d, &grp.N ) < 0 );
+    TEST_ASSERT( mpi_cmp_int( &d, 1 ) >= 0 );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &Q );
+    mpi_free( &d );
+}
+END_CASE
+
+BEGIN_CASE
 ecp_selftest:
 {
     TEST_ASSERT( ecp_self_test( 0 ) == 0 );

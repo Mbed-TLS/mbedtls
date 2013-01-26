@@ -34,6 +34,25 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Compute ECDSA signature of a previously hashed message
+ *
+ * \param grp       ECP group
+ * \param r         First output integer
+ * \param s         Second output integer
+ * \param d         Private signing key
+ * \param buf       Message hash
+ * \param blen      Length of buf
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ */
+int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
+                const mpi *d, const unsigned char *buf, size_t blen,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

@@ -35,6 +35,67 @@
 
 #include "polarssl/ecdsa.h"
 
+/*
+ * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
+ * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
+ */
+int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
+                const mpi *d, const unsigned char *buf, size_t blen,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret, key_tries, sign_tries;
+    size_t n_size;
+    ecp_point R;
+    mpi k, e;
+
+    ecp_point_init( &R );
+    mpi_init( &k );
+    mpi_init( &e );
+
+    sign_tries = 0;
+    do
+    {
+        /*
+         * Steps 1-3: generate a suitable ephemeral keypair
+         */
+        key_tries = 0;
+        do
+        {
+            MPI_CHK( ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
+            MPI_CHK( mpi_copy( r, &R.X ) );
+
+            if( key_tries++ > 10 )
+                return( POLARSSL_ERR_ECP_GENERIC );
+        }
+        while( mpi_cmp_int( r, 0 ) == 0 );
+
+        /*
+         * Step 5: derive MPI from hashed message
+         */
+        n_size = (grp->nbits + 7) / 8;
+        MPI_CHK( mpi_read_binary( &e, buf, blen > n_size ? n_size : blen ) );
+
+        /*
+         * Step 6: compute s = (e + r * d) / k mod n
+         */
+        MPI_CHK( mpi_mul_mpi( s, r, d ) );
+        MPI_CHK( mpi_add_mpi( &e, &e, s ) );
+        MPI_CHK( mpi_inv_mod( s, &k, &grp->N ) );
+        MPI_CHK( mpi_mul_mpi( s, s, &e ) );
+        MPI_CHK( mpi_mod_mpi( s, s, &grp->N ) );
+
+        if( sign_tries++ > 10 )
+            return( POLARSSL_ERR_ECP_GENERIC );
+    }
+    while( mpi_cmp_int( s, 0 ) == 0 );
+
+cleanup:
+    ecp_point_free( &R );
+    mpi_free( &k );
+    mpi_free( &e );
+
+    return( ret );
+}
 
 #if defined(POLARSSL_SELF_TEST)
 

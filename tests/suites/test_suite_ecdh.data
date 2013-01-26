@@ -1,0 +1,15 @@
+ECDH primitive agreement #1
+ecdh_primitive_agreement:SECP192R1
+
+ECDH primitive agreement #2
+ecdh_primitive_agreement:SECP224R1
+
+ECDH primitive agreement #3
+ecdh_primitive_agreement:SECP256R1
+
+ECDH primitive agreement #4
+ecdh_primitive_agreement:SECP384R1
+
+ECDH primitive agreement #5
+ecdh_primitive_agreement:SECP521R1
+

@@ -837,6 +837,7 @@
  *
  * Module:  library/ecp.c
  * Caller:  library/ecdh.c
+ *          library/ecdsa.c
  *
  * Requires: POLARSSL_BIGNUM_C
  */
@@ -845,7 +846,7 @@
 /**
  * \def POLARSSL_ECDH_C
  *
- * Enable the elliptic curve Diffie-Hellman library
+ * Enable the elliptic curve Diffie-Hellman library.
  *
  * Module:  library/ecdh.c
  * Caller:
@@ -853,6 +854,18 @@
  * Requires: POLARSSL_ECP_C
  */
 #define POLARSSL_ECDH_C
+
+/**
+ * \def POLARSSL_ECDSA_C
+ *
+ * Enable the elliptic curve DSA library.
+ *
+ * Module:  library/ecdsa.c
+ * Caller:
+ *
+ * Requires: POLARSSL_ECP_C
+ */
+#define POLARSSL_ECDSA_C
 
 /* \} name */
 

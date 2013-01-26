@@ -17,6 +17,7 @@ set(src
      des.c
      dhm.c
      ecp.c
+     ecdh.c
      entropy.c
      entropy_poll.c
      error.c

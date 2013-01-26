@@ -836,11 +836,24 @@
  * Enable the elliptic curve over GF(p) library.
  *
  * Module:  library/ecp.c
- * Caller:
+ * Caller:  library/ecdh.c
  *
  * Requires: POLARSSL_BIGNUM_C
  */
 #define POLARSSL_ECP_C
+
+/**
+ * \def POLARSSL_ECDH_C
+ *
+ * Enable the elliptic curve Diffie-Hellman library
+ *
+ * Module:  library/ecdh.c
+ * Caller:
+ *
+ * Requires: POLARSSL_ECP_C
+ */
+#define POLARSSL_ECDH_C
+
 /* \} name */
 
 #endif /* config.h */

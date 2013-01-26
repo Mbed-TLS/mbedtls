@@ -122,6 +122,14 @@ cleanup:
 }
 
 /*
+ * Tell if a point is zero
+ */
+int ecp_is_zero( ecp_point *pt )
+{
+    return( mpi_cmp_int( &pt->Z, 0 ) == 0 );
+}
+
+/*
  * Copy the contents of Q into P
  */
 int ecp_copy( ecp_point *P, const ecp_point *Q )

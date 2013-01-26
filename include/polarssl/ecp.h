@@ -147,10 +147,21 @@ void ecp_group_free( ecp_group *grp );
 /**
  * \brief           Set a point to zero
  *
+ * \param pt        Destination point
+ *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int ecp_set_zero( ecp_point *pt );
+
+/**
+ * \brief           Tell if a point is zero
+ *
+ * \param pt        Point to test
+ *
+ * \return          1 if point is zero, 0 otherwise
+ */
+int ecp_is_zero( ecp_point *pt );
 
 /**
  * \brief           Copy the contents of point Q into P

@@ -33,9 +33,35 @@
 extern "C" {
 #endif
 
-#ifdef __cplusplus
-}
-#endif
+/**
+ * \brief           Generate a public key
+ *
+ * \param grp       ECP group
+ * \param d         Destination MPI (secret exponent)
+ * \param Q         Destination point (public key)
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ */
+int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng );
+
+/**
+ * \brief           Compute shared secret
+ *
+ * \param grp       ECP group
+ * \param z         Destination MPI (shared secret)
+ * \param Q         Public key from other party
+ * \param d         Our secret exponent
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ */
+int ecdh_compute_shared( const ecp_group *grp, mpi *z,
+                         const ecp_point *Q, const mpi *d );
 
 /**
  * \brief          Checkup routine
@@ -43,5 +69,9 @@ extern "C" {
  * \return         0 if successful, or 1 if the test failed
  */
 int ecdh_self_test( int verbose );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

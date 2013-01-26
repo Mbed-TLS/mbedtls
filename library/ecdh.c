@@ -35,6 +35,45 @@
 
 #include "polarssl/ecdh.h"
 
+/*
+ * Generate public key: simple wrapper around ecp_gen_keypair
+ */
+int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng )
+{
+    return ecp_gen_keypair( grp, d, Q, f_rng, p_rng );
+}
+
+/*
+ * Compute shared secret (SEC1 3.3.1)
+ */
+int ecdh_compute_shared( const ecp_group *grp, mpi *z,
+                         const ecp_point *Q, const mpi *d )
+{
+    int ret;
+    ecp_point P;
+
+    ecp_point_init( &P );
+
+    /*
+     * Make sure Q is a valid pubkey before using it
+     */
+    MPI_CHK( ecp_check_pubkey( grp, Q ) );
+
+    MPI_CHK( ecp_mul( grp, &P, d, Q ) );
+
+    if( ecp_is_zero( &P ) )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    MPI_CHK( mpi_copy( z, &P.X ) );
+
+cleanup:
+    ecp_point_free( &P );
+
+    return( ret );
+}
+
 
 #if defined(POLARSSL_SELF_TEST)
 

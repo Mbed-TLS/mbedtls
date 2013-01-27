@@ -19,6 +19,7 @@ ecdsa_random:id
     ecp_point_init( &Q );
     mpi_init( &d ); mpi_init( &r ); mpi_init( &s );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( buf, 0, sizeof( buf ) );
 
     /* prepare material for signature */
     TEST_ASSERT( rnd_pseudo_rand( &rnd_info, buf, sizeof( buf ) ) == 0 );
@@ -49,6 +50,7 @@ ecdsa_test_vectors:id:d:xQ:yQ:k:hash:r:s
     ecp_point_init( &Q );
     mpi_init( &d ); mpi_init( &r ); mpi_init( &s );
     mpi_init( &r_check ); mpi_init( &s_check );
+    memset( buf, 0, sizeof( buf ) );
 
     TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
     TEST_ASSERT( ecp_point_read_string( &Q, 16, "{xQ}", "{yQ}" ) == 0 );

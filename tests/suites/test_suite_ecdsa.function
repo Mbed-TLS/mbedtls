@@ -7,7 +7,7 @@ depends_on:POLARSSL_ECDSA_C:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-ecdsa_random:id
+ecdsa_prim_random:id
 {
     ecp_group grp;
     ecp_point Q;
@@ -38,7 +38,7 @@ ecdsa_random:id
 END_CASE
 
 BEGIN_CASE
-ecdsa_test_vectors:id:d:xQ:yQ:k:hash:r:s
+ecdsa_prim_test_vectors:id:d:xQ:yQ:k:hash:r:s
 {
     ecp_group grp;
     ecp_point Q;

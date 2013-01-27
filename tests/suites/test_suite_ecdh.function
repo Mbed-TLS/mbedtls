@@ -7,7 +7,7 @@ depends_on:POLARSSL_ECDH_C:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-ecdh_primitive_agreement:id
+ecdh_primitive_random:id
 {
     ecp_group grp;
     ecp_point qA, qB;
@@ -35,5 +35,46 @@ ecdh_primitive_agreement:id
     ecp_point_free( &qA ); ecp_point_free( &qB );
     mpi_free( &dA ); mpi_free( &dB );
     mpi_free( &zA ); mpi_free( &zB );
+}
+END_CASE
+
+BEGIN_CASE
+ecdh_primitive_testvec:id:dA:xA:yA:dB:xB:yB:z
+{
+    ecp_group grp;
+    ecp_point qA, qB;
+    mpi dA, dB, zA, zB, check;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &qA ); ecp_point_init( &qB );
+    mpi_init( &dA ); mpi_init( &dB );
+    mpi_init( &zA ); mpi_init( &zB ); mpi_init( &check );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( ecdh_gen_public( &grp, &dA, &qA, &not_rnd, "{dA}" ) == 0 );
+    TEST_ASSERT( ! ecp_is_zero( &qA ) );
+    TEST_ASSERT( mpi_read_string( &check, 16, "{xA}" ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &qA.X, &check ) == 0 );
+    TEST_ASSERT( mpi_read_string( &check, 16, "{yA}" ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &qA.Y, &check ) == 0 );
+
+    TEST_ASSERT( ecdh_gen_public( &grp, &dB, &qB, &not_rnd, "{dB}" ) == 0 );
+    TEST_ASSERT( ! ecp_is_zero( &qB ) );
+    TEST_ASSERT( mpi_read_string( &check, 16, "{xB}" ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &qB.X, &check ) == 0 );
+    TEST_ASSERT( mpi_read_string( &check, 16, "{yB}" ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &qB.Y, &check ) == 0 );
+
+    TEST_ASSERT( mpi_read_string( &check, 16, "{z}" ) == 0 );
+    TEST_ASSERT( ecdh_compute_shared( &grp, &zA, &qB, &dA ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &zA, &check ) == 0 );
+    TEST_ASSERT( ecdh_compute_shared( &grp, &zB, &qA, &dB ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &zB, &check ) == 0 );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &qA ); ecp_point_free( &qB );
+    mpi_free( &dA ); mpi_free( &dB );
+    mpi_free( &zA ); mpi_free( &zB ); mpi_free( &check );
 }
 END_CASE

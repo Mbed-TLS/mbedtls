@@ -3,6 +3,8 @@ PolarSSL ChangeLog
 = Development
 Changes
    * Allow enabling of dummy error_strerror() to support some use-cases
+   * Debug messages about padding errors during SSL message decryption are
+     disabled by default and can be enabled with POLARSSL_SSL_DEBUG_ALL 
 
 Security
    * Removed timing differences during SSL message decryption in

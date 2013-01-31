@@ -239,6 +239,22 @@
 #define POLARSSL_SELF_TEST
 
 /**
+ * \def POLARSSL_SSL_DEBUG_ALL
+ *
+ * Enable the debug messages in SSL module for all issues.
+ * Debug messages have been disabled in some places to prevent timing
+ * attacks due to (unbalanced) debugging function calls.
+ *
+ * If you need all error reporting you should enable this during debugging,
+ * but remove this for production servers that should log as well.
+ *
+ * Uncomment this macro to report all debug messages on errors introducing
+ * a timing side-channel.
+ *
+#define POLARSSL_SSL_DEBUG_ALL
+ */
+
+/**
  * \def POLARSSL_SSL_HW_RECORD_ACCEL
  *
  * Enable hooking functions in SSL module for hardware acceleration of

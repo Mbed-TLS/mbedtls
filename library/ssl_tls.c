@@ -1975,6 +1975,14 @@ int ssl_read_record( ssl_context *ssl )
     {
         if( ( ret = ssl_decrypt_buf( ssl ) ) != 0 )
         {
+#if defined(POLARSSL_SSL_ALERT_MESSAGES)
+            if( ret == POLARSSL_ERR_SSL_INVALID_MAC )
+            {
+                ssl_send_alert_message( ssl,
+                                        SSL_ALERT_LEVEL_FATAL,
+                                        SSL_ALERT_MSG_BAD_RECORD_MAC );
+            }
+#endif
             SSL_DEBUG_RET( 1, "ssl_decrypt_buf", ret );
             return( ret );
         }

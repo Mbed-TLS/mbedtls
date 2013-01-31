@@ -239,6 +239,20 @@
 #define POLARSSL_SELF_TEST
 
 /**
+ * \def POLARSSL_SSL_ALL_ALERT_MESSAGES
+ *
+ * Enable sending of alert messages in case of encountered errors as per RFC.
+ * If you choose not to send the alert messages, PolarSSL can still communicate
+ * with other servers, only debugging of failures is harder.
+ *
+ * The advantage of not sending alert messages, is that no information is given
+ * about reasons for failures thus preventing adversaries of gaining intel.
+ *
+ * Enable sending of all alert messages
+ */
+#define POLARSSL_SSL_ALERT_MESSAGES
+
+/**
  * \def POLARSSL_SSL_DEBUG_ALL
  *
  * Enable the debug messages in SSL module for all issues.

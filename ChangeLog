@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Development
+= Version 1.2.5 released 2013-02-02
 Changes
    * Allow enabling of dummy error_strerror() to support some use-cases
    * Debug messages about padding errors during SSL message decryption are

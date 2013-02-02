@@ -38,13 +38,13 @@
 #define USAGE \
     "\n usage: strerror <errorcode>\n"
 
-#if !defined(POLARSSL_ERROR_C) 
+#if !defined(POLARSSL_ERROR_C) && !defined(POLARSSL_ERROR_STRERROR_DUMMY)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_ERROR_C not defined.\n");
+    printf("POLARSSL_ERROR_C and/or POLARSSL_ERROR_STRERRO_DUMMY not defined.\n");
     return( 0 );
 }
 #else

@@ -33,6 +33,7 @@
  * ECP error codes
  */
 #define POLARSSL_ERR_ECP_BAD_INPUT_DATA                    -0x4F80  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_ECP_BUFFER_TOO_SMALL                  -0x4F80  /**< The buffer is too small to write to. */
 #define POLARSSL_ERR_ECP_GENERIC                           -0x4F00  /**<  Generic ECP error */
 
 /**
@@ -117,15 +118,15 @@ ecp_group;
 #define POLARSSL_ECP_WINDOW_SIZE    7   /**< Maximum NAF width used. */
 
 /*
- * Point formats
+ * Point formats, from RFC 4492's enum ECPointFormat
  */
 #define POLARSSL_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format */
 #define POLARSSL_ECP_PF_COMPRESSED      1   /**< Compressed point format */
 
 /*
- * Some constants from RFC 4492 (ECC for TLS)
+ * Some other constants from RFC 4492
  */
-#define POLARSSL_ECP_TLS_NAMED_CURVE    3   /**< ECCurveType named_curve */
+#define POLARSSL_ECP_TLS_NAMED_CURVE    3   /**< ECCurveType's named_curve */
 
 
 #ifdef __cplusplus
@@ -239,14 +240,16 @@ int ecp_group_read_string( ecp_group *grp, int radix,
  * \param grp       Group to which the point should belong
  * \param P         Point to export
  * \param format    Point format, should be a POLARSSL_ECP_PF_XXX macro
- * \param olen      Length of the actual ouput
+ * \param olen      Length of the actual output
  * \param buf       Output buffer
  * \param buflen    Length of the output buffer
  *
- * \return          0 if successful, or POLARSSL_ERR_ECP_GENERIC
+ * \return          0 if successful,
+ *                  or POLARSSL_ERR_ECP_BAD_INPUT_DATA
+ *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
  */
 int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
-                      size_t *olen, unsigned char *buf, size_t buflen );
+                      uint8_t *olen, unsigned char *buf, size_t buflen );
 
 /**
  * \brief           Import a point from unsigned binary data
@@ -284,7 +287,7 @@ int ecp_read_binary( const ecp_group *grp, ecp_point *P, int format,
 int ecp_use_known_dp( ecp_group *grp, uint16_t index );
 
 /**
- * \brief           Read a group from an ECParameters record
+ * \brief           Set a group from a TLS ECParameters record
  *
  * \param grp       Destination group
  * \param buf       Start of input buffer
@@ -295,6 +298,37 @@ int ecp_use_known_dp( ecp_group *grp, uint16_t index );
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
  */
 int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len );
+
+/**
+ * \brief           Import a point from a TLS ECPoint record
+ *
+ * \param grp       ECP group used
+ * \param pt        Destination point
+ * \param buf       Start of input buffer
+ * \param len       Buffer length
+ *
+ * \return          O if successful,
+ *                  POLARSSL_ERR_MPI_XXX if initialization failed
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
+ */
+int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
+                        const unsigned char *buf, size_t len );
+
+/**
+ * \brief           Export a point as a TLS ECPoint record
+ *
+ * \param grp       ECP group used
+ * \param pt        Point to export
+ * \param format    Export format
+ * \param buf       Buffer to write to
+ * \param len       Buffer length
+ *
+ * \return          0 if successful,
+ *                  or POLARSSL_ERR_ECP_BAD_INPUT_DATA
+ *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
+ */
+int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
+                         int format, unsigned char *buf, size_t buf_len );
 
 /**
  * \brief           Addition: R = P + Q

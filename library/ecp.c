@@ -186,14 +186,14 @@ cleanup:
  * Export a point into unsigned binary data (SEC1 2.3.3)
  */
 int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
-                      size_t *olen, unsigned char *buf, size_t buflen )
+                      uint8_t *olen, unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t plen;
 
     if( format != POLARSSL_ECP_PF_UNCOMPRESSED &&
         format != POLARSSL_ECP_PF_COMPRESSED )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     /*
      * Common case: P == 0
@@ -201,7 +201,7 @@ int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
     {
         if( buflen < 1 )
-            return( POLARSSL_ERR_ECP_GENERIC );
+            return( POLARSSL_ERR_ECP_BUFFER_TOO_SMALL );
 
         buf[0] = 0x00;
         *olen = 1;
@@ -216,7 +216,7 @@ int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
         *olen = 2 * plen + 1;
 
         if( buflen < *olen )
-            return( POLARSSL_ERR_ECP_GENERIC );
+            return( POLARSSL_ERR_ECP_BUFFER_TOO_SMALL );
 
         buf[0] = 0x04;
         MPI_CHK( mpi_write_binary( &P->X, buf + 1, plen ) );
@@ -227,7 +227,7 @@ int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
         *olen = plen + 1;
 
         if( buflen < *olen )
-            return( POLARSSL_ERR_ECP_GENERIC );
+            return( POLARSSL_ERR_ECP_BUFFER_TOO_SMALL );
 
         buf[0] = 0x02 + mpi_get_bit( &P->Y, 0 );
         MPI_CHK( mpi_write_binary( &P->X, buf + 1, plen ) );
@@ -262,6 +262,49 @@ int ecp_read_binary( const ecp_group *grp, ecp_point *P, int format,
 
 cleanup:
     return( ret );
+}
+
+/*
+ * Import a point from a TLS ECPoint record (RFC 4492)
+ *      struct {
+ *          opaque point <1..2^8-1>;
+ *      } ECPoint;
+ */
+int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
+                        const unsigned char *buf, size_t buf_len )
+{
+    unsigned char data_len;
+
+    /*
+     * We must have at least two bytes (1 for length, at least of for data)
+     */
+    if( buf_len < 2 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    data_len = *buf++;
+    if( data_len < 1 || data_len > buf_len - 1 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    return ecp_read_binary( grp, pt, POLARSSL_ECP_PF_UNCOMPRESSED,
+            buf, data_len );
+}
+
+/*
+ * Export a point as a TLS ECPoint record (RFC 4492)
+ *      struct {
+ *          opaque point <1..2^8-1>;
+ *      } ECPoint;
+ */
+int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
+                         int format, unsigned char *buf, size_t buf_len )
+{
+    /*
+     * buf_len must be at least one, for our length byte
+     */
+    if( buf_len < 1 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    return ecp_write_binary( grp, pt, format, buf, buf + 1, buf_len - 1);
 }
 
 /*

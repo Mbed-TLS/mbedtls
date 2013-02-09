@@ -29,6 +29,7 @@
  * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
  * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
+ * RFC 4492 for the related TLS structures and constants
  */
 
 #include "polarssl/config.h"
@@ -493,7 +494,7 @@ cleanup:
 /*
  * Set a group using well-known domain parameters
  */
-int ecp_use_known_dp( ecp_group *grp, size_t index )
+int ecp_use_known_dp( ecp_group *grp, uint16_t index )
 {
     switch( index )
     {
@@ -525,7 +526,33 @@ int ecp_use_known_dp( ecp_group *grp, size_t index )
                         SECP521R1_GX, SECP521R1_GY, SECP521R1_N ) );
     }
 
-    return( POLARSSL_ERR_ECP_GENERIC );
+    return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+}
+
+/*
+ * Set a group from an ECParameters record (RFC 4492)
+ */
+int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len )
+{
+    uint16_t namedcurve;
+
+    /*
+     * We expect at least three bytes (see below)
+     */
+    if( len < 3 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    /*
+     * First byte is curve_type; only named_curve is handled
+     */
+    if( *buf++ != POLARSSL_ECP_TLS_NAMED_CURVE )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    /*
+     * Next two bytes are the namedcurve
+     */
+    namedcurve = 256 * buf[0] + buf[1];
+    return ecp_use_known_dp( grp, namedcurve );
 }
 
 /*

@@ -89,12 +89,14 @@ ecp_group;
  * \warning This library does not support validation of arbitrary domain
  * parameters. Therefore, only well-known domain parameters from trusted
  * sources should be used. See ecp_use_known_dp().
+ *
+ * \note The values are taken from RFC 4492's enum NamedCurve.
  */
-#define POLARSSL_ECP_DP_SECP192R1   0
-#define POLARSSL_ECP_DP_SECP224R1   1
-#define POLARSSL_ECP_DP_SECP256R1   2
-#define POLARSSL_ECP_DP_SECP384R1   3
-#define POLARSSL_ECP_DP_SECP521R1   4
+#define POLARSSL_ECP_DP_SECP192R1   19
+#define POLARSSL_ECP_DP_SECP224R1   21
+#define POLARSSL_ECP_DP_SECP256R1   23
+#define POLARSSL_ECP_DP_SECP384R1   24
+#define POLARSSL_ECP_DP_SECP521R1   25
 
 /**
  * Maximum bit size of the groups (that is, of N)
@@ -119,6 +121,12 @@ ecp_group;
  */
 #define POLARSSL_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format */
 #define POLARSSL_ECP_PF_COMPRESSED      1   /**< Compressed point format */
+
+/*
+ * Some constants from RFC 4492 (ECC for TLS)
+ */
+#define POLARSSL_ECP_TLS_NAMED_CURVE    3   /**< ECCurveType named_curve */
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -259,6 +267,7 @@ int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
  */
 int ecp_read_binary( const ecp_group *grp, ecp_point *P, int format,
                      const unsigned char *buf, size_t ilen );
+
 /**
  * \brief           Set a group using well-known domain parameters
  *
@@ -269,9 +278,23 @@ int ecp_read_binary( const ecp_group *grp, ecp_point *P, int format,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
  *                  POLARSSL_ERR_ECP_GENERIC if index is out of range
  *
- * \note            Index should be a POLARSSL_ECP_DP_XXX macro.
+ * \note            Index should be a value of RFC 4492's enum NamdeCurve,
+ *                  possibly in the form of a POLARSSL_ECP_DP_XXX macro.
  */
-int ecp_use_known_dp( ecp_group *grp, size_t index );
+int ecp_use_known_dp( ecp_group *grp, uint16_t index );
+
+/**
+ * \brief           Read a group from an ECParameters record
+ *
+ * \param grp       Destination group
+ * \param buf       Start of input buffer
+ * \param len       Buffer length
+ *
+ * \return          O if successful,
+ *                  POLARSSL_ERR_MPI_XXX if initialization failed
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
+ */
+int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len );
 
 /**
  * \brief           Addition: R = P + Q

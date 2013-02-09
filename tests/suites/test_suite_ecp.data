@@ -184,6 +184,21 @@ ecp_read_binary:SECP192R1:"0548d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ce
 ECP read binary #6 (non-zero, OK)
 ecp_read_binary:SECP192R1:"0448d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":UNCOMPRESSED:"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":0
 
+ECP read params #1 (record too short)
+ecp_read_params:"0313":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
+
+ECP read params #2 (bad curve_type)
+ecp_read_params:"010013":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
+
+ECP read params #3 (unknown curve)
+ecp_read_params:"030010":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
+
+ECP read params #4 (OK, buffer just fits)
+ecp_read_params:"030017":0:256
+
+ECP read params #5 (OK, buffer continues)
+ecp_read_params:"030018DEAD":0:384
+
 ECP gen keypair
 ecp_gen_keypair:SECP192R1
 

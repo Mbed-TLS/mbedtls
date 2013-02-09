@@ -323,6 +323,28 @@ ecp_gen_keypair:id
 END_CASE
 
 BEGIN_CASE
+ecp_read_params:record:ret:bits
+{
+    ecp_group grp;
+    unsigned char buf[10];
+    int len, ret;
+
+    ecp_group_init( &grp );
+    memset( buf, 0x00, sizeof( buf ) );
+
+    len = unhexify( buf, {record} );
+
+    ret = ecp_tls_read_group( &grp, buf, len );
+
+    TEST_ASSERT( ret == {ret} );
+    if( ret == 0)
+        TEST_ASSERT( mpi_msb( &grp.P ) == {bits} );
+
+    ecp_group_free( &grp );
+}
+END_CASE
+
+BEGIN_CASE
 ecp_selftest:
 {
     TEST_ASSERT( ecp_self_test( 0 ) == 0 );

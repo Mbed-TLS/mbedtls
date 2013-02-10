@@ -248,8 +248,9 @@ int ecp_group_read_string( ecp_group *grp, int radix,
  *                  or POLARSSL_ERR_ECP_BAD_INPUT_DATA
  *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
  */
-int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
-                      uint8_t *olen, unsigned char *buf, size_t buflen );
+int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
+                            int format, uint8_t *olen,
+                            unsigned char *buf, size_t buflen );
 
 /**
  * \brief           Import a point from unsigned binary data
@@ -267,8 +268,8 @@ int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
  *                  belongs to the given group, see ecp_check_pubkey() for
  *                  that.
  */
-int ecp_read_binary( const ecp_group *grp, ecp_point *P,
-                     const unsigned char *buf, size_t ilen );
+int ecp_point_read_binary( const ecp_group *grp, ecp_point *P,
+                           const unsigned char *buf, size_t ilen );
 
 /**
  * \brief           Set a group using well-known domain parameters

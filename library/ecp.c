@@ -185,8 +185,9 @@ cleanup:
 /*
  * Export a point into unsigned binary data (SEC1 2.3.3)
  */
-int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
-                      uint8_t *olen, unsigned char *buf, size_t buflen )
+int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
+                            int format, uint8_t *olen,
+                            unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t plen;
@@ -240,8 +241,8 @@ cleanup:
 /*
  * Import a point from unsigned binary data (SEC1 2.3.4)
  */
-int ecp_read_binary( const ecp_group *grp, ecp_point *pt,
-                     const unsigned char *buf, size_t ilen ) {
+int ecp_point_read_binary( const ecp_group *grp, ecp_point *pt,
+                           const unsigned char *buf, size_t ilen ) {
     int ret;
     size_t plen;
 
@@ -282,7 +283,7 @@ int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
     if( data_len < 1 || data_len > buf_len - 1 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    return ecp_read_binary( grp, pt, buf, data_len );
+    return ecp_point_read_binary( grp, pt, buf, data_len );
 }
 
 /*
@@ -300,7 +301,7 @@ int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
     if( buf_len < 1 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    return ecp_write_binary( grp, pt, format, buf, buf + 1, buf_len - 1);
+    return ecp_point_write_binary( grp, pt, format, buf, buf + 1, buf_len - 1);
 }
 
 /*

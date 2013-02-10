@@ -244,7 +244,7 @@ ecp_write_binary:id:x:y:z:format:out:blen:ret
     TEST_ASSERT( mpi_read_string( &P.Z, 16, {z} ) == 0 );
 
 #define POLARSSL_ECP_PF_UNKNOWN     -1
-    TEST_ASSERT( ecp_write_binary( &grp, &P, POLARSSL_ECP_PF_{format},
+    TEST_ASSERT( ecp_point_write_binary( &grp, &P, POLARSSL_ECP_PF_{format},
                                    &olen, buf, {blen} ) == {ret} );
 
     if( {ret} == 0 )
@@ -279,7 +279,7 @@ ecp_read_binary:id:input:x:y:z:ret
 
     ilen = unhexify( buf, {input} );
 
-    TEST_ASSERT( ecp_read_binary( &grp, &P, buf, ilen ) == {ret} );
+    TEST_ASSERT( ecp_point_read_binary( &grp, &P, buf, ilen ) == {ret} );
 
     if( {ret} == 0 )
     {

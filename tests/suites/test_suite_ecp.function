@@ -337,7 +337,7 @@ ecp_tls_write_read_point:id
 END_CASE
 
 BEGIN_CASE
-ecp_read_params:record:ret:bits
+ecp_tls_read_group:record:ret:bits
 {
     ecp_group grp;
     unsigned char buf[10];
@@ -355,6 +355,34 @@ ecp_read_params:record:ret:bits
         TEST_ASSERT( mpi_msb( &grp.P ) == {bits} );
 
     ecp_group_free( &grp );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_tls_write_read_group:id
+{
+    ecp_group grp1, grp2;
+    unsigned char buf[10];
+    size_t len;
+    int ret;
+
+    ecp_group_init( &grp1 );
+    ecp_group_init( &grp2 );
+    memset( buf, 0x00, sizeof( buf ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp1, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( ecp_tls_write_group( &grp1, &len, buf, 10 ) == 0 );
+    TEST_ASSERT( ( ret = ecp_tls_read_group( &grp2, buf, len ) ) == 0 );
+
+    if( ret == 0 )
+    {
+        TEST_ASSERT( mpi_cmp_mpi( &grp1.N, &grp2.N ) == 0 );
+        TEST_ASSERT( grp1.id == grp2.id );
+    }
+
+    ecp_group_free( &grp1 );
+    ecp_group_free( &grp2 );
 }
 END_CASE
 

@@ -187,20 +187,26 @@ ecp_tls_write_read_point:SECP192R1
 ECP tls write-read point #2
 ecp_tls_write_read_point:SECP521R1
 
-ECP read params #1 (record too short)
-ecp_read_params:"0313":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
+ECP tls read group #1 (record too short)
+ecp_tls_read_group:"0313":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
 
-ECP read params #2 (bad curve_type)
-ecp_read_params:"010013":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
+ECP tls read group #2 (bad curve_type)
+ecp_tls_read_group:"010013":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
 
-ECP read params #3 (unknown curve)
-ecp_read_params:"030010":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
+ECP tls read group #3 (unknown curve)
+ecp_tls_read_group:"030010":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
 
-ECP read params #4 (OK, buffer just fits)
-ecp_read_params:"030017":0:256
+ECP tls read group #4 (OK, buffer just fits)
+ecp_tls_read_group:"030017":0:256
 
-ECP read params #5 (OK, buffer continues)
-ecp_read_params:"030018DEAD":0:384
+ECP tls read group #5 (OK, buffer continues)
+ecp_tls_read_group:"030018DEAD":0:384
+
+ECP tls write-read group #1
+ecp_tls_write_read_group:SECP192R1
+
+ECP tls write-read group #2
+ecp_tls_write_read_group:SECP521R1
 
 ECP gen keypair
 ecp_gen_keypair:SECP192R1

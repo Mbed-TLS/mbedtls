@@ -69,6 +69,8 @@ void ecp_group_init( ecp_group *grp )
     if( grp == NULL )
         return;
 
+    grp->id = 0;
+
     mpi_init( &grp->P );
     mpi_init( &grp->B );
     ecp_point_init( &grp->G );
@@ -632,7 +634,7 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
      * Next two bytes are the namedcurve value
      */
     buf[0] = grp->id >> 8;
-    buf[1] = grp->id && 0xFF;
+    buf[1] = grp->id & 0xFF;
 
     return 0;
 }

@@ -255,7 +255,7 @@ int ecp_group_read_string( ecp_group *grp, int radix,
  *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
  */
 int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
-                            int format, uint8_t *olen,
+                            int format, size_t *olen,
                             unsigned char *buf, size_t buflen );
 
 /**
@@ -348,7 +348,8 @@ int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
  *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
  */
 int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
-                         int format, unsigned char *buf, size_t buf_len );
+                         int format, size_t *olen,
+                         unsigned char *buf, size_t blen );
 
 /**
  * \brief           Addition: R = P + Q

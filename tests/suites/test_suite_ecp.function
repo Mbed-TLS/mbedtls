@@ -230,7 +230,7 @@ ecp_write_binary:id:x:y:z:format:out:blen:ret
     ecp_group grp;
     ecp_point P;
     unsigned char buf[256], str[512];
-    uint8_t olen;
+    size_t olen;
 
     memset( buf, 0, sizeof( buf ) );
     memset( str, 0, sizeof( str ) );
@@ -299,6 +299,7 @@ ecp_tls_write_read_point:id
     ecp_group grp;
     ecp_point pt;
     unsigned char buf[256];
+    size_t olen;
 
     ecp_group_init( &grp );
     ecp_point_init( &pt );
@@ -307,27 +308,27 @@ ecp_tls_write_read_point:id
     TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
 
     TEST_ASSERT( ecp_tls_write_point( &grp, &grp.G,
-                    POLARSSL_ECP_PF_COMPRESSED, buf, 256 ) == 0 );
-    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, buf, 256 )
+                    POLARSSL_ECP_PF_COMPRESSED, &olen, buf, 256 ) == 0 );
+    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, buf, olen )
                  == POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     TEST_ASSERT( ecp_tls_write_point( &grp, &grp.G,
-                    POLARSSL_ECP_PF_UNCOMPRESSED, buf, 256 ) == 0 );
-    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, buf, 256 ) == 0 );
+                    POLARSSL_ECP_PF_UNCOMPRESSED, &olen, buf, 256 ) == 0 );
+    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, buf, olen ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &grp.G.X, &pt.X ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &grp.G.Y, &pt.Y ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &grp.G.Z, &pt.Z ) == 0 );
 
     TEST_ASSERT( ecp_set_zero( &pt ) == 0 );
     TEST_ASSERT( ecp_tls_write_point( &grp, &pt,
-                    POLARSSL_ECP_PF_COMPRESSED, buf, 256 ) == 0 );
-    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, buf, 256 ) == 0 );
+                    POLARSSL_ECP_PF_COMPRESSED, &olen, buf, 256 ) == 0 );
+    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, buf, olen ) == 0 );
     TEST_ASSERT( ecp_is_zero( &pt ) );
 
     TEST_ASSERT( ecp_set_zero( &pt ) == 0 );
     TEST_ASSERT( ecp_tls_write_point( &grp, &pt,
-                    POLARSSL_ECP_PF_UNCOMPRESSED, buf, 256 ) == 0 );
-    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, buf, 256 ) == 0 );
+                    POLARSSL_ECP_PF_UNCOMPRESSED, &olen, buf, 256 ) == 0 );
+    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, buf, olen ) == 0 );
     TEST_ASSERT( ecp_is_zero( &pt ) );
 
     ecp_group_free( &grp );

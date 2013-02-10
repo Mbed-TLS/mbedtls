@@ -186,7 +186,7 @@ cleanup:
  * Export a point into unsigned binary data (SEC1 2.3.3)
  */
 int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
-                            int format, uint8_t *olen,
+                            int format, size_t *olen,
                             unsigned char *buf, size_t buflen )
 {
     int ret;
@@ -293,15 +293,28 @@ int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
  *      } ECPoint;
  */
 int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
-                         int format, unsigned char *buf, size_t buf_len )
+                         int format, size_t *olen,
+                         unsigned char *buf, size_t blen )
 {
+    int ret;
+
     /*
-     * buf_len must be at least one, for our length byte
+     * buffer length must be at least one, for our length byte
      */
-    if( buf_len < 1 )
+    if( blen < 1 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    return ecp_point_write_binary( grp, pt, format, buf, buf + 1, buf_len - 1);
+    if( ( ret = ecp_point_write_binary( grp, pt, format,
+                    olen, buf + 1, blen - 1) ) != 0 )
+        return( ret );
+
+    /*
+     * write length to the first byte and update total length
+     */
+    buf[0] = *olen;
+    ++*olen;
+
+    return 0;
 }
 
 /*

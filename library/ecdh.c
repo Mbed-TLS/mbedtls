@@ -85,8 +85,8 @@ void ecdh_init( ecdh_context *ctx )
     ecp_point_init( &ctx->Q   );
     ecp_point_init( &ctx->Qp  );
     mpi_init      ( &ctx->z   );
+    ctx->point_format = POLARSSL_ECP_PF_UNCOMPRESSED;
 }
-
 
 /*
  * Free context
@@ -101,6 +101,40 @@ void ecdh_free( ecdh_context *ctx )
     ecp_point_free( &ctx->Q   );
     ecp_point_free( &ctx->Qp  );
     mpi_free      ( &ctx->z   );
+}
+
+/*
+ * Setup and write the ServerKeyExhange parameters
+ *      struct {
+ *          ECParameters    curve_params;
+ *          ECPoint         public;
+ *      } ServerECDHParams;
+ */
+int ecdh_make_server_params( ecdh_context *ctx, size_t *olen,
+                             unsigned char *buf, size_t blen,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    int ret;
+    size_t grp_len, pt_len;
+
+    if( ( ret = ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) )
+                != 0 )
+        return( ret );
+
+    if( ( ret = ecp_tls_write_group( &ctx->grp, &grp_len, buf, blen ) )
+                != 0 )
+        return( ret );
+
+    buf += grp_len;
+    blen -= grp_len;
+
+    if( ( ret = ecp_tls_write_point( &ctx->grp, &ctx->Q, ctx->point_format,
+                                     &pt_len, buf, blen ) ) != 0 )
+        return( ret );
+
+    *olen = grp_len + pt_len;
+    return 0;
 }
 
 

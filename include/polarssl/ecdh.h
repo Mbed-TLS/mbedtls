@@ -34,11 +34,12 @@
  */
 typedef struct
 {
-    ecp_group grp;  /*!<  ellipitic curve used  */
-    mpi d;          /*!<  our secret value      */
-    ecp_point Q;    /*!<  our public value      */
-    ecp_point Qp;   /*!<  peer's public value   */
-    mpi z;          /*!<  shared secret         */
+    ecp_group grp;      /*!<  ellipitic curve used      */
+    mpi d;              /*!<  our secret value          */
+    ecp_point Q;        /*!<  our public value          */
+    ecp_point Qp;       /*!<  peer's public value       */
+    mpi z;              /*!<  shared secret             */
+    int point_format;   /*!<  format for point export   */
 }
 ecdh_context;
 
@@ -89,6 +90,25 @@ void ecdh_init( ecdh_context *ctx );
  * \param ctx       Context to free
  */
 void ecdh_free( ecdh_context *ctx );
+
+/**
+ * \brief           Setup and write the ServerKeyExhange parameters
+ *
+ * \param ctx       ECDH context
+ * \param buf       destination buffer
+ * \param olen      number of chars written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \note            This function assumes that ctx->grp has already been
+ *                  properly set (for example using ecp_use_known_dp).
+ *
+ * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ */
+int ecdh_make_server_params( ecdh_context *ctx, size_t *olen,
+                             unsigned char *buf, size_t blen,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng );
 
 /**
  * \brief          Checkup routine

@@ -240,25 +240,22 @@ cleanup:
 /*
  * Import a point from unsigned binary data (SEC1 2.3.4)
  */
-int ecp_read_binary( const ecp_group *grp, ecp_point *P, int format,
+int ecp_read_binary( const ecp_group *grp, ecp_point *pt,
                      const unsigned char *buf, size_t ilen ) {
     int ret;
     size_t plen;
 
-    if( format != POLARSSL_ECP_PF_UNCOMPRESSED )
-        return( POLARSSL_ERR_ECP_GENERIC );
-
     if( ilen == 1 && buf[0] == 0x00 )
-        return( ecp_set_zero( P ) );
+        return( ecp_set_zero( pt ) );
 
-    plen = mpi_size( &grp-> P );
+    plen = mpi_size( &grp->P );
 
     if( ilen != 2 * plen + 1 || buf[0] != 0x04 )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    MPI_CHK( mpi_read_binary( &P->X, buf + 1, plen ) );
-    MPI_CHK( mpi_read_binary( &P->Y, buf + 1 + plen, plen ) );
-    MPI_CHK( mpi_lset( &P->Z, 1 ) );
+    MPI_CHK( mpi_read_binary( &pt->X, buf + 1, plen ) );
+    MPI_CHK( mpi_read_binary( &pt->Y, buf + 1 + plen, plen ) );
+    MPI_CHK( mpi_lset( &pt->Z, 1 ) );
 
 cleanup:
     return( ret );
@@ -285,8 +282,7 @@ int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
     if( data_len < 1 || data_len > buf_len - 1 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    return ecp_read_binary( grp, pt, POLARSSL_ECP_PF_UNCOMPRESSED,
-            buf, data_len );
+    return ecp_read_binary( grp, pt, buf, data_len );
 }
 
 /*

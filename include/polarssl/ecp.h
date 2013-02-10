@@ -256,7 +256,6 @@ int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
  *
  * \param grp       Group to which the point should belong
  * \param P         Point to import
- * \param format    Point format, must be POLARSSL_ECP_PF_UNCOMPRESSED for now
  * \param buf       Input buffer
  * \param ilen      Actual length of input
  *
@@ -268,7 +267,7 @@ int ecp_write_binary( const ecp_group *grp, const ecp_point *P, int format,
  *                  belongs to the given group, see ecp_check_pubkey() for
  *                  that.
  */
-int ecp_read_binary( const ecp_group *grp, ecp_point *P, int format,
+int ecp_read_binary( const ecp_group *grp, ecp_point *P,
                      const unsigned char *buf, size_t ilen );
 
 /**

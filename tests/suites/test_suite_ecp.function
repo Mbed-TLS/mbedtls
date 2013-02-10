@@ -230,7 +230,7 @@ ecp_write_binary:id:x:y:z:format:out:blen:ret
     ecp_group grp;
     ecp_point P;
     unsigned char buf[256], str[512];
-    size_t olen;
+    uint8_t olen;
 
     memset( buf, 0, sizeof( buf ) );
     memset( str, 0, sizeof( str ) );
@@ -258,7 +258,7 @@ ecp_write_binary:id:x:y:z:format:out:blen:ret
 END_CASE
 
 BEGIN_CASE
-ecp_read_binary:id:input:format:x:y:z:ret
+ecp_read_binary:id:input:x:y:z:ret
 {
     ecp_group grp;
     ecp_point P;
@@ -279,9 +279,7 @@ ecp_read_binary:id:input:format:x:y:z:ret
 
     ilen = unhexify( buf, {input} );
 
-#define POLARSSL_ECP_PF_UNKNOWN     -1
-    TEST_ASSERT( ecp_read_binary( &grp, &P, POLARSSL_ECP_PF_{format},
-                                  buf, ilen ) == {ret} );
+    TEST_ASSERT( ecp_read_binary( &grp, &P, buf, ilen ) == {ret} );
 
     if( {ret} == 0 )
     {

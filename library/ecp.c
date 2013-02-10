@@ -271,9 +271,10 @@ cleanup:
  *      } ECPoint;
  */
 int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
-                        const unsigned char *buf, size_t buf_len )
+                        const unsigned char **buf, size_t buf_len )
 {
     unsigned char data_len;
+    const unsigned char *buf_start;
 
     /*
      * We must have at least two bytes (1 for length, at least of for data)
@@ -281,11 +282,17 @@ int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
     if( buf_len < 2 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    data_len = *buf++;
+    data_len = *(*buf)++;
     if( data_len < 1 || data_len > buf_len - 1 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    return ecp_point_read_binary( grp, pt, buf, data_len );
+    /*
+     * Save buffer start for read_binary and update buf
+     */
+    buf_start = *buf;
+    *buf += data_len;
+
+    return ecp_point_read_binary( grp, pt, buf_start, data_len );
 }
 
 /*

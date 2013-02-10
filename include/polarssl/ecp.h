@@ -324,7 +324,7 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
  *
  * \param grp       ECP group used
  * \param pt        Destination point
- * \param buf       Start of input buffer
+ * \param buf       $(Start of input buffer)
  * \param len       Buffer length
  *
  * \return          O if successful,
@@ -332,7 +332,7 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
  */
 int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
-                        const unsigned char *buf, size_t len );
+                        const unsigned char **buf, size_t len );
 
 /**
  * \brief           Export a point as a TLS ECPoint record

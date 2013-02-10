@@ -27,6 +27,7 @@
  * References:
  *
  * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
+ * RFC 4492
  */
 
 #include "polarssl/config.h"
@@ -72,6 +73,34 @@ cleanup:
     ecp_point_free( &P );
 
     return( ret );
+}
+
+/*
+ * Initialize context
+ */
+void ecdh_init( ecdh_context *ctx )
+{
+    ecp_group_init( &ctx->grp );
+    mpi_init      ( &ctx->d   );
+    ecp_point_init( &ctx->Q   );
+    ecp_point_init( &ctx->Qp  );
+    mpi_init      ( &ctx->z   );
+}
+
+
+/*
+ * Free context
+ */
+void ecdh_free( ecdh_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    ecp_group_free( &ctx->grp );
+    mpi_free      ( &ctx->d   );
+    ecp_point_free( &ctx->Q   );
+    ecp_point_free( &ctx->Qp  );
+    mpi_free      ( &ctx->z   );
 }
 
 

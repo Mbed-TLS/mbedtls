@@ -29,6 +29,19 @@
 
 #include "polarssl/ecp.h"
 
+/**
+ * \brief           ECDH context structure
+ */
+typedef struct
+{
+    ecp_group grp;  /*!<  ellipitic curve used  */
+    mpi d;          /*!<  our secret value      */
+    ecp_point Q;    /*!<  our public value      */
+    ecp_point Qp;   /*!<  peer's public value   */
+    mpi z;          /*!<  shared secret         */
+}
+ecdh_context;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -62,6 +75,20 @@ int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
  */
 int ecdh_compute_shared( const ecp_group *grp, mpi *z,
                          const ecp_point *Q, const mpi *d );
+
+/**
+ * \brief           Initialize context
+ *
+ * \param ctx       Context to initialize
+ */
+void ecdh_init( ecdh_context *ctx );
+
+/**
+ * \brief           Free context
+ *
+ * \param ctx       Context to free
+ */
+void ecdh_free( ecdh_context *ctx );
 
 /**
  * \brief          Checkup routine

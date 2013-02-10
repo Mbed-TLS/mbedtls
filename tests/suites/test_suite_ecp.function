@@ -294,6 +294,42 @@ ecp_read_binary:id:input:x:y:z:ret
 END_CASE
 
 BEGIN_CASE
+ecp_tls_read_point:id:input:x:y:z:ret
+{
+    ecp_group grp;
+    ecp_point P;
+    mpi X, Y, Z;
+    size_t ilen;
+    unsigned char buf[256];
+
+    memset( buf, 0, sizeof( buf ) );
+
+    ecp_group_init( &grp ); ecp_point_init( &P );
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( mpi_read_string( &X, 16, {x} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Y, 16, {y} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Z, 16, {z} ) == 0 );
+
+    ilen = unhexify( buf, {input} );
+
+    TEST_ASSERT( ecp_tls_read_point( &grp, &P, buf, ilen ) == {ret} );
+
+    if( {ret} == 0 )
+    {
+        TEST_ASSERT( mpi_cmp_mpi( &P.X, &X ) == 0 );
+        TEST_ASSERT( mpi_cmp_mpi( &P.Y, &Y ) == 0 );
+        TEST_ASSERT( mpi_cmp_mpi( &P.Z, &Z ) == 0 );
+    }
+
+    ecp_group_free( &grp ); ecp_point_free( &P );
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
+}
+END_CASE
+
+BEGIN_CASE
 ecp_tls_write_read_point:id
 {
     ecp_group grp;

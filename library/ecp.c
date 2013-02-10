@@ -534,9 +534,11 @@ cleanup:
 /*
  * Set a group using well-known domain parameters
  */
-int ecp_use_known_dp( ecp_group *grp, uint16_t index )
+int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 {
-    switch( index )
+    grp->id = id;
+
+    switch( id )
     {
         case POLARSSL_ECP_DP_SECP192R1:
             grp->modp = ecp_mod_p192;
@@ -574,7 +576,7 @@ int ecp_use_known_dp( ecp_group *grp, uint16_t index )
  */
 int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len )
 {
-    uint16_t namedcurve;
+    ecp_group_id id;
 
     /*
      * We expect at least three bytes (see below)
@@ -589,10 +591,37 @@ int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     /*
-     * Next two bytes are the namedcurve
+     * Next two bytes are the namedcurve value
      */
-    namedcurve = 256 * buf[0] + buf[1];
-    return ecp_use_known_dp( grp, namedcurve );
+    id = 256 * buf[0] + buf[1];
+    return ecp_use_known_dp( grp, id );
+}
+
+/*
+ * Write the ECParameters record corresponding to a group (RFC 4492)
+ */
+int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
+                         unsigned char *buf, size_t blen )
+{
+    /*
+     * We are going to write 3 bytes (see below)
+     */
+    *olen = 3;
+    if( blen < *olen )
+        return( POLARSSL_ERR_ECP_BUFFER_TOO_SMALL );
+
+    /*
+     * First byte is curve_type, always named_curve
+     */
+    *buf++ = POLARSSL_ECP_TLS_NAMED_CURVE;
+
+    /*
+     * Next two bytes are the namedcurve value
+     */
+    buf[0] = grp->id >> 8;
+    buf[1] = grp->id && 0xFF;
+
+    return 0;
 }
 
 /*

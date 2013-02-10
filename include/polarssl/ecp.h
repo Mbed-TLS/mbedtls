@@ -53,6 +53,11 @@ typedef struct
 }
 ecp_point;
 
+/*
+ * RFC 4492 defines an enum NamedCurve with two-bytes values
+ */
+typedef uint16_t ecp_group_id;
+
 /**
  * \brief           ECP group structure
  *
@@ -70,6 +75,7 @@ ecp_point;
  */
 typedef struct
 {
+    ecp_group_id id;    /*!<  RFC 4492 group ID                 */
     mpi P;              /*!<  prime modulus of the base field   */
     mpi B;              /*!<  constant term in the equation     */
     ecp_point G;        /*!<  generator of the subgroup used    */
@@ -284,7 +290,7 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *P,
  * \note            Index should be a value of RFC 4492's enum NamdeCurve,
  *                  possibly in the form of a POLARSSL_ECP_DP_XXX macro.
  */
-int ecp_use_known_dp( ecp_group *grp, uint16_t index );
+int ecp_use_known_dp( ecp_group *grp, ecp_group_id id );
 
 /**
  * \brief           Set a group from a TLS ECParameters record
@@ -298,6 +304,20 @@ int ecp_use_known_dp( ecp_group *grp, uint16_t index );
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
  */
 int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len );
+
+/**
+ * \brief           Write the TLS ECParameters record for a group
+ *
+ * \param grp       ECP group used
+ * \param olen      Number of bytes actually written
+ * \param buf       Buffer to write to
+ * \param blen      Buffer length
+ *
+ * \return          0 if successful,
+ *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
+ */
+int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
+                         unsigned char *buf, size_t blen );
 
 /**
  * \brief           Import a point from a TLS ECPoint record

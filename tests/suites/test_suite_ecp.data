@@ -212,7 +212,7 @@ ECP tls read group #4 (OK, buffer just fits)
 ecp_tls_read_group:"030017":0:256
 
 ECP tls read group #5 (OK, buffer continues)
-ecp_tls_read_group:"030018DEAD":0:384
+ecp_tls_read_group:"0300180000":0:384
 
 ECP tls write-read group #1
 ecp_tls_write_read_group:SECP192R1

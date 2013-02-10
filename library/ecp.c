@@ -589,7 +589,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 /*
  * Set a group from an ECParameters record (RFC 4492)
  */
-int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len )
+int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len )
 {
     ecp_group_id id;
 
@@ -602,13 +602,15 @@ int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len )
     /*
      * First byte is curve_type; only named_curve is handled
      */
-    if( *buf++ != POLARSSL_ECP_TLS_NAMED_CURVE )
+    if( *(*buf)++ != POLARSSL_ECP_TLS_NAMED_CURVE )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     /*
      * Next two bytes are the namedcurve value
      */
-    id = 256 * buf[0] + buf[1];
+    id = *(*buf)++;
+    id <<= 8;
+    id |= *(*buf)++;
     return ecp_use_known_dp( grp, id );
 }
 

@@ -296,14 +296,14 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id );
  * \brief           Set a group from a TLS ECParameters record
  *
  * \param grp       Destination group
- * \param buf       Start of input buffer
+ * \param buf       &(Start of input buffer)
  * \param len       Buffer length
  *
  * \return          O if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
  */
-int ecp_tls_read_group( ecp_group *grp, const unsigned char *buf, size_t len );
+int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len );
 
 /**
  * \brief           Write the TLS ECParameters record for a group

@@ -123,6 +123,33 @@ int ecdh_read_params( ecdh_context *ctx,
                       const unsigned char **buf, const unsigned char *end );
 
 /**
+ * \brief           Setup and export the client's public value
+ *
+ * \param ctx       ECDH context
+ * \param olen      number of bytes actually written
+ * \param buf       destination buffer
+ * \param blen      size of destination buffer
+ *
+ * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ */
+int ecdh_make_public( ecdh_context *ctx, size_t *olen,
+                      unsigned char *buf, size_t blen,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng );
+
+/**
+ * \brief           Parse and import the client's public value
+ *
+ * \param ctx       ECDH context
+ * \param buf       start of input buffer
+ * \param blen      length of input buffer
+ *
+ * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ */
+int ecdh_read_public( ecdh_context *ctx,
+                      const unsigned char *buf, size_t blen );
+
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

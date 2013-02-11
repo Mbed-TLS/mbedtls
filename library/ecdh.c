@@ -159,6 +159,33 @@ int ecdh_read_params( ecdh_context *ctx,
     return 0;
 }
 
+/*
+ * Setup and export the client public value
+ */
+int ecdh_make_public( ecdh_context *ctx, size_t *olen,
+                      unsigned char *buf, size_t blen,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng )
+{
+    int ret;
+
+    if( ( ret = ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) )
+                != 0 )
+        return( ret );
+
+    return ecp_tls_write_point( &ctx->grp, &ctx->Q, ctx->point_format,
+                                olen, buf, blen );
+}
+
+/*
+ * Parse and import the client's public value
+ */
+int ecdh_read_public( ecdh_context *ctx,
+                      const unsigned char *buf, size_t blen )
+{
+    return ecp_tls_read_point( &ctx->grp, &ctx->Qp, &buf, blen );
+}
+
 #if defined(POLARSSL_SELF_TEST)
 
 /*

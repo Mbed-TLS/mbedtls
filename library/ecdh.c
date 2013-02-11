@@ -104,16 +104,16 @@ void ecdh_free( ecdh_context *ctx )
 }
 
 /*
- * Setup and write the ServerKeyExhange parameters
+ * Setup and write the ServerKeyExhange parameters (RFC 4492)
  *      struct {
  *          ECParameters    curve_params;
  *          ECPoint         public;
  *      } ServerECDHParams;
  */
-int ecdh_make_server_params( ecdh_context *ctx, size_t *olen,
-                             unsigned char *buf, size_t blen,
-                             int (*f_rng)(void *, unsigned char *, size_t),
-                             void *p_rng )
+int ecdh_make_params( ecdh_context *ctx, size_t *olen,
+                      unsigned char *buf, size_t blen,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng )
 {
     int ret;
     size_t grp_len, pt_len;
@@ -137,6 +137,27 @@ int ecdh_make_server_params( ecdh_context *ctx, size_t *olen,
     return 0;
 }
 
+/*
+ * Read the ServerKeyExhange parameters (RFC 4492)
+ *      struct {
+ *          ECParameters    curve_params;
+ *          ECPoint         public;
+ *      } ServerECDHParams;
+ */
+int ecdh_read_params( ecdh_context *ctx,
+                      const unsigned char **buf, const unsigned char *end )
+{
+    int ret;
+
+    if( ( ret = ecp_tls_read_group( &ctx->grp, buf, end - *buf ) ) != 0 )
+        return( ret );
+
+    if( ( ret = ecp_tls_read_point( &ctx->grp, &ctx->Qp, buf, end - *buf ) )
+                != 0 )
+        return( ret );
+
+    return 0;
+}
 
 #if defined(POLARSSL_SELF_TEST)
 

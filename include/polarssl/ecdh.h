@@ -105,10 +105,22 @@ void ecdh_free( ecdh_context *ctx );
  *
  * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
  */
-int ecdh_make_server_params( ecdh_context *ctx, size_t *olen,
-                             unsigned char *buf, size_t blen,
-                             int (*f_rng)(void *, unsigned char *, size_t),
-                             void *p_rng );
+int ecdh_make_params( ecdh_context *ctx, size_t *olen,
+                      unsigned char *buf, size_t blen,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng );
+
+/**
+ * \brief           Parse the ServerKeyExhange parameters
+ *
+ * \param ctx       ECDH context
+ * \param buf       $(start of input buffer)
+ * \param end       one past end of buffer
+ *
+ * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ */
+int ecdh_read_params( ecdh_context *ctx,
+                      const unsigned char **buf, const unsigned char *end );
 
 /**
  * \brief          Checkup routine

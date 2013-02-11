@@ -78,3 +78,28 @@ ecdh_primitive_testvec:id:dA:xA:yA:dB:xB:yB:z
     mpi_free( &zA ); mpi_free( &zB ); mpi_free( &check );
 }
 END_CASE
+
+BEGIN_CASE
+ecdh_exchange:id
+{
+    ecdh_context srv, cli;
+    unsigned char buf[1000];
+    const unsigned char *vbuf;
+    size_t len;
+    rnd_pseudo_info rnd_info;
+
+    ecdh_init( &srv );
+    ecdh_init( &cli );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &srv.grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
+    TEST_ASSERT( ecdh_make_params( &srv, &len, buf, 1000,
+                                   &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecdh_read_params( &cli, &vbuf, buf + len ) == 0 );
+
+    ecdh_free( &srv );
+    ecdh_free( &cli );
+}
+END_CASE

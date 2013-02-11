@@ -150,6 +150,19 @@ int ecdh_read_public( ecdh_context *ctx,
                       const unsigned char *buf, size_t blen );
 
 /**
+ * \brief           Derive and export the shared secret
+ *
+ * \param ctx       ECDH context
+ * \param olen      number of bytes written
+ * \param buf       destination buffer
+ * \param blen      buffer length
+ *
+ * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ */
+int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
+                      unsigned char *buf, size_t blen );
+
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

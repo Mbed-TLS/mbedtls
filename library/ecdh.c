@@ -186,6 +186,23 @@ int ecdh_read_public( ecdh_context *ctx,
     return ecp_tls_read_point( &ctx->grp, &ctx->Qp, &buf, blen );
 }
 
+/*
+ * Derive and export the shared secret
+ */
+int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
+                      unsigned char *buf, size_t blen )
+{
+    int ret;
+
+    if( ( ret = ecdh_compute_shared( &ctx->grp, &ctx->z, &ctx->Qp, &ctx->d ) )
+                != 0 )
+        return( ret );
+
+    *olen = mpi_size( &ctx->z );
+    return mpi_write_binary( &ctx->z, buf, blen );
+}
+
+
 #if defined(POLARSSL_SELF_TEST)
 
 /*

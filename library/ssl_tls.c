@@ -3025,6 +3025,13 @@ int ssl_session_reset( ssl_context *ssl )
         ssl->transform = NULL;
     }
 
+    if( ssl->session )
+    {
+        ssl_session_free( ssl->session );
+        free( ssl->session );
+        ssl->session = NULL;
+    }
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -3889,6 +3896,12 @@ void ssl_free( ssl_context *ssl )
         free( ssl->handshake );
         free( ssl->transform_negotiate );
         free( ssl->session_negotiate );
+    }
+
+    if( ssl->session )
+    {
+        ssl_session_free( ssl->session );
+        free( ssl->session );
     }
 
     if ( ssl->hostname != NULL)

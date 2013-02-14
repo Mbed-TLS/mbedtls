@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Master
+Bugfix
+   * Fixed memory leak in ssl_free() and ssl_reset() for active session
+
 = Version 1.2.5 released 2013-02-02
 Changes
    * Allow enabling of dummy error_strerror() to support some use-cases

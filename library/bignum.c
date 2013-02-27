@@ -1372,7 +1372,7 @@ static void mpi_montred( mpi *A, const mpi *N, t_uint mm, const mpi *T )
     t_uint z = 1;
     mpi U;
 
-    U.n = U.s = z;
+    U.n = U.s = (int) z;
     U.p = &z;
 
     mpi_montmul( A, &U, N, mm, T );

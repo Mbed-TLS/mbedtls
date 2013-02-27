@@ -122,7 +122,7 @@ typedef uint16_t t_uint;
 typedef uint32_t t_udbl;
 #define POLARSSL_HAVE_UDBL
 #else
-  #if ( defined(__MSC_VER) && defined(_M_AMD64) )
+  #if ( defined(_MSC_VER) && defined(_M_AMD64) )
     typedef  int64_t t_sint;
     typedef uint64_t t_uint;
   #else

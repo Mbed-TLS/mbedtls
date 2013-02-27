@@ -3,6 +3,8 @@ PolarSSL ChangeLog
 = Master
 Bugfix
    * Fixed memory leak in ssl_free() and ssl_reset() for active session
+   * Corrected GCM counter incrementation to use only 32-bits instead of
+     128-bits (found by Yawning Angel)
 
 Security
    * Removed further timing differences during SSL message decryption in

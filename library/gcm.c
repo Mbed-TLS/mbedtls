@@ -263,7 +263,7 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     {
         use_len = ( length < 16 ) ? length : 16;
 
-        for( i = 16; i > 0; i-- )
+        for( i = 16; i > 12; i-- )
             if( ++y[i - 1] != 0 )
                 break;
 

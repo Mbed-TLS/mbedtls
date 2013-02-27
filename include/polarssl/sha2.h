@@ -160,6 +160,9 @@ void sha2_hmac( const unsigned char *key, size_t keylen,
  */
 int sha2_self_test( int verbose );
 
+/* Internal use */
+void sha2_process( sha2_context *ctx, const unsigned char data[64] );
+
 #ifdef __cplusplus
 }
 #endif

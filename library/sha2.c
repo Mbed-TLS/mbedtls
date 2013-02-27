@@ -97,7 +97,7 @@ void sha2_starts( sha2_context *ctx, int is224 )
     ctx->is224 = is224;
 }
 
-static void sha2_process( sha2_context *ctx, const unsigned char data[64] )
+void sha2_process( sha2_context *ctx, const unsigned char data[64] )
 {
     uint32_t temp1, temp2, W[64];
     uint32_t A, B, C, D, E, F, G, H;

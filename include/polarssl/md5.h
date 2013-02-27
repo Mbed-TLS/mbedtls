@@ -154,6 +154,9 @@ void md5_hmac( const unsigned char *key, size_t keylen,
  */
 int md5_self_test( int verbose );
 
+/* Internal use */
+void md5_process( md5_context *ctx, const unsigned char data[64] );
+
 #ifdef __cplusplus
 }
 #endif

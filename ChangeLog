@@ -17,6 +17,9 @@ Changes
 Security
    * Removed further timing differences during SSL message decryption in
      ssl_decrypt_buf()
+   * Removed timing differences due to bad padding from
+     rsa_rsaes_pkcs1_v15_decrypt() and rsa_pkcs1_decrypt() for PKCS#1 v1.5
+     operations
 
 = Version 1.2.5 released 2013-02-02
 Changes

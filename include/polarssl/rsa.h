@@ -255,7 +255,9 @@ int rsa_private( rsa_context *ctx,
                  unsigned char *output );
 
 /**
- * \brief          Add the message padding, then do an RSA operation
+ * \brief          Generic wrapper to perform a PKCS#1 encryption using the
+ *                 mode from the context. Add the message padding, then do an
+ *                 RSA operation.
  *
  * \param ctx      RSA context
  * \param f_rng    RNG function (Needed for padding and PKCS#1 v2.1 encoding)
@@ -278,7 +280,55 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
                        unsigned char *output );
 
 /**
- * \brief          Do an RSA operation, then remove the message padding
+ * \brief          Perform a PKCS#1 v1.5 encryption (RSAES-PKCS1-v1_5-ENCRYPT)
+ *
+ * \param ctx      RSA context
+ * \param f_rng    RNG function (Needed for padding)
+ * \param p_rng    RNG parameter
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param ilen     contains the plaintext length
+ * \param input    buffer holding the data to be encrypted
+ * \param output   buffer that will hold the ciphertext
+ *
+ * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The output buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ */
+int rsa_rsaes_pkcs1_v15_encrypt( rsa_context *ctx,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng,
+                                 int mode, size_t ilen,
+                                 const unsigned char *input,
+                                 unsigned char *output );
+
+/**
+ * \brief          Perform a PKCS#1 v2.1 OAEP encryption (RSAES-OAEP-ENCRYPT)
+ *
+ * \param ctx      RSA context
+ * \param f_rng    RNG function (Needed for padding and PKCS#1 v2.1 encoding)
+ * \param p_rng    RNG parameter
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param ilen     contains the plaintext length
+ * \param input    buffer holding the data to be encrypted
+ * \param output   buffer that will hold the ciphertext
+ *
+ * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The output buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ */
+int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng,
+                            int mode, size_t ilen,
+                            const unsigned char *input,
+                            unsigned char *output );
+
+/**
+ * \brief          Generic wrapper to perform a PKCS#1 decryption using the
+ *                 mode from the context. Do an RSA operation, then remove
+ *                 the message padding
  *
  * \param ctx      RSA context
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
@@ -300,7 +350,53 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
                        size_t output_max_len );
 
 /**
- * \brief          Do a private RSA to sign a message digest
+ * \brief          Perform a PKCS#1 v1.5 decryption (RSAES-PKCS1-v1_5-DECRYPT)
+ *
+ * \param ctx      RSA context
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param olen     will contain the plaintext length
+ * \param input    buffer holding the encrypted data
+ * \param output   buffer that will hold the plaintext
+ * \param output_max_len    maximum length of the output buffer
+ *
+ * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The output buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used) otherwise
+ *                 an error is thrown.
+ */
+int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
+                                 int mode, size_t *olen,
+                                 const unsigned char *input,
+                                 unsigned char *output,
+                                 size_t output_max_len );
+
+/**
+ * \brief          Perform a PKCS#1 v2.1 OAEP decryption (RSAES-OAEP-DECRYPT)
+ *
+ * \param ctx      RSA context
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param olen     will contain the plaintext length
+ * \param input    buffer holding the encrypted data
+ * \param output   buffer that will hold the plaintext
+ * \param output_max_len    maximum length of the output buffer
+ *
+ * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The output buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used) otherwise
+ *                 an error is thrown.
+ */
+int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
+                            int mode, size_t *olen,
+                            const unsigned char *input,
+                            unsigned char *output,
+                            size_t output_max_len );
+
+/**
+ * \brief          Generic wrapper to perform a PKCS#1 signature using the
+ *                 mode from the context. Do a private RSA operation to sign
+ *                 a message digest
  *
  * \param ctx      RSA context
  * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding)
@@ -333,7 +429,65 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                     unsigned char *sig );
 
 /**
- * \brief          Do a public RSA and check the message digest
+ * \brief          Perform a PKCS#1 v1.5 signature (RSASSA-PKCS1-v1_5-SIGN)
+ *
+ * \param ctx      RSA context
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
+ * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param hash     buffer holding the message digest
+ * \param sig      buffer that will hold the ciphertext
+ *
+ * \return         0 if the signing operation was successful,
+ *                 or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The "sig" buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ */
+int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
+                               int mode,
+                               int hash_id,
+                               unsigned int hashlen,
+                               const unsigned char *hash,
+                               unsigned char *sig );
+
+/**
+ * \brief          Perform a PKCS#1 v2.1 PSS signature (RSASSA-PSS-SIGN)
+ *
+ * \param ctx      RSA context
+ * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding)
+ * \param p_rng    RNG parameter
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
+ * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param hash     buffer holding the message digest
+ * \param sig      buffer that will hold the ciphertext
+ *
+ * \return         0 if the signing operation was successful,
+ *                 or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The "sig" buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
+ * \note           In case of PKCS#1 v2.1 encoding keep in mind that
+ *                 the hash_id in the RSA context is the one used for the
+ *                 encoding. hash_id in the function call is the type of hash
+ *                 that is encoded. According to RFC 3447 it is advised to
+ *                 keep both hashes the same.
+ */
+int rsa_rsassa_pss_sign( rsa_context *ctx,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng,
+                         int mode,
+                         int hash_id,
+                         unsigned int hashlen,
+                         const unsigned char *hash,
+                         unsigned char *sig );
+
+/**
+ * \brief          Generic wrapper to perform a PKCS#1 verification using the
+ *                 mode from the context. Do a public RSA operation and check
+ *                 the message digest
  *
  * \param ctx      points to an RSA public key
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
@@ -360,6 +514,59 @@ int rsa_pkcs1_verify( rsa_context *ctx,
                       unsigned int hashlen,
                       const unsigned char *hash,
                       unsigned char *sig );
+
+/**
+ * \brief          Perform a PKCS#1 v1.5 verification (RSASSA-PKCS1-v1_5-VERIFY)
+ *
+ * \param ctx      points to an RSA public key
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
+ * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param hash     buffer holding the message digest
+ * \param sig      buffer holding the ciphertext
+ *
+ * \return         0 if the verify operation was successful,
+ *                 or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The "sig" buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ */
+int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
+                                 int mode,
+                                 int hash_id,
+                                 unsigned int hashlen,
+                                 const unsigned char *hash,
+                                 unsigned char *sig );
+
+/**
+ * \brief          Perform a PKCS#1 v2.1 PSS verification (RSASSA-PSS-VERIFY)
+ * \brief          Do a public RSA and check the message digest
+ *
+ * \param ctx      points to an RSA public key
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
+ * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param hash     buffer holding the message digest
+ * \param sig      buffer holding the ciphertext
+ *
+ * \return         0 if the verify operation was successful,
+ *                 or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The "sig" buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
+ * \note           In case of PKCS#1 v2.1 encoding keep in mind that
+ *                 the hash_id in the RSA context is the one used for the
+ *                 verification. hash_id in the function call is the type of hash
+ *                 that is verified. According to RFC 3447 it is advised to
+ *                 keep both hashes the same.
+ */
+int rsa_rsassa_pss_verify( rsa_context *ctx,
+                           int mode,
+                           int hash_id,
+                           unsigned int hashlen,
+                           const unsigned char *hash,
+                           unsigned char *sig );
 
 /**
  * \brief          Free the components of an RSA key

@@ -309,6 +309,8 @@ int rsa_rsaes_pkcs1_v15_encrypt( rsa_context *ctx,
  * \param f_rng    RNG function (Needed for padding and PKCS#1 v2.1 encoding)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param label    buffer holding the custom label to use
+ * \param label_len contains the label length
  * \param ilen     contains the plaintext length
  * \param input    buffer holding the data to be encrypted
  * \param output   buffer that will hold the ciphertext
@@ -321,7 +323,9 @@ int rsa_rsaes_pkcs1_v15_encrypt( rsa_context *ctx,
 int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng,
-                            int mode, size_t ilen,
+                            int mode,
+                            const unsigned char *label, size_t label_len,
+                            size_t ilen,
                             const unsigned char *input,
                             unsigned char *output );
 
@@ -376,6 +380,8 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
  *
  * \param ctx      RSA context
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param label    buffer holding the custom label to use
+ * \param label_len contains the label length
  * \param olen     will contain the plaintext length
  * \param input    buffer holding the encrypted data
  * \param output   buffer that will hold the plaintext
@@ -388,7 +394,9 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
  *                 an error is thrown.
  */
 int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
-                            int mode, size_t *olen,
+                            int mode,
+                            const unsigned char *label, size_t label_len,
+                            size_t *olen,
                             const unsigned char *input,
                             unsigned char *output,
                             size_t output_max_len );

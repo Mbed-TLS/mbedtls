@@ -368,7 +368,9 @@ static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src, size_
 int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng,
-                            int mode, size_t ilen,
+                            int mode,
+                            const unsigned char *label, size_t label_len,
+                            size_t ilen,
                             const unsigned char *input,
                             unsigned char *output )
 {
@@ -406,7 +408,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
 
     // Construct DB
     //
-    md( md_info, p, 0, p );
+    md( md_info, label, label_len, p );
     p += hlen;
     p += olen - 2 * hlen - 2 - ilen;
     *p++ = 1;
@@ -525,7 +527,9 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
  * Implementation of the PKCS#1 v2.1 RSAES-OAEP-DECRYPT function
  */
 int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
-                            int mode, size_t *olen,
+                            int mode, 
+                            const unsigned char *label, size_t label_len,
+                            size_t *olen,
                             const unsigned char *input,
                             unsigned char *output,
                             size_t output_max_len )
@@ -569,7 +573,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
 
     // Generate lHash
     //
-    md( md_info, lhash, 0, lhash );
+    md( md_info, label, label_len, lhash );
 
     // seed: Apply seedMask to maskedSeed
     //

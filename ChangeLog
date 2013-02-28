@@ -11,6 +11,8 @@ Changes
    * Internally split up rsa_pkcs1_encrypt(), rsa_pkcs1_decrypt(),
      rsa_pkcs1_sign() and rsa_pkcs1_verify() to separate PKCS#1 v1.5 and
      PKCS#1 v2.1 functions
+   * Added support for custom labels when using rsa_rsaes_oaep_encrypt()
+     or rsa_rsaes_oaep_decrypt()
 
 Security
    * Removed further timing differences during SSL message decryption in

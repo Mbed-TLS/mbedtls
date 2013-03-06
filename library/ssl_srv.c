@@ -191,6 +191,216 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
+static int ssl_parse_client_hello_v2( ssl_context *ssl )
+{
+    int ret;
+    unsigned int i, j;
+    size_t n;
+    unsigned int ciph_len, sess_len, chal_len;
+    unsigned char *buf, *p;
+
+    SSL_DEBUG_MSG( 2, ( "=> parse client hello v2" ) );
+
+    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE )
+    {
+        SSL_DEBUG_MSG( 1, ( "client hello v2 illegal for renegotiation" ) );
+
+        if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+            return( ret );
+
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    buf = ssl->in_hdr;
+
+    SSL_DEBUG_BUF( 4, "record header", buf, 5 );
+
+    SSL_DEBUG_MSG( 3, ( "client hello v2, message type: %d",
+                   buf[2] ) );
+    SSL_DEBUG_MSG( 3, ( "client hello v2, message len.: %d",
+                   ( ( buf[0] & 0x7F ) << 8 ) | buf[1] ) );
+    SSL_DEBUG_MSG( 3, ( "client hello v2, max. version: [%d:%d]",
+                   buf[3], buf[4] ) );
+
+    /*
+     * SSLv2 Client Hello
+     *
+     * Record layer:
+     *     0  .   1   message length
+     *
+     * SSL layer:
+     *     2  .   2   message type
+     *     3  .   4   protocol version
+     */
+    if( buf[2] != SSL_HS_CLIENT_HELLO ||
+        buf[3] != SSL_MAJOR_VERSION_3 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    n = ( ( buf[0] << 8 ) | buf[1] ) & 0x7FFF;
+
+    if( n < 17 || n > 512 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    ssl->major_ver = SSL_MAJOR_VERSION_3;
+    ssl->minor_ver = ( buf[4] <= SSL_MINOR_VERSION_3 )
+                     ? buf[4]  : SSL_MINOR_VERSION_3;
+
+    if( ssl->minor_ver < ssl->min_minor_ver )
+    {
+        SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
+                            " [%d:%d] < [%d:%d]", ssl->major_ver, ssl->minor_ver,
+                            ssl->min_major_ver, ssl->min_minor_ver ) );
+
+        ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
+                                     SSL_ALERT_MSG_PROTOCOL_VERSION );
+        return( POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+    }
+
+    ssl->max_major_ver = buf[3];
+    ssl->max_minor_ver = buf[4];
+
+    if( ( ret = ssl_fetch_input( ssl, 2 + n ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+        return( ret );
+    }
+
+    ssl->handshake->update_checksum( ssl, buf + 2, n );
+
+    buf = ssl->in_msg;
+    n = ssl->in_left - 5;
+
+    /*
+     *    0  .   1   ciphersuitelist length
+     *    2  .   3   session id length
+     *    4  .   5   challenge length
+     *    6  .  ..   ciphersuitelist
+     *   ..  .  ..   session id
+     *   ..  .  ..   challenge
+     */
+    SSL_DEBUG_BUF( 4, "record contents", buf, n );
+
+    ciph_len = ( buf[0] << 8 ) | buf[1];
+    sess_len = ( buf[2] << 8 ) | buf[3];
+    chal_len = ( buf[4] << 8 ) | buf[5];
+
+    SSL_DEBUG_MSG( 3, ( "ciph_len: %d, sess_len: %d, chal_len: %d",
+                   ciph_len, sess_len, chal_len ) );
+
+    /*
+     * Make sure each parameter length is valid
+     */
+    if( ciph_len < 3 || ( ciph_len % 3 ) != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    if( sess_len > 32 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    if( chal_len < 8 || chal_len > 32 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    if( n != 6 + ciph_len + sess_len + chal_len )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
+                   buf + 6, ciph_len );
+    SSL_DEBUG_BUF( 3, "client hello, session id",
+                   buf + 6 + ciph_len, sess_len );
+    SSL_DEBUG_BUF( 3, "client hello, challenge",
+                   buf + 6 + ciph_len + sess_len, chal_len );
+
+    p = buf + 6 + ciph_len;
+    ssl->session_negotiate->length = sess_len;
+    memset( ssl->session_negotiate->id, 0, sizeof( ssl->session_negotiate->id ) );
+    memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->length );
+
+    p += sess_len;
+    memset( ssl->handshake->randbytes, 0, 64 );
+    memcpy( ssl->handshake->randbytes + 32 - chal_len, p, chal_len );
+
+    /*
+     * Check for TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+     */
+    for( i = 0, p = buf + 6; i < ciph_len; i += 3, p += 3 )
+    {
+        if( p[0] == 0 && p[1] == 0 && p[2] == SSL_EMPTY_RENEGOTIATION_INFO )
+        {
+            SSL_DEBUG_MSG( 3, ( "received TLS_EMPTY_RENEGOTIATION_INFO " ) );
+            if( ssl->renegotiation == SSL_RENEGOTIATION )
+            {
+                SSL_DEBUG_MSG( 1, ( "received RENEGOTIATION SCSV during renegotiation" ) );
+
+                if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                    return( ret );
+
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+            ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
+            break;
+        }
+    }
+
+    for( i = 0; ssl->ciphersuites[i] != 0; i++ )
+    {
+        for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
+        {
+            if( p[0] == 0 &&
+                p[1] == 0 &&
+                p[2] == ssl->ciphersuites[i] )
+                goto have_ciphersuite_v2;
+        }
+    }
+
+    SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
+
+    return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+
+have_ciphersuite_v2:
+    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
+    ssl_optimize_checksum( ssl, ssl->session_negotiate->ciphersuite );
+
+    /*
+     * SSLv2 Client Hello relevant renegotiation security checks
+     */
+    if( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
+        ssl->allow_legacy_renegotiation == SSL_LEGACY_BREAK_HANDSHAKE )
+    {
+        SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
+
+        if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+            return( ret );
+
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    ssl->in_left = 0;
+    ssl->state++;
+
+    SSL_DEBUG_MSG( 2, ( "<= parse client hello v2" ) );
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
+
 static int ssl_parse_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -213,6 +423,11 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     }
 
     buf = ssl->in_hdr;
+
+#if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
+    if( ( buf[0] & 0x80 ) != 0 )
+        return ssl_parse_client_hello_v2( ssl );
+#endif
 
     SSL_DEBUG_BUF( 4, "record header", buf, 5 );
 

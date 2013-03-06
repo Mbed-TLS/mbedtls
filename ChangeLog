@@ -14,6 +14,8 @@ Changes
      PKCS#1 v2.1 functions
    * Added support for custom labels when using rsa_rsaes_oaep_encrypt()
      or rsa_rsaes_oaep_decrypt()
+   * Re-added handling for SSLv2 Client Hello when the define
+     POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is set
 
 Security
    * Removed further timing differences during SSL message decryption in

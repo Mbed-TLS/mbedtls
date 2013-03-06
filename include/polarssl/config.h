@@ -279,6 +279,16 @@
  */
 
 /**
+ * \def POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
+ *
+ * Enable support for receiving and parsing SSLv2 Client Hello messages for the
+ * SSL Server module (POLARSSL_SSL_SRV_C)
+ *
+ * Comment this macro to disable support for SSLv2 Client Hello messages.
+ */
+#define POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
+
+/**
  * \def POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate

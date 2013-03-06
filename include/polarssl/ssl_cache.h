@@ -46,6 +46,7 @@ struct _ssl_cache_entry
 {
     time_t timestamp;           /*!< entry timestamp    */
     ssl_session session;        /*!< entry session      */
+    x509_buf peer_cert;         /*!< entry peer_cert    */
     ssl_cache_entry *next;      /*!< chain pointer      */
 };
 

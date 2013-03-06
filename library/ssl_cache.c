@@ -71,6 +71,26 @@ int ssl_cache_get( void *data, ssl_session *session )
             continue;
 
         memcpy( session->master, entry->session.master, 48 );
+
+        /*
+         * Restore peer certificate (without rest of the original chain)
+         */
+        if( entry->peer_cert.p != NULL )
+        {
+            session->peer_cert = (x509_cert *) malloc( sizeof(x509_cert) );
+            if( session->peer_cert == NULL )
+                return( 1 );
+
+            memset( session->peer_cert, 0, sizeof(x509_cert) );
+            if( x509parse_crt( session->peer_cert, entry->peer_cert.p,
+                               entry->peer_cert.len ) != 0 )
+            {
+                free( session->peer_cert );
+                session->peer_cert = NULL;
+                return( 1 );
+            }
+        }
+
         return( 0 );
     }
 
@@ -119,15 +139,20 @@ int ssl_cache_set( void *data, const ssl_session *session )
         if( old != NULL && count >= cache->max_entries )
         {
             cur = old;
-            memset( &cur->session, 0, sizeof( ssl_session ) );
+            memset( &cur->session, 0, sizeof(ssl_session) );
+            if( cur->peer_cert.p != NULL )
+            {
+                free( cur->peer_cert.p );
+                memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+            }
         }
         else
         {
-            cur = (ssl_cache_entry *) malloc( sizeof( ssl_cache_entry ) );
+            cur = (ssl_cache_entry *) malloc( sizeof(ssl_cache_entry) );
             if( cur == NULL )
                 return( 1 );
 
-            memset( cur, 0, sizeof( ssl_cache_entry ) );
+            memset( cur, 0, sizeof(ssl_cache_entry) );
 
             if( prv == NULL )
                 cache->chain = cur;
@@ -140,9 +165,21 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
     memcpy( &cur->session, session, sizeof( ssl_session ) );
     
-    // Do not include peer_cert in cache entry
-    //
-    cur->session.peer_cert = NULL;
+    /*
+     * Store peer certificate
+     */
+    if( session->peer_cert != NULL )
+    {
+        cur->peer_cert.p = (unsigned char *) malloc( session->peer_cert->raw.len );
+        if( cur->peer_cert.p == NULL )
+            return( 1 );
+
+        memcpy( cur->peer_cert.p, session->peer_cert->raw.p,
+                session->peer_cert->raw.len );
+        cur->peer_cert.len = session->peer_cert->raw.len;
+
+        cur->session.peer_cert = NULL;
+    }
 
     return( 0 );
 }
@@ -173,6 +210,10 @@ void ssl_cache_free( ssl_cache_context *cache )
         cur = cur->next;
 
         ssl_session_free( &prv->session );
+
+        if( prv->peer_cert.p != NULL )
+            free( prv->peer_cert.p );
+
         free( prv );
     }
 }

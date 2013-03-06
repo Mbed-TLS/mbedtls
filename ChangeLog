@@ -16,6 +16,8 @@ Changes
      or rsa_rsaes_oaep_decrypt()
    * Re-added handling for SSLv2 Client Hello when the define
      POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is set
+   * The SSL session cache module (ssl_cache) now also retains peer_cert
+     information (not the entire chain)
 
 Security
    * Removed further timing differences during SSL message decryption in

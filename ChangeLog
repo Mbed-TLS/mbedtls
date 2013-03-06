@@ -31,7 +31,7 @@ Changes
      disabled by default and can be enabled with POLARSSL_SSL_DEBUG_ALL 
    * Sending of security-relevant alert messages that do not break
      interoperability can be switched on/off with the flag
-	 POLARSSL_SSL_ALL_ALERT_MESSAGES
+     POLARSSL_SSL_ALL_ALERT_MESSAGES
 
 Security
    * Removed timing differences during SSL message decryption in
@@ -230,12 +230,12 @@ Changes
      management (Closes ticket #44)
    * Changed the used random function pointer to more flexible format. Renamed
      havege_rand() to havege_random() to prevent mistakes. Lots of changes as
-	 a consequence in library code and programs
+     a consequence in library code and programs
    * Moved all examples programs to use the new entropy and CTR_DRBG
    * Added permissive certificate parsing to x509parse_crt() and
      x509parse_crtfile(). With permissive parsing the parsing does not stop on
-	 encountering a parse-error. Beware that the meaning of return values has
-	 changed!
+     encountering a parse-error. Beware that the meaning of return values has
+     changed!
    * All error codes are now negative. Even on mermory failures and IO errors.
 
 Bugfix
@@ -271,7 +271,7 @@ Bugfix
 Features
    * Added additional Cipher Block Modes to symmetric ciphers
      (AES CTR, Camellia CTR, XTEA CBC) including the option to
-	 enable and disable individual modes when needed
+     enable and disable individual modes when needed
    * Functions requiring File System functions can now be disabled
      by undefining POLARSSL_FS_IO
    * A error_strerror function() has been added to translate between
@@ -283,22 +283,22 @@ Features
 Changes
    * Major argument / variable rewrite. Introduced use of size_t
      instead of int for buffer lengths and loop variables for
-	 better unsigned / signed use. Renamed internal bigint types
-	 t_int and t_dbl to t_uint and t_udbl in the process
+     better unsigned / signed use. Renamed internal bigint types
+     t_int and t_dbl to t_uint and t_udbl in the process
    * mpi_init() and mpi_free() now only accept a single MPI
      argument and do not accept variable argument lists anymore.
    * The error codes have been remapped and combining error codes
      is now done with a PLUS instead of an OR as error codes
-	 used are negative.
+     used are negative.
    * Changed behaviour of net_read(), ssl_fetch_input() and ssl_recv().
      net_recv() now returns 0 on EOF instead of
-	 POLARSSL_ERR_NET_CONN_RESET. ssl_fetch_input() returns
-	 POLARSSL_ERR_SSL_CONN_EOF on an EOF from its f_recv() function.
-	 ssl_read() returns 0 if a POLARSSL_ERR_SSL_CONN_EOF is received
-	 after the handshake.
+     POLARSSL_ERR_NET_CONN_RESET. ssl_fetch_input() returns
+     POLARSSL_ERR_SSL_CONN_EOF on an EOF from its f_recv() function.
+     ssl_read() returns 0 if a POLARSSL_ERR_SSL_CONN_EOF is received
+     after the handshake.
    * Network functions now return POLARSSL_ERR_NET_WANT_READ or
      POLARSSL_ERR_NET_WANT_WRITE instead of the ambiguous
-	 POLARSSL_ERR_NET_TRY_AGAIN
+     POLARSSL_ERR_NET_TRY_AGAIN
 
 = Version 0.99-pre4 released on 2011-04-01
 Features
@@ -314,12 +314,12 @@ Changes
      displays actual bit size of the value.
    * x509parse_key() (and as a consequence x509parse_keyfile()) 
      does not zeroize memory in advance anymore. Use rsa_init()
-	 before parsing a key or keyfile!
+     before parsing a key or keyfile!
 
 Bugfix
    * Debug output of MPI's now the same independent of underlying
      platform (32-bit / 64-bit) (Fixes ticket #19, found by Mads
-	 Kiilerich and Mihai Militaru)
+     Kiilerich and Mihai Militaru)
    * Fixed bug in ssl_write() when flushing old data (Fixed ticket
      #18, found by Nikolay Epifanov)
    * Fixed proper handling of RSASSA-PSS verification with variable
@@ -336,7 +336,7 @@ Features
 Changes
    * Parsing of PEM files moved to separate module (Fixes 
      ticket #13). Also possible to remove PEM support for
-	 systems only using DER encoding
+     systems only using DER encoding
 
 Bugfixes
    * Corrected parsing of UTCTime dates before 1990 and
@@ -348,12 +348,12 @@ Bugfixes
    * Replaced the expired test certificates
    * Do not bail out if no client certificate specified. Try
      to negotiate anonymous connection (Fixes ticket #12,
-	 found by Boris Krasnovskiy)
+     found by Boris Krasnovskiy)
 
 Security fixes
    * Fixed a possible Man-in-the-Middle attack on the
      Diffie Hellman key exchange (thanks to Larry Highsmith,
-	 Subreption LLC)
+     Subreption LLC)
 
 = Version 0.99-pre1 released on 2011-01-30
 Features
@@ -381,9 +381,9 @@ Changes
      the existing date check
    * The ciphers member of ssl_context and the cipher member
      of ssl_session have been renamed to ciphersuites and
-	 ciphersuite respectively. This clarifies the difference
-	 with the generic cipher layer and is better naming
-	 altogether
+     ciphersuite respectively. This clarifies the difference
+     with the generic cipher layer and is better naming
+     altogether
 
 = Version 0.14.0 released on 2010-08-16
 Features
@@ -397,8 +397,8 @@ Changes
    * Made Makefile cleaner
    * Removed dependency on rand() in rsa_pkcs1_encrypt().
      Now using random fuction provided to function and
-	 changed the prototype of rsa_pkcs1_encrypt(),
-	 rsa_init() and rsa_gen_key().
+     changed the prototype of rsa_pkcs1_encrypt(),
+     rsa_init() and rsa_gen_key().
    * Some SSL defines were renamed in order to avoid
      future confusion
 

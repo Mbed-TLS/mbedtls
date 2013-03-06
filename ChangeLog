@@ -7,6 +7,7 @@ Bugfix
      128-bits (found by Yawning Angel)
    * Fixes for 64-bit compilation with MS Visual Studio
    * Fixed net_bind() for specified IP addresses on little endian systems
+   * Fixed assembly code for ARM (Thumb and regular) for some compilers
 
 Changes
    * Internally split up rsa_pkcs1_encrypt(), rsa_pkcs1_decrypt(),

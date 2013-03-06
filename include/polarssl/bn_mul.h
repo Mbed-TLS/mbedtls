@@ -551,75 +551,97 @@
 #if defined(__thumb__)
 
 #define MULADDC_INIT                            \
-    asm( "ldr    r0, %0         " :: "m" (s));  \
-    asm( "ldr    r1, %0         " :: "m" (d));  \
-    asm( "ldr    r2, %0         " :: "m" (c));  \
-    asm( "ldr    r3, %0         " :: "m" (b));  \
-    asm( "lsr    r7, r3, #16    "           );  \
-    asm( "mov    r9, r7         "           );  \
-    asm( "lsl    r7, r3, #16    "           );  \
-    asm( "lsr    r7, r7, #16    "           );  \
-    asm( "mov    r8, r7         "           );
+    asm(                                        \
+         "                                      \
+            ldr    r0, %3;                      \
+            ldr    r1, %4;                      \
+            ldr    r2, %5;                      \
+            ldr    r3, %6;                      \
+            lsr    r7, r3, #16;                 \
+            mov    r9, r7;                      \
+            lsl    r7, r3, #16;                 \
+            lsr    r7, r7, #16;                 \
+            mov    r8, r7;                      \
+         "
 
 #define MULADDC_CORE                            \
-    asm( "ldmia  r0!, {r6}      " );            \
-    asm( "lsr    r7, r6, #16    " );            \
-    asm( "lsl    r6, r6, #16    " );            \
-    asm( "lsr    r6, r6, #16    " );            \
-    asm( "mov    r4, r8         " );            \
-    asm( "mul    r4, r6         " );            \
-    asm( "mov    r3, r9         " );            \
-    asm( "mul    r6, r3         " );            \
-    asm( "mov    r5, r9         " );            \
-    asm( "mul    r5, r7         " );            \
-    asm( "mov    r3, r8         " );            \
-    asm( "mul    r7, r3         " );            \
-    asm( "lsr    r3, r6, #16    " );            \
-    asm( "add    r5, r5, r3     " );            \
-    asm( "lsr    r3, r7, #16    " );            \
-    asm( "add    r5, r5, r3     " );            \
-    asm( "add    r4, r4, r2     " );            \
-    asm( "mov    r2, #0         " );            \
-    asm( "adc    r5, r2         " );            \
-    asm( "lsl    r3, r6, #16    " );            \
-    asm( "add    r4, r4, r3     " );            \
-    asm( "adc    r5, r2         " );            \
-    asm( "lsl    r3, r7, #16    " );            \
-    asm( "add    r4, r4, r3     " );            \
-    asm( "adc    r5, r2         " );            \
-    asm( "ldr    r3, [r1]       " );            \
-    asm( "add    r4, r4, r3     " );            \
-    asm( "adc    r2, r5         " );            \
-    asm( "stmia  r1!, {r4}      " );
+         "                                      \
+            ldmia  r0!, {r6};                   \
+            lsr    r7, r6, #16;                 \
+            lsl    r6, r6, #16;                 \
+            lsr    r6, r6, #16;                 \
+            mov    r4, r8;                      \
+            mul    r4, r6;                      \
+            mov    r3, r9;                      \
+            mul    r6, r3;                      \
+            mov    r5, r9;                      \
+            mul    r5, r7;                      \
+            mov    r3, r8;                      \
+            mul    r7, r3;                      \
+            lsr    r3, r6, #16;                 \
+            add    r5, r5, r3;                  \
+            lsr    r3, r7, #16;                 \
+            add    r5, r5, r3;                  \
+            add    r4, r4, r2;                  \
+            mov    r2, #0;                      \
+            adc    r5, r2;                      \
+            lsl    r3, r6, #16;                 \
+            add    r4, r4, r3;                  \
+            adc    r5, r2;                      \
+            lsl    r3, r7, #16;                 \
+            add    r4, r4, r3;                  \
+            adc    r5, r2;                      \
+            ldr    r3, [r1];                    \
+            add    r4, r4, r3;                  \
+            adc    r2, r5;                      \
+            stmia  r1!, {r4};                   \
+         "
 
 #define MULADDC_STOP                            \
-    asm( "str    r2, %0         " : "=m" (c));  \
-    asm( "str    r1, %0         " : "=m" (d));  \
-    asm( "str    r0, %0         " : "=m" (s) :: \
-    "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9" );
+         "                                      \
+            str    r2, %0;                      \
+            str    r1, %1;                      \
+            str    r0, %2;                      \
+         "                                      \
+         : "=m" (c),  "=m" (d), "=m" (s)        \
+         : "m" (s), "m" (d), "m" (c), "m" (b)   \
+         : "r0", "r1", "r2", "r3", "r4", "r5",  \
+           "r6", "r7", "r8", "r9"               \
+         );
 
 #else
 
 #define MULADDC_INIT                            \
-    asm( "ldr    r0, %0         " :: "m" (s));  \
-    asm( "ldr    r1, %0         " :: "m" (d));  \
-    asm( "ldr    r2, %0         " :: "m" (c));  \
-    asm( "ldr    r3, %0         " :: "m" (b));
+    asm(                                        \
+         "                                     \
+            ldr    r0, %3;                      \
+            ldr    r1, %4;                      \
+            ldr    r2, %5;                      \
+            ldr    r3, %6;                      \
+         "
 
 #define MULADDC_CORE                            \
-    asm( "ldr    r4, [r0], #4   " );            \
-    asm( "mov    r5, #0         " );            \
-    asm( "ldr    r6, [r1]       " );            \
-    asm( "umlal  r2, r5, r3, r4 " );            \
-    asm( "adds   r7, r6, r2     " );            \
-    asm( "adc    r2, r5, #0     " );            \
-    asm( "str    r7, [r1], #4   " );
+         "                                      \
+            ldr    r4, [r0], #4;                \
+            mov    r5, #0;                      \
+            ldr    r6, [r1];                    \
+            umlal  r2, r5, r3, r4;              \
+            adds   r7, r6, r2;                  \
+            adc    r2, r5, #0;                  \
+            str    r7, [r1], #4;                \
+         "
 
 #define MULADDC_STOP                            \
-    asm( "str    r2, %0         " : "=m" (c));  \
-    asm( "str    r1, %0         " : "=m" (d));  \
-    asm( "str    r0, %0         " : "=m" (s) :: \
-    "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7" );
+         "                                      \
+            str    r2, %0;                      \
+            str    r1, %1;                      \
+            str    r0, %2;                      \
+         "                                      \
+         : "=m" (c),  "=m" (d), "=m" (s)        \
+         : "m" (s), "m" (d), "m" (c), "m" (b)   \
+         : "r0", "r1", "r2", "r3", "r4", "r5",  \
+           "r6", "r7"                           \
+         );
 
 #endif /* Thumb */
 

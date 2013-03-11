@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Branch 1.1
+Changes
+   * Allow enabling of dummy error_strerror() to support some use-cases
+
 = Version 1.1.5 released on 2013-01-16
 Bugfix
    * Fixed MPI assembly for SPARC64 platform

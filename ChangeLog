@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Master
+= Version 1.2.6 released 2013-03-11
 Bugfix
    * Fixed memory leak in ssl_free() and ssl_reset() for active session
    * Corrected GCM counter incrementation to use only 32-bits instead of

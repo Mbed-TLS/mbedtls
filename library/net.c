@@ -80,12 +80,20 @@ static int wsa_init_done = 0;
  */
 #if defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN
 #define POLARSSL_HTONS(n) (n)
+#define POLARSSL_HTONL(n) (n)
 #else
-#define POLARSSL_HTONS(n) (((((unsigned short)(n) & 0xFF)) << 8) | (((unsigned short)(n) & 0xFF00) >> 8))
+#define POLARSSL_HTONS(n) ((((unsigned short)(n) & 0xFF      ) << 8 ) | \
+                           (((unsigned short)(n) & 0xFF00    ) >> 8 ))
+#define POLARSSL_HTONL(n) ((((unsigned long )(n) & 0xFF      ) << 24) | \
+                           (((unsigned long )(n) & 0xFF00    ) << 8 ) | \
+                           (((unsigned long )(n) & 0xFF0000  ) >> 8 ) | \
+                           (((unsigned long )(n) & 0xFF000000) >> 24))
 #endif
 
 unsigned short net_htons(unsigned short n);
+unsigned long  net_htonl(unsigned long  n);
 #define net_htons(n) POLARSSL_HTONS(n)
+#define net_htonl(n) POLARSSL_HTONL(n)
 
 /*
  * Initiate a TCP connection with host:port
@@ -161,7 +169,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
     setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
                 (const char *) &n, sizeof( n ) );
 
-    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_addr.s_addr = net_htonl( INADDR_ANY );
     server_addr.sin_family      = AF_INET;
     server_addr.sin_port        = net_htons( port );
 
@@ -175,11 +183,11 @@ int net_bind( int *fd, const char *bind_ip, int port )
                 break;
 
         if( n == 4 )
-            server_addr.sin_addr.s_addr =
+            server_addr.sin_addr.s_addr = net_htonl(
                 ( (unsigned long) c[0] << 24 ) |
                 ( (unsigned long) c[1] << 16 ) |
                 ( (unsigned long) c[2] <<  8 ) |
-                ( (unsigned long) c[3]       );
+                ( (unsigned long) c[3]       ) );
     }
 
     if( bind( *fd, (struct sockaddr *) &server_addr,

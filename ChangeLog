@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
 = Branch 1.1
+Bugfix
+   * Fixed net_bind() for specified IP addresses on little endian systems
+
 Changes
    * Allow enabling of dummy error_strerror() to support some use-cases
    * Debug messages about padding errors during SSL message decryption are

@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Branch 1.1
+= Version 1.1.6 released on 2013-03-11
 Bugfix
    * Fixed net_bind() for specified IP addresses on little endian systems
 
@@ -10,7 +10,7 @@ Changes
      disabled by default and can be enabled with POLARSSL_SSL_DEBUG_ALL
 
 Security
-   * Removed further timing differences during SSL message decryption in
+   * Removed timing differences during SSL message decryption in
      ssl_decrypt_buf()
    * Removed timing differences due to bad padding from
      rsa_rsaes_pkcs1_v15_decrypt() and rsa_pkcs1_decrypt() for PKCS#1 v1.5

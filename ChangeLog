@@ -7,8 +7,8 @@ Changes
      disabled by default and can be enabled with POLARSSL_SSL_DEBUG_ALL
 
 Security
-   * Removed timing differences during SSL message decryption in
-     ssl_decrypt_buf() due to badly formatted padding
+   * Removed further timing differences during SSL message decryption in
+     ssl_decrypt_buf()
 
 = Version 1.1.5 released on 2013-01-16
 Bugfix

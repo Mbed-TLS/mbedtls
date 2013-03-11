@@ -769,9 +769,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         if( ssl->in_msglen < ssl->maclen + padlen )
         {
+#if defined(POLARSSL_SSL_DEBUG_ALL)
             SSL_DEBUG_MSG( 1, ( "msglen (%d) < maclen (%d) + padlen (%d)",
                         ssl->in_msglen, ssl->maclen, padlen ) );
-
+#endif
             padlen = 0;
             fake_padlen = 256;
             correct = 0;
@@ -781,9 +782,11 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         {
             if( padlen > ssl->ivlen )
             {
+#if defined(POLARSSL_SSL_DEBUG_ALL)
                 SSL_DEBUG_MSG( 1, ( "bad padding length: is %d, "
                                     "should be no more than %d",
                                padlen, ssl->ivlen ) );
+#endif
                 correct = 0;
             }
         }
@@ -809,8 +812,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                 else
                     minlen = 1;
             }
+#if defined(POLARSSL_SSL_DEBUG_ALL)
             if( padlen > 0 && correct == 0)
                 SSL_DEBUG_MSG( 1, ( "bad padding byte detected" ) );
+#endif
         }
     }
 

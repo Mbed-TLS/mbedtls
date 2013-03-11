@@ -265,6 +265,8 @@
  *      SSL_RSA_AES_128_SHA
  *      SSL_RSA_AES_256_SHA
  *      SSL_EDH_RSA_AES_256_SHA
+ *
+ * PEM uses AES for decrypting encrypted keys.
  */
 #define POLARSSL_AES_C
 
@@ -392,11 +394,14 @@
  * Enable the DES block cipher.
  *
  * Module:  library/des.c
- * Caller:  library/ssl_tls.c
+ * Caller:  library/pem.c
+ *          library/ssl_tls.c
  *
  * This module enables the following ciphersuites:
  *      SSL_RSA_DES_168_SHA
  *      SSL_EDH_RSA_DES_168_SHA
+ *
+ * PEM uses DES/3DES for decrypting encrypted keys.
  */
 #define POLARSSL_DES_C
 
@@ -500,10 +505,12 @@
  * Enable the MD5 hash algorithm
  *
  * Module:  library/md5.c
- * Caller:  library/ssl_tls.c
+ * Caller:  library/pem.c
+ *          library/ssl_tls.c
  *          library/x509parse.c
  *
  * This module is required for SSL/TLS and X.509.
+ * PEM uses MD5 for decrypting encrypted keys.
  */
 #define POLARSSL_MD5_C
 

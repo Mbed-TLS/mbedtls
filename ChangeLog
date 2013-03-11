@@ -4,6 +4,10 @@ PolarSSL ChangeLog
 Changes
    * Allow enabling of dummy error_strerror() to support some use-cases
 
+Security
+   * Removed timing differences during SSL message decryption in
+     ssl_decrypt_buf() due to badly formatted padding
+
 = Version 1.1.5 released on 2013-01-16
 Bugfix
    * Fixed MPI assembly for SPARC64 platform

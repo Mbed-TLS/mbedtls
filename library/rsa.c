@@ -484,9 +484,9 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
                        unsigned char *output,
                        size_t output_max_len)
 {
-    int ret;
-    size_t ilen;
-    unsigned char *p;
+    int ret, correct = 1;
+    size_t ilen, pad_count = 0;
+    unsigned char *p, *q;
     unsigned char bt;
     unsigned char buf[1024];
 #if defined(POLARSSL_PKCS1_V21)
@@ -515,35 +515,56 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
         case RSA_PKCS_V15:
 
             if( *p++ != 0 )
-                return( POLARSSL_ERR_RSA_INVALID_PADDING );
+                correct = 0;
             
             bt = *p++;
             if( ( bt != RSA_CRYPT && mode == RSA_PRIVATE ) ||
                 ( bt != RSA_SIGN && mode == RSA_PUBLIC ) )
             {
-                return( POLARSSL_ERR_RSA_INVALID_PADDING );
+                correct = 0;
             }
 
             if( bt == RSA_CRYPT )
             {
                 while( *p != 0 && p < buf + ilen - 1 )
-                    p++;
+                    pad_count += ( *p++ != 0 );
 
-                if( *p != 0 || p >= buf + ilen - 1 )
-                    return( POLARSSL_ERR_RSA_INVALID_PADDING );
+                correct &= ( *p == 0 && p < buf + ilen - 1 );
 
+                q = p;
+
+                // Also pass over all other bytes to reduce timing differences
+                //
+                while ( q < buf + ilen - 1 )
+                    pad_count += ( *q++ != 0 );
+
+                // Prevent compiler optimization of pad_count
+                //
+                correct |= pad_count & 0x100000; /* Always 0 unless 1M bit keys */
                 p++;
             }
             else
             {
                 while( *p == 0xFF && p < buf + ilen - 1 )
-                    p++;
+                    pad_count += ( *p++ == 0xFF );
 
-                if( *p != 0 || p >= buf + ilen - 1 )
-                    return( POLARSSL_ERR_RSA_INVALID_PADDING );
+                correct &= ( *p == 0 && p < buf + ilen - 1 );
 
+                q = p;
+
+                // Also pass over all other bytes to reduce timing differences
+                //
+                while ( q < buf + ilen - 1 )
+                    pad_count += ( *q++ != 0 );
+
+                // Prevent compiler optimization of pad_count
+                //
+                correct |= pad_count & 0x100000; /* Always 0 unless 1M bit keys */
                 p++;
             }
+
+            if( correct == 0 )
+                return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
             break;
 

@@ -2362,7 +2362,7 @@ void ssl_free( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "<= free" ) );
 
-    /* Actually free after last debug message */
+    /* Actually clear after last debug message */
     memset( ssl, 0, sizeof( ssl_context ) );
 }
 

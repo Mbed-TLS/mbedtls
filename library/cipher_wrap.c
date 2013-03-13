@@ -1,5 +1,5 @@
 /**
- * \file md_wrap.c
+ * \file cipher_wrap.c
  * 
  * \brief Generic cipher wrapper for PolarSSL
  *
@@ -53,13 +53,13 @@
 
 #if defined(POLARSSL_AES_C)
 
-int aes_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
+static int aes_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return aes_crypt_cbc( (aes_context *) ctx, operation, length, iv, input, output );
 }
 
-int aes_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
+static int aes_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
         size_t *iv_off, unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
 #if defined(POLARSSL_CIPHER_MODE_CFB)
@@ -77,7 +77,7 @@ int aes_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
 #endif
 }
 
-int aes_crypt_ctr_wrap( void *ctx, size_t length,
+static int aes_crypt_ctr_wrap( void *ctx, size_t length,
         size_t *nc_off, unsigned char *nonce_counter, unsigned char *stream_block,
         const unsigned char *input, unsigned char *output )
 {
@@ -97,12 +97,12 @@ int aes_crypt_ctr_wrap( void *ctx, size_t length,
 #endif
 }
 
-int aes_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int aes_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return aes_setkey_dec( (aes_context *) ctx, key, key_length );
 }
 
-int aes_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int aes_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return aes_setkey_enc( (aes_context *) ctx, key, key_length );
 }
@@ -226,13 +226,13 @@ const cipher_info_t aes_256_ctr_info = {
 
 #if defined(POLARSSL_CAMELLIA_C)
 
-int camellia_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
+static int camellia_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return camellia_crypt_cbc( (camellia_context *) ctx, operation, length, iv, input, output );
 }
 
-int camellia_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
+static int camellia_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
         size_t *iv_off, unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
 #if defined(POLARSSL_CIPHER_MODE_CFB)
@@ -250,7 +250,7 @@ int camellia_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
 #endif
 }
 
-int camellia_crypt_ctr_wrap( void *ctx, size_t length,
+static int camellia_crypt_ctr_wrap( void *ctx, size_t length,
         size_t *nc_off, unsigned char *nonce_counter, unsigned char *stream_block,
         const unsigned char *input, unsigned char *output )
 {
@@ -270,12 +270,12 @@ int camellia_crypt_ctr_wrap( void *ctx, size_t length,
 #endif
 }
 
-int camellia_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int camellia_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return camellia_setkey_dec( (camellia_context *) ctx, key, key_length );
 }
 
-int camellia_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int camellia_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return camellia_setkey_enc( (camellia_context *) ctx, key, key_length );
 }
@@ -399,19 +399,19 @@ const cipher_info_t camellia_256_ctr_info = {
 
 #if defined(POLARSSL_DES_C)
 
-int des_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
+static int des_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return des_crypt_cbc( (des_context *) ctx, operation, length, iv, input, output );
 }
 
-int des3_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
+static int des3_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return des3_crypt_cbc( (des3_context *) ctx, operation, length, iv, input, output );
 }
 
-int des_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
+static int des_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
         size_t *iv_off, unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     ((void) ctx);
@@ -425,7 +425,7 @@ int des_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
-int des_crypt_ctr_wrap( void *ctx, size_t length,
+static int des_crypt_ctr_wrap( void *ctx, size_t length,
         size_t *nc_off, unsigned char *nonce_counter, unsigned char *stream_block,
         const unsigned char *input, unsigned char *output )
 {
@@ -441,42 +441,42 @@ int des_crypt_ctr_wrap( void *ctx, size_t length,
 }
 
 
-int des_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int des_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des_setkey_dec( (des_context *) ctx, key );
 }
 
-int des_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int des_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des_setkey_enc( (des_context *) ctx, key );
 }
 
-int des3_set2key_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int des3_set2key_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des3_set2key_dec( (des3_context *) ctx, key );
 }
 
-int des3_set2key_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int des3_set2key_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des3_set2key_enc( (des3_context *) ctx, key );
 }
 
-int des3_set3key_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int des3_set3key_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
     return des3_set3key_dec( (des3_context *) ctx, key );
 }
 
-int des3_set3key_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int des3_set3key_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     ((void) key_length);
 
@@ -564,13 +564,13 @@ const cipher_info_t des_ede3_cbc_info = {
 
 #if defined(POLARSSL_BLOWFISH_C)
 
-int blowfish_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
+static int blowfish_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
     return blowfish_crypt_cbc( (blowfish_context *) ctx, operation, length, iv, input, output );
 }
 
-int blowfish_crypt_cfb64_wrap( void *ctx, operation_t operation, size_t length,
+static int blowfish_crypt_cfb64_wrap( void *ctx, operation_t operation, size_t length,
         size_t *iv_off, unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
 #if defined(POLARSSL_CIPHER_MODE_CFB)
@@ -588,7 +588,7 @@ int blowfish_crypt_cfb64_wrap( void *ctx, operation_t operation, size_t length,
 #endif
 }
 
-int blowfish_crypt_ctr_wrap( void *ctx, size_t length,
+static int blowfish_crypt_ctr_wrap( void *ctx, size_t length,
         size_t *nc_off, unsigned char *nonce_counter, unsigned char *stream_block,
         const unsigned char *input, unsigned char *output )
 {
@@ -608,12 +608,12 @@ int blowfish_crypt_ctr_wrap( void *ctx, size_t length,
 #endif
 }
 
-int blowfish_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int blowfish_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return blowfish_setkey( (blowfish_context *) ctx, key, key_length );
 }
 
-int blowfish_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int blowfish_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return blowfish_setkey( (blowfish_context *) ctx, key, key_length );
 }

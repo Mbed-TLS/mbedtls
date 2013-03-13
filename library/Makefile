@@ -39,7 +39,8 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		blowfish.o	camellia.o					\
 		certs.o		cipher.o	cipher_wrap.o	\
 		ctr_drbg.o	debug.o		des.o			\
-		dhm.o		ecp.o						\
+		dhm.o		ecdh.o		ecdsa.o			\
+		ecp.o									\
 		entropy.o	entropy_poll.o				\
 		error.o		gcm.o		havege.o		\
 		md.o		md_wrap.o	md2.o			\

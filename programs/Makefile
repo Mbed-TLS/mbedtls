@@ -38,6 +38,7 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	random/gen_random_ctr_drbg				\
 	test/ssl_cert_test	test/benchmark		\
 	test/selftest		test/ssl_test		\
+	test/ecp-bench							\
 	util/strerror							\
 	x509/cert_app		x509/crl_app		\
 	x509/cert_req
@@ -173,6 +174,10 @@ test/ssl_cert_test: test/ssl_cert_test.c ../library/libpolarssl.a
 test/benchmark: test/benchmark.c ../library/libpolarssl.a
 	echo   "  CC    test/benchmark.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/benchmark.c   $(LDFLAGS) -o $@
+
+test/ecp-bench: test/ecp-bench.c ../library/libpolarssl.a
+	echo   "  CC    test/ecp-bench.c"
+	$(CC) $(CFLAGS) $(OFLAGS) test/ecp-bench.c   $(LDFLAGS) -o $@
 
 test/selftest: test/selftest.c ../library/libpolarssl.a
 	echo   "  CC    test/selftest.c"

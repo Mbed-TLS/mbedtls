@@ -3,7 +3,7 @@
  *
  * \brief Error to string translation
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -68,6 +68,7 @@
  * SHA2      1  0x0078-0x0078
  * SHA4      1  0x007A-0x007A
  * PBKDF2    1  0x007C-0x007C
+ * ECP       1  0x007E-0x007E
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
  * Name     ID  Nr of Errors
@@ -75,6 +76,7 @@
  * X509     2   21
  * DHM      3   6
  * RSA      4   9
+ * ECP      4   1 (Started from top)
  * MD       5   4
  * CIPHER   6   5
  * SSL      6   2 (Started from top)

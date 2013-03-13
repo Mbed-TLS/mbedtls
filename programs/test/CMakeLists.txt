@@ -18,6 +18,9 @@ target_link_libraries(selftest ${libs})
 add_executable(benchmark benchmark.c)
 target_link_libraries(benchmark ${libs})
 
+add_executable(ecp-bench ecp-bench.c)
+target_link_libraries(ecp-bench ${libs})
+
 add_executable(ssl_test ssl_test.c)
 target_link_libraries(ssl_test ${libs})
 

@@ -1,0 +1,472 @@
+BEGIN_HEADER
+#include <polarssl/ecp.h>
+END_HEADER
+
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
+END_DEPENDENCIES
+
+BEGIN_CASE
+ecp_small_add:a_zero:x_a:y_a:b_zero:x_b:y_b:c_zero:x_c:y_c
+{
+    ecp_group grp;
+    ecp_point A, B, C;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &A ); ecp_point_init( &B ); ecp_point_init( &C );
+
+    TEST_ASSERT( ecp_group_read_string( &grp, 10,
+                "47", "4", "17", "42", "13" ) == 0 );
+
+    if( {a_zero} )
+        ecp_set_zero( &A );
+    else
+        TEST_ASSERT( ecp_point_read_string( &A, 10, {x_a}, {y_a} ) == 0 );
+
+    if( {b_zero} )
+        ecp_set_zero( &B );
+    else
+        TEST_ASSERT( ecp_point_read_string( &B, 10, {x_b}, {y_b} ) == 0 );
+
+    TEST_ASSERT( ecp_add( &grp, &C, &A, &B ) == 0 );
+
+    if( {c_zero} )
+        TEST_ASSERT( mpi_cmp_int( &C.Z, 0 ) == 0 );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &C.X, {x_c} ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &C.Y, {y_c} ) == 0 );
+    }
+
+    TEST_ASSERT( ecp_add( &grp, &C, &B, &A ) == 0 );
+
+    if( {c_zero} )
+        TEST_ASSERT( mpi_cmp_int( &C.Z, 0 ) == 0 );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &C.X, {x_c} ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &C.Y, {y_c} ) == 0 );
+    }
+
+    ecp_group_free( &grp );
+    ecp_point_free( &A ); ecp_point_free( &B ); ecp_point_free( &C );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_small_sub:a_zero:x_a:y_a:b_zero:x_b:y_b:c_zero:x_c:y_c
+{
+    ecp_group grp;
+    ecp_point A, B, C;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &A ); ecp_point_init( &B ); ecp_point_init( &C );
+
+    TEST_ASSERT( ecp_group_read_string( &grp, 10,
+                "47", "4", "17", "42", "13" ) == 0 );
+
+    if( {a_zero} )
+        ecp_set_zero( &A );
+    else
+        TEST_ASSERT( ecp_point_read_string( &A, 10, {x_a}, {y_a} ) == 0 );
+
+    if( {b_zero} )
+        ecp_set_zero( &B );
+    else
+        TEST_ASSERT( ecp_point_read_string( &B, 10, {x_b}, {y_b} ) == 0 );
+
+    TEST_ASSERT( ecp_sub( &grp, &C, &A, &B ) == 0 );
+
+    if( {c_zero} )
+        TEST_ASSERT( mpi_cmp_int( &C.Z, 0 ) == 0 );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &C.X, {x_c} ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &C.Y, {y_c} ) == 0 );
+    }
+
+    ecp_group_free( &grp );
+    ecp_point_free( &A ); ecp_point_free( &B ); ecp_point_free( &C );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_small_mul:m:r_zero:x_r:y_r:ret
+{
+    ecp_group grp;
+    ecp_point R;
+    mpi m;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &R );
+    mpi_init( &m );
+
+    TEST_ASSERT( ecp_group_read_string( &grp, 10,
+                "47", "4", "17", "42", "13" ) == 0 );
+
+    TEST_ASSERT( mpi_lset( &m, {m} ) == 0 );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G ) == {ret} );
+
+    if( {r_zero} )
+        TEST_ASSERT( mpi_cmp_int( &R.Z, 0 ) == 0 );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &R.X, {x_r} ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &R.Y, {y_r} ) == 0 );
+    }
+
+    ecp_group_free( &grp );
+    ecp_point_free( &R );
+    mpi_free( &m );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_small_check_pub:x:y:z:ret
+{
+    ecp_group grp;
+    ecp_point P;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &P );
+
+    TEST_ASSERT( ecp_group_read_string( &grp, 10,
+                "47", "4", "17", "42", "13" ) == 0 );
+
+    TEST_ASSERT( mpi_lset( &P.X, {x} ) == 0 );
+    TEST_ASSERT( mpi_lset( &P.Y, {y} ) == 0 );
+    TEST_ASSERT( mpi_lset( &P.Z, {z} ) == 0 );
+
+    TEST_ASSERT( ecp_check_pubkey( &grp, &P ) == {ret} );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &P );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_test_vect:id:dA:xA:yA:dB:xB:yB:xZ:yZ
+{
+    ecp_group grp;
+    ecp_point R;
+    mpi dA, xA, yA, dB, xB, yB, xZ, yZ;
+
+    ecp_group_init( &grp ); ecp_point_init( &R );
+    mpi_init( &dA ); mpi_init( &xA ); mpi_init( &yA ); mpi_init( &dB );
+    mpi_init( &xB ); mpi_init( &yB ); mpi_init( &xZ ); mpi_init( &yZ );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( ecp_check_pubkey( &grp, &grp.G ) == 0 );
+
+    TEST_ASSERT( mpi_read_string( &dA, 16, {dA} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &xA, 16, {xA} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &yA, 16, {yA} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &dB, 16, {dB} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &xB, 16, {xB} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &yB, 16, {yB} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &xZ, 16, {xZ} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &yZ, 16, {yZ} ) == 0 );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &grp.G ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.X, &xA ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yA ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &R ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.X, &xZ ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &grp.G ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.X, &xB ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yB ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &R ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.X, &xZ ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
+
+    ecp_group_free( &grp ); ecp_point_free( &R );
+    mpi_free( &dA ); mpi_free( &xA ); mpi_free( &yA ); mpi_free( &dB );
+    mpi_free( &xB ); mpi_free( &yB ); mpi_free( &xZ ); mpi_free( &yZ );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_fast_mod:id:N
+{
+    ecp_group grp;
+    mpi N, R;
+
+    mpi_init( &N ); mpi_init( &R );
+    ecp_group_init( &grp );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &N, 16, {N} ) == 0 );
+
+    /*
+     * Store correct result before we touch N
+     */
+    TEST_ASSERT( mpi_mod_mpi( &R, &N, &grp.P ) == 0 );
+
+    TEST_ASSERT( grp.modp( &N ) == 0 );
+    TEST_ASSERT( mpi_msb( &N ) <= grp.pbits + 3 );
+
+    /*
+     * Use mod rather than addition/substraction in case previous test fails
+     */
+    TEST_ASSERT( mpi_mod_mpi( &N, &N, &grp.P ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &N, &R ) == 0 );
+
+    mpi_free( &N ); mpi_free( &R );
+    ecp_group_free( &grp );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_write_binary:id:x:y:z:format:out:blen:ret
+{
+    ecp_group grp;
+    ecp_point P;
+    unsigned char buf[256], str[512];
+    size_t olen;
+
+    memset( buf, 0, sizeof( buf ) );
+    memset( str, 0, sizeof( str ) );
+
+    ecp_group_init( &grp ); ecp_point_init( &P );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( mpi_read_string( &P.X, 16, {x} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &P.Y, 16, {y} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &P.Z, 16, {z} ) == 0 );
+
+#define POLARSSL_ECP_PF_UNKNOWN     -1
+    TEST_ASSERT( ecp_point_write_binary( &grp, &P, POLARSSL_ECP_PF_{format},
+                                   &olen, buf, {blen} ) == {ret} );
+
+    if( {ret} == 0 )
+    {
+        hexify( str, buf, olen );
+        TEST_ASSERT( strcasecmp( (char *) str, {out} ) == 0 );
+    }
+
+    ecp_group_free( &grp ); ecp_point_free( &P );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_read_binary:id:input:x:y:z:ret
+{
+    ecp_group grp;
+    ecp_point P;
+    mpi X, Y, Z;
+    int ilen;
+    unsigned char buf[256];
+
+    memset( buf, 0, sizeof( buf ) );
+
+    ecp_group_init( &grp ); ecp_point_init( &P );
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( mpi_read_string( &X, 16, {x} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Y, 16, {y} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Z, 16, {z} ) == 0 );
+
+    ilen = unhexify( buf, {input} );
+
+    TEST_ASSERT( ecp_point_read_binary( &grp, &P, buf, ilen ) == {ret} );
+
+    if( {ret} == 0 )
+    {
+        TEST_ASSERT( mpi_cmp_mpi( &P.X, &X ) == 0 );
+        TEST_ASSERT( mpi_cmp_mpi( &P.Y, &Y ) == 0 );
+        TEST_ASSERT( mpi_cmp_mpi( &P.Z, &Z ) == 0 );
+    }
+
+    ecp_group_free( &grp ); ecp_point_free( &P );
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_tls_read_point:id:input:x:y:z:ret
+{
+    ecp_group grp;
+    ecp_point P;
+    mpi X, Y, Z;
+    size_t ilen;
+    unsigned char buf[256];
+    const unsigned char *vbuf = buf;
+
+    memset( buf, 0, sizeof( buf ) );
+
+    ecp_group_init( &grp ); ecp_point_init( &P );
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( mpi_read_string( &X, 16, {x} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Y, 16, {y} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Z, 16, {z} ) == 0 );
+
+    ilen = unhexify( buf, {input} );
+
+    TEST_ASSERT( ecp_tls_read_point( &grp, &P, &vbuf, ilen ) == {ret} );
+
+    if( {ret} == 0 )
+    {
+        TEST_ASSERT( mpi_cmp_mpi( &P.X, &X ) == 0 );
+        TEST_ASSERT( mpi_cmp_mpi( &P.Y, &Y ) == 0 );
+        TEST_ASSERT( mpi_cmp_mpi( &P.Z, &Z ) == 0 );
+        TEST_ASSERT( *vbuf == 0x00 );
+    }
+
+    ecp_group_free( &grp ); ecp_point_free( &P );
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_tls_write_read_point:id
+{
+    ecp_group grp;
+    ecp_point pt;
+    unsigned char buf[256];
+    const unsigned char *vbuf;
+    size_t olen;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &pt );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
+    TEST_ASSERT( ecp_tls_write_point( &grp, &grp.G,
+                    POLARSSL_ECP_PF_COMPRESSED, &olen, buf, 256 ) == 0 );
+    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, &vbuf, olen )
+                 == POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    TEST_ASSERT( vbuf == buf + olen );
+
+    memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
+    TEST_ASSERT( ecp_tls_write_point( &grp, &grp.G,
+                    POLARSSL_ECP_PF_UNCOMPRESSED, &olen, buf, 256 ) == 0 );
+    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, &vbuf, olen ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &grp.G.X, &pt.X ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &grp.G.Y, &pt.Y ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &grp.G.Z, &pt.Z ) == 0 );
+    TEST_ASSERT( vbuf == buf + olen );
+
+    memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
+    TEST_ASSERT( ecp_set_zero( &pt ) == 0 );
+    TEST_ASSERT( ecp_tls_write_point( &grp, &pt,
+                    POLARSSL_ECP_PF_COMPRESSED, &olen, buf, 256 ) == 0 );
+    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, &vbuf, olen ) == 0 );
+    TEST_ASSERT( ecp_is_zero( &pt ) );
+    TEST_ASSERT( vbuf == buf + olen );
+
+    memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
+    TEST_ASSERT( ecp_set_zero( &pt ) == 0 );
+    TEST_ASSERT( ecp_tls_write_point( &grp, &pt,
+                    POLARSSL_ECP_PF_UNCOMPRESSED, &olen, buf, 256 ) == 0 );
+    TEST_ASSERT( ecp_tls_read_point( &grp, &pt, &vbuf, olen ) == 0 );
+    TEST_ASSERT( ecp_is_zero( &pt ) );
+    TEST_ASSERT( vbuf == buf + olen );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &pt );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_tls_read_group:record:ret:bits
+{
+    ecp_group grp;
+    unsigned char buf[10];
+    const unsigned char *vbuf = buf;
+    int len, ret;
+
+    ecp_group_init( &grp );
+    memset( buf, 0x00, sizeof( buf ) );
+
+    len = unhexify( buf, {record} );
+
+    ret = ecp_tls_read_group( &grp, &vbuf, len );
+
+    TEST_ASSERT( ret == {ret} );
+    if( ret == 0)
+    {
+        TEST_ASSERT( mpi_msb( &grp.P ) == {bits} );
+        TEST_ASSERT( *vbuf == 0x00 );
+    }
+
+    ecp_group_free( &grp );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_tls_write_read_group:id
+{
+    ecp_group grp1, grp2;
+    unsigned char buf[10];
+    const unsigned char *vbuf = buf;
+    size_t len;
+    int ret;
+
+    ecp_group_init( &grp1 );
+    ecp_group_init( &grp2 );
+    memset( buf, 0x00, sizeof( buf ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp1, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( ecp_tls_write_group( &grp1, &len, buf, 10 ) == 0 );
+    TEST_ASSERT( ( ret = ecp_tls_read_group( &grp2, &vbuf, len ) ) == 0 );
+
+    if( ret == 0 )
+    {
+        TEST_ASSERT( mpi_cmp_mpi( &grp1.N, &grp2.N ) == 0 );
+        TEST_ASSERT( grp1.id == grp2.id );
+    }
+
+    ecp_group_free( &grp1 );
+    ecp_group_free( &grp2 );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_gen_keypair:id
+{
+    ecp_group grp;
+    ecp_point Q;
+    mpi d;
+    rnd_pseudo_info rnd_info;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &Q );
+    mpi_init( &d );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+
+    TEST_ASSERT( ecp_gen_keypair( &grp, &d, &Q, &rnd_pseudo_rand, &rnd_info )
+                 == 0 );
+
+    TEST_ASSERT( mpi_cmp_mpi( &d, &grp.N ) < 0 );
+    TEST_ASSERT( mpi_cmp_int( &d, 1 ) >= 0 );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &Q );
+    mpi_free( &d );
+}
+END_CASE
+
+BEGIN_CASE
+ecp_selftest:
+{
+    TEST_ASSERT( ecp_self_test( 0 ) == 0 );
+}
+END_CASE

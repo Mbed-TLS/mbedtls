@@ -1,0 +1,75 @@
+BEGIN_HEADER
+#include <polarssl/ecdsa.h>
+END_HEADER
+
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_ECDSA_C:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
+END_DEPENDENCIES
+
+BEGIN_CASE
+ecdsa_prim_random:id
+{
+    ecp_group grp;
+    ecp_point Q;
+    mpi d, r, s;
+    rnd_pseudo_info rnd_info;
+    unsigned char buf[66];
+
+    ecp_group_init( &grp );
+    ecp_point_init( &Q );
+    mpi_init( &d ); mpi_init( &r ); mpi_init( &s );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( buf, 0, sizeof( buf ) );
+
+    /* prepare material for signature */
+    TEST_ASSERT( rnd_pseudo_rand( &rnd_info, buf, sizeof( buf ) ) == 0 );
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( ecp_gen_keypair( &grp, &d, &Q, &rnd_pseudo_rand, &rnd_info )
+                 == 0 );
+
+    TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, buf, sizeof( buf ),
+                             &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecdsa_verify( &grp, buf, sizeof( buf ), &Q, &r, &s ) == 0 );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &Q );
+    mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
+}
+END_CASE
+
+BEGIN_CASE
+ecdsa_prim_test_vectors:id:d:xQ:yQ:k:hash:r:s
+{
+    ecp_group grp;
+    ecp_point Q;
+    mpi d, r, s, r_check, s_check;
+    unsigned char buf[66];
+    size_t len;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &Q );
+    mpi_init( &d ); mpi_init( &r ); mpi_init( &s );
+    mpi_init( &r_check ); mpi_init( &s_check );
+    memset( buf, 0, sizeof( buf ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( ecp_point_read_string( &Q, 16, "{xQ}", "{yQ}" ) == 0 );
+    TEST_ASSERT( mpi_read_string( &d, 16, "{d}" ) == 0 );
+    TEST_ASSERT( mpi_read_string( &r_check, 16, "{r}" ) == 0 );
+    TEST_ASSERT( mpi_read_string( &s_check, 16, "{s}" ) == 0 );
+    len = unhexify(buf, "{hash}");
+
+    TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, buf, len,
+                &not_rnd, "{k}" ) == 0 );
+
+    TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );
+
+    TEST_ASSERT( ecdsa_verify( &grp, buf, len, &Q, &r_check, &s_check ) == 0 );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &Q );
+    mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
+    mpi_free( &r_check ); mpi_free( &s_check );
+}
+END_CASE

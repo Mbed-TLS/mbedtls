@@ -63,6 +63,10 @@
 #include "polarssl/dhm.h"
 #endif
 
+#if defined(POLARSSL_ECP_C)
+#include "polarssl/ecp.h"
+#endif
+
 #if defined(POLARSSL_ENTROPY_C)
 #include "polarssl/entropy.h"
 #endif
@@ -181,6 +185,13 @@ void error_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_DHM_CALC_SECRET_FAILED) )
             snprintf( buf, buflen, "DHM - Calculation of the DHM secret failed" );
 #endif /* POLARSSL_DHM_C */
+
+#if defined(POLARSSL_ECP_C)
+        if( use_ret == -(POLARSSL_ERR_ECP_BAD_INPUT_DATA) )
+            snprintf( buf, buflen, "ECP - Bad input parameters to function" );
+        if( use_ret == -(POLARSSL_ERR_ECP_GENERIC) )
+            snprintf( buf, buflen, "ECP -  Generic ECP error" );
+#endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_MD_C)
         if( use_ret == -(POLARSSL_ERR_MD_FEATURE_UNAVAILABLE) )

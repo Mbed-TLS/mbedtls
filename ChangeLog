@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Development
+Changes
+   * Internals for SSL module adapted to have separate IV pointer that is
+     dynamically set (Better support for hardware acceleration)
+
 = Version 1.2.6 released 2013-03-11
 Bugfix
    * Fixed memory leak in ssl_free() and ssl_reset() for active session

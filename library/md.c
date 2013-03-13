@@ -294,4 +294,14 @@ int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
     return 0;
 }
 
+int md_process( md_context_t *ctx, const unsigned char *data )
+{
+    if( ctx == NULL || ctx->md_info == NULL )
+        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+
+    ctx->md_info->process_func( ctx->md_ctx, data );
+
+    return 0;
+}
+
 #endif

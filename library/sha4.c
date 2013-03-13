@@ -152,7 +152,7 @@ void sha4_starts( sha4_context *ctx, int is384 )
     ctx->is384 = is384;
 }
 
-static void sha4_process( sha4_context *ctx, const unsigned char data[128] )
+void sha4_process( sha4_context *ctx, const unsigned char data[128] )
 {
     int i;
     uint64_t temp1, temp2, W[80];

@@ -111,6 +111,8 @@ typedef struct {
     /** Free the given context */
     void (*ctx_free_func)( void *ctx );
 
+    /** Internal use only */
+    void (*process_func)( void *ctx, const unsigned char *input );
 } md_info_t;
 
 /**
@@ -346,6 +348,9 @@ int md_hmac_reset( md_context_t *ctx );
 int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output );
+
+/* Internal use */
+int md_process( md_context_t *ctx, const unsigned char *data );
 
 #ifdef __cplusplus
 }

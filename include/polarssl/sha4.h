@@ -161,6 +161,9 @@ void sha4_hmac( const unsigned char *key, size_t keylen,
  */
 int sha4_self_test( int verbose );
 
+/* Internal use */
+void sha4_process( sha4_context *ctx, const unsigned char data[128] );
+
 #ifdef __cplusplus
 }
 #endif

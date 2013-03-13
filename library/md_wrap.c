@@ -117,6 +117,13 @@ static void md2_ctx_free( void *ctx )
     free( ctx );
 }
 
+static void md2_process_wrap( void *ctx, const unsigned char *data )
+{
+    ((void) data);
+
+    md2_process( (md2_context *) ctx );
+}
+
 const md_info_t md2_info = {
     POLARSSL_MD_MD2,
     "MD2",
@@ -133,6 +140,7 @@ const md_info_t md2_info = {
     md2_hmac,
     md2_ctx_alloc,
     md2_ctx_free,
+    md2_process_wrap,
 };
 
 #endif
@@ -195,6 +203,11 @@ void md4_ctx_free( void *ctx )
     free( ctx );
 }
 
+void md4_process_wrap( void *ctx, const unsigned char *data )
+{
+    md4_process( (md4_context *) ctx, data );
+}
+
 const md_info_t md4_info = {
     POLARSSL_MD_MD4,
     "MD4",
@@ -211,6 +224,7 @@ const md_info_t md4_info = {
     md4_hmac,
     md4_ctx_alloc,
     md4_ctx_free,
+    md4_process_wrap,
 };
 
 #endif
@@ -273,6 +287,11 @@ static void md5_ctx_free( void *ctx )
     free( ctx );
 }
 
+static void md5_process_wrap( void *ctx, const unsigned char *data )
+{
+    md5_process( (md5_context *) ctx, data );
+}
+
 const md_info_t md5_info = {
     POLARSSL_MD_MD5,
     "MD5",
@@ -289,6 +308,7 @@ const md_info_t md5_info = {
     md5_hmac,
     md5_ctx_alloc,
     md5_ctx_free,
+    md5_process_wrap,
 };
 
 #endif
@@ -351,6 +371,11 @@ void sha1_ctx_free( void *ctx )
     free( ctx );
 }
 
+void sha1_process_wrap( void *ctx, const unsigned char *data )
+{
+    sha1_process( (sha1_context *) ctx, data );
+}
+
 const md_info_t sha1_info = {
     POLARSSL_MD_SHA1,
     "SHA1",
@@ -367,6 +392,7 @@ const md_info_t sha1_info = {
     sha1_hmac,
     sha1_ctx_alloc,
     sha1_ctx_free,
+    sha1_process_wrap,
 };
 
 #endif
@@ -445,6 +471,11 @@ void sha224_ctx_free( void *ctx )
     free( ctx );
 }
 
+void sha224_process_wrap( void *ctx, const unsigned char *data )
+{
+    sha2_process( (sha2_context *) ctx, data );
+}
+
 const md_info_t sha224_info = {
     POLARSSL_MD_SHA224,
     "SHA224",
@@ -461,6 +492,7 @@ const md_info_t sha224_info = {
     sha224_hmac_wrap,
     sha224_ctx_alloc,
     sha224_ctx_free,
+    sha224_process_wrap,
 };
 
 void sha256_starts_wrap( void *ctx )
@@ -532,6 +564,11 @@ void sha256_ctx_free( void *ctx )
     free( ctx );
 }
 
+void sha256_process_wrap( void *ctx, const unsigned char *data )
+{
+    sha2_process( (sha2_context *) ctx, data );
+}
+
 const md_info_t sha256_info = {
     POLARSSL_MD_SHA256,
     "SHA256",
@@ -548,6 +585,7 @@ const md_info_t sha256_info = {
     sha256_hmac_wrap,
     sha256_ctx_alloc,
     sha256_ctx_free,
+    sha256_process_wrap,
 };
 
 #endif
@@ -623,6 +661,11 @@ void sha384_ctx_free( void *ctx )
     free( ctx );
 }
 
+void sha384_process_wrap( void *ctx, const unsigned char *data )
+{
+    sha4_process( (sha4_context *) ctx, data );
+}
+
 const md_info_t sha384_info = {
     POLARSSL_MD_SHA384,
     "SHA384",
@@ -639,6 +682,7 @@ const md_info_t sha384_info = {
     sha384_hmac_wrap,
     sha384_ctx_alloc,
     sha384_ctx_free,
+    sha384_process_wrap,
 };
 
 void sha512_starts_wrap( void *ctx )
@@ -710,6 +754,11 @@ void sha512_ctx_free( void *ctx )
     free( ctx );
 }
 
+void sha512_process_wrap( void *ctx, const unsigned char *data )
+{
+    sha4_process( (sha4_context *) ctx, data );
+}
+
 const md_info_t sha512_info = {
     POLARSSL_MD_SHA512,
     "SHA512",
@@ -726,6 +775,7 @@ const md_info_t sha512_info = {
     sha512_hmac_wrap,
     sha512_ctx_alloc,
     sha512_ctx_free,
+    sha512_process_wrap,
 };
 
 #endif

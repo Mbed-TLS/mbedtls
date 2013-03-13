@@ -152,6 +152,9 @@ void md4_hmac( const unsigned char *key, size_t keylen,
  */
 int md4_self_test( int verbose );
 
+/* Internal use */
+void md4_process( md4_context *ctx, const unsigned char data[64] );
+
 #ifdef __cplusplus
 }
 #endif

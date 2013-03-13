@@ -146,6 +146,9 @@ void md2_hmac( const unsigned char *key, size_t keylen,
  */
 int md2_self_test( int verbose );
 
+/* Internal use */
+void md2_process( md2_context *ctx );
+
 #ifdef __cplusplus
 }
 #endif

@@ -1490,36 +1490,36 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         if( ssl->transform_in->maclen == 16 )
         {
-            md5_context md5;
-            md5_hmac_starts( &md5, ssl->transform_in->mac_dec, 16 );
-            md5_hmac_update( &md5, ssl->in_ctr, 13 );
-            md5_hmac_update( &md5, ssl->in_msg, ssl->in_msglen );
-            md5_hmac_finish( &md5, ssl->in_msg + ssl->in_msglen );
+            md5_context ctx;
+            md5_hmac_starts( &ctx, ssl->transform_in->mac_dec, 16 );
+            md5_hmac_update( &ctx, ssl->in_ctr, 13 );
+            md5_hmac_update( &ctx, ssl->in_msg, ssl->in_msglen );
+            md5_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
 
             for( j = 0; j < extra_run; j++ )
-                md5_process( &md5, ssl->in_msg ); 
+                md5_process( &ctx, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen == 20 )
         {
-            sha1_context sha1;
-            sha1_hmac_starts( &sha1, ssl->transform_in->mac_dec, 20 );
-            sha1_hmac_update( &sha1, ssl->in_ctr, 13 );
-            sha1_hmac_update( &sha1, ssl->in_msg, ssl->in_msglen );
-            sha1_hmac_finish( &sha1, ssl->in_msg + ssl->in_msglen );
+            sha1_context ctx;
+            sha1_hmac_starts( &ctx, ssl->transform_in->mac_dec, 20 );
+            sha1_hmac_update( &ctx, ssl->in_ctr, 13 );
+            sha1_hmac_update( &ctx, ssl->in_msg, ssl->in_msglen );
+            sha1_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
 
             for( j = 0; j < extra_run; j++ )
-                sha1_process( &sha1, ssl->in_msg ); 
+                sha1_process( &ctx, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen == 32 )
         {
-            sha2_context sha2;
-            sha2_hmac_starts( &sha2, ssl->transform_in->mac_dec, 32, 0 );
-            sha2_hmac_update( &sha2, ssl->in_ctr, 13 );
-            sha2_hmac_update( &sha2, ssl->in_msg, ssl->in_msglen );
-            sha2_hmac_finish( &sha2, ssl->in_msg + ssl->in_msglen );
+            sha2_context ctx;
+            sha2_hmac_starts( &ctx, ssl->transform_in->mac_dec, 32, 0 );
+            sha2_hmac_update( &ctx, ssl->in_ctr, 13 );
+            sha2_hmac_update( &ctx, ssl->in_msg, ssl->in_msglen );
+            sha2_hmac_finish( &ctx, ssl->in_msg + ssl->in_msglen );
 
             for( j = 0; j < extra_run; j++ )
-                sha2_process( &sha2, ssl->in_msg ); 
+                sha2_process( &ctx, ssl->in_msg ); 
         }
         else if( ssl->transform_in->maclen != 0 )
         {

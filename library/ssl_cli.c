@@ -38,19 +38,223 @@
 #include "polarssl/sha4.h"
 #endif
 
+static void ssl_write_hostname_ext( ssl_context *ssl,
+                                    unsigned char *buf,
+                                    size_t *olen )
+{
+    unsigned char *p = buf;
+
+    *olen = 0;
+
+    if ( ssl->hostname == NULL )
+        return;
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding server name extension: %s",
+                   ssl->hostname ) );
+
+    /*
+     * struct {
+     *     NameType name_type;
+     *     select (name_type) {
+     *         case host_name: HostName;
+     *     } name;
+     * } ServerName;
+     *
+     * enum {
+     *     host_name(0), (255)
+     * } NameType;
+     *
+     * opaque HostName<1..2^16-1>;
+     *
+     * struct {
+     *     ServerName server_name_list<1..2^16-1>
+     * } ServerNameList;
+     */
+    *p++ = (unsigned char)( ( TLS_EXT_SERVERNAME >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_SERVERNAME      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( (ssl->hostname_len + 5) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( (ssl->hostname_len + 5)      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( (ssl->hostname_len + 3) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( (ssl->hostname_len + 3)      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( TLS_EXT_SERVERNAME_HOSTNAME ) & 0xFF );
+    *p++ = (unsigned char)( ( ssl->hostname_len >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ssl->hostname_len      ) & 0xFF );
+
+    memcpy( p, ssl->hostname, ssl->hostname_len );
+
+    *olen = ssl->hostname_len + 9;
+}
+
+static void ssl_write_renegotiation_ext( ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t *olen )
+{
+    unsigned char *p = buf;
+
+    *olen = 0;
+
+    if( ssl->renegotiation != SSL_RENEGOTIATION )
+        return;
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding renegotiation extension" ) );
+
+    /*
+     * Secure renegotiation
+     */
+    *p++ = (unsigned char)( ( TLS_EXT_RENEGOTIATION_INFO >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_RENEGOTIATION_INFO      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = ( ssl->verify_data_len + 1 ) & 0xFF;
+    *p++ = ssl->verify_data_len & 0xFF;
+
+    memcpy( p, ssl->own_verify_data, ssl->verify_data_len );
+
+    *olen = 5 + ssl->verify_data_len;
+}
+
+static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
+                                                unsigned char *buf,
+                                                size_t *olen )
+{
+    unsigned char *p = buf;
+    unsigned char sig_alg_list[20];
+    size_t sig_alg_len = 0;
+
+    *olen = 0;
+
+    if( ssl->max_minor_ver != SSL_MINOR_VERSION_3 )
+        return;
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding signature_algorithms extension" ) );
+
+    /*
+     * Prepare signature_algorithms extension (TLS 1.2)
+     */
+#if defined(POLARSSL_SHA4_C)
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA512;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA384;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
+#endif
+#if defined(POLARSSL_SHA2_C)
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA256;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA224;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
+#endif
+#if defined(POLARSSL_SHA1_C)
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA1;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
+#endif
+#if defined(POLARSSL_MD5_C)
+    sig_alg_list[sig_alg_len++] = SSL_HASH_MD5;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
+#endif
+
+    /*
+     * enum {
+     *     none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
+     *     sha512(6), (255)
+     * } HashAlgorithm;
+     *
+     * enum { anonymous(0), rsa(1), dsa(2), ecdsa(3), (255) }
+     *   SignatureAlgorithm;
+     *
+     * struct {
+     *     HashAlgorithm hash;
+     *     SignatureAlgorithm signature;
+     * } SignatureAndHashAlgorithm;
+     *
+     * SignatureAndHashAlgorithm
+     *   supported_signature_algorithms<2..2^16-2>;
+     */
+    *p++ = (unsigned char)( ( TLS_EXT_SIG_ALG >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_SIG_ALG      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( ( sig_alg_len + 2 ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( sig_alg_len + 2 )      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( sig_alg_len >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( sig_alg_len      ) & 0xFF );
+
+    memcpy( p, sig_alg_list, sig_alg_len );
+
+    *olen = 6 + sig_alg_len;
+}
+
+#if defined(POLARSSL_ECDH_C)
+static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
+                                                     unsigned char *buf,
+                                                     size_t *olen )
+{
+    unsigned char *p = buf;
+    unsigned char elliptic_curve_list[20];
+    size_t elliptic_curve_len = 0;
+
+    *olen = 0;
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding supported_elliptic_curves extension" ) );
+
+    elliptic_curve_list[elliptic_curve_len++] = 0x00;
+    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP521R1;
+    elliptic_curve_list[elliptic_curve_len++] = 0x00;
+    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP384R1;
+    elliptic_curve_list[elliptic_curve_len++] = 0x00;
+    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP256R1;
+    elliptic_curve_list[elliptic_curve_len++] = 0x00;
+    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP224R1;
+    elliptic_curve_list[elliptic_curve_len++] = 0x00;
+    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP192R1;
+
+    *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_ELLIPTIC_CURVES >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_ELLIPTIC_CURVES      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( ( elliptic_curve_len + 2 ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( elliptic_curve_len + 2 )      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( ( elliptic_curve_len     ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( elliptic_curve_len     )      ) & 0xFF );
+
+    memcpy( p, elliptic_curve_list, elliptic_curve_len );
+
+    *olen = 6 + elliptic_curve_len;
+}
+
+static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
+                                                   unsigned char *buf,
+                                                   size_t *olen )
+{
+    unsigned char *p = buf;
+
+    *olen = 0;
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding supported_point_formats extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_POINT_FORMATS >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_POINT_FORMATS      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 3;
+
+    *p++ = 2;
+    *p++ = POLARSSL_ECP_PF_COMPRESSED;
+    *p++ = POLARSSL_ECP_PF_UNCOMPRESSED;
+
+    *olen = 7;
+}
+#endif
+
 static int ssl_write_client_hello( ssl_context *ssl )
 {
     int ret;
-    size_t i, n, ext_len = 0;
+    size_t i, n, olen, ext_len = 0;
     unsigned char *buf;
     unsigned char *p;
     time_t t;
-    unsigned char sig_alg_list[20];
-    size_t sig_alg_len = 0;
-#if defined(POLARSSL_ECDH_C)
-    unsigned char elliptic_curve_list[20];
-    size_t elliptic_curve_len = 0;
-#endif
 
     SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
@@ -165,66 +369,23 @@ static int ssl_write_client_hello( ssl_context *ssl )
     *p++ = SSL_COMPRESS_NULL;
 #endif
 
-    if ( ssl->hostname != NULL )
-    {
-        SSL_DEBUG_MSG( 3, ( "client hello, prepping for server name extension: %s",
-                       ssl->hostname ) );
+    // First write extensions, then the total length
+    //
+    ssl_write_hostname_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
 
-        ext_len += ssl->hostname_len + 9;
-    }
+    ssl_write_renegotiation_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
 
-    if( ssl->renegotiation == SSL_RENEGOTIATION )
-    {
-        SSL_DEBUG_MSG( 3, ( "client hello, prepping for renegotiation extension" ) );
-        ext_len += 5 + ssl->verify_data_len;
-    }
-
-    /*
-     * Prepare signature_algorithms extension (TLS 1.2)
-     */
-    if( ssl->max_minor_ver == SSL_MINOR_VERSION_3 )
-    {
-#if defined(POLARSSL_SHA4_C)
-        sig_alg_list[sig_alg_len++] = SSL_HASH_SHA512;
-        sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
-        sig_alg_list[sig_alg_len++] = SSL_HASH_SHA384;
-        sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
-#endif
-#if defined(POLARSSL_SHA2_C)
-        sig_alg_list[sig_alg_len++] = SSL_HASH_SHA256;
-        sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
-        sig_alg_list[sig_alg_len++] = SSL_HASH_SHA224;
-        sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
-#endif
-#if defined(POLARSSL_SHA1_C)
-        sig_alg_list[sig_alg_len++] = SSL_HASH_SHA1;
-        sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
-#endif
-#if defined(POLARSSL_MD5_C)
-        sig_alg_list[sig_alg_len++] = SSL_HASH_MD5;
-        sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
-#endif
-        ext_len += 6 + sig_alg_len;
-    }
+    ssl_write_signature_algorithms_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
 
 #if defined(POLARSSL_ECDH_C)
-    SSL_DEBUG_MSG( 3, ( "client hello, prepping for supported elliptic curves extension" ) );
+    ssl_write_supported_elliptic_curves_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
 
-    elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP521R1;
-    elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP384R1;
-    elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP256R1;
-    elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP224R1;
-    elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP192R1;
-
-    ext_len += 6 + elliptic_curve_len;
-
-    SSL_DEBUG_MSG( 3, ( "client hello, prepping for supported point formats extension" ) );
-    ext_len += 7;
+    ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
 #endif
 
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
@@ -232,128 +393,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
-
-    if ( ssl->hostname != NULL )
-    {
-        /*
-         * struct {
-         *     NameType name_type;
-         *     select (name_type) {
-         *         case host_name: HostName;
-         *     } name;
-         * } ServerName;
-         *
-         * enum {
-         *     host_name(0), (255)
-         * } NameType;
-         *
-         * opaque HostName<1..2^16-1>;
-         *
-         * struct {
-         *     ServerName server_name_list<1..2^16-1>
-         * } ServerNameList;
-         */
-        SSL_DEBUG_MSG( 3, ( "client hello, adding server name extension: %s",
-                       ssl->hostname ) );
-
-        *p++ = (unsigned char)( ( TLS_EXT_SERVERNAME >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( TLS_EXT_SERVERNAME      ) & 0xFF );
-
-        *p++ = (unsigned char)( ( (ssl->hostname_len + 5) >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( (ssl->hostname_len + 5)      ) & 0xFF );
-
-        *p++ = (unsigned char)( ( (ssl->hostname_len + 3) >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( (ssl->hostname_len + 3)      ) & 0xFF );
-
-        *p++ = (unsigned char)( ( TLS_EXT_SERVERNAME_HOSTNAME ) & 0xFF );
-        *p++ = (unsigned char)( ( ssl->hostname_len >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( ssl->hostname_len      ) & 0xFF );
-
-        memcpy( p, ssl->hostname, ssl->hostname_len );
-        p += ssl->hostname_len;
-    }
-
-    if( ssl->renegotiation == SSL_RENEGOTIATION )
-    {
-        /*
-         * Secure renegotiation
-         */
-        SSL_DEBUG_MSG( 3, ( "client hello, renegotiation info extension" ) );
-
-        *p++ = (unsigned char)( ( TLS_EXT_RENEGOTIATION_INFO >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( TLS_EXT_RENEGOTIATION_INFO      ) & 0xFF );
-
-        *p++ = 0x00;
-        *p++ = ( ssl->verify_data_len + 1 ) & 0xFF;
-        *p++ = ssl->verify_data_len & 0xFF;
-
-        memcpy( p, ssl->own_verify_data, ssl->verify_data_len );
-        p += ssl->verify_data_len;
-    }
-
-    if( ssl->max_minor_ver == SSL_MINOR_VERSION_3 )
-    {
-        /*
-         * enum {
-         *     none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
-         *     sha512(6), (255)
-         * } HashAlgorithm;
-         *
-         * enum { anonymous(0), rsa(1), dsa(2), ecdsa(3), (255) }
-         *   SignatureAlgorithm;
-         *
-         * struct {
-         *     HashAlgorithm hash;
-         *     SignatureAlgorithm signature;
-         * } SignatureAndHashAlgorithm;
-         *
-         * SignatureAndHashAlgorithm
-         *   supported_signature_algorithms<2..2^16-2>;
-         */
-        SSL_DEBUG_MSG( 3, ( "client hello, adding signature_algorithms extension" ) );
-
-        *p++ = (unsigned char)( ( TLS_EXT_SIG_ALG >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( TLS_EXT_SIG_ALG      ) & 0xFF );
-
-        *p++ = (unsigned char)( ( ( sig_alg_len + 2 ) >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( ( sig_alg_len + 2 )      ) & 0xFF );
-
-        *p++ = (unsigned char)( ( sig_alg_len >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( sig_alg_len      ) & 0xFF );
-
-        memcpy( p, sig_alg_list, sig_alg_len );
-
-        p += sig_alg_len;
-    }
-
-#if defined(POLARSSL_ECDH_C)
-    SSL_DEBUG_MSG( 3, ( "client hello, adding supported_elliptic_curves extension" ) );
-
-    *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_ELLIPTIC_CURVES >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_ELLIPTIC_CURVES      ) & 0xFF );
-
-    *p++ = (unsigned char)( ( ( elliptic_curve_len + 2 ) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ( elliptic_curve_len + 2 )      ) & 0xFF );
-
-    *p++ = (unsigned char)( ( ( elliptic_curve_len     ) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ( elliptic_curve_len     )      ) & 0xFF );
-
-    memcpy( p, elliptic_curve_list, elliptic_curve_len );
-
-    p+= elliptic_curve_len;
-
-    SSL_DEBUG_MSG( 3, ( "client hello, adding supported_point_formats extension" ) );
-
-    *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_POINT_FORMATS >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_POINT_FORMATS      ) & 0xFF );
-
-    *p++ = 0x00;
-    *p++ = 3;
-
-    *p++ = 2;
-    *p++ = POLARSSL_ECP_PF_COMPRESSED;
-    *p++ = POLARSSL_ECP_PF_UNCOMPRESSED;
-#endif
+    p += ext_len;
 
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;

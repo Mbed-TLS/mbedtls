@@ -78,6 +78,8 @@ then
         TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
         TLS-RSA-WITH-AES-256-CBC-SHA256         \
         TLS-DHE-RSA-WITH-AES-256-CBC-SHA256     \
+        TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256 \
+        TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384 \
         "
 
     O_CIPHERS="$O_CIPHERS           \
@@ -86,6 +88,8 @@ then
         DHE-RSA-AES128-SHA256       \
         AES256-SHA256               \
         DHE-RSA-AES256-SHA256       \
+        ECDHE-RSA-AES128-SHA256     \
+        ECDHE-RSA-AES256-SHA384     \
         "
 
     P_CIPHERS="$P_CIPHERS                   \
@@ -93,6 +97,8 @@ then
         TLS-RSA-WITH-AES-256-GCM-SHA384     \
         TLS-DHE-RSA-WITH-AES-128-GCM-SHA256 \
         TLS-DHE-RSA-WITH-AES-256-GCM-SHA384 \
+        TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 \
+        TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384 \
         "
 
     O_CIPHERS="$O_CIPHERS           \
@@ -100,6 +106,8 @@ then
         DHE-RSA-AES128-GCM-SHA256   \
         AES256-GCM-SHA384           \
         DHE-RSA-AES256-GCM-SHA384   \
+        ECDHE-RSA-AES128-GCM-SHA256 \
+        ECDHE-RSA-AES256-GCM-SHA384 \
         "
 fi
 

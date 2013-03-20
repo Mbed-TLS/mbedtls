@@ -1068,8 +1068,8 @@ static int ssl_write_certificate_request( ssl_context *ssl )
         *p++ = 0;
         *p++ = 2;
 
-        if( ssl->transform_negotiate->ciphersuite_info->cipher ==
-            POLARSSL_CIPHER_AES_256_GCM )
+        if( ssl->transform_negotiate->ciphersuite_info->mac ==
+            POLARSSL_MD_SHA384 )
         {
             ssl->handshake->verify_sig_alg = SSL_HASH_SHA384;
         }

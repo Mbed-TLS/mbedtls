@@ -346,8 +346,8 @@ int ssl_derive_keys( ssl_context *ssl )
         handshake->calc_finished = ssl_calc_finished_tls;
     }
 #if defined(POLARSSL_SHA4_C)
-    else if( transform->ciphersuite_info->cipher ==
-             POLARSSL_CIPHER_AES_256_GCM )
+    else if( transform->ciphersuite_info->mac ==
+             POLARSSL_MD_SHA384 )
     {
         handshake->tls_prf = tls_prf_sha384;
         handshake->calc_verify = ssl_calc_verify_tls_sha384;
@@ -963,10 +963,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     return( 0 );
 }
 
-/*
- * TODO: Use digest version when integrated!
- */
-#define POLARSSL_SSL_MAX_MAC_SIZE   32
+#define POLARSSL_SSL_MAX_MAC_SIZE   48
 
 static int ssl_decrypt_buf( ssl_context *ssl )
 {
@@ -2161,7 +2158,7 @@ void ssl_optimize_checksum( ssl_context *ssl,
     if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
         ssl->handshake->update_checksum = ssl_update_checksum_md5sha1;
 #if defined(POLARSSL_SHA4_C)
-    else if( ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM )
+    else if( ciphersuite_info->mac == POLARSSL_MD_SHA384 )
     {
         ssl->handshake->update_checksum = ssl_update_checksum_sha384;
     }

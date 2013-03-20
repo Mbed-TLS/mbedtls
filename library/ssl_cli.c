@@ -1347,8 +1347,8 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
          * Reason: Otherwise we should have running hashes for SHA512 and SHA224
          *         in order to satisfy 'weird' needs from the server side.
          */
-        if( ssl->transform_negotiate->ciphersuite_info->cipher ==
-            POLARSSL_CIPHER_AES_256_GCM )
+        if( ssl->transform_negotiate->ciphersuite_info->mac ==
+            POLARSSL_MD_SHA384 )
         {
             hash_id = SIG_RSA_SHA384;
             hashlen = 48;

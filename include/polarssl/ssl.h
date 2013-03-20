@@ -43,6 +43,10 @@
 #include "dhm.h"
 #endif
 
+#if defined(POLARSSL_ECDH_C)
+#include "ecdh.h"
+#endif
+
 #if defined(POLARSSL_ZLIB_SUPPORT)
 #include "zlib.h"
 #endif
@@ -82,8 +86,8 @@
 #define POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE        -0x7B00  /**< Processing of the ServerKeyExchange handshake message failed. */
 #define POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO_DONE          -0x7B80  /**< Processing of the ServerHelloDone handshake message failed. */
 #define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE        -0x7C00  /**< Processing of the ClientKeyExchange handshake message failed. */
-#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_RP -0x7C80  /**< Processing of the ClientKeyExchange handshake message failed in DHM Read Public. */
-#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_CS -0x7D00  /**< Processing of the ClientKeyExchange handshake message failed in DHM Calculate Secret. */
+#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP     -0x7C80  /**< Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Read Public. */
+#define POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS     -0x7D00  /**< Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Calculate Secret. */
 #define POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY         -0x7D80  /**< Processing of the CertificateVerify handshake message failed. */
 #define POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC         -0x7E00  /**< Processing of the ChangeCipherSpec handshake message failed. */
 #define POLARSSL_ERR_SSL_BAD_HS_FINISHED                   -0x7E80  /**< Processing of the Finished handshake message failed. */
@@ -139,44 +143,6 @@
 #endif
 
 #define SSL_BUFFER_LEN (SSL_MAX_CONTENT_LEN + SSL_COMPRESSION_ADD + 512)
-
-/*
- * Supported ciphersuites (Official IANA names)
- */
-#define TLS_RSA_WITH_NULL_MD5                    0x01   /**< Weak! */
-#define TLS_RSA_WITH_NULL_SHA                    0x02   /**< Weak! */
-#define TLS_RSA_WITH_NULL_SHA256                 0x3B   /**< Weak! */
-#define TLS_RSA_WITH_DES_CBC_SHA                 0x09   /**< Weak! Not in TLS 1.2 */
-#define TLS_DHE_RSA_WITH_DES_CBC_SHA             0x15   /**< Weak! Not in TLS 1.2 */
-
-#define TLS_RSA_WITH_RC4_128_MD5                 0x04
-#define TLS_RSA_WITH_RC4_128_SHA                 0x05
-
-#define TLS_RSA_WITH_3DES_EDE_CBC_SHA            0x0A
-#define TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA        0x16
-
-#define TLS_RSA_WITH_AES_128_CBC_SHA             0x2F
-#define TLS_DHE_RSA_WITH_AES_128_CBC_SHA         0x33
-#define TLS_RSA_WITH_AES_256_CBC_SHA             0x35
-#define TLS_DHE_RSA_WITH_AES_256_CBC_SHA         0x39
-#define TLS_RSA_WITH_AES_128_CBC_SHA256          0x3C   /**< TLS 1.2 */
-#define TLS_RSA_WITH_AES_256_CBC_SHA256          0x3D   /**< TLS 1.2 */
-#define TLS_DHE_RSA_WITH_AES_128_CBC_SHA256      0x67   /**< TLS 1.2 */
-#define TLS_DHE_RSA_WITH_AES_256_CBC_SHA256      0x6B   /**< TLS 1.2 */
-
-#define TLS_RSA_WITH_CAMELLIA_128_CBC_SHA        0x41
-#define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA    0x45
-#define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA        0x84
-#define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA    0x88
-#define TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256     0xBA   /**< TLS 1.2 */
-#define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 0xBE   /**< TLS 1.2 */
-#define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256     0xC0   /**< TLS 1.2 */
-#define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 0xC4   /**< TLS 1.2 */
-
-#define TLS_RSA_WITH_AES_128_GCM_SHA256          0x9C
-#define TLS_RSA_WITH_AES_256_GCM_SHA384          0x9D
-#define TLS_DHE_RSA_WITH_AES_128_GCM_SHA256      0x9E
-#define TLS_DHE_RSA_WITH_AES_256_GCM_SHA384      0x9F
 
 #define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */ 
 
@@ -250,12 +216,15 @@
 /*
  * TLS extensions
  */
-#define TLS_EXT_SERVERNAME              0
-#define TLS_EXT_SERVERNAME_HOSTNAME     0
+#define TLS_EXT_SERVERNAME                   0
+#define TLS_EXT_SERVERNAME_HOSTNAME          0
 
-#define TLS_EXT_SIG_ALG                13
+#define TLS_EXT_SUPPORTED_ELLIPTIC_CURVES   10
+#define TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
-#define TLS_EXT_RENEGOTIATION_INFO 0xFF01
+#define TLS_EXT_SIG_ALG                     13
+
+#define TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
 
 /*
@@ -367,6 +336,13 @@ struct _ssl_handshake_params
     int verify_sig_alg;                 /*!<  Signature algorithm for verify */
 #if defined(POLARSSL_DHM_C)
     dhm_context dhm_ctx;                /*!<  DHM key exchange        */
+#endif
+#if defined(POLARSSL_ECDH_C)
+    ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
+#endif
+#if defined(POLARSSL_ECP_C)
+    int ec_curve;                       /*!<  Selected elliptic curve */
+    int ec_point_format;                /*!<  Client supported format */
 #endif
 
     /*
@@ -1114,7 +1090,7 @@ int ssl_write_change_cipher_spec( ssl_context *ssl );
 int ssl_parse_finished( ssl_context *ssl );
 int ssl_write_finished( ssl_context *ssl );
 
-void ssl_optimize_checksum( ssl_context *ssl, int ciphersuite );
+void ssl_optimize_checksum( ssl_context *ssl, const ssl_ciphersuite_t *ciphersuite_info );
 
 #ifdef __cplusplus
 }

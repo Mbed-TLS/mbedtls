@@ -29,6 +29,9 @@
 
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
+#if defined(POLARSSL_ECP_C)
+#include "polarssl/ecp.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -190,6 +193,75 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
 
     return( 0 );
 }
+
+#if defined(POLARSSL_ECP_C)
+int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         size_t len )
+{
+    size_t list_size;
+    const unsigned char *p;
+
+    list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
+    if( list_size + 2 != len ||
+        list_size % 2 != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    p = buf + 2;
+    while( list_size > 0 )
+    {
+        if( p[0] == 0x00 && (
+                p[1] == POLARSSL_ECP_DP_SECP192R1 ||
+                p[1] == POLARSSL_ECP_DP_SECP224R1 ||
+                p[1] == POLARSSL_ECP_DP_SECP256R1 ||
+                p[1] == POLARSSL_ECP_DP_SECP384R1 ||
+                p[1] == POLARSSL_ECP_DP_SECP521R1 ) )
+        {
+            ssl->handshake->ec_curve = p[1];
+            return( 0 );
+        }
+
+        list_size -= 2;
+        p += 2;
+    }
+
+    return( 0 );
+}
+
+int ssl_parse_supported_point_formats( ssl_context *ssl,
+                                       const unsigned char *buf,
+                                       size_t len )
+{
+    size_t list_size;
+    const unsigned char *p;
+
+    list_size = buf[0];
+    if( list_size + 1 != len )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    p = buf + 2;
+    while( list_size > 0 )
+    {
+        if( p[0] == POLARSSL_ECP_PF_UNCOMPRESSED ||
+            p[0] == POLARSSL_ECP_PF_COMPRESSED )
+        {
+            ssl->handshake->ec_point_format = p[0];
+            return( 0 );
+        }
+
+        list_size--;
+        p++;
+    }
+
+    return( 0 );
+}
+#endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( ssl_context *ssl )
@@ -363,9 +435,12 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     {
         for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
         {
+            // Only allow non-ECC ciphersuites as we do not have extensions
+            //
             if( p[0] == 0 &&
                 p[1] == 0 &&
-                p[2] == ssl->ciphersuites[i] )
+                ( ( ssl->ciphersuites[i] >> 8 ) & 0xFF ) == 0 &&
+                p[2] == ( ssl->ciphersuites[i] & 0xFF ) )
                 goto have_ciphersuite_v2;
         }
     }
@@ -376,7 +451,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
 
 have_ciphersuite_v2:
     ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
-    ssl_optimize_checksum( ssl, ssl->session_negotiate->ciphersuite );
+    ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     /*
      * SSLv2 Client Hello relevant renegotiation security checks
@@ -412,6 +487,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     unsigned char *buf, *p, *ext;
     int renegotiation_info_seen = 0;
     int handshake_failure = 0;
+    const ssl_ciphersuite_t *ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
@@ -639,37 +715,6 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         }
     }
 
-    /*
-     * Search for a matching ciphersuite
-     */
-    for( i = 0; ssl->ciphersuites[i] != 0; i++ )
-    {
-        for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
-            j += 2, p += 2 )
-        {
-            if( p[0] == 0 && p[1] == ssl->ciphersuites[i] )
-                goto have_ciphersuite;
-        }
-    }
-
-    SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
-
-    return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
-
-have_ciphersuite:
-    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
-    ssl->transform_negotiate->ciphersuite_info =
-        ssl_ciphersuite_from_id( ssl->ciphersuites[i] );
-
-    if( ssl->transform_negotiate->ciphersuite_info == NULL )
-    {
-        SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
-                          ssl->ciphersuites[i] ) );
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-    }
-
-    ssl_optimize_checksum( ssl, ssl->session_negotiate->ciphersuite );
-
     ext = buf + 44 + sess_len + ciph_len + comp_len;
 
     while( ext_len )
@@ -714,6 +759,24 @@ have_ciphersuite:
             if( ret != 0 )
                 return( ret );
             break;
+
+#if defined(POLARSSL_ECP_C)
+        case TLS_EXT_SUPPORTED_ELLIPTIC_CURVES:
+            SSL_DEBUG_MSG( 3, ( "found supported elliptic curves extension" ) );
+
+            ret = ssl_parse_supported_elliptic_curves( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+
+        case TLS_EXT_SUPPORTED_POINT_FORMATS:
+            SSL_DEBUG_MSG( 3, ( "found supported point formats extension" ) );
+
+            ret = ssl_parse_supported_point_formats( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+#endif /* POLARSSL_ECP_C */
 
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
@@ -768,6 +831,48 @@ have_ciphersuite:
 
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
+
+    /*
+     * Search for a matching ciphersuite
+     * (At the end because we need information from the EC-based extensions)
+     */
+    for( i = 0; ssl->ciphersuites[i] != 0; i++ )
+    {
+        for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
+            j += 2, p += 2 )
+        {
+            if( p[0] == ( ( ssl->ciphersuites[i] >> 8 ) & 0xFF ) &&
+                p[1] == ( ( ssl->ciphersuites[i]      ) & 0xFF ) )
+            {
+                ciphersuite_info = ssl_ciphersuite_from_id( ssl->ciphersuites[i] );
+
+                if( ciphersuite_info == NULL )
+                {
+                    SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
+                                   ssl->ciphersuites[i] ) );
+                    return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+                }
+
+                if( ( ciphersuite_info->flags & POLARSSL_CIPHERSUITE_EC ) &&
+                    ssl->handshake->ec_curve == 0 )
+                    continue;
+
+                goto have_ciphersuite;
+            }
+        }
+    }
+
+    SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
+
+    if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+        return( ret );
+
+    return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+
+have_ciphersuite:
+    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
+    ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
+    ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     ssl->in_left = 0;
     ssl->state++;
@@ -963,8 +1068,8 @@ static int ssl_write_certificate_request( ssl_context *ssl )
         *p++ = 0;
         *p++ = 2;
 
-        if( ssl->session_negotiate->ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
-            ssl->session_negotiate->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
+        if( ssl->transform_negotiate->ciphersuite_info->cipher ==
+            POLARSSL_CIPHER_AES_256_GCM )
         {
             ssl->handshake->verify_sig_alg = SSL_HASH_SHA384;
         }
@@ -1009,30 +1114,36 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     return( ret );
 }
 
+#if !defined(POLARSSL_DHM_C) && !defined(POLARSSL_ECDH_C)
 static int ssl_write_server_key_exchange( ssl_context *ssl )
 {
-#if defined(POLARSSL_DHM_C)
+    SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
+    SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
+    ssl->state++;
+    return( 0 );
+}
+#else    
+static int ssl_write_server_key_exchange( ssl_context *ssl )
+{
     int ret;
     size_t n, rsa_key_len = 0;
     unsigned char hash[64];
     int hash_id = 0;
     unsigned int hashlen = 0;
-#endif
+
+    const ssl_ciphersuite_t *ciphersuite_info;
+    ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 
-    if( ssl->transform_negotiate->ciphersuite_info->key_exchange !=
-        POLARSSL_KEY_EXCHANGE_DHE_RSA )
+    if( ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_RSA &&
+        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;
         return( 0 );
     }
 
-#if !defined(POLARSSL_DHM_C)
-    SSL_DEBUG_MSG( 1, ( "support for dhm is not available" ) );
-    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
-#else
 
     if( ssl->rsa_key == NULL )
     {
@@ -1040,35 +1151,72 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
 
-    /*
-     * Ephemeral DH parameters:
-     *
-     * struct {
-     *     opaque dh_p<1..2^16-1>;
-     *     opaque dh_g<1..2^16-1>;
-     *     opaque dh_Ys<1..2^16-1>;
-     * } ServerDHParams;
-     */
-    if( ( ret = mpi_copy( &ssl->handshake->dhm_ctx.P, &ssl->dhm_P ) ) != 0 ||
-        ( ret = mpi_copy( &ssl->handshake->dhm_ctx.G, &ssl->dhm_G ) ) != 0 )
+#if defined(POLARSSL_DHM_C)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
-        SSL_DEBUG_RET( 1, "mpi_copy", ret );
-        return( ret );
-    }
+        /*
+         * Ephemeral DH parameters:
+         *
+         * struct {
+         *     opaque dh_p<1..2^16-1>;
+         *     opaque dh_g<1..2^16-1>;
+         *     opaque dh_Ys<1..2^16-1>;
+         * } ServerDHParams;
+         */
+        if( ( ret = mpi_copy( &ssl->handshake->dhm_ctx.P, &ssl->dhm_P ) ) != 0 ||
+            ( ret = mpi_copy( &ssl->handshake->dhm_ctx.G, &ssl->dhm_G ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "mpi_copy", ret );
+            return( ret );
+        }
 
-    if( ( ret = dhm_make_params( &ssl->handshake->dhm_ctx,
-                                  mpi_size( &ssl->handshake->dhm_ctx.P ),
-                                  ssl->out_msg + 4,
-                                  &n, ssl->f_rng, ssl->p_rng ) ) != 0 )
+        if( ( ret = dhm_make_params( &ssl->handshake->dhm_ctx,
+                                      mpi_size( &ssl->handshake->dhm_ctx.P ),
+                                      ssl->out_msg + 4,
+                                      &n, ssl->f_rng, ssl->p_rng ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "dhm_make_params", ret );
+            return( ret );
+        }
+
+        SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->handshake->dhm_ctx.X  );
+        SSL_DEBUG_MPI( 3, "DHM: P ", &ssl->handshake->dhm_ctx.P  );
+        SSL_DEBUG_MPI( 3, "DHM: G ", &ssl->handshake->dhm_ctx.G  );
+        SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->handshake->dhm_ctx.GX );
+    }
+#endif /* POLARSSL_DHM_C */
+
+#if defined(POLARSSL_ECDH_C)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
     {
-        SSL_DEBUG_RET( 1, "dhm_make_params", ret );
-        return( ret );
-    }
+        /*
+         * Ephemeral ECDH parameters:
+         *
+         * struct {
+         *     ECParameters curve_params;
+         *     ECPoint      public;
+         * } ServerECDHParams;
+         */
+        ecdh_init( &ssl->handshake->ecdh_ctx );
+        if( ( ret = ecp_use_known_dp( &ssl->handshake->ecdh_ctx.grp,
+                                       ssl->handshake->ec_curve ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecp_use_known_dp", ret );
+            return( ret );
+        }
 
-    SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->handshake->dhm_ctx.X  );
-    SSL_DEBUG_MPI( 3, "DHM: P ", &ssl->handshake->dhm_ctx.P  );
-    SSL_DEBUG_MPI( 3, "DHM: G ", &ssl->handshake->dhm_ctx.G  );
-    SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->handshake->dhm_ctx.GX );
+        if( ( ret = ecdh_make_params( &ssl->handshake->ecdh_ctx,
+                                      &n,
+                                      ssl->out_msg + 4,
+                                      1000, ssl->f_rng, ssl->p_rng ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecdh_make_params", ret );
+            return( ret );
+        }
+
+        SSL_DEBUG_ECP( 3, "ECDH: Q ", &ssl->handshake->ecdh_ctx.Q );
+    }
+#endif /* POLARSSL_ECDH_INIT */
 
     if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
     {
@@ -1237,8 +1385,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "<= write server key exchange" ) );
 
     return( 0 );
-#endif
 }
+#endif /* POLARSSL_DHM_C || POLARSSL_ECDH_C */
 
 static int ssl_write_server_hello_done( ssl_context *ssl )
 {
@@ -1267,6 +1415,10 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 {
     int ret;
     size_t i, n = 0;
+#if defined(POLARSSL_DHM_C) || defined(POLARSSL_ECDH_C)
+    const ssl_ciphersuite_t *ciphersuite_info;
+    ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+#endif
 
     SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 
@@ -1288,13 +1440,9 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( ssl->transform_negotiate->ciphersuite_info->key_exchange ==
-        POLARSSL_KEY_EXCHANGE_DHE_RSA )
+#if defined(POLARSSL_DHM_C)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
-#if !defined(POLARSSL_DHM_C)
-        SSL_DEBUG_MSG( 1, ( "support for dhm is not available" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
-#else
         /*
          * Receive G^Y mod P, premaster = (G^Y)^X mod P
          */
@@ -1311,7 +1459,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
                                       ssl->in_msg + 6, n ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_read_public", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_RP );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
         }
 
         SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
@@ -1323,13 +1471,50 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
                                      &ssl->handshake->pmslen ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_CS );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
         }
 
         SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
-#endif
     }
     else
+#endif
+#if defined(POLARSSL_ECDH_C)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
+    {
+        /*
+         * Receive client public key and calculate premaster
+         */
+        n = ssl->in_msg[3];
+
+        if( n < 1 || n > mpi_size( &ssl->handshake->ecdh_ctx.grp.P ) * 2 + 2 ||
+            n + 4 != ssl->in_hslen )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+
+        if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
+                                       ssl->in_msg + 4, n ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+        }
+
+        SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
+
+        if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
+                                      &ssl->handshake->pmslen,
+                                       ssl->handshake->premaster,
+                                       POLARSSL_MPI_MAX_SIZE ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
+        }
+
+        SSL_DEBUG_MPI( 3, "ECDH: z  ", &ssl->handshake->ecdh_ctx.z );
+    }
+    else
+#endif
     {
         if( ssl->rsa_key == NULL )
         {

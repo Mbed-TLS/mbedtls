@@ -140,6 +140,7 @@
  *      TLS_RSA_WITH_NULL_MD5
  *      TLS_RSA_WITH_NULL_SHA
  *      TLS_RSA_WITH_NULL_SHA256
+ *      TLS_ECDHE_RSA_WITH_NULL_SHA
  *
  * Uncomment this macro to enable the NULL cipher and ciphersuites
 #define POLARSSL_CIPHER_NULL_CIPHER
@@ -345,6 +346,8 @@
  *      TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
  *      TLS_RSA_WITH_AES_128_GCM_SHA256
  *      TLS_RSA_WITH_AES_256_GCM_SHA384
+ *      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+ *      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
  *
  * PEM uses AES for decrypting encrypted keys.
  */
@@ -358,9 +361,11 @@
  * Module:  library/arc4.c
  * Caller:  library/ssl_tls.c
  *
- * This module enables the following ciphersuites:
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
  *      TLS_RSA_WITH_RC4_128_MD5
  *      TLS_RSA_WITH_RC4_128_SHA
+ *      TLS_ECDHE_RSA_WITH_RC4_128_SHA
  */
 #define POLARSSL_ARC4_C
 
@@ -505,6 +510,7 @@
  * enabled as well):
  *      TLS_RSA_WITH_3DES_EDE_CBC_SHA
  *      TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+ *      TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
  *
  * PEM uses DES/3DES for decrypting encrypted keys.
  */
@@ -542,7 +548,16 @@
  * Enable the elliptic curve Diffie-Hellman library.
  *
  * Module:  library/ecdh.c
- * Caller:
+ * Caller:  library/ssl_cli.c
+ *          library/ssl_srv.c
+ *
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_ECDHE_RSA_WITH_NULL_SHA
+ *      TLS_ECDHE_RSA_WITH_RC4_128_SHA
+ *      TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+ *      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+ *      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
  *
  * Requires: POLARSSL_ECP_C
  */

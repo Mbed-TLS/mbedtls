@@ -34,15 +34,61 @@
 extern "C" {
 #endif
 
+/*
+ * Supported ciphersuites (Official IANA names)
+ */
+#define TLS_RSA_WITH_NULL_MD5                    0x01   /**< Weak! */
+#define TLS_RSA_WITH_NULL_SHA                    0x02   /**< Weak! */
+#define TLS_RSA_WITH_NULL_SHA256                 0x3B   /**< Weak! */
+#define TLS_RSA_WITH_DES_CBC_SHA                 0x09   /**< Weak! Not in TLS 1.2 */
+#define TLS_DHE_RSA_WITH_DES_CBC_SHA             0x15   /**< Weak! Not in TLS 1.2 */
+
+#define TLS_RSA_WITH_RC4_128_MD5                 0x04
+#define TLS_RSA_WITH_RC4_128_SHA                 0x05
+
+#define TLS_RSA_WITH_3DES_EDE_CBC_SHA            0x0A
+#define TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA        0x16
+
+#define TLS_RSA_WITH_AES_128_CBC_SHA             0x2F
+#define TLS_DHE_RSA_WITH_AES_128_CBC_SHA         0x33
+#define TLS_RSA_WITH_AES_256_CBC_SHA             0x35
+#define TLS_DHE_RSA_WITH_AES_256_CBC_SHA         0x39
+#define TLS_RSA_WITH_AES_128_CBC_SHA256          0x3C   /**< TLS 1.2 */
+#define TLS_RSA_WITH_AES_256_CBC_SHA256          0x3D   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_128_CBC_SHA256      0x67   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_256_CBC_SHA256      0x6B   /**< TLS 1.2 */
+
+#define TLS_RSA_WITH_CAMELLIA_128_CBC_SHA        0x41
+#define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA    0x45
+#define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA        0x84
+#define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA    0x88
+#define TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256     0xBA   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 0xBE   /**< TLS 1.2 */
+#define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256     0xC0   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 0xC4   /**< TLS 1.2 */
+
+#define TLS_RSA_WITH_AES_128_GCM_SHA256          0x9C
+#define TLS_RSA_WITH_AES_256_GCM_SHA384          0x9D
+#define TLS_DHE_RSA_WITH_AES_128_GCM_SHA256      0x9E
+#define TLS_DHE_RSA_WITH_AES_256_GCM_SHA384      0x9F
+
+#define TLS_ECDHE_RSA_WITH_NULL_SHA              0xC010
+#define TLS_ECDHE_RSA_WITH_RC4_128_SHA           0xC011
+#define TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA      0xC012
+#define TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA       0xC013
+#define TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA       0xC014
+
 typedef enum {
     POLARSSL_KEY_EXCHANGE_NONE = 0,
     POLARSSL_KEY_EXCHANGE_RSA,
-    POLARSSL_KEY_EXCHANGE_DHE_RSA
+    POLARSSL_KEY_EXCHANGE_DHE_RSA,
+    POLARSSL_KEY_EXCHANGE_ECDHE_RSA,
 } key_exchange_type_t;
 
 typedef struct _ssl_ciphersuite_t ssl_ciphersuite_t;
 
-#define POLARSSL_CIPHERSUITE_WEAK   0x01
+#define POLARSSL_CIPHERSUITE_WEAK   0x01    /*<! Weak ciphersuite flag      */
+#define POLARSSL_CIPHERSUITE_EC     0x02    /*<! EC-based ciphersuite flag  */
 
 /**
  * \brief   This structure is used for storing ciphersuite information

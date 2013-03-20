@@ -346,8 +346,8 @@ int ssl_derive_keys( ssl_context *ssl )
         handshake->calc_finished = ssl_calc_finished_tls;
     }
 #if defined(POLARSSL_SHA4_C)
-    else if( session->ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
-             session->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
+    else if( transform->ciphersuite_info->cipher ==
+             POLARSSL_CIPHER_AES_256_GCM )
     {
         handshake->tls_prf = tls_prf_sha384;
         handshake->calc_verify = ssl_calc_verify_tls_sha384;
@@ -2151,7 +2151,8 @@ int ssl_parse_change_cipher_spec( ssl_context *ssl )
     return( 0 );
 }
 
-void ssl_optimize_checksum( ssl_context *ssl, int ciphersuite )
+void ssl_optimize_checksum( ssl_context *ssl,
+                            const ssl_ciphersuite_t *ciphersuite_info )
 {
 #if !defined(POLARSSL_SHA4_C)
     ((void) ciphersuite);
@@ -2160,8 +2161,7 @@ void ssl_optimize_checksum( ssl_context *ssl, int ciphersuite )
     if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
         ssl->handshake->update_checksum = ssl_update_checksum_md5sha1;
 #if defined(POLARSSL_SHA4_C)
-    else if ( ciphersuite == TLS_RSA_WITH_AES_256_GCM_SHA384 ||
-              ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
+    else if( ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM )
     {
         ssl->handshake->update_checksum = ssl_update_checksum_sha384;
     }

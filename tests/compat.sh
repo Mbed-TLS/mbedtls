@@ -36,6 +36,12 @@ P_CIPHERS="                                 \
     TLS-RSA-WITH-NULL-SHA                   \
     TLS-RSA-WITH-DES-CBC-SHA                \
     TLS-DHE-RSA-WITH-DES-CBC-SHA            \
+    TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
+    TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
+    TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
+    TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
+    TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
+    TLS-ECDHE-RSA-WITH-NULL-SHA             \
     "
 
 O_CIPHERS="                         \
@@ -55,6 +61,11 @@ O_CIPHERS="                         \
     NULL-SHA                        \
     DES-CBC-SHA                     \
     EDH-RSA-DES-CBC-SHA             \
+    ECDHE-RSA-AES256-SHA            \
+    ECDHE-RSA-AES128-SHA            \
+    ECDHE-RSA-DES-CBC3-SHA          \
+    ECDHE-RSA-RC4-SHA               \
+    ECDHE-RSA-NULL-SHA              \
     "
 
 # Also add SHA256 ciphersuites

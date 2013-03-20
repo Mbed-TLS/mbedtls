@@ -34,107 +34,100 @@
 
 #include <stdlib.h>
 
-const int supported_ciphersuites[] =
+/*
+ * Ordered from most preferred to least preferred in terms of security.
+ */
+static const int ciphersuite_preference[] =
 {
-#if defined(POLARSSL_DHM_C)
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_SHA2_C)
     TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-#endif /* POLARSSL_SHA2_C */
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
     TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
-#endif
+    TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
     TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
-#if defined(POLARSSL_SHA2_C)
-    TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
-#endif /* POLARSSL_SHA2_C */
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
-    TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
-#endif
-    TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
-#endif /* POLARSSL_AES_C */
-#if defined(POLARSSL_CAMELLIA_C)
-#if defined(POLARSSL_SHA2_C)
     TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256,
-#endif /* POLARSSL_SHA2_C */
     TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA,
-#if defined(POLARSSL_SHA2_C)
+    TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
+    TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+    TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+    TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
     TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
-#endif /* POLARSSL_SHA2_C */
     TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA,
-#endif /* POLARSSL_CAMELLIA_C */
-#if defined(POLARSSL_DES_C)
+    TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
     TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
-#endif
-#endif /* POLARSSL_DHM_C */
-
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_SHA2_C)
+    TLS_ECDHE_RSA_WITH_RC4_128_SHA,
     TLS_RSA_WITH_AES_256_CBC_SHA256,
-#endif /* POLARSSL_SHA2_C */
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA4_C)
     TLS_RSA_WITH_AES_256_GCM_SHA384,
-#endif
     TLS_RSA_WITH_AES_256_CBC_SHA,
-#endif /* POLARSSL_AES_C */
-#if defined(POLARSSL_CAMELLIA_C)
-#if defined(POLARSSL_SHA2_C)
     TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256,
-#endif /* POLARSSL_SHA2_C */
     TLS_RSA_WITH_CAMELLIA_256_CBC_SHA,
-#endif /* POLARSSL_CAMELLIA_C */
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_SHA2_C)
     TLS_RSA_WITH_AES_128_CBC_SHA256,
-#endif /* POLARSSL_SHA2_C */
-#if defined(POLARSSL_GCM_C) && defined(POLARSSL_SHA2_C)
     TLS_RSA_WITH_AES_128_GCM_SHA256,
-#endif /* POLARSSL_SHA2_C */
     TLS_RSA_WITH_AES_128_CBC_SHA,
-#endif /* POLARSSL_AES_C */
-#if defined(POLARSSL_CAMELLIA_C)
-#if defined(POLARSSL_SHA2_C)
     TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256,
-#endif /* POLARSSL_SHA2_C */
     TLS_RSA_WITH_CAMELLIA_128_CBC_SHA,
-#endif /* POLARSSL_CAMELLIA_C */
-#if defined(POLARSSL_DES_C)
     TLS_RSA_WITH_3DES_EDE_CBC_SHA,
-#endif /* POLARSSL_DES_C */
-#if defined(POLARSSL_ARC4_C)
     TLS_RSA_WITH_RC4_128_SHA,
     TLS_RSA_WITH_RC4_128_MD5,
-#endif /* POLARSSL_ARC4_C */
-#if defined(POLARSSL_ENABLE_WEAK_CIPHERSUITES)
-#if defined(POLARSSL_DES_C)
-#if defined(POLARSSL_DHM_C)
     TLS_DHE_RSA_WITH_DES_CBC_SHA,
-#endif /* POLARSSL_DHM_C */
     TLS_RSA_WITH_DES_CBC_SHA,
-#endif /* POLARSSL_DES_C */
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-#if defined(POLARSSL_SHA2_C)
+    TLS_ECDHE_RSA_WITH_NULL_SHA,
     TLS_RSA_WITH_NULL_SHA256,
-#endif
     TLS_RSA_WITH_NULL_SHA,
     TLS_RSA_WITH_NULL_MD5,
-#endif /* POLARSSL_CIPHER_NULL_CIPHER */
-#endif /* POLARSSL_ENABLE_WEAK_CIPHERSUITES */
     0
 };
 
+#define MAX_CIPHERSUITES    60
+static int supported_ciphersuites[MAX_CIPHERSUITES];
+static int supported_init = 0;
+
 static const ssl_ciphersuite_t ciphersuite_definitions[] =
 {
+#if defined(POLARSSL_ECDH_C)
+#if defined(POLARSSL_AES_C)
+    { TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, "TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA",
+      POLARSSL_CIPHER_AES_128_CBC, POLARSSL_MD_SHA1, POLARSSL_KEY_EXCHANGE_ECDHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_EC },
+    { TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, "TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA",
+      POLARSSL_CIPHER_AES_256_CBC, POLARSSL_MD_SHA1, POLARSSL_KEY_EXCHANGE_ECDHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_EC },
+#endif
+#if defined(POLARSSL_DES_C)
+    { TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA, "TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA",
+      POLARSSL_CIPHER_DES_EDE3_CBC, POLARSSL_MD_SHA1, POLARSSL_KEY_EXCHANGE_ECDHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_EC },
+#endif /* POLARSSL_DES_C */
+#if defined(POLARSSL_ARC4_C)
+    { TLS_ECDHE_RSA_WITH_RC4_128_SHA, "TLS-ECDHE-RSA-WITH-RC4-128-SHA",
+      POLARSSL_CIPHER_ARC4_128, POLARSSL_MD_SHA1, POLARSSL_KEY_EXCHANGE_ECDHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_EC },
+#endif
+#if defined(POLARSSL_CIPHER_NULL_CIPHER)
+    { TLS_ECDHE_RSA_WITH_NULL_SHA, "TLS-ECDHE-RSA-WITH-NULL-SHA",
+      POLARSSL_CIPHER_NULL, POLARSSL_MD_SHA1, POLARSSL_KEY_EXCHANGE_ECDHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_EC | POLARSSL_CIPHERSUITE_WEAK },
+#endif
+#endif
+
 #if defined(POLARSSL_ARC4_C)
     { TLS_RSA_WITH_RC4_128_MD5, "TLS-RSA-WITH-RC4-128-MD5",
       POLARSSL_CIPHER_ARC4_128, POLARSSL_MD_MD5, POLARSSL_KEY_EXCHANGE_RSA,
-      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_0,
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
       0 },
 
     { TLS_RSA_WITH_RC4_128_SHA, "TLS-RSA-WITH-RC4-128-SHA",
       POLARSSL_CIPHER_ARC4_128, POLARSSL_MD_SHA1, POLARSSL_KEY_EXCHANGE_RSA,
-      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_0,
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
       0 },
 #endif /* POLARSSL_ARC4_C */
@@ -345,6 +338,27 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
 
 const int *ssl_list_ciphersuites( void )
 {
+    /*
+     * On initial call filter out all ciphersuites not supported by current
+     * build based on presence in the ciphersuite_definitions.
+     */
+    if( supported_init == 0 )
+    {
+        const int *p = ciphersuite_preference;
+        int *q = supported_ciphersuites;
+
+        memset( supported_ciphersuites, 0x00, sizeof(supported_ciphersuites) );
+
+        while( *p != 0 )
+        {
+            if( ssl_ciphersuite_from_id( *p ) != NULL )
+                *(q++) = *p;
+
+            p++;
+        }
+        supported_init = 1;
+    }
+
     return supported_ciphersuites;
 };
 

@@ -189,6 +189,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
 #if defined(POLARSSL_ECP_C)
         if( use_ret == -(POLARSSL_ERR_ECP_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "ECP - Bad input parameters to function" );
+        if( use_ret == -(POLARSSL_ERR_ECP_BUFFER_TOO_SMALL) )
+            snprintf( buf, buflen, "ECP - The buffer is too small to write to" );
         if( use_ret == -(POLARSSL_ERR_ECP_GENERIC) )
             snprintf( buf, buflen, "ECP -  Generic ECP error" );
 #endif /* POLARSSL_ECP_C */
@@ -296,10 +298,10 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Processing of the ServerHelloDone handshake message failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE) )
             snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed" );
-        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_RP) )
-            snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM Read Public" );
-        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_DHM_CS) )
-            snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM Calculate Secret" );
+        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP) )
+            snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Read Public" );
+        if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS) )
+            snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Calculate Secret" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY) )
             snprintf( buf, buflen, "SSL - Processing of the CertificateVerify handshake message failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC) )

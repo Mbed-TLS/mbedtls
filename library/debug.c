@@ -128,6 +128,28 @@ void debug_print_buf( const ssl_context *ssl, int level,
         ssl->f_dbg( ssl->p_dbg, level, "\n" );
 }
 
+#if defined(POLARSSL_ECP_C)
+void debug_print_ecp( const ssl_context *ssl, int level,
+                      const char *file, int line,
+                      const char *text, const ecp_point *X )
+{
+    char str[512];
+    int maxlen = sizeof( str ) - 1;
+
+    snprintf( str, maxlen, "%s(X)", text );
+    str[maxlen] = '\0';
+    debug_print_mpi( ssl, level, file, line, str, &X->X );
+
+    snprintf( str, maxlen, "%s(Y)", text );
+    str[maxlen] = '\0';
+    debug_print_mpi( ssl, level, file, line, str, &X->Y );
+
+    snprintf( str, maxlen, "%s(Z)", text );
+    str[maxlen] = '\0';
+    debug_print_mpi( ssl, level, file, line, str, &X->Z );
+}
+#endif /* POLARSSL_ECP_C */
+
 void debug_print_mpi( const ssl_context *ssl, int level,
                       const char *file, int line,
                       const char *text, const mpi *X )

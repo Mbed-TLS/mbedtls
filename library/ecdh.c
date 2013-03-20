@@ -212,8 +212,11 @@ int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
                 != 0 )
         return( ret );
 
-    *olen = mpi_size( &ctx->z );
-    return mpi_write_binary( &ctx->z, buf, blen );
+    if( mpi_size( &ctx->z ) > blen )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    *olen = ctx->grp.nbits / 8 + ( ( ctx->grp.nbits % 8 ) != 0 );
+    return mpi_write_binary( &ctx->z, buf, *olen );
 }
 
 

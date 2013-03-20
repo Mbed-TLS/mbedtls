@@ -1,6 +1,12 @@
 PolarSSL ChangeLog
 
 = Development
+Features
+   * Elliptic Curve Cryptography module added
+   * Elliptic Curve Diffie Hellman module added
+   * Ephemeral Elliptic Curve Diffie Hellman support for SSL/TLS
+    (ECDHE-based ciphersuites)
+
 Changes
    * Introduced separate SSL Ciphersuites module that is based on
      Cipher and MD information

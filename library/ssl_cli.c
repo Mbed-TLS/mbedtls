@@ -774,6 +774,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_BUF( 3,   "server key exchange", ssl->in_msg + 4, ssl->in_hslen - 4 );
 
+    p   = ssl->in_msg + 4;
+    end = ssl->in_msg + ssl->in_hslen;
+
 #if defined(POLARSSL_DHM_C)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
@@ -786,9 +789,6 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
          *     opaque dh_Ys<1..2^16-1>;
          * } ServerDHParams;
          */
-        p   = ssl->in_msg + 4;
-        end = ssl->in_msg + ssl->in_hslen;
-
         if( ( ret = dhm_read_params( &ssl->handshake->dhm_ctx, &p, end ) ) != 0 )
         {
             SSL_DEBUG_MSG( 2, ( "DHM Read Params returned -0x%x", -ret ) );
@@ -810,9 +810,6 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
          * } ServerECDHParams;
          */
         ecdh_init( &ssl->handshake->ecdh_ctx );
-
-        p   = ssl->in_msg + 4;
-        end = ssl->in_msg + ssl->in_hslen;
 
         if( ( ret = ecdh_read_params( &ssl->handshake->ecdh_ctx,
                                       (const unsigned char **) &p, end ) ) != 0 )

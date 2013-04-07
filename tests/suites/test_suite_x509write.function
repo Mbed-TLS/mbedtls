@@ -2,6 +2,7 @@ BEGIN_HEADER
 #include <polarssl/x509write.h>
 #include <polarssl/x509.h>
 #include <polarssl/pem.h>
+#include <polarssl/oid.h>
 END_HEADER
 
 BEGIN_DEPENDENCIES
@@ -24,19 +25,19 @@ x509_cert_req_check:key_file:md_type:cert_req_check_file
     cur = &req_name;
 
     memset( cur, 0, sizeof(x509_req_name) );
-    strcpy( cur->oid, OID_CN );
+    strcpy( cur->oid, OID_AT_CN );
     strcpy( cur->name, "PolarSSL Server 1" );
     cur->next = malloc( sizeof(x509_req_name) );
     cur = cur->next;
 
     memset( cur, 0, sizeof(x509_req_name) );
-    strcpy( cur->oid, OID_ORGANIZATION );
+    strcpy( cur->oid, OID_AT_ORGANIZATION );
     strcpy( cur->name, "PolarSSL" );
     cur->next = malloc( sizeof(x509_req_name) );
     cur = cur->next;
 
     memset( cur, 0, sizeof(x509_req_name) );
-    strcpy( cur->oid, OID_COUNTRY );
+    strcpy( cur->oid, OID_AT_COUNTRY );
     strcpy( cur->name, "NL" );
 
     memset( &rsa, 0, sizeof(rsa_context) );

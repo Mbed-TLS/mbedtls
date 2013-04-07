@@ -95,6 +95,10 @@
 #include "polarssl/net.h"
 #endif
 
+#if defined(POLARSSL_OID_C)
+#include "polarssl/oid.h"
+#endif
+
 #if defined(POLARSSL_PADLOCK_C)
 #include "polarssl/padlock.h"
 #endif
@@ -529,6 +533,11 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_NET_WANT_WRITE) )
         snprintf( buf, buflen, "NET - Connection requires a write call" );
 #endif /* POLARSSL_NET_C */
+
+#if defined(POLARSSL_OID_C)
+    if( use_ret == -(POLARSSL_ERR_OID_NOT_FOUND) )
+        snprintf( buf, buflen, "OID - OID is not found" );
+#endif /* POLARSSL_OID_C */
 
 #if defined(POLARSSL_PADLOCK_C)
     if( use_ret == -(POLARSSL_ERR_PADLOCK_DATA_MISALIGNED) )

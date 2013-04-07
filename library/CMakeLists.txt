@@ -30,6 +30,7 @@ set(src
      md4.c
      md5.c
      net.c
+     oid.c
      padlock.c
      pbkdf2.c
      pem.c

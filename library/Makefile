@@ -45,6 +45,7 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		error.o		gcm.o		havege.o		\
 		md.o		md_wrap.o	md2.o			\
 		md4.o		md5.o		net.o			\
+		oid.o									\
 		padlock.o	pbkdf2.o	pem.o			\
 		pkcs11.o								\
 		rsa.o		sha1.o		sha2.o			\

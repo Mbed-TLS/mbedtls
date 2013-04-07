@@ -38,6 +38,7 @@
 #include "polarssl/x509.h"
 #include "polarssl/base64.h"
 #include "polarssl/x509write.h"
+#include "polarssl/oid.h"
 
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_DEBUG_LEVEL         0
@@ -75,7 +76,7 @@ void write_certificate_request( rsa_context *rsa, x509_req_name *req_name,
     size_t len = 0, olen = 4096;
 
     memset(output_buf, 0, 4096);
-    ret = x509_write_cert_req( output_buf, 4096, rsa, req_name, SIG_RSA_SHA1 );
+    ret = x509_write_cert_req( output_buf, 4096, rsa, req_name, POLARSSL_MD_SHA1 );
 
     if( ret < 0 )
         return;
@@ -201,19 +202,19 @@ int main( int argc, char *argv[] )
         if( in_tag && *c == '=' )
         {
             if( memcmp( s, "CN", 2 ) == 0 && c - s == 2 )
-                oid = OID_CN;
+                oid = OID_AT_CN;
             else if( memcmp( s, "C", 1 ) == 0 && c - s == 1 )
-                oid = OID_COUNTRY;
+                oid = OID_AT_COUNTRY;
             else if( memcmp( s, "O", 1 ) == 0 && c - s == 1 )
-                oid = OID_ORGANIZATION;
+                oid = OID_AT_ORGANIZATION;
             else if( memcmp( s, "L", 1 ) == 0 && c - s == 1 )
-                oid = OID_LOCALITY;
+                oid = OID_AT_LOCALITY;
             else if( memcmp( s, "R", 1 ) == 0 && c - s == 1 )
                 oid = OID_PKCS9_EMAIL;
             else if( memcmp( s, "OU", 2 ) == 0 && c - s == 2 )
-                oid = OID_ORG_UNIT;
+                oid = OID_AT_ORG_UNIT;
             else if( memcmp( s, "ST", 2 ) == 0 && c - s == 2 )
-                oid = OID_STATE;
+                oid = OID_AT_STATE;
             else
             {
                 printf("Failed to parse subject name.\n");

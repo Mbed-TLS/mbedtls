@@ -30,6 +30,7 @@
 #include "asn1.h"
 #include "rsa.h"
 #include "dhm.h"
+#include "md.h"
 
 /** 
  * \addtogroup x509_module
@@ -64,7 +65,6 @@
 #define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2B00  /**< Read/write of file failed. */
 /* \} name */
 
-
 /**
  * \name X509 Verify codes
  * \{
@@ -82,69 +82,6 @@
 /* \} addtogroup x509_module */
 
 /*
- * various object identifiers
- */
-#define X520_COMMON_NAME                3
-#define X520_COUNTRY                    6
-#define X520_LOCALITY                   7
-#define X520_STATE                      8
-#define X520_ORGANIZATION              10
-#define X520_ORG_UNIT                  11
-#define PKCS9_EMAIL                     1
-
-#define X509_OUTPUT_DER              0x01
-#define X509_OUTPUT_PEM              0x02
-#define PEM_LINE_LENGTH                72
-#define X509_ISSUER                  0x01
-#define X509_SUBJECT                 0x02
-
-#define OID_X520                "\x55\x04"
-#define OID_CN                  OID_X520 "\x03"
-#define OID_COUNTRY             OID_X520 "\x06"
-#define OID_LOCALITY            OID_X520 "\x07"
-#define OID_STATE               OID_X520 "\x08"
-#define OID_ORGANIZATION        OID_X520 "\x0A"
-#define OID_ORG_UNIT            OID_X520 "\x0B"
-
-#define OID_PKCS1               "\x2A\x86\x48\x86\xF7\x0D\x01\x01"
-#define OID_PKCS1_RSA           OID_PKCS1 "\x01"
-#define OID_PKCS1_SHA1          OID_PKCS1 "\x05"
-
-#define OID_RSA_SHA_OBS         "\x2B\x0E\x03\x02\x1D"
-
-#define OID_PKCS9               "\x2A\x86\x48\x86\xF7\x0D\x01\x09"
-#define OID_PKCS9_EMAIL         OID_PKCS9 "\x01"
-
-/** ISO arc for standard certificate and CRL extensions */
-#define OID_ID_CE               "\x55\x1D" /**< id-ce OBJECT IDENTIFIER  ::=  {joint-iso-ccitt(2) ds(5) 29} */
-
-/**
- * Private Internet Extensions
- * { iso(1) identified-organization(3) dod(6) internet(1)
- *                      security(5) mechanisms(5) pkix(7) }
- */
-#define OID_PKIX                "\x2B\x06\x01\x05\x05\x07"
-
-/*
- * OIDs for standard certificate extensions
- */
-#define OID_AUTHORITY_KEY_IDENTIFIER    OID_ID_CE "\x23" /**< id-ce-authorityKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 35 } */
-#define OID_SUBJECT_KEY_IDENTIFIER      OID_ID_CE "\x0E" /**< id-ce-subjectKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 14 } */
-#define OID_KEY_USAGE                   OID_ID_CE "\x0F" /**< id-ce-keyUsage OBJECT IDENTIFIER ::=  { id-ce 15 } */
-#define OID_CERTIFICATE_POLICIES        OID_ID_CE "\x20" /**< id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 } */
-#define OID_POLICY_MAPPINGS             OID_ID_CE "\x21" /**< id-ce-policyMappings OBJECT IDENTIFIER ::=  { id-ce 33 } */
-#define OID_SUBJECT_ALT_NAME            OID_ID_CE "\x11" /**< id-ce-subjectAltName OBJECT IDENTIFIER ::=  { id-ce 17 } */
-#define OID_ISSUER_ALT_NAME             OID_ID_CE "\x12" /**< id-ce-issuerAltName OBJECT IDENTIFIER ::=  { id-ce 18 } */
-#define OID_SUBJECT_DIRECTORY_ATTRS     OID_ID_CE "\x09" /**< id-ce-subjectDirectoryAttributes OBJECT IDENTIFIER ::=  { id-ce 9 } */
-#define OID_BASIC_CONSTRAINTS           OID_ID_CE "\x13" /**< id-ce-basicConstraints OBJECT IDENTIFIER ::=  { id-ce 19 } */
-#define OID_NAME_CONSTRAINTS            OID_ID_CE "\x1E" /**< id-ce-nameConstraints OBJECT IDENTIFIER ::=  { id-ce 30 } */
-#define OID_POLICY_CONSTRAINTS          OID_ID_CE "\x24" /**< id-ce-policyConstraints OBJECT IDENTIFIER ::=  { id-ce 36 } */
-#define OID_EXTENDED_KEY_USAGE          OID_ID_CE "\x25" /**< id-ce-extKeyUsage OBJECT IDENTIFIER ::= { id-ce 37 } */
-#define OID_CRL_DISTRIBUTION_POINTS     OID_ID_CE "\x1F" /**< id-ce-cRLDistributionPoints OBJECT IDENTIFIER ::=  { id-ce 31 } */
-#define OID_INIHIBIT_ANYPOLICY          OID_ID_CE "\x36" /**< id-ce-inhibitAnyPolicy OBJECT IDENTIFIER ::=  { id-ce 54 } */
-#define OID_FRESHEST_CRL                OID_ID_CE "\x2E" /**< id-ce-freshestCRL OBJECT IDENTIFIER ::=  { id-ce 46 } */
-
-/*
  * X.509 v3 Key Usage Extension flags
  */
 #define KU_DIGITAL_SIGNATURE            (0x80)  /* bit 0 */
@@ -154,48 +91,6 @@
 #define KU_KEY_AGREEMENT                (0x08)  /* bit 4 */
 #define KU_KEY_CERT_SIGN                (0x04)  /* bit 5 */
 #define KU_CRL_SIGN                     (0x02)  /* bit 6 */
-
-/*
- * X.509 v3 Extended key usage OIDs
- */
-#define OID_ANY_EXTENDED_KEY_USAGE      OID_EXTENDED_KEY_USAGE "\x00" /**< anyExtendedKeyUsage OBJECT IDENTIFIER ::= { id-ce-extKeyUsage 0 } */
-
-#define OID_KP                          OID_PKIX "\x03" /**< id-kp OBJECT IDENTIFIER ::= { id-pkix 3 } */
-#define OID_SERVER_AUTH                 OID_KP "\x01" /**< id-kp-serverAuth OBJECT IDENTIFIER ::= { id-kp 1 } */
-#define OID_CLIENT_AUTH                 OID_KP "\x02" /**< id-kp-clientAuth OBJECT IDENTIFIER ::= { id-kp 2 } */
-#define OID_CODE_SIGNING                OID_KP "\x03" /**< id-kp-codeSigning OBJECT IDENTIFIER ::= { id-kp 3 } */
-#define OID_EMAIL_PROTECTION            OID_KP "\x04" /**< id-kp-emailProtection OBJECT IDENTIFIER ::= { id-kp 4 } */
-#define OID_TIME_STAMPING               OID_KP "\x08" /**< id-kp-timeStamping OBJECT IDENTIFIER ::= { id-kp 8 } */
-#define OID_OCSP_SIGNING                OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
-
-#define STRING_SERVER_AUTH              "TLS Web Server Authentication"
-#define STRING_CLIENT_AUTH              "TLS Web Client Authentication"
-#define STRING_CODE_SIGNING             "Code Signing"
-#define STRING_EMAIL_PROTECTION         "E-mail Protection"
-#define STRING_TIME_STAMPING            "Time Stamping"
-#define STRING_OCSP_SIGNING             "OCSP Signing"
-
-/*
- * OIDs for CRL extensions
- */
-#define OID_PRIVATE_KEY_USAGE_PERIOD    OID_ID_CE "\x10"
-#define OID_CRL_NUMBER                  OID_ID_CE "\x14" /**< id-ce-cRLNumber OBJECT IDENTIFIER ::= { id-ce 20 } */
-
-/*
- * Netscape certificate extensions
- */
-#define OID_NETSCAPE                "\x60\x86\x48\x01\x86\xF8\x42" /**< Netscape OID */
-#define OID_NS_CERT                 OID_NETSCAPE "\x01"
-#define OID_NS_CERT_TYPE            OID_NS_CERT  "\x01"
-#define OID_NS_BASE_URL             OID_NS_CERT  "\x02"
-#define OID_NS_REVOCATION_URL       OID_NS_CERT  "\x03"
-#define OID_NS_CA_REVOCATION_URL    OID_NS_CERT  "\x04"
-#define OID_NS_RENEWAL_URL          OID_NS_CERT  "\x07"
-#define OID_NS_CA_POLICY_URL        OID_NS_CERT  "\x08"
-#define OID_NS_SSL_SERVER_NAME      OID_NS_CERT  "\x0C"
-#define OID_NS_COMMENT              OID_NS_CERT  "\x0D"
-#define OID_NS_DATA_TYPE            OID_NETSCAPE "\x02"
-#define OID_NS_CERT_SEQUENCE        OID_NS_DATA_TYPE "\x05"
 
 /*
  * Netscape certificate types
@@ -211,6 +106,9 @@
 #define NS_CERT_TYPE_EMAIL_CA           (0x02)  /* bit 6 */
 #define NS_CERT_TYPE_OBJECT_SIGNING_CA  (0x01)  /* bit 7 */
 
+/*
+ * X.509 extension types
+ */
 #define EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
 #define EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
 #define EXT_KEY_USAGE                   (1 << 2)
@@ -235,6 +133,12 @@
  */
 #define X509_FORMAT_DER                 1
 #define X509_FORMAT_PEM                 2
+
+typedef enum {
+    POLARSSL_PK_NONE=0,
+    POLARSSL_PK_RSA,
+    POLARSSL_PK_ECDSA,
+} pk_type_t;
 
 /** 
  * \addtogroup x509_module
@@ -321,7 +225,8 @@ typedef struct _x509_cert
 
     x509_buf sig_oid2;          /**< Signature algorithm. Must match sig_oid1. */
     x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
-    int sig_alg;                /**< Internal representation of the signature algorithm, e.g. SIG_RSA_MD2 */
+    md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
+    pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
 
     struct _x509_cert *next;    /**< Next certificate in the CA-chain. */ 
 }
@@ -370,7 +275,8 @@ typedef struct _x509_crl
 
     x509_buf sig_oid2;
     x509_buf sig;
-    int sig_alg;
+    md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
+    pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
 
     struct _x509_crl *next; 
 }

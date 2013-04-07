@@ -1,6 +1,7 @@
 BEGIN_HEADER
 #include <polarssl/x509.h>
 #include <polarssl/pem.h>
+#include <polarssl/oid.h>
 
 int verify_none( void *data, x509_cert *crt, int certificate_depth, int *flags )
 {

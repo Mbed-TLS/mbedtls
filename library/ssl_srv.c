@@ -1128,7 +1128,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     int ret;
     size_t n, rsa_key_len = 0;
     unsigned char hash[64];
-    int hash_id = 0;
+    md_type_t md_alg = POLARSSL_MD_NONE;
     unsigned int hashlen = 0;
 
     const ssl_ciphersuite_t *ciphersuite_info;
@@ -1247,10 +1247,12 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         sha1_finish( &sha1, hash + 16 );
 
         hashlen = 36;
-        hash_id = SIG_RSA_RAW;
+        md_alg = POLARSSL_MD_NONE;
     }
     else
     {
+        md_context_t ctx;
+
         /*
          * digitally-signed struct {
          *     opaque client_random[32];
@@ -1258,84 +1260,49 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ServerDHParams params;
          * };
          */
-#if defined(POLARSSL_SHA4_C)
-        if( ssl->handshake->sig_alg == SSL_HASH_SHA512 )
+        switch( ssl->handshake->sig_alg )
         {
-            sha4_context sha4;
-
-            sha4_starts( &sha4, 0 );
-            sha4_update( &sha4, ssl->handshake->randbytes, 64 );
-            sha4_update( &sha4, ssl->out_msg + 4, n );
-            sha4_finish( &sha4, hash );
-
-            hashlen = 64;
-            hash_id = SIG_RSA_SHA512;
-        }
-        else if( ssl->handshake->sig_alg == SSL_HASH_SHA384 )
-        {
-            sha4_context sha4;
-
-            sha4_starts( &sha4, 1 );
-            sha4_update( &sha4, ssl->handshake->randbytes, 64 );
-            sha4_update( &sha4, ssl->out_msg + 4, n );
-            sha4_finish( &sha4, hash );
-
-            hashlen = 48;
-            hash_id = SIG_RSA_SHA384;
-        }
-        else
+#if defined(POLARSSL_MD5_C)
+            case SSL_HASH_MD5:
+                md_alg = POLARSSL_MD_MD5;
+                break;
+#endif
+#if defined(POLARSSL_SHA1_C)
+            case SSL_HASH_SHA1:
+                md_alg = POLARSSL_MD_SHA1;
+                break;
 #endif
 #if defined(POLARSSL_SHA2_C)
-        if( ssl->handshake->sig_alg == SSL_HASH_SHA256 )
-        {
-            sha2_context sha2;
-
-            sha2_starts( &sha2, 0 );
-            sha2_update( &sha2, ssl->handshake->randbytes, 64 );
-            sha2_update( &sha2, ssl->out_msg + 4, n );
-            sha2_finish( &sha2, hash );
-
-            hashlen = 32;
-            hash_id = SIG_RSA_SHA256;
-        }
-        else if( ssl->handshake->sig_alg == SSL_HASH_SHA224 )
-        {
-            sha2_context sha2;
-
-            sha2_starts( &sha2, 1 );
-            sha2_update( &sha2, ssl->handshake->randbytes, 64 );
-            sha2_update( &sha2, ssl->out_msg + 4, n );
-            sha2_finish( &sha2, hash );
-
-            hashlen = 24;
-            hash_id = SIG_RSA_SHA224;
-        }
-        else
+            case SSL_HASH_SHA224:
+                md_alg = POLARSSL_MD_SHA224;
+                break;
+            case SSL_HASH_SHA256:
+                md_alg = POLARSSL_MD_SHA256;
+                break;
 #endif
-        if( ssl->handshake->sig_alg == SSL_HASH_SHA1 )
-        {
-            sha1_context sha1;
-
-            sha1_starts( &sha1 );
-            sha1_update( &sha1, ssl->handshake->randbytes, 64 );
-            sha1_update( &sha1, ssl->out_msg + 4, n );
-            sha1_finish( &sha1, hash );
-
-            hashlen = 20;
-            hash_id = SIG_RSA_SHA1;
+#if defined(POLARSSL_SHA4_C)
+            case SSL_HASH_SHA384:
+                md_alg = POLARSSL_MD_SHA384;
+                break;
+            case SSL_HASH_SHA512:
+                md_alg = POLARSSL_MD_SHA512;
+                break;
+#endif
+            default:
+                /* Should never happen */
+                return( -1 );
         }
-        else if( ssl->handshake->sig_alg == SSL_HASH_MD5 )
+
+        if( ( ret = md_init_ctx( &ctx, md_info_from_type( md_alg ) ) ) != 0 )
         {
-            md5_context md5;
-
-            md5_starts( &md5 );
-            md5_update( &md5, ssl->handshake->randbytes, 64 );
-            md5_update( &md5, ssl->out_msg + 4, n );
-            md5_finish( &md5, hash );
-
-            hashlen = 16;
-            hash_id = SIG_RSA_MD5;
+            SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+            return( ret );
         }
+
+        md_starts( &ctx );
+        md_update( &ctx, ssl->handshake->randbytes, 64 );
+        md_update( &ctx, ssl->out_msg + 4, n );
+        md_finish( &ctx, hash );
     }
 
     SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
@@ -1358,7 +1325,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     {
         ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
                              RSA_PRIVATE,
-                             hash_id, hashlen, hash,
+                             md_alg, hashlen, hash,
                              ssl->out_msg + 6 + n );
     }
 
@@ -1594,8 +1561,8 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     int ret;
     size_t n = 0, n1, n2;
     unsigned char hash[48];
-    int hash_id;
-    unsigned int hashlen;
+    md_type_t md_alg = POLARSSL_MD_NONE;
+    unsigned int hashlen = 0;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
@@ -1642,22 +1609,16 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         }
 
         if( ssl->handshake->verify_sig_alg == SSL_HASH_SHA384 )
-        {
-            hashlen = 48;
-            hash_id = SIG_RSA_SHA384;
-        }
+            md_alg = POLARSSL_MD_SHA384;
         else
-        {
-            hashlen = 32;
-            hash_id = SIG_RSA_SHA256;
-        }
+            md_alg = POLARSSL_MD_SHA256;
 
         n += 2;
     }
     else
     {
         hashlen = 36;
-        hash_id = SIG_RSA_RAW;
+        md_alg = POLARSSL_MD_NONE;
     }
 
     n1 = ssl->session_negotiate->peer_cert->rsa.len;
@@ -1670,7 +1631,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     }
 
     ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa, RSA_PUBLIC,
-                            hash_id, hashlen, hash, ssl->in_msg + 6 + n );
+                            md_alg, hashlen, hash, ssl->in_msg + 6 + n );
     if( ret != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );

@@ -52,45 +52,8 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
 
     msg_len = unhexify( message_str, {message_hex_string} );
 
-    switch( {digest} )
-    {
-#ifdef POLARSSL_MD2_C
-    case SIG_RSA_MD2:
-        md2( message_str, msg_len, hash_result );
-        break;
-#endif
-#ifdef POLARSSL_MD4_C
-    case SIG_RSA_MD4:
-        md4( message_str, msg_len, hash_result );
-        break;
-#endif
-#ifdef POLARSSL_MD5_C
-    case SIG_RSA_MD5:
-        md5( message_str, msg_len, hash_result );
-        break;
-#endif
-#ifdef POLARSSL_SHA1_C
-    case SIG_RSA_SHA1:
-        sha1( message_str, msg_len, hash_result );
-        break;
-#endif
-#ifdef POLARSSL_SHA2_C
-    case SIG_RSA_SHA224:
-        sha2( message_str, msg_len, hash_result, 1 );
-        break;
-    case SIG_RSA_SHA256:
-        sha2( message_str, msg_len, hash_result, 0 );
-        break;
-#endif
-#ifdef POLARSSL_SHA4_C
-    case SIG_RSA_SHA384:
-        sha4( message_str, msg_len, hash_result, 1 );
-        break;
-    case SIG_RSA_SHA512:
-        sha4( message_str, msg_len, hash_result, 0 );
-        break;
-#endif
-    }
+    if( md_info_from_type( {digest} ) != NULL )
+        TEST_ASSERT( md( md_info_from_type( {digest} ), message_str, msg_len, hash_result ) == 0 );
 
     TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, {digest}, 0, hash_result, output ) == {result} );
     if( {result} == 0 )
@@ -128,45 +91,8 @@ rsa_pkcs1_verify:message_hex_string:padding_mode:digest:mod:radix_N:input_N:radi
     msg_len = unhexify( message_str, {message_hex_string} );
     unhexify( result_str, {result_hex_str} );
 
-    switch( {digest} )
-    {
-#ifdef POLARSSL_MD2_C
-    case SIG_RSA_MD2:
-        md2( message_str, msg_len, hash_result );
-        break;
-#endif
-#ifdef POLARSSL_MD4_C
-    case SIG_RSA_MD4:
-        md4( message_str, msg_len, hash_result );
-        break;
-#endif
-#ifdef POLARSSL_MD5_C
-    case SIG_RSA_MD5:
-        md5( message_str, msg_len, hash_result );
-        break;
-#endif
-#ifdef POLARSSL_SHA1_C
-    case SIG_RSA_SHA1:
-        sha1( message_str, msg_len, hash_result );
-        break;
-#endif
-#ifdef POLARSSL_SHA2_C
-    case SIG_RSA_SHA224:
-        sha2( message_str, msg_len, hash_result, 1 );
-        break;
-    case SIG_RSA_SHA256:
-        sha2( message_str, msg_len, hash_result, 0 );
-        break;
-#endif
-#ifdef POLARSSL_SHA4_C
-    case SIG_RSA_SHA384:
-        sha4( message_str, msg_len, hash_result, 1 );
-        break;
-    case SIG_RSA_SHA512:
-        sha4( message_str, msg_len, hash_result, 0 );
-        break;
-#endif
-    }
+    if( md_info_from_type( {digest} ) != NULL )
+        TEST_ASSERT( md( md_info_from_type( {digest} ), message_str, msg_len, hash_result ) == 0 );
 
     TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
 
@@ -214,7 +140,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     unhexify( message_str, {message_hex_string} );
     hash_len = unhexify( hash_result, {hash_result_string} );
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, SIG_RSA_RAW, hash_len, hash_result, output ) == 0 );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, POLARSSL_MD_NONE, hash_len, hash_result, output ) == 0 );
 
     hexify( output_str, output, ctx.len );
 
@@ -249,7 +175,7 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     hash_len = unhexify( hash_result, {hash_result_string} );
     unhexify( result_str, {result_hex_str} );
 
-    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, SIG_RSA_RAW, hash_len, hash_result, result_str ) == {correct} );
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, POLARSSL_MD_NONE, hash_len, hash_result, result_str ) == {correct} );
 
     rsa_free( &ctx );
 }

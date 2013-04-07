@@ -93,6 +93,11 @@
 /** Returns the size of the binary string, without the trailing \\0 */
 #define OID_SIZE(x) (sizeof(x) - 1)
 
+/** Compares two asn1_buf structures for the same OID */
+#define OID_CMP(oid_str, oid_buf)                                   \
+        ( ( OID_SIZE(oid_str) == (oid_buf)->len ) &&                \
+          memcmp( (oid_str), (oid_buf)->p, (oid_buf)->len) == 0 )
+
 #ifdef __cplusplus
 extern "C" {
 #endif

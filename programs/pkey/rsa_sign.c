@@ -120,7 +120,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = rsa_pkcs1_sign( &rsa, NULL, NULL, RSA_PRIVATE, SIG_RSA_SHA1,
+    if( ( ret = rsa_pkcs1_sign( &rsa, NULL, NULL, RSA_PRIVATE, POLARSSL_MD_SHA1,
                                 20, hash, buf ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_sign returned -0x%0x\n\n", -ret );

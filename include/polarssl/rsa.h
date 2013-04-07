@@ -28,6 +28,7 @@
 #define POLARSSL_RSA_H
 
 #include "bignum.h"
+#include "md.h"
 
 /*
  * RSA Error codes
@@ -43,18 +44,8 @@
 #define POLARSSL_ERR_RSA_RNG_FAILED                        -0x4480  /**< The random generator failed to generate non-zeros. */
 
 /*
- * PKCS#1 constants
+ * RSA constants
  */
-#define SIG_RSA_RAW     0
-#define SIG_RSA_MD2     2
-#define SIG_RSA_MD4     3
-#define SIG_RSA_MD5     4
-#define SIG_RSA_SHA1    5
-#define SIG_RSA_SHA224 14
-#define SIG_RSA_SHA256 11
-#define SIG_RSA_SHA384 12
-#define SIG_RSA_SHA512 13
-
 #define RSA_PUBLIC      0
 #define RSA_PRIVATE     1
 
@@ -63,71 +54,6 @@
 
 #define RSA_SIGN        1
 #define RSA_CRYPT       2
-
-#define ASN1_STR_CONSTRUCTED_SEQUENCE   "\x30"
-#define ASN1_STR_NULL                   "\x05"
-#define ASN1_STR_OID                    "\x06"
-#define ASN1_STR_OCTET_STRING           "\x04"
-
-#define OID_DIGEST_ALG_MDX              "\x2A\x86\x48\x86\xF7\x0D\x02\x00"
-#define OID_HASH_ALG_SHA1               "\x2b\x0e\x03\x02\x1a"
-#define OID_HASH_ALG_SHA2X              "\x60\x86\x48\x01\x65\x03\x04\x02\x00"
-
-#define OID_ISO_MEMBER_BODIES           "\x2a"
-#define OID_ISO_IDENTIFIED_ORG          "\x2b"
-
-/*
- * ISO Member bodies OID parts
- */
-#define OID_COUNTRY_US                  "\x86\x48"
-#define OID_RSA_DATA_SECURITY           "\x86\xf7\x0d"
-
-/*
- * ISO Identified organization OID parts
- */
-#define OID_OIW_SECSIG_SHA1             "\x0e\x03\x02\x1a"
-
-/*
- * DigestInfo ::= SEQUENCE {
- *   digestAlgorithm DigestAlgorithmIdentifier,
- *   digest Digest }
- *
- * DigestAlgorithmIdentifier ::= AlgorithmIdentifier
- *
- * Digest ::= OCTET STRING
- */
-#define ASN1_HASH_MDX                           \
-(                                               \
-    ASN1_STR_CONSTRUCTED_SEQUENCE "\x20"        \
-      ASN1_STR_CONSTRUCTED_SEQUENCE "\x0C"      \
-        ASN1_STR_OID "\x08"                     \
-      OID_DIGEST_ALG_MDX                        \
-    ASN1_STR_NULL "\x00"                        \
-      ASN1_STR_OCTET_STRING "\x10"              \
-)
-
-#define ASN1_HASH_SHA1                          \
-    ASN1_STR_CONSTRUCTED_SEQUENCE "\x21"        \
-      ASN1_STR_CONSTRUCTED_SEQUENCE "\x09"      \
-        ASN1_STR_OID "\x05"                     \
-      OID_HASH_ALG_SHA1                         \
-        ASN1_STR_NULL "\x00"                    \
-      ASN1_STR_OCTET_STRING "\x14"
-
-#define ASN1_HASH_SHA1_ALT                      \
-    ASN1_STR_CONSTRUCTED_SEQUENCE "\x1F"        \
-      ASN1_STR_CONSTRUCTED_SEQUENCE "\x07"      \
-        ASN1_STR_OID "\x05"                     \
-      OID_HASH_ALG_SHA1                         \
-      ASN1_STR_OCTET_STRING "\x14"
-
-#define ASN1_HASH_SHA2X                         \
-    ASN1_STR_CONSTRUCTED_SEQUENCE "\x11"        \
-      ASN1_STR_CONSTRUCTED_SEQUENCE "\x0d"      \
-        ASN1_STR_OID "\x09"                     \
-      OID_HASH_ALG_SHA2X                        \
-        ASN1_STR_NULL "\x00"                    \
-      ASN1_STR_OCTET_STRING "\x00"
 
 /**
  * \brief          RSA context structure
@@ -410,8 +336,8 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
  * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
- * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
  *
@@ -431,7 +357,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
                     int (*f_rng)(void *, unsigned char *, size_t),
                     void *p_rng,
                     int mode,
-                    int hash_id,
+                    md_type_t md_alg,
                     unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig );
@@ -441,8 +367,8 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  *
  * \param ctx      RSA context
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
- * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
  *
@@ -454,7 +380,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  */
 int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
                                int mode,
-                               int hash_id,
+                               md_type_t md_alg,
                                unsigned int hashlen,
                                const unsigned char *hash,
                                unsigned char *sig );
@@ -466,8 +392,8 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
  * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
- * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
  *
@@ -487,7 +413,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng,
                          int mode,
-                         int hash_id,
+                         md_type_t md_alg,
                          unsigned int hashlen,
                          const unsigned char *hash,
                          unsigned char *sig );
@@ -499,8 +425,8 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  *
  * \param ctx      points to an RSA public key
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
- * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
  *
@@ -518,7 +444,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  */
 int rsa_pkcs1_verify( rsa_context *ctx,
                       int mode,
-                      int hash_id,
+                      md_type_t md_alg,
                       unsigned int hashlen,
                       const unsigned char *hash,
                       unsigned char *sig );
@@ -528,8 +454,8 @@ int rsa_pkcs1_verify( rsa_context *ctx,
  *
  * \param ctx      points to an RSA public key
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
- * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
  *
@@ -541,7 +467,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
  */
 int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
                                  int mode,
-                                 int hash_id,
+                                 md_type_t md_alg,
                                  unsigned int hashlen,
                                  const unsigned char *hash,
                                  unsigned char *sig );
@@ -552,8 +478,8 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  *
  * \param ctx      points to an RSA public key
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
- * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
- * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer holding the ciphertext
  *
@@ -571,7 +497,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  */
 int rsa_rsassa_pss_verify( rsa_context *ctx,
                            int mode,
-                           int hash_id,
+                           md_type_t md_alg,
                            unsigned int hashlen,
                            const unsigned char *hash,
                            unsigned char *sig );

@@ -40,6 +40,7 @@
 
 #include "polarssl/x509.h"
 #include "polarssl/asn1.h"
+#include "polarssl/oid.h"
 #include "polarssl/pem.h"
 #include "polarssl/des.h"
 #if defined(POLARSSL_MD2_C)
@@ -438,9 +439,10 @@ static int x509_get_pubkey( unsigned char **p,
                             x509_buf *pk_alg_oid,
                             mpi *N, mpi *E )
 {
-    int ret, can_handle;
+    int ret;
     size_t len;
     unsigned char *end2;
+    pk_type_t pk_alg = POLARSSL_PK_NONE;
 
     if( ( ret = x509_get_alg( p, end, pk_alg_oid ) ) != 0 )
         return( ret );
@@ -448,27 +450,7 @@ static int x509_get_pubkey( unsigned char **p,
     /*
      * only RSA public keys handled at this time
      */
-    can_handle = 0;
-
-    if( pk_alg_oid->len == 9 &&
-        memcmp( pk_alg_oid->p, OID_PKCS1_RSA, 9 ) == 0 )
-        can_handle = 1;
-
-    if( pk_alg_oid->len == 9 &&
-        memcmp( pk_alg_oid->p, OID_PKCS1, 8 ) == 0 )
-    {
-        if( pk_alg_oid->p[8] >= 2 && pk_alg_oid->p[8] <= 5 )
-            can_handle = 1;
-
-        if ( pk_alg_oid->p[8] >= 11 && pk_alg_oid->p[8] <= 14 )
-            can_handle = 1;
-    }
-
-    if( pk_alg_oid->len == 5 &&
-        memcmp( pk_alg_oid->p, OID_RSA_SHA_OBS, 5 ) == 0 )
-        can_handle = 1;
-
-    if( can_handle == 0 )
+    if( oid_get_pk_alg( pk_alg_oid, &pk_alg ) != 0 )
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
@@ -936,6 +918,7 @@ static int x509_get_crt_ext( unsigned char **p,
          */
         x509_buf extn_oid = {0, 0, NULL};
         int is_critical = 0; /* DEFAULT FALSE */
+        int ext_type = 0;
 
         if( ( ret = asn1_get_tag( p, end, &len,
                 ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
@@ -975,52 +958,9 @@ static int x509_get_crt_ext( unsigned char **p,
         /*
          * Detect supported extensions
          */
-        if( ( OID_SIZE( OID_BASIC_CONSTRAINTS ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_BASIC_CONSTRAINTS, extn_oid.len ) == 0 )
-        {
-            /* Parse basic constraints */
-            if( ( ret = x509_get_basic_constraints( p, end_ext_octet,
-                    &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_BASIC_CONSTRAINTS;
-        }
-        else if( ( OID_SIZE( OID_NS_CERT_TYPE ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_NS_CERT_TYPE, extn_oid.len ) == 0 )
-        {
-            /* Parse netscape certificate type */
-            if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
-                    &crt->ns_cert_type ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_NS_CERT_TYPE;
-        }
-        else if( ( OID_SIZE( OID_KEY_USAGE ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_KEY_USAGE, extn_oid.len ) == 0 )
-        {
-            /* Parse key usage */
-            if( ( ret = x509_get_key_usage( p, end_ext_octet,
-                    &crt->key_usage ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_KEY_USAGE;
-        }
-        else if( ( OID_SIZE( OID_EXTENDED_KEY_USAGE ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_EXTENDED_KEY_USAGE, extn_oid.len ) == 0 )
-        {
-            /* Parse extended key usage */
-            if( ( ret = x509_get_ext_key_usage( p, end_ext_octet,
-                    &crt->ext_key_usage ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_EXTENDED_KEY_USAGE;
-        }
-        else if( ( OID_SIZE( OID_SUBJECT_ALT_NAME ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_SUBJECT_ALT_NAME, extn_oid.len ) == 0 )
-        {
-            /* Parse extended key usage */
-            if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
-                    &crt->subject_alt_names ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_SUBJECT_ALT_NAME;
-        }
-        else
+        ret = oid_get_x509_ext_type( &extn_oid, &ext_type );
+
+        if( ret != 0 )
         {
             /* No parser found, skip extension */
             *p = end_ext_octet;
@@ -1033,6 +973,50 @@ static int x509_get_crt_ext( unsigned char **p,
                         POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
             }
 #endif
+            continue;
+        }
+
+        crt->ext_types |= ext_type;
+
+        switch( ext_type )
+        {
+        case EXT_BASIC_CONSTRAINTS:
+            /* Parse basic constraints */
+            if( ( ret = x509_get_basic_constraints( p, end_ext_octet,
+                    &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
+                return ( ret );
+            break;
+
+        case EXT_KEY_USAGE:
+            /* Parse key usage */
+            if( ( ret = x509_get_key_usage( p, end_ext_octet,
+                    &crt->key_usage ) ) != 0 )
+                return ( ret );
+            break;
+
+        case EXT_EXTENDED_KEY_USAGE:
+            /* Parse extended key usage */
+            if( ( ret = x509_get_ext_key_usage( p, end_ext_octet,
+                    &crt->ext_key_usage ) ) != 0 )
+                return ( ret );
+            break;
+
+        case EXT_SUBJECT_ALT_NAME:
+            /* Parse subject alt name */
+            if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
+                    &crt->subject_alt_names ) ) != 0 )
+                return ( ret );
+            break;
+
+        case EXT_NS_CERT_TYPE:
+            /* Parse netscape certificate type */
+            if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
+                    &crt->ns_cert_type ) ) != 0 )
+                return ( ret );
+            break;
+
+        default:
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
         }
     }
 
@@ -1108,33 +1092,15 @@ static int x509_get_entries( unsigned char **p,
     return( 0 );
 }
 
-static int x509_get_sig_alg( const x509_buf *sig_oid, int *sig_alg )
+static int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
+                             pk_type_t *pk_alg )
 {
-    if( sig_oid->len == 9 &&
-        memcmp( sig_oid->p, OID_PKCS1, 8 ) == 0 )
-    {
-        if( sig_oid->p[8] >= 2 && sig_oid->p[8] <= 5 )
-        {
-            *sig_alg = sig_oid->p[8];
-            return( 0 );
-        }
+    int ret = oid_get_sig_alg( sig_oid, md_alg, pk_alg );
 
-        if ( sig_oid->p[8] >= 11 && sig_oid->p[8] <= 14 )
-        {
-            *sig_alg = sig_oid->p[8];
-            return( 0 );
-        }
+    if( ret != 0 )
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG + ret );
 
-        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
-    }
-    if( sig_oid->len == 5 &&
-        memcmp( sig_oid->p, OID_RSA_SHA_OBS, 5 ) == 0 )
-    {
-        *sig_alg = SIG_RSA_SHA1;
-        return( 0 );
-    }
-
-    return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+    return( 0 );
 }
 
 /*
@@ -1224,7 +1190,8 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION );
     }
 
-    if( ( ret = x509_get_sig_alg( &crt->sig_oid1, &crt->sig_alg ) ) != 0 )
+    if( ( ret = x509_get_sig_alg( &crt->sig_oid1, &crt->sig_md,
+                                  &crt->sig_pk ) ) != 0 )
     {
         x509_free( crt );
         return( ret );
@@ -1693,7 +1660,8 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION );
     }
 
-    if( ( ret = x509_get_sig_alg( &crl->sig_oid1, &crl->sig_alg ) ) != 0 )
+    if( ( ret = x509_get_sig_alg( &crl->sig_oid1, &crl->sig_md,
+                                  &crl->sig_pk ) ) != 0 )
     {
         x509_crl_free( crl );
         return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
@@ -2160,32 +2128,12 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
     }
     else
     {
-        int can_handle;
+        pk_type_t pk_alg = POLARSSL_PK_NONE;
 
         /*
          * only RSA keys handled at this time
          */
-        can_handle = 0;
-
-        if( pk_alg_oid.len == 9 &&
-                memcmp( pk_alg_oid.p, OID_PKCS1_RSA, 9 ) == 0 )
-            can_handle = 1;
-
-        if( pk_alg_oid.len == 9 &&
-                memcmp( pk_alg_oid.p, OID_PKCS1, 8 ) == 0 )
-        {
-            if( pk_alg_oid.p[8] >= 2 && pk_alg_oid.p[8] <= 5 )
-                can_handle = 1;
-
-            if ( pk_alg_oid.p[8] >= 11 && pk_alg_oid.p[8] <= 14 )
-                can_handle = 1;
-        }
-
-        if( pk_alg_oid.len == 5 &&
-                memcmp( pk_alg_oid.p, OID_RSA_SHA_OBS, 5 ) == 0 )
-            can_handle = 1;
-
-        if( can_handle == 0 )
+        if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 )
             return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
 
         /*
@@ -2501,7 +2449,7 @@ int x509parse_dhmfile( dhm_context *dhm, const char *path )
  * This fuction tries to 'fix' this by at least suggesting enlarging the
  * size by 20.
  */
-int compat_snprintf(char *str, size_t size, const char *format, ...)
+static int compat_snprintf(char *str, size_t size, const char *format, ...)
 {
     va_list ap;
     int res = -1;
@@ -2548,6 +2496,7 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
     size_t i, n;
     unsigned char c;
     const x509_name *name;
+    const char *short_name = NULL;
     char s[128], *p;
 
     memset( s, 0, sizeof( s ) );
@@ -2570,56 +2519,13 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
             SAFE_SNPRINTF();
         }
 
-        if( name->oid.len == 3 &&
-            memcmp( name->oid.p, OID_X520, 2 ) == 0 )
-        {
-            switch( name->oid.p[2] )
-            {
-            case X520_COMMON_NAME:
-                ret = snprintf( p, n, "CN=" ); break;
+        ret = oid_get_attr_short_name( &name->oid, &short_name );
 
-            case X520_COUNTRY:
-                ret = snprintf( p, n, "C="  ); break;
-
-            case X520_LOCALITY:
-                ret = snprintf( p, n, "L="  ); break;
-
-            case X520_STATE:
-                ret = snprintf( p, n, "ST=" ); break;
-
-            case X520_ORGANIZATION:
-                ret = snprintf( p, n, "O="  ); break;
-
-            case X520_ORG_UNIT:
-                ret = snprintf( p, n, "OU=" ); break;
-
-            default:
-                ret = snprintf( p, n, "0x%02X=",
-                               name->oid.p[2] );
-                break;
-            }
-        SAFE_SNPRINTF();
-        }
-        else if( name->oid.len == 9 &&
-                 memcmp( name->oid.p, OID_PKCS9, 8 ) == 0 )
-        {
-            switch( name->oid.p[8] )
-            {
-            case PKCS9_EMAIL:
-                ret = snprintf( p, n, "emailAddress=" ); break;
-
-            default:
-                ret = snprintf( p, n, "0x%02X=",
-                               name->oid.p[8] );
-                break;
-            }
-        SAFE_SNPRINTF();
-        }
+        if( ret == 0 )
+            ret = snprintf( p, n, "%s=", short_name );
         else
-        {
             ret = snprintf( p, n, "\?\?=" );
-            SAFE_SNPRINTF();
-        }
+        SAFE_SNPRINTF();
 
         for( i = 0; i < name->val.len; i++ )
         {
@@ -2633,7 +2539,7 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
         }
         s[i] = '\0';
         ret = snprintf( p, n, "%s", s );
-    SAFE_SNPRINTF();
+        SAFE_SNPRINTF();
         name = name->next;
     }
 
@@ -2684,6 +2590,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     int ret;
     size_t n;
     char *p;
+    const char *desc = NULL;
 
     p = buf;
     n = size;
@@ -2722,21 +2629,14 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                    crt->valid_to.min,  crt->valid_to.sec );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssigned using  : RSA+", prefix );
+    ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
     SAFE_SNPRINTF();
 
-    switch( crt->sig_alg )
-    {
-        case SIG_RSA_MD2    : ret = snprintf( p, n, "MD2"    ); break;
-        case SIG_RSA_MD4    : ret = snprintf( p, n, "MD4"    ); break;
-        case SIG_RSA_MD5    : ret = snprintf( p, n, "MD5"    ); break;
-        case SIG_RSA_SHA1   : ret = snprintf( p, n, "SHA1"   ); break;
-        case SIG_RSA_SHA224 : ret = snprintf( p, n, "SHA224" ); break;
-        case SIG_RSA_SHA256 : ret = snprintf( p, n, "SHA256" ); break;
-        case SIG_RSA_SHA384 : ret = snprintf( p, n, "SHA384" ); break;
-        case SIG_RSA_SHA512 : ret = snprintf( p, n, "SHA512" ); break;
-        default: ret = snprintf( p, n, "???"  ); break;
-    }
+    ret = oid_get_sig_alg_desc( &crt->sig_oid1, &desc );
+    if( ret != 0 )
+        ret = snprintf( p, n, "???"  );
+    else
+        ret = snprintf( p, n, desc );
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%sRSA key size  : %d bits\n", prefix,
@@ -2746,75 +2646,26 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     return( (int) ( size - n ) );
 }
 
-/* Compare a given OID string with an OID x509_buf * */
-#define OID_CMP(oid_str, oid_buf) \
-        ( ( OID_SIZE(oid_str) == (oid_buf)->len ) && \
-                memcmp( (oid_str), (oid_buf)->p, (oid_buf)->len) == 0)
-
 /*
  * Return an informational string describing the given OID
  */
 const char *x509_oid_get_description( x509_buf *oid )
 {
-    if ( oid == NULL )
-        return ( NULL );
+    const char *desc = NULL;
+    int ret;
     
-    else if( OID_CMP( OID_SERVER_AUTH, oid ) )
-        return( STRING_SERVER_AUTH );
-    
-    else if( OID_CMP( OID_CLIENT_AUTH, oid ) )
-        return( STRING_CLIENT_AUTH );
-    
-    else if( OID_CMP( OID_CODE_SIGNING, oid ) )
-        return( STRING_CODE_SIGNING );
-    
-    else if( OID_CMP( OID_EMAIL_PROTECTION, oid ) )
-        return( STRING_EMAIL_PROTECTION );
-    
-    else if( OID_CMP( OID_TIME_STAMPING, oid ) )
-        return( STRING_TIME_STAMPING );
+    ret = oid_get_extended_key_usage( oid, &desc );
 
-    else if( OID_CMP( OID_OCSP_SIGNING, oid ) )
-        return( STRING_OCSP_SIGNING );
+    if( ret != 0 )
+        return( NULL );
 
-    return( NULL );
+    return( desc );
 }
 
 /* Return the x.y.z.... style numeric string for the given OID */
 int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
 {
-    int ret;
-    size_t i, n;
-    unsigned int value;
-    char *p;
-
-    p = buf;
-    n = size;
-
-    /* First byte contains first two dots */
-    if( oid->len > 0 )
-    {
-        ret = snprintf( p, n, "%d.%d", oid->p[0]/40, oid->p[0]%40 );
-        SAFE_SNPRINTF();
-    }
-
-    /* TODO: value can overflow in value. */
-    value = 0;
-    for( i = 1; i < oid->len; i++ )
-    {
-        value <<= 7;
-        value += oid->p[i] & 0x7F;
-
-        if( !( oid->p[i] & 0x80 ) )
-        {
-            /* Last byte */
-            ret = snprintf( p, n, ".%d", value );
-            SAFE_SNPRINTF();
-            value = 0;
-        }
-    }
-
-    return( (int) ( size - n ) );
+    return oid_get_numeric_string( buf, size, oid );
 }
 
 /*
@@ -2826,6 +2677,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
     int ret;
     size_t n;
     char *p;
+    const char *desc;
     const x509_crl_entry *entry;
 
     p = buf;
@@ -2879,21 +2731,14 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
         entry = entry->next;
     }
 
-    ret = snprintf( p, n, "\n%ssigned using  : RSA+", prefix );
+    ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
     SAFE_SNPRINTF();
 
-    switch( crl->sig_alg )
-    {
-        case SIG_RSA_MD2    : ret = snprintf( p, n, "MD2"    ); break;
-        case SIG_RSA_MD4    : ret = snprintf( p, n, "MD4"    ); break;
-        case SIG_RSA_MD5    : ret = snprintf( p, n, "MD5"    ); break;
-        case SIG_RSA_SHA1   : ret = snprintf( p, n, "SHA1"   ); break;
-        case SIG_RSA_SHA224 : ret = snprintf( p, n, "SHA224" ); break;
-        case SIG_RSA_SHA256 : ret = snprintf( p, n, "SHA256" ); break;
-        case SIG_RSA_SHA384 : ret = snprintf( p, n, "SHA384" ); break;
-        case SIG_RSA_SHA512 : ret = snprintf( p, n, "SHA512" ); break;
-        default: ret = snprintf( p, n, "???"  ); break;
-    }
+    ret = oid_get_sig_alg_desc( &crl->sig_oid1, &desc );
+    if( ret != 0 )
+        ret = snprintf( p, n, "???"  );
+    else
+        ret = snprintf( p, n, desc );
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n" );
@@ -2995,48 +2840,14 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
 }
 
 /*
- * Wrapper for x509 hashes.
- */
-static void x509_hash( const unsigned char *in, size_t len, int alg,
-                       unsigned char *out )
-{
-    switch( alg )
-    {
-#if defined(POLARSSL_MD2_C)
-        case SIG_RSA_MD2    :  md2( in, len, out ); break;
-#endif
-#if defined(POLARSSL_MD4_C)
-        case SIG_RSA_MD4    :  md4( in, len, out ); break;
-#endif
-#if defined(POLARSSL_MD5_C)
-        case SIG_RSA_MD5    :  md5( in, len, out ); break;
-#endif
-#if defined(POLARSSL_SHA1_C)
-        case SIG_RSA_SHA1   : sha1( in, len, out ); break;
-#endif
-#if defined(POLARSSL_SHA2_C)
-        case SIG_RSA_SHA224 : sha2( in, len, out, 1 ); break;
-        case SIG_RSA_SHA256 : sha2( in, len, out, 0 ); break;
-#endif
-#if defined(POLARSSL_SHA4_C)
-        case SIG_RSA_SHA384 : sha4( in, len, out, 1 ); break;
-        case SIG_RSA_SHA512 : sha4( in, len, out, 0 ); break;
-#endif
-        default:
-            memset( out, '\xFF', 64 );
-            break;
-    }
-}
-
-/*
  * Check that the given certificate is valid accoring to the CRL.
  */
 static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         x509_crl *crl_list)
 {
     int flags = 0;
-    int hash_id;
-    unsigned char hash[64];
+    unsigned char hash[POLARSSL_MD_MAX_SIZE];
+    const md_info_t *md_info;
 
     if( ca == NULL )
         return( flags );
@@ -3061,11 +2872,19 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         /*
          * Check if CRL is correctly signed by the trusted CA
          */
-        hash_id = crl_list->sig_alg;
+        md_info = md_info_from_type( crl_list->sig_md );
+        if( md_info == NULL )
+        {
+            /*
+             * Cannot check 'unknown' hash
+             */
+            flags |= BADCRL_NOT_TRUSTED;
+            break;
+        }
 
-        x509_hash( crl_list->tbs.p, crl_list->tbs.len, hash_id, hash );
+        md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
-        if( !rsa_pkcs1_verify( &ca->rsa, RSA_PUBLIC, hash_id,
+        if( !rsa_pkcs1_verify( &ca->rsa, RSA_PUBLIC, crl_list->sig_md,
                               0, hash, crl_list->sig.p ) == 0 )
         {
             /*
@@ -3130,9 +2949,10 @@ static int x509parse_verify_top(
                 int (*f_vrfy)(void *, x509_cert *, int, int *),
                 void *p_vrfy )
 {
-    int hash_id, ret;
+    int ret;
     int ca_flags = 0, check_path_cnt = path_cnt + 1;
-    unsigned char hash[64];
+    unsigned char hash[POLARSSL_MD_MAX_SIZE];
+    const md_info_t *md_info;
 
     if( x509parse_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
@@ -3171,11 +2991,18 @@ static int x509parse_verify_top(
             continue;
         }
 
-        hash_id = child->sig_alg;
+        md_info = md_info_from_type( child->sig_md );
+        if( md_info == NULL )
+        {
+            /*
+             * Cannot check 'unknown' hash
+             */
+            continue;
+        }
 
-        x509_hash( child->tbs.p, child->tbs.len, hash_id, hash );
+        md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        if( rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, hash_id,
+        if( rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, child->sig_md,
                     0, hash, child->sig.p ) != 0 )
         {
             trust_ca = trust_ca->next;
@@ -3230,22 +3057,32 @@ static int x509parse_verify_child(
                 int (*f_vrfy)(void *, x509_cert *, int, int *),
                 void *p_vrfy )
 {
-    int hash_id, ret;
+    int ret;
     int parent_flags = 0;
-    unsigned char hash[64];
+    unsigned char hash[POLARSSL_MD_MAX_SIZE];
     x509_cert *grandparent;
+    const md_info_t *md_info;
 
     if( x509parse_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
 
-    hash_id = child->sig_alg;
-
-    x509_hash( child->tbs.p, child->tbs.len, hash_id, hash );
-
-    if( rsa_pkcs1_verify( &parent->rsa, RSA_PUBLIC, hash_id, 0, hash,
-                           child->sig.p ) != 0 )
+    md_info = md_info_from_type( child->sig_md );
+    if( md_info == NULL )
+    {
+        /*
+         * Cannot check 'unknown' hash
+         */
         *flags |= BADCERT_NOT_TRUSTED;
-        
+    }
+    else
+    {
+        md( md_info, child->tbs.p, child->tbs.len, hash );
+
+        if( rsa_pkcs1_verify( &parent->rsa, RSA_PUBLIC, child->sig_md, 0, hash,
+                               child->sig.p ) != 0 )
+            *flags |= BADCERT_NOT_TRUSTED;
+    }
+
     /* Check trusted CA's CRL for the given crt */
     *flags |= x509parse_verifycrl(child, parent, ca_crl);
 
@@ -3340,8 +3177,7 @@ int x509parse_verify( x509_cert *crt,
         {
             while( name != NULL )
             {
-                if( name->oid.len == 3 &&
-                    memcmp( name->oid.p, OID_CN,  3 ) == 0 )
+                if( OID_CMP( OID_AT_CN, &name->oid ) )
                 {
                     if( name->val.len == cn_len &&
                         memcmp( name->val.p, cn, cn_len ) == 0 )

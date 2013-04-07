@@ -121,7 +121,7 @@ int main( int argc, char *argv[] )
     }
 
     if( ( ret = rsa_pkcs1_sign( &rsa, ctr_drbg_random, &ctr_drbg,
-                                RSA_PRIVATE, SIG_RSA_SHA1,
+                                RSA_PRIVATE, POLARSSL_MD_SHA1,
                                 20, hash, buf ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_sign returned %d\n\n", ret );

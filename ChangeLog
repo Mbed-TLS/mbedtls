@@ -12,6 +12,8 @@ Changes
      Cipher and MD information
    * Internals for SSL module adapted to have separate IV pointer that is
      dynamically set (Better support for hardware acceleration)
+   * Moved all OID functionality to a separate module. RSA function
+     prototypes for the RSA sign and verify functions changed as a result
 
 = Version 1.2.6 released 2013-03-11
 Bugfix

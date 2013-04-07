@@ -710,6 +710,20 @@
 #define POLARSSL_NET_C
 
 /**
+ * \def POLARSSL_OID_C
+ *
+ * Enable the OID database
+ *
+ * Module:  library/oid.c
+ * Caller:  library/rsa.c
+ *          library/x509parse.c
+ *          library/x509write.c
+ *
+ * This modules translates between OIDs and internal values.
+ */
+#define POLARSSL_OID_C
+
+/**
  * \def POLARSSL_PADLOCK_C
  *
  * Enable VIA Padlock support on x86.
@@ -775,7 +789,7 @@
  *          library/ssl_tls.c
  *          library/x509.c
  *
- * Requires: POLARSSL_BIGNUM_C
+ * Requires: POLARSSL_BIGNUM_C, POLARSSL_OID_C
  *
  * This module is required for SSL/TLS and MD5-signed certificates.
  */
@@ -911,7 +925,8 @@
  *          library/ssl_srv.c
  *          library/ssl_tls.c
  *
- * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_BIGNUM_C, POLARSSL_RSA_C
+ * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_BIGNUM_C, POLARSSL_OID_C,
+ *           POLARSSL_RSA_C
  *
  * This module is required for X.509 certificate parsing.
  */
@@ -924,7 +939,7 @@
  *
  * Module:  library/x509write.c
  *
- * Requires: POLARSSL_BIGNUM_C, POLARSSL_RSA_C
+ * Requires: POLARSSL_BIGNUM_C, POLARSSL_OID_C, POLARSSL_RSA_C
  *
  * This module is required for X.509 certificate request writing.
  */

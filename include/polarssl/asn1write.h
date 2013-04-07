@@ -35,8 +35,8 @@ int asn1_write_len( unsigned char **p, unsigned char *start, size_t len );
 int asn1_write_tag( unsigned char **p, unsigned char *start, unsigned char tag );
 int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X );
 int asn1_write_null( unsigned char **p, unsigned char *start );
-int asn1_write_oid( unsigned char **p, unsigned char *start, char *oid );
-int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start, char *algorithm_oid );
+int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid );
+int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start, const char *algorithm_oid );
 int asn1_write_int( unsigned char **p, unsigned char *start, int val );
 int asn1_write_printable_string( unsigned char **p, unsigned char *start,
                                  char *text );

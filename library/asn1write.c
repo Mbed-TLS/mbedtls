@@ -118,7 +118,7 @@ int asn1_write_null( unsigned char **p, unsigned char *start )
     return( len );
 }
 
-int asn1_write_oid( unsigned char **p, unsigned char *start, char *oid )
+int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid )
 {
     int ret;
     size_t len = 0;
@@ -140,7 +140,7 @@ int asn1_write_oid( unsigned char **p, unsigned char *start, char *oid )
 }
 
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
-                                     char *algorithm_oid )
+                                     const char *algorithm_oid )
 {
     int ret;
     size_t null_len = 0;

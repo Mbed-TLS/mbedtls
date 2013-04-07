@@ -78,8 +78,8 @@ then
         TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
         TLS-RSA-WITH-AES-256-CBC-SHA256         \
         TLS-DHE-RSA-WITH-AES-256-CBC-SHA256     \
-        TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256 \
-        TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384 \
+        TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256   \
+        TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384   \
         "
 
     O_CIPHERS="$O_CIPHERS           \
@@ -169,7 +169,8 @@ PROCESS_ID=$!
 
 sleep 1
 
-# OpenSSL does not support RFC5246 Camellia ciphers with SHA256
+# OpenSSL does not support RFC5246 and RFC6367 Camellia ciphers with SHA256
+# or SHA384
 # Add for PolarSSL only test, which does support them.
 #
 if [ "$MODE" = "tls1_2" ];
@@ -179,6 +180,8 @@ then
         TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
         TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256     \
         TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256 \
+        TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
+        TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384 \
         "
 fi
 

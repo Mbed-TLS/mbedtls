@@ -745,8 +745,8 @@
  * Requires: POLARSSL_MD_C
  *
  * This module adds support for the PKCS#5 PBKDF2 key derivation function.
-#define POLARSSL_PBKDF2_C
  */
+#define POLARSSL_PBKDF2_C
 
 /**
  * \def POLARSSL_PEM_C

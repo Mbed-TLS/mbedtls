@@ -40,7 +40,6 @@ P_CIPHERS="                                 \
     TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
     TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
     TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
-    TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
     TLS-ECDHE-RSA-WITH-NULL-SHA             \
     "
 

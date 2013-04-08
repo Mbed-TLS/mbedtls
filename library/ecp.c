@@ -191,7 +191,7 @@ int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
                             int format, size_t *olen,
                             unsigned char *buf, size_t buflen )
 {
-    int ret;
+    int ret = 0;
     size_t plen;
 
     if( format != POLARSSL_ECP_PF_UNCOMPRESSED &&

@@ -15,6 +15,9 @@ Changes
    * Moved all OID functionality to a separate module. RSA function
      prototypes for the RSA sign and verify functions changed as a result
 
+Bugfix
+   * Fix for MPI assembly for ARM
+
 = Version 1.2.6 released 2013-03-11
 Bugfix
    * Fixed memory leak in ssl_free() and ssl_reset() for active session

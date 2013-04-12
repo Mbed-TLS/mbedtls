@@ -718,6 +718,7 @@ void ssl_set_session( ssl_context *ssl, const ssl_session *session );
 
 /**
  * \brief               Set the list of allowed ciphersuites
+ *                      (Default: ssl_default_ciphersuites)
  *                      (Overrides all version specific lists)
  *
  * \param ssl           SSL context
@@ -728,6 +729,7 @@ void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites );
 /**
  * \brief               Set the list of allowed ciphersuites for a specific
  *                      version of the protocol.
+ *                      (Default: ssl_default_ciphersuites)
  *                      (Only useful on the server side)
  *
  * \param ssl           SSL context

@@ -22,7 +22,9 @@ ifdef ZLIB
 LDFLAGS += -lz
 endif
 
-APPS =	test_suite_aes			test_suite_arc4			\
+APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
+		test_suite_aes.cfb		test_suite_aes.rest		\
+		test_suite_arc4									\
 		test_suite_base64		test_suite_blowfish		\
 		test_suite_camellia		test_suite_cipher.aes	\
 		test_suite_cipher.blowfish						\
@@ -30,8 +32,14 @@ APPS =	test_suite_aes			test_suite_arc4			\
 		test_suite_cipher.des	test_suite_cipher.null	\
 		test_suite_ctr_drbg		test_suite_debug		\
 		test_suite_des			test_suite_dhm			\
-		test_suite_error		test_suite_gcm.decrypt	\
-		test_suite_gcm.decrypt	test_suite_hmac_shax	\
+		test_suite_error								\
+		test_suite_gcm.decrypt_128						\
+		test_suite_gcm.decrypt_192						\
+		test_suite_gcm.decrypt_256						\
+		test_suite_gcm.encrypt_128						\
+		test_suite_gcm.encrypt_192						\
+		test_suite_gcm.encrypt_256						\
+		test_suite_hmac_shax							\
 		test_suite_md			test_suite_mdx			\
 		test_suite_mpi			test_suite_pbkdf2		\
 		test_suite_pkcs1_v21							\
@@ -42,6 +50,22 @@ APPS =	test_suite_aes			test_suite_arc4			\
 .SILENT:
 
 all: $(APPS)
+
+test_suite_aes.ecb.c : suites/test_suite_aes.function suites/test_suite_aes.ecb.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_aes test_suite_aes.ecb
+
+test_suite_aes.cbc.c : suites/test_suite_aes.function suites/test_suite_aes.cbc.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_aes test_suite_aes.cbc
+
+test_suite_aes.cfb.c : suites/test_suite_aes.function suites/test_suite_aes.cfb.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_aes test_suite_aes.cfb
+
+test_suite_aes.rest.c : suites/test_suite_aes.function suites/test_suite_aes.rest.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_aes test_suite_aes.rest
 
 test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
@@ -63,19 +87,47 @@ test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_c
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.null
 
-test_suite_gcm.decrypt.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt.data scripts/generate_code.pl suites/helpers.function
+test_suite_gcm.decrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_128.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_128
 
-test_suite_gcm.encrypt.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt.data scripts/generate_code.pl suites/helpers.function
+test_suite_gcm.decrypt_192.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_192.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_192
+
+test_suite_gcm.decrypt_256.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_256.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_256
+
+test_suite_gcm.encrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_128.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_128
+
+test_suite_gcm.encrypt_192.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_192.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_192
+
+test_suite_gcm.encrypt_256.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_256.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_256
 
 %.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites $* $*
 
-test_suite_aes: test_suite_aes.c ../library/libpolarssl.a
+test_suite_aes.ecb: test_suite_aes.ecb.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_aes.cbc: test_suite_aes.cbc.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_aes.cfb: test_suite_aes.cfb.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_aes.rest: test_suite_aes.rest.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
@@ -131,11 +183,27 @@ test_suite_error: test_suite_error.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.decrypt: test_suite_gcm.decrypt.c ../library/libpolarssl.a
+test_suite_gcm.decrypt_128: test_suite_gcm.decrypt_128.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.encrypt: test_suite_gcm.encrypt.c ../library/libpolarssl.a
+test_suite_gcm.decrypt_192: test_suite_gcm.decrypt_192.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_gcm.decrypt_256: test_suite_gcm.decrypt_256.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_gcm.encrypt_128: test_suite_gcm.encrypt_128.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_gcm.encrypt_192: test_suite_gcm.encrypt_192.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_gcm.encrypt_256: test_suite_gcm.encrypt_256.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

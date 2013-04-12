@@ -642,7 +642,7 @@ const cipher_base_t blowfish_info = {
 const cipher_info_t blowfish_cbc_info = {
     POLARSSL_CIPHER_BLOWFISH_CBC,
     POLARSSL_MODE_CBC,
-    32,
+    128,
     "BLOWFISH-CBC",
     8,
     8,
@@ -653,7 +653,7 @@ const cipher_info_t blowfish_cbc_info = {
 const cipher_info_t blowfish_cfb64_info = {
     POLARSSL_CIPHER_BLOWFISH_CFB64,
     POLARSSL_MODE_CFB,
-    32,
+    128,
     "BLOWFISH-CFB64",
     8,
     8,
@@ -665,7 +665,7 @@ const cipher_info_t blowfish_cfb64_info = {
 const cipher_info_t blowfish_ctr_info = {
     POLARSSL_CIPHER_BLOWFISH_CTR,
     POLARSSL_MODE_CTR,
-    32,
+    128,
     "BLOWFISH-CTR",
     8,
     8,

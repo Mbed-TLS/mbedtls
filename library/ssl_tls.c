@@ -2952,7 +2952,8 @@ int ssl_init( ssl_context *ssl )
     ssl->min_major_ver = SSL_MAJOR_VERSION_3;
     ssl->min_minor_ver = SSL_MINOR_VERSION_0;
 
-    ssl->ciphersuites = ssl_default_ciphersuites;
+    ssl->ciphersuites = malloc( sizeof(int *) * 4 );
+    ssl_set_ciphersuites( ssl, ssl_default_ciphersuites );
 
 #if defined(POLARSSL_DHM_C)
     if( ( ret = mpi_read_string( &ssl->dhm_P, 16,
@@ -3133,7 +3134,22 @@ void ssl_set_session( ssl_context *ssl, const ssl_session *session )
 
 void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites )
 {
-    ssl->ciphersuites    = ciphersuites;
+    ssl->ciphersuites[SSL_MINOR_VERSION_0] = ciphersuites;
+    ssl->ciphersuites[SSL_MINOR_VERSION_1] = ciphersuites;
+    ssl->ciphersuites[SSL_MINOR_VERSION_2] = ciphersuites;
+    ssl->ciphersuites[SSL_MINOR_VERSION_3] = ciphersuites;
+}
+
+void ssl_set_ciphersuites_for_version( ssl_context *ssl, const int *ciphersuites,
+                                       int major, int minor )
+{
+    if( major != SSL_MAJOR_VERSION_3 )
+        return;
+
+    if( minor < SSL_MINOR_VERSION_0 || minor > SSL_MINOR_VERSION_3 )
+        return;
+
+    ssl->ciphersuites[minor] = ciphersuites;
 }
 
 void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
@@ -3896,6 +3912,8 @@ void ssl_session_free( ssl_session *session )
 void ssl_free( ssl_context *ssl )
 {
     SSL_DEBUG_MSG( 2, ( "=> free" ) );
+
+    free( ssl->ciphersuites );
 
     if( ssl->out_ctr != NULL )
     {

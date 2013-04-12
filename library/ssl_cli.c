@@ -119,7 +119,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "client hello, session id len.: %d", n ) );
     SSL_DEBUG_BUF( 3,   "client hello, session id", buf + 39, n );
 
-    for( n = 0; ssl->ciphersuites[n] != 0; n++ );
+    for( n = 0; ssl->ciphersuites[ssl->minor_ver][n] != 0; n++ );
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE ) n++;
     *p++ = (unsigned char)( n >> 7 );
     *p++ = (unsigned char)( n << 1 );
@@ -139,10 +139,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
     for( i = 0; i < n; i++ )
     {
         SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
-                       ssl->ciphersuites[i] ) );
+                       ssl->ciphersuites[ssl->minor_ver][i] ) );
 
-        *p++ = (unsigned char)( ssl->ciphersuites[i] >> 8 );
-        *p++ = (unsigned char)( ssl->ciphersuites[i]      );
+        *p++ = (unsigned char)( ssl->ciphersuites[ssl->minor_ver][i] >> 8 );
+        *p++ = (unsigned char)( ssl->ciphersuites[ssl->minor_ver][i]      );
     }
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
@@ -515,13 +515,13 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     i = 0;
     while( 1 )
     {
-        if( ssl->ciphersuites[i] == 0 )
+        if( ssl->ciphersuites[ssl->minor_ver][i] == 0 )
         {
             SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
-        if( ssl->ciphersuites[i++] == ssl->session_negotiate->ciphersuite )
+        if( ssl->ciphersuites[ssl->minor_ver][i++] == ssl->session_negotiate->ciphersuite )
             break;
     }
 

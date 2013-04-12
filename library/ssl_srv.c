@@ -359,13 +359,13 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         }
     }
 
-    for( i = 0; ssl->ciphersuites[i] != 0; i++ )
+    for( i = 0; ssl->ciphersuites[ssl->minor_ver][i] != 0; i++ )
     {
         for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
         {
             if( p[0] == 0 &&
                 p[1] == 0 &&
-                p[2] == ssl->ciphersuites[i] )
+                p[2] == ssl->ciphersuites[ssl->minor_ver][i] )
                 goto have_ciphersuite_v2;
         }
     }
@@ -375,7 +375,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
 
 have_ciphersuite_v2:
-    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
+    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[ssl->minor_ver][i];
     ssl_optimize_checksum( ssl, ssl->session_negotiate->ciphersuite );
 
     /*
@@ -642,12 +642,12 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     /*
      * Search for a matching ciphersuite
      */
-    for( i = 0; ssl->ciphersuites[i] != 0; i++ )
+    for( i = 0; ssl->ciphersuites[ssl->minor_ver][i] != 0; i++ )
     {
         for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
             j += 2, p += 2 )
         {
-            if( p[0] == 0 && p[1] == ssl->ciphersuites[i] )
+            if( p[0] == 0 && p[1] == ssl->ciphersuites[ssl->minor_ver][i] )
                 goto have_ciphersuite;
         }
     }
@@ -657,7 +657,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
 
 have_ciphersuite:
-    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
+    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[ssl->minor_ver][i];
     ssl_optimize_checksum( ssl, ssl->session_negotiate->ciphersuite );
 
     ext = buf + 44 + sess_len + ciph_len + comp_len;

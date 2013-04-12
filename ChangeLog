@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
 = Branch 1.2
+Features
+   * Ability to specify allowed ciphersuites based on the protocol version.
+
 Bugfix
    * Fix for MPI assembly for ARM
 

@@ -491,7 +491,7 @@ struct _ssl_context
     int verify_result;                  /*!<  verification result     */
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
-    const int *ciphersuites;            /*!<  allowed ciphersuites    */
+    const int **ciphersuites;           /*!<  allowed ciphersuites / version */
 
 #if defined(POLARSSL_DHM_C)
     mpi dhm_P;                          /*!<  prime modulus for DHM   */
@@ -718,11 +718,29 @@ void ssl_set_session( ssl_context *ssl, const ssl_session *session );
 
 /**
  * \brief               Set the list of allowed ciphersuites
+ *                      (Overrides all version specific lists)
  *
  * \param ssl           SSL context
  * \param ciphersuites  0-terminated list of allowed ciphersuites
  */
 void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites );
+
+/**
+ * \brief               Set the list of allowed ciphersuites for a specific
+ *                      version of the protocol.
+ *                      (Only useful on the server side)
+ *
+ * \param ssl           SSL context
+ * \param ciphersuites  0-terminated list of allowed ciphersuites
+ * \param major         Major version number (only SSL_MAJOR_VERSION_3
+ *                      supported)
+ * \param minor         Minor version number (SSL_MINOR_VERSION_0,
+ *                      SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
+ *                      SSL_MINOR_VERSION_3 supported)
+ */
+void ssl_set_ciphersuites_for_version( ssl_context *ssl,
+                                       const int *ciphersuites,
+                                       int major, int minor );
 
 /**
  * \brief          Set the data required to verify peer certificate

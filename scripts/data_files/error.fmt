@@ -86,4 +86,22 @@ LOW_LEVEL_CODE_CHECKS
     snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
 }
 
+#else /* POLARSSL_ERROR_C */
+
+#if defined(POLARSSL_ERROR_STRERROR_DUMMY)
+
+#include <string.h>
+
+/*
+ * Provide an non-function in case POLARSSL_ERROR_C is not defined
+ */
+void error_strerror( int ret, char *buf, size_t buflen )
+{
+    ((void) ret);
+
+    if( buflen > 0 )
+        buf[0] = '\0';
+}
+
+#endif /* POLARSSL_ERROR_STRERROR_DUMMY */
 #endif /* POLARSSL_ERROR_C */

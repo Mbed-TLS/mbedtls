@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Branch 1.2
+Bugfix
+   * Fix for MPI assembly for ARM
+
 = Version 1.2.6 released 2013-03-11
 Bugfix
    * Fixed memory leak in ssl_free() and ssl_reset() for active session

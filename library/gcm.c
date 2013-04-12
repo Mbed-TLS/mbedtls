@@ -80,7 +80,7 @@ static void gcm_gen_table( gcm_context *ctx )
 
     for( i = 4; i > 0; i >>= 1 )
     {
-        uint32_t T = ( vl & 1 ) ? 0xe1000000U : 0;
+        uint32_t T = ( vl & 1 ) * 0xe1000000U;
         vl  = ( vh << 63 ) | ( vl >> 1 );
         vh  = ( vh >> 1 ) ^ ( (uint64_t) T << 32);
 
@@ -128,12 +128,10 @@ void gcm_mult( gcm_context *ctx, const unsigned char x[16], unsigned char output
 {
     int i = 0;
     unsigned char z[16];
-    unsigned char v[16];
     unsigned char lo, hi, rem;
     uint64_t zh, zl;
 
     memset( z, 0x00, 16 );
-    memcpy( v, x, 16 );
 
     lo = x[15] & 0xf;
     hi = x[15] >> 4;
@@ -191,8 +189,8 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     const unsigned char *p;
     unsigned char *out_p = output;
     size_t use_len;
-    size_t orig_len = length * 8;
-    size_t orig_add_len = add_len * 8;
+    uint64_t orig_len = length * 8;
+    uint64_t orig_add_len = add_len * 8;
     unsigned char **xor_p;
 
     memset( y, 0x00, 16 );
@@ -286,8 +284,10 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     {
         memset( work_buf, 0x00, 16 );
 
-        PUT_UINT32_BE( orig_add_len , work_buf, 4 );
-        PUT_UINT32_BE( orig_len , work_buf, 12 );
+        PUT_UINT32_BE( ( orig_add_len >> 32 ), work_buf, 0  );
+        PUT_UINT32_BE( ( orig_add_len       ), work_buf, 4  );
+        PUT_UINT32_BE( ( orig_len     >> 32 ), work_buf, 8  );
+        PUT_UINT32_BE( ( orig_len           ), work_buf, 12 );
 
         for( i = 0; i < 16; i++ )
             buf[i] ^= work_buf[i];

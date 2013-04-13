@@ -1,11 +1,16 @@
 PolarSSL ChangeLog
 
-= Branch 1.2
+= Version 1.2.7 released 2013-04-13
 Features
    * Ability to specify allowed ciphersuites based on the protocol version.
 
+Changes
+   * Default Blowfish keysize is now 128-bits
+   * Test suites made smaller to accommodate Raspberry Pi
+
 Bugfix
    * Fix for MPI assembly for ARM
+   * GCM adapted to support sizes > 2^29
 
 = Version 1.2.6 released 2013-03-11
 Bugfix

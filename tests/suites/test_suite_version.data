@@ -1,5 +1,5 @@
 Check compiletime library version
-check_compiletime_version:"1.2.6"
+check_compiletime_version:"1.2.7"
 
 Check runtime library version
-check_runtime_version:"1.2.6"
+check_runtime_version:"1.2.7"

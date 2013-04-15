@@ -271,6 +271,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     size_t n;
     unsigned int ciph_len, sess_len, chal_len;
     unsigned char *buf, *p;
+    const int *ciphersuites;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello v2" ) );
 
@@ -431,7 +432,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         }
     }
 
-    for( i = 0; ssl->ciphersuites[i] != 0; i++ )
+    ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
+    for( i = 0; ciphersuites[i] != 0; i++ )
     {
         for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
         {
@@ -439,8 +441,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
             //
             if( p[0] == 0 &&
                 p[1] == 0 &&
-                ( ( ssl->ciphersuites[i] >> 8 ) & 0xFF ) == 0 &&
-                p[2] == ( ssl->ciphersuites[i] & 0xFF ) )
+                ( ( ciphersuites[i] >> 8 ) & 0xFF ) == 0 &&
+                p[2] == ( ciphersuites[i] & 0xFF ) )
                 goto have_ciphersuite_v2;
         }
     }
@@ -450,7 +452,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
 
 have_ciphersuite_v2:
-    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
+    ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     /*
@@ -487,6 +489,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     unsigned char *buf, *p, *ext;
     int renegotiation_info_seen = 0;
     int handshake_failure = 0;
+    const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
@@ -836,20 +839,21 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      * Search for a matching ciphersuite
      * (At the end because we need information from the EC-based extensions)
      */
-    for( i = 0; ssl->ciphersuites[i] != 0; i++ )
+    ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
+    for( i = 0; ciphersuites[i] != 0; i++ )
     {
         for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
             j += 2, p += 2 )
         {
-            if( p[0] == ( ( ssl->ciphersuites[i] >> 8 ) & 0xFF ) &&
-                p[1] == ( ( ssl->ciphersuites[i]      ) & 0xFF ) )
+            if( p[0] == ( ( ciphersuites[i] >> 8 ) & 0xFF ) &&
+                p[1] == ( ( ciphersuites[i]      ) & 0xFF ) )
             {
-                ciphersuite_info = ssl_ciphersuite_from_id( ssl->ciphersuites[i] );
+                ciphersuite_info = ssl_ciphersuite_from_id( ciphersuites[i] );
 
                 if( ciphersuite_info == NULL )
                 {
                     SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
-                                   ssl->ciphersuites[i] ) );
+                                   ciphersuites[i] ) );
                     return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
                 }
 
@@ -870,7 +874,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
 
 have_ciphersuite:
-    ssl->session_negotiate->ciphersuite = ssl->ciphersuites[i];
+    ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
     ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 

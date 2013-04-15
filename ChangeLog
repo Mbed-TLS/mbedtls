@@ -6,6 +6,7 @@ Features
    * Elliptic Curve Diffie Hellman module added
    * Ephemeral Elliptic Curve Diffie Hellman support for SSL/TLS
     (ECDHE-based ciphersuites)
+   * Ability to specify allowed ciphersuites based on the protocol version.
 
 Changes
    * Introduced separate SSL Ciphersuites module that is based on

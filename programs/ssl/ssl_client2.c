@@ -49,6 +49,8 @@
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
+#define DFL_PSK                 ""
+#define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_FORCE_CIPHER        0
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
@@ -71,6 +73,8 @@ struct options
     char *ca_path;              /* the path with the CA certificate(s) reside */
     char *crt_file;             /* the file with the client certificate     */
     char *key_file;             /* the file with the client key             */
+    char *psk;                  /* the pre-shared key                       */
+    char *psk_identity;         /* the pre-shared key identity              */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
@@ -158,6 +162,8 @@ int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
     "    auth_mode=%%s        default: \"optional\"\n"          \
     "                        options: none, optional, required\n" \
+    "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
+    "    psk_identity=%%s     default: \"Client_identity\"\n" \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
@@ -180,8 +186,10 @@ int main( int argc, char *argv[] )
 #else
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, server_fd;
+    int ret = 0, len, server_fd, i;
     unsigned char buf[1024];
+    unsigned char psk[256];
+    size_t psk_len = 0;
     char *pers = "ssl_client2";
 
     entropy_context entropy;
@@ -190,7 +198,6 @@ int main( int argc, char *argv[] )
     x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
-    int i;
     char *p, *q;
     const int *list;
 
@@ -229,6 +236,8 @@ int main( int argc, char *argv[] )
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
+    opt.psk                 = DFL_PSK;
+    opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
@@ -267,6 +276,10 @@ int main( int argc, char *argv[] )
             opt.crt_file = q;
         else if( strcmp( p, "key_file" ) == 0 )
             opt.key_file = q;
+        else if( strcmp( p, "psk" ) == 0 )
+            opt.psk = q;
+        else if( strcmp( p, "psk_identity" ) == 0 )
+            opt.psk_identity = q;
         else if( strcmp( p, "force_ciphersuite" ) == 0 )
         {
             opt.force_ciphersuite[0] = -1;
@@ -355,6 +368,54 @@ int main( int argc, char *argv[] )
         }
         else
             goto usage;
+    }
+
+    /*
+     * Unhexify the pre-shared key if any is given
+     */
+    if( strlen( opt.psk ) )
+    {
+        unsigned char c;
+        size_t j;
+
+        if( strlen( opt.psk ) % 2 != 0 )
+        {
+            printf("pre-shared key not valid hex\n");
+            goto exit;
+        }
+
+        psk_len = strlen( opt.psk ) / 2;
+
+        for( j = 0; j < strlen( opt.psk ); j += 2 )
+        {
+            c = opt.psk[j];
+            if( c >= '0' && c <= '9' )
+                c -= '0';
+            else if( c >= 'a' && c <= 'f' )
+                c -= 'a' - 10;
+            else if( c >= 'A' && c <= 'F' )
+                c -= 'A' - 10;
+            else
+            {
+                printf("pre-shared key not valid hex\n");
+                goto exit;
+            }
+            psk[ j / 2 ] = c << 4;
+
+            c = opt.psk[j + 1];
+            if( c >= '0' && c <= '9' )
+                c -= '0';
+            else if( c >= 'a' && c <= 'f' )
+                c -= 'a' - 10;
+            else if( c >= 'A' && c <= 'F' )
+                c -= 'A' - 10;
+            else
+            {
+                printf("pre-shared key not valid hex\n");
+                goto exit;
+            }
+            psk[ j / 2 ] |= c;
+        }
     }
 
     /*
@@ -502,7 +563,8 @@ int main( int argc, char *argv[] )
 
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
     ssl_set_own_cert( &ssl, &clicert, &rsa );
-
+    ssl_set_psk( &ssl, psk, psk_len, (unsigned char *) opt.psk_identity,
+                 strlen( opt.psk_identity ) );
     ssl_set_hostname( &ssl, opt.server_name );
 
     if( opt.min_version != -1 )
@@ -554,10 +616,13 @@ int main( int argc, char *argv[] )
     else
         printf( " ok\n" );
 
-    printf( "  . Peer certificate information    ...\n" );
-    x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                         ssl_get_peer_cert( &ssl ) );
-    printf( "%s\n", buf );
+    if( ssl_get_peer_cert( &ssl ) != NULL )
+    {
+        printf( "  . Peer certificate information    ...\n" );
+        x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                             ssl_get_peer_cert( &ssl ) );
+        printf( "%s\n", buf );
+    }
 
     /*
      * 6. Write the GET request

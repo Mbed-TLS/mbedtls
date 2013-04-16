@@ -1848,8 +1848,16 @@ int ssl_write_certificate( ssl_context *ssl )
     int ret;
     size_t i, n;
     const x509_cert *crt;
+    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
+
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
+    {
+        SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
+        ssl->state++;
+        return( 0 );
+    }
 
     if( ssl->endpoint == SSL_IS_CLIENT )
     {
@@ -1944,8 +1952,16 @@ int ssl_parse_certificate( ssl_context *ssl )
 {
     int ret;
     size_t i, n;
+    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
+
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
+    {
+        SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+        ssl->state++;
+        return( 0 );
+    }
 
     if( ssl->endpoint == SSL_IS_SERVER &&
         ssl->authmode == SSL_VERIFY_NONE )
@@ -2753,6 +2769,7 @@ int ssl_session_reset( ssl_context *ssl )
 
     ssl->in_hslen = 0;
     ssl->nb_zero = 0;
+    ssl->record_read = 0;
 
     ssl->out_msg = ssl->out_ctr + 13;
     ssl->out_msgtype = 0;
@@ -2908,6 +2925,16 @@ void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
     ssl->rsa_key_len = rsa_key_len;
 }
 
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+void ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
+                  const unsigned char *psk_identity, size_t psk_identity_len )
+{
+    ssl->psk     = psk;
+    ssl->psk_len = psk_len;
+    ssl->psk_identity     = psk_identity;
+    ssl->psk_identity_len = psk_identity_len;
+}
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 
 #if defined(POLARSSL_DHM_C)
 int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G )

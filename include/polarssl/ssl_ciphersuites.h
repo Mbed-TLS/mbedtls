@@ -53,6 +53,7 @@ extern "C" {
 #define TLS_DHE_RSA_WITH_AES_128_CBC_SHA         0x33
 #define TLS_RSA_WITH_AES_256_CBC_SHA             0x35
 #define TLS_DHE_RSA_WITH_AES_256_CBC_SHA         0x39
+
 #define TLS_RSA_WITH_AES_128_CBC_SHA256          0x3C   /**< TLS 1.2 */
 #define TLS_RSA_WITH_AES_256_CBC_SHA256          0x3D   /**< TLS 1.2 */
 #define TLS_DHE_RSA_WITH_AES_128_CBC_SHA256      0x67   /**< TLS 1.2 */
@@ -62,6 +63,22 @@ extern "C" {
 #define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA    0x45
 #define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA        0x84
 #define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA    0x88
+
+#define TLS_PSK_WITH_RC4_128_SHA                 0x8A
+#define TLS_PSK_WITH_3DES_EDE_CBC_SHA            0x8B
+#define TLS_PSK_WITH_AES_128_CBC_SHA             0x8C
+#define TLS_PSK_WITH_AES_256_CBC_SHA             0x8D
+
+#define TLS_DHE_PSK_WITH_RC4_128_SHA             0x8E
+#define TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA        0x8F
+#define TLS_DHE_PSK_WITH_AES_128_CBC_SHA         0x90
+#define TLS_DHE_PSK_WITH_AES_256_CBC_SHA         0x91
+
+#define TLS_RSA_PSK_WITH_RC4_128_SHA             0x92
+#define TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA        0x93
+#define TLS_RSA_PSK_WITH_AES_128_CBC_SHA         0x94
+#define TLS_RSA_PSK_WITH_AES_256_CBC_SHA         0x95
+
 #define TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256     0xBA   /**< TLS 1.2 */
 #define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 0xBE   /**< TLS 1.2 */
 #define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256     0xC0   /**< TLS 1.2 */
@@ -91,6 +108,9 @@ typedef enum {
     POLARSSL_KEY_EXCHANGE_RSA,
     POLARSSL_KEY_EXCHANGE_DHE_RSA,
     POLARSSL_KEY_EXCHANGE_ECDHE_RSA,
+    POLARSSL_KEY_EXCHANGE_PSK,
+    POLARSSL_KEY_EXCHANGE_DHE_PSK,
+    POLARSSL_KEY_EXCHANGE_RSA_PSK,
 } key_exchange_type_t;
 
 typedef struct _ssl_ciphersuite_t ssl_ciphersuite_t;

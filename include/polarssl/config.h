@@ -162,6 +162,21 @@
  */
 
 /**
+ * \def POLARSSL_KEY_EXCHANGE_PSK_ENABLED
+ *
+ * Enable the PSK based ciphersuite modes in SSL / TLS
+ * In combination with POLARSSL_RSA_C it also enables RSA_PSK ciphersuites
+ * and in combination with POLARSSL_DHM_C it enables the DHE_PSK ciphersuites
+ *
+ * This enables the following ciphersuites:
+ *      TLS_PSK_WITH_RC4_128_SHA
+ *      TLS_PSK_WITH_3DES_EDE_CBC_SHA
+ *      TLS_PSK_WITH_AES_128_CBC_SHA
+ *      TLS_PSK_WITH_AES_256_CBC_SHA
+ */
+#define POLARSSL_KEY_EXCHANGE_PSK_ENABLED
+
+/**
  * \def POLARSSL_ERROR_STRERROR_DUMMY
  *
  * Enable a dummy error function to make use of error_strerror() in
@@ -348,6 +363,8 @@
  *      TLS_RSA_WITH_AES_256_GCM_SHA384
  *      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
  *      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+ *      TLS_PSK_WITH_AES_128_CBC_SHA
+ *      TLS_PSK_WITH_AES_256_CBC_SHA
  *
  * PEM uses AES for decrypting encrypted keys.
  */
@@ -366,6 +383,7 @@
  *      TLS_RSA_WITH_RC4_128_MD5
  *      TLS_RSA_WITH_RC4_128_SHA
  *      TLS_ECDHE_RSA_WITH_RC4_128_SHA
+ *      TLS_PSK_WITH_RC4_128_SHA
  */
 #define POLARSSL_ARC4_C
 
@@ -511,6 +529,7 @@
  *      TLS_RSA_WITH_3DES_EDE_CBC_SHA
  *      TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
  *      TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+ *      TLS_PSK_WITH_3DES_EDE_CBC_SHA
  *
  * PEM uses DES/3DES for decrypting encrypted keys.
  */

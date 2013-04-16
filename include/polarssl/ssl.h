@@ -201,6 +201,7 @@
 #define SSL_ALERT_MSG_NO_RENEGOTIATION     100  /* 0x64 */
 #define SSL_ALERT_MSG_UNSUPPORTED_EXT      110  /* 0x6E */
 #define SSL_ALERT_MSG_UNRECOGNIZED_NAME    112  /* 0x70 */
+#define SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY 115  /* 0x73 */
 
 #define SSL_HS_HELLO_REQUEST            0
 #define SSL_HS_CLIENT_HELLO             1
@@ -225,7 +226,6 @@
 #define TLS_EXT_SIG_ALG                     13
 
 #define TLS_EXT_RENEGOTIATION_INFO      0xFF01
-
 
 /*
  * Generic function pointers for allowing external RSA private key
@@ -441,6 +441,7 @@ struct _ssl_context
 
     size_t in_hslen;            /*!< current handshake message length */
     int nb_zero;                /*!< # of 0-length encrypted messages */
+    int record_read;            /*!< record is already present        */
 
     /*
      * Record layer (outgoing data)
@@ -481,6 +482,16 @@ struct _ssl_context
 #if defined(POLARSSL_DHM_C)
     mpi dhm_P;                          /*!<  prime modulus for DHM   */
     mpi dhm_G;                          /*!<  generator for DHM       */
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    /*
+     * PSK values
+     */
+    const unsigned char *psk;
+    size_t         psk_len;
+    const unsigned char *psk_identity;
+    size_t         psk_identity_len;
 #endif
 
     /*
@@ -779,6 +790,21 @@ void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
                            rsa_decrypt_func rsa_decrypt,
                            rsa_sign_func rsa_sign,
                            rsa_key_len_func rsa_key_len );
+
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+/**
+ * \brief          Set the Pre Shared Key (PSK) and the identity name connected
+ *                 to it. The PSK is used in all PSK-based ciphersuites.
+ *
+ * \param ssl      SSL context
+ * \param psk      pointer to the pre-shared key
+ * \param psk_len  pre-shared key length
+ * \param psk_identity      pointer to the pre-shared key identity
+ * \param psk_identity_len  identity key length
+ */
+void ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
+                  const unsigned char *psk_identity, size_t psk_identity_len );
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 
 #if defined(POLARSSL_DHM_C)
 /**

@@ -736,6 +736,136 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     return( 0 );
 }
 #else
+static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
+                                       unsigned char *end )
+{
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+
+#if defined(POLARSSL_DHM_C)
+    /*
+     * Ephemeral DH parameters:
+     *
+     * struct {
+     *     opaque dh_p<1..2^16-1>;
+     *     opaque dh_g<1..2^16-1>;
+     *     opaque dh_Ys<1..2^16-1>;
+     * } ServerDHParams;
+     */
+    if( ( ret = dhm_read_params( &ssl->handshake->dhm_ctx, p, end ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 2, ( "dhm_read_params" ), ret );
+        return( ret );
+    }
+
+    if( ssl->handshake->dhm_ctx.len < 64  ||
+        ssl->handshake->dhm_ctx.len > 512 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad server key exchange message (DHM length)" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
+
+    SSL_DEBUG_MPI( 3, "DHM: P ", &ssl->handshake->dhm_ctx.P  );
+    SSL_DEBUG_MPI( 3, "DHM: G ", &ssl->handshake->dhm_ctx.G  );
+    SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
+#endif /* POLARSSL_DHM_C */
+
+    return( ret );
+}
+
+static int ssl_parse_server_ecdh_params( ssl_context *ssl,
+                                         unsigned char **p,
+                                         unsigned char *end )
+{
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+
+#if defined(POLARSSL_ECDH_C)
+    /*
+     * Ephemeral ECDH parameters:
+     *
+     * struct {
+     *     ECParameters curve_params;
+     *     ECPoint      public;
+     * } ServerECDHParams;
+     */
+    ecdh_init( &ssl->handshake->ecdh_ctx );
+
+    if( ( ret = ecdh_read_params( &ssl->handshake->ecdh_ctx,
+                                  (const unsigned char **) p, end ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 2, ( "ecdh_read_params" ), ret );
+        return( ret );
+    }
+
+    if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||
+        ssl->handshake->ecdh_ctx.grp.nbits > 521 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad server key exchange message (ECDH length)" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
+
+    SSL_DEBUG_ECP( 3, "ECDH: Qp", &ssl->handshake->ecdh_ctx.Qp );
+#endif /* POLARSSL_ECDH_C */
+
+    return( ret );
+}
+
+static int ssl_parse_signature_algorithm( ssl_context *ssl,
+                                          unsigned char **p,
+                                          unsigned char *end,
+                                          md_type_t *md_alg )
+{
+    *md_alg = POLARSSL_MD_NONE;
+
+    if( (*p) + 2 < end )
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+
+    if( (*p)[1] != SSL_SIG_RSA )
+    {
+        SSL_DEBUG_MSG( 2, ( "server used unsupported SignatureAlgorithm %d", (*p)[1] ) );
+        SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
+
+    switch( (*p)[0] )
+    {
+#if defined(POLARSSL_MD5_C)
+        case SSL_HASH_MD5:
+            *md_alg = POLARSSL_MD_MD5;
+            break;
+#endif
+#if defined(POLARSSL_SHA1_C)
+        case SSL_HASH_SHA1:
+            *md_alg = POLARSSL_MD_SHA1;
+            break;
+#endif
+#if defined(POLARSSL_SHA2_C)
+        case SSL_HASH_SHA224:
+            *md_alg = POLARSSL_MD_SHA224;
+            break;
+        case SSL_HASH_SHA256:
+            *md_alg = POLARSSL_MD_SHA256;
+            break;
+#endif
+#if defined(POLARSSL_SHA4_C)
+        case SSL_HASH_SHA384:
+            *md_alg = POLARSSL_MD_SHA384;
+            break;
+        case SSL_HASH_SHA512:
+            *md_alg = POLARSSL_MD_SHA512;
+            break;
+#endif
+        default:
+            SSL_DEBUG_MSG( 2, ( "Server used unsupported HashAlgorithm %d", *(p)[0] ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
+
+    SSL_DEBUG_MSG( 2, ( "Server used SignatureAlgorithm %d", (*p)[1] ) );
+    SSL_DEBUG_MSG( 2, ( "Server used HashAlgorithm %d", (*p)[0] ) );
+    *p += 2;
+
+    return( 0 );
+}
+
 static int ssl_parse_server_key_exchange( ssl_context *ssl )
 {
     int ret;
@@ -780,210 +910,122 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     p   = ssl->in_msg + 4;
     end = ssl->in_msg + ssl->in_hslen;
 
-#if defined(POLARSSL_DHM_C)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
-        /*
-         * Ephemeral DH parameters:
-         *
-         * struct {
-         *     opaque dh_p<1..2^16-1>;
-         *     opaque dh_g<1..2^16-1>;
-         *     opaque dh_Ys<1..2^16-1>;
-         * } ServerDHParams;
-         */
-        if( ( ret = dhm_read_params( &ssl->handshake->dhm_ctx, &p, end ) ) != 0 )
+        if( ssl_parse_server_dh_params( ssl, &p, end ) != 0 )
         {
-            SSL_DEBUG_MSG( 2, ( "DHM Read Params returned -0x%x", -ret ) );
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
     }
-#endif /* POLARSSL_DHM_C */
 
-#if defined(POLARSSL_ECDH_C)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
     {
-        /*
-         * Ephemeral ECDH parameters:
-         *
-         * struct {
-         *     ECParameters curve_params;
-         *     ECPoint      public;
-         * } ServerECDHParams;
-         */
-        ecdh_init( &ssl->handshake->ecdh_ctx );
-
-        if( ( ret = ecdh_read_params( &ssl->handshake->ecdh_ctx,
-                                      (const unsigned char **) &p, end ) ) != 0 )
+        if( ssl_parse_server_ecdh_params( ssl, &p, end ) != 0 )
         {
-            SSL_DEBUG_MSG( 2, ( "ECDH Read Params returned -0x%x", -ret ) );
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
     }
-#endif /* POLARSSL_ECDH_C */
 
-    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
     {
-        if( p[1] != SSL_SIG_RSA )
+        /*
+         * Handle the digitally-signed structure
+         */
+        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
         {
-            SSL_DEBUG_MSG( 2, ( "server used unsupported SignatureAlgorithm %d", p[1] ) );
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE ); 
-        }
-
-        switch( p[0] )
-        {
-#if defined(POLARSSL_MD5_C)
-            case SSL_HASH_MD5:
-                md_alg = POLARSSL_MD_MD5;
-                break;
-#endif
-#if defined(POLARSSL_SHA1_C)
-            case SSL_HASH_SHA1:
-                md_alg = POLARSSL_MD_SHA1;
-                break;
-#endif
-#if defined(POLARSSL_SHA2_C)
-            case SSL_HASH_SHA224:
-                md_alg = POLARSSL_MD_SHA224;
-                break;
-            case SSL_HASH_SHA256:
-                md_alg = POLARSSL_MD_SHA256;
-                break;
-#endif
-#if defined(POLARSSL_SHA4_C)
-            case SSL_HASH_SHA384:
-                md_alg = POLARSSL_MD_SHA384;
-                break;
-            case SSL_HASH_SHA512:
-                md_alg = POLARSSL_MD_SHA512;
-                break;
-#endif
-            default:
-                SSL_DEBUG_MSG( 2, ( "Server used unsupported HashAlgorithm %d", p[0] ) );
+            if( ssl_parse_signature_algorithm( ssl, &p, end, &md_alg ) != 0 )
+            {
                 SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-                return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE ); 
-        }      
+                return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+            }
+        }
 
-        SSL_DEBUG_MSG( 2, ( "Server used SignatureAlgorithm %d", p[1] ) );
-        SSL_DEBUG_MSG( 2, ( "Server used HashAlgorithm %d", p[0] ) );
+        n = ( p[0] << 8 ) | p[1];
         p += 2;
-    }
 
-    n = ( p[0] << 8 ) | p[1];
-    p += 2;
-
-    if( end != p + n )
-    {
-        SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-    }
-
-    if( (unsigned int)( end - p ) !=
-        ssl->session_negotiate->peer_cert->rsa.len )
-    {
-        SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-    }
-
-#if defined(POLARSSL_DHM_C)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
-    {
-        if( ssl->handshake->dhm_ctx.len < 64  ||
-            ssl->handshake->dhm_ctx.len > 512 )
+        if( end != p + n )
         {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message (DHM length)" ) );
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
 
-        SSL_DEBUG_MPI( 3, "DHM: P ", &ssl->handshake->dhm_ctx.P  );
-        SSL_DEBUG_MPI( 3, "DHM: G ", &ssl->handshake->dhm_ctx.G  );
-        SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
-    }
-#endif
-
-#if defined(POLARSSL_ECDH_C)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
-    {
-        if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||
-            ssl->handshake->ecdh_ctx.grp.nbits > 521 )
+        if( (unsigned int)( end - p ) !=
+            ssl->session_negotiate->peer_cert->rsa.len )
         {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message (ECDH length)" ) );
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
 
-        SSL_DEBUG_ECP( 3, "ECDH: Qp", &ssl->handshake->ecdh_ctx.Qp );
-    }
-#endif
-
-    if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
-    {
-        md5_context md5;
-        sha1_context sha1;
-
-        /*
-         * digitally-signed struct {
-         *     opaque md5_hash[16];
-         *     opaque sha_hash[20];
-         * };
-         *
-         * md5_hash
-         *     MD5(ClientHello.random + ServerHello.random
-         *                            + ServerParams);
-         * sha_hash
-         *     SHA(ClientHello.random + ServerHello.random
-         *                            + ServerParams);
-         */
-        n = ssl->in_hslen - ( end - p ) - 6;
-
-        md5_starts( &md5 );
-        md5_update( &md5, ssl->handshake->randbytes, 64 );
-        md5_update( &md5, ssl->in_msg + 4, n );
-        md5_finish( &md5, hash );
-
-        sha1_starts( &sha1 );
-        sha1_update( &sha1, ssl->handshake->randbytes, 64 );
-        sha1_update( &sha1, ssl->in_msg + 4, n );
-        sha1_finish( &sha1, hash + 16 );
-
-        md_alg = POLARSSL_MD_NONE;
-        hashlen = 36;
-    }
-    else
-    {
-        md_context_t ctx;
-
-        n = ssl->in_hslen - ( end - p ) - 8;
-
-        /*
-         * digitally-signed struct {
-         *     opaque client_random[32];
-         *     opaque server_random[32];
-         *     ServerDHParams params;
-         * };
-         */
-        if( ( ret = md_init_ctx( &ctx, md_info_from_type( md_alg ) ) ) != 0 )
+        if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
         {
-            SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+            md5_context md5;
+            sha1_context sha1;
+
+            /*
+             * digitally-signed struct {
+             *     opaque md5_hash[16];
+             *     opaque sha_hash[20];
+             * };
+             *
+             * md5_hash
+             *     MD5(ClientHello.random + ServerHello.random
+             *                            + ServerParams);
+             * sha_hash
+             *     SHA(ClientHello.random + ServerHello.random
+             *                            + ServerParams);
+             */
+            n = ssl->in_hslen - ( end - p ) - 6;
+
+            md5_starts( &md5 );
+            md5_update( &md5, ssl->handshake->randbytes, 64 );
+            md5_update( &md5, ssl->in_msg + 4, n );
+            md5_finish( &md5, hash );
+
+            sha1_starts( &sha1 );
+            sha1_update( &sha1, ssl->handshake->randbytes, 64 );
+            sha1_update( &sha1, ssl->in_msg + 4, n );
+            sha1_finish( &sha1, hash + 16 );
+
+            md_alg = POLARSSL_MD_NONE;
+            hashlen = 36;
+        }
+        else
+        {
+            md_context_t ctx;
+
+            n = ssl->in_hslen - ( end - p ) - 8;
+
+            /*
+             * digitally-signed struct {
+             *     opaque client_random[32];
+             *     opaque server_random[32];
+             *     ServerDHParams params;
+             * };
+             */
+            if( ( ret = md_init_ctx( &ctx, md_info_from_type( md_alg ) ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+                return( ret );
+            }
+
+            md_starts( &ctx );
+            md_update( &ctx, ssl->handshake->randbytes, 64 );
+            md_update( &ctx, ssl->in_msg + 4, n );
+            md_finish( &ctx, hash );
+        }
+
+        SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
+
+        if( ( ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa,
+                                      RSA_PUBLIC,
+                                      md_alg, hashlen, hash, p ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );
             return( ret );
         }
-
-        md_starts( &ctx );
-        md_update( &ctx, ssl->handshake->randbytes, 64 );
-        md_update( &ctx, ssl->in_msg + 4, n );
-        md_finish( &ctx, hash );
-    }
-    
-    SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
-
-    if( ( ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa,
-                                  RSA_PUBLIC,
-                                  md_alg, hashlen, hash, p ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );
-        return( ret );
     }
 
     ssl->state++;

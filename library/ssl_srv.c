@@ -1077,7 +1077,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
         {
             ssl->handshake->verify_sig_alg = SSL_HASH_SHA384;
         }
-        
+
         *p++ = ssl->handshake->verify_sig_alg;
         *p++ = SSL_SIG_RSA;
 
@@ -1126,7 +1126,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     ssl->state++;
     return( 0 );
 }
-#else    
+#else
 static int ssl_write_server_key_exchange( ssl_context *ssl )
 {
     int ret;

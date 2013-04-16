@@ -691,7 +691,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     {
         SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
         handshake_failure = 1;
-    } 
+    }
     else if( ssl->renegotiation == SSL_RENEGOTIATION &&
              ssl->secure_renegotiation == SSL_SECURE_RENEGOTIATION &&
              renegotiation_info_seen == 0 )
@@ -1085,7 +1085,7 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
     // client authentication
 
     buf = ssl->in_msg;
-    
+
     // Retrieve cert types
     //
     cert_type_len = buf[4];
@@ -1130,7 +1130,7 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
             SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
         }
-    } 
+    }
 
     dn_len = ( ( buf[5 + m + n] <<  8 )
              | ( buf[6 + m + n]       ) );

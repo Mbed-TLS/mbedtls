@@ -317,7 +317,7 @@ int ssl_derive_keys( ssl_context *ssl )
     cipher_info = cipher_info_from_type( transform->ciphersuite_info->cipher );
     if( cipher_info == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "cipher info for %d not found", 
+        SSL_DEBUG_MSG( 1, ( "cipher info for %d not found",
                             transform->ciphersuite_info->cipher ) );
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -325,7 +325,7 @@ int ssl_derive_keys( ssl_context *ssl )
     md_info = md_info_from_type( transform->ciphersuite_info->mac );
     if( md_info == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "md info for %d not found", 
+        SSL_DEBUG_MSG( 1, ( "md info for %d not found",
                             transform->ciphersuite_info->mac ) );
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -367,7 +367,7 @@ int ssl_derive_keys( ssl_context *ssl )
      *     MD5( premaster + SHA1( 'A'   + premaster + randbytes ) ) +
      *     MD5( premaster + SHA1( 'BB'  + premaster + randbytes ) ) +
      *     MD5( premaster + SHA1( 'CCC' + premaster + randbytes ) )
-     *   
+     *
      * TLSv1:
      *   master = PRF( premaster, "master secret", randbytes )[0..47]
      */
@@ -748,7 +748,7 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
 
 /*
  * Encryption/decryption functions
- */ 
+ */
 static int ssl_encrypt_buf( ssl_context *ssl )
 {
     size_t i, padlen;
@@ -1268,7 +1268,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     }
     else
         ssl->nb_zero = 0;
-            
+
     for( i = 8; i > 0; i-- )
         if( ++ssl->in_ctr[i - 1] != 0 )
             break;
@@ -2166,7 +2166,7 @@ void ssl_optimize_checksum( ssl_context *ssl,
     else
         ssl->handshake->update_checksum = ssl_update_checksum_sha256;
 }
-    
+
 static void ssl_update_checksum_start( ssl_context *ssl, unsigned char *buf,
                                        size_t len )
 {
@@ -2653,7 +2653,7 @@ int ssl_handshake_init( ssl_context *ssl )
 
     ssl->handshake->update_checksum = ssl_update_checksum_start;
     ssl->handshake->sig_alg = SSL_HASH_SHA1;
-    
+
     return( 0 );
 }
 
@@ -2962,7 +2962,7 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
 
     memcpy( ssl->hostname, (unsigned char *) hostname,
             ssl->hostname_len );
-    
+
     ssl->hostname[ssl->hostname_len] = '\0';
 
     return( 0 );

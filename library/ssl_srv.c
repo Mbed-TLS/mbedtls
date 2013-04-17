@@ -1026,14 +1026,16 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     size_t n = 0, dn_size, total_dn_size;
     unsigned char *buf, *p;
     const x509_cert *crt;
+    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
     ssl->state++;
 
-    if( ssl->authmode == SSL_VERIFY_NONE )
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ssl->authmode == SSL_VERIFY_NONE )
     {
-        SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) );
+        SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
         return( 0 );
     }
 
@@ -1536,6 +1538,57 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
     return( ret );
 }
 
+static int ssl_parse_client_psk_identity( ssl_context *ssl )
+{
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    size_t n;
+    unsigned char *p = ssl->handshake->premaster;
+
+    if( ssl->psk == NULL || ssl->psk_identity == NULL ||
+        ssl->psk_identity_len == 0 || ssl->psk_len == 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "got no pre-shared key" ) );
+        return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
+    }
+
+    /*
+     * Receive client pre-shared key identiy name
+     */
+    n = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
+
+    if( n < 1 || n > 65535 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+    }
+
+    if( n != ssl->psk_identity_len ||
+        memcmp( ssl->psk_identity, ssl->in_msg + 6, n ) != 0 )
+    {
+        SSL_DEBUG_BUF( 3, "Unknown PSK identity", ssl->in_msg + 6, n );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+    }
+
+    *(p++) = (unsigned char)( ssl->psk_len >> 8 );
+    *(p++) = (unsigned char)( ssl->psk_len      );
+    p += ssl->psk_len;
+
+    *(p++) = (unsigned char)( ssl->psk_len >> 8 );
+    *(p++) = (unsigned char)( ssl->psk_len      );
+    memcpy( p, ssl->psk, ssl->psk_len );
+    p += ssl->psk_len;
+
+    ssl->handshake->pmslen = 4 + 2 * ssl->psk_len;
+
+    ret = 0;
+
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+
+    return( ret );
+}
+
 static int ssl_parse_client_key_exchange( ssl_context *ssl )
 {
     int ret;
@@ -1579,6 +1632,14 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
             return( ret );
         }
     }
+    else if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
+    {
+        if( ( ret = ssl_parse_client_psk_identity( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
+            return( ret );
+        }
+    }
     else
     {
         if( ( ret = ssl_parse_encrypted_pms_secret( ssl ) ) != 0 )
@@ -1608,10 +1669,12 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     unsigned char hash[48];
     md_type_t md_alg = POLARSSL_MD_NONE;
     unsigned int hashlen = 0;
+    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
-    if( ssl->session_negotiate->peer_cert == NULL )
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ssl->session_negotiate->peer_cert == NULL )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
         ssl->state++;

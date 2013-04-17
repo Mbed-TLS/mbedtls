@@ -6,12 +6,17 @@ OPENSSL=openssl
 
 for VERIFY in $VERIFIES;
 do
+P_SERVER_ARGS="psk=6162636465666768696a6b6c6d6e6f70"
+P_CLIENT_ARGS="psk=6162636465666768696a6b6c6d6e6f70"
+O_SERVER_ARGS="-psk 6162636465666768696a6b6c6d6e6f70"
+O_CLIENT_ARGS="-psk 6162636465666768696a6b6c6d6e6f70"
+
 if [ "X$VERIFY" = "XYES" ];
 then
-    P_SERVER_ARGS="auth_mode=required crt_file=data_files/server1.crt key_file=data_files/server1.key ca_file=data_files/test-ca.crt"
-    P_CLIENT_ARGS="crt_file=data_files/server2.crt key_file=data_files/server2.key ca_file=data_files/test-ca.crt"
-    O_SERVER_ARGS="-verify 10 -CAfile data_files/test-ca.crt -cert data_files/server1.crt -key data_files/server1.key"
-    O_CLIENT_ARGS="-cert data_files/server2.crt -key data_files/server2.key -CAfile data_files/test-ca.crt"
+    P_SERVER_ARGS="$P_SERVER_ARGS auth_mode=required crt_file=data_files/server1.crt key_file=data_files/server1.key ca_file=data_files/test-ca.crt"
+    P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key ca_file=data_files/test-ca.crt"
+    O_SERVER_ARGS="$O_SERVER_ARGS -verify 10 -CAfile data_files/test-ca.crt -cert data_files/server1.crt -key data_files/server1.key"
+    O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server2.crt -key data_files/server2.key -CAfile data_files/test-ca.crt"
 fi
 
 for MODE in $MODES;
@@ -41,6 +46,10 @@ P_CIPHERS="                                 \
     TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
     TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
     TLS-ECDHE-RSA-WITH-NULL-SHA             \
+    TLS-PSK-WITH-RC4-128-SHA                \
+    TLS-PSK-WITH-3DES-EDE-CBC-SHA           \
+    TLS-PSK-WITH-AES-128-CBC-SHA            \
+    TLS-PSK-WITH-AES-256-CBC-SHA            \
     "
 
 O_CIPHERS="                         \
@@ -65,6 +74,10 @@ O_CIPHERS="                         \
     ECDHE-RSA-DES-CBC3-SHA          \
     ECDHE-RSA-RC4-SHA               \
     ECDHE-RSA-NULL-SHA              \
+    PSK-RC4-SHA                     \
+    PSK-3DES-EDE-CBC-SHA            \
+    PSK-AES128-CBC-SHA              \
+    PSK-AES256-CBC-SHA
     "
 
 # Also add SHA256 ciphersuites

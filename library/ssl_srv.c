@@ -1382,14 +1382,166 @@ static int ssl_write_server_hello_done( ssl_context *ssl )
     return( 0 );
 }
 
+static int ssl_parse_client_dh_public( ssl_context *ssl )
+{
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+
+#if defined(POLARSSL_DHM_C)
+    size_t n;
+
+    /*
+     * Receive G^Y mod P, premaster = (G^Y)^X mod P
+     */
+    n = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
+
+    if( n < 1 || n > ssl->handshake->dhm_ctx.len ||
+        n + 6 != ssl->in_hslen )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+    }
+
+    if( ( ret = dhm_read_public( &ssl->handshake->dhm_ctx,
+                                  ssl->in_msg + 6, n ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "dhm_read_public", ret );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+    }
+
+    SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
+
+    ssl->handshake->pmslen = ssl->handshake->dhm_ctx.len;
+
+    if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
+                                  ssl->handshake->premaster,
+                                 &ssl->handshake->pmslen ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
+    }
+
+    SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+#endif /* POLARSSL_DHM_C */
+
+    return( ret );
+}
+
+static int ssl_parse_client_ecdh_public( ssl_context *ssl )
+{
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+
+#if defined(POLARSSL_ECDH_C)
+    size_t n;
+
+    /*
+     * Receive client public key and calculate premaster
+     */
+    n = ssl->in_msg[3];
+
+    if( n < 1 || n > mpi_size( &ssl->handshake->ecdh_ctx.grp.P ) * 2 + 2 ||
+        n + 4 != ssl->in_hslen )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+    }
+
+    if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
+                                   ssl->in_msg + 4, n ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+    }
+
+    SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
+
+    if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
+                                  &ssl->handshake->pmslen,
+                                   ssl->handshake->premaster,
+                                   POLARSSL_MPI_MAX_SIZE ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
+    }
+
+    SSL_DEBUG_MPI( 3, "ECDH: z  ", &ssl->handshake->ecdh_ctx.z );
+#endif /* POLARSSL_ECDH_C */
+
+    return( ret );
+}
+
+static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
+{
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    size_t i, n = 0;
+
+    if( ssl->rsa_key == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+        return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
+    }
+
+    /*
+     * Decrypt the premaster using own private RSA key
+     */
+    i = 4;
+    if( ssl->rsa_key )
+        n = ssl->rsa_key_len( ssl->rsa_key );
+    ssl->handshake->pmslen = 48;
+
+    if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
+    {
+        i += 2;
+        if( ssl->in_msg[4] != ( ( n >> 8 ) & 0xFF ) ||
+            ssl->in_msg[5] != ( ( n      ) & 0xFF ) )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+    }
+
+    if( ssl->in_hslen != i + n )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+    }
+
+    if( ssl->rsa_key ) {
+        ret = ssl->rsa_decrypt( ssl->rsa_key, RSA_PRIVATE,
+                               &ssl->handshake->pmslen,
+                                ssl->in_msg + i,
+                                ssl->handshake->premaster,
+                                sizeof(ssl->handshake->premaster) );
+    }
+
+    if( ret != 0 || ssl->handshake->pmslen != 48 ||
+        ssl->handshake->premaster[0] != ssl->max_major_ver ||
+        ssl->handshake->premaster[1] != ssl->max_minor_ver )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+
+        /*
+         * Protection against Bleichenbacher's attack:
+         * invalid PKCS#1 v1.5 padding must not cause
+         * the connection to end immediately; instead,
+         * send a bad_record_mac later in the handshake.
+         */
+        ssl->handshake->pmslen = 48;
+
+        ret = ssl->f_rng( ssl->p_rng, ssl->handshake->premaster,
+                          ssl->handshake->pmslen );
+        if( ret != 0 )
+            return( ret );
+    }
+
+    return( ret );
+}
+
 static int ssl_parse_client_key_exchange( ssl_context *ssl )
 {
     int ret;
-    size_t i, n = 0;
-#if defined(POLARSSL_DHM_C) || defined(POLARSSL_ECDH_C)
     const ssl_ciphersuite_t *ciphersuite_info;
+
     ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-#endif
 
     SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 
@@ -1411,139 +1563,28 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-#if defined(POLARSSL_DHM_C)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
-        /*
-         * Receive G^Y mod P, premaster = (G^Y)^X mod P
-         */
-        n = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
-
-        if( n < 1 || n > ssl->handshake->dhm_ctx.len ||
-            n + 6 != ssl->in_hslen )
+        if( ( ret = ssl_parse_client_dh_public( ssl ) ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+            SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
+            return( ret );
         }
-
-        if( ( ret = dhm_read_public( &ssl->handshake->dhm_ctx,
-                                      ssl->in_msg + 6, n ) ) != 0 )
+    }
+    else if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
+    {
+        if( ( ret = ssl_parse_client_ecdh_public( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "dhm_read_public", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+            SSL_DEBUG_RET( 1, ( "ssl_parse_client_ecdh_public" ), ret );
+            return( ret );
         }
-
-        SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
-
-        ssl->handshake->pmslen = ssl->handshake->dhm_ctx.len;
-
-        if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
-                                      ssl->handshake->premaster,
-                                     &ssl->handshake->pmslen ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
-        }
-
-        SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
     }
     else
-#endif
-#if defined(POLARSSL_ECDH_C)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
     {
-        /*
-         * Receive client public key and calculate premaster
-         */
-        n = ssl->in_msg[3];
-
-        if( n < 1 || n > mpi_size( &ssl->handshake->ecdh_ctx.grp.P ) * 2 + 2 ||
-            n + 4 != ssl->in_hslen )
+        if( ( ret = ssl_parse_encrypted_pms_secret( ssl ) ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-        }
-
-        if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                       ssl->in_msg + 4, n ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
-        }
-
-        SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
-
-        if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
-                                      &ssl->handshake->pmslen,
-                                       ssl->handshake->premaster,
-                                       POLARSSL_MPI_MAX_SIZE ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
-        }
-
-        SSL_DEBUG_MPI( 3, "ECDH: z  ", &ssl->handshake->ecdh_ctx.z );
-    }
-    else
-#endif
-    {
-        if( ssl->rsa_key == NULL )
-        {
-            SSL_DEBUG_MSG( 1, ( "got no private key" ) );
-            return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
-        }
-
-        /*
-         * Decrypt the premaster using own private RSA key
-         */
-        i = 4;
-        if( ssl->rsa_key )
-            n = ssl->rsa_key_len( ssl->rsa_key );
-        ssl->handshake->pmslen = 48;
-
-        if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
-        {
-            i += 2;
-            if( ssl->in_msg[4] != ( ( n >> 8 ) & 0xFF ) ||
-                ssl->in_msg[5] != ( ( n      ) & 0xFF ) )
-            {
-                SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-            }
-        }
-
-        if( ssl->in_hslen != i + n )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-        }
-
-        if( ssl->rsa_key ) {
-            ret = ssl->rsa_decrypt( ssl->rsa_key, RSA_PRIVATE,
-                                   &ssl->handshake->pmslen,
-                                    ssl->in_msg + i,
-                                    ssl->handshake->premaster,
-                                    sizeof(ssl->handshake->premaster) );
-        }
-
-        if( ret != 0 || ssl->handshake->pmslen != 48 ||
-            ssl->handshake->premaster[0] != ssl->max_major_ver ||
-            ssl->handshake->premaster[1] != ssl->max_minor_ver )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-
-            /*
-             * Protection against Bleichenbacher's attack:
-             * invalid PKCS#1 v1.5 padding must not cause
-             * the connection to end immediately; instead,
-             * send a bad_record_mac later in the handshake.
-             */
-            ssl->handshake->pmslen = 48;
-
-            ret = ssl->f_rng( ssl->p_rng, ssl->handshake->premaster,
-                              ssl->handshake->pmslen );
-            if( ret != 0 )
-                return( ret );
+            SSL_DEBUG_RET( 1, ( "ssl_parse_client_ecdh_public" ), ret );
+            return( ret );
         }
     }
 

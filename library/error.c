@@ -274,7 +274,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED) )
             snprintf( buf, buflen, "SSL - The own certificate is not set, but needed by the server" );
         if( use_ret == -(POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED) )
-            snprintf( buf, buflen, "SSL - The own private key is not set, but needed" );
+            snprintf( buf, buflen, "SSL - The own private key or pre-shared key is not set, but needed" );
         if( use_ret == -(POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED) )
             snprintf( buf, buflen, "SSL - No CA Chain is set, but required to operate" );
         if( use_ret == -(POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE) )

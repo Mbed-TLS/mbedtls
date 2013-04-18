@@ -905,7 +905,7 @@
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * Requires: POLARSSL_MD5_C, POLARSSL_SHA1_C, POLARSSL_X509_PARSE_C
+ * Requires: POLARSSL_MD5_C, POLARSSL_SHA1_C
  *
  * This module is required for SSL/TLS.
  */
@@ -975,5 +975,78 @@
 #define POLARSSL_XTEA_C
 
 /* \} name */
+
+/*
+ * Sanity checks on defines and dependencies
+ */
+#if defined(POLARSSL_DHM_C) && !defined(POLARSSL_BIGNUM_C)
+#error "POLARSSL_DHM_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_CTR_DRBG_C) && !defined(POLARSSL_AES_C)
+#error "POLARSSL_CTR_DRBG_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_ECDH_C) && !defined(POLARSSL_ECP_C)
+#error "POLARSSL_ECDH_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_ECDSA_C) && !defined(POLARSSL_ECP_C)
+#error "POLARSSL_ECDSA_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_ECP_C) && !defined(POLARSSL_BIGNUM_C)
+#error "POLARSSL_ECP_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_ENTROPY_C) && !defined(POLARSSL_SHA4_C)
+#error "POLARSSL_ENTROPY_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_GCM_C) && !defined(POLARSSL_AES_C)
+#error "POLARSSL_GCM_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PBKDF2_C) && !defined(POLARSSL_MD_C)
+#error "POLARSSL_PBKDF2_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PEM_C) && !defined(POLARSSL_PEM_C)
+#error "POLARSSL_PEM_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_SSL_TLS_C)
+#error "POLARSSL_PKCS11_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_RSA_C) && ( !defined(POLARSSL_BIGNUM_C) ||         \
+    !defined(POLARSSL_OID_C) )
+#error "POLARSSL_RSA_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_SSL_CLI_C) && !defined(POLARSSL_SSL_TLS_C)
+#error "POLARSSL_SSL_CLI_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_SSL_TLS_C) && ( !defined(POLARSSL_MD5_C) ||        \
+    !defined(POLARSSL_SHA1_C) )
+#error "POLARSSL_SSL_TLS_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_SSL_SRV_C) && !defined(POLARSSL_SSL_TLS_C)
+#error "POLARSSL_SSL_SRV_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_X509_PARSE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
+    !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
+    !defined(POLARSSL_RSA_C) )
+#error "POLARSSL_X509_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_X509_WRITE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
+    !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_WRITE_C) ||      \
+    !defined(POLARSSL_RSA_C) )
+#error "POLARSSL_X509_WRITE_C defined, but not all prerequisites"
+#endif
 
 #endif /* config.h */

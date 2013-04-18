@@ -27,10 +27,14 @@
 #ifndef POLARSSL_X509_H
 #define POLARSSL_X509_H
 
+#include "config.h"
+
+#if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
 #include "asn1.h"
 #include "rsa.h"
 #include "dhm.h"
 #include "md.h"
+#include "pk.h"
 
 /** 
  * \addtogroup x509_module
@@ -133,12 +137,6 @@
  */
 #define X509_FORMAT_DER                 1
 #define X509_FORMAT_PEM                 2
-
-typedef enum {
-    POLARSSL_PK_NONE=0,
-    POLARSSL_PK_RSA,
-    POLARSSL_PK_ECDSA,
-} pk_type_t;
 
 /** 
  * \addtogroup x509_module
@@ -668,4 +666,5 @@ int x509_self_test( int verbose );
 }
 #endif
 
+#endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
 #endif /* x509.h */

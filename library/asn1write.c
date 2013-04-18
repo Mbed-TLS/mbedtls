@@ -72,6 +72,7 @@ int asn1_write_tag( unsigned char **p, unsigned char *start, unsigned char tag )
     return( 1 );
 }
 
+#if defined(POLARSSL_BIGNUM_C)
 int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
 {
     int ret;
@@ -104,7 +105,8 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
 
     return( len );
 }
-    
+#endif /* POLARSSL_BIGNUM_C */
+
 int asn1_write_null( unsigned char **p, unsigned char *start )
 {
     int ret;

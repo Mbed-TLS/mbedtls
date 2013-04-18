@@ -92,6 +92,7 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
+#if defined(POLARSSL_X509_PARSE_C)
 /*
  * Enabled if debug_level > 1 in code below
  */
@@ -130,7 +131,9 @@ int my_verify( void *data, x509_cert *crt, int depth, int *flags )
 
     return( 0 );
 }
+#endif /* POLARSSL_X509_PARSE_C */
 
+#if defined(POLARSSL_X509_PARSE_C)
 #if defined(POLARSSL_FS_IO)
 #define USAGE_IO \
     "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
@@ -144,6 +147,17 @@ int my_verify( void *data, x509_cert *crt, int depth, int *flags )
 #define USAGE_IO \
     "    No file operations available (POLARSSL_FS_IO not defined)\n"
 #endif /* POLARSSL_FS_IO */
+#else
+#define USAGE_IO ""
+#endif /* POLARSSL_X509_PARSE_C */
+
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#define USAGE_PSK                                                   \
+    "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
+    "    psk_identity=%%s     default: \"Client_identity\"\n"
+#else
+#define USAGE_PSK ""
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
@@ -162,25 +176,22 @@ int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
     "    auth_mode=%%s        default: \"optional\"\n"          \
     "                        options: none, optional, required\n" \
-    "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
-    "    psk_identity=%%s     default: \"Client_identity\"\n" \
+    USAGE_PSK                                               \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
+#if !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_CTR_DRBG_C)
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+    printf("POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_CTR_DRBG_C not defined.\n");
+           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
 #else
@@ -188,16 +199,20 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, server_fd, i;
     unsigned char buf[1024];
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     unsigned char psk[256];
     size_t psk_len = 0;
+#endif
     char *pers = "ssl_client2";
 
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
+#if defined(POLARSSL_X509_PARSE_C)
     x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
+#endif
     char *p, *q;
     const int *list;
 
@@ -206,9 +221,11 @@ int main( int argc, char *argv[] )
      */
     server_fd = 0;
     memset( &ssl, 0, sizeof( ssl_context ) );
+#if defined(POLARSSL_X509_PARSE_C)
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &clicert, 0, sizeof( x509_cert ) );
     memset( &rsa, 0, sizeof( rsa_context ) );
+#endif
 
     if( argc == 0 )
     {
@@ -221,7 +238,11 @@ int main( int argc, char *argv[] )
         list = ssl_list_ciphersuites();
         while( *list )
         {
-            printf("    %s\n", ssl_get_ciphersuite_name( *list ) );
+            printf("  %-40s", ssl_get_ciphersuite_name( *list ) );
+            list++;
+            if( !*list )
+                break;
+            printf(" %s\n", ssl_get_ciphersuite_name( *list ) );
             list++;
         }
         printf("\n");
@@ -370,6 +391,7 @@ int main( int argc, char *argv[] )
             goto usage;
     }
 
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     /*
      * Unhexify the pre-shared key if any is given
      */
@@ -417,6 +439,7 @@ int main( int argc, char *argv[] )
             psk[ j / 2 ] |= c;
         }
     }
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 
     /*
      * 0. Initialize the RNG and the session data
@@ -434,6 +457,7 @@ int main( int argc, char *argv[] )
 
     printf( " ok\n" );
 
+#if defined(POLARSSL_X509_PARSE_C)
     /*
      * 1.1. Load the trusted CA
      */
@@ -445,7 +469,7 @@ int main( int argc, char *argv[] )
         ret = x509parse_crtpath( &cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
         ret = x509parse_crtfile( &cacert, opt.ca_file );
-    else 
+    else
 #endif
 #if defined(POLARSSL_CERTS_C)
         ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
@@ -475,7 +499,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
         ret = x509parse_crtfile( &clicert, opt.crt_file );
-    else 
+    else
 #endif
 #if defined(POLARSSL_CERTS_C)
         ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
@@ -513,6 +537,7 @@ int main( int argc, char *argv[] )
     }
 
     printf( " ok\n" );
+#endif /* POLARSSL_X509_PARSE_C */
 
     /*
      * 2. Start the connection
@@ -544,8 +569,10 @@ int main( int argc, char *argv[] )
 
     printf( " ok\n" );
 
+#if defined(POLARSSL_X509_PARSE_C)
     if( opt.debug_level > 0 )
         ssl_set_verify( &ssl, my_verify, NULL );
+#endif
 
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
     ssl_set_authmode( &ssl, opt.auth_mode );
@@ -561,10 +588,16 @@ int main( int argc, char *argv[] )
     ssl_set_renegotiation( &ssl, opt.renegotiation );
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
 
+#if defined(POLARSSL_X509_PARSE_C)
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
     ssl_set_own_cert( &ssl, &clicert, &rsa );
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     ssl_set_psk( &ssl, psk, psk_len, (unsigned char *) opt.psk_identity,
                  strlen( opt.psk_identity ) );
+#endif
+
     ssl_set_hostname( &ssl, opt.server_name );
 
     if( opt.min_version != -1 )
@@ -590,6 +623,7 @@ int main( int argc, char *argv[] )
     printf( " ok\n    [ Ciphersuite is %s ]\n",
             ssl_get_ciphersuite( &ssl ) );
 
+#if defined(POLARSSL_X509_PARSE_C)
     /*
      * 5. Verify the server certificate
      */
@@ -623,6 +657,7 @@ int main( int argc, char *argv[] )
                              ssl_get_peer_cert( &ssl ) );
         printf( "%s\n", buf );
     }
+#endif /* POLARSSL_X509_PARSE_C */
 
     /*
      * 6. Write the GET request
@@ -694,9 +729,11 @@ exit:
 
     if( server_fd )
         net_close( server_fd );
+#if defined(POLARSSL_X509_PARSE_C)
     x509_free( &clicert );
     x509_free( &cacert );
     rsa_free( &rsa );
+#endif
     ssl_free( &ssl );
 
     memset( &ssl, 0, sizeof( ssl ) );

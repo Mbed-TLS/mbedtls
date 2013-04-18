@@ -45,6 +45,18 @@
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
+    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 int main( int argc, char *argv[] )
 {
     int ret;
@@ -241,3 +253,5 @@ exit:
 
     return( ret );
 }
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C &&
+          POLARSSL_X509_PARSE_C && POLARSSL_FS_IO */

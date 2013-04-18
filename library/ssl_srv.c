@@ -1022,11 +1022,13 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
 static int ssl_write_certificate_request( ssl_context *ssl )
 {
-    int ret;
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+#if defined(POLARSSL_X509_PARSE_C)
     size_t n = 0, dn_size, total_dn_size;
     unsigned char *buf, *p;
     const x509_cert *crt;
-    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+#endif /* POLARSSL_X509_PARSE_C */
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
@@ -1039,6 +1041,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
         return( 0 );
     }
 
+#if defined(POLARSSL_X509_PARSE_C)
     /*
      *     0  .   0   handshake type
      *     1  .   3   handshake length
@@ -1114,13 +1117,15 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     ssl->out_msg[7 + n]  = (unsigned char)( total_dn_size       );
 
     ret = ssl_write_record( ssl );
+#endif /* POLARSSL_X509_PARSE_C */
 
     SSL_DEBUG_MSG( 2, ( "<= write certificate request" ) );
 
     return( ret );
 }
 
-#if !defined(POLARSSL_DHM_C) && !defined(POLARSSL_ECDH_C)
+#if ( !defined(POLARSSL_DHM_C) && !defined(POLARSSL_ECDH_C) ) ||    \
+    !defined(POLARSSL_RSA_C)
 static int ssl_write_server_key_exchange( ssl_context *ssl )
 {
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
@@ -1388,7 +1393,9 @@ static int ssl_parse_client_dh_public( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-#if defined(POLARSSL_DHM_C)
+#if !defined(POLARSSL_DHM_C)
+    ((void) ssl);
+#else
     size_t n;
 
     /*
@@ -1432,7 +1439,9 @@ static int ssl_parse_client_ecdh_public( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-#if defined(POLARSSL_ECDH_C)
+#if !defined(POLARSSL_ECDH_C)
+    ((void) ssl);
+#else
     size_t n;
 
     /*
@@ -1474,6 +1483,10 @@ static int ssl_parse_client_ecdh_public( ssl_context *ssl )
 static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+
+#if !defined(POLARSSL_RSA_C)
+    ((void) ssl);
+#else
     size_t i, n = 0;
 
     if( ssl->rsa_key == NULL )
@@ -1534,6 +1547,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
         if( ret != 0 )
             return( ret );
     }
+#endif /* POLARSSL_RSA_C */
 
     return( ret );
 }
@@ -1542,7 +1556,9 @@ static int ssl_parse_client_psk_identity( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if !defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    ((void) ssl);
+#else
     size_t n;
     unsigned char *p = ssl->handshake->premaster;
 
@@ -1664,17 +1680,26 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 
 static int ssl_parse_certificate_verify( ssl_context *ssl )
 {
-    int ret;
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+#if defined(POLARSSL_X509_PARSE_C)
     size_t n = 0, n1, n2;
     unsigned char hash[48];
     md_type_t md_alg = POLARSSL_MD_NONE;
     unsigned int hashlen = 0;
+#endif /* POLARSSL_X509_PARSE_C */
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ssl->session_negotiate->peer_cert == NULL )
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
+    {
+        SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
+        ssl->state++;
+        return( 0 );
+    }
+
+#if defined(POLARSSL_X509_PARSE_C)
+    if( ssl->session_negotiate->peer_cert == NULL )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
         ssl->state++;
@@ -1745,10 +1770,11 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );
         return( ret );
     }
+#endif /* POLARSSL_X509_PARSE_C */
 
     SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
 
-    return( 0 );
+    return( ret );
 }
 
 /*

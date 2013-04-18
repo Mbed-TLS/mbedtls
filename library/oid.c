@@ -33,6 +33,8 @@
 #include "polarssl/md.h"
 #include "polarssl/rsa.h"
 
+#include <stdio.h>
+
 /*
  * For X520 attribute types
  */
@@ -77,6 +79,7 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
     }
 };
 
+#if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
 /*
  * For X509 extensions
  */
@@ -123,6 +126,7 @@ static const oid_descriptor_t oid_ext_key_usage[] =
     { OID_OCSP_SIGNING,     "id-kp-OCSPSigning",     "OCSP Signing" },
     { NULL, NULL, NULL },
 };
+#endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
 
 /*
  * For SignatureAlgorithmIdentifier
@@ -378,6 +382,7 @@ static const oid_descriptor_t *oid_descriptor_from_asn1(
                                     oid->p, oid->len );
 }
 
+#if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
 int oid_get_extended_key_usage( const asn1_buf *oid, const char **desc )
 {
     const oid_descriptor_t *data = oid_descriptor_from_asn1(
@@ -400,6 +405,20 @@ static const oid_x509_ext_t *oid_x509_ext_from_asn1( const asn1_buf *oid )
                                 sizeof(oid_x509_ext_t),
                                 oid );
 }
+
+int oid_get_x509_ext_type( const asn1_buf *oid, int *ext_type )
+{
+    const oid_x509_ext_t *data = oid_x509_ext_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *ext_type = data->ext_type;
+
+    return( 0 );
+}
+
+#endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
 
 static const oid_x520_attr_t *oid_x520_attr_from_asn1( const asn1_buf *oid )
 {
@@ -431,18 +450,6 @@ static const oid_md_alg_t *oid_md_alg_from_asn1( const asn1_buf *oid )
                                 oid_md_alg,
                                 sizeof(oid_md_alg_t),
                                 oid );
-}
-
-int oid_get_x509_ext_type( const asn1_buf *oid, int *ext_type )
-{
-    const oid_x509_ext_t *data = oid_x509_ext_from_asn1( oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *ext_type = data->ext_type;
-
-    return( 0 );
 }
 
 int oid_get_attr_short_name( const asn1_buf *oid, const char **short_name )

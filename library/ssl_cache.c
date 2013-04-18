@@ -72,6 +72,7 @@ int ssl_cache_get( void *data, ssl_session *session )
 
         memcpy( session->master, entry->session.master, 48 );
 
+#if defined(POLARSSL_X509_PARSE_C)
         /*
          * Restore peer certificate (without rest of the original chain)
          */
@@ -90,6 +91,7 @@ int ssl_cache_get( void *data, ssl_session *session )
                 return( 1 );
             }
         }
+#endif /* POLARSSL_X509_PARSE_C */
 
         return( 0 );
     }
@@ -140,11 +142,13 @@ int ssl_cache_set( void *data, const ssl_session *session )
         {
             cur = old;
             memset( &cur->session, 0, sizeof(ssl_session) );
+#if defined(POLARSSL_X509_PARSE_C)
             if( cur->peer_cert.p != NULL )
             {
                 free( cur->peer_cert.p );
                 memset( &cur->peer_cert, 0, sizeof(x509_buf) );
             }
+#endif /* POLARSSL_X509_PARSE_C */
         }
         else
         {
@@ -164,7 +168,8 @@ int ssl_cache_set( void *data, const ssl_session *session )
     }
 
     memcpy( &cur->session, session, sizeof( ssl_session ) );
-    
+
+#if defined(POLARSSL_X509_PARSE_C)
     /*
      * Store peer certificate
      */
@@ -180,6 +185,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
         cur->session.peer_cert = NULL;
     }
+#endif /* POLARSSL_X509_PARSE_C */
 
     return( 0 );
 }
@@ -211,8 +217,10 @@ void ssl_cache_free( ssl_cache_context *cache )
 
         ssl_session_free( &prv->session );
 
+#if defined(POLARSSL_X509_PARSE_C)
         if( prv->peer_cert.p != NULL )
             free( prv->peer_cert.p );
+#endif /* POLARSSL_X509_PARSE_C */
 
         free( prv );
     }

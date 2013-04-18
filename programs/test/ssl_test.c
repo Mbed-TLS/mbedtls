@@ -65,16 +65,6 @@
 #define DFL_SESSION_LIFETIME    86400
 #define DFL_FORCE_CIPHER        0
 
-/*
- * server-specific data
- */
-char *dhm_G = "4";
-char *dhm_P = 
-"E4004C1F94182000103D883A448B3F802CE4B44A83301270002C20D0321CFD00" \
-"11CCEF784C26A400F43DFB901BCA7538F2C6B176001CF5A0FD16D2C48B1D0C1C" \
-"F6AC8E1DA6BCC3B4E1F96B0564965300FFA1D0B601EB2800F489AA512C4B248C" \
-"01F76949A60BB7F00A40B1EAB64BDD48E8A700D60B7F1200FA8E77B0A979DABF";
-
 int server_fd = -1;
 
 /*
@@ -127,7 +117,8 @@ void my_debug( void *ctx, int level, const char *str )
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
     !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_NET_C) ||     \
-    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C)
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
+    !defined(POLARSSL_X509_PARSE_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -136,7 +127,8 @@ int main( int argc, char *argv[] )
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
-           "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
+           "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C and/or "
+           "POLARSSL_X509_PARSE_C not defined.\n");
     return( 0 );
 }
 #else
@@ -260,7 +252,6 @@ static int ssl_test( struct options *opt )
         }
 
         ssl_set_endpoint( &ssl, SSL_IS_SERVER );
-        ssl_set_dh_param( &ssl, dhm_P, dhm_G );
         ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
         ssl_set_own_cert( &ssl, &srvcert, &rsa );
     }

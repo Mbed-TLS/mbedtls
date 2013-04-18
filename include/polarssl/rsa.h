@@ -27,6 +27,10 @@
 #ifndef POLARSSL_RSA_H
 #define POLARSSL_RSA_H
 
+#include "config.h"
+
+#if defined(POLARSSL_RSA_C)
+
 #include "bignum.h"
 #include "md.h"
 
@@ -519,5 +523,7 @@ int rsa_self_test( int verbose );
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* POLARSSL_RSA_C */
 
 #endif /* rsa.h */

@@ -69,6 +69,7 @@ int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
 #endif
 
+#if defined(POLARSSL_RSA_C)
 static int ssl_rsa_decrypt( void *ctx, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
                         size_t output_max_len )
@@ -90,6 +91,7 @@ static size_t ssl_rsa_key_len( void *ctx )
 {
     return ( (rsa_context *) ctx )->len;
 }
+#endif /* POLARSSL_RSA_C */
 
 /*
  * Key material generation
@@ -1845,9 +1847,11 @@ int ssl_send_alert_message( ssl_context *ssl,
  */
 int ssl_write_certificate( ssl_context *ssl )
 {
-    int ret;
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+#if defined(POLARSSL_X509_PARSE_C)
     size_t i, n;
     const x509_cert *crt;
+#endif
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
@@ -1859,6 +1863,7 @@ int ssl_write_certificate( ssl_context *ssl )
         return( 0 );
     }
 
+#if defined(POLARSSL_X509_PARSE_C)
     if( ssl->endpoint == SSL_IS_CLIENT )
     {
         if( ssl->client_auth == 0 )
@@ -1942,16 +1947,19 @@ write_msg:
         SSL_DEBUG_RET( 1, "ssl_write_record", ret );
         return( ret );
     }
+#endif /* POLARSSL_X509_PARSE_C */
 
     SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
 
-    return( 0 );
+    return( ret );
 }
 
 int ssl_parse_certificate( ssl_context *ssl )
 {
-    int ret;
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+#if defined(POLARSSL_X509_PARSE_C)
     size_t i, n;
+#endif
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
@@ -1963,6 +1971,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( 0 );
     }
 
+#if defined(POLARSSL_X509_PARSE_C)
     if( ssl->endpoint == SSL_IS_SERVER &&
         ssl->authmode == SSL_VERIFY_NONE )
     {
@@ -2104,6 +2113,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         if( ssl->authmode != SSL_VERIFY_REQUIRED )
             ret = 0;
     }
+#endif /* POLARSSL_X509_PARSE_C */
 
     SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 
@@ -2686,9 +2696,11 @@ int ssl_init( ssl_context *ssl )
     /*
      * Sane defaults
      */
+#if defined(POLARSSL_RSA_C)
     ssl->rsa_decrypt = ssl_rsa_decrypt;
     ssl->rsa_sign = ssl_rsa_sign;
     ssl->rsa_key_len = ssl_rsa_key_len;
+#endif
 
     ssl->min_major_ver = SSL_MAJOR_VERSION_3;
     ssl->min_minor_ver = SSL_MINOR_VERSION_0;
@@ -2827,6 +2839,7 @@ void ssl_set_authmode( ssl_context *ssl, int authmode )
     ssl->authmode   = authmode;
 }
 
+#if defined(POLARSSL_X509_PARSE_C)
 void ssl_set_verify( ssl_context *ssl,
                      int (*f_vrfy)(void *, x509_cert *, int, int *),
                      void *p_vrfy )
@@ -2834,6 +2847,7 @@ void ssl_set_verify( ssl_context *ssl,
     ssl->f_vrfy      = f_vrfy;
     ssl->p_vrfy      = p_vrfy;
 }
+#endif /* POLARSSL_X509_PARSE_C */
 
 void ssl_set_rng( ssl_context *ssl,
                   int (*f_rng)(void *, unsigned char *, size_t),
@@ -2897,6 +2911,7 @@ void ssl_set_ciphersuites_for_version( ssl_context *ssl, const int *ciphersuites
     ssl->ciphersuite_list[minor] = ciphersuites;
 }
 
+#if defined(POLARSSL_X509_PARSE_C)
 void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
                        x509_crl *ca_crl, const char *peer_cn )
 {
@@ -2924,6 +2939,7 @@ void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
     ssl->rsa_sign = rsa_sign;
     ssl->rsa_key_len = rsa_key_len;
 }
+#endif /* POLARSSL_X509_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
 void ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
@@ -3069,6 +3085,7 @@ const char *ssl_get_version( const ssl_context *ssl )
     return( "unknown" );
 }
 
+#if defined(POLARSSL_X509_PARSE_C)
 const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )
@@ -3076,6 +3093,7 @@ const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
 
     return ssl->session->peer_cert;
 }
+#endif /* POLARSSL_X509_PARSE_C */
 
 /*
  * Perform a single step of the SSL handshake
@@ -3366,11 +3384,13 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 
 void ssl_session_free( ssl_session *session )
 {
+#if defined(POLARSSL_X509_PARSE_C)
     if( session->peer_cert != NULL )
     {
         x509_free( session->peer_cert );
         free( session->peer_cert );
     }
+#endif
 
     memset( session, 0, sizeof( ssl_session ) );
 }

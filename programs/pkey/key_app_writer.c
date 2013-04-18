@@ -39,6 +39,19 @@
 #include "polarssl/base64.h"
 #include "polarssl/x509write.h"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
+    !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_FS_IO)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_X509_WRITE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
+
 #define MODE_NONE               0
 #define MODE_PRIVATE            1
 #define MODE_PUBLIC             2
@@ -157,18 +170,6 @@ void write_private_key( rsa_context *rsa, char *output_file )
     "    output_file=%%s      defeult: keyfile.pem\n"   \
     "\n"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     int ret = 0;
@@ -336,4 +337,4 @@ exit:
     return( ret );
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C &&
-          POLARSSL_X509_PARSE_C && POLARSSL_FS_IO */
+          POLARSSL_X509_WRITE_C && POLARSSL_FS_IO */

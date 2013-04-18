@@ -150,6 +150,7 @@ void debug_print_ecp( const ssl_context *ssl, int level,
 }
 #endif /* POLARSSL_ECP_C */
 
+#if defined(POLARSSL_BIGNUM_C)
 void debug_print_mpi( const ssl_context *ssl, int level,
                       const char *file, int line,
                       const char *text, const mpi *X )
@@ -221,7 +222,9 @@ void debug_print_mpi( const ssl_context *ssl, int level,
 
     ssl->f_dbg( ssl->p_dbg, level, "\n" );
 }
+#endif /* POLARSSL_BIGNUM_C */
 
+#if defined(POLARSSL_X509_PARSE_C)
 void debug_print_crt( const ssl_context *ssl, int level,
                       const char *file, int line,
                       const char *text, const x509_cert *crt )
@@ -256,5 +259,6 @@ void debug_print_crt( const ssl_context *ssl, int level,
         crt = crt->next;
     }
 }
+#endif /* POLARSSL_X509_PARSE_C */
 
 #endif

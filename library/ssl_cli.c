@@ -742,7 +742,11 @@ static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-#if defined(POLARSSL_DHM_C)
+#if !defined(POLARSSL_DHM_C)
+    ((void) ssl);
+    ((void) p);
+    ((void) end);
+#else
     /*
      * Ephemeral DH parameters:
      *
@@ -779,7 +783,11 @@ static int ssl_parse_server_ecdh_params( ssl_context *ssl,
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-#if defined(POLARSSL_ECDH_C)
+#if !defined(POLARSSL_ECDH_C)
+    ((void) ssl);
+    ((void) p);
+    ((void) end);
+#else
     /*
      * Ephemeral ECDH parameters:
      *
@@ -816,7 +824,11 @@ static int ssl_parse_server_psk_hint( ssl_context *ssl,
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if !defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    ((void) ssl);
+    ((void) p);
+    ((void) end);
+#else
     size_t  len;
 
     /*
@@ -840,6 +852,7 @@ static int ssl_parse_server_psk_hint( ssl_context *ssl,
     return( ret );
 }
 
+#if defined(POLARSSL_RSA_C)
 static int ssl_parse_signature_algorithm( ssl_context *ssl,
                                           unsigned char **p,
                                           unsigned char *end,
@@ -895,15 +908,18 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
 
     return( 0 );
 }
+#endif /* POLARSSL_RSA_C */
 
 static int ssl_parse_server_key_exchange( ssl_context *ssl )
 {
     int ret;
-    size_t n;
     unsigned char *p, *end;
+#if defined(POLARSSL_RSA_C)
+    size_t n;
     unsigned char hash[64];
     md_type_t md_alg = POLARSSL_MD_NONE;
     unsigned int hashlen = 0;
+#endif
 
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
@@ -966,6 +982,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         }
     }
 
+#if defined(POLARSSL_RSA_C)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
     {
@@ -1065,6 +1082,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             return( ret );
         }
     }
+#endif /* POLARSSL_RSA_C */
 
 exit:
     ssl->state++;
@@ -1234,9 +1252,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 {
     int ret;
     size_t i, n;
-#if defined(POLARSSL_DHM_C) || defined(POLARSSL_ECDH_C)
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-#endif
 
     SSL_DEBUG_MSG( 2, ( "=> write client key exchange" ) );
 
@@ -1349,6 +1365,8 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+#if defined(POLARSSL_X509_PARSE_C)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA )
     {
         /*
          * RSA key exchange -- send rsa_public(pkcs1 v1.5(premaster))
@@ -1384,6 +1402,12 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
             return( ret );
         }
     }
+    else
+#endif /* POLARSSL_X509_PARSE_C */
+    {
+        ((void) ciphersuite_info);
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
 
     if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
     {
@@ -1410,17 +1434,26 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+#if defined(POLARSSL_X509_PARSE_C)
     size_t n = 0, offset = 0;
     unsigned char hash[48];
     md_type_t md_alg = POLARSSL_MD_NONE;
     unsigned int hashlen = 0;
-    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+#endif
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ssl->client_auth == 0 || ssl->own_cert == NULL )
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
+    {
+        SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
+        ssl->state++;
+        return( 0 );
+    }
+
+#if defined(POLARSSL_X509_PARSE_C)
+    if( ssl->client_auth == 0 || ssl->own_cert == NULL )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
         ssl->state++;
@@ -1519,10 +1552,11 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "ssl_write_record", ret );
         return( ret );
     }
+#endif /* POLARSSL_X509_PARSE_C */
 
     SSL_DEBUG_MSG( 2, ( "<= write certificate verify" ) );
 
-    return( 0 );
+    return( ret );
 }
 
 /*

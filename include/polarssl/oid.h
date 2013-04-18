@@ -30,6 +30,7 @@
 #include <string.h>
 #include "asn1.h"
 #include "md.h"
+#include "pk.h"
 #include "x509.h"
 
 #define POLARSSL_ERR_OID_NOT_FOUND                         -0x002E  /**< OID is not found. */
@@ -196,6 +197,7 @@ typedef struct {
  */
 int oid_get_numeric_string( char *buf, size_t size, const asn1_buf *oid );
 
+#if defined(POLARSSL_X509_PARSE_C)
 /**
  * \brief          Translate an X.509 extension OID into local values
  *
@@ -205,6 +207,7 @@ int oid_get_numeric_string( char *buf, size_t size, const asn1_buf *oid );
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
 int oid_get_x509_ext_type( const asn1_buf *oid, int *ext_type );
+#endif
 
 /**
  * \brief          Translate an X.509 attribute type OID into the short name

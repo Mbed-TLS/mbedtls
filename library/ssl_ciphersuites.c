@@ -128,6 +128,7 @@ static int supported_init = 0;
 
 static const ssl_ciphersuite_t ciphersuite_definitions[] =
 {
+#if defined(POLARSSL_X509_PARSE_C) && defined(POLARSSL_RSA_C)
 #if defined(POLARSSL_ECDH_C)
 #if defined(POLARSSL_AES_C)
     { TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, "TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA",
@@ -201,7 +202,7 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
       POLARSSL_CIPHERSUITE_EC },
-#endif
+#endif /* POLARSSL_ARC4_C */
 
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
     { TLS_ECDHE_RSA_WITH_NULL_SHA, "TLS-ECDHE-RSA-WITH-NULL-SHA",
@@ -209,8 +210,8 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
       POLARSSL_CIPHERSUITE_EC | POLARSSL_CIPHERSUITE_WEAK },
-#endif
-#endif
+#endif /* POLARSSL_CIPHER_NULL_CIPHER */
+#endif /* POLARSSL_ECDH_C */
 
 #if defined(POLARSSL_ARC4_C)
     { TLS_RSA_WITH_RC4_128_MD5, "TLS-RSA-WITH-RC4-128-MD5",
@@ -387,6 +388,7 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
       0 },
 #endif /* POLARSSL_DES_C */
+#endif /* POLARSSL_X509_PARSE_C && POLARSSL_RSA_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
 #if defined(POLARSSL_AES_C)
@@ -451,6 +453,7 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* POLARSSL_ARC4_C */
 #endif /* POLARSSL_DHM_C */
 
+#if defined(POLARSSL_X509_PARSE_C) && defined(POLARSSL_RSA_C)
 #if defined(POLARSSL_AES_C)
     { TLS_RSA_PSK_WITH_AES_128_CBC_SHA, "TLS-RSA-PSK-WITH-AES-128-CBC-SHA",
       POLARSSL_CIPHER_AES_128_CBC, POLARSSL_MD_SHA1, POLARSSL_KEY_EXCHANGE_RSA_PSK,
@@ -480,9 +483,11 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
       0 },
 #endif /* POLARSSL_ARC4_C */
+#endif /* POLARSSL_X509_PARSE_C && POLARSSL_RSA_C */
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 
 #if defined(POLARSSL_ENABLE_WEAK_CIPHERSUITES)
+#if defined(POLARSSL_X509_PARSE_C) && defined(POLARSSL_RSA_C)
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
     { TLS_RSA_WITH_NULL_MD5, "TLS-RSA-WITH-NULL-MD5",
       POLARSSL_CIPHER_NULL, POLARSSL_MD_MD5, POLARSSL_KEY_EXCHANGE_RSA,
@@ -518,6 +523,7 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
       POLARSSL_CIPHERSUITE_WEAK },
 #endif /* POLARSSL_DES_C */
+#endif /* POLARSSL_X509_PARSE_C && POLARSSL_RSA_C */
 
 #endif /* POLARSSL_ENABLE_WEAK_CIPHERSUITES */
 

@@ -49,6 +49,10 @@ extern "C" {
 #define TLS_RSA_WITH_3DES_EDE_CBC_SHA            0x0A
 #define TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA        0x16
 
+#define TLS_PSK_WITH_NULL_SHA                    0x2C
+#define TLS_DHE_PSK_WITH_NULL_SHA                0x2D
+#define TLS_RSA_PSK_WITH_NULL_SHA                0x2E
+
 #define TLS_RSA_WITH_AES_128_CBC_SHA             0x2F
 #define TLS_DHE_RSA_WITH_AES_128_CBC_SHA         0x33
 #define TLS_RSA_WITH_AES_256_CBC_SHA             0x35

@@ -205,6 +205,8 @@ P_CIPHERS="$P_CIPHERS                        \
     TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA        \
     TLS-DHE-PSK-WITH-AES-128-CBC-SHA         \
     TLS-DHE-PSK-WITH-AES-256-CBC-SHA         \
+    TLS-PSK-WITH-NULL-SHA                    \
+    TLS-DHE-PSK-WITH-NULL-SHA                \
     "
 
 for i in $P_CIPHERS;

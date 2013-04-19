@@ -210,7 +210,7 @@ int main( int argc, char *argv[] )
         list = ssl_list_ciphersuites();
         while( *list )
         {
-            printf("  %-40s", ssl_get_ciphersuite_name( *list ) );
+            printf(" %-42s", ssl_get_ciphersuite_name( *list ) );
             list++;
             if( !*list )
                 break;

@@ -948,8 +948,14 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
     if( ssl->in_msg[0] != SSL_HS_SERVER_KEY_EXCHANGE )
     {
-        ssl->record_read = 1;
-        goto exit;
+        if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
+        {
+            ssl->record_read = 1;
+            goto exit;
+        }
+
+        SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+        return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
     SSL_DEBUG_BUF( 3,   "server key exchange", ssl->in_msg + 4, ssl->in_hslen - 4 );

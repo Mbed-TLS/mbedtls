@@ -194,6 +194,18 @@ then
         TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256 \
         TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
         TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384 \
+        TLS-PSK-WITH-AES-128-CBC-SHA256          \
+        TLS-PSK-WITH-AES-256-CBC-SHA384          \
+        TLS-DHE-PSK-WITH-AES-128-CBC-SHA256      \
+        TLS-DHE-PSK-WITH-AES-256-CBC-SHA384      \
+        TLS-PSK-WITH-AES-128-GCM-SHA256          \
+        TLS-PSK-WITH-AES-256-GCM-SHA384          \
+        TLS-DHE-PSK-WITH-AES-128-GCM-SHA256      \
+        TLS-DHE-PSK-WITH-AES-256-GCM-SHA384      \
+        TLS-PSK-WITH-NULL-SHA256                 \
+        TLS-PSK-WITH-NULL-SHA384                 \
+        TLS-DHE-PSK-WITH-NULL-SHA256             \
+        TLS-DHE-PSK-WITH-NULL-SHA384             \
         "
 fi
 

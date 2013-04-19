@@ -197,6 +197,16 @@ then
         "
 fi
 
+# OpenSSL does not support DHE-PSK ciphers
+# Add for PolarSSL only test, which does support them.
+#
+P_CIPHERS="$P_CIPHERS                        \
+    TLS-DHE-PSK-WITH-RC4-128-SHA             \
+    TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA        \
+    TLS-DHE-PSK-WITH-AES-128-CBC-SHA         \
+    TLS-DHE-PSK-WITH-AES-256-CBC-SHA         \
+    "
+
 for i in $P_CIPHERS;
 do
     RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS )"

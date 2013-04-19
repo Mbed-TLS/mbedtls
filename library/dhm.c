@@ -110,9 +110,6 @@ int dhm_read_params( dhm_context *ctx,
 
     ctx->len = mpi_size( &ctx->P );
 
-    if( end - *p < 2 )
-        return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
-
     return( 0 );
 }
 

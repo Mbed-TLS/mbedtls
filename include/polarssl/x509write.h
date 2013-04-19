@@ -27,6 +27,8 @@
 #ifndef POLARSSL_X509_WRITE_H
 #define POLARSSL_X509_WRITE_H
 
+#include "config.h"
+
 #if defined(POLARSSL_X509_WRITE_C)
 
 #include "rsa.h"

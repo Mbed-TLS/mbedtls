@@ -165,16 +165,115 @@
  * \def POLARSSL_KEY_EXCHANGE_PSK_ENABLED
  *
  * Enable the PSK based ciphersuite modes in SSL / TLS
- * In combination with POLARSSL_RSA_C it also enables RSA_PSK ciphersuites
- * and in combination with POLARSSL_DHM_C it enables the DHE_PSK ciphersuites
  *
- * This enables the following ciphersuites:
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
  *      TLS_PSK_WITH_RC4_128_SHA
  *      TLS_PSK_WITH_3DES_EDE_CBC_SHA
  *      TLS_PSK_WITH_AES_128_CBC_SHA
  *      TLS_PSK_WITH_AES_256_CBC_SHA
  */
 #define POLARSSL_KEY_EXCHANGE_PSK_ENABLED
+
+/**
+ * \def POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED
+ *
+ * Enable the DHE-PSK based ciphersuite modes in SSL / TLS
+ *
+ * Requires: POLARSSL_DHM_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_DHE_PSK_WITH_RC4_128_SHA
+ *      TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA
+ *      TLS_DHE_PSK_WITH_AES_128_CBC_SHA
+ *      TLS_DHE_PSK_WITH_AES_256_CBC_SHA
+#define POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED
+ */
+
+/**
+ * \def POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED
+ *
+ * Enable the RSA-PSK based ciphersuite modes in SSL / TLS
+ *
+ * Requires: POLARSSL_RSA_C, POLARSSL_X509_PARSE_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_RSA_PSK_WITH_RC4_128_SHA
+ *      TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA
+ *      TLS_RSA_PSK_WITH_AES_128_CBC_SHA
+ *      TLS_RSA_PSK_WITH_AES_256_CBC_SHA
+#define POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED
+ */
+
+/**
+ * \def POLARSSL_KEY_EXCHANGE_RSA_ENABLED
+ *
+ * Enable the RSA-only based ciphersuite modes in SSL / TLS
+ *
+ * Requires: POLARSSL_RSA_C, POLARSSL_X509_PARSE_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_RSA_WITH_AES_128_CBC_SHA
+ *      TLS_RSA_WITH_AES_256_CBC_SHA
+ *      TLS_RSA_WITH_AES_128_CBC_SHA256
+ *      TLS_RSA_WITH_AES_256_CBC_SHA256
+ *      TLS_RSA_WITH_AES_128_GCM_SHA256
+ *      TLS_RSA_WITH_AES_256_GCM_SHA384
+ *      TLS_RSA_WITH_RC4_128_MD5
+ *      TLS_RSA_WITH_RC4_128_SHA
+ *      TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
+ *      TLS_RSA_WITH_CAMELLIA_256_CBC_SHA
+ *      TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256
+ *      TLS_RSA_WITH_3DES_EDE_CBC_SHA
+ */
+#define POLARSSL_KEY_EXCHANGE_RSA_ENABLED
+
+/**
+ * \def POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED
+ *
+ * Enable the DHE-RSA based ciphersuite modes in SSL / TLS
+ *
+ * Requires: POLARSSL_DHM_C, POLARSSL_RSA_C, POLARSSL_X509_PARSE_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+ *      TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+ *      TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA
+ *      TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA
+ *      TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256
+ *      TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+ */
+#define POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED
+
+/**
+ * \def POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+ *
+ * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS
+ *
+ * Requires: POLARSSL_ECDH_C, POLARSSL_RSA_C, POLARSSL_X509_PARSE_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+ *      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+ *      TLS_ECDHE_RSA_WITH_RC4_128_SHA
+ *      TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+ *      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+ *      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+ *      TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+ *      TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+ *      TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384
+ */
+#define POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
 /**
  * \def POLARSSL_ERROR_STRERROR_DUMMY
@@ -1005,6 +1104,32 @@
 
 #if defined(POLARSSL_GCM_C) && !defined(POLARSSL_AES_C)
 #error "POLARSSL_GCM_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) && !defined(POLARSSL_DHM_C)
+#error "POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) &&                   \
+    ( !defined(POLARSSL_DHM_C) || !defined(POLARSSL_RSA_C) ||           \
+      !defined(POLARSSL_X509_PARSE_C) )
+#error "POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
+    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_RSA_C) ||          \
+      !defined(POLARSSL_X509_PARSE_C) )
+#error "POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) )
+#error "POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) &&                       \
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) )
+#error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_PBKDF2_C) && !defined(POLARSSL_MD_C)

@@ -132,7 +132,12 @@ int main( int argc, char *argv[] )
     printf( HEADER_FORMAT, "MD4" );
     fflush( stdout );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         md4( buf, BUFSIZE, tmp );
 
@@ -148,7 +153,12 @@ int main( int argc, char *argv[] )
     printf( HEADER_FORMAT, "MD5" );
     fflush( stdout );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         md5( buf, BUFSIZE, tmp );
 
@@ -164,7 +174,12 @@ int main( int argc, char *argv[] )
     printf( HEADER_FORMAT, "SHA-1" );
     fflush( stdout );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         sha1( buf, BUFSIZE, tmp );
 
@@ -180,7 +195,12 @@ int main( int argc, char *argv[] )
     printf( HEADER_FORMAT, "SHA-256" );
     fflush( stdout );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         sha2( buf, BUFSIZE, tmp, 0 );
 
@@ -196,7 +216,12 @@ int main( int argc, char *argv[] )
     printf( HEADER_FORMAT, "SHA-512" );
     fflush( stdout );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         sha4( buf, BUFSIZE, tmp, 0 );
 
@@ -214,7 +239,12 @@ int main( int argc, char *argv[] )
 
     arc4_setup( &arc4, tmp, 32 );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         arc4_crypt( &arc4, BUFSIZE, buf, buf );
 
@@ -232,7 +262,12 @@ int main( int argc, char *argv[] )
 
     des3_set3key_enc( &des3, tmp );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         des3_crypt_cbc( &des3, DES_ENCRYPT, BUFSIZE, tmp, buf, buf );
 
@@ -248,7 +283,12 @@ int main( int argc, char *argv[] )
 
     des_setkey_enc( &des, tmp );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         des_crypt_cbc( &des, DES_ENCRYPT, BUFSIZE, tmp, buf, buf );
 
@@ -270,7 +310,12 @@ int main( int argc, char *argv[] )
         memset( tmp, 0, sizeof( tmp ) );
         aes_setkey_enc( &aes, tmp, keysize );
 
+#ifndef PSL1GHT //INTEGRITY ?
         set_alarm( 1 );
+#else
+        m_sleep(1000); // 1 sec
+#endif
+
 
         for( i = 1; ! alarmed; i++ )
             aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf );
@@ -292,7 +337,12 @@ int main( int argc, char *argv[] )
         memset( tmp, 0, sizeof( tmp ) );
         gcm_init( &gcm, tmp, keysize );
 
+#ifndef PSL1GHT //INTEGRITY ?
         set_alarm( 1 );
+#else
+        m_sleep(1000); // 1 sec
+#endif
+
 
         for( i = 1; ! alarmed; i++ )
             gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 12, NULL, 0, buf, buf, 16, tmp );
@@ -317,7 +367,12 @@ int main( int argc, char *argv[] )
         memset( tmp, 0, sizeof( tmp ) );
         camellia_setkey_enc( &camellia, tmp, keysize );
 
+#ifndef PSL1GHT //INTEGRITY ?
         set_alarm( 1 );
+#else
+        m_sleep(1000); // 1 sec
+#endif
+
 
         for( i = 1; ! alarmed; i++ )
             camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT, BUFSIZE, tmp, buf, buf );
@@ -341,7 +396,12 @@ int main( int argc, char *argv[] )
         memset( tmp, 0, sizeof( tmp ) );
         blowfish_setkey( &blowfish, tmp, keysize );
 
+#ifndef PSL1GHT //INTEGRITY ?
         set_alarm( 1 );
+#else
+        m_sleep(1000); // 1 sec
+#endif
+
 
         for( i = 1; ! alarmed; i++ )
             blowfish_crypt_cbc( &blowfish, BLOWFISH_ENCRYPT, BUFSIZE, tmp, buf, buf );
@@ -361,7 +421,12 @@ int main( int argc, char *argv[] )
 
     havege_init( &hs );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         havege_random( &hs, buf, BUFSIZE );
 
@@ -380,7 +445,12 @@ int main( int argc, char *argv[] )
     if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
         exit(1);
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
             exit(1);
@@ -401,7 +471,12 @@ int main( int argc, char *argv[] )
 
     ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_ON );
 
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 1 );
+#else
+    m_sleep(1000); // 1 sec
+#endif
+
     for( i = 1; ! alarmed; i++ )
         if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
             exit(1);
@@ -422,7 +497,12 @@ int main( int argc, char *argv[] )
 
     printf( HEADER_FORMAT, "RSA-1024" );
     fflush( stdout );
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 3 );
+#else
+    m_sleep(3000); // 1 sec
+#endif
+
 
     for( i = 1; ! alarmed; i++ )
     {
@@ -434,7 +514,12 @@ int main( int argc, char *argv[] )
 
     printf( HEADER_FORMAT, "RSA-1024" );
     fflush( stdout );
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 3 );
+#else
+    m_sleep(3000); // 1 sec
+#endif
+
 
     for( i = 1; ! alarmed; i++ )
     {
@@ -451,7 +536,12 @@ int main( int argc, char *argv[] )
 
     printf( HEADER_FORMAT, "RSA-2048" );
     fflush( stdout );
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 3 );
+#else
+    m_sleep(3000); // 1 sec
+#endif
+
 
     for( i = 1; ! alarmed; i++ )
     {
@@ -463,7 +553,12 @@ int main( int argc, char *argv[] )
 
     printf( HEADER_FORMAT, "RSA-2048" );
     fflush( stdout );
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 3 );
+#else
+    m_sleep(3000); // 1 sec
+#endif
+
 
     for( i = 1; ! alarmed; i++ )
     {
@@ -480,7 +575,12 @@ int main( int argc, char *argv[] )
 
     printf( HEADER_FORMAT, "RSA-4096" );
     fflush( stdout );
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 3 );
+#else
+    m_sleep(3000); // 1 sec
+#endif
+
 
     for( i = 1; ! alarmed; i++ )
     {
@@ -492,7 +592,12 @@ int main( int argc, char *argv[] )
 
     printf( HEADER_FORMAT, "RSA-4096" );
     fflush( stdout );
+#ifndef PSL1GHT //INTEGRITY ?
     set_alarm( 3 );
+#else
+    m_sleep(3000); // 1 sec
+#endif
+
 
     for( i = 1; ! alarmed; i++ )
     {

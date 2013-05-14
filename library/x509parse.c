@@ -1812,7 +1812,10 @@ int load_file( const char *path, unsigned char **buf, size_t *n )
     fseek( f, 0, SEEK_SET );
 
     if( ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
+    {
+        fclose( f );
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
+    }
 
     if( fread( *buf, 1, *n, f ) != *n )
     {

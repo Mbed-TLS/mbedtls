@@ -45,6 +45,8 @@
 
 #define DFL_MODE                MODE_NONE
 #define DFL_FILENAME            "cert.crt"
+#define DFL_CA_FILE             ""
+#define DFL_CA_PATH             ""
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_PORT         4433
 #define DFL_DEBUG_LEVEL         0
@@ -57,6 +59,8 @@ struct options
 {
     int mode;                   /* the mode to run the application in   */
     char *filename;             /* filename of the certificate file     */
+    char *ca_file;              /* the file with the CA certificate(s)  */
+    char *ca_path;              /* the path with the CA certificate(s) reside */
     char *server_name;          /* hostname of the server (client only) */
     int server_port;            /* port on which the ssl service runs   */
     int debug_level;            /* level of debugging                   */
@@ -72,11 +76,54 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
+int my_verify( void *data, x509_cert *crt, int depth, int *flags )
+{
+    char buf[1024];
+    ((void) data);
+
+    printf( "\nVerify requested for (Depth %d):\n", depth );
+    x509parse_cert_info( buf, sizeof( buf ) - 1, "", crt );
+    printf( "%s", buf );
+
+    if( ( (*flags) & BADCERT_EXPIRED ) != 0 )
+        printf( "  ! server certificate has expired\n" );
+
+    if( ( (*flags) & BADCERT_REVOKED ) != 0 )
+        printf( "  ! server certificate has been revoked\n" );
+
+    if( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
+        printf( "  ! CN mismatch\n" );
+
+    if( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
+        printf( "  ! self-signed or not signed by a trusted CA\n" );
+
+    if( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
+        printf( "  ! CRL not trusted\n" );
+
+    if( ( (*flags) & BADCRL_EXPIRED ) != 0 )
+        printf( "  ! CRL expired\n" );
+
+    if( ( (*flags) & BADCERT_OTHER ) != 0 )
+        printf( "  ! other (unknown) flag\n" );
+
+    if ( ( *flags ) == 0 )
+        printf( "  This certificate has no flags\n" );
+
+    return( 0 );
+}
+
+#define USAGE_IO \
+    "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
+    "                        default: \"\" (none)\n" \
+    "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
+    "                        default: \"\" (none) (overrides ca_file)\n"
+
 #define USAGE \
     "\n usage: cert_app param=<>...\n"                  \
     "\n acceptable parameters:\n"                       \
-    "    mode=file|ssl       default: none\n"          \
+    "    mode=file|ssl       default: none\n"           \
     "    filename=%%s         default: cert.crt\n"      \
+    USAGE_IO                                            \
     "    server_name=%%s      default: localhost\n"     \
     "    server_port=%%d      default: 4433\n"          \
     "    debug_level=%%d      default: 0 (disabled)\n"  \
@@ -108,9 +155,11 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
+    x509_cert cacert;
     x509_cert clicert;
     rsa_context rsa;
     int i, j, n;
+    int flags, verify = 0;
     char *p, *q;
     char *pers = "cert_app";
 
@@ -118,6 +167,7 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     server_fd = 0;
+    memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &clicert, 0, sizeof( x509_cert ) );
     memset( &rsa, 0, sizeof( rsa_context ) );
 
@@ -130,6 +180,8 @@ int main( int argc, char *argv[] )
 
     opt.mode                = DFL_MODE;
     opt.filename            = DFL_FILENAME;
+    opt.ca_file             = DFL_CA_FILE;
+    opt.ca_path             = DFL_CA_PATH;
     opt.server_name         = DFL_SERVER_NAME;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
@@ -161,6 +213,10 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "filename" ) == 0 )
             opt.filename = q;
+        else if( strcmp( p, "ca_file" ) == 0 )
+            opt.ca_file = q;
+        else if( strcmp( p, "ca_path" ) == 0 )
+            opt.ca_path = q;
         else if( strcmp( p, "server_name" ) == 0 )
             opt.server_name = q;
         else if( strcmp( p, "server_port" ) == 0 )
@@ -184,6 +240,31 @@ int main( int argc, char *argv[] )
         else
             goto usage;
     }
+
+    /*
+     * 1.1. Load the trusted CA
+     */
+    printf( "  . Loading the CA root certificate ..." );
+    fflush( stdout );
+
+    if( strlen( opt.ca_path ) )
+    {
+        ret = x509parse_crtpath( &cacert, opt.ca_path );
+        verify = 1;
+    }
+    else if( strlen( opt.ca_file ) )
+    {
+        ret = x509parse_crtfile( &cacert, opt.ca_file );
+        verify = 1;
+    }
+
+    if( ret < 0 )
+    {
+        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
+    printf( " ok (%d skipped)\n", ret );
 
     if( opt.mode == MODE_FILE )
     {
@@ -215,7 +296,6 @@ int main( int argc, char *argv[] )
 
         printf( " ok\n" );
 
-    
         /*
          * 1.2 Print the certificate(s)
          */
@@ -235,6 +315,36 @@ int main( int argc, char *argv[] )
             cur = cur->next;
         }
 
+        /*
+         * 1.3 Verify the certificate
+         */
+        if( verify )
+        {
+            printf( "  . Verifying X.509 certificate..." );
+
+            if( ( ret = x509parse_verify( &crt, &cacert, NULL, NULL, &flags,
+                            my_verify, NULL ) ) != 0 )
+            {
+                printf( " failed\n" );
+
+                if( ( ret & BADCERT_EXPIRED ) != 0 )
+                    printf( "  ! server certificate has expired\n" );
+
+                if( ( ret & BADCERT_REVOKED ) != 0 )
+                    printf( "  ! server certificate has been revoked\n" );
+
+                if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
+                    printf( "  ! CN mismatch (expected CN=%s)\n", opt.server_name );
+
+                if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
+                    printf( "  ! self-signed or not signed by a trusted CA\n" );
+
+                printf( "\n" );
+            }
+            else
+                printf( " ok\n" );
+        }
+
         x509_free( &crt );
     }
     else if( opt.mode == MODE_SSL )
@@ -252,6 +362,8 @@ int main( int argc, char *argv[] )
             printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
             goto exit;
         }
+
+        printf( " ok\n" );
 
         /*
          * 2. Start the connection
@@ -277,7 +389,14 @@ int main( int argc, char *argv[] )
         }
 
         ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
-        ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
+        if( verify )
+        {
+            ssl_set_authmode( &ssl, SSL_VERIFY_REQUIRED );
+            ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
+            ssl_set_verify( &ssl, my_verify, NULL );
+        }
+        else
+            ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
 
         ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
         ssl_set_dbg( &ssl, my_debug, stdout );
@@ -328,6 +447,7 @@ exit:
 
     if( server_fd )
         net_close( server_fd );
+    x509_free( &cacert );
     x509_free( &clicert );
     rsa_free( &rsa );
 

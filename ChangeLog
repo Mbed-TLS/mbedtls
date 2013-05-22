@@ -19,6 +19,7 @@ Changes
 
 Bugfix
    * Fix for MPI assembly for ARM
+   * Fixed parse error in ssl_parse_certificate_request()
 
 = Version 1.2.6 released 2013-03-11
 Bugfix

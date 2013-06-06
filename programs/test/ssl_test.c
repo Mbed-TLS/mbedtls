@@ -68,8 +68,8 @@
 /*
  * server-specific data
  */
-char *dhm_G = "4";
-char *dhm_P = 
+const char *dhm_G = "4";
+const char *dhm_P = 
 "E4004C1F94182000103D883A448B3F802CE4B44A83301270002C20D0321CFD00" \
 "11CCEF784C26A400F43DFB901BCA7538F2C6B176001CF5A0FD16D2C48B1D0C1C" \
 "F6AC8E1DA6BCC3B4E1F96B0564965300FFA1D0B601EB2800F489AA512C4B248C" \
@@ -84,7 +84,7 @@ struct options
 {
     int opmode;                 /* operation mode (client or server)    */
     int iomode;                 /* I/O mode (blocking or non-blocking)  */
-    char *server_name;          /* hostname of the server (client only) */
+    const char *server_name;    /* hostname of the server (client only) */
     int server_port;            /* port on which the ssl service runs   */
     int command;                /* what to do: read or write operation  */
     int buffer_size;            /* size of the send/receive buffer      */
@@ -161,7 +161,7 @@ static int ssl_test( struct options *opt )
     unsigned char *read_buf = NULL;
     unsigned char *write_buf = NULL;
 
-    char *pers = "ssl_test";
+    const char *pers = "ssl_test";
 
     struct hr_time t;
     entropy_context entropy;
@@ -174,7 +174,8 @@ static int ssl_test( struct options *opt )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( "  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
@@ -212,7 +213,7 @@ static int ssl_test( struct options *opt )
         printf("POLARSSL_CERTS_C not defined.\n");
         goto exit;
 #else
-        ret =  x509parse_crt( &srvcert, (unsigned char *) test_srv_crt,
+        ret =  x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
                               strlen( test_srv_crt ) );
         if( ret != 0 )
         {
@@ -220,7 +221,7 @@ static int ssl_test( struct options *opt )
             goto exit;
         }
 
-        ret =  x509parse_crt( &srvcert, (unsigned char *) test_ca_crt,
+        ret =  x509parse_crt( &srvcert, (const unsigned char *) test_ca_crt,
                               strlen( test_ca_crt ) );
         if( ret != 0 )
         {
@@ -228,7 +229,7 @@ static int ssl_test( struct options *opt )
             goto exit;
         }
 
-        ret =  x509parse_key( &rsa, (unsigned char *) test_srv_key,
+        ret =  x509parse_key( &rsa, (const unsigned char *) test_srv_key,
                               strlen( test_srv_key ), NULL, 0 );
         if( ret != 0 )
         {

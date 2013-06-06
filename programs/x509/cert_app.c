@@ -56,8 +56,8 @@
 struct options
 {
     int mode;                   /* the mode to run the application in   */
-    char *filename;             /* filename of the certificate file     */
-    char *server_name;          /* hostname of the server (client only) */
+    const char *filename;       /* filename of the certificate file     */
+    const char *server_name;    /* hostname of the server (client only) */
     int server_port;            /* port on which the ssl service runs   */
     int debug_level;            /* level of debugging                   */
     int permissive;             /* permissive parsing                   */
@@ -112,7 +112,7 @@ int main( int argc, char *argv[] )
     rsa_context rsa;
     int i, j, n;
     char *p, *q;
-    char *pers = "cert_app";
+    const char *pers = "cert_app";
 
     /*
      * Set to sane values
@@ -247,7 +247,8 @@ int main( int argc, char *argv[] )
 
         entropy_init( &entropy );
         if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                                   (const unsigned char *) pers,
+                                   strlen( pers ) ) ) != 0 )
         {
             printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
             goto exit;

@@ -61,7 +61,7 @@ int main( int argc, char *argv[] )
     }
 
     entropy_init( &entropy );
-    ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy, (unsigned char *) "RANDOM_GEN", 10 );
+    ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy, (const unsigned char *) "RANDOM_GEN", 10 );
     if( ret != 0 )
     {
         printf( "failed in ctr_drbg_init: %d\n", ret );

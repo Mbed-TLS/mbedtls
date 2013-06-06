@@ -74,7 +74,7 @@ int main( int argc, char *argv[] )
 {
     int ret, len, server_fd;
     unsigned char buf[1024];
-    char *pers = "ssl_client1";
+    const char *pers = "ssl_client1";
 
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
@@ -95,7 +95,8 @@ int main( int argc, char *argv[] )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
@@ -110,7 +111,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
 #if defined(POLARSSL_CERTS_C)
-    ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
+    ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
                          strlen( test_ca_crt ) );
 #else
     ret = 1;

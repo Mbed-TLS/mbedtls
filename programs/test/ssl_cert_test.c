@@ -41,7 +41,7 @@
 
 #define MAX_CLIENT_CERTS    8
 
-char *client_certificates[MAX_CLIENT_CERTS] =
+const char *client_certificates[MAX_CLIENT_CERTS] =
 {
     "client1.crt",
     "client2.crt",
@@ -53,7 +53,7 @@ char *client_certificates[MAX_CLIENT_CERTS] =
     "cert_sha512.crt"
 };
 
-char *client_private_keys[MAX_CLIENT_CERTS] =
+const char *client_private_keys[MAX_CLIENT_CERTS] =
 {
     "client1.key",
     "client2.key",

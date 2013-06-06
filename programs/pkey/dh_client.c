@@ -70,7 +70,7 @@ int main( int argc, char *argv[] )
     unsigned char *p, *end;
     unsigned char buf[2048];
     unsigned char hash[20];
-    char *pers = "dh_client";
+    const char *pers = "dh_client";
 
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
@@ -92,7 +92,8 @@ int main( int argc, char *argv[] )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;

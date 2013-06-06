@@ -69,7 +69,7 @@ int main( int argc, char *argv[] )
     unsigned char hash[20];
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
     char filename[512];
-    char *pers = "rsa_sign_pss";
+    const char *pers = "rsa_sign_pss";
 
     ret = 1;
 
@@ -89,7 +89,8 @@ int main( int argc, char *argv[] )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;

@@ -77,18 +77,18 @@
  */
 struct options
 {
-    char *server_name;          /* hostname of the server (client only)     */
+    const char *server_name;    /* hostname of the server (client only)     */
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     int authentication;         /* if authentication is required            */
     int mode;                   /* SSL/TLS (0) or STARTTLS (1)              */
-    char *user_name;            /* username to use for authentication       */
-    char *user_pwd;             /* password to use for authentication       */
-    char *mail_from;            /* E-Mail address to use as sender          */
-    char *mail_to;              /* E-Mail address to use as recipient       */
-    char *ca_file;              /* the file with the CA certificate(s)      */
-    char *crt_file;             /* the file with the client certificate     */
-    char *key_file;             /* the file with the client key             */
+    const char *user_name;      /* username to use for authentication       */
+    const char *user_pwd;       /* password to use for authentication       */
+    const char *mail_from;      /* E-Mail address to use as sender          */
+    const char *mail_to;        /* E-Mail address to use as recipient       */
+    const char *ca_file;        /* the file with the CA certificate(s)      */
+    const char *crt_file;       /* the file with the client certificate     */
+    const char *key_file;       /* the file with the client key             */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
 } opt;
 
@@ -344,7 +344,7 @@ int main( int argc, char *argv[] )
     unsigned char base[1024];
 #endif
     char hostname[32];
-    char *pers = "ssl_mail_client";
+    const char *pers = "ssl_mail_client";
 
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
@@ -464,7 +464,8 @@ int main( int argc, char *argv[] )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
@@ -484,7 +485,7 @@ int main( int argc, char *argv[] )
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
+        ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
                 strlen( test_ca_crt ) );
 #else
     {
@@ -514,7 +515,7 @@ int main( int argc, char *argv[] )
     else 
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
+        ret = x509parse_crt( &clicert, (const unsigned char *) test_cli_crt,
                 strlen( test_cli_crt ) );
 #else
     {
@@ -534,7 +535,7 @@ int main( int argc, char *argv[] )
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_key( &rsa, (unsigned char *) test_cli_key,
+        ret = x509parse_key( &rsa, (const unsigned char *) test_cli_key,
                 strlen( test_cli_key ), NULL, 0 );
 #else
     {
@@ -691,7 +692,8 @@ int main( int argc, char *argv[] )
         fflush( stdout );
 
         n = sizeof( buf );
-        len = base64_encode( base, &n, (unsigned char *) opt.user_name, strlen( opt.user_name ) );
+        len = base64_encode( base, &n, (const unsigned char *) opt.user_name,
+                             strlen( opt.user_name ) );
         len = sprintf( (char *) buf, "%s\n", base );
         ret = write_ssl_and_get_response( &ssl, buf, len );
         if( ret < 300 || ret > 399 )
@@ -705,7 +707,8 @@ int main( int argc, char *argv[] )
         printf( "  > Write password to server: %s", opt.user_pwd );
         fflush( stdout );
 
-        len = base64_encode( base, &n, (unsigned char *) opt.user_pwd, strlen( opt.user_pwd ) );
+        len = base64_encode( base, &n, (const unsigned char *) opt.user_pwd,
+                             strlen( opt.user_pwd ) );
         len = sprintf( (char *) buf, "%s\n", base );
         ret = write_ssl_and_get_response( &ssl, buf, len );
         if( ret < 200 || ret > 399 )

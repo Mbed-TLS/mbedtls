@@ -96,7 +96,7 @@ int main( int argc, char *argv[] )
     int listen_fd;
     int client_fd;
     unsigned char buf[1024];
-    char *pers = "ssl_fork_server";
+    const char *pers = "ssl_fork_server";
 
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
@@ -117,7 +117,8 @@ int main( int argc, char *argv[] )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                    (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
@@ -138,7 +139,7 @@ int main( int argc, char *argv[] )
      * Instead, you may want to use x509parse_crtfile() to read the
      * server and CA certificates, as well as x509parse_keyfile().
      */
-    ret = x509parse_crt( &srvcert, (unsigned char *) test_srv_crt,
+    ret = x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
                          strlen( test_srv_crt ) );
     if( ret != 0 )
     {
@@ -146,7 +147,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    ret = x509parse_crt( &srvcert, (unsigned char *) test_ca_crt,
+    ret = x509parse_crt( &srvcert, (const unsigned char *) test_ca_crt,
                          strlen( test_ca_crt ) );
     if( ret != 0 )
     {
@@ -155,7 +156,7 @@ int main( int argc, char *argv[] )
     }
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    ret =  x509parse_key( &rsa, (unsigned char *) test_srv_key,
+    ret =  x509parse_key( &rsa, (const unsigned char *) test_srv_key,
                           strlen( test_srv_key ), NULL, 0 );
     if( ret != 0 )
     {
@@ -218,7 +219,8 @@ int main( int argc, char *argv[] )
         if( pid != 0 )
         {
             if( ( ret = ctr_drbg_reseed( &ctr_drbg,
-                                         (unsigned char* ) "parent", 6 ) ) != 0 )
+                                         (const unsigned char *) "parent",
+                                         6 ) ) != 0 )
             {
                 printf( " failed\n  ! ctr_drbg_reseed returned %d\n", ret );
                 goto exit;
@@ -237,7 +239,8 @@ int main( int argc, char *argv[] )
         fflush( stdout );
 
         if( ( ret = ctr_drbg_reseed( &ctr_drbg,
-                                     (unsigned char *) "child", 5 ) ) != 0 )
+                                     (const unsigned char *) "child",
+                                     5 ) ) != 0 )
         {
             printf( " failed\n  ! ctr_drbg_reseed returned %d\n", ret );
             goto exit;

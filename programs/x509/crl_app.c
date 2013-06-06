@@ -43,7 +43,7 @@
  */
 struct options
 {
-    char *filename;             /* filename of the certificate file     */
+    const char *filename;       /* filename of the certificate file     */
     int debug_level;            /* level of debugging                   */
 } opt;
 

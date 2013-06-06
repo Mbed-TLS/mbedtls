@@ -63,11 +63,12 @@ int main( int argc, char *argv[] )
     unsigned char o_priv_encrypted[512];
     unsigned char p_priv_decrypted[512];
     unsigned char o_priv_decrypted[512];
-    char *pers = "o_p_test_example";
+    const char *pers = "o_p_test_example";
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                    (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                    (const unsigned char *) pers,
+                    strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;

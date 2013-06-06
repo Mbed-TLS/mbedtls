@@ -542,11 +542,11 @@ rsa_gen_key:nrbits:exponent:result
     rsa_context ctx;
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
-    char *pers = "test_suite_rsa";
+    const char *pers = "test_suite_rsa";
 
     entropy_init( &entropy );
     TEST_ASSERT( ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                                (unsigned char *) pers, strlen( pers ) ) == 0 );
+                                (const unsigned char *) pers, strlen( pers ) ) == 0 );
 
     rsa_init( &ctx, 0, 0 );
 

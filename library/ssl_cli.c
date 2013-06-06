@@ -951,7 +951,7 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
     }
 
-    p = buf + 4;
+    p = buf + 5;
     while( cert_type_len > 0 )
     {
         if( *p == SSL_CERT_TYPE_RSA_SIGN )

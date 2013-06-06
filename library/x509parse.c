@@ -1463,9 +1463,19 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
                 buflen -= use_len;
                 buf += use_len;
             }
+            else if( ret == POLARSSL_ERR_PEM_BAD_INPUT_DATA )
+            {
+                return( ret );
+            }
             else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
             {
                 pem_free( &pem );
+
+                /*
+                 * PEM header and footer were found
+                 */
+                buflen -= use_len;
+                buf += use_len;
 
                 if( first_error == 0 )
                     first_error = ret;

@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
 = Branch 1.2
+Change
+   * HAVEGE random generator disabled by default
+
 Bugfix
    * Secure renegotiation extension should only be sent in case client
      supports secure renegotiation

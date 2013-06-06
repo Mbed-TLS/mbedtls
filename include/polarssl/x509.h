@@ -425,6 +425,18 @@ extern "C" {
 
 /** \ingroup x509_module */
 /**
+ * \brief          Parse a single DER formatted certificate and add it
+ *                 to the chained list.
+ *
+ * \param chain    points to the start of the chain
+ * \param buf      buffer holding the certificate DER data
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen );
+
+/**
  * \brief          Parse one or more certificates and add them
  *                 to the chained list. Parses permissively. If some
  *                 certificates can be parsed, the result is the number

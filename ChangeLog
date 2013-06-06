@@ -10,6 +10,9 @@ Bugfix
    * Fixed offset for cert_type list in ssl_parse_certificate_request()
    * Fixed const correctness issues that have no impact on the ABI
    * x509parse_crt() now better handles PEM error situations
+   * ssl_parse_certificate() now calls x509parse_crt_der() directly
+     instead of the x509parse_crt() wrapper that can also parse PEM
+	 certificates
 
 = Version 1.2.7 released 2013-04-13
 Features

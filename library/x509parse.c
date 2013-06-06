@@ -438,7 +438,7 @@ static int x509_get_pubkey( unsigned char **p,
                             x509_buf *pk_alg_oid,
                             mpi *N, mpi *E )
 {
-    int ret, can_handle;
+    int ret;
     size_t len;
     unsigned char *end2;
 
@@ -448,28 +448,11 @@ static int x509_get_pubkey( unsigned char **p,
     /*
      * only RSA public keys handled at this time
      */
-    can_handle = 0;
-
-    if( pk_alg_oid->len == 9 &&
-        memcmp( pk_alg_oid->p, OID_PKCS1_RSA, 9 ) == 0 )
-        can_handle = 1;
-
-    if( pk_alg_oid->len == 9 &&
-        memcmp( pk_alg_oid->p, OID_PKCS1, 8 ) == 0 )
+    if( pk_alg_oid->len != 9 ||
+        memcmp( pk_alg_oid->p, OID_PKCS1_RSA, 9 ) != 0 )
     {
-        if( pk_alg_oid->p[8] >= 2 && pk_alg_oid->p[8] <= 5 )
-            can_handle = 1;
-
-        if ( pk_alg_oid->p[8] >= 11 && pk_alg_oid->p[8] <= 14 )
-            can_handle = 1;
-    }
-
-    if( pk_alg_oid->len == 5 &&
-        memcmp( pk_alg_oid->p, OID_RSA_SHA_OBS, 5 ) == 0 )
-        can_handle = 1;
-
-    if( can_handle == 0 )
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+    }
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
@@ -2044,69 +2027,21 @@ int x509parse_public_keyfile( rsa_context *rsa, const char *path )
 #endif /* POLARSSL_FS_IO */
 
 /*
- * Parse a private RSA key
+ * Parse a PKCS#1 encoded private RSA key
  */
-int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
-                                     const unsigned char *pwd, size_t pwdlen )
+static int x509parse_key_pkcs1_der( rsa_context *rsa,
+                                    const unsigned char *key,
+                                    size_t keylen )
 {
     int ret;
     size_t len;
     unsigned char *p, *end;
-    unsigned char *p_alt;
-    x509_buf pk_alg_oid;
 
-#if defined(POLARSSL_PEM_C)
-    pem_context pem;
-
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
-                           "-----BEGIN RSA PRIVATE KEY-----",
-                           "-----END RSA PRIVATE KEY-----",
-                           key, pwd, pwdlen, &len );
-
-    if( ret == POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        ret = pem_read_buffer( &pem,
-                           "-----BEGIN PRIVATE KEY-----",
-                           "-----END PRIVATE KEY-----",
-                           key, pwd, pwdlen, &len );
-    }
-
-    if( ret == 0 )
-    {
-        /*
-         * Was PEM encoded
-         */
-        keylen = pem.buflen;
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
-
-    p = ( ret == 0 ) ? pem.buf : (unsigned char *) key;
-#else
-    ((void) pwd);
-    ((void) pwdlen);
     p = (unsigned char *) key;
-#endif
     end = p + keylen;
 
     /*
-     * Note: Depending on the type of private key file one can expect either a
-     * PrivatKeyInfo object (PKCS#8) or a RSAPrivateKey (PKCS#1) directly.
-     *
-     *  PrivateKeyInfo ::= SEQUENCE {
-     *    version           Version,
-     *    algorithm       AlgorithmIdentifier,
-     *    PrivateKey      BIT STRING
-     *  }
-     *
-     *  AlgorithmIdentifier ::= SEQUENCE {
-     *    algorithm       OBJECT IDENTIFIER,
-     *    parameters      ANY DEFINED BY algorithm OPTIONAL
-     *  }
+     * This function parses the RSAPrivateKey (PKCS#1)
      *
      *  RSAPrivateKey ::= SEQUENCE {
      *      version           Version,
@@ -2124,10 +2059,6 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
     if( ( ret = asn1_get_tag( &p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
     {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
     }
 
@@ -2135,124 +2066,12 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
 
     if( ( ret = asn1_get_int( &p, end, &rsa->ver ) ) != 0 )
     {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
     }
 
     if( rsa->ver != 0 )
     {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
-    }
-
-    p_alt = p;
-
-    if( ( ret = x509_get_alg( &p_alt, end, &pk_alg_oid ) ) != 0 )
-    {
-        // Assume that we have the PKCS#1 format if wrong
-        // tag was encountered
-        //
-        if( ret != POLARSSL_ERR_X509_CERT_INVALID_ALG +
-                    POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-        {
-#if defined(POLARSSL_PEM_C)
-            pem_free( &pem );
-#endif
-            rsa_free( rsa );
-            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
-        } 
-    }
-    else
-    {
-        int can_handle;
-
-        /*
-         * only RSA keys handled at this time
-         */
-        can_handle = 0;
-
-        if( pk_alg_oid.len == 9 &&
-                memcmp( pk_alg_oid.p, OID_PKCS1_RSA, 9 ) == 0 )
-            can_handle = 1;
-
-        if( pk_alg_oid.len == 9 &&
-                memcmp( pk_alg_oid.p, OID_PKCS1, 8 ) == 0 )
-        {
-            if( pk_alg_oid.p[8] >= 2 && pk_alg_oid.p[8] <= 5 )
-                can_handle = 1;
-
-            if ( pk_alg_oid.p[8] >= 11 && pk_alg_oid.p[8] <= 14 )
-                can_handle = 1;
-        }
-
-        if( pk_alg_oid.len == 5 &&
-                memcmp( pk_alg_oid.p, OID_RSA_SHA_OBS, 5 ) == 0 )
-            can_handle = 1;
-
-        if( can_handle == 0 )
-            return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
-
-        /*
-         * Parse the PKCS#8 format
-         */
-        
-        p = p_alt;
-        if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
-        {
-#if defined(POLARSSL_PEM_C)
-            pem_free( &pem );
-#endif
-            rsa_free( rsa );
-            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-        }
-
-        if( ( end - p ) < 1 )
-        {
-#if defined(POLARSSL_PEM_C)
-            pem_free( &pem );
-#endif
-            rsa_free( rsa );
-            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
-                    POLARSSL_ERR_ASN1_OUT_OF_DATA );
-        }
-
-        end = p + len;
-
-        if( ( ret = asn1_get_tag( &p, end, &len,
-                        ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-        {
-#if defined(POLARSSL_PEM_C)
-            pem_free( &pem );
-#endif
-            rsa_free( rsa );
-            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-        }
-
-        end = p + len;
-
-        if( ( ret = asn1_get_int( &p, end, &rsa->ver ) ) != 0 )
-        {
-#if defined(POLARSSL_PEM_C)
-            pem_free( &pem );
-#endif
-            rsa_free( rsa );
-            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-        }
-
-        if( rsa->ver != 0 )
-        {
-#if defined(POLARSSL_PEM_C)
-            pem_free( &pem );
-#endif
-            rsa_free( rsa );
-            return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
-        }
     }
 
     if( ( ret = asn1_get_mpi( &p, end, &rsa->N  ) ) != 0 ||
@@ -2264,9 +2083,6 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
         ( ret = asn1_get_mpi( &p, end, &rsa->DQ ) ) != 0 ||
         ( ret = asn1_get_mpi( &p, end, &rsa->QP ) ) != 0 )
     {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
         rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
     }
@@ -2275,9 +2091,6 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
 
     if( p != end )
     {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
         rsa_free( rsa );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
@@ -2285,16 +2098,173 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
 
     if( ( ret = rsa_check_privkey( rsa ) ) != 0 )
     {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
         rsa_free( rsa );
         return( ret );
     }
 
+    return( 0 );
+}
+
+/*
+ * Parse an unencrypted PKCS#8 encoded private RSA key
+ */
+static int x509parse_key_pkcs8_unencrypted_der(
+                                    rsa_context *rsa,
+                                    const unsigned char *key,
+                                    size_t keylen )
+{
+    int ret;
+    size_t len;
+    unsigned char *p, *end;
+    x509_buf pk_alg_oid;
+
+    p = (unsigned char *) key;
+    end = p + keylen;
+
+    /*
+     * This function parses the PrivatKeyInfo object (PKCS#8)
+     *
+     *  PrivateKeyInfo ::= SEQUENCE {
+     *    version           Version,
+     *    algorithm       AlgorithmIdentifier,
+     *    PrivateKey      BIT STRING
+     *  }
+     *
+     *  AlgorithmIdentifier ::= SEQUENCE {
+     *    algorithm       OBJECT IDENTIFIER,
+     *    parameters      ANY DEFINED BY algorithm OPTIONAL
+     *  }
+     *
+     *  The PrivateKey BIT STRING is a PKCS#1 RSAPrivateKey
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    end = p + len;
+
+    if( ( ret = asn1_get_int( &p, end, &rsa->ver ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    if( rsa->ver != 0 )
+    {
+        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
+    }
+
+    if( ( ret = x509_get_alg( &p, end, &pk_alg_oid ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    /*
+     * only RSA keys handled at this time
+     */
+    if( pk_alg_oid.len != 9 ||
+        memcmp( pk_alg_oid.p, OID_PKCS1_RSA, 9 ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+    }
+
+    /*
+     * Get the OCTET STRING and parse the PKCS#1 format inside
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+
+    if( ( end - p ) < 1 )
+    {
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+    }
+
+    end = p + len;
+
+    if( ( ret = x509parse_key_pkcs1_der( rsa, p, end - p ) ) != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+/*
+ * Parse a private RSA key
+ */
+int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
+                                     const unsigned char *pwd, size_t pwdlen )
+{
+    int ret;
+
 #if defined(POLARSSL_PEM_C)
+    size_t len;
+    pem_context pem;
+
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN RSA PRIVATE KEY-----",
+                           "-----END RSA PRIVATE KEY-----",
+                           key, pwd, pwdlen, &len );
+    if( ret == 0 )
+    {
+        if( ( ret = x509parse_key_pkcs1_der( rsa, pem.buf, pem.buflen ) ) != 0 )
+        {
+            rsa_free( rsa );
+        }
+
+        pem_free( &pem );
+        return( ret );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
+    }
+
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN PRIVATE KEY-----",
+                           "-----END PRIVATE KEY-----",
+                           key, NULL, 0, &len );
+    if( ret == 0 )
+    {
+        if( ( ret = x509parse_key_pkcs8_unencrypted_der( rsa,
+                                                pem.buf, pem.buflen ) ) != 0 )
+        {
+            rsa_free( rsa );
+        }
+
+        pem_free( &pem );
+        return( ret );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
+    }
+
     pem_free( &pem );
-#endif
+#else
+    ((void) pwd);
+    ((void) pwdlen);
+#endif /* POLARSSL_PEM_C */
+
+    // At this point we only know it's not a PEM formatted key. Could be any
+    // of the known DER encoded private key formats
+    //
+    // We try the different DER format parsers to see if one passes without
+    // error
+    //
+    if( ( ret = x509parse_key_pkcs8_unencrypted_der( rsa, key, keylen ) ) != 0 )
+    {
+        rsa_free( rsa );
+
+        if( ( ret = x509parse_key_pkcs1_der( rsa, key, keylen ) ) != 0 )
+        {
+            rsa_free( rsa );
+            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
+        }
+    }
 
     return( 0 );
 }

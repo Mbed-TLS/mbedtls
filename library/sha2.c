@@ -250,8 +250,7 @@ void sha2_update( sha2_context *ctx, const unsigned char *input, size_t ilen )
 
     if( left && ilen >= fill )
     {
-        memcpy( (void *) (ctx->buffer + left),
-                (void *) input, fill );
+        memcpy( (void *) (ctx->buffer + left), input, fill );
         sha2_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
@@ -266,10 +265,7 @@ void sha2_update( sha2_context *ctx, const unsigned char *input, size_t ilen )
     }
 
     if( ilen > 0 )
-    {
-        memcpy( (void *) (ctx->buffer + left),
-                (void *) input, ilen );
-    }
+        memcpy( (void *) (ctx->buffer + left), input, ilen );
 }
 
 static const unsigned char sha2_padding[64] =
@@ -299,7 +295,7 @@ void sha2_finish( sha2_context *ctx, unsigned char output[32] )
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    sha2_update( ctx, (unsigned char *) sha2_padding, padn );
+    sha2_update( ctx, sha2_padding, padn );
     sha2_update( ctx, msglen, 8 );
 
     PUT_UINT32_BE( ctx->state[0], output,  0 );

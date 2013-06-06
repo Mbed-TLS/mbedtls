@@ -218,16 +218,17 @@ static const unsigned char base64_test_enc[] =
 int base64_self_test( int verbose )
 {
     size_t len;
-    unsigned char *src, buffer[128];
+    const unsigned char *src;
+    unsigned char buffer[128];
 
     if( verbose != 0 )
         printf( "  Base64 encoding test: " );
 
     len = sizeof( buffer );
-    src = (unsigned char *) base64_test_dec;
+    src = base64_test_dec;
 
     if( base64_encode( buffer, &len, src, 64 ) != 0 ||
-         memcmp( base64_test_enc, buffer, 88 ) != 0 ) 
+         memcmp( base64_test_enc, buffer, 88 ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );
@@ -239,7 +240,7 @@ int base64_self_test( int verbose )
         printf( "passed\n  Base64 decoding test: " );
 
     len = sizeof( buffer );
-    src = (unsigned char *) base64_test_enc;
+    src = base64_test_enc;
 
     if( base64_decode( buffer, &len, src, 88 ) != 0 ||
          memcmp( base64_test_dec, buffer, 64 ) != 0 )

@@ -2521,7 +2521,7 @@ static void ssl_update_checksum_sha384( ssl_context *ssl, unsigned char *buf,
 static void ssl_calc_finished_ssl(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
-    char *sender;
+    const char *sender;
     md5_context  md5;
     sha1_context sha1;
 
@@ -2553,17 +2553,17 @@ static void ssl_calc_finished_ssl(
     SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
                    sha1.state, sizeof( sha1.state ) );
 
-    sender = ( from == SSL_IS_CLIENT ) ? (char *) "CLNT"
-                                       : (char *) "SRVR";
+    sender = ( from == SSL_IS_CLIENT ) ? "CLNT"
+                                       : "SRVR";
 
     memset( padbuf, 0x36, 48 );
 
-    md5_update( &md5, (unsigned char *) sender, 4 );
+    md5_update( &md5, (const unsigned char *) sender, 4 );
     md5_update( &md5, session->master, 48 );
     md5_update( &md5, padbuf, 48 );
     md5_finish( &md5, md5sum );
 
-    sha1_update( &sha1, (unsigned char *) sender, 4 );
+    sha1_update( &sha1, (const unsigned char *) sender, 4 );
     sha1_update( &sha1, session->master, 48 );
     sha1_update( &sha1, padbuf, 40 );
     sha1_finish( &sha1, sha1sum );
@@ -2598,7 +2598,7 @@ static void ssl_calc_finished_tls(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
-    char *sender;
+    const char *sender;
     md5_context  md5;
     sha1_context sha1;
     unsigned char padbuf[36];
@@ -2625,13 +2625,13 @@ static void ssl_calc_finished_tls(
                    sha1.state, sizeof( sha1.state ) );
 
     sender = ( from == SSL_IS_CLIENT )
-             ? (char *) "client finished"
-             : (char *) "server finished";
+             ? "client finished"
+             : "server finished";
 
     md5_finish(  &md5, padbuf );
     sha1_finish( &sha1, padbuf + 16 );
 
-    ssl->handshake->tls_prf( session->master, 48, sender,
+    ssl->handshake->tls_prf( session->master, 48, (char *) sender,
                              padbuf, 36, buf, len );
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
@@ -2648,7 +2648,7 @@ static void ssl_calc_finished_tls_sha256(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
-    char *sender;
+    const char *sender;
     sha2_context sha2;
     unsigned char padbuf[32];
 
@@ -2670,12 +2670,12 @@ static void ssl_calc_finished_tls_sha256(
                    sha2.state, sizeof( sha2.state ) );
 
     sender = ( from == SSL_IS_CLIENT )
-             ? (char *) "client finished"
-             : (char *) "server finished";
+             ? "client finished"
+             : "server finished";
 
     sha2_finish( &sha2, padbuf );
 
-    ssl->handshake->tls_prf( session->master, 48, sender,
+    ssl->handshake->tls_prf( session->master, 48, (char *) sender,
                              padbuf, 32, buf, len );
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
@@ -2692,7 +2692,7 @@ static void ssl_calc_finished_tls_sha384(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
-    char *sender;
+    const char *sender;
     sha4_context sha4;
     unsigned char padbuf[48];
 
@@ -2714,12 +2714,12 @@ static void ssl_calc_finished_tls_sha384(
                    sha4.state, sizeof( sha4.state ) );
 
     sender = ( from == SSL_IS_CLIENT )
-             ? (char *) "client finished"
-             : (char *) "server finished";
+             ? "client finished"
+             : "server finished";
 
     sha4_finish( &sha4, padbuf );
 
-    ssl->handshake->tls_prf( session->master, 48, sender,
+    ssl->handshake->tls_prf( session->master, 48, (char *) sender,
                              padbuf, 48, buf, len );
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
@@ -3232,7 +3232,7 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
     if( ssl->hostname == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    memcpy( ssl->hostname, (unsigned char *) hostname,
+    memcpy( ssl->hostname, (const unsigned char *) hostname,
             ssl->hostname_len );
     
     ssl->hostname[ssl->hostname_len] = '\0';

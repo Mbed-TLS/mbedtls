@@ -143,7 +143,7 @@ int arc4_self_test( int verbose )
 
         memcpy( ibuf, arc4_test_pt[i], 8 );
 
-        arc4_setup( &ctx, (unsigned char *) arc4_test_key[i], 8 );
+        arc4_setup( &ctx, arc4_test_key[i], 8 );
         arc4_crypt( &ctx, 8, ibuf, obuf );
 
         if( memcmp( obuf, arc4_test_ct[i], 8 ) != 0 )

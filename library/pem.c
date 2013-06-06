@@ -195,12 +195,12 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
     if( ctx == NULL )
         return( POLARSSL_ERR_PEM_INVALID_DATA );
 
-    s1 = (unsigned char *) strstr( (char *) data, header );
+    s1 = (unsigned char *) strstr( (const char *) data, header );
 
     if( s1 == NULL )
         return( POLARSSL_ERR_PEM_NO_HEADER_PRESENT );
 
-    s2 = (unsigned char *) strstr( (char *) data, footer );
+    s2 = (unsigned char *) strstr( (const char *) data, footer );
 
     if( s2 == NULL || s2 <= s1 )
         return( POLARSSL_ERR_PEM_INVALID_DATA );

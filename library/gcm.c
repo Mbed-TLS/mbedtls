@@ -191,7 +191,6 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     size_t use_len;
     uint64_t orig_len = length * 8;
     uint64_t orig_add_len = add_len * 8;
-    unsigned char **xor_p;
 
     memset( y, 0x00, 16 );
     memset( work_buf, 0x00, 16 );
@@ -203,11 +202,6 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     {
         return( POLARSSL_ERR_GCM_BAD_INPUT );
     }
-
-    if( mode == GCM_ENCRYPT )
-        xor_p = (unsigned char **) &out_p;
-    else
-        xor_p = (unsigned char **) &p;
 
     if( iv_len == 12 )
     {
@@ -270,7 +264,10 @@ int gcm_crypt_and_tag( gcm_context *ctx,
         for( i = 0; i < use_len; i++ )
         {
             out_p[i] = ectr[i] ^ p[i];
-            buf[i] ^= (*xor_p)[i];
+            if( mode == GCM_ENCRYPT )
+                buf[i] ^= out_p[i];
+            else
+                buf[i] ^= p[i];
         }
         
         gcm_mult( ctx, buf, buf );

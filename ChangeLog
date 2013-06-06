@@ -5,6 +5,7 @@ Bugfix
    * Secure renegotiation extension should only be sent in case client
      supports secure renegotiation
    * Fixed offset for cert_type list in ssl_parse_certificate_request()
+   * Fixed const correctness issues that have no impact on the ABI
 
 = Version 1.2.7 released 2013-04-13
 Features

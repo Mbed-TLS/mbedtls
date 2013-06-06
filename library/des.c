@@ -838,27 +838,27 @@ int des_self_test( int verbose )
         switch( i )
         {
         case 0:
-            des_setkey_dec( &ctx, (unsigned char *) des3_test_keys );
+            des_setkey_dec( &ctx, des3_test_keys );
             break;
 
         case 1:
-            des_setkey_enc( &ctx, (unsigned char *) des3_test_keys );
+            des_setkey_enc( &ctx, des3_test_keys );
             break;
 
         case 2:
-            des3_set2key_dec( &ctx3, (unsigned char *) des3_test_keys );
+            des3_set2key_dec( &ctx3, des3_test_keys );
             break;
 
         case 3:
-            des3_set2key_enc( &ctx3, (unsigned char *) des3_test_keys );
+            des3_set2key_enc( &ctx3, des3_test_keys );
             break;
 
         case 4:
-            des3_set3key_dec( &ctx3, (unsigned char *) des3_test_keys );
+            des3_set3key_dec( &ctx3, des3_test_keys );
             break;
 
         case 5:
-            des3_set3key_enc( &ctx3, (unsigned char *) des3_test_keys );
+            des3_set3key_enc( &ctx3, des3_test_keys );
             break;
 
         default:
@@ -911,27 +911,27 @@ int des_self_test( int verbose )
         switch( i )
         {
         case 0:
-            des_setkey_dec( &ctx, (unsigned char *) des3_test_keys );
+            des_setkey_dec( &ctx, des3_test_keys );
             break;
 
         case 1:
-            des_setkey_enc( &ctx, (unsigned char *) des3_test_keys );
+            des_setkey_enc( &ctx, des3_test_keys );
             break;
 
         case 2:
-            des3_set2key_dec( &ctx3, (unsigned char *) des3_test_keys );
+            des3_set2key_dec( &ctx3, des3_test_keys );
             break;
 
         case 3:
-            des3_set2key_enc( &ctx3, (unsigned char *) des3_test_keys );
+            des3_set2key_enc( &ctx3, des3_test_keys );
             break;
 
         case 4:
-            des3_set3key_dec( &ctx3, (unsigned char *) des3_test_keys );
+            des3_set3key_dec( &ctx3, des3_test_keys );
             break;
 
         case 5:
-            des3_set3key_enc( &ctx3, (unsigned char *) des3_test_keys );
+            des3_set3key_enc( &ctx3, des3_test_keys );
             break;
 
         default:

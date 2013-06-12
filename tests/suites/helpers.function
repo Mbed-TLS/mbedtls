@@ -1,5 +1,3 @@
-#include <polarssl/config.h>
-
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;

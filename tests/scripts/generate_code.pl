@@ -49,6 +49,7 @@ $/ = $line_separator;
 open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
 print TEST_FILE << "END";
 #include "fct.h"
+#include <polarssl/config.h>
 
 $suite_header
 

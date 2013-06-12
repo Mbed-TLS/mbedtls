@@ -1,6 +1,10 @@
 PolarSSL ChangeLog
 
 = Branch 1.2
+Features
+   * Parsing of PKCS#8 encrypted private key files
+   * PKCS#12 PBE and derivation functions
+
 Change
    * HAVEGE random generator disabled by default
    * Internally split up x509parse_key() into a (PEM) handler function

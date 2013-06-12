@@ -722,6 +722,22 @@
  */
 
 /**
+ * \def POLARSSL_PKCS12_C
+ *
+ * Enable PKCS#12 PBE functions
+ * Adds algorithms for parsing PKCS#8 encrypted private keys
+ *
+ * Module:  library/pkcs12.c
+ * Caller:  library/x509parse.c
+ *
+ * Requires: POLARSSL_ASN1_PARSE_C
+ * Can use:  POLARSSL_SHA1_C, POLARSSL_DES_C, POLARSSL_ARC4_C
+ *
+ * This module enables PKCS#12 functions.
+ */
+#define POLARSSL_PKCS12_C
+
+/**
  * \def POLARSSL_RSA_C
  *
  * Enable the RSA public-key cryptosystem.

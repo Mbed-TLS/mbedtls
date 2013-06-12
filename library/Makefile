@@ -44,7 +44,7 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		md.o		md_wrap.o	md2.o			\
 		md4.o		md5.o		net.o			\
 		padlock.o	pbkdf2.o	pem.o			\
-		pkcs11.o								\
+		pkcs11.o	pkcs12.o					\
 		rsa.o		sha1.o		sha2.o			\
 		sha4.o		ssl_cache.o	ssl_cli.o		\
 		ssl_srv.o								\

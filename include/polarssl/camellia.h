@@ -3,7 +3,7 @@
  *
  * \brief Camellia block cipher
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,8 @@
 #ifndef POLARSSL_CAMELLIA_H
 #define POLARSSL_CAMELLIA_H
 
+#include "config.h"
+
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -41,6 +43,10 @@ typedef UINT32 uint32_t;
 
 #define POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH           -0x0024  /**< Invalid key length. */
 #define POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH         -0x0026  /**< Invalid data input length. */
+
+#if !defined(POLARSSL_CAMELLIA_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          CAMELLIA context structure
@@ -167,6 +173,18 @@ int camellia_crypt_ctr( camellia_context *ctx,
                        unsigned char stream_block[16],
                        const unsigned char *input,
                        unsigned char *output );
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* POLARSSL_CAMELLIA_ALT */
+#include "camellia_alt.h"
+#endif /* POLARSSL_CAMELLIA_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Checkup routine

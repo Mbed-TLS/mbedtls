@@ -3,7 +3,7 @@
  *
  * \brief Blowfish block cipher
  *
- *  Copyright (C) 2012-2012, Brainspark B.V.
+ *  Copyright (C) 2012-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,8 @@
 #ifndef POLARSSL_BLOWFISH_H
 #define POLARSSL_BLOWFISH_H
 
+#include "config.h"
+
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -45,6 +47,10 @@ typedef UINT32 uint32_t;
 
 #define POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH                -0x0016  /**< Invalid key length. */
 #define POLARSSL_ERR_BLOWFISH_INVALID_INPUT_LENGTH              -0x0018  /**< Invalid data input length. */
+
+#if !defined(POLARSSL_BLOWFISH_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          Blowfish context structure
@@ -157,5 +163,9 @@ int blowfish_crypt_ctr( blowfish_context *ctx,
 #ifdef __cplusplus
 }
 #endif
+
+#else  /* POLARSSL_BLOWFISH_ALT */
+#include "blowfish_alt.h"
+#endif /* POLARSSL_BLOWFISH_ALT */
 
 #endif /* blowfish.h */

@@ -5,11 +5,14 @@ Features
    * Parsing of PKCS#8 encrypted private key files
    * PKCS#12 PBE and derivation functions
 
-Change
+Changes
    * HAVEGE random generator disabled by default
    * Internally split up x509parse_key() into a (PEM) handler function
      and specific DER parser functions for the PKCS#1 and unencrypted
      PKCS#8 private key formats
+   * Added mechanism to provide alternative implementations for all
+     symmetric cipher and hash algorithms (e.g. POLARSSL_AES_ALT in
+	 config.h)
 
 Bugfix
    * Secure renegotiation extension should only be sent in case client

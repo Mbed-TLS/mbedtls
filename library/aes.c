@@ -1,7 +1,7 @@
 /*
  *  FIPS-197 compliant AES implementation
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -37,6 +37,8 @@
 #if defined(POLARSSL_PADLOCK_C)
 #include "polarssl/padlock.h"
 #endif
+
+#if !defined(POLARSSL_AES_ALT)
 
 /*
  * 32-bit integer manipulation macros (little endian)
@@ -914,6 +916,7 @@ int aes_crypt_ctr( aes_context *ctx,
     return( 0 );
 }
 #endif /* POLARSSL_CIPHER_MODE_CTR */
+#endif /* !POLARSSL_AES_ALT */
 
 #if defined(POLARSSL_SELF_TEST)
 

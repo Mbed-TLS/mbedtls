@@ -1,7 +1,7 @@
 /*
  *  RFC 1321 compliant MD5 implementation
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -37,6 +37,8 @@
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
 #endif
+
+#if !defined(POLARSSL_MD5_ALT)
 
 /*
  * 32-bit integer manipulation macros (little endian)
@@ -275,6 +277,8 @@ void md5_finish( md5_context *ctx, unsigned char output[16] )
     PUT_UINT32_LE( ctx->state[2], output,  8 );
     PUT_UINT32_LE( ctx->state[3], output, 12 );
 }
+
+#endif /* !POLARSSL_MD5_ALT */
 
 /*
  * output = MD5( input buffer )

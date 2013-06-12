@@ -1,7 +1,7 @@
 /*
  *  FIPS-180-1 compliant SHA-1 implementation
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -37,6 +37,8 @@
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
 #endif
+
+#if !defined(POLARSSL_SHA1_ALT)
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -308,6 +310,8 @@ void sha1_finish( sha1_context *ctx, unsigned char output[20] )
     PUT_UINT32_BE( ctx->state[3], output, 12 );
     PUT_UINT32_BE( ctx->state[4], output, 16 );
 }
+
+#endif /* !POLARSSL_SHA1_ALT */
 
 /*
  * output = SHA-1( input buffer )

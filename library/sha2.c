@@ -1,7 +1,7 @@
 /*
  *  FIPS-180-2 compliant SHA-256 implementation
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -37,6 +37,8 @@
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
 #endif
+
+#if !defined(POLARSSL_SHA2_ALT)
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -309,6 +311,8 @@ void sha2_finish( sha2_context *ctx, unsigned char output[32] )
     if( ctx->is224 == 0 )
         PUT_UINT32_BE( ctx->state[7], output, 28 );
 }
+
+#endif /* !POLARSSL_SHA2_ALT */
 
 /*
  * output = SHA-256( input buffer )

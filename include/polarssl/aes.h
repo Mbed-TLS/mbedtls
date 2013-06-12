@@ -3,7 +3,7 @@
  *
  * \brief AES block cipher
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,8 @@
 #ifndef POLARSSL_AES_H
 #define POLARSSL_AES_H
 
+#include "config.h"
+
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -41,6 +43,10 @@ typedef UINT32 uint32_t;
 
 #define POLARSSL_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
 #define POLARSSL_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
+
+#if !defined(POLARSSL_AES_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          AES context structure
@@ -169,6 +175,19 @@ int aes_crypt_ctr( aes_context *ctx,
                        unsigned char stream_block[16],
                        const unsigned char *input,
                        unsigned char *output );
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* POLARSSL_AES_ALT */
+#include "aes_alt.h"
+#endif /* POLARSSL_AES_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          Checkup routine
  *

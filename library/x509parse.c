@@ -75,6 +75,7 @@
 #include <stdio.h>
 #if !defined(_WIN32)
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #endif
 #endif
@@ -1919,12 +1920,9 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 
         w_ret = x509parse_crtfile( chain, filename );
         if( w_ret < 0 )
-        {
-            ret = w_ret;
-            goto cleanup;
-        }
-
-        ret += w_ret;
+            ret++;
+        else
+            ret += w_ret;
     }
     while( FindNextFileW( hFind, &file_data ) != 0 );
 
@@ -1934,28 +1932,37 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 cleanup:
     FindClose( hFind );
 #else
-    int t_ret;
-    struct dirent *entry;
+    int t_ret, i;
+    struct stat sb;
+    struct dirent entry, *result = NULL;
     char entry_name[255];
     DIR *dir = opendir( path );
 
     if( dir == NULL)
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
-    while( ( entry = readdir( dir ) ) != NULL )
+    while( ( t_ret = readdir_r( dir, &entry, &result ) ) == 0 )
     {
-        if( entry->d_type != DT_REG )
+        if( result == NULL )
+            break;
+
+        snprintf( entry_name, sizeof(entry_name), "%s/%s", path, entry.d_name );
+
+        i = stat( entry_name, &sb );
+
+        if( i == -1 )
+            return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+
+        if( !S_ISREG( sb.st_mode ) )
             continue;
 
-        snprintf( entry_name, sizeof(entry_name), "%s/%s", path, entry->d_name );
+        // Ignore parse errors
+        //
         t_ret = x509parse_crtfile( chain, entry_name );
         if( t_ret < 0 )
-        {
-            ret = t_ret;
-            break;
-        }
-
-        ret += t_ret;
+            ret++;
+        else
+            ret += t_ret;
     }
     closedir( dir );
 #endif

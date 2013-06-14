@@ -934,8 +934,16 @@ int mpi_sub_int( mpi *X, const mpi *A, t_sint b )
 
 /*
  * Helper for mpi multiplication
- */ 
-static void mpi_mul_hlp( size_t i, t_uint *s, t_uint *d, t_uint b )
+ */
+static
+#if defined(__APPLE__) && defined(__arm__)
+/*
+ * Apple LLVM version 4.2 (clang-425.0.24) (based on LLVM 3.2svn)
+ * appears to need this to prevent bad ARM code generation at -O3.
+ */
+__attribute__ ((noinline))
+#endif
+void mpi_mul_hlp( size_t i, t_uint *s, t_uint *d, t_uint b )
 {
     t_uint c = 0, t = 0;
 

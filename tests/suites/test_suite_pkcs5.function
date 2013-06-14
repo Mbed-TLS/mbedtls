@@ -1,0 +1,39 @@
+BEGIN_HEADER
+#include <polarssl/pkcs5.h>
+END_HEADER
+
+BEGIN_DEPENDENCIES
+depends_on:POLARSSL_PKCS5_C
+END_DEPENDENCIES
+
+BEGIN_CASE
+pbkdf2_hmac:hash:hex_password_string:hex_salt_string:it_cnt:key_len:result_key_string
+{
+    unsigned char pw_str[100];
+    unsigned char salt_str[100];
+    unsigned char dst_str[100];
+
+    md_context_t ctx;
+    const md_info_t *info;
+
+    int pw_len, salt_len;
+    unsigned char key[100];
+
+    memset(pw_str, 0x00, 100);
+    memset(salt_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+
+    pw_len = unhexify( pw_str, {hex_password_string} );
+    salt_len = unhexify( salt_str, {hex_salt_string} );
+
+
+    info = md_info_from_type( {hash} );
+    TEST_ASSERT( info != NULL );
+    TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
+    TEST_ASSERT( pkcs5_pbkdf2_hmac( &ctx, pw_str, pw_len, salt_str, salt_len,
+                                     {it_cnt}, {key_len}, key ) == 0 );
+
+    hexify( dst_str, key, {key_len} );
+    TEST_ASSERT( strcmp( (char *) dst_str, {result_key_string} ) == 0 );
+}
+END_CASE

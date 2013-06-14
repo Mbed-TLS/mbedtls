@@ -13,6 +13,8 @@ Changes
    * Added mechanism to provide alternative implementations for all
      symmetric cipher and hash algorithms (e.g. POLARSSL_AES_ALT in
 	 config.h)
+   * PKCS#5 module added. Moved PBKDF2 functionality inside and deprecated
+     old PBKDF2 module
 
 Bugfix
    * Secure renegotiation extension should only be sent in case client

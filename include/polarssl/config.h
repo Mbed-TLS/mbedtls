@@ -711,10 +711,11 @@
  * \def POLARSSL_PBKDF2_C
  *
  * Enable PKCS#5 PBKDF2 key derivation function
+ * DEPRECATED: Use POLARSSL_PKCS5_C instead
  *
  * Module:  library/pbkdf2.c
  *
- * Requires: POLARSSL_MD_C
+ * Requires: POLARSSL_PKCS5_C
  *
  * This module adds support for the PKCS#5 PBKDF2 key derivation function.
 #define POLARSSL_PBKDF2_C
@@ -733,6 +734,19 @@
  * This modules adds support for decoding PEM files.
  */
 #define POLARSSL_PEM_C
+
+/**
+ * \def POLARSSL_PKCS5_C
+ *
+ * Enable PKCS#5 functions
+ *
+ * Module:  library/pkcs5.c
+ *
+ * Requires: POLARSSL_MD_C
+ *
+ * This module adds support for the PKCS#5 functions.
+ */
+#define POLARSSL_PKCS5_C
 
 /**
  * \def POLARSSL_PKCS11_C

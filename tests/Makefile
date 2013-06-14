@@ -42,7 +42,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_hmac_shax							\
 		test_suite_md			test_suite_mdx			\
 		test_suite_mpi			test_suite_pbkdf2		\
-		test_suite_pkcs1_v21							\
+		test_suite_pkcs1_v21	test_suite_pkcs5		\
 		test_suite_rsa			test_suite_shax			\
 		test_suite_x509parse	test_suite_x509write	\
 		test_suite_xtea			test_suite_version
@@ -228,6 +228,10 @@ test_suite_pbkdf2: test_suite_pbkdf2.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_pkcs1_v21: test_suite_pkcs1_v21.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_pkcs5: test_suite_pkcs5.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

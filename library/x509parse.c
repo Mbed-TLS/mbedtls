@@ -2354,6 +2354,10 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
         pem_free( &pem );
         return( ret );
     }
+    else if( ret == POLARSSL_ERR_PEM_PASSWORD_MISMATCH )
+        return( POLARSSL_ERR_X509_PASSWORD_MISMATCH );
+    else if( ret == POLARSSL_ERR_PEM_PASSWORD_REQUIRED )
+        return( POLARSSL_ERR_X509_PASSWORD_REQUIRED );
     else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
         return( ret );
 

@@ -31,6 +31,7 @@
 
 #include <string.h>
 
+#include "asn1.h"
 #include "md.h"
 
 #ifdef _MSC_VER
@@ -40,11 +41,53 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_PKCS5_BAD_INPUT_DATA                -0x007C  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_PKCS5_BAD_INPUT_DATA                  -0x3f80  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_PKCS5_INVALID_FORMAT                  -0x3f00  /**< Unexpected ASN.1 data. */
+#define POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE             -0x3e80  /**< Requested encryption or digest alg not available. */
+#define POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH               -0x3e00  /**< Given private key password does not allow for correct decryption. */
+
+#define PKCS5_DECRYPT      0
+#define PKCS5_ENCRYPT      1
+
+/*
+ * PKCS#5 OIDs
+ */
+#define OID_PKCS5               "\x2a\x86\x48\x86\xf7\x0d\x01\x05"
+#define OID_PKCS5_PBES2         OID_PKCS5 "\x0d"
+#define OID_PKCS5_PBKDF2        OID_PKCS5 "\x0c"
+
+/*
+ * Encryption Algorithm OIDs
+ */
+#define OID_DES_CBC             "\x2b\x0e\x03\x02\x07"
+#define OID_DES_EDE3_CBC        "\x2a\x86\x48\x86\xf7\x0d\x03\x07"
+
+/*
+ * Digest Algorithm OIDs
+ */
+#define OID_HMAC_SHA1           "\x2a\x86\x48\x86\xf7\x0d\x02\x07"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * \brief          PKCS#5 PBES2 function
+ *
+ * \param pbe_params the ASN.1 algorithm parameters
+ * \param mode       either PKCS5_DECRYPT or PKCS5_ENCRYPT
+ * \param pwd        password to use when generating key
+ * \param plen       length of password
+ * \param data       data to process
+ * \param datalen    length of data
+ * \param output     output buffer
+ *
+ * \returns        0 on success, or a PolarSSL error code if verification fails.
+ */
+int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
+                 const unsigned char *pwd,  size_t pwdlen,
+                 const unsigned char *data, size_t datalen,
+                 unsigned char *output );
 
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC

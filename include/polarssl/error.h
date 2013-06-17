@@ -69,14 +69,14 @@
  * SHA1      1  0x0076-0x0076
  * SHA2      1  0x0078-0x0078
  * SHA4      1  0x007A-0x007A
- * PKCS5     1  0x007C-0x007C
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
  * Name     ID  Nr of Errors
  * PEM      1   9
  * PKCS#12  1   3 (Started from top)
- * X509     2   21
+ * X509     2   23
  * DHM      3   6
+ * PKCS5    3   4 (Started from top)
  * RSA      4   9
  * MD       5   4
  * CIPHER   6   5

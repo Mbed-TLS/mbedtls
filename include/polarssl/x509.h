@@ -62,6 +62,8 @@
 #define POLARSSL_ERR_X509_INVALID_INPUT                    -0x2A00  /**< Input invalid. */
 #define POLARSSL_ERR_X509_MALLOC_FAILED                    -0x2A80  /**< Allocation of memory failed. */
 #define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2B00  /**< Read/write of file failed. */
+#define POLARSSL_ERR_X509_PASSWORD_REQUIRED                -0x2B80  /**< Private key password can't be empty. */
+#define POLARSSL_ERR_X509_PASSWORD_MISMATCH                -0x2C00  /**< Given private key password does not allow for correct decryption. */
 /* \} name */
 
 

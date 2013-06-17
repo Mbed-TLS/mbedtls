@@ -62,6 +62,9 @@
 #endif
 #include "polarssl/dhm.h"
 #include "polarssl/pkcs12.h"
+#if defined(POLARSSL_PKCS5_C)
+#include "polarssl/pkcs5.h"
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -2219,6 +2222,9 @@ static int x509parse_key_pkcs8_encrypted_der(
     p = (unsigned char *) key;
     end = p + keylen;
 
+    if( pwdlen == 0 )
+        return( POLARSSL_ERR_X509_PASSWORD_REQUIRED );
+
     /*
      * This function parses the EncryptedPrivatKeyInfo object (PKCS#8)
      *
@@ -2302,6 +2308,19 @@ static int x509parse_key_pkcs8_encrypted_der(
             return( ret );
         }
     }
+#if defined(POLARSSL_PKCS5_C)
+    else if( OID_CMP( OID_PKCS5_PBES2, &pbe_alg_oid ) )
+    {
+        if( ( ret = pkcs5_pbes2( &pbe_params, PKCS5_DECRYPT, pwd, pwdlen,
+                                  p, len, buf ) ) != 0 )
+        {
+            if( ret == POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH )
+                return( POLARSSL_ERR_X509_PASSWORD_MISMATCH );
+
+            return( ret );
+        }
+    }
+#endif /* POLARSSL_PKCS5_C */
     else
         return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
 
@@ -2401,14 +2420,22 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
     }
 
     rsa_free( rsa );
+
+    if( ret == POLARSSL_ERR_X509_PASSWORD_MISMATCH )
+    {
+        return( ret );
+    }
+
     if( ( ret = x509parse_key_pkcs8_unencrypted_der( rsa, key, keylen ) ) == 0 )
         return( 0 );
 
     rsa_free( rsa );
+
     if( ( ret = x509parse_key_pkcs1_der( rsa, key, keylen ) ) == 0 )
         return( 0 );
 
     rsa_free( rsa );
+
     return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
 }
 

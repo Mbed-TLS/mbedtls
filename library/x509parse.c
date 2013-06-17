@@ -2355,10 +2355,7 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
         return( ret );
     }
     else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
         return( ret );
-    }
 
     ret = pem_read_buffer( &pem,
                            "-----BEGIN PRIVATE KEY-----",
@@ -2376,10 +2373,7 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
         return( ret );
     }
     else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
         return( ret );
-    }
 
     ret = pem_read_buffer( &pem,
                            "-----BEGIN ENCRYPTED PRIVATE KEY-----",
@@ -2398,10 +2392,7 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
         return( ret );
     }
     else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
         return( ret );
-    }
 #else
     ((void) pwd);
     ((void) pwdlen);

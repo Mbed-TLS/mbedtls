@@ -4,6 +4,8 @@ PolarSSL ChangeLog
 Features
    * Parsing of PKCS#8 encrypted private key files
    * PKCS#12 PBE and derivation functions
+   * Centralized module option values in config.h to allow user-defined
+     settings without editing header files by using POLARSSL_CONFIG_OPTIONS
 
 Changes
    * HAVEGE random generator disabled by default

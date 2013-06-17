@@ -3,7 +3,7 @@
  *
  * \brief SSL session cache implementation
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,8 +29,10 @@
 
 #include "ssl.h"
 
+#if !defined(POLARSSL_CONFIG_OPTIONS)
 #define SSL_CACHE_DEFAULT_TIMEOUT       86400   /*!< 1 day  */
 #define SSL_CACHE_DEFAULT_MAX_ENTRIES      50   /*!< Maximum entries in cache */
+#endif /* !POLARSSL_CONFIG_OPTIONS */
 
 #ifdef __cplusplus
 extern "C" {

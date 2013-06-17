@@ -3,7 +3,7 @@
  *
  * \brief SSL/TLS functions.
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -123,7 +123,16 @@
 #define SSL_LEGACY_ALLOW_RENEGOTIATION  1
 #define SSL_LEGACY_BREAK_HANDSHAKE      2
 
-#define SSL_MAX_CONTENT_LEN         16384
+/*
+ * Size of the input / output buffer.
+ * Note: the RFC defines the default size of SSL / TLS messages. If you
+ * change the value here, other clients / servers may not be able to
+ * communicate with you anymore. Only change this value if you control
+ * both sides of the connection and have it reduced at both sides!
+ */
+#if !defined(POLARSSL_CONFIG_OPTIONS)
+#define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
+#endif /* !POLARSSL_CONFIG_OPTIONS */
 
 /*
  * Allow an extra 512 bytes for the record header

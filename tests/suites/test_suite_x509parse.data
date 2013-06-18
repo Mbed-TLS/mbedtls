@@ -118,6 +118,14 @@ X509 Parse Key #10 (PKCS#8 encrypted SHA1-3DES)
 depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509parse_keyfile:"data_files/pkcs8_pbe_sha1_3des.key":"PolarSSLTest":0
 
+X509 Parse Key #10.1 (PKCS#8 encrypted SHA1-3DES, wrong PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_3des.key":"PolarSSLTes":POLARSSL_ERR_X509_PASSWORD_MISMATCH
+
+X509 Parse Key #10.2 (PKCS#8 encrypted SHA1-3DES, no PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_3des.key":"":POLARSSL_ERR_X509_PASSWORD_REQUIRED
+
 X509 Parse Key #11 (PKCS#8 encrypted SHA1-3DES DER)
 depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO
 x509parse_keyfile:"data_files/pkcs8_pbe_sha1_3des.der":"PolarSSLTest":0
@@ -126,9 +134,25 @@ X509 Parse Key #12 (PKCS#8 encrypted SHA1-2DES)
 depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509parse_keyfile:"data_files/pkcs8_pbe_sha1_2des.key":"PolarSSLTest":0
 
+X509 Parse Key #12.1 (PKCS#8 encrypted SHA1-2DES, wrong PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_2des.key":"PolarSLTest":POLARSSL_ERR_X509_PASSWORD_MISMATCH
+
+X509 Parse Key #12.2 (PKCS#8 encrypted SHA1-2DES, no PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_2des.key":"":POLARSSL_ERR_X509_PASSWORD_REQUIRED
+
 X509 Parse Key #13 (PKCS#8 encrypted SHA1-RC4-128)
 depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509parse_keyfile:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTest":0
+
+X509 Parse Key #13.1 (PKCS#8 encrypted SHA1-RC4-128, wrong PW)
+depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTe":POLARSSL_ERR_X509_PASSWORD_MISMATCH
+
+X509 Parse Key #13.2 (PKCS#8 encrypted SHA1-RC4-128, no PW)
+depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_rc4_128.key":"":POLARSSL_ERR_X509_PASSWORD_REQUIRED
 
 X509 Parse Key #14 (PKCS#8 encrypted v2 PBDFK2 3DES)
 depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO

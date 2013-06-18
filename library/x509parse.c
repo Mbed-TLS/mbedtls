@@ -61,9 +61,11 @@
 #include "polarssl/sha4.h"
 #endif
 #include "polarssl/dhm.h"
-#include "polarssl/pkcs12.h"
 #if defined(POLARSSL_PKCS5_C)
 #include "polarssl/pkcs5.h"
+#endif
+#if defined(POLARSSL_PKCS12_C)
+#include "polarssl/pkcs12.h"
 #endif
 
 #include <string.h>
@@ -2278,23 +2280,28 @@ static int x509parse_key_pkcs8_encrypted_der(
     /*
      * Decrypt EncryptedData with appropriate PDE
      */
+#if defined(POLARSSL_PKCS12_C)
     if( OID_CMP( OID_PKCS12_PBE_SHA1_DES3_EDE_CBC, &pbe_alg_oid ) )
     {
-        if( ( ret = pkcs12_pbe_sha1_des3_ede_cbc( &pbe_params,
-                                                   PKCS12_PBE_DECRYPT,
-                                                   pwd, pwdlen,
-                                                   p, len, buf ) ) != 0 )
+        if( ( ret = pkcs12_pbe( &pbe_params, PKCS12_PBE_DECRYPT,
+                                POLARSSL_CIPHER_DES_EDE3_CBC, POLARSSL_MD_SHA1,
+                                pwd, pwdlen, p, len, buf ) ) != 0 )
         {
+            if( ret == POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH )
+                return( POLARSSL_ERR_X509_PASSWORD_MISMATCH );
+
             return( ret );
         }
     }
     else if( OID_CMP( OID_PKCS12_PBE_SHA1_DES2_EDE_CBC, &pbe_alg_oid ) )
     {
-        if( ( ret = pkcs12_pbe_sha1_des2_ede_cbc( &pbe_params,
-                                                   PKCS12_PBE_DECRYPT,
-                                                   pwd, pwdlen,
-                                                   p, len, buf ) ) != 0 )
+        if( ( ret = pkcs12_pbe( &pbe_params, PKCS12_PBE_DECRYPT,
+                                POLARSSL_CIPHER_DES_EDE_CBC, POLARSSL_MD_SHA1,
+                                pwd, pwdlen, p, len, buf ) ) != 0 )
         {
+            if( ret == POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH )
+                return( POLARSSL_ERR_X509_PASSWORD_MISMATCH );
+
             return( ret );
         }
     }
@@ -2307,9 +2314,17 @@ static int x509parse_key_pkcs8_encrypted_der(
         {
             return( ret );
         }
+
+        // Best guess for password mismatch when using RC4. If first tag is
+        // not ASN1_CONSTRUCTED | ASN1_SEQUENCE
+        //
+        if( *buf != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+            return( POLARSSL_ERR_X509_PASSWORD_MISMATCH );
     }
+    else
+#endif /* POLARSSL_PKCS12_C */
 #if defined(POLARSSL_PKCS5_C)
-    else if( OID_CMP( OID_PKCS5_PBES2, &pbe_alg_oid ) )
+    if( OID_CMP( OID_PKCS5_PBES2, &pbe_alg_oid ) )
     {
         if( ( ret = pkcs5_pbes2( &pbe_params, PKCS5_DECRYPT, pwd, pwdlen,
                                   p, len, buf ) ) != 0 )
@@ -2320,8 +2335,8 @@ static int x509parse_key_pkcs8_encrypted_der(
             return( ret );
         }
     }
-#endif /* POLARSSL_PKCS5_C */
     else
+#endif /* POLARSSL_PKCS5_C */
         return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
 
     return x509parse_key_pkcs8_unencrypted_der( rsa, buf, len );

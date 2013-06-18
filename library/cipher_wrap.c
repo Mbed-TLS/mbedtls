@@ -535,8 +535,8 @@ const cipher_info_t des_ede_cbc_info = {
     POLARSSL_MODE_CBC,
     POLARSSL_KEY_LENGTH_DES_EDE,
     "DES-EDE-CBC",
-    16,
-    16,
+    8,
+    8,
     &des_ede_info
 };
 

@@ -2204,7 +2204,7 @@ static int x509parse_key_pkcs8_unencrypted_der(
 }
 
 /*
- * Parse an unencrypted PKCS#8 encoded private RSA key
+ * Parse an encrypted PKCS#8 encoded private RSA key
  */
 static int x509parse_key_pkcs8_encrypted_der(
                                     rsa_context *rsa,

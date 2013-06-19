@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Branch 1.2
+= Version 1.2.8 released 2013-06-19
 Features
    * Parsing of PKCS#8 encrypted private key files
    * PKCS#12 PBE and derivation functions

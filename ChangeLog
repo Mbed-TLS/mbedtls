@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Branch 1.1
+= Version 1.1.7 released on 2013-06-19
 Changes
    * HAVEGE random generator disabled by default
 

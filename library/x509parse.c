@@ -1349,7 +1349,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
                 buflen -= use_len;
                 buf += use_len;
             }
-            else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+            else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
             {
                 pem_free( &pem );
 
@@ -1489,7 +1489,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         len = pem.buflen;
         pem_free( &pem );
     }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
     {
         pem_free( &pem );
         return( ret );
@@ -1852,7 +1852,7 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
                            "-----END RSA PRIVATE KEY-----",
                            key, pwd, pwdlen, &len );
 
-    if( ret == POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    if( ret == POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
     {
         ret = pem_read_buffer( &pem,
                            "-----BEGIN PRIVATE KEY-----",
@@ -1867,7 +1867,7 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
          */
         keylen = pem.buflen;
     }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
     {
         pem_free( &pem );
         return( ret );
@@ -2112,7 +2112,7 @@ int x509parse_public_key( rsa_context *rsa, const unsigned char *key, size_t key
          */
         keylen = pem.buflen;
     }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
     {
         pem_free( &pem );
         return( ret );
@@ -2204,7 +2204,7 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
          */
         dhminlen = pem.buflen;
     }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_PRESENT )
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
     {
         pem_free( &pem );
         return( ret );

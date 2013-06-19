@@ -68,7 +68,7 @@
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
  * Name     ID  Nr of Errors
- * PEM      1   8
+ * PEM      1   9
  * X509     2   21
  * DHM      3   6
  * RSA      4   9

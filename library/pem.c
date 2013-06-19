@@ -1,7 +1,7 @@
 /*
  *  Privacy Enhanced Mail (PEM) decoding
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -183,7 +183,7 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
     int ret, enc;
     size_t len;
     unsigned char *buf;
-    unsigned char *s1, *s2;
+    const unsigned char *s1, *s2, *end;
 #if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
     unsigned char pem_iv[16];
     cipher_type_t enc_alg = POLARSSL_CIPHER_NONE;
@@ -193,22 +193,28 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
 #endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
 
     if( ctx == NULL )
-        return( POLARSSL_ERR_PEM_INVALID_DATA );
+        return( POLARSSL_ERR_PEM_BAD_INPUT_DATA );
 
     s1 = (unsigned char *) strstr( (char *) data, header );
 
     if( s1 == NULL )
-        return( POLARSSL_ERR_PEM_NO_HEADER_PRESENT );
+        return( POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT );
 
     s2 = (unsigned char *) strstr( (char *) data, footer );
 
     if( s2 == NULL || s2 <= s1 )
-        return( POLARSSL_ERR_PEM_INVALID_DATA );
+        return( POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT );
 
     s1 += strlen( header );
     if( *s1 == '\r' ) s1++;
     if( *s1 == '\n' ) s1++;
-    else return( POLARSSL_ERR_PEM_INVALID_DATA );
+    else return( POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT );
+
+    end = s2;
+    end += strlen( footer );
+    if( *end == '\r' ) end++;
+    if( *end == '\n' ) end++;
+    *use_len = end - data;
 
     enc = 0;
 
@@ -330,10 +336,6 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
 
     ctx->buf = buf;
     ctx->buflen = len;
-    s2 += strlen( footer );
-    if( *s2 == '\r' ) s2++;
-    if( *s2 == '\n' ) s2++;
-    *use_len = s2 - data;
 
     return( 0 );
 }

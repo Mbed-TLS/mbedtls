@@ -330,6 +330,7 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
             return( POLARSSL_ERR_PEM_PASSWORD_MISMATCH );
         }
 #else
+        free( buf );
         return( POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE );
 #endif
     }

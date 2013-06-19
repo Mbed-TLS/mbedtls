@@ -4,6 +4,9 @@ PolarSSL ChangeLog
 Changes
    * HAVEGE random generator disabled by default
 
+Bugfix
+   * x509parse_crt() now better handles PEM error situations
+
 = Version 1.1.6 released on 2013-03-11
 Bugfix
    * Fixed net_bind() for specified IP addresses on little endian systems

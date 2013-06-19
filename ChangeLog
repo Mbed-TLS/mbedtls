@@ -31,6 +31,10 @@ Bugfix
    * Fixed bignum.c and bn_mul.h to support Thumb2 and LLVM compiler
    * Fixed values for 2-key Triple DES in cipher layer
 
+Security
+   * A possible DoS during the SSL Handshake, due to faulty parsing of
+     PEM-encoded certificates has been fixed (found by Jack Lloyd)
+
 = Version 1.2.7 released 2013-04-13
 Features
    * Ability to specify allowed ciphersuites based on the protocol version.

@@ -11,6 +11,10 @@ Bugfix
 	 certificates
    * Fixed values for 2-key Triple DES in cipher layer
 
+Security
+   * A possible DoS during the SSL Handshake, due to faulty parsing of
+     PEM-encoded certificates has been fixed (found by Jack Lloyd)
+
 = Version 1.1.6 released on 2013-03-11
 Bugfix
    * Fixed net_bind() for specified IP addresses on little endian systems

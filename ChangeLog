@@ -6,6 +6,9 @@ Changes
 
 Bugfix
    * x509parse_crt() now better handles PEM error situations
+   * ssl_parse_certificate() now calls x509parse_crt_der() directly
+     instead of the x509parse_crt() wrapper that can also parse PEM
+	 certificates
 
 = Version 1.1.6 released on 2013-03-11
 Bugfix

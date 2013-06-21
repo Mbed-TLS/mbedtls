@@ -30,6 +30,7 @@ Bugfix
    * x509parse_crtpath() is now reentrant and uses more portable stat()
    * Fixed bignum.c and bn_mul.h to support Thumb2 and LLVM compiler
    * Fixed values for 2-key Triple DES in cipher layer
+   * ssl_write_certificate_request() can handle empty ca_chain
 
 Security
    * A possible DoS during the SSL Handshake, due to faulty parsing of

@@ -505,7 +505,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     p += 2;
     crt = ssl->ca_chain;
 
-    while( crt != NULL )
+    while( crt != NULL && crt->version != 0)
     {
         if( p - buf > 4096 )
             break;

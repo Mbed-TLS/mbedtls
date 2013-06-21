@@ -10,6 +10,7 @@ Bugfix
      instead of the x509parse_crt() wrapper that can also parse PEM
 	 certificates
    * Fixed values for 2-key Triple DES in cipher layer
+   * ssl_write_certificate_request() can handle empty ca_chain
 
 Security
    * A possible DoS during the SSL Handshake, due to faulty parsing of

@@ -548,7 +548,7 @@
 
 #if defined(__arm__)
 
-#if defined(__thumb__)
+#if defined(__thumb__) && !defined(__thumb2__)
 
 #define MULADDC_INIT                            \
     asm(                                        \

@@ -3,7 +3,7 @@
  *
  * \brief  Multi-precision integer library
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -65,6 +65,7 @@ typedef UINT64 uint64_t;
  */
 #define POLARSSL_MPI_MAX_LIMBS                             10000
 
+#if !defined(POLARSSL_CONFIG_OPTIONS)
 /*
  * Maximum window size used for modular exponentiation. Default: 6
  * Minimum value: 1. Maximum value: 6.
@@ -84,6 +85,9 @@ typedef UINT64 uint64_t;
  * of limbs required (POLARSSL_MPI_MAX_LIMBS) is higher.
  */
 #define POLARSSL_MPI_MAX_SIZE                              512      /**< Maximum number of bytes for usable MPIs. */
+
+#endif /* !POLARSSL_CONFIG_OPTIONS */
+
 #define POLARSSL_MPI_MAX_BITS                              ( 8 * POLARSSL_MPI_MAX_SIZE )    /**< Maximum number of bits for usable MPIs. */
 
 /*

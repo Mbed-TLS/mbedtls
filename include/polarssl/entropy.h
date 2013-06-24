@@ -3,7 +3,7 @@
  *
  * \brief Entropy accumulator implementation
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -40,8 +40,11 @@
 #define POLARSSL_ERR_ENTROPY_MAX_SOURCES                   -0x003E  /**< No more sources can be added. */
 #define POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED            -0x0040  /**< No sources have been added to poll. */
 
+#if !defined(POLARSSL_CONFIG_OPTIONS)
 #define ENTROPY_MAX_SOURCES     20      /**< Maximum number of sources supported */
 #define ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */
+#endif /* !POLARSSL_CONFIG_OPTIONS  */
+
 #define ENTROPY_BLOCK_SIZE      64      /**< Block size of entropy accumulator (SHA-512) */
 
 #define ENTROPY_SOURCE_MANUAL   ENTROPY_MAX_SOURCES

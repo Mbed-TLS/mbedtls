@@ -3,7 +3,7 @@
  *
  * \brief Configuration options (set of defines)
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -1161,6 +1161,59 @@
  * Caller:
  */
 #define POLARSSL_XTEA_C
+
+/* \} name */
+
+/**
+ * \name SECTION: Module configuration options
+ *
+ * This section allows for the setting of module specific sizes and
+ * configuration options. The default values are already present in the
+ * relevant header files and should suffice for the regular use cases.
+ * Our advice is to enable POLARSSL_CONFIG_OPTIONS and change values here
+ * only if you have a good reason and know the consequences.
+ *
+ * If POLARSSL_CONFIG_OPTIONS is undefined here the options in the module
+ * header file take precedence.
+ *
+ * Please check the respective header file for documentation on these
+ * parameters (to prevent duplicate documentation).
+ *
+ * Uncomment POLARSSL_CONFIG_OPTIONS to enable using the values defined here.
+ * \{
+ */
+//#define POLARSSL_CONFIG_OPTIONS   /**< Enable config.h module value configuration */
+
+#if defined(POLARSSL_CONFIG_OPTIONS)
+
+// MPI / BIGNUM options
+//
+#define POLARSSL_MPI_WINDOW_SIZE            6 /**< Maximum windows size used. */
+#define POLARSSL_MPI_MAX_SIZE             512 /**< Maximum number of bytes for usable MPIs. */
+
+// CTR_DRBG options
+//
+#define CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default */
+#define CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
+#define CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
+#define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
+#define CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
+
+// Entropy options
+//
+#define ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
+#define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
+
+// SSL Cache options
+//
+#define SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
+#define SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
+
+// SSL options
+//
+#define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
+
+#endif /* POLARSSL_CONFIG_OPTIONS */
 
 /* \} name */
 

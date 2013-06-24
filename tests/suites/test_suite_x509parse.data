@@ -114,6 +114,22 @@ X509 Parse Key #9 (PKCS#8 wrapped)
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509parse_keyfile:"data_files/format_gen.key":"":0
 
+X509 Parse Key #10 (PKCS#8 encrypted SHA1-3DES)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_3des.key":"PolarSSLTest":0
+
+X509 Parse Key #11 (PKCS#8 encrypted SHA1-3DES DER)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_3des.der":"PolarSSLTest":0
+
+X509 Parse Key #12 (PKCS#8 encrypted SHA1-2DES)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_2des.key":"PolarSSLTest":0
+
+X509 Parse Key #13 (PKCS#8 encrypted SHA1-RC4-128)
+depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509parse_keyfile:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTest":0
+
 X509 Parse Public Key #1 (PKCS#8 wrapped)
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509parse_public_keyfile:"data_files/format_gen.pub":0

@@ -35,6 +35,7 @@ set(src
      pbkdf2.c
      pem.c
      pkcs11.c
+     pkcs12.c
      rsa.c
      sha1.c
      sha2.c

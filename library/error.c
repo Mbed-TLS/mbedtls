@@ -113,6 +113,10 @@
 #include "polarssl/pem.h"
 #endif
 
+#if defined(POLARSSL_PKCS12_C)
+#include "polarssl/pkcs12.h"
+#endif
+
 #if defined(POLARSSL_RSA_C)
 #include "polarssl/rsa.h"
 #endif
@@ -232,6 +236,15 @@ void error_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_PEM_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "PEM - Bad input parameters to function" );
 #endif /* POLARSSL_PEM_C */
+
+#if defined(POLARSSL_PKCS12_C)
+        if( use_ret == -(POLARSSL_ERR_PKCS12_BAD_INPUT_DATA) )
+            snprintf( buf, buflen, "PKCS12 - Bad input parameters to function" );
+        if( use_ret == -(POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE) )
+            snprintf( buf, buflen, "PKCS12 - Feature not available, e.g. unsupported encryption scheme" );
+        if( use_ret == -(POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT) )
+            snprintf( buf, buflen, "PKCS12 - PBE ASN.1 data not as expected" );
+#endif /* POLARSSL_PKCS12_C */
 
 #if defined(POLARSSL_RSA_C)
         if( use_ret == -(POLARSSL_ERR_RSA_BAD_INPUT_DATA) )

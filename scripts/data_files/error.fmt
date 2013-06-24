@@ -27,6 +27,8 @@
 
 #if defined(POLARSSL_ERROR_C)
 
+#include "polarssl/error.h"
+
 HEADER_INCLUDED
 
 #include <string.h>

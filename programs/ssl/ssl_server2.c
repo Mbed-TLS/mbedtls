@@ -76,12 +76,12 @@ struct options
 {
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
-    char *ca_file;              /* the file with the CA certificate(s)      */
-    char *ca_path;              /* the path with the CA certificate(s) reside */
-    char *crt_file;             /* the file with the client certificate     */
-    char *key_file;             /* the file with the client key             */
-    char *psk;                  /* the pre-shared key                       */
-    char *psk_identity;         /* the pre-shared key identity              */
+    const char *ca_file;        /* the file with the CA certificate(s)      */
+    const char *ca_path;        /* the path with the CA certificate(s) reside */
+    const char *crt_file;       /* the file with the client certificate     */
+    const char *key_file;       /* the file with the client key             */
+    const char *psk;            /* the pre-shared key                       */
+    const char *psk_identity;   /* the pre-shared key identity              */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
@@ -168,7 +168,7 @@ int main( int argc, char *argv[] )
     unsigned char psk[256];
     size_t psk_len = 0;
 #endif
-    char *pers = "ssl_server2";
+    const char *pers = "ssl_server2";
 
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
@@ -376,7 +376,8 @@ int main( int argc, char *argv[] )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned -0x%x\n", -ret );
         goto exit;
@@ -399,7 +400,7 @@ int main( int argc, char *argv[] )
     else 
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
+        ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
                 strlen( test_ca_crt ) );
 #else
     {
@@ -427,7 +428,7 @@ int main( int argc, char *argv[] )
     else 
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &srvcert, (unsigned char *) test_srv_crt,
+        ret = x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
                 strlen( test_srv_crt ) );
 #else
     {
@@ -447,7 +448,7 @@ int main( int argc, char *argv[] )
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_key( &rsa, (unsigned char *) test_srv_key,
+        ret = x509parse_key( &rsa, (const unsigned char *) test_srv_key,
                 strlen( test_srv_key ), NULL, 0 );
 #else
     {

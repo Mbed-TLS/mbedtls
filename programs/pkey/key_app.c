@@ -53,9 +53,9 @@
 struct options
 {
     int mode;                   /* the mode to run the application in   */
-    char *filename;             /* filename of the key file             */
-    char *password;             /* password for the private key         */
-    char *password_file;        /* password_file for the private key    */
+    const char *filename;       /* filename of the key file             */
+    const char *password;       /* password for the private key         */
+    const char *password_file;  /* password_file for the private key    */
     int debug_level;            /* level of debugging                   */
 } opt;
 

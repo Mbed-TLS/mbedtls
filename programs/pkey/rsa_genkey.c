@@ -62,7 +62,7 @@ int main( int argc, char *argv[] )
     ctr_drbg_context ctr_drbg;
     FILE *fpub  = NULL;
     FILE *fpriv = NULL;
-    char *pers = "rsa_genkey";
+    const char *pers = "rsa_genkey";
 
     ((void) argc);
     ((void) argv);
@@ -72,7 +72,8 @@ int main( int argc, char *argv[] )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;

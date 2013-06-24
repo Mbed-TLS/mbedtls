@@ -62,7 +62,7 @@ int main( int argc, char *argv[] )
     mpi G, P, Q;
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
-    char *pers = "dh_genprime";
+    const char *pers = "dh_genprime";
     FILE *fout;
 
     ((void) argc);
@@ -83,7 +83,8 @@ int main( int argc, char *argv[] )
 
     entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (unsigned char *) pers, strlen( pers ) ) ) != 0 )
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
     {
         printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;

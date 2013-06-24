@@ -72,10 +72,10 @@ int main( int argc, char *argv[] )
 struct options
 {
     int mode;                   /* the mode to run the application in   */
-    char *filename;             /* filename of the key file             */
+    const char *filename;       /* filename of the key file             */
     int debug_level;            /* level of debugging                   */
     int output_mode;            /* the output mode to use               */
-    char *output_file;          /* where to store the constructed key file  */
+    const char *output_file;    /* where to store the constructed key file  */
 } opt;
 
 void my_debug( void *ctx, int level, const char *str )
@@ -87,7 +87,7 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-void write_public_key( rsa_context *rsa, char *output_file )
+void write_public_key( rsa_context *rsa, const char *output_file )
 {
     FILE *f;
     unsigned char output_buf[16000];
@@ -124,7 +124,7 @@ void write_public_key( rsa_context *rsa, char *output_file )
     fclose(f);
 }
 
-void write_private_key( rsa_context *rsa, char *output_file )
+void write_private_key( rsa_context *rsa, const char *output_file )
 {
     FILE *f;
     unsigned char output_buf[16000];

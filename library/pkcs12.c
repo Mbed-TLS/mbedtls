@@ -155,8 +155,8 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
         return( ret );
 
     return( 0 );
-}
 #endif /* POLARSSL_ARC4_C */
+}
 
 int pkcs12_pbe_sha1_des2_ede_cbc( asn1_buf *pbe_params, int mode,
                                   const unsigned char *pwd,  size_t pwdlen,
@@ -196,8 +196,8 @@ int pkcs12_pbe_sha1_des2_ede_cbc( asn1_buf *pbe_params, int mode,
     }
 
     return( 0 );
-}
 #endif /* POLARSSL_DES_C */
+}
 
 int pkcs12_pbe_sha1_des3_ede_cbc( asn1_buf *pbe_params, int mode,
                                   const unsigned char *pwd,  size_t pwdlen,
@@ -237,8 +237,8 @@ int pkcs12_pbe_sha1_des3_ede_cbc( asn1_buf *pbe_params, int mode,
     }
 
     return( 0 );
-}
 #endif /* POLARSSL_DES_C */
+}
 
 static void pkcs12_fill_buffer( unsigned char *data, size_t data_len,
                                 const unsigned char *filler, size_t fill_len )

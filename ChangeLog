@@ -169,6 +169,38 @@ Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
      Vanderbeken)
 
+= Version 1.1.7 released on 2013-06-19
+Changes
+   * HAVEGE random generator disabled by default
+
+Bugfix
+   * x509parse_crt() now better handles PEM error situations
+   * ssl_parse_certificate() now calls x509parse_crt_der() directly
+     instead of the x509parse_crt() wrapper that can also parse PEM
+	 certificates
+   * Fixed values for 2-key Triple DES in cipher layer
+   * ssl_write_certificate_request() can handle empty ca_chain
+
+Security
+   * A possible DoS during the SSL Handshake, due to faulty parsing of
+     PEM-encoded certificates has been fixed (found by Jack Lloyd)
+
+= Version 1.1.6 released on 2013-03-11
+Bugfix
+   * Fixed net_bind() for specified IP addresses on little endian systems
+
+Changes
+   * Allow enabling of dummy error_strerror() to support some use-cases
+   * Debug messages about padding errors during SSL message decryption are
+     disabled by default and can be enabled with POLARSSL_SSL_DEBUG_ALL
+
+Security
+   * Removed timing differences during SSL message decryption in
+     ssl_decrypt_buf()
+   * Removed timing differences due to bad padding from
+     rsa_rsaes_pkcs1_v15_decrypt() and rsa_pkcs1_decrypt() for PKCS#1 v1.5
+     operations
+
 = Version 1.1.5 released on 2013-01-16
 Bugfix
    * Fixed MPI assembly for SPARC64 platform

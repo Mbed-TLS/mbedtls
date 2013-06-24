@@ -774,14 +774,23 @@
  *
  * Enable the HAVEGE random generator.
  *
+ * Warning: the HAVEGE random generator is not suitable for virtualized
+ *          environments
+ *
+ * Warning: the HAVEGE random generator is dependent on timing and specific
+ *          processor traits. It is therefore not advised to use HAVEGE as
+ *          your applications primary random generator or primary entropy pool
+ *          input. As a secondary input to your entropy pool, it IS able add
+ *          the (limited) extra entropy it provides.
+ *
  * Module:  library/havege.c
  * Caller:
  *
  * Requires: POLARSSL_TIMING_C
  *
- * This module enables the HAVEGE random number generator.
- */
+ * Uncomment to enable the HAVEGE random generator.
 #define POLARSSL_HAVEGE_C
+ */
 
 /**
  * \def POLARSSL_MD_C

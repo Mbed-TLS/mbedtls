@@ -80,7 +80,7 @@ x509_crl_info:"data_files/crl_sha512.pem":"CRL version   \: 1\nissuer name   \: 
 
 X509 Parse Key #1 (No password when required)
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
-x509parse_keyfile:"data_files/test-ca.key":NULL:POLARSSL_ERR_PEM_PASSWORD_REQUIRED
+x509parse_keyfile:"data_files/test-ca.key":NULL:POLARSSL_ERR_X509_PASSWORD_REQUIRED
 
 X509 Parse Key #2 (Correct password)
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
@@ -88,7 +88,7 @@ x509parse_keyfile:"data_files/test-ca.key":"PolarSSLTest":0
 
 X509 Parse Key #3 (Wrong password)
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
-x509parse_keyfile:"data_files/test-ca.key":"PolarSSLWRONG":POLARSSL_ERR_PEM_PASSWORD_MISMATCH
+x509parse_keyfile:"data_files/test-ca.key":"PolarSSLWRONG":POLARSSL_ERR_X509_PASSWORD_MISMATCH
 
 X509 Parse Key #4 (DES Encrypted)
 depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO

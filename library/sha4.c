@@ -242,8 +242,7 @@ void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
 
     if( left && ilen >= fill )
     {
-        memcpy( (void *) (ctx->buffer + left),
-                (void *) input, fill );
+        memcpy( (void *) (ctx->buffer + left), input, fill );
         sha4_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
@@ -258,10 +257,7 @@ void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
     }
 
     if( ilen > 0 )
-    {
-        memcpy( (void *) (ctx->buffer + left),
-                (void *) input, ilen );
-    }
+        memcpy( (void *) (ctx->buffer + left), input, ilen );
 }
 
 static const unsigned char sha4_padding[128] =
@@ -295,7 +291,7 @@ void sha4_finish( sha4_context *ctx, unsigned char output[64] )
     last = (size_t)( ctx->total[0] & 0x7F );
     padn = ( last < 112 ) ? ( 112 - last ) : ( 240 - last );
 
-    sha4_update( ctx, (unsigned char *) sha4_padding, padn );
+    sha4_update( ctx, sha4_padding, padn );
     sha4_update( ctx, msglen, 16 );
 
     PUT_UINT64_BE( ctx->state[0], output,  0 );

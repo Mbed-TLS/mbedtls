@@ -27,6 +27,8 @@
 
 #if defined(POLARSSL_ERROR_C)
 
+#include "polarssl/error.h"
+
 #if defined(POLARSSL_AES_C)
 #include "polarssl/aes.h"
 #endif

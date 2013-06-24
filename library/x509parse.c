@@ -1400,7 +1400,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
      * one or more PEM certificates.
      */
 #if defined(POLARSSL_PEM_C)
-    if( strstr( (char *) buf, "-----BEGIN CERTIFICATE-----" ) != NULL )
+    if( strstr( (const char *) buf, "-----BEGIN CERTIFICATE-----" ) != NULL )
         buf_format = X509_FORMAT_PEM;
 #endif
 
@@ -3402,7 +3402,7 @@ int x509_self_test( int verbose )
 
     memset( &clicert, 0, sizeof( x509_cert ) );
 
-    ret = x509parse_crt( &clicert, (unsigned char *) test_cli_crt,
+    ret = x509parse_crt( &clicert, (const unsigned char *) test_cli_crt,
                          strlen( test_cli_crt ) );
     if( ret != 0 )
     {
@@ -3414,7 +3414,7 @@ int x509_self_test( int verbose )
 
     memset( &cacert, 0, sizeof( x509_cert ) );
 
-    ret = x509parse_crt( &cacert, (unsigned char *) test_ca_crt,
+    ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
                          strlen( test_ca_crt ) );
     if( ret != 0 )
     {
@@ -3433,8 +3433,8 @@ int x509_self_test( int verbose )
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
     if( ( ret = x509parse_key( &rsa,
-                    (unsigned char *) test_ca_key, i,
-                    (unsigned char *) test_ca_pwd, j ) ) != 0 )
+                    (const unsigned char *) test_ca_key, i,
+                    (const unsigned char *) test_ca_pwd, j ) ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );
@@ -3462,7 +3462,7 @@ int x509_self_test( int verbose )
     i = strlen( test_dhm_params );
     j = strlen( test_ca_pwd );
 
-    if( ( ret = x509parse_dhm( &dhm, (unsigned char *) test_dhm_params, i ) ) != 0 )
+    if( ( ret = x509parse_dhm( &dhm, (const unsigned char *) test_dhm_params, i ) ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );

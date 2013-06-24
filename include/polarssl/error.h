@@ -27,6 +27,8 @@
 #ifndef POLARSSL_ERROR_H
 #define POLARSSL_ERROR_H
 
+#include <string.h>
+
 /**
  * Error code layout.
  *

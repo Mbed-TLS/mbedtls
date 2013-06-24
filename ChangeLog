@@ -21,6 +21,54 @@ Bugfix
    * Fix for MPI assembly for ARM
    * Fixed parse error in ssl_parse_certificate_request()
 
+= Version 1.2.8 released 2013-06-19
+Features
+   * Parsing of PKCS#8 encrypted private key files
+   * PKCS#12 PBE and derivation functions
+   * Centralized module option values in config.h to allow user-defined
+     settings without editing header files by using POLARSSL_CONFIG_OPTIONS
+
+Changes
+   * HAVEGE random generator disabled by default
+   * Internally split up x509parse_key() into a (PEM) handler function
+     and specific DER parser functions for the PKCS#1 and unencrypted
+     PKCS#8 private key formats
+   * Added mechanism to provide alternative implementations for all
+     symmetric cipher and hash algorithms (e.g. POLARSSL_AES_ALT in
+	 config.h)
+   * PKCS#5 module added. Moved PBKDF2 functionality inside and deprecated
+     old PBKDF2 module
+
+Bugfix
+   * Secure renegotiation extension should only be sent in case client
+     supports secure renegotiation
+   * Fixed offset for cert_type list in ssl_parse_certificate_request()
+   * Fixed const correctness issues that have no impact on the ABI
+   * x509parse_crt() now better handles PEM error situations
+   * ssl_parse_certificate() now calls x509parse_crt_der() directly
+     instead of the x509parse_crt() wrapper that can also parse PEM
+	 certificates
+   * x509parse_crtpath() is now reentrant and uses more portable stat()
+   * Fixed bignum.c and bn_mul.h to support Thumb2 and LLVM compiler
+   * Fixed values for 2-key Triple DES in cipher layer
+   * ssl_write_certificate_request() can handle empty ca_chain
+
+Security
+   * A possible DoS during the SSL Handshake, due to faulty parsing of
+     PEM-encoded certificates has been fixed (found by Jack Lloyd)
+
+= Version 1.2.7 released 2013-04-13
+Features
+   * Ability to specify allowed ciphersuites based on the protocol version.
+
+Changes
+   * Default Blowfish keysize is now 128-bits
+   * Test suites made smaller to accommodate Raspberry Pi
+
+Bugfix
+   * Fix for MPI assembly for ARM
+   * GCM adapted to support sizes > 2^29
+
 = Version 1.2.6 released 2013-03-11
 Bugfix
    * Fixed memory leak in ssl_free() and ssl_reset() for active session

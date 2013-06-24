@@ -3,7 +3,7 @@
  *
  * \brief XTEA block cipher (32-bit)
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,8 @@
 #ifndef POLARSSL_XTEA_H
 #define POLARSSL_XTEA_H
 
+#include "config.h"
+
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -40,6 +42,10 @@ typedef UINT32 uint32_t;
 #define XTEA_DECRYPT     0
 
 #define POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH             -0x0028  /**< The data input has an invalid length. */
+
+#if !defined(POLARSSL_XTEA_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          XTEA context structure
@@ -96,6 +102,18 @@ int xtea_crypt_cbc( xtea_context *ctx,
                     unsigned char iv[8],
                     unsigned char *input,
                     unsigned char *output);
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* POLARSSL_XTEA_ALT */
+#include "xtea_alt.h"
+#endif /* POLARSSL_XTEA_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Checkup routine

@@ -1,7 +1,7 @@
 /*
  *  An 32-bit implementation of the XTEA algorithm
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -28,6 +28,8 @@
 #if defined(POLARSSL_XTEA_C)
 
 #include "polarssl/xtea.h"
+
+#if !defined(POLARSSL_XTEA_ALT)
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -160,6 +162,7 @@ int xtea_crypt_cbc( xtea_context *ctx,
 
     return( 0 );
 }
+#endif /* !POLARSSL_XTEA_ALT */
 
 #if defined(POLARSSL_SELF_TEST)
 

@@ -1,7 +1,7 @@
 /*
  *  FIPS-180-2 compliant SHA-384/512 implementation
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -37,6 +37,8 @@
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
 #endif
+
+#if !defined(POLARSSL_SHA4_ALT)
 
 /*
  * 64-bit integer manipulation macros (big endian)
@@ -307,6 +309,8 @@ void sha4_finish( sha4_context *ctx, unsigned char output[64] )
         PUT_UINT64_BE( ctx->state[7], output, 56 );
     }
 }
+
+#endif /* !POLARSSL_SHA4_ALT */
 
 /*
  * output = SHA-512( input buffer )

@@ -3,7 +3,7 @@
  *
  * \brief The ARCFOUR stream cipher
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,7 +27,13 @@
 #ifndef POLARSSL_ARC4_H
 #define POLARSSL_ARC4_H
 
+#include "config.h"
+
 #include <string.h>
+
+#if !defined(POLARSSL_ARC4_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          ARC4 context structure
@@ -65,6 +71,18 @@ void arc4_setup( arc4_context *ctx, const unsigned char *key, unsigned int keyle
  */
 int arc4_crypt( arc4_context *ctx, size_t length, const unsigned char *input,
                 unsigned char *output );
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* POLARSSL_ARC4_ALT */
+#include "arc4_alt.h"
+#endif /* POLARSSL_ARC4_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Checkup routine

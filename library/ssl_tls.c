@@ -2290,11 +2290,15 @@ static void ssl_calc_finished_ssl(
      *         SHA1( handshake + sender + master + pad1 ) )
      */
 
+#if !defined(POLARSSL_MD5_ALT)
     SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
                     md5.state, sizeof(  md5.state ) );
+#endif
 
+#if !defined(POLARSSL_SHA1_ALT)
     SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
                    sha1.state, sizeof( sha1.state ) );
+#endif
 
     sender = ( from == SSL_IS_CLIENT ) ? "CLNT"
                                        : "SRVR";
@@ -2361,11 +2365,15 @@ static void ssl_calc_finished_tls(
      *               MD5( handshake ) + SHA1( handshake ) )[0..11]
      */
 
+#if !defined(POLARSSL_MD5_ALT)
     SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
                     md5.state, sizeof(  md5.state ) );
+#endif
 
+#if !defined(POLARSSL_SHA1_ALT)
     SSL_DEBUG_BUF( 4, "finished sha1 state", (unsigned char *)
                    sha1.state, sizeof( sha1.state ) );
+#endif
 
     sender = ( from == SSL_IS_CLIENT )
              ? "client finished"
@@ -2409,8 +2417,10 @@ static void ssl_calc_finished_tls_sha256(
      *               Hash( handshake ) )[0.11]
      */
 
+#if !defined(POLARSSL_SHA2_ALT)
     SSL_DEBUG_BUF( 4, "finished sha2 state", (unsigned char *)
                    sha2.state, sizeof( sha2.state ) );
+#endif
 
     sender = ( from == SSL_IS_CLIENT )
              ? "client finished"
@@ -2453,8 +2463,10 @@ static void ssl_calc_finished_tls_sha384(
      *               Hash( handshake ) )[0.11]
      */
 
+#if !defined(POLARSSL_SHA4_ALT)
     SSL_DEBUG_BUF( 4, "finished sha4 state", (unsigned char *)
                    sha4.state, sizeof( sha4.state ) );
+#endif
 
     sender = ( from == SSL_IS_CLIENT )
              ? "client finished"

@@ -3,7 +3,7 @@
  *
  * \brief MD4 message digest algorithm (hash function)
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,8 @@
 #ifndef POLARSSL_MD4_H
 #define POLARSSL_MD4_H
 
+#include "config.h"
+
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -37,6 +39,10 @@ typedef UINT32 uint32_t;
 #endif
 
 #define POLARSSL_ERR_MD4_FILE_IO_ERROR                 -0x0072  /**< Read/write error in file. */
+
+#if !defined(POLARSSL_MD4_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          MD4 context structure
@@ -79,6 +85,18 @@ void md4_update( md4_context *ctx, const unsigned char *input, size_t ilen );
  * \param output   MD4 checksum result
  */
 void md4_finish( md4_context *ctx, unsigned char output[16] );
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* POLARSSL_MD4_ALT */
+#include "md4_alt.h"
+#endif /* POLARSSL_MD4_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Output = MD4( input buffer )

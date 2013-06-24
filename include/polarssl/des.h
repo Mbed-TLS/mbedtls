@@ -3,7 +3,7 @@
  *
  * \brief DES block cipher
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,8 @@
 #ifndef POLARSSL_DES_H
 #define POLARSSL_DES_H
 
+#include "config.h"
+
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -42,6 +44,10 @@ typedef UINT32 uint32_t;
 #define POLARSSL_ERR_DES_INVALID_INPUT_LENGTH              -0x0032  /**< The data input has an invalid length. */
 
 #define DES_KEY_SIZE    8
+
+#if !defined(POLARSSL_DES_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          DES context structure
@@ -219,6 +225,18 @@ int des3_crypt_cbc( des3_context *ctx,
                      unsigned char iv[8],
                      const unsigned char *input,
                      unsigned char *output );
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* POLARSSL_DES_ALT */
+#include "des_alt.h"
+#endif /* POLARSSL_DES_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Checkup routine

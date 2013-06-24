@@ -105,6 +105,35 @@
  */
 
 /**
+ * \def POLARSSL_XXX_ALT
+ *
+ * Uncomment a macro to let PolarSSL use your alternate core implementation of
+ * a symmetric or hash algorithm (e.g. platform specific assembly optimized
+ * implementations). Keep in mind that the function prototypes should remain
+ * the same.
+ *
+ * Example: In case you uncomment POLARSSL_AES_ALT, PolarSSL will no longer
+ * provide the "struct aes_context" definition and omit the base function
+ * declarations and implementations. "aes_alt.h" will be included from
+ * "aes.h" to include the new function definitions.
+ *
+ * Uncomment a macro to enable alternate implementation for core algorithm
+ * functions
+#define POLARSSL_AES_ALT
+#define POLARSSL_ARC4_ALT
+#define POLARSSL_BLOWFISH_ALT
+#define POLARSSL_CAMELLIA_ALT
+#define POLARSSL_DES_ALT
+#define POLARSSL_XTEA_ALT
+#define POLARSSL_MD2_ALT
+#define POLARSSL_MD4_ALT
+#define POLARSSL_MD5_ALT
+#define POLARSSL_SHA1_ALT
+#define POLARSSL_SHA2_ALT
+#define POLARSSL_SHA4_ALT
+ */
+
+/**
  * \def POLARSSL_AES_ROM_TABLES
  *
  * Store the AES tables in ROM.

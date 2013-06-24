@@ -1107,7 +1107,8 @@ static int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
 /*
  * Parse and fill a single X.509 certificate in DER format
  */
-int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
+int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
+                            size_t buflen )
 {
     int ret;
     size_t len;
@@ -1152,7 +1153,7 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
     crt_end = p + len;
-    
+
     /*
      * TBSCertificate  ::=  SEQUENCE  {
      */
@@ -1359,15 +1360,13 @@ int x509parse_crt_der( x509_cert *crt, const unsigned char *buf, size_t buflen )
 }
 
 /*
- * Parse one or more PEM certificates from a buffer and add them to the chained list
+ * Parse one X.509 certificate in DER format from a buffer and add them to a
+ * chained list
  */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
+int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen )
 {
-    int ret, success = 0, first_error = 0, total_failed = 0;
-    x509_cert *crt, *prev = NULL;
-    int buf_format = X509_FORMAT_DER;
-
-    crt = chain;
+    int ret;
+    x509_cert *crt = chain, *prev = NULL;
 
     /*
      * Check for valid input
@@ -1396,6 +1395,34 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
         memset( crt, 0, sizeof( x509_cert ) );
     }
 
+    if( ( ret = x509parse_crt_der_core( crt, buf, buflen ) ) != 0 )
+    {
+        if( prev )
+            prev->next = NULL;
+
+        if( crt != chain )
+            free( crt );
+
+        return( ret );
+    }
+
+    return( 0 );
+}
+
+/*
+ * Parse one or more PEM certificates from a buffer and add them to the chained list
+ */
+int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
+{
+    int ret, success = 0, first_error = 0, total_failed = 0;
+    int buf_format = X509_FORMAT_DER;
+
+    /*
+     * Check for valid input
+     */
+    if( chain == NULL || buf == NULL )
+        return( POLARSSL_ERR_X509_INVALID_INPUT );
+
     /*
      * Determine buffer content. Buffer contains either one DER certificate or
      * one or more PEM certificates.
@@ -1406,8 +1433,8 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 #endif
 
     if( buf_format == X509_FORMAT_DER )
-        return x509parse_crt_der( crt, buf, buflen );
-    
+        return x509parse_crt_der( chain, buf, buflen );
+
 #if defined(POLARSSL_PEM_C)
     if( buf_format == X509_FORMAT_PEM )
     {
@@ -1453,60 +1480,29 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
             else
                 break;
 
-            ret = x509parse_crt_der( crt, pem.buf, pem.buflen );
+            ret = x509parse_crt_der( chain, pem.buf, pem.buflen );
 
             pem_free( &pem );
 
             if( ret != 0 )
             {
                 /*
-                 * quit parsing on a memory error
+                 * Quit parsing on a memory error
                  */
                 if( ret == POLARSSL_ERR_X509_MALLOC_FAILED )
-                {
-                    if( prev )
-                        prev->next = NULL;
-
-                    if( crt != chain )
-                        free( crt );
-
                     return( ret );
-                }
 
                 if( first_error == 0 )
                     first_error = ret;
-                
-                total_failed++;
 
-                memset( crt, 0, sizeof( x509_cert ) );
+                total_failed++;
                 continue;
             }
 
             success = 1;
-
-            /*
-             * Add new certificate to the list
-             */
-            crt->next = (x509_cert *) malloc( sizeof( x509_cert ) );
-
-            if( crt->next == NULL )
-                return( POLARSSL_ERR_X509_MALLOC_FAILED );
-
-            prev = crt;
-            crt = crt->next;
-            memset( crt, 0, sizeof( x509_cert ) );
         }
     }
 #endif
-
-    if( crt->version == 0 )
-    {
-        if( prev )
-            prev->next = NULL;
-
-        if( crt != chain )
-            free( crt );
-    }
 
     if( success )
         return( total_failed );

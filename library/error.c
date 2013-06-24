@@ -117,6 +117,10 @@
 #include "polarssl/pkcs12.h"
 #endif
 
+#if defined(POLARSSL_PKCS5_C)
+#include "polarssl/pkcs5.h"
+#endif
+
 #if defined(POLARSSL_RSA_C)
 #include "polarssl/rsa.h"
 #endif
@@ -565,6 +569,11 @@ void error_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_PBKDF2_BAD_INPUT_DATA) )
         snprintf( buf, buflen, "PBKDF2 - Bad input parameters to function" );
 #endif /* POLARSSL_PBKDF2_C */
+
+#if defined(POLARSSL_PKCS5_C)
+    if( use_ret == -(POLARSSL_ERR_PKCS5_BAD_INPUT_DATA) )
+        snprintf( buf, buflen, "PKCS5 - Bad input parameters to function" );
+#endif /* POLARSSL_PKCS5_C */
 
 #if defined(POLARSSL_SHA1_C)
     if( use_ret == -(POLARSSL_ERR_SHA1_FILE_IO_ERROR) )

@@ -34,6 +34,7 @@ set(src
      padlock.c
      pbkdf2.c
      pem.c
+     pkcs5.c
      pkcs11.c
      pkcs12.c
      rsa.c

@@ -1,12 +1,11 @@
 /**
- * \file pbkdf2.h
+ * \file pkcs#5.h
  *
- * \brief Password-Based Key Derivation Function 2 (from PKCS#5)
- *        DEPRECATED: use pkcs5.h instead.
+ * \brief PKCS#5 functions
  *
  * \author Mathias Olsson <mathias@kompetensum.com>
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,8 +26,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_PBKDF2_H
-#define POLARSSL_PBKDF2_H
+#ifndef POLARSSL_PKCS5_H
+#define POLARSSL_PKCS5_H
 
 #include <string.h>
 
@@ -41,7 +40,7 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_PBKDF2_BAD_INPUT_DATA                 -0x007C  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_PKCS5_BAD_INPUT_DATA                -0x007C  /**< Bad input parameters to function. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,7 +48,6 @@ extern "C" {
 
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC
- *                 DEPRECATED: Use pkcs5_pbkdf2_hmac() instead!
  *
  * \param ctx      Generic HMAC context
  * \param password Password to use when generating key
@@ -62,21 +60,20 @@ extern "C" {
  *
  * \returns        0 on success, or a PolarSSL error code if verification fails.
  */
-int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
-                 size_t plen, const unsigned char *salt, size_t slen,
-                 unsigned int iteration_count,
-                 uint32_t key_length, unsigned char *output );
+int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
+                       size_t plen, const unsigned char *salt, size_t slen,
+                       unsigned int iteration_count,
+                       uint32_t key_length, unsigned char *output );
 
 /**
  * \brief          Checkup routine
- *                 DEPRECATED: Use pkcs5_self_test() instead!
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int pbkdf2_self_test( int verbose );
+int pkcs5_self_test( int verbose );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* pbkdf2.h */
+#endif /* pkcs5.h */

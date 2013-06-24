@@ -248,6 +248,8 @@ void error_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "PKCS12 - Feature not available, e.g. unsupported encryption scheme" );
         if( use_ret == -(POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT) )
             snprintf( buf, buflen, "PKCS12 - PBE ASN.1 data not as expected" );
+        if( use_ret == -(POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH) )
+            snprintf( buf, buflen, "PKCS12 - Given private key password does not allow for correct decryption" );
 #endif /* POLARSSL_PKCS12_C */
 
 #if defined(POLARSSL_PKCS5_C)

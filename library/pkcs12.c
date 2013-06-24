@@ -35,6 +35,7 @@
 
 #include "polarssl/pkcs12.h"
 #include "polarssl/asn1.h"
+#include "polarssl/cipher.h"
 
 #if defined(POLARSSL_ARC4_C)
 #include "polarssl/arc4.h"
@@ -82,7 +83,7 @@ static int pkcs12_parse_pbe_params( unsigned char **p,
     return( 0 );
 }
 
-static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params,
+static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
                                      const unsigned char *pwd,  size_t pwdlen,
                                      unsigned char *key, size_t keylen,
                                      unsigned char *iv,  size_t ivlen )
@@ -106,7 +107,7 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params,
         unipwd[i * 2 + 1] = pwd[i];
 
     if( ( ret = pkcs12_derivation( key, keylen, unipwd, pwdlen * 2 + 2,
-                                   salt.p, salt.len, POLARSSL_MD_SHA1,
+                                   salt.p, salt.len, md_type,
                                    PKCS12_DERIVE_KEY, iterations ) ) != 0 )
     {
         return( ret );
@@ -116,7 +117,7 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params,
         return( 0 );
 
     if( ( ret = pkcs12_derivation( iv, ivlen, unipwd, pwdlen * 2 + 2,
-                                   salt.p, salt.len, POLARSSL_MD_SHA1,
+                                   salt.p, salt.len, md_type,
                                    PKCS12_DERIVE_IV, iterations ) ) != 0 )
     {
         return( ret );
@@ -144,7 +145,8 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
     arc4_context ctx;
     ((void) mode);
 
-    if( ( ret = pkcs12_pbe_derive_key_iv( pbe_params, pwd, pwdlen,
+    if( ( ret = pkcs12_pbe_derive_key_iv( pbe_params, POLARSSL_MD_SHA1,
+                                          pwd, pwdlen,
                                           key, 16, NULL, 0 ) ) != 0 )
     {
         return( ret );
@@ -158,86 +160,51 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
 #endif /* POLARSSL_ARC4_C */
 }
 
-int pkcs12_pbe_sha1_des2_ede_cbc( asn1_buf *pbe_params, int mode,
-                                  const unsigned char *pwd,  size_t pwdlen,
-                                  const unsigned char *data, size_t len,
-                                  unsigned char *output )
+int pkcs12_pbe( asn1_buf *pbe_params, int mode,
+                cipher_type_t cipher_type, md_type_t md_type,
+                const unsigned char *pwd,  size_t pwdlen,
+                const unsigned char *data, size_t len,
+                unsigned char *output )
 {
-#if !defined(POLARSSL_DES_C)
-    ((void) pbe_params);
-    ((void) mode);
-    ((void) pwd);
-    ((void) pwdlen);
-    ((void) data);
-    ((void) len);
-    ((void) output);
-    return( POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE );
-#else
-    int ret;
-    unsigned char key[16];
-    unsigned char iv[8];
-    des3_context ctx;
+    int ret, keylen = 0;
+    unsigned char key[32];
+    unsigned char iv[16];
+    const cipher_info_t *cipher_info;
+    cipher_context_t cipher_ctx;
+    size_t olen = 0;
 
-    if( ( ret = pkcs12_pbe_derive_key_iv( pbe_params, pwd, pwdlen,
-                                          key, 16, iv, 8 ) ) != 0 )
+    cipher_info = cipher_info_from_type( cipher_type );
+    if( cipher_info == NULL )
+        return( POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE );
+
+    keylen = cipher_info->key_length / 8;
+
+    if( ( ret = pkcs12_pbe_derive_key_iv( pbe_params, md_type, pwd, pwdlen,
+                                          key, keylen,
+                                          iv, cipher_info->iv_size ) ) != 0 )
     {
         return( ret );
     }
 
-    if( mode == PKCS12_PBE_ENCRYPT )
-    {
-        des3_set2key_enc( &ctx, key );
-        des3_crypt_cbc( &ctx, DES_ENCRYPT, len, iv, data, output );
-    }
-    else
-    {
-        des3_set2key_dec( &ctx, key );
-        des3_crypt_cbc( &ctx, DES_DECRYPT, len, iv, data, output );
-    }
+    if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
+        return( ret );
 
-    return( 0 );
-#endif /* POLARSSL_DES_C */
-}
+    if( ( ret = cipher_setkey( &cipher_ctx, key, keylen, mode ) ) != 0 )
+        return( ret );
 
-int pkcs12_pbe_sha1_des3_ede_cbc( asn1_buf *pbe_params, int mode,
-                                  const unsigned char *pwd,  size_t pwdlen,
-                                  const unsigned char *data, size_t len,
-                                  unsigned char *output )
-{
-#if !defined(POLARSSL_DES_C)
-    ((void) pbe_params);
-    ((void) mode);
-    ((void) pwd);
-    ((void) pwdlen);
-    ((void) data);
-    ((void) len);
-    ((void) output);
-    return( POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE );
-#else
-    int ret;
-    unsigned char key[24];
-    unsigned char iv[8];
-    des3_context ctx;
+    if( ( ret = cipher_reset( &cipher_ctx, iv ) ) != 0 )
+        return( ret );
 
-    if( ( ret = pkcs12_pbe_derive_key_iv( pbe_params, pwd, pwdlen,
-                                          key, 24, iv, 8 ) ) != 0 )
+    if( ( ret = cipher_update( &cipher_ctx, data, len,
+                                output, &olen ) ) != 0 )
     {
         return( ret );
     }
 
-    if( mode == PKCS12_PBE_ENCRYPT )
-    {
-        des3_set3key_enc( &ctx, key );
-        des3_crypt_cbc( &ctx, DES_ENCRYPT, len, iv, data, output );
-    }
-    else
-    {
-        des3_set3key_dec( &ctx, key );
-        des3_crypt_cbc( &ctx, DES_DECRYPT, len, iv, data, output );
-    }
+    if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
+        return( POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH );
 
     return( 0 );
-#endif /* POLARSSL_DES_C */
 }
 
 static void pkcs12_fill_buffer( unsigned char *data, size_t data_len,

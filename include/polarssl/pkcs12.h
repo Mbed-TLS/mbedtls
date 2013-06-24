@@ -30,18 +30,20 @@
 #include <string.h>
 
 #include "md.h"
+#include "cipher.h"
 #include "asn1.h"
 
 #define POLARSSL_ERR_PKCS12_BAD_INPUT_DATA                 -0x1F80  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE            -0x1F00  /**< Feature not available, e.g. unsupported encryption scheme. */
 #define POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT             -0x1E80  /**< PBE ASN.1 data not as expected. */
+#define POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH              -0x1E00  /**< Given private key password does not allow for correct decryption. */
 
 #define PKCS12_DERIVE_KEY       1   /*< encryption/decryption key */
 #define PKCS12_DERIVE_IV        2   /*< initialization vector     */
 #define PKCS12_DERIVE_MAC_KEY   3   /*< integrity / MAC key       */
 
+#define PKCS12_PBE_DECRYPT      0
 #define PKCS12_PBE_ENCRYPT      1
-#define PKCS12_PBE_DECRYPT      2
 
 /*
  * PKCS#12 PBE types
@@ -66,6 +68,8 @@ extern "C" {
  * \param input      the input data
  * \param len        data length
  * \param output     the output buffer
+ *
+ * \return           0 if successful, or a PolarSSL error code
  */
 int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
                              const unsigned char *pwd,  size_t pwdlen,
@@ -74,37 +78,25 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
 
 /**
  * \brief            PKCS12 Password Based function (encryption / decryption)
- *                   for pbeWithSHAAnd3-KeyTripleDES-CBC
+ *                   for cipher-based and md-based PBE's
  *
  * \param pbe_params an ASN1 buffer containing the pkcs-12PbeParams structure
  * \param mode       either PKCS12_PBE_ENCRYPT or PKCS12_PBE_DECRYPT
+ * \param cipher_type the cipher used
+ * \param md_type     the md used
  * \param pwd        the password used (may be NULL if no password is used)
  * \param pwdlen     length of the password (may be 0)
  * \param input      the input data
  * \param len        data length
  * \param output     the output buffer
- */
-int pkcs12_pbe_sha1_des3_ede_cbc( asn1_buf *pbe_params, int mode,
-                                  const unsigned char *pwd,  size_t pwdlen,
-                                  const unsigned char *input, size_t len,
-                                  unsigned char *output );
-
-/**
- * \brief            PKCS12 Password Based function (encryption / decryption)
- *                   for pbeWithSHAAnd2-KeyTripleDES-CBC
  *
- * \param pbe_params an ASN1 buffer containing the pkcs-12PbeParams structure
- * \param mode       either PKCS12_PBE_ENCRYPT or PKCS12_PBE_DECRYPT
- * \param pwd        the password used (may be NULL if no password is used)
- * \param pwdlen     length of the password (may be 0)
- * \param input      the input data
- * \param len        data length
- * \param output     the output buffer
+ * \return           0 if successful, or a PolarSSL error code
  */
-int pkcs12_pbe_sha1_des2_ede_cbc( asn1_buf *pbe_params, int mode,
-                                  const unsigned char *pwd,  size_t pwdlen,
-                                  const unsigned char *input, size_t len,
-                                  unsigned char *output );
+int pkcs12_pbe( asn1_buf *pbe_params, int mode,
+                cipher_type_t cipher_type, md_type_t md_type,
+                const unsigned char *pwd,  size_t pwdlen,
+                const unsigned char *input, size_t len,
+                unsigned char *output );
 
 /**
  * \brief            The PKCS#12 derivation function uses a password and a salt

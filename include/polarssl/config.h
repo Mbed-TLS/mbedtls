@@ -978,8 +978,8 @@
  * Module:  library/pkcs12.c
  * Caller:  library/x509parse.c
  *
- * Requires: POLARSSL_ASN1_PARSE_C
- * Can use:  POLARSSL_SHA1_C, POLARSSL_DES_C, POLARSSL_ARC4_C
+ * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_CIPHER_C, POLARSSL_MD_C
+ * Can use:  POLARSSL_ARC4_C
  *
  * This module enables PKCS#12 functions.
  */

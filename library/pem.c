@@ -178,7 +178,9 @@ static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
 
 #endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
 
-int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigned char *data, const unsigned char *pwd, size_t pwdlen, size_t *use_len )
+int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
+                     const unsigned char *data, const unsigned char *pwd,
+                     size_t pwdlen, size_t *use_len )
 {
     int ret, enc;
     size_t len;

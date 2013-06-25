@@ -1,7 +1,7 @@
 /*
  *  X.509 certificate and private key decoding
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -1113,8 +1113,8 @@ static int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
 /*
  * Parse and fill a single X.509 certificate in DER format
  */
-int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
-                            size_t buflen )
+static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
+                                   size_t buflen )
 {
     int ret;
     size_t len;
@@ -1813,7 +1813,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
 /*
  * Load all data from a file into a given buffer.
  */
-int load_file( const char *path, unsigned char **buf, size_t *n )
+static int load_file( const char *path, unsigned char **buf, size_t *n )
 {
     FILE *f;
 
@@ -1994,7 +1994,7 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
         ret = x509parse_key( rsa, buf, n, NULL, 0 );
     else
         ret = x509parse_key( rsa, buf, n,
-                (unsigned char *) pwd, strlen( pwd ) );
+                (const unsigned char *) pwd, strlen( pwd ) );
 
     memset( buf, 0, n + 1 );
     free( buf );
@@ -3101,7 +3101,7 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
     return flags;
 }
 
-int x509_wildcard_verify( const char *cn, x509_buf *name )
+static int x509_wildcard_verify( const char *cn, x509_buf *name )
 {
     size_t i;
     size_t cn_idx = 0;

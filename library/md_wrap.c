@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -76,7 +76,7 @@ static void md2_finish_wrap( void *ctx, unsigned char *output )
     md2_finish( (md2_context *) ctx, output );
 }
 
-int md2_file_wrap( const char *path, unsigned char *output )
+static int md2_file_wrap( const char *path, unsigned char *output )
 {
 #if defined(POLARSSL_FS_IO)
     return md2_file( path, output );
@@ -246,7 +246,7 @@ static void md5_finish_wrap( void *ctx, unsigned char *output )
     md5_finish( (md5_context *) ctx, output );
 }
 
-int md5_file_wrap( const char *path, unsigned char *output )
+static int md5_file_wrap( const char *path, unsigned char *output )
 {
 #if defined(POLARSSL_FS_IO)
     return md5_file( path, output );

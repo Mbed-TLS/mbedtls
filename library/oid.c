@@ -351,7 +351,7 @@ static const oid_descriptor_t *oid_descriptor_from_buf(
                 const unsigned char *oid,
                 size_t len )
 {
-    const unsigned char *p = (unsigned char *) struct_set;
+    const unsigned char *p = (const unsigned char *) struct_set;
     const oid_descriptor_t *cur;
 
     if( struct_set == NULL || oid == NULL )

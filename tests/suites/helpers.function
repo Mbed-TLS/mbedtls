@@ -28,7 +28,7 @@ typedef UINT32 uint32_t;
 }
 #endif
 
-int unhexify(unsigned char *obuf, const char *ibuf)
+static int unhexify(unsigned char *obuf, const char *ibuf)
 {
     unsigned char c, c2;
     int len = strlen(ibuf) / 2;
@@ -62,7 +62,7 @@ int unhexify(unsigned char *obuf, const char *ibuf)
     return len;
 }
 
-void hexify(unsigned char *obuf, const unsigned char *ibuf, int len)
+static void hexify(unsigned char *obuf, const unsigned char *ibuf, int len)
 {
     unsigned char l, h;
 

@@ -1296,7 +1296,7 @@ int ecp_self_test( int verbose )
     ecp_point R;
     mpi m;
     unsigned long add_c_prev, dbl_c_prev;
-    char *exponents[] =
+    const char *exponents[] =
     {
         "000000000000000000000000000000000000000000000000", /* zero */
         "000000000000000000000000000000000000000000000001", /* one */

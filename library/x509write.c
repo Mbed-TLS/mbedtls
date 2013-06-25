@@ -1,7 +1,7 @@
 /*
  * X509 buffer writing functionality
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -109,8 +109,8 @@ int x509_write_key_der( unsigned char *buf, size_t size, rsa_context *rsa )
     return( len );
 }
 
-int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
-                     char *name )
+static int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
+                            char *name )
 {
     int ret;
     size_t string_len = 0;
@@ -141,8 +141,8 @@ int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
     return( len );
 }
 
-int x509_write_sig( unsigned char **p, unsigned char *start, const char *oid,
-                    unsigned char *sig, size_t size )
+static int x509_write_sig( unsigned char **p, unsigned char *start,
+                           const char *oid, unsigned char *sig, size_t size )
 {
     int ret;
     size_t len = 0;
@@ -209,7 +209,7 @@ int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
     while( cur != NULL )
     {
         ASN1_CHK_ADD( sub_len, x509_write_name( &c, tmp_buf, cur->oid, cur->name ) );
-        
+
         cur = cur->next;
     }
 
@@ -221,7 +221,7 @@ int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
-    
+
     md( md_info_from_type( md_alg ), c, len, hash );
 
     rsa_pkcs1_sign( rsa, NULL, NULL, RSA_PRIVATE, md_alg, 0, hash, sig );
@@ -232,10 +232,10 @@ int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
 
     c2 = buf + size - 1;
     ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig, rsa->len ) );
-    
+
     c2 -= len;
-    memcpy( c2, c, len ); 
-    
+    memcpy( c2, c, len );
+
     len += sig_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c2, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c2, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );

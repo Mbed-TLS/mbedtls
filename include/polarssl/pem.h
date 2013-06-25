@@ -86,7 +86,7 @@ void pem_init( pem_context *ctx );
  *
  * \return          0 on success, ior a specific PEM error code
  */
-int pem_read_buffer( pem_context *ctx, char *header, char *footer,
+int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
                      const unsigned char *data,
                      const unsigned char *pwd,
                      size_t pwdlen, size_t *use_len );

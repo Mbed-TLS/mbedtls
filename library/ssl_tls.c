@@ -96,8 +96,9 @@ static size_t ssl_rsa_key_len( void *ctx )
 /*
  * Key material generation
  */
-static int ssl3_prf( unsigned char *secret, size_t slen, char *label,
-                     unsigned char *random, size_t rlen,
+static int ssl3_prf( const unsigned char *secret, size_t slen,
+                     const char *label,
+                     const unsigned char *random, size_t rlen,
                      unsigned char *dstbuf, size_t dlen )
 {
     size_t i;
@@ -140,13 +141,14 @@ static int ssl3_prf( unsigned char *secret, size_t slen, char *label,
     return( 0 );
 }
 
-static int tls1_prf( unsigned char *secret, size_t slen, char *label,
-                     unsigned char *random, size_t rlen,
+static int tls1_prf( const unsigned char *secret, size_t slen,
+                     const char *label,
+                     const unsigned char *random, size_t rlen,
                      unsigned char *dstbuf, size_t dlen )
 {
     size_t nb, hs;
     size_t i, j, k;
-    unsigned char *S1, *S2;
+    const unsigned char *S1, *S2;
     unsigned char tmp[128];
     unsigned char h_i[20];
 
@@ -200,8 +202,9 @@ static int tls1_prf( unsigned char *secret, size_t slen, char *label,
     return( 0 );
 }
 
-static int tls_prf_sha256( unsigned char *secret, size_t slen, char *label,
-                           unsigned char *random, size_t rlen,
+static int tls_prf_sha256( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
 {
     size_t nb;
@@ -240,8 +243,9 @@ static int tls_prf_sha256( unsigned char *secret, size_t slen, char *label,
 }
 
 #if defined(POLARSSL_SHA4_C)
-static int tls_prf_sha384( unsigned char *secret, size_t slen, char *label,
-                           unsigned char *random, size_t rlen,
+static int tls_prf_sha384( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
 {
     size_t nb;
@@ -280,9 +284,9 @@ static int tls_prf_sha384( unsigned char *secret, size_t slen, char *label,
 }
 #endif
 
-static void ssl_update_checksum_start(ssl_context *, unsigned char *, size_t);
-static void ssl_update_checksum_md5sha1(ssl_context *, unsigned char *, size_t);
-static void ssl_update_checksum_sha256(ssl_context *, unsigned char *, size_t);
+static void ssl_update_checksum_start(ssl_context *, const unsigned char *, size_t);
+static void ssl_update_checksum_md5sha1(ssl_context *, const unsigned char *, size_t);
+static void ssl_update_checksum_sha256(ssl_context *, const unsigned char *, size_t);
 
 static void ssl_calc_verify_ssl(ssl_context *,unsigned char *);
 static void ssl_calc_verify_tls(ssl_context *,unsigned char *);
@@ -293,7 +297,7 @@ static void ssl_calc_finished_tls(ssl_context *,unsigned char *,int);
 static void ssl_calc_finished_tls_sha256(ssl_context *,unsigned char *,int);
 
 #if defined(POLARSSL_SHA4_C)
-static void ssl_update_checksum_sha384(ssl_context *, unsigned char *, size_t);
+static void ssl_update_checksum_sha384(ssl_context *, const unsigned char *, size_t);
 static void ssl_calc_verify_tls_sha384(ssl_context *,unsigned char *);
 static void ssl_calc_finished_tls_sha384(ssl_context *,unsigned char *,int);
 #endif
@@ -2229,8 +2233,8 @@ void ssl_optimize_checksum( ssl_context *ssl,
         ssl->handshake->update_checksum = ssl_update_checksum_sha256;
 }
 
-static void ssl_update_checksum_start( ssl_context *ssl, unsigned char *buf,
-                                       size_t len )
+static void ssl_update_checksum_start( ssl_context *ssl,
+                                       const unsigned char *buf, size_t len )
 {
      md5_update( &ssl->handshake->fin_md5 , buf, len );
     sha1_update( &ssl->handshake->fin_sha1, buf, len );
@@ -2240,22 +2244,22 @@ static void ssl_update_checksum_start( ssl_context *ssl, unsigned char *buf,
 #endif
 }
 
-static void ssl_update_checksum_md5sha1( ssl_context *ssl, unsigned char *buf,
-                                         size_t len )
+static void ssl_update_checksum_md5sha1( ssl_context *ssl,
+                                         const unsigned char *buf, size_t len )
 {
      md5_update( &ssl->handshake->fin_md5 , buf, len );
     sha1_update( &ssl->handshake->fin_sha1, buf, len );
 }
 
-static void ssl_update_checksum_sha256( ssl_context *ssl, unsigned char *buf,
-                                        size_t len )
+static void ssl_update_checksum_sha256( ssl_context *ssl,
+                                        const unsigned char *buf, size_t len )
 {
     sha2_update( &ssl->handshake->fin_sha2, buf, len );
 }
 
 #if defined(POLARSSL_SHA4_C)
-static void ssl_update_checksum_sha384( ssl_context *ssl, unsigned char *buf,
-                                        size_t len )
+static void ssl_update_checksum_sha384( ssl_context *ssl,
+                                        const unsigned char *buf, size_t len )
 {
     sha4_update( &ssl->handshake->fin_sha4, buf, len );
 }
@@ -2382,7 +2386,7 @@ static void ssl_calc_finished_tls(
     md5_finish(  &md5, padbuf );
     sha1_finish( &sha1, padbuf + 16 );
 
-    ssl->handshake->tls_prf( session->master, 48, (char *) sender,
+    ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 36, buf, len );
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
@@ -2428,7 +2432,7 @@ static void ssl_calc_finished_tls_sha256(
 
     sha2_finish( &sha2, padbuf );
 
-    ssl->handshake->tls_prf( session->master, 48, (char *) sender,
+    ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 32, buf, len );
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
@@ -2474,7 +2478,7 @@ static void ssl_calc_finished_tls_sha384(
 
     sha4_finish( &sha4, padbuf );
 
-    ssl->handshake->tls_prf( session->master, 48, (char *) sender,
+    ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 48, buf, len );
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
@@ -2689,7 +2693,7 @@ int ssl_parse_finished( ssl_context *ssl )
     return( 0 );
 }
 
-int ssl_handshake_init( ssl_context *ssl )
+static int ssl_handshake_init( ssl_context *ssl )
 {
     if( ssl->transform_negotiate )
         ssl_transform_free( ssl->transform_negotiate );

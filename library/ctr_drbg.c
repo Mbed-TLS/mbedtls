@@ -1,7 +1,7 @@
 /*
  *  CTR_DRBG implementation based on AES-256 (NIST SP 800-90)
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -42,7 +42,7 @@
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
  * tests to succeed (which require known length fixed entropy)
  */
-int ctr_drbg_init_entropy_len(
+static int ctr_drbg_init_entropy_len(
                    ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,
@@ -92,14 +92,14 @@ void ctr_drbg_set_entropy_len( ctr_drbg_context *ctx, size_t len )
 {
     ctx->entropy_len = len;
 }
-    
+
 void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx, int interval )
 {
     ctx->reseed_interval = interval;
 }
-    
-int block_cipher_df( unsigned char *output,
-                     const unsigned char *data, size_t data_len )
+
+static int block_cipher_df( unsigned char *output,
+                            const unsigned char *data, size_t data_len )
 {
     unsigned char buf[CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16];
     unsigned char tmp[CTR_DRBG_SEEDLEN];
@@ -180,7 +180,7 @@ int block_cipher_df( unsigned char *output,
     return( 0 );
 }
 
-int ctr_drbg_update_internal( ctr_drbg_context *ctx,
+static int ctr_drbg_update_internal( ctr_drbg_context *ctx,
                               const unsigned char data[CTR_DRBG_SEEDLEN] )
 {
     unsigned char tmp[CTR_DRBG_SEEDLEN];
@@ -449,7 +449,8 @@ unsigned char result_nopr[16] =
       0x9d, 0x90, 0x3e, 0x07, 0x7c, 0x6f, 0x21, 0x8f };
 
 int test_offset;
-int ctr_drbg_self_test_entropy( void *data, unsigned char *buf, size_t len )
+static int ctr_drbg_self_test_entropy( void *data, unsigned char *buf,
+                                       size_t len )
 {
     unsigned char *p = data;
     memcpy( buf, p + test_offset, len );

@@ -195,9 +195,9 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
 }
 
 #if defined(POLARSSL_ECP_C)
-int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
-                                         const unsigned char *buf,
-                                         size_t len )
+static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
+                                                const unsigned char *buf,
+                                                size_t len )
 {
     size_t list_size;
     const unsigned char *p;
@@ -231,9 +231,9 @@ int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     return( 0 );
 }
 
-int ssl_parse_supported_point_formats( ssl_context *ssl,
-                                       const unsigned char *buf,
-                                       size_t len )
+static int ssl_parse_supported_point_formats( ssl_context *ssl,
+                                              const unsigned char *buf,
+                                              size_t len )
 {
     size_t list_size;
     const unsigned char *p;

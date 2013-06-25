@@ -1,7 +1,7 @@
 /*
  *  Entropy accumulator implementation
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -81,14 +81,14 @@ int entropy_add_source( entropy_context *ctx,
 /*
  * Entropy accumulator update
  */
-int entropy_update( entropy_context *ctx, unsigned char source_id,
-                    const unsigned char *data, size_t len )
+static int entropy_update( entropy_context *ctx, unsigned char source_id,
+                           const unsigned char *data, size_t len )
 {
     unsigned char header[2];
     unsigned char tmp[ENTROPY_BLOCK_SIZE];
     size_t use_len = len;
     const unsigned char *p = data;
-   
+
     if( use_len > ENTROPY_BLOCK_SIZE )
     {
         sha4( data, len, tmp, 0 );
@@ -102,7 +102,7 @@ int entropy_update( entropy_context *ctx, unsigned char source_id,
 
     sha4_update( &ctx->accumulator, header, 2 );
     sha4_update( &ctx->accumulator, p, use_len );
-    
+
     return( 0 );
 }
 

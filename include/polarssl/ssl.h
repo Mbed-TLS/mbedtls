@@ -383,11 +383,11 @@ struct _ssl_handshake_params
     sha2_context fin_sha2;
     sha4_context fin_sha4;
 
-    void (*update_checksum)(ssl_context *, unsigned char *, size_t);
+    void (*update_checksum)(ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(ssl_context *, unsigned char *);
     void (*calc_finished)(ssl_context *, unsigned char *, int);
-    int  (*tls_prf)(unsigned char *, size_t, char *,
-                    unsigned char *, size_t,
+    int  (*tls_prf)(const unsigned char *, size_t, const char *,
+                    const unsigned char *, size_t,
                     unsigned char *, size_t);
 
     size_t pmslen;                      /*!<  premaster length        */

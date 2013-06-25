@@ -1,7 +1,7 @@
 /*
  *  SSL server demonstration program using fork() for handling multiple clients
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -82,7 +82,7 @@ int main( int argc, char *argv[] )
 
 #define DEBUG_LEVEL 0
 
-void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < DEBUG_LEVEL )
     {

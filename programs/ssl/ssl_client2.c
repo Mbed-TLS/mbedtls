@@ -1,7 +1,7 @@
 /*
  *  SSL client with certificate authentication
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -83,7 +83,7 @@ struct options
     int auth_mode;              /* verify mode for connection               */
 } opt;
 
-void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < opt.debug_level )
     {
@@ -96,7 +96,7 @@ void my_debug( void *ctx, int level, const char *str )
 /*
  * Enabled if debug_level > 1 in code below
  */
-int my_verify( void *data, x509_cert *crt, int depth, int *flags )
+static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
 {
     char buf[1024];
     ((void) data);
@@ -595,7 +595,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
-    ssl_set_psk( &ssl, psk, psk_len, (unsigned char *) opt.psk_identity,
+    ssl_set_psk( &ssl, psk, psk_len, (const unsigned char *) opt.psk_identity,
                  strlen( opt.psk_identity ) );
 #endif
 

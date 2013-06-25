@@ -1,7 +1,7 @@
 /*
  *  Key reading application
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -73,21 +73,11 @@ struct options
 {
     int mode;                   /* the mode to run the application in   */
     const char *filename;       /* filename of the key file             */
-    int debug_level;            /* level of debugging                   */
     int output_mode;            /* the output mode to use               */
     const char *output_file;    /* where to store the constructed key file  */
 } opt;
 
-void my_debug( void *ctx, int level, const char *str )
-{
-    if( level < opt.debug_level )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
-}
-
-void write_public_key( rsa_context *rsa, const char *output_file )
+static void write_public_key( rsa_context *rsa, const char *output_file )
 {
     FILE *f;
     unsigned char output_buf[16000];
@@ -124,7 +114,7 @@ void write_public_key( rsa_context *rsa, const char *output_file )
     fclose(f);
 }
 
-void write_private_key( rsa_context *rsa, const char *output_file )
+static void write_private_key( rsa_context *rsa, const char *output_file )
 {
     FILE *f;
     unsigned char output_buf[16000];
@@ -165,7 +155,6 @@ void write_private_key( rsa_context *rsa, const char *output_file )
     "\n acceptable parameters:\n"                       \
     "    mode=private|public default: none\n"           \
     "    filename=%%s         default: keyfile.key\n"   \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
     "    output_mode=private|public default: none\n"    \
     "    output_file=%%s      defeult: keyfile.pem\n"   \
     "\n"
@@ -193,7 +182,6 @@ int main( int argc, char *argv[] )
 
     opt.mode                = DFL_MODE;
     opt.filename            = DFL_FILENAME;
-    opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.output_mode         = DFL_OUTPUT_MODE;
     opt.output_file         = DFL_OUTPUT_FILENAME;
 
@@ -226,12 +214,6 @@ int main( int argc, char *argv[] )
             opt.filename = q;
         else if( strcmp( p, "output_file" ) == 0 )
             opt.output_file = q;
-        else if( strcmp( p, "debug_level" ) == 0 )
-        {
-            opt.debug_level = atoi( q );
-            if( opt.debug_level < 0 || opt.debug_level > 65535 )
-                goto usage;
-        }
         else
             goto usage;
     }

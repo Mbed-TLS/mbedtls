@@ -91,7 +91,7 @@ struct options
  * Although this PRNG has good statistical properties (eg. passes
  * DIEHARD), it is not cryptographically secure.
  */
-unsigned long int lcppm5( unsigned long int *state )
+static unsigned long int lcppm5( unsigned long int *state )
 {
     unsigned long int u, v;
 
@@ -108,7 +108,7 @@ unsigned long int lcppm5( unsigned long int *state )
     return( u );
 }
 
-void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < ((struct options *) ctx)->debug_level )
         fprintf( stderr, "%s", str );

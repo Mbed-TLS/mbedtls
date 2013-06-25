@@ -1,7 +1,7 @@
 /*
  *  SSL client for SMTP servers
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2012, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -92,7 +92,7 @@ struct options
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
 } opt;
 
-void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < opt.debug_level )
     {
@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
-int do_handshake( ssl_context *ssl, struct options *opt )
+static int do_handshake( ssl_context *ssl, struct options *opt )
 {
     int ret;
     unsigned char buf[1024];
@@ -179,7 +179,7 @@ int do_handshake( ssl_context *ssl, struct options *opt )
     return( 0 );
 }
 
-int write_ssl_data( ssl_context *ssl, unsigned char *buf, size_t len )
+static int write_ssl_data( ssl_context *ssl, unsigned char *buf, size_t len )
 {
     int ret;
 
@@ -196,7 +196,7 @@ int write_ssl_data( ssl_context *ssl, unsigned char *buf, size_t len )
     return( 0 );
 }
 
-int write_ssl_and_get_response( ssl_context *ssl, unsigned char *buf, size_t len )
+static int write_ssl_and_get_response( ssl_context *ssl, unsigned char *buf, size_t len )
 {
     int ret;
     unsigned char data[128];
@@ -247,14 +247,14 @@ int write_ssl_and_get_response( ssl_context *ssl, unsigned char *buf, size_t len
                 code[3] = '\0';
                 return atoi( code );
             }
-            
+
             idx = 0;
         }
     }
     while( 1 );
 }
 
-int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
+static int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
 {
     int ret;
     unsigned char data[128];

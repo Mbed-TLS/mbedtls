@@ -1,7 +1,7 @@
 /*
  *  CRL reading application
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -44,23 +44,12 @@
 struct options
 {
     const char *filename;       /* filename of the certificate file     */
-    int debug_level;            /* level of debugging                   */
 } opt;
-
-void my_debug( void *ctx, int level, const char *str )
-{
-    if( level < opt.debug_level )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
-}
 
 #define USAGE \
     "\n usage: crl_app param=<>...\n"                   \
     "\n acceptable parameters:\n"                       \
     "    filename=%%s         default: crl.pem\n"      \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
     "\n"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
@@ -96,7 +85,6 @@ int main( int argc, char *argv[] )
     }
 
     opt.filename            = DFL_FILENAME;
-    opt.debug_level         = DFL_DEBUG_LEVEL;
 
     for( i = 1; i < argc; i++ )
     {
@@ -115,12 +103,6 @@ int main( int argc, char *argv[] )
 
         if( strcmp( p, "filename" ) == 0 )
             opt.filename = q;
-        else if( strcmp( p, "debug_level" ) == 0 )
-        {
-            opt.debug_level = atoi( q );
-            if( opt.debug_level < 0 || opt.debug_level > 65535 )
-                goto usage;
-        }
         else
             goto usage;
     }

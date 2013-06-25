@@ -1,7 +1,7 @@
 /*
  *  Key reading application
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -56,17 +56,7 @@ struct options
     const char *filename;       /* filename of the key file             */
     const char *password;       /* password for the private key         */
     const char *password_file;  /* password_file for the private key    */
-    int debug_level;            /* level of debugging                   */
 } opt;
-
-void my_debug( void *ctx, int level, const char *str )
-{
-    if( level < opt.debug_level )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
-}
 
 #define USAGE \
     "\n usage: key_app param=<>...\n"                   \
@@ -75,7 +65,6 @@ void my_debug( void *ctx, int level, const char *str )
     "    filename=%%s         default: keyfile.key\n"   \
     "    password=%%s         default: \"\"\n"          \
     "    password_file=%%s    default: \"\"\n"          \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
     "\n"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
@@ -115,7 +104,6 @@ int main( int argc, char *argv[] )
     opt.filename            = DFL_FILENAME;
     opt.password            = DFL_PASSWORD;
     opt.password_file       = DFL_PASSWORD_FILE;
-    opt.debug_level         = DFL_DEBUG_LEVEL;
 
     for( i = 1; i < argc; i++ )
     {
@@ -139,12 +127,6 @@ int main( int argc, char *argv[] )
             opt.password = q;
         else if( strcmp( p, "password_file" ) == 0 )
             opt.password_file = q;
-        else if( strcmp( p, "debug_level" ) == 0 )
-        {
-            opt.debug_level = atoi( q );
-            if( opt.debug_level < 0 || opt.debug_level > 65535 )
-                goto usage;
-        }
         else
             goto usage;
     }

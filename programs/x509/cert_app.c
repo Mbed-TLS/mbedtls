@@ -67,7 +67,7 @@ struct options
     int permissive;             /* permissive parsing                   */
 } opt;
 
-void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < opt.debug_level )
     {
@@ -76,7 +76,7 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-int my_verify( void *data, x509_cert *crt, int depth, int *flags )
+static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
 {
     char buf[1024];
     ((void) data);

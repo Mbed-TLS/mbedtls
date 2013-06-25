@@ -1,7 +1,7 @@
 /*
  *  SSL client with options
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -89,7 +89,7 @@ struct options
     int auth_mode;              /* verify mode for connection               */
 } opt;
 
-void my_debug( void *ctx, int level, const char *str )
+static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < opt.debug_level )
     {
@@ -514,7 +514,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
-    ssl_set_psk( &ssl, psk, psk_len, (unsigned char *) opt.psk_identity,
+    ssl_set_psk( &ssl, psk, psk_len, (const unsigned char *) opt.psk_identity,
                  strlen( opt.psk_identity ) );
 #endif
 

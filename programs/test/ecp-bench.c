@@ -28,8 +28,8 @@ int main( int argc, char *argv[] )
 
 #else
 
-void dhm_bench_case( const char *s, const char *p,
-                     const char *g, const char *x )
+static void dhm_bench_case( const char *s, const char *p,
+                            const char *g, const char *x )
 {
     unsigned long i;
     mpi P, G, X, R, C;
@@ -132,7 +132,7 @@ void dhm_bench_case( const char *s, const char *p,
     "F98E0273FC5C08A4EA70D6DC09A1855AFB402E02BD9F261E" \
     "863717A552F4A83D4DD5060CB70E2D4D7FFAEE912C2C4408"
 
-void dhm_bench( void )
+static void dhm_bench( void )
 {
     dhm_bench_case( "1024", POLARSSL_DHM_RFC5114_MODP_1024_P,
             MODP_1024_G, MODP_1024_X );
@@ -144,7 +144,7 @@ void dhm_bench( void )
             MODP_3072_G, MODP_3072_X );
 }
 
-void ecp_bench_case( size_t dp, char *s, char *m )
+static void ecp_bench_case( size_t dp, const char *s, const char *m )
 {
     unsigned long i;
     ecp_group grp;
@@ -181,7 +181,7 @@ void ecp_bench_case( size_t dp, char *s, char *m )
     "017F540D09F24EC6B102E8E4A9F14B850442D98C68FB29A6B09B9B9D40E2A750" \
     "7F3D2D6C5B6536B607EF2BCEA4797BB3A68F0D745410EB5CFFC7FF7FB17381544E"
 
-void ecp_bench( void )
+static void ecp_bench( void )
 {
     ecp_bench_case( 0, "192", ECP_192_M );
     ecp_bench_case( 1, "224", ECP_224_M );

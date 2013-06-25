@@ -224,6 +224,9 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path );
  */
 int ctr_drbg_self_test( int verbose );
 
+/* Internal functions (do not call directly) */
+int ctr_drbg_init_entropy_len( ctr_drbg_context *, int (*)(void *, unsigned char *, size_t), void *, const unsigned char *, size_t, size_t );
+
 #ifdef __cplusplus
 }
 #endif

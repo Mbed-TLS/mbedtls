@@ -42,7 +42,7 @@
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
  * tests to succeed (which require known length fixed entropy)
  */
-static int ctr_drbg_init_entropy_len(
+int ctr_drbg_init_entropy_len(
                    ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
                    void *p_entropy,

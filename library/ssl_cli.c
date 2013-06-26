@@ -194,6 +194,7 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
     unsigned char *p = buf;
     unsigned char elliptic_curve_list[20];
     size_t elliptic_curve_len = 0;
+    ((void) ssl);
 
     *olen = 0;
 
@@ -229,6 +230,7 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
                                                    size_t *olen )
 {
     unsigned char *p = buf;
+    ((void) ssl);
 
     *olen = 0;
 
@@ -808,6 +810,7 @@ static int ssl_parse_server_psk_hint( ssl_context *ssl,
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t  len;
+    ((void) ssl);
 
     /*
      * PSK parameters:
@@ -840,6 +843,7 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
                                           unsigned char *end,
                                           md_type_t *md_alg )
 {
+    ((void) ssl);
     *md_alg = POLARSSL_MD_NONE;
 
     if( (*p) + 2 > end )

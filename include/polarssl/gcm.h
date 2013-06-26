@@ -49,6 +49,12 @@ typedef struct {
     aes_context aes_ctx;        /*!< AES context used */
     uint64_t HL[16];            /*!< Precalculated HTable */
     uint64_t HH[16];            /*!< Precalculated HTable */
+    uint64_t len;               /*!< Total data length */
+    uint64_t add_len;           /*!< Total add length */
+    unsigned char base_ectr[16];/*!< First ECTR for tag */
+    unsigned char y[16];        /*!< Y working value */
+    unsigned char buf[16];      /*!< buf working value */
+    int mode;                   /*!< Encrypt or Decrypt */
 }
 gcm_context;
 
@@ -115,7 +121,7 @@ int gcm_crypt_and_tag( gcm_context *ctx,
  * \param add       additional data
  * \param add_len   length of additional data
  * \param tag       buffer holding the tag
- * \param tag_len   length of the tag 
+ * \param tag_len   length of the tag
  * \param input     buffer holding the input data
  * \param output    buffer for holding the output data
  *
@@ -128,10 +134,66 @@ int gcm_auth_decrypt( gcm_context *ctx,
                       size_t iv_len,
                       const unsigned char *add,
                       size_t add_len,
-                      const unsigned char *tag, 
+                      const unsigned char *tag,
                       size_t tag_len,
                       const unsigned char *input,
                       unsigned char *output );
+
+/**
+ * \brief           Generic GCM stream start function
+ *
+ * \param ctx       GCM context
+ * \param mode      GCM_ENCRYPT or GCM_DECRYPT
+ * \param iv        initialization vector
+ * \param iv_len    length of IV
+ * \param add       additional data
+ * \param add_len   length of additional data
+ *
+ * \return         0 if successful
+ */
+int gcm_starts( gcm_context *ctx,
+                int mode,
+                const unsigned char *iv,
+                size_t iv_len,
+                const unsigned char *add,
+                size_t add_len );
+
+/**
+ * \brief           Generic GCM update function. Encrypts/decrypts using the
+ *                  given GCM context. Expects input to be a multiple of 16
+ *                  bytes! Only the last call before gcm_finish() can be less
+ *                  than 16 bytes!
+ *
+ * \note On decryption, the output buffer cannot be the same as input buffer.
+ *       If buffers overlap, the output buffer must trail at least 8 bytes
+ *       behind the input buffer.
+ *
+ * \param ctx       GCM context
+ * \param length    length of the input data
+ * \param input     buffer holding the input data
+ * \param output    buffer for holding the output data
+ *
+ * \return         0 if successful or POLARSSL_ERR_GCM_BAD_INPUT
+ */
+int gcm_update( gcm_context *ctx,
+                size_t length,
+                const unsigned char *input,
+                unsigned char *output );
+
+/**
+ * \brief           Generic GCM finalisation function. Wraps up the GCM stream
+ *                  and generated the tag. The tag can have a maximum length of
+ *                  16 bytes.
+ *
+ * \param ctx       GCM context
+ * \param tag       buffer for holding the tag
+ * \param tag_len   length of the tag to generate
+ *
+ * \return         0 if successful or POLARSSL_ERR_GCM_BAD_INPUT
+ */
+int gcm_finish( gcm_context *ctx,
+                unsigned char *tag,
+                size_t tag_len );
 
 /**
  * \brief          Checkup routine

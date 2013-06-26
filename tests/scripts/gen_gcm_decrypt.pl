@@ -91,4 +91,8 @@ while (my $line = <TEST_DATA>)
         print("\n\n");
     }
 }
+
+print("GCM Selftest\n");
+print("gcm_selftest:\n\n");
+
 close(TEST_DATA);

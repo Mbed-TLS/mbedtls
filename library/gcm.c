@@ -169,41 +169,24 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
     PUT_UINT32_BE( zl, output, 12 );
 }
 
-int gcm_crypt_and_tag( gcm_context *ctx,
-                       int mode,
-                       size_t length,
-                       const unsigned char *iv,
-                       size_t iv_len,
-                       const unsigned char *add,
-                       size_t add_len,
-                       const unsigned char *input,
-                       unsigned char *output,
-                       size_t tag_len,
-                       unsigned char *tag )
+int gcm_starts( gcm_context *ctx,
+                int mode,
+                const unsigned char *iv,
+                size_t iv_len,
+                const unsigned char *add,
+                size_t add_len )
 {
-    unsigned char y[16];
-    unsigned char ectr[16];
-    unsigned char buf[16];
     unsigned char work_buf[16];
     size_t i;
     const unsigned char *p;
-    unsigned char *out_p = output;
     size_t use_len;
-    uint64_t orig_len = length * 8;
-    uint64_t orig_add_len = add_len * 8;
 
-    memset( y, 0x00, 16 );
-    memset( work_buf, 0x00, 16 );
-    memset( tag, 0x00, tag_len );
-    memset( buf, 0x00, 16 );
-
-    if( output > input && (size_t) ( output - input ) < length )
-        return( POLARSSL_ERR_GCM_BAD_INPUT );
+    ctx->mode = mode;
 
     if( iv_len == 12 )
     {
-        memcpy( y, iv, iv_len );
-        y[15] = 1;
+        memcpy( ctx->y, iv, iv_len );
+        ctx->y[15] = 1;
     }
     else
     {
@@ -216,36 +199,55 @@ int gcm_crypt_and_tag( gcm_context *ctx,
             use_len = ( iv_len < 16 ) ? iv_len : 16;
 
             for( i = 0; i < use_len; i++ )
-                y[i] ^= p[i];
+                ctx->y[i] ^= p[i];
 
-            gcm_mult( ctx, y, y );
+            gcm_mult( ctx, ctx->y, ctx->y );
 
             iv_len -= use_len;
             p += use_len;
         }
 
         for( i = 0; i < 16; i++ )
-            y[i] ^= work_buf[i];
+            ctx->y[i] ^= work_buf[i];
 
-        gcm_mult( ctx, y, y );
+        gcm_mult( ctx, ctx->y, ctx->y );
     }
 
-    aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, y, ectr );
-    memcpy( tag, ectr, tag_len );
+    aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->y, ctx->base_ectr );
 
+    ctx->add_len = add_len;
     p = add;
     while( add_len > 0 )
     {
         use_len = ( add_len < 16 ) ? add_len : 16;
 
         for( i = 0; i < use_len; i++ )
-            buf[i] ^= p[i];
+            ctx->buf[i] ^= p[i];
 
-        gcm_mult( ctx, buf, buf );
+        gcm_mult( ctx, ctx->buf, ctx->buf );
 
         add_len -= use_len;
         p += use_len;
     }
+
+    return( 0 );
+}
+
+int gcm_update( gcm_context *ctx,
+                size_t length,
+                const unsigned char *input,
+                unsigned char *output )
+{
+    unsigned char ectr[16];
+    size_t i;
+    const unsigned char *p;
+    unsigned char *out_p = output;
+    size_t use_len;
+
+    if( output > input && (size_t) ( output - input ) < length )
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+
+    ctx->len += length;
 
     p = input;
     while( length > 0 )
@@ -253,26 +255,43 @@ int gcm_crypt_and_tag( gcm_context *ctx,
         use_len = ( length < 16 ) ? length : 16;
 
         for( i = 16; i > 12; i-- )
-            if( ++y[i - 1] != 0 )
+            if( ++ctx->y[i - 1] != 0 )
                 break;
 
-        aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, y, ectr );
+        aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->y, ectr );
 
         for( i = 0; i < use_len; i++ )
         {
-            if( mode == GCM_DECRYPT )
-                buf[i] ^= p[i];
+            if( ctx->mode == GCM_DECRYPT )
+                ctx->buf[i] ^= p[i];
             out_p[i] = ectr[i] ^ p[i];
-            if( mode == GCM_ENCRYPT )
-                buf[i] ^= out_p[i];
+            if( ctx->mode == GCM_ENCRYPT )
+                ctx->buf[i] ^= out_p[i];
         }
 
-        gcm_mult( ctx, buf, buf );
+        gcm_mult( ctx, ctx->buf, ctx->buf );
 
         length -= use_len;
         p += use_len;
         out_p += use_len;
     }
+
+    return( 0 );
+}
+
+int gcm_finish( gcm_context *ctx,
+                unsigned char *tag,
+                size_t tag_len )
+{
+    unsigned char work_buf[16];
+    size_t i;
+    uint64_t orig_len = ctx->len * 8;
+    uint64_t orig_add_len = ctx->add_len * 8;
+
+    memcpy( tag, ctx->base_ectr, tag_len );
+
+    if( tag_len > 16 )
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
 
     if( orig_len || orig_add_len )
     {
@@ -284,13 +303,39 @@ int gcm_crypt_and_tag( gcm_context *ctx,
         PUT_UINT32_BE( ( orig_len           ), work_buf, 12 );
 
         for( i = 0; i < 16; i++ )
-            buf[i] ^= work_buf[i];
+            ctx->buf[i] ^= work_buf[i];
 
-        gcm_mult( ctx, buf, buf );
+        gcm_mult( ctx, ctx->buf, ctx->buf );
 
         for( i = 0; i < tag_len; i++ )
-            tag[i] ^= buf[i];
+            tag[i] ^= ctx->buf[i];
     }
+
+    return( 0 );
+}
+
+int gcm_crypt_and_tag( gcm_context *ctx,
+                       int mode,
+                       size_t length,
+                       const unsigned char *iv,
+                       size_t iv_len,
+                       const unsigned char *add,
+                       size_t add_len,
+                       const unsigned char *input,
+                       unsigned char *output,
+                       size_t tag_len,
+                       unsigned char *tag )
+{
+    int ret;
+
+    if( ( ret = gcm_starts( ctx, mode, iv, iv_len, add, add_len ) ) != 0 )
+        return( ret );
+
+    if( ( ret = gcm_update( ctx, length, input, output ) ) != 0 )
+        return( ret );
+
+    if( ( ret = gcm_finish( ctx, tag, tag_len ) ) != 0 )
+        return( ret );
 
     return( 0 );
 }
@@ -562,7 +607,9 @@ int gcm_self_test( int verbose )
 
         for( i = 0; i < MAX_TESTS; i++ )
         {
-            printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "enc" );
+            if( verbose != 0 )
+                printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "enc" );
+
             gcm_init( &ctx, key[key_index[i]], key_len );
 
             ret = gcm_crypt_and_tag( &ctx, GCM_ENCRYPT,
@@ -584,7 +631,9 @@ int gcm_self_test( int verbose )
             if( verbose != 0 )
                 printf( "passed\n" );
 
-            printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "dec" );
+            if( verbose != 0 )
+                printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "dec" );
+
             gcm_init( &ctx, key[key_index[i]], key_len );
 
             ret = gcm_crypt_and_tag( &ctx, GCM_DECRYPT,
@@ -605,10 +654,138 @@ int gcm_self_test( int verbose )
 
             if( verbose != 0 )
                 printf( "passed\n" );
+
+            if( verbose != 0 )
+                printf( "  AES-GCM-%3d #%d split (%s): ", key_len, i, "enc" );
+
+            gcm_init( &ctx, key[key_index[i]], key_len );
+
+            ret = gcm_starts( &ctx, GCM_ENCRYPT,
+                              iv[iv_index[i]], iv_len[i],
+                              additional[add_index[i]], add_len[i] );
+            if( ret != 0 )
+            {
+                if( verbose != 0 )
+                    printf( "failed\n" );
+
+                return( 1 );
+            }
+
+            if( pt_len[i] > 32 )
+            {
+                size_t rest_len = pt_len[i] - 32;
+                ret = gcm_update( &ctx, 32, pt[pt_index[i]], buf );
+                if( ret != 0 )
+                {
+                    if( verbose != 0 )
+                        printf( "failed\n" );
+
+                    return( 1 );
+                }
+
+                ret = gcm_update( &ctx, rest_len, pt[pt_index[i]] + 32, buf + 32 );
+                if( ret != 0 )
+                {
+                    if( verbose != 0 )
+                        printf( "failed\n" );
+
+                    return( 1 );
+                }
+            }
+            else
+            {
+                ret = gcm_update( &ctx, pt_len[i], pt[pt_index[i]], buf );
+                if( ret != 0 )
+                {
+                    if( verbose != 0 )
+                        printf( "failed\n" );
+
+                    return( 1 );
+                }
+            }
+
+            ret = gcm_finish( &ctx, tag_buf, 16 );
+            if( ret != 0 ||
+                memcmp( buf, ct[j * 6 + i], pt_len[i] ) != 0 ||
+                memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+            {
+                if( verbose != 0 )
+                    printf( "failed\n" );
+
+                return( 1 );
+            }
+
+            if( verbose != 0 )
+                printf( "passed\n" );
+
+            if( verbose != 0 )
+                printf( "  AES-GCM-%3d #%d split (%s): ", key_len, i, "dec" );
+
+            gcm_init( &ctx, key[key_index[i]], key_len );
+
+            ret = gcm_starts( &ctx, GCM_DECRYPT,
+                              iv[iv_index[i]], iv_len[i],
+                              additional[add_index[i]], add_len[i] );
+            if( ret != 0 )
+            {
+                if( verbose != 0 )
+                    printf( "failed\n" );
+
+                return( 1 );
+            }
+
+            if( pt_len[i] > 32 )
+            {
+                size_t rest_len = pt_len[i] - 32;
+                ret = gcm_update( &ctx, 32, ct[j * 6 + i], buf );
+                if( ret != 0 )
+                {
+                    if( verbose != 0 )
+                        printf( "failed\n" );
+
+                    return( 1 );
+                }
+
+                ret = gcm_update( &ctx, rest_len, ct[j * 6 + i] + 32, buf + 32 );
+                if( ret != 0 )
+                {
+                    if( verbose != 0 )
+                        printf( "failed\n" );
+
+                    return( 1 );
+                }
+            }
+            else
+            {
+                ret = gcm_update( &ctx, pt_len[i], ct[j * 6 + i], buf );
+                if( ret != 0 )
+                {
+                    if( verbose != 0 )
+                        printf( "failed\n" );
+
+                    return( 1 );
+                }
+            }
+
+            ret = gcm_finish( &ctx, tag_buf, 16 );
+            if( ret != 0 ||
+                memcmp( buf, pt[pt_index[i]], pt_len[i] ) != 0 ||
+                memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+            {
+                if( verbose != 0 )
+                    printf( "failed\n" );
+
+                return( 1 );
+            }
+
+            if( verbose != 0 )
+                printf( "passed\n" );
+
         }
     }
 
-    printf( "\n" );
+    if( verbose != 0 )
+        printf( "\n" );
 
     return( 0 );
 }

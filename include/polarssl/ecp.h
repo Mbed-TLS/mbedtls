@@ -36,6 +36,10 @@
 #define POLARSSL_ERR_ECP_BUFFER_TOO_SMALL                  -0x4F80  /**< The buffer is too small to write to. */
 #define POLARSSL_ERR_ECP_GENERIC                           -0x4F00  /**<  Generic ECP error */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief           ECP point structure (jacobian coordinates)
  *
@@ -133,11 +137,6 @@ ecp_group;
  * Some other constants from RFC 4492
  */
 #define POLARSSL_ECP_TLS_NAMED_CURVE    3   /**< ECCurveType's named_curve */
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief           Initialize a point (as zero)

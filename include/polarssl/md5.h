@@ -44,6 +44,10 @@ typedef UINT32 uint32_t;
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          MD5 context structure
  */
@@ -57,10 +61,6 @@ typedef struct
     unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 md5_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          MD5 context setup

@@ -254,6 +254,10 @@
 #define POLARSSL_PREMASTER_SIZE             POLARSSL_MPI_MAX_SIZE
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Generic function pointers for allowing external RSA private key
  * implementations.
@@ -546,10 +550,6 @@ struct _ssl_context
     char own_verify_data[36];           /*!<  previous handshake verify data */
     char peer_verify_data[36];          /*!<  previous handshake verify data */
 };
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 

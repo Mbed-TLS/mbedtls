@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -44,6 +44,10 @@
 #define inline __inline
 #endif /* __ARMCC_VERSION */
 #endif /*_MSC_VER */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Context for PKCS #11 private keys.
@@ -155,6 +159,10 @@ static inline size_t ssl_pkcs11_key_len( void *ctx )
 {
     return ( (pkcs11_context *) ctx )->len;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* POLARSSL_PKCS11_C */
 

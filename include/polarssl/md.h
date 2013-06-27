@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -43,6 +43,10 @@
 #define POLARSSL_ERR_MD_BAD_INPUT_DATA                     -0x5100  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_MD_ALLOC_FAILED                       -0x5180  /**< Failed to allocate memory. */
 #define POLARSSL_ERR_MD_FILE_IO_ERROR                      -0x5200  /**< Opening or reading of file failed. */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum {
     POLARSSL_MD_NONE=0,
@@ -130,10 +134,6 @@ typedef struct {
     NULL, /* md_info */ \
     NULL, /* md_ctx */ \
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief Returns the list of digests supported by the generic digest module.

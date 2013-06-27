@@ -3,7 +3,7 @@
  *
  * \brief Galois/Counter mode for AES
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -42,6 +42,10 @@ typedef UINT64 uint64_t;
 #define POLARSSL_ERR_GCM_AUTH_FAILED                       -0x0012  /**< Authenticated decryption failed. */
 #define POLARSSL_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          GCM context structure
  */
@@ -57,10 +61,6 @@ typedef struct {
     int mode;                   /*!< Encrypt or Decrypt */
 }
 gcm_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief           GCM initialization (encryption)

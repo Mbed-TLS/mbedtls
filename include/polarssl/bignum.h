@@ -158,6 +158,10 @@ typedef uint32_t t_udbl;
 #endif /* POLARSSL_HAVE_INT16 */
 #endif /* POLARSSL_HAVE_INT8  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          MPI structure
  */
@@ -168,10 +172,6 @@ typedef struct
     t_uint *p;          /*!<  pointer to limbs  */
 }
 mpi;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief           Initialize one MPI

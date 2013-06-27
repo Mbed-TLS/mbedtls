@@ -35,6 +35,10 @@
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          ARC4 context structure
  */
@@ -45,10 +49,6 @@ typedef struct
     unsigned char m[256];       /*!< permutation table */
 }
 arc4_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          ARC4 key schedule

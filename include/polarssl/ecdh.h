@@ -29,6 +29,10 @@
 
 #include "polarssl/ecp.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief           ECDH context structure
  */
@@ -42,10 +46,6 @@ typedef struct
     int point_format;   /*!<  format for point export   */
 }
 ecdh_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief           Generate a public key

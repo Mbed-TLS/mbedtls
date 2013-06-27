@@ -45,6 +45,10 @@
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          SHA-512 context structure
  */
@@ -59,10 +63,6 @@ typedef struct
     int is384;                  /*!< 0 => SHA-512, else SHA-384 */
 }
 sha4_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          SHA-512 context setup

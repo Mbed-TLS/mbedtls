@@ -44,6 +44,10 @@ typedef UINT32 uint32_t;
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          SHA-256 context structure
  */
@@ -58,10 +62,6 @@ typedef struct
     int is224;                  /*!< 0 => SHA-256, else SHA-224 */
 }
 sha2_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          SHA-256 context setup

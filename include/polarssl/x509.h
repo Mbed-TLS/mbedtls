@@ -3,7 +3,7 @@
  *
  * \brief X.509 certificate and private key decoding
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -139,6 +139,10 @@
  */
 #define X509_FORMAT_DER                 1
 #define X509_FORMAT_PEM                 2
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** 
  * \addtogroup x509_module
@@ -319,10 +323,6 @@ typedef struct _x509_raw
 }
 x509_raw;
 */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \name Functions to read in DHM parameters, a certificate, CRL or private RSA key

@@ -46,6 +46,10 @@
 #define POLARSSL_ERR_CIPHER_INVALID_PADDING                -0x6200  /**< Input data contains invalid padding and is rejected. */
 #define POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED            -0x6280  /**< Decryption of block requires a full block. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
     POLARSSL_CIPHER_ID_NONE = 0,
     POLARSSL_CIPHER_ID_NULL,
@@ -206,10 +210,6 @@ typedef struct {
     /** Cipher-specific context */
     void *cipher_ctx;
 } cipher_context_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief Returns the list of ciphers supported by the generic cipher module.

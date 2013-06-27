@@ -3,7 +3,7 @@
  *
  * \brief ASN.1 buffer writing functionality
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -31,6 +31,10 @@
 
 #define ASN1_CHK_ADD(g, f) if( ( ret = f ) < 0 ) return( ret ); else g += ret
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int asn1_write_len( unsigned char **p, unsigned char *start, size_t len );
 int asn1_write_tag( unsigned char **p, unsigned char *start, unsigned char tag );
 #if defined(POLARSSL_BIGNUM_C)
@@ -44,5 +48,9 @@ int asn1_write_printable_string( unsigned char **p, unsigned char *start,
                                  char *text );
 int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
                                  char *text );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* POLARSSL_ASN1_WRITE_H */

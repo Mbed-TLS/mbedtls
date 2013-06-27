@@ -52,6 +52,10 @@ typedef UINT32 uint32_t;
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          Blowfish context structure
  */
@@ -61,10 +65,6 @@ typedef struct
     uint32_t S[4][256];                 /*!<  key dependent S-boxes  */
 }
 blowfish_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Blowfish key schedule

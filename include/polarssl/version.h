@@ -3,7 +3,7 @@
  *
  * \brief Run-time version information
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -52,6 +52,10 @@
 
 #if defined(POLARSSL_VERSION_C)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Get the version number.
  *
@@ -75,6 +79,10 @@ void version_get_string( char *string );
  *                  (Should be at least 18 bytes in size)
  */
 void version_get_string_full( char *string );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* POLARSSL_VERSION_C */
 

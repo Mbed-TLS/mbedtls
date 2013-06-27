@@ -47,6 +47,10 @@ typedef UINT32 uint32_t;
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          XTEA context structure
  */
@@ -55,10 +59,6 @@ typedef struct
     uint32_t k[4];       /*!< key */
 }
 xtea_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          XTEA key schedule

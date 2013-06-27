@@ -49,6 +49,10 @@ typedef UINT32 uint32_t;
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          DES context structure
  */
@@ -68,10 +72,6 @@ typedef struct
     uint32_t sk[96];            /*!<  3DES subkeys      */
 }
 des3_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Set key parity on the given key to odd.

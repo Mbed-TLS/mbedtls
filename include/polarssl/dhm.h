@@ -3,7 +3,7 @@
  *
  * \brief Diffie-Hellman-Merkle key exchange
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -130,6 +130,10 @@
     "EDFE72FE9B6AA4BD7B5A0F1C71CFFF4C19C418E1F6EC0179"\
     "81BC087F2A7065B384B890D3191F2BFA"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          DHM context structure
  */
@@ -145,10 +149,6 @@ typedef struct
     mpi RP;     /*!<  cached R^2 mod P  */
 }
 dhm_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Parse the ServerKeyExchange parameters

@@ -46,6 +46,10 @@
 #define POLARSSL_ERR_PEM_BAD_INPUT_DATA                    -0x1480  /**< Bad input parameters to function. */
 /* \} name */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief       PEM context structure
  */
@@ -56,10 +60,6 @@ typedef struct
     unsigned char *info;    /*!< buffer for extra header information */
 }
 pem_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief       PEM context setup

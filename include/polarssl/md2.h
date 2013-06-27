@@ -37,6 +37,10 @@
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          MD2 context structure
  */
@@ -51,10 +55,6 @@ typedef struct
     size_t left;                /*!< amount of data in buffer   */
 }
 md2_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          MD2 context setup

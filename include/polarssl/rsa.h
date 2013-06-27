@@ -3,7 +3,7 @@
  *
  * \brief The RSA public-key cryptosystem
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -59,6 +59,10 @@
 #define RSA_SIGN        1
 #define RSA_CRYPT       2
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          RSA context structure
  */
@@ -89,10 +93,6 @@ typedef struct
                                       encoding                          */
 }
 rsa_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Initialize an RSA context

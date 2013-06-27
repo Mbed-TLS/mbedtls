@@ -48,6 +48,10 @@ typedef UINT32 uint32_t;
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          CAMELLIA context structure
  */
@@ -57,10 +61,6 @@ typedef struct
     uint32_t rk[68];            /*!<  CAMELLIA round keys    */
 }
 camellia_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          CAMELLIA key schedule (encryption)

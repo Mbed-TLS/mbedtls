@@ -85,6 +85,20 @@ int ecdsa_verify( const ecp_group *grp,
                   const ecp_point *Q, const mpi *r, const mpi *s);
 
 /**
+ * \brief           Initialize context
+ *
+ * \param ctx       Context to initialize
+ */
+void ecdsa_init( ecdsa_context *ctx );
+
+/**
+ * \brief           Free context
+ *
+ * \param ctx       Context to free
+ */
+void ecdsa_free( ecdsa_context *ctx );
+
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

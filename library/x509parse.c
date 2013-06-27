@@ -1985,6 +1985,53 @@ int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path )
 
     return( ret );
 }
+
+#if defined(POLARSSL_ECP_C)
+/*
+ * Load and parse a private EC key
+ */
+int x509parse_keyfile_ec( ecp_keypair *eckey,
+                          const char *path, const char *pwd )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
+
+    if( pwd == NULL )
+        ret = x509parse_key_ec( eckey, buf, n, NULL, 0 );
+    else
+        ret = x509parse_key_ec( eckey, buf, n,
+                (const unsigned char *) pwd, strlen( pwd ) );
+
+    memset( buf, 0, n + 1 );
+    free( buf );
+
+    return( ret );
+}
+
+/*
+ * Load and parse a public EC key
+ */
+int x509parse_public_keyfile_ec( ecp_keypair *eckey, const char *path )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
+
+    ret = x509parse_public_key_ec( eckey, buf, n );
+
+    memset( buf, 0, n + 1 );
+    free( buf );
+
+    return( ret );
+}
+#endif /* defined(POLARSSL_ECP_C) */
 #endif /* POLARSSL_FS_IO */
 
 /*
@@ -2454,6 +2501,141 @@ int x509parse_public_key_rsa( rsa_context *rsa,
 
     return( 0 );
 }
+
+#if defined(POLARSSL_ECP_C)
+/*
+ * Parse a private EC key
+ */
+int x509parse_key_ec( ecp_keypair *eckey,
+                         const unsigned char *key, size_t keylen,
+                         const unsigned char *pwd, size_t pwdlen )
+{
+    int ret;
+
+#if defined(POLARSSL_PEM_C)
+    size_t len;
+    pem_context pem;
+
+    pem_init( &pem );
+    /* TODO: get list of correct PEM headers */
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN EC PRIVATE KEY-----",
+                           "-----END EC PRIVATE KEY-----",
+                           key, pwd, pwdlen, &len );
+    if( ret == 0 )
+    {
+        /* TODO: write der decoding function
+        if( ( ret = x509parse_key_pkcs8_encrypted_der( eckey,
+                                                pem.buf, pem.buflen,
+                                                pwd, pwdlen ) ) != 0 )
+        {
+            ecp_keypair_free( eckey );
+        }
+        */
+
+        pem_free( &pem );
+        return( ret );
+    }
+    else if( ret == POLARSSL_ERR_PEM_PASSWORD_MISMATCH )
+        return( POLARSSL_ERR_X509_PASSWORD_MISMATCH );
+    else if( ret == POLARSSL_ERR_PEM_PASSWORD_REQUIRED )
+        return( POLARSSL_ERR_X509_PASSWORD_REQUIRED );
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        return( ret );
+
+    /* TODO: now repeat with other valid PEM headers */
+
+#else
+    ((void) pwd);
+    ((void) pwdlen);
+#endif /* POLARSSL_PEM_C */
+
+    ((void) keylen);
+    /* TODO: write der decoding functions (encrypted, unencnrypted)
+    if( ( ret = x509parse_key_pkcs8_encrypted_der( eckey, key, keylen,
+                                                   pwd, pwdlen ) ) == 0 )
+    {
+        return( 0 );
+    }
+
+    ecp_keypair_free( eckey );
+
+    if( ret == POLARSSL_ERR_X509_PASSWORD_MISMATCH )
+    {
+        return( ret );
+    }
+
+    if( ( ret = x509parse_key_pkcs8_unencrypted_der( eckey, key, keylen ) )
+            == 0 )
+    {
+        return( 0 );
+    }
+    */
+
+    ecp_keypair_free( eckey );
+
+    return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
+}
+
+/*
+ * Parse a public EC key
+ */
+int x509parse_public_key_ec( ecp_keypair *eckey,
+                             const unsigned char *key, size_t keylen )
+{
+    int ret;
+    size_t len;
+    unsigned char *p, *end;
+    x509_buf alg_oid;
+#if defined(POLARSSL_PEM_C)
+    pem_context pem;
+
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem, /* TODO: check header */
+            "-----BEGIN PUBLIC KEY-----",
+            "-----END PUBLIC KEY-----",
+            key, NULL, 0, &len );
+
+    if( ret == 0 )
+    {
+        /*
+         * Was PEM encoded
+         */
+        keylen = pem.buflen;
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
+    }
+
+    p = ( ret == 0 ) ? pem.buf : (unsigned char *) key;
+#else
+    p = (unsigned char *) key;
+#endif
+    end = p + keylen;
+
+    /* TODO: parse key */
+    (void) alg_oid;
+    (void) end;
+    (void) eckey;
+
+    if( ( ret = ecp_check_pubkey( &eckey->grp, &eckey->Q ) ) != 0 )
+    {
+#if defined(POLARSSL_PEM_C)
+        pem_free( &pem );
+#endif
+        ecp_keypair_free( eckey );
+        return( ret );
+    }
+
+#if defined(POLARSSL_PEM_C)
+    pem_free( &pem );
+#endif
+
+    return( 0 );
+}
+#endif /* defined(POLARSSL_ECP_C) */
 
 #if defined(POLARSSL_DHM_C)
 /*

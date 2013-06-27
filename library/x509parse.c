@@ -1817,7 +1817,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = x509parse_crt( chain, buf, n );
@@ -1931,7 +1931,7 @@ int x509parse_crlfile( x509_crl *chain, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = x509parse_crl( chain, buf, n );
@@ -1951,7 +1951,7 @@ int x509parse_keyfile_rsa( rsa_context *rsa, const char *path, const char *pwd )
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     if( pwd == NULL )
@@ -1975,7 +1975,7 @@ int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = x509parse_public_key_rsa( rsa, buf, n );
@@ -2541,7 +2541,7 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
 
 #if defined(POLARSSL_FS_IO)
 /*
- * Load and parse a private RSA key
+ * Load and parse DHM parameters
  */
 int x509parse_dhmfile( dhm_context *dhm, const char *path )
 {

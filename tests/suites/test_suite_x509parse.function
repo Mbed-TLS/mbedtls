@@ -180,6 +180,27 @@ x509parse_public_keyfile_rsa:key_file:result
 END_CASE
 
 BEGIN_CASE
+x509parse_public_keyfile_ec:key_file:result
+{
+    ecp_keypair eckey;
+    int res;
+
+    ecp_keypair_init( &eckey );
+
+    res = x509parse_public_keyfile_ec( &eckey, {key_file} );
+
+    TEST_ASSERT( res == {result} );
+
+    if( res == 0 )
+    {
+        TEST_ASSERT( ecp_check_pubkey( &eckey.grp, &eckey.Q ) == 0 );
+    }
+
+    ecp_keypair_free( &eckey );
+}
+END_CASE
+
+BEGIN_CASE
 x509parse_crt:crt_data:result_str:result
 {
     x509_cert   crt;

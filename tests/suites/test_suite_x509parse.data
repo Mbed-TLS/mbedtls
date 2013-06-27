@@ -186,6 +186,14 @@ X509 Parse Public RSA Key #1 (PKCS#8 wrapped)
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509parse_public_keyfile_rsa:"data_files/format_gen.pub":0
 
+X509 Parse Public EC Key #1 (RFC 5480, DER)
+depends_on:POLARSSL_ECP_C:POLARSSL_FS_IO
+x509parse_public_keyfile_ec:"data_files/ec_pub.der":0
+
+X509 Parse Public EC Key #2 (RFC 5480, PEM)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_FS_IO
+x509parse_public_keyfile_ec:"data_files/ec_pub.pem":0
+
 X509 Get Distinguished Name #1
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_dn_gets:"data_files/server1.crt":subject:"C=NL, O=PolarSSL, CN=PolarSSL Server 1"

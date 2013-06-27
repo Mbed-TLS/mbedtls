@@ -101,7 +101,7 @@ int main( int argc, char *argv[] )
 
     rsa_init( &rsa, RSA_PKCS_V21, POLARSSL_MD_SHA1 );
 
-    if( ( ret = x509parse_keyfile( &rsa, argv[1], "" ) ) != 0 )
+    if( ( ret = x509parse_keyfile_rsa( &rsa, argv[1], "" ) ) != 0 )
     {
         ret = 1;
         printf( " failed\n  ! Could not open '%s'\n", argv[1] );

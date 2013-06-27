@@ -138,14 +138,14 @@ x509_time_expired:crt_file:entity:result
 END_CASE
 
 BEGIN_CASE
-x509parse_keyfile:key_file:password:result
+x509parse_keyfile_rsa:key_file:password:result
 {
     rsa_context rsa;
     int res;
 
     memset( &rsa, 0, sizeof( rsa_context ) );
 
-    res = x509parse_keyfile( &rsa, {key_file}, {password} );
+    res = x509parse_keyfile_rsa( &rsa, {key_file}, {password} );
 
     TEST_ASSERT( res == {result} );
 
@@ -159,14 +159,14 @@ x509parse_keyfile:key_file:password:result
 END_CASE
 
 BEGIN_CASE
-x509parse_public_keyfile:key_file:result
+x509parse_public_keyfile_rsa:key_file:result
 {
     rsa_context rsa;
     int res;
 
     memset( &rsa, 0, sizeof( rsa_context ) );
 
-    res = x509parse_public_keyfile( &rsa, {key_file} );
+    res = x509parse_public_keyfile_rsa( &rsa, {key_file} );
 
     TEST_ASSERT( res == {result} );
 
@@ -238,7 +238,7 @@ x509parse_crl:crl_data:result_str:result
 END_CASE
 
 BEGIN_CASE
-x509parse_key:key_data:result_str:result
+x509parse_key_rsa:key_data:result_str:result
 {
     rsa_context   rsa;
     unsigned char buf[2000];
@@ -251,7 +251,7 @@ x509parse_key:key_data:result_str:result
 
     data_len = unhexify( buf, {key_data} );
 
-    TEST_ASSERT( x509parse_key( &rsa, buf, data_len, NULL, 0 ) == ( {result} ) );
+    TEST_ASSERT( x509parse_key_rsa( &rsa, buf, data_len, NULL, 0 ) == ( {result} ) );
     if( ( {result} ) == 0 )
     {
         TEST_ASSERT( 1 );

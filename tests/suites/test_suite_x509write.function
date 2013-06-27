@@ -41,7 +41,7 @@ x509_cert_req_check:key_file:md_type:cert_req_check_file
     strcpy( cur->name, "NL" );
 
     memset( &rsa, 0, sizeof(rsa_context) );
-    ret = x509parse_keyfile( &rsa, {key_file}, NULL );
+    ret = x509parse_keyfile_rsa( &rsa, {key_file}, NULL );
     TEST_ASSERT( ret == 0 );
     if( ret != 0 )
         return 0;

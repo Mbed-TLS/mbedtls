@@ -1945,7 +1945,7 @@ int x509parse_crlfile( x509_crl *chain, const char *path )
 /*
  * Load and parse a private RSA key
  */
-int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
+int x509parse_keyfile_rsa( rsa_context *rsa, const char *path, const char *pwd )
 {
     int ret;
     size_t n;
@@ -1955,9 +1955,9 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
         return( ret );
 
     if( pwd == NULL )
-        ret = x509parse_key( rsa, buf, n, NULL, 0 );
+        ret = x509parse_key_rsa( rsa, buf, n, NULL, 0 );
     else
-        ret = x509parse_key( rsa, buf, n,
+        ret = x509parse_key_rsa( rsa, buf, n,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
     memset( buf, 0, n + 1 );
@@ -1969,7 +1969,7 @@ int x509parse_keyfile( rsa_context *rsa, const char *path, const char *pwd )
 /*
  * Load and parse a public RSA key
  */
-int x509parse_public_keyfile( rsa_context *rsa, const char *path )
+int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path )
 {
     int ret;
     size_t n;
@@ -1978,7 +1978,7 @@ int x509parse_public_keyfile( rsa_context *rsa, const char *path )
     if ( (ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
-    ret = x509parse_public_key( rsa, buf, n );
+    ret = x509parse_public_key_rsa( rsa, buf, n );
 
     memset( buf, 0, n + 1 );
     polarssl_free( buf );
@@ -2258,8 +2258,9 @@ static int x509parse_key_pkcs8_encrypted_der(
 /*
  * Parse a private RSA key
  */
-int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
-                                     const unsigned char *pwd, size_t pwdlen )
+int x509parse_key_rsa( rsa_context *rsa,
+                       const unsigned char *key, size_t keylen,
+                       const unsigned char *pwd, size_t pwdlen )
 {
     int ret;
 
@@ -2365,7 +2366,8 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
 /*
  * Parse a public RSA key
  */
-int x509parse_public_key( rsa_context *rsa, const unsigned char *key, size_t keylen )
+int x509parse_public_key_rsa( rsa_context *rsa,
+                              const unsigned char *key, size_t keylen )
 {
     int ret;
     size_t len;
@@ -3562,7 +3564,7 @@ int x509_self_test( int verbose )
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
-    if( ( ret = x509parse_key( &rsa,
+    if( ( ret = x509parse_key_rsa( &rsa,
                     (const unsigned char *) test_ca_key, i,
                     (const unsigned char *) test_ca_pwd, j ) ) != 0 )
     {

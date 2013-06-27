@@ -533,11 +533,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = x509parse_keyfile( &rsa, opt.key_file, "" );
+        ret = x509parse_keyfile_rsa( &rsa, opt.key_file, "" );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_key( &rsa, (const unsigned char *) test_cli_key,
+        ret = x509parse_key_rsa( &rsa, (const unsigned char *) test_cli_key,
                 strlen( test_cli_key ), NULL, 0 );
 #else
     {
@@ -547,7 +547,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_key returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509parse_key_rsa returned -0x%x\n\n", -ret );
         goto exit;
     }
 

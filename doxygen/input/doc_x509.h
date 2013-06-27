@@ -11,8 +11,8 @@
  *   \c x509parse_crtfile()).
  * - X.509 certificate revocation list (CRL) reading (see \c x509parse_crl()
  *   and\c x509parse_crlfile()).
- * - X.509 (RSA) private key reading (see \c x509parse_key() and
- *   \c x509parse_keyfile()).
+ * - X.509 (RSA) private key reading (see \c x509parse_key_rsa() and
+ *   \c x509parse_keyfile_rsa()).
  * - X.509 certificate signature verification (see \c x509parse_verify())
  *
  * This module can be used to build a certificate authority (CA) chain and

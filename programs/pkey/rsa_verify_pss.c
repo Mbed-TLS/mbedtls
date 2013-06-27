@@ -83,9 +83,9 @@ int main( int argc, char *argv[] )
 
     rsa_init( &rsa, RSA_PKCS_V21, POLARSSL_MD_SHA1 );
 
-    if( ( ret = x509parse_public_keyfile( &rsa, argv[1] ) ) != 0 )
+    if( ( ret = x509parse_public_keyfile_rsa( &rsa, argv[1] ) ) != 0 )
     {
-        printf( " failed\n  ! x509parse_public_key returned %d\n\n", ret );
+        printf( " failed\n  ! x509parse_public_key_rsa returned %d\n\n", ret );
         goto exit;
     }
 

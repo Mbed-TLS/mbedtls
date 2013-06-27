@@ -164,14 +164,14 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = x509parse_keyfile( &rsa, opt.filename, opt.password );
+        ret = x509parse_keyfile_rsa( &rsa, opt.filename, opt.password );
 
         if( ret != 0 )
         {
 #ifdef POLARSSL_ERROR_C
             polarssl_strerror( ret, buf, 1024 );
 #endif
-            printf( " failed\n  !  x509parse_key returned %d - %s\n\n", ret, buf );
+            printf( " failed\n  !  x509parse_key_rsa returned %d - %s\n\n", ret, buf );
             rsa_free( &rsa );
             goto exit;
         }
@@ -199,14 +199,14 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the public key ..." );
         fflush( stdout );
 
-        ret = x509parse_public_keyfile( &rsa, opt.filename );
+        ret = x509parse_public_keyfile_rsa( &rsa, opt.filename );
 
         if( ret != 0 )
         {
 #ifdef POLARSSL_ERROR_C
             polarssl_strerror( ret, buf, 1024 );
 #endif
-            printf( " failed\n  !  x509parse_public_key returned %d - %s\n\n", ret, buf );
+            printf( " failed\n  !  x509parse_public_key_rsa returned %d - %s\n\n", ret, buf );
             rsa_free( &rsa );
             goto exit;
         }

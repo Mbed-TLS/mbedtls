@@ -427,9 +427,9 @@ int x509parse_crlfile( x509_crl *chain, const char *path );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_key( rsa_context *rsa,
-                   const unsigned char *key, size_t keylen,
-                   const unsigned char *pwd, size_t pwdlen );
+int x509parse_key_rsa( rsa_context *rsa,
+                       const unsigned char *key, size_t keylen,
+                       const unsigned char *pwd, size_t pwdlen );
 
 /** \ingroup x509_module */
 /**
@@ -441,8 +441,8 @@ int x509parse_key( rsa_context *rsa,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_keyfile( rsa_context *rsa, const char *path,
-                       const char *password );
+int x509parse_keyfile_rsa( rsa_context *rsa, const char *path,
+                           const char *password );
 
 /** \ingroup x509_module */
 /**
@@ -454,8 +454,8 @@ int x509parse_keyfile( rsa_context *rsa, const char *path,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_public_key( rsa_context *rsa,
-                   const unsigned char *key, size_t keylen );
+int x509parse_public_key_rsa( rsa_context *rsa,
+                       const unsigned char *key, size_t keylen );
 
 /** \ingroup x509_module */
 /**
@@ -466,7 +466,7 @@ int x509parse_public_key( rsa_context *rsa,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_public_keyfile( rsa_context *rsa, const char *path );
+int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path );
 
 /** \ingroup x509_module */
 /**

@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     rsa_init( &p_rsa, RSA_PKCS_V15, 0 );
-    if( x509parse_keyfile( &p_rsa, argv[1], NULL ) != 0 )
+    if( x509parse_keyfile_rsa( &p_rsa, argv[1], NULL ) != 0 )
     {
         ret = 1;
         printf( " failed\n  ! Could not load key.\n\n" );

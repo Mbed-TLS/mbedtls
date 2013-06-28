@@ -414,6 +414,34 @@ int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str )
     return( POLARSSL_ERR_OID_NOT_FOUND );
 }
 
+/*
+ * For PKCS#12 PBEs
+ */
+typedef struct {
+    oid_descriptor_t    descriptor;
+    md_type_t           md_alg;
+    cipher_type_t       cipher_alg;
+} oid_pkcs12_pbe_alg_t;
+
+static const oid_pkcs12_pbe_alg_t oid_pkcs12_pbe_alg[] =
+{
+    {
+        { OID_PKCS12_PBE_SHA1_DES3_EDE_CBC, "pbeWithSHAAnd3-KeyTripleDES-CBC", "PBE with SHA1 and 3-Key 3DES" },
+        POLARSSL_MD_SHA1,      POLARSSL_CIPHER_DES_EDE3_CBC,
+    },
+    {
+        { OID_PKCS12_PBE_SHA1_DES2_EDE_CBC, "pbeWithSHAAnd2-KeyTripleDES-CBC", "PBE with SHA1 and 2-Key 3DES" },
+        POLARSSL_MD_SHA1,      POLARSSL_CIPHER_DES_EDE_CBC,
+    },
+    {
+        { NULL, NULL, NULL },
+        0, 0,
+    },
+};
+
+FN_OID_TYPED_FROM_ASN1(oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, oid_pkcs12_pbe_alg);
+FN_OID_GET_ATTR2(oid_get_pkcs12_pbe_alg, oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, md_type_t, md_alg, cipher_type_t, cipher_alg);
+
 #if defined _MSC_VER && !defined snprintf
 #include <stdarg.h>
 

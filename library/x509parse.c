@@ -2193,6 +2193,10 @@ static int x509parse_key_pkcs8_encrypted_der(
     unsigned char *p, *end, *end2;
     x509_buf pbe_alg_oid, pbe_params;
     unsigned char buf[2048];
+#if defined(POLARSSL_PKCS12_C)
+    cipher_type_t cipher_alg;
+    md_type_t md_alg;
+#endif
 
     memset(buf, 0, 2048);
 
@@ -2256,22 +2260,10 @@ static int x509parse_key_pkcs8_encrypted_der(
      * Decrypt EncryptedData with appropriate PDE
      */
 #if defined(POLARSSL_PKCS12_C)
-    if( OID_CMP( OID_PKCS12_PBE_SHA1_DES3_EDE_CBC, &pbe_alg_oid ) )
+    if( oid_get_pkcs12_pbe_alg( &pbe_alg_oid, &md_alg, &cipher_alg ) == 0 )
     {
         if( ( ret = pkcs12_pbe( &pbe_params, PKCS12_PBE_DECRYPT,
-                                POLARSSL_CIPHER_DES_EDE3_CBC, POLARSSL_MD_SHA1,
-                                pwd, pwdlen, p, len, buf ) ) != 0 )
-        {
-            if( ret == POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH )
-                return( POLARSSL_ERR_X509_PASSWORD_MISMATCH );
-
-            return( ret );
-        }
-    }
-    else if( OID_CMP( OID_PKCS12_PBE_SHA1_DES2_EDE_CBC, &pbe_alg_oid ) )
-    {
-        if( ( ret = pkcs12_pbe( &pbe_params, PKCS12_PBE_DECRYPT,
-                                POLARSSL_CIPHER_DES_EDE_CBC, POLARSSL_MD_SHA1,
+                                cipher_alg, md_alg,
                                 pwd, pwdlen, p, len, buf ) ) != 0 )
         {
             if( ret == POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH )

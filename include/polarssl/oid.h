@@ -155,6 +155,7 @@
 #define OID_PKCS1               OID_PKCS "\x01" /**< pkcs-1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 1 } */
 #define OID_PKCS5               OID_PKCS "\x05" /**< pkcs-5 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 5 } */
 #define OID_PKCS9               OID_PKCS "\x09" /**< pkcs-9 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 9 } */
+#define OID_PKCS12              OID_PKCS "\x0c" /**< pkcs-12 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 12 } */
 
 /*
  * PKCS#1 OIDs
@@ -211,6 +212,18 @@
 #define OID_PKCS5_PBE_MD5_RC2_CBC       OID_PKCS5 "\x06" /**< pbeWithMD5AndRC2-CBC OBJECT IDENTIFIER ::= {pkcs-5 6} */
 #define OID_PKCS5_PBE_SHA1_DES_CBC      OID_PKCS5 "\x0a" /**< pbeWithSHA1AndDES-CBC OBJECT IDENTIFIER ::= {pkcs-5 10} */
 #define OID_PKCS5_PBE_SHA1_RC2_CBC      OID_PKCS5 "\x0b" /**< pbeWithSHA1AndRC2-CBC OBJECT IDENTIFIER ::= {pkcs-5 11} */
+
+/*
+ * PKCS#12 PBE OIDs
+ */
+#define OID_PKCS12_PBE                      OID_PKCS12 "\x01" /**< pkcs-12PbeIds OBJECT IDENTIFIER ::= {pkcs-12 1} */
+
+#define OID_PKCS12_PBE_SHA1_RC4_128         OID_PKCS12_PBE "\x01" /**< pbeWithSHAAnd128BitRC4 OBJECT IDENTIFIER ::= {pkcs-12PbeIds 1} */
+#define OID_PKCS12_PBE_SHA1_RC4_40          OID_PKCS12_PBE "\x02" /**< pbeWithSHAAnd40BitRC4 OBJECT IDENTIFIER ::= {pkcs-12PbeIds 2} */
+#define OID_PKCS12_PBE_SHA1_DES3_EDE_CBC    OID_PKCS12_PBE "\x03" /**< pbeWithSHAAnd3-KeyTripleDES-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 3} */
+#define OID_PKCS12_PBE_SHA1_DES2_EDE_CBC    OID_PKCS12_PBE "\x04" /**< pbeWithSHAAnd2-KeyTripleDES-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 4} */
+#define OID_PKCS12_PBE_SHA1_RC2_128_CBC     OID_PKCS12_PBE "\x05" /**< pbeWithSHAAnd128BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 5} */
+#define OID_PKCS12_PBE_SHA1_RC2_40_CBC      OID_PKCS12_PBE "\x06" /**< pbeWithSHAAnd40BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 6} */
 
 #ifdef __cplusplus
 extern "C" {
@@ -343,6 +356,21 @@ int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str );
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
 int oid_get_cipher_alg( const asn1_buf *oid, cipher_type_t *cipher_alg );
+
+#if defined(POLARSSL_PKCS12_C)
+/**
+ * \brief          Translate PKCS#12 PBE algorithm OID into md_type and
+ *                 cipher_type
+ *
+ * \param oid           OID to use
+ * \param md_alg        place to store message digest algorithm
+ * \param cipher_alg    place to store cipher algorithm
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_pkcs12_pbe_alg( const asn1_buf *oid, md_type_t *md_alg,
+                            cipher_type_t *cipher_alg );
+#endif /* POLARSSL_PKCS12_C */
 
 #ifdef __cplusplus
 }

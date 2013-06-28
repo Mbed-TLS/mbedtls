@@ -45,14 +45,6 @@
 #define PKCS12_PBE_DECRYPT      0
 #define PKCS12_PBE_ENCRYPT      1
 
-/*
- * PKCS#12 PBE types
- */
-#define OID_PKCS12               "\x2a\x86\x48\x86\xf7\x0d\x01\x0c"
-#define OID_PKCS12_PBE_SHA1_RC4_128         OID_PKCS12 "\x01\x01"
-#define OID_PKCS12_PBE_SHA1_DES3_EDE_CBC    OID_PKCS12 "\x01\x03"
-#define OID_PKCS12_PBE_SHA1_DES2_EDE_CBC    OID_PKCS12 "\x01\x04"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

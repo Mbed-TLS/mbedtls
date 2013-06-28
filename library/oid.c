@@ -84,6 +84,43 @@ int FN_NAME( const asn1_buf *oid, ATTR1_TYPE * ATTR1, ATTR2_TYPE * ATTR2 )  \
 }
 
 /*
+ * Macro to generate a function for retrieving the OID based on a single
+ * attribute from a oid_descriptor_t wrapper.
+ */
+#define FN_OID_GET_OID_BY_ATTR1(FN_NAME, TYPE_T, LIST, ATTR1_TYPE, ATTR1)   \
+int FN_NAME( ATTR1_TYPE ATTR1, const char **oid_str )                       \
+{                                                                           \
+    const TYPE_T *cur = LIST;                                               \
+    while( cur->descriptor.asn1 != NULL ) {                                 \
+        if( cur->ATTR1 == ATTR1 ) {                                         \
+            *oid_str = cur->descriptor.asn1;                                \
+            return( 0 );                                                    \
+        }                                                                   \
+        cur++;                                                              \
+    }                                                                       \
+    return( POLARSSL_ERR_OID_NOT_FOUND );                                   \
+}
+
+/*
+ * Macro to generate a function for retrieving the OID based on two
+ * attributes from a oid_descriptor_t wrapper.
+ */
+#define FN_OID_GET_OID_BY_ATTR2(FN_NAME, TYPE_T, LIST, ATTR1_TYPE, ATTR1,   \
+                                ATTR2_TYPE, ATTR2)                          \
+int FN_NAME( ATTR1_TYPE ATTR1, ATTR2_TYPE ATTR2, const char **oid_str )     \
+{                                                                           \
+    const TYPE_T *cur = LIST;                                               \
+    while( cur->descriptor.asn1 != NULL ) {                                 \
+        if( cur->ATTR1 == ATTR1 && cur->ATTR2 == ATTR2 ) {                  \
+            *oid_str = cur->descriptor.asn1;                                \
+            return( 0 );                                                    \
+        }                                                                   \
+        cur++;                                                              \
+    }                                                                       \
+    return( POLARSSL_ERR_OID_NOT_FOUND );                                   \
+}
+
+/*
  * Core generic function
  */
 static const oid_descriptor_t *oid_descriptor_from_buf( const void *struct_set,
@@ -271,26 +308,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
 FN_OID_TYPED_FROM_ASN1(oid_sig_alg_t, sig_alg, oid_sig_alg);
 FN_OID_GET_DESCRIPTOR_ATTR1(oid_get_sig_alg_desc, oid_sig_alg_t, sig_alg, const char *, description);
 FN_OID_GET_ATTR2(oid_get_sig_alg, oid_sig_alg_t, sig_alg, md_type_t, md_alg, pk_type_t, pk_alg);
-
-int oid_get_oid_by_sig_alg( pk_type_t pk_alg, md_type_t md_alg,
-                            const char **oid_str )
-{
-    const oid_sig_alg_t *cur = oid_sig_alg;
-
-    while( cur->descriptor.asn1 != NULL )
-    {
-        if( cur->pk_alg == pk_alg &&
-            cur->md_alg == md_alg )
-        {
-            *oid_str = cur->descriptor.asn1;
-            return( 0 );
-        }
-
-        cur++;
-    }
-
-    return( POLARSSL_ERR_OID_NOT_FOUND );
-}
+FN_OID_GET_OID_BY_ATTR2(oid_get_oid_by_sig_alg, oid_sig_alg_t, oid_sig_alg, pk_type_t, pk_alg, md_type_t, md_alg);
 #endif /* POLARSSL_MD_C */
 
 /*
@@ -400,24 +418,7 @@ static const oid_md_alg_t oid_md_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_md_alg_t, md_alg, oid_md_alg);
 FN_OID_GET_ATTR1(oid_get_md_alg, oid_md_alg_t, md_alg, md_type_t, md_alg);
-
-int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str )
-{
-    const oid_md_alg_t *cur = oid_md_alg;
-
-    while( cur->descriptor.asn1 != NULL )
-    {
-        if( cur->md_alg == md_alg )
-        {
-            *oid_str = cur->descriptor.asn1;
-            return( 0 );
-        }
-
-        cur++;
-    }
-
-    return( POLARSSL_ERR_OID_NOT_FOUND );
-}
+FN_OID_GET_OID_BY_ATTR1(oid_get_oid_by_md, oid_md_alg_t, oid_md_alg, md_type_t, md_alg);
 #endif /* POLARSSL_MD_C */
 
 #if defined(POLARSSL_PKCS12_C)

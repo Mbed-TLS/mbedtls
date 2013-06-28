@@ -40,6 +40,7 @@
 #include "polarssl/pkcs5.h"
 #include "polarssl/asn1.h"
 #include "polarssl/cipher.h"
+#include "polarssl/oid.h"
 
 static int pkcs5_parse_pbkdf2_params( unsigned char **p,
                                       const unsigned char *end,
@@ -117,6 +118,7 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     const md_info_t *md_info;
     const cipher_info_t *cipher_info;
     md_context_t md_ctx;
+    cipher_type_t cipher_alg;
     cipher_context_t cipher_ctx;
 
     p = pbe_params->p;
@@ -178,21 +180,10 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     enc_scheme_oid.p = p;
     p += enc_scheme_oid.len;
 
-#if defined(POLARSSL_DES_C)
-    // Only DES-CBC and DES-EDE3-CBC supported at the moment
-    //
-    if( OID_CMP( OID_DES_EDE3_CBC, &enc_scheme_oid ) )
-    {
-        cipher_info = cipher_info_from_type( POLARSSL_CIPHER_DES_EDE3_CBC );
-    }
-    else if( OID_CMP( OID_DES_CBC, &enc_scheme_oid ) )
-    {
-        cipher_info = cipher_info_from_type( POLARSSL_CIPHER_DES_CBC );
-    }
-    else
-#endif /* POLARSSL_DES_C */
+    if ( oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
+    cipher_info = cipher_info_from_type( cipher_alg );
     if( cipher_info == NULL )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 

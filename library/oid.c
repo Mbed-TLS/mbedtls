@@ -30,7 +30,6 @@
 #if defined(POLARSSL_OID_C)
 
 #include "polarssl/oid.h"
-#include "polarssl/md.h"
 #include "polarssl/rsa.h"
 
 #include <stdio.h>
@@ -194,6 +193,30 @@ static const oid_pk_alg_t oid_pk_alg[] =
     {
         { OID_PKCS1_RSA,      "rsaEncryption",   "RSA" },
         POLARSSL_PK_RSA,
+    },
+    {
+        { NULL, NULL, NULL },
+        0,
+    },
+};
+
+/*
+ * For PKCS#5 PBES2 encryption algorithm
+ */
+typedef struct {
+    oid_descriptor_t    descriptor;
+    cipher_type_t       cipher_alg;
+} oid_cipher_alg_t;
+
+static const oid_cipher_alg_t oid_cipher_alg[] =
+{
+    {
+        { OID_DES_CBC,              "desCBC",       "DES-CBC" },
+        POLARSSL_CIPHER_DES_CBC,
+    },
+    {
+        { OID_DES_EDE3_CBC,         "des-ede3-cbc", "DES-EDE3-CBC" },
+        POLARSSL_CIPHER_DES_EDE3_CBC,
     },
     {
         { NULL, NULL, NULL },
@@ -452,6 +475,14 @@ static const oid_md_alg_t *oid_md_alg_from_asn1( const asn1_buf *oid )
                                 oid );
 }
 
+static const oid_cipher_alg_t *oid_cipher_alg_from_asn1( const asn1_buf *oid )
+{
+    return (const oid_cipher_alg_t *) oid_descriptor_from_asn1(
+                                oid_cipher_alg,
+                                sizeof(oid_cipher_alg_t),
+                                oid );
+}
+
 int oid_get_attr_short_name( const asn1_buf *oid, const char **short_name )
 {
     const oid_x520_attr_t *data = oid_x520_attr_from_asn1( oid );
@@ -552,6 +583,19 @@ int oid_get_oid_by_md( md_type_t md_alg,
     }
 
     return( POLARSSL_ERR_OID_NOT_FOUND );
+}
+
+int oid_get_cipher_alg( const asn1_buf *oid,
+                        cipher_type_t *cipher_alg )
+{
+    const oid_cipher_alg_t *data = oid_cipher_alg_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *cipher_alg = data->cipher_alg;
+
+    return( 0 );
 }
 
 #endif /* POLARSSL_OID_C */

@@ -29,6 +29,7 @@
 
 #include <string.h>
 #include "asn1.h"
+#include "cipher.h"
 #include "md.h"
 #include "pk.h"
 #include "x509.h"
@@ -55,7 +56,10 @@
  * ISO Identified organization OID parts
  */
 #define OID_ORG_DOD                     "\x06"          /* {dod(6)} */
-#define OID_OIW_SECSIG_SHA1             "\x0e\x03\x02\x1a"
+#define OID_ORG_OIW                     "\x0e"
+#define OID_OIW_SECSIG                  OID_ORG_OIW "\x03"
+#define OID_OIW_SECSIG_ALG              OID_OIW_SECSIG "\x02"
+#define OID_OIW_SECSIG_SHA1             OID_OIW_SECSIG_ALG "\x1a"
 
 /*
  * ISO ITU OID parts
@@ -143,10 +147,18 @@
 #define OID_TIME_STAMPING               OID_KP "\x08" /**< id-kp-timeStamping OBJECT IDENTIFIER ::= { id-kp 8 } */
 #define OID_OCSP_SIGNING                OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
 
+/*
+ * PKCS definition OIDs
+ */
+
 #define OID_PKCS                OID_RSA_COMPANY "\x01" /**< pkcs OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) 1 } */
 #define OID_PKCS1               OID_PKCS "\x01" /**< pkcs-1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 1 } */
+#define OID_PKCS5               OID_PKCS "\x05" /**< pkcs-5 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 5 } */
 #define OID_PKCS9               OID_PKCS "\x09" /**< pkcs-9 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 9 } */
 
+/*
+ * PKCS#1 OIDs
+ */
 #define OID_PKCS1_RSA           OID_PKCS1 "\x01" /**< rsaEncryption OBJECT IDENTIFIER ::= { pkcs-1 1 } */
 #define OID_PKCS1_MD2           OID_PKCS1 "\x02" /**< md2WithRSAEncryption ::= { pkcs-1 2 } */
 #define OID_PKCS1_MD4           OID_PKCS1 "\x03" /**< md4WithRSAEncryption ::= { pkcs-1 3 } */
@@ -161,6 +173,9 @@
 
 #define OID_PKCS9_EMAIL         OID_PKCS9 "\x01" /**< emailAddress AttributeType ::= { pkcs-9 1 } */
 
+/*
+ * Digest algorithms
+ */
 #define OID_DIGEST_ALG_MD2              OID_RSA_COMPANY "\x02\x02" /**< id-md2 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 2 } */
 #define OID_DIGEST_ALG_MD4              OID_RSA_COMPANY "\x02\x04" /**< id-md4 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 4 } */
 #define OID_DIGEST_ALG_MD5              OID_RSA_COMPANY "\x02\x05" /**< id-md5 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 5 } */
@@ -171,6 +186,31 @@
 #define OID_DIGEST_ALG_SHA384           OID_GOV "\x03\x04\x02\x02" /**< id-sha384 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 2 } */
 
 #define OID_DIGEST_ALG_SHA512           OID_GOV "\x03\x04\x02\x03" /**< id-sha512 OBJECT IDENTIFIER ::= { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistalgorithm(4) hashalgs(2) 3 } */
+
+#define OID_HMAC_SHA1                   OID_RSA_COMPANY "\x02\x07" /**< id-hmacWithSHA1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 7 } */
+
+/*
+ * Encryption algorithms
+ */
+#define OID_DES_CBC                     OID_ISO_IDENTIFIED_ORG OID_OIW_SECSIG_ALG "\x07" /**< desCBC OBJECT IDENTIFIER ::= { iso(1) identified-organization(3) oiw(14) secsig(3) algorithms(2) 7 } */
+#define OID_DES_EDE3_CBC                OID_RSA_COMPANY "\x03\x07" /**< des-ede3-cbc OBJECT IDENTIFIER ::= { iso(1) member-body(2) -- us(840) rsadsi(113549) encryptionAlgorithm(3) 7 } */
+
+/*
+ * PKCS#5 OIDs
+ */
+#define OID_PKCS5_PBKDF2                OID_PKCS5 "\x0c" /**< id-PBKDF2 OBJECT IDENTIFIER ::= {pkcs-5 12} */
+#define OID_PKCS5_PBES2                 OID_PKCS5 "\x0d" /**< id-PBES2 OBJECT IDENTIFIER ::= {pkcs-5 13} */
+#define OID_PKCS5_PBMAC1                OID_PKCS5 "\x0e" /**< id-PBMAC1 OBJECT IDENTIFIER ::= {pkcs-5 14} */
+
+/*
+ * PKCS#5 PBES1 algorithms
+ */
+#define OID_PKCS5_PBE_MD2_DES_CBC       OID_PKCS5 "\x01" /**< pbeWithMD2AndDES-CBC OBJECT IDENTIFIER ::= {pkcs-5 1} */
+#define OID_PKCS5_PBE_MD2_RC2_CBC       OID_PKCS5 "\x04" /**< pbeWithMD2AndRC2-CBC OBJECT IDENTIFIER ::= {pkcs-5 4} */
+#define OID_PKCS5_PBE_MD5_DES_CBC       OID_PKCS5 "\x03" /**< pbeWithMD5AndDES-CBC OBJECT IDENTIFIER ::= {pkcs-5 3} */
+#define OID_PKCS5_PBE_MD5_RC2_CBC       OID_PKCS5 "\x06" /**< pbeWithMD5AndRC2-CBC OBJECT IDENTIFIER ::= {pkcs-5 6} */
+#define OID_PKCS5_PBE_SHA1_DES_CBC      OID_PKCS5 "\x0a" /**< pbeWithSHA1AndDES-CBC OBJECT IDENTIFIER ::= {pkcs-5 10} */
+#define OID_PKCS5_PBE_SHA1_RC2_CBC      OID_PKCS5 "\x0b" /**< pbeWithSHA1AndRC2-CBC OBJECT IDENTIFIER ::= {pkcs-5 11} */
 
 #ifdef __cplusplus
 extern "C" {
@@ -293,6 +333,16 @@ int oid_get_extended_key_usage( const asn1_buf *oid, const char **desc );
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
 int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str );
+
+/**
+ * \brief          Translate encryption algorithm OID into cipher_type
+ *
+ * \param oid           OID to use
+ * \param cipher_alg    place to store cipher algorithm
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_cipher_alg( const asn1_buf *oid, cipher_type_t *cipher_alg );
 
 #ifdef __cplusplus
 }

@@ -49,24 +49,6 @@ typedef UINT32 uint32_t;
 #define PKCS5_DECRYPT      0
 #define PKCS5_ENCRYPT      1
 
-/*
- * PKCS#5 OIDs
- */
-#define OID_PKCS5               "\x2a\x86\x48\x86\xf7\x0d\x01\x05"
-#define OID_PKCS5_PBES2         OID_PKCS5 "\x0d"
-#define OID_PKCS5_PBKDF2        OID_PKCS5 "\x0c"
-
-/*
- * Encryption Algorithm OIDs
- */
-#define OID_DES_CBC             "\x2b\x0e\x03\x02\x07"
-#define OID_DES_EDE3_CBC        "\x2a\x86\x48\x86\xf7\x0d\x03\x07"
-
-/*
- * Digest Algorithm OIDs
- */
-#define OID_HMAC_SHA1           "\x2a\x86\x48\x86\xf7\x0d\x02\x07"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

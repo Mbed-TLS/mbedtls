@@ -28,11 +28,21 @@
 #define POLARSSL_OID_H
 
 #include <string.h>
+#include "config.h"
 #include "asn1.h"
-#include "cipher.h"
-#include "md.h"
 #include "pk.h"
+
+#if defined(POLARSSL_CIPHER_C)
+#include "cipher.h"
+#endif
+
+#if defined(POLARSSL_MD_C)
+#include "md.h"
+#endif
+
+#if defined(POLARSSL_X509_PARSE_C)
 #include "x509.h"
+#endif
 
 #define POLARSSL_ERR_OID_NOT_FOUND                         -0x002E  /**< OID is not found. */
 
@@ -283,6 +293,7 @@ int oid_get_attr_short_name( const asn1_buf *oid, const char **short_name );
  */
 int oid_get_pk_alg( const asn1_buf *oid, pk_type_t *pk_alg );
 
+#if defined(POLARSSL_MD_C)
 /**
  * \brief          Translate SignatureAlgorithm OID into md_type and pk_type
  *
@@ -326,6 +337,7 @@ int oid_get_oid_by_sig_alg( pk_type_t pk_alg, md_type_t md_alg,
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
 int oid_get_md_alg( const asn1_buf *oid, md_type_t *md_alg );
+#endif /* POLARSSL_MD_C */
 
 /**
  * \brief          Translate Extended Key Usage OID into description
@@ -347,6 +359,7 @@ int oid_get_extended_key_usage( const asn1_buf *oid, const char **desc );
  */
 int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str );
 
+#if defined(POLARSSL_CIPHER_C)
 /**
  * \brief          Translate encryption algorithm OID into cipher_type
  *
@@ -356,6 +369,7 @@ int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str );
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
 int oid_get_cipher_alg( const asn1_buf *oid, cipher_type_t *cipher_alg );
+#endif /* POLARSSL_CIPHER_C */
 
 #if defined(POLARSSL_PKCS12_C)
 /**

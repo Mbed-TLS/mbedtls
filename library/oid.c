@@ -214,6 +214,7 @@ FN_OID_GET_ATTR1(oid_get_extended_key_usage, oid_descriptor_t, ext_key_usage, co
 
 #endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
 
+#if defined(POLARSSL_MD_C)
 /*
  * For SignatureAlgorithmIdentifier
  */
@@ -290,6 +291,7 @@ int oid_get_oid_by_sig_alg( pk_type_t pk_alg, md_type_t md_alg,
 
     return( POLARSSL_ERR_OID_NOT_FOUND );
 }
+#endif /* POLARSSL_MD_C */
 
 /*
  * For PublicKeyInfo
@@ -314,6 +316,7 @@ static const oid_pk_alg_t oid_pk_alg[] =
 FN_OID_TYPED_FROM_ASN1(oid_pk_alg_t, pk_alg, oid_pk_alg);
 FN_OID_GET_ATTR1(oid_get_pk_alg, oid_pk_alg_t, pk_alg, pk_type_t, pk_alg);
 
+#if defined(POLARSSL_CIPHER_C)
 /*
  * For PKCS#5 PBES2 encryption algorithm
  */
@@ -340,7 +343,9 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_cipher_alg_t, cipher_alg, oid_cipher_alg);
 FN_OID_GET_ATTR1(oid_get_cipher_alg, oid_cipher_alg_t, cipher_alg, cipher_type_t, cipher_alg);
+#endif /* POLARSSL_CIPHER_C */
 
+#if defined(POLARSSL_MD_C)
 /*
  * For digestAlgorithm
  */
@@ -413,7 +418,9 @@ int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str )
 
     return( POLARSSL_ERR_OID_NOT_FOUND );
 }
+#endif /* POLARSSL_MD_C */
 
+#if defined(POLARSSL_PKCS12_C)
 /*
  * For PKCS#12 PBEs
  */
@@ -441,6 +448,7 @@ static const oid_pkcs12_pbe_alg_t oid_pkcs12_pbe_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, oid_pkcs12_pbe_alg);
 FN_OID_GET_ATTR2(oid_get_pkcs12_pbe_alg, oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, md_type_t, md_alg, cipher_type_t, cipher_alg);
+#endif /* POLARSSL_PKCS12_C */
 
 #if defined _MSC_VER && !defined snprintf
 #include <stdarg.h>

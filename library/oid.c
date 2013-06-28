@@ -34,6 +34,38 @@
 
 #include <stdio.h>
 
+#define FN_OID_TYPED_FROM_ASN1( TYPE_T, NAME, LIST )                              \
+static const TYPE_T * oid_ ## NAME ## _from_asn1( const asn1_buf *oid )           \
+{ return (const TYPE_T *) oid_descriptor_from_buf(LIST, sizeof(TYPE_T), oid->p, oid->len ); }
+
+/*
+ * Core generic function
+ */
+static const oid_descriptor_t *oid_descriptor_from_buf( const void *struct_set,
+                size_t struct_size, const unsigned char *oid, size_t len )
+{
+    const unsigned char *p = (const unsigned char *) struct_set;
+    const oid_descriptor_t *cur;
+
+    if( struct_set == NULL || oid == NULL )
+        return( NULL );
+
+    cur = (const oid_descriptor_t *) p;
+    while( cur->asn1 != NULL )
+    {
+        if( strlen( cur->asn1 ) == len &&
+            memcmp( cur->asn1, oid, len ) == 0 )
+        {
+            return( cur );
+        }
+
+        p += struct_size;
+        cur = (const oid_descriptor_t *) p;
+    }
+
+    return( NULL );
+}
+
 /*
  * For X520 attribute types
  */
@@ -78,6 +110,20 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
     }
 };
 
+FN_OID_TYPED_FROM_ASN1(oid_x520_attr_t,  x520_attr,    oid_x520_attr_type);
+
+int oid_get_attr_short_name( const asn1_buf *oid, const char **short_name )
+{
+    const oid_x520_attr_t *data = oid_x520_attr_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *short_name = data->short_name;
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
 /*
  * For X509 extensions
@@ -115,6 +161,20 @@ static const oid_x509_ext_t oid_x509_ext[] =
     },
 };
 
+FN_OID_TYPED_FROM_ASN1(oid_x509_ext_t,  x509_ext,    oid_x509_ext);
+
+int oid_get_x509_ext_type( const asn1_buf *oid, int *ext_type )
+{
+    const oid_x509_ext_t *data = oid_x509_ext_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *ext_type = data->ext_type;
+
+    return( 0 );
+}
+
 static const oid_descriptor_t oid_ext_key_usage[] =
 {
     { OID_SERVER_AUTH,      "id-kp-serverAuth",      "TLS Web Server Authentication" },
@@ -125,6 +185,21 @@ static const oid_descriptor_t oid_ext_key_usage[] =
     { OID_OCSP_SIGNING,     "id-kp-OCSPSigning",     "OCSP Signing" },
     { NULL, NULL, NULL },
 };
+
+FN_OID_TYPED_FROM_ASN1(oid_descriptor_t,  ext_key_usage,    oid_ext_key_usage);
+
+int oid_get_extended_key_usage( const asn1_buf *oid, const char **desc )
+{
+    const oid_descriptor_t *data = oid_ext_key_usage_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *desc = data->description;
+
+    return( 0 );
+}
+
 #endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
 
 /*
@@ -180,6 +255,54 @@ static const oid_sig_alg_t oid_sig_alg[] =
     },
 };
 
+FN_OID_TYPED_FROM_ASN1(oid_sig_alg_t,    sig_alg,      oid_sig_alg);
+
+int oid_get_sig_alg_desc( const asn1_buf *oid, const char **desc )
+{
+    const oid_sig_alg_t *data = oid_sig_alg_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *desc = data->descriptor.description;
+
+    return( 0 );
+}
+
+int oid_get_sig_alg( const asn1_buf *oid,
+                     md_type_t *md_alg, pk_type_t *pk_alg )
+{
+    const oid_sig_alg_t *data = oid_sig_alg_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *md_alg = data->md_alg;
+    *pk_alg = data->pk_alg;
+
+    return( 0 );
+}
+
+int oid_get_oid_by_sig_alg( pk_type_t pk_alg, md_type_t md_alg,
+                            const char **oid_str )
+{
+    const oid_sig_alg_t *cur = oid_sig_alg;
+
+    while( cur->descriptor.asn1 != NULL )
+    {
+        if( cur->pk_alg == pk_alg &&
+            cur->md_alg == md_alg )
+        {
+            *oid_str = cur->descriptor.asn1;
+            return( 0 );
+        }
+
+        cur++;
+    }
+
+    return( POLARSSL_ERR_OID_NOT_FOUND );
+}
+
 /*
  * For PublicKeyInfo
  */
@@ -199,6 +322,20 @@ static const oid_pk_alg_t oid_pk_alg[] =
         0,
     },
 };
+
+FN_OID_TYPED_FROM_ASN1(oid_pk_alg_t,     pk_alg,       oid_pk_alg);
+
+int oid_get_pk_alg( const asn1_buf *oid, pk_type_t *pk_alg )
+{
+    const oid_pk_alg_t *data = oid_pk_alg_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *pk_alg = data->pk_alg;
+
+    return( 0 );
+}
 
 /*
  * For PKCS#5 PBES2 encryption algorithm
@@ -223,6 +360,20 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
         0,
     },
 };
+
+FN_OID_TYPED_FROM_ASN1(oid_cipher_alg_t, cipher_alg,   oid_cipher_alg);
+
+int oid_get_cipher_alg( const asn1_buf *oid, cipher_type_t *cipher_alg )
+{
+    const oid_cipher_alg_t *data = oid_cipher_alg_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *cipher_alg = data->cipher_alg;
+
+    return( 0 );
+}
 
 /*
  * For digestAlgorithm
@@ -275,6 +426,38 @@ static const oid_md_alg_t oid_md_alg[] =
         0,
     },
 };
+
+FN_OID_TYPED_FROM_ASN1(oid_md_alg_t,     md_alg,       oid_md_alg);
+
+int oid_get_md_alg( const asn1_buf *oid, md_type_t *md_alg )
+{
+    const oid_md_alg_t *data = oid_md_alg_from_asn1( oid );
+
+    if( data == NULL )
+        return( POLARSSL_ERR_OID_NOT_FOUND );
+
+    *md_alg = data->md_alg;
+
+    return( 0 );
+}
+
+int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str )
+{
+    const oid_md_alg_t *cur = oid_md_alg;
+
+    while( cur->descriptor.asn1 != NULL )
+    {
+        if( cur->md_alg == md_alg )
+        {
+            *oid_str = cur->descriptor.asn1;
+            return( 0 );
+        }
+
+        cur++;
+    }
+
+    return( POLARSSL_ERR_OID_NOT_FOUND );
+}
 
 #if defined _MSC_VER && !defined snprintf
 #include <stdarg.h>
@@ -366,236 +549,6 @@ int oid_get_numeric_string( char *buf, size_t size,
     }
 
     return( (int) ( size - n ) );
-}
-
-static const oid_descriptor_t *oid_descriptor_from_buf(
-                const void *struct_set,
-                size_t struct_size,
-                const unsigned char *oid,
-                size_t len )
-{
-    const unsigned char *p = (const unsigned char *) struct_set;
-    const oid_descriptor_t *cur;
-
-    if( struct_set == NULL || oid == NULL )
-        return( NULL );
-
-    cur = (const oid_descriptor_t *) p;
-    while( cur->asn1 != NULL )
-    {
-        if( strlen( cur->asn1 ) == len &&
-            memcmp( cur->asn1, oid, len ) == 0 )
-        {
-            return( cur );
-        }
-
-        p += struct_size;
-        cur = (const oid_descriptor_t *) p;
-    }
-
-    return( NULL );
-}
-
-static const oid_descriptor_t *oid_descriptor_from_asn1(
-                const void *struct_set,
-                size_t struct_size,
-                const asn1_buf *oid )
-{
-    return oid_descriptor_from_buf( struct_set, struct_size,
-                                    oid->p, oid->len );
-}
-
-#if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
-int oid_get_extended_key_usage( const asn1_buf *oid, const char **desc )
-{
-    const oid_descriptor_t *data = oid_descriptor_from_asn1(
-                                oid_ext_key_usage,
-                                sizeof(oid_descriptor_t),
-                                oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *desc = data->description;
-
-    return( 0 );
-}
-
-static const oid_x509_ext_t *oid_x509_ext_from_asn1( const asn1_buf *oid )
-{
-    return (const oid_x509_ext_t *) oid_descriptor_from_asn1(
-                                oid_x509_ext,
-                                sizeof(oid_x509_ext_t),
-                                oid );
-}
-
-int oid_get_x509_ext_type( const asn1_buf *oid, int *ext_type )
-{
-    const oid_x509_ext_t *data = oid_x509_ext_from_asn1( oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *ext_type = data->ext_type;
-
-    return( 0 );
-}
-
-#endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
-
-static const oid_x520_attr_t *oid_x520_attr_from_asn1( const asn1_buf *oid )
-{
-    return (const oid_x520_attr_t *) oid_descriptor_from_asn1(
-                                oid_x520_attr_type,
-                                sizeof(oid_x520_attr_t),
-                                oid );
-}
-
-static const oid_pk_alg_t *oid_pk_alg_from_asn1( const asn1_buf *oid )
-{
-    return (const oid_pk_alg_t *) oid_descriptor_from_asn1(
-                                oid_pk_alg,
-                                sizeof(oid_pk_alg_t),
-                                oid );
-}
-
-static const oid_sig_alg_t *oid_sig_alg_from_asn1( const asn1_buf *oid )
-{
-    return (const oid_sig_alg_t *) oid_descriptor_from_asn1(
-                                oid_sig_alg,
-                                sizeof(oid_sig_alg_t),
-                                oid );
-}
-
-static const oid_md_alg_t *oid_md_alg_from_asn1( const asn1_buf *oid )
-{
-    return (const oid_md_alg_t *) oid_descriptor_from_asn1(
-                                oid_md_alg,
-                                sizeof(oid_md_alg_t),
-                                oid );
-}
-
-static const oid_cipher_alg_t *oid_cipher_alg_from_asn1( const asn1_buf *oid )
-{
-    return (const oid_cipher_alg_t *) oid_descriptor_from_asn1(
-                                oid_cipher_alg,
-                                sizeof(oid_cipher_alg_t),
-                                oid );
-}
-
-int oid_get_attr_short_name( const asn1_buf *oid, const char **short_name )
-{
-    const oid_x520_attr_t *data = oid_x520_attr_from_asn1( oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *short_name = data->short_name;
-
-    return( 0 );
-}
-
-int oid_get_pk_alg( const asn1_buf *oid, pk_type_t *pk_alg )
-{
-    const oid_pk_alg_t *data = oid_pk_alg_from_asn1( oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *pk_alg = data->pk_alg;
-
-    return( 0 );
-}
-
-int oid_get_sig_alg_desc( const asn1_buf *oid, const char **desc )
-{
-    const oid_sig_alg_t *data = oid_sig_alg_from_asn1( oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *desc = data->descriptor.description;
-
-    return( 0 );
-}
-
-int oid_get_sig_alg( const asn1_buf *oid,
-                     md_type_t *md_alg, pk_type_t *pk_alg )
-{
-    const oid_sig_alg_t *data = oid_sig_alg_from_asn1( oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *md_alg = data->md_alg;
-    *pk_alg = data->pk_alg;
-
-    return( 0 );
-}
-
-int oid_get_oid_by_sig_alg( pk_type_t pk_alg, md_type_t md_alg,
-                            const char **oid_str )
-{
-    const oid_sig_alg_t *cur = oid_sig_alg;
-
-    while( cur->descriptor.asn1 != NULL )
-    {
-        if( cur->pk_alg == pk_alg &&
-            cur->md_alg == md_alg )
-        {
-            *oid_str = cur->descriptor.asn1;
-            return( 0 );
-        }
-
-        cur++;
-    }
-
-    return( POLARSSL_ERR_OID_NOT_FOUND );
-}
-
-int oid_get_md_alg( const asn1_buf *oid,
-                    md_type_t *md_alg )
-{
-    const oid_md_alg_t *data = oid_md_alg_from_asn1( oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *md_alg = data->md_alg;
-
-    return( 0 );
-}
-
-int oid_get_oid_by_md( md_type_t md_alg,
-                       const char **oid_str )
-{
-    const oid_md_alg_t *cur = oid_md_alg;
-
-    while( cur->descriptor.asn1 != NULL )
-    {
-        if( cur->md_alg == md_alg )
-        {
-            *oid_str = cur->descriptor.asn1;
-            return( 0 );
-        }
-
-        cur++;
-    }
-
-    return( POLARSSL_ERR_OID_NOT_FOUND );
-}
-
-int oid_get_cipher_alg( const asn1_buf *oid,
-                        cipher_type_t *cipher_alg )
-{
-    const oid_cipher_alg_t *data = oid_cipher_alg_from_asn1( oid );
-
-    if( data == NULL )
-        return( POLARSSL_ERR_OID_NOT_FOUND );
-
-    *cipher_alg = data->cipher_alg;
-
-    return( 0 );
 }
 
 #endif /* POLARSSL_OID_C */

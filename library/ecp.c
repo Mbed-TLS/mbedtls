@@ -352,6 +352,7 @@ cleanup:
     return( ret );
 }
 
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
 /*
  * 192 bits in terms of t_uint
  */
@@ -425,7 +426,9 @@ static int ecp_mod_p192( mpi *N )
 cleanup:
     return( ret );
 }
+#endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
 /*
  * Size of p521 in terms of t_uint
  */
@@ -467,6 +470,7 @@ static int ecp_mod_p521( mpi *N )
 cleanup:
     return( ret );
 }
+#endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
 
 /*
  * Domain parameters for secp192r1
@@ -562,32 +566,42 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
     switch( id )
     {
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
         case POLARSSL_ECP_DP_SECP192R1:
             grp->modp = ecp_mod_p192;
             return( ecp_group_read_string( grp, 16,
                         SECP192R1_P, SECP192R1_B,
                         SECP192R1_GX, SECP192R1_GY, SECP192R1_N ) );
+#endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
         case POLARSSL_ECP_DP_SECP224R1:
             return( ecp_group_read_string( grp, 16,
                         SECP224R1_P, SECP224R1_B,
                         SECP224R1_GX, SECP224R1_GY, SECP224R1_N ) );
+#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
         case POLARSSL_ECP_DP_SECP256R1:
             return( ecp_group_read_string( grp, 16,
                         SECP256R1_P, SECP256R1_B,
                         SECP256R1_GX, SECP256R1_GY, SECP256R1_N ) );
+#endif /* POLARSSL_ECP_DP_SECP256R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
         case POLARSSL_ECP_DP_SECP384R1:
             return( ecp_group_read_string( grp, 16,
                         SECP384R1_P, SECP384R1_B,
                         SECP384R1_GX, SECP384R1_GY, SECP384R1_N ) );
+#endif /* POLARSSL_ECP_DP_SECP384R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
         case POLARSSL_ECP_DP_SECP521R1:
             grp->modp = ecp_mod_p521;
             return( ecp_group_read_string( grp, 16,
                         SECP521R1_P, SECP521R1_B,
                         SECP521R1_GX, SECP521R1_GY, SECP521R1_N ) );
+#endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
     }
 
     return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
@@ -1311,7 +1325,27 @@ int ecp_self_test( int verbose )
     ecp_point_init( &R );
     mpi_init( &m );
 
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
     MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP192R1 ) );
+#else
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
+    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP224R1 ) );
+#else
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
+    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP256R1 ) );
+#else
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP384R1 ) );
+#else
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
+    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP521R1 ) );
+#else
+#error No curves defines
+#endif /* POLARSSL_ECP_DP_SECP512R1_ENABLED */
+#endif /* POLARSSL_ECP_DP_SECP384R1_ENABLED */
+#endif /* POLARSSL_ECP_DP_SECP256R1_ENABLED */
+#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
+#endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
     if( verbose != 0 )
         printf( "  ECP test #1 (SPA resistance): " );

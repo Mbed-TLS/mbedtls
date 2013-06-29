@@ -200,6 +200,20 @@
  */
 
 /**
+ * \def POLARSSL_ECP_XXXX_ENABLED
+ *
+ * Enables specific curves within the Elliptic Curve module.
+ * By default all supported curves are enables.
+ *
+ * Comment macros to disable the curve and functions for it
+ */
+#define POLARSSL_ECP_DP_SECP192R1_ENABLED
+#define POLARSSL_ECP_DP_SECP224R1_ENABLED
+#define POLARSSL_ECP_DP_SECP256R1_ENABLED
+#define POLARSSL_ECP_DP_SECP384R1_ENABLED
+#define POLARSSL_ECP_DP_SECP521R1_ENABLED
+
+/**
  * \def POLARSSL_KEY_EXCHANGE_PSK_ENABLED
  *
  * Enable the PSK based ciphersuite modes in SSL / TLS

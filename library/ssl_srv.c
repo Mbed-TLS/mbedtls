@@ -213,16 +213,41 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     p = buf + 2;
     while( list_size > 0 )
     {
-        if( p[0] == 0x00 && (
-                p[1] == POLARSSL_ECP_DP_SECP192R1 ||
-                p[1] == POLARSSL_ECP_DP_SECP224R1 ||
-                p[1] == POLARSSL_ECP_DP_SECP256R1 ||
-                p[1] == POLARSSL_ECP_DP_SECP384R1 ||
-                p[1] == POLARSSL_ECP_DP_SECP521R1 ) )
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
+        if( p[0] == 0x00 && p[1] == POLARSSL_ECP_DP_SECP192R1 )
         {
             ssl->handshake->ec_curve = p[1];
             return( 0 );
         }
+#endif
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
+        if( p[0] == 0x00 && p[1] == POLARSSL_ECP_DP_SECP224R1 )
+        {
+            ssl->handshake->ec_curve = p[1];
+            return( 0 );
+        }
+#endif
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
+        if( p[0] == 0x00 && p[1] == POLARSSL_ECP_DP_SECP256R1 )
+        {
+            ssl->handshake->ec_curve = p[1];
+            return( 0 );
+        }
+#endif
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+        if( p[0] == 0x00 && p[1] == POLARSSL_ECP_DP_SECP384R1 )
+        {
+            ssl->handshake->ec_curve = p[1];
+            return( 0 );
+        }
+#endif
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
+        if( p[0] == 0x00 && p[1] == POLARSSL_ECP_DP_SECP521R1 )
+        {
+            ssl->handshake->ec_curve = p[1];
+            return( 0 );
+        }
+#endif
 
         list_size -= 2;
         p += 2;

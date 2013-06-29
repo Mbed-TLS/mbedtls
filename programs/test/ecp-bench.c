@@ -183,11 +183,21 @@ static void ecp_bench_case( size_t dp, const char *s, const char *m )
 
 static void ecp_bench( void )
 {
-    ecp_bench_case( 0, "192", ECP_192_M );
-    ecp_bench_case( 1, "224", ECP_224_M );
-    ecp_bench_case( 2, "256", ECP_256_M );
-    ecp_bench_case( 3, "384", ECP_384_M );
-    ecp_bench_case( 4, "521", ECP_521_M );
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
+    ecp_bench_case( POLARSSL_ECP_DP_SECP192R1, "192", ECP_192_M );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
+    ecp_bench_case( POLARSSL_ECP_DP_SECP224R1, "224", ECP_224_M );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
+    ecp_bench_case( POLARSSL_ECP_DP_SECP256R1, "256", ECP_256_M );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+    ecp_bench_case( POLARSSL_ECP_DP_SECP384R1, "384", ECP_384_M );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
+    ecp_bench_case( POLARSSL_ECP_DP_SECP521R1, "521", ECP_521_M );
+#endif
 }
 
 int main( int argc, char *argv[] )

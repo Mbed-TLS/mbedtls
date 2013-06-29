@@ -255,9 +255,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
     int ret;
     size_t i, n, olen, ext_len = 0;
     unsigned char *buf;
-    unsigned char *p;
+    unsigned char *p, *q;
     time_t t;
     const int *ciphersuites;
+    const ssl_ciphersuite_t *ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
@@ -331,10 +332,11 @@ static int ssl_write_client_hello( ssl_context *ssl )
     SSL_DEBUG_BUF( 3,   "client hello, session id", buf + 39, n );
 
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
-    for( n = 0; ciphersuites[n] != 0; n++ );
-    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE ) n++;
-    *p++ = (unsigned char)( n >> 7 );
-    *p++ = (unsigned char)( n << 1 );
+    n = 0;
+    q = p;
+
+    // Skip writing ciphersuite length for now
+    p += 2;
 
     /*
      * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
@@ -343,19 +345,33 @@ static int ssl_write_client_hello( ssl_context *ssl )
     {
         *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
         *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO      );
-        n--;
+        n++;
     }
 
-    SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphersuites", n ) );
-
-    for( i = 0; i < n; i++ )
+    for( i = 0; ciphersuites[i] != 0; i++ )
     {
+        ciphersuite_info = ssl_ciphersuite_from_id( ciphersuites[i] );
+
+        if( ciphersuite_info == NULL )
+            continue;
+
+        if( ciphersuite_info->min_minor_ver > ssl->max_minor_ver ||
+            ciphersuite_info->max_minor_ver < ssl->min_minor_ver )
+            continue;
+
         SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
                        ciphersuites[i] ) );
 
+        n++;
         *p++ = (unsigned char)( ciphersuites[i] >> 8 );
         *p++ = (unsigned char)( ciphersuites[i]      );
     }
+
+    *q++ = (unsigned char)( n >> 7 );
+    *q++ = (unsigned char)( n << 1 );
+
+    SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphersuites", n ) );
+
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
     SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 2 ) );

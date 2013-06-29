@@ -2756,6 +2756,8 @@ int ssl_init( ssl_context *ssl )
 
     ssl->min_major_ver = SSL_MAJOR_VERSION_3;
     ssl->min_minor_ver = SSL_MINOR_VERSION_0;
+    ssl->max_major_ver = SSL_MAJOR_VERSION_3;
+    ssl->max_minor_ver = SSL_MINOR_VERSION_3;
 
     ssl_set_ciphersuites( ssl, ssl_list_ciphersuites() );
 

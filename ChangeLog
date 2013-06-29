@@ -17,6 +17,8 @@ Changes
    * Moved all OID functionality to a separate module. RSA function
      prototypes for the RSA sign and verify functions changed as a result
    * Split up the GCM module into a starts/update/finish cycle
+   * Client and server now filter sent and accepted ciphersuites on minimum
+     and maximum protocol version
 
 Bugfix
    * Fix for MPI assembly for ARM

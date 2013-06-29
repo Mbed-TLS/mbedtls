@@ -323,8 +323,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     }
 
     ssl->major_ver = SSL_MAJOR_VERSION_3;
-    ssl->minor_ver = ( buf[4] <= SSL_MINOR_VERSION_3 )
-                     ? buf[4]  : SSL_MINOR_VERSION_3;
+    ssl->minor_ver = ( buf[4] <= ssl->max_minor_ver )
+                     ? buf[4]  : ssl->max_minor_ver;
 
     if( ssl->minor_ver < ssl->min_minor_ver )
     {
@@ -337,8 +337,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
     }
 
-    ssl->max_major_ver = buf[3];
-    ssl->max_minor_ver = buf[4];
+    ssl->handshake->max_major_ver = buf[3];
+    ssl->handshake->max_minor_ver = buf[4];
 
     if( ( ret = ssl_fetch_input( ssl, 2 + n ) ) != 0 )
     {
@@ -453,6 +453,9 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
                     return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
                 }
 
+                if( ciphersuite_info->min_minor_ver > ssl->minor_ver ||
+                    ciphersuite_info->max_minor_ver < ssl->minor_ver )
+                    continue;
 
                 goto have_ciphersuite_v2;
             }
@@ -602,8 +605,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     }
 
     ssl->major_ver = SSL_MAJOR_VERSION_3;
-    ssl->minor_ver = ( buf[5] <= SSL_MINOR_VERSION_3 )
-                     ? buf[5]  : SSL_MINOR_VERSION_3;
+    ssl->minor_ver = ( buf[5] <= ssl->max_minor_ver )
+                     ? buf[5]  : ssl->max_minor_ver;
 
     if( ssl->minor_ver < ssl->min_minor_ver )
     {
@@ -617,8 +620,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
     }
 
-    ssl->max_major_ver = buf[4];
-    ssl->max_minor_ver = buf[5];
+    ssl->handshake->max_major_ver = buf[4];
+    ssl->handshake->max_minor_ver = buf[5];
 
     memcpy( ssl->handshake->randbytes, buf + 6, 32 );
 
@@ -869,6 +872,10 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                                    ciphersuites[i] ) );
                     return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
                 }
+
+                if( ciphersuite_info->min_minor_ver > ssl->minor_ver ||
+                    ciphersuite_info->max_minor_ver < ssl->minor_ver )
+                    continue;
 
                 if( ( ciphersuite_info->flags & POLARSSL_CIPHERSUITE_EC ) &&
                     ssl->handshake->ec_curve == 0 )
@@ -1575,8 +1582,8 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
     }
 
     if( ret != 0 || ssl->handshake->pmslen != 48 ||
-        ssl->handshake->premaster[0] != ssl->max_major_ver ||
-        ssl->handshake->premaster[1] != ssl->max_minor_ver )
+        ssl->handshake->premaster[0] != ssl->handshake->max_major_ver ||
+        ssl->handshake->premaster[1] != ssl->handshake->max_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
 

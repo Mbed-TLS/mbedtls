@@ -401,6 +401,8 @@ struct _ssl_handshake_params
                                         /*!<  premaster secret        */
 
     int resume;                         /*!<  session resume indicator*/
+    int max_major_ver;                  /*!< max. major version client*/
+    int max_minor_ver;                  /*!< max. minor version client*/
 };
 
 struct _ssl_context
@@ -414,10 +416,10 @@ struct _ssl_context
     int major_ver;              /*!< equal to  SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
 
-    int max_major_ver;          /*!< max. major version from client   */
-    int max_minor_ver;          /*!< max. minor version from client   */
-    int min_major_ver;          /*!< min. major version accepted      */
-    int min_minor_ver;          /*!< min. minor version accepted      */
+    int max_major_ver;          /*!< max. major version used          */
+    int max_minor_ver;          /*!< max. minor version used          */
+    int min_major_ver;          /*!< min. major version used          */
+    int min_minor_ver;          /*!< min. minor version used          */
 
     /*
      * Callbacks (RNG, debug, I/O, verification)
@@ -911,6 +913,11 @@ void ssl_set_sni( ssl_context *ssl,
 
 /**
  * \brief          Set the maximum supported version sent from the client side
+ *                 and/or accepted at the server side
+ *                 (Default: SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3)
+ *
+ *                 Note: This prevents ciphersuites from 'higher' versions to
+ *                 be ignored.
  * 
  * \param ssl      SSL context
  * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)

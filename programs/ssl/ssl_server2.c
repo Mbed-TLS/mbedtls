@@ -62,6 +62,7 @@
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_MIN_VERSION         -1
+#define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 
 #define HTTP_RESPONSE \
@@ -86,6 +87,7 @@ struct options
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
     int min_version;            /* minimum protocol version accepted        */
+    int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
 } opt;
 
@@ -136,8 +138,10 @@ static void my_debug( void *ctx, int level, const char *str )
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    min_version=%%s      default: \"ssl3\"\n"          \
+    "    max_version=%%s      default: \"tls1_2\"\n"        \
+    "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
-    "    auth_mode=%%s        default: \"optional\"\n"          \
+    "    auth_mode=%%s        default: \"optional\"\n"      \
     "                        options: none, optional, required\n" \
     USAGE_PSK                                               \
     "\n"                                                    \
@@ -233,6 +237,7 @@ int main( int argc, char *argv[] )
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.min_version         = DFL_MIN_VERSION;
+    opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
 
     for( i = 1; i < argc; i++ )
@@ -303,6 +308,44 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+        else if( strcmp( p, "max_version" ) == 0 )
+        {
+            if( strcmp( q, "ssl3" ) == 0 )
+                opt.max_version = SSL_MINOR_VERSION_0;
+            else if( strcmp( q, "tls1" ) == 0 )
+                opt.max_version = SSL_MINOR_VERSION_1;
+            else if( strcmp( q, "tls1_1" ) == 0 )
+                opt.max_version = SSL_MINOR_VERSION_2;
+            else if( strcmp( q, "tls1_2" ) == 0 )
+                opt.max_version = SSL_MINOR_VERSION_3;
+            else
+                goto usage;
+        }
+        else if( strcmp( p, "force_version" ) == 0 )
+        {
+            if( strcmp( q, "ssl3" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_0;
+                opt.max_version = SSL_MINOR_VERSION_0;
+            }
+            else if( strcmp( q, "tls1" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_1;
+                opt.max_version = SSL_MINOR_VERSION_1;
+            }
+            else if( strcmp( q, "tls1_1" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_2;
+                opt.max_version = SSL_MINOR_VERSION_2;
+            }
+            else if( strcmp( q, "tls1_2" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_3;
+                opt.max_version = SSL_MINOR_VERSION_3;
+            }
+            else
+                goto usage;
+        }
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
             if( strcmp( q, "none" ) == 0 )
@@ -316,6 +359,20 @@ int main( int argc, char *argv[] )
         }
         else
             goto usage;
+    }
+
+    if( opt.force_ciphersuite[0] > 0 )
+    {
+        const ssl_ciphersuite_t *ciphersuite_info;
+        ciphersuite_info = ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
+
+        if( ciphersuite_info->min_minor_ver > opt.max_version ||
+            ciphersuite_info->max_minor_ver < opt.min_version )
+        {
+            printf("forced ciphersuite not allowed with this protocol version\n");
+            ret = 2;
+            goto usage;
+        }
     }
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
@@ -528,6 +585,9 @@ int main( int argc, char *argv[] )
 
     if( opt.min_version != -1 )
         ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
+
+    if( opt.max_version != -1 )
+        ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
 
     printf( " ok\n" );
 

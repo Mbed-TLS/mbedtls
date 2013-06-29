@@ -391,6 +391,20 @@ int main( int argc, char *argv[] )
             goto usage;
     }
 
+    if( opt.force_ciphersuite[0] > 0 )
+    {
+        const ssl_ciphersuite_t *ciphersuite_info;
+        ciphersuite_info = ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
+
+        if( ciphersuite_info->min_minor_ver > opt.max_version ||
+            ciphersuite_info->max_minor_ver < opt.min_version )
+        {
+            printf("forced ciphersuite not allowed with this protocol version\n");
+            ret = 2;
+            goto usage;
+        }
+    }
+
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     /*
      * Unhexify the pre-shared key if any is given

@@ -130,7 +130,7 @@ sleep 1
 
 for i in $P_CIPHERS;
 do
-    RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i )"
+    RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i force_version=$MODE )"
     EXIT=$?
     echo -n "OpenSSL Server - PolarSSL Client - $i : $EXIT - "
     if [ "$EXIT" = "2" ];
@@ -146,7 +146,7 @@ do
 done
 kill $PROCESS_ID
 
-../programs/ssl/ssl_server2 $P_SERVER_ARGS > /dev/null &
+../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE > /dev/null &
 PROCESS_ID=$!
 
 sleep 1
@@ -176,7 +176,7 @@ done
 
 kill $PROCESS_ID
 
-../programs/ssl/ssl_server2 $P_SERVER_ARGS > /dev/null &
+../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE > /dev/null &
 PROCESS_ID=$!
 
 sleep 1
@@ -223,7 +223,7 @@ P_CIPHERS="$P_CIPHERS                        \
 
 for i in $P_CIPHERS;
 do
-    RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS )"
+    RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS )"
     EXIT=$?
     echo -n "PolarSSL Server - PolarSSL Client - $i : $EXIT - "
     if [ "$EXIT" = "2" ];

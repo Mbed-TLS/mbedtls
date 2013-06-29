@@ -272,6 +272,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     unsigned int ciph_len, sess_len, chal_len;
     unsigned char *buf, *p;
     const int *ciphersuites;
+    const ssl_ciphersuite_t *ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello v2" ) );
 
@@ -439,11 +440,22 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         {
             // Only allow non-ECC ciphersuites as we do not have extensions
             //
-            if( p[0] == 0 &&
-                p[1] == 0 &&
+            if( p[0] == 0 && p[1] == 0 &&
                 ( ( ciphersuites[i] >> 8 ) & 0xFF ) == 0 &&
                 p[2] == ( ciphersuites[i] & 0xFF ) )
+            {
+                ciphersuite_info = ssl_ciphersuite_from_id( ciphersuites[i] );
+
+                if( ciphersuite_info == NULL )
+                {
+                    SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
+                                   ciphersuites[i] ) );
+                    return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+                }
+
+
                 goto have_ciphersuite_v2;
+            }
         }
     }
 
@@ -453,6 +465,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
 
 have_ciphersuite_v2:
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
+    ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
     ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     /*

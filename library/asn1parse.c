@@ -1,7 +1,7 @@
 /*
  *  Generic ASN.1 parsing
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -253,6 +253,65 @@ int asn1_get_sequence_of( unsigned char **p,
 
     if( *p != end )
         return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+int asn1_get_alg( unsigned char **p,
+                  const unsigned char *end,
+                  asn1_buf *alg, asn1_buf *params )
+{
+    int ret;
+    size_t len;
+
+    if( ( ret = asn1_get_tag( p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    end = *p + len;
+    alg->tag = **p;
+
+    if( ( ret = asn1_get_tag( p, end, &alg->len, ASN1_OID ) ) != 0 )
+        return( ret );
+
+    alg->p = *p;
+    *p += alg->len;
+
+    if( *p == end )
+    {
+        memset( params, 0, sizeof(asn1_buf) );
+        return( 0 );
+    }
+
+    params->tag = **p;
+    (*p)++;
+
+    if( ( ret = asn1_get_len( p, end, &params->len ) ) != 0 )
+        return( ret );
+
+    params->p = *p;
+    *p += params->len;
+
+    if( *p != end )
+        return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+int asn1_get_alg_null( unsigned char **p,
+                       const unsigned char *end,
+                       asn1_buf *alg )
+{
+    int ret;
+    asn1_buf params;
+
+    memset( &params, 0, sizeof(asn1_buf) );
+
+    if( ( ret = asn1_get_alg( p, end, alg, &params ) ) != 0 )
+        return( ret );
+
+    if( ( params.tag != ASN1_NULL && params.tag != 0 ) || params.len != 0 )
+        return( POLARSSL_ERR_ASN1_INVALID_DATA );
 
     return( 0 );
 }

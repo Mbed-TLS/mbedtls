@@ -182,33 +182,9 @@ static int x509_get_alg( unsigned char **p,
                          x509_buf *alg )
 {
     int ret;
-    size_t len;
 
-    if( ( ret = asn1_get_tag( p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    if( ( ret = asn1_get_alg_null( p, end, alg ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
-
-    end = *p + len;
-    alg->tag = **p;
-
-    if( ( ret = asn1_get_tag( p, end, &alg->len, ASN1_OID ) ) != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
-
-    alg->p = *p;
-    *p += alg->len;
-
-    if( *p == end )
-        return( 0 );
-
-    /*
-     * assume the algorithm parameters must be NULL
-     */
-    if( ( ret = asn1_get_tag( p, end, &len, ASN1_NULL ) ) != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
-
-    if( *p != end )
-        return( POLARSSL_ERR_X509_CERT_INVALID_ALG +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }
@@ -451,8 +427,8 @@ static int x509_get_pubkey( unsigned char **p,
     unsigned char *end2;
     pk_type_t pk_alg = POLARSSL_PK_NONE;
 
-    if( ( ret = x509_get_alg( p, end, pk_alg_oid ) ) != 0 )
-        return( ret );
+    if( ( ret = asn1_get_alg_null( p, end, pk_alg_oid ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
 
     /*
      * only RSA public keys handled at this time
@@ -2149,7 +2125,7 @@ static int x509parse_key_pkcs8_unencrypted_der(
     if( rsa->ver != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
 
-    if( ( ret = x509_get_alg( &p, end, &pk_alg_oid ) ) != 0 )
+    if( ( ret = asn1_get_alg_null( &p, end, &pk_alg_oid ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
     /*
@@ -2190,7 +2166,7 @@ static int x509parse_key_pkcs8_encrypted_der(
 {
     int ret;
     size_t len;
-    unsigned char *p, *end, *end2;
+    unsigned char *p, *end;
     x509_buf pbe_alg_oid, pbe_params;
     unsigned char buf[2048];
 #if defined(POLARSSL_PKCS12_C)
@@ -2228,26 +2204,8 @@ static int x509parse_key_pkcs8_encrypted_der(
 
     end = p + len;
 
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
+    if( ( ret = asn1_get_alg( &p, end, &pbe_alg_oid, &pbe_params ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-    }
-
-    end2 = p + len;
-
-    if( ( ret = asn1_get_tag( &p, end, &pbe_alg_oid.len, ASN1_OID ) ) != 0 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-
-    pbe_alg_oid.p = p;
-    p += pbe_alg_oid.len;
-
-    /*
-     * Store the algorithm parameters
-     */
-    pbe_params.p = p;
-    pbe_params.len = end2 - p;
-    p += pbe_params.len;
 
     if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );

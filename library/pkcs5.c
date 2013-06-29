@@ -42,15 +42,18 @@
 #include "polarssl/cipher.h"
 #include "polarssl/oid.h"
 
-static int pkcs5_parse_pbkdf2_params( unsigned char **p,
-                                      const unsigned char *end,
+static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
                                       asn1_buf *salt, int *iterations,
                                       int *keylen, md_type_t *md_type )
 {
     int ret;
-    size_t len = 0;
     asn1_buf prf_alg_oid;
+    unsigned char **p = &params->p;
+    const unsigned char *end = params->p + params->len;
 
+    if( params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+        return( POLARSSL_ERR_PKCS5_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
     /*
      *  PBKDF2-params ::= SEQUENCE {
      *    salt              OCTET STRING,
@@ -60,14 +63,6 @@ static int pkcs5_parse_pbkdf2_params( unsigned char **p,
      *  }
      *
      */
-    if( ( ret = asn1_get_tag( p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
-    }
-
-    end = *p + len;
-
     if( ( ret = asn1_get_tag( p, end, &salt->len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
@@ -89,7 +84,7 @@ static int pkcs5_parse_pbkdf2_params( unsigned char **p,
     if( *p == end )
         return( 0 );
 
-    if( ( ret = asn1_get_tag( p, end, &prf_alg_oid.len, ASN1_OID ) ) != 0 )
+    if( ( ret = asn1_get_alg_null( p, end, &prf_alg_oid ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
     if( !OID_CMP( OID_HMAC_SHA1, &prf_alg_oid ) )
@@ -110,11 +105,12 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
                  unsigned char *output )
 {
     int ret, iterations = 0, keylen = 0;
-    unsigned char *p, *end, *end2;
-    asn1_buf kdf_alg_oid, enc_scheme_oid, salt;
+    unsigned char *p, *end;
+    asn1_buf kdf_alg_oid, enc_scheme_oid, kdf_alg_params, enc_scheme_params;
+    asn1_buf salt;
     md_type_t md_type = POLARSSL_MD_SHA1;
     unsigned char key[32], iv[32];
-    size_t len = 0, olen = 0;
+    size_t olen = 0;
     const md_info_t *md_info;
     const cipher_info_t *cipher_info;
     md_context_t md_ctx;
@@ -130,32 +126,19 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
      *    encryptionScheme AlgorithmIdentifier {{PBES2-Encs}}
      *  }
      */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
+    if( pbe_params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+        return( POLARSSL_ERR_PKCS5_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
+
+    if( ( ret = asn1_get_alg( &p, end, &kdf_alg_oid, &kdf_alg_params ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
-    }
-
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
-    }
-
-    end2 = p + len;
-
-    if( ( ret = asn1_get_tag( &p, end2, &kdf_alg_oid.len, ASN1_OID ) ) != 0 )
-        return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
-
-    kdf_alg_oid.p = p;
-    p += kdf_alg_oid.len;
 
     // Only PBKDF2 supported at the moment
     //
     if( !OID_CMP( OID_PKCS5_PBKDF2, &kdf_alg_oid ) )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
-    if( ( ret = pkcs5_parse_pbkdf2_params( &p, end2,
+    if( ( ret = pkcs5_parse_pbkdf2_params( &kdf_alg_params,
                                            &salt, &iterations, &keylen,
                                            &md_type ) ) != 0 )
     {
@@ -166,19 +149,8 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( md_info == NULL )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
+    if( ( ret = asn1_get_alg( &p, end, &enc_scheme_oid, &enc_scheme_params ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
-    }
-
-    end2 = p + len;
-
-    if( ( ret = asn1_get_tag( &p, end2, &enc_scheme_oid.len, ASN1_OID ) ) != 0 )
-        return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
-
-    enc_scheme_oid.p = p;
-    p += enc_scheme_oid.len;
 
     if ( oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
@@ -189,13 +161,13 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
 
     keylen = cipher_info->key_length / 8;
 
-    if( ( ret = asn1_get_tag( &p, end2, &len, ASN1_OCTET_STRING ) ) != 0 )
-        return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
-
-    if( len != cipher_info->iv_size )
+    if( enc_scheme_params.tag != ASN1_OCTET_STRING ||
+        enc_scheme_params.len != cipher_info->iv_size )
+    {
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT );
+    }
 
-    memcpy( iv, p, len );
+    memcpy( iv, enc_scheme_params.p, enc_scheme_params.len );
 
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
         return( ret );

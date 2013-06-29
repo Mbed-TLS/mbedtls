@@ -45,12 +45,12 @@
 #include "polarssl/des.h"
 #endif
 
-static int pkcs12_parse_pbe_params( unsigned char **p,
-                                    const unsigned char *end,
+static int pkcs12_parse_pbe_params( asn1_buf *params,
                                     asn1_buf *salt, int *iterations )
 {
     int ret;
-    size_t len = 0;
+    unsigned char **p = &params->p;
+    const unsigned char *end = params->p + params->len;
 
     /*
      *  pkcs-12PbeParams ::= SEQUENCE {
@@ -59,13 +59,9 @@ static int pkcs12_parse_pbe_params( unsigned char **p,
      *  }
      *
      */
-    if( ( ret = asn1_get_tag( p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT + ret );
-    }
-
-    end = *p + len;
+    if( params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+        return( POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 
     if( ( ret = asn1_get_tag( p, end, &salt->len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT + ret );
@@ -91,16 +87,12 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
     int ret, iterations;
     asn1_buf salt;
     size_t i;
-    unsigned char *p, *end;
     unsigned char unipwd[258];
 
     memset(&salt, 0, sizeof(asn1_buf));
     memset(&unipwd, 0, sizeof(unipwd));
 
-    p = pbe_params->p;
-    end = p + pbe_params->len;
-
-    if( ( ret = pkcs12_parse_pbe_params( &p, end, &salt, &iterations ) ) != 0 )
+    if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt, &iterations ) ) != 0 )
         return( ret );
 
     for(i = 0; i < pwdlen; i++)

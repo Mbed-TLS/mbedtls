@@ -244,6 +244,35 @@ int asn1_get_mpi( unsigned char **p,
                   mpi *X );
 #endif
 
+/**
+ * Retrieve an AlgorithmIdentifier ASN.1 sequence.
+ * Updates the pointer to immediately behind the full AlgorithmIdentifier.
+ *
+ * \param p     The position in the ASN.1 data
+ * \param end   End of data
+ * \param alg   The buffer to receive the OID
+ * \param params The buffer to receive the params (if any)
+ *
+ * \return      0 if successful or a specific ASN.1 or MPI error code.
+ */
+int asn1_get_alg( unsigned char **p,
+                  const unsigned char *end,
+                  asn1_buf *alg, asn1_buf *params );
+
+/**
+ * Retrieve an AlgorithmIdentifier ASN.1 sequence with NULL or no params.
+ * Updates the pointer to immediately behind the full AlgorithmIdentifier.
+ *
+ * \param p     The position in the ASN.1 data
+ * \param end   End of data
+ * \param alg   The buffer to receive the OID
+ *
+ * \return      0 if successful or a specific ASN.1 or MPI error code.
+ */
+int asn1_get_alg_null( unsigned char **p,
+                       const unsigned char *end,
+                       asn1_buf *alg );
+
 #ifdef __cplusplus
 }
 #endif

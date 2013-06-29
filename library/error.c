@@ -156,7 +156,7 @@
 #define  snprintf  _snprintf
 #endif
 
-void error_strerror( int ret, char *buf, size_t buflen )
+void polarssl_strerror( int ret, char *buf, size_t buflen )
 {
     size_t len;
     int use_ret;
@@ -613,6 +613,13 @@ void error_strerror( int ret, char *buf, size_t buflen )
     snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
 }
 
+#if defined(POLARSSL_ERROR_STRERROR_BC)
+void error_strerror( int ret, char *buf, size_t buflen )
+{
+    return polarssl_strerror( ret, buf, buflen );
+}
+#endif /* POLARSSL_ERROR_STRERROR_BC */
+
 #else /* POLARSSL_ERROR_C */
 
 #if defined(POLARSSL_ERROR_STRERROR_DUMMY)
@@ -622,7 +629,7 @@ void error_strerror( int ret, char *buf, size_t buflen )
 /*
  * Provide an non-function in case POLARSSL_ERROR_C is not defined
  */
-void error_strerror( int ret, char *buf, size_t buflen )
+void polarssl_strerror( int ret, char *buf, size_t buflen )
 {
     ((void) ret);
 
@@ -630,5 +637,12 @@ void error_strerror( int ret, char *buf, size_t buflen )
         buf[0] = '\0';
 }
 
+#if defined(POLARSSL_ERROR_STRERROR_BC)
+void error_strerror( int ret, char *buf, size_t buflen )
+{
+    return polarssl_strerror( ret, buf, buflen );
+}
+#endif /* POLARSSL_ERROR_STRERROR_BC */
 #endif /* POLARSSL_ERROR_STRERROR_DUMMY */
+
 #endif /* POLARSSL_ERROR_C */

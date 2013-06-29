@@ -19,6 +19,8 @@ Changes
    * Split up the GCM module into a starts/update/finish cycle
    * Client and server now filter sent and accepted ciphersuites on minimum
      and maximum protocol version
+   * Renamed error_strerror() to the less conflicting polarssl_strerror()
+     (Ability to keep old as well with POLARSSL_ERROR_STRERROR_BC)
 
 Bugfix
    * Fix for MPI assembly for ARM

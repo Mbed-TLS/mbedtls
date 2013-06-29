@@ -103,7 +103,11 @@ extern "C" {
  * \param buffer    buffer to place representation in
  * \param buflen    length of the buffer
  */
+void polarssl_strerror( int errnum, char *buffer, size_t buflen );
+
+#if defined(POLARSSL_ERROR_STRERROR_BC)
 void error_strerror( int errnum, char *buffer, size_t buflen );
+#endif
 
 #ifdef __cplusplus
 }

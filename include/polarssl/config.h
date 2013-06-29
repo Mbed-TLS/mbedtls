@@ -326,6 +326,17 @@
 #define POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
 /**
+ * \def POLARSSL_ERROR_STRERROR_BC
+ *
+ * Make available the backward compatible error_strerror() next to the
+ * current polarssl_strerror().
+ *
+ * Disable if you run into name conflicts and want to really remove the
+ * error_strerror()
+ */
+#define POLARSSL_ERROR_STRERROR_BC
+
+/**
  * \def POLARSSL_ERROR_STRERROR_DUMMY
  *
  * Enable a dummy error function to make use of error_strerror() in

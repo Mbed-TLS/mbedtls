@@ -604,7 +604,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 #endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
     }
 
-    return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
 }
 
 /*

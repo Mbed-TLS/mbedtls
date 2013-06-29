@@ -228,7 +228,7 @@ ECP tls read group #2 (bad curve_type)
 ecp_tls_read_group:"010013":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
 
 ECP tls read group #3 (unknown curve)
-ecp_tls_read_group:"030010":POLARSSL_ERR_ECP_BAD_INPUT_DATA:0
+ecp_tls_read_group:"030010":POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE:0
 
 ECP tls read group #4 (OK, buffer just fits)
 depends_on:POLARSSL_ECP_DP_SECP256R1_ENABLED

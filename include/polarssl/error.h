@@ -71,7 +71,6 @@
  * SHA2      1  0x0078-0x0078
  * SHA4      1  0x007A-0x007A
  * PBKDF2    1  0x007C-0x007C
- * ECP       1  0x007E-0x007E
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
  * Name     ID  Nr of Errors
@@ -81,7 +80,7 @@
  * DHM      3   6
  * PKCS5    3   4 (Started from top)
  * RSA      4   9
- * ECP      4   1 (Started from top)
+ * ECP      4   4 (Started from top)
  * MD       5   4
  * CIPHER   6   5
  * SSL      6   2 (Started from top)

@@ -207,6 +207,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "ECP - The buffer is too small to write to" );
         if( use_ret == -(POLARSSL_ERR_ECP_GENERIC) )
             snprintf( buf, buflen, "ECP -  Generic ECP error" );
+        if( use_ret == -(POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE) )
+            snprintf( buf, buflen, "ECP - Requested curve not available" );
 #endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_MD_C)

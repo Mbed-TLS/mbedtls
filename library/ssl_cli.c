@@ -34,10 +34,6 @@
 #include <stdio.h>
 #include <time.h>
 
-#if defined(POLARSSL_SHA4_C)
-#include "polarssl/sha4.h"
-#endif
-
 static void ssl_write_hostname_ext( ssl_context *ssl,
                                     unsigned char *buf,
                                     size_t *olen )

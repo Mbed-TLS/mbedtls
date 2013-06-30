@@ -1296,6 +1296,9 @@ static int ssl_compress_buf( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> compress buf" ) );
 
+    if( len_pre == 0 )
+        return( 0 );
+
     msg_pre = (unsigned char*) malloc( len_pre );
     if( msg_pre == NULL )
     {
@@ -1346,6 +1349,9 @@ static int ssl_decompress_buf( ssl_context *ssl )
     unsigned char *msg_pre;
 
     SSL_DEBUG_MSG( 2, ( "=> decompress buf" ) );
+
+    if( len_pre == 0 )
+        return( 0 );
 
     msg_pre = (unsigned char*) malloc( len_pre );
     if( msg_pre == NULL )

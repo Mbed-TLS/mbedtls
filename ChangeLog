@@ -25,6 +25,7 @@ Changes
 
 Bugfix
    * Fixed parse error in ssl_parse_certificate_request()
+   * zlib compression/decompression skipped on empty blocks
 
 = Version 1.2.8 released 2013-06-19
 Features

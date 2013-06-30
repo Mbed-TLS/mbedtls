@@ -1,5 +1,5 @@
 /**
- * \file sha4.h
+ * \file sha512.h
  *
  * \brief SHA-384 and SHA-512 cryptographic hash function
  *
@@ -24,8 +24,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_SHA4_H
-#define POLARSSL_SHA4_H
+#ifndef POLARSSL_SHA512_H
+#define POLARSSL_SHA512_H
 
 #include "config.h"
 
@@ -94,7 +94,7 @@ void sha512_finish( sha512_context *ctx, unsigned char output[64] );
 #endif
 
 #else  /* POLARSSL_SHA512_ALT */
-#include "sha4_alt.h"
+#include "sha512_alt.h"
 #endif /* POLARSSL_SHA512_ALT */
 
 #ifdef __cplusplus
@@ -186,4 +186,4 @@ void sha512_process( sha512_context *ctx, const unsigned char data[128] );
 }
 #endif
 
-#endif /* sha4.h */
+#endif /* sha512.h */

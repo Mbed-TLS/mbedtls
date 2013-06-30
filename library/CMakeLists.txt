@@ -39,8 +39,8 @@ set(src
      pkcs12.c
      rsa.c
      sha1.c
-     sha2.c
-     sha4.c
+     sha256.c
+     sha512.c
      ssl_cache.c
      ssl_ciphersuites.c
      ssl_cli.c 

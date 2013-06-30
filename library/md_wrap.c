@@ -50,11 +50,11 @@
 #endif
 
 #if defined(POLARSSL_SHA256_C)
-#include "polarssl/sha2.h"
+#include "polarssl/sha256.h"
 #endif
 
 #if defined(POLARSSL_SHA512_C)
-#include "polarssl/sha4.h"
+#include "polarssl/sha512.h"
 #endif
 
 #include <stdlib.h>

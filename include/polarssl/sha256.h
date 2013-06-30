@@ -1,5 +1,5 @@
 /**
- * \file sha2.h
+ * \file sha256.h
  *
  * \brief SHA-224 and SHA-256 cryptographic hash function
  *
@@ -24,8 +24,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_SHA2_H
-#define POLARSSL_SHA2_H
+#ifndef POLARSSL_SHA256_H
+#define POLARSSL_SHA256_H
 
 #include "config.h"
 
@@ -96,7 +96,7 @@ void sha256_process( sha256_context *ctx, const unsigned char data[64] );
 #endif
 
 #else  /* POLARSSL_SHA256_ALT */
-#include "sha2_alt.h"
+#include "sha256_alt.h"
 #endif /* POLARSSL_SHA256_ALT */
 
 #ifdef __cplusplus
@@ -185,4 +185,4 @@ int sha256_self_test( int verbose );
 }
 #endif
 
-#endif /* sha2.h */
+#endif /* sha256.h */

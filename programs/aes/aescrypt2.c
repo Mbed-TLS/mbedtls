@@ -45,7 +45,7 @@
 #include "polarssl/config.h"
 
 #include "polarssl/aes.h"
-#include "polarssl/sha2.h"
+#include "polarssl/sha256.h"
 
 #define MODE_ENCRYPT    0
 #define MODE_DECRYPT    1

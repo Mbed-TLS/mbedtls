@@ -32,7 +32,7 @@
 
 #if defined(POLARSSL_SHA512_C)
 
-#include "polarssl/sha4.h"
+#include "polarssl/sha512.h"
 
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>

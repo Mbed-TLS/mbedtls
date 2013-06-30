@@ -1,7 +1,7 @@
 /*
  *  Benchmark demonstration program
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -36,8 +36,8 @@
 #include "polarssl/md4.h"
 #include "polarssl/md5.h"
 #include "polarssl/sha1.h"
-#include "polarssl/sha2.h"
-#include "polarssl/sha4.h"
+#include "polarssl/sha256.h"
+#include "polarssl/sha512.h"
 #include "polarssl/arc4.h"
 #include "polarssl/des.h"
 #include "polarssl/aes.h"

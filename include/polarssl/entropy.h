@@ -31,7 +31,7 @@
 
 #include "config.h"
 
-#include "sha4.h"
+#include "sha512.h"
 #if defined(POLARSSL_HAVEGE_C)
 #include "havege.h"
 #endif

@@ -65,7 +65,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         char error_buf[200];
-        error_strerror( ret, error_buf, 200 );
+        polarssl_strerror( ret, error_buf, 200 );
         printf("Last error was: %d - %s\n\n", ret, error_buf );
     }
 

@@ -135,7 +135,7 @@ static int do_handshake( ssl_context *ssl, struct options *opt )
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
 #if defined(POLARSSL_ERROR_C)
-            error_strerror( ret, (char *) buf, 1024 );
+            polarssl_strerror( ret, (char *) buf, 1024 );
 #endif
             printf( " failed\n  ! ssl_handshake returned %d: %s\n\n", ret, buf );
             return( -1 );

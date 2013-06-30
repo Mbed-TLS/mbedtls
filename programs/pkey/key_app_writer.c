@@ -243,7 +243,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
 #ifdef POLARSSL_ERROR_C
-            error_strerror( ret, buf, 1024 );
+            polarssl_strerror( ret, buf, 1024 );
 #endif
             printf( " failed\n  !  x509parse_key returned %d - %s\n\n", ret, buf );
             rsa_free( &rsa );
@@ -279,7 +279,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
 #ifdef POLARSSL_ERROR_C
-            error_strerror( ret, buf, 1024 );
+            polarssl_strerror( ret, buf, 1024 );
 #endif
             printf( " failed\n  !  x509parse_public_key returned %d - %s\n\n", ret, buf );
             rsa_free( &rsa );

@@ -41,7 +41,6 @@
 #include "polarssl/des.h"
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
-#include "polarssl/sha256.h"
 
 #if defined(POLARSSL_GCM_C)
 #include "polarssl/gcm.h"

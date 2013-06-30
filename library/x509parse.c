@@ -42,25 +42,6 @@
 #include "polarssl/asn1.h"
 #include "polarssl/oid.h"
 #include "polarssl/pem.h"
-#include "polarssl/des.h"
-#if defined(POLARSSL_MD2_C)
-#include "polarssl/md2.h"
-#endif
-#if defined(POLARSSL_MD4_C)
-#include "polarssl/md4.h"
-#endif
-#if defined(POLARSSL_MD5_C)
-#include "polarssl/md5.h"
-#endif
-#if defined(POLARSSL_SHA1_C)
-#include "polarssl/sha1.h"
-#endif
-#if defined(POLARSSL_SHA256_C)
-#include "polarssl/sha256.h"
-#endif
-#if defined(POLARSSL_SHA512_C)
-#include "polarssl/sha512.h"
-#endif
 #include "polarssl/dhm.h"
 #if defined(POLARSSL_PKCS5_C)
 #include "polarssl/pkcs5.h"

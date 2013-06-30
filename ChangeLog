@@ -23,7 +23,6 @@ Changes
      (Ability to keep old as well with POLARSSL_ERROR_STRERROR_BC)
 
 Bugfix
-   * Fix for MPI assembly for ARM
    * Fixed parse error in ssl_parse_certificate_request()
 
 = Version 1.2.8 released 2013-06-19

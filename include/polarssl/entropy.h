@@ -81,9 +81,9 @@ source_state;
 /**
  * \brief           Entropy context structure
  */
-typedef struct 
+typedef struct
 {
-    sha4_context    accumulator;
+    sha512_context  accumulator;
     int             source_count;
     source_state    source[ENTROPY_MAX_SOURCES];
 #if defined(POLARSSL_HAVEGE_C)

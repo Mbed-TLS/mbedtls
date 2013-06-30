@@ -55,10 +55,10 @@
 #if defined(POLARSSL_SHA1_C)
 #include "polarssl/sha1.h"
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
 #include "polarssl/sha2.h"
 #endif
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
 #include "polarssl/sha4.h"
 #endif
 #include "polarssl/dhm.h"

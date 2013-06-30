@@ -149,7 +149,7 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
             p += 2;
             continue;
         }
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
         if( p[0] == SSL_HASH_SHA512 )
         {
             ssl->handshake->sig_alg = SSL_HASH_SHA512;
@@ -161,7 +161,7 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
             break;
         }
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
         if( p[0] == SSL_HASH_SHA256 )
         {
             ssl->handshake->sig_alg = SSL_HASH_SHA256;
@@ -1380,7 +1380,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
                     md_alg = POLARSSL_MD_SHA1;
                     break;
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
                 case SSL_HASH_SHA224:
                     md_alg = POLARSSL_MD_SHA224;
                     break;
@@ -1388,7 +1388,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
                     md_alg = POLARSSL_MD_SHA256;
                     break;
 #endif
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
                 case SSL_HASH_SHA384:
                     md_alg = POLARSSL_MD_SHA384;
                     break;

@@ -21,6 +21,7 @@ Changes
      and maximum protocol version
    * Renamed error_strerror() to the less conflicting polarssl_strerror()
      (Ability to keep old as well with POLARSSL_ERROR_STRERROR_BC)
+   * SHA2 renamed to SHA256, SHA4 renamed to SHA512 and functions accordingly
 
 Bugfix
    * Fixed parse error in ssl_parse_certificate_request()

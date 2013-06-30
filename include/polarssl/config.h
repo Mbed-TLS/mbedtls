@@ -129,8 +129,8 @@
 #define POLARSSL_MD4_ALT
 #define POLARSSL_MD5_ALT
 #define POLARSSL_SHA1_ALT
-#define POLARSSL_SHA2_ALT
-#define POLARSSL_SHA4_ALT
+#define POLARSSL_SHA256_ALT
+#define POLARSSL_SHA512_ALT
  */
 
 /**
@@ -789,7 +789,7 @@
  * Module:  library/entropy.c
  * Caller:
  *
- * Requires: POLARSSL_SHA4_C
+ * Requires: POLARSSL_SHA512_C
  *
  * This module provides a generic entropy pool
  */
@@ -1043,31 +1043,33 @@
 #define POLARSSL_SHA1_C
 
 /**
- * \def POLARSSL_SHA2_C
+ * \def POLARSSL_SHA256_C
  *
  * Enable the SHA-224 and SHA-256 cryptographic hash algorithms.
+ * (Used to be POLARSSL_SHA2_C)
  *
- * Module:  library/sha2.c
+ * Module:  library/sha256.c
  * Caller:  library/md_wrap.c
  *          library/x509parse.c
  *
  * This module adds support for SHA-224 and SHA-256.
  * This module is required for the SSL/TLS 1.2 PRF function.
  */
-#define POLARSSL_SHA2_C
+#define POLARSSL_SHA256_C
 
 /**
- * \def POLARSSL_SHA4_C
+ * \def POLARSSL_SHA512_C
  *
  * Enable the SHA-384 and SHA-512 cryptographic hash algorithms.
+ * (Used to be POLARSSL_SHA4_C)
  *
- * Module:  library/sha4.c
+ * Module:  library/sha512.c
  * Caller:  library/md_wrap.c
  *          library/x509parse.c
  *
  * This module adds support for SHA-384 and SHA-512.
  */
-#define POLARSSL_SHA4_C
+#define POLARSSL_SHA512_C
 
 /**
  * \def POLARSSL_SSL_CACHE_C
@@ -1265,7 +1267,7 @@
 #error "POLARSSL_ECP_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ENTROPY_C) && !defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_ENTROPY_C) && !defined(POLARSSL_SHA512_C)
 #error "POLARSSL_ENTROPY_C defined, but not all prerequisites"
 #endif
 

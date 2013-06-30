@@ -40,7 +40,7 @@ void entropy_init( entropy_context *ctx )
 {
     memset( ctx, 0, sizeof(entropy_context) );
 
-    sha4_starts( &ctx->accumulator, 0 );
+    sha512_starts( &ctx->accumulator, 0 );
 #if defined(POLARSSL_HAVEGE_C)
     havege_init( &ctx->havege_data );
 #endif
@@ -91,7 +91,7 @@ static int entropy_update( entropy_context *ctx, unsigned char source_id,
 
     if( use_len > ENTROPY_BLOCK_SIZE )
     {
-        sha4( data, len, tmp, 0 );
+        sha512( data, len, tmp, 0 );
 
         p = tmp;
         use_len = ENTROPY_BLOCK_SIZE;
@@ -100,8 +100,8 @@ static int entropy_update( entropy_context *ctx, unsigned char source_id,
     header[0] = source_id;
     header[1] = use_len & 0xFF;
 
-    sha4_update( &ctx->accumulator, header, 2 );
-    sha4_update( &ctx->accumulator, p, use_len );
+    sha512_update( &ctx->accumulator, header, 2 );
+    sha512_update( &ctx->accumulator, p, use_len );
 
     return( 0 );
 }
@@ -179,19 +179,19 @@ int entropy_func( void *data, unsigned char *output, size_t len )
 
     memset( buf, 0, ENTROPY_BLOCK_SIZE );
 
-    sha4_finish( &ctx->accumulator, buf );
-                
+    sha512_finish( &ctx->accumulator, buf );
+
     /*
      * Perform second SHA-512 on entropy
      */
-    sha4( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
+    sha512( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
 
     /*
      * Reset accumulator and counters and recycle existing entropy
      */
-    memset( &ctx->accumulator, 0, sizeof( sha4_context ) );
-    sha4_starts( &ctx->accumulator, 0 );
-    sha4_update( &ctx->accumulator, buf, ENTROPY_BLOCK_SIZE );
+    memset( &ctx->accumulator, 0, sizeof( sha512_context ) );
+    sha512_starts( &ctx->accumulator, 0 );
+    sha512_update( &ctx->accumulator, buf, ENTROPY_BLOCK_SIZE );
 
     for( i = 0; i < ctx->source_count; i++ )
         ctx->source[i].size = 0;

@@ -45,7 +45,7 @@ sha224_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     key_len = unhexify( key_str, {hex_key_string} );
     src_len = unhexify( src_str, {hex_src_string} );
 
-    sha2_hmac( key_str, key_len, src_str, src_len, output, 1 );
+    sha256_hmac( key_str, key_len, src_str, src_len, output, 1 );
     hexify( hash_str, output, 28 );
 
     TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
@@ -69,7 +69,7 @@ sha256_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     key_len = unhexify( key_str, {hex_key_string} );
     src_len = unhexify( src_str, {hex_src_string} );
 
-    sha2_hmac( key_str, key_len, src_str, src_len, output, 0 );
+    sha256_hmac( key_str, key_len, src_str, src_len, output, 0 );
     hexify( hash_str, output, 32 );
 
     TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
@@ -93,7 +93,7 @@ sha384_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     key_len = unhexify( key_str, {hex_key_string} );
     src_len = unhexify( src_str, {hex_src_string} );
 
-    sha4_hmac( key_str, key_len, src_str, src_len, output, 1 );
+    sha512_hmac( key_str, key_len, src_str, src_len, output, 1 );
     hexify( hash_str, output, 48 );
 
     TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
@@ -117,7 +117,7 @@ sha512_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     key_len = unhexify( key_str, {hex_key_string} );
     src_len = unhexify( src_str, {hex_src_string} );
 
-    sha4_hmac( key_str, key_len, src_str, src_len, output, 0 );
+    sha512_hmac( key_str, key_len, src_str, src_len, output, 0 );
     hexify( hash_str, output, 64 );
 
     TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );

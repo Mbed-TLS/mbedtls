@@ -3,19 +3,19 @@ depends_on:POLARSSL_SHA1_C
 x509_cert_req_check:"data_files/server1.key":POLARSSL_MD_SHA1:"data_files/server1.req.sha1"
 
 Certificate Request check Server1 SHA224
-depends_on:POLARSSL_SHA2_C
+depends_on:POLARSSL_SHA256_C
 x509_cert_req_check:"data_files/server1.key":POLARSSL_MD_SHA224:"data_files/server1.req.sha224"
 
 Certificate Request check Server1 SHA256
-depends_on:POLARSSL_SHA2_C
+depends_on:POLARSSL_SHA256_C
 x509_cert_req_check:"data_files/server1.key":POLARSSL_MD_SHA256:"data_files/server1.req.sha256"
 
 Certificate Request check Server1 SHA384
-depends_on:POLARSSL_SHA4_C
+depends_on:POLARSSL_SHA512_C
 x509_cert_req_check:"data_files/server1.key":POLARSSL_MD_SHA384:"data_files/server1.req.sha384"
 
 Certificate Request check Server1 SHA512
-depends_on:POLARSSL_SHA4_C
+depends_on:POLARSSL_SHA512_C
 x509_cert_req_check:"data_files/server1.key":POLARSSL_MD_SHA512:"data_files/server1.req.sha512"
 
 Certificate Request check Server1 MD4

@@ -129,11 +129,11 @@
 #include "polarssl/sha1.h"
 #endif
 
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
 #include "polarssl/sha2.h"
 #endif
 
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
 #include "polarssl/sha4.h"
 #endif
 
@@ -594,15 +594,15 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "SHA1 - Read/write error in file" );
 #endif /* POLARSSL_SHA1_C */
 
-#if defined(POLARSSL_SHA2_C)
-    if( use_ret == -(POLARSSL_ERR_SHA2_FILE_IO_ERROR) )
-        snprintf( buf, buflen, "SHA2 - Read/write error in file" );
-#endif /* POLARSSL_SHA2_C */
+#if defined(POLARSSL_SHA256_C)
+    if( use_ret == -(POLARSSL_ERR_SHA256_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "SHA256 - Read/write error in file" );
+#endif /* POLARSSL_SHA256_C */
 
-#if defined(POLARSSL_SHA4_C)
-    if( use_ret == -(POLARSSL_ERR_SHA4_FILE_IO_ERROR) )
-        snprintf( buf, buflen, "SHA4 - Read/write error in file" );
-#endif /* POLARSSL_SHA4_C */
+#if defined(POLARSSL_SHA512_C)
+    if( use_ret == -(POLARSSL_ERR_SHA512_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "SHA512 - Read/write error in file" );
+#endif /* POLARSSL_SHA512_C */
 
 #if defined(POLARSSL_XTEA_C)
     if( use_ret == -(POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH) )

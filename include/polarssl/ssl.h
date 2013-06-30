@@ -382,10 +382,10 @@ struct _ssl_handshake_params
     /*
      * Checksum contexts
      */
-     md5_context fin_md5;
-    sha1_context fin_sha1;
-    sha2_context fin_sha2;
-    sha4_context fin_sha4;
+       md5_context fin_md5;
+      sha1_context fin_sha1;
+    sha256_context fin_sha256;
+    sha512_context fin_sha512;
 
     void (*update_checksum)(ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(ssl_context *, unsigned char *);

@@ -86,13 +86,13 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-#if defined(POLARSSL_SHA2_C)
-    if( ( ret = sha2_self_test( v ) ) != 0 )
+#if defined(POLARSSL_SHA256_C)
+    if( ( ret = sha256_self_test( v ) ) != 0 )
         return( ret );
 #endif
 
-#if defined(POLARSSL_SHA4_C)
-    if( ( ret = sha4_self_test( v ) ) != 0 )
+#if defined(POLARSSL_SHA512_C)
+    if( ( ret = sha512_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

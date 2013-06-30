@@ -130,13 +130,13 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     /*
      * Prepare signature_algorithms extension (TLS 1.2)
      */
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
     sig_alg_list[sig_alg_len++] = SSL_HASH_SHA512;
     sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
     sig_alg_list[sig_alg_len++] = SSL_HASH_SHA384;
     sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
     sig_alg_list[sig_alg_len++] = SSL_HASH_SHA256;
     sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
     sig_alg_list[sig_alg_len++] = SSL_HASH_SHA224;
@@ -892,7 +892,7 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
             *md_alg = POLARSSL_MD_SHA1;
             break;
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
         case SSL_HASH_SHA224:
             *md_alg = POLARSSL_MD_SHA224;
             break;
@@ -900,7 +900,7 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
             *md_alg = POLARSSL_MD_SHA256;
             break;
 #endif
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
         case SSL_HASH_SHA384:
             *md_alg = POLARSSL_MD_SHA384;
             break;

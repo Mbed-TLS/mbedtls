@@ -279,23 +279,23 @@ depends_on:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_sha1.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0:0:NULL
 
 X509 Certificate verification #15 (Valid Cert SHA224 Digest)
-depends_on:POLARSSL_SHA2_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_SHA256_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_sha224.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0:0:NULL
 
 X509 Certificate verification #16 (Valid Cert SHA256 Digest)
-depends_on:POLARSSL_SHA2_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_SHA256_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_sha256.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0:0:NULL
 
 X509 Certificate verification #17 (Valid Cert SHA384 Digest)
-depends_on:POLARSSL_SHA4_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_sha384.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0:0:NULL
 
 X509 Certificate verification #18 (Valid Cert SHA512 Digest)
-depends_on:POLARSSL_SHA4_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0:0:NULL
 
 X509 Certificate verification #19 (Valid Cert, denying callback)
-depends_on:POLARSSL_SHA4_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_OTHER:verify_none
 
 X509 Certificate verification #20 (Not trusted Cert, allowing callback)

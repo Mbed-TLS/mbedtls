@@ -30,7 +30,7 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
 
 #include "polarssl/sha2.h"
 
@@ -38,7 +38,7 @@
 #include <stdio.h>
 #endif
 
-#if !defined(POLARSSL_SHA2_ALT)
+#if !defined(POLARSSL_SHA256_ALT)
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -66,7 +66,7 @@
 /*
  * SHA-256 context setup
  */
-void sha2_starts( sha2_context *ctx, int is224 )
+void sha256_starts( sha256_context *ctx, int is224 )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -99,7 +99,7 @@ void sha2_starts( sha2_context *ctx, int is224 )
     ctx->is224 = is224;
 }
 
-void sha2_process( sha2_context *ctx, const unsigned char data[64] )
+void sha256_process( sha256_context *ctx, const unsigned char data[64] )
 {
     uint32_t temp1, temp2, W[64];
     uint32_t A, B, C, D, E, F, G, H;
@@ -233,7 +233,7 @@ void sha2_process( sha2_context *ctx, const unsigned char data[64] )
 /*
  * SHA-256 process buffer
  */
-void sha2_update( sha2_context *ctx, const unsigned char *input, size_t ilen )
+void sha256_update( sha256_context *ctx, const unsigned char *input, size_t ilen )
 {
     size_t fill;
     uint32_t left;
@@ -253,7 +253,7 @@ void sha2_update( sha2_context *ctx, const unsigned char *input, size_t ilen )
     if( left && ilen >= fill )
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
-        sha2_process( ctx, ctx->buffer );
+        sha256_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
         left = 0;
@@ -261,7 +261,7 @@ void sha2_update( sha2_context *ctx, const unsigned char *input, size_t ilen )
 
     while( ilen >= 64 )
     {
-        sha2_process( ctx, input );
+        sha256_process( ctx, input );
         input += 64;
         ilen  -= 64;
     }
@@ -270,7 +270,7 @@ void sha2_update( sha2_context *ctx, const unsigned char *input, size_t ilen )
         memcpy( (void *) (ctx->buffer + left), input, ilen );
 }
 
-static const unsigned char sha2_padding[64] =
+static const unsigned char sha256_padding[64] =
 {
  0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -281,7 +281,7 @@ static const unsigned char sha2_padding[64] =
 /*
  * SHA-256 final digest
  */
-void sha2_finish( sha2_context *ctx, unsigned char output[32] )
+void sha256_finish( sha256_context *ctx, unsigned char output[32] )
 {
     uint32_t last, padn;
     uint32_t high, low;
@@ -297,8 +297,8 @@ void sha2_finish( sha2_context *ctx, unsigned char output[32] )
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    sha2_update( ctx, sha2_padding, padn );
-    sha2_update( ctx, msglen, 8 );
+    sha256_update( ctx, sha256_padding, padn );
+    sha256_update( ctx, msglen, 8 );
 
     PUT_UINT32_BE( ctx->state[0], output,  0 );
     PUT_UINT32_BE( ctx->state[1], output,  4 );
@@ -312,50 +312,50 @@ void sha2_finish( sha2_context *ctx, unsigned char output[32] )
         PUT_UINT32_BE( ctx->state[7], output, 28 );
 }
 
-#endif /* !POLARSSL_SHA2_ALT */
+#endif /* !POLARSSL_SHA256_ALT */
 
 /*
  * output = SHA-256( input buffer )
  */
-void sha2( const unsigned char *input, size_t ilen,
-           unsigned char output[32], int is224 )
+void sha256( const unsigned char *input, size_t ilen,
+             unsigned char output[32], int is224 )
 {
-    sha2_context ctx;
+    sha256_context ctx;
 
-    sha2_starts( &ctx, is224 );
-    sha2_update( &ctx, input, ilen );
-    sha2_finish( &ctx, output );
+    sha256_starts( &ctx, is224 );
+    sha256_update( &ctx, input, ilen );
+    sha256_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha2_context ) );
+    memset( &ctx, 0, sizeof( sha256_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
 /*
  * output = SHA-256( file contents )
  */
-int sha2_file( const char *path, unsigned char output[32], int is224 )
+int sha256_file( const char *path, unsigned char output[32], int is224 )
 {
     FILE *f;
     size_t n;
-    sha2_context ctx;
+    sha256_context ctx;
     unsigned char buf[1024];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( POLARSSL_ERR_SHA2_FILE_IO_ERROR );
+        return( POLARSSL_ERR_SHA256_FILE_IO_ERROR );
 
-    sha2_starts( &ctx, is224 );
+    sha256_starts( &ctx, is224 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        sha2_update( &ctx, buf, n );
+        sha256_update( &ctx, buf, n );
 
-    sha2_finish( &ctx, output );
+    sha256_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha2_context ) );
+    memset( &ctx, 0, sizeof( sha256_context ) );
 
     if( ferror( f ) != 0 )
     {
         fclose( f );
-        return( POLARSSL_ERR_SHA2_FILE_IO_ERROR );
+        return( POLARSSL_ERR_SHA256_FILE_IO_ERROR );
     }
 
     fclose( f );
@@ -366,15 +366,15 @@ int sha2_file( const char *path, unsigned char output[32], int is224 )
 /*
  * SHA-256 HMAC context setup
  */
-void sha2_hmac_starts( sha2_context *ctx, const unsigned char *key, size_t keylen,
-                       int is224 )
+void sha256_hmac_starts( sha256_context *ctx, const unsigned char *key,
+                         size_t keylen, int is224 )
 {
     size_t i;
     unsigned char sum[32];
 
     if( keylen > 64 )
     {
-        sha2( key, keylen, sum, is224 );
+        sha256( key, keylen, sum, is224 );
         keylen = ( is224 ) ? 28 : 32;
         key = sum;
     }
@@ -388,8 +388,8 @@ void sha2_hmac_starts( sha2_context *ctx, const unsigned char *key, size_t keyle
         ctx->opad[i] = (unsigned char)( ctx->opad[i] ^ key[i] );
     }
 
-    sha2_starts( ctx, is224 );
-    sha2_update( ctx, ctx->ipad, 64 );
+    sha256_starts( ctx, is224 );
+    sha256_update( ctx, ctx->ipad, 64 );
 
     memset( sum, 0, sizeof( sum ) );
 }
@@ -397,15 +397,15 @@ void sha2_hmac_starts( sha2_context *ctx, const unsigned char *key, size_t keyle
 /*
  * SHA-256 HMAC process buffer
  */
-void sha2_hmac_update( sha2_context *ctx, const unsigned char *input, size_t ilen )
+void sha256_hmac_update( sha256_context *ctx, const unsigned char *input, size_t ilen )
 {
-    sha2_update( ctx, input, ilen );
+    sha256_update( ctx, input, ilen );
 }
 
 /*
  * SHA-256 HMAC final digest
  */
-void sha2_hmac_finish( sha2_context *ctx, unsigned char output[32] )
+void sha256_hmac_finish( sha256_context *ctx, unsigned char output[32] )
 {
     int is224, hlen;
     unsigned char tmpbuf[32];
@@ -413,11 +413,11 @@ void sha2_hmac_finish( sha2_context *ctx, unsigned char output[32] )
     is224 = ctx->is224;
     hlen = ( is224 == 0 ) ? 32 : 28;
 
-    sha2_finish( ctx, tmpbuf );
-    sha2_starts( ctx, is224 );
-    sha2_update( ctx, ctx->opad, 64 );
-    sha2_update( ctx, tmpbuf, hlen );
-    sha2_finish( ctx, output );
+    sha256_finish( ctx, tmpbuf );
+    sha256_starts( ctx, is224 );
+    sha256_update( ctx, ctx->opad, 64 );
+    sha256_update( ctx, tmpbuf, hlen );
+    sha256_finish( ctx, output );
 
     memset( tmpbuf, 0, sizeof( tmpbuf ) );
 }
@@ -425,45 +425,45 @@ void sha2_hmac_finish( sha2_context *ctx, unsigned char output[32] )
 /*
  * SHA-256 HMAC context reset
  */
-void sha2_hmac_reset( sha2_context *ctx )
+void sha256_hmac_reset( sha256_context *ctx )
 {
-    sha2_starts( ctx, ctx->is224 );
-    sha2_update( ctx, ctx->ipad, 64 );
+    sha256_starts( ctx, ctx->is224 );
+    sha256_update( ctx, ctx->ipad, 64 );
 }
 
 /*
  * output = HMAC-SHA-256( hmac key, input buffer )
  */
-void sha2_hmac( const unsigned char *key, size_t keylen,
-                const unsigned char *input, size_t ilen,
-                unsigned char output[32], int is224 )
+void sha256_hmac( const unsigned char *key, size_t keylen,
+                  const unsigned char *input, size_t ilen,
+                  unsigned char output[32], int is224 )
 {
-    sha2_context ctx;
+    sha256_context ctx;
 
-    sha2_hmac_starts( &ctx, key, keylen, is224 );
-    sha2_hmac_update( &ctx, input, ilen );
-    sha2_hmac_finish( &ctx, output );
+    sha256_hmac_starts( &ctx, key, keylen, is224 );
+    sha256_hmac_update( &ctx, input, ilen );
+    sha256_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha2_context ) );
+    memset( &ctx, 0, sizeof( sha256_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)
 /*
  * FIPS-180-2 test vectors
  */
-static unsigned char sha2_test_buf[3][57] = 
+static unsigned char sha256_test_buf[3][57] = 
 {
     { "abc" },
     { "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" },
     { "" }
 };
 
-static const int sha2_test_buflen[3] =
+static const int sha256_test_buflen[3] =
 {
     3, 56, 1000
 };
 
-static const unsigned char sha2_test_sum[6][32] =
+static const unsigned char sha256_test_sum[6][32] =
 {
     /*
      * SHA-224 test vectors
@@ -501,7 +501,7 @@ static const unsigned char sha2_test_sum[6][32] =
 /*
  * RFC 4231 test vectors
  */
-static unsigned char sha2_hmac_test_key[7][26] =
+static unsigned char sha256_hmac_test_key[7][26] =
 {
     { "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
       "\x0B\x0B\x0B\x0B" },
@@ -516,12 +516,12 @@ static unsigned char sha2_hmac_test_key[7][26] =
     { "" }
 };
 
-static const int sha2_hmac_test_keylen[7] =
+static const int sha256_hmac_test_keylen[7] =
 {
     20, 4, 20, 25, 20, 131, 131
 };
 
-static unsigned char sha2_hmac_test_buf[7][153] =
+static unsigned char sha256_hmac_test_buf[7][153] =
 {
     { "Hi There" },
     { "what do ya want for nothing?" },
@@ -542,12 +542,12 @@ static unsigned char sha2_hmac_test_buf[7][153] =
       "be hashed before being used by the HMAC algorithm." }
 };
 
-static const int sha2_hmac_test_buflen[7] =
+static const int sha256_hmac_test_buflen[7] =
 {
     8, 28, 50, 50, 20, 54, 152
 };
 
-static const unsigned char sha2_hmac_test_sum[14][32] =
+static const unsigned char sha256_hmac_test_sum[14][32] =
 {
     /*
      * HMAC-SHA-224 test vectors
@@ -613,12 +613,12 @@ static const unsigned char sha2_hmac_test_sum[14][32] =
 /*
  * Checkup routine
  */
-int sha2_self_test( int verbose )
+int sha256_self_test( int verbose )
 {
     int i, j, k, buflen;
     unsigned char buf[1024];
-    unsigned char sha2sum[32];
-    sha2_context ctx;
+    unsigned char sha256sum[32];
+    sha256_context ctx;
 
     for( i = 0; i < 6; i++ )
     {
@@ -628,22 +628,22 @@ int sha2_self_test( int verbose )
         if( verbose != 0 )
             printf( "  SHA-%d test #%d: ", 256 - k * 32, j + 1 );
 
-        sha2_starts( &ctx, k );
+        sha256_starts( &ctx, k );
 
         if( j == 2 )
         {
             memset( buf, 'a', buflen = 1000 );
 
             for( j = 0; j < 1000; j++ )
-                sha2_update( &ctx, buf, buflen );
+                sha256_update( &ctx, buf, buflen );
         }
         else
-            sha2_update( &ctx, sha2_test_buf[j],
-                               sha2_test_buflen[j] );
+            sha256_update( &ctx, sha256_test_buf[j],
+                                 sha256_test_buflen[j] );
 
-        sha2_finish( &ctx, sha2sum );
+        sha256_finish( &ctx, sha256sum );
 
-        if( memcmp( sha2sum, sha2_test_sum[i], 32 - k * 4 ) != 0 )
+        if( memcmp( sha256sum, sha256_test_sum[i], 32 - k * 4 ) != 0 )
         {
             if( verbose != 0 )
                 printf( "failed\n" );
@@ -669,20 +669,20 @@ int sha2_self_test( int verbose )
         if( j == 5 || j == 6 )
         {
             memset( buf, '\xAA', buflen = 131 );
-            sha2_hmac_starts( &ctx, buf, buflen, k );
+            sha256_hmac_starts( &ctx, buf, buflen, k );
         }
         else
-            sha2_hmac_starts( &ctx, sha2_hmac_test_key[j],
-                                    sha2_hmac_test_keylen[j], k );
+            sha256_hmac_starts( &ctx, sha256_hmac_test_key[j],
+                                      sha256_hmac_test_keylen[j], k );
 
-        sha2_hmac_update( &ctx, sha2_hmac_test_buf[j],
-                                sha2_hmac_test_buflen[j] );
+        sha256_hmac_update( &ctx, sha256_hmac_test_buf[j],
+                                  sha256_hmac_test_buflen[j] );
 
-        sha2_hmac_finish( &ctx, sha2sum );
+        sha256_hmac_finish( &ctx, sha256sum );
 
         buflen = ( j == 4 ) ? 16 : 32 - k * 4;
 
-        if( memcmp( sha2sum, sha2_hmac_test_sum[i], buflen ) != 0 )
+        if( memcmp( sha256sum, sha256_hmac_test_sum[i], buflen ) != 0 )
         {
             if( verbose != 0 )
                 printf( "failed\n" );

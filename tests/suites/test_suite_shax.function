@@ -39,7 +39,7 @@ sha224:hex_src_string:hex_hash_string
 
     src_len = unhexify( src_str, {hex_src_string} );
 
-    sha2( src_str, src_len, output, 1 );
+    sha256( src_str, src_len, output, 1 );
     hexify( hash_str, output, 28 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
@@ -60,7 +60,7 @@ sha256:hex_src_string:hex_hash_string
 
     src_len = unhexify( src_str, {hex_src_string} );
 
-    sha2( src_str, src_len, output, 0 );
+    sha256( src_str, src_len, output, 0 );
     hexify( hash_str, output, 32 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
@@ -81,7 +81,7 @@ sha384:hex_src_string:hex_hash_string
 
     src_len = unhexify( src_str, {hex_src_string} );
 
-    sha4( src_str, src_len, output, 1 );
+    sha512( src_str, src_len, output, 1 );
     hexify( hash_str, output, 48 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
@@ -102,7 +102,7 @@ sha512:hex_src_string:hex_hash_string
 
     src_len = unhexify( src_str, {hex_src_string} );
 
-    sha4( src_str, src_len, output, 0);
+    sha512( src_str, src_len, output, 0);
     hexify( hash_str, output, 64 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
@@ -134,7 +134,7 @@ sha224_file:filename:hex_hash_string
     memset(hash_str, 0x00, 57);
     memset(output, 0x00, 29);
 
-    sha2_file( {filename}, output, 1);
+    sha256_file( {filename}, output, 1);
     hexify( hash_str, output, 28 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
@@ -150,7 +150,7 @@ sha256_file:filename:hex_hash_string
     memset(hash_str, 0x00, 65);
     memset(output, 0x00, 33);
 
-    sha2_file( {filename}, output, 0);
+    sha256_file( {filename}, output, 0);
     hexify( hash_str, output, 32 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
@@ -166,7 +166,7 @@ sha384_file:filename:hex_hash_string
     memset(hash_str, 0x00, 97);
     memset(output, 0x00, 49);
 
-    sha4_file( {filename}, output, 1);
+    sha512_file( {filename}, output, 1);
     hexify( hash_str, output, 48 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
@@ -182,7 +182,7 @@ sha512_file:filename:hex_hash_string
     memset(hash_str, 0x00, 129);
     memset(output, 0x00, 65);
 
-    sha4_file( {filename}, output, 0);
+    sha512_file( {filename}, output, 0);
     hexify( hash_str, output, 64 );
 
     TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
@@ -197,15 +197,15 @@ sha1_selftest:
 END_CASE
 
 BEGIN_CASE
-sha2_selftest:
+sha256_selftest:
 {
-    TEST_ASSERT( sha2_self_test( 0 ) == 0 );
+    TEST_ASSERT( sha256_self_test( 0 ) == 0 );
 }
 END_CASE
 
 BEGIN_CASE
-sha4_selftest:
+sha512_selftest:
 {
-    TEST_ASSERT( sha4_self_test( 0 ) == 0 );
+    TEST_ASSERT( sha512_self_test( 0 ) == 0 );
 }
 END_CASE

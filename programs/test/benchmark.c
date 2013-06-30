@@ -181,33 +181,33 @@ int main( int argc, char *argv[] )
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
     printf( HEADER_FORMAT, "SHA-256" );
     fflush( stdout );
 
     set_alarm( 1 );
     for( i = 1; ! alarmed; i++ )
-        sha2( buf, BUFSIZE, tmp, 0 );
+        sha256( buf, BUFSIZE, tmp, 0 );
 
     tsc = hardclock();
     for( j = 0; j < 1024; j++ )
-        sha2( buf, BUFSIZE, tmp, 0 );
+        sha256( buf, BUFSIZE, tmp, 0 );
 
     printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
     printf( HEADER_FORMAT, "SHA-512" );
     fflush( stdout );
 
     set_alarm( 1 );
     for( i = 1; ! alarmed; i++ )
-        sha4( buf, BUFSIZE, tmp, 0 );
+        sha512( buf, BUFSIZE, tmp, 0 );
 
     tsc = hardclock();
     for( j = 0; j < 1024; j++ )
-        sha4( buf, BUFSIZE, tmp, 0 );
+        sha512( buf, BUFSIZE, tmp, 0 );
 
     printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );

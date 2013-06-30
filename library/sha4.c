@@ -30,7 +30,7 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
 
 #include "polarssl/sha4.h"
 
@@ -38,7 +38,7 @@
 #include <stdio.h>
 #endif
 
-#if !defined(POLARSSL_SHA4_ALT)
+#if !defined(POLARSSL_SHA512_ALT)
 
 /*
  * 64-bit integer manipulation macros (big endian)
@@ -121,7 +121,7 @@ static const uint64_t K[80] =
 /*
  * SHA-512 context setup
  */
-void sha4_starts( sha4_context *ctx, int is384 )
+void sha512_starts( sha512_context *ctx, int is384 )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -154,7 +154,7 @@ void sha4_starts( sha4_context *ctx, int is384 )
     ctx->is384 = is384;
 }
 
-void sha4_process( sha4_context *ctx, const unsigned char data[128] )
+void sha512_process( sha512_context *ctx, const unsigned char data[128] )
 {
     int i;
     uint64_t temp1, temp2, W[80];
@@ -226,7 +226,7 @@ void sha4_process( sha4_context *ctx, const unsigned char data[128] )
 /*
  * SHA-512 process buffer
  */
-void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
+void sha512_update( sha512_context *ctx, const unsigned char *input, size_t ilen )
 {
     size_t fill;
     unsigned int left;
@@ -245,7 +245,7 @@ void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
     if( left && ilen >= fill )
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
-        sha4_process( ctx, ctx->buffer );
+        sha512_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
         left = 0;
@@ -253,7 +253,7 @@ void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
 
     while( ilen >= 128 )
     {
-        sha4_process( ctx, input );
+        sha512_process( ctx, input );
         input += 128;
         ilen  -= 128;
     }
@@ -262,7 +262,7 @@ void sha4_update( sha4_context *ctx, const unsigned char *input, size_t ilen )
         memcpy( (void *) (ctx->buffer + left), input, ilen );
 }
 
-static const unsigned char sha4_padding[128] =
+static const unsigned char sha512_padding[128] =
 {
  0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -277,7 +277,7 @@ static const unsigned char sha4_padding[128] =
 /*
  * SHA-512 final digest
  */
-void sha4_finish( sha4_context *ctx, unsigned char output[64] )
+void sha512_finish( sha512_context *ctx, unsigned char output[64] )
 {
     size_t last, padn;
     uint64_t high, low;
@@ -293,8 +293,8 @@ void sha4_finish( sha4_context *ctx, unsigned char output[64] )
     last = (size_t)( ctx->total[0] & 0x7F );
     padn = ( last < 112 ) ? ( 112 - last ) : ( 240 - last );
 
-    sha4_update( ctx, sha4_padding, padn );
-    sha4_update( ctx, msglen, 16 );
+    sha512_update( ctx, sha512_padding, padn );
+    sha512_update( ctx, msglen, 16 );
 
     PUT_UINT64_BE( ctx->state[0], output,  0 );
     PUT_UINT64_BE( ctx->state[1], output,  8 );
@@ -310,50 +310,50 @@ void sha4_finish( sha4_context *ctx, unsigned char output[64] )
     }
 }
 
-#endif /* !POLARSSL_SHA4_ALT */
+#endif /* !POLARSSL_SHA512_ALT */
 
 /*
  * output = SHA-512( input buffer )
  */
-void sha4( const unsigned char *input, size_t ilen,
-           unsigned char output[64], int is384 )
+void sha512( const unsigned char *input, size_t ilen,
+             unsigned char output[64], int is384 )
 {
-    sha4_context ctx;
+    sha512_context ctx;
 
-    sha4_starts( &ctx, is384 );
-    sha4_update( &ctx, input, ilen );
-    sha4_finish( &ctx, output );
+    sha512_starts( &ctx, is384 );
+    sha512_update( &ctx, input, ilen );
+    sha512_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha4_context ) );
+    memset( &ctx, 0, sizeof( sha512_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
 /*
  * output = SHA-512( file contents )
  */
-int sha4_file( const char *path, unsigned char output[64], int is384 )
+int sha512_file( const char *path, unsigned char output[64], int is384 )
 {
     FILE *f;
     size_t n;
-    sha4_context ctx;
+    sha512_context ctx;
     unsigned char buf[1024];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( POLARSSL_ERR_SHA4_FILE_IO_ERROR );
+        return( POLARSSL_ERR_SHA512_FILE_IO_ERROR );
 
-    sha4_starts( &ctx, is384 );
+    sha512_starts( &ctx, is384 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        sha4_update( &ctx, buf, n );
+        sha512_update( &ctx, buf, n );
 
-    sha4_finish( &ctx, output );
+    sha512_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha4_context ) );
+    memset( &ctx, 0, sizeof( sha512_context ) );
 
     if( ferror( f ) != 0 )
     {
         fclose( f );
-        return( POLARSSL_ERR_SHA4_FILE_IO_ERROR );
+        return( POLARSSL_ERR_SHA512_FILE_IO_ERROR );
     }
 
     fclose( f );
@@ -364,15 +364,15 @@ int sha4_file( const char *path, unsigned char output[64], int is384 )
 /*
  * SHA-512 HMAC context setup
  */
-void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, size_t keylen,
-                       int is384 )
+void sha512_hmac_starts( sha512_context *ctx, const unsigned char *key,
+                         size_t keylen, int is384 )
 {
     size_t i;
     unsigned char sum[64];
 
     if( keylen > 128 )
     {
-        sha4( key, keylen, sum, is384 );
+        sha512( key, keylen, sum, is384 );
         keylen = ( is384 ) ? 48 : 64;
         key = sum;
     }
@@ -386,8 +386,8 @@ void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, size_t keyle
         ctx->opad[i] = (unsigned char)( ctx->opad[i] ^ key[i] );
     }
 
-    sha4_starts( ctx, is384 );
-    sha4_update( ctx, ctx->ipad, 128 );
+    sha512_starts( ctx, is384 );
+    sha512_update( ctx, ctx->ipad, 128 );
 
     memset( sum, 0, sizeof( sum ) );
 }
@@ -395,16 +395,16 @@ void sha4_hmac_starts( sha4_context *ctx, const unsigned char *key, size_t keyle
 /*
  * SHA-512 HMAC process buffer
  */
-void sha4_hmac_update( sha4_context  *ctx,
-                       const unsigned char *input, size_t ilen )
+void sha512_hmac_update( sha512_context  *ctx,
+                         const unsigned char *input, size_t ilen )
 {
-    sha4_update( ctx, input, ilen );
+    sha512_update( ctx, input, ilen );
 }
 
 /*
  * SHA-512 HMAC final digest
  */
-void sha4_hmac_finish( sha4_context *ctx, unsigned char output[64] )
+void sha512_hmac_finish( sha512_context *ctx, unsigned char output[64] )
 {
     int is384, hlen;
     unsigned char tmpbuf[64];
@@ -412,11 +412,11 @@ void sha4_hmac_finish( sha4_context *ctx, unsigned char output[64] )
     is384 = ctx->is384;
     hlen = ( is384 == 0 ) ? 64 : 48;
 
-    sha4_finish( ctx, tmpbuf );
-    sha4_starts( ctx, is384 );
-    sha4_update( ctx, ctx->opad, 128 );
-    sha4_update( ctx, tmpbuf, hlen );
-    sha4_finish( ctx, output );
+    sha512_finish( ctx, tmpbuf );
+    sha512_starts( ctx, is384 );
+    sha512_update( ctx, ctx->opad, 128 );
+    sha512_update( ctx, tmpbuf, hlen );
+    sha512_finish( ctx, output );
 
     memset( tmpbuf, 0, sizeof( tmpbuf ) );
 }
@@ -424,26 +424,26 @@ void sha4_hmac_finish( sha4_context *ctx, unsigned char output[64] )
 /*
  * SHA-512 HMAC context reset
  */
-void sha4_hmac_reset( sha4_context *ctx )
+void sha512_hmac_reset( sha512_context *ctx )
 {
-    sha4_starts( ctx, ctx->is384 );
-    sha4_update( ctx, ctx->ipad, 128 );
+    sha512_starts( ctx, ctx->is384 );
+    sha512_update( ctx, ctx->ipad, 128 );
 }
 
 /*
  * output = HMAC-SHA-512( hmac key, input buffer )
  */
-void sha4_hmac( const unsigned char *key, size_t keylen,
+void sha512_hmac( const unsigned char *key, size_t keylen,
                 const unsigned char *input, size_t ilen,
                 unsigned char output[64], int is384 )
 {
-    sha4_context ctx;
+    sha512_context ctx;
 
-    sha4_hmac_starts( &ctx, key, keylen, is384 );
-    sha4_hmac_update( &ctx, input, ilen );
-    sha4_hmac_finish( &ctx, output );
+    sha512_hmac_starts( &ctx, key, keylen, is384 );
+    sha512_hmac_update( &ctx, input, ilen );
+    sha512_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha4_context ) );
+    memset( &ctx, 0, sizeof( sha512_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -451,7 +451,7 @@ void sha4_hmac( const unsigned char *key, size_t keylen,
 /*
  * FIPS-180-2 test vectors
  */
-static unsigned char sha4_test_buf[3][113] = 
+static unsigned char sha512_test_buf[3][113] = 
 {
     { "abc" },
     { "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
@@ -459,12 +459,12 @@ static unsigned char sha4_test_buf[3][113] =
     { "" }
 };
 
-static const int sha4_test_buflen[3] =
+static const int sha512_test_buflen[3] =
 {
     3, 112, 1000
 };
 
-static const unsigned char sha4_test_sum[6][64] =
+static const unsigned char sha512_test_sum[6][64] =
 {
     /*
      * SHA-384 test vectors
@@ -520,7 +520,7 @@ static const unsigned char sha4_test_sum[6][64] =
 /*
  * RFC 4231 test vectors
  */
-static unsigned char sha4_hmac_test_key[7][26] =
+static unsigned char sha512_hmac_test_key[7][26] =
 {
     { "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
       "\x0B\x0B\x0B\x0B" },
@@ -535,12 +535,12 @@ static unsigned char sha4_hmac_test_key[7][26] =
     { "" }
 };
 
-static const int sha4_hmac_test_keylen[7] =
+static const int sha512_hmac_test_keylen[7] =
 {
     20, 4, 20, 25, 20, 131, 131
 };
 
-static unsigned char sha4_hmac_test_buf[7][153] =
+static unsigned char sha512_hmac_test_buf[7][153] =
 {
     { "Hi There" },
     { "what do ya want for nothing?" },
@@ -561,12 +561,12 @@ static unsigned char sha4_hmac_test_buf[7][153] =
       "be hashed before being used by the HMAC algorithm." }
 };
 
-static const int sha4_hmac_test_buflen[7] =
+static const int sha512_hmac_test_buflen[7] =
 {
     8, 28, 50, 50, 20, 54, 152
 };
 
-static const unsigned char sha4_hmac_test_sum[14][64] =
+static const unsigned char sha512_hmac_test_sum[14][64] =
 {
     /*
      * HMAC-SHA-384 test vectors
@@ -668,12 +668,12 @@ static const unsigned char sha4_hmac_test_sum[14][64] =
 /*
  * Checkup routine
  */
-int sha4_self_test( int verbose )
+int sha512_self_test( int verbose )
 {
     int i, j, k, buflen;
     unsigned char buf[1024];
-    unsigned char sha4sum[64];
-    sha4_context ctx;
+    unsigned char sha512sum[64];
+    sha512_context ctx;
 
     for( i = 0; i < 6; i++ )
     {
@@ -683,22 +683,22 @@ int sha4_self_test( int verbose )
         if( verbose != 0 )
             printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
 
-        sha4_starts( &ctx, k );
+        sha512_starts( &ctx, k );
 
         if( j == 2 )
         {
             memset( buf, 'a', buflen = 1000 );
 
             for( j = 0; j < 1000; j++ )
-                sha4_update( &ctx, buf, buflen );
+                sha512_update( &ctx, buf, buflen );
         }
         else
-            sha4_update( &ctx, sha4_test_buf[j],
-                               sha4_test_buflen[j] );
+            sha512_update( &ctx, sha512_test_buf[j],
+                                 sha512_test_buflen[j] );
 
-        sha4_finish( &ctx, sha4sum );
+        sha512_finish( &ctx, sha512sum );
 
-        if( memcmp( sha4sum, sha4_test_sum[i], 64 - k * 16 ) != 0 )
+        if( memcmp( sha512sum, sha512_test_sum[i], 64 - k * 16 ) != 0 )
         {
             if( verbose != 0 )
                 printf( "failed\n" );
@@ -724,20 +724,20 @@ int sha4_self_test( int verbose )
         if( j == 5 || j == 6 )
         {
             memset( buf, '\xAA', buflen = 131 );
-            sha4_hmac_starts( &ctx, buf, buflen, k );
+            sha512_hmac_starts( &ctx, buf, buflen, k );
         }
         else
-            sha4_hmac_starts( &ctx, sha4_hmac_test_key[j],
-                                    sha4_hmac_test_keylen[j], k );
+            sha512_hmac_starts( &ctx, sha512_hmac_test_key[j],
+                                      sha512_hmac_test_keylen[j], k );
 
-        sha4_hmac_update( &ctx, sha4_hmac_test_buf[j],
-                                sha4_hmac_test_buflen[j] );
+        sha512_hmac_update( &ctx, sha512_hmac_test_buf[j],
+                                  sha512_hmac_test_buflen[j] );
 
-        sha4_hmac_finish( &ctx, sha4sum );
+        sha512_hmac_finish( &ctx, sha512sum );
 
         buflen = ( j == 4 ) ? 16 : 64 - k * 16;
 
-        if( memcmp( sha4sum, sha4_hmac_test_sum[i], buflen ) != 0 )
+        if( memcmp( sha512sum, sha512_hmac_test_sum[i], buflen ) != 0 )
         {
             if( verbose != 0 )
                 printf( "failed\n" );

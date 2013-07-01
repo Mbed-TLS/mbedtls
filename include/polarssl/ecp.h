@@ -229,25 +229,6 @@ int ecp_is_zero( ecp_point *pt );
 int ecp_copy( ecp_point *P, const ecp_point *Q );
 
 /**
- * \brief           Check that a point is a valid public key on this curve
- *
- * \param grp       Curve/group the point should belong to
- * \param pt        Point to check
- *
- * \return          0 if point is a valid public key,
- *                  POLARSSL_ERR_ECP_GENERIC otherwise.
- *
- * \note            This function only checks the point is non-zero, has valid
- *                  coordinates and lies on the curve, but not that it is
- *                  indeed a multiple of G. This is additional check is more
- *                  expensive, isn't required by standards, and shouldn't be
- *                  necessary if the group used has a small cofactor. In
- *                  particular, it is useless for the NIST groups which all
- *                  have a cofactor of 1.
- */
-int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt );
-
-/**
  * \brief           Import a non-zero point from two ASCII strings
  *
  * \param P         Destination point
@@ -438,6 +419,44 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P );
 
 /**
+ * \brief           Check that a point is a valid public key on this curve
+ *
+ * \param grp       Curve/group the point should belong to
+ * \param pt        Point to check
+ *
+ * \return          0 if point is a valid public key,
+ *                  POLARSSL_ERR_ECP_GENERIC otherwise.
+ *
+ * \note            This function only checks the point is non-zero, has valid
+ *                  coordinates and lies on the curve, but not that it is
+ *                  indeed a multiple of G. This is additional check is more
+ *                  expensive, isn't required by standards, and shouldn't be
+ *                  necessary if the group used has a small cofactor. In
+ *                  particular, it is useless for the NIST groups which all
+ *                  have a cofactor of 1.
+ *
+ * \note            Uses bare components rather than an ecp_keypair structure
+ *                  in order to ease use with other structures such as
+ *                  ecdh_context of ecdsa_context.
+ */
+int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt );
+
+/**
+ * \brief           Check that an mpi is a valid private key for this curve
+ *
+ * \param grp       Group used
+ * \param d         Integer to check
+ *
+ * \return          0 if point is a valid private key,
+ *                  POLARSSL_ERR_ECP_GENERIC otherwise.
+ *
+ * \note            Uses bare components rather than an ecp_keypair structure
+ *                  in order to ease use with other structures such as
+ *                  ecdh_context of ecdsa_context.
+ */
+int ecp_check_prvkey( const ecp_group *grp, const mpi *d );
+
+/**
  * \brief           Generate a keypair
  *
  * \param grp       ECP group
@@ -448,6 +467,10 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
  *
  * \return          0 if successful,
  *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ *
+ * \note            Uses bare components rather than an ecp_keypair structure
+ *                  in order to ease use with other structures such as
+ *                  ecdh_context of ecdsa_context.
  */
 int ecp_gen_keypair( const ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),

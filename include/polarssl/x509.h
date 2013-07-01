@@ -59,7 +59,7 @@
 #define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x2580  /**< The extension tag or value is invalid. */
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x2600  /**< Certificate or CRL has an unsupported version number. */
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x2680  /**< Signature algorithm (oid) is unsupported. */
-#define POLARSSL_ERR_X509_UNKNOWN_PK_ALG                   -0x2700  /**< Key algorithm is unsupported (only RSA is supported). */
+#define POLARSSL_ERR_X509_UNKNOWN_PK_ALG                   -0x2700  /**< Key algorithm is unsupported (only RSA and EC are supported). */
 #define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x2780  /**< Certificate signature algorithms do not match. (see \c ::x509_cert sig_oid) */
 #define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x2800  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
 #define POLARSSL_ERR_X509_KEY_INVALID_VERSION              -0x2880  /**< Unsupported RSA key version */

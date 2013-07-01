@@ -38,6 +38,8 @@ typedef enum {
     POLARSSL_PK_NONE=0,
     POLARSSL_PK_RSA,
     POLARSSL_PK_ECDSA,
+    POLARSSL_PK_ECKEY,
+    POLARSSL_PK_ECKEY_DH,
 } pk_type_t;
 
 #ifdef __cplusplus

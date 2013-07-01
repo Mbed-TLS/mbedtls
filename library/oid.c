@@ -313,7 +313,7 @@ FN_OID_GET_OID_BY_ATTR2(oid_get_oid_by_sig_alg, oid_sig_alg_t, oid_sig_alg, pk_t
 #endif /* POLARSSL_MD_C */
 
 /*
- * For PublicKeyInfo
+ * For PublicKeyInfo (PKCS1, RFC 5480)
  */
 typedef struct {
     oid_descriptor_t    descriptor;
@@ -325,6 +325,14 @@ static const oid_pk_alg_t oid_pk_alg[] =
     {
         { OID_PKCS1_RSA,      "rsaEncryption",   "RSA" },
         POLARSSL_PK_RSA,
+    },
+    {
+        { OID_EC_ALG_UNRESTRICTED,  "id-ecPublicKey",   "Generic EC key" },
+        POLARSSL_PK_ECKEY,
+    },
+    {
+        { OID_EC_ALG_ECDH,          "id-ecDH",          "EC key for ECDH" },
+        POLARSSL_PK_ECKEY_DH,
     },
     {
         { NULL, NULL, NULL },

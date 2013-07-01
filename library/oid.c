@@ -249,7 +249,6 @@ static const oid_descriptor_t oid_ext_key_usage[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_descriptor_t, ext_key_usage, oid_ext_key_usage);
 FN_OID_GET_ATTR1(oid_get_extended_key_usage, oid_descriptor_t, ext_key_usage, const char *, description);
-
 #endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
 
 #if defined(POLARSSL_MD_C)
@@ -342,6 +341,45 @@ static const oid_pk_alg_t oid_pk_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_pk_alg_t, pk_alg, oid_pk_alg);
 FN_OID_GET_ATTR1(oid_get_pk_alg, oid_pk_alg_t, pk_alg, pk_type_t, pk_alg);
+
+/*
+ * For namedCurve (RFC 5480)
+ */
+typedef struct {
+    oid_descriptor_t    descriptor;
+    ecp_group_id        grp_id;
+} oid_ecp_grp_t;
+
+static const oid_ecp_grp_t oid_ecp_grp[] =
+{
+    {
+        { OID_EC_GRP_SECP192R1, "secp192r1",    "secp192r1" },
+        POLARSSL_ECP_DP_SECP192R1,
+    },
+    {
+        { OID_EC_GRP_SECP224R1, "secp224r1",    "secp224r1" },
+        POLARSSL_ECP_DP_SECP224R1,
+    },
+    {
+        { OID_EC_GRP_SECP256R1, "secp256r1",    "secp256r1" },
+        POLARSSL_ECP_DP_SECP256R1,
+    },
+    {
+        { OID_EC_GRP_SECP384R1, "secp384r1",    "secp384r1" },
+        POLARSSL_ECP_DP_SECP384R1,
+    },
+    {
+        { OID_EC_GRP_SECP521R1, "secp521r1",    "secp521r1" },
+        POLARSSL_ECP_DP_SECP521R1,
+    },
+    {
+        { NULL, NULL, NULL },
+        0,
+    },
+};
+
+FN_OID_TYPED_FROM_ASN1(oid_ecp_grp_t, grp_id, oid_ecp_grp);
+FN_OID_GET_ATTR1(oid_get_ec_grp, oid_ecp_grp_t, grp_id, ecp_group_id, grp_id);
 
 #if defined(POLARSSL_CIPHER_C)
 /*

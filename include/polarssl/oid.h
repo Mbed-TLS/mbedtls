@@ -31,7 +31,6 @@
 #include "config.h"
 #include "asn1.h"
 #include "pk.h"
-
 #if defined(POLARSSL_CIPHER_C)
 #include "cipher.h"
 #endif
@@ -241,7 +240,7 @@
 #define OID_PKCS12_PBE_SHA1_RC2_40_CBC      OID_PKCS12_PBE "\x06" /**< pbeWithSHAAnd40BitRC2-CBC OBJECT IDENTIFIER ::= {pkcs-12PbeIds 6} */
 
 /*
- * EC key algorithms from RFC 5420
+ * EC key algorithms from RFC 5480
  */
 
 /* id-ecPublicKey OBJECT IDENTIFIER ::= {
@@ -252,6 +251,30 @@
  *     iso(1) identified-organization(3) certicom(132)
  *     schemes(1) ecdh(12) } */
 #define OID_EC_ALG_ECDH                 OID_CERTICOM "\x01\x0c"
+
+/*
+ * ECParameters namedCurve identifiers, from RFC 5480
+ */
+
+/* secp192r1 OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) us(840) ansi-X9-62(10045) curves(3) prime(1) 1 } */
+#define OID_EC_GRP_SECP192R1        OID_ANSI_X9_62 "\x03\x01\x01"
+
+/* secp224r1 OBJECT IDENTIFIER ::= {
+ *   iso(1) identified-organization(3) certicom(132) curve(0) 33 } */
+#define OID_EC_GRP_SECP224R1        OID_CERTICOM "\x00\x21"
+
+/* secp256r1 OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) us(840) ansi-X9-62(10045) curves(3) prime(1) 7 } */
+#define OID_EC_GRP_SECP256R1        OID_ANSI_X9_62 "\x03\x01\x07"
+
+/* secp384r1 OBJECT IDENTIFIER ::= {
+ *   iso(1) identified-organization(3) certicom(132) curve(0) 34 } */
+#define OID_EC_GRP_SECP384R1        OID_CERTICOM "\x00\x22"
+
+/* secp521r1 OBJECT IDENTIFIER ::= {
+ *   iso(1) identified-organization(3) certicom(132) curve(0) 35 } */
+#define OID_EC_GRP_SECP521R1        OID_CERTICOM "\x00\x23"
 
 #ifdef __cplusplus
 extern "C" {
@@ -310,6 +333,16 @@ int oid_get_attr_short_name( const asn1_buf *oid, const char **short_name );
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
 int oid_get_pk_alg( const asn1_buf *oid, pk_type_t *pk_alg );
+
+/**
+ * \brief          Translate ECParameters OID into an EC group identifier
+ *
+ * \param oid      OID to use
+ * \param grp_id   place to store group id
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_ec_grp( const asn1_buf *oid, ecp_group_id *grp_id );
 
 #if defined(POLARSSL_MD_C)
 /**

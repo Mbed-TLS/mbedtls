@@ -164,16 +164,40 @@ static int x509_get_serial( unsigned char **p,
  *  AlgorithmIdentifier  ::=  SEQUENCE  {
  *       algorithm               OBJECT IDENTIFIER,
  *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
+ *
+ * If params_end is NULL, then parameters must be absent or ANS.1 NULL
  */
 static int x509_get_alg( unsigned char **p,
                          const unsigned char *end,
-                         x509_buf *alg )
+                         x509_buf *alg, const unsigned char **params_end )
 {
     int ret;
+    size_t len;
 
-    if( ( ret = asn1_get_alg_null( p, end, alg ) ) != 0 )
+    if( params_end == NULL ) {
+        if( ( ret = asn1_get_alg_null( p, end, alg ) ) != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
+
+        return( 0 );
+    }
+
+    /* TODO: use asn1_get_alg */
+    if( ( ret = asn1_get_tag( p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
+    }
+
+    end = *p + len;
+    alg->tag = **p;
+
+    if( ( ret = asn1_get_tag( p, end, &alg->len, ASN1_OID ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
 
+    alg->p = *p;
+    *p += alg->len;
+
+    *params_end = end;
     return( 0 );
 }
 
@@ -1146,9 +1170,9 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
      *
      * signature            AlgorithmIdentifier
      */
-    if( ( ret = x509_get_version( &p, end, &crt->version ) ) != 0 ||
-        ( ret = x509_get_serial(  &p, end, &crt->serial  ) ) != 0 ||
-        ( ret = x509_get_alg(  &p, end, &crt->sig_oid1   ) ) != 0 )
+    if( ( ret = x509_get_version( &p, end, &crt->version    ) ) != 0 ||
+        ( ret = x509_get_serial(  &p, end, &crt->serial     ) ) != 0 ||
+        ( ret = x509_get_alg( &p, end, &crt->sig_oid1, NULL ) ) != 0 )
     {
         x509_free( crt );
         return( ret );
@@ -1300,7 +1324,7 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &crt->sig_oid2 ) ) != 0 )
+    if( ( ret = x509_get_alg( &p, end, &crt->sig_oid2, NULL ) ) != 0 )
     {
         x509_free( crt );
         return( ret );
@@ -1623,7 +1647,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
      * signature            AlgorithmIdentifier
      */
     if( ( ret = x509_crl_get_version( &p, end, &crl->version ) ) != 0 ||
-        ( ret = x509_get_alg(  &p, end, &crl->sig_oid1   ) ) != 0 )
+        ( ret = x509_get_alg(  &p, end, &crl->sig_oid1, NULL ) ) != 0 )
     {
         x509_crl_free( crl );
         return( ret );
@@ -1728,7 +1752,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &crl->sig_oid2 ) ) != 0 )
+    if( ( ret = x509_get_alg( &p, end, &crl->sig_oid2, NULL ) ) != 0 )
     {
         x509_crl_free( crl );
         return( ret );

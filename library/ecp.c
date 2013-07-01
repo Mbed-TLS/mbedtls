@@ -91,6 +91,20 @@ void ecp_group_init( ecp_group *grp )
 }
 
 /*
+ * Initialize (the components of) a key pair
+ */
+void ecp_keypair_init( ecp_keypair *key )
+{
+    if ( key == NULL )
+        return;
+
+    ecp_group_init( &key->grp );
+    mpi_init( &key->d );
+    ecp_point_init( &key->Q );
+    key->alg = POLARSSL_ECP_KEY_ALG_UNRESTRICTED;
+}
+
+/*
  * Unallocate (the components of) a point
  */
 void ecp_point_free( ecp_point *pt )
@@ -115,6 +129,20 @@ void ecp_group_free( ecp_group *grp )
     mpi_free( &grp->B );
     ecp_point_free( &grp->G );
     mpi_free( &grp->N );
+}
+
+/*
+ * Unallocate (the components of) a key pair
+ */
+void ecp_keypair_free( ecp_keypair *key )
+{
+    if ( key == NULL )
+        return;
+
+    ecp_group_free( &key->grp );
+    mpi_free( &key->d );
+    ecp_point_free( &key->Q );
+    key->alg = POLARSSL_ECP_KEY_ALG_UNRESTRICTED;
 }
 
 /*

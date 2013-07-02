@@ -70,6 +70,7 @@
 #define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2B00  /**< Read/write of file failed. */
 #define POLARSSL_ERR_X509_PASSWORD_REQUIRED                -0x2B80  /**< Private key password can't be empty. */
 #define POLARSSL_ERR_X509_PASSWORD_MISMATCH                -0x2C00  /**< Given private key password does not allow for correct decryption. */
+#define POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE              -0x2C80  /**< Elliptic curve is unsupported (only NIST curves are supported). */
 /* \} name */
 
 /**

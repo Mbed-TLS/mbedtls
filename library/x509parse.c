@@ -201,6 +201,38 @@ static int x509_get_alg( unsigned char **p,
     return( 0 );
 }
 
+/* Get an EC group id from an ECParameters buffer
+ *
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ *   -- implicitCurve   NULL
+ *   -- specifiedCurve  SpecifiedECDomain
+ * }
+ */
+static int x509_get_ecparams( unsigned char **p, const unsigned char *end,
+                              ecp_group_id *grp_id )
+{
+    int ret;
+    x509_buf curve;
+
+    curve.tag = **p;
+
+    if( ( ret = asn1_get_tag( p, end, &curve.len, ASN1_OID ) ) != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+
+    curve.p = *p;
+    *p += curve.len;
+
+    if( *p != end )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    if( ( ret = oid_get_ec_grp( &curve, grp_id ) ) != 0 )
+        return( POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE );
+
+    return( 0 );
+}
+
 /*
  *  AttributeTypeAndValue ::= SEQUENCE {
  *    type     AttributeType,

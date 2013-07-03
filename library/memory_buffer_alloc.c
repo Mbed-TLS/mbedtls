@@ -84,14 +84,14 @@ static void debug_header( memory_header *hdr )
     size_t i;
 #endif
 
-    fprintf(stderr, "HDR:  PTR(%10u), PREV(%10u), NEXT(%10u), ALLOC(%u), SIZE(%10u)\n",
+    fprintf( stderr, "HDR:  PTR(%10u), PREV(%10u), NEXT(%10u), ALLOC(%u), SIZE(%10u)\n",
             (size_t) hdr, (size_t) hdr->prev, (size_t) hdr->next,
             hdr->alloc, hdr->size );
 
 #if defined(POLARSSL_MEMORY_BACKTRACE)
-    fprintf(stderr, "TRACE: \n");
+    fprintf( stderr, "TRACE: \n" );
     for( i = 0; i < hdr->trace_count; i++ )
-        fprintf(stderr, "%s\n", hdr->trace[i]);
+        fprintf( stderr, "%s\n", hdr->trace[i] );
 #endif
 }
 
@@ -102,7 +102,7 @@ static void debug_chain()
     while( cur != NULL )
     {
         debug_header( cur );
-        fprintf(stderr, "\n");
+        fprintf( stderr, "\n" );
         cur = cur->next;
     }
 }
@@ -113,7 +113,7 @@ static int verify_header( memory_header *hdr )
     if( hdr->magic1 != MAGIC1 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf(stderr, "FATAL: MAGIC1 mismatch\n");
+        fprintf( stderr, "FATAL: MAGIC1 mismatch\n" );
 #endif
         return( 1 );
     }
@@ -121,7 +121,7 @@ static int verify_header( memory_header *hdr )
     if( hdr->magic2 != MAGIC2 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf(stderr, "FATAL: MAGIC2 mismatch\n");
+        fprintf( stderr, "FATAL: MAGIC2 mismatch\n" );
 #endif
         return( 1 );
     }
@@ -129,7 +129,7 @@ static int verify_header( memory_header *hdr )
     if( hdr->alloc > 1 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf(stderr, "FATAL: alloc has illegal value\n");
+        fprintf( stderr, "FATAL: alloc has illegal value\n" );
 #endif
         return( 1 );
     }
@@ -144,7 +144,7 @@ static int verify_chain()
     if( verify_header( heap.first ) != 0 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf(stderr, "FATAL: verification of first header failed\n");
+        fprintf( stderr, "FATAL: verification of first header failed\n" );
 #endif
         return( 1 );
     }
@@ -152,7 +152,7 @@ static int verify_chain()
     if( heap.first->prev != NULL )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf(stderr, "FATAL: verification failed: first->prev != NULL\n");
+        fprintf( stderr, "FATAL: verification failed: first->prev != NULL\n" );
 #endif
         return( 1 );
     }
@@ -162,7 +162,7 @@ static int verify_chain()
         if( verify_header( cur ) != 0 )
         {
 #if defined(POLARSSL_MEMORY_DEBUG)
-            fprintf(stderr, "FATAL: verification of header failed\n");
+            fprintf( stderr, "FATAL: verification of header failed\n" );
 #endif
             return( 1 );
         }
@@ -170,7 +170,7 @@ static int verify_chain()
         if( cur->prev != prv )
         {
 #if defined(POLARSSL_MEMORY_DEBUG)
-            fprintf(stderr, "FATAL: verification failed: cur->prev != prv\n");
+            fprintf( stderr, "FATAL: verification failed: cur->prev != prv\n" );
 #endif
             return( 1 );
         }
@@ -291,9 +291,9 @@ static void buffer_alloc_free( void *ptr )
     if( p < heap.buf || p > heap.buf + heap.len )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf(stderr, "FATAL: polarssl_free() outside of managed space\n");
+        fprintf( stderr, "FATAL: polarssl_free() outside of managed space\n" );
 #endif
-        exit(1);
+        exit( 1 );
     }
 
     p -= sizeof(memory_header);
@@ -305,9 +305,9 @@ static void buffer_alloc_free( void *ptr )
     if( hdr->alloc != 1 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf(stderr, "FATAL: polarssl_free() on unallocated data\n");
+        fprintf( stderr, "FATAL: polarssl_free() on unallocated data\n" );
 #endif
-        exit(1);
+        exit( 1 );
     }
 
     hdr->alloc = 0;
@@ -375,13 +375,16 @@ int memory_buffer_alloc_verify()
 #if defined(POLARSSL_MEMORY_DEBUG)
 void memory_buffer_alloc_status()
 {
-    fprintf(stderr, "Current use: %u blocks / %u bytes, max: %u bytes, malloc / free: %u / %u\n", heap.header_count, heap.total_used, heap.maximum_used, heap.malloc_count, heap.free_count);
+    fprintf( stderr,
+             "Current use: %u blocks / %u bytes, max: %u bytes, malloc / free: %u / %u\n",
+             heap.header_count, heap.total_used, heap.maximum_used,
+             heap.malloc_count, heap.free_count );
 
     if( heap.first->next == NULL )
-        fprintf(stderr, "All memory de-allocated in stack buffer\n");
+        fprintf( stderr, "All memory de-allocated in stack buffer\n" );
     else
     {
-        fprintf(stderr, "Memory currently allocated:\n");
+        fprintf( stderr, "Memory currently allocated:\n" );
         debug_chain();
     }
 }

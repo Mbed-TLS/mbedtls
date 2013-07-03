@@ -65,6 +65,13 @@ typedef struct
     size_t          largest_free;
     size_t          current_alloc_size;
     int             verify;
+#if defined(POLARSSL_MEMORY_DEBUG)
+    size_t          malloc_count;
+    size_t          free_count;
+    size_t          total_used;
+    size_t          maximum_used;
+    size_t          header_count;
+#endif
 }
 buffer_alloc_ctx;
 
@@ -206,12 +213,21 @@ static void *buffer_alloc_malloc( size_t len )
     if( cur == NULL )
         return( NULL );
 
+#if defined(POLARSSL_MEMORY_DEBUG)
+    heap.malloc_count++;
+#endif
+
     // Found location, split block if > memory_header + 4 room left
     //
     if( cur->size - len < sizeof(memory_header) + POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
         cur->alloc = 1;
 
+#if defined(POLARSSL_MEMORY_DEBUG)
+        heap.total_used += cur->size;
+        if( heap.total_used > heap.maximum_used)
+            heap.maximum_used = heap.total_used;
+#endif
 #if defined(POLARSSL_MEMORY_BACKTRACE)
         trace_cnt = backtrace( trace_buffer, MAX_BT );
         cur->trace = backtrace_symbols( trace_buffer, trace_cnt );
@@ -245,6 +261,12 @@ static void *buffer_alloc_malloc( size_t len )
     cur->size = len;
     cur->next = new;
 
+#if defined(POLARSSL_MEMORY_DEBUG)
+    heap.header_count++;
+    heap.total_used += cur->size;
+    if( heap.total_used > heap.maximum_used)
+        heap.maximum_used = heap.total_used;
+#endif
 #if defined(POLARSSL_MEMORY_BACKTRACE)
     trace_cnt = backtrace( trace_buffer, MAX_BT );
     cur->trace = backtrace_symbols( trace_buffer, trace_cnt );
@@ -290,10 +312,18 @@ static void buffer_alloc_free( void *ptr )
 
     hdr->alloc = 0;
 
+#if defined(POLARSSL_MEMORY_DEBUG)
+    heap.free_count++;
+    heap.total_used -= hdr->size;
+#endif
+
     // Regroup with block before
     //
     if( hdr->prev != NULL && hdr->prev->alloc == 0 )
     {
+#if defined(POLARSSL_MEMORY_DEBUG)
+        heap.header_count--;
+#endif
         hdr->prev->size += sizeof(memory_header) + hdr->size;
         hdr->prev->next = hdr->next;
         old = hdr;
@@ -312,6 +342,9 @@ static void buffer_alloc_free( void *ptr )
     //
     if( hdr->next != NULL && hdr->next->alloc == 0 )
     {
+#if defined(POLARSSL_MEMORY_DEBUG)
+        heap.header_count--;
+#endif
         hdr->size += sizeof(memory_header) + hdr->next->size;
         old = hdr->next;
         hdr->next = hdr->next->next;
@@ -342,6 +375,8 @@ int memory_buffer_alloc_verify()
 #if defined(POLARSSL_MEMORY_DEBUG)
 void memory_buffer_alloc_status()
 {
+    fprintf(stderr, "Current use: %u blocks / %u bytes, max: %u bytes, malloc / free: %u / %u\n", heap.header_count, heap.total_used, heap.maximum_used, heap.malloc_count, heap.free_count);
+
     if( heap.first->next == NULL )
         fprintf(stderr, "All memory de-allocated in stack buffer\n");
     else

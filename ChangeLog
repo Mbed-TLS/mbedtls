@@ -10,6 +10,7 @@ Features
    * PSK and DHE-PSK based ciphersuites added
    * Memory allocation abstraction layer added
    * Buffer-based memory allocator added (no malloc() / free() / HEAP usage)
+   * Also compiles / runs without time-based functions (!POLARSSL_HAVE_TIME)
 
 Changes
    * Introduced separate SSL Ciphersuites module that is based on

@@ -52,7 +52,9 @@ void ssl_cache_init( ssl_cache_context *cache )
 
 int ssl_cache_get( void *data, ssl_session *session )
 {
+#if defined(POLARSSL_HAVE_TIME)
     time_t t = time( NULL );
+#endif
     ssl_cache_context *cache = (ssl_cache_context *) data;
     ssl_cache_entry *cur, *entry;
 
@@ -64,9 +66,11 @@ int ssl_cache_get( void *data, ssl_session *session )
         entry = cur;
         cur = cur->next;
 
+#if defined(POLARSSL_HAVE_TIME)
         if( cache->timeout != 0 &&
             (int) ( t - entry->timestamp ) > cache->timeout )
             continue;
+#endif
 
         if( session->ciphersuite != entry->session.ciphersuite ||
             session->compression != entry->session.compression ||
@@ -108,9 +112,12 @@ int ssl_cache_get( void *data, ssl_session *session )
 
 int ssl_cache_set( void *data, const ssl_session *session )
 {
+#if defined(POLARSSL_HAVE_TIME)
     time_t t = time( NULL ), oldest = 0;
+    ssl_cache_entry *old = NULL;
+#endif
     ssl_cache_context *cache = (ssl_cache_context *) data;
-    ssl_cache_entry *cur, *prv, *old = NULL;
+    ssl_cache_entry *cur, *prv;
     int count = 0;
 
     cur = cache->chain;
@@ -120,21 +127,25 @@ int ssl_cache_set( void *data, const ssl_session *session )
     {
         count++;
 
+#if defined(POLARSSL_HAVE_TIME)
         if( cache->timeout != 0 &&
             (int) ( t - cur->timestamp ) > cache->timeout )
         {
             cur->timestamp = t;
             break; /* expired, reuse this slot, update timestamp */
         }
+#endif
 
         if( memcmp( session->id, cur->session.id, cur->session.length ) == 0 )
             break; /* client reconnected, keep timestamp for session id */
 
+#if defined(POLARSSL_HAVE_TIME)
         if( oldest == 0 || cur->timestamp < oldest )
         {
             oldest = cur->timestamp;
             old = cur;
         }
+#endif
 
         prv = cur;
         cur = cur->next;
@@ -142,6 +153,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
     if( cur == NULL )
     {
+#if defined(POLARSSL_HAVE_TIME)
         /*
          * Reuse oldest entry if max_entries reached
          */
@@ -157,6 +169,31 @@ int ssl_cache_set( void *data, const ssl_session *session )
             }
 #endif /* POLARSSL_X509_PARSE_C */
         }
+#else /* POLARSSL_HAVE_TIME */
+        /*
+         * Reuse first entry in chain if max_entries reached,
+         * but move to last place
+         */
+        if( count >= cache->max_entries )
+        {
+            if( cache->chain == NULL )
+                return( 1 );
+
+            cur = cache->chain;
+            cache->chain = cur->next;
+
+#if defined(POLARSSL_X509_PARSE_C)
+            if( cur->peer_cert.p != NULL )
+            {
+                polarssl_free( cur->peer_cert.p );
+                memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+            }
+#endif /* POLARSSL_X509_PARSE_C */
+
+            memset( cur, 0, sizeof(ssl_cache_entry) );
+            prv->next = cur;
+        }
+#endif /* POLARSSL_HAVE_TIME */
         else
         {
             cur = (ssl_cache_entry *) polarssl_malloc( sizeof(ssl_cache_entry) );
@@ -171,7 +208,9 @@ int ssl_cache_set( void *data, const ssl_session *session )
                 prv->next = cur;
         }
 
+#if defined(POLARSSL_HAVE_TIME)
         cur->timestamp = t;
+#endif
     }
 
     memcpy( &cur->session, session, sizeof( ssl_session ) );
@@ -197,12 +236,14 @@ int ssl_cache_set( void *data, const ssl_session *session )
     return( 0 );
 }
 
+#if defined(POLARSSL_HAVE_TIME)
 void ssl_cache_set_timeout( ssl_cache_context *cache, int timeout )
 {
     if( timeout < 0 ) timeout = 0;
 
     cache->timeout = timeout;
 }
+#endif /* POLARSSL_HAVE_TIME */
 
 void ssl_cache_set_max_entries( ssl_cache_context *cache, int max )
 {

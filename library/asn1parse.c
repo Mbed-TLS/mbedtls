@@ -42,7 +42,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 
 /*
  * ASN.1 DER decoding routines

@@ -32,7 +32,17 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+
+#if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
+#endif
 
 static void ssl_write_hostname_ext( ssl_context *ssl,
                                     unsigned char *buf,
@@ -265,7 +275,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
     size_t i, n, olen, ext_len = 0;
     unsigned char *buf;
     unsigned char *p, *q;
+#if defined(POLARSSL_HAVE_TIME)
     time_t t;
+#endif
     const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
 
@@ -299,6 +311,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "client hello, max version: [%d:%d]",
                    buf[4], buf[5] ) );
 
+#if defined(POLARSSL_HAVE_TIME)
     t = time( NULL );
     *p++ = (unsigned char)( t >> 24 );
     *p++ = (unsigned char)( t >> 16 );
@@ -306,6 +319,12 @@ static int ssl_write_client_hello( ssl_context *ssl )
     *p++ = (unsigned char)( t       );
 
     SSL_DEBUG_MSG( 3, ( "client hello, current time: %lu", t ) );
+#else
+    if( ( ret = ssl->f_rng( ssl->p_rng, p, 4 ) ) != 0 )
+        return( ret );
+
+    p += 4;
+#endif
 
     if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
         return( ret );
@@ -483,9 +502,7 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
 
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
-#if defined(POLARSSL_DEBUG_C)
-    time_t t;
-#endif
+    uint32_t t;
     int ret, i, comp;
     size_t n;
     size_t ext_len = 0;
@@ -548,10 +565,10 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     }
 
 #if defined(POLARSSL_DEBUG_C)
-    t = ( (time_t) buf[6] << 24 )
-      | ( (time_t) buf[7] << 16 )
-      | ( (time_t) buf[8] <<  8 )
-      | ( (time_t) buf[9]       );
+    t = ( (uint32_t) buf[6] << 24 )
+      | ( (uint32_t) buf[7] << 16 )
+      | ( (uint32_t) buf[8] <<  8 )
+      | ( (uint32_t) buf[9]       );
 #endif
 
     memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
@@ -619,7 +636,9 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     {
         ssl->state++;
         ssl->handshake->resume = 0;
+#if defined(POLARSSL_HAVE_TIME)
         ssl->session_negotiate->start = time( NULL );
+#endif
         ssl->session_negotiate->ciphersuite = i;
         ssl->session_negotiate->compression = comp;
         ssl->session_negotiate->length = n;

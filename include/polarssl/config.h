@@ -94,6 +94,15 @@
  *
 #define POLARSSL_HAVE_SSE2
  */
+
+/**
+ * \def POLARSSL_HAVE_TIME
+ *
+ * System has time.h and time() / localtime()  / gettimeofday()
+ *
+ * Comment if your system does not support time functions
+ */
+#define POLARSSL_HAVE_TIME
 /* \} name */
 
 /**

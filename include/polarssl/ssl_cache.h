@@ -46,7 +46,9 @@ typedef struct _ssl_cache_entry ssl_cache_entry;
  */
 struct _ssl_cache_entry
 {
+#if defined(POLARSSL_HAVE_TIME)
     time_t timestamp;           /*!< entry timestamp    */
+#endif
     ssl_session session;        /*!< entry session      */
 #if defined(POLARSSL_X509_PARSE_C)
     x509_buf peer_cert;         /*!< entry peer_cert    */
@@ -87,6 +89,7 @@ int ssl_cache_get( void *data, ssl_session *session );
  */
 int ssl_cache_set( void *data, const ssl_session *session );
 
+#if defined(POLARSSL_HAVE_TIME)
 /**
  * \brief          Set the cache timeout
  *                 (Default: SSL_CACHE_DEFAULT_TIMEOUT (1 day))
@@ -97,6 +100,7 @@ int ssl_cache_set( void *data, const ssl_session *session );
  * \param timeout  cache entry timeout
  */
 void ssl_cache_set_timeout( ssl_cache_context *cache, int timeout );
+#endif /* POLARSSL_HAVE_TIME */
 
 /**
  * \brief          Set the cache timeout

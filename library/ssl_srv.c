@@ -35,7 +35,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+
+#if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
+#endif
 
 static int ssl_parse_servername_ext( ssl_context *ssl,
                                      const unsigned char *buf,
@@ -933,7 +936,9 @@ have_ciphersuite:
 
 static int ssl_write_server_hello( ssl_context *ssl )
 {
+#if defined(POLARSSL_HAVE_TIME)
     time_t t;
+#endif
     int ret, n;
     size_t ext_len = 0;
     unsigned char *buf, *p;
@@ -956,6 +961,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "server hello, chosen version: [%d:%d]",
                    buf[4], buf[5] ) );
 
+#if defined(POLARSSL_HAVE_TIME)
     t = time( NULL );
     *p++ = (unsigned char)( t >> 24 );
     *p++ = (unsigned char)( t >> 16 );
@@ -963,6 +969,12 @@ static int ssl_write_server_hello( ssl_context *ssl )
     *p++ = (unsigned char)( t       );
 
     SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
+#else
+    if( ( ret = ssl->f_rng( ssl->p_rng, p, 4 ) ) != 0 )
+        return( ret );
+
+    p += 4;
+#endif
 
     if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
         return( ret );

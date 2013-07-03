@@ -2875,6 +2875,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
 /*
  * Return 0 if the x509_time is still valid, or 1 otherwise.
  */
+#if defined(POLARSSL_HAVE_TIME)
 int x509parse_time_expired( const x509_time *to )
 {
     int year, mon, day;
@@ -2941,6 +2942,13 @@ int x509parse_time_expired( const x509_time *to )
 
     return( 0 );
 }
+#else  /* POLARSSL_HAVE_TIME */
+int x509parse_time_expired( const x509_time *to )
+{
+    ((void) to);
+    return( 0 );
+}
+#endif /* POLARSSL_HAVE_TIME */
 
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.

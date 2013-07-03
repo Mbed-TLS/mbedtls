@@ -1,7 +1,7 @@
 /*
  *  TCP networking functions
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -52,7 +52,9 @@ static int wsa_init_done = 0;
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#if defined(POLARSSL_HAVE_TIME)
 #include <sys/time.h>
+#endif
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -74,7 +76,10 @@ static int wsa_init_done = 0;
 
 #include <stdlib.h>
 #include <stdio.h>
+
+#if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
+#endif
 
 #ifdef _MSC_VER
 #include <basetsd.h>
@@ -293,6 +298,7 @@ int net_set_nonblock( int fd )
 #endif
 }
 
+#if defined(POLARSSL_HAVE_TIME)
 /*
  * Portable usleep helper
  */
@@ -303,6 +309,7 @@ void net_usleep( unsigned long usec )
     tv.tv_usec = usec;
     select( 0, NULL, NULL, NULL, &tv );
 }
+#endif /* POLARSSL_HAVE_TIME */
 
 /*
  * Read at most 'len' characters

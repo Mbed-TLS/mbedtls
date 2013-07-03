@@ -27,8 +27,6 @@
 #ifndef POLARSSL_SSL_H
 #define POLARSSL_SSL_H
 
-#include <time.h>
-
 #include "config.h"
 #include "net.h"
 #include "bignum.h"
@@ -58,6 +56,10 @@
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
 #include "zlib.h"
+#endif
+
+#if defined(POLARSSL_HAVE_TIME)
+#include <time.h>
 #endif
 
 #if defined(_MSC_VER) && !defined(inline)
@@ -306,7 +308,9 @@ typedef struct _ssl_handshake_params ssl_handshake_params;
  */
 struct _ssl_session
 {
+#if defined(POLARSSL_HAVE_TIME)
     time_t start;               /*!< starting time      */
+#endif
     int ciphersuite;            /*!< chosen ciphersuite */
     int compression;            /*!< chosen compression */
     size_t length;              /*!< session id length  */

@@ -332,8 +332,22 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
             pem_aes_decrypt( pem_iv, 32, buf, len, pwd, pwdlen );
 #endif /* POLARSSL_AES_C */
 
-        if( buf[0] != 0x30 || buf[1] != 0x82 ||
-            buf[4] != 0x02 || buf[5] != 0x01 )
+        /*
+         * The result should look like RSAPrivateKey or ECPrivateKey
+         * We use the following heuristic:
+         *    len must be more than 6
+         *    byte 1 must be 0x30 (SEQUENCE tag)
+         *    then allow for one to 3 length bytes
+         *    then we must have 0x02 0x01 (INTEGER tag + length, for version)
+         *    version must be less than 4 (leaves some room)
+         */
+        if( ! ( len > 6 && buf[0] == 0x30 && (
+                   ( buf[1] <= 0x7f && /* 1 length byte */
+                     buf[2] == 0x02 && buf[3] == 0x01 && buf[4] < 4 ) ||
+                   ( buf[1] == 0x81 && /* 2 length bytes */
+                     buf[3] == 0x02 && buf[4] == 0x01 && buf[5] < 4 ) ||
+                   ( buf[1] == 0x82 && /* 2 length bytes */
+                     buf[4] == 0x02 && buf[5] == 0x01 && buf[6] < 4 ) ) ) )
         {
             polarssl_free( buf );
             return( POLARSSL_ERR_PEM_PASSWORD_MISMATCH );

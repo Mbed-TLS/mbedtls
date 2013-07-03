@@ -84,6 +84,9 @@ void pem_init( pem_context *ctx );
  *                  POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT, use_len is
  *                  the length to skip)
  *
+ * \note            Checks password correctness by verifying if the decrypted
+ *                  text looks like a RSAPrivateKey or ECPrivateKey structure
+ *
  * \return          0 on success, ior a specific PEM error code
  */
 int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,

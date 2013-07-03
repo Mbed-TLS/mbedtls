@@ -2468,12 +2468,13 @@ int x509parse_key_rsa( rsa_context *rsa,
     ((void) pwdlen);
 #endif /* POLARSSL_PEM_C */
 
-    // At this point we only know it's not a PEM formatted key. Could be any
-    // of the known DER encoded private key formats
-    //
-    // We try the different DER format parsers to see if one passes without
-    // error
-    //
+    /*
+    * At this point we only know it's not a PEM formatted key. Could be any
+    * of the known DER encoded private key formats
+    *
+    * We try the different DER format parsers to see if one passes without
+    * error
+    */
     if( ( ret = x509parse_key_pkcs8_encrypted_der( rsa, key, keylen,
                                                    pwd, pwdlen ) ) == 0 )
     {
@@ -2594,11 +2595,80 @@ int x509parse_public_key_rsa( rsa_context *rsa,
 
 #if defined(POLARSSL_ECP_C)
 /*
+ * Parse an unencrypted PKCS#8 encoded private EC key
+ */
+static int x509parse_key_pkcs8_unencrypted_der_ec(
+                                    ecp_keypair *eck,
+                                    const unsigned char* key,
+                                    size_t keylen )
+{
+    int ret;
+
+    (void) key;
+    (void) keylen;
+
+    if( ( ret = ecp_check_prvkey( &eck->grp, &eck->d ) ) == 0 )
+        return 0;
+
+cleanup:
+    ecp_keypair_free( eck );
+
+    return( ret );
+}
+
+/*
+ * Parse an encrypted PKCS#8 encoded private EC key
+ */
+static int x509parse_key_pkcs8_encrypted_der_ec(
+                                    ecp_keypair *eck,
+                                    const unsigned char *key,
+                                    size_t keylen,
+                                    const unsigned char *pwd,
+                                    size_t pwdlen )
+{
+    int ret;
+
+    (void) key;
+    (void) keylen;
+    (void) pwd;
+    (void) pwdlen;
+
+    if( ( ret = ecp_check_prvkey( &eck->grp, &eck->d ) ) == 0 )
+        return 0;
+
+cleanup:
+    ecp_keypair_free( eck );
+
+    return( ret );
+}
+
+/*
+ * Parse a PKCS#1 encoded private EC key
+ */
+static int x509parse_key_sec1_der( ecp_keypair *eck,
+                                   const unsigned char *key,
+                                   size_t keylen )
+{
+    int ret;
+
+    (void) key;
+    (void) keylen;
+
+    if( ( ret = ecp_check_prvkey( &eck->grp, &eck->d ) ) == 0 )
+        return 0;
+
+cleanup:
+    ecp_keypair_free( eck );
+
+    return( ret );
+}
+
+/*
  * Parse a private EC key
  */
-int x509parse_key_ec( ecp_keypair *eckey,
-                         const unsigned char *key, size_t keylen,
-                         const unsigned char *pwd, size_t pwdlen )
+int x509parse_key_ec( ecp_keypair *eck,
+                      const unsigned char *key, size_t keylen,
+                      const unsigned char *pwd, size_t pwdlen )
 {
     int ret;
 
@@ -2607,21 +2677,16 @@ int x509parse_key_ec( ecp_keypair *eckey,
     pem_context pem;
 
     pem_init( &pem );
-    /* TODO: get list of correct PEM headers */
     ret = pem_read_buffer( &pem,
                            "-----BEGIN EC PRIVATE KEY-----",
                            "-----END EC PRIVATE KEY-----",
                            key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
-        /* TODO: write der decoding function
-        if( ( ret = x509parse_key_pkcs8_encrypted_der( eckey,
-                                                pem.buf, pem.buflen,
-                                                pwd, pwdlen ) ) != 0 )
+        if( ( ret = x509parse_key_sec1_der( eck, pem.buf, pem.buflen ) ) != 0 )
         {
-            ecp_keypair_free( eckey );
+            ecp_keypair_free( eck );
         }
-        */
 
         pem_free( &pem );
         return( ret );
@@ -2633,36 +2698,77 @@ int x509parse_key_ec( ecp_keypair *eckey,
     else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
         return( ret );
 
-    /* TODO: now repeat with other valid PEM headers */
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN PRIVATE KEY-----",
+                           "-----END PRIVATE KEY-----",
+                           key, NULL, 0, &len );
+    if( ret == 0 )
+    {
+        if( ( ret = x509parse_key_pkcs8_unencrypted_der_ec( eck,
+                                                pem.buf, pem.buflen ) ) != 0 )
+        {
+            ecp_keypair_free( eck );
+        }
 
+        pem_free( &pem );
+        return( ret );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        return( ret );
+
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN ENCRYPTED PRIVATE KEY-----",
+                           "-----END ENCRYPTED PRIVATE KEY-----",
+                           key, NULL, 0, &len );
+    if( ret == 0 )
+    {
+        if( ( ret = x509parse_key_pkcs8_encrypted_der_ec( eck,
+                                                pem.buf, pem.buflen,
+                                                pwd, pwdlen ) ) != 0 )
+        {
+            ecp_keypair_free( eck );
+        }
+
+        pem_free( &pem );
+        return( ret );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        return( ret );
 #else
     ((void) pwd);
     ((void) pwdlen);
 #endif /* POLARSSL_PEM_C */
 
-    ((void) keylen);
-    /* TODO: write der decoding functions (encrypted, unencnrypted)
-    if( ( ret = x509parse_key_pkcs8_encrypted_der( eckey, key, keylen,
-                                                   pwd, pwdlen ) ) == 0 )
+    /*
+    * At this point we only know it's not a PEM formatted key. Could be any
+    * of the known DER encoded private key formats
+    *
+    * We try the different DER format parsers to see if one passes without
+    * error
+    */
+    if( ( ret = x509parse_key_pkcs8_encrypted_der_ec( eck, key, keylen,
+                                                      pwd, pwdlen ) ) == 0 )
     {
         return( 0 );
     }
 
-    ecp_keypair_free( eckey );
+    ecp_keypair_free( eck );
 
     if( ret == POLARSSL_ERR_X509_PASSWORD_MISMATCH )
     {
         return( ret );
     }
 
-    if( ( ret = x509parse_key_pkcs8_unencrypted_der( eckey, key, keylen ) )
-            == 0 )
-    {
+    if( ( ret = x509parse_key_pkcs8_unencrypted_der_ec( eck,
+                                                        key, keylen ) ) == 0 )
         return( 0 );
-    }
-    */
 
-    ecp_keypair_free( eckey );
+    ecp_keypair_free( eck );
+
+    if( ( ret = x509parse_key_sec1_der( eck, key, keylen ) ) == 0 )
+        return( 0 );
+
+    ecp_keypair_free( eck );
 
     return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
 }

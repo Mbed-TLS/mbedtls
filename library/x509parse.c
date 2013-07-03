@@ -2169,7 +2169,7 @@ static int x509parse_key_pkcs1_der( rsa_context *rsa,
 
     if( rsa->ver != 0 )
     {
-        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
+        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION );
     }
 
     if( ( ret = asn1_get_mpi( &p, end, &rsa->N  ) ) != 0 ||
@@ -2643,24 +2643,109 @@ cleanup:
 }
 
 /*
- * Parse a PKCS#1 encoded private EC key
+ * Parse a SEC1 encoded private EC key
  */
 static int x509parse_key_sec1_der( ecp_keypair *eck,
                                    const unsigned char *key,
                                    size_t keylen )
 {
     int ret;
+    int version;
+    size_t len;
+    ecp_group_id grp_id;
+    unsigned char *p = (unsigned char *) key;
+    unsigned char *end = p + keylen;
 
-    (void) key;
-    (void) keylen;
+    /*
+     * RFC 5915, orf SEC1 Appendix C.4
+     *
+     * ECPrivateKey ::= SEQUENCE {
+     *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+     *      privateKey     OCTET STRING,
+     *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+     *      publicKey  [1] BIT STRING OPTIONAL
+     *    }
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
 
-    if( ( ret = ecp_check_prvkey( &eck->grp, &eck->d ) ) == 0 )
-        return 0;
+    end = p + len;
 
-cleanup:
-    ecp_keypair_free( eck );
+    if( ( ret = asn1_get_int( &p, end, &version ) ) != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
-    return( ret );
+    if( version != 1 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION );
+
+    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+
+    if( ( ret = mpi_read_binary( &eck->d, p, len ) ) != 0 )
+    {
+        ecp_keypair_free( eck );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    p += len;
+
+    /*
+     * Is 'parameters' present?
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) == 0 )
+    {
+        if( ( ret = x509_get_ecparams( &p, p + len, &grp_id) ) != 0 )
+            return( ret );
+
+        /* TODO: grp may not be empty at this point,
+         * if we're wrapped inside a PKCS#8 structure: check consistency */
+        if( ( ret = ecp_use_known_dp( &eck->grp, grp_id ) ) != 0 )
+        {
+            ecp_keypair_free( eck );
+            return( ret );
+        }
+    }
+    else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    {
+        ecp_keypair_free( eck );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    /*
+     * Is 'publickey' present?
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
+    {
+        if( ( ret = x509_get_subpubkey_ec( &p, p + len, &eck->grp, &eck->Q ) )
+                != 0 )
+        {
+            ecp_keypair_free( eck );
+            return( ret );
+        }
+
+        if( ( ret = ecp_check_pubkey( &eck->grp, &eck->Q ) ) != 0 )
+        {
+            ecp_keypair_free( eck );
+            return( ret );
+        }
+    }
+    else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    {
+        ecp_keypair_free( eck );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    if( ( ret = ecp_check_prvkey( &eck->grp, &eck->d ) ) != 0 )
+    {
+        ecp_keypair_free( eck );
+        return( ret );
+    }
+
+    return 0;
 }
 
 /*

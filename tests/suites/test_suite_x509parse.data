@@ -194,6 +194,34 @@ X509 Parse Public EC Key #2 (RFC 5480, PEM)
 depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_FS_IO
 x509parse_public_keyfile_ec:"data_files/ec_pub.pem":0
 
+X509 Parse EC Key #1 (SEC1 DER)
+depends_on:POLARSSL_FS_IO:POLARSSL_ECP_C
+x509parse_keyfile_ec:"data_files/ec_prv.sec1.der":NULL:0
+
+X509 Parse EC Key #2 (SEC1 PEM)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+x509parse_keyfile_ec:"data_files/ec_prv.sec1.pem":NULL:0
+
+X509 Parse EC Key #3 (SEC1 PEM encrypted)
+depends_on:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+x509parse_keyfile_ec:"data_files/ec_prv.sec1.pw.pem":"polar":0
+
+X509 Parse EC Key #4 (PKCS8 DER)
+depends_on:POLARSSL_FS_IO:POLARSSL_ECP_C
+x509parse_keyfile_ec:"data_files/ec_prv.pk8.der":NULL:0
+
+X509 Parse EC Key #5 (PKCS8 PEM)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+x509parse_keyfile_ec:"data_files/ec_prv.pk8.pem":NULL:0
+
+X509 Parse EC Key #6 (PKCS8 encrypted DER)
+depends_on:POLARSSL_DES_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+x509parse_keyfile_ec:"data_files/ec_prv.pk8.pw.der":"polar":0
+
+X509 Parse EC Key #7 (PKCS8 encrypted PEM)
+depends_on:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+x509parse_keyfile_ec:"data_files/ec_prv.pk8.pw.pem":"polar":0
+
 X509 Get Distinguished Name #1
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_dn_gets:"data_files/server1.crt":subject:"C=NL, O=PolarSSL, CN=PolarSSL Server 1"

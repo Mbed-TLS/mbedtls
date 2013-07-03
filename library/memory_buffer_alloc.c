@@ -50,6 +50,8 @@ struct _memory_header
     size_t          alloc;
     memory_header   *prev;
     memory_header   *next;
+    memory_header   *prev_free;
+    memory_header   *next_free;
 #if defined(POLARSSL_MEMORY_BACKTRACE)
     char            **trace;
     size_t          trace_count;
@@ -62,7 +64,7 @@ typedef struct
     unsigned char   *buf;
     size_t          len;
     memory_header   *first;
-    size_t          largest_free;
+    memory_header   *first_free;
     size_t          current_alloc_size;
     int             verify;
 #if defined(POLARSSL_MEMORY_DEBUG)
@@ -87,11 +89,14 @@ static void debug_header( memory_header *hdr )
     fprintf( stderr, "HDR:  PTR(%10u), PREV(%10u), NEXT(%10u), ALLOC(%u), SIZE(%10u)\n",
             (size_t) hdr, (size_t) hdr->prev, (size_t) hdr->next,
             hdr->alloc, hdr->size );
+    fprintf( stderr, "      FPREV(%10u), FNEXT(%10u)\n",
+            (size_t) hdr->prev_free, (size_t) hdr->next_free );
 
 #if defined(POLARSSL_MEMORY_BACKTRACE)
     fprintf( stderr, "TRACE: \n" );
     for( i = 0; i < hdr->trace_count; i++ )
         fprintf( stderr, "%s\n", hdr->trace[i] );
+    fprintf( stderr, "\n" );
 #endif
 }
 
@@ -99,11 +104,20 @@ static void debug_chain()
 {
     memory_header *cur = heap.first;
 
+    fprintf( stderr, "\nBlock list\n" );
     while( cur != NULL )
     {
         debug_header( cur );
-        fprintf( stderr, "\n" );
         cur = cur->next;
+    }
+
+    fprintf( stderr, "Free list\n" );
+    cur = heap.first_free;
+
+    while( cur != NULL )
+    {
+        debug_header( cur );
+        cur = cur->next_free;
     }
 }
 #endif /* POLARSSL_MEMORY_DEBUG */
@@ -130,6 +144,22 @@ static int verify_header( memory_header *hdr )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
         fprintf( stderr, "FATAL: alloc has illegal value\n" );
+#endif
+        return( 1 );
+    }
+
+    if( hdr->prev != NULL && hdr->prev == hdr->next )
+    {
+#if defined(POLARSSL_MEMORY_DEBUG)
+        fprintf( stderr, "FATAL: prev == next\n" );
+#endif
+        return( 1 );
+    }
+
+    if( hdr->prev_free != NULL && hdr->prev_free == hdr->next_free )
+    {
+#if defined(POLARSSL_MEMORY_DEBUG)
+        fprintf( stderr, "FATAL: prev_free == next_free\n" );
 #endif
         return( 1 );
     }
@@ -184,7 +214,7 @@ static int verify_chain()
 
 static void *buffer_alloc_malloc( size_t len )
 {
-    memory_header *new, *cur = heap.first;
+    memory_header *new, *cur = heap.first_free;
     unsigned char *p;
 #if defined(POLARSSL_MEMORY_BACKTRACE)
     void *trace_buffer[MAX_BT];
@@ -204,14 +234,22 @@ static void *buffer_alloc_malloc( size_t len )
     //
     while( cur != NULL )
     {
-        if( cur->alloc == 0 && cur->size >= len )
+        if( cur->size >= len )
             break;
 
-        cur = cur->next;
+        cur = cur->next_free;
     }
 
     if( cur == NULL )
         return( NULL );
+
+    if( cur->alloc != 0 )
+    {
+#if defined(POLARSSL_MEMORY_DEBUG)
+        fprintf( stderr, "FATAL: block in free_list but allocated data\n" );
+#endif
+        exit( 1 );
+    }
 
 #if defined(POLARSSL_MEMORY_DEBUG)
     heap.malloc_count++;
@@ -222,6 +260,19 @@ static void *buffer_alloc_malloc( size_t len )
     if( cur->size - len < sizeof(memory_header) + POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
         cur->alloc = 1;
+
+        // Remove from free_list
+        //
+        if( cur->prev_free != NULL )
+            cur->prev_free->next_free = cur->next_free;
+        else
+            heap.first_free = cur->next_free;
+
+        if( cur->next_free != NULL )
+            cur->next_free->prev_free = cur->prev_free;
+
+        cur->prev_free = NULL;
+        cur->next_free = NULL;
 
 #if defined(POLARSSL_MEMORY_DEBUG)
         heap.total_used += cur->size;
@@ -257,9 +308,23 @@ static void *buffer_alloc_malloc( size_t len )
     if( new->next != NULL )
         new->next->prev = new;
 
+    // Replace cur with new in free_list
+    //
+    new->prev_free = cur->prev_free;
+    new->next_free = cur->next_free;
+    if( new->prev_free != NULL )
+        new->prev_free->next_free = new;
+    else
+        heap.first_free = new;
+
+    if( new->next_free != NULL )
+        new->next_free->prev_free = new;
+
     cur->alloc = 1;
     cur->size = len;
     cur->next = new;
+    cur->prev_free = NULL;
+    cur->next_free = NULL;
 
 #if defined(POLARSSL_MEMORY_DEBUG)
     heap.header_count++;
@@ -281,7 +346,7 @@ static void *buffer_alloc_malloc( size_t len )
 
 static void buffer_alloc_free( void *ptr )
 {
-    memory_header *hdr, *old;
+    memory_header *hdr, *old = NULL;
     unsigned char *p = (unsigned char *) ptr;
 
 
@@ -349,6 +414,28 @@ static void buffer_alloc_free( void *ptr )
         old = hdr->next;
         hdr->next = hdr->next->next;
 
+        if( hdr->prev_free != NULL || hdr->next_free != NULL )
+        {
+            if( hdr->prev_free != NULL )
+                hdr->prev_free->next_free = hdr->next_free;
+            else
+                heap.first_free = hdr->next_free;
+
+            if( hdr->next_free != NULL )
+                hdr->next_free->prev_free = hdr->prev_free;
+        }
+
+        hdr->prev_free = old->prev_free;
+        hdr->next_free = old->next_free;
+
+        if( hdr->prev_free != NULL )
+            hdr->prev_free->next_free = hdr;
+        else
+            heap.first_free = hdr;
+
+        if( hdr->next_free != NULL )
+            hdr->next_free->prev_free = hdr;
+
         if( hdr->next != NULL )
             hdr->next->prev = hdr;
 
@@ -356,6 +443,16 @@ static void buffer_alloc_free( void *ptr )
         free( old->trace );
 #endif
         memset( old, 0, sizeof(memory_header) );
+    }
+
+    // Prepend to free_list if we have not merged
+    // (Does not have to stay in same order as prev / next list)
+    //
+    if( old == NULL )
+    {
+        hdr->next_free = heap.first_free;
+        heap.first_free->prev_free = hdr;
+        heap.first_free = hdr;
     }
 
 #if defined(POLARSSL_MEMORY_BACKTRACE)
@@ -405,9 +502,7 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
     heap.first->size = len - sizeof(memory_header);
     heap.first->magic1 = MAGIC1;
     heap.first->magic2 = MAGIC2;
-
-    heap.largest_free = heap.first->size;
-
+    heap.first_free = heap.first;
     return( 0 );
 }
 

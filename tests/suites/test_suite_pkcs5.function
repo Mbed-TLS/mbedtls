@@ -32,6 +32,7 @@ pbkdf2_hmac:hash:hex_password_string:hex_salt_string:it_cnt:key_len:result_key_s
     TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
     TEST_ASSERT( pkcs5_pbkdf2_hmac( &ctx, pw_str, pw_len, salt_str, salt_len,
                                      {it_cnt}, {key_len}, key ) == 0 );
+    TEST_ASSERT( md_free_ctx( &ctx ) == 0 );
 
     hexify( dst_str, key, {key_len} );
     TEST_ASSERT( strcmp( (char *) dst_str, {result_key_string} ) == 0 );

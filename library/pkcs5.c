@@ -366,6 +366,8 @@ int pkcs5_self_test( int verbose )
 
     printf( "\n" );
 
+    md_free_ctx( &sha1_ctx );
+
     return( 0 );
 }
 

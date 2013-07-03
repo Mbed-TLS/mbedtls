@@ -1187,8 +1187,8 @@
  * Caller:  library/havege.c
  *
  * This module is used by the HAVEGE random number generator.
- */
 #define POLARSSL_TIMING_C
+ */
 
 /**
  * \def POLARSSL_VERSION_C
@@ -1330,6 +1330,10 @@
 
 #if defined(POLARSSL_GCM_C) && !defined(POLARSSL_AES_C)
 #error "POLARSSL_GCM_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_HAVEGE_C) && !defined(POLARSSL_TIMING_C)
+#error "POLARSSL_HAVEGE_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) && !defined(POLARSSL_DHM_C)

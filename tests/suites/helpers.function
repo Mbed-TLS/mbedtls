@@ -1,3 +1,7 @@
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#include "polarssl/memory.h"
+#endif
+
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;

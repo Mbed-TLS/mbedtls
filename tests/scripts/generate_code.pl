@@ -59,6 +59,12 @@ FCT_BGN()
 {
 $suite_pre_code
 
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    unsigned char buf[1000000];
+    memory_buffer_alloc_init( buf, sizeof(buf) );
+#endif
+
+
     FCT_SUITE_BGN($suite_name)
     {
 END
@@ -140,6 +146,10 @@ END
 print TEST_FILE << "END";
     }
     FCT_SUITE_END();
+
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
+    memory_buffer_alloc_status();
+#endif
 
 $suite_post_code
 }

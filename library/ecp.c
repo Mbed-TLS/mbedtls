@@ -37,6 +37,14 @@
 #if defined(POLARSSL_ECP_C)
 
 #include "polarssl/ecp.h"
+
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <limits.h>
 #include <stdlib.h>
 
@@ -793,7 +801,7 @@ static int ecp_normalize_many( const ecp_group *grp,
     if( t_len < 2 )
         return( ecp_normalize( grp, T ) );
 
-    if( ( c = (mpi *) malloc( t_len * sizeof( mpi ) ) ) == NULL )
+    if( ( c = (mpi *) polarssl_malloc( t_len * sizeof( mpi ) ) ) == NULL )
         return( POLARSSL_ERR_ECP_GENERIC );
 
     mpi_init( &u ); mpi_init( &Zi ); mpi_init( &ZZi );
@@ -848,7 +856,7 @@ cleanup:
     mpi_free( &u ); mpi_free( &Zi ); mpi_free( &ZZi );
     for( i = 0; i < t_len; i++ )
         mpi_free( &c[i] );
-    free( c );
+    polarssl_free( c );
 
     return( ret );
 }

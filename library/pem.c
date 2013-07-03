@@ -34,6 +34,13 @@
 #include "polarssl/md5.h"
 #include "polarssl/cipher.h"
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 
 void pem_init( pem_context *ctx )
@@ -291,12 +298,12 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
     if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
 
-    if( ( buf = (unsigned char *) malloc( len ) ) == NULL )
+    if( ( buf = (unsigned char *) polarssl_malloc( len ) ) == NULL )
         return( POLARSSL_ERR_PEM_MALLOC_FAILED );
 
     if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
     {
-        free( buf );
+        polarssl_free( buf );
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
     }
     
@@ -305,7 +312,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 #if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
         if( pwd == NULL )
         {
-            free( buf );
+            polarssl_free( buf );
             return( POLARSSL_ERR_PEM_PASSWORD_REQUIRED );
         }
 
@@ -328,11 +335,11 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
         if( buf[0] != 0x30 || buf[1] != 0x82 ||
             buf[4] != 0x02 || buf[5] != 0x01 )
         {
-            free( buf );
+            polarssl_free( buf );
             return( POLARSSL_ERR_PEM_PASSWORD_MISMATCH );
         }
 #else
-        free( buf );
+        polarssl_free( buf );
         return( POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE );
 #endif
     }
@@ -346,10 +353,10 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 void pem_free( pem_context *ctx )
 {
     if( ctx->buf )
-        free( ctx->buf );
+        polarssl_free( ctx->buf );
 
     if( ctx->info )
-        free( ctx->info );
+        polarssl_free( ctx->info );
 
     memset( ctx, 0, sizeof( pem_context ) );
 }

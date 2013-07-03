@@ -46,6 +46,13 @@
 #include "polarssl/gcm.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -1299,7 +1306,7 @@ static int ssl_compress_buf( ssl_context *ssl )
     if( len_pre == 0 )
         return( 0 );
 
-    msg_pre = (unsigned char*) malloc( len_pre );
+    msg_pre = (unsigned char*) polarssl_malloc( len_pre );
     if( msg_pre == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len_pre ) );
@@ -1328,7 +1335,7 @@ static int ssl_compress_buf( ssl_context *ssl )
 
     ssl->out_msglen = SSL_BUFFER_LEN - ssl->transform_out->ctx_deflate.avail_out;
 
-    free( msg_pre );
+    polarssl_free( msg_pre );
 
     SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
                    ssl->out_msglen ) );
@@ -1353,7 +1360,7 @@ static int ssl_decompress_buf( ssl_context *ssl )
     if( len_pre == 0 )
         return( 0 );
 
-    msg_pre = (unsigned char*) malloc( len_pre );
+    msg_pre = (unsigned char*) polarssl_malloc( len_pre );
     if( msg_pre == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len_pre ) );
@@ -1382,7 +1389,7 @@ static int ssl_decompress_buf( ssl_context *ssl )
 
     ssl->in_msglen = SSL_MAX_CONTENT_LEN - ssl->transform_in->ctx_inflate.avail_out;
 
-    free( msg_pre );
+    polarssl_free( msg_pre );
 
     SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
                    ssl->in_msglen ) );
@@ -2094,7 +2101,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
-    if( ( ssl->session_negotiate->peer_cert = (x509_cert *) malloc(
+    if( ( ssl->session_negotiate->peer_cert = (x509_cert *) polarssl_malloc(
                     sizeof( x509_cert ) ) ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
@@ -2504,7 +2511,7 @@ void ssl_handshake_wrapup( ssl_context *ssl )
      * Free our handshake params
      */
     ssl_handshake_free( ssl->handshake );
-    free( ssl->handshake );
+    polarssl_free( ssl->handshake );
     ssl->handshake = NULL;
 
     /*
@@ -2513,7 +2520,7 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     if( ssl->transform )
     {
         ssl_transform_free( ssl->transform );
-        free( ssl->transform );
+        polarssl_free( ssl->transform );
     }
     ssl->transform = ssl->transform_negotiate;
     ssl->transform_negotiate = NULL;
@@ -2521,7 +2528,7 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     if( ssl->session )
     {
         ssl_session_free( ssl->session );
-        free( ssl->session );
+        polarssl_free( ssl->session );
     }
     ssl->session = ssl->session_negotiate;
     ssl->session_negotiate = NULL;
@@ -2703,17 +2710,17 @@ static int ssl_handshake_init( ssl_context *ssl )
     if( ssl->transform_negotiate )
         ssl_transform_free( ssl->transform_negotiate );
     else
-        ssl->transform_negotiate = malloc( sizeof(ssl_transform) );
+        ssl->transform_negotiate = polarssl_malloc( sizeof(ssl_transform) );
 
     if( ssl->session_negotiate )
         ssl_session_free( ssl->session_negotiate );
     else
-        ssl->session_negotiate = malloc( sizeof(ssl_session) );
+        ssl->session_negotiate = polarssl_malloc( sizeof(ssl_session) );
 
     if( ssl->handshake )
         ssl_handshake_free( ssl->handshake );
     else
-        ssl->handshake = malloc( sizeof(ssl_handshake_params) );
+        ssl->handshake = polarssl_malloc( sizeof(ssl_handshake_params) );
 
     if( ssl->handshake == NULL ||
         ssl->transform_negotiate == NULL ||
@@ -2780,7 +2787,7 @@ int ssl_init( ssl_context *ssl )
     /*
      * Prepare base structures
      */
-    ssl->in_ctr = (unsigned char *) malloc( len );
+    ssl->in_ctr = (unsigned char *) polarssl_malloc( len );
     ssl->in_hdr = ssl->in_ctr +  8;
     ssl->in_iv  = ssl->in_ctr + 13;
     ssl->in_msg = ssl->in_ctr + 13;
@@ -2791,7 +2798,7 @@ int ssl_init( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    ssl->out_ctr = (unsigned char *) malloc( len );
+    ssl->out_ctr = (unsigned char *) polarssl_malloc( len );
     ssl->out_hdr = ssl->out_ctr +  8;
     ssl->out_iv  = ssl->out_ctr + 13;
     ssl->out_msg = ssl->out_ctr + 13;
@@ -2799,7 +2806,7 @@ int ssl_init( ssl_context *ssl )
     if( ssl->out_ctr == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
-        free( ssl-> in_ctr );
+        polarssl_free( ssl-> in_ctr );
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
@@ -2868,14 +2875,14 @@ int ssl_session_reset( ssl_context *ssl )
     if( ssl->transform )
     {
         ssl_transform_free( ssl->transform );
-        free( ssl->transform );
+        polarssl_free( ssl->transform );
         ssl->transform = NULL;
     }
 
     if( ssl->session )
     {
         ssl_session_free( ssl->session );
-        free( ssl->session );
+        polarssl_free( ssl->session );
         ssl->session = NULL;
     }
 
@@ -3057,7 +3064,7 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->hostname_len = strlen( hostname );
-    ssl->hostname = (unsigned char *) malloc( ssl->hostname_len + 1 );
+    ssl->hostname = (unsigned char *) polarssl_malloc( ssl->hostname_len + 1 );
 
     if( ssl->hostname == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
@@ -3447,7 +3454,7 @@ void ssl_session_free( ssl_session *session )
     if( session->peer_cert != NULL )
     {
         x509_free( session->peer_cert );
-        free( session->peer_cert );
+        polarssl_free( session->peer_cert );
     }
 #endif
 
@@ -3464,13 +3471,13 @@ void ssl_free( ssl_context *ssl )
     if( ssl->out_ctr != NULL )
     {
         memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
-          free( ssl->out_ctr );
+        polarssl_free( ssl->out_ctr );
     }
 
     if( ssl->in_ctr != NULL )
     {
         memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
-          free( ssl->in_ctr );
+        polarssl_free( ssl->in_ctr );
     }
 
 #if defined(POLARSSL_DHM_C)
@@ -3481,7 +3488,7 @@ void ssl_free( ssl_context *ssl )
     if( ssl->transform )
     {
         ssl_transform_free( ssl->transform );
-        free( ssl->transform );
+        polarssl_free( ssl->transform );
     }
 
     if( ssl->handshake )
@@ -3490,21 +3497,21 @@ void ssl_free( ssl_context *ssl )
         ssl_transform_free( ssl->transform_negotiate );
         ssl_session_free( ssl->session_negotiate );
 
-        free( ssl->handshake );
-        free( ssl->transform_negotiate );
-        free( ssl->session_negotiate );
+        polarssl_free( ssl->handshake );
+        polarssl_free( ssl->transform_negotiate );
+        polarssl_free( ssl->session_negotiate );
     }
 
     if( ssl->session )
     {
         ssl_session_free( ssl->session );
-        free( ssl->session );
+        polarssl_free( ssl->session );
     }
 
     if ( ssl->hostname != NULL)
     {
         memset( ssl->hostname, 0, ssl->hostname_len );
-        free( ssl->hostname );
+        polarssl_free( ssl->hostname );
         ssl->hostname_len = 0;
     }
 

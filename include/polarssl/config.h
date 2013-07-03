@@ -402,6 +402,32 @@
  */
 
 /**
+ * \def POLARSSL_MEMORY_DEBUG
+ *
+ * Enable debugging of buffer allocator memory issues. Automatically prints
+ * (to stderr) all (fatal) messages on memory allocation issues. Enables
+ * function for 'debug output' of allocated memory.
+ *
+ * Requires: POLARSSL_MEMORY_BUFFER_ALLOC_C
+ *           fprintf()
+ *
+ * Uncomment this macro to let the buffer allocator print out error messages.
+#define POLARSSL_MEMORY_DEBUG
+*/
+
+/**
+ * \def POLARSSL_MEMORY_BACKTRACE
+ *
+ * Include backtrace information with each allocated block.
+ *
+ * Requires: POLARSSL_MEMORY_BUFFER_ALLOC_C
+ *           GLIBC-compatible backtrace() an backtrace_symbols() support
+ *
+ * Uncomment this macro to include backtrace information
+#define POLARSSL_MEMORY_BACKTRACE
+ */
+
+/**
  * \def POLARSSL_PKCS1_V21
  *
  * Requires: POLARSSL_MD_C, POLARSSL_RSA_C
@@ -900,6 +926,32 @@
 #define POLARSSL_MD5_C
 
 /**
+ * \def POLARSSL_MEMORY_C
+ *
+ * Enable the memory allocation layer.
+ * By default PolarSSL uses the system-provided malloc() and free().
+ * (As long as POLARSSL_MEMORY_STDMALLOC and POLARSSL_MEMORY_STDFREE
+ * are defined and unmodified)
+ *
+ * This allows different allocators (self-implemented or provided)
+ *
+ * Enable this layer to allow use of alternative memory allocators.
+#define POLARSSL_MEMORY_C
+ */
+
+/**
+ * The buffer allocator implementation that makes use of a (stack) based
+ * buffer to 'allocate' dynamic memory. (replaces malloc() and free() calls)
+ *
+ * Module:  library/memory_buffer_alloc.c
+ *
+ * Requires: POLARSSL_MEMORY_C
+ *
+ * Enable this module to enable the buffer memory allocator.
+#define POLARSSL_MEMORY_BUFFER_ALLOC_C
+ */
+
+/**
  * \def POLARSSL_NET_C
  *
  * Enable the TCP/IP networking routines.
@@ -1231,6 +1283,11 @@
 #define ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
 #define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
 
+// Memory options
+#define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
+#define POLARSSL_MEMORY_STDMALLOC      malloc /**< Default allocator to use, can be undefined */
+#define POLARSSL_MEMORY_STDFREE          free /**< Default free to use, can be undefined */
+
 // SSL Cache options
 //
 #define SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
@@ -1299,6 +1356,10 @@
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) &&                       \
     ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && !defined(POLARSSL_MEMORY_C)
+#error "POLARSSL_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_PBKDF2_C) && !defined(POLARSSL_MD_C)

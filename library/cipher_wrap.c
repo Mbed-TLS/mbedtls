@@ -49,6 +49,13 @@
 #include "polarssl/blowfish.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 
 #if defined(POLARSSL_AES_C)
@@ -109,12 +116,12 @@ static int aes_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned in
 
 static void * aes_ctx_alloc( void )
 {
-    return malloc( sizeof( aes_context ) );
+    return polarssl_malloc( sizeof( aes_context ) );
 }
 
 static void aes_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 const cipher_base_t aes_info = {
@@ -304,12 +311,12 @@ static int camellia_setkey_enc_wrap( void *ctx, const unsigned char *key, unsign
 
 static void * camellia_ctx_alloc( void )
 {
-    return malloc( sizeof( camellia_context ) );
+    return polarssl_malloc( sizeof( camellia_context ) );
 }
 
 static void camellia_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 const cipher_base_t camellia_info = {
@@ -506,17 +513,17 @@ static int des3_set3key_enc_wrap( void *ctx, const unsigned char *key, unsigned 
 
 static void * des_ctx_alloc( void )
 {
-    return malloc( sizeof( des_context ) );
+    return polarssl_malloc( sizeof( des_context ) );
 }
 
 static void * des3_ctx_alloc( void )
 {
-    return malloc( sizeof( des3_context ) );
+    return polarssl_malloc( sizeof( des3_context ) );
 }
 
 static void des_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 const cipher_base_t des_info = {
@@ -641,12 +648,12 @@ static int blowfish_setkey_enc_wrap( void *ctx, const unsigned char *key, unsign
 
 static void * blowfish_ctx_alloc( void )
 {
-    return malloc( sizeof( blowfish_context ) );
+    return polarssl_malloc( sizeof( blowfish_context ) );
 }
 
 static void blowfish_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 const cipher_base_t blowfish_info = {

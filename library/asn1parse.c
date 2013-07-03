@@ -33,6 +33,13 @@
 #include "polarssl/bignum.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -238,7 +245,7 @@ int asn1_get_sequence_of( unsigned char **p,
         /* Allocate and assign next pointer */
         if (*p < end)
         {
-            cur->next = (asn1_sequence *) malloc(
+            cur->next = (asn1_sequence *) polarssl_malloc(
                  sizeof( asn1_sequence ) );
 
             if( cur->next == NULL )

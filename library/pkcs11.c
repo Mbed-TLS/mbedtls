@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -31,6 +31,13 @@
 
 #if defined(POLARSSL_PKCS11_C)
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 
 int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
@@ -51,7 +58,7 @@ int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    cert_blob = malloc( cert_blob_size );
+    cert_blob = polarssl_malloc( cert_blob_size );
     if( NULL == cert_blob )
     {
         ret = 4;
@@ -74,7 +81,7 @@ int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
 
 cleanup:
     if( NULL != cert_blob )
-        free( cert_blob );
+        polarssl_free( cert_blob );
 
     return ret;
 }

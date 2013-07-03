@@ -33,6 +33,13 @@
 
 #include "polarssl/ssl_cache.h"
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 
 void ssl_cache_init( ssl_cache_context *cache )
@@ -78,7 +85,7 @@ int ssl_cache_get( void *data, ssl_session *session )
          */
         if( entry->peer_cert.p != NULL )
         {
-            session->peer_cert = (x509_cert *) malloc( sizeof(x509_cert) );
+            session->peer_cert = (x509_cert *) polarssl_malloc( sizeof(x509_cert) );
             if( session->peer_cert == NULL )
                 return( 1 );
 
@@ -86,7 +93,7 @@ int ssl_cache_get( void *data, ssl_session *session )
             if( x509parse_crt( session->peer_cert, entry->peer_cert.p,
                                entry->peer_cert.len ) != 0 )
             {
-                free( session->peer_cert );
+                polarssl_free( session->peer_cert );
                 session->peer_cert = NULL;
                 return( 1 );
             }
@@ -145,14 +152,14 @@ int ssl_cache_set( void *data, const ssl_session *session )
 #if defined(POLARSSL_X509_PARSE_C)
             if( cur->peer_cert.p != NULL )
             {
-                free( cur->peer_cert.p );
+                polarssl_free( cur->peer_cert.p );
                 memset( &cur->peer_cert, 0, sizeof(x509_buf) );
             }
 #endif /* POLARSSL_X509_PARSE_C */
         }
         else
         {
-            cur = (ssl_cache_entry *) malloc( sizeof(ssl_cache_entry) );
+            cur = (ssl_cache_entry *) polarssl_malloc( sizeof(ssl_cache_entry) );
             if( cur == NULL )
                 return( 1 );
 
@@ -175,7 +182,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
      */
     if( session->peer_cert != NULL )
     {
-        cur->peer_cert.p = (unsigned char *) malloc( session->peer_cert->raw.len );
+        cur->peer_cert.p = (unsigned char *) polarssl_malloc( session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
             return( 1 );
 
@@ -219,10 +226,10 @@ void ssl_cache_free( ssl_cache_context *cache )
 
 #if defined(POLARSSL_X509_PARSE_C)
         if( prv->peer_cert.p != NULL )
-            free( prv->peer_cert.p );
+            polarssl_free( prv->peer_cert.p );
 #endif /* POLARSSL_X509_PARSE_C */
 
-        free( prv );
+        polarssl_free( prv );
     }
 }
 

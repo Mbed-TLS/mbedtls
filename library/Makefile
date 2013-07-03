@@ -44,7 +44,8 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		entropy.o	entropy_poll.o				\
 		error.o		gcm.o		havege.o		\
 		md.o		md_wrap.o	md2.o			\
-		md4.o		md5.o		net.o			\
+		md4.o		md5.o		memory.o		\
+		memory_buffer_alloc.c	net.o			\
 		oid.o									\
 		padlock.o	pbkdf2.o	pem.o			\
 		pkcs5.o		pkcs11.o	pkcs12.o		\

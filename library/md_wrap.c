@@ -57,6 +57,13 @@
 #include "polarssl/sha512.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 
 #if defined(POLARSSL_MD2_C)
@@ -109,12 +116,12 @@ static void md2_hmac_reset_wrap( void *ctx )
 
 static void * md2_ctx_alloc( void )
 {
-    return malloc( sizeof( md2_context ) );
+    return polarssl_malloc( sizeof( md2_context ) );
 }
 
 static void md2_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 static void md2_process_wrap( void *ctx, const unsigned char *data )
@@ -195,12 +202,12 @@ static void md4_hmac_reset_wrap( void *ctx )
 
 static void *md4_ctx_alloc( void )
 {
-    return malloc( sizeof( md4_context ) );
+    return polarssl_malloc( sizeof( md4_context ) );
 }
 
 static void md4_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 static void md4_process_wrap( void *ctx, const unsigned char *data )
@@ -279,12 +286,12 @@ static void md5_hmac_reset_wrap( void *ctx )
 
 static void * md5_ctx_alloc( void )
 {
-    return malloc( sizeof( md5_context ) );
+    return polarssl_malloc( sizeof( md5_context ) );
 }
 
 static void md5_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 static void md5_process_wrap( void *ctx, const unsigned char *data )
@@ -363,12 +370,12 @@ static void sha1_hmac_reset_wrap( void *ctx )
 
 static void * sha1_ctx_alloc( void )
 {
-    return malloc( sizeof( sha1_context ) );
+    return polarssl_malloc( sizeof( sha1_context ) );
 }
 
 static void sha1_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 static void sha1_process_wrap( void *ctx, const unsigned char *data )
@@ -463,12 +470,12 @@ static void sha224_hmac_wrap( const unsigned char *key, size_t keylen,
 
 static void * sha224_ctx_alloc( void )
 {
-    return malloc( sizeof( sha256_context ) );
+    return polarssl_malloc( sizeof( sha256_context ) );
 }
 
 static void sha224_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 static void sha224_process_wrap( void *ctx, const unsigned char *data )
@@ -556,12 +563,12 @@ static void sha256_hmac_wrap( const unsigned char *key, size_t keylen,
 
 static void * sha256_ctx_alloc( void )
 {
-    return malloc( sizeof( sha256_context ) );
+    return polarssl_malloc( sizeof( sha256_context ) );
 }
 
 static void sha256_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 static void sha256_process_wrap( void *ctx, const unsigned char *data )
@@ -653,12 +660,12 @@ static void sha384_hmac_wrap( const unsigned char *key, size_t keylen,
 
 static void * sha384_ctx_alloc( void )
 {
-    return malloc( sizeof( sha512_context ) );
+    return polarssl_malloc( sizeof( sha512_context ) );
 }
 
 static void sha384_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 static void sha384_process_wrap( void *ctx, const unsigned char *data )
@@ -746,12 +753,12 @@ static void sha512_hmac_wrap( const unsigned char *key, size_t keylen,
 
 static void * sha512_ctx_alloc( void )
 {
-    return malloc( sizeof( sha512_context ) );
+    return polarssl_malloc( sizeof( sha512_context ) );
 }
 
 static void sha512_ctx_free( void *ctx )
 {
-    free( ctx );
+    polarssl_free( ctx );
 }
 
 static void sha512_process_wrap( void *ctx, const unsigned char *data )

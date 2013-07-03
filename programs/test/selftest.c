@@ -52,9 +52,16 @@
 #include "polarssl/pbkdf2.h"
 #include "polarssl/ecp.h"
 
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#include "polarssl/memory.h"
+#endif
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, v;
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    unsigned char buf[1000000];
+#endif
 
     if( argc == 2 && strcmp( argv[1], "-quiet" ) == 0 )
         v = 0;
@@ -65,6 +72,10 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    memory_buffer_alloc_init( buf, sizeof(buf) );
+#endif
 
 #if defined(POLARSSL_MD2_C)
     if( ( ret = md2_self_test( v ) ) != 0 )
@@ -167,6 +178,10 @@ int main( int argc, char *argv[] )
 
     if( v != 0 )
     {
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
+        memory_buffer_alloc_status();
+#endif
+
         printf( "  [ All tests passed ]\n\n" );
 #if defined(_WIN32)
         printf( "  Press Enter to exit this program.\n" );

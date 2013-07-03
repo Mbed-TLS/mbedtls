@@ -37,6 +37,13 @@
 #include "polarssl/bignum.h"
 #include "polarssl/bn_mul.h"
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 
 #define ciL    (sizeof(t_uint))         /* chars in limb  */
@@ -73,7 +80,7 @@ void mpi_free( mpi *X )
     if( X->p != NULL )
     {
         memset( X->p, 0, X->n * ciL );
-        free( X->p );
+        polarssl_free( X->p );
     }
 
     X->s = 1;
@@ -93,7 +100,7 @@ int mpi_grow( mpi *X, size_t nblimbs )
 
     if( X->n < nblimbs )
     {
-        if( ( p = (t_uint *) malloc( nblimbs * ciL ) ) == NULL )
+        if( ( p = (t_uint *) polarssl_malloc( nblimbs * ciL ) ) == NULL )
             return( POLARSSL_ERR_MPI_MALLOC_FAILED );
 
         memset( p, 0, nblimbs * ciL );
@@ -102,7 +109,7 @@ int mpi_grow( mpi *X, size_t nblimbs )
         {
             memcpy( p, X->p, X->n * ciL );
             memset( X->p, 0, X->n * ciL );
-            free( X->p );
+            polarssl_free( X->p );
         }
 
         X->n = nblimbs;

@@ -120,6 +120,9 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     p = pbe_params->p;
     end = p + pbe_params->len;
 
+    memset( &md_ctx, 0, sizeof(md_context_t) );
+    memset( &cipher_ctx, 0, sizeof(cipher_context_t) );
+
     /*
      *  PBES2-params ::= SEQUENCE {
      *    keyDerivationFunc AlgorithmIdentifier {{PBES2-KDFs}},
@@ -170,33 +173,37 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     memcpy( iv, enc_scheme_params.p, enc_scheme_params.len );
 
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
-        return( ret );
-
-    if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
-        return( ret );
+        goto exit;
 
     if ( ( ret = pkcs5_pbkdf2_hmac( &md_ctx, pwd, pwdlen, salt.p, salt.len,
                                     iterations, keylen, key ) ) != 0 )
     {
-        return( ret );
+        goto exit;
     }
 
+    if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
+        goto exit;
+
     if( ( ret = cipher_setkey( &cipher_ctx, key, keylen, mode ) ) != 0 )
-        return( ret );
+        goto exit;
 
     if( ( ret = cipher_reset( &cipher_ctx, iv ) ) != 0 )
-        return( ret );
+        goto exit;
 
     if( ( ret = cipher_update( &cipher_ctx, data, datalen,
                                 output, &olen ) ) != 0 )
     {
-        return( ret );
+        goto exit;
     }
 
     if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
-        return( POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH );
+        ret = POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH;
 
-    return( 0 );
+exit:
+    md_free_ctx( &md_ctx );
+    cipher_free_ctx( &cipher_ctx );
+
+    return( ret );
 }
 
 int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
@@ -366,7 +373,8 @@ int pkcs5_self_test( int verbose )
 
     printf( "\n" );
 
-    md_free_ctx( &sha1_ctx );
+    if( ( ret = md_free_ctx( &sha1_ctx ) ) != 0 )
+        return( 1 );
 
     return( 0 );
 }

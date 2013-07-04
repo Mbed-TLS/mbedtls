@@ -472,9 +472,9 @@ int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path );
 
 /** \ingroup x509_module */
 /**
- * \brief          Parse a private EC key
+ * \brief          Parse a private key
  *
- * \param eckey    EC key to be initialized
+ * \param ctx      key to be initialized
  * \param key      input buffer
  * \param keylen   size of the buffer
  * \param pwd      password for decryption (optional)
@@ -482,46 +482,46 @@ int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_key_ec( ecp_keypair *eckey,
-                      const unsigned char *key, size_t keylen,
-                      const unsigned char *pwd, size_t pwdlen );
+int x509parse_key( pk_context *ctx,
+                   const unsigned char *key, size_t keylen,
+                   const unsigned char *pwd, size_t pwdlen );
 
 /** \ingroup x509_module */
 /**
- * \brief          Load and parse a private EC key
+ * \brief          Load and parse a private key
  *
- * \param eckey    EC key to be initialized
+ * \param ctx      key to be initialized
  * \param path     filename to read the private key from
  * \param password password to decrypt the file (can be NULL)
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_keyfile_ec( ecp_keypair *eckey,
-                          const char *path, const char *password );
+int x509parse_keyfile( pk_context *ctx,
+                       const char *path, const char *password );
 
 /** \ingroup x509_module */
 /**
- * \brief          Parse a public EC key
+ * \brief          Parse a public key
  *
- * \param eckey    EC key to be initialized
+ * \param ctx      key to be initialized
  * \param key      input buffer
  * \param keylen   size of the buffer
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_public_key_ec( ecp_keypair *eckey,
-                             const unsigned char *key, size_t keylen );
+int x509parse_public_key( pk_context *ctx,
+                          const unsigned char *key, size_t keylen );
 
 /** \ingroup x509_module */
 /**
- * \brief          Load and parse a public EC key
+ * \brief          Load and parse a public key
  *
- * \param eckey    EC key to be initialized
+ * \param ctx      key to be initialized
  * \param path     filename to read the private key from
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_public_keyfile_ec( ecp_keypair *eckey, const char *path );
+int x509parse_public_keyfile( pk_context *ctx, const char *path );
 
 /** \ingroup x509_module */
 /**

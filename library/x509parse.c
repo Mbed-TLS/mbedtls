@@ -511,11 +511,13 @@ static int x509_get_pubkey( unsigned char **p,
     /*
      * only RSA public keys handled at this time
      */
-    if( oid_get_pk_alg( pk_alg_oid, &pk_alg ) != 0 ||
-            pk_alg != POLARSSL_PK_RSA )
+    if( oid_get_pk_alg( pk_alg_oid, &pk_alg ) != 0 )
     {
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
     }
+
+    if (pk_alg != POLARSSL_PK_RSA )
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
@@ -2079,12 +2081,11 @@ int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path )
     return( ret );
 }
 
-#if defined(POLARSSL_ECP_C)
 /*
- * Load and parse a private EC key
+ * Load and parse a private key
  */
-int x509parse_keyfile_ec( ecp_keypair *eckey,
-                          const char *path, const char *pwd )
+int x509parse_keyfile( pk_context *ctx,
+                       const char *path, const char *pwd )
 {
     int ret;
     size_t n;
@@ -2094,9 +2095,9 @@ int x509parse_keyfile_ec( ecp_keypair *eckey,
         return( ret );
 
     if( pwd == NULL )
-        ret = x509parse_key_ec( eckey, buf, n, NULL, 0 );
+        ret = x509parse_key( ctx, buf, n, NULL, 0 );
     else
-        ret = x509parse_key_ec( eckey, buf, n,
+        ret = x509parse_key( ctx, buf, n,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
     memset( buf, 0, n + 1 );
@@ -2106,9 +2107,9 @@ int x509parse_keyfile_ec( ecp_keypair *eckey,
 }
 
 /*
- * Load and parse a public EC key
+ * Load and parse a public key
  */
-int x509parse_public_keyfile_ec( ecp_keypair *eckey, const char *path )
+int x509parse_public_keyfile( pk_context *ctx, const char *path )
 {
     int ret;
     size_t n;
@@ -2117,14 +2118,14 @@ int x509parse_public_keyfile_ec( ecp_keypair *eckey, const char *path )
     if ( (ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
-    ret = x509parse_public_key_ec( eckey, buf, n );
+    ret = x509parse_public_key( ctx, buf, n );
 
     memset( buf, 0, n + 1 );
     free( buf );
 
     return( ret );
 }
-#endif /* defined(POLARSSL_ECP_C) */
+
 #endif /* POLARSSL_FS_IO */
 
 /*
@@ -2259,11 +2260,13 @@ static int x509parse_key_pkcs8_unencrypted_der(
     /*
      * only RSA keys handled at this time
      */
-    if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 ||
-            pk_alg != POLARSSL_PK_RSA )
+    if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 )
     {
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
     }
+
+    if (pk_alg != POLARSSL_PK_RSA )
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
 
     /*
      * Get the OCTET STRING and parse the PKCS#1 format inside
@@ -2791,7 +2794,7 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
 
     if( pk_alg != POLARSSL_PK_ECKEY && pk_alg != POLARSSL_PK_ECKEY_DH )
-        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
 
     if( pk_alg == POLARSSL_PK_ECKEY_DH )
         eck->alg = POLARSSL_ECP_KEY_ALG_ECDH;
@@ -2853,9 +2856,9 @@ static int x509parse_key_pkcs8_encrypted_der_ec(
 /*
  * Parse a private EC key
  */
-int x509parse_key_ec( ecp_keypair *eck,
-                      const unsigned char *key, size_t keylen,
-                      const unsigned char *pwd, size_t pwdlen )
+static int x509parse_key_ec( ecp_keypair *eck,
+                             const unsigned char *key, size_t keylen,
+                             const unsigned char *pwd, size_t pwdlen )
 {
     int ret;
 
@@ -2994,7 +2997,7 @@ static int x509parse_public_key_ec_der( ecp_keypair *key,
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
 
     if( alg != POLARSSL_PK_ECKEY && alg != POLARSSL_PK_ECKEY_DH )
-        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
 
     if( alg == POLARSSL_PK_ECKEY_DH )
         key->alg = POLARSSL_ECP_KEY_ALG_ECDH;
@@ -3016,8 +3019,8 @@ static int x509parse_public_key_ec_der( ecp_keypair *key,
 /*
  * Parse a public EC key
  */
-int x509parse_public_key_ec( ecp_keypair *eckey,
-                             const unsigned char *key, size_t keylen )
+static int x509parse_public_key_ec( ecp_keypair *eckey,
+                                    const unsigned char *key, size_t keylen )
 {
     int ret;
 #if defined(POLARSSL_PEM_C)
@@ -3058,6 +3061,58 @@ int x509parse_public_key_ec( ecp_keypair *eckey,
     return( ret );
 }
 #endif /* defined(POLARSSL_ECP_C) */
+
+/*
+ * Parse a private key
+ */
+int x509parse_key( pk_context *ctx,
+                   const unsigned char *key, size_t keylen,
+                   const unsigned char *pwd, size_t pwdlen )
+{
+    int ret;
+
+    if ( ( ret = pk_set_type( ctx, POLARSSL_PK_RSA ) ) != 0 )
+        return( ret );
+
+    if( ( ret = x509parse_key_rsa( ctx->data, key, keylen, pwd, pwdlen ) )
+            == 0 )
+    {
+        return( 0 );
+    }
+
+    if ( ( ret = pk_set_type( ctx, POLARSSL_PK_ECKEY ) ) != 0 )
+        return( ret );
+
+    if( ( ret = x509parse_key_ec( ctx->data, key, keylen, pwd, pwdlen ) ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT );
+}
+
+/*
+ * Parse a public key
+ */
+int x509parse_public_key( pk_context *ctx,
+                          const unsigned char *key, size_t keylen )
+{
+    int ret;
+
+    if ( ( ret = pk_set_type( ctx, POLARSSL_PK_RSA ) ) != 0 )
+        return( ret );
+
+    if( ( ret = x509parse_public_key_rsa( ctx->data, key, keylen ) ) == 0 )
+        return( 0 );
+
+    if ( ( ret = pk_set_type( ctx, POLARSSL_PK_ECKEY ) ) != 0 )
+        return( ret );
+
+    if( ( ret = x509parse_public_key_ec( ctx->data, key, keylen ) ) == 0 )
+        return( 0 );
+
+    return( POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT );
+}
 
 #if defined(POLARSSL_DHM_C)
 /*

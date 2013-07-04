@@ -182,42 +182,48 @@ END_CASE
 BEGIN_CASE
 x509parse_public_keyfile_ec:key_file:result
 {
-    ecp_keypair eckey;
+    pk_context ctx;
     int res;
 
-    ecp_keypair_init( &eckey );
+    pk_init( &ctx );
 
-    res = x509parse_public_keyfile_ec( &eckey, {key_file} );
+    res = x509parse_public_keyfile( &ctx, {key_file} );
 
     TEST_ASSERT( res == {result} );
 
     if( res == 0 )
     {
-        TEST_ASSERT( ecp_check_pubkey( &eckey.grp, &eckey.Q ) == 0 );
+        ecp_keypair *eckey;
+        TEST_ASSERT( ctx.type == POLARSSL_PK_ECKEY );
+        eckey = (ecp_keypair *) ctx.data;
+        TEST_ASSERT( ecp_check_pubkey( &eckey->grp, &eckey->Q ) == 0 );
     }
 
-    ecp_keypair_free( &eckey );
+    pk_free( &ctx );
 }
 END_CASE
 
 BEGIN_CASE
 x509parse_keyfile_ec:key_file:password:result
 {
-    ecp_keypair eckey;
+    pk_context ctx;
     int res;
 
-    ecp_keypair_init( &eckey );
+    pk_init( &ctx );
 
-    res = x509parse_keyfile_ec( &eckey, {key_file}, {password} );
+    res = x509parse_keyfile( &ctx, {key_file}, {password} );
 
     TEST_ASSERT( res == {result} );
 
     if( res == 0 )
     {
-        TEST_ASSERT( ecp_check_prvkey( &eckey.grp, &eckey.d ) == 0 );
+        ecp_keypair *eckey;
+        TEST_ASSERT( ctx.type == POLARSSL_PK_ECKEY );
+        eckey = (ecp_keypair *) ctx.data;
+        TEST_ASSERT( ecp_check_prvkey( &eckey->grp, &eckey->d ) == 0 );
     }
 
-    ecp_keypair_free( &eckey );
+    pk_free( &ctx );
 }
 END_CASE
 

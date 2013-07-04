@@ -2280,26 +2280,23 @@ static int x509parse_key_pkcs8_unencrypted_der(
 }
 
 /*
- * Parse an encrypted PKCS#8 encoded private RSA key
+ * Decrypt the content of a PKCS#8 EncryptedPrivateKeyInfo
  */
-static int x509parse_key_pkcs8_encrypted_der(
-                                    rsa_context *rsa,
-                                    const unsigned char *key,
-                                    size_t keylen,
-                                    const unsigned char *pwd,
-                                    size_t pwdlen )
+static int x509parse_pkcs8_decrypt( unsigned char *buf, size_t buflen,
+                                    size_t *used_len,
+                                    const unsigned char *key, size_t keylen,
+                                    const unsigned char *pwd, size_t pwdlen )
 {
     int ret;
     size_t len;
     unsigned char *p, *end;
     x509_buf pbe_alg_oid, pbe_params;
-    unsigned char buf[2048];
 #if defined(POLARSSL_PKCS12_C)
     cipher_type_t cipher_alg;
     md_type_t md_alg;
 #endif
 
-    memset(buf, 0, 2048);
+    memset(buf, 0, buflen);
 
     p = (unsigned char *) key;
     end = p + keylen;
@@ -2335,8 +2332,7 @@ static int x509parse_key_pkcs8_encrypted_der(
     if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
-    // buf has been sized to 2048 bytes
-    if( len > 2048 )
+    if( len > buflen )
         return( POLARSSL_ERR_X509_INVALID_INPUT );
 
     /*
@@ -2389,7 +2385,29 @@ static int x509parse_key_pkcs8_encrypted_der(
 #endif /* POLARSSL_PKCS5_C */
         return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
 
-    return x509parse_key_pkcs8_unencrypted_der( rsa, buf, len );
+    *used_len = len;
+    return( 0 );
+}
+
+/*
+ * Parse an encrypted PKCS#8 encoded private RSA key
+ */
+static int x509parse_key_pkcs8_encrypted_der(
+                                    rsa_context *rsa,
+                                    const unsigned char *key, size_t keylen,
+                                    const unsigned char *pwd, size_t pwdlen )
+{
+    int ret;
+    unsigned char buf[2048];
+    size_t len = 0;
+
+    if( ( ret = x509parse_pkcs8_decrypt( buf, sizeof( buf ), &len,
+            key, keylen, pwd, pwdlen ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( x509parse_key_pkcs8_unencrypted_der( rsa, buf, len ) );
 }
 
 /*

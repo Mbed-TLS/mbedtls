@@ -318,6 +318,7 @@ int ssl_derive_keys( ssl_context *ssl )
     unsigned int iv_copy_len;
     const cipher_info_t *cipher_info;
     const md_info_t *md_info;
+    int ret;
 
     ssl_session *session = ssl->session_negotiate;
     ssl_transform *transform = ssl->transform_negotiate;
@@ -444,8 +445,17 @@ int ssl_derive_keys( ssl_context *ssl )
     {
         if( md_info->type != POLARSSL_MD_NONE )
         {
-            md_init_ctx( &transform->md_ctx_enc, md_info );
-            md_init_ctx( &transform->md_ctx_dec, md_info );
+            if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+                return( ret );
+            }
+
+            if( ( ret = md_init_ctx( &transform->md_ctx_dec, md_info ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+                return( ret );
+            }
 
             transform->maclen = md_get_size( md_info );
         }
@@ -2743,6 +2753,10 @@ static int ssl_handshake_init( ssl_context *ssl )
     ssl->handshake->update_checksum = ssl_update_checksum_start;
     ssl->handshake->sig_alg = SSL_HASH_SHA1;
 
+#if defined(POLARSSL_ECDH_C)
+    ecdh_init( &ssl->handshake->ecdh_ctx );
+#endif
+
     return( 0 );
 }
 
@@ -3436,6 +3450,9 @@ void ssl_transform_free( ssl_transform *transform )
     inflateEnd( &transform->ctx_inflate );
 #endif
 
+    md_free_ctx( &transform->md_ctx_enc );
+    md_free_ctx( &transform->md_ctx_dec );
+
     memset( transform, 0, sizeof( ssl_transform ) );
 }
 
@@ -3444,6 +3461,10 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 #if defined(POLARSSL_DHM_C)
     dhm_free( &handshake->dhm_ctx );
 #endif
+#if defined(POLARSSL_ECDH_C)
+    ecdh_free( &handshake->ecdh_ctx );
+#endif
+
     memset( handshake, 0, sizeof( ssl_handshake_params ) );
 }
 

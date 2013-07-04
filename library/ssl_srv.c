@@ -1304,7 +1304,6 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ECPoint      public;
          * } ServerECDHParams;
          */
-        ecdh_init( &ssl->handshake->ecdh_ctx );
         if( ( ret = ecp_use_known_dp( &ssl->handshake->ecdh_ctx.grp,
                                        ssl->handshake->ec_curve ) ) != 0 )
         {
@@ -1423,6 +1422,13 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             md_update( &ctx, ssl->handshake->randbytes, 64 );
             md_update( &ctx, dig_sig, dig_sig_len );
             md_finish( &ctx, hash );
+
+            if( ( ret = md_free_ctx( &ctx ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "md_free_ctx", ret );
+                return( ret );
+            }
+
         }
 
         SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );

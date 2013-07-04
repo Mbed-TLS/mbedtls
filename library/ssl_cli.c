@@ -824,8 +824,6 @@ static int ssl_parse_server_ecdh_params( ssl_context *ssl,
      *     ECPoint      public;
      * } ServerECDHParams;
      */
-    ecdh_init( &ssl->handshake->ecdh_ctx );
-
     if( ( ret = ecdh_read_params( &ssl->handshake->ecdh_ctx,
                                   (const unsigned char **) p, end ) ) != 0 )
     {

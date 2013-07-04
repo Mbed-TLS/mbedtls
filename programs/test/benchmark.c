@@ -53,6 +53,7 @@
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-15s :  "
 
+#if defined(POLARSSL_TIMING_C)
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
     size_t use_len;
@@ -77,6 +78,7 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
 }
 
 unsigned char buf[BUFSIZE];
+#endif
 
 #if !defined(POLARSSL_TIMING_C)
 int main( int argc, char *argv[] )

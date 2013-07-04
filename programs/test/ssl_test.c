@@ -37,8 +37,10 @@
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
-#include "polarssl/timing.h"
 #include "polarssl/certs.h"
+#if defined(POLARSSL_TIMING_C)
+#include "polarssl/timing.h"
+#endif
 
 #define OPMODE_NONE             0
 #define OPMODE_CLIENT           1
@@ -80,7 +82,9 @@ struct options
     int buffer_size;            /* size of the send/receive buffer      */
     int max_bytes;              /* max. # of bytes before a reconnect   */
     int debug_level;            /* level of debugging                   */
+#if defined(POLARSSL_TIMING_C)
     int conn_timeout;           /* max. delay before a reconnect        */
+#endif
     int max_connections;        /* max. number of reconnections         */
     int session_reuse;          /* flag to reuse the keying material    */
     int session_lifetime;       /* if reached, session data is expired  */
@@ -155,7 +159,9 @@ static int ssl_test( struct options *opt )
 
     const char *pers = "ssl_test";
 
+#if defined(POLARSSL_TIMING_C)
     struct hr_time t;
+#endif
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
@@ -173,7 +179,9 @@ static int ssl_test( struct options *opt )
         goto exit;
     }
 
+#if defined(POLARSSL_TIMING_C)
     get_timer( &t, 1 );
+#endif
 
     memset( read_state, 0, sizeof( read_state ) );
     memset( write_state, 0, sizeof( write_state ) );
@@ -373,9 +381,11 @@ static int ssl_test( struct options *opt )
               opt->max_bytes <= nb_written ) )
             break;
 
+#if defined(POLARSSL_TIMING_C)
         if( opt->conn_timeout != 0 &&
             opt->conn_timeout <= (int) get_timer( &t, 0 ) )
             break;
+#endif
     }
 
 exit:
@@ -397,6 +407,13 @@ exit:
     return( ret );
 }
 
+#if defined(POLARSSL_TIMING_C)
+#define USAGE_TIMING                                             \
+    "    conn_timeout=%%d (ms)        default: 0 (no timeout)\n"
+#else
+#define USAGE_TIMING ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_test opmode=<> command=<>...\n"               \
     "\n acceptable parameters:\n"                                \
@@ -408,7 +425,7 @@ exit:
     "    buffer_size=%%d (bytes)      default: 1024\n"           \
     "    max_bytes=%%d (bytes)        default: 0 (no limit)\n"   \
     "    debug_level=%%d              default: 0 (disabled)\n"   \
-    "    conn_timeout=%%d (ms)        default: 0 (no timeout)\n" \
+    USAGE_TIMING                                                 \
     "    max_connections=%%d          default: 0 (no limit)\n"   \
     "    session_reuse=on/off        default: on (enabled)\n"    \
     "    session_lifetime=%%d (s)     default: 86400\n"          \
@@ -428,7 +445,7 @@ int main( int argc, char *argv[] )
     {
     usage:
         printf( USAGE );
-        
+
         list = ssl_list_ciphersuites();
         while( *list )
         {
@@ -447,7 +464,9 @@ int main( int argc, char *argv[] )
     opt.buffer_size             = DFL_BUFFER_SIZE;
     opt.max_bytes               = DFL_MAX_BYTES;
     opt.debug_level             = DFL_DEBUG_LEVEL;
+#if defined(POLARSSL_TIMING_C)
     opt.conn_timeout            = DFL_CONN_TIMEOUT;
+#endif
     opt.max_connections         = DFL_MAX_CONNECTIONS;
     opt.session_reuse           = DFL_SESSION_REUSE;
     opt.session_lifetime        = DFL_SESSION_LIFETIME;
@@ -526,10 +545,10 @@ int main( int argc, char *argv[] )
 
         if( strcmp( p, "debug_level" ) == 0 )
             opt.debug_level = atoi( q );
-
+#if defined(POLARSSL_TIMING_C)
         if( strcmp( p, "conn_timeout" ) == 0 )
             opt.conn_timeout = atoi( q );
-
+#endif
         if( strcmp( p, "max_connections" ) == 0 )
             opt.max_connections = atoi( q );
 

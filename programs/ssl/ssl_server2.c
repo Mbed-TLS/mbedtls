@@ -49,6 +49,10 @@
 #include "polarssl/ssl_cache.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#include "polarssl/memory.h"
+#endif
+
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_DEBUG_LEVEL         0
@@ -185,10 +189,17 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
 #endif
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    unsigned char alloc_buf[100000];
+#endif
 
     int i;
     char *p, *q;
     const int *list;
+
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
+#endif
 
     /*
      * Make sure memory references are valid.
@@ -739,6 +750,9 @@ reset:
         len = ret;
         printf( " %d bytes read\n\n%s", len, (char *) buf );
 
+        if( memcmp( buf, "SERVERQUIT", 10 ) == 0 )
+            goto exit;
+
         if( ret > 0 )
             break;
     }
@@ -796,6 +810,10 @@ exit:
 
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_free( &cache );
+#endif
+
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
+    memory_buffer_alloc_status();
 #endif
 
 #if defined(_WIN32)

@@ -49,6 +49,7 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		oid.o									\
 		padlock.o	pbkdf2.o	pem.o			\
 		pkcs5.o		pkcs11.o	pkcs12.o		\
+		pk.o									\
 		rsa.o		sha1.o		sha256.o		\
 		sha512.o	ssl_cache.o	ssl_cli.o		\
 		ssl_srv.o   ssl_ciphersuites.o			\

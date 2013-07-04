@@ -37,10 +37,39 @@ extern "C" {
 typedef enum {
     POLARSSL_PK_NONE=0,
     POLARSSL_PK_RSA,
-    POLARSSL_PK_ECDSA,
     POLARSSL_PK_ECKEY,
     POLARSSL_PK_ECKEY_DH,
 } pk_type_t;
+
+/**
+ * \brief           Public key container
+ */
+typedef struct
+{
+    pk_type_t   type;   /**< Public key type */
+    void *      data;   /**< Public key data */
+} pk_context;
+
+/**
+ * \brief           Initialize a pk_context (as NONE)
+ */
+void pk_init( pk_context *ctx );
+
+/**
+ * \brief           Free a pk_context
+ */
+void pk_free( pk_context *ctx );
+
+/**
+ * \brief           Set a pk_context to a given type
+ *
+ * \param ctx       Context to initialize
+ * \param type      Type of key
+ *
+ * \return          O on success, -1 on memory allocation error
+ *                  TODO: use appropriate error constant
+ */
+int pk_set_type( pk_context *ctx, pk_type_t type );
 
 #ifdef __cplusplus
 }

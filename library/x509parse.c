@@ -2676,12 +2676,25 @@ static int x509parse_key_sec1_der( ecp_keypair *eck,
         if( ( ret = x509_get_ecparams( &p, p + len, &grp_id) ) != 0 )
             return( ret );
 
-        /* TODO: grp may not be empty at this point,
-         * if we're wrapped inside a PKCS#8 structure: check consistency */
-        if( ( ret = ecp_use_known_dp( &eck->grp, grp_id ) ) != 0 )
+        /*
+         * If we're wrapped in a bigger structure (eg PKCS#8), grp may have been
+         * defined externally. In this case, make sure both definitions match.
+         */
+        if( eck->grp.id != 0 )
         {
-            ecp_keypair_free( eck );
-            return( ret );
+            if( eck->grp.id != grp_id )
+            {
+                ecp_keypair_free( eck );
+                return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+            }
+        }
+        else
+        {
+            if( ( ret = ecp_use_known_dp( &eck->grp, grp_id ) ) != 0 )
+            {
+                ecp_keypair_free( eck );
+                return( ret );
+            }
         }
     }
     else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )

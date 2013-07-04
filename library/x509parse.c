@@ -511,8 +511,11 @@ static int x509_get_pubkey( unsigned char **p,
     /*
      * only RSA public keys handled at this time
      */
-    if( oid_get_pk_alg( pk_alg_oid, &pk_alg ) != 0 )
+    if( oid_get_pk_alg( pk_alg_oid, &pk_alg ) != 0 ||
+            pk_alg != POLARSSL_PK_RSA )
+    {
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+    }
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
@@ -2256,8 +2259,11 @@ static int x509parse_key_pkcs8_unencrypted_der(
     /*
      * only RSA keys handled at this time
      */
-    if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 )
+    if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 ||
+            pk_alg != POLARSSL_PK_RSA )
+    {
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+    }
 
     /*
      * Get the OCTET STRING and parse the PKCS#1 format inside

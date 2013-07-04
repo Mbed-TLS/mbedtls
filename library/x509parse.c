@@ -2815,25 +2815,20 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
  */
 static int x509parse_key_pkcs8_encrypted_der_ec(
                                     ecp_keypair *eck,
-                                    const unsigned char *key,
-                                    size_t keylen,
-                                    const unsigned char *pwd,
-                                    size_t pwdlen )
+                                    const unsigned char *key, size_t keylen,
+                                    const unsigned char *pwd, size_t pwdlen )
 {
     int ret;
+    unsigned char buf[2048];
+    size_t len = 0;
 
-    (void) key;
-    (void) keylen;
-    (void) pwd;
-    (void) pwdlen;
-
-    if( ( ret = ecp_check_prvkey( &eck->grp, &eck->d ) ) != 0 )
+    if( ( ret = x509parse_pkcs8_decrypt( buf, sizeof( buf ), &len,
+            key, keylen, pwd, pwdlen ) ) != 0 )
     {
-        ecp_keypair_free( eck );
         return( ret );
     }
 
-    return 0;
+    return( x509parse_key_pkcs8_unencrypted_der_ec( eck, buf, len ) );
 }
 
 /*

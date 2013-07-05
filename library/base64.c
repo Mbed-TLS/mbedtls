@@ -1,7 +1,7 @@
 /*
  *  RFC 1521 base64 encoding/decoding
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -163,7 +163,7 @@ int base64_decode( unsigned char *dst, size_t *dlen,
 
     n = ((n * 6) + 7) >> 3;
 
-    if( *dlen < n )
+    if( dst == NULL || *dlen < n )
     {
         *dlen = n;
         return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );

@@ -160,6 +160,40 @@ static int x509_get_serial( unsigned char **p,
     return( 0 );
 }
 
+/* Get an algorithm identifier and its parameters
+ *
+ *  AlgorithmIdentifier  ::=  SEQUENCE  {
+ *       algorithm               OBJECT IDENTIFIER,
+ *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
+ */
+static int x509_get_algid( unsigned char **p,
+                           const unsigned char *end,
+                           pk_type_t *pk_alg, x509_buf *params )
+{
+    int ret;
+    x509_buf alg_oid;
+
+    memset( params, 0, sizeof(asn1_buf) );
+
+    if( ( ret = asn1_get_alg( p, end, &alg_oid, params ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
+
+    if( oid_get_pk_alg( &alg_oid, pk_alg ) != 0 )
+        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+    /*
+     * No parameters with RSA (only for EC)
+     */
+    if( *pk_alg == POLARSSL_PK_RSA &&
+            ( ( params->tag != ASN1_NULL && params->tag != 0 ) ||
+                params->len != 0 ) )
+    {
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
+    }
+
+    return( 0 );
+}
+
 /*
  *  AlgorithmIdentifier  ::=  SEQUENCE  {
  *       algorithm               OBJECT IDENTIFIER,
@@ -209,6 +243,23 @@ static int x509_get_alg( unsigned char **p,
  *   -- specifiedCurve  SpecifiedECDomain
  * }
  */
+static int x509_ecparams_get_grp_id( const x509_buf *params,
+                                     ecp_group_id *grp_id )
+{
+    if( oid_get_ec_grp( params, grp_id ) != 0 )
+        return( POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE );
+
+    return( 0 );
+}
+
+/* Get an EC group id from an ECParameters buffer
+ *
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ *   -- implicitCurve   NULL
+ *   -- specifiedCurve  SpecifiedECDomain
+ * }
+ */
 static int x509_get_ecparams( unsigned char **p, const unsigned char *end,
                               ecp_group_id *grp_id )
 {
@@ -227,10 +278,7 @@ static int x509_get_ecparams( unsigned char **p, const unsigned char *end,
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    if( ( ret = oid_get_ec_grp( &curve, grp_id ) ) != 0 )
-        return( POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE );
-
-    return( 0 );
+    return( x509_ecparams_get_grp_id( &curve, grp_id ) );
 }
 
 /*
@@ -2750,9 +2798,8 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
 {
     int ret, version;
     size_t len;
-    x509_buf pk_alg_oid;
+    x509_buf alg_params;
     ecp_group_id grp_id;
-    const unsigned char *params_end;
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     pk_type_t pk_alg = POLARSSL_PK_NONE;
@@ -2787,11 +2834,8 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
     if( version != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
 
-    if( ( ret = x509_get_alg( &p, end, &pk_alg_oid, &params_end ) ) != 0 )
+    if( ( ret = x509_get_algid( &p, end, &pk_alg, &alg_params ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-
-    if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 )
-        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
 
     if( pk_alg != POLARSSL_PK_ECKEY && pk_alg != POLARSSL_PK_ECKEY_DH )
         return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
@@ -2799,7 +2843,7 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
     if( pk_alg == POLARSSL_PK_ECKEY_DH )
         eck->alg = POLARSSL_ECP_KEY_ALG_ECDH;
 
-    if( ( ret = x509_get_ecparams( &p, params_end, &grp_id ) ) != 0 )
+    if( ( ret = x509_ecparams_get_grp_id( &alg_params, &grp_id ) ) != 0 )
     {
         ecp_keypair_free( eck );
         return( ret );
@@ -2971,11 +3015,10 @@ static int x509parse_public_key_ec_der( ecp_keypair *key,
 {
     int ret;
     ecp_group_id grp_id;
-    x509_buf alg_oid;
+    x509_buf alg_params;
     pk_type_t alg = POLARSSL_PK_NONE;
     unsigned char *p = (unsigned char *) buf;
     unsigned char *end = p + len;
-    const unsigned char *params_end;
     /*
      * SubjectPublicKeyInfo  ::=  SEQUENCE  {
      *   algorithm         AlgorithmIdentifier,
@@ -2990,11 +3033,8 @@ static int x509parse_public_key_ec_der( ecp_keypair *key,
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = x509_get_alg( &p, end, &alg_oid, &params_end ) ) != 0 )
+    if( ( ret = x509_get_algid( &p, end, &alg, &alg_params ) ) != 0 )
         return( ret );
-
-    if( oid_get_pk_alg( &alg_oid, &alg ) != 0 )
-        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
 
     if( alg != POLARSSL_PK_ECKEY && alg != POLARSSL_PK_ECKEY_DH )
         return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
@@ -3002,7 +3042,7 @@ static int x509parse_public_key_ec_der( ecp_keypair *key,
     if( alg == POLARSSL_PK_ECKEY_DH )
         key->alg = POLARSSL_ECP_KEY_ALG_ECDH;
 
-    if( ( ret = x509_get_ecparams( &p, params_end, &grp_id ) ) != 0 )
+    if( ( ret = x509_ecparams_get_grp_id( &alg_params, &grp_id ) ) != 0 )
         return( ret );
 
     if( ( ret = ecp_use_known_dp( &key->grp, grp_id ) ) != 0 )

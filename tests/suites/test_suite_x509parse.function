@@ -220,7 +220,7 @@ x509parse_keyfile_ec:key_file:password:result
         ecp_keypair *eckey;
         TEST_ASSERT( ctx.type == POLARSSL_PK_ECKEY );
         eckey = (ecp_keypair *) ctx.data;
-        TEST_ASSERT( ecp_check_prvkey( &eckey->grp, &eckey->d ) == 0 );
+        TEST_ASSERT( ecp_check_privkey( &eckey->grp, &eckey->d ) == 0 );
     }
 
     pk_free( &ctx );

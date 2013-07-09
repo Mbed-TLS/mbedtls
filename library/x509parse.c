@@ -2731,7 +2731,7 @@ static int x509parse_key_sec1_der( ecp_keypair *eck,
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = ecp_check_prvkey( &eck->grp, &eck->d ) ) != 0 )
+    if( ( ret = ecp_check_privkey( &eck->grp, &eck->d ) ) != 0 )
     {
         ecp_keypair_free( eck );
         return( ret );
@@ -2823,7 +2823,7 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
         return( ret );
     }
 
-    if( ( ret = ecp_check_prvkey( &eck->grp, &eck->d ) ) != 0 )
+    if( ( ret = ecp_check_privkey( &eck->grp, &eck->d ) ) != 0 )
     {
         ecp_keypair_free( eck );
         return( ret );

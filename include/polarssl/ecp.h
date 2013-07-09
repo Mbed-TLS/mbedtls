@@ -454,7 +454,7 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt );
  *                  in order to ease use with other structures such as
  *                  ecdh_context of ecdsa_context.
  */
-int ecp_check_prvkey( const ecp_group *grp, const mpi *d );
+int ecp_check_privkey( const ecp_group *grp, const mpi *d );
 
 /**
  * \brief           Generate a keypair

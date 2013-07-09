@@ -1308,7 +1308,7 @@ cleanup:
 /*
  * Check that an mpi is valid as a private key (SEC1 3.2)
  */
-int ecp_check_prvkey( const ecp_group *grp, const mpi *d )
+int ecp_check_privkey( const ecp_group *grp, const mpi *d )
 {
     /* We want 1 <= d <= N-1 */
     if ( mpi_cmp_int( d, 1 ) < 0 || mpi_cmp_mpi( d, &grp->N ) >= 0 )

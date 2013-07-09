@@ -545,13 +545,21 @@ static int x509_get_dates( unsigned char **p,
  */
 static int x509_get_pubkey( unsigned char **p,
                             const unsigned char *end,
-                            mpi *N, mpi *E )
+                            rsa_context *rsa )
 {
     int ret;
     size_t len;
     x509_buf pk_alg_oid;
     unsigned char *end2;
     pk_type_t pk_alg = POLARSSL_PK_NONE;
+
+    if( ( ret = asn1_get_tag( p, end, &len,
+                    ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
+    }
+
+    end = *p + len;
 
     if( ( ret = asn1_get_alg_null( p, end, &pk_alg_oid ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
@@ -593,13 +601,18 @@ static int x509_get_pubkey( unsigned char **p,
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    if( ( ret = asn1_get_mpi( p, end2, N ) ) != 0 ||
-        ( ret = asn1_get_mpi( p, end2, E ) ) != 0 )
+    if( ( ret = asn1_get_mpi( p, end2, &rsa->N ) ) != 0 ||
+        ( ret = asn1_get_mpi( p, end2, &rsa->E ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
 
     if( *p != end )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    if( ( ret = rsa_check_pubkey( rsa ) ) != 0 )
+        return( ret );
+
+    rsa->len = mpi_size( &rsa->N );
 
     return( 0 );
 }
@@ -1366,31 +1379,14 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
     crt->subject_raw.len = p - crt->subject_raw.p;
 
     /*
-     * SubjectPublicKeyInfo  ::=  SEQUENCE
-     *      algorithm            AlgorithmIdentifier,
-     *      subjectPublicKey     BIT STRING  }
+     * SubjectPublicKeyInfo
      */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        x509_free( crt );
-        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
-    }
-
-    if( ( ret = x509_get_pubkey( &p, p + len,
-                                 &crt->rsa.N, &crt->rsa.E ) ) != 0 )
+    if( ( ret = x509_get_pubkey( &p, end,
+                                 &crt->rsa ) ) != 0 )
     {
         x509_free( crt );
         return( ret );
     }
-
-    if( ( ret = rsa_check_pubkey( &crt->rsa ) ) != 0 )
-    {
-        x509_free( crt );
-        return( ret );
-    }
-
-    crt->rsa.len = mpi_size( &crt->rsa.N );
 
     /*
      *  issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,
@@ -1440,6 +1436,9 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
     end = crt_end;
 
     /*
+     *  }
+     *  -- end of TBSCertificate
+     *
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
@@ -2613,43 +2612,7 @@ int x509parse_public_key_rsa( rsa_context *rsa,
 #endif
     end = p + keylen;
 
-    /*
-     *  PublicKeyInfo ::= SEQUENCE {
-     *    algorithm       AlgorithmIdentifier,
-     *    PublicKey       BIT STRING
-     *  }
-     *
-     *  AlgorithmIdentifier ::= SEQUENCE {
-     *    algorithm       OBJECT IDENTIFIER,
-     *    parameters      ANY DEFINED BY algorithm OPTIONAL
-     *  }
-     *
-     *  RSAPublicKey ::= SEQUENCE {
-     *      modulus           INTEGER,  -- n
-     *      publicExponent    INTEGER   -- e
-     *  }
-     */
-
-    if( ( ret = asn1_get_tag( &p, end, &len,
-                    ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        rsa_free( rsa );
-        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
-    }
-
-    if( ( ret = x509_get_pubkey( &p, end, &rsa->N, &rsa->E ) ) != 0 )
-    {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        rsa_free( rsa );
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-    }
-
-    if( ( ret = rsa_check_pubkey( rsa ) ) != 0 )
+    if( ( ret = x509_get_pubkey( &p, end, rsa ) ) != 0 )
     {
 #if defined(POLARSSL_PEM_C)
         pem_free( &pem );
@@ -2657,8 +2620,6 @@ int x509parse_public_key_rsa( rsa_context *rsa,
         rsa_free( rsa );
         return( ret );
     }
-
-    rsa->len = mpi_size( &rsa->N );
 
 #if defined(POLARSSL_PEM_C)
     pem_free( &pem );

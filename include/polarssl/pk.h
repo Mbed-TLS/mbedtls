@@ -28,6 +28,7 @@
 #define POLARSSL_PK_H
 
 #define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
+#define POLARSSL_ERR_PK_TYPE_MISMATCH       -0x2F00  /**< Type mismatch, eg attempt to use a RSA key as EC, or to modify key type */
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,7 +73,12 @@ void pk_free( pk_context *ctx );
  * \param ctx       Context to initialize
  * \param type      Type of key
  *
- * \return          O on success, or POLARSSL_ERR_PK_MALLOC_FAILED
+ * \note            Once the type of a key has been set, it cannot be reset.
+ *                  If you want to do so, you need to use pk_free() first.
+ *
+ * \return          O on success,
+ *                  POLARSSL_ERR_PK_MALLOC_FAILED on memory allocation fail,
+ *                  POLARSSL_ERR_PK_TYPE_MISMATCH on attempts to reset type.
  */
 int pk_set_type( pk_context *ctx, pk_type_t type );
 

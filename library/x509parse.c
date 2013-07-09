@@ -3120,6 +3120,8 @@ int x509parse_key( pk_context *ctx,
         return( 0 );
     }
 
+    pk_free( ctx );
+
     if ( ( ret = pk_set_type( ctx, POLARSSL_PK_ECKEY ) ) != 0 )
         return( ret );
 
@@ -3127,6 +3129,8 @@ int x509parse_key( pk_context *ctx,
     {
         return( 0 );
     }
+
+    pk_free( ctx );
 
     return( POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT );
 }
@@ -3145,11 +3149,15 @@ int x509parse_public_key( pk_context *ctx,
     if( ( ret = x509parse_public_key_rsa( ctx->data, key, keylen ) ) == 0 )
         return( 0 );
 
+    pk_free( ctx );
+
     if ( ( ret = pk_set_type( ctx, POLARSSL_PK_ECKEY ) ) != 0 )
         return( ret );
 
     if( ( ret = x509parse_public_key_ec( ctx->data, key, keylen ) ) == 0 )
         return( 0 );
+
+    pk_free( ctx );
 
     return( POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT );
 }

@@ -88,6 +88,12 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
 {
     size_t size = 0;
 
+    if( ctx->type == type )
+        return( 0 );
+
+    if( ctx->type != POLARSSL_PK_NONE )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+
     switch( type )
     {
 #if defined(POLARSSL_RSA_C)
@@ -104,7 +110,7 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
 #endif
 
         case POLARSSL_PK_NONE:
-            ; /* Should not happen */
+            ; /* Cannot happen, but the cmpiler doesn't know */
     }
 
     if( ( ctx->data = malloc( size ) ) == NULL )

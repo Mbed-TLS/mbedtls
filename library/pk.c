@@ -25,9 +25,14 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/rsa.h"
-#include "polarssl/ecp.h"
 #include "polarssl/pk.h"
+
+#if defined(POLARSSL_RSA_C)
+#include "polarssl/rsa.h"
+#endif
+#if defined(POLARSSL_ECP_C)
+#include "polarssl/ecp.h"
+#endif
 
 #include <stdlib.h>
 
@@ -56,14 +61,18 @@ void pk_free( pk_context *ctx )
         case POLARSSL_PK_NONE:
             break;
 
+#if defined(POLARSSL_RSA_C)
         case POLARSSL_PK_RSA:
             rsa_free( ctx->data );
             break;
+#endif
 
+#if defined(POLARSSL_ECP_C)
         case POLARSSL_PK_ECKEY:
         case POLARSSL_PK_ECKEY_DH:
             ecp_keypair_free( ctx->data );
             break;
+#endif
     }
 
     free( ctx-> data );
@@ -77,13 +86,26 @@ void pk_free( pk_context *ctx )
  */
 int pk_set_type( pk_context *ctx, pk_type_t type )
 {
-    size_t size = type == POLARSSL_PK_RSA       ? sizeof( rsa_context )
-                : type == POLARSSL_PK_ECKEY     ? sizeof( ecp_keypair )
-                : type == POLARSSL_PK_ECKEY_DH  ? sizeof( ecp_keypair )
-                : 0;
+    size_t size = 0;
 
-    if( size == 0 )
-        return( 0 );
+    switch( type )
+    {
+#if defined(POLARSSL_RSA_C)
+        case POLARSSL_PK_RSA:
+            size = sizeof( rsa_context );
+            break;
+#endif
+
+#if defined(POLARSSL_ECP_C)
+        case POLARSSL_PK_ECKEY:
+        case POLARSSL_PK_ECKEY_DH:
+            size = sizeof( ecp_keypair );
+            break;
+#endif
+
+        case POLARSSL_PK_NONE:
+            ; /* Should not happen */
+    }
 
     if( ( ctx->data = malloc( size ) ) == NULL )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );

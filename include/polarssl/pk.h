@@ -38,9 +38,13 @@ extern "C" {
  */
 typedef enum {
     POLARSSL_PK_NONE=0,
+#if defined(POLARSSL_RSA_C)
     POLARSSL_PK_RSA,
+#endif
+#if defined(POLARSSL_ECP_C)
     POLARSSL_PK_ECKEY,
     POLARSSL_PK_ECKEY_DH,
+#endif
 } pk_type_t;
 
 /**

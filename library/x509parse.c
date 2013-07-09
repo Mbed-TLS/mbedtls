@@ -545,21 +545,21 @@ static int x509_get_dates( unsigned char **p,
  */
 static int x509_get_pubkey( unsigned char **p,
                             const unsigned char *end,
-                            x509_buf *pk_alg_oid,
                             mpi *N, mpi *E )
 {
     int ret;
     size_t len;
+    x509_buf pk_alg_oid;
     unsigned char *end2;
     pk_type_t pk_alg = POLARSSL_PK_NONE;
 
-    if( ( ret = asn1_get_alg_null( p, end, pk_alg_oid ) ) != 0 )
+    if( ( ret = asn1_get_alg_null( p, end, &pk_alg_oid ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
 
     /*
      * only RSA public keys handled at this time
      */
-    if( oid_get_pk_alg( pk_alg_oid, &pk_alg ) != 0 )
+    if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 )
     {
         return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
     }
@@ -1377,7 +1377,7 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = x509_get_pubkey( &p, p + len, &crt->pk_oid,
+    if( ( ret = x509_get_pubkey( &p, p + len,
                                  &crt->rsa.N, &crt->rsa.E ) ) != 0 )
     {
         x509_free( crt );
@@ -2585,7 +2585,6 @@ int x509parse_public_key_rsa( rsa_context *rsa,
     int ret;
     size_t len;
     unsigned char *p, *end;
-    x509_buf alg_oid;
 #if defined(POLARSSL_PEM_C)
     pem_context pem;
 
@@ -2641,7 +2640,7 @@ int x509parse_public_key_rsa( rsa_context *rsa,
         return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = x509_get_pubkey( &p, end, &alg_oid, &rsa->N, &rsa->E ) ) != 0 )
+    if( ( ret = x509_get_pubkey( &p, end, &rsa->N, &rsa->E ) ) != 0 )
     {
 #if defined(POLARSSL_PEM_C)
         pem_free( &pem );

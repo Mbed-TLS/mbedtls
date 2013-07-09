@@ -211,7 +211,6 @@ typedef struct _x509_cert
     x509_time valid_from;       /**< Start time of certificate validity. */
     x509_time valid_to;         /**< End time of certificate validity. */
 
-    x509_buf pk_oid;            /**< Subject public key info. Includes the public key algorithm and the key itself. */
     rsa_context rsa;            /**< Container for the RSA context. Only RSA is supported for public keys at this time. */
 
     x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */

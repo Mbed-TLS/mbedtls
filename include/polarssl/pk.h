@@ -27,6 +27,8 @@
 #ifndef POLARSSL_PK_H
 #define POLARSSL_PK_H
 
+#define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,8 +68,7 @@ void pk_free( pk_context *ctx );
  * \param ctx       Context to initialize
  * \param type      Type of key
  *
- * \return          O on success, -1 on memory allocation error
- *                  TODO: use appropriate error constant
+ * \return          O on success, or POLARSSL_ERR_PK_MALLOC_FAILED
  */
 int pk_set_type( pk_context *ctx, pk_type_t type );
 

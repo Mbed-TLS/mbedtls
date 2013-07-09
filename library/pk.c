@@ -84,7 +84,7 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
         return( 0 );
 
     if( ( ctx->data = malloc( size ) ) == NULL )
-        return( -1 );
+        return( POLARSSL_ERR_PK_MALLOC_FAILED );
 
     memset( ctx->data, 0, size );
     ctx->type = type;

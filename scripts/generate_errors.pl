@@ -13,7 +13,7 @@ my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
                           "MD2", "MD4", "MD5", "SHA1", "SHA256", "SHA512", "GCM" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "ECP", "MD", "CIPHER", "SSL",
-                           "PKCS12", "PKCS5" );
+                           "PK", "PKCS12", "PKCS5" );
 
 my $line_separator = $/;
 undef $/;

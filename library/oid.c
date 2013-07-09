@@ -33,7 +33,6 @@
 #include "polarssl/rsa.h"
 
 #include <stdio.h>
-#include <limits.h>
 
 /*
  * Macro to generate an internal function for oid_XXX_from_asn1() (used by
@@ -572,7 +571,8 @@ int oid_get_numeric_string( char *buf, size_t size,
     for( i = 1; i < oid->len; i++ )
     {
         /* Prevent overflow in value. */
-        if (value > (UINT_MAX >> 7) )
+        unsigned int v = value << 7;
+        if ( v < value )
             return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
 
         value <<= 7;

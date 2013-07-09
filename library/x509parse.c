@@ -571,6 +571,84 @@ static int x509_get_rsapubkey( unsigned char **p,
     return( 0 );
 }
 
+static int x509_get_ecpubkey( unsigned char **p, const unsigned char *end,
+                              x509_buf *alg_params, ecp_keypair *key )
+{
+    int ret;
+    ecp_group_id grp_id;
+
+    if( ( ret = x509_ecparams_get_grp_id( alg_params, &grp_id ) ) != 0 )
+        return( ret );
+
+    if( ( ret = ecp_use_known_dp( &key->grp, grp_id ) ) != 0 )
+        return( ret );
+
+    if( ( ret = ecp_point_read_binary( &key->grp, &key->Q,
+                    (const unsigned char *) *p, end - *p ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    return( 0 );
+}
+
+/*
+ *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
+ *       algorithm            AlgorithmIdentifier,
+ *       subjectPublicKey     BIT STRING }
+ */
+static int x509_get_pubkey( unsigned char **p,
+                            const unsigned char *end,
+                            pk_context *pk )
+{
+    int ret;
+    size_t len;
+    x509_buf alg_params;
+    pk_type_t pk_alg = POLARSSL_PK_NONE;
+
+    if( ( ret = asn1_get_tag( p, end, &len,
+                    ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
+    }
+
+    end = *p + len;
+
+    if( ( ret = x509_get_algid( p, end, &pk_alg, &alg_params ) ) != 0 )
+        return( ret );
+
+    if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
+
+    if( ( end - *p ) < 1 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
+    if( *p + len != end )
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    if( *(*p)++ != 0 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
+
+    pk_set_type( pk, pk_alg );
+
+    switch( pk_alg )
+    {
+        case POLARSSL_PK_NONE:
+            return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+        case POLARSSL_PK_RSA:
+            return( x509_get_rsapubkey( p, end, pk->data ) );
+
+        case POLARSSL_PK_ECKEY_DH:
+            ((ecp_keypair *) pk->data)->alg = POLARSSL_ECP_KEY_ALG_ECDH;
+            /* FALLTHROUGH */
+        case POLARSSL_PK_ECKEY:
+            return( x509_get_ecpubkey( p, end, &alg_params, pk->data ) );
+    }
+}
+
 /*
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
  *       algorithm            AlgorithmIdentifier,

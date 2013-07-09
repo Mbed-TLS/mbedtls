@@ -66,6 +66,8 @@ void pk_free( pk_context *ctx )
             break;
     }
 
+    free( ctx-> data );
+
     ctx->type = POLARSSL_PK_NONE;
     ctx->data = NULL;
 }

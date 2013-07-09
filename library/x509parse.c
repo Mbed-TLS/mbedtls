@@ -586,7 +586,7 @@ static int x509_get_ecpubkey( unsigned char **p, const unsigned char *end,
     if( ( ret = ecp_point_read_binary( &key->grp, &key->Q,
                     (const unsigned char *) *p, end - *p ) ) != 0 )
     {
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
     }
 
     return( 0 );
@@ -631,22 +631,32 @@ static int x509_get_pubkey( unsigned char **p,
     if( *(*p)++ != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
 
-    pk_set_type( pk, pk_alg );
+    if( ( ret = pk_set_type( pk, pk_alg ) ) != 0 )
+        return( ret );
 
     switch( pk_alg )
     {
         case POLARSSL_PK_NONE:
-            return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+            ret = POLARSSL_ERR_X509_UNKNOWN_PK_ALG;
+            break;
 
         case POLARSSL_PK_RSA:
-            return( x509_get_rsapubkey( p, end, pk->data ) );
+            ret = x509_get_rsapubkey( p, end, pk->data );
+            break;
 
         case POLARSSL_PK_ECKEY_DH:
             ((ecp_keypair *) pk->data)->alg = POLARSSL_ECP_KEY_ALG_ECDH;
             /* FALLTHROUGH */
+
         case POLARSSL_PK_ECKEY:
-            return( x509_get_ecpubkey( p, end, &alg_params, pk->data ) );
+            ret = x509_get_ecpubkey( p, end, &alg_params, pk->data );
+            break;
     }
+
+    if( ret != 0 )
+        pk_free( pk );
+
+    return( ret );
 }
 
 /*
@@ -3050,100 +3060,6 @@ static int x509parse_key_ec( ecp_keypair *eck,
 
     return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
 }
-
-/*
- * Parse a public EC key in RFC 5480 format, der-encoded
- */
-static int x509parse_public_key_ec_der( ecp_keypair *key,
-                                        const unsigned char *buf, size_t len )
-{
-    int ret;
-    ecp_group_id grp_id;
-    x509_buf alg_params;
-    pk_type_t alg = POLARSSL_PK_NONE;
-    unsigned char *p = (unsigned char *) buf;
-    unsigned char *end = p + len;
-    /*
-     * SubjectPublicKeyInfo  ::=  SEQUENCE  {
-     *   algorithm         AlgorithmIdentifier,
-     *   subjectPublicKey  BIT STRING
-     * }
-     * -- algorithm parameters are ECParameters
-     * -- subjectPublicKey is an ECPoint
-     */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-                    ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
-    }
-
-    if( ( ret = x509_get_algid( &p, end, &alg, &alg_params ) ) != 0 )
-        return( ret );
-
-    if( alg != POLARSSL_PK_ECKEY && alg != POLARSSL_PK_ECKEY_DH )
-        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
-
-    if( alg == POLARSSL_PK_ECKEY_DH )
-        key->alg = POLARSSL_ECP_KEY_ALG_ECDH;
-
-    if( ( ret = x509_ecparams_get_grp_id( &alg_params, &grp_id ) ) != 0 )
-        return( ret );
-
-    if( ( ret = ecp_use_known_dp( &key->grp, grp_id ) ) != 0 )
-        return( ret );
-
-    if( ( ret = x509_get_subpubkey_ec( &p, end, &key->grp, &key->Q ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    return( 0 );
-}
-
-/*
- * Parse a public EC key
- */
-static int x509parse_public_key_ec( ecp_keypair *eckey,
-                                    const unsigned char *key, size_t keylen )
-{
-    int ret;
-#if defined(POLARSSL_PEM_C)
-    size_t len;
-    pem_context pem;
-
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
-            "-----BEGIN PUBLIC KEY-----",
-            "-----END PUBLIC KEY-----",
-            key, NULL, 0, &len );
-
-    if( ret == 0 )
-    {
-        /*
-         * Was PEM encoded
-         */
-        key = pem.buf;
-        keylen = pem.buflen;
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
-#endif
-
-    if( ( ret = x509parse_public_key_ec_der ( eckey, key, keylen )  ) != 0 ||
-        ( ret = ecp_check_pubkey( &eckey->grp, &eckey->Q )          ) != 0 )
-    {
-        ecp_keypair_free( eckey );
-    }
-
-#if defined(POLARSSL_PEM_C)
-    pem_free( &pem );
-#endif
-
-    return( ret );
-}
 #endif /* defined(POLARSSL_ECP_C) */
 
 /*
@@ -3186,24 +3102,40 @@ int x509parse_public_key( pk_context *ctx,
                           const unsigned char *key, size_t keylen )
 {
     int ret;
+    unsigned char *p;
+#if defined(POLARSSL_PEM_C)
+    size_t len;
+    pem_context pem;
 
-    if ( ( ret = pk_set_type( ctx, POLARSSL_PK_RSA ) ) != 0 )
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+            "-----BEGIN PUBLIC KEY-----",
+            "-----END PUBLIC KEY-----",
+            key, NULL, 0, &len );
+
+    if( ret == 0 )
+    {
+        /*
+         * Was PEM encoded
+         */
+        key = pem.buf;
+        keylen = pem.buflen;
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+    {
+        pem_free( &pem );
         return( ret );
+    }
+#endif
+    p = (unsigned char *) key;
 
-    if( ( ret = x509parse_public_key_rsa( ctx->data, key, keylen ) ) == 0 )
-        return( 0 );
+    ret = x509_get_pubkey( &p, p + keylen, ctx );
 
-    pk_free( ctx );
+#if defined(POLARSSL_PEM_C)
+    pem_free( &pem );
+#endif
 
-    if ( ( ret = pk_set_type( ctx, POLARSSL_PK_ECKEY ) ) != 0 )
-        return( ret );
-
-    if( ( ret = x509parse_public_key_ec( ctx->data, key, keylen ) ) == 0 )
-        return( 0 );
-
-    pk_free( ctx );
-
-    return( POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT );
+    return( ret );
 }
 
 #if defined(POLARSSL_DHM_C)

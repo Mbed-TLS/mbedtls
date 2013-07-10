@@ -275,17 +275,20 @@ static int x509_get_subpubkey_ec( unsigned char **p, const unsigned char *end,
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    /*
-     * First byte in the content of BIT STRING is the nummber of padding bit.
-     * Here it is always 0 since ECPoint is an octet string, so skip it.
-     */
-    ++*p;
-    --len;
+    if( --len < 1 || *(*p)++ != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
     if( ( ret = ecp_point_read_binary( grp, pt,
                     (const unsigned char *) *p, len ) ) != 0 )
     {
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
+    }
+
+    *p += len;
+
+    if( ( ret = ecp_check_pubkey( grp, pt ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
     }
 
     return( 0 );
@@ -562,7 +565,15 @@ static int x509_get_ecpubkey( unsigned char **p, const unsigned char *end,
     if( ( ret = ecp_point_read_binary( &key->grp, &key->Q,
                     (const unsigned char *) *p, end - *p ) ) != 0 )
     {
-        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
+    }
+
+    *p = (unsigned char *) end;
+
+    if( ( ret = ecp_check_pubkey( &key->grp, &key->Q ) ) != 0 )
+    {
+        ecp_keypair_free( key );
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
     }
 
     return( 0 );
@@ -604,7 +615,7 @@ static int x509_get_pubkey( unsigned char **p,
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    if( *(*p)++ != 0 )
+    if( --len < 1 || *(*p)++ != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
 
     if( ( ret = pk_set_type( pk, pk_alg ) ) != 0 )
@@ -630,6 +641,10 @@ static int x509_get_pubkey( unsigned char **p,
             ret = x509_get_ecpubkey( p, end, &alg_params, pk->data );
             break;
     }
+
+    if( ret == 0 && *p != end )
+        ret = POLARSSL_ERR_X509_CERT_INVALID_PUBKEY
+              POLARSSL_ERR_ASN1_LENGTH_MISMATCH;
 
     if( ret != 0 )
         pk_free( pk );
@@ -2628,6 +2643,7 @@ static int x509parse_key_sec1_der( ecp_keypair *eck,
     ecp_group_id grp_id;
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
+    unsigned char *end2;
 
     /*
      * RFC 5915, orf SEC1 Appendix C.4
@@ -2706,18 +2722,18 @@ static int x509parse_key_sec1_der( ecp_keypair *eck,
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
     {
-        if( ( ret = x509_get_subpubkey_ec( &p, p + len, &eck->grp, &eck->Q ) )
+        end2 = p + len;
+
+        if( ( ret = x509_get_subpubkey_ec( &p, end2, &eck->grp, &eck->Q ) )
                 != 0 )
         {
             ecp_keypair_free( eck );
             return( ret );
         }
 
-        if( ( ret = ecp_check_pubkey( &eck->grp, &eck->Q ) ) != 0 )
-        {
-            ecp_keypair_free( eck );
-            return( ret );
-        }
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
     else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
     {

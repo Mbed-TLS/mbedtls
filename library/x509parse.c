@@ -637,21 +637,6 @@ static int x509_get_pubkey( unsigned char **p,
     return( ret );
 }
 
-/*
- * Get an RSA public key (compatibility wrapper)
- */
-static int x509_get_pubkey_rsa( unsigned char **p,
-                                const unsigned char *end,
-                                rsa_context *rsa )
-{
-    pk_context pk_ctx;
-
-    pk_init( &pk_ctx );
-    pk_wrap_rsa( &pk_ctx, rsa );
-
-    return( x509_get_pubkey( p, end, &pk_ctx ) );
-}
-
 static int x509_get_sig( unsigned char **p,
                          const unsigned char *end,
                          x509_buf *sig )
@@ -1416,10 +1401,21 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
     /*
      * SubjectPublicKeyInfo
      */
-    if( ( ret = x509_get_pubkey_rsa( &p, end, &crt->rsa ) ) != 0 )
+    if( ( ret = x509_get_pubkey( &p, end, &crt->pk ) ) != 0 )
     {
         x509_free( crt );
         return( ret );
+    }
+
+    /*
+     * Temporary hack for compatibility while transitioning to PK abstraction
+     * (Cannot use rsa_wrap above since it would force RSA key type.)
+     */
+    if( crt->pk.type == POLARSSL_PK_RSA ) {
+        memcpy( &crt->rsa, pk_rsa( crt->pk ), sizeof( rsa_context ) );
+        free( crt->pk.data );
+        crt->pk.data = &crt->rsa;
+        crt->pk.dont_free = 1;
     }
 
     /*
@@ -3969,6 +3965,7 @@ void x509_free( x509_cert *crt )
 
     do
     {
+        pk_free( &cert_cur->pk );
         rsa_free( &cert_cur->rsa );
 
         name_cur = cert_cur->issuer.next;

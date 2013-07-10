@@ -160,15 +160,15 @@ static int x509_get_serial( unsigned char **p,
     return( 0 );
 }
 
-/* Get an algorithm identifier and its parameters
+/* Get a PK algorithm identifier
  *
  *  AlgorithmIdentifier  ::=  SEQUENCE  {
  *       algorithm               OBJECT IDENTIFIER,
  *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
  */
 static int x509_get_pk_alg( unsigned char **p,
-                           const unsigned char *end,
-                           pk_type_t *pk_alg, x509_buf *params )
+                            const unsigned char *end,
+                            pk_type_t *pk_alg, x509_buf *params )
 {
     int ret;
     x509_buf alg_oid;
@@ -194,44 +194,20 @@ static int x509_get_pk_alg( unsigned char **p,
     return( 0 );
 }
 
-/*
+/* Get an algorithm identifier without parameters (eg for signatures)
+ *
  *  AlgorithmIdentifier  ::=  SEQUENCE  {
  *       algorithm               OBJECT IDENTIFIER,
  *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
- *
- * If params_end is NULL, then parameters must be absent or ANS.1 NULL
  */
-static int x509_get_alg( unsigned char **p,
-                         const unsigned char *end,
-                         x509_buf *alg, const unsigned char **params_end )
+static int x509_get_alg_null( unsigned char **p, const unsigned char *end,
+                              x509_buf *alg )
 {
     int ret;
-    size_t len;
 
-    if( params_end == NULL ) {
-        if( ( ret = asn1_get_alg_null( p, end, alg ) ) != 0 )
-            return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
-
-        return( 0 );
-    }
-
-    /* TODO: use asn1_get_alg */
-    if( ( ret = asn1_get_tag( p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
-    }
-
-    end = *p + len;
-    alg->tag = **p;
-
-    if( ( ret = asn1_get_tag( p, end, &alg->len, ASN1_OID ) ) != 0 )
+    if( ( ret = asn1_get_alg_null( p, end, alg ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
 
-    alg->p = *p;
-    *p += alg->len;
-
-    *params_end = end;
     return( 0 );
 }
 
@@ -1361,9 +1337,9 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
      *
      * signature            AlgorithmIdentifier
      */
-    if( ( ret = x509_get_version( &p, end, &crt->version    ) ) != 0 ||
-        ( ret = x509_get_serial(  &p, end, &crt->serial     ) ) != 0 ||
-        ( ret = x509_get_alg( &p, end, &crt->sig_oid1, NULL ) ) != 0 )
+    if( ( ret = x509_get_version(  &p, end, &crt->version  ) ) != 0 ||
+        ( ret = x509_get_serial(   &p, end, &crt->serial   ) ) != 0 ||
+        ( ret = x509_get_alg_null( &p, end, &crt->sig_oid1 ) ) != 0 )
     {
         x509_free( crt );
         return( ret );
@@ -1500,7 +1476,7 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &crt->sig_oid2, NULL ) ) != 0 )
+    if( ( ret = x509_get_alg_null( &p, end, &crt->sig_oid2 ) ) != 0 )
     {
         x509_free( crt );
         return( ret );
@@ -1823,7 +1799,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
      * signature            AlgorithmIdentifier
      */
     if( ( ret = x509_crl_get_version( &p, end, &crl->version ) ) != 0 ||
-        ( ret = x509_get_alg(  &p, end, &crl->sig_oid1, NULL ) ) != 0 )
+        ( ret = x509_get_alg_null( &p, end, &crl->sig_oid1   ) ) != 0 )
     {
         x509_crl_free( crl );
         return( ret );
@@ -1928,7 +1904,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &crl->sig_oid2, NULL ) ) != 0 )
+    if( ( ret = x509_get_alg_null( &p, end, &crl->sig_oid2 ) ) != 0 )
     {
         x509_crl_free( crl );
         return( ret );
@@ -2323,7 +2299,7 @@ static int x509parse_key_pkcs8_unencrypted_der(
     int ret;
     size_t len;
     unsigned char *p, *end;
-    x509_buf pk_alg_oid;
+    x509_buf alg_params;
     pk_type_t pk_alg = POLARSSL_PK_NONE;
 
     p = (unsigned char *) key;
@@ -2359,17 +2335,12 @@ static int x509parse_key_pkcs8_unencrypted_der(
     if( rsa->ver != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
 
-    if( ( ret = asn1_get_alg_null( &p, end, &pk_alg_oid ) ) != 0 )
+    if( ( ret = x509_get_pk_alg( &p, end, &pk_alg, &alg_params ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
     /*
-     * only RSA keys handled at this time
+     * We explicitly want RSA keys only
      */
-    if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 )
-    {
-        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
-    }
-
     if (pk_alg != POLARSSL_PK_RSA )
         return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
 

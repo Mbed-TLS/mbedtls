@@ -166,7 +166,7 @@ static int x509_get_serial( unsigned char **p,
  *       algorithm               OBJECT IDENTIFIER,
  *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
  */
-static int x509_get_algid( unsigned char **p,
+static int x509_get_pk_alg( unsigned char **p,
                            const unsigned char *end,
                            pk_type_t *pk_alg, x509_buf *params )
 {
@@ -614,7 +614,7 @@ static int x509_get_pubkey( unsigned char **p,
 
     end = *p + len;
 
-    if( ( ret = x509_get_algid( p, end, &pk_alg, &alg_params ) ) != 0 )
+    if( ( ret = x509_get_pk_alg( p, end, &pk_alg, &alg_params ) ) != 0 )
         return( ret );
 
     if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
@@ -2813,7 +2813,7 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
     if( version != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
 
-    if( ( ret = x509_get_algid( &p, end, &pk_alg, &alg_params ) ) != 0 )
+    if( ( ret = x509_get_pk_alg( &p, end, &pk_alg, &alg_params ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
     if( pk_alg != POLARSSL_PK_ECKEY && pk_alg != POLARSSL_PK_ECKEY_DH )

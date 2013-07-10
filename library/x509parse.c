@@ -637,7 +637,9 @@ static int x509_get_pubkey( unsigned char **p,
     switch( pk_alg )
     {
         case POLARSSL_PK_NONE:
-            ret = POLARSSL_ERR_X509_UNKNOWN_PK_ALG;
+        case POLARSSL_PK_ECDSA:
+            /* Should never happen */
+            ret = POLARSSL_ERR_X509_CERT_INVALID_ALG;
             break;
 
         case POLARSSL_PK_RSA:

@@ -33,6 +33,9 @@
 #if defined(POLARSSL_ECP_C)
 #include "polarssl/ecp.h"
 #endif
+#if defined(POLARSSL_ECDSA_C)
+#include "polarssl/ecdsa.h"
+#endif
 
 #include <stdlib.h>
 
@@ -74,6 +77,12 @@ void pk_free( pk_context *ctx )
             ecp_keypair_free( ctx->data );
             break;
 #endif
+
+#if defined(POLARSSL_ECDSA_C)
+        case POLARSSL_PK_ECDSA:
+            ecdsa_free( ctx->data );
+            break;
+#endif
     }
 
     if( ! ctx->dont_free )
@@ -111,8 +120,14 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
             break;
 #endif
 
+#if defined(POLARSSL_ECDSA_C)
+        case POLARSSL_PK_ECDSA:
+            size = sizeof( ecdsa_context );
+            break;
+#endif
+
         case POLARSSL_PK_NONE:
-            ; /* Cannot happen, but the cmpiler doesn't know */
+            ; /* Cannot happen, but the compiler doesn't know */
     }
 
     if( ( ctx->data = malloc( size ) ) == NULL )

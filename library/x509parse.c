@@ -660,56 +660,18 @@ static int x509_get_pubkey( unsigned char **p,
 }
 
 /*
- *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
- *       algorithm            AlgorithmIdentifier,
- *       subjectPublicKey     BIT STRING }
+ * Get an RSA public key (compatibility wrapper)
  */
 static int x509_get_pubkey_rsa( unsigned char **p,
                                 const unsigned char *end,
                                 rsa_context *rsa )
 {
-    int ret;
-    size_t len;
-    x509_buf pk_alg_oid;
-    pk_type_t pk_alg = POLARSSL_PK_NONE;
+    pk_context pk_ctx;
 
-    if( ( ret = asn1_get_tag( p, end, &len,
-                    ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
-    }
+    pk_init( &pk_ctx );
+    pk_wrap_rsa( &pk_ctx, rsa );
 
-    end = *p + len;
-
-    if( ( ret = asn1_get_alg_null( p, end, &pk_alg_oid ) ) != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
-
-    /*
-     * only RSA public keys handled at this time
-     */
-    if( oid_get_pk_alg( &pk_alg_oid, &pk_alg ) != 0 )
-    {
-        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
-    }
-
-    if (pk_alg != POLARSSL_PK_RSA )
-        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
-
-    if( ( ret = asn1_get_tag( p, end, &len, ASN1_BIT_STRING ) ) != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
-
-    if( ( end - *p ) < 1 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
-                POLARSSL_ERR_ASN1_OUT_OF_DATA );
-
-    if( *p + len != end )
-        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
-
-    if( *(*p)++ != 0 )
-        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY );
-
-    return( x509_get_rsapubkey( p, end, rsa ) );
+    return( x509_get_pubkey( p, end, &pk_ctx ) );
 }
 
 static int x509_get_sig( unsigned char **p,
@@ -2675,51 +2637,12 @@ int x509parse_key_rsa( rsa_context *rsa,
 int x509parse_public_key_rsa( rsa_context *rsa,
                               const unsigned char *key, size_t keylen )
 {
-    int ret;
-    size_t len;
-    unsigned char *p, *end;
-#if defined(POLARSSL_PEM_C)
-    pem_context pem;
+    pk_context pk_ctx;
 
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
-            "-----BEGIN PUBLIC KEY-----",
-            "-----END PUBLIC KEY-----",
-            key, NULL, 0, &len );
+    pk_init( &pk_ctx );
+    pk_wrap_rsa( &pk_ctx, rsa );
 
-    if( ret == 0 )
-    {
-        /*
-         * Was PEM encoded
-         */
-        keylen = pem.buflen;
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
-
-    p = ( ret == 0 ) ? pem.buf : (unsigned char *) key;
-#else
-    p = (unsigned char *) key;
-#endif
-    end = p + keylen;
-
-    if( ( ret = x509_get_pubkey_rsa( &p, end, rsa ) ) != 0 )
-    {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        rsa_free( rsa );
-        return( ret );
-    }
-
-#if defined(POLARSSL_PEM_C)
-    pem_free( &pem );
-#endif
-
-    return( 0 );
+    return( x509parse_public_key( &pk_ctx, key, keylen ) );
 }
 
 #if defined(POLARSSL_ECP_C)

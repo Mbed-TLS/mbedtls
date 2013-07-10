@@ -27,6 +27,12 @@
 #ifndef POLARSSL_PK_H
 #define POLARSSL_PK_H
 
+#include "config.h"
+
+#if defined(POLARSSL_RSA_C)
+#include "rsa.h"
+#endif
+
 #define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
 #define POLARSSL_ERR_PK_TYPE_MISMATCH       -0x2F00  /**< Type mismatch, eg attempt to use a RSA key as EC, or to modify key type */
 
@@ -53,8 +59,9 @@ typedef enum {
  */
 typedef struct
 {
-    pk_type_t   type;   /**< Public key type */
-    void *      data;   /**< Public key data */
+    pk_type_t   type;       /**< Public key type */
+    void *      data;       /**< Public key data */
+    int         dont_free;  /**< True if data must not be freed */
 } pk_context;
 
 /**
@@ -81,6 +88,21 @@ void pk_free( pk_context *ctx );
  *                  POLARSSL_ERR_PK_TYPE_MISMATCH on attempts to reset type.
  */
 int pk_set_type( pk_context *ctx, pk_type_t type );
+
+#if defined(POLARSSL_RSA_C)
+/**
+ * \brief           Wrap a RSA context in a PK context
+ *
+ * \param ctx       PK context to initiliaze
+ * \param rsa       RSA context to use
+ *
+ * \note            The PK context must be freshly initialized.
+ *
+ * \return          O on success,
+ *                  POLARSSL_ERR_PK_TYPE_MISMATCH if ctx was not empty.
+ */
+int pk_wrap_rsa( pk_context *ctx, const rsa_context *rsa);
+#endif
 
 #ifdef __cplusplus
 }

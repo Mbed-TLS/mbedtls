@@ -52,6 +52,9 @@ typedef enum {
     POLARSSL_PK_ECKEY,
     POLARSSL_PK_ECKEY_DH,
 #endif
+#if defined(POLARSSL_ECDSA_C)
+    POLARSSL_PK_ECDSA,
+#endif
 } pk_type_t;
 
 /**

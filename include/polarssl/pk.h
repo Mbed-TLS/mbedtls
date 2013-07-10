@@ -36,6 +36,27 @@
 #define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
 #define POLARSSL_ERR_PK_TYPE_MISMATCH       -0x2F00  /**< Type mismatch, eg attempt to use a RSA key as EC, or to modify key type */
 
+#if defined(POLARSSL_RSA_C)
+/**
+ * Quick access to an RSA context inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an RSA context
+ * before using this macro!
+ */
+#define pk_rsa( pk )        ( (rsa_context *) pk.data )
+#endif
+
+#if defined(POLARSSL_ECP_C)
+/**
+ * Quick access to an EC context inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an EC context
+ * before using this macro!
+ */
+#define pk_ec( pk )         ( (ecp_keypair *) pk.data )
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

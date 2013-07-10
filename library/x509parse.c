@@ -3341,8 +3341,23 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
         ret = snprintf( p, n, desc );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sRSA key size  : %d bits\n", prefix,
-                   (int) crt->rsa.N.n * (int) sizeof( t_uint ) * 8 );
+    switch( crt->pk.type )
+    {
+        case POLARSSL_PK_NONE:
+        case POLARSSL_PK_ECDSA:
+            ret = snprintf(p, n, "\n%sPK type looks wrong!", prefix);
+            break;
+
+        case POLARSSL_PK_RSA:
+            ret = snprintf( p, n, "\n%sRSA key size  : %d bits\n", prefix,
+                   (int) pk_rsa( crt->pk )->N.n * (int) sizeof( t_uint ) * 8 );
+            break;
+
+        case POLARSSL_PK_ECKEY:
+        case POLARSSL_PK_ECKEY_DH:
+            ret = snprintf( p, n, "\n%sEC key size   : %d bits\n", prefix,
+                    (int) pk_ec( crt->pk )->grp.pbits );
+    }
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );

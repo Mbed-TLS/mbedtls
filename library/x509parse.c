@@ -3625,7 +3625,11 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
 
         md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
-        if( !rsa_pkcs1_verify( &ca->rsa, RSA_PUBLIC, crl_list->sig_md,
+        /* EC NOT IMPLEMENTED YET */
+        if( ca->pk.type != POLARSSL_PK_RSA )
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
+        if( !rsa_pkcs1_verify( pk_rsa( ca->pk ), RSA_PUBLIC, crl_list->sig_md,
                               0, hash, crl_list->sig.p ) == 0 )
         {
             /*
@@ -3743,7 +3747,11 @@ static int x509parse_verify_top(
 
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        if( rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, child->sig_md,
+        /* EC NOT IMPLEMENTED YET */
+        if( trust_ca->pk.type != POLARSSL_PK_RSA )
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
+        if( rsa_pkcs1_verify( pk_rsa( trust_ca->pk ), RSA_PUBLIC, child->sig_md,
                     0, hash, child->sig.p ) != 0 )
         {
             trust_ca = trust_ca->next;
@@ -3819,9 +3827,15 @@ static int x509parse_verify_child(
     {
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        if( rsa_pkcs1_verify( &parent->rsa, RSA_PUBLIC, child->sig_md, 0, hash,
-                               child->sig.p ) != 0 )
+        /* EC NOT IMPLEMENTED YET */
+        if( parent->pk.type != POLARSSL_PK_RSA )
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
+        if( rsa_pkcs1_verify( pk_rsa( parent->pk ), RSA_PUBLIC, child->sig_md,
+                              0, hash, child->sig.p ) != 0 )
+        {
             *flags |= BADCERT_NOT_TRUSTED;
+        }
     }
 
     /* Check trusted CA's CRL for the given crt */

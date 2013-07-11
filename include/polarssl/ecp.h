@@ -121,8 +121,10 @@ ecp_keypair;
  * parameters. Therefore, only well-known domain parameters from trusted
  * sources should be used. See ecp_use_known_dp().
  *
- * \note The values are taken from RFC 4492's enum NamedCurve.
+ * \note The values are taken from RFC 4492's enum NamedCurve,
+ * except NONE which is used to denote uninitialized groups.
  */
+#define POLARSSL_ECP_DP_NONE        0
 #define POLARSSL_ECP_DP_SECP192R1   19
 #define POLARSSL_ECP_DP_SECP224R1   21
 #define POLARSSL_ECP_DP_SECP256R1   23

@@ -219,42 +219,47 @@ static int x509_get_alg_null( unsigned char **p, const unsigned char *end,
  *   -- specifiedCurve  SpecifiedECDomain
  * }
  */
-static int x509_ecparams_get_grp_id( const x509_buf *params,
-                                     ecp_group_id *grp_id )
-{
-    if( oid_get_ec_grp( params, grp_id ) != 0 )
-        return( POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE );
-
-    return( 0 );
-}
-
-/* Get an EC group id from an ECParameters buffer
- *
- * ECParameters ::= CHOICE {
- *   namedCurve         OBJECT IDENTIFIER
- *   -- implicitCurve   NULL
- *   -- specifiedCurve  SpecifiedECDomain
- * }
- */
 static int x509_get_ecparams( unsigned char **p, const unsigned char *end,
-                              ecp_group_id *grp_id )
+                              x509_buf *params )
 {
     int ret;
-    x509_buf curve;
 
-    curve.tag = **p;
+    params->tag = **p;
 
-    if( ( ret = asn1_get_tag( p, end, &curve.len, ASN1_OID ) ) != 0 )
+    if( ( ret = asn1_get_tag( p, end, &params->len, ASN1_OID ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
-    curve.p = *p;
-    *p += curve.len;
+    params->p = *p;
+    *p += params->len;
 
     if( *p != end )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    return( x509_ecparams_get_grp_id( &curve, grp_id ) );
+    return( 0 );
+}
+
+/*
+ * Use EC parameters to initialise an EC group
+ */
+static int x509_use_ecparams( const x509_buf *params, ecp_group *grp )
+{
+    int ret;
+    ecp_group_id grp_id;
+
+    if( oid_get_ec_grp( params, &grp_id ) != 0 )
+        return( POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE );
+
+    /*
+     * grp may already be initilialized; if so, make sure IDs match
+     */
+    if( grp->id != POLARSSL_ECP_DP_NONE && grp->id != grp_id )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT );
+
+    if( ( ret = ecp_use_known_dp( grp, grp_id ) ) != 0 )
+        return( ret );
+
+    return( 0 );
 }
 
 /*
@@ -554,12 +559,8 @@ static int x509_get_ecpubkey( unsigned char **p, const unsigned char *end,
                               x509_buf *alg_params, ecp_keypair *key )
 {
     int ret;
-    ecp_group_id grp_id;
 
-    if( ( ret = x509_ecparams_get_grp_id( alg_params, &grp_id ) ) != 0 )
-        return( ret );
-
-    if( ( ret = ecp_use_known_dp( &key->grp, grp_id ) ) != 0 )
+    if( ( ret = x509_use_ecparams( alg_params, &key->grp ) ) != 0 )
         return( ret );
 
     if( ( ret = ecp_point_read_binary( &key->grp, &key->Q,
@@ -2287,7 +2288,6 @@ static int x509parse_key_pkcs1_der( rsa_context *rsa,
 
     return( 0 );
 }
-
 /*
  * Parse an unencrypted PKCS#8 encoded private RSA key
  */
@@ -2629,7 +2629,7 @@ static int x509parse_key_sec1_der( ecp_keypair *eck,
     int ret;
     int version;
     size_t len;
-    ecp_group_id grp_id;
+    x509_buf params;
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     unsigned char *end2;
@@ -2675,31 +2675,14 @@ static int x509parse_key_sec1_der( ecp_keypair *eck,
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) == 0 )
     {
-        if( ( ret = x509_get_ecparams( &p, p + len, &grp_id) ) != 0 )
+        if( ( ret = x509_get_ecparams( &p, p + len, &params) ) != 0 ||
+            ( ret = x509_use_ecparams( &params, &eck->grp )  ) != 0 )
+        {
+            ecp_keypair_free( eck );
             return( ret );
-
-        /*
-         * If we're wrapped in a bigger structure (eg PKCS#8), grp may have been
-         * defined externally. In this case, make sure both definitions match.
-         */
-        if( eck->grp.id != 0 )
-        {
-            if( eck->grp.id != grp_id )
-            {
-                ecp_keypair_free( eck );
-                return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-            }
-        }
-        else
-        {
-            if( ( ret = ecp_use_known_dp( &eck->grp, grp_id ) ) != 0 )
-            {
-                ecp_keypair_free( eck );
-                return( ret );
-            }
         }
     }
-    else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
     {
         ecp_keypair_free( eck );
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
@@ -2750,7 +2733,6 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
     int ret, version;
     size_t len;
     x509_buf alg_params;
-    ecp_group_id grp_id;
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     pk_type_t pk_alg = POLARSSL_PK_NONE;
@@ -2794,13 +2776,7 @@ static int x509parse_key_pkcs8_unencrypted_der_ec(
     if( pk_alg == POLARSSL_PK_ECKEY_DH )
         eck->alg = POLARSSL_ECP_KEY_ALG_ECDH;
 
-    if( ( ret = x509_ecparams_get_grp_id( &alg_params, &grp_id ) ) != 0 )
-    {
-        ecp_keypair_free( eck );
-        return( ret );
-    }
-
-    if( ( ret = ecp_use_known_dp( &eck->grp, grp_id ) ) != 0 )
+    if( ( ret = x509_use_ecparams( &alg_params, &eck->grp ) ) != 0 )
     {
         ecp_keypair_free( eck );
         return( ret );

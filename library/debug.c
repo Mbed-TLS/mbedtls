@@ -250,11 +250,27 @@ void debug_print_crt( const ssl_context *ssl, int level,
         str[maxlen] = '\0';
         ssl->f_dbg( ssl->p_dbg, level, str );
 
-        debug_print_mpi( ssl, level, file, line,
-                         "crt->rsa.N", &crt->rsa.N );
+        switch( crt->pk.type )
+        {
+            case POLARSSL_PK_NONE:
+            case POLARSSL_PK_ECDSA:
+                debug_print_msg( ssl, level, file, line,
+                        "crt->pk.type is not valid" );
+                break;
 
-        debug_print_mpi( ssl, level, file, line,
-                         "crt->rsa.E", &crt->rsa.E );
+            case POLARSSL_PK_RSA:
+                debug_print_mpi( ssl, level, file, line,
+                        "crt->rsa.N", &pk_rsa( crt->pk )->N );
+                debug_print_mpi( ssl, level, file, line,
+                        "crt->rsa.E", &pk_rsa( crt->pk )->E );
+                break;
+
+            case POLARSSL_PK_ECKEY:
+            case POLARSSL_PK_ECKEY_DH:
+                debug_print_ecp( ssl, level, file, line,
+                        "crt->eckey.Q", &pk_ec( crt->pk )->Q );
+                break;
+        }
 
         crt = crt->next;
     }

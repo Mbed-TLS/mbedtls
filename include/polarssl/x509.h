@@ -416,6 +416,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen );
  */
 int x509parse_crlfile( x509_crl *chain, const char *path );
 
+#if defined(POLARSSL_RSA_C)
 /** \ingroup x509_module */
 /**
  * \brief          Parse a private RSA key
@@ -468,6 +469,7 @@ int x509parse_public_key_rsa( rsa_context *rsa,
  * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path );
+#endif /* POLARSSL_RSA_C */
 
 /** \ingroup x509_module */
 /**

@@ -1423,17 +1423,6 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
     }
 
     /*
-     * Temporary hack for compatibility while transitioning to PK abstraction
-     * (Cannot use rsa_wrap above since it would force RSA key type.)
-     */
-    if( crt->pk.type == POLARSSL_PK_RSA ) {
-        memcpy( &crt->rsa, pk_rsa( crt->pk ), sizeof( rsa_context ) );
-        free( crt->pk.data );
-        crt->pk.data = &crt->rsa;
-        crt->pk.dont_free = 1;
-    }
-
-    /*
      *  issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,
      *                       -- If present, version shall be v2 or v3
      *  subjectUniqueID [2]  IMPLICIT UniqueIdentifier OPTIONAL,
@@ -4011,7 +4000,6 @@ void x509_free( x509_cert *crt )
     do
     {
         pk_free( &cert_cur->pk );
-        rsa_free( &cert_cur->rsa );
 
         name_cur = cert_cur->issuer.next;
         while( name_cur != NULL )

@@ -2237,38 +2237,31 @@ static int x509parse_key_pkcs1_der( rsa_context *rsa,
 
     return( 0 );
 }
+
 /*
- * Parse an unencrypted PKCS#8 encoded private RSA key
+ * Parse a SEC1 encoded private EC key
  */
-static int x509parse_key_pkcs8_unencrypted_der(
-                                    rsa_context *rsa,
-                                    const unsigned char *key,
-                                    size_t keylen )
+static int x509parse_key_sec1_der( ecp_keypair *eck,
+                                   const unsigned char *key,
+                                   size_t keylen )
 {
     int ret;
+    int version;
     size_t len;
-    unsigned char *p, *end;
-    x509_buf alg_params;
-    pk_type_t pk_alg = POLARSSL_PK_NONE;
-
-    p = (unsigned char *) key;
-    end = p + keylen;
+    x509_buf params;
+    unsigned char *p = (unsigned char *) key;
+    unsigned char *end = p + keylen;
+    unsigned char *end2;
 
     /*
-     * This function parses the PrivatKeyInfo object (PKCS#8)
+     * RFC 5915, orf SEC1 Appendix C.4
      *
-     *  PrivateKeyInfo ::= SEQUENCE {
-     *    version           Version,
-     *    algorithm       AlgorithmIdentifier,
-     *    PrivateKey      BIT STRING
-     *  }
-     *
-     *  AlgorithmIdentifier ::= SEQUENCE {
-     *    algorithm       OBJECT IDENTIFIER,
-     *    parameters      ANY DEFINED BY algorithm OPTIONAL
-     *  }
-     *
-     *  The PrivateKey BIT STRING is a PKCS#1 RSAPrivateKey
+     * ECPrivateKey ::= SEQUENCE {
+     *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+     *      privateKey     OCTET STRING,
+     *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+     *      publicKey  [1] BIT STRING OPTIONAL
+     *    }
      */
     if( ( ret = asn1_get_tag( &p, end, &len,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
@@ -2278,39 +2271,172 @@ static int x509parse_key_pkcs8_unencrypted_der(
 
     end = p + len;
 
-    if( ( ret = asn1_get_int( &p, end, &rsa->ver ) ) != 0 )
+    if( ( ret = asn1_get_int( &p, end, &version ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
-    if( rsa->ver != 0 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
+    if( version != 1 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION );
 
-    if( ( ret = x509_get_pk_alg( &p, end, &pk_alg, &alg_params ) ) != 0 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-
-    /*
-     * We explicitly want RSA keys only
-     */
-    if (pk_alg != POLARSSL_PK_RSA )
-        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
-
-    /*
-     * Get the OCTET STRING and parse the PKCS#1 format inside
-     */
     if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
 
-    if( ( end - p ) < 1 )
+    if( ( ret = mpi_read_binary( &eck->d, p, len ) ) != 0 )
     {
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
-                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+        ecp_keypair_free( eck );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    p += len;
+
+    /*
+     * Is 'parameters' present?
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) == 0 )
+    {
+        if( ( ret = x509_get_ecparams( &p, p + len, &params) ) != 0 ||
+            ( ret = x509_use_ecparams( &params, &eck->grp )  ) != 0 )
+        {
+            ecp_keypair_free( eck );
+            return( ret );
+        }
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    {
+        ecp_keypair_free( eck );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    /*
+     * Is 'publickey' present?
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
+    {
+        end2 = p + len;
+
+        if( ( ret = asn1_get_bitstring_null( &p, end2, &len ) ) != 0 )
+            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+
+        if( p + len != end2 )
+            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+        if( ( ret = x509_get_ecpubkey( &p, end2, eck ) ) != 0 )
+            return( ret );
+    }
+    else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    {
+        ecp_keypair_free( eck );
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+    }
+
+    if( ( ret = ecp_check_privkey( &eck->grp, &eck->d ) ) != 0 )
+    {
+        ecp_keypair_free( eck );
+        return( ret );
+    }
+
+    return 0;
+}
+
+/*
+ * Parse an unencrypted PKCS#8 encoded private key
+ */
+static int x509parse_key_pkcs8_unencrypted_der(
+                                    pk_context *pk,
+                                    const unsigned char* key,
+                                    size_t keylen )
+{
+    int ret, version;
+    size_t len;
+    x509_buf params;
+    unsigned char *p = (unsigned char *) key;
+    unsigned char *end = p + keylen;
+    pk_type_t pk_alg = POLARSSL_PK_NONE;
+
+    /*
+     * This function parses the PrivatKeyInfo object (PKCS#8 v1.2 = RFC 5208)
+     *
+     *    PrivateKeyInfo ::= SEQUENCE {
+     *      version                   Version,
+     *      privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+     *      privateKey                PrivateKey,
+     *      attributes           [0]  IMPLICIT Attributes OPTIONAL }
+     *
+     *    Version ::= INTEGER
+     *    PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
+     *    PrivateKey ::= OCTET STRING
+     *
+     *  The PrivateKey OCTET STRING is a SEC1 ECPrivateKey
+     */
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
     }
 
     end = p + len;
 
-    if( ( ret = x509parse_key_pkcs1_der( rsa, p, end - p ) ) != 0 )
+    if( ( ret = asn1_get_int( &p, end, &version ) ) != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+
+    if( version != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
+
+    if( ( ret = x509_get_pk_alg( &p, end, &pk_alg, &params ) ) != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+
+    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
+
+    if( len < 1 )
+        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
+    if( ( ret = pk_set_type( pk, pk_alg ) ) != 0 )
         return( ret );
 
-    return( 0 );
+    if( pk_alg == POLARSSL_PK_ECKEY || pk_alg == POLARSSL_PK_ECKEY_DH )
+    {
+        if( pk_alg == POLARSSL_PK_ECKEY_DH )
+            pk_ec( *pk )->alg = POLARSSL_ECP_KEY_ALG_ECDH;
+
+        if( ( ret = x509_use_ecparams( &params, &pk_ec( *pk )->grp ) ) != 0 ||
+            ( ret = x509parse_key_sec1_der( pk_ec( *pk ), p, len )  ) != 0 )
+        {
+            pk_free( pk );
+            return( ret );
+        }
+    } else
+    if( pk_alg == POLARSSL_PK_RSA )
+    {
+        if( ( ret = x509parse_key_pkcs1_der( pk_rsa( *pk ), p, len ) ) != 0 )
+        {
+            pk_free( pk );
+            return( ret );
+        }
+    } else
+        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+    return 0;
+}
+
+/*
+ * Parse an unencrypted PKCS#8 encoded private RSA key
+ */
+static int x509parse_key_pkcs8_unencrypted_der_rsa(
+                                    rsa_context *rsa,
+                                    const unsigned char *key,
+                                    size_t keylen )
+{
+    pk_context pk;
+
+    pk_init( &pk );
+    pk_wrap_rsa( &pk, rsa );
+
+    return( x509parse_key_pkcs8_unencrypted_der( &pk, key, keylen ) );
 }
 
 /*
@@ -2426,7 +2552,7 @@ static int x509parse_pkcs8_decrypt( unsigned char *buf, size_t buflen,
 /*
  * Parse an encrypted PKCS#8 encoded private RSA key
  */
-static int x509parse_key_pkcs8_encrypted_der(
+static int x509parse_key_pkcs8_encrypted_der_rsa(
                                     rsa_context *rsa,
                                     const unsigned char *key, size_t keylen,
                                     const unsigned char *pwd, size_t pwdlen )
@@ -2441,7 +2567,7 @@ static int x509parse_key_pkcs8_encrypted_der(
         return( ret );
     }
 
-    return( x509parse_key_pkcs8_unencrypted_der( rsa, buf, len ) );
+    return( x509parse_key_pkcs8_unencrypted_der_rsa( rsa, buf, len ) );
 }
 
 /*
@@ -2485,7 +2611,7 @@ int x509parse_key_rsa( rsa_context *rsa,
                            key, NULL, 0, &len );
     if( ret == 0 )
     {
-        if( ( ret = x509parse_key_pkcs8_unencrypted_der( rsa,
+        if( ( ret = x509parse_key_pkcs8_unencrypted_der_rsa( rsa,
                                                 pem.buf, pem.buflen ) ) != 0 )
         {
             rsa_free( rsa );
@@ -2503,7 +2629,7 @@ int x509parse_key_rsa( rsa_context *rsa,
                            key, NULL, 0, &len );
     if( ret == 0 )
     {
-        if( ( ret = x509parse_key_pkcs8_encrypted_der( rsa,
+        if( ( ret = x509parse_key_pkcs8_encrypted_der_rsa( rsa,
                                                 pem.buf, pem.buflen,
                                                 pwd, pwdlen ) ) != 0 )
         {
@@ -2527,7 +2653,7 @@ int x509parse_key_rsa( rsa_context *rsa,
     * We try the different DER format parsers to see if one passes without
     * error
     */
-    if( ( ret = x509parse_key_pkcs8_encrypted_der( rsa, key, keylen,
+    if( ( ret = x509parse_key_pkcs8_encrypted_der_rsa( rsa, key, keylen,
                                                    pwd, pwdlen ) ) == 0 )
     {
         return( 0 );
@@ -2540,7 +2666,7 @@ int x509parse_key_rsa( rsa_context *rsa,
         return( ret );
     }
 
-    if( ( ret = x509parse_key_pkcs8_unencrypted_der( rsa, key, keylen ) ) == 0 )
+    if( ( ret = x509parse_key_pkcs8_unencrypted_der_rsa( rsa, key, keylen ) ) == 0 )
         return( 0 );
 
     rsa_free( rsa );
@@ -2569,186 +2695,20 @@ int x509parse_public_key_rsa( rsa_context *rsa,
 
 #if defined(POLARSSL_ECP_C)
 /*
- * Parse a SEC1 encoded private EC key
- */
-static int x509parse_key_sec1_der( ecp_keypair *eck,
-                                   const unsigned char *key,
-                                   size_t keylen )
-{
-    int ret;
-    int version;
-    size_t len;
-    x509_buf params;
-    unsigned char *p = (unsigned char *) key;
-    unsigned char *end = p + keylen;
-    unsigned char *end2;
-
-    /*
-     * RFC 5915, orf SEC1 Appendix C.4
-     *
-     * ECPrivateKey ::= SEQUENCE {
-     *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
-     *      privateKey     OCTET STRING,
-     *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
-     *      publicKey  [1] BIT STRING OPTIONAL
-     *    }
-     */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-    }
-
-    end = p + len;
-
-    if( ( ret = asn1_get_int( &p, end, &version ) ) != 0 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-
-    if( version != 1 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION );
-
-    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-
-    if( ( ret = mpi_read_binary( &eck->d, p, len ) ) != 0 )
-    {
-        ecp_keypair_free( eck );
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-    }
-
-    p += len;
-
-    /*
-     * Is 'parameters' present?
-     */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) == 0 )
-    {
-        if( ( ret = x509_get_ecparams( &p, p + len, &params) ) != 0 ||
-            ( ret = x509_use_ecparams( &params, &eck->grp )  ) != 0 )
-        {
-            ecp_keypair_free( eck );
-            return( ret );
-        }
-    }
-    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-    {
-        ecp_keypair_free( eck );
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-    }
-
-    /*
-     * Is 'publickey' present?
-     */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
-    {
-        end2 = p + len;
-
-        if( ( ret = asn1_get_bitstring_null( &p, end2, &len ) ) != 0 )
-            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-
-        if( p + len != end2 )
-            return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
-                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
-
-        if( ( ret = x509_get_ecpubkey( &p, end2, eck ) ) != 0 )
-            return( ret );
-    }
-    else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
-    {
-        ecp_keypair_free( eck );
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-    }
-
-    if( ( ret = ecp_check_privkey( &eck->grp, &eck->d ) ) != 0 )
-    {
-        ecp_keypair_free( eck );
-        return( ret );
-    }
-
-    return 0;
-}
-
-/*
  * Parse an unencrypted PKCS#8 encoded private EC key
  */
 static int x509parse_key_pkcs8_unencrypted_der_ec(
-                                    ecp_keypair *eck,
+                                    ecp_keypair *ec,
                                     const unsigned char* key,
                                     size_t keylen )
 {
-    int ret, version;
-    size_t len;
-    x509_buf alg_params;
-    unsigned char *p = (unsigned char *) key;
-    unsigned char *end = p + keylen;
-    pk_type_t pk_alg = POLARSSL_PK_NONE;
+    pk_context pk;
 
-    /*
-     * This function parses the PrivatKeyInfo object (PKCS#8 v1.2 = RFC 5208)
-     *
-     *    PrivateKeyInfo ::= SEQUENCE {
-     *      version                   Version,
-     *      privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
-     *      privateKey                PrivateKey,
-     *      attributes           [0]  IMPLICIT Attributes OPTIONAL }
-     *
-     *    Version ::= INTEGER
-     *    PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
-     *    PrivateKey ::= OCTET STRING
-     *
-     *  The PrivateKey OCTET STRING is a SEC1 ECPrivateKey
-     */
+    pk.type = POLARSSL_PK_ECKEY;
+    pk.data = ec;
+    pk.dont_free = 1;
 
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-    }
-
-    end = p + len;
-
-    if( ( ret = asn1_get_int( &p, end, &version ) ) != 0 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-
-    if( version != 0 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_VERSION + ret );
-
-    if( ( ret = x509_get_pk_alg( &p, end, &pk_alg, &alg_params ) ) != 0 )
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-
-    if( pk_alg != POLARSSL_PK_ECKEY && pk_alg != POLARSSL_PK_ECKEY_DH )
-        return( POLARSSL_ERR_X509_CERT_INVALID_ALG );
-
-    if( pk_alg == POLARSSL_PK_ECKEY_DH )
-        eck->alg = POLARSSL_ECP_KEY_ALG_ECDH;
-
-    if( ( ret = x509_use_ecparams( &alg_params, &eck->grp ) ) != 0 )
-    {
-        ecp_keypair_free( eck );
-        return( ret );
-    }
-
-    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
-    {
-        ecp_keypair_free( eck );
-        return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT + ret );
-    }
-
-    if( ( ret = x509parse_key_sec1_der( eck, p, len ) ) != 0 )
-    {
-        ecp_keypair_free( eck );
-        return( ret );
-    }
-
-    if( ( ret = ecp_check_privkey( &eck->grp, &eck->d ) ) != 0 )
-    {
-        ecp_keypair_free( eck );
-        return( ret );
-    }
-
-    return 0;
+    return( x509parse_key_pkcs8_unencrypted_der( &pk, key, keylen ) );
 }
 
 /*

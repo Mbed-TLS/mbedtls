@@ -101,7 +101,6 @@ void ecp_keypair_init( ecp_keypair *key )
     ecp_group_init( &key->grp );
     mpi_init( &key->d );
     ecp_point_init( &key->Q );
-    key->alg = POLARSSL_ECP_KEY_ALG_UNRESTRICTED;
 }
 
 /*
@@ -142,7 +141,6 @@ void ecp_keypair_free( ecp_keypair *key )
     ecp_group_free( &key->grp );
     mpi_free( &key->d );
     ecp_point_free( &key->Q );
-    key->alg = POLARSSL_ECP_KEY_ALG_UNRESTRICTED;
 }
 
 /*

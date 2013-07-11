@@ -590,9 +590,6 @@ static int x509_get_pubkey( unsigned char **p,
             break;
 
         case POLARSSL_PK_ECKEY_DH:
-            ((ecp_keypair *) pk->data)->alg = POLARSSL_ECP_KEY_ALG_ECDH;
-            /* FALLTHROUGH */
-
         case POLARSSL_PK_ECKEY:
             ret = x509_use_ecparams( &alg_params, &pk_ec( *pk )->grp ) ||
                   x509_get_ecpubkey( p, end, pk->data );
@@ -2385,9 +2382,6 @@ static int x509parse_key_pkcs8_unencrypted_der(
 
     if( pk_alg == POLARSSL_PK_ECKEY || pk_alg == POLARSSL_PK_ECKEY_DH )
     {
-        if( pk_alg == POLARSSL_PK_ECKEY_DH )
-            pk_ec( *pk )->alg = POLARSSL_ECP_KEY_ALG_ECDH;
-
         if( ( ret = x509_use_ecparams( &params, &pk_ec( *pk )->grp ) ) != 0 ||
             ( ret = x509parse_key_sec1_der( pk_ec( *pk ), p, len )  ) != 0 )
         {

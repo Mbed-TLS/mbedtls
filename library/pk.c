@@ -60,29 +60,23 @@ void pk_free( pk_context *ctx )
     if( ctx == NULL )
         return;
 
-    switch( ctx->type )
-    {
-        case POLARSSL_PK_NONE:
-            break;
-
 #if defined(POLARSSL_RSA_C)
-        case POLARSSL_PK_RSA:
-            rsa_free( ctx->data );
-            break;
+    if( ctx->type == POLARSSL_PK_RSA )
+        rsa_free( ctx->data );
+    else
 #endif
-
 #if defined(POLARSSL_ECP_C)
-        case POLARSSL_PK_ECKEY:
-        case POLARSSL_PK_ECKEY_DH:
-            ecp_keypair_free( ctx->data );
-            break;
+    if( ctx->type == POLARSSL_PK_ECKEY || ctx->type == POLARSSL_PK_ECKEY_DH )
+        ecp_keypair_free( ctx->data );
+    else
 #endif
-
 #if defined(POLARSSL_ECDSA_C)
-        case POLARSSL_PK_ECDSA:
-            ecdsa_free( ctx->data );
-            break;
+    if( ctx->type == POLARSSL_PK_ECDSA )
+        ecdsa_free( ctx->data );
+    else
 #endif
+    {
+        ; /* guard for the else's above */
     }
 
     if( ! ctx->dont_free )
@@ -97,7 +91,7 @@ void pk_free( pk_context *ctx )
  */
 int pk_set_type( pk_context *ctx, pk_type_t type )
 {
-    size_t size = 0;
+    size_t size;
 
     if( ctx->type == type )
         return( 0 );
@@ -105,30 +99,22 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
     if( ctx->type != POLARSSL_PK_NONE )
         return( POLARSSL_ERR_PK_TYPE_MISMATCH );
 
-    switch( type )
-    {
 #if defined(POLARSSL_RSA_C)
-        case POLARSSL_PK_RSA:
-            size = sizeof( rsa_context );
-            break;
+    if( type == POLARSSL_PK_RSA )
+        size = sizeof( rsa_context );
+    else
 #endif
-
 #if defined(POLARSSL_ECP_C)
-        case POLARSSL_PK_ECKEY:
-        case POLARSSL_PK_ECKEY_DH:
-            size = sizeof( ecp_keypair );
-            break;
+    if( type == POLARSSL_PK_ECKEY || type == POLARSSL_PK_ECKEY_DH )
+        size = sizeof( ecp_keypair );
+    else
 #endif
-
 #if defined(POLARSSL_ECDSA_C)
-        case POLARSSL_PK_ECDSA:
-            size = sizeof( ecdsa_context );
-            break;
+    if( type == POLARSSL_PK_ECDSA )
+        size = sizeof( ecdsa_context );
+    else
 #endif
-
-        case POLARSSL_PK_NONE:
-            ; /* Cannot happen, but the compiler doesn't know */
-    }
+        size = 0; /* should never be executed */
 
     if( ( ctx->data = malloc( size ) ) == NULL )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );

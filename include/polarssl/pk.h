@@ -44,7 +44,7 @@
  * before using this macro!
  */
 #define pk_rsa( pk )        ( (rsa_context *) (pk).data )
-#endif
+#endif /* POLARSSL_RSA_C */
 
 #if defined(POLARSSL_ECP_C)
 /**
@@ -54,7 +54,7 @@
  * before using this macro!
  */
 #define pk_ec( pk )         ( (ecp_keypair *) (pk).data )
-#endif
+#endif /* POLARSSL_ECP_C */
 
 
 #ifdef __cplusplus
@@ -120,7 +120,7 @@ int pk_set_type( pk_context *ctx, pk_type_t type );
  *                  POLARSSL_ERR_PK_TYPE_MISMATCH if ctx was not empty.
  */
 int pk_wrap_rsa( pk_context *ctx, const rsa_context *rsa);
-#endif
+#endif /* POLARSSL_RSA_C */
 
 #ifdef __cplusplus
 }

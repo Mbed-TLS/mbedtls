@@ -43,7 +43,7 @@
  * \warning You must make sure the PK context actually holds an RSA context
  * before using this macro!
  */
-#define pk_rsa( pk )        ( (rsa_context *) pk.data )
+#define pk_rsa( pk )        ( (rsa_context *) (pk).data )
 #endif
 
 #if defined(POLARSSL_ECP_C)
@@ -53,7 +53,7 @@
  * \warning You must make sure the PK context actually holds an EC context
  * before using this macro!
  */
-#define pk_ec( pk )         ( (ecp_keypair *) pk.data )
+#define pk_ec( pk )         ( (ecp_keypair *) (pk).data )
 #endif
 
 

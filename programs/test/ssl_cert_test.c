@@ -206,19 +206,28 @@ int main( int argc, char *argv[] )
         printf( " ok\n" );
 
         /*
-         * 1.5. Verify certificate validity with private key
+         * 1.6. Verify certificate validity with private key
          */
         printf( "  . Verify the client certificate with private key..." );
         fflush( stdout );
 
-        ret = mpi_cmp_mpi(&rsa.N, &clicert.rsa.N);
+
+        /* EC NOT IMPLEMENTED YET */
+        if( clicert.pk.type != POLARSSL_PK_RSA )
+        {
+            printf( " failed\n  !  certificate's key is not RSA\n\n" );
+            ret = POLARSSL_ERR_X509_FEATURE_UNAVAILABLE;
+            goto exit;
+        }
+
+        ret = mpi_cmp_mpi(&rsa.N, &pk_rsa( clicert.pk )->N);
         if( ret != 0 )
         {
             printf( " failed\n  !  mpi_cmp_mpi for N returned %d\n\n", ret );
             goto exit;
         }
 
-        ret = mpi_cmp_mpi(&rsa.E, &clicert.rsa.E);
+        ret = mpi_cmp_mpi(&rsa.E, &pk_rsa( clicert.pk )->E);
         if( ret != 0 )
         {
             printf( " failed\n  !  mpi_cmp_mpi for E returned %d\n\n", ret );

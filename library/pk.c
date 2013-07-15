@@ -114,7 +114,7 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
         size = sizeof( ecdsa_context );
     else
 #endif
-        size = 0; /* should never be executed */
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
 
     if( ( ctx->data = malloc( size ) ) == NULL )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );

@@ -332,8 +332,13 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
             pem_aes_decrypt( pem_iv, 32, buf, len, pwd, pwdlen );
 #endif /* POLARSSL_AES_C */
 
-        if( buf[0] != 0x30 || buf[1] != 0x82 ||
-            buf[4] != 0x02 || buf[5] != 0x01 )
+        /*
+         * The result will be ASN.1 starting with a SEQUENCE tag, with 1 to 3
+         * length bytes (allow 4 to be sure) in all known use cases.
+         *
+         * Use that as heurisitic to try detecting password mismatchs.
+         */
+        if( len <= 2 || buf[0] != 0x30 || buf[1] > 0x83 )
         {
             polarssl_free( buf );
             return( POLARSSL_ERR_PEM_PASSWORD_MISMATCH );

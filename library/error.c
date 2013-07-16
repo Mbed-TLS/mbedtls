@@ -113,6 +113,10 @@
 #include "polarssl/pem.h"
 #endif
 
+#if defined(POLARSSL_PK_C)
+#include "polarssl/pk.h"
+#endif
+
 #if defined(POLARSSL_PKCS12_C)
 #include "polarssl/pkcs12.h"
 #endif
@@ -242,6 +246,11 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_PEM_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "PEM - Bad input parameters to function" );
 #endif /* POLARSSL_PEM_C */
+
+#if defined(POLARSSL_PK_C)
+        if( use_ret == -(POLARSSL_ERR_PK_MALLOC_FAILED) )
+            snprintf( buf, buflen, "PK - Memory alloation failed" );
+#endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_PKCS12_C)
         if( use_ret == -(POLARSSL_ERR_PKCS12_BAD_INPUT_DATA) )
@@ -388,7 +397,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG) )
             snprintf( buf, buflen, "X509 - Signature algorithm (oid) is unsupported" );
         if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_PK_ALG) )
-            snprintf( buf, buflen, "X509 - Key algorithm is unsupported (only RSA is supported)" );
+            snprintf( buf, buflen, "X509 - Key algorithm is unsupported (only RSA and EC are supported)" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_SIG_MISMATCH) )
             snprintf( buf, buflen, "X509 - Certificate signature algorithms do not match. (see \\c ::x509_cert sig_oid)" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_VERIFY_FAILED) )
@@ -409,6 +418,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "X509 - Private key password can't be empty" );
         if( use_ret == -(POLARSSL_ERR_X509_PASSWORD_MISMATCH) )
             snprintf( buf, buflen, "X509 - Given private key password does not allow for correct decryption" );
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE) )
+            snprintf( buf, buflen, "X509 - Elliptic curve is unsupported (only NIST curves are supported)" );
 #endif /* POLARSSL_X509_PARSE_C */
 
         if( strlen( buf ) == 0 )

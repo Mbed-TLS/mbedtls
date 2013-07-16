@@ -91,6 +91,20 @@ void ecp_group_init( ecp_group *grp )
 }
 
 /*
+ * Initialize (the components of) a key pair
+ */
+void ecp_keypair_init( ecp_keypair *key )
+{
+    if ( key == NULL )
+        return;
+
+    ecp_group_init( &key->grp );
+    mpi_init( &key->d );
+    ecp_point_init( &key->Q );
+    key->alg = POLARSSL_ECP_KEY_ALG_UNRESTRICTED;
+}
+
+/*
  * Unallocate (the components of) a point
  */
 void ecp_point_free( ecp_point *pt )
@@ -115,6 +129,20 @@ void ecp_group_free( ecp_group *grp )
     mpi_free( &grp->B );
     ecp_point_free( &grp->G );
     mpi_free( &grp->N );
+}
+
+/*
+ * Unallocate (the components of) a key pair
+ */
+void ecp_keypair_free( ecp_keypair *key )
+{
+    if ( key == NULL )
+        return;
+
+    ecp_group_free( &key->grp );
+    mpi_free( &key->d );
+    ecp_point_free( &key->Q );
+    key->alg = POLARSSL_ECP_KEY_ALG_UNRESTRICTED;
 }
 
 /*
@@ -700,51 +728,6 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
         MPI_CHK( mpi_sub_mpi( &N, &N, &grp->P ) )
 
 /*
- * Check that a point is valid as a public key (SEC1 3.2.3.1)
- */
-int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
-{
-    int ret;
-    mpi YY, RHS;
-
-    if( mpi_cmp_int( &pt->Z, 0 ) == 0 )
-        return( POLARSSL_ERR_ECP_GENERIC );
-
-    /*
-     * pt coordinates must be normalized for our checks
-     */
-    if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
-        return( POLARSSL_ERR_ECP_GENERIC );
-
-    if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
-        mpi_cmp_int( &pt->Y, 0 ) < 0 ||
-        mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
-        mpi_cmp_mpi( &pt->Y, &grp->P ) >= 0 )
-        return( POLARSSL_ERR_ECP_GENERIC );
-
-    mpi_init( &YY ); mpi_init( &RHS );
-
-    /*
-     * YY = Y^2
-     * RHS = X (X^2 - 3) + B = X^3 - 3X + B
-     */
-    MPI_CHK( mpi_mul_mpi( &YY,  &pt->Y,  &pt->Y   ) );  MOD_MUL( YY  );
-    MPI_CHK( mpi_mul_mpi( &RHS, &pt->X,  &pt->X   ) );  MOD_MUL( RHS );
-    MPI_CHK( mpi_sub_int( &RHS, &RHS,    3        ) );  MOD_SUB( RHS );
-    MPI_CHK( mpi_mul_mpi( &RHS, &RHS,    &pt->X   ) );  MOD_MUL( RHS );
-    MPI_CHK( mpi_add_mpi( &RHS, &RHS,    &grp->B  ) );  MOD_ADD( RHS );
-
-    if( mpi_cmp_mpi( &YY, &RHS ) != 0 )
-        ret = POLARSSL_ERR_ECP_GENERIC;
-
-cleanup:
-
-    mpi_free( &YY ); mpi_free( &RHS );
-
-    return( ret );
-}
-
-/*
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)
  */
 static int ecp_normalize( const ecp_group *grp, ecp_point *pt )
@@ -1275,6 +1258,63 @@ cleanup:
         ecp_point_free( &T[i] );
 
     return( ret );
+}
+
+/*
+ * Check that a point is valid as a public key (SEC1 3.2.3.1)
+ */
+int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
+{
+    int ret;
+    mpi YY, RHS;
+
+    if( mpi_cmp_int( &pt->Z, 0 ) == 0 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    /*
+     * pt coordinates must be normalized for our checks
+     */
+    if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
+        mpi_cmp_int( &pt->Y, 0 ) < 0 ||
+        mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
+        mpi_cmp_mpi( &pt->Y, &grp->P ) >= 0 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    mpi_init( &YY ); mpi_init( &RHS );
+
+    /*
+     * YY = Y^2
+     * RHS = X (X^2 - 3) + B = X^3 - 3X + B
+     */
+    MPI_CHK( mpi_mul_mpi( &YY,  &pt->Y,  &pt->Y   ) );  MOD_MUL( YY  );
+    MPI_CHK( mpi_mul_mpi( &RHS, &pt->X,  &pt->X   ) );  MOD_MUL( RHS );
+    MPI_CHK( mpi_sub_int( &RHS, &RHS,    3        ) );  MOD_SUB( RHS );
+    MPI_CHK( mpi_mul_mpi( &RHS, &RHS,    &pt->X   ) );  MOD_MUL( RHS );
+    MPI_CHK( mpi_add_mpi( &RHS, &RHS,    &grp->B  ) );  MOD_ADD( RHS );
+
+    if( mpi_cmp_mpi( &YY, &RHS ) != 0 )
+        ret = POLARSSL_ERR_ECP_GENERIC;
+
+cleanup:
+
+    mpi_free( &YY ); mpi_free( &RHS );
+
+    return( ret );
+}
+
+/*
+ * Check that an mpi is valid as a private key (SEC1 3.2)
+ */
+int ecp_check_privkey( const ecp_group *grp, const mpi *d )
+{
+    /* We want 1 <= d <= N-1 */
+    if ( mpi_cmp_int( d, 1 ) < 0 || mpi_cmp_mpi( d, &grp->N ) >= 0 )
+        return( POLARSSL_ERR_ECP_GENERIC );
+
+    return( 0 );
 }
 
 /*

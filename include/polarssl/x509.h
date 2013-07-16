@@ -32,6 +32,7 @@
 #if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
 #include "asn1.h"
 #include "rsa.h"
+#include "ecp.h"
 #include "dhm.h"
 #include "md.h"
 #include "pk.h"
@@ -58,7 +59,7 @@
 #define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x2580  /**< The extension tag or value is invalid. */
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x2600  /**< Certificate or CRL has an unsupported version number. */
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x2680  /**< Signature algorithm (oid) is unsupported. */
-#define POLARSSL_ERR_X509_UNKNOWN_PK_ALG                   -0x2700  /**< Key algorithm is unsupported (only RSA is supported). */
+#define POLARSSL_ERR_X509_UNKNOWN_PK_ALG                   -0x2700  /**< Key algorithm is unsupported (only RSA and EC are supported). */
 #define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x2780  /**< Certificate signature algorithms do not match. (see \c ::x509_cert sig_oid) */
 #define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x2800  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
 #define POLARSSL_ERR_X509_KEY_INVALID_VERSION              -0x2880  /**< Unsupported RSA key version */
@@ -69,6 +70,7 @@
 #define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2B00  /**< Read/write of file failed. */
 #define POLARSSL_ERR_X509_PASSWORD_REQUIRED                -0x2B80  /**< Private key password can't be empty. */
 #define POLARSSL_ERR_X509_PASSWORD_MISMATCH                -0x2C00  /**< Given private key password does not allow for correct decryption. */
+#define POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE              -0x2C80  /**< Elliptic curve is unsupported (only NIST curves are supported). */
 /* \} name */
 
 /**
@@ -427,9 +429,9 @@ int x509parse_crlfile( x509_crl *chain, const char *path );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_key( rsa_context *rsa,
-                   const unsigned char *key, size_t keylen,
-                   const unsigned char *pwd, size_t pwdlen );
+int x509parse_key_rsa( rsa_context *rsa,
+                       const unsigned char *key, size_t keylen,
+                       const unsigned char *pwd, size_t pwdlen );
 
 /** \ingroup x509_module */
 /**
@@ -441,8 +443,8 @@ int x509parse_key( rsa_context *rsa,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_keyfile( rsa_context *rsa, const char *path,
-                       const char *password );
+int x509parse_keyfile_rsa( rsa_context *rsa, const char *path,
+                           const char *password );
 
 /** \ingroup x509_module */
 /**
@@ -454,8 +456,8 @@ int x509parse_keyfile( rsa_context *rsa, const char *path,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_public_key( rsa_context *rsa,
-                   const unsigned char *key, size_t keylen );
+int x509parse_public_key_rsa( rsa_context *rsa,
+                       const unsigned char *key, size_t keylen );
 
 /** \ingroup x509_module */
 /**
@@ -466,7 +468,60 @@ int x509parse_public_key( rsa_context *rsa,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_public_keyfile( rsa_context *rsa, const char *path );
+int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path );
+
+/** \ingroup x509_module */
+/**
+ * \brief          Parse a private key
+ *
+ * \param ctx      key to be initialized
+ * \param key      input buffer
+ * \param keylen   size of the buffer
+ * \param pwd      password for decryption (optional)
+ * \param pwdlen   size of the password
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_key( pk_context *ctx,
+                   const unsigned char *key, size_t keylen,
+                   const unsigned char *pwd, size_t pwdlen );
+
+/** \ingroup x509_module */
+/**
+ * \brief          Load and parse a private key
+ *
+ * \param ctx      key to be initialized
+ * \param path     filename to read the private key from
+ * \param password password to decrypt the file (can be NULL)
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_keyfile( pk_context *ctx,
+                       const char *path, const char *password );
+
+/** \ingroup x509_module */
+/**
+ * \brief          Parse a public key
+ *
+ * \param ctx      key to be initialized
+ * \param key      input buffer
+ * \param keylen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_public_key( pk_context *ctx,
+                          const unsigned char *key, size_t keylen );
+
+/** \ingroup x509_module */
+/**
+ * \brief          Load and parse a public key
+ *
+ * \param ctx      key to be initialized
+ * \param path     filename to read the private key from
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_public_keyfile( pk_context *ctx, const char *path );
 
 /** \ingroup x509_module */
 /**

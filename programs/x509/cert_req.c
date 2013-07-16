@@ -267,14 +267,14 @@ int main( int argc, char *argv[] )
     printf( "\n  . Loading the private key ..." );
     fflush( stdout );
 
-    ret = x509parse_keyfile( &rsa, opt.filename, NULL );
+    ret = x509parse_keyfile_rsa( &rsa, opt.filename, NULL );
 
     if( ret != 0 )
     {
 #ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
 #endif
-        printf( " failed\n  !  x509parse_key returned %d - %s\n\n", ret, buf );
+        printf( " failed\n  !  x509parse_key_rsa returned %d - %s\n\n", ret, buf );
         rsa_free( &rsa );
         goto exit;
     }

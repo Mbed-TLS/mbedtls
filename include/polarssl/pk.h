@@ -27,6 +27,8 @@
 #ifndef POLARSSL_PK_H
 #define POLARSSL_PK_H
 
+#define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,9 +38,43 @@ extern "C" {
  */
 typedef enum {
     POLARSSL_PK_NONE=0,
+#if defined(POLARSSL_RSA_C)
     POLARSSL_PK_RSA,
-    POLARSSL_PK_ECDSA,
+#endif
+#if defined(POLARSSL_ECP_C)
+    POLARSSL_PK_ECKEY,
+    POLARSSL_PK_ECKEY_DH,
+#endif
 } pk_type_t;
+
+/**
+ * \brief           Public key container
+ */
+typedef struct
+{
+    pk_type_t   type;   /**< Public key type */
+    void *      data;   /**< Public key data */
+} pk_context;
+
+/**
+ * \brief           Initialize a pk_context (as NONE)
+ */
+void pk_init( pk_context *ctx );
+
+/**
+ * \brief           Free a pk_context
+ */
+void pk_free( pk_context *ctx );
+
+/**
+ * \brief           Set a pk_context to a given type
+ *
+ * \param ctx       Context to initialize
+ * \param type      Type of key
+ *
+ * \return          O on success, or POLARSSL_ERR_PK_MALLOC_FAILED
+ */
+int pk_set_type( pk_context *ctx, pk_type_t type );
 
 #ifdef __cplusplus
 }

@@ -248,7 +248,6 @@ static const oid_descriptor_t oid_ext_key_usage[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_descriptor_t, ext_key_usage, oid_ext_key_usage);
 FN_OID_GET_ATTR1(oid_get_extended_key_usage, oid_descriptor_t, ext_key_usage, const char *, description);
-
 #endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
 
 #if defined(POLARSSL_MD_C)
@@ -312,7 +311,7 @@ FN_OID_GET_OID_BY_ATTR2(oid_get_oid_by_sig_alg, oid_sig_alg_t, oid_sig_alg, pk_t
 #endif /* POLARSSL_MD_C */
 
 /*
- * For PublicKeyInfo
+ * For PublicKeyInfo (PKCS1, RFC 5480)
  */
 typedef struct {
     oid_descriptor_t    descriptor;
@@ -326,6 +325,14 @@ static const oid_pk_alg_t oid_pk_alg[] =
         POLARSSL_PK_RSA,
     },
     {
+        { OID_EC_ALG_UNRESTRICTED,  "id-ecPublicKey",   "Generic EC key" },
+        POLARSSL_PK_ECKEY,
+    },
+    {
+        { OID_EC_ALG_ECDH,          "id-ecDH",          "EC key for ECDH" },
+        POLARSSL_PK_ECKEY_DH,
+    },
+    {
         { NULL, NULL, NULL },
         0,
     },
@@ -333,6 +340,45 @@ static const oid_pk_alg_t oid_pk_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_pk_alg_t, pk_alg, oid_pk_alg);
 FN_OID_GET_ATTR1(oid_get_pk_alg, oid_pk_alg_t, pk_alg, pk_type_t, pk_alg);
+
+/*
+ * For namedCurve (RFC 5480)
+ */
+typedef struct {
+    oid_descriptor_t    descriptor;
+    ecp_group_id        grp_id;
+} oid_ecp_grp_t;
+
+static const oid_ecp_grp_t oid_ecp_grp[] =
+{
+    {
+        { OID_EC_GRP_SECP192R1, "secp192r1",    "secp192r1" },
+        POLARSSL_ECP_DP_SECP192R1,
+    },
+    {
+        { OID_EC_GRP_SECP224R1, "secp224r1",    "secp224r1" },
+        POLARSSL_ECP_DP_SECP224R1,
+    },
+    {
+        { OID_EC_GRP_SECP256R1, "secp256r1",    "secp256r1" },
+        POLARSSL_ECP_DP_SECP256R1,
+    },
+    {
+        { OID_EC_GRP_SECP384R1, "secp384r1",    "secp384r1" },
+        POLARSSL_ECP_DP_SECP384R1,
+    },
+    {
+        { OID_EC_GRP_SECP521R1, "secp521r1",    "secp521r1" },
+        POLARSSL_ECP_DP_SECP521R1,
+    },
+    {
+        { NULL, NULL, NULL },
+        0,
+    },
+};
+
+FN_OID_TYPED_FROM_ASN1(oid_ecp_grp_t, grp_id, oid_ecp_grp);
+FN_OID_GET_ATTR1(oid_get_ec_grp, oid_ecp_grp_t, grp_id, ecp_group_id, grp_id);
 
 #if defined(POLARSSL_CIPHER_C)
 /*
@@ -521,13 +567,14 @@ int oid_get_numeric_string( char *buf, size_t size,
         SAFE_SNPRINTF();
     }
 
-    /* Prevent overflow in value. */
-    if( oid->len > sizeof(value) )
-        return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
-
     value = 0;
     for( i = 1; i < oid->len; i++ )
     {
+        /* Prevent overflow in value. */
+        unsigned int v = value << 7;
+        if ( v < value )
+            return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
+
         value <<= 7;
         value += oid->p[i] & 0x7F;
 

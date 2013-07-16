@@ -39,6 +39,7 @@ set(src
      pkcs5.c
      pkcs11.c
      pkcs12.c
+     pk.c
      rsa.c
      sha1.c
      sha256.c

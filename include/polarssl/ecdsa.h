@@ -29,6 +29,20 @@
 
 #include "polarssl/ecp.h"
 
+/**
+ * \brief           ECDSA context structure
+ */
+typedef struct
+{
+    ecp_group grp;      /*!<  ellipitic curve used          */
+    mpi d;              /*!<  secret signature key          */
+    ecp_point Q;        /*!<  public signature key          */
+    mpi r;              /*!<  first integer from signature  */
+    mpi s;              /*!<  second integer from signature */
+    int point_format;   /*!<  format for point export       */
+}
+ecdsa_context;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -69,6 +83,20 @@ int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
 int ecdsa_verify( const ecp_group *grp,
                   const unsigned char *buf, size_t blen,
                   const ecp_point *Q, const mpi *r, const mpi *s);
+
+/**
+ * \brief           Initialize context
+ *
+ * \param ctx       Context to initialize
+ */
+void ecdsa_init( ecdsa_context *ctx );
+
+/**
+ * \brief           Free context
+ *
+ * \param ctx       Context to free
+ */
+void ecdsa_free( ecdsa_context *ctx );
 
 /**
  * \brief          Checkup routine

@@ -196,10 +196,10 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the client private key %s...", name );
         fflush( stdout );
 
-        ret = x509parse_keyfile( &rsa, name, NULL );
+        ret = x509parse_keyfile_rsa( &rsa, name, NULL );
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
+            printf( " failed\n  !  x509parse_key_rsa returned %d\n\n", ret );
             goto exit;
         }
 

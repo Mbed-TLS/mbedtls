@@ -139,7 +139,7 @@ int main( int argc, char *argv[] )
     /*
      * This demonstration program uses embedded test certificates.
      * Instead, you may want to use x509parse_crtfile() to read the
-     * server and CA certificates, as well as x509parse_keyfile().
+     * server and CA certificates, as well as x509parse_keyfile_rsa().
      */
     ret = x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
                          strlen( test_srv_crt ) );
@@ -158,11 +158,11 @@ int main( int argc, char *argv[] )
     }
 
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    ret =  x509parse_key( &rsa, (const unsigned char *) test_srv_key,
+    ret =  x509parse_key_rsa( &rsa, (const unsigned char *) test_srv_key,
                           strlen( test_srv_key ), NULL, 0 );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
+        printf( " failed\n  !  x509parse_key_rsa returned %d\n\n", ret );
         goto exit;
     }
 

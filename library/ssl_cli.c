@@ -269,6 +269,30 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
 }
 #endif
 
+static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
+                                               unsigned char *buf,
+                                               size_t *olen )
+{
+    unsigned char *p = buf;
+
+    if( ssl->mfl_code == SSL_MAX_FRAG_LEN_NONE ) {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding max_fragment_length extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_MAX_FRAGMENT_LENGTH >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_MAX_FRAGMENT_LENGTH      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 1;
+
+    *p++ = ssl->mfl_code;
+
+    *olen = 5;
+}
+
 static int ssl_write_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -435,6 +459,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
+
+    ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
 
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
@@ -689,6 +716,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     ssl->session_negotiate->compression = comp;
 
     ext = buf + 44 + n;
+
+    SSL_DEBUG_MSG( 2, ( "server hello, total extension length: %d", ext_len ) );
 
     while( ext_len )
     {

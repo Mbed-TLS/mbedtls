@@ -117,6 +117,13 @@
 #define SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 
+/* RFC 6066 section 4 */
+#define SSL_MAX_FRAG_LEN_NONE           0   /*!< don't use this extension   */
+#define SSL_MAX_FRAG_LEN_512            1   /*!< MaxFragmentLength 2^9      */
+#define SSL_MAX_FRAG_LEN_1024           2   /*!< MaxFragmentLength 2^10     */
+#define SSL_MAX_FRAG_LEN_2048           3   /*!< MaxFragmentLength 2^11     */
+#define SSL_MAX_FRAG_LEN_4096           4   /*!< MaxFragmentLength 2^12     */
+
 #define SSL_IS_CLIENT                   0
 #define SSL_IS_SERVER                   1
 #define SSL_COMPRESS_NULL               0
@@ -497,6 +504,10 @@ struct _ssl_context
     int out_msgtype;            /*!< record header: message type      */
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
+
+    /* Maximum fragment length extension (RFC 6066 section 4) */
+    unsigned char mfl_code;     /*!< numerical code for MaxFragmentLength   */
+    uint16_t max_frag_len;      /*!< value of MaxFragmentLength             */
 
     /*
      * PKI layer
@@ -943,6 +954,23 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor );
  *                 SSL_MINOR_VERSION_3 supported)
  */
 void ssl_set_min_version( ssl_context *ssl, int major, int minor );
+
+/**
+ * \brief          Set the maximum fragment length to emit and/or negotiate
+ *                 (Default: SSL_MAX_CONTENT_LEN, usually 2^14 bytes)
+ *                 (Server: set maximum fragment length to emit,
+ *                 usually negotiated by the client during handshake
+ *                 (Client: set maximum fragment length to emit *and*
+ *                 negotiate with the server during handshake)
+ *
+ * \param ssl      SSL context
+ * \param mfl      Code for maximum fragment length (allowed values:
+ *                 SSL_MAX_FRAG_LEN_512,  SSL_MAX_FRAG_LEN_1024,
+ *                 SSL_MAX_FRAG_LEN_2048, SSL_MAX_FRAG_LEN_4096)
+ *
+ * \return         O if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
+ */
+int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
 
 /**
  * \brief          Enable / Disable renegotiation support for connection when

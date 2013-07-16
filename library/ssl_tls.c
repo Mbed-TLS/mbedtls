@@ -2826,6 +2826,9 @@ int ssl_init( ssl_context *ssl )
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
 
+    ssl->mfl_code = SSL_MAX_FRAG_LEN_NONE;
+    ssl->max_frag_len = SSL_MAX_CONTENT_LEN;
+
     ssl->hostname = NULL;
     ssl->hostname_len = 0;
 
@@ -3109,6 +3112,35 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
 {
     ssl->min_major_ver = major;
     ssl->min_minor_ver = minor;
+}
+
+int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
+{
+    switch( mfl_code )
+    {
+        case SSL_MAX_FRAG_LEN_512:
+            ssl->max_frag_len = 512;
+            break;
+
+        case SSL_MAX_FRAG_LEN_1024:
+            ssl->max_frag_len = 1024;
+            break;
+
+        case SSL_MAX_FRAG_LEN_2048:
+            ssl->max_frag_len = 2048;
+            break;
+
+        case SSL_MAX_FRAG_LEN_4096:
+            ssl->max_frag_len = 4096;
+            break;
+
+        default:
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    ssl->mfl_code = mfl_code;
+
+    return( 0 );
 }
 
 void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )

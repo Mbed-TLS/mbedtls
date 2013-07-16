@@ -59,7 +59,10 @@
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 
-#define GET_REQUEST "GET %s HTTP/1.0\r\n\r\n"
+/* Uncomment to test sending long paquets */
+#define LONG_HEADER // "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-END\r\n"
+
+#define GET_REQUEST "GET %s HTTP/1.0\r\n" LONG_HEADER "\r\n"
 
 /*
  * global options
@@ -201,7 +204,7 @@ int main( int argc, char *argv[] )
 #else
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, server_fd, i;
+    int ret = 0, len, server_fd, i, written;
     unsigned char buf[1024];
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     unsigned char psk[256];
@@ -702,17 +705,20 @@ int main( int argc, char *argv[] )
 
     len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
 
-    while( ( ret = ssl_write( &ssl, buf, len ) ) <= 0 )
+    for( written = 0; written < len; written += ret )
     {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        while( ( ret = ssl_write( &ssl, buf + written, len - written ) ) <= 0 )
         {
-            printf( " failed\n  ! ssl_write returned -0x%x\n\n", -ret );
-            goto exit;
+            if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_write returned -0x%x\n\n", -ret );
+                goto exit;
+            }
         }
     }
 
-    len = ret;
-    printf( " %d bytes written\n\n%s", len, (char *) buf );
+    buf[written] = '\0';
+    printf( " %d bytes written\n\n%s\n", written, (char *) buf );
 
     /*
      * 7. Read the HTTP response

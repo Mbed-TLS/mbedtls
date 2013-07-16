@@ -3416,8 +3416,8 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
         }
     }
 
-    n = ( len < SSL_MAX_CONTENT_LEN )
-        ? len : SSL_MAX_CONTENT_LEN;
+    n = ( len < ssl->max_frag_len )
+        ? len : ssl->max_frag_len;
 
     if( ssl->out_left != 0 )
     {

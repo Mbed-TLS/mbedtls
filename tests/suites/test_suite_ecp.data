@@ -245,8 +245,8 @@ ECP tls write-read group #2
 depends_on:POLARSSL_ECP_DP_SECP521R1_ENABLED
 ecp_tls_write_read_group:SECP521R1
 
-ECP check prvkey
-ecp_check_prvkey:SECP192R1
+ECP check privkey
+ecp_check_privkey:SECP192R1
 
 ECP gen keypair
 depends_on:POLARSSL_ECP_DP_SECP192R1_ENABLED

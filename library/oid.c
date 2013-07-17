@@ -299,6 +299,26 @@ static const oid_sig_alg_t oid_sig_alg[] =
         POLARSSL_MD_SHA1,     POLARSSL_PK_RSA,
     },
     {
+        { OID_ECDSA_SHA1,       "ecdsa-with-SHA1",      "ECDSA with SHA1" },
+        POLARSSL_MD_SHA1,     POLARSSL_PK_ECDSA,
+    },
+    {
+        { OID_ECDSA_SHA224,     "ecdsa-with-SHA224",    "ECDSA with SHA224" },
+        POLARSSL_MD_SHA224,   POLARSSL_PK_ECDSA,
+    },
+    {
+        { OID_ECDSA_SHA256,     "ecdsa-with-SHA256",    "ECDSA with SHA256" },
+        POLARSSL_MD_SHA256,   POLARSSL_PK_ECDSA,
+    },
+    {
+        { OID_ECDSA_SHA384,     "ecdsa-with-SHA384",    "ECDSA with SHA384" },
+        POLARSSL_MD_SHA384,   POLARSSL_PK_ECDSA,
+    },
+    {
+        { OID_ECDSA_SHA512,     "ecdsa-with-SHA512",    "ECDSA with SHA512" },
+        POLARSSL_MD_SHA512,   POLARSSL_PK_ECDSA,
+    },
+    {
         { NULL, NULL, NULL },
         0, 0,
     },
@@ -571,8 +591,7 @@ int oid_get_numeric_string( char *buf, size_t size,
     for( i = 1; i < oid->len; i++ )
     {
         /* Prevent overflow in value. */
-        unsigned int v = value << 7;
-        if ( v < value )
+        if ( ( ( value << 7 ) >> 7 ) != value )
             return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
 
         value <<= 7;

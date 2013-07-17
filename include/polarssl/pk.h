@@ -27,7 +27,35 @@
 #ifndef POLARSSL_PK_H
 #define POLARSSL_PK_H
 
+#include "config.h"
+
+#if defined(POLARSSL_RSA_C)
+#include "rsa.h"
+#endif
+
 #define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
+#define POLARSSL_ERR_PK_TYPE_MISMATCH       -0x2F00  /**< Type mismatch, eg attempt to use a RSA key as EC, or to modify key type */
+
+#if defined(POLARSSL_RSA_C)
+/**
+ * Quick access to an RSA context inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an RSA context
+ * before using this macro!
+ */
+#define pk_rsa( pk )        ( (rsa_context *) (pk).data )
+#endif /* POLARSSL_RSA_C */
+
+#if defined(POLARSSL_ECP_C)
+/**
+ * Quick access to an EC context inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an EC context
+ * before using this macro!
+ */
+#define pk_ec( pk )         ( (ecp_keypair *) (pk).data )
+#endif /* POLARSSL_ECP_C */
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,13 +66,10 @@ extern "C" {
  */
 typedef enum {
     POLARSSL_PK_NONE=0,
-#if defined(POLARSSL_RSA_C)
     POLARSSL_PK_RSA,
-#endif
-#if defined(POLARSSL_ECP_C)
     POLARSSL_PK_ECKEY,
     POLARSSL_PK_ECKEY_DH,
-#endif
+    POLARSSL_PK_ECDSA,
 } pk_type_t;
 
 /**
@@ -52,8 +77,9 @@ typedef enum {
  */
 typedef struct
 {
-    pk_type_t   type;   /**< Public key type */
-    void *      data;   /**< Public key data */
+    pk_type_t   type;       /**< Public key type */
+    void *      data;       /**< Public key data */
+    int         dont_free;  /**< True if data must not be freed */
 } pk_context;
 
 /**
@@ -72,9 +98,29 @@ void pk_free( pk_context *ctx );
  * \param ctx       Context to initialize
  * \param type      Type of key
  *
- * \return          O on success, or POLARSSL_ERR_PK_MALLOC_FAILED
+ * \note            Once the type of a key has been set, it cannot be reset.
+ *                  If you want to do so, you need to use pk_free() first.
+ *
+ * \return          O on success,
+ *                  POLARSSL_ERR_PK_MALLOC_FAILED on memory allocation fail,
+ *                  POLARSSL_ERR_PK_TYPE_MISMATCH on attempts to reset type.
  */
 int pk_set_type( pk_context *ctx, pk_type_t type );
+
+#if defined(POLARSSL_RSA_C)
+/**
+ * \brief           Wrap a RSA context in a PK context
+ *
+ * \param ctx       PK context to initiliaze
+ * \param rsa       RSA context to use
+ *
+ * \note            The PK context must be freshly initialized.
+ *
+ * \return          O on success,
+ *                  POLARSSL_ERR_PK_TYPE_MISMATCH if ctx was not empty.
+ */
+int pk_wrap_rsa( pk_context *ctx, const rsa_context *rsa);
+#endif /* POLARSSL_RSA_C */
 
 #ifdef __cplusplus
 }

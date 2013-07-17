@@ -213,6 +213,19 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
                         asn1_bitstring *bs);
 
 /**
+ * Retrieve a bitstring ASN.1 tag without unused bits and its value.
+ * Updates the pointer to the beginning of the bit/octet string.
+ *
+ * \param p     The position in the ASN.1 data
+ * \param end   End of data
+ * \param len   Length of the actual bit/octect string in bytes
+ *
+ * \return      0 if successful or a specific ASN.1 error code.
+ */
+int asn1_get_bitstring_null( unsigned char **p, const unsigned char *end,
+                             size_t *len );
+
+/**
  * Parses and splits an ASN.1 "SEQUENCE OF <tag>"
  * Updated the pointer to immediately behind the full sequence tag.
  *

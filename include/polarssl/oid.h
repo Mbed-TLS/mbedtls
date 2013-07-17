@@ -276,6 +276,36 @@
  *   iso(1) identified-organization(3) certicom(132) curve(0) 35 } */
 #define OID_EC_GRP_SECP521R1        OID_CERTICOM "\x00\x23"
 
+/*
+ * ECDSA signature identifers, from RFC 5480
+ */
+#define OID_ANSI_X9_62_SIG          OID_ANSI_X9_62 "\x04" /* signatures(4) */
+#define OID_ANSI_X9_62_SIG_SHA2     OID_ANSI_X9_62_SIG "\x03" /* ecdsa-with-SHA2(3) */
+
+/* ecdsa-with-SHA1 OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) us(840) ansi-X9-62(10045) signatures(4) 1 } */
+#define OID_ECDSA_SHA1              OID_ANSI_X9_62_SIG "\x01"
+
+/* ecdsa-with-SHA224 OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) us(840) ansi-X9-62(10045) signatures(4)
+ *   ecdsa-with-SHA2(3) 1 } */
+#define OID_ECDSA_SHA224            OID_ANSI_X9_62_SIG_SHA2 "\x01"
+
+/* ecdsa-with-SHA256 OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) us(840) ansi-X9-62(10045) signatures(4)
+ *   ecdsa-with-SHA2(3) 2 } */
+#define OID_ECDSA_SHA256            OID_ANSI_X9_62_SIG_SHA2 "\x02"
+
+/* ecdsa-with-SHA384 OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) us(840) ansi-X9-62(10045) signatures(4)
+ *   ecdsa-with-SHA2(3) 3 } */
+#define OID_ECDSA_SHA384            OID_ANSI_X9_62_SIG_SHA2 "\x03"
+
+/* ecdsa-with-SHA512 OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) us(840) ansi-X9-62(10045) signatures(4)
+ *   ecdsa-with-SHA2(3) 4 } */
+#define OID_ECDSA_SHA512            OID_ANSI_X9_62_SIG_SHA2 "\x04"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

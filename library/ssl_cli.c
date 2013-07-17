@@ -1072,8 +1072,12 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
 
+        /* EC NOT IMPLEMENTED YET */
+        if( ssl->session_negotiate->peer_cert->pk.type != POLARSSL_PK_RSA )
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+
         if( (unsigned int)( end - p ) !=
-            ssl->session_negotiate->peer_cert->rsa.len )
+            pk_rsa( ssl->session_negotiate->peer_cert->pk )->len )
         {
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
@@ -1139,9 +1143,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
         SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
-        if( ( ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa,
-                                      RSA_PUBLIC,
-                                      md_alg, hashlen, hash, p ) ) != 0 )
+        if( ( ret = rsa_pkcs1_verify(
+                        pk_rsa( ssl->session_negotiate->peer_cert->pk ),
+                        RSA_PUBLIC, md_alg, hashlen, hash, p ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );
             return( ret );
@@ -1516,8 +1520,12 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         if( ret != 0 )
             return( ret );
 
+        /* EC NOT IMPLEMENTED YET */
+        if( ssl->session_negotiate->peer_cert->pk.type != POLARSSL_PK_RSA )
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+
         i = 4;
-        n = ssl->session_negotiate->peer_cert->rsa.len;
+        n = pk_rsa( ssl->session_negotiate->peer_cert->pk )->len;
 
         if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
         {
@@ -1526,12 +1534,11 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
             ssl->out_msg[5] = (unsigned char)( n      );
         }
 
-        ret = rsa_pkcs1_encrypt( &ssl->session_negotiate->peer_cert->rsa,
-                                  ssl->f_rng, ssl->p_rng,
-                                  RSA_PUBLIC,
-                                  ssl->handshake->pmslen,
-                                  ssl->handshake->premaster,
-                                  ssl->out_msg + i );
+        ret = rsa_pkcs1_encrypt(
+                pk_rsa( ssl->session_negotiate->peer_cert->pk ),
+                ssl->f_rng, ssl->p_rng, RSA_PUBLIC,
+                ssl->handshake->pmslen, ssl->handshake->premaster,
+                ssl->out_msg + i );
         if( ret != 0 )
         {
             SSL_DEBUG_RET( 1, "rsa_pkcs1_encrypt", ret );

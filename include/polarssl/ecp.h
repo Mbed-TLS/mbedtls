@@ -95,18 +95,12 @@ ecp_group;
  * \brief           ECP key pair structure
  *
  * A generic key pair that could be used for ECDSA, fixed ECDH, etc.
- * Usage can be restricted to a particular algorithm by the 'alg' field,
- * see POLARSSL_ECP_KEY_ALG_* constants (default: unrestricted).
- *
- * \sa ecdh_context
- * \sa ecdsa_context
  */
 typedef struct
 {
     ecp_group grp;      /*!<  Elliptic curve and base point     */
     mpi d;              /*!<  our secret value                  */
     ecp_point Q;        /*!<  our public value                  */
-    int alg;            /*!<  algorithm to use this key with    */
 }
 ecp_keypair;
 
@@ -121,8 +115,10 @@ ecp_keypair;
  * parameters. Therefore, only well-known domain parameters from trusted
  * sources should be used. See ecp_use_known_dp().
  *
- * \note The values are taken from RFC 4492's enum NamedCurve.
+ * \note The values are taken from RFC 4492's enum NamedCurve,
+ * except NONE which is used to denote uninitialized groups.
  */
+#define POLARSSL_ECP_DP_NONE        0
 #define POLARSSL_ECP_DP_SECP192R1   19
 #define POLARSSL_ECP_DP_SECP224R1   21
 #define POLARSSL_ECP_DP_SECP256R1   23
@@ -157,12 +153,6 @@ ecp_keypair;
  * Some other constants from RFC 4492
  */
 #define POLARSSL_ECP_TLS_NAMED_CURVE    3   /**< ECCurveType's named_curve */
-
-/*
- * Algorithm identifiers from RFC 5480 for use with EC keys
- */
-#define POLARSSL_ECP_KEY_ALG_UNRESTRICTED   0   /**< RFC 5480 2.1.1 */
-#define POLARSSL_ECP_KEY_ALG_ECDH           1   /**< RFC 5480 2.1.2 */
 
 #ifdef __cplusplus
 extern "C" {

@@ -1968,7 +1968,11 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         md_alg = POLARSSL_MD_NONE;
     }
 
-    n1 = ssl->session_negotiate->peer_cert->rsa.len;
+    /* EC NOT IMPLEMENTED YET */
+    if( ssl->session_negotiate->peer_cert->pk.type != POLARSSL_PK_RSA )
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+
+    n1 = pk_rsa( ssl->session_negotiate->peer_cert->pk )->len;
     n2 = ( ssl->in_msg[4 + n] << 8 ) | ssl->in_msg[5 + n];
 
     if( n + n1 + 6 != ssl->in_hslen || n1 != n2 )
@@ -1977,8 +1981,9 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-    ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa, RSA_PUBLIC,
-                            md_alg, hashlen, hash, ssl->in_msg + 6 + n );
+    ret = rsa_pkcs1_verify( pk_rsa( ssl->session_negotiate->peer_cert->pk ),
+                            RSA_PUBLIC, md_alg, hashlen, hash,
+                            ssl->in_msg + 6 + n );
     if( ret != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );

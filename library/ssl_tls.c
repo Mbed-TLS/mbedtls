@@ -3119,29 +3119,35 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
 
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
 {
+    uint16_t max_frag_len;
+
     switch( mfl_code )
     {
         case SSL_MAX_FRAG_LEN_512:
-            ssl->max_frag_len = 512;
+            max_frag_len = 512;
             break;
 
         case SSL_MAX_FRAG_LEN_1024:
-            ssl->max_frag_len = 1024;
+            max_frag_len = 1024;
             break;
 
         case SSL_MAX_FRAG_LEN_2048:
-            ssl->max_frag_len = 2048;
+            max_frag_len = 2048;
             break;
 
         case SSL_MAX_FRAG_LEN_4096:
-            ssl->max_frag_len = 4096;
+            max_frag_len = 4096;
             break;
 
         default:
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
     }
 
+    if( max_frag_len > SSL_MAX_CONTENT_LEN )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
     ssl->mfl_code = mfl_code;
+    ssl->max_frag_len = max_frag_len;
 
     return( 0 );
 }

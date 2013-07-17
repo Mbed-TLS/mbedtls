@@ -69,10 +69,16 @@
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 
+#define LONG_RESPONSE "<p>blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
+    "blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
+    "blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
+    "blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah</p>\r\n"
+
+/* Uncomment LONG_RESPONSE to test sending long paquets */
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
     "<h2>PolarSSL Test Server</h2>\r\n" \
-    "<p>Successful connection using: %s</p>\r\n"
+    "<p>Successful connection using: %s</p>\r\n" // LONG_RESPONSE
 
 /*
  * global options
@@ -168,7 +174,7 @@ int main( int argc, char *argv[] )
 #else
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len;
+    int ret = 0, len, written;
     int listen_fd;
     int client_fd = -1;
     unsigned char buf[1024];
@@ -748,7 +754,7 @@ reset:
         }
 
         len = ret;
-        printf( " %d bytes read\n\n%s", len, (char *) buf );
+        printf( " %d bytes read\n\n%s\n", len, (char *) buf );
 
         if( memcmp( buf, "SERVERQUIT", 10 ) == 0 )
             goto exit;
@@ -767,23 +773,26 @@ reset:
     len = sprintf( (char *) buf, HTTP_RESPONSE,
                    ssl_get_ciphersuite( &ssl ) );
 
-    while( ( ret = ssl_write( &ssl, buf, len ) ) <= 0 )
+    for( written = 0; written < len; written += ret )
     {
-        if( ret == POLARSSL_ERR_NET_CONN_RESET )
+        while( ( ret = ssl_write( &ssl, buf + written, len - written ) ) <= 0 )
         {
-            printf( " failed\n  ! peer closed the connection\n\n" );
-            goto reset;
-        }
+            if( ret == POLARSSL_ERR_NET_CONN_RESET )
+            {
+                printf( " failed\n  ! peer closed the connection\n\n" );
+                goto reset;
+            }
 
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
-        {
-            printf( " failed\n  ! ssl_write returned %d\n\n", ret );
-            goto exit;
+            if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+                goto exit;
+            }
         }
     }
 
-    len = ret;
-    printf( " %d bytes written\n\n%s\n", len, (char *) buf );
+    buf[written] = '\0';
+    printf( " %d bytes written\n\n%s\n", written, (char *) buf );
 
     ret = 0;
     goto reset;

@@ -987,6 +987,30 @@ static void ssl_write_renegotiation_ext( ssl_context *ssl,
     *olen = 5 + ssl->verify_data_len * 2;
 }
 
+static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
+                                               unsigned char *buf,
+                                               size_t *olen )
+{
+    unsigned char *p = buf;
+
+    if( ssl->mfl_code == SSL_MAX_FRAG_LEN_NONE ) {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "server hello, max_fragment_length extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_MAX_FRAGMENT_LENGTH >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_MAX_FRAGMENT_LENGTH      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 1;
+
+    *p++ = ssl->mfl_code;
+
+    *olen = 5;
+}
+
 static int ssl_write_server_hello( ssl_context *ssl )
 {
 #if defined(POLARSSL_HAVE_TIME)
@@ -1099,6 +1123,9 @@ static int ssl_write_server_hello( ssl_context *ssl )
      *  First write extensions, then the total length
      */
     ssl_write_renegotiation_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+
+    ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
     SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %d", ext_len ) );

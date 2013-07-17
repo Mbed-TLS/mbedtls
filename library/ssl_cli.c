@@ -526,6 +526,23 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
 
     return( 0 );
 }
+static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
+                                              unsigned char *buf,
+                                              size_t len )
+{
+    /*
+     * server should use the extension only if we did,
+     * and if so the server's value should match ours (and len is always 1)
+     */
+    if( ssl->mfl_code == SSL_MAX_FRAG_LEN_NONE ||
+        len != 1 ||
+        buf[0] != ssl->mfl_code )
+    {
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    return( 0 );
+}
 
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
@@ -740,6 +757,17 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
             if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size ) ) != 0 )
                 return( ret );
+
+            break;
+
+        case TLS_EXT_MAX_FRAGMENT_LENGTH:
+            SSL_DEBUG_MSG( 3, ( "found max_fragment_length extension" ) );
+
+            if( ( ret = ssl_parse_max_fragment_length_ext( ssl,
+                            ext + 4, ext_size ) ) != 0 )
+            {
+                return( ret );
+            }
 
             break;
 

@@ -291,6 +291,22 @@ static int ssl_parse_supported_point_formats( ssl_context *ssl,
 }
 #endif /* POLARSSL_ECP_C */
 
+static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
+                                              const unsigned char *buf,
+                                              size_t len )
+{
+    int ret;
+
+    if( len != 1 ||
+        ( ret = ssl_set_max_frag_len( ssl, buf[0] ) ) != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( ssl_context *ssl )
 {
@@ -824,6 +840,14 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                 return( ret );
             break;
 #endif /* POLARSSL_ECP_C */
+
+        case TLS_EXT_MAX_FRAGMENT_LENGTH:
+            SSL_DEBUG_MSG( 3, ( "found max fragment length extension" ) );
+
+            ret = ssl_parse_max_fragment_length_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
 
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",

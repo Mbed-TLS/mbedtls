@@ -2870,6 +2870,9 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->out_msglen = 0;
     ssl->out_left = 0;
 
+    ssl->mfl_code = SSL_MAX_FRAG_LEN_NONE;
+    ssl->max_frag_len = SSL_MAX_CONTENT_LEN;
+
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;
 

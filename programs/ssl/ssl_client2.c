@@ -59,8 +59,15 @@
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 
-/* Uncomment to test sending long paquets */
-#define LONG_HEADER // "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-END\r\n"
+/* Uncomment to test sending longer paquets (for fragmentation purposes) */
+#define LONG_HEADER // "User-agent: blah-blah-blah-blah-blah-blah-blah-"     \
+    "-01--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-02--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-03--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-04--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-05--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-06--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-07--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-END\r\n"
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\n" LONG_HEADER "\r\n"
 
@@ -204,7 +211,7 @@ int main( int argc, char *argv[] )
 #else
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, server_fd, i, written;
+    int ret = 0, len, server_fd, i, written, frags;
     unsigned char buf[1024];
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     unsigned char psk[256];
@@ -705,7 +712,7 @@ int main( int argc, char *argv[] )
 
     len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
 
-    for( written = 0; written < len; written += ret )
+    for( written = 0, frags = 0; written < len; written += ret, frags++ )
     {
         while( ( ret = ssl_write( &ssl, buf + written, len - written ) ) <= 0 )
         {
@@ -718,7 +725,7 @@ int main( int argc, char *argv[] )
     }
 
     buf[written] = '\0';
-    printf( " %d bytes written\n\n%s\n", written, (char *) buf );
+    printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
 
     /*
      * 7. Read the HTTP response

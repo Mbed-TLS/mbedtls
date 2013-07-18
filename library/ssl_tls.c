@@ -67,7 +67,7 @@
  *    } MaxFragmentLength;
  * and we add 0 -> extension unused
  */
-static unsigned int mfl_code_to_length[] =
+static unsigned int mfl_code_to_length[SSL_MAX_FRAG_LEN_INVALID] =
 {
     SSL_MAX_CONTENT_LEN,    /* SSL_MAX_FRAG_LEN_NONE */
     512,                    /* SSL_MAX_FRAG_LEN_512  */
@@ -2886,8 +2886,6 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->out_msglen = 0;
     ssl->out_left = 0;
 
-    ssl->mfl_code = SSL_MAX_FRAG_LEN_NONE;
-
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;
 
@@ -3423,6 +3421,15 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
      * Assume mfl_code is correct since it was checked when set
      */
     max_len = mfl_code_to_length[ssl->mfl_code];
+
+    /*
+     * Check if a smaller max length was negociated
+     */
+    if( ssl->session_out != NULL &&
+        mfl_code_to_length[ssl->session_out->mfl_code] < max_len )
+    {
+        max_len = mfl_code_to_length[ssl->session_out->mfl_code];
+    }
 
     n = ( len < max_len) ? len : max_len;
 

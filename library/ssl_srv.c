@@ -295,14 +295,13 @@ static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t len )
 {
-    int ret;
-
-    if( len != 1 ||
-        ( ret = ssl_set_max_frag_len( ssl, buf[0] ) ) != 0 )
+    if( len != 1 || buf[0] >= SSL_MAX_FRAG_LEN_INVALID )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
+
+    ssl->session_negotiate->mfl_code = buf[0];
 
     return( 0 );
 }
@@ -993,7 +992,7 @@ static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
 {
     unsigned char *p = buf;
 
-    if( ssl->mfl_code == SSL_MAX_FRAG_LEN_NONE ) {
+    if( ssl->session_negotiate->mfl_code == SSL_MAX_FRAG_LEN_NONE ) {
         *olen = 0;
         return;
     }
@@ -1006,7 +1005,7 @@ static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
     *p++ = 0x00;
     *p++ = 1;
 
-    *p++ = ssl->mfl_code;
+    *p++ = ssl->session_negotiate->mfl_code;
 
     *olen = 5;
 }

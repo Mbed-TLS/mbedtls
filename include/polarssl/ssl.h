@@ -124,6 +124,7 @@
 #define SSL_MAX_FRAG_LEN_1024           2   /*!< MaxFragmentLength 2^10     */
 #define SSL_MAX_FRAG_LEN_2048           3   /*!< MaxFragmentLength 2^11     */
 #define SSL_MAX_FRAG_LEN_4096           4   /*!< MaxFragmentLength 2^12     */
+#define SSL_MAX_FRAG_LEN_INVALID        5   /*!< first invalid value        */
 
 #define SSL_IS_CLIENT                   0
 #define SSL_IS_SERVER                   1
@@ -330,6 +331,8 @@ struct _ssl_session
 #if defined(POLARSSL_X509_PARSE_C)
     x509_cert *peer_cert;       /*!< peer X.509 cert chain */
 #endif /* POLARSSL_X509_PARSE_C */
+
+    unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
 };
 
 /*
@@ -508,8 +511,7 @@ struct _ssl_context
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
 
-    /* Maximum fragment length extension (RFC 6066 section 4) */
-    unsigned char mfl_code;     /*!< numerical code for MaxFragmentLength   */
+    unsigned char mfl_code;     /*!< MaxFragmentLength chosen by us   */
 
     /*
      * PKI layer

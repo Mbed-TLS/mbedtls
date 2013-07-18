@@ -69,12 +69,13 @@
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 
-#define LONG_RESPONSE "<p>blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
-    "blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
-    "blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
-    "blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah</p>\r\n"
+#define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
+    "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
+    "03-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
+    "04-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah</p>\r\n"
 
-/* Uncomment LONG_RESPONSE to test sending long paquets */
+/* Uncomment LONG_RESPONSE at the end of HTTP_RESPONSE to test sending longer
+ * packets (for fragmentation purposes) */
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
     "<h2>PolarSSL Test Server</h2>\r\n" \

@@ -59,6 +59,23 @@
 #define strcasecmp _stricmp
 #endif
 
+/*
+ * Convert max_fragment_length codes to length.
+ * RFC 6066 says:
+ *    enum{
+ *        2^9(1), 2^10(2), 2^11(3), 2^12(4), (255)
+ *    } MaxFragmentLength;
+ * and we add 0 -> extension unused
+ */
+static unsigned int mfl_code_to_length[SSL_MAX_FRAG_LEN_INVALID] =
+{
+    SSL_MAX_CONTENT_LEN,    /* SSL_MAX_FRAG_LEN_NONE */
+    512,                    /* SSL_MAX_FRAG_LEN_512  */
+    1024,                   /* SSL_MAX_FRAG_LEN_1024 */
+    2048,                   /* SSL_MAX_FRAG_LEN_2048 */
+    4096,                   /* SSL_MAX_FRAG_LEN_4096 */
+};
+
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 int (*ssl_hw_record_init)(ssl_context *ssl,
                        const unsigned char *key_enc, const unsigned char *key_dec,
@@ -3111,6 +3128,19 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
     ssl->min_minor_ver = minor;
 }
 
+int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
+{
+    if( mfl_code >= sizeof( mfl_code_to_length ) ||
+        mfl_code_to_length[mfl_code] > SSL_MAX_CONTENT_LEN )
+    {
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    ssl->mfl_code = mfl_code;
+
+    return( 0 );
+}
+
 void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )
 {
     ssl->disable_renegotiation = renegotiation;
@@ -3372,6 +3402,7 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
 {
     int ret;
     size_t n;
+    unsigned int max_len;
 
     SSL_DEBUG_MSG( 2, ( "=> write" ) );
 
@@ -3384,8 +3415,21 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
         }
     }
 
-    n = ( len < SSL_MAX_CONTENT_LEN )
-        ? len : SSL_MAX_CONTENT_LEN;
+    /*
+     * Assume mfl_code is correct since it was checked when set
+     */
+    max_len = mfl_code_to_length[ssl->mfl_code];
+
+    /*
+     * Check if a smaller max length was negociated
+     */
+    if( ssl->session_out != NULL &&
+        mfl_code_to_length[ssl->session_out->mfl_code] < max_len )
+    {
+        max_len = mfl_code_to_length[ssl->session_out->mfl_code];
+    }
+
+    n = ( len < max_len) ? len : max_len;
 
     if( ssl->out_left != 0 )
     {

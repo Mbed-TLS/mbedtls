@@ -57,8 +57,20 @@
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
+#define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 
-#define GET_REQUEST "GET %s HTTP/1.0\r\n\r\n"
+#define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
+    "-01--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-02--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-03--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-04--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-05--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-06--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
+    "-07--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-END\r\n"
+
+/* Uncomment LONG_HEADER in the definition of GET_REQUEST to test sending
+ * longer paquets (for fragmentation purposes) */
+#define GET_REQUEST "GET %s HTTP/1.0\r\n" /* LONG_HEADER */ "\r\n"
 
 /*
  * global options
@@ -81,6 +93,7 @@ struct options
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
+    unsigned char mfl_code;     /* code for maximum fragment length         */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -176,6 +189,8 @@ static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
     "    auth_mode=%%s        default: \"optional\"\n"          \
     "                        options: none, optional, required\n" \
+    "    max_frag_len=%%d     default: 16384 (tls default)" \
+    "                        options: 512, 1024, 2048, 4096" \
     USAGE_PSK                                               \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
@@ -197,7 +212,7 @@ int main( int argc, char *argv[] )
 #else
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, server_fd, i;
+    int ret = 0, len, server_fd, i, written, frags;
     unsigned char buf[1024];
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     unsigned char psk[256];
@@ -265,6 +280,7 @@ int main( int argc, char *argv[] )
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
+    opt.mfl_code            = DFL_MFL_CODE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -384,6 +400,19 @@ int main( int argc, char *argv[] )
                 opt.auth_mode = SSL_VERIFY_OPTIONAL;
             else if( strcmp( q, "required" ) == 0 )
                 opt.auth_mode = SSL_VERIFY_REQUIRED;
+            else
+                goto usage;
+        }
+        else if( strcmp( p, "max_frag_len" ) == 0 )
+        {
+            if( strcmp( q, "512" ) == 0 )
+                opt.mfl_code = SSL_MAX_FRAG_LEN_512;
+            else if( strcmp( q, "1024" ) == 0 )
+                opt.mfl_code = SSL_MAX_FRAG_LEN_1024;
+            else if( strcmp( q, "2048" ) == 0 )
+                opt.mfl_code = SSL_MAX_FRAG_LEN_2048;
+            else if( strcmp( q, "4096" ) == 0 )
+                opt.mfl_code = SSL_MAX_FRAG_LEN_4096;
             else
                 goto usage;
         }
@@ -592,6 +621,8 @@ int main( int argc, char *argv[] )
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
     ssl_set_authmode( &ssl, opt.auth_mode );
 
+    ssl_set_max_frag_len( &ssl, opt.mfl_code );
+
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );
     ssl_set_bio( &ssl, net_recv, &server_fd,
@@ -682,17 +713,20 @@ int main( int argc, char *argv[] )
 
     len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
 
-    while( ( ret = ssl_write( &ssl, buf, len ) ) <= 0 )
+    for( written = 0, frags = 0; written < len; written += ret, frags++ )
     {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        while( ( ret = ssl_write( &ssl, buf + written, len - written ) ) <= 0 )
         {
-            printf( " failed\n  ! ssl_write returned -0x%x\n\n", -ret );
-            goto exit;
+            if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_write returned -0x%x\n\n", -ret );
+                goto exit;
+            }
         }
     }
 
-    len = ret;
-    printf( " %d bytes written\n\n%s", len, (char *) buf );
+    buf[written] = '\0';
+    printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
 
     /*
      * 7. Read the HTTP response

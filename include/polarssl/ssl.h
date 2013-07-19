@@ -150,6 +150,7 @@
 
 #define SSL_TRUNC_HMAC_DISABLED         0
 #define SSL_TRUNC_HMAC_ENABLED          1
+#define SSL_TRUNCATED_HMAC_LEN          10  /* 80 bits, rfc 6066 section 7 */
 
 /*
  * Size of the input / output buffer.

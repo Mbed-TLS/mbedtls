@@ -405,13 +405,24 @@ int main( int argc, char *argv[] )
         const ssl_ciphersuite_t *ciphersuite_info;
         ciphersuite_info = ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
 
-        if( ciphersuite_info->min_minor_ver > opt.max_version ||
+        if( opt.max_version != -1 &&
+            ciphersuite_info->min_minor_ver > opt.max_version )
+        {
+            printf("forced ciphersuite not allowed with this protocol version\n");
+            ret = 2;
+            goto usage;
+        }
+        if( opt.min_version != -1 &&
             ciphersuite_info->max_minor_ver < opt.min_version )
         {
             printf("forced ciphersuite not allowed with this protocol version\n");
             ret = 2;
             goto usage;
         }
+        if( opt.max_version > ciphersuite_info->max_minor_ver )
+            opt.max_version = ciphersuite_info->max_minor_ver;
+        if( opt.min_version < ciphersuite_info->min_minor_ver )
+            opt.min_version = ciphersuite_info->min_minor_ver;
     }
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)

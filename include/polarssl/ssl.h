@@ -118,7 +118,7 @@
 #define SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
- * NONE must be zero so that memset()ing session to zero works */
+ * NONE must be zero so that memset()ing structure to zero works */
 #define SSL_MAX_FRAG_LEN_NONE           0   /*!< don't use this extension   */
 #define SSL_MAX_FRAG_LEN_512            1   /*!< MaxFragmentLength 2^9      */
 #define SSL_MAX_FRAG_LEN_1024           2   /*!< MaxFragmentLength 2^10     */

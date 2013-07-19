@@ -992,7 +992,8 @@ static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
 {
     unsigned char *p = buf;
 
-    if( ssl->session_negotiate->mfl_code == SSL_MAX_FRAG_LEN_NONE ) {
+    if( ssl->session_negotiate->mfl_code == SSL_MAX_FRAG_LEN_NONE )
+    {
         *olen = 0;
         return;
     }

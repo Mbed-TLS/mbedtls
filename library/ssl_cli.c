@@ -488,7 +488,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
 }
 
 static int ssl_parse_renegotiation_info( ssl_context *ssl,
-                                         unsigned char *buf,
+                                         const unsigned char *buf,
                                          size_t len )
 {
     int ret;
@@ -527,7 +527,7 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
     return( 0 );
 }
 static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
-                                              unsigned char *buf,
+                                              const unsigned char *buf,
                                               size_t len )
 {
     /*

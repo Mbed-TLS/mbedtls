@@ -59,8 +59,7 @@
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 
-/* Uncomment to test sending longer paquets (for fragmentation purposes) */
-#define LONG_HEADER // "User-agent: blah-blah-blah-blah-blah-blah-blah-"     \
+#define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
     "-01--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
     "-02--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
     "-03--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
@@ -69,7 +68,9 @@
     "-06--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
     "-07--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-END\r\n"
 
-#define GET_REQUEST "GET %s HTTP/1.0\r\n" LONG_HEADER "\r\n"
+/* Uncomment LONG_HEADER in the definition of GET_REQUEST to test sending
+ * longer paquets (for fragmentation purposes) */
+#define GET_REQUEST "GET %s HTTP/1.0\r\n" /* LONG_HEADER */ "\r\n"
 
 /*
  * global options

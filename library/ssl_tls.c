@@ -2843,8 +2843,6 @@ int ssl_init( ssl_context *ssl )
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
 
-    ssl->mfl_code = SSL_MAX_FRAG_LEN_NONE;
-
     ssl->hostname = NULL;
     ssl->hostname_len = 0;
 

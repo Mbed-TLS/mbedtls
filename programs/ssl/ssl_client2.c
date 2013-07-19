@@ -634,7 +634,7 @@ int main( int argc, char *argv[] )
     ssl_set_max_frag_len( &ssl, opt.mfl_code );
 
     if( opt.trunc_hmac != 0 )
-        ssl_set_truncated_hmac( &ssl );
+        ssl_set_truncated_hmac( &ssl, SSL_TRUNC_HMAC_ENABLED );
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );

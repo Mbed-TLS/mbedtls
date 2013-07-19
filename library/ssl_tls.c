@@ -3149,12 +3149,12 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
     return( 0 );
 }
 
-int ssl_set_truncated_hmac( ssl_context *ssl )
+int ssl_set_truncated_hmac( ssl_context *ssl, int truncate )
 {
     if( ssl->endpoint != SSL_IS_CLIENT )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
+    ssl->trunc_hmac = truncate;
 
     return( 0 );
 }

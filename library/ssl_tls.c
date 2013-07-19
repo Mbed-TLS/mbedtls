@@ -3141,6 +3141,16 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
     return( 0 );
 }
 
+int ssl_set_truncated_hmac( ssl_context *ssl )
+{
+    if( ssl->endpoint != SSL_IS_CLIENT )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
+
+    return( 0 );
+}
+
 void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )
 {
     ssl->disable_renegotiation = renegotiation;

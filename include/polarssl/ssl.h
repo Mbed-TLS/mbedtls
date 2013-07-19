@@ -148,6 +148,9 @@
 #define SSL_LEGACY_ALLOW_RENEGOTIATION  1
 #define SSL_LEGACY_BREAK_HANDSHAKE      2
 
+#define SSL_TRUNC_HMAC_DISABLED         0
+#define SSL_TRUNC_HMAC_ENABLED          1
+
 /*
  * Size of the input / output buffer.
  * Note: the RFC defines the default size of SSL / TLS messages. If you
@@ -540,6 +543,7 @@ struct _ssl_context
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
+    int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
 
 #if defined(POLARSSL_DHM_C)
     mpi dhm_P;                          /*!<  prime modulus for DHM   */
@@ -975,6 +979,16 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor );
  * \return         O if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  */
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
+
+/**
+ * \brief          Activate negotiation of truncated HMAC (Client only)
+ *
+ * \param ssl      SSL context
+ *
+ * \return         O if successful,
+ *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side
+ */
+int ssl_set_truncated_hmac( ssl_context *ssl );
 
 /**
  * \brief          Enable / Disable renegotiation support for connection when

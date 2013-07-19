@@ -11,6 +11,10 @@ Features
    * Memory allocation abstraction layer added
    * Buffer-based memory allocator added (no malloc() / free() / HEAP usage)
    * Also compiles / runs without time-based functions (!POLARSSL_HAVE_TIME)
+   * Parsing Elliptic Curve keys
+   * Parsing Elliptic Curve certificates
+   * Support for max_fragment_length extension (RFC 6066)
+   * Support for truncated_hmac extension (RFC 6066)
 
 Changes
    * Introduced separate SSL Ciphersuites module that is based on

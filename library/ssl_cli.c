@@ -293,6 +293,28 @@ static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
     *olen = 5;
 }
 
+static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
+                                          unsigned char *buf, size_t *olen )
+{
+    unsigned char *p = buf;
+
+    if( ssl->trunc_hmac == SSL_TRUNC_HMAC_DISABLED )
+    {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding truncated_hmac extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_TRUNCATED_HMAC >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_TRUNCATED_HMAC      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 0x00;
+
+    *olen = 4;
+}
+
 static int ssl_write_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -463,6 +485,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
+    ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
 
@@ -526,6 +551,7 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
 
     return( 0 );
 }
+
 static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t len )
@@ -540,6 +566,23 @@ static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
     {
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
+
+    return( 0 );
+}
+
+static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         size_t len )
+{
+    if( ssl->trunc_hmac == SSL_TRUNC_HMAC_DISABLED ||
+        len != 0 )
+    {
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    ((void) buf);
+
+    ssl->session_negotiate->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
 
     return( 0 );
 }
@@ -764,6 +807,17 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             SSL_DEBUG_MSG( 3, ( "found max_fragment_length extension" ) );
 
             if( ( ret = ssl_parse_max_fragment_length_ext( ssl,
+                            ext + 4, ext_size ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            break;
+
+        case TLS_EXT_TRUNCATED_HMAC:
+            SSL_DEBUG_MSG( 3, ( "found truncated_hmac extension" ) );
+
+            if( ( ret = ssl_parse_truncated_hmac_ext( ssl,
                             ext + 4, ext_size ) ) != 0 )
             {
                 return( ret );

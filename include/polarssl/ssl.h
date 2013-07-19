@@ -254,6 +254,8 @@
 
 #define TLS_EXT_MAX_FRAGMENT_LENGTH          1
 
+#define TLS_EXT_TRUNCATED_HMAC               4
+
 #define TLS_EXT_SUPPORTED_ELLIPTIC_CURVES   10
 #define TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
@@ -336,6 +338,7 @@ struct _ssl_session
 #endif /* POLARSSL_X509_PARSE_C */
 
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
+    int trunc_hmac;             /*!< flag for truncated hmac activation   */
 };
 
 /*

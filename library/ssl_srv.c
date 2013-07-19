@@ -306,6 +306,23 @@ static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
     return( 0 );
 }
 
+static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         size_t len )
+{
+    if( len != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    ((void) buf);
+
+    ssl->session_negotiate->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( ssl_context *ssl )
 {
@@ -848,6 +865,14 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                 return( ret );
             break;
 
+        case TLS_EXT_TRUNCATED_HMAC:
+            SSL_DEBUG_MSG( 3, ( "found truncated hmac extension" ) );
+
+            ret = ssl_parse_truncated_hmac_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
                            ext_id ) );
@@ -955,6 +980,29 @@ have_ciphersuite:
     SSL_DEBUG_MSG( 2, ( "<= parse client hello" ) );
 
     return( 0 );
+}
+
+static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t *olen )
+{
+    unsigned char *p = buf;
+
+    if( ssl->session_negotiate->trunc_hmac == SSL_TRUNC_HMAC_DISABLED )
+    {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "server hello, adding truncated hmac extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_TRUNCATED_HMAC >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_TRUNCATED_HMAC      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 0x00;
+
+    *olen = 4;
 }
 
 static void ssl_write_renegotiation_ext( ssl_context *ssl,
@@ -1126,6 +1174,9 @@ static int ssl_write_server_hello( ssl_context *ssl )
     ext_len += olen;
 
     ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+
+    ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
     SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %d", ext_len ) );

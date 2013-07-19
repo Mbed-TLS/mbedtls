@@ -148,6 +148,10 @@
 #define SSL_LEGACY_ALLOW_RENEGOTIATION  1
 #define SSL_LEGACY_BREAK_HANDSHAKE      2
 
+#define SSL_TRUNC_HMAC_DISABLED         0
+#define SSL_TRUNC_HMAC_ENABLED          1
+#define SSL_TRUNCATED_HMAC_LEN          10  /* 80 bits, rfc 6066 section 7 */
+
 /*
  * Size of the input / output buffer.
  * Note: the RFC defines the default size of SSL / TLS messages. If you
@@ -251,6 +255,8 @@
 
 #define TLS_EXT_MAX_FRAGMENT_LENGTH          1
 
+#define TLS_EXT_TRUNCATED_HMAC               4
+
 #define TLS_EXT_SUPPORTED_ELLIPTIC_CURVES   10
 #define TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
@@ -333,6 +339,7 @@ struct _ssl_session
 #endif /* POLARSSL_X509_PARSE_C */
 
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
+    int trunc_hmac;             /*!< flag for truncated hmac activation   */
 };
 
 /*
@@ -540,6 +547,7 @@ struct _ssl_context
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
+    int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
 
 #if defined(POLARSSL_DHM_C)
     mpi dhm_P;                          /*!<  prime modulus for DHM   */
@@ -975,6 +983,19 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor );
  * \return         O if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  */
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
+
+/**
+ * \brief          Activate negotiation of truncated HMAC (Client only)
+ *                 (Default: SSL_TRUNC_HMAC_ENABLED)
+ *
+ * \param ssl      SSL context
+ * \param truncate Enable or disable (SSL_TRUNC_HMAC_ENABLED or
+ *                                    SSL_TRUNC_HMAC_DISABLED)
+ *
+ * \return         O if successful,
+ *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side
+ */
+int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
 
 /**
  * \brief          Enable / Disable renegotiation support for connection when

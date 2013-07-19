@@ -475,6 +475,14 @@ int ssl_derive_keys( ssl_context *ssl )
             }
 
             transform->maclen = md_get_size( md_info );
+
+            /*
+             * If HMAC is to be truncated, we shall keep the leftmost bytes,
+             * (rfc 6066 page 13 or rfc 2104 section 4),
+             * so we only need to adjust the length here.
+             */
+            if( session->trunc_hmac == SSL_TRUNC_HMAC_ENABLED )
+                transform->maclen = SSL_TRUNCATED_HMAC_LEN;
         }
 
         transform->keylen = cipher_info->key_length;
@@ -3137,6 +3145,16 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
     }
 
     ssl->mfl_code = mfl_code;
+
+    return( 0 );
+}
+
+int ssl_set_truncated_hmac( ssl_context *ssl, int truncate )
+{
+    if( ssl->endpoint != SSL_IS_CLIENT )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl->trunc_hmac = truncate;
 
     return( 0 );
 }

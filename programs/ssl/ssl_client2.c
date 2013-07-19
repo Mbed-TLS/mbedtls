@@ -58,6 +58,7 @@
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
+#define DFL_TRUNC_HMAC          0
 
 #define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
     "-01--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
@@ -94,6 +95,7 @@ struct options
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
+    int trunc_hmac;             /* negotiate truncated hmac or not          */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -191,6 +193,7 @@ static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "                        options: none, optional, required\n" \
     "    max_frag_len=%%d     default: 16384 (tls default)" \
     "                        options: 512, 1024, 2048, 4096" \
+    "    trunc_hmac=%%d       default: 0 (disabled)\n"      \
     USAGE_PSK                                               \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
@@ -281,6 +284,7 @@ int main( int argc, char *argv[] )
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
+    opt.trunc_hmac          = DFL_TRUNC_HMAC;
 
     for( i = 1; i < argc; i++ )
     {
@@ -414,6 +418,12 @@ int main( int argc, char *argv[] )
             else if( strcmp( q, "4096" ) == 0 )
                 opt.mfl_code = SSL_MAX_FRAG_LEN_4096;
             else
+                goto usage;
+        }
+        else if( strcmp( p, "trunc_hmac" ) == 0 )
+        {
+            opt.trunc_hmac = atoi( q );
+            if( opt.trunc_hmac < 0 || opt.trunc_hmac > 1 )
                 goto usage;
         }
         else
@@ -622,6 +632,9 @@ int main( int argc, char *argv[] )
     ssl_set_authmode( &ssl, opt.auth_mode );
 
     ssl_set_max_frag_len( &ssl, opt.mfl_code );
+
+    if( opt.trunc_hmac != 0 )
+        ssl_set_truncated_hmac( &ssl, SSL_TRUNC_HMAC_ENABLED );
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );

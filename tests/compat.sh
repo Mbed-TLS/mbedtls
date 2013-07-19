@@ -1,8 +1,50 @@
+#!/bin/bash
+
 killall -q openssl ssl_server ssl_server2
 
 MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
 OPENSSL=openssl
+FILTER=""
+VERBOSE=""
+
+# Parse arguments
+#
+until [ -z "$1" ]
+do
+  case "$1" in
+    -f|--filter)
+      # Filter ciphersuites
+      shift
+      FILTER=$1
+      ;;
+    -v|--verbose)
+      # Set verbosity
+      shift
+      VERBOSE=1
+      ;;
+    -h|--help)
+      # print help
+      echo "Usage: $0"
+      echo -e "  -f|--filter\tFilter ciphersuites to test."
+      echo -e "  -h|--help\t\tPrint this help."
+      echo -e "  -v|--verbose\t\tSet verbose output."
+      exit 1
+      ;;
+    *)
+      # print error
+      echo "Unknown argument: '$1'"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+log () {
+  if [ "X" != "X$VERBOSE" ]; then
+    echo "$@"
+  fi
+}
 
 for VERIFY in $VERIFIES;
 do
@@ -37,6 +79,7 @@ P_CIPHERS="                                 \
     TLS-RSA-WITH-3DES-EDE-CBC-SHA           \
     TLS-RSA-WITH-RC4-128-SHA                \
     TLS-RSA-WITH-RC4-128-MD5                \
+    TLS-RSA-EXPORT-WITH-RC4-40-MD5          \
     TLS-RSA-WITH-NULL-MD5                   \
     TLS-RSA-WITH-NULL-SHA                   \
     TLS-RSA-WITH-DES-CBC-SHA                \
@@ -65,6 +108,7 @@ O_CIPHERS="                         \
     DES-CBC3-SHA                    \
     RC4-SHA                         \
     RC4-MD5                         \
+    EXP-RC4-MD5                     \
     NULL-MD5                        \
     NULL-SHA                        \
     DES-CBC-SHA                     \
@@ -123,6 +167,30 @@ then
         "
 fi
 
+filter()
+{
+  LIST=$1
+  FILTER=$2
+
+  NEW_LIST=""
+
+  for i in $LIST;
+  do
+    NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" )"
+  done
+
+  echo "$NEW_LIST"
+}
+
+# Filter ciphersuites
+if [ "X" != "X$FILTER" ];
+then
+  O_CIPHERS=$( filter "$O_CIPHERS" "$FILTER" )
+  P_CIPHERS=$( filter "$P_CIPHERS" "$FILTER" )
+fi
+
+
+log "$OPENSSL s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE"
 $OPENSSL s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE &
 PROCESS_ID=$!
 
@@ -130,6 +198,7 @@ sleep 1
 
 for i in $P_CIPHERS;
 do
+    log "../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i force_version=$MODE"
     RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i force_version=$MODE )"
     EXIT=$?
     echo -n "OpenSSL Server - PolarSSL Client - $i : $EXIT - "
@@ -145,7 +214,9 @@ do
     fi
 done
 kill $PROCESS_ID
+wait $PROCESS_ID 2>/dev/null
 
+log "../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE > /dev/null"
 ../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE > /dev/null &
 PROCESS_ID=$!
 
@@ -153,6 +224,7 @@ sleep 1
 
 for i in $O_CIPHERS;
 do
+    log "$OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS"
     RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS 2>&1 )"
     EXIT=$?
     echo -n "PolarSSL Server - OpenSSL Client - $i : $EXIT - "
@@ -175,7 +247,9 @@ do
 done
 
 kill $PROCESS_ID
+wait $PROCESS_ID 2>/dev/null
 
+log "../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE"
 ../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE > /dev/null &
 PROCESS_ID=$!
 
@@ -221,8 +295,16 @@ P_CIPHERS="$P_CIPHERS                        \
     TLS-DHE-PSK-WITH-NULL-SHA                \
     "
 
+# Filter ciphersuites
+if [ "X" != "X$FILTER" ];
+then
+  O_CIPHERS=$( filter "$O_CIPHERS" "$FILTER" )
+  P_CIPHERS=$( filter "$P_CIPHERS" "$FILTER" )
+fi
+
 for i in $P_CIPHERS;
 do
+    log "../programs/ssl/ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS"
     RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS )"
     EXIT=$?
     echo -n "PolarSSL Server - PolarSSL Client - $i : $EXIT - "
@@ -238,6 +320,7 @@ do
     fi
 done
 kill $PROCESS_ID
+wait $PROCESS_ID 2>/dev/null
 
 done
 done

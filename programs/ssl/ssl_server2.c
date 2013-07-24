@@ -865,6 +865,10 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+    // Shell can not handle large exit numbers -> 1 for errors
+    if( ret < 0 )
+        ret = 1;
+
     return( ret );
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&

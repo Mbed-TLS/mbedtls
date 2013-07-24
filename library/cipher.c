@@ -368,6 +368,18 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 }
 
+int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
+{
+    if( NULL == ctx ||
+        POLARSSL_MODE_CBC != ctx->cipher_info->mode ||
+        POLARSSL_PADDING_PKCS7 != mode )
+    {
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+    return 0;
+}
+
 int cipher_reset( cipher_context_t *ctx, const unsigned char *iv )
 {
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )

@@ -30,6 +30,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_cipher.blowfish						\
 		test_suite_cipher.camellia						\
 		test_suite_cipher.des	test_suite_cipher.null	\
+		test_suite_cipher.padding						\
 		test_suite_ctr_drbg		test_suite_debug		\
 		test_suite_des			test_suite_dhm			\
 		test_suite_ecdh			test_suite_ecdsa		\
@@ -88,6 +89,10 @@ test_suite_cipher.des.c : suites/test_suite_cipher.function suites/test_suite_ci
 test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.null
+
+test_suite_cipher.padding.c : suites/test_suite_cipher.function suites/test_suite_cipher.padding.data scripts/generate_code.pl suites/helpers.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.padding
 
 test_suite_gcm.decrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_128.data scripts/generate_code.pl suites/helpers.function
 	echo   "  Generate	$@"
@@ -166,6 +171,10 @@ test_suite_cipher.des: test_suite_cipher.des.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_cipher.null: test_suite_cipher.null.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_cipher.padding: test_suite_cipher.padding.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

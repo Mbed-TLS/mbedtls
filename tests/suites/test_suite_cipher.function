@@ -252,6 +252,19 @@ enc_dec_buf_multipart:cipher_id:key_len:first_length:second_length:
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx_enc ) );
 END_CASE
 
+BEGIN_CASE
+set_padding:cipher_id:pad_mode:ret:
+    const cipher_info_t *cipher_info;
+    cipher_context_t ctx;
+
+    cipher_info = cipher_info_from_type( {cipher_id} );
+    TEST_ASSERT( NULL != cipher_info );
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx, cipher_info ) );
+
+    TEST_ASSERT( {ret} == cipher_set_padding_mode( &ctx, {pad_mode} ) );
+
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx ) );
+END_CASE
 
 BEGIN_CASE
 cipher_selftest:

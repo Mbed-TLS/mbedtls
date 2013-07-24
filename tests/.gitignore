@@ -1,2 +1,2 @@
-test_suite*
+/test_suite*
 data_files/mpi_write

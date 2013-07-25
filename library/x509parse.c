@@ -2091,7 +2091,7 @@ int x509parse_keyfile( pk_context *ctx,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
     memset( buf, 0, n + 1 );
-    free( buf );
+    polarssl_free( buf );
 
     return( ret );
 }
@@ -2111,7 +2111,7 @@ int x509parse_public_keyfile( pk_context *ctx, const char *path )
     ret = x509parse_public_key( ctx, buf, n );
 
     memset( buf, 0, n + 1 );
-    free( buf );
+    polarssl_free( buf );
 
     return( ret );
 }

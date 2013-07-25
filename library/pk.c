@@ -37,6 +37,13 @@
 #include "polarssl/ecdsa.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 
 /*
@@ -80,7 +87,7 @@ void pk_free( pk_context *ctx )
     }
 
     if( ! ctx->dont_free )
-        free( ctx->data );
+        polarssl_free( ctx->data );
 
     ctx->type = POLARSSL_PK_NONE;
     ctx->data = NULL;
@@ -116,7 +123,7 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
 #endif
         return( POLARSSL_ERR_PK_TYPE_MISMATCH );
 
-    if( ( ctx->data = malloc( size ) ) == NULL )
+    if( ( ctx->data = polarssl_malloc( size ) ) == NULL )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );
 
     memset( ctx->data, 0, size );

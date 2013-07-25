@@ -323,6 +323,11 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 
     ctx->cipher_info = cipher_info;
 
+    /*
+     * Ignore possible errors caused by a cipher mode that doesn't use padding
+     */
+    (void) cipher_set_padding_mode( ctx, POLARSSL_PADDING_PKCS7 );
+
     return 0;
 }
 
@@ -366,18 +371,6 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
                 ctx->key_length );
 
     return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
-}
-
-int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
-{
-    if( NULL == ctx ||
-        POLARSSL_MODE_CBC != ctx->cipher_info->mode ||
-        POLARSSL_PADDING_PKCS7 != mode )
-    {
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
-    }
-
-    return 0;
 }
 
 int cipher_reset( cipher_context_t *ctx, const unsigned char *iv )
@@ -543,8 +536,8 @@ static void add_pkcs_padding( unsigned char *output, size_t output_len,
         output[data_len + i] = (unsigned char) padding_len;
 }
 
-static int get_pkcs_padding( unsigned char *input, unsigned int input_len,
-        size_t *data_len)
+static int get_pkcs_padding( unsigned char *input, size_t input_len,
+        size_t *data_len )
 {
     unsigned int i, padding_len = 0;
 
@@ -585,7 +578,7 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
     {
         if( POLARSSL_ENCRYPT == ctx->operation )
         {
-            add_pkcs_padding( ctx->unprocessed_data, cipher_get_iv_size( ctx ),
+            ctx->add_padding( ctx->unprocessed_data, cipher_get_iv_size( ctx ),
                     ctx->unprocessed_len );
         }
         else if ( cipher_get_block_size( ctx ) != ctx->unprocessed_len )
@@ -604,7 +597,8 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 
         /* Set output size for decryption */
         if( POLARSSL_DECRYPT == ctx->operation )
-            return get_pkcs_padding( output, cipher_get_block_size( ctx ), olen );
+            return ctx->get_padding( output, cipher_get_block_size( ctx ),
+                                     olen );
 
         /* Set output size for encryption */
         *olen = cipher_get_block_size( ctx );
@@ -612,6 +606,24 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
     }
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+}
+
+int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
+{
+    if( NULL == ctx ||
+        POLARSSL_MODE_CBC != ctx->cipher_info->mode )
+    {
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+    if( POLARSSL_PADDING_PKCS7 == mode )
+    {
+        ctx->add_padding = add_pkcs_padding;
+        ctx->get_padding = get_pkcs_padding;
+        return 0;
+    }
+
+    return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 }
 
 #if defined(POLARSSL_SELF_TEST)

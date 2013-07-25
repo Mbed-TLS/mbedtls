@@ -202,6 +202,10 @@ typedef struct {
     /** Operation that the context's key has been initialised for */
     operation_t operation;
 
+    /** Padding functions to use, if relevant for cipher mode */
+    void (*add_padding)( unsigned char *output, size_t olen, size_t data_len );
+    int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
+
     /** Buffer for data that hasn't been encrypted yet */
     unsigned char unprocessed_data[POLARSSL_MAX_IV_LENGTH];
 

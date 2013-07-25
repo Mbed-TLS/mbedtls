@@ -369,8 +369,9 @@ struct _ssl_transform
     md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
 
-    uint32_t ctx_enc[136];              /*!<  encryption context      */
-    uint32_t ctx_dec[136];              /*!<  decryption context      */
+    /* 151 == 604 bytes is size of gcm_context (largest context in PolarSSL) */
+    uint32_t ctx_enc[151];              /*!<  encryption context      */
+    uint32_t ctx_dec[151];              /*!<  decryption context      */
 
     /*
      * Session specific compression layer

@@ -40,8 +40,8 @@ extern "C" {
 #define TLS_RSA_WITH_NULL_MD5                    0x01   /**< Weak! */
 #define TLS_RSA_WITH_NULL_SHA                    0x02   /**< Weak! */
 
-#define TLS_RSA_WITH_RC4_128_MD5                 0x04   /**< Weak! */
-#define TLS_RSA_WITH_RC4_128_SHA                 0x05   /**< Weak! */
+#define TLS_RSA_WITH_RC4_128_MD5                 0x04
+#define TLS_RSA_WITH_RC4_128_SHA                 0x05
 #define TLS_RSA_WITH_DES_CBC_SHA                 0x09   /**< Weak! Not in TLS 1.2 */
 
 #define TLS_RSA_WITH_3DES_EDE_CBC_SHA            0x0A
@@ -49,9 +49,9 @@ extern "C" {
 #define TLS_DHE_RSA_WITH_DES_CBC_SHA             0x15   /**< Weak! Not in TLS 1.2 */
 #define TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA        0x16
 
-#define TLS_PSK_WITH_NULL_SHA                    0x2C
-#define TLS_DHE_PSK_WITH_NULL_SHA                0x2D
-#define TLS_RSA_PSK_WITH_NULL_SHA                0x2E
+#define TLS_PSK_WITH_NULL_SHA                    0x2C   /**< Weak! */
+#define TLS_DHE_PSK_WITH_NULL_SHA                0x2D   /**< Weak! */
+#define TLS_RSA_PSK_WITH_NULL_SHA                0x2E   /**< Weak! */
 #define TLS_RSA_WITH_AES_128_CBC_SHA             0x2F
 
 #define TLS_DHE_RSA_WITH_AES_128_CBC_SHA         0x33
@@ -86,10 +86,10 @@ extern "C" {
 #define TLS_RSA_PSK_WITH_AES_128_CBC_SHA         0x94
 #define TLS_RSA_PSK_WITH_AES_256_CBC_SHA         0x95
 
-#define TLS_RSA_WITH_AES_128_GCM_SHA256          0x9C
-#define TLS_RSA_WITH_AES_256_GCM_SHA384          0x9D
-#define TLS_DHE_RSA_WITH_AES_128_GCM_SHA256      0x9E
-#define TLS_DHE_RSA_WITH_AES_256_GCM_SHA384      0x9F
+#define TLS_RSA_WITH_AES_128_GCM_SHA256          0x9C   /**< TLS 1.2 */
+#define TLS_RSA_WITH_AES_256_GCM_SHA384          0x9D   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_128_GCM_SHA256      0x9E   /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_256_GCM_SHA384      0x9F   /**< TLS 1.2 */
 
 #define TLS_PSK_WITH_AES_128_GCM_SHA256          0xA8   /**< TLS 1.2 */
 #define TLS_PSK_WITH_AES_256_GCM_SHA384          0xA9   /**< TLS 1.2 */
@@ -100,18 +100,18 @@ extern "C" {
 
 #define TLS_PSK_WITH_AES_128_CBC_SHA256          0xAE   /**< TLS 1.2 */
 #define TLS_PSK_WITH_AES_256_CBC_SHA384          0xAF   /**< TLS 1.2 */
-#define TLS_PSK_WITH_NULL_SHA256                 0xB0   /**< TLS 1.2 */
-#define TLS_PSK_WITH_NULL_SHA384                 0xB1   /**< TLS 1.2 */
+#define TLS_PSK_WITH_NULL_SHA256                 0xB0   /**< Weak! TLS 1.2 */
+#define TLS_PSK_WITH_NULL_SHA384                 0xB1   /**< Weak! TLS 1.2 */
 
 #define TLS_DHE_PSK_WITH_AES_128_CBC_SHA256      0xB2   /**< TLS 1.2 */
 #define TLS_DHE_PSK_WITH_AES_256_CBC_SHA384      0xB3   /**< TLS 1.2 */
-#define TLS_DHE_PSK_WITH_NULL_SHA256             0xB4   /**< TLS 1.2 */
-#define TLS_DHE_PSK_WITH_NULL_SHA384             0xB5   /**< TLS 1.2 */
+#define TLS_DHE_PSK_WITH_NULL_SHA256             0xB4   /**< Weak! TLS 1.2 */
+#define TLS_DHE_PSK_WITH_NULL_SHA384             0xB5   /**< Weak! TLS 1.2 */
 
 #define TLS_RSA_PSK_WITH_AES_128_CBC_SHA256      0xB6   /**< TLS 1.2 */
 #define TLS_RSA_PSK_WITH_AES_256_CBC_SHA384      0xB7   /**< TLS 1.2 */
-#define TLS_RSA_PSK_WITH_NULL_SHA256             0xB8   /**< TLS 1.2 */
-#define TLS_RSA_PSK_WITH_NULL_SHA384             0xB9   /**< TLS 1.2 */
+#define TLS_RSA_PSK_WITH_NULL_SHA256             0xB8   /**< Weak! TLS 1.2 */
+#define TLS_RSA_PSK_WITH_NULL_SHA384             0xB9   /**< Weak! TLS 1.2 */
 
 #define TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256     0xBA   /**< TLS 1.2 */
 #define TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 0xBE   /**< TLS 1.2 */
@@ -119,20 +119,20 @@ extern "C" {
 #define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256     0xC0   /**< TLS 1.2 */
 #define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 0xC4   /**< TLS 1.2 */
 
-#define TLS_ECDHE_RSA_WITH_NULL_SHA              0xC010
-#define TLS_ECDHE_RSA_WITH_RC4_128_SHA           0xC011
-#define TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA      0xC012
-#define TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA       0xC013
-#define TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA       0xC014
+#define TLS_ECDHE_RSA_WITH_NULL_SHA              0xC010 /**< Weak! */
+#define TLS_ECDHE_RSA_WITH_RC4_128_SHA           0xC011 /**< Not in SSL3! */
+#define TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA      0xC012 /**< Not in SSL3! */
+#define TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA       0xC013 /**< Not in SSL3! */
+#define TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA       0xC014 /**< Not in SSL3! */
 
-#define TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256    0xC027
-#define TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384    0xC028
+#define TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256    0xC027 /**< TLS 1.2 */
+#define TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384    0xC028 /**< TLS 1.2 */
 
-#define TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256    0xC02F
-#define TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384    0xC030
+#define TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256    0xC02F /**< TLS 1.2 */
+#define TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384    0xC030 /**< TLS 1.2 */
 
-#define TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256  0xC076
-#define TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384  0xC077
+#define TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256  0xC076 /**< TLS 1.2 */
+#define TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384  0xC077 /**< TLS 1.2 */
 
 typedef enum {
     POLARSSL_KEY_EXCHANGE_NONE = 0,

@@ -18,6 +18,11 @@ do
       shift
       FILTER=$1
       ;;
+    -m|--modes)
+      # Perform modes
+      shift
+      MODES=$1
+      ;;
     -v|--verbose)
       # Set verbosity
       shift
@@ -26,8 +31,9 @@ do
     -h|--help)
       # print help
       echo "Usage: $0"
-      echo -e "  -f|--filter\tFilter ciphersuites to test."
+      echo -e "  -f|--filter\tFilter ciphersuites to test (Default: all)"
       echo -e "  -h|--help\t\tPrint this help."
+      echo -e "  -m|--modes\tWhich modes to perform (Default: \"ssl3 tls1 tls1_1 tls1_2\")"
       echo -e "  -v|--verbose\t\tSet verbose output."
       exit 1
       ;;

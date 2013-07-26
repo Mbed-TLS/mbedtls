@@ -33,6 +33,7 @@ Changes
 Bugfix
    * Fixed parse error in ssl_parse_certificate_request()
    * zlib compression/decompression skipped on empty blocks
+   * Support for AIX header locations in net.c module
 
 = Version 1.2.8 released 2013-06-19
 Features

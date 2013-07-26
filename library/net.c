@@ -64,10 +64,12 @@ static int wsa_init_done = 0;
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) ||  \
     defined(__DragonflyBSD__)
 #include <sys/endian.h>
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(HAVE_MACHINE_ENDIAN_H)
 #include <machine/endian.h>
 #elif defined(sun)
 #include <sys/isa_defs.h>
+#elif defined(_AIX) || defined(HAVE_ARPA_NAMESER_COMPAT_H)
+#include <arpa/nameser_compat.h>
 #else
 #include <endian.h>
 #endif

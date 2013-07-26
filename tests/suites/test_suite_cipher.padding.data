@@ -57,3 +57,27 @@ set_padding:POLARSSL_CIPHER_DES_CBC:-1:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
 Set non-existent padding with BLOWFISH-CBC
 depends_on:POLARSSL_BLOWFISH_C
 set_padding:POLARSSL_CIPHER_BLOWFISH_CBC:-1:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Check PKCS padding #1 (correct)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD0004040404":0:4
+
+Check PKCS padding #2 (correct)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD0001":0:4
+
+Check PKCS padding #3 (correct)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD000101":0:5
+
+Check PKCS padding #4 (correct)
+check_padding:POLARSSL_PADDING_PKCS7:"030303":0:0
+
+Check PKCS padding #5 (null padding)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD0000":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check PKCS padding #6 (too few padding bytes)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD0002":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check PKCS padding #7 (non-uniform padding bytes)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD00030203":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check PKCS padding #8 (overlong)
+check_padding:POLARSSL_PADDING_PKCS7:"040404":POLARSSL_ERR_CIPHER_INVALID_PADDING:0

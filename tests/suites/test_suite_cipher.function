@@ -219,6 +219,27 @@ set_padding:cipher_id:pad_mode:ret:
 END_CASE
 
 BEGIN_CASE
+check_padding:pad_mode:input:ret:dlen:
+    cipher_info_t cipher_info;
+    cipher_context_t ctx;
+    unsigned char input[16];
+    size_t ilen, dlen;
+
+    /* build a fake context just for getting access to get_padding */
+    memset( &ctx, 0, sizeof( ctx ) );
+    cipher_info.mode = POLARSSL_MODE_CBC;
+    ctx.cipher_info = &cipher_info;
+
+    TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx, {pad_mode} ) );
+
+    ilen = unhexify( input, {input} );
+
+    TEST_ASSERT( {ret} == ctx.get_padding( input, ilen, &dlen ) );
+    if( 0 == {ret} )
+        TEST_ASSERT( dlen == {dlen} );
+END_CASE
+
+BEGIN_CASE
 cipher_selftest:
 {
     TEST_ASSERT( cipher_self_test( 0 ) == 0 );

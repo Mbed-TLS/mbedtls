@@ -546,7 +546,7 @@ static int get_pkcs_padding( unsigned char *input, size_t input_len,
 
     padding_len = input[input_len - 1];
 
-    if( padding_len > input_len )
+    if( padding_len > input_len || padding_len == 0 )
         return POLARSSL_ERR_CIPHER_INVALID_PADDING;
 
     for( i = input_len - padding_len; i < input_len; i++ )

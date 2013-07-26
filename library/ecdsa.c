@@ -75,7 +75,10 @@ int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
             MPI_CHK( mpi_copy( r, &R.X ) );
 
             if( key_tries++ > 10 )
-                return( POLARSSL_ERR_ECP_GENERIC );
+            {
+                ret = POLARSSL_ERR_ECP_GENERIC;
+                goto cleanup;
+            }
         }
         while( mpi_cmp_int( r, 0 ) == 0 );
 
@@ -94,7 +97,10 @@ int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
         MPI_CHK( mpi_mod_mpi( s, s, &grp->N ) );
 
         if( sign_tries++ > 10 )
-            return( POLARSSL_ERR_ECP_GENERIC );
+        {
+            ret = POLARSSL_ERR_ECP_GENERIC;
+            goto cleanup;
+        }
     }
     while( mpi_cmp_int( s, 0 ) == 0 );
 
@@ -127,7 +133,8 @@ int ecdsa_verify( const ecp_group *grp,
     if( mpi_cmp_int( r, 1 ) < 0 || mpi_cmp_mpi( r, &grp->N ) >= 0 ||
         mpi_cmp_int( s, 1 ) < 0 || mpi_cmp_mpi( s, &grp->N ) >= 0 )
     {
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
     }
 
     /*
@@ -159,13 +166,19 @@ int ecdsa_verify( const ecp_group *grp,
     MPI_CHK( ecp_add( grp, &R, &R, &P ) );
 
     if( ecp_is_zero( &R ) )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    {
+        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
     /*
      * Step 6: check that xR == r
      */
     if( mpi_cmp_mpi( &R.X, r ) != 0 )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    {
+        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
 cleanup:
     ecp_point_free( &R ); ecp_point_free( &P );

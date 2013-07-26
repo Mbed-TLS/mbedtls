@@ -181,7 +181,12 @@ int gcm_starts( gcm_context *ctx,
     const unsigned char *p;
     size_t use_len;
 
+    memset( ctx->y, 0x00, sizeof(ctx->y) );
+    memset( ctx->buf, 0x00, sizeof(ctx->buf) );
+
     ctx->mode = mode;
+    ctx->len = 0;
+    ctx->add_len = 0;
 
     if( iv_len == 12 )
     {

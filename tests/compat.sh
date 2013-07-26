@@ -286,6 +286,10 @@ then
         TLS-PSK-WITH-NULL-SHA384                 \
         TLS-DHE-PSK-WITH-NULL-SHA256             \
         TLS-DHE-PSK-WITH-NULL-SHA384             \
+        TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256     \
+        TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384     \
+        TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
+        TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
         "
 fi
 

@@ -657,6 +657,23 @@ static int get_zeros_padding( unsigned char *input, size_t input_len,
     return 0;
 }
 
+/*
+ * No padding: don't pad :)
+ *
+ * There is no add_padding function (check for NULL in cipher_finish)
+ * but a trivial get_padding function
+ */
+static int get_no_padding( unsigned char *input, size_t input_len,
+                              size_t *data_len )
+{
+    if( NULL == input || NULL == data_len )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    *data_len = input_len;
+
+    return 0;
+}
+
 int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 {
     int ret = 0;
@@ -677,12 +694,27 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
     {
         if( POLARSSL_ENCRYPT == ctx->operation )
         {
+            /* check for 'no padding' mode */
+            if( NULL == ctx->add_padding )
+            {
+                if( 0 != ctx->unprocessed_len )
+                    return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+
+                return 0;
+            }
+
             ctx->add_padding( ctx->unprocessed_data, cipher_get_iv_size( ctx ),
                     ctx->unprocessed_len );
         }
         else if ( cipher_get_block_size( ctx ) != ctx->unprocessed_len )
         {
-            /* For decrypt operations, expect a full block */
+            /*
+             * For decrypt operations, expect a full block,
+             * or an empty block if no padding
+             */
+            if( NULL == ctx->add_padding && 0 == ctx->unprocessed_len )
+                return 0;
+
             return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
         }
 
@@ -740,6 +772,13 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
     {
         ctx->add_padding = add_zeros_padding;
         ctx->get_padding = get_zeros_padding;
+        return 0;
+    }
+
+    if( POLARSSL_PADDING_NONE == mode )
+    {
+        ctx->add_padding = NULL;
+        ctx->get_padding = get_no_padding;
         return 0;
     }
 

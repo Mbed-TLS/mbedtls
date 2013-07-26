@@ -109,6 +109,7 @@ typedef enum {
     POLARSSL_PADDING_ONE_AND_ZEROS, /**< ISO/IEC 7816-4 padding         */
     POLARSSL_PADDING_ZEROS_AND_LEN, /**< ANSI X.923 padding             */
     POLARSSL_PADDING_ZEROS,         /**< zero padding (not reversible!) */
+    POLARSSL_PADDING_NONE,          /**< never pad (full blocks only)   */
 } cipher_padding_t;
 
 typedef enum {

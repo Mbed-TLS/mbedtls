@@ -92,6 +92,46 @@ enc_dec_buf:cipher_id:cipher_string:key_len:length:pad_mode:
 END_CASE
 
 BEGIN_CASE
+enc_fail:cipher_id:pad_mode:key_len:length:ret:
+    size_t length = {length};
+    unsigned char key[32];
+    unsigned char iv[16];
+
+    const cipher_info_t *cipher_info;
+    cipher_context_t ctx;
+
+    unsigned char inbuf[64];
+    unsigned char encbuf[64];
+
+    size_t outlen = 0;
+
+    memset( key, 0, 32 );
+    memset( iv , 0, 16 );
+
+    memset( &ctx, 0, sizeof( ctx ) );
+
+    memset( inbuf, 5, 64 );
+    memset( encbuf, 0, 64 );
+
+    /* Check and get info structures */
+    cipher_info = cipher_info_from_type( {cipher_id} );
+    TEST_ASSERT( NULL != cipher_info );
+
+    /* Initialise context */
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx, cipher_info ) );
+    TEST_ASSERT( 0 == cipher_setkey( &ctx, key, {key_len}, POLARSSL_ENCRYPT ) );
+    TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx, {pad_mode} ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx, iv ) );
+
+    /* encode length number of bytes from inbuf */
+    TEST_ASSERT( 0 == cipher_update( &ctx, inbuf, length, encbuf, &outlen ) );
+    TEST_ASSERT( {ret} == cipher_finish( &ctx, encbuf + outlen, &outlen ) );
+
+    /* done */
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx ) );
+END_CASE
+
+BEGIN_CASE
 dec_empty_buf:
     unsigned char key[32];
     unsigned char iv[16];

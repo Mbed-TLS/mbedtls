@@ -120,3 +120,24 @@ check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"000004":POLARSSL_ERR_CIPHER_INVALI
 
 Check zeros and len padding #6 (not enough zeros)
 check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD000004":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check zeros padding #1 (correct)
+check_padding:POLARSSL_PADDING_ZEROS:"DABBAD00":0:3
+
+Check zeros padding #2 (correct)
+check_padding:POLARSSL_PADDING_ZEROS:"DABBAD0000":0:3
+
+Check zeros padding #3 (correct)
+check_padding:POLARSSL_PADDING_ZEROS:"DABBAD":0:3
+
+Check zeros padding #4 (correct)
+check_padding:POLARSSL_PADDING_ZEROS:"000000":0:0
+
+Check no padding #1 (correct by definition)
+check_padding:POLARSSL_PADDING_NONE:"DABBAD00":0:4
+
+Check no padding #2 (correct by definition)
+check_padding:POLARSSL_PADDING_NONE:"DABBAD0001":0:5
+
+Check no padding #3 (correct by definition)
+check_padding:POLARSSL_PADDING_NONE:"":0:0

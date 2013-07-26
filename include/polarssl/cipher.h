@@ -106,6 +106,7 @@ typedef enum {
 
 typedef enum {
     POLARSSL_PADDING_PKCS7 = 0,     /**< PKCS7 padding (default) */
+    POLARSSL_PADDING_ONE_AND_ZEROS, /**< ISO/IEC 7816-4 padding  */
 } cipher_padding_t;
 
 typedef enum {

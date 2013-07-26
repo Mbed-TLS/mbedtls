@@ -65,6 +65,66 @@ DES Encrypt and decrypt 49 bytes
 depends_on:POLARSSL_DES_C
 enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:49:-1
 
+DES Encrypt and decrypt 0 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:0:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 1 byte with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:1:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 2 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:2:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 7 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:7:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 8 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:8:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 9 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:9:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 15 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:15:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 16 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:16:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 17 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:17:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 31 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:31:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 32 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:32:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 32 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:33:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 47 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:47:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 48 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:48:POLARSSL_PADDING_ONE_AND_ZEROS
+
+DES Encrypt and decrypt 49 bytes with one and zeros padding
+depends_on:POLARSSL_DES_C
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:49:POLARSSL_PADDING_ONE_AND_ZEROS
+
 DES Encrypt and decrypt 0 bytes in multiple parts
 depends_on:POLARSSL_DES_C
 enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:0:0:

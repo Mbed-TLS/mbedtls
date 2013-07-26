@@ -526,6 +526,9 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
+/*
+ * PKCS7 (and PKCS5) padding: fill with ll bytes, with ll = padding_len
+ */
 static void add_pkcs_padding( unsigned char *output, size_t output_len,
         size_t data_len )
 {
@@ -554,6 +557,39 @@ static int get_pkcs_padding( unsigned char *input, size_t input_len,
             return POLARSSL_ERR_CIPHER_INVALID_PADDING;
 
     *data_len = input_len - padding_len;
+
+    return 0;
+}
+
+/*
+ * One and zeros padding: fill with 80 00 ... 00
+ */
+static void add_one_and_zeros_padding( unsigned char *output,
+                                       size_t output_len, size_t data_len )
+{
+    size_t padding_len = output_len - data_len;
+    unsigned char i = 0;
+
+    output[data_len] = 0x80;
+    for( i = 1; i < padding_len; i++ )
+        output[data_len + i] = 0x00;
+}
+
+static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
+                                      size_t *data_len )
+{
+    unsigned char *p = input + input_len - 1;
+
+    if( NULL == input || NULL == data_len )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    while( *p == 0x00 && p > input )
+        --p;
+
+    if( *p != 0x80 )
+        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
+
+    *data_len = p - input;
 
     return 0;
 }
@@ -620,6 +656,13 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
     {
         ctx->add_padding = add_pkcs_padding;
         ctx->get_padding = get_pkcs_padding;
+        return 0;
+    }
+
+    if( POLARSSL_PADDING_ONE_AND_ZEROS == mode )
+    {
+        ctx->add_padding = add_one_and_zeros_padding;
+        ctx->get_padding = get_one_and_zeros_padding;
         return 0;
     }
 

@@ -7,63 +7,63 @@ dec_empty_buf:
 
 DES Encrypt and decrypt 0 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:0
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:0:-1
 
 DES Encrypt and decrypt 1 byte
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:1
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:1:-1
 
 DES Encrypt and decrypt 2 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:2
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:2:-1
 
 DES Encrypt and decrypt 7 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:7
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:7:-1
 
 DES Encrypt and decrypt 8 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:8
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:8:-1
 
 DES Encrypt and decrypt 9 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:9
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:9:-1
 
 DES Encrypt and decrypt 15 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:15
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:15:-1
 
 DES Encrypt and decrypt 16 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:16
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:16:-1
 
 DES Encrypt and decrypt 17 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:17
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:17:-1
 
 DES Encrypt and decrypt 31 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:31
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:31:-1
 
 DES Encrypt and decrypt 32 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:32
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:32:-1
 
 DES Encrypt and decrypt 32 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:33
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:33:-1
 
 DES Encrypt and decrypt 47 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:47
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:47:-1
 
 DES Encrypt and decrypt 48 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:48
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:48:-1
 
 DES Encrypt and decrypt 49 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:49
+enc_dec_buf:POLARSSL_CIPHER_DES_CBC:DES-CBC:56:49:-1
 
 DES Encrypt and decrypt 0 bytes in multiple parts
 depends_on:POLARSSL_DES_C
@@ -111,63 +111,63 @@ enc_dec_buf_multipart:POLARSSL_CIPHER_DES_CBC:56:16:16:
 
 DES Encrypt and decrypt 0 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:0
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:0:-1
 
 DES3 Encrypt and decrypt 1 byte
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:1
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:1:-1
 
 DES3 Encrypt and decrypt 2 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:2
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:2:-1
 
 DES3 Encrypt and decrypt 7 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:7
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:7:-1
 
 DES3 Encrypt and decrypt 8 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:8
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:8:-1
 
 DES3 Encrypt and decrypt 9 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:9
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:9:-1
 
 DES3 Encrypt and decrypt 15 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:15
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:15:-1
 
 DES3 Encrypt and decrypt 16 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:16
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:16:-1
 
 DES3 Encrypt and decrypt 17 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:17
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:17:-1
 
 DES3 Encrypt and decrypt 31 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:31
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:31:-1
 
 DES3 Encrypt and decrypt 32 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:32
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:32:-1
 
 DES3 Encrypt and decrypt 32 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:33
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:33:-1
 
 DES3 Encrypt and decrypt 47 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:47
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:47:-1
 
 DES3 Encrypt and decrypt 48 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:48
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:48:-1
 
 DES3 Encrypt and decrypt 49 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:49
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE_CBC:DES-EDE-CBC:112:49:-1
 
 DES3 Encrypt and decrypt 0 bytes in multiple parts
 depends_on:POLARSSL_DES_C
@@ -215,63 +215,63 @@ enc_dec_buf_multipart:POLARSSL_CIPHER_DES_EDE_CBC:112:16:16:
 
 DES3 Encrypt and decrypt 0 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:0
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:0:-1
 
 DES3 Encrypt and decrypt 1 byte
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:1
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:1:-1
 
 DES3 Encrypt and decrypt 2 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:2
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:2:-1
 
 DES3 Encrypt and decrypt 7 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:7
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:7:-1
 
 DES3 Encrypt and decrypt 8 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:8
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:8:-1
 
 DES3 Encrypt and decrypt 9 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:9
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:9:-1
 
 DES3 Encrypt and decrypt 15 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:15
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:15:-1
 
 DES3 Encrypt and decrypt 16 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:16
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:16:-1
 
 DES3 Encrypt and decrypt 17 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:17
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:17:-1
 
 DES3 Encrypt and decrypt 31 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:31
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:31:-1
 
 DES3 Encrypt and decrypt 32 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:32
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:32:-1
 
 DES3 Encrypt and decrypt 32 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:33
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:33:-1
 
 DES3 Encrypt and decrypt 47 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:47
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:47:-1
 
 DES3 Encrypt and decrypt 48 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:48
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:48:-1
 
 DES3 Encrypt and decrypt 49 bytes
 depends_on:POLARSSL_DES_C
-enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:49
+enc_dec_buf:POLARSSL_CIPHER_DES_EDE3_CBC:DES-EDE3-CBC:168:49:-1
 
 DES3 Encrypt and decrypt 0 bytes in multiple parts
 depends_on:POLARSSL_DES_C

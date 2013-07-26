@@ -7,7 +7,7 @@ depends_on:POLARSSL_CIPHER_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-enc_dec_buf:cipher_id:cipher_string:key_len:length:
+enc_dec_buf:cipher_id:cipher_string:key_len:length:pad_mode:
     size_t length = {length};
     unsigned char key[32];
     unsigned char iv[16];
@@ -44,6 +44,12 @@ enc_dec_buf:cipher_id:cipher_string:key_len:length:
     
     TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, {key_len}, POLARSSL_DECRYPT ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx_enc, key, {key_len}, POLARSSL_ENCRYPT ) );
+
+    if( -1 != {pad_mode} )
+    {
+        TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx_dec, {pad_mode} ) );
+        TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx_enc, {pad_mode} ) );
+    }
 
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );

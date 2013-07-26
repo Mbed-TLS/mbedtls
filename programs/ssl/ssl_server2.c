@@ -159,8 +159,8 @@ static void my_debug( void *ctx, int level, const char *str )
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
     "    auth_mode=%%s        default: \"optional\"\n"      \
     "                        options: none, optional, required\n" \
-    "    max_frag_len=%%d     default: 16384 (tls default)" \
-    "                        options: 512, 1024, 2048, 4096" \
+    "    max_frag_len=%%d     default: 16384 (tls default)\n"  \
+    "                        options: 512, 1024, 2048, 4096\n" \
     USAGE_PSK                                               \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\

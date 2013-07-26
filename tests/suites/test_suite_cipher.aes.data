@@ -125,6 +125,66 @@ AES Encrypt and decrypt 49 bytes with one and zeros padding
 depends_on:POLARSSL_AES_C
 enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:49:POLARSSL_PADDING_ONE_AND_ZEROS
 
+AES Encrypt and decrypt 0 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:0:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 1 byte with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:1:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 2 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:2:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 7 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:7:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 8 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:8:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 9 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:9:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 15 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:15:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 16 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:16:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 17 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:17:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 31 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:31:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 32 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:32:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 33 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:33:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 47 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:47:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 48 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:48:POLARSSL_PADDING_ZEROS_AND_LEN
+
+AES Encrypt and decrypt 49 bytes with zeros and len padding
+depends_on:POLARSSL_AES_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_CBC:AES-128-CBC:128:49:POLARSSL_PADDING_ZEROS_AND_LEN
+
 AES Encrypt and decrypt 0 bytes in multiple parts
 depends_on:POLARSSL_AES_C
 enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_CBC:128:0:0:

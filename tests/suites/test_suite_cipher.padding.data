@@ -102,3 +102,21 @@ check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"DABBAD0000":POLARSSL_ERR_CIPHER_IN
 
 Check one and zeros padding #7 (overlong)
 check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"0000000000":POLARSSL_ERR_CIPHER_INVALID_PADDING:4
+
+Check zeros and len padding #1 (correct)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD0001":0:4
+
+Check zeros and len padding #2 (correct)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD000002":0:4
+
+Check zeros and len padding #3 (correct)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD000003":0:3
+
+Check zeros and len padding #4 (correct)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"000003":0:0
+
+Check zeros and len padding #5 (overlong)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"000004":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check zeros and len padding #6 (not enough zeros)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD000004":POLARSSL_ERR_CIPHER_INVALID_PADDING:0

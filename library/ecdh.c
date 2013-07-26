@@ -65,7 +65,10 @@ int ecdh_compute_shared( const ecp_group *grp, mpi *z,
     MPI_CHK( ecp_mul( grp, &P, d, Q ) );
 
     if( ecp_is_zero( &P ) )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    {
+        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
     MPI_CHK( mpi_copy( z, &P.X ) );
 

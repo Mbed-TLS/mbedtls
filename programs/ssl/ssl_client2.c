@@ -59,6 +59,7 @@
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          0
+#define DFL_RECONNECT           0
 
 #define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
     "-01--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
@@ -96,6 +97,7 @@ struct options
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
+    int reconnect;              /* attempt to resume session                */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -184,6 +186,7 @@ static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "    request_page=%%s     default: \".\"\n"             \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
+    "    reconnect=%%d        default: 0 (disabled)\n"      \
     "\n"                                                    \
     "    min_version=%%s      default: \"\" (ssl3)\n"       \
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
@@ -226,6 +229,7 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
+    ssl_session saved_session;
 #if defined(POLARSSL_X509_PARSE_C)
     x509_cert cacert;
     x509_cert clicert;
@@ -239,6 +243,7 @@ int main( int argc, char *argv[] )
      */
     server_fd = 0;
     memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &saved_session, 0, sizeof( ssl_session ) );
 #if defined(POLARSSL_X509_PARSE_C)
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &clicert, 0, sizeof( x509_cert ) );
@@ -285,6 +290,7 @@ int main( int argc, char *argv[] )
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
+    opt.reconnect           = DFL_RECONNECT;
 
     for( i = 1; i < argc; i++ )
     {
@@ -343,6 +349,12 @@ int main( int argc, char *argv[] )
         {
             opt.allow_legacy = atoi( q );
             if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "reconnect" ) == 0 )
+        {
+            opt.reconnect = atoi( q );
+            if( opt.reconnect < 0 || opt.reconnect > 1 )
                 goto usage;
         }
         else if( strcmp( p, "min_version" ) == 0 )
@@ -693,6 +705,20 @@ int main( int argc, char *argv[] )
     printf( " ok\n    [ Ciphersuite is %s ]\n",
             ssl_get_ciphersuite( &ssl ) );
 
+    if( opt.reconnect != 0 )
+    {
+        printf("  . Saving session for reuse..." );
+        fflush( stdout );
+
+        if( ( ret = ssl_get_session( &ssl, &saved_session ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_get_session returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+
+        printf( " ok\n" );
+    }
+
 #if defined(POLARSSL_X509_PARSE_C)
     /*
      * 5. Verify the server certificate
@@ -732,6 +758,7 @@ int main( int argc, char *argv[] )
     /*
      * 6. Write the GET request
      */
+send_request:
     printf( "  > Write to server:" );
     fflush( stdout );
 
@@ -788,6 +815,43 @@ int main( int argc, char *argv[] )
     while( 1 );
 
     ssl_close_notify( &ssl );
+
+    if( opt.reconnect != 0 )
+    {
+        opt.reconnect = 0;
+
+        printf( "  . Reconnecting with saved session..." );
+        fflush( stdout );
+
+        if( ( ret = ssl_session_reset( &ssl ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_session_reset returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+
+        ssl_set_session( &ssl, &saved_session );
+
+        if( ( ret = net_connect( &server_fd, opt.server_name,
+                        opt.server_port ) ) != 0 )
+        {
+            printf( " failed\n  ! net_connect returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+
+        while( ( ret = ssl_handshake( &ssl ) ) != 0 )
+        {
+            if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
+                goto exit;
+            }
+        }
+
+        printf( " ok\n" );
+
+        goto send_request;
+    }
 
 exit:
 

@@ -3224,6 +3224,7 @@ const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
 
 int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
 {
+    int ret;
     ssl_session *src;
 
     if( ssl == NULL ||
@@ -3239,10 +3240,23 @@ int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
     ssl_session_free( dst );
     memcpy( dst, src, sizeof( ssl_session ) );
 
-    /*
-     * For now, just set peer_cert to NULL, deep-copy not implemented yet
-     */
-    dst->peer_cert = NULL;
+#if defined(POLARSSL_X509_PARSE_C)
+    if( src->peer_cert != NULL )
+    {
+        if( ( dst->peer_cert = polarssl_malloc( sizeof(x509_cert) ) ) == NULL )
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+        memset( dst->peer_cert, 0, sizeof(x509_cert) );
+
+        if( ( ret = x509parse_crt( dst->peer_cert, src->peer_cert->raw.p,
+                                   src->peer_cert->raw.len ) != 0 ) )
+        {
+            polarssl_free( dst->peer_cert );
+            dst->peer_cert = NULL;
+            return( ret );
+        }
+    }
+#endif /* POLARSSL_X509_PARSE_C */
 
     return( 0 );
 }

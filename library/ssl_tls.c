@@ -3222,6 +3222,31 @@ const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
 }
 #endif /* POLARSSL_X509_PARSE_C */
 
+int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
+{
+    ssl_session *src;
+
+    if( ssl == NULL ||
+        dst == NULL ||
+        ssl->session == NULL ||
+        ssl->endpoint != SSL_IS_CLIENT )
+    {
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    src = ssl->session;
+
+    ssl_session_free( dst );
+    memcpy( dst, src, sizeof( ssl_session ) );
+
+    /*
+     * For now, just set peer_cert to NULL, deep-copy not implemented yet
+     */
+    dst->peer_cert = NULL;
+
+    return( 0 );
+}
+
 /*
  * Perform a single step of the SSL handshake
  */

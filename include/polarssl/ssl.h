@@ -774,13 +774,10 @@ void ssl_set_session_cache( ssl_context *ssl,
  * \brief          Request resumption of session (client-side only)
  *                 Session data is copied from presented session structure.
  *
- *                 Warning: session.peer_cert is cleared by the SSL/TLS layer on
- *                 connection shutdown, so do not cache the pointer! Either set
- *                 it to NULL or make a full copy of the certificate when
- *                 storing the session for use in this function.
- *
  * \param ssl      SSL context
  * \param session  session context
+ *
+ * \sa             ssl_get_session()
  */
 void ssl_set_session( ssl_context *ssl, const ssl_session *session );
 
@@ -1099,6 +1096,24 @@ const char *ssl_get_version( const ssl_context *ssl );
  */
 const x509_cert *ssl_get_peer_cert( const ssl_context *ssl );
 #endif /* POLARSSL_X509_PARSE_C */
+
+/**
+ * \brief          Save session in order to resume it later (client-side only)
+ *                 Session data is copied to presented session structure.
+ *
+ * \warning        Currently, peer certificate is lost in the operation.
+ *
+ * \param ssl      SSL context
+ * \param session  session context
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_SSL_MALLOC_FAILED if memory allocation failed,
+ *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side or
+ *                 arguments are otherwise invalid
+ *
+ * \sa             ssl_set_session()
+ */
+int ssl_get_session( const ssl_context *ssl, ssl_session *session );
 
 /**
  * \brief          Perform the SSL handshake

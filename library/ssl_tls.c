@@ -2619,6 +2619,11 @@ int ssl_write_finished( ssl_context *ssl )
         else
             ssl->state = SSL_CLIENT_CHANGE_CIPHER_SPEC;
     }
+    else if( ssl->endpoint == SSL_IS_CLIENT &&
+             ssl->handshake->new_session_ticket != 0 )
+    {
+        ssl->state = SSL_SERVER_NEW_SESSION_TICKET;
+    }
     else
         ssl->state++;
 

@@ -107,6 +107,8 @@
 #define POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
 #define POLARSSL_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
 #define POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION           -0x6E80  /**< Handshake protocol not within min/max boundaries */
+#define POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
+
 
 /*
  * Various constants
@@ -239,6 +241,7 @@
 #define SSL_HS_HELLO_REQUEST            0
 #define SSL_HS_CLIENT_HELLO             1
 #define SSL_HS_SERVER_HELLO             2
+#define SSL_HS_NEW_SESSION_TICKET       4
 #define SSL_HS_CERTIFICATE             11
 #define SSL_HS_SERVER_KEY_EXCHANGE     12
 #define SSL_HS_CERTIFICATE_REQUEST     13
@@ -313,7 +316,8 @@ typedef enum
     SSL_SERVER_FINISHED,
     SSL_FLUSH_BUFFERS,
     SSL_HANDSHAKE_WRAPUP,
-    SSL_HANDSHAKE_OVER
+    SSL_HANDSHAKE_OVER,
+    SSL_SERVER_NEW_SESSION_TICKET,
 }
 ssl_states;
 
@@ -342,6 +346,7 @@ struct _ssl_session
 
     unsigned char *ticket;      /*!< RFC 5077 session ticket */
     size_t ticket_len;          /*!< session ticket length   */
+    uint32_t ticket_lifetime;   /*!< ticket lifetime hint    */
 
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
@@ -433,6 +438,8 @@ struct _ssl_handshake_params
     int resume;                         /*!<  session resume indicator*/
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
+
+    int new_session_ticket;             /*!< use NewSessionTicket?    */
 };
 
 struct _ssl_context

@@ -431,7 +431,25 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE || n < 16 || n > 32 ||
         ssl->handshake->resume == 0 )
+    {
         n = 0;
+    }
+
+    /*
+     * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
+     * generate and include a Session ID in the TLS ClientHello."
+     */
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
+        ssl->session_negotiate->ticket != NULL &&
+        ssl->session_negotiate->ticket_len != 0 )
+    {
+        ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id, 32 );
+
+        if( ret != 0 )
+            return( ret );
+
+        ssl->session_negotiate->length = n = 32;
+    }
 
     *p++ = (unsigned char) n;
 

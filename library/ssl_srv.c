@@ -33,12 +33,119 @@
 #include "polarssl/ecp.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
 #endif
+
+/*
+ * Serialize a session in the following format:
+ *  0   .   n-1     session structure, n = sizeof(ssl_session)
+ *  n   .   n+2     peer_cert length = m (0 if no certificate)
+ *  n+3 .   n+2+m   peer cert ASN.1
+ *
+ *  Assumes ticket is NULL (always true on server side).
+ */
+static void ssl_save_session( const ssl_session *session,
+                              unsigned char *buf, size_t *olen )
+{
+    unsigned char *p = buf;
+#if defined(POLARSSL_X509_PARSE_C)
+    size_t cert_len;
+#endif /* POLARSSL_X509_PARSE_C */
+
+    memcpy( p, session, sizeof( ssl_session ) );
+    p += sizeof( ssl_session );
+
+#if defined(POLARSSL_X509_PARSE_C)
+    ((ssl_session *) buf)->peer_cert = NULL;
+
+    if( session->peer_cert == NULL )
+        cert_len = 0;
+    else
+        cert_len = session->peer_cert->raw.len;
+
+    *p++ = (unsigned char)( cert_len >> 16 & 0xFF );
+    *p++ = (unsigned char)( cert_len >>  8 & 0xFF );
+    *p++ = (unsigned char)( cert_len       & 0xFF );
+
+    if( session->peer_cert != NULL )
+        memcpy( p, session->peer_cert->raw.p, cert_len );
+
+    p += cert_len;
+#endif /* POLARSSL_X509_PARSE_C */
+
+    *olen = p - buf;
+}
+
+/*
+ * Unserialise session, see ssl_save_session()
+ */
+static int ssl_load_session( ssl_session *session,
+                             const unsigned char *buf, size_t len )
+{
+    int ret;
+    const unsigned char *p = buf;
+    const unsigned char * const end = buf + len;
+#if defined(POLARSSL_X509_PARSE_C)
+    size_t cert_len;
+#endif /* POLARSSL_X509_PARSE_C */
+
+    if( p + sizeof( ssl_session ) > end )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( session, p, sizeof( ssl_session ) );
+    p += sizeof( ssl_session );
+
+#if defined(POLARSSL_X509_PARSE_C)
+    if( p + 3 > end )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    cert_len = ( p[0] << 16 ) | ( p[1] << 8 ) | p[2];
+    p += 3;
+
+    if( cert_len == 0 )
+    {
+        session->peer_cert = NULL;
+    }
+    else
+    {
+        if( p + cert_len > end )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+        session->peer_cert = polarssl_malloc( cert_len );
+
+        if( session->peer_cert == NULL )
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+        memset( session->peer_cert, 0, sizeof( x509_cert ) );
+
+        if( ( ret = x509parse_crt( session->peer_cert, p, cert_len ) ) != 0 )
+        {
+            polarssl_free( session->peer_cert );
+            free( session->peer_cert );
+            session->peer_cert = NULL;
+            return( ret );
+        }
+
+        p += cert_len;
+    }
+#endif /* POLARSSL_X509_PARSE_C */
+
+    if( p != end )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    return( 0 );
+}
 
 static int ssl_parse_servername_ext( ssl_context *ssl,
                                      const unsigned char *buf,

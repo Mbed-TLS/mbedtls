@@ -434,18 +434,33 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
                                          const unsigned char *buf,
                                          size_t len )
 {
-    /*
-     * Remember the client asked for a ticket
-     */
+    ssl_session session;
+
+    /* Remember the client asked us to send a ticket */
     ssl->handshake->new_session_ticket = 1;
 
     if( len == 0 )
         return( 0 );
 
-    // TODO: verify the ticket, and if it is acceptable, use it to fill
-    // session_negotiated and set handshake->resume to 1
-    ((void) buf);
-    ((void) ssl);
+    SSL_DEBUG_MSG( 3, ( "ticket length: %d", len ) );
+
+    /*
+     * Use a temporary session to preserve the current one of failures.
+     * Failures are ok: just ignore the ticket and proceed.
+     */
+    if( ssl_load_session( &session, buf, len ) != 0 )
+    {
+        SSL_DEBUG_MSG( 3, ( "failed to load ticket" ) );
+        return( 0 );
+    }
+
+    SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
+
+    ssl_session_free( ssl->session_negotiate );
+    memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
+    memset( &session, 0, sizeof( ssl_session ) );
+
+    ssl->handshake->resume = 1;
 
     return( 0 );
 }
@@ -2278,6 +2293,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 static int ssl_write_new_session_ticket( ssl_context *ssl )
 {
     int ret;
+    size_t tlen;
 
     SSL_DEBUG_MSG( 2, ( "=> write new session ticket" ) );
 
@@ -2299,13 +2315,12 @@ static int ssl_write_new_session_ticket( ssl_context *ssl )
     ssl->out_msg[6] = 0x00;
     ssl->out_msg[7] = 0x00;
 
-    // TODO: generate and send actual ticket (empty for now)
+    ssl_save_session( ssl->session_negotiate, ssl->out_msg + 10, &tlen );
 
-    ssl->out_msglen = 10 + 0;
-    ssl->out_msg[8] = 0x00;
-    ssl->out_msg[9] = 0x00;
+    ssl->out_msg[8] = (unsigned char)( ( tlen >> 8 ) & 0xFF );
+    ssl->out_msg[9] = (unsigned char)( ( tlen      ) & 0xFF );
 
-    SSL_DEBUG_BUF( 0, "out_msg", ssl->out_msg, ssl->out_msglen );
+    ssl->out_msglen = 10 + tlen;
 
     if( ( ret = ssl_write_record( ssl ) ) != 0 )
     {

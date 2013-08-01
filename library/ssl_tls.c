@@ -2736,6 +2736,11 @@ int ssl_parse_finished( ssl_context *ssl )
         if( ssl->endpoint == SSL_IS_SERVER )
             ssl->state = SSL_HANDSHAKE_WRAPUP;
     }
+    else if( ssl->endpoint == SSL_IS_SERVER &&
+             ssl->handshake->new_session_ticket != 0 )
+    {
+        ssl->state = SSL_SERVER_NEW_SESSION_TICKET;
+    }
     else
         ssl->state++;
 

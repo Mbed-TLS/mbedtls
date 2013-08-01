@@ -323,6 +323,26 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
     return( 0 );
 }
 
+static int ssl_parse_session_ticket_ext( ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         size_t len )
+{
+    /*
+     * Remember the client asked for a ticket
+     */
+    ssl->handshake->new_session_ticket = 1;
+
+    if( len == 0 )
+        return( 0 );
+
+    // TODO: verify the ticket, and if it is acceptable, use it to fill
+    // session_negotiated and set handshake->resume to 1
+    ((void) buf);
+    ((void) ssl);
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( ssl_context *ssl )
 {
@@ -873,6 +893,14 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                 return( ret );
             break;
 
+        case TLS_EXT_SESSION_TICKET:
+            SSL_DEBUG_MSG( 3, ( "found session ticket extension" ) );
+
+            ret = ssl_parse_session_ticket_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
                            ext_id ) );
@@ -998,6 +1026,29 @@ static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
 
     *p++ = (unsigned char)( ( TLS_EXT_TRUNCATED_HMAC >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_TRUNCATED_HMAC      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 0x00;
+
+    *olen = 4;
+}
+
+static void ssl_write_session_ticket_ext( ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t *olen )
+{
+    unsigned char *p = buf;
+
+    if( ssl->handshake->new_session_ticket == 0 )
+    {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "server hello, adding session ticket extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET      ) & 0xFF );
 
     *p++ = 0x00;
     *p++ = 0x00;
@@ -1177,6 +1228,9 @@ static int ssl_write_server_hello( ssl_context *ssl )
     ext_len += olen;
 
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+
+    ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
     SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %d", ext_len ) );
@@ -2114,6 +2168,51 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
           !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED &&
           !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
 
+static int ssl_write_new_session_ticket( ssl_context *ssl )
+{
+    int ret;
+
+    SSL_DEBUG_MSG( 2, ( "=> write new session ticket" ) );
+
+    ssl->out_msgtype = SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = SSL_HS_NEW_SESSION_TICKET;
+
+    /*
+     * struct {
+     *     uint32 ticket_lifetime_hint;
+     *     opaque ticket<0..2^16-1>;
+     * } NewSessionTicket;
+     *
+     * 4  .  7   ticket_lifetime_hint (0 = unspecified)
+     * 8  .  9   ticket_len (n)
+     * 10 .  9+n ticket content
+     */
+    ssl->out_msg[4] = 0x00;
+    ssl->out_msg[5] = 0x00;
+    ssl->out_msg[6] = 0x00;
+    ssl->out_msg[7] = 0x00;
+
+    // TODO: generate and send actual ticket (empty for now)
+
+    ssl->out_msglen = 10 + 0;
+    ssl->out_msg[8] = 0x00;
+    ssl->out_msg[9] = 0x00;
+
+    SSL_DEBUG_BUF( 0, "out_msg", ssl->out_msg, ssl->out_msglen );
+
+    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        return( ret );
+    }
+
+    ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
+
+    SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
+
+    return( 0 );
+}
+
 /*
  * SSL handshake -- server side -- single step
  */
@@ -2197,9 +2296,14 @@ int ssl_handshake_server_step( ssl_context *ssl )
             break;
 
         /*
-         *  ==>   ChangeCipherSpec
+         *  ==> ( NewSessionTicket )
+         *        ChangeCipherSpec
          *        Finished
          */
+        case SSL_SERVER_NEW_SESSION_TICKET:
+            ret = ssl_write_new_session_ticket( ssl );
+            break;
+
         case SSL_SERVER_CHANGE_CIPHER_SPEC:
             ret = ssl_write_change_cipher_spec( ssl );
             break;

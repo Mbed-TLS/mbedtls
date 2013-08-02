@@ -871,6 +871,7 @@ exit:
     x509_free( &cacert );
     rsa_free( &rsa );
 #endif
+    ssl_session_free( &saved_session );
     ssl_free( &ssl );
 
     memset( &ssl, 0, sizeof( ssl ) );

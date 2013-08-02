@@ -76,6 +76,42 @@ static unsigned int mfl_code_to_length[SSL_MAX_FRAG_LEN_INVALID] =
     4096,                   /* SSL_MAX_FRAG_LEN_4096 */
 };
 
+static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
+{
+    int ret;
+
+    ssl_session_free( dst );
+    memcpy( dst, src, sizeof( ssl_session ) );
+
+#if defined(POLARSSL_X509_PARSE_C)
+    if( src->peer_cert != NULL )
+    {
+        if( ( dst->peer_cert = polarssl_malloc( sizeof(x509_cert) ) ) == NULL )
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+        memset( dst->peer_cert, 0, sizeof(x509_cert) );
+
+        if( ( ret = x509parse_crt( dst->peer_cert, src->peer_cert->raw.p,
+                                   src->peer_cert->raw.len ) != 0 ) )
+        {
+            polarssl_free( dst->peer_cert );
+            dst->peer_cert = NULL;
+            return( ret );
+        }
+    }
+#endif /* POLARSSL_X509_PARSE_C */
+
+    if( src->ticket != NULL )
+    {
+        if( ( dst->ticket = polarssl_malloc( src->ticket_len ) ) == NULL )
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+        memcpy( dst->ticket, src->ticket, src->ticket_len );
+    }
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 int (*ssl_hw_record_init)(ssl_context *ssl,
                        const unsigned char *key_enc, const unsigned char *key_dec,
@@ -2995,10 +3031,24 @@ void ssl_set_session_cache( ssl_context *ssl,
     ssl->p_set_cache = p_set_cache;
 }
 
-void ssl_set_session( ssl_context *ssl, const ssl_session *session )
+int ssl_set_session( ssl_context *ssl, const ssl_session *session )
 {
-    memcpy( ssl->session_negotiate, session, sizeof(ssl_session) );
+    int ret;
+
+    if( ssl == NULL ||
+        session == NULL ||
+        ssl->session_negotiate == NULL ||
+        ssl->endpoint != SSL_IS_CLIENT )
+    {
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    if( ( ret = ssl_session_copy( ssl->session_negotiate, session ) ) != 0 )
+        return( ret );
+
     ssl->handshake->resume = 1;
+
+    return( 0 );
 }
 
 void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites )
@@ -3230,9 +3280,6 @@ const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
 
 int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
 {
-    int ret;
-    ssl_session *src;
-
     if( ssl == NULL ||
         dst == NULL ||
         ssl->session == NULL ||
@@ -3241,38 +3288,7 @@ int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    src = ssl->session;
-
-    ssl_session_free( dst );
-    memcpy( dst, src, sizeof( ssl_session ) );
-
-#if defined(POLARSSL_X509_PARSE_C)
-    if( src->peer_cert != NULL )
-    {
-        if( ( dst->peer_cert = polarssl_malloc( sizeof(x509_cert) ) ) == NULL )
-            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
-
-        memset( dst->peer_cert, 0, sizeof(x509_cert) );
-
-        if( ( ret = x509parse_crt( dst->peer_cert, src->peer_cert->raw.p,
-                                   src->peer_cert->raw.len ) != 0 ) )
-        {
-            polarssl_free( dst->peer_cert );
-            dst->peer_cert = NULL;
-            return( ret );
-        }
-    }
-#endif /* POLARSSL_X509_PARSE_C */
-
-    if( src->ticket != NULL )
-    {
-        if( ( dst->ticket = polarssl_malloc( src->ticket_len ) ) == NULL )
-            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
-
-        memcpy( dst->ticket, src->ticket, src->ticket_len );
-    }
-
-    return( 0 );
+    return( ssl_session_copy( dst, ssl->session ) );
 }
 
 /*

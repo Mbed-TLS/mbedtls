@@ -789,9 +789,14 @@ void ssl_set_session_cache( ssl_context *ssl,
  * \param ssl      SSL context
  * \param session  session context
  *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_SSL_MALLOC_FAILED if memory allocation failed,
+ *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side or
+ *                 arguments are otherwise invalid
+ *
  * \sa             ssl_get_session()
  */
-void ssl_set_session( ssl_context *ssl, const ssl_session *session );
+int ssl_set_session( ssl_context *ssl, const ssl_session *session );
 
 /**
  * \brief               Set the list of allowed ciphersuites

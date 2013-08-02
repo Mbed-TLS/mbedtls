@@ -2358,7 +2358,8 @@ static int ssl_write_new_session_ticket( ssl_context *ssl )
         return( ret );
     }
 
-    ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
+    /* No need to remember writing a NewSessionTicket any more */
+    ssl->handshake->new_session_ticket = 0;
 
     SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
 
@@ -2452,12 +2453,11 @@ int ssl_handshake_server_step( ssl_context *ssl )
          *        ChangeCipherSpec
          *        Finished
          */
-        case SSL_SERVER_NEW_SESSION_TICKET:
-            ret = ssl_write_new_session_ticket( ssl );
-            break;
-
         case SSL_SERVER_CHANGE_CIPHER_SPEC:
-            ret = ssl_write_change_cipher_spec( ssl );
+            if( ssl->handshake->new_session_ticket != 0 )
+                ret = ssl_write_new_session_ticket( ssl );
+            else
+                ret = ssl_write_change_cipher_spec( ssl );
             break;
 
         case SSL_SERVER_FINISHED:

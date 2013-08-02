@@ -1967,9 +1967,10 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
     }
 
-    ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
-
     SSL_DEBUG_MSG( 3, ( "ticket length: %d", ticket_len ) );
+
+    /* We're not waiting for a NewSessionTicket message any more */
+    ssl->handshake->new_session_ticket = 0;
 
     /*
      * Zero-length ticket means the server changed his mind and doesn't want
@@ -2094,12 +2095,11 @@ int ssl_handshake_client_step( ssl_context *ssl )
         *        ChangeCipherSpec
         *        Finished
         */
-       case SSL_SERVER_NEW_SESSION_TICKET:
-           ret = ssl_parse_new_session_ticket( ssl );
-           break;
-
        case SSL_SERVER_CHANGE_CIPHER_SPEC:
-           ret = ssl_parse_change_cipher_spec( ssl );
+           if( ssl->handshake->new_session_ticket != 0 )
+               ret = ssl_parse_new_session_ticket( ssl );
+           else
+               ret = ssl_parse_change_cipher_spec( ssl );
            break;
 
        case SSL_SERVER_FINISHED:

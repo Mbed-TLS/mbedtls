@@ -2539,6 +2539,8 @@ static void ssl_calc_finished_tls_sha384(
 
 void ssl_handshake_wrapup( ssl_context *ssl )
 {
+    int resume = ssl->handshake->resume;
+
     SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
     /*
@@ -2570,9 +2572,13 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     /*
      * Add cache entry
      */
-    if( ssl->f_set_cache != NULL )
+    if( ssl->f_set_cache != NULL &&
+        ssl->session->length != 0 &&
+        resume == 0 )
+    {
         if( ssl->f_set_cache( ssl->p_set_cache, ssl->session ) != 0 )
             SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
+    }
 
     ssl->state++;
 

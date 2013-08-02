@@ -1303,6 +1303,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
      */
     if( ssl->handshake->resume == 0 &&
         ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
+        ssl->session_negotiate->length != 0 &&
         ssl->f_get_cache != NULL &&
         ssl->f_get_cache( ssl->p_get_cache, ssl->session_negotiate ) == 0 )
     {

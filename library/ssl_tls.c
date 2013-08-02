@@ -3258,6 +3258,14 @@ int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
     }
 #endif /* POLARSSL_X509_PARSE_C */
 
+    if( src->ticket != NULL )
+    {
+        if( ( dst->ticket = polarssl_malloc( src->ticket_len ) ) == NULL )
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+        memcpy( dst->ticket, src->ticket, src->ticket_len );
+    }
+
     return( 0 );
 }
 
@@ -3578,6 +3586,8 @@ void ssl_session_free( ssl_session *session )
         polarssl_free( session->peer_cert );
     }
 #endif
+
+    polarssl_free( session->ticket );
 
     memset( session, 0, sizeof( ssl_session ) );
 }

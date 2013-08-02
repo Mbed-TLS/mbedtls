@@ -338,6 +338,9 @@ struct _ssl_session
     x509_cert *peer_cert;       /*!< peer X.509 cert chain */
 #endif /* POLARSSL_X509_PARSE_C */
 
+    unsigned char *ticket;      /*!< RFC 5077 session ticket */
+    size_t ticket_len;          /*!< session ticket length   */
+
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
 };

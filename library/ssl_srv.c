@@ -752,7 +752,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     n = ( buf[3] << 8 ) | buf[4];
 
-    if( n < 45 || n > 512 )
+    if( n < 45 || n > 2048 )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );

@@ -463,6 +463,11 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
     SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
 
     /*
+     * Don't send a new ticket after all, this one is OK
+     */
+    ssl->handshake->new_session_ticket = 0;
+
+    /*
      * Keep the session ID sent by the client, since we MUST send it back to
      * inform him we're accepting the ticket  (RFC 5077 section 3.4)
      */

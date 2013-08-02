@@ -262,6 +262,8 @@
 
 #define TLS_EXT_SIG_ALG                     13
 
+#define TLS_EXT_SESSION_TICKET              35
+
 #define TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
 /*

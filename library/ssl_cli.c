@@ -315,6 +315,35 @@ static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
     *olen = 4;
 }
 
+static void ssl_write_session_ticket_ext( ssl_context *ssl,
+                                          unsigned char *buf, size_t *olen )
+{
+    unsigned char *p = buf;
+    size_t tlen = ssl->session_negotiate->ticket_len;
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding session ticket extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( tlen >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( tlen      ) & 0xFF );
+
+    *olen = 4;
+
+    if( ssl->session_negotiate->ticket == NULL ||
+        ssl->session_negotiate->ticket_len == 0 )
+    {
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "sending session ticket of length %d", tlen ) );
+
+    memcpy( p, ssl->session_negotiate->ticket, tlen );
+
+    *olen += tlen;
+}
+
 static int ssl_write_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -488,6 +517,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
+    ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
 
@@ -583,6 +615,19 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
     ((void) buf);
 
     ssl->session_negotiate->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
+
+    return( 0 );
+}
+
+static int ssl_parse_session_ticket_ext( ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         size_t len )
+{
+    if( len != 0 )
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+
+    ((void) buf);
+    ((void) ssl);
 
     return( 0 );
 }
@@ -818,6 +863,17 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             SSL_DEBUG_MSG( 3, ( "found truncated_hmac extension" ) );
 
             if( ( ret = ssl_parse_truncated_hmac_ext( ssl,
+                            ext + 4, ext_size ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            break;
+
+        case TLS_EXT_SESSION_TICKET:
+            SSL_DEBUG_MSG( 3, ( "found session_ticket extension" ) );
+
+            if( ( ret = ssl_parse_session_ticket_ext( ssl,
                             ext + 4, ext_size ) ) != 0 )
             {
                 return( ret );

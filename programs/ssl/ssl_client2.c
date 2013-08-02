@@ -354,7 +354,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "reconnect" ) == 0 )
         {
             opt.reconnect = atoi( q );
-            if( opt.reconnect < 0 || opt.reconnect > 1 )
+            if( opt.reconnect < 0 || opt.reconnect > 2 )
                 goto usage;
         }
         else if( strcmp( p, "min_version" ) == 0 )
@@ -818,7 +818,7 @@ send_request:
 
     if( opt.reconnect != 0 )
     {
-        opt.reconnect = 0;
+        --opt.reconnect;
 
         printf( "  . Reconnecting with saved session..." );
         fflush( stdout );

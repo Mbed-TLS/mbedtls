@@ -439,10 +439,16 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
     /* Remember the client asked us to send a ticket */
     ssl->handshake->new_session_ticket = 1;
 
+    SSL_DEBUG_MSG( 3, ( "ticket length: %d", len ) );
+
     if( len == 0 )
         return( 0 );
 
-    SSL_DEBUG_MSG( 3, ( "ticket length: %d", len ) );
+    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE )
+    {
+        SSL_DEBUG_MSG( 3, ( "ticket rejected: renegotiating" ) );
+        return( 0 );
+    }
 
     /*
      * Use a temporary session to preserve the current one of failures.
@@ -455,6 +461,13 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
     }
 
     SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
+
+    /*
+     * Keep the session ID sent by the client, since we MUST send it back to
+     * inform him we're accepting the ticket  (RFC 5077 section 3.4)
+     */
+    session.length = ssl->session_negotiate->length;
+    memcpy( &session.id, ssl->session_negotiate->id, session.length );
 
     ssl_session_free( ssl->session_negotiate );
     memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
@@ -1284,36 +1297,44 @@ static int ssl_write_server_hello( ssl_context *ssl )
     SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
     /*
-     *    38  .  38     session id length
-     *    39  . 38+n    session id
-     *   39+n . 40+n    chosen ciphersuite
-     *   41+n . 41+n    chosen compression alg.
-     *   42+n . 43+n    extensions length
-     *   44+n . 43+n+m  extensions
+     * Resume is 0  by default, see ssl_handshake_init().
+     * It may be already set to 1 by ssl_parse_session_ticket_ext().
+     * If not, try looking up session ID in our cache.
      */
-    ssl->session_negotiate->length = n = 32;
-    *p++ = (unsigned char) ssl->session_negotiate->length;
+    if( ssl->handshake->resume == 0 &&
+        ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
+        ssl->f_get_cache != NULL &&
+        ssl->f_get_cache( ssl->p_get_cache, ssl->session_negotiate ) == 0 )
+    {
+        ssl->handshake->resume = 1;
+    }
 
-    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE ||
-        ssl->f_get_cache == NULL ||
-        ssl->f_get_cache( ssl->p_get_cache, ssl->session_negotiate ) != 0 )
+    if( ssl->handshake->resume == 0 )
     {
         /*
-         * Not found, create a new session id
+         * New session, create a new session id,
+         * unless we're about to issue a session ticket
          */
-        ssl->handshake->resume = 0;
         ssl->state++;
 
-        if( ( ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id,
-                                n ) ) != 0 )
-            return( ret );
+        if( ssl->handshake->new_session_ticket == 0 )
+        {
+            ssl->session_negotiate->length = n = 32;
+            if( ( ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id,
+                            n ) ) != 0 )
+                return( ret );
+        }
+        else
+        {
+            ssl->session_negotiate->length = 0;
+            memset( ssl->session_negotiate->id, 0, 32 );
+        }
     }
     else
     {
         /*
-         * Found a matching session, resuming it
+         * Resuming a session
          */
-        ssl->handshake->resume = 1;
         ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
 
         if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
@@ -1323,6 +1344,15 @@ static int ssl_write_server_hello( ssl_context *ssl )
         }
     }
 
+    /*
+     *    38  .  38     session id length
+     *    39  . 38+n    session id
+     *   39+n . 40+n    chosen ciphersuite
+     *   41+n . 41+n    chosen compression alg.
+     *   42+n . 43+n    extensions length
+     *   44+n . 43+n+m  extensions
+     */
+    *p++ = (unsigned char) ssl->session_negotiate->length;
     memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->length );
     p += ssl->session_negotiate->length;
 

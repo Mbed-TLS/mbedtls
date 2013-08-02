@@ -147,6 +147,106 @@ static int ssl_load_session( ssl_session *session,
     return( 0 );
 }
 
+/*
+ * Create session ticket, secured as recommended in RFC 5077 section 4:
+ *
+ *    struct {
+ *        opaque key_name[16];
+ *        opaque iv[16];
+ *        opaque encrypted_state<0..2^16-1>;
+ *        opaque mac[32];
+ *    } ticket;
+ *
+ * (the internal state structure differs, however).
+ */
+static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
+{
+    unsigned char * const start = ssl->out_msg + 10;
+    unsigned char *p = start;
+    size_t clear_len, enc_len;
+
+    memset( p, 0, 16 ); // TODO: key_name
+    p += 16;
+
+    memset( p, 0, 16 ); // TODO: iv
+    p += 16;
+
+    ssl_save_session( ssl->session_negotiate, p + 2, &clear_len );
+    SSL_DEBUG_BUF( 4, "session ticket cleartext", p, clear_len );
+
+    // TODO: encrypt ticket
+    enc_len = clear_len;
+    (void) enc_len;
+
+    *p++ = (unsigned char)( ( clear_len >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( clear_len      ) & 0xFF );
+    p += clear_len;
+
+    memset( p, 0, 32 ); // TODO: mac
+    p += 32;
+
+    *tlen = p - start;
+
+    SSL_DEBUG_BUF( 4, "final session ticket", start, *tlen );
+
+    return( 0 );
+}
+
+/*
+ * Load session ticket (see ssl_write_ticket for structure)
+ */
+static int ssl_parse_ticket( ssl_context *ssl,
+                             const unsigned char *buf,
+                             size_t len )
+{
+    int ret;
+    ssl_session session;
+    const unsigned char *key_name = buf;
+    const unsigned char *iv = buf + 16;
+    const unsigned char *enc_len_p = iv + 16;
+    const unsigned char *ticket = enc_len_p + 2;
+    const unsigned char *mac;
+    size_t enc_len, clear_len;
+
+    if( len < 34 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
+    mac = ticket + enc_len;
+
+    if( len != enc_len + 66 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    // TODO: check key_name
+    (void) key_name;
+
+    // TODO: check hmac
+    (void) mac;
+
+    // TODO: decrypt ticket
+    clear_len = enc_len;
+
+    if( ( ret = ssl_load_session( &session, ticket, clear_len ) ) != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "failed to parse ticket content" ) );
+        memset( &session, 0, sizeof( ssl_session ) );
+        return( ret );
+    }
+
+    /*
+     * Keep the session ID sent by the client, since we MUST send it back to
+     * inform him we're accepting the ticket  (RFC 5077 section 3.4)
+     */
+    session.length = ssl->session_negotiate->length;
+    memcpy( &session.id, ssl->session_negotiate->id, session.length );
+
+    ssl_session_free( ssl->session_negotiate );
+    memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
+    memset( &session, 0, sizeof( ssl_session ) );
+
+    return( 0 );
+}
+
 static int ssl_parse_servername_ext( ssl_context *ssl,
                                      const unsigned char *buf,
                                      size_t len )
@@ -434,9 +534,7 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
                                          const unsigned char *buf,
                                          size_t len )
 {
-    ssl_session session;
-
-    /* Remember the client asked us to send a ticket */
+    /* Remember the client asked us to send a new ticket */
     ssl->handshake->new_session_ticket = 1;
 
     SSL_DEBUG_MSG( 3, ( "ticket length: %d", len ) );
@@ -451,34 +549,17 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
     }
 
     /*
-     * Use a temporary session to preserve the current one of failures.
      * Failures are ok: just ignore the ticket and proceed.
      */
-    if( ssl_load_session( &session, buf, len ) != 0 )
-    {
-        SSL_DEBUG_MSG( 3, ( "failed to load ticket" ) );
+    if( ssl_parse_ticket( ssl, buf, len ) != 0 )
         return( 0 );
-    }
 
     SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
 
-    /*
-     * Don't send a new ticket after all, this one is OK
-     */
-    ssl->handshake->new_session_ticket = 0;
-
-    /*
-     * Keep the session ID sent by the client, since we MUST send it back to
-     * inform him we're accepting the ticket  (RFC 5077 section 3.4)
-     */
-    session.length = ssl->session_negotiate->length;
-    memcpy( &session.id, ssl->session_negotiate->id, session.length );
-
-    ssl_session_free( ssl->session_negotiate );
-    memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
-    memset( &session, 0, sizeof( ssl_session ) );
-
     ssl->handshake->resume = 1;
+
+    /* Don't send a new ticket after all, this one is OK */
+    ssl->handshake->new_session_ticket = 0;
 
     return( 0 );
 }
@@ -2351,7 +2432,7 @@ static int ssl_write_new_session_ticket( ssl_context *ssl )
     ssl->out_msg[6] = 0x00;
     ssl->out_msg[7] = 0x00;
 
-    ssl_save_session( ssl->session_negotiate, ssl->out_msg + 10, &tlen );
+    ssl_write_ticket( ssl, &tlen );
 
     ssl->out_msg[8] = (unsigned char)( ( tlen >> 8 ) & 0xFF );
     ssl->out_msg[9] = (unsigned char)( ( tlen      ) & 0xFF );

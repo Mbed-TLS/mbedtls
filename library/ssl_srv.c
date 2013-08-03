@@ -534,6 +534,9 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
                                          const unsigned char *buf,
                                          size_t len )
 {
+    if( ssl->session_tickets == SSL_SESSION_TICKETS_DISABLED )
+        return( 0 );
+
     /* Remember the client asked us to send a new ticket */
     ssl->handshake->new_session_ticket = 1;
 

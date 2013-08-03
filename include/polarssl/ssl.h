@@ -154,6 +154,9 @@
 #define SSL_TRUNC_HMAC_ENABLED          1
 #define SSL_TRUNCATED_HMAC_LEN          10  /* 80 bits, rfc 6066 section 7 */
 
+#define SSL_SESSION_TICKETS_DISABLED     0
+#define SSL_SESSION_TICKETS_ENABLED      1
+
 /*
  * Size of the input / output buffer.
  * Note: the RFC defines the default size of SSL / TLS messages. If you
@@ -561,6 +564,7 @@ struct _ssl_context
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
     int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
+    int session_tickets;                /*!<  use session tickets?    */
 
 #if defined(POLARSSL_DHM_C)
     mpi dhm_P;                          /*!<  prime modulus for DHM   */
@@ -667,6 +671,9 @@ int ssl_session_reset( ssl_context *ssl );
  *
  * \param ssl      SSL context
  * \param endpoint must be SSL_IS_CLIENT or SSL_IS_SERVER
+ *
+ * \note           This function should be called right after ssl_init() since
+ *                 some other ssl_set_foo() functions depend on it.
  */
 void ssl_set_endpoint( ssl_context *ssl, int endpoint );
 
@@ -1011,6 +1018,24 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
  *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side
  */
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
+
+/**
+ * \brief          Enable / Disable session tickets
+ *                 (Default: SSL_SESSION_TICKETS_ENABLED on client,
+ *                           SSL_SESSION_TICKETS_DISABLED on server)
+ *
+ * \note           On server, ssl_set_rng() must be called before this function
+ *                 to allow generating the ticket encryption and
+ *                 authentication keys.
+ *
+ * \param ssl      SSL context
+ * \param use_tickets   Enable or disable (SSL_SESSION_TICKETS_ENABLED or
+ *                                         SSL_SESSION_TICKETS_DISABLED)
+ *
+ * \return         O if successful,
+ *                 or a specific error code (server only).
+ */
+int ssl_set_session_tickets( ssl_context *ssl, int use_tickets );
 
 /**
  * \brief          Enable / Disable renegotiation support for connection when

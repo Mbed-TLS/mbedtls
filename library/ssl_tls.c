@@ -2978,6 +2978,9 @@ int ssl_session_reset( ssl_context *ssl )
 void ssl_set_endpoint( ssl_context *ssl, int endpoint )
 {
     ssl->endpoint   = endpoint;
+
+    if( endpoint == SSL_IS_CLIENT )
+        ssl->session_tickets = SSL_SESSION_TICKETS_ENABLED;
 }
 
 void ssl_set_authmode( ssl_context *ssl, int authmode )
@@ -3223,6 +3226,13 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )
 void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy )
 {
     ssl->allow_legacy_renegotiation = allow_legacy;
+}
+
+int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
+{
+    ssl->session_tickets = use_tickets;
+
+    return( 0 );
 }
 
 /*

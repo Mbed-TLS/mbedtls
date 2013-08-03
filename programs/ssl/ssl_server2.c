@@ -69,6 +69,7 @@
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
+#define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -105,6 +106,7 @@ struct options
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
+    int tickets;                /* enable / disable session tickets         */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -152,6 +154,7 @@ static void my_debug( void *ctx, int level, const char *str )
     USAGE_IO                                                \
     "    request_page=%%s     default: \".\"\n"             \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
+    "    tickets=%%d          default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
@@ -265,6 +268,7 @@ int main( int argc, char *argv[] )
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
+    opt.tickets             = DFL_TICKETS;
 
     for( i = 1; i < argc; i++ )
     {
@@ -394,6 +398,12 @@ int main( int argc, char *argv[] )
             else if( strcmp( q, "4096" ) == 0 )
                 opt.mfl_code = SSL_MAX_FRAG_LEN_4096;
             else
+                goto usage;
+        }
+        else if( strcmp( p, "tickets" ) == 0 )
+        {
+            opt.tickets = atoi( q );
+            if( opt.tickets < 0 || opt.tickets > 1 )
                 goto usage;
         }
         else
@@ -610,6 +620,8 @@ int main( int argc, char *argv[] )
     ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
                                  ssl_cache_set, &cache );
 #endif
+
+    ssl_set_session_tickets( &ssl, opt.tickets );
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );

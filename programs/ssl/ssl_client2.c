@@ -60,6 +60,7 @@
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          0
 #define DFL_RECONNECT           0
+#define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 
 #define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
     "-01--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
@@ -98,6 +99,7 @@ struct options
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
     int reconnect;              /* attempt to resume session                */
+    int tickets;                /* enable / disable session tickets         */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -187,6 +189,7 @@ static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
+    "    tickets=%%d          default: 1 (enabled)\n"       \
     "\n"                                                    \
     "    min_version=%%s      default: \"\" (ssl3)\n"       \
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
@@ -291,6 +294,7 @@ int main( int argc, char *argv[] )
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.reconnect           = DFL_RECONNECT;
+    opt.tickets             = DFL_TICKETS;
 
     for( i = 1; i < argc; i++ )
     {
@@ -355,6 +359,12 @@ int main( int argc, char *argv[] )
         {
             opt.reconnect = atoi( q );
             if( opt.reconnect < 0 || opt.reconnect > 2 )
+                goto usage;
+        }
+        else if( strcmp( p, "tickets" ) == 0 )
+        {
+            opt.tickets = atoi( q );
+            if( opt.tickets < 0 || opt.tickets > 2 )
                 goto usage;
         }
         else if( strcmp( p, "min_version" ) == 0 )
@@ -663,6 +673,8 @@ int main( int argc, char *argv[] )
     ssl_set_dbg( &ssl, my_debug, stdout );
     ssl_set_bio( &ssl, net_recv, &server_fd,
                        net_send, &server_fd );
+
+    ssl_set_session_tickets( &ssl, opt.tickets );
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );

@@ -328,6 +328,12 @@ static void ssl_write_session_ticket_ext( ssl_context *ssl,
     unsigned char *p = buf;
     size_t tlen = ssl->session_negotiate->ticket_len;
 
+    if( ssl->session_tickets == SSL_SESSION_TICKETS_DISABLED )
+    {
+        *olen = 0;
+        return;
+    }
+
     SSL_DEBUG_MSG( 3, ( "client hello, adding session ticket extension" ) );
 
     *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET >> 8 ) & 0xFF );
@@ -648,8 +654,11 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
                                          const unsigned char *buf,
                                          size_t len )
 {
-    if( len != 0 )
+    if( ssl->session_tickets == SSL_SESSION_TICKETS_DISABLED ||
+        len != 0 )
+    {
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
 
     ((void) buf);
 

@@ -35,6 +35,7 @@
 #include "sha1.h"
 #include "sha256.h"
 #include "sha512.h"
+#include "aes.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -452,6 +453,8 @@ struct _ssl_handshake_params
 struct _ssl_ticket_keys
 {
     unsigned char key_name[16];     /*!< name to quickly discard bad tickets */
+    aes_context enc;                /*!< encryption context                  */
+    aes_context dec;                /*!< decryption context                  */
 };
 
 struct _ssl_context

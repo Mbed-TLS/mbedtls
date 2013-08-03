@@ -161,36 +161,56 @@ static int ssl_load_session( ssl_session *session,
  */
 static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
 {
+    int ret;
     unsigned char * const start = ssl->out_msg + 10;
     unsigned char *p = start;
-    size_t clear_len, enc_len;
+    unsigned char *state;
+    unsigned char iv[16];
+    size_t clear_len, enc_len, pad_len, i;
 
     if( ssl->ticket_keys == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
+    /* Write key name */
     memcpy( p, ssl->ticket_keys->key_name, 16 );
     p += 16;
 
-    memset( p, 0, 16 ); // TODO: iv
+    /* Generate and write IV (with a copy for aes_crypt) */
+    if( ( ret = ssl->f_rng( ssl->p_rng, p, 16 ) ) != 0 )
+        return( ret );
+    memcpy( iv, p, 16 );
     p += 16;
 
-    ssl_save_session( ssl->session_negotiate, p + 2, &clear_len );
-    SSL_DEBUG_BUF( 4, "session ticket cleartext", p, clear_len );
+    /* Dump session state */
+    state = p + 2;
+    ssl_save_session( ssl->session_negotiate, state, &clear_len );
+    SSL_DEBUG_BUF( 3, "session ticket cleartext", state, clear_len );
 
-    // TODO: encrypt ticket
-    enc_len = clear_len;
-    (void) enc_len;
+    /* Apply PKCS padding */
+    pad_len = 16 - clear_len % 16;
+    enc_len = clear_len + pad_len;
+    for( i = clear_len; i < enc_len; i++ )
+        state[i] = (unsigned char) pad_len;
 
-    *p++ = (unsigned char)( ( clear_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( clear_len      ) & 0xFF );
-    p += clear_len;
+    /* Encrypt */
+    if( ( ret = aes_crypt_cbc( &ssl->ticket_keys->enc, AES_ENCRYPT,
+                               enc_len, iv, state, state ) ) != 0 )
+    {
+        return( ret );
+    }
 
-    memset( p, 0, 32 ); // TODO: mac
+    /* Write length */
+    *p++ = (unsigned char)( ( enc_len >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( enc_len      ) & 0xFF );
+    p = state + enc_len;
+
+    /* Compute and write MAC */
+    memset( p, 0, 32 );
     p += 32;
 
     *tlen = p - start;
 
-    SSL_DEBUG_BUF( 4, "final session ticket", start, *tlen );
+    SSL_DEBUG_BUF( 3, "session ticket structure", start, *tlen );
 
     return( 0 );
 }
@@ -199,17 +219,20 @@ static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
  * Load session ticket (see ssl_write_ticket for structure)
  */
 static int ssl_parse_ticket( ssl_context *ssl,
-                             const unsigned char *buf,
+                             unsigned char *buf,
                              size_t len )
 {
     int ret;
     ssl_session session;
-    const unsigned char *key_name = buf;
-    const unsigned char *iv = buf + 16;
-    const unsigned char *enc_len_p = iv + 16;
-    const unsigned char *ticket = enc_len_p + 2;
-    const unsigned char *mac;
-    size_t enc_len, clear_len;
+    unsigned char *key_name = buf;
+    unsigned char *iv = buf + 16;
+    unsigned char *enc_len_p = iv + 16;
+    unsigned char *ticket = enc_len_p + 2;
+    unsigned char *mac;
+    size_t enc_len, clear_len, i;
+    unsigned char pad_len;
+
+    SSL_DEBUG_BUF( 3, "session ticket structure", buf, len );
 
     if( len < 34 || ssl->ticket_keys == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -220,15 +243,35 @@ static int ssl_parse_ticket( ssl_context *ssl,
     if( len != enc_len + 66 )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
+    /* Check name */
     if( memcmp( key_name, ssl->ticket_keys->key_name, 16 ) != 0 )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     // TODO: check hmac
     (void) mac;
 
-    // TODO: decrypt ticket
-    clear_len = enc_len;
+    /* Decrypt */
+    if( ( ret = aes_crypt_cbc( &ssl->ticket_keys->dec, AES_DECRYPT,
+                               enc_len, iv, ticket, ticket ) ) != 0 )
+    {
+        return( ret );
+    }
 
+    /* Check PKCS padding */
+    pad_len = ticket[enc_len - 1];
+
+    ret = 0;
+    for( i = 2; i < pad_len; i++ )
+        if( ticket[enc_len - i] != pad_len )
+            ret = POLARSSL_ERR_SSL_BAD_INPUT_DATA;
+    if( ret != 0 )
+        return( ret );
+
+    clear_len = enc_len - pad_len;
+
+    SSL_DEBUG_BUF( 3, "session ticket cleartext", ticket, clear_len );
+
+    /* Actually load session */
     if( ( ret = ssl_load_session( &session, ticket, clear_len ) ) != 0 )
     {
         SSL_DEBUG_MSG( 1, ( "failed to parse ticket content" ) );
@@ -534,9 +577,11 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
 }
 
 static int ssl_parse_session_ticket_ext( ssl_context *ssl,
-                                         const unsigned char *buf,
+                                         unsigned char *buf,
                                          size_t len )
 {
+    int ret;
+
     if( ssl->session_tickets == SSL_SESSION_TICKETS_DISABLED )
         return( 0 );
 
@@ -557,8 +602,11 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
     /*
      * Failures are ok: just ignore the ticket and proceed.
      */
-    if( ssl_parse_ticket( ssl, buf, len ) != 0 )
+    if( ( ret = ssl_parse_ticket( ssl, buf, len ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_parse_ticket", ret );
         return( 0 );
+    }
 
     SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
 
@@ -2438,7 +2486,11 @@ static int ssl_write_new_session_ticket( ssl_context *ssl )
     ssl->out_msg[6] = 0x00;
     ssl->out_msg[7] = 0x00;
 
-    ssl_write_ticket( ssl, &tlen );
+    if( ( ret = ssl_write_ticket( ssl, &tlen ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_write_ticket", ret );
+        tlen = 0;
+    }
 
     ssl->out_msg[8] = (unsigned char)( ( tlen >> 8 ) & 0xFF );
     ssl->out_msg[9] = (unsigned char)( ( tlen      ) & 0xFF );

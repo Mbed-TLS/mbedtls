@@ -455,6 +455,7 @@ struct _ssl_ticket_keys
     unsigned char key_name[16];     /*!< name to quickly discard bad tickets */
     aes_context enc;                /*!< encryption context                  */
     aes_context dec;                /*!< decryption context                  */
+    unsigned char mac_key[16];      /*!< authentication key                  */
 };
 
 struct _ssl_context

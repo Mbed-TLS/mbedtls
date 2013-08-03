@@ -2979,7 +2979,7 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
 {
     int ret;
     ssl_ticket_keys *tkeys;
-    unsigned char buf[32];
+    unsigned char buf[16];
 
     if( ssl->ticket_keys != NULL )
         return( 0 );
@@ -2996,6 +2996,9 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
     {
             return( ret );
     }
+
+    if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->mac_key, 16 ) ) != 0 )
+        return( ret );
 
     ssl->ticket_keys = tkeys;
 

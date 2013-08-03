@@ -204,8 +204,8 @@ static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
     *p++ = (unsigned char)( ( enc_len      ) & 0xFF );
     p = state + enc_len;
 
-    /* Compute and write MAC */
-    memset( p, 0, 32 );
+    /* Compute and write MAC( key_name + iv + enc_state_len + enc_state ) */
+    sha256_hmac( ssl->ticket_keys->mac_key, 16, start, p - start, p, 0 );
     p += 32;
 
     *tlen = p - start;
@@ -229,6 +229,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
     unsigned char *enc_len_p = iv + 16;
     unsigned char *ticket = enc_len_p + 2;
     unsigned char *mac;
+    unsigned char computed_mac[16];
     size_t enc_len, clear_len, i;
     unsigned char pad_len;
 
@@ -247,8 +248,15 @@ static int ssl_parse_ticket( ssl_context *ssl,
     if( memcmp( key_name, ssl->ticket_keys->key_name, 16 ) != 0 )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    // TODO: check hmac
-    (void) mac;
+    /* Check mac */
+    sha256_hmac( ssl->ticket_keys->mac_key, 16, buf, len - 32,
+                 computed_mac, 0 );
+    ret = 0;
+    for( i = 0; i < 32; i++ )
+        if( mac[i] != computed_mac[i] )
+            ret = POLARSSL_ERR_SSL_INVALID_MAC;
+    if( ret != 0 )
+        return( ret );
 
     /* Decrypt */
     if( ( ret = aes_crypt_cbc( &ssl->ticket_keys->dec, AES_DECRYPT,

@@ -2973,6 +2973,28 @@ int ssl_session_reset( ssl_context *ssl )
 }
 
 /*
+ * Allocate and initialize ticket keys
+ */
+static int ssl_ticket_keys_init( ssl_context *ssl )
+{
+    int ret;
+    ssl_ticket_keys *tkeys;
+
+    if( ssl->ticket_keys != NULL )
+        return( 0 );
+
+    if( ( tkeys = polarssl_malloc( sizeof( ssl_ticket_keys ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->key_name, 16 ) ) != 0 )
+        return( ret );
+
+    ssl->ticket_keys = tkeys;
+
+    return( 0 );
+}
+
+/*
  * SSL set accessors
  */
 void ssl_set_endpoint( ssl_context *ssl, int endpoint )
@@ -3232,7 +3254,13 @@ int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
 {
     ssl->session_tickets = use_tickets;
 
-    return( 0 );
+    if( ssl->endpoint == SSL_IS_CLIENT )
+        return( 0 );
+
+    if( ssl->f_rng == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    return( ssl_ticket_keys_init( ssl ) );
 }
 
 /*
@@ -3670,6 +3698,8 @@ void ssl_free( ssl_context *ssl )
         ssl_session_free( ssl->session );
         polarssl_free( ssl->session );
     }
+
+    polarssl_free( ssl->ticket_keys );
 
     if ( ssl->hostname != NULL)
     {

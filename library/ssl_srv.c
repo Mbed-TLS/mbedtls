@@ -165,7 +165,10 @@ static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
     unsigned char *p = start;
     size_t clear_len, enc_len;
 
-    memset( p, 0, 16 ); // TODO: key_name
+    if( ssl->ticket_keys == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( p, ssl->ticket_keys->key_name, 16 );
     p += 16;
 
     memset( p, 0, 16 ); // TODO: iv
@@ -208,7 +211,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
     const unsigned char *mac;
     size_t enc_len, clear_len;
 
-    if( len < 34 )
+    if( len < 34 || ssl->ticket_keys == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
@@ -217,8 +220,8 @@ static int ssl_parse_ticket( ssl_context *ssl,
     if( len != enc_len + 66 )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    // TODO: check key_name
-    (void) key_name;
+    if( memcmp( key_name, ssl->ticket_keys->key_name, 16 ) != 0 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     // TODO: check hmac
     (void) mac;

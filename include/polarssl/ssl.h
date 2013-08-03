@@ -328,6 +328,7 @@ typedef struct _ssl_session ssl_session;
 typedef struct _ssl_context ssl_context;
 typedef struct _ssl_transform ssl_transform;
 typedef struct _ssl_handshake_params ssl_handshake_params;
+typedef struct _ssl_ticket_keys ssl_ticket_keys;
 
 /*
  * This structure is used for storing current session data.
@@ -445,6 +446,14 @@ struct _ssl_handshake_params
     int new_session_ticket;             /*!< use NewSessionTicket?    */
 };
 
+/*
+ * Parameters needed to secure session tickets
+ */
+struct _ssl_ticket_keys
+{
+    unsigned char key_name[16];     /*!< name to quickly discard bad tickets */
+};
+
 struct _ssl_context
 {
     /*
@@ -552,6 +561,11 @@ struct _ssl_context
     x509_crl *ca_crl;                   /*!<  trusted CA CRLs         */
     const char *peer_cn;                /*!<  expected peer CN        */
 #endif /* POLARSSL_X509_PARSE_C */
+
+    /*
+     * Support for generating and checking session tickets
+     */
+    ssl_ticket_keys *ticket_keys;       /*!<  keys for ticket encryption */
 
     /*
      * User settings

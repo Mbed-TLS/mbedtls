@@ -844,7 +844,7 @@
  * Module:  library/ecdsa.c
  * Caller:
  *
- * Requires: POLARSSL_ECP_C
+ * Requires: POLARSSL_ECP_C, POLARSSL_ASN1_WRITE_C, POLARSSL_ASN1_PARSE_C
  */
 #define POLARSSL_ECDSA_C
 
@@ -1371,7 +1371,10 @@
 #error "POLARSSL_ECDH_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ECDSA_C) && !defined(POLARSSL_ECP_C)
+#if defined(POLARSSL_ECDSA_C) &&            \
+    ( !defined(POLARSSL_ECP_C) ||           \
+      !defined(POLARSSL_ASN1_PARSE_C) ||    \
+      !defined(POLARSSL_ASN1_WRITE_C) )
 #error "POLARSSL_ECDSA_C defined, but not all prerequisites"
 #endif
 

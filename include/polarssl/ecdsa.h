@@ -84,6 +84,48 @@ int ecdsa_verify( const ecp_group *grp,
                   const ecp_point *Q, const mpi *r, const mpi *s);
 
 /**
+ * \brief           Compute ECDSA signature and write it to buffer
+ *
+ * \param ctx       ECDSA context
+ * \param hash      Message hash
+ * \param hlen      Length of hash
+ * \param sig       Buffer that will hold the signature
+ * \param slen      Length of the signature written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \note            The "sig" buffer must be at least as large as twice the
+ *                  size of the curve used, plus 7 (eg. 71 bytes if a 256-bit
+ *                  curve is used).
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP, POLARSSL_ERR_MPI or
+ *                  POLARSSL_ERR_ASN1 error code
+ */
+int ecdsa_write_signature( ecdsa_context *ctx,
+                           const unsigned char *hash, size_t hlen,
+                           unsigned char *sig, size_t *slen,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng );
+
+/**
+ * \brief           Read and verify an ECDSA signature
+ *
+ * \param ctx       ECDSA context
+ * \param hash      Message hash
+ * \param hlen      Size of hash
+ * \param sig       Signature to read and verify
+ * \param slen      Size of sig
+ *
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid
+ *                  or a POLARSSL_ERR_ECP or POLARSSL_ERR_MPI error code
+ */
+int ecdsa_read_signature( ecdsa_context *ctx,
+                          const unsigned char *hash, size_t hlen,
+                          const unsigned char *sig, size_t slen );
+
+/**
  * \brief           Initialize context
  *
  * \param ctx       Context to initialize

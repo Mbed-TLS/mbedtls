@@ -1146,7 +1146,7 @@ cleanup:
  * (that is: grp->nbits / w + 1)
  * Allow p_bits + 1 bits in case M = grp->N + 1 is one bit longer than N.
  */
-#define MAX_NAF_LEN     ( POLARSSL_ECP_MAX_N_BITS / 2 + 1 )
+#define MAX_NAF_LEN     ( POLARSSL_ECP_MAX_BITS / 2 + 1 )
 
 /*
  * Integer multiplication: R = m * P

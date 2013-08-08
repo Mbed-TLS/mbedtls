@@ -76,3 +76,63 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
     mpi_free( &r_check ); mpi_free( &s_check );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ecdsa_write_read_random( int id )
+{
+    ecdsa_context ctx;
+    rnd_pseudo_info rnd_info;
+    unsigned char hash[66];
+    unsigned char sig[200];
+    size_t sig_len, i;
+
+    ecdsa_init( &ctx );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( hash, 0, sizeof( hash ) );
+    memset( sig, 0x2a, sizeof( sig ) );
+
+    /* prepare material for signature */
+    TEST_ASSERT( rnd_pseudo_rand( &rnd_info, hash, sizeof( hash ) ) == 0 );
+
+    /* generate signing key */
+    TEST_ASSERT( ecp_use_known_dp( &ctx.grp, id ) == 0 );
+    TEST_ASSERT( ecp_gen_keypair( &ctx.grp, &ctx.d, &ctx.Q,
+                                  &rnd_pseudo_rand, &rnd_info ) == 0 );
+
+    /* generate and write signature, then read and verify it */
+    TEST_ASSERT( ecdsa_write_signature( &ctx, hash, sizeof( hash ),
+                 sig, &sig_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) == 0 );
+
+    /* check we didn't write past the announced length */
+    for( i = sig_len; i < sizeof( sig ); i++ )
+        TEST_ASSERT( sig[i] == 0x2a );
+
+    /* try verification with invalid length */
+    TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len - 1 ) != 0 );
+    TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len + 1 ) != 0 );
+
+    /* try invalid sequence tag */
+    sig[0]++;
+    TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) != 0 );
+    sig[0]--;
+
+    /* try modifying r */
+    sig[10]++;
+    TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) != 0 );
+    sig[10]--;
+
+    /* try modifying s */
+    sig[sig_len - 1]++;
+    TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) != 0 );
+    sig[sig_len - 1]--;
+
+    ecdsa_free( &ctx );
+}
+/* END_CASE */

@@ -126,9 +126,10 @@ ecp_keypair;
 #define POLARSSL_ECP_DP_SECP521R1   25
 
 /**
- * Maximum bit size of the groups (that is, of N)
+ * Maximum size of the groups (that is, of N and P)
  */
-#define POLARSSL_ECP_MAX_N_BITS     521
+#define POLARSSL_ECP_MAX_BITS     521
+#define POLARSSL_ECP_MAX_BYTES    ( ( POLARSSL_ECP_MAX_BITS + 7 ) / 8 )
 
 /*
  * Maximum window size (actually, NAF width) used for point multipliation.

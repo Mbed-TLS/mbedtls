@@ -126,6 +126,20 @@ int ecdsa_read_signature( ecdsa_context *ctx,
                           const unsigned char *sig, size_t slen );
 
 /**
+ * \brief           Generate an ECDSA keypair on the given curve
+ *
+ * \param ctx       ECDSA context in which the keypair should be stored
+ * \param grp       Group (elliptic curve) to use. One of the various
+ *                  POLARSSL_ECP_DP_XXX macros depending on configuration.
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 on success, or a POLARSSL_ERR_ECP code.
+ */
+int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
+                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
  * \brief           Initialize context
  *
  * \param ctx       Context to initialize

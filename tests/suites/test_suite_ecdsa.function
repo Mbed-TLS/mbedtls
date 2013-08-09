@@ -95,9 +95,7 @@ void ecdsa_write_read_random( int id )
     TEST_ASSERT( rnd_pseudo_rand( &rnd_info, hash, sizeof( hash ) ) == 0 );
 
     /* generate signing key */
-    TEST_ASSERT( ecp_use_known_dp( &ctx.grp, id ) == 0 );
-    TEST_ASSERT( ecp_gen_keypair( &ctx.grp, &ctx.d, &ctx.Q,
-                                  &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecdsa_genkey( &ctx, id, &rnd_pseudo_rand, &rnd_info ) == 0 );
 
     /* generate and write signature, then read and verify it */
     TEST_ASSERT( ecdsa_write_signature( &ctx, hash, sizeof( hash ),

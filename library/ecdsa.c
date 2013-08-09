@@ -274,6 +274,17 @@ int ecdsa_read_signature( ecdsa_context *ctx,
 }
 
 /*
+ * Generate key pair
+ */
+int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
+                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    return( ecp_use_known_dp( &ctx->grp, gid ) ||
+            ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
+}
+
+
+/*
  * Initialize context
  */
 void ecdsa_init( ecdsa_context *ctx )

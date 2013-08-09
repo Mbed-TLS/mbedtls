@@ -3344,19 +3344,29 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
 
         md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
-        /* EC NOT IMPLEMENTED YET */
-        if( ca->pk.type != POLARSSL_PK_RSA )
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-        if( !rsa_pkcs1_verify( pk_rsa( ca->pk ), RSA_PUBLIC, crl_list->sig_md,
-                              0, hash, crl_list->sig.p ) == 0 )
+#if defined(POLARSSL_RSA_C)
+        if( ca->pk.type == POLARSSL_PK_RSA )
         {
-            /*
-             * CRL is not trusted
-             */
-            flags |= BADCRL_NOT_TRUSTED;
-            break;
+            if( !rsa_pkcs1_verify( pk_rsa( ca->pk ), RSA_PUBLIC,
+                        crl_list->sig_md, 0, hash, crl_list->sig.p ) == 0 )
+            {
+                /*
+                 * CRL is not trusted
+                 */
+                flags |= BADCRL_NOT_TRUSTED;
+                break;
+            }
         }
+        else
+#endif /* POLARSSL_RSA_C */
+#if defined(POLARSSL_ECDSA_C)
+        if( ca->pk.type == POLARSSL_PK_ECKEY ) {
+            /* EC NOT IMPLEMENTED YET */
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+        }
+        else
+#endif /* POLARSSL_ECDSA_C */
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
 
         /*
          * Check for validity of CRL (Do not drop out)
@@ -3467,16 +3477,26 @@ static int x509parse_verify_top(
 
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        /* EC NOT IMPLEMENTED YET */
-        if( trust_ca->pk.type != POLARSSL_PK_RSA )
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-        if( rsa_pkcs1_verify( pk_rsa( trust_ca->pk ), RSA_PUBLIC, child->sig_md,
-                    0, hash, child->sig.p ) != 0 )
+#if defined(POLARSSL_RSA_C)
+        if( trust_ca->pk.type == POLARSSL_PK_RSA )
         {
-            trust_ca = trust_ca->next;
-            continue;
+            if( rsa_pkcs1_verify( pk_rsa( trust_ca->pk ), RSA_PUBLIC,
+                        child->sig_md, 0, hash, child->sig.p ) != 0 )
+            {
+                trust_ca = trust_ca->next;
+                continue;
+            }
         }
+        else
+#endif /* POLARSSL_RSA_C */
+#if defined(POLARSSL_ECDSA_C)
+        if( trust_ca->pk.type == POLARSSL_PK_ECKEY ) {
+            /* EC NOT IMPLEMENTED YET */
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+        }
+        else
+#endif /* POLARSSL_ECDSA_C */
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
 
         /*
          * Top of chain is signed by a trusted CA
@@ -3547,15 +3567,25 @@ static int x509parse_verify_child(
     {
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        /* EC NOT IMPLEMENTED YET */
-        if( parent->pk.type != POLARSSL_PK_RSA )
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-        if( rsa_pkcs1_verify( pk_rsa( parent->pk ), RSA_PUBLIC, child->sig_md,
-                              0, hash, child->sig.p ) != 0 )
+#if defined(POLARSSL_RSA_C)
+        if( parent->pk.type == POLARSSL_PK_RSA )
         {
-            *flags |= BADCERT_NOT_TRUSTED;
+            if( rsa_pkcs1_verify( pk_rsa( parent->pk ), RSA_PUBLIC,
+                        child->sig_md, 0, hash, child->sig.p ) != 0 )
+            {
+                *flags |= BADCERT_NOT_TRUSTED;
+            }
         }
+        else
+#endif /* POLARSSL_RSA_C */
+#if defined(POLARSSL_ECDSA_C)
+        if( parent->pk.type == POLARSSL_PK_ECKEY ) {
+            /* EC NOT IMPLEMENTED YET */
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+        }
+        else
+#endif /* POLARSSL_ECDSA_C */
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
     }
 
     /* Check trusted CA's CRL for the given crt */

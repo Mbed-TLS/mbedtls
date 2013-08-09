@@ -418,6 +418,38 @@ X509 Certificate verification #31 (domain not matching multi certificate without
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C
 x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH + BADCERT_NOT_TRUSTED:"NULL"
 
+X509 Certificate verification #33 (Valid, EC cert, RSA CA)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_verify:"data_files/server3.crt":"data_files/test-ca.crt":"data_files/crl.pem":NULL:0:0:NULL
+
+X509 Certificate verification #33 (Valid, RSA cert, EC CA)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+x509_verify:"data_files/server4.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":NULL:0:0:NULL
+
+X509 Certificate verification #34 (Valid, EC cert, EC CA)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":NULL:0:0:NULL
+
+X509 Certificate verification #35 (Revoked, EC CA)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":NULL:POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:NULL
+
+X509 Certificate verification #36 (Valid, EC CA, SHA224 Digest)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_verify:"data_files/server5-sha224.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":NULL:0:0:NULL
+
+X509 Certificate verification #37 (Valid, EC CA, SHA256 Digest)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_verify:"data_files/server5-sha256.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":NULL:0:0:NULL
+
+X509 Certificate verification #38 (Valid, EC CA, SHA384 Digest)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA512_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_verify:"data_files/server5-sha384.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":NULL:0:0:NULL
+
+X509 Certificate verification #39 (Valid, EC CA, SHA512 Digest)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA512_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_verify:"data_files/server5-sha512.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":NULL:0:0:NULL
+
 X509 Parse Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_SELF_TEST
 x509_selftest:

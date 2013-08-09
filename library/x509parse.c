@@ -3305,6 +3305,7 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
 static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         x509_crl *crl_list)
 {
+    int ret;
     int flags = 0;
     unsigned char hash[POLARSSL_MD_MAX_SIZE];
     const md_info_t *md_info;
@@ -3360,9 +3361,20 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         else
 #endif /* POLARSSL_RSA_C */
 #if defined(POLARSSL_ECDSA_C)
-        if( ca->pk.type == POLARSSL_PK_ECKEY ) {
-            /* EC NOT IMPLEMENTED YET */
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+        if( pk_can_ecdsa( ca->pk ) ) {
+            if( ( ret = pk_ec_to_ecdsa( &ca->pk ) ) != 0 )
+                return( ret );
+
+            if( ecdsa_read_signature( (ecdsa_context *) ca->pk.data,
+                        hash, md_info->size,
+                        crl_list->sig.p, crl_list->sig.len ) != 0 )
+            {
+                /*
+                 * CRL is not trusted
+                 */
+                flags |= BADCRL_NOT_TRUSTED;
+                break;
+            }
         }
         else
 #endif /* POLARSSL_ECDSA_C */
@@ -3490,9 +3502,17 @@ static int x509parse_verify_top(
         else
 #endif /* POLARSSL_RSA_C */
 #if defined(POLARSSL_ECDSA_C)
-        if( trust_ca->pk.type == POLARSSL_PK_ECKEY ) {
-            /* EC NOT IMPLEMENTED YET */
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+        if( pk_can_ecdsa( trust_ca->pk ) ) {
+            if( ( ret = pk_ec_to_ecdsa( &trust_ca->pk ) ) != 0 )
+                return( ret );
+
+            if( ecdsa_read_signature( (ecdsa_context *) trust_ca->pk.data,
+                        hash, md_info->size,
+                        child->sig.p, child->sig.len ) != 0 )
+            {
+                trust_ca = trust_ca->next;
+                continue;
+            }
         }
         else
 #endif /* POLARSSL_ECDSA_C */
@@ -3579,9 +3599,16 @@ static int x509parse_verify_child(
         else
 #endif /* POLARSSL_RSA_C */
 #if defined(POLARSSL_ECDSA_C)
-        if( parent->pk.type == POLARSSL_PK_ECKEY ) {
-            /* EC NOT IMPLEMENTED YET */
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+        if( pk_can_ecdsa( parent->pk ) ) {
+            if( ( ret = pk_ec_to_ecdsa( &parent->pk ) ) != 0 )
+                return( ret );
+
+            if( ecdsa_read_signature( (ecdsa_context *) parent->pk.data,
+                        hash, md_info->size,
+                        child->sig.p, child->sig.len ) != 0 )
+            {
+                *flags |= BADCERT_NOT_TRUSTED;
+            }
         }
         else
 #endif /* POLARSSL_ECDSA_C */

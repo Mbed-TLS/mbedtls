@@ -33,6 +33,10 @@
 #include "rsa.h"
 #endif
 
+#if defined(POLARSSL_ECDSA_C)
+#include "ecdsa.h"
+#endif
+
 #define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
 #define POLARSSL_ERR_PK_TYPE_MISMATCH       -0x2F00  /**< Type mismatch, eg attempt to use a RSA key as EC, or to modify key type */
 
@@ -106,6 +110,33 @@ void pk_free( pk_context *ctx );
  *                  POLARSSL_ERR_PK_TYPE_MISMATCH on attempts to reset type.
  */
 int pk_set_type( pk_context *ctx, pk_type_t type );
+
+#if defined(POLARSSL_ECDSA_C)
+/**
+ * \brief           Convert a generic EC key into an ECDSA context
+ *
+ * \param ctx       Context to convert
+ *
+ * \return          0 on success, or
+ *                  POLARSSL_ERR_PK_MALLOC_FAILED or
+ *                  POLARSSL_ERR_PK_TYPE_MISMATCH.
+ */
+int pk_ec_to_ecdsa( pk_context *ctx );
+
+/**
+ * \brief           Tell if a PK context can be used for ECDSA
+ *
+ * \param ctx       Context to check
+ *
+ * \return          0 if context cannot be used for ECDSA,
+ *                  1 otherwise
+ */
+static inline int pk_can_ecdsa( pk_context ctx )
+{
+    return( ctx.type == POLARSSL_PK_ECKEY ||
+            ctx.type == POLARSSL_PK_ECDSA );
+}
+#endif /* POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_RSA_C)
 /**

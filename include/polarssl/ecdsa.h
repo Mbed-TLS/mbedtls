@@ -31,6 +31,8 @@
 
 /**
  * \brief           ECDSA context structure
+ *
+ * \note Purposefully begins with the same members as struct ecp_keypair.
  */
 typedef struct
 {

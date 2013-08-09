@@ -91,6 +91,10 @@ pkey/dh_server: pkey/dh_server.c ../library/libpolarssl.a
 	echo   "  CC    pkey/dh_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/dh_server.c   $(LDFLAGS) -o $@
 
+pkey/ecdsa: pkey/ecdsa.c ../library/libpolarssl.a
+	echo   "  CC    pkey/ecdsa.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/ecdsa.c       $(LDFLAGS) -o $@
+
 pkey/key_app: pkey/key_app.c ../library/libpolarssl.a
 	echo   "  CC    pkey/key_app.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/key_app.c   $(LDFLAGS) -o $@

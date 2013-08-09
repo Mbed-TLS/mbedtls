@@ -9,6 +9,7 @@ hash/sha2sum
 pkey/dh_client
 pkey/dh_genprime
 pkey/dh_server
+pkey/ecdsa
 pkey/key_app
 pkey/key_app_writer
 pkey/mpi_demo

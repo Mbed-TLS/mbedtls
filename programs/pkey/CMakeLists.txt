@@ -7,6 +7,9 @@ target_link_libraries(dh_genprime polarssl)
 add_executable(dh_server dh_server.c)
 target_link_libraries(dh_server polarssl)
 
+add_executable(ecdsa ecdsa.c)
+target_link_libraries(ecdsa polarssl)
+
 add_executable(key_app key_app.c)
 target_link_libraries(key_app polarssl)
 

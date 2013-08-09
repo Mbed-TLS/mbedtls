@@ -84,7 +84,8 @@ int ecdsa_verify( const ecp_group *grp,
                   const ecp_point *Q, const mpi *r, const mpi *s);
 
 /**
- * \brief           Compute ECDSA signature and write it to buffer
+ * \brief           Compute ECDSA signature and write it to buffer,
+ *                  serialized as defined in RFC 4492 page 20.
  *
  * \param ctx       ECDSA context
  * \param hash      Message hash

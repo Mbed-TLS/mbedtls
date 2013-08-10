@@ -106,6 +106,26 @@ X509 CRL Information SHA512 Digest
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_crl_info:"data_files/crl_sha512.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-512\n"
 
+X509 CRL Information EC, SHA1 Digest
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_crl_info:"data_files/crl-ec.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:26\nnext update   \: 2023-08-07 08\:06\:26\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA1\n"
+
+X509 CRL Information EC, SHA224 Digest
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_crl_info:"data_files/crl-ec-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:38\nnext update   \: 2023-08-07 08\:06\:38\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA224\n"
+
+X509 CRL Information EC, SHA256 Digest
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_crl_info:"data_files/crl-ec-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:44\nnext update   \: 2023-08-07 08\:06\:44\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA256\n"
+
+X509 CRL Information EC, SHA384 Digest
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_crl_info:"data_files/crl-ec-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:52\nnext update   \: 2023-08-07 08\:06\:52\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA384\n"
+
+X509 CRL Information EC, SHA512 Digest
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:07\:01\nnext update   \: 2023-08-07 08\:07\:01\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA512\n"
+
 X509 Parse RSA Key #1 (No password when required)
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509parse_keyfile_rsa:"data_files/test-ca.key":"NULL":POLARSSL_ERR_X509_PASSWORD_REQUIRED

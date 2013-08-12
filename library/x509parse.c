@@ -3348,8 +3348,8 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         if( crl_list->sig_pk == POLARSSL_PK_RSA )
         {
             if( ca->pk.type != POLARSSL_PK_RSA ||
-                rsa_pkcs1_verify( pk_rsa( ca->pk ), RSA_PUBLIC,
-                        crl_list->sig_md, 0, hash, crl_list->sig.p ) != 0 )
+                ca->pk.info->verify_func( ca->pk.data,
+                    hash, md_info, crl_list->sig.p, crl_list->sig.len ) != 0 )
             {
                 flags |= BADCRL_NOT_TRUSTED;
                 break;
@@ -3361,10 +3361,8 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         if( crl_list->sig_pk == POLARSSL_PK_ECDSA )
         {
             if( ! pk_can_ecdsa( ca->pk ) ||
-                pk_ec_to_ecdsa( &ca->pk ) != 0 ||
-                ecdsa_read_signature( (ecdsa_context *) ca->pk.data,
-                        hash, md_info->size,
-                        crl_list->sig.p, crl_list->sig.len ) != 0 )
+                ca->pk.info->verify_func( ca->pk.data,
+                    hash, md_info, crl_list->sig.p, crl_list->sig.len ) != 0 )
             {
                 flags |= BADCRL_NOT_TRUSTED;
                 break;
@@ -3487,8 +3485,8 @@ static int x509parse_verify_top(
         if( child->sig_pk == POLARSSL_PK_RSA )
         {
             if( trust_ca->pk.type != POLARSSL_PK_RSA ||
-                rsa_pkcs1_verify( pk_rsa( trust_ca->pk ), RSA_PUBLIC,
-                        child->sig_md, 0, hash, child->sig.p ) != 0 )
+                trust_ca->pk.info->verify_func( trust_ca->pk.data,
+                        hash, md_info, child->sig.p, child->sig.len ) != 0 )
             {
                 trust_ca = trust_ca->next;
                 continue;
@@ -3500,10 +3498,8 @@ static int x509parse_verify_top(
         if( child->sig_pk == POLARSSL_PK_ECDSA )
         {
             if( ! pk_can_ecdsa( trust_ca->pk ) ||
-                pk_ec_to_ecdsa( &trust_ca->pk ) != 0 ||
-                ecdsa_read_signature( (ecdsa_context *) trust_ca->pk.data,
-                        hash, md_info->size,
-                        child->sig.p, child->sig.len ) != 0 )
+                trust_ca->pk.info->verify_func( trust_ca->pk.data,
+                        hash, md_info, child->sig.p, child->sig.len ) != 0 )
             {
                 trust_ca = trust_ca->next;
                 continue;
@@ -3586,8 +3582,8 @@ static int x509parse_verify_child(
         if( child->sig_pk == POLARSSL_PK_RSA )
         {
             if( parent->pk.type != POLARSSL_PK_RSA ||
-                rsa_pkcs1_verify( pk_rsa( parent->pk ), RSA_PUBLIC,
-                        child->sig_md, 0, hash, child->sig.p ) != 0 )
+                parent->pk.info->verify_func( parent->pk.data,
+                        hash, md_info, child->sig.p, child->sig.len ) != 0 )
             {
                 *flags |= BADCERT_NOT_TRUSTED;
             }
@@ -3598,10 +3594,8 @@ static int x509parse_verify_child(
         if( child->sig_pk == POLARSSL_PK_ECDSA )
         {
             if( ! pk_can_ecdsa( parent->pk ) ||
-                pk_ec_to_ecdsa( &parent->pk ) != 0 ||
-                ecdsa_read_signature( (ecdsa_context *) parent->pk.data,
-                        hash, md_info->size,
-                        child->sig.p, child->sig.len ) != 0 )
+                parent->pk.info->verify_func( parent->pk.data,
+                        hash, md_info, child->sig.p, child->sig.len ) != 0 )
             {
                 *flags |= BADCERT_NOT_TRUSTED;
             }

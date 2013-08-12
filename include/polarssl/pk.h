@@ -24,6 +24,7 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
 #ifndef POLARSSL_PK_H
 #define POLARSSL_PK_H
 
@@ -31,6 +32,10 @@
 
 #if defined(POLARSSL_RSA_C)
 #include "rsa.h"
+#endif
+
+#if defined(POLARSSL_ECP_C)
+#include "ecp.h"
 #endif
 
 #if defined(POLARSSL_ECDSA_C)
@@ -77,13 +82,28 @@ typedef enum {
 } pk_type_t;
 
 /**
+ * \brief           Public key info
+ */
+typedef struct
+{
+    /** Public key type */
+    pk_type_t type;
+
+    /** Verify signature */
+    int (*verify_func)( void *ctx,
+                        const unsigned char *hash, const md_info_t *md_info,
+                        const unsigned char *sig, size_t sig_len );
+} pk_info_t;
+
+/**
  * \brief           Public key container
  */
 typedef struct
 {
-    pk_type_t   type;       /**< Public key type */
-    void *      data;       /**< Public key data */
-    int         dont_free;  /**< True if data must not be freed */
+    const pk_info_t *   info;       /**< Public key informations */
+    pk_type_t           type;       /**< Public key type (temporary) */
+    void *              data;       /**< Public key data */
+    int                 dont_free;  /**< True if data must not be freed */
 } pk_context;
 
 /**
@@ -157,4 +177,4 @@ int pk_wrap_rsa( pk_context *ctx, const rsa_context *rsa);
 }
 #endif
 
-#endif /* pk.h */
+#endif /* POLARSSL_PK_H */

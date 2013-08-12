@@ -38,6 +38,7 @@ extern const pk_info_t rsa_info;
 
 #if defined(POLARSSL_ECP_C)
 extern const pk_info_t eckey_info;
+extern const pk_info_t eckeydh_info;
 #endif
 
 #if defined(POLARSSL_ECDSA_C)

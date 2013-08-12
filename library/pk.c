@@ -119,10 +119,15 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
     else
 #endif
 #if defined(POLARSSL_ECP_C)
-    if( type == POLARSSL_PK_ECKEY || type == POLARSSL_PK_ECKEY_DH )
+    if( type == POLARSSL_PK_ECKEY )
     {
         size = sizeof( ecp_keypair );
         info = &eckey_info;
+    }
+    else if( type == POLARSSL_PK_ECKEY_DH )
+    {
+        size = sizeof( ecp_keypair );
+        info = &eckeydh_info;
     }
     else
 #endif

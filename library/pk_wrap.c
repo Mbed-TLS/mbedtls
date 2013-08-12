@@ -84,6 +84,9 @@ const pk_info_t ecdsa_info = {
 #endif /* POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_ECP_C)
+/*
+ * Generic EC key
+ */
 static int eckey_can_do( pk_type_t type )
 {
     return( type == POLARSSL_PK_ECKEY ||
@@ -122,5 +125,33 @@ const pk_info_t eckey_info = {
     POLARSSL_PK_ECKEY,
     eckey_can_do,
     eckey_verify_wrap,
+};
+
+/*
+ * EC key resticted to ECDH
+ */
+static int eckeydh_can_do( pk_type_t type )
+{
+    return( type == POLARSSL_PK_ECKEY ||
+            type == POLARSSL_PK_ECKEY_DH );
+}
+
+static int eckeydh_verify_wrap( void *ctx,
+                       const unsigned char *hash, const md_info_t *md_info,
+                       const unsigned char *sig, size_t sig_len )
+{
+    ((void) ctx);
+    ((void) hash);
+    ((void) md_info);
+    ((void) sig);
+    ((void) sig_len);
+
+    return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+}
+
+const pk_info_t eckeydh_info = {
+    POLARSSL_PK_ECKEY_DH,
+    eckeydh_can_do,
+    eckeydh_verify_wrap,
 };
 #endif /* POLARSSL_ECP_C */

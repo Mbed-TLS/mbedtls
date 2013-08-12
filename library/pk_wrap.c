@@ -40,6 +40,11 @@
 #endif
 
 #if defined(POLARSSL_RSA_C)
+static int rsa_can_do( pk_type_t type )
+{
+    return( type == POLARSSL_PK_RSA );
+}
+
 static int rsa_verify_wrap( void *ctx,
                    const unsigned char *hash, const md_info_t *md_info,
                    const unsigned char *sig, size_t sig_len )
@@ -52,11 +57,17 @@ static int rsa_verify_wrap( void *ctx,
 
 const pk_info_t rsa_info = {
     POLARSSL_PK_RSA,
+    rsa_can_do,
     rsa_verify_wrap,
 };
 #endif /* POLARSSL_RSA_C */
 
 #if defined(POLARSSL_ECDSA_C)
+int ecdsa_can_do( pk_type_t type )
+{
+    return( type == POLARSSL_PK_ECDSA );
+}
+
 int ecdsa_verify_wrap( void *ctx,
                        const unsigned char *hash, const md_info_t *md_info,
                        const unsigned char *sig, size_t sig_len )
@@ -67,11 +78,19 @@ int ecdsa_verify_wrap( void *ctx,
 
 const pk_info_t ecdsa_info = {
     POLARSSL_PK_ECDSA,
+    ecdsa_can_do,
     ecdsa_verify_wrap,
 };
 #endif /* POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_ECP_C)
+static int eckey_can_do( pk_type_t type )
+{
+    return( type == POLARSSL_PK_ECKEY ||
+            type == POLARSSL_PK_ECKEY_DH ||
+            type == POLARSSL_PK_ECDSA );
+}
+
 static int eckey_verify_wrap( void *ctx,
                        const unsigned char *hash, const md_info_t *md_info,
                        const unsigned char *sig, size_t sig_len )
@@ -101,6 +120,7 @@ static int eckey_verify_wrap( void *ctx,
 
 const pk_info_t eckey_info = {
     POLARSSL_PK_ECKEY,
+    eckey_can_do,
     eckey_verify_wrap,
 };
 #endif /* POLARSSL_ECP_C */

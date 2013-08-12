@@ -146,42 +146,6 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
     return( 0 );
 }
 
-#if defined(POLARSSL_ECDSA_C)
-/*
- * Convert generic EC context to ECDSA
- */
-int pk_ec_to_ecdsa( pk_context *ctx )
-{
-    ecp_keypair *eckey;
-    ecdsa_context *ecdsa;
-
-    if( ctx->type == POLARSSL_PK_ECDSA )
-        return( 0 );
-
-    if( ctx->type != POLARSSL_PK_ECKEY )
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
-
-    eckey = (ecp_keypair *) ctx->data;
-
-    if( ( ecdsa = polarssl_malloc( sizeof( ecdsa_context ) ) ) == NULL )
-        return( POLARSSL_ERR_PK_MALLOC_FAILED );
-
-    ecdsa_init( ecdsa );
-
-    /* struct ecdsa_context begins the same as struct ecp_keypair */
-    memcpy( ecdsa, eckey, sizeof( ecp_keypair ) );
-
-    if( ! ctx->dont_free )
-        polarssl_free( eckey );
-
-    ctx->dont_free = 0;
-    ctx->type = POLARSSL_PK_ECDSA;
-    ctx->data = ecdsa;
-
-    return( 0 );
-}
-#endif /* POLARSSL_ECDSA_C */
-
 #if defined(POLARSSL_RSA_C)
 /*
  * Wrap an RSA context in a PK context

@@ -953,7 +953,7 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
                            md_type_t md_alg,
                            unsigned int hashlen,
                            const unsigned char *hash,
-                           unsigned char *sig )
+                           const unsigned char *sig )
 {
     int ret;
     size_t siglen;
@@ -1063,7 +1063,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
                                  md_type_t md_alg,
                                  unsigned int hashlen,
                                  const unsigned char *hash,
-                                 unsigned char *sig )
+                                 const unsigned char *sig )
 {
     int ret;
     size_t len, siglen, asn1_len;
@@ -1177,7 +1177,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
                       md_type_t md_alg,
                       unsigned int hashlen,
                       const unsigned char *hash,
-                      unsigned char *sig )
+                      const unsigned char *sig )
 {
     switch( ctx->padding )
     {

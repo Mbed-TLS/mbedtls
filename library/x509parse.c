@@ -3022,8 +3022,28 @@ int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
 }
 
 /*
+ * Helper for writing "RSA key size", "EC key size", etc
+ */
+static int x509_key_size_helper( char *buf, size_t size, const char *name )
+{
+    char *p = buf;
+    size_t n = size;
+    int ret;
+
+    if( strlen( name ) + sizeof( " key size" ) > size )
+        return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;
+
+    ret = snprintf( p, n, "%s key size", name );
+    SAFE_SNPRINTF();
+
+    return( 0 );
+}
+
+/*
  * Return an informational string about the certificate.
  */
+#define BEFORE_COLON    14
+#define BC              "14"
 int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                          const x509_cert *crt )
 {
@@ -3031,6 +3051,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     size_t n;
     char *p;
     const char *desc = NULL;
+    char key_size_str[BEFORE_COLON];
 
     p = buf;
     n = size;
@@ -3079,20 +3100,14 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
         ret = snprintf( p, n, desc );
     SAFE_SNPRINTF();
 
-#if defined(POLARSSL_RSA_C)
-    if( crt->pk.type == POLARSSL_PK_RSA )
-        ret = snprintf( p, n, "\n%sRSA key size  : %d bits\n", prefix,
-                (int) pk_rsa( crt->pk )->N.n * (int) sizeof( t_uint ) * 8 );
-    else
-#endif /* POLARSSL_RSA_C */
-#if defined(POLARSSL_ECP_C)
-    if( crt->pk.type == POLARSSL_PK_ECKEY ||
-        crt->pk.type == POLARSSL_PK_ECKEY_DH )
-        ret = snprintf( p, n, "\n%sEC key size   : %d bits\n", prefix,
-                (int) pk_ec( crt->pk )->grp.pbits );
-    else
-#endif /* POLARSSL_ECP_C */
-        ret = snprintf(p, n, "\n%sPK type looks wrong!", prefix);
+    if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
+                                      crt->pk.info->name ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
+                          (int) crt->pk.info->get_size( crt->pk.data ) );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );

@@ -89,6 +89,12 @@ typedef struct
     /** Public key type */
     pk_type_t type;
 
+    /** Type name */
+    const char *name;
+
+    /** Get key size in bits */
+    size_t (*get_size)( void * );
+
     /** Tell if the context implements this type (eg ECKEY can do ECDSA) */
     int (*can_do)( pk_type_t type );
 

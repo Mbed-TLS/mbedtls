@@ -220,6 +220,17 @@ int ecp_is_zero( ecp_point *pt );
 int ecp_copy( ecp_point *P, const ecp_point *Q );
 
 /**
+ * \brief           Copy the contents of a group object
+ *
+ * \param dst       Destination group
+ * \param src       Source group
+ *
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ */
+int ecp_group_copy( ecp_group *dst, const ecp_group *src );
+
+/**
  * \brief           Import a non-zero point from two ASCII strings
  *
  * \param P         Destination point

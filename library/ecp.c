@@ -182,6 +182,14 @@ cleanup:
 }
 
 /*
+ * Copy the contents of a group object
+ */
+int ecp_group_copy( ecp_group *dst, const ecp_group *src )
+{
+    return ecp_use_known_dp( dst, src->id );
+}
+
+/*
  * Import a non-zero point from ASCII strings
  */
 int ecp_point_read_string( ecp_point *P, int radix,

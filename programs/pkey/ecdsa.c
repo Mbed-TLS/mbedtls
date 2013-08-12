@@ -152,9 +152,9 @@ int main( int argc, char *argv[] )
     printf( "  . Preparing verification context..." );
     fflush( stdout );
 
-    if( ( ret = ecp_use_known_dp( &ctx_verify.grp, ctx_sign.grp.id ) ) != 0 )
+    if( ( ret = ecp_group_copy( &ctx_verify.grp, &ctx_sign.grp ) ) != 0 )
     {
-        printf( " failed\n  ! ecp_use_known_dp returned %d\n", ret );
+        printf( " failed\n  ! ecp_group_copy returned %d\n", ret );
         goto exit;
     }
 

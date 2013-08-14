@@ -529,6 +529,18 @@
 #define POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
 
 /**
+ * \def POLARSSL_SSL_SESSION_TICKETS
+ *
+ * Enable support for RFC 5077 session tickets in SSL
+ *
+ * Requires: POLARSSL_AES_C
+ *           POLARSSL_SHA256_C
+ *
+ * Comment this macro to disable support for SSL session tickets
+ */
+#define POLARSSL_SSL_SESSION_TICKETS
+
+/**
  * \def POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate

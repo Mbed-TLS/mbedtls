@@ -101,6 +101,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
     }
 #endif /* POLARSSL_X509_PARSE_C */
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( src->ticket != NULL )
     {
         if( ( dst->ticket = polarssl_malloc( src->ticket_len ) ) == NULL )
@@ -108,6 +109,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 
         memcpy( dst->ticket, src->ticket, src->ticket_len );
     }
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
     return( 0 );
 }
@@ -2972,6 +2974,7 @@ int ssl_session_reset( ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
 /*
  * Allocate and initialize ticket keys
  */
@@ -3004,6 +3007,7 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 /*
  * SSL set accessors
@@ -3261,6 +3265,7 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy )
     ssl->allow_legacy_renegotiation = allow_legacy;
 }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
 int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
 {
     ssl->session_tickets = use_tickets;
@@ -3273,6 +3278,7 @@ int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
 
     return( ssl_ticket_keys_init( ssl ) );
 }
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 /*
  * SSL get accessors
@@ -3658,7 +3664,9 @@ void ssl_session_free( ssl_session *session )
     }
 #endif
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     polarssl_free( session->ticket );
+#endif
 
     memset( session, 0, sizeof( ssl_session ) );
 }
@@ -3710,7 +3718,9 @@ void ssl_free( ssl_context *ssl )
         polarssl_free( ssl->session );
     }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     polarssl_free( ssl->ticket_keys );
+#endif
 
     if ( ssl->hostname != NULL)
     {

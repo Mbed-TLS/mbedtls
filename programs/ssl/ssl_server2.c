@@ -146,6 +146,13 @@ static void my_debug( void *ctx, int level, const char *str )
 #define USAGE_PSK ""
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#define USAGE_TICKETS                                       \
+    "    tickets=%%d          default: 1 (enabled)\n"
+#else
+#define USAGE_TICKETS ""
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -154,7 +161,7 @@ static void my_debug( void *ctx, int level, const char *str )
     USAGE_IO                                                \
     "    request_page=%%s     default: \".\"\n"             \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
-    "    tickets=%%d          default: 1 (enabled)\n"       \
+    USAGE_TICKETS                                           \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
@@ -621,7 +628,9 @@ int main( int argc, char *argv[] )
                                  ssl_cache_set, &cache );
 #endif
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_set_session_tickets( &ssl, opt.tickets );
+#endif
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );

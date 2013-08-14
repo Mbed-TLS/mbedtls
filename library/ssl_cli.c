@@ -322,6 +322,7 @@ static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
     *olen = 4;
 }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
 static void ssl_write_session_ticket_ext( ssl_context *ssl,
                                           unsigned char *buf, size_t *olen )
 {
@@ -356,6 +357,7 @@ static void ssl_write_session_ticket_ext( ssl_context *ssl,
 
     *olen += tlen;
 }
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 static int ssl_write_client_hello( ssl_context *ssl )
 {
@@ -441,6 +443,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
         n = 0;
     }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     /*
      * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
      * generate and include a Session ID in the TLS ClientHello."
@@ -456,6 +459,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
         ssl->session_negotiate->length = n = 32;
     }
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
     *p++ = (unsigned char) n;
 
@@ -548,8 +552,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
+#endif
 
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
@@ -650,6 +656,7 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
 static int ssl_parse_session_ticket_ext( ssl_context *ssl,
                                          const unsigned char *buf,
                                          size_t len )
@@ -666,6 +673,7 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
@@ -905,6 +913,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
             break;
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
         case TLS_EXT_SESSION_TICKET:
             SSL_DEBUG_MSG( 3, ( "found session_ticket extension" ) );
 
@@ -915,6 +924,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             }
 
             break;
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
@@ -1925,6 +1935,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
           !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED &&
           !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
 static int ssl_parse_new_session_ticket( ssl_context *ssl )
 {
     int ret;
@@ -2016,6 +2027,7 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 /*
  * SSL handshake -- client side -- single step
@@ -2105,9 +2117,11 @@ int ssl_handshake_client_step( ssl_context *ssl )
         *        Finished
         */
        case SSL_SERVER_CHANGE_CIPHER_SPEC:
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
            if( ssl->handshake->new_session_ticket != 0 )
                ret = ssl_parse_new_session_ticket( ssl );
            else
+#endif
                ret = ssl_parse_change_cipher_spec( ssl );
            break;
 

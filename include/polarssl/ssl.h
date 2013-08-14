@@ -329,7 +329,9 @@ typedef struct _ssl_session ssl_session;
 typedef struct _ssl_context ssl_context;
 typedef struct _ssl_transform ssl_transform;
 typedef struct _ssl_handshake_params ssl_handshake_params;
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
 typedef struct _ssl_ticket_keys ssl_ticket_keys;
+#endif
 
 /*
  * This structure is used for storing current session data.
@@ -349,9 +351,11 @@ struct _ssl_session
     x509_cert *peer_cert;       /*!< peer X.509 cert chain */
 #endif /* POLARSSL_X509_PARSE_C */
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     unsigned char *ticket;      /*!< RFC 5077 session ticket */
     size_t ticket_len;          /*!< session ticket length   */
     uint32_t ticket_lifetime;   /*!< ticket lifetime hint    */
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
@@ -444,9 +448,12 @@ struct _ssl_handshake_params
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     int new_session_ticket;             /*!< use NewSessionTicket?    */
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 };
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
 /*
  * Parameters needed to secure session tickets
  */
@@ -457,6 +464,7 @@ struct _ssl_ticket_keys
     aes_context dec;                /*!< decryption context                  */
     unsigned char mac_key[16];      /*!< authentication key                  */
 };
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 struct _ssl_context
 {
@@ -566,10 +574,12 @@ struct _ssl_context
     const char *peer_cn;                /*!<  expected peer CN        */
 #endif /* POLARSSL_X509_PARSE_C */
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     /*
      * Support for generating and checking session tickets
      */
     ssl_ticket_keys *ticket_keys;       /*!<  keys for ticket encryption */
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
     /*
      * User settings
@@ -1037,6 +1047,7 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
  */
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
 /**
  * \brief          Enable / Disable session tickets
  *                 (Default: SSL_SESSION_TICKETS_ENABLED on client,
@@ -1054,6 +1065,7 @@ int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
  *                 or a specific error code (server only).
  */
 int ssl_set_session_tickets( ssl_context *ssl, int use_tickets );
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 /**
  * \brief          Enable / Disable renegotiation support for connection when

@@ -62,7 +62,8 @@ static int rsa_verify_wrap( void *ctx,
                    const unsigned char *hash, const md_info_t *md_info,
                    const unsigned char *sig, size_t sig_len )
 {
-    ((void) sig_len);
+    if( sig_len != ((rsa_context *) ctx)->len )
+        return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
     return( rsa_pkcs1_verify( (rsa_context *) ctx,
                 RSA_PUBLIC, md_info->type, 0, hash, sig ) );

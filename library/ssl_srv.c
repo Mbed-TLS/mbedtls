@@ -2517,10 +2517,13 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     }
 
     /* EC NOT IMPLEMENTED YET */
-    if( ssl->session_negotiate->peer_cert->pk.type != POLARSSL_PK_RSA )
+    if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                     POLARSSL_PK_RSA ) )
+    {
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
 
-    n1 = pk_rsa( ssl->session_negotiate->peer_cert->pk )->len;
+    n1 = pk_get_size( &ssl->session_negotiate->peer_cert->pk ) / 8;
     n2 = ( ssl->in_msg[4 + n] << 8 ) | ssl->in_msg[5 + n];
 
     if( n + n1 + 6 != ssl->in_hslen || n1 != n2 )

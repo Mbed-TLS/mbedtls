@@ -53,9 +53,9 @@ static int rsa_can_do( pk_type_t type )
     return( type == POLARSSL_PK_RSA );
 }
 
-static size_t rsa_get_size( void * ctx )
+static size_t rsa_get_size( const void * ctx )
 {
-    return( mpi_size( &((rsa_context *) ctx)->N ) * 8 );
+    return( 8 * ((rsa_context *) ctx)->len );
 }
 
 static int rsa_verify_wrap( void *ctx,
@@ -101,7 +101,7 @@ int ecdsa_can_do( pk_type_t type )
     return( type == POLARSSL_PK_ECDSA );
 }
 
-static size_t ecdsa_get_size( void *ctx )
+static size_t ecdsa_get_size( const void *ctx )
 {
     return( ((ecdsa_context *) ctx)->grp.pbits );
 }
@@ -152,7 +152,7 @@ static int eckey_can_do( pk_type_t type )
             type == POLARSSL_PK_ECDSA );
 }
 
-static size_t eckey_get_size( void *ctx )
+static size_t eckey_get_size( const void *ctx )
 {
     return( ((ecp_keypair *) ctx)->grp.pbits );
 }

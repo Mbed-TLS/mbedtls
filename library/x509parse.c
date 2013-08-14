@@ -3147,7 +3147,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     }
 
     ret = snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
-                          (int) crt->pk.info->get_size( crt->pk.data ) );
+                          (int) pk_get_size( &crt->pk ) );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );
@@ -3399,9 +3399,9 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
 
         md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
-        if( ca->pk.info->can_do( crl_list->sig_pk ) == 0 ||
-                ca->pk.info->verify_func( ca->pk.data, hash, md_info,
-                                    crl_list->sig.p, crl_list->sig.len ) != 0 )
+        if( pk_can_do( &ca->pk, crl_list->sig_pk ) == 0 ||
+            pk_verify( &ca->pk, hash, md_info,
+                       crl_list->sig.p, crl_list->sig.len ) != 0 )
         {
             flags |= BADCRL_NOT_TRUSTED;
             break;
@@ -3516,9 +3516,9 @@ static int x509parse_verify_top(
 
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        if( trust_ca->pk.info->can_do( child->sig_pk ) == 0 ||
-            trust_ca->pk.info->verify_func( trust_ca->pk.data, hash, md_info,
-                                        child->sig.p, child->sig.len ) != 0 )
+        if( pk_can_do( &trust_ca->pk, child->sig_pk ) == 0 ||
+            pk_verify( &trust_ca->pk, hash, md_info,
+                       child->sig.p, child->sig.len ) != 0 )
         {
             trust_ca = trust_ca->next;
             continue;
@@ -3593,9 +3593,9 @@ static int x509parse_verify_child(
     {
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        if( parent->pk.info->can_do( child->sig_pk ) == 0 ||
-                parent->pk.info->verify_func( parent->pk.data, hash, md_info,
-                                        child->sig.p, child->sig.len ) != 0 )
+        if( pk_can_do( &parent->pk, child->sig_pk ) == 0 ||
+            pk_verify( &parent->pk, hash, md_info,
+                       child->sig.p, child->sig.len ) != 0 )
         {
             *flags |= BADCERT_NOT_TRUSTED;
         }

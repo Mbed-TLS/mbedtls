@@ -124,3 +124,39 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
 
     return( 0 );
 }
+
+/*
+ * Tell if a PK can do the operations of the given type
+ */
+int pk_can_do( pk_context *ctx, pk_type_t type )
+{
+    /* null of NONE context can't do anything */
+    if( ctx == NULL || ctx->info == NULL )
+        return( 0 );
+
+    return( ctx->info->can_do( type ) );
+}
+
+/*
+ * Verify a signature
+ */
+int pk_verify( pk_context *ctx,
+               const unsigned char *hash, const md_info_t *md_info,
+               const unsigned char *sig, size_t sig_len )
+{
+    if( ctx == NULL || ctx->info == NULL )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH ); // TODO
+
+    return( ctx->info->verify_func( ctx->data, hash, md_info, sig, sig_len ) );
+}
+
+/*
+ * Get key size in bits
+ */
+size_t pk_get_size( const pk_context *ctx )
+{
+    if( ctx == NULL || ctx->info == NULL )
+        return( 0 );
+
+    return( ctx->info->get_size( ctx->data ) );
+}

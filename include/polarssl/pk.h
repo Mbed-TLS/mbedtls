@@ -93,7 +93,7 @@ typedef struct
     const char *name;
 
     /** Get key size in bits */
-    size_t (*get_size)( void * );
+    size_t (*get_size)( const void * );
 
     /** Tell if the context implements this type (eg ECKEY can do ECDSA) */
     int (*can_do)( pk_type_t type );
@@ -145,6 +145,42 @@ void pk_free( pk_context *ctx );
  *                  POLARSSL_ERR_PK_TYPE_MISMATCH on attempts to reset type.
  */
 int pk_set_type( pk_context *ctx, pk_type_t type );
+
+/**
+ * \brief           Get the size in bits of the underlying key
+ *
+ * \param ctx       Context to use
+ *
+ * \return          Key size in bits, or 0 on error
+ */
+size_t pk_get_size( const pk_context *ctx );
+
+/**
+ * \brief           Tell if a context can do the operation given by type
+ *
+ * \param ctx       Context to test
+ * \param type      Target type
+ *
+ * \return          0 if context can't do the operations,
+ *                  1 otherwise.
+ */
+int pk_can_do( pk_context *ctx, pk_type_t type );
+
+/**
+ * \brief           Verify signature
+ *
+ * \param ctx       PK context to use
+ * \param hash      Hash of the message to sign
+ * \param md_info   Information about the hash function used
+ * \param sig       Signature to verify
+ * \param sig_len   Signature length
+ *
+ * \return          0 on success (signature is valid),
+ *                  or a specific error code.
+ */
+int pk_verify( pk_context *ctx,
+               const unsigned char *hash, const md_info_t *md_info,
+               const unsigned char *sig, size_t sig_len );
 
 #ifdef __cplusplus
 }

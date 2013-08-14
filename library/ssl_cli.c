@@ -1346,12 +1346,15 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
 
-        /* EC NOT IMPLEMENTED YET */
-        if( ssl->session_negotiate->peer_cert->pk.type != POLARSSL_PK_RSA )
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                         POLARSSL_PK_RSA ) )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( POLARSSL_ERR_SSL_PK_TYPE_MISMATCH );
+        }
 
-        if( (unsigned int)( end - p ) !=
-            pk_rsa( ssl->session_negotiate->peer_cert->pk )->len )
+        if( 8 * (unsigned int)( end - p ) !=
+            pk_get_size( &ssl->session_negotiate->peer_cert->pk ) )
         {
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
@@ -1795,12 +1798,15 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         if( ret != 0 )
             return( ret );
 
-        /* EC NOT IMPLEMENTED YET */
-        if( ssl->session_negotiate->peer_cert->pk.type != POLARSSL_PK_RSA )
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                         POLARSSL_PK_RSA ) )
+        {
+            SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
+            return( POLARSSL_ERR_SSL_PK_TYPE_MISMATCH );
+        }
 
         i = 4;
-        n = pk_rsa( ssl->session_negotiate->peer_cert->pk )->len;
+        n = pk_get_size( &ssl->session_negotiate->peer_cert->pk ) / 8;
 
         if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
         {

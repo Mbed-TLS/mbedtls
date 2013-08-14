@@ -225,6 +225,39 @@ void debug_print_mpi( const ssl_context *ssl, int level,
 #endif /* POLARSSL_BIGNUM_C */
 
 #if defined(POLARSSL_X509_PARSE_C)
+static void debug_print_pk( const ssl_context *ssl, int level,
+                            const char *file, int line,
+                            const char *text, const pk_context *pk )
+{
+    size_t i;
+    pk_debug_item items[POLARSSL_PK_DEBUG_MAX_ITEMS];
+    char name[16];
+
+    memset( items, 0, sizeof( items ) );
+
+    if( pk_debug( pk, items ) != 0 )
+    {
+        debug_print_msg( ssl, level, file, line, "invalid PK context" );
+        return;
+    }
+
+    for( i = 0; i < sizeof( items ); i++ )
+    {
+        if( items[i].type == POLARSSL_PK_DEBUG_NONE )
+            return;
+
+        snprintf( name, sizeof( name ), "%s%s", text, items[i].name );
+        name[sizeof( name ) - 1] = '\0';
+
+        if( items[i].type == POLARSSL_PK_DEBUG_MPI )
+            debug_print_mpi( ssl, level, file, line, name, items[i].value );
+        else if( items[i].type == POLARSSL_PK_DEBUG_ECP )
+            debug_print_ecp( ssl, level, file, line, name, items[i].value );
+        else
+            debug_print_msg( ssl, level, file, line, "should not happen" );
+    }
+}
+
 void debug_print_crt( const ssl_context *ssl, int level,
                       const char *file, int line,
                       const char *text, const x509_cert *crt )
@@ -250,25 +283,7 @@ void debug_print_crt( const ssl_context *ssl, int level,
         str[maxlen] = '\0';
         ssl->f_dbg( ssl->p_dbg, level, str );
 
-#if defined(POLARSSL_RSA_C)
-        if( crt->pk.type == POLARSSL_PK_RSA )
-        {
-            debug_print_mpi( ssl, level, file, line,
-                    "crt->rsa.N", &pk_rsa( crt->pk )->N );
-            debug_print_mpi( ssl, level, file, line,
-                    "crt->rsa.E", &pk_rsa( crt->pk )->E );
-        } else
-#endif /* POLARSSL_RSA_C */
-#if defined(POLARSSL_ECP_C)
-        if( crt->pk.type == POLARSSL_PK_ECKEY ||
-            crt->pk.type == POLARSSL_PK_ECKEY_DH )
-        {
-            debug_print_ecp( ssl, level, file, line,
-                    "crt->eckey.Q", &pk_ec( crt->pk )->Q );
-        } else
-#endif /* POLARSSL_ECP_C */
-            debug_print_msg( ssl, level, file, line,
-                    "crt->pk.type is not valid" );
+        debug_print_pk( ssl, level, file, line, "crt->", &crt->pk );
 
         crt = crt->next;
     }

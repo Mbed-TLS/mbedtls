@@ -84,6 +84,19 @@ static void rsa_free_wrap( void *ctx )
     polarssl_free( ctx );
 }
 
+static void rsa_debug( const void *ctx, pk_debug_item *items )
+{
+    items->type = POLARSSL_PK_DEBUG_MPI;
+    items->name = "rsa.N";
+    items->value = &( ((rsa_context *) ctx)->N );
+
+    items++;
+
+    items->type = POLARSSL_PK_DEBUG_MPI;
+    items->name = "rsa.E";
+    items->value = &( ((rsa_context *) ctx)->E );
+}
+
 const pk_info_t rsa_info = {
     POLARSSL_PK_RSA,
     "RSA",
@@ -92,6 +105,7 @@ const pk_info_t rsa_info = {
     rsa_verify_wrap,
     rsa_alloc_wrap,
     rsa_free_wrap,
+    rsa_debug,
 };
 #endif /* POLARSSL_RSA_C */
 
@@ -138,6 +152,7 @@ const pk_info_t ecdsa_info = {
     ecdsa_verify_wrap,
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
+    NULL,
 };
 #endif /* POLARSSL_ECDSA_C */
 
@@ -200,6 +215,13 @@ static void eckey_free_wrap( void *ctx )
     polarssl_free( ctx );
 }
 
+static void eckey_debug( const void *ctx, pk_debug_item *items )
+{
+    items->type = POLARSSL_PK_DEBUG_ECP;
+    items->name = "eckey.Q";
+    items->value = &( ((ecp_keypair *) ctx)->Q );
+}
+
 const pk_info_t eckey_info = {
     POLARSSL_PK_ECKEY,
     "EC",
@@ -208,6 +230,7 @@ const pk_info_t eckey_info = {
     eckey_verify_wrap,
     eckey_alloc_wrap,
     eckey_free_wrap,
+    eckey_debug,
 };
 
 /*
@@ -240,5 +263,6 @@ const pk_info_t eckeydh_info = {
     eckeydh_verify_wrap,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
+    NULL,
 };
 #endif /* POLARSSL_ECP_C */

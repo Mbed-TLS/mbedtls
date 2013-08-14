@@ -82,6 +82,29 @@ typedef enum {
 } pk_type_t;
 
 /**
+ * \brief           Types for interfacing with the debug module
+ */
+typedef enum
+{
+    POLARSSL_PK_DEBUG_NONE = 0,
+    POLARSSL_PK_DEBUG_MPI,
+    POLARSSL_PK_DEBUG_ECP,
+} pk_debug_type;
+
+/**
+ * \brief           Item to send to the debug module
+ */
+typedef struct
+{
+    pk_debug_type type;
+    char *name;
+    void *value;
+} pk_debug_item;
+
+/** Maximum number of item send for debugging, plus 1 */
+#define POLARSSL_PK_DEBUG_MAX_ITEMS 3
+
+/**
  * \brief           Public key info
  */
 typedef struct
@@ -109,6 +132,9 @@ typedef struct
     /** Free the given context */
     void (*ctx_free_func)( void *ctx );
 
+    /** Interface with the debug module */
+    void (*debug_func)( const void *ctx, pk_debug_item *items );
+
 } pk_info_t;
 
 /**
@@ -117,7 +143,6 @@ typedef struct
 typedef struct
 {
     const pk_info_t *   info;       /**< Public key informations */
-    pk_type_t           type;       /**< Public key type (temporary) */
     void *              data;       /**< Public key data */
 } pk_context;
 
@@ -181,6 +206,16 @@ int pk_can_do( pk_context *ctx, pk_type_t type );
 int pk_verify( pk_context *ctx,
                const unsigned char *hash, const md_info_t *md_info,
                const unsigned char *sig, size_t sig_len );
+
+/**
+ * \brief           Export debug information
+ *
+ * \param ctx       Context to use
+ * \param items     Place to write debug items
+ *
+ * \return          0 on sucess or POLARSSL_ERR_PK_BAD_INPUT_DATA
+ */
+int pk_debug( const pk_context *ctx, pk_debug_item *items );
 
 #ifdef __cplusplus
 }

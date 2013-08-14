@@ -56,7 +56,6 @@ void pk_init( pk_context *ctx )
         return;
 
     ctx->info = NULL;
-    ctx->type = POLARSSL_PK_NONE;
     ctx->data = NULL;
 }
 
@@ -72,7 +71,6 @@ void pk_free( pk_context *ctx )
     ctx->data = NULL;
 
     ctx->info = NULL;
-    ctx->type = POLARSSL_PK_NONE;
 }
 
 /*
@@ -107,11 +105,13 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
 {
     const pk_info_t *info;
 
-    if( ctx->type == type )
-        return( 0 );
+    if( ctx->info != NULL )
+    {
+        if( ctx->info->type == type )
+            return 0;
 
-    if( ctx->type != POLARSSL_PK_NONE )
         return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+    }
 
     if( ( info = pk_info_from_type( type ) ) == NULL )
         return( POLARSSL_ERR_PK_TYPE_MISMATCH );
@@ -119,7 +119,6 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
     if( ( ctx->data = info->ctx_alloc_func() ) == NULL )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );
 
-    ctx->type = type;
     ctx->info = info;
 
     return( 0 );
@@ -159,4 +158,16 @@ size_t pk_get_size( const pk_context *ctx )
         return( 0 );
 
     return( ctx->info->get_size( ctx->data ) );
+}
+
+/*
+ * Export debug information
+ */
+int pk_debug( const pk_context *ctx, pk_debug_item *items )
+{
+    if( ctx == NULL || ctx->info == NULL )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH ); // TODO
+
+    ctx->info->debug_func( ctx->data, items );
+    return( 0 );
 }

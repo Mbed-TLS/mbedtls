@@ -95,6 +95,8 @@ ecp_group;
  * \brief           ECP key pair structure
  *
  * A generic key pair that could be used for ECDSA, fixed ECDH, etc.
+ *
+ * \note Members purposefully in the same order as struc ecdsa_context.
  */
 typedef struct
 {

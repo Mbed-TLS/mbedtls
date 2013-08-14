@@ -109,53 +109,6 @@ const pk_info_t rsa_info = {
 };
 #endif /* POLARSSL_RSA_C */
 
-#if defined(POLARSSL_ECDSA_C)
-int ecdsa_can_do( pk_type_t type )
-{
-    return( type == POLARSSL_PK_ECDSA );
-}
-
-static size_t ecdsa_get_size( const void *ctx )
-{
-    return( ((ecdsa_context *) ctx)->grp.pbits );
-}
-
-int ecdsa_verify_wrap( void *ctx,
-                       const unsigned char *hash, const md_info_t *md_info,
-                       const unsigned char *sig, size_t sig_len )
-{
-    return( ecdsa_read_signature( (ecdsa_context *) ctx,
-                hash, md_info->size, sig, sig_len ) );
-}
-
-static void *ecdsa_alloc_wrap( void )
-{
-    void *ctx = polarssl_malloc( sizeof( ecdsa_context ) );
-
-    if( ctx != NULL )
-        ecdsa_init( (ecdsa_context *) ctx );
-
-    return( ctx );
-}
-
-static void ecdsa_free_wrap( void *ctx )
-{
-    ecdsa_free( (ecdsa_context *) ctx );
-    polarssl_free( ctx );
-}
-
-const pk_info_t ecdsa_info = {
-    POLARSSL_PK_ECDSA,
-    "ECDSA",
-    ecdsa_get_size,
-    ecdsa_can_do,
-    ecdsa_verify_wrap,
-    ecdsa_alloc_wrap,
-    ecdsa_free_wrap,
-    NULL,
-};
-#endif /* POLARSSL_ECDSA_C */
-
 #if defined(POLARSSL_ECP_C)
 /*
  * Generic EC key
@@ -171,6 +124,13 @@ static size_t eckey_get_size( const void *ctx )
 {
     return( ((ecp_keypair *) ctx)->grp.pbits );
 }
+
+#if defined(POLARSSL_ECDSA_C)
+/* Forward declaration */
+static int ecdsa_verify_wrap( void *ctx,
+                       const unsigned char *hash, const md_info_t *md_info,
+                       const unsigned char *sig, size_t sig_len );
+#endif
 
 static int eckey_verify_wrap( void *ctx,
                        const unsigned char *hash, const md_info_t *md_info,
@@ -263,6 +223,48 @@ const pk_info_t eckeydh_info = {
     eckeydh_verify_wrap,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
-    NULL,
+    eckey_debug,            /* Same underlying key structure */
 };
 #endif /* POLARSSL_ECP_C */
+
+#if defined(POLARSSL_ECDSA_C)
+static int ecdsa_can_do( pk_type_t type )
+{
+    return( type == POLARSSL_PK_ECDSA );
+}
+
+static int ecdsa_verify_wrap( void *ctx,
+                       const unsigned char *hash, const md_info_t *md_info,
+                       const unsigned char *sig, size_t sig_len )
+{
+    return( ecdsa_read_signature( (ecdsa_context *) ctx,
+                hash, md_info->size, sig, sig_len ) );
+}
+
+static void *ecdsa_alloc_wrap( void )
+{
+    void *ctx = polarssl_malloc( sizeof( ecdsa_context ) );
+
+    if( ctx != NULL )
+        ecdsa_init( (ecdsa_context *) ctx );
+
+    return( ctx );
+}
+
+static void ecdsa_free_wrap( void *ctx )
+{
+    ecdsa_free( (ecdsa_context *) ctx );
+    polarssl_free( ctx );
+}
+
+const pk_info_t ecdsa_info = {
+    POLARSSL_PK_ECDSA,
+    "ECDSA",
+    eckey_get_size,     /* Compatible key structures */
+    ecdsa_can_do,
+    ecdsa_verify_wrap,
+    ecdsa_alloc_wrap,
+    ecdsa_free_wrap,
+    eckey_debug,        /* Compatible key structures */
+};
+#endif /* POLARSSL_ECDSA_C */

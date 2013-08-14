@@ -747,42 +747,38 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    if( POLARSSL_PADDING_PKCS7 == mode )
+    switch( mode )
     {
+    case POLARSSL_PADDING_PKCS7:
         ctx->add_padding = add_pkcs_padding;
         ctx->get_padding = get_pkcs_padding;
-        return 0;
-    }
+        break;
 
-    if( POLARSSL_PADDING_ONE_AND_ZEROS == mode )
-    {
+    case POLARSSL_PADDING_ONE_AND_ZEROS:
         ctx->add_padding = add_one_and_zeros_padding;
         ctx->get_padding = get_one_and_zeros_padding;
-        return 0;
-    }
+        break;
 
-    if( POLARSSL_PADDING_ZEROS_AND_LEN == mode )
-    {
+    case POLARSSL_PADDING_ZEROS_AND_LEN:
         ctx->add_padding = add_zeros_and_len_padding;
         ctx->get_padding = get_zeros_and_len_padding;
-        return 0;
-    }
+        break;
 
-    if( POLARSSL_PADDING_ZEROS == mode )
-    {
+    case POLARSSL_PADDING_ZEROS:
         ctx->add_padding = add_zeros_padding;
         ctx->get_padding = get_zeros_padding;
-        return 0;
-    }
+        break;
 
-    if( POLARSSL_PADDING_NONE == mode )
-    {
+    case POLARSSL_PADDING_NONE:
         ctx->add_padding = NULL;
         ctx->get_padding = get_no_padding;
-        return 0;
+        break;
+
+    default:
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    return 0;
 }
 
 #if defined(POLARSSL_SELF_TEST)

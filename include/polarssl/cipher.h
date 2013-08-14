@@ -417,8 +417,10 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_leng
  * \param ctx           generic cipher context
  * \param mode          padding mode
  *
- * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
- *                      if parameters verification fails.
+ * \returns             0 on success, POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE
+ *                      if selected padding mode is not supported, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if the cipher mode
+ *                      does not support padding.
  */
 int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
 

@@ -15,6 +15,8 @@ Features
    * Parsing Elliptic Curve certificates
    * Support for max_fragment_length extension (RFC 6066)
    * Support for truncated_hmac extension (RFC 6066)
+   * Support for zeros-and-length (ANSI X.923) padding, one-and-zeros
+     (ISO/IEC 7816-4) padding and zero padding in the cipher layer
 
 Changes
    * Introduced separate SSL Ciphersuites module that is based on

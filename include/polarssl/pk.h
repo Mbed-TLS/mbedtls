@@ -102,6 +102,13 @@ typedef struct
     int (*verify_func)( void *ctx,
                         const unsigned char *hash, const md_info_t *md_info,
                         const unsigned char *sig, size_t sig_len );
+
+    /** Allocate a new context */
+    void * (*ctx_alloc_func)( void );
+
+    /** Free the given context */
+    void (*ctx_free_func)( void *ctx );
+
 } pk_info_t;
 
 /**

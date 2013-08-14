@@ -39,6 +39,14 @@
 #include "polarssl/ecdsa.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#include <stdlib.h>
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #if defined(POLARSSL_RSA_C)
 static int rsa_can_do( pk_type_t type )
 {
@@ -60,12 +68,30 @@ static int rsa_verify_wrap( void *ctx,
                 RSA_PUBLIC, md_info->type, 0, hash, sig ) );
 }
 
+static void *rsa_alloc_wrap( void )
+{
+    void *ctx = polarssl_malloc( sizeof( rsa_context ) );
+
+    if( ctx != NULL )
+        rsa_init( (rsa_context *) ctx, 0, 0 );
+
+    return ctx;
+}
+
+static void rsa_free_wrap( void *ctx )
+{
+    rsa_free( (rsa_context *) ctx );
+    polarssl_free( ctx );
+}
+
 const pk_info_t rsa_info = {
     POLARSSL_PK_RSA,
     "RSA",
     rsa_get_size,
     rsa_can_do,
     rsa_verify_wrap,
+    rsa_alloc_wrap,
+    rsa_free_wrap,
 };
 #endif /* POLARSSL_RSA_C */
 
@@ -88,12 +114,30 @@ int ecdsa_verify_wrap( void *ctx,
                 hash, md_info->size, sig, sig_len ) );
 }
 
+static void *ecdsa_alloc_wrap( void )
+{
+    void *ctx = polarssl_malloc( sizeof( ecdsa_context ) );
+
+    if( ctx != NULL )
+        ecdsa_init( (ecdsa_context *) ctx );
+
+    return( ctx );
+}
+
+static void ecdsa_free_wrap( void *ctx )
+{
+    ecdsa_free( (ecdsa_context *) ctx );
+    polarssl_free( ctx );
+}
+
 const pk_info_t ecdsa_info = {
     POLARSSL_PK_ECDSA,
     "ECDSA",
     ecdsa_get_size,
     ecdsa_can_do,
     ecdsa_verify_wrap,
+    ecdsa_alloc_wrap,
+    ecdsa_free_wrap,
 };
 #endif /* POLARSSL_ECDSA_C */
 
@@ -140,12 +184,30 @@ static int eckey_verify_wrap( void *ctx,
 #endif /* POLARSSL_ECDSA_C */
 }
 
+static void *eckey_alloc_wrap( void )
+{
+    void *ctx = polarssl_malloc( sizeof( ecp_keypair ) );
+
+    if( ctx != NULL )
+        ecp_keypair_init( ctx );
+
+    return( ctx );
+}
+
+static void eckey_free_wrap( void *ctx )
+{
+    ecp_keypair_free( (ecp_keypair *) ctx );
+    polarssl_free( ctx );
+}
+
 const pk_info_t eckey_info = {
     POLARSSL_PK_ECKEY,
     "EC",
     eckey_get_size,
     eckey_can_do,
     eckey_verify_wrap,
+    eckey_alloc_wrap,
+    eckey_free_wrap,
 };
 
 /*
@@ -176,5 +238,7 @@ const pk_info_t eckeydh_info = {
     eckey_get_size,         /* Same underlying key structure */
     eckeydh_can_do,
     eckeydh_verify_wrap,
+    eckey_alloc_wrap,       /* Same underlying key structure */
+    eckey_free_wrap,        /* Same underlying key structure */
 };
 #endif /* POLARSSL_ECP_C */

@@ -189,6 +189,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+    ecdsa_free( &ctx_verify );
+    ecdsa_free( &ctx_sign );
+
     return( ret );
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_ECDSA_C &&

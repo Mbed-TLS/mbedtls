@@ -2147,7 +2147,7 @@ int x509parse_keyfile_rsa( rsa_context *rsa, const char *path, const char *pwd )
     ret = x509parse_keyfile( &pk, path, pwd );
 
     if( ret == 0 )
-        rsa_copy( rsa, pk.data );
+        rsa_copy( rsa, pk_rsa( pk ) );
     else
         rsa_free( rsa );
 
@@ -2170,7 +2170,7 @@ int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path )
     ret = x509parse_public_keyfile( &pk, path );
 
     if( ret == 0 )
-        rsa_copy( rsa, pk.data );
+        rsa_copy( rsa, pk_rsa( pk ) );
     else
         rsa_free( rsa );
 
@@ -2774,7 +2774,7 @@ int x509parse_key_rsa( rsa_context *rsa,
     ret = x509parse_key( &pk, key, keylen, pwd, pwdlen );
 
     if( ret == 0 )
-        rsa_copy( rsa, pk.data );
+        rsa_copy( rsa, pk_rsa( pk ) );
     else
         rsa_free( rsa );
 
@@ -2798,7 +2798,7 @@ int x509parse_public_key_rsa( rsa_context *rsa,
     ret = x509parse_public_key( &pk, key, keylen );
 
     if( ret == 0 )
-        rsa_copy( rsa, pk.data );
+        rsa_copy( rsa, pk_rsa( pk ) );
     else
         rsa_free( rsa );
 
@@ -3141,7 +3141,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     SAFE_SNPRINTF();
 
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
-                                      crt->pk.info->name ) ) != 0 )
+                                      pk_get_name( &crt->pk ) ) ) != 0 )
     {
         return( ret );
     }

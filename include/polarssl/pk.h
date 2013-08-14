@@ -52,7 +52,7 @@
  * \warning You must make sure the PK context actually holds an RSA context
  * before using this macro!
  */
-#define pk_rsa( pk )        ( (rsa_context *) (pk).data )
+#define pk_rsa( pk )        ( (rsa_context *) (pk).pk_ctx )
 #endif /* POLARSSL_RSA_C */
 
 #if defined(POLARSSL_ECP_C)
@@ -62,7 +62,7 @@
  * \warning You must make sure the PK context actually holds an EC context
  * before using this macro!
  */
-#define pk_ec( pk )         ( (ecp_keypair *) (pk).data )
+#define pk_ec( pk )         ( (ecp_keypair *) (pk).pk_ctx )
 #endif /* POLARSSL_ECP_C */
 
 
@@ -105,7 +105,7 @@ typedef struct
 #define POLARSSL_PK_DEBUG_MAX_ITEMS 3
 
 /**
- * \brief           Public key info
+ * \brief           Public key information and operations
  */
 typedef struct
 {
@@ -142,8 +142,8 @@ typedef struct
  */
 typedef struct
 {
-    const pk_info_t *   info;       /**< Public key informations */
-    void *              data;       /**< Public key data */
+    const pk_info_t *   pk_info;    /**< Public key informations        */
+    void *              pk_ctx;     /**< Underlying public key context  */
 } pk_context;
 
 /**
@@ -216,6 +216,15 @@ int pk_verify( pk_context *ctx,
  * \return          0 on sucess or POLARSSL_ERR_PK_BAD_INPUT_DATA
  */
 int pk_debug( const pk_context *ctx, pk_debug_item *items );
+
+/**
+ * \brief           Access the type name
+ *
+ * \param ctx       Context to use
+ *
+ * \return          Type name on success, or "invalid PK"
+ */
+const char * pk_get_name( const pk_context *ctx );
 
 #ifdef __cplusplus
 }

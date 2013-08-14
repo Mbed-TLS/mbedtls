@@ -55,8 +55,8 @@ void pk_init( pk_context *ctx )
     if( ctx == NULL )
         return;
 
-    ctx->info = NULL;
-    ctx->data = NULL;
+    ctx->pk_info = NULL;
+    ctx->pk_ctx = NULL;
 }
 
 /*
@@ -64,13 +64,13 @@ void pk_init( pk_context *ctx )
  */
 void pk_free( pk_context *ctx )
 {
-    if( ctx == NULL || ctx->info == NULL)
+    if( ctx == NULL || ctx->pk_info == NULL)
         return;
 
-    ctx->info->ctx_free_func( ctx->data );
-    ctx->data = NULL;
+    ctx->pk_info->ctx_free_func( ctx->pk_ctx );
+    ctx->pk_ctx = NULL;
 
-    ctx->info = NULL;
+    ctx->pk_info = NULL;
 }
 
 /*
@@ -105,9 +105,9 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
 {
     const pk_info_t *info;
 
-    if( ctx->info != NULL )
+    if( ctx->pk_info != NULL )
     {
-        if( ctx->info->type == type )
+        if( ctx->pk_info->type == type )
             return 0;
 
         return( POLARSSL_ERR_PK_TYPE_MISMATCH );
@@ -116,10 +116,10 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
     if( ( info = pk_info_from_type( type ) ) == NULL )
         return( POLARSSL_ERR_PK_TYPE_MISMATCH );
 
-    if( ( ctx->data = info->ctx_alloc_func() ) == NULL )
+    if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );
 
-    ctx->info = info;
+    ctx->pk_info = info;
 
     return( 0 );
 }
@@ -130,10 +130,10 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
 int pk_can_do( pk_context *ctx, pk_type_t type )
 {
     /* null of NONE context can't do anything */
-    if( ctx == NULL || ctx->info == NULL )
+    if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 
-    return( ctx->info->can_do( type ) );
+    return( ctx->pk_info->can_do( type ) );
 }
 
 /*
@@ -143,10 +143,10 @@ int pk_verify( pk_context *ctx,
                const unsigned char *hash, const md_info_t *md_info,
                const unsigned char *sig, size_t sig_len )
 {
-    if( ctx == NULL || ctx->info == NULL )
+    if( ctx == NULL || ctx->pk_info == NULL )
         return( POLARSSL_ERR_PK_TYPE_MISMATCH ); // TODO
 
-    return( ctx->info->verify_func( ctx->data, hash, md_info, sig, sig_len ) );
+    return( ctx->pk_info->verify_func( ctx->pk_ctx, hash, md_info, sig, sig_len ) );
 }
 
 /*
@@ -154,10 +154,10 @@ int pk_verify( pk_context *ctx,
  */
 size_t pk_get_size( const pk_context *ctx )
 {
-    if( ctx == NULL || ctx->info == NULL )
+    if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 
-    return( ctx->info->get_size( ctx->data ) );
+    return( ctx->pk_info->get_size( ctx->pk_ctx ) );
 }
 
 /*
@@ -165,9 +165,20 @@ size_t pk_get_size( const pk_context *ctx )
  */
 int pk_debug( const pk_context *ctx, pk_debug_item *items )
 {
-    if( ctx == NULL || ctx->info == NULL )
+    if( ctx == NULL || ctx->pk_info == NULL )
         return( POLARSSL_ERR_PK_TYPE_MISMATCH ); // TODO
 
-    ctx->info->debug_func( ctx->data, items );
+    ctx->pk_info->debug_func( ctx->pk_ctx, items );
     return( 0 );
+}
+
+/*
+ * Access the PK type name
+ */
+const char * pk_get_name( const pk_context *ctx )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( "invalid PK" );
+
+    return( ctx->pk_info->name );
 }

@@ -507,6 +507,17 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
                            const unsigned char *sig );
 
 /**
+ * \brief          Copy the components of an RSA context
+ *
+ * \param dst      Destination context
+ * \param src      Source context
+ *
+ * \return         O on success,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED on memory allocation failure
+ */
+int rsa_copy( rsa_context *dst, const rsa_context *src );
+
+/**
  * \brief          Free the components of an RSA key
  *
  * \param ctx      RSA Context to free

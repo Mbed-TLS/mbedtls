@@ -112,7 +112,6 @@ typedef struct
     const pk_info_t *   info;       /**< Public key informations */
     pk_type_t           type;       /**< Public key type (temporary) */
     void *              data;       /**< Public key data */
-    int                 dont_free;  /**< True if data must not be freed */
 } pk_context;
 
 /**
@@ -139,21 +138,6 @@ void pk_free( pk_context *ctx );
  *                  POLARSSL_ERR_PK_TYPE_MISMATCH on attempts to reset type.
  */
 int pk_set_type( pk_context *ctx, pk_type_t type );
-
-#if defined(POLARSSL_RSA_C)
-/**
- * \brief           Wrap a RSA context in a PK context
- *
- * \param ctx       PK context to initiliaze
- * \param rsa       RSA context to use
- *
- * \note            The PK context must be freshly initialized.
- *
- * \return          O on success,
- *                  POLARSSL_ERR_PK_TYPE_MISMATCH if ctx was not empty.
- */
-int pk_wrap_rsa( pk_context *ctx, const rsa_context *rsa);
-#endif /* POLARSSL_RSA_C */
 
 #ifdef __cplusplus
 }

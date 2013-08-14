@@ -2138,12 +2138,22 @@ int x509parse_public_keyfile( pk_context *ctx, const char *path )
  */
 int x509parse_keyfile_rsa( rsa_context *rsa, const char *path, const char *pwd )
 {
+    int ret;
     pk_context pk;
 
     pk_init( &pk );
-    pk_wrap_rsa( &pk, rsa );
+    pk_set_type( &pk, POLARSSL_PK_RSA );
 
-    return( x509parse_keyfile( &pk, path, pwd ) );
+    ret = x509parse_keyfile( &pk, path, pwd );
+
+    if( ret == 0 )
+        rsa_copy( rsa, pk.data );
+    else
+        rsa_free( rsa );
+
+    pk_free( &pk );
+
+    return( ret );
 }
 
 /*
@@ -2151,12 +2161,22 @@ int x509parse_keyfile_rsa( rsa_context *rsa, const char *path, const char *pwd )
  */
 int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path )
 {
+    int ret;
     pk_context pk;
 
     pk_init( &pk );
-    pk_wrap_rsa( &pk, rsa );
+    pk_set_type( &pk, POLARSSL_PK_RSA );
 
-    return( x509parse_public_keyfile( &pk, path ) );
+    ret = x509parse_public_keyfile( &pk, path );
+
+    if( ret == 0 )
+        rsa_copy( rsa, pk.data );
+    else
+        rsa_free( rsa );
+
+    pk_free( &pk );
+
+    return( ret );
 }
 #endif /* POLARSSL_RSA_C */
 #endif /* POLARSSL_FS_IO */
@@ -2745,12 +2765,22 @@ int x509parse_key_rsa( rsa_context *rsa,
                        const unsigned char *key, size_t keylen,
                        const unsigned char *pwd, size_t pwdlen )
 {
+    int ret;
     pk_context pk;
 
     pk_init( &pk );
-    pk_wrap_rsa( &pk, rsa );
+    pk_set_type( &pk, POLARSSL_PK_RSA );
 
-    return( x509parse_key( &pk, key, keylen, pwd, pwdlen ) );
+    ret = x509parse_key( &pk, key, keylen, pwd, pwdlen );
+
+    if( ret == 0 )
+        rsa_copy( rsa, pk.data );
+    else
+        rsa_free( rsa );
+
+    pk_free( &pk );
+
+    return( ret );
 }
 
 /*
@@ -2759,12 +2789,22 @@ int x509parse_key_rsa( rsa_context *rsa,
 int x509parse_public_key_rsa( rsa_context *rsa,
                               const unsigned char *key, size_t keylen )
 {
+    int ret;
     pk_context pk;
 
     pk_init( &pk );
-    pk_wrap_rsa( &pk, rsa );
+    pk_set_type( &pk, POLARSSL_PK_RSA );
 
-    return( x509parse_public_key( &pk, key, keylen ) );
+    ret = x509parse_public_key( &pk, key, keylen );
+
+    if( ret == 0 )
+        rsa_copy( rsa, pk.data );
+    else
+        rsa_free( rsa );
+
+    pk_free( &pk );
+
+    return( ret );
 }
 #endif /* POLARSSL_RSA_C */
 

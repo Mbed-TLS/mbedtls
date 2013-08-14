@@ -58,7 +58,6 @@ void pk_init( pk_context *ctx )
     ctx->info = NULL;
     ctx->type = POLARSSL_PK_NONE;
     ctx->data = NULL;
-    ctx->dont_free = 0;
 }
 
 /*
@@ -88,8 +87,7 @@ void pk_free( pk_context *ctx )
         ; /* guard for the else's above */
     }
 
-    if( ! ctx->dont_free )
-        polarssl_free( ctx->data );
+    polarssl_free( ctx->data );
 
     ctx->info = NULL;
     ctx->type = POLARSSL_PK_NONE;
@@ -150,20 +148,3 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
 
     return( 0 );
 }
-
-#if defined(POLARSSL_RSA_C)
-/*
- * Wrap an RSA context in a PK context
- */
-int pk_wrap_rsa( pk_context *ctx, const rsa_context *rsa)
-{
-    if( ctx->type != POLARSSL_PK_NONE )
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
-
-    ctx->type = POLARSSL_PK_RSA;
-    ctx->data = (rsa_context *) rsa;
-    ctx->dont_free = 1;
-
-    return( 0 );
-}
-#endif

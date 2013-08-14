@@ -35,6 +35,7 @@
 #include "sha1.h"
 #include "sha256.h"
 #include "sha512.h"
+#include "aes.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -107,6 +108,8 @@
 #define POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
 #define POLARSSL_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
 #define POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION           -0x6E80  /**< Handshake protocol not within min/max boundaries */
+#define POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
+
 
 /*
  * Various constants
@@ -151,6 +154,9 @@
 #define SSL_TRUNC_HMAC_DISABLED         0
 #define SSL_TRUNC_HMAC_ENABLED          1
 #define SSL_TRUNCATED_HMAC_LEN          10  /* 80 bits, rfc 6066 section 7 */
+
+#define SSL_SESSION_TICKETS_DISABLED     0
+#define SSL_SESSION_TICKETS_ENABLED      1
 
 /*
  * Size of the input / output buffer.
@@ -239,6 +245,7 @@
 #define SSL_HS_HELLO_REQUEST            0
 #define SSL_HS_CLIENT_HELLO             1
 #define SSL_HS_SERVER_HELLO             2
+#define SSL_HS_NEW_SESSION_TICKET       4
 #define SSL_HS_CERTIFICATE             11
 #define SSL_HS_SERVER_KEY_EXCHANGE     12
 #define SSL_HS_CERTIFICATE_REQUEST     13
@@ -261,6 +268,8 @@
 #define TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
 #define TLS_EXT_SIG_ALG                     13
+
+#define TLS_EXT_SESSION_TICKET              35
 
 #define TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
@@ -311,7 +320,8 @@ typedef enum
     SSL_SERVER_FINISHED,
     SSL_FLUSH_BUFFERS,
     SSL_HANDSHAKE_WRAPUP,
-    SSL_HANDSHAKE_OVER
+    SSL_HANDSHAKE_OVER,
+    SSL_SERVER_NEW_SESSION_TICKET,
 }
 ssl_states;
 
@@ -319,6 +329,9 @@ typedef struct _ssl_session ssl_session;
 typedef struct _ssl_context ssl_context;
 typedef struct _ssl_transform ssl_transform;
 typedef struct _ssl_handshake_params ssl_handshake_params;
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+typedef struct _ssl_ticket_keys ssl_ticket_keys;
+#endif
 
 /*
  * This structure is used for storing current session data.
@@ -337,6 +350,12 @@ struct _ssl_session
 #if defined(POLARSSL_X509_PARSE_C)
     x509_cert *peer_cert;       /*!< peer X.509 cert chain */
 #endif /* POLARSSL_X509_PARSE_C */
+
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    unsigned char *ticket;      /*!< RFC 5077 session ticket */
+    size_t ticket_len;          /*!< session ticket length   */
+    uint32_t ticket_lifetime;   /*!< ticket lifetime hint    */
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
@@ -428,7 +447,24 @@ struct _ssl_handshake_params
     int resume;                         /*!<  session resume indicator*/
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
+
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    int new_session_ticket;             /*!< use NewSessionTicket?    */
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 };
+
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+/*
+ * Parameters needed to secure session tickets
+ */
+struct _ssl_ticket_keys
+{
+    unsigned char key_name[16];     /*!< name to quickly discard bad tickets */
+    aes_context enc;                /*!< encryption context                  */
+    aes_context dec;                /*!< decryption context                  */
+    unsigned char mac_key[16];      /*!< authentication key                  */
+};
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 struct _ssl_context
 {
@@ -538,6 +574,13 @@ struct _ssl_context
     const char *peer_cn;                /*!<  expected peer CN        */
 #endif /* POLARSSL_X509_PARSE_C */
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    /*
+     * Support for generating and checking session tickets
+     */
+    ssl_ticket_keys *ticket_keys;       /*!<  keys for ticket encryption */
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
     /*
      * User settings
      */
@@ -549,6 +592,7 @@ struct _ssl_context
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
     int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
+    int session_tickets;                /*!<  use session tickets?    */
 
 #if defined(POLARSSL_DHM_C)
     mpi dhm_P;                          /*!<  prime modulus for DHM   */
@@ -655,6 +699,9 @@ int ssl_session_reset( ssl_context *ssl );
  *
  * \param ssl      SSL context
  * \param endpoint must be SSL_IS_CLIENT or SSL_IS_SERVER
+ *
+ * \note           This function should be called right after ssl_init() since
+ *                 some other ssl_set_foo() functions depend on it.
  */
 void ssl_set_endpoint( ssl_context *ssl, int endpoint );
 
@@ -774,15 +821,17 @@ void ssl_set_session_cache( ssl_context *ssl,
  * \brief          Request resumption of session (client-side only)
  *                 Session data is copied from presented session structure.
  *
- *                 Warning: session.peer_cert is cleared by the SSL/TLS layer on
- *                 connection shutdown, so do not cache the pointer! Either set
- *                 it to NULL or make a full copy of the certificate when
- *                 storing the session for use in this function.
- *
  * \param ssl      SSL context
  * \param session  session context
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_SSL_MALLOC_FAILED if memory allocation failed,
+ *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side or
+ *                 arguments are otherwise invalid
+ *
+ * \sa             ssl_get_session()
  */
-void ssl_set_session( ssl_context *ssl, const ssl_session *session );
+int ssl_set_session( ssl_context *ssl, const ssl_session *session );
 
 /**
  * \brief               Set the list of allowed ciphersuites
@@ -998,6 +1047,26 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
  */
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+/**
+ * \brief          Enable / Disable session tickets
+ *                 (Default: SSL_SESSION_TICKETS_ENABLED on client,
+ *                           SSL_SESSION_TICKETS_DISABLED on server)
+ *
+ * \note           On server, ssl_set_rng() must be called before this function
+ *                 to allow generating the ticket encryption and
+ *                 authentication keys.
+ *
+ * \param ssl      SSL context
+ * \param use_tickets   Enable or disable (SSL_SESSION_TICKETS_ENABLED or
+ *                                         SSL_SESSION_TICKETS_DISABLED)
+ *
+ * \return         O if successful,
+ *                 or a specific error code (server only).
+ */
+int ssl_set_session_tickets( ssl_context *ssl, int use_tickets );
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
 /**
  * \brief          Enable / Disable renegotiation support for connection when
  *                 initiated by peer
@@ -1099,6 +1168,24 @@ const char *ssl_get_version( const ssl_context *ssl );
  */
 const x509_cert *ssl_get_peer_cert( const ssl_context *ssl );
 #endif /* POLARSSL_X509_PARSE_C */
+
+/**
+ * \brief          Save session in order to resume it later (client-side only)
+ *                 Session data is copied to presented session structure.
+ *
+ * \warning        Currently, peer certificate is lost in the operation.
+ *
+ * \param ssl      SSL context
+ * \param session  session context
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_SSL_MALLOC_FAILED if memory allocation failed,
+ *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side or
+ *                 arguments are otherwise invalid
+ *
+ * \sa             ssl_set_session()
+ */
+int ssl_get_session( const ssl_context *ssl, ssl_session *session );
 
 /**
  * \brief          Perform the SSL handshake

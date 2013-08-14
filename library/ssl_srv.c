@@ -33,12 +33,275 @@
 #include "polarssl/ecp.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
 #endif
+
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+/*
+ * Serialize a session in the following format:
+ *  0   .   n-1     session structure, n = sizeof(ssl_session)
+ *  n   .   n+2     peer_cert length = m (0 if no certificate)
+ *  n+3 .   n+2+m   peer cert ASN.1
+ *
+ *  Assumes ticket is NULL (always true on server side).
+ */
+static void ssl_save_session( const ssl_session *session,
+                              unsigned char *buf, size_t *olen )
+{
+    unsigned char *p = buf;
+#if defined(POLARSSL_X509_PARSE_C)
+    size_t cert_len;
+#endif /* POLARSSL_X509_PARSE_C */
+
+    memcpy( p, session, sizeof( ssl_session ) );
+    p += sizeof( ssl_session );
+
+#if defined(POLARSSL_X509_PARSE_C)
+    ((ssl_session *) buf)->peer_cert = NULL;
+
+    if( session->peer_cert == NULL )
+        cert_len = 0;
+    else
+        cert_len = session->peer_cert->raw.len;
+
+    *p++ = (unsigned char)( cert_len >> 16 & 0xFF );
+    *p++ = (unsigned char)( cert_len >>  8 & 0xFF );
+    *p++ = (unsigned char)( cert_len       & 0xFF );
+
+    if( session->peer_cert != NULL )
+        memcpy( p, session->peer_cert->raw.p, cert_len );
+
+    p += cert_len;
+#endif /* POLARSSL_X509_PARSE_C */
+
+    *olen = p - buf;
+}
+
+/*
+ * Unserialise session, see ssl_save_session()
+ */
+static int ssl_load_session( ssl_session *session,
+                             const unsigned char *buf, size_t len )
+{
+    int ret;
+    const unsigned char *p = buf;
+    const unsigned char * const end = buf + len;
+#if defined(POLARSSL_X509_PARSE_C)
+    size_t cert_len;
+#endif /* POLARSSL_X509_PARSE_C */
+
+    if( p + sizeof( ssl_session ) > end )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( session, p, sizeof( ssl_session ) );
+    p += sizeof( ssl_session );
+
+#if defined(POLARSSL_X509_PARSE_C)
+    if( p + 3 > end )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    cert_len = ( p[0] << 16 ) | ( p[1] << 8 ) | p[2];
+    p += 3;
+
+    if( cert_len == 0 )
+    {
+        session->peer_cert = NULL;
+    }
+    else
+    {
+        if( p + cert_len > end )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+        session->peer_cert = polarssl_malloc( cert_len );
+
+        if( session->peer_cert == NULL )
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+        memset( session->peer_cert, 0, sizeof( x509_cert ) );
+
+        if( ( ret = x509parse_crt( session->peer_cert, p, cert_len ) ) != 0 )
+        {
+            polarssl_free( session->peer_cert );
+            free( session->peer_cert );
+            session->peer_cert = NULL;
+            return( ret );
+        }
+
+        p += cert_len;
+    }
+#endif /* POLARSSL_X509_PARSE_C */
+
+    if( p != end )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    return( 0 );
+}
+
+/*
+ * Create session ticket, secured as recommended in RFC 5077 section 4:
+ *
+ *    struct {
+ *        opaque key_name[16];
+ *        opaque iv[16];
+ *        opaque encrypted_state<0..2^16-1>;
+ *        opaque mac[32];
+ *    } ticket;
+ *
+ * (the internal state structure differs, however).
+ */
+static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
+{
+    int ret;
+    unsigned char * const start = ssl->out_msg + 10;
+    unsigned char *p = start;
+    unsigned char *state;
+    unsigned char iv[16];
+    size_t clear_len, enc_len, pad_len, i;
+
+    if( ssl->ticket_keys == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    /* Write key name */
+    memcpy( p, ssl->ticket_keys->key_name, 16 );
+    p += 16;
+
+    /* Generate and write IV (with a copy for aes_crypt) */
+    if( ( ret = ssl->f_rng( ssl->p_rng, p, 16 ) ) != 0 )
+        return( ret );
+    memcpy( iv, p, 16 );
+    p += 16;
+
+    /* Dump session state */
+    state = p + 2;
+    ssl_save_session( ssl->session_negotiate, state, &clear_len );
+    SSL_DEBUG_BUF( 3, "session ticket cleartext", state, clear_len );
+
+    /* Apply PKCS padding */
+    pad_len = 16 - clear_len % 16;
+    enc_len = clear_len + pad_len;
+    for( i = clear_len; i < enc_len; i++ )
+        state[i] = (unsigned char) pad_len;
+
+    /* Encrypt */
+    if( ( ret = aes_crypt_cbc( &ssl->ticket_keys->enc, AES_ENCRYPT,
+                               enc_len, iv, state, state ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Write length */
+    *p++ = (unsigned char)( ( enc_len >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( enc_len      ) & 0xFF );
+    p = state + enc_len;
+
+    /* Compute and write MAC( key_name + iv + enc_state_len + enc_state ) */
+    sha256_hmac( ssl->ticket_keys->mac_key, 16, start, p - start, p, 0 );
+    p += 32;
+
+    *tlen = p - start;
+
+    SSL_DEBUG_BUF( 3, "session ticket structure", start, *tlen );
+
+    return( 0 );
+}
+
+/*
+ * Load session ticket (see ssl_write_ticket for structure)
+ */
+static int ssl_parse_ticket( ssl_context *ssl,
+                             unsigned char *buf,
+                             size_t len )
+{
+    int ret;
+    ssl_session session;
+    unsigned char *key_name = buf;
+    unsigned char *iv = buf + 16;
+    unsigned char *enc_len_p = iv + 16;
+    unsigned char *ticket = enc_len_p + 2;
+    unsigned char *mac;
+    unsigned char computed_mac[16];
+    size_t enc_len, clear_len, i;
+    unsigned char pad_len;
+
+    SSL_DEBUG_BUF( 3, "session ticket structure", buf, len );
+
+    if( len < 34 || ssl->ticket_keys == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
+    mac = ticket + enc_len;
+
+    if( len != enc_len + 66 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    /* Check name */
+    if( memcmp( key_name, ssl->ticket_keys->key_name, 16 ) != 0 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    /* Check mac */
+    sha256_hmac( ssl->ticket_keys->mac_key, 16, buf, len - 32,
+                 computed_mac, 0 );
+    ret = 0;
+    for( i = 0; i < 32; i++ )
+        if( mac[i] != computed_mac[i] )
+            ret = POLARSSL_ERR_SSL_INVALID_MAC;
+    if( ret != 0 )
+        return( ret );
+
+    /* Decrypt */
+    if( ( ret = aes_crypt_cbc( &ssl->ticket_keys->dec, AES_DECRYPT,
+                               enc_len, iv, ticket, ticket ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Check PKCS padding */
+    pad_len = ticket[enc_len - 1];
+
+    ret = 0;
+    for( i = 2; i < pad_len; i++ )
+        if( ticket[enc_len - i] != pad_len )
+            ret = POLARSSL_ERR_SSL_BAD_INPUT_DATA;
+    if( ret != 0 )
+        return( ret );
+
+    clear_len = enc_len - pad_len;
+
+    SSL_DEBUG_BUF( 3, "session ticket cleartext", ticket, clear_len );
+
+    /* Actually load session */
+    if( ( ret = ssl_load_session( &session, ticket, clear_len ) ) != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "failed to parse ticket content" ) );
+        memset( &session, 0, sizeof( ssl_session ) );
+        return( ret );
+    }
+
+    /*
+     * Keep the session ID sent by the client, since we MUST send it back to
+     * inform him we're accepting the ticket  (RFC 5077 section 3.4)
+     */
+    session.length = ssl->session_negotiate->length;
+    memcpy( &session.id, ssl->session_negotiate->id, session.length );
+
+    ssl_session_free( ssl->session_negotiate );
+    memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
+    memset( &session, 0, sizeof( ssl_session ) );
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 static int ssl_parse_servername_ext( ssl_context *ssl,
                                      const unsigned char *buf,
@@ -322,6 +585,50 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
 
     return( 0 );
 }
+
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+static int ssl_parse_session_ticket_ext( ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t len )
+{
+    int ret;
+
+    if( ssl->session_tickets == SSL_SESSION_TICKETS_DISABLED )
+        return( 0 );
+
+    /* Remember the client asked us to send a new ticket */
+    ssl->handshake->new_session_ticket = 1;
+
+    SSL_DEBUG_MSG( 3, ( "ticket length: %d", len ) );
+
+    if( len == 0 )
+        return( 0 );
+
+    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE )
+    {
+        SSL_DEBUG_MSG( 3, ( "ticket rejected: renegotiating" ) );
+        return( 0 );
+    }
+
+    /*
+     * Failures are ok: just ignore the ticket and proceed.
+     */
+    if( ( ret = ssl_parse_ticket( ssl, buf, len ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_parse_ticket", ret );
+        return( 0 );
+    }
+
+    SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
+
+    ssl->handshake->resume = 1;
+
+    /* Don't send a new ticket after all, this one is OK */
+    ssl->handshake->new_session_ticket = 0;
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( ssl_context *ssl )
@@ -610,7 +917,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     n = ( buf[3] << 8 ) | buf[4];
 
-    if( n < 45 || n > 512 )
+    if( n < 45 || n > 2048 )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -873,6 +1180,16 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                 return( ret );
             break;
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+        case TLS_EXT_SESSION_TICKET:
+            SSL_DEBUG_MSG( 3, ( "found session ticket extension" ) );
+
+            ret = ssl_parse_session_ticket_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
                            ext_id ) );
@@ -1005,6 +1322,31 @@ static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
     *olen = 4;
 }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+static void ssl_write_session_ticket_ext( ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t *olen )
+{
+    unsigned char *p = buf;
+
+    if( ssl->handshake->new_session_ticket == 0 )
+    {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "server hello, adding session ticket extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_SESSION_TICKET      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 0x00;
+
+    *olen = 4;
+}
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
 static void ssl_write_renegotiation_ext( ssl_context *ssl,
                                          unsigned char *buf,
                                          size_t *olen )
@@ -1111,36 +1453,52 @@ static int ssl_write_server_hello( ssl_context *ssl )
     SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
     /*
-     *    38  .  38     session id length
-     *    39  . 38+n    session id
-     *   39+n . 40+n    chosen ciphersuite
-     *   41+n . 41+n    chosen compression alg.
-     *   42+n . 43+n    extensions length
-     *   44+n . 43+n+m  extensions
+     * Resume is 0  by default, see ssl_handshake_init().
+     * It may be already set to 1 by ssl_parse_session_ticket_ext().
+     * If not, try looking up session ID in our cache.
      */
-    ssl->session_negotiate->length = n = 32;
-    *p++ = (unsigned char) ssl->session_negotiate->length;
+    if( ssl->handshake->resume == 0 &&
+        ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
+        ssl->session_negotiate->length != 0 &&
+        ssl->f_get_cache != NULL &&
+        ssl->f_get_cache( ssl->p_get_cache, ssl->session_negotiate ) == 0 )
+    {
+        ssl->handshake->resume = 1;
+    }
 
-    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE ||
-        ssl->f_get_cache == NULL ||
-        ssl->f_get_cache( ssl->p_get_cache, ssl->session_negotiate ) != 0 )
+    if( ssl->handshake->resume == 0 )
     {
         /*
-         * Not found, create a new session id
+         * New session, create a new session id,
+         * unless we're about to issue a session ticket
          */
-        ssl->handshake->resume = 0;
         ssl->state++;
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+        if( ssl->handshake->new_session_ticket == 0 )
+        {
+            ssl->session_negotiate->length = n = 32;
+            if( ( ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id,
+                                    n ) ) != 0 )
+                return( ret );
+        }
+        else
+        {
+            ssl->session_negotiate->length = 0;
+            memset( ssl->session_negotiate->id, 0, 32 );
+        }
+#else
+        ssl->session_negotiate->length = n = 32;
         if( ( ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id,
                                 n ) ) != 0 )
             return( ret );
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
     }
     else
     {
         /*
-         * Found a matching session, resuming it
+         * Resuming a session
          */
-        ssl->handshake->resume = 1;
         ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
 
         if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
@@ -1150,6 +1508,15 @@ static int ssl_write_server_hello( ssl_context *ssl )
         }
     }
 
+    /*
+     *    38  .  38     session id length
+     *    39  . 38+n    session id
+     *   39+n . 40+n    chosen ciphersuite
+     *   41+n . 41+n    chosen compression alg.
+     *   42+n . 43+n    extensions length
+     *   44+n . 43+n+m  extensions
+     */
+    *p++ = (unsigned char) ssl->session_negotiate->length;
     memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->length );
     p += ssl->session_negotiate->length;
 
@@ -1178,6 +1545,11 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
+
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#endif
 
     SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %d", ext_len ) );
 
@@ -2114,6 +2486,58 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
           !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED &&
           !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+static int ssl_write_new_session_ticket( ssl_context *ssl )
+{
+    int ret;
+    size_t tlen;
+
+    SSL_DEBUG_MSG( 2, ( "=> write new session ticket" ) );
+
+    ssl->out_msgtype = SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = SSL_HS_NEW_SESSION_TICKET;
+
+    /*
+     * struct {
+     *     uint32 ticket_lifetime_hint;
+     *     opaque ticket<0..2^16-1>;
+     * } NewSessionTicket;
+     *
+     * 4  .  7   ticket_lifetime_hint (0 = unspecified)
+     * 8  .  9   ticket_len (n)
+     * 10 .  9+n ticket content
+     */
+    ssl->out_msg[4] = 0x00;
+    ssl->out_msg[5] = 0x00;
+    ssl->out_msg[6] = 0x00;
+    ssl->out_msg[7] = 0x00;
+
+    if( ( ret = ssl_write_ticket( ssl, &tlen ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_write_ticket", ret );
+        tlen = 0;
+    }
+
+    ssl->out_msg[8] = (unsigned char)( ( tlen >> 8 ) & 0xFF );
+    ssl->out_msg[9] = (unsigned char)( ( tlen      ) & 0xFF );
+
+    ssl->out_msglen = 10 + tlen;
+
+    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        return( ret );
+    }
+
+    /* No need to remember writing a NewSessionTicket any more */
+    ssl->handshake->new_session_ticket = 0;
+
+    SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
 /*
  * SSL handshake -- server side -- single step
  */
@@ -2197,11 +2621,17 @@ int ssl_handshake_server_step( ssl_context *ssl )
             break;
 
         /*
-         *  ==>   ChangeCipherSpec
+         *  ==> ( NewSessionTicket )
+         *        ChangeCipherSpec
          *        Finished
          */
         case SSL_SERVER_CHANGE_CIPHER_SPEC:
-            ret = ssl_write_change_cipher_spec( ssl );
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+            if( ssl->handshake->new_session_ticket != 0 )
+                ret = ssl_write_new_session_ticket( ssl );
+            else
+#endif
+                ret = ssl_write_change_cipher_spec( ssl );
             break;
 
         case SSL_SERVER_FINISHED:

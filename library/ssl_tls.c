@@ -76,6 +76,44 @@ static unsigned int mfl_code_to_length[SSL_MAX_FRAG_LEN_INVALID] =
     4096,                   /* SSL_MAX_FRAG_LEN_4096 */
 };
 
+static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
+{
+    int ret;
+
+    ssl_session_free( dst );
+    memcpy( dst, src, sizeof( ssl_session ) );
+
+#if defined(POLARSSL_X509_PARSE_C)
+    if( src->peer_cert != NULL )
+    {
+        if( ( dst->peer_cert = polarssl_malloc( sizeof(x509_cert) ) ) == NULL )
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+        memset( dst->peer_cert, 0, sizeof(x509_cert) );
+
+        if( ( ret = x509parse_crt( dst->peer_cert, src->peer_cert->raw.p,
+                                   src->peer_cert->raw.len ) != 0 ) )
+        {
+            polarssl_free( dst->peer_cert );
+            dst->peer_cert = NULL;
+            return( ret );
+        }
+    }
+#endif /* POLARSSL_X509_PARSE_C */
+
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    if( src->ticket != NULL )
+    {
+        if( ( dst->ticket = polarssl_malloc( src->ticket_len ) ) == NULL )
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+        memcpy( dst->ticket, src->ticket, src->ticket_len );
+    }
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 int (*ssl_hw_record_init)(ssl_context *ssl,
                        const unsigned char *key_enc, const unsigned char *key_dec,
@@ -2539,6 +2577,8 @@ static void ssl_calc_finished_tls_sha384(
 
 void ssl_handshake_wrapup( ssl_context *ssl )
 {
+    int resume = ssl->handshake->resume;
+
     SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
     /*
@@ -2570,9 +2610,13 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     /*
      * Add cache entry
      */
-    if( ssl->f_set_cache != NULL )
+    if( ssl->f_set_cache != NULL &&
+        ssl->session->length != 0 &&
+        resume == 0 )
+    {
         if( ssl->f_set_cache( ssl->p_set_cache, ssl->session ) != 0 )
             SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
+    }
 
     ssl->state++;
 
@@ -2930,12 +2974,50 @@ int ssl_session_reset( ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+/*
+ * Allocate and initialize ticket keys
+ */
+static int ssl_ticket_keys_init( ssl_context *ssl )
+{
+    int ret;
+    ssl_ticket_keys *tkeys;
+    unsigned char buf[16];
+
+    if( ssl->ticket_keys != NULL )
+        return( 0 );
+
+    if( ( tkeys = polarssl_malloc( sizeof( ssl_ticket_keys ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->key_name, 16 ) ) != 0 )
+        return( ret );
+
+    if( ( ret = ssl->f_rng( ssl->p_rng, buf, 16 ) ) != 0 ||
+        ( ret = aes_setkey_enc( &tkeys->enc, buf, 128 ) ) != 0 ||
+        ( ret = aes_setkey_dec( &tkeys->dec, buf, 128 ) ) != 0 )
+    {
+            return( ret );
+    }
+
+    if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->mac_key, 16 ) ) != 0 )
+        return( ret );
+
+    ssl->ticket_keys = tkeys;
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
 /*
  * SSL set accessors
  */
 void ssl_set_endpoint( ssl_context *ssl, int endpoint )
 {
     ssl->endpoint   = endpoint;
+
+    if( endpoint == SSL_IS_CLIENT )
+        ssl->session_tickets = SSL_SESSION_TICKETS_ENABLED;
 }
 
 void ssl_set_authmode( ssl_context *ssl, int authmode )
@@ -2989,10 +3071,24 @@ void ssl_set_session_cache( ssl_context *ssl,
     ssl->p_set_cache = p_set_cache;
 }
 
-void ssl_set_session( ssl_context *ssl, const ssl_session *session )
+int ssl_set_session( ssl_context *ssl, const ssl_session *session )
 {
-    memcpy( ssl->session_negotiate, session, sizeof(ssl_session) );
+    int ret;
+
+    if( ssl == NULL ||
+        session == NULL ||
+        ssl->session_negotiate == NULL ||
+        ssl->endpoint != SSL_IS_CLIENT )
+    {
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    if( ( ret = ssl_session_copy( ssl->session_negotiate, session ) ) != 0 )
+        return( ret );
+
     ssl->handshake->resume = 1;
+
+    return( 0 );
 }
 
 void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites )
@@ -3169,6 +3265,21 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy )
     ssl->allow_legacy_renegotiation = allow_legacy;
 }
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
+{
+    ssl->session_tickets = use_tickets;
+
+    if( ssl->endpoint == SSL_IS_CLIENT )
+        return( 0 );
+
+    if( ssl->f_rng == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    return( ssl_ticket_keys_init( ssl ) );
+}
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
+
 /*
  * SSL get accessors
  */
@@ -3221,6 +3332,19 @@ const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
     return ssl->session->peer_cert;
 }
 #endif /* POLARSSL_X509_PARSE_C */
+
+int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
+{
+    if( ssl == NULL ||
+        dst == NULL ||
+        ssl->session == NULL ||
+        ssl->endpoint != SSL_IS_CLIENT )
+    {
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    return( ssl_session_copy( dst, ssl->session ) );
+}
 
 /*
  * Perform a single step of the SSL handshake
@@ -3540,6 +3664,10 @@ void ssl_session_free( ssl_session *session )
     }
 #endif
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    polarssl_free( session->ticket );
+#endif
+
     memset( session, 0, sizeof( ssl_session ) );
 }
 
@@ -3589,6 +3717,10 @@ void ssl_free( ssl_context *ssl )
         ssl_session_free( ssl->session );
         polarssl_free( ssl->session );
     }
+
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    polarssl_free( ssl->ticket_keys );
+#endif
 
     if ( ssl->hostname != NULL)
     {

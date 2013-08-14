@@ -326,7 +326,11 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
     /*
      * Ignore possible errors caused by a cipher mode that doesn't use padding
      */
+#if defined(POLARSSL_CIPHER_PADDING_PKCS7)
     (void) cipher_set_padding_mode( ctx, POLARSSL_PADDING_PKCS7 );
+#else
+    (void) cipher_set_padding_mode( ctx, POLARSSL_PADDING_NONE );
+#endif
 
     return 0;
 }
@@ -526,6 +530,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
+#if defined(POLARSSL_CIPHER_PADDING_PKCS7)
 /*
  * PKCS7 (and PKCS5) padding: fill with ll bytes, with ll = padding_len
  */
@@ -560,7 +565,9 @@ static int get_pkcs_padding( unsigned char *input, size_t input_len,
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_PADDING_PKCS7 */
 
+#if defined(POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS)
 /*
  * One and zeros padding: fill with 80 00 ... 00
  */
@@ -593,7 +600,9 @@ static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS */
 
+#if defined(POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN)
 /*
  * Zeros and len padding: fill with 00 ... 00 ll, where ll is padding length
  */
@@ -629,7 +638,9 @@ static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN */
 
+#if defined(POLARSSL_CIPHER_PADDING_ZEROS)
 /*
  * Zero padding: fill with 00 ... 00
  */
@@ -656,6 +667,7 @@ static int get_zeros_padding( unsigned char *input, size_t input_len,
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_PADDING_ZEROS */
 
 /*
  * No padding: don't pad :)
@@ -749,33 +761,37 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
 
     switch( mode )
     {
+#if defined(POLARSSL_CIPHER_PADDING_PKCS7)
     case POLARSSL_PADDING_PKCS7:
         ctx->add_padding = add_pkcs_padding;
         ctx->get_padding = get_pkcs_padding;
         break;
-
+#endif
+#if defined(POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS)
     case POLARSSL_PADDING_ONE_AND_ZEROS:
         ctx->add_padding = add_one_and_zeros_padding;
         ctx->get_padding = get_one_and_zeros_padding;
         break;
-
+#endif
+#if defined(POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN)
     case POLARSSL_PADDING_ZEROS_AND_LEN:
         ctx->add_padding = add_zeros_and_len_padding;
         ctx->get_padding = get_zeros_and_len_padding;
         break;
-
+#endif
+#if defined(POLARSSL_CIPHER_PADDING_ZEROS)
     case POLARSSL_PADDING_ZEROS:
         ctx->add_padding = add_zeros_padding;
         ctx->get_padding = get_zeros_padding;
         break;
-
+#endif
     case POLARSSL_PADDING_NONE:
         ctx->add_padding = NULL;
         ctx->get_padding = get_no_padding;
         break;
 
     default:
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
 
     return 0;

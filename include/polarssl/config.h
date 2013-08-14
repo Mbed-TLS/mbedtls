@@ -194,6 +194,21 @@
  */
 
 /**
+ * \def POLARSSL_CIPHER_PADDING_XXX
+ *
+ * Uncomment or comment macros to add support for specific padding modes
+ * in the cipher layer with cipher modes that support padding (e.g. CBC)
+ *
+ * If you disable all padding modes, only full blocks can be used with CBC.
+ *
+ * Enable padding modes in the cipher layer.
+ */
+#define POLARSSL_CIPHER_PADDING_PKCS7
+#define POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS
+#define POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN
+#define POLARSSL_CIPHER_PADDING_ZEROS
+
+/**
  * \def POLARSSL_ENABLE_WEAK_CIPHERSUITES
  *
  * Enable weak ciphersuites in SSL / TLS

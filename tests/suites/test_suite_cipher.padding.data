@@ -1,0 +1,143 @@
+Set padding with AES-CBC
+depends_on:POLARSSL_AES_C
+set_padding:POLARSSL_CIPHER_AES_128_CBC:POLARSSL_PADDING_PKCS7:0
+
+Set padding with AES-CFB
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CFB
+set_padding:POLARSSL_CIPHER_AES_128_CFB128:POLARSSL_PADDING_PKCS7:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set padding with AES-CTR
+depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CTR
+set_padding:POLARSSL_CIPHER_AES_128_CTR:POLARSSL_PADDING_PKCS7:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set padding with CAMELLIA-CBC
+depends_on:POLARSSL_CAMELLIA_C
+set_padding:POLARSSL_CIPHER_CAMELLIA_128_CBC:POLARSSL_PADDING_PKCS7:0
+
+Set padding with CAMELLIA-CFB
+depends_on:POLARSSL_CAMELLIA_C:POLARSSL_CIPHER_MODE_CFB
+set_padding:POLARSSL_CIPHER_CAMELLIA_128_CFB128:POLARSSL_PADDING_PKCS7:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set padding with CAMELLIA-CTR
+depends_on:POLARSSL_CAMELLIA_C:POLARSSL_CIPHER_MODE_CTR
+set_padding:POLARSSL_CIPHER_CAMELLIA_128_CTR:POLARSSL_PADDING_PKCS7:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set padding with DES-CBC
+depends_on:POLARSSL_DES_C
+set_padding:POLARSSL_CIPHER_DES_CBC:POLARSSL_PADDING_PKCS7:0
+
+Set padding with BLOWFISH-CBC
+depends_on:POLARSSL_BLOWFISH_C
+set_padding:POLARSSL_CIPHER_BLOWFISH_CBC:POLARSSL_PADDING_PKCS7:0
+
+Set padding with BLOWFISH-CFB
+depends_on:POLARSSL_BLOWFISH_C:POLARSSL_CIPHER_MODE_CFB
+set_padding:POLARSSL_CIPHER_BLOWFISH_CFB64:POLARSSL_PADDING_PKCS7:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set padding with BLOWFISH-CTR
+depends_on:POLARSSL_BLOWFISH_C:POLARSSL_CIPHER_MODE_CTR
+set_padding:POLARSSL_CIPHER_BLOWFISH_CTR:POLARSSL_PADDING_PKCS7:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set padding with NULL
+depends_on:POLARSSL_CIPHER_NULL_CIPHER
+set_padding:POLARSSL_CIPHER_NULL:POLARSSL_PADDING_PKCS7:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set non-existent padding with AES-CBC
+depends_on:POLARSSL_AES_C
+set_padding:POLARSSL_CIPHER_AES_128_CBC:-1:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set non-existent padding with CAMELLIA-CBC
+depends_on:POLARSSL_CAMELLIA_C
+set_padding:POLARSSL_CIPHER_CAMELLIA_128_CBC:-1:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set non-existent padding with DES-CBC
+depends_on:POLARSSL_DES_C
+set_padding:POLARSSL_CIPHER_DES_CBC:-1:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Set non-existent padding with BLOWFISH-CBC
+depends_on:POLARSSL_BLOWFISH_C
+set_padding:POLARSSL_CIPHER_BLOWFISH_CBC:-1:POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+
+Check PKCS padding #1 (correct)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD0004040404":0:4
+
+Check PKCS padding #2 (correct)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD0001":0:4
+
+Check PKCS padding #3 (correct)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD000101":0:5
+
+Check PKCS padding #4 (correct)
+check_padding:POLARSSL_PADDING_PKCS7:"030303":0:0
+
+Check PKCS padding #5 (null padding)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD0000":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check PKCS padding #6 (too few padding bytes)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD0002":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check PKCS padding #7 (non-uniform padding bytes)
+check_padding:POLARSSL_PADDING_PKCS7:"DABBAD00030203":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check PKCS padding #8 (overlong)
+check_padding:POLARSSL_PADDING_PKCS7:"040404":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check one and zeros padding #1 (correct)
+check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"DABBAD0080":0:4
+
+Check one and zeros padding #2 (correct)
+check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"DABBAD008000":0:4
+
+Check one and zeros padding #3 (correct)
+check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"DABBAD00800000":0:4
+
+Check one and zeros padding #4 (correct)
+check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"DABBAD00808000":0:5
+
+Check one and zeros padding #5 (correct)
+check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"800000":0:0
+
+Check one and zeros padding #6 (missing one)
+check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"DABBAD0000":POLARSSL_ERR_CIPHER_INVALID_PADDING:4
+
+Check one and zeros padding #7 (overlong)
+check_padding:POLARSSL_PADDING_ONE_AND_ZEROS:"0000000000":POLARSSL_ERR_CIPHER_INVALID_PADDING:4
+
+Check zeros and len padding #1 (correct)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD0001":0:4
+
+Check zeros and len padding #2 (correct)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD000002":0:4
+
+Check zeros and len padding #3 (correct)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD000003":0:3
+
+Check zeros and len padding #4 (correct)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"000003":0:0
+
+Check zeros and len padding #5 (overlong)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"000004":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check zeros and len padding #6 (not enough zeros)
+check_padding:POLARSSL_PADDING_ZEROS_AND_LEN:"DABBAD000004":POLARSSL_ERR_CIPHER_INVALID_PADDING:0
+
+Check zeros padding #1 (correct)
+check_padding:POLARSSL_PADDING_ZEROS:"DABBAD00":0:3
+
+Check zeros padding #2 (correct)
+check_padding:POLARSSL_PADDING_ZEROS:"DABBAD0000":0:3
+
+Check zeros padding #3 (correct)
+check_padding:POLARSSL_PADDING_ZEROS:"DABBAD":0:3
+
+Check zeros padding #4 (correct)
+check_padding:POLARSSL_PADDING_ZEROS:"000000":0:0
+
+Check no padding #1 (correct by definition)
+check_padding:POLARSSL_PADDING_NONE:"DABBAD00":0:4
+
+Check no padding #2 (correct by definition)
+check_padding:POLARSSL_PADDING_NONE:"DABBAD0001":0:5
+
+Check no padding #3 (correct by definition)
+check_padding:POLARSSL_PADDING_NONE:"":0:0

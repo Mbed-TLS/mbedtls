@@ -7,7 +7,7 @@ depends_on:POLARSSL_CIPHER_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-enc_dec_buf:cipher_id:cipher_string:key_len:length:
+enc_dec_buf:cipher_id:cipher_string:key_len:length:pad_mode:
     size_t length = {length};
     unsigned char key[32];
     unsigned char iv[16];
@@ -21,7 +21,7 @@ enc_dec_buf:cipher_id:cipher_string:key_len:length:
     unsigned char decbuf[64];
 
     size_t outlen = 0;
-    size_t enclen = 0;
+    size_t total_len = 0;
 
     memset( key, 0, 32 );
     memset( iv , 0, 16 );
@@ -45,67 +45,90 @@ enc_dec_buf:cipher_id:cipher_string:key_len:length:
     TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, {key_len}, POLARSSL_DECRYPT ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx_enc, key, {key_len}, POLARSSL_ENCRYPT ) );
 
+    if( -1 != {pad_mode} )
+    {
+        TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx_dec, {pad_mode} ) );
+        TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx_enc, {pad_mode} ) );
+    }
+
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );
 
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        enclen = cipher_get_block_size( &ctx_enc )
-                    * ( 1 + length / cipher_get_block_size( &ctx_enc ) );
-    }
-    else
-    {
-        enclen = length;
-    }
-
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, length, encbuf, &outlen ) );
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        TEST_ASSERT( outlen == enclen - cipher_get_block_size ( &ctx_enc ) );
-    }
-    else
-    {
-        TEST_ASSERT( outlen == enclen );
-    }
+    total_len = outlen;
+
+    TEST_ASSERT( total_len == length ||
+                 ( total_len % cipher_get_block_size( &ctx_enc ) == 0 &&
+                   total_len < length &&
+                   total_len + cipher_get_block_size( &ctx_enc ) > length ) );
 
     TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + outlen, &outlen ) );
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        TEST_ASSERT( outlen == cipher_get_block_size ( &ctx_enc ) );
-    }
-    else
-    {
-        TEST_ASSERT( outlen == 0 );
-    }
+    total_len += outlen;
 
+    TEST_ASSERT( total_len == length ||
+                 ( total_len % cipher_get_block_size( &ctx_enc ) == 0 &&
+                   total_len > length &&
+                   total_len <= length + cipher_get_block_size( &ctx_enc ) ) );
 
     /* decode the previously encoded string */
-    TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, enclen, decbuf, &outlen ) );
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        TEST_ASSERT( enclen - cipher_get_block_size ( &ctx_enc ) == outlen );
-    }
-    else
-    {
-        TEST_ASSERT( enclen == outlen );
-    }
+    TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, total_len, decbuf, &outlen ) );
+    total_len = outlen;
+
+    TEST_ASSERT( total_len == length ||
+                 ( total_len % cipher_get_block_size( &ctx_dec ) == 0 &&
+                   total_len < length &&
+                   total_len + cipher_get_block_size( &ctx_dec ) >= length ) );
 
     TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        TEST_ASSERT( length - enclen + cipher_get_block_size ( &ctx_enc ) == outlen );
-    }
-    else
-    {
-        TEST_ASSERT( outlen == 0 );
-    }
+    total_len += outlen;
 
+    TEST_ASSERT( total_len == length );
 
     TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );
 
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx_enc ) );
+END_CASE
+
+BEGIN_CASE
+enc_fail:cipher_id:pad_mode:key_len:length:ret:
+    size_t length = {length};
+    unsigned char key[32];
+    unsigned char iv[16];
+
+    const cipher_info_t *cipher_info;
+    cipher_context_t ctx;
+
+    unsigned char inbuf[64];
+    unsigned char encbuf[64];
+
+    size_t outlen = 0;
+
+    memset( key, 0, 32 );
+    memset( iv , 0, 16 );
+
+    memset( &ctx, 0, sizeof( ctx ) );
+
+    memset( inbuf, 5, 64 );
+    memset( encbuf, 0, 64 );
+
+    /* Check and get info structures */
+    cipher_info = cipher_info_from_type( {cipher_id} );
+    TEST_ASSERT( NULL != cipher_info );
+
+    /* Initialise context */
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx, cipher_info ) );
+    TEST_ASSERT( 0 == cipher_setkey( &ctx, key, {key_len}, POLARSSL_ENCRYPT ) );
+    TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx, {pad_mode} ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx, iv ) );
+
+    /* encode length number of bytes from inbuf */
+    TEST_ASSERT( 0 == cipher_update( &ctx, inbuf, length, encbuf, &outlen ) );
+    TEST_ASSERT( {ret} == cipher_finish( &ctx, encbuf + outlen, &outlen ) );
+
+    /* done */
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx ) );
 END_CASE
 
 BEGIN_CASE
@@ -166,7 +189,6 @@ enc_dec_buf_multipart:cipher_id:key_len:first_length:second_length:
 
     size_t outlen = 0;
     size_t totaloutlen = 0;
-    size_t enclen = 0;
 
     memset( key, 0, 32 );
     memset( iv , 0, 16 );
@@ -191,60 +213,36 @@ enc_dec_buf_multipart:cipher_id:key_len:first_length:second_length:
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );
 
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        enclen = cipher_get_block_size(&ctx_enc )
-                    * ( 1 + length / cipher_get_block_size( &ctx_enc ) );
-    }
-    else
-    {
-        enclen = length;
-    }
-
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, first_length, encbuf, &outlen ) );
     totaloutlen = outlen;
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf + first_length, second_length, encbuf + totaloutlen, &outlen ) );
     totaloutlen += outlen;
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        TEST_ASSERT( totaloutlen == enclen - cipher_get_block_size ( &ctx_enc ) );
-    }
-    else
-    {
-        TEST_ASSERT( totaloutlen == enclen );
-    }
+    TEST_ASSERT( totaloutlen == length ||
+                 ( totaloutlen % cipher_get_block_size( &ctx_enc ) == 0 &&
+                   totaloutlen < length &&
+                   totaloutlen + cipher_get_block_size( &ctx_enc ) > length ) );
+
     TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + totaloutlen, &outlen ) );
     totaloutlen += outlen;
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        TEST_ASSERT( outlen == cipher_get_block_size ( &ctx_enc ) );
-    }
-    else
-    {
-        TEST_ASSERT( outlen == 0 );
-    }
+    TEST_ASSERT( totaloutlen == length ||
+                 ( totaloutlen % cipher_get_block_size( &ctx_enc ) == 0 &&
+                   totaloutlen > length &&
+                   totaloutlen <= length + cipher_get_block_size( &ctx_enc ) ) );
 
     /* decode the previously encoded string */
-    TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, enclen, decbuf, &outlen ) );
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        TEST_ASSERT( enclen - cipher_get_block_size ( &ctx_enc ) == outlen );
-    }
-    else
-    {
-        TEST_ASSERT( enclen == outlen );
-    }
+    TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, totaloutlen, decbuf, &outlen ) );
+    totaloutlen = outlen;
+
+    TEST_ASSERT( totaloutlen == length ||
+                 ( totaloutlen % cipher_get_block_size( &ctx_dec ) == 0 &&
+                   totaloutlen < length &&
+                   totaloutlen + cipher_get_block_size( &ctx_dec ) > length ) );
+
     TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
-    if( POLARSSL_MODE_CBC == cipher_info->mode )
-    {
-        TEST_ASSERT( length - enclen + cipher_get_block_size ( &ctx_enc ) == outlen );
-    }
-    else
-    {
-        TEST_ASSERT( outlen == 0 );
-    }
-    
+    totaloutlen += outlen;
+
+    TEST_ASSERT( totaloutlen == length );
 
     TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );
 
@@ -252,6 +250,40 @@ enc_dec_buf_multipart:cipher_id:key_len:first_length:second_length:
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx_enc ) );
 END_CASE
 
+BEGIN_CASE
+set_padding:cipher_id:pad_mode:ret:
+    const cipher_info_t *cipher_info;
+    cipher_context_t ctx;
+
+    cipher_info = cipher_info_from_type( {cipher_id} );
+    TEST_ASSERT( NULL != cipher_info );
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx, cipher_info ) );
+
+    TEST_ASSERT( {ret} == cipher_set_padding_mode( &ctx, {pad_mode} ) );
+
+    TEST_ASSERT( 0 == cipher_free_ctx( &ctx ) );
+END_CASE
+
+BEGIN_CASE
+check_padding:pad_mode:input:ret:dlen:
+    cipher_info_t cipher_info;
+    cipher_context_t ctx;
+    unsigned char input[16];
+    size_t ilen, dlen;
+
+    /* build a fake context just for getting access to get_padding */
+    memset( &ctx, 0, sizeof( ctx ) );
+    cipher_info.mode = POLARSSL_MODE_CBC;
+    ctx.cipher_info = &cipher_info;
+
+    TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx, {pad_mode} ) );
+
+    ilen = unhexify( input, {input} );
+
+    TEST_ASSERT( {ret} == ctx.get_padding( input, ilen, &dlen ) );
+    if( 0 == {ret} )
+        TEST_ASSERT( dlen == {dlen} );
+END_CASE
 
 BEGIN_CASE
 cipher_selftest:

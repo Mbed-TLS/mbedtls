@@ -105,6 +105,14 @@ typedef enum {
 } cipher_mode_t;
 
 typedef enum {
+    POLARSSL_PADDING_PKCS7 = 0,     /**< PKCS7 padding (default)        */
+    POLARSSL_PADDING_ONE_AND_ZEROS, /**< ISO/IEC 7816-4 padding         */
+    POLARSSL_PADDING_ZEROS_AND_LEN, /**< ANSI X.923 padding             */
+    POLARSSL_PADDING_ZEROS,         /**< zero padding (not reversible!) */
+    POLARSSL_PADDING_NONE,          /**< never pad (full blocks only)   */
+} cipher_padding_t;
+
+typedef enum {
     POLARSSL_OPERATION_NONE = -1,
     POLARSSL_DECRYPT = 0,
     POLARSSL_ENCRYPT,
@@ -197,6 +205,10 @@ typedef struct {
 
     /** Operation that the context's key has been initialised for */
     operation_t operation;
+
+    /** Padding functions to use, if relevant for cipher mode */
+    void (*add_padding)( unsigned char *output, size_t olen, size_t data_len );
+    int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
 
     /** Buffer for data that hasn't been encrypted yet */
     unsigned char unprocessed_data[POLARSSL_MAX_IV_LENGTH];
@@ -397,6 +409,20 @@ static inline operation_t cipher_get_operation( const cipher_context_t *ctx )
  */
 int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_length,
         const operation_t operation );
+
+/**
+ * \brief               Set padding mode, for cipher modes that use padding.
+ *                      (Default: PKCS7 padding.)
+ *
+ * \param ctx           generic cipher context
+ * \param mode          padding mode
+ *
+ * \returns             0 on success, POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE
+ *                      if selected padding mode is not supported, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if the cipher mode
+ *                      does not support padding.
+ */
+int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
 
 /**
  * \brief               Reset the given context, setting the IV to iv

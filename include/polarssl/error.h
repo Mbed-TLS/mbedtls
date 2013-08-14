@@ -77,7 +77,7 @@
  * PEM      1   9
  * PKCS#12  1   4 (Started from top)
  * X509     2   25
- * PK       2   1 (Started from top)
+ * PK       2   3 (Started from top)
  * DHM      3   6
  * PKCS5    3   4 (Started from top)
  * RSA      4   9

@@ -38,15 +38,6 @@
 #include "polarssl/ecdsa.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
-#else
-#define polarssl_malloc     malloc
-#define polarssl_free       free
-#endif
-
-#include <stdlib.h>
-
 /*
  * Initialise a pk_context
  */
@@ -114,7 +105,7 @@ int pk_set_type( pk_context *ctx, pk_type_t type )
     }
 
     if( ( info = pk_info_from_type( type ) ) == NULL )
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
     if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );
@@ -144,7 +135,7 @@ int pk_verify( pk_context *ctx,
                const unsigned char *sig, size_t sig_len )
 {
     if( ctx == NULL || ctx->pk_info == NULL )
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH ); // TODO
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
     return( ctx->pk_info->verify_func( ctx->pk_ctx, hash, md_info, sig, sig_len ) );
 }
@@ -166,7 +157,7 @@ size_t pk_get_size( const pk_context *ctx )
 int pk_debug( const pk_context *ctx, pk_debug_item *items )
 {
     if( ctx == NULL || ctx->pk_info == NULL )
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH ); // TODO
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
     ctx->pk_info->debug_func( ctx->pk_ctx, items );
     return( 0 );

@@ -213,7 +213,7 @@ int main( int argc, char *argv[] )
 
 
         /* EC NOT IMPLEMENTED YET */
-        if( clicert.pk.type != POLARSSL_PK_RSA )
+        if( ! pk_can_do( &clicert.pk, POLARSSL_PK_RSA ) )
         {
             printf( " failed\n  !  certificate's key is not RSA\n\n" );
             ret = POLARSSL_ERR_X509_FEATURE_UNAVAILABLE;

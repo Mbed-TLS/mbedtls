@@ -1332,6 +1332,7 @@
 // SSL options
 //
 #define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
+#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 
 #endif /* POLARSSL_CONFIG_OPTIONS */
 

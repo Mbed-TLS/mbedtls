@@ -273,7 +273,7 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
 
     *olen = 6;
 }
-#endif
+#endif /* POLARSSL_ECDH_C */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
@@ -686,6 +686,40 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+#if defined(POLARSSL_ECP_C)
+static int ssl_parse_supported_point_formats_ext( ssl_context *ssl,
+                                                  const unsigned char *buf,
+                                                  size_t len )
+{
+    size_t list_size;
+    const unsigned char *p;
+
+    list_size = buf[0];
+    if( list_size + 1 != len )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    p = buf + 2;
+    while( list_size > 0 )
+    {
+        if( p[0] == POLARSSL_ECP_PF_UNCOMPRESSED ||
+            p[0] == POLARSSL_ECP_PF_COMPRESSED )
+        {
+            ssl->handshake->ec_point_format = p[0];
+            SSL_DEBUG_MSG( 4, ( "point format selected: %d", p[0] ) );
+            return( 0 );
+        }
+
+        list_size--;
+        p++;
+    }
+
+    return( 0 );
+}
+#endif /* POLARSSL_ECP_C */
+
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
     uint32_t t;
@@ -940,6 +974,19 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
             break;
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
+
+#if defined(POLARSSL_ECP_C)
+        case TLS_EXT_SUPPORTED_POINT_FORMATS:
+            SSL_DEBUG_MSG( 3, ( "found supported_point_formats extension" ) );
+
+            if( ( ret = ssl_parse_supported_point_formats_ext( ssl,
+                            ext + 4, ext_size ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            break;
+#endif /* POLARSSL_ECP_C */
 
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",

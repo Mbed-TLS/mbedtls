@@ -266,13 +266,12 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
     *p++ = (unsigned char)( ( TLS_EXT_SUPPORTED_POINT_FORMATS      ) & 0xFF );
 
     *p++ = 0x00;
-    *p++ = 3;
-
     *p++ = 2;
-    *p++ = POLARSSL_ECP_PF_COMPRESSED;
+
+    *p++ = 1;
     *p++ = POLARSSL_ECP_PF_UNCOMPRESSED;
 
-    *olen = 7;
+    *olen = 6;
 }
 #endif
 

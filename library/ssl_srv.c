@@ -581,6 +581,7 @@ static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
 static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
                                          const unsigned char *buf,
                                          size_t len )
@@ -597,6 +598,7 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 static int ssl_parse_session_ticket_ext( ssl_context *ssl,
@@ -1186,6 +1188,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             break;
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
         case TLS_EXT_TRUNCATED_HMAC:
             SSL_DEBUG_MSG( 3, ( "found truncated hmac extension" ) );
 
@@ -1193,6 +1196,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             if( ret != 0 )
                 return( ret );
             break;
+#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
         case TLS_EXT_SESSION_TICKET:
@@ -1313,6 +1317,7 @@ have_ciphersuite:
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
 static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t *olen )
@@ -1335,6 +1340,7 @@ static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
 
     *olen = 4;
 }
+#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 static void ssl_write_session_ticket_ext( ssl_context *ssl,
@@ -1562,8 +1568,10 @@ static int ssl_write_server_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
+#endif
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );

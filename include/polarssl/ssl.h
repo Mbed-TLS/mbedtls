@@ -366,7 +366,9 @@ struct _ssl_session
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
+#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 };
 
 /*
@@ -601,7 +603,9 @@ struct _ssl_context
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
     int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
+#endif
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     int session_tickets;                /*!<  use session tickets?    */
     int ticket_lifetime;                /*!<  session ticket lifetime */
@@ -1049,6 +1053,7 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor );
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
 /**
  * \brief          Activate negotiation of truncated HMAC (Client only)
  *                 (Default: SSL_TRUNC_HMAC_ENABLED)
@@ -1061,6 +1066,7 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
  *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side
  */
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
+#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 /**

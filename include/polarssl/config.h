@@ -550,6 +550,15 @@
 #define POLARSSL_SSL_SESSION_TICKETS
 
 /**
+ * \def POLARSSL_SSL_TRUNCATED_HMAC
+ *
+ * Enable support for RFC 6066 truncated HMAC in SSL
+ *
+ * Comment this macro to disable support for truncated HMAC in SSL
+ */
+#define POLARSSL_SSL_TRUNCATED_HMAC
+
+/**
  * \def POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate

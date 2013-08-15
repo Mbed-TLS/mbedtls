@@ -288,6 +288,16 @@ static int ssl_parse_ticket( ssl_context *ssl,
         return( ret );
     }
 
+#if defined(POLARSSL_HAVE_TIME)
+    /* Check if still valid */
+    if( (int) ( time( NULL) - session.start ) > ssl->ticket_lifetime )
+    {
+        SSL_DEBUG_MSG( 1, ( "session ticket expired" ) );
+        memset( &session, 0, sizeof( ssl_session ) );
+        return( POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED );
+    }
+#endif
+
     /*
      * Keep the session ID sent by the client, since we MUST send it back to
      * inform him we're accepting the ticket  (RFC 5077 section 3.4)
@@ -1484,7 +1494,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         }
         else
         {
-            ssl->session_negotiate->length = 0;
+            ssl->session_negotiate->length = n = 0;
             memset( ssl->session_negotiate->id, 0, 32 );
         }
 #else
@@ -1499,6 +1509,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         /*
          * Resuming a session
          */
+        n = ssl->session_negotiate->length;
         ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
 
         if( ( ret = ssl_derive_keys( ssl ) ) != 0 )

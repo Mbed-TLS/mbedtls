@@ -109,6 +109,7 @@
 #define POLARSSL_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
 #define POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION           -0x6E80  /**< Handshake protocol not within min/max boundaries */
 #define POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
+#define POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED            -0x6D80  /**< Session ticket has expired. */
 
 
 /*
@@ -157,6 +158,10 @@
 
 #define SSL_SESSION_TICKETS_DISABLED     0
 #define SSL_SESSION_TICKETS_ENABLED      1
+
+#if !defined(POLARSSL_CONFIG_OPTIONS)
+#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
+#endif /* !POLARSSL_CONFIG_OPTIONS */
 
 /*
  * Size of the input / output buffer.
@@ -592,7 +597,10 @@ struct _ssl_context
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
     int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     int session_tickets;                /*!<  use session tickets?    */
+    int ticket_lifetime;                /*!<  session ticket lifetime */
+#endif
 
 #if defined(POLARSSL_DHM_C)
     mpi dhm_P;                          /*!<  prime modulus for DHM   */
@@ -1065,6 +1073,15 @@ int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
  *                 or a specific error code (server only).
  */
 int ssl_set_session_tickets( ssl_context *ssl, int use_tickets );
+
+/**
+ * \brief          Set session ticket lifetime (server only)
+ *                 (Default: SSL_DEFAULT_TICKET_LIFETIME (86400 secs / 1 day))
+ *
+ * \param ssl      SSL context
+ * \param lifetime session ticket lifetime
+ */
+void ssl_set_session_ticket_lifetime( ssl_context *ssl, int lifetime );
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 /**

@@ -2898,6 +2898,10 @@ int ssl_init( ssl_context *ssl )
     ssl->hostname = NULL;
     ssl->hostname_len = 0;
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -3016,8 +3020,10 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint )
 {
     ssl->endpoint   = endpoint;
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( endpoint == SSL_IS_CLIENT )
         ssl->session_tickets = SSL_SESSION_TICKETS_ENABLED;
+#endif
 }
 
 void ssl_set_authmode( ssl_context *ssl, int authmode )
@@ -3277,6 +3283,11 @@ int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     return( ssl_ticket_keys_init( ssl ) );
+}
+
+void ssl_set_session_ticket_lifetime( ssl_context *ssl, int lifetime )
+{
+    ssl->ticket_lifetime = lifetime;
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 

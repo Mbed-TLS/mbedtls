@@ -428,7 +428,9 @@ struct _ssl_handshake_params
 #if defined(POLARSSL_ECDH_C)
     ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     int ec_curve;                       /*!<  Selected elliptic curve */
+#endif
 
     /*
      * Checksum contexts

@@ -470,7 +470,7 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
     return( 0 );
 }
 
-#if defined(POLARSSL_ECP_C)
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
                                                 const unsigned char *buf,
                                                 size_t len )
@@ -563,7 +563,7 @@ static int ssl_parse_supported_point_formats( ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* POLARSSL_ECP_C */
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
@@ -1161,7 +1161,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                 return( ret );
             break;
 
-#if defined(POLARSSL_ECP_C)
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
         case TLS_EXT_SUPPORTED_ELLIPTIC_CURVES:
             SSL_DEBUG_MSG( 3, ( "found supported elliptic curves extension" ) );
 
@@ -1177,7 +1177,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             if( ret != 0 )
                 return( ret );
             break;
-#endif /* POLARSSL_ECP_C */
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
         case TLS_EXT_MAX_FRAGMENT_LENGTH:
@@ -1424,7 +1424,7 @@ static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(POLARSSL_ECDH_C)
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
                                                    unsigned char *buf,
                                                    size_t *olen )
@@ -1447,7 +1447,7 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
 
     *olen = 6;
 }
-#endif /* POLARSSL_ECDH_C */
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
 static int ssl_write_server_hello( ssl_context *ssl )
 {
@@ -1604,7 +1604,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(POLARSSL_ECDH_C)
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif

@@ -199,7 +199,7 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     *olen = 6 + sig_alg_len;
 }
 
-#if defined(POLARSSL_ECDH_C)
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
                                                      unsigned char *buf,
                                                      size_t *olen )
@@ -273,7 +273,7 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
 
     *olen = 6;
 }
-#endif /* POLARSSL_ECDH_C */
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
@@ -541,7 +541,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ssl_write_signature_algorithms_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
-#if defined(POLARSSL_ECDH_C)
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     ssl_write_supported_elliptic_curves_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
@@ -686,7 +686,7 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
-#if defined(POLARSSL_ECP_C)
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 static int ssl_parse_supported_point_formats_ext( ssl_context *ssl,
                                                   const unsigned char *buf,
                                                   size_t len )
@@ -718,7 +718,7 @@ static int ssl_parse_supported_point_formats_ext( ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* POLARSSL_ECP_C */
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
@@ -975,7 +975,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             break;
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
-#if defined(POLARSSL_ECP_C)
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
         case TLS_EXT_SUPPORTED_POINT_FORMATS:
             SSL_DEBUG_MSG( 3, ( "found supported_point_formats extension" ) );
 
@@ -986,7 +986,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             }
 
             break;
-#endif /* POLARSSL_ECP_C */
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",

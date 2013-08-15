@@ -1484,7 +1484,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         }
         else
         {
-            ssl->session_negotiate->length = 0;
+            ssl->session_negotiate->length = n = 0;
             memset( ssl->session_negotiate->id, 0, 32 );
         }
 #else
@@ -1499,6 +1499,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         /*
          * Resuming a session
          */
+        n = ssl->session_negotiate->length;
         ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
 
         if( ( ret = ssl_derive_keys( ssl ) ) != 0 )

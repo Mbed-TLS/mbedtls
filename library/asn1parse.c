@@ -292,8 +292,11 @@ int asn1_get_alg( unsigned char **p,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
         return( ret );
 
-    end = *p + len;
+    if( ( end - *p ) < 1 )
+        return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
     alg->tag = **p;
+    end = *p + len;
 
     if( ( ret = asn1_get_tag( p, end, &alg->len, ASN1_OID ) ) != 0 )
         return( ret );

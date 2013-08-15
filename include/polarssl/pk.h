@@ -148,29 +148,36 @@ typedef struct
 } pk_context;
 
 /**
+ * \brief           Return information associated with the given PK type
+ *
+ * \param type      PK type to search for.
+ *
+ * \return          The PK info associated with the type or NULL if not found.
+ */
+const pk_info_t *pk_info_from_type( pk_type_t pk_type );
+
+/**
  * \brief           Initialize a pk_context (as NONE)
  */
 void pk_init( pk_context *ctx );
 
 /**
+ * \brief           Initialize a PK context with the information given
+ *                  and allocates the type-specific PK subcontext.
+ *
+ * \param ctx       Context to initialize. Must be empty (type NONE).
+ * \param info      Information to use
+ *
+ * \return          0 on success,
+ *                  POLARSSL_ERR_PK_BAD_INPUT_DATA on invalid input,
+ *                  POLARSSL_ERR_PK_MALLOC_FAILED on allocation failure.
+ */
+int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
+
+/**
  * \brief           Free a pk_context
  */
 void pk_free( pk_context *ctx );
-
-/**
- * \brief           Set a pk_context to a given type
- *
- * \param ctx       Context to initialize
- * \param type      Type of key
- *
- * \note            Once the type of a key has been set, it cannot be reset.
- *                  If you want to do so, you need to use pk_free() first.
- *
- * \return          O on success,
- *                  POLARSSL_ERR_PK_MALLOC_FAILED on memory allocation fail,
- *                  POLARSSL_ERR_PK_TYPE_MISMATCH on attempts to reset type.
- */
-int pk_set_type( pk_context *ctx, pk_type_t type );
 
 /**
  * \brief           Get the size in bits of the underlying key

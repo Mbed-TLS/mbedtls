@@ -67,7 +67,7 @@ void pk_free( pk_context *ctx )
 /*
  * Get pk_info structure from type
  */
-static const pk_info_t * pk_info_from_type( pk_type_t pk_type )
+const pk_info_t * pk_info_from_type( pk_type_t pk_type )
 {
     switch( pk_type ) {
 #if defined(POLARSSL_RSA_C)
@@ -90,21 +90,11 @@ static const pk_info_t * pk_info_from_type( pk_type_t pk_type )
 }
 
 /*
- * Set a pk_context to a given type
+ * Initialise context
  */
-int pk_set_type( pk_context *ctx, pk_type_t type )
+int pk_init_ctx( pk_context *ctx, const pk_info_t *info )
 {
-    const pk_info_t *info;
-
-    if( ctx->pk_info != NULL )
-    {
-        if( ctx->pk_info->type == type )
-            return 0;
-
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
-    }
-
-    if( ( info = pk_info_from_type( type ) ) == NULL )
+    if( ctx == NULL || info == NULL || ctx->pk_info != NULL )
         return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
     if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )

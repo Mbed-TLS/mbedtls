@@ -155,8 +155,6 @@ int ecdh_read_params( ecdh_context *ctx,
 {
     int ret;
 
-    ecdh_init( ctx );
-
     if( ( ret = ecp_tls_read_group( &ctx->grp, buf, end - *buf ) ) != 0 )
         return( ret );
 

@@ -707,7 +707,7 @@ static int ssl_parse_supported_point_formats_ext( ssl_context *ssl,
         if( p[0] == POLARSSL_ECP_PF_UNCOMPRESSED ||
             p[0] == POLARSSL_ECP_PF_COMPRESSED )
         {
-            ssl->handshake->ec_point_format = p[0];
+            ssl->handshake->ecdh_ctx.point_format = p[0];
             SSL_DEBUG_MSG( 4, ( "point format selected: %d", p[0] ) );
             return( 0 );
         }

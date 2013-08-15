@@ -276,6 +276,7 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
 }
 #endif
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
                                                unsigned char *buf,
                                                size_t *olen )
@@ -299,6 +300,7 @@ static void ssl_write_max_fragment_length_ext( ssl_context *ssl,
 
     *olen = 5;
 }
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
 static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
                                           unsigned char *buf, size_t *olen )
@@ -546,8 +548,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
+#endif
 
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
@@ -621,6 +625,7 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t len )
@@ -638,6 +643,7 @@ static int ssl_parse_max_fragment_length_ext( ssl_context *ssl,
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
 static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
                                          const unsigned char *buf,
@@ -891,6 +897,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
             break;
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
         case TLS_EXT_MAX_FRAGMENT_LENGTH:
             SSL_DEBUG_MSG( 3, ( "found max_fragment_length extension" ) );
 
@@ -901,6 +908,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             }
 
             break;
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
         case TLS_EXT_TRUNCATED_HMAC:
             SSL_DEBUG_MSG( 3, ( "found truncated_hmac extension" ) );

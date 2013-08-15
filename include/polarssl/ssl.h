@@ -362,7 +362,10 @@ struct _ssl_session
     uint32_t ticket_lifetime;   /*!< ticket lifetime hint    */
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char mfl_code;     /*!< MaxFragmentLength negotiated by peer */
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
 };
 
@@ -560,7 +563,9 @@ struct _ssl_context
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char mfl_code;     /*!< MaxFragmentLength chosen by us   */
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
     /*
      * PKI layer
@@ -1025,6 +1030,7 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor );
  */
 void ssl_set_min_version( ssl_context *ssl, int major, int minor );
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Set the maximum fragment length to emit and/or negotiate
  *                 (Default: SSL_MAX_CONTENT_LEN, usually 2^14 bytes)
@@ -1041,6 +1047,7 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor );
  * \return         O if successful or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  */
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
 /**
  * \brief          Activate negotiation of truncated HMAC (Client only)

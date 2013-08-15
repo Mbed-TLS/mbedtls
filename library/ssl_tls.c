@@ -59,6 +59,7 @@
 #define strcasecmp _stricmp
 #endif
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /*
  * Convert max_fragment_length codes to length.
  * RFC 6066 says:
@@ -75,6 +76,7 @@ static unsigned int mfl_code_to_length[SSL_MAX_FRAG_LEN_INVALID] =
     2048,                   /* SSL_MAX_FRAG_LEN_2048 */
     4096,                   /* SSL_MAX_FRAG_LEN_4096 */
 };
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
 static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 {
@@ -3238,6 +3240,7 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
     ssl->min_minor_ver = minor;
 }
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
 {
     if( mfl_code >= sizeof( mfl_code_to_length ) ||
@@ -3250,6 +3253,7 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate )
 {
@@ -3555,7 +3559,7 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
 {
     int ret;
     size_t n;
-    unsigned int max_len;
+    unsigned int max_len = SSL_MAX_CONTENT_LEN;
 
     SSL_DEBUG_MSG( 2, ( "=> write" ) );
 
@@ -3568,19 +3572,21 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
         }
     }
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     /*
      * Assume mfl_code is correct since it was checked when set
      */
     max_len = mfl_code_to_length[ssl->mfl_code];
 
     /*
-     * Check if a smaller max length was negociated
+     * Check if a smaller max length was negotiated
      */
     if( ssl->session_out != NULL &&
         mfl_code_to_length[ssl->session_out->mfl_code] < max_len )
     {
         max_len = mfl_code_to_length[ssl->session_out->mfl_code];
     }
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
     n = ( len < max_len) ? len : max_len;
 

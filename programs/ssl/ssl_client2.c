@@ -185,6 +185,14 @@ static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
 #define USAGE_TICKETS ""
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+#define USAGE_MAX_FRAG_LEN                                      \
+    "    max_frag_len=%%d     default: 16384 (tls default)\n"   \
+    "                        options: 512, 1024, 2048, 4096\n"
+#else
+#define USAGE_MAX_FRAG_LEN ""
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -204,8 +212,7 @@ static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
     "    auth_mode=%%s        default: \"optional\"\n"          \
     "                        options: none, optional, required\n" \
-    "    max_frag_len=%%d     default: 16384 (tls default)\n"   \
-    "                        options: 512, 1024, 2048, 4096\n"  \
+    USAGE_MAX_FRAG_LEN                                      \
     "    trunc_hmac=%%d       default: 0 (disabled)\n"      \
     USAGE_PSK                                               \
     "\n"                                                    \
@@ -671,7 +678,9 @@ int main( int argc, char *argv[] )
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
     ssl_set_authmode( &ssl, opt.auth_mode );
 
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     ssl_set_max_frag_len( &ssl, opt.mfl_code );
+#endif
 
     if( opt.trunc_hmac != 0 )
         ssl_set_truncated_hmac( &ssl, SSL_TRUNC_HMAC_ENABLED );

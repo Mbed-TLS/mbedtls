@@ -529,6 +529,15 @@
 #define POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
 
 /**
+ * \def POLARSSL_SSL_MAX_FRAGMENT_LENGTH
+ *
+ * Enable support for RFC 6066 max_fragment_length extension in SSL
+ *
+ * Comment this macro to disable support for the max_fragment_length extension
+ */
+#define POLARSSL_SSL_MAX_FRAGMENT_LENGTH
+
+/**
  * \def POLARSSL_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL

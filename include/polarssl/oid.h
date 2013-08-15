@@ -315,6 +315,7 @@ extern "C" {
  */
 typedef struct {
     const char *asn1;               /*!< OID ASN.1 representation       */
+    size_t asn1_len;                /*!< length of asn1                 */
     const char *name;               /*!< official name (e.g. from RFC)  */
     const char *description;        /*!< human friendly description     */
 } oid_descriptor_t;

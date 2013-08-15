@@ -35,6 +35,11 @@
 #include <stdio.h>
 
 /*
+ * Macro to automatically add the size of #define'd OIDs
+ */
+#define ADD_LEN(s)      s, OID_SIZE(s)
+
+/*
  * Macro to generate an internal function for oid_XXX_from_asn1() (used by
  * the other functions)
  */
@@ -135,7 +140,7 @@ static const oid_descriptor_t *oid_descriptor_from_buf( const void *struct_set,
     cur = (const oid_descriptor_t *) p;
     while( cur->asn1 != NULL )
     {
-        if( strlen( cur->asn1 ) == len &&
+        if( cur->asn1_len == len &&
             memcmp( cur->asn1, oid, len ) == 0 )
         {
             return( cur );
@@ -159,35 +164,35 @@ typedef struct {
 static const oid_x520_attr_t oid_x520_attr_type[] =
 {
     {
-        { OID_AT_CN,          "id-at-commonName",               "Common Name" },
+        { ADD_LEN( OID_AT_CN ),          "id-at-commonName",               "Common Name" },
         "CN",
     },
     {
-        { OID_AT_COUNTRY,     "id-at-countryName",              "Country" },
+        { ADD_LEN( OID_AT_COUNTRY ),     "id-at-countryName",              "Country" },
         "C",
     },
     {
-        { OID_AT_LOCALITY,    "id-at-locality",                 "Locality" },
+        { ADD_LEN( OID_AT_LOCALITY ),    "id-at-locality",                 "Locality" },
         "L",
     },
     {
-        { OID_AT_STATE,       "id-at-state",                    "State" },
+        { ADD_LEN( OID_AT_STATE ),       "id-at-state",                    "State" },
         "ST",
     },
     {
-        { OID_AT_ORGANIZATION,"id-at-organizationName",         "Organization" },
+        { ADD_LEN( OID_AT_ORGANIZATION ),"id-at-organizationName",         "Organization" },
         "O",
     },
     {
-        { OID_AT_ORG_UNIT,    "id-at-organizationalUnitName",   "Org Unit" },
+        { ADD_LEN( OID_AT_ORG_UNIT ),    "id-at-organizationalUnitName",   "Org Unit" },
         "OU",
     },
     {
-        { OID_PKCS9_EMAIL,    "emailAddress",                   "E-mail address" },
+        { ADD_LEN( OID_PKCS9_EMAIL ),    "emailAddress",                   "E-mail address" },
         "emailAddress",
     },
     {
-        { NULL, NULL, NULL },
+        { NULL, 0, NULL, NULL },
         NULL,
     }
 };
@@ -207,27 +212,27 @@ typedef struct {
 static const oid_x509_ext_t oid_x509_ext[] =
 {
     {
-        { OID_BASIC_CONSTRAINTS,    "id-ce-basicConstraints",   "Basic Constraints" },
+        { ADD_LEN( OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",   "Basic Constraints" },
         EXT_BASIC_CONSTRAINTS,
     },
     {
-        { OID_KEY_USAGE,            "id-ce-keyUsage",           "Key Usage" },
+        { ADD_LEN( OID_KEY_USAGE ),            "id-ce-keyUsage",           "Key Usage" },
         EXT_KEY_USAGE,
     },
     {
-        { OID_EXTENDED_KEY_USAGE,   "id-ce-keyUsage",           "Extended Key Usage" },
+        { ADD_LEN( OID_EXTENDED_KEY_USAGE ),   "id-ce-keyUsage",           "Extended Key Usage" },
         EXT_EXTENDED_KEY_USAGE,
     },
     {
-        { OID_SUBJECT_ALT_NAME,     "id-ce-subjectAltName",     "Subject Alt Name" },
+        { ADD_LEN( OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",     "Subject Alt Name" },
         EXT_SUBJECT_ALT_NAME,
     },
     {
-        { OID_NS_CERT_TYPE,         "id-netscape-certtype",     "Netscape Certificate Type" },
+        { ADD_LEN( OID_NS_CERT_TYPE ),         "id-netscape-certtype",     "Netscape Certificate Type" },
         EXT_NS_CERT_TYPE,
     },
     {
-        { NULL, NULL, NULL },
+        { NULL, 0, NULL, NULL },
         0,
     },
 };
@@ -237,13 +242,13 @@ FN_OID_GET_ATTR1(oid_get_x509_ext_type, oid_x509_ext_t, x509_ext, int, ext_type)
 
 static const oid_descriptor_t oid_ext_key_usage[] =
 {
-    { OID_SERVER_AUTH,      "id-kp-serverAuth",      "TLS Web Server Authentication" },
-    { OID_CLIENT_AUTH,      "id-kp-clientAuth",      "TLS Web Client Authentication" },
-    { OID_CODE_SIGNING,     "id-kp-codeSigning",     "Code Signing" },
-    { OID_EMAIL_PROTECTION, "id-kp-emailProtection", "E-mail Protection" },
-    { OID_TIME_STAMPING,    "id-kp-timeStamping",    "Time Stamping" },
-    { OID_OCSP_SIGNING,     "id-kp-OCSPSigning",     "OCSP Signing" },
-    { NULL, NULL, NULL },
+    { ADD_LEN( OID_SERVER_AUTH ),      "id-kp-serverAuth",      "TLS Web Server Authentication" },
+    { ADD_LEN( OID_CLIENT_AUTH ),      "id-kp-clientAuth",      "TLS Web Client Authentication" },
+    { ADD_LEN( OID_CODE_SIGNING ),     "id-kp-codeSigning",     "Code Signing" },
+    { ADD_LEN( OID_EMAIL_PROTECTION ), "id-kp-emailProtection", "E-mail Protection" },
+    { ADD_LEN( OID_TIME_STAMPING ),    "id-kp-timeStamping",    "Time Stamping" },
+    { ADD_LEN( OID_OCSP_SIGNING ),     "id-kp-OCSPSigning",     "OCSP Signing" },
+    { NULL, 0, NULL, NULL },
 };
 
 FN_OID_TYPED_FROM_ASN1(oid_descriptor_t, ext_key_usage, oid_ext_key_usage);
@@ -263,63 +268,63 @@ typedef struct {
 static const oid_sig_alg_t oid_sig_alg[] =
 {
     {
-        { OID_PKCS1_MD2,        "md2WithRSAEncryption",     "RSA with MD2" },
+        { ADD_LEN( OID_PKCS1_MD2 ),        "md2WithRSAEncryption",     "RSA with MD2" },
         POLARSSL_MD_MD2,      POLARSSL_PK_RSA,
     },
     {
-        { OID_PKCS1_MD4,        "md4WithRSAEncryption",     "RSA with MD4" },
+        { ADD_LEN( OID_PKCS1_MD4 ),        "md4WithRSAEncryption",     "RSA with MD4" },
         POLARSSL_MD_MD4,      POLARSSL_PK_RSA,
     },
     {
-        { OID_PKCS1_MD5,        "md5WithRSAEncryption",     "RSA with MD5" },
+        { ADD_LEN( OID_PKCS1_MD5 ),        "md5WithRSAEncryption",     "RSA with MD5" },
         POLARSSL_MD_MD5,      POLARSSL_PK_RSA,
     },
     {
-        { OID_PKCS1_SHA1,       "sha-1WithRSAEncryption",   "RSA with SHA1" },
+        { ADD_LEN( OID_PKCS1_SHA1 ),       "sha-1WithRSAEncryption",   "RSA with SHA1" },
         POLARSSL_MD_SHA1,     POLARSSL_PK_RSA,
     },
     {
-        { OID_PKCS1_SHA224,     "sha224WithRSAEncryption",  "RSA with SHA-224" },
+        { ADD_LEN( OID_PKCS1_SHA224 ),     "sha224WithRSAEncryption",  "RSA with SHA-224" },
         POLARSSL_MD_SHA224,   POLARSSL_PK_RSA,
     },
     {
-        { OID_PKCS1_SHA256,     "sha256WithRSAEncryption",  "RSA with SHA-256" },
+        { ADD_LEN( OID_PKCS1_SHA256 ),     "sha256WithRSAEncryption",  "RSA with SHA-256" },
         POLARSSL_MD_SHA256,   POLARSSL_PK_RSA,
     },
     {
-        { OID_PKCS1_SHA384,     "sha384WithRSAEncryption",  "RSA with SHA-384" },
+        { ADD_LEN( OID_PKCS1_SHA384 ),     "sha384WithRSAEncryption",  "RSA with SHA-384" },
         POLARSSL_MD_SHA384,   POLARSSL_PK_RSA,
     },
     {
-        { OID_PKCS1_SHA512,     "sha512WithRSAEncryption",  "RSA with SHA-512" },
+        { ADD_LEN( OID_PKCS1_SHA512 ),     "sha512WithRSAEncryption",  "RSA with SHA-512" },
         POLARSSL_MD_SHA512,   POLARSSL_PK_RSA,
     },
     {
-        { OID_RSA_SHA_OBS,      "sha-1WithRSAEncryption",   "RSA with SHA1" },
+        { ADD_LEN( OID_RSA_SHA_OBS ),      "sha-1WithRSAEncryption",   "RSA with SHA1" },
         POLARSSL_MD_SHA1,     POLARSSL_PK_RSA,
     },
     {
-        { OID_ECDSA_SHA1,       "ecdsa-with-SHA1",      "ECDSA with SHA1" },
+        { ADD_LEN( OID_ECDSA_SHA1 ),       "ecdsa-with-SHA1",      "ECDSA with SHA1" },
         POLARSSL_MD_SHA1,     POLARSSL_PK_ECDSA,
     },
     {
-        { OID_ECDSA_SHA224,     "ecdsa-with-SHA224",    "ECDSA with SHA224" },
+        { ADD_LEN( OID_ECDSA_SHA224 ),     "ecdsa-with-SHA224",    "ECDSA with SHA224" },
         POLARSSL_MD_SHA224,   POLARSSL_PK_ECDSA,
     },
     {
-        { OID_ECDSA_SHA256,     "ecdsa-with-SHA256",    "ECDSA with SHA256" },
+        { ADD_LEN( OID_ECDSA_SHA256 ),     "ecdsa-with-SHA256",    "ECDSA with SHA256" },
         POLARSSL_MD_SHA256,   POLARSSL_PK_ECDSA,
     },
     {
-        { OID_ECDSA_SHA384,     "ecdsa-with-SHA384",    "ECDSA with SHA384" },
+        { ADD_LEN( OID_ECDSA_SHA384 ),     "ecdsa-with-SHA384",    "ECDSA with SHA384" },
         POLARSSL_MD_SHA384,   POLARSSL_PK_ECDSA,
     },
     {
-        { OID_ECDSA_SHA512,     "ecdsa-with-SHA512",    "ECDSA with SHA512" },
+        { ADD_LEN( OID_ECDSA_SHA512 ),     "ecdsa-with-SHA512",    "ECDSA with SHA512" },
         POLARSSL_MD_SHA512,   POLARSSL_PK_ECDSA,
     },
     {
-        { NULL, NULL, NULL },
+        { NULL, 0, NULL, NULL },
         0, 0,
     },
 };
@@ -341,19 +346,19 @@ typedef struct {
 static const oid_pk_alg_t oid_pk_alg[] =
 {
     {
-        { OID_PKCS1_RSA,      "rsaEncryption",   "RSA" },
+        { ADD_LEN( OID_PKCS1_RSA ),      "rsaEncryption",   "RSA" },
         POLARSSL_PK_RSA,
     },
     {
-        { OID_EC_ALG_UNRESTRICTED,  "id-ecPublicKey",   "Generic EC key" },
+        { ADD_LEN( OID_EC_ALG_UNRESTRICTED ),  "id-ecPublicKey",   "Generic EC key" },
         POLARSSL_PK_ECKEY,
     },
     {
-        { OID_EC_ALG_ECDH,          "id-ecDH",          "EC key for ECDH" },
+        { ADD_LEN( OID_EC_ALG_ECDH ),          "id-ecDH",          "EC key for ECDH" },
         POLARSSL_PK_ECKEY_DH,
     },
     {
-        { NULL, NULL, NULL },
+        { NULL, 0, NULL, NULL },
         0,
     },
 };
@@ -372,27 +377,27 @@ typedef struct {
 static const oid_ecp_grp_t oid_ecp_grp[] =
 {
     {
-        { OID_EC_GRP_SECP192R1, "secp192r1",    "secp192r1" },
+        { ADD_LEN( OID_EC_GRP_SECP192R1 ), "secp192r1",    "secp192r1" },
         POLARSSL_ECP_DP_SECP192R1,
     },
     {
-        { OID_EC_GRP_SECP224R1, "secp224r1",    "secp224r1" },
+        { ADD_LEN( OID_EC_GRP_SECP224R1 ), "secp224r1",    "secp224r1" },
         POLARSSL_ECP_DP_SECP224R1,
     },
     {
-        { OID_EC_GRP_SECP256R1, "secp256r1",    "secp256r1" },
+        { ADD_LEN( OID_EC_GRP_SECP256R1 ), "secp256r1",    "secp256r1" },
         POLARSSL_ECP_DP_SECP256R1,
     },
     {
-        { OID_EC_GRP_SECP384R1, "secp384r1",    "secp384r1" },
+        { ADD_LEN( OID_EC_GRP_SECP384R1 ), "secp384r1",    "secp384r1" },
         POLARSSL_ECP_DP_SECP384R1,
     },
     {
-        { OID_EC_GRP_SECP521R1, "secp521r1",    "secp521r1" },
+        { ADD_LEN( OID_EC_GRP_SECP521R1 ), "secp521r1",    "secp521r1" },
         POLARSSL_ECP_DP_SECP521R1,
     },
     {
-        { NULL, NULL, NULL },
+        { NULL, 0, NULL, NULL },
         0,
     },
 };
@@ -412,15 +417,15 @@ typedef struct {
 static const oid_cipher_alg_t oid_cipher_alg[] =
 {
     {
-        { OID_DES_CBC,              "desCBC",       "DES-CBC" },
+        { ADD_LEN( OID_DES_CBC ),              "desCBC",       "DES-CBC" },
         POLARSSL_CIPHER_DES_CBC,
     },
     {
-        { OID_DES_EDE3_CBC,         "des-ede3-cbc", "DES-EDE3-CBC" },
+        { ADD_LEN( OID_DES_EDE3_CBC ),         "des-ede3-cbc", "DES-EDE3-CBC" },
         POLARSSL_CIPHER_DES_EDE3_CBC,
     },
     {
-        { NULL, NULL, NULL },
+        { NULL, 0, NULL, NULL },
         0,
     },
 };
@@ -441,43 +446,43 @@ typedef struct {
 static const oid_md_alg_t oid_md_alg[] =
 {
     {
-        { OID_DIGEST_ALG_MD2,       "id-md2",       "MD2" },
+        { ADD_LEN( OID_DIGEST_ALG_MD2 ),       "id-md2",       "MD2" },
         POLARSSL_MD_MD2,
     },
     {
-        { OID_DIGEST_ALG_MD4,       "id-md4",       "MD4" },
+        { ADD_LEN( OID_DIGEST_ALG_MD4 ),       "id-md4",       "MD4" },
         POLARSSL_MD_MD4,
     },
     {
-        { OID_DIGEST_ALG_MD5,       "id-md5",       "MD5" },
+        { ADD_LEN( OID_DIGEST_ALG_MD5 ),       "id-md5",       "MD5" },
         POLARSSL_MD_MD5,
     },
     {
-        { OID_DIGEST_ALG_SHA1,      "id-sha1",      "SHA-1" },
+        { ADD_LEN( OID_DIGEST_ALG_SHA1 ),      "id-sha1",      "SHA-1" },
         POLARSSL_MD_SHA1,
     },
     {
-        { OID_DIGEST_ALG_SHA1,      "id-sha1",      "SHA-1" },
+        { ADD_LEN( OID_DIGEST_ALG_SHA1 ),      "id-sha1",      "SHA-1" },
         POLARSSL_MD_SHA1,
     },
     {
-        { OID_DIGEST_ALG_SHA224,    "id-sha224",    "SHA-224" },
+        { ADD_LEN( OID_DIGEST_ALG_SHA224 ),    "id-sha224",    "SHA-224" },
         POLARSSL_MD_SHA224,
     },
     {
-        { OID_DIGEST_ALG_SHA256,    "id-sha256",    "SHA-256" },
+        { ADD_LEN( OID_DIGEST_ALG_SHA256 ),    "id-sha256",    "SHA-256" },
         POLARSSL_MD_SHA256,
     },
     {
-        { OID_DIGEST_ALG_SHA384,    "id-sha384",    "SHA-384" },
+        { ADD_LEN( OID_DIGEST_ALG_SHA384 ),    "id-sha384",    "SHA-384" },
         POLARSSL_MD_SHA384,
     },
     {
-        { OID_DIGEST_ALG_SHA512,    "id-sha512",    "SHA-512" },
+        { ADD_LEN( OID_DIGEST_ALG_SHA512 ),    "id-sha512",    "SHA-512" },
         POLARSSL_MD_SHA512,
     },
     {
-        { NULL, NULL, NULL },
+        { NULL, 0, NULL, NULL },
         0,
     },
 };
@@ -500,15 +505,15 @@ typedef struct {
 static const oid_pkcs12_pbe_alg_t oid_pkcs12_pbe_alg[] =
 {
     {
-        { OID_PKCS12_PBE_SHA1_DES3_EDE_CBC, "pbeWithSHAAnd3-KeyTripleDES-CBC", "PBE with SHA1 and 3-Key 3DES" },
+        { ADD_LEN( OID_PKCS12_PBE_SHA1_DES3_EDE_CBC ), "pbeWithSHAAnd3-KeyTripleDES-CBC", "PBE with SHA1 and 3-Key 3DES" },
         POLARSSL_MD_SHA1,      POLARSSL_CIPHER_DES_EDE3_CBC,
     },
     {
-        { OID_PKCS12_PBE_SHA1_DES2_EDE_CBC, "pbeWithSHAAnd2-KeyTripleDES-CBC", "PBE with SHA1 and 2-Key 3DES" },
+        { ADD_LEN( OID_PKCS12_PBE_SHA1_DES2_EDE_CBC ), "pbeWithSHAAnd2-KeyTripleDES-CBC", "PBE with SHA1 and 2-Key 3DES" },
         POLARSSL_MD_SHA1,      POLARSSL_CIPHER_DES_EDE_CBC,
     },
     {
-        { NULL, NULL, NULL },
+        { NULL, 0, NULL, NULL },
         0, 0,
     },
 };

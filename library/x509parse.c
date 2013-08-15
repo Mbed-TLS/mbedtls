@@ -518,6 +518,10 @@ static int x509_get_rsapubkey( unsigned char **p,
         ( ret = asn1_get_mpi( p, end, &rsa->E ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + ret );
 
+    if( *p != end )
+        return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
     if( ( ret = rsa_check_pubkey( rsa ) ) != 0 )
         return( ret );
 

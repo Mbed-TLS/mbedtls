@@ -197,8 +197,6 @@ void ecdsa_init( ecdsa_context *ctx )
     ecp_point_init( &ctx->Q );
     mpi_init( &ctx->r );
     mpi_init( &ctx->s );
-    mpi_init( &ctx->d );
-    ctx->point_format = POLARSSL_ECP_PF_UNCOMPRESSED;
 }
 
 /*
@@ -211,8 +209,6 @@ void ecdsa_free( ecdsa_context *ctx )
     ecp_point_free( &ctx->Q );
     mpi_free( &ctx->r );
     mpi_free( &ctx->s );
-    mpi_free( &ctx->d );
-    ctx->point_format = POLARSSL_ECP_PF_UNCOMPRESSED;
 }
 
 #if defined(POLARSSL_SELF_TEST)

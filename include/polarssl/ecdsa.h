@@ -39,7 +39,6 @@ typedef struct
     ecp_point Q;        /*!<  public signature key          */
     mpi r;              /*!<  first integer from signature  */
     mpi s;              /*!<  second integer from signature */
-    int point_format;   /*!<  format for point export       */
 }
 ecdsa_context;
 

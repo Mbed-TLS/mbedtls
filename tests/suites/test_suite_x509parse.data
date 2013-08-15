@@ -194,6 +194,22 @@ X509 Parse Public EC Key #2 (RFC 5480, PEM)
 depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_FS_IO
 x509parse_public_keyfile_ec:"data_files/ec_pub.pem":0
 
+X509 Parse Public EC Key #3 (RFC 5480, secp224r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP224R1_ENABLED:POLARSSL_FS_IO
+x509parse_public_keyfile_ec:"data_files/ec_224_pub.pem":0
+
+X509 Parse Public EC Key #4 (RFC 5480, secp256r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_FS_IO
+x509parse_public_keyfile_ec:"data_files/ec_256_pub.pem":0
+
+X509 Parse Public EC Key #5 (RFC 5480, secp384r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_FS_IO
+x509parse_public_keyfile_ec:"data_files/ec_384_pub.pem":0
+
+X509 Parse Public EC Key #6 (RFC 5480, secp521r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP521R1_ENABLED:POLARSSL_FS_IO
+x509parse_public_keyfile_ec:"data_files/ec_521_pub.pem":0
+
 X509 Parse EC Key #1 (SEC1 DER)
 depends_on:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509parse_keyfile_ec:"data_files/ec_prv.sec1.der":NULL:0
@@ -221,6 +237,22 @@ x509parse_keyfile_ec:"data_files/ec_prv.pk8.pw.der":"polar":0
 X509 Parse EC Key #7 (PKCS8 encrypted PEM)
 depends_on:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509parse_keyfile_ec:"data_files/ec_prv.pk8.pw.pem":"polar":0
+
+X509 Parse EC Key #8 (SEC1 PEM, secp224r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP224R1_ENABLED
+x509parse_keyfile_ec:"data_files/ec_224_prv.pem":NULL:0
+
+X509 Parse EC Key #9 (SEC1 PEM, secp256r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+x509parse_keyfile_ec:"data_files/ec_256_prv.pem":NULL:0
+
+X509 Parse EC Key #10 (SEC1 PEM, secp384r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED
+x509parse_keyfile_ec:"data_files/ec_384_prv.pem":NULL:0
+
+X509 Parse EC Key #11 (SEC1 PEM, secp521r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP521R1_ENABLED
+x509parse_keyfile_ec:"data_files/ec_521_prv.pem":NULL:0
 
 X509 Get Distinguished Name #1
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO

@@ -287,6 +287,10 @@ static int x509_get_attr_type_value( unsigned char **p,
             ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_NAME + ret );
 
+    if( ( end - *p ) < 1 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME +
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
     oid = &cur->oid;
     oid->tag = **p;
 

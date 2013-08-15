@@ -220,7 +220,7 @@ int asn1_get_bitstring_null( unsigned char **p, const unsigned char *end,
     if( ( ret = asn1_get_tag( p, end, len, ASN1_BIT_STRING ) ) != 0 )
         return( ret );
 
-    if( --*len < 1 || *(*p)++ != 0 )
+    if( (*len)-- < 2 || *(*p)++ != 0 )
         return( POLARSSL_ERR_ASN1_INVALID_DATA );
 
     return( 0 );

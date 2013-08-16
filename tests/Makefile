@@ -54,71 +54,71 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 
 all: $(APPS)
 
-test_suite_aes.ecb.c : suites/test_suite_aes.function suites/test_suite_aes.ecb.data scripts/generate_code.pl suites/helpers.function
+test_suite_aes.ecb.c : suites/test_suite_aes.function suites/test_suite_aes.ecb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_aes test_suite_aes.ecb
 
-test_suite_aes.cbc.c : suites/test_suite_aes.function suites/test_suite_aes.cbc.data scripts/generate_code.pl suites/helpers.function
+test_suite_aes.cbc.c : suites/test_suite_aes.function suites/test_suite_aes.cbc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_aes test_suite_aes.cbc
 
-test_suite_aes.cfb.c : suites/test_suite_aes.function suites/test_suite_aes.cfb.data scripts/generate_code.pl suites/helpers.function
+test_suite_aes.cfb.c : suites/test_suite_aes.function suites/test_suite_aes.cfb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_aes test_suite_aes.cfb
 
-test_suite_aes.rest.c : suites/test_suite_aes.function suites/test_suite_aes.rest.data scripts/generate_code.pl suites/helpers.function
+test_suite_aes.rest.c : suites/test_suite_aes.function suites/test_suite_aes.rest.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_aes test_suite_aes.rest
 
-test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function
+test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.aes
 
-test_suite_cipher.blowfish.c : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function
+test_suite_cipher.blowfish.c : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.blowfish
 
-test_suite_cipher.camellia.c : suites/test_suite_cipher.function suites/test_suite_cipher.camellia.data scripts/generate_code.pl suites/helpers.function
+test_suite_cipher.camellia.c : suites/test_suite_cipher.function suites/test_suite_cipher.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.camellia
 
-test_suite_cipher.des.c : suites/test_suite_cipher.function suites/test_suite_cipher.des.data scripts/generate_code.pl suites/helpers.function
+test_suite_cipher.des.c : suites/test_suite_cipher.function suites/test_suite_cipher.des.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.des
 
-test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function
+test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.null
 
-test_suite_cipher.padding.c : suites/test_suite_cipher.function suites/test_suite_cipher.padding.data scripts/generate_code.pl suites/helpers.function
+test_suite_cipher.padding.c : suites/test_suite_cipher.function suites/test_suite_cipher.padding.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.padding
 
-test_suite_gcm.decrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_128.data scripts/generate_code.pl suites/helpers.function
+test_suite_gcm.decrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_128.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_128
 
-test_suite_gcm.decrypt_192.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_192.data scripts/generate_code.pl suites/helpers.function
+test_suite_gcm.decrypt_192.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_192.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_192
 
-test_suite_gcm.decrypt_256.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_256.data scripts/generate_code.pl suites/helpers.function
+test_suite_gcm.decrypt_256.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_256.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_256
 
-test_suite_gcm.encrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_128.data scripts/generate_code.pl suites/helpers.function
+test_suite_gcm.encrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_128.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_128
 
-test_suite_gcm.encrypt_192.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_192.data scripts/generate_code.pl suites/helpers.function
+test_suite_gcm.encrypt_192.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_192.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_192
 
-test_suite_gcm.encrypt_256.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_256.data scripts/generate_code.pl suites/helpers.function
+test_suite_gcm.encrypt_256.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_256.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_256
 
-%.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function
+%.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites $* $*
 

@@ -9,9 +9,8 @@ my $data_name = shift or die "Missing data name";
 my $test_file = $data_name.".c";
 my $test_helper_file = $suite_dir."/helpers.function";
 my $test_case_file = $suite_dir."/".$suite_name.".function";
-my $test_data_file = $suite_dir."/".$data_name.".data";
-
-open(TEST_DATA, "$test_data_file") or die "Opening test cases '$test_data_file': $!";
+my $test_case_data = $suite_dir."/".$data_name.".data";
+my $test_main_file = $suite_dir."/main_test.function";
 
 my $line_separator = $/;
 undef $/;
@@ -20,9 +19,18 @@ open(TEST_HELPERS, "$test_helper_file") or die "Opening test helpers '$test_help
 my $test_helpers = <TEST_HELPERS>;
 close(TEST_HELPERS);
 
+open(TEST_MAIN, "$test_main_file") or die "Opening test main '$test_main_file': $!";
+my $test_main = <TEST_MAIN>;
+close(TEST_MAIN);
+
 open(TEST_CASES, "$test_case_file") or die "Opening test cases '$test_case_file': $!";
 my $test_cases = <TEST_CASES>;
 close(TEST_CASES);
+
+open(TEST_DATA, "$test_case_data") or die "Opening test data '$test_case_data': $!";
+my $test_data = <TEST_DATA>;
+close(TEST_DATA);
+
 my ( $suite_header ) = $test_cases =~ /BEGIN_HEADER\n(.*?)\nEND_HEADER/s;
 my ( $suite_defines ) = $test_cases =~ /BEGIN_DEPENDENCIES\n(.*?)\nEND_DEPENDENCIES/s;
 
@@ -31,10 +39,13 @@ if ($suite_defines =~ /^depends_on:/)
 {
     ( $requirements ) = $suite_defines =~ /^depends_on:(.*)$/;
 }
-    
+
 my @var_req_arr = split(/:/, $requirements);
 my $suite_pre_code;
 my $suite_post_code;
+my $dispatch_code;
+my $mapping_code;
+my %mapping_values;
 
 while (@var_req_arr)
 {
@@ -48,114 +59,164 @@ $/ = $line_separator;
 
 open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
 print TEST_FILE << "END";
-#include "fct.h"
 #include <polarssl/config.h>
 
 $suite_header
 
 $test_helpers
 
-FCT_BGN()
-{
 $suite_pre_code
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    unsigned char buf[1000000];
-    memory_buffer_alloc_init( buf, sizeof(buf) );
-#endif
-
-
-    FCT_SUITE_BGN($suite_name)
-    {
 END
 
-while (my $line = <TEST_DATA>)
+while($test_cases =~ /BEGIN_CASE *([\w:]*)\n(\w+):([^\n]*)\n\{\n(.*?)\}\nEND_CASE/sg)
 {
-    my $description = $line;
-    $line = <TEST_DATA>;
+    my $function_deps = $1;
+    my $function_name = $2;
+    my $function_params = $3;
+    my $function_code = $4;
+    my $function_pre_code;
+    my $function_post_code;
+    my @param_decl;
+    my $param_defs;
+    my $param_checks;
+    my @dispatch_params;
+    my @var_def_arr = split(/:/, $function_params);
+    my $i = 1;
+    my $mapping_regex = "".$function_name;
+    my $mapping_count = 0;
 
-    my $test_name = $description;
-    $test_name =~ tr/A-Z \-/a-z__/;
-    $test_name =~ tr/a-z0-9_//cd;
-
-    # Carve the defines required for this test case
-    my $requirements;
-    if ($line =~ /^depends_on:/)
+    if ($function_deps =~ /^depends_on:/)
     {
-        my $depends_on_line = $line;
-        $line = <TEST_DATA>;
-
-        ( $requirements ) = $depends_on_line =~ /^depends_on:(.*)$/;
-    }
-    
-    my @var_req_arr = split(/:/, $requirements);
-    my $pre_code;
-    my $post_code;
-
-    while (@var_req_arr)
-    {
-        my $req = shift @var_req_arr;
-
-        $pre_code .= "#ifdef $req\n";
-        $post_code .= "#endif /* $req */\n";
+        ( $function_deps ) = $function_deps =~ /^depends_on:(.*)$/;
     }
 
-    my $command_line = $line;
-    $line = <TEST_DATA>;
-
-    # Carve the case name and variable values
-    #
-    my ( $case, $var_value ) = $command_line =~ /^([\w_]+):(.*)$/;
-
-    # Escape the escaped colons (Not really escaped now)
-    #
-    $var_value =~ s/\\:/{colon_sign}/g;
-
-    # Carve the case and variable definition
-    #
-    my ( $var_def, $case_code ) = $test_cases =~ /BEGIN_CASE\n$case:([^\n]*)\n(.*?)\nEND_CASE/s;
-
-    my @var_def_arr = split(/:/, $var_def);
-    my @var_value_arr = split(/:/, $var_value);
-
-    while (@var_def_arr)
+    foreach my $req (split(/:/, $function_deps))
     {
-        my $def = shift @var_def_arr;
-        my $val = shift @var_value_arr;
-
-        $case_code =~ s/\{$def\}/$val/g;
+        $function_pre_code .= "#ifdef $req\n";
+        $function_post_code .= "#endif /* $req */\n";
     }
-    $case_code = "int ${test_name}_code_present = 0;\nTEST_ASSERT( ${test_name}_code_present == 1 );" if ($case_code =~ /^\s*$/);
 
-    $case_code =~ s/{colon_sign}/:/g;
-    $case_code =~ s/TEST_ASSERT/fct_chk/g;
-    $case_code =~ s/TEST_EQUALS/fct_chk/g;
+    foreach my $def (@var_def_arr)
+    {
+        # Handle the different parameter types
 
-    $case_code =~ s/^/        /gm;
+        if( substr($def, 0, 1) eq "#" )
+        {
+            $param_defs .= "    int param$i;\n";
+            $param_checks .= "    if( verify_int( params[$i], &param$i ) != 0 ) return( 2 );\n";
+            push @dispatch_params, "param$i";
+            $def =~ s/#//;
+            push @param_decl, "int $def";
 
+            $mapping_regex .= ":([\\d\\w |\\+\\-\\(\\)]+)";
+            $mapping_count++;
+        }
+        else
+        {
+            $param_defs .= "    char *param$i = params[$i];\n";
+            $param_checks .= "    if( verify_string( &param$i ) != 0 ) return( 2 );\n";
+            push @dispatch_params, "param$i";
+            push @param_decl, "char *$def";
+            $mapping_regex .= ":[^:]+";
+        }
+        $i++;
 
-    print TEST_FILE << "END";
-$pre_code
-        FCT_TEST_BGN($test_name)
-$case_code
-        FCT_TEST_END();
-$post_code
+        $function_code =~ s/\{$def\}/$def/g;
+    }
+
+    # Find non-integer values we should map for this function
+    if( $mapping_count)
+    {
+        my @res = $test_data =~ /^$mapping_regex/msg;
+        foreach my $value (@res)
+        {
+            $mapping_values{$value} = 1 if ($value !~ /^\d+$/);
+        }
+    }
+
+    my $call_params = join ", ", @dispatch_params;
+    my $param_count = @var_def_arr + 1;
+    $dispatch_code .= << "END";
+if( strcmp( params[0], "$function_name" ) == 0 )
+{
+$function_pre_code
+$param_defs
+    if( cnt != $param_count )
+    {
+        fprintf( stderr, "\\nIncorrect argument count (%d != %d)\\n", cnt, $param_count );
+        return( 2 );
+    }
+
+$param_checks
+    ret = test_suite_$function_name( $call_params );
+    return ( ret != 0 );
+$function_post_code
+    return ( 3 );
+}
+else
+END
+
+    my $function_def = "int test_suite_$function_name(";
+    $function_def .= join ", ", @param_decl;
+    $function_def .= ")\n{\n";
+
+    $function_code = $function_pre_code . $function_def . $function_code . "\n    return( 0 );\n}\n";
+    $function_code .= $function_post_code;
+    $test_main =~ s/FUNCTION_CODE/$function_code\n\nFUNCTION_CODE/;
+}
+
+# Find specific case dependencies that we should be able to check
+# and make check code
+my $dep_check_code;
+
+my @res = $test_data =~ /^depends_on:([\w:]+)/msg;
+my %case_deps;
+foreach my $deps (@res)
+{
+    foreach my $dep (split(/:/, $deps))
+    {
+        $case_deps{$dep} = 1;
+    }
+}
+while( my ($key, $value) = each(%case_deps) )
+{
+    $dep_check_code .= << "END";
+    if( strcmp( str, "$key" ) == 0 )
+    {
+#if defined($key)
+        return( 0 );
+#else
+        return( 1 );
+#endif
+    }
 END
 }
+
+# Make mapping code
+while( my ($key, $value) = each(%mapping_values) )
+{
+    $mapping_code .= << "END";
+    if( strcmp( str, "$key" ) == 0 )
+    {
+        *value = ( $key );
+        return( 0 );
+    }
+END
+}
+
+$dispatch_code =~ s/^(.+)/    $1/mg;
+
+$test_main =~ s/TEST_FILENAME/$test_case_data/;
+$test_main =~ s/FUNCTION_CODE//;
+$test_main =~ s/DEP_CHECK_CODE/$dep_check_code/;
+$test_main =~ s/DISPATCH_FUNCTION/$dispatch_code/;
+$test_main =~ s/MAPPING_CODE/$mapping_code/;
 
 print TEST_FILE << "END";
-    }
-    FCT_SUITE_END();
-
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
-    memory_buffer_alloc_status();
-#endif
-
 $suite_post_code
-}
-FCT_END();
 
+$test_main
 END
 
-close(TEST_DATA);
 close(TEST_FILE);

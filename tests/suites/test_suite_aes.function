@@ -7,7 +7,7 @@ depends_on:POLARSSL_AES_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
+aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:#setkey_result
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -36,7 +36,7 @@ aes_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
 END_CASE
 
 BEGIN_CASE
-aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
+aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:#setkey_result
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -65,7 +65,7 @@ aes_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
 END_CASE
 
 BEGIN_CASE
-aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:#cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -97,7 +97,7 @@ aes_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_r
 END_CASE
 
 BEGIN_CASE
-aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+aes_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:#cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];

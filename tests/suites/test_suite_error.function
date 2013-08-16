@@ -7,7 +7,7 @@ depends_on:POLARSSL_ERROR_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-error_strerror:code:result_str
+error_strerror:#code:result_str
 {
     char buf[500];
 

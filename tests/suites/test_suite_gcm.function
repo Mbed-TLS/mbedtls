@@ -7,7 +7,7 @@ depends_on:POLARSSL_GCM_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-gcm_encrypt_and_tag:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:hex_dst_string:tag_len:hex_tag_string:init_result
+gcm_encrypt_and_tag:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:hex_dst_string:#tag_len_bits:hex_tag_string:#init_result
 {
     unsigned char key_str[128];
     unsigned char src_str[128];
@@ -19,7 +19,7 @@ gcm_encrypt_and_tag:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:h
     unsigned char tag_output[16];
     gcm_context ctx;
     unsigned int key_len;
-    size_t pt_len, iv_len, add_len, tag_len = {tag_len} / 8;
+    size_t pt_len, iv_len, add_len, tag_len = {tag_len_bits} / 8;
 
     memset(key_str, 0x00, 128);
     memset(src_str, 0x00, 128);
@@ -49,7 +49,7 @@ gcm_encrypt_and_tag:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:h
 END_CASE
 
 BEGIN_CASE
-gcm_decrypt_and_verify:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:tag_len:hex_tag_string:pt_result:init_result
+gcm_decrypt_and_verify:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:#tag_len_bits:hex_tag_string:pt_result:#init_result
 {
     unsigned char key_str[128];
     unsigned char src_str[128];
@@ -60,7 +60,7 @@ gcm_decrypt_and_verify:hex_key_string:hex_src_string:hex_iv_string:hex_add_strin
     unsigned char output[128];
     gcm_context ctx;
     unsigned int key_len;
-    size_t pt_len, iv_len, add_len, tag_len = {tag_len} / 8;
+    size_t pt_len, iv_len, add_len, tag_len = {tag_len_bits} / 8;
     int ret;
 
     memset(key_str, 0x00, 128);

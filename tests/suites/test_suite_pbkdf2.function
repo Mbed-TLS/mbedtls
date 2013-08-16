@@ -7,7 +7,7 @@ depends_on:POLARSSL_PBKDF2_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-pbkdf2_hmac:hash:hex_password_string:hex_salt_string:it_cnt:key_len:result_key_string
+pbkdf2_hmac:#hash:hex_password_string:hex_salt_string:#it_cnt:#key_len:result_key_string
 {
     unsigned char pw_str[100];
     unsigned char salt_str[100];

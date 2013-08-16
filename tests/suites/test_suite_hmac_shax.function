@@ -5,7 +5,7 @@ BEGIN_HEADER
 END_HEADER
 
 BEGIN_CASE
-sha1_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+sha1_hmac:#trunc_size:hex_key_string:hex_src_string:hex_hash_string
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -29,7 +29,7 @@ sha1_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
 END_CASE
 
 BEGIN_CASE
-sha224_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+sha224_hmac:#trunc_size:hex_key_string:hex_src_string:hex_hash_string
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -53,7 +53,7 @@ sha224_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
 END_CASE
 
 BEGIN_CASE
-sha256_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+sha256_hmac:#trunc_size:hex_key_string:hex_src_string:hex_hash_string
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -77,7 +77,7 @@ sha256_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
 END_CASE
 
 BEGIN_CASE
-sha384_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+sha384_hmac:#trunc_size:hex_key_string:hex_src_string:hex_hash_string
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -101,7 +101,7 @@ sha384_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
 END_CASE
 
 BEGIN_CASE
-sha512_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+sha512_hmac:#trunc_size:hex_key_string:hex_src_string:hex_hash_string
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];

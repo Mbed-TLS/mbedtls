@@ -14,7 +14,7 @@ depends_on:POLARSSL_PKCS1_V21:POLARSSL_RSA_C:POLARSSL_BIGNUM_C:POLARSSL_SHA1_C:P
 END_DEPENDENCIES
 
 BEGIN_CASE
-pkcs1_rsaes_oaep_encrypt:mod:radix_N:input_N:radix_E:input_E:hash:message_hex_string:seed:result_hex_str:result
+pkcs1_rsaes_oaep_encrypt:#mod:#radix_N:input_N:#radix_E:input_E:#hash:message_hex_string:seed:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char output[1000];
@@ -53,7 +53,7 @@ pkcs1_rsaes_oaep_encrypt:mod:radix_N:input_N:radix_E:input_E:hash:message_hex_st
 END_CASE
 
 BEGIN_CASE
-pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:hash:result_hex_str:seed:message_hex_string:result
+pkcs1_rsaes_oaep_decrypt:#mod:#radix_P:input_P:#radix_Q:input_Q:#radix_N:input_N:#radix_E:input_E:#hash:result_hex_str:seed:message_hex_string:#result
 {
     unsigned char message_str[1000];
     unsigned char output[1000];
@@ -61,6 +61,7 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
     rsa_context ctx;
     mpi P1, Q1, H, G;
     size_t output_len;
+    ((void) seed);
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V21, {hash} );
@@ -102,7 +103,7 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
 END_CASE
 
 BEGIN_CASE
-pkcs1_rsassa_pss_sign:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:digest:hash:message_hex_string:salt:result_hex_str:result
+pkcs1_rsassa_pss_sign:#mod:#radix_P:input_P:#radix_Q:input_Q:#radix_N:input_N:#radix_E:input_E:#digest:#hash:message_hex_string:salt:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
@@ -161,13 +162,14 @@ pkcs1_rsassa_pss_sign:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_
 END_CASE
 
 BEGIN_CASE
-pkcs1_rsassa_pss_verify:mod:radix_N:input_N:radix_E:input_E:digest:hash:message_hex_string:salt:result_hex_str:result
+pkcs1_rsassa_pss_verify:#mod:#radix_N:input_N:#radix_E:input_E:#digest:#hash:message_hex_string:salt:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
     rsa_context ctx;
     size_t msg_len;
+    ((void) salt);
 
     rsa_init( &ctx, RSA_PKCS_V21, {hash} );
     memset( message_str, 0x00, 1000 );

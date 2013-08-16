@@ -7,7 +7,7 @@ depends_on:POLARSSL_CAMELLIA_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-camellia_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
+camellia_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:#setkey_result
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -36,7 +36,7 @@ camellia_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
 END_CASE
 
 BEGIN_CASE
-camellia_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
+camellia_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:#setkey_result
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -65,7 +65,7 @@ camellia_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string:setkey_result
 END_CASE
 
 BEGIN_CASE
-camellia_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+camellia_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:#cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -97,7 +97,7 @@ camellia_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:
 END_CASE
 
 BEGIN_CASE
-camellia_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+camellia_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:#cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];

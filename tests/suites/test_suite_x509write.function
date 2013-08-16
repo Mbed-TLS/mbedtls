@@ -10,7 +10,7 @@ depends_on:POLARSSL_X509_WRITE_C:POLARSSL_BIGNUM_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-x509_cert_req_check:key_file:md_type:cert_req_check_file
+x509_cert_req_check:key_file:#md_type:cert_req_check_file
 {
     rsa_context rsa;
     pem_context pem;

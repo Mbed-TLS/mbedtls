@@ -57,7 +57,7 @@ des_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
 END_CASE
 
 BEGIN_CASE
-des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:#cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -89,7 +89,7 @@ des_encrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_r
 END_CASE
 
 BEGIN_CASE
-des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:#cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -121,7 +121,7 @@ des_decrypt_cbc:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_r
 END_CASE
 
 BEGIN_CASE
-des3_encrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
+des3_encrypt_ecb:#key_count:hex_key_string:hex_src_string:hex_dst_string
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -152,7 +152,7 @@ des3_encrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
 END_CASE
 
 BEGIN_CASE
-des3_decrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
+des3_decrypt_ecb:#key_count:hex_key_string:hex_src_string:hex_dst_string
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -183,7 +183,7 @@ des3_decrypt_ecb:key_count:hex_key_string:hex_src_string:hex_dst_string
 END_CASE
 
 BEGIN_CASE
-des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+des3_encrypt_cbc:#key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:#cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];
@@ -222,7 +222,7 @@ des3_encrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_s
 END_CASE
 
 BEGIN_CASE
-des3_decrypt_cbc:key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:cbc_result
+des3_decrypt_cbc:#key_count:hex_key_string:hex_iv_string:hex_src_string:hex_dst_string:#cbc_result
 {
     unsigned char key_str[100];
     unsigned char iv_str[100];

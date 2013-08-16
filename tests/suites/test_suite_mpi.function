@@ -7,7 +7,7 @@ depends_on:POLARSSL_BIGNUM_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-mpi_read_write_string:radix_X:input_X:radix_A:input_A:output_size:result_read:result_write
+mpi_read_write_string:#radix_X:input_X:#radix_A:input_A:#output_size:#result_read:#result_write
 {
     mpi X;
     char str[1000];
@@ -30,7 +30,7 @@ mpi_read_write_string:radix_X:input_X:radix_A:input_A:output_size:result_read:re
 END_CASE
 
 BEGIN_CASE
-mpi_read_binary:input_X:radix_A:input_A
+mpi_read_binary:input_X:#radix_A:input_A
 {
     mpi X;
     unsigned char str[1000];
@@ -51,7 +51,7 @@ mpi_read_binary:input_X:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_write_binary:radix_X:input_X:input_A:output_size:result
+mpi_write_binary:#radix_X:input_X:input_A:#output_size:#result
 {
     mpi X;
     unsigned char str[1000];
@@ -66,8 +66,8 @@ mpi_write_binary:radix_X:input_X:input_A:output_size:result
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     
     buflen = mpi_size( &X );
-    if( buflen > {output_size} )
-        buflen = {output_size};
+    if( buflen > (size_t) {output_size} )
+        buflen = (size_t) {output_size};
 
     TEST_ASSERT( mpi_write_binary( &X, buf, buflen ) == {result} );
     if( {result} == 0)
@@ -82,7 +82,7 @@ mpi_write_binary:radix_X:input_X:input_A:output_size:result
 END_CASE
 
 BEGIN_CASE
-mpi_read_file:radix_X:input_file:input_A:result
+mpi_read_file:#radix_X:input_file:input_A:#result
 {
     mpi X;
     unsigned char str[1000];
@@ -114,7 +114,7 @@ mpi_read_file:radix_X:input_file:input_A:result
 END_CASE
 
 BEGIN_CASE
-mpi_write_file:radix_X:input_X:output_radix:output_file
+mpi_write_file:#radix_X:input_X:#output_radix:output_file
 {
     mpi X, Y;
     FILE *file_out, *file_in;
@@ -140,7 +140,7 @@ mpi_write_file:radix_X:input_X:output_radix:output_file
 END_CASE
 
 BEGIN_CASE
-mpi_get_bit:radix_X:input_X:pos:val
+mpi_get_bit:#radix_X:input_X:#pos:#val
 {
     mpi X;
     mpi_init( &X );
@@ -152,7 +152,7 @@ mpi_get_bit:radix_X:input_X:pos:val
 END_CASE
 
 BEGIN_CASE
-mpi_set_bit:radix_X:input_X:pos:val:radix_Y:output_Y
+mpi_set_bit:#radix_X:input_X:#pos:#val:#radix_Y:output_Y
 {
     mpi X, Y;
     mpi_init( &X ); mpi_init( &Y );
@@ -167,33 +167,33 @@ mpi_set_bit:radix_X:input_X:pos:val:radix_Y:output_Y
 END_CASE
 
 BEGIN_CASE
-mpi_lsb:radix_X:input_X:nr_bits
+mpi_lsb:#radix_X:input_X:#nr_bits
 {
     mpi X;
     mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
-    TEST_ASSERT( mpi_lsb( &X ) == {nr_bits} );
+    TEST_ASSERT( mpi_lsb( &X ) == (size_t) {nr_bits} );
 
     mpi_free( &X );
 }
 END_CASE
 
 BEGIN_CASE
-mpi_msb:radix_X:input_X:nr_bits
+mpi_msb:#radix_X:input_X:#nr_bits
 {
     mpi X;
     mpi_init( &X );
 
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
-    TEST_ASSERT( mpi_msb( &X ) == {nr_bits} );
+    TEST_ASSERT( mpi_msb( &X ) == (size_t) {nr_bits} );
 
     mpi_free( &X );
 }
 END_CASE
 
 BEGIN_CASE
-mpi_gcd:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+mpi_gcd:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A
 {
     mpi A, X, Y, Z;
     mpi_init( &A ); mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
@@ -209,7 +209,7 @@ mpi_gcd:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_cmp_int:input_X:input_A:result_CMP
+mpi_cmp_int:#input_X:#input_A:#result_CMP
 {
     mpi X;
     mpi_init( &X  );
@@ -222,7 +222,7 @@ mpi_cmp_int:input_X:input_A:result_CMP
 END_CASE
 
 BEGIN_CASE
-mpi_cmp_mpi:radix_X:input_X:radix_Y:input_Y:input_A
+mpi_cmp_mpi:#radix_X:input_X:#radix_Y:input_Y:#input_A
 {
     mpi X, Y;
     mpi_init( &X ); mpi_init( &Y );
@@ -236,7 +236,7 @@ mpi_cmp_mpi:radix_X:input_X:radix_Y:input_Y:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_cmp_abs:radix_X:input_X:radix_Y:input_Y:input_A
+mpi_cmp_abs:#radix_X:input_X:#radix_Y:input_Y:#input_A
 {
     mpi X, Y;
     mpi_init( &X ); mpi_init( &Y );
@@ -250,7 +250,7 @@ mpi_cmp_abs:radix_X:input_X:radix_Y:input_Y:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_copy:input_X:input_A
+mpi_copy:#input_X:#input_A
 {
     mpi X, Y, A;
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
@@ -269,7 +269,7 @@ mpi_copy:input_X:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_copy_self:input_X
+mpi_copy_self:#input_X
 {
     mpi X;
     mpi_init( &X );
@@ -283,7 +283,7 @@ mpi_copy_self:input_X
 END_CASE
 
 BEGIN_CASE
-mpi_swap:input_X:input_Y
+mpi_swap:#input_X:#input_Y
 {
     mpi X, Y, A;
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
@@ -302,7 +302,7 @@ mpi_swap:input_X:input_Y
 END_CASE
 
 BEGIN_CASE
-mpi_add_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+mpi_add_mpi:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A
 {
     mpi X, Y, Z, A;
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
@@ -318,7 +318,7 @@ mpi_add_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_add_abs:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+mpi_add_abs:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A
 {
     mpi X, Y, Z, A;
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
@@ -334,7 +334,7 @@ mpi_add_abs:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_add_abs_add_first:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+mpi_add_abs_add_first:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A
 {
     mpi X, Y, A;
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
@@ -350,7 +350,7 @@ mpi_add_abs_add_first:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_add_abs_add_second:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+mpi_add_abs_add_second:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A
 {
     mpi X, Y, A;
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &A );
@@ -366,7 +366,7 @@ mpi_add_abs_add_second:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_add_int:radix_X:input_X:input_Y:radix_A:input_A
+mpi_add_int:#radix_X:input_X:#input_Y:#radix_A:input_A
 {
     mpi X, Z, A;
     mpi_init( &X ); mpi_init( &Z ); mpi_init( &A );
@@ -381,7 +381,7 @@ mpi_add_int:radix_X:input_X:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_sub_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+mpi_sub_mpi:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A
 {
     mpi X, Y, Z, A;
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
@@ -397,7 +397,7 @@ mpi_sub_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_sub_abs:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:sub_result
+mpi_sub_abs:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A:#sub_result
 {
     mpi X, Y, Z, A;
     int res;
@@ -417,7 +417,7 @@ mpi_sub_abs:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:sub_result
 END_CASE
 
 BEGIN_CASE
-mpi_sub_int:radix_X:input_X:input_Y:radix_A:input_A
+mpi_sub_int:#radix_X:input_X:#input_Y:#radix_A:input_A
 {
     mpi X, Z, A;
     mpi_init( &X ); mpi_init( &Z ); mpi_init( &A );
@@ -432,7 +432,7 @@ mpi_sub_int:radix_X:input_X:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_mul_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
+mpi_mul_mpi:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A
 {
     mpi X, Y, Z, A;
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z ); mpi_init( &A );
@@ -448,7 +448,7 @@ mpi_mul_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_mul_int:radix_X:input_X:input_Y:radix_A:input_A:result_comparison
+mpi_mul_int:#radix_X:input_X:#input_Y:#radix_A:input_A:result_comparison
 {
     mpi X, Z, A;
     mpi_init( &X ); mpi_init( &Z ); mpi_init( &A );
@@ -456,14 +456,19 @@ mpi_mul_int:radix_X:input_X:input_Y:radix_A:input_A:result_comparison
     TEST_ASSERT( mpi_read_string( &X, {radix_X}, {input_X} ) == 0 );
     TEST_ASSERT( mpi_read_string( &A, {radix_A}, {input_A} ) == 0 );
     TEST_ASSERT( mpi_mul_int( &Z, &X, {input_Y} ) == 0 );
-    TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) {result_comparison} 0 );
+    if( strcmp( result_comparison, "==" ) == 0 )
+        TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) == 0 );
+    else if( strcmp( result_comparison, "!=" ) == 0 )
+        TEST_ASSERT( mpi_cmp_mpi( &Z, &A ) != 0 );
+    else
+        TEST_ASSERT( "unknown operator" == 0 );
 
     mpi_free( &X ); mpi_free( &Z ); mpi_free( &A );
 }
 END_CASE
 
 BEGIN_CASE
-mpi_div_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:radix_B:input_B:div_result
+mpi_div_mpi:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A:#radix_B:input_B:#div_result
 {
     mpi X, Y, Q, R, A, B;
     int res;
@@ -488,7 +493,7 @@ mpi_div_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:radix_B:input_B:div_
 END_CASE
 
 BEGIN_CASE
-mpi_div_int:radix_X:input_X:input_Y:radix_A:input_A:radix_B:input_B:div_result
+mpi_div_int:#radix_X:input_X:#input_Y:#radix_A:input_A:#radix_B:input_B:#div_result
 {
     mpi X, Q, R, A, B;
     int res;
@@ -512,7 +517,7 @@ mpi_div_int:radix_X:input_X:input_Y:radix_A:input_A:radix_B:input_B:div_result
 END_CASE
 
 BEGIN_CASE
-mpi_mod_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
+mpi_mod_mpi:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A:#div_result
 {
     mpi X, Y, A;
     int res;
@@ -533,7 +538,7 @@ mpi_mod_mpi:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
 END_CASE
 
 BEGIN_CASE
-mpi_mod_int:radix_X:input_X:input_Y:input_A:div_result
+mpi_mod_int:#radix_X:input_X:#input_Y:#input_A:#div_result
 {
     mpi X;
     int res;
@@ -545,7 +550,7 @@ mpi_mod_int:radix_X:input_X:input_Y:input_A:div_result
     TEST_ASSERT( res == {div_result} );
     if( res == 0 )
     {
-        TEST_ASSERT( r == {input_A} );
+        TEST_ASSERT( r == (t_uint) {input_A} );
     }
 
     mpi_free( &X );
@@ -553,7 +558,7 @@ mpi_mod_int:radix_X:input_X:input_Y:input_A:div_result
 END_CASE
 
 BEGIN_CASE
-mpi_exp_mod:radix_A:input_A:radix_E:input_E:radix_N:input_N:radix_RR:input_RR:radix_X:input_X:div_result
+mpi_exp_mod:#radix_A:input_A:#radix_E:input_E:#radix_N:input_N:#radix_RR:input_RR:#radix_X:input_X:#div_result
 {
     mpi A, E, N, RR, Z, X;
     int res;
@@ -581,7 +586,7 @@ mpi_exp_mod:radix_A:input_A:radix_E:input_E:radix_N:input_N:radix_RR:input_RR:ra
 END_CASE
 
 BEGIN_CASE
-mpi_inv_mod:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
+mpi_inv_mod:#radix_X:input_X:#radix_Y:input_Y:#radix_A:input_A:#div_result
 {
     mpi X, Y, Z, A;
     int res;
@@ -602,7 +607,7 @@ mpi_inv_mod:radix_X:input_X:radix_Y:input_Y:radix_A:input_A:div_result
 END_CASE
 
 BEGIN_CASE
-mpi_is_prime:radix_X:input_X:div_result
+mpi_is_prime:#radix_X:input_X:#div_result
 {
     mpi X;
     int res;
@@ -617,7 +622,7 @@ mpi_is_prime:radix_X:input_X:div_result
 END_CASE
 
 BEGIN_CASE
-mpi_shift_l:radix_X:input_X:shift_X:radix_A:input_A
+mpi_shift_l:#radix_X:input_X:#shift_X:#radix_A:input_A
 {
     mpi X, A;
     mpi_init( &X ); mpi_init( &A );
@@ -632,7 +637,7 @@ mpi_shift_l:radix_X:input_X:shift_X:radix_A:input_A
 END_CASE
 
 BEGIN_CASE
-mpi_shift_r:radix_X:input_X:shift_X:radix_A:input_A
+mpi_shift_r:#radix_X:input_X:#shift_X:#radix_A:input_A
 {
     mpi X, A;
     mpi_init( &X ); mpi_init( &A );

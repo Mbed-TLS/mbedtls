@@ -7,7 +7,7 @@ depends_on:POLARSSL_BASE64_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-base64_encode:src_string:dst_string:dst_buf_size:result
+base64_encode:src_string:dst_string:#dst_buf_size:#result
 {
     unsigned char src_str[1000];
     unsigned char dst_str[1000];
@@ -26,7 +26,7 @@ base64_encode:src_string:dst_string:dst_buf_size:result
 END_CASE
 
 BEGIN_CASE
-base64_decode:src_string:dst_string:result
+base64_decode:src_string:dst_string:#result
 {
     unsigned char src_str[1000];
     unsigned char dst_str[1000];

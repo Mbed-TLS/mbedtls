@@ -22,7 +22,7 @@ depends_on:POLARSSL_DEBUG_C:POLARSSL_BIGNUM_C:POLARSSL_SSL_TLS_C:POLARSSL_RSA_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-debug_print_crt:crt_file:file:line:prefix:result_str
+debug_print_crt:crt_file:file:#line:prefix:result_str
 {
     x509_cert   crt;
     ssl_context ssl;
@@ -45,7 +45,7 @@ debug_print_crt:crt_file:file:line:prefix:result_str
 END_CASE
 
 BEGIN_CASE
-debug_print_mpi:radix:value:file:line:prefix:result_str
+debug_print_mpi:#radix:value:file:#line:prefix:result_str
 {
     ssl_context ssl;
     struct buffer_data buffer;

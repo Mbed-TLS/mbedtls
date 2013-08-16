@@ -15,7 +15,7 @@ depends_on:POLARSSL_RSA_C:POLARSSL_BIGNUM_C:POLARSSL_GENPRIME
 END_DEPENDENCIES
 
 BEGIN_CASE
-rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:result_hex_str:result
+rsa_pkcs1_sign:message_hex_string:#padding_mode:#digest:#mod:#radix_P:input_P:#radix_Q:input_Q:#radix_N:input_N:#radix_E:input_E:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
@@ -69,7 +69,7 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
 END_CASE
 
 BEGIN_CASE
-rsa_pkcs1_verify:message_hex_string:padding_mode:digest:mod:radix_N:input_N:radix_E:input_E:result_hex_str:result
+rsa_pkcs1_verify:message_hex_string:#padding_mode:#digest:#mod:#radix_N:input_N:#radix_E:input_E:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
@@ -102,7 +102,7 @@ END_CASE
 
 
 BEGIN_CASE
-rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:result_hex_str
+rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:#padding_mode:#mod:#radix_P:input_P:#radix_Q:input_Q:#radix_N:input_N:#radix_E:input_E:result_hex_str
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
@@ -152,7 +152,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
 END_CASE
 
 BEGIN_CASE
-rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_N:input_N:radix_E:input_E:result_hex_str:correct
+rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:#padding_mode:#mod:#radix_N:input_N:#radix_E:input_E:result_hex_str:#correct
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
@@ -182,7 +182,7 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
 END_CASE
 
 BEGIN_CASE
-rsa_pkcs1_encrypt:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:input_E:result_hex_str:result
+rsa_pkcs1_encrypt:message_hex_string:#padding_mode:#mod:#radix_N:input_N:#radix_E:input_E:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char output[1000];
@@ -219,7 +219,7 @@ rsa_pkcs1_encrypt:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:in
 END_CASE
 
 BEGIN_CASE
-rsa_pkcs1_encrypt_bad_rng:message_hex_string:padding_mode:mod:radix_N:input_N:radix_E:input_E:result_hex_str:result
+rsa_pkcs1_encrypt_bad_rng:message_hex_string:#padding_mode:#mod:#radix_N:input_N:#radix_E:input_E:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char output[1000];
@@ -253,7 +253,7 @@ rsa_pkcs1_encrypt_bad_rng:message_hex_string:padding_mode:mod:radix_N:input_N:ra
 END_CASE
 
 BEGIN_CASE
-rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:max_output:result_hex_str:result
+rsa_pkcs1_decrypt:message_hex_string:#padding_mode:#mod:#radix_P:input_P:#radix_Q:input_Q:#radix_N:input_N:#radix_E:input_E:#max_output:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char output[1000];
@@ -303,7 +303,7 @@ rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:in
 END_CASE
 
 BEGIN_CASE
-rsa_public:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_hex_str:result
+rsa_public:message_hex_string:#mod:#radix_N:input_N:#radix_E:input_E:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char output[1000];
@@ -336,7 +336,7 @@ rsa_public:message_hex_string:mod:radix_N:input_N:radix_E:input_E:result_hex_str
 END_CASE
 
 BEGIN_CASE
-rsa_private:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:result_hex_str:result
+rsa_private:message_hex_string:#mod:#radix_P:input_P:#radix_Q:input_Q:#radix_N:input_N:#radix_E:input_E:result_hex_str:#result
 {
     unsigned char message_str[1000];
     unsigned char output[1000];
@@ -394,7 +394,7 @@ rsa_check_privkey_null:
 END_CASE
 
 BEGIN_CASE
-rsa_check_pubkey:radix_N:input_N:radix_E:input_E:result
+rsa_check_pubkey:#radix_N:input_N:#radix_E:input_E:#result
 {
     rsa_context ctx;
 
@@ -416,7 +416,7 @@ rsa_check_pubkey:radix_N:input_N:radix_E:input_E:result
 END_CASE
 
 BEGIN_CASE
-rsa_check_privkey:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:input_E:radix_D:input_D:radix_DP:input_DP:radix_DQ:input_DQ:radix_QP:input_QP:result
+rsa_check_privkey:#mod:#radix_P:input_P:#radix_Q:input_Q:#radix_N:input_N:#radix_E:input_E:#radix_D:input_D:#radix_DP:input_DP:#radix_DQ:input_DQ:#radix_QP:input_QP:#result
 {
     rsa_context ctx;
 
@@ -463,7 +463,7 @@ rsa_check_privkey:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:radix_E:in
 END_CASE
 
 BEGIN_CASE
-rsa_gen_key:nrbits:exponent:result
+rsa_gen_key:#nrbits:#exponent:#result
 {
     rsa_context ctx;
     entropy_context entropy;

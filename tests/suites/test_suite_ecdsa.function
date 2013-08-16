@@ -7,7 +7,7 @@ depends_on:POLARSSL_ECDSA_C:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-ecdsa_prim_random:id
+ecdsa_prim_random:#id
 {
     ecp_group grp;
     ecp_point Q;
@@ -23,7 +23,7 @@ ecdsa_prim_random:id
 
     /* prepare material for signature */
     TEST_ASSERT( rnd_pseudo_rand( &rnd_info, buf, sizeof( buf ) ) == 0 );
-    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( ecp_use_known_dp( &grp, {id} ) == 0 );
     TEST_ASSERT( ecp_gen_keypair( &grp, &d, &Q, &rnd_pseudo_rand, &rnd_info )
                  == 0 );
 
@@ -38,7 +38,7 @@ ecdsa_prim_random:id
 END_CASE
 
 BEGIN_CASE
-ecdsa_prim_test_vectors:id:d:xQ:yQ:k:hash:r:s
+ecdsa_prim_test_vectors:#id:d_str:xQ_str:yQ_str:k_str:hash_str:r_str:s_str
 {
     ecp_group grp;
     ecp_point Q;
@@ -52,15 +52,15 @@ ecdsa_prim_test_vectors:id:d:xQ:yQ:k:hash:r:s
     mpi_init( &r_check ); mpi_init( &s_check );
     memset( buf, 0, sizeof( buf ) );
 
-    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
-    TEST_ASSERT( ecp_point_read_string( &Q, 16, "{xQ}", "{yQ}" ) == 0 );
-    TEST_ASSERT( mpi_read_string( &d, 16, "{d}" ) == 0 );
-    TEST_ASSERT( mpi_read_string( &r_check, 16, "{r}" ) == 0 );
-    TEST_ASSERT( mpi_read_string( &s_check, 16, "{s}" ) == 0 );
-    len = unhexify(buf, "{hash}");
+    TEST_ASSERT( ecp_use_known_dp( &grp, {id} ) == 0 );
+    TEST_ASSERT( ecp_point_read_string( &Q, 16, {xQ_str}, {yQ_str} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &d, 16, {d_str} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &r_check, 16, {r_str} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &s_check, 16, {s_str} ) == 0 );
+    len = unhexify(buf, {hash_str});
 
     TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, buf, len,
-                &not_rnd, "{k}" ) == 0 );
+                &not_rnd, {k_str} ) == 0 );
 
     TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );

@@ -138,7 +138,7 @@ md_hex_multi:text_md_name:hex_src_string:hex_hash_string
 END_CASE
 
 BEGIN_CASE
-md_hmac:text_md_name:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+md_hmac:text_md_name:#trunc_size:hex_key_string:hex_src_string:hex_hash_string
 {
     char md_name[100];
     unsigned char src_str[10000];
@@ -169,7 +169,7 @@ md_hmac:text_md_name:trunc_size:hex_key_string:hex_src_string:hex_hash_string
 END_CASE
 
 BEGIN_CASE
-md_hmac_multi:text_md_name:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+md_hmac_multi:text_md_name:#trunc_size:hex_key_string:hex_src_string:hex_hash_string
 {
     char md_name[100];
     unsigned char src_str[10000];

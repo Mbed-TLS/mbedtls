@@ -7,7 +7,7 @@ depends_on:POLARSSL_DHM_C:POLARSSL_BIGNUM_C
 END_DEPENDENCIES
 
 BEGIN_CASE
-dhm_do_dhm:x_size:radix_P:input_P:radix_G:input_G
+dhm_do_dhm:#NOTUSED:#radix_P:input_P:#radix_G:input_G
 {
     dhm_context ctx_srv;
     dhm_context ctx_cli;
@@ -22,6 +22,8 @@ dhm_do_dhm:x_size:radix_P:input_P:radix_G:input_G
     size_t sec_cli_len = 1000;
     int x_size;
     rnd_pseudo_info rnd_info;
+
+    ((void)NOTUSED);
 
     memset( &ctx_srv, 0x00, sizeof( dhm_context ) );
     memset( &ctx_cli, 0x00, sizeof( dhm_context ) );

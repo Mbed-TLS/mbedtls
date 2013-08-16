@@ -1413,6 +1413,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             md_update( &ctx, ssl->handshake->randbytes, 64 );
             md_update( &ctx, ssl->in_msg + 4, n );
             md_finish( &ctx, hash );
+            md_free_ctx( &ctx );
         }
 
         SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );

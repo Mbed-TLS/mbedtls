@@ -364,6 +364,28 @@
 #define POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
 /**
+ * \def POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+ *
+ * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS
+ *
+ * Requires: POLARSSL_ECDH_C, POLARSSL_ECDSA_C, POLARSSL_X509_PARSE_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+ *      TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
+ *      TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+ *      TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+ *      TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+ *      TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
+ *      TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+ *      TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+ *      TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256,
+ *      TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384,
+ */
+#define POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+
+/**
  * \def POLARSSL_ERROR_STRERROR_BC
  *
  * Make available the backward compatible error_strerror() next to the
@@ -1417,6 +1439,12 @@
     ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_RSA_C) ||          \
       !defined(POLARSSL_X509_PARSE_C) )
 #error "POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
+    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_ECDSA_C) ||          \
+      !defined(POLARSSL_X509_PARSE_C) )
+#error "POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \

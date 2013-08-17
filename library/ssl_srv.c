@@ -1318,6 +1318,10 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                     continue;
 #endif
 
+                if( ciphersuite_info->key_exchange ==
+                    POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
+                    continue;
+
                 goto have_ciphersuite;
             }
         }
@@ -1603,9 +1607,9 @@ static int ssl_write_server_hello( ssl_context *ssl )
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite      );
     *p++ = (unsigned char)( ssl->session_negotiate->compression      );
 
-    SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d",
+    SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: 0x%04X",
                    ssl->session_negotiate->ciphersuite ) );
-    SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d",
+    SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
                    ssl->session_negotiate->compression ) );
 
     /*

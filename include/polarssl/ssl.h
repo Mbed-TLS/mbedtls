@@ -192,6 +192,7 @@
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)
+ * RFC 5246 section 7.4.1.4.1
  */
 #define SSL_HASH_NONE                0
 #define SSL_HASH_MD5                 1
@@ -202,11 +203,14 @@
 #define SSL_HASH_SHA512              6
 
 #define SSL_SIG_RSA                  1
+#define SSL_SIG_ECDSA                3
 
 /*
  * Client Certificate Types
+ * RFC 5246 section 7.4.4 plus RFC 4492 section 5.5
  */
 #define SSL_CERT_TYPE_RSA_SIGN       1
+#define SSL_CERT_TYPE_ECDSA_SIGN    64
 
 /*
  * Message, alert and handshake types

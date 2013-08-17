@@ -3429,7 +3429,7 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
         if( pk_can_do( &ca->pk, crl_list->sig_pk ) == 0 ||
-            pk_verify( &ca->pk, hash, md_info,
+            pk_verify( &ca->pk, crl_list->sig_md, hash, md_info->size,
                        crl_list->sig.p, crl_list->sig.len ) != 0 )
         {
             flags |= BADCRL_NOT_TRUSTED;
@@ -3546,7 +3546,7 @@ static int x509parse_verify_top(
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
         if( pk_can_do( &trust_ca->pk, child->sig_pk ) == 0 ||
-            pk_verify( &trust_ca->pk, hash, md_info,
+            pk_verify( &trust_ca->pk, child->sig_md, hash, md_info->size,
                        child->sig.p, child->sig.len ) != 0 )
         {
             trust_ca = trust_ca->next;
@@ -3623,7 +3623,7 @@ static int x509parse_verify_child(
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
         if( pk_can_do( &parent->pk, child->sig_pk ) == 0 ||
-            pk_verify( &parent->pk, hash, md_info,
+            pk_verify( &parent->pk, child->sig_md, hash, md_info->size,
                        child->sig.p, child->sig.len ) != 0 )
         {
             *flags |= BADCERT_NOT_TRUSTED;

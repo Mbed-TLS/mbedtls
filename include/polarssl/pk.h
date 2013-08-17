@@ -30,6 +30,8 @@
 
 #include "config.h"
 
+#include "md.h"
+
 #if defined(POLARSSL_RSA_C)
 #include "rsa.h"
 #endif
@@ -123,8 +125,8 @@ typedef struct
     int (*can_do)( pk_type_t type );
 
     /** Verify signature */
-    int (*verify_func)( void *ctx,
-                        const unsigned char *hash, const md_info_t *md_info,
+    int (*verify_func)( void *ctx, md_type_t md_alg,
+                        const unsigned char *hash, size_t hash_len,
                         const unsigned char *sig, size_t sig_len );
 
     /** Allocate a new context */
@@ -203,16 +205,17 @@ int pk_can_do( pk_context *ctx, pk_type_t type );
  * \brief           Verify signature
  *
  * \param ctx       PK context to use
+ * \param md_alg    Hash algorithm used
  * \param hash      Hash of the message to sign
- * \param md_info   Information about the hash function used
+ * \param hash_len  Hash length
  * \param sig       Signature to verify
  * \param sig_len   Signature length
  *
  * \return          0 on success (signature is valid),
  *                  or a specific error code.
  */
-int pk_verify( pk_context *ctx,
-               const unsigned char *hash, const md_info_t *md_info,
+int pk_verify( pk_context *ctx, md_type_t md_alg,
+               const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len );
 
 /**

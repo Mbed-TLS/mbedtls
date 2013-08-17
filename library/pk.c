@@ -110,7 +110,7 @@ int pk_init_ctx( pk_context *ctx, const pk_info_t *info )
  */
 int pk_can_do( pk_context *ctx, pk_type_t type )
 {
-    /* null of NONE context can't do anything */
+    /* null or NONE context can't do anything */
     if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 
@@ -120,14 +120,16 @@ int pk_can_do( pk_context *ctx, pk_type_t type )
 /*
  * Verify a signature
  */
-int pk_verify( pk_context *ctx,
-               const unsigned char *hash, const md_info_t *md_info,
+int pk_verify( pk_context *ctx, md_type_t md_alg,
+               const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len )
 {
     if( ctx == NULL || ctx->pk_info == NULL )
         return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
-    return( ctx->pk_info->verify_func( ctx->pk_ctx, hash, md_info, sig, sig_len ) );
+    return( ctx->pk_info->verify_func( ctx->pk_ctx, md_alg,
+                                       hash, hash_len,
+                                       sig, sig_len ) );
 }
 
 /*

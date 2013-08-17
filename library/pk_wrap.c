@@ -58,15 +58,15 @@ static size_t rsa_get_size( const void * ctx )
     return( 8 * ((rsa_context *) ctx)->len );
 }
 
-static int rsa_verify_wrap( void *ctx,
-                   const unsigned char *hash, const md_info_t *md_info,
+static int rsa_verify_wrap( void *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
 {
     if( sig_len != ((rsa_context *) ctx)->len )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
     return( rsa_pkcs1_verify( (rsa_context *) ctx,
-                RSA_PUBLIC, md_info->type, 0, hash, sig ) );
+                RSA_PUBLIC, md_alg, hash_len, hash, sig ) );
 }
 
 static void *rsa_alloc_wrap( void )
@@ -128,19 +128,20 @@ static size_t eckey_get_size( const void *ctx )
 
 #if defined(POLARSSL_ECDSA_C)
 /* Forward declaration */
-static int ecdsa_verify_wrap( void *ctx,
-                       const unsigned char *hash, const md_info_t *md_info,
+static int ecdsa_verify_wrap( void *ctx, md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len );
 #endif
 
-static int eckey_verify_wrap( void *ctx,
-                       const unsigned char *hash, const md_info_t *md_info,
+static int eckey_verify_wrap( void *ctx, md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
 #if !defined(POLARSSL_ECDSA_C)
     ((void) ctx);
+    ((void) md_alg);
     ((void) hash);
-    ((void) md_info);
+    ((void) hash_len);
     ((void) sig);
     ((void) sig_len);
 
@@ -152,7 +153,7 @@ static int eckey_verify_wrap( void *ctx,
     ecdsa_init( &ecdsa );
 
     ret = ecdsa_from_keypair( &ecdsa, ctx ) ||
-          ecdsa_verify_wrap( &ecdsa, hash, md_info, sig, sig_len );
+          ecdsa_verify_wrap( &ecdsa, md_alg, hash, hash_len, sig, sig_len );
 
     ecdsa_free( &ecdsa );
 
@@ -203,13 +204,14 @@ static int eckeydh_can_do( pk_type_t type )
             type == POLARSSL_PK_ECKEY_DH );
 }
 
-static int eckeydh_verify_wrap( void *ctx,
-                       const unsigned char *hash, const md_info_t *md_info,
+static int eckeydh_verify_wrap( void *ctx, md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
     ((void) ctx);
+    ((void) md_alg);
     ((void) hash);
-    ((void) md_info);
+    ((void) hash_len);
     ((void) sig);
     ((void) sig_len);
 
@@ -234,12 +236,14 @@ static int ecdsa_can_do( pk_type_t type )
     return( type == POLARSSL_PK_ECDSA );
 }
 
-static int ecdsa_verify_wrap( void *ctx,
-                       const unsigned char *hash, const md_info_t *md_info,
+static int ecdsa_verify_wrap( void *ctx, md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
+    ((void) md_alg);
+
     return( ecdsa_read_signature( (ecdsa_context *) ctx,
-                hash, md_info->size, sig, sig_len ) );
+                hash, hash_len, sig, sig_len ) );
 }
 
 static void *ecdsa_alloc_wrap( void )

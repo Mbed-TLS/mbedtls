@@ -131,22 +131,11 @@ static size_t eckey_get_size( const void *ctx )
 static int ecdsa_verify_wrap( void *ctx, md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len );
-#endif
 
 static int eckey_verify_wrap( void *ctx, md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
-#if !defined(POLARSSL_ECDSA_C)
-    ((void) ctx);
-    ((void) md_alg);
-    ((void) hash);
-    ((void) hash_len);
-    ((void) sig);
-    ((void) sig_len);
-
-    return( POLARSSL_ERR_PK_TYPE_MISMATCH );
-#else
     int ret;
     ecdsa_context ecdsa;
 
@@ -158,8 +147,8 @@ static int eckey_verify_wrap( void *ctx, md_type_t md_alg,
     ecdsa_free( &ecdsa );
 
     return( ret );
-#endif /* POLARSSL_ECDSA_C */
 }
+#endif /* POLARSSL_ECDSA_C */
 
 static void *eckey_alloc_wrap( void )
 {
@@ -189,7 +178,11 @@ const pk_info_t eckey_info = {
     "EC",
     eckey_get_size,
     eckey_can_do,
+#if defined(POLARSSL_ECDSA_C)
     eckey_verify_wrap,
+#else
+    NULL,
+#endif
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
@@ -204,26 +197,12 @@ static int eckeydh_can_do( pk_type_t type )
             type == POLARSSL_PK_ECKEY_DH );
 }
 
-static int eckeydh_verify_wrap( void *ctx, md_type_t md_alg,
-                       const unsigned char *hash, size_t hash_len,
-                       const unsigned char *sig, size_t sig_len )
-{
-    ((void) ctx);
-    ((void) md_alg);
-    ((void) hash);
-    ((void) hash_len);
-    ((void) sig);
-    ((void) sig_len);
-
-    return( POLARSSL_ERR_PK_TYPE_MISMATCH );
-}
-
 const pk_info_t eckeydh_info = {
     POLARSSL_PK_ECKEY_DH,
     "EC_DH",
     eckey_get_size,         /* Same underlying key structure */
     eckeydh_can_do,
-    eckeydh_verify_wrap,
+    NULL,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */

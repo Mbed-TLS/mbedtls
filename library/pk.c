@@ -127,6 +127,9 @@ int pk_verify( pk_context *ctx, md_type_t md_alg,
     if( ctx == NULL || ctx->pk_info == NULL )
         return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
+    if( ctx->pk_info->verify_func == NULL )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+
     return( ctx->pk_info->verify_func( ctx->pk_ctx, md_alg,
                                        hash, hash_len,
                                        sig, sig_len ) );

@@ -3220,6 +3220,10 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->hostname_len = strlen( hostname );
+
+    if( ssl->hostname_len + 1 == 0 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
     ssl->hostname = (unsigned char *) polarssl_malloc( ssl->hostname_len + 1 );
 
     if( ssl->hostname == NULL )

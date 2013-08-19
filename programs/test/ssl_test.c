@@ -166,7 +166,7 @@ static int ssl_test( struct options *opt )
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
     x509_cert srvcert;
-    rsa_context rsa;
+    pk_context pkey;
 
     ret = 1;
 
@@ -187,7 +187,7 @@ static int ssl_test( struct options *opt )
     memset( write_state, 0, sizeof( write_state ) );
 
     memset( &srvcert, 0, sizeof( x509_cert ) );
-    memset( &rsa, 0, sizeof( rsa_context ) );
+    pk_init( &pkey );
 
     if( opt->opmode == OPMODE_CLIENT )
     {
@@ -229,11 +229,11 @@ static int ssl_test( struct options *opt )
             goto exit;
         }
 
-        ret =  x509parse_key_rsa( &rsa, (const unsigned char *) test_srv_key,
+        ret =  x509parse_key( &pkey, (const unsigned char *) test_srv_key,
                               strlen( test_srv_key ), NULL, 0 );
         if( ret != 0 )
         {
-            printf( "  !  x509parse_key_rsa returned %d\n\n", ret );
+            printf( "  !  x509parse_key returned %d\n\n", ret );
             goto exit;
         }
 #endif
@@ -262,7 +262,7 @@ static int ssl_test( struct options *opt )
 
         ssl_set_endpoint( &ssl, SSL_IS_SERVER );
         ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
-        ssl_set_own_cert( &ssl, &srvcert, &rsa );
+        ssl_set_own_cert( &ssl, &srvcert, &pkey );
     }
 
     ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
@@ -400,7 +400,7 @@ exit:
 
     ssl_close_notify( &ssl );
     x509_free( &srvcert );
-    rsa_free( &rsa );
+    pk_free( &pkey );
     ssl_free( &ssl );
     net_close( client_fd );
 

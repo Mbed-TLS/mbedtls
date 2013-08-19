@@ -578,6 +578,7 @@ struct _ssl_context
     /*
      * PKI layer
      */
+    pk_context *pk_key;                 /*!<  own private key         */
 #if defined(POLARSSL_RSA_C)
     void *rsa_key;                      /*!<  own RSA private key     */
     rsa_decrypt_func rsa_decrypt;       /*!<  function for RSA decrypt*/
@@ -903,13 +904,29 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
  *
  * \param ssl      SSL context
  * \param own_cert own public certificate chain
- * \param rsa_key  own private RSA key
+ * \param pk_key   own private key
  */
 void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
-                       rsa_context *rsa_key );
+                       pk_context *rsa_key );
+
+#if defined(POLARSSL_RSA_C)
+/**
+ * \brief          Set own certificate chain and private RSA key
+ *
+ *                 Note: own_cert should contain IN order from the bottom
+ *                 up your certificate chain. The top certificate (self-signed)
+ *                 can be omitted.
+ *
+ * \param ssl      SSL context
+ * \param own_cert own public certificate chain
+ * \param rsa_key  own private RSA key
+ */
+void ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
+                           rsa_context *rsa_key );
+#endif /* POLARSSL_RSA_C */
 
 /**
- * \brief          Set own certificate and alternate non-PolarSSL private
+ * \brief          Set own certificate and alternate non-PolarSSL RSA private
  *                 key and handling callbacks, such as the PKCS#11 wrappers
  *                 or any other external private key handler.
  *                 (see the respective RSA functions in rsa.h for documentation
@@ -927,11 +944,11 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
  * \param rsa_sign_func     alternate implementation of \c rsa_pkcs1_sign()
  * \param rsa_key_len_func  function returning length of RSA key in bytes
  */
-void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
-                           void *rsa_key,
-                           rsa_decrypt_func rsa_decrypt,
-                           rsa_sign_func rsa_sign,
-                           rsa_key_len_func rsa_key_len );
+void ssl_set_own_cert_alt_rsa( ssl_context *ssl, x509_cert *own_cert,
+                               void *rsa_key,
+                               rsa_decrypt_func rsa_decrypt,
+                               rsa_sign_func rsa_sign,
+                               rsa_key_len_func rsa_key_len );
 #endif /* POLARSSL_X509_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)

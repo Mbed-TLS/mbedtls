@@ -352,7 +352,7 @@ int main( int argc, char *argv[] )
     ssl_context ssl;
     x509_cert cacert;
     x509_cert clicert;
-    rsa_context rsa;
+    pk_context pkey;
     int i;
     size_t n;
     char *p, *q;
@@ -364,7 +364,7 @@ int main( int argc, char *argv[] )
     server_fd = 0;
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &clicert, 0, sizeof( x509_cert ) );
-    memset( &rsa, 0, sizeof( rsa_context ) );
+    pk_init( &pkey );
 
     if( argc == 0 )
     {
@@ -532,11 +532,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = x509parse_keyfile_rsa( &rsa, opt.key_file, "" );
+        ret = x509parse_keyfile( &pkey, opt.key_file, "" );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_key_rsa( &rsa, (const unsigned char *) test_cli_key,
+        ret = x509parse_key( &pkey, (const unsigned char *) test_cli_key,
                 strlen( test_cli_key ), NULL, 0 );
 #else
     {
@@ -546,7 +546,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_key_rsa returned %d\n\n", ret );
+        printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
         goto exit;
     }
 
@@ -594,7 +594,7 @@ int main( int argc, char *argv[] )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
-    ssl_set_own_cert( &ssl, &clicert, &rsa );
+    ssl_set_own_cert( &ssl, &clicert, &pkey );
 
     ssl_set_hostname( &ssl, opt.server_name );
 
@@ -789,7 +789,7 @@ exit:
         net_close( server_fd );
     x509_free( &clicert );
     x509_free( &cacert );
-    rsa_free( &rsa );
+    pk_free( &pkey );
     ssl_free( &ssl );
 
 #if defined(_WIN32)

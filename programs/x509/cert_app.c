@@ -157,7 +157,7 @@ int main( int argc, char *argv[] )
     ssl_context ssl;
     x509_cert cacert;
     x509_cert clicert;
-    rsa_context rsa;
+    pk_context pkey;
     int i, j, n;
     int flags, verify = 0;
     char *p, *q;
@@ -169,7 +169,7 @@ int main( int argc, char *argv[] )
     server_fd = 0;
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &clicert, 0, sizeof( x509_cert ) );
-    memset( &rsa, 0, sizeof( rsa_context ) );
+    pk_init( &pkey );
 
     if( argc == 0 )
     {
@@ -404,7 +404,7 @@ int main( int argc, char *argv[] )
         ssl_set_bio( &ssl, net_recv, &server_fd,
                 net_send, &server_fd );
 
-        ssl_set_own_cert( &ssl, &clicert, &rsa );
+        ssl_set_own_cert( &ssl, &clicert, &pkey );
 
         ssl_set_hostname( &ssl, opt.server_name );
 
@@ -450,7 +450,7 @@ exit:
         net_close( server_fd );
     x509_free( &cacert );
     x509_free( &clicert );
-    rsa_free( &rsa );
+    pk_free( &pkey );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

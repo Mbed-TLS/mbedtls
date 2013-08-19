@@ -9,8 +9,9 @@ static int test_assert( int correct, char *test )
         return( 0 );
 
     test_errors++;
-//    if( test_errors == 1 )
-        printf( "FAILED\n  %s\n\n", test );
+    if( test_errors == 1 )
+        printf( "FAILED\n" );
+    printf( "  %s\n", test );
 
     return( 1 );
 }
@@ -205,7 +206,7 @@ int main()
 
         if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
             break;
-        fprintf( stdout, "%.66s", buf );
+        fprintf( stdout, "%s%.66s", test_errors ? "\n" : "", buf );
         fprintf( stdout, " " );
         for( i = strlen( buf ) + 1; i < 67; i++ )
             fprintf( stdout, "." );
@@ -259,7 +260,7 @@ int main()
             break;
         if( strlen(buf) != 0 )
         {
-            fprintf( stderr, "Should be empty %d\n", strlen(buf) );
+            fprintf( stderr, "Should be empty %d\n", (int) strlen(buf) );
             return( 1 );
         }
     }

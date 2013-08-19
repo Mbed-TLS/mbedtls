@@ -1011,6 +1011,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
         switch( ssl->transform_out->ciphersuite_info->cipher )
         {
+#if defined(POLARSSL_DES_C)
             case POLARSSL_CIPHER_DES_CBC:
                 des_crypt_cbc( (des_context *) ssl->transform_out->ctx_enc,
                                DES_ENCRYPT, enc_msglen,
@@ -1022,20 +1023,25 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                                DES_ENCRYPT, enc_msglen,
                                ssl->transform_out->iv_enc, enc_msg, enc_msg );
                 break;
+#endif
 
+#if defined(POLARSSL_AES_C)
             case POLARSSL_CIPHER_AES_128_CBC:
             case POLARSSL_CIPHER_AES_256_CBC:
                 aes_crypt_cbc( (aes_context *) ssl->transform_out->ctx_enc,
                                AES_ENCRYPT, enc_msglen,
                                ssl->transform_out->iv_enc, enc_msg, enc_msg );
                 break;
+#endif
 
+#if defined(POLARSSL_CAMELLIA_C)
             case POLARSSL_CIPHER_CAMELLIA_128_CBC:
             case POLARSSL_CIPHER_CAMELLIA_256_CBC:
                 camellia_crypt_cbc( (camellia_context *) ssl->transform_out->ctx_enc,
                                     CAMELLIA_ENCRYPT, enc_msglen,
                                     ssl->transform_out->iv_enc, enc_msg, enc_msg );
                 break;
+#endif
 
             default:
                 return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -1188,6 +1194,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         switch( ssl->transform_in->ciphersuite_info->cipher )
         {
+#if defined(POLARSSL_DES_C)
             case POLARSSL_CIPHER_DES_CBC:
                 des_crypt_cbc( (des_context *) ssl->transform_in->ctx_dec,
                                DES_DECRYPT, dec_msglen,
@@ -1199,20 +1206,25 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                DES_DECRYPT, dec_msglen,
                                ssl->transform_in->iv_dec, dec_msg, dec_msg_result );
                 break;
+#endif
 
+#if defined(POLARSSL_AES_C)
             case POLARSSL_CIPHER_AES_128_CBC:
             case POLARSSL_CIPHER_AES_256_CBC:
                 aes_crypt_cbc( (aes_context *) ssl->transform_in->ctx_dec,
                                AES_DECRYPT, dec_msglen,
                                ssl->transform_in->iv_dec, dec_msg, dec_msg_result );
                 break;
+#endif
 
+#if defined(POLARSSL_CAMELLIA_C)
             case POLARSSL_CIPHER_CAMELLIA_128_CBC:
             case POLARSSL_CIPHER_CAMELLIA_256_CBC:
                 camellia_crypt_cbc( (camellia_context *) ssl->transform_in->ctx_dec,
                                     CAMELLIA_DECRYPT, dec_msglen,
                                     ssl->transform_in->iv_dec, dec_msg, dec_msg_result );
                 break;
+#endif
 
             default:
                 return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );

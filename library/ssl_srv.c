@@ -1289,9 +1289,11 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                     ciphersuite_info->max_minor_ver < ssl->minor_ver )
                     continue;
 
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
                 if( ( ciphersuite_info->flags & POLARSSL_CIPHERSUITE_EC ) &&
                     ssl->handshake->ec_curve == 0 )
                     continue;
+#endif
 
                 goto have_ciphersuite;
             }

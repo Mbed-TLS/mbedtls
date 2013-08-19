@@ -1925,7 +1925,8 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     *n = (size_t) ftell( f );
     fseek( f, 0, SEEK_SET );
 
-    if( ( *buf = (unsigned char *) polarssl_malloc( *n + 1 ) ) == NULL )
+    if( *n + 1 == 0 ||
+        ( *buf = (unsigned char *) polarssl_malloc( *n + 1 ) ) == NULL )
     {
         fclose( f );
         return( POLARSSL_ERR_X509_MALLOC_FAILED );

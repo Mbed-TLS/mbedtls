@@ -735,7 +735,7 @@
  * Enable the generic cipher layer.
  *
  * Module:  library/cipher.c
- * Caller:
+ * Caller:  library/ssl_tls.c
  *
  * Uncomment to enable generic cipher wrappers.
  */
@@ -1226,7 +1226,7 @@
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * Requires: POLARSSL_MD5_C, POLARSSL_SHA1_C
+ * Requires: POLARSSL_MD5_C, POLARSSL_SHA1_C, POLARSSL_CIPHER_C
  *
  * This module is required for SSL/TLS.
  */
@@ -1443,7 +1443,7 @@
 #endif
 
 #if defined(POLARSSL_SSL_TLS_C) && ( !defined(POLARSSL_MD5_C) ||        \
-    !defined(POLARSSL_SHA1_C) )
+    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_CIPHER_C) )
 #error "POLARSSL_SSL_TLS_C defined, but not all prerequisites"
 #endif
 

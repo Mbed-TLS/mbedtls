@@ -1451,6 +1451,11 @@
 #error "POLARSSL_SSL_SRV_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_SSL_SESSION_TICKETS) && defined(POLARSSL_SSL_TLS_C) && \
+    ( !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) )
+#error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_X509_PARSE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
     !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
     !defined(POLARSSL_RSA_C) )

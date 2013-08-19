@@ -1157,20 +1157,29 @@ static int ssl_parse_server_psk_hint( ssl_context *ssl,
 static int ssl_parse_signature_algorithm( ssl_context *ssl,
                                           unsigned char **p,
                                           unsigned char *end,
-                                          md_type_t *md_alg )
+                                          md_type_t *md_alg,
+                                          size_t *hash_len,
+                                          pk_type_t *pk_alg )
 {
+    const md_info_t *md_info;
+
     ((void) ssl);
     *md_alg = POLARSSL_MD_NONE;
+    *pk_alg = POLARSSL_PK_NONE;
+
+    /* Only in TLS 1.2 */
+    if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
+    {
+        *hash_len = 36;
+        return( 0 );
+    }
 
     if( (*p) + 2 > end )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
 
-    if( (*p)[1] != SSL_SIG_RSA )
-    {
-        SSL_DEBUG_MSG( 2, ( "server used unsupported SignatureAlgorithm %d", (*p)[1] ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-    }
-
+    /*
+     * Get hash algorithm
+     */
     switch( (*p)[0] )
     {
 #if defined(POLARSSL_MD5_C)
@@ -1200,7 +1209,43 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
             break;
 #endif
         default:
-            SSL_DEBUG_MSG( 2, ( "Server used unsupported HashAlgorithm %d", *(p)[0] ) );
+            SSL_DEBUG_MSG( 2, ( "Server used unsupported "
+                                "HashAlgorithm %d", *(p)[0] ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
+
+    /*
+     * Get hash_len from hash alg
+     */
+    if( ( md_info = md_info_from_type( *md_alg ) ) == NULL )
+    {
+        SSL_DEBUG_MSG( 2, ( "Server used unsupported "
+                            "HashAlgorithm %d", *(p)[0] ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
+
+    *hash_len = md_info->size;
+
+    /*
+     * Get signature algorithm
+     */
+    switch( (*p)[1] )
+    {
+#if defined(POLARSSL_RSA_C)
+        case SSL_SIG_RSA:
+            *pk_alg = POLARSSL_PK_RSA;
+            break;
+#endif
+
+#if defined(POLARSSL_ECDSA_C)
+        case SSL_SIG_ECDSA:
+            *pk_alg = POLARSSL_PK_ECDSA;
+            break;
+#endif
+
+        default:
+            SSL_DEBUG_MSG( 2, ( "server used unsupported "
+                                "SignatureAlgorithm %d", (*p)[1] ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
@@ -1220,10 +1265,11 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     unsigned char *p, *end;
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
-    size_t n;
+    size_t sig_len, params_len;
     unsigned char hash[64];
     md_type_t md_alg = POLARSSL_MD_NONE;
-    unsigned int hashlen = 0;
+    size_t hashlen;
+    pk_type_t pk_alg = POLARSSL_PK_NONE;
 #endif 
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
@@ -1325,41 +1371,30 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
     {
+        params_len = p - ( ssl->in_msg + 4 );
+
         /*
          * Handle the digitally-signed structure
          */
-        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+        if( ssl_parse_signature_algorithm( ssl, &p, end,
+                                           &md_alg, &hashlen, &pk_alg ) != 0 )
         {
-            if( ssl_parse_signature_algorithm( ssl, &p, end, &md_alg ) != 0 )
-            {
-                SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-                return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-            }
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
 
-        n = ( p[0] << 8 ) | p[1];
+        sig_len = ( p[0] << 8 ) | p[1];
         p += 2;
 
-        if( end != p + n )
+        if( end != p + sig_len )
         {
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
 
-        if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                         POLARSSL_PK_RSA ) )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_PK_TYPE_MISMATCH );
-        }
-
-        if( 8 * (unsigned int)( end - p ) !=
-            pk_get_size( &ssl->session_negotiate->peer_cert->pk ) )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-        }
-
+        /*
+         * Compute the hash that has been signed
+         */
         if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
         {
             md5_context md5;
@@ -1378,26 +1413,19 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
              *     SHA(ClientHello.random + ServerHello.random
              *                            + ServerParams);
              */
-            n = ssl->in_hslen - ( end - p ) - 6;
-
             md5_starts( &md5 );
             md5_update( &md5, ssl->handshake->randbytes, 64 );
-            md5_update( &md5, ssl->in_msg + 4, n );
+            md5_update( &md5, ssl->in_msg + 4, params_len );
             md5_finish( &md5, hash );
 
             sha1_starts( &sha1 );
             sha1_update( &sha1, ssl->handshake->randbytes, 64 );
-            sha1_update( &sha1, ssl->in_msg + 4, n );
+            sha1_update( &sha1, ssl->in_msg + 4, params_len );
             sha1_finish( &sha1, hash + 16 );
-
-            md_alg = POLARSSL_MD_NONE;
-            hashlen = 36;
         }
         else
         {
             md_context_t ctx;
-
-            n = ssl->in_hslen - ( end - p ) - 8;
 
             /*
              * digitally-signed struct {
@@ -1414,12 +1442,29 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
             md_starts( &ctx );
             md_update( &ctx, ssl->handshake->randbytes, 64 );
-            md_update( &ctx, ssl->in_msg + 4, n );
+            md_update( &ctx, ssl->in_msg + 4, params_len );
             md_finish( &ctx, hash );
             md_free_ctx( &ctx );
         }
 
         SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
+
+        /*
+         * Verify signature
+         */
+        if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                         POLARSSL_PK_RSA ) )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( POLARSSL_ERR_SSL_PK_TYPE_MISMATCH );
+        }
+
+        if( 8 * sig_len !=
+            pk_get_size( &ssl->session_negotiate->peer_cert->pk ) )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        }
 
         if( ( ret = rsa_pkcs1_verify(
                         pk_rsa( ssl->session_negotiate->peer_cert->pk ),

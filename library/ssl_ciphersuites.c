@@ -916,4 +916,20 @@ int ssl_get_ciphersuite_id( const char *ciphersuite_name )
     return( cur->id );
 }
 
+pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info )
+{
+    switch( info->key_exchange )
+    {
+        case POLARSSL_KEY_EXCHANGE_DHE_RSA:
+        case POLARSSL_KEY_EXCHANGE_ECDHE_RSA:
+            return( POLARSSL_PK_RSA );
+
+        case POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA:
+            return( POLARSSL_PK_ECDSA );
+
+        default:
+            return( POLARSSL_PK_NONE );
+    }
+}
+
 #endif

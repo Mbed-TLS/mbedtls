@@ -27,6 +27,7 @@
 #ifndef POLARSSL_SSL_CIPHERSUITES_H
 #define POLARSSL_SSL_CIPHERSUITES_H
 
+#include "pk.h"
 #include "cipher.h"
 #include "md.h"
 
@@ -196,6 +197,8 @@ const int *ssl_ciphersuites_list( void );
 
 const ssl_ciphersuite_t *ssl_ciphersuite_from_string( const char *ciphersuite_name );
 const ssl_ciphersuite_t *ssl_ciphersuite_from_id( int ciphersuite_id );
+
+pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info );
 
 #ifdef __cplusplus
 }

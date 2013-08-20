@@ -16,7 +16,10 @@ static int test_assert( int correct, char *test )
     return( 1 );
 }
 
-#define TEST_ASSERT( TEST ) (test_assert((TEST) ? 1 : 0, #TEST))
+#define TEST_ASSERT( TEST )                         \
+        do { test_assert( (TEST) ? 1 : 0, #TEST );  \
+             if( test_errors) return;               \
+        } while (0)
 
 int verify_string( char **str )
 {

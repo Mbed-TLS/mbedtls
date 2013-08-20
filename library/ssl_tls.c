@@ -38,14 +38,6 @@
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 
-#include "polarssl/arc4.h"
-#include "polarssl/camellia.h"
-#include "polarssl/des.h"
-
-#if defined(POLARSSL_GCM_C)
-#include "polarssl/gcm.h"
-#endif
-
 #if defined(POLARSSL_MEMORY_C)
 #include "polarssl/memory.h"
 #else

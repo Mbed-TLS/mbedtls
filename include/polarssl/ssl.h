@@ -52,6 +52,18 @@
 #if defined(POLARSSL_AES_C)
 #include "aes.h"
 #endif
+#if defined(POLARSSL_ARC4_C)
+#include "arc4.h"
+#endif
+#if defined(POLARSSL_DES_C)
+#include "des.h"
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+#include "camellia.h"
+#endif
+#if defined(POLARSSL_GCM_C)
+#include "gcm.h"
+#endif
 
 #if defined(POLARSSL_X509_PARSE_C)
 #include "x509.h"
@@ -430,6 +442,40 @@ struct _ssl_session
 };
 
 /*
+ * Helpers to find the correct size of the context in _ssl_transform
+ * (in the long run, we'll use the cipher layer, but for now...)
+ */
+#define SSL_MAX(a, b)       ( a > b ? a : b )
+#define SSL_CTX_MAX_0       0
+#if defined(POLARSSL_AES_C)
+#define SSL_CTX_MAX_1       SSL_MAX( SSL_CTX_MAX_0, sizeof( aes_context ) )
+#else
+#define SSL_CTX_MAX_1       SSL_CTX_MAX_0
+#endif
+#if defined(POLARSSL_ARC4_C)
+#define SSL_CTX_MAX_2       SSL_MAX( SSL_CTX_MAX_1, sizeof( arc4_context ) )
+#else
+#define SSL_CTX_MAX_2       SSL_CTX_MAX_1
+#endif
+#if defined(POLARSSL_DES_C)
+#define SSL_CTX_MAX_3       SSL_MAX( SSL_CTX_MAX_2, sizeof( des_context ) )
+#define SSL_CTX_MAX_4       SSL_MAX( SSL_CTX_MAX_3, sizeof( des3_context ) )
+#else
+#define SSL_CTX_MAX_4       SSL_CTX_MAX_2
+#endif
+#if defined(POLARSSL_CAMELLIA_C)
+#define SSL_CTX_MAX_5       SSL_MAX( SSL_CTX_MAX_4, sizeof( camellia_context ) )
+#else
+#define SSL_CTX_MAX_5       SSL_CTX_MAX_4
+#endif
+#if defined(POLARSSL_GCM_C)
+#define SSL_CTX_MAX_6       SSL_MAX( SSL_CTX_MAX_5, sizeof( gcm_context ) )
+#else
+#define SSL_CTX_MAX_6       SSL_CTX_MAX_5
+#endif
+#define SSL_CTX_MAX         SSL_CTX_MAX_6
+
+/*
  * This structure contains a full set of runtime transform parameters
  * either in negotiation or active.
  */
@@ -458,9 +504,8 @@ struct _ssl_transform
     md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
 
-    /* 154 == 616 bytes is size of gcm_context (largest context in PolarSSL) */
-    uint32_t ctx_enc[154];              /*!<  encryption context      */
-    uint32_t ctx_dec[154];              /*!<  decryption context      */
+    uint32_t ctx_enc[SSL_CTX_MAX / 4];  /*!<  encryption context      */
+    uint32_t ctx_dec[SSL_CTX_MAX / 4];  /*!<  decryption context      */
 
     /*
      * Session specific compression layer
@@ -470,6 +515,17 @@ struct _ssl_transform
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
 };
+
+/* Not needed any more */
+#undef SSL_MAX
+#undef SSL_CTX_MAX_0
+#undef SSL_CTX_MAX_1
+#undef SSL_CTX_MAX_2
+#undef SSL_CTX_MAX_3
+#undef SSL_CTX_MAX_4
+#undef SSL_CTX_MAX_5
+#undef SSL_CTX_MAX_6
+#undef SSL_CTX_MAX
 
 /*
  * This structure contains the parameters only needed during handshake.

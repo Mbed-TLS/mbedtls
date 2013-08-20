@@ -3461,6 +3461,7 @@ static int x509parse_verify_top(
             /*
              * Cannot check 'unknown' hash
              */
+            trust_ca = trust_ca->next;
             continue;
         }
 

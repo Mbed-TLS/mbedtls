@@ -65,9 +65,10 @@ $suite_header
 
 $test_helpers
 
-$suite_pre_code
-
 END
+
+$test_main =~ s/SUITE_PRE_DEP/$suite_pre_code/;
+$test_main =~ s/SUITE_POST_DEP/$suite_post_code/;
 
 while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//msg)
 {
@@ -219,8 +220,6 @@ $test_main =~ s/DISPATCH_FUNCTION/$dispatch_code/;
 $test_main =~ s/MAPPING_CODE/$mapping_code/;
 
 print TEST_FILE << "END";
-$suite_post_code
-
 $test_main
 END
 

@@ -88,18 +88,27 @@ DEP_CHECK_CODE
     return( 1 );
 }
 
+SUITE_PRE_DEP
+#define TEST_SUITE_ACTIVE
 FUNCTION_CODE
+SUITE_POST_DEP
+
 int dispatch_test(int cnt, char *params[50])
 {
     int ret;
+    ((void) cnt);
+    ((void) params);
 
+#if defined(TEST_SUITE_ACTIVE)
 DISPATCH_FUNCTION
     {
         fprintf( stdout, "FAILED\nSkipping unknown test function '%s'\n", params[0] );
         fflush( stdout );
         return( 1 );
     }
-
+#else
+    return( 3 );
+#endif
     return( ret );
 }
 
@@ -239,7 +248,7 @@ int main()
         if( skip == 1 || ret == 3 )
         {
             total_skipped++;
-            fprintf( stdout, "-------\n" );
+            fprintf( stdout, "----\n" );
             fflush( stdout );
         }
         else if( ret == 0 && test_errors == 0 )

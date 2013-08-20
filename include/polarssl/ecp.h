@@ -126,9 +126,10 @@ ecp_keypair;
 #define POLARSSL_ECP_DP_SECP521R1   25
 
 /**
- * Maximum bit size of the groups (that is, of N)
+ * Maximum size of the groups (that is, of N and P)
  */
-#define POLARSSL_ECP_MAX_N_BITS     521
+#define POLARSSL_ECP_MAX_BITS     521
+#define POLARSSL_ECP_MAX_BYTES    ( ( POLARSSL_ECP_MAX_BITS + 7 ) / 8 )
 
 /*
  * Maximum window size (actually, NAF width) used for point multipliation.
@@ -217,6 +218,17 @@ int ecp_is_zero( ecp_point *pt );
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  */
 int ecp_copy( ecp_point *P, const ecp_point *Q );
+
+/**
+ * \brief           Copy the contents of a group object
+ *
+ * \param dst       Destination group
+ * \param src       Source group
+ *
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ */
+int ecp_group_copy( ecp_group *dst, const ecp_group *src );
 
 /**
  * \brief           Import a non-zero point from two ASCII strings

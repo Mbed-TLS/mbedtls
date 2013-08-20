@@ -34,6 +34,7 @@
 #if defined(POLARSSL_ECDSA_C)
 
 #include "polarssl/ecdsa.h"
+#include "polarssl/asn1write.h"
 
 /*
  * Derive a suitable integer for group grp from a buffer of length len
@@ -186,6 +187,102 @@ cleanup:
 
     return( ret );
 }
+
+/*
+ * RFC 4492 page 20:
+ *
+ *     Ecdsa-Sig-Value ::= SEQUENCE {
+ *         r       INTEGER,
+ *         s       INTEGER
+ *     }
+ *
+ * Size is at most
+ *    1 (tag) + 1 (len) + 1 (initial 0) + ECP_MAX_BYTES for each of r and s,
+ *    twice that + 1 (tag) + 2 (len) for the sequence
+ * (assuming ECP_MAX_BYTES is less than 126 for r and s,
+ * and less than 124 (total len <= 255) for the sequence)
+ */
+#if POLARSSL_ECP_MAX_BYTES > 124
+#error "POLARSSL_ECP_MAX_BYTES bigger than expected, please fix MAX_SIG_LEN"
+#endif
+#define MAX_SIG_LEN ( 3 + 2 * ( 2 + POLARSSL_ECP_MAX_BYTES ) )
+
+/*
+ * Compute and write signature
+ */
+int ecdsa_write_signature( ecdsa_context *ctx,
+                           const unsigned char *hash, size_t hlen,
+                           unsigned char *sig, size_t *slen,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng )
+{
+    int ret;
+    unsigned char buf[MAX_SIG_LEN];
+    unsigned char *p = buf + MAX_SIG_LEN - 1;
+    size_t len = 0;
+
+    if( ( ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
+                            hash, hlen, f_rng, p_rng ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, &ctx->s ) );
+    ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, &ctx->r ) );
+
+    ASN1_CHK_ADD( len, asn1_write_len( &p, buf, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &p, buf,
+                                       ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+
+    memcpy( sig, p, len );
+    *slen = len;
+
+    return( 0 );
+}
+
+/*
+ * Read and check signature
+ */
+int ecdsa_read_signature( ecdsa_context *ctx,
+                          const unsigned char *hash, size_t hlen,
+                          const unsigned char *sig, size_t slen )
+{
+    int ret;
+    unsigned char *p = (unsigned char *) sig;
+    const unsigned char *end = sig + slen;
+    size_t len;
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA + ret );
+    }
+
+    if( p + len != end )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    if( ( ret = asn1_get_mpi( &p, end, &ctx->r ) ) != 0 ||
+        ( ret = asn1_get_mpi( &p, end, &ctx->s ) ) != 0 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA + ret );
+
+    if( p != end )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( ecdsa_verify( &ctx->grp, hash, hlen, &ctx->Q, &ctx->r, &ctx->s ) );
+}
+
+/*
+ * Generate key pair
+ */
+int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
+                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    return( ecp_use_known_dp( &ctx->grp, gid ) ||
+            ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
+}
+
 
 /*
  * Initialize context

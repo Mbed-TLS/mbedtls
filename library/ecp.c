@@ -182,6 +182,14 @@ cleanup:
 }
 
 /*
+ * Copy the contents of a group object
+ */
+int ecp_group_copy( ecp_group *dst, const ecp_group *src )
+{
+    return ecp_use_known_dp( dst, src->id );
+}
+
+/*
  * Import a non-zero point from ASCII strings
  */
 int ecp_point_read_string( ecp_point *P, int radix,
@@ -1146,7 +1154,7 @@ cleanup:
  * (that is: grp->nbits / w + 1)
  * Allow p_bits + 1 bits in case M = grp->N + 1 is one bit longer than N.
  */
-#define MAX_NAF_LEN     ( POLARSSL_ECP_MAX_N_BITS / 2 + 1 )
+#define MAX_NAF_LEN     ( POLARSSL_ECP_MAX_BITS / 2 + 1 )
 
 /*
  * Integer multiplication: R = m * P

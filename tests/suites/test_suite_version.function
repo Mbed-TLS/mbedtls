@@ -1,13 +1,14 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/version.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_VERSION_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_VERSION_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-check_compiletime_version:version_str
+/* BEGIN_CASE */
+void check_compiletime_version( char *version_str )
 {
     char build_str[100];
     char build_str_full[100];
@@ -29,12 +30,12 @@ check_compiletime_version:version_str
     TEST_ASSERT( build_int == POLARSSL_VERSION_NUMBER );
     TEST_ASSERT( strcmp( build_str, POLARSSL_VERSION_STRING ) == 0 );
     TEST_ASSERT( strcmp( build_str_full, POLARSSL_VERSION_STRING_FULL ) == 0 );
-    TEST_ASSERT( strcmp( {version_str}, POLARSSL_VERSION_STRING ) == 0 );
+    TEST_ASSERT( strcmp( version_str, POLARSSL_VERSION_STRING ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-check_runtime_version:version_str
+/* BEGIN_CASE */
+void check_runtime_version( char *version_str )
 {
     char build_str[100];
     char get_str[100];
@@ -55,10 +56,10 @@ check_runtime_version:version_str
         (get_int >> 24) & 0xFF,
         (get_int >> 16) & 0xFF,
         (get_int >> 8) & 0xFF );
-    snprintf( build_str_full, 100, "PolarSSL %s", {version_str} );
+    snprintf( build_str_full, 100, "PolarSSL %s", version_str );
 
-    TEST_ASSERT( strcmp( build_str, {version_str} ) == 0 );
+    TEST_ASSERT( strcmp( build_str, version_str ) == 0 );
     TEST_ASSERT( strcmp( build_str_full, get_str_full ) == 0 );
-    TEST_ASSERT( strcmp( {version_str}, get_str ) == 0 );
+    TEST_ASSERT( strcmp( version_str, get_str ) == 0 );
 }
-END_CASE
+/* END_CASE */

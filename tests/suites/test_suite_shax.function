@@ -1,11 +1,11 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/sha1.h>
 #include <polarssl/sha256.h>
 #include <polarssl/sha512.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_CASE
-sha1:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void sha1( char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
@@ -16,17 +16,17 @@ sha1:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 41);
 
-    src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha1( src_str, src_len, output );
     hexify( hash_str, output, 20 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha224:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void sha224(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
@@ -37,17 +37,17 @@ sha224:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 57);
 
-    src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha256( src_str, src_len, output, 1 );
     hexify( hash_str, output, 28 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha256:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void sha256(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
@@ -58,17 +58,17 @@ sha256:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 65);
 
-    src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha256( src_str, src_len, output, 0 );
     hexify( hash_str, output, 32 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha384:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void sha384(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
@@ -79,17 +79,17 @@ sha384:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 97);
 
-    src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha512( src_str, src_len, output, 1 );
     hexify( hash_str, output, 48 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha512:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void sha512(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char hash_str[10000];
@@ -100,17 +100,17 @@ sha512:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 129);
 
-    src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha512( src_str, src_len, output, 0);
     hexify( hash_str, output, 64 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha1_file:filename:hex_hash_string
+/* BEGIN_CASE */
+void sha1_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[41];
     unsigned char output[21];
@@ -118,15 +118,15 @@ sha1_file:filename:hex_hash_string
     memset(hash_str, 0x00, 41);
     memset(output, 0x00, 21);
 
-    sha1_file( {filename}, output);
+    sha1_file( filename, output);
     hexify( hash_str, output, 20 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha224_file:filename:hex_hash_string
+/* BEGIN_CASE */
+void sha224_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[57];
     unsigned char output[29];
@@ -134,15 +134,15 @@ sha224_file:filename:hex_hash_string
     memset(hash_str, 0x00, 57);
     memset(output, 0x00, 29);
 
-    sha256_file( {filename}, output, 1);
+    sha256_file( filename, output, 1);
     hexify( hash_str, output, 28 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha256_file:filename:hex_hash_string
+/* BEGIN_CASE */
+void sha256_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];
     unsigned char output[33];
@@ -150,15 +150,15 @@ sha256_file:filename:hex_hash_string
     memset(hash_str, 0x00, 65);
     memset(output, 0x00, 33);
 
-    sha256_file( {filename}, output, 0);
+    sha256_file( filename, output, 0);
     hexify( hash_str, output, 32 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha384_file:filename:hex_hash_string
+/* BEGIN_CASE */
+void sha384_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[97];
     unsigned char output[49];
@@ -166,15 +166,15 @@ sha384_file:filename:hex_hash_string
     memset(hash_str, 0x00, 97);
     memset(output, 0x00, 49);
 
-    sha512_file( {filename}, output, 1);
+    sha512_file( filename, output, 1);
     hexify( hash_str, output, 48 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha512_file:filename:hex_hash_string
+/* BEGIN_CASE */
+void sha512_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[129];
     unsigned char output[65];
@@ -182,30 +182,30 @@ sha512_file:filename:hex_hash_string
     memset(hash_str, 0x00, 129);
     memset(output, 0x00, 65);
 
-    sha512_file( {filename}, output, 0);
+    sha512_file( filename, output, 0);
     hexify( hash_str, output, 64 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha1_selftest:
+/* BEGIN_CASE */
+void sha1_selftest()
 {
     TEST_ASSERT( sha1_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha256_selftest:
+/* BEGIN_CASE */
+void sha256_selftest()
 {
     TEST_ASSERT( sha256_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha512_selftest:
+/* BEGIN_CASE */
+void sha512_selftest()
 {
     TEST_ASSERT( sha512_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */

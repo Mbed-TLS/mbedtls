@@ -1,13 +1,15 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/pbkdf2.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_PBKDF2_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_PBKDF2_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-pbkdf2_hmac:#hash:hex_password_string:hex_salt_string:#it_cnt:#key_len:result_key_string
+/* BEGIN_CASE */
+void pbkdf2_hmac( int hash, char *hex_password_string, char *hex_salt_string,
+                  int it_cnt, int key_len, char *result_key_string )
 {
     unsigned char pw_str[100];
     unsigned char salt_str[100];
@@ -23,18 +25,18 @@ pbkdf2_hmac:#hash:hex_password_string:hex_salt_string:#it_cnt:#key_len:result_ke
     memset(salt_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
 
-    pw_len = unhexify( pw_str, {hex_password_string} );
-    salt_len = unhexify( salt_str, {hex_salt_string} );
+    pw_len = unhexify( pw_str, hex_password_string );
+    salt_len = unhexify( salt_str, hex_salt_string );
 
 
-    info = md_info_from_type( {hash} );
+    info = md_info_from_type( hash );
     TEST_ASSERT( info != NULL );
     TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
     TEST_ASSERT( pbkdf2_hmac( &ctx, pw_str, pw_len, salt_str, salt_len,
-                              {it_cnt}, {key_len}, key ) == 0 );
+                              it_cnt, key_len, key ) == 0 );
     TEST_ASSERT( md_free_ctx( &ctx ) == 0 );
 
-    hexify( dst_str, key, {key_len} );
-    TEST_ASSERT( strcmp( (char *) dst_str, {result_key_string} ) == 0 );
+    hexify( dst_str, key, key_len );
+    TEST_ASSERT( strcmp( (char *) dst_str, result_key_string ) == 0 );
 }
-END_CASE
+/* END_CASE */

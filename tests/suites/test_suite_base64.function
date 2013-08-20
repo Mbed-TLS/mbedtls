@@ -1,32 +1,34 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/base64.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_BASE64_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_BASE64_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-base64_encode:src_string:dst_string:#dst_buf_size:#result
+/* BEGIN_CASE */
+void base64_encode( char *src_string, char *dst_string, int dst_buf_size,
+                    int result )
 {
     unsigned char src_str[1000];
     unsigned char dst_str[1000];
-    size_t len = {dst_buf_size};
+    size_t len = dst_buf_size;
 
     memset(src_str, 0x00, 1000);
     memset(dst_str, 0x00, 1000);
 
-    strcpy( (char *) src_str, {src_string} );
-    TEST_ASSERT( base64_encode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == {result} );
-    if( {result} == 0 )
+    strcpy( (char *) src_str, src_string );
+    TEST_ASSERT( base64_encode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == result );
+    if( result == 0 )
     {
-        TEST_ASSERT( strcmp( (char *) dst_str, {dst_string} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) dst_str, dst_string ) == 0 );
     }
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-base64_decode:src_string:dst_string:#result
+/* BEGIN_CASE */
+void base64_decode( char *src_string, char *dst_string, int result )
 {
     unsigned char src_str[1000];
     unsigned char dst_str[1000];
@@ -36,18 +38,18 @@ base64_decode:src_string:dst_string:#result
     memset(src_str, 0x00, 1000);
     memset(dst_str, 0x00, 1000);
     
-    strcpy( (char *) src_str, {src_string} );
-    TEST_ASSERT( res = base64_decode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == {result} );
-    if( {result} == 0 )
+    strcpy( (char *) src_str, src_string );
+    TEST_ASSERT( res = base64_decode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == result );
+    if( result == 0 )
     {
-        TEST_ASSERT( strcmp( (char *) dst_str, {dst_string} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) dst_str, dst_string ) == 0 );
     }
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-base64_selftest:
+/* BEGIN_CASE */
+void base64_selftest()
 {
     TEST_ASSERT( base64_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */

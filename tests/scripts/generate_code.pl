@@ -31,8 +31,8 @@ open(TEST_DATA, "$test_case_data") or die "Opening test data '$test_case_data': 
 my $test_data = <TEST_DATA>;
 close(TEST_DATA);
 
-my ( $suite_header ) = $test_cases =~ /BEGIN_HEADER\n(.*?)\nEND_HEADER/s;
-my ( $suite_defines ) = $test_cases =~ /BEGIN_DEPENDENCIES\n(.*?)\nEND_DEPENDENCIES/s;
+my ( $suite_header ) = $test_cases =~ /\/\* BEGIN_HEADER \*\/\n(.*?)\n\/\* END_HEADER \*\//s;
+my ( $suite_defines ) = $test_cases =~ /\/\* BEGIN_DEPENDENCIES\n \* (.*?)\n \* END_DEPENDENCIES/s;
 
 my $requirements;
 if ($suite_defines =~ /^depends_on:/)
@@ -69,22 +69,33 @@ $suite_pre_code
 
 END
 
-while($test_cases =~ /BEGIN_CASE *([\w:]*)\n(\w+):([^\n]*)\n\{\n(.*?)\}\nEND_CASE/sg)
+while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//msg)
 {
     my $function_deps = $1;
-    my $function_name = $2;
-    my $function_params = $3;
-    my $function_code = $4;
+    my $function_decl = $2;
+
+    # Sanity checks of function
+    if ($function_decl !~ /^void /)
+    {
+        die "Test function does not have 'void' as return type\n";
+    }
+    if ($function_decl !~ /^void (\w+)\(\s*(.*?)\s*\)\s*{(.*?)}/ms)
+    {
+        die "Function declaration not in expected format\n";
+    }
+    my $function_name = $1;
+    my $function_params = $2;
     my $function_pre_code;
     my $function_post_code;
-    my @param_decl;
     my $param_defs;
     my $param_checks;
     my @dispatch_params;
-    my @var_def_arr = split(/:/, $function_params);
+    my @var_def_arr = split(/,\s*/, $function_params);
     my $i = 1;
     my $mapping_regex = "".$function_name;
     my $mapping_count = 0;
+
+    $function_decl =~ s/^void /void test_suite_/;
 
     if ($function_deps =~ /^depends_on:/)
     {
@@ -100,29 +111,28 @@ while($test_cases =~ /BEGIN_CASE *([\w:]*)\n(\w+):([^\n]*)\n\{\n(.*?)\}\nEND_CAS
     foreach my $def (@var_def_arr)
     {
         # Handle the different parameter types
-
-        if( substr($def, 0, 1) eq "#" )
+        if( substr($def, 0, 4) eq "int " )
         {
             $param_defs .= "    int param$i;\n";
             $param_checks .= "    if( verify_int( params[$i], &param$i ) != 0 ) return( 2 );\n";
             push @dispatch_params, "param$i";
-            $def =~ s/#//;
-            push @param_decl, "int $def";
 
             $mapping_regex .= ":([\\d\\w |\\+\\-\\(\\)]+)";
             $mapping_count++;
         }
-        else
+        elsif( substr($def, 0, 6) eq "char *" )
         {
             $param_defs .= "    char *param$i = params[$i];\n";
             $param_checks .= "    if( verify_string( &param$i ) != 0 ) return( 2 );\n";
             push @dispatch_params, "param$i";
-            push @param_decl, "char *$def";
             $mapping_regex .= ":[^:]+";
+        }
+        else
+        {
+            die "Parameter declaration not of supported type (int, char *)\n";
         }
         $i++;
 
-        $function_code =~ s/\{$def\}/$def/g;
     }
 
     # Find non-integer values we should map for this function
@@ -149,21 +159,16 @@ $param_defs
     }
 
 $param_checks
-    ret = test_suite_$function_name( $call_params );
-    return ( ret != 0 );
+    test_suite_$function_name( $call_params );
+    return ( 0 );
 $function_post_code
     return ( 3 );
 }
 else
 END
 
-    my $function_def = "int test_suite_$function_name(";
-    $function_def .= join ", ", @param_decl;
-    $function_def .= ")\n{\n";
-
-    $function_code = $function_pre_code . $function_def . $function_code . "\n    return( 0 );\n}\n";
-    $function_code .= $function_post_code;
-    $test_main =~ s/FUNCTION_CODE/$function_code\n\nFUNCTION_CODE/;
+    my $function_code = $function_pre_code . $function_decl . "\n" . $function_post_code;
+    $test_main =~ s/FUNCTION_CODE/$function_code\nFUNCTION_CODE/;
 }
 
 # Find specific case dependencies that we should be able to check

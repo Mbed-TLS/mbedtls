@@ -1,13 +1,17 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/gcm.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_GCM_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_GCM_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-gcm_encrypt_and_tag:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:hex_dst_string:#tag_len_bits:hex_tag_string:#init_result
+/* BEGIN_CASE */
+void gcm_encrypt_and_tag( char *hex_key_string, char *hex_src_string,
+                          char *hex_iv_string, char *hex_add_string,
+                          char *hex_dst_string, int tag_len_bits,
+                          char *hex_tag_string, int  init_result )
 {
     unsigned char key_str[128];
     unsigned char src_str[128];
@@ -19,7 +23,7 @@ gcm_encrypt_and_tag:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:h
     unsigned char tag_output[16];
     gcm_context ctx;
     unsigned int key_len;
-    size_t pt_len, iv_len, add_len, tag_len = {tag_len_bits} / 8;
+    size_t pt_len, iv_len, add_len, tag_len = tag_len_bits / 8;
 
     memset(key_str, 0x00, 128);
     memset(src_str, 0x00, 128);
@@ -30,26 +34,29 @@ gcm_encrypt_and_tag:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:h
     memset(output, 0x00, 128);
     memset(tag_output, 0x00, 16);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    pt_len = unhexify( src_str, {hex_src_string} );
-    iv_len = unhexify( iv_str, {hex_iv_string} );
-    add_len = unhexify( add_str, {hex_add_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    pt_len = unhexify( src_str, hex_src_string );
+    iv_len = unhexify( iv_str, hex_iv_string );
+    add_len = unhexify( add_str, hex_add_string );
 
-    TEST_ASSERT( gcm_init( &ctx, key_str, key_len * 8 ) == {init_result} );
-    if( {init_result} == 0 )
+    TEST_ASSERT( gcm_init( &ctx, key_str, key_len * 8 ) == init_result );
+    if( init_result == 0 )
     {
         TEST_ASSERT( gcm_crypt_and_tag( &ctx, GCM_ENCRYPT, pt_len, iv_str, iv_len, add_str, add_len, src_str, output, tag_len, tag_output ) == 0 );
         hexify( dst_str, output, pt_len );
         hexify( tag_str, tag_output, tag_len );
 
-        TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
-        TEST_ASSERT( strcmp( (char *) tag_str, {hex_tag_string} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+        TEST_ASSERT( strcmp( (char *) tag_str, hex_tag_string ) == 0 );
     }
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-gcm_decrypt_and_verify:hex_key_string:hex_src_string:hex_iv_string:hex_add_string:#tag_len_bits:hex_tag_string:pt_result:#init_result
+/* BEGIN_CASE */
+void gcm_decrypt_and_verify( char *hex_key_string, char *hex_src_string,
+                             char *hex_iv_string, char *hex_add_string,
+                             int tag_len_bits, char *hex_tag_string,
+                             char *pt_result, int init_result )
 {
     unsigned char key_str[128];
     unsigned char src_str[128];
@@ -60,7 +67,7 @@ gcm_decrypt_and_verify:hex_key_string:hex_src_string:hex_iv_string:hex_add_strin
     unsigned char output[128];
     gcm_context ctx;
     unsigned int key_len;
-    size_t pt_len, iv_len, add_len, tag_len = {tag_len_bits} / 8;
+    size_t pt_len, iv_len, add_len, tag_len = tag_len_bits / 8;
     int ret;
 
     memset(key_str, 0x00, 128);
@@ -71,18 +78,18 @@ gcm_decrypt_and_verify:hex_key_string:hex_src_string:hex_iv_string:hex_add_strin
     memset(tag_str, 0x00, 128);
     memset(output, 0x00, 128);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    pt_len = unhexify( src_str, {hex_src_string} );
-    iv_len = unhexify( iv_str, {hex_iv_string} );
-    add_len = unhexify( add_str, {hex_add_string} );
-    unhexify( tag_str, {hex_tag_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    pt_len = unhexify( src_str, hex_src_string );
+    iv_len = unhexify( iv_str, hex_iv_string );
+    add_len = unhexify( add_str, hex_add_string );
+    unhexify( tag_str, hex_tag_string );
 
-    TEST_ASSERT( gcm_init( &ctx, key_str, key_len * 8 ) == {init_result} );
-    if( {init_result} == 0 )
+    TEST_ASSERT( gcm_init( &ctx, key_str, key_len * 8 ) == init_result );
+    if( init_result == 0 )
     {
         ret = gcm_auth_decrypt( &ctx, pt_len, iv_str, iv_len, add_str, add_len, tag_str, tag_len, src_str, output );
 
-        if( strcmp( "FAIL", {pt_result} ) == 0 )
+        if( strcmp( "FAIL", pt_result ) == 0 )
         {
             TEST_ASSERT( ret == POLARSSL_ERR_GCM_AUTH_FAILED );
         }
@@ -90,15 +97,15 @@ gcm_decrypt_and_verify:hex_key_string:hex_src_string:hex_iv_string:hex_add_strin
         {
             hexify( dst_str, output, pt_len );
 
-            TEST_ASSERT( strcmp( (char *) dst_str, {pt_result} ) == 0 );
+            TEST_ASSERT( strcmp( (char *) dst_str, pt_result ) == 0 );
         }
     }
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-gcm_selftest:
+/* BEGIN_CASE */
+void gcm_selftest()
 {
     TEST_ASSERT( gcm_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */

@@ -242,7 +242,7 @@ int main()
             fprintf( stdout, "-------\n" );
             fflush( stdout );
         }
-        else if( ret == 0  && test_errors == 0 )
+        else if( ret == 0 && test_errors == 0 )
         {
             fprintf( stdout, "PASS\n" );
             fflush( stdout );

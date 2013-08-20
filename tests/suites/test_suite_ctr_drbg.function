@@ -1,4 +1,4 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/ctr_drbg.h>
 
 int test_offset;
@@ -9,14 +9,17 @@ int entropy_func( void *data, unsigned char *buf, size_t len )
     test_offset += 32;
     return( 0 );
 }
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_CTR_DRBG_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_CTR_DRBG_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-ctr_drbg_validate_pr:add_init_string:entropy_string:add1_string:add2_string:result_str
+/* BEGIN_CASE */
+void ctr_drbg_validate_pr( char *add_init_string, char *entropy_string,
+                           char *add1_string, char *add2_string,
+                           char *result_str )
 {
     unsigned char entropy[512];
     unsigned char add_init[512];
@@ -29,10 +32,10 @@ ctr_drbg_validate_pr:add_init_string:entropy_string:add1_string:add2_string:resu
 
     memset( output_str, 0, 512 );
 
-    unhexify( entropy, {entropy_string} );
-    add_init_len = unhexify( add_init, {add_init_string} );
-    add1_len = unhexify( add1, {add1_string} );
-    add2_len = unhexify( add2, {add2_string} );
+    unhexify( entropy, entropy_string );
+    add_init_len = unhexify( add_init, add_init_string );
+    add1_len = unhexify( add1, add1_string );
+    add2_len = unhexify( add2, add2_string );
 
     test_offset = 0;
     TEST_ASSERT( ctr_drbg_init_entropy_len( &ctx, entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
@@ -41,12 +44,14 @@ ctr_drbg_validate_pr:add_init_string:entropy_string:add1_string:add2_string:resu
     TEST_ASSERT( ctr_drbg_random_with_add( &ctx, buf, 16, add1, add1_len ) == 0 );
     TEST_ASSERT( ctr_drbg_random_with_add( &ctx, buf, 16, add2, add2_len ) == 0 );
     hexify( output_str, buf, 16 );
-    TEST_ASSERT( strcmp( (char *) output_str, {result_str} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) output_str, result_str ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-ctr_drbg_validate_nopr:add_init_string:entropy_string:add1_string:add_reseed_string:add2_string:result_str
+/* BEGIN_CASE */
+void ctr_drbg_validate_nopr( char *add_init_string, char *entropy_string,
+                             char *add1_string, char *add_reseed_string,
+                             char *add2_string, char *result_str )
 {
     unsigned char entropy[512];
     unsigned char add_init[512];
@@ -60,11 +65,11 @@ ctr_drbg_validate_nopr:add_init_string:entropy_string:add1_string:add_reseed_str
 
     memset( output_str, 0, 512 );
 
-    unhexify( entropy, {entropy_string} );
-    add_init_len = unhexify( add_init, {add_init_string} );
-    add1_len = unhexify( add1, {add1_string} );
-    add_reseed_len = unhexify( add_reseed, {add_reseed_string} );
-    add2_len = unhexify( add2, {add2_string} );
+    unhexify( entropy, entropy_string );
+    add_init_len = unhexify( add_init, add_init_string );
+    add1_len = unhexify( add1, add1_string );
+    add_reseed_len = unhexify( add_reseed, add_reseed_string );
+    add2_len = unhexify( add2, add2_string );
 
     test_offset = 0;
     TEST_ASSERT( ctr_drbg_init_entropy_len( &ctx, entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
@@ -73,6 +78,6 @@ ctr_drbg_validate_nopr:add_init_string:entropy_string:add1_string:add_reseed_str
     TEST_ASSERT( ctr_drbg_reseed( &ctx, add_reseed, add_reseed_len ) == 0 );
     TEST_ASSERT( ctr_drbg_random_with_add( &ctx, buf, 16, add2, add2_len ) == 0 );
     hexify( output_str, buf, 16 );
-    TEST_ASSERT( strcmp( (char *) output_str, {result_str} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) output_str, result_str ) == 0 );
 }
-END_CASE
+/* END_CASE */

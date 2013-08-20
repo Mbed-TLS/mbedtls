@@ -1,13 +1,15 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/dhm.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_DHM_C:POLARSSL_BIGNUM_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_DHM_C:POLARSSL_BIGNUM_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-dhm_do_dhm:#NOTUSED:#radix_P:input_P:#radix_G:input_G
+/* BEGIN_CASE */
+void dhm_do_dhm( int NOTUSED, int radix_P, char *input_P,
+                 int radix_G, char *input_G )
 {
     dhm_context ctx_srv;
     dhm_context ctx_cli;
@@ -33,8 +35,8 @@ dhm_do_dhm:#NOTUSED:#radix_P:input_P:#radix_G:input_G
     memset( sec_cli, 0x00, 1000 );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
-    TEST_ASSERT( mpi_read_string( &ctx_srv.P, {radix_P}, {input_P} ) == 0 );
-    TEST_ASSERT( mpi_read_string( &ctx_srv.G, {radix_G}, {input_G} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx_srv.P, radix_P, input_P ) == 0 );
+    TEST_ASSERT( mpi_read_string( &ctx_srv.G, radix_G, input_G ) == 0 );
     x_size = mpi_size( &ctx_srv.P );
 
     TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
@@ -57,4 +59,4 @@ dhm_do_dhm:#NOTUSED:#radix_P:input_P:#radix_G:input_G
     dhm_free( &ctx_srv );
     dhm_free( &ctx_cli );
 }
-END_CASE
+/* END_CASE */

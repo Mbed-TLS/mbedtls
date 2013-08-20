@@ -1,4 +1,4 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/debug.h>
 
 struct buffer_data
@@ -15,14 +15,16 @@ void string_debug(void *data, int level, const char *str)
     memcpy(buffer->ptr, str, strlen(str));
     buffer->ptr += strlen(str);
 }
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_DEBUG_C:POLARSSL_BIGNUM_C:POLARSSL_SSL_TLS_C:POLARSSL_RSA_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_DEBUG_C:POLARSSL_BIGNUM_C:POLARSSL_SSL_TLS_C:POLARSSL_RSA_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-debug_print_crt:crt_file:file:#line:prefix:result_str
+/* BEGIN_CASE */
+void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
+                      char *result_str )
 {
     x509_cert   crt;
     ssl_context ssl;
@@ -35,17 +37,18 @@ debug_print_crt:crt_file:file:#line:prefix:result_str
 
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
-    debug_print_crt( &ssl, 0, {file}, {line}, {prefix}, &crt);
+    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
+    debug_print_crt( &ssl, 0, file, line, prefix, &crt);
 
-    TEST_ASSERT( strcmp( buffer.buf, {result_str} ) == 0 );
+    TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 
     x509_free( &crt );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-debug_print_mpi:#radix:value:file:#line:prefix:result_str
+/* BEGIN_CASE */
+void debug_print_mpi( int radix, char *value, char *file, int line,
+                      char *prefix, char *result_str )
 {
     ssl_context ssl;
     struct buffer_data buffer;
@@ -57,15 +60,13 @@ debug_print_mpi:#radix:value:file:#line:prefix:result_str
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf; 
 
-    TEST_ASSERT( mpi_read_string( &val, {radix}, {value} ) == 0 );
+    TEST_ASSERT( mpi_read_string( &val, radix, value ) == 0 );
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    debug_print_mpi( &ssl, 0, {file}, {line}, {prefix}, &val);
+    debug_print_mpi( &ssl, 0, file, line, prefix, &val);
 
-    TEST_ASSERT( strcmp( buffer.buf, {result_str} ) == 0 );
+    TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 
     mpi_free( &val );
 }
-END_CASE
-
-    
+/* END_CASE */

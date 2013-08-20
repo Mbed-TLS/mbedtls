@@ -4,7 +4,7 @@
 #include <polarssl/sha512.h>
 /* END_HEADER */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA1_C */
 void sha1( char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
@@ -25,7 +25,7 @@ void sha1( char *hex_src_string, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
 void sha224(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
@@ -46,7 +46,7 @@ void sha224(char *hex_src_string, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
 void sha256(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
@@ -67,7 +67,7 @@ void sha256(char *hex_src_string, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
 void sha384(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
@@ -88,7 +88,7 @@ void sha384(char *hex_src_string, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
 void sha512(char *hex_src_string, char *hex_hash_string )
 {
     unsigned char src_str[10000];
@@ -109,7 +109,7 @@ void sha512(char *hex_src_string, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA1_C */
 void sha1_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[41];
@@ -125,7 +125,7 @@ void sha1_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
 void sha224_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[57];
@@ -141,7 +141,7 @@ void sha224_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
 void sha256_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];
@@ -157,7 +157,7 @@ void sha256_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
 void sha384_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[97];
@@ -173,7 +173,7 @@ void sha384_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
 void sha512_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[129];
@@ -189,21 +189,21 @@ void sha512_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA1_C */
 void sha1_selftest()
 {
     TEST_ASSERT( sha1_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
 void sha256_selftest()
 {
     TEST_ASSERT( sha256_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
 void sha512_selftest()
 {
     TEST_ASSERT( sha512_self_test( 0 ) == 0 );

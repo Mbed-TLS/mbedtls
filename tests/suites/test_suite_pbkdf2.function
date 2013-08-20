@@ -31,6 +31,8 @@ void pbkdf2_hmac( int hash, char *hex_password_string, char *hex_salt_string,
 
     info = md_info_from_type( hash );
     TEST_ASSERT( info != NULL );
+    if( info == NULL )
+        return;
     TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
     TEST_ASSERT( pbkdf2_hmac( &ctx, pw_str, pw_len, salt_str, salt_len,
                               it_cnt, key_len, key ) == 0 );

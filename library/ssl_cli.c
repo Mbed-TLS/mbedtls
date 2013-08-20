@@ -1949,7 +1949,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     size_t n = 0, offset = 0;
     unsigned char hash[48];
     md_type_t md_alg = POLARSSL_MD_NONE;
-    unsigned int hashlen = 0;
+    unsigned int hashlen;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
@@ -1968,7 +1968,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
-    if( ssl->rsa_key == NULL )
+    if( ssl->pk_key == NULL || ssl->pk_key->pk_info == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "got no private key" ) );
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -1998,6 +1998,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     }
     else
     {
+        const md_info_t *md_info;
         /*
          * digitally-signed struct {
          *     opaque handshake_messages[handshake_messages_length];
@@ -2018,36 +2019,73 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         {
             md_alg = POLARSSL_MD_SHA384;
             ssl->out_msg[4] = SSL_HASH_SHA384;
-            ssl->out_msg[5] = SSL_SIG_RSA;
         }
         else
         {
             md_alg = POLARSSL_MD_SHA256;
             ssl->out_msg[4] = SSL_HASH_SHA256;
-            ssl->out_msg[5] = SSL_SIG_RSA;
         }
+        /* SIG added later */
+
+        if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+
+        hashlen = md_info->size;
 
         offset = 2;
     }
 
-    if ( ssl->rsa_key )
+#if defined(POLARSSL_RSA_C)
+    if( ssl->rsa_key != NULL )
+    {
+        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+            ssl->out_msg[5] = SSL_SIG_RSA;
+
+        if( ( ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
+                        RSA_PRIVATE, md_alg,
+                        hashlen, hash, ssl->out_msg + 6 + offset ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "pkcs1_sign", ret );
+            return( ret );
+        }
+
         n = ssl->rsa_key_len ( ssl->rsa_key );
+    }
+    else
+#endif /* POLARSSL_RSA_C */
+#if defined(POLARSSL_ECDSA_C)
+    if( pk_can_do( ssl->pk_key, POLARSSL_PK_ECDSA ) )
+    {
+        ecdsa_context ecdsa;
+
+        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+            ssl->out_msg[5] = SSL_SIG_ECDSA;
+
+        ecdsa_init( &ecdsa );
+
+        ret = ecdsa_from_keypair( &ecdsa, ssl->pk_key->pk_ctx ) ||
+              ecdsa_write_signature( &ecdsa, hash, hashlen,
+                      ssl->out_msg + 6 + offset, &n,
+                      ssl->f_rng, ssl->p_rng );
+
+        ecdsa_free( &ecdsa );
+
+        if( ret != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecdsa_sign", ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* POLARSSL_ECDSA_C */
+        /* should never happen */
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 
     ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
     ssl->out_msg[5 + offset] = (unsigned char)( n      );
-
-    if( ssl->rsa_key )
-    {
-        ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
-                             RSA_PRIVATE, md_alg,
-                             hashlen, hash, ssl->out_msg + 6 + offset );
-    }
-
-    if (ret != 0)
-    {
-        SSL_DEBUG_RET( 1, "pkcs1_sign", ret );
-        return( ret );
-    }
 
     ssl->out_msglen  = 6 + n + offset;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;

@@ -953,7 +953,7 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
                            md_type_t md_alg,
                            unsigned int hashlen,
                            const unsigned char *hash,
-                           unsigned char *sig )
+                           const unsigned char *sig )
 {
     int ret;
     size_t siglen;
@@ -1063,7 +1063,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
                                  md_type_t md_alg,
                                  unsigned int hashlen,
                                  const unsigned char *hash,
-                                 unsigned char *sig )
+                                 const unsigned char *sig )
 {
     int ret;
     size_t len, siglen, asn1_len;
@@ -1177,7 +1177,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
                       md_type_t md_alg,
                       unsigned int hashlen,
                       const unsigned char *hash,
-                      unsigned char *sig )
+                      const unsigned char *sig )
 {
     switch( ctx->padding )
     {
@@ -1194,6 +1194,40 @@ int rsa_pkcs1_verify( rsa_context *ctx,
         default:
             return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
+}
+
+/*
+ * Copy the components of an RSA key
+ */
+int rsa_copy( rsa_context *dst, const rsa_context *src )
+{
+    int ret;
+
+    dst->ver = src->ver;
+    dst->len = src->len;
+
+    MPI_CHK( mpi_copy( &dst->N, &src->N ) );
+    MPI_CHK( mpi_copy( &dst->E, &src->E ) );
+
+    MPI_CHK( mpi_copy( &dst->D, &src->D ) );
+    MPI_CHK( mpi_copy( &dst->P, &src->P ) );
+    MPI_CHK( mpi_copy( &dst->Q, &src->Q ) );
+    MPI_CHK( mpi_copy( &dst->DP, &src->DP ) );
+    MPI_CHK( mpi_copy( &dst->DQ, &src->DQ ) );
+    MPI_CHK( mpi_copy( &dst->QP, &src->QP ) );
+
+    MPI_CHK( mpi_copy( &dst->RN, &src->RN ) );
+    MPI_CHK( mpi_copy( &dst->RP, &src->RP ) );
+    MPI_CHK( mpi_copy( &dst->RQ, &src->RQ ) );
+
+    dst->padding = src->padding;
+    dst->hash_id = src->padding;
+
+cleanup:
+    if( ret != 0 )
+        rsa_free( dst );
+
+    return( ret );
 }
 
 /*

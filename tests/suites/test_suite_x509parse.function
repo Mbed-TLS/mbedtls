@@ -226,8 +226,8 @@ void x509parse_public_keyfile_ec( char *key_file, int result )
     if( res == 0 )
     {
         ecp_keypair *eckey;
-        TEST_ASSERT( ctx.type == POLARSSL_PK_ECKEY );
-        eckey = (ecp_keypair *) ctx.data;
+        TEST_ASSERT( pk_can_do( &ctx, POLARSSL_PK_ECKEY ) );
+        eckey = pk_ec( ctx );
         TEST_ASSERT( ecp_check_pubkey( &eckey->grp, &eckey->Q ) == 0 );
     }
 
@@ -250,8 +250,8 @@ void x509parse_keyfile_ec( char *key_file, char *password, int result )
     if( res == 0 )
     {
         ecp_keypair *eckey;
-        TEST_ASSERT( ctx.type == POLARSSL_PK_ECKEY );
-        eckey = (ecp_keypair *) ctx.data;
+        TEST_ASSERT( pk_can_do( &ctx, POLARSSL_PK_ECKEY ) );
+        eckey = pk_ec( ctx );
         TEST_ASSERT( ecp_check_privkey( &eckey->grp, &eckey->d ) == 0 );
     }
 

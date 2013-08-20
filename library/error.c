@@ -252,6 +252,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "PK - Memory alloation failed" );
         if( use_ret == -(POLARSSL_ERR_PK_TYPE_MISMATCH) )
             snprintf( buf, buflen, "PK - Type mismatch, eg attempt to use a RSA key as EC, or to modify key type" );
+        if( use_ret == -(POLARSSL_ERR_PK_BAD_INPUT_DATA) )
+            snprintf( buf, buflen, "PK - Bad input parameters to function" );
 #endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_PKCS12_C)
@@ -373,6 +375,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Processing of the NewSessionTicket handshake message failed" );
         if( use_ret == -(POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED) )
             snprintf( buf, buflen, "SSL - Session ticket has expired" );
+        if( use_ret == -(POLARSSL_ERR_SSL_PK_TYPE_MISMATCH) )
+            snprintf( buf, buflen, "SSL - Public key type mismatch (eg, asked for RSA key exchange and presented EC key)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_PARSE_C)

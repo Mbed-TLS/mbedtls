@@ -130,6 +130,12 @@ int mpi_copy( mpi *X, const mpi *Y )
     if( X == Y )
         return( 0 );
 
+    if( Y->p == NULL )
+    {
+        mpi_free( X );
+        return( 0 );
+    }
+
     for( i = Y->n - 1; i > 0; i-- )
         if( Y->p[i] != 0 )
             break;

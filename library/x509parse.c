@@ -570,6 +570,7 @@ static int x509_get_pubkey( unsigned char **p,
     size_t len;
     x509_buf alg_params;
     pk_type_t pk_alg = POLARSSL_PK_NONE;
+    const pk_info_t *pk_info;
 
     if( ( ret = asn1_get_tag( p, end, &len,
                     ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
@@ -589,7 +590,10 @@ static int x509_get_pubkey( unsigned char **p,
         return( POLARSSL_ERR_X509_CERT_INVALID_PUBKEY +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    if( ( ret = pk_set_type( pk, pk_alg ) ) != 0 )
+    if( ( pk_info = pk_info_from_type( pk_alg ) ) == NULL )
+        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+    if( ( ret = pk_init_ctx( pk, pk_info ) ) != 0 )
         return( ret );
 
 #if defined(POLARSSL_RSA_C)
@@ -2138,12 +2142,24 @@ int x509parse_public_keyfile( pk_context *ctx, const char *path )
  */
 int x509parse_keyfile_rsa( rsa_context *rsa, const char *path, const char *pwd )
 {
+    int ret;
     pk_context pk;
 
     pk_init( &pk );
-    pk_wrap_rsa( &pk, rsa );
 
-    return( x509parse_keyfile( &pk, path, pwd ) );
+    ret = x509parse_keyfile( &pk, path, pwd );
+
+    if( ret == 0 && ! pk_can_do( &pk, POLARSSL_PK_RSA ) )
+        ret = POLARSSL_ERR_PK_TYPE_MISMATCH;
+
+    if( ret == 0 )
+        rsa_copy( rsa, pk_rsa( pk ) );
+    else
+        rsa_free( rsa );
+
+    pk_free( &pk );
+
+    return( ret );
 }
 
 /*
@@ -2151,12 +2167,24 @@ int x509parse_keyfile_rsa( rsa_context *rsa, const char *path, const char *pwd )
  */
 int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path )
 {
+    int ret;
     pk_context pk;
 
     pk_init( &pk );
-    pk_wrap_rsa( &pk, rsa );
 
-    return( x509parse_public_keyfile( &pk, path ) );
+    ret = x509parse_public_keyfile( &pk, path );
+
+    if( ret == 0 && ! pk_can_do( &pk, POLARSSL_PK_RSA ) )
+        ret = POLARSSL_ERR_PK_TYPE_MISMATCH;
+
+    if( ret == 0 )
+        rsa_copy( rsa, pk_rsa( pk ) );
+    else
+        rsa_free( rsa );
+
+    pk_free( &pk );
+
+    return( ret );
 }
 #endif /* POLARSSL_RSA_C */
 #endif /* POLARSSL_FS_IO */
@@ -2360,6 +2388,7 @@ static int x509parse_key_pkcs8_unencrypted_der(
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     pk_type_t pk_alg = POLARSSL_PK_NONE;
+    const pk_info_t *pk_info;
 
     /*
      * This function parses the PrivatKeyInfo object (PKCS#8 v1.2 = RFC 5208)
@@ -2401,7 +2430,10 @@ static int x509parse_key_pkcs8_unencrypted_der(
         return( POLARSSL_ERR_X509_KEY_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-    if( ( ret = pk_set_type( pk, pk_alg ) ) != 0 )
+    if( ( pk_info = pk_info_from_type( pk_alg ) ) == NULL )
+        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+    if( ( ret = pk_init_ctx( pk, pk_info ) ) != 0 )
         return( ret );
 
 #if defined(POLARSSL_RSA_C)
@@ -2548,6 +2580,7 @@ int x509parse_key( pk_context *pk,
                    const unsigned char *pwd, size_t pwdlen )
 {
     int ret;
+    const pk_info_t *pk_info;
 
 #if defined(POLARSSL_PEM_C)
     size_t len;
@@ -2562,7 +2595,10 @@ int x509parse_key( pk_context *pk,
                            key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
-        if( ( ret = pk_set_type( pk, POLARSSL_PK_RSA             ) ) != 0 ||
+        if( ( pk_info = pk_info_from_type( POLARSSL_PK_RSA ) ) == NULL )
+            return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+        if( ( ret = pk_init_ctx( pk, pk_info                     ) ) != 0 ||
             ( ret = x509parse_key_pkcs1_der( pk_rsa( *pk ),
                                              pem.buf, pem.buflen ) ) != 0 )
         {
@@ -2587,7 +2623,10 @@ int x509parse_key( pk_context *pk,
                            key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
-        if( ( ret = pk_set_type( pk, POLARSSL_PK_ECKEY          ) ) != 0 ||
+        if( ( pk_info = pk_info_from_type( POLARSSL_PK_ECKEY ) ) == NULL )
+            return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+        if( ( ret = pk_init_ctx( pk, pk_info                    ) ) != 0 ||
             ( ret = x509parse_key_sec1_der( pk_ec( *pk ),
                                             pem.buf, pem.buflen ) ) != 0 )
         {
@@ -2672,7 +2711,10 @@ int x509parse_key( pk_context *pk,
     pk_free( pk );
 
 #if defined(POLARSSL_RSA_C)
-    if( ( ret = pk_set_type( pk, POLARSSL_PK_RSA                    ) ) == 0 &&
+    if( ( pk_info = pk_info_from_type( POLARSSL_PK_RSA ) ) == NULL )
+        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+    if( ( ret = pk_init_ctx( pk, pk_info                            ) ) != 0 ||
         ( ret = x509parse_key_pkcs1_der( pk_rsa( *pk ), key, keylen ) ) == 0 )
     {
         return( 0 );
@@ -2682,7 +2724,10 @@ int x509parse_key( pk_context *pk,
 #endif /* POLARSSL_RSA_C */
 
 #if defined(POLARSSL_ECP_C)
-    if( ( ret = pk_set_type( pk, POLARSSL_PK_ECKEY                ) ) == 0 &&
+    if( ( pk_info = pk_info_from_type( POLARSSL_PK_ECKEY ) ) == NULL )
+        return( POLARSSL_ERR_X509_UNKNOWN_PK_ALG );
+
+    if( ( ret = pk_init_ctx( pk, pk_info                          ) ) != 0 ||
         ( ret = x509parse_key_sec1_der( pk_ec( *pk ), key, keylen ) ) == 0 )
     {
         return( 0 );
@@ -2745,12 +2790,24 @@ int x509parse_key_rsa( rsa_context *rsa,
                        const unsigned char *key, size_t keylen,
                        const unsigned char *pwd, size_t pwdlen )
 {
+    int ret;
     pk_context pk;
 
     pk_init( &pk );
-    pk_wrap_rsa( &pk, rsa );
 
-    return( x509parse_key( &pk, key, keylen, pwd, pwdlen ) );
+    ret = x509parse_key( &pk, key, keylen, pwd, pwdlen );
+
+    if( ret == 0 && ! pk_can_do( &pk, POLARSSL_PK_RSA ) )
+        ret = POLARSSL_ERR_PK_TYPE_MISMATCH;
+
+    if( ret == 0 )
+        rsa_copy( rsa, pk_rsa( pk ) );
+    else
+        rsa_free( rsa );
+
+    pk_free( &pk );
+
+    return( ret );
 }
 
 /*
@@ -2759,12 +2816,24 @@ int x509parse_key_rsa( rsa_context *rsa,
 int x509parse_public_key_rsa( rsa_context *rsa,
                               const unsigned char *key, size_t keylen )
 {
+    int ret;
     pk_context pk;
 
     pk_init( &pk );
-    pk_wrap_rsa( &pk, rsa );
 
-    return( x509parse_public_key( &pk, key, keylen ) );
+    ret = x509parse_public_key( &pk, key, keylen );
+
+    if( ret == 0 && ! pk_can_do( &pk, POLARSSL_PK_RSA ) )
+        ret = POLARSSL_ERR_PK_TYPE_MISMATCH;
+
+    if( ret == 0 )
+        rsa_copy( rsa, pk_rsa( pk ) );
+    else
+        rsa_free( rsa );
+
+    pk_free( &pk );
+
+    return( ret );
 }
 #endif /* POLARSSL_RSA_C */
 
@@ -3022,8 +3091,28 @@ int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
 }
 
 /*
+ * Helper for writing "RSA key size", "EC key size", etc
+ */
+static int x509_key_size_helper( char *buf, size_t size, const char *name )
+{
+    char *p = buf;
+    size_t n = size;
+    int ret;
+
+    if( strlen( name ) + sizeof( " key size" ) > size )
+        return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;
+
+    ret = snprintf( p, n, "%s key size", name );
+    SAFE_SNPRINTF();
+
+    return( 0 );
+}
+
+/*
  * Return an informational string about the certificate.
  */
+#define BEFORE_COLON    14
+#define BC              "14"
 int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                          const x509_cert *crt )
 {
@@ -3031,6 +3120,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     size_t n;
     char *p;
     const char *desc = NULL;
+    char key_size_str[BEFORE_COLON];
 
     p = buf;
     n = size;
@@ -3079,20 +3169,14 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
         ret = snprintf( p, n, desc );
     SAFE_SNPRINTF();
 
-#if defined(POLARSSL_RSA_C)
-    if( crt->pk.type == POLARSSL_PK_RSA )
-        ret = snprintf( p, n, "\n%sRSA key size  : %d bits\n", prefix,
-                (int) pk_rsa( crt->pk )->N.n * (int) sizeof( t_uint ) * 8 );
-    else
-#endif /* POLARSSL_RSA_C */
-#if defined(POLARSSL_ECP_C)
-    if( crt->pk.type == POLARSSL_PK_ECKEY ||
-        crt->pk.type == POLARSSL_PK_ECKEY_DH )
-        ret = snprintf( p, n, "\n%sEC key size   : %d bits\n", prefix,
-                (int) pk_ec( crt->pk )->grp.pbits );
-    else
-#endif /* POLARSSL_ECP_C */
-        ret = snprintf(p, n, "\n%sPK type looks wrong!", prefix);
+    if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
+                                      pk_get_name( &crt->pk ) ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
+                          (int) pk_get_size( &crt->pk ) );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );
@@ -3344,16 +3428,10 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
 
         md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash );
 
-        /* EC NOT IMPLEMENTED YET */
-        if( ca->pk.type != POLARSSL_PK_RSA )
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-        if( !rsa_pkcs1_verify( pk_rsa( ca->pk ), RSA_PUBLIC, crl_list->sig_md,
-                              0, hash, crl_list->sig.p ) == 0 )
+        if( pk_can_do( &ca->pk, crl_list->sig_pk ) == 0 ||
+            pk_verify( &ca->pk, crl_list->sig_md, hash, md_info->size,
+                       crl_list->sig.p, crl_list->sig.len ) != 0 )
         {
-            /*
-             * CRL is not trusted
-             */
             flags |= BADCRL_NOT_TRUSTED;
             break;
         }
@@ -3443,7 +3521,7 @@ static int x509parse_verify_top(
          */
         if( child->subject_raw.len == trust_ca->subject_raw.len &&
             memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
-                            child->issuer_raw.len ) == 0 ) 
+                            child->issuer_raw.len ) == 0 )
         {
             check_path_cnt--;
         }
@@ -3467,12 +3545,9 @@ static int x509parse_verify_top(
 
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        /* EC NOT IMPLEMENTED YET */
-        if( trust_ca->pk.type != POLARSSL_PK_RSA )
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-        if( rsa_pkcs1_verify( pk_rsa( trust_ca->pk ), RSA_PUBLIC, child->sig_md,
-                    0, hash, child->sig.p ) != 0 )
+        if( pk_can_do( &trust_ca->pk, child->sig_pk ) == 0 ||
+            pk_verify( &trust_ca->pk, child->sig_md, hash, md_info->size,
+                       child->sig.p, child->sig.len ) != 0 )
         {
             trust_ca = trust_ca->next;
             continue;
@@ -3547,12 +3622,9 @@ static int x509parse_verify_child(
     {
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-        /* EC NOT IMPLEMENTED YET */
-        if( parent->pk.type != POLARSSL_PK_RSA )
-            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-        if( rsa_pkcs1_verify( pk_rsa( parent->pk ), RSA_PUBLIC, child->sig_md,
-                              0, hash, child->sig.p ) != 0 )
+        if( pk_can_do( &parent->pk, child->sig_pk ) == 0 ||
+            pk_verify( &parent->pk, child->sig_md, hash, md_info->size,
+                       child->sig.p, child->sig.len ) != 0 )
         {
             *flags |= BADCERT_NOT_TRUSTED;
         }

@@ -451,7 +451,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
                       md_type_t md_alg,
                       unsigned int hashlen,
                       const unsigned char *hash,
-                      unsigned char *sig );
+                      const unsigned char *sig );
 
 /**
  * \brief          Perform a PKCS#1 v1.5 verification (RSASSA-PKCS1-v1_5-VERIFY)
@@ -474,7 +474,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
                                  md_type_t md_alg,
                                  unsigned int hashlen,
                                  const unsigned char *hash,
-                                 unsigned char *sig );
+                                 const unsigned char *sig );
 
 /**
  * \brief          Perform a PKCS#1 v2.1 PSS verification (RSASSA-PSS-VERIFY)
@@ -504,7 +504,18 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
                            md_type_t md_alg,
                            unsigned int hashlen,
                            const unsigned char *hash,
-                           unsigned char *sig );
+                           const unsigned char *sig );
+
+/**
+ * \brief          Copy the components of an RSA context
+ *
+ * \param dst      Destination context
+ * \param src      Source context
+ *
+ * \return         O on success,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED on memory allocation failure
+ */
+int rsa_copy( rsa_context *dst, const rsa_context *src );
 
 /**
  * \brief          Free the components of an RSA key

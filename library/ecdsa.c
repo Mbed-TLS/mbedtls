@@ -283,6 +283,20 @@ int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
             ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
 }
 
+/*
+ * Set context from an ecp_keypair
+ */
+int ecdsa_from_keypair( ecdsa_context *ctx, const ecp_keypair *key )
+{
+    int ret = ecp_group_copy( &ctx->grp, &key->grp ) ||
+              mpi_copy( &ctx->d, &key->d ) ||
+              ecp_copy( &ctx->Q, &key->Q );
+
+    if( ret != 0 )
+        ecdsa_free( ctx );
+
+    return( ret );
+}
 
 /*
  * Initialize context

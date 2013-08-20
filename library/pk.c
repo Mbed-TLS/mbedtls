@@ -26,6 +26,7 @@
 #include "polarssl/config.h"
 
 #include "polarssl/pk.h"
+#include "polarssl/pk_wrap.h"
 
 #if defined(POLARSSL_RSA_C)
 #include "polarssl/rsa.h"
@@ -37,15 +38,6 @@
 #include "polarssl/ecdsa.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
-#else
-#define polarssl_malloc     malloc
-#define polarssl_free       free
-#endif
-
-#include <stdlib.h>
-
 /*
  * Initialise a pk_context
  */
@@ -54,9 +46,8 @@ void pk_init( pk_context *ctx )
     if( ctx == NULL )
         return;
 
-    ctx->type = POLARSSL_PK_NONE;
-    ctx->data = NULL;
-    ctx->dont_free = 0;
+    ctx->pk_info = NULL;
+    ctx->pk_ctx = NULL;
 }
 
 /*
@@ -64,87 +55,116 @@ void pk_init( pk_context *ctx )
  */
 void pk_free( pk_context *ctx )
 {
-    if( ctx == NULL )
+    if( ctx == NULL || ctx->pk_info == NULL)
         return;
 
-#if defined(POLARSSL_RSA_C)
-    if( ctx->type == POLARSSL_PK_RSA )
-        rsa_free( ctx->data );
-    else
-#endif
-#if defined(POLARSSL_ECP_C)
-    if( ctx->type == POLARSSL_PK_ECKEY || ctx->type == POLARSSL_PK_ECKEY_DH )
-        ecp_keypair_free( ctx->data );
-    else
-#endif
-#if defined(POLARSSL_ECDSA_C)
-    if( ctx->type == POLARSSL_PK_ECDSA )
-        ecdsa_free( ctx->data );
-    else
-#endif
-    {
-        ; /* guard for the else's above */
-    }
+    ctx->pk_info->ctx_free_func( ctx->pk_ctx );
+    ctx->pk_ctx = NULL;
 
-    if( ! ctx->dont_free )
-        polarssl_free( ctx->data );
-
-    ctx->type = POLARSSL_PK_NONE;
-    ctx->data = NULL;
+    ctx->pk_info = NULL;
 }
 
 /*
- * Set a pk_context to a given type
+ * Get pk_info structure from type
  */
-int pk_set_type( pk_context *ctx, pk_type_t type )
+const pk_info_t * pk_info_from_type( pk_type_t pk_type )
 {
-    size_t size;
-
-    if( ctx->type == type )
-        return( 0 );
-
-    if( ctx->type != POLARSSL_PK_NONE )
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
-
+    switch( pk_type ) {
 #if defined(POLARSSL_RSA_C)
-    if( type == POLARSSL_PK_RSA )
-        size = sizeof( rsa_context );
-    else
+        case POLARSSL_PK_RSA:
+            return &rsa_info;
 #endif
 #if defined(POLARSSL_ECP_C)
-    if( type == POLARSSL_PK_ECKEY || type == POLARSSL_PK_ECKEY_DH )
-        size = sizeof( ecp_keypair );
-    else
+        case POLARSSL_PK_ECKEY:
+            return &eckey_info;
+        case POLARSSL_PK_ECKEY_DH:
+            return &eckeydh_info;
 #endif
 #if defined(POLARSSL_ECDSA_C)
-    if( type == POLARSSL_PK_ECDSA )
-        size = sizeof( ecdsa_context );
-    else
+        case POLARSSL_PK_ECDSA:
+            return &ecdsa_info;
 #endif
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+        default:
+            return NULL;
+    }
+}
 
-    if( ( ctx->data = polarssl_malloc( size ) ) == NULL )
+/*
+ * Initialise context
+ */
+int pk_init_ctx( pk_context *ctx, const pk_info_t *info )
+{
+    if( ctx == NULL || info == NULL || ctx->pk_info != NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );
 
-    memset( ctx->data, 0, size );
-    ctx->type = type;
+    ctx->pk_info = info;
 
     return( 0 );
 }
 
-#if defined(POLARSSL_RSA_C)
 /*
- * Wrap an RSA context in a PK context
+ * Tell if a PK can do the operations of the given type
  */
-int pk_wrap_rsa( pk_context *ctx, const rsa_context *rsa)
+int pk_can_do( pk_context *ctx, pk_type_t type )
 {
-    if( ctx->type != POLARSSL_PK_NONE )
+    /* null or NONE context can't do anything */
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( 0 );
+
+    return( ctx->pk_info->can_do( type ) );
+}
+
+/*
+ * Verify a signature
+ */
+int pk_verify( pk_context *ctx, md_type_t md_alg,
+               const unsigned char *hash, size_t hash_len,
+               const unsigned char *sig, size_t sig_len )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->verify_func == NULL )
         return( POLARSSL_ERR_PK_TYPE_MISMATCH );
 
-    ctx->type = POLARSSL_PK_RSA;
-    ctx->data = (rsa_context *) rsa;
-    ctx->dont_free = 1;
+    return( ctx->pk_info->verify_func( ctx->pk_ctx, md_alg,
+                                       hash, hash_len,
+                                       sig, sig_len ) );
+}
 
+/*
+ * Get key size in bits
+ */
+size_t pk_get_size( const pk_context *ctx )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( 0 );
+
+    return( ctx->pk_info->get_size( ctx->pk_ctx ) );
+}
+
+/*
+ * Export debug information
+ */
+int pk_debug( const pk_context *ctx, pk_debug_item *items )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    ctx->pk_info->debug_func( ctx->pk_ctx, items );
     return( 0 );
 }
-#endif
+
+/*
+ * Access the PK type name
+ */
+const char * pk_get_name( const pk_context *ctx )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( "invalid PK" );
+
+    return( ctx->pk_info->name );
+}

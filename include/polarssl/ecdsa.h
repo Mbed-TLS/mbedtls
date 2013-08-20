@@ -31,6 +31,8 @@
 
 /**
  * \brief           ECDSA context structure
+ *
+ * \note Purposefully begins with the same members as struct ecp_keypair.
  */
 typedef struct
 {
@@ -139,6 +141,16 @@ int ecdsa_read_signature( ecdsa_context *ctx,
  */
 int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Set an ECDSA context from an EC key pair
+ *
+ * \param ctx       ECDSA context to set
+ * \param key       EC key to use
+ *
+ * \return          0 on success, or a POLARSSL_ERR_ECP code.
+ */
+int ecdsa_from_keypair( ecdsa_context *ctx, const ecp_keypair *key );
 
 /**
  * \brief           Initialize context

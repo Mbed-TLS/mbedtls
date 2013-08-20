@@ -301,7 +301,7 @@ ifndef WINDOWS
 	for i in $(APPS);														\
 	do																		\
 		echo " - $${i}";													\
-		RESULT=`./$${i} | grep -v 'PASS$$' | grep -v -- '-----' | grep -v '^$$'`;	\
+		RESULT=`./$${i} | grep -v 'PASS$$' | grep -v -- '----' | grep -v '^$$'`;	\
 		FAILED=`echo $$RESULT |grep FAILED`; 								\
 		echo "   $$RESULT";													\
 		if [ "$$FAILED" != "" ];											\

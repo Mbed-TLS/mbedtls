@@ -1,4 +1,4 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/x509.h>
 #include <polarssl/pem.h>
 #include <polarssl/oid.h>
@@ -23,14 +23,15 @@ int verify_all( void *data, x509_cert *crt, int certificate_depth, int *flags )
     return 0;
 }
 
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_X509_PARSE_C:POLARSSL_BIGNUM_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_X509_PARSE_C:POLARSSL_BIGNUM_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-x509_cert_info:crt_file:result_str
+/* BEGIN_CASE */
+void x509_cert_info( char *crt_file, char *result_str )
 {
     x509_cert   crt;
     char buf[2000];
@@ -39,7 +40,7 @@ x509_cert_info:crt_file:result_str
     memset( &crt, 0, sizeof( x509_cert ) );
     memset( buf, 0, 2000 );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
     res = x509parse_cert_info( buf, 2000, "", &crt );
 
     x509_free( &crt );
@@ -47,12 +48,12 @@ x509_cert_info:crt_file:result_str
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
-    TEST_ASSERT( strcmp( buf, {result_str} ) == 0 );
+    TEST_ASSERT( strcmp( buf, result_str ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509_crl_info:crl_file:result_str
+/* BEGIN_CASE */
+void x509_crl_info( char *crl_file, char *result_str )
 {
     x509_crl   crl;
     char buf[2000];
@@ -61,7 +62,7 @@ x509_crl_info:crl_file:result_str
     memset( &crl, 0, sizeof( x509_crl ) );
     memset( buf, 0, 2000 );
 
-    TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
+    TEST_ASSERT( x509parse_crlfile( &crl, crl_file ) == 0 );
     res = x509parse_crl_info( buf, 2000, "", &crl );
 
     x509_crl_free( &crl );
@@ -69,85 +70,116 @@ x509_crl_info:crl_file:result_str
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
-    TEST_ASSERT( strcmp( buf, {result_str} ) == 0 );
+    TEST_ASSERT( strcmp( buf, result_str ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509_verify:crt_file:ca_file:crl_file:cn_name:result:flags:verify_callback
+/* BEGIN_CASE */
+void x509_verify( char *crt_file, char *ca_file, char *crl_file,
+                  char *cn_name_str, int result, int flags_result,
+                  char *verify_callback )
 {
     x509_cert   crt;
     x509_cert   ca;
     x509_crl    crl;
     int         flags = 0;
     int         res;
+    int (*f_vrfy)(void *, x509_cert *, int, int *) = NULL;
+    char *      cn_name = NULL;
 
     memset( &crt, 0, sizeof( x509_cert ) );
     memset( &ca, 0, sizeof( x509_cert ) );
     memset( &crl, 0, sizeof( x509_crl ) );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
-    TEST_ASSERT( x509parse_crtfile( &ca, {ca_file} ) == 0 );
-    TEST_ASSERT( x509parse_crlfile( &crl, {crl_file} ) == 0 );
+    if( strcmp( cn_name_str, "NULL" ) != 0 )
+        cn_name = cn_name_str;
 
-    res = x509parse_verify( &crt, &ca, &crl, {cn_name}, &flags, {verify_callback}, NULL );
+    if( strcmp( verify_callback, "NULL" ) == 0 )
+        f_vrfy = NULL;
+    else if( strcmp( verify_callback, "verify_none" ) == 0 )
+        f_vrfy = verify_none;
+    else if( strcmp( verify_callback, "verify_all" ) == 0 )
+        f_vrfy = verify_all;
+    else
+        TEST_ASSERT( "No known verify callback selected" == 0 );
+
+    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
+    TEST_ASSERT( x509parse_crtfile( &ca, ca_file ) == 0 );
+    TEST_ASSERT( x509parse_crlfile( &crl, crl_file ) == 0 );
+
+    res = x509parse_verify( &crt, &ca, &crl, cn_name, &flags, f_vrfy, NULL );
 
     x509_free( &crt );
     x509_free( &ca );
     x509_crl_free( &crl );
 
-    TEST_ASSERT( res == ( {result} ) );
-    TEST_ASSERT( flags == ( {flags} ) );
+    TEST_ASSERT( res == ( result ) );
+    TEST_ASSERT( flags == ( flags_result ) );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509_dn_gets:crt_file:entity:result_str
+/* BEGIN_CASE */
+void x509_dn_gets( char *crt_file, char *entity, char *result_str )
 {
     x509_cert   crt;
     char buf[2000];
-    int res;
+    int res = 0;
 
     memset( &crt, 0, sizeof( x509_cert ) );
     memset( buf, 0, 2000 );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
-    res =  x509parse_dn_gets( buf, 2000, &crt.{entity} );
+    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
+    if( strcmp( entity, "subject" ) == 0 )
+        res =  x509parse_dn_gets( buf, 2000, &crt.subject );
+    else if( strcmp( entity, "issuer" ) == 0 )
+        res =  x509parse_dn_gets( buf, 2000, &crt.issuer );
+    else
+        TEST_ASSERT( "Unknown entity" == 0 );
 
     x509_free( &crt );
 
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
-    TEST_ASSERT( strcmp( buf, {result_str} ) == 0 );
+    TEST_ASSERT( strcmp( buf, result_str ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509_time_expired:crt_file:entity:result
+/* BEGIN_CASE */
+void x509_time_expired( char *crt_file, char *entity, int result )
 {
     x509_cert   crt;
 
     memset( &crt, 0, sizeof( x509_cert ) );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
-    TEST_ASSERT( x509parse_time_expired( &crt.{entity} ) == {result} );
+    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
+
+    if( strcmp( entity, "valid_from" ) == 0 )
+        TEST_ASSERT( x509parse_time_expired( &crt.valid_from ) == result );
+    else if( strcmp( entity, "valid_to" ) == 0 )
+        TEST_ASSERT( x509parse_time_expired( &crt.valid_to ) == result );
+    else
+        TEST_ASSERT( "Unknown entity" == 0 );
 
     x509_free( &crt );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509parse_keyfile_rsa:key_file:password:result
+/* BEGIN_CASE */
+void x509parse_keyfile_rsa( char *key_file, char *password, int result )
 {
     rsa_context rsa;
     int res;
+    char *pwd = password;
 
     memset( &rsa, 0, sizeof( rsa_context ) );
 
-    res = x509parse_keyfile_rsa( &rsa, {key_file}, {password} );
+    if( strcmp( pwd, "NULL" ) == 0 )
+        pwd = NULL;
 
-    TEST_ASSERT( res == {result} );
+    res = x509parse_keyfile_rsa( &rsa, key_file, pwd );
+
+    TEST_ASSERT( res == result );
 
     if( res == 0 )
     {
@@ -156,19 +188,19 @@ x509parse_keyfile_rsa:key_file:password:result
 
     rsa_free( &rsa );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509parse_public_keyfile_rsa:key_file:result
+/* BEGIN_CASE */
+void x509parse_public_keyfile_rsa( char *key_file, int result )
 {
     rsa_context rsa;
     int res;
 
     memset( &rsa, 0, sizeof( rsa_context ) );
 
-    res = x509parse_public_keyfile_rsa( &rsa, {key_file} );
+    res = x509parse_public_keyfile_rsa( &rsa, key_file );
 
-    TEST_ASSERT( res == {result} );
+    TEST_ASSERT( res == result );
 
     if( res == 0 )
     {
@@ -177,19 +209,19 @@ x509parse_public_keyfile_rsa:key_file:result
 
     rsa_free( &rsa );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509parse_public_keyfile_ec:key_file:result
+/* BEGIN_CASE */
+void x509parse_public_keyfile_ec( char *key_file, int result )
 {
     pk_context ctx;
     int res;
 
     pk_init( &ctx );
 
-    res = x509parse_public_keyfile( &ctx, {key_file} );
+    res = x509parse_public_keyfile( &ctx, key_file );
 
-    TEST_ASSERT( res == {result} );
+    TEST_ASSERT( res == result );
 
     if( res == 0 )
     {
@@ -201,19 +233,19 @@ x509parse_public_keyfile_ec:key_file:result
 
     pk_free( &ctx );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509parse_keyfile_ec:key_file:password:result
+/* BEGIN_CASE */
+void x509parse_keyfile_ec( char *key_file, char *password, int result )
 {
     pk_context ctx;
     int res;
 
     pk_init( &ctx );
 
-    res = x509parse_keyfile( &ctx, {key_file}, {password} );
+    res = x509parse_keyfile( &ctx, key_file, password );
 
-    TEST_ASSERT( res == {result} );
+    TEST_ASSERT( res == result );
 
     if( res == 0 )
     {
@@ -225,10 +257,10 @@ x509parse_keyfile_ec:key_file:password:result
 
     pk_free( &ctx );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509parse_crt:crt_data:result_str:result
+/* BEGIN_CASE */
+void x509parse_crt( char *crt_data, char *result_str, int result )
 {
     x509_cert   crt;
     unsigned char buf[2000];
@@ -239,25 +271,25 @@ x509parse_crt:crt_data:result_str:result
     memset( buf, 0, 2000 );
     memset( output, 0, 2000 );
 
-    data_len = unhexify( buf, {crt_data} );
+    data_len = unhexify( buf, crt_data );
 
-    TEST_ASSERT( x509parse_crt( &crt, buf, data_len ) == ( {result} ) );
-    if( ( {result} ) == 0 )
+    TEST_ASSERT( x509parse_crt( &crt, buf, data_len ) == ( result ) );
+    if( ( result ) == 0 )
     {
         res = x509parse_cert_info( (char *) output, 2000, "", &crt );
-        
+
         TEST_ASSERT( res != -1 );
         TEST_ASSERT( res != -2 );
 
-        TEST_ASSERT( strcmp( (char *) output, {result_str} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
 
     x509_free( &crt );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509parse_crl:crl_data:result_str:result
+/* BEGIN_CASE */
+void x509parse_crl( char *crl_data, char *result_str, int result )
 {
     x509_crl   crl;
     unsigned char buf[2000];
@@ -268,50 +300,51 @@ x509parse_crl:crl_data:result_str:result
     memset( buf, 0, 2000 );
     memset( output, 0, 2000 );
 
-    data_len = unhexify( buf, {crl_data} );
+    data_len = unhexify( buf, crl_data );
 
-    TEST_ASSERT( x509parse_crl( &crl, buf, data_len ) == ( {result} ) );
-    if( ( {result} ) == 0 )
+    TEST_ASSERT( x509parse_crl( &crl, buf, data_len ) == ( result ) );
+    if( ( result ) == 0 )
     {
         res = x509parse_crl_info( (char *) output, 2000, "", &crl );
-        
+
         TEST_ASSERT( res != -1 );
         TEST_ASSERT( res != -2 );
 
-        TEST_ASSERT( strcmp( (char *) output, {result_str} ) == 0 );
+        TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
 
     x509_crl_free( &crl );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509parse_key_rsa:key_data:result_str:result
+/* BEGIN_CASE */
+void x509parse_key_rsa( char *key_data, char *result_str, int result )
 {
     rsa_context   rsa;
     unsigned char buf[2000];
     unsigned char output[2000];
     int data_len;
+    ((void) result_str);
 
     memset( &rsa, 0, sizeof( rsa_context ) );
     memset( buf, 0, 2000 );
     memset( output, 0, 2000 );
 
-    data_len = unhexify( buf, {key_data} );
+    data_len = unhexify( buf, key_data );
 
-    TEST_ASSERT( x509parse_key_rsa( &rsa, buf, data_len, NULL, 0 ) == ( {result} ) );
-    if( ( {result} ) == 0 )
+    TEST_ASSERT( x509parse_key_rsa( &rsa, buf, data_len, NULL, 0 ) == ( result ) );
+    if( ( result ) == 0 )
     {
         TEST_ASSERT( 1 );
     }
 
     rsa_free( &rsa );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-x509_selftest:
+/* BEGIN_CASE */
+void x509_selftest()
 {
     TEST_ASSERT( x509_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */

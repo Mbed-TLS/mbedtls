@@ -1,11 +1,12 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/sha1.h>
 #include <polarssl/sha256.h>
 #include <polarssl/sha512.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_CASE
-sha1_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_SHA1_C */
+void sha1_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
+                char *hex_hash_string)
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -18,18 +19,19 @@ sha1_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 41);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha1_hmac( key_str, key_len, src_str, src_len, output );
     hexify( hash_str, output, 20 );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha224_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
+void sha224_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
+                  char *hex_hash_string)
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -42,18 +44,19 @@ sha224_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 57);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha256_hmac( key_str, key_len, src_str, src_len, output, 1 );
     hexify( hash_str, output, 28 );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha256_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C */
+void sha256_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
+                  char *hex_hash_string)
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -66,18 +69,19 @@ sha256_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 65);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha256_hmac( key_str, key_len, src_str, src_len, output, 0 );
     hexify( hash_str, output, 32 );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha384_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
+void sha384_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
+                  char *hex_hash_string)
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -90,18 +94,19 @@ sha384_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 97);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha512_hmac( key_str, key_len, src_str, src_len, output, 1 );
     hexify( hash_str, output, 48 );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-sha512_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_SHA512_C */
+void sha512_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
+                  char *hex_hash_string)
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -114,12 +119,12 @@ sha512_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 129);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     sha512_hmac( key_str, key_len, src_str, src_len, output, 0 );
     hexify( hash_str, output, 64 );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */

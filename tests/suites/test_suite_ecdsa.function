@@ -1,13 +1,14 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/ecdsa.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_ECDSA_C:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_ECDSA_C:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-ecdsa_prim_random:id
+/* BEGIN_CASE */
+void ecdsa_prim_random( int id )
 {
     ecp_group grp;
     ecp_point Q;
@@ -23,7 +24,7 @@ ecdsa_prim_random:id
 
     /* prepare material for signature */
     TEST_ASSERT( rnd_pseudo_rand( &rnd_info, buf, sizeof( buf ) ) == 0 );
-    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
     TEST_ASSERT( ecp_gen_keypair( &grp, &d, &Q, &rnd_pseudo_rand, &rnd_info )
                  == 0 );
 
@@ -35,10 +36,12 @@ ecdsa_prim_random:id
     ecp_point_free( &Q );
     mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-ecdsa_prim_test_vectors:id:d:xQ:yQ:k:hash:r:s
+/* BEGIN_CASE */
+void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
+                              char *k_str, char *hash_str, char *r_str,
+                              char *s_str )
 {
     ecp_group grp;
     ecp_point Q;
@@ -52,15 +55,15 @@ ecdsa_prim_test_vectors:id:d:xQ:yQ:k:hash:r:s
     mpi_init( &r_check ); mpi_init( &s_check );
     memset( buf, 0, sizeof( buf ) );
 
-    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
-    TEST_ASSERT( ecp_point_read_string( &Q, 16, "{xQ}", "{yQ}" ) == 0 );
-    TEST_ASSERT( mpi_read_string( &d, 16, "{d}" ) == 0 );
-    TEST_ASSERT( mpi_read_string( &r_check, 16, "{r}" ) == 0 );
-    TEST_ASSERT( mpi_read_string( &s_check, 16, "{s}" ) == 0 );
-    len = unhexify(buf, "{hash}");
+    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
+    TEST_ASSERT( ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
+    TEST_ASSERT( mpi_read_string( &d, 16, d_str ) == 0 );
+    TEST_ASSERT( mpi_read_string( &r_check, 16, r_str ) == 0 );
+    TEST_ASSERT( mpi_read_string( &s_check, 16, s_str ) == 0 );
+    len = unhexify(buf, hash_str);
 
     TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, buf, len,
-                &not_rnd, "{k}" ) == 0 );
+                &not_rnd, k_str ) == 0 );
 
     TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );
@@ -72,4 +75,4 @@ ecdsa_prim_test_vectors:id:d:xQ:yQ:k:hash:r:s
     mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
     mpi_free( &r_check ); mpi_free( &s_check );
 }
-END_CASE
+/* END_CASE */

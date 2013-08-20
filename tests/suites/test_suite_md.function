@@ -1,4 +1,4 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/md.h>
 #include <polarssl/md2.h>
 #include <polarssl/md4.h>
@@ -6,14 +6,15 @@ BEGIN_HEADER
 #include <polarssl/sha1.h>
 #include <polarssl/sha256.h>
 #include <polarssl/sha512.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_MD_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_MD_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-md_text:text_md_name:text_src_string:hex_hash_string
+/* BEGIN_CASE */
+void md_text( char *text_md_name, char *text_src_string, char *hex_hash_string )
 {
     char md_name[100];
     unsigned char src_str[1000];
@@ -26,21 +27,21 @@ md_text:text_md_name:text_src_string:hex_hash_string
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 100);
 
-    strcpy( (char *) src_str, {text_src_string} );
+    strcpy( (char *) src_str, text_src_string );
     
-    strncpy( (char *) md_name, {text_md_name}, 100 );
+    strncpy( (char *) md_name, text_md_name, 100 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
 
     TEST_ASSERT ( 0 == md( md_info, src_str, strlen( (char *) src_str ), output ) );
     hexify( hash_str, output, md_get_size(md_info) );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md_hex:text_md_name:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void md_hex( char *text_md_name, char *hex_src_string, char *hex_hash_string )
 {
     char md_name[100];
     unsigned char src_str[10000];
@@ -54,21 +55,22 @@ md_hex:text_md_name:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, {text_md_name}, 100 );
+    strncpy( (char *) md_name, text_md_name, 100 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
 
-    src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, hex_src_string );
     TEST_ASSERT ( 0 == md( md_info, src_str, src_len, output ) );
 
     hexify( hash_str, output, md_get_size(md_info) );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md_text_multi:text_md_name:text_src_string:hex_hash_string
+/* BEGIN_CASE */
+void md_text_multi( char *text_md_name, char *text_src_string,
+                    char *hex_hash_string )
 {
     char md_name[100];
     unsigned char src_str[1000];
@@ -83,9 +85,9 @@ md_text_multi:text_md_name:text_src_string:hex_hash_string
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 100);
 
-    strcpy( (char *) src_str, {text_src_string} );
+    strcpy( (char *) src_str, text_src_string );
     
-    strncpy( (char *) md_name, {text_md_name}, 100 );
+    strncpy( (char *) md_name, text_md_name, 100 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
@@ -98,12 +100,13 @@ md_text_multi:text_md_name:text_src_string:hex_hash_string
     
     hexify( hash_str, output, md_get_size(md_info) );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md_hex_multi:text_md_name:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void md_hex_multi( char *text_md_name, char *hex_src_string,
+                   char *hex_hash_string )
 {
     char md_name[100];
     unsigned char src_str[10000];
@@ -118,12 +121,12 @@ md_hex_multi:text_md_name:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, {text_md_name}, 100 );
+    strncpy( (char *) md_name, text_md_name, 100 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
 
-    src_len = unhexify( src_str, {hex_src_string} );
+    src_len = unhexify( src_str, hex_src_string );
     
     TEST_ASSERT ( 0 == md_starts( &ctx ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
@@ -133,12 +136,13 @@ md_hex_multi:text_md_name:hex_src_string:hex_hash_string
     
     hexify( hash_str, output, md_get_size(md_info) );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md_hmac:text_md_name:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void md_hmac( char *text_md_name, int trunc_size, char *hex_key_string,
+              char *hex_src_string, char *hex_hash_string )
 {
     char md_name[100];
     unsigned char src_str[10000];
@@ -154,22 +158,23 @@ md_hmac:text_md_name:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, {text_md_name}, 100 );
+    strncpy( (char *) md_name, text_md_name, 100 );
     md_info = md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     TEST_ASSERT ( md_hmac( md_info, key_str, key_len, src_str, src_len, output ) == 0 );
     hexify( hash_str, output, md_get_size(md_info) );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md_hmac_multi:text_md_name:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE */
+void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
+                    char *hex_src_string, char *hex_hash_string )
 {
     char md_name[100];
     unsigned char src_str[10000];
@@ -186,27 +191,27 @@ md_hmac_multi:text_md_name:trunc_size:hex_key_string:hex_src_string:hex_hash_str
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, {text_md_name}, 100 );
+    strncpy( (char *) md_name, text_md_name, 100 );
     md_info = md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     TEST_ASSERT ( 0 == md_hmac_starts( &ctx, key_str, key_len ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
     TEST_ASSERT ( 0 == md_hmac_update( &ctx, src_str, src_len ) );
     TEST_ASSERT ( 0 == md_hmac_finish( &ctx, output ) );
     TEST_ASSERT ( 0 == md_free_ctx( &ctx ) );
-    
+
     hexify( hash_str, output, md_get_size(md_info) );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
-BEGIN_CASE
-md_file:text_md_name:filename:hex_hash_string
+/* END_CASE */
+/* BEGIN_CASE */
+void md_file( char *text_md_name, char *filename, char *hex_hash_string )
 {
     char md_name[100];
     unsigned char hash_str[1000];
@@ -217,13 +222,13 @@ md_file:text_md_name:filename:hex_hash_string
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, {text_md_name}, 100 );
+    strncpy( (char *) md_name, text_md_name, 100 );
     md_info = md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
 
-    md_file( md_info, {filename}, output);
+    md_file( md_info, filename, output);
     hexify( hash_str, output, md_get_size(md_info) );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */

@@ -1,13 +1,14 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/ecdh.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_ECDH_C:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_ECDH_C:POLARSSL_ECP_C:POLARSSL_BIGNUM_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-ecdh_primitive_random:id
+/* BEGIN_CASE */
+void ecdh_primitive_random( int id )
 {
     ecp_group grp;
     ecp_point qA, qB;
@@ -20,7 +21,7 @@ ecdh_primitive_random:id
     mpi_init( &zA ); mpi_init( &zB );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
-    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
 
     TEST_ASSERT( ecdh_gen_public( &grp, &dA, &qA, &rnd_pseudo_rand, &rnd_info )
                  == 0 );
@@ -36,10 +37,12 @@ ecdh_primitive_random:id
     mpi_free( &dA ); mpi_free( &dB );
     mpi_free( &zA ); mpi_free( &zB );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-ecdh_primitive_testvec:id:dA:xA:yA:dB:xB:yB:z
+/* BEGIN_CASE */
+void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
+                             char *dB_str, char *xB_str, char *yB_str,
+                             char *z_str )
 {
     ecp_group grp;
     ecp_point qA, qB;
@@ -50,23 +53,23 @@ ecdh_primitive_testvec:id:dA:xA:yA:dB:xB:yB:z
     mpi_init( &dA ); mpi_init( &dB );
     mpi_init( &zA ); mpi_init( &zB ); mpi_init( &check );
 
-    TEST_ASSERT( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
 
-    TEST_ASSERT( ecdh_gen_public( &grp, &dA, &qA, &not_rnd, "{dA}" ) == 0 );
+    TEST_ASSERT( ecdh_gen_public( &grp, &dA, &qA, &not_rnd, dA_str ) == 0 );
     TEST_ASSERT( ! ecp_is_zero( &qA ) );
-    TEST_ASSERT( mpi_read_string( &check, 16, "{xA}" ) == 0 );
+    TEST_ASSERT( mpi_read_string( &check, 16, xA_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qA.X, &check ) == 0 );
-    TEST_ASSERT( mpi_read_string( &check, 16, "{yA}" ) == 0 );
+    TEST_ASSERT( mpi_read_string( &check, 16, yA_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qA.Y, &check ) == 0 );
 
-    TEST_ASSERT( ecdh_gen_public( &grp, &dB, &qB, &not_rnd, "{dB}" ) == 0 );
+    TEST_ASSERT( ecdh_gen_public( &grp, &dB, &qB, &not_rnd, dB_str ) == 0 );
     TEST_ASSERT( ! ecp_is_zero( &qB ) );
-    TEST_ASSERT( mpi_read_string( &check, 16, "{xB}" ) == 0 );
+    TEST_ASSERT( mpi_read_string( &check, 16, xB_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qB.X, &check ) == 0 );
-    TEST_ASSERT( mpi_read_string( &check, 16, "{yB}" ) == 0 );
+    TEST_ASSERT( mpi_read_string( &check, 16, yB_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qB.Y, &check ) == 0 );
 
-    TEST_ASSERT( mpi_read_string( &check, 16, "{z}" ) == 0 );
+    TEST_ASSERT( mpi_read_string( &check, 16, z_str ) == 0 );
     TEST_ASSERT( ecdh_compute_shared( &grp, &zA, &qB, &dA ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &zA, &check ) == 0 );
     TEST_ASSERT( ecdh_compute_shared( &grp, &zB, &qA, &dB ) == 0 );
@@ -77,10 +80,10 @@ ecdh_primitive_testvec:id:dA:xA:yA:dB:xB:yB:z
     mpi_free( &dA ); mpi_free( &dB );
     mpi_free( &zA ); mpi_free( &zB ); mpi_free( &check );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-ecdh_exchange:id
+/* BEGIN_CASE */
+void ecdh_exchange( int id )
 {
     ecdh_context srv, cli;
     unsigned char buf[1000];
@@ -92,7 +95,7 @@ ecdh_exchange:id
     ecdh_init( &cli );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
-    TEST_ASSERT( ecp_use_known_dp( &srv.grp, POLARSSL_ECP_DP_{id} ) == 0 );
+    TEST_ASSERT( ecp_use_known_dp( &srv.grp, id ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
     TEST_ASSERT( ecdh_make_params( &srv, &len, buf, 1000,
@@ -111,4 +114,4 @@ ecdh_exchange:id
     ecdh_free( &srv );
     ecdh_free( &cli );
 }
-END_CASE
+/* END_CASE */

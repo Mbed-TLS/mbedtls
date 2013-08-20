@@ -1,11 +1,11 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/md2.h>
 #include <polarssl/md4.h>
 #include <polarssl/md5.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_CASE
-md2_text:text_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD2_C */
+void md2_text( char *text_src_string, char *hex_hash_string )
 {
     unsigned char src_str[1000];
     unsigned char hash_str[1000];
@@ -15,17 +15,17 @@ md2_text:text_src_string:hex_hash_string
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 33);
 
-    strcpy( (char *) src_str, {text_src_string} );
+    strcpy( (char *) src_str, text_src_string );
 
     md2( src_str, strlen( (char *) src_str ), output );
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md4_text:text_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD4_C */
+void md4_text( char *text_src_string, char *hex_hash_string )
 {
     unsigned char src_str[1000];
     unsigned char hash_str[1000];
@@ -35,17 +35,17 @@ md4_text:text_src_string:hex_hash_string
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 33);
 
-    strcpy( (char *) src_str, {text_src_string} );
+    strcpy( (char *) src_str, text_src_string );
 
     md4( src_str, strlen( (char *) src_str ), output );
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md5_text:text_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD5_C */
+void md5_text( char *text_src_string, char *hex_hash_string )
 {
     unsigned char src_str[1000];
     unsigned char hash_str[1000];
@@ -55,17 +55,18 @@ md5_text:text_src_string:hex_hash_string
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 33);
 
-    strcpy( (char *) src_str, {text_src_string} );
+    strcpy( (char *) src_str, text_src_string );
 
     md5( src_str, strlen( (char *) src_str ), output );
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md2_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD2_C */
+void md2_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
+               char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -78,18 +79,19 @@ md2_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 33);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     md2_hmac( key_str, key_len, src_str, src_len, output );
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md4_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD4_C */
+void md4_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
+               char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -102,18 +104,19 @@ md4_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 33);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     md4_hmac( key_str, key_len, src_str, src_len, output );
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md5_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD5_C */
+void md5_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
+               char *hex_hash_string )
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
@@ -126,18 +129,18 @@ md5_hmac:trunc_size:hex_key_string:hex_src_string:hex_hash_string
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 33);
 
-    key_len = unhexify( key_str, {hex_key_string} );
-    src_len = unhexify( src_str, {hex_src_string} );
+    key_len = unhexify( key_str, hex_key_string );
+    src_len = unhexify( src_str, hex_src_string );
 
     md5_hmac( key_str, key_len, src_str, src_len, output );
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strncmp( (char *) hash_str, {hex_hash_string}, {trunc_size} * 2 ) == 0 );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md2_file:filename:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD2_C */
+void md2_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];
     unsigned char output[33];
@@ -145,15 +148,15 @@ md2_file:filename:hex_hash_string
     memset(hash_str, 0x00, 65);
     memset(output, 0x00, 33);
 
-    md2_file( {filename}, output);
+    md2_file( filename, output);
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md4_file:filename:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD4_C */
+void md4_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];
     unsigned char output[33];
@@ -161,15 +164,15 @@ md4_file:filename:hex_hash_string
     memset(hash_str, 0x00, 65);
     memset(output, 0x00, 33);
 
-    md4_file( {filename}, output);
+    md4_file( filename, output);
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md5_file:filename:hex_hash_string
+/* BEGIN_CASE depends_on:POLARSSL_MD5_C */
+void md5_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];
     unsigned char output[33];
@@ -177,30 +180,30 @@ md5_file:filename:hex_hash_string
     memset(hash_str, 0x00, 65);
     memset(output, 0x00, 33);
 
-    md5_file( {filename}, output);
+    md5_file( filename, output);
     hexify( hash_str, output, 16 );
 
-    TEST_ASSERT( strcmp( (char *) hash_str, {hex_hash_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md2_selftest:
+/* BEGIN_CASE depends_on:POLARSSL_MD2_C */
+void md2_selftest()
 {
     TEST_ASSERT( md2_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md4_selftest:
+/* BEGIN_CASE depends_on:POLARSSL_MD4_C */
+void md4_selftest()
 {
     TEST_ASSERT( md4_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-md5_selftest:
+/* BEGIN_CASE depends_on:POLARSSL_MD5_C */
+void md5_selftest()
 {
     TEST_ASSERT( md5_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */

@@ -1,13 +1,15 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/arc4.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_ARC4_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_ARC4_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-arc4_crypt:hex_src_string:hex_key_string:hex_dst_string
+/* BEGIN_CASE */
+void arc4_crypt( char *hex_src_string, char *hex_key_string,
+                 char *hex_dst_string )
 {
     unsigned char src_str[1000];
     unsigned char key_str[1000];
@@ -21,20 +23,20 @@ arc4_crypt:hex_src_string:hex_key_string:hex_dst_string
     memset(dst_str, 0x00, 1000);
     memset(dst_hexstr, 0x00, 2000);
 
-    src_len = unhexify( src_str, {hex_src_string} );
-    key_len = unhexify( key_str, {hex_key_string} );
+    src_len = unhexify( src_str, hex_src_string );
+    key_len = unhexify( key_str, hex_key_string );
 
     arc4_setup(&ctx, key_str, key_len);
     TEST_ASSERT( arc4_crypt(&ctx, src_len, src_str, dst_str ) == 0 );
     hexify( dst_hexstr, dst_str, src_len );
 
-    TEST_ASSERT( strcmp( (char *) dst_hexstr, {hex_dst_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) dst_hexstr, hex_dst_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-arc4_selftest:
+/* BEGIN_CASE */
+void arc4_selftest()
 {
     TEST_ASSERT( arc4_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */

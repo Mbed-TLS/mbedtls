@@ -1,13 +1,15 @@
-BEGIN_HEADER
+/* BEGIN_HEADER */
 #include <polarssl/xtea.h>
-END_HEADER
+/* END_HEADER */
 
-BEGIN_DEPENDENCIES
-depends_on:POLARSSL_XTEA_C
-END_DEPENDENCIES
+/* BEGIN_DEPENDENCIES
+ *depends_on:POLARSSL_XTEA_C
+ * END_DEPENDENCIES
+ */
 
-BEGIN_CASE
-xtea_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+/* BEGIN_CASE */
+void xtea_encrypt_ecb( char *hex_key_string, char *hex_src_string,
+                       char *hex_dst_string )
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -20,19 +22,20 @@ xtea_encrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
 
-    unhexify( key_str, {hex_key_string} );
-    unhexify( src_str, {hex_src_string} );
+    unhexify( key_str, hex_key_string );
+    unhexify( src_str, hex_src_string );
 
     xtea_setup( &ctx, key_str );
     TEST_ASSERT( xtea_crypt_ecb( &ctx, XTEA_ENCRYPT, src_str, output ) == 0 );
     hexify( dst_str, output, 8 );
 
-    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-xtea_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
+/* BEGIN_CASE */
+void xtea_decrypt_ecb( char *hex_key_string, char *hex_src_string,
+                       char *hex_dst_string )
 {
     unsigned char key_str[100];
     unsigned char src_str[100];
@@ -45,20 +48,20 @@ xtea_decrypt_ecb:hex_key_string:hex_src_string:hex_dst_string
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
 
-    unhexify( key_str, {hex_key_string} );
-    unhexify( src_str, {hex_src_string} );
+    unhexify( key_str, hex_key_string );
+    unhexify( src_str, hex_src_string );
 
     xtea_setup( &ctx, key_str );
     TEST_ASSERT( xtea_crypt_ecb( &ctx, XTEA_DECRYPT, src_str, output ) == 0 );
     hexify( dst_str, output, 8 );
 
-    TEST_ASSERT( strcmp( (char *) dst_str, {hex_dst_string} ) == 0 );
+    TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
 }
-END_CASE
+/* END_CASE */
 
-BEGIN_CASE
-xtea_selftest:
+/* BEGIN_CASE */
+void xtea_selftest()
 {
     TEST_ASSERT( xtea_self_test( 0 ) == 0 );
 }
-END_CASE
+/* END_CASE */

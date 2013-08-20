@@ -605,8 +605,9 @@ static int x509_get_pubkey( unsigned char **p,
 #if defined(POLARSSL_ECP_C)
     if( pk_alg == POLARSSL_PK_ECKEY_DH || pk_alg == POLARSSL_PK_ECKEY )
     {
-        ret = x509_use_ecparams( &alg_params, &pk_ec( *pk )->grp ) ||
-              x509_get_ecpubkey( p, end, pk_ec( *pk ) );
+        ret = x509_use_ecparams( &alg_params, &pk_ec( *pk )->grp );
+        if( ret == 0 )
+            ret = x509_get_ecpubkey( p, end, pk_ec( *pk ) );
     } else
 #endif /* POLARSSL_ECP_C */
         ret = POLARSSL_ERR_X509_UNKNOWN_PK_ALG;

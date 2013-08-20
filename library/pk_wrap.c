@@ -141,8 +141,8 @@ static int eckey_verify_wrap( void *ctx, md_type_t md_alg,
 
     ecdsa_init( &ecdsa );
 
-    ret = ecdsa_from_keypair( &ecdsa, ctx ) ||
-          ecdsa_verify_wrap( &ecdsa, md_alg, hash, hash_len, sig, sig_len );
+    if( ( ret = ecdsa_from_keypair( &ecdsa, ctx ) ) == 0 )
+        ret = ecdsa_verify_wrap( &ecdsa, md_alg, hash, hash_len, sig, sig_len );
 
     ecdsa_free( &ecdsa );
 

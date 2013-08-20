@@ -2106,10 +2106,13 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
             ecdsa_init( &ecdsa );
 
-            ret = ecdsa_from_keypair( &ecdsa, ssl->pk_key->pk_ctx ) ||
-                  ecdsa_write_signature( &ecdsa, hash, hashlen,
-                                         p + 2, &signature_len,
-                                         ssl->f_rng, ssl->p_rng );
+            ret = ecdsa_from_keypair( &ecdsa, ssl->pk_key->pk_ctx );
+            if( ret == 0 )
+            {
+                ret = ecdsa_write_signature( &ecdsa, hash, hashlen,
+                                             p + 2, &signature_len,
+                                             ssl->f_rng, ssl->p_rng );
+            }
 
             ecdsa_free( &ecdsa );
 

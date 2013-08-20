@@ -3919,7 +3919,6 @@ int x509_self_test( int verbose )
     ret = x509parse_verify( &clicert, &cacert, NULL, "PolarSSL Client 2", &flags, NULL, NULL );
     if( ret != 0 )
     {
-        printf("%02x", flags);
         if( verbose != 0 )
             printf( "failed\n" );
 

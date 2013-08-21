@@ -2044,40 +2044,42 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
             ssl->out_msg[5] = SSL_SIG_RSA;
 
-        if( ( ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
-                        RSA_PRIVATE, md_alg,
-                        hashlen, hash, ssl->out_msg + 6 + offset ) ) != 0 )
+        if( ssl->rsa_use_alt )
         {
-            SSL_DEBUG_RET( 1, "pkcs1_sign", ret );
-            return( ret );
-        }
+            if( ( ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
+                            RSA_PRIVATE, md_alg,
+                            hashlen, hash, ssl->out_msg + 6 + offset ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "rsa_sign", ret );
+                return( ret );
+            }
 
-        n = ssl->rsa_key_len ( ssl->rsa_key );
+            n = ssl->rsa_key_len ( ssl->rsa_key );
+        }
+        else
+        {
+            if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+                            ssl->out_msg + 6 + offset, &n,
+                            ssl->f_rng, ssl->p_rng ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "pk_sign", ret );
+                return( ret );
+            }
+        }
     }
     else
 #endif /* POLARSSL_RSA_C */
 #if defined(POLARSSL_ECDSA_C)
     if( pk_can_do( ssl->pk_key, POLARSSL_PK_ECDSA ) )
     {
-        ecdsa_context ecdsa;
-
         if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
             ssl->out_msg[5] = SSL_SIG_ECDSA;
 
-        ecdsa_init( &ecdsa );
-
-        if( ( ret = ecdsa_from_keypair( &ecdsa, ssl->pk_key->pk_ctx ) ) == 0 )
+        if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+                             ssl->out_msg + 6 + offset, &n,
+                             ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
-            ret = ecdsa_write_signature( &ecdsa, hash, hashlen,
-                                         ssl->out_msg + 6 + offset, &n,
-                                         ssl->f_rng, ssl->p_rng );
-        }
-
-        ecdsa_free( &ecdsa );
-
-        if( ret != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ecdsa_sign", ret );
+            SSL_DEBUG_RET( 1, "pk_sign", ret );
             return( ret );
         }
     }

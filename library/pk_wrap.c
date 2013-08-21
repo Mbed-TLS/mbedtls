@@ -69,6 +69,17 @@ static int rsa_verify_wrap( void *ctx, md_type_t md_alg,
                 RSA_PUBLIC, md_alg, hash_len, hash, sig ) );
 }
 
+static int rsa_sign_wrap( void *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    *sig_len = ((rsa_context *) ctx)->len;
+
+    return( rsa_pkcs1_sign( (rsa_context *) ctx, f_rng, p_rng, RSA_PRIVATE,
+                md_alg, hash_len, hash, sig ) );
+}
+
 static void *rsa_alloc_wrap( void )
 {
     void *ctx = polarssl_malloc( sizeof( rsa_context ) );
@@ -104,6 +115,7 @@ const pk_info_t rsa_info = {
     rsa_get_size,
     rsa_can_do,
     rsa_verify_wrap,
+    rsa_sign_wrap,
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
@@ -127,10 +139,15 @@ static size_t eckey_get_size( const void *ctx )
 }
 
 #if defined(POLARSSL_ECDSA_C)
-/* Forward declaration */
+/* Forward declarations */
 static int ecdsa_verify_wrap( void *ctx, md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len );
+
+static int ecdsa_sign_wrap( void *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 static int eckey_verify_wrap( void *ctx, md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
@@ -148,6 +165,26 @@ static int eckey_verify_wrap( void *ctx, md_type_t md_alg,
 
     return( ret );
 }
+
+static int eckey_sign_wrap( void *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+    ecdsa_context ecdsa;
+
+    ecdsa_init( &ecdsa );
+
+    if( ( ret = ecdsa_from_keypair( &ecdsa, ctx ) ) == 0 )
+        ret = ecdsa_sign_wrap( &ecdsa, md_alg, hash, hash_len, sig, sig_len,
+                               f_rng, p_rng );
+
+    ecdsa_free( &ecdsa );
+
+    return( ret );
+}
+
 #endif /* POLARSSL_ECDSA_C */
 
 static void *eckey_alloc_wrap( void )
@@ -180,7 +217,9 @@ const pk_info_t eckey_info = {
     eckey_can_do,
 #if defined(POLARSSL_ECDSA_C)
     eckey_verify_wrap,
+    eckey_sign_wrap,
 #else
+    NULL,
     NULL,
 #endif
     eckey_alloc_wrap,
@@ -203,6 +242,7 @@ const pk_info_t eckeydh_info = {
     eckey_get_size,         /* Same underlying key structure */
     eckeydh_can_do,
     NULL,
+    NULL,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */
@@ -223,6 +263,17 @@ static int ecdsa_verify_wrap( void *ctx, md_type_t md_alg,
 
     return( ecdsa_read_signature( (ecdsa_context *) ctx,
                 hash, hash_len, sig, sig_len ) );
+}
+
+static int ecdsa_sign_wrap( void *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    ((void) md_alg);
+
+    return( ecdsa_write_signature( (ecdsa_context *) ctx,
+                hash, hash_len, sig, sig_len, f_rng, p_rng ) );
 }
 
 static void *ecdsa_alloc_wrap( void )
@@ -247,6 +298,7 @@ const pk_info_t ecdsa_info = {
     eckey_get_size,     /* Compatible key structures */
     ecdsa_can_do,
     ecdsa_verify_wrap,
+    ecdsa_sign_wrap,
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */

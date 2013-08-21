@@ -3169,6 +3169,7 @@ void ssl_set_own_cert_alt_rsa( ssl_context *ssl, x509_cert *own_cert,
                                rsa_key_len_func rsa_key_len )
 {
     ssl->own_cert    = own_cert;
+    ssl->rsa_use_alt = 1;
     ssl->rsa_key     = rsa_key;
     ssl->rsa_decrypt = rsa_decrypt;
     ssl->rsa_sign    = rsa_sign;

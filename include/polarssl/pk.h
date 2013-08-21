@@ -129,6 +129,13 @@ typedef struct
                         const unsigned char *hash, size_t hash_len,
                         const unsigned char *sig, size_t sig_len );
 
+    /** Make signature */
+    int (*sign_func)( void *ctx, md_type_t md_alg,
+                      const unsigned char *hash, size_t hash_len,
+                      unsigned char *sig, size_t *sig_len,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng );
+
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
 
@@ -217,6 +224,25 @@ int pk_can_do( pk_context *ctx, pk_type_t type );
 int pk_verify( pk_context *ctx, md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len );
+
+/**
+ * \brief           Make signature
+ *
+ * \param ctx       PK context to use
+ * \param md_alg    Hash algorithm used
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length
+ * \param sig       Place to write the signature
+ * \param sig_len   Number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 on success, or a specific error code.
+ */
+int pk_sign( pk_context *ctx, md_type_t md_alg,
+             const unsigned char *hash, size_t hash_len,
+             unsigned char *sig, size_t *sig_len,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
  * \brief           Export debug information

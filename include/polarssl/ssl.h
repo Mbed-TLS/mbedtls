@@ -580,6 +580,7 @@ struct _ssl_context
      */
     pk_context *pk_key;                 /*!<  own private key         */
 #if defined(POLARSSL_RSA_C)
+    int rsa_use_alt;                    /*<!  flag for alt (temporary) */
     void *rsa_key;                      /*!<  own RSA private key     */
     rsa_decrypt_func rsa_decrypt;       /*!<  function for RSA decrypt*/
     rsa_sign_func rsa_sign;             /*!<  function for RSA sign   */

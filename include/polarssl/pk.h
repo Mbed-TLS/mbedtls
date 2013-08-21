@@ -136,6 +136,18 @@ typedef struct
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
 
+    /** Decrypt message */
+    int (*decrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen, size_t osize,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
+
+    /** Encrypt message */
+    int (*encrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen, size_t osize,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
+
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
 
@@ -243,6 +255,40 @@ int pk_sign( pk_context *ctx, md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Decrypt message
+ *
+ * \param ctx       PK context to use
+ * \param input     Input to decrypt
+ * \param ilen      Input size
+ * \param output    Decrypted output
+ * \param olen      Decrypted message lenght
+ * \param osize     Size of the output buffer
+ *
+ * \return          0 on success, or a specific error code.
+ */
+int pk_decrypt( pk_context *ctx,
+                const unsigned char *input, size_t ilen,
+                unsigned char *output, size_t *olen, size_t osize,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Encrypt message
+ *
+ * \param ctx       PK context to use
+ * \param input     Message to encrypt
+ * \param ilen      Message size
+ * \param output    Encrypted output
+ * \param olen      Encrypted output length
+ * \param osize     Size of the output buffer
+ *
+ * \return          0 on success, or a specific error code.
+ */
+int pk_encrypt( pk_context *ctx,
+                const unsigned char *input, size_t ilen,
+                unsigned char *output, size_t *olen, size_t osize,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
  * \brief           Export debug information

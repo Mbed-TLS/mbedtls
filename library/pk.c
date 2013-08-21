@@ -153,6 +153,42 @@ int pk_sign( pk_context *ctx, md_type_t md_alg,
 }
 
 /*
+ * Decrypt message
+ */
+int pk_decrypt( pk_context *ctx,
+                const unsigned char *input, size_t ilen,
+                unsigned char *output, size_t *olen, size_t osize,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->decrypt_func == NULL )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+
+    return( ctx->pk_info->decrypt_func( ctx->pk_ctx, input, ilen,
+                output, olen, osize, f_rng, p_rng ) );
+}
+
+/*
+ * Encrypt message
+ */
+int pk_encrypt( pk_context *ctx,
+                const unsigned char *input, size_t ilen,
+                unsigned char *output, size_t *olen, size_t osize,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->encrypt_func == NULL )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+
+    return( ctx->pk_info->encrypt_func( ctx->pk_ctx, input, ilen,
+                output, olen, osize, f_rng, p_rng ) );
+}
+
+/*
  * Get key size in bits
  */
 size_t pk_get_size( const pk_context *ctx )

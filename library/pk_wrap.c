@@ -80,6 +80,34 @@ static int rsa_sign_wrap( void *ctx, md_type_t md_alg,
                 md_alg, hash_len, hash, sig ) );
 }
 
+static int rsa_decrypt_wrap( void *ctx,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    ((void) f_rng);
+    ((void) p_rng);
+
+    if( ilen != ((rsa_context *) ctx)->len )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+    return( rsa_pkcs1_decrypt( (rsa_context *) ctx,
+                RSA_PRIVATE, olen, input, output, osize ) );
+}
+
+static int rsa_encrypt_wrap( void *ctx,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    ((void) osize);
+
+    *olen = ((rsa_context *) ctx)->len;
+
+    return( rsa_pkcs1_encrypt( (rsa_context *) ctx,
+                f_rng, p_rng, RSA_PUBLIC, ilen, input, output ) );
+}
+
 static void *rsa_alloc_wrap( void )
 {
     void *ctx = polarssl_malloc( sizeof( rsa_context ) );
@@ -116,6 +144,8 @@ const pk_info_t rsa_info = {
     rsa_can_do,
     rsa_verify_wrap,
     rsa_sign_wrap,
+    rsa_decrypt_wrap,
+    rsa_encrypt_wrap,
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
@@ -222,6 +252,8 @@ const pk_info_t eckey_info = {
     NULL,
     NULL,
 #endif
+    NULL,
+    NULL,
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
@@ -241,6 +273,8 @@ const pk_info_t eckeydh_info = {
     "EC_DH",
     eckey_get_size,         /* Same underlying key structure */
     eckeydh_can_do,
+    NULL,
+    NULL,
     NULL,
     NULL,
     eckey_alloc_wrap,       /* Same underlying key structure */
@@ -299,6 +333,8 @@ const pk_info_t ecdsa_info = {
     ecdsa_can_do,
     ecdsa_verify_wrap,
     ecdsa_sign_wrap,
+    NULL,
+    NULL,
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */

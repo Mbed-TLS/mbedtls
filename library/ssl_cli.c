@@ -1870,26 +1870,24 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_PK_TYPE_MISMATCH );
         }
 
-        i = 4;
-        n = pk_get_size( &ssl->session_negotiate->peer_cert->pk ) / 8;
+        i = ssl->minor_ver == SSL_MINOR_VERSION_0 ? 4 : 6;
 
-        if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
-        {
-            i += 2;
-            ssl->out_msg[4] = (unsigned char)( n >> 8 );
-            ssl->out_msg[5] = (unsigned char)( n      );
-        }
-
-        ret = rsa_pkcs1_encrypt(
-                pk_rsa( ssl->session_negotiate->peer_cert->pk ),
-                ssl->f_rng, ssl->p_rng, RSA_PUBLIC,
-                ssl->handshake->pmslen, ssl->handshake->premaster,
-                ssl->out_msg + i );
+        ret = pk_encrypt( &ssl->session_negotiate->peer_cert->pk,
+                ssl->handshake->premaster, ssl->handshake->pmslen,
+                ssl->out_msg + i, &n, SSL_BUFFER_LEN,
+                ssl->f_rng, ssl->p_rng );
         if( ret != 0 )
         {
             SSL_DEBUG_RET( 1, "rsa_pkcs1_encrypt", ret );
             return( ret );
         }
+
+        if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
+        {
+            ssl->out_msg[4] = (unsigned char)( n >> 8 );
+            ssl->out_msg[5] = (unsigned char)( n      );
+        }
+
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_RSA_ENABLED */

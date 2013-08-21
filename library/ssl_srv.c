@@ -2259,9 +2259,9 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n = 0;
 
-    if( ssl->rsa_key == NULL )
+    if( ! pk_can_do( ssl->pk_key, POLARSSL_PK_RSA ) )
     {
-        SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+        SSL_DEBUG_MSG( 1, ( "got no RSA private key" ) );
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
 
@@ -2269,8 +2269,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
      * Decrypt the premaster using own private RSA key
      */
     i = 4;
-    if( ssl->rsa_key )
-        n = ssl->rsa_key_len( ssl->rsa_key );
+    n = ssl->rsa_key_len( ssl->rsa_key );
     ssl->handshake->pmslen = 48;
 
     if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
@@ -2290,12 +2289,20 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( ssl->rsa_key ) {
+    if( ssl->rsa_use_alt ) {
         ret = ssl->rsa_decrypt( ssl->rsa_key, RSA_PRIVATE,
                                &ssl->handshake->pmslen,
                                 ssl->in_msg + i,
                                 ssl->handshake->premaster,
                                 sizeof(ssl->handshake->premaster) );
+    }
+    else
+    {
+        ret = pk_decrypt( ssl->pk_key,
+                          ssl->in_msg + i, n,
+                          ssl->handshake->premaster, &ssl->handshake->pmslen,
+                          sizeof(ssl->handshake->premaster),
+                          ssl->f_rng, ssl->p_rng );
     }
 
     if( ret != 0 || ssl->handshake->pmslen != 48 ||

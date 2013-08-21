@@ -82,6 +82,7 @@ typedef enum {
     POLARSSL_PK_ECKEY,
     POLARSSL_PK_ECKEY_DH,
     POLARSSL_PK_ECDSA,
+    POLARSSL_PK_RSA_ALT,
 } pk_type_t;
 
 /**
@@ -169,6 +170,18 @@ typedef struct
 } pk_context;
 
 /**
+ * \brief           Types for RSA-alt abstraction
+ */
+typedef int (*pk_rsa_alt_decrypt_func)( void *ctx, int mode, size_t *olen,
+                    const unsigned char *input, unsigned char *output,
+                    size_t output_max_len );
+typedef int (*pk_rsa_alt_sign_func)( void *ctx,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                    int mode, int hash_id, unsigned int hashlen,
+                    const unsigned char *hash, unsigned char *sig );
+typedef size_t (*pk_rsa_alt_key_len_func)( void *ctx );
+
+/**
  * \brief           Return information associated with the given PK type
  *
  * \param type      PK type to search for.
@@ -183,6 +196,11 @@ const pk_info_t *pk_info_from_type( pk_type_t pk_type );
 void pk_init( pk_context *ctx );
 
 /**
+ * \brief           Free a pk_context
+ */
+void pk_free( pk_context *ctx );
+
+/**
  * \brief           Initialize a PK context with the information given
  *                  and allocates the type-specific PK subcontext.
  *
@@ -192,13 +210,30 @@ void pk_init( pk_context *ctx );
  * \return          0 on success,
  *                  POLARSSL_ERR_PK_BAD_INPUT_DATA on invalid input,
  *                  POLARSSL_ERR_PK_MALLOC_FAILED on allocation failure.
+ *
+ * \note            For contexts holding an RSA-alt key, use
+ *                  \c pk_init_ctx_rsa_alt() instead.
  */
 int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
 
 /**
- * \brief           Free a pk_context
+ * \brief           Initialiaze an RSA-alt context
+ *
+ * \param ctx       Context to initialize. Must be empty (type NONE).
+ * \param key       RSA key pointer
+ * \param decrypt_func  Decryption function
+ * \param sign_func     Signing function
+ * \param key_len_func  Function returning key length
+ *
+ * \return          0 on success, or POLARSSL_ERR_PK_BAD_INPUT_DATA if the
+ *                  context wasn't already initialized as RSA_ALT.
+ *
+ * \note            This function replaces \c pk_init_ctx() for RSA-alt.
  */
-void pk_free( pk_context *ctx );
+int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
+                         pk_rsa_alt_decrypt_func decrypt_func,
+                         pk_rsa_alt_sign_func sign_func,
+                         pk_rsa_alt_key_len_func key_len_func );
 
 /**
  * \brief           Get the size in bits of the underlying key

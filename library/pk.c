@@ -84,6 +84,7 @@ const pk_info_t * pk_info_from_type( pk_type_t pk_type )
         case POLARSSL_PK_ECDSA:
             return &ecdsa_info;
 #endif
+        /* POLARSSL_PK_RSA_ALT ommited on purpose */
         default:
             return NULL;
     }
@@ -101,6 +102,35 @@ int pk_init_ctx( pk_context *ctx, const pk_info_t *info )
         return( POLARSSL_ERR_PK_MALLOC_FAILED );
 
     ctx->pk_info = info;
+
+    return( 0 );
+}
+
+/*
+ * Initialize an RSA-alt context
+ */
+int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
+                         pk_rsa_alt_decrypt_func decrypt_func,
+                         pk_rsa_alt_sign_func sign_func,
+                         pk_rsa_alt_key_len_func key_len_func )
+{
+    rsa_alt_context *rsa_alt;
+    const pk_info_t *info = &rsa_alt_info;
+
+    if( ctx == NULL || ctx->pk_info != NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
+        return( POLARSSL_ERR_PK_MALLOC_FAILED );
+
+    ctx->pk_info = info;
+
+    rsa_alt = (rsa_alt_context *) ctx->pk_ctx;
+
+    rsa_alt->key = key;
+    rsa_alt->decrypt_func = decrypt_func;
+    rsa_alt->sign_func = sign_func;
+    rsa_alt->key_len_func = key_len_func;
 
     return( 0 );
 }

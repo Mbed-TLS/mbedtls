@@ -53,7 +53,7 @@ static int rsa_can_do( pk_type_t type )
     return( type == POLARSSL_PK_RSA );
 }
 
-static size_t rsa_get_size( const void * ctx )
+static size_t rsa_get_size( const void *ctx )
 {
     return( 8 * ((rsa_context *) ctx)->len );
 }
@@ -340,3 +340,73 @@ const pk_info_t ecdsa_info = {
     eckey_debug,        /* Compatible key structures */
 };
 #endif /* POLARSSL_ECDSA_C */
+
+/*
+ * Support for alternative RSA-private implementations
+ */
+
+static size_t rsa_alt_get_size( const void *ctx )
+{
+    rsa_alt_context *rsa_alt = (rsa_alt_context *) ctx;
+
+    return( rsa_alt->key_len_func( rsa_alt->key ) );
+}
+
+static int rsa_alt_sign_wrap( void *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    rsa_alt_context *rsa_alt = (rsa_alt_context *) ctx;
+
+    *sig_len = rsa_alt->key_len_func( rsa_alt->key );
+
+    return( rsa_alt->sign_func( rsa_alt->key, f_rng, p_rng, RSA_PRIVATE,
+                md_alg, hash_len, hash, sig ) );
+}
+
+static int rsa_alt_decrypt_wrap( void *ctx,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    rsa_alt_context *rsa_alt = (rsa_alt_context *) ctx;
+
+    ((void) f_rng);
+    ((void) p_rng);
+
+    if( ilen != rsa_alt->key_len_func( rsa_alt->key ) )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+    return( rsa_alt->decrypt_func( rsa_alt->key,
+                RSA_PRIVATE, olen, input, output, osize ) );
+}
+
+static void *rsa_alt_alloc_wrap( void )
+{
+    void *ctx = polarssl_malloc( sizeof( rsa_alt_context ) );
+
+    if( ctx != NULL )
+        memset( ctx, 0, sizeof( rsa_alt_context ) );
+
+    return ctx;
+}
+
+static void rsa_alt_free_wrap( void *ctx )
+{
+    polarssl_free( ctx );
+}
+
+const pk_info_t rsa_alt_info = {
+    POLARSSL_PK_RSA_ALT,
+    "RSA-alt",
+    rsa_alt_get_size,
+    rsa_can_do,
+    NULL,
+    rsa_alt_sign_wrap,
+    rsa_alt_decrypt_wrap,
+    NULL,
+    rsa_alt_alloc_wrap,
+    rsa_alt_free_wrap,
+    NULL,
+};

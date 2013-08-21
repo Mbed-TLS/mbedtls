@@ -579,6 +579,7 @@ struct _ssl_context
      * PKI layer
      */
     pk_context *pk_key;                 /*!<  own private key         */
+    int pk_key_own_alloc;               /*!<  did we allocate pk_key? */
 #if defined(POLARSSL_RSA_C)
     int rsa_use_alt;                    /*<!  flag for alt (temporary) */
     void *rsa_key;                      /*!<  own RSA private key     */
@@ -944,8 +945,10 @@ void ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
  * \param rsa_decrypt_func  alternate implementation of \c rsa_pkcs1_decrypt()
  * \param rsa_sign_func     alternate implementation of \c rsa_pkcs1_sign()
  * \param rsa_key_len_func  function returning length of RSA key in bytes
+ *
+ * \return          0 on success, or a specific error code.
  */
-void ssl_set_own_cert_alt_rsa( ssl_context *ssl, x509_cert *own_cert,
+int ssl_set_own_cert_alt_rsa( ssl_context *ssl, x509_cert *own_cert,
                                void *rsa_key,
                                rsa_decrypt_func rsa_decrypt,
                                rsa_sign_func rsa_sign,

@@ -2080,27 +2080,12 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
                 n += 2;
             }
 
-            if( ssl->rsa_use_alt )
+            if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+                            p + 2 , &signature_len,
+                            ssl->f_rng, ssl->p_rng ) ) != 0 )
             {
-                if( ( ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng,
-                                ssl->p_rng, RSA_PRIVATE, md_alg, hashlen,
-                                hash, p + 2 ) ) != 0 )
-                {
-                    SSL_DEBUG_RET( 1, "rsa_sign", ret );
-                    return( ret );
-                }
-
-                signature_len = ssl->rsa_key_len( ssl->rsa_key );
-            }
-            else
-            {
-                if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
-                                p + 2 , &signature_len,
-                                ssl->f_rng, ssl->p_rng ) ) != 0 )
-                {
-                    SSL_DEBUG_RET( 1, "pk_sign", ret );
-                    return( ret );
-                }
+                SSL_DEBUG_RET( 1, "pk_sign", ret );
+                return( ret );
             }
         }
         else
@@ -2289,21 +2274,11 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( ssl->rsa_use_alt ) {
-        ret = ssl->rsa_decrypt( ssl->rsa_key, RSA_PRIVATE,
-                               &ssl->handshake->pmslen,
-                                ssl->in_msg + i,
-                                ssl->handshake->premaster,
-                                sizeof(ssl->handshake->premaster) );
-    }
-    else
-    {
-        ret = pk_decrypt( ssl->pk_key,
-                          ssl->in_msg + i, n,
-                          ssl->handshake->premaster, &ssl->handshake->pmslen,
-                          sizeof(ssl->handshake->premaster),
-                          ssl->f_rng, ssl->p_rng );
-    }
+    ret = pk_decrypt( ssl->pk_key,
+                      ssl->in_msg + i, n,
+                      ssl->handshake->premaster, &ssl->handshake->pmslen,
+                      sizeof(ssl->handshake->premaster),
+                      ssl->f_rng, ssl->p_rng );
 
     if( ret != 0 || ssl->handshake->pmslen != 48 ||
         ssl->handshake->premaster[0] != ssl->handshake->max_major_ver ||

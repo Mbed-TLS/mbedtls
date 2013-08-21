@@ -3162,18 +3162,30 @@ void ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
 }
 #endif /* POLARSSL_RSA_C */
 
-void ssl_set_own_cert_alt_rsa( ssl_context *ssl, x509_cert *own_cert,
+int ssl_set_own_cert_alt_rsa( ssl_context *ssl, x509_cert *own_cert,
                                void *rsa_key,
                                rsa_decrypt_func rsa_decrypt,
                                rsa_sign_func rsa_sign,
                                rsa_key_len_func rsa_key_len )
 {
+    int ret;
+
     ssl->own_cert    = own_cert;
     ssl->rsa_use_alt = 1;
     ssl->rsa_key     = rsa_key;
     ssl->rsa_decrypt = rsa_decrypt;
     ssl->rsa_sign    = rsa_sign;
     ssl->rsa_key_len = rsa_key_len;
+
+    if( ( ssl->pk_key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    ssl->pk_key_own_alloc = 1;
+
+    pk_init( ssl->pk_key );
+
+    return( pk_init_ctx_rsa_alt( ssl->pk_key, rsa_key,
+                                 rsa_decrypt, rsa_sign, rsa_key_len ) );
 }
 #endif /* POLARSSL_X509_PARSE_C */
 
@@ -3778,6 +3790,12 @@ void ssl_free( ssl_context *ssl )
         memset( ssl->hostname, 0, ssl->hostname_len );
         polarssl_free( ssl->hostname );
         ssl->hostname_len = 0;
+    }
+
+    if( ssl->pk_key_own_alloc )
+    {
+        pk_free( ssl->pk_key );
+        polarssl_free( ssl->pk_key );
     }
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)

@@ -2042,27 +2042,12 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
             ssl->out_msg[5] = SSL_SIG_RSA;
 
-        if( ssl->rsa_use_alt )
+        if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+                             ssl->out_msg + 6 + offset, &n,
+                             ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
-            if( ( ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
-                            RSA_PRIVATE, md_alg,
-                            hashlen, hash, ssl->out_msg + 6 + offset ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "rsa_sign", ret );
-                return( ret );
-            }
-
-            n = ssl->rsa_key_len ( ssl->rsa_key );
-        }
-        else
-        {
-            if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
-                            ssl->out_msg + 6 + offset, &n,
-                            ssl->f_rng, ssl->p_rng ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "pk_sign", ret );
-                return( ret );
-            }
+            SSL_DEBUG_RET( 1, "pk_sign", ret );
+            return( ret );
         }
     }
     else

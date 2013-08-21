@@ -202,6 +202,7 @@
 #define SSL_HASH_SHA384              5
 #define SSL_HASH_SHA512              6
 
+#define SSL_SIG_ANON                 0
 #define SSL_SIG_RSA                  1
 #define SSL_SIG_ECDSA                3
 
@@ -580,13 +581,6 @@ struct _ssl_context
      */
     pk_context *pk_key;                 /*!<  own private key         */
     int pk_key_own_alloc;               /*!<  did we allocate pk_key? */
-#if defined(POLARSSL_RSA_C)
-    int rsa_use_alt;                    /*<!  flag for alt (temporary) */
-    void *rsa_key;                      /*!<  own RSA private key     */
-    rsa_decrypt_func rsa_decrypt;       /*!<  function for RSA decrypt*/
-    rsa_sign_func rsa_sign;             /*!<  function for RSA sign   */
-    rsa_key_len_func rsa_key_len;       /*!<  function for RSA key len*/
-#endif /* POLARSSL_RSA_C */
 
 #if defined(POLARSSL_X509_PARSE_C)
     x509_cert *own_cert;                /*!<  own X.509 certificate   */
@@ -909,7 +903,7 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
  * \param pk_key   own private key
  */
 void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
-                       pk_context *rsa_key );
+                       pk_context *pk_key );
 
 #if defined(POLARSSL_RSA_C)
 /**
@@ -922,9 +916,11 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
  * \param ssl      SSL context
  * \param own_cert own public certificate chain
  * \param rsa_key  own private RSA key
+ *
+ * \return          0 on success, or a specific error code.
  */
-void ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
-                           rsa_context *rsa_key );
+int ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
+                          rsa_context *rsa_key );
 #endif /* POLARSSL_RSA_C */
 
 /**
@@ -1387,6 +1383,8 @@ int ssl_parse_finished( ssl_context *ssl );
 int ssl_write_finished( ssl_context *ssl );
 
 void ssl_optimize_checksum( ssl_context *ssl, const ssl_ciphersuite_t *ciphersuite_info );
+
+unsigned char ssl_sig_from_pk( pk_context *pk );
 
 #ifdef __cplusplus
 }

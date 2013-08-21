@@ -131,30 +131,6 @@ int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
 #endif
 
-#if defined(POLARSSL_RSA_C)
-static int ssl_rsa_decrypt( void *ctx, int mode, size_t *olen,
-                        const unsigned char *input, unsigned char *output,
-                        size_t output_max_len )
-{
-    return rsa_pkcs1_decrypt( (rsa_context *) ctx, mode, olen, input, output,
-                              output_max_len );
-}
-
-static int ssl_rsa_sign( void *ctx,
-                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                    int mode, int hash_id, unsigned int hashlen,
-                    const unsigned char *hash, unsigned char *sig )
-{
-    return rsa_pkcs1_sign( (rsa_context *) ctx, f_rng, p_rng, mode, hash_id,
-                           hashlen, hash, sig );
-}
-
-static size_t ssl_rsa_key_len( void *ctx )
-{
-    return ( (rsa_context *) ctx )->len;
-}
-#endif /* POLARSSL_RSA_C */
-
 /*
  * Key material generation
  */
@@ -2858,12 +2834,6 @@ int ssl_init( ssl_context *ssl )
     /*
      * Sane defaults
      */
-#if defined(POLARSSL_RSA_C)
-    ssl->rsa_decrypt = ssl_rsa_decrypt;
-    ssl->rsa_sign = ssl_rsa_sign;
-    ssl->rsa_key_len = ssl_rsa_key_len;
-#endif
-
     ssl->min_major_ver = SSL_MAJOR_VERSION_3;
     ssl->min_minor_ver = SSL_MINOR_VERSION_0;
     ssl->max_major_ver = SSL_MAJOR_VERSION_3;
@@ -3147,18 +3117,31 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
 {
     ssl->own_cert   = own_cert;
     ssl->pk_key     = pk_key;
-
-    /* Temporary, until everything is moved to PK */
-    if( pk_key->pk_info->type == POLARSSL_PK_RSA )
-        ssl->rsa_key = pk_key->pk_ctx;
 }
 
 #if defined(POLARSSL_RSA_C)
-void ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
+int ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
                            rsa_context *rsa_key )
 {
+    int ret;
+
     ssl->own_cert   = own_cert;
-    ssl->rsa_key    = rsa_key;
+
+    if( ( ssl->pk_key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    ssl->pk_key_own_alloc = 1;
+
+    pk_init( ssl->pk_key );
+
+    ret = pk_init_ctx( ssl->pk_key, pk_info_from_type( POLARSSL_PK_RSA ) );
+    if( ret != 0 )
+        return( ret );
+
+    if( ( ret = rsa_copy( ssl->pk_key->pk_ctx, rsa_key ) ) != 0 )
+        return( ret );
+
+    return( 0 );
 }
 #endif /* POLARSSL_RSA_C */
 
@@ -3168,14 +3151,7 @@ int ssl_set_own_cert_alt_rsa( ssl_context *ssl, x509_cert *own_cert,
                                rsa_sign_func rsa_sign,
                                rsa_key_len_func rsa_key_len )
 {
-    int ret;
-
     ssl->own_cert    = own_cert;
-    ssl->rsa_use_alt = 1;
-    ssl->rsa_key     = rsa_key;
-    ssl->rsa_decrypt = rsa_decrypt;
-    ssl->rsa_sign    = rsa_sign;
-    ssl->rsa_key_len = rsa_key_len;
 
     if( ( ssl->pk_key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
@@ -3810,6 +3786,22 @@ void ssl_free( ssl_context *ssl )
 
     /* Actually clear after last debug message */
     memset( ssl, 0, sizeof( ssl_context ) );
+}
+
+/*
+ * Get the SSL_SIG_* constant corresponding to a public key
+ */
+unsigned char ssl_sig_from_pk( pk_context *pk )
+{
+#if defined(POLARSSL_RSA_C)
+    if( pk_can_do( pk, POLARSSL_PK_RSA ) )
+        return( SSL_SIG_RSA );
+#endif
+#if defined(POLARSSL_ECDSA_C)
+    if( pk_can_do( pk, POLARSSL_PK_ECDSA ) )
+        return( SSL_SIG_ECDSA );
+#endif
+    return( SSL_SIG_ANON );
 }
 
 #endif

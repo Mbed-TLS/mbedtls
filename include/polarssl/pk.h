@@ -245,6 +245,17 @@ int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
 size_t pk_get_size( const pk_context *ctx );
 
 /**
+ * \brief           Get the length in bytes of the underlying key
+ * \param ctx       Context to use
+ *
+ * \return          Key lenght in bytes, or 0 on error
+ */
+static size_t pk_get_len( const pk_context *ctx )
+{
+    return( ( pk_get_size( ctx ) + 7 ) / 8 );
+}
+
+/**
  * \brief           Tell if a context can do the operation given by type
  *
  * \param ctx       Context to test

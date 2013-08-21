@@ -2069,50 +2069,21 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
         }
 
-#if defined(POLARSSL_RSA_C)
-        if( ssl->rsa_key != NULL )
+        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
         {
-            if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
-            {
-                *(p++) = ssl->handshake->sig_alg;
-                *(p++) = SSL_SIG_RSA;
+            *(p++) = ssl->handshake->sig_alg;
+            *(p++) = ssl_sig_from_pk( ssl->pk_key );
 
-                n += 2;
-            }
-
-            if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
-                            p + 2 , &signature_len,
-                            ssl->f_rng, ssl->p_rng ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "pk_sign", ret );
-                return( ret );
-            }
+            n += 2;
         }
-        else
-#endif /* POLARSSL_RSA_C */
-#if defined(POLARSSL_ECDSA_C)
-        if( pk_can_do( ssl->pk_key, POLARSSL_PK_ECDSA ) )
+
+        if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+                        p + 2 , &signature_len,
+                        ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
-            if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
-            {
-                *(p++) = ssl->handshake->sig_alg;
-                *(p++) = SSL_SIG_ECDSA;
-
-                n += 2;
-            }
-
-            if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
-                            p + 2 , &signature_len,
-                            ssl->f_rng, ssl->p_rng ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "pk_sign", ret );
-                return( ret );
-            }
+            SSL_DEBUG_RET( 1, "pk_sign", ret );
+            return( ret );
         }
-        else
-#endif /* POLARSSL_ECDSA_C */
-            /* should never happen */
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 
         *(p++) = (unsigned char)( signature_len >> 8 );
         *(p++) = (unsigned char)( signature_len      );
@@ -2254,7 +2225,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
      * Decrypt the premaster using own private RSA key
      */
     i = 4;
-    n = ssl->rsa_key_len( ssl->rsa_key );
+    n = pk_get_len( ssl->pk_key );
     ssl->handshake->pmslen = 48;
 
     if( ssl->minor_ver != SSL_MINOR_VERSION_0 )

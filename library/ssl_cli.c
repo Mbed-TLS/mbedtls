@@ -2023,7 +2023,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
             md_alg = POLARSSL_MD_SHA256;
             ssl->out_msg[4] = SSL_HASH_SHA256;
         }
-        /* SIG added later */
+        ssl->out_msg[5] = ssl_sig_from_pk( ssl->pk_key );
 
         if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
         {
@@ -2036,40 +2036,13 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         offset = 2;
     }
 
-#if defined(POLARSSL_RSA_C)
-    if( ssl->rsa_key != NULL )
+    if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+                         ssl->out_msg + 6 + offset, &n,
+                         ssl->f_rng, ssl->p_rng ) ) != 0 )
     {
-        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
-            ssl->out_msg[5] = SSL_SIG_RSA;
-
-        if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
-                             ssl->out_msg + 6 + offset, &n,
-                             ssl->f_rng, ssl->p_rng ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "pk_sign", ret );
-            return( ret );
-        }
+        SSL_DEBUG_RET( 1, "pk_sign", ret );
+        return( ret );
     }
-    else
-#endif /* POLARSSL_RSA_C */
-#if defined(POLARSSL_ECDSA_C)
-    if( pk_can_do( ssl->pk_key, POLARSSL_PK_ECDSA ) )
-    {
-        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
-            ssl->out_msg[5] = SSL_SIG_ECDSA;
-
-        if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
-                             ssl->out_msg + 6 + offset, &n,
-                             ssl->f_rng, ssl->p_rng ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "pk_sign", ret );
-            return( ret );
-        }
-    }
-    else
-#endif /* POLARSSL_ECDSA_C */
-        /* should never happen */
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 
     ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
     ssl->out_msg[5 + offset] = (unsigned char)( n      );

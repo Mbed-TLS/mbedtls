@@ -29,9 +29,8 @@
 
 #include "polarssl/pk_wrap.h"
 
-#if defined(POLARSSL_RSA_C)
+/* Even if RSA not activated, for the sake of RSA-alt */
 #include "polarssl/rsa.h"
-#endif
 
 #if defined(POLARSSL_ECP_C)
 #include "polarssl/ecp.h"
@@ -49,12 +48,13 @@
 #define polarssl_free       free
 #endif
 
-#if defined(POLARSSL_RSA_C)
+/* Used by RSA-alt too */
 static int rsa_can_do( pk_type_t type )
 {
     return( type == POLARSSL_PK_RSA );
 }
 
+#if defined(POLARSSL_RSA_C)
 static size_t rsa_get_size( const void *ctx )
 {
     return( 8 * ((rsa_context *) ctx)->len );

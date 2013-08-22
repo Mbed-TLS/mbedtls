@@ -1071,7 +1071,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     return( 0 );
 }
 
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
 static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
                                        unsigned char *end )
 {
@@ -1105,7 +1106,8 @@ static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
 
     return( ret );
 }
-#endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)

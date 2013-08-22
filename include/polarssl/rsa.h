@@ -29,8 +29,6 @@
 
 #include "config.h"
 
-#if defined(POLARSSL_RSA_C)
-
 #include "bignum.h"
 #include "md.h"
 
@@ -58,6 +56,12 @@
 
 #define RSA_SIGN        1
 #define RSA_CRYPT       2
+
+/*
+ * The above constants may be used even if the RSA module is compile out,
+ * eg for alternative (PKCS#11) RSA implemenations in the PK layers.
+ */
+#if defined(POLARSSL_RSA_C)
 
 #ifdef __cplusplus
 extern "C" {

@@ -25,6 +25,8 @@
 
 #include "polarssl/config.h"
 
+#if defined(POLARSSL_PK_C)
+
 #include "polarssl/pk_wrap.h"
 
 #if defined(POLARSSL_RSA_C)
@@ -410,3 +412,5 @@ const pk_info_t rsa_alt_info = {
     rsa_alt_free_wrap,
     NULL,
 };
+
+#endif /* POLARSSL_PK_C */

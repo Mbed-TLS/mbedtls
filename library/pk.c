@@ -25,6 +25,8 @@
 
 #include "polarssl/config.h"
 
+#if defined(POLARSSL_PK_C)
+
 #include "polarssl/pk.h"
 #include "polarssl/pk_wrap.h"
 
@@ -251,3 +253,5 @@ const char * pk_get_name( const pk_context *ctx )
 
     return( ctx->pk_info->name );
 }
+
+#endif /* POLARSSL_PK_C */

@@ -1094,6 +1094,21 @@
 #define POLARSSL_PEM_C
 
 /**
+ * \def POLARSSL_PK_C
+ *
+ * Enable the generic public (asymetric) key layer.
+ *
+ * Module:  library/pk.c
+ * Caller:  library/x509parse.c
+ *          library/ssl_tls.c
+ *          library/ssl_cli.c
+ *          library/ssl_srv.c
+ *
+ * Uncomment to enable generic public key wrappers.
+ */
+#define POLARSSL_PK_C
+
+/**
  * \def POLARSSL_PKCS5_C
  *
  * Enable PKCS#5 functions
@@ -1248,7 +1263,7 @@
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * Requires: POLARSSL_MD5_C, POLARSSL_SHA1_C, POLARSSL_CIPHER_C
+ * Requires: POLARSSL_MD5_C, POLARSSL_SHA1_C, POLARSSL_CIPHER_C, POLARSSL_PK_C
  *
  * This module is required for SSL/TLS.
  */
@@ -1288,7 +1303,7 @@
  *          library/ssl_tls.c
  *
  * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_BIGNUM_C, POLARSSL_OID_C,
- *           POLARSSL_RSA_C
+ *           POLARSSL_PK_C
  *
  * This module is required for X.509 certificate parsing.
  */
@@ -1483,7 +1498,8 @@
 #endif
 
 #if defined(POLARSSL_SSL_TLS_C) && ( !defined(POLARSSL_MD5_C) ||        \
-    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_CIPHER_C) )
+    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_CIPHER_C) ) ||       \
+    !defined(POLARSSL_PK_C)
 #error "POLARSSL_SSL_TLS_C defined, but not all prerequisites"
 #endif
 
@@ -1498,7 +1514,7 @@
 
 #if defined(POLARSSL_X509_PARSE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
     !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
-    !defined(POLARSSL_RSA_C) )
+    !defined(POLARSSL_PK_C) )
 #error "POLARSSL_X509_PARSE_C defined, but not all prerequisites"
 #endif
 

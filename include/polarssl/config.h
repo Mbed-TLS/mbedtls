@@ -1126,11 +1126,10 @@
  *
  * Enable wrapper for PKCS#11 smartcard support.
  *
- * Module:  library/ssl_srv.c
- * Caller:  library/ssl_cli.c
- *          library/ssl_srv.c
+ * Module:  library/pkcs11.c
+ * Caller:  library/pk.c
  *
- * Requires: POLARSSL_SSL_TLS_C
+ * Requires: POLARSSL_PK_C
  *
  * This module enables SSL/TLS PKCS #11 smartcard support.
  * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
@@ -1484,7 +1483,7 @@
 #error "POLARSSL_PEM_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_SSL_TLS_C)
+#if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_PK_C)
 #error "POLARSSL_PKCS11_C defined, but not all prerequisites"
 #endif
 

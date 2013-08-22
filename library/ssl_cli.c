@@ -1449,8 +1449,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         /*
          * Verify signature
          */
-        if( pk_alg != POLARSSL_PK_NONE &&
-            ! pk_can_do( &ssl->session_negotiate->peer_cert->pk, pk_alg ) )
+        if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk, pk_alg ) )
         {
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_PK_TYPE_MISMATCH );
@@ -1939,7 +1938,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
-    if( ssl->pk_key == NULL || ssl->pk_key->pk_info == NULL )
+    if( ssl->pk_key == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "got no private key" ) );
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );

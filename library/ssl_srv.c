@@ -2029,7 +2029,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         /*
          * Make the signature
          */
-        if( ssl->pk_key == NULL || ssl->pk_key->pk_info == NULL )
+        if( ssl->pk_key == NULL )
         {
             SSL_DEBUG_MSG( 1, ( "got no private key" ) );
             return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );

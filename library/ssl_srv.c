@@ -1998,38 +1998,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
              *     ServerDHParams params;
              * };
              */
-            switch( ssl->handshake->sig_alg )
-            {
-#if defined(POLARSSL_MD5_C)
-                case SSL_HASH_MD5:
-                    md_alg = POLARSSL_MD_MD5;
-                    break;
-#endif
-#if defined(POLARSSL_SHA1_C)
-                case SSL_HASH_SHA1:
-                    md_alg = POLARSSL_MD_SHA1;
-                    break;
-#endif
-#if defined(POLARSSL_SHA256_C)
-                case SSL_HASH_SHA224:
-                    md_alg = POLARSSL_MD_SHA224;
-                    break;
-                case SSL_HASH_SHA256:
-                    md_alg = POLARSSL_MD_SHA256;
-                    break;
-#endif
-#if defined(POLARSSL_SHA512_C)
-                case SSL_HASH_SHA384:
-                    md_alg = POLARSSL_MD_SHA384;
-                    break;
-                case SSL_HASH_SHA512:
-                    md_alg = POLARSSL_MD_SHA512;
-                    break;
-#endif
-                default:
-                    /* Should never happen */
-                    return( -1 );
-            }
+            md_alg = ssl_md_alg_from_hash( ssl->handshake->sig_alg );
 
             if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
             {
@@ -2595,8 +2564,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         sa_len = 2;
 
         /*
-         * Hash: as server we know we either have SSL_HASH_SHA384 or
-         * SSL_HASH_SHA256
+         * Hash
          */
         if( ssl->in_msg[4] != ssl->handshake->verify_sig_alg )
         {
@@ -2605,10 +2573,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
         }
 
-        if( ssl->handshake->verify_sig_alg == SSL_HASH_SHA384 )
-            md_alg = POLARSSL_MD_SHA384;
-        else
-            md_alg = POLARSSL_MD_SHA256;
+        md_alg = ssl_md_alg_from_hash( ssl->handshake->verify_sig_alg );
 
         /*
          * Get hashlen from MD
@@ -2623,26 +2588,13 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         /*
          * Signature
          */
-        switch( ssl->in_msg[5] )
+        if( ( pk_alg = ssl_pk_alg_from_sig( ssl->in_msg[5] ) )
+                        == POLARSSL_PK_NONE )
         {
-#if defined(POLARSSL_RSA_C)
-            case SSL_SIG_RSA:
-                pk_alg = POLARSSL_PK_RSA;
-                break;
-#endif
-
-#if defined(POLARSSL_ECDSA_C)
-            case SSL_SIG_ECDSA:
-                pk_alg = POLARSSL_PK_ECDSA;
-                break;
-#endif
-
-            default:
-                SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
-                                    " for verify message" ) );
-                return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
+                                " for verify message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
         }
-
 
         /*
          * Check the certificate's key type matches the signature alg
@@ -2663,10 +2615,9 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-    ret = pk_verify( &ssl->session_negotiate->peer_cert->pk,
-                     md_alg, hash, hashlen,
-                     ssl->in_msg + 6 + sa_len, sig_len );
-    if( ret != 0 )
+    if( ( ret = pk_verify( &ssl->session_negotiate->peer_cert->pk,
+                           md_alg, hash, hashlen,
+                           ssl->in_msg + 6 + sa_len, sig_len ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "pk_verify", ret );
         return( ret );

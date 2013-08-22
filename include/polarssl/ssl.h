@@ -1385,6 +1385,8 @@ int ssl_write_finished( ssl_context *ssl );
 void ssl_optimize_checksum( ssl_context *ssl, const ssl_ciphersuite_t *ciphersuite_info );
 
 unsigned char ssl_sig_from_pk( pk_context *pk );
+pk_type_t ssl_pk_alg_from_sig( unsigned char sig );
+md_type_t ssl_md_alg_from_hash( unsigned char hash );
 
 #ifdef __cplusplus
 }

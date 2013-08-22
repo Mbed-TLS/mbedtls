@@ -1183,38 +1183,11 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
     /*
      * Get hash algorithm
      */
-    switch( (*p)[0] )
+    if( ( *md_alg = ssl_md_alg_from_hash( (*p)[0] ) ) == POLARSSL_MD_NONE )
     {
-#if defined(POLARSSL_MD5_C)
-        case SSL_HASH_MD5:
-            *md_alg = POLARSSL_MD_MD5;
-            break;
-#endif
-#if defined(POLARSSL_SHA1_C)
-        case SSL_HASH_SHA1:
-            *md_alg = POLARSSL_MD_SHA1;
-            break;
-#endif
-#if defined(POLARSSL_SHA256_C)
-        case SSL_HASH_SHA224:
-            *md_alg = POLARSSL_MD_SHA224;
-            break;
-        case SSL_HASH_SHA256:
-            *md_alg = POLARSSL_MD_SHA256;
-            break;
-#endif
-#if defined(POLARSSL_SHA512_C)
-        case SSL_HASH_SHA384:
-            *md_alg = POLARSSL_MD_SHA384;
-            break;
-        case SSL_HASH_SHA512:
-            *md_alg = POLARSSL_MD_SHA512;
-            break;
-#endif
-        default:
-            SSL_DEBUG_MSG( 2, ( "Server used unsupported "
-                                "HashAlgorithm %d", *(p)[0] ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        SSL_DEBUG_MSG( 2, ( "Server used unsupported "
+                            "HashAlgorithm %d", *(p)[0] ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
     /*
@@ -1232,24 +1205,11 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
     /*
      * Get signature algorithm
      */
-    switch( (*p)[1] )
+    if( ( *pk_alg = ssl_pk_alg_from_sig( (*p)[1] ) ) == POLARSSL_PK_NONE )
     {
-#if defined(POLARSSL_RSA_C)
-        case SSL_SIG_RSA:
-            *pk_alg = POLARSSL_PK_RSA;
-            break;
-#endif
-
-#if defined(POLARSSL_ECDSA_C)
-        case SSL_SIG_ECDSA:
-            *pk_alg = POLARSSL_PK_ECDSA;
-            break;
-#endif
-
-        default:
-            SSL_DEBUG_MSG( 2, ( "server used unsupported "
-                                "SignatureAlgorithm %d", (*p)[1] ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        SSL_DEBUG_MSG( 2, ( "server used unsupported "
+                            "SignatureAlgorithm %d", (*p)[1] ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
     SSL_DEBUG_MSG( 2, ( "Server used SignatureAlgorithm %d", (*p)[1] ) );

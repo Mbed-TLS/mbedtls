@@ -944,11 +944,11 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
  *
  * \return          0 on success, or a specific error code.
  */
-int ssl_set_own_cert_alt_rsa( ssl_context *ssl, x509_cert *own_cert,
-                               void *rsa_key,
-                               rsa_decrypt_func rsa_decrypt,
-                               rsa_sign_func rsa_sign,
-                               rsa_key_len_func rsa_key_len );
+int ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
+                          void *rsa_key,
+                          rsa_decrypt_func rsa_decrypt,
+                          rsa_sign_func rsa_sign,
+                          rsa_key_len_func rsa_key_len );
 #endif /* POLARSSL_X509_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)

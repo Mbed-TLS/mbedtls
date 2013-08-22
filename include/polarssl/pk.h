@@ -250,7 +250,7 @@ size_t pk_get_size( const pk_context *ctx );
  *
  * \return          Key lenght in bytes, or 0 on error
  */
-static size_t pk_get_len( const pk_context *ctx )
+static inline size_t pk_get_len( const pk_context *ctx )
 {
     return( ( pk_get_size( ctx ) + 7 ) / 8 );
 }

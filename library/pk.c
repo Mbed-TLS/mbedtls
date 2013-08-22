@@ -150,13 +150,31 @@ int pk_can_do( pk_context *ctx, pk_type_t type )
 }
 
 /*
+ * Helper for pk_sign and pk_verify
+ */
+static inline int pk_hashlen_helper( md_type_t md_alg, size_t *hash_len )
+{
+    const md_info_t *md_info;
+
+    if( *hash_len != 0 )
+        return( 0 );
+
+    if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
+        return( -1 );
+
+    *hash_len = md_info->size;
+    return( 0 );
+}
+
+/*
  * Verify a signature
  */
 int pk_verify( pk_context *ctx, md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len )
 {
-    if( ctx == NULL || ctx->pk_info == NULL )
+    if( ctx == NULL || ctx->pk_info == NULL ||
+        pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
     if( ctx->pk_info->verify_func == NULL )
@@ -174,7 +192,8 @@ int pk_sign( pk_context *ctx, md_type_t md_alg,
              unsigned char *sig, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    if( ctx == NULL || ctx->pk_info == NULL )
+    if( ctx == NULL || ctx->pk_info == NULL ||
+        pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
 
     if( ctx->pk_info->sign_func == NULL )

@@ -1164,8 +1164,6 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
                                           size_t *hash_len,
                                           pk_type_t *pk_alg )
 {
-    const md_info_t *md_info;
-
     ((void) ssl);
     *md_alg = POLARSSL_MD_NONE;
     *pk_alg = POLARSSL_PK_NONE;
@@ -1180,6 +1178,9 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
     if( (*p) + 2 > end )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
 
+    /* Info from md_alg will be used instead */
+    *hash_len = 0;
+
     /*
      * Get hash algorithm
      */
@@ -1189,18 +1190,6 @@ static int ssl_parse_signature_algorithm( ssl_context *ssl,
                             "HashAlgorithm %d", *(p)[0] ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
-
-    /*
-     * Get hash_len from hash alg
-     */
-    if( ( md_info = md_info_from_type( *md_alg ) ) == NULL )
-    {
-        SSL_DEBUG_MSG( 2, ( "Server used unsupported "
-                            "HashAlgorithm %d", *(p)[0] ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-    }
-
-    *hash_len = md_info->size;
 
     /*
      * Get signature algorithm
@@ -1956,7 +1945,6 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     }
     else
     {
-        const md_info_t *md_info;
         /*
          * digitally-signed struct {
          *     opaque handshake_messages[handshake_messages_length];
@@ -1985,13 +1973,8 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         }
         ssl->out_msg[5] = ssl_sig_from_pk( ssl->pk_key );
 
-        if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
-        {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
-        }
-
-        hashlen = md_info->size;
+        /* Info from md_alg will be used instead */
+        hashlen = 0;
 
         offset = 2;
     }

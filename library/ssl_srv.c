@@ -1989,7 +1989,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         else
         {
             md_context_t ctx;
-            const md_info_t *md_info;
+
+            /* Info from md_alg will be used instead */
+            hashlen = 0;
 
             /*
              * digitally-signed struct {
@@ -1998,17 +2000,14 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
              *     ServerDHParams params;
              * };
              */
-            md_alg = ssl_md_alg_from_hash( ssl->handshake->sig_alg );
-
-            if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
+            if( ( md_alg = ssl_md_alg_from_hash( ssl->handshake->sig_alg ) )
+                         == POLARSSL_MD_NONE )
             {
                 SSL_DEBUG_MSG( 1, ( "should never happen" ) );
                 return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
             }
 
-            hashlen = md_info->size;
-
-            if( ( ret = md_init_ctx( &ctx, md_info ) ) != 0 )
+            if( ( ret = md_init_ctx( &ctx, md_info_from_type(md_alg) ) ) != 0 )
             {
                 SSL_DEBUG_RET( 1, "md_init_ctx", ret );
                 return( ret );
@@ -2502,7 +2501,6 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     size_t hashlen;
     pk_type_t pk_alg;
     md_type_t md_alg;
-    const md_info_t *md_info;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
@@ -2575,15 +2573,8 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 
         md_alg = ssl_md_alg_from_hash( ssl->handshake->verify_sig_alg );
 
-        /*
-         * Get hashlen from MD
-         */
-        if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
-        {
-            SSL_DEBUG_MSG( 1, ( "requested hash not available " ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
-        }
-        hashlen = md_info->size;
+        /* Info from md_alg will be used instead */
+        hashlen = 0;
 
         /*
          * Signature

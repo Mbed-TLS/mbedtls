@@ -270,14 +270,19 @@ int pk_can_do( pk_context *ctx, pk_type_t type );
  * \brief           Verify signature
  *
  * \param ctx       PK context to use
- * \param md_alg    Hash algorithm used
+ * \param md_alg    Hash algorithm used (see notes)
  * \param hash      Hash of the message to sign
- * \param hash_len  Hash length
+ * \param hash_len  Hash length or 0 (see notes)
  * \param sig       Signature to verify
  * \param sig_len   Signature length
  *
  * \return          0 on success (signature is valid),
  *                  or a specific error code.
+ *
+ * \note            If hash_len is 0, then the length associated with md_alg
+ *                  is used instead, or an error returned if it is invalid.
+ *
+ * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
  */
 int pk_verify( pk_context *ctx, md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
@@ -287,15 +292,20 @@ int pk_verify( pk_context *ctx, md_type_t md_alg,
  * \brief           Make signature
  *
  * \param ctx       PK context to use
- * \param md_alg    Hash algorithm used
+ * \param md_alg    Hash algorithm used (see notes)
  * \param hash      Hash of the message to sign
- * \param hash_len  Hash length
+ * \param hash_len  Hash length or 0 (see notes)
  * \param sig       Place to write the signature
  * \param sig_len   Number of bytes written
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
  * \return          0 on success, or a specific error code.
+ *
+ * \note            If hash_len is 0, then the length associated with md_alg
+ *                  is used instead, or an error returned if it is invalid.
+ *
+ * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
  */
 int pk_sign( pk_context *ctx, md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,

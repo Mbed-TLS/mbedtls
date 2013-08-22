@@ -147,6 +147,7 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     /*
      * Prepare signature_algorithms extension (TLS 1.2)
      */
+#if defined(POLARSSL_RSA_C)
 #if defined(POLARSSL_SHA512_C)
     sig_alg_list[sig_alg_len++] = SSL_HASH_SHA512;
     sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
@@ -167,6 +168,29 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     sig_alg_list[sig_alg_len++] = SSL_HASH_MD5;
     sig_alg_list[sig_alg_len++] = SSL_SIG_RSA;
 #endif
+#endif /* POLARSSL_RSA_C */
+#if defined(POLARSSL_ECDSA_C)
+#if defined(POLARSSL_SHA512_C)
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA512;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA384;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
+#endif
+#if defined(POLARSSL_SHA256_C)
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA256;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA224;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
+#endif
+#if defined(POLARSSL_SHA1_C)
+    sig_alg_list[sig_alg_len++] = SSL_HASH_SHA1;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
+#endif
+#if defined(POLARSSL_MD5_C)
+    sig_alg_list[sig_alg_len++] = SSL_HASH_MD5;
+    sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
+#endif
+#endif /* POLARSSL_ECDSA_C */
 
     /*
      * enum {

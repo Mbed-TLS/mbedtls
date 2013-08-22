@@ -442,12 +442,10 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
     p = buf + 2;
     while( sig_alg_list_size > 0 )
     {
-        if( p[1] != SSL_SIG_RSA )
-        {
-            sig_alg_list_size -= 2;
-            p += 2;
-            continue;
-        }
+        /*
+         * For now, just ignore signature algorithm and rely on offered
+         * ciphersuites only. To be fixed later.
+         */
 #if defined(POLARSSL_SHA512_C)
         if( p[0] == SSL_HASH_SHA512 )
         {

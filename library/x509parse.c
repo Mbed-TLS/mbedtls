@@ -3505,6 +3505,17 @@ static int x509parse_verify_top(
      */
     *flags |= BADCERT_NOT_TRUSTED;
 
+    md_info = md_info_from_type( child->sig_md );
+    if( md_info == NULL )
+    {
+        /*
+         * Cannot check 'unknown', no need to try any CA
+         */
+        trust_ca = NULL;
+    }
+    else
+        md( md_info, child->tbs.p, child->tbs.len, hash );
+
     while( trust_ca != NULL )
     {
         if( trust_ca->version == 0 ||
@@ -3534,18 +3545,6 @@ static int x509parse_verify_top(
             continue;
         }
 
-        md_info = md_info_from_type( child->sig_md );
-        if( md_info == NULL )
-        {
-            /*
-             * Cannot check 'unknown' hash
-             */
-            trust_ca = trust_ca->next;
-            continue;
-        }
-
-        md( md_info, child->tbs.p, child->tbs.len, hash );
-
         if( pk_can_do( &trust_ca->pk, child->sig_pk ) == 0 ||
             pk_verify( &trust_ca->pk, child->sig_md, hash, md_info->size,
                        child->sig.p, child->sig.len ) != 0 )
@@ -3571,7 +3570,7 @@ static int x509parse_verify_top(
           memcmp( child->subject_raw.p, trust_ca->subject_raw.p,
                             child->issuer_raw.len ) != 0 ) )
     {
-        /* Check trusted CA's CRL for then chain's top crt */
+        /* Check trusted CA's CRL for the chain's top crt */
         *flags |= x509parse_verifycrl( child, trust_ca, ca_crl );
 
         if( x509parse_time_expired( &trust_ca->valid_to ) )

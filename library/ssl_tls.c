@@ -2113,7 +2113,7 @@ int ssl_parse_certificate( ssl_context *ssl )
     if( ssl->endpoint == SSL_IS_SERVER &&
         ssl->authmode == SSL_VERIFY_NONE )
     {
-        ssl->verify_result = BADCERT_SKIP_VERIFY;
+        ssl->session_negotiate->verify_result = BADCERT_SKIP_VERIFY;
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
         return( 0 );
@@ -2140,7 +2140,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
 
-            ssl->verify_result = BADCERT_MISSING;
+            ssl->session_negotiate->verify_result = BADCERT_MISSING;
             if( ssl->authmode == SSL_VERIFY_OPTIONAL )
                 return( 0 );
             else
@@ -2158,7 +2158,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
 
-            ssl->verify_result = BADCERT_MISSING;
+            ssl->session_negotiate->verify_result = BADCERT_MISSING;
             if( ssl->authmode == SSL_VERIFY_REQUIRED )
                 return( POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE );
             else
@@ -2241,8 +2241,8 @@ int ssl_parse_certificate( ssl_context *ssl )
         }
 
         ret = x509parse_verify( ssl->session_negotiate->peer_cert,
-                                ssl->ca_chain, ssl->ca_crl,
-                                ssl->peer_cn,  &ssl->verify_result,
+                                ssl->ca_chain, ssl->ca_crl, ssl->peer_cn,
+                               &ssl->session_negotiate->verify_result,
                                 ssl->f_vrfy, ssl->p_vrfy );
 
         if( ret != 0 )
@@ -3325,7 +3325,7 @@ size_t ssl_get_bytes_avail( const ssl_context *ssl )
 
 int ssl_get_verify_result( const ssl_context *ssl )
 {
-    return( ssl->verify_result );
+    return( ssl->session->verify_result );
 }
 
 const char *ssl_get_ciphersuite( const ssl_context *ssl )

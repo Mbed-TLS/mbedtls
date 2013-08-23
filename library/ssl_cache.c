@@ -83,6 +83,8 @@ int ssl_cache_get( void *data, ssl_session *session )
 
         memcpy( session->master, entry->session.master, 48 );
 
+        session->verify_result = entry->session.verify_result;
+
 #if defined(POLARSSL_X509_PARSE_C)
         /*
          * Restore peer certificate (without rest of the original chain)

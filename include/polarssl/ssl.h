@@ -355,6 +355,7 @@ struct _ssl_session
 #if defined(POLARSSL_X509_PARSE_C)
     x509_cert *peer_cert;       /*!< peer X.509 cert chain */
 #endif /* POLARSSL_X509_PARSE_C */
+    int verify_result;          /*!<  verification result     */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     unsigned char *ticket;      /*!< RFC 5077 session ticket */

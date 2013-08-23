@@ -3166,7 +3166,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
     if( ret != 0 )
         ret = snprintf( p, n, "???"  );
     else
-        ret = snprintf( p, n, desc );
+        ret = snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
 
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
@@ -3274,7 +3274,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
     if( ret != 0 )
         ret = snprintf( p, n, "???"  );
     else
-        ret = snprintf( p, n, desc );
+        ret = snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n" );

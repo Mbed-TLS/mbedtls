@@ -56,16 +56,22 @@
  *
  *  Assumes ticket is NULL (always true on server side).
  */
-static void ssl_save_session( const ssl_session *session,
-                              unsigned char *buf, size_t *olen )
+static int ssl_save_session( const ssl_session *session,
+                             unsigned char *buf, size_t buf_len,
+                             size_t *olen )
 {
     unsigned char *p = buf;
+    size_t left = buf_len;
 #if defined(POLARSSL_X509_PARSE_C)
     size_t cert_len;
 #endif /* POLARSSL_X509_PARSE_C */
 
+    if( left < sizeof( ssl_session ) )
+        return( -1 );
+
     memcpy( p, session, sizeof( ssl_session ) );
     p += sizeof( ssl_session );
+    left -= sizeof( ssl_session );
 
 #if defined(POLARSSL_X509_PARSE_C)
     ((ssl_session *) buf)->peer_cert = NULL;
@@ -74,6 +80,9 @@ static void ssl_save_session( const ssl_session *session,
         cert_len = 0;
     else
         cert_len = session->peer_cert->raw.len;
+
+    if( left < 3 + cert_len )
+        return( -1 );
 
     *p++ = (unsigned char)( cert_len >> 16 & 0xFF );
     *p++ = (unsigned char)( cert_len >>  8 & 0xFF );
@@ -86,6 +95,8 @@ static void ssl_save_session( const ssl_session *session,
 #endif /* POLARSSL_X509_PARSE_C */
 
     *olen = p - buf;
+
+    return( 0 );
 }
 
 /*
@@ -182,9 +193,19 @@ static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
     memcpy( iv, p, 16 );
     p += 16;
 
-    /* Dump session state */
+    /*
+     * Dump session state
+     *
+     * After the session state itself, we still need room for 16 bytes of
+     * padding and 32 bytes of MAC, so there's only so much room left
+     */
     state = p + 2;
-    ssl_save_session( ssl->session_negotiate, state, &clear_len );
+    if( ssl_save_session( ssl->session_negotiate, state,
+                          SSL_MAX_CONTENT_LEN - (state - ssl->out_ctr) - 48,
+                          &clear_len ) != 0 )
+    {
+        return( POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE );
+    }
     SSL_DEBUG_BUF( 3, "session ticket cleartext", state, clear_len );
 
     /* Apply PKCS padding */

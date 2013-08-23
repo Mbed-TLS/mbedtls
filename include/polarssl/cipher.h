@@ -491,4 +491,4 @@ int cipher_self_test( int verbose );
 }
 #endif
 
-#endif /* POLARSSL_MD_H */
+#endif /* POLARSSL_CIPHER_H */

@@ -54,7 +54,7 @@
 #define POLARSSL_ERR_X509_CERT_INVALID_ALG                 -0x2300  /**< The algorithm tag or value is invalid. */
 #define POLARSSL_ERR_X509_CERT_INVALID_NAME                -0x2380  /**< The name tag or value is invalid. */
 #define POLARSSL_ERR_X509_CERT_INVALID_DATE                -0x2400  /**< The date tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_PUBKEY              -0x2480  /**< The pubkey tag or value is invalid (only RSA is supported). */
+#define POLARSSL_ERR_X509_CERT_INVALID_PUBKEY              -0x2480  /**< The pubkey tag or value is invalid (only RSA and EC are supported). */
 #define POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE           -0x2500  /**< The signature tag or value invalid. */
 #define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x2580  /**< The extension tag or value is invalid. */
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x2600  /**< Certificate or CRL has an unsupported version number. */

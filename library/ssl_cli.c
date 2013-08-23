@@ -134,7 +134,7 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
                                                 size_t *olen )
 {
     unsigned char *p = buf;
-    unsigned char sig_alg_list[20];
+    unsigned char *sig_alg_list = buf + 6;
     size_t sig_alg_len = 0;
 
     *olen = 0;
@@ -217,8 +217,6 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
 
     *p++ = (unsigned char)( ( sig_alg_len >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( sig_alg_len      ) & 0xFF );
-
-    memcpy( p, sig_alg_list, sig_alg_len );
 
     *olen = 6 + sig_alg_len;
 }

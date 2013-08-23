@@ -180,6 +180,8 @@ static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
     unsigned char iv[16];
     size_t clear_len, enc_len, pad_len, i;
 
+    *tlen = 0;
+
     if( ssl->ticket_keys == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 

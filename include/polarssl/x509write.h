@@ -29,7 +29,7 @@
 
 #include "config.h"
 
-#include "rsa.h"
+#include "x509.h"
 
 /**
  * \addtogroup x509_module
@@ -80,6 +80,7 @@ typedef struct _x509_csr
     rsa_context *rsa;
     x509_req_name *subject;
     md_type_t md_alg;
+    unsigned char key_usage;
 }
 x509_csr;
 
@@ -123,6 +124,15 @@ void x509write_csr_set_rsa_key( x509_csr *ctx, rsa_context *rsa );
  * \param md_ald    MD algorithm to use
  */
 void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg );
+
+/**
+ * \brief           Set the Key Usage Extension flags
+ *                  (e.g. KU_DIGITAL_SIGNATURE | KU_KEY_CERT_SIGN)
+ *
+ * \param ctx       CSR context to use
+ * \param key_usage key usage bitstring to set
+ */
+void x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage );
 
 /**
  * \brief           Free the contents of a CSR context

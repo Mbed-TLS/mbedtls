@@ -148,6 +148,11 @@ exit:
     return( ret );
 }
 
+void x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage )
+{
+    ctx->key_usage = key_usage;
+}
+
 int x509write_pubkey_der( rsa_context *rsa, unsigned char *buf, size_t size )
 {
     int ret;
@@ -301,13 +306,43 @@ int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size )
     unsigned char hash[64];
     unsigned char sig[POLARSSL_MPI_MAX_SIZE];
     unsigned char tmp_buf[2048];
-    size_t sub_len = 0, pub_len = 0, sig_len = 0;
+    size_t sub_len = 0, pub_len = 0, sig_len = 0, ext_len = 0;
     size_t len = 0;
     x509_req_name *cur = ctx->subject;
 
     c = tmp_buf + 2048 - 1;
 
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, 0 ) );
+    /*
+     * Extension  ::=  SEQUENCE  {
+     *      extnID      OBJECT IDENTIFIER,
+     *      extnValue   OCTET STRING  }
+     */
+    if( ctx->key_usage )
+    {
+        ASN1_CHK_ADD( ext_len, asn1_write_bitstring( &c, tmp_buf, &ctx->key_usage, 6 ) );
+        ASN1_CHK_ADD( ext_len, asn1_write_len( &c, tmp_buf, ext_len ) );
+        ASN1_CHK_ADD( ext_len, asn1_write_tag( &c, tmp_buf, ASN1_OCTET_STRING ) );
+        ASN1_CHK_ADD( ext_len, asn1_write_oid( &c, tmp_buf, OID_KEY_USAGE ) );
+        ASN1_CHK_ADD( ext_len, asn1_write_len( &c, tmp_buf, ext_len ) );
+        ASN1_CHK_ADD( ext_len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    }
+
+    if( ext_len )
+    {
+        ASN1_CHK_ADD( ext_len, asn1_write_len( &c, tmp_buf, ext_len ) );
+        ASN1_CHK_ADD( ext_len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+
+        ASN1_CHK_ADD( ext_len, asn1_write_len( &c, tmp_buf, ext_len ) );
+        ASN1_CHK_ADD( ext_len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SET ) );
+
+        ASN1_CHK_ADD( ext_len, asn1_write_oid( &c, tmp_buf, OID_PKCS9_CSR_EXT_REQ ) );
+
+        ASN1_CHK_ADD( ext_len, asn1_write_len( &c, tmp_buf, ext_len ) );
+        ASN1_CHK_ADD( ext_len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    }
+
+    len += ext_len;
+    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, ext_len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) );
 
     ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &ctx->rsa->E ) );

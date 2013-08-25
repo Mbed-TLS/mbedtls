@@ -48,6 +48,10 @@ int asn1_write_printable_string( unsigned char **p, unsigned char *start,
                                  char *text );
 int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
                                  char *text );
+int asn1_write_bitstring( unsigned char **p, unsigned char *start,
+                          const unsigned char *buf, size_t bits );
+int asn1_write_octet_string( unsigned char **p, unsigned char *start,
+                             const unsigned char *buf, size_t size );
 
 #ifdef __cplusplus
 }

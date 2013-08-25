@@ -39,7 +39,7 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	test/ssl_cert_test	test/benchmark		\
 	test/selftest		test/ssl_test		\
 	test/ecp-bench							\
-	util/strerror							\
+	util/pem2der		util/strerror		\
 	x509/cert_app		x509/crl_app		\
 	x509/cert_req
 
@@ -194,6 +194,10 @@ test/ssl_test: test/ssl_test.c ../library/libpolarssl.a
 test/o_p_test: test/o_p_test.c ../library/libpolarssl.a
 	echo   "  CC    test/o_p_test.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/o_p_test.c    $(LDFLAGS) -o $@ -lssl -lcrypto
+
+util/pem2der: util/pem2der.c ../library/libpolarssl.a
+	echo   "  CC    util/pem2der.c"
+	$(CC) $(CFLAGS) $(OFLAGS) util/pem2der.c    $(LDFLAGS) -o $@
 
 util/strerror: util/strerror.c ../library/libpolarssl.a
 	echo   "  CC    util/strerror.c"

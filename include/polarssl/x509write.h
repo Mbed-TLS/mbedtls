@@ -31,15 +31,38 @@
 
 #include "rsa.h"
 
+/**
+ * \addtogroup x509_module
+ * \{
+ */
+
+/**
+ * \name X509 Write Error codes
+ * \{
+ */
 #define POLARSSL_ERR_X509WRITE_UNKNOWN_OID                -0x5F80  /**< Requested OID is unknown. */
 #define POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA             -0x5F00  /**< Failed to allocate memory. */
 #define POLARSSL_ERR_X509WRITE_MALLOC_FAILED              -0x5E80  /**< Failed to allocate memory. */
-
+/* \} name */
+/* \} addtogroup x509_module */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * \addtogroup x509_module
+ * \{
+ */
+
+/**
+ * \name Structures for writing X.509 CSRs (Certificate Signing Request) 
+ * \{
+ */
+
+/**
+ * Container for CSR named objects
+ */
 typedef struct _x509_req_name
 {
     char oid[128];
@@ -49,6 +72,9 @@ typedef struct _x509_req_name
 }
 x509_req_name;
 
+/**
+ * Container for a CSR
+ */
 typedef struct _x509_csr
 {
     rsa_context *rsa;
@@ -57,14 +83,98 @@ typedef struct _x509_csr
 }
 x509_csr;
 
+/* \} addtogroup x509_module */
+
+/**
+ * \brief           Initialize a CSR context
+ *
+ * \param ctx       CSR context to initialize
+ */
 void x509write_csr_init( x509_csr *ctx );
+
+/**
+ * \brief           Set the subject name for a CSR
+ *                  Subject names should contain a comma-separated list
+ *                  of OID types and values:
+ *                  e.g. "C=NL,O=Offspark,CN=PolarSSL Server 1"
+ *
+ * \param ctx           CSR context to use
+ * \param subject_name  subject name to set
+ *
+ * \return          0 if subject name was parsed successfully, or
+ *                  a specific error code
+ */
 int x509write_csr_set_subject_name( x509_csr *ctx, char *subject_name );
+
+/**
+ * \brief           Set the RSA key for a CSR (public key will be included,
+ *                  private key used to sign the CSR when writing it)
+ *
+ * \param ctx       CSR context to use
+ * \param rsa       RSA key to include
+ */
 void x509write_csr_set_rsa_key( x509_csr *ctx, rsa_context *rsa );
+
+/**
+ * \brief           Set the MD algorithm to use for the signature
+ *                  (e.g. POLARSSL_MD_SHA1)
+ *
+ * \param ctx       CSR context to use
+ * \param md_ald    MD algorithm to use
+ */
 void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg );
+
+/**
+ * \brief           Free the contents of a CSR context
+ *
+ * \param ctx       CSR context to free
+ */
 void x509write_csr_free( x509_csr *ctx );
 
+/**
+ * \brief           Write a RSA public key to a PKCS#1 DER structure
+ *                  Note: data is written at the end of the buffer! Use the
+ *                        return value to determine where you should start
+ *                        using the buffer
+ *
+ * \param rsa       RSA to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          length of data written if successful, or a specific
+ *                  error code
+ */
 int x509write_pubkey_der( rsa_context *rsa, unsigned char *buf, size_t size );
+
+/**
+ * \brief           Write a RSA key to a PKCS#1 DER structure
+ *                  Note: data is written at the end of the buffer! Use the
+ *                        return value to determine where you should start
+ *                        using the buffer
+ *
+ * \param rsa       RSA to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          length of data written if successful, or a specific
+ *                  error code
+ */
 int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size );
+
+/**
+ * \brief           Write a CSR (Certificate Signing Request) to a
+ *                  DER structure
+ *                  Note: data is written at the end of the buffer! Use the
+ *                        return value to determine where you should start
+ *                        using the buffer
+ *
+ * \param rsa       CSR to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          length of data written if successful, or a specific
+ *                  error code
+ */
 int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size );
 
 #ifdef __cplusplus

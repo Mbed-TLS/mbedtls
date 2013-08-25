@@ -76,7 +76,7 @@ int x509cert_req_set_subject_name( x509_cert_req *ctx, char *subject_name )
     char *end = s + strlen( s );
     char *oid = NULL;
     int in_tag = 1;
-    x509_req_name *cur = ctx->subject;
+    x509_req_name *cur;
 
     while( ctx->subject )
     {
@@ -121,15 +121,7 @@ int x509cert_req_set_subject_name( x509_cert_req *ctx, char *subject_name )
                 goto exit;
             }
 
-            if( cur == NULL )
-            {
-                ctx->subject = cur = polarssl_malloc( sizeof(x509_req_name) );
-            }
-            else
-            {
-                cur->next = polarssl_malloc( sizeof(x509_req_name) );
-                cur = cur->next;
-            }
+            cur = polarssl_malloc( sizeof(x509_req_name) );
 
             if( cur == NULL )
             {
@@ -138,6 +130,9 @@ int x509cert_req_set_subject_name( x509_cert_req *ctx, char *subject_name )
             }
 
             memset( cur, 0, sizeof(x509_req_name) );
+
+            cur->next = ctx->subject;
+            ctx->subject = cur;
 
             strncpy( cur->oid, oid, strlen( oid ) );
             strncpy( cur->name, s, c - s );

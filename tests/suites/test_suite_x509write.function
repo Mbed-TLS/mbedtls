@@ -23,7 +23,7 @@ void x509_cert_req_check( char *key_file, int md_type,
     int ret;
     size_t olen = 2000;
     FILE *f;
-    char *subject_name = "CN=PolarSSL Server 1,O=PolarSSL,C=NL";
+    char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
 
     memset( &rsa, 0, sizeof(rsa_context) );
     ret = x509parse_keyfile_rsa( &rsa, key_file, NULL );

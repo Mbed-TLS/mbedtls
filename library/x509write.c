@@ -33,6 +33,126 @@
 #include "polarssl/md.h"
 #include "polarssl/oid.h"
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#include <stdlib.h>
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
+void x509cert_req_init( x509_cert_req *ctx )
+{
+    memset( ctx, 0, sizeof(x509_cert_req) );
+}
+
+void x509cert_req_free( x509_cert_req *ctx )
+{
+    x509_req_name *cur;
+
+    while( ( cur = ctx->subject ) != NULL )
+    {
+        ctx->subject = cur->next;
+        polarssl_free( cur );
+    }
+
+    memset( ctx, 0, sizeof(x509_cert_req) );
+}
+
+void x509cert_req_set_md_alg( x509_cert_req *ctx, md_type_t md_alg )
+{
+    ctx->md_alg = md_alg;
+}
+
+void x509cert_req_set_rsa_key( x509_cert_req *ctx, rsa_context *rsa )
+{
+    ctx->rsa = rsa;
+}
+
+int x509cert_req_set_subject_name( x509_cert_req *ctx, char *subject_name )
+{
+    int ret = 0;
+    char *s = subject_name, *c = s;
+    char *end = s + strlen( s );
+    char *oid = NULL;
+    int in_tag = 1;
+    x509_req_name *cur = ctx->subject;
+
+    while( ctx->subject )
+    {
+        cur = ctx->subject;
+        ctx->subject = ctx->subject->next;
+        polarssl_free( cur );
+    }
+
+    while( c <= end )
+    {
+        if( in_tag && *c == '=' )
+        {
+            if( memcmp( s, "CN", 2 ) == 0 && c - s == 2 )
+                oid = OID_AT_CN;
+            else if( memcmp( s, "C", 1 ) == 0 && c - s == 1 )
+                oid = OID_AT_COUNTRY;
+            else if( memcmp( s, "O", 1 ) == 0 && c - s == 1 )
+                oid = OID_AT_ORGANIZATION;
+            else if( memcmp( s, "L", 1 ) == 0 && c - s == 1 )
+                oid = OID_AT_LOCALITY;
+            else if( memcmp( s, "R", 1 ) == 0 && c - s == 1 )
+                oid = OID_PKCS9_EMAIL;
+            else if( memcmp( s, "OU", 2 ) == 0 && c - s == 2 )
+                oid = OID_AT_ORG_UNIT;
+            else if( memcmp( s, "ST", 2 ) == 0 && c - s == 2 )
+                oid = OID_AT_STATE;
+            else
+            {
+                ret = POLARSSL_ERR_X509_WRITE_UNKNOWN_OID;
+                goto exit;
+            }
+
+            s = c + 1;
+            in_tag = 0;
+        }
+
+        if( !in_tag && ( *c == ',' || c == end ) )
+        {
+            if( c - s > 127 )
+            {
+                ret = POLARSSL_ERR_X509_WRITE_BAD_INPUT_DATA;
+                goto exit;
+            }
+
+            if( cur == NULL )
+            {
+                ctx->subject = cur = polarssl_malloc( sizeof(x509_req_name) );
+            }
+            else
+            {
+                cur->next = polarssl_malloc( sizeof(x509_req_name) );
+                cur = cur->next;
+            }
+
+            if( cur == NULL )
+            {
+                ret = POLARSSL_ERR_X509_WRITE_MALLOC_FAILED;
+                goto exit;
+            }
+
+            memset( cur, 0, sizeof(x509_req_name) );
+
+            strncpy( cur->oid, oid, strlen( oid ) );
+            strncpy( cur->name, s, c - s );
+
+            s = c + 1;
+            in_tag = 1;
+        }
+        c++;
+    }
+
+exit:
+
+    return( ret );
+}
+
 int x509_write_pubkey_der( unsigned char *buf, size_t size, rsa_context *rsa )
 {
     int ret;
@@ -41,6 +161,12 @@ int x509_write_pubkey_der( unsigned char *buf, size_t size, rsa_context *rsa )
 
     c = buf + size - 1;
 
+    /*
+    *  RSAPublicKey ::= SEQUENCE {
+    *      modulus           INTEGER,  -- n
+    *      publicExponent    INTEGER   -- e
+    *  }
+    */
     ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->E ) );
     ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->N ) );
 
@@ -50,6 +176,11 @@ int x509_write_pubkey_der( unsigned char *buf, size_t size, rsa_context *rsa )
     if( c - buf < 1 )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
+    /*
+     *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
+     *       algorithm            AlgorithmIdentifier,
+     *       subjectPublicKey     BIT STRING }
+     */
     *--c = 0;
     len += 1;
 
@@ -167,8 +298,8 @@ static int x509_write_sig( unsigned char **p, unsigned char *start,
     return( len );
 }
 
-int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
-                         x509_req_name *req_name, md_type_t md_alg )
+int x509_write_cert_req( x509_cert_req *ctx, unsigned char *buf,
+                         size_t size )
 {
     int ret;
     const char *sig_oid;
@@ -178,15 +309,15 @@ int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
     unsigned char tmp_buf[2048];
     size_t sub_len = 0, pub_len = 0, sig_len = 0;
     size_t len = 0;
-    x509_req_name *cur = req_name;
+    x509_req_name *cur = ctx->subject;
 
     c = tmp_buf + 2048 - 1;
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, 0 ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) );
 
-    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &rsa->E ) );
-    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &rsa->N ) );
+    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &ctx->rsa->E ) );
+    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &ctx->rsa->N ) );
 
     ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
     ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
@@ -194,6 +325,11 @@ int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
     if( c - tmp_buf < 1 )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
+    /*
+     *  AlgorithmIdentifier  ::=  SEQUENCE  {
+     *       algorithm               OBJECT IDENTIFIER,
+     *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
+     */
     *--c = 0;
     pub_len += 1;
 
@@ -217,21 +353,24 @@ int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, sub_len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
+    /*
+     *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
+     */
     ASN1_CHK_ADD( len, asn1_write_int( &c, tmp_buf, 0 ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
-    md( md_info_from_type( md_alg ), c, len, hash );
+    md( md_info_from_type( ctx->md_alg ), c, len, hash );
 
-    rsa_pkcs1_sign( rsa, NULL, NULL, RSA_PRIVATE, md_alg, 0, hash, sig );
+    rsa_pkcs1_sign( ctx->rsa, NULL, NULL, RSA_PRIVATE, ctx->md_alg, 0, hash, sig );
 
     // Generate correct OID
     //
-    ret = oid_get_oid_by_sig_alg( POLARSSL_PK_RSA, md_alg, &sig_oid );
+    ret = oid_get_oid_by_sig_alg( POLARSSL_PK_RSA, ctx->md_alg, &sig_oid );
 
     c2 = buf + size - 1;
-    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig, rsa->len ) );
+    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig, ctx->rsa->len ) );
 
     c2 -= len;
     memcpy( c2, c, len );

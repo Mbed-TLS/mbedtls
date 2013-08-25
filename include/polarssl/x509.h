@@ -290,42 +290,6 @@ x509_crl;
 /** \} addtogroup x509_module */
 
 /**
- * \name Structures for writing X.509 certificates.
- * XvP: commented out as they are not used.
- * - <tt>typedef struct _x509_node x509_node;</tt>
- * - <tt>typedef struct _x509_raw x509_raw;</tt>
- */
-/*
-typedef struct _x509_node
-{
-    unsigned char *data;
-    unsigned char *p;
-    unsigned char *end;
-
-    size_t len;
-}
-x509_node;
-
-typedef struct _x509_raw
-{
-    x509_node raw;
-    x509_node tbs;
-
-    x509_node version;
-    x509_node serial;
-    x509_node tbs_signalg;
-    x509_node issuer;
-    x509_node validity;
-    x509_node subject;
-    x509_node subpubkey;
-
-    x509_node signalg;
-    x509_node sign;
-}
-x509_raw;
-*/
-
-/**
  * \name Functions to read in DHM parameters, a certificate, CRL or private RSA key
  * \{
  */

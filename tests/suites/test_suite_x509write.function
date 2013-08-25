@@ -11,12 +11,12 @@
  */
 
 /* BEGIN_CASE */
-void x509_cert_req_check( char *key_file, int md_type,
+void x509_csr_check( char *key_file, int md_type,
                           char *cert_req_check_file )
 {
     rsa_context rsa;
     pem_context pem;
-    x509_cert_req req;
+    x509_csr req;
     unsigned char *c;
     unsigned char buf[4000];
     unsigned char check_buf[4000];
@@ -31,12 +31,12 @@ void x509_cert_req_check( char *key_file, int md_type,
     if( ret != 0 )
         return;
 
-    x509cert_req_init( &req );
-    x509cert_req_set_md_alg( &req, md_type );
-    x509cert_req_set_rsa_key( &req, &rsa );
-    TEST_ASSERT( x509cert_req_set_subject_name( &req, subject_name ) == 0 );
+    x509write_csr_init( &req );
+    x509write_csr_set_md_alg( &req, md_type );
+    x509write_csr_set_rsa_key( &req, &rsa );
+    TEST_ASSERT( x509write_csr_set_subject_name( &req, subject_name ) == 0 );
 
-    ret = x509_write_cert_req( &req, buf, 4000 );
+    ret = x509write_csr_der( &req, buf, 4000 );
     TEST_ASSERT( ret >= 0 );
 
     c = buf + 3999 - ret;
@@ -52,7 +52,7 @@ void x509_cert_req_check( char *key_file, int md_type,
     TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
     TEST_ASSERT( pem.buflen == (size_t) ret );
 
-    x509cert_req_free( &req );
+    x509write_csr_free( &req );
     rsa_free( &rsa );
     pem_free( &pem );
 }

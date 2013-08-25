@@ -29,8 +29,6 @@
 
 #include "config.h"
 
-#if defined(POLARSSL_X509_WRITE_C)
-
 #include "rsa.h"
 
 #define POLARSSL_ERR_X509_WRITE_UNKNOWN_OID             -1
@@ -50,28 +48,26 @@ typedef struct _x509_req_name
 }
 x509_req_name;
 
-typedef struct _x509_cert_req
+typedef struct _x509_csr
 {
     rsa_context *rsa;
     x509_req_name *subject;
     md_type_t md_alg;
 }
-x509_cert_req;
+x509_csr;
 
-void x509cert_req_init( x509_cert_req *ctx );
-int x509cert_req_set_subject_name( x509_cert_req *ctx, char *subject_name );
-void x509cert_req_set_rsa_key( x509_cert_req *ctx, rsa_context *rsa );
-void x509cert_req_set_md_alg( x509_cert_req *ctx, md_type_t md_alg );
-void x509cert_req_free( x509_cert_req *ctx );
+void x509write_csr_init( x509_csr *ctx );
+int x509write_csr_set_subject_name( x509_csr *ctx, char *subject_name );
+void x509write_csr_set_rsa_key( x509_csr *ctx, rsa_context *rsa );
+void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg );
+void x509write_csr_free( x509_csr *ctx );
 
-int x509_write_pubkey_der( unsigned char *buf, size_t size, rsa_context *rsa );
-int x509_write_key_der( unsigned char *buf, size_t size, rsa_context *rsa );
-int x509_write_cert_req( x509_cert_req *ctx, unsigned char *buf, size_t size );
+int x509write_pubkey_der( rsa_context *rsa, unsigned char *buf, size_t size );
+int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size );
+int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size );
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* POLARSSL_X509_WRITE_C */
 
 #endif /* POLARSSL_X509_WRITE_H */

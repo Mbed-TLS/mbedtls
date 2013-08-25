@@ -65,7 +65,7 @@ void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-int write_certificate_request( x509_cert_req *req, char *output_file )
+int write_certificate_request( x509_csr *req, char *output_file )
 {
     FILE *f;
     unsigned char output_buf[4096];
@@ -75,7 +75,7 @@ int write_certificate_request( x509_cert_req *req, char *output_file )
     size_t len = 0, olen = 4096;
 
     memset(output_buf, 0, 4096);
-    ret = x509_write_cert_req( req, output_buf, 4096 );
+    ret = x509write_csr_der( req, output_buf, 4096 );
 
     if( ret < 0 )
         return( ret );
@@ -135,13 +135,13 @@ int main( int argc, char *argv[] )
     char buf[1024];
     int i, j, n;
     char *p, *q;
-    x509_cert_req req;
+    x509_csr req;
 
     /*
      * Set to sane values
      */
-    x509cert_req_init( &req );
-    x509cert_req_set_md_alg( &req, POLARSSL_MD_SHA1 );
+    x509write_csr_init( &req );
+    x509write_csr_set_md_alg( &req, POLARSSL_MD_SHA1 );
     memset( &rsa, 0, sizeof( rsa_context ) );
     memset( buf, 0, 1024 );
 
@@ -193,12 +193,12 @@ int main( int argc, char *argv[] )
     /*
      * 1.0. Check the subject name for validity
      */
-    if( ( ret = x509cert_req_set_subject_name( &req, opt.subject_name ) ) != 0 )
+    if( ( ret = x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )
     {
 #ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
 #endif
-        printf( " failed\n  !  x509cert_req_set_subject_name returned %d - %s\n\n", ret, buf );
+        printf( " failed\n  !  x509write_csr_set_subject_name returned %d - %s\n\n", ret, buf );
         goto exit;
     }
 
@@ -219,7 +219,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    x509cert_req_set_rsa_key( &req, &rsa );
+    x509write_csr_set_rsa_key( &req, &rsa );
 
     printf( " ok\n" );
 
@@ -241,7 +241,7 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 
 exit:
-    x509cert_req_free( &req );
+    x509write_csr_free( &req );
     rsa_free( &rsa );
 
 #if defined(_WIN32)

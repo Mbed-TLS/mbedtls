@@ -105,7 +105,7 @@ int x509write_csr_set_subject_name( x509_csr *ctx, char *subject_name )
                 oid = OID_AT_STATE;
             else
             {
-                ret = POLARSSL_ERR_X509_WRITE_UNKNOWN_OID;
+                ret = POLARSSL_ERR_X509WRITE_UNKNOWN_OID;
                 goto exit;
             }
 
@@ -117,7 +117,7 @@ int x509write_csr_set_subject_name( x509_csr *ctx, char *subject_name )
         {
             if( c - s > 127 )
             {
-                ret = POLARSSL_ERR_X509_WRITE_BAD_INPUT_DATA;
+                ret = POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA;
                 goto exit;
             }
 
@@ -125,7 +125,7 @@ int x509write_csr_set_subject_name( x509_csr *ctx, char *subject_name )
 
             if( cur == NULL )
             {
-                ret = POLARSSL_ERR_X509_WRITE_MALLOC_FAILED;
+                ret = POLARSSL_ERR_X509WRITE_MALLOC_FAILED;
                 goto exit;
             }
 

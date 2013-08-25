@@ -31,9 +31,10 @@
 
 #include "rsa.h"
 
-#define POLARSSL_ERR_X509_WRITE_UNKNOWN_OID             -1
-#define POLARSSL_ERR_X509_WRITE_BAD_INPUT_DATA          -1
-#define POLARSSL_ERR_X509_WRITE_MALLOC_FAILED           -1
+#define POLARSSL_ERR_X509WRITE_UNKNOWN_OID                -0x5F80  /**< Requested OID is unknown. */
+#define POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA             -0x5F00  /**< Failed to allocate memory. */
+#define POLARSSL_ERR_X509WRITE_MALLOC_FAILED              -0x5E80  /**< Failed to allocate memory. */
+
 
 #ifdef __cplusplus
 extern "C" {

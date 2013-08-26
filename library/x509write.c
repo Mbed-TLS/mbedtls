@@ -221,7 +221,7 @@ int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage )
 
     c = buf + 4;
 
-    if( ( ret = asn1_write_bitstring( &c, buf, &key_usage, 6 ) ) != 4 )
+    if( ( ret = asn1_write_bitstring( &c, buf, &key_usage, 7 ) ) != 4 )
         return( ret );
 
     ret = x509write_csr_set_extension( ctx, OID_KEY_USAGE,

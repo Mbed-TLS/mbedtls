@@ -156,14 +156,14 @@ exit:
     return( ret );
 }
 
-int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage )
+int x509write_csr_set_extension( x509_csr *ctx,
+                                 const char *oid, size_t oid_len,
+                                 const unsigned char *val, size_t val_len )
 {
     asn1_named_data *cur;
-    unsigned char *c;
-    int len;
 
-    if( ( cur = asn1_find_named_data( ctx->extensions, OID_KEY_USAGE,
-                                      OID_SIZE( OID_KEY_USAGE ) ) ) == NULL )
+    if( ( cur = asn1_find_named_data( ctx->extensions, oid,
+                                      oid_len ) ) == NULL )
     {
         cur = polarssl_malloc( sizeof(asn1_named_data) );
         if( cur == NULL )
@@ -171,32 +171,84 @@ int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage )
 
         memset( cur, 0, sizeof(asn1_named_data) );
 
-        cur->oid.len = OID_SIZE( OID_KEY_USAGE );
-        cur->oid.p = polarssl_malloc( cur->oid.len );
+        cur->oid.len = oid_len;
+        cur->oid.p = polarssl_malloc( oid_len );
         if( cur->oid.p == NULL )
         {
-            free( cur );
+            polarssl_free( cur );
             return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
         }
 
-        cur->val.len = 4;
-        cur->val.p = polarssl_malloc( cur->val.len );
+        cur->val.len = val_len;
+        cur->val.p = polarssl_malloc( val_len );
         if( cur->val.p == NULL )
         {
-            free( cur->oid.p );
-            free( cur );
+            polarssl_free( cur->oid.p );
+            polarssl_free( cur );
             return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
         }
 
-        memcpy( cur->oid.p, OID_KEY_USAGE, OID_SIZE( OID_KEY_USAGE ) );
+        memcpy( cur->oid.p, oid, oid_len );
 
         cur->next = ctx->extensions;
         ctx->extensions = cur;
     }
 
-    c = cur->val.p + cur->val.len;
-    if( ( len = asn1_write_bitstring( &c, cur->val.p, &key_usage, 6 ) ) < 0 )
-exit(1);
+    if( cur->val.len != val_len )
+    {
+        polarssl_free( cur->val.p );
+
+        cur->val.len = val_len;
+        cur->val.p = polarssl_malloc( val_len );
+        if( cur->val.p == NULL )
+        {
+            polarssl_free( cur->oid.p );
+            polarssl_free( cur );
+            return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
+        }
+    }
+
+    memcpy( cur->val.p, val, val_len );
+
+    return( 0 );
+}
+
+int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage )
+{
+    unsigned char buf[4];
+    unsigned char *c;
+    int ret;
+
+    c = buf + 4;
+
+    if( ( ret = asn1_write_bitstring( &c, buf, &key_usage, 6 ) ) != 4 )
+        return( ret );
+
+    ret = x509write_csr_set_extension( ctx, OID_KEY_USAGE,
+                                       OID_SIZE( OID_KEY_USAGE ),
+                                       buf, 4 );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+int x509write_csr_set_ns_cert_type( x509_csr *ctx, unsigned char ns_cert_type )
+{
+    unsigned char buf[4];
+    unsigned char *c;
+    int ret;
+
+    c = buf + 4;
+
+    if( ( ret = asn1_write_bitstring( &c, buf, &ns_cert_type, 8 ) ) != 4 )
+        return( ret );
+
+    ret = x509write_csr_set_extension( ctx, OID_NS_CERT_TYPE,
+                                       OID_SIZE( OID_NS_CERT_TYPE ),
+                                       buf, 4 );
+    if( ret != 0 )
+        return( ret );
 
     return( 0 );
 }

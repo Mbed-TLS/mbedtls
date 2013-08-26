@@ -130,11 +130,37 @@ void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg );
  *                  (e.g. KU_DIGITAL_SIGNATURE | KU_KEY_CERT_SIGN)
  *
  * \param ctx       CSR context to use
- * \param key_usage key usage bitstring to set
+ * \param key_usage key usage flags to set
  *
  * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
  */
 int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage );
+
+/**
+ * \brief           Set the Netscape Cert Type flags
+ *                  (e.g. NS_CERT_TYPE_SSL_CLIENT | NS_CERT_TYPE_EMAIL)
+ *
+ * \param ctx           CSR context to use
+ * \param ns_cert_type  Netscape Cert Type flags to set
+ *
+ * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ */
+int x509write_csr_set_ns_cert_type( x509_csr *ctx, unsigned char ns_cert_type );
+
+/**
+ * \brief           Generic function to add to or replace an extension in the CSR
+ *
+ * \param ctx       CSR context to use
+ * \param oid       OID of the extension
+ * \param oid_len   length of the OID
+ * \param val       value of the extension OCTET STRING
+ * \param val_len   length of the value data
+ *
+ * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ */
+int x509write_csr_set_extension( x509_csr *ctx,
+                                 const char *oid, size_t oid_len,
+                                 const unsigned char *val, size_t val_len );
 
 /**
  * \brief           Free the contents of a CSR context

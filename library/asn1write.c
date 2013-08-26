@@ -272,7 +272,7 @@ int asn1_write_octet_string( unsigned char **p, unsigned char *start,
     int ret;
     size_t len = 0;
 
-    if( *p - start < (int) size + 1 )
+    if( *p - start < (int) size )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     len = size;
@@ -281,6 +281,21 @@ int asn1_write_octet_string( unsigned char **p, unsigned char *start,
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_OCTET_STRING ) );
+
+    return( len );
+}
+
+int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
+                           const unsigned char *buf, size_t size )
+{
+    size_t len = 0;
+
+    if( *p - start < (int) size )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = size;
+    (*p) -= len;
+    memcpy( *p, buf, len );
 
     return( len );
 }

@@ -52,6 +52,8 @@ int asn1_write_bitstring( unsigned char **p, unsigned char *start,
                           const unsigned char *buf, size_t bits );
 int asn1_write_octet_string( unsigned char **p, unsigned char *start,
                              const unsigned char *buf, size_t size );
+int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
+                           const unsigned char *buf, size_t size );
 
 #ifdef __cplusplus
 }

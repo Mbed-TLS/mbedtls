@@ -44,6 +44,8 @@
 #define DFL_DEBUG_LEVEL         0
 #define DFL_OUTPUT_FILENAME     "cert.req"
 #define DFL_SUBJECT_NAME        "CN=Cert,O=PolarSSL,C=NL"
+#define DFL_KEY_USAGE           0
+#define DFL_NS_CERT_TYPE        0
 
 /*
  * global options
@@ -54,16 +56,9 @@ struct options
     int debug_level;            /* level of debugging                   */
     char *output_file;          /* where to store the constructed key file  */
     char *subject_name;         /* subject name for certificate request */
+    unsigned char key_usage;    /* key usage flags                      */
+    unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
-
-void my_debug( void *ctx, int level, const char *str )
-{
-    if( level < opt.debug_level )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
-}
 
 int write_certificate_request( x509_csr *req, char *output_file )
 {
@@ -114,6 +109,24 @@ int write_certificate_request( x509_csr *req, char *output_file )
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "    output_file=%%s      default: cert.req\n"      \
     "    subject_name=%%s     default: CN=Cert,O=PolarSSL,C=NL\n"   \
+    "    key_usage=%%s        default: (empty)\n"       \
+    "                        Comma-separated-list of values:\n"     \
+    "                          digital_signature\n"     \
+    "                          non_repudiation\n"       \
+    "                          key_encipherment\n"      \
+    "                          data_encipherment\n"     \
+    "                          key_agreement\n"         \
+    "                          key_certificate_sign\n"  \
+    "                          crl_sign\n"              \
+    "    ns_cert_type=%%s     default: (empty)\n"       \
+    "                        Comma-separated-list of values:\n"     \
+    "                          ssl_client\n"            \
+    "                          ssl_server\n"            \
+    "                          email\n"                 \
+    "                          object_signing\n"        \
+    "                          ssl_ca\n"                \
+    "                          email_ca\n"              \
+    "                          object_signing_ca\n"     \
     "\n"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
@@ -134,7 +147,7 @@ int main( int argc, char *argv[] )
     rsa_context rsa;
     char buf[1024];
     int i, j, n;
-    char *p, *q;
+    char *p, *q, *r;
     x509_csr req;
 
     /*
@@ -149,6 +162,7 @@ int main( int argc, char *argv[] )
     {
     usage:
         printf( USAGE );
+        ret = 1;
         goto exit;
     }
 
@@ -156,6 +170,8 @@ int main( int argc, char *argv[] )
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.output_file         = DFL_OUTPUT_FILENAME;
     opt.subject_name        = DFL_SUBJECT_NAME;
+    opt.key_usage           = DFL_KEY_USAGE;
+    opt.ns_cert_type        = DFL_NS_CERT_TYPE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -186,9 +202,69 @@ int main( int argc, char *argv[] )
         {
             opt.subject_name = q;
         }
+        else if( strcmp( p, "key_usage" ) == 0 )
+        {
+            while( q != NULL )
+            {
+                if( ( r = strchr( q, ',' ) ) != NULL )
+                    *r++ = '\0';
+
+                if( strcmp( q, "digital_signature" ) == 0 )
+                    opt.key_usage |= KU_DIGITAL_SIGNATURE;
+                else if( strcmp( q, "non_repudiation" ) == 0 )
+                    opt.key_usage |= KU_NON_REPUDIATION;
+                else if( strcmp( q, "key_encipherment" ) == 0 )
+                    opt.key_usage |= KU_KEY_ENCIPHERMENT;
+                else if( strcmp( q, "data_encipherment" ) == 0 )
+                    opt.key_usage |= KU_DATA_ENCIPHERMENT;
+                else if( strcmp( q, "key_agreement" ) == 0 )
+                    opt.key_usage |= KU_KEY_AGREEMENT;
+                else if( strcmp( q, "key_cert_sign" ) == 0 )
+                    opt.key_usage |= KU_KEY_CERT_SIGN;
+                else if( strcmp( q, "crl_sign" ) == 0 )
+                    opt.key_usage |= KU_CRL_SIGN;
+                else
+                    goto usage;
+
+                q = r;
+            }
+        }
+        else if( strcmp( p, "ns_cert_type" ) == 0 )
+        {
+            while( q != NULL )
+            {
+                if( ( r = strchr( q, ',' ) ) != NULL )
+                    *r++ = '\0';
+
+                if( strcmp( q, "ssl_client" ) == 0 )
+                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_CLIENT;
+                else if( strcmp( q, "ssl_server" ) == 0 )
+                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_SERVER;
+                else if( strcmp( q, "email" ) == 0 )
+                    opt.ns_cert_type |= NS_CERT_TYPE_EMAIL;
+                else if( strcmp( q, "object_signing" ) == 0 )
+                    opt.ns_cert_type |= NS_CERT_TYPE_OBJECT_SIGNING;
+                else if( strcmp( q, "ssl_ca" ) == 0 )
+                    opt.ns_cert_type |= NS_CERT_TYPE_SSL_CA;
+                else if( strcmp( q, "email_ca" ) == 0 )
+                    opt.ns_cert_type |= NS_CERT_TYPE_EMAIL_CA;
+                else if( strcmp( q, "object_signing_ca" ) == 0 )
+                    opt.ns_cert_type |= NS_CERT_TYPE_OBJECT_SIGNING_CA;
+                else
+                    goto usage;
+
+                q = r;
+            }
+        }
         else
             goto usage;
     }
+
+    if( opt.key_usage )
+        x509write_csr_set_key_usage( &req, opt.key_usage );
+
+    if( opt.ns_cert_type )
+        x509write_csr_set_ns_cert_type( &req, opt.ns_cert_type );
 
     /*
      * 1.0. Check the subject name for validity

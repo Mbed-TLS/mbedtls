@@ -59,6 +59,20 @@ int asn1_write_len( unsigned char **p, unsigned char *start, size_t len );
  */
 int asn1_write_tag( unsigned char **p, unsigned char *start, unsigned char tag );
 
+/**
+ * \brief           Write raw buffer data
+ *                  Note: function works backwards in data buffer
+ *
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param buf       data buffer to write
+ * \param size      length of the data buffer
+ *
+ * \return          the length written or a negative error code
+ */
+int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
+                           const unsigned char *buf, size_t size );
+
 #if defined(POLARSSL_BIGNUM_C)
 /**
  * \brief           Write a big number (ASN1_INTEGER) in ASN.1 format
@@ -179,21 +193,6 @@ int asn1_write_bitstring( unsigned char **p, unsigned char *start,
  */
 int asn1_write_octet_string( unsigned char **p, unsigned char *start,
                              const unsigned char *buf, size_t size );
-
-/**
- * \brief           Write raw buffer data
- *                  Note: function works backwards in data buffer
- *
- * \param p         reference to current position pointer
- * \param start     start of the buffer (for bounds-checking)
- * \param buf       data buffer to write
- * \param size      length of the data buffer
- *
- * \return          the length written or a negative error code
- */
-int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
-                           const unsigned char *buf, size_t size );
-
 #ifdef __cplusplus
 }
 #endif

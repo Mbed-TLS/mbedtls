@@ -80,7 +80,7 @@ typedef struct _x509_csr
     rsa_context *rsa;
     x509_req_name *subject;
     md_type_t md_alg;
-    unsigned char key_usage;
+    asn1_named_data *extensions;
 }
 x509_csr;
 
@@ -131,8 +131,10 @@ void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg );
  *
  * \param ctx       CSR context to use
  * \param key_usage key usage bitstring to set
+ *
+ * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
  */
-void x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage );
+int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage );
 
 /**
  * \brief           Free the contents of a CSR context

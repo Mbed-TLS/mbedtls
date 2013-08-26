@@ -93,7 +93,10 @@
 /** Returns the size of the binary string, without the trailing \\0 */
 #define OID_SIZE(x) (sizeof(x) - 1)
 
-/** Compares two asn1_buf structures for the same OID */
+/** Compares two asn1_buf structures for the same OID. Only works for
+ *  'defined' oid_str values (OID_HMAC_SHA1), you cannot use a 'unsigned
+ *  char *oid' here!
+ */
 #define OID_CMP(oid_str, oid_buf)                                   \
         ( ( OID_SIZE(oid_str) == (oid_buf)->len ) &&                \
           memcmp( (oid_str), (oid_buf)->p, (oid_buf)->len) == 0 )
@@ -138,6 +141,17 @@ typedef struct _asn1_sequence
     struct _asn1_sequence *next;    /**< The next entry in the sequence. */
 }
 asn1_sequence;
+
+/**
+ * Container for a sequence or list of 'named' ASN.1 data items
+ */
+typedef struct _asn1_named_data
+{
+    asn1_buf oid;                   /**< The object identifier. */
+    asn1_buf val;                   /**< The named value. */
+    struct _asn1_named_data *next;  /**< The next entry in the sequence. */
+}
+asn1_named_data;
 
 /**
  * Get the length of an ASN.1 element.
@@ -285,6 +299,25 @@ int asn1_get_alg( unsigned char **p,
 int asn1_get_alg_null( unsigned char **p,
                        const unsigned char *end,
                        asn1_buf *alg );
+
+/**
+ * Find a specific named_data entry in a sequence or list based on the OID.
+ *
+ * \param list  The list to seek through
+ * \param oid   The OID to look for
+ * \param len   Size of the OID
+ *
+ * \return      NULL if not found, or a pointer to the existing entry.
+ */
+asn1_named_data *asn1_find_named_data( asn1_named_data *list,
+                                       const char *oid, size_t len );
+
+/**
+ * Free a asn1_named_data entry
+ *
+ * \param entry The named data entry to free
+ */
+void asn1_free_named_data( asn1_named_data *entry );
 
 #ifdef __cplusplus
 }

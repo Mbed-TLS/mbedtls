@@ -522,39 +522,36 @@ int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size )
     return( len );
 }
 
-#define CSR_PEM_BEGIN   "-----BEGIN CERTIFICATE REQUEST-----\n"
-#define CSR_PEM_END     "-----END CERTIFICATE REQUEST-----\n"
+#define PEM_BEGIN_CSR           "-----BEGIN CERTIFICATE REQUEST-----\n"
+#define PEM_END_CSR             "-----END CERTIFICATE REQUEST-----\n"
+
+#define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----\n"
+#define PEM_END_PUBLIC_KEY      "-----END PUBLIC KEY-----\n"
+
+#define PEM_BEGIN_PRIVATE_KEY   "-----BEGIN RSA PRIVATE KEY-----\n"
+#define PEM_END_PRIVATE_KEY     "-----END RSA PRIVATE KEY-----\n"
 
 #if defined(POLARSSL_BASE64_C)
-int x509write_csr_pem( x509_csr *ctx, unsigned char *buf, size_t size )
+static int x509write_pemify( const char *begin_str, const char *end_str,
+                             const unsigned char *der_data, size_t der_len,
+                             unsigned char *buf, size_t size )
 {
     int ret;
-    unsigned char output_buf[4096];
     unsigned char base_buf[4096];
-    unsigned char *c, *p = buf;
-    size_t len = 0, olen = 4096;
+    unsigned char *c = base_buf, *p = buf;
+    size_t len = 0, olen = sizeof(base_buf);
 
-    memset( output_buf, 0, 4096 );
-
-    if( ( ret = x509write_csr_der( ctx, output_buf, 4096 ) ) < 0 )
+    if( ( ret = base64_encode( base_buf, &olen, der_data, der_len ) ) != 0 )
         return( ret );
 
-    len = ret;
-    c = output_buf + 4095 - len;
-
-    if( ( ret = base64_encode( base_buf, &olen, c, len ) ) != 0 )
-        return( ret );
-
-    c = base_buf;
-
-    if( olen + strlen( CSR_PEM_BEGIN ) + strlen( CSR_PEM_END ) +
+    if( olen + strlen( begin_str ) + strlen( end_str ) +
         olen / 64 > size )
     {
         return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 
-    memcpy( p, CSR_PEM_BEGIN, strlen( CSR_PEM_BEGIN ) );
-    p += strlen( CSR_PEM_BEGIN );
+    memcpy( p, begin_str, strlen( begin_str ) );
+    p += strlen( begin_str );
 
     while( olen )
     {
@@ -566,10 +563,73 @@ int x509write_csr_pem( x509_csr *ctx, unsigned char *buf, size_t size )
         *p++ = '\n';
     }
 
-    memcpy( p, CSR_PEM_END, strlen( CSR_PEM_END ) );
-    p += strlen( CSR_PEM_END );
+    memcpy( p, end_str, strlen( end_str ) );
+    p += strlen( end_str );
 
     *p = '\0';
+
+    return( 0 );
+}
+
+int x509write_pubkey_pem( rsa_context *rsa, unsigned char *buf, size_t size )
+{
+    int ret;
+    unsigned char output_buf[4096];
+
+    if( ( ret = x509write_pubkey_der( rsa, output_buf,
+                                      sizeof(output_buf) ) ) < 0 )
+    {
+        return( ret );
+    }
+
+    if( ( ret = x509write_pemify( PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
+                                  output_buf + sizeof(output_buf) - 1 - ret,
+                                  ret, buf, size ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
+
+int x509write_key_pem( rsa_context *rsa, unsigned char *buf, size_t size )
+{
+    int ret;
+    unsigned char output_buf[4096];
+
+    if( ( ret = x509write_key_der( rsa, output_buf,
+                                      sizeof(output_buf) ) ) < 0 )
+    {
+        return( ret );
+    }
+
+    if( ( ret = x509write_pemify( PEM_BEGIN_PRIVATE_KEY, PEM_END_PRIVATE_KEY,
+                                  output_buf + sizeof(output_buf) - 1 - ret,
+                                  ret, buf, size ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
+
+int x509write_csr_pem( x509_csr *ctx, unsigned char *buf, size_t size )
+{
+    int ret;
+    unsigned char output_buf[4096];
+
+    if( ( ret = x509write_csr_der( ctx, output_buf,
+                                      sizeof(output_buf) ) ) < 0 )
+    {
+        return( ret );
+    }
+
+    if( ( ret = x509write_pemify( PEM_BEGIN_CSR, PEM_END_CSR,
+                                  output_buf + sizeof(output_buf) - 1 - ret,
+                                  ret, buf, size ) ) != 0 )
+    {
+        return( ret );
+    }
 
     return( 0 );
 }

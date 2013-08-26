@@ -62,41 +62,23 @@ struct options
 
 int write_certificate_request( x509_csr *req, char *output_file )
 {
+    int ret;
     FILE *f;
     unsigned char output_buf[4096];
-    unsigned char base_buf[4096];
-    unsigned char *c;
-    int ret;
-    size_t len = 0, olen = 4096;
+    size_t len = 0;
 
-    memset(output_buf, 0, 4096);
-    ret = x509write_csr_der( req, output_buf, 4096 );
-
-    if( ret < 0 )
+    memset( output_buf, 0, 4096 );
+    if( ( ret = x509write_csr_pem( req, output_buf, 4096 ) ) < 0 )
         return( ret );
 
-    len = ret;
-    c = output_buf + 4095 - len;
-
-    if( ( ret = base64_encode( base_buf, &olen, c, len ) ) != 0 )
-        return( ret );
-
-    c = base_buf;
+    len = strlen( (char *) output_buf );
 
     if( ( f = fopen( output_file, "w" ) ) == NULL )
         return( -1 );
 
-    fprintf(f, "-----BEGIN CERTIFICATE REQUEST-----\n");
-    while (olen)
-    {
-        int use_len = olen;
-        if (use_len > 64) use_len = 64;
-        fwrite( c, 1, use_len, f );
-        olen -= use_len;
-        c += use_len;
-        fprintf(f, "\n");
-    }
-    fprintf(f, "-----END CERTIFICATE REQUEST-----\n");
+    if( fwrite( output_buf, 1, len, f ) != len )
+        return( -1 );
+
     fclose(f);
 
     return( 0 );

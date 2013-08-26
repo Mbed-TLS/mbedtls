@@ -33,6 +33,10 @@
 #include "polarssl/md.h"
 #include "polarssl/oid.h"
 
+#if defined(POLARSSL_BASE64_C)
+#include "polarssl/base64.h"
+#endif
+
 #if defined(POLARSSL_MEMORY_C)
 #include "polarssl/memory.h"
 #else
@@ -517,5 +521,58 @@ int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size )
 
     return( len );
 }
+
+#define CSR_PEM_BEGIN   "-----BEGIN CERTIFICATE REQUEST-----\n"
+#define CSR_PEM_END     "-----END CERTIFICATE REQUEST-----\n"
+
+#if defined(POLARSSL_BASE64_C)
+int x509write_csr_pem( x509_csr *ctx, unsigned char *buf, size_t size )
+{
+    int ret;
+    unsigned char output_buf[4096];
+    unsigned char base_buf[4096];
+    unsigned char *c, *p = buf;
+    size_t len = 0, olen = 4096;
+
+    memset( output_buf, 0, 4096 );
+
+    if( ( ret = x509write_csr_der( ctx, output_buf, 4096 ) ) < 0 )
+        return( ret );
+
+    len = ret;
+    c = output_buf + 4095 - len;
+
+    if( ( ret = base64_encode( base_buf, &olen, c, len ) ) != 0 )
+        return( ret );
+
+    c = base_buf;
+
+    if( olen + strlen( CSR_PEM_BEGIN ) + strlen( CSR_PEM_END ) +
+        olen / 64 > size )
+    {
+        return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
+    }
+
+    memcpy( p, CSR_PEM_BEGIN, strlen( CSR_PEM_BEGIN ) );
+    p += strlen( CSR_PEM_BEGIN );
+
+    while( olen )
+    {
+        len = ( olen > 64 ) ? 64 : olen;
+        memcpy( p, c, len );
+        olen -= len;
+        p += len;
+        c += len;
+        *p++ = '\n';
+    }
+
+    memcpy( p, CSR_PEM_END, strlen( CSR_PEM_END ) );
+    p += strlen( CSR_PEM_END );
+
+    *p = '\0';
+
+    return( 0 );
+}
+#endif /* POLARSSL_BASE64_C */
 
 #endif

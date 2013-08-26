@@ -215,6 +215,20 @@ int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size );
  */
 int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size );
 
+#if defined(POLARSSL_BASE64_C)
+/**
+ * \brief           Write a CSR (Certificate Signing Request) to a
+ *                  PEM string
+ *
+ * \param rsa       CSR to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          0 successful, or a specific error code
+ */
+int x509write_csr_pem( x509_csr *ctx, unsigned char *buf, size_t size );
+#endif /* POLARSSL_BASE64_C */
+
 #ifdef __cplusplus
 }
 #endif

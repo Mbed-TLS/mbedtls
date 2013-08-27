@@ -34,8 +34,9 @@
  */
 #define POLARSSL_ERR_ECP_BAD_INPUT_DATA                    -0x4F80  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_ECP_BUFFER_TOO_SMALL                  -0x4F00  /**< The buffer is too small to write to. */
-#define POLARSSL_ERR_ECP_GENERIC                           -0x4E80  /**<  Generic ECP error */
+#define POLARSSL_ERR_ECP_GENERIC                           -0x4E80  /**< Generic ECP error. */
 #define POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE               -0x4E00  /**< Requested curve not available. */
+#define POLARSSL_ERR_ECP_VERIFY_FAILED                     -0x4E00  /**< The signature is not valid. */
 
 #ifdef __cplusplus
 extern "C" {

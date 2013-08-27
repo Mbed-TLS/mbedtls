@@ -134,7 +134,7 @@ int ecdsa_verify( const ecp_group *grp,
     if( mpi_cmp_int( r, 1 ) < 0 || mpi_cmp_mpi( r, &grp->N ) >= 0 ||
         mpi_cmp_int( s, 1 ) < 0 || mpi_cmp_mpi( s, &grp->N ) >= 0 )
     {
-        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        ret = POLARSSL_ERR_ECP_VERIFY_FAILED;
         goto cleanup;
     }
 
@@ -168,7 +168,7 @@ int ecdsa_verify( const ecp_group *grp,
 
     if( ecp_is_zero( &R ) )
     {
-        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        ret = POLARSSL_ERR_ECP_VERIFY_FAILED;
         goto cleanup;
     }
 
@@ -177,7 +177,7 @@ int ecdsa_verify( const ecp_group *grp,
      */
     if( mpi_cmp_mpi( &R.X, r ) != 0 )
     {
-        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        ret = POLARSSL_ERR_ECP_VERIFY_FAILED;
         goto cleanup;
     }
 

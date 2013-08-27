@@ -24,6 +24,16 @@ do
       shift
       MODES=$1
       ;;
+    -t|--types)
+      # Key exchange types
+      shift
+      TYPES=$1
+      ;;
+    -V|--verify)
+      # Verifiction modes
+      shift
+      VERIFIES=$1
+      ;;
     -v|--verbose)
       # Set verbosity
       shift
@@ -35,6 +45,8 @@ do
       echo -e "  -f|--filter\tFilter ciphersuites to test (Default: all)"
       echo -e "  -h|--help\t\tPrint this help."
       echo -e "  -m|--modes\tWhich modes to perform (Default: \"ssl3 tls1 tls1_1 tls1_2\")"
+      echo -e "  -t|--types\tWhich key exchange type to perform (Default: \"RSA PSK\")"
+      echo -e "  -V|--verify\tWhich verification modes to perform (Default: \"NO YES\")"
       echo -e "  -v|--verbose\t\tSet verbose output."
       exit 1
       ;;
@@ -53,6 +65,21 @@ log () {
   fi
 }
 
+filter()
+{
+  LIST=$1
+  FILTER=$2
+
+  NEW_LIST=""
+
+  for i in $LIST;
+  do
+    NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" )"
+  done
+
+  echo "$NEW_LIST"
+}
+
 for VERIFY in $VERIFIES;
 do
 
@@ -60,7 +87,7 @@ if [ "X$VERIFY" = "XYES" ];
 then
     P_SERVER_ARGS="ca_file=data_files/test-ca.crt auth_mode=required"
     P_CLIENT_ARGS="ca_file=data_files/test-ca.crt"
-    O_SERVER_ARGS="-CAfile data_files/test-ca.crt -verify 10"
+    O_SERVER_ARGS="-CAfile data_files/test-ca.crt -Verify 10"
     O_CLIENT_ARGS="-CAfile data_files/test-ca.crt"
 else
     P_SERVER_ARGS=""
@@ -72,6 +99,7 @@ fi
 
 for MODE in $MODES;
 do
+echo "-----------"
 echo "Running for $MODE (Verify: $VERIFY)"
 echo "-----------"
 
@@ -199,21 +227,6 @@ case $TYPE in
 
 esac
 
-filter()
-{
-  LIST=$1
-  FILTER=$2
-
-  NEW_LIST=""
-
-  for i in $LIST;
-  do
-    NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" )"
-  done
-
-  echo "$NEW_LIST"
-}
-
 # Filter ciphersuites
 if [ "X" != "X$FILTER" ];
 then
@@ -223,7 +236,7 @@ fi
 
 
 log "$OPENSSL s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE"
-$OPENSSL s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE &
+$OPENSSL s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE >/dev/null 2>&1 &
 PROCESS_ID=$!
 
 sleep 1

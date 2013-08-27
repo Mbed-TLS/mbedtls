@@ -2,6 +2,10 @@
 
 killall -q openssl ssl_server ssl_server2
 
+let "tests = 0"
+let "failed = 0"
+let "skipped = 0"
+
 MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
@@ -285,6 +289,7 @@ sleep 1
 
 for i in $P_CIPHERS;
 do
+    let "tests++"
     log "../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i force_version=$MODE"
     RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i force_version=$MODE )"
     EXIT=$?
@@ -292,10 +297,12 @@ do
     if [ "$EXIT" = "2" ];
     then
         echo Ciphersuite not supported in client
+        let "skipped++"
     elif [ "$EXIT" != "0" ];
     then
         echo Failed
         echo $RESULT
+        let "failed++"
     else
         echo Success
     fi
@@ -311,6 +318,7 @@ sleep 1
 
 for i in $O_CIPHERS;
 do
+    let "tests++"
     log "$OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS"
     RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS 2>&1 )"
     EXIT=$?
@@ -322,11 +330,13 @@ do
         if [ "X$SUPPORTED" != "X" ]
         then
             echo "Ciphersuite not supported in server"
+            let "skipped++"
         else
             echo Failed
             echo ../programs/ssl/ssl_server2 $P_SERVER_ARGS 
             echo $OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS 
             echo $RESULT
+            let "failed++"
         fi
     else
         echo Success
@@ -418,6 +428,7 @@ fi
 
 for i in $P_CIPHERS;
 do
+    let "tests++"
     log "../programs/ssl/ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS"
     RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS )"
     EXIT=$?
@@ -425,10 +436,12 @@ do
     if [ "$EXIT" = "2" ];
     then
         echo Ciphersuite not supported in client
+        let "skipped++"
     elif [ "$EXIT" != "0" ];
     then
         echo Failed
         echo $RESULT
+        let "failed++"
     else
         echo Success
     fi
@@ -439,3 +452,19 @@ wait $PROCESS_ID 2>/dev/null
 done
 done
 done
+
+echo ""
+echo "-------------------------------------------------------------------------"
+echo ""
+
+if (( failed != 0 ));
+then
+    echo -n "FAILED"
+else
+    echo -n "PASSED"
+fi
+
+let "passed = tests - failed"
+echo " ($passed / $tests tests ($skipped skipped))"
+
+exit $failed

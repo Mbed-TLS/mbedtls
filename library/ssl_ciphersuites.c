@@ -160,7 +160,7 @@ static const int ciphersuite_preference[] =
     0
 };
 
-#define MAX_CIPHERSUITES    60
+#define MAX_CIPHERSUITES    128
 static int supported_ciphersuites[MAX_CIPHERSUITES];
 static int supported_init = 0;
 

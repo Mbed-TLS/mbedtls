@@ -1951,9 +1951,33 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         size_t signature_len = 0;
 
         /*
+         * Choose hash algorithm. NONE means MD5 + SHA1 here.
+         */
+        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+        {
+            md_alg = ssl_md_alg_from_hash( ssl->handshake->sig_alg );
+
+            if( md_alg == POLARSSL_MD_NONE )
+            {
+                SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            }
+        }
+        else if ( ciphersuite_info->key_exchange ==
+                  POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
+        {
+            md_alg = POLARSSL_MD_SHA1;
+        }
+        else
+        {
+            md_alg = POLARSSL_MD_NONE;
+        }
+
+
+        /*
          * Compute the hash to be signed
          */
-        if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
+        if( md_alg == POLARSSL_MD_NONE )
         {
             md5_context md5;
             sha1_context sha1;
@@ -1982,7 +2006,6 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             sha1_finish( &sha1, hash + 16 );
 
             hashlen = 36;
-            md_alg = POLARSSL_MD_NONE;
         }
         else
         {
@@ -1998,13 +2021,6 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
              *     ServerDHParams params;
              * };
              */
-            if( ( md_alg = ssl_md_alg_from_hash( ssl->handshake->sig_alg ) )
-                         == POLARSSL_MD_NONE )
-            {
-                SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
-            }
-
             if( ( ret = md_init_ctx( &ctx, md_info_from_type(md_alg) ) ) != 0 )
             {
                 SSL_DEBUG_RET( 1, "md_init_ctx", ret );
@@ -2498,6 +2514,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t sa_len, sig_len;
     unsigned char hash[48];
+    unsigned char *hash_start = hash;
     size_t hashlen;
     pk_type_t pk_alg;
     md_type_t md_alg;
@@ -2556,6 +2573,15 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 
         md_alg = POLARSSL_MD_NONE;
         hashlen = 36;
+
+        /* For ECDSA, use SHA-1, not MD-5 + SHA-1 */
+        if( pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                        POLARSSL_PK_ECDSA ) )
+        {
+            hash_start += 16;
+            hashlen -= 16;
+            md_alg = POLARSSL_MD_SHA1;
+        }
     }
     else
     {
@@ -2607,7 +2633,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     }
 
     if( ( ret = pk_verify( &ssl->session_negotiate->peer_cert->pk,
-                           md_alg, hash, hashlen,
+                           md_alg, hash_start, hashlen,
                            ssl->in_msg + 6 + sa_len, sig_len ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "pk_verify", ret );

@@ -1326,7 +1326,7 @@
 
 // CTR_DRBG options
 //
-#define CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default */
+#define CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
 #define CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
 #define CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
 #define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
@@ -1382,8 +1382,17 @@
 #error "POLARSSL_ECP_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ENTROPY_C) && !defined(POLARSSL_SHA512_C)
+#if defined(POLARSSL_ENTROPY_C) && (!defined(POLARSSL_SHA512_C) &&      \
+                                    !defined(POLARSSL_SHA256_C))
 #error "POLARSSL_ENTROPY_C defined, but not all prerequisites"
+#endif
+#if defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_SHA512_C) &&         \
+    defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 64)
+#error "CTR_DRBG_ENTROPY_LEN value too high"
+#endif
+#if defined(POLARSSL_ENTROPY_C) && !defined(POLARSSL_SHA512_C) &&        \
+    defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 32)
+#error "CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 
 #if defined(POLARSSL_GCM_C) && !defined(POLARSSL_AES_C)

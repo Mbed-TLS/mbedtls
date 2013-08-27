@@ -2318,7 +2318,7 @@ void ssl_optimize_checksum( ssl_context *ssl,
                             const ssl_ciphersuite_t *ciphersuite_info )
 {
 #if !defined(POLARSSL_SHA512_C)
-    ((void) ciphersuite);
+    ((void) ciphersuite_info);
 #endif
 
     if( ssl->minor_ver < SSL_MINOR_VERSION_3 )

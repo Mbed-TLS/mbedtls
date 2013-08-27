@@ -439,7 +439,9 @@ struct _ssl_handshake_params
        md5_context fin_md5;
       sha1_context fin_sha1;
     sha256_context fin_sha256;
+#if defined(POLARSSL_SHA512_C)
     sha512_context fin_sha512;
+#endif
 
     void (*update_checksum)(ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(ssl_context *, unsigned char *);

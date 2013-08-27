@@ -31,7 +31,16 @@
 
 #include "config.h"
 
+#if defined(POLARSSL_SHA512_C)
 #include "sha512.h"
+#define POLARSSL_ENTROPY_SHA512_ACCUMULATOR
+#else
+#if defined(POLARSSL_SHA256_C)
+#define POLARSSL_ENTROPY_SHA256_ACCUMULATOR
+#include "sha256.h"
+#endif
+#endif
+
 #if defined(POLARSSL_HAVEGE_C)
 #include "havege.h"
 #endif
@@ -45,7 +54,11 @@
 #define ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */
 #endif /* !POLARSSL_CONFIG_OPTIONS  */
 
+#if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
 #define ENTROPY_BLOCK_SIZE      64      /**< Block size of entropy accumulator (SHA-512) */
+#else
+#define ENTROPY_BLOCK_SIZE      32      /**< Block size of entropy accumulator (SHA-256) */
+#endif
 
 #define ENTROPY_SOURCE_MANUAL   ENTROPY_MAX_SOURCES
 
@@ -83,7 +96,11 @@ source_state;
  */
 typedef struct
 {
+#if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
     sha512_context  accumulator;
+#else
+    sha256_context  accumulator;
+#endif
     int             source_count;
     source_state    source[ENTROPY_MAX_SOURCES];
 #if defined(POLARSSL_HAVEGE_C)

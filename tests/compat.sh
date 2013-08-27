@@ -4,7 +4,7 @@ killall -q openssl ssl_server ssl_server2
 
 MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
-TYPES="RSA PSK"
+TYPES="ECDSA RSA PSK"
 OPENSSL=openssl
 FILTER=""
 VERBOSE=""
@@ -45,7 +45,7 @@ do
       echo -e "  -f|--filter\tFilter ciphersuites to test (Default: all)"
       echo -e "  -h|--help\t\tPrint this help."
       echo -e "  -m|--modes\tWhich modes to perform (Default: \"ssl3 tls1 tls1_1 tls1_2\")"
-      echo -e "  -t|--types\tWhich key exchange type to perform (Default: \"RSA PSK\")"
+      echo -e "  -t|--types\tWhich key exchange type to perform (Default: \"ECDSA RSA PSK\")"
       echo -e "  -V|--verify\tWhich verification modes to perform (Default: \"NO YES\")"
       echo -e "  -v|--verbose\t\tSet verbose output."
       exit 1
@@ -85,10 +85,10 @@ do
 
 if [ "X$VERIFY" = "XYES" ];
 then
-    P_SERVER_ARGS="ca_file=data_files/test-ca.crt auth_mode=required"
-    P_CLIENT_ARGS="ca_file=data_files/test-ca.crt"
-    O_SERVER_ARGS="-CAfile data_files/test-ca.crt -Verify 10"
-    O_CLIENT_ARGS="-CAfile data_files/test-ca.crt"
+    P_SERVER_ARGS="ca_file=data_files/test-ca_cat12.crt auth_mode=required"
+    P_CLIENT_ARGS="ca_file=data_files/test-ca_cat12.crt"
+    O_SERVER_ARGS="-CAfile data_files/test-ca_cat12.crt -Verify 10"
+    O_CLIENT_ARGS="-CAfile data_files/test-ca_cat12.crt"
 else
     P_SERVER_ARGS=""
     P_CLIENT_ARGS=""
@@ -107,6 +107,48 @@ for TYPE in $TYPES;
 do
 
 case $TYPE in
+
+    "ECDSA")
+
+        P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server5.crt key_file=data_files/server5.key"
+        P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server6.crt key_file=data_files/server6.key"
+        O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server5.crt -key data_files/server5.key"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server6.crt -key data_files/server6.key"
+
+        P_CIPHERS="                                 \
+            TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
+            TLS-ECDHE-ECDSA-WITH-RC4-128-SHA        \
+            TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
+            TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
+            TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
+            "
+
+        O_CIPHERS="                         \
+            ECDHE-ECDSA-NULL-SHA            \
+            ECDHE-ECDSA-RC4-SHA             \
+            ECDHE-ECDSA-DES-CBC3-SHA        \
+            ECDHE-ECDSA-AES128-SHA          \
+            ECDHE-ECDSA-AES256-SHA          \
+            "
+
+        if [ "$MODE" = "tls1_2" ];
+        then
+            P_CIPHERS="$P_CIPHERS                               \
+                TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256         \
+                TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384         \
+                TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256         \
+                TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384         \
+                "
+
+            O_CIPHERS="                         \
+                ECDHE-ECDSA-AES128-SHA256       \
+                ECDHE-ECDSA-AES256-SHA384       \
+                ECDHE-ECDSA-AES128-GCM-SHA256   \
+                ECDHE-ECDSA-AES256-GCM-SHA384   \
+                "
+        fi
+
+        ;;
 
     "RSA")
 
@@ -304,17 +346,29 @@ sleep 1
 
 case $TYPE in
 
+    "ECDSA")
+
+        if [ "$MODE" = "tls1_2" ];
+        then
+            P_CIPHERS="$P_CIPHERS                               \
+                TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256    \
+                TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384    \
+                "
+        fi
+
+        ;;
+
     "RSA")
 
         if [ "$MODE" = "tls1_2" ];
         then
-            P_CIPHERS="$P_CIPHERS                        \
-                TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256     \
-                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
-                TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256     \
-                TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256 \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384 \
+            P_CIPHERS="$P_CIPHERS                           \
+                TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256        \
+                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256    \
+                TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256        \
+                TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256    \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
                 "
         fi
 

@@ -564,7 +564,6 @@ struct _ssl_context
     int (*f_send)(void *, const unsigned char *, size_t);
     int (*f_get_cache)(void *, ssl_session *);
     int (*f_set_cache)(void *, const ssl_session *);
-    int (*f_sni)(void *, ssl_context *, const unsigned char *, size_t);
 
     void *p_rng;                /*!< context for the RNG function     */
     void *p_dbg;                /*!< context for the debug function   */
@@ -572,8 +571,12 @@ struct _ssl_context
     void *p_send;               /*!< context for writing operations   */
     void *p_get_cache;          /*!< context for cache retrieval      */
     void *p_set_cache;          /*!< context for cache store          */
-    void *p_sni;                /*!< context for SNI extension        */
     void *p_hw_data;            /*!< context for HW acceleration      */
+
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+    int (*f_sni)(void *, ssl_context *, const unsigned char *, size_t);
+    void *p_sni;                /*!< context for SNI extension        */
+#endif
 
 #if defined(POLARSSL_X509_PARSE_C)
     int (*f_vrfy)(void *, x509_cert *, int, int *);
@@ -689,11 +692,13 @@ struct _ssl_context
     size_t         psk_identity_len;
 #endif
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     /*
-     * TLS extensions
+     * SNI extension
      */
     unsigned char *hostname;
     size_t         hostname_len;
+#endif
 
     /*
      * Secure renegotiation
@@ -1032,6 +1037,7 @@ int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
 int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
 #endif
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /**
  * \brief          Set hostname for ServerName TLS extension
  *                 (client-side only)
@@ -1067,6 +1073,7 @@ void ssl_set_sni( ssl_context *ssl,
                   int (*f_sni)(void *, ssl_context *, const unsigned char *,
                                size_t),
                   void *p_sni );
+#endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
 
 /**
  * \brief          Set the maximum supported version sent from the client side

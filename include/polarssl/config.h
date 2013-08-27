@@ -598,6 +598,15 @@
 #define POLARSSL_SSL_SESSION_TICKETS
 
 /**
+ * \def POLARSSL_SSL_SERVER_NAME_INDICATION
+ *
+ * Enable support for RFC 6066 server name indication (SNI) in SSL
+ *
+ * Comment this macro to disable support for server name indication in SSL
+ */
+#define POLARSSL_SSL_SERVER_NAME_INDICATION
+
+/**
  * \def POLARSSL_SSL_TRUNCATED_HMAC
  *
  * Enable support for RFC 6066 truncated HMAC in SSL

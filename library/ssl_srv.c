@@ -336,6 +336,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 static int ssl_parse_servername_ext( ssl_context *ssl,
                                      const unsigned char *buf,
                                      size_t len )
@@ -385,6 +386,7 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
 
 static int ssl_parse_renegotiation_info( ssl_context *ssl,
                                          const unsigned char *buf,
@@ -1157,6 +1159,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         }
         switch( ext_id )
         {
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
         case TLS_EXT_SERVERNAME:
             SSL_DEBUG_MSG( 3, ( "found ServerName extension" ) );
             if( ssl->f_sni == NULL )
@@ -1166,6 +1169,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             if( ret != 0 )
                 return( ret );
             break;
+#endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
 
         case TLS_EXT_RENEGOTIATION_INFO:
             SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );

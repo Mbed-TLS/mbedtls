@@ -51,6 +51,7 @@ typedef UINT32 uint32_t;
 #include <time.h>
 #endif
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 static void ssl_write_hostname_ext( ssl_context *ssl,
                                     unsigned char *buf,
                                     size_t *olen )
@@ -100,6 +101,7 @@ static void ssl_write_hostname_ext( ssl_context *ssl,
 
     *olen = ssl->hostname_len + 9;
 }
+#endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
 
 static void ssl_write_renegotiation_ext( ssl_context *ssl,
                                          unsigned char *buf,
@@ -534,8 +536,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     // First write extensions, then the total length
     //
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     ssl_write_hostname_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
+#endif
 
     ssl_write_renegotiation_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;

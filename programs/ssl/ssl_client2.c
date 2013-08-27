@@ -719,7 +719,9 @@ int main( int argc, char *argv[] )
                  strlen( opt.psk_identity ) );
 #endif
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     ssl_set_hostname( &ssl, opt.server_name );
+#endif
 
     if( opt.min_version != -1 )
         ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );

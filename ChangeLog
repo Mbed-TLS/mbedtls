@@ -31,6 +31,7 @@ Changes
    * Split up the GCM module into a starts/update/finish cycle
    * Client and server now filter sent and accepted ciphersuites on minimum
      and maximum protocol version
+   * Ability to disable server_name extension (RFC 6066)
    * Renamed error_strerror() to the less conflicting polarssl_strerror()
      (Ability to keep old as well with POLARSSL_ERROR_STRERROR_BC)
    * SHA2 renamed to SHA256, SHA4 renamed to SHA512 and functions accordingly

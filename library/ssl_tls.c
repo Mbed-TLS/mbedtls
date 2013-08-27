@@ -35,12 +35,12 @@
 
 #if defined(POLARSSL_SSL_TLS_C)
 
-#include "polarssl/aes.h"
+#include "polarssl/debug.h"
+#include "polarssl/ssl.h"
+
 #include "polarssl/arc4.h"
 #include "polarssl/camellia.h"
 #include "polarssl/des.h"
-#include "polarssl/debug.h"
-#include "polarssl/ssl.h"
 
 #if defined(POLARSSL_GCM_C)
 #include "polarssl/gcm.h"
@@ -3053,8 +3053,10 @@ int ssl_init( ssl_context *ssl )
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     ssl->hostname = NULL;
     ssl->hostname_len = 0;
+#endif
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
@@ -3356,6 +3358,7 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx )
 }
 #endif /* POLARSSL_DHM_C */
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 int ssl_set_hostname( ssl_context *ssl, const char *hostname )
 {
     if( hostname == NULL )
@@ -3387,6 +3390,7 @@ void ssl_set_sni( ssl_context *ssl,
     ssl->f_sni = f_sni;
     ssl->p_sni = p_sni;
 }
+#endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
 
 void ssl_set_max_version( ssl_context *ssl, int major, int minor )
 {
@@ -3918,12 +3922,14 @@ void ssl_free( ssl_context *ssl )
     polarssl_free( ssl->ticket_keys );
 #endif
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     if ( ssl->hostname != NULL)
     {
         memset( ssl->hostname, 0, ssl->hostname_len );
         polarssl_free( ssl->hostname );
         ssl->hostname_len = 0;
     }
+#endif
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_finish != NULL )

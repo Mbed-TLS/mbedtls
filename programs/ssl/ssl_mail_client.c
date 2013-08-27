@@ -596,7 +596,9 @@ int main( int argc, char *argv[] )
     ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
     ssl_set_own_cert( &ssl, &clicert, &rsa );
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     ssl_set_hostname( &ssl, opt.server_name );
+#endif
 
     if( opt.mode == MODE_SSL_TLS )
     {

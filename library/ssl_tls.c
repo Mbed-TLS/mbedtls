@@ -158,6 +158,7 @@ static size_t ssl_rsa_key_len( void *ctx )
 /*
  * Key material generation
  */
+#if defined(POLARSSL_SSL_PROTO_SSL3)
 static int ssl3_prf( const unsigned char *secret, size_t slen,
                      const char *label,
                      const unsigned char *random, size_t rlen,
@@ -202,7 +203,9 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
 static int tls1_prf( const unsigned char *secret, size_t slen,
                      const char *label,
                      const unsigned char *random, size_t rlen,
@@ -263,7 +266,10 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_PROTO_TLS1) || POLARSSL_SSL_PROTO_TLS1_1 */
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
 static int tls_prf_sha256( const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
@@ -303,6 +309,7 @@ static int tls_prf_sha256( const unsigned char *secret, size_t slen,
 
     return( 0 );
 }
+#endif /* POLARSSL_SHA256_C */
 
 #if defined(POLARSSL_SHA512_C)
 static int tls_prf_sha384( const unsigned char *secret, size_t slen,
@@ -344,24 +351,38 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_SHA512_C */
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
 static void ssl_update_checksum_start(ssl_context *, const unsigned char *, size_t);
+
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
 static void ssl_update_checksum_md5sha1(ssl_context *, const unsigned char *, size_t);
-static void ssl_update_checksum_sha256(ssl_context *, const unsigned char *, size_t);
+#endif
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
 static void ssl_calc_verify_ssl(ssl_context *,unsigned char *);
-static void ssl_calc_verify_tls(ssl_context *,unsigned char *);
-static void ssl_calc_verify_tls_sha256(ssl_context *,unsigned char *);
-
 static void ssl_calc_finished_ssl(ssl_context *,unsigned char *,int);
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
+static void ssl_calc_verify_tls(ssl_context *,unsigned char *);
 static void ssl_calc_finished_tls(ssl_context *,unsigned char *,int);
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
+static void ssl_update_checksum_sha256(ssl_context *, const unsigned char *, size_t);
+static void ssl_calc_verify_tls_sha256(ssl_context *,unsigned char *);
 static void ssl_calc_finished_tls_sha256(ssl_context *,unsigned char *,int);
+#endif
 
 #if defined(POLARSSL_SHA512_C)
 static void ssl_update_checksum_sha384(ssl_context *, const unsigned char *, size_t);
 static void ssl_calc_verify_tls_sha384(ssl_context *,unsigned char *);
 static void ssl_calc_finished_tls_sha384(ssl_context *,unsigned char *,int);
+#endif
 #endif
 
 int ssl_derive_keys( ssl_context *ssl )
@@ -375,7 +396,6 @@ int ssl_derive_keys( ssl_context *ssl )
     unsigned int iv_copy_len;
     const cipher_info_t *cipher_info;
     const md_info_t *md_info;
-    int ret;
 
     ssl_session *session = ssl->session_negotiate;
     ssl_transform *transform = ssl->transform_negotiate;
@@ -402,33 +422,47 @@ int ssl_derive_keys( ssl_context *ssl )
     /*
      * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions
      */
+#if defined(POLARSSL_SSL_PROTO_SSL3)
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
         handshake->tls_prf = ssl3_prf;
         handshake->calc_verify = ssl_calc_verify_ssl;
         handshake->calc_finished = ssl_calc_finished_ssl;
     }
-    else if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
+    else
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
+    if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
     {
         handshake->tls_prf = tls1_prf;
         handshake->calc_verify = ssl_calc_verify_tls;
         handshake->calc_finished = ssl_calc_finished_tls;
     }
+    else
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
 #if defined(POLARSSL_SHA512_C)
-    else if( transform->ciphersuite_info->mac ==
-             POLARSSL_MD_SHA384 )
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 &&
+        transform->ciphersuite_info->mac == POLARSSL_MD_SHA384 )
     {
         handshake->tls_prf = tls_prf_sha384;
         handshake->calc_verify = ssl_calc_verify_tls_sha384;
         handshake->calc_finished = ssl_calc_finished_tls_sha384;
     }
-#endif
     else
+#endif
+#if defined(POLARSSL_SHA256_C)
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
         handshake->tls_prf = tls_prf_sha256;
         handshake->calc_verify = ssl_calc_verify_tls_sha256;
         handshake->calc_finished = ssl_calc_finished_tls_sha256;
     }
+    else
+#endif
+#endif
+        /* Should never happen */
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 
     /*
      * SSLv3:
@@ -437,7 +471,7 @@ int ssl_derive_keys( ssl_context *ssl )
      *     MD5( premaster + SHA1( 'BB'  + premaster + randbytes ) ) +
      *     MD5( premaster + SHA1( 'CCC' + premaster + randbytes ) )
      *
-     * TLSv1:
+     * TLSv1+:
      *   master = PRF( premaster, "master secret", randbytes )[0..47]
      */
     if( handshake->resume == 0 )
@@ -502,6 +536,8 @@ int ssl_derive_keys( ssl_context *ssl )
     {
         if( md_info->type != POLARSSL_MD_NONE )
         {
+            int ret;
+
             if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info ) ) != 0 )
             {
                 SSL_DEBUG_RET( 1, "md_init_ctx", ret );
@@ -583,16 +619,25 @@ int ssl_derive_keys( ssl_context *ssl )
                 iv_copy_len );
     }
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
         memcpy( transform->mac_enc, mac_enc, transform->maclen );
         memcpy( transform->mac_dec, mac_dec, transform->maclen );
     }
     else
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
+    if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
     {
         md_hmac_starts( &transform->md_ctx_enc, mac_enc, transform->maclen );
         md_hmac_starts( &transform->md_ctx_dec, mac_dec, transform->maclen );
     }
+    else
+#endif
+        /* Should never happen */
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_init != NULL)
@@ -701,6 +746,7 @@ int ssl_derive_keys( ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
 void ssl_calc_verify_ssl( ssl_context *ssl, unsigned char hash[36] )
 {
     md5_context md5;
@@ -741,7 +787,9 @@ void ssl_calc_verify_ssl( ssl_context *ssl, unsigned char hash[36] )
 
     return;
 }
+#endif
 
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
 void ssl_calc_verify_tls( ssl_context *ssl, unsigned char hash[36] )
 {
     md5_context md5;
@@ -760,7 +808,10 @@ void ssl_calc_verify_tls( ssl_context *ssl, unsigned char hash[36] )
 
     return;
 }
+#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 */
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
 void ssl_calc_verify_tls_sha256( ssl_context *ssl, unsigned char hash[32] )
 {
     sha256_context sha256;
@@ -775,6 +826,7 @@ void ssl_calc_verify_tls_sha256( ssl_context *ssl, unsigned char hash[32] )
 
     return;
 }
+#endif /* POLARSSL_SHA256_C */
 
 #if defined(POLARSSL_SHA512_C)
 void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
@@ -791,8 +843,10 @@ void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
 
     return;
 }
-#endif
+#endif /* POLARSSL_SHA512_C */
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
 /*
  * SSLv3.0 MAC functions
  */
@@ -833,6 +887,7 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
     md_update( md_ctx, buf + len, md_size );
     md_finish( md_ctx, buf + len          );
 }
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 
 /*
  * Encryption/decryption functions
@@ -846,6 +901,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     /*
      * Add MAC then encrypt
      */
+#if defined(POLARSSL_SSL_PROTO_SSL3)
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
         ssl_mac( &ssl->transform_out->md_ctx_enc,
@@ -854,6 +910,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                   ssl->out_ctr, ssl->out_msgtype );
     }
     else
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
+    if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
     {
         md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_ctr, 13 );
         md_hmac_update( &ssl->transform_out->md_ctx_enc,
@@ -862,6 +922,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                          ssl->out_msg + ssl->out_msglen );
         md_hmac_reset( &ssl->transform_out->md_ctx_enc );
     }
+    else
+#endif
+        /* Should never happen */
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 
     SSL_DEBUG_BUF( 4, "computed mac",
                    ssl->out_msg + ssl->out_msglen, ssl->transform_out->maclen );
@@ -977,6 +1041,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         enc_msglen = ssl->out_msglen;
         enc_msg = ssl->out_msg;
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_1) || defined(POLARSSL_SSL_PROTO_TLS1_2)
         /*
          * Prepend per-record IV for block cipher in TLS v1.1 and up as per
          * Method 1 (6.2.3.2. in RFC4346 and RFC5246)
@@ -1001,6 +1066,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             enc_msglen = ssl->out_msglen;
             ssl->out_msglen += ssl->transform_out->ivlen;
         }
+#endif /* POLARSSL_SSL_PROTO_TLS1_1 || POLARSSL_SSL_PROTO_TLS1_2 */
 
         SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
                             "including %d bytes of IV and %d bytes of padding",
@@ -1165,8 +1231,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INVALID_MAC );
         }
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_1) || defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
             minlen += ssl->transform_in->ivlen;
+#endif
 
         if( ssl->in_msglen < minlen + ssl->transform_in->ivlen ||
             ssl->in_msglen < minlen + ssl->transform_in->maclen + 1 )
@@ -1180,6 +1248,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         dec_msg = ssl->in_msg;
         dec_msg_result = ssl->in_msg;
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_1) || defined(POLARSSL_SSL_PROTO_TLS1_2)
         /*
          * Initialize for prepended IV for block cipher in TLS v1.1 and up
          */
@@ -1191,6 +1260,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             for( i = 0; i < ssl->transform_in->ivlen; i++ )
                 ssl->transform_in->iv_dec[i] = ssl->in_iv[i];
         }
+#endif /* POLARSSL_SSL_PROTO_TLS1_1 || POLARSSL_SSL_PROTO_TLS1_2 */
 
         switch( ssl->transform_in->ciphersuite_info->cipher )
         {
@@ -1242,6 +1312,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             correct = 0;
         }
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
         {
             if( padlen > ssl->transform_in->ivlen )
@@ -1255,6 +1326,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             }
         }
         else
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
+        if( ssl->minor_ver > SSL_MINOR_VERSION_0 )
         {
             /*
              * TLSv1+: always check the padding up to the first failure
@@ -1278,6 +1353,11 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #endif
             padlen &= correct * 0x1FF;
         }
+        else
+#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
+          POLARSSL_SSL_PROTO_TLS1_2 */
+            /* Should never happen */
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     SSL_DEBUG_BUF( 4, "raw buffer after decryption",
@@ -1293,6 +1373,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
     memcpy( tmp, ssl->in_msg + ssl->in_msglen, ssl->transform_in->maclen );
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
         ssl_mac( &ssl->transform_in->md_ctx_dec,
@@ -1301,6 +1382,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                   ssl->in_ctr, ssl->in_msgtype );
     }
     else
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
+    if( ssl->minor_ver > SSL_MINOR_VERSION_0 )
     {
         /*
          * Process MAC and always update for padlen afterwards to make
@@ -1331,6 +1416,11 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         md_hmac_reset( &ssl->transform_in->md_ctx_dec );
     }
+    else
+#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
+          POLARSSL_SSL_PROTO_TLS1_2 */
+        /* Should never happen */
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
 
     SSL_DEBUG_BUF( 4, "message  mac", tmp, ssl->transform_in->maclen );
     SSL_DEBUG_BUF( 4, "computed mac", ssl->in_msg + ssl->in_msglen,
@@ -1742,13 +1832,17 @@ int ssl_read_record( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
         }
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 &&
             ssl->in_msglen > ssl->transform_in->minlen + SSL_MAX_CONTENT_LEN )
         {
             SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
         }
+#endif
 
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
         /*
          * TLS encrypted messages can have up to 256 bytes of padding
          */
@@ -1758,6 +1852,7 @@ int ssl_read_record( ssl_context *ssl )
             SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
         }
+#endif
     }
 
     /*
@@ -2014,6 +2109,7 @@ int ssl_write_certificate( ssl_context *ssl )
             return( 0 );
         }
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
         /*
          * If using SSLv3 and got no cert, send an Alert message
          * (otherwise an empty Certificate message will be sent).
@@ -2029,6 +2125,7 @@ int ssl_write_certificate( ssl_context *ssl )
             SSL_DEBUG_MSG( 2, ( "got no certificate to send" ) );
             goto write_msg;
         }
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
     }
     else /* SSL_IS_SERVER */
     {
@@ -2079,7 +2176,9 @@ int ssl_write_certificate( ssl_context *ssl )
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = SSL_HS_CERTIFICATE;
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
 write_msg:
+#endif
 
     ssl->state++;
 
@@ -2127,6 +2226,7 @@ int ssl_parse_certificate( ssl_context *ssl )
 
     ssl->state++;
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
     /*
      * Check if the client sent an empty certificate
      */
@@ -2147,7 +2247,10 @@ int ssl_parse_certificate( ssl_context *ssl )
                 return( POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE );
         }
     }
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->endpoint  == SSL_IS_SERVER &&
         ssl->minor_ver != SSL_MINOR_VERSION_0 )
     {
@@ -2165,6 +2268,8 @@ int ssl_parse_certificate( ssl_context *ssl )
                 return( 0 );
         }
     }
+#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
+          POLARSSL_SSL_PROTO_TLS1_2 */
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
@@ -2317,45 +2422,66 @@ int ssl_parse_change_cipher_spec( ssl_context *ssl )
 void ssl_optimize_checksum( ssl_context *ssl,
                             const ssl_ciphersuite_t *ciphersuite_info )
 {
-#if !defined(POLARSSL_SHA512_C)
     ((void) ciphersuite_info);
-#endif
 
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
         ssl->handshake->update_checksum = ssl_update_checksum_md5sha1;
-#if defined(POLARSSL_SHA512_C)
-    else if( ciphersuite_info->mac == POLARSSL_MD_SHA384 )
-    {
-        ssl->handshake->update_checksum = ssl_update_checksum_sha384;
-    }
-#endif
     else
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA512_C)
+    if( ciphersuite_info->mac == POLARSSL_MD_SHA384 )
+        ssl->handshake->update_checksum = ssl_update_checksum_sha384;
+    else
+#endif
+#if defined(POLARSSL_SHA256_C)
+    if( ciphersuite_info->mac != POLARSSL_MD_SHA384 )
         ssl->handshake->update_checksum = ssl_update_checksum_sha256;
+    else
+#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+        /* Should never happen */
+        return;
 }
 
 static void ssl_update_checksum_start( ssl_context *ssl,
                                        const unsigned char *buf, size_t len )
 {
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
      md5_update( &ssl->handshake->fin_md5 , buf, len );
     sha1_update( &ssl->handshake->fin_sha1, buf, len );
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
     sha256_update( &ssl->handshake->fin_sha256, buf, len );
+#endif
 #if defined(POLARSSL_SHA512_C)
     sha512_update( &ssl->handshake->fin_sha512, buf, len );
 #endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 }
 
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
 static void ssl_update_checksum_md5sha1( ssl_context *ssl,
                                          const unsigned char *buf, size_t len )
 {
      md5_update( &ssl->handshake->fin_md5 , buf, len );
     sha1_update( &ssl->handshake->fin_sha1, buf, len );
 }
+#endif
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
 static void ssl_update_checksum_sha256( ssl_context *ssl,
                                         const unsigned char *buf, size_t len )
 {
     sha256_update( &ssl->handshake->fin_sha256, buf, len );
 }
+#endif
 
 #if defined(POLARSSL_SHA512_C)
 static void ssl_update_checksum_sha384( ssl_context *ssl,
@@ -2364,7 +2490,9 @@ static void ssl_update_checksum_sha384( ssl_context *ssl,
     sha512_update( &ssl->handshake->fin_sha512, buf, len );
 }
 #endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
 static void ssl_calc_finished_ssl(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
@@ -2444,7 +2572,9 @@ static void ssl_calc_finished_ssl(
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
 static void ssl_calc_finished_tls(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
@@ -2498,7 +2628,10 @@ static void ssl_calc_finished_tls(
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
+#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 */
 
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
 static void ssl_calc_finished_tls_sha256(
                 ssl_context *ssl, unsigned char *buf, int from )
 {
@@ -2543,6 +2676,7 @@ static void ssl_calc_finished_tls_sha256(
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
+#endif /* POLARSSL_SHA256_C */
 
 #if defined(POLARSSL_SHA512_C)
 static void ssl_calc_finished_tls_sha384(
@@ -2589,7 +2723,8 @@ static void ssl_calc_finished_tls_sha384(
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
-#endif
+#endif /* POLARSSL_SHA512_C */
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
 void ssl_handshake_wrapup( ssl_context *ssl )
 {
@@ -2828,12 +2963,19 @@ static int ssl_handshake_init( ssl_context *ssl )
     memset( ssl->transform_negotiate, 0, sizeof(ssl_transform) );
     memset( ssl->session_negotiate, 0, sizeof(ssl_session) );
 
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
      md5_starts( &ssl->handshake->fin_md5 );
     sha1_starts( &ssl->handshake->fin_sha1 );
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
     sha256_starts( &ssl->handshake->fin_sha256, 0 );
+#endif
 #if defined(POLARSSL_SHA512_C)
     sha512_starts( &ssl->handshake->fin_sha512, 1 );
 #endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
     ssl->handshake->update_checksum = ssl_update_checksum_start;
     ssl->handshake->sig_alg = SSL_HASH_SHA1;
@@ -2864,10 +3006,10 @@ int ssl_init( ssl_context *ssl )
     ssl->rsa_key_len = ssl_rsa_key_len;
 #endif
 
-    ssl->min_major_ver = SSL_MAJOR_VERSION_3;
-    ssl->min_minor_ver = SSL_MINOR_VERSION_0;
-    ssl->max_major_ver = SSL_MAJOR_VERSION_3;
-    ssl->max_minor_ver = SSL_MINOR_VERSION_3;
+    ssl->min_major_ver = SSL_MIN_MAJOR_VERSION;
+    ssl->min_minor_ver = SSL_MIN_MINOR_VERSION;
+    ssl->max_major_ver = SSL_MAX_MAJOR_VERSION;
+    ssl->max_minor_ver = SSL_MAX_MINOR_VERSION;
 
     ssl_set_ciphersuites( ssl, ssl_list_ciphersuites() );
 
@@ -3248,14 +3390,22 @@ void ssl_set_sni( ssl_context *ssl,
 
 void ssl_set_max_version( ssl_context *ssl, int major, int minor )
 {
-    ssl->max_major_ver = major;
-    ssl->max_minor_ver = minor;
+    if( major >= SSL_MIN_MAJOR_VERSION && major <= SSL_MAX_MAJOR_VERSION &&
+        minor >= SSL_MIN_MINOR_VERSION && minor <= SSL_MAX_MINOR_VERSION )
+    {
+        ssl->max_major_ver = major;
+        ssl->max_minor_ver = minor;
+    }
 }
 
 void ssl_set_min_version( ssl_context *ssl, int major, int minor )
 {
-    ssl->min_major_ver = major;
-    ssl->min_minor_ver = minor;
+    if( major >= SSL_MIN_MAJOR_VERSION && major <= SSL_MAX_MAJOR_VERSION &&
+        minor >= SSL_MIN_MINOR_VERSION && minor <= SSL_MAX_MINOR_VERSION )
+    {
+        ssl->min_major_ver = major;
+        ssl->min_minor_ver = minor;
+    }
 }
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
@@ -3516,6 +3666,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             {
                 SSL_DEBUG_MSG( 3, ( "ignoring renegotiation, sending alert" ) );
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
                 if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
                 {
                     /*
@@ -3525,6 +3676,10 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                         return( ret );
                 }
                 else
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
+                if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
                 {
                     if( ( ret = ssl_send_alert_message( ssl,
                                     SSL_ALERT_LEVEL_WARNING,
@@ -3533,6 +3688,10 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                         return( ret );
                     }
                 }
+                else
+#endif
+                    /* Should never happen */
+                    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
             }
             else
             {

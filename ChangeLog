@@ -20,6 +20,8 @@ Features
    * Support for session tickets (RFC 5077)
 
 Changes
+   * Ability to enable / disable SSL v3 / TLS 1.0 / TLS 1.1 / TLS 1.2
+     individually
    * Introduced separate SSL Ciphersuites module that is based on
      Cipher and MD information
    * Internals for SSL module adapted to have separate IV pointer that is

@@ -31,13 +31,27 @@
 #include "net.h"
 #include "bignum.h"
 
-#include "md5.h"
-#include "sha1.h"
-#include "sha256.h"
-#include "sha512.h"
-#include "aes.h"
-
 #include "ssl_ciphersuites.h"
+
+#if defined(POLARSSL_MD5_C)
+#include "md5.h"
+#endif
+
+#if defined(POLARSSL_SHA1_C)
+#include "sha1.h"
+#endif
+
+#if defined(POLARSSL_SHA256_C)
+#include "sha256.h"
+#endif
+
+#if defined(POLARSSL_SHA512_C)
+#include "sha512.h"
+#endif
+
+#if defined(POLARSSL_AES_C)
+#include "aes.h"
+#endif
 
 #if defined(POLARSSL_X509_PARSE_C)
 #include "x509.h"
@@ -120,6 +134,44 @@
 #define SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
 #define SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
+
+/* Determine minimum supported version */
+#define SSL_MIN_MAJOR_VERSION           SSL_MAJOR_VERSION_3
+
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+#define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_0
+#else
+#if defined(POLARSSL_SSL_PROTO_TLS1)
+#define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_1
+#else
+#if defined(POLARSSL_SSL_PROTO_TLS1_1)
+#define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_2
+#else
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_3
+#endif
+#endif
+#endif
+#endif
+
+/* Determine maximum supported version */
+#define SSL_MAX_MAJOR_VERSION           SSL_MAJOR_VERSION_3
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_3
+#else
+#if defined(POLARSSL_SSL_PROTO_TLS1_1)
+#define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_2
+#else
+#if defined(POLARSSL_SSL_PROTO_TLS1)
+#define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_1
+#else
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+#define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_0
+#endif
+#endif
+#endif
+#endif
 
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */
@@ -392,9 +444,11 @@ struct _ssl_transform
     unsigned char iv_enc[16];           /*!<  IV (encryption)         */
     unsigned char iv_dec[16];           /*!<  IV (decryption)         */
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
     /* Needed only for SSL v3.0 secret */
     unsigned char mac_enc[32];          /*!<  SSL v3.0 secret (enc)   */
     unsigned char mac_dec[32];          /*!<  SSL v3.0 secret (dec)   */
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 
     md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
@@ -436,12 +490,19 @@ struct _ssl_handshake_params
     /*
      * Checksum contexts
      */
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
        md5_context fin_md5;
       sha1_context fin_sha1;
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
     sha256_context fin_sha256;
+#endif
 #if defined(POLARSSL_SHA512_C)
     sha512_context fin_sha512;
 #endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
     void (*update_checksum)(ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(ssl_context *, unsigned char *);
@@ -1010,11 +1071,12 @@ void ssl_set_sni( ssl_context *ssl,
 /**
  * \brief          Set the maximum supported version sent from the client side
  *                 and/or accepted at the server side
- *                 (Default: SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3)
+ *                 (Default: SSL_MAX_MAJOR_VERSION, SSL_MAX_MINOR_VERSION)
  *
- *                 Note: This prevents ciphersuites from 'higher' versions to
- *                 be ignored.
- * 
+ *                 Note: This ignores ciphersuites from 'higher' versions.
+ *                 Note: Input outside of the SSL_MAX_XXXXX_VERSION and
+ *                       SSL_MIN_XXXXX_VERSION range is ignored.
+ *
  * \param ssl      SSL context
  * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (SSL_MINOR_VERSION_0,
@@ -1026,7 +1088,10 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor );
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
- *                 (Default: SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_0)
+ *                 (Default: SSL_MIN_MAJOR_VERSION, SSL_MIN_MINOR_VERSION)
+ *
+ *                 Note: Input outside of the SSL_MAX_XXXXX_VERSION and
+ *                       SSL_MIN_XXXXX_VERSION range is ignored.
  *
  * \param ssl      SSL context
  * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)

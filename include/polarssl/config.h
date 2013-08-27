@@ -538,6 +538,54 @@
 #define POLARSSL_SSL_MAX_FRAGMENT_LENGTH
 
 /**
+ * \def POLARSSL_SSL_PROTO_SSL3
+ *
+ * Enable support for SSL 3.0
+ *
+ * Requires: POLARSSL_MD5_C
+ *           POLARSSL_SHA1_C
+ *
+ * Comment this macro to disable support for SSL 3.0
+ */
+#define POLARSSL_SSL_PROTO_SSL3
+
+/**
+ * \def POLARSSL_SSL_PROTO_TLS1
+ *
+ * Enable support for TLS 1.0
+ *
+ * Requires: POLARSSL_MD5_C
+ *           POLARSSL_SHA1_C
+ *
+ * Comment this macro to disable support for TLS 1.0
+ */
+#define POLARSSL_SSL_PROTO_TLS1
+
+/**
+ * \def POLARSSL_SSL_PROTO_TLS1_1
+ *
+ * Enable support for TLS 1.1
+ *
+ * Requires: POLARSSL_MD5_C
+ *           POLARSSL_SHA1_C
+ *
+ * Comment this macro to disable support for TLS 1.1
+ */
+#define POLARSSL_SSL_PROTO_TLS1_1
+
+/**
+ * \def POLARSSL_SSL_PROTO_TLS1_2
+ *
+ * Enable support for TLS 1.2
+ *
+ * Requires: POLARSSL_SHA256_C or POLARSSL_SHA512_C
+ *           (Depends on ciphersuites)
+ *
+ * Comment this macro to disable support for TLS 1.2
+ */
+#define POLARSSL_SSL_PROTO_TLS1_2
+
+/**
  * \def POLARSSL_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL
@@ -1226,7 +1274,8 @@
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * Requires: POLARSSL_MD5_C, POLARSSL_SHA1_C, POLARSSL_CIPHER_C
+ * Requires: POLARSSL_CIPHER_C and at least one of the
+ *           POLARSSL_SSL_PROTO_* defines
  *
  * This module is required for SSL/TLS.
  */
@@ -1454,13 +1503,34 @@
 #error "POLARSSL_SSL_CLI_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_TLS_C) && ( !defined(POLARSSL_MD5_C) ||        \
-    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_CIPHER_C) )
+#if defined(POLARSSL_SSL_TLS_C) && !defined(POLARSSL_CIPHER_C)
 #error "POLARSSL_SSL_TLS_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_SSL_SRV_C) && !defined(POLARSSL_SSL_TLS_C)
 #error "POLARSSL_SSL_SRV_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_SSL_TLS_C) && (!defined(POLARSSL_SSL_PROTO_SSL3) && \
+    !defined(POLARSSL_SSL_PROTO_TLS1) && !defined(POLARSSL_SSL_PROTO_TLS1_1) && \
+    !defined(POLARSSL_SSL_PROTO_TLS1_2))
+#error "POLARSSL_SSL_TLS_C defined, but no protocols are active"
+#endif
+
+#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_SSL3) && \
+    defined(POLARSSL_SSL_PROTO_TLS1_1) && !defined(POLARSSL_SSL_PROTO_TLS1))
+#error "Illegal protocol selection"
+#endif
+
+#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_TLS1) && \
+    defined(POLARSSL_SSL_PROTO_TLS1_2) && !defined(POLARSSL_SSL_PROTO_TLS1_1))
+#error "Illegal protocol selection"
+#endif
+
+#if defined(POLARSSL_SSL_TLS_C) && (defined(POLARSSL_SSL_PROTO_SSL3) && \
+    defined(POLARSSL_SSL_PROTO_TLS1_2) && (!defined(POLARSSL_SSL_PROTO_TLS1) || \
+    !defined(POLARSSL_SSL_PROTO_TLS1_1)))
+#error "Illegal protocol selection"
 #endif
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS) && defined(POLARSSL_SSL_TLS_C) && \

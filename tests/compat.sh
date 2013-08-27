@@ -4,6 +4,7 @@ killall -q openssl ssl_server ssl_server2
 
 MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
+TYPES="RSA PSK"
 OPENSSL=openssl
 FILTER=""
 VERBOSE=""
@@ -54,124 +55,149 @@ log () {
 
 for VERIFY in $VERIFIES;
 do
-P_SERVER_ARGS="psk=6162636465666768696a6b6c6d6e6f70"
-P_CLIENT_ARGS="psk=6162636465666768696a6b6c6d6e6f70"
-O_SERVER_ARGS="-psk 6162636465666768696a6b6c6d6e6f70"
-O_CLIENT_ARGS="-psk 6162636465666768696a6b6c6d6e6f70"
 
 if [ "X$VERIFY" = "XYES" ];
 then
-    P_SERVER_ARGS="$P_SERVER_ARGS auth_mode=required crt_file=data_files/server1.crt key_file=data_files/server1.key ca_file=data_files/test-ca.crt"
-    P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key ca_file=data_files/test-ca.crt"
-    O_SERVER_ARGS="$O_SERVER_ARGS -verify 10 -CAfile data_files/test-ca.crt -cert data_files/server1.crt -key data_files/server1.key"
-    O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server2.crt -key data_files/server2.key -CAfile data_files/test-ca.crt"
+    P_SERVER_ARGS="ca_file=data_files/test-ca.crt auth_mode=required"
+    P_CLIENT_ARGS="ca_file=data_files/test-ca.crt"
+    O_SERVER_ARGS="-CAfile data_files/test-ca.crt -verify 10"
+    O_CLIENT_ARGS="-CAfile data_files/test-ca.crt"
+else
+    P_SERVER_ARGS=""
+    P_CLIENT_ARGS=""
+    O_SERVER_ARGS=""
+    O_CLIENT_ARGS=""
 fi
+
 
 for MODE in $MODES;
 do
 echo "Running for $MODE (Verify: $VERIFY)"
 echo "-----------"
 
-P_CIPHERS="                                 \
-    TLS-DHE-RSA-WITH-AES-128-CBC-SHA        \
-    TLS-DHE-RSA-WITH-AES-256-CBC-SHA        \
-    TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA   \
-    TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA   \
-    TLS-DHE-RSA-WITH-3DES-EDE-CBC-SHA       \
-    TLS-RSA-WITH-AES-256-CBC-SHA            \
-    TLS-RSA-WITH-CAMELLIA-256-CBC-SHA       \
-    TLS-RSA-WITH-AES-128-CBC-SHA            \
-    TLS-RSA-WITH-CAMELLIA-128-CBC-SHA       \
-    TLS-RSA-WITH-3DES-EDE-CBC-SHA           \
-    TLS-RSA-WITH-RC4-128-SHA                \
-    TLS-RSA-WITH-RC4-128-MD5                \
-    TLS-RSA-EXPORT-WITH-RC4-40-MD5          \
-    TLS-RSA-WITH-NULL-MD5                   \
-    TLS-RSA-WITH-NULL-SHA                   \
-    TLS-RSA-WITH-DES-CBC-SHA                \
-    TLS-DHE-RSA-WITH-DES-CBC-SHA            \
-    TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
-    TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
-    TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
-    TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
-    TLS-ECDHE-RSA-WITH-NULL-SHA             \
-    TLS-PSK-WITH-RC4-128-SHA                \
-    TLS-PSK-WITH-3DES-EDE-CBC-SHA           \
-    TLS-PSK-WITH-AES-128-CBC-SHA            \
-    TLS-PSK-WITH-AES-256-CBC-SHA            \
-    "
+for TYPE in $TYPES;
+do
 
-O_CIPHERS="                         \
-    DHE-RSA-AES128-SHA              \
-    DHE-RSA-AES256-SHA              \
-    DHE-RSA-CAMELLIA128-SHA         \
-    DHE-RSA-CAMELLIA256-SHA         \
-    EDH-RSA-DES-CBC3-SHA            \
-    AES256-SHA                      \
-    CAMELLIA256-SHA                 \
-    AES128-SHA                      \
-    CAMELLIA128-SHA                 \
-    DES-CBC3-SHA                    \
-    RC4-SHA                         \
-    RC4-MD5                         \
-    EXP-RC4-MD5                     \
-    NULL-MD5                        \
-    NULL-SHA                        \
-    DES-CBC-SHA                     \
-    EDH-RSA-DES-CBC-SHA             \
-    ECDHE-RSA-AES256-SHA            \
-    ECDHE-RSA-AES128-SHA            \
-    ECDHE-RSA-DES-CBC3-SHA          \
-    ECDHE-RSA-RC4-SHA               \
-    ECDHE-RSA-NULL-SHA              \
-    PSK-RC4-SHA                     \
-    PSK-3DES-EDE-CBC-SHA            \
-    PSK-AES128-CBC-SHA              \
-    PSK-AES256-CBC-SHA
-    "
+case $TYPE in
 
-# Also add SHA256 ciphersuites
-#
-if [ "$MODE" = "tls1_2" ];
-then
-    P_CIPHERS="$P_CIPHERS                       \
-        TLS-RSA-WITH-NULL-SHA256                \
-        TLS-RSA-WITH-AES-128-CBC-SHA256         \
-        TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
-        TLS-RSA-WITH-AES-256-CBC-SHA256         \
-        TLS-DHE-RSA-WITH-AES-256-CBC-SHA256     \
-        TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256   \
-        TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384   \
-        "
+    "RSA")
 
-    O_CIPHERS="$O_CIPHERS           \
-        NULL-SHA256                 \
-        AES128-SHA256               \
-        DHE-RSA-AES128-SHA256       \
-        AES256-SHA256               \
-        DHE-RSA-AES256-SHA256       \
-        ECDHE-RSA-AES128-SHA256     \
-        ECDHE-RSA-AES256-SHA384     \
-        "
+        P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
+        P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key"
+        O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server1.crt -key data_files/server1.key"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server2.crt -key data_files/server2.key"
 
-    P_CIPHERS="$P_CIPHERS                   \
-        TLS-RSA-WITH-AES-128-GCM-SHA256     \
-        TLS-RSA-WITH-AES-256-GCM-SHA384     \
-        TLS-DHE-RSA-WITH-AES-128-GCM-SHA256 \
-        TLS-DHE-RSA-WITH-AES-256-GCM-SHA384 \
-        TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 \
-        TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384 \
-        "
+        P_CIPHERS="                                 \
+            TLS-DHE-RSA-WITH-AES-128-CBC-SHA        \
+            TLS-DHE-RSA-WITH-AES-256-CBC-SHA        \
+            TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA   \
+            TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA   \
+            TLS-DHE-RSA-WITH-3DES-EDE-CBC-SHA       \
+            TLS-RSA-WITH-AES-256-CBC-SHA            \
+            TLS-RSA-WITH-CAMELLIA-256-CBC-SHA       \
+            TLS-RSA-WITH-AES-128-CBC-SHA            \
+            TLS-RSA-WITH-CAMELLIA-128-CBC-SHA       \
+            TLS-RSA-WITH-3DES-EDE-CBC-SHA           \
+            TLS-RSA-WITH-RC4-128-SHA                \
+            TLS-RSA-WITH-RC4-128-MD5                \
+            TLS-RSA-EXPORT-WITH-RC4-40-MD5          \
+            TLS-RSA-WITH-NULL-MD5                   \
+            TLS-RSA-WITH-NULL-SHA                   \
+            TLS-RSA-WITH-DES-CBC-SHA                \
+            TLS-DHE-RSA-WITH-DES-CBC-SHA            \
+            TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
+            TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
+            TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
+            TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
+            TLS-ECDHE-RSA-WITH-NULL-SHA             \
+            "
 
-    O_CIPHERS="$O_CIPHERS           \
-        AES128-GCM-SHA256           \
-        DHE-RSA-AES128-GCM-SHA256   \
-        AES256-GCM-SHA384           \
-        DHE-RSA-AES256-GCM-SHA384   \
-        ECDHE-RSA-AES128-GCM-SHA256 \
-        ECDHE-RSA-AES256-GCM-SHA384 \
-        "
-fi
+        O_CIPHERS="                         \
+            DHE-RSA-AES128-SHA              \
+            DHE-RSA-AES256-SHA              \
+            DHE-RSA-CAMELLIA128-SHA         \
+            DHE-RSA-CAMELLIA256-SHA         \
+            EDH-RSA-DES-CBC3-SHA            \
+            AES256-SHA                      \
+            CAMELLIA256-SHA                 \
+            AES128-SHA                      \
+            CAMELLIA128-SHA                 \
+            DES-CBC3-SHA                    \
+            RC4-SHA                         \
+            RC4-MD5                         \
+            EXP-RC4-MD5                     \
+            NULL-MD5                        \
+            NULL-SHA                        \
+            DES-CBC-SHA                     \
+            EDH-RSA-DES-CBC-SHA             \
+            ECDHE-RSA-AES256-SHA            \
+            ECDHE-RSA-AES128-SHA            \
+            ECDHE-RSA-DES-CBC3-SHA          \
+            ECDHE-RSA-RC4-SHA               \
+            ECDHE-RSA-NULL-SHA              \
+            "
+
+        if [ "$MODE" = "tls1_2" ];
+        then
+            P_CIPHERS="$P_CIPHERS                       \
+                TLS-RSA-WITH-NULL-SHA256                \
+                TLS-RSA-WITH-AES-128-CBC-SHA256         \
+                TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
+                TLS-RSA-WITH-AES-256-CBC-SHA256         \
+                TLS-DHE-RSA-WITH-AES-256-CBC-SHA256     \
+                TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256   \
+                TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384   \
+                TLS-RSA-WITH-AES-128-GCM-SHA256         \
+                TLS-RSA-WITH-AES-256-GCM-SHA384         \
+                TLS-DHE-RSA-WITH-AES-128-GCM-SHA256     \
+                TLS-DHE-RSA-WITH-AES-256-GCM-SHA384     \
+                TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256   \
+                TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384   \
+                "
+
+            O_CIPHERS="$O_CIPHERS           \
+                NULL-SHA256                 \
+                AES128-SHA256               \
+                DHE-RSA-AES128-SHA256       \
+                AES256-SHA256               \
+                DHE-RSA-AES256-SHA256       \
+                ECDHE-RSA-AES128-SHA256     \
+                ECDHE-RSA-AES256-SHA384     \
+                AES128-GCM-SHA256           \
+                DHE-RSA-AES128-GCM-SHA256   \
+                AES256-GCM-SHA384           \
+                DHE-RSA-AES256-GCM-SHA384   \
+                ECDHE-RSA-AES128-GCM-SHA256 \
+                ECDHE-RSA-AES256-GCM-SHA384 \
+                "
+        fi
+
+        ;;
+
+    "PSK")
+
+        P_SERVER_ARGS="$P_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70"
+        P_CLIENT_ARGS="$P_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70"
+        O_SERVER_ARGS="$O_SERVER_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
+
+        P_CIPHERS="                                 \
+            TLS-PSK-WITH-RC4-128-SHA                \
+            TLS-PSK-WITH-3DES-EDE-CBC-SHA           \
+            TLS-PSK-WITH-AES-128-CBC-SHA            \
+            TLS-PSK-WITH-AES-256-CBC-SHA            \
+            "
+
+        O_CIPHERS="                         \
+            PSK-RC4-SHA                     \
+            PSK-3DES-EDE-CBC-SHA            \
+            PSK-AES128-CBC-SHA              \
+            PSK-AES256-CBC-SHA              \
+            "
+
+        ;;
+
+esac
 
 filter()
 {
@@ -261,49 +287,60 @@ PROCESS_ID=$!
 
 sleep 1
 
-# OpenSSL does not support RFC5246 and RFC6367 Camellia ciphers with SHA256
-# or SHA384
-# Add for PolarSSL only test, which does support them.
-#
-if [ "$MODE" = "tls1_2" ];
-then
-    P_CIPHERS="$P_CIPHERS                        \
-        TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256     \
-        TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
-        TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256     \
-        TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256 \
-        TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
-        TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384 \
-        TLS-PSK-WITH-AES-128-CBC-SHA256          \
-        TLS-PSK-WITH-AES-256-CBC-SHA384          \
-        TLS-DHE-PSK-WITH-AES-128-CBC-SHA256      \
-        TLS-DHE-PSK-WITH-AES-256-CBC-SHA384      \
-        TLS-PSK-WITH-AES-128-GCM-SHA256          \
-        TLS-PSK-WITH-AES-256-GCM-SHA384          \
-        TLS-DHE-PSK-WITH-AES-128-GCM-SHA256      \
-        TLS-DHE-PSK-WITH-AES-256-GCM-SHA384      \
-        TLS-PSK-WITH-NULL-SHA256                 \
-        TLS-PSK-WITH-NULL-SHA384                 \
-        TLS-DHE-PSK-WITH-NULL-SHA256             \
-        TLS-DHE-PSK-WITH-NULL-SHA384             \
-        TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256     \
-        TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384     \
-        TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
-        TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
-        "
-fi
+# Add ciphersuites supported by PolarSSL only
 
-# OpenSSL does not support DHE-PSK ciphers
-# Add for PolarSSL only test, which does support them.
-#
-P_CIPHERS="$P_CIPHERS                        \
-    TLS-DHE-PSK-WITH-RC4-128-SHA             \
-    TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA        \
-    TLS-DHE-PSK-WITH-AES-128-CBC-SHA         \
-    TLS-DHE-PSK-WITH-AES-256-CBC-SHA         \
-    TLS-PSK-WITH-NULL-SHA                    \
-    TLS-DHE-PSK-WITH-NULL-SHA                \
-    "
+case $TYPE in
+
+    "RSA")
+
+        if [ "$MODE" = "tls1_2" ];
+        then
+            P_CIPHERS="$P_CIPHERS                        \
+                TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256     \
+                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
+                TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256     \
+                TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256 \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256 \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384 \
+                "
+        fi
+
+        ;;
+
+    "PSK")
+
+        P_CIPHERS="$P_CIPHERS                        \
+            TLS-DHE-PSK-WITH-RC4-128-SHA             \
+            TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA        \
+            TLS-DHE-PSK-WITH-AES-128-CBC-SHA         \
+            TLS-DHE-PSK-WITH-AES-256-CBC-SHA         \
+            TLS-PSK-WITH-NULL-SHA                    \
+            TLS-DHE-PSK-WITH-NULL-SHA                \
+            "
+
+        if [ "$MODE" = "tls1_2" ];
+        then
+            P_CIPHERS="$P_CIPHERS                        \
+                TLS-PSK-WITH-AES-128-CBC-SHA256          \
+                TLS-PSK-WITH-AES-256-CBC-SHA384          \
+                TLS-DHE-PSK-WITH-AES-128-CBC-SHA256      \
+                TLS-DHE-PSK-WITH-AES-256-CBC-SHA384      \
+                TLS-PSK-WITH-AES-128-GCM-SHA256          \
+                TLS-PSK-WITH-AES-256-GCM-SHA384          \
+                TLS-DHE-PSK-WITH-AES-128-GCM-SHA256      \
+                TLS-DHE-PSK-WITH-AES-256-GCM-SHA384      \
+                TLS-PSK-WITH-NULL-SHA256                 \
+                TLS-PSK-WITH-NULL-SHA384                 \
+                TLS-DHE-PSK-WITH-NULL-SHA256             \
+                TLS-DHE-PSK-WITH-NULL-SHA384             \
+                TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256     \
+                TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384     \
+                TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
+                TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
+                "
+        fi
+
+esac
 
 # Filter ciphersuites
 if [ "X" != "X$FILTER" ];
@@ -332,5 +369,6 @@ done
 kill $PROCESS_ID
 wait $PROCESS_ID 2>/dev/null
 
+done
 done
 done

@@ -2027,6 +2027,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         else
 #endif /* POLARSSL_SSL_PROTO_SSL3 || POLARSSL_SSL_PROTO_TLS1 || \
           POLARSSL_SSL_PROTO_TLS1_1 */
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( md_alg != POLARSSL_MD_NONE )
         {
             md_context_t ctx;
@@ -2060,6 +2062,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
         }
         else
+#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
+          POLARSSL_SSL_PROTO_TLS1_2 */
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );

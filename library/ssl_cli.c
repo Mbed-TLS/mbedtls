@@ -1362,19 +1362,19 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     {
         params_len = p - ( ssl->in_msg + 4 );
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
         /*
          * Handle the digitally-signed structure
          */
-        if( ssl_parse_signature_algorithm( ssl, &p, end,
-                                           &md_alg, &pk_alg ) != 0 )
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
         {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-        }
+            if( ssl_parse_signature_algorithm( ssl, &p, end,
+                                               &md_alg, &pk_alg ) != 0 )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+                return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+            }
 
-        if( pk_alg != POLARSSL_PK_NONE )
-        {
             if( pk_alg != ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info ) )
             {
                 SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
@@ -1383,13 +1383,22 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         }
         else
 #endif
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
+        if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
         {
             pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-        }
 
-        /* Default hash for ECDSA is SHA-1 */
-        if( pk_alg == POLARSSL_PK_ECDSA && md_alg == POLARSSL_MD_NONE )
-            md_alg = POLARSSL_MD_SHA1;
+            /* Default hash for ECDSA is SHA-1 */
+            if( pk_alg == POLARSSL_PK_ECDSA && md_alg == POLARSSL_MD_NONE )
+                md_alg = POLARSSL_MD_SHA1;
+        }
+        else
+#endif
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
 
         /*
          * Read signature
@@ -1443,6 +1452,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         else
 #endif /* POLARSSL_SSL_PROTO_SSL3 || POLARSSL_SSL_PROTO_TLS1 || \
           POLARSSL_SSL_PROTO_TLS1_1 */
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( md_alg != POLARSSL_MD_NONE )
         {
             md_context_t ctx;
@@ -1470,6 +1481,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             md_free_ctx( &ctx );
         }
         else
+#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
+          POLARSSL_SSL_PROTO_TLS1_2 */
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );

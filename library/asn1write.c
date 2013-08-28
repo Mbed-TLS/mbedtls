@@ -72,6 +72,21 @@ int asn1_write_tag( unsigned char **p, unsigned char *start, unsigned char tag )
     return( 1 );
 }
 
+int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
+                           const unsigned char *buf, size_t size )
+{
+    size_t len = 0;
+
+    if( *p - start < (int) size )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = size;
+    (*p) -= len;
+    memcpy( *p, buf, len );
+
+    return( len );
+}
+
 #if defined(POLARSSL_BIGNUM_C)
 int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
 {
@@ -125,15 +140,8 @@ int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid )
     int ret;
     size_t len = 0;
 
-    // Write OID
-    //
-    len = strlen( oid );
-
-    if( *p - start < (int) len )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    (*p) -= len;
-    memcpy( *p, oid, len );
+    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
+                  (const unsigned char *) oid, strlen( oid ) ) );
 
     ASN1_CHK_ADD( len , asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len , asn1_write_tag( p, start, ASN1_OID ) );
@@ -142,7 +150,7 @@ int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid )
 }
 
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
-                                     const char *algorithm_oid )
+                                     const char *oid )
 {
     int ret;
     size_t null_len = 0;
@@ -155,7 +163,7 @@ int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
 
     // Write OID
     //
-    ASN1_CHK_ADD( oid_len, asn1_write_oid( p, start, algorithm_oid ) );
+    ASN1_CHK_ADD( oid_len, asn1_write_oid( p, start, oid ) );
 
     len = oid_len + null_len;
     ASN1_CHK_ADD( len, asn1_write_len( p, start, oid_len + null_len ) );
@@ -201,43 +209,68 @@ int asn1_write_printable_string( unsigned char **p, unsigned char *start,
     int ret;
     size_t len = 0;
 
-    // Write string
-    //
-    len = strlen( text );
-
-    if( *p - start < (int) len )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    (*p) -= len;
-    memcpy( *p, text, len );
+    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
+                  (const unsigned char *) text, strlen( text ) ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_PRINTABLE_STRING ) );
 
     return( len );
 }
-    
+
 int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
-                          char *text )
+                           char *text )
 {
     int ret;
     size_t len = 0;
 
-    // Write string
-    //
-    len = strlen( text );
-
-    if( *p - start < (int) len )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    (*p) -= len;
-    memcpy( *p, text, len );
+    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
+                  (const unsigned char *) text, strlen( text ) ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_IA5_STRING ) );
 
     return( len );
 }
-    
 
+int asn1_write_bitstring( unsigned char **p, unsigned char *start,
+                          const unsigned char *buf, size_t bits )
+{
+    int ret;
+    size_t len = 0, size;
+
+    size = ( bits / 8 ) + ( ( bits % 8 ) ? 1 : 0 );
+
+    // Calculate byte length
+    //
+    if( *p - start < (int) size + 1 )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = size + 1;
+    (*p) -= size;
+    memcpy( *p, buf, size );
+
+    // Write unused bits
+    //
+    *--(*p) = size * 8 - bits;
+
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_BIT_STRING ) );
+
+    return( len );
+}
+
+int asn1_write_octet_string( unsigned char **p, unsigned char *start,
+                             const unsigned char *buf, size_t size )
+{
+    int ret;
+    size_t len = 0;
+
+    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start, buf, size ) );
+
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_OCTET_STRING ) );
+
+    return( len );
+}
 #endif

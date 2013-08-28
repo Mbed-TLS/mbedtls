@@ -343,4 +343,32 @@ int asn1_get_alg_null( unsigned char **p,
     return( 0 );
 }
 
+void asn1_free_named_data( asn1_named_data *cur )
+{
+    if( cur == NULL )
+        return;
+
+    polarssl_free( cur->oid.p );
+    polarssl_free( cur->val.p );
+
+    memset( cur, 0, sizeof( asn1_named_data ) );
+}
+
+asn1_named_data *asn1_find_named_data( asn1_named_data *list,
+                                       const char *oid, size_t len )
+{
+    while( list != NULL )
+    {
+        if( list->oid.len == len &&
+            memcmp( list->oid.p, oid, len ) == 0 )
+        {
+            break;
+        }
+
+        list = list->next;
+    }
+
+    return( list );
+}
+
 #endif

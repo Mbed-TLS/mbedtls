@@ -1,5 +1,5 @@
 /*
- *  Key reading application
+ *  Key writing application
  *
  *  Copyright (C) 2006-2013, Brainspark B.V.
  *
@@ -60,11 +60,15 @@ int main( int argc, char *argv[] )
 #define OUTPUT_MODE_PRIVATE            1
 #define OUTPUT_MODE_PUBLIC             2
 
+#define OUTPUT_FORMAT_PEM              0
+#define OUTPUT_FORMAT_DER              1
+
 #define DFL_MODE                MODE_NONE
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_DEBUG_LEVEL         0
-#define DFL_OUTPUT_MODE          OUTPUT_MODE_NONE
+#define DFL_OUTPUT_MODE         OUTPUT_MODE_NONE
 #define DFL_OUTPUT_FILENAME     "keyfile.pem"
+#define DFL_OUTPUT_FORMAT       OUTPUT_FORMAT_PEM
 
 /*
  * global options
@@ -75,79 +79,80 @@ struct options
     const char *filename;       /* filename of the key file             */
     int output_mode;            /* the output mode to use               */
     const char *output_file;    /* where to store the constructed key file  */
+    int output_format;          /* the output format to use             */
 } opt;
 
-static void write_public_key( rsa_context *rsa, const char *output_file )
+static int write_public_key( rsa_context *rsa, const char *output_file )
 {
+    int ret;
     FILE *f;
     unsigned char output_buf[16000];
-    unsigned char base_buf[16000];
-    unsigned char *c;
-    int ret;
-    size_t len = 0, olen = 16000;
+    unsigned char *c = output_buf;
+    size_t len = 0;
 
     memset(output_buf, 0, 16000);
-    ret = x509_write_pubkey_der( output_buf, 16000, rsa );
 
-    if( ret < 0 )
-        return;
-
-    len = ret;
-    c = output_buf + 15999 - len;
-
-    base64_encode( base_buf, &olen, c, len );
-
-    c = base_buf;
-
-    f = fopen( output_file, "w" );
-    fprintf(f, "-----BEGIN PUBLIC KEY-----\n");
-    while (olen)
+    if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        int use_len = olen;
-        if (use_len > 64) use_len = 64;
-        fwrite( c, 1, use_len, f );
-        olen -= use_len;
-        c += use_len;
-        fprintf(f, "\n");
+        if( ( ret = x509write_pubkey_pem( rsa, output_buf, 16000 ) ) != 0 )
+            return( ret );
+
+        len = strlen( (char *) output_buf );
     }
-    fprintf(f, "-----END PUBLIC KEY-----\n");
+    else
+    {
+        if( ( ret = x509write_pubkey_der( rsa, output_buf, 16000 ) ) < 0 )
+            return( ret );
+
+        len = ret;
+        c = output_buf + sizeof(output_buf) - len - 1;
+    }
+
+    if( ( f = fopen( output_file, "w" ) ) == NULL )
+        return( -1 );
+
+    if( fwrite( c, 1, len, f ) != len )
+        return( -1 );
+
     fclose(f);
+
+    return( 0 );
 }
 
-static void write_private_key( rsa_context *rsa, const char *output_file )
+static int write_private_key( rsa_context *rsa, const char *output_file )
 {
+    int ret;
     FILE *f;
     unsigned char output_buf[16000];
-    unsigned char base_buf[16000];
-    unsigned char *c;
-    int ret;
-    size_t len = 0, olen = 16000;
+    unsigned char *c = output_buf;
+    size_t len = 0;
 
     memset(output_buf, 0, 16000);
-    ret = x509_write_key_der( output_buf, 16000, rsa );
-    if( ret < 0 )
-        return;
-
-    len = ret;
-    c = output_buf + 15999 - len;
-
-    base64_encode( base_buf, &olen, c, len );
-
-    c = base_buf;
-
-    f = fopen( output_file, "w" );
-    fprintf(f, "-----BEGIN RSA PRIVATE KEY-----\n");
-    while (olen)
+    if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        int use_len = olen;
-        if (use_len > 64) use_len = 64;
-        fwrite( c, 1, use_len, f );
-        olen -= use_len;
-        c += use_len;
-        fprintf(f, "\n");
+        if( ( ret = x509write_key_pem( rsa, output_buf, 16000 ) ) != 0 )
+            return( ret );
+
+        len = strlen( (char *) output_buf );
     }
-    fprintf(f, "-----END RSA PRIVATE KEY-----\n");
+    else
+    {
+        if( ( ret = x509write_key_der( rsa, output_buf, 16000 ) ) < 0 )
+            return( ret );
+
+        len = ret;
+        c = output_buf + sizeof(output_buf) - len - 1;
+    }
+
+    if( ( f = fopen( output_file, "w" ) ) == NULL )
+        return( -1 );
+
+    if( fwrite( c, 1, len, f ) != len )
+        return( -1 );
+
     fclose(f);
+
+    return( 0 );
 }
 
 #define USAGE \
@@ -156,7 +161,8 @@ static void write_private_key( rsa_context *rsa, const char *output_file )
     "    mode=private|public default: none\n"           \
     "    filename=%%s         default: keyfile.key\n"   \
     "    output_mode=private|public default: none\n"    \
-    "    output_file=%%s      defeult: keyfile.pem\n"   \
+    "    output_file=%%s      default: keyfile.pem\n"   \
+    "    output_format=pem|der default: pem\n"          \
     "\n"
 
 int main( int argc, char *argv[] )
@@ -184,6 +190,7 @@ int main( int argc, char *argv[] )
     opt.filename            = DFL_FILENAME;
     opt.output_mode         = DFL_OUTPUT_MODE;
     opt.output_file         = DFL_OUTPUT_FILENAME;
+    opt.output_format       = DFL_OUTPUT_FORMAT;
 
     for( i = 1; i < argc; i++ )
     {
@@ -207,6 +214,15 @@ int main( int argc, char *argv[] )
                 opt.output_mode = OUTPUT_MODE_PRIVATE;
             else if( strcmp( q, "public" ) == 0 )
                 opt.output_mode = OUTPUT_MODE_PUBLIC;
+            else
+                goto usage;
+        }
+        else if( strcmp( p, "output_format" ) == 0 )
+        {
+            if( strcmp( q, "pem" ) == 0 )
+                opt.output_format = OUTPUT_FORMAT_PEM;
+            else if( strcmp( q, "der" ) == 0 )
+                opt.output_format = OUTPUT_FORMAT_DER;
             else
                 goto usage;
         }

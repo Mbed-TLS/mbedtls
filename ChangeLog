@@ -20,6 +20,8 @@ Features
    * Support for zeros-and-length (ANSI X.923) padding, one-and-zeros
      (ISO/IEC 7816-4) padding and zero padding in the cipher layer
    * Support for session tickets (RFC 5077)
+   * Certificate Request (CSR) generation with extensions (key_usage,
+     ns_cert_type)
 
 Changes
    * Ability to enable / disable SSL v3 / TLS 1.0 / TLS 1.1 / TLS 1.2

@@ -228,6 +228,11 @@
 #define OID_PKCS5_PBE_SHA1_RC2_CBC      OID_PKCS5 "\x0b" /**< pbeWithSHA1AndRC2-CBC OBJECT IDENTIFIER ::= {pkcs-5 11} */
 
 /*
+ * PKCS#8 OIDs
+ */
+#define OID_PKCS9_CSR_EXT_REQ           OID_PKCS9 "\x0e" /**< extensionRequest OBJECT IDENTIFIER ::= {pkcs-9 14} */
+
+/*
  * PKCS#12 PBE OIDs
  */
 #define OID_PKCS12_PBE                      OID_PKCS12 "\x01" /**< pkcs-12PbeIds OBJECT IDENTIFIER ::= {pkcs-12 1} */

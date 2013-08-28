@@ -149,6 +149,10 @@
 #include "polarssl/x509.h"
 #endif
 
+#if defined(POLARSSL_X509_WRITE_C)
+#include "polarssl/x509write.h"
+#endif
+
 #if defined(POLARSSL_XTEA_C)
 #include "polarssl/xtea.h"
 #endif
@@ -431,6 +435,15 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE) )
             snprintf( buf, buflen, "X509 - Elliptic curve is unsupported (only NIST curves are supported)" );
 #endif /* POLARSSL_X509_PARSE_C */
+
+#if defined(POLARSSL_X509_WRITE_C)
+        if( use_ret == -(POLARSSL_ERR_X509WRITE_UNKNOWN_OID) )
+            snprintf( buf, buflen, "X509WRITE - Requested OID is unknown" );
+        if( use_ret == -(POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA) )
+            snprintf( buf, buflen, "X509WRITE - Failed to allocate memory" );
+        if( use_ret == -(POLARSSL_ERR_X509WRITE_MALLOC_FAILED) )
+            snprintf( buf, buflen, "X509WRITE - Failed to allocate memory" );
+#endif /* POLARSSL_X509_WRITE_C */
 
         if( strlen( buf ) == 0 )
             snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );

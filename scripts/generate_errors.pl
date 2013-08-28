@@ -13,7 +13,7 @@ my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
                           "MD2", "MD4", "MD5", "SHA1", "SHA256", "SHA512", "GCM" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "ECP", "MD", "CIPHER", "SSL",
-                           "PK", "PKCS12", "PKCS5" );
+                           "PK", "PKCS12", "PKCS5", "X509WRITE" );
 
 my $line_separator = $/;
 undef $/;
@@ -49,6 +49,7 @@ while (my $line = <GREP>)
 
     my $define_name = $module_name;
     $define_name = "X509_PARSE" if ($define_name eq "X509");
+    $define_name = "X509_WRITE" if ($define_name eq "X509WRITE");
     $define_name = "ASN1_PARSE" if ($define_name eq "ASN1");
     $define_name = "SSL_TLS" if ($define_name eq "SSL");
 

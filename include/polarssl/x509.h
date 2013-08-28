@@ -146,7 +146,7 @@
 extern "C" {
 #endif
 
-/** 
+/**
  * \addtogroup x509_module
  * \{ */
 
@@ -154,8 +154,8 @@ extern "C" {
  * \name Structures for parsing X.509 certificates and CRLs
  * \{
  */
- 
-/** 
+
+/**
  * Type-length-value structure that allows for ASN1 using DER.
  */
 typedef asn1_buf x509_buf;
@@ -166,16 +166,10 @@ typedef asn1_buf x509_buf;
 typedef asn1_bitstring x509_bitstring;
 
 /**
- * Container for ASN1 named information objects. 
+ * Container for ASN1 named information objects.
  * It allows for Relative Distinguished Names (e.g. cn=polarssl,ou=code,etc.).
  */
-typedef struct _x509_name
-{
-    x509_buf oid;               /**< The object identifier. */
-    x509_buf val;               /**< The named value. */
-    struct _x509_name *next;    /**< The next named information object. */
-}
-x509_name;
+typedef asn1_named_data x509_name;
 
 /**
  * Container for a sequence of ASN.1 items
@@ -190,7 +184,7 @@ typedef struct _x509_time
 }
 x509_time;
 
-/** 
+/**
  * Container for an X.509 certificate. The certificate may be chained.
  */
 typedef struct _x509_cert
@@ -288,42 +282,6 @@ typedef struct _x509_crl
 x509_crl;
 /** \} name Structures for parsing X.509 certificates and CRLs */
 /** \} addtogroup x509_module */
-
-/**
- * \name Structures for writing X.509 certificates.
- * XvP: commented out as they are not used.
- * - <tt>typedef struct _x509_node x509_node;</tt>
- * - <tt>typedef struct _x509_raw x509_raw;</tt>
- */
-/*
-typedef struct _x509_node
-{
-    unsigned char *data;
-    unsigned char *p;
-    unsigned char *end;
-
-    size_t len;
-}
-x509_node;
-
-typedef struct _x509_raw
-{
-    x509_node raw;
-    x509_node tbs;
-
-    x509_node version;
-    x509_node serial;
-    x509_node tbs_signalg;
-    x509_node issuer;
-    x509_node validity;
-    x509_node subject;
-    x509_node subpubkey;
-
-    x509_node signalg;
-    x509_node sign;
-}
-x509_raw;
-*/
 
 /**
  * \name Functions to read in DHM parameters, a certificate, CRL or private RSA key

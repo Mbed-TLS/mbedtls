@@ -151,6 +151,10 @@ typedef struct {
     int (*ctr_func)( void *ctx, size_t length, size_t *nc_off, unsigned char *nonce_counter,
             unsigned char *stream_block, const unsigned char *input, unsigned char *output );
 
+    /** Encrypt using STREAM */
+    int (*stream_func)( void *ctx, size_t length,
+                        const unsigned char *input, unsigned char *output );
+
     /** Set key for encryption purposes */
     int (*setkey_enc_func)( void *ctx, const unsigned char *key, unsigned int key_length);
 

@@ -37,6 +37,10 @@
 #include "polarssl/aes.h"
 #endif
 
+#if defined(POLARSSL_ARC4_C)
+#include "polarssl/arc4.h"
+#endif
+
 #if defined(POLARSSL_CAMELLIA_C)
 #include "polarssl/camellia.h"
 #endif
@@ -129,6 +133,7 @@ const cipher_base_t aes_info = {
     aes_crypt_cbc_wrap,
     aes_crypt_cfb128_wrap,
     aes_crypt_ctr_wrap,
+    NULL,
     aes_setkey_enc_wrap,
     aes_setkey_dec_wrap,
     aes_ctx_alloc,
@@ -324,6 +329,7 @@ const cipher_base_t camellia_info = {
     camellia_crypt_cbc_wrap,
     camellia_crypt_cfb128_wrap,
     camellia_crypt_ctr_wrap,
+    NULL,
     camellia_setkey_enc_wrap,
     camellia_setkey_dec_wrap,
     camellia_ctx_alloc,
@@ -531,6 +537,7 @@ const cipher_base_t des_info = {
     des_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
+    NULL,
     des_setkey_enc_wrap,
     des_setkey_dec_wrap,
     des_ctx_alloc,
@@ -552,6 +559,7 @@ const cipher_base_t des_ede_info = {
     des3_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
+    NULL,
     des3_set2key_enc_wrap,
     des3_set2key_dec_wrap,
     des3_ctx_alloc,
@@ -573,6 +581,7 @@ const cipher_base_t des_ede3_info = {
     des3_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
+    NULL,
     des3_set3key_enc_wrap,
     des3_set3key_dec_wrap,
     des3_ctx_alloc,
@@ -661,6 +670,7 @@ const cipher_base_t blowfish_info = {
     blowfish_crypt_cbc_wrap,
     blowfish_crypt_cfb64_wrap,
     blowfish_crypt_ctr_wrap,
+    NULL,
     blowfish_setkey_enc_wrap,
     blowfish_setkey_dec_wrap,
     blowfish_ctx_alloc,
@@ -703,15 +713,28 @@ const cipher_info_t blowfish_ctr_info = {
 #endif /* POLARSSL_BLOWFISH_C */
 
 #if defined(POLARSSL_ARC4_C)
-static void * arc4_ctx_alloc( void )
+static int arc4_crypt_stream_wrap( void *ctx, size_t length,
+                                   const unsigned char *input,
+                                   unsigned char *output )
 {
-    return (void *) 1;
+    return( arc4_crypt( (arc4_context *) ctx, length, input, output ) );
 }
 
+static int arc4_setkey_wrap( void *ctx, const unsigned char *key,
+                             unsigned int key_length )
+{
+    arc4_setup( (arc4_context *) ctx, key, key_length );
+    return( 0 );
+}
+
+static void * arc4_ctx_alloc( void )
+{
+    return polarssl_malloc( sizeof( arc4_context ) );
+}
 
 static void arc4_ctx_free( void *ctx )
 {
-    ((void) ctx);
+    polarssl_free( ctx );
 }
 
 const cipher_base_t arc4_base_info = {
@@ -719,8 +742,9 @@ const cipher_base_t arc4_base_info = {
     NULL,
     NULL,
     NULL,
-    NULL,
-    NULL,
+    arc4_crypt_stream_wrap,
+    arc4_setkey_wrap,
+    arc4_setkey_wrap,
     arc4_ctx_alloc,
     arc4_ctx_free
 };
@@ -750,6 +774,7 @@ static void null_ctx_free( void *ctx )
 
 const cipher_base_t null_base_info = {
     POLARSSL_CIPHER_ID_NULL,
+    NULL,
     NULL,
     NULL,
     NULL,

@@ -36,6 +36,10 @@
 
 #include <stdlib.h>
 
+#if defined(POLARSSL_ARC4_C)
+#define POLARSSL_CIPHER_MODE_STREAM
+#endif
+
 #if defined _MSC_VER && !defined strcasecmp
 #define strcasecmp _stricmp
 #endif
@@ -60,6 +64,10 @@ static const int supported_ciphers[] = {
 #endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
 
 #endif /* defined(POLARSSL_AES_C) */
+
+#if defined(POLARSSL_ARC4_C)
+        POLARSSL_CIPHER_ARC4_128,
+#endif
 
 #if defined(POLARSSL_CAMELLIA_C)
         POLARSSL_CIPHER_CAMELLIA_128_CBC,
@@ -277,6 +285,11 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
     if( !strcasecmp( "AES-256-CTR", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CTR );
 #endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+#endif
+
+#if defined(POLARSSL_ARC4_C)
+    if( !strcasecmp( "ARC4-128", cipher_name ) )
+        return( cipher_info_from_type( POLARSSL_CIPHER_ARC4_128 ) );
 #endif
 
 #if defined(POLARSSL_DES_C)
@@ -527,6 +540,21 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
     }
 #endif
 
+#if defined(POLARSSL_CIPHER_MODE_STREAM)
+    if( ctx->cipher_info->mode == POLARSSL_MODE_STREAM )
+    {
+        if( 0 != ( ret = ctx->cipher_info->base->stream_func( ctx->cipher_ctx,
+                                                    ilen, input, output ) ) )
+        {
+            return ret;
+        }
+
+        *olen = ilen;
+
+        return 0;
+    }
+#endif
+
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
@@ -697,6 +725,7 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 
     if( POLARSSL_MODE_CFB == ctx->cipher_info->mode ||
         POLARSSL_MODE_CTR == ctx->cipher_info->mode ||
+        POLARSSL_MODE_STREAM == ctx->cipher_info->mode ||
         POLARSSL_MODE_NULL == ctx->cipher_info->mode )
     {
         return 0;

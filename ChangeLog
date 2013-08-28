@@ -6,6 +6,8 @@ Features
    * Elliptic Curve Diffie Hellman module added
    * Ephemeral Elliptic Curve Diffie Hellman support for SSL/TLS
     (ECDHE-based ciphersuites)
+   * Ephemeral Elliptic Curve Digital Signature Algorithm support for SSL/TLS
+    (ECDSA-based ciphersuites)
    * Ability to specify allowed ciphersuites based on the protocol version.
    * PSK and DHE-PSK based ciphersuites added
    * Memory allocation abstraction layer added

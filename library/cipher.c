@@ -36,7 +36,7 @@
 
 #include <stdlib.h>
 
-#if defined(POLARSSL_ARC4_C)
+#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
 #define POLARSSL_CIPHER_MODE_STREAM
 #endif
 
@@ -367,11 +367,6 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     ctx->key_length = key_length;
     ctx->operation = operation;
 
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( ctx->cipher_info->mode == POLARSSL_MODE_NULL )
-        return 0;
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
-
     /*
      * For CFB and CTR mode always use the encryption key schedule
      */
@@ -420,19 +415,6 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
     {
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( ctx->cipher_info->mode == POLARSSL_MODE_NULL )
-    {
-        *olen = ilen;
-
-        if( output == input )
-            return( 0 );
-
-        memcpy( output, input, ilen );
-        return 0;
-    }
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
 
     if( ctx->cipher_info->mode == POLARSSL_MODE_CBC )
     {
@@ -725,8 +707,7 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 
     if( POLARSSL_MODE_CFB == ctx->cipher_info->mode ||
         POLARSSL_MODE_CTR == ctx->cipher_info->mode ||
-        POLARSSL_MODE_STREAM == ctx->cipher_info->mode ||
-        POLARSSL_MODE_NULL == ctx->cipher_info->mode )
+        POLARSSL_MODE_STREAM == ctx->cipher_info->mode )
     {
         return 0;
     }

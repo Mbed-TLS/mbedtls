@@ -95,7 +95,6 @@ typedef enum {
 
 typedef enum {
     POLARSSL_MODE_NONE = 0,
-    POLARSSL_MODE_NULL,
     POLARSSL_MODE_CBC,
     POLARSSL_MODE_CFB,
     POLARSSL_MODE_OFB,

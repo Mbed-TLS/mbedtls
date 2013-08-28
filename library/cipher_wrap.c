@@ -645,12 +645,7 @@ static int blowfish_crypt_ctr_wrap( void *ctx, size_t length,
 #endif
 }
 
-static int blowfish_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
-{
-    return blowfish_setkey( (blowfish_context *) ctx, key, key_length );
-}
-
-static int blowfish_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int blowfish_setkey_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return blowfish_setkey( (blowfish_context *) ctx, key, key_length );
 }
@@ -671,8 +666,8 @@ const cipher_base_t blowfish_info = {
     blowfish_crypt_cfb64_wrap,
     blowfish_crypt_ctr_wrap,
     NULL,
-    blowfish_setkey_enc_wrap,
-    blowfish_setkey_dec_wrap,
+    blowfish_setkey_wrap,
+    blowfish_setkey_wrap,
     blowfish_ctx_alloc,
     blowfish_ctx_free
 };
@@ -761,11 +756,29 @@ const cipher_info_t arc4_128_info = {
 #endif /* POLARSSL_ARC4_C */
 
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
+static int null_crypt_stream( void *ctx, size_t length,
+                              const unsigned char *input,
+                              unsigned char *output )
+{
+    ((void) ctx);
+    memmove( output, input, length );
+    return( 0 );
+}
+
+static int null_setkey( void *ctx, const unsigned char *key,
+                        unsigned int key_length )
+{
+    ((void) ctx);
+    ((void) key);
+    ((void) key_length);
+
+    return( 0 );
+}
+
 static void * null_ctx_alloc( void )
 {
     return (void *) 1;
 }
-
 
 static void null_ctx_free( void *ctx )
 {
@@ -777,16 +790,16 @@ const cipher_base_t null_base_info = {
     NULL,
     NULL,
     NULL,
-    NULL,
-    NULL,
-    NULL,
+    null_crypt_stream,
+    null_setkey,
+    null_setkey,
     null_ctx_alloc,
     null_ctx_free
 };
 
 const cipher_info_t null_cipher_info = {
     POLARSSL_CIPHER_NULL,
-    POLARSSL_MODE_NULL,
+    POLARSSL_MODE_STREAM,
     0,
     "NULL",
     0,

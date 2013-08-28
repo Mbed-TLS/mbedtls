@@ -131,30 +131,6 @@ int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
 #endif
 
-#if defined(POLARSSL_RSA_C)
-static int ssl_rsa_decrypt( void *ctx, int mode, size_t *olen,
-                        const unsigned char *input, unsigned char *output,
-                        size_t output_max_len )
-{
-    return rsa_pkcs1_decrypt( (rsa_context *) ctx, mode, olen, input, output,
-                              output_max_len );
-}
-
-static int ssl_rsa_sign( void *ctx,
-                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                    int mode, int hash_id, unsigned int hashlen,
-                    const unsigned char *hash, unsigned char *sig )
-{
-    return rsa_pkcs1_sign( (rsa_context *) ctx, f_rng, p_rng, mode, hash_id,
-                           hashlen, hash, sig );
-}
-
-static size_t ssl_rsa_key_len( void *ctx )
-{
-    return ( (rsa_context *) ctx )->len;
-}
-#endif /* POLARSSL_RSA_C */
-
 /*
  * Key material generation
  */
@@ -461,8 +437,10 @@ int ssl_derive_keys( ssl_context *ssl )
     else
 #endif
 #endif
-        /* Should never happen */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
 
     /*
      * SSLv3:
@@ -636,8 +614,10 @@ int ssl_derive_keys( ssl_context *ssl )
     }
     else
 #endif
-        /* Should never happen */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_init != NULL)
@@ -924,8 +904,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     }
     else
 #endif
-        /* Should never happen */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
 
     SSL_DEBUG_BUF( 4, "computed mac",
                    ssl->out_msg + ssl->out_msglen, ssl->transform_out->maclen );
@@ -1356,8 +1338,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         else
 #endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
           POLARSSL_SSL_PROTO_TLS1_2 */
-            /* Should never happen */
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
     }
 
     SSL_DEBUG_BUF( 4, "raw buffer after decryption",
@@ -1419,8 +1403,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     else
 #endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
           POLARSSL_SSL_PROTO_TLS1_2 */
-        /* Should never happen */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
 
     SSL_DEBUG_BUF( 4, "message  mac", tmp, ssl->transform_in->maclen );
     SSL_DEBUG_BUF( 4, "computed mac", ssl->in_msg + ssl->in_msglen,
@@ -3000,12 +2986,6 @@ int ssl_init( ssl_context *ssl )
     /*
      * Sane defaults
      */
-#if defined(POLARSSL_RSA_C)
-    ssl->rsa_decrypt = ssl_rsa_decrypt;
-    ssl->rsa_sign = ssl_rsa_sign;
-    ssl->rsa_key_len = ssl_rsa_key_len;
-#endif
-
     ssl->min_major_ver = SSL_MIN_MAJOR_VERSION;
     ssl->min_minor_ver = SSL_MIN_MINOR_VERSION;
     ssl->max_major_ver = SSL_MAX_MAJOR_VERSION;
@@ -3287,23 +3267,55 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
 }
 
 void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
-                       rsa_context *rsa_key )
+                       pk_context *pk_key )
 {
     ssl->own_cert   = own_cert;
-    ssl->rsa_key    = rsa_key;
+    ssl->pk_key     = pk_key;
 }
 
-void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
-                           void *rsa_key,
-                           rsa_decrypt_func rsa_decrypt,
-                           rsa_sign_func rsa_sign,
-                           rsa_key_len_func rsa_key_len )
+#if defined(POLARSSL_RSA_C)
+int ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
+                           rsa_context *rsa_key )
 {
+    int ret;
+
     ssl->own_cert   = own_cert;
-    ssl->rsa_key    = rsa_key;
-    ssl->rsa_decrypt = rsa_decrypt;
-    ssl->rsa_sign = rsa_sign;
-    ssl->rsa_key_len = rsa_key_len;
+
+    if( ( ssl->pk_key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    ssl->pk_key_own_alloc = 1;
+
+    pk_init( ssl->pk_key );
+
+    ret = pk_init_ctx( ssl->pk_key, pk_info_from_type( POLARSSL_PK_RSA ) );
+    if( ret != 0 )
+        return( ret );
+
+    if( ( ret = rsa_copy( ssl->pk_key->pk_ctx, rsa_key ) ) != 0 )
+        return( ret );
+
+    return( 0 );
+}
+#endif /* POLARSSL_RSA_C */
+
+int ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
+                          void *rsa_key,
+                          rsa_decrypt_func rsa_decrypt,
+                          rsa_sign_func rsa_sign,
+                          rsa_key_len_func rsa_key_len )
+{
+    ssl->own_cert    = own_cert;
+
+    if( ( ssl->pk_key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    ssl->pk_key_own_alloc = 1;
+
+    pk_init( ssl->pk_key );
+
+    return( pk_init_ctx_rsa_alt( ssl->pk_key, rsa_key,
+                                 rsa_decrypt, rsa_sign, rsa_key_len ) );
 }
 #endif /* POLARSSL_X509_PARSE_C */
 
@@ -3694,8 +3706,10 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                 }
                 else
 #endif
-                    /* Should never happen */
+                {
+                    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
                     return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+                }
             }
             else
             {
@@ -3931,6 +3945,12 @@ void ssl_free( ssl_context *ssl )
     }
 #endif
 
+    if( ssl->pk_key_own_alloc )
+    {
+        pk_free( ssl->pk_key );
+        polarssl_free( ssl->pk_key );
+    }
+
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_finish != NULL )
     {
@@ -3943,6 +3963,68 @@ void ssl_free( ssl_context *ssl )
 
     /* Actually clear after last debug message */
     memset( ssl, 0, sizeof( ssl_context ) );
+}
+
+/*
+ * Get the SSL_SIG_* constant corresponding to a public key
+ */
+unsigned char ssl_sig_from_pk( pk_context *pk )
+{
+#if defined(POLARSSL_RSA_C)
+    if( pk_can_do( pk, POLARSSL_PK_RSA ) )
+        return( SSL_SIG_RSA );
+#endif
+#if defined(POLARSSL_ECDSA_C)
+    if( pk_can_do( pk, POLARSSL_PK_ECDSA ) )
+        return( SSL_SIG_ECDSA );
+#endif
+    return( SSL_SIG_ANON );
+}
+
+pk_type_t ssl_pk_alg_from_sig( unsigned char sig )
+{
+    switch( sig )
+    {
+#if defined(POLARSSL_RSA_C)
+        case SSL_SIG_RSA:
+            return( POLARSSL_PK_RSA );
+#endif
+#if defined(POLARSSL_ECDSA_C)
+        case SSL_SIG_ECDSA:
+            return( POLARSSL_PK_ECDSA );
+#endif
+        default:
+            return( POLARSSL_PK_NONE );
+    }
+}
+
+md_type_t ssl_md_alg_from_hash( unsigned char hash )
+{
+    switch( hash )
+    {
+#if defined(POLARSSL_MD5_C)
+        case SSL_HASH_MD5:
+            return( POLARSSL_MD_MD5 );
+#endif
+#if defined(POLARSSL_SHA1_C)
+        case SSL_HASH_SHA1:
+            return( POLARSSL_MD_SHA1 );
+#endif
+#if defined(POLARSSL_SHA256_C)
+        case SSL_HASH_SHA224:
+            return( POLARSSL_MD_SHA224 );
+        case SSL_HASH_SHA256:
+            return( POLARSSL_MD_SHA256 );
+#endif
+#if defined(POLARSSL_SHA512_C)
+        case SSL_HASH_SHA384:
+            return( POLARSSL_MD_SHA384 );
+        case SSL_HASH_SHA512:
+            return( POLARSSL_MD_SHA512 );
+#endif
+        default:
+            return( POLARSSL_MD_NONE );
+    }
 }
 
 #endif

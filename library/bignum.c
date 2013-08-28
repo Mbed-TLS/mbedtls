@@ -1980,7 +1980,7 @@ cleanup:
     return( ret );
 }
 
-#endif
+#endif /* POLARSSL_GENPRIME */
 
 #if defined(POLARSSL_SELF_TEST)
 
@@ -2092,7 +2092,6 @@ int mpi_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n" );
 
-#if defined(POLARSSL_GENPRIME)
     MPI_CHK( mpi_inv_mod( &X, &A, &N ) );
 
     MPI_CHK( mpi_read_string( &U, 16,
@@ -2113,7 +2112,6 @@ int mpi_self_test( int verbose )
 
     if( verbose != 0 )
         printf( "passed\n" );
-#endif
 
     if( verbose != 0 )
         printf( "  MPI test #5 (simple gcd): " );

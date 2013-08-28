@@ -605,8 +605,9 @@ static int x509_get_pubkey( unsigned char **p,
 #if defined(POLARSSL_ECP_C)
     if( pk_alg == POLARSSL_PK_ECKEY_DH || pk_alg == POLARSSL_PK_ECKEY )
     {
-        ret = x509_use_ecparams( &alg_params, &pk_ec( *pk )->grp ) ||
-              x509_get_ecpubkey( p, end, pk_ec( *pk ) );
+        ret = x509_use_ecparams( &alg_params, &pk_ec( *pk )->grp );
+        if( ret == 0 )
+            ret = x509_get_ecpubkey( p, end, pk_ec( *pk ) );
     } else
 #endif /* POLARSSL_ECP_C */
         ret = POLARSSL_ERR_X509_UNKNOWN_PK_ALG;
@@ -3936,7 +3937,7 @@ int x509_self_test( int verbose )
     size_t i, j;
     x509_cert cacert;
     x509_cert clicert;
-    rsa_context rsa;
+    pk_context pkey;
 #if defined(POLARSSL_DHM_C)
     dhm_context dhm;
 #endif
@@ -3974,9 +3975,9 @@ int x509_self_test( int verbose )
     i = strlen( test_ca_key );
     j = strlen( test_ca_pwd );
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
+    pk_init( &pkey );
 
-    if( ( ret = x509parse_key_rsa( &rsa,
+    if( ( ret = x509parse_key( &pkey,
                     (const unsigned char *) test_ca_key, i,
                     (const unsigned char *) test_ca_pwd, j ) ) != 0 )
     {
@@ -3989,11 +3990,13 @@ int x509_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n  X.509 signature verify: ");
 
-    ret = x509parse_verify( &clicert, &cacert, NULL, "PolarSSL Client 2", &flags, NULL, NULL );
+    ret = x509parse_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
     if( ret != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );
+
+        printf("ret = %d, &flags = %04x\n", ret, flags);
 
         return( ret );
     }
@@ -4019,7 +4022,7 @@ int x509_self_test( int verbose )
 
     x509_free( &cacert  );
     x509_free( &clicert );
-    rsa_free( &rsa );
+    pk_free( &pkey );
 #if defined(POLARSSL_DHM_C)
     dhm_free( &dhm );
 #endif

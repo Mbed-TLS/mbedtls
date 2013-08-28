@@ -82,6 +82,7 @@ typedef enum {
     POLARSSL_PK_ECKEY,
     POLARSSL_PK_ECKEY_DH,
     POLARSSL_PK_ECDSA,
+    POLARSSL_PK_RSA_ALT,
 } pk_type_t;
 
 /**
@@ -129,6 +130,25 @@ typedef struct
                         const unsigned char *hash, size_t hash_len,
                         const unsigned char *sig, size_t sig_len );
 
+    /** Make signature */
+    int (*sign_func)( void *ctx, md_type_t md_alg,
+                      const unsigned char *hash, size_t hash_len,
+                      unsigned char *sig, size_t *sig_len,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng );
+
+    /** Decrypt message */
+    int (*decrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen, size_t osize,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
+
+    /** Encrypt message */
+    int (*encrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen, size_t osize,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
+
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
 
@@ -150,6 +170,18 @@ typedef struct
 } pk_context;
 
 /**
+ * \brief           Types for RSA-alt abstraction
+ */
+typedef int (*pk_rsa_alt_decrypt_func)( void *ctx, int mode, size_t *olen,
+                    const unsigned char *input, unsigned char *output,
+                    size_t output_max_len );
+typedef int (*pk_rsa_alt_sign_func)( void *ctx,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                    int mode, int hash_id, unsigned int hashlen,
+                    const unsigned char *hash, unsigned char *sig );
+typedef size_t (*pk_rsa_alt_key_len_func)( void *ctx );
+
+/**
  * \brief           Return information associated with the given PK type
  *
  * \param type      PK type to search for.
@@ -164,6 +196,11 @@ const pk_info_t *pk_info_from_type( pk_type_t pk_type );
 void pk_init( pk_context *ctx );
 
 /**
+ * \brief           Free a pk_context
+ */
+void pk_free( pk_context *ctx );
+
+/**
  * \brief           Initialize a PK context with the information given
  *                  and allocates the type-specific PK subcontext.
  *
@@ -173,13 +210,30 @@ void pk_init( pk_context *ctx );
  * \return          0 on success,
  *                  POLARSSL_ERR_PK_BAD_INPUT_DATA on invalid input,
  *                  POLARSSL_ERR_PK_MALLOC_FAILED on allocation failure.
+ *
+ * \note            For contexts holding an RSA-alt key, use
+ *                  \c pk_init_ctx_rsa_alt() instead.
  */
 int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
 
 /**
- * \brief           Free a pk_context
+ * \brief           Initialiaze an RSA-alt context
+ *
+ * \param ctx       Context to initialize. Must be empty (type NONE).
+ * \param key       RSA key pointer
+ * \param decrypt_func  Decryption function
+ * \param sign_func     Signing function
+ * \param key_len_func  Function returning key length
+ *
+ * \return          0 on success, or POLARSSL_ERR_PK_BAD_INPUT_DATA if the
+ *                  context wasn't already initialized as RSA_ALT.
+ *
+ * \note            This function replaces \c pk_init_ctx() for RSA-alt.
  */
-void pk_free( pk_context *ctx );
+int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,
+                         pk_rsa_alt_decrypt_func decrypt_func,
+                         pk_rsa_alt_sign_func sign_func,
+                         pk_rsa_alt_key_len_func key_len_func );
 
 /**
  * \brief           Get the size in bits of the underlying key
@@ -189,6 +243,17 @@ void pk_free( pk_context *ctx );
  * \return          Key size in bits, or 0 on error
  */
 size_t pk_get_size( const pk_context *ctx );
+
+/**
+ * \brief           Get the length in bytes of the underlying key
+ * \param ctx       Context to use
+ *
+ * \return          Key lenght in bytes, or 0 on error
+ */
+static inline size_t pk_get_len( const pk_context *ctx )
+{
+    return( ( pk_get_size( ctx ) + 7 ) / 8 );
+}
 
 /**
  * \brief           Tell if a context can do the operation given by type
@@ -205,18 +270,81 @@ int pk_can_do( pk_context *ctx, pk_type_t type );
  * \brief           Verify signature
  *
  * \param ctx       PK context to use
- * \param md_alg    Hash algorithm used
+ * \param md_alg    Hash algorithm used (see notes)
  * \param hash      Hash of the message to sign
- * \param hash_len  Hash length
+ * \param hash_len  Hash length or 0 (see notes)
  * \param sig       Signature to verify
  * \param sig_len   Signature length
  *
  * \return          0 on success (signature is valid),
  *                  or a specific error code.
+ *
+ * \note            If hash_len is 0, then the length associated with md_alg
+ *                  is used instead, or an error returned if it is invalid.
+ *
+ * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
  */
 int pk_verify( pk_context *ctx, md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len );
+
+/**
+ * \brief           Make signature
+ *
+ * \param ctx       PK context to use
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length or 0 (see notes)
+ * \param sig       Place to write the signature
+ * \param sig_len   Number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 on success, or a specific error code.
+ *
+ * \note            If hash_len is 0, then the length associated with md_alg
+ *                  is used instead, or an error returned if it is invalid.
+ *
+ * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
+ */
+int pk_sign( pk_context *ctx, md_type_t md_alg,
+             const unsigned char *hash, size_t hash_len,
+             unsigned char *sig, size_t *sig_len,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Decrypt message
+ *
+ * \param ctx       PK context to use
+ * \param input     Input to decrypt
+ * \param ilen      Input size
+ * \param output    Decrypted output
+ * \param olen      Decrypted message lenght
+ * \param osize     Size of the output buffer
+ *
+ * \return          0 on success, or a specific error code.
+ */
+int pk_decrypt( pk_context *ctx,
+                const unsigned char *input, size_t ilen,
+                unsigned char *output, size_t *olen, size_t osize,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Encrypt message
+ *
+ * \param ctx       PK context to use
+ * \param input     Message to encrypt
+ * \param ilen      Message size
+ * \param output    Encrypted output
+ * \param olen      Encrypted output length
+ * \param osize     Size of the output buffer
+ *
+ * \return          0 on success, or a specific error code.
+ */
+int pk_encrypt( pk_context *ctx,
+                const unsigned char *input, size_t ilen,
+                unsigned char *output, size_t *olen, size_t osize,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
  * \brief           Export debug information

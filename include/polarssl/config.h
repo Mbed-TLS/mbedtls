@@ -364,6 +364,28 @@
 #define POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
 /**
+ * \def POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+ *
+ * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS
+ *
+ * Requires: POLARSSL_ECDH_C, POLARSSL_ECDSA_C, POLARSSL_X509_PARSE_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+ *      TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
+ *      TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+ *      TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+ *      TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+ *      TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
+ *      TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+ *      TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+ *      TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256,
+ *      TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384,
+ */
+#define POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+
+/**
  * \def POLARSSL_ERROR_STRERROR_BC
  *
  * Make available the backward compatible error_strerror() next to the
@@ -1129,6 +1151,21 @@
 #define POLARSSL_PEM_C
 
 /**
+ * \def POLARSSL_PK_C
+ *
+ * Enable the generic public (asymetric) key layer.
+ *
+ * Module:  library/pk.c
+ * Caller:  library/x509parse.c
+ *          library/ssl_tls.c
+ *          library/ssl_cli.c
+ *          library/ssl_srv.c
+ *
+ * Uncomment to enable generic public key wrappers.
+ */
+#define POLARSSL_PK_C
+
+/**
  * \def POLARSSL_PKCS5_C
  *
  * Enable PKCS#5 functions
@@ -1146,11 +1183,10 @@
  *
  * Enable wrapper for PKCS#11 smartcard support.
  *
- * Module:  library/ssl_srv.c
- * Caller:  library/ssl_cli.c
- *          library/ssl_srv.c
+ * Module:  library/pkcs11.c
+ * Caller:  library/pk.c
  *
- * Requires: POLARSSL_SSL_TLS_C
+ * Requires: POLARSSL_PK_C
  *
  * This module enables SSL/TLS PKCS #11 smartcard support.
  * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
@@ -1283,8 +1319,8 @@
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * Requires: POLARSSL_CIPHER_C and at least one of the
- *           POLARSSL_SSL_PROTO_* defines
+ * Requires: POLARSSL_CIPHER_C, POLARSSL_PK_C, POLARSSL_MD_C
+ *           and at least one of the POLARSSL_SSL_PROTO_* defines
  *
  * This module is required for SSL/TLS.
  */
@@ -1324,7 +1360,7 @@
  *          library/ssl_tls.c
  *
  * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_BIGNUM_C, POLARSSL_OID_C,
- *           POLARSSL_RSA_C
+ *           POLARSSL_PK_C
  *
  * This module is required for X.509 certificate parsing.
  */
@@ -1477,6 +1513,12 @@
 #error "POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
+    ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_ECDSA_C) ||          \
+      !defined(POLARSSL_X509_PARSE_C) )
+#error "POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
     ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
@@ -1499,7 +1541,7 @@
 #error "POLARSSL_PEM_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_SSL_TLS_C)
+#if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_PK_C)
 #error "POLARSSL_PKCS11_C defined, but not all prerequisites"
 #endif
 
@@ -1512,7 +1554,8 @@
 #error "POLARSSL_SSL_CLI_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_SSL_TLS_C) && !defined(POLARSSL_CIPHER_C)
+#if defined(POLARSSL_SSL_TLS_C) && ( !defined(POLARSSL_CIPHER_C) ||     \
+    !defined(POLARSSL_PK_C) || !defined(POLARSSL_MD_C) )
 #error "POLARSSL_SSL_TLS_C defined, but not all prerequisites"
 #endif
 
@@ -1549,7 +1592,7 @@
 
 #if defined(POLARSSL_X509_PARSE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
     !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
-    !defined(POLARSSL_RSA_C) )
+    !defined(POLARSSL_PK_C) )
 #error "POLARSSL_X509_PARSE_C defined, but not all prerequisites"
 #endif
 

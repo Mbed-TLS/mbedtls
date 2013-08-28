@@ -634,7 +634,7 @@ void mpi_inv_mod( int radix_X, char *input_X, int radix_Y, char *input_Y,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_GENPRIME */
 void mpi_is_prime( int radix_X, char *input_X, int div_result )
 {
     mpi X;

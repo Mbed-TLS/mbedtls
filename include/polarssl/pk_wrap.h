@@ -32,6 +32,15 @@
 
 #include "pk.h"
 
+/* Container for RSA-alt */
+typedef struct
+{
+    void *key;
+    pk_rsa_alt_decrypt_func decrypt_func;
+    pk_rsa_alt_sign_func sign_func;
+    pk_rsa_alt_key_len_func key_len_func;
+} rsa_alt_context;
+
 #if defined(POLARSSL_RSA_C)
 extern const pk_info_t rsa_info;
 #endif
@@ -44,5 +53,7 @@ extern const pk_info_t eckeydh_info;
 #if defined(POLARSSL_ECDSA_C)
 extern const pk_info_t ecdsa_info;
 #endif
+
+extern const pk_info_t rsa_alt_info;
 
 #endif /* POLARSSL_PK_WRAP_H */

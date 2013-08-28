@@ -27,6 +27,7 @@
 #ifndef POLARSSL_SSL_CIPHERSUITES_H
 #define POLARSSL_SSL_CIPHERSUITES_H
 
+#include "pk.h"
 #include "cipher.h"
 #include "md.h"
 
@@ -119,17 +120,32 @@ extern "C" {
 #define TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256     0xC0   /**< TLS 1.2 */
 #define TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 0xC4   /**< TLS 1.2 */
 
+#define TLS_ECDHE_ECDSA_WITH_NULL_SHA            0xC006 /**< Weak! */
+#define TLS_ECDHE_ECDSA_WITH_RC4_128_SHA         0xC007 /**< Not in SSL3! */
+#define TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA    0xC008 /**< Not in SSL3! */
+#define TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA     0xC009 /**< Not in SSL3! */
+#define TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA     0xC00A /**< Not in SSL3! */
+
 #define TLS_ECDHE_RSA_WITH_NULL_SHA              0xC010 /**< Weak! */
 #define TLS_ECDHE_RSA_WITH_RC4_128_SHA           0xC011 /**< Not in SSL3! */
 #define TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA      0xC012 /**< Not in SSL3! */
 #define TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA       0xC013 /**< Not in SSL3! */
 #define TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA       0xC014 /**< Not in SSL3! */
 
+#define TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256  0xC023 /**< TLS 1.2 */
+#define TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384  0xC024 /**< TLS 1.2 */
+
 #define TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256    0xC027 /**< TLS 1.2 */
 #define TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384    0xC028 /**< TLS 1.2 */
 
+#define TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256  0xC02B /**< TLS 1.2 */
+#define TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384  0xC02C /**< TLS 1.2 */
+
 #define TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256    0xC02F /**< TLS 1.2 */
 #define TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384    0xC030 /**< TLS 1.2 */
+
+#define TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256 0xC072 /**< TLS 1.2 */
+#define TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384 0xC073 /**< TLS 1.2 */
 
 #define TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256  0xC076 /**< TLS 1.2 */
 #define TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384  0xC077 /**< TLS 1.2 */
@@ -146,6 +162,7 @@ typedef enum {
     POLARSSL_KEY_EXCHANGE_RSA,
     POLARSSL_KEY_EXCHANGE_DHE_RSA,
     POLARSSL_KEY_EXCHANGE_ECDHE_RSA,
+    POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA,
     POLARSSL_KEY_EXCHANGE_PSK,
     POLARSSL_KEY_EXCHANGE_DHE_PSK,
     POLARSSL_KEY_EXCHANGE_RSA_PSK,
@@ -180,6 +197,8 @@ const int *ssl_ciphersuites_list( void );
 
 const ssl_ciphersuite_t *ssl_ciphersuite_from_string( const char *ciphersuite_name );
 const ssl_ciphersuite_t *ssl_ciphersuite_from_id( int ciphersuite_id );
+
+pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info );
 
 #ifdef __cplusplus
 }

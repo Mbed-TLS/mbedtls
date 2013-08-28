@@ -215,7 +215,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_X509_PARSE_C)
     x509_cert cacert;
     x509_cert srvcert;
-    rsa_context rsa;
+    pk_context pkey;
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
@@ -239,7 +239,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_X509_PARSE_C)
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &srvcert, 0, sizeof( x509_cert ) );
-    memset( &rsa, 0, sizeof( rsa_context ) );
+    pk_init( &pkey );
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_init( &cache );
@@ -575,11 +575,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = x509parse_keyfile_rsa( &rsa, opt.key_file, "" );
+        ret = x509parse_keyfile( &pkey, opt.key_file, "" );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_key_rsa( &rsa, (const unsigned char *) test_srv_key,
+        ret = x509parse_key( &pkey, (const unsigned char *) test_srv_key,
                 strlen( test_srv_key ), NULL, 0 );
 #else
     {
@@ -589,7 +589,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_key_rsa returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509parse_key returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -649,7 +649,7 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_X509_PARSE_C)
     ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
-    ssl_set_own_cert( &ssl, &srvcert, &rsa );
+    ssl_set_own_cert( &ssl, &srvcert, &pkey );
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
@@ -877,7 +877,7 @@ exit:
 #if defined(POLARSSL_X509_PARSE_C)
     x509_free( &srvcert );
     x509_free( &cacert );
-    rsa_free( &rsa );
+    pk_free( &pkey );
 #endif
 
     ssl_free( &ssl );

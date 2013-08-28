@@ -94,7 +94,7 @@ int main( int argc, char *argv[] )
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
     x509_cert srvcert;
-    rsa_context rsa;
+    pk_context pkey;
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
 #endif
@@ -117,7 +117,7 @@ int main( int argc, char *argv[] )
     /*
      * This demonstration program uses embedded test certificates.
      * Instead, you may want to use x509parse_crtfile() to read the
-     * server and CA certificates, as well as x509parse_keyfile_rsa().
+     * server and CA certificates, as well as x509parse_keyfile().
      */
     ret = x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
                          strlen( test_srv_crt ) );
@@ -135,12 +135,12 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    ret =  x509parse_key_rsa( &rsa, (const unsigned char *) test_srv_key,
+    pk_init( &pkey );
+    ret =  x509parse_key( &pkey, (const unsigned char *) test_srv_key,
                           strlen( test_srv_key ), NULL, 0 );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_key_rsa returned %d\n\n", ret );
+        printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
         goto exit;
     }
 
@@ -201,7 +201,7 @@ int main( int argc, char *argv[] )
 #endif
 
     ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
-    ssl_set_own_cert( &ssl, &srvcert, &rsa );
+    ssl_set_own_cert( &ssl, &srvcert, &pkey );
 
     printf( " ok\n" );
 
@@ -364,7 +364,7 @@ exit:
 
     net_close( client_fd );
     x509_free( &srvcert );
-    rsa_free( &rsa );
+    pk_free( &pkey );
     ssl_free( &ssl );
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_free( &cache );

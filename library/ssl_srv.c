@@ -445,12 +445,10 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
     p = buf + 2;
     while( sig_alg_list_size > 0 )
     {
-        if( p[1] != SSL_SIG_RSA )
-        {
-            sig_alg_list_size -= 2;
-            p += 2;
-            continue;
-        }
+        /*
+         * For now, just ignore signature algorithm and rely on offered
+         * ciphersuites only. To be fixed later.
+         */
 #if defined(POLARSSL_SHA512_C)
         if( p[0] == SSL_HASH_SHA512 )
         {
@@ -916,6 +914,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     int handshake_failure = 0;
     const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
+    pk_type_t pk_alg;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
@@ -1311,7 +1310,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
                 if( ciphersuite_info == NULL )
                 {
-                    SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
+                    SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found",
                                    ciphersuites[i] ) );
                     return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
                 }
@@ -1325,6 +1324,14 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                     ssl->handshake->ec_curve == 0 )
                     continue;
 #endif
+
+                /* If ciphersuite requires us to have a private key of a
+                 * certain type, make sure we do */
+                pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+                if( pk_alg != POLARSSL_PK_NONE &&
+                    ( ssl->pk_key == NULL ||
+                      ! pk_can_do( ssl->pk_key, pk_alg ) ) )
+                    continue;
 
                 goto have_ciphersuite;
             }
@@ -1611,9 +1618,9 @@ static int ssl_write_server_hello( ssl_context *ssl )
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite      );
     *p++ = (unsigned char)( ssl->session_negotiate->compression      );
 
-    SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d",
+    SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: 0x%04X",
                    ssl->session_negotiate->ciphersuite ) );
-    SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d",
+    SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
                    ssl->session_negotiate->compression ) );
 
     /*
@@ -1684,7 +1691,8 @@ static int ssl_write_certificate_request( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-    size_t n = 0, dn_size, total_dn_size;
+    size_t dn_size, total_dn_size; /* excluding length bytes */
+    size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
     const x509_cert *crt;
 
@@ -1716,25 +1724,45 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     p = buf + 4;
 
     /*
-     * At the moment, only RSA certificates are supported
+     * Supported certificate types
+     *
+     *     ClientCertificateType certificate_types<1..2^8-1>;
+     *     enum { (255) } ClientCertificateType;
      */
-    *p++ = 1;
-    *p++ = SSL_CERT_TYPE_RSA_SIGN;
+    ct_len = 0;
 
+#if defined(POLARSSL_RSA_C)
+    p[1 + ct_len++] = SSL_CERT_TYPE_RSA_SIGN;
+#endif
+#if defined(POLARSSL_ECDSA_C)
+    p[1 + ct_len++] = SSL_CERT_TYPE_ECDSA_SIGN;
+#endif
+
+    p[0] = ct_len++;
+    p += ct_len;
+
+    sa_len = 0;
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
     /*
      * Add signature_algorithms for verify (TLS 1.2)
-     * Only add current running algorithm that is already required for
-     * requested ciphersuite.
      *
-     * Length is always 2
+     *     SignatureAndHashAlgorithm supported_signature_algorithms<2..2^16-2>;
+     *
+     *     struct {
+     *           HashAlgorithm hash;
+     *           SignatureAlgorithm signature;
+     *     } SignatureAndHashAlgorithm;
+     *
+     *     enum { (255) } HashAlgorithm;
+     *     enum { (255) } SignatureAlgorithm;
      */
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
+        /*
+         * Only use current running hash algorithm that is already required
+         * for requested ciphersuite.
+         */
         ssl->handshake->verify_sig_alg = SSL_HASH_SHA256;
-
-        *p++ = 0;
-        *p++ = 2;
 
         if( ssl->transform_negotiate->ciphersuite_info->mac ==
             POLARSSL_MD_SHA384 )
@@ -1742,13 +1770,29 @@ static int ssl_write_certificate_request( ssl_context *ssl )
             ssl->handshake->verify_sig_alg = SSL_HASH_SHA384;
         }
 
-        *p++ = ssl->handshake->verify_sig_alg;
-        *p++ = SSL_SIG_RSA;
+        /*
+         * Supported signature algorithms
+         */
+#if defined(POLARSSL_RSA_C)
+        p[2 + sa_len++] = ssl->handshake->verify_sig_alg;
+        p[2 + sa_len++] = SSL_SIG_RSA;
+#endif
+#if defined(POLARSSL_ECDSA_C)
+        p[2 + sa_len++] = ssl->handshake->verify_sig_alg;
+        p[2 + sa_len++] = SSL_SIG_ECDSA;
+#endif
 
-        n += 4;
+        p[0] = (unsigned char)( sa_len >> 8 );
+        p[1] = (unsigned char)( sa_len      );
+        sa_len += 2;
+        p += sa_len;
     }
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
+    /*
+     * DistinguishedName certificate_authorities<0..2^16-1>;
+     * opaque DistinguishedName<1..2^16-1>;
+     */
     p += 2;
     crt = ssl->ca_chain;
 
@@ -1773,8 +1817,8 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = SSL_HS_CERTIFICATE_REQUEST;
-    ssl->out_msg[6 + n]  = (unsigned char)( total_dn_size  >> 8 );
-    ssl->out_msg[7 + n]  = (unsigned char)( total_dn_size       );
+    ssl->out_msg[4 + ct_len + sa_len] = (unsigned char)( total_dn_size  >> 8 );
+    ssl->out_msg[5 + ct_len + sa_len] = (unsigned char)( total_dn_size       );
 
     ret = ssl_write_record( ssl );
 
@@ -1794,8 +1838,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     md_type_t md_alg = POLARSSL_MD_NONE;
     unsigned int hashlen = 0;
     unsigned char *p = ssl->out_msg + 4;
-    unsigned char *dig_sig = p;
-    size_t dig_sig_len = 0;
+    unsigned char *dig_signed = p;
+    size_t dig_signed_len = 0;
 
     const ssl_ciphersuite_t *ciphersuite_info;
     ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
@@ -1804,20 +1848,13 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
     if( ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_RSA &&
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_RSA &&
+        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA &&
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;
         return( 0 );
     }
-
-#if defined(POLARSSL_RSA_C)
-    if( ssl->rsa_key == NULL )
-    {
-        SSL_DEBUG_MSG( 1, ( "got no private key" ) );
-        return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
-    }
-#endif /* POLARSSL_RSA_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
@@ -1860,8 +1897,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             return( ret );
         }
 
-        dig_sig = p;
-        dig_sig_len = len;
+        dig_signed = p;
+        dig_signed_len = len;
 
         p += len;
         n += len;
@@ -1874,8 +1911,10 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
         /*
          * Ephemeral ECDH parameters:
@@ -1901,26 +1940,61 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             return( ret );
         }
 
-        dig_sig = p;
-        dig_sig_len = len;
+        dig_signed = p;
+        dig_signed_len = len;
 
         p += len;
         n += len;
 
         SSL_DEBUG_ECP( 3, "ECDH: Q ", &ssl->handshake->ecdh_ctx.Q );
     }
-#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
-        size_t rsa_key_len = 0;
+        size_t signature_len = 0;
 
+        /*
+         * Choose hash algorithm. NONE means MD5 + SHA1 here.
+         */
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+        {
+            md_alg = ssl_md_alg_from_hash( ssl->handshake->sig_alg );
+
+            if( md_alg == POLARSSL_MD_NONE )
+            {
+                SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            }
+        }
+        else
+#endif
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
-        if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
+        if ( ciphersuite_info->key_exchange ==
+                  POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
+        {
+            md_alg = POLARSSL_MD_SHA1;
+        }
+        else
+#endif
+        {
+            md_alg = POLARSSL_MD_NONE;
+        }
+
+        /*
+         * Compute the hash to be signed
+         */
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
+        if( md_alg == POLARSSL_MD_NONE )
         {
             md5_context md5;
             sha1_context sha1;
@@ -1940,24 +2014,25 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
              */
             md5_starts( &md5 );
             md5_update( &md5, ssl->handshake->randbytes,  64 );
-            md5_update( &md5, dig_sig, dig_sig_len );
+            md5_update( &md5, dig_signed, dig_signed_len );
             md5_finish( &md5, hash );
 
             sha1_starts( &sha1 );
             sha1_update( &sha1, ssl->handshake->randbytes,  64 );
-            sha1_update( &sha1, dig_sig, dig_sig_len );
+            sha1_update( &sha1, dig_signed, dig_signed_len );
             sha1_finish( &sha1, hash + 16 );
 
             hashlen = 36;
-            md_alg = POLARSSL_MD_NONE;
         }
         else
 #endif /* POLARSSL_SSL_PROTO_SSL3 || POLARSSL_SSL_PROTO_TLS1 || \
           POLARSSL_SSL_PROTO_TLS1_1 */
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+        if( md_alg != POLARSSL_MD_NONE )
         {
             md_context_t ctx;
+
+            /* Info from md_alg will be used instead */
+            hashlen = 0;
 
             /*
              * digitally-signed struct {
@@ -1966,40 +2041,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
              *     ServerDHParams params;
              * };
              */
-            switch( ssl->handshake->sig_alg )
-            {
-#if defined(POLARSSL_MD5_C)
-                case SSL_HASH_MD5:
-                    md_alg = POLARSSL_MD_MD5;
-                    break;
-#endif
-#if defined(POLARSSL_SHA1_C)
-                case SSL_HASH_SHA1:
-                    md_alg = POLARSSL_MD_SHA1;
-                    break;
-#endif
-#if defined(POLARSSL_SHA256_C)
-                case SSL_HASH_SHA224:
-                    md_alg = POLARSSL_MD_SHA224;
-                    break;
-                case SSL_HASH_SHA256:
-                    md_alg = POLARSSL_MD_SHA256;
-                    break;
-#endif
-#if defined(POLARSSL_SHA512_C)
-                case SSL_HASH_SHA384:
-                    md_alg = POLARSSL_MD_SHA384;
-                    break;
-                case SSL_HASH_SHA512:
-                    md_alg = POLARSSL_MD_SHA512;
-                    break;
-#endif
-                default:
-                    /* Should never happen */
-                    return( -1 );
-            }
-
-            if( ( ret = md_init_ctx( &ctx, md_info_from_type( md_alg ) ) ) != 0 )
+            if( ( ret = md_init_ctx( &ctx, md_info_from_type(md_alg) ) ) != 0 )
             {
                 SSL_DEBUG_RET( 1, "md_init_ctx", ret );
                 return( ret );
@@ -2007,7 +2049,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
             md_starts( &ctx );
             md_update( &ctx, ssl->handshake->randbytes, 64 );
-            md_update( &ctx, dig_sig, dig_sig_len );
+            md_update( &ctx, dig_signed, dig_signed_len );
             md_finish( &ctx, hash );
 
             if( ( ret = md_free_ctx( &ctx ) ) != 0 )
@@ -2018,48 +2060,53 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
         }
         else
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
-            /* Should never happen */
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
 
-        SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
+        SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
+                (unsigned int) ( md_info_from_type( md_alg ) )->size );
 
-        if ( ssl->rsa_key )
-            rsa_key_len = ssl->rsa_key_len( ssl->rsa_key );
+        /*
+         * Make the signature
+         */
+        if( ssl->pk_key == NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+            return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
+        }
 
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
         {
             *(p++) = ssl->handshake->sig_alg;
-            *(p++) = SSL_SIG_RSA;
+            *(p++) = ssl_sig_from_pk( ssl->pk_key );
 
             n += 2;
         }
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
-        *(p++) = (unsigned char)( rsa_key_len >> 8 );
-        *(p++) = (unsigned char)( rsa_key_len      );
-        n += 2;
-
-        if ( ssl->rsa_key )
+        if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+                        p + 2 , &signature_len,
+                        ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
-            ret = ssl->rsa_sign( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
-                    RSA_PRIVATE, md_alg, hashlen, hash, p );
-        }
-
-        if( ret != 0 )
-        {
-            SSL_DEBUG_RET( 1, "pkcs1_sign", ret );
+            SSL_DEBUG_RET( 1, "pk_sign", ret );
             return( ret );
         }
 
-        SSL_DEBUG_BUF( 3, "my RSA sig", p, rsa_key_len );
+        *(p++) = (unsigned char)( signature_len >> 8 );
+        *(p++) = (unsigned char)( signature_len      );
+        n += 2;
 
-        p += rsa_key_len;
-        n += rsa_key_len;
+        SSL_DEBUG_BUF( 3, "my signature", p, signature_len );
+
+        p += signature_len;
+        n += signature_len;
     }
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+          POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
     ssl->out_msglen  = 4 + n;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
@@ -2141,7 +2188,8 @@ static int ssl_parse_client_dh_public( ssl_context *ssl, unsigned char **p,
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_parse_client_ecdh_public( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -2170,7 +2218,8 @@ static int ssl_parse_client_ecdh_public( ssl_context *ssl )
 
     return( ret );
 }
-#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
 static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
@@ -2178,9 +2227,9 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n = 0;
 
-    if( ssl->rsa_key == NULL )
+    if( ! pk_can_do( ssl->pk_key, POLARSSL_PK_RSA ) )
     {
-        SSL_DEBUG_MSG( 1, ( "got no private key" ) );
+        SSL_DEBUG_MSG( 1, ( "got no RSA private key" ) );
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
 
@@ -2188,8 +2237,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
      * Decrypt the premaster using own private RSA key
      */
     i = 4;
-    if( ssl->rsa_key )
-        n = ssl->rsa_key_len( ssl->rsa_key );
+    n = pk_get_len( ssl->pk_key );
     ssl->handshake->pmslen = 48;
 
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
@@ -2212,13 +2260,11 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( ssl->rsa_key ) {
-        ret = ssl->rsa_decrypt( ssl->rsa_key, RSA_PRIVATE,
-                               &ssl->handshake->pmslen,
-                                ssl->in_msg + i,
-                                ssl->handshake->premaster,
-                                sizeof(ssl->handshake->premaster) );
-    }
+    ret = pk_decrypt( ssl->pk_key,
+                      ssl->in_msg + i, n,
+                      ssl->handshake->premaster, &ssl->handshake->pmslen,
+                      sizeof(ssl->handshake->premaster),
+                      ssl->f_rng, ssl->p_rng );
 
     if( ret != 0 || ssl->handshake->pmslen != 48 ||
         ssl->handshake->premaster[0] != ssl->handshake->max_major_ver ||
@@ -2346,8 +2392,10 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA )
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
         if( ( ret = ssl_parse_client_ecdh_public( ssl ) ) != 0 )
         {
@@ -2367,7 +2415,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         SSL_DEBUG_MPI( 3, "ECDH: z  ", &ssl->handshake->ecdh_ctx.z );
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
     {
@@ -2415,6 +2464,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         *(p++) = (unsigned char)( ssl->handshake->dhm_ctx.len >> 8 );
         *(p++) = (unsigned char)( ssl->handshake->dhm_ctx.len      );
 
+        n = ssl->handshake->dhm_ctx.len;
+
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       p, &n ) ) != 0 )
         {
@@ -2453,6 +2504,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     else
 #endif /* POLARSSL_KEY_EXCHANGE_RSA_ENABLED */
     {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
@@ -2493,10 +2545,14 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 static int ssl_parse_certificate_verify( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t n = 0, n1, n2;
+    size_t sa_len, sig_len;
     unsigned char hash[48];
-    md_type_t md_alg = POLARSSL_MD_NONE;
-    unsigned int hashlen = 0;
+    unsigned char *hash_start = hash;
+    size_t hashlen;
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+    pk_type_t pk_alg;
+#endif
+    md_type_t md_alg;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
@@ -2538,63 +2594,94 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
-    {
-        /*
-         * As server we know we either have SSL_HASH_SHA384 or
-         * SSL_HASH_SHA256
-         */
-        if( ssl->in_msg[4] != ssl->handshake->verify_sig_alg ||
-            ssl->in_msg[5] != SSL_SIG_RSA )
-        {
-            SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg for verify message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
-        }
+    /*
+     *     0  .   0   handshake type
+     *     1  .   3   handshake length
+     *     4  .   5   sig alg (TLS 1.2 only)
+     *    4+n .  5+n  signature length (n = sa_len)
+     *    6+n . 6+n+m signature (m = sig_len)
+     */
 
-        if( ssl->handshake->verify_sig_alg == SSL_HASH_SHA384 )
-            md_alg = POLARSSL_MD_SHA384;
-        else
-            md_alg = POLARSSL_MD_SHA256;
-
-        n += 2;
-    }
-    else
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
     {
-        hashlen = 36;
+        sa_len = 0;
+
         md_alg = POLARSSL_MD_NONE;
+        hashlen = 36;
+
+        /* For ECDSA, use SHA-1, not MD-5 + SHA-1 */
+        if( pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                        POLARSSL_PK_ECDSA ) )
+        {
+            hash_start += 16;
+            hashlen -= 16;
+            md_alg = POLARSSL_MD_SHA1;
+        }
     }
     else
 #endif
-        /* Should never happen */
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
-
-    /* EC NOT IMPLEMENTED YET */
-    if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                     POLARSSL_PK_RSA ) )
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+    if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
+        sa_len = 2;
+
+        /*
+         * Hash
+         */
+        if( ssl->in_msg[4] != ssl->handshake->verify_sig_alg )
+        {
+            SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
+                                " for verify message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        }
+
+        md_alg = ssl_md_alg_from_hash( ssl->handshake->verify_sig_alg );
+
+        /* Info from md_alg will be used instead */
+        hashlen = 0;
+
+        /*
+         * Signature
+         */
+        if( ( pk_alg = ssl_pk_alg_from_sig( ssl->in_msg[5] ) )
+                        == POLARSSL_PK_NONE )
+        {
+            SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
+                                " for verify message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        }
+
+        /*
+         * Check the certificate's key type matches the signature alg
+         */
+        if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk, pk_alg ) )
+        {
+            SSL_DEBUG_MSG( 1, ( "sig_alg doesn't match cert key" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        }
+    }
+    else
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
-    n1 = pk_get_size( &ssl->session_negotiate->peer_cert->pk ) / 8;
-    n2 = ( ssl->in_msg[4 + n] << 8 ) | ssl->in_msg[5 + n];
+    sig_len = ( ssl->in_msg[4 + sa_len] << 8 ) | ssl->in_msg[5 + sa_len];
 
-    if( n + n1 + 6 != ssl->in_hslen || n1 != n2 )
+    if( sa_len + sig_len + 6 != ssl->in_hslen )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-    ret = rsa_pkcs1_verify( pk_rsa( ssl->session_negotiate->peer_cert->pk ),
-                            RSA_PUBLIC, md_alg, hashlen, hash,
-                            ssl->in_msg + 6 + n );
-    if( ret != 0 )
+    if( ( ret = pk_verify( &ssl->session_negotiate->peer_cert->pk,
+                           md_alg, hash_start, hashlen,
+                           ssl->in_msg + 6 + sa_len, sig_len ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );
+        SSL_DEBUG_RET( 1, "pk_verify", ret );
         return( ret );
     }
 

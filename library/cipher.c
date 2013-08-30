@@ -34,6 +34,10 @@
 #include "polarssl/cipher.h"
 #include "polarssl/cipher_wrap.h"
 
+#if defined(POLARSSL_GCM_C)
+#include "polarssl/gcm.h"
+#endif
+
 #include <stdlib.h>
 
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
@@ -285,7 +289,14 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
     if( !strcasecmp( "AES-256-CTR", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CTR );
 #endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+
+#if defined(POLARSSL_GCM_C)
+    if( !strcasecmp( "AES-128-GCM", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_GCM );
+    if( !strcasecmp( "AES-256-GCM", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_GCM );
 #endif
+#endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_ARC4_C)
     if( !strcasecmp( "ARC4-128", cipher_name ) )
@@ -392,6 +403,16 @@ int cipher_reset( cipher_context_t *ctx, const unsigned char *iv )
 
     ctx->unprocessed_len = 0;
 
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+    {
+        // TODO: allow other IV length
+        // TODO: allow additional data
+        return gcm_starts( ctx->cipher_ctx, ctx->operation,
+                iv, 12, (unsigned char *) "", 0 );
+    }
+#endif
+
     memcpy( ctx->iv, iv, cipher_get_iv_size( ctx ) );
 
     return 0;
@@ -416,7 +437,8 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    if( ctx->cipher_info->mode == POLARSSL_MODE_CBC )
+    if( ctx->cipher_info->mode == POLARSSL_MODE_CBC ||
+        ctx->cipher_info->mode == POLARSSL_MODE_GCM )
     {
         /*
          * If there is not enough data for a full block, cache it.
@@ -443,6 +465,18 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
             memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
                     copy_len );
 
+#if defined(POLARSSL_GCM_C)
+            if( ctx->cipher_info->mode == POLARSSL_MODE_GCM )
+            {
+                if( 0 != ( ret = gcm_update( ctx->cipher_ctx,
+                                cipher_get_block_size( ctx ),
+                                ctx->unprocessed_data, output ) ) )
+                {
+                    return ret;
+                }
+            }
+            else
+#endif
             if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
                     ctx->operation, cipher_get_block_size( ctx ), ctx->iv,
                     ctx->unprocessed_data, output ) ) )
@@ -479,11 +513,23 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
          */
         if( ilen )
         {
+#if defined(POLARSSL_GCM_C)
+            if( ctx->cipher_info->mode == POLARSSL_MODE_GCM )
+            {
+                if( 0 != ( ret = gcm_update( ctx->cipher_ctx,
+                                             ilen, input, output ) ) )
+                {
+                    return ret;
+                }
+            }
+            else
+#endif
             if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
                     ctx->operation, ilen, ctx->iv, input, output ) ) )
             {
                 return ret;
             }
+
             *olen += ilen;
         }
 
@@ -711,6 +757,28 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
     {
         return 0;
     }
+
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+    {
+        size_t tag_len = 0; // TODO
+        unsigned char tag[16];
+
+        if( 0 != ( ret = gcm_update( ctx->cipher_ctx,
+                        ctx->unprocessed_len, ctx->unprocessed_data,
+                        output ) ) )
+        {
+            return( ret );
+        }
+
+        *olen += ctx->unprocessed_len;
+
+        if( 0 != ( ret = gcm_finish( ctx->cipher_ctx, tag, tag_len ) ) )
+            return( ret );
+
+        return( 0 );
+    }
+#endif
 
     if( POLARSSL_MODE_CBC == ctx->cipher_info->mode )
     {

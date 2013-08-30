@@ -248,7 +248,7 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( totaloutlen == length ||
                  ( totaloutlen % cipher_get_block_size( &ctx_dec ) == 0 &&
                    totaloutlen < length &&
-                   totaloutlen + cipher_get_block_size( &ctx_dec ) > length ) );
+                   totaloutlen + cipher_get_block_size( &ctx_dec ) >= length ) );
 
     TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
     totaloutlen += outlen;

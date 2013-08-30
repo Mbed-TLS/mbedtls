@@ -53,6 +53,10 @@
 #include "polarssl/blowfish.h"
 #endif
 
+#if defined(POLARSSL_GCM_C)
+#include "polarssl/gcm.h"
+#endif
+
 #if defined(POLARSSL_MEMORY_C)
 #include "polarssl/memory.h"
 #else
@@ -235,6 +239,33 @@ const cipher_info_t aes_256_ctr_info = {
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #if defined(POLARSSL_GCM_C)
+static void *gcm_ctx_alloc( void )
+{
+    return polarssl_malloc( sizeof( gcm_context ) );
+}
+
+static void gcm_ctx_free( void *ctx )
+{
+    polarssl_free( ctx );
+}
+
+static int gcm_setkey_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+{
+    return gcm_init( (gcm_context *) ctx, key, key_length );
+}
+
+const cipher_base_t gcm_aes_info = {
+    POLARSSL_CIPHER_ID_AES,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    gcm_setkey_wrap,
+    gcm_setkey_wrap,
+    gcm_ctx_alloc,
+    gcm_ctx_free,
+};
+
 const cipher_info_t aes_128_gcm_info = {
     POLARSSL_CIPHER_AES_128_GCM,
     POLARSSL_MODE_GCM,
@@ -242,7 +273,7 @@ const cipher_info_t aes_128_gcm_info = {
     "AES-128-GCM",
     16,
     16,
-    &aes_info
+    &gcm_aes_info
 };
 
 const cipher_info_t aes_256_gcm_info = {
@@ -252,7 +283,7 @@ const cipher_info_t aes_256_gcm_info = {
     "AES-256-GCM",
     16,
     16,
-    &aes_info
+    &gcm_aes_info
 };
 #endif /* POLARSSL_GCM_C */
 

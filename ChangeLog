@@ -46,6 +46,10 @@ Bugfix
    * zlib compression/decompression skipped on empty blocks
    * Support for AIX header locations in net.c module
 
+Security
+   * RSA blinding on CRT operations to counter timing attacks
+     (found by Cyril Arnaud and Pierre-Alain Fouque)
+
 = Version 1.2.8 released 2013-06-19
 Features
    * Parsing of PKCS#8 encrypted private key files

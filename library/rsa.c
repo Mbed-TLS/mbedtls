@@ -265,13 +265,15 @@ int rsa_private( rsa_context *ctx,
     int ret;
     size_t olen;
     mpi T, T1, T2;
-    ((void) f_rng);
-    ((void) p_rng);
+    mpi A, X;
+
+    if( f_rng == NULL )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
+    mpi_init( &A ); mpi_init( &X );
 
     MPI_CHK( mpi_read_binary( &T, input, ctx->len ) );
-
     if( mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
     {
         mpi_free( &T );
@@ -281,6 +283,16 @@ int rsa_private( rsa_context *ctx,
 #if defined(POLARSSL_RSA_NO_CRT)
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
 #else
+    /*
+     * RSA Blinding
+     * A = rnd MPI
+     * T = A^E * T mod N
+     */
+    MPI_CHK( mpi_fill_random( &A, ctx->len - 1, f_rng, p_rng ) );
+    MPI_CHK( mpi_exp_mod( &X, &A, &ctx->E, &ctx->N, NULL ) );
+    MPI_CHK( mpi_mul_mpi( &X, &X, &T ) );
+    MPI_CHK( mpi_mod_mpi( &T, &X, &ctx->N ) );
+
     /*
      * faster decryption using the CRT
      *
@@ -298,10 +310,18 @@ int rsa_private( rsa_context *ctx,
     MPI_CHK( mpi_mod_mpi( &T, &T1, &ctx->P ) );
 
     /*
-     * output = T2 + T * Q
+     * X = T2 + T * Q
      */
     MPI_CHK( mpi_mul_mpi( &T1, &T, &ctx->Q ) );
-    MPI_CHK( mpi_add_mpi( &T, &T2, &T1 ) );
+    MPI_CHK( mpi_add_mpi( &X, &T2, &T1 ) );
+
+    /*
+     * Unblind
+     * T = X / A mod N
+     */
+    MPI_CHK( mpi_inv_mod( &A, &A, &ctx->N ) );
+    MPI_CHK( mpi_mul_mpi( &T, &X, &A ) );
+    MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
 #endif
 
     olen = ctx->len;
@@ -310,6 +330,7 @@ int rsa_private( rsa_context *ctx,
 cleanup:
 
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
+    mpi_free( &A ); mpi_free( &X );
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PRIVATE_FAILED + ret );
@@ -1410,7 +1431,7 @@ int rsa_self_test( int verbose )
 
     sha1( rsa_plaintext, PT_LEN, sha1sum );
 
-    if( rsa_pkcs1_sign( &rsa, NULL, NULL, RSA_PRIVATE, POLARSSL_MD_SHA1, 0,
+    if( rsa_pkcs1_sign( &rsa, myrand, NULL, RSA_PRIVATE, POLARSSL_MD_SHA1, 0,
                         sha1sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )

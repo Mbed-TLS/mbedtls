@@ -67,7 +67,7 @@ static int rsa_verify_wrap( void *ctx, md_type_t md_alg,
     if( sig_len != ((rsa_context *) ctx)->len )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
-    return( rsa_pkcs1_verify( (rsa_context *) ctx,
+    return( rsa_pkcs1_verify( (rsa_context *) ctx, NULL, NULL,
                 RSA_PUBLIC, md_alg, hash_len, hash, sig ) );
 }
 
@@ -87,13 +87,10 @@ static int rsa_decrypt_wrap( void *ctx,
                     unsigned char *output, size_t *olen, size_t osize,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    ((void) f_rng);
-    ((void) p_rng);
-
     if( ilen != ((rsa_context *) ctx)->len )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-    return( rsa_pkcs1_decrypt( (rsa_context *) ctx,
+    return( rsa_pkcs1_decrypt( (rsa_context *) ctx, f_rng, p_rng,
                 RSA_PRIVATE, olen, input, output, osize ) );
 }
 

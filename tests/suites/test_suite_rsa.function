@@ -28,6 +28,7 @@ void rsa_pkcs1_sign( char *message_hex_string, int padding_mode, int digest,
     rsa_context ctx;
     mpi P1, Q1, H, G;
     int msg_len;
+    rnd_pseudo_info rnd_info;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, padding_mode, 0 );
@@ -36,6 +37,7 @@ void rsa_pkcs1_sign( char *message_hex_string, int padding_mode, int digest,
     memset( hash_result, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     ctx.len = mod / 8;
     TEST_ASSERT( mpi_read_string( &ctx.P, radix_P, input_P ) == 0 );
@@ -59,7 +61,7 @@ void rsa_pkcs1_sign( char *message_hex_string, int padding_mode, int digest,
     if( md_info_from_type( digest ) != NULL )
         TEST_ASSERT( md( md_info_from_type( digest ), message_str, msg_len, hash_result ) == 0 );
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, digest, 0, hash_result, output ) == result );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, digest, 0, hash_result, output ) == result );
     if( result == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -100,7 +102,7 @@ void rsa_pkcs1_verify( char *message_hex_string, int padding_mode, int digest,
     if( md_info_from_type( digest ) != NULL )
         TEST_ASSERT( md( md_info_from_type( digest ), message_str, msg_len, hash_result ) == 0 );
 
-    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, digest, 0, hash_result, result_str ) == result );
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, digest, 0, hash_result, result_str ) == result );
 
     rsa_free( &ctx );
 }
@@ -121,6 +123,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
     rsa_context ctx;
     mpi P1, Q1, H, G;
     int hash_len;
+    rnd_pseudo_info rnd_info;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, padding_mode, 0 );
@@ -129,6 +132,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
     memset( hash_result, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     ctx.len = mod / 8;
     TEST_ASSERT( mpi_read_string( &ctx.P, radix_P, input_P ) == 0 );
@@ -150,7 +154,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
     unhexify( message_str, message_hex_string );
     hash_len = unhexify( hash_result, hash_result_string );
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, POLARSSL_MD_NONE, hash_len, hash_result, output ) == 0 );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, POLARSSL_MD_NONE, hash_len, hash_result, output ) == 0 );
 
     hexify( output_str, output, ctx.len );
 
@@ -188,7 +192,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
     hash_len = unhexify( hash_result, hash_result_string );
     unhexify( result_str, result_hex_str );
 
-    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, POLARSSL_MD_NONE, hash_len, hash_result, result_str ) == correct );
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, POLARSSL_MD_NONE, hash_len, hash_result, result_str ) == correct );
 
     rsa_free( &ctx );
 }
@@ -282,6 +286,7 @@ void rsa_pkcs1_decrypt( char *message_hex_string, int padding_mode, int mod,
     rsa_context ctx;
     mpi P1, Q1, H, G;
     size_t output_len;
+    rnd_pseudo_info rnd_info;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, padding_mode, 0 );
@@ -289,6 +294,7 @@ void rsa_pkcs1_decrypt( char *message_hex_string, int padding_mode, int mod,
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     ctx.len = mod / 8;
     TEST_ASSERT( mpi_read_string( &ctx.P, radix_P, input_P ) == 0 );
@@ -310,7 +316,7 @@ void rsa_pkcs1_decrypt( char *message_hex_string, int padding_mode, int mod,
     unhexify( message_str, message_hex_string );
     output_len = 0;
 
-    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, RSA_PRIVATE, &output_len, message_str, output, max_output ) == result );
+    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, &output_len, message_str, output, max_output ) == result );
     if( result == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -367,6 +373,7 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
     unsigned char output_str[1000];
     rsa_context ctx;
     mpi P1, Q1, H, G;
+    rnd_pseudo_info rnd_info;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V15, 0 );
@@ -374,6 +381,7 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     ctx.len = mod / 8;
     TEST_ASSERT( mpi_read_string( &ctx.P, radix_P, input_P ) == 0 );
@@ -394,7 +402,7 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
 
     unhexify( message_str, message_hex_string );
 
-    TEST_ASSERT( rsa_private( &ctx, message_str, output ) == result );
+    TEST_ASSERT( rsa_private( &ctx, rnd_pseudo_rand, &rnd_info, message_str, output ) == result );
     if( result == 0 )
     {
         hexify( output_str, output, ctx.len );

@@ -275,7 +275,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
  *                 the message padding
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Only required for RSA_PRIVATE)
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param olen     will contain the plaintext length
@@ -301,7 +301,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v1.5 decryption (RSAES-PKCS1-v1_5-DECRYPT)
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Only required for RSA_PRIVATE)
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param olen     will contain the plaintext length
@@ -327,7 +327,7 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v2.1 OAEP decryption (RSAES-OAEP-DECRYPT)
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Only required for RSA_PRIVATE)
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param label    buffer holding the custom label to use
@@ -393,7 +393,7 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v1.5 signature (RSASSA-PKCS1-v1_5-SIGN)
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Only required for RSA_PRIVATE)
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
@@ -456,7 +456,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  *                 the message digest
  *
  * \param ctx      points to an RSA public key
- * \param f_rng    RNG function (Only required for RSA_PRIVATE)
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
@@ -489,7 +489,7 @@ int rsa_pkcs1_verify( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v1.5 verification (RSASSA-PKCS1-v1_5-VERIFY)
  *
  * \param ctx      points to an RSA public key
- * \param f_rng    RNG function (Only required for RSA_PRIVATE)
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
@@ -517,7 +517,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  * \brief          Do a public RSA and check the message digest
  *
  * \param ctx      points to an RSA public key
- * \param f_rng    RNG function (Only required for RSA_PRIVATE)
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)

@@ -267,8 +267,6 @@ int rsa_private( rsa_context *ctx,
     mpi T, T1, T2;
     mpi A, X;
 
-    if( f_rng == NULL )
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
     mpi_init( &A ); mpi_init( &X );
@@ -283,15 +281,18 @@ int rsa_private( rsa_context *ctx,
 #if defined(POLARSSL_RSA_NO_CRT)
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
 #else
-    /*
-     * RSA Blinding
-     * A = rnd MPI
-     * T = A^E * T mod N
-     */
-    MPI_CHK( mpi_fill_random( &A, ctx->len - 1, f_rng, p_rng ) );
-    MPI_CHK( mpi_exp_mod( &X, &A, &ctx->E, &ctx->N, NULL ) );
-    MPI_CHK( mpi_mul_mpi( &X, &X, &T ) );
-    MPI_CHK( mpi_mod_mpi( &T, &X, &ctx->N ) );
+    if( f_rng != NULL )
+    {
+        /*
+         * RSA Blinding
+         * A = rnd MPI
+         * T = A^E * T mod N
+         */
+        MPI_CHK( mpi_fill_random( &A, ctx->len - 1, f_rng, p_rng ) );
+        MPI_CHK( mpi_exp_mod( &X, &A, &ctx->E, &ctx->N, NULL ) );
+        MPI_CHK( mpi_mul_mpi( &X, &X, &T ) );
+        MPI_CHK( mpi_mod_mpi( &T, &X, &ctx->N ) );
+    }
 
     /*
      * faster decryption using the CRT
@@ -310,18 +311,21 @@ int rsa_private( rsa_context *ctx,
     MPI_CHK( mpi_mod_mpi( &T, &T1, &ctx->P ) );
 
     /*
-     * X = T2 + T * Q
+     * T = T2 + T * Q
      */
     MPI_CHK( mpi_mul_mpi( &T1, &T, &ctx->Q ) );
-    MPI_CHK( mpi_add_mpi( &X, &T2, &T1 ) );
+    MPI_CHK( mpi_add_mpi( &T, &T2, &T1 ) );
 
-    /*
-     * Unblind
-     * T = X / A mod N
-     */
-    MPI_CHK( mpi_inv_mod( &A, &A, &ctx->N ) );
-    MPI_CHK( mpi_mul_mpi( &T, &X, &A ) );
-    MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
+    if( f_rng != NULL )
+    {
+        /*
+         * Unblind
+         * T = T / A mod N
+         */
+        MPI_CHK( mpi_inv_mod( &A, &A, &ctx->N ) );
+        MPI_CHK( mpi_mul_mpi( &T, &T, &A ) );
+        MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
+    }
 #endif
 
     olen = ctx->len;

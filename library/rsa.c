@@ -128,7 +128,7 @@ cleanup:
         return( POLARSSL_ERR_RSA_KEY_GEN_FAILED + ret );
     }
 
-    return( 0 );   
+    return( 0 );
 }
 
 #endif
@@ -141,7 +141,7 @@ int rsa_check_pubkey( const rsa_context *ctx )
     if( !ctx->N.p || !ctx->E.p )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
-    if( ( ctx->N.p[0] & 1 ) == 0 || 
+    if( ( ctx->N.p[0] & 1 ) == 0 ||
         ( ctx->E.p[0] & 1 ) == 0 )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
@@ -183,7 +183,7 @@ int rsa_check_privkey( const rsa_context *ctx )
     MPI_CHK( mpi_gcd( &G, &ctx->E, &H  ) );
 
     MPI_CHK( mpi_gcd( &G2, &P1, &Q1 ) );
-    MPI_CHK( mpi_div_mpi( &L1, &L2, &H, &G2 ) );  
+    MPI_CHK( mpi_div_mpi( &L1, &L2, &H, &G2 ) );
     MPI_CHK( mpi_mod_mpi( &I, &DE, &L1  ) );
 
     MPI_CHK( mpi_mod_mpi( &DP, &ctx->D, &P1 ) );
@@ -202,7 +202,7 @@ int rsa_check_privkey( const rsa_context *ctx )
     {
         ret = POLARSSL_ERR_RSA_KEY_CHECK_FAILED;
     }
-    
+
 cleanup:
     mpi_free( &PQ ); mpi_free( &DE ); mpi_free( &P1 ); mpi_free( &Q1 );
     mpi_free( &H  ); mpi_free( &I  ); mpi_free( &G  ); mpi_free( &G2 );
@@ -348,8 +348,8 @@ cleanup:
  * \param slen      length of the source buffer
  * \param md_ctx    message digest context to use
  */
-static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src, size_t slen,  
-                       md_context_t *md_ctx )
+static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
+                      size_t slen, md_context_t *md_ctx )
 {
     unsigned char mask[POLARSSL_MD_MAX_SIZE];
     unsigned char counter[4];
@@ -459,6 +459,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
 }
 #endif /* POLARSSL_PKCS1_V21 */
 
+#if defined(POLARSSL_PKCS1_V15)
 /*
  * Implementation of the PKCS#1 v2.1 RSAES-PKCS1-V1_5-ENCRYPT function
  */
@@ -519,6 +520,7 @@ int rsa_rsaes_pkcs1_v15_encrypt( rsa_context *ctx,
             ? rsa_public(  ctx, output, output )
             : rsa_private( ctx, f_rng, p_rng, output, output ) );
 }
+#endif /* POLARSSL_PKCS1_V15 */
 
 /*
  * Add the message padding, then do an RSA operation
@@ -532,9 +534,11 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
 {
     switch( ctx->padding )
     {
+#if defined(POLARSSL_PKCS1_V15)
         case RSA_PKCS_V15:
             return rsa_rsaes_pkcs1_v15_encrypt( ctx, f_rng, p_rng, mode, ilen,
                                                 input, output );
+#endif
 
 #if defined(POLARSSL_PKCS1_V21)
         case RSA_PKCS_V21:
@@ -641,6 +645,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
 }
 #endif /* POLARSSL_PKCS1_V21 */
 
+#if defined(POLARSSL_PKCS1_V15)
 /*
  * Implementation of the PKCS#1 v2.1 RSAES-PKCS1-V1_5-DECRYPT function
  */
@@ -735,6 +740,7 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_PKCS1_V15 */
 
 /*
  * Do an RSA operation, then remove the message padding
@@ -749,9 +755,11 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
 {
     switch( ctx->padding )
     {
+#if defined(POLARSSL_PKCS1_V15)
         case RSA_PKCS_V15:
             return rsa_rsaes_pkcs1_v15_decrypt( ctx, f_rng, p_rng, mode, olen,
                                                 input, output, output_max_len );
+#endif
 
 #if defined(POLARSSL_PKCS1_V21)
         case RSA_PKCS_V21:
@@ -863,6 +871,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
 }
 #endif /* POLARSSL_PKCS1_V21 */
 
+#if defined(POLARSSL_PKCS1_V15)
 /*
  * Implementation of the PKCS#1 v2.1 RSASSA-PKCS1-V1_5-SIGN function
  */
@@ -948,6 +957,7 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
             ? rsa_public(  ctx, sig, sig )
             : rsa_private( ctx, f_rng, p_rng, sig, sig ) );
 }
+#endif /* POLARSSL_PKCS1_V15 */
 
 /*
  * Do an RSA operation to sign the message digest
@@ -963,9 +973,11 @@ int rsa_pkcs1_sign( rsa_context *ctx,
 {
     switch( ctx->padding )
     {
+#if defined(POLARSSL_PKCS1_V15)
         case RSA_PKCS_V15:
             return rsa_rsassa_pkcs1_v15_sign( ctx, f_rng, p_rng, mode, md_alg,
                                               hashlen, hash, sig );
+#endif
 
 #if defined(POLARSSL_PKCS1_V21)
         case RSA_PKCS_V21:
@@ -1091,6 +1103,7 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
 }
 #endif /* POLARSSL_PKCS1_V21 */
 
+#if defined(POLARSSL_PKCS1_V15)
 /*
  * Implementation of the PKCS#1 v2.1 RSASSA-PKCS1-v1_5-VERIFY function
  */
@@ -1206,6 +1219,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_PKCS1_V15 */
 
 /*
  * Do an RSA operation and check the message digest
@@ -1221,9 +1235,11 @@ int rsa_pkcs1_verify( rsa_context *ctx,
 {
     switch( ctx->padding )
     {
+#if defined(POLARSSL_PKCS1_V15)
         case RSA_PKCS_V15:
             return rsa_rsassa_pkcs1_v15_verify( ctx, f_rng, p_rng, mode, md_alg,
                                                 hashlen, hash, sig );
+#endif
 
 #if defined(POLARSSL_PKCS1_V21)
         case RSA_PKCS_V21:
@@ -1339,6 +1355,7 @@ void rsa_free( rsa_context *ctx )
 #define RSA_PT  "\xAA\xBB\xCC\x03\x02\x01\x00\xFF\xFF\xFF\xFF\xFF" \
                 "\x11\x22\x33\x0A\x0B\x0C\xCC\xDD\xDD\xDD\xDD\xDD"
 
+#if defined(POLARSSL_PCKS1_V15)
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
     size_t i;
@@ -1348,15 +1365,17 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
 
     for( i = 0; i < len; ++i )
         output[i] = rand();
-    
+
     return( 0 );
 }
+#endif
 
 /*
  * Checkup routine
  */
 int rsa_self_test( int verbose )
 {
+#if defined(POLARSSL_PCKS1_V15)
     size_t len;
     rsa_context rsa;
     unsigned char rsa_plaintext[PT_LEN];
@@ -1457,7 +1476,10 @@ int rsa_self_test( int verbose )
 #endif /* POLARSSL_SHA1_C */
 
     rsa_free( &rsa );
-
+#else /* POLARSSL_PKCS1_V15 */
+    if( verbose != 0 )
+        printf( "skipper\n\n" );
+#endif /* POLARSSL_PKCS1_V15 */
     return( 0 );
 }
 

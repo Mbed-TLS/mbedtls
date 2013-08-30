@@ -280,7 +280,7 @@
  *
  * Enable the RSA-PSK based ciphersuite modes in SSL / TLS
  * (NOT YET IMPLEMENTED)
- * Requires: POLARSSL_RSA_C, POLARSSL_X509_PARSE_C
+ * Requires: POLARSSL_RSA_C, POLARSSL_X509_PARSE_C, POLARSSL_PKCS1_V15
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -300,7 +300,7 @@
  *
  * Enable the RSA-only based ciphersuite modes in SSL / TLS
  *
- * Requires: POLARSSL_RSA_C, POLARSSL_X509_PARSE_C
+ * Requires: POLARSSL_RSA_C, POLARSSL_X509_PARSE_C, POLARSSL_PKCS1_V15
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -325,7 +325,8 @@
  *
  * Enable the DHE-RSA based ciphersuite modes in SSL / TLS
  *
- * Requires: POLARSSL_DHM_C, POLARSSL_RSA_C, POLARSSL_X509_PARSE_C
+ * Requires: POLARSSL_DHM_C, POLARSSL_RSA_C, POLARSSL_X509_PARSE_C,
+ *           POLARSSL_PKCS1_V15
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -346,7 +347,8 @@
  *
  * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS
  *
- * Requires: POLARSSL_ECDH_C, POLARSSL_RSA_C, POLARSSL_X509_PARSE_C
+ * Requires: POLARSSL_ECDH_C, POLARSSL_RSA_C, POLARSSL_X509_PARSE_C,
+ *           POLARSSL_PKCS1_V15
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -472,6 +474,16 @@
  * Uncomment this macro to include backtrace information
 #define POLARSSL_MEMORY_BACKTRACE
  */
+
+/**
+ * \def POLARSSL_PKCS1_V15
+ *
+ * Requires: POLARSSL_RSA_C
+ *
+ * Enable support for PKCS#1 v1.5 encoding.
+ * This enables support for PKCS#1 v1.5 operations.
+ */
+#define POLARSSL_PKCS1_V15
 
 /**
  * \def POLARSSL_PKCS1_V21
@@ -1503,13 +1515,13 @@
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) &&                   \
     ( !defined(POLARSSL_DHM_C) || !defined(POLARSSL_RSA_C) ||           \
-      !defined(POLARSSL_X509_PARSE_C) )
+      !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
     ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_RSA_C) ||          \
-      !defined(POLARSSL_X509_PARSE_C) )
+      !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -1520,12 +1532,14 @@
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) )
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) ||    \
+      !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) &&                       \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) )
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) ||    \
+      !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 

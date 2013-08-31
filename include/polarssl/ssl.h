@@ -504,6 +504,9 @@ struct _ssl_transform
     md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
 
+    cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
+    cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
+
     uint32_t ctx_enc[SSL_CTX_MAX / 4];  /*!<  encryption context      */
     uint32_t ctx_dec[SSL_CTX_MAX / 4];  /*!<  decryption context      */
 

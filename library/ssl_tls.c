@@ -355,6 +355,7 @@ static void ssl_calc_finished_tls_sha384(ssl_context *,unsigned char *,int);
 
 int ssl_derive_keys( ssl_context *ssl )
 {
+    int ret = 0;
     unsigned char tmp[64];
     unsigned char keyblk[256];
     unsigned char *key1;
@@ -648,15 +649,46 @@ int ssl_derive_keys( ssl_context *ssl )
              break;
 #endif
 
-#if defined(POLARSSL_AES_C)
         case POLARSSL_CIPHER_AES_128_CBC:
         case POLARSSL_CIPHER_AES_256_CBC:
-            aes_setkey_enc( (aes_context*) transform->ctx_enc, key1,
-                            cipher_info->key_length );
-            aes_setkey_dec( (aes_context*) transform->ctx_dec, key2,
-                            cipher_info->key_length );
+            if( ( ret = cipher_init_ctx( &transform->cipher_ctx_enc,
+                                         cipher_info ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            if( ( ret = cipher_setkey( &transform->cipher_ctx_enc, key1,
+                                       cipher_info->key_length,
+                                       POLARSSL_ENCRYPT ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_enc,
+                                                 POLARSSL_PADDING_NONE ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            if( ( ret = cipher_init_ctx( &transform->cipher_ctx_dec,
+                                         cipher_info ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            if( ( ret = cipher_setkey( &transform->cipher_ctx_dec, key2,
+                                       cipher_info->key_length,
+                                       POLARSSL_DECRYPT ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_dec,
+                                                 POLARSSL_PADDING_NONE ) ) != 0 )
+            {
+                return( ret );
+            }
             break;
-#endif
 
 #if defined(POLARSSL_CAMELLIA_C)
         case POLARSSL_CIPHER_CAMELLIA_128_CBC:
@@ -999,8 +1031,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     else
 #endif /* POLARSSL_GCM_C */
     {
+        int ret;
         unsigned char *enc_msg;
         size_t enc_msglen;
+        size_t olen = 0;
 
         padlen = ssl->transform_out->ivlen - ( ssl->out_msglen + 1 ) %
                  ssl->transform_out->ivlen;
@@ -1065,14 +1099,49 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                 break;
 #endif
 
-#if defined(POLARSSL_AES_C)
             case POLARSSL_CIPHER_AES_128_CBC:
             case POLARSSL_CIPHER_AES_256_CBC:
-                aes_crypt_cbc( (aes_context *) ssl->transform_out->ctx_enc,
-                               AES_ENCRYPT, enc_msglen,
-                               ssl->transform_out->iv_enc, enc_msg, enc_msg );
-                break;
+                if( ( ret = cipher_reset( &ssl->transform_out->cipher_ctx_enc,
+                                          ssl->transform_out->iv_enc ) ) != 0 )
+                {
+                    return( ret );
+                }
+
+                if( ( ret = cipher_update( &ssl->transform_out->cipher_ctx_enc,
+                                           enc_msg, enc_msglen, enc_msg,
+                                           &olen ) ) != 0 )
+                {
+                    return( ret );
+                }
+
+                enc_msglen -= olen;
+
+                if( ( ret = cipher_finish( &ssl->transform_out->cipher_ctx_enc,
+                                           enc_msg + olen, &olen ) ) != 0 )
+                {
+                    return( ret );
+                }
+
+                if( enc_msglen != olen )
+                {
+                    SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect %d %d",
+                                        enc_msglen, olen ) );
+                    // TODO Real error number
+                    return( -1 );
+                }
+
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)
+                if( ssl->minor_ver < SSL_MINOR_VERSION_2 )
+                {
+                    /*
+                     * Save IV in SSL3 and TLS1
+                     */
+                    memcpy( ssl->transform_out->iv_enc,
+                            ssl->transform_out->cipher_ctx_enc.iv,
+                            ssl->transform_out->ivlen );
+                }
 #endif
+                break;
 
 #if defined(POLARSSL_CAMELLIA_C)
             case POLARSSL_CIPHER_CAMELLIA_128_CBC:
@@ -1190,10 +1259,12 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         /*
          * Decrypt and check the padding
          */
+        int ret;
         unsigned char *dec_msg;
         unsigned char *dec_msg_result;
         size_t dec_msglen;
         size_t minlen = 0;
+        size_t olen = 0;
 
         /*
          * Check immediate ciphertext sanity
@@ -1252,14 +1323,47 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                 break;
 #endif
 
-#if defined(POLARSSL_AES_C)
             case POLARSSL_CIPHER_AES_128_CBC:
             case POLARSSL_CIPHER_AES_256_CBC:
-                aes_crypt_cbc( (aes_context *) ssl->transform_in->ctx_dec,
-                               AES_DECRYPT, dec_msglen,
-                               ssl->transform_in->iv_dec, dec_msg, dec_msg_result );
-                break;
+                if( ( ret = cipher_reset( &ssl->transform_in->cipher_ctx_dec,
+                                          ssl->transform_in->iv_dec ) ) != 0 )
+                {
+                    return( ret );
+                }
+
+                if( ( ret = cipher_update( &ssl->transform_in->cipher_ctx_dec,
+                                           dec_msg, dec_msglen, dec_msg_result,
+                                           &olen ) ) != 0 )
+                {
+                    return( ret );
+                }
+
+                dec_msglen -= olen;
+                if( ( ret = cipher_finish( &ssl->transform_in->cipher_ctx_dec,
+                                           dec_msg_result + olen, &olen ) ) != 0 )
+                {
+                    return( ret );
+                }
+
+                if( dec_msglen != olen )
+                {
+                    SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect" ) );
+                    // TODO Real error number
+                    return( -1 );
+                }
+
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)
+                if( ssl->minor_ver < SSL_MINOR_VERSION_2 )
+                {
+                    /*
+                     * Save IV in SSL3 and TLS1
+                     */
+                    memcpy( ssl->transform_in->iv_dec,
+                            ssl->transform_in->cipher_ctx_dec.iv,
+                            ssl->transform_in->ivlen );
+                }
 #endif
+                break;
 
 #if defined(POLARSSL_CAMELLIA_C)
             case POLARSSL_CIPHER_CAMELLIA_128_CBC:

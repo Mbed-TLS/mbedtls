@@ -306,7 +306,7 @@ int main( int argc, char *argv[] )
             fprintf( stderr, "cipher_setkey() returned error\n");
             goto exit;
         }
-        if( cipher_reset( &cipher_ctx, IV ) != 0 )
+        if( cipher_reset( &cipher_ctx, IV, 16, NULL, 0 ) != 0 )
         {
             fprintf( stderr, "cipher_reset() returned error\n");
             goto exit;
@@ -338,7 +338,7 @@ int main( int argc, char *argv[] )
             }
         }
 
-        if( cipher_finish( &cipher_ctx, output, &olen ) != 0 )
+        if( cipher_finish( &cipher_ctx, output, &olen, NULL, 0 ) != 0 )
         {
             fprintf( stderr, "cipher_finish() returned error\n" );
             goto exit;
@@ -424,7 +424,7 @@ int main( int argc, char *argv[] )
 
         cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
             POLARSSL_DECRYPT );
-        cipher_reset( &cipher_ctx, IV);
+        cipher_reset( &cipher_ctx, IV, 16, NULL, 0 );
 
         md_hmac_starts( &md_ctx, digest, 32 );
 
@@ -455,7 +455,7 @@ int main( int argc, char *argv[] )
         /*
          * Write the final block of data
          */
-        cipher_finish( &cipher_ctx, output, &olen );
+        cipher_finish( &cipher_ctx, output, &olen, NULL, 0 );
 
         if( fwrite( output, 1, olen, fout ) != olen )
         {

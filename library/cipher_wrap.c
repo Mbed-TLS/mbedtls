@@ -271,7 +271,7 @@ const cipher_info_t aes_128_gcm_info = {
     POLARSSL_MODE_GCM,
     128,
     "AES-128-GCM",
-    16,
+    0,
     16,
     &gcm_aes_info
 };
@@ -281,7 +281,7 @@ const cipher_info_t aes_256_gcm_info = {
     POLARSSL_MODE_GCM,
     256,
     "AES-256-GCM",
-    16,
+    0,
     16,
     &gcm_aes_info
 };

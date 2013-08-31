@@ -296,7 +296,8 @@ int gcm_finish( gcm_context *ctx,
     if( tag_len > 16 )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
 
-    memcpy( tag, ctx->base_ectr, tag_len );
+    if( tag_len != 0 )
+        memcpy( tag, ctx->base_ectr, tag_len );
 
     if( orig_len || orig_add_len )
     {

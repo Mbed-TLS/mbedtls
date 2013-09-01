@@ -37,6 +37,10 @@
 #include "polarssl/aes.h"
 #endif
 
+#if defined(POLARSSL_ARC4_C)
+#include "polarssl/arc4.h"
+#endif
+
 #if defined(POLARSSL_CAMELLIA_C)
 #include "polarssl/camellia.h"
 #endif
@@ -47,6 +51,10 @@
 
 #if defined(POLARSSL_BLOWFISH_C)
 #include "polarssl/blowfish.h"
+#endif
+
+#if defined(POLARSSL_GCM_C)
+#include "polarssl/gcm.h"
 #endif
 
 #if defined(POLARSSL_MEMORY_C)
@@ -129,6 +137,7 @@ const cipher_base_t aes_info = {
     aes_crypt_cbc_wrap,
     aes_crypt_cfb128_wrap,
     aes_crypt_ctr_wrap,
+    NULL,
     aes_setkey_enc_wrap,
     aes_setkey_dec_wrap,
     aes_ctx_alloc,
@@ -230,14 +239,41 @@ const cipher_info_t aes_256_ctr_info = {
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #if defined(POLARSSL_GCM_C)
+static void *gcm_ctx_alloc( void )
+{
+    return polarssl_malloc( sizeof( gcm_context ) );
+}
+
+static void gcm_ctx_free( void *ctx )
+{
+    polarssl_free( ctx );
+}
+
+static int gcm_setkey_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+{
+    return gcm_init( (gcm_context *) ctx, key, key_length );
+}
+
+const cipher_base_t gcm_aes_info = {
+    POLARSSL_CIPHER_ID_AES,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    gcm_setkey_wrap,
+    gcm_setkey_wrap,
+    gcm_ctx_alloc,
+    gcm_ctx_free,
+};
+
 const cipher_info_t aes_128_gcm_info = {
     POLARSSL_CIPHER_AES_128_GCM,
     POLARSSL_MODE_GCM,
     128,
     "AES-128-GCM",
+    0,
     16,
-    16,
-    &aes_info
+    &gcm_aes_info
 };
 
 const cipher_info_t aes_256_gcm_info = {
@@ -245,9 +281,9 @@ const cipher_info_t aes_256_gcm_info = {
     POLARSSL_MODE_GCM,
     256,
     "AES-256-GCM",
+    0,
     16,
-    16,
-    &aes_info
+    &gcm_aes_info
 };
 #endif /* POLARSSL_GCM_C */
 
@@ -324,6 +360,7 @@ const cipher_base_t camellia_info = {
     camellia_crypt_cbc_wrap,
     camellia_crypt_cfb128_wrap,
     camellia_crypt_ctr_wrap,
+    NULL,
     camellia_setkey_enc_wrap,
     camellia_setkey_dec_wrap,
     camellia_ctx_alloc,
@@ -531,6 +568,7 @@ const cipher_base_t des_info = {
     des_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
+    NULL,
     des_setkey_enc_wrap,
     des_setkey_dec_wrap,
     des_ctx_alloc,
@@ -552,6 +590,7 @@ const cipher_base_t des_ede_info = {
     des3_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
+    NULL,
     des3_set2key_enc_wrap,
     des3_set2key_dec_wrap,
     des3_ctx_alloc,
@@ -573,6 +612,7 @@ const cipher_base_t des_ede3_info = {
     des3_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
+    NULL,
     des3_set3key_enc_wrap,
     des3_set3key_dec_wrap,
     des3_ctx_alloc,
@@ -636,12 +676,7 @@ static int blowfish_crypt_ctr_wrap( void *ctx, size_t length,
 #endif
 }
 
-static int blowfish_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
-{
-    return blowfish_setkey( (blowfish_context *) ctx, key, key_length );
-}
-
-static int blowfish_setkey_enc_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int blowfish_setkey_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
     return blowfish_setkey( (blowfish_context *) ctx, key, key_length );
 }
@@ -661,8 +696,9 @@ const cipher_base_t blowfish_info = {
     blowfish_crypt_cbc_wrap,
     blowfish_crypt_cfb64_wrap,
     blowfish_crypt_ctr_wrap,
-    blowfish_setkey_enc_wrap,
-    blowfish_setkey_dec_wrap,
+    NULL,
+    blowfish_setkey_wrap,
+    blowfish_setkey_wrap,
     blowfish_ctx_alloc,
     blowfish_ctx_free
 };
@@ -703,15 +739,28 @@ const cipher_info_t blowfish_ctr_info = {
 #endif /* POLARSSL_BLOWFISH_C */
 
 #if defined(POLARSSL_ARC4_C)
-static void * arc4_ctx_alloc( void )
+static int arc4_crypt_stream_wrap( void *ctx, size_t length,
+                                   const unsigned char *input,
+                                   unsigned char *output )
 {
-    return (void *) 1;
+    return( arc4_crypt( (arc4_context *) ctx, length, input, output ) );
 }
 
+static int arc4_setkey_wrap( void *ctx, const unsigned char *key,
+                             unsigned int key_length )
+{
+    arc4_setup( (arc4_context *) ctx, key, key_length );
+    return( 0 );
+}
+
+static void * arc4_ctx_alloc( void )
+{
+    return polarssl_malloc( sizeof( arc4_context ) );
+}
 
 static void arc4_ctx_free( void *ctx )
 {
-    ((void) ctx);
+    polarssl_free( ctx );
 }
 
 const cipher_base_t arc4_base_info = {
@@ -719,8 +768,9 @@ const cipher_base_t arc4_base_info = {
     NULL,
     NULL,
     NULL,
-    NULL,
-    NULL,
+    arc4_crypt_stream_wrap,
+    arc4_setkey_wrap,
+    arc4_setkey_wrap,
     arc4_ctx_alloc,
     arc4_ctx_free
 };
@@ -737,11 +787,29 @@ const cipher_info_t arc4_128_info = {
 #endif /* POLARSSL_ARC4_C */
 
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
+static int null_crypt_stream( void *ctx, size_t length,
+                              const unsigned char *input,
+                              unsigned char *output )
+{
+    ((void) ctx);
+    memmove( output, input, length );
+    return( 0 );
+}
+
+static int null_setkey( void *ctx, const unsigned char *key,
+                        unsigned int key_length )
+{
+    ((void) ctx);
+    ((void) key);
+    ((void) key_length);
+
+    return( 0 );
+}
+
 static void * null_ctx_alloc( void )
 {
     return (void *) 1;
 }
-
 
 static void null_ctx_free( void *ctx )
 {
@@ -753,15 +821,16 @@ const cipher_base_t null_base_info = {
     NULL,
     NULL,
     NULL,
-    NULL,
-    NULL,
+    null_crypt_stream,
+    null_setkey,
+    null_setkey,
     null_ctx_alloc,
     null_ctx_free
 };
 
 const cipher_info_t null_cipher_info = {
     POLARSSL_CIPHER_NULL,
-    POLARSSL_MODE_NULL,
+    POLARSSL_MODE_STREAM,
     0,
     "NULL",
     0,

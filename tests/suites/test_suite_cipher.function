@@ -14,6 +14,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     size_t length = length_val;
     unsigned char key[32];
     unsigned char iv[16];
+    unsigned char ad[13];
+    unsigned char tag[16];
 
     const cipher_info_t *cipher_info;
     cipher_context_t ctx_dec;
@@ -35,6 +37,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     memset( inbuf, 5, 64 );
     memset( encbuf, 0, 64 );
     memset( decbuf, 0, 64 );
+    memset( tag, 0, 16 );
+    memset( ad, 0x2a, 13 );
 
     /* Check and get info structures */
     cipher_info = cipher_info_from_type( cipher_id );
@@ -54,8 +58,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
         TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx_enc, pad_mode ) );
     }
 
-    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
-    TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv, 16, ad, 13 ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv, 16, ad, 13 ) );
 
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, length, encbuf, &outlen ) );
@@ -66,7 +70,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
                    total_len < length &&
                    total_len + cipher_get_block_size( &ctx_enc ) > length ) );
 
-    TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + outlen, &outlen ) );
+    TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + outlen, &outlen,
+                                     tag, 16 ) );
     total_len += outlen;
 
     TEST_ASSERT( total_len == length ||
@@ -83,7 +88,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
                    total_len < length &&
                    total_len + cipher_get_block_size( &ctx_dec ) >= length ) );
 
-    TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
+    TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen,
+                                     tag, 16 ) );
     total_len += outlen;
 
     TEST_ASSERT( total_len == length );
@@ -127,11 +133,11 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx, cipher_info ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx, key, key_len, POLARSSL_ENCRYPT ) );
     TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx, pad_mode ) );
-    TEST_ASSERT( 0 == cipher_reset( &ctx, iv ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx, iv, 16, NULL, 0 ) );
 
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx, inbuf, length, encbuf, &outlen ) );
-    TEST_ASSERT( ret == cipher_finish( &ctx, encbuf + outlen, &outlen ) );
+    TEST_ASSERT( ret == cipher_finish( &ctx, encbuf + outlen, &outlen, NULL, 0 ) );
 
     /* done */
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx ) );
@@ -168,12 +174,13 @@ void dec_empty_buf()
 
     TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, 128, POLARSSL_DECRYPT ) );
 
-    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv, 16, NULL, 0 ) );
 
     /* decode 0-byte string */
     TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, 0, decbuf, &outlen ) );
     TEST_ASSERT( 0 == outlen );
-    TEST_ASSERT( POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
+    TEST_ASSERT( POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED == cipher_finish(
+                 &ctx_dec, decbuf + outlen, &outlen, NULL, 0 ) );
     TEST_ASSERT( 0 == outlen );
 
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
@@ -221,8 +228,8 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, key_len, POLARSSL_DECRYPT ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx_enc, key, key_len, POLARSSL_ENCRYPT ) );
 
-    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv ) );
-    TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx_dec, iv, 16, NULL, 0 ) );
+    TEST_ASSERT( 0 == cipher_reset( &ctx_enc, iv, 16, NULL, 0 ) );
 
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, first_length, encbuf, &outlen ) );
@@ -234,7 +241,8 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
                    totaloutlen < length &&
                    totaloutlen + cipher_get_block_size( &ctx_enc ) > length ) );
 
-    TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + totaloutlen, &outlen ) );
+    TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + totaloutlen, &outlen,
+                                     NULL, 0 ) );
     totaloutlen += outlen;
     TEST_ASSERT( totaloutlen == length ||
                  ( totaloutlen % cipher_get_block_size( &ctx_enc ) == 0 &&
@@ -248,9 +256,10 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( totaloutlen == length ||
                  ( totaloutlen % cipher_get_block_size( &ctx_dec ) == 0 &&
                    totaloutlen < length &&
-                   totaloutlen + cipher_get_block_size( &ctx_dec ) > length ) );
+                   totaloutlen + cipher_get_block_size( &ctx_dec ) >= length ) );
 
-    TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
+    TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen,
+                                     NULL, 0 ) );
     totaloutlen += outlen;
 
     TEST_ASSERT( totaloutlen == length );

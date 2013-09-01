@@ -1,0 +1,110 @@
+Cipher Selftest
+depends_on:POLARSSL_SELF_TEST
+cipher_selftest:
+
+Decrypt empty buffer
+dec_empty_buf:
+
+AES-GCM Encrypt and decrypt 0 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:0:-1
+
+AES 128 GCM Encrypt and decrypt 1 byte
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:1:-1
+
+AES 128 GCM Encrypt and decrypt 2 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:2:-1
+
+AES 128 GCM Encrypt and decrypt 7 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:7:-1
+
+AES 128 GCM Encrypt and decrypt 8 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:8:-1
+
+AES 128 GCM Encrypt and decrypt 9 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:9:-1
+
+AES 128 GCM Encrypt and decrypt 15 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:15:-1
+
+AES 128 GCM Encrypt and decrypt 16 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:16:-1
+
+AES 128 GCM Encrypt and decrypt 17 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:17:-1
+
+AES 128 GCM Encrypt and decrypt 31 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:31:-1
+
+AES 128 GCM Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:32:-1
+
+AES 128 GCM Encrypt and decrypt 32 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:33:-1
+
+AES 128 GCM Encrypt and decrypt 47 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:47:-1
+
+AES 128 GCM Encrypt and decrypt 48 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:48:-1
+
+AES 128 GCM Encrypt and decrypt 49 bytes
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf:POLARSSL_CIPHER_AES_128_GCM:"AES-128-GCM":128:49:-1
+
+AES 128 GCM Encrypt and decrypt 0 bytes in multiple parts
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:0:0
+
+AES 128 GCM Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:1:0
+
+AES 128 GCM Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:0:1
+
+AES 128 GCM Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:16:0
+
+AES 128 GCM Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:0:16
+
+AES 128 GCM Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:1:15
+
+AES 128 GCM Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:15:1
+
+AES 128 GCM Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:15:7
+
+AES 128 GCM Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:16:6
+
+AES 128 GCM Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:17:6
+
+AES 128 GCM Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:16:16

@@ -184,7 +184,7 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
     if( ( ret = cipher_setkey( &cipher_ctx, key, keylen, mode ) ) != 0 )
         goto exit;
 
-    if( ( ret = cipher_reset( &cipher_ctx, iv ) ) != 0 )
+    if( ( ret = cipher_reset( &cipher_ctx, iv, 0, NULL, 0 ) ) != 0 )
         goto exit;
 
     if( ( ret = cipher_update( &cipher_ctx, data, len,
@@ -193,8 +193,11 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
+    if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen, NULL, 0 ) )
+                != 0 )
+    {
         ret = POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH;
+    }
 
 exit:
     cipher_free_ctx( &cipher_ctx );

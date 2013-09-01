@@ -95,7 +95,6 @@ typedef enum {
 
 typedef enum {
     POLARSSL_MODE_NONE = 0,
-    POLARSSL_MODE_NULL,
     POLARSSL_MODE_CBC,
     POLARSSL_MODE_CFB,
     POLARSSL_MODE_OFB,
@@ -150,6 +149,10 @@ typedef struct {
     /** Encrypt using CTR */
     int (*ctr_func)( void *ctx, size_t length, size_t *nc_off, unsigned char *nonce_counter,
             unsigned char *stream_block, const unsigned char *input, unsigned char *output );
+
+    /** Encrypt using STREAM */
+    int (*stream_func)( void *ctx, size_t length,
+                        const unsigned char *input, unsigned char *output );
 
     /** Set key for encryption purposes */
     int (*setkey_enc_func)( void *ctx, const unsigned char *key, unsigned int key_length);
@@ -317,7 +320,7 @@ static inline cipher_mode_t cipher_get_cipher_mode( const cipher_context_t *ctx 
  * \param ctx           cipher's context. Must have been initialised.
  *
  * \return              size of the cipher's IV, or 0 if ctx has not been
- *                      initialised.
+ *                      initialised or accepts IV of various sizes.
  */
 static inline int cipher_get_iv_size( const cipher_context_t *ctx )
 {
@@ -429,11 +432,18 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
  *
  * \param ctx           generic cipher context
  * \param iv            IV to use or NONCE_COUNTER in the case of a CTR-mode cipher
+ * \param iv_len        IV length for ciphers with variable-size IV,
+ *                      Discared by ciphers with fixed-size IV.
+ * \param ad            Additional data for AEAD ciphers, or discarded.
+ *                      May be NULL only if ad_len is 0.
+ * \param ad_len        Length of ad for AEAD ciphers, or discarded.
  *
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
-int cipher_reset( cipher_context_t *ctx, const unsigned char *iv );
+int cipher_reset( cipher_context_t *ctx,
+                  const unsigned char *iv, size_t iv_len,
+                  const unsigned char *ad, size_t ad_len );
 
 /**
  * \brief               Generic cipher update function. Encrypts/decrypts
@@ -468,8 +478,13 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  *                      the last block, and written to the output buffer.
  *
  * \param ctx           Generic cipher context
- * \param output        buffer to write data to. Needs block_size data available.
+ * \param output        buffer to write data to. Needs block_size available.
  * \param olen          length of the data written to the output buffer.
+ * \param tag           Ignore by non-AEAD ciphers. For AEAD ciphers:
+ *                      - on encryption: buffer to write the tag;
+ *                      - on decryption: tag to verify.
+ *                      May be NULL if tag_len is zero.
+ * \param tag_len       Length of the tag to write/check for AEAD ciphers.
  *
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
  *                      parameter verification fails,
@@ -478,7 +493,9 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  *                      POLARSSL_ERR_CIPHER_INVALID_PADDING on invalid padding
  *                      while decrypting or a cipher specific error code.
  */
-int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen);
+int cipher_finish( cipher_context_t *ctx,
+                   unsigned char *output, size_t *olen,
+                   unsigned char *tag, size_t tag_len );
 
 /**
  * \brief          Checkup routine

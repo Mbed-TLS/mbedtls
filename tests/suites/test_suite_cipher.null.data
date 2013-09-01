@@ -7,59 +7,59 @@ dec_empty_buf:
 
 NULL Encrypt and decrypt 0 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:0
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:0:-1
 
 NULL Encrypt and decrypt 1 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:1
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:1:-1
 
 NULL Encrypt and decrypt 2 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:2
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:2:-1
 
 NULL Encrypt and decrypt 7 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:7
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:7:-1
 
 NULL Encrypt and decrypt 8 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:8
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:8:-1
 
 NULL Encrypt and decrypt 9 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:9
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:9:-1
 
 NULL Encrypt and decrypt 15 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:15
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:15:-1
 
 NULL Encrypt and decrypt 16 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:16
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:16:-1
 
 NULL Encrypt and decrypt 31 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:31
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:31:-1
 
 NULL Encrypt and decrypt 32 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:32
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:32:-1
 
 NULL Encrypt and decrypt 33 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:33
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:33:-1
 
 NULL Encrypt and decrypt 47 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:47
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:47:-1
 
 NULL Encrypt and decrypt 48 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:48
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:48:-1
 
 NULL Encrypt and decrypt 49 bytes
 depends_on:POLARSSL_CIPHER_NULL_CIPHER
-enc_dec_buf:POLARSSL_CIPHER_NULL:NULL:0:49
+enc_dec_buf:POLARSSL_CIPHER_NULL:"NULL":0:49:-1
 
 NULL Encrypt and decrypt 1 bytes in multiple parts 1
 depends_on:POLARSSL_CIPHER_NULL_CIPHER

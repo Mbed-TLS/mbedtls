@@ -220,8 +220,8 @@ int ecdsa_write_signature( ecdsa_context *ctx,
                            void *p_rng )
 {
     int ret;
-    unsigned char buf[MAX_SIG_LEN];
-    unsigned char *p = buf + MAX_SIG_LEN - 1;
+    unsigned char buf[MAX_SIG_LEN + 3];
+    unsigned char *p = buf + MAX_SIG_LEN;
     size_t len = 0;
 
     if( ( ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,

@@ -1748,7 +1748,8 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
                                       &ssl->handshake->pmslen,
                                        ssl->handshake->premaster,
-                                       POLARSSL_MPI_MAX_SIZE ) ) != 0 )
+                                       POLARSSL_MPI_MAX_SIZE,
+                                       ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
             return( ret );

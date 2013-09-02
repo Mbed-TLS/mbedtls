@@ -1166,7 +1166,8 @@ cleanup:
  * random m in the range 0 .. 2^nbits - 1.
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
-             const mpi *m, const ecp_point *P )
+             const mpi *m, const ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
     unsigned char w, m_is_odd;
@@ -1175,18 +1176,21 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
     ecp_point Q, T[ MAX_PRE_LEN ];
     mpi M;
 
+    ((void) f_rng);
+    ((void) p_rng);
+
     if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     w = grp->nbits >= 521 ? 6 :
         grp->nbits >= 224 ? 5 :
-        4;
+                            4;
 
     /*
      * Make sure w is within the limits.
      * The last test ensures that none of the precomputed points is zero,
      * which wouldn't be handled correctly by ecp_normalize_many().
-     * It is only useful for small curves, as used in the test suite.
+     * It is only useful for very small curves, as used in the test suite.
      */
     if( w > POLARSSL_ECP_WINDOW_SIZE )
         w = POLARSSL_ECP_WINDOW_SIZE;
@@ -1348,7 +1352,7 @@ int ecp_gen_keypair( const ecp_group *grp, mpi *d, ecp_point *Q,
     }
     while( mpi_cmp_int( d, 1 ) < 0 );
 
-    return( ecp_mul( grp, Q, d, &grp->G ) );
+    return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -1402,12 +1406,12 @@ int ecp_self_test( int verbose )
 #endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
     if( verbose != 0 )
-        printf( "  ECP test #1 (SPA resistance): " );
+        printf( "  ECP test #1 (resistance to simple timing attacks): " );
 
     add_count = 0;
     dbl_count = 0;
     MPI_CHK( mpi_read_string( &m, 16, exponents[0] ) );
-    MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G ) );
+    MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) );
 
     for( i = 1; i < sizeof( exponents ) / sizeof( exponents[0] ); i++ )
     {
@@ -1417,7 +1421,7 @@ int ecp_self_test( int verbose )
         dbl_count = 0;
 
         MPI_CHK( mpi_read_string( &m, 16, exponents[i] ) );
-        MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G ) );
+        MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) );
 
         if( add_count != add_c_prev || dbl_count != dbl_c_prev )
         {

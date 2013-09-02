@@ -101,17 +101,33 @@ void ecp_small_mul( int m_str, int r_zero, int x_r, int y_r, int ret )
     ecp_group grp;
     ecp_point R;
     mpi m;
+    rnd_pseudo_info rnd_info;
 
     ecp_group_init( &grp );
     ecp_point_init( &R );
     mpi_init( &m );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
     TEST_ASSERT( ecp_group_read_string( &grp, 10,
                 "47", "4", "17", "42", "13" ) == 0 );
 
     TEST_ASSERT( mpi_lset( &m, m_str ) == 0 );
 
-    TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G ) == ret );
+    TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) == ret );
+
+    if( r_zero )
+        TEST_ASSERT( mpi_cmp_int( &R.Z, 0 ) == 0 );
+    else
+    {
+        TEST_ASSERT( mpi_cmp_int( &R.X, x_r ) == 0 );
+        TEST_ASSERT( mpi_cmp_int( &R.Y, y_r ) == 0 );
+    }
+
+    /* try again with randomization */
+    ecp_point_free( &R );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G,
+                          &rnd_pseudo_rand, &rnd_info ) == ret );
 
     if( r_zero )
         TEST_ASSERT( mpi_cmp_int( &R.Z, 0 ) == 0 );
@@ -158,10 +174,12 @@ void ecp_test_vect( int id, char *dA_str, char *xA_str, char *yA_str,
     ecp_group grp;
     ecp_point R;
     mpi dA, xA, yA, dB, xB, yB, xZ, yZ;
+    rnd_pseudo_info rnd_info;
 
     ecp_group_init( &grp ); ecp_point_init( &R );
     mpi_init( &dA ); mpi_init( &xA ); mpi_init( &yA ); mpi_init( &dB );
     mpi_init( &xB ); mpi_init( &yB ); mpi_init( &xZ ); mpi_init( &yZ );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
     TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
 
@@ -176,20 +194,22 @@ void ecp_test_vect( int id, char *dA_str, char *xA_str, char *yA_str,
     TEST_ASSERT( mpi_read_string( &xZ, 16, xZ_str ) == 0 );
     TEST_ASSERT( mpi_read_string( &yZ, 16, yZ_str ) == 0 );
 
-    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &grp.G ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &grp.G,
+                          &rnd_pseudo_rand, &rnd_info ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xA ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yA ) == 0 );
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
-    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &R ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &R, NULL, NULL ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xZ ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
 
-    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &grp.G ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &grp.G, NULL, NULL ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xB ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yB ) == 0 );
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
-    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &R ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &R,
+                          &rnd_pseudo_rand, &rnd_info ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xZ ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );

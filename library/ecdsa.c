@@ -161,9 +161,12 @@ int ecdsa_verify( const ecp_group *grp,
 
     /*
      * Step 5: R = u1 G + u2 Q
+     *
+     * Since we're not using any secret data, no need to pass a RNG to
+     * ecp_mul() for countermesures.
      */
-    MPI_CHK( ecp_mul( grp, &R, &u1, &grp->G ) );
-    MPI_CHK( ecp_mul( grp, &P, &u2, Q ) );
+    MPI_CHK( ecp_mul( grp, &R, &u1, &grp->G, NULL, NULL ) );
+    MPI_CHK( ecp_mul( grp, &P, &u2, Q, NULL, NULL ) );
     MPI_CHK( ecp_add( grp, &R, &R, &P ) );
 
     if( ecp_is_zero( &R ) )

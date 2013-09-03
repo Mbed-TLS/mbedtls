@@ -311,7 +311,7 @@ int main( int argc, char *argv[] )
             fprintf( stderr, "cipher_set_iv() returned error\n");
             goto exit;
         }
-        if( cipher_reset( &cipher_ctx, NULL, 0 ) != 0 )
+        if( cipher_reset( &cipher_ctx ) != 0 )
         {
             fprintf( stderr, "cipher_reset() returned error\n");
             goto exit;
@@ -430,7 +430,7 @@ int main( int argc, char *argv[] )
         cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
             POLARSSL_DECRYPT );
         cipher_set_iv( &cipher_ctx, IV, 16 );
-        cipher_reset( &cipher_ctx, NULL, 0 );
+        cipher_reset( &cipher_ctx );
 
         md_hmac_starts( &md_ctx, digest, 32 );
 

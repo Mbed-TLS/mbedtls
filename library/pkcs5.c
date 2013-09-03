@@ -190,7 +190,7 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( ( ret = cipher_set_iv( &cipher_ctx, iv, enc_scheme_params.len ) ) != 0 )
         goto exit;
 
-    if( ( ret = cipher_reset( &cipher_ctx, NULL, 0 ) ) != 0 )
+    if( ( ret = cipher_reset( &cipher_ctx ) ) != 0 )
         goto exit;
 
     if( ( ret = cipher_update( &cipher_ctx, data, datalen,

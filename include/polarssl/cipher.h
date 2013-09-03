@@ -454,7 +454,7 @@ int cipher_set_iv( cipher_context_t *ctx,
                    const unsigned char *iv, size_t iv_len );
 
 /**
- * \brief               Reset the given context, setting the IV to iv
+ * \brief               Finish preparation of the given context
  *
  * \param ctx           generic cipher context
  * \param ad            Additional data for AEAD ciphers, or discarded.
@@ -464,8 +464,25 @@ int cipher_set_iv( cipher_context_t *ctx,
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
-int cipher_reset( cipher_context_t *ctx,
-                  const unsigned char *ad, size_t ad_len );
+int cipher_reset( cipher_context_t *ctx );
+
+/**
+ * \brief               Add additional data (for AEAD ciphers).
+ *                      This function has no effect for non-AEAD ciphers.
+ *                      For AEAD ciphers, it may or may not be called
+ *                      repeatedly, and/or interleaved with calls to
+ *                      cipher_udpate(), depending on the cipher.
+ *                      E.g. for GCM is must be called exactly once, right
+ *                      after cipher_reset().
+ *
+ * \param ctx           generic cipher context
+ * \param ad            Additional data to use.
+ * \param ad_len        Length of ad.
+ *
+ * \returns             0 on success, or a specific error code.
+ */
+int cipher_update_ad( cipher_context_t *ctx,
+                      const unsigned char *ad, size_t ad_len );
 
 /**
  * \brief               Generic cipher update function. Encrypts/decrypts

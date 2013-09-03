@@ -415,14 +415,32 @@ int cipher_set_iv( cipher_context_t *ctx,
     return 0;
 }
 
-int cipher_reset( cipher_context_t *ctx,
-                  const unsigned char *ad, size_t ad_len )
+int cipher_reset( cipher_context_t *ctx )
 {
+    if( NULL == ctx || NULL == ctx->cipher_info )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
     ctx->unprocessed_len = 0;
+
+    return 0;
+}
+
+int cipher_update_ad( cipher_context_t *ctx,
+                      const unsigned char *ad, size_t ad_len )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
 #if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
     {
+        /* Make sure we're called right after cipher_reset() */
+        if( ((gcm_context *) ctx->cipher_ctx)->len != 0 ||
+            ((gcm_context *) ctx->cipher_ctx)->add_len != 0 )
+        {
+            return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+        }
+
         return gcm_starts( ctx->cipher_ctx, ctx->operation,
                            ctx->iv, ctx->iv_size, ad, ad_len );
     }

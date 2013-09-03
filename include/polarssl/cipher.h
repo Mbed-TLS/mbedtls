@@ -519,11 +519,6 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  * \param ctx           Generic cipher context
  * \param output        buffer to write data to. Needs block_size available.
  * \param olen          length of the data written to the output buffer.
- * \param tag           Ignore by non-AEAD ciphers. For AEAD ciphers:
- *                      - on encryption: buffer to write the tag;
- *                      - on decryption: tag to verify.
- *                      May be NULL if tag_len is zero.
- * \param tag_len       Length of the tag to write/check for AEAD ciphers.
  *
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
  *                      parameter verification fails,
@@ -533,8 +528,34 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  *                      while decrypting or a cipher specific error code.
  */
 int cipher_finish( cipher_context_t *ctx,
-                   unsigned char *output, size_t *olen,
-                   unsigned char *tag, size_t tag_len );
+                   unsigned char *output, size_t *olen );
+
+/**
+ * \brief               Write tag for AEAD ciphers.
+ *                      No effect for other ciphers.
+ *                      Must be called after cipher_finish().
+ *
+ * \param tag           buffer to write the tag
+ * \param tag_len       Length of the tag to write
+ *
+ * \return              0 on success, or a specific error code.
+ */
+int cipher_write_tag( cipher_context_t *ctx,
+                      unsigned char *tag, size_t tag_len );
+
+/**
+ * \brief               Check tag for AEAD ciphers.
+ *                      No effect for other ciphers.
+ *                      Calling time depends on the cipher:
+ *                      for GCM, must be called after cipher_finish().
+ *
+ * \param tag           Buffer holding the tag
+ * \param tag_len       Length of the tag to check
+ *
+ * \return              0 on success, or a specific error code.
+ */
+int cipher_check_tag( cipher_context_t *ctx,
+                      const unsigned char *tag, size_t tag_len );
 
 /**
  * \brief          Checkup routine

@@ -64,8 +64,10 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx_enc ) );
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
     TEST_ASSERT( 0 == cipher_update_ad( &ctx_dec, ad, 13 ) );
     TEST_ASSERT( 0 == cipher_update_ad( &ctx_enc, ad, 13 ) );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, length, encbuf, &outlen ) );
@@ -79,7 +81,9 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     TEST_ASSERT( 0 == cipher_finish( &ctx_enc, encbuf + outlen, &outlen ) );
     total_len += outlen;
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
     TEST_ASSERT( 0 == cipher_write_tag( &ctx_enc, tag, 16 ) );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
     TEST_ASSERT( total_len == length ||
                  ( total_len % cipher_get_block_size( &ctx_enc ) == 0 &&
@@ -98,7 +102,9 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     TEST_ASSERT( 0 == cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
     total_len += outlen;
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
     TEST_ASSERT( 0 == cipher_check_tag( &ctx_dec, tag, 16 ) );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
     TEST_ASSERT( total_len == length );
 
@@ -143,7 +149,9 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
     TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx, pad_mode ) );
     TEST_ASSERT( 0 == cipher_set_iv( &ctx, iv, 16 ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx ) );
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
     TEST_ASSERT( 0 == cipher_update_ad( &ctx, NULL, 0 ) );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx, inbuf, length, encbuf, &outlen ) );
@@ -188,7 +196,9 @@ void dec_empty_buf()
 
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec ) );
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
     TEST_ASSERT( 0 == cipher_update_ad( &ctx_dec, NULL, 0 ) );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
     /* decode 0-byte string */
     TEST_ASSERT( 0 == cipher_update( &ctx_dec, encbuf, 0, decbuf, &outlen ) );
@@ -248,8 +258,10 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx_enc ) );
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
     TEST_ASSERT( 0 == cipher_update_ad( &ctx_dec, NULL, 0 ) );
     TEST_ASSERT( 0 == cipher_update_ad( &ctx_enc, NULL, 0 ) );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
     /* encode length number of bytes from inbuf */
     TEST_ASSERT( 0 == cipher_update( &ctx_enc, inbuf, first_length, encbuf, &outlen ) );

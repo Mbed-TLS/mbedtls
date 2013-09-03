@@ -30,6 +30,12 @@
 #ifndef POLARSSL_CIPHER_H
 #define POLARSSL_CIPHER_H
 
+#include "config.h"
+
+#if defined(POLARSSL_GCM_C)
+#define POLARSSL_CIPHER_MODE_AEAD
+#endif
+
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined(inline)
@@ -457,15 +463,13 @@ int cipher_set_iv( cipher_context_t *ctx,
  * \brief               Finish preparation of the given context
  *
  * \param ctx           generic cipher context
- * \param ad            Additional data for AEAD ciphers, or discarded.
- *                      May be NULL only if ad_len is 0.
- * \param ad_len        Length of ad for AEAD ciphers, or discarded.
  *
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int cipher_reset( cipher_context_t *ctx );
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
 /**
  * \brief               Add additional data (for AEAD ciphers).
  *                      This function has no effect for non-AEAD ciphers.
@@ -483,6 +487,7 @@ int cipher_reset( cipher_context_t *ctx );
  */
 int cipher_update_ad( cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 /**
  * \brief               Generic cipher update function. Encrypts/decrypts
@@ -530,6 +535,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 int cipher_finish( cipher_context_t *ctx,
                    unsigned char *output, size_t *olen );
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
 /**
  * \brief               Write tag for AEAD ciphers.
  *                      No effect for other ciphers.
@@ -556,6 +562,7 @@ int cipher_write_tag( cipher_context_t *ctx,
  */
 int cipher_check_tag( cipher_context_t *ctx,
                       const unsigned char *tag, size_t tag_len );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 /**
  * \brief          Checkup routine

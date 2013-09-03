@@ -1,5 +1,9 @@
 /* BEGIN_HEADER */
 #include <polarssl/cipher.h>
+
+#if defined(POLARSSL_GCM_C)
+#include <polarssl/gcm.h>
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -308,15 +312,15 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
                        char *hex_ad, char *hex_tag,
                        int finish_result, int tag_result )
 {
-    unsigned char key[100];
-    unsigned char iv[100];
-    unsigned char cipher[100];
-    unsigned char clear[100];
-    unsigned char ad[100];
-    unsigned char tag[100];
+    unsigned char key[50];
+    unsigned char iv[50];
+    unsigned char cipher[200];
+    unsigned char clear[200];
+    unsigned char ad[200];
+    unsigned char tag[20];
     size_t key_len, iv_len, cipher_len, clear_len, ad_len, tag_len;
     cipher_context_t ctx;
-    unsigned char output[100];
+    unsigned char output[200];
     size_t outlen, total_len;
 
     memset( key, 0x00, sizeof( key ) );

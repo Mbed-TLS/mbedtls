@@ -396,28 +396,41 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 }
 
-int cipher_reset( cipher_context_t *ctx,
-                  const unsigned char *iv, size_t iv_len,
-                  const unsigned char *ad, size_t ad_len )
+int cipher_set_iv( cipher_context_t *ctx,
+                   const unsigned char *iv, size_t iv_len )
 {
+    size_t fixed_iv_size;
+
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
+    fixed_iv_size = cipher_get_iv_size( ctx );
+
+    /* 0 means variable size (or no IV): use given len */
+    if( fixed_iv_size == 0 )
+        fixed_iv_size = iv_len;
+
+    memcpy( ctx->iv, iv, fixed_iv_size );
+    ctx->iv_size = fixed_iv_size;
+
+    return 0;
+}
+
+int cipher_reset( cipher_context_t *ctx,
+                  const unsigned char *ad, size_t ad_len )
+{
     ctx->unprocessed_len = 0;
 
 #if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
     {
         return gcm_starts( ctx->cipher_ctx, ctx->operation,
-                           iv, iv_len, ad, ad_len );
+                           ctx->iv, ctx->iv_size, ad, ad_len );
     }
 #else
     ((void) ad);
     ((void) ad_len);
-    ((void) iv_len);
 #endif
-
-    memcpy( ctx->iv, iv, cipher_get_iv_size( ctx ) );
 
     return 0;
 }

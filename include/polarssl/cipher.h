@@ -185,7 +185,8 @@ typedef struct {
     /** Name of the cipher */
     const char * name;
 
-    /** IV size, in bytes */
+    /** IV/NONCE size, in bytes, for ciphers with fixed-length IVs), or
+     * 0 for ciphers with variable-length IVs or not using IVs */
     unsigned int iv_size;
 
     /** block size, in bytes */
@@ -221,6 +222,9 @@ typedef struct {
 
     /** Current IV or NONCE_COUNTER for CTR-mode */
     unsigned char iv[POLARSSL_MAX_IV_LENGTH];
+
+    /** IV size in bytes (for ciphers with variable-length IVs) */
+    size_t iv_size;
 
     /** Cipher-specific context */
     void *cipher_ctx;
@@ -315,17 +319,21 @@ static inline cipher_mode_t cipher_get_cipher_mode( const cipher_context_t *ctx 
 }
 
 /**
- * \brief               Returns the size of the cipher's IV.
+ * \brief               Returns the size of the cipher's IV/NONCE in bytes.
  *
  * \param ctx           cipher's context. Must have been initialised.
  *
- * \return              size of the cipher's IV, or 0 if ctx has not been
- *                      initialised or accepts IV of various sizes.
+ * \return              If IV has not been set yet: desired size for ciphers
+ *                      with fixed-size IVs, 0 for other ciphers.
+ *                      If IV has already been set: actual size.
  */
 static inline int cipher_get_iv_size( const cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return 0;
+
+    if( ctx->iv_size != 0 )
+        return ctx->iv_size;
 
     return ctx->cipher_info->iv_size;
 }
@@ -428,12 +436,24 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_leng
 int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
 
 /**
+ * \brief               Set the initialization vector (IV) or nonce
+ *
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV,
+ *                      Discarded by ciphers with fixed-size IV.
+ *
+ * \returns             O on success, or POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+ *
+ * \note                Some ciphers don't use IVs nor NONCE. For these
+ *                      ciphers, this function has no effect.
+ */
+int cipher_set_iv( cipher_context_t *ctx,
+                   const unsigned char *iv, size_t iv_len );
+
+/**
  * \brief               Reset the given context, setting the IV to iv
  *
  * \param ctx           generic cipher context
- * \param iv            IV to use or NONCE_COUNTER in the case of a CTR-mode cipher
- * \param iv_len        IV length for ciphers with variable-size IV,
- *                      Discared by ciphers with fixed-size IV.
  * \param ad            Additional data for AEAD ciphers, or discarded.
  *                      May be NULL only if ad_len is 0.
  * \param ad_len        Length of ad for AEAD ciphers, or discarded.
@@ -442,7 +462,6 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
  *                      if parameter verification fails.
  */
 int cipher_reset( cipher_context_t *ctx,
-                  const unsigned char *iv, size_t iv_len,
                   const unsigned char *ad, size_t ad_len );
 
 /**

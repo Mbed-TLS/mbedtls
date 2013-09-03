@@ -150,6 +150,7 @@ const cipher_info_t aes_128_cbc_info = {
     128,
     "AES-128-CBC",
     16,
+    0,
     16,
     &aes_info
 };
@@ -160,6 +161,7 @@ const cipher_info_t aes_192_cbc_info = {
     192,
     "AES-192-CBC",
     16,
+    0,
     16,
     &aes_info
 };
@@ -170,6 +172,7 @@ const cipher_info_t aes_256_cbc_info = {
     256,
     "AES-256-CBC",
     16,
+    0,
     16,
     &aes_info
 };
@@ -181,6 +184,7 @@ const cipher_info_t aes_128_cfb128_info = {
     128,
     "AES-128-CFB128",
     16,
+    0,
     16,
     &aes_info
 };
@@ -191,6 +195,7 @@ const cipher_info_t aes_192_cfb128_info = {
     192,
     "AES-192-CFB128",
     16,
+    0,
     16,
     &aes_info
 };
@@ -201,6 +206,7 @@ const cipher_info_t aes_256_cfb128_info = {
     256,
     "AES-256-CFB128",
     16,
+    0,
     16,
     &aes_info
 };
@@ -213,6 +219,7 @@ const cipher_info_t aes_128_ctr_info = {
     128,
     "AES-128-CTR",
     16,
+    0,
     16,
     &aes_info
 };
@@ -223,6 +230,7 @@ const cipher_info_t aes_192_ctr_info = {
     192,
     "AES-192-CTR",
     16,
+    0,
     16,
     &aes_info
 };
@@ -233,6 +241,7 @@ const cipher_info_t aes_256_ctr_info = {
     256,
     "AES-256-CTR",
     16,
+    0,
     16,
     &aes_info
 };
@@ -271,7 +280,8 @@ const cipher_info_t aes_128_gcm_info = {
     POLARSSL_MODE_GCM,
     128,
     "AES-128-GCM",
-    0,
+    12,
+    1,
     16,
     &gcm_aes_info
 };
@@ -281,7 +291,8 @@ const cipher_info_t aes_256_gcm_info = {
     POLARSSL_MODE_GCM,
     256,
     "AES-256-GCM",
-    0,
+    12,
+    1,
     16,
     &gcm_aes_info
 };
@@ -373,6 +384,7 @@ const cipher_info_t camellia_128_cbc_info = {
     128,
     "CAMELLIA-128-CBC",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -383,6 +395,7 @@ const cipher_info_t camellia_192_cbc_info = {
     192,
     "CAMELLIA-192-CBC",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -393,6 +406,7 @@ const cipher_info_t camellia_256_cbc_info = {
     256,
     "CAMELLIA-256-CBC",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -404,6 +418,7 @@ const cipher_info_t camellia_128_cfb128_info = {
     128,
     "CAMELLIA-128-CFB128",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -414,6 +429,7 @@ const cipher_info_t camellia_192_cfb128_info = {
     192,
     "CAMELLIA-192-CFB128",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -424,6 +440,7 @@ const cipher_info_t camellia_256_cfb128_info = {
     256,
     "CAMELLIA-256-CFB128",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -436,6 +453,7 @@ const cipher_info_t camellia_128_ctr_info = {
     128,
     "CAMELLIA-128-CTR",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -446,6 +464,7 @@ const cipher_info_t camellia_192_ctr_info = {
     192,
     "CAMELLIA-192-CTR",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -456,6 +475,7 @@ const cipher_info_t camellia_256_ctr_info = {
     256,
     "CAMELLIA-256-CTR",
     16,
+    0,
     16,
     &camellia_info
 };
@@ -581,6 +601,7 @@ const cipher_info_t des_cbc_info = {
     POLARSSL_KEY_LENGTH_DES,
     "DES-CBC",
     8,
+    0,
     8,
     &des_info
 };
@@ -603,6 +624,7 @@ const cipher_info_t des_ede_cbc_info = {
     POLARSSL_KEY_LENGTH_DES_EDE,
     "DES-EDE-CBC",
     8,
+    0,
     8,
     &des_ede_info
 };
@@ -625,6 +647,7 @@ const cipher_info_t des_ede3_cbc_info = {
     POLARSSL_KEY_LENGTH_DES_EDE3,
     "DES-EDE3-CBC",
     8,
+    0,
     8,
     &des_ede3_info
 };
@@ -709,6 +732,7 @@ const cipher_info_t blowfish_cbc_info = {
     128,
     "BLOWFISH-CBC",
     8,
+    0,
     8,
     &blowfish_info
 };
@@ -720,6 +744,7 @@ const cipher_info_t blowfish_cfb64_info = {
     128,
     "BLOWFISH-CFB64",
     8,
+    0,
     8,
     &blowfish_info
 };
@@ -732,6 +757,7 @@ const cipher_info_t blowfish_ctr_info = {
     128,
     "BLOWFISH-CTR",
     8,
+    0,
     8,
     &blowfish_info
 };
@@ -780,6 +806,7 @@ const cipher_info_t arc4_128_info = {
     POLARSSL_MODE_STREAM,
     128,
     "ARC4-128",
+    0,
     0,
     1,
     &arc4_base_info
@@ -833,6 +860,7 @@ const cipher_info_t null_cipher_info = {
     POLARSSL_MODE_STREAM,
     0,
     "NULL",
+    0,
     0,
     1,
     &null_base_info

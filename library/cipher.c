@@ -399,19 +399,18 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
 int cipher_set_iv( cipher_context_t *ctx,
                    const unsigned char *iv, size_t iv_len )
 {
-    size_t fixed_iv_size;
+    size_t actual_iv_size;
 
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
-    fixed_iv_size = cipher_get_iv_size( ctx );
+    if( ctx->cipher_info->accepts_variable_iv_size )
+        actual_iv_size = iv_len;
+    else
+        actual_iv_size = ctx->cipher_info->iv_size;
 
-    /* 0 means variable size (or no IV): use given len */
-    if( fixed_iv_size == 0 )
-        fixed_iv_size = iv_len;
-
-    memcpy( ctx->iv, iv, fixed_iv_size );
-    ctx->iv_size = fixed_iv_size;
+    memcpy( ctx->iv, iv, actual_iv_size );
+    ctx->iv_size = actual_iv_size;
 
     return 0;
 }

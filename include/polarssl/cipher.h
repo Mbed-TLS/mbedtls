@@ -185,9 +185,12 @@ typedef struct {
     /** Name of the cipher */
     const char * name;
 
-    /** IV/NONCE size, in bytes, for ciphers with fixed-length IVs), or
-     * 0 for ciphers with variable-length IVs or not using IVs */
+    /** IV/NONCE size, in bytes.
+     *  For cipher that accept many sizes: recommended size */
     unsigned int iv_size;
+
+    /** Flag for ciphers that accept many sizes of IV/NONCE */
+    int accepts_variable_iv_size;
 
     /** block size, in bytes */
     unsigned int block_size;
@@ -323,8 +326,8 @@ static inline cipher_mode_t cipher_get_cipher_mode( const cipher_context_t *ctx 
  *
  * \param ctx           cipher's context. Must have been initialised.
  *
- * \return              If IV has not been set yet: desired size for ciphers
- *                      with fixed-size IVs, 0 for other ciphers.
+ * \return              If IV has not been set yet: (recommended) IV size
+ *                      (0 for ciphers not using IV/NONCE).
  *                      If IV has already been set: actual size.
  */
 static inline int cipher_get_iv_size( const cipher_context_t *ctx )
@@ -439,8 +442,8 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
  * \brief               Set the initialization vector (IV) or nonce
  *
  * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
- * \param iv_len        IV length for ciphers with variable-size IV,
- *                      Discarded by ciphers with fixed-size IV.
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
  *
  * \returns             O on success, or POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
  *

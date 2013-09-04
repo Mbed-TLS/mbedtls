@@ -643,46 +643,31 @@ int ssl_derive_keys( ssl_context *ssl )
             if( ( ret = cipher_init_ctx( &transform->cipher_ctx_enc,
                                          cipher_info ) ) != 0 )
             {
+                SSL_DEBUG_RET( 1, "cipher_init_ctx", ret );
                 return( ret );
             }
 
             if( ( ret = cipher_init_ctx( &transform->cipher_ctx_dec,
                                          cipher_info ) ) != 0 )
             {
+                SSL_DEBUG_RET( 1, "cipher_init_ctx", ret );
                 return( ret );
             }
 
-            if( cipher_info->type == POLARSSL_CIPHER_ARC4_128 )
+            if( ( ret = cipher_setkey( &transform->cipher_ctx_enc, key1,
+                                       cipher_info->key_length,
+                                       POLARSSL_ENCRYPT ) ) != 0 )
             {
-                if( ( ret = cipher_setkey( &transform->cipher_ctx_enc, key1,
-                                           cipher_info->key_length / 8,
-                                           POLARSSL_ENCRYPT ) ) != 0 )
-                {
-                    return( ret );
-                }
-
-                if( ( ret = cipher_setkey( &transform->cipher_ctx_dec, key2,
-                                           cipher_info->key_length / 8,
-                                           POLARSSL_DECRYPT ) ) != 0 )
-                {
-                    return( ret );
-                }
+                SSL_DEBUG_RET( 1, "cipher_setkey", ret );
+                return( ret );
             }
-            else
-            {
-                if( ( ret = cipher_setkey( &transform->cipher_ctx_enc, key1,
-                                           cipher_info->key_length,
-                                           POLARSSL_ENCRYPT ) ) != 0 )
-                {
-                    return( ret );
-                }
 
-                if( ( ret = cipher_setkey( &transform->cipher_ctx_dec, key2,
-                                           cipher_info->key_length,
-                                           POLARSSL_DECRYPT ) ) != 0 )
-                {
-                    return( ret );
-                }
+            if( ( ret = cipher_setkey( &transform->cipher_ctx_dec, key2,
+                                       cipher_info->key_length,
+                                       POLARSSL_DECRYPT ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "cipher_setkey", ret );
+                return( ret );
             }
 
             if( cipher_info->mode == POLARSSL_MODE_CBC )
@@ -690,12 +675,14 @@ int ssl_derive_keys( ssl_context *ssl )
                 if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_enc,
                                                      POLARSSL_PADDING_NONE ) ) != 0 )
                 {
+                    SSL_DEBUG_RET( 1, "cipher_set_padding_mode", ret );
                     return( ret );
                 }
 
                 if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_dec,
                                                      POLARSSL_PADDING_NONE ) ) != 0 )
                 {
+                    SSL_DEBUG_RET( 1, "cipher_set_padding_mode", ret );
                     return( ret );
                 }
             }
@@ -953,10 +940,17 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         SSL_DEBUG_BUF( 4, "before encrypt: output payload",
                        ssl->out_msg, ssl->out_msglen );
 
-        if( ( ret = cipher_reset( &ssl->transform_out->cipher_ctx_enc,
-                                  ssl->transform_out->iv_enc,
-                                  ssl->transform_out->ivlen, NULL, 0 ) ) != 0 )
+        if( ( ret = cipher_reset( &ssl->transform_out->cipher_ctx_enc ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_reset", ret );
+            return( ret );
+        }
+
+        if( ( ret = cipher_set_iv( &ssl->transform_out->cipher_ctx_enc,
+                                   ssl->transform_out->iv_enc,
+                                   ssl->transform_out->ivlen ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_set_iv", ret );
             return( ret );
         }
 
@@ -964,6 +958,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                                    ssl->out_msg, ssl->out_msglen, ssl->out_msg,
                                    &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_update", ret );
             return( ret );
         }
 
@@ -976,8 +971,9 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         }
 
         if( ( ret = cipher_finish( &ssl->transform_out->cipher_ctx_enc,
-                                   ssl->out_msg + olen, &olen, NULL, 0 ) ) != 0 )
+                                   ssl->out_msg + olen, &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_finish", ret );
             return( ret );
         }
 
@@ -1110,10 +1106,17 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         SSL_DEBUG_BUF( 4, "before encrypt: output payload",
                        ssl->out_iv, ssl->out_msglen );
 
-        if( ( ret = cipher_reset( &ssl->transform_out->cipher_ctx_enc,
-                                  ssl->transform_out->iv_enc,
-                                  ssl->transform_out->ivlen, NULL, 0 ) ) != 0 )
+        if( ( ret = cipher_reset( &ssl->transform_out->cipher_ctx_enc ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_reset", ret );
+            return( ret );
+        }
+
+        if( ( ret = cipher_set_iv( &ssl->transform_out->cipher_ctx_enc,
+                                   ssl->transform_out->iv_enc,
+                                   ssl->transform_out->ivlen ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_set_iv", ret );
             return( ret );
         }
 
@@ -1121,14 +1124,16 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                                    enc_msg, enc_msglen, enc_msg,
                                    &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_update", ret );
             return( ret );
         }
 
         enc_msglen -= olen;
 
         if( ( ret = cipher_finish( &ssl->transform_out->cipher_ctx_enc,
-                                   enc_msg + olen, &olen, NULL, 0 ) ) != 0 )
+                                   enc_msg + olen, &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_finish", ret );
             return( ret );
         }
 
@@ -1193,10 +1198,17 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         padlen = 0;
 
-        if( ( ret = cipher_reset( &ssl->transform_in->cipher_ctx_dec,
-                                  ssl->transform_in->iv_dec,
-                                  ssl->transform_in->ivlen, NULL, 0 ) ) != 0 )
+        if( ( ret = cipher_reset( &ssl->transform_in->cipher_ctx_dec ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_reset", ret );
+            return( ret );
+        }
+
+        if( ( ret = cipher_set_iv( &ssl->transform_in->cipher_ctx_dec,
+                                   ssl->transform_in->iv_dec,
+                                   ssl->transform_in->ivlen ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_set_iv", ret );
             return( ret );
         }
 
@@ -1204,6 +1216,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                    ssl->in_msg, ssl->in_msglen, ssl->in_msg,
                                    &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_update", ret );
             return( ret );
         }
 
@@ -1215,8 +1228,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         }
 
         if( ( ret = cipher_finish( &ssl->transform_in->cipher_ctx_dec,
-                                   ssl->in_msg + olen, &olen, NULL, 0  ) ) != 0 )
+                                   ssl->in_msg + olen, &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_finish", ret );
             return( ret );
         }
 
@@ -1336,10 +1350,17 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         }
 #endif /* POLARSSL_SSL_PROTO_TLS1_1 || POLARSSL_SSL_PROTO_TLS1_2 */
 
-        if( ( ret = cipher_reset( &ssl->transform_in->cipher_ctx_dec,
-                                  ssl->transform_in->iv_dec,
-                                  ssl->transform_in->ivlen, NULL, 0 ) ) != 0 )
+        if( ( ret = cipher_reset( &ssl->transform_in->cipher_ctx_dec ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_reset", ret );
+            return( ret );
+        }
+
+        if( ( ret = cipher_set_iv( &ssl->transform_in->cipher_ctx_dec,
+                                   ssl->transform_in->iv_dec,
+                                   ssl->transform_in->ivlen ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_set_iv", ret );
             return( ret );
         }
 
@@ -1347,13 +1368,15 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                    dec_msg, dec_msglen, dec_msg_result,
                                    &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_update", ret );
             return( ret );
         }
 
         dec_msglen -= olen;
         if( ( ret = cipher_finish( &ssl->transform_in->cipher_ctx_dec,
-                                   dec_msg_result + olen, &olen, NULL, 0  ) ) != 0 )
+                                   dec_msg_result + olen, &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_finish", ret );
             return( ret );
         }
 

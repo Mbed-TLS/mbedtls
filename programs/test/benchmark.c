@@ -446,7 +446,7 @@ int main( int argc, char *argv[] )
     for( i = 1; ! alarmed; i++ )
     {
         buf[0] = 0;
-        rsa_private( &rsa, buf, buf );
+        rsa_private( &rsa, myrand, NULL, buf, buf );
     }
 
     printf( "%9lu private/s\n", i / 3 );
@@ -475,7 +475,7 @@ int main( int argc, char *argv[] )
     for( i = 1; ! alarmed; i++ )
     {
         buf[0] = 0;
-        rsa_private( &rsa, buf, buf );
+        rsa_private( &rsa, myrand, NULL, buf, buf );
     }
 
     printf( "%9lu private/s\n", i / 3 );
@@ -504,7 +504,7 @@ int main( int argc, char *argv[] )
     for( i = 1; ! alarmed; i++ )
     {
         buf[0] = 0;
-        rsa_private( &rsa, buf, buf );
+        rsa_private( &rsa, myrand, NULL, buf, buf );
     }
 
     printf( "%9lu private/s\n", i / 3 );
@@ -528,7 +528,7 @@ int main( int argc, char *argv[] )
     for( i = 1; ! alarmed; i++ )
     {
         dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-        dhm_calc_secret( &dhm, buf, &olen );
+        dhm_calc_secret( &dhm, buf, &olen, NULL, NULL );
     }
 
     printf( "%9lu handshake/s\n", i / 3 );
@@ -550,13 +550,12 @@ int main( int argc, char *argv[] )
     for( i = 1; ! alarmed; i++ )
     {
         dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-        dhm_calc_secret( &dhm, buf, &olen );
+        dhm_calc_secret( &dhm, buf, &olen, NULL, NULL );
     }
 
     printf( "%9lu handshake/s\n", i / 3 );
 
     dhm_free( &dhm );
-
     memset( &dhm, 0, sizeof( dhm_context ) );
 
     mpi_read_string( &dhm.P, 16, POLARSSL_DHM_RFC3526_MODP_3072_P );
@@ -572,7 +571,7 @@ int main( int argc, char *argv[] )
     for( i = 1; ! alarmed; i++ )
     {
         dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-        dhm_calc_secret( &dhm, buf, &olen );
+        dhm_calc_secret( &dhm, buf, &olen, NULL, NULL );
     }
 
     printf( "%9lu handshake/s\n", i / 3 );

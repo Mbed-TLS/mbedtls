@@ -161,7 +161,7 @@ static void ecp_bench_case( size_t dp, const char *s, const char *m )
     set_alarm( 3 );
 
     for( i = 1; ! alarmed; i++ )
-        ecp_mul( &grp, &R, &M, &grp.G );
+        ecp_mul( &grp, &R, &M, &grp.G, NULL, NULL );
 
     printf( "%9lu mul/s\n", i / 3 );
 

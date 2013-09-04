@@ -49,8 +49,8 @@ void dhm_do_dhm( int NOTUSED, int radix_P, char *input_P,
 
     TEST_ASSERT( dhm_read_public( &ctx_srv, pub_cli, pub_cli_len ) == 0 );
 
-    TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len ) == 0 );
-    TEST_ASSERT( dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len ) == 0 );
+    TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len, NULL, NULL ) == 0 );
 
     TEST_ASSERT( sec_srv_len == sec_cli_len );
     TEST_ASSERT( sec_srv_len != 0 );

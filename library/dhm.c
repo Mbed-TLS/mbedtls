@@ -249,9 +249,14 @@ cleanup:
  * Derive and export the shared secret (G^Y)^X mod P
  */
 int dhm_calc_secret( dhm_context *ctx,
-                     unsigned char *output, size_t *olen )
+                     unsigned char *output, size_t *olen,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng )
 {
     int ret;
+
+    (void) f_rng;
+    (void) p_rng;
 
     if( ctx == NULL || *olen < ctx->len )
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );

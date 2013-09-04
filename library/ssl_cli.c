@@ -1713,7 +1713,8 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       ssl->handshake->premaster,
-                                     &ssl->handshake->pmslen ) ) != 0 )
+                                     &ssl->handshake->pmslen,
+                                     ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
             return( ret );
@@ -1842,7 +1843,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         *(p++) = (unsigned char)( ssl->handshake->dhm_ctx.len >> 8 );
         *(p++) = (unsigned char)( ssl->handshake->dhm_ctx.len      );
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
-                                      p, &n ) ) != 0 )
+                                      p, &n, ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
             return( ret );

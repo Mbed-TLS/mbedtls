@@ -2386,7 +2386,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       ssl->handshake->premaster,
-                                     &ssl->handshake->pmslen ) ) != 0 )
+                                     &ssl->handshake->pmslen,
+                                      ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
@@ -2472,7 +2473,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         n = ssl->handshake->dhm_ctx.len;
 
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
-                                      p, &n ) ) != 0 )
+                                      p, &n, ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );

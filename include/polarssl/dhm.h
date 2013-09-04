@@ -219,11 +219,15 @@ int dhm_make_public( dhm_context *ctx, int x_size,
  * \param ctx      DHM context
  * \param output   destination buffer
  * \param olen     number of chars written
+ * \param f_rng    RNG function, for blinding purposes
+ * \param p_rng    RNG parameter
  *
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */
 int dhm_calc_secret( dhm_context *ctx,
-                     unsigned char *output, size_t *olen );
+                     unsigned char *output, size_t *olen,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng );
 
 /**
  * \brief          Free the components of a DHM key

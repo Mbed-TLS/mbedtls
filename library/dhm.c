@@ -246,6 +246,60 @@ cleanup:
 }
 
 /*
+ * Use the blinding method and optimisation suggested in section 10 of:
+ *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
+ *  DSS, and other systems. In : Advances in Cryptology—CRYPTO’96. Springer
+ *  Berlin Heidelberg, 1996. p. 104-113.
+ */
+static int dhm_update_blinding( dhm_context *ctx,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret, count;
+
+    /*
+     * We can just update the previous values (by squaring them) if:
+     * - the values are initialized, and
+     * - our secret exponent did not change.
+     */
+    if( ctx->Vi.p != NULL &&
+        mpi_cmp_mpi( &ctx->X, &ctx->_X ) == 0 )
+    {
+        MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
+        MPI_CHK( mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
+
+        return( 0 );
+    }
+
+    /*
+     * Otherwise, we need to generate new values from scratch for this secret
+     */
+
+    /* Vi = random( 2, P-1 ) */
+    count = 0;
+    do
+    {
+        mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng );
+
+        while( mpi_cmp_mpi( &ctx->Vi, &ctx->P ) >= 0 )
+            mpi_shift_r( &ctx->Vi, 1 );
+
+        if( count++ > 10 )
+            return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
+    }
+    while( mpi_cmp_int( &ctx->Vi, 1 ) <= 0 );
+
+    /* Vf = Vi^-X mod P */
+    MPI_CHK( mpi_inv_mod( &ctx->Vf, &ctx->Vi, &ctx->P ) );
+    MPI_CHK( mpi_exp_mod( &ctx->Vf, &ctx->Vf, &ctx->X, &ctx->P, &ctx->RP ) );
+
+    /* Remember secret associated with Vi and Vf */
+    MPI_CHK( mpi_copy( &ctx->_X, &ctx->X ) );;
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Derive and export the shared secret (G^Y)^X mod P
  */
 int dhm_calc_secret( dhm_context *ctx,
@@ -254,24 +308,43 @@ int dhm_calc_secret( dhm_context *ctx,
                      void *p_rng )
 {
     int ret;
-
-    (void) f_rng;
-    (void) p_rng;
+    mpi GYb;
 
     if( ctx == NULL || *olen < ctx->len )
         return( POLARSSL_ERR_DHM_BAD_INPUT_DATA );
 
-    MPI_CHK( mpi_exp_mod( &ctx->K, &ctx->GY, &ctx->X,
-                          &ctx->P, &ctx->RP ) );
-
     if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
         return( ret );
+
+    mpi_init( &GYb );
+
+    /* Blind peer's value */
+    if( f_rng != 0 )
+    {
+        MPI_CHK( dhm_update_blinding( ctx, f_rng, p_rng ) );
+        MPI_CHK( mpi_mul_mpi( &GYb, &ctx->GY, &ctx->Vi ) );
+        MPI_CHK( mpi_mod_mpi( &GYb, &GYb, &ctx->P ) );
+    }
+    else
+        MPI_CHK( mpi_copy( &GYb, &ctx->GY ) );
+
+    /* Do modular exponentiation */
+    MPI_CHK( mpi_exp_mod( &ctx->K, &GYb, &ctx->X,
+                          &ctx->P, &ctx->RP ) );
+
+    /* Unblind secret value */
+    if( f_rng != 0 )
+    {
+        MPI_CHK( mpi_mul_mpi( &ctx->K, &ctx->K, &ctx->Vf ) );
+        MPI_CHK( mpi_mod_mpi( &ctx->K, &ctx->K, &ctx->P ) );
+    }
 
     *olen = mpi_size( &ctx->K );
 
     MPI_CHK( mpi_write_binary( &ctx->K, output, *olen ) );
 
 cleanup:
+    mpi_free( &GYb );
 
     if( ret != 0 )
         return( POLARSSL_ERR_DHM_CALC_SECRET_FAILED + ret );
@@ -284,6 +357,7 @@ cleanup:
  */
 void dhm_free( dhm_context *ctx )
 {
+    mpi_free( &ctx->Vi ); mpi_free( &ctx->Vf );
     mpi_free( &ctx->RP ); mpi_free( &ctx->K ); mpi_free( &ctx->GY );
     mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
     mpi_free( &ctx->P );

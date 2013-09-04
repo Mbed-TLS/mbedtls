@@ -147,6 +147,9 @@ typedef struct
     mpi GY;     /*!<  peer = G^Y mod P  */
     mpi K;      /*!<  key = GY^X mod P  */
     mpi RP;     /*!<  cached R^2 mod P  */
+    mpi Vi;     /*!<  blinding value    */
+    mpi Vf;     /*!<  un-blinding value */
+    mpi _X;     /*!<  previous X        */
 }
 dhm_context;
 
@@ -223,6 +226,9 @@ int dhm_make_public( dhm_context *ctx, int x_size,
  * \param p_rng    RNG parameter
  *
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
+ *
+ * \note           If f_rng is not NULL, it is used to blind the input as
+ *                 countermeasure against timing attacks.
  */
 int dhm_calc_secret( dhm_context *ctx,
                      unsigned char *output, size_t *olen,

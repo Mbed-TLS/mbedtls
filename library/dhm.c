@@ -257,36 +257,43 @@ static int dhm_update_blinding( dhm_context *ctx,
     int ret, count;
 
     /*
-     * We can just update the previous values (by squaring them) if:
-     * - the values are initialized, and
-     * - our secret exponent did not change.
+     * If Vi is initialized, update it by squaring it
      */
-    if( ctx->Vi.p != NULL &&
-        mpi_cmp_mpi( &ctx->X, &ctx->_X ) == 0 )
+    if( ctx->Vi.p != NULL )
+    {
+        MPI_CHK( mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
+        MPI_CHK( mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->P ) );
+    }
+    else
+    {
+        /* Vi = random( 2, P-1 ) */
+        count = 0;
+        do
+        {
+            mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng );
+
+            while( mpi_cmp_mpi( &ctx->Vi, &ctx->P ) >= 0 )
+                mpi_shift_r( &ctx->Vi, 1 );
+
+            if( count++ > 10 )
+                return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
+        }
+        while( mpi_cmp_int( &ctx->Vi, 1 ) <= 0 );
+    }
+
+    /*
+     * If X did not change, update Vf by squaring it too
+     */
+    if( mpi_cmp_mpi( &ctx->X, &ctx->_X ) == 0 )
     {
         MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
-        MPI_CHK( mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
-
+        MPI_CHK( mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->P ) );
         return( 0 );
     }
 
     /*
-     * Otherwise, we need to generate new values from scratch for this secret
+     * Otherwise, compute Vf from scratch
      */
-
-    /* Vi = random( 2, P-1 ) */
-    count = 0;
-    do
-    {
-        mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng );
-
-        while( mpi_cmp_mpi( &ctx->Vi, &ctx->P ) >= 0 )
-            mpi_shift_r( &ctx->Vi, 1 );
-
-        if( count++ > 10 )
-            return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
-    }
-    while( mpi_cmp_int( &ctx->Vi, 1 ) <= 0 );
 
     /* Vf = Vi^-X mod P */
     MPI_CHK( mpi_inv_mod( &ctx->Vf, &ctx->Vi, &ctx->P ) );
@@ -319,7 +326,7 @@ int dhm_calc_secret( dhm_context *ctx,
     mpi_init( &GYb );
 
     /* Blind peer's value */
-    if( f_rng != 0 )
+    if( f_rng != NULL )
     {
         MPI_CHK( dhm_update_blinding( ctx, f_rng, p_rng ) );
         MPI_CHK( mpi_mul_mpi( &GYb, &ctx->GY, &ctx->Vi ) );
@@ -333,7 +340,7 @@ int dhm_calc_secret( dhm_context *ctx,
                           &ctx->P, &ctx->RP ) );
 
     /* Unblind secret value */
-    if( f_rng != 0 )
+    if( f_rng != NULL )
     {
         MPI_CHK( mpi_mul_mpi( &ctx->K, &ctx->K, &ctx->Vf ) );
         MPI_CHK( mpi_mod_mpi( &ctx->K, &ctx->K, &ctx->P ) );

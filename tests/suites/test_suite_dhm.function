@@ -8,7 +8,7 @@
  */
 
 /* BEGIN_CASE */
-void dhm_do_dhm( int NOTUSED, int radix_P, char *input_P,
+void dhm_do_dhm( int radix_P, char *input_P,
                  int radix_G, char *input_G )
 {
     dhm_context ctx_srv;
@@ -24,8 +24,6 @@ void dhm_do_dhm( int NOTUSED, int radix_P, char *input_P,
     size_t sec_cli_len = 1000;
     int x_size;
     rnd_pseudo_info rnd_info;
-
-    ((void)NOTUSED);
 
     memset( &ctx_srv, 0x00, sizeof( dhm_context ) );
     memset( &ctx_cli, 0x00, sizeof( dhm_context ) );

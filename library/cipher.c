@@ -67,6 +67,12 @@ static const int supported_ciphers[] = {
         POLARSSL_CIPHER_AES_256_CTR,
 #endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
 
+#if defined(POLARSSL_GCM_C)
+        POLARSSL_CIPHER_AES_128_GCM,
+        POLARSSL_CIPHER_AES_192_GCM,
+        POLARSSL_CIPHER_AES_256_GCM,
+#endif /* defined(POLARSSL_GCM_C) */
+
 #endif /* defined(POLARSSL_AES_C) */
 
 #if defined(POLARSSL_ARC4_C)
@@ -157,6 +163,8 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
 #if defined(POLARSSL_GCM_C)
         case POLARSSL_CIPHER_AES_128_GCM:
             return &aes_128_gcm_info;
+        case POLARSSL_CIPHER_AES_192_GCM:
+            return &aes_192_gcm_info;
         case POLARSSL_CIPHER_AES_256_GCM:
             return &aes_256_gcm_info;
 #endif /* defined(POLARSSL_GCM_C) */
@@ -293,6 +301,8 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
 #if defined(POLARSSL_GCM_C)
     if( !strcasecmp( "AES-128-GCM", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_128_GCM );
+    if( !strcasecmp( "AES-192-GCM", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_GCM );
     if( !strcasecmp( "AES-256-GCM", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_256_GCM );
 #endif

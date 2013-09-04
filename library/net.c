@@ -112,6 +112,8 @@ int net_connect( int *fd, const char *host, int port )
 {
     struct sockaddr_in server_addr;
     struct hostent *server_host;
+    int server = 0;
+    char connectedSuccessfully = false;
 
 #if defined(_WIN32) || defined(_WIN32_WCE)
     WSADATA wsaData;
@@ -127,24 +129,48 @@ int net_connect( int *fd, const char *host, int port )
     signal( SIGPIPE, SIG_IGN );
 #endif
 
-    if( ( server_host = gethostbyname( host ) ) == NULL )
-        return( POLARSSL_ERR_NET_UNKNOWN_HOST );
-
-    if( ( *fd = socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
-        return( POLARSSL_ERR_NET_SOCKET_FAILED );
-
-    memcpy( (void *) &server_addr.sin_addr,
-            (void *) server_host->h_addr,
-                     server_host->h_length );
-
     server_addr.sin_family = AF_INET;
     server_addr.sin_port   = net_htons( port );
-
-    if( connect( *fd, (struct sockaddr *) &server_addr,
-                 sizeof( server_addr ) ) < 0 )
+    
+    if( ( *fd = socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
+        return( POLARSSL_ERR_NET_SOCKET_FAILED );
+    
+    if( inet_addr( host ) == INADDR_NONE )
     {
-        close( *fd );
-        return( POLARSSL_ERR_NET_CONNECT_FAILED );
+        if( ( server_host = gethostbyname( host ) ) == NULL )
+            return( POLARSSL_ERR_NET_UNKNOWN_HOST );
+    
+		// Iterate over all returned IPs
+		for( server = 0; server_host->h_addr_list[server] > 0; server++ )
+        {
+            memcpy( (void *) &server_addr.sin_addr,
+				(void *) &server_host->h_addr_list[server],
+                         server_host->h_length );
+        
+            // If the connection was established successfully we can stop trying
+            if( connect( *fd, (struct sockaddr *) &server_addr,
+                         sizeof( server_addr ) ) > 0 )
+            {
+                connectedSuccessfully = true;
+				break;
+            }
+        }
+
+		if( connectedSuccessfully == false)
+		{
+			close( *fd );
+			return( POLARSSL_ERR_NET_CONNECT_FAILED );
+		}
+    }
+    else
+    {
+		server_addr.sin_addr.S_un.S_addr = inet_addr( host );
+        if( connect( *fd, (struct sockaddr *) &server_addr,
+                     sizeof( server_addr ) ) < 0 )
+        {
+            close( *fd );
+            return( POLARSSL_ERR_NET_CONNECT_FAILED );
+        }
     }
 
     return( 0 );

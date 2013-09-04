@@ -12,6 +12,9 @@ The main system used for development is CMake. That system is always the most up
 In order to build the source using Make, just enter at the command line:
 make
 
+If you want to build it for PSL1GHT PS3 SDK, just enter at the command line:
+make -f Makefile.psl1ght
+
 In order to run the tests, enter:
 make check
 

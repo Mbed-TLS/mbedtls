@@ -616,9 +616,12 @@ int main( int argc, char *argv[] )
 
         printf( "  > Write EHLO to server:" );
         fflush( stdout );
-
+	#ifndef PSL1GHT
         gethostname( hostname, 32 );
         len = sprintf( (char *) buf, "EHLO %s\n", hostname );
+        #else
+        len = sprintf( (char *) buf, "EHLO\n");
+        #endif
         ret = write_ssl_and_get_response( &ssl, buf, len );
         if( ret < 200 || ret > 299 )
         {
@@ -642,9 +645,14 @@ int main( int argc, char *argv[] )
 
         printf( "  > Write EHLO to server:" );
         fflush( stdout );
-
+        
+	#ifndef PSL1GHT
         gethostname( hostname, 32 );
         len = sprintf( (char *) buf, "EHLO %s\n", hostname );
+        #else
+        len = sprintf( (char *) buf, "EHLO\n");
+        #endif
+
         ret = write_and_get_response( server_fd, buf, len );
         if( ret < 200 || ret > 299 )
         {
@@ -657,7 +665,9 @@ int main( int argc, char *argv[] )
         printf( "  > Write STARTTLS to server:" );
         fflush( stdout );
 
+	#ifndef PSL1GHT
         gethostname( hostname, 32 );
+        #endif
         len = sprintf( (char *) buf, "STARTTLS\n" );
         ret = write_and_get_response( server_fd, buf, len );
         if( ret < 200 || ret > 299 )

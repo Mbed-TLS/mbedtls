@@ -275,7 +275,7 @@ unsigned long get_timer( struct hr_time *val, int reset )
     return( delta );
 }
 
-#if defined(INTEGRITY)
+#if defined(INTEGRITY) || defined(PSL1GHT)
 void m_sleep( int milliseconds )
 {
     usleep( milliseconds * 1000 );

@@ -59,6 +59,10 @@ static int wsa_init_done = 0;
 #include <netdb.h>
 #include <errno.h>
 
+#if defined(PSL1GHT)
+#include <net/select.h>
+#endif
+
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) ||  \
     defined(__DragonflyBSD__)
 #include <sys/endian.h>
@@ -66,6 +70,8 @@ static int wsa_init_done = 0;
 #include <machine/endian.h>
 #elif defined(sun)
 #include <sys/isa_defs.h>
+#elif defined(PSL1GHT)
+#include <machine/endian.h>
 #else
 #include <endian.h>
 #endif
@@ -252,8 +258,13 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
     int n = (int) sizeof( client_addr );
 #endif
 
+#ifndef PSL1GHT
     *client_fd = accept( bind_fd, (struct sockaddr *)
                          &client_addr, &n );
+#else
+    *client_fd = accept( bind_fd, (struct sockaddr *)
+                         &client_addr, (socklen_t*)&n );
+#endif
 
     if( *client_fd < 0 )
     {

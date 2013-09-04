@@ -67,6 +67,12 @@ static const int supported_ciphers[] = {
         POLARSSL_CIPHER_AES_256_CTR,
 #endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
 
+#if defined(POLARSSL_GCM_C)
+        POLARSSL_CIPHER_AES_128_GCM,
+        POLARSSL_CIPHER_AES_192_GCM,
+        POLARSSL_CIPHER_AES_256_GCM,
+#endif /* defined(POLARSSL_GCM_C) */
+
 #endif /* defined(POLARSSL_AES_C) */
 
 #if defined(POLARSSL_ARC4_C)
@@ -157,6 +163,8 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
 #if defined(POLARSSL_GCM_C)
         case POLARSSL_CIPHER_AES_128_GCM:
             return &aes_128_gcm_info;
+        case POLARSSL_CIPHER_AES_192_GCM:
+            return &aes_192_gcm_info;
         case POLARSSL_CIPHER_AES_256_GCM:
             return &aes_256_gcm_info;
 #endif /* defined(POLARSSL_GCM_C) */
@@ -293,6 +301,8 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
 #if defined(POLARSSL_GCM_C)
     if( !strcasecmp( "AES-128-GCM", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_128_GCM );
+    if( !strcasecmp( "AES-192-GCM", cipher_name ) )
+        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_GCM );
     if( !strcasecmp( "AES-256-GCM", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_256_GCM );
 #endif
@@ -396,31 +406,60 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 }
 
-int cipher_reset( cipher_context_t *ctx,
-                  const unsigned char *iv, size_t iv_len,
-                  const unsigned char *ad, size_t ad_len )
+int cipher_set_iv( cipher_context_t *ctx,
+                   const unsigned char *iv, size_t iv_len )
 {
+    size_t actual_iv_size;
+
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    if( ctx->cipher_info->accepts_variable_iv_size )
+        actual_iv_size = iv_len;
+    else
+        actual_iv_size = ctx->cipher_info->iv_size;
+
+    memcpy( ctx->iv, iv, actual_iv_size );
+    ctx->iv_size = actual_iv_size;
+
+    return 0;
+}
+
+int cipher_reset( cipher_context_t *ctx )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     ctx->unprocessed_len = 0;
 
+    return 0;
+}
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+int cipher_update_ad( cipher_context_t *ctx,
+                      const unsigned char *ad, size_t ad_len )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
 #if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
     {
-        return gcm_starts( ctx->cipher_ctx, ctx->operation,
-                           iv, iv_len, ad, ad_len );
-    }
-#else
-    ((void) ad);
-    ((void) ad_len);
-    ((void) iv_len);
-#endif
+        /* Make sure we're called right after cipher_reset() */
+        if( ((gcm_context *) ctx->cipher_ctx)->len != 0 ||
+            ((gcm_context *) ctx->cipher_ctx)->add_len != 0 )
+        {
+            return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+        }
 
-    memcpy( ctx->iv, iv, cipher_get_iv_size( ctx ) );
+        return gcm_starts( ctx->cipher_ctx, ctx->operation,
+                           ctx->iv, ctx->iv_size, ad, ad_len );
+    }
+#endif
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
         unsigned char *output, size_t *olen )
@@ -747,8 +786,7 @@ static int get_no_padding( unsigned char *input, size_t input_len,
 }
 
 int cipher_finish( cipher_context_t *ctx,
-                   unsigned char *output, size_t *olen,
-                   unsigned char *tag, size_t tag_len )
+                   unsigned char *output, size_t *olen )
 {
     int ret = 0;
 
@@ -767,10 +805,6 @@ int cipher_finish( cipher_context_t *ctx,
 #if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
     {
-        unsigned char check_tag[16];
-        size_t i;
-        int diff;
-
         if( 0 != ( ret = gcm_update( ctx->cipher_ctx,
                         ctx->unprocessed_len, ctx->unprocessed_data,
                         output ) ) )
@@ -780,29 +814,8 @@ int cipher_finish( cipher_context_t *ctx,
 
         *olen += ctx->unprocessed_len;
 
-        if( 0 != ( ret = gcm_finish( ctx->cipher_ctx, check_tag, tag_len ) ) )
-            return( ret );
-
-        /* On encryption, write the tag */
-        if( POLARSSL_ENCRYPT == ctx->operation )
-        {
-            if( tag_len != 0 )
-                memcpy( tag, check_tag, tag_len );
-            return( 0 );
-        }
-
-        /* On decryption, check the tag (in "constant-time") */
-        for( diff = 0, i = 0; i < tag_len; i++ )
-            diff |= tag[i] ^ check_tag[i];
-
-        if( diff != 0 )
-            return( POLARSSL_ERR_GCM_AUTH_FAILED );
-
         return( 0 );
     }
-#else
-    ((void) tag);
-    ((void) tag_len);
 #endif
 
     if( POLARSSL_MODE_CBC == ctx->cipher_info->mode )
@@ -899,6 +912,63 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
 
     return 0;
 }
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+int cipher_write_tag( cipher_context_t *ctx,
+                      unsigned char *tag, size_t tag_len )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info || NULL == tag )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    if( POLARSSL_ENCRYPT != ctx->operation )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+        return gcm_finish( ctx->cipher_ctx, tag, tag_len );
+#endif
+
+    return 0;
+}
+ 
+int cipher_check_tag( cipher_context_t *ctx,
+                      const unsigned char *tag, size_t tag_len )
+{
+    int ret;
+
+    if( NULL == ctx || NULL == ctx->cipher_info ||
+        POLARSSL_DECRYPT != ctx->operation )
+    {
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+    {
+        unsigned char check_tag[16];
+        size_t i;
+        int diff;
+
+        if( tag_len > sizeof( check_tag ) )
+            return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+        if( 0 != ( ret = gcm_finish( ctx->cipher_ctx, check_tag, tag_len ) ) )
+            return( ret );
+
+        /* Check the tag in "constant-time" */
+        for( diff = 0, i = 0; i < tag_len; i++ )
+            diff |= tag[i] ^ check_tag[i];
+
+        if( diff != 0 )
+            return( POLARSSL_ERR_GCM_AUTH_FAILED );
+
+        return( 0 );
+    }
+#endif
+
+    return( 0 );
+}
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 #if defined(POLARSSL_SELF_TEST)
 

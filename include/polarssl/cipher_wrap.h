@@ -56,6 +56,7 @@ extern const cipher_info_t aes_256_ctr_info;
 
 #if defined(POLARSSL_GCM_C)
 extern const cipher_info_t aes_128_gcm_info;
+extern const cipher_info_t aes_192_gcm_info;
 extern const cipher_info_t aes_256_gcm_info;
 #endif /* POLARSSL_GCM_C */
 

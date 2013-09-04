@@ -30,6 +30,12 @@
 #ifndef POLARSSL_CIPHER_H
 #define POLARSSL_CIPHER_H
 
+#include "config.h"
+
+#if defined(POLARSSL_GCM_C)
+#define POLARSSL_CIPHER_MODE_AEAD
+#endif
+
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined(inline)
@@ -74,6 +80,7 @@ typedef enum {
     POLARSSL_CIPHER_AES_192_CTR,
     POLARSSL_CIPHER_AES_256_CTR,
     POLARSSL_CIPHER_AES_128_GCM,
+    POLARSSL_CIPHER_AES_192_GCM,
     POLARSSL_CIPHER_AES_256_GCM,
     POLARSSL_CIPHER_CAMELLIA_128_CBC,
     POLARSSL_CIPHER_CAMELLIA_192_CBC,
@@ -185,8 +192,12 @@ typedef struct {
     /** Name of the cipher */
     const char * name;
 
-    /** IV size, in bytes */
+    /** IV/NONCE size, in bytes.
+     *  For cipher that accept many sizes: recommended size */
     unsigned int iv_size;
+
+    /** Flag for ciphers that accept many sizes of IV/NONCE */
+    int accepts_variable_iv_size;
 
     /** block size, in bytes */
     unsigned int block_size;
@@ -221,6 +232,9 @@ typedef struct {
 
     /** Current IV or NONCE_COUNTER for CTR-mode */
     unsigned char iv[POLARSSL_MAX_IV_LENGTH];
+
+    /** IV size in bytes (for ciphers with variable-length IVs) */
+    size_t iv_size;
 
     /** Cipher-specific context */
     void *cipher_ctx;
@@ -315,17 +329,21 @@ static inline cipher_mode_t cipher_get_cipher_mode( const cipher_context_t *ctx 
 }
 
 /**
- * \brief               Returns the size of the cipher's IV.
+ * \brief               Returns the size of the cipher's IV/NONCE in bytes.
  *
  * \param ctx           cipher's context. Must have been initialised.
  *
- * \return              size of the cipher's IV, or 0 if ctx has not been
- *                      initialised or accepts IV of various sizes.
+ * \return              If IV has not been set yet: (recommended) IV size
+ *                      (0 for ciphers not using IV/NONCE).
+ *                      If IV has already been set: actual size.
  */
 static inline int cipher_get_iv_size( const cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return 0;
+
+    if( ctx->iv_size != 0 )
+        return ctx->iv_size;
 
     return ctx->cipher_info->iv_size;
 }
@@ -428,22 +446,49 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_leng
 int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
 
 /**
- * \brief               Reset the given context, setting the IV to iv
+ * \brief               Set the initialization vector (IV) or nonce
+ *
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
+ *
+ * \returns             O on success, or POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+ *
+ * \note                Some ciphers don't use IVs nor NONCE. For these
+ *                      ciphers, this function has no effect.
+ */
+int cipher_set_iv( cipher_context_t *ctx,
+                   const unsigned char *iv, size_t iv_len );
+
+/**
+ * \brief               Finish preparation of the given context
  *
  * \param ctx           generic cipher context
- * \param iv            IV to use or NONCE_COUNTER in the case of a CTR-mode cipher
- * \param iv_len        IV length for ciphers with variable-size IV,
- *                      Discared by ciphers with fixed-size IV.
- * \param ad            Additional data for AEAD ciphers, or discarded.
- *                      May be NULL only if ad_len is 0.
- * \param ad_len        Length of ad for AEAD ciphers, or discarded.
  *
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
-int cipher_reset( cipher_context_t *ctx,
-                  const unsigned char *iv, size_t iv_len,
-                  const unsigned char *ad, size_t ad_len );
+int cipher_reset( cipher_context_t *ctx );
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+/**
+ * \brief               Add additional data (for AEAD ciphers).
+ *                      This function has no effect for non-AEAD ciphers.
+ *                      For AEAD ciphers, it may or may not be called
+ *                      repeatedly, and/or interleaved with calls to
+ *                      cipher_udpate(), depending on the cipher.
+ *                      E.g. for GCM is must be called exactly once, right
+ *                      after cipher_reset().
+ *
+ * \param ctx           generic cipher context
+ * \param ad            Additional data to use.
+ * \param ad_len        Length of ad.
+ *
+ * \returns             0 on success, or a specific error code.
+ */
+int cipher_update_ad( cipher_context_t *ctx,
+                      const unsigned char *ad, size_t ad_len );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 /**
  * \brief               Generic cipher update function. Encrypts/decrypts
@@ -480,11 +525,6 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  * \param ctx           Generic cipher context
  * \param output        buffer to write data to. Needs block_size available.
  * \param olen          length of the data written to the output buffer.
- * \param tag           Ignore by non-AEAD ciphers. For AEAD ciphers:
- *                      - on encryption: buffer to write the tag;
- *                      - on decryption: tag to verify.
- *                      May be NULL if tag_len is zero.
- * \param tag_len       Length of the tag to write/check for AEAD ciphers.
  *
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
  *                      parameter verification fails,
@@ -494,8 +534,36 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  *                      while decrypting or a cipher specific error code.
  */
 int cipher_finish( cipher_context_t *ctx,
-                   unsigned char *output, size_t *olen,
-                   unsigned char *tag, size_t tag_len );
+                   unsigned char *output, size_t *olen );
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+/**
+ * \brief               Write tag for AEAD ciphers.
+ *                      No effect for other ciphers.
+ *                      Must be called after cipher_finish().
+ *
+ * \param tag           buffer to write the tag
+ * \param tag_len       Length of the tag to write
+ *
+ * \return              0 on success, or a specific error code.
+ */
+int cipher_write_tag( cipher_context_t *ctx,
+                      unsigned char *tag, size_t tag_len );
+
+/**
+ * \brief               Check tag for AEAD ciphers.
+ *                      No effect for other ciphers.
+ *                      Calling time depends on the cipher:
+ *                      for GCM, must be called after cipher_finish().
+ *
+ * \param tag           Buffer holding the tag
+ * \param tag_len       Length of the tag to check
+ *
+ * \return              0 on success, or a specific error code.
+ */
+int cipher_check_tag( cipher_context_t *ctx,
+                      const unsigned char *tag, size_t tag_len );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 /**
  * \brief          Checkup routine

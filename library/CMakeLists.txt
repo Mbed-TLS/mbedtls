@@ -52,6 +52,10 @@ if(WIN32)
 set(libs ws2_32)
 endif(WIN32)
 
+if(USE_PKCS11_HELPER_LIBRARY)
+    set(libs ${libs} pkcs11-helper)
+endif(USE_PKCS11_HELPER_LIBRARY)
+
 if(NOT USE_SHARED_POLARSSL_LIBRARY)
 
 add_library(polarssl STATIC ${src})

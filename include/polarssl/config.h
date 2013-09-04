@@ -761,8 +761,8 @@
  *
  * This module enables SSL/TLS PKCS #11 smartcard support.
  * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
-#define POLARSSL_PKCS11_C
  */
+#define POLARSSL_PKCS11_C
 
 /**
  * \def POLARSSL_PKCS12_C

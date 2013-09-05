@@ -512,6 +512,10 @@ int cipher_update_ad( cipher_context_t *ctx,
  *                      POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE on an
  *                      unsupported mode for a cipher or a cipher specific
  *                      error code.
+ *
+ * \note                If the underlying cipher is GCM, all calls to this
+ *                      function, except the last one before cipher_finish(),
+ *                      must have ilen a multiple of the block size.
  */
 int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
         unsigned char *output, size_t *olen );

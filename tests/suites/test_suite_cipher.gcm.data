@@ -85,25 +85,13 @@ AES 128 GCM Encrypt and decrypt 16 bytes in multiple parts 2
 depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
 enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:0:16
 
-AES 128 GCM Encrypt and decrypt 16 bytes in multiple parts 3
-depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
-enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:1:15
-
-AES 128 GCM Encrypt and decrypt 16 bytes in multiple parts 4
-depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
-enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:15:1
-
-AES 128 GCM Encrypt and decrypt 22 bytes in multiple parts 1
-depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
-enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:15:7
-
 AES 128 GCM Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
 enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:16:6
 
-AES 128 GCM Encrypt and decrypt 22 bytes in multiple parts 1
+AES 128 GCM Encrypt and decrypt 22 bytes in multiple parts 2
 depends_on:POLARSSL_AES_C:POLARSSL_GCM_C
-enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:17:6
+enc_dec_buf_multipart:POLARSSL_CIPHER_AES_128_GCM:128:0:22
 
 AES 128 GCM Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:POLARSSL_AES_C:POLARSSL_GCM_C

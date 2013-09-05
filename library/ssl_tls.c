@@ -690,16 +690,6 @@ int ssl_derive_keys( ssl_context *ssl )
             }
             break;
 
-#if defined(POLARSSL_GCM_C)
-        case POLARSSL_CIPHER_AES_128_GCM:
-        case POLARSSL_CIPHER_AES_256_GCM:
-            gcm_init( (gcm_context *) transform->ctx_enc, key1,
-                      cipher_info->key_length );
-            gcm_init( (gcm_context *) transform->ctx_dec, key2,
-                      cipher_info->key_length );
-            break;
-#endif
-
         case POLARSSL_CIPHER_NULL:
             break;
 
@@ -1046,7 +1036,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
          */
         ssl->out_msglen += 16;
 
-        gcm_crypt_and_tag( ssl->transform_out->cipher_ctx_enc->cipher_ctx,
+        gcm_crypt_and_tag( ssl->transform_out->cipher_ctx_enc.cipher_ctx,
                 GCM_ENCRYPT, enc_msglen,
                 ssl->transform_out->iv_enc, ssl->transform_out->ivlen,
                 add_data, 13,
@@ -1285,7 +1275,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                      ssl->transform_in->ivlen );
         SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, 16 );
 
-        ret = gcm_auth_decrypt(  ssl->transform_in->cipher_ctx_dec->cipher_ctx,
+        ret = gcm_auth_decrypt(  ssl->transform_in->cipher_ctx_dec.cipher_ctx,
                                  dec_msglen,
                                  ssl->transform_in->iv_dec,
                                  ssl->transform_in->ivlen,

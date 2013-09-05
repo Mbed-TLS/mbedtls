@@ -467,14 +467,21 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
+#if defined(POLARSSL_GCM_C)
+    if( ctx->cipher_info->mode == POLARSSL_MODE_GCM)
+    {
+        *olen = ilen;
+        return gcm_update( ctx->cipher_ctx, ilen, input, output );
+    }
+#endif
+
     if( input == output &&
        ( ctx->unprocessed_len != 0 || ilen % cipher_get_block_size( ctx ) ) )
     {
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    if( ctx->cipher_info->mode == POLARSSL_MODE_CBC ||
-        ctx->cipher_info->mode == POLARSSL_MODE_GCM )
+    if( ctx->cipher_info->mode == POLARSSL_MODE_CBC )
     {
         /*
          * If there is not enough data for a full block, cache it.
@@ -501,18 +508,6 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
             memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
                     copy_len );
 
-#if defined(POLARSSL_GCM_C)
-            if( ctx->cipher_info->mode == POLARSSL_MODE_GCM )
-            {
-                if( 0 != ( ret = gcm_update( ctx->cipher_ctx,
-                                cipher_get_block_size( ctx ),
-                                ctx->unprocessed_data, output ) ) )
-                {
-                    return ret;
-                }
-            }
-            else
-#endif
             if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
                     ctx->operation, cipher_get_block_size( ctx ), ctx->iv,
                     ctx->unprocessed_data, output ) ) )
@@ -549,17 +544,6 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
          */
         if( ilen )
         {
-#if defined(POLARSSL_GCM_C)
-            if( ctx->cipher_info->mode == POLARSSL_MODE_GCM )
-            {
-                if( 0 != ( ret = gcm_update( ctx->cipher_ctx,
-                                             ilen, input, output ) ) )
-                {
-                    return ret;
-                }
-            }
-            else
-#endif
             if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
                     ctx->operation, ilen, ctx->iv, input, output ) ) )
             {
@@ -790,26 +774,11 @@ int cipher_finish( cipher_context_t *ctx,
 
     if( POLARSSL_MODE_CFB == ctx->cipher_info->mode ||
         POLARSSL_MODE_CTR == ctx->cipher_info->mode ||
+        POLARSSL_MODE_GCM == ctx->cipher_info->mode ||
         POLARSSL_MODE_STREAM == ctx->cipher_info->mode )
     {
         return 0;
     }
-
-#if defined(POLARSSL_GCM_C)
-    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
-    {
-        if( 0 != ( ret = gcm_update( ctx->cipher_ctx,
-                        ctx->unprocessed_len, ctx->unprocessed_data,
-                        output ) ) )
-        {
-            return( ret );
-        }
-
-        *olen += ctx->unprocessed_len;
-
-        return( 0 );
-    }
-#endif
 
     if( POLARSSL_MODE_CBC == ctx->cipher_info->mode )
     {

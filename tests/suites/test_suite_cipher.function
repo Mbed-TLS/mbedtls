@@ -15,34 +15,26 @@
 void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
                   int length_val, int pad_mode )
 {
-    size_t length = length_val;
+    size_t length = length_val, outlen, total_len, i;
     unsigned char key[32];
     unsigned char iv[16];
     unsigned char ad[13];
     unsigned char tag[16];
+    unsigned char inbuf[64];
+    unsigned char encbuf[64];
+    unsigned char decbuf[64];
 
     const cipher_info_t *cipher_info;
     cipher_context_t ctx_dec;
     cipher_context_t ctx_enc;
 
-    unsigned char inbuf[64];
-    unsigned char encbuf[64];
-    unsigned char decbuf[64];
-
-    size_t outlen = 0;
-    size_t total_len = 0;
-
-    memset( key, 0, 32 );
-    memset( iv , 0, 16 );
-    
+    /*
+     * Prepare contexts
+     */
     memset( &ctx_dec, 0, sizeof( ctx_dec ) );
     memset( &ctx_enc, 0, sizeof( ctx_enc ) );
-    
-    memset( inbuf, 5, 64 );
-    memset( encbuf, 0, 64 );
-    memset( decbuf, 0, 64 );
-    memset( tag, 0, 16 );
-    memset( ad, 0x2a, 13 );
+
+    memset( key, 0x2a, sizeof( key ) );
 
     /* Check and get info structures */
     cipher_info = cipher_info_from_type( cipher_id );
@@ -52,7 +44,7 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     /* Initialise enc and dec contexts */
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx_dec, cipher_info ) );
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx_enc, cipher_info ) );
-    
+
     TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, key_len, POLARSSL_DECRYPT ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx_enc, key, key_len, POLARSSL_ENCRYPT ) );
 
@@ -62,15 +54,28 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
         TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx_enc, pad_mode ) );
     }
 
-    TEST_ASSERT( 0 == cipher_set_iv( &ctx_dec, iv, 16 ) );
-    TEST_ASSERT( 0 == cipher_set_iv( &ctx_enc, iv, 16 ) );
+    /*
+     * Do a few encode/decode cycles
+     */
+    for( i = 0; i < 3; i++ )
+    {
+    memset( iv , 0x00 + i, sizeof( iv ) );
+    memset( ad, 0x10 + i, sizeof( ad ) );
+    memset( inbuf, 0x20 + i, sizeof( inbuf ) );
+
+    memset( encbuf, 0, sizeof( encbuf ) );
+    memset( decbuf, 0, sizeof( decbuf ) );
+    memset( tag, 0, sizeof( tag ) );
+
+    TEST_ASSERT( 0 == cipher_set_iv( &ctx_dec, iv, sizeof( iv ) ) );
+    TEST_ASSERT( 0 == cipher_set_iv( &ctx_enc, iv, sizeof( iv ) ) );
 
     TEST_ASSERT( 0 == cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx_enc ) );
 
 #if defined(POLARSSL_CIPHER_MODE_AEAD)
-    TEST_ASSERT( 0 == cipher_update_ad( &ctx_dec, ad, 13 ) );
-    TEST_ASSERT( 0 == cipher_update_ad( &ctx_enc, ad, 13 ) );
+    TEST_ASSERT( 0 == cipher_update_ad( &ctx_dec, ad, sizeof( ad ) - i ) );
+    TEST_ASSERT( 0 == cipher_update_ad( &ctx_enc, ad, sizeof( ad ) - i ) );
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
     /* encode length number of bytes from inbuf */
@@ -86,7 +91,7 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     total_len += outlen;
 
 #if defined(POLARSSL_CIPHER_MODE_AEAD)
-    TEST_ASSERT( 0 == cipher_write_tag( &ctx_enc, tag, 16 ) );
+    TEST_ASSERT( 0 == cipher_write_tag( &ctx_enc, tag, sizeof( tag ) ) );
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
     TEST_ASSERT( total_len == length ||
@@ -107,13 +112,17 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     total_len += outlen;
 
 #if defined(POLARSSL_CIPHER_MODE_AEAD)
-    TEST_ASSERT( 0 == cipher_check_tag( &ctx_dec, tag, 16 ) );
+    TEST_ASSERT( 0 == cipher_check_tag( &ctx_dec, tag, sizeof( tag ) ) );
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
+    /* check result */
     TEST_ASSERT( total_len == length );
-
     TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );
+    }
 
+    /*
+     * Done
+     */
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
     TEST_ASSERT( 0 == cipher_free_ctx( &ctx_enc ) );
 }

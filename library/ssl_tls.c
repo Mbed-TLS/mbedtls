@@ -640,6 +640,8 @@ int ssl_derive_keys( ssl_context *ssl )
         case POLARSSL_CIPHER_AES_128_CBC:
         case POLARSSL_CIPHER_AES_256_CBC:
         case POLARSSL_CIPHER_DES_CBC:
+        case POLARSSL_CIPHER_AES_128_GCM:
+        case POLARSSL_CIPHER_AES_256_GCM:
             if( ( ret = cipher_init_ctx( &transform->cipher_ctx_enc,
                                          cipher_info ) ) != 0 )
             {
@@ -1021,6 +1023,9 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                 ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
                 ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
 
+        SSL_DEBUG_BUF( 4, "IV used", ssl->out_iv,
+                       ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
+
         /*
          * Fix pointer positions and message length with added IV
          */
@@ -1041,7 +1046,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
          */
         ssl->out_msglen += 16;
 
-        gcm_crypt_and_tag( (gcm_context *) ssl->transform_out->ctx_enc,
+        gcm_crypt_and_tag( ssl->transform_out->cipher_ctx_enc->cipher_ctx,
                 GCM_ENCRYPT, enc_msglen,
                 ssl->transform_out->iv_enc, ssl->transform_out->ivlen,
                 add_data, 13,
@@ -1280,7 +1285,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                      ssl->transform_in->ivlen );
         SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, 16 );
 
-        ret = gcm_auth_decrypt( (gcm_context *) ssl->transform_in->ctx_dec,
+        ret = gcm_auth_decrypt(  ssl->transform_in->cipher_ctx_dec->cipher_ctx,
                                  dec_msglen,
                                  ssl->transform_in->iv_dec,
                                  ssl->transform_in->ivlen,
@@ -1295,6 +1300,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
             return( POLARSSL_ERR_SSL_INVALID_MAC );
         }
+
     }
     else
 #endif /* POLARSSL_GCM_C */

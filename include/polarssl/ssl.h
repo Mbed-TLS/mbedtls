@@ -442,40 +442,6 @@ struct _ssl_session
 };
 
 /*
- * Helpers to find the correct size of the context in _ssl_transform
- * (in the long run, we'll use the cipher layer, but for now...)
- */
-#define SSL_MAX(a, b)       ( a > b ? a : b )
-#define SSL_CTX_MAX_0       0
-#if defined(POLARSSL_AES_C)
-#define SSL_CTX_MAX_1       SSL_MAX( SSL_CTX_MAX_0, sizeof( aes_context ) )
-#else
-#define SSL_CTX_MAX_1       SSL_CTX_MAX_0
-#endif
-#if defined(POLARSSL_ARC4_C)
-#define SSL_CTX_MAX_2       SSL_MAX( SSL_CTX_MAX_1, sizeof( arc4_context ) )
-#else
-#define SSL_CTX_MAX_2       SSL_CTX_MAX_1
-#endif
-#if defined(POLARSSL_DES_C)
-#define SSL_CTX_MAX_3       SSL_MAX( SSL_CTX_MAX_2, sizeof( des_context ) )
-#define SSL_CTX_MAX_4       SSL_MAX( SSL_CTX_MAX_3, sizeof( des3_context ) )
-#else
-#define SSL_CTX_MAX_4       SSL_CTX_MAX_2
-#endif
-#if defined(POLARSSL_CAMELLIA_C)
-#define SSL_CTX_MAX_5       SSL_MAX( SSL_CTX_MAX_4, sizeof( camellia_context ) )
-#else
-#define SSL_CTX_MAX_5       SSL_CTX_MAX_4
-#endif
-#if defined(POLARSSL_GCM_C)
-#define SSL_CTX_MAX_6       SSL_MAX( SSL_CTX_MAX_5, sizeof( gcm_context ) )
-#else
-#define SSL_CTX_MAX_6       SSL_CTX_MAX_5
-#endif
-#define SSL_CTX_MAX         SSL_CTX_MAX_6
-
-/*
  * This structure contains a full set of runtime transform parameters
  * either in negotiation or active.
  */
@@ -507,9 +473,6 @@ struct _ssl_transform
     cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
     cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
 
-    uint32_t ctx_enc[SSL_CTX_MAX / 4];  /*!<  encryption context      */
-    uint32_t ctx_dec[SSL_CTX_MAX / 4];  /*!<  decryption context      */
-
     /*
      * Session specific compression layer
      */
@@ -518,17 +481,6 @@ struct _ssl_transform
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
 };
-
-/* Not needed any more */
-#undef SSL_MAX
-#undef SSL_CTX_MAX_0
-#undef SSL_CTX_MAX_1
-#undef SSL_CTX_MAX_2
-#undef SSL_CTX_MAX_3
-#undef SSL_CTX_MAX_4
-#undef SSL_CTX_MAX_5
-#undef SSL_CTX_MAX_6
-#undef SSL_CTX_MAX
 
 /*
  * This structure contains the parameters only needed during handshake.

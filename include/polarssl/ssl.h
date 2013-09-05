@@ -49,28 +49,13 @@
 #include "sha512.h"
 #endif
 
+// for session tickets
 #if defined(POLARSSL_AES_C)
 #include "aes.h"
-#endif
-#if defined(POLARSSL_ARC4_C)
-#include "arc4.h"
-#endif
-#if defined(POLARSSL_DES_C)
-#include "des.h"
-#endif
-#if defined(POLARSSL_CAMELLIA_C)
-#include "camellia.h"
-#endif
-#if defined(POLARSSL_GCM_C)
-#include "gcm.h"
 #endif
 
 #if defined(POLARSSL_X509_PARSE_C)
 #include "x509.h"
-#endif
-
-#if defined(POLARSSL_RSA_C)
-#include "rsa.h"
 #endif
 
 #if defined(POLARSSL_DHM_C)

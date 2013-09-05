@@ -982,7 +982,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     if( ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_128_GCM ||
         ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM )
     {
-        size_t enc_msglen;
+        size_t enc_msglen, olen, totlen;
         unsigned char *enc_msg;
         unsigned char add_data[13];
         int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -1032,19 +1032,55 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                        ssl->out_msg, ssl->out_msglen );
 
         /*
-         * Adjust for tag
+         * Encrypt
+         */
+        if( ( ret = cipher_set_iv( &ssl->transform_out->cipher_ctx_enc,
+                                    ssl->transform_out->iv_enc,
+                                    ssl->transform_out->ivlen ) ) != 0 ||
+            ( ret = cipher_reset( &ssl->transform_out->cipher_ctx_enc ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        if( ( ret = cipher_update_ad( &ssl->transform_out->cipher_ctx_enc,
+                                      add_data, 13 ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        if( ( ret = cipher_update( &ssl->transform_out->cipher_ctx_enc,
+                                   enc_msg, enc_msglen,
+                                   enc_msg, &olen ) ) != 0 )
+        {
+            return( ret );
+        }
+        totlen = olen;
+
+        if( ( ret = cipher_finish( &ssl->transform_out->cipher_ctx_enc,
+                                   enc_msg + olen, &olen ) ) != 0 )
+        {
+            return( ret );
+        }
+        totlen += olen;
+
+        if( totlen != enc_msglen )
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( -1 );
+        }
+
+        /*
+         * Authenticate
          */
         ssl->out_msglen += 16;
 
-        gcm_crypt_and_tag( ssl->transform_out->cipher_ctx_enc.cipher_ctx,
-                GCM_ENCRYPT, enc_msglen,
-                ssl->transform_out->iv_enc, ssl->transform_out->ivlen,
-                add_data, 13,
-                enc_msg, enc_msg,
-                16, enc_msg + enc_msglen );
+        if( ( ret = cipher_write_tag( &ssl->transform_out->cipher_ctx_enc,
+                                      enc_msg + enc_msglen, 16 ) ) != 0 )
+        {
+            return( ret );
+        }
 
-        SSL_DEBUG_BUF( 4, "after encrypt: tag",
-                       enc_msg + enc_msglen, 16 );
+        SSL_DEBUG_BUF( 4, "after encrypt: tag", enc_msg + enc_msglen, 16 );
     }
     else
 #endif /* POLARSSL_GCM_C */
@@ -1244,7 +1280,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     {
         unsigned char *dec_msg;
         unsigned char *dec_msg_result;
-        size_t dec_msglen;
+        size_t dec_msglen, olen, totlen;
         unsigned char add_data[13];
         int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
@@ -1275,19 +1311,51 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                      ssl->transform_in->ivlen );
         SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, 16 );
 
-        ret = gcm_auth_decrypt(  ssl->transform_in->cipher_ctx_dec.cipher_ctx,
-                                 dec_msglen,
-                                 ssl->transform_in->iv_dec,
-                                 ssl->transform_in->ivlen,
-                                 add_data, 13,
-                                 dec_msg + dec_msglen, 16,
-                                 dec_msg, dec_msg_result );
-
-        if( ret != 0 )
+        /*
+         * Decrypt
+         */
+        if( ( ret = cipher_set_iv( &ssl->transform_in->cipher_ctx_dec,
+                                    ssl->transform_in->iv_dec,
+                                    ssl->transform_in->ivlen ) ) != 0 ||
+            ( ret = cipher_reset( &ssl->transform_in->cipher_ctx_dec ) ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "AEAD decrypt failed on validation (ret = -0x%02x)",
-                                -ret ) );
+            return( ret );
+        }
 
+        if( ( ret = cipher_update_ad( &ssl->transform_in->cipher_ctx_dec,
+                                      add_data, 13 ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        if( ( ret = cipher_update( &ssl->transform_in->cipher_ctx_dec,
+                                   dec_msg, dec_msglen,
+                                   dec_msg_result, &olen ) ) != 0 )
+        {
+            return( ret );
+        }
+        totlen = olen;
+
+        if( ( ret = cipher_finish( &ssl->transform_in->cipher_ctx_dec,
+                                   dec_msg_result + olen, &olen ) ) != 0 )
+        {
+            return( ret );
+        }
+        totlen += olen;
+
+        if( totlen != dec_msglen )
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( -1 );
+        }
+
+        /*
+         * Authenticate
+         */
+        if( ( ret = cipher_check_tag( &ssl->transform_in->cipher_ctx_dec,
+                                      dec_msg + dec_msglen, 16 ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_check_tag", ret );
             return( POLARSSL_ERR_SSL_INVALID_MAC );
         }
 

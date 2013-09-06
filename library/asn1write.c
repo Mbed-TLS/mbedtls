@@ -173,6 +173,23 @@ int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
     return( len );
 }
 
+int asn1_write_bool( unsigned char **p, unsigned char *start, int boolean )
+{
+    int ret;
+    size_t len = 0;
+
+    if( *p - start < 1 )
+        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
+
+    *--(*p) = (boolean) ? 1 : 0;
+    len++;
+
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_BOOLEAN ) );
+
+    return( len );
+}
+
 int asn1_write_int( unsigned char **p, unsigned char *start, int val )
 {
     int ret;

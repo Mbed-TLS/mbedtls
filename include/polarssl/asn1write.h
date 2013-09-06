@@ -125,6 +125,18 @@ int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
                                      const char *oid );
 
 /**
+ * \brief           Write a boolean tag (ASN1_BOOLEAN) and value in ASN.1 format
+ *                  Note: function works backwards in data buffer
+ *
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param boolean   0 or 1
+ *
+ * \return          the length written or a negative error code
+ */
+int asn1_write_bool( unsigned char **p, unsigned char *start, int boolean );
+
+/**
  * \brief           Write an int tag (ASN1_INTEGER) and value in ASN.1 format
  *                  Note: function works backwards in data buffer
  *

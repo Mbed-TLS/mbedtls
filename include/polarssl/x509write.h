@@ -84,6 +84,31 @@ typedef struct _x509_csr
 }
 x509_csr;
 
+#define X509_CRT_VERSION_1              0
+#define X509_CRT_VERSION_2              1
+#define X509_CRT_VERSION_3              2
+
+#define X509_RFC5280_MAX_SERIAL_LEN 32
+#define X509_RFC5280_UTC_TIME_LEN   15
+
+/**
+ * Container for writing a certificate (CRT)
+ */
+typedef struct _x509write_cert
+{
+    int version;
+    mpi serial;
+    rsa_context *subject_key;
+    rsa_context *issuer_key;
+    x509_req_name *subject;
+    x509_req_name *issuer;
+    md_type_t md_alg;
+    char not_before[X509_RFC5280_UTC_TIME_LEN + 1];
+    char not_after[X509_RFC5280_UTC_TIME_LEN + 1];
+    asn1_named_data *extensions;
+}
+x509write_cert;
+
 /* \} addtogroup x509_module */
 
 /**
@@ -170,6 +195,125 @@ int x509write_csr_set_extension( x509_csr *ctx,
 void x509write_csr_free( x509_csr *ctx );
 
 /**
+ * \brief           Initialize a CRT writing context
+ *
+ * \param ctx       CRT context to initialize
+ */
+void x509write_crt_init( x509write_cert *ctx );
+
+/**
+ * \brief           Set the verion for a Certificate
+ *                  Default: X509_CRT_VERSION_3
+ *
+ * \param ctx       CRT context to use
+ * \param version   version to set (X509_CRT_VERSION_1, X509_CRT_VERSION_2 or
+ *                                  X509_CRT_VERSION_3)
+ */
+void x509write_crt_set_version( x509write_cert *ctx, int version );
+
+/**
+ * \brief           Set the serial number for a Certificate.
+ *
+ * \param ctx       CRT context to use
+ * \param serial    serial number to set
+ *
+ * \return          0 if successful
+ */
+int x509write_crt_set_serial( x509write_cert *ctx, const mpi *serial );
+
+/**
+ * \brief           Set the validity period for a Certificate
+ *                  Timestamps should be in string format for UTC timezone
+ *                  i.e. "YYYYMMDDhhmmss"
+ *                  e.g. "20131231235959" for December 31st 2013
+ *                       at 23:59:59
+ *
+ * \param ctx       CRT context to use
+ * \param not_before    not_before timestamp
+ * \param not_after     not_after timestamp
+ *
+ * \return          0 if timestamp was parsed successfully, or
+ *                  a specific error code
+ */
+int x509write_crt_set_validity( x509write_cert *ctx, char *not_before,
+                                char *not_after );
+
+/**
+ * \brief           Set the issuer name for a Certificate
+ *                  Issuer names should contain a comma-separated list
+ *                  of OID types and values:
+ *                  e.g. "C=NL,O=Offspark,CN=PolarSSL CA"
+ *
+ * \param ctx           CRT context to use
+ * \param issuer_name   issuer name to set
+ *
+ * \return          0 if issuer name was parsed successfully, or
+ *                  a specific error code
+ */
+int x509write_crt_set_issuer_name( x509write_cert *ctx, char *issuer_name );
+
+/**
+ * \brief           Set the subject name for a Certificate
+ *                  Subject names should contain a comma-separated list
+ *                  of OID types and values:
+ *                  e.g. "C=NL,O=Offspark,CN=PolarSSL Server 1"
+ *
+ * \param ctx           CRT context to use
+ * \param subject_name  subject name to set
+ *
+ * \return          0 if subject name was parsed successfully, or
+ *                  a specific error code
+ */
+int x509write_crt_set_subject_name( x509write_cert *ctx, char *subject_name );
+
+/**
+ * \brief           Set the subject public key for the certificate
+ *
+ * \param ctx       CRT context to use
+ * \param rsa       RSA public key to include
+ */
+void x509write_crt_set_subject_key( x509write_cert *ctx, rsa_context *rsa );
+
+/**
+ * \brief           Set the issuer key used for signing the certificate
+ *
+ * \param ctx       CRT context to use
+ * \param rsa       RSA key to sign with
+ */
+void x509write_crt_set_issuer_key( x509write_cert *ctx, rsa_context *rsa );
+
+/**
+ * \brief           Set the MD algorithm to use for the signature
+ *                  (e.g. POLARSSL_MD_SHA1)
+ *
+ * \param ctx       CRT context to use
+ * \param md_ald    MD algorithm to use
+ */
+void x509write_crt_set_md_alg( x509write_cert *ctx, md_type_t md_alg );
+
+/**
+ * \brief           Free the contents of a CRT write context
+ *
+ * \param ctx       CRT context to free
+ */
+void x509write_crt_free( x509write_cert *ctx );
+
+/**
+ * \brief           Write a built up certificate to a X509 DER structure
+ *                  Note: data is written at the end of the buffer! Use the
+ *                        return value to determine where you should start
+ *                        using the buffer
+ *
+ * \param crt       certificate to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          length of data written if successful, or a specific
+ *                  error code
+ */
+int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size );
+
+/**
  * \brief           Write a RSA public key to a PKCS#1 DER structure
  *                  Note: data is written at the end of the buffer! Use the
  *                        return value to determine where you should start
@@ -216,6 +360,17 @@ int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size );
 int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size );
 
 #if defined(POLARSSL_BASE64_C)
+/**
+ * \brief           Write a built up certificate to a X509 PEM string
+ *
+ * \param crt       certificate to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          0 successful, or a specific error code
+ */
+int x509write_crt_pem( x509write_cert *ctx, unsigned char *buf, size_t size );
+
 /**
  * \brief           Write a RSA public key to a PKCS#1 PEM string
  *

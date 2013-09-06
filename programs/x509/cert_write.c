@@ -63,6 +63,8 @@ int main( int argc, char *argv[] )
 #define DFL_NOT_BEFORE          "20010101000000"
 #define DFL_NOT_AFTER           "20301231235959"
 #define DFL_SERIAL              "1"
+#define DFL_IS_CA               0
+#define DFL_MAX_PATHLEN         -1
 #define DFL_KEY_USAGE           0
 #define DFL_NS_CERT_TYPE        0
 
@@ -81,6 +83,8 @@ struct options
     char *not_before;           /* validity period not before           */
     char *not_after;            /* validity period not after            */
     char *serial;               /* serial number string                 */
+    int is_ca;                  /* is a CA certificate                  */
+    int max_pathlen;            /* maximum CA path length               */
     unsigned char key_usage;    /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
@@ -122,6 +126,8 @@ int write_certificate( x509write_cert *crt, char *output_file )
     "    serial=%%s           default: 1\n"             \
     "    not_before=%%s       default: 20010101000000\n"\
     "    not_after=%%s        default: 20301231235959\n"\
+    "    is_ca=%%d            default: 0 (disabled)\n"  \
+    "    max_pathlen=%%d      default: -1 (none)\n"     \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -180,6 +186,8 @@ int main( int argc, char *argv[] )
     opt.not_before          = DFL_NOT_BEFORE;
     opt.not_after           = DFL_NOT_AFTER;
     opt.serial              = DFL_SERIAL;
+    opt.is_ca               = DFL_IS_CA;
+    opt.max_pathlen         = DFL_MAX_PATHLEN;
     opt.key_usage           = DFL_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
 
@@ -227,6 +235,18 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "serial" ) == 0 )
         {
             opt.serial = q;
+        }
+        else if( strcmp( p, "is_ca" ) == 0 )
+        {
+            opt.is_ca = atoi( q );
+            if( opt.is_ca < 0 || opt.is_ca > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "max_pathlen" ) == 0 )
+        {
+            opt.max_pathlen = atoi( q );
+            if( opt.max_pathlen < -1 || opt.max_pathlen > 127 )
+                goto usage;
         }
         else if( strcmp( p, "key_usage" ) == 0 )
         {
@@ -384,6 +404,52 @@ int main( int argc, char *argv[] )
         error_strerror( ret, buf, 1024 );
 #endif
         printf( " failed\n  !  x509write_crt_set_validity returned -0x%02x - %s\n\n", -ret, buf );
+        goto exit;
+    }
+
+    printf( " ok\n" );
+
+    printf( "  . Adding the Basic Constraints extension ..." );
+    fflush( stdout );
+
+    ret = x509write_crt_set_basic_constraints( &crt, opt.is_ca,
+                                               opt.max_pathlen );
+    if( ret != 0 )
+    {
+#ifdef POLARSSL_ERROR_C
+        error_strerror( ret, buf, 1024 );
+#endif
+        printf( " failed\n  !  x509write_crt_set_basic_contraints returned -0x%02x - %s\n\n", -ret, buf );
+        goto exit;
+    }
+
+    printf( " ok\n" );
+
+    printf( "  . Adding the Subject Key Identifier ..." );
+    fflush( stdout );
+
+    ret = x509write_crt_set_subject_key_identifier( &crt );
+    if( ret != 0 )
+    {
+#ifdef POLARSSL_ERROR_C
+        error_strerror( ret, buf, 1024 );
+#endif
+        printf( " failed\n  !  x509write_crt_set_subject_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
+        goto exit;
+    }
+
+    printf( " ok\n" );
+
+    printf( "  . Adding the Authority Key Identifier ..." );
+    fflush( stdout );
+
+    ret = x509write_crt_set_authority_key_identifier( &crt );
+    if( ret != 0 )
+    {
+#ifdef POLARSSL_ERROR_C
+        error_strerror( ret, buf, 1024 );
+#endif
+        printf( " failed\n  !  x509write_crt_set_authority_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 

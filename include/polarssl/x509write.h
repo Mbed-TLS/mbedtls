@@ -292,6 +292,60 @@ void x509write_crt_set_issuer_key( x509write_cert *ctx, rsa_context *rsa );
 void x509write_crt_set_md_alg( x509write_cert *ctx, md_type_t md_alg );
 
 /**
+ * \brief           Generic function to add to or replace an extension in the
+ *                  CRT
+ *
+ * \param ctx       CRT context to use
+ * \param oid       OID of the extension
+ * \param oid_len   length of the OID
+ * \param critical  if the extension is critical (per the RFC's definition)
+ * \param val       value of the extension OCTET STRING
+ * \param val_len   length of the value data
+ *
+ * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ */
+int x509write_crt_set_extension( x509write_cert *ctx,
+                                 const char *oid, size_t oid_len,
+                                 int critical,
+                                 const unsigned char *val, size_t val_len );
+
+/**
+ * \brief           Set the basicConstraints extension for a CRT
+ *
+ * \param ctx       CRT context to use
+ * \param is_ca     is this a CA certificate
+ * \param max_pathlen   maximum length of certificate chains below this
+ *                      certificate (only for CA certificates, -1 is
+ *                      inlimited)
+ *
+ * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ */
+int x509write_crt_set_basic_constraints( x509write_cert *ctx,
+                                         int is_ca, int max_pathlen );
+
+/**
+ * \brief           Set the subjectKeyIdentifier extension for a CRT
+ *                  Requires that x509write_crt_set_subject_key() has been
+ *                  called before
+ *
+ * \param ctx       CRT context to use
+ *
+ * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ */
+int x509write_crt_set_subject_key_identifier( x509write_cert *ctx );
+
+/**
+ * \brief           Set the authorityKeyIdentifier extension for a CRT
+ *                  Requires that x509write_crt_set_issuer_key() has been
+ *                  called before
+ *
+ * \param ctx       CRT context to use
+ *
+ * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ */
+int x509write_crt_set_authority_key_identifier( x509write_cert *ctx );
+
+/**
  * \brief           Free the contents of a CRT write context
  *
  * \param ctx       CRT context to free

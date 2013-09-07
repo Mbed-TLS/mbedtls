@@ -844,14 +844,12 @@ const int *ssl_list_ciphersuites( void )
         size_t i;
         size_t max = sizeof(supported_ciphersuites) / sizeof(int);
 
-        memset( supported_ciphersuites, 0x00, sizeof(supported_ciphersuites) );
-
-        /* Leave room for a final 0 */
         for( i = 0; i < max - 1 && p[i] != 0; i++ )
         {
             if( ssl_ciphersuite_from_id( p[i] ) != NULL )
                 *(q++) = p[i];
         }
+        *q = 0;
 
         supported_init = 1;
     }

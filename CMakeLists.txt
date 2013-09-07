@@ -46,3 +46,9 @@ add_subdirectory(programs)
 ADD_CUSTOM_TARGET(apidoc
                   COMMAND doxygen doxygen/polarssl.doxyfile
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+ADD_CUSTOM_TARGET(memcheck
+    COMMAND ctest -R aes -O memcheck.log -D ExperimentalMemCheck
+    COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
+    COMMAND rm -f memcheck.log
+    )

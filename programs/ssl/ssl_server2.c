@@ -822,7 +822,10 @@ reset:
         printf( " %d bytes read\n\n%s\n", len, (char *) buf );
 
         if( memcmp( buf, "SERVERQUIT", 10 ) == 0 )
+        {
+            ret = 0;
             goto exit;
+        }
 
         if( ret > 0 )
             break;

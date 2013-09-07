@@ -861,8 +861,8 @@ send_request:
     {
         --opt.reconnect;
 
-        printf( "  ! Press a key to reconnect\n" );
-        (void) getchar();
+        // printf( "  ! Press a key to reconnect\n" );
+        // (void) getchar();
 
         printf( "  . Reconnecting with saved session..." );
         fflush( stdout );

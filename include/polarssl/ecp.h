@@ -427,8 +427,10 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  * \note            If f_rng is not NULL, it is used to randomize projective
  *                  coordinates of indermediate results, in order to prevent
  *                  more elaborate timing attacks relying on intermediate
- *                  operations. (This is a prophylactic measure since so such
- *                  attack has been published yet.)
+ *                  operations. (This is a prophylactic measure since no such
+ *                  attack has been published yet.) Since this contermeasure
+ *                  has very low overhead, it is recommended to always provide
+ *                  a non-NULL f_rng parameter when using secret inputs.
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P,

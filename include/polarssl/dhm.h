@@ -228,7 +228,12 @@ int dhm_make_public( dhm_context *ctx, int x_size,
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  *
  * \note           If f_rng is not NULL, it is used to blind the input as
- *                 countermeasure against timing attacks.
+ *                 countermeasure against timing attacks. This is only useful
+ *                 when this function is called repeatedly with the same
+ *                 secret value (X field), eg when using DH key exchange as
+ *                 opposed to DHE. It is recommended to use a non-NULL f_rng
+ *                 only when needed, since otherwise this countermeasure has
+ *                 high overhead.
  */
 int dhm_calc_secret( dhm_context *ctx,
                      unsigned char *output, size_t *olen,

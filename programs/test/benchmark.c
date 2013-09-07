@@ -562,6 +562,22 @@ int main( int argc, char *argv[] )
     else
         printf( "%9lu handshake/s\n", i / 3 );
 
+    printf( HEADER_FORMAT, "fixed-DHM-1024" );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    ret = 0;
+    for( i = 1; ! alarmed && ! ret ; i++ )
+    {
+        olen = sizeof( buf );
+        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
+    }
+
+    if( ret != 0 )
+        printf( "FAILED\n" );
+    else
+        printf( "%9lu handshake/s\n", i / 3 );
+
     dhm_free( &dhm );
 
     memset( &dhm, 0, sizeof( dhm_context ) );
@@ -581,6 +597,22 @@ int main( int argc, char *argv[] )
     {
         olen = sizeof( buf );
         ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
+    }
+
+    if( ret != 0 )
+        printf( "FAILED\n" );
+    else
+        printf( "%9lu handshake/s\n", i / 3 );
+
+    printf( HEADER_FORMAT, "fixed-DHM-2048" );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    ret = 0;
+    for( i = 1; ! alarmed && ! ret ; i++ )
+    {
+        olen = sizeof( buf );
         ret |= dhm_calc_secret( &dhm, buf, &olen, NULL, NULL );
     }
 
@@ -608,6 +640,22 @@ int main( int argc, char *argv[] )
         olen = sizeof( buf );
         ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
         ret |= dhm_calc_secret( &dhm, buf, &olen, NULL, NULL );
+    }
+
+    if( ret != 0 )
+        printf( "FAILED\n" );
+    else
+        printf( "%9lu handshake/s\n", i / 3 );
+
+    printf( HEADER_FORMAT, "fixed-DHM-3072" );
+    fflush( stdout );
+    set_alarm( 3 );
+
+    ret = 0;
+    for( i = 1; ! alarmed && ! ret ; i++ )
+    {
+        olen = sizeof( buf );
+        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
     }
 
     if( ret != 0 )

@@ -68,6 +68,12 @@
 
 #if defined(POLARSSL_AES_C)
 
+static int aes_crypt_ecb_wrap( void *ctx, operation_t operation,
+        const unsigned char *input, unsigned char *output )
+{
+    return aes_crypt_ecb( (aes_context *) ctx, operation, input, output );
+}
+
 static int aes_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
@@ -134,6 +140,7 @@ static void aes_ctx_free( void *ctx )
 
 const cipher_base_t aes_info = {
     POLARSSL_CIPHER_ID_AES,
+    aes_crypt_ecb_wrap,
     aes_crypt_cbc_wrap,
     aes_crypt_cfb128_wrap,
     aes_crypt_ctr_wrap,
@@ -142,6 +149,39 @@ const cipher_base_t aes_info = {
     aes_setkey_dec_wrap,
     aes_ctx_alloc,
     aes_ctx_free
+};
+
+const cipher_info_t aes_128_ecb_info = {
+    POLARSSL_CIPHER_AES_128_ECB,
+    POLARSSL_MODE_ECB,
+    128,
+    "AES-128-ECB",
+    16,
+    0,
+    16,
+    &aes_info
+};
+
+const cipher_info_t aes_192_ecb_info = {
+    POLARSSL_CIPHER_AES_192_ECB,
+    POLARSSL_MODE_ECB,
+    192,
+    "AES-192-ECB",
+    16,
+    0,
+    16,
+    &aes_info
+};
+
+const cipher_info_t aes_256_ecb_info = {
+    POLARSSL_CIPHER_AES_256_ECB,
+    POLARSSL_MODE_ECB,
+    256,
+    "AES-256-ECB",
+    16,
+    0,
+    16,
+    &aes_info
 };
 
 const cipher_info_t aes_128_cbc_info = {
@@ -269,6 +309,7 @@ const cipher_base_t gcm_aes_info = {
     NULL,
     NULL,
     NULL,
+    NULL,
     gcm_setkey_wrap,
     gcm_setkey_wrap,
     gcm_ctx_alloc,
@@ -312,6 +353,12 @@ const cipher_info_t aes_256_gcm_info = {
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
+
+static int camellia_crypt_ecb_wrap( void *ctx, operation_t operation,
+        const unsigned char *input, unsigned char *output )
+{
+    return camellia_crypt_ecb( (camellia_context *) ctx, operation, input, output );
+}
 
 static int camellia_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
@@ -379,6 +426,7 @@ static void camellia_ctx_free( void *ctx )
 
 const cipher_base_t camellia_info = {
     POLARSSL_CIPHER_ID_CAMELLIA,
+    camellia_crypt_ecb_wrap,
     camellia_crypt_cbc_wrap,
     camellia_crypt_cfb128_wrap,
     camellia_crypt_ctr_wrap,
@@ -387,6 +435,39 @@ const cipher_base_t camellia_info = {
     camellia_setkey_dec_wrap,
     camellia_ctx_alloc,
     camellia_ctx_free
+};
+
+const cipher_info_t camellia_128_ecb_info = {
+    POLARSSL_CIPHER_CAMELLIA_128_ECB,
+    POLARSSL_MODE_ECB,
+    128,
+    "CAMELLIA-128-ECB",
+    16,
+    0,
+    16,
+    &camellia_info
+};
+
+const cipher_info_t camellia_192_ecb_info = {
+    POLARSSL_CIPHER_CAMELLIA_192_ECB,
+    POLARSSL_MODE_ECB,
+    192,
+    "CAMELLIA-192-ECB",
+    16,
+    0,
+    16,
+    &camellia_info
+};
+
+const cipher_info_t camellia_256_ecb_info = {
+    POLARSSL_CIPHER_CAMELLIA_256_ECB,
+    POLARSSL_MODE_ECB,
+    256,
+    "CAMELLIA-256-ECB",
+    16,
+    0,
+    16,
+    &camellia_info
 };
 
 const cipher_info_t camellia_128_cbc_info = {
@@ -496,6 +577,20 @@ const cipher_info_t camellia_256_ctr_info = {
 
 #if defined(POLARSSL_DES_C)
 
+static int des_crypt_ecb_wrap( void *ctx, operation_t operation,
+        const unsigned char *input, unsigned char *output )
+{
+    ((void) operation);
+    return des_crypt_ecb( (des_context *) ctx, input, output );
+}
+
+static int des3_crypt_ecb_wrap( void *ctx, operation_t operation,
+        const unsigned char *input, unsigned char *output )
+{
+    ((void) operation);
+    return des3_crypt_ecb( (des3_context *) ctx, input, output );
+}
+
 static int des_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
@@ -596,6 +691,7 @@ static void des_ctx_free( void *ctx )
 
 const cipher_base_t des_info = {
     POLARSSL_CIPHER_ID_DES,
+    des_crypt_ecb_wrap,
     des_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
@@ -604,6 +700,17 @@ const cipher_base_t des_info = {
     des_setkey_dec_wrap,
     des_ctx_alloc,
     des_ctx_free
+};
+
+const cipher_info_t des_ecb_info = {
+    POLARSSL_CIPHER_DES_ECB,
+    POLARSSL_MODE_ECB,
+    POLARSSL_KEY_LENGTH_DES,
+    "DES-ECB",
+    8,
+    0,
+    8,
+    &des_info
 };
 
 const cipher_info_t des_cbc_info = {
@@ -619,6 +726,7 @@ const cipher_info_t des_cbc_info = {
 
 const cipher_base_t des_ede_info = {
     POLARSSL_CIPHER_ID_DES,
+    des3_crypt_ecb_wrap,
     des3_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
@@ -627,6 +735,17 @@ const cipher_base_t des_ede_info = {
     des3_set2key_dec_wrap,
     des3_ctx_alloc,
     des_ctx_free
+};
+
+const cipher_info_t des_ede_ecb_info = {
+    POLARSSL_CIPHER_DES_EDE_ECB,
+    POLARSSL_MODE_ECB,
+    POLARSSL_KEY_LENGTH_DES_EDE,
+    "DES-EDE-ECB",
+    8,
+    0,
+    8,
+    &des_ede_info
 };
 
 const cipher_info_t des_ede_cbc_info = {
@@ -642,6 +761,7 @@ const cipher_info_t des_ede_cbc_info = {
 
 const cipher_base_t des_ede3_info = {
     POLARSSL_CIPHER_ID_DES,
+    des3_crypt_ecb_wrap,
     des3_crypt_cbc_wrap,
     des_crypt_cfb128_wrap,
     des_crypt_ctr_wrap,
@@ -652,6 +772,16 @@ const cipher_base_t des_ede3_info = {
     des_ctx_free
 };
 
+const cipher_info_t des_ede3_ecb_info = {
+    POLARSSL_CIPHER_DES_EDE3_ECB,
+    POLARSSL_MODE_ECB,
+    POLARSSL_KEY_LENGTH_DES_EDE3,
+    "DES-EDE3-ECB",
+    8,
+    0,
+    8,
+    &des_ede3_info
+};
 const cipher_info_t des_ede3_cbc_info = {
     POLARSSL_CIPHER_DES_EDE3_CBC,
     POLARSSL_MODE_CBC,
@@ -665,6 +795,12 @@ const cipher_info_t des_ede3_cbc_info = {
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
+
+static int blowfish_crypt_ecb_wrap( void *ctx, operation_t operation,
+        const unsigned char *input, unsigned char *output )
+{
+    return blowfish_crypt_ecb( (blowfish_context *) ctx, operation, input, output );
+}
 
 static int blowfish_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
@@ -727,6 +863,7 @@ static void blowfish_ctx_free( void *ctx )
 
 const cipher_base_t blowfish_info = {
     POLARSSL_CIPHER_ID_BLOWFISH,
+    blowfish_crypt_ecb_wrap,
     blowfish_crypt_cbc_wrap,
     blowfish_crypt_cfb64_wrap,
     blowfish_crypt_ctr_wrap,
@@ -735,6 +872,17 @@ const cipher_base_t blowfish_info = {
     blowfish_setkey_wrap,
     blowfish_ctx_alloc,
     blowfish_ctx_free
+};
+
+const cipher_info_t blowfish_ecb_info = {
+    POLARSSL_CIPHER_BLOWFISH_ECB,
+    POLARSSL_MODE_ECB,
+    128,
+    "BLOWFISH-ECB",
+    8,
+    0,
+    8,
+    &blowfish_info
 };
 
 const cipher_info_t blowfish_cbc_info = {
@@ -809,6 +957,7 @@ const cipher_base_t arc4_base_info = {
     NULL,
     NULL,
     NULL,
+    NULL,
     arc4_crypt_stream_wrap,
     arc4_setkey_wrap,
     arc4_setkey_wrap,
@@ -860,6 +1009,7 @@ static void null_ctx_free( void *ctx )
 
 const cipher_base_t null_base_info = {
     POLARSSL_CIPHER_ID_NULL,
+    NULL,
     NULL,
     NULL,
     NULL,

@@ -51,6 +51,9 @@
 static const int supported_ciphers[] = {
 
 #if defined(POLARSSL_AES_C)
+        POLARSSL_CIPHER_AES_128_ECB,
+        POLARSSL_CIPHER_AES_192_ECB,
+        POLARSSL_CIPHER_AES_256_ECB,
         POLARSSL_CIPHER_AES_128_CBC,
         POLARSSL_CIPHER_AES_192_CBC,
         POLARSSL_CIPHER_AES_256_CBC,
@@ -80,6 +83,9 @@ static const int supported_ciphers[] = {
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
+        POLARSSL_CIPHER_CAMELLIA_128_ECB,
+        POLARSSL_CIPHER_CAMELLIA_192_ECB,
+        POLARSSL_CIPHER_CAMELLIA_256_ECB,
         POLARSSL_CIPHER_CAMELLIA_128_CBC,
         POLARSSL_CIPHER_CAMELLIA_192_CBC,
         POLARSSL_CIPHER_CAMELLIA_256_CBC,
@@ -99,12 +105,16 @@ static const int supported_ciphers[] = {
 #endif /* defined(POLARSSL_CAMELLIA_C) */
 
 #if defined(POLARSSL_DES_C)
+        POLARSSL_CIPHER_DES_ECB,
+        POLARSSL_CIPHER_DES_EDE_ECB,
+        POLARSSL_CIPHER_DES_EDE3_ECB,
         POLARSSL_CIPHER_DES_CBC,
         POLARSSL_CIPHER_DES_EDE_CBC,
         POLARSSL_CIPHER_DES_EDE3_CBC,
 #endif /* defined(POLARSSL_DES_C) */
 
 #if defined(POLARSSL_BLOWFISH_C)
+        POLARSSL_CIPHER_BLOWFISH_ECB,
         POLARSSL_CIPHER_BLOWFISH_CBC,
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
@@ -135,6 +145,13 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
     switch ( cipher_type )
     {
 #if defined(POLARSSL_AES_C)
+        case POLARSSL_CIPHER_AES_128_ECB:
+            return &aes_128_ecb_info;
+        case POLARSSL_CIPHER_AES_192_ECB:
+            return &aes_192_ecb_info;
+        case POLARSSL_CIPHER_AES_256_ECB:
+            return &aes_256_ecb_info;
+
         case POLARSSL_CIPHER_AES_128_CBC:
             return &aes_128_cbc_info;
         case POLARSSL_CIPHER_AES_192_CBC:
@@ -172,6 +189,13 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C)
+        case POLARSSL_CIPHER_CAMELLIA_128_ECB:
+            return &camellia_128_ecb_info;
+        case POLARSSL_CIPHER_CAMELLIA_192_ECB:
+            return &camellia_192_ecb_info;
+        case POLARSSL_CIPHER_CAMELLIA_256_ECB:
+            return &camellia_256_ecb_info;
+
         case POLARSSL_CIPHER_CAMELLIA_128_CBC:
             return &camellia_128_cbc_info;
         case POLARSSL_CIPHER_CAMELLIA_192_CBC:
@@ -200,6 +224,13 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
 #endif
 
 #if defined(POLARSSL_DES_C)
+        case POLARSSL_CIPHER_DES_ECB:
+            return &des_ecb_info;
+        case POLARSSL_CIPHER_DES_EDE_ECB:
+            return &des_ede_ecb_info;
+        case POLARSSL_CIPHER_DES_EDE3_ECB:
+            return &des_ede3_ecb_info;
+
         case POLARSSL_CIPHER_DES_CBC:
             return &des_cbc_info;
         case POLARSSL_CIPHER_DES_EDE_CBC:
@@ -214,6 +245,9 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
+        case POLARSSL_CIPHER_BLOWFISH_ECB:
+            return &blowfish_ecb_info;
+
         case POLARSSL_CIPHER_BLOWFISH_CBC:
             return &blowfish_cbc_info;
 
@@ -467,8 +501,24 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
+    if( ctx->cipher_info->mode == POLARSSL_MODE_ECB )
+    {
+        if( ilen != cipher_get_block_size( ctx ) )
+            return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+
+        *olen = ilen;
+
+        if( 0 != ( ret = ctx->cipher_info->base->ecb_func( ctx->cipher_ctx,
+                    ctx->operation, input, output ) ) )
+        {
+            return ret;
+        }
+
+        return 0;
+    }
+
 #if defined(POLARSSL_GCM_C)
-    if( ctx->cipher_info->mode == POLARSSL_MODE_GCM)
+    if( ctx->cipher_info->mode == POLARSSL_MODE_GCM )
     {
         *olen = ilen;
         return gcm_update( ctx->cipher_ctx, ilen, input, output );
@@ -777,6 +827,14 @@ int cipher_finish( cipher_context_t *ctx,
         POLARSSL_MODE_GCM == ctx->cipher_info->mode ||
         POLARSSL_MODE_STREAM == ctx->cipher_info->mode )
     {
+        return 0;
+    }
+
+    if( POLARSSL_MODE_ECB == ctx->cipher_info->mode )
+    {
+        if( ctx->unprocessed_len != 0 )
+            return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+
         return 0;
     }
 

@@ -643,11 +643,25 @@ static int x509_write_time( unsigned char **p, unsigned char *start,
     int ret;
     size_t len = 0;
 
-    ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
-                                              (const unsigned char *) time,
-                                              size ) );
-    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_GENERALIZED_TIME ) );
+    /*
+     * write ASN1_UTC_TIME if year < 2050 (2 bytes shorter)
+     */
+    if( time[0] == '2' && time[1] == '0' && time [2] < '5' )
+    {
+        ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
+                                             (const unsigned char *) time + 2,
+                                             size - 2 ) );
+        ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_UTC_TIME ) );
+    }
+    else
+    {
+        ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
+                                                  (const unsigned char *) time,
+                                                  size ) );
+        ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_GENERALIZED_TIME ) );
+    }
 
     return( len );
 }

@@ -54,15 +54,17 @@
 }
 #endif
 
-static void gcm_gen_table( gcm_context *ctx )
+static int gcm_gen_table( gcm_context *ctx )
 {
-    int i, j;
+    int ret, i, j;
     uint64_t hi, lo;
     uint64_t vl, vh;
     unsigned char h[16];
+    size_t olen = 0;
 
     memset( h, 0, 16 );
-    aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, h, h );
+    if( ( ret = cipher_update( &ctx->cipher_ctx, h, 16, h, &olen ) ) != 0 )
+        return( ret );
 
     ctx->HH[0] = 0;
     ctx->HL[0] = 0;
@@ -99,18 +101,33 @@ static void gcm_gen_table( gcm_context *ctx )
             HiL[j] = vl ^ ctx->HL[j];
         }
     }
+
+    return( 0 );
 }
 
-int gcm_init( gcm_context *ctx, const unsigned char *key, unsigned int keysize )
+int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
+              unsigned int keysize )
 {
     int ret;
+    const cipher_info_t *cipher_info;
 
     memset( ctx, 0, sizeof(gcm_context) );
 
-    if( ( ret = aes_setkey_enc( &ctx->aes_ctx, key, keysize ) ) != 0 )
+    cipher_info = cipher_info_from_values( cipher, keysize, POLARSSL_MODE_ECB );
+    if( cipher_info == NULL )
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+
+    if( ( ret = cipher_init_ctx( &ctx->cipher_ctx, cipher_info ) ) != 0 )
         return( ret );
 
-    gcm_gen_table( ctx );
+    if( ( ret = cipher_setkey( &ctx->cipher_ctx, key, keysize,
+                               POLARSSL_ENCRYPT ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( ( ret = gcm_gen_table( ctx ) ) != 0 )
+        return( ret );
 
     return( 0 );
 }
@@ -176,10 +193,11 @@ int gcm_starts( gcm_context *ctx,
                 const unsigned char *add,
                 size_t add_len )
 {
+    int ret;
     unsigned char work_buf[16];
     size_t i;
     const unsigned char *p;
-    size_t use_len;
+    size_t use_len, olen = 0;
 
     memset( ctx->y, 0x00, sizeof(ctx->y) );
     memset( ctx->buf, 0x00, sizeof(ctx->buf) );
@@ -218,7 +236,11 @@ int gcm_starts( gcm_context *ctx,
         gcm_mult( ctx, ctx->y, ctx->y );
     }
 
-    aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->y, ctx->base_ectr );
+    if( ( ret = cipher_update( &ctx->cipher_ctx, ctx->y, 16, ctx->base_ectr,
+                             &olen ) ) != 0 )
+    {
+        return( ret );
+    }
 
     ctx->add_len = add_len;
     p = add;
@@ -243,11 +265,12 @@ int gcm_update( gcm_context *ctx,
                 const unsigned char *input,
                 unsigned char *output )
 {
+    int ret;
     unsigned char ectr[16];
     size_t i;
     const unsigned char *p;
     unsigned char *out_p = output;
-    size_t use_len;
+    size_t use_len, olen = 0;
 
     if( output > input && (size_t) ( output - input ) < length )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
@@ -263,7 +286,11 @@ int gcm_update( gcm_context *ctx,
             if( ++ctx->y[i - 1] != 0 )
                 break;
 
-        aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->y, ectr );
+        if( ( ret = cipher_update( &ctx->cipher_ctx, ctx->y, 16, ectr,
+                                   &olen ) ) != 0 )
+        {
+            return( ret );
+        }
 
         for( i = 0; i < use_len; i++ )
         {
@@ -613,6 +640,7 @@ int gcm_self_test( int verbose )
     unsigned char buf[64];
     unsigned char tag_buf[16];
     int i, j, ret;
+    cipher_id_t cipher = POLARSSL_CIPHER_ID_AES;
 
     for( j = 0; j < 3; j++ )
     {
@@ -623,7 +651,7 @@ int gcm_self_test( int verbose )
             if( verbose != 0 )
                 printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "enc" );
 
-            gcm_init( &ctx, key[key_index[i]], key_len );
+            gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
             ret = gcm_crypt_and_tag( &ctx, GCM_ENCRYPT,
                                      pt_len[i],
@@ -647,7 +675,7 @@ int gcm_self_test( int verbose )
             if( verbose != 0 )
                 printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "dec" );
 
-            gcm_init( &ctx, key[key_index[i]], key_len );
+            gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
             ret = gcm_crypt_and_tag( &ctx, GCM_DECRYPT,
                                      pt_len[i],
@@ -671,7 +699,7 @@ int gcm_self_test( int verbose )
             if( verbose != 0 )
                 printf( "  AES-GCM-%3d #%d split (%s): ", key_len, i, "enc" );
 
-            gcm_init( &ctx, key[key_index[i]], key_len );
+            gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
             ret = gcm_starts( &ctx, GCM_ENCRYPT,
                               iv[iv_index[i]], iv_len[i],
@@ -734,7 +762,7 @@ int gcm_self_test( int verbose )
             if( verbose != 0 )
                 printf( "  AES-GCM-%3d #%d split (%s): ", key_len, i, "dec" );
 
-            gcm_init( &ctx, key[key_index[i]], key_len );
+            gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
             ret = gcm_starts( &ctx, GCM_DECRYPT,
                               iv[iv_index[i]], iv_len[i],

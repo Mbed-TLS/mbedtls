@@ -298,9 +298,10 @@ static void gcm_ctx_free( void *ctx )
     polarssl_free( ctx );
 }
 
-static int gcm_setkey_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
+static int gcm_aes_setkey_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
 {
-    return gcm_init( (gcm_context *) ctx, key, key_length );
+    return gcm_init( (gcm_context *) ctx, POLARSSL_CIPHER_ID_AES,
+                     key, key_length );
 }
 
 const cipher_base_t gcm_aes_info = {
@@ -310,8 +311,8 @@ const cipher_base_t gcm_aes_info = {
     NULL,
     NULL,
     NULL,
-    gcm_setkey_wrap,
-    gcm_setkey_wrap,
+    gcm_aes_setkey_wrap,
+    gcm_aes_setkey_wrap,
     gcm_ctx_alloc,
     gcm_ctx_free,
 };

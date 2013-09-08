@@ -39,7 +39,7 @@ void gcm_encrypt_and_tag( char *hex_key_string, char *hex_src_string,
     iv_len = unhexify( iv_str, hex_iv_string );
     add_len = unhexify( add_str, hex_add_string );
 
-    TEST_ASSERT( gcm_init( &ctx, key_str, key_len * 8 ) == init_result );
+    TEST_ASSERT( gcm_init( &ctx, POLARSSL_CIPHER_ID_AES, key_str, key_len * 8 ) == init_result );
     if( init_result == 0 )
     {
         TEST_ASSERT( gcm_crypt_and_tag( &ctx, GCM_ENCRYPT, pt_len, iv_str, iv_len, add_str, add_len, src_str, output, tag_len, tag_output ) == 0 );
@@ -84,7 +84,7 @@ void gcm_decrypt_and_verify( char *hex_key_string, char *hex_src_string,
     add_len = unhexify( add_str, hex_add_string );
     unhexify( tag_str, hex_tag_string );
 
-    TEST_ASSERT( gcm_init( &ctx, key_str, key_len * 8 ) == init_result );
+    TEST_ASSERT( gcm_init( &ctx, POLARSSL_CIPHER_ID_AES, key_str, key_len * 8 ) == init_result );
     if( init_result == 0 )
     {
         ret = gcm_auth_decrypt( &ctx, pt_len, iv_str, iv_len, add_str, add_len, tag_str, tag_len, src_str, output );

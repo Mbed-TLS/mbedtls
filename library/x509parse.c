@@ -1845,7 +1845,10 @@ int load_file( const char *path, unsigned char **buf, size_t *n )
     fseek( f, 0, SEEK_SET );
 
     if( ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
+    {
+        fclose ( f );
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
+    }
 
     if( fread( *buf, 1, *n, f ) != *n )
     {
@@ -1956,7 +1959,10 @@ cleanup:
         i = stat( entry_name, &sb );
 
         if( i == -1 )
+        {
+            closedir( dir );
             return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+        }
 
         if( !S_ISREG( sb.st_mode ) )
             continue;

@@ -146,7 +146,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
  * \param mode      GCM_ENCRYPT or GCM_DECRYPT
  * \param iv        initialization vector
  * \param iv_len    length of IV
- * \param add       additional data
+ * \param add       additional data (or NULL if length is 0)
  * \param add_len   length of additional data
  *
  * \return         0 if successful
@@ -182,14 +182,14 @@ int gcm_update( gcm_context *ctx,
 
 /**
  * \brief           Generic GCM finalisation function. Wraps up the GCM stream
- *                  and generated the tag. The tag can have a maximum length of
+ *                  and generates the tag. The tag can have a maximum length of
  *                  16 bytes.
  *
  * \param ctx       GCM context
- * \param tag       buffer for holding the tag
+ * \param tag       buffer for holding the tag (may be NULL if tag_len is 0)
  * \param tag_len   length of the tag to generate
  *
- * \return         0 if successful or POLARSSL_ERR_GCM_BAD_INPUT
+ * \return          0 if successful or POLARSSL_ERR_GCM_BAD_INPUT
  */
 int gcm_finish( gcm_context *ctx,
                 unsigned char *tag,

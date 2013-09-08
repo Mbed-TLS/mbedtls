@@ -95,6 +95,7 @@ void gcm_decrypt_and_verify( char *hex_key_string, char *hex_src_string,
         }
         else
         {
+            TEST_ASSERT( ret == 0 );
             hexify( dst_str, output, pt_len );
 
             TEST_ASSERT( strcmp( (char *) dst_str, pt_result ) == 0 );

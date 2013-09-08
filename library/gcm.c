@@ -293,10 +293,11 @@ int gcm_finish( gcm_context *ctx,
     uint64_t orig_len = ctx->len * 8;
     uint64_t orig_add_len = ctx->add_len * 8;
 
-    memcpy( tag, ctx->base_ectr, tag_len );
-
     if( tag_len > 16 )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
+
+    if( tag_len != 0 )
+        memcpy( tag, ctx->base_ectr, tag_len );
 
     if( orig_len || orig_add_len )
     {
@@ -357,15 +358,22 @@ int gcm_auth_decrypt( gcm_context *ctx,
                       unsigned char *output )
 {
     unsigned char check_tag[16];
+    size_t i;
+    int diff;
 
     gcm_crypt_and_tag( ctx, GCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, tag_len, check_tag );
 
-    if( memcmp( check_tag, tag, tag_len ) == 0 )
-        return( 0 );
+    /* Check tag in "constant-time" */
+    for( diff = 0, i = 0; i < tag_len; i++ )
+        diff |= tag[i] ^ check_tag[i];
 
-    memset( output, 0, length );
+    if( diff != 0 )
+    {
+        memset( output, 0, length );
+        return( POLARSSL_ERR_GCM_AUTH_FAILED );
+    }
 
-    return( POLARSSL_ERR_GCM_AUTH_FAILED );
+    return( 0 );
 }
 
 #if defined(POLARSSL_SELF_TEST)

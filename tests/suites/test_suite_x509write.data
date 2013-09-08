@@ -25,3 +25,7 @@ x509_csr_check:"data_files/server1.key":POLARSSL_MD_MD4:"data_files/server1.req.
 Certificate Request check Server1 MD5
 depends_on:POLARSSL_MD5_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_csr_check:"data_files/server1.key":POLARSSL_MD_MD5:"data_files/server1.req.md5"
+
+Certificate write check Server1 SHA1
+depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":POLARSSL_MD_SHA1:"data_files/server1.crt"

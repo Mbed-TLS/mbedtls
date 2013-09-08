@@ -286,6 +286,22 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name );
 const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type );
 
 /**
+ * \brief               Returns the cipher information structure associated
+ *                      with the given cipher id, key size and mode.
+ *
+ * \param cipher_id     Id of the cipher to search for
+ *                      (e.g. POLARSSL_CIPHER_ID_AES)
+ * \param key_length    Length of the key in bits
+ * \param mode          Cipher mode (e.g. POLARSSL_MODE_CBC)
+ *
+ * \return              the cipher information structure associated with the
+ *                      given cipher_type, or NULL if not found.
+ */
+const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
+                                              int key_length,
+                                              const cipher_mode_t mode );
+
+/**
  * \brief               Initialises and fills the cipher context structure with
  *                      the appropriate values.
  *

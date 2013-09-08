@@ -379,6 +379,185 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
     return NULL;
 }
 
+const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
+                                              int key_length,
+                                              const cipher_mode_t mode )
+{
+#if defined(POLARSSL_AES_C)
+    if( cipher_id == POLARSSL_CIPHER_ID_AES )
+    {
+        if( mode == POLARSSL_MODE_ECB )
+        {
+            if( key_length == 128 )
+                return &aes_128_ecb_info;
+            if( key_length == 192 )
+                return &aes_192_ecb_info;
+            if( key_length == 256 )
+                return &aes_256_ecb_info;
+        }
+
+        if( mode == POLARSSL_MODE_CBC )
+        {
+            if( key_length == 128 )
+                return &aes_128_cbc_info;
+            if( key_length == 192 )
+                return &aes_192_cbc_info;
+            if( key_length == 256 )
+                return &aes_256_cbc_info;
+        }
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        if( mode == POLARSSL_MODE_CFB )
+        {
+            if( key_length == 128 )
+                return &aes_128_cfb128_info;
+            if( key_length == 192 )
+                return &aes_192_cfb128_info;
+            if( key_length == 256 )
+                return &aes_256_cfb128_info;
+        }
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        if( mode == POLARSSL_MODE_CTR )
+        {
+            if( key_length == 128 )
+                return &aes_128_ctr_info;
+            if( key_length == 192 )
+                return &aes_192_ctr_info;
+            if( key_length == 256 )
+                return &aes_256_ctr_info;
+        }
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+
+#if defined(POLARSSL_GCM_C)
+        if( mode == POLARSSL_MODE_GCM )
+        {
+            if( key_length == 128 )
+                return &aes_128_gcm_info;
+            if( key_length == 192 )
+                return &aes_192_gcm_info;
+            if( key_length == 256 )
+                return &aes_256_gcm_info;
+        }
+#endif /* defined(POLARSSL_GCM_C) */
+    }
+#endif
+
+#if defined(POLARSSL_CAMELLIA_C)
+    if( cipher_id == POLARSSL_CIPHER_ID_CAMELLIA )
+    {
+        if( mode == POLARSSL_MODE_ECB )
+        {
+            if( key_length == 128 )
+                return &camellia_128_ecb_info;
+            if( key_length == 192 )
+                return &camellia_192_ecb_info;
+            if( key_length == 256 )
+                return &camellia_256_ecb_info;
+        }
+
+        if( mode == POLARSSL_MODE_CBC )
+        {
+            if( key_length == 128 )
+                return &camellia_128_cbc_info;
+            if( key_length == 192 )
+                return &camellia_192_cbc_info;
+            if( key_length == 256 )
+                return &camellia_256_cbc_info;
+        }
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        if( mode == POLARSSL_MODE_CFB )
+        {
+            if( key_length == 128 )
+                return &camellia_128_cfb128_info;
+            if( key_length == 192 )
+                return &camellia_192_cfb128_info;
+            if( key_length == 256 )
+                return &camellia_256_cfb128_info;
+        }
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        if( mode == POLARSSL_MODE_CTR )
+        {
+            if( key_length == 128 )
+                return &camellia_128_ctr_info;
+            if( key_length == 192 )
+                return &camellia_192_ctr_info;
+            if( key_length == 256 )
+                return &camellia_256_ctr_info;
+        }
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+    }
+#endif
+
+#if defined(POLARSSL_DES_C)
+    if( cipher_id == POLARSSL_CIPHER_ID_DES )
+    {
+        if( mode == POLARSSL_MODE_ECB )
+            return &des_ecb_info;
+
+        if( mode == POLARSSL_MODE_CBC )
+            return &des_cbc_info;
+    }
+
+    if( cipher_id == POLARSSL_CIPHER_ID_3DES )
+    {
+        if( mode == POLARSSL_MODE_ECB )
+        {
+            if( key_length == 128 )
+                return &des_ede_ecb_info;
+            if( key_length == 192 )
+                return &des_ede3_ecb_info;
+        }
+
+        if( mode == POLARSSL_MODE_CBC )
+        {
+            if( key_length == 128 )
+                return &des_ede_cbc_info;
+            if( key_length == 192 )
+                return &des_ede3_cbc_info;
+        }
+    }
+#endif
+
+#if defined(POLARSSL_ARC4_C)
+    if( cipher_id == POLARSSL_CIPHER_ID_ARC4 )
+        if( mode == POLARSSL_MODE_STREAM )
+            return &arc4_128_info;
+#endif
+
+#if defined(POLARSSL_BLOWFISH_C)
+    if( cipher_id == POLARSSL_CIPHER_ID_BLOWFISH )
+    {
+        if( mode == POLARSSL_MODE_ECB )
+            return &blowfish_ecb_info;
+
+        if( mode == POLARSSL_MODE_CBC )
+            return &blowfish_cbc_info;
+
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+        if( mode == POLARSSL_MODE_CFB )
+            return &blowfish_cfb64_info;
+#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+        if( mode == POLARSSL_MODE_CTR )
+            return &blowfish_ctr_info;
+#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
+    }
+#endif
+
+#if defined(POLARSSL_CIPHER_NULL_CIPHER)
+    if( cipher_id == POLARSSL_CIPHER_ID_NULL )
+            return &null_cipher_info;
+#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
+
+    return NULL;
+}
+
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 {
     if( NULL == cipher_info || NULL == ctx )

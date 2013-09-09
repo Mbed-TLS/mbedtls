@@ -85,7 +85,7 @@ int write_certificate_request( x509write_csr *req, char *output_file )
 }
 
 #define USAGE \
-    "\n usage: key_app param=<>...\n"                   \
+    "\n usage: cert_req param=<>...\n"                  \
     "\n acceptable parameters:\n"                       \
     "    filename=%%s         default: keyfile.key\n"   \
     "    debug_level=%%d      default: 0 (disabled)\n"  \

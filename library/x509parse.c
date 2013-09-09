@@ -132,6 +132,29 @@ static int x509_crl_get_version( unsigned char **p,
 }
 
 /*
+ *  Version  ::=  INTEGER  {  v1(0)  }
+ */
+static int x509_csr_get_version( unsigned char **p,
+                             const unsigned char *end,
+                             int *ver )
+{
+    int ret;
+
+    if( ( ret = asn1_get_int( p, end, ver ) ) != 0 )
+    {
+        if( ret == POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        {
+            *ver = 0;
+            return( 0 );
+        }
+
+        return( POLARSSL_ERR_X509_CERT_INVALID_VERSION + ret );
+    }
+
+    return( 0 );
+}
+
+/*
  *  CertificateSerialNumber  ::=  INTEGER
  */
 static int x509_get_serial( unsigned char **p,
@@ -1625,6 +1648,214 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 }
 
 /*
+ * Parse a CSR
+ */
+int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
+{
+    int ret;
+    size_t len;
+    unsigned char *p, *end;
+#if defined(POLARSSL_PEM_C)
+    size_t use_len;
+    pem_context pem;
+#endif
+
+    /*
+     * Check for valid input
+     */
+    if( csr == NULL || buf == NULL )
+        return( POLARSSL_ERR_X509_INVALID_INPUT );
+
+    memset( csr, 0, sizeof( x509_csr ) );
+
+#if defined(POLARSSL_PEM_C)
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN CERTIFICATE REQUEST-----",
+                           "-----END CERTIFICATE REQUEST-----",
+                           buf, NULL, 0, &use_len );
+
+    if( ret == 0 )
+    {
+        /*
+         * Was PEM encoded
+         */
+        buflen -= use_len;
+        buf += use_len;
+
+        /*
+         * Steal PEM buffer
+         */
+        p = pem.buf;
+        pem.buf = NULL;
+        len = pem.buflen;
+        pem_free( &pem );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
+    }
+    else
+    {
+        /*
+         * nope, copy the raw DER data
+         */
+        p = (unsigned char *) polarssl_malloc( len = buflen );
+
+        if( p == NULL )
+            return( POLARSSL_ERR_X509_MALLOC_FAILED );
+
+        memcpy( p, buf, buflen );
+
+        buflen = 0;
+    }
+#else
+    p = (unsigned char *) polarssl_malloc( len = buflen );
+
+    if( p == NULL )
+        return( POLARSSL_ERR_X509_MALLOC_FAILED );
+
+    memcpy( p, buf, buflen );
+
+    buflen = 0;
+#endif
+
+    csr->raw.p = p;
+    csr->raw.len = len;
+    end = p + len;
+
+    /*
+     *  CertificationRequest ::= SEQUENCE {
+     *       certificationRequestInfo CertificationRequestInfo,
+     *       signatureAlgorithm AlgorithmIdentifier,
+     *       signature          BIT STRING
+     *  }
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT );
+    }
+
+    if( len != (size_t) ( end - p ) )
+    {
+        x509_csr_free( csr );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+
+    /*
+     *  CertificationRequestInfo ::= SEQUENCE {
+     */
+    csr->cri.p = p;
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
+    }
+
+    end = p + len;
+    csr->cri.len = end - csr->cri.p;
+
+    /*
+     *  Version  ::=  INTEGER {  v1(0) }
+     */
+    if( ( ret = x509_csr_get_version( &p, end, &csr->version ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( ret );
+    }
+
+    csr->version++;
+
+    if( csr->version != 1 )
+    {
+        x509_csr_free( csr );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION );
+    }
+
+    /*
+     *  subject               Name
+     */
+    csr->subject_raw.p = p;
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
+    }
+
+    if( ( ret = x509_get_name( &p, p + len, &csr->subject ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( ret );
+    }
+
+    csr->subject_raw.len = p - csr->subject_raw.p;
+
+    /*
+     *  subjectPKInfo SubjectPublicKeyInfo
+     */
+    if( ( ret = x509_get_pubkey( &p, end, &csr->pk ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( ret );
+    }
+
+    /*
+     *  attributes    [0] Attributes
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
+    }
+    // TODO Parse Attributes / extension requests
+
+    p += len;
+
+    end = csr->raw.p + csr->raw.len;
+
+    /*
+     *  signatureAlgorithm   AlgorithmIdentifier,
+     *  signature            BIT STRING
+     */
+    if( ( ret = x509_get_alg_null( &p, end, &csr->sig_oid ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( ret );
+    }
+
+    if( ( ret = x509_get_sig_alg( &csr->sig_oid, &csr->sig_md,
+                                  &csr->sig_pk ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG );
+    }
+
+    if( ( ret = x509_get_sig( &p, end, &csr->sig ) ) != 0 )
+    {
+        x509_csr_free( csr );
+        return( ret );
+    }
+
+    if( p != end )
+    {
+        x509_csr_free( csr );
+        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+
+    return( 0 );
+}
+
+/*
  * Parse one or more CRLs and add them to the chained list
  */
 int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
@@ -2068,6 +2299,26 @@ cleanup:
     }
     closedir( dir );
 #endif
+
+    return( ret );
+}
+
+/*
+ * Load a CSR into the structure
+ */
+int x509parse_csrfile( x509_csr *csr, const char *path )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
+
+    ret = x509parse_csr( csr, buf, n );
+
+    memset( buf, 0, n + 1 );
+    polarssl_free( buf );
 
     return( ret );
 }
@@ -3285,6 +3536,53 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
 }
 
 /*
+ * Return an informational string about the CSR.
+ */
+int x509parse_csr_info( char *buf, size_t size, const char *prefix,
+                        const x509_csr *csr )
+{
+    int ret;
+    size_t n;
+    char *p;
+    const char *desc;
+    char key_size_str[BEFORE_COLON];
+
+    p = buf;
+    n = size;
+
+    ret = snprintf( p, n, "%sCSR version   : %d",
+                               prefix, csr->version );
+    SAFE_SNPRINTF();
+
+    ret = snprintf( p, n, "\n%ssubject name  : ", prefix );
+    SAFE_SNPRINTF();
+    ret = x509parse_dn_gets( p, n, &csr->subject );
+    SAFE_SNPRINTF();
+
+    ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
+    SAFE_SNPRINTF();
+
+    ret = oid_get_sig_alg_desc( &csr->sig_oid, &desc );
+    if( ret != 0 )
+        ret = snprintf( p, n, "???"  );
+    else
+        ret = snprintf( p, n, "%s", desc );
+    SAFE_SNPRINTF();
+
+    if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
+                                      pk_get_name( &csr->pk ) ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
+                          (int) pk_get_size( &csr->pk ) );
+    SAFE_SNPRINTF();
+
+    return( (int) ( size - n ) );
+}
+
+/*
  * Return 0 if the x509_time is still valid, or 1 otherwise.
  */
 #if defined(POLARSSL_HAVE_TIME)
@@ -3919,6 +4217,37 @@ void x509_crl_free( x509_crl *crl )
             polarssl_free( crl_prv );
     }
     while( crl_cur != NULL );
+}
+
+/*
+ * Unallocate all CSR data
+ */
+void x509_csr_free( x509_csr *csr )
+{
+    x509_name *name_cur;
+    x509_name *name_prv;
+
+    if( csr == NULL )
+        return;
+
+    pk_free( &csr->pk );
+
+    name_cur = csr->subject.next;
+    while( name_cur != NULL )
+    {
+        name_prv = name_cur;
+        name_cur = name_cur->next;
+        memset( name_prv, 0, sizeof( x509_name ) );
+        polarssl_free( name_prv );
+    }
+
+    if( csr->raw.p != NULL )
+    {
+        memset( csr->raw.p, 0, csr->raw.len );
+        polarssl_free( csr->raw.p );
+    }
+
+    memset( csr, 0, sizeof( x509_csr ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

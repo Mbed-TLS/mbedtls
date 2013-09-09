@@ -151,7 +151,7 @@ extern "C" {
  * \{ */
 
 /**
- * \name Structures for parsing X.509 certificates and CRLs
+ * \name Structures for parsing X.509 certificates, CRLs and CSRs
  * \{
  */
 
@@ -227,12 +227,12 @@ typedef struct _x509_cert
     md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
     pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
 
-    struct _x509_cert *next;    /**< Next certificate in the CA-chain. */ 
+    struct _x509_cert *next;    /**< Next certificate in the CA-chain. */
 }
 x509_cert;
 
-/** 
- * Certificate revocation list entry. 
+/**
+ * Certificate revocation list entry.
  * Contains the CA-specific serial numbers and revocation dates.
  */
 typedef struct _x509_crl_entry
@@ -249,8 +249,8 @@ typedef struct _x509_crl_entry
 }
 x509_crl_entry;
 
-/** 
- * Certificate revocation list structure. 
+/**
+ * Certificate revocation list structure.
  * Every CRL may have multiple entries.
  */
 typedef struct _x509_crl
@@ -265,7 +265,7 @@ typedef struct _x509_crl
 
     x509_name issuer;       /**< The parsed issuer data (named information object). */
 
-    x509_time this_update;  
+    x509_time this_update;
     x509_time next_update;
 
     x509_crl_entry entry;   /**< The CRL entries containing the certificate revocation times for this CA. */
@@ -277,10 +277,32 @@ typedef struct _x509_crl
     md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
     pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
 
-    struct _x509_crl *next; 
+    struct _x509_crl *next;
 }
 x509_crl;
-/** \} name Structures for parsing X.509 certificates and CRLs */
+
+/**
+ * Certificate Signing Request (CSR) structure.
+ */
+typedef struct _x509_csr
+{
+    x509_buf raw;           /**< The raw CSR data (DER). */
+    x509_buf cri;           /**< The raw CertificateRequestInfo body (DER). */
+
+    int version;
+
+    x509_buf  subject_raw;  /**< The raw subject data (DER). */
+    x509_name subject;      /**< The parsed subject data (named information object). */
+
+    pk_context pk;          /**< Container for the public key context. */
+
+    x509_buf sig_oid;
+    x509_buf sig;
+    md_type_t sig_md;       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
+    pk_type_t sig_pk        /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
+}
+x509_csr;
+/** \} name Structures for parsing X.509 certificates, CRLs and CSRs */
 /** \} addtogroup x509_module */
 
 /**
@@ -364,6 +386,18 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen );
 
 /** \ingroup x509_module */
 /**
+ * \brief          Load a Certificate Signing Request (CSR)
+ *
+ * \param csr      CSR context to fill
+ * \param buf      buffer holding the CRL data
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen );
+
+/** \ingroup x509_module */
+/**
  * \brief          Load one or more CRLs and add them
  *                 to the chained list
  *
@@ -373,6 +407,17 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen );
  * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_crlfile( x509_crl *chain, const char *path );
+
+/** \ingroup x509_module */
+/**
+ * \brief          Load a Certificate Signing Request (CSR)
+ *
+ * \param csr      CSR context to fill
+ * \param path     filename to read the CSR from
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509parse_csrfile( x509_csr *csr, const char *path );
 
 #if defined(POLARSSL_RSA_C)
 /** \ingroup x509_module */
@@ -564,6 +609,21 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
                         const x509_crl *crl );
 
 /**
+ * \brief          Returns an informational string about the
+ *                 CSR.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param prefix   A line prefix
+ * \param csr      The X509 CSR to represent
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
+ */
+int x509parse_csr_info( char *buf, size_t size, const char *prefix,
+                        const x509_csr *csr );
+
+/**
  * \brief          Give an known OID, return its descriptive string.
  *
  * \param oid      buffer containing the oid
@@ -679,6 +739,13 @@ void x509_free( x509_cert *crt );
  * \param crl      CRL chain to free
  */
 void x509_crl_free( x509_crl *crl );
+
+/**
+ * \brief          Unallocate all CSR data
+ *
+ * \param csr      CSR to free
+ */
+void x509_csr_free( x509_csr *csr );
 
 /** \} name Functions to clear a certificate, CRL or private RSA key */
 

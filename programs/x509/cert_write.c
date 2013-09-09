@@ -53,6 +53,7 @@ int main( int argc, char *argv[] )
 }
 #else
 
+#define DFL_ISSUER_CRT          ""
 #define DFL_SUBJECT_KEY         "subject.key"
 #define DFL_ISSUER_KEY          "ca.key"
 #define DFL_SUBJECT_PWD         ""
@@ -73,6 +74,7 @@ int main( int argc, char *argv[] )
  */
 struct options
 {
+    char *issuer_crt;           /* filename of the issuer certificate   */
     char *subject_key;          /* filename of the subject key file     */
     char *issuer_key;           /* filename of the issuer key file      */
     char *subject_pwd;          /* password for the subject key file    */
@@ -118,6 +120,9 @@ int write_certificate( x509write_cert *crt, char *output_file )
     "\n acceptable parameters:\n"                       \
     "    subject_key=%%s      default: subject.key\n"   \
     "    subject_pwd=%%s      default: (empty)\n"       \
+    "    issuer_crt=%%s       default: (empty)\n"       \
+    "                        If issuer_crt is specified, issuer_name is\n"  \
+    "                        ignored!\n"                \
     "    issuer_key=%%s       default: ca.key\n"        \
     "    issuer_pwd=%%s       default: (empty)\n"       \
     "    output_file=%%s      default: cert.crt\n"      \
@@ -151,6 +156,7 @@ int write_certificate( x509write_cert *crt, char *output_file )
 int main( int argc, char *argv[] )
 {
     int ret = 0;
+    x509_cert issuer_crt;
     rsa_context issuer_rsa, subject_rsa;
     char buf[1024];
     int i, j, n;
@@ -166,6 +172,7 @@ int main( int argc, char *argv[] )
     rsa_init( &issuer_rsa, RSA_PKCS_V15, 0 );
     rsa_init( &subject_rsa, RSA_PKCS_V15, 0 );
     mpi_init( &serial );
+    memset( &issuer_crt, 0, sizeof(x509_cert) );
     memset( buf, 0, 1024 );
 
     if( argc == 0 )
@@ -176,6 +183,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    opt.issuer_crt          = DFL_ISSUER_CRT;
     opt.subject_key         = DFL_SUBJECT_KEY;
     opt.issuer_key          = DFL_ISSUER_KEY;
     opt.subject_pwd         = DFL_SUBJECT_PWD;
@@ -214,6 +222,8 @@ int main( int argc, char *argv[] )
             opt.subject_pwd = q;
         else if( strcmp( p, "issuer_pwd" ) == 0 )
             opt.issuer_pwd = q;
+        else if( strcmp( p, "issuer_crt" ) == 0 )
+            opt.issuer_crt = q;
         else if( strcmp( p, "output_file" ) == 0 )
             opt.output_file = q;
         else if( strcmp( p, "subject_name" ) == 0 )
@@ -306,6 +316,8 @@ int main( int argc, char *argv[] )
             goto usage;
     }
 
+    printf("\n");
+
     // Parse serial to MPI
     //
     if( ( ret = mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
@@ -315,6 +327,40 @@ int main( int argc, char *argv[] )
 #endif
         printf( " failed\n  !  mpi_read_string returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
+    }
+
+    // Parse issuer certificate if present
+    //
+    if( strlen( opt.issuer_crt ) )
+    {
+        /*
+         * 1.0. Load the certificates
+         */
+        printf( "  . Loading the issuer certificate ..." );
+        fflush( stdout );
+
+        if( ( ret = x509parse_crtfile( &issuer_crt, opt.issuer_crt ) ) != 0 )
+        {
+#ifdef POLARSSL_ERROR_C
+            error_strerror( ret, buf, 1024 );
+#endif
+            printf( " failed\n  !  x509parse_crtfile returned -0x%02x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        ret = x509parse_dn_gets( buf, sizeof(buf), &issuer_crt.issuer );
+        if( ret < 0 )
+        {
+#ifdef POLARSSL_ERROR_C
+            error_strerror( ret, buf, 1024 );
+#endif
+            printf( " failed\n  !  x509parse_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        opt.issuer_name = buf;
+
+        printf( " ok\n" );
     }
 
     /*
@@ -341,7 +387,7 @@ int main( int argc, char *argv[] )
     /*
      * 1.1. Load the keys
      */
-    printf( "\n  . Loading the subject key ..." );
+    printf( "  . Loading the subject key ..." );
     fflush( stdout );
 
     ret = x509parse_keyfile_rsa( &subject_rsa, opt.subject_key, opt.subject_pwd );
@@ -371,6 +417,20 @@ int main( int argc, char *argv[] )
 #endif
         printf( " failed\n  !  x509parse_keyfile_rsa returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
+    }
+
+    // Check if key and issuer certificate match
+    //
+    if( strlen( opt.issuer_crt ) )
+    {
+        if( !pk_can_do( &issuer_crt.pk, POLARSSL_PK_RSA ) ||
+            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->N, &issuer_rsa.N ) != 0 ||
+            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->E, &issuer_rsa.E ) != 0 )
+        {
+            printf( " failed\n  !  issuer_key does not match issuer certificate\n\n" );
+            ret = -1;
+            goto exit;
+        }
     }
 
     x509write_crt_set_issuer_key( &crt, &issuer_rsa );

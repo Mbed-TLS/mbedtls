@@ -60,7 +60,7 @@ struct options
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
 
-int write_certificate_request( x509_csr *req, char *output_file )
+int write_certificate_request( x509write_csr *req, char *output_file )
 {
     int ret;
     FILE *f;
@@ -130,7 +130,7 @@ int main( int argc, char *argv[] )
     char buf[1024];
     int i, j, n;
     char *p, *q, *r;
-    x509_csr req;
+    x509write_csr req;
 
     /*
      * Set to sane values

@@ -134,30 +134,30 @@ static int x509_write_rsa_pubkey( unsigned char **p, unsigned char *start,
     return( len );
 }
 
-void x509write_csr_init( x509_csr *ctx )
+void x509write_csr_init( x509write_csr *ctx )
 {
-    memset( ctx, 0, sizeof(x509_csr) );
+    memset( ctx, 0, sizeof(x509write_csr) );
 }
 
-void x509write_csr_free( x509_csr *ctx )
+void x509write_csr_free( x509write_csr *ctx )
 {
     asn1_free_named_data_list( &ctx->subject );
     asn1_free_named_data_list( &ctx->extensions );
 
-    memset( ctx, 0, sizeof(x509_csr) );
+    memset( ctx, 0, sizeof(x509write_csr) );
 }
 
-void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg )
+void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg )
 {
     ctx->md_alg = md_alg;
 }
 
-void x509write_csr_set_rsa_key( x509_csr *ctx, rsa_context *rsa )
+void x509write_csr_set_rsa_key( x509write_csr *ctx, rsa_context *rsa )
 {
     ctx->rsa = rsa;
 }
 
-int x509write_csr_set_subject_name( x509_csr *ctx, char *subject_name )
+int x509write_csr_set_subject_name( x509write_csr *ctx, char *subject_name )
 {
     return x509write_string_to_names( &ctx->subject, subject_name );
 }
@@ -184,7 +184,7 @@ static int x509_set_extension( asn1_named_data **head,
     return( 0 );
 }
 
-int x509write_csr_set_extension( x509_csr *ctx,
+int x509write_csr_set_extension( x509write_csr *ctx,
                                  const char *oid, size_t oid_len,
                                  const unsigned char *val, size_t val_len )
 {
@@ -192,7 +192,7 @@ int x509write_csr_set_extension( x509_csr *ctx,
                                0, val, val_len );
 }
 
-int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage )
+int x509write_csr_set_key_usage( x509write_csr *ctx, unsigned char key_usage )
 {
     unsigned char buf[4];
     unsigned char *c;
@@ -212,7 +212,8 @@ int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage )
     return( 0 );
 }
 
-int x509write_csr_set_ns_cert_type( x509_csr *ctx, unsigned char ns_cert_type )
+int x509write_csr_set_ns_cert_type( x509write_csr *ctx,
+                                    unsigned char ns_cert_type )
 {
     unsigned char buf[4];
     unsigned char *c;
@@ -248,7 +249,7 @@ void x509write_crt_free( x509write_cert *ctx )
     asn1_free_named_data_list( &ctx->issuer );
     asn1_free_named_data_list( &ctx->extensions );
 
-    memset( ctx, 0, sizeof(x509_csr) );
+    memset( ctx, 0, sizeof(x509write_csr) );
 }
 
 void x509write_crt_set_md_alg( x509write_cert *ctx, md_type_t md_alg )
@@ -644,7 +645,7 @@ static int x509_write_extensions( unsigned char **p, unsigned char *start,
     return( len );
 }
 
-int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size )
+int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
 {
     int ret;
     const char *sig_oid;
@@ -975,7 +976,7 @@ int x509write_key_pem( rsa_context *rsa, unsigned char *buf, size_t size )
     return( 0 );
 }
 
-int x509write_csr_pem( x509_csr *ctx, unsigned char *buf, size_t size )
+int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char output_buf[4096];

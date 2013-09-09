@@ -16,7 +16,7 @@ void x509_csr_check( char *key_file, int md_type,
 {
     rsa_context rsa;
     pem_context pem;
-    x509_csr req;
+    x509write_csr req;
     unsigned char *c;
     unsigned char buf[4000];
     unsigned char check_buf[4000];

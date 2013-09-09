@@ -63,14 +63,14 @@ extern "C" {
 /**
  * Container for a CSR
  */
-typedef struct _x509_csr
+typedef struct _x509write_csr
 {
     rsa_context *rsa;
     asn1_named_data *subject;
     md_type_t md_alg;
     asn1_named_data *extensions;
 }
-x509_csr;
+x509write_csr;
 
 #define X509_CRT_VERSION_1              0
 #define X509_CRT_VERSION_2              1
@@ -104,7 +104,7 @@ x509write_cert;
  *
  * \param ctx       CSR context to initialize
  */
-void x509write_csr_init( x509_csr *ctx );
+void x509write_csr_init( x509write_csr *ctx );
 
 /**
  * \brief           Set the subject name for a CSR
@@ -118,7 +118,7 @@ void x509write_csr_init( x509_csr *ctx );
  * \return          0 if subject name was parsed successfully, or
  *                  a specific error code
  */
-int x509write_csr_set_subject_name( x509_csr *ctx, char *subject_name );
+int x509write_csr_set_subject_name( x509write_csr *ctx, char *subject_name );
 
 /**
  * \brief           Set the RSA key for a CSR (public key will be included,
@@ -127,7 +127,7 @@ int x509write_csr_set_subject_name( x509_csr *ctx, char *subject_name );
  * \param ctx       CSR context to use
  * \param rsa       RSA key to include
  */
-void x509write_csr_set_rsa_key( x509_csr *ctx, rsa_context *rsa );
+void x509write_csr_set_rsa_key( x509write_csr *ctx, rsa_context *rsa );
 
 /**
  * \brief           Set the MD algorithm to use for the signature
@@ -136,7 +136,7 @@ void x509write_csr_set_rsa_key( x509_csr *ctx, rsa_context *rsa );
  * \param ctx       CSR context to use
  * \param md_ald    MD algorithm to use
  */
-void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg );
+void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg );
 
 /**
  * \brief           Set the Key Usage Extension flags
@@ -147,7 +147,7 @@ void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg );
  *
  * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
  */
-int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage );
+int x509write_csr_set_key_usage( x509write_csr *ctx, unsigned char key_usage );
 
 /**
  * \brief           Set the Netscape Cert Type flags
@@ -158,7 +158,8 @@ int x509write_csr_set_key_usage( x509_csr *ctx, unsigned char key_usage );
  *
  * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
  */
-int x509write_csr_set_ns_cert_type( x509_csr *ctx, unsigned char ns_cert_type );
+int x509write_csr_set_ns_cert_type( x509write_csr *ctx,
+                                    unsigned char ns_cert_type );
 
 /**
  * \brief           Generic function to add to or replace an extension in the CSR
@@ -171,7 +172,7 @@ int x509write_csr_set_ns_cert_type( x509_csr *ctx, unsigned char ns_cert_type );
  *
  * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
  */
-int x509write_csr_set_extension( x509_csr *ctx,
+int x509write_csr_set_extension( x509write_csr *ctx,
                                  const char *oid, size_t oid_len,
                                  const unsigned char *val, size_t val_len );
 
@@ -180,7 +181,7 @@ int x509write_csr_set_extension( x509_csr *ctx,
  *
  * \param ctx       CSR context to free
  */
-void x509write_csr_free( x509_csr *ctx );
+void x509write_csr_free( x509write_csr *ctx );
 
 /**
  * \brief           Initialize a CRT writing context
@@ -399,7 +400,7 @@ int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size );
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size );
+int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size );
 
 #if defined(POLARSSL_BASE64_C)
 /**
@@ -445,7 +446,7 @@ int x509write_key_pem( rsa_context *rsa, unsigned char *buf, size_t size );
  *
  * \return          0 successful, or a specific error code
  */
-int x509write_csr_pem( x509_csr *ctx, unsigned char *buf, size_t size );
+int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size );
 #endif /* POLARSSL_BASE64_C */
 
 #ifdef __cplusplus

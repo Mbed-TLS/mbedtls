@@ -67,6 +67,7 @@ int main( int argc, char *argv[] )
 #define DFL_NOT_BEFORE          "20010101000000"
 #define DFL_NOT_AFTER           "20301231235959"
 #define DFL_SERIAL              "1"
+#define DFL_SELFSIGN            0
 #define DFL_IS_CA               0
 #define DFL_MAX_PATHLEN         -1
 #define DFL_KEY_USAGE           0
@@ -89,6 +90,7 @@ struct options
     char *not_before;           /* validity period not before           */
     char *not_after;            /* validity period not after            */
     char *serial;               /* serial number string                 */
+    int selfsign;               /* selfsign the certificate             */
     int is_ca;                  /* is a CA certificate                  */
     int max_pathlen;            /* maximum CA path length               */
     unsigned char key_usage;    /* key usage flags                      */
@@ -127,14 +129,20 @@ int write_certificate( x509write_cert *crt, char *output_file )
     "                        subject_pwd and subject_name are ignored!\n"  \
     "    subject_key=%%s      default: subject.key\n"   \
     "    subject_pwd=%%s      default: (empty)\n"       \
+    "    subject_name=%%s     default: CN=Cert,O=PolarSSL,C=NL\n"   \
+    "\n"                                                \
     "    issuer_crt=%%s       default: (empty)\n"       \
     "                        If issuer_crt is specified, issuer_name is\n"  \
     "                        ignored!\n"                \
+    "    issuer_name=%%s      default: CN=CA,O=PolarSSL,C=NL\n"     \
+    "\n"                                                \
+    "    selfsign=%%d         default: 0 (false)\n"     \
+    "                        If selfsign is enabled, issuer_name and\n" \
+    "                        issuer_key are required (issuer_crt and\n" \
+    "                        subject_* are ignored\n"   \
     "    issuer_key=%%s       default: ca.key\n"        \
     "    issuer_pwd=%%s       default: (empty)\n"       \
     "    output_file=%%s      default: cert.crt\n"      \
-    "    subject_name=%%s     default: CN=Cert,O=PolarSSL,C=NL\n"   \
-    "    issuer_name=%%s      default: CN=CA,O=PolarSSL,C=NL\n"     \
     "    serial=%%s           default: 1\n"             \
     "    not_before=%%s       default: 20010101000000\n"\
     "    not_after=%%s        default: 20301231235959\n"\
@@ -164,7 +172,9 @@ int main( int argc, char *argv[] )
 {
     int ret = 0;
     x509_cert issuer_crt;
-    rsa_context issuer_rsa, subject_rsa;
+    rsa_context loaded_issuer_rsa, loaded_subject_rsa;
+    rsa_context *issuer_rsa = &loaded_issuer_rsa,
+                *subject_rsa = &loaded_subject_rsa;
     char buf[1024];
     char issuer_name[128];
     char subject_name[128];
@@ -179,8 +189,8 @@ int main( int argc, char *argv[] )
      */
     x509write_crt_init( &crt );
     x509write_crt_set_md_alg( &crt, POLARSSL_MD_SHA1 );
-    rsa_init( &issuer_rsa, RSA_PKCS_V15, 0 );
-    rsa_init( &subject_rsa, RSA_PKCS_V15, 0 );
+    rsa_init( &loaded_issuer_rsa, RSA_PKCS_V15, 0 );
+    rsa_init( &loaded_subject_rsa, RSA_PKCS_V15, 0 );
     mpi_init( &serial );
     memset( &csr, 0, sizeof(x509_csr) );
     memset( &issuer_crt, 0, sizeof(x509_cert) );
@@ -207,6 +217,7 @@ int main( int argc, char *argv[] )
     opt.not_before          = DFL_NOT_BEFORE;
     opt.not_after           = DFL_NOT_AFTER;
     opt.serial              = DFL_SERIAL;
+    opt.selfsign            = DFL_SELFSIGN;
     opt.is_ca               = DFL_IS_CA;
     opt.max_pathlen         = DFL_MAX_PATHLEN;
     opt.key_usage           = DFL_KEY_USAGE;
@@ -260,6 +271,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "serial" ) == 0 )
         {
             opt.serial = q;
+        }
+        else if( strcmp( p, "selfsign" ) == 0 )
+        {
+            opt.selfsign = atoi( q );
+            if( opt.selfsign < 0 || opt.selfsign > 1 )
+                goto usage;
         }
         else if( strcmp( p, "is_ca" ) == 0 )
         {
@@ -344,7 +361,7 @@ int main( int argc, char *argv[] )
 
     // Parse issuer certificate if present
     //
-    if( strlen( opt.issuer_crt ) )
+    if( !opt.selfsign && strlen( opt.issuer_crt ) )
     {
         /*
          * 1.0.a. Load the certificates
@@ -375,7 +392,7 @@ int main( int argc, char *argv[] )
 
     // Parse certificate request if present
     //
-    if( strlen( opt.request_file ) )
+    if( !opt.selfsign && strlen( opt.request_file ) )
     {
         /*
          * 1.0.b. Load the CSR
@@ -400,16 +417,67 @@ int main( int argc, char *argv[] )
         }
 
         opt.subject_name = subject_name;
+        subject_rsa = pk_rsa( csr.pk );
 
-        if( ( ret = rsa_copy( &subject_rsa, pk_rsa( csr.pk ) ) ) != 0 )
+        printf( " ok\n" );
+    }
+
+    /*
+     * 1.1. Load the keys
+     */
+    if( !opt.selfsign && !strlen( opt.request_file ) )
+    {
+        printf( "  . Loading the subject key ..." );
+        fflush( stdout );
+
+        ret = x509parse_keyfile_rsa( &loaded_subject_rsa, opt.subject_key,
+                                     opt.subject_pwd );
+        if( ret != 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  rsa_copy returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509parse_keyfile_rsa returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
         printf( " ok\n" );
     }
+
+    printf( "  . Loading the issuer key ..." );
+    fflush( stdout );
+
+    ret = x509parse_keyfile_rsa( &loaded_issuer_rsa, opt.issuer_key,
+                                 opt.issuer_pwd );
+    if( ret != 0 )
+    {
+        error_strerror( ret, buf, 1024 );
+        printf( " failed\n  !  x509parse_keyfile_rsa returned -x%02x - %s\n\n", -ret, buf );
+        goto exit;
+    }
+
+    // Check if key and issuer certificate match
+    //
+    if( strlen( opt.issuer_crt ) )
+    {
+        if( !pk_can_do( &issuer_crt.pk, POLARSSL_PK_RSA ) ||
+            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->N, &issuer_rsa->N ) != 0 ||
+            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->E, &issuer_rsa->E ) != 0 )
+        {
+            printf( " failed\n  !  issuer_key does not match issuer certificate\n\n" );
+            ret = -1;
+            goto exit;
+        }
+    }
+
+    printf( " ok\n" );
+
+    if( opt.selfsign )
+    {
+        opt.issuer_name = opt.subject_name;
+        subject_rsa = issuer_rsa;
+    }
+
+    x509write_crt_set_subject_key( &crt, subject_rsa );
+    x509write_crt_set_issuer_key( &crt, issuer_rsa );
 
     /*
      * 1.0. Check the names for validity
@@ -427,59 +495,6 @@ int main( int argc, char *argv[] )
         printf( " failed\n  !  x509write_crt_set_issuer_name returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
-
-    /*
-     * 1.1. Load the keys
-     */
-    if( !strlen( opt.request_file ) )
-    {
-        printf( "  . Loading the subject key ..." );
-        fflush( stdout );
-
-        ret = x509parse_keyfile_rsa( &subject_rsa, opt.subject_key,
-                                     opt.subject_pwd );
-        if( ret != 0 )
-        {
-            error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_keyfile_rsa returned -0x%02x - %s\n\n", -ret, buf );
-            goto exit;
-        }
-
-        printf( " ok\n" );
-    }
-
-    x509write_crt_set_subject_key( &crt, &subject_rsa );
-
-
-    printf( "  . Loading the issuer key ..." );
-    fflush( stdout );
-
-    ret = x509parse_keyfile_rsa( &issuer_rsa, opt.issuer_key, opt.issuer_pwd );
-
-    if( ret != 0 )
-    {
-        error_strerror( ret, buf, 1024 );
-        printf( " failed\n  !  x509parse_keyfile_rsa returned -x%02x - %s\n\n", -ret, buf );
-        goto exit;
-    }
-
-    // Check if key and issuer certificate match
-    //
-    if( strlen( opt.issuer_crt ) )
-    {
-        if( !pk_can_do( &issuer_crt.pk, POLARSSL_PK_RSA ) ||
-            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->N, &issuer_rsa.N ) != 0 ||
-            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->E, &issuer_rsa.E ) != 0 )
-        {
-            printf( " failed\n  !  issuer_key does not match issuer certificate\n\n" );
-            ret = -1;
-            goto exit;
-        }
-    }
-
-    x509write_crt_set_issuer_key( &crt, &issuer_rsa );
-
-    printf( " ok\n" );
 
     printf( "  . Setting certificate values ..." );
     fflush( stdout );
@@ -591,8 +606,8 @@ int main( int argc, char *argv[] )
 
 exit:
     x509write_crt_free( &crt );
-    rsa_free( &subject_rsa );
-    rsa_free( &issuer_rsa );
+    rsa_free( &loaded_subject_rsa );
+    rsa_free( &loaded_issuer_rsa );
     mpi_free( &serial );
 
 #if defined(_WIN32)

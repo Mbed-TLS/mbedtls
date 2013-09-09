@@ -41,14 +41,16 @@
 #include "polarssl/oid.h"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_FS_IO) ||     \
+    !defined(POLARSSL_ERROR_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_WRITE_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_X509_WRITE_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_ERROR_C not defined.\n");
     return( 0 );
 }
 #else
@@ -335,9 +337,7 @@ int main( int argc, char *argv[] )
     //
     if( ( ret = mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  mpi_read_string returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -354,9 +354,7 @@ int main( int argc, char *argv[] )
 
         if( ( ret = x509parse_crtfile( &issuer_crt, opt.issuer_crt ) ) != 0 )
         {
-#ifdef POLARSSL_ERROR_C
             error_strerror( ret, buf, 1024 );
-#endif
             printf( " failed\n  !  x509parse_crtfile returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -365,9 +363,7 @@ int main( int argc, char *argv[] )
                                  &issuer_crt.issuer );
         if( ret < 0 )
         {
-#ifdef POLARSSL_ERROR_C
             error_strerror( ret, buf, 1024 );
-#endif
             printf( " failed\n  !  x509parse_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -389,9 +385,7 @@ int main( int argc, char *argv[] )
 
         if( ( ret = x509parse_csrfile( &csr, opt.request_file ) ) != 0 )
         {
-#ifdef POLARSSL_ERROR_C
             error_strerror( ret, buf, 1024 );
-#endif
             printf( " failed\n  !  x509parse_csrfile returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -400,9 +394,7 @@ int main( int argc, char *argv[] )
                                  &csr.subject );
         if( ret < 0 )
         {
-#ifdef POLARSSL_ERROR_C
             error_strerror( ret, buf, 1024 );
-#endif
             printf( " failed\n  !  x509parse_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -411,9 +403,7 @@ int main( int argc, char *argv[] )
 
         if( ( ret = rsa_copy( &subject_rsa, pk_rsa( csr.pk ) ) ) != 0 )
         {
-#ifdef POLARSSL_ERROR_C
             error_strerror( ret, buf, 1024 );
-#endif
             printf( " failed\n  !  rsa_copy returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -426,18 +416,14 @@ int main( int argc, char *argv[] )
      */
     if( ( ret = x509write_crt_set_subject_name( &crt, opt.subject_name ) ) != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509write_crt_set_subject_name returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
     if( ( ret = x509write_crt_set_issuer_name( &crt, opt.issuer_name ) ) != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509write_crt_set_issuer_name returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -454,9 +440,7 @@ int main( int argc, char *argv[] )
                                      opt.subject_pwd );
         if( ret != 0 )
         {
-#ifdef POLARSSL_ERROR_C
             error_strerror( ret, buf, 1024 );
-#endif
             printf( " failed\n  !  x509parse_keyfile_rsa returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -474,9 +458,7 @@ int main( int argc, char *argv[] )
 
     if( ret != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509parse_keyfile_rsa returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -505,9 +487,7 @@ int main( int argc, char *argv[] )
     ret = x509write_crt_set_serial( &crt, &serial );
     if( ret != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509write_crt_set_serial returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -515,9 +495,7 @@ int main( int argc, char *argv[] )
     ret = x509write_crt_set_validity( &crt, opt.not_before, opt.not_after );
     if( ret != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509write_crt_set_validity returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -531,9 +509,7 @@ int main( int argc, char *argv[] )
                                                opt.max_pathlen );
     if( ret != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509write_crt_set_basic_contraints returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -546,9 +522,7 @@ int main( int argc, char *argv[] )
     ret = x509write_crt_set_subject_key_identifier( &crt );
     if( ret != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509write_crt_set_subject_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -561,9 +535,7 @@ int main( int argc, char *argv[] )
     ret = x509write_crt_set_authority_key_identifier( &crt );
     if( ret != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509write_crt_set_authority_key_identifier returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -578,9 +550,7 @@ int main( int argc, char *argv[] )
         ret = x509write_crt_set_key_usage( &crt, opt.key_usage );
         if( ret != 0 )
         {
-#ifdef POLARSSL_ERROR_C
             error_strerror( ret, buf, 1024 );
-#endif
             printf( " failed\n  !  x509write_crt_set_key_usage returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -596,9 +566,7 @@ int main( int argc, char *argv[] )
         ret = x509write_crt_set_ns_cert_type( &crt, opt.ns_cert_type );
         if( ret != 0 )
         {
-#ifdef POLARSSL_ERROR_C
             error_strerror( ret, buf, 1024 );
-#endif
             printf( " failed\n  !  x509write_crt_set_ns_cert_type returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -614,9 +582,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = write_certificate( &crt, opt.output_file ) ) != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  write_certifcate -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }

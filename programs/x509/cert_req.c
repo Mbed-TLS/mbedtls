@@ -41,14 +41,16 @@
 #include "polarssl/oid.h"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO) ||     \
+    !defined(POLARSSL_ERROR_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_ERROR_C not defined.\n");
     return( 0 );
 }
 #else
@@ -254,9 +256,7 @@ int main( int argc, char *argv[] )
      */
     if( ( ret = x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509write_csr_set_subject_name returned %d - %s\n\n", ret, buf );
         goto exit;
     }
@@ -271,9 +271,7 @@ int main( int argc, char *argv[] )
 
     if( ret != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  x509parse_key_rsa returned %d - %s\n\n", ret, buf );
         goto exit;
     }
@@ -290,9 +288,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = write_certificate_request( &req, opt.output_file ) ) != 0 )
     {
-#ifdef POLARSSL_ERROR_C
         error_strerror( ret, buf, 1024 );
-#endif
         printf( " failed\n  !  write_certifcate_request %d - %s\n\n", ret, buf );
         goto exit;
     }

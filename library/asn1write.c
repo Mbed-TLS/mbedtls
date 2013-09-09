@@ -29,6 +29,14 @@
 
 #include "polarssl/asn1write.h"
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#include <stdlib.h>
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 int asn1_write_len( unsigned char **p, unsigned char *start, size_t len )
 {
     if( len < 0x80 )
@@ -289,5 +297,66 @@ int asn1_write_octet_string( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_OCTET_STRING ) );
 
     return( len );
+}
+
+asn1_named_data *asn1_store_named_data( asn1_named_data **head,
+                                        const char *oid, size_t oid_len,
+                                        const unsigned char *val,
+                                        size_t val_len )
+{
+    asn1_named_data *cur;
+
+    if( ( cur = asn1_find_named_data( *head, oid, oid_len ) ) == NULL )
+    {
+        // Add new entry if not present yet based on OID
+        //
+        if( ( cur = polarssl_malloc( sizeof(asn1_named_data) ) ) == NULL )
+            return( NULL );
+
+        memset( cur, 0, sizeof(asn1_named_data) );
+
+        cur->oid.len = oid_len;
+        cur->oid.p = polarssl_malloc( oid_len );
+        if( cur->oid.p == NULL )
+        {
+            polarssl_free( cur );
+            return( NULL );
+        }
+
+        cur->val.len = val_len;
+        cur->val.p = polarssl_malloc( val_len );
+        if( cur->val.p == NULL )
+        {
+            polarssl_free( cur->oid.p );
+            polarssl_free( cur );
+            return( NULL );
+        }
+
+        memcpy( cur->oid.p, oid, oid_len );
+
+        cur->next = *head;
+        *head = cur;
+    }
+    else if( cur->val.len < val_len )
+    {
+        // Enlarge existing value buffer if needed
+        //
+        polarssl_free( cur->val.p );
+        cur->val.p = NULL;
+
+        cur->val.len = val_len;
+        cur->val.p = polarssl_malloc( val_len );
+        if( cur->val.p == NULL )
+        {
+            polarssl_free( cur->oid.p );
+            polarssl_free( cur );
+            return( NULL );
+        }
+    }
+
+    if( val != NULL )
+        memcpy( cur->val.p, val, val_len );
+
+    return( cur );
 }
 #endif

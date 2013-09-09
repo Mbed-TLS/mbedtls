@@ -205,6 +205,28 @@ int asn1_write_bitstring( unsigned char **p, unsigned char *start,
  */
 int asn1_write_octet_string( unsigned char **p, unsigned char *start,
                              const unsigned char *buf, size_t size );
+
+/**
+ * \brief           Create or find a specific named_data entry for writing in a
+ *                  sequence or list based on the OID. If not already in there,
+ *                  a new entry is added to the head of the list.
+ *                  Warning: Destructive behaviour for the val data!
+ *
+ * \param list      Pointer to the location of the head of the list to seek
+ *                  through (will be updated in case of a new entry)
+ * \param oid       The OID to look for
+ * \param oid_len   Size of the OID
+ * \param val       Data to store (can be NULL if you want to fill it by hand)
+ * \param val_len   Minimum length of the data buffer needed
+ *
+ * \return      NULL if if there was a memory allocation error, or a pointer
+ *              to the new / existing entry.
+ */
+asn1_named_data *asn1_store_named_data( asn1_named_data **list,
+                                        const char *oid, size_t oid_len,
+                                        const unsigned char *val,
+                                        size_t val_len );
+
 #ifdef __cplusplus
 }
 #endif

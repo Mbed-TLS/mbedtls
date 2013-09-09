@@ -198,49 +198,10 @@ static int x509_set_extension( asn1_named_data **head,
 {
     asn1_named_data *cur;
 
-    if( ( cur = asn1_find_named_data( *head, oid, oid_len ) ) == NULL )
+    if( ( cur = asn1_store_named_data( head, oid, oid_len,
+                                       NULL, val_len + 1 ) ) == NULL )
     {
-        cur = polarssl_malloc( sizeof(asn1_named_data) );
-        if( cur == NULL )
-            return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
-
-        memset( cur, 0, sizeof(asn1_named_data) );
-
-        cur->oid.len = oid_len;
-        cur->oid.p = polarssl_malloc( oid_len );
-        if( cur->oid.p == NULL )
-        {
-            polarssl_free( cur );
-            return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
-        }
-
-        cur->val.len = val_len + 1;
-        cur->val.p = polarssl_malloc( val_len + 1 );
-        if( cur->val.p == NULL )
-        {
-            polarssl_free( cur->oid.p );
-            polarssl_free( cur );
-            return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
-        }
-
-        memcpy( cur->oid.p, oid, oid_len );
-
-        cur->next = *head;
-        *head = cur;
-    }
-
-    if( cur->val.len != val_len + 1 )
-    {
-        polarssl_free( cur->val.p );
-
-        cur->val.len = val_len + 1;
-        cur->val.p = polarssl_malloc( val_len + 1);
-        if( cur->val.p == NULL )
-        {
-            polarssl_free( cur->oid.p );
-            polarssl_free( cur );
-            return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
-        }
+        return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
     }
 
     cur->val.p[0] = critical;

@@ -54,6 +54,7 @@ int main( int argc, char *argv[] )
 #else
 
 #define DFL_ISSUER_CRT          ""
+#define DFL_REQUEST_FILE        ""
 #define DFL_SUBJECT_KEY         "subject.key"
 #define DFL_ISSUER_KEY          "ca.key"
 #define DFL_SUBJECT_PWD         ""
@@ -75,6 +76,7 @@ int main( int argc, char *argv[] )
 struct options
 {
     char *issuer_crt;           /* filename of the issuer certificate   */
+    char *request_file;         /* filename of the certificate request  */
     char *subject_key;          /* filename of the subject key file     */
     char *issuer_key;           /* filename of the issuer key file      */
     char *subject_pwd;          /* password for the subject key file    */
@@ -118,6 +120,9 @@ int write_certificate( x509write_cert *crt, char *output_file )
 #define USAGE \
     "\n usage: cert_write param=<>...\n"                \
     "\n acceptable parameters:\n"                       \
+    "    request_file=%%s     default: (empty)\n"       \
+    "                        If request_file is specified, subject_key,\n"  \
+    "                        subject_pwd and subject_name are ignored!\n"  \
     "    subject_key=%%s      default: subject.key\n"   \
     "    subject_pwd=%%s      default: (empty)\n"       \
     "    issuer_crt=%%s       default: (empty)\n"       \
@@ -159,8 +164,11 @@ int main( int argc, char *argv[] )
     x509_cert issuer_crt;
     rsa_context issuer_rsa, subject_rsa;
     char buf[1024];
+    char issuer_name[128];
+    char subject_name[128];
     int i, j, n;
     char *p, *q, *r;
+    x509_csr csr;
     x509write_cert crt;
     mpi serial;
 
@@ -172,6 +180,7 @@ int main( int argc, char *argv[] )
     rsa_init( &issuer_rsa, RSA_PKCS_V15, 0 );
     rsa_init( &subject_rsa, RSA_PKCS_V15, 0 );
     mpi_init( &serial );
+    memset( &csr, 0, sizeof(x509_csr) );
     memset( &issuer_crt, 0, sizeof(x509_cert) );
     memset( buf, 0, 1024 );
 
@@ -184,6 +193,8 @@ int main( int argc, char *argv[] )
     }
 
     opt.issuer_crt          = DFL_ISSUER_CRT;
+    opt.request_file        = DFL_REQUEST_FILE;
+    opt.request_file        = DFL_REQUEST_FILE;
     opt.subject_key         = DFL_SUBJECT_KEY;
     opt.issuer_key          = DFL_ISSUER_KEY;
     opt.subject_pwd         = DFL_SUBJECT_PWD;
@@ -214,7 +225,9 @@ int main( int argc, char *argv[] )
                 argv[i][j] |= 0x20;
         }
 
-        if( strcmp( p, "subject_key" ) == 0 )
+        if( strcmp( p, "request_file" ) == 0 )
+            opt.request_file = q;
+        else if( strcmp( p, "subject_key" ) == 0 )
             opt.subject_key = q;
         else if( strcmp( p, "issuer_key" ) == 0 )
             opt.issuer_key = q;
@@ -334,7 +347,7 @@ int main( int argc, char *argv[] )
     if( strlen( opt.issuer_crt ) )
     {
         /*
-         * 1.0. Load the certificates
+         * 1.0.a. Load the certificates
          */
         printf( "  . Loading the issuer certificate ..." );
         fflush( stdout );
@@ -348,7 +361,8 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        ret = x509parse_dn_gets( buf, sizeof(buf), &issuer_crt.issuer );
+        ret = x509parse_dn_gets( issuer_name, sizeof(issuer_name),
+                                 &issuer_crt.issuer );
         if( ret < 0 )
         {
 #ifdef POLARSSL_ERROR_C
@@ -358,7 +372,51 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        opt.issuer_name = buf;
+        opt.issuer_name = issuer_name;
+
+        printf( " ok\n" );
+    }
+
+    // Parse certificate request if present
+    //
+    if( strlen( opt.request_file ) )
+    {
+        /*
+         * 1.0.b. Load the CSR
+         */
+        printf( "  . Loading the certificate request ..." );
+        fflush( stdout );
+
+        if( ( ret = x509parse_csrfile( &csr, opt.request_file ) ) != 0 )
+        {
+#ifdef POLARSSL_ERROR_C
+            error_strerror( ret, buf, 1024 );
+#endif
+            printf( " failed\n  !  x509parse_csrfile returned -0x%02x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        ret = x509parse_dn_gets( subject_name, sizeof(subject_name),
+                                 &csr.subject );
+        if( ret < 0 )
+        {
+#ifdef POLARSSL_ERROR_C
+            error_strerror( ret, buf, 1024 );
+#endif
+            printf( " failed\n  !  x509parse_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        opt.subject_name = subject_name;
+
+        if( ( ret = rsa_copy( &subject_rsa, pk_rsa( csr.pk ) ) ) != 0 )
+        {
+#ifdef POLARSSL_ERROR_C
+            error_strerror( ret, buf, 1024 );
+#endif
+            printf( " failed\n  !  rsa_copy returned -0x%02x - %s\n\n", -ret, buf );
+            goto exit;
+        }
 
         printf( " ok\n" );
     }
@@ -387,23 +445,27 @@ int main( int argc, char *argv[] )
     /*
      * 1.1. Load the keys
      */
-    printf( "  . Loading the subject key ..." );
-    fflush( stdout );
-
-    ret = x509parse_keyfile_rsa( &subject_rsa, opt.subject_key, opt.subject_pwd );
-
-    if( ret != 0 )
+    if( !strlen( opt.request_file ) )
     {
+        printf( "  . Loading the subject key ..." );
+        fflush( stdout );
+
+        ret = x509parse_keyfile_rsa( &subject_rsa, opt.subject_key,
+                                     opt.subject_pwd );
+        if( ret != 0 )
+        {
 #ifdef POLARSSL_ERROR_C
-        error_strerror( ret, buf, 1024 );
+            error_strerror( ret, buf, 1024 );
 #endif
-        printf( " failed\n  !  x509parse_keyfile_rsa returned -0x%02x - %s\n\n", -ret, buf );
-        goto exit;
+            printf( " failed\n  !  x509parse_keyfile_rsa returned -0x%02x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        printf( " ok\n" );
     }
 
     x509write_crt_set_subject_key( &crt, &subject_rsa );
 
-    printf( " ok\n" );
 
     printf( "  . Loading the issuer key ..." );
     fflush( stdout );

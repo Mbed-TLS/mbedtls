@@ -3457,6 +3457,29 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
     return flags;
 }
 
+// Equal == 0, inequal == 1
+static int x509_name_cmp( const void *s1, const void *s2, size_t len )
+{
+    size_t i;
+    unsigned char diff;
+    const unsigned char *n1 = s1, *n2 = s2;
+
+    for( i = 0; i < len; i++ )
+    {
+        diff = n1[i] ^ n2[i];
+
+        if( ( n1[i] >= 'a' || n1[i] <= 'z' ) && ( diff == 0 || diff == 32 ) )
+            continue;
+
+        if( ( n1[i] >= 'A' || n1[i] <= 'Z' ) && ( diff == 0 || diff == 32 ) )
+            continue;
+
+        return( 1 );
+    }
+
+    return( 0 );
+}
+
 static int x509_wildcard_verify( const char *cn, x509_buf *name )
 {
     size_t i;
@@ -3478,7 +3501,7 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
         return( 0 );
 
     if( strlen( cn ) - cn_idx == name->len - 1 &&
-        memcmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
+        x509_name_cmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
     {
         return( 1 );
     }
@@ -3657,7 +3680,7 @@ static int x509parse_verify_child(
         ret = x509parse_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
-    } 
+    }
     else
     {
         ret = x509parse_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
@@ -3706,7 +3729,7 @@ int x509parse_verify( x509_cert *crt,
             while( cur != NULL )
             {
                 if( cur->buf.len == cn_len &&
-                    memcmp( cn, cur->buf.p, cn_len ) == 0 )
+                    x509_name_cmp( cn, cur->buf.p, cn_len ) == 0 )
                     break;
 
                 if( cur->buf.len > 2 &&
@@ -3727,7 +3750,7 @@ int x509parse_verify( x509_cert *crt,
                 if( OID_CMP( OID_AT_CN, &name->oid ) )
                 {
                     if( name->val.len == cn_len &&
-                        memcmp( name->val.p, cn, cn_len ) == 0 )
+                        x509_name_cmp( name->val.p, cn, cn_len ) == 0 )
                         break;
 
                     if( name->val.len > 2 &&

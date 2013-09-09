@@ -40,6 +40,7 @@ Changes
      (Ability to keep old as well with POLARSSL_ERROR_STRERROR_BC)
    * SHA2 renamed to SHA256, SHA4 renamed to SHA512 and functions accordingly
    * All RSA operations require a random generator for blinding purposes
+   * x509_verify() now case insensitive for cn (RFC 6125 6.4)
 
 Bugfix
    * Fixed parse error in ssl_parse_certificate_request()

@@ -2053,7 +2053,10 @@ cleanup:
         i = stat( entry_name, &sb );
 
         if( i == -1 )
+        {
+            closedir( dir );
             return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+        }
 
         if( !S_ISREG( sb.st_mode ) )
             continue;

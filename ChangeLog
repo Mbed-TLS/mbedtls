@@ -46,6 +46,7 @@ Bugfix
    * Fixed parse error in ssl_parse_certificate_request()
    * zlib compression/decompression skipped on empty blocks
    * Support for AIX header locations in net.c module
+   * Fixed file descriptor leaks
 
 Security
    * RSA blinding on CRT operations to counter timing attacks

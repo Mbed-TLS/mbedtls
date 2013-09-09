@@ -102,6 +102,9 @@ static int x509write_string_to_names( asn1_named_data **head, char *name )
                 return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
             }
 
+            while( c < end && *(c + 1) == ' ' )
+                c++;
+
             s = c + 1;
             in_tag = 1;
         }

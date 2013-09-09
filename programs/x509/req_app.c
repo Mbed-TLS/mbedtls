@@ -35,6 +35,19 @@
 
 #include "polarssl/x509.h"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
+    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
+
 #define DFL_FILENAME            "cert.req"
 #define DFL_DEBUG_LEVEL         0
 
@@ -52,18 +65,6 @@ struct options
     "    filename=%%s         default: cert.req\n"      \
     "\n"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     int ret = 0;

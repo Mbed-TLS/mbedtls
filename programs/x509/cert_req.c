@@ -40,6 +40,19 @@
 #include "polarssl/x509write.h"
 #include "polarssl/oid.h"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
+    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
+
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_DEBUG_LEVEL         0
 #define DFL_OUTPUT_FILENAME     "cert.req"
@@ -111,18 +124,6 @@ int write_certificate_request( x509write_csr *req, char *output_file )
     "                          object_signing_ca\n"     \
     "\n"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     int ret = 0;

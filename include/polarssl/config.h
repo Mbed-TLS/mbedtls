@@ -401,11 +401,11 @@
 /**
  * \def POLARSSL_ERROR_STRERROR_DUMMY
  *
- * Enable a dummy error function to make use of error_strerror() in
+ * Enable a dummy error function to make use of polarssl_strerror() in
  * third party libraries easier.
  *
  * Disable if you run into name conflicts and want to really remove the
- * error_strerror()
+ * polarssl_strerror()
  */
 #define POLARSSL_ERROR_STRERROR_DUMMY
 

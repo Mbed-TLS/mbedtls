@@ -47,15 +47,17 @@
 #define polarssl_free       free
 #endif
 
-static int x509write_string_to_names( x509_req_name **head, char *name )
+static int x509write_string_to_names( asn1_named_data **head, char *name )
 {
     int ret = 0;
     char *s = name, *c = s;
     char *end = s + strlen( s );
     char *oid = NULL;
     int in_tag = 1;
-    x509_req_name *cur;
+    asn1_named_data *cur;
 
+    // Clear existing chain if present
+    //
     while( *head != NULL )
     {
         cur = *head;
@@ -93,27 +95,12 @@ static int x509write_string_to_names( x509_req_name **head, char *name )
 
         if( !in_tag && ( *c == ',' || c == end ) )
         {
-            if( c - s > 127 )
+            if( ( cur = asn1_store_named_data( head, oid, strlen( oid ),
+                                               (unsigned char *) s,
+                                               c - s ) ) == NULL )
             {
-                ret = POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA;
-                goto exit;
+                return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
             }
-
-            cur = polarssl_malloc( sizeof(x509_req_name) );
-
-            if( cur == NULL )
-            {
-                ret = POLARSSL_ERR_X509WRITE_MALLOC_FAILED;
-                goto exit;
-            }
-
-            memset( cur, 0, sizeof(x509_req_name) );
-
-            cur->next = *head;
-            *head = cur;
-
-            strncpy( cur->oid, oid, strlen( oid ) );
-            strncpy( cur->name, s, c - s );
 
             s = c + 1;
             in_tag = 1;
@@ -154,21 +141,8 @@ void x509write_csr_init( x509_csr *ctx )
 
 void x509write_csr_free( x509_csr *ctx )
 {
-    x509_req_name *cur;
-    asn1_named_data *cur_ext;
-
-    while( ( cur = ctx->subject ) != NULL )
-    {
-        ctx->subject = cur->next;
-        polarssl_free( cur );
-    }
-
-    while( ( cur_ext = ctx->extensions ) != NULL )
-    {
-        ctx->extensions = cur_ext->next;
-        asn1_free_named_data( cur_ext );
-        polarssl_free( cur_ext );
-    }
+    asn1_free_named_data_list( &ctx->subject );
+    asn1_free_named_data_list( &ctx->extensions );
 
     memset( ctx, 0, sizeof(x509_csr) );
 }
@@ -268,29 +242,11 @@ void x509write_crt_init( x509write_cert *ctx )
 
 void x509write_crt_free( x509write_cert *ctx )
 {
-    x509_req_name *cur;
-    asn1_named_data *cur_ext;
-
     mpi_free( &ctx->serial );
 
-    while( ( cur = ctx->subject ) != NULL )
-    {
-        ctx->subject = cur->next;
-        polarssl_free( cur );
-    }
-
-    while( ( cur = ctx->issuer ) != NULL )
-    {
-        ctx->issuer = cur->next;
-        polarssl_free( cur );
-    }
-
-    while( ( cur_ext = ctx->extensions ) != NULL )
-    {
-        ctx->extensions = cur_ext->next;
-        asn1_free_named_data( cur_ext );
-        polarssl_free( cur_ext );
-    }
+    asn1_free_named_data_list( &ctx->subject );
+    asn1_free_named_data_list( &ctx->issuer );
+    asn1_free_named_data_list( &ctx->extensions );
 
     memset( ctx, 0, sizeof(x509_csr) );
 }
@@ -456,7 +412,8 @@ int x509write_pubkey_der( rsa_context *rsa, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_BIT_STRING ) );
 
-    ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf, OID_PKCS1_RSA ) );
+    ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf,
+                                 OID_PKCS1_RSA, OID_SIZE( OID_PKCS1_RSA ) ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
@@ -521,30 +478,34 @@ int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size )
  *
  *  AttributeValue ::= ANY DEFINED BY AttributeType
  */
-static int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
-                            char *name )
+static int x509_write_name( unsigned char **p, unsigned char *start,
+                            const char *oid, size_t oid_len,
+                            const unsigned char *name, size_t name_len )
 {
     int ret;
-    size_t string_len = 0;
-    size_t oid_len = 0;
     size_t len = 0;
 
     // Write PrintableString for all except OID_PKCS9_EMAIL
     //
-    if( OID_SIZE( OID_PKCS9_EMAIL ) == strlen( oid ) &&
-        memcmp( oid, OID_PKCS9_EMAIL, strlen( oid ) ) == 0 )
+    if( OID_SIZE( OID_PKCS9_EMAIL ) == oid_len &&
+        memcmp( oid, OID_PKCS9_EMAIL, oid_len ) == 0 )
     {
-        ASN1_CHK_ADD( string_len, asn1_write_ia5_string( p, start, name ) );
+        ASN1_CHK_ADD( len, asn1_write_ia5_string( p, start,
+                                                  (const char *) name,
+                                                  name_len ) );
     }
     else
-        ASN1_CHK_ADD( string_len, asn1_write_printable_string( p, start, name ) );
+    {
+        ASN1_CHK_ADD( len, asn1_write_printable_string( p, start,
+                                                        (const char *) name,
+                                                        name_len ) );
+    }
 
     // Write OID
     //
-    ASN1_CHK_ADD( oid_len, asn1_write_oid( p, start, oid ) );
+    ASN1_CHK_ADD( len, asn1_write_oid( p, start, oid, oid_len ) );
 
-    len = oid_len + string_len;
-    ASN1_CHK_ADD( len, asn1_write_len( p, start, oid_len + string_len ) );
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
@@ -554,15 +515,17 @@ static int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
 }
 
 static int x509_write_names( unsigned char **p, unsigned char *start,
-                             x509_req_name *first )
+                             asn1_named_data *first )
 {
     int ret;
     size_t len = 0;
-    x509_req_name *cur = first;
+    asn1_named_data *cur = first;
 
     while( cur != NULL )
     {
-        ASN1_CHK_ADD( len, x509_write_name( p, start, cur->oid, cur->name ) );
+        ASN1_CHK_ADD( len, x509_write_name( p, start, (char *) cur->oid.p,
+                                            cur->oid.len,
+                                            cur->val.p, cur->val.len ) );
         cur = cur->next;
     }
 
@@ -593,7 +556,8 @@ static int x509_write_sig( unsigned char **p, unsigned char *start,
 
     // Write OID
     //
-    ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( p, start, oid ) );
+    ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( p, start, oid,
+                                                        strlen( oid ) ) );
 
     return( len );
 }
@@ -703,7 +667,8 @@ int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
         ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SET ) );
 
-        ASN1_CHK_ADD( len, asn1_write_oid( &c, tmp_buf, OID_PKCS9_CSR_EXT_REQ ) );
+        ASN1_CHK_ADD( len, asn1_write_oid( &c, tmp_buf, OID_PKCS9_CSR_EXT_REQ,
+                                          OID_SIZE( OID_PKCS9_CSR_EXT_REQ ) ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
         ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
@@ -732,7 +697,8 @@ int x509write_csr_der( x509_csr *ctx, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
     ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_BIT_STRING ) );
 
-    ASN1_CHK_ADD( pub_len, asn1_write_algorithm_identifier( &c, tmp_buf, OID_PKCS1_RSA ) );
+    ASN1_CHK_ADD( pub_len, asn1_write_algorithm_identifier( &c, tmp_buf,
+                            OID_PKCS1_RSA, OID_SIZE( OID_PKCS1_RSA ) ) );
 
     len += pub_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, pub_len ) );
@@ -820,7 +786,8 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
     ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_BIT_STRING ) );
 
-    ASN1_CHK_ADD( pub_len, asn1_write_algorithm_identifier( &c, tmp_buf, OID_PKCS1_RSA ) );
+    ASN1_CHK_ADD( pub_len, asn1_write_algorithm_identifier( &c, tmp_buf,
+                           OID_PKCS1_RSA, OID_SIZE( OID_PKCS1_RSA ) ) );
 
     len += pub_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, pub_len ) );
@@ -857,7 +824,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
      *  Signature   ::=  AlgorithmIdentifier
      */
     ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, tmp_buf,
-                                                        sig_oid ) );
+                       sig_oid, strlen( sig_oid ) ) );
 
     /*
      *  Serial   ::=  INTEGER

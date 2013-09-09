@@ -143,14 +143,14 @@ int asn1_write_null( unsigned char **p, unsigned char *start )
     return( len );
 }
 
-int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid )
+int asn1_write_oid( unsigned char **p, unsigned char *start,
+                    const char *oid, size_t oid_len )
 {
     int ret;
     size_t len = 0;
 
     ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
-                  (const unsigned char *) oid, strlen( oid ) ) );
-
+                                  (const unsigned char *) oid, oid_len ) );
     ASN1_CHK_ADD( len , asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len , asn1_write_tag( p, start, ASN1_OID ) );
 
@@ -158,23 +158,20 @@ int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid )
 }
 
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
-                                     const char *oid )
+                                     const char *oid, size_t oid_len )
 {
     int ret;
-    size_t null_len = 0;
-    size_t oid_len = 0;
     size_t len = 0;
 
     // Write NULL
     //
-    ASN1_CHK_ADD( null_len, asn1_write_null( p, start ) );
+    ASN1_CHK_ADD( len, asn1_write_null( p, start ) );
 
     // Write OID
     //
-    ASN1_CHK_ADD( oid_len, asn1_write_oid( p, start, oid ) );
+    ASN1_CHK_ADD( len, asn1_write_oid( p, start, oid, oid_len ) );
 
-    len = oid_len + null_len;
-    ASN1_CHK_ADD( len, asn1_write_len( p, start, oid_len + null_len ) );
+    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start,
                                        ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
@@ -229,13 +226,13 @@ int asn1_write_int( unsigned char **p, unsigned char *start, int val )
 }
 
 int asn1_write_printable_string( unsigned char **p, unsigned char *start,
-                                 char *text )
+                                 const char *text, size_t text_len )
 {
     int ret;
     size_t len = 0;
 
     ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
-                  (const unsigned char *) text, strlen( text ) ) );
+                  (const unsigned char *) text, text_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_PRINTABLE_STRING ) );
@@ -244,13 +241,13 @@ int asn1_write_printable_string( unsigned char **p, unsigned char *start,
 }
 
 int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
-                           char *text )
+                           const char *text, size_t text_len )
 {
     int ret;
     size_t len = 0;
 
     ASN1_CHK_ADD( len, asn1_write_raw_buffer( p, start,
-                  (const unsigned char *) text, strlen( text ) ) );
+                  (const unsigned char *) text, text_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_IA5_STRING ) );

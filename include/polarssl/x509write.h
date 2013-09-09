@@ -61,24 +61,12 @@ extern "C" {
  */
 
 /**
- * Container for CSR named objects
- */
-typedef struct _x509_req_name
-{
-    char oid[128];
-    char name[128];
-
-    struct _x509_req_name *next;
-}
-x509_req_name;
-
-/**
  * Container for a CSR
  */
 typedef struct _x509_csr
 {
     rsa_context *rsa;
-    x509_req_name *subject;
+    asn1_named_data *subject;
     md_type_t md_alg;
     asn1_named_data *extensions;
 }
@@ -100,8 +88,8 @@ typedef struct _x509write_cert
     mpi serial;
     rsa_context *subject_key;
     rsa_context *issuer_key;
-    x509_req_name *subject;
-    x509_req_name *issuer;
+    asn1_named_data *subject;
+    asn1_named_data *issuer;
     md_type_t md_alg;
     char not_before[X509_RFC5280_UTC_TIME_LEN + 1];
     char not_after[X509_RFC5280_UTC_TIME_LEN + 1];

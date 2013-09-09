@@ -105,10 +105,12 @@ int asn1_write_null( unsigned char **p, unsigned char *start );
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param oid       the OID to write
+ * \param oid_len   length of the OID
  *
  * \return          the length written or a negative error code
  */
-int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid );
+int asn1_write_oid( unsigned char **p, unsigned char *start,
+                    const char *oid, size_t oid_len );
 
 /**
  * \brief           Write an AlgorithmIdentifier sequence in ASN.1 format
@@ -118,11 +120,12 @@ int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid );
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param oid       the OID of the algorithm
+ * \param oid_len   length of the OID
  *
  * \return          the length written or a negative error code
  */
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
-                                     const char *oid );
+                                     const char *oid, size_t oid_len );
 
 /**
  * \brief           Write a boolean tag (ASN1_BOOLEAN) and value in ASN.1 format
@@ -156,11 +159,12 @@ int asn1_write_int( unsigned char **p, unsigned char *start, int val );
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param text      the text to write
+ * \param text_len  length of the text
  *
  * \return          the length written or a negative error code
  */
 int asn1_write_printable_string( unsigned char **p, unsigned char *start,
-                                 char *text );
+                                 const char *text, size_t text_len );
 
 /**
  * \brief           Write an IA5 string tag (ASN1_IA5_STRING) and
@@ -170,11 +174,12 @@ int asn1_write_printable_string( unsigned char **p, unsigned char *start,
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param text      the text to write
+ * \param text_len  length of the text
  *
  * \return          the length written or a negative error code
  */
 int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
-                                 char *text );
+                           const char *text, size_t text_len );
 
 /**
  * \brief           Write a bitstring tag (ASN1_BIT_STRING) and

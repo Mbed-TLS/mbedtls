@@ -335,6 +335,29 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx );
 int x509write_crt_set_authority_key_identifier( x509write_cert *ctx );
 
 /**
+ * \brief           Set the Key Usage Extension flags
+ *                  (e.g. KU_DIGITAL_SIGNATURE | KU_KEY_CERT_SIGN)
+ *
+ * \param ctx       CRT context to use
+ * \param key_usage key usage flags to set
+ *
+ * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ */
+int x509write_crt_set_key_usage( x509write_cert *ctx, unsigned char key_usage );
+
+/**
+ * \brief           Set the Netscape Cert Type flags
+ *                  (e.g. NS_CERT_TYPE_SSL_CLIENT | NS_CERT_TYPE_EMAIL)
+ *
+ * \param ctx           CRT context to use
+ * \param ns_cert_type  Netscape Cert Type flags to set
+ *
+ * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
+ */
+int x509write_crt_set_ns_cert_type( x509write_cert *ctx,
+                                    unsigned char ns_cert_type );
+
+/**
  * \brief           Free the contents of a CRT write context
  *
  * \param ctx       CRT context to free

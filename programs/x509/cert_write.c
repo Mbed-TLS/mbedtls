@@ -317,13 +317,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-/*
-    if( opt.key_usage )
-        x509write_csr_set_key_usage( &req, opt.key_usage );
-
-    if( opt.ns_cert_type )
-        x509write_csr_set_ns_cert_type( &req, opt.ns_cert_type );
-*/
     /*
      * 1.0. Check the names for validity
      */
@@ -454,6 +447,42 @@ int main( int argc, char *argv[] )
     }
 
     printf( " ok\n" );
+
+    if( opt.key_usage )
+    {
+        printf( "  . Adding the Key Usage extension ..." );
+        fflush( stdout );
+
+        ret = x509write_crt_set_key_usage( &crt, opt.key_usage );
+        if( ret != 0 )
+        {
+#ifdef POLARSSL_ERROR_C
+            error_strerror( ret, buf, 1024 );
+#endif
+            printf( " failed\n  !  x509write_crt_set_key_usage returned -0x%02x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        printf( " ok\n" );
+    }
+
+    if( opt.ns_cert_type )
+    {
+        printf( "  . Adding the NS Cert Type extension ..." );
+        fflush( stdout );
+
+        ret = x509write_crt_set_ns_cert_type( &crt, opt.ns_cert_type );
+        if( ret != 0 )
+        {
+#ifdef POLARSSL_ERROR_C
+            error_strerror( ret, buf, 1024 );
+#endif
+            printf( " failed\n  !  x509write_crt_set_ns_cert_type returned -0x%02x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        printf( " ok\n" );
+    }
 
     /*
      * 1.2. Writing the request

@@ -389,6 +389,47 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
                                    0, buf + sizeof(buf) - len, len );
 }
 
+int x509write_crt_set_key_usage( x509write_cert *ctx, unsigned char key_usage )
+{
+    unsigned char buf[4];
+    unsigned char *c;
+    int ret;
+
+    c = buf + 4;
+
+    if( ( ret = asn1_write_bitstring( &c, buf, &key_usage, 7 ) ) != 4 )
+        return( ret );
+
+    ret = x509write_crt_set_extension( ctx, OID_KEY_USAGE,
+                                       OID_SIZE( OID_KEY_USAGE ),
+                                       1, buf, 4 );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+int x509write_crt_set_ns_cert_type( x509write_cert *ctx,
+                                    unsigned char ns_cert_type )
+{
+    unsigned char buf[4];
+    unsigned char *c;
+    int ret;
+
+    c = buf + 4;
+
+    if( ( ret = asn1_write_bitstring( &c, buf, &ns_cert_type, 8 ) ) != 4 )
+        return( ret );
+
+    ret = x509write_crt_set_extension( ctx, OID_NS_CERT_TYPE,
+                                       OID_SIZE( OID_NS_CERT_TYPE ),
+                                       0, buf, 4 );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
 int x509write_pubkey_der( rsa_context *rsa, unsigned char *buf, size_t size )
 {
     int ret;

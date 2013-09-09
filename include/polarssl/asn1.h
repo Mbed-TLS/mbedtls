@@ -319,6 +319,14 @@ asn1_named_data *asn1_find_named_data( asn1_named_data *list,
  */
 void asn1_free_named_data( asn1_named_data *entry );
 
+/**
+ * Free all entries in a asn1_named_data list
+ * Head will be set to NULL
+ *
+ * \param head  Pointer to the head of the list of named data entries to free
+ */
+void asn1_free_named_data_list( asn1_named_data **head );
+
 #ifdef __cplusplus
 }
 #endif

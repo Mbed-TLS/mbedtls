@@ -56,14 +56,8 @@ static int x509write_string_to_names( asn1_named_data **head, char *name )
     int in_tag = 1;
     asn1_named_data *cur;
 
-    // Clear existing chain if present
-    //
-    while( *head != NULL )
-    {
-        cur = *head;
-        *head = cur->next;
-        polarssl_free( cur );
-    }
+    /* Clear existing chain if present */
+    asn1_free_named_data_list( head );
 
     while( c <= end )
     {

@@ -1697,6 +1697,7 @@ int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
         return( ret );
     }
     else
+#endif
     {
         /*
          * nope, copy the raw DER data
@@ -1710,16 +1711,6 @@ int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
 
         buflen = 0;
     }
-#else
-    p = (unsigned char *) polarssl_malloc( len = buflen );
-
-    if( p == NULL )
-        return( POLARSSL_ERR_X509_MALLOC_FAILED );
-
-    memcpy( p, buf, buflen );
-
-    buflen = 0;
-#endif
 
     csr->raw.p = p;
     csr->raw.len = len;
@@ -1926,6 +1917,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         return( ret );
     }
     else
+#endif
     {
         /*
          * nope, copy the raw DER data
@@ -1939,16 +1931,6 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
 
         buflen = 0;
     }
-#else
-    p = (unsigned char *) polarssl_malloc( len = buflen );
-
-    if( p == NULL )
-        return( POLARSSL_ERR_X509_MALLOC_FAILED );
-
-    memcpy( p, buf, buflen );
-
-    buflen = 0;
-#endif
 
     crl->raw.p = p;
     crl->raw.len = len;

@@ -297,7 +297,7 @@ int main( int argc, char *argv[] )
 
         memset( buf, 0, sizeof( buf ) );
         memset( tmp, 0, sizeof( tmp ) );
-        gcm_init( &gcm, tmp, keysize );
+        gcm_init( &gcm, POLARSSL_CIPHER_ID_AES, tmp, keysize );
 
         set_alarm( 1 );
 

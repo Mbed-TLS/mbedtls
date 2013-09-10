@@ -116,7 +116,6 @@ int blowfish_crypt_cbc( blowfish_context *ctx,
 /**
  * \brief          Blowfish CFB buffer encryption/decryption.
  *
- * both 
  * \param ctx      Blowfish context
  * \param mode     BLOWFISH_ENCRYPT or BLOWFISH_DECRYPT
  * \param length   length of the input data
@@ -140,6 +139,7 @@ int blowfish_crypt_cfb64( blowfish_context *ctx,
  *
  * Warning: You have to keep the maximum use of your counter in mind!
  *
+ * \param ctx           Blowfish context
  * \param length        The length of the data
  * \param nc_off        The offset in the current stream_block (for resuming
  *                      within current cipher stream). The offset pointer to

@@ -84,6 +84,7 @@ typedef struct _x509_csr
 }
 x509_csr;
 
+/* \} name */
 /* \} addtogroup x509_module */
 
 /**
@@ -121,7 +122,7 @@ void x509write_csr_set_rsa_key( x509_csr *ctx, rsa_context *rsa );
  *                  (e.g. POLARSSL_MD_SHA1)
  *
  * \param ctx       CSR context to use
- * \param md_ald    MD algorithm to use
+ * \param md_alg    MD algorithm to use
  */
 void x509write_csr_set_md_alg( x509_csr *ctx, md_type_t md_alg );
 
@@ -206,7 +207,7 @@ int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size );
  *                        return value to determine where you should start
  *                        using the buffer
  *
- * \param rsa       CSR to write away
+ * \param ctx       CSR to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
@@ -242,7 +243,7 @@ int x509write_key_pem( rsa_context *rsa, unsigned char *buf, size_t size );
  * \brief           Write a CSR (Certificate Signing Request) to a
  *                  PEM string
  *
- * \param rsa       CSR to write away
+ * \param ctx       CSR to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *

@@ -315,7 +315,7 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *P,
  * \note            Index should be a value of RFC 4492's enum NamdeCurve,
  *                  possibly in the form of a POLARSSL_ECP_DP_XXX macro.
  */
-int ecp_use_known_dp( ecp_group *grp, ecp_group_id id );
+int ecp_use_known_dp( ecp_group *grp, ecp_group_id index );
 
 /**
  * \brief           Set a group from a TLS ECParameters record
@@ -365,8 +365,9 @@ int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
  * \param grp       ECP group used
  * \param pt        Point to export
  * \param format    Export format
+ * \param olen      length of data written
  * \param buf       Buffer to write to
- * \param len       Buffer length
+ * \param blen      Buffer length
  *
  * \return          0 if successful,
  *                  or POLARSSL_ERR_ECP_BAD_INPUT_DATA

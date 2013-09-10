@@ -134,7 +134,7 @@ int camellia_crypt_cbc( camellia_context *ctx,
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
- * 
+ *
  * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH
  */
 int camellia_crypt_cfb128( camellia_context *ctx,
@@ -154,6 +154,7 @@ int camellia_crypt_cfb128( camellia_context *ctx,
  * both encryption and decryption. So a context initialized with
  * camellia_setkey_enc() for both CAMELLIA_ENCRYPT and CAMELLIA_DECRYPT.
  *
+ * \param ctx           CAMELLIA context
  * \param length        The length of the data
  * \param nc_off        The offset in the current stream_block (for resuming
  *                      within current cipher stream). The offset pointer to

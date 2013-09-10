@@ -103,8 +103,9 @@ void ecdh_free( ecdh_context *ctx );
  * \brief           Setup and write the ServerKeyExhange parameters
  *
  * \param ctx       ECDH context
- * \param buf       destination buffer
  * \param olen      number of chars written
+ * \param buf       destination buffer
+ * \param blen      length of buffer
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
@@ -122,7 +123,7 @@ int ecdh_make_params( ecdh_context *ctx, size_t *olen,
  * \brief           Parse the ServerKeyExhange parameters
  *
  * \param ctx       ECDH context
- * \param buf       $(start of input buffer)
+ * \param buf       pointer to start of input buffer
  * \param end       one past end of buffer
  *
  * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
@@ -137,6 +138,8 @@ int ecdh_read_params( ecdh_context *ctx,
  * \param olen      number of bytes actually written
  * \param buf       destination buffer
  * \param blen      size of destination buffer
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
  *
  * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
  */

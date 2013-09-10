@@ -1,5 +1,5 @@
 /**
- * \file pkcs#5.h
+ * \file pkcs5.h
  *
  * \brief PKCS#5 functions
  *
@@ -59,7 +59,7 @@ extern "C" {
  * \param pbe_params the ASN.1 algorithm parameters
  * \param mode       either PKCS5_DECRYPT or PKCS5_ENCRYPT
  * \param pwd        password to use when generating key
- * \param plen       length of password
+ * \param pwdlen     length of password
  * \param data       data to process
  * \param datalen    length of data
  * \param output     output buffer

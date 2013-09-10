@@ -413,7 +413,7 @@ int oid_get_sig_alg_desc( const asn1_buf *oid, const char **desc );
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
 int oid_get_oid_by_sig_alg( pk_type_t pk_alg, md_type_t md_alg,
-                            const char **oid_str );
+                            const char **oid );
 
 /**
  * \brief          Translate hash algorithm OID into md_type
@@ -444,7 +444,7 @@ int oid_get_extended_key_usage( const asn1_buf *oid, const char **desc );
  *
  * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
  */
-int oid_get_oid_by_md( md_type_t md_alg, const char **oid_str );
+int oid_get_oid_by_md( md_type_t md_alg, const char **oid );
 
 #if defined(POLARSSL_CIPHER_C)
 /**

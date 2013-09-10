@@ -132,7 +132,7 @@ int ecdsa_read_signature( ecdsa_context *ctx,
  * \brief           Generate an ECDSA keypair on the given curve
  *
  * \param ctx       ECDSA context in which the keypair should be stored
- * \param grp       Group (elliptic curve) to use. One of the various
+ * \param gid       Group (elliptic curve) to use. One of the various
  *                  POLARSSL_ECP_DP_XXX macros depending on configuration.
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter

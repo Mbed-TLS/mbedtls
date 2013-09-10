@@ -184,7 +184,7 @@ typedef size_t (*pk_rsa_alt_key_len_func)( void *ctx );
 /**
  * \brief           Return information associated with the given PK type
  *
- * \param type      PK type to search for.
+ * \param pk_type   PK type to search for.
  *
  * \return          The PK info associated with the type or NULL if not found.
  */
@@ -321,6 +321,8 @@ int pk_sign( pk_context *ctx, md_type_t md_alg,
  * \param output    Decrypted output
  * \param olen      Decrypted message lenght
  * \param osize     Size of the output buffer
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
  *
  * \return          0 on success, or a specific error code.
  */
@@ -338,6 +340,8 @@ int pk_decrypt( pk_context *ctx,
  * \param output    Encrypted output
  * \param olen      Encrypted output length
  * \param osize     Size of the output buffer
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
  *
  * \return          0 on success, or a specific error code.
  */

@@ -201,6 +201,7 @@ int ctr_drbg_random( void *p_rng,
 /**
  * \brief               Write a seed file
  *
+ * \param ctx           CTR_DRBG context
  * \param path          Name of the file
  *
  * \return              0 if successful, 1 on file error, or
@@ -212,6 +213,7 @@ int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path );
  * \brief               Read and update a seed file. Seed is added to this
  *                      instance
  *
+ * \param ctx           CTR_DRBG context
  * \param path          Name of the file
  *
  * \return              0 if successful, 1 on file error,

@@ -479,6 +479,7 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
 /**
  * \brief               Set the initialization vector (IV) or nonce
  *
+ * \param ctx           generic cipher context
  * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
  * \param iv_len        IV length for ciphers with variable-size IV;
  *                      discarded by ciphers with fixed-size IV.
@@ -579,6 +580,7 @@ int cipher_finish( cipher_context_t *ctx,
  *                      No effect for other ciphers.
  *                      Must be called after cipher_finish().
  *
+ * \param ctx           Generic cipher context
  * \param tag           buffer to write the tag
  * \param tag_len       Length of the tag to write
  *
@@ -593,6 +595,7 @@ int cipher_write_tag( cipher_context_t *ctx,
  *                      Calling time depends on the cipher:
  *                      for GCM, must be called after cipher_finish().
  *
+ * \param ctx           Generic cipher context
  * \param tag           Buffer holding the tag
  * \param tag_len       Length of the tag to check
  *

@@ -411,17 +411,31 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  * \param R         Destination point
  * \param m         Integer by which to multiply
  * \param P         Point to multiply
+ * \param f_rng     RNG function (see notes)
+ * \param p_rng     RNG parameter
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
- *                  POLARSSL_ERR_ECP_GENERIC if m < 0 of m has greater bit
- *                  length than N, the number of points in the group.
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if m < 0 of m has greater
+ *                  bit length than N, the number of points in the group.
  *
- * \note            This function executes a constant number of operations
- *                  for random m in the allowed range.
+ * \note            In order to prevent simple timing attacks, this function
+ *                  executes a constant number of operations (that is, point
+ *                  doubling and addition of distinct points) for random m in
+ *                  the allowed range.
+ *
+ * \note            If f_rng is not NULL, it is used to randomize projective
+ *                  coordinates of indermediate results, in order to prevent
+ *                  more elaborate timing attacks relying on intermediate
+ *                  operations. (This is a prophylactic measure since no such
+ *                  attack has been published yet.) Since this contermeasure
+ *                  has very low overhead, it is recommended to always provide
+ *                  a non-NULL f_rng parameter when using secret inputs.
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
-             const mpi *m, const ecp_point *P );
+             const mpi *m, const ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
 
 /**
  * \brief           Check that a point is a valid public key on this curve

@@ -70,12 +70,20 @@ int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
  * \param z         Destination MPI (shared secret)
  * \param Q         Public key from other party
  * \param d         Our secret exponent
+ * \param f_rng     RNG function (see notes)
+ * \param p_rng     RNG parameter
  *
  * \return          0 if successful,
  *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ *
+ * \note            If f_rng is not NULL, it is used to implement
+ *                  countermeasures against potential elaborate timing
+ *                  attacks, see \c ecp_mul() for details.
  */
 int ecdh_compute_shared( const ecp_group *grp, mpi *z,
-                         const ecp_point *Q, const mpi *d );
+                         const ecp_point *Q, const mpi *d,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
 
 /**
  * \brief           Initialize context
@@ -156,11 +164,15 @@ int ecdh_read_public( ecdh_context *ctx,
  * \param olen      number of bytes written
  * \param buf       destination buffer
  * \param blen      buffer length
+ * \param f_rng     RNG function, see notes for \c ecdh_compute_shared()
+ * \param p_rng     RNG parameter
  *
  * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
  */
 int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
-                      unsigned char *buf, size_t blen );
+                      unsigned char *buf, size_t blen,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng );
 
 /**
  * \brief          Checkup routine

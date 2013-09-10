@@ -50,7 +50,9 @@ int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
  * Compute shared secret (SEC1 3.3.1)
  */
 int ecdh_compute_shared( const ecp_group *grp, mpi *z,
-                         const ecp_point *Q, const mpi *d )
+                         const ecp_point *Q, const mpi *d,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng )
 {
     int ret;
     ecp_point P;
@@ -62,7 +64,7 @@ int ecdh_compute_shared( const ecp_group *grp, mpi *z,
      */
     MPI_CHK( ecp_check_pubkey( grp, Q ) );
 
-    MPI_CHK( ecp_mul( grp, &P, d, Q ) );
+    MPI_CHK( ecp_mul( grp, &P, d, Q, f_rng, p_rng ) );
 
     if( ecp_is_zero( &P ) )
     {
@@ -202,16 +204,20 @@ int ecdh_read_public( ecdh_context *ctx,
  * Derive and export the shared secret
  */
 int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
-                      unsigned char *buf, size_t blen )
+                      unsigned char *buf, size_t blen,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng )
 {
     int ret;
 
     if( ctx == NULL )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = ecdh_compute_shared( &ctx->grp, &ctx->z, &ctx->Qp, &ctx->d ) )
-                != 0 )
+    if( ( ret = ecdh_compute_shared( &ctx->grp, &ctx->z, &ctx->Qp, &ctx->d,
+                                     f_rng, p_rng ) ) != 0 )
+    {
         return( ret );
+    }
 
     if( mpi_size( &ctx->z ) > blen )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );

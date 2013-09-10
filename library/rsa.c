@@ -253,6 +253,41 @@ cleanup:
     return( 0 );
 }
 
+#if !defined(POLARSSL_RSA_NO_CRT)
+/*
+ * Generate or update blinding values, see section 10 of:
+ *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
+ *  DSS, and other systems. In : Advances in Cryptology—CRYPTO’96. Springer
+ *  Berlin Heidelberg, 1996. p. 104-113.
+ */
+static int rsa_prepare_blinding( rsa_context *ctx,
+                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+
+    if( ctx->Vf.p != NULL )
+    {
+        /* We already have blinding values, just update them by squaring */
+        MPI_CHK( mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
+        MPI_CHK( mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->P ) );
+        MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
+        MPI_CHK( mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->P ) );
+
+        return( 0 );
+    }
+
+    /* Unblinding value: Vf = random number */
+    MPI_CHK( mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );
+
+    /* Blinding value: Vi =  Vf^(-e) mod N */
+    MPI_CHK( mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N ) );
+    MPI_CHK( mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
+
+cleanup:
+    return( ret );
+}
+#endif
+
 /*
  * Do an RSA private key operation
  */
@@ -265,11 +300,8 @@ int rsa_private( rsa_context *ctx,
     int ret;
     size_t olen;
     mpi T, T1, T2;
-    mpi A, X;
-
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
-    mpi_init( &A ); mpi_init( &X );
 
     MPI_CHK( mpi_read_binary( &T, input, ctx->len ) );
     if( mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
@@ -284,14 +316,12 @@ int rsa_private( rsa_context *ctx,
     if( f_rng != NULL )
     {
         /*
-         * RSA Blinding
-         * A = rnd MPI
-         * T = A^E * T mod N
+         * Blinding
+         * T = T * Vi mod N
          */
-        MPI_CHK( mpi_fill_random( &A, ctx->len - 1, f_rng, p_rng ) );
-        MPI_CHK( mpi_exp_mod( &X, &A, &ctx->E, &ctx->N, NULL ) );
-        MPI_CHK( mpi_mul_mpi( &X, &X, &T ) );
-        MPI_CHK( mpi_mod_mpi( &T, &X, &ctx->N ) );
+        MPI_CHK( rsa_prepare_blinding( ctx, f_rng, p_rng ) );
+        MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vi ) );
+        MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
     /*
@@ -320,10 +350,9 @@ int rsa_private( rsa_context *ctx,
     {
         /*
          * Unblind
-         * T = T / A mod N
+         * T = T * Vf mod N
          */
-        MPI_CHK( mpi_inv_mod( &A, &A, &ctx->N ) );
-        MPI_CHK( mpi_mul_mpi( &T, &T, &A ) );
+        MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vf ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 #endif
@@ -334,7 +363,6 @@ int rsa_private( rsa_context *ctx,
 cleanup:
 
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
-    mpi_free( &A ); mpi_free( &X );
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PRIVATE_FAILED + ret );
@@ -1280,6 +1308,9 @@ int rsa_copy( rsa_context *dst, const rsa_context *src )
     MPI_CHK( mpi_copy( &dst->RP, &src->RP ) );
     MPI_CHK( mpi_copy( &dst->RQ, &src->RQ ) );
 
+    MPI_CHK( mpi_copy( &dst->Vi, &src->Vi ) );
+    MPI_CHK( mpi_copy( &dst->Vf, &src->Vf ) );
+
     dst->padding = src->padding;
     dst->hash_id = src->padding;
 
@@ -1295,6 +1326,7 @@ cleanup:
  */
 void rsa_free( rsa_context *ctx )
 {
+    mpi_free( &ctx->Vi ); mpi_free( &ctx->Vf );
     mpi_free( &ctx->RQ ); mpi_free( &ctx->RP ); mpi_free( &ctx->RN );
     mpi_free( &ctx->QP ); mpi_free( &ctx->DQ ); mpi_free( &ctx->DP );
     mpi_free( &ctx->Q  ); mpi_free( &ctx->P  ); mpi_free( &ctx->D );

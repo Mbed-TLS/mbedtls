@@ -161,9 +161,12 @@ int ecdsa_verify( const ecp_group *grp,
 
     /*
      * Step 5: R = u1 G + u2 Q
+     *
+     * Since we're not using any secret data, no need to pass a RNG to
+     * ecp_mul() for countermesures.
      */
-    MPI_CHK( ecp_mul( grp, &R, &u1, &grp->G ) );
-    MPI_CHK( ecp_mul( grp, &P, &u2, Q ) );
+    MPI_CHK( ecp_mul( grp, &R, &u1, &grp->G, NULL, NULL ) );
+    MPI_CHK( ecp_mul( grp, &P, &u2, Q, NULL, NULL ) );
     MPI_CHK( ecp_add( grp, &R, &R, &P ) );
 
     if( ecp_is_zero( &R ) )
@@ -217,8 +220,8 @@ int ecdsa_write_signature( ecdsa_context *ctx,
                            void *p_rng )
 {
     int ret;
-    unsigned char buf[MAX_SIG_LEN];
-    unsigned char *p = buf + MAX_SIG_LEN - 1;
+    unsigned char buf[MAX_SIG_LEN + 3];
+    unsigned char *p = buf + MAX_SIG_LEN;
     size_t len = 0;
 
     if( ( ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,

@@ -8,7 +8,7 @@
  */
 
 /* BEGIN_CASE */
-void dhm_do_dhm( int NOTUSED, int radix_P, char *input_P,
+void dhm_do_dhm( int radix_P, char *input_P,
                  int radix_G, char *input_G )
 {
     dhm_context ctx_srv;
@@ -25,8 +25,6 @@ void dhm_do_dhm( int NOTUSED, int radix_P, char *input_P,
     int x_size;
     rnd_pseudo_info rnd_info;
 
-    ((void)NOTUSED);
-
     memset( &ctx_srv, 0x00, sizeof( dhm_context ) );
     memset( &ctx_cli, 0x00, sizeof( dhm_context ) );
     memset( ske, 0x00, 1000 );
@@ -35,22 +33,57 @@ void dhm_do_dhm( int NOTUSED, int radix_P, char *input_P,
     memset( sec_cli, 0x00, 1000 );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
+    /*
+     * Set params
+     */
     TEST_ASSERT( mpi_read_string( &ctx_srv.P, radix_P, input_P ) == 0 );
     TEST_ASSERT( mpi_read_string( &ctx_srv.G, radix_G, input_G ) == 0 );
     x_size = mpi_size( &ctx_srv.P );
+    pub_cli_len = x_size;
+
+    /*
+     * First key exchange
+     */
+    TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    ske[ske_len++] = 0;
+    ske[ske_len++] = 0;
+    TEST_ASSERT( dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
+
+    TEST_ASSERT( dhm_make_public( &ctx_cli, x_size, pub_cli, pub_cli_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( dhm_read_public( &ctx_srv, pub_cli, pub_cli_len ) == 0 );
+
+    TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len, NULL, NULL ) == 0 );
+
+    TEST_ASSERT( sec_srv_len == sec_cli_len );
+    TEST_ASSERT( sec_srv_len != 0 );
+    TEST_ASSERT( memcmp( sec_srv, sec_cli, sec_srv_len ) == 0 );
+
+    /* Re-do calc_secret on server to test update of blinding values */
+    sec_srv_len = 1000;
+    TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+
+    TEST_ASSERT( sec_srv_len == sec_cli_len );
+    TEST_ASSERT( sec_srv_len != 0 );
+    TEST_ASSERT( memcmp( sec_srv, sec_cli, sec_srv_len ) == 0 );
+
+    /*
+     * Second key exchange to test change of blinding values on server
+     */
+    sec_cli_len = 1000;
+    sec_srv_len = 1000;
+    p = ske;
 
     TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
     TEST_ASSERT( dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
 
-    pub_cli_len = x_size;
     TEST_ASSERT( dhm_make_public( &ctx_cli, x_size, pub_cli, pub_cli_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
-
     TEST_ASSERT( dhm_read_public( &ctx_srv, pub_cli, pub_cli_len ) == 0 );
 
-    TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len ) == 0 );
-    TEST_ASSERT( dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len ) == 0 );
+    TEST_ASSERT( dhm_calc_secret( &ctx_srv, sec_srv, &sec_srv_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( dhm_calc_secret( &ctx_cli, sec_cli, &sec_cli_len, NULL, NULL ) == 0 );
 
     TEST_ASSERT( sec_srv_len == sec_cli_len );
     TEST_ASSERT( sec_srv_len != 0 );

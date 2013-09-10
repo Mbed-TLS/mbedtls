@@ -28,6 +28,29 @@ int main( int argc, char *argv[] )
 
 #else
 
+static int myrand( void *rng_state, unsigned char *output, size_t len )
+{
+    size_t use_len;
+    int rnd;
+
+    if( rng_state != NULL )
+        rng_state  = NULL;
+
+    while( len > 0 )
+    {
+        use_len = len;
+        if( use_len > sizeof(int) )
+            use_len = sizeof(int);
+
+        rnd = rand();
+        memcpy( output, &rnd, use_len );
+        output += use_len;
+        len -= use_len;
+    }
+
+    return( 0 );
+}
+
 static void dhm_bench_case( const char *s, const char *p,
                             const char *g, const char *x )
 {
@@ -161,7 +184,7 @@ static void ecp_bench_case( size_t dp, const char *s, const char *m )
     set_alarm( 3 );
 
     for( i = 1; ! alarmed; i++ )
-        ecp_mul( &grp, &R, &M, &grp.G );
+        ecp_mul( &grp, &R, &M, &grp.G, myrand, NULL );
 
     printf( "%9lu mul/s\n", i / 3 );
 

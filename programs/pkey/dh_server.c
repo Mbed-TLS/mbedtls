@@ -242,7 +242,7 @@ int main( int argc, char *argv[] )
     printf( "\n  . Shared secret: " );
     fflush( stdout );
 
-    if( ( ret = dhm_calc_secret( &dhm, buf, &n ) ) != 0 )
+    if( ( ret = dhm_calc_secret( &dhm, buf, &n, NULL, NULL ) ) != 0 )
     {
         printf( " failed\n  ! dhm_calc_secret returned %d\n\n", ret );
         goto exit;

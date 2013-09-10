@@ -30,6 +30,17 @@
  * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants
+ *
+ * [1] OKEYA, Katsuyuki and TAKAGI, Tsuyoshi. The width-w NAF method provides
+ *     small memory and fast elliptic scalar multiplications secure against
+ *     side channel attacks. In : Topics in Cryptology—CT-RSA 2003. Springer
+ *     Berlin Heidelberg, 2003. p. 328-343.
+ *     <http://rd.springer.com/chapter/10.1007/3-540-36563-X_23>.
+ *
+ * [2] CORON, Jean-Sébastien. Resistance against differential power analysis
+ *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
+ *     Embedded Systems. Springer Berlin Heidelberg, 1999. p. 292-302.
+ *     <http://link.springer.com/chapter/10.1007/3-540-48059-5_25>
  */
 
 #include "polarssl/config.h"
@@ -51,7 +62,7 @@
 #if defined(POLARSSL_SELF_TEST)
 /*
  * Counts of point addition and doubling operations.
- * Used to test resistance of point multiplication to SPA/timing attacks.
+ * Used to test resistance of point multiplication to simple timing attacks.
  */
 unsigned long add_count, dbl_count;
 #endif
@@ -777,7 +788,7 @@ cleanup:
  * (See for example Cohen's "A Course in Computational Algebraic Number
  * Theory", Algorithm 10.3.4.)
  *
- * Warning: fails if one of the points is zero!
+ * Warning: fails (returning an error) if one of the points is zero!
  * This should never happen, see choice of w in ecp_mul().
  */
 static int ecp_normalize_many( const ecp_group *grp,
@@ -1049,11 +1060,10 @@ cleanup:
 
 /*
  * Compute a modified width-w non-adjacent form (NAF) of a number,
- * with a fixed pattern for resistance to SPA/timing attacks,
- * see <http://rd.springer.com/chapter/10.1007/3-540-36563-X_23>.
- * (The resulting multiplication algorithm can also been seen as a
- * modification of 2^w-ary multiplication, with signed coefficients,
- * all of them odd.)
+ * with a fixed pattern for resistance to simple timing attacks (even SPA),
+ * see [1]. (The resulting multiplication algorithm can also been seen as a
+ * modification of 2^w-ary multiplication, with signed coefficients, all of
+ * them odd.)
  *
  * Input:
  * m must be an odd positive mpi less than w * k bits long
@@ -1145,6 +1155,51 @@ cleanup:
 }
 
 /*
+ * Randomize jacobian coordinates:
+ * (X, Y, Z) -> (l^2 X, l^3 Y, l Z) for random l
+ * This is sort of the reverse operation of ecp_normalize().
+ */
+static int ecp_randomize_coordinates( const ecp_group *grp, ecp_point *pt,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+    mpi l, ll;
+    size_t p_size = (grp->pbits + 7) / 8;
+    int count = 0;
+
+    mpi_init( &l ); mpi_init( &ll );
+
+    /* Generate l such that 1 < l < p */
+    do
+    {
+        mpi_fill_random( &l, p_size, f_rng, p_rng );
+
+        while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
+            mpi_shift_r( &l, 1 );
+
+        if( count++ > 10 )
+            return( POLARSSL_ERR_ECP_GENERIC );
+    }
+    while( mpi_cmp_int( &l, 1 ) <= 0 );
+
+    /* Z = l * Z */
+    MPI_CHK( mpi_mul_mpi( &pt->Z,   &pt->Z,     &l  ) ); MOD_MUL( pt->Z );
+
+    /* X = l^2 * X */
+    MPI_CHK( mpi_mul_mpi( &ll,      &l,         &l  ) ); MOD_MUL( ll );
+    MPI_CHK( mpi_mul_mpi( &pt->X,   &pt->X,     &ll ) ); MOD_MUL( pt->X );
+
+    /* Y = l^3 * Y */
+    MPI_CHK( mpi_mul_mpi( &ll,      &ll,        &l  ) ); MOD_MUL( ll );
+    MPI_CHK( mpi_mul_mpi( &pt->Y,   &pt->Y,     &ll ) ); MOD_MUL( pt->Y );
+
+cleanup:
+    mpi_free( &l ); mpi_free( &ll );
+
+    return( ret );
+}
+
+/*
  * Maximum length of the precomputed table
  */
 #define MAX_PRE_LEN     ( 1 << (POLARSSL_ECP_WINDOW_SIZE - 1) )
@@ -1159,14 +1214,19 @@ cleanup:
 /*
  * Integer multiplication: R = m * P
  *
- * Based on fixed-pattern width-w NAF, see comments of ecp_w_naf_fixed()
- * and <http://rd.springer.com/chapter/10.1007/3-540-36563-X_23>.
+ * Based on fixed-pattern width-w NAF, see comments of ecp_w_naf_fixed().
  *
  * This function executes a fixed number of operations for
  * random m in the range 0 .. 2^nbits - 1.
+ *
+ * As an additional countermeasure against potential elaborate timing attacks,
+ * we randomize coordinates after each addition. This was suggested as a
+ * countermeasure against DPA in 5.3 of [2] (with the obvious adaptation that
+ * we use jacobian coordinates, not standard projective coordinates).
  */
 int ecp_mul( const ecp_group *grp, ecp_point *R,
-             const mpi *m, const ecp_point *P )
+             const mpi *m, const ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
     unsigned char w, m_is_odd;
@@ -1176,17 +1236,17 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
     mpi M;
 
     if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     w = grp->nbits >= 521 ? 6 :
         grp->nbits >= 224 ? 5 :
-        4;
+                            4;
 
     /*
      * Make sure w is within the limits.
      * The last test ensures that none of the precomputed points is zero,
      * which wouldn't be handled correctly by ecp_normalize_many().
-     * It is only useful for small curves, as used in the test suite.
+     * It is only useful for very small curves, as used in the test suite.
      */
     if( w > POLARSSL_ECP_WINDOW_SIZE )
         w = POLARSSL_ECP_WINDOW_SIZE;
@@ -1236,6 +1296,10 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
         {
             MPI_CHK( ecp_add_mixed( grp, &Q, &Q, &T[ naf[i] ], +1 ) );
         }
+
+        /* Countermeasure (see comments above) */
+        if( f_rng != NULL )
+            ecp_randomize_coordinates( grp, &Q, f_rng, p_rng );
 
         if( i == 0 )
             break;
@@ -1348,7 +1412,7 @@ int ecp_gen_keypair( const ecp_group *grp, mpi *d, ecp_point *Q,
     }
     while( mpi_cmp_int( d, 1 ) < 0 );
 
-    return( ecp_mul( grp, Q, d, &grp->G ) );
+    return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -1402,12 +1466,12 @@ int ecp_self_test( int verbose )
 #endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
     if( verbose != 0 )
-        printf( "  ECP test #1 (SPA resistance): " );
+        printf( "  ECP test #1 (resistance to simple timing attacks): " );
 
     add_count = 0;
     dbl_count = 0;
     MPI_CHK( mpi_read_string( &m, 16, exponents[0] ) );
-    MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G ) );
+    MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) );
 
     for( i = 1; i < sizeof( exponents ) / sizeof( exponents[0] ); i++ )
     {
@@ -1417,7 +1481,7 @@ int ecp_self_test( int verbose )
         dbl_count = 0;
 
         MPI_CHK( mpi_read_string( &m, 16, exponents[i] ) );
-        MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G ) );
+        MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) );
 
         if( add_count != add_c_prev || dbl_count != dbl_c_prev )
         {

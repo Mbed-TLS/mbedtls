@@ -494,7 +494,7 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
 #endif
 
 #if defined(POLARSSL_DES_C)
-    if( cipher_id == POLARSSL_CIPHER_ID_DES )
+    if( cipher_id == POLARSSL_CIPHER_ID_DES && key_length == 64 )
     {
         if( mode == POLARSSL_MODE_ECB )
             return &des_ecb_info;
@@ -524,13 +524,13 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
 #endif
 
 #if defined(POLARSSL_ARC4_C)
-    if( cipher_id == POLARSSL_CIPHER_ID_ARC4 )
-        if( mode == POLARSSL_MODE_STREAM )
+    if( cipher_id == POLARSSL_CIPHER_ID_ARC4 &&
+        key_length == 128 && mode == POLARSSL_MODE_STREAM )
             return &arc4_128_info;
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
-    if( cipher_id == POLARSSL_CIPHER_ID_BLOWFISH )
+    if( cipher_id == POLARSSL_CIPHER_ID_BLOWFISH && key_length == 128 )
     {
         if( mode == POLARSSL_MODE_ECB )
             return &blowfish_ecb_info;

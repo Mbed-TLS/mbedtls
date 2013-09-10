@@ -255,12 +255,26 @@ cleanup:
 
 #if !defined(POLARSSL_RSA_NO_CRT)
 /*
- * Generate blinding values
+ * Generate or update blinding values, see section 10 of:
+ *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
+ *  DSS, and other systems. In : Advances in Cryptology—CRYPTO’96. Springer
+ *  Berlin Heidelberg, 1996. p. 104-113.
  */
 static int rsa_prepare_blinding( rsa_context *ctx,
                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
+
+    if( ctx->Vf.p != NULL )
+    {
+        /* We already have blinding values, just update them by squaring */
+        MPI_CHK( mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
+        MPI_CHK( mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->P ) );
+        MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
+        MPI_CHK( mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->P ) );
+
+        return( 0 );
+    }
 
     /* Unblinding value: Vf = random number */
     MPI_CHK( mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );

@@ -22,6 +22,7 @@ Features
    * Support for session tickets (RFC 5077)
    * Certificate Request (CSR) generation with extensions (key_usage,
      ns_cert_type)
+   * Optional blinding for RSA, DHM and EC
 
 Changes
    * Ability to enable / disable SSL v3 / TLS 1.0 / TLS 1.1 / TLS 1.2

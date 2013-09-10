@@ -117,6 +117,9 @@ int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
     if( cipher_info == NULL )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
 
+    if( cipher_info->block_size != 16 )
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+
     if( ( ret = cipher_init_ctx( &ctx->cipher_ctx, cipher_info ) ) != 0 )
         return( ret );
 

@@ -907,10 +907,9 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
         if( md_info == NULL )
             return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-        if( oid_get_oid_by_md( md_alg, &oid ) != 0 )
+        if( oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )
             return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
-        oid_size = strlen( oid );
         nb_pad -= 10 + oid_size;
 
         hashlen = md_get_size( md_info );

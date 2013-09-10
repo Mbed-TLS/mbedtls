@@ -581,7 +581,8 @@ static int x509_write_names( unsigned char **p, unsigned char *start,
 }
 
 static int x509_write_sig( unsigned char **p, unsigned char *start,
-                           const char *oid, unsigned char *sig, size_t size )
+                           const char *oid, size_t oid_len,
+                           unsigned char *sig, size_t size )
 {
     int ret;
     size_t len = 0;
@@ -602,7 +603,7 @@ static int x509_write_sig( unsigned char **p, unsigned char *start,
     // Write OID
     //
     ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( p, start, oid,
-                                                        strlen( oid ) ) );
+                                                        oid_len ) );
 
     return( len );
 }
@@ -693,6 +694,7 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
 {
     int ret;
     const char *sig_oid;
+    size_t sig_oid_len = 0;
     unsigned char *c, *c2;
     unsigned char hash[64];
     unsigned char sig[POLARSSL_MPI_MAX_SIZE];
@@ -768,10 +770,12 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
 
     // Generate correct OID
     //
-    ret = oid_get_oid_by_sig_alg( POLARSSL_PK_RSA, ctx->md_alg, &sig_oid );
+    ret = oid_get_oid_by_sig_alg( POLARSSL_PK_RSA, ctx->md_alg, &sig_oid,
+                                  &sig_oid_len );
 
     c2 = buf + size - 1;
-    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig, ctx->rsa->len ) );
+    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig_oid_len,
+                                           sig, ctx->rsa->len ) );
 
     c2 -= len;
     memcpy( c2, c, len );
@@ -787,6 +791,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
 {
     int ret;
     const char *sig_oid;
+    size_t sig_oid_len = 0;
     unsigned char *c, *c2;
     unsigned char hash[64];
     unsigned char sig[POLARSSL_MPI_MAX_SIZE];
@@ -798,7 +803,8 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
 
     // Generate correct OID
     //
-    ret = oid_get_oid_by_sig_alg( POLARSSL_PK_RSA, ctx->md_alg, &sig_oid );
+    ret = oid_get_oid_by_sig_alg( POLARSSL_PK_RSA, ctx->md_alg, &sig_oid,
+                                  &sig_oid_len );
     if( ret != 0 )
         return( ret );
 
@@ -893,7 +899,8 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     rsa_pkcs1_sign( ctx->issuer_key, NULL, NULL, RSA_PRIVATE, ctx->md_alg, 0, hash, sig );
 
     c2 = buf + size - 1;
-    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig, ctx->issuer_key->len ) );
+    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig_oid_len,
+                                           sig, ctx->issuer_key->len ) );
 
     c2 -= len;
     memcpy( c2, c, len );

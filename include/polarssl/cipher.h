@@ -70,6 +70,9 @@ typedef enum {
 typedef enum {
     POLARSSL_CIPHER_NONE = 0,
     POLARSSL_CIPHER_NULL,
+    POLARSSL_CIPHER_AES_128_ECB,
+    POLARSSL_CIPHER_AES_192_ECB,
+    POLARSSL_CIPHER_AES_256_ECB,
     POLARSSL_CIPHER_AES_128_CBC,
     POLARSSL_CIPHER_AES_192_CBC,
     POLARSSL_CIPHER_AES_256_CBC,
@@ -82,6 +85,9 @@ typedef enum {
     POLARSSL_CIPHER_AES_128_GCM,
     POLARSSL_CIPHER_AES_192_GCM,
     POLARSSL_CIPHER_AES_256_GCM,
+    POLARSSL_CIPHER_CAMELLIA_128_ECB,
+    POLARSSL_CIPHER_CAMELLIA_192_ECB,
+    POLARSSL_CIPHER_CAMELLIA_256_ECB,
     POLARSSL_CIPHER_CAMELLIA_128_CBC,
     POLARSSL_CIPHER_CAMELLIA_192_CBC,
     POLARSSL_CIPHER_CAMELLIA_256_CBC,
@@ -91,9 +97,13 @@ typedef enum {
     POLARSSL_CIPHER_CAMELLIA_128_CTR,
     POLARSSL_CIPHER_CAMELLIA_192_CTR,
     POLARSSL_CIPHER_CAMELLIA_256_CTR,
+    POLARSSL_CIPHER_DES_ECB,
     POLARSSL_CIPHER_DES_CBC,
+    POLARSSL_CIPHER_DES_EDE_ECB,
     POLARSSL_CIPHER_DES_EDE_CBC,
+    POLARSSL_CIPHER_DES_EDE3_ECB,
     POLARSSL_CIPHER_DES_EDE3_CBC,
+    POLARSSL_CIPHER_BLOWFISH_ECB,
     POLARSSL_CIPHER_BLOWFISH_CBC,
     POLARSSL_CIPHER_BLOWFISH_CFB64,
     POLARSSL_CIPHER_BLOWFISH_CTR,
@@ -102,6 +112,7 @@ typedef enum {
 
 typedef enum {
     POLARSSL_MODE_NONE = 0,
+    POLARSSL_MODE_ECB,
     POLARSSL_MODE_CBC,
     POLARSSL_MODE_CFB,
     POLARSSL_MODE_OFB,
@@ -144,6 +155,10 @@ typedef struct {
 
     /** Base Cipher type (e.g. POLARSSL_CIPHER_ID_AES) */
     cipher_id_t cipher;
+
+    /** Encrypt using ECB */
+    int (*ecb_func)( void *ctx, operation_t mode,
+            const unsigned char *input, unsigned char *output );
 
     /** Encrypt using CBC */
     int (*cbc_func)( void *ctx, operation_t mode, size_t length, unsigned char *iv,
@@ -269,6 +284,22 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name );
  *                      given cipher_type, or NULL if not found.
  */
 const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type );
+
+/**
+ * \brief               Returns the cipher information structure associated
+ *                      with the given cipher id, key size and mode.
+ *
+ * \param cipher_id     Id of the cipher to search for
+ *                      (e.g. POLARSSL_CIPHER_ID_AES)
+ * \param key_length    Length of the key in bits
+ * \param mode          Cipher mode (e.g. POLARSSL_MODE_CBC)
+ *
+ * \return              the cipher information structure associated with the
+ *                      given cipher_type, or NULL if not found.
+ */
+const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
+                                              int key_length,
+                                              const cipher_mode_t mode );
 
 /**
  * \brief               Initialises and fills the cipher context structure with
@@ -497,6 +528,8 @@ int cipher_update_ad( cipher_context_t *ctx,
  *                      that cannot be written immediately will either be added
  *                      to the next block, or flushed when cipher_final is
  *                      called.
+ *                      Exception: for POLARSSL_MODE_ECB, expects single block
+ *                                 in size (e.g. 16 bytes for AES)
  *
  * \param ctx           generic cipher context
  * \param input         buffer holding the input data

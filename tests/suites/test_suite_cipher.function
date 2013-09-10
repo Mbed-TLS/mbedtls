@@ -382,6 +382,53 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
 /* END_CASE */
 
 /* BEGIN_CASE */
+void test_vec_ecb( int cipher_id, int operation, char *hex_key,
+                   char *hex_input, char *hex_result,
+                   int finish_result )
+{
+    unsigned char key[50];
+    unsigned char input[16];
+    unsigned char result[16];
+    size_t key_len;
+    cipher_context_t ctx;
+    unsigned char output[32];
+    size_t outlen;
+
+    memset( key, 0x00, sizeof( key ) );
+    memset( input, 0x00, sizeof( input ) );
+    memset( result, 0x00, sizeof( result ) );
+    memset( output, 0x00, sizeof( output ) );
+
+    /* Prepare context */
+    TEST_ASSERT( 0 == cipher_init_ctx( &ctx,
+                                       cipher_info_from_type( cipher_id ) ) );
+
+    key_len = unhexify( key, hex_key );
+    TEST_ASSERT( unhexify( input, hex_input ) ==
+                 (int) cipher_get_block_size( &ctx ) );
+    TEST_ASSERT( unhexify( result, hex_result ) ==
+                 (int) cipher_get_block_size( &ctx ) );
+
+    TEST_ASSERT( 0 == cipher_setkey( &ctx, key, 8 * key_len, operation ) );
+
+    TEST_ASSERT( 0 == cipher_update( &ctx, input,
+                                     cipher_get_block_size( &ctx ),
+                                     output, &outlen ) );
+    TEST_ASSERT( outlen == cipher_get_block_size( &ctx ) );
+    TEST_ASSERT( finish_result == cipher_finish( &ctx, output + outlen,
+                                                 &outlen ) );
+    TEST_ASSERT( 0 == outlen );
+
+    /* check plaintext only if everything went fine */
+    if( 0 == finish_result )
+        TEST_ASSERT( 0 == memcmp( output, result,
+                                  cipher_get_block_size( &ctx ) ) );
+
+    cipher_free_ctx( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void set_padding( int cipher_id, int pad_mode, int ret )
 {
     const cipher_info_t *cipher_info;

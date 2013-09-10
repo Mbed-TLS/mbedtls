@@ -1,7 +1,7 @@
 /**
  * \file gcm.h
  *
- * \brief Galois/Counter mode for AES
+ * \brief Galois/Counter mode for 128-bit block ciphers
  *
  *  Copyright (C) 2006-2013, Brainspark B.V.
  *
@@ -27,7 +27,7 @@
 #ifndef POLARSSL_GCM_H
 #define POLARSSL_GCM_H
 
-#include "aes.h"
+#include "cipher.h"
 
 #ifdef _MSC_VER
 #include <basetsd.h>
@@ -50,7 +50,7 @@ extern "C" {
  * \brief          GCM context structure
  */
 typedef struct {
-    aes_context aes_ctx;        /*!< AES context used */
+    cipher_context_t cipher_ctx;/*!< cipher context used */
     uint64_t HL[16];            /*!< Precalculated HTable */
     uint64_t HH[16];            /*!< Precalculated HTable */
     uint64_t len;               /*!< Total data length */
@@ -66,15 +66,17 @@ gcm_context;
  * \brief           GCM initialization (encryption)
  *
  * \param ctx       GCM context to be initialized
+ * \param cipher    cipher to use (a 128-bit block cipher)
  * \param key       encryption key
  * \param keysize   must be 128, 192 or 256
  *
- * \return          0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
+ * \return          0 if successful, or a cipher specific error code
  */
-int gcm_init( gcm_context *ctx, const unsigned char *key, unsigned int keysize );
+int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
+              unsigned int keysize );
 
 /**
- * \brief           GCM buffer encryption/decryption using AES
+ * \brief           GCM buffer encryption/decryption using a block cipher
  *
  * \note On encryption, the output buffer can be the same as the input buffer.
  *       On decryption, the output buffer cannot be the same as input buffer.
@@ -108,7 +110,7 @@ int gcm_crypt_and_tag( gcm_context *ctx,
                        unsigned char *tag );
 
 /**
- * \brief           GCM buffer authenticated decryption using AES
+ * \brief           GCM buffer authenticated decryption using a block cipher
  *
  * \note On decryption, the output buffer cannot be the same as input buffer.
  *       If buffers overlap, the output buffer must trail at least 8 bytes

@@ -38,6 +38,10 @@ extern "C" {
 
 #if defined(POLARSSL_AES_C)
 
+extern const cipher_info_t aes_128_ecb_info;
+extern const cipher_info_t aes_192_ecb_info;
+extern const cipher_info_t aes_256_ecb_info;
+
 extern const cipher_info_t aes_128_cbc_info;
 extern const cipher_info_t aes_192_cbc_info;
 extern const cipher_info_t aes_256_cbc_info;
@@ -64,6 +68,10 @@ extern const cipher_info_t aes_256_gcm_info;
 
 #if defined(POLARSSL_CAMELLIA_C)
 
+extern const cipher_info_t camellia_128_ecb_info;
+extern const cipher_info_t camellia_192_ecb_info;
+extern const cipher_info_t camellia_256_ecb_info;
+
 extern const cipher_info_t camellia_128_cbc_info;
 extern const cipher_info_t camellia_192_cbc_info;
 extern const cipher_info_t camellia_256_cbc_info;
@@ -84,6 +92,10 @@ extern const cipher_info_t camellia_256_ctr_info;
 
 #if defined(POLARSSL_DES_C)
 
+extern const cipher_info_t des_ecb_info;
+extern const cipher_info_t des_ede_ecb_info;
+extern const cipher_info_t des_ede3_ecb_info;
+
 extern const cipher_info_t des_cbc_info;
 extern const cipher_info_t des_ede_cbc_info;
 extern const cipher_info_t des_ede3_cbc_info;
@@ -91,6 +103,7 @@ extern const cipher_info_t des_ede3_cbc_info;
 #endif /* defined(POLARSSL_DES_C) */
 
 #if defined(POLARSSL_BLOWFISH_C)
+extern const cipher_info_t blowfish_ecb_info;
 extern const cipher_info_t blowfish_cbc_info;
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)

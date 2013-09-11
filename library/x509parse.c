@@ -1836,16 +1836,27 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
 int load_file( const char *path, unsigned char **buf, size_t *n )
 {
     FILE *f;
+    long size;
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );
-    *n = (size_t) ftell( f );
+    if( ( size = ftell( f ) ) == -1 )
+    {
+        fclose( f );
+        return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+    }
     fseek( f, 0, SEEK_SET );
 
-    if( ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
+    *n = (size_t) size;
+
+    if( *n + 1 == 0 ||
+        ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
+    {
+        fclose( f );
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
+    }
 
     if( fread( *buf, 1, *n, f ) != *n )
     {

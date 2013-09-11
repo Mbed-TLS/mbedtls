@@ -1991,6 +1991,10 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->hostname_len = strlen( hostname );
+
+    if( ssl->hostname_len + 1 == 0 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
     ssl->hostname = (unsigned char *) malloc( ssl->hostname_len + 1 );
 
     if( ssl->hostname == NULL )
@@ -1998,7 +2002,7 @@ int ssl_set_hostname( ssl_context *ssl, const char *hostname )
 
     memcpy( ssl->hostname, (unsigned char *) hostname,
             ssl->hostname_len );
-    
+
     ssl->hostname[ssl->hostname_len] = '\0';
 
     return( 0 );

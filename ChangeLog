@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Branch 1.1
+Security
+   * Potential buffer-overflow for ssl_read_record() (independently found by
+     both TrustInSoft and Paul Brodeur of Leviathan Security Group)
+
 = Version 1.1.7 released on 2013-06-19
 Changes
    * HAVEGE random generator disabled by default

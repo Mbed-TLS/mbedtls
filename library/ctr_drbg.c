@@ -356,7 +356,10 @@ int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path )
         return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
 
     if( ( ret = ctr_drbg_random( ctx, buf, CTR_DRBG_MAX_INPUT ) ) != 0 )
+    {
+        fclose( f );
         return( ret );
+    }
 
     if( fwrite( buf, 1, CTR_DRBG_MAX_INPUT, f ) != CTR_DRBG_MAX_INPUT )
     {
@@ -382,7 +385,10 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
     fseek( f, 0, SEEK_SET );
 
     if( n > CTR_DRBG_MAX_INPUT )
+    {
+        fclose( f );
         return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+    }
 
     if( fread( buf, 1, n, f ) != n )
     {

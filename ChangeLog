@@ -6,6 +6,7 @@ Changes
 
 Bugfix
    * Fixed potential memory leak when failing to resume a session
+   * Fixed potential file descriptor leaks (found by Remi Gacogne)
    * Minor fixes
 
 Security

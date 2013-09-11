@@ -23,6 +23,13 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/*
+ * References:
+ * - certificates: RFC 5280, updated by RFC 6818
+ * - CSRs: PKCS#10 v1.7 aka RFC 2986
+ * - attributes: PKCS#9 v2.0 aka RFC 2985
+ */
+
 #include "polarssl/config.h"
 
 #if defined(POLARSSL_X509_WRITE_C)

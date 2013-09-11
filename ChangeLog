@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
 = Branch 1.2
+Changes
+   * x509_verify() now case insensitive for cn (RFC 6125 6.4)
+
 Bugfix
    * Fixed potential memory leak when failing to resume a session
    * Minor fixes

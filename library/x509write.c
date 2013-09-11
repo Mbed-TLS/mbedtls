@@ -440,7 +440,7 @@ int x509write_pubkey_der( rsa_context *rsa, unsigned char *buf, size_t size )
     unsigned char *c;
     size_t len = 0;
 
-    c = buf + size - 1;
+    c = buf + size;
 
     ASN1_CHK_ADD( len, x509_write_rsa_pubkey( &c, buf, rsa ) );
 
@@ -473,7 +473,7 @@ int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size )
     unsigned char *c;
     size_t len = 0;
 
-    c = buf + size - 1;
+    c = buf + size;
 
     ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->QP ) );
     ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->DQ ) );
@@ -703,7 +703,7 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
     size_t pub_len = 0, sig_len = 0;
     size_t len = 0;
 
-    c = tmp_buf + 2048 - 1;
+    c = tmp_buf + sizeof( tmp_buf );
 
     ASN1_CHK_ADD( len, x509_write_extensions( &c, tmp_buf, ctx->extensions ) );
 
@@ -726,7 +726,7 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) );
 
     ASN1_CHK_ADD( pub_len, x509write_pubkey_der( pk_rsa( *ctx->key ),
-                                                 tmp_buf, c - tmp_buf + 1 ) );
+                                                 tmp_buf, c - tmp_buf ) );
     c -= pub_len;
     len += pub_len;
 
@@ -758,7 +758,7 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
                                   &sig_oid_len );
 
     // TODO: use pk_get_len()
-    c2 = buf + size - 1;
+    c2 = buf + size;
     ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig_oid_len,
                                            sig, pk_rsa( *ctx->key )->len ) );
 
@@ -784,7 +784,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     size_t sub_len = 0, pub_len = 0, sig_len = 0;
     size_t len = 0;
 
-    c = tmp_buf + 2048 - 1;
+    c = tmp_buf + sizeof( tmp_buf );
 
     // Generate correct OID
     //
@@ -806,7 +806,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
      *  SubjectPublicKeyInfo
      */
     ASN1_CHK_ADD( pub_len, x509write_pubkey_der( ctx->subject_key,
-                                                 tmp_buf, c - tmp_buf + 1 ) );
+                                                 tmp_buf, c - tmp_buf ) );
     c -= pub_len;
     len += pub_len;
 
@@ -864,7 +864,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
 
     rsa_pkcs1_sign( ctx->issuer_key, NULL, NULL, RSA_PRIVATE, ctx->md_alg, 0, hash, sig );
 
-    c2 = buf + size - 1;
+    c2 = buf + size;
     ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig_oid_len,
                                            sig, ctx->issuer_key->len ) );
 
@@ -942,7 +942,7 @@ int x509write_crt_pem( x509write_cert *crt, unsigned char *buf, size_t size )
     }
 
     if( ( ret = x509write_pemify( PEM_BEGIN_CRT, PEM_END_CRT,
-                                  output_buf + sizeof(output_buf) - 1 - ret,
+                                  output_buf + sizeof(output_buf) - ret,
                                   ret, buf, size ) ) != 0 )
     {
         return( ret );
@@ -963,7 +963,7 @@ int x509write_pubkey_pem( rsa_context *rsa, unsigned char *buf, size_t size )
     }
 
     if( ( ret = x509write_pemify( PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
-                                  output_buf + sizeof(output_buf) - 1 - ret,
+                                  output_buf + sizeof(output_buf) - ret,
                                   ret, buf, size ) ) != 0 )
     {
         return( ret );
@@ -984,7 +984,7 @@ int x509write_key_pem( rsa_context *rsa, unsigned char *buf, size_t size )
     }
 
     if( ( ret = x509write_pemify( PEM_BEGIN_PRIVATE_KEY, PEM_END_PRIVATE_KEY,
-                                  output_buf + sizeof(output_buf) - 1 - ret,
+                                  output_buf + sizeof(output_buf) - ret,
                                   ret, buf, size ) ) != 0 )
     {
         return( ret );
@@ -1005,7 +1005,7 @@ int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size )
     }
 
     if( ( ret = x509write_pemify( PEM_BEGIN_CSR, PEM_END_CSR,
-                                  output_buf + sizeof(output_buf) - 1 - ret,
+                                  output_buf + sizeof(output_buf) - ret,
                                   ret, buf, size ) ) != 0 )
     {
         return( ret );

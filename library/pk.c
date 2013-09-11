@@ -273,4 +273,15 @@ const char * pk_get_name( const pk_context *ctx )
     return( ctx->pk_info->name );
 }
 
+/*
+ * Access the PK type
+ */
+pk_type_t pk_get_type( const pk_context *ctx )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( POLARSSL_PK_NONE );
+
+    return( ctx->pk_info->type );
+}
+
 #endif /* POLARSSL_PK_C */

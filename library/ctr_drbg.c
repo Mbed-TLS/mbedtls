@@ -242,7 +242,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
     memset( seed, 0, CTR_DRBG_MAX_SEED_INPUT );
 
     /*
-     * Gather enropy_len bytes of entropy to seed state
+     * Gather entropy_len bytes of entropy to seed state
      */
     if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
                              ctx->entropy_len ) )

@@ -434,11 +434,17 @@ int x509write_crt_set_ns_cert_type( x509write_cert *ctx,
     return( 0 );
 }
 
-int x509write_pubkey_der( rsa_context *rsa, unsigned char *buf, size_t size )
+int x509write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char *c;
     size_t len = 0;
+    rsa_context *rsa;
+
+    if( !pk_can_do( key, POLARSSL_PK_RSA ) )
+        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
+    rsa = pk_rsa( *key );
 
     c = buf + size;
 
@@ -730,9 +736,7 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) );
 
-    if( !pk_can_do( ctx->key, POLARSSL_PK_RSA ) )
-        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( pk_rsa( *ctx->key ),
+    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( ctx->key,
                                                  tmp_buf, c - tmp_buf ) );
     c -= pub_len;
     len += pub_len;
@@ -792,6 +796,11 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     size_t sub_len = 0, pub_len = 0, sig_len = 0;
     size_t len = 0;
 
+    // temporary compatibility hack
+    pk_context subject_key;
+    subject_key.pk_info = pk_info_from_type( POLARSSL_PK_RSA );
+    subject_key.pk_ctx = ctx->subject_key;
+
     c = tmp_buf + sizeof( tmp_buf );
 
     // Generate correct OID
@@ -813,7 +822,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     /*
      *  SubjectPublicKeyInfo
      */
-    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( ctx->subject_key,
+    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( &subject_key,
                                                  tmp_buf, c - tmp_buf ) );
     c -= pub_len;
     len += pub_len;
@@ -959,12 +968,12 @@ int x509write_crt_pem( x509write_cert *crt, unsigned char *buf, size_t size )
     return( 0 );
 }
 
-int x509write_pubkey_pem( rsa_context *rsa, unsigned char *buf, size_t size )
+int x509write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char output_buf[4096];
 
-    if( ( ret = x509write_pubkey_der( rsa, output_buf,
+    if( ( ret = x509write_pubkey_der( key, output_buf,
                                       sizeof(output_buf) ) ) < 0 )
     {
         return( ret );

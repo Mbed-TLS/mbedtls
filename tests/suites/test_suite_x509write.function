@@ -132,7 +132,6 @@ void x509_pubkey_check( char *key_file )
     unsigned char buf[5000];
     unsigned char check_buf[5000];
     int ret;
-    size_t olen = sizeof( check_buf );
     FILE *f;
 
     memset( buf, 0, sizeof( buf ) );
@@ -141,7 +140,7 @@ void x509_pubkey_check( char *key_file )
     pk_init( &key );
     TEST_ASSERT( x509parse_public_keyfile( &key, key_file ) == 0 );
 
-    ret = x509write_pubkey_pem( pk_rsa( key ), buf, sizeof( buf ) - 1);
+    ret = x509write_pubkey_pem( &key, buf, sizeof( buf ) - 1);
     TEST_ASSERT( ret >= 0 );
 
     f = fopen( key_file, "r" );

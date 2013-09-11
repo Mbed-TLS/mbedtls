@@ -380,19 +380,19 @@ void x509write_crt_free( x509write_cert *ctx );
 int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size );
 
 /**
- * \brief           Write a RSA public key to a PKCS#1 DER structure
+ * \brief           Write a public key to a DER structure
  *                  Note: data is written at the end of the buffer! Use the
  *                        return value to determine where you should start
  *                        using the buffer
  *
- * \param rsa       RSA to write away
+ * \param key       public key to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int x509write_pubkey_der( rsa_context *rsa, unsigned char *buf, size_t size );
+int x509write_pubkey_der( pk_context *key, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a RSA key to a PKCS#1 DER structure
@@ -447,15 +447,15 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
 int x509write_crt_pem( x509write_cert *ctx, unsigned char *buf, size_t size );
 
 /**
- * \brief           Write a RSA public key to a PKCS#1 PEM string
+ * \brief           Write a public key to a PEM string
  *
- * \param rsa       RSA to write away
+ * \param key       public key to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
  * \return          0 successful, or a specific error code
  */
-int x509write_pubkey_pem( rsa_context *rsa, unsigned char *buf, size_t size );
+int x509write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a RSA key to a PKCS#1 PEM string

@@ -149,9 +149,16 @@ void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg )
     ctx->md_alg = md_alg;
 }
 
+// TODO: take a pk_context
+// TODO: return int
 void x509write_csr_set_rsa_key( x509write_csr *ctx, rsa_context *rsa )
 {
-    ctx->rsa = rsa;
+    // temporary
+    ctx->key = polarssl_malloc( sizeof( pk_context ) );
+
+    // TODO: check errors
+    pk_init_ctx( ctx->key, pk_info_from_type( POLARSSL_PK_RSA ) );
+    rsa_copy( pk_rsa( *ctx->key ), rsa );
 }
 
 int x509write_csr_set_subject_name( x509write_csr *ctx, char *subject_name )
@@ -718,8 +725,9 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) );
 
-    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &ctx->rsa->E ) );
-    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &ctx->rsa->N ) );
+    // TODO: use x509_write_rsa_pubkey() (pb: pub_len)
+    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &pk_rsa( *ctx->key )->E ) );
+    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &pk_rsa( *ctx->key )->N ) );
 
     ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
     ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
@@ -760,16 +768,22 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
 
     md( md_info_from_type( ctx->md_alg ), c, len, hash );
 
-    rsa_pkcs1_sign( ctx->rsa, NULL, NULL, RSA_PRIVATE, ctx->md_alg, 0, hash, sig );
+    if( !pk_can_do( ctx->key, POLARSSL_PK_RSA ) )
+        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
+    // TODO: use pk_sign()
+    rsa_pkcs1_sign( pk_rsa( *ctx->key ), NULL, NULL, RSA_PRIVATE, ctx->md_alg, 0, hash, sig );
 
     // Generate correct OID
     //
+    // TODO: use pk_info->type
     ret = oid_get_oid_by_sig_alg( POLARSSL_PK_RSA, ctx->md_alg, &sig_oid,
                                   &sig_oid_len );
 
+    // TODO: use pk_get_len()
     c2 = buf + size - 1;
     ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig_oid_len,
-                                           sig, ctx->rsa->len ) );
+                                           sig, pk_rsa( *ctx->key )->len ) );
 
     c2 -= len;
     memcpy( c2, c, len );

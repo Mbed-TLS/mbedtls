@@ -65,7 +65,7 @@ extern "C" {
  */
 typedef struct _x509write_csr
 {
-    rsa_context *rsa;
+    pk_context *key;
     asn1_named_data *subject;
     md_type_t md_alg;
     asn1_named_data *extensions;

@@ -2,6 +2,7 @@ PolarSSL ChangeLog
 
 = Branch 1.2
 Bugfix
+   * Fixed potential memory leak when failing to resume a session
    * Minor fixes
 
 Security

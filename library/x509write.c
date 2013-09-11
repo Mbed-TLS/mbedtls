@@ -725,33 +725,10 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) );
 
-    // TODO: use x509_write_rsa_pubkey() (pb: pub_len)
-    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &pk_rsa( *ctx->key )->E ) );
-    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &pk_rsa( *ctx->key )->N ) );
-
-    ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
-    ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
-
-    if( c - tmp_buf < 1 )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    /*
-     *  AlgorithmIdentifier  ::=  SEQUENCE  {
-     *       algorithm               OBJECT IDENTIFIER,
-     *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
-     */
-    *--c = 0;
-    pub_len += 1;
-
-    ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
-    ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_BIT_STRING ) );
-
-    ASN1_CHK_ADD( pub_len, asn1_write_algorithm_identifier( &c, tmp_buf,
-                            OID_PKCS1_RSA, OID_SIZE( OID_PKCS1_RSA ) ) );
-
+    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( pk_rsa( *ctx->key ),
+                                                 tmp_buf, c - tmp_buf + 1 ) );
+    c -= pub_len;
     len += pub_len;
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, pub_len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
     /*
      *  Subject  ::=  Name
@@ -826,31 +803,12 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) );
 
     /*
-     *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
-     *       algorithm            AlgorithmIdentifier,
-     *       subjectPublicKey     BIT STRING  }
+     *  SubjectPublicKeyInfo
      */
-    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &ctx->subject_key->E ) );
-    ASN1_CHK_ADD( pub_len, asn1_write_mpi( &c, tmp_buf, &ctx->subject_key->N ) );
-
-    ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
-    ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
-
-    if( c - tmp_buf < 1 )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    *--c = 0;
-    pub_len += 1;
-
-    ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
-    ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_BIT_STRING ) );
-
-    ASN1_CHK_ADD( pub_len, asn1_write_algorithm_identifier( &c, tmp_buf,
-                           OID_PKCS1_RSA, OID_SIZE( OID_PKCS1_RSA ) ) );
-
+    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( ctx->subject_key,
+                                                 tmp_buf, c - tmp_buf + 1 ) );
+    c -= pub_len;
     len += pub_len;
-    ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, pub_len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
     /*
      *  Subject  ::=  Name

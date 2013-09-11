@@ -29,6 +29,10 @@
 
 #include "rsa.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct _x509_req_name
 {
     char oid[128];
@@ -42,5 +46,9 @@ int x509_write_pubkey_der( unsigned char *buf, size_t size, rsa_context *rsa );
 int x509_write_key_der( unsigned char *buf, size_t size, rsa_context *rsa );
 int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
                          x509_req_name *req_name, int hash_id );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* POLARSSL_X509_WRITE_H */

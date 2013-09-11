@@ -1444,6 +1444,13 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
+    /* In case we tried to reuse a session but it failed */
+    if( ssl->peer_cert != NULL )
+    {
+        x509_free( ssl->peer_cert );
+        free( ssl->peer_cert );
+    }
+
     if( ( ssl->peer_cert = (x509_cert *) malloc(
                     sizeof( x509_cert ) ) ) == NULL )
     {

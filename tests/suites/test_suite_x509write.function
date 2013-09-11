@@ -14,7 +14,7 @@
 void x509_csr_check( char *key_file, int md_type,
                           char *cert_req_check_file )
 {
-    rsa_context rsa;
+    pk_context key;
     pem_context pem;
     x509write_csr req;
     unsigned char *c;
@@ -24,19 +24,20 @@ void x509_csr_check( char *key_file, int md_type,
     size_t olen = sizeof( check_buf );
     FILE *f;
     char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
+    rnd_pseudo_info rnd_info;
 
-    memset( &rsa, 0, sizeof(rsa_context) );
-    ret = x509parse_keyfile_rsa( &rsa, key_file, NULL );
-    TEST_ASSERT( ret == 0 );
-    if( ret != 0 )
-        return;
+    memset( &rnd_info, 0x2a, sizeof( rnd_pseudo_info ) );
+
+    pk_init( &key );
+    TEST_ASSERT( x509parse_keyfile( &key, key_file, NULL ) == 0 );
 
     x509write_csr_init( &req );
     x509write_csr_set_md_alg( &req, md_type );
-    x509write_csr_set_rsa_key( &req, &rsa );
+    x509write_csr_set_key( &req, &key );
     TEST_ASSERT( x509write_csr_set_subject_name( &req, subject_name ) == 0 );
 
-    ret = x509write_csr_der( &req, buf, sizeof( buf ) );
+    ret = x509write_csr_der( &req, buf, sizeof( buf ),
+                             rnd_pseudo_rand, &rnd_info );
     TEST_ASSERT( ret >= 0 );
 
     c = buf + sizeof( buf ) - ret;
@@ -53,8 +54,8 @@ void x509_csr_check( char *key_file, int md_type,
     TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
 
     x509write_csr_free( &req );
-    rsa_free( &rsa );
     pem_free( &pem );
+    pk_free( &key );
 }
 /* END_CASE */
 

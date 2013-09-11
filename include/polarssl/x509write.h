@@ -121,13 +121,13 @@ void x509write_csr_init( x509write_csr *ctx );
 int x509write_csr_set_subject_name( x509write_csr *ctx, char *subject_name );
 
 /**
- * \brief           Set the RSA key for a CSR (public key will be included,
+ * \brief           Set the key for a CSR (public key will be included,
  *                  private key used to sign the CSR when writing it)
  *
  * \param ctx       CSR context to use
- * \param rsa       RSA key to include
+ * \param key       Asymetric key to include
  */
-void x509write_csr_set_rsa_key( x509write_csr *ctx, rsa_context *rsa );
+void x509write_csr_set_key( x509write_csr *ctx, pk_context *key );
 
 /**
  * \brief           Set the MD algorithm to use for the signature
@@ -419,11 +419,20 @@ int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size );
  * \param rsa       CSR to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
+ * \param f_rng     RNG function (for signature, see note)
+ * \param p_rng     RNG parameter
  *
  * \return          length of data written if successful, or a specific
  *                  error code
+ *
+ * \note            f_rng may be NULL if RSA is used for signature and the
+ *                  signature is made offline (otherwise f_rng is desirable
+ *                  for countermeasures against timing attacks).
+ *                  ECDSA signatures always require a non-NULL f_rng.
  */
-int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size );
+int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng );
 
 #if defined(POLARSSL_BASE64_C)
 /**
@@ -466,10 +475,19 @@ int x509write_key_pem( rsa_context *rsa, unsigned char *buf, size_t size );
  * \param rsa       CSR to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
+ * \param f_rng     RNG function (for signature, see note)
+ * \param p_rng     RNG parameter
  *
  * \return          0 successful, or a specific error code
+ *
+ * \note            f_rng may be NULL if RSA is used for signature and the
+ *                  signature is made offline (otherwise f_rng is desirable
+ *                  for couermeasures against timing attacks).
+ *                  ECDSA signatures always require a non-NULL f_rng.
  */
-int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size );
+int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng );
 #endif /* POLARSSL_BASE64_C */
 
 #ifdef __cplusplus

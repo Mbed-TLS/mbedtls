@@ -51,7 +51,7 @@
 #endif
 #endif /* !defined(ECPARAMS) */
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ECDSA_C) || \
+#if !defined(POLARSSL_ECDSA_C) || \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) || \
     !defined(ECPARAMS)
 int main( int argc, char *argv[] )
@@ -59,9 +59,9 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ECDSA_C and/or "
+    printf("POLARSSL_ECDSA_C and/or "
            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined,"
-           "and/or not EC domain parameter available\n" );
+           "and/or no EC domain parameter available\n" );
     return( 0 );
 }
 #else
@@ -194,6 +194,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_ECDSA_C &&
-          POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
+#endif /* POLARSSL_ECDSA_C && POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
           ECPARAMS */

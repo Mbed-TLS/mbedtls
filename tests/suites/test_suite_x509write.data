@@ -33,3 +33,7 @@ x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1
 Public key write check RSA
 depends_on:POLARSSL_RSA_C:POLARSSL_BASE64_C
 x509_pubkey_check:"data_files/server1.pubkey"
+
+Public key write check EC
+depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C
+x509_pubkey_check:"data_files/ec_pub.pem"

@@ -369,6 +369,7 @@ static const oid_pk_alg_t oid_pk_alg[] =
 FN_OID_TYPED_FROM_ASN1(oid_pk_alg_t, pk_alg, oid_pk_alg);
 FN_OID_GET_ATTR1(oid_get_pk_alg, oid_pk_alg_t, pk_alg, pk_type_t, pk_alg);
 
+#if defined(POLARSSL_ECP_C)
 /*
  * For namedCurve (RFC 5480)
  */
@@ -407,6 +408,8 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_ecp_grp_t, grp_id, oid_ecp_grp);
 FN_OID_GET_ATTR1(oid_get_ec_grp, oid_ecp_grp_t, grp_id, ecp_group_id, grp_id);
+FN_OID_GET_OID_BY_ATTR1(oid_get_oid_by_ec_grp, oid_ecp_grp_t, oid_ecp_grp, ecp_group_id, grp_id);
+#endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_CIPHER_C)
 /*

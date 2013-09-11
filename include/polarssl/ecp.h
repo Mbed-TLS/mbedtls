@@ -133,6 +133,7 @@ ecp_keypair;
  */
 #define POLARSSL_ECP_MAX_BITS     521
 #define POLARSSL_ECP_MAX_BYTES    ( ( POLARSSL_ECP_MAX_BITS + 7 ) / 8 )
+#define POLARSSL_ECP_MAX_PT_LEN   ( 2 * POLARSSL_ECP_MAX_BYTES + 1 )
 
 /*
  * Maximum window size (actually, NAF width) used for point multipliation.

@@ -124,3 +124,33 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     mpi_free( &serial );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void x509_pubkey_check( char *key_file )
+{
+    pk_context key;
+    unsigned char buf[5000];
+    unsigned char check_buf[5000];
+    int ret;
+    size_t olen = sizeof( check_buf );
+    FILE *f;
+
+    memset( buf, 0, sizeof( buf ) );
+    memset( check_buf, 0, sizeof( check_buf ) );
+
+    pk_init( &key );
+    TEST_ASSERT( x509parse_public_keyfile( &key, key_file ) == 0 );
+
+    ret = x509write_pubkey_pem( pk_rsa( key ), buf, sizeof( buf ) - 1);
+    TEST_ASSERT( ret >= 0 );
+
+    f = fopen( key_file, "r" );
+    TEST_ASSERT( f != NULL );
+    fread( check_buf, 1, sizeof( check_buf ) - 1, f );
+    fclose( f );
+
+    TEST_ASSERT( strncmp( (char *) buf, (char *) check_buf, sizeof( buf ) ) == 0 );
+
+    pk_free( &key );
+}
+/* END_CASE */

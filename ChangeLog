@@ -1,5 +1,13 @@
 PolarSSL ChangeLog
 
+= Branch 1.2
+Bugfix
+   * Minor fixes
+
+Security
+   * Fixed potential heap buffer overflow on large hostname setting
+   * Fixed potential negative value misinterpretation in load_file()
+
 = Version 1.2.8 released 2013-06-19
 Features
    * Parsing of PKCS#8 encrypted private key files

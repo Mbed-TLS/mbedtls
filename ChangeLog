@@ -3,6 +3,7 @@ PolarSSL ChangeLog
 = Branch 1.1
 Bugfix
    * Fixed potential memory leak when failing to resume a session
+   * Fixed potential file descriptor leaks
 
 Security
    * Potential buffer-overflow for ssl_read_record() (independently found by

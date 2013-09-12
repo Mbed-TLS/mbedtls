@@ -779,6 +779,7 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
     unsigned char tmp_buf[2048];
     size_t pub_len = 0, sig_and_oid_len = 0, sig_len;
     size_t len = 0;
+    pk_type_t pk_alg;
 
     /*
      * Prepare data to be signed in tmp_buf
@@ -828,9 +829,13 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
      */
     md( md_info_from_type( ctx->md_alg ), c, len, hash );
 
+    pk_alg = pk_get_type( ctx->key );
+    if( pk_alg == POLARSSL_PK_ECKEY )
+        pk_alg = POLARSSL_PK_ECDSA;
+
     if( ( ret = pk_sign( ctx->key, ctx->md_alg, hash, 0, sig, &sig_len,
                          f_rng, p_rng ) ) != 0 ||
-        ( ret = oid_get_oid_by_sig_alg( pk_get_type( ctx->key ), ctx->md_alg,
+        ( ret = oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
                                         &sig_oid, &sig_oid_len ) ) != 0 )
     {
         return( ret );

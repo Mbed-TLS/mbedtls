@@ -2521,7 +2521,7 @@ static int x509parse_key_sec1_der( ecp_keypair *eck,
     unsigned char *end2;
 
     /*
-     * RFC 5915, orf SEC1 Appendix C.4
+     * RFC 5915, or SEC1 Appendix C.4
      *
      * ECPrivateKey ::= SEQUENCE {
      *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),

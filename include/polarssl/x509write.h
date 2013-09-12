@@ -395,19 +395,19 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size );
 int x509write_pubkey_der( pk_context *key, unsigned char *buf, size_t size );
 
 /**
- * \brief           Write a RSA key to a PKCS#1 DER structure
+ * \brief           Write a private key to a PKCS#1 or SEC1 DER structure
  *                  Note: data is written at the end of the buffer! Use the
  *                        return value to determine where you should start
  *                        using the buffer
  *
- * \param rsa       RSA to write away
+ * \param key       private to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size );
+int x509write_key_der( pk_context *pk, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a CSR (Certificate Signing Request) to a
@@ -458,15 +458,15 @@ int x509write_crt_pem( x509write_cert *ctx, unsigned char *buf, size_t size );
 int x509write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size );
 
 /**
- * \brief           Write a RSA key to a PKCS#1 PEM string
+ * \brief           Write a private key to a PKCS#1 or SEC1 PEM string
  *
- * \param rsa       RSA to write away
+ * \param key       private to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
  * \return          0 successful, or a specific error code
  */
-int x509write_key_pem( rsa_context *rsa, unsigned char *buf, size_t size );
+int x509write_key_pem( pk_context *key, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a CSR (Certificate Signing Request) to a

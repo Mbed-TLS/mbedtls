@@ -169,7 +169,7 @@ void x509_key_check( char *key_file )
     pk_init( &key );
     TEST_ASSERT( x509parse_keyfile( &key, key_file, NULL ) == 0 );
 
-    ret = x509write_key_pem( pk_rsa( key ), buf, sizeof( buf ) - 1);
+    ret = x509write_key_pem( &key, buf, sizeof( buf ) - 1);
     TEST_ASSERT( ret >= 0 );
 
     f = fopen( key_file, "r" );

@@ -1385,7 +1385,7 @@
  *
  * Module:  library/x509write.c
  *
- * Requires: POLARSSL_BIGNUM_C, POLARSSL_OID_C, POLARSSL_RSA_C
+ * Requires: POLARSSL_BIGNUM_C, POLARSSL_OID_C, POLARSSL_PK_C
  *
  * This module is required for X.509 certificate request writing.
  */

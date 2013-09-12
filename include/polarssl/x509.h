@@ -31,8 +31,6 @@
 
 #if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
 #include "asn1.h"
-#include "rsa.h"
-#include "ecp.h"
 #include "dhm.h"
 #include "md.h"
 #include "pk.h"
@@ -339,6 +337,7 @@ int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen
  */
 int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen );
 
+#if defined(POLARSSL_FS_IO)
 /** \ingroup x509_module */
 /**
  * \brief          Load one or more certificates and add them
@@ -370,6 +369,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path );
  *                 if partly successful or a specific X509 or PEM error code
  */
 int x509parse_crtpath( x509_cert *chain, const char *path );
+#endif /* POLARSSL_FS_IO */
 
 /** \ingroup x509_module */
 /**
@@ -396,6 +396,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen );
  */
 int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen );
 
+#if defined(POLARSSL_FS_IO)
 /** \ingroup x509_module */
 /**
  * \brief          Load one or more CRLs and add them
@@ -418,6 +419,7 @@ int x509parse_crlfile( x509_crl *chain, const char *path );
  * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_csrfile( x509_csr *csr, const char *path );
+#endif /* POLARSSL_FS_IO */
 
 #if defined(POLARSSL_RSA_C)
 /** \ingroup x509_module */
@@ -436,6 +438,7 @@ int x509parse_key_rsa( rsa_context *rsa,
                        const unsigned char *key, size_t keylen,
                        const unsigned char *pwd, size_t pwdlen );
 
+#if defined(POLARSSL_FS_IO)
 /** \ingroup x509_module */
 /**
  * \brief          Load and parse a private RSA key
@@ -448,6 +451,7 @@ int x509parse_key_rsa( rsa_context *rsa,
  */
 int x509parse_keyfile_rsa( rsa_context *rsa, const char *path,
                            const char *password );
+#endif /* POLARSSL_FS_IO */
 
 /** \ingroup x509_module */
 /**
@@ -462,6 +466,7 @@ int x509parse_keyfile_rsa( rsa_context *rsa, const char *path,
 int x509parse_public_key_rsa( rsa_context *rsa,
                        const unsigned char *key, size_t keylen );
 
+#if defined(POLARSSL_FS_IO)
 /** \ingroup x509_module */
 /**
  * \brief          Load and parse a public RSA key
@@ -472,6 +477,7 @@ int x509parse_public_key_rsa( rsa_context *rsa,
  * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path );
+#endif /* POLARSSL_FS_IO */
 #endif /* POLARSSL_RSA_C */
 
 /** \ingroup x509_module */
@@ -490,6 +496,7 @@ int x509parse_key( pk_context *ctx,
                    const unsigned char *key, size_t keylen,
                    const unsigned char *pwd, size_t pwdlen );
 
+#if defined(POLARSSL_FS_IO)
 /** \ingroup x509_module */
 /**
  * \brief          Load and parse a private key
@@ -502,6 +509,7 @@ int x509parse_key( pk_context *ctx,
  */
 int x509parse_keyfile( pk_context *ctx,
                        const char *path, const char *password );
+#endif /* POLARSSL_FS_IO */
 
 /** \ingroup x509_module */
 /**
@@ -516,6 +524,7 @@ int x509parse_keyfile( pk_context *ctx,
 int x509parse_public_key( pk_context *ctx,
                           const unsigned char *key, size_t keylen );
 
+#if defined(POLARSSL_FS_IO)
 /** \ingroup x509_module */
 /**
  * \brief          Load and parse a public key
@@ -526,6 +535,7 @@ int x509parse_public_key( pk_context *ctx,
  * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_public_keyfile( pk_context *ctx, const char *path );
+#endif /* POLARSSL_FS_IO */
 
 /** \ingroup x509_module */
 /**
@@ -539,6 +549,7 @@ int x509parse_public_keyfile( pk_context *ctx, const char *path );
  */
 int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen );
 
+#if defined(POLARSSL_FS_IO)
 /** \ingroup x509_module */
 /**
  * \brief          Load and parse DHM parameters
@@ -549,6 +560,7 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
  * \return         0 if successful, or a specific X509 or PEM error code
  */
 int x509parse_dhmfile( dhm_context *dhm, const char *path );
+#endif /* POLARSSL_FS_IO */
 
 /** \} name Functions to read in DHM parameters, a certificate, CRL or private RSA key */
 

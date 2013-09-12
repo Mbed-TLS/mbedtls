@@ -22,6 +22,8 @@ Features
    * Support for session tickets (RFC 5077)
    * Certificate Request (CSR) generation with extensions (key_usage,
      ns_cert_type)
+   * X509 Certificate writing with extensions (basic_constraints,
+     issuer_key_identifier, etc)
    * Optional blinding for RSA, DHM and EC
 
 Changes

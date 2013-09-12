@@ -86,8 +86,8 @@ typedef struct _x509write_cert
 {
     int version;
     mpi serial;
-    rsa_context *subject_key;
-    rsa_context *issuer_key;
+    pk_context *subject_key;
+    pk_context *issuer_key;
     asn1_named_data *subject;
     asn1_named_data *issuer;
     md_type_t md_alg;

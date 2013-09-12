@@ -314,12 +314,12 @@ void x509write_crt_set_md_alg( x509write_cert *ctx, md_type_t md_alg )
 
 void x509write_crt_set_subject_key( x509write_cert *ctx, pk_context *key )
 {
-    ctx->subject_key = pk_rsa( *key );
+    ctx->subject_key = key;
 }
 
 void x509write_crt_set_issuer_key( x509write_cert *ctx, pk_context *key )
 {
-    ctx->issuer_key = pk_rsa( *key );
+    ctx->issuer_key = key;
 }
 
 int x509write_crt_set_subject_name( x509write_cert *ctx, char *subject_name )
@@ -404,8 +404,12 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx )
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
+    if( pk_get_type( ctx->subject_key ) != POLARSSL_PK_RSA )
+        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
     memset( buf, 0, sizeof(buf));
-    ASN1_CHK_ADD( len, x509_write_rsa_pubkey( &c, buf, ctx->subject_key ) );
+    ASN1_CHK_ADD( len, x509_write_rsa_pubkey( &c, buf,
+                                              pk_rsa( *ctx->subject_key ) ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
     c = buf + sizeof(buf) - 20;
@@ -426,8 +430,12 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
+    if( pk_get_type( ctx->issuer_key ) != POLARSSL_PK_RSA )
+        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
     memset( buf, 0, sizeof(buf));
-    ASN1_CHK_ADD( len, x509_write_rsa_pubkey( &c, buf, ctx->issuer_key ) );
+    ASN1_CHK_ADD( len, x509_write_rsa_pubkey( &c, buf,
+                                              pk_rsa( *ctx->issuer_key ) ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
     c = buf + sizeof(buf) - 20;
@@ -906,22 +914,25 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     unsigned char hash[64];
     unsigned char sig[POLARSSL_MPI_MAX_SIZE];
     unsigned char tmp_buf[2048];
-    size_t sub_len = 0, pub_len = 0, sig_len = 0;
+    size_t sub_len = 0, pub_len = 0, sig_and_oid_len = 0, sig_len;
     size_t len = 0;
+    pk_type_t pk_alg;
 
-    // temporary compatibility hack
-    pk_context subject_key;
-    subject_key.pk_info = pk_info_from_type( POLARSSL_PK_RSA );
-    subject_key.pk_ctx = ctx->subject_key;
-
+    /*
+     * Prepare data to be signed in tmp_buf
+     */
     c = tmp_buf + sizeof( tmp_buf );
 
-    // Generate correct OID
-    //
-    ret = oid_get_oid_by_sig_alg( POLARSSL_PK_RSA, ctx->md_alg, &sig_oid,
-                                  &sig_oid_len );
-    if( ret != 0 )
+    /* Signature algorithm needed in TBS, and later for actual signature */
+    pk_alg = pk_get_type( ctx->issuer_key );
+    if( pk_alg == POLARSSL_PK_ECKEY )
+        pk_alg = POLARSSL_PK_ECDSA;
+
+    if( ( ret = oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
+                                        &sig_oid, &sig_oid_len ) ) != 0 )
+    {
         return( ret );
+    }
 
     /*
      *  Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
@@ -935,7 +946,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     /*
      *  SubjectPublicKeyInfo
      */
-    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( &subject_key,
+    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( ctx->subject_key,
                                                  tmp_buf, c - tmp_buf ) );
     c -= pub_len;
     len += pub_len;
@@ -990,18 +1001,28 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
+    /*
+     * Make signature
+     */
     md( md_info_from_type( ctx->md_alg ), c, len, hash );
 
-    rsa_pkcs1_sign( ctx->issuer_key, NULL, NULL, RSA_PRIVATE, ctx->md_alg, 0, hash, sig );
+    if( ( ret = pk_sign( ctx->issuer_key, ctx->md_alg, hash, 0, sig, &sig_len,
+                         NULL, NULL ) ) != 0 )
+    {
+        return( ret );
+    }
 
+    /*
+     * Write data to output buffer
+     */
     c2 = buf + size;
-    ASN1_CHK_ADD( sig_len, x509_write_sig( &c2, buf, sig_oid, sig_oid_len,
-                                           sig, ctx->issuer_key->len ) );
+    ASN1_CHK_ADD( sig_and_oid_len, x509_write_sig( &c2, buf,
+                                        sig_oid, sig_oid_len, sig, sig_len ) );
 
     c2 -= len;
     memcpy( c2, c, len );
 
-    len += sig_len;
+    len += sig_and_oid_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c2, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c2, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 

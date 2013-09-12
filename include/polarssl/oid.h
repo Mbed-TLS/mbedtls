@@ -370,6 +370,18 @@ int oid_get_attr_short_name( const asn1_buf *oid, const char **short_name );
  */
 int oid_get_pk_alg( const asn1_buf *oid, pk_type_t *pk_alg );
 
+/**
+ * \brief          Translate pk_type into PublicKeyAlgorithm OID
+ *
+ * \param pk_alg   Public key type to look for
+ * \param oid      place to store ASN.1 OID string pointer
+ * \param olen     length of the OID
+ *
+ * \return         0 if successful, or POLARSSL_ERR_OID_NOT_FOUND
+ */
+int oid_get_oid_by_pk_alg( pk_type_t pk_alg,
+                           const char **oid, size_t *olen );
+
 #if defined(POLARSSL_ECP_C)
 /**
  * \brief          Translate NamedCurve OID into an EC group identifier
@@ -382,9 +394,9 @@ int oid_get_pk_alg( const asn1_buf *oid, pk_type_t *pk_alg );
 int oid_get_ec_grp( const asn1_buf *oid, ecp_group_id *grp_id );
 
 /**
- * \brief           Translate EC group identifier into NamedCurve OID
+ * \brief          Translate EC group identifier into NamedCurve OID
  *
- * \param grp_id    EC group identifier
+ * \param grp_id   EC group identifier
  * \param oid      place to store ASN.1 OID string pointer
  * \param olen     length of the OID
  *

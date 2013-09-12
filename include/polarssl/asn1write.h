@@ -115,17 +115,19 @@ int asn1_write_oid( unsigned char **p, unsigned char *start,
 /**
  * \brief           Write an AlgorithmIdentifier sequence in ASN.1 format
  *                  Note: function works backwards in data buffer
- *                  Note: Uses NULL as algorithm parameter
  *
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param oid       the OID of the algorithm
  * \param oid_len   length of the OID
+ * \param par_len   length of parameters, which must be already written.
+ *                  If 0, NULL parameters are added
  *
  * \return          the length written or a negative error code
  */
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
-                                     const char *oid, size_t oid_len );
+                                     const char *oid, size_t oid_len,
+                                     size_t par_len );
 
 /**
  * \brief           Write a boolean tag (ASN1_BOOLEAN) and value in ASN.1 format

@@ -172,8 +172,8 @@ static int x509_write_ec_pubkey( unsigned char **p, unsigned char *start,
  *   namedCurve         OBJECT IDENTIFIER
  * }
  */
-static int x509_write_ec_algparam( unsigned char **p, unsigned char *start,
-                                   ecp_keypair *ec )
+static int x509_write_ec_param( unsigned char **p, unsigned char *start,
+                                ecp_keypair *ec )
 {
     int ret;
     size_t len = 0;
@@ -489,7 +489,8 @@ int x509write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char *c;
-    size_t len = 0;
+    size_t len = 0, par_len = 0, oid_len;
+    const char *oid;
 
     c = buf + size;
 
@@ -519,32 +520,21 @@ int x509write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_BIT_STRING ) );
 
-#if defined(POLARSSL_RSA_C)
-    if( pk_get_type( key ) == POLARSSL_PK_RSA )
-        ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf,
-                                 OID_PKCS1_RSA, OID_SIZE( OID_PKCS1_RSA ) ) );
-    else
-#endif
+    if( ( ret = oid_get_oid_by_pk_alg( pk_get_type( key ),
+                                       &oid, &oid_len ) ) != 0 )
+    {
+        return( ret );
+    }
+
 #if defined(POLARSSL_ECP_C)
     if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
     {
-        size_t alg_len = 0;
-
-        ASN1_CHK_ADD( alg_len, x509_write_ec_algparam( &c, buf,
-                                                       pk_ec( *key ) ) );
-
-        ASN1_CHK_ADD( alg_len, asn1_write_oid( &c, buf,
-                OID_EC_ALG_UNRESTRICTED, OID_SIZE( OID_EC_ALG_UNRESTRICTED ) ) );
-
-        ASN1_CHK_ADD( alg_len, asn1_write_len( &c, buf, alg_len ) );
-        ASN1_CHK_ADD( alg_len, asn1_write_tag( &c, buf,
-                                           ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
-
-        len += alg_len;
+        ASN1_CHK_ADD( par_len, x509_write_ec_param( &c, buf, pk_ec( *key ) ) );
     }
-    else
 #endif
-        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
+    ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf, oid, oid_len,
+                                                        par_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
@@ -689,7 +679,7 @@ static int x509_write_sig( unsigned char **p, unsigned char *start,
     // Write OID
     //
     ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( p, start, oid,
-                                                        oid_len ) );
+                                                        oid_len, 0 ) );
 
     return( len );
 }
@@ -937,7 +927,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
      *  Signature   ::=  AlgorithmIdentifier
      */
     ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, tmp_buf,
-                       sig_oid, strlen( sig_oid ) ) );
+                       sig_oid, strlen( sig_oid ), 0 ) );
 
     /*
      *  Serial   ::=  INTEGER

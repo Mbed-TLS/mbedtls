@@ -368,6 +368,7 @@ static const oid_pk_alg_t oid_pk_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_pk_alg_t, pk_alg, oid_pk_alg);
 FN_OID_GET_ATTR1(oid_get_pk_alg, oid_pk_alg_t, pk_alg, pk_type_t, pk_alg);
+FN_OID_GET_OID_BY_ATTR1(oid_get_oid_by_pk_alg, oid_pk_alg_t, oid_pk_alg, pk_type_t, pk_alg);
 
 #if defined(POLARSSL_ECP_C)
 /*

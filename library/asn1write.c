@@ -158,17 +158,17 @@ int asn1_write_oid( unsigned char **p, unsigned char *start,
 }
 
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
-                                     const char *oid, size_t oid_len )
+                                     const char *oid, size_t oid_len,
+                                     size_t par_len )
 {
     int ret;
     size_t len = 0;
 
-    // Write NULL
-    //
-    ASN1_CHK_ADD( len, asn1_write_null( p, start ) );
+    if( par_len == 0 )
+        ASN1_CHK_ADD( len, asn1_write_null( p, start ) );
+    else
+        len += par_len;
 
-    // Write OID
-    //
     ASN1_CHK_ADD( len, asn1_write_oid( p, start, oid, oid_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );

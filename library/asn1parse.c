@@ -354,6 +354,18 @@ void asn1_free_named_data( asn1_named_data *cur )
     memset( cur, 0, sizeof( asn1_named_data ) );
 }
 
+void asn1_free_named_data_list( asn1_named_data **head )
+{
+    asn1_named_data *cur;
+
+    while( ( cur = *head ) != NULL )
+    {
+        *head = cur->next;
+        asn1_free_named_data( cur );
+        polarssl_free( cur );
+    }
+}
+
 asn1_named_data *asn1_find_named_data( asn1_named_data *list,
                                        const char *oid, size_t len )
 {

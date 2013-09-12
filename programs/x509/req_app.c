@@ -1,5 +1,5 @@
 /*
- *  CRL reading application
+ *  Certificate request reading application
  *
  *  Copyright (C) 2006-2013, Brainspark B.V.
  *
@@ -48,7 +48,7 @@ int main( int argc, char *argv[] )
 }
 #else
 
-#define DFL_FILENAME            "crl.pem"
+#define DFL_FILENAME            "cert.req"
 #define DFL_DEBUG_LEVEL         0
 
 /*
@@ -56,27 +56,27 @@ int main( int argc, char *argv[] )
  */
 struct options
 {
-    const char *filename;       /* filename of the certificate file     */
+    const char *filename;       /* filename of the certificate request  */
 } opt;
 
 #define USAGE \
-    "\n usage: crl_app param=<>...\n"                   \
+    "\n usage: req_app param=<>...\n"                   \
     "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: crl.pem\n"      \
+    "    filename=%%s         default: cert.req\n"      \
     "\n"
 
 int main( int argc, char *argv[] )
 {
     int ret = 0;
     unsigned char buf[100000];
-    x509_crl crl;
+    x509_csr csr;
     int i, j, n;
     char *p, *q;
 
     /*
      * Set to sane values
      */
-    memset( &crl, 0, sizeof( x509_crl ) );
+    memset( &csr, 0, sizeof( x509_csr ) );
 
     if( argc == 0 )
     {
@@ -109,38 +109,38 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * 1.1. Load the CRL
+     * 1.1. Load the CSR
      */
-    printf( "\n  . Loading the CRL ..." );
+    printf( "\n  . Loading the CSR ..." );
     fflush( stdout );
 
-    ret = x509parse_crlfile( &crl, opt.filename );
+    ret = x509parse_csrfile( &csr, opt.filename );
 
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crl returned %d\n\n", ret );
-        x509_crl_free( &crl );
+        printf( " failed\n  !  x509parse_csr returned %d\n\n", ret );
+        x509_csr_free( &csr );
         goto exit;
     }
 
     printf( " ok\n" );
 
     /*
-     * 1.2 Print the CRL
+     * 1.2 Print the CSR
      */
-    printf( "  . CRL information    ...\n" );
-    ret = x509parse_crl_info( (char *) buf, sizeof( buf ) - 1, "      ", &crl );
+    printf( "  . CSR information    ...\n" );
+    ret = x509parse_csr_info( (char *) buf, sizeof( buf ) - 1, "      ", &csr );
     if( ret == -1 )
     {
-        printf( " failed\n  !  x509parse_crl_info returned %d\n\n", ret );
-        x509_crl_free( &crl );
+        printf( " failed\n  !  x509parse_csr_info returned %d\n\n", ret );
+        x509_csr_free( &csr );
         goto exit;
     }
 
     printf( "%s\n", buf );
 
 exit:
-    x509_crl_free( &crl );
+    x509_csr_free( &csr );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

@@ -154,8 +154,8 @@ typedef struct _asn1_named_data
 asn1_named_data;
 
 /**
- * Get the length of an ASN.1 element.
- * Updates the pointer to immediately behind the length.
+ * \brief       Get the length of an ASN.1 element.
+ *              Updates the pointer to immediately behind the length.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -170,8 +170,8 @@ int asn1_get_len( unsigned char **p,
                   size_t *len );
 
 /**
- * Get the tag and length of the tag. Check for the requested tag.
- * Updates the pointer to immediately behind the tag and length.
+ * \brief       Get the tag and length of the tag. Check for the requested tag.
+ *              Updates the pointer to immediately behind the tag and length.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -186,8 +186,8 @@ int asn1_get_tag( unsigned char **p,
                   size_t *len, int tag );
 
 /**
- * Retrieve a boolean ASN.1 tag and its value.
- * Updates the pointer to immediately behind the full tag.
+ * \brief       Retrieve a boolean ASN.1 tag and its value.
+ *              Updates the pointer to immediately behind the full tag.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -200,8 +200,8 @@ int asn1_get_bool( unsigned char **p,
                    int *val );
 
 /**
- * Retrieve an integer ASN.1 tag and its value.
- * Updates the pointer to immediately behind the full tag.
+ * \brief       Retrieve an integer ASN.1 tag and its value.
+ *              Updates the pointer to immediately behind the full tag.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -214,8 +214,8 @@ int asn1_get_int( unsigned char **p,
                   int *val );
 
 /**
- * Retrieve a bitstring ASN.1 tag and its value.
- * Updates the pointer to immediately behind the full tag.
+ * \brief       Retrieve a bitstring ASN.1 tag and its value.
+ *              Updates the pointer to immediately behind the full tag.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -227,8 +227,9 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
                         asn1_bitstring *bs);
 
 /**
- * Retrieve a bitstring ASN.1 tag without unused bits and its value.
- * Updates the pointer to the beginning of the bit/octet string.
+ * \brief       Retrieve a bitstring ASN.1 tag without unused bits and its
+ *              value.
+ *              Updates the pointer to the beginning of the bit/octet string.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -240,8 +241,8 @@ int asn1_get_bitstring_null( unsigned char **p, const unsigned char *end,
                              size_t *len );
 
 /**
- * Parses and splits an ASN.1 "SEQUENCE OF <tag>"
- * Updated the pointer to immediately behind the full sequence tag.
+ * \brief       Parses and splits an ASN.1 "SEQUENCE OF <tag>"
+ *              Updated the pointer to immediately behind the full sequence tag.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -257,8 +258,8 @@ int asn1_get_sequence_of( unsigned char **p,
 
 #if defined(POLARSSL_BIGNUM_C)
 /**
- * Retrieve a MPI value from an integer ASN.1 tag.
- * Updates the pointer to immediately behind the full tag.
+ * \brief       Retrieve a MPI value from an integer ASN.1 tag.
+ *              Updates the pointer to immediately behind the full tag.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -272,8 +273,9 @@ int asn1_get_mpi( unsigned char **p,
 #endif
 
 /**
- * Retrieve an AlgorithmIdentifier ASN.1 sequence.
- * Updates the pointer to immediately behind the full AlgorithmIdentifier.
+ * \brief       Retrieve an AlgorithmIdentifier ASN.1 sequence.
+ *              Updates the pointer to immediately behind the full
+ *              AlgorithmIdentifier.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -287,8 +289,10 @@ int asn1_get_alg( unsigned char **p,
                   asn1_buf *alg, asn1_buf *params );
 
 /**
- * Retrieve an AlgorithmIdentifier ASN.1 sequence with NULL or no params.
- * Updates the pointer to immediately behind the full AlgorithmIdentifier.
+ * \brief       Retrieve an AlgorithmIdentifier ASN.1 sequence with NULL or no
+ *              params.
+ *              Updates the pointer to immediately behind the full
+ *              AlgorithmIdentifier.
  *
  * \param p     The position in the ASN.1 data
  * \param end   End of data
@@ -301,7 +305,8 @@ int asn1_get_alg_null( unsigned char **p,
                        asn1_buf *alg );
 
 /**
- * Find a specific named_data entry in a sequence or list based on the OID.
+ * \brief       Find a specific named_data entry in a sequence or list based on
+ *              the OID.
  *
  * \param list  The list to seek through
  * \param oid   The OID to look for
@@ -313,11 +318,19 @@ asn1_named_data *asn1_find_named_data( asn1_named_data *list,
                                        const char *oid, size_t len );
 
 /**
- * Free a asn1_named_data entry
+ * \brief       Free a asn1_named_data entry
  *
  * \param entry The named data entry to free
  */
 void asn1_free_named_data( asn1_named_data *entry );
+
+/**
+ * \brief       Free all entries in a asn1_named_data list
+ *              Head will be set to NULL
+ *
+ * \param head  Pointer to the head of the list of named data entries to free
+ */
+void asn1_free_named_data_list( asn1_named_data **head );
 
 #ifdef __cplusplus
 }

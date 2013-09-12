@@ -29,7 +29,7 @@
 
 #include "asn1.h"
 
-#define ASN1_CHK_ADD(g, f) if( ( ret = f ) < 0 ) return( ret ); else g += ret
+#define ASN1_CHK_ADD(g, f) do { if( ( ret = f ) < 0 ) return( ret ); else g += ret; } while( 0 )
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,24 +105,41 @@ int asn1_write_null( unsigned char **p, unsigned char *start );
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param oid       the OID to write
+ * \param oid_len   length of the OID
  *
  * \return          the length written or a negative error code
  */
-int asn1_write_oid( unsigned char **p, unsigned char *start, const char *oid );
+int asn1_write_oid( unsigned char **p, unsigned char *start,
+                    const char *oid, size_t oid_len );
 
 /**
  * \brief           Write an AlgorithmIdentifier sequence in ASN.1 format
  *                  Note: function works backwards in data buffer
- *                  Note: Uses NULL as algorithm parameter
  *
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param oid       the OID of the algorithm
+ * \param oid_len   length of the OID
+ * \param par_len   length of parameters, which must be already written.
+ *                  If 0, NULL parameters are added
  *
  * \return          the length written or a negative error code
  */
 int asn1_write_algorithm_identifier( unsigned char **p, unsigned char *start,
-                                     const char *oid );
+                                     const char *oid, size_t oid_len,
+                                     size_t par_len );
+
+/**
+ * \brief           Write a boolean tag (ASN1_BOOLEAN) and value in ASN.1 format
+ *                  Note: function works backwards in data buffer
+ *
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param boolean   0 or 1
+ *
+ * \return          the length written or a negative error code
+ */
+int asn1_write_bool( unsigned char **p, unsigned char *start, int boolean );
 
 /**
  * \brief           Write an int tag (ASN1_INTEGER) and value in ASN.1 format
@@ -144,11 +161,12 @@ int asn1_write_int( unsigned char **p, unsigned char *start, int val );
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param text      the text to write
+ * \param text_len  length of the text
  *
  * \return          the length written or a negative error code
  */
 int asn1_write_printable_string( unsigned char **p, unsigned char *start,
-                                 char *text );
+                                 const char *text, size_t text_len );
 
 /**
  * \brief           Write an IA5 string tag (ASN1_IA5_STRING) and
@@ -158,11 +176,12 @@ int asn1_write_printable_string( unsigned char **p, unsigned char *start,
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)
  * \param text      the text to write
+ * \param text_len  length of the text
  *
  * \return          the length written or a negative error code
  */
 int asn1_write_ia5_string( unsigned char **p, unsigned char *start,
-                                 char *text );
+                           const char *text, size_t text_len );
 
 /**
  * \brief           Write a bitstring tag (ASN1_BIT_STRING) and
@@ -193,6 +212,28 @@ int asn1_write_bitstring( unsigned char **p, unsigned char *start,
  */
 int asn1_write_octet_string( unsigned char **p, unsigned char *start,
                              const unsigned char *buf, size_t size );
+
+/**
+ * \brief           Create or find a specific named_data entry for writing in a
+ *                  sequence or list based on the OID. If not already in there,
+ *                  a new entry is added to the head of the list.
+ *                  Warning: Destructive behaviour for the val data!
+ *
+ * \param list      Pointer to the location of the head of the list to seek
+ *                  through (will be updated in case of a new entry)
+ * \param oid       The OID to look for
+ * \param oid_len   Size of the OID
+ * \param val       Data to store (can be NULL if you want to fill it by hand)
+ * \param val_len   Minimum length of the data buffer needed
+ *
+ * \return      NULL if if there was a memory allocation error, or a pointer
+ *              to the new / existing entry.
+ */
+asn1_named_data *asn1_store_named_data( asn1_named_data **list,
+                                        const char *oid, size_t oid_len,
+                                        const unsigned char *val,
+                                        size_t val_len );
+
 #ifdef __cplusplus
 }
 #endif

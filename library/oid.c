@@ -93,12 +93,13 @@ int FN_NAME( const asn1_buf *oid, ATTR1_TYPE * ATTR1, ATTR2_TYPE * ATTR2 )  \
  * attribute from a oid_descriptor_t wrapper.
  */
 #define FN_OID_GET_OID_BY_ATTR1(FN_NAME, TYPE_T, LIST, ATTR1_TYPE, ATTR1)   \
-int FN_NAME( ATTR1_TYPE ATTR1, const char **oid_str )                       \
+int FN_NAME( ATTR1_TYPE ATTR1, const char **oid, size_t *olen )             \
 {                                                                           \
     const TYPE_T *cur = LIST;                                               \
     while( cur->descriptor.asn1 != NULL ) {                                 \
         if( cur->ATTR1 == ATTR1 ) {                                         \
-            *oid_str = cur->descriptor.asn1;                                \
+            *oid = cur->descriptor.asn1;                                    \
+            *olen = cur->descriptor.asn1_len;                               \
             return( 0 );                                                    \
         }                                                                   \
         cur++;                                                              \
@@ -112,12 +113,14 @@ int FN_NAME( ATTR1_TYPE ATTR1, const char **oid_str )                       \
  */
 #define FN_OID_GET_OID_BY_ATTR2(FN_NAME, TYPE_T, LIST, ATTR1_TYPE, ATTR1,   \
                                 ATTR2_TYPE, ATTR2)                          \
-int FN_NAME( ATTR1_TYPE ATTR1, ATTR2_TYPE ATTR2, const char **oid_str )     \
+int FN_NAME( ATTR1_TYPE ATTR1, ATTR2_TYPE ATTR2, const char **oid ,         \
+             size_t *olen )                                                 \
 {                                                                           \
     const TYPE_T *cur = LIST;                                               \
     while( cur->descriptor.asn1 != NULL ) {                                 \
         if( cur->ATTR1 == ATTR1 && cur->ATTR2 == ATTR2 ) {                  \
-            *oid_str = cur->descriptor.asn1;                                \
+            *oid = cur->descriptor.asn1;                                    \
+            *olen = cur->descriptor.asn1_len;                               \
             return( 0 );                                                    \
         }                                                                   \
         cur++;                                                              \
@@ -365,7 +368,9 @@ static const oid_pk_alg_t oid_pk_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_pk_alg_t, pk_alg, oid_pk_alg);
 FN_OID_GET_ATTR1(oid_get_pk_alg, oid_pk_alg_t, pk_alg, pk_type_t, pk_alg);
+FN_OID_GET_OID_BY_ATTR1(oid_get_oid_by_pk_alg, oid_pk_alg_t, oid_pk_alg, pk_type_t, pk_alg);
 
+#if defined(POLARSSL_ECP_C)
 /*
  * For namedCurve (RFC 5480)
  */
@@ -404,6 +409,8 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_ecp_grp_t, grp_id, oid_ecp_grp);
 FN_OID_GET_ATTR1(oid_get_ec_grp, oid_ecp_grp_t, grp_id, ecp_group_id, grp_id);
+FN_OID_GET_OID_BY_ATTR1(oid_get_oid_by_ec_grp, oid_ecp_grp_t, oid_ecp_grp, ecp_group_id, grp_id);
+#endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_CIPHER_C)
 /*

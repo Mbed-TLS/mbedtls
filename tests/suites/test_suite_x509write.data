@@ -25,3 +25,23 @@ x509_csr_check:"data_files/server1.key":POLARSSL_MD_MD4:"data_files/server1.req.
 Certificate Request check Server1 MD5
 depends_on:POLARSSL_MD5_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_csr_check:"data_files/server1.key":POLARSSL_MD_MD5:"data_files/server1.req.md5"
+
+Certificate write check Server1 SHA1
+depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":POLARSSL_MD_SHA1:"data_files/server1.crt"
+
+Public key write check RSA
+depends_on:POLARSSL_RSA_C:POLARSSL_BASE64_C
+x509_pubkey_check:"data_files/server1.pubkey"
+
+Public key write check EC
+depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_pubkey_check:"data_files/ec_pub.pem"
+
+Private key write check RSA
+depends_on:POLARSSL_RSA_C:POLARSSL_BASE64_C
+x509_key_check:"data_files/server1.key"
+
+Private key write check EC
+depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+x509_key_check:"data_files/ec_prv.sec1.pem"

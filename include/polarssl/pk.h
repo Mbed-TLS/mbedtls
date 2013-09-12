@@ -369,6 +369,15 @@ int pk_debug( const pk_context *ctx, pk_debug_item *items );
  */
 const char * pk_get_name( const pk_context *ctx );
 
+/**
+ * \brief           Get the key typee
+ *
+ * \param ctx       Context to use
+ *
+ * \return          Type on success, or POLARSSL_PK_NONE
+ */
+pk_type_t pk_get_type( const pk_context *ctx );
+
 #ifdef __cplusplus
 }
 #endif

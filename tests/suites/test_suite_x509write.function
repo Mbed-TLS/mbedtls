@@ -14,46 +14,174 @@
 void x509_csr_check( char *key_file, int md_type,
                           char *cert_req_check_file )
 {
-    rsa_context rsa;
+    pk_context key;
     pem_context pem;
-    x509_csr req;
+    x509write_csr req;
     unsigned char *c;
     unsigned char buf[4000];
     unsigned char check_buf[4000];
     int ret;
-    size_t olen = 2000;
+    size_t olen = sizeof( check_buf );
     FILE *f;
     char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
+    rnd_pseudo_info rnd_info;
 
-    memset( &rsa, 0, sizeof(rsa_context) );
-    ret = x509parse_keyfile_rsa( &rsa, key_file, NULL );
-    TEST_ASSERT( ret == 0 );
-    if( ret != 0 )
-        return;
+    memset( &rnd_info, 0x2a, sizeof( rnd_pseudo_info ) );
+
+    pk_init( &key );
+    TEST_ASSERT( x509parse_keyfile( &key, key_file, NULL ) == 0 );
 
     x509write_csr_init( &req );
     x509write_csr_set_md_alg( &req, md_type );
-    x509write_csr_set_rsa_key( &req, &rsa );
+    x509write_csr_set_key( &req, &key );
     TEST_ASSERT( x509write_csr_set_subject_name( &req, subject_name ) == 0 );
 
-    ret = x509write_csr_der( &req, buf, 4000 );
+    ret = x509write_csr_der( &req, buf, sizeof( buf ),
+                             rnd_pseudo_rand, &rnd_info );
     TEST_ASSERT( ret >= 0 );
 
-    c = buf + 3999 - ret;
+    c = buf + sizeof( buf ) - ret;
 
     f = fopen( cert_req_check_file, "r" );
     TEST_ASSERT( f != NULL );
-    fread( check_buf, 1, 4000, f );
+    fread( check_buf, 1, sizeof( check_buf ), f );
     fclose( f );
 
     pem_init( &pem );
     pem_read_buffer( &pem, "-----BEGIN CERTIFICATE REQUEST-----", "-----END CERTIFICATE REQUEST-----", check_buf, NULL, 0, &olen );
 
-    TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
     TEST_ASSERT( pem.buflen == (size_t) ret );
+    TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
 
     x509write_csr_free( &req );
-    rsa_free( &rsa );
     pem_free( &pem );
+    pk_free( &key );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void x509_crt_check( char *subject_key_file, char *subject_pwd,
+                     char *subject_name, char *issuer_key_file,
+                     char *issuer_pwd, char *issuer_name,
+                     char *serial_str, char *not_before, char *not_after,
+                     int md_type, char *cert_check_file )
+{
+    pk_context subject_key, issuer_key;
+    pem_context pem;
+    x509write_cert crt;
+    unsigned char *c;
+    unsigned char buf[4000];
+    unsigned char check_buf[5000];
+    mpi serial;
+    int ret;
+    size_t olen = sizeof( check_buf );
+    FILE *f;
+    rnd_pseudo_info rnd_info;
+
+    memset( &rnd_info, 0x2a, sizeof( rnd_pseudo_info ) );
+    mpi_init( &serial );
+    pk_init( &subject_key );
+    pk_init( &issuer_key );
+
+    TEST_ASSERT( x509parse_keyfile( &subject_key, subject_key_file,
+                                         subject_pwd ) == 0 );
+    TEST_ASSERT( x509parse_keyfile( &issuer_key, issuer_key_file,
+                                         issuer_pwd ) == 0 );
+    TEST_ASSERT( mpi_read_string( &serial, 10, serial_str ) == 0 );
+
+    x509write_crt_init( &crt );
+    x509write_crt_set_serial( &crt, &serial );
+    TEST_ASSERT( x509write_crt_set_validity( &crt, not_before,
+                                                   not_after ) == 0 );
+    x509write_crt_set_md_alg( &crt, md_type );
+    TEST_ASSERT( x509write_crt_set_issuer_name( &crt, issuer_name ) == 0 );
+    TEST_ASSERT( x509write_crt_set_subject_name( &crt, subject_name ) == 0 );
+    x509write_crt_set_subject_key( &crt, &subject_key );
+    x509write_crt_set_issuer_key( &crt, &issuer_key );
+
+    TEST_ASSERT( x509write_crt_set_basic_constraints( &crt, 0, 0 ) == 0 );
+    TEST_ASSERT( x509write_crt_set_subject_key_identifier( &crt ) == 0 );
+    TEST_ASSERT( x509write_crt_set_authority_key_identifier( &crt ) == 0 );
+
+    ret = x509write_crt_der( &crt, buf, sizeof(buf),
+                             rnd_pseudo_rand, &rnd_info );
+    TEST_ASSERT( ret >= 0 );
+
+    c = buf + sizeof( buf ) - ret;
+
+    f = fopen( cert_check_file, "r" );
+    TEST_ASSERT( f != NULL );
+    TEST_ASSERT( fread( check_buf, 1, sizeof(check_buf), f ) < sizeof(check_buf) );
+    fclose( f );
+
+    pem_init( &pem );
+    TEST_ASSERT( pem_read_buffer( &pem, "-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----", check_buf, NULL, 0, &olen ) >= 0 );
+
+    TEST_ASSERT( pem.buflen == (size_t) ret );
+    TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
+
+    x509write_crt_free( &crt );
+    pk_free( &issuer_key );
+    pk_free( &subject_key );
+    pem_free( &pem );
+    mpi_free( &serial );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void x509_pubkey_check( char *key_file )
+{
+    pk_context key;
+    unsigned char buf[5000];
+    unsigned char check_buf[5000];
+    int ret;
+    FILE *f;
+
+    memset( buf, 0, sizeof( buf ) );
+    memset( check_buf, 0, sizeof( check_buf ) );
+
+    pk_init( &key );
+    TEST_ASSERT( x509parse_public_keyfile( &key, key_file ) == 0 );
+
+    ret = x509write_pubkey_pem( &key, buf, sizeof( buf ) - 1);
+    TEST_ASSERT( ret >= 0 );
+
+    f = fopen( key_file, "r" );
+    TEST_ASSERT( f != NULL );
+    fread( check_buf, 1, sizeof( check_buf ) - 1, f );
+    fclose( f );
+
+    TEST_ASSERT( strncmp( (char *) buf, (char *) check_buf, sizeof( buf ) ) == 0 );
+
+    pk_free( &key );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void x509_key_check( char *key_file )
+{
+    pk_context key;
+    unsigned char buf[5000];
+    unsigned char check_buf[5000];
+    int ret;
+    FILE *f;
+
+    memset( buf, 0, sizeof( buf ) );
+    memset( check_buf, 0, sizeof( check_buf ) );
+
+    pk_init( &key );
+    TEST_ASSERT( x509parse_keyfile( &key, key_file, NULL ) == 0 );
+
+    ret = x509write_key_pem( &key, buf, sizeof( buf ) - 1);
+    TEST_ASSERT( ret >= 0 );
+
+    f = fopen( key_file, "r" );
+    TEST_ASSERT( f != NULL );
+    fread( check_buf, 1, sizeof( check_buf ) - 1, f );
+    fclose( f );
+
+    TEST_ASSERT( strncmp( (char *) buf, (char *) check_buf, sizeof( buf ) ) == 0 );
+
+    pk_free( &key );
 }
 /* END_CASE */

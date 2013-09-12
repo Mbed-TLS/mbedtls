@@ -40,8 +40,7 @@
 
 #if !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_X509_PARSE_C) ||   \
     !defined(POLARSSL_FS_IO) ||                                             \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
-    !defined(POLARSSL_ERROR_C)
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -49,8 +48,8 @@ int main( int argc, char *argv[] )
 
     printf( "POLARSSL_X509_WRITE_C and/or POLARSSL_X509_PARSE_C and/or "
             "POLARSSL_FS_IO and/or "
-            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
-            "POLARSSL_ERROR_C not defined.\n");
+            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
+            "not defined.\n");
     return( 0 );
 }
 #else
@@ -146,7 +145,7 @@ int main( int argc, char *argv[] )
     x509write_csr_init( &req );
     x509write_csr_set_md_alg( &req, POLARSSL_MD_SHA1 );
     pk_init( &key );
-    memset( buf, 0, 1024 );
+    memset( buf, 0, sizeof( buf ) );
 
     if( argc == 0 )
     {
@@ -267,8 +266,7 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        error_strerror( ret, buf, 1024 );
-        printf( " failed\n  !  ctr_drbg_init returned %d - %s\n", ret, buf );
+        printf( " failed\n  !  ctr_drbg_init returned %d", ret );
         goto exit;
     }
 
@@ -282,8 +280,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )
     {
-        error_strerror( ret, buf, 1024 );
-        printf( " failed\n  !  x509write_csr_set_subject_name returned %d - %s\n\n", ret, buf );
+        printf( " failed\n  !  x509write_csr_set_subject_name returned %d", ret );
         goto exit;
     }
 
@@ -299,8 +296,7 @@ int main( int argc, char *argv[] )
 
     if( ret != 0 )
     {
-        error_strerror( ret, buf, 1024 );
-        printf( " failed\n  !  x509parse_keyfile returned %d - %s\n\n", ret, buf );
+        printf( " failed\n  !  x509parse_keyfile returned %d", ret );
         goto exit;
     }
 
@@ -317,14 +313,24 @@ int main( int argc, char *argv[] )
     if( ( ret = write_certificate_request( &req, opt.output_file,
                                            ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        error_strerror( ret, buf, 1024 );
-        printf( " failed\n  !  write_certifcate_request %d - %s\n\n", ret, buf );
+        printf( " failed\n  !  write_certifcate_request %d", ret );
         goto exit;
     }
 
     printf( " ok\n" );
 
 exit:
+
+    if( ret != 0 && ret != 1)
+    {
+#ifdef POLARSSL_ERROR_C
+        polarssl_strerror( ret, buf, sizeof( buf ) );
+        printf( " - %s\n", buf );
+#else
+        printf("\n");
+#endif
+    }
+
     x509write_csr_free( &req );
     pk_free( &key );
 
@@ -336,5 +342,4 @@ exit:
     return( ret );
 }
 #endif /* POLARSSL_X509_WRITE_C && POLARSSL_X509_PARSE_C && POLARSSL_FS_IO &&
-          POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
-          POLARSSL_ERROR_C */
+          POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C */

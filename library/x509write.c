@@ -563,27 +563,6 @@ int x509write_key_der( rsa_context *rsa, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
-    // TODO: Make NON RSA Specific variant later on
-/*    *--c = 0;
-    len += 1;
-
-    len += asn1_write_len( &c, len);
-    len += asn1_write_tag( &c, ASN1_BIT_STRING );
-
-    len += asn1_write_oid( &c, OID_PKCS1_RSA );
-
-    len += asn1_write_int( &c, 0 );
-
-    len += asn1_write_len( &c, len);
-    len += asn1_write_tag( &c, ASN1_CONSTRUCTED | ASN1_SEQUENCE );*/
-
-/*    for(i = 0; i < len; ++i)
-    {
-        if (i % 16 == 0 ) printf("\n");
-        printf("%02x ", c[i]);
-    }
-    printf("\n");*/
-
     return( len );
 }
 

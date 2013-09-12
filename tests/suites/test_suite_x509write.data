@@ -37,3 +37,7 @@ x509_pubkey_check:"data_files/server1.pubkey"
 Public key write check EC
 depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C
 x509_pubkey_check:"data_files/ec_pub.pem"
+
+Private key write check RSA
+depends_on:POLARSSL_RSA_C:POLARSSL_BASE64_C
+x509_key_check:"data_files/server1.key"

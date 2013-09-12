@@ -33,24 +33,24 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/error.h"
-#include "polarssl/rsa.h"
-#include "polarssl/x509.h"
-#include "polarssl/base64.h"
 #include "polarssl/x509write.h"
-#include "polarssl/oid.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
+#include "polarssl/error.h"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_FS_IO) ||     \
+#if !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_X509_PARSE_C) ||   \
+    !defined(POLARSSL_FS_IO) ||                                             \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
     !defined(POLARSSL_ERROR_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_WRITE_C and/or POLARSSL_FS_IO and/or "
-           "POLARSSL_ERROR_C not defined.\n");
+    printf( "POLARSSL_X509_WRITE_C and/or POLARSSL_X509_PARSE_C and/or "
+            "POLARSSL_FS_IO and/or "
+            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
+            "POLARSSL_ERROR_C not defined.\n");
     return( 0 );
 }
 #else
@@ -97,7 +97,9 @@ struct options
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
 
-int write_certificate( x509write_cert *crt, char *output_file )
+int write_certificate( x509write_cert *crt, char *output_file,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng )
 {
     int ret;
     FILE *f;
@@ -105,7 +107,7 @@ int write_certificate( x509write_cert *crt, char *output_file )
     size_t len = 0;
 
     memset( output_buf, 0, 4096 );
-    if( ( ret = x509write_crt_pem( crt, output_buf, 4096 ) ) < 0 )
+    if( ( ret = x509write_crt_pem( crt, output_buf, 4096, f_rng, p_rng ) ) < 0 )
         return( ret );
 
     len = strlen( (char *) output_buf );
@@ -183,6 +185,9 @@ int main( int argc, char *argv[] )
     x509_csr csr;
     x509write_cert crt;
     mpi serial;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
+    const char *pers = "crt example app";
 
     /*
      * Set to sane values
@@ -350,14 +355,37 @@ int main( int argc, char *argv[] )
 
     printf("\n");
 
+    /*
+     * 0. Seed the PRNG
+     */
+    printf( "  . Seeding the random number generator..." );
+    fflush( stdout );
+
+    entropy_init( &entropy );
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
+    {
+        error_strerror( ret, buf, 1024 );
+        printf( " failed\n  !  ctr_drbg_init returned %d - %s\n", ret, buf );
+        goto exit;
+    }
+
+    printf( " ok\n" );
+
     // Parse serial to MPI
     //
+    printf( "  . Reading serial number..." );
+    fflush( stdout );
+
     if( ( ret = mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
     {
         error_strerror( ret, buf, 1024 );
         printf( " failed\n  !  mpi_read_string returned -0x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
+
+    printf( " ok\n" );
 
     // Parse issuer certificate if present
     //
@@ -597,7 +625,8 @@ int main( int argc, char *argv[] )
     printf( "  . Writing the certificate..." );
     fflush( stdout );
 
-    if( ( ret = write_certificate( &crt, opt.output_file ) ) != 0 )
+    if( ( ret = write_certificate( &crt, opt.output_file,
+                                   ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         error_strerror( ret, buf, 1024 );
         printf( " failed\n  !  write_certifcate -0x%02x - %s\n\n", -ret, buf );
@@ -619,5 +648,6 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C &&
-          POLARSSet_serial_X509_WRITE_C && POLARSSL_FS_IO */
+#endif /* POLARSSL_X509_WRITE_C && POLARSSL_X509_PARSE_C && POLARSSL_FS_IO &&
+          POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
+          POLARSSL_ERROR_C */

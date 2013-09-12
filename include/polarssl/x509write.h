@@ -373,11 +373,20 @@ void x509write_crt_free( x509write_cert *ctx );
  * \param crt       certificate to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
+ * \param f_rng     RNG function (for signature, see note)
+ * \param p_rng     RNG parameter
  *
  * \return          length of data written if successful, or a specific
  *                  error code
+ *
+ * \note            f_rng may be NULL if RSA is used for signature and the
+ *                  signature is made offline (otherwise f_rng is desirable
+ *                  for countermeasures against timing attacks).
+ *                  ECDSA signatures always require a non-NULL f_rng.
  */
-int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size );
+int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng );
 
 /**
  * \brief           Write a public key to a DER structure
@@ -441,10 +450,19 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
  * \param crt       certificate to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
+ * \param f_rng     RNG function (for signature, see note)
+ * \param p_rng     RNG parameter
  *
  * \return          0 successful, or a specific error code
+ *
+ * \note            f_rng may be NULL if RSA is used for signature and the
+ *                  signature is made offline (otherwise f_rng is desirable
+ *                  for countermeasures against timing attacks).
+ *                  ECDSA signatures always require a non-NULL f_rng.
  */
-int x509write_crt_pem( x509write_cert *ctx, unsigned char *buf, size_t size );
+int x509write_crt_pem( x509write_cert *ctx, unsigned char *buf, size_t size,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng );
 
 /**
  * \brief           Write a public key to a PEM string

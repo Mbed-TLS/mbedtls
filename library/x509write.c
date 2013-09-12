@@ -905,7 +905,9 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
     return( len );
 }
 
-int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
+int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng )
 {
     int ret;
     const char *sig_oid;
@@ -1007,7 +1009,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size )
     md( md_info_from_type( ctx->md_alg ), c, len, hash );
 
     if( ( ret = pk_sign( ctx->issuer_key, ctx->md_alg, hash, 0, sig, &sig_len,
-                         NULL, NULL ) ) != 0 )
+                         f_rng, p_rng ) ) != 0 )
     {
         return( ret );
     }
@@ -1083,13 +1085,15 @@ static int x509write_pemify( const char *begin_str, const char *end_str,
     return( 0 );
 }
 
-int x509write_crt_pem( x509write_cert *crt, unsigned char *buf, size_t size )
+int x509write_crt_pem( x509write_cert *crt, unsigned char *buf, size_t size,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng )
 {
     int ret;
     unsigned char output_buf[4096];
 
-    if( ( ret = x509write_crt_der( crt, output_buf,
-                                   sizeof(output_buf) ) ) < 0 )
+    if( ( ret = x509write_crt_der( crt, output_buf, sizeof(output_buf),
+                                   f_rng, p_rng ) ) < 0 )
     {
         return( ret );
     }

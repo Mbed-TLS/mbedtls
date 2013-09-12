@@ -189,6 +189,27 @@ static int x509_write_ec_param( unsigned char **p, unsigned char *start,
 }
 #endif /* POLARSSL_ECP_C */
 
+static int x509_write_pubkey( unsigned char **p, unsigned char *start,
+                              const pk_context *key )
+{
+    int ret;
+    size_t len = 0;
+
+#if defined(POLARSSL_RSA_C)
+    if( pk_get_type( key ) == POLARSSL_PK_RSA )
+        ASN1_CHK_ADD( len, x509_write_rsa_pubkey( p, start, pk_rsa( *key ) ) );
+    else
+#endif
+#if defined(POLARSSL_ECP_C)
+    if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
+        ASN1_CHK_ADD( len, x509_write_ec_pubkey( p, start, pk_ec( *key ) ) );
+    else
+#endif
+        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+
+    return( len );
+}
+
 void x509write_csr_init( x509write_csr *ctx )
 {
     memset( ctx, 0, sizeof(x509write_csr) );
@@ -404,12 +425,8 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx )
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
-    if( pk_get_type( ctx->subject_key ) != POLARSSL_PK_RSA )
-        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
     memset( buf, 0, sizeof(buf));
-    ASN1_CHK_ADD( len, x509_write_rsa_pubkey( &c, buf,
-                                              pk_rsa( *ctx->subject_key ) ) );
+    ASN1_CHK_ADD( len, x509_write_pubkey( &c, buf, ctx->subject_key ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
     c = buf + sizeof(buf) - 20;
@@ -430,12 +447,8 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
-    if( pk_get_type( ctx->issuer_key ) != POLARSSL_PK_RSA )
-        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
     memset( buf, 0, sizeof(buf));
-    ASN1_CHK_ADD( len, x509_write_rsa_pubkey( &c, buf,
-                                              pk_rsa( *ctx->issuer_key ) ) );
+    ASN1_CHK_ADD( len, x509_write_pubkey( &c, buf, ctx->issuer_key ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
     c = buf + sizeof(buf) - 20;
@@ -502,17 +515,7 @@ int x509write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
 
     c = buf + size;
 
-#if defined(POLARSSL_RSA_C)
-    if( pk_get_type( key ) == POLARSSL_PK_RSA )
-        ASN1_CHK_ADD( len, x509_write_rsa_pubkey( &c, buf, pk_rsa( *key ) ) );
-    else
-#endif
-#if defined(POLARSSL_ECP_C)
-    if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
-        ASN1_CHK_ADD( len, x509_write_ec_pubkey( &c, buf, pk_ec( *key ) ) );
-    else
-#endif
-        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+    ASN1_CHK_ADD( len, x509_write_pubkey( &c, buf, key ) );
 
     if( c - buf < 1 )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );

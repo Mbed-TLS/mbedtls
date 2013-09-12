@@ -259,17 +259,17 @@ int x509write_crt_set_subject_name( x509write_cert *ctx, char *subject_name );
  * \brief           Set the subject public key for the certificate
  *
  * \param ctx       CRT context to use
- * \param rsa       RSA public key to include
+ * \param key       public key to include
  */
-void x509write_crt_set_subject_key( x509write_cert *ctx, rsa_context *rsa );
+void x509write_crt_set_subject_key( x509write_cert *ctx, pk_context *key );
 
 /**
  * \brief           Set the issuer key used for signing the certificate
  *
  * \param ctx       CRT context to use
- * \param rsa       RSA key to sign with
+ * \param key       private key to sign with
  */
-void x509write_crt_set_issuer_key( x509write_cert *ctx, rsa_context *rsa );
+void x509write_crt_set_issuer_key( x509write_cert *ctx, pk_context *key );
 
 /**
  * \brief           Set the MD algorithm to use for the signature

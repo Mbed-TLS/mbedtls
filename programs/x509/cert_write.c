@@ -172,9 +172,9 @@ int main( int argc, char *argv[] )
 {
     int ret = 0;
     x509_cert issuer_crt;
-    rsa_context loaded_issuer_rsa, loaded_subject_rsa;
-    rsa_context *issuer_rsa = &loaded_issuer_rsa,
-                *subject_rsa = &loaded_subject_rsa;
+    pk_context loaded_issuer_key, loaded_subject_key;
+    pk_context *issuer_key = &loaded_issuer_key,
+                *subject_key = &loaded_subject_key;
     char buf[1024];
     char issuer_name[128];
     char subject_name[128];
@@ -189,8 +189,8 @@ int main( int argc, char *argv[] )
      */
     x509write_crt_init( &crt );
     x509write_crt_set_md_alg( &crt, POLARSSL_MD_SHA1 );
-    rsa_init( &loaded_issuer_rsa, RSA_PKCS_V15, 0 );
-    rsa_init( &loaded_subject_rsa, RSA_PKCS_V15, 0 );
+    pk_init( &loaded_issuer_key );
+    pk_init( &loaded_subject_key );
     mpi_init( &serial );
     memset( &csr, 0, sizeof(x509_csr) );
     memset( &issuer_crt, 0, sizeof(x509_cert) );
@@ -417,7 +417,7 @@ int main( int argc, char *argv[] )
         }
 
         opt.subject_name = subject_name;
-        subject_rsa = pk_rsa( csr.pk );
+        subject_key = &csr.pk;
 
         printf( " ok\n" );
     }
@@ -430,12 +430,12 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the subject key ..." );
         fflush( stdout );
 
-        ret = x509parse_keyfile_rsa( &loaded_subject_rsa, opt.subject_key,
-                                     opt.subject_pwd );
+        ret = x509parse_keyfile( &loaded_subject_key, opt.subject_key,
+                                 opt.subject_pwd );
         if( ret != 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_keyfile_rsa returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -445,12 +445,12 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the issuer key ..." );
     fflush( stdout );
 
-    ret = x509parse_keyfile_rsa( &loaded_issuer_rsa, opt.issuer_key,
+    ret = x509parse_keyfile( &loaded_issuer_key, opt.issuer_key,
                                  opt.issuer_pwd );
     if( ret != 0 )
     {
         error_strerror( ret, buf, 1024 );
-        printf( " failed\n  !  x509parse_keyfile_rsa returned -x%02x - %s\n\n", -ret, buf );
+        printf( " failed\n  !  x509parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -459,8 +459,10 @@ int main( int argc, char *argv[] )
     if( strlen( opt.issuer_crt ) )
     {
         if( !pk_can_do( &issuer_crt.pk, POLARSSL_PK_RSA ) ||
-            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->N, &issuer_rsa->N ) != 0 ||
-            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->E, &issuer_rsa->E ) != 0 )
+            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->N,
+                         &pk_rsa( *issuer_key )->N ) != 0 ||
+            mpi_cmp_mpi( &pk_rsa( issuer_crt.pk )->E,
+                         &pk_rsa( *issuer_key )->E ) != 0 )
         {
             printf( " failed\n  !  issuer_key does not match issuer certificate\n\n" );
             ret = -1;
@@ -473,11 +475,11 @@ int main( int argc, char *argv[] )
     if( opt.selfsign )
     {
         opt.issuer_name = opt.subject_name;
-        subject_rsa = issuer_rsa;
+        subject_key = issuer_key;
     }
 
-    x509write_crt_set_subject_key( &crt, subject_rsa );
-    x509write_crt_set_issuer_key( &crt, issuer_rsa );
+    x509write_crt_set_subject_key( &crt, subject_key );
+    x509write_crt_set_issuer_key( &crt, issuer_key );
 
     /*
      * 1.0. Check the names for validity
@@ -606,8 +608,8 @@ int main( int argc, char *argv[] )
 
 exit:
     x509write_crt_free( &crt );
-    rsa_free( &loaded_subject_rsa );
-    rsa_free( &loaded_issuer_rsa );
+    pk_free( &loaded_subject_key );
+    pk_free( &loaded_issuer_key );
     mpi_free( &serial );
 
 #if defined(_WIN32)

@@ -66,7 +66,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *serial_str, char *not_before, char *not_after,
                      int md_type, char *cert_check_file )
 {
-    rsa_context subject_rsa, issuer_rsa;
+    pk_context subject_key, issuer_key;
     pem_context pem;
     x509write_cert crt;
     unsigned char *c;
@@ -78,12 +78,12 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     FILE *f;
 
     mpi_init( &serial );
-    rsa_init( &subject_rsa, RSA_PKCS_V15, 0 );
-    rsa_init( &issuer_rsa, RSA_PKCS_V15, 0 );
+    pk_init( &subject_key );
+    pk_init( &issuer_key );
 
-    TEST_ASSERT( x509parse_keyfile_rsa( &subject_rsa, subject_key_file,
+    TEST_ASSERT( x509parse_keyfile( &subject_key, subject_key_file,
                                          subject_pwd ) == 0 );
-    TEST_ASSERT( x509parse_keyfile_rsa( &issuer_rsa, issuer_key_file,
+    TEST_ASSERT( x509parse_keyfile( &issuer_key, issuer_key_file,
                                          issuer_pwd ) == 0 );
     TEST_ASSERT( mpi_read_string( &serial, 10, serial_str ) == 0 );
 
@@ -94,8 +94,8 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     x509write_crt_set_md_alg( &crt, md_type );
     TEST_ASSERT( x509write_crt_set_issuer_name( &crt, issuer_name ) == 0 );
     TEST_ASSERT( x509write_crt_set_subject_name( &crt, subject_name ) == 0 );
-    x509write_crt_set_subject_key( &crt, &subject_rsa );
-    x509write_crt_set_issuer_key( &crt, &issuer_rsa );
+    x509write_crt_set_subject_key( &crt, &subject_key );
+    x509write_crt_set_issuer_key( &crt, &issuer_key );
 
     TEST_ASSERT( x509write_crt_set_basic_constraints( &crt, 0, 0 ) == 0 );
     TEST_ASSERT( x509write_crt_set_subject_key_identifier( &crt ) == 0 );
@@ -118,8 +118,8 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
 
     x509write_crt_free( &crt );
-    rsa_free( &issuer_rsa );
-    rsa_free( &subject_rsa );
+    pk_free( &issuer_key );
+    pk_free( &subject_key );
     pem_free( &pem );
     mpi_free( &serial );
 }

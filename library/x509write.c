@@ -312,14 +312,14 @@ void x509write_crt_set_md_alg( x509write_cert *ctx, md_type_t md_alg )
     ctx->md_alg = md_alg;
 }
 
-void x509write_crt_set_subject_key( x509write_cert *ctx, rsa_context *rsa )
+void x509write_crt_set_subject_key( x509write_cert *ctx, pk_context *key )
 {
-    ctx->subject_key = rsa;
+    ctx->subject_key = pk_rsa( *key );
 }
 
-void x509write_crt_set_issuer_key( x509write_cert *ctx, rsa_context *rsa )
+void x509write_crt_set_issuer_key( x509write_cert *ctx, pk_context *key )
 {
-    ctx->issuer_key = rsa;
+    ctx->issuer_key = pk_rsa( *key );
 }
 
 int x509write_crt_set_subject_name( x509write_cert *ctx, char *subject_name )

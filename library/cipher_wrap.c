@@ -184,6 +184,7 @@ const cipher_info_t aes_256_ecb_info = {
     &aes_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t aes_128_cbc_info = {
     POLARSSL_CIPHER_AES_128_CBC,
     POLARSSL_MODE_CBC,
@@ -216,6 +217,7 @@ const cipher_info_t aes_256_cbc_info = {
     16,
     &aes_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 const cipher_info_t aes_128_cfb128_info = {
@@ -472,6 +474,7 @@ const cipher_info_t camellia_256_ecb_info = {
     &camellia_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t camellia_128_cbc_info = {
     POLARSSL_CIPHER_CAMELLIA_128_CBC,
     POLARSSL_MODE_CBC,
@@ -504,6 +507,7 @@ const cipher_info_t camellia_256_cbc_info = {
     16,
     &camellia_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 const cipher_info_t camellia_128_cfb128_info = {
@@ -715,6 +719,7 @@ const cipher_info_t des_ecb_info = {
     &des_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t des_cbc_info = {
     POLARSSL_CIPHER_DES_CBC,
     POLARSSL_MODE_CBC,
@@ -725,6 +730,7 @@ const cipher_info_t des_cbc_info = {
     8,
     &des_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 const cipher_base_t des_ede_info = {
     POLARSSL_CIPHER_ID_DES,
@@ -750,6 +756,7 @@ const cipher_info_t des_ede_ecb_info = {
     &des_ede_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t des_ede_cbc_info = {
     POLARSSL_CIPHER_DES_EDE_CBC,
     POLARSSL_MODE_CBC,
@@ -760,6 +767,7 @@ const cipher_info_t des_ede_cbc_info = {
     8,
     &des_ede_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 const cipher_base_t des_ede3_info = {
     POLARSSL_CIPHER_ID_DES,
@@ -784,6 +792,7 @@ const cipher_info_t des_ede3_ecb_info = {
     8,
     &des_ede3_info
 };
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t des_ede3_cbc_info = {
     POLARSSL_CIPHER_DES_EDE3_CBC,
     POLARSSL_MODE_CBC,
@@ -794,6 +803,7 @@ const cipher_info_t des_ede3_cbc_info = {
     8,
     &des_ede3_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
@@ -887,6 +897,7 @@ const cipher_info_t blowfish_ecb_info = {
     &blowfish_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t blowfish_cbc_info = {
     POLARSSL_CIPHER_BLOWFISH_CBC,
     POLARSSL_MODE_CBC,
@@ -897,6 +908,7 @@ const cipher_info_t blowfish_cbc_info = {
     8,
     &blowfish_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 const cipher_info_t blowfish_cfb64_info = {

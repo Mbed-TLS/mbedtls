@@ -36,6 +36,10 @@
 #define POLARSSL_CIPHER_MODE_AEAD
 #endif
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+#define POLARSSL_CIPHER_MODE_WITH_PADDING
+#endif
+
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined(inline)
@@ -462,6 +466,7 @@ static inline operation_t cipher_get_operation( const cipher_context_t *ctx )
 int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_length,
         const operation_t operation );
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
 /**
  * \brief               Set padding mode, for cipher modes that use padding.
  *                      (Default: PKCS7 padding.)
@@ -475,6 +480,7 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_leng
  *                      does not support padding.
  */
 int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
 /**
  * \brief               Set the initialization vector (IV) or nonce

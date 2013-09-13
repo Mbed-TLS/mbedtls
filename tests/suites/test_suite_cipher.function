@@ -48,11 +48,15 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, key_len, POLARSSL_DECRYPT ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx_enc, key, key_len, POLARSSL_ENCRYPT ) );
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
     if( -1 != pad_mode )
     {
         TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx_dec, pad_mode ) );
         TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx_enc, pad_mode ) );
     }
+#else
+    (void) pad_mode;
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
     /*
      * Do a few encode/decode cycles
@@ -159,7 +163,11 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
     /* Initialise context */
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx, cipher_info ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx, key, key_len, POLARSSL_ENCRYPT ) );
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
     TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx, pad_mode ) );
+#else
+    (void) pad_mode;
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
     TEST_ASSERT( 0 == cipher_set_iv( &ctx, iv, 16 ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx ) );
 #if defined(POLARSSL_CIPHER_MODE_AEAD)
@@ -351,8 +359,12 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx,
                                        cipher_info_from_type( cipher_id ) ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx, key, 8 * key_len, POLARSSL_DECRYPT ) );
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
     if( pad_mode != -1 )
         TEST_ASSERT( 0 == cipher_set_padding_mode( &ctx, pad_mode ) );
+#else
+    (void) pad_mode;
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
     TEST_ASSERT( 0 == cipher_set_iv( &ctx, iv, iv_len ) );
     TEST_ASSERT( 0 == cipher_reset( &ctx ) );
 #if defined(POLARSSL_CIPHER_MODE_AEAD)
@@ -428,7 +440,7 @@ void test_vec_ecb( int cipher_id, int operation, char *hex_key,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_WITH_PADDING */
 void set_padding( int cipher_id, int pad_mode, int ret )
 {
     const cipher_info_t *cipher_info;
@@ -444,7 +456,7 @@ void set_padding( int cipher_id, int pad_mode, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CBC */
 void check_padding( int pad_mode, char *input_str, int ret, int dlen_check )
 {
     cipher_info_t cipher_info;

@@ -672,6 +672,7 @@ int ssl_derive_keys( ssl_context *ssl )
                 return( ret );
             }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
             if( cipher_info->mode == POLARSSL_MODE_CBC )
             {
                 if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_enc,
@@ -688,6 +689,7 @@ int ssl_derive_keys( ssl_context *ssl )
                     return( ret );
                 }
             }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
             break;
 
         case POLARSSL_CIPHER_NULL:
@@ -871,7 +873,7 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
  */
 static int ssl_encrypt_buf( ssl_context *ssl )
 {
-    size_t i, padlen;
+    size_t i;
 
     SSL_DEBUG_MSG( 2, ( "=> encrypt buf" ) );
 
@@ -914,16 +916,15 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
     if( ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_NULL )
     {
-        padlen = 0;
+        ; /* Nothing to do */
     }
     else
 #endif /* POLARSSL_CIPHER_NULL_CIPHER */
+#if defined(POLARSSL_ARC4_C)
     if( ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_ARC4_128 )
     {
         int ret;
         size_t olen = 0;
-
-        padlen = 0;
 
         SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
                             "including %d bytes of padding",
@@ -978,6 +979,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         }
     }
     else
+#endif /* POLARSSL_ARC4_C */
 #if defined(POLARSSL_GCM_C)
     if( ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_128_GCM ||
         ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM )
@@ -987,7 +989,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         unsigned char add_data[13];
         int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-        padlen = 0;
         enc_msglen = ssl->out_msglen;
 
         memcpy( add_data, ssl->out_ctr, 8 );
@@ -1084,11 +1085,13 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_GCM_C */
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+    if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode ==
+                                                        POLARSSL_MODE_CBC )
     {
         int ret;
         unsigned char *enc_msg;
-        size_t enc_msglen;
-        size_t olen = 0;
+        size_t enc_msglen, padlen, olen = 0;
 
         padlen = ssl->transform_out->ivlen - ( ssl->out_msglen + 1 ) %
                  ssl->transform_out->ivlen;
@@ -1187,6 +1190,12 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                     ssl->transform_out->ivlen );
         }
 #endif
+    }
+    else
+#endif /* POLARSSL_CIPHER_MODE_CBC */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     for( i = 8; i > 0; i-- )
@@ -1362,6 +1371,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_GCM_C */
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+    if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode ==
+                                                       POLARSSL_MODE_CBC )
     {
         /*
          * Decrypt and check the padding
@@ -1523,6 +1535,12 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
         }
+    }
+    else
+#endif /* POLARSSL_CIPHER_MODE_CBC */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     SSL_DEBUG_BUF( 4, "raw buffer after decryption",

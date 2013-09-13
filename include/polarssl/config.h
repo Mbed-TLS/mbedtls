@@ -153,6 +153,13 @@
  */
 
 /**
+ * \def POLARSSL_CIPHER_MODE_CBC
+ *
+ * Enable Cipher Block Chaining mode (CBC) for symmetric ciphers.
+ */
+#define POLARSSL_CIPHER_MODE_CBC
+
+/**
  * \def POLARSSL_CIPHER_MODE_CFB
  *
  * Enable Cipher Feedback mode (CFB) for symmetric ciphers.

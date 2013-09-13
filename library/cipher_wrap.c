@@ -295,6 +295,7 @@ static void *gcm_ctx_alloc( void )
 
 static void gcm_ctx_free( void *ctx )
 {
+    gcm_free( ctx );
     polarssl_free( ctx );
 }
 

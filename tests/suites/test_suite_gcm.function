@@ -49,6 +49,8 @@ void gcm_encrypt_and_tag( char *hex_key_string, char *hex_src_string,
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
         TEST_ASSERT( strcmp( (char *) tag_str, hex_tag_string ) == 0 );
     }
+
+    gcm_free( &ctx );
 }
 /* END_CASE */
 
@@ -101,6 +103,8 @@ void gcm_decrypt_and_verify( char *hex_key_string, char *hex_src_string,
             TEST_ASSERT( strcmp( (char *) dst_str, pt_result ) == 0 );
         }
     }
+
+    gcm_free( &ctx );
 }
 /* END_CASE */
 

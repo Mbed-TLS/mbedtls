@@ -198,6 +198,13 @@ int gcm_finish( gcm_context *ctx,
                 size_t tag_len );
 
 /**
+ * \brief           Free a GCM context and underlying cipher sub-context
+ *
+ * \param ctx
+ */
+void gcm_free( gcm_context *ctx );
+
+/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed

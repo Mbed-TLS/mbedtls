@@ -406,6 +406,12 @@ int gcm_auth_decrypt( gcm_context *ctx,
     return( 0 );
 }
 
+void gcm_free( gcm_context *ctx )
+{
+    (void) cipher_free_ctx( &ctx->cipher_ctx );
+    memset( ctx, 0, sizeof( gcm_context ) );
+}
+
 #if defined(POLARSSL_SELF_TEST)
 
 #include <stdio.h>
@@ -672,6 +678,8 @@ int gcm_self_test( int verbose )
                 return( 1 );
             }
 
+            gcm_free( &ctx );
+
             if( verbose != 0 )
                 printf( "passed\n" );
 
@@ -695,6 +703,8 @@ int gcm_self_test( int verbose )
 
                 return( 1 );
             }
+
+            gcm_free( &ctx );
 
             if( verbose != 0 )
                 printf( "passed\n" );
@@ -759,6 +769,8 @@ int gcm_self_test( int verbose )
                 return( 1 );
             }
 
+            gcm_free( &ctx );
+
             if( verbose != 0 )
                 printf( "passed\n" );
 
@@ -822,6 +834,8 @@ int gcm_self_test( int verbose )
                 return( 1 );
             }
 
+            gcm_free( &ctx );
+
             if( verbose != 0 )
                 printf( "passed\n" );
 
@@ -833,6 +847,8 @@ int gcm_self_test( int verbose )
 
     return( 0 );
 }
+
+
 
 #endif
 

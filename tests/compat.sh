@@ -103,6 +103,16 @@ fi
 
 for MODE in $MODES;
 do
+
+# avoid an avalanche of errors due to typos
+case $MODE in
+    ssl3|tls1|tls1_1|tls1_2)
+        ;;
+    *)
+        echo "error: invalid mode: $MODE" >&2
+        exit 1;
+esac
+
 echo "-----------"
 echo "Running for $MODE (Verify: $VERIFY)"
 echo "-----------"

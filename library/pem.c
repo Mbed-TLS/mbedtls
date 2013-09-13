@@ -48,7 +48,8 @@ void pem_init( pem_context *ctx )
     memset( ctx, 0, sizeof( pem_context ) );
 }
 
-#if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
 /*
  * Read a 16-byte hex string and convert it to binary
  */
@@ -183,7 +184,8 @@ static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
 }
 #endif /* POLARSSL_AES_C */
 
-#endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
+#endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_DES_C ) */
 
 int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
                      const unsigned char *data, const unsigned char *pwd,
@@ -193,13 +195,15 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
     size_t len;
     unsigned char *buf;
     const unsigned char *s1, *s2, *end;
-#if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
     unsigned char pem_iv[16];
     cipher_type_t enc_alg = POLARSSL_CIPHER_NONE;
 #else
     ((void) pwd);
     ((void) pwdlen);
-#endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
+#endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_DES_C ) */
 
     if( ctx == NULL )
         return( POLARSSL_ERR_PEM_BAD_INPUT_DATA );
@@ -229,7 +233,8 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 
     if( memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
     {
-#if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
         enc++;
 
         s1 += 22;
@@ -289,7 +294,8 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
         else return( POLARSSL_ERR_PEM_INVALID_DATA );
 #else
         return( POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE );
-#endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
+#endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_DES_C ) */
     }
 
     len = 0;
@@ -309,7 +315,8 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
     
     if( enc != 0 )
     {
-#if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
         if( pwd == NULL )
         {
             polarssl_free( buf );
@@ -346,7 +353,8 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 #else
         polarssl_free( buf );
         return( POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE );
-#endif
+#endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_DES_C ) */
     }
 
     ctx->buf = buf;

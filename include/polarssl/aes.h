@@ -100,6 +100,7 @@ int aes_crypt_ecb( aes_context *ctx,
                     const unsigned char input[16],
                     unsigned char output[16] );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /**
  * \brief          AES-CBC buffer encryption/decryption
  *                 Length should be a multiple of the block
@@ -120,6 +121,7 @@ int aes_crypt_cbc( aes_context *ctx,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 /**
  * \brief          AES-CFB128 buffer encryption/decryption.

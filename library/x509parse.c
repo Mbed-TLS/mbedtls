@@ -4270,7 +4270,6 @@ int x509_self_test( int verbose )
 #if defined(POLARSSL_CERTS_C) && defined(POLARSSL_MD5_C)
     int ret;
     int flags;
-    size_t i, j;
     x509_cert cacert;
     x509_cert clicert;
     pk_context pkey;
@@ -4305,23 +4304,25 @@ int x509_self_test( int verbose )
         return( ret );
     }
 
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    defined(POLARSSL_DES_C) && defined(POLARSSL_AES_C)
     if( verbose != 0 )
         printf( "passed\n  X.509 private key load: " );
-
-    i = strlen( test_ca_key );
-    j = strlen( test_ca_pwd );
 
     pk_init( &pkey );
 
     if( ( ret = x509parse_key( &pkey,
-                    (const unsigned char *) test_ca_key, i,
-                    (const unsigned char *) test_ca_pwd, j ) ) != 0 )
+                               (const unsigned char *) test_ca_key,
+                               strlen( test_ca_key ),
+                               (const unsigned char *) test_ca_pwd,
+                               strlen( test_ca_pwd ) ) ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );
 
         return( ret );
     }
+#endif
 
     if( verbose != 0 )
         printf( "passed\n  X.509 signature verify: ");
@@ -4341,10 +4342,8 @@ int x509_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n  X.509 DHM parameter load: " );
 
-    i = strlen( test_dhm_params );
-    j = strlen( test_ca_pwd );
-
-    if( ( ret = x509parse_dhm( &dhm, (const unsigned char *) test_dhm_params, i ) ) != 0 )
+    if( ( ret = x509parse_dhm( &dhm, (const unsigned char *) test_dhm_params,
+                                     strlen( test_dhm_params ) ) ) != 0 )
     {
         if( verbose != 0 )
             printf( "failed\n" );

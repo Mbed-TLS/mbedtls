@@ -83,6 +83,7 @@ int xtea_crypt_ecb( xtea_context *ctx,
                     const unsigned char input[8],
                     unsigned char output[8] );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /**
  * \brief          XTEA CBC cipher function
  *
@@ -102,6 +103,7 @@ int xtea_crypt_cbc( xtea_context *ctx,
                     unsigned char iv[8],
                     const unsigned char *input,
                     unsigned char *output);
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #ifdef __cplusplus
 }

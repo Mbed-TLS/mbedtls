@@ -111,6 +111,7 @@ int xtea_crypt_ecb( xtea_context *ctx, int mode,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /*
  * XTEA-CBC buffer encryption/decryption
  */
@@ -159,6 +160,7 @@ int xtea_crypt_cbc( xtea_context *ctx, int mode, size_t length,
 
     return( 0 );
 }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 #endif /* !POLARSSL_XTEA_ALT */
 
 #if defined(POLARSSL_SELF_TEST)

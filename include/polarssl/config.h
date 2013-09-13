@@ -633,6 +633,7 @@
  *
  * Requires: POLARSSL_AES_C
  *           POLARSSL_SHA256_C
+ *           POLARSSL_CIPHER_MODE_CBC
  *
  * Comment this macro to disable support for SSL session tickets
  */
@@ -1606,7 +1607,8 @@
 #endif
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS) && defined(POLARSSL_SSL_TLS_C) && \
-    ( !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) )
+    ( !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) ||            \
+      !defined(POLARSSL_CIPHER_MODE_CBC) )
 #error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
 #endif
 

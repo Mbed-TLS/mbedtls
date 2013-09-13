@@ -127,35 +127,35 @@ depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:07\:01\nnext update   \: 2023-08-07 08\:07\:01\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA512\n"
 
 X509 Parse RSA Key #1 (No password when required)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_rsa:"data_files/test-ca.key":"NULL":POLARSSL_ERR_X509_PASSWORD_REQUIRED
 
 X509 Parse RSA Key #2 (Correct password)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLTest":0
 
 X509 Parse RSA Key #3 (Wrong password)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLWRONG":POLARSSL_ERR_X509_PASSWORD_MISMATCH
 
 X509 Parse RSA Key #4 (DES Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_rsa:"data_files/keyfile.des":"testkey":0
 
 X509 Parse RSA Key #5 (3DES Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_rsa:"data_files/keyfile.3des":"testkey":0
 
 X509 Parse RSA Key #6 (AES-128 Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_rsa:"data_files/keyfile.aes128":"testkey":0
 
 X509 Parse RSA Key #7 (AES-192 Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_rsa:"data_files/keyfile.aes192":"testkey":0
 
 X509 Parse RSA Key #8 (AES-256 Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_rsa:"data_files/keyfile.aes256":"testkey":0
 
 X509 Parse RSA Key #9 (PKCS#8 wrapped)
@@ -267,7 +267,7 @@ depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R
 x509parse_keyfile_ec:"data_files/ec_prv.sec1.pem":"NULL":0
 
 X509 Parse EC Key #3 (SEC1 PEM encrypted)
-depends_on:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_CIPHER_MODE_CBC
 x509parse_keyfile_ec:"data_files/ec_prv.sec1.pw.pem":"polar":0
 
 X509 Parse EC Key #4 (PKCS8 DER)

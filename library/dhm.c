@@ -98,7 +98,7 @@ int dhm_read_params( dhm_context *ctx,
 {
     int ret;
 
-    memset( ctx, 0, sizeof( dhm_context ) );
+    dhm_free( ctx );
 
     if( ( ret = dhm_read_bignum( &ctx->P,  p, end ) ) != 0 ||
         ( ret = dhm_read_bignum( &ctx->G,  p, end ) ) != 0 ||
@@ -364,10 +364,12 @@ cleanup:
  */
 void dhm_free( dhm_context *ctx )
 {
-    mpi_free( &ctx->Vi ); mpi_free( &ctx->Vf );
+    mpi_free( &ctx->_X); mpi_free( &ctx->Vf ); mpi_free( &ctx->Vi );
     mpi_free( &ctx->RP ); mpi_free( &ctx->K ); mpi_free( &ctx->GY );
     mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
     mpi_free( &ctx->P );
+
+    memset( ctx, 0, sizeof( dhm_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

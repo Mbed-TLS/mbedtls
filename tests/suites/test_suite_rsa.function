@@ -374,13 +374,12 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
     rsa_context ctx;
     mpi P1, Q1, H, G;
     rnd_pseudo_info rnd_info;
+    int i;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V15, 0 );
 
     memset( message_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
-    memset( output_str, 0x00, 1000 );
     memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     ctx.len = mod / 8;
@@ -402,12 +401,20 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
 
     unhexify( message_str, message_hex_string );
 
-    TEST_ASSERT( rsa_private( &ctx, rnd_pseudo_rand, &rnd_info, message_str, output ) == result );
-    if( result == 0 )
+    /* repeat three times to test updating of blinding values */
+    for( i = 0; i < 3; i++ )
     {
-        hexify( output_str, output, ctx.len );
+        memset( output, 0x00, 1000 );
+        memset( output_str, 0x00, 1000 );
+        TEST_ASSERT( rsa_private( &ctx, rnd_pseudo_rand, &rnd_info,
+                                  message_str, output ) == result );
+        if( result == 0 )
+        {
+            hexify( output_str, output, ctx.len );
 
-        TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
+            TEST_ASSERT( strcasecmp( (char *) output_str,
+                                              result_hex_str ) == 0 );
+        }
     }
 
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );

@@ -229,11 +229,11 @@ static int ssl_test( struct options *opt )
             goto exit;
         }
 
-        ret =  x509parse_key( &pkey, (const unsigned char *) test_srv_key,
-                              strlen( test_srv_key ), NULL, 0 );
+        ret =  pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
+                             strlen( test_srv_key ), NULL, 0 );
         if( ret != 0 )
         {
-            printf( "  !  x509parse_key returned %d\n\n", ret );
+            printf( "  !  pk_parse_key returned %d\n\n", ret );
             goto exit;
         }
 #endif

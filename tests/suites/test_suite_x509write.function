@@ -29,7 +29,7 @@ void x509_csr_check( char *key_file, int md_type,
     memset( &rnd_info, 0x2a, sizeof( rnd_pseudo_info ) );
 
     pk_init( &key );
-    TEST_ASSERT( x509parse_keyfile( &key, key_file, NULL ) == 0 );
+    TEST_ASSERT( pk_parse_keyfile( &key, key_file, NULL ) == 0 );
 
     x509write_csr_init( &req );
     x509write_csr_set_md_alg( &req, md_type );
@@ -83,9 +83,9 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     pk_init( &subject_key );
     pk_init( &issuer_key );
 
-    TEST_ASSERT( x509parse_keyfile( &subject_key, subject_key_file,
+    TEST_ASSERT( pk_parse_keyfile( &subject_key, subject_key_file,
                                          subject_pwd ) == 0 );
-    TEST_ASSERT( x509parse_keyfile( &issuer_key, issuer_key_file,
+    TEST_ASSERT( pk_parse_keyfile( &issuer_key, issuer_key_file,
                                          issuer_pwd ) == 0 );
     TEST_ASSERT( mpi_read_string( &serial, 10, serial_str ) == 0 );
 
@@ -141,7 +141,7 @@ void x509_pubkey_check( char *key_file )
     memset( check_buf, 0, sizeof( check_buf ) );
 
     pk_init( &key );
-    TEST_ASSERT( x509parse_public_keyfile( &key, key_file ) == 0 );
+    TEST_ASSERT( pk_parse_public_keyfile( &key, key_file ) == 0 );
 
     ret = x509write_pubkey_pem( &key, buf, sizeof( buf ) - 1);
     TEST_ASSERT( ret >= 0 );
@@ -170,7 +170,7 @@ void x509_key_check( char *key_file )
     memset( check_buf, 0, sizeof( check_buf ) );
 
     pk_init( &key );
-    TEST_ASSERT( x509parse_keyfile( &key, key_file, NULL ) == 0 );
+    TEST_ASSERT( pk_parse_keyfile( &key, key_file, NULL ) == 0 );
 
     ret = x509write_key_pem( &key, buf, sizeof( buf ) - 1);
     TEST_ASSERT( ret >= 0 );

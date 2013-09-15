@@ -458,12 +458,12 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the subject key ..." );
         fflush( stdout );
 
-        ret = x509parse_keyfile( &loaded_subject_key, opt.subject_key,
+        ret = pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
                                  opt.subject_pwd );
         if( ret != 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  pk_parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -473,12 +473,12 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the issuer key ..." );
     fflush( stdout );
 
-    ret = x509parse_keyfile( &loaded_issuer_key, opt.issuer_key,
-                                 opt.issuer_pwd );
+    ret = pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
+                             opt.issuer_pwd );
     if( ret != 0 )
     {
         error_strerror( ret, buf, 1024 );
-        printf( " failed\n  !  x509parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
+        printf( " failed\n  !  pk_parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 

@@ -1,0 +1,196 @@
+Parse RSA Key #1 (No password when required)
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/test-ca.key":"NULL":POLARSSL_ERR_PK_PASSWORD_REQUIRED
+
+Parse RSA Key #2 (Correct password)
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLTest":0
+
+Parse RSA Key #3 (Wrong password)
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLWRONG":POLARSSL_ERR_PK_PASSWORD_MISMATCH
+
+Parse RSA Key #4 (DES Encrypted)
+depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/keyfile.des":"testkey":0
+
+Parse RSA Key #5 (3DES Encrypted)
+depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/keyfile.3des":"testkey":0
+
+Parse RSA Key #6 (AES-128 Encrypted)
+depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/keyfile.aes128":"testkey":0
+
+Parse RSA Key #7 (AES-192 Encrypted)
+depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/keyfile.aes192":"testkey":0
+
+Parse RSA Key #8 (AES-256 Encrypted)
+depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/keyfile.aes256":"testkey":0
+
+Parse RSA Key #9 (PKCS#8 wrapped)
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+pk_parse_keyfile_rsa:"data_files/format_gen.key":"":0
+
+Parse RSA Key #10 (PKCS#8 encrypted SHA1-3DES)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_3des.key":"PolarSSLTest":0
+
+Parse RSA Key #10.1 (PKCS#8 encrypted SHA1-3DES, wrong PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_3des.key":"PolarSSLTes":POLARSSL_ERR_PK_PASSWORD_MISMATCH
+
+Parse RSA Key #10.2 (PKCS#8 encrypted SHA1-3DES, no PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_3des.key":"":POLARSSL_ERR_PK_PASSWORD_REQUIRED
+
+Parse RSA Key #11 (PKCS#8 encrypted SHA1-3DES DER)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_3des.der":"PolarSSLTest":0
+
+Parse RSA Key #12 (PKCS#8 encrypted SHA1-2DES)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des.key":"PolarSSLTest":0
+
+Parse RSA Key #12.1 (PKCS#8 encrypted SHA1-2DES, wrong PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des.key":"PolarSLTest":POLARSSL_ERR_PK_PASSWORD_MISMATCH
+
+Parse RSA Key #12.2 (PKCS#8 encrypted SHA1-2DES, no PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des.key":"":POLARSSL_ERR_PK_PASSWORD_REQUIRED
+
+Parse RSA Key #13 (PKCS#8 encrypted SHA1-RC4-128)
+depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTest":0
+
+Parse RSA Key #13.1 (PKCS#8 encrypted SHA1-RC4-128, wrong PW)
+depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTe":POLARSSL_ERR_PK_PASSWORD_MISMATCH
+
+Parse RSA Key #13.2 (PKCS#8 encrypted SHA1-RC4-128, no PW)
+depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"":POLARSSL_ERR_PK_PASSWORD_REQUIRED
+
+Parse RSA Key #14 (PKCS#8 encrypted v2 PBDFK2 3DES)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"PolarSSLTest":0
+
+Parse RSA Key #15 (PKCS#8 encrypted v2 PBDFK2 3DES, wrong PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"PolarSSLTes":POLARSSL_ERR_PK_PASSWORD_MISMATCH
+
+Parse RSA Key #16 (PKCS#8 encrypted v2 PBDFK2 3DES, no PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"":POLARSSL_ERR_PK_PASSWORD_REQUIRED
+
+Parse RSA Key #17 (PKCS#8 encrypted v2 PBDFK2 3DES DER)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"PolarSSLTest":0
+
+Parse RSA Key #18 (PKCS#8 encrypted v2 PBDFK2 3DES DER, wrong PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"PolarSSLTes":POLARSSL_ERR_PK_PASSWORD_MISMATCH
+
+Parse RSA Key #19 (PKCS#8 encrypted v2 PBDFK2 3DES DER, no PW)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT
+
+Parse RSA Key #20 (PKCS#8 encrypted v2 PBDFK2 DES)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_des.key":"PolarSSLTest":0
+
+Parse Public RSA Key #1 (PKCS#8 wrapped)
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
+pk_parse_public_keyfile_rsa:"data_files/format_gen.pub":0
+
+Parse Public EC Key #1 (RFC 5480, DER)
+depends_on:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_FS_IO
+pk_parse_public_keyfile_ec:"data_files/ec_pub.der":0
+
+Parse Public EC Key #2 (RFC 5480, PEM)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_FS_IO
+pk_parse_public_keyfile_ec:"data_files/ec_pub.pem":0
+
+Parse Public EC Key #3 (RFC 5480, secp224r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP224R1_ENABLED:POLARSSL_FS_IO
+pk_parse_public_keyfile_ec:"data_files/ec_224_pub.pem":0
+
+Parse Public EC Key #4 (RFC 5480, secp256r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_FS_IO
+pk_parse_public_keyfile_ec:"data_files/ec_256_pub.pem":0
+
+Parse Public EC Key #5 (RFC 5480, secp384r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_FS_IO
+pk_parse_public_keyfile_ec:"data_files/ec_384_pub.pem":0
+
+Parse Public EC Key #6 (RFC 5480, secp521r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP521R1_ENABLED:POLARSSL_FS_IO
+pk_parse_public_keyfile_ec:"data_files/ec_521_pub.pem":0
+
+Parse EC Key #1 (SEC1 DER)
+depends_on:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_prv.sec1.der":"NULL":0
+
+Parse EC Key #2 (SEC1 PEM)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_prv.sec1.pem":"NULL":0
+
+Parse EC Key #3 (SEC1 PEM encrypted)
+depends_on:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_CIPHER_MODE_CBC
+pk_parse_keyfile_ec:"data_files/ec_prv.sec1.pw.pem":"polar":0
+
+Parse EC Key #4 (PKCS8 DER)
+depends_on:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8.der":"NULL":0
+
+Parse EC Key #5 (PKCS8 PEM)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8.pem":"NULL":0
+
+Parse EC Key #6 (PKCS8 encrypted DER)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8.pw.der":"polar":0
+
+Parse EC Key #7 (PKCS8 encrypted PEM)
+depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8.pw.pem":"polar":0
+
+Parse EC Key #8 (SEC1 PEM, secp224r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP224R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_224_prv.pem":"NULL":0
+
+Parse EC Key #9 (SEC1 PEM, secp256r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_256_prv.pem":"NULL":0
+
+Parse EC Key #10 (SEC1 PEM, secp384r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_384_prv.pem":"NULL":0
+
+Parse EC Key #11 (SEC1 PEM, secp521r1)
+depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP521R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_521_prv.pem":"NULL":0
+
+Key ASN1 (Incorrect first tag)
+pk_parse_key_rsa:"":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (RSAPrivateKey, incorrect version tag)
+pk_parse_key_rsa:"300100":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (RSAPrivateKey, version tag missing)
+pk_parse_key_rsa:"3000":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (RSAPrivateKey, invalid version)
+pk_parse_key_rsa:"3003020101":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (RSAPrivateKey, correct version, incorrect tag)
+pk_parse_key_rsa:"300402010000":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (RSAPrivateKey, values present, length mismatch)
+pk_parse_key_rsa:"301c02010002010102010102010102010102010102010102010102010100":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (RSAPrivateKey, values present, check_privkey fails)
+pk_parse_key_rsa:"301b020100020101020101020101020101020101020101020101020101":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT

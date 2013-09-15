@@ -52,23 +52,16 @@
 #define POLARSSL_ERR_X509_CERT_INVALID_ALG                 -0x2300  /**< The algorithm tag or value is invalid. */
 #define POLARSSL_ERR_X509_CERT_INVALID_NAME                -0x2380  /**< The name tag or value is invalid. */
 #define POLARSSL_ERR_X509_CERT_INVALID_DATE                -0x2400  /**< The date tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_PUBKEY              -0x2480  /**< The pubkey tag or value is invalid (only RSA and EC are supported). */
-#define POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE           -0x2500  /**< The signature tag or value invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x2580  /**< The extension tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x2600  /**< Certificate or CRL has an unsupported version number. */
-#define POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x2680  /**< Signature algorithm (oid) is unsupported. */
-#define POLARSSL_ERR_X509_UNKNOWN_PK_ALG                   -0x2700  /**< Key algorithm is unsupported (only RSA and EC are supported). */
-#define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x2780  /**< Certificate signature algorithms do not match. (see \c ::x509_cert sig_oid) */
-#define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x2800  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
-#define POLARSSL_ERR_X509_KEY_INVALID_VERSION              -0x2880  /**< Unsupported RSA key version */
-#define POLARSSL_ERR_X509_KEY_INVALID_FORMAT               -0x2900  /**< Invalid RSA key tag or value. */
-#define POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT              -0x2980  /**< Format not recognized as DER or PEM. */
-#define POLARSSL_ERR_X509_INVALID_INPUT                    -0x2A00  /**< Input invalid. */
-#define POLARSSL_ERR_X509_MALLOC_FAILED                    -0x2A80  /**< Allocation of memory failed. */
-#define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2B00  /**< Read/write of file failed. */
-#define POLARSSL_ERR_X509_PASSWORD_REQUIRED                -0x2B80  /**< Private key password can't be empty. */
-#define POLARSSL_ERR_X509_PASSWORD_MISMATCH                -0x2C00  /**< Given private key password does not allow for correct decryption. */
-#define POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE              -0x2C80  /**< Elliptic curve is unsupported (only NIST curves are supported). */
+#define POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE           -0x2480  /**< The signature tag or value invalid. */
+#define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x2500  /**< The extension tag or value is invalid. */
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x2580  /**< Certificate or CRL has an unsupported version number. */
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x2600  /**< Signature algorithm (oid) is unsupported. */
+#define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x2680  /**< Certificate signature algorithms do not match. (see \c ::x509_cert sig_oid) */
+#define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x2700  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
+#define POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT              -0x2780  /**< Format not recognized as DER or PEM. */
+#define POLARSSL_ERR_X509_INVALID_INPUT                    -0x2800  /**< Input invalid. */
+#define POLARSSL_ERR_X509_MALLOC_FAILED                    -0x2880  /**< Allocation of memory failed. */
+#define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2900  /**< Read/write of file failed. */
 /* \} name */
 
 /**
@@ -479,63 +472,6 @@ int x509parse_public_key_rsa( rsa_context *rsa,
 int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path );
 #endif /* POLARSSL_FS_IO */
 #endif /* POLARSSL_RSA_C */
-
-/** \ingroup x509_module */
-/**
- * \brief          Parse a private key
- *
- * \param ctx      key to be initialized
- * \param key      input buffer
- * \param keylen   size of the buffer
- * \param pwd      password for decryption (optional)
- * \param pwdlen   size of the password
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_key( pk_context *ctx,
-                   const unsigned char *key, size_t keylen,
-                   const unsigned char *pwd, size_t pwdlen );
-
-#if defined(POLARSSL_FS_IO)
-/** \ingroup x509_module */
-/**
- * \brief          Load and parse a private key
- *
- * \param ctx      key to be initialized
- * \param path     filename to read the private key from
- * \param password password to decrypt the file (can be NULL)
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_keyfile( pk_context *ctx,
-                       const char *path, const char *password );
-#endif /* POLARSSL_FS_IO */
-
-/** \ingroup x509_module */
-/**
- * \brief          Parse a public key
- *
- * \param ctx      key to be initialized
- * \param key      input buffer
- * \param keylen   size of the buffer
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_public_key( pk_context *ctx,
-                          const unsigned char *key, size_t keylen );
-
-#if defined(POLARSSL_FS_IO)
-/** \ingroup x509_module */
-/**
- * \brief          Load and parse a public key
- *
- * \param ctx      key to be initialized
- * \param path     filename to read the private key from
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_public_keyfile( pk_context *ctx, const char *path );
-#endif /* POLARSSL_FS_IO */
 
 /** \ingroup x509_module */
 /**

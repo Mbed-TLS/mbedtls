@@ -165,100 +165,6 @@ void x509_time_expired( char *crt_file, char *entity, int result )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
-void x509parse_keyfile_rsa( char *key_file, char *password, int result )
-{
-    rsa_context rsa;
-    int res;
-    char *pwd = password;
-
-    memset( &rsa, 0, sizeof( rsa_context ) );
-
-    if( strcmp( pwd, "NULL" ) == 0 )
-        pwd = NULL;
-
-    res = x509parse_keyfile_rsa( &rsa, key_file, pwd );
-
-    TEST_ASSERT( res == result );
-
-    if( res == 0 )
-    {
-        TEST_ASSERT( rsa_check_privkey( &rsa ) == 0 );
-    }
-
-    rsa_free( &rsa );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
-void x509parse_public_keyfile_rsa( char *key_file, int result )
-{
-    rsa_context rsa;
-    int res;
-
-    memset( &rsa, 0, sizeof( rsa_context ) );
-
-    res = x509parse_public_keyfile_rsa( &rsa, key_file );
-
-    TEST_ASSERT( res == result );
-
-    if( res == 0 )
-    {
-        TEST_ASSERT( rsa_check_pubkey( &rsa ) == 0 );
-    }
-
-    rsa_free( &rsa );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void x509parse_public_keyfile_ec( char *key_file, int result )
-{
-    pk_context ctx;
-    int res;
-
-    pk_init( &ctx );
-
-    res = x509parse_public_keyfile( &ctx, key_file );
-
-    TEST_ASSERT( res == result );
-
-    if( res == 0 )
-    {
-        ecp_keypair *eckey;
-        TEST_ASSERT( pk_can_do( &ctx, POLARSSL_PK_ECKEY ) );
-        eckey = pk_ec( ctx );
-        TEST_ASSERT( ecp_check_pubkey( &eckey->grp, &eckey->Q ) == 0 );
-    }
-
-    pk_free( &ctx );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void x509parse_keyfile_ec( char *key_file, char *password, int result )
-{
-    pk_context ctx;
-    int res;
-
-    pk_init( &ctx );
-
-    res = x509parse_keyfile( &ctx, key_file, password );
-
-    TEST_ASSERT( res == result );
-
-    if( res == 0 )
-    {
-        ecp_keypair *eckey;
-        TEST_ASSERT( pk_can_do( &ctx, POLARSSL_PK_ECKEY ) );
-        eckey = pk_ec( ctx );
-        TEST_ASSERT( ecp_check_privkey( &eckey->grp, &eckey->d ) == 0 );
-    }
-
-    pk_free( &ctx );
-}
-/* END_CASE */
-
 /* BEGIN_CASE */
 void x509parse_crt( char *crt_data, char *result_str, int result )
 {
@@ -314,31 +220,6 @@ void x509parse_crl( char *crl_data, char *result_str, int result )
     }
 
     x509_crl_free( &crl );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
-void x509parse_key_rsa( char *key_data, char *result_str, int result )
-{
-    rsa_context   rsa;
-    unsigned char buf[2000];
-    unsigned char output[2000];
-    int data_len;
-    ((void) result_str);
-
-    memset( &rsa, 0, sizeof( rsa_context ) );
-    memset( buf, 0, 2000 );
-    memset( output, 0, 2000 );
-
-    data_len = unhexify( buf, key_data );
-
-    TEST_ASSERT( x509parse_key_rsa( &rsa, buf, data_len, NULL, 0 ) == ( result ) );
-    if( ( result ) == 0 )
-    {
-        TEST_ASSERT( 1 );
-    }
-
-    rsa_free( &rsa );
 }
 /* END_CASE */
 

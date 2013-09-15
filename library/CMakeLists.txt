@@ -41,6 +41,7 @@ set(src
      pkcs12.c
      pk.c
      pk_wrap.c
+     pkparse.c
      rsa.c
      sha1.c
      sha256.c

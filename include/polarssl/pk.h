@@ -47,6 +47,17 @@
 #define POLARSSL_ERR_PK_MALLOC_FAILED       -0x2F80  /**< Memory alloation failed. */
 #define POLARSSL_ERR_PK_TYPE_MISMATCH       -0x2F00  /**< Type mismatch, eg attempt to encrypt with an ECDSA key */
 #define POLARSSL_ERR_PK_BAD_INPUT_DATA      -0x2E80  /**< Bad input parameters to function. */
+#define POLARSSL_ERR_PK_FILE_IO_ERROR       -0x2E00  /**< Read/write of file failed. */
+#define POLARSSL_ERR_PK_KEY_INVALID_VERSION -0x2D80  /**< Unsupported key version */
+#define POLARSSL_ERR_PK_KEY_INVALID_FORMAT  -0x2D00  /**< Invalid key tag or value. */
+#define POLARSSL_ERR_PK_UNKNOWN_PK_ALG      -0x2C80  /**< Key algorithm is unsupported (only RSA and EC are supported). */
+#define POLARSSL_ERR_PK_PASSWORD_REQUIRED   -0x2C00  /**< Private key password can't be empty. */
+#define POLARSSL_ERR_PK_PASSWORD_MISMATCH   -0x2B80  /**< Given private key password does not allow for correct decryption. */
+#define POLARSSL_ERR_PK_INVALID_PUBKEY      -0x2B00  /**< The pubkey tag or value is invalid (only RSA and EC are supported). */
+#define POLARSSL_ERR_PK_INVALID_ALG         -0x2A80  /**< The algorithm tag or value is invalid. */
+#define POLARSSL_ERR_PK_UNKNOWN_NAMED_CURVE -0x2A00  /**< Elliptic curve is unsupported (only NIST curves are supported). */
+#define POLARSSL_ERR_PK_FEATURE_UNAVAILABLE -0x2980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
+
 
 #if defined(POLARSSL_RSA_C)
 /**
@@ -377,6 +388,75 @@ const char * pk_get_name( const pk_context *ctx );
  * \return          Type on success, or POLARSSL_PK_NONE
  */
 pk_type_t pk_get_type( const pk_context *ctx );
+
+/** \ingroup x509_module */
+/**
+ * \brief           Parse a private key
+ *
+ * \param ctx       key to be initialized
+ * \param key       input buffer
+ * \param keylen    size of the buffer
+ * \param pwd       password for decryption (optional)
+ * \param pwdlen    size of the password
+ *
+ * \return          0 if successful, or a specific PK or PEM error code
+ */
+int pk_parse_key( pk_context *ctx,
+                  const unsigned char *key, size_t keylen,
+                  const unsigned char *pwd, size_t pwdlen );
+
+#if defined(POLARSSL_FS_IO)
+/** \ingroup x509_module */
+/**
+ * \brief           Load and parse a private key
+ *
+ * \param ctx       key to be initialized
+ * \param path      filename to read the private key from
+ * \param password  password to decrypt the file (can be NULL)
+ *
+ * \return          0 if successful, or a specific PK or PEM error code
+ */
+int pk_parse_keyfile( pk_context *ctx,
+                      const char *path, const char *password );
+#endif /* POLARSSL_FS_IO */
+
+/** \ingroup x509_module */
+/**
+ * \brief           Parse a public key
+ *
+ * \param ctx       key to be initialized
+ * \param key       input buffer
+ * \param keylen    size of the buffer
+ *
+ * \return          0 if successful, or a specific PK or PEM error code
+ */
+int pk_parse_public_key( pk_context *ctx,
+                         const unsigned char *key, size_t keylen );
+
+#if defined(POLARSSL_FS_IO)
+/** \ingroup x509_module */
+/**
+ * \brief           Load and parse a public key
+ *
+ * \param ctx       key to be initialized
+ * \param path      filename to read the private key from
+ *
+ * \return          0 if successful, or a specific PK or PEM error code
+ */
+int pk_parse_public_keyfile( pk_context *ctx, const char *path );
+#endif /* POLARSSL_FS_IO */
+
+/**
+ * \brief           Parse a SubjectPublicKeyInfo DER structure
+ *
+ * \param p         the position in the ASN.1 data
+ * \param end       end of the buffer
+ * \param pk        the key to fill
+ *
+ * \return          0 if successful, or a specific PK error code
+ */
+int pk_parse_get_pubkey( unsigned char **p, const unsigned char *end,
+                         pk_context *pk );
 
 #ifdef __cplusplus
 }

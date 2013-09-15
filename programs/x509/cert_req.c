@@ -292,11 +292,11 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the private key ..." );
     fflush( stdout );
 
-    ret = x509parse_keyfile( &key, opt.filename, NULL );
+    ret = pk_parse_keyfile( &key, opt.filename, NULL );
 
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_keyfile returned %d", ret );
+        printf( " failed\n  !  pk_parse_keyfile returned %d", ret );
         goto exit;
     }
 

@@ -250,11 +250,11 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = x509parse_keyfile( &key, opt.filename, NULL );
+        ret = pk_parse_keyfile( &key, opt.filename, NULL );
 
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_key returned %d", ret );
+            printf( " failed\n  !  pk_parse_key returned %d", ret );
             goto exit;
         }
 
@@ -291,11 +291,11 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the public key ..." );
         fflush( stdout );
 
-        ret = x509parse_public_keyfile( &key, opt.filename );
+        ret = pk_parse_public_keyfile( &key, opt.filename );
 
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_public_key returned %d", ret );
+            printf( " failed\n  !  pk_parse_public_key returned %d", ret );
             goto exit;
         }
 

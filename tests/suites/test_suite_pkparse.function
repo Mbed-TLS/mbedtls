@@ -1,0 +1,136 @@
+/* BEGIN_HEADER */
+#include <polarssl/pk.h>
+#include <polarssl/pem.h>
+#include <polarssl/oid.h>
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_PK_C:POLARSSL_BIGNUM_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+void pk_parse_keyfile_rsa( char *key_file, char *password, int result )
+{
+    pk_context ctx;
+    int res;
+    char *pwd = password;
+
+    pk_init( &ctx );
+
+    if( strcmp( pwd, "NULL" ) == 0 )
+        pwd = NULL;
+
+    res = pk_parse_keyfile( &ctx, key_file, pwd );
+
+    TEST_ASSERT( res == result );
+
+    if( res == 0 )
+    {
+        rsa_context *rsa;
+        TEST_ASSERT( pk_can_do( &ctx, POLARSSL_PK_RSA ) );
+        rsa = pk_rsa( ctx );
+        TEST_ASSERT( rsa_check_privkey( rsa ) == 0 );
+    }
+
+    pk_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+void pk_parse_public_keyfile_rsa( char *key_file, int result )
+{
+    pk_context ctx;
+    int res;
+
+    pk_init( &ctx );
+
+    res = pk_parse_public_keyfile( &ctx, key_file );
+
+    TEST_ASSERT( res == result );
+
+    if( res == 0 )
+    {
+        rsa_context *rsa;
+        TEST_ASSERT( pk_can_do( &ctx, POLARSSL_PK_RSA ) );
+        rsa = pk_rsa( ctx );
+        TEST_ASSERT( rsa_check_pubkey( rsa ) == 0 );
+    }
+
+    pk_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void pk_parse_public_keyfile_ec( char *key_file, int result )
+{
+    pk_context ctx;
+    int res;
+
+    pk_init( &ctx );
+
+    res = pk_parse_public_keyfile( &ctx, key_file );
+
+    TEST_ASSERT( res == result );
+
+    if( res == 0 )
+    {
+        ecp_keypair *eckey;
+        TEST_ASSERT( pk_can_do( &ctx, POLARSSL_PK_ECKEY ) );
+        eckey = pk_ec( ctx );
+        TEST_ASSERT( ecp_check_pubkey( &eckey->grp, &eckey->Q ) == 0 );
+    }
+
+    pk_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void pk_parse_keyfile_ec( char *key_file, char *password, int result )
+{
+    pk_context ctx;
+    int res;
+
+    pk_init( &ctx );
+
+    res = pk_parse_keyfile( &ctx, key_file, password );
+
+    TEST_ASSERT( res == result );
+
+    if( res == 0 )
+    {
+        ecp_keypair *eckey;
+        TEST_ASSERT( pk_can_do( &ctx, POLARSSL_PK_ECKEY ) );
+        eckey = pk_ec( ctx );
+        TEST_ASSERT( ecp_check_privkey( &eckey->grp, &eckey->d ) == 0 );
+    }
+
+    pk_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+void pk_parse_key_rsa( char *key_data, char *result_str, int result )
+{
+    pk_context pk;
+    unsigned char buf[2000];
+    unsigned char output[2000];
+    int data_len;
+    ((void) result_str);
+
+    pk_init( &pk );
+
+    memset( buf, 0, 2000 );
+    memset( output, 0, 2000 );
+
+    data_len = unhexify( buf, key_data );
+
+    TEST_ASSERT( pk_parse_key( &pk, buf, data_len, NULL, 0 ) == ( result ) );
+    if( ( result ) == 0 )
+    {
+        TEST_ASSERT( 1 );
+    }
+
+    pk_free( &pk );
+}
+/* END_CASE */

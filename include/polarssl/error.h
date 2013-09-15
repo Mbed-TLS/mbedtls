@@ -76,8 +76,8 @@
  * Name      ID  Nr of Errors
  * PEM       1   9
  * PKCS#12   1   4 (Started from top)
- * X509      2   25
- * PK        2   3 (Started from top)
+ * X509      2   18
+ * PK        2   13 (Started from top)
  * DHM       3   6
  * PKCS5     3   4 (Started from top)
  * RSA       4   9

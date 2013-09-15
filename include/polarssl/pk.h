@@ -389,6 +389,7 @@ const char * pk_get_name( const pk_context *ctx );
  */
 pk_type_t pk_get_type( const pk_context *ctx );
 
+#if defined(POLARSSL_PK_PARSE_C)
 /** \ingroup x509_module */
 /**
  * \brief           Parse a private key
@@ -443,7 +444,9 @@ int pk_parse_keyfile( pk_context *ctx,
  */
 int pk_parse_public_keyfile( pk_context *ctx, const char *path );
 #endif /* POLARSSL_FS_IO */
+#endif /* POLARSSL_PK_PARSE_C */
 
+#if defined(POLARSSL_PK_WRITE_C)
 /**
  * \brief           Write a private key to a PKCS#1 or SEC1 DER structure
  *                  Note: data is written at the end of the buffer! Use the
@@ -497,12 +500,14 @@ int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size );
  */
 int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size );
 #endif /* POLARSSL_BASE64_C */
+#endif /* POLARSSL_PK_WRITE_C */
 
 /*
  * WARNING: Low-level functions. You probably do not want to use these unless
  *          you are certain you do ;)
  */
 
+#if defined(POLARSSL_PK_PARSE_C)
 /**
  * \brief           Parse a SubjectPublicKeyInfo DER structure
  *
@@ -514,7 +519,9 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size );
  */
 int pk_parse_get_pubkey( unsigned char **p, const unsigned char *end,
                          pk_context *pk );
+#endif /* POLARSSL_PK_PARSE_C */
 
+#if defined(POLARSSL_PK_WRITE_C)
 /**
  * \brief           Write a subjectPublicKey to ASN.1 data
  *                  Note: function works backwards in data buffer
@@ -527,6 +534,7 @@ int pk_parse_get_pubkey( unsigned char **p, const unsigned char *end,
  */
 int pk_write_pubkey( unsigned char **p, unsigned char *start,
                      const pk_context *key );
+#endif /* POLARSSL_PK_WRITE_C */
 
 #ifdef __cplusplus
 }

@@ -1185,6 +1185,34 @@
 #define POLARSSL_PK_C
 
 /**
+ * \def POLARSSL_PK_PARSE_C
+ *
+ * Enable the generic public (asymetric) key parser.
+ *
+ * Module:  library/pkparse.c
+ * Caller:  library/x509parse.c
+ *
+ * Requires: POLARSSL_PK_C
+ *
+ * Uncomment to enable generic public key parse functions.
+ */
+#define POLARSSL_PK_PARSE_C
+
+/**
+ * \def POLARSSL_PK_WRITE_C
+ *
+ * Enable the generic public (asymetric) key write.
+ *
+ * Module:  library/pkwrite.c
+ * Caller:  library/x509write.c
+ *
+ * Requires: POLARSSL_PK_C
+ *
+ * Uncomment to enable generic public key write functions.
+ */
+#define POLARSSL_PK_WRITE_C
+
+/**
  * \def POLARSSL_PKCS5_C
  *
  * Enable PKCS#5 functions
@@ -1379,7 +1407,7 @@
  *          library/ssl_tls.c
  *
  * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_BIGNUM_C, POLARSSL_OID_C,
- *           POLARSSL_PK_C
+ *           POLARSSL_PK_PARSE_C
  *
  * This module is required for X.509 certificate parsing.
  */
@@ -1392,7 +1420,7 @@
  *
  * Module:  library/x509write.c
  *
- * Requires: POLARSSL_BIGNUM_C, POLARSSL_OID_C, POLARSSL_PK_C
+ * Requires: POLARSSL_BIGNUM_C, POLARSSL_OID_C, POLARSSL_PK_WRITE_C
  *
  * This module is required for X.509 certificate request writing.
  */
@@ -1562,6 +1590,14 @@
 #error "POLARSSL_PEM_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_PK_PARSE_C) && !defined(POLARSSL_PK_C)
+#error "POLARSSL_PK_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PK_WRITE_C) && !defined(POLARSSL_PK_C)
+#error "POLARSSL_PK_WRITE_C defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_PK_C)
 #error "POLARSSL_PKCS11_C defined, but not all prerequisites"
 #endif
@@ -1614,13 +1650,13 @@
 
 #if defined(POLARSSL_X509_PARSE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
     !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
-    !defined(POLARSSL_PK_C) )
+    !defined(POLARSSL_PK_PARSE_C) )
 #error "POLARSSL_X509_PARSE_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_X509_WRITE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
     !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_WRITE_C) ||      \
-    !defined(POLARSSL_RSA_C) )
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_PK_WRITE_C) )
 #error "POLARSSL_X509_WRITE_C defined, but not all prerequisites"
 #endif
 

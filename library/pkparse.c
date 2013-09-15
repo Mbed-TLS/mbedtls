@@ -25,7 +25,7 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_PK_C)
+#if defined(POLARSSL_PK_PARSE_C)
 
 #include "polarssl/pk.h"
 #include "polarssl/asn1.h"
@@ -954,4 +954,4 @@ int pk_parse_public_key( pk_context *ctx,
     return( ret );
 }
 
-#endif /* POLARSSL_PK_C */
+#endif /* POLARSSL_PK_PARSE_C */

@@ -25,7 +25,7 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_PK_C)
+#if defined(POLARSSL_PK_WRITE_C)
 
 #include "polarssl/pk.h"
 #include "polarssl/asn1write.h"
@@ -386,4 +386,4 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
 }
 #endif /* POLARSSL_BASE64_C */
 
-#endif /* POLARSSL_PK_C */
+#endif /* POLARSSL_PK_WRITE_C */

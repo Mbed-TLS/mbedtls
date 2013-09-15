@@ -1331,7 +1331,7 @@ int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen
  */
 int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 {
-    int ret, success = 0, first_error = 0, total_failed = 0;
+    int success = 0, first_error = 0, total_failed = 0;
     int buf_format = X509_FORMAT_DER;
 
     /*
@@ -1355,6 +1355,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 #if defined(POLARSSL_PEM_C)
     if( buf_format == X509_FORMAT_PEM )
     {
+        int ret;
         pem_context pem;
 
         while( buflen > 0 )

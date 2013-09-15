@@ -10,7 +10,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_PEM_C */
 void x509_csr_check( char *key_file, int md_type,
                           char *cert_req_check_file )
 {
@@ -59,7 +59,7 @@ void x509_csr_check( char *key_file, int md_type,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_PEM_C */
 void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *subject_name, char *issuer_key_file,
                      char *issuer_pwd, char *issuer_name,

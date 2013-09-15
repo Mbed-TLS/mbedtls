@@ -3,6 +3,9 @@
 
 static int test_errors = 0;
 
+SUITE_PRE_DEP
+#define TEST_SUITE_ACTIVE
+
 static int test_assert( int correct, char *test )
 {
     if( correct )
@@ -81,6 +84,9 @@ MAPPING_CODE
     return( -1 );
 }
 
+FUNCTION_CODE
+SUITE_POST_DEP
+
 int dep_check( char *str )
 {
     if( str == NULL )
@@ -90,11 +96,6 @@ DEP_CHECK_CODE
 
     return( 1 );
 }
-
-SUITE_PRE_DEP
-#define TEST_SUITE_ACTIVE
-FUNCTION_CODE
-SUITE_POST_DEP
 
 int dispatch_test(int cnt, char *params[50])
 {

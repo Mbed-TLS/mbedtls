@@ -61,7 +61,9 @@ open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!
 print TEST_FILE << "END";
 #include <polarssl/config.h>
 
+$suite_pre_code
 $suite_header
+$suite_post_code
 
 $test_helpers
 

@@ -92,6 +92,7 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
                         const unsigned char input[BLOWFISH_BLOCKSIZE],
                         unsigned char output[BLOWFISH_BLOCKSIZE] );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /**
  * \brief          Blowfish-CBC buffer encryption/decryption
  *                 Length should be a multiple of the block
@@ -112,7 +113,9 @@ int blowfish_crypt_cbc( blowfish_context *ctx,
                         unsigned char iv[BLOWFISH_BLOCKSIZE],
                         const unsigned char *input,
                         unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
 /**
  * \brief          Blowfish CFB buffer encryption/decryption.
  *
@@ -133,7 +136,9 @@ int blowfish_crypt_cfb64( blowfish_context *ctx,
                           unsigned char iv[BLOWFISH_BLOCKSIZE],
                           const unsigned char *input,
                           unsigned char *output );
+#endif /*POLARSSL_CIPHER_MODE_CFB */
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
 /**
  * \brief               Blowfish-CTR buffer encryption/decryption
  *
@@ -159,6 +164,7 @@ int blowfish_crypt_ctr( blowfish_context *ctx,
                         unsigned char stream_block[BLOWFISH_BLOCKSIZE],
                         const unsigned char *input,
                         unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #ifdef __cplusplus
 }

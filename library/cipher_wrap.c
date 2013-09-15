@@ -77,7 +77,18 @@ static int aes_crypt_ecb_wrap( void *ctx, operation_t operation,
 static int aes_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     return aes_crypt_cbc( (aes_context *) ctx, operation, length, iv, input, output );
+#else
+    ((void) ctx);
+    ((void) operation);
+    ((void) length);
+    ((void) iv);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
 static int aes_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
@@ -184,6 +195,7 @@ const cipher_info_t aes_256_ecb_info = {
     &aes_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t aes_128_cbc_info = {
     POLARSSL_CIPHER_AES_128_CBC,
     POLARSSL_MODE_CBC,
@@ -216,6 +228,7 @@ const cipher_info_t aes_256_cbc_info = {
     16,
     &aes_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 const cipher_info_t aes_128_cfb128_info = {
@@ -365,7 +378,18 @@ static int camellia_crypt_ecb_wrap( void *ctx, operation_t operation,
 static int camellia_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     return camellia_crypt_cbc( (camellia_context *) ctx, operation, length, iv, input, output );
+#else
+    ((void) ctx);
+    ((void) operation);
+    ((void) length);
+    ((void) iv);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
 static int camellia_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
@@ -472,6 +496,7 @@ const cipher_info_t camellia_256_ecb_info = {
     &camellia_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t camellia_128_cbc_info = {
     POLARSSL_CIPHER_CAMELLIA_128_CBC,
     POLARSSL_MODE_CBC,
@@ -504,6 +529,7 @@ const cipher_info_t camellia_256_cbc_info = {
     16,
     &camellia_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 const cipher_info_t camellia_128_cfb128_info = {
@@ -596,13 +622,35 @@ static int des3_crypt_ecb_wrap( void *ctx, operation_t operation,
 static int des_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     return des_crypt_cbc( (des_context *) ctx, operation, length, iv, input, output );
+#else
+    ((void) ctx);
+    ((void) operation);
+    ((void) length);
+    ((void) iv);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
 static int des3_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     return des3_crypt_cbc( (des3_context *) ctx, operation, length, iv, input, output );
+#else
+    ((void) ctx);
+    ((void) operation);
+    ((void) length);
+    ((void) iv);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
 static int des_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t length,
@@ -715,6 +763,7 @@ const cipher_info_t des_ecb_info = {
     &des_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t des_cbc_info = {
     POLARSSL_CIPHER_DES_CBC,
     POLARSSL_MODE_CBC,
@@ -725,6 +774,7 @@ const cipher_info_t des_cbc_info = {
     8,
     &des_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 const cipher_base_t des_ede_info = {
     POLARSSL_CIPHER_ID_DES,
@@ -750,6 +800,7 @@ const cipher_info_t des_ede_ecb_info = {
     &des_ede_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t des_ede_cbc_info = {
     POLARSSL_CIPHER_DES_EDE_CBC,
     POLARSSL_MODE_CBC,
@@ -760,6 +811,7 @@ const cipher_info_t des_ede_cbc_info = {
     8,
     &des_ede_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 const cipher_base_t des_ede3_info = {
     POLARSSL_CIPHER_ID_DES,
@@ -784,6 +836,7 @@ const cipher_info_t des_ede3_ecb_info = {
     8,
     &des_ede3_info
 };
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t des_ede3_cbc_info = {
     POLARSSL_CIPHER_DES_EDE3_CBC,
     POLARSSL_MODE_CBC,
@@ -794,6 +847,7 @@ const cipher_info_t des_ede3_cbc_info = {
     8,
     &des_ede3_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
@@ -807,7 +861,18 @@ static int blowfish_crypt_ecb_wrap( void *ctx, operation_t operation,
 static int blowfish_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
         unsigned char *iv, const unsigned char *input, unsigned char *output )
 {
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     return blowfish_crypt_cbc( (blowfish_context *) ctx, operation, length, iv, input, output );
+#else
+    ((void) ctx);
+    ((void) operation);
+    ((void) length);
+    ((void) iv);
+    ((void) input);
+    ((void) output);
+
+    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
 static int blowfish_crypt_cfb64_wrap( void *ctx, operation_t operation, size_t length,
@@ -887,6 +952,7 @@ const cipher_info_t blowfish_ecb_info = {
     &blowfish_info
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 const cipher_info_t blowfish_cbc_info = {
     POLARSSL_CIPHER_BLOWFISH_CBC,
     POLARSSL_MODE_CBC,
@@ -897,6 +963,7 @@ const cipher_info_t blowfish_cbc_info = {
     8,
     &blowfish_info
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 const cipher_info_t blowfish_cfb64_info = {

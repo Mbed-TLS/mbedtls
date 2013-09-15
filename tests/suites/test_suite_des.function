@@ -59,7 +59,7 @@ void des_decrypt_ecb( char *hex_key_string, char *hex_src_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CBC */
 void des_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
                       char *hex_src_string, char *hex_dst_string, int cbc_result )
 {
@@ -92,7 +92,7 @@ void des_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CBC */
 void des_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
                       char *hex_src_string, char *hex_dst_string, int cbc_result )
 {
@@ -189,7 +189,7 @@ void des3_decrypt_ecb( int key_count, char *hex_key_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CBC */
 void des3_encrypt_cbc( int key_count, char *hex_key_string,
                        char *hex_iv_string, char *hex_src_string,
                        char *hex_dst_string, int cbc_result )
@@ -230,7 +230,7 @@ void des3_encrypt_cbc( int key_count, char *hex_key_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CBC */
 void des3_decrypt_cbc( int key_count, char *hex_key_string,
                        char *hex_iv_string, char *hex_src_string,
                        char *hex_dst_string, int cbc_result )

@@ -99,6 +99,7 @@ int camellia_crypt_ecb( camellia_context *ctx,
                     const unsigned char input[16],
                     unsigned char output[16] );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /**
  * \brief          CAMELLIA-CBC buffer encryption/decryption
  *                 Length should be a multiple of the block
@@ -119,7 +120,9 @@ int camellia_crypt_cbc( camellia_context *ctx,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
 /**
  * \brief          CAMELLIA-CFB128 buffer encryption/decryption
  *
@@ -144,7 +147,9 @@ int camellia_crypt_cfb128( camellia_context *ctx,
                        unsigned char iv[16],
                        const unsigned char *input,
                        unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CFB */
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
 /**
  * \brief               CAMELLIA-CTR buffer encryption/decryption
  *
@@ -174,6 +179,7 @@ int camellia_crypt_ctr( camellia_context *ctx,
                        unsigned char stream_block[16],
                        const unsigned char *input,
                        unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #ifdef __cplusplus
 }

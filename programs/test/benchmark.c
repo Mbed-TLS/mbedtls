@@ -98,20 +98,22 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_ARC4_C)
     arc4_context arc4;
 #endif
-#if defined(POLARSSL_DES_C)
+#if defined(POLARSSL_DES_C) && defined(POLARSSL_CIPHER_MODE_CBC)
     des3_context des3;
     des_context des;
 #endif
 #if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     aes_context aes;
+#endif
 #if defined(POLARSSL_GCM_C)
     gcm_context gcm;
 #endif
 #endif
-#if defined(POLARSSL_BLOWFISH_C)
+#if defined(POLARSSL_BLOWFISH_C) && defined(POLARSSL_CIPHER_MODE_CBC)
     blowfish_context blowfish;
 #endif
-#if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_CAMELLIA_C) && defined(POLARSSL_CIPHER_MODE_CBC)
     camellia_context camellia;
 #endif
 #if defined(POLARSSL_RSA_C) && defined(POLARSSL_BIGNUM_C) &&    \
@@ -233,7 +235,7 @@ int main( int argc, char *argv[] )
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );
 #endif
 
-#if defined(POLARSSL_DES_C)
+#if defined(POLARSSL_DES_C) && defined(POLARSSL_CIPHER_MODE_CBC)
     printf( HEADER_FORMAT, "3DES" );
     fflush( stdout );
 
@@ -268,6 +270,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
         printf( "  AES-CBC-%d     :  ", keysize );
@@ -289,6 +292,7 @@ int main( int argc, char *argv[] )
         printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
                         ( hardclock() - tsc ) / ( j * BUFSIZE ) );
     }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 #if defined(POLARSSL_GCM_C)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
@@ -314,7 +318,7 @@ int main( int argc, char *argv[] )
 #endif
 #endif
 
-#if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_CAMELLIA_C) && defined(POLARSSL_CIPHER_MODE_CBC)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
         printf( "  CAMELLIA-CBC-%d:  ", keysize );
@@ -338,7 +342,7 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(POLARSSL_BLOWFISH_C)
+#if defined(POLARSSL_BLOWFISH_C) && defined(POLARSSL_CIPHER_MODE_CBC)
     for( keysize = 128; keysize <= 256; keysize += 64 )
     {
         printf( "  BLOWFISH-CBC-%d:  ", keysize );

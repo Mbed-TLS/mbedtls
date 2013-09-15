@@ -54,9 +54,12 @@ static const int supported_ciphers[] = {
         POLARSSL_CIPHER_AES_128_ECB,
         POLARSSL_CIPHER_AES_192_ECB,
         POLARSSL_CIPHER_AES_256_ECB,
+
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         POLARSSL_CIPHER_AES_128_CBC,
         POLARSSL_CIPHER_AES_192_CBC,
         POLARSSL_CIPHER_AES_256_CBC,
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         POLARSSL_CIPHER_AES_128_CFB128,
@@ -86,9 +89,12 @@ static const int supported_ciphers[] = {
         POLARSSL_CIPHER_CAMELLIA_128_ECB,
         POLARSSL_CIPHER_CAMELLIA_192_ECB,
         POLARSSL_CIPHER_CAMELLIA_256_ECB,
+
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         POLARSSL_CIPHER_CAMELLIA_128_CBC,
         POLARSSL_CIPHER_CAMELLIA_192_CBC,
         POLARSSL_CIPHER_CAMELLIA_256_CBC,
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         POLARSSL_CIPHER_CAMELLIA_128_CFB128,
@@ -108,14 +114,20 @@ static const int supported_ciphers[] = {
         POLARSSL_CIPHER_DES_ECB,
         POLARSSL_CIPHER_DES_EDE_ECB,
         POLARSSL_CIPHER_DES_EDE3_ECB,
+
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         POLARSSL_CIPHER_DES_CBC,
         POLARSSL_CIPHER_DES_EDE_CBC,
         POLARSSL_CIPHER_DES_EDE3_CBC,
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 #endif /* defined(POLARSSL_DES_C) */
 
 #if defined(POLARSSL_BLOWFISH_C)
         POLARSSL_CIPHER_BLOWFISH_ECB,
+
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         POLARSSL_CIPHER_BLOWFISH_CBC,
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         POLARSSL_CIPHER_BLOWFISH_CFB64,
@@ -152,12 +164,14 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
         case POLARSSL_CIPHER_AES_256_ECB:
             return &aes_256_ecb_info;
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         case POLARSSL_CIPHER_AES_128_CBC:
             return &aes_128_cbc_info;
         case POLARSSL_CIPHER_AES_192_CBC:
             return &aes_192_cbc_info;
         case POLARSSL_CIPHER_AES_256_CBC:
             return &aes_256_cbc_info;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         case POLARSSL_CIPHER_AES_128_CFB128:
@@ -196,12 +210,14 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
         case POLARSSL_CIPHER_CAMELLIA_256_ECB:
             return &camellia_256_ecb_info;
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         case POLARSSL_CIPHER_CAMELLIA_128_CBC:
             return &camellia_128_cbc_info;
         case POLARSSL_CIPHER_CAMELLIA_192_CBC:
             return &camellia_192_cbc_info;
         case POLARSSL_CIPHER_CAMELLIA_256_CBC:
             return &camellia_256_cbc_info;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         case POLARSSL_CIPHER_CAMELLIA_128_CFB128:
@@ -231,12 +247,14 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
         case POLARSSL_CIPHER_DES_EDE3_ECB:
             return &des_ede3_ecb_info;
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         case POLARSSL_CIPHER_DES_CBC:
             return &des_cbc_info;
         case POLARSSL_CIPHER_DES_EDE_CBC:
             return &des_ede_cbc_info;
         case POLARSSL_CIPHER_DES_EDE3_CBC:
             return &des_ede3_cbc_info;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 #endif
 
 #if defined(POLARSSL_ARC4_C)
@@ -248,8 +266,10 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
         case POLARSSL_CIPHER_BLOWFISH_ECB:
             return &blowfish_ecb_info;
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         case POLARSSL_CIPHER_BLOWFISH_CBC:
             return &blowfish_cbc_info;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         case POLARSSL_CIPHER_BLOWFISH_CFB64:
@@ -280,12 +300,14 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
 
     /* Get the appropriate cipher information */
 #if defined(POLARSSL_CAMELLIA_C)
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     if( !strcasecmp( "CAMELLIA-128-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CBC );
     if( !strcasecmp( "CAMELLIA-192-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CBC );
     if( !strcasecmp( "CAMELLIA-256-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CBC );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
     if( !strcasecmp( "CAMELLIA-128-CFB128", cipher_name ) )
@@ -307,12 +329,14 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
 #endif
 
 #if defined(POLARSSL_AES_C)
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     if( !strcasecmp( "AES-128-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CBC );
     if( !strcasecmp( "AES-192-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CBC );
     if( !strcasecmp( "AES-256-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CBC );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
     if( !strcasecmp( "AES-128-CFB128", cipher_name ) )
@@ -348,17 +372,21 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
 #endif
 
 #if defined(POLARSSL_DES_C)
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     if( !strcasecmp( "DES-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_DES_CBC );
     if( !strcasecmp( "DES-EDE-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_DES_EDE_CBC );
     if( !strcasecmp( "DES-EDE3-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_DES_EDE3_CBC );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C)
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     if( !strcasecmp( "BLOWFISH-CBC", cipher_name ) )
         return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CBC );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
     if( !strcasecmp( "BLOWFISH-CFB64", cipher_name ) )
@@ -396,6 +424,7 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
                 return &aes_256_ecb_info;
         }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         if( mode == POLARSSL_MODE_CBC )
         {
             if( key_length == 128 )
@@ -405,6 +434,7 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
             if( key_length == 256 )
                 return &aes_256_cbc_info;
         }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         if( mode == POLARSSL_MODE_CFB )
@@ -457,6 +487,7 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
                 return &camellia_256_ecb_info;
         }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         if( mode == POLARSSL_MODE_CBC )
         {
             if( key_length == 128 )
@@ -466,6 +497,7 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
             if( key_length == 256 )
                 return &camellia_256_cbc_info;
         }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         if( mode == POLARSSL_MODE_CFB )
@@ -499,8 +531,10 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
         if( mode == POLARSSL_MODE_ECB )
             return &des_ecb_info;
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         if( mode == POLARSSL_MODE_CBC )
             return &des_cbc_info;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
     }
 
     if( cipher_id == POLARSSL_CIPHER_ID_3DES )
@@ -513,6 +547,7 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
                 return &des_ede3_ecb_info;
         }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         if( mode == POLARSSL_MODE_CBC )
         {
             if( key_length == 128 )
@@ -520,6 +555,7 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
             if( key_length == 192 )
                 return &des_ede3_cbc_info;
         }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
     }
 #endif
 
@@ -535,8 +571,10 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
         if( mode == POLARSSL_MODE_ECB )
             return &blowfish_ecb_info;
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
         if( mode == POLARSSL_MODE_CBC )
             return &blowfish_cbc_info;
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
         if( mode == POLARSSL_MODE_CFB )
@@ -570,6 +608,7 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 
     ctx->cipher_info = cipher_info;
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
     /*
      * Ignore possible errors caused by a cipher mode that doesn't use padding
      */
@@ -578,6 +617,7 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 #else
     (void) cipher_set_padding_mode( ctx, POLARSSL_PADDING_NONE );
 #endif
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
     return 0;
 }
@@ -671,7 +711,6 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
         unsigned char *output, size_t *olen )
 {
     int ret;
-    size_t copy_len = 0;
 
     *olen = 0;
 
@@ -710,8 +749,11 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     if( ctx->cipher_info->mode == POLARSSL_MODE_CBC )
     {
+        size_t copy_len = 0;
+
         /*
          * If there is not enough data for a full block, cache it.
          */
@@ -784,6 +826,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
         return 0;
     }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
     if( ctx->cipher_info->mode == POLARSSL_MODE_CFB )
@@ -835,6 +878,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
 #if defined(POLARSSL_CIPHER_PADDING_PKCS7)
 /*
  * PKCS7 (and PKCS5) padding: fill with ll bytes, with ll = padding_len
@@ -990,12 +1034,11 @@ static int get_no_padding( unsigned char *input, size_t input_len,
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
 int cipher_finish( cipher_context_t *ctx,
                    unsigned char *output, size_t *olen )
 {
-    int ret = 0;
-
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
@@ -1017,8 +1060,11 @@ int cipher_finish( cipher_context_t *ctx,
         return 0;
     }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     if( POLARSSL_MODE_CBC == ctx->cipher_info->mode )
     {
+        int ret = 0;
+
         if( POLARSSL_ENCRYPT == ctx->operation )
         {
             /* check for 'no padding' mode */
@@ -1062,10 +1108,14 @@ int cipher_finish( cipher_context_t *ctx,
         *olen = cipher_get_block_size( ctx );
         return 0;
     }
+#else
+    ((void) output);
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
 int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
 {
     if( NULL == ctx ||
@@ -1111,6 +1161,7 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
 #if defined(POLARSSL_CIPHER_MODE_AEAD)
 int cipher_write_tag( cipher_context_t *ctx,

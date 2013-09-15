@@ -109,7 +109,7 @@
 #include "polarssl/pbkdf2.h"
 #endif
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #endif
 
@@ -238,7 +238,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "MD - Opening or reading of file failed" );
 #endif /* POLARSSL_MD_C */
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
         if( use_ret == -(POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT) )
             snprintf( buf, buflen, "PEM - No PEM header or footer found" );
         if( use_ret == -(POLARSSL_ERR_PEM_INVALID_DATA) )
@@ -257,7 +257,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "PEM - Unavailable feature, e.g. hashing/encryption combination" );
         if( use_ret == -(POLARSSL_ERR_PEM_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "PEM - Bad input parameters to function" );
-#endif /* POLARSSL_PEM_C */
+#endif /* POLARSSL_PEM_PARSE_C || POLARSSL_PEM_WRITE_C */
 
 #if defined(POLARSSL_PK_C)
         if( use_ret == -(POLARSSL_ERR_PK_MALLOC_FAILED) )

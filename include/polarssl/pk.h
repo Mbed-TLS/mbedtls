@@ -477,7 +477,7 @@ int pk_write_key_der( pk_context *pk, unsigned char *buf, size_t size );
  */
 int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size );
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_WRITE_C)
 /**
  * \brief           Write a public key to a PEM string
  *
@@ -499,7 +499,7 @@ int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size );
  * \return          0 successful, or a specific error code
  */
 int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size );
-#endif /* POLARSSL_PEM_C */
+#endif /* POLARSSL_PEM_WRITE_C */
 #endif /* POLARSSL_PK_WRITE_C */
 
 /*

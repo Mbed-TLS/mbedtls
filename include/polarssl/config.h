@@ -719,7 +719,7 @@
  *      TLS_PSK_WITH_AES_128_CBC_SHA
  *      TLS_PSK_WITH_AES_256_CBC_SHA
  *
- * PEM uses AES for decrypting encrypted keys.
+ * PEM_PARSE uses AES for decrypting encrypted keys.
  */
 #define POLARSSL_AES_C
 
@@ -884,7 +884,7 @@
  *      TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
  *      TLS_PSK_WITH_3DES_EDE_CBC_SHA
  *
- * PEM uses DES/3DES for decrypting encrypted keys.
+ * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
  */
 #define POLARSSL_DES_C
 
@@ -1074,7 +1074,7 @@
  *          library/x509parse.c
  *
  * This module is required for SSL/TLS and X.509.
- * PEM uses MD5 for decrypting encrypted keys.
+ * PEM_PARSE uses MD5 for decrypting encrypted keys.
  */
 #define POLARSSL_MD5_C
 
@@ -1156,18 +1156,34 @@
 #define POLARSSL_PBKDF2_C
 
 /**
- * \def POLARSSL_PEM_C
+ * \def POLARSSL_PEM_PARSE_C
  *
- * Enable PEM decoding
+ * Enable PEM decoding / parsing
  *
  * Module:  library/pem.c
  * Caller:  library/x509parse.c
+ *          library/pkparse.c
  *
  * Requires: POLARSSL_BASE64_C
  *
- * This modules adds support for decoding PEM files.
+ * This modules adds support for decoding / parsing PEM files.
  */
-#define POLARSSL_PEM_C
+#define POLARSSL_PEM_PARSE_C
+
+/**
+ * \def POLARSSL_PEM_WRITE_C
+ *
+ * Enable PEM encoding / writing
+ *
+ * Module:  library/pem.c
+ * Caller:  library/x509write.c
+ *          library/pkwrite.c
+ *
+ * Requires: POLARSSL_BASE64_C
+ *
+ * This modules adds support for encoding / writing PEM files.
+ */
+#define POLARSSL_PEM_WRITE_C
 
 /**
  * \def POLARSSL_PK_C
@@ -1586,8 +1602,12 @@
 #error "POLARSSL_PBKDF2_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PEM_C) && !defined(POLARSSL_PEM_C)
-#error "POLARSSL_PEM_C defined, but not all prerequisites"
+#if defined(POLARSSL_PEM_PARSE_C) && !defined(POLARSSL_BASE64_C)
+#error "POLARSSL_PEM_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PEM_WRITE_C) && !defined(POLARSSL_BASE64_C)
+#error "POLARSSL_PEM_WRITE_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_PK_PARSE_C) && !defined(POLARSSL_PK_C)

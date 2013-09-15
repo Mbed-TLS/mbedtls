@@ -50,6 +50,7 @@
 extern "C" {
 #endif
 
+#if defined(POLARSSL_PEM_PARSE_C)
 /**
  * \brief       PEM context structure
  */
@@ -96,6 +97,15 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
                      size_t pwdlen, size_t *use_len );
 
 /**
+ * \brief       PEM context memory freeing
+ *
+ * \param ctx   context to be freed
+ */
+void pem_free( pem_context *ctx );
+#endif /* POLARSSL_PEM_PARSE_C */
+
+#if defined(POLARSSL_PEM_WRITE_C)
+/**
  * \brief           Write a buffer of PEM information from a DER encoded
  *                  buffer.
  *
@@ -114,13 +124,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 int pem_write_buffer( const char *header, const char *footer,
                       const unsigned char *der_data, size_t der_len,
                       unsigned char *buf, size_t buf_len, size_t *olen );
-
-/**
- * \brief       PEM context memory freeing
- *
- * \param ctx   context to be freed
- */
-void pem_free( pem_context *ctx );
+#endif /* POLARSSL_PEM_WRITE_C */
 
 #ifdef __cplusplus
 }

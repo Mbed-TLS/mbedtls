@@ -414,7 +414,7 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng );
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_WRITE_C)
 /**
  * \brief           Write a built up certificate to a X509 PEM string
  *
@@ -455,7 +455,7 @@ int x509write_crt_pem( x509write_cert *ctx, unsigned char *buf, size_t size,
 int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng );
-#endif /* POLARSSL_PEM_C */
+#endif /* POLARSSL_PEM_WRITE_C */
 
 #ifdef __cplusplus
 }

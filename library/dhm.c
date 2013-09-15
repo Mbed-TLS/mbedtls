@@ -34,7 +34,7 @@
 
 #include "polarssl/dhm.h"
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
 
@@ -397,7 +397,7 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
     int ret;
     size_t len;
     unsigned char *p, *end;
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     pem_context pem;
 
     pem_init( &pem );
@@ -456,7 +456,7 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
     ret = 0;
 
 exit:
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     pem_free( &pem );
 #endif
     if( ret != 0 )

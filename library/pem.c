@@ -25,8 +25,7 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_PEM_C)
-
+#if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #include "polarssl/base64.h"
 #include "polarssl/des.h"
@@ -43,6 +42,7 @@
 
 #include <stdlib.h>
 
+#if defined(POLARSSL_PEM_PARSE_C)
 void pem_init( pem_context *ctx )
 {
     memset( ctx, 0, sizeof( pem_context ) );
@@ -285,7 +285,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
             s1 += 32;
         }
 #endif /* POLARSSL_AES_C */
-        
+
         if( enc_alg == POLARSSL_CIPHER_NONE )
             return( POLARSSL_ERR_PEM_UNKNOWN_ENC_ALG );
 
@@ -312,7 +312,7 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
         polarssl_free( buf );
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
     }
-    
+
     if( enc != 0 )
     {
 #if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
@@ -363,6 +363,19 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
     return( 0 );
 }
 
+void pem_free( pem_context *ctx )
+{
+    if( ctx->buf )
+        polarssl_free( ctx->buf );
+
+    if( ctx->info )
+        polarssl_free( ctx->info );
+
+    memset( ctx, 0, sizeof( pem_context ) );
+}
+#endif /* POLARSSL_PEM_PARSE_C */
+
+#if defined(POLARSSL_PEM_WRITE_C)
 int pem_write_buffer( const char *header, const char *footer,
                       const unsigned char *der_data, size_t der_len,
                       unsigned char *buf, size_t buf_len, size_t *olen )
@@ -412,16 +425,5 @@ int pem_write_buffer( const char *header, const char *footer,
     polarssl_free( encode_buf );
     return( 0 );
 }
-
-void pem_free( pem_context *ctx )
-{
-    if( ctx->buf )
-        polarssl_free( ctx->buf );
-
-    if( ctx->info )
-        polarssl_free( ctx->info );
-
-    memset( ctx, 0, sizeof( pem_context ) );
-}
-
-#endif
+#endif /* POLARSSL_PEM_WRITE_C */
+#endif /* POLARSSL_PEM_PARSE_C || POLARSSL_PEM_WRITE_C */

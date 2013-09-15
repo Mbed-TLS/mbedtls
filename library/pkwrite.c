@@ -40,7 +40,7 @@
 #if defined(POLARSSL_ECDSA_C)
 #include "polarssl/ecdsa.h"
 #endif
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #endif
 
@@ -276,7 +276,7 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
     return( len );
 }
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_WRITE_C)
 
 #define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----\n"
 #define PEM_END_PUBLIC_KEY      "-----END PUBLIC KEY-----\n"
@@ -345,6 +345,6 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
 
     return( 0 );
 }
-#endif /* POLARSSL_PEM_C */
+#endif /* POLARSSL_PEM_WRITE_C */
 
 #endif /* POLARSSL_PK_WRITE_C */

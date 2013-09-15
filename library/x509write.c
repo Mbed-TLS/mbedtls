@@ -42,7 +42,7 @@
 
 #include "polarssl/sha1.h"
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #endif
 
@@ -816,7 +816,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
 #define PEM_BEGIN_CSR           "-----BEGIN CERTIFICATE REQUEST-----\n"
 #define PEM_END_CSR             "-----END CERTIFICATE REQUEST-----\n"
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_WRITE_C)
 int x509write_crt_pem( x509write_cert *crt, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng )

@@ -41,8 +41,9 @@
 #include "polarssl/x509.h"
 #include "polarssl/asn1.h"
 #include "polarssl/oid.h"
+#if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
-#include "polarssl/dhm.h"
+#endif
 #if defined(POLARSSL_PKCS5_C)
 #include "polarssl/pkcs5.h"
 #endif
@@ -1344,7 +1345,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
      * Determine buffer content. Buffer contains either one DER certificate or
      * one or more PEM certificates.
      */
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     if( strstr( (const char *) buf, "-----BEGIN CERTIFICATE-----" ) != NULL )
         buf_format = X509_FORMAT_PEM;
 #endif
@@ -1352,7 +1353,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
     if( buf_format == X509_FORMAT_DER )
         return x509parse_crt_der( chain, buf, buflen );
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     if( buf_format == X509_FORMAT_PEM )
     {
         int ret;
@@ -1438,7 +1439,7 @@ int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
     int ret;
     size_t len;
     unsigned char *p, *end;
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     size_t use_len;
     pem_context pem;
 #endif
@@ -1451,7 +1452,7 @@ int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
 
     memset( csr, 0, sizeof( x509_csr ) );
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     pem_init( &pem );
     ret = pem_read_buffer( &pem,
                            "-----BEGIN CERTIFICATE REQUEST-----",
@@ -1638,7 +1639,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
     size_t len;
     unsigned char *p, *end;
     x509_crl *crl;
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     size_t use_len;
     pem_context pem;
 #endif
@@ -1671,7 +1672,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         memset( crl, 0, sizeof( x509_crl ) );
     }
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     pem_init( &pem );
     ret = pem_read_buffer( &pem,
                            "-----BEGIN X509 CRL-----",

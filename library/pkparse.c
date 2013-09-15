@@ -40,7 +40,7 @@
 #if defined(POLARSSL_ECDSA_C)
 #include "polarssl/ecdsa.h"
 #endif
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
 #if defined(POLARSSL_PKCS5_C)
@@ -754,7 +754,7 @@ int pk_parse_key( pk_context *pk,
     int ret;
     const pk_info_t *pk_info;
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     size_t len;
     pem_context pem;
 
@@ -855,7 +855,7 @@ int pk_parse_key( pk_context *pk,
 #else
     ((void) pwd);
     ((void) pwdlen);
-#endif /* POLARSSL_PEM_C */
+#endif /* POLARSSL_PEM_PARSE_C */
 
     /*
     * At this point we only know it's not a PEM formatted key. Could be any
@@ -919,7 +919,7 @@ int pk_parse_public_key( pk_context *ctx,
 {
     int ret;
     unsigned char *p;
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     size_t len;
     pem_context pem;
 
@@ -947,7 +947,7 @@ int pk_parse_public_key( pk_context *ctx,
 
     ret = pk_parse_get_pubkey( &p, p + keylen, ctx );
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C)
     pem_free( &pem );
 #endif
 

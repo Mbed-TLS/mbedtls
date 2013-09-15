@@ -39,21 +39,6 @@
 #include "polarssl/error.h"
 #include "polarssl/certs.h"
 
-#define SERVER_PORT 4433
-#define SERVER_NAME "localhost"
-#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
-
-#define DEBUG_LEVEL 1
-
-static void my_debug( void *ctx, int level, const char *str )
-{
-    if( level < DEBUG_LEVEL )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
-}
-
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
@@ -71,6 +56,22 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
+
+#define SERVER_PORT 4433
+#define SERVER_NAME "localhost"
+#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
+
+#define DEBUG_LEVEL 1
+
+static void my_debug( void *ctx, int level, const char *str )
+{
+    if( level < DEBUG_LEVEL )
+    {
+        fprintf( (FILE *) ctx, "%s", str );
+        fflush(  (FILE *) ctx  );
+    }
+}
+
 int main( int argc, char *argv[] )
 {
     int ret, len, server_fd;

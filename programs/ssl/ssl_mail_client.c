@@ -55,6 +55,24 @@
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
+    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_PARSE_C)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_PARSE_C "
+           "not defined.\n");
+    return( 0 );
+}
+#else
+
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_PORT         465
 #define DFL_USER_NAME           "user"
@@ -101,23 +119,6 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_PARSE_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_PARSE_C "
-           "not defined.\n");
-    return( 0 );
-}
-#else
 static int do_handshake( ssl_context *ssl, struct options *opt )
 {
     int ret;

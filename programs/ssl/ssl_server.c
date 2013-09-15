@@ -49,22 +49,6 @@
 #include "polarssl/ssl_cache.h"
 #endif
 
-#define HTTP_RESPONSE \
-    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
-    "<h2>PolarSSL Test Server</h2>\r\n" \
-    "<p>Successful connection using: %s</p>\r\n"
-
-#define DEBUG_LEVEL 0
-
-static void my_debug( void *ctx, int level, const char *str )
-{
-    if( level < DEBUG_LEVEL )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
-}
-
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
     !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
@@ -82,6 +66,23 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
+
+#define HTTP_RESPONSE \
+    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
+    "<h2>PolarSSL Test Server</h2>\r\n" \
+    "<p>Successful connection using: %s</p>\r\n"
+
+#define DEBUG_LEVEL 0
+
+static void my_debug( void *ctx, int level, const char *str )
+{
+    if( level < DEBUG_LEVEL )
+    {
+        fprintf( (FILE *) ctx, "%s", str );
+        fflush(  (FILE *) ctx  );
+    }
+}
+
 int main( int argc, char *argv[] )
 {
     int ret, len;

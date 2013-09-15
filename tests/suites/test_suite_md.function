@@ -210,7 +210,8 @@ void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */
-/* BEGIN_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void md_file( char *text_md_name, char *filename, char *hex_hash_string )
 {
     char md_name[100];

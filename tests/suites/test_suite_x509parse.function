@@ -30,7 +30,7 @@ int verify_all( void *data, x509_cert *crt, int certificate_depth, int *flags )
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void x509_cert_info( char *crt_file, char *result_str )
 {
     x509_cert   crt;
@@ -52,7 +52,7 @@ void x509_cert_info( char *crt_file, char *result_str )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void x509_crl_info( char *crl_file, char *result_str )
 {
     x509_crl   crl;
@@ -74,7 +74,7 @@ void x509_crl_info( char *crl_file, char *result_str )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void x509_verify( char *crt_file, char *ca_file, char *crl_file,
                   char *cn_name_str, int result, int flags_result,
                   char *verify_callback )
@@ -118,7 +118,7 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void x509_dn_gets( char *crt_file, char *entity, char *result_str )
 {
     x509_cert   crt;
@@ -145,7 +145,7 @@ void x509_dn_gets( char *crt_file, char *entity, char *result_str )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void x509_time_expired( char *crt_file, char *entity, int result )
 {
     x509_cert   crt;

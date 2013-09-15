@@ -22,7 +22,7 @@ void string_debug(void *data, int level, const char *str)
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
                       char *result_str )
 {

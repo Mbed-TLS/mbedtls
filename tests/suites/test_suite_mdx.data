@@ -159,51 +159,51 @@ depends_on:POLARSSL_MD5_C
 md5_hmac:16:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"5ccec34ea9656392457fa1ac27f08fbc"
 
 MD2 Hash file #1
-depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD2_C
 md2_file:"data_files/hash_file_1":"b593c098712d2e21628c8986695451a8"
 
 MD2 Hash file #2
-depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD2_C
 md2_file:"data_files/hash_file_2":"3c027b7409909a4c4b26bbab69ad9f4f"
 
 MD2 Hash file #3
-depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD2_C
 md2_file:"data_files/hash_file_3":"6bb43eb285e81f414083a94cdbe2989d"
 
 MD2 Hash file #4
-depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD2_C
 md2_file:"data_files/hash_file_4":"8350e5a3e24c153df2275c9f80692773"
 
 MD4 Hash file #1
-depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD4_C
 md4_file:"data_files/hash_file_1":"8d19772c176bd27153b9486715e2c0b9"
 
 MD4 Hash file #2
-depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD4_C
 md4_file:"data_files/hash_file_2":"f2ac53b8542882a5a0007c6f84b4d9fd"
 
 MD4 Hash file #3
-depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD4_C
 md4_file:"data_files/hash_file_3":"195c15158e2d07881d9a654095ce4a42"
 
 MD4 Hash file #4
-depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD4_C
 md4_file:"data_files/hash_file_4":"31d6cfe0d16ae931b73c59d7e0c089c0"
 
 MD5 Hash file #1
-depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C
 md5_file:"data_files/hash_file_1":"52bcdc983c9ed64fc148a759b3c7a415"
 
 MD5 Hash file #2
-depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C
 md5_file:"data_files/hash_file_2":"d17d466f15891df10542207ae78277f0"
 
 MD5 Hash file #3
-depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C
 md5_file:"data_files/hash_file_3":"d945bcc6200ea95d061a2a818167d920"
 
 MD5 Hash file #4
-depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO
+depends_on:POLARSSL_MD5_C
 md5_file:"data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
 
 MD2 Selftest

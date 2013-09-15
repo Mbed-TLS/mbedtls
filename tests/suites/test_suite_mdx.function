@@ -139,7 +139,7 @@ void md5_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_MD2_C */
+/* BEGIN_CASE depends_on:POLARSSL_MD2_C:POLARSSL_FS_IO */
 void md2_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];
@@ -155,7 +155,7 @@ void md2_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_MD4_C */
+/* BEGIN_CASE depends_on:POLARSSL_MD4_C:POLARSSL_FS_IO */
 void md4_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];
@@ -171,7 +171,7 @@ void md4_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_MD5_C */
+/* BEGIN_CASE depends_on:POLARSSL_MD5_C:POLARSSL_FS_IO */
 void md5_file( char *filename, char *hex_hash_string )
 {
     unsigned char hash_str[65];

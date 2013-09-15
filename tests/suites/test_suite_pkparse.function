@@ -9,7 +9,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C:POLARSSL_FS_IO */
 void pk_parse_keyfile_rsa( char *key_file, char *password, int result )
 {
     pk_context ctx;
@@ -37,7 +37,7 @@ void pk_parse_keyfile_rsa( char *key_file, char *password, int result )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C:POLARSSL_FS_IO */
 void pk_parse_public_keyfile_rsa( char *key_file, int result )
 {
     pk_context ctx;
@@ -61,7 +61,7 @@ void pk_parse_public_keyfile_rsa( char *key_file, int result )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void pk_parse_public_keyfile_ec( char *key_file, int result )
 {
     pk_context ctx;
@@ -85,7 +85,7 @@ void pk_parse_public_keyfile_ec( char *key_file, int result )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void pk_parse_keyfile_ec( char *key_file, char *password, int result )
 {
     pk_context ctx;

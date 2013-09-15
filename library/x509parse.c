@@ -2219,113 +2219,6 @@ int x509parse_public_key_rsa( rsa_context *rsa,
 }
 #endif /* POLARSSL_RSA_C */
 
-#if defined(POLARSSL_DHM_C)
-/*
- * Parse DHM parameters
- */
-int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen )
-{
-    int ret;
-    size_t len;
-    unsigned char *p, *end;
-#if defined(POLARSSL_PEM_C)
-    pem_context pem;
-
-    pem_init( &pem );
-
-    ret = pem_read_buffer( &pem, 
-                           "-----BEGIN DH PARAMETERS-----",
-                           "-----END DH PARAMETERS-----",
-                           dhmin, NULL, 0, &dhminlen );
-
-    if( ret == 0 )
-    {
-        /*
-         * Was PEM encoded
-         */
-        dhminlen = pem.buflen;
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
-
-    p = ( ret == 0 ) ? pem.buf : (unsigned char *) dhmin;
-#else
-    p = (unsigned char *) dhmin;
-#endif
-    end = p + dhminlen;
-
-    memset( dhm, 0, sizeof( dhm_context ) );
-
-    /*
-     *  DHParams ::= SEQUENCE {
-     *      prime            INTEGER,  -- P
-     *      generator        INTEGER,  -- g
-     *  }
-     */
-    if( ( ret = asn1_get_tag( &p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
-    }
-
-    end = p + len;
-
-    if( ( ret = asn1_get_mpi( &p, end, &dhm->P  ) ) != 0 ||
-        ( ret = asn1_get_mpi( &p, end, &dhm->G ) ) != 0 )
-    {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        dhm_free( dhm );
-        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT + ret );
-    }
-
-    if( p != end )
-    {
-#if defined(POLARSSL_PEM_C)
-        pem_free( &pem );
-#endif
-        dhm_free( dhm );
-        return( POLARSSL_ERR_X509_CERT_INVALID_FORMAT +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
-    }
-
-#if defined(POLARSSL_PEM_C)
-    pem_free( &pem );
-#endif
-
-    return( 0 );
-}
-
-#if defined(POLARSSL_FS_IO)
-/*
- * Load and parse DHM parameters
- */
-int x509parse_dhmfile( dhm_context *dhm, const char *path )
-{
-    int ret;
-    size_t n;
-    unsigned char *buf;
-
-    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
-        return( ret );
-
-    ret = x509parse_dhm( dhm, buf, n );
-
-    memset( buf, 0, n + 1 );
-    polarssl_free( buf );
-
-    return( ret );
-}
-#endif /* POLARSSL_FS_IO */
-#endif /* POLARSSL_DHM_C */
-
 #if defined _MSC_VER && !defined snprintf
 #include <stdarg.h>
 
@@ -3418,9 +3311,6 @@ int x509_self_test( int verbose )
     x509_cert cacert;
     x509_cert clicert;
     pk_context pkey;
-#if defined(POLARSSL_DHM_C)
-    dhm_context dhm;
-#endif
 
     if( verbose != 0 )
         printf( "  X.509 certificate load: " );
@@ -3483,29 +3373,12 @@ int x509_self_test( int verbose )
         return( ret );
     }
 
-#if defined(POLARSSL_DHM_C)
     if( verbose != 0 )
-        printf( "passed\n  X.509 DHM parameter load: " );
-
-    if( ( ret = x509parse_dhm( &dhm, (const unsigned char *) test_dhm_params,
-                                     strlen( test_dhm_params ) ) ) != 0 )
-    {
-        if( verbose != 0 )
-            printf( "failed\n" );
-
-        return( ret );
-    }
-
-    if( verbose != 0 )
-        printf( "passed\n\n" );
-#endif
+        printf( "passed\n\n");
 
     x509_free( &cacert  );
     x509_free( &clicert );
     pk_free( &pkey );
-#if defined(POLARSSL_DHM_C)
-    dhm_free( &dhm );
-#endif
 
     return( 0 );
 #else

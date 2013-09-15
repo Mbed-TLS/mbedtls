@@ -38,6 +38,9 @@
 #define POLARSSL_ERR_DHM_READ_PUBLIC_FAILED                -0x3200  /**< Reading of the public values failed. */
 #define POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED                -0x3280  /**< Making of the public value failed. */
 #define POLARSSL_ERR_DHM_CALC_SECRET_FAILED                -0x3300  /**< Calculation of the DHM secret failed. */
+#define POLARSSL_ERR_DHM_INVALID_FORMAT                    -0x3380  /**< The ASN.1 data is not formatted correctly. */
+#define POLARSSL_ERR_DHM_MALLOC_FAILED                     -0x3400  /**< Allocation of memory failed. */
+#define POLARSSL_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read/write of file failed. */
 
 /**
  * RFC 3526 defines a number of standardized Diffie-Hellman groups
@@ -244,6 +247,34 @@ int dhm_calc_secret( dhm_context *ctx,
  * \brief          Free the components of a DHM key
  */
 void dhm_free( dhm_context *ctx );
+
+#if defined(POLARSSL_ASN1_PARSE_C)
+/** \ingroup x509_module */
+/**
+ * \brief          Parse DHM parameters
+ *
+ * \param dhm      DHM context to be initialized
+ * \param dhmin    input buffer
+ * \param dhminlen size of the buffer
+ *
+ * \return         0 if successful, or a specific DHM or PEM error code
+ */
+int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
+                   size_t dhminlen );
+
+#if defined(POLARSSL_FS_IO)
+/** \ingroup x509_module */
+/**
+ * \brief          Load and parse DHM parameters
+ *
+ * \param dhm      DHM context to be initialized
+ * \param path     filename to read the DHM Parameters from
+ *
+ * \return         0 if successful, or a specific DHM or PEM error code
+ */
+int dhm_parse_dhmfile( dhm_context *dhm, const char *path );
+#endif /* POLARSSL_FS_IO */
+#endif /* POLARSSL_ASN1_PARSE_C */
 
 /**
  * \brief          Checkup routine

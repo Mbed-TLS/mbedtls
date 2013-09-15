@@ -206,6 +206,12 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "DHM - Making of the public value failed" );
         if( use_ret == -(POLARSSL_ERR_DHM_CALC_SECRET_FAILED) )
             snprintf( buf, buflen, "DHM - Calculation of the DHM secret failed" );
+        if( use_ret == -(POLARSSL_ERR_DHM_INVALID_FORMAT) )
+            snprintf( buf, buflen, "DHM - The ASN.1 data is not formatted correctly" );
+        if( use_ret == -(POLARSSL_ERR_DHM_MALLOC_FAILED) )
+            snprintf( buf, buflen, "DHM - Allocation of memory failed" );
+        if( use_ret == -(POLARSSL_ERR_DHM_FILE_IO_ERROR) )
+            snprintf( buf, buflen, "DHM - Read/write of file failed" );
 #endif /* POLARSSL_DHM_C */
 
 #if defined(POLARSSL_ECP_C)

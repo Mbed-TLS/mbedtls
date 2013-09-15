@@ -93,3 +93,10 @@ void dhm_do_dhm( int radix_P, char *input_P,
     dhm_free( &ctx_cli );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void dhm_selftest()
+{
+    TEST_ASSERT( dhm_self_test( 0 ) == 0 );
+}
+/* END_CASE */

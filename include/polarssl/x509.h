@@ -472,31 +472,6 @@ int x509parse_public_keyfile_rsa( rsa_context *rsa, const char *path );
 #endif /* POLARSSL_FS_IO */
 #endif /* POLARSSL_RSA_C */
 
-/** \ingroup x509_module */
-/**
- * \brief          Parse DHM parameters
- *
- * \param dhm      DHM context to be initialized
- * \param dhmin    input buffer
- * \param dhminlen size of the buffer
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen );
-
-#if defined(POLARSSL_FS_IO)
-/** \ingroup x509_module */
-/**
- * \brief          Load and parse DHM parameters
- *
- * \param dhm      DHM context to be initialized
- * \param path     filename to read the DHM Parameters from
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_dhmfile( dhm_context *dhm, const char *path );
-#endif /* POLARSSL_FS_IO */
-
 /** \} name Functions to read in DHM parameters, a certificate, CRL or private RSA key */
 
 /**

@@ -105,7 +105,6 @@ static int ssl_save_session( const ssl_session *session,
 static int ssl_load_session( ssl_session *session,
                              const unsigned char *buf, size_t len )
 {
-    int ret;
     const unsigned char *p = buf;
     const unsigned char * const end = buf + len;
 #if defined(POLARSSL_X509_PARSE_C)
@@ -131,6 +130,8 @@ static int ssl_load_session( ssl_session *session,
     }
     else
     {
+        int ret;
+
         if( p + cert_len > end )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
@@ -1834,14 +1835,19 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 {
     int ret;
     size_t n = 0, len;
-    unsigned char hash[64];
-    md_type_t md_alg = POLARSSL_MD_NONE;
-    unsigned int hashlen = 0;
     unsigned char *p = ssl->out_msg + 4;
+    const ssl_ciphersuite_t *ciphersuite_info;
+
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     unsigned char *dig_signed = p;
     size_t dig_signed_len = 0;
+    ((void) dig_signed);
+    ((void) dig_signed_len);
+#endif
 
-    const ssl_ciphersuite_t *ciphersuite_info;
     ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
@@ -1959,6 +1965,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
         size_t signature_len = 0;
+        unsigned int hashlen = 0;
+        unsigned char hash[64];
+        md_type_t md_alg = POLARSSL_MD_NONE;
 
         /*
          * Choose hash algorithm. NONE means MD5 + SHA1 here.

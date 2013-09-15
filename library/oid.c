@@ -32,6 +32,10 @@
 #include "polarssl/oid.h"
 #include "polarssl/rsa.h"
 
+#if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
+#include "polarssl/x509.h"
+#endif
+
 #include <stdio.h>
 
 /*

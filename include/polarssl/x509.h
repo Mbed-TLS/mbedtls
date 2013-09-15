@@ -29,7 +29,6 @@
 
 #include "config.h"
 
-#if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
 #include "asn1.h"
 #include "dhm.h"
 #include "md.h"
@@ -709,5 +708,4 @@ int x509_self_test( int verbose );
 }
 #endif
 
-#endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
 #endif /* x509.h */

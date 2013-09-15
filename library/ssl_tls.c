@@ -72,14 +72,14 @@ static unsigned int mfl_code_to_length[SSL_MAX_FRAG_LEN_INVALID] =
 
 static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 {
-    int ret;
-
     ssl_session_free( dst );
     memcpy( dst, src, sizeof( ssl_session ) );
 
 #if defined(POLARSSL_X509_PARSE_C)
     if( src->peer_cert != NULL )
     {
+        int ret;
+
         if( ( dst->peer_cert = polarssl_malloc( sizeof(x509_cert) ) ) == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 

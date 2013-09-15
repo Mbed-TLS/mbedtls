@@ -117,99 +117,6 @@ exit:
     return( ret );
 }
 
-#if defined(POLARSSL_RSA_C)
-/*
- *  RSAPublicKey ::= SEQUENCE {
- *      modulus           INTEGER,  -- n
- *      publicExponent    INTEGER   -- e
- *  }
- */
-static int x509_write_rsa_pubkey( unsigned char **p, unsigned char *start,
-                                  rsa_context *rsa )
-{
-    int ret;
-    size_t len = 0;
-
-    ASN1_CHK_ADD( len, asn1_write_mpi( p, start, &rsa->E ) );
-    ASN1_CHK_ADD( len, asn1_write_mpi( p, start, &rsa->N ) );
-
-    ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
-
-    return( len );
-}
-#endif /* POLARSSL_RSA_C */
-
-#if defined(POLARSSL_ECP_C)
-/*
- * EC public key is an EC point
- */
-static int x509_write_ec_pubkey( unsigned char **p, unsigned char *start,
-                                 ecp_keypair *ec )
-{
-    int ret;
-    size_t len = 0;
-    unsigned char buf[POLARSSL_ECP_MAX_PT_LEN];
-
-    if( ( ret = ecp_point_write_binary( &ec->grp, &ec->Q,
-                                        POLARSSL_ECP_PF_UNCOMPRESSED,
-                                        &len, buf, sizeof( buf ) ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    if( *p - start < (int) len )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    *p -= len;
-    memcpy( *p, buf, len );
-
-    return( len );
-}
-
-/*
- * ECParameters ::= CHOICE {
- *   namedCurve         OBJECT IDENTIFIER
- * }
- */
-static int x509_write_ec_param( unsigned char **p, unsigned char *start,
-                                ecp_keypair *ec )
-{
-    int ret;
-    size_t len = 0;
-    const char *oid;
-    size_t oid_len;
-
-    if( ( ret = oid_get_oid_by_ec_grp( ec->grp.id, &oid, &oid_len ) ) != 0 )
-        return( ret );
-
-    ASN1_CHK_ADD( len, asn1_write_oid( p, start, oid, oid_len ) );
-
-    return( len );
-}
-#endif /* POLARSSL_ECP_C */
-
-static int x509_write_pubkey( unsigned char **p, unsigned char *start,
-                              const pk_context *key )
-{
-    int ret;
-    size_t len = 0;
-
-#if defined(POLARSSL_RSA_C)
-    if( pk_get_type( key ) == POLARSSL_PK_RSA )
-        ASN1_CHK_ADD( len, x509_write_rsa_pubkey( p, start, pk_rsa( *key ) ) );
-    else
-#endif
-#if defined(POLARSSL_ECP_C)
-    if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
-        ASN1_CHK_ADD( len, x509_write_ec_pubkey( p, start, pk_ec( *key ) ) );
-    else
-#endif
-        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-    return( len );
-}
-
 void x509write_csr_init( x509write_csr *ctx )
 {
     memset( ctx, 0, sizeof(x509write_csr) );
@@ -426,7 +333,7 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx )
     size_t len = 0;
 
     memset( buf, 0, sizeof(buf));
-    ASN1_CHK_ADD( len, x509_write_pubkey( &c, buf, ctx->subject_key ) );
+    ASN1_CHK_ADD( len, pk_write_pubkey( &c, buf, ctx->subject_key ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
     c = buf + sizeof(buf) - 20;
@@ -448,7 +355,7 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
     size_t len = 0;
 
     memset( buf, 0, sizeof(buf));
-    ASN1_CHK_ADD( len, x509_write_pubkey( &c, buf, ctx->issuer_key ) );
+    ASN1_CHK_ADD( len, pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
     c = buf + sizeof(buf) - 20;
@@ -504,137 +411,6 @@ int x509write_crt_set_ns_cert_type( x509write_cert *ctx,
         return( ret );
 
     return( 0 );
-}
-
-int x509write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
-{
-    int ret;
-    unsigned char *c;
-    size_t len = 0, par_len = 0, oid_len;
-    const char *oid;
-
-    c = buf + size;
-
-    ASN1_CHK_ADD( len, x509_write_pubkey( &c, buf, key ) );
-
-    if( c - buf < 1 )
-        return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-
-    /*
-     *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
-     *       algorithm            AlgorithmIdentifier,
-     *       subjectPublicKey     BIT STRING }
-     */
-    *--c = 0;
-    len += 1;
-
-    ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_BIT_STRING ) );
-
-    if( ( ret = oid_get_oid_by_pk_alg( pk_get_type( key ),
-                                       &oid, &oid_len ) ) != 0 )
-    {
-        return( ret );
-    }
-
-#if defined(POLARSSL_ECP_C)
-    if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
-    {
-        ASN1_CHK_ADD( par_len, x509_write_ec_param( &c, buf, pk_ec( *key ) ) );
-    }
-#endif
-
-    ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf, oid, oid_len,
-                                                        par_len ) );
-
-    ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
-
-    return( len );
-}
-
-int x509write_key_der( pk_context *key, unsigned char *buf, size_t size )
-{
-    int ret;
-    unsigned char *c = buf + size;
-    size_t len = 0;
-
-#if defined(POLARSSL_RSA_C)
-    if( pk_get_type( key ) == POLARSSL_PK_RSA )
-    {
-        rsa_context *rsa = pk_rsa( *key );
-
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->QP ) );
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->DQ ) );
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->DP ) );
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->Q ) );
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->P ) );
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->D ) );
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->E ) );
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &rsa->N ) );
-        ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 0 ) );
-
-        ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
-    }
-    else
-#endif
-#if defined(POLARSSL_ECP_C)
-    if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
-    {
-        ecp_keypair *ec = pk_ec( *key );
-        size_t pub_len = 0, par_len = 0;
-
-        /*
-         * RFC 5915, or SEC1 Appendix C.4
-         *
-         * ECPrivateKey ::= SEQUENCE {
-         *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
-         *      privateKey     OCTET STRING,
-         *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
-         *      publicKey  [1] BIT STRING OPTIONAL
-         *    }
-         */
-
-        /* publicKey */
-        ASN1_CHK_ADD( pub_len, x509_write_ec_pubkey( &c, buf, ec ) );
-
-        if( c - buf < 1 )
-            return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
-        *--c = 0;
-        pub_len += 1;
-
-        ASN1_CHK_ADD( pub_len, asn1_write_len( &c, buf, pub_len ) );
-        ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, buf, ASN1_BIT_STRING ) );
-
-        ASN1_CHK_ADD( pub_len, asn1_write_len( &c, buf, pub_len ) );
-        ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, buf,
-                            ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) );
-        len += pub_len;
-
-        /* parameters */
-        ASN1_CHK_ADD( par_len, x509_write_ec_param( &c, buf, ec ) );
-
-        ASN1_CHK_ADD( par_len, asn1_write_len( &c, buf, par_len ) );
-        ASN1_CHK_ADD( par_len, asn1_write_tag( &c, buf,
-                            ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) );
-        len += par_len;
-
-        /* privateKey: write as MPI then fix tag */
-        ASN1_CHK_ADD( len, asn1_write_mpi( &c, buf, &ec->d ) );
-        *c = ASN1_OCTET_STRING;
-
-        /* version */
-        ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 1 ) );
-
-        ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
-    }
-    else
-#endif
-        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-    return( len );
 }
 
 /*
@@ -856,8 +632,8 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) );
 
-    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( ctx->key,
-                                                 tmp_buf, c - tmp_buf ) );
+    ASN1_CHK_ADD( pub_len, pk_write_pubkey_der( ctx->key,
+                                                tmp_buf, c - tmp_buf ) );
     c -= pub_len;
     len += pub_len;
 
@@ -951,8 +727,8 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     /*
      *  SubjectPublicKeyInfo
      */
-    ASN1_CHK_ADD( pub_len, x509write_pubkey_der( ctx->subject_key,
-                                                 tmp_buf, c - tmp_buf ) );
+    ASN1_CHK_ADD( pub_len, pk_write_pubkey_der( ctx->subject_key,
+                                                tmp_buf, c - tmp_buf ) );
     c -= pub_len;
     len += pub_len;
 
@@ -1040,14 +816,6 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
 #define PEM_BEGIN_CSR           "-----BEGIN CERTIFICATE REQUEST-----\n"
 #define PEM_END_CSR             "-----END CERTIFICATE REQUEST-----\n"
 
-#define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----\n"
-#define PEM_END_PUBLIC_KEY      "-----END PUBLIC KEY-----\n"
-
-#define PEM_BEGIN_PRIVATE_KEY_RSA   "-----BEGIN RSA PRIVATE KEY-----\n"
-#define PEM_END_PRIVATE_KEY_RSA     "-----END RSA PRIVATE KEY-----\n"
-#define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----\n"
-#define PEM_END_PRIVATE_KEY_EC      "-----END EC PRIVATE KEY-----\n"
-
 #if defined(POLARSSL_BASE64_C)
 static int x509write_pemify( const char *begin_str, const char *end_str,
                              const unsigned char *der_data, size_t der_len,
@@ -1102,67 +870,6 @@ int x509write_crt_pem( x509write_cert *crt, unsigned char *buf, size_t size,
     }
 
     if( ( ret = x509write_pemify( PEM_BEGIN_CRT, PEM_END_CRT,
-                                  output_buf + sizeof(output_buf) - ret,
-                                  ret, buf, size ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    return( 0 );
-}
-
-int x509write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
-{
-    int ret;
-    unsigned char output_buf[4096];
-
-    if( ( ret = x509write_pubkey_der( key, output_buf,
-                                      sizeof(output_buf) ) ) < 0 )
-    {
-        return( ret );
-    }
-
-    if( ( ret = x509write_pemify( PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
-                                  output_buf + sizeof(output_buf) - ret,
-                                  ret, buf, size ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    return( 0 );
-}
-
-int x509write_key_pem( pk_context *key, unsigned char *buf, size_t size )
-{
-    int ret;
-    unsigned char output_buf[4096];
-    char *begin, *end;
-
-    if( ( ret = x509write_key_der( key, output_buf,
-                                      sizeof(output_buf) ) ) < 0 )
-    {
-        return( ret );
-    }
-
-#if defined(POLARSSL_RSA_C)
-    if( pk_get_type( key ) == POLARSSL_PK_RSA )
-    {
-        begin = PEM_BEGIN_PRIVATE_KEY_RSA;
-        end = PEM_END_PRIVATE_KEY_RSA;
-    }
-    else
-#endif
-#if defined(POLARSSL_ECP_C)
-    if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
-    {
-        begin = PEM_BEGIN_PRIVATE_KEY_EC;
-        end = PEM_END_PRIVATE_KEY_EC;
-    }
-    else
-#endif
-        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-
-    if( ( ret = x509write_pemify( begin, end,
                                   output_buf + sizeof(output_buf) - ret,
                                   ret, buf, size ) ) != 0 )
     {

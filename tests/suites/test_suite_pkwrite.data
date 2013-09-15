@@ -1,0 +1,15 @@
+Public key write check RSA
+depends_on:POLARSSL_RSA_C:POLARSSL_BASE64_C
+pk_write_pubkey_check:"data_files/server1.pubkey"
+
+Public key write check EC
+depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+pk_write_pubkey_check:"data_files/ec_pub.pem"
+
+Private key write check RSA
+depends_on:POLARSSL_RSA_C:POLARSSL_BASE64_C
+pk_write_key_check:"data_files/server1.key"
+
+Private key write check EC
+depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+pk_write_key_check:"data_files/ec_prv.sec1.pem"

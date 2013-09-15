@@ -405,21 +405,6 @@ int pk_parse_key( pk_context *ctx,
                   const unsigned char *key, size_t keylen,
                   const unsigned char *pwd, size_t pwdlen );
 
-#if defined(POLARSSL_FS_IO)
-/** \ingroup x509_module */
-/**
- * \brief           Load and parse a private key
- *
- * \param ctx       key to be initialized
- * \param path      filename to read the private key from
- * \param password  password to decrypt the file (can be NULL)
- *
- * \return          0 if successful, or a specific PK or PEM error code
- */
-int pk_parse_keyfile( pk_context *ctx,
-                      const char *path, const char *password );
-#endif /* POLARSSL_FS_IO */
-
 /** \ingroup x509_module */
 /**
  * \brief           Parse a public key
@@ -436,6 +421,19 @@ int pk_parse_public_key( pk_context *ctx,
 #if defined(POLARSSL_FS_IO)
 /** \ingroup x509_module */
 /**
+ * \brief           Load and parse a private key
+ *
+ * \param ctx       key to be initialized
+ * \param path      filename to read the private key from
+ * \param password  password to decrypt the file (can be NULL)
+ *
+ * \return          0 if successful, or a specific PK or PEM error code
+ */
+int pk_parse_keyfile( pk_context *ctx,
+                      const char *path, const char *password );
+
+/** \ingroup x509_module */
+/**
  * \brief           Load and parse a public key
  *
  * \param ctx       key to be initialized
@@ -445,6 +443,65 @@ int pk_parse_public_key( pk_context *ctx,
  */
 int pk_parse_public_keyfile( pk_context *ctx, const char *path );
 #endif /* POLARSSL_FS_IO */
+
+/**
+ * \brief           Write a private key to a PKCS#1 or SEC1 DER structure
+ *                  Note: data is written at the end of the buffer! Use the
+ *                        return value to determine where you should start
+ *                        using the buffer
+ *
+ * \param key       private to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          length of data written if successful, or a specific
+ *                  error code
+ */
+int pk_write_key_der( pk_context *pk, unsigned char *buf, size_t size );
+
+/**
+ * \brief           Write a public key to a SubjectPublicKeyInfo DER structure
+ *                  Note: data is written at the end of the buffer! Use the
+ *                        return value to determine where you should start
+ *                        using the buffer
+ *
+ * \param key       public key to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          length of data written if successful, or a specific
+ *                  error code
+ */
+int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size );
+
+#if defined(POLARSSL_BASE64_C)
+/**
+ * \brief           Write a public key to a PEM string
+ *
+ * \param key       public key to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          0 successful, or a specific error code
+ */
+int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size );
+
+/**
+ * \brief           Write a private key to a PKCS#1 or SEC1 PEM string
+ *
+ * \param key       private to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          0 successful, or a specific error code
+ */
+int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size );
+#endif /* POLARSSL_BASE64_C */
+
+/*
+ * WARNING: Low-level functions. You probably do not want to use these unless
+ *          you are certain you do ;)
+ */
 
 /**
  * \brief           Parse a SubjectPublicKeyInfo DER structure
@@ -457,6 +514,19 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path );
  */
 int pk_parse_get_pubkey( unsigned char **p, const unsigned char *end,
                          pk_context *pk );
+
+/**
+ * \brief           Write a subjectPublicKey to ASN.1 data
+ *                  Note: function works backwards in data buffer
+ *
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param key       public key to write away
+ *
+ * \return          the length written or a negative error code
+ */
+int pk_write_pubkey( unsigned char **p, unsigned char *start,
+                     const pk_context *key );
 
 #ifdef __cplusplus
 }

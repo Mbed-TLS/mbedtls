@@ -89,14 +89,14 @@ static int write_public_key( pk_context *key, const char *output_file )
 
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        if( ( ret = x509write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
+        if( ( ret = pk_write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
             return( ret );
 
         len = strlen( (char *) output_buf );
     }
     else
     {
-        if( ( ret = x509write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
+        if( ( ret = pk_write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
 
         len = ret;
@@ -125,14 +125,14 @@ static int write_private_key( pk_context *key, const char *output_file )
     memset(output_buf, 0, 16000);
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        if( ( ret = x509write_key_pem( key, output_buf, 16000 ) ) != 0 )
+        if( ( ret = pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
             return( ret );
 
         len = strlen( (char *) output_buf );
     }
     else
     {
-        if( ( ret = x509write_key_der( key, output_buf, 16000 ) ) < 0 )
+        if( ( ret = pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
 
         len = ret;

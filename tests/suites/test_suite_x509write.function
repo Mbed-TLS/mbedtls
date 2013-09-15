@@ -15,13 +15,11 @@ void x509_csr_check( char *key_file, int md_type,
                           char *cert_req_check_file )
 {
     pk_context key;
-    pem_context pem;
     x509write_csr req;
-    unsigned char *c;
     unsigned char buf[4000];
     unsigned char check_buf[4000];
     int ret;
-    size_t olen = sizeof( check_buf );
+    size_t olen = 0, pem_len = 0;
     FILE *f;
     char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     rnd_pseudo_info rnd_info;
@@ -36,25 +34,21 @@ void x509_csr_check( char *key_file, int md_type,
     x509write_csr_set_key( &req, &key );
     TEST_ASSERT( x509write_csr_set_subject_name( &req, subject_name ) == 0 );
 
-    ret = x509write_csr_der( &req, buf, sizeof( buf ),
+    ret = x509write_csr_pem( &req, buf, sizeof(buf),
                              rnd_pseudo_rand, &rnd_info );
-    TEST_ASSERT( ret >= 0 );
+    TEST_ASSERT( ret == 0 );
 
-    c = buf + sizeof( buf ) - ret;
+    pem_len = strlen( (char *) buf );
 
     f = fopen( cert_req_check_file, "r" );
     TEST_ASSERT( f != NULL );
-    fread( check_buf, 1, sizeof( check_buf ), f );
+    olen = fread( check_buf, 1, sizeof( check_buf ), f );
     fclose( f );
 
-    pem_init( &pem );
-    pem_read_buffer( &pem, "-----BEGIN CERTIFICATE REQUEST-----", "-----END CERTIFICATE REQUEST-----", check_buf, NULL, 0, &olen );
-
-    TEST_ASSERT( pem.buflen == (size_t) ret );
-    TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
+    TEST_ASSERT( olen >= pem_len - 1 );
+    TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
 
     x509write_csr_free( &req );
-    pem_free( &pem );
     pk_free( &key );
 }
 /* END_CASE */
@@ -67,14 +61,12 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      int md_type, char *cert_check_file )
 {
     pk_context subject_key, issuer_key;
-    pem_context pem;
     x509write_cert crt;
-    unsigned char *c;
     unsigned char buf[4000];
     unsigned char check_buf[5000];
     mpi serial;
     int ret;
-    size_t olen = sizeof( check_buf );
+    size_t olen = 0, pem_len = 0;
     FILE *f;
     rnd_pseudo_info rnd_info;
 
@@ -103,27 +95,24 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( x509write_crt_set_subject_key_identifier( &crt ) == 0 );
     TEST_ASSERT( x509write_crt_set_authority_key_identifier( &crt ) == 0 );
 
-    ret = x509write_crt_der( &crt, buf, sizeof(buf),
+    ret = x509write_crt_pem( &crt, buf, sizeof(buf),
                              rnd_pseudo_rand, &rnd_info );
-    TEST_ASSERT( ret >= 0 );
+    TEST_ASSERT( ret == 0 );
 
-    c = buf + sizeof( buf ) - ret;
+    pem_len = strlen( (char *) buf );
 
     f = fopen( cert_check_file, "r" );
     TEST_ASSERT( f != NULL );
-    TEST_ASSERT( fread( check_buf, 1, sizeof(check_buf), f ) < sizeof(check_buf) );
+    TEST_ASSERT( ( olen = fread( check_buf, 1, sizeof(check_buf), f ) ) <
+                 sizeof(check_buf) );
     fclose( f );
 
-    pem_init( &pem );
-    TEST_ASSERT( pem_read_buffer( &pem, "-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----", check_buf, NULL, 0, &olen ) >= 0 );
-
-    TEST_ASSERT( pem.buflen == (size_t) ret );
-    TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
+    TEST_ASSERT( olen >= pem_len - 1 );
+    TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
 
     x509write_crt_free( &crt );
     pk_free( &issuer_key );
     pk_free( &subject_key );
-    pem_free( &pem );
     mpi_free( &serial );
 }
 /* END_CASE */

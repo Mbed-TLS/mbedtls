@@ -40,8 +40,8 @@
 #if defined(POLARSSL_ECDSA_C)
 #include "polarssl/ecdsa.h"
 #endif
-#if defined(POLARSSL_BASE64_C)
-#include "polarssl/base64.h"
+#if defined(POLARSSL_PEM_C)
+#include "polarssl/pem.h"
 #endif
 
 #if defined(POLARSSL_MEMORY_C)
@@ -276,45 +276,7 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
     return( len );
 }
 
-#if defined(POLARSSL_BASE64_C)
-static int pk_write_pemify( const char *begin_str, const char *end_str,
-                             const unsigned char *der_data, size_t der_len,
-                             unsigned char *buf, size_t size )
-{
-    int ret;
-    unsigned char base_buf[4096];
-    unsigned char *c = base_buf, *p = buf;
-    size_t len = 0, olen = sizeof(base_buf);
-
-    if( ( ret = base64_encode( base_buf, &olen, der_data, der_len ) ) != 0 )
-        return( ret );
-
-    if( olen + strlen( begin_str ) + strlen( end_str ) +
-        olen / 64 > size )
-    {
-        return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
-    }
-
-    memcpy( p, begin_str, strlen( begin_str ) );
-    p += strlen( begin_str );
-
-    while( olen )
-    {
-        len = ( olen > 64 ) ? 64 : olen;
-        memcpy( p, c, len );
-        olen -= len;
-        p += len;
-        c += len;
-        *p++ = '\n';
-    }
-
-    memcpy( p, end_str, strlen( end_str ) );
-    p += strlen( end_str );
-
-    *p = '\0';
-
-    return( 0 );
-}
+#if defined(POLARSSL_PEM_C)
 
 #define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----\n"
 #define PEM_END_PUBLIC_KEY      "-----END PUBLIC KEY-----\n"
@@ -328,16 +290,17 @@ int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char output_buf[4096];
+    size_t olen = 0;
 
     if( ( ret = pk_write_pubkey_der( key, output_buf,
-                                      sizeof(output_buf) ) ) < 0 )
+                                     sizeof(output_buf) ) ) < 0 )
     {
         return( ret );
     }
 
-    if( ( ret = pk_write_pemify( PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
+    if( ( ret = pem_write_buffer( PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
                                   output_buf + sizeof(output_buf) - ret,
-                                  ret, buf, size ) ) != 0 )
+                                  ret, buf, size, &olen ) ) != 0 )
     {
         return( ret );
     }
@@ -350,12 +313,10 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
     int ret;
     unsigned char output_buf[4096];
     char *begin, *end;
+    size_t olen = 0;
 
-    if( ( ret = pk_write_key_der( key, output_buf,
-                                      sizeof(output_buf) ) ) < 0 )
-    {
+    if( ( ret = pk_write_key_der( key, output_buf, sizeof(output_buf) ) ) < 0 )
         return( ret );
-    }
 
 #if defined(POLARSSL_RSA_C)
     if( pk_get_type( key ) == POLARSSL_PK_RSA )
@@ -375,15 +336,15 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
 #endif
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
-    if( ( ret = pk_write_pemify( begin, end,
+    if( ( ret = pem_write_buffer( begin, end,
                                   output_buf + sizeof(output_buf) - ret,
-                                  ret, buf, size ) ) != 0 )
+                                  ret, buf, size, &olen ) ) != 0 )
     {
         return( ret );
     }
 
     return( 0 );
 }
-#endif /* POLARSSL_BASE64_C */
+#endif /* POLARSSL_PEM_C */
 
 #endif /* POLARSSL_PK_WRITE_C */

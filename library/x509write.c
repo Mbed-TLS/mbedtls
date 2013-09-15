@@ -42,8 +42,8 @@
 
 #include "polarssl/sha1.h"
 
-#if defined(POLARSSL_BASE64_C)
-#include "polarssl/base64.h"
+#if defined(POLARSSL_PEM_C)
+#include "polarssl/pem.h"
 #endif
 
 #if defined(POLARSSL_MEMORY_C)
@@ -816,52 +816,14 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
 #define PEM_BEGIN_CSR           "-----BEGIN CERTIFICATE REQUEST-----\n"
 #define PEM_END_CSR             "-----END CERTIFICATE REQUEST-----\n"
 
-#if defined(POLARSSL_BASE64_C)
-static int x509write_pemify( const char *begin_str, const char *end_str,
-                             const unsigned char *der_data, size_t der_len,
-                             unsigned char *buf, size_t size )
-{
-    int ret;
-    unsigned char base_buf[4096];
-    unsigned char *c = base_buf, *p = buf;
-    size_t len = 0, olen = sizeof(base_buf);
-
-    if( ( ret = base64_encode( base_buf, &olen, der_data, der_len ) ) != 0 )
-        return( ret );
-
-    if( olen + strlen( begin_str ) + strlen( end_str ) +
-        olen / 64 > size )
-    {
-        return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
-    }
-
-    memcpy( p, begin_str, strlen( begin_str ) );
-    p += strlen( begin_str );
-
-    while( olen )
-    {
-        len = ( olen > 64 ) ? 64 : olen;
-        memcpy( p, c, len );
-        olen -= len;
-        p += len;
-        c += len;
-        *p++ = '\n';
-    }
-
-    memcpy( p, end_str, strlen( end_str ) );
-    p += strlen( end_str );
-
-    *p = '\0';
-
-    return( 0 );
-}
-
+#if defined(POLARSSL_PEM_C)
 int x509write_crt_pem( x509write_cert *crt, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng )
 {
     int ret;
     unsigned char output_buf[4096];
+    size_t olen = 0;
 
     if( ( ret = x509write_crt_der( crt, output_buf, sizeof(output_buf),
                                    f_rng, p_rng ) ) < 0 )
@@ -869,9 +831,9 @@ int x509write_crt_pem( x509write_cert *crt, unsigned char *buf, size_t size,
         return( ret );
     }
 
-    if( ( ret = x509write_pemify( PEM_BEGIN_CRT, PEM_END_CRT,
+    if( ( ret = pem_write_buffer( PEM_BEGIN_CRT, PEM_END_CRT,
                                   output_buf + sizeof(output_buf) - ret,
-                                  ret, buf, size ) ) != 0 )
+                                  ret, buf, size, &olen ) ) != 0 )
     {
         return( ret );
     }
@@ -885,6 +847,7 @@ int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size,
 {
     int ret;
     unsigned char output_buf[4096];
+    size_t olen = 0;
 
     if( ( ret = x509write_csr_der( ctx, output_buf, sizeof(output_buf),
                                    f_rng, p_rng ) ) < 0 )
@@ -892,9 +855,9 @@ int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size,
         return( ret );
     }
 
-    if( ( ret = x509write_pemify( PEM_BEGIN_CSR, PEM_END_CSR,
+    if( ( ret = pem_write_buffer( PEM_BEGIN_CSR, PEM_END_CSR,
                                   output_buf + sizeof(output_buf) - ret,
-                                  ret, buf, size ) ) != 0 )
+                                  ret, buf, size, &olen ) ) != 0 )
     {
         return( ret );
     }

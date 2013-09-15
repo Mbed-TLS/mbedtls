@@ -88,12 +88,32 @@ void pem_init( pem_context *ctx );
  *                  the decrypted text starts with an ASN.1 sequence of
  *                  appropriate length
  *
- * \return          0 on success, ior a specific PEM error code
+ * \return          0 on success, or a specific PEM error code
  */
 int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
                      const unsigned char *data,
                      const unsigned char *pwd,
                      size_t pwdlen, size_t *use_len );
+
+/**
+ * \brief           Write a buffer of PEM information from a DER encoded
+ *                  buffer.
+ *
+ * \param header    header string to write
+ * \param footer    footer string to write
+ * \param der_data  DER data to write
+ * \param der_len   length of the DER data
+ * \param buf       buffer to write to
+ * \param buf_len   length of output buffer
+ * \param olen      total length written / required (if buf_len is not enough)
+ *
+ * \return          0 on success, or a specific PEM or BASE64 error code. On
+ *                  POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL olen is the required
+ *                  size.
+ */
+int pem_write_buffer( const char *header, const char *footer,
+                      const unsigned char *der_data, size_t der_len,
+                      unsigned char *buf, size_t buf_len, size_t *olen );
 
 /**
  * \brief       PEM context memory freeing

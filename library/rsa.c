@@ -1512,8 +1512,7 @@ int rsa_self_test( int verbose )
 
     rsa_free( &rsa );
 #else /* POLARSSL_PKCS1_V15 */
-    if( verbose != 0 )
-        printf( "skipper\n\n" );
+    ((void) verbose);
 #endif /* POLARSSL_PKCS1_V15 */
     return( 0 );
 }

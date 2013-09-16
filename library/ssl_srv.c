@@ -62,9 +62,9 @@ static int ssl_save_session( const ssl_session *session,
 {
     unsigned char *p = buf;
     size_t left = buf_len;
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     size_t cert_len;
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     if( left < sizeof( ssl_session ) )
         return( -1 );
@@ -73,7 +73,7 @@ static int ssl_save_session( const ssl_session *session,
     p += sizeof( ssl_session );
     left -= sizeof( ssl_session );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     ((ssl_session *) buf)->peer_cert = NULL;
 
     if( session->peer_cert == NULL )
@@ -92,7 +92,7 @@ static int ssl_save_session( const ssl_session *session,
         memcpy( p, session->peer_cert->raw.p, cert_len );
 
     p += cert_len;
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     *olen = p - buf;
 
@@ -107,9 +107,9 @@ static int ssl_load_session( ssl_session *session,
 {
     const unsigned char *p = buf;
     const unsigned char * const end = buf + len;
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     size_t cert_len;
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     if( p + sizeof( ssl_session ) > end )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -117,7 +117,7 @@ static int ssl_load_session( ssl_session *session,
     memcpy( session, p, sizeof( ssl_session ) );
     p += sizeof( ssl_session );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     if( p + 3 > end )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
@@ -144,7 +144,7 @@ static int ssl_load_session( ssl_session *session,
 
         if( ( ret = x509parse_crt( session->peer_cert, p, cert_len ) ) != 0 )
         {
-            x509_free( session->peer_cert );
+            x509_crt_free( session->peer_cert );
             polarssl_free( session->peer_cert );
             session->peer_cert = NULL;
             return( ret );
@@ -152,7 +152,7 @@ static int ssl_load_session( ssl_session *session,
 
         p += cert_len;
     }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     if( p != end )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );

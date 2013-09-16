@@ -224,7 +224,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
 }
 #endif /* POLARSSL_BIGNUM_C */
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 static void debug_print_pk( const ssl_context *ssl, int level,
                             const char *file, int line,
                             const char *text, const pk_context *pk )
@@ -288,6 +288,6 @@ void debug_print_crt( const ssl_context *ssl, int level,
         crt = crt->next;
     }
 }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #endif

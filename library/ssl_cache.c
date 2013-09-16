@@ -85,7 +85,7 @@ int ssl_cache_get( void *data, ssl_session *session )
 
         session->verify_result = entry->session.verify_result;
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
         /*
          * Restore peer certificate (without rest of the original chain)
          */
@@ -104,7 +104,7 @@ int ssl_cache_get( void *data, ssl_session *session )
                 return( 1 );
             }
         }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
         return( 0 );
     }
@@ -163,13 +163,13 @@ int ssl_cache_set( void *data, const ssl_session *session )
         {
             cur = old;
             memset( &cur->session, 0, sizeof(ssl_session) );
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
             if( cur->peer_cert.p != NULL )
             {
                 polarssl_free( cur->peer_cert.p );
                 memset( &cur->peer_cert, 0, sizeof(x509_buf) );
             }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
         }
 #else /* POLARSSL_HAVE_TIME */
         /*
@@ -184,13 +184,13 @@ int ssl_cache_set( void *data, const ssl_session *session )
             cur = cache->chain;
             cache->chain = cur->next;
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
             if( cur->peer_cert.p != NULL )
             {
                 polarssl_free( cur->peer_cert.p );
                 memset( &cur->peer_cert, 0, sizeof(x509_buf) );
             }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
             memset( cur, 0, sizeof(ssl_cache_entry) );
             prv->next = cur;
@@ -217,7 +217,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
     memcpy( &cur->session, session, sizeof( ssl_session ) );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
      * Store peer certificate
      */
@@ -233,7 +233,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
         cur->session.peer_cert = NULL;
     }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     return( 0 );
 }
@@ -267,10 +267,10 @@ void ssl_cache_free( ssl_cache_context *cache )
 
         ssl_session_free( &prv->session );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
         if( prv->peer_cert.p != NULL )
             polarssl_free( prv->peer_cert.p );
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
         polarssl_free( prv );
     }

@@ -32,7 +32,7 @@
 #include "polarssl/oid.h"
 #include "polarssl/rsa.h"
 
-#if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 #include "polarssl/x509.h"
 #endif
 
@@ -207,7 +207,7 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
 FN_OID_TYPED_FROM_ASN1(oid_x520_attr_t, x520_attr, oid_x520_attr_type);
 FN_OID_GET_ATTR1(oid_get_attr_short_name, oid_x520_attr_t, x520_attr, const char *, short_name);
 
-#if defined(POLARSSL_X509_PARSE_C) || defined(POLARSSL_X509_WRITE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 /*
  * For X509 extensions
  */
@@ -260,7 +260,7 @@ static const oid_descriptor_t oid_ext_key_usage[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_descriptor_t, ext_key_usage, oid_ext_key_usage);
 FN_OID_GET_ATTR1(oid_get_extended_key_usage, oid_descriptor_t, ext_key_usage, const char *, description);
-#endif /* POLARSSL_X509_PARSE_C || POLARSSL_X509_WRITE_C */
+#endif /* POLARSSL_X509_USE_C || POLARSSL_X509_CREATE_C */
 
 #if defined(POLARSSL_MD_C)
 /*

@@ -39,7 +39,7 @@
 #include "md.h"
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 #include "x509.h"
 #endif
 
@@ -337,7 +337,7 @@ typedef struct {
  */
 int oid_get_numeric_string( char *buf, size_t size, const asn1_buf *oid );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 /**
  * \brief          Translate an X.509 extension OID into local values
  *

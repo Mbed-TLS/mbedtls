@@ -49,13 +49,18 @@ set(src
      sha512.c
      ssl_cache.c
      ssl_ciphersuites.c
-     ssl_cli.c 
-     ssl_srv.c 
+     ssl_cli.c
+     ssl_srv.c
      ssl_tls.c
      timing.c
      version.c
-     x509parse.c
-     x509write.c
+     x509.c
+     x509_crt.c
+     x509_crl.c
+     x509_csr.c
+     x509_create.c
+     x509_crt_write.c
+     x509_csr_write.c
      xtea.c
 )
 

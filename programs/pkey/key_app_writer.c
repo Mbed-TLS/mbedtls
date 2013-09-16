@@ -33,16 +33,16 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/x509write.h"
+#include "polarssl/pk.h"
 #include "polarssl/error.h"
 
-#if !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_FS_IO)
+#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_X509_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
+    printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
     return( 0 );
 }
 #else

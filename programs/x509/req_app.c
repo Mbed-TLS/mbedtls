@@ -33,17 +33,17 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/x509.h"
+#include "polarssl/x509_csr.h"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_X509_CSR_PARSE_C) || !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_X509_CSR_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else

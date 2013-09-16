@@ -42,7 +42,7 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO) ||  \
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||  \
     !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
@@ -52,7 +52,7 @@ int main( int argc, char *argv[] )
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_X509_CRT_PARSE_C and/or POLARSSL_FS_IO and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
@@ -282,14 +282,14 @@ int main( int argc, char *argv[] )
         if( ret < 0 )
         {
             printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
-            x509_free( &crt );
+            x509_crt_free( &crt );
             goto exit;
         }
 
         if( opt.permissive == 0 && ret > 0 )
         {
             printf( " failed\n  !  x509parse_crt failed to parse %d certificates\n\n", ret );
-            x509_free( &crt );
+            x509_crt_free( &crt );
             goto exit;
         }
 
@@ -305,7 +305,7 @@ int main( int argc, char *argv[] )
             if( ret == -1 )
             {
                 printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
-                x509_free( &crt );
+                x509_crt_free( &crt );
                 goto exit;
             }
 
@@ -344,7 +344,7 @@ int main( int argc, char *argv[] )
                 printf( " ok\n" );
         }
 
-        x509_free( &crt );
+        x509_crt_free( &crt );
     }
     else if( opt.mode == MODE_SSL )
     {
@@ -447,8 +447,8 @@ exit:
 
     if( server_fd )
         net_close( server_fd );
-    x509_free( &cacert );
-    x509_free( &clicert );
+    x509_crt_free( &cacert );
+    x509_crt_free( &clicert );
     pk_free( &pkey );
 
 #if defined(_WIN32)

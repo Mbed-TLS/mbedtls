@@ -75,7 +75,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
     ssl_session_free( dst );
     memcpy( dst, src, sizeof( ssl_session ) );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     if( src->peer_cert != NULL )
     {
         int ret;
@@ -93,7 +93,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
             return( ret );
         }
     }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( src->ticket != NULL )
@@ -2482,7 +2482,7 @@ int ssl_parse_certificate( ssl_context *ssl )
     /* In case we tried to reuse a session but it failed */
     if( ssl->session_negotiate->peer_cert != NULL )
     {
-        x509_free( ssl->session_negotiate->peer_cert );
+        x509_crt_free( ssl->session_negotiate->peer_cert );
         polarssl_free( ssl->session_negotiate->peer_cert );
     }
 
@@ -3377,7 +3377,7 @@ void ssl_set_authmode( ssl_context *ssl, int authmode )
     ssl->authmode   = authmode;
 }
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 void ssl_set_verify( ssl_context *ssl,
                      int (*f_vrfy)(void *, x509_cert *, int, int *),
                      void *p_vrfy )
@@ -3385,7 +3385,7 @@ void ssl_set_verify( ssl_context *ssl,
     ssl->f_vrfy      = f_vrfy;
     ssl->p_vrfy      = p_vrfy;
 }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 void ssl_set_rng( ssl_context *ssl,
                   int (*f_rng)(void *, unsigned char *, size_t),
@@ -3463,7 +3463,7 @@ void ssl_set_ciphersuites_for_version( ssl_context *ssl, const int *ciphersuites
     ssl->ciphersuite_list[minor] = ciphersuites;
 }
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
                        x509_crl *ca_crl, const char *peer_cn )
 {
@@ -3523,7 +3523,7 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
     return( pk_init_ctx_rsa_alt( ssl->pk_key, rsa_key,
                                  rsa_decrypt, rsa_sign, rsa_key_len ) );
 }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
 void ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
@@ -3730,7 +3730,7 @@ const char *ssl_get_version( const ssl_context *ssl )
     return( "unknown" );
 }
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )
@@ -3738,7 +3738,7 @@ const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
 
     return ssl->session->peer_cert;
 }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
 {
@@ -4076,10 +4076,10 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 
 void ssl_session_free( ssl_session *session )
 {
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     if( session->peer_cert != NULL )
     {
-        x509_free( session->peer_cert );
+        x509_crt_free( session->peer_cert );
         polarssl_free( session->peer_cert );
     }
 #endif

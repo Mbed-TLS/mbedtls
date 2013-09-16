@@ -1,7 +1,7 @@
 /**
  * \file x509.h
  *
- * \brief X.509 certificate and private key decoding
+ * \brief X.509 generic defines and structures
  *
  *  Copyright (C) 2006-2013, Brainspark B.V.
  *
@@ -30,16 +30,18 @@
 #include "config.h"
 
 #include "asn1.h"
-#include "dhm.h"
-#include "md.h"
 #include "pk.h"
 
-/** 
+#if defined(POLARSSL_RSA_C)
+#include "rsa.h"
+#endif
+
+/**
  * \addtogroup x509_module
- * \{ 
+ * \{
  */
- 
-/** 
+
+/**
  * \name X509 Error codes
  * \{
  */
@@ -61,6 +63,9 @@
 #define POLARSSL_ERR_X509_INVALID_INPUT                    -0x2800  /**< Input invalid. */
 #define POLARSSL_ERR_X509_MALLOC_FAILED                    -0x2880  /**< Allocation of memory failed. */
 #define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2900  /**< Read/write of file failed. */
+#define POLARSSL_ERR_X509WRITE_UNKNOWN_OID                -0x5F80  /**< Requested OID is unknown. */
+#define POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA             -0x5F00  /**< Failed to allocate memory. */
+#define POLARSSL_ERR_X509WRITE_MALLOC_FAILED              -0x5E80  /**< Failed to allocate memory. */
 /* \} name */
 
 /**
@@ -174,124 +179,6 @@ typedef struct _x509_time
 }
 x509_time;
 
-/**
- * Container for an X.509 certificate. The certificate may be chained.
- */
-typedef struct _x509_cert
-{
-    x509_buf raw;               /**< The raw certificate data (DER). */
-    x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
-
-    int version;                /**< The X.509 version. (0=v1, 1=v2, 2=v3) */
-    x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
-    x509_buf sig_oid1;          /**< Signature algorithm, e.g. sha1RSA */
-
-    x509_buf issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison. */
-    x509_buf subject_raw;       /**< The raw subject data (DER). Used for quick comparison. */
-
-    x509_name issuer;           /**< The parsed issuer data (named information object). */
-    x509_name subject;          /**< The parsed subject data (named information object). */
-
-    x509_time valid_from;       /**< Start time of certificate validity. */
-    x509_time valid_to;         /**< End time of certificate validity. */
-
-    pk_context pk;              /**< Container for the public key context. */
-
-    x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
-    x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
-    x509_buf v3_ext;            /**< Optional X.509 v3 extensions. Only Basic Contraints are supported at this time. */
-    x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName supported). */
-
-    int ext_types;              /**< Bit string containing detected and parsed extensions */
-    int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
-    int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
-
-    unsigned char key_usage;    /**< Optional key usage extension value: See the values below */
-
-    x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
-
-    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values below */
-
-    x509_buf sig_oid2;          /**< Signature algorithm. Must match sig_oid1. */
-    x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
-    md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
-
-    struct _x509_cert *next;    /**< Next certificate in the CA-chain. */
-}
-x509_cert;
-
-/**
- * Certificate revocation list entry.
- * Contains the CA-specific serial numbers and revocation dates.
- */
-typedef struct _x509_crl_entry
-{
-    x509_buf raw;
-
-    x509_buf serial;
-
-    x509_time revocation_date;
-
-    x509_buf entry_ext;
-
-    struct _x509_crl_entry *next;
-}
-x509_crl_entry;
-
-/**
- * Certificate revocation list structure.
- * Every CRL may have multiple entries.
- */
-typedef struct _x509_crl
-{
-    x509_buf raw;           /**< The raw certificate data (DER). */
-    x509_buf tbs;           /**< The raw certificate body (DER). The part that is To Be Signed. */
-
-    int version;
-    x509_buf sig_oid1;
-
-    x509_buf issuer_raw;    /**< The raw issuer data (DER). */
-
-    x509_name issuer;       /**< The parsed issuer data (named information object). */
-
-    x509_time this_update;
-    x509_time next_update;
-
-    x509_crl_entry entry;   /**< The CRL entries containing the certificate revocation times for this CA. */
-
-    x509_buf crl_ext;
-
-    x509_buf sig_oid2;
-    x509_buf sig;
-    md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
-
-    struct _x509_crl *next;
-}
-x509_crl;
-
-/**
- * Certificate Signing Request (CSR) structure.
- */
-typedef struct _x509_csr
-{
-    x509_buf raw;           /**< The raw CSR data (DER). */
-    x509_buf cri;           /**< The raw CertificateRequestInfo body (DER). */
-
-    int version;
-
-    x509_buf  subject_raw;  /**< The raw subject data (DER). */
-    x509_name subject;      /**< The parsed subject data (named information object). */
-
-    pk_context pk;          /**< Container for the public key context. */
-
-    x509_buf sig_oid;
-    x509_buf sig;
-    md_type_t sig_md;       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk        /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
-}
-x509_csr;
 /** \} name Structures for parsing X.509 certificates, CRLs and CSRs */
 /** \} addtogroup x509_module */
 
@@ -299,119 +186,6 @@ x509_csr;
  * \name Functions to read in DHM parameters, a certificate, CRL or private RSA key
  * \{
  */
-
-/** \ingroup x509_module */
-/**
- * \brief          Parse a single DER formatted certificate and add it
- *                 to the chained list.
- *
- * \param chain    points to the start of the chain
- * \param buf      buffer holding the certificate DER data
- * \param buflen   size of the buffer
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen );
-
-/**
- * \brief          Parse one or more certificates and add them
- *                 to the chained list. Parses permissively. If some
- *                 certificates can be parsed, the result is the number
- *                 of failed certificates it encountered. If none complete
- *                 correctly, the first error is returned.
- *
- * \param chain    points to the start of the chain
- * \param buf      buffer holding the certificate data
- * \param buflen   size of the buffer
- *
- * \return         0 if all certificates parsed successfully, a positive number
- *                 if partly successful or a specific X509 or PEM error code
- */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen );
-
-#if defined(POLARSSL_FS_IO)
-/** \ingroup x509_module */
-/**
- * \brief          Load one or more certificates and add them
- *                 to the chained list. Parses permissively. If some
- *                 certificates can be parsed, the result is the number
- *                 of failed certificates it encountered. If none complete
- *                 correctly, the first error is returned.
- *
- * \param chain    points to the start of the chain
- * \param path     filename to read the certificates from
- *
- * \return         0 if all certificates parsed successfully, a positive number
- *                 if partly successful or a specific X509 or PEM error code
- */
-int x509parse_crtfile( x509_cert *chain, const char *path );
-
-/** \ingroup x509_module */
-/**
- * \brief          Load one or more certificate files from a path and add them
- *                 to the chained list. Parses permissively. If some
- *                 certificates can be parsed, the result is the number
- *                 of failed certificates it encountered. If none complete
- *                 correctly, the first error is returned.
- *
- * \param chain    points to the start of the chain
- * \param path     directory / folder to read the certificate files from
- *
- * \return         0 if all certificates parsed successfully, a positive number
- *                 if partly successful or a specific X509 or PEM error code
- */
-int x509parse_crtpath( x509_cert *chain, const char *path );
-#endif /* POLARSSL_FS_IO */
-
-/** \ingroup x509_module */
-/**
- * \brief          Parse one or more CRLs and add them
- *                 to the chained list
- *
- * \param chain    points to the start of the chain
- * \param buf      buffer holding the CRL data
- * \param buflen   size of the buffer
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen );
-
-/** \ingroup x509_module */
-/**
- * \brief          Load a Certificate Signing Request (CSR)
- *
- * \param csr      CSR context to fill
- * \param buf      buffer holding the CRL data
- * \param buflen   size of the buffer
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen );
-
-#if defined(POLARSSL_FS_IO)
-/** \ingroup x509_module */
-/**
- * \brief          Load one or more CRLs and add them
- *                 to the chained list
- *
- * \param chain    points to the start of the chain
- * \param path     filename to read the CRLs from
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_crlfile( x509_crl *chain, const char *path );
-
-/** \ingroup x509_module */
-/**
- * \brief          Load a Certificate Signing Request (CSR)
- *
- * \param csr      CSR context to fill
- * \param path     filename to read the CSR from
- *
- * \return         0 if successful, or a specific X509 or PEM error code
- */
-int x509parse_csrfile( x509_csr *csr, const char *path );
-#endif /* POLARSSL_FS_IO */
 
 #if defined(POLARSSL_RSA_C)
 /** \ingroup x509_module */
@@ -501,51 +275,6 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn );
 int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial );
 
 /**
- * \brief          Returns an informational string about the
- *                 certificate.
- *
- * \param buf      Buffer to write to
- * \param size     Maximum size of buffer
- * \param prefix   A line prefix
- * \param crt      The X509 certificate to represent
- *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
- */
-int x509parse_cert_info( char *buf, size_t size, const char *prefix,
-                         const x509_cert *crt );
-
-/**
- * \brief          Returns an informational string about the
- *                 CRL.
- *
- * \param buf      Buffer to write to
- * \param size     Maximum size of buffer
- * \param prefix   A line prefix
- * \param crl      The X509 CRL to represent
- *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
- */
-int x509parse_crl_info( char *buf, size_t size, const char *prefix,
-                        const x509_crl *crl );
-
-/**
- * \brief          Returns an informational string about the
- *                 CSR.
- *
- * \param buf      Buffer to write to
- * \param size     Maximum size of buffer
- * \param prefix   A line prefix
- * \param csr      The X509 CSR to represent
- *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
- */
-int x509parse_csr_info( char *buf, size_t size, const char *prefix,
-                        const x509_csr *csr );
-
-/**
  * \brief          Give an known OID, return its descriptive string.
  *
  * \param oid      buffer containing the oid
@@ -580,107 +309,38 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
 int x509parse_time_expired( const x509_time *time );
 
 /**
- * \name Functions to verify a certificate
- * \{
- */
-/** \ingroup x509_module */
-/**
- * \brief          Verify the certificate signature
- *
- *                 The verify callback is a user-supplied callback that
- *                 can clear / modify / add flags for a certificate. If set,
- *                 the verification callback is called for each
- *                 certificate in the chain (from the trust-ca down to the
- *                 presented crt). The parameters for the callback are:
- *                 (void *parameter, x509_cert *crt, int certificate_depth,
- *                 int *flags). With the flags representing current flags for
- *                 that specific certificate and the certificate depth from
- *                 the bottom (Peer cert depth = 0).
- *
- *                 All flags left after returning from the callback
- *                 are also returned to the application. The function should
- *                 return 0 for anything but a fatal error.
- *
- * \param crt      a certificate to be verified
- * \param trust_ca the trusted CA chain
- * \param ca_crl   the CRL chain for trusted CA's
- * \param cn       expected Common Name (can be set to
- *                 NULL if the CN must not be verified)
- * \param flags    result of the verification
- * \param f_vrfy   verification function
- * \param p_vrfy   verification parameter
- *
- * \return         0 if successful or POLARSSL_ERR_X509_SIG_VERIFY_FAILED,
- *                 in which case *flags will have one or more of
- *                 the following values set:
- *                      BADCERT_EXPIRED --
- *                      BADCERT_REVOKED --
- *                      BADCERT_CN_MISMATCH --
- *                      BADCERT_NOT_TRUSTED
- *                 or another error in case of a fatal error encountered
- *                 during the verification process.
- */
-int x509parse_verify( x509_cert *crt,
-                      x509_cert *trust_ca,
-                      x509_crl *ca_crl,
-                      const char *cn, int *flags,
-                      int (*f_vrfy)(void *, x509_cert *, int, int *),
-                      void *p_vrfy );
-
-/**
- * \brief          Verify the certificate signature
- *
- * \param crt      a certificate to be verified
- * \param crl      the CRL to verify against
- *
- * \return         1 if the certificate is revoked, 0 otherwise
- *
- */
-int x509parse_revoked( const x509_cert *crt, const x509_crl *crl );
-
-/** \} name Functions to verify a certificate */
-
-
-
-/**
- * \name Functions to clear a certificate, CRL or private RSA key 
- * \{
- */
-/** \ingroup x509_module */
-/**
- * \brief          Unallocate all certificate data
- *
- * \param crt      Certificate chain to free
- */
-void x509_free( x509_cert *crt );
-
-/** \ingroup x509_module */
-/**
- * \brief          Unallocate all CRL data
- *
- * \param crl      CRL chain to free
- */
-void x509_crl_free( x509_crl *crl );
-
-/**
- * \brief          Unallocate all CSR data
- *
- * \param csr      CSR to free
- */
-void x509_csr_free( x509_csr *csr );
-
-/** \} name Functions to clear a certificate, CRL or private RSA key */
-
-
-/**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
 int x509_self_test( int verbose );
 
-#ifdef __cplusplus
-}
-#endif
+/*
+ * Internal module functions
+ */
+int x509_get_name( unsigned char **p, const unsigned char *end,
+                   x509_name *cur );
+int x509_get_alg_null( unsigned char **p, const unsigned char *end,
+                       x509_buf *alg );
+int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig );
+int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
+                      pk_type_t *pk_alg );
+int x509_load_file( const char *path, unsigned char **buf, size_t *n );
+int x509_key_size_helper( char *buf, size_t size, const char *name );
+int x509_get_time( unsigned char **p, const unsigned char *end,
+                   x509_time *time );
+int x509_get_serial( unsigned char **p, const unsigned char *end,
+                     x509_buf *serial );
+int x509_get_ext( unsigned char **p, const unsigned char *end,
+                  x509_buf *ext, int tag );
 
+int x509write_string_to_names( asn1_named_data **head, char *name );
+int x509_set_extension( asn1_named_data **head, const char *oid, size_t oid_len,                       int critical, const unsigned char *val, size_t val_len );
+int x509_write_extensions( unsigned char **p, unsigned char *start,
+                           asn1_named_data *first );
+int x509_write_names( unsigned char **p, unsigned char *start,
+                      asn1_named_data *first );
+int x509_write_sig( unsigned char **p, unsigned char *start,
+                    const char *oid, size_t oid_len,
+                    unsigned char *sig, size_t size );
 #endif /* x509.h */

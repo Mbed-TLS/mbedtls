@@ -33,21 +33,19 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/x509write.h"
+#include "polarssl/x509_csr.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/error.h"
 
-#if !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_X509_PARSE_C) ||   \
-    !defined(POLARSSL_FS_IO) ||                                             \
+#if !defined(POLARSSL_X509_CSR_WRITE_C) || !defined(POLARSSL_FS_IO) ||  \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_X509_WRITE_C and/or POLARSSL_X509_PARSE_C and/or "
-            "POLARSSL_FS_IO and/or "
+    printf( "POLARSSL_X509_CSR_WRITE_C and/or POLARSSL_FS_IO and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
             "not defined.\n");
     return( 0 );

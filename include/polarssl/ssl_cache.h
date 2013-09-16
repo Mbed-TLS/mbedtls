@@ -50,7 +50,7 @@ struct _ssl_cache_entry
     time_t timestamp;           /*!< entry timestamp    */
 #endif
     ssl_session session;        /*!< entry session      */
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     x509_buf peer_cert;         /*!< entry peer_cert    */
 #endif
     ssl_cache_entry *next;      /*!< chain pointer      */

@@ -98,28 +98,35 @@ ecp_point;
 /**
  * \brief           ECP group structure
  *
- * The curves we consider are defined by y^2 = x^3 - 3x + B mod P,
+ * The curves we consider are defined by y^2 = x^3 + A x + B mod P,
  * and a generator for a large subgroup of order N is fixed.
  *
  * pbits and nbits must be the size of P and N in bits.
  *
- * If modp is NULL, reduction modulo P is done using a generic
- * algorithm. Otherwise, it must point to a function that takes an mpi
- * in the range 0..2^(2*pbits) and transforms it in-place in an integer
- * of little more than pbits, so that the integer may be efficiently
- * brought in the 0..P range by a few additions or substractions. It
- * must return 0 on success and a POLARSSL_ERR_ECP_XXX error on failure.
+ * If modp is NULL, reduction modulo P is done using a generic algorithm.
+ * Otherwise, it must point to a function that takes an mpi in the range
+ * 0..2^(2*pbits)-1 and transforms it in-place in an integer of little more
+ * than pbits, so that the integer may be efficiently brought in the 0..P-1
+ * range by a few additions or substractions. It must return 0 on success and
+ * non-zero on failure.
  */
 typedef struct
 {
     ecp_group_id id;    /*!<  RFC 4492 group ID                 */
     mpi P;              /*!<  prime modulus of the base field   */
+    mpi A;              /*!<  currently unused (-3 assumed)     */
     mpi B;              /*!<  constant term in the equation     */
     ecp_point G;        /*!<  generator of the subgroup used    */
     mpi N;              /*!<  the order of G                    */
     size_t pbits;       /*!<  number of bits in P               */
     size_t nbits;       /*!<  number of bits in N               */
+    unsigned int h;     /*!<  cofactor (unused now: assume 1)   */
     int (*modp)(mpi *); /*!<  function for fast reduction mod P */
+    int (*t_pre)(ecp_point *, void *);  /*!< currently unused   */
+    int (*t_post)(ecp_point *, void *); /*!< currently unused   */
+    void *t_data;                       /*!< currently unused   */
+    ecp_point *T;       /*!<  pre-computed points (unused now)  */
+    size_t T_size;      /*!<  number for pre-computed points    */
 }
 ecp_group;
 

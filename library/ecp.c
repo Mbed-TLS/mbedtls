@@ -114,17 +114,7 @@ void ecp_group_init( ecp_group *grp )
     if( grp == NULL )
         return;
 
-    grp->id = 0;
-
-    mpi_init( &grp->P );
-    mpi_init( &grp->B );
-    ecp_point_init( &grp->G );
-    mpi_init( &grp->N );
-
-    grp->pbits = 0;
-    grp->nbits = 0;
-
-    grp->modp = NULL;
+    memset( grp, 0, sizeof( ecp_group ) );
 }
 
 /*
@@ -165,6 +155,8 @@ void ecp_group_free( ecp_group *grp )
     mpi_free( &grp->B );
     ecp_point_free( &grp->G );
     mpi_free( &grp->N );
+
+    memset( grp, 0, sizeof( ecp_group ) );
 }
 
 /*

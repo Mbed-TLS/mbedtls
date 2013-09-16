@@ -135,7 +135,7 @@ int main( int argc, char *argv[] )
         printf( " failed\n  ! ecdsa_genkey returned %d\n", ret );
         goto exit;
     }
-    printf( " ok\n" );
+    printf( " ok (signature length = %zu)\n", sig_len );
 
     /*
      * Signature is serialized as defined by RFC 4492 p. 20,

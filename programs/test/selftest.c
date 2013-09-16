@@ -143,7 +143,7 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C) && defined(POLARSSL_BIGNUM_C)
+#if defined(POLARSSL_X509_USE_C)
     if( ( ret = x509_self_test( v ) ) != 0 )
         return( ret );
 #endif

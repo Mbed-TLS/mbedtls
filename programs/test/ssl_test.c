@@ -143,7 +143,7 @@ static void my_debug( void *ctx, int level, const char *str )
 static int ssl_test( struct options *opt )
 {
     int ret, i;
-    int client_fd;
+    int client_fd = -1;
     int bytes_to_read;
     int bytes_to_write;
     int offset_to_read = 0;

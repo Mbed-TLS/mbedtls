@@ -74,7 +74,7 @@ static void my_debug( void *ctx, int level, const char *str )
 
 int main( int argc, char *argv[] )
 {
-    int ret, len, server_fd;
+    int ret, len, server_fd = -1;
     unsigned char buf[1024];
     const char *pers = "ssl_client1";
 

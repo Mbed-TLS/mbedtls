@@ -43,6 +43,25 @@ extern "C" {
 #endif
 
 /**
+ * Domain parameters (curve, subgroup and generator) identifiers.
+ *
+ * Only curves over prime fields are supported.
+ *
+ * \warning This library does not support validation of arbitrary domain
+ * parameters. Therefore, only well-known domain parameters from trusted
+ * sources should be used. See ecp_use_known_dp().
+ */
+typedef enum
+{
+    POLARSSL_ECP_DP_NONE = 0,
+    POLARSSL_ECP_DP_SECP192R1,      /* 192-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP224R1,      /* 224-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP256R1,      /* 256-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP384R1,      /* 384-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP521R1,      /* 521-bits NIST curve  */
+} ecp_group_id;
+
+/**
  * \brief           ECP point structure (jacobian coordinates)
  *
  * \note            All functions expect and return points satisfying
@@ -58,11 +77,6 @@ typedef struct
     mpi Z;          /*!<  the point's Z coordinate  */
 }
 ecp_point;
-
-/*
- * RFC 4492 defines an enum NamedCurve with two-bytes values
- */
-typedef uint16_t ecp_group_id;
 
 /**
  * \brief           ECP group structure
@@ -106,27 +120,6 @@ typedef struct
     ecp_point Q;        /*!<  our public value                  */
 }
 ecp_keypair;
-
-/**
- * RFC 5114 defines a number of standardized ECP groups for use with TLS.
- *
- * These also are the NIST-recommended ECP groups, are the random ECP groups
- * recommended by SECG, and include the two groups used by NSA Suite B.
- * There are known as secpLLLr1 with LLL = 192, 224, 256, 384, 521.
- *
- * \warning This library does not support validation of arbitrary domain
- * parameters. Therefore, only well-known domain parameters from trusted
- * sources should be used. See ecp_use_known_dp().
- *
- * \note The values are taken from RFC 4492's enum NamedCurve,
- * except NONE which is used to denote uninitialized groups.
- */
-#define POLARSSL_ECP_DP_NONE        0
-#define POLARSSL_ECP_DP_SECP192R1   19
-#define POLARSSL_ECP_DP_SECP224R1   21
-#define POLARSSL_ECP_DP_SECP256R1   23
-#define POLARSSL_ECP_DP_SECP384R1   24
-#define POLARSSL_ECP_DP_SECP521R1   25
 
 /**
  * Maximum size of the groups (that is, of N and P)
@@ -311,7 +304,7 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *P,
  *
  * \return          O if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
- *                  POLARSSL_ERR_ECP_GENERIC if index is out of range
+ *                  POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE for unkownn groups
  *
  * \note            Index should be a value of RFC 4492's enum NamdeCurve,
  *                  possibly in the form of a POLARSSL_ECP_DP_XXX macro.
@@ -344,6 +337,26 @@ int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len );
  */
 int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen );
+
+/**
+ * \brief           Get a TLS NamedCurve value from an internal group identifier
+ *
+ * \param grp_id    A POLARSSL_ECP_DP_XXX value
+ *
+ * \return          The associated TLS NamedCurve value on success,
+ *                  0 on failure.
+ */
+unsigned int ecp_named_curve_from_grp_id( ecp_group_id id );
+
+/**
+ * \brief           Get an internal group identifier from a TLS NamedCurve value
+ *
+ * \param curve     A value from TLS's enum NamedCurve
+ *
+ * \return          The associated POLARSSL_ECP_DP_XXX identifer on success,
+ *                  POLARSSL_ECP_DP_NONE on failure.
+ */
+ecp_group_id ecp_grp_id_from_named_curve( unsigned int curve );
 
 /**
  * \brief           Import a point from a TLS ECPoint record

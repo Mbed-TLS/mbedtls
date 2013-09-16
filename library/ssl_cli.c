@@ -241,23 +241,23 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
 
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
     elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP521R1;
+    elliptic_curve_list[elliptic_curve_len++] = ecp_named_curve_from_grp_id( POLARSSL_ECP_DP_SECP521R1 );
 #endif
 #if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
     elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP384R1;
+    elliptic_curve_list[elliptic_curve_len++] = ecp_named_curve_from_grp_id( POLARSSL_ECP_DP_SECP384R1 );
 #endif
 #if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
     elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP256R1;
+    elliptic_curve_list[elliptic_curve_len++] = ecp_named_curve_from_grp_id( POLARSSL_ECP_DP_SECP256R1 );
 #endif
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
     elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP224R1;
+    elliptic_curve_list[elliptic_curve_len++] = ecp_named_curve_from_grp_id( POLARSSL_ECP_DP_SECP224R1 );
 #endif
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
     elliptic_curve_list[elliptic_curve_len++] = 0x00;
-    elliptic_curve_list[elliptic_curve_len++] = POLARSSL_ECP_DP_SECP192R1;
+    elliptic_curve_list[elliptic_curve_len++] = ecp_named_curve_from_grp_id( POLARSSL_ECP_DP_SECP192R1 );
 #endif
 
     if( elliptic_curve_len == 0 )

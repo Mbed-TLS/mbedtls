@@ -655,9 +655,11 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
                         SECP521R1_P, SECP521R1_B,
                         SECP521R1_GX, SECP521R1_GY, SECP521R1_N ) );
 #endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
-    }
 
-    return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
+        default:
+            grp->id = POLARSSL_ECP_DP_NONE;
+            return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
+    }
 }
 
 /*
@@ -665,7 +667,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
  */
 int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len )
 {
-    ecp_group_id id;
+    unsigned int named_curve;
 
     /*
      * We expect at least three bytes (see below)
@@ -682,10 +684,10 @@ int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len )
     /*
      * Next two bytes are the namedcurve value
      */
-    id = *(*buf)++;
-    id <<= 8;
-    id |= *(*buf)++;
-    return ecp_use_known_dp( grp, id );
+    named_curve = *(*buf)++;
+    named_curve <<= 8;
+    named_curve |= *(*buf)++;
+    return ecp_use_known_dp( grp, ecp_grp_id_from_named_curve( named_curve ) );
 }
 
 /*
@@ -694,6 +696,8 @@ int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len )
 int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen )
 {
+    unsigned int named_curve;
+
     /*
      * We are going to write 3 bytes (see below)
      */
@@ -709,12 +713,61 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
     /*
      * Next two bytes are the namedcurve value
      */
-    buf[0] = grp->id >> 8;
-    buf[1] = grp->id & 0xFF;
+    named_curve = ecp_named_curve_from_grp_id( grp->id );
+    buf[0] = named_curve >> 8;
+    buf[1] = named_curve & 0xFF;
 
     return 0;
 }
 
+/* Hard-coded values are temporary, will be reimplemented soon */
+ecp_group_id ecp_grp_id_from_named_curve( unsigned int curve )
+{
+    switch( curve )
+    {
+        case 19:
+            return( POLARSSL_ECP_DP_SECP192R1 );
+
+        case 21:
+            return( POLARSSL_ECP_DP_SECP224R1 );
+
+        case 23:
+            return( POLARSSL_ECP_DP_SECP256R1 );
+
+        case 24:
+            return( POLARSSL_ECP_DP_SECP384R1 );
+
+        case 25:
+            return( POLARSSL_ECP_DP_SECP521R1 );
+
+        default:
+            return( POLARSSL_ECP_DP_NONE );
+    }
+}
+
+unsigned int ecp_named_curve_from_grp_id( ecp_group_id id )
+{
+    switch( id )
+    {
+        case POLARSSL_ECP_DP_SECP192R1:
+            return( 19 );
+
+        case POLARSSL_ECP_DP_SECP224R1:
+            return( 21 );
+
+        case POLARSSL_ECP_DP_SECP256R1:
+            return( 23 );
+
+        case POLARSSL_ECP_DP_SECP384R1:
+            return( 24 );
+
+        case POLARSSL_ECP_DP_SECP521R1:
+            return( 25 );
+
+        default:
+            return( 0 );
+    }
+}
 /*
  * Fast mod-p functions expect their argument to be in the 0..p^2 range.
  *

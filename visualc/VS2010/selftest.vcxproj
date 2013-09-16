@@ -27,7 +27,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4B44D0A4-DE85-4C15-A1FF-A334C0A1EFF2}</ProjectGuid>
+    <ProjectGuid>{54880004-9AA2-434D-A2F0-7F59D6F1536A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>selftest</RootNamespace>
   </PropertyGroup>

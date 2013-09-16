@@ -27,7 +27,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E0DC7623-13A7-48DF-A42F-8585FA533894}</ProjectGuid>
+    <ProjectGuid>{54880004-9AA2-434D-A2F0-7F59D6F1536A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ssl_client1</RootNamespace>
   </PropertyGroup>

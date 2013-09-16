@@ -184,7 +184,7 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
         goto exit;
 
-    if( ( ret = cipher_setkey( &cipher_ctx, key, keylen, mode ) ) != 0 )
+    if( ( ret = cipher_setkey( &cipher_ctx, key, 8 * keylen, mode ) ) != 0 )
         goto exit;
 
     if( ( ret = cipher_set_iv( &cipher_ctx, iv, enc_scheme_params.len ) ) != 0 )

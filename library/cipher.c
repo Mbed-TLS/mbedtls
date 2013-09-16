@@ -638,6 +638,9 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     if( NULL == ctx || NULL == ctx->cipher_info )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
+    if( (int) ctx->cipher_info->key_length != key_length )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
     ctx->key_length = key_length;
     ctx->operation = operation;
 

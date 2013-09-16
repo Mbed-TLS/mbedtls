@@ -390,7 +390,7 @@ const char * pk_get_name( const pk_context *ctx );
 pk_type_t pk_get_type( const pk_context *ctx );
 
 #if defined(POLARSSL_PK_PARSE_C)
-/** \ingroup x509_module */
+/** \ingroup pk_module */
 /**
  * \brief           Parse a private key
  *
@@ -406,7 +406,7 @@ int pk_parse_key( pk_context *ctx,
                   const unsigned char *key, size_t keylen,
                   const unsigned char *pwd, size_t pwdlen );
 
-/** \ingroup x509_module */
+/** \ingroup pk_module */
 /**
  * \brief           Parse a public key
  *
@@ -420,7 +420,7 @@ int pk_parse_public_key( pk_context *ctx,
                          const unsigned char *key, size_t keylen );
 
 #if defined(POLARSSL_FS_IO)
-/** \ingroup x509_module */
+/** \ingroup pk_module */
 /**
  * \brief           Load and parse a private key
  *
@@ -433,7 +433,7 @@ int pk_parse_public_key( pk_context *ctx,
 int pk_parse_keyfile( pk_context *ctx,
                       const char *path, const char *password );
 
-/** \ingroup x509_module */
+/** \ingroup pk_module */
 /**
  * \brief           Load and parse a public key
  *

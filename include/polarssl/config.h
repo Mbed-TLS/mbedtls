@@ -1217,7 +1217,7 @@
 /**
  * \def POLARSSL_PK_WRITE_C
  *
- * Enable the generic public (asymetric) key write.
+ * Enable the generic public (asymetric) key writer.
  *
  * Module:  library/pkwrite.c
  * Caller:  library/x509write.c

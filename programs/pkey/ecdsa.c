@@ -38,30 +38,18 @@
  */
 
 #if !defined(ECPARAMS)
-#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
-#define ECPARAMS    POLARSSL_ECP_DP_SECP192R1
-#elif defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
-#define ECPARAMS    POLARSSL_ECP_DP_SECP224R1
-#elif defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
-#define ECPARAMS    POLARSSL_ECP_DP_SECP256R1
-#elif defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-#define ECPARAMS    POLARSSL_ECP_DP_SECP384R1
-#elif defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
-#define ECPARAMS    POLARSSL_ECP_DP_SECP521R1
+#define ECPARAMS    ecp_supported_curves[0].grp_id
 #endif
-#endif /* !defined(ECPARAMS) */
 
 #if !defined(POLARSSL_ECDSA_C) || \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) || \
-    !defined(ECPARAMS)
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     printf("POLARSSL_ECDSA_C and/or "
-           "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined,"
-           "and/or no EC domain parameter available\n" );
+           "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined\n"
     return( 0 );
 }
 #else

@@ -54,12 +54,27 @@ extern "C" {
 typedef enum
 {
     POLARSSL_ECP_DP_NONE = 0,
-    POLARSSL_ECP_DP_SECP192R1,      /* 192-bits NIST curve  */
-    POLARSSL_ECP_DP_SECP224R1,      /* 224-bits NIST curve  */
-    POLARSSL_ECP_DP_SECP256R1,      /* 256-bits NIST curve  */
-    POLARSSL_ECP_DP_SECP384R1,      /* 384-bits NIST curve  */
-    POLARSSL_ECP_DP_SECP521R1,      /* 521-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP192R1,      /*!< 192-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP224R1,      /*!< 224-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP256R1,      /*!< 256-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP384R1,      /*!< 384-bits NIST curve  */
+    POLARSSL_ECP_DP_SECP521R1,      /*!< 521-bits NIST curve  */
 } ecp_group_id;
+
+/**
+ * Curve information for use by the SSL module
+ */
+typedef struct
+{
+    ecp_group_id grp_id;    /*!< Internal identifier    */
+    uint16_t name;          /*!< TLS NamedCurve value   */
+    uint16_t size;          /*!< Curve size in bits     */
+} ecp_curve_info;
+
+/**
+ * List of supported curves
+ */
+extern ecp_curve_info ecp_supported_curves[];
 
 /**
  * \brief           ECP point structure (jacobian coordinates)
@@ -346,7 +361,7 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
  * \return          The associated TLS NamedCurve value on success,
  *                  0 on failure.
  */
-unsigned int ecp_named_curve_from_grp_id( ecp_group_id id );
+uint16_t ecp_named_curve_from_grp_id( ecp_group_id id );
 
 /**
  * \brief           Get an internal group identifier from a TLS NamedCurve value
@@ -356,7 +371,7 @@ unsigned int ecp_named_curve_from_grp_id( ecp_group_id id );
  * \return          The associated POLARSSL_ECP_DP_XXX identifer on success,
  *                  POLARSSL_ECP_DP_NONE on failure.
  */
-ecp_group_id ecp_grp_id_from_named_curve( unsigned int curve );
+ecp_group_id ecp_grp_id_from_named_curve( uint16_t curve );
 
 /**
  * \brief           Import a point from a TLS ECPoint record

@@ -517,41 +517,12 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     while( list_size > 0 )
     {
         grp_id = ecp_grp_id_from_named_curve( ( p[0] << 8 ) | p[1] );
-#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
-        if( grp_id == POLARSSL_ECP_DP_SECP192R1 )
+
+        if( grp_id != POLARSSL_ECP_DP_NONE )
         {
             ssl->handshake->ec_curve = grp_id;
             return( 0 );
         }
-#endif
-#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
-        if( grp_id == POLARSSL_ECP_DP_SECP224R1 )
-        {
-            ssl->handshake->ec_curve = grp_id;
-            return( 0 );
-        }
-#endif
-#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
-        if( grp_id == POLARSSL_ECP_DP_SECP256R1 )
-        {
-            ssl->handshake->ec_curve = grp_id;
-            return( 0 );
-        }
-#endif
-#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-        if( grp_id == POLARSSL_ECP_DP_SECP384R1 )
-        {
-            ssl->handshake->ec_curve = grp_id;
-            return( 0 );
-        }
-#endif
-#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
-        if( grp_id == POLARSSL_ECP_DP_SECP521R1 )
-        {
-            ssl->handshake->ec_curve = grp_id;
-            return( 0 );
-        }
-#endif
 
         list_size -= 2;
         p += 2;
@@ -1938,6 +1909,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
             SSL_DEBUG_RET( 1, "ecp_use_known_dp", ret );
             return( ret );
         }
+
+        SSL_DEBUG_MSG( 2, ( "ECDH curve size: %d",
+                            (int) ssl->handshake->ecdh_ctx.grp.nbits ) );
 
         if( ( ret = ecdh_make_params( &ssl->handshake->ecdh_ctx,
                                       &len,

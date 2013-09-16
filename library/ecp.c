@@ -68,6 +68,32 @@ unsigned long add_count, dbl_count;
 #endif
 
 /*
+ * List of supported curves:
+ *  - internal ID
+ *  - TLS NamedCurve number (RFC 4492 section 5.1.1)
+ *  - size in bits
+ */
+ecp_curve_info ecp_supported_curves[] =
+{
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
+    { POLARSSL_ECP_DP_SECP521R1,    25,     521, },
+#endif
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+    { POLARSSL_ECP_DP_SECP384R1,    24,     384, },
+#endif
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
+    { POLARSSL_ECP_DP_SECP256R1,    23,     256, },
+#endif
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
+    { POLARSSL_ECP_DP_SECP224R1,    21,     224, },
+#endif
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
+    { POLARSSL_ECP_DP_SECP192R1,    19,     192, },
+#endif
+    { POLARSSL_ECP_DP_NONE,          0,     0 },
+};
+
+/*
  * Initialize (the components of) a point
  */
 void ecp_point_init( ecp_point *pt )
@@ -720,54 +746,42 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
     return 0;
 }
 
-/* Hard-coded values are temporary, will be reimplemented soon */
-ecp_group_id ecp_grp_id_from_named_curve( unsigned int curve )
+/*
+ * Get the internal identifer from the TLS name
+ */
+ecp_group_id ecp_grp_id_from_named_curve( uint16_t name )
 {
-    switch( curve )
+    ecp_curve_info *curve_info;
+
+    for( curve_info = ecp_supported_curves;
+         curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+         curve_info++ )
     {
-        case 19:
-            return( POLARSSL_ECP_DP_SECP192R1 );
-
-        case 21:
-            return( POLARSSL_ECP_DP_SECP224R1 );
-
-        case 23:
-            return( POLARSSL_ECP_DP_SECP256R1 );
-
-        case 24:
-            return( POLARSSL_ECP_DP_SECP384R1 );
-
-        case 25:
-            return( POLARSSL_ECP_DP_SECP521R1 );
-
-        default:
-            return( POLARSSL_ECP_DP_NONE );
+        if( curve_info->name == name )
+            return( curve_info->grp_id );
     }
+
+    return( POLARSSL_ECP_DP_NONE );
 }
 
-unsigned int ecp_named_curve_from_grp_id( ecp_group_id id )
+/*
+ * Get the TLS name for the internal identifer
+ */
+uint16_t ecp_named_curve_from_grp_id( ecp_group_id id )
 {
-    switch( id )
+    ecp_curve_info *curve_info;
+
+    for( curve_info = ecp_supported_curves;
+         curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+         curve_info++ )
     {
-        case POLARSSL_ECP_DP_SECP192R1:
-            return( 19 );
-
-        case POLARSSL_ECP_DP_SECP224R1:
-            return( 21 );
-
-        case POLARSSL_ECP_DP_SECP256R1:
-            return( 23 );
-
-        case POLARSSL_ECP_DP_SECP384R1:
-            return( 24 );
-
-        case POLARSSL_ECP_DP_SECP521R1:
-            return( 25 );
-
-        default:
-            return( 0 );
+        if( curve_info->grp_id == id )
+            return( curve_info->name );
     }
+
+    return( 0 );
 }
+
 /*
  * Fast mod-p functions expect their argument to be in the 0..p^2 range.
  *

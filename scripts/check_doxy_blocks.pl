@@ -16,8 +16,8 @@ use File::Basename;
 my @directories = qw(include/polarssl library doxygen/input);
 
 # very naive pattern to find directives:
-# everything with a backslach except '\0'
-my $doxy_re = qr/\\(?!0)/;
+# everything with a backslach except '\0' and backslash at EOL
+my $doxy_re = qr/\\(?!0|\n)/;
 
 sub check_file {
     my ($fname) = @_;

@@ -2490,12 +2490,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
         }
 
-        if( n != ssl->handshake->dhm_ctx.len )
-        {
-            SSL_DEBUG_MSG( 1, ( "dhm_calc_secret result smaller than DHM" ) );
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-        }
-
         SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
 
         p += ssl->handshake->dhm_ctx.len;

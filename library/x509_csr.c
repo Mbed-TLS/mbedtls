@@ -229,7 +229,7 @@ int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
     /*
      *  subjectPKInfo SubjectPublicKeyInfo
      */
-    if( ( ret = pk_parse_get_pubkey( &p, end, &csr->pk ) ) != 0 )
+    if( ( ret = pk_parse_subpubkey( &p, end, &csr->pk ) ) != 0 )
     {
         x509_csr_free( csr );
         return( ret );

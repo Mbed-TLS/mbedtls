@@ -663,7 +663,7 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
     /*
      * SubjectPublicKeyInfo
      */
-    if( ( ret = pk_parse_get_pubkey( &p, end, &crt->pk ) ) != 0 )
+    if( ( ret = pk_parse_subpubkey( &p, end, &crt->pk ) ) != 0 )
     {
         x509_crt_free( crt );
         return( ret );

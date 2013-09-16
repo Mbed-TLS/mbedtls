@@ -302,8 +302,8 @@ static int pk_get_pk_alg( unsigned char **p,
  *       algorithm            AlgorithmIdentifier,
  *       subjectPublicKey     BIT STRING }
  */
-int pk_parse_get_pubkey( unsigned char **p, const unsigned char *end,
-                         pk_context *pk )
+int pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
+                        pk_context *pk )
 {
     int ret;
     size_t len;
@@ -945,7 +945,7 @@ int pk_parse_public_key( pk_context *ctx,
 #endif
     p = (unsigned char *) key;
 
-    ret = pk_parse_get_pubkey( &p, p + keylen, ctx );
+    ret = pk_parse_subpubkey( &p, p + keylen, ctx );
 
 #if defined(POLARSSL_PEM_PARSE_C)
     pem_free( &pem );

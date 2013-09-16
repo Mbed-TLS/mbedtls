@@ -517,8 +517,8 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size );
  *
  * \return          0 if successful, or a specific PK error code
  */
-int pk_parse_get_pubkey( unsigned char **p, const unsigned char *end,
-                         pk_context *pk );
+int pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
+                        pk_context *pk );
 #endif /* POLARSSL_PK_PARSE_C */
 
 #if defined(POLARSSL_PK_WRITE_C)

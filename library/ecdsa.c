@@ -77,7 +77,7 @@ int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
 
             if( key_tries++ > 10 )
             {
-                ret = POLARSSL_ERR_ECP_GENERIC;
+                ret = POLARSSL_ERR_ECP_RANDOM_FAILED;
                 goto cleanup;
             }
         }
@@ -99,7 +99,7 @@ int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
 
         if( sign_tries++ > 10 )
         {
-            ret = POLARSSL_ERR_ECP_GENERIC;
+            ret = POLARSSL_ERR_ECP_RANDOM_FAILED;
             goto cleanup;
         }
     }

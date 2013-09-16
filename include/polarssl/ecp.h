@@ -34,9 +34,11 @@
  */
 #define POLARSSL_ERR_ECP_BAD_INPUT_DATA                    -0x4F80  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_ECP_BUFFER_TOO_SMALL                  -0x4F00  /**< The buffer is too small to write to. */
-#define POLARSSL_ERR_ECP_GENERIC                           -0x4E80  /**< Generic ECP error. */
-#define POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE               -0x4E00  /**< Requested curve not available. */
+#define POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE               -0x4E80  /**< Requested curve not available. */
 #define POLARSSL_ERR_ECP_VERIFY_FAILED                     -0x4E00  /**< The signature is not valid. */
+#define POLARSSL_ERR_ECP_MALLOC_FAILED                     -0x4D80  /**< Memory allocation failed. */
+#define POLARSSL_ERR_ECP_RANDOM_FAILED                     -0x4D00  /**< Generation of random value, such as (ephemeral) key, failed. */
+#define POLARSSL_ERR_ECP_INVALID_KEY                       -0x4C80  /**< Invalid private or public key. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -301,7 +303,7 @@ int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
  * \param ilen      Actual length of input
  *
  * \return          0 if successful,
- *                  POLARSSL_ERR_ECP_GENERIC if input is invalid
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  *
  * \note            This function does NOT check that the point actually
@@ -474,7 +476,7 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
  * \param pt        Point to check
  *
  * \return          0 if point is a valid public key,
- *                  POLARSSL_ERR_ECP_GENERIC otherwise.
+ *                  POLARSSL_ERR_ECP_INVALID_KEY otherwise.
  *
  * \note            This function only checks the point is non-zero, has valid
  *                  coordinates and lies on the curve, but not that it is
@@ -497,7 +499,7 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt );
  * \param d         Integer to check
  *
  * \return          0 if point is a valid private key,
- *                  POLARSSL_ERR_ECP_GENERIC otherwise.
+ *                  POLARSSL_ERR_ECP_INVALID_KEY otherwise.
  *
  * \note            Uses bare components rather than an ecp_keypair structure
  *                  in order to ease use with other structures such as

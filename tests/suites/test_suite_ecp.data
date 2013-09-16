@@ -104,34 +104,34 @@ ECP small multiplication too big
 ecp_small_mul:-1:0:0:0:POLARSSL_ERR_ECP_BAD_INPUT_DATA
 
 ECP small check pubkey #1
-ecp_small_check_pub:1:1:0:POLARSSL_ERR_ECP_GENERIC
+ecp_small_check_pub:1:1:0:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small check pubkey #2
-ecp_small_check_pub:9:-1:1:POLARSSL_ERR_ECP_GENERIC
+ecp_small_check_pub:9:-1:1:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small check pubkey #3
 ecp_small_check_pub:9:46:1:0
 
 ECP small check pubkey #4
-ecp_small_check_pub:13:47:1:POLARSSL_ERR_ECP_GENERIC
+ecp_small_check_pub:13:47:1:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small check pubkey #5
 ecp_small_check_pub:13:0:1:0
 
 ECP small check pubkey #6
-ecp_small_check_pub:-1:10:1:POLARSSL_ERR_ECP_GENERIC
+ecp_small_check_pub:-1:10:1:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small check pubkey #7
 ecp_small_check_pub:46:10:1:0
 
 ECP small check pubkey #8
-ecp_small_check_pub:47:2:1:POLARSSL_ERR_ECP_GENERIC
+ecp_small_check_pub:47:2:1:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small check pubkey #9
 ecp_small_check_pub:0:2:1:0
 
 ECP small check pubkey #10
-ecp_small_check_pub:10:25:1:POLARSSL_ERR_ECP_GENERIC
+ecp_small_check_pub:10:25:1:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP write binary #0 (zero, bad format)
 depends_on:POLARSSL_ECP_DP_SECP192R1_ENABLED

@@ -417,7 +417,7 @@ static int ecp_modp( mpi *N, const ecp_group *grp )
         return( mpi_mod_mpi( N, N, &grp->P ) );
 
     if( mpi_cmp_int( N, 0 ) < 0 || mpi_msb( N ) > 2 * grp->pbits )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     MPI_CHK( grp->modp( N ) );
 
@@ -869,7 +869,7 @@ static int ecp_normalize_many( const ecp_group *grp,
         return( ecp_normalize( grp, T ) );
 
     if( ( c = (mpi *) polarssl_malloc( t_len * sizeof( mpi ) ) ) == NULL )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_MALLOC_FAILED );
 
     mpi_init( &u ); mpi_init( &Zi ); mpi_init( &ZZi );
     for( i = 0; i < t_len; i++ )
@@ -1033,7 +1033,7 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
      * Make sure Q coordinates are normalized
      */
     if( mpi_cmp_int( &Q->Z, 1 ) != 0 )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 ); mpi_init( &T4 );
     mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
@@ -1176,10 +1176,10 @@ static int ecp_w_naf_fixed( signed char x[], size_t k,
     }
 
     /*
-     * We should have consumed all the bits now
+     * We should have consumed all bits, unless the input value was too big
      */
     if( mpi_cmp_int( &M, 0 ) != 0 )
-        ret = POLARSSL_ERR_ECP_GENERIC;
+        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
 
 cleanup:
 
@@ -1245,7 +1245,7 @@ static int ecp_randomize_coordinates( const ecp_group *grp, ecp_point *pt,
             mpi_shift_r( &l, 1 );
 
         if( count++ > 10 )
-            return( POLARSSL_ERR_ECP_GENERIC );
+            return( POLARSSL_ERR_ECP_RANDOM_FAILED );
     }
     while( mpi_cmp_int( &l, 1 ) <= 0 );
 
@@ -1406,19 +1406,19 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
     mpi YY, RHS;
 
     if( mpi_cmp_int( &pt->Z, 0 ) == 0 )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     /*
      * pt coordinates must be normalized for our checks
      */
     if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
         mpi_cmp_int( &pt->Y, 0 ) < 0 ||
         mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
         mpi_cmp_mpi( &pt->Y, &grp->P ) >= 0 )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     mpi_init( &YY ); mpi_init( &RHS );
 
@@ -1433,7 +1433,7 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
     MPI_CHK( mpi_add_mpi( &RHS, &RHS,    &grp->B  ) );  MOD_ADD( RHS );
 
     if( mpi_cmp_mpi( &YY, &RHS ) != 0 )
-        ret = POLARSSL_ERR_ECP_GENERIC;
+        ret = POLARSSL_ERR_ECP_INVALID_KEY;
 
 cleanup:
 
@@ -1449,7 +1449,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
 {
     /* We want 1 <= d <= N-1 */
     if ( mpi_cmp_int( d, 1 ) < 0 || mpi_cmp_mpi( d, &grp->N ) >= 0 )
-        return( POLARSSL_ERR_ECP_GENERIC );
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     return( 0 );
 }
@@ -1475,7 +1475,7 @@ int ecp_gen_keypair( const ecp_group *grp, mpi *d, ecp_point *Q,
             mpi_shift_r( d, 1 );
 
         if( count++ > 10 )
-            return( POLARSSL_ERR_ECP_GENERIC );
+            return( POLARSSL_ERR_ECP_RANDOM_FAILED );
     }
     while( mpi_cmp_int( d, 1 ) < 0 );
 

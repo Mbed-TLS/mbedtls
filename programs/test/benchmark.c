@@ -558,7 +558,7 @@ int main( int argc, char *argv[] )
     {
         olen = sizeof( buf );
         ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, NULL, NULL );
+        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
     }
 
     if( ret != 0 )
@@ -617,7 +617,7 @@ int main( int argc, char *argv[] )
     for( i = 1; ! alarmed && ! ret ; i++ )
     {
         olen = sizeof( buf );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, NULL, NULL );
+        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
     }
 
     if( ret != 0 )
@@ -643,7 +643,7 @@ int main( int argc, char *argv[] )
     {
         olen = sizeof( buf );
         ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, NULL, NULL );
+        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
     }
 
     if( ret != 0 )

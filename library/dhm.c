@@ -273,50 +273,54 @@ static int dhm_update_blinding( dhm_context *ctx,
     int ret, count;
 
     /*
-     * If Vi is initialized, update it by squaring it
+     * Don't use any blinding the first time a particular X is used,
+     * but remember it to use blinding next time.
      */
-    if( ctx->Vi.p != NULL )
+    if( mpi_cmp_mpi( &ctx->X, &ctx->_X ) != 0 )
     {
-        MPI_CHK( mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
-        MPI_CHK( mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->P ) );
-    }
-    else
-    {
-        /* Vi = random( 2, P-1 ) */
-        count = 0;
-        do
-        {
-            mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng );
+        MPI_CHK( mpi_copy( &ctx->_X, &ctx->X ) );
+        MPI_CHK( mpi_lset( &ctx->Vi, 1 ) );
+        MPI_CHK( mpi_lset( &ctx->Vf, 1 ) );
 
-            while( mpi_cmp_mpi( &ctx->Vi, &ctx->P ) >= 0 )
-                mpi_shift_r( &ctx->Vi, 1 );
-
-            if( count++ > 10 )
-                return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
-        }
-        while( mpi_cmp_int( &ctx->Vi, 1 ) <= 0 );
-    }
-
-    /*
-     * If X did not change, update Vf by squaring it too
-     */
-    if( mpi_cmp_mpi( &ctx->X, &ctx->_X ) == 0 )
-    {
-        MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
-        MPI_CHK( mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->P ) );
         return( 0 );
     }
 
     /*
-     * Otherwise, compute Vf from scratch
+     * Ok, we need blinding. Can we re-use existing values?
+     * If yes, just update them by squaring them.
      */
+    if( mpi_cmp_int( &ctx->Vi, 1 ) != 0 )
+    {
+        MPI_CHK( mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
+        MPI_CHK( mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->P ) );
+
+        MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
+        MPI_CHK( mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->P ) );
+
+        return( 0 );
+    }
+
+    /*
+     * We need to generate blinding values from scratch
+     */
+
+    /* Vi = random( 2, P-1 ) */
+    count = 0;
+    do
+    {
+        mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng );
+
+        while( mpi_cmp_mpi( &ctx->Vi, &ctx->P ) >= 0 )
+            mpi_shift_r( &ctx->Vi, 1 );
+
+        if( count++ > 10 )
+            return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
+    }
+    while( mpi_cmp_int( &ctx->Vi, 1 ) <= 0 );
 
     /* Vf = Vi^-X mod P */
     MPI_CHK( mpi_inv_mod( &ctx->Vf, &ctx->Vi, &ctx->P ) );
     MPI_CHK( mpi_exp_mod( &ctx->Vf, &ctx->Vf, &ctx->X, &ctx->P, &ctx->RP ) );
-
-    /* Remember secret associated with Vi and Vf */
-    MPI_CHK( mpi_copy( &ctx->_X, &ctx->X ) );;
 
 cleanup:
     return( ret );

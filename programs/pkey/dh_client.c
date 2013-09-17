@@ -239,7 +239,8 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     n = dhm.len;
-    if( ( ret = dhm_calc_secret( &dhm, buf, &n, NULL, NULL ) ) != 0 )
+    if( ( ret = dhm_calc_secret( &dhm, buf, &n,
+                                 ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         printf( " failed\n  ! dhm_calc_secret returned %d\n\n", ret );
         goto exit;

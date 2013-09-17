@@ -159,7 +159,7 @@ int main( int argc, char *argv[] )
     x509_cert cacert;
     x509_cert clicert;
     pk_context pkey;
-    int i, j, n;
+    int i, j;
     int flags, verify = 0;
     char *p, *q;
     const char *pers = "cert_app";
@@ -460,4 +460,4 @@ exit:
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&
           POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C &&
-          POLARSSL_X509_PARSE_C && POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */
+          POLARSSL_X509_CRT_PARSE_C && POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */

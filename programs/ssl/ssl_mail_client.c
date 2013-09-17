@@ -58,7 +58,7 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_PARSE_C)
+    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -67,7 +67,7 @@ int main( int argc, char *argv[] )
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_PARSE_C "
+           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C "
            "not defined.\n");
     return( 0 );
 }
@@ -790,8 +790,8 @@ exit:
 
     if( server_fd )
         net_close( server_fd );
-    x509_free( &clicert );
-    x509_free( &cacert );
+    x509_crt_free( &clicert );
+    x509_crt_free( &cacert );
     pk_free( &pkey );
     ssl_free( &ssl );
 

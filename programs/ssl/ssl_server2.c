@@ -118,7 +118,7 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 #if defined(POLARSSL_FS_IO)
 #define USAGE_IO \
     "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
@@ -136,7 +136,7 @@ static void my_debug( void *ctx, int level, const char *str )
 #endif /* POLARSSL_FS_IO */
 #else
 #define USAGE_IO ""
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
 #define USAGE_PSK                                                   \
@@ -212,7 +212,7 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     x509_cert cacert;
     x509_cert srvcert;
     pk_context pkey;
@@ -236,7 +236,7 @@ int main( int argc, char *argv[] )
      * Make sure memory references are valid.
      */
     listen_fd = 0;
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &srvcert, 0, sizeof( x509_cert ) );
     pk_init( &pkey );
@@ -516,7 +516,7 @@ int main( int argc, char *argv[] )
 
     printf( " ok\n" );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
      * 1.1. Load the trusted CA
      */
@@ -594,7 +594,7 @@ int main( int argc, char *argv[] )
     }
 
     printf( " ok\n" );
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     /*
      * 2. Setup the listening TCP socket
@@ -647,7 +647,7 @@ int main( int argc, char *argv[] )
     ssl_set_renegotiation( &ssl, opt.renegotiation );
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
     ssl_set_own_cert( &ssl, &srvcert, &pkey );
 #endif
@@ -747,7 +747,7 @@ reset:
     printf( " ok\n    [ Ciphersuite is %s ]\n",
             ssl_get_ciphersuite( &ssl ) );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
      * 5. Verify the server certificate
      */
@@ -781,7 +781,7 @@ reset:
                              ssl_get_peer_cert( &ssl ) );
         printf( "%s\n", buf );
     }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     /*
      * 6. Read the HTTP Request
@@ -877,9 +877,9 @@ exit:
 #endif
 
     net_close( client_fd );
-#if defined(POLARSSL_X509_PARSE_C)
-    x509_free( &srvcert );
-    x509_free( &cacert );
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    x509_crt_free( &srvcert );
+    x509_crt_free( &cacert );
     pk_free( &pkey );
 #endif
 

@@ -46,7 +46,7 @@
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
     !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_NET_C) ||     \
     !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
-    !defined(POLARSSL_X509_PARSE_C)
+    !defined(POLARSSL_X509_CRT_PARSE_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -56,7 +56,7 @@ int main( int argc, char *argv[] )
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
            "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C and/or "
-           "POLARSSL_X509_PARSE_C not defined.\n");
+           "POLARSSL_X509_CRT_PARSE_C not defined.\n");
     return( 0 );
 }
 #else
@@ -400,7 +400,7 @@ exit:
         free( write_buf );
 
     ssl_close_notify( &ssl );
-    x509_free( &srvcert );
+    x509_crt_free( &srvcert );
     pk_free( &pkey );
     ssl_free( &ssl );
     net_close( client_fd );

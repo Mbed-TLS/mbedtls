@@ -22,7 +22,7 @@ void string_debug(void *data, int level, const char *str)
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_PARSE_C */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
                       char *result_str )
 {
@@ -42,7 +42,7 @@ void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 
-    x509_free( &crt );
+    x509_crt_free( &crt );
 }
 /* END_CASE */
 

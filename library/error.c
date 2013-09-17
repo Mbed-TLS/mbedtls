@@ -145,12 +145,8 @@
 #include "polarssl/ssl.h"
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 #include "polarssl/x509.h"
-#endif
-
-#if defined(POLARSSL_X509_WRITE_C)
-#include "polarssl/x509write.h"
 #endif
 
 #if defined(POLARSSL_XTEA_C)
@@ -411,7 +407,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Public key type mismatch (eg, asked for RSA key exchange and presented EC key)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
         if( use_ret == -(POLARSSL_ERR_X509_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "X509 - Unavailable feature, e.g. RSA hashing/encryption combination" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_PEM) )
@@ -448,16 +444,13 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "X509 - Allocation of memory failed" );
         if( use_ret == -(POLARSSL_ERR_X509_FILE_IO_ERROR) )
             snprintf( buf, buflen, "X509 - Read/write of file failed" );
-#endif /* POLARSSL_X509_PARSE_C */
-
-#if defined(POLARSSL_X509_WRITE_C)
         if( use_ret == -(POLARSSL_ERR_X509WRITE_UNKNOWN_OID) )
-            snprintf( buf, buflen, "X509WRITE - Requested OID is unknown" );
+            snprintf( buf, buflen, "X509 - Requested OID is unknown" );
         if( use_ret == -(POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA) )
-            snprintf( buf, buflen, "X509WRITE - Failed to allocate memory" );
+            snprintf( buf, buflen, "X509 - Failed to allocate memory" );
         if( use_ret == -(POLARSSL_ERR_X509WRITE_MALLOC_FAILED) )
-            snprintf( buf, buflen, "X509WRITE - Failed to allocate memory" );
-#endif /* POLARSSL_X509_WRITE_C */
+            snprintf( buf, buflen, "X509 - Failed to allocate memory" );
+#endif /* POLARSSL_X509_USE,X509_CREATE_C */
 
         if( strlen( buf ) == 0 )
             snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );

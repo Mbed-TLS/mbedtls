@@ -2231,7 +2231,8 @@ int ssl_send_alert_message( ssl_context *ssl,
  */
 #if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 int ssl_write_certificate( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -2247,6 +2248,7 @@ int ssl_write_certificate( ssl_context *ssl )
         return( 0 );
     }
 
+    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
     return( ret );
 }
 
@@ -2265,6 +2267,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( 0 );
     }
 
+    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
     return( ret );
 }
 #else

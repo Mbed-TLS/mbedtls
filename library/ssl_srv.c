@@ -1642,7 +1642,8 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
 #if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_write_certificate_request( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -1658,6 +1659,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
         return( 0 );
     }
 
+    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
     return( ret );
 }
 #else
@@ -2510,7 +2512,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 
 #if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_parse_certificate_verify( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -2526,6 +2529,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
+    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
     return( ret );
 }
 #else

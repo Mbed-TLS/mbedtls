@@ -1581,15 +1581,33 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
     p = buf + 5;
     while( cert_type_len > 0 )
     {
-        if( *p == SSL_CERT_TYPE_RSA_SIGN )
+#if defined(POLARSSL_RSA_C)
+        if( *p == SSL_CERT_TYPE_RSA_SIGN &&
+            pk_can_do( ssl->pk_key, POLARSSL_PK_RSA ) )
         {
             ssl->handshake->cert_type = SSL_CERT_TYPE_RSA_SIGN;
             break;
+        }
+        else
+#endif
+#if defined(POLARSSL_ECDSA_C)
+        if( *p == SSL_CERT_TYPE_ECDSA_SIGN &&
+            pk_can_do( ssl->pk_key, POLARSSL_PK_ECDSA ) )
+        {
+            ssl->handshake->cert_type = SSL_CERT_TYPE_ECDSA_SIGN;
+            break;
+        }
+        else
+#endif
+        {
+            ; /* Unsupported cert type, ignore */
         }
 
         cert_type_len--;
         p++;
     }
+
+    // TODO: shall we abort now or send an empty certificate list later?
 
     if( ssl->handshake->cert_type == 0 )
     {
@@ -1600,6 +1618,8 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
+        /* Ignored, see comments about hash in write_certificate_verify */
+        // TODO: should check the signature part against our pk_key though
         size_t sig_alg_len = ( ( buf[5 + n] <<  8 )
                              | ( buf[6 + n]       ) );
 
@@ -1615,6 +1635,8 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
     }
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
+    /* Ignore certificate_authorities, we only have one cert anyway */
+    // TODO: should not send cert if no CA matches
     dn_len = ( ( buf[5 + m + n] <<  8 )
              | ( buf[6 + m + n]       ) );
 
@@ -1930,7 +1952,8 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 
 #if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -1946,6 +1969,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
+    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
     return( ret );
 }
 #else

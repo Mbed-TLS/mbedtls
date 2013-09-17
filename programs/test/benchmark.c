@@ -32,6 +32,7 @@
 #include <stdio.h>
 
 #include "polarssl/config.h"
+#include "polarssl/timing.h"
 
 #include "polarssl/md4.h"
 #include "polarssl/md5.h"
@@ -44,16 +45,26 @@
 #include "polarssl/blowfish.h"
 #include "polarssl/camellia.h"
 #include "polarssl/gcm.h"
+#include "polarssl/ctr_drbg.h"
 #include "polarssl/rsa.h"
 #include "polarssl/dhm.h"
-#include "polarssl/timing.h"
 #include "polarssl/havege.h"
-#include "polarssl/ctr_drbg.h"
 
 #define BUFSIZE         1024
-#define HEADER_FORMAT   "  %-15s :  "
+#define HEADER_FORMAT   "  %-16s :  "
+#define TITLE_LEN       17
 
-#if defined(POLARSSL_TIMING_C)
+#if !defined(POLARSSL_TIMING_C)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_TIMING_C not defined.\n");
+    return( 0 );
+}
+#else
+
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
     size_t use_len;
@@ -77,59 +88,57 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
     return( 0 );
 }
 
+#define TIME_AND_TSC( TITLE, CODE )                                     \
+do {                                                                    \
+    unsigned long i, j, tsc;                                            \
+                                                                        \
+    printf( HEADER_FORMAT, TITLE );                                     \
+    fflush( stdout );                                                   \
+                                                                        \
+    set_alarm( 1 );                                                     \
+    for( i = 1; ! alarmed; i++ )                                        \
+    {                                                                   \
+        CODE;                                                           \
+    }                                                                   \
+                                                                        \
+    tsc = hardclock();                                                  \
+    for( j = 0; j < 1024; j++ )                                         \
+    {                                                                   \
+        CODE;                                                           \
+    }                                                                   \
+                                                                        \
+    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,       \
+                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );          \
+} while( 0 )
+
+#define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
+do {                                                                    \
+    unsigned long i;                                                    \
+    int ret;                                                            \
+                                                                        \
+    printf( HEADER_FORMAT, TITLE );                                     \
+    fflush( stdout );                                                   \
+    set_alarm( 3 );                                                     \
+                                                                        \
+    ret = 0;                                                            \
+    for( i = 1; ! alarmed && ! ret ; i++ )                              \
+    {                                                                   \
+        CODE;                                                           \
+    }                                                                   \
+                                                                        \
+    if( ret != 0 )                                                      \
+        printf( "FAILED\n" );                                           \
+    else                                                                \
+        printf( "%9lu " TYPE "/s\n", i / 3 );                                  \
+} while( 0 )
+
 unsigned char buf[BUFSIZE];
-#endif
 
-#if !defined(POLARSSL_TIMING_C)
 int main( int argc, char *argv[] )
 {
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_TIMING_C not defined.\n");
-    return( 0 );
-}
-#else
-int main( int argc, char *argv[] )
-{
-    int ret, keysize;
-    unsigned long i, j, tsc;
+    int keysize;
     unsigned char tmp[64];
-#if defined(POLARSSL_ARC4_C)
-    arc4_context arc4;
-#endif
-#if defined(POLARSSL_DES_C) && defined(POLARSSL_CIPHER_MODE_CBC)
-    des3_context des3;
-    des_context des;
-#endif
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-    aes_context aes;
-#endif
-#if defined(POLARSSL_GCM_C)
-    gcm_context gcm;
-#endif
-#endif
-#if defined(POLARSSL_BLOWFISH_C) && defined(POLARSSL_CIPHER_MODE_CBC)
-    blowfish_context blowfish;
-#endif
-#if defined(POLARSSL_CAMELLIA_C) && defined(POLARSSL_CIPHER_MODE_CBC)
-    camellia_context camellia;
-#endif
-#if defined(POLARSSL_RSA_C) && defined(POLARSSL_BIGNUM_C) &&    \
-    defined(POLARSSL_GENPRIME)
-    rsa_context rsa;
-#endif
-#if defined(POLARSSL_HAVEGE_C)
-    havege_state hs;
-#endif
-#if defined(POLARSSL_CTR_DRBG_C)
-    ctr_drbg_context    ctr_drbg;
-#endif
-#if defined(POLARSSL_DHM_C) && defined(POLARSSL_BIGNUM_C)
-    dhm_context dhm;
-    size_t olen = BUFSIZE;
-#endif
+    char title[TITLE_LEN];
     ((void) argc);
     ((void) argv);
 
@@ -138,536 +147,213 @@ int main( int argc, char *argv[] )
     printf( "\n" );
 
 #if defined(POLARSSL_MD4_C)
-    printf( HEADER_FORMAT, "MD4" );
-    fflush( stdout );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        md4( buf, BUFSIZE, tmp );
-
-    tsc = hardclock();
-    for( j = 0; j < 1024; j++ )
-        md4( buf, BUFSIZE, tmp );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    TIME_AND_TSC( "MD4", md4( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(POLARSSL_MD5_C)
-    printf( HEADER_FORMAT, "MD5" );
-    fflush( stdout );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        md5( buf, BUFSIZE, tmp );
-
-    tsc = hardclock();
-    for( j = 0; j < 1024; j++ )
-        md5( buf, BUFSIZE, tmp );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    TIME_AND_TSC( "MD5", md5( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(POLARSSL_SHA1_C)
-    printf( HEADER_FORMAT, "SHA-1" );
-    fflush( stdout );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        sha1( buf, BUFSIZE, tmp );
-
-    tsc = hardclock();
-    for( j = 0; j < 1024; j++ )
-        sha1( buf, BUFSIZE, tmp );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    TIME_AND_TSC( "SHA-1", sha1( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(POLARSSL_SHA256_C)
-    printf( HEADER_FORMAT, "SHA-256" );
-    fflush( stdout );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        sha256( buf, BUFSIZE, tmp, 0 );
-
-    tsc = hardclock();
-    for( j = 0; j < 1024; j++ )
-        sha256( buf, BUFSIZE, tmp, 0 );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    TIME_AND_TSC( "SHA-256", sha256( buf, BUFSIZE, tmp, 0 ) );
 #endif
 
 #if defined(POLARSSL_SHA512_C)
-    printf( HEADER_FORMAT, "SHA-512" );
-    fflush( stdout );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        sha512( buf, BUFSIZE, tmp, 0 );
-
-    tsc = hardclock();
-    for( j = 0; j < 1024; j++ )
-        sha512( buf, BUFSIZE, tmp, 0 );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    TIME_AND_TSC( "SHA-512", sha512( buf, BUFSIZE, tmp, 0 ) );
 #endif
 
 #if defined(POLARSSL_ARC4_C)
-    printf( HEADER_FORMAT, "ARC4" );
-    fflush( stdout );
-
-    arc4_setup( &arc4, tmp, 32 );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        arc4_crypt( &arc4, BUFSIZE, buf, buf );
-
-    tsc = hardclock();
-    for( j = 0; j < 1024; j++ )
-        arc4_crypt( &arc4, BUFSIZE, buf, buf );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    {
+        arc4_context arc4;
+        arc4_setup( &arc4, tmp, 32 );
+        TIME_AND_TSC( "ARC4", arc4_crypt( &arc4, BUFSIZE, buf, buf ) );
+    }
 #endif
 
 #if defined(POLARSSL_DES_C) && defined(POLARSSL_CIPHER_MODE_CBC)
-    printf( HEADER_FORMAT, "3DES" );
-    fflush( stdout );
+    {
+        des3_context des3;
+        des3_set3key_enc( &des3, tmp );
+        TIME_AND_TSC( "3DES",
+                des3_crypt_cbc( &des3, DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+    }
 
-    des3_set3key_enc( &des3, tmp );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        des3_crypt_cbc( &des3, DES_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-    tsc = hardclock();
-    for( j = 0; j < 1024; j++ )
-        des3_crypt_cbc( &des3, DES_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
-
-    printf( HEADER_FORMAT, "DES" );
-    fflush( stdout );
-
-    des_setkey_enc( &des, tmp );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        des_crypt_cbc( &des, DES_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-    tsc = hardclock();
-    for( j = 0; j < 1024; j++ )
-        des_crypt_cbc( &des, DES_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    {
+        des_context des;
+        des_setkey_enc( &des, tmp );
+        TIME_AND_TSC( "DES",
+                des_crypt_cbc( &des, DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+    }
 #endif
 
 #if defined(POLARSSL_AES_C)
 #if defined(POLARSSL_CIPHER_MODE_CBC)
-    for( keysize = 128; keysize <= 256; keysize += 64 )
     {
-        printf( "  AES-CBC-%d     :  ", keysize );
-        fflush( stdout );
+        aes_context aes;
+        for( keysize = 128; keysize <= 256; keysize += 64 )
+        {
+            snprintf( title, sizeof( title ), "AES-CBC-%d", keysize );
 
-        memset( buf, 0, sizeof( buf ) );
-        memset( tmp, 0, sizeof( tmp ) );
-        aes_setkey_enc( &aes, tmp, keysize );
+            memset( buf, 0, sizeof( buf ) );
+            memset( tmp, 0, sizeof( tmp ) );
+            aes_setkey_enc( &aes, tmp, keysize );
 
-        set_alarm( 1 );
-
-        for( i = 1; ! alarmed; i++ )
-            aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-        tsc = hardclock();
-        for( j = 0; j < 4096; j++ )
-            aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-        printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                        ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+            TIME_AND_TSC( title,
+                    aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        }
     }
-#endif /* POLARSSL_CIPHER_MODE_CBC */
+#endif
 #if defined(POLARSSL_GCM_C)
-    for( keysize = 128; keysize <= 256; keysize += 64 )
     {
-        printf( "  AES-GCM-%d     :  ", keysize );
-        fflush( stdout );
+        gcm_context gcm;
+        for( keysize = 128; keysize <= 256; keysize += 64 )
+        {
+            snprintf( title, sizeof( title ), "AES-GCM-%d", keysize );
 
-        memset( buf, 0, sizeof( buf ) );
-        memset( tmp, 0, sizeof( tmp ) );
-        gcm_init( &gcm, POLARSSL_CIPHER_ID_AES, tmp, keysize );
+            memset( buf, 0, sizeof( buf ) );
+            memset( tmp, 0, sizeof( tmp ) );
+            gcm_init( &gcm, POLARSSL_CIPHER_ID_AES, tmp, keysize );
 
-        set_alarm( 1 );
-
-        for( i = 1; ! alarmed; i++ )
-            gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 12, NULL, 0, buf, buf, 16, tmp );
-
-        tsc = hardclock();
-        for( j = 0; j < 4096; j++ )
-            gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp, 12, NULL, 0, buf, buf, 16, tmp );
-
-        printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                        ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+            TIME_AND_TSC( title,
+                    gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp,
+                        12, NULL, 0, buf, buf, 16, tmp ) );
+        }
     }
 #endif
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C) && defined(POLARSSL_CIPHER_MODE_CBC)
-    for( keysize = 128; keysize <= 256; keysize += 64 )
     {
-        printf( "  CAMELLIA-CBC-%d:  ", keysize );
-        fflush( stdout );
+        camellia_context camellia;
+        for( keysize = 128; keysize <= 256; keysize += 64 )
+        {
+            snprintf( title, sizeof( title ), "CAMELLIA-CBC-%d", keysize );
 
-        memset( buf, 0, sizeof( buf ) );
-        memset( tmp, 0, sizeof( tmp ) );
-        camellia_setkey_enc( &camellia, tmp, keysize );
+            memset( buf, 0, sizeof( buf ) );
+            memset( tmp, 0, sizeof( tmp ) );
+            camellia_setkey_enc( &camellia, tmp, keysize );
 
-        set_alarm( 1 );
-
-        for( i = 1; ! alarmed; i++ )
-            camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-        tsc = hardclock();
-        for( j = 0; j < 4096; j++ )
-            camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-        printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                        ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+            TIME_AND_TSC( title,
+                    camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT,
+                        BUFSIZE, tmp, buf, buf ) );
+        }
     }
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C) && defined(POLARSSL_CIPHER_MODE_CBC)
-    for( keysize = 128; keysize <= 256; keysize += 64 )
     {
-        printf( "  BLOWFISH-CBC-%d:  ", keysize );
-        fflush( stdout );
+        blowfish_context blowfish;
+        for( keysize = 128; keysize <= 256; keysize += 64 )
+        {
+            snprintf( title, sizeof( title ), "BLOWFISH-CBC-%d", keysize );
 
-        memset( buf, 0, sizeof( buf ) );
-        memset( tmp, 0, sizeof( tmp ) );
-        blowfish_setkey( &blowfish, tmp, keysize );
+            memset( buf, 0, sizeof( buf ) );
+            memset( tmp, 0, sizeof( tmp ) );
+            blowfish_setkey( &blowfish, tmp, keysize );
 
-        set_alarm( 1 );
-
-        for( i = 1; ! alarmed; i++ )
-            blowfish_crypt_cbc( &blowfish, BLOWFISH_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-        tsc = hardclock();
-        for( j = 0; j < 4096; j++ )
-            blowfish_crypt_cbc( &blowfish, BLOWFISH_ENCRYPT, BUFSIZE, tmp, buf, buf );
-
-        printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                        ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+            TIME_AND_TSC( title,
+                    blowfish_crypt_cbc( &blowfish, BLOWFISH_ENCRYPT, BUFSIZE,
+                        tmp, buf, buf ) );
+        }
     }
 #endif
 
 #if defined(POLARSSL_HAVEGE_C)
-    printf( HEADER_FORMAT, "HAVEGE" );
-    fflush( stdout );
-
-    havege_init( &hs );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        havege_random( &hs, buf, BUFSIZE );
-
-    tsc = hardclock();
-    for( j = 1; j < 1024; j++ )
-        havege_random( &hs, buf, BUFSIZE );
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+    {
+        havege_state hs;
+        havege_init( &hs );
+        TIME_AND_TSC( "HAVEGE", havege_random( &hs, buf, BUFSIZE ) );
+    }
 #endif
 
 #if defined(POLARSSL_CTR_DRBG_C)
-    printf( HEADER_FORMAT, "CTR_DRBG (NOPR)" );
-    fflush( stdout );
+    {
+        ctr_drbg_context    ctr_drbg;
 
-    if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
-        exit(1);
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+        if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
             exit(1);
+        TIME_AND_TSC( "CTR_DRBG (NOPR)",
+                if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+                exit(1) );
 
-    tsc = hardclock();
-    for( j = 1; j < 1024; j++ )
-        if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+        if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
             exit(1);
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
-
-    printf( HEADER_FORMAT, "CTR_DRBG (PR)" );
-    fflush( stdout );
-
-    if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
-        exit(1);
-
-    ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_ON );
-
-    set_alarm( 1 );
-    for( i = 1; ! alarmed; i++ )
-        if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
-            exit(1);
-
-    tsc = hardclock();
-    for( j = 1; j < 1024; j++ )
-        if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
-            exit(1);
-
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );
+        ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_ON );
+        TIME_AND_TSC( "CTR_DRBG (PR)",
+                if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
+                exit(1) );
+    }
 #endif
 
-#if defined(POLARSSL_RSA_C) && defined(POLARSSL_BIGNUM_C) &&    \
-    defined(POLARSSL_GENPRIME)
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    rsa_gen_key( &rsa, myrand, NULL, 1024, 65537 );
-
-    printf( HEADER_FORMAT, "RSA-1024" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME)
     {
-        buf[0] = 0;
-        ret = rsa_public( &rsa, buf, buf );
+        rsa_context rsa;
+        for( keysize = 1024; keysize <= 4096; keysize *= 2 )
+        {
+            snprintf( title, sizeof( title ), "RSA-%d", keysize );
+
+            rsa_init( &rsa, RSA_PKCS_V15, 0 );
+            rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
+
+            TIME_PUBLIC( title, " public",
+                    buf[0] = 0;
+                    ret = rsa_public( &rsa, buf, buf ) );
+
+            TIME_PUBLIC( title, "private",
+                    buf[0] = 0;
+                    ret = rsa_private( &rsa, myrand, NULL, buf, buf ) );
+
+            rsa_free( &rsa );
+        }
     }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu  public/s\n", i / 3 );
-
-    printf( HEADER_FORMAT, "RSA-1024" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        buf[0] = 0;
-        ret = rsa_private( &rsa, myrand, NULL, buf, buf );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu private/s\n", i / 3 );
-
-    rsa_free( &rsa );
-
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    rsa_gen_key( &rsa, myrand, NULL, 2048, 65537 );
-
-    printf( HEADER_FORMAT, "RSA-2048" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        buf[0] = 0;
-        ret = rsa_public( &rsa, buf, buf );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu  public/s\n", i / 3 );
-
-    printf( HEADER_FORMAT, "RSA-2048" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        buf[0] = 0;
-        ret = rsa_private( &rsa, myrand, NULL, buf, buf );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu private/s\n", i / 3 );
-
-    rsa_free( &rsa );
-
-    rsa_init( &rsa, RSA_PKCS_V15, 0 );
-    rsa_gen_key( &rsa, myrand, NULL, 4096, 65537 );
-
-    printf( HEADER_FORMAT, "RSA-4096" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        buf[0] = 0;
-        ret = rsa_public( &rsa, buf, buf );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu  public/s\n", i / 3 );
-
-    printf( HEADER_FORMAT, "RSA-4096" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        buf[0] = 0;
-        ret = rsa_private( &rsa, myrand, NULL, buf, buf );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu private/s\n", i / 3 );
-
-    rsa_free( &rsa );
 #endif
 
 #if defined(POLARSSL_DHM_C) && defined(POLARSSL_BIGNUM_C)
-    memset( &dhm, 0, sizeof( dhm_context ) );
-
-    mpi_read_string( &dhm.P, 16, POLARSSL_DHM_RFC5114_MODP_1024_P );
-    mpi_read_string( &dhm.G, 16, POLARSSL_DHM_RFC5114_MODP_1024_G );
-    dhm.len = mpi_size( &dhm.P );
-    dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-    mpi_copy( &dhm.GY, &dhm.GX );
-
-    printf( HEADER_FORMAT, "DHM-1024" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
     {
-        olen = sizeof( buf );
-        ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
+#define DHM_SIZES 3
+        int sizes[DHM_SIZES] = { 1024, 2048, 3072 };
+        const char *dhm_P[DHM_SIZES] = {
+            POLARSSL_DHM_RFC5114_MODP_1024_P,
+            POLARSSL_DHM_RFC3526_MODP_2048_P,
+            POLARSSL_DHM_RFC3526_MODP_3072_P,
+        };
+        const char *dhm_G[DHM_SIZES] = {
+            POLARSSL_DHM_RFC5114_MODP_1024_G,
+            POLARSSL_DHM_RFC3526_MODP_2048_G,
+            POLARSSL_DHM_RFC3526_MODP_3072_G,
+        };
+
+        dhm_context dhm;
+        size_t olen;
+        for( keysize = 0; keysize < DHM_SIZES; keysize++ )
+        {
+            memset( &dhm, 0, sizeof( dhm_context ) );
+
+            mpi_read_string( &dhm.P, 16, dhm_P[keysize] );
+            mpi_read_string( &dhm.G, 16, dhm_G[keysize] );
+            dhm.len = mpi_size( &dhm.P );
+            dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+            mpi_copy( &dhm.GY, &dhm.GX );
+
+            snprintf( title, sizeof( title ), "DHM-%d", sizes[keysize] );
+            TIME_PUBLIC( title, "handshake",
+                    olen = sizeof( buf );
+                    ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len,
+                                            myrand, NULL );
+                    ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
+
+            snprintf( title, sizeof( title ), "DHM-%d-fixed", sizes[keysize] );
+            TIME_PUBLIC( title, "handshake",
+                    olen = sizeof( buf );
+                    ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
+
+            dhm_free( &dhm );
+        }
     }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu handshake/s\n", i / 3 );
-
-    printf( HEADER_FORMAT, "fixed-DHM-1024" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        olen = sizeof( buf );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu handshake/s\n", i / 3 );
-
-    dhm_free( &dhm );
-
-    memset( &dhm, 0, sizeof( dhm_context ) );
-
-    mpi_read_string( &dhm.P, 16, POLARSSL_DHM_RFC3526_MODP_2048_P );
-    mpi_read_string( &dhm.G, 16, POLARSSL_DHM_RFC3526_MODP_2048_G );
-    dhm.len = mpi_size( &dhm.P );
-    dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-    mpi_copy( &dhm.GY, &dhm.GX );
-
-    printf( HEADER_FORMAT, "DHM-2048" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        olen = sizeof( buf );
-        ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu handshake/s\n", i / 3 );
-
-    printf( HEADER_FORMAT, "fixed-DHM-2048" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        olen = sizeof( buf );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu handshake/s\n", i / 3 );
-
-    dhm_free( &dhm );
-    memset( &dhm, 0, sizeof( dhm_context ) );
-
-    mpi_read_string( &dhm.P, 16, POLARSSL_DHM_RFC3526_MODP_3072_P );
-    mpi_read_string( &dhm.G, 16, POLARSSL_DHM_RFC3526_MODP_3072_G );
-    dhm.len = mpi_size( &dhm.P );
-    dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-    mpi_copy( &dhm.GY, &dhm.GX );
-
-    printf( HEADER_FORMAT, "DHM-3072" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        olen = sizeof( buf );
-        ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu handshake/s\n", i / 3 );
-
-    printf( HEADER_FORMAT, "fixed-DHM-3072" );
-    fflush( stdout );
-    set_alarm( 3 );
-
-    ret = 0;
-    for( i = 1; ! alarmed && ! ret ; i++ )
-    {
-        olen = sizeof( buf );
-        ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL );
-    }
-
-    if( ret != 0 )
-        printf( "FAILED\n" );
-    else
-        printf( "%9lu handshake/s\n", i / 3 );
-
-    dhm_free( &dhm );
 #endif
 
     printf( "\n" );
@@ -679,4 +365,5 @@ int main( int argc, char *argv[] )
 
     return( 0 );
 }
+
 #endif /* POLARSSL_TIMING_C */

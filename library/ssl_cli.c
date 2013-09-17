@@ -244,8 +244,8 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
          curve->grp_id != POLARSSL_ECP_DP_NONE;
          curve++ )
     {
-        elliptic_curve_list[elliptic_curve_len++] = curve->name >> 8;
-        elliptic_curve_list[elliptic_curve_len++] = curve->name & 0xFF;
+        elliptic_curve_list[elliptic_curve_len++] = curve->tls_id >> 8;
+        elliptic_curve_list[elliptic_curve_len++] = curve->tls_id & 0xFF;
     }
 
     if( elliptic_curve_len == 0 )

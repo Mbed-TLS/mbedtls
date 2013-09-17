@@ -70,27 +70,28 @@ unsigned long add_count, dbl_count;
 /*
  * List of supported curves:
  *  - internal ID
- *  - TLS NamedCurve number (RFC 4492 section 5.1.1)
+ *  - TLS NamedCurve ID (RFC 4492 section 5.1.1)
  *  - size in bits
+ *  - readeble name
  */
 const ecp_curve_info ecp_supported_curves[] =
 {
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP521R1,    25,     521, },
+    { POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1" },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP384R1,    24,     384, },
+    { POLARSSL_ECP_DP_SECP384R1,    24,     384,    "secp384r1" },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP256R1,    23,     256, },
+    { POLARSSL_ECP_DP_SECP256R1,    23,     256,    "secp256r1" },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP224R1,    21,     224, },
+    { POLARSSL_ECP_DP_SECP224R1,    21,     224,    "secp224r1" },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP192R1,    19,     192, },
+    { POLARSSL_ECP_DP_SECP192R1,    19,     192,    "secp192r1" },
 #endif
-    { POLARSSL_ECP_DP_NONE,          0,     0 },
+    { POLARSSL_ECP_DP_NONE,          0,     0,      NULL        },
 };
 
 /*
@@ -741,7 +742,7 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
 /*
  * Get the internal identifer from the TLS name
  */
-ecp_group_id ecp_grp_id_from_named_curve( uint16_t name )
+ecp_group_id ecp_grp_id_from_named_curve( uint16_t tls_id )
 {
     const ecp_curve_info *curve_info;
 
@@ -749,7 +750,7 @@ ecp_group_id ecp_grp_id_from_named_curve( uint16_t name )
          curve_info->grp_id != POLARSSL_ECP_DP_NONE;
          curve_info++ )
     {
-        if( curve_info->name == name )
+        if( curve_info->tls_id == tls_id )
             return( curve_info->grp_id );
     }
 
@@ -759,7 +760,7 @@ ecp_group_id ecp_grp_id_from_named_curve( uint16_t name )
 /*
  * Get the TLS name for the internal identifer
  */
-uint16_t ecp_named_curve_from_grp_id( ecp_group_id id )
+uint16_t ecp_named_curve_from_grp_id( ecp_group_id grp_id )
 {
     const ecp_curve_info *curve_info;
 
@@ -767,8 +768,8 @@ uint16_t ecp_named_curve_from_grp_id( ecp_group_id id )
          curve_info->grp_id != POLARSSL_ECP_DP_NONE;
          curve_info++ )
     {
-        if( curve_info->grp_id == id )
-            return( curve_info->name );
+        if( curve_info->grp_id == grp_id )
+            return( curve_info->tls_id );
     }
 
     return( 0 );

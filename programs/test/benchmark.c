@@ -456,11 +456,15 @@ int main( int argc, char *argv[] )
             if( ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
                 exit( 1 );
 
-            snprintf( title, sizeof( title ), "ECDSA-%d",
-                                              (int) curve_info->size );
+            snprintf( title, sizeof( title ), "ECDSA-%s",
+                                              curve_info->name );
             TIME_PUBLIC( title, "sign",
                     ret = ecdsa_write_signature( &ecdsa, buf, curve_info->size,
-                                           tmp, &sig_len, myrand, NULL ) );
+                                                tmp, &sig_len, myrand, NULL ) );
+
+            TIME_PUBLIC( title, "verify",
+                    ret = ecdsa_read_signature( &ecdsa, buf, curve_info->size,
+                                                tmp, sig_len ) );
 
             ecdsa_free( &ecdsa );
         }
@@ -488,16 +492,16 @@ int main( int argc, char *argv[] )
                 exit( 1 );
             }
 
-            snprintf( title, sizeof( title ), "ECDHE-%d",
-                                              (int) curve_info->size );
+            snprintf( title, sizeof( title ), "ECDHE-%s",
+                                              curve_info->name );
             TIME_PUBLIC( title, "handshake",
                     ret |= ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                              myrand, NULL );
                     ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );
 
-            snprintf( title, sizeof( title ), "ECDH-%d",
-                                              (int) curve_info->size );
+            snprintf( title, sizeof( title ), "ECDH-%s",
+                                              curve_info->name );
             TIME_PUBLIC( title, "handshake",
                     ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );

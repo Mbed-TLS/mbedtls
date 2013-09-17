@@ -68,9 +68,10 @@ typedef enum
  */
 typedef struct
 {
-    ecp_group_id grp_id;    /*!< Internal identifier    */
-    uint16_t name;          /*!< TLS NamedCurve value   */
-    uint16_t size;          /*!< Curve size in bits     */
+    ecp_group_id grp_id;    /*!< Internal identifier        */
+    uint16_t tls_id;        /*!< TLS NamedCurve identifier  */
+    uint16_t size;          /*!< Curve size in bits         */
+    const char *name;       /*!< Human-friendly name        */
 } ecp_curve_info;
 
 /**

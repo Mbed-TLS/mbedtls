@@ -45,10 +45,12 @@
 #include "polarssl/blowfish.h"
 #include "polarssl/camellia.h"
 #include "polarssl/gcm.h"
+#include "polarssl/havege.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/rsa.h"
 #include "polarssl/dhm.h"
-#include "polarssl/havege.h"
+#include "polarssl/ecdsa.h"
+#include "polarssl/ecdh.h"
 
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-16s :  "
@@ -138,19 +140,19 @@ typedef struct {
     char md4, md5, sha1, sha256, sha512,
          arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,
          havege, ctr_drbg,
-         rsa, dhm;
+         rsa, dhm, ecdsa, ecdh;
 } todo_list;
 
 #define OPTIONS                                                         \
     "md4, md5, sha1, sha256, sha512,\n"                                 \
     "arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,\n"          \
     "havege, ctr_drbg,\n"                                               \
-    "rsa, dhm.\n"
+    "rsa, dhm, ecdsa, ecdh.\n"
 
 int main( int argc, char *argv[] )
 {
     int keysize, i;
-    unsigned char tmp[64];
+    unsigned char tmp[200];
     char title[TITLE_LEN];
     todo_list todo;
 
@@ -194,6 +196,10 @@ int main( int argc, char *argv[] )
                 todo.rsa = 1;
             else if( strcmp( argv[i], "dhm" ) == 0 )
                 todo.dhm = 1;
+            else if( strcmp( argv[i], "ecdsa" ) == 0 )
+                todo.ecdsa = 1;
+            else if( strcmp( argv[i], "ecdh" ) == 0 )
+                todo.ecdh = 1;
             else
             {
                 printf( "Unrecognized option: %s\n", argv[i] );
@@ -415,14 +421,14 @@ int main( int argc, char *argv[] )
             dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
             mpi_copy( &dhm.GY, &dhm.GX );
 
-            snprintf( title, sizeof( title ), "DHM-%d", dhm_sizes[i] );
+            snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
                     ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len,
                                             myrand, NULL );
                     ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
 
-            snprintf( title, sizeof( title ), "DHM-%d-fixed", dhm_sizes[i] );
+            snprintf( title, sizeof( title ), "DH-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
                     ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
@@ -432,6 +438,73 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if defined(POLARSSL_ECDSA_C)
+    if( todo.ecdsa )
+    {
+        ecdsa_context ecdsa;
+        const ecp_curve_info *curve_info;
+        size_t sig_len;
+
+        memset( buf, 0x2A, sizeof( buf ) );
+
+        for( curve_info = ecp_supported_curves;
+             curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+             curve_info++ )
+        {
+            ecdsa_init( &ecdsa );
+
+            if( ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
+                exit( 1 );
+
+            snprintf( title, sizeof( title ), "ECDSA-%d",
+                                              (int) curve_info->size );
+            TIME_PUBLIC( title, "sign",
+                    ret = ecdsa_write_signature( &ecdsa, buf, curve_info->size,
+                                           tmp, &sig_len, myrand, NULL ) );
+
+            ecdsa_free( &ecdsa );
+        }
+    }
+#endif
+
+#if defined(POLARSSL_ECDH_C)
+    if( todo.ecdh )
+    {
+        ecdh_context ecdh;
+        const ecp_curve_info *curve_info;
+        size_t olen;
+
+        for( curve_info = ecp_supported_curves;
+             curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+             curve_info++ )
+        {
+            ecdh_init( &ecdh );
+
+            if( ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
+                ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                                  myrand, NULL ) != 0 ||
+                ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 )
+            {
+                exit( 1 );
+            }
+
+            snprintf( title, sizeof( title ), "ECDHE-%d",
+                                              (int) curve_info->size );
+            TIME_PUBLIC( title, "handshake",
+                    ret |= ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                                             myrand, NULL );
+                    ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
+                                             myrand, NULL ) );
+
+            snprintf( title, sizeof( title ), "ECDH-%d",
+                                              (int) curve_info->size );
+            TIME_PUBLIC( title, "handshake",
+                    ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
+                                             myrand, NULL ) );
+            ecdh_free( &ecdh );
+        }
+    }
+#endif
     printf( "\n" );
 
 #if defined(_WIN32)

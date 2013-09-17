@@ -102,7 +102,7 @@ int x509write_crt_set_validity( x509write_cert *ctx, char *not_before,
     if( strlen(not_before) != X509_RFC5280_UTC_TIME_LEN - 1 ||
         strlen(not_after)  != X509_RFC5280_UTC_TIME_LEN - 1 )
     {
-        return( POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
     }
     strncpy( ctx->not_before, not_before, X509_RFC5280_UTC_TIME_LEN );
     strncpy( ctx->not_after , not_after , X509_RFC5280_UTC_TIME_LEN );
@@ -132,7 +132,7 @@ int x509write_crt_set_basic_constraints( x509write_cert *ctx,
     memset( buf, 0, sizeof(buf) );
 
     if( is_ca && max_pathlen > 127 )
-        return( POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
     if( is_ca )
     {

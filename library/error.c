@@ -410,46 +410,40 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
         if( use_ret == -(POLARSSL_ERR_X509_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "X509 - Unavailable feature, e.g. RSA hashing/encryption combination" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_PEM) )
-            snprintf( buf, buflen, "X509 - The PEM-encoded certificate contains invalid elements, e.g. invalid character" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_FORMAT) )
-            snprintf( buf, buflen, "X509 - The certificate format is invalid, e.g. different type expected" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_VERSION) )
-            snprintf( buf, buflen, "X509 - The certificate version element is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_SERIAL) )
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_OID) )
+            snprintf( buf, buflen, "X509 - Requested OID is unknown" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_FORMAT) )
+            snprintf( buf, buflen, "X509 - The CRT/CRL/CSR format is invalid, e.g. different type expected" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_VERSION) )
+            snprintf( buf, buflen, "X509 - The CRT/CRL/CSR version element is invalid" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_SERIAL) )
             snprintf( buf, buflen, "X509 - The serial tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_ALG) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_ALG) )
             snprintf( buf, buflen, "X509 - The algorithm tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_NAME) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_NAME) )
             snprintf( buf, buflen, "X509 - The name tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_DATE) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_DATE) )
             snprintf( buf, buflen, "X509 - The date tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_SIGNATURE) )
             snprintf( buf, buflen, "X509 - The signature tag or value invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_EXTENSIONS) )
             snprintf( buf, buflen, "X509 - The extension tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION) )
-            snprintf( buf, buflen, "X509 - Certificate or CRL has an unsupported version number" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG) )
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_VERSION) )
+            snprintf( buf, buflen, "X509 - CRT/CRL/CSR has an unsupported version number" );
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_SIG_ALG) )
             snprintf( buf, buflen, "X509 - Signature algorithm (oid) is unsupported" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_SIG_MISMATCH) )
-            snprintf( buf, buflen, "X509 - Certificate signature algorithms do not match. (see \\c ::x509_cert sig_oid)" );
+        if( use_ret == -(POLARSSL_ERR_X509_SIG_MISMATCH) )
+            snprintf( buf, buflen, "X509 - Signature algorithms do not match. (see \\c ::x509_cert sig_oid)" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_VERIFY_FAILED) )
             snprintf( buf, buflen, "X509 - Certificate verification failed, e.g. CRL, CA or signature check failed" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT) )
             snprintf( buf, buflen, "X509 - Format not recognized as DER or PEM" );
-        if( use_ret == -(POLARSSL_ERR_X509_INVALID_INPUT) )
+        if( use_ret == -(POLARSSL_ERR_X509_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "X509 - Input invalid" );
         if( use_ret == -(POLARSSL_ERR_X509_MALLOC_FAILED) )
             snprintf( buf, buflen, "X509 - Allocation of memory failed" );
         if( use_ret == -(POLARSSL_ERR_X509_FILE_IO_ERROR) )
             snprintf( buf, buflen, "X509 - Read/write of file failed" );
-        if( use_ret == -(POLARSSL_ERR_X509WRITE_UNKNOWN_OID) )
-            snprintf( buf, buflen, "X509 - Requested OID is unknown" );
-        if( use_ret == -(POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA) )
-            snprintf( buf, buflen, "X509 - Failed to allocate memory" );
-        if( use_ret == -(POLARSSL_ERR_X509WRITE_MALLOC_FAILED) )
-            snprintf( buf, buflen, "X509 - Failed to allocate memory" );
 #endif /* POLARSSL_X509_USE,X509_CREATE_C */
 
         if( strlen( buf ) == 0 )

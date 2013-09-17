@@ -46,26 +46,23 @@
  * \{
  */
 #define POLARSSL_ERR_X509_FEATURE_UNAVAILABLE              -0x2080  /**< Unavailable feature, e.g. RSA hashing/encryption combination. */
-#define POLARSSL_ERR_X509_CERT_INVALID_PEM                 -0x2100  /**< The PEM-encoded certificate contains invalid elements, e.g. invalid character. */ 
-#define POLARSSL_ERR_X509_CERT_INVALID_FORMAT              -0x2180  /**< The certificate format is invalid, e.g. different type expected. */
-#define POLARSSL_ERR_X509_CERT_INVALID_VERSION             -0x2200  /**< The certificate version element is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_SERIAL              -0x2280  /**< The serial tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_ALG                 -0x2300  /**< The algorithm tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_NAME                -0x2380  /**< The name tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_DATE                -0x2400  /**< The date tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE           -0x2480  /**< The signature tag or value invalid. */
-#define POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS          -0x2500  /**< The extension tag or value is invalid. */
-#define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION             -0x2580  /**< Certificate or CRL has an unsupported version number. */
-#define POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG             -0x2600  /**< Signature algorithm (oid) is unsupported. */
-#define POLARSSL_ERR_X509_CERT_SIG_MISMATCH                -0x2680  /**< Certificate signature algorithms do not match. (see \c ::x509_cert sig_oid) */
+#define POLARSSL_ERR_X509_UNKNOWN_OID                      -0x2100  /**< Requested OID is unknown. */
+#define POLARSSL_ERR_X509_INVALID_FORMAT                   -0x2180  /**< The CRT/CRL/CSR format is invalid, e.g. different type expected. */
+#define POLARSSL_ERR_X509_INVALID_VERSION                  -0x2200  /**< The CRT/CRL/CSR version element is invalid. */
+#define POLARSSL_ERR_X509_INVALID_SERIAL                   -0x2280  /**< The serial tag or value is invalid. */
+#define POLARSSL_ERR_X509_INVALID_ALG                      -0x2300  /**< The algorithm tag or value is invalid. */
+#define POLARSSL_ERR_X509_INVALID_NAME                     -0x2380  /**< The name tag or value is invalid. */
+#define POLARSSL_ERR_X509_INVALID_DATE                     -0x2400  /**< The date tag or value is invalid. */
+#define POLARSSL_ERR_X509_INVALID_SIGNATURE                -0x2480  /**< The signature tag or value invalid. */
+#define POLARSSL_ERR_X509_INVALID_EXTENSIONS               -0x2500  /**< The extension tag or value is invalid. */
+#define POLARSSL_ERR_X509_UNKNOWN_VERSION                  -0x2580  /**< CRT/CRL/CSR has an unsupported version number. */
+#define POLARSSL_ERR_X509_UNKNOWN_SIG_ALG                  -0x2600  /**< Signature algorithm (oid) is unsupported. */
+#define POLARSSL_ERR_X509_SIG_MISMATCH                     -0x2680  /**< Signature algorithms do not match. (see \c ::x509_cert sig_oid) */
 #define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x2700  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT              -0x2780  /**< Format not recognized as DER or PEM. */
-#define POLARSSL_ERR_X509_INVALID_INPUT                    -0x2800  /**< Input invalid. */
+#define POLARSSL_ERR_X509_BAD_INPUT_DATA                   -0x2800  /**< Input invalid. */
 #define POLARSSL_ERR_X509_MALLOC_FAILED                    -0x2880  /**< Allocation of memory failed. */
 #define POLARSSL_ERR_X509_FILE_IO_ERROR                    -0x2900  /**< Read/write of file failed. */
-#define POLARSSL_ERR_X509WRITE_UNKNOWN_OID                -0x5F80  /**< Requested OID is unknown. */
-#define POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA             -0x5F00  /**< Failed to allocate memory. */
-#define POLARSSL_ERR_X509WRITE_MALLOC_FAILED              -0x5E80  /**< Failed to allocate memory. */
 /* \} name */
 
 /**

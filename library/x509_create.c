@@ -63,7 +63,7 @@ int x509write_string_to_names( asn1_named_data **head, char *name )
                 oid = OID_AT_STATE;
             else
             {
-                ret = POLARSSL_ERR_X509WRITE_UNKNOWN_OID;
+                ret = POLARSSL_ERR_X509_UNKNOWN_OID;
                 goto exit;
             }
 
@@ -77,7 +77,7 @@ int x509write_string_to_names( asn1_named_data **head, char *name )
                                                (unsigned char *) s,
                                                c - s ) ) == NULL )
             {
-                return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
+                return( POLARSSL_ERR_X509_MALLOC_FAILED );
             }
 
             while( c < end && *(c + 1) == ' ' )
@@ -105,7 +105,7 @@ int x509_set_extension( asn1_named_data **head, const char *oid, size_t oid_len,
     if( ( cur = asn1_store_named_data( head, oid, oid_len,
                                        NULL, val_len + 1 ) ) == NULL )
     {
-        return( POLARSSL_ERR_X509WRITE_MALLOC_FAILED );
+        return( POLARSSL_ERR_X509_MALLOC_FAILED );
     }
 
     cur->val.p[0] = critical;

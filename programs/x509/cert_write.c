@@ -124,12 +124,19 @@ int write_certificate( x509write_cert *crt, char *output_file,
     return( 0 );
 }
 
+#if defined(POLARSSL_X509_CSR_PARSE_C)
+#define USAGE_CSR                                                           \
+    "    request_file=%%s     default: (empty)\n"                           \
+    "                        If request_file is specified, subject_key,\n"  \
+    "                        subject_pwd and subject_name are ignored!\n"
+#else
+#define USAGE_CSR ""
+#endif /* POLARSSL_X509_CSR_PARSE_C */
+
 #define USAGE \
     "\n usage: cert_write param=<>...\n"                \
     "\n acceptable parameters:\n"                       \
-    "    request_file=%%s     default: (empty)\n"       \
-    "                        If request_file is specified, subject_key,\n"  \
-    "                        subject_pwd and subject_name are ignored!\n"  \
+    USAGE_CSR                                           \
     "    subject_key=%%s      default: subject.key\n"   \
     "    subject_pwd=%%s      default: (empty)\n"       \
     "    subject_name=%%s     default: CN=Cert,O=PolarSSL,C=NL\n"   \
@@ -180,10 +187,12 @@ int main( int argc, char *argv[] )
                 *subject_key = &loaded_subject_key;
     char buf[1024];
     char issuer_name[128];
-    char subject_name[128];
     int i, j, n;
     char *p, *q, *r;
+#if defined(POLARSSL_X509_CSR_PARSE_C)
+    char subject_name[128];
     x509_csr csr;
+#endif
     x509write_cert crt;
     mpi serial;
     entropy_context entropy;
@@ -198,7 +207,9 @@ int main( int argc, char *argv[] )
     pk_init( &loaded_issuer_key );
     pk_init( &loaded_subject_key );
     mpi_init( &serial );
+#if defined(POLARSSL_X509_CSR_PARSE_C)
     memset( &csr, 0, sizeof(x509_csr) );
+#endif
     memset( &issuer_crt, 0, sizeof(x509_cert) );
     memset( buf, 0, 1024 );
 
@@ -419,6 +430,7 @@ int main( int argc, char *argv[] )
         printf( " ok\n" );
     }
 
+#if defined(POLARSSL_X509_CSR_PARSE_C)
     // Parse certificate request if present
     //
     if( !opt.selfsign && strlen( opt.request_file ) )
@@ -450,6 +462,7 @@ int main( int argc, char *argv[] )
 
         printf( " ok\n" );
     }
+#endif /* POLARSSL_X509_CSR_PARSE_C */
 
     /*
      * 1.1. Load the keys

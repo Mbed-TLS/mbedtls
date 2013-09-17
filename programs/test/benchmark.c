@@ -134,39 +134,105 @@ do {                                                                    \
 
 unsigned char buf[BUFSIZE];
 
+typedef struct {
+    char md4, md5, sha1, sha256, sha512,
+         arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,
+         havege, ctr_drbg,
+         rsa, dhm;
+} todo_list;
+
+#define OPTIONS                                                         \
+    "md4, md5, sha1, sha256, sha512,\n"                                 \
+    "arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,\n"          \
+    "havege, ctr_drbg,\n"                                               \
+    "rsa, dhm.\n"
+
 int main( int argc, char *argv[] )
 {
-    int keysize;
+    int keysize, i;
     unsigned char tmp[64];
     char title[TITLE_LEN];
-    ((void) argc);
-    ((void) argv);
+    todo_list todo;
 
-    memset( buf, 0xAA, sizeof( buf ) );
+    if( argc == 1 )
+        memset( &todo, 1, sizeof( todo ) );
+    else
+    {
+        memset( &todo, 0, sizeof( todo ) );
+
+        for( i = 1; i < argc; i++ )
+        {
+            if( strcmp( argv[i], "md4" ) == 0 )
+                todo.md4 = 1;
+            else if( strcmp( argv[i], "md5" ) == 0 )
+                todo.md5 = 1;
+            else if( strcmp( argv[i], "sha1" ) == 0 )
+                todo.sha1 = 1;
+            else if( strcmp( argv[i], "sha256" ) == 0 )
+                todo.sha256 = 1;
+            else if( strcmp( argv[i], "sha512" ) == 0 )
+                todo.sha512 = 1;
+            else if( strcmp( argv[i], "arc4" ) == 0 )
+                todo.arc4 = 1;
+            else if( strcmp( argv[i], "des3" ) == 0 )
+                todo.des3 = 1;
+            else if( strcmp( argv[i], "des" ) == 0 )
+                todo.des = 1;
+            else if( strcmp( argv[i], "aes_cbc" ) == 0 )
+                todo.aes_cbc = 1;
+            else if( strcmp( argv[i], "aes_gcm" ) == 0 )
+                todo.aes_gcm = 1;
+            else if( strcmp( argv[i], "camellia" ) == 0 )
+                todo.camellia = 1;
+            else if( strcmp( argv[i], "blowfish" ) == 0 )
+                todo.blowfish = 1;
+            else if( strcmp( argv[i], "havege" ) == 0 )
+                todo.havege = 1;
+            else if( strcmp( argv[i], "ctr_drbg" ) == 0 )
+                todo.ctr_drbg = 1;
+            else if( strcmp( argv[i], "rsa" ) == 0 )
+                todo.rsa = 1;
+            else if( strcmp( argv[i], "dhm" ) == 0 )
+                todo.dhm = 1;
+            else
+            {
+                printf( "Unrecognized option: %s\n", argv[i] );
+                printf( "Available options:" OPTIONS );
+            }
+        }
+    }
 
     printf( "\n" );
 
+    memset( buf, 0xAA, sizeof( buf ) );
+
 #if defined(POLARSSL_MD4_C)
-    TIME_AND_TSC( "MD4", md4( buf, BUFSIZE, tmp ) );
+    if( todo.md4 )
+        TIME_AND_TSC( "MD4", md4( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(POLARSSL_MD5_C)
-    TIME_AND_TSC( "MD5", md5( buf, BUFSIZE, tmp ) );
+    if( todo.md5 )
+        TIME_AND_TSC( "MD5", md5( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(POLARSSL_SHA1_C)
-    TIME_AND_TSC( "SHA-1", sha1( buf, BUFSIZE, tmp ) );
+    if( todo.sha1 )
+        TIME_AND_TSC( "SHA-1", sha1( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(POLARSSL_SHA256_C)
-    TIME_AND_TSC( "SHA-256", sha256( buf, BUFSIZE, tmp, 0 ) );
+    if( todo.sha256 )
+        TIME_AND_TSC( "SHA-256", sha256( buf, BUFSIZE, tmp, 0 ) );
 #endif
 
 #if defined(POLARSSL_SHA512_C)
-    TIME_AND_TSC( "SHA-512", sha512( buf, BUFSIZE, tmp, 0 ) );
+    if( todo.sha512 )
+        TIME_AND_TSC( "SHA-512", sha512( buf, BUFSIZE, tmp, 0 ) );
 #endif
 
 #if defined(POLARSSL_ARC4_C)
+    if( todo.arc4 )
     {
         arc4_context arc4;
         arc4_setup( &arc4, tmp, 32 );
@@ -175,6 +241,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_DES_C) && defined(POLARSSL_CIPHER_MODE_CBC)
+    if( todo.des3 )
     {
         des3_context des3;
         des3_set3key_enc( &des3, tmp );
@@ -182,6 +249,7 @@ int main( int argc, char *argv[] )
                 des3_crypt_cbc( &des3, DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
     }
 
+    if( todo.des )
     {
         des_context des;
         des_setkey_enc( &des, tmp );
@@ -192,6 +260,7 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_AES_C)
 #if defined(POLARSSL_CIPHER_MODE_CBC)
+    if( todo.aes_cbc )
     {
         aes_context aes;
         for( keysize = 128; keysize <= 256; keysize += 64 )
@@ -203,11 +272,12 @@ int main( int argc, char *argv[] )
             aes_setkey_enc( &aes, tmp, keysize );
 
             TIME_AND_TSC( title,
-                    aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+                aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         }
     }
 #endif
 #if defined(POLARSSL_GCM_C)
+    if( todo.aes_gcm )
     {
         gcm_context gcm;
         for( keysize = 128; keysize <= 256; keysize += 64 )
@@ -227,6 +297,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_CAMELLIA_C) && defined(POLARSSL_CIPHER_MODE_CBC)
+    if( todo.camellia )
     {
         camellia_context camellia;
         for( keysize = 128; keysize <= 256; keysize += 64 )
@@ -245,6 +316,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_BLOWFISH_C) && defined(POLARSSL_CIPHER_MODE_CBC)
+    if( todo.blowfish )
     {
         blowfish_context blowfish;
         for( keysize = 128; keysize <= 256; keysize += 64 )
@@ -263,6 +335,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_HAVEGE_C)
+    if( todo.havege )
     {
         havege_state hs;
         havege_init( &hs );
@@ -271,8 +344,9 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_CTR_DRBG_C)
+    if( todo.ctr_drbg )
     {
-        ctr_drbg_context    ctr_drbg;
+        ctr_drbg_context ctr_drbg;
 
         if( ctr_drbg_init( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
             exit(1);
@@ -290,6 +364,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME)
+    if( todo.rsa )
     {
         rsa_context rsa;
         for( keysize = 1024; keysize <= 4096; keysize *= 2 )
@@ -313,9 +388,10 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_DHM_C) && defined(POLARSSL_BIGNUM_C)
+    if( todo.dhm )
     {
 #define DHM_SIZES 3
-        int sizes[DHM_SIZES] = { 1024, 2048, 3072 };
+        int dhm_sizes[DHM_SIZES] = { 1024, 2048, 3072 };
         const char *dhm_P[DHM_SIZES] = {
             POLARSSL_DHM_RFC5114_MODP_1024_P,
             POLARSSL_DHM_RFC3526_MODP_2048_P,
@@ -329,24 +405,24 @@ int main( int argc, char *argv[] )
 
         dhm_context dhm;
         size_t olen;
-        for( keysize = 0; keysize < DHM_SIZES; keysize++ )
+        for( i = 0; i < DHM_SIZES; i++ )
         {
             memset( &dhm, 0, sizeof( dhm_context ) );
 
-            mpi_read_string( &dhm.P, 16, dhm_P[keysize] );
-            mpi_read_string( &dhm.G, 16, dhm_G[keysize] );
+            mpi_read_string( &dhm.P, 16, dhm_P[i] );
+            mpi_read_string( &dhm.G, 16, dhm_G[i] );
             dhm.len = mpi_size( &dhm.P );
             dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
             mpi_copy( &dhm.GY, &dhm.GX );
 
-            snprintf( title, sizeof( title ), "DHM-%d", sizes[keysize] );
+            snprintf( title, sizeof( title ), "DHM-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
                     ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len,
                                             myrand, NULL );
                     ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
 
-            snprintf( title, sizeof( title ), "DHM-%d-fixed", sizes[keysize] );
+            snprintf( title, sizeof( title ), "DHM-%d-fixed", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
                     ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );

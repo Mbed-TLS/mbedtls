@@ -73,7 +73,7 @@ unsigned long add_count, dbl_count;
  *  - TLS NamedCurve number (RFC 4492 section 5.1.1)
  *  - size in bits
  */
-ecp_curve_info ecp_supported_curves[] =
+const ecp_curve_info ecp_supported_curves[] =
 {
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
     { POLARSSL_ECP_DP_SECP521R1,    25,     521, },
@@ -743,7 +743,7 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
  */
 ecp_group_id ecp_grp_id_from_named_curve( uint16_t name )
 {
-    ecp_curve_info *curve_info;
+    const ecp_curve_info *curve_info;
 
     for( curve_info = ecp_supported_curves;
          curve_info->grp_id != POLARSSL_ECP_DP_NONE;
@@ -761,7 +761,7 @@ ecp_group_id ecp_grp_id_from_named_curve( uint16_t name )
  */
 uint16_t ecp_named_curve_from_grp_id( ecp_group_id id )
 {
-    ecp_curve_info *curve_info;
+    const ecp_curve_info *curve_info;
 
     for( curve_info = ecp_supported_curves;
          curve_info->grp_id != POLARSSL_ECP_DP_NONE;

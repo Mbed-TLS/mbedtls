@@ -233,7 +233,7 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
     unsigned char *p = buf;
     unsigned char elliptic_curve_list[20];
     size_t elliptic_curve_len = 0;
-    ecp_curve_info *curve;
+    const ecp_curve_info *curve;
     ((void) ssl);
 
     *olen = 0;

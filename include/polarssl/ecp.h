@@ -76,7 +76,7 @@ typedef struct
 /**
  * List of supported curves
  */
-extern ecp_curve_info ecp_supported_curves[];
+extern const ecp_curve_info ecp_supported_curves[];
 
 /**
  * \brief           ECP point structure (jacobian coordinates)

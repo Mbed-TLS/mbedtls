@@ -39,7 +39,7 @@
 /*
  * Generate public key: simple wrapper around ecp_gen_keypair
  */
-int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
+int ecdh_gen_public( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
@@ -49,7 +49,7 @@ int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
 /*
  * Compute shared secret (SEC1 3.3.1)
  */
-int ecdh_compute_shared( const ecp_group *grp, mpi *z,
+int ecdh_compute_shared( ecp_group *grp, mpi *z,
                          const ecp_point *Q, const mpi *d,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng )

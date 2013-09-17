@@ -63,7 +63,7 @@ extern "C" {
  * \return          0 if successful,
  *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
  */
-int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
+int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
                 const mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
@@ -81,7 +81,7 @@ int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid
  *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
  */
-int ecdsa_verify( const ecp_group *grp,
+int ecdsa_verify( ecp_group *grp,
                   const unsigned char *buf, size_t blen,
                   const ecp_point *Q, const mpi *r, const mpi *s);
 

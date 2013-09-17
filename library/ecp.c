@@ -149,6 +149,8 @@ void ecp_point_free( ecp_point *pt )
  */
 void ecp_group_free( ecp_group *grp )
 {
+    size_t i;
+
     if( grp == NULL )
         return;
 
@@ -156,6 +158,13 @@ void ecp_group_free( ecp_group *grp )
     mpi_free( &grp->B );
     ecp_point_free( &grp->G );
     mpi_free( &grp->N );
+
+    if( grp->T != NULL )
+    {
+        for( i = 0; i < grp->T_size; i++ )
+            ecp_point_free( &grp->T[i] );
+        polarssl_free( grp->T );
+    }
 
     memset( grp, 0, sizeof( ecp_group ) );
 }
@@ -1279,34 +1288,53 @@ cleanup:
  * This function executes a fixed number of operations for
  * random m in the range 0 .. 2^nbits - 1.
  *
- * As an additional countermeasure against potential elaborate timing attacks,
- * we randomize coordinates after each addition. This was suggested as a
+ * As an additional countermeasure against potential timing attacks,
+ * we randomize coordinates before each addition. This was suggested as a
  * countermeasure against DPA in 5.3 of [2] (with the obvious adaptation that
  * we use jacobian coordinates, not standard projective coordinates).
  */
-int ecp_mul( const ecp_group *grp, ecp_point *R,
+int ecp_mul( ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
-    unsigned char w, m_is_odd;
+    unsigned char w, m_is_odd, p_eq_g;
     size_t pre_len, naf_len, i, j;
     signed char naf[ MAX_NAF_LEN ];
-    ecp_point Q, T[ MAX_PRE_LEN ];
+    ecp_point Q, *T = NULL, S[2];
     mpi M;
 
     if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    w = grp->nbits >= 521 ? 6 :
-        grp->nbits >= 224 ? 5 :
-                            4;
+    mpi_init( &M );
+    ecp_point_init( &Q );
+    ecp_point_init( &S[0] );
+    ecp_point_init( &S[1] );
+
+    /*
+     * Check if P == G
+     */
+    p_eq_g = ( mpi_cmp_int( &P->Z, 1 ) == 0 &&
+               mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
+               mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
+
+    /*
+     * If P == G, pre-compute a lot of points: this will be re-used later,
+     * otherwise, choose window size depending on curve size
+     */
+    if( p_eq_g )
+        w = POLARSSL_ECP_WINDOW_SIZE;
+    else
+        w = grp->nbits >= 512 ? 6 :
+            grp->nbits >= 224 ? 5 :
+                                4;
 
     /*
      * Make sure w is within the limits.
      * The last test ensures that none of the precomputed points is zero,
      * which wouldn't be handled correctly by ecp_normalize_many().
-     * It is only useful for very small curves, as used in the test suite.
+     * It is only useful for very small curves as used in the test suite.
      */
     if( w > POLARSSL_ECP_WINDOW_SIZE )
         w = POLARSSL_ECP_WINDOW_SIZE;
@@ -1316,25 +1344,54 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
     pre_len = 1 << ( w - 1 );
     naf_len = grp->nbits / w + 1;
 
-    mpi_init( &M );
-    ecp_point_init( &Q );
-    for( i = 0; i < pre_len; i++ )
-        ecp_point_init( &T[i] );
+    /*
+     * Prepare precomputed points: if P == G we want to
+     * use grp->T if already initialized, or initiliaze it.
+     */
+    if( ! p_eq_g || grp->T == NULL )
+    {
+        if( ( T = polarssl_malloc( pre_len * sizeof( ecp_point ) ) ) == NULL )
+        {
+            ret = POLARSSL_ERR_ECP_MALLOC_FAILED;
+            goto cleanup;
+        }
 
-    m_is_odd = ( mpi_get_bit( m, 0 ) == 1 );
+        for( i = 0; i < pre_len; i++ )
+            ecp_point_init( &T[i] );
+
+        MPI_CHK( ecp_precompute( grp, T, pre_len, P ) );
+
+        if( p_eq_g )
+        {
+            grp->T = T;
+            grp->T_size = pre_len;
+        }
+    }
+    else
+    {
+        T = grp->T;
+
+        /* Should never happen, but we want to be extra sure */
+        if( pre_len != grp->T_size )
+        {
+            ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+    }
 
     /*
-     * Make sure M is odd:
-     * later we'll get m * P by subtracting * P or 2 * P to M * P.
+     * Make sure M is odd (M = m + 1 or M = m + 2)
+     * later we'll get m * P by subtracting P or 2 * P to M * P.
      */
+    m_is_odd = ( mpi_get_bit( m, 0 ) == 1 );
+
     MPI_CHK( mpi_copy( &M, m ) );
     MPI_CHK( mpi_add_int( &M, &M, 1 + m_is_odd ) );
 
     /*
-     * Compute the fixed-pattern NAF and precompute odd multiples
+     * Compute the fixed-pattern NAF of M
      */
     MPI_CHK( ecp_w_naf_fixed( naf, naf_len, w, &M ) );
-    MPI_CHK( ecp_precompute( grp, T, pre_len, P ) );
 
     /*
      * Compute M * P, using a variant of left-to-right 2^w-ary multiplication:
@@ -1348,6 +1405,10 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
     i = naf_len - 1;
     while( 1 )
     {
+        /* Countermeasure (see comments above) */
+        if( f_rng != NULL )
+            ecp_randomize_coordinates( grp, &Q, f_rng, p_rng );
+
         if( naf[i] < 0 )
         {
             MPI_CHK( ecp_add_mixed( grp, &Q, &Q, &T[ - naf[i] - 1 ], -1 ) );
@@ -1356,10 +1417,6 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
         {
             MPI_CHK( ecp_add_mixed( grp, &Q, &Q, &T[ naf[i] ], +1 ) );
         }
-
-        /* Countermeasure (see comments above) */
-        if( f_rng != NULL )
-            ecp_randomize_coordinates( grp, &Q, f_rng, p_rng );
 
         if( i == 0 )
             break;
@@ -1372,20 +1429,26 @@ int ecp_mul( const ecp_group *grp, ecp_point *R,
     }
 
     /*
-     * Now get m * P from M * P.
-     * Since we don't need T[] any more, we can recycle it:
-     * we already have T[0] = P, now set T[1] = 2 * P.
+     * Now get m * P from M * P
      */
-    MPI_CHK( ecp_add( grp, &T[1], P, P ) );
-    MPI_CHK( ecp_sub( grp, R, &Q, &T[m_is_odd] ) );
+    MPI_CHK( ecp_copy( &S[0], P ) );
+    MPI_CHK( ecp_add( grp, &S[1], P, P ) );
+    MPI_CHK( ecp_sub( grp, R, &Q, &S[m_is_odd] ) );
 
 
 cleanup:
 
-    mpi_free( &M );
+    if( T != NULL && ! p_eq_g )
+    {
+        for( i = 0; i < pre_len; i++ )
+            ecp_point_free( &T[i] );
+        polarssl_free( T );
+    }
+
+    ecp_point_free( &S[1] );
+    ecp_point_free( &S[0] );
     ecp_point_free( &Q );
-    for( i = 0; i < pre_len; i++ )
-        ecp_point_free( &T[i] );
+    mpi_free( &M );
 
     return( ret );
 }
@@ -1450,7 +1513,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
 /*
  * Generate a keypair (SEC1 3.2.1)
  */
-int ecp_gen_keypair( const ecp_group *grp, mpi *d, ecp_point *Q,
+int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
@@ -1485,7 +1548,7 @@ int ecp_self_test( int verbose )
     int ret;
     size_t i;
     ecp_group grp;
-    ecp_point R;
+    ecp_point R, P;
     mpi m;
     unsigned long add_c_prev, dbl_c_prev;
     const char *exponents[] =
@@ -1501,6 +1564,7 @@ int ecp_self_test( int verbose )
 
     ecp_group_init( &grp );
     ecp_point_init( &R );
+    ecp_point_init( &P );
     mpi_init( &m );
 
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
@@ -1526,7 +1590,11 @@ int ecp_self_test( int verbose )
 #endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
     if( verbose != 0 )
-        printf( "  ECP test #1 (resistance to simple timing attacks): " );
+        printf( "  ECP test #1 (constant op_count, base point G): " );
+
+    /* Do a dummy multiplication first to trigger precomputation */
+    MPI_CHK( mpi_lset( &m, 2 ) );
+    MPI_CHK( ecp_mul( &grp, &P, &m, &grp.G, NULL, NULL ) );
 
     add_count = 0;
     dbl_count = 0;
@@ -1556,6 +1624,38 @@ int ecp_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n" );
 
+    if( verbose != 0 )
+        printf( "  ECP test #2 (constant op_count, other point): " );
+    /* We computed P = 2G last time, use it */
+
+    add_count = 0;
+    dbl_count = 0;
+    MPI_CHK( mpi_read_string( &m, 16, exponents[0] ) );
+    MPI_CHK( ecp_mul( &grp, &R, &m, &P, NULL, NULL ) );
+
+    for( i = 1; i < sizeof( exponents ) / sizeof( exponents[0] ); i++ )
+    {
+        add_c_prev = add_count;
+        dbl_c_prev = dbl_count;
+        add_count = 0;
+        dbl_count = 0;
+
+        MPI_CHK( mpi_read_string( &m, 16, exponents[i] ) );
+        MPI_CHK( ecp_mul( &grp, &R, &m, &P, NULL, NULL ) );
+
+        if( add_count != add_c_prev || dbl_count != dbl_c_prev )
+        {
+            if( verbose != 0 )
+                printf( "failed (%zu)\n", i );
+
+            ret = 1;
+            goto cleanup;
+        }
+    }
+
+    if( verbose != 0 )
+        printf( "passed\n" );
+
 cleanup:
 
     if( ret < 0 && verbose != 0 )
@@ -1563,6 +1663,7 @@ cleanup:
 
     ecp_group_free( &grp );
     ecp_point_free( &R );
+    ecp_point_free( &P );
     mpi_free( &m );
 
     if( verbose != 0 )

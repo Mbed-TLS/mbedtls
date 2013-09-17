@@ -51,7 +51,7 @@ static int derive_mpi( const ecp_group *grp, mpi *x,
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
  */
-int ecdsa_sign( const ecp_group *grp, mpi *r, mpi *s,
+int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
                 const mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
@@ -117,7 +117,7 @@ cleanup:
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
  */
-int ecdsa_verify( const ecp_group *grp,
+int ecdsa_verify( ecp_group *grp,
                   const unsigned char *buf, size_t blen,
                   const ecp_point *Q, const mpi *r, const mpi *s)
 {

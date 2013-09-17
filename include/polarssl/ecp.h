@@ -155,16 +155,15 @@ ecp_keypair;
 
 /*
  * Maximum window size (actually, NAF width) used for point multipliation.
- * Default: 7.
+ * Default: 8.
  * Minimum value: 2. Maximum value: 8.
  *
  * Result is an array of at most ( 1 << ( POLARSSL_ECP_WINDOW_SIZE - 1 ) )
- * points used for point multiplication, so at most 64 by default.
- * In practice, most curves will use less precomputed points.
+ * points used for point multiplication.
  *
  * Reduction in size may reduce speed for big curves.
  */
-#define POLARSSL_ECP_WINDOW_SIZE    7   /**< Maximum NAF width used. */
+#define POLARSSL_ECP_WINDOW_SIZE    8   /**< Maximum NAF width used. */
 
 /*
  * Point formats, from RFC 4492's enum ECPointFormat
@@ -472,7 +471,7 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  *                  has very low overhead, it is recommended to always provide
  *                  a non-NULL f_rng parameter when using secret inputs.
  */
-int ecp_mul( const ecp_group *grp, ecp_point *R,
+int ecp_mul( ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
@@ -531,7 +530,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d );
  *                  in order to ease use with other structures such as
  *                  ecdh_context of ecdsa_context.
  */
-int ecp_gen_keypair( const ecp_group *grp, mpi *d, ecp_point *Q,
+int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
 

@@ -62,7 +62,7 @@ ecdh_context;
  * \return          0 if successful,
  *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
  */
-int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
+int ecdh_gen_public( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
 
@@ -83,7 +83,7 @@ int ecdh_gen_public( const ecp_group *grp, mpi *d, ecp_point *Q,
  *                  countermeasures against potential elaborate timing
  *                  attacks, see \c ecp_mul() for details.
  */
-int ecdh_compute_shared( const ecp_group *grp, mpi *z,
+int ecdh_compute_shared( ecp_group *grp, mpi *z,
                          const ecp_point *Q, const mpi *d,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng );

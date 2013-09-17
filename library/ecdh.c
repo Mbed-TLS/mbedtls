@@ -85,12 +85,7 @@ cleanup:
  */
 void ecdh_init( ecdh_context *ctx )
 {
-    ecp_group_init( &ctx->grp );
-    mpi_init      ( &ctx->d   );
-    ecp_point_init( &ctx->Q   );
-    ecp_point_init( &ctx->Qp  );
-    mpi_init      ( &ctx->z   );
-    ctx->point_format = POLARSSL_ECP_PF_UNCOMPRESSED;
+    memset( ctx, 0, sizeof( ecdh_context ) );
 }
 
 /*
@@ -106,6 +101,9 @@ void ecdh_free( ecdh_context *ctx )
     ecp_point_free( &ctx->Q   );
     ecp_point_free( &ctx->Qp  );
     mpi_free      ( &ctx->z   );
+    ecp_point_free( &ctx->Vi  );
+    ecp_point_free( &ctx->Vf  );
+    mpi_free      ( &ctx->_d  );
 }
 
 /*

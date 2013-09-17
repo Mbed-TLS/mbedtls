@@ -44,6 +44,9 @@ typedef struct
     ecp_point Qp;       /*!<  peer's public value       */
     mpi z;              /*!<  shared secret             */
     int point_format;   /*!<  format for point export   */
+    ecp_point Vi;       /*!<  blinding value (for later)    */
+    ecp_point Vf;       /*!<  un-blinding value (for later) */
+    mpi _d;             /*!<  previous d                    */
 }
 ecdh_context;
 

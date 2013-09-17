@@ -1294,7 +1294,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                     continue;
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
-                if( ( ciphersuite_info->flags & POLARSSL_CIPHERSUITE_EC ) &&
+                if( ssl_ciphersuite_uses_ec( ciphersuite_info ) &&
                     ssl->handshake->ec_curve == 0 )
                     continue;
 #endif
@@ -1592,8 +1592,8 @@ static int ssl_write_server_hello( ssl_context *ssl )
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite      );
     *p++ = (unsigned char)( ssl->session_negotiate->compression      );
 
-    SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: 0x%04X",
-                   ssl->session_negotiate->ciphersuite ) );
+    SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s",
+           ssl_get_ciphersuite_name( ssl->session_negotiate->ciphersuite ) ) );
     SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
                    ssl->session_negotiate->compression ) );
 

@@ -171,7 +171,6 @@ typedef enum {
 typedef struct _ssl_ciphersuite_t ssl_ciphersuite_t;
 
 #define POLARSSL_CIPHERSUITE_WEAK   0x01    /*<! Weak ciphersuite flag      */
-#define POLARSSL_CIPHERSUITE_EC     0x02    /*<! EC-based ciphersuite flag  */
 
 /**
  * \brief   This structure is used for storing ciphersuite information
@@ -199,6 +198,8 @@ const ssl_ciphersuite_t *ssl_ciphersuite_from_string( const char *ciphersuite_na
 const ssl_ciphersuite_t *ssl_ciphersuite_from_id( int ciphersuite_id );
 
 pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info );
+
+int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info );
 
 #ifdef __cplusplus
 }

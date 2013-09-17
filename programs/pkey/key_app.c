@@ -37,6 +37,19 @@
 #include "polarssl/rsa.h"
 #include "polarssl/x509.h"
 
+#if !defined(POLARSSL_BIGNUM_C) ||                                  \
+    !defined(POLARSSL_PK_PARSE_C) || !defined(POLARSSL_FS_IO)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or "
+           "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
+
 #define MODE_NONE               0
 #define MODE_PRIVATE            1
 #define MODE_PUBLIC             2
@@ -67,22 +80,10 @@ struct options
     "    password_file=%%s    default: \"\"\n"          \
     "\n"
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     int ret = 0;
-    rsa_context rsa;
+    pk_context pk;
     char buf[1024];
     int i;
     char *p, *q;
@@ -90,7 +91,7 @@ int main( int argc, char *argv[] )
     /*
      * Set to sane values
      */
-    memset( &rsa, 0, sizeof( rsa_context ) );
+    pk_init( &pk );
     memset( buf, 0, 1024 );
 
     if( argc == 0 )
@@ -164,15 +165,12 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = x509parse_keyfile_rsa( &rsa, opt.filename, opt.password );
+        ret = pk_parse_keyfile( &pk, opt.filename, opt.password );
 
         if( ret != 0 )
         {
-#ifdef POLARSSL_ERROR_C
             polarssl_strerror( ret, buf, 1024 );
-#endif
-            printf( " failed\n  !  x509parse_key_rsa returned %d - %s\n\n", ret, buf );
-            rsa_free( &rsa );
+            printf( " failed\n  !  pk_parse_keyfile returned %d - %s\n\n", ret, buf );
             goto exit;
         }
 
@@ -181,15 +179,38 @@ int main( int argc, char *argv[] )
         /*
          * 1.2 Print the key
          */
-        printf( "  . Key information    ...\n" );
-        mpi_write_file( "N:  ", &rsa.N, 16, NULL );
-        mpi_write_file( "E:  ", &rsa.E, 16, NULL );
-        mpi_write_file( "D:  ", &rsa.D, 16, NULL );
-        mpi_write_file( "P:  ", &rsa.P, 16, NULL );
-        mpi_write_file( "Q:  ", &rsa.Q, 16, NULL );
-        mpi_write_file( "DP: ", &rsa.DP, 16, NULL );
-        mpi_write_file( "DQ:  ", &rsa.DQ, 16, NULL );
-        mpi_write_file( "QP:  ", &rsa.QP, 16, NULL );
+#if defined(POLARSSL_RSA_C)
+        if( pk_can_do( &pk, POLARSSL_PK_RSA ) )
+        {
+            rsa_context *rsa = pk_rsa( pk );
+            printf( "  . Key information    ...\n" );
+            mpi_write_file( "N:  ", &rsa->N, 16, NULL );
+            mpi_write_file( "E:  ", &rsa->E, 16, NULL );
+            mpi_write_file( "D:  ", &rsa->D, 16, NULL );
+            mpi_write_file( "P:  ", &rsa->P, 16, NULL );
+            mpi_write_file( "Q:  ", &rsa->Q, 16, NULL );
+            mpi_write_file( "DP: ", &rsa->DP, 16, NULL );
+            mpi_write_file( "DQ:  ", &rsa->DQ, 16, NULL );
+            mpi_write_file( "QP:  ", &rsa->QP, 16, NULL );
+        }
+        else
+#endif
+#if defined(POLARSSL_ECP_C)
+        if( pk_can_do( &pk, POLARSSL_PK_ECKEY ) )
+        {
+            ecp_keypair *ecp = pk_ec( pk );
+            printf( "  . Key information    ...\n" );
+            mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
+            mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
+            mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
+            mpi_write_file( "D   : ", &ecp->d  , 16, NULL );
+        }
+        else
+#endif
+        {
+            printf("Do not know how to print key information for this type\n" );
+            goto exit;
+        }
     }
     else if( opt.mode == MODE_PUBLIC )
     {
@@ -199,33 +220,49 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the public key ..." );
         fflush( stdout );
 
-        ret = x509parse_public_keyfile_rsa( &rsa, opt.filename );
+        ret = pk_parse_public_keyfile( &pk, opt.filename );
 
         if( ret != 0 )
         {
-#ifdef POLARSSL_ERROR_C
             polarssl_strerror( ret, buf, 1024 );
-#endif
-            printf( " failed\n  !  x509parse_public_key_rsa returned %d - %s\n\n", ret, buf );
-            rsa_free( &rsa );
+            printf( " failed\n  !  pk_parse_public_keyfile returned %d - %s\n\n", ret, buf );
             goto exit;
         }
 
         printf( " ok\n" );
 
-        /*
-         * 1.2 Print the key
-         */
-        printf( "  . Key information    ...\n" );
-        mpi_write_file( "N: ", &rsa.N, 16, NULL );
-        mpi_write_file( "E:  ", &rsa.E, 16, NULL );
+#if defined(POLARSSL_RSA_C)
+        if( pk_can_do( &pk, POLARSSL_PK_RSA ) )
+        {
+            rsa_context *rsa = pk_rsa( pk );
+            printf( "  . Key information    ...\n" );
+            mpi_write_file( "N:  ", &rsa->N, 16, NULL );
+            mpi_write_file( "E:  ", &rsa->E, 16, NULL );
+        }
+        else
+#endif
+#if defined(POLARSSL_ECP_C)
+        if( pk_can_do( &pk, POLARSSL_PK_ECKEY ) )
+        {
+            ecp_keypair *ecp = pk_ec( pk );
+            printf( "  . Key information    ...\n" );
+            mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
+            mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
+            mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
+        }
+        else
+#endif
+        {
+            printf("Do not know how to print key information for this type\n" );
+            goto exit;
+        }
     }
     else
         goto usage;
 
 exit:
 
-    rsa_free( &rsa );
+    pk_free( &pk );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );
@@ -234,5 +271,4 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C &&
-          POLARSSL_X509_PARSE_C && POLARSSL_FS_IO */
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_PK_PARSE_C && POLARSSL_FS_IO */

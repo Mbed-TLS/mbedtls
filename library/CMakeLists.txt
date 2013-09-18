@@ -59,8 +59,8 @@ set(src
      x509_crl.c
      x509_csr.c
      x509_create.c
-     x509_crt_write.c
-     x509_csr_write.c
+     x509write_crt.c
+     x509write_csr.c
      xtea.c
 )
 

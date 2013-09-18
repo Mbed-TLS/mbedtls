@@ -92,7 +92,7 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     pk_init( &pk );
-    memset( buf, 0, 1024 );
+    memset( buf, 0, sizeof(buf) );
 
     if( argc == 0 )
     {
@@ -150,7 +150,7 @@ int main( int argc, char *argv[] )
                 printf( " failed\n  !  fopen returned NULL\n" );
                 goto exit;
             }
-            fgets( buf, 1024, f );
+            fgets( buf, sizeof(buf), f );
             fclose( f );
 
             i = strlen( buf );
@@ -169,8 +169,8 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  pk_parse_keyfile returned %d - %s\n\n", ret, buf );
+            polarssl_strerror( ret, buf, sizeof(buf) );
+            printf( " failed\n  !  pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -179,11 +179,11 @@ int main( int argc, char *argv[] )
         /*
          * 1.2 Print the key
          */
+        printf( "  . Key information    ...\n" );
 #if defined(POLARSSL_RSA_C)
-        if( pk_can_do( &pk, POLARSSL_PK_RSA ) )
+        if( pk_get_type( &pk ) == POLARSSL_PK_RSA )
         {
             rsa_context *rsa = pk_rsa( pk );
-            printf( "  . Key information    ...\n" );
             mpi_write_file( "N:  ", &rsa->N, 16, NULL );
             mpi_write_file( "E:  ", &rsa->E, 16, NULL );
             mpi_write_file( "D:  ", &rsa->D, 16, NULL );
@@ -196,10 +196,9 @@ int main( int argc, char *argv[] )
         else
 #endif
 #if defined(POLARSSL_ECP_C)
-        if( pk_can_do( &pk, POLARSSL_PK_ECKEY ) )
+        if( pk_get_type( &pk ) == POLARSSL_PK_ECKEY )
         {
             ecp_keypair *ecp = pk_ec( pk );
-            printf( "  . Key information    ...\n" );
             mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
             mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
             mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
@@ -224,28 +223,27 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            polarssl_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  pk_parse_public_keyfile returned %d - %s\n\n", ret, buf );
+            polarssl_strerror( ret, buf, sizeof(buf) );
+            printf( " failed\n  !  pk_parse_public_keyfile returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
         printf( " ok\n" );
 
+        printf( "  . Key information    ...\n" );
 #if defined(POLARSSL_RSA_C)
-        if( pk_can_do( &pk, POLARSSL_PK_RSA ) )
+        if( pk_get_type( &pk ) == POLARSSL_PK_RSA )
         {
             rsa_context *rsa = pk_rsa( pk );
-            printf( "  . Key information    ...\n" );
             mpi_write_file( "N:  ", &rsa->N, 16, NULL );
             mpi_write_file( "E:  ", &rsa->E, 16, NULL );
         }
         else
 #endif
 #if defined(POLARSSL_ECP_C)
-        if( pk_can_do( &pk, POLARSSL_PK_ECKEY ) )
+        if( pk_get_type( &pk ) == POLARSSL_PK_ECKEY )
         {
             ecp_keypair *ecp = pk_ec( pk );
-            printf( "  . Key information    ...\n" );
             mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
             mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
             mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );

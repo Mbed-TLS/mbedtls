@@ -33,6 +33,7 @@
 
 #include "polarssl/config.h"
 
+#include "polarssl/error.h"
 #include "polarssl/pk.h"
 #include "polarssl/error.h"
 
@@ -254,7 +255,8 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            printf( " failed\n  !  pk_parse_key returned %d", ret );
+            polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+            printf( " failed\n  !  pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -280,6 +282,17 @@ int main( int argc, char *argv[] )
         }
         else
 #endif
+#if defined(POLARSSL_ECP_C)
+        if( pk_get_type( &key ) == POLARSSL_PK_ECKEY )
+        {
+            ecp_keypair *ecp = pk_ec( key );
+            mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
+            mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
+            mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
+            mpi_write_file( "D   : ", &ecp->d  , 16, NULL );
+        }
+        else
+#endif
             printf("key type not supported yet\n");
 
     }
@@ -295,7 +308,8 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            printf( " failed\n  !  pk_parse_public_key returned %d", ret );
+            polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+            printf( " failed\n  !  pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -312,6 +326,16 @@ int main( int argc, char *argv[] )
             rsa_context *rsa = pk_rsa( key );
             mpi_write_file( "N: ", &rsa->N, 16, NULL );
             mpi_write_file( "E: ", &rsa->E, 16, NULL );
+        }
+        else
+#endif
+#if defined(POLARSSL_ECP_C)
+        if( pk_get_type( &key ) == POLARSSL_PK_ECKEY )
+        {
+            ecp_keypair *ecp = pk_ec( key );
+            mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
+            mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
+            mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
         }
         else
 #endif

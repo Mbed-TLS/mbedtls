@@ -93,8 +93,7 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-        printf( " failed\n  ! ctr_drbg_init returned -0x%04x - %s\n\n", -ret, buf );
+        printf( " failed\n  ! ctr_drbg_init returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -126,8 +125,7 @@ int main( int argc, char *argv[] )
     if( ( ret = pk_sign( &pk, POLARSSL_MD_SHA1, hash, 0, buf, &olen,
                          ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-        printf( " failed\n  ! pk_sign returned -0x%04x - %s\n\n", -ret, buf );
+        printf( " failed\n  ! pk_sign returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -155,6 +153,11 @@ int main( int argc, char *argv[] )
 
 exit:
     pk_free( &pk );
+
+#if defined(POLARSSL_ERROR_C)
+    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+    printf( "  !  Last error was: %s\n", buf );
+#endif
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

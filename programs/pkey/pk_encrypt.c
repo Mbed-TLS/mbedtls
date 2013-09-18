@@ -84,8 +84,7 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-        printf( " failed\n  ! ctr_drbg_init returned -0x%04x - %s\n\n", -ret, buf );
+        printf( " failed\n  ! ctr_drbg_init returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -96,8 +95,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = pk_parse_public_keyfile( &pk, argv[1] ) ) != 0 )
     {
-        polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-        printf( " failed\n  ! pk_parse_public_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+        printf( " failed\n  ! pk_parse_public_keyfile returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -119,8 +117,7 @@ int main( int argc, char *argv[] )
                             buf, &olen, sizeof(buf),
                             ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-        printf( " failed\n  ! pk_encrypt returned -0x%04x - %s\n\n", -ret, buf );
+        printf( " failed\n  ! pk_encrypt returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -143,6 +140,11 @@ int main( int argc, char *argv[] )
     printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
 
 exit:
+
+#if defined(POLARSSL_ERROR_C)
+    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+    printf( "  !  Last error was: %s\n", buf );
+#endif
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

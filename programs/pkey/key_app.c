@@ -169,8 +169,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            polarssl_strerror( ret, buf, sizeof(buf) );
-            printf( " failed\n  !  pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  pk_parse_keyfile returned -0x%04x\n", -ret );
             goto exit;
         }
 
@@ -223,8 +222,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            polarssl_strerror( ret, buf, sizeof(buf) );
-            printf( " failed\n  !  pk_parse_public_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  pk_parse_public_keyfile returned -0x%04x\n", -ret );
             goto exit;
         }
 
@@ -259,6 +257,11 @@ int main( int argc, char *argv[] )
         goto usage;
 
 exit:
+
+#if defined(POLARSSL_ERROR_C)
+    polarssl_strerror( ret, buf, sizeof(buf) );
+    printf( "  !  Last error was: %s\n", buf );
+#endif
 
     pk_free( &pk );
 

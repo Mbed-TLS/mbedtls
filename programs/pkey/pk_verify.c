@@ -84,8 +84,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = pk_parse_public_keyfile( &pk, argv[1] ) ) != 0 )
     {
-        polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-        printf( " failed\n  ! pk_parse_public_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+        printf( " failed\n  ! pk_parse_public_keyfile returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -122,8 +121,7 @@ int main( int argc, char *argv[] )
     if( ( ret = pk_verify( &pk, POLARSSL_MD_SHA1, hash, 0,
                            buf, i ) ) != 0 )
     {
-        polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-        printf( " failed\n  ! pk_verify returned -0x%04x - %s\n\n", -ret, buf );
+        printf( " failed\n  ! pk_verify returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -133,6 +131,11 @@ int main( int argc, char *argv[] )
 
 exit:
     pk_free( &pk );
+
+#if defined(POLARSSL_ERROR_C)
+    polarssl_strerror( ret, (char *) buf, sizeof(buf) );
+    printf( "  !  Last error was: %s\n", buf );
+#endif
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

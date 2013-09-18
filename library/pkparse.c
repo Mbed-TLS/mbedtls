@@ -513,7 +513,7 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
     }
 
     /*
-     * Is 'publickey' present?
+     * Is 'publickey' present? If not, create it from the private key.
      */
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
@@ -531,6 +531,12 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
             return( ret );
     }
     else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    {
+        ecp_keypair_free( eck );
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+    }
+    else if( ( ret = ecp_mul( &eck->grp, &eck->Q, &eck->d, &eck->grp.G,
+                              NULL, NULL ) ) != 0 )
     {
         ecp_keypair_free( eck );
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );

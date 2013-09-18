@@ -95,7 +95,7 @@ int ssl_cache_get( void *data, ssl_session *session )
             if( session->peer_cert == NULL )
                 return( 1 );
 
-            memset( session->peer_cert, 0, sizeof(x509_crt) );
+            x509_crt_init( session->peer_cert );
             if( x509_crt_parse( session->peer_cert, entry->peer_cert.p,
                                 entry->peer_cert.len ) != 0 )
             {

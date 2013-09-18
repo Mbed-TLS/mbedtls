@@ -708,7 +708,7 @@ int x509_self_test( int verbose )
     if( verbose != 0 )
         printf( "  X.509 certificate load: " );
 
-    memset( &clicert, 0, sizeof( x509_crt ) );
+    x509_crt_init( &clicert );
 
     ret = x509_crt_parse( &clicert, (const unsigned char *) test_cli_crt,
                           strlen( test_cli_crt ) );
@@ -720,7 +720,7 @@ int x509_self_test( int verbose )
         return( ret );
     }
 
-    memset( &cacert, 0, sizeof( x509_crt ) );
+    x509_crt_init( &cacert );
 
     ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_crt,
                           strlen( test_ca_crt ) );

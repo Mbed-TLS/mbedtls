@@ -83,7 +83,7 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
         if( ( dst->peer_cert = polarssl_malloc( sizeof(x509_crt) ) ) == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-        memset( dst->peer_cert, 0, sizeof(x509_crt) );
+        x509_crt_init( dst->peer_cert );
 
         if( ( ret = x509_crt_parse( dst->peer_cert, src->peer_cert->raw.p,
                                     src->peer_cert->raw.len ) != 0 ) )
@@ -2494,7 +2494,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    memset( ssl->session_negotiate->peer_cert, 0, sizeof( x509_crt ) );
+    x509_crt_init( ssl->session_negotiate->peer_cert );
 
     i = 7;
 

@@ -279,7 +279,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         }
 
         crl = crl->next;
-        memset( crl, 0, sizeof( x509_crl ) );
+        x509_crl_init( crl );
     }
 
 #if defined(POLARSSL_PEM_PARSE_C)
@@ -514,7 +514,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         }
 
         crl = crl->next;
-        memset( crl, 0, sizeof( x509_crl ) );
+        x509_crl_init( crl );
 
         return( x509parse_crl( crl, buf, buflen ) );
     }
@@ -677,6 +677,14 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );
+}
+
+/*
+ * Initialize a CRL chain
+ */
+void x509_crl_init( x509_crl *crl )
+{
+    memset( crl, 0, sizeof(x509_crl) );
 }
 
 /*

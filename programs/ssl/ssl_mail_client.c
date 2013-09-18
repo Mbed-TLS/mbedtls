@@ -363,8 +363,8 @@ int main( int argc, char *argv[] )
      * Make sure memory references are valid.
      */
     server_fd = 0;
-    memset( &cacert, 0, sizeof( x509_cert ) );
-    memset( &clicert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &cacert );
+    x509_crt_init( &clicert );
     pk_init( &pkey );
 
     if( argc == 0 )

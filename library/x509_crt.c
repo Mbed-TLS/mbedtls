@@ -785,7 +785,7 @@ int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen
 
         prev = crt;
         crt = crt->next;
-        memset( crt, 0, sizeof( x509_cert ) );
+        x509_crt_init( crt );
     }
 
     if( ( ret = x509parse_crt_der_core( crt, buf, buflen ) ) != 0 )
@@ -1600,6 +1600,14 @@ int x509parse_verify( x509_cert *crt,
         return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
 
     return( 0 );
+}
+
+/*
+ * Initialize a certificate chain
+ */
+void x509_crt_init( x509_cert *crt )
+{
+    memset( crt, 0, sizeof(x509_cert) );
 }
 
 /*

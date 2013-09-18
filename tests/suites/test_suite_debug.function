@@ -30,7 +30,7 @@ void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
     ssl_context ssl;
     struct buffer_data buffer;
 
-    memset( &crt, 0, sizeof( x509_cert ) );
+    x509_crt_init( &crt );
     memset( &ssl, 0, sizeof( ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf; 

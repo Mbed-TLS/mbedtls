@@ -38,7 +38,7 @@ void x509_cert_info( char *crt_file, char *result_str )
     char buf[2000];
     int res;
 
-    memset( &crt, 0, sizeof( x509_cert ) );
+    x509_crt_init( &crt );
     memset( buf, 0, 2000 );
 
     TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
@@ -60,7 +60,7 @@ void x509_crl_info( char *crl_file, char *result_str )
     char buf[2000];
     int res;
 
-    memset( &crl, 0, sizeof( x509_crl ) );
+    x509_crl_init( &crl );
     memset( buf, 0, 2000 );
 
     TEST_ASSERT( x509parse_crlfile( &crl, crl_file ) == 0 );
@@ -88,9 +88,9 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
     int (*f_vrfy)(void *, x509_cert *, int, int *) = NULL;
     char *      cn_name = NULL;
 
-    memset( &crt, 0, sizeof( x509_cert ) );
-    memset( &ca, 0, sizeof( x509_cert ) );
-    memset( &crl, 0, sizeof( x509_crl ) );
+    x509_crt_init( &crt );
+    x509_crt_init( &ca );
+    x509_crl_init( &crl );
 
     if( strcmp( cn_name_str, "NULL" ) != 0 )
         cn_name = cn_name_str;
@@ -126,7 +126,7 @@ void x509_dn_gets( char *crt_file, char *entity, char *result_str )
     char buf[2000];
     int res = 0;
 
-    memset( &crt, 0, sizeof( x509_cert ) );
+    x509_crt_init( &crt );
     memset( buf, 0, 2000 );
 
     TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
@@ -151,7 +151,7 @@ void x509_time_expired( char *crt_file, char *entity, int result )
 {
     x509_cert   crt;
 
-    memset( &crt, 0, sizeof( x509_cert ) );
+    x509_crt_init( &crt );
 
     TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
 
@@ -174,7 +174,7 @@ void x509parse_crt( char *crt_data, char *result_str, int result )
     unsigned char output[2000];
     int data_len, res;
 
-    memset( &crt, 0, sizeof( x509_cert ) );
+    x509_crt_init( &crt );
     memset( buf, 0, 2000 );
     memset( output, 0, 2000 );
 
@@ -203,7 +203,7 @@ void x509parse_crl( char *crl_data, char *result_str, int result )
     unsigned char output[2000];
     int data_len, res;
 
-    memset( &crl, 0, sizeof( x509_crl ) );
+    x509_crl_init( &crl );
     memset( buf, 0, 2000 );
     memset( output, 0, 2000 );
 

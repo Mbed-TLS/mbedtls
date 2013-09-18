@@ -134,7 +134,7 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the server cert. and key..." );
     fflush( stdout );
 
-    memset( &srvcert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &srvcert );
 
     /*
      * This demonstration program uses embedded test certificates.

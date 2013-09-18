@@ -208,9 +208,9 @@ int main( int argc, char *argv[] )
     pk_init( &loaded_subject_key );
     mpi_init( &serial );
 #if defined(POLARSSL_X509_CSR_PARSE_C)
-    memset( &csr, 0, sizeof(x509_csr) );
+    x509_csr_init( &csr );
 #endif
-    memset( &issuer_crt, 0, sizeof(x509_cert) );
+    x509_crt_init( &issuer_crt );
     memset( buf, 0, 1024 );
 
     if( argc == 0 )

@@ -89,8 +89,8 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    memset( &cacert, 0, sizeof( x509_cert ) );
-    memset( &crl, 0, sizeof( x509_crl ) );
+    x509_crt_init( &cacert );
+    x509_crl_init( &crl );
 
     /*
      * 1.1. Load the trusted CA
@@ -142,7 +142,7 @@ int main( int argc, char *argv[] )
         x509_cert clicert;
         pk_context pk;
 
-        memset( &clicert, 0, sizeof( x509_cert ) );
+        x509_crt_init( &clicert );
         pk_init( &pk );
 
         snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);

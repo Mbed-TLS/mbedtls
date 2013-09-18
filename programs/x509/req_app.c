@@ -76,7 +76,7 @@ int main( int argc, char *argv[] )
     /*
      * Set to sane values
      */
-    memset( &csr, 0, sizeof( x509_csr ) );
+    x509_csr_init( &csr );
 
     if( argc == 0 )
     {

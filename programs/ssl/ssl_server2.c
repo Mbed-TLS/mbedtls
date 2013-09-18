@@ -237,8 +237,8 @@ int main( int argc, char *argv[] )
      */
     listen_fd = 0;
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    memset( &cacert, 0, sizeof( x509_cert ) );
-    memset( &srvcert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &cacert );
+    x509_crt_init( &srvcert );
     pk_init( &pkey );
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)

@@ -118,6 +118,13 @@ int x509parse_csr_info( char *buf, size_t size, const char *prefix,
                         const x509_csr *csr );
 
 /**
+ * \brief          Initialize a CSR
+ *
+ * \param csr      CSR to initialize
+ */
+void x509_csr_init( x509_csr *csr );
+
+/**
  * \brief          Unallocate all CSR data
  *
  * \param csr      CSR to free

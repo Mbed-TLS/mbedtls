@@ -168,8 +168,8 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     server_fd = 0;
-    memset( &cacert, 0, sizeof( x509_cert ) );
-    memset( &clicert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &cacert );
+    x509_crt_init( &clicert );
     pk_init( &pkey );
 
     if( argc == 0 )
@@ -269,7 +269,7 @@ int main( int argc, char *argv[] )
     {
         x509_cert crt;
         x509_cert *cur = &crt;
-        memset( &crt, 0, sizeof( x509_cert ) );
+        x509_crt_init( &crt );
 
         /*
          * 1.1. Load the certificate(s)

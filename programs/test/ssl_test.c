@@ -187,7 +187,7 @@ static int ssl_test( struct options *opt )
     memset( read_state, 0, sizeof( read_state ) );
     memset( write_state, 0, sizeof( write_state ) );
 
-    memset( &srvcert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &srvcert );
     pk_init( &pkey );
 
     if( opt->opmode == OPMODE_CLIENT )

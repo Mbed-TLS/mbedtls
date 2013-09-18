@@ -255,6 +255,13 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl );
 #endif /* POLARSSL_X509_CRL_PARSE_C */
 
 /**
+ * \brief          Initialize a certificate (chain)
+ *
+ * \param crt      Certificate chain to initialize
+ */
+void x509_crt_init( x509_cert *crt );
+
+/**
  * \brief          Unallocate all certificate data
  *
  * \param crt      Certificate chain to free

@@ -269,8 +269,8 @@ int main( int argc, char *argv[] )
     memset( &ssl, 0, sizeof( ssl_context ) );
     memset( &saved_session, 0, sizeof( ssl_session ) );
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    memset( &cacert, 0, sizeof( x509_cert ) );
-    memset( &clicert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &cacert );
+    x509_crt_init( &clicert );
     pk_init( &pkey );
 #endif
 

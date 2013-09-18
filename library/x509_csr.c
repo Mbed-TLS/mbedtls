@@ -103,7 +103,7 @@ int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
     if( csr == NULL || buf == NULL )
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
-    memset( csr, 0, sizeof( x509_csr ) );
+    x509_csr_init( csr );
 
 #if defined(POLARSSL_PEM_PARSE_C)
     pem_init( &pem );
@@ -403,6 +403,14 @@ int x509parse_csr_info( char *buf, size_t size, const char *prefix,
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );
+}
+
+/*
+ * Initialize a CSR
+ */
+void x509_csr_init( x509_csr *csr )
+{
+    memset( csr, 0, sizeof(x509_csr) );
 }
 
 /*

@@ -90,7 +90,7 @@ int main( int argc, char *argv[] )
      * 0. Initialize the RNG and the session data
      */
     memset( &ssl, 0, sizeof( ssl_context ) );
-    memset( &cacert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &cacert );
 
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );

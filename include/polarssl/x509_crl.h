@@ -135,6 +135,13 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
                         const x509_crl *crl );
 
 /**
+ * \brief          Initialize a CRL (chain)
+ *
+ * \param crl      CRL chain to initialize
+ */
+void x509_crl_init( x509_crl *crl );
+
+/**
  * \brief          Unallocate all CRL data
  *
  * \param crl      CRL chain to free

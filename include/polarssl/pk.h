@@ -133,7 +133,7 @@ typedef struct
     /** Get key size in bits */
     size_t (*get_size)( const void * );
 
-    /** Tell if the context implements this type (eg ECKEY can do ECDSA) */
+    /** Tell if the context implements this type (e.g. ECKEY can do ECDSA) */
     int (*can_do)( pk_type_t type );
 
     /** Verify signature */
@@ -228,7 +228,7 @@ void pk_free( pk_context *ctx );
 int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
 
 /**
- * \brief           Initialiaze an RSA-alt context
+ * \brief           Initialize an RSA-alt context
  *
  * \param ctx       Context to initialize. Must be empty (type NONE).
  * \param key       RSA key pointer
@@ -259,7 +259,7 @@ size_t pk_get_size( const pk_context *ctx );
  * \brief           Get the length in bytes of the underlying key
  * \param ctx       Context to use
  *
- * \return          Key lenght in bytes, or 0 on error
+ * \return          Key length in bytes, or 0 on error
  */
 static inline size_t pk_get_len( const pk_context *ctx )
 {
@@ -330,7 +330,7 @@ int pk_sign( pk_context *ctx, md_type_t md_alg,
  * \param input     Input to decrypt
  * \param ilen      Input size
  * \param output    Decrypted output
- * \param olen      Decrypted message lenght
+ * \param olen      Decrypted message length
  * \param osize     Size of the output buffer
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
@@ -367,7 +367,7 @@ int pk_encrypt( pk_context *ctx,
  * \param ctx       Context to use
  * \param items     Place to write debug items
  *
- * \return          0 on sucess or POLARSSL_ERR_PK_BAD_INPUT_DATA
+ * \return          0 on success or POLARSSL_ERR_PK_BAD_INPUT_DATA
  */
 int pk_debug( const pk_context *ctx, pk_debug_item *items );
 
@@ -381,7 +381,7 @@ int pk_debug( const pk_context *ctx, pk_debug_item *items );
 const char * pk_get_name( const pk_context *ctx );
 
 /**
- * \brief           Get the key typee
+ * \brief           Get the key type
  *
  * \param ctx       Context to use
  *

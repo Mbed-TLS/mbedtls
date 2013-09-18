@@ -26,6 +26,7 @@ do
       echo "Usage: $0"
       echo -e "  -h|--help\t\t\tPrint this help."
       echo -e "  --version <version>\tVersion to bump to."
+      echo -e "  --soversion <version>\tSO version to bump to."
       echo -e "  -v|--verbose\t\tVerbose."
       exit 1
       ;;

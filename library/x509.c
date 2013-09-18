@@ -702,13 +702,13 @@ int x509_self_test( int verbose )
 #if defined(POLARSSL_CERTS_C) && defined(POLARSSL_MD5_C)
     int ret;
     int flags;
-    x509_cert cacert;
-    x509_cert clicert;
+    x509_crt cacert;
+    x509_crt clicert;
 
     if( verbose != 0 )
         printf( "  X.509 certificate load: " );
 
-    memset( &clicert, 0, sizeof( x509_cert ) );
+    memset( &clicert, 0, sizeof( x509_crt ) );
 
     ret = x509_crt_parse( &clicert, (const unsigned char *) test_cli_crt,
                           strlen( test_cli_crt ) );
@@ -720,7 +720,7 @@ int x509_self_test( int verbose )
         return( ret );
     }
 
-    memset( &cacert, 0, sizeof( x509_cert ) );
+    memset( &cacert, 0, sizeof( x509_crt ) );
 
     ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_crt,
                           strlen( test_ca_crt ) );

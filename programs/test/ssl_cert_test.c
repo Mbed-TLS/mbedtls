@@ -82,7 +82,7 @@ int main( int argc, char *argv[] )
 int main( int argc, char *argv[] )
 {
     int ret, i;
-    x509_cert cacert;
+    x509_crt cacert;
     x509_crl crl;
     char buf[10240];
 
@@ -139,7 +139,7 @@ int main( int argc, char *argv[] )
          */
         char    name[512];
         int flags;
-        x509_cert clicert;
+        x509_crt clicert;
         pk_context pk;
 
         x509_crt_init( &clicert );

@@ -181,7 +181,7 @@ int write_certificate( x509write_cert *crt, char *output_file,
 int main( int argc, char *argv[] )
 {
     int ret = 0;
-    x509_cert issuer_crt;
+    x509_crt issuer_crt;
     pk_context loaded_issuer_key, loaded_subject_key;
     pk_context *issuer_key = &loaded_issuer_key,
                 *subject_key = &loaded_subject_key;

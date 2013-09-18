@@ -260,7 +260,7 @@ static void debug_print_pk( const ssl_context *ssl, int level,
 
 void debug_print_crt( const ssl_context *ssl, int level,
                       const char *file, int line,
-                      const char *text, const x509_cert *crt )
+                      const char *text, const x509_crt *crt )
 {
     char str[1024], prefix[64];
     int i = 0, maxlen = sizeof( prefix ) - 1;

@@ -203,6 +203,8 @@ inline int x509parse_time_expired( const x509_time *time ) {
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 #define POLARSSL_X509_PARSE_C
 #include "x509_crt.h"
+typedef x509_crt x509_cert;
+
 inline int x509parse_crt_der( x509_cert *chain, const unsigned char *buf,
                               size_t buflen ) {
     return x509_crt_parse_der( chain, buf, buflen );

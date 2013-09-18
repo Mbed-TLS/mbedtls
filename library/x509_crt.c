@@ -379,7 +379,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
  */
 static int x509_get_crt_ext( unsigned char **p,
                              const unsigned char *end,
-                             x509_cert *crt )
+                             x509_crt *crt )
 {
     int ret;
     size_t len;
@@ -515,7 +515,7 @@ static int x509_get_crt_ext( unsigned char **p,
 /*
  * Parse and fill a single X.509 certificate in DER format
  */
-static int x509_crt_parse_der_core( x509_cert *crt, const unsigned char *buf,
+static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
                                     size_t buflen )
 {
     int ret;
@@ -756,11 +756,11 @@ static int x509_crt_parse_der_core( x509_cert *crt, const unsigned char *buf,
  * Parse one X.509 certificate in DER format from a buffer and add them to a
  * chained list
  */
-int x509_crt_parse_der( x509_cert *chain, const unsigned char *buf,
+int x509_crt_parse_der( x509_crt *chain, const unsigned char *buf,
                         size_t buflen )
 {
     int ret;
-    x509_cert *crt = chain, *prev = NULL;
+    x509_crt *crt = chain, *prev = NULL;
 
     /*
      * Check for valid input
@@ -779,7 +779,7 @@ int x509_crt_parse_der( x509_cert *chain, const unsigned char *buf,
      */
     if ( crt->version != 0 && crt->next == NULL)
     {
-        crt->next = (x509_cert *) polarssl_malloc( sizeof( x509_cert ) );
+        crt->next = (x509_crt *) polarssl_malloc( sizeof( x509_crt ) );
 
         if( crt->next == NULL )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
@@ -806,7 +806,7 @@ int x509_crt_parse_der( x509_cert *chain, const unsigned char *buf,
 /*
  * Parse one or more PEM certificates from a buffer and add them to the chained list
  */
-int x509_crt_parse( x509_cert *chain, const unsigned char *buf, size_t buflen )
+int x509_crt_parse( x509_crt *chain, const unsigned char *buf, size_t buflen )
 {
     int success = 0, first_error = 0, total_failed = 0;
     int buf_format = X509_FORMAT_DER;
@@ -911,7 +911,7 @@ int x509_crt_parse( x509_cert *chain, const unsigned char *buf, size_t buflen )
 /*
  * Load one or more certificates and add them to the chained list
  */
-int x509_crt_parse_file( x509_cert *chain, const char *path )
+int x509_crt_parse_file( x509_crt *chain, const char *path )
 {
     int ret;
     size_t n;
@@ -928,7 +928,7 @@ int x509_crt_parse_file( x509_cert *chain, const char *path )
     return( ret );
 }
 
-int x509_crt_parse_path( x509_cert *chain, const char *path )
+int x509_crt_parse_path( x509_crt *chain, const char *path )
 {
     int ret = 0;
 #if defined(_WIN32)
@@ -1083,7 +1083,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 #define BEFORE_COLON    14
 #define BC              "14"
 int x509_crt_info( char *buf, size_t size, const char *prefix,
-                   const x509_cert *crt )
+                   const x509_crt *crt )
 {
     int ret;
     size_t n;
@@ -1155,7 +1155,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.
  */
-int x509_crt_revoked( const x509_cert *crt, const x509_crl *crl )
+int x509_crt_revoked( const x509_crt *crt, const x509_crl *crl )
 {
     const x509_crl_entry *cur = &crl->entry;
 
@@ -1177,7 +1177,7 @@ int x509_crt_revoked( const x509_cert *crt, const x509_crl *crl )
 /*
  * Check that the given certificate is valid accoring to the CRL.
  */
-static int x509_crt_verifycrl( x509_cert *crt, x509_cert *ca,
+static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
                                x509_crl *crl_list)
 {
     int flags = 0;
@@ -1301,9 +1301,9 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
 }
 
 static int x509_crt_verify_top(
-                x509_cert *child, x509_cert *trust_ca,
+                x509_crt *child, x509_crt *trust_ca,
                 x509_crl *ca_crl, int path_cnt, int *flags,
-                int (*f_vrfy)(void *, x509_cert *, int, int *),
+                int (*f_vrfy)(void *, x509_crt *, int, int *),
                 void *p_vrfy )
 {
     int ret;
@@ -1412,15 +1412,15 @@ static int x509_crt_verify_top(
 }
 
 static int x509_crt_verify_child(
-                x509_cert *child, x509_cert *parent, x509_cert *trust_ca,
+                x509_crt *child, x509_crt *parent, x509_crt *trust_ca,
                 x509_crl *ca_crl, int path_cnt, int *flags,
-                int (*f_vrfy)(void *, x509_cert *, int, int *),
+                int (*f_vrfy)(void *, x509_crt *, int, int *),
                 void *p_vrfy )
 {
     int ret;
     int parent_flags = 0;
     unsigned char hash[POLARSSL_MD_MAX_SIZE];
-    x509_cert *grandparent;
+    x509_crt *grandparent;
     const md_info_t *md_info;
 
     if( x509_time_expired( &child->valid_to ) )
@@ -1496,17 +1496,17 @@ static int x509_crt_verify_child(
 /*
  * Verify the certificate validity
  */
-int x509_crt_verify( x509_cert *crt,
-                     x509_cert *trust_ca,
+int x509_crt_verify( x509_crt *crt,
+                     x509_crt *trust_ca,
                      x509_crl *ca_crl,
                      const char *cn, int *flags,
-                     int (*f_vrfy)(void *, x509_cert *, int, int *),
+                     int (*f_vrfy)(void *, x509_crt *, int, int *),
                      void *p_vrfy )
 {
     size_t cn_len;
     int ret;
     int pathlen = 0;
-    x509_cert *parent;
+    x509_crt *parent;
     x509_name *name;
     x509_sequence *cur = NULL;
 
@@ -1606,18 +1606,18 @@ int x509_crt_verify( x509_cert *crt,
 /*
  * Initialize a certificate chain
  */
-void x509_crt_init( x509_cert *crt )
+void x509_crt_init( x509_crt *crt )
 {
-    memset( crt, 0, sizeof(x509_cert) );
+    memset( crt, 0, sizeof(x509_crt) );
 }
 
 /*
  * Unallocate all certificate data
  */
-void x509_crt_free( x509_cert *crt )
+void x509_crt_free( x509_crt *crt )
 {
-    x509_cert *cert_cur = crt;
-    x509_cert *cert_prv;
+    x509_crt *cert_cur = crt;
+    x509_crt *cert_prv;
     x509_name *name_cur;
     x509_name *name_prv;
     x509_sequence *seq_cur;
@@ -1682,7 +1682,7 @@ void x509_crt_free( x509_cert *crt )
         cert_prv = cert_cur;
         cert_cur = cert_cur->next;
 
-        memset( cert_prv, 0, sizeof( x509_cert ) );
+        memset( cert_prv, 0, sizeof( x509_crt ) );
         if( cert_prv != crt )
             polarssl_free( cert_prv );
     }

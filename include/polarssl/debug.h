@@ -102,7 +102,7 @@ void debug_print_ecp( const ssl_context *ssl, int level,
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 void debug_print_crt( const ssl_context *ssl, int level,
                       const char *file, int line,
-                      const char *text, const x509_cert *crt );
+                      const char *text, const x509_crt *crt );
 #endif
 
 #ifdef __cplusplus

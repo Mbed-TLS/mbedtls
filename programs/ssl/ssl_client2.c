@@ -115,7 +115,7 @@ static void my_debug( void *ctx, int level, const char *str )
 /*
  * Enabled if debug_level > 1 in code below
  */
-static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
+static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 {
     char buf[1024];
     ((void) data);
@@ -255,8 +255,8 @@ int main( int argc, char *argv[] )
     ssl_context ssl;
     ssl_session saved_session;
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_cert cacert;
-    x509_cert clicert;
+    x509_crt cacert;
+    x509_crt clicert;
     pk_context pkey;
 #endif
     char *p, *q;

@@ -80,10 +80,10 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
     {
         int ret;
 
-        if( ( dst->peer_cert = polarssl_malloc( sizeof(x509_cert) ) ) == NULL )
+        if( ( dst->peer_cert = polarssl_malloc( sizeof(x509_crt) ) ) == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-        memset( dst->peer_cert, 0, sizeof(x509_cert) );
+        memset( dst->peer_cert, 0, sizeof(x509_crt) );
 
         if( ( ret = x509_crt_parse( dst->peer_cert, src->peer_cert->raw.p,
                                     src->peer_cert->raw.len ) != 0 ) )
@@ -2272,7 +2272,7 @@ int ssl_write_certificate( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
-    const x509_cert *crt;
+    const x509_crt *crt;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
@@ -2486,15 +2486,15 @@ int ssl_parse_certificate( ssl_context *ssl )
         polarssl_free( ssl->session_negotiate->peer_cert );
     }
 
-    if( ( ssl->session_negotiate->peer_cert = (x509_cert *) polarssl_malloc(
-                    sizeof( x509_cert ) ) ) == NULL )
+    if( ( ssl->session_negotiate->peer_cert = (x509_crt *) polarssl_malloc(
+                    sizeof( x509_crt ) ) ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
-                       sizeof( x509_cert ) ) );
+                       sizeof( x509_crt ) ) );
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    memset( ssl->session_negotiate->peer_cert, 0, sizeof( x509_cert ) );
+    memset( ssl->session_negotiate->peer_cert, 0, sizeof( x509_crt ) );
 
     i = 7;
 
@@ -3379,7 +3379,7 @@ void ssl_set_authmode( ssl_context *ssl, int authmode )
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 void ssl_set_verify( ssl_context *ssl,
-                     int (*f_vrfy)(void *, x509_cert *, int, int *),
+                     int (*f_vrfy)(void *, x509_crt *, int, int *),
                      void *p_vrfy )
 {
     ssl->f_vrfy      = f_vrfy;
@@ -3464,7 +3464,7 @@ void ssl_set_ciphersuites_for_version( ssl_context *ssl, const int *ciphersuites
 }
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
+void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
                        x509_crl *ca_crl, const char *peer_cn )
 {
     ssl->ca_chain   = ca_chain;
@@ -3472,7 +3472,7 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
     ssl->peer_cn    = peer_cn;
 }
 
-void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
+void ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
                        pk_context *pk_key )
 {
     ssl->own_cert   = own_cert;
@@ -3480,7 +3480,7 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
 }
 
 #if defined(POLARSSL_RSA_C)
-int ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
+int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
                            rsa_context *rsa_key )
 {
     int ret;
@@ -3505,7 +3505,7 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
 }
 #endif /* POLARSSL_RSA_C */
 
-int ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
+int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
                           void *rsa_key,
                           rsa_decrypt_func rsa_decrypt,
                           rsa_sign_func rsa_sign,
@@ -3731,7 +3731,7 @@ const char *ssl_get_version( const ssl_context *ssl )
 }
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-const x509_cert *ssl_get_peer_cert( const ssl_context *ssl )
+const x509_crt *ssl_get_peer_cert( const ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )
         return NULL;

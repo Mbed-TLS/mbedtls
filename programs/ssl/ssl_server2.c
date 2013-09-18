@@ -213,8 +213,8 @@ int main( int argc, char *argv[] )
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_cert cacert;
-    x509_cert srvcert;
+    x509_crt cacert;
+    x509_crt srvcert;
     pk_context pkey;
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)

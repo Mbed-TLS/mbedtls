@@ -351,8 +351,8 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    x509_cert cacert;
-    x509_cert clicert;
+    x509_crt cacert;
+    x509_crt clicert;
     pk_context pkey;
     int i;
     size_t n;

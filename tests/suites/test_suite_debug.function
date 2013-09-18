@@ -26,7 +26,7 @@ void string_debug(void *data, int level, const char *str)
 void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
                       char *result_str )
 {
-    x509_cert   crt;
+    x509_crt   crt;
     ssl_context ssl;
     struct buffer_data buffer;
 

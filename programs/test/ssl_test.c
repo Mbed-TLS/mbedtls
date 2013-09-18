@@ -166,7 +166,7 @@ static int ssl_test( struct options *opt )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    x509_cert srvcert;
+    x509_crt srvcert;
     pk_context pkey;
 
     ret = 1;

@@ -95,7 +95,7 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    x509_cert srvcert;
+    x509_crt srvcert;
     pk_context pkey;
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;

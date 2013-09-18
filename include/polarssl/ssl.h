@@ -411,7 +411,7 @@ struct _ssl_session
     unsigned char master[48];   /*!< the master secret  */
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_cert *peer_cert;       /*!< peer X.509 cert chain */
+    x509_crt *peer_cert;        /*!< peer X.509 cert chain */
 #endif /* POLARSSL_X509_CRT_PARSE_C */
     int verify_result;          /*!<  verification result     */
 
@@ -584,7 +584,7 @@ struct _ssl_context
 #endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    int (*f_vrfy)(void *, x509_cert *, int, int *);
+    int (*f_vrfy)(void *, x509_crt *, int, int *);
     void *p_vrfy;               /*!< context for verification         */
 #endif
 
@@ -647,8 +647,8 @@ struct _ssl_context
     int pk_key_own_alloc;               /*!<  did we allocate pk_key? */
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_cert *own_cert;                /*!<  own X.509 certificate   */
-    x509_cert *ca_chain;                /*!<  own trusted CA chain    */
+    x509_crt *own_cert;                 /*!<  own X.509 certificate   */
+    x509_crt *ca_chain;                 /*!<  own trusted CA chain    */
     const char *peer_cn;                /*!<  expected peer CN        */
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 #if defined(POLARSSL_X509_CRL_PARSE_C)
@@ -825,7 +825,7 @@ void ssl_set_authmode( ssl_context *ssl, int authmode );
  * \param p_vrfy   verification parameter
  */
 void ssl_set_verify( ssl_context *ssl,
-                     int (*f_vrfy)(void *, x509_cert *, int, int *),
+                     int (*f_vrfy)(void *, x509_crt *, int, int *),
                      void *p_vrfy );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
@@ -956,7 +956,7 @@ void ssl_set_ciphersuites_for_version( ssl_context *ssl,
  * \param ca_crl   trusted CA CRLs
  * \param peer_cn  expected peer CommonName (or NULL)
  */
-void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
+void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
                        x509_crl *ca_crl, const char *peer_cn );
 
 /**
@@ -970,7 +970,7 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_cert *ca_chain,
  * \param own_cert own public certificate chain
  * \param pk_key   own private key
  */
-void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
+void ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
                        pk_context *pk_key );
 
 #if defined(POLARSSL_RSA_C)
@@ -987,7 +987,7 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
  *
  * \return          0 on success, or a specific error code.
  */
-int ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
+int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
                           rsa_context *rsa_key );
 #endif /* POLARSSL_RSA_C */
 
@@ -1012,7 +1012,7 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_cert *own_cert,
  *
  * \return          0 on success, or a specific error code.
  */
-int ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
+int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
                           void *rsa_key,
                           rsa_decrypt_func rsa_decrypt,
                           rsa_sign_func rsa_sign,
@@ -1293,7 +1293,7 @@ const char *ssl_get_version( const ssl_context *ssl );
  *
  * \return         the current peer certificate
  */
-const x509_cert *ssl_get_peer_cert( const ssl_context *ssl );
+const x509_crt *ssl_get_peer_cert( const ssl_context *ssl );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 /**

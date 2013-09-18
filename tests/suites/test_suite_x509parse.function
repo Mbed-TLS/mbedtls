@@ -4,7 +4,7 @@
 #include <polarssl/pem.h>
 #include <polarssl/oid.h>
 
-int verify_none( void *data, x509_cert *crt, int certificate_depth, int *flags )
+int verify_none( void *data, x509_crt *crt, int certificate_depth, int *flags )
 {
     ((void) data);
     ((void) crt);
@@ -14,7 +14,7 @@ int verify_none( void *data, x509_cert *crt, int certificate_depth, int *flags )
     return 0;
 }
 
-int verify_all( void *data, x509_cert *crt, int certificate_depth, int *flags )
+int verify_all( void *data, x509_crt *crt, int certificate_depth, int *flags )
 {
     ((void) data);
     ((void) crt);
@@ -34,7 +34,7 @@ int verify_all( void *data, x509_cert *crt, int certificate_depth, int *flags )
 /* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void x509_cert_info( char *crt_file, char *result_str )
 {
-    x509_cert   crt;
+    x509_crt   crt;
     char buf[2000];
     int res;
 
@@ -80,12 +80,12 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
                   char *cn_name_str, int result, int flags_result,
                   char *verify_callback )
 {
-    x509_cert   crt;
-    x509_cert   ca;
+    x509_crt   crt;
+    x509_crt   ca;
     x509_crl    crl;
     int         flags = 0;
     int         res;
-    int (*f_vrfy)(void *, x509_cert *, int, int *) = NULL;
+    int (*f_vrfy)(void *, x509_crt *, int, int *) = NULL;
     char *      cn_name = NULL;
 
     x509_crt_init( &crt );
@@ -122,7 +122,7 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
 /* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_USE_C */
 void x509_dn_gets( char *crt_file, char *entity, char *result_str )
 {
-    x509_cert   crt;
+    x509_crt   crt;
     char buf[2000];
     int res = 0;
 
@@ -149,7 +149,7 @@ void x509_dn_gets( char *crt_file, char *entity, char *result_str )
 /* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_USE_C */
 void x509_time_expired( char *crt_file, char *entity, int result )
 {
-    x509_cert   crt;
+    x509_crt   crt;
 
     x509_crt_init( &crt );
 
@@ -169,7 +169,7 @@ void x509_time_expired( char *crt_file, char *entity, int result )
 /* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C */
 void x509parse_crt( char *crt_data, char *result_str, int result )
 {
-    x509_cert   crt;
+    x509_crt   crt;
     unsigned char buf[2000];
     unsigned char output[2000];
     int data_len, res;

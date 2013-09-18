@@ -91,11 +91,11 @@ int ssl_cache_get( void *data, ssl_session *session )
          */
         if( entry->peer_cert.p != NULL )
         {
-            session->peer_cert = (x509_cert *) polarssl_malloc( sizeof(x509_cert) );
+            session->peer_cert = (x509_crt *) polarssl_malloc( sizeof(x509_crt) );
             if( session->peer_cert == NULL )
                 return( 1 );
 
-            memset( session->peer_cert, 0, sizeof(x509_cert) );
+            memset( session->peer_cert, 0, sizeof(x509_crt) );
             if( x509_crt_parse( session->peer_cert, entry->peer_cert.p,
                                 entry->peer_cert.len ) != 0 )
             {

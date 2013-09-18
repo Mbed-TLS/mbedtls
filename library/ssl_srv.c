@@ -135,12 +135,12 @@ static int ssl_load_session( ssl_session *session,
         if( p + cert_len > end )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-        session->peer_cert = polarssl_malloc( sizeof( x509_cert ) );
+        session->peer_cert = polarssl_malloc( sizeof( x509_crt ) );
 
         if( session->peer_cert == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-        memset( session->peer_cert, 0, sizeof( x509_cert ) );
+        memset( session->peer_cert, 0, sizeof( x509_crt ) );
 
         if( ( ret = x509_crt_parse( session->peer_cert, p, cert_len ) ) != 0 )
         {
@@ -1695,7 +1695,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     size_t dn_size, total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
-    const x509_cert *crt;
+    const x509_crt *crt;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 

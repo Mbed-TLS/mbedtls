@@ -40,7 +40,7 @@
 
 #include <stdlib.h>
 
-int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
+int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )
 {
     int ret = 1;
     unsigned char *cert_blob = NULL;
@@ -71,7 +71,7 @@ int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11_cert )
         goto cleanup;
     }
 
-    if( 0 != x509parse_crt(cert, cert_blob, cert_blob_size ) )
+    if( 0 != x509_crt_parse(cert, cert_blob, cert_blob_size ) )
     {
         ret = 6;
         goto cleanup;
@@ -91,9 +91,9 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
         pkcs11h_certificate_t pkcs11_cert )
 {
     int ret = 1;
-    x509_cert cert;
+    x509_crt cert;
 
-    memset( &cert, 0, sizeof( cert ) );
+    x509_crt_init( &cert );
 
     if( priv_key == NULL )
         goto cleanup;
@@ -107,7 +107,7 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
     ret = 0;
 
 cleanup:
-    x509_free( &cert );
+    x509_crt_free( &cert );
 
     return ret;
 }

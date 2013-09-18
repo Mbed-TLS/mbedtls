@@ -57,7 +57,7 @@
 #define POLARSSL_ERR_X509_INVALID_EXTENSIONS               -0x2500  /**< The extension tag or value is invalid. */
 #define POLARSSL_ERR_X509_UNKNOWN_VERSION                  -0x2580  /**< CRT/CRL/CSR has an unsupported version number. */
 #define POLARSSL_ERR_X509_UNKNOWN_SIG_ALG                  -0x2600  /**< Signature algorithm (oid) is unsupported. */
-#define POLARSSL_ERR_X509_SIG_MISMATCH                     -0x2680  /**< Signature algorithms do not match. (see \c ::x509_cert sig_oid) */
+#define POLARSSL_ERR_X509_SIG_MISMATCH                     -0x2680  /**< Signature algorithms do not match. (see \c ::x509_crt sig_oid) */
 #define POLARSSL_ERR_X509_CERT_VERIFY_FAILED               -0x2700  /**< Certificate verification failed, e.g. CRL, CA or signature check failed. */
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT              -0x2780  /**< Format not recognized as DER or PEM. */
 #define POLARSSL_ERR_X509_BAD_INPUT_DATA                   -0x2800  /**< Input invalid. */

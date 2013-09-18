@@ -95,7 +95,7 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
+static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 {
     char buf[1024];
     ((void) data);
@@ -156,8 +156,8 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    x509_cert cacert;
-    x509_cert clicert;
+    x509_crt cacert;
+    x509_crt clicert;
     pk_context pkey;
     int i, j;
     int flags, verify = 0;
@@ -267,8 +267,8 @@ int main( int argc, char *argv[] )
 
     if( opt.mode == MODE_FILE )
     {
-        x509_cert crt;
-        x509_cert *cur = &crt;
+        x509_crt crt;
+        x509_crt *cur = &crt;
         x509_crt_init( &crt );
 
         /*

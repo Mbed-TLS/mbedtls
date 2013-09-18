@@ -36,100 +36,15 @@
 extern "C" {
 #endif
 
-#if defined(POLARSSL_AES_C)
+typedef struct
+{
+    cipher_type_t type;
+    const cipher_info_t *info;
+} cipher_definition_t;
 
-extern const cipher_info_t aes_128_ecb_info;
-extern const cipher_info_t aes_192_ecb_info;
-extern const cipher_info_t aes_256_ecb_info;
+extern const cipher_definition_t cipher_definitions[];
 
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-extern const cipher_info_t aes_128_cbc_info;
-extern const cipher_info_t aes_192_cbc_info;
-extern const cipher_info_t aes_256_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-extern const cipher_info_t aes_128_cfb128_info;
-extern const cipher_info_t aes_192_cfb128_info;
-extern const cipher_info_t aes_256_cfb128_info;
-#endif /* POLARSSL_CIPHER_MODE_CFB */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-extern const cipher_info_t aes_128_ctr_info;
-extern const cipher_info_t aes_192_ctr_info;
-extern const cipher_info_t aes_256_ctr_info;
-#endif /* POLARSSL_CIPHER_MODE_CTR */
-
-#if defined(POLARSSL_GCM_C)
-extern const cipher_info_t aes_128_gcm_info;
-extern const cipher_info_t aes_192_gcm_info;
-extern const cipher_info_t aes_256_gcm_info;
-#endif /* POLARSSL_GCM_C */
-
-#endif /* defined(POLARSSL_AES_C) */
-
-#if defined(POLARSSL_CAMELLIA_C)
-
-extern const cipher_info_t camellia_128_ecb_info;
-extern const cipher_info_t camellia_192_ecb_info;
-extern const cipher_info_t camellia_256_ecb_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-extern const cipher_info_t camellia_128_cbc_info;
-extern const cipher_info_t camellia_192_cbc_info;
-extern const cipher_info_t camellia_256_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-extern const cipher_info_t camellia_128_cfb128_info;
-extern const cipher_info_t camellia_192_cfb128_info;
-extern const cipher_info_t camellia_256_cfb128_info;
-#endif /* POLARSSL_CIPHER_MODE_CFB */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-extern const cipher_info_t camellia_128_ctr_info;
-extern const cipher_info_t camellia_192_ctr_info;
-extern const cipher_info_t camellia_256_ctr_info;
-#endif /* POLARSSL_CIPHER_MODE_CTR */
-
-#endif /* defined(POLARSSL_CAMELLIA_C) */
-
-#if defined(POLARSSL_DES_C)
-
-extern const cipher_info_t des_ecb_info;
-extern const cipher_info_t des_ede_ecb_info;
-extern const cipher_info_t des_ede3_ecb_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-extern const cipher_info_t des_cbc_info;
-extern const cipher_info_t des_ede_cbc_info;
-extern const cipher_info_t des_ede3_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#endif /* defined(POLARSSL_DES_C) */
-
-#if defined(POLARSSL_BLOWFISH_C)
-extern const cipher_info_t blowfish_ecb_info;
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-extern const cipher_info_t blowfish_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-extern const cipher_info_t blowfish_cfb64_info;
-#endif /* POLARSSL_CIPHER_MODE_CFB */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-extern const cipher_info_t blowfish_ctr_info;
-#endif /* POLARSSL_CIPHER_MODE_CTR */
-#endif /* defined(POLARSSL_BLOWFISH_C) */
-
-#if defined(POLARSSL_ARC4_C)
-extern const cipher_info_t arc4_128_info;
-#endif /* defined(POLARSSL_ARC4_C) */
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-extern const cipher_info_t null_cipher_info;
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
+extern int supported_ciphers[];
 
 #ifdef __cplusplus
 }

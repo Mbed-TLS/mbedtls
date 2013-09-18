@@ -48,361 +48,50 @@
 #define strcasecmp _stricmp
 #endif
 
-static const int supported_ciphers[] = {
-
-#if defined(POLARSSL_AES_C)
-        POLARSSL_CIPHER_AES_128_ECB,
-        POLARSSL_CIPHER_AES_192_ECB,
-        POLARSSL_CIPHER_AES_256_ECB,
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        POLARSSL_CIPHER_AES_128_CBC,
-        POLARSSL_CIPHER_AES_192_CBC,
-        POLARSSL_CIPHER_AES_256_CBC,
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        POLARSSL_CIPHER_AES_128_CFB128,
-        POLARSSL_CIPHER_AES_192_CFB128,
-        POLARSSL_CIPHER_AES_256_CFB128,
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        POLARSSL_CIPHER_AES_128_CTR,
-        POLARSSL_CIPHER_AES_192_CTR,
-        POLARSSL_CIPHER_AES_256_CTR,
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#if defined(POLARSSL_GCM_C)
-        POLARSSL_CIPHER_AES_128_GCM,
-        POLARSSL_CIPHER_AES_192_GCM,
-        POLARSSL_CIPHER_AES_256_GCM,
-#endif /* defined(POLARSSL_GCM_C) */
-
-#endif /* defined(POLARSSL_AES_C) */
-
-#if defined(POLARSSL_ARC4_C)
-        POLARSSL_CIPHER_ARC4_128,
-#endif
-
-#if defined(POLARSSL_CAMELLIA_C)
-        POLARSSL_CIPHER_CAMELLIA_128_ECB,
-        POLARSSL_CIPHER_CAMELLIA_192_ECB,
-        POLARSSL_CIPHER_CAMELLIA_256_ECB,
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        POLARSSL_CIPHER_CAMELLIA_128_CBC,
-        POLARSSL_CIPHER_CAMELLIA_192_CBC,
-        POLARSSL_CIPHER_CAMELLIA_256_CBC,
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        POLARSSL_CIPHER_CAMELLIA_128_CFB128,
-        POLARSSL_CIPHER_CAMELLIA_192_CFB128,
-        POLARSSL_CIPHER_CAMELLIA_256_CFB128,
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        POLARSSL_CIPHER_CAMELLIA_128_CTR,
-        POLARSSL_CIPHER_CAMELLIA_192_CTR,
-        POLARSSL_CIPHER_CAMELLIA_256_CTR,
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif /* defined(POLARSSL_CAMELLIA_C) */
-
-#if defined(POLARSSL_DES_C)
-        POLARSSL_CIPHER_DES_ECB,
-        POLARSSL_CIPHER_DES_EDE_ECB,
-        POLARSSL_CIPHER_DES_EDE3_ECB,
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        POLARSSL_CIPHER_DES_CBC,
-        POLARSSL_CIPHER_DES_EDE_CBC,
-        POLARSSL_CIPHER_DES_EDE3_CBC,
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-#endif /* defined(POLARSSL_DES_C) */
-
-#if defined(POLARSSL_BLOWFISH_C)
-        POLARSSL_CIPHER_BLOWFISH_ECB,
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        POLARSSL_CIPHER_BLOWFISH_CBC,
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        POLARSSL_CIPHER_BLOWFISH_CFB64,
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        POLARSSL_CIPHER_BLOWFISH_CTR,
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif /* defined(POLARSSL_BLOWFISH_C) */
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-        POLARSSL_CIPHER_NULL,
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
-
-        0
-};
+static int supported_init = 0;
 
 const int *cipher_list( void )
 {
+    const cipher_definition_t *def;
+    int *type;
+
+    if( ! supported_init )
+    {
+        def = cipher_definitions;
+        type = supported_ciphers;
+
+        while( def->type != 0 )
+            *type++ = (*def++).type;
+
+        *type = 0;
+
+        supported_init = 1;
+    }
+
     return supported_ciphers;
 }
 
 const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
 {
-    /* Find static cipher information */
-    switch ( cipher_type )
-    {
-#if defined(POLARSSL_AES_C)
-        case POLARSSL_CIPHER_AES_128_ECB:
-            return &aes_128_ecb_info;
-        case POLARSSL_CIPHER_AES_192_ECB:
-            return &aes_192_ecb_info;
-        case POLARSSL_CIPHER_AES_256_ECB:
-            return &aes_256_ecb_info;
+    const cipher_definition_t *def;
 
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        case POLARSSL_CIPHER_AES_128_CBC:
-            return &aes_128_cbc_info;
-        case POLARSSL_CIPHER_AES_192_CBC:
-            return &aes_192_cbc_info;
-        case POLARSSL_CIPHER_AES_256_CBC:
-            return &aes_256_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
+    for( def = cipher_definitions; def->info != NULL; def++ )
+        if( def->type == cipher_type )
+            return( def->info );
 
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        case POLARSSL_CIPHER_AES_128_CFB128:
-            return &aes_128_cfb128_info;
-        case POLARSSL_CIPHER_AES_192_CFB128:
-            return &aes_192_cfb128_info;
-        case POLARSSL_CIPHER_AES_256_CFB128:
-            return &aes_256_cfb128_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        case POLARSSL_CIPHER_AES_128_CTR:
-            return &aes_128_ctr_info;
-        case POLARSSL_CIPHER_AES_192_CTR:
-            return &aes_192_ctr_info;
-        case POLARSSL_CIPHER_AES_256_CTR:
-            return &aes_256_ctr_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#if defined(POLARSSL_GCM_C)
-        case POLARSSL_CIPHER_AES_128_GCM:
-            return &aes_128_gcm_info;
-        case POLARSSL_CIPHER_AES_192_GCM:
-            return &aes_192_gcm_info;
-        case POLARSSL_CIPHER_AES_256_GCM:
-            return &aes_256_gcm_info;
-#endif /* defined(POLARSSL_GCM_C) */
-
-#endif
-
-#if defined(POLARSSL_CAMELLIA_C)
-        case POLARSSL_CIPHER_CAMELLIA_128_ECB:
-            return &camellia_128_ecb_info;
-        case POLARSSL_CIPHER_CAMELLIA_192_ECB:
-            return &camellia_192_ecb_info;
-        case POLARSSL_CIPHER_CAMELLIA_256_ECB:
-            return &camellia_256_ecb_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        case POLARSSL_CIPHER_CAMELLIA_128_CBC:
-            return &camellia_128_cbc_info;
-        case POLARSSL_CIPHER_CAMELLIA_192_CBC:
-            return &camellia_192_cbc_info;
-        case POLARSSL_CIPHER_CAMELLIA_256_CBC:
-            return &camellia_256_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        case POLARSSL_CIPHER_CAMELLIA_128_CFB128:
-            return &camellia_128_cfb128_info;
-        case POLARSSL_CIPHER_CAMELLIA_192_CFB128:
-            return &camellia_192_cfb128_info;
-        case POLARSSL_CIPHER_CAMELLIA_256_CFB128:
-            return &camellia_256_cfb128_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        case POLARSSL_CIPHER_CAMELLIA_128_CTR:
-            return &camellia_128_ctr_info;
-        case POLARSSL_CIPHER_CAMELLIA_192_CTR:
-            return &camellia_192_ctr_info;
-        case POLARSSL_CIPHER_CAMELLIA_256_CTR:
-            return &camellia_256_ctr_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif
-
-#if defined(POLARSSL_DES_C)
-        case POLARSSL_CIPHER_DES_ECB:
-            return &des_ecb_info;
-        case POLARSSL_CIPHER_DES_EDE_ECB:
-            return &des_ede_ecb_info;
-        case POLARSSL_CIPHER_DES_EDE3_ECB:
-            return &des_ede3_ecb_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        case POLARSSL_CIPHER_DES_CBC:
-            return &des_cbc_info;
-        case POLARSSL_CIPHER_DES_EDE_CBC:
-            return &des_ede_cbc_info;
-        case POLARSSL_CIPHER_DES_EDE3_CBC:
-            return &des_ede3_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-#endif
-
-#if defined(POLARSSL_ARC4_C)
-        case POLARSSL_CIPHER_ARC4_128:
-            return &arc4_128_info;
-#endif
-
-#if defined(POLARSSL_BLOWFISH_C)
-        case POLARSSL_CIPHER_BLOWFISH_ECB:
-            return &blowfish_ecb_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        case POLARSSL_CIPHER_BLOWFISH_CBC:
-            return &blowfish_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        case POLARSSL_CIPHER_BLOWFISH_CFB64:
-            return &blowfish_cfb64_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        case POLARSSL_CIPHER_BLOWFISH_CTR:
-            return &blowfish_ctr_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-        case POLARSSL_CIPHER_NULL:
-            return &null_cipher_info;
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
-
-        default:
-            return NULL;
-    }
+    return NULL;
 }
 
 const cipher_info_t *cipher_info_from_string( const char *cipher_name )
 {
+    const cipher_definition_t *def;
+
     if( NULL == cipher_name )
         return NULL;
 
-    /* Get the appropriate cipher information */
-#if defined(POLARSSL_CAMELLIA_C)
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-    if( !strcasecmp( "CAMELLIA-128-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CBC );
-    if( !strcasecmp( "CAMELLIA-192-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CBC );
-    if( !strcasecmp( "CAMELLIA-256-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CBC );
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-    if( !strcasecmp( "CAMELLIA-128-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CFB128 );
-    if( !strcasecmp( "CAMELLIA-192-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CFB128 );
-    if( !strcasecmp( "CAMELLIA-256-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CFB128 );
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-    if( !strcasecmp( "CAMELLIA-128-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CTR );
-    if( !strcasecmp( "CAMELLIA-192-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CTR );
-    if( !strcasecmp( "CAMELLIA-256-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CTR );
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-#endif
-
-#if defined(POLARSSL_AES_C)
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-    if( !strcasecmp( "AES-128-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CBC );
-    if( !strcasecmp( "AES-192-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CBC );
-    if( !strcasecmp( "AES-256-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CBC );
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-    if( !strcasecmp( "AES-128-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CFB128 );
-    if( !strcasecmp( "AES-192-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CFB128 );
-    if( !strcasecmp( "AES-256-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CFB128 );
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-    if( !strcasecmp( "AES-128-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CTR );
-    if( !strcasecmp( "AES-192-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CTR );
-    if( !strcasecmp( "AES-256-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CTR );
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#if defined(POLARSSL_GCM_C)
-    if( !strcasecmp( "AES-128-GCM", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_GCM );
-    if( !strcasecmp( "AES-192-GCM", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_GCM );
-    if( !strcasecmp( "AES-256-GCM", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_GCM );
-#endif
-#endif /* POLARSSL_AES_C */
-
-#if defined(POLARSSL_ARC4_C)
-    if( !strcasecmp( "ARC4-128", cipher_name ) )
-        return( cipher_info_from_type( POLARSSL_CIPHER_ARC4_128 ) );
-#endif
-
-#if defined(POLARSSL_DES_C)
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-    if( !strcasecmp( "DES-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_DES_CBC );
-    if( !strcasecmp( "DES-EDE-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_DES_EDE_CBC );
-    if( !strcasecmp( "DES-EDE3-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_DES_EDE3_CBC );
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-#endif
-
-#if defined(POLARSSL_BLOWFISH_C)
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-    if( !strcasecmp( "BLOWFISH-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CBC );
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-    if( !strcasecmp( "BLOWFISH-CFB64", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CFB64 );
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-    if( !strcasecmp( "BLOWFISH-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CTR );
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-#endif
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( !strcasecmp( "NULL", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_NULL );
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
+    for( def = cipher_definitions; def->info != NULL; def++ )
+        if( !  strcasecmp( def->info->name, cipher_name ) )
+            return( def->info );
 
     return NULL;
 }
@@ -411,187 +100,13 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
                                               int key_length,
                                               const cipher_mode_t mode )
 {
-#if defined(POLARSSL_AES_C)
-    if( cipher_id == POLARSSL_CIPHER_ID_AES )
-    {
-        if( mode == POLARSSL_MODE_ECB )
-        {
-            if( key_length == 128 )
-                return &aes_128_ecb_info;
-            if( key_length == 192 )
-                return &aes_192_ecb_info;
-            if( key_length == 256 )
-                return &aes_256_ecb_info;
-        }
+    const cipher_definition_t *def;
 
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        if( mode == POLARSSL_MODE_CBC )
-        {
-            if( key_length == 128 )
-                return &aes_128_cbc_info;
-            if( key_length == 192 )
-                return &aes_192_cbc_info;
-            if( key_length == 256 )
-                return &aes_256_cbc_info;
-        }
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        if( mode == POLARSSL_MODE_CFB )
-        {
-            if( key_length == 128 )
-                return &aes_128_cfb128_info;
-            if( key_length == 192 )
-                return &aes_192_cfb128_info;
-            if( key_length == 256 )
-                return &aes_256_cfb128_info;
-        }
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        if( mode == POLARSSL_MODE_CTR )
-        {
-            if( key_length == 128 )
-                return &aes_128_ctr_info;
-            if( key_length == 192 )
-                return &aes_192_ctr_info;
-            if( key_length == 256 )
-                return &aes_256_ctr_info;
-        }
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#if defined(POLARSSL_GCM_C)
-        if( mode == POLARSSL_MODE_GCM )
-        {
-            if( key_length == 128 )
-                return &aes_128_gcm_info;
-            if( key_length == 192 )
-                return &aes_192_gcm_info;
-            if( key_length == 256 )
-                return &aes_256_gcm_info;
-        }
-#endif /* defined(POLARSSL_GCM_C) */
-    }
-#endif
-
-#if defined(POLARSSL_CAMELLIA_C)
-    if( cipher_id == POLARSSL_CIPHER_ID_CAMELLIA )
-    {
-        if( mode == POLARSSL_MODE_ECB )
-        {
-            if( key_length == 128 )
-                return &camellia_128_ecb_info;
-            if( key_length == 192 )
-                return &camellia_192_ecb_info;
-            if( key_length == 256 )
-                return &camellia_256_ecb_info;
-        }
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        if( mode == POLARSSL_MODE_CBC )
-        {
-            if( key_length == 128 )
-                return &camellia_128_cbc_info;
-            if( key_length == 192 )
-                return &camellia_192_cbc_info;
-            if( key_length == 256 )
-                return &camellia_256_cbc_info;
-        }
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        if( mode == POLARSSL_MODE_CFB )
-        {
-            if( key_length == 128 )
-                return &camellia_128_cfb128_info;
-            if( key_length == 192 )
-                return &camellia_192_cfb128_info;
-            if( key_length == 256 )
-                return &camellia_256_cfb128_info;
-        }
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        if( mode == POLARSSL_MODE_CTR )
-        {
-            if( key_length == 128 )
-                return &camellia_128_ctr_info;
-            if( key_length == 192 )
-                return &camellia_192_ctr_info;
-            if( key_length == 256 )
-                return &camellia_256_ctr_info;
-        }
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-    }
-#endif
-
-#if defined(POLARSSL_DES_C)
-    if( cipher_id == POLARSSL_CIPHER_ID_DES && key_length == 64 )
-    {
-        if( mode == POLARSSL_MODE_ECB )
-            return &des_ecb_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        if( mode == POLARSSL_MODE_CBC )
-            return &des_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-    }
-
-    if( cipher_id == POLARSSL_CIPHER_ID_3DES )
-    {
-        if( mode == POLARSSL_MODE_ECB )
-        {
-            if( key_length == 128 )
-                return &des_ede_ecb_info;
-            if( key_length == 192 )
-                return &des_ede3_ecb_info;
-        }
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        if( mode == POLARSSL_MODE_CBC )
-        {
-            if( key_length == 128 )
-                return &des_ede_cbc_info;
-            if( key_length == 192 )
-                return &des_ede3_cbc_info;
-        }
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-    }
-#endif
-
-#if defined(POLARSSL_ARC4_C)
-    if( cipher_id == POLARSSL_CIPHER_ID_ARC4 &&
-        key_length == 128 && mode == POLARSSL_MODE_STREAM )
-            return &arc4_128_info;
-#endif
-
-#if defined(POLARSSL_BLOWFISH_C)
-    if( cipher_id == POLARSSL_CIPHER_ID_BLOWFISH && key_length == 128 )
-    {
-        if( mode == POLARSSL_MODE_ECB )
-            return &blowfish_ecb_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CBC)
-        if( mode == POLARSSL_MODE_CBC )
-            return &blowfish_cbc_info;
-#endif /* POLARSSL_CIPHER_MODE_CBC */
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        if( mode == POLARSSL_MODE_CFB )
-            return &blowfish_cfb64_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        if( mode == POLARSSL_MODE_CTR )
-            return &blowfish_ctr_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-    }
-#endif
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( cipher_id == POLARSSL_CIPHER_ID_NULL )
-            return &null_cipher_info;
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
+    for( def = cipher_definitions; def->info != NULL; def++ )
+        if( def->info->base->cipher == cipher_id &&
+            def->info->key_length == (unsigned) key_length &&
+            def->info->mode == mode )
+            return( def->info );
 
     return NULL;
 }

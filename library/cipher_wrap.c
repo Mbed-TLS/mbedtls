@@ -1101,4 +1101,90 @@ const cipher_info_t null_cipher_info = {
 };
 #endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
 
+const cipher_definition_t cipher_definitions[] =
+{
+#if defined(POLARSSL_AES_C)
+    { POLARSSL_CIPHER_AES_128_ECB,          &aes_128_ecb_info },
+    { POLARSSL_CIPHER_AES_192_ECB,          &aes_192_ecb_info },
+    { POLARSSL_CIPHER_AES_256_ECB,          &aes_256_ecb_info },
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+    { POLARSSL_CIPHER_AES_128_CBC,          &aes_128_cbc_info },
+    { POLARSSL_CIPHER_AES_192_CBC,          &aes_192_cbc_info },
+    { POLARSSL_CIPHER_AES_256_CBC,          &aes_256_cbc_info },
+#endif
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+    { POLARSSL_CIPHER_AES_128_CFB128,       &aes_128_cfb128_info },
+    { POLARSSL_CIPHER_AES_192_CFB128,       &aes_192_cfb128_info },
+    { POLARSSL_CIPHER_AES_256_CFB128,       &aes_256_cfb128_info },
+#endif
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    { POLARSSL_CIPHER_AES_128_CTR,          &aes_128_ctr_info },
+    { POLARSSL_CIPHER_AES_192_CTR,          &aes_192_ctr_info },
+    { POLARSSL_CIPHER_AES_256_CTR,          &aes_256_ctr_info },
+#endif
+#if defined(POLARSSL_GCM_C)
+    { POLARSSL_CIPHER_AES_128_GCM,          &aes_128_gcm_info },
+    { POLARSSL_CIPHER_AES_192_GCM,          &aes_192_gcm_info },
+    { POLARSSL_CIPHER_AES_256_GCM,          &aes_256_gcm_info },
+#endif
+#endif /* POLARSSL_AES_C */
+
+#if defined(POLARSSL_ARC4_C)
+    { POLARSSL_CIPHER_ARC4_128,             &arc4_128_info },
+#endif
+
+#if defined(POLARSSL_BLOWFISH_C)
+    { POLARSSL_CIPHER_BLOWFISH_ECB,         &blowfish_ecb_info },
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+    { POLARSSL_CIPHER_BLOWFISH_CBC,         &blowfish_cbc_info },
+#endif
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+    { POLARSSL_CIPHER_BLOWFISH_CFB64,       &blowfish_cfb64_info },
+#endif
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    { POLARSSL_CIPHER_BLOWFISH_CTR,         &blowfish_ctr_info },
+#endif
+#endif /* POLARSSL_BLOWFISH_C */
+
+#if defined(POLARSSL_CAMELLIA_C)
+    { POLARSSL_CIPHER_CAMELLIA_128_ECB,     &camellia_128_ecb_info },
+    { POLARSSL_CIPHER_CAMELLIA_192_ECB,     &camellia_192_ecb_info },
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+    { POLARSSL_CIPHER_CAMELLIA_128_CBC,     &camellia_128_cbc_info },
+    { POLARSSL_CIPHER_CAMELLIA_192_CBC,     &camellia_192_cbc_info },
+    { POLARSSL_CIPHER_CAMELLIA_256_CBC,     &camellia_256_cbc_info },
+#endif
+#if defined(POLARSSL_CIPHER_MODE_CFB)
+    { POLARSSL_CIPHER_CAMELLIA_128_CFB128,  &camellia_128_cfb128_info },
+    { POLARSSL_CIPHER_CAMELLIA_192_CFB128,  &camellia_192_cfb128_info },
+    { POLARSSL_CIPHER_CAMELLIA_256_CFB128,  &camellia_256_cfb128_info },
+#endif
+#if defined(POLARSSL_CIPHER_MODE_CTR)
+    { POLARSSL_CIPHER_CAMELLIA_128_CTR,     &camellia_128_ctr_info },
+    { POLARSSL_CIPHER_CAMELLIA_192_CTR,     &camellia_192_ctr_info },
+    { POLARSSL_CIPHER_CAMELLIA_256_CTR,     &camellia_256_ctr_info },
+#endif
+#endif /* POLARSSL_CAMELLIA_C */
+
+#if defined(POLARSSL_DES_C)
+    { POLARSSL_CIPHER_DES_ECB,              &des_ecb_info },
+    { POLARSSL_CIPHER_DES_EDE_ECB,          &des_ede_ecb_info },
+    { POLARSSL_CIPHER_DES_EDE3_ECB,         &des_ede3_ecb_info },
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+    { POLARSSL_CIPHER_DES_CBC,              &des_cbc_info },
+    { POLARSSL_CIPHER_DES_EDE_CBC,          &des_ede_cbc_info },
+    { POLARSSL_CIPHER_DES_EDE3_CBC,         &des_ede3_cbc_info },
+#endif
+#endif /* POLARSSL_DES_C */
+
+#if defined(POLARSSL_CIPHER_NULL_CIPHER)
+    { POLARSSL_CIPHER_NULL,                 &null_info },
+#endif /* POLARSSL_CIPHER_NULL_CIPHER */
+
+    { 0, NULL }
+};
+
+#define NUM_CIPHERS sizeof cipher_definitions / sizeof cipher_definitions[0]
+int supported_ciphers[NUM_CIPHERS];
+
 #endif

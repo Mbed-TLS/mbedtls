@@ -255,7 +255,7 @@ static int pk_get_rsapubkey( unsigned char **p,
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
     if( ( ret = rsa_check_pubkey( rsa ) ) != 0 )
-        return( ret );
+        return( POLARSSL_ERR_PK_INVALID_PUBKEY );
 
     rsa->len = mpi_size( &rsa->N );
 

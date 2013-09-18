@@ -47,7 +47,7 @@ void base64_decode( char *src_string, char *dst_string, int result )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
 void base64_selftest()
 {
     TEST_ASSERT( base64_self_test( 0 ) == 0 );

@@ -479,7 +479,7 @@ void check_padding( int pad_mode, char *input_str, int ret, int dlen_check )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
 void cipher_selftest()
 {
     TEST_ASSERT( cipher_self_test( 0 ) == 0 );

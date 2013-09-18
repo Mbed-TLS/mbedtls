@@ -135,7 +135,7 @@ void aes_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CFB */
 void aes_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
                          char *hex_src_string, char *hex_dst_string )
 {
@@ -166,7 +166,7 @@ void aes_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CFB */
 void aes_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
                          char *hex_src_string, char *hex_dst_string )
 {
@@ -197,7 +197,7 @@ void aes_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
 void aes_selftest()
 {
     TEST_ASSERT( aes_self_test( 0 ) == 0 );

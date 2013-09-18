@@ -515,7 +515,7 @@ void ecp_gen_keypair( int id )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
 void ecp_selftest()
 {
     TEST_ASSERT( ecp_self_test( 0 ) == 0 );

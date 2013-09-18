@@ -13,6 +13,10 @@ pkey/ecdsa
 pkey/key_app
 pkey/key_app_writer
 pkey/mpi_demo
+pkey/pk_decrypt
+pkey/pk_encrypt
+pkey/pk_sign
+pkey/pk_verify
 pkey/rsa_decrypt
 pkey/rsa_encrypt
 pkey/rsa_genkey

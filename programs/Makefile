@@ -26,7 +26,9 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	hash/sha2sum		pkey/dh_client		\
 	pkey/dh_genprime	pkey/dh_server		\
 	pkey/key_app		pkey/key_app_writer	\
-	pkey/mpi_demo		pkey/rsa_genkey		\
+	pkey/mpi_demo		pkey/pk_decrypt		\
+	pkey/pk_encrypt		pkey/pk_sign		\
+	pkey/pk_verify		pkey/rsa_genkey		\
 	pkey/rsa_decrypt	pkey/rsa_encrypt	\
 	pkey/rsa_sign		pkey/rsa_verify		\
 	pkey/rsa_sign_pss	pkey/rsa_verify_pss \
@@ -106,6 +108,22 @@ pkey/key_app_writer: pkey/key_app_writer.c ../library/libpolarssl.a
 pkey/mpi_demo: pkey/mpi_demo.c ../library/libpolarssl.a
 	echo   "  CC    pkey/mpi_demo.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/mpi_demo.c    $(LDFLAGS) -o $@
+
+pkey/pk_decrypt: pkey/pk_decrypt.c ../library/libpolarssl.a
+	echo   "  CC    pkey/pk_decrypt.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/pk_decrypt.c    $(LDFLAGS) -o $@
+
+pkey/pk_encrypt: pkey/pk_encrypt.c ../library/libpolarssl.a
+	echo   "  CC    pkey/pk_encrypt.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/pk_encrypt.c    $(LDFLAGS) -o $@
+
+pkey/pk_sign: pkey/pk_sign.c ../library/libpolarssl.a
+	echo   "  CC    pkey/pk_sign.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/pk_sign.c    $(LDFLAGS) -o $@
+
+pkey/pk_verify: pkey/pk_verify.c ../library/libpolarssl.a
+	echo   "  CC    pkey/pk_verify.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/pk_verify.c  $(LDFLAGS) -o $@
 
 pkey/rsa_genkey: pkey/rsa_genkey.c ../library/libpolarssl.a
 	echo   "  CC    pkey/rsa_genkey.c"

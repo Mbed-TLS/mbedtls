@@ -40,6 +40,18 @@ target_link_libraries(rsa_encrypt polarssl)
 add_executable(rsa_decrypt rsa_decrypt.c)
 target_link_libraries(rsa_decrypt polarssl)
 
-install(TARGETS dh_client dh_genprime dh_server key_app mpi_demo rsa_genkey rsa_sign rsa_verify rsa_encrypt rsa_decrypt
+add_executable(pk_sign pk_sign.c)
+target_link_libraries(pk_sign polarssl)
+
+add_executable(pk_verify pk_verify.c)
+target_link_libraries(pk_verify polarssl)
+
+add_executable(pk_encrypt pk_encrypt.c)
+target_link_libraries(pk_encrypt polarssl)
+
+add_executable(pk_decrypt pk_decrypt.c)
+target_link_libraries(pk_decrypt polarssl)
+
+install(TARGETS dh_client dh_genprime dh_server key_app mpi_demo rsa_genkey rsa_sign rsa_verify rsa_encrypt rsa_decrypt pk_encrypt pk_decrypt pk_sign pk_verify
         DESTINATION "bin"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

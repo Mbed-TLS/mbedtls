@@ -118,7 +118,7 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 #if defined(POLARSSL_FS_IO)
 #define USAGE_IO \
     "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
@@ -136,7 +136,7 @@ static void my_debug( void *ctx, int level, const char *str )
 #endif /* POLARSSL_FS_IO */
 #else
 #define USAGE_IO ""
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
 #define USAGE_PSK                                                   \
@@ -212,9 +212,9 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-#if defined(POLARSSL_X509_PARSE_C)
-    x509_cert cacert;
-    x509_cert srvcert;
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    x509_crt cacert;
+    x509_crt srvcert;
     pk_context pkey;
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
@@ -236,9 +236,9 @@ int main( int argc, char *argv[] )
      * Make sure memory references are valid.
      */
     listen_fd = 0;
-#if defined(POLARSSL_X509_PARSE_C)
-    memset( &cacert, 0, sizeof( x509_cert ) );
-    memset( &srvcert, 0, sizeof( x509_cert ) );
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    x509_crt_init( &cacert );
+    x509_crt_init( &srvcert );
     pk_init( &pkey );
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
@@ -516,7 +516,7 @@ int main( int argc, char *argv[] )
 
     printf( " ok\n" );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
      * 1.1. Load the trusted CA
      */
@@ -525,14 +525,14 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.ca_path ) )
-        ret = x509parse_crtpath( &cacert, opt.ca_path );
+        ret = x509_crt_parse_path( &cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
-        ret = x509parse_crtfile( &cacert, opt.ca_file );
-    else 
+        ret = x509_crt_parse_file( &cacert, opt.ca_file );
+    else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
-                strlen( test_ca_crt ) );
+        ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_crt,
+                              strlen( test_ca_crt ) );
 #else
     {
         ret = 1;
@@ -541,7 +541,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -555,12 +555,12 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
-        ret = x509parse_crtfile( &srvcert, opt.crt_file );
-    else 
+        ret = x509_crt_parse_file( &srvcert, opt.crt_file );
+    else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
-                strlen( test_srv_crt ) );
+        ret = x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
+                              strlen( test_srv_crt ) );
 #else
     {
         ret = 1;
@@ -569,17 +569,17 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = x509parse_keyfile( &pkey, opt.key_file, "" );
+        ret = pk_parse_keyfile( &pkey, opt.key_file, "" );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_key( &pkey, (const unsigned char *) test_srv_key,
+        ret = pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
                 strlen( test_srv_key ), NULL, 0 );
 #else
     {
@@ -589,12 +589,12 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_key returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  pk_parse_key returned -0x%x\n\n", -ret );
         goto exit;
     }
 
     printf( " ok\n" );
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     /*
      * 2. Setup the listening TCP socket
@@ -647,7 +647,7 @@ int main( int argc, char *argv[] )
     ssl_set_renegotiation( &ssl, opt.renegotiation );
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
     ssl_set_own_cert( &ssl, &srvcert, &pkey );
 #endif
@@ -747,7 +747,7 @@ reset:
     printf( " ok\n    [ Ciphersuite is %s ]\n",
             ssl_get_ciphersuite( &ssl ) );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
      * 5. Verify the server certificate
      */
@@ -777,11 +777,11 @@ reset:
     if( ssl_get_peer_cert( &ssl ) )
     {
         printf( "  . Peer certificate information    ...\n" );
-        x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                             ssl_get_peer_cert( &ssl ) );
+        x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                       ssl_get_peer_cert( &ssl ) );
         printf( "%s\n", buf );
     }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     /*
      * 6. Read the HTTP Request
@@ -877,9 +877,9 @@ exit:
 #endif
 
     net_close( client_fd );
-#if defined(POLARSSL_X509_PARSE_C)
-    x509_free( &srvcert );
-    x509_free( &cacert );
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    x509_crt_free( &srvcert );
+    x509_crt_free( &cacert );
     pk_free( &pkey );
 #endif
 

@@ -49,6 +49,25 @@
 #include "polarssl/ssl_cache.h"
 #endif
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
+    !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
+    !defined(POLARSSL_X509_CRT_PARSE_C)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_ENTROPY_C "
+           "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C "
+           "not defined.\n");
+    return( 0 );
+}
+#else
+
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
     "<h2>PolarSSL Test Server</h2>\r\n" \
@@ -65,23 +84,6 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_CERTS_C) ||    \
-    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_SSL_TLS_C) || \
-    !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_NET_C) ||     \
-    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
-    !defined(POLARSSL_X509_PARSE_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_ENTROPY_C "
-           "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_PARSE_C not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     int ret, len;
@@ -93,7 +95,7 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    x509_cert srvcert;
+    x509_crt srvcert;
     pk_context pkey;
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
@@ -112,35 +114,35 @@ int main( int argc, char *argv[] )
     printf( "\n  . Loading the server cert. and key..." );
     fflush( stdout );
 
-    memset( &srvcert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &srvcert );
 
     /*
      * This demonstration program uses embedded test certificates.
-     * Instead, you may want to use x509parse_crtfile() to read the
-     * server and CA certificates, as well as x509parse_keyfile().
+     * Instead, you may want to use x509_crt_parse_file() to read the
+     * server and CA certificates, as well as pk_parse_keyfile().
      */
-    ret = x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
-                         strlen( test_srv_crt ) );
+    ret = x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
+                          strlen( test_srv_crt ) );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
-    ret = x509parse_crt( &srvcert, (const unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ) );
+    ret = x509_crt_parse( &srvcert, (const unsigned char *) test_ca_crt,
+                          strlen( test_ca_crt ) );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
     pk_init( &pkey );
-    ret =  x509parse_key( &pkey, (const unsigned char *) test_srv_key,
-                          strlen( test_srv_key ), NULL, 0 );
+    ret =  pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
+                         strlen( test_srv_key ), NULL, 0 );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_key returned %d\n\n", ret );
+        printf( " failed\n  !  pk_parse_key returned %d\n\n", ret );
         goto exit;
     }
 
@@ -363,7 +365,7 @@ exit:
 #endif
 
     net_close( client_fd );
-    x509_free( &srvcert );
+    x509_crt_free( &srvcert );
     pk_free( &pkey );
     ssl_free( &ssl );
 #if defined(POLARSSL_SSL_CACHE_C)

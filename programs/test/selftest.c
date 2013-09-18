@@ -33,6 +33,7 @@
 #include "polarssl/config.h"
 
 #include "polarssl/ctr_drbg.h"
+#include "polarssl/dhm.h"
 #include "polarssl/gcm.h"
 #include "polarssl/md2.h"
 #include "polarssl/md4.h"
@@ -142,7 +143,7 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C) && defined(POLARSSL_BIGNUM_C)
+#if defined(POLARSSL_X509_USE_C)
     if( ( ret = x509_self_test( v ) ) != 0 )
         return( ret );
 #endif
@@ -169,6 +170,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_ECP_C)
     if( ( ret = ecp_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(POLARSSL_DHM_C)
+    if( ( ret = dhm_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

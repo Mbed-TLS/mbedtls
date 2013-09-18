@@ -34,6 +34,22 @@
 
 #include "polarssl/dhm.h"
 
+#if defined(POLARSSL_PEM_PARSE_C)
+#include "polarssl/pem.h"
+#endif
+
+#if defined(POLARSSL_ASN1_PARSE_C)
+#include "polarssl/asn1.h"
+#endif
+
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#include <stdlib.h>
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 /*
  * helper to validate the mpi size and import it
  */
@@ -372,14 +388,183 @@ void dhm_free( dhm_context *ctx )
     memset( ctx, 0, sizeof( dhm_context ) );
 }
 
+#if defined(POLARSSL_ASN1_PARSE_C)
+/*
+ * Parse DHM parameters
+ */
+int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen )
+{
+    int ret;
+    size_t len;
+    unsigned char *p, *end;
+#if defined(POLARSSL_PEM_PARSE_C)
+    pem_context pem;
+
+    pem_init( &pem );
+    memset( dhm, 0, sizeof( dhm_context ) );
+
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN DH PARAMETERS-----",
+                           "-----END DH PARAMETERS-----",
+                           dhmin, NULL, 0, &dhminlen );
+
+    if( ret == 0 )
+    {
+        /*
+         * Was PEM encoded
+         */
+        dhminlen = pem.buflen;
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        goto exit;
+
+    p = ( ret == 0 ) ? pem.buf : (unsigned char *) dhmin;
+#else
+    p = (unsigned char *) dhmin;
+#endif
+    end = p + dhminlen;
+
+    /*
+     *  DHParams ::= SEQUENCE {
+     *      prime            INTEGER,  -- P
+     *      generator        INTEGER,  -- g
+     *  }
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+    {
+        ret = POLARSSL_ERR_DHM_INVALID_FORMAT + ret;
+        goto exit;
+    }
+
+    end = p + len;
+
+    if( ( ret = asn1_get_mpi( &p, end, &dhm->P  ) ) != 0 ||
+        ( ret = asn1_get_mpi( &p, end, &dhm->G ) ) != 0 )
+    {
+        ret = POLARSSL_ERR_DHM_INVALID_FORMAT + ret;
+        goto exit;
+    }
+
+    if( p != end )
+    {
+        ret = POLARSSL_ERR_DHM_INVALID_FORMAT +
+              POLARSSL_ERR_ASN1_LENGTH_MISMATCH;
+        goto exit;
+    }
+
+    ret = 0;
+
+exit:
+#if defined(POLARSSL_PEM_PARSE_C)
+    pem_free( &pem );
+#endif
+    if( ret != 0 )
+        dhm_free( dhm );
+
+    return( ret );
+}
+
+#if defined(POLARSSL_FS_IO)
+/*
+ * Load all data from a file into a given buffer.
+ */
+static int load_file( const char *path, unsigned char **buf, size_t *n )
+{
+    FILE *f;
+    long size;
+
+    if( ( f = fopen( path, "rb" ) ) == NULL )
+        return( POLARSSL_ERR_DHM_FILE_IO_ERROR );
+
+    fseek( f, 0, SEEK_END );
+    if( ( size = ftell( f ) ) == -1 )
+    {
+        fclose( f );
+        return( POLARSSL_ERR_DHM_FILE_IO_ERROR );
+    }
+    fseek( f, 0, SEEK_SET );
+
+    *n = (size_t) size;
+
+    if( *n + 1 == 0 ||
+        ( *buf = (unsigned char *) polarssl_malloc( *n + 1 ) ) == NULL )
+    {
+        fclose( f );
+        return( POLARSSL_ERR_DHM_MALLOC_FAILED );
+    }
+
+    if( fread( *buf, 1, *n, f ) != *n )
+    {
+        fclose( f );
+        polarssl_free( *buf );
+        return( POLARSSL_ERR_DHM_FILE_IO_ERROR );
+    }
+
+    fclose( f );
+
+    (*buf)[*n] = '\0';
+
+    return( 0 );
+}
+
+/*
+ * Load and parse DHM parameters
+ */
+int dhm_parse_dhmfile( dhm_context *dhm, const char *path )
+{
+    int ret;
+    size_t n;
+    unsigned char *buf;
+
+    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
+        return( ret );
+
+    ret = dhm_parse_dhm( dhm, buf, n );
+
+    memset( buf, 0, n + 1 );
+    polarssl_free( buf );
+
+    return( ret );
+}
+#endif /* POLARSSL_FS_IO */
+#endif /* POLARSSL_ASN1_PARSE_C */
+
 #if defined(POLARSSL_SELF_TEST)
+
+#include "polarssl/certs.h"
 
 /*
  * Checkup routine
  */
 int dhm_self_test( int verbose )
 {
-    return( verbose++ );
+#if defined(POLARSSL_CERTS_C)
+    int ret;
+    dhm_context dhm;
+
+    if( verbose != 0 )
+        printf( "  DHM parameter load: " );
+
+    if( ( ret = dhm_parse_dhm( &dhm, (const unsigned char *) test_dhm_params,
+                               strlen( test_dhm_params ) ) ) != 0 )
+    {
+        if( verbose != 0 )
+            printf( "failed\n" );
+
+        return( ret );
+    }
+
+    if( verbose != 0 )
+        printf( "passed\n\n" );
+
+    dhm_free( &dhm );
+
+    return( 0 );
+#else
+    ((void) verbose);
+    return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+#endif
 }
 
 #endif

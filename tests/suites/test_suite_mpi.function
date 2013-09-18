@@ -85,7 +85,7 @@ void mpi_write_binary( int radix_X, char *input_X, char *input_A,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void mpi_read_file( int radix_X, char *input_file, char *input_A,
                     int result )
 {
@@ -118,7 +118,7 @@ void mpi_read_file( int radix_X, char *input_file, char *input_A,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
 void mpi_write_file( int radix_X, char *input_X, int output_radix,
                      char *output_file )
 {

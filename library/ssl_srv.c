@@ -62,9 +62,9 @@ static int ssl_save_session( const ssl_session *session,
 {
     unsigned char *p = buf;
     size_t left = buf_len;
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     size_t cert_len;
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     if( left < sizeof( ssl_session ) )
         return( -1 );
@@ -73,7 +73,7 @@ static int ssl_save_session( const ssl_session *session,
     p += sizeof( ssl_session );
     left -= sizeof( ssl_session );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     ((ssl_session *) buf)->peer_cert = NULL;
 
     if( session->peer_cert == NULL )
@@ -92,7 +92,7 @@ static int ssl_save_session( const ssl_session *session,
         memcpy( p, session->peer_cert->raw.p, cert_len );
 
     p += cert_len;
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     *olen = p - buf;
 
@@ -105,12 +105,11 @@ static int ssl_save_session( const ssl_session *session,
 static int ssl_load_session( ssl_session *session,
                              const unsigned char *buf, size_t len )
 {
-    int ret;
     const unsigned char *p = buf;
     const unsigned char * const end = buf + len;
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     size_t cert_len;
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     if( p + sizeof( ssl_session ) > end )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -118,7 +117,7 @@ static int ssl_load_session( ssl_session *session,
     memcpy( session, p, sizeof( ssl_session ) );
     p += sizeof( ssl_session );
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
     if( p + 3 > end )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
@@ -131,19 +130,21 @@ static int ssl_load_session( ssl_session *session,
     }
     else
     {
+        int ret;
+
         if( p + cert_len > end )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-        session->peer_cert = polarssl_malloc( sizeof( x509_cert ) );
+        session->peer_cert = polarssl_malloc( sizeof( x509_crt ) );
 
         if( session->peer_cert == NULL )
             return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-        memset( session->peer_cert, 0, sizeof( x509_cert ) );
+        x509_crt_init( session->peer_cert );
 
-        if( ( ret = x509parse_crt( session->peer_cert, p, cert_len ) ) != 0 )
+        if( ( ret = x509_crt_parse( session->peer_cert, p, cert_len ) ) != 0 )
         {
-            x509_free( session->peer_cert );
+            x509_crt_free( session->peer_cert );
             polarssl_free( session->peer_cert );
             session->peer_cert = NULL;
             return( ret );
@@ -151,7 +152,7 @@ static int ssl_load_session( ssl_session *session,
 
         p += cert_len;
     }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     if( p != end )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -1694,7 +1695,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     size_t dn_size, total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
-    const x509_cert *crt;
+    const x509_crt *crt;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
@@ -1834,14 +1835,19 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 {
     int ret;
     size_t n = 0, len;
-    unsigned char hash[64];
-    md_type_t md_alg = POLARSSL_MD_NONE;
-    unsigned int hashlen = 0;
     unsigned char *p = ssl->out_msg + 4;
+    const ssl_ciphersuite_t *ciphersuite_info;
+
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     unsigned char *dig_signed = p;
     size_t dig_signed_len = 0;
+    ((void) dig_signed);
+    ((void) dig_signed_len);
+#endif
 
-    const ssl_ciphersuite_t *ciphersuite_info;
     ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
@@ -1959,6 +1965,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
         size_t signature_len = 0;
+        unsigned int hashlen = 0;
+        unsigned char hash[64];
+        md_type_t md_alg = POLARSSL_MD_NONE;
 
         /*
          * Choose hash algorithm. NONE means MD5 + SHA1 here.

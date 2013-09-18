@@ -39,6 +39,24 @@
 #include "polarssl/error.h"
 #include "polarssl/certs.h"
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
+    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
+    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_CRT_PARSE_C)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
+           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
+           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C "
+           "not defined.\n");
+    return( 0 );
+}
+#else
+
 #define SERVER_PORT 4433
 #define SERVER_NAME "localhost"
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
@@ -54,23 +72,6 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_CTR_DRBG_C) || !defined(POLARSSL_X509_PARSE_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_PARSE_C "
-           "not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     int ret, len, server_fd;
@@ -80,7 +81,7 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    x509_cert cacert;
+    x509_crt cacert;
 
     ((void) argc);
     ((void) argv);
@@ -89,7 +90,7 @@ int main( int argc, char *argv[] )
      * 0. Initialize the RNG and the session data
      */
     memset( &ssl, 0, sizeof( ssl_context ) );
-    memset( &cacert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &cacert );
 
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
@@ -112,8 +113,8 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
 #if defined(POLARSSL_CERTS_C)
-    ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ) );
+    ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_crt,
+                          strlen( test_ca_crt ) );
 #else
     ret = 1;
     printf("POLARSSL_CERTS_C not defined.");
@@ -121,7 +122,7 @@ int main( int argc, char *argv[] )
 
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -277,7 +278,7 @@ exit:
     }
 #endif
 
-    x509_free( &cacert );
+    x509_crt_free( &cacert );
     net_close( server_fd );
     ssl_free( &ssl );
 

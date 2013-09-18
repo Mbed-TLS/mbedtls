@@ -1,7 +1,7 @@
 /**
- * \file x509write.h
+ * \file x509_crt.h
  *
- * \brief X509 buffer writing functionality
+ * \brief X.509 certificate parsing and writing
  *
  *  Copyright (C) 2006-2013, Brainspark B.V.
  *
@@ -24,30 +24,15 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_X509_WRITE_H
-#define POLARSSL_X509_WRITE_H
+#ifndef POLARSSL_X509_CRT_H
+#define POLARSSL_X509_CRT_H
 
 #include "config.h"
 
 #include "x509.h"
 
-/**
- * \addtogroup x509_module
- * \{
- */
-
-/**
- * \name X509 Write Error codes
- * \{
- */
-#define POLARSSL_ERR_X509WRITE_UNKNOWN_OID                -0x5F80  /**< Requested OID is unknown. */
-#define POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA             -0x5F00  /**< Failed to allocate memory. */
-#define POLARSSL_ERR_X509WRITE_MALLOC_FAILED              -0x5E80  /**< Failed to allocate memory. */
-/* \} name */
-/* \} addtogroup x509_module */
-
-#ifdef __cplusplus
-extern "C" {
+#if defined(POLARSSL_X509_CRL_PARSE_C)
+#include "x509_crl.h"
 #endif
 
 /**
@@ -55,22 +40,61 @@ extern "C" {
  * \{
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
- * \name Structures for writing X.509 CSRs (Certificate Signing Request) 
+ * \name Structures and functions for parsing and writing X.509 certificates
  * \{
  */
 
 /**
- * Container for a CSR
+ * Container for an X.509 certificate. The certificate may be chained.
  */
-typedef struct _x509write_csr
+typedef struct _x509_crt
 {
-    pk_context *key;
-    asn1_named_data *subject;
-    md_type_t md_alg;
-    asn1_named_data *extensions;
+    x509_buf raw;               /**< The raw certificate data (DER). */
+    x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
+
+    int version;                /**< The X.509 version. (0=v1, 1=v2, 2=v3) */
+    x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
+    x509_buf sig_oid1;          /**< Signature algorithm, e.g. sha1RSA */
+
+    x509_buf issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison. */
+    x509_buf subject_raw;       /**< The raw subject data (DER). Used for quick comparison. */
+
+    x509_name issuer;           /**< The parsed issuer data (named information object). */
+    x509_name subject;          /**< The parsed subject data (named information object). */
+
+    x509_time valid_from;       /**< Start time of certificate validity. */
+    x509_time valid_to;         /**< End time of certificate validity. */
+
+    pk_context pk;              /**< Container for the public key context. */
+
+    x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
+    x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
+    x509_buf v3_ext;            /**< Optional X.509 v3 extensions. Only Basic Contraints are supported at this time. */
+    x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName supported). */
+
+    int ext_types;              /**< Bit string containing detected and parsed extensions */
+    int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
+    int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
+
+    unsigned char key_usage;    /**< Optional key usage extension value: See the values below */
+
+    x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
+
+    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values below */
+
+    x509_buf sig_oid2;          /**< Signature algorithm. Must match sig_oid1. */
+    x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
+    md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
+    pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
+
+    struct _x509_crt *next;     /**< Next certificate in the CA-chain. */
 }
-x509write_csr;
+x509_crt;
 
 #define X509_CRT_VERSION_1              0
 #define X509_CRT_VERSION_2              1
@@ -97,93 +121,158 @@ typedef struct _x509write_cert
 }
 x509write_cert;
 
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+/**
+ * \brief          Parse a single DER formatted certificate and add it
+ *                 to the chained list.
+ *
+ * \param chain    points to the start of the chain
+ * \param buf      buffer holding the certificate DER data
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509_crt_parse_der( x509_crt *chain, const unsigned char *buf,
+                        size_t buflen );
+
+/**
+ * \brief          Parse one or more certificates and add them
+ *                 to the chained list. Parses permissively. If some
+ *                 certificates can be parsed, the result is the number
+ *                 of failed certificates it encountered. If none complete
+ *                 correctly, the first error is returned.
+ *
+ * \param chain    points to the start of the chain
+ * \param buf      buffer holding the certificate data
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if all certificates parsed successfully, a positive number
+ *                 if partly successful or a specific X509 or PEM error code
+ */
+int x509_crt_parse( x509_crt *chain, const unsigned char *buf, size_t buflen );
+
+#if defined(POLARSSL_FS_IO)
+/**
+ * \brief          Load one or more certificates and add them
+ *                 to the chained list. Parses permissively. If some
+ *                 certificates can be parsed, the result is the number
+ *                 of failed certificates it encountered. If none complete
+ *                 correctly, the first error is returned.
+ *
+ * \param chain    points to the start of the chain
+ * \param path     filename to read the certificates from
+ *
+ * \return         0 if all certificates parsed successfully, a positive number
+ *                 if partly successful or a specific X509 or PEM error code
+ */
+int x509_crt_parse_file( x509_crt *chain, const char *path );
+
+/**
+ * \brief          Load one or more certificate files from a path and add them
+ *                 to the chained list. Parses permissively. If some
+ *                 certificates can be parsed, the result is the number
+ *                 of failed certificates it encountered. If none complete
+ *                 correctly, the first error is returned.
+ *
+ * \param chain    points to the start of the chain
+ * \param path     directory / folder to read the certificate files from
+ *
+ * \return         0 if all certificates parsed successfully, a positive number
+ *                 if partly successful or a specific X509 or PEM error code
+ */
+int x509_crt_parse_path( x509_crt *chain, const char *path );
+#endif /* POLARSSL_FS_IO */
+
+/**
+ * \brief          Returns an informational string about the
+ *                 certificate.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param prefix   A line prefix
+ * \param crt      The X509 certificate to represent
+ *
+ * \return         The amount of data written to the buffer, or -1 in
+ *                 case of an error.
+ */
+int x509_crt_info( char *buf, size_t size, const char *prefix,
+                   const x509_crt *crt );
+
+/**
+ * \brief          Verify the certificate signature
+ *
+ *                 The verify callback is a user-supplied callback that
+ *                 can clear / modify / add flags for a certificate. If set,
+ *                 the verification callback is called for each
+ *                 certificate in the chain (from the trust-ca down to the
+ *                 presented crt). The parameters for the callback are:
+ *                 (void *parameter, x509_crt *crt, int certificate_depth,
+ *                 int *flags). With the flags representing current flags for
+ *                 that specific certificate and the certificate depth from
+ *                 the bottom (Peer cert depth = 0).
+ *
+ *                 All flags left after returning from the callback
+ *                 are also returned to the application. The function should
+ *                 return 0 for anything but a fatal error.
+ *
+ * \param crt      a certificate to be verified
+ * \param trust_ca the trusted CA chain
+ * \param ca_crl   the CRL chain for trusted CA's
+ * \param cn       expected Common Name (can be set to
+ *                 NULL if the CN must not be verified)
+ * \param flags    result of the verification
+ * \param f_vrfy   verification function
+ * \param p_vrfy   verification parameter
+ *
+ * \return         0 if successful or POLARSSL_ERR_X509_SIG_VERIFY_FAILED,
+ *                 in which case *flags will have one or more of
+ *                 the following values set:
+ *                      BADCERT_EXPIRED --
+ *                      BADCERT_REVOKED --
+ *                      BADCERT_CN_MISMATCH --
+ *                      BADCERT_NOT_TRUSTED
+ *                 or another error in case of a fatal error encountered
+ *                 during the verification process.
+ */
+int x509_crt_verify( x509_crt *crt,
+                     x509_crt *trust_ca,
+                     x509_crl *ca_crl,
+                     const char *cn, int *flags,
+                     int (*f_vrfy)(void *, x509_crt *, int, int *),
+                     void *p_vrfy );
+
+#if defined(POLARSSL_X509_CRL_PARSE_C)
+/**
+ * \brief          Verify the certificate signature
+ *
+ * \param crt      a certificate to be verified
+ * \param crl      the CRL to verify against
+ *
+ * \return         1 if the certificate is revoked, 0 otherwise
+ *
+ */
+int x509_crt_revoked( const x509_crt *crt, const x509_crl *crl );
+#endif /* POLARSSL_X509_CRL_PARSE_C */
+
+/**
+ * \brief          Initialize a certificate (chain)
+ *
+ * \param crt      Certificate chain to initialize
+ */
+void x509_crt_init( x509_crt *crt );
+
+/**
+ * \brief          Unallocate all certificate data
+ *
+ * \param crt      Certificate chain to free
+ */
+void x509_crt_free( x509_crt *crt );
+#endif /* POLARSSL_X509_CRT_PARSE_C */
+
 /* \} name */
 /* \} addtogroup x509_module */
 
-/**
- * \brief           Initialize a CSR context
- *
- * \param ctx       CSR context to initialize
- */
-void x509write_csr_init( x509write_csr *ctx );
-
-/**
- * \brief           Set the subject name for a CSR
- *                  Subject names should contain a comma-separated list
- *                  of OID types and values:
- *                  e.g. "C=NL,O=Offspark,CN=PolarSSL Server 1"
- *
- * \param ctx           CSR context to use
- * \param subject_name  subject name to set
- *
- * \return          0 if subject name was parsed successfully, or
- *                  a specific error code
- */
-int x509write_csr_set_subject_name( x509write_csr *ctx, char *subject_name );
-
-/**
- * \brief           Set the key for a CSR (public key will be included,
- *                  private key used to sign the CSR when writing it)
- *
- * \param ctx       CSR context to use
- * \param key       Asymetric key to include
- */
-void x509write_csr_set_key( x509write_csr *ctx, pk_context *key );
-
-/**
- * \brief           Set the MD algorithm to use for the signature
- *                  (e.g. POLARSSL_MD_SHA1)
- *
- * \param ctx       CSR context to use
- * \param md_alg    MD algorithm to use
- */
-void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg );
-
-/**
- * \brief           Set the Key Usage Extension flags
- *                  (e.g. KU_DIGITAL_SIGNATURE | KU_KEY_CERT_SIGN)
- *
- * \param ctx       CSR context to use
- * \param key_usage key usage flags to set
- *
- * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
- */
-int x509write_csr_set_key_usage( x509write_csr *ctx, unsigned char key_usage );
-
-/**
- * \brief           Set the Netscape Cert Type flags
- *                  (e.g. NS_CERT_TYPE_SSL_CLIENT | NS_CERT_TYPE_EMAIL)
- *
- * \param ctx           CSR context to use
- * \param ns_cert_type  Netscape Cert Type flags to set
- *
- * \return          0 if successful, or POLARSSL_ERR_X509WRITE_MALLOC_FAILED
- */
-int x509write_csr_set_ns_cert_type( x509write_csr *ctx,
-                                    unsigned char ns_cert_type );
-
-/**
- * \brief           Generic function to add to or replace an extension in the CSR
- *
- * \param ctx       CSR context to use
- * \param oid       OID of the extension
- * \param oid_len   length of the OID
- * \param val       value of the extension OCTET STRING
- * \param val_len   length of the value data
- *
- * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
- */
-int x509write_csr_set_extension( x509write_csr *ctx,
-                                 const char *oid, size_t oid_len,
-                                 const unsigned char *val, size_t val_len );
-
-/**
- * \brief           Free the contents of a CSR context
- *
- * \param ctx       CSR context to free
- */
-void x509write_csr_free( x509write_csr *ctx );
-
+#if defined(POLARSSL_X509_CRT_WRITE_C)
 /**
  * \brief           Initialize a CRT writing context
  *
@@ -389,62 +478,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng );
 
-/**
- * \brief           Write a public key to a DER structure
- *                  Note: data is written at the end of the buffer! Use the
- *                        return value to determine where you should start
- *                        using the buffer
- *
- * \param key       public key to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
- *
- * \return          length of data written if successful, or a specific
- *                  error code
- */
-int x509write_pubkey_der( pk_context *key, unsigned char *buf, size_t size );
-
-/**
- * \brief           Write a private key to a PKCS#1 or SEC1 DER structure
- *                  Note: data is written at the end of the buffer! Use the
- *                        return value to determine where you should start
- *                        using the buffer
- *
- * \param key       private to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
- *
- * \return          length of data written if successful, or a specific
- *                  error code
- */
-int x509write_key_der( pk_context *pk, unsigned char *buf, size_t size );
-
-/**
- * \brief           Write a CSR (Certificate Signing Request) to a
- *                  DER structure
- *                  Note: data is written at the end of the buffer! Use the
- *                        return value to determine where you should start
- *                        using the buffer
- *
- * \param ctx       CSR to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
- * \param f_rng     RNG function (for signature, see note)
- * \param p_rng     RNG parameter
- *
- * \return          length of data written if successful, or a specific
- *                  error code
- *
- * \note            f_rng may be NULL if RSA is used for signature and the
- *                  signature is made offline (otherwise f_rng is desirable
- *                  for countermeasures against timing attacks).
- *                  ECDSA signatures always require a non-NULL f_rng.
- */
-int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
-                       int (*f_rng)(void *, unsigned char *, size_t),
-                       void *p_rng );
-
-#if defined(POLARSSL_BASE64_C)
+#if defined(POLARSSL_PEM_WRITE_C)
 /**
  * \brief           Write a built up certificate to a X509 PEM string
  *
@@ -464,53 +498,11 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
 int x509write_crt_pem( x509write_cert *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng );
-
-/**
- * \brief           Write a public key to a PEM string
- *
- * \param key       public key to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
- *
- * \return          0 successful, or a specific error code
- */
-int x509write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size );
-
-/**
- * \brief           Write a private key to a PKCS#1 or SEC1 PEM string
- *
- * \param key       private to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
- *
- * \return          0 successful, or a specific error code
- */
-int x509write_key_pem( pk_context *key, unsigned char *buf, size_t size );
-
-/**
- * \brief           Write a CSR (Certificate Signing Request) to a
- *                  PEM string
- *
- * \param ctx       CSR to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
- * \param f_rng     RNG function (for signature, see note)
- * \param p_rng     RNG parameter
- *
- * \return          0 successful, or a specific error code
- *
- * \note            f_rng may be NULL if RSA is used for signature and the
- *                  signature is made offline (otherwise f_rng is desirable
- *                  for couermeasures against timing attacks).
- *                  ECDSA signatures always require a non-NULL f_rng.
- */
-int x509write_csr_pem( x509write_csr *ctx, unsigned char *buf, size_t size,
-                       int (*f_rng)(void *, unsigned char *, size_t),
-                       void *p_rng );
-#endif /* POLARSSL_BASE64_C */
+#endif /* POLARSSL_PEM_WRITE_C */
+#endif /* POLARSSL_X509_CRT_WRITE_C */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* POLARSSL_X509_WRITE_H */
+#endif /* x509_crt.h */

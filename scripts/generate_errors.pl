@@ -13,7 +13,7 @@ my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
                           "MD2", "MD4", "MD5", "SHA1", "SHA256", "SHA512", "GCM" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "ECP", "MD", "CIPHER", "SSL",
-                           "PK", "PKCS12", "PKCS5", "X509WRITE" );
+                           "PK", "PKCS12", "PKCS5" );
 
 my $line_separator = $/;
 undef $/;
@@ -36,6 +36,7 @@ my $headers = "";
 
 while (my $line = <GREP>)
 {
+    next if ($line =~ /compat-1.2.h/);
     my ($error_name, $error_code) = $line =~ /(POLARSSL_ERR_\w+)\s+\-(0x\w+)/;
     my ($description) = $line =~ /\/\*\*< (.*?)\.? \*\//;
     $description =~ s/\\/\\\\/g;
@@ -48,10 +49,10 @@ while (my $line = <GREP>)
     $module_name = "CTR_DRBG" if ($module_name eq "CTR");
 
     my $define_name = $module_name;
-    $define_name = "X509_PARSE" if ($define_name eq "X509");
-    $define_name = "X509_WRITE" if ($define_name eq "X509WRITE");
+    $define_name = "X509_USE,X509_CREATE" if ($define_name eq "X509");
     $define_name = "ASN1_PARSE" if ($define_name eq "ASN1");
     $define_name = "SSL_TLS" if ($define_name eq "SSL");
+    $define_name = "PEM_PARSE,PEM_WRITE" if ($define_name eq "PEM");
 
     my $include_name = $module_name;
     $include_name =~ tr/A-Z/a-z/;
@@ -68,6 +69,7 @@ while (my $line = <GREP>)
     my $code_check;
     my $old_define;
     my $white_space;
+    my $first;
 
     if ($found_ll)
     {
@@ -86,12 +88,30 @@ while (my $line = <GREP>)
     {
         if (${$old_define} ne "")
         {
-            ${$code_check} .= "#endif /* POLARSSL_${$old_define}_C */\n\n";
+            ${$code_check} .= "#endif /* ";
+            $first = 0;
+            foreach my $dep (split(/,/, ${$old_define}))
+            {
+                ${$code_check} .= " || " if ($first++);
+                ${$code_check} .= "POLARSSL_${dep}_C";
+            }
+            ${$code_check} .= " */\n\n";
         }
 
-        ${$code_check} .= "#if defined(POLARSSL_${define_name}_C)\n";
-        $headers .= "#if defined(POLARSSL_${define_name}_C)\n".
-                    "#include \"polarssl/${include_name}.h\"\n".
+        ${$code_check} .= "#if ";
+        $headers .= "#if " if ($include_name ne "");
+        $first = 0;
+        foreach my $dep (split(/,/, ${define_name}))
+        {
+            ${$code_check} .= " || " if ($first);
+            $headers       .= " || " if ($first++);
+
+            ${$code_check} .= "defined(POLARSSL_${dep}_C)";
+            $headers       .= "defined(POLARSSL_${dep}_C)" if
+                                                    ($include_name ne "");
+        }
+        ${$code_check} .= "\n";
+        $headers .= "\n#include \"polarssl/${include_name}.h\"\n".
                     "#endif\n\n" if ($include_name ne "");
         ${$old_define} = $define_name;
     }

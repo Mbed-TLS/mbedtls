@@ -287,7 +287,7 @@
  *
  * Enable the RSA-PSK based ciphersuite modes in SSL / TLS
  * (NOT YET IMPLEMENTED)
- * Requires: POLARSSL_RSA_C, POLARSSL_X509_PARSE_C, POLARSSL_PKCS1_V15
+ * Requires: POLARSSL_RSA_C, POLARSSL_X509_CRT_PARSE_C, POLARSSL_PKCS1_V15
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -307,7 +307,7 @@
  *
  * Enable the RSA-only based ciphersuite modes in SSL / TLS
  *
- * Requires: POLARSSL_RSA_C, POLARSSL_X509_PARSE_C, POLARSSL_PKCS1_V15
+ * Requires: POLARSSL_RSA_C, POLARSSL_X509_CRT_PARSE_C, POLARSSL_PKCS1_V15
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -332,7 +332,7 @@
  *
  * Enable the DHE-RSA based ciphersuite modes in SSL / TLS
  *
- * Requires: POLARSSL_DHM_C, POLARSSL_RSA_C, POLARSSL_X509_PARSE_C,
+ * Requires: POLARSSL_DHM_C, POLARSSL_RSA_C, POLARSSL_X509_CRT_PARSE_C,
  *           POLARSSL_PKCS1_V15
  *
  * This enables the following ciphersuites (if other requisites are
@@ -354,7 +354,7 @@
  *
  * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS
  *
- * Requires: POLARSSL_ECDH_C, POLARSSL_RSA_C, POLARSSL_X509_PARSE_C,
+ * Requires: POLARSSL_ECDH_C, POLARSSL_RSA_C, POLARSSL_X509_CRT_PARSE_C,
  *           POLARSSL_PKCS1_V15
  *
  * This enables the following ciphersuites (if other requisites are
@@ -377,7 +377,7 @@
  *
  * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS
  *
- * Requires: POLARSSL_ECDH_C, POLARSSL_ECDSA_C, POLARSSL_X509_PARSE_C
+ * Requires: POLARSSL_ECDH_C, POLARSSL_ECDSA_C, POLARSSL_X509_CRT_PARSE_C
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -719,7 +719,7 @@
  *      TLS_PSK_WITH_AES_128_CBC_SHA
  *      TLS_PSK_WITH_AES_256_CBC_SHA
  *
- * PEM uses AES for decrypting encrypted keys.
+ * PEM_PARSE uses AES for decrypting encrypted keys.
  */
 #define POLARSSL_AES_C
 
@@ -884,7 +884,7 @@
  *      TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
  *      TLS_PSK_WITH_3DES_EDE_CBC_SHA
  *
- * PEM uses DES/3DES for decrypting encrypted keys.
+ * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
  */
 #define POLARSSL_DES_C
 
@@ -1074,7 +1074,7 @@
  *          library/x509parse.c
  *
  * This module is required for SSL/TLS and X.509.
- * PEM uses MD5 for decrypting encrypted keys.
+ * PEM_PARSE uses MD5 for decrypting encrypted keys.
  */
 #define POLARSSL_MD5_C
 
@@ -1156,18 +1156,34 @@
 #define POLARSSL_PBKDF2_C
 
 /**
- * \def POLARSSL_PEM_C
+ * \def POLARSSL_PEM_PARSE_C
  *
- * Enable PEM decoding
+ * Enable PEM decoding / parsing
  *
  * Module:  library/pem.c
  * Caller:  library/x509parse.c
+ *          library/pkparse.c
  *
  * Requires: POLARSSL_BASE64_C
  *
- * This modules adds support for decoding PEM files.
+ * This modules adds support for decoding / parsing PEM files.
  */
-#define POLARSSL_PEM_C
+#define POLARSSL_PEM_PARSE_C
+
+/**
+ * \def POLARSSL_PEM_WRITE_C
+ *
+ * Enable PEM encoding / writing
+ *
+ * Module:  library/pem.c
+ * Caller:  library/x509write.c
+ *          library/pkwrite.c
+ *
+ * Requires: POLARSSL_BASE64_C
+ *
+ * This modules adds support for encoding / writing PEM files.
+ */
+#define POLARSSL_PEM_WRITE_C
 
 /**
  * \def POLARSSL_PK_C
@@ -1183,6 +1199,34 @@
  * Uncomment to enable generic public key wrappers.
  */
 #define POLARSSL_PK_C
+
+/**
+ * \def POLARSSL_PK_PARSE_C
+ *
+ * Enable the generic public (asymetric) key parser.
+ *
+ * Module:  library/pkparse.c
+ * Caller:  library/x509parse.c
+ *
+ * Requires: POLARSSL_PK_C
+ *
+ * Uncomment to enable generic public key parse functions.
+ */
+#define POLARSSL_PK_PARSE_C
+
+/**
+ * \def POLARSSL_PK_WRITE_C
+ *
+ * Enable the generic public (asymetric) key writer.
+ *
+ * Module:  library/pkwrite.c
+ * Caller:  library/x509write.c
+ *
+ * Requires: POLARSSL_PK_C
+ *
+ * Uncomment to enable generic public key write functions.
+ */
+#define POLARSSL_PK_WRITE_C
 
 /**
  * \def POLARSSL_PKCS5_C
@@ -1369,34 +1413,104 @@
 #define POLARSSL_VERSION_C
 
 /**
- * \def POLARSSL_X509_PARSE_C
+ * \def POLARSSL_X509_USE_C
+ *
+ * Enable X.509 core for using certificates
+ *
+ * Module:  library/x509.c
+ * Caller:  library/x509_crl.c
+ *          library/x509_crt.c
+ *          library/x509_csr.c
+ *
+ * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_BIGNUM_C, POLARSSL_OID_C,
+ *           POLARSSL_PK_PARSE_C
+ *
+ * This module is required for the X.509 parsing modules.
+ */
+#define POLARSSL_X509_USE_C
+
+/**
+ * \def POLARSSL_X509_CRT_PARSE_C
  *
  * Enable X.509 certificate parsing.
  *
- * Module:  library/x509parse.c
+ * Module:  library/x509_crt.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c
  *
- * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_BIGNUM_C, POLARSSL_OID_C,
- *           POLARSSL_PK_C
+ * Requires: POLARSSL_X509_USE_C
  *
  * This module is required for X.509 certificate parsing.
  */
-#define POLARSSL_X509_PARSE_C
+#define POLARSSL_X509_CRT_PARSE_C
 
 /**
- * \def POLARSSL_X509_WRITE_C
+ * \def POLARSSL_X509_CRL_PARSE_C
  *
- * Enable X.509 buffer writing.
+ * Enable X.509 CRL parsing.
  *
- * Module:  library/x509write.c
+ * Module:  library/x509_crl.c
+ * Caller:  library/x509_crt.c
  *
- * Requires: POLARSSL_BIGNUM_C, POLARSSL_OID_C, POLARSSL_PK_C
+ * Requires: POLARSSL_X509_USE_C
+ *
+ * This module is required for X.509 CRL parsing.
+ */
+#define POLARSSL_X509_CRL_PARSE_C
+
+/**
+ * \def POLARSSL_X509_CSR_PARSE_C
+ *
+ * Enable X.509 Certificate Signing Request (CSR) parsing.
+ *
+ * Module:  library/x509_csr.c
+ * Caller:  library/x509_crt_write.c
+ *
+ * Requires: POLARSSL_X509_USE_C
+ *
+ * This module is used for reading X.509 certificate request.
+ */
+#define POLARSSL_X509_CSR_PARSE_C
+
+/**
+ * \def POLARSSL_X509_CREATE_C
+ *
+ * Enable X.509 core for creating certificates
+ *
+ * Module:  library/x509_create.c
+ *
+ * Requires: POLARSSL_BIGNUM_C, POLARSSL_OID_C, POLARSSL_PK_WRITE_C
+ *
+ * This module is the basis for creating X.509 certificates and CSRs.
+ */
+#define POLARSSL_X509_CREATE_C
+
+/**
+ * \def POLARSSL_X509_CRT_WRITE_C
+ *
+ * Enable creating X.509 certificates.
+ *
+ * Module:  library/x509_crt_write.c
+ *
+ * Requires: POLARSSL_CREATE_C
+ *
+ * This module is required for X.509 certificate creation.
+ */
+#define POLARSSL_X509_CRT_WRITE_C
+
+/**
+ * \def POLARSSL_X509_CSR_WRITE_C
+ *
+ * Enable creating X.509 Certificate Signing Requests (CSR)
+ *
+ * Module:  library/x509_csr_write.c
+ *
+ * Requires: POLARSSL_CREATE_C
  *
  * This module is required for X.509 certificate request writing.
  */
-#define POLARSSL_X509_WRITE_C
+#define POLARSSL_X509_CSR_WRITE_C
 
 /**
  * \def POLARSSL_XTEA_C
@@ -1522,30 +1636,30 @@
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) &&                   \
     ( !defined(POLARSSL_DHM_C) || !defined(POLARSSL_RSA_C) ||           \
-      !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
+      !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
     ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_RSA_C) ||          \
-      !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
+      !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
     ( !defined(POLARSSL_ECDH_C) || !defined(POLARSSL_ECDSA_C) ||          \
-      !defined(POLARSSL_X509_PARSE_C) )
+      !defined(POLARSSL_X509_CRT_PARSE_C) )
 #error "POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) &&                   \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) ||    \
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
       !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) &&                       \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_PARSE_C) ||    \
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) ||\
       !defined(POLARSSL_PKCS1_V15) )
 #error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -1558,8 +1672,20 @@
 #error "POLARSSL_PBKDF2_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_PEM_C) && !defined(POLARSSL_PEM_C)
-#error "POLARSSL_PEM_C defined, but not all prerequisites"
+#if defined(POLARSSL_PEM_PARSE_C) && !defined(POLARSSL_BASE64_C)
+#error "POLARSSL_PEM_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PEM_WRITE_C) && !defined(POLARSSL_BASE64_C)
+#error "POLARSSL_PEM_WRITE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PK_PARSE_C) && !defined(POLARSSL_PK_C)
+#error "POLARSSL_PK_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PK_WRITE_C) && !defined(POLARSSL_PK_C)
+#error "POLARSSL_PK_WRITE_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_PKCS11_C) && !defined(POLARSSL_PK_C)
@@ -1612,16 +1738,36 @@
 #error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
+#if defined(POLARSSL_X509_USE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
     !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
-    !defined(POLARSSL_PK_C) )
-#error "POLARSSL_X509_PARSE_C defined, but not all prerequisites"
+    !defined(POLARSSL_PK_PARSE_C) )
+#error "POLARSSL_X509_USE_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_X509_WRITE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
-    !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_WRITE_C) ||      \
-    !defined(POLARSSL_RSA_C) )
-#error "POLARSSL_X509_WRITE_C defined, but not all prerequisites"
+#if defined(POLARSSL_X509_CREATE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
+    !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_WRITE_C) ||       \
+    !defined(POLARSSL_PK_WRITE_C) )
+#error "POLARSSL_X509_CREATE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_X509_CRT_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
+#error "POLARSSL_X509_CRT_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_X509_CRL_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
+#error "POLARSSL_X509_CRL_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_X509_CSR_PARSE_C) && ( !defined(POLARSSL_X509_USE_C) )
+#error "POLARSSL_X509_CSR_PARSE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_X509_CRT_WRITE_C) && ( !defined(POLARSSL_X509_CREATE_C) )
+#error "POLARSSL_X509_CRT_WRITE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_X509_CSR_WRITE_C) && ( !defined(POLARSSL_X509_CREATE_C) )
+#error "POLARSSL_X509_CSR_WRITE_C defined, but not all prerequisites"
 #endif
 
 #endif /* config.h */

@@ -42,6 +42,25 @@
 #include "polarssl/timing.h"
 #endif
 
+#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
+    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
+    !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_NET_C) ||     \
+    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
+    !defined(POLARSSL_X509_CRT_PARSE_C)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
+           "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
+           "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C and/or "
+           "POLARSSL_X509_CRT_PARSE_C not defined.\n");
+    return( 0 );
+}
+#else
+
 #define OPMODE_NONE             0
 #define OPMODE_CLIENT           1
 #define OPMODE_SERVER           2
@@ -118,24 +137,6 @@ static void my_debug( void *ctx, int level, const char *str )
         fprintf( stderr, "%s", str );
 }
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
-    !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_NET_C) ||     \
-    !defined(POLARSSL_RSA_C) || !defined(POLARSSL_CTR_DRBG_C) ||    \
-    !defined(POLARSSL_X509_PARSE_C)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
-           "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
-           "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
-           "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C and/or "
-           "POLARSSL_X509_PARSE_C not defined.\n");
-    return( 0 );
-}
-#else
 /*
  * perform a single SSL connection
  */
@@ -165,7 +166,7 @@ static int ssl_test( struct options *opt )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    x509_cert srvcert;
+    x509_crt srvcert;
     pk_context pkey;
 
     ret = 1;
@@ -186,7 +187,7 @@ static int ssl_test( struct options *opt )
     memset( read_state, 0, sizeof( read_state ) );
     memset( write_state, 0, sizeof( write_state ) );
 
-    memset( &srvcert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &srvcert );
     pk_init( &pkey );
 
     if( opt->opmode == OPMODE_CLIENT )
@@ -213,27 +214,27 @@ static int ssl_test( struct options *opt )
         printf("POLARSSL_CERTS_C not defined.\n");
         goto exit;
 #else
-        ret =  x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
-                              strlen( test_srv_crt ) );
+        ret =  x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
+                               strlen( test_srv_crt ) );
         if( ret != 0 )
         {
-            printf( "  !  x509parse_crt returned %d\n\n", ret );
+            printf( "  !  x509_crt_parse returned %d\n\n", ret );
             goto exit;
         }
 
-        ret =  x509parse_crt( &srvcert, (const unsigned char *) test_ca_crt,
-                              strlen( test_ca_crt ) );
+        ret =  x509_crt_parse( &srvcert, (const unsigned char *) test_ca_crt,
+                               strlen( test_ca_crt ) );
         if( ret != 0 )
         {
-            printf( "  !  x509parse_crt returned %d\n\n", ret );
+            printf( "  !  x509_crt_parse returned %d\n\n", ret );
             goto exit;
         }
 
-        ret =  x509parse_key( &pkey, (const unsigned char *) test_srv_key,
-                              strlen( test_srv_key ), NULL, 0 );
+        ret =  pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
+                             strlen( test_srv_key ), NULL, 0 );
         if( ret != 0 )
         {
-            printf( "  !  x509parse_key returned %d\n\n", ret );
+            printf( "  !  pk_parse_key returned %d\n\n", ret );
             goto exit;
         }
 #endif
@@ -399,7 +400,7 @@ exit:
         free( write_buf );
 
     ssl_close_notify( &ssl );
-    x509_free( &srvcert );
+    x509_crt_free( &srvcert );
     pk_free( &pkey );
     ssl_free( &ssl );
     net_close( client_fd );

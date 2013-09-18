@@ -193,7 +193,7 @@ struct _ssl_ciphersuite_t
     unsigned char flags;
 };
 
-const int *ssl_ciphersuites_list( void );
+const int *ssl_list_ciphersuites( void );
 
 const ssl_ciphersuite_t *ssl_ciphersuite_from_string( const char *ciphersuite_name );
 const ssl_ciphersuite_t *ssl_ciphersuite_from_id( int ciphersuite_id );

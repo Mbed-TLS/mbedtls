@@ -33,13 +33,14 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/x509write.h"
+#include "polarssl/x509_crt.h"
+#include "polarssl/x509_csr.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/error.h"
 
-#if !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_X509_PARSE_C) ||   \
-    !defined(POLARSSL_FS_IO) ||                                             \
+#if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
     !defined(POLARSSL_ERROR_C)
 int main( int argc, char *argv[] )
@@ -47,7 +48,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_X509_WRITE_C and/or POLARSSL_X509_PARSE_C and/or "
+    printf( "POLARSSL_X509_CRT_WRITE_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
             "POLARSSL_FS_IO and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
             "POLARSSL_ERROR_C not defined.\n");
@@ -123,12 +124,19 @@ int write_certificate( x509write_cert *crt, char *output_file,
     return( 0 );
 }
 
+#if defined(POLARSSL_X509_CSR_PARSE_C)
+#define USAGE_CSR                                                           \
+    "    request_file=%%s     default: (empty)\n"                           \
+    "                        If request_file is specified, subject_key,\n"  \
+    "                        subject_pwd and subject_name are ignored!\n"
+#else
+#define USAGE_CSR ""
+#endif /* POLARSSL_X509_CSR_PARSE_C */
+
 #define USAGE \
     "\n usage: cert_write param=<>...\n"                \
     "\n acceptable parameters:\n"                       \
-    "    request_file=%%s     default: (empty)\n"       \
-    "                        If request_file is specified, subject_key,\n"  \
-    "                        subject_pwd and subject_name are ignored!\n"  \
+    USAGE_CSR                                           \
     "    subject_key=%%s      default: subject.key\n"   \
     "    subject_pwd=%%s      default: (empty)\n"       \
     "    subject_name=%%s     default: CN=Cert,O=PolarSSL,C=NL\n"   \
@@ -173,16 +181,18 @@ int write_certificate( x509write_cert *crt, char *output_file,
 int main( int argc, char *argv[] )
 {
     int ret = 0;
-    x509_cert issuer_crt;
+    x509_crt issuer_crt;
     pk_context loaded_issuer_key, loaded_subject_key;
     pk_context *issuer_key = &loaded_issuer_key,
                 *subject_key = &loaded_subject_key;
     char buf[1024];
     char issuer_name[128];
-    char subject_name[128];
     int i, j, n;
     char *p, *q, *r;
+#if defined(POLARSSL_X509_CSR_PARSE_C)
+    char subject_name[128];
     x509_csr csr;
+#endif
     x509write_cert crt;
     mpi serial;
     entropy_context entropy;
@@ -197,8 +207,10 @@ int main( int argc, char *argv[] )
     pk_init( &loaded_issuer_key );
     pk_init( &loaded_subject_key );
     mpi_init( &serial );
-    memset( &csr, 0, sizeof(x509_csr) );
-    memset( &issuer_crt, 0, sizeof(x509_cert) );
+#if defined(POLARSSL_X509_CSR_PARSE_C)
+    x509_csr_init( &csr );
+#endif
+    x509_crt_init( &issuer_crt );
     memset( buf, 0, 1024 );
 
     if( argc == 0 )
@@ -397,19 +409,19 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the issuer certificate ..." );
         fflush( stdout );
 
-        if( ( ret = x509parse_crtfile( &issuer_crt, opt.issuer_crt ) ) != 0 )
+        if( ( ret = x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_crtfile returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509_crt_parse_file returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        ret = x509parse_dn_gets( issuer_name, sizeof(issuer_name),
+        ret = x509_dn_gets( issuer_name, sizeof(issuer_name),
                                  &issuer_crt.issuer );
         if( ret < 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -418,6 +430,7 @@ int main( int argc, char *argv[] )
         printf( " ok\n" );
     }
 
+#if defined(POLARSSL_X509_CSR_PARSE_C)
     // Parse certificate request if present
     //
     if( !opt.selfsign && strlen( opt.request_file ) )
@@ -428,19 +441,19 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the certificate request ..." );
         fflush( stdout );
 
-        if( ( ret = x509parse_csrfile( &csr, opt.request_file ) ) != 0 )
+        if( ( ret = x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_csrfile returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509_csr_parse_file returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        ret = x509parse_dn_gets( subject_name, sizeof(subject_name),
+        ret = x509_dn_gets( subject_name, sizeof(subject_name),
                                  &csr.subject );
         if( ret < 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -449,6 +462,7 @@ int main( int argc, char *argv[] )
 
         printf( " ok\n" );
     }
+#endif /* POLARSSL_X509_CSR_PARSE_C */
 
     /*
      * 1.1. Load the keys
@@ -458,12 +472,12 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the subject key ..." );
         fflush( stdout );
 
-        ret = x509parse_keyfile( &loaded_subject_key, opt.subject_key,
+        ret = pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
                                  opt.subject_pwd );
         if( ret != 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  pk_parse_keyfile returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -473,12 +487,12 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the issuer key ..." );
     fflush( stdout );
 
-    ret = x509parse_keyfile( &loaded_issuer_key, opt.issuer_key,
-                                 opt.issuer_pwd );
+    ret = pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
+                             opt.issuer_pwd );
     if( ret != 0 )
     {
         error_strerror( ret, buf, 1024 );
-        printf( " failed\n  !  x509parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
+        printf( " failed\n  !  pk_parse_keyfile returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
 
@@ -648,6 +662,6 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_X509_WRITE_C && POLARSSL_X509_PARSE_C && POLARSSL_FS_IO &&
-          POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
+#endif /* POLARSSL_X509_CRT_WRITE_C && POLARSSL_X509_CRT_PARSE_C &&
+          POLARSSL_FS_IO && POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C &&
           POLARSSL_ERROR_C */

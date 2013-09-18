@@ -42,7 +42,7 @@
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_RSA_C) ||         \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO) ||  \
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||  \
     !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
@@ -52,7 +52,7 @@ int main( int argc, char *argv[] )
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_X509_CRT_PARSE_C and/or POLARSSL_FS_IO and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
 }
@@ -95,13 +95,13 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
+static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 {
     char buf[1024];
     ((void) data);
 
     printf( "\nVerify requested for (Depth %d):\n", depth );
-    x509parse_cert_info( buf, sizeof( buf ) - 1, "", crt );
+    x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
     printf( "%s", buf );
 
     if( ( (*flags) & BADCERT_EXPIRED ) != 0 )
@@ -156,10 +156,10 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
-    x509_cert cacert;
-    x509_cert clicert;
+    x509_crt cacert;
+    x509_crt clicert;
     pk_context pkey;
-    int i, j, n;
+    int i, j;
     int flags, verify = 0;
     char *p, *q;
     const char *pers = "cert_app";
@@ -168,8 +168,8 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     server_fd = 0;
-    memset( &cacert, 0, sizeof( x509_cert ) );
-    memset( &clicert, 0, sizeof( x509_cert ) );
+    x509_crt_init( &cacert );
+    x509_crt_init( &clicert );
     pk_init( &pkey );
 
     if( argc == 0 )
@@ -190,18 +190,16 @@ int main( int argc, char *argv[] )
 
     for( i = 1; i < argc; i++ )
     {
-        n = strlen( argv[i] );
-
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
-
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;
         *q++ = '\0';
+
+        for( j = 0; p + j < q; j++ )
+        {
+            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
+                argv[i][j] |= 0x20;
+        }
 
         if( strcmp( p, "mode" ) == 0 )
         {
@@ -250,18 +248,18 @@ int main( int argc, char *argv[] )
 
     if( strlen( opt.ca_path ) )
     {
-        ret = x509parse_crtpath( &cacert, opt.ca_path );
+        ret = x509_crt_parse_path( &cacert, opt.ca_path );
         verify = 1;
     }
     else if( strlen( opt.ca_file ) )
     {
-        ret = x509parse_crtfile( &cacert, opt.ca_file );
+        ret = x509_crt_parse_file( &cacert, opt.ca_file );
         verify = 1;
     }
 
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -269,9 +267,9 @@ int main( int argc, char *argv[] )
 
     if( opt.mode == MODE_FILE )
     {
-        x509_cert crt;
-        x509_cert *cur = &crt;
-        memset( &crt, 0, sizeof( x509_cert ) );
+        x509_crt crt;
+        x509_crt *cur = &crt;
+        x509_crt_init( &crt );
 
         /*
          * 1.1. Load the certificate(s)
@@ -279,19 +277,19 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the certificate(s) ..." );
         fflush( stdout );
 
-        ret = x509parse_crtfile( &crt, opt.filename );
+        ret = x509_crt_parse_file( &crt, opt.filename );
 
         if( ret < 0 )
         {
-            printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
-            x509_free( &crt );
+            printf( " failed\n  !  x509_crt_parse_file returned %d\n\n", ret );
+            x509_crt_free( &crt );
             goto exit;
         }
 
         if( opt.permissive == 0 && ret > 0 )
         {
-            printf( " failed\n  !  x509parse_crt failed to parse %d certificates\n\n", ret );
-            x509_free( &crt );
+            printf( " failed\n  !  x509_crt_parse failed to parse %d certificates\n\n", ret );
+            x509_crt_free( &crt );
             goto exit;
         }
 
@@ -303,11 +301,12 @@ int main( int argc, char *argv[] )
         while( cur != NULL )
         {
             printf( "  . Peer certificate information    ...\n" );
-            ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", cur );
+            ret = x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                                 cur );
             if( ret == -1 )
             {
-                printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
-                x509_free( &crt );
+                printf( " failed\n  !  x509_crt_info returned %d\n\n", ret );
+                x509_crt_free( &crt );
                 goto exit;
             }
 
@@ -323,8 +322,8 @@ int main( int argc, char *argv[] )
         {
             printf( "  . Verifying X.509 certificate..." );
 
-            if( ( ret = x509parse_verify( &crt, &cacert, NULL, NULL, &flags,
-                            my_verify, NULL ) ) != 0 )
+            if( ( ret = x509_crt_verify( &crt, &cacert, NULL, NULL, &flags,
+                                         my_verify, NULL ) ) != 0 )
             {
                 printf( " failed\n" );
 
@@ -346,7 +345,7 @@ int main( int argc, char *argv[] )
                 printf( " ok\n" );
         }
 
-        x509_free( &crt );
+        x509_crt_free( &crt );
     }
     else if( opt.mode == MODE_SSL )
     {
@@ -428,11 +427,11 @@ int main( int argc, char *argv[] )
          * 5. Print the certificate
          */
         printf( "  . Peer certificate information    ...\n" );
-        ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                                   ssl.session->peer_cert );
+        ret = x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                             ssl.session->peer_cert );
         if( ret == -1 )
         {
-            printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
+            printf( " failed\n  !  x509_crt_info returned %d\n\n", ret );
             ssl_free( &ssl );
             goto exit;
         }
@@ -449,8 +448,8 @@ exit:
 
     if( server_fd )
         net_close( server_fd );
-    x509_free( &cacert );
-    x509_free( &clicert );
+    x509_crt_free( &cacert );
+    x509_crt_free( &clicert );
     pk_free( &pkey );
 
 #if defined(_WIN32)
@@ -462,4 +461,4 @@ exit:
 }
 #endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&
           POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C &&
-          POLARSSL_X509_PARSE_C && POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */
+          POLARSSL_X509_CRT_PARSE_C && POLARSSL_FS_IO && POLARSSL_CTR_DRBG_C */

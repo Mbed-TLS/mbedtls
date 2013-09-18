@@ -22,27 +22,27 @@ void string_debug(void *data, int level, const char *str)
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
 void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
                       char *result_str )
 {
-    x509_cert   crt;
+    x509_crt   crt;
     ssl_context ssl;
     struct buffer_data buffer;
 
-    memset( &crt, 0, sizeof( x509_cert ) );
+    x509_crt_init( &crt );
     memset( &ssl, 0, sizeof( ssl_context ) );
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf; 
 
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
     debug_print_crt( &ssl, 0, file, line, prefix, &crt);
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 
-    x509_free( &crt );
+    x509_crt_free( &crt );
 }
 /* END_CASE */
 

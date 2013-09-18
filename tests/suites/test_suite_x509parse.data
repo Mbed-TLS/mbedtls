@@ -1,705 +1,529 @@
 X509 Certificate information #1
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/server1.crt":"cert. version \: 3\nserial number \: 01\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on    \: 2011-02-12 14\:44\:06\nexpires on    \: 2021-02-12 14\:44\:06\nsigned using  \: RSA with SHA1\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information #2
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/server2.crt":"cert. version \: 3\nserial number \: 02\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2011-02-12 14\:44\:06\nexpires on    \: 2021-02-12 14\:44\:06\nsigned using  \: RSA with SHA1\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information #3
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/test-ca.crt":"cert. version \: 3\nserial number \: 00\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on    \: 2011-02-12 14\:44\:00\nexpires on    \: 2021-02-12 14\:44\:00\nsigned using  \: RSA with SHA1\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information MD2 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_md2.crt":"cert. version \: 3\nserial number \: 09\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD2\nissued  on    \: 2009-07-12 10\:56\:59\nexpires on    \: 2011-07-12 10\:56\:59\nsigned using  \: RSA with MD2\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information MD4 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_md4.crt":"cert. version \: 3\nserial number \: 05\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD4\nissued  on    \: 2011-02-12 14\:44\:07\nexpires on    \: 2021-02-12 14\:44\:07\nsigned using  \: RSA with MD4\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information MD5 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_md5.crt":"cert. version \: 3\nserial number \: 06\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on    \: 2011-02-12 14\:44\:07\nexpires on    \: 2021-02-12 14\:44\:07\nsigned using  \: RSA with MD5\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information SHA1 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_sha1.crt":"cert. version \: 3\nserial number \: 07\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA1\nissued  on    \: 2011-02-12 14\:44\:07\nexpires on    \: 2021-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information SHA224 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_sha224.crt":"cert. version \: 3\nserial number \: 08\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA224\nissued  on    \: 2011-02-12 14\:44\:07\nexpires on    \: 2021-02-12 14\:44\:07\nsigned using  \: RSA with SHA-224\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information SHA256 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_sha256.crt":"cert. version \: 3\nserial number \: 09\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA256\nissued  on    \: 2011-02-12 14\:44\:07\nexpires on    \: 2021-02-12 14\:44\:07\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information SHA384 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_sha384.crt":"cert. version \: 3\nserial number \: 0A\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA384\nissued  on    \: 2011-02-12 14\:44\:07\nexpires on    \: 2021-02-12 14\:44\:07\nsigned using  \: RSA with SHA-384\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information SHA512 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_sha512.crt":"cert. version \: 3\nserial number \: 0B\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA512\nissued  on    \: 2011-02-12 14\:44\:07\nexpires on    \: 2021-02-12 14\:44\:07\nsigned using  \: RSA with SHA-512\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information EC, SHA1 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_cert_info:"data_files/server5.crt":"cert. version \: 3\nserial number \: 03\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 07\:57\:40\nexpires on    \: 2023-08-07 07\:57\:40\nsigned using  \: ECDSA with SHA1\nEC key size   \: 192 bits\n"
 
 X509 Certificate information EC, SHA224 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_cert_info:"data_files/server5-sha224.crt":"cert. version \: 3\nserial number \: 06\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 08\:08\:12\nexpires on    \: 2023-08-07 08\:08\:12\nsigned using  \: ECDSA with SHA224\nEC key size   \: 192 bits\n"
 
 X509 Certificate information EC, SHA256 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_cert_info:"data_files/server5-sha256.crt":"cert. version \: 3\nserial number \: 07\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 08\:08\:17\nexpires on    \: 2023-08-07 08\:08\:17\nsigned using  \: ECDSA with SHA256\nEC key size   \: 192 bits\n"
 
 X509 Certificate information EC, SHA384 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_cert_info:"data_files/server5-sha384.crt":"cert. version \: 3\nserial number \: 08\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 08\:08\:25\nexpires on    \: 2023-08-07 08\:08\:25\nsigned using  \: ECDSA with SHA384\nEC key size   \: 192 bits\n"
 
 X509 Certificate information EC, SHA512 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_cert_info:"data_files/server5-sha512.crt":"cert. version \: 3\nserial number \: 09\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 08\:08\:32\nexpires on    \: 2023-08-07 08\:08\:32\nsigned using  \: ECDSA with SHA512\nEC key size   \: 192 bits\n"
 
 X509 Certificate information RSA signed by EC
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/server4.crt":"cert. version \: 3\nserial number \: 04\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 07\:57\:57\nexpires on    \: 2023-08-07 07\:57\:57\nsigned using  \: ECDSA with SHA1\nRSA key size  \: 1024 bits\n"
 
 X509 Certificate information EC signed by RSA
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_cert_info:"data_files/server3.crt":"cert. version \: 3\nserial number \: 0D\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 09\:17\:03\nexpires on    \: 2023-08-07 09\:17\:03\nsigned using  \: RSA with SHA1\nEC key size   \: 192 bits\n"
 
 X509 CRL information #1
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-20 10\:24\:19\nnext update   \: 2011-02-20 11\:24\:19\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
 
 X509 CRL Information MD2 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_md2.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA with MD2\n"
 
 X509 CRL Information MD4 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_md4.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with MD4\n"
 
 X509 CRL Information MD5 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_md5.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with MD5\n"
 
 X509 CRL Information SHA1 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_sha1.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
 
 X509 CRL Information SHA224 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_sha224.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-224\n"
 
 X509 CRL Information SHA256 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_sha256.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-256\n"
 
 X509 CRL Information SHA384 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_sha384.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-384\n"
 
 X509 CRL Information SHA512 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_sha512.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-512\n"
 
 X509 CRL Information EC, SHA1 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl-ec.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:26\nnext update   \: 2023-08-07 08\:06\:26\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA1\n"
 
 X509 CRL Information EC, SHA224 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl-ec-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:38\nnext update   \: 2023-08-07 08\:06\:38\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA224\n"
 
 X509 CRL Information EC, SHA256 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl-ec-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:44\nnext update   \: 2023-08-07 08\:06\:44\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA256\n"
 
 X509 CRL Information EC, SHA384 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl-ec-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:52\nnext update   \: 2023-08-07 08\:06\:52\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA384\n"
 
 X509 CRL Information EC, SHA512 Digest
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
+depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:07\:01\nnext update   \: 2023-08-07 08\:07\:01\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA512\n"
 
-X509 Parse RSA Key #1 (No password when required)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/test-ca.key":"NULL":POLARSSL_ERR_X509_PASSWORD_REQUIRED
-
-X509 Parse RSA Key #2 (Correct password)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLTest":0
-
-X509 Parse RSA Key #3 (Wrong password)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLWRONG":POLARSSL_ERR_X509_PASSWORD_MISMATCH
-
-X509 Parse RSA Key #4 (DES Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/keyfile.des":"testkey":0
-
-X509 Parse RSA Key #5 (3DES Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/keyfile.3des":"testkey":0
-
-X509 Parse RSA Key #6 (AES-128 Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/keyfile.aes128":"testkey":0
-
-X509 Parse RSA Key #7 (AES-192 Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/keyfile.aes192":"testkey":0
-
-X509 Parse RSA Key #8 (AES-256 Encrypted)
-depends_on:POLARSSL_MD5_C:POLARSSL_AES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/keyfile.aes256":"testkey":0
-
-X509 Parse RSA Key #9 (PKCS#8 wrapped)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
-x509parse_keyfile_rsa:"data_files/format_gen.key":"":0
-
-X509 Parse RSA Key #10 (PKCS#8 encrypted SHA1-3DES)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_3des.key":"PolarSSLTest":0
-
-X509 Parse RSA Key #10.1 (PKCS#8 encrypted SHA1-3DES, wrong PW)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_3des.key":"PolarSSLTes":POLARSSL_ERR_X509_PASSWORD_MISMATCH
-
-X509 Parse RSA Key #10.2 (PKCS#8 encrypted SHA1-3DES, no PW)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_3des.key":"":POLARSSL_ERR_X509_PASSWORD_REQUIRED
-
-X509 Parse RSA Key #11 (PKCS#8 encrypted SHA1-3DES DER)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_3des.der":"PolarSSLTest":0
-
-X509 Parse RSA Key #12 (PKCS#8 encrypted SHA1-2DES)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des.key":"PolarSSLTest":0
-
-X509 Parse RSA Key #12.1 (PKCS#8 encrypted SHA1-2DES, wrong PW)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des.key":"PolarSLTest":POLARSSL_ERR_X509_PASSWORD_MISMATCH
-
-X509 Parse RSA Key #12.2 (PKCS#8 encrypted SHA1-2DES, no PW)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_2des.key":"":POLARSSL_ERR_X509_PASSWORD_REQUIRED
-
-X509 Parse RSA Key #13 (PKCS#8 encrypted SHA1-RC4-128)
-depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTest":0
-
-X509 Parse RSA Key #13.1 (PKCS#8 encrypted SHA1-RC4-128, wrong PW)
-depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"PolarSSLTe":POLARSSL_ERR_X509_PASSWORD_MISMATCH
-
-X509 Parse RSA Key #13.2 (PKCS#8 encrypted SHA1-RC4-128, no PW)
-depends_on:POLARSSL_ARC4_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS12_C
-x509parse_keyfile_rsa:"data_files/pkcs8_pbe_sha1_rc4_128.key":"":POLARSSL_ERR_X509_PASSWORD_REQUIRED
-
-X509 Parse RSA Key #14 (PKCS#8 encrypted v2 PBDFK2 3DES)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"PolarSSLTest":0
-
-X509 Parse RSA Key #15 (PKCS#8 encrypted v2 PBDFK2 3DES, wrong PW)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"PolarSSLTes":POLARSSL_ERR_X509_PASSWORD_MISMATCH
-
-X509 Parse RSA Key #16 (PKCS#8 encrypted v2 PBDFK2 3DES, no PW)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C
-x509parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.key":"":POLARSSL_ERR_X509_PASSWORD_REQUIRED
-
-X509 Parse RSA Key #17 (PKCS#8 encrypted v2 PBDFK2 3DES DER)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"PolarSSLTest":0
-
-X509 Parse RSA Key #18 (PKCS#8 encrypted v2 PBDFK2 3DES DER, wrong PW)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"PolarSSLTes":POLARSSL_ERR_X509_PASSWORD_MISMATCH
-
-X509 Parse RSA Key #19 (PKCS#8 encrypted v2 PBDFK2 3DES DER, no PW)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C
-x509parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_3des.der":"":POLARSSL_ERR_X509_KEY_INVALID_FORMAT
-
-X509 Parse RSA Key #20 (PKCS#8 encrypted v2 PBDFK2 DES)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_PKCS5_C:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_rsa:"data_files/pkcs8_pbes2_pbkdf2_des.key":"PolarSSLTest":0
-
-X509 Parse Public RSA Key #1 (PKCS#8 wrapped)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO
-x509parse_public_keyfile_rsa:"data_files/format_gen.pub":0
-
-X509 Parse Public EC Key #1 (RFC 5480, DER)
-depends_on:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_FS_IO
-x509parse_public_keyfile_ec:"data_files/ec_pub.der":0
-
-X509 Parse Public EC Key #2 (RFC 5480, PEM)
-depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_FS_IO
-x509parse_public_keyfile_ec:"data_files/ec_pub.pem":0
-
-X509 Parse Public EC Key #3 (RFC 5480, secp224r1)
-depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP224R1_ENABLED:POLARSSL_FS_IO
-x509parse_public_keyfile_ec:"data_files/ec_224_pub.pem":0
-
-X509 Parse Public EC Key #4 (RFC 5480, secp256r1)
-depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_FS_IO
-x509parse_public_keyfile_ec:"data_files/ec_256_pub.pem":0
-
-X509 Parse Public EC Key #5 (RFC 5480, secp384r1)
-depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_FS_IO
-x509parse_public_keyfile_ec:"data_files/ec_384_pub.pem":0
-
-X509 Parse Public EC Key #6 (RFC 5480, secp521r1)
-depends_on:POLARSSL_PEM_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP521R1_ENABLED:POLARSSL_FS_IO
-x509parse_public_keyfile_ec:"data_files/ec_521_pub.pem":0
-
-X509 Parse EC Key #1 (SEC1 DER)
-depends_on:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_prv.sec1.der":"NULL":0
-
-X509 Parse EC Key #2 (SEC1 PEM)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_prv.sec1.pem":"NULL":0
-
-X509 Parse EC Key #3 (SEC1 PEM encrypted)
-depends_on:POLARSSL_DES_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_CIPHER_MODE_CBC
-x509parse_keyfile_ec:"data_files/ec_prv.sec1.pw.pem":"polar":0
-
-X509 Parse EC Key #4 (PKCS8 DER)
-depends_on:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_prv.pk8.der":"NULL":0
-
-X509 Parse EC Key #5 (PKCS8 PEM)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_prv.pk8.pem":"NULL":0
-
-X509 Parse EC Key #6 (PKCS8 encrypted DER)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_prv.pk8.pw.der":"polar":0
-
-X509 Parse EC Key #7 (PKCS8 encrypted PEM)
-depends_on:POLARSSL_DES_C:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_prv.pk8.pw.pem":"polar":0
-
-X509 Parse EC Key #8 (SEC1 PEM, secp224r1)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP224R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_224_prv.pem":"NULL":0
-
-X509 Parse EC Key #9 (SEC1 PEM, secp256r1)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_256_prv.pem":"NULL":0
-
-X509 Parse EC Key #10 (SEC1 PEM, secp384r1)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_384_prv.pem":"NULL":0
-
-X509 Parse EC Key #11 (SEC1 PEM, secp521r1)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP521R1_ENABLED
-x509parse_keyfile_ec:"data_files/ec_521_prv.pem":"NULL":0
-
 X509 Get Distinguished Name #1
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_dn_gets:"data_files/server1.crt":"subject":"C=NL, O=PolarSSL, CN=PolarSSL Server 1"
 
 X509 Get Distinguished Name #2
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_dn_gets:"data_files/server1.crt":"issuer":"C=NL, O=PolarSSL, CN=PolarSSL Test CA"
 
 X509 Get Distinguished Name #3
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_dn_gets:"data_files/server2.crt":"subject":"C=NL, O=PolarSSL, CN=localhost"
 
 X509 Get Distinguished Name #4
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_dn_gets:"data_files/server2.crt":"issuer":"C=NL, O=PolarSSL, CN=PolarSSL Test CA"
 
 X509 Time Expired #1
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_time_expired:"data_files/server1.crt":"valid_from":1
 
 X509 Time Expired #2
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_time_expired:"data_files/server1.crt":"valid_to":0
 
 X509 Time Expired #3
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_time_expired:"data_files/server2.crt":"valid_from":1
 
 X509 Time Expired #4
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_time_expired:"data_files/server2.crt":"valid_to":0
 
 X509 Time Expired #5
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_time_expired:"data_files/test-ca.crt":"valid_from":1
 
 X509 Time Expired #6
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_time_expired:"data_files/test-ca.crt":"valid_to":0
 
 X509 Certificate verification #1 (Revoked Cert, Expired CRL)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_EXPIRED:"NULL"
 
 X509 Certificate verification #2 (Revoked Cert, Expired CRL)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Server 1":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_EXPIRED:"NULL"
 
 X509 Certificate verification #3 (Revoked Cert, Expired CRL, CN Mismatch)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Wrong CN":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_EXPIRED | BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #4 (Valid Cert, Expired CRL)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_EXPIRED:"NULL"
 
 X509 Certificate verification #5 (Revoked Cert)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
 
 X509 Certificate verification #6 (Revoked Cert)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"PolarSSL Server 1":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
 
 X509 Certificate verification #7 (Revoked Cert, CN Mismatch)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"PolarSSL Wrong CN":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #8 (Valid Cert)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #9 (Not trusted Cert)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #10 (Not trusted Cert, Expired CRL)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #12 (Valid Cert MD4 Digest)
-depends_on:POLARSSL_MD4_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_MD4_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #13 (Valid Cert MD5 Digest)
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #14 (Valid Cert SHA1 Digest)
-depends_on:POLARSSL_SHA1_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_SHA1_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_sha1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #15 (Valid Cert SHA224 Digest)
-depends_on:POLARSSL_SHA256_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_SHA256_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_sha224.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #16 (Valid Cert SHA256 Digest)
-depends_on:POLARSSL_SHA256_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_SHA256_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_sha256.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #17 (Valid Cert SHA384 Digest)
-depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_sha384.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #18 (Valid Cert SHA512 Digest)
-depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #19 (Valid Cert, denying callback)
-depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_SHA512_C:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_OTHER:"verify_none"
 
 X509 Certificate verification #19 (Not trusted Cert, allowing callback)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":"NULL":0:0:"verify_all"
 
 X509 Certificate verification #21 (domain matching wildcard certificate, case insensitive)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.ExAmPlE.com":0:0:"NULL"
 
 X509 Certificate verification #22 (domain not matching wildcard certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #23 (domain not matching wildcard certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.com":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #24 (domain matching CN of multi certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.com":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #25 (domain matching multi certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.net":0:0:"NULL"
 
 X509 Certificate verification #26 (domain not matching multi certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #27 (domain not matching multi certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"xample.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #27 (domain not matching multi certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"bexample.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #28 (domain not matching wildcard in multi certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.org":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #29 (domain matching wildcard in multi certificate)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.org":0:0:"NULL"
 
 X509 Certificate verification #30 (domain matching multi certificate without CN)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.shotokan-braunschweig.de":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #31 (domain not matching multi certificate without CN)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_CN_MISMATCH + BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #32 (Valid, EC cert, RSA CA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server3.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #33 (Valid, RSA cert, EC CA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server4.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #34 (Valid, EC cert, EC CA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #35 (Revoked, EC CA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
 
 X509 Certificate verification #36 (Valid, EC CA, SHA224 Digest)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_verify:"data_files/server5-sha224.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #37 (Valid, EC CA, SHA256 Digest)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_verify:"data_files/server5-sha256.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #38 (Valid, EC CA, SHA384 Digest)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA512_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA512_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_verify:"data_files/server5-sha384.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #39 (Valid, EC CA, SHA512 Digest)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_SHA512_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA512_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_verify:"data_files/server5-sha512.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #40 (Valid, depth 0, RSA, CA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/test-ca.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #41 (Valid, depth 0, EC, CA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_verify:"data_files/test-ca2.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #42 (Depth 0, not CA, RSA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/server2.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #43 (Depth 0, not CA, EC)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECDSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C
 x509_verify:"data_files/server5.crt":"data_files/server5.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #44 (Corrupted signature, EC)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_verify:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #45 (Corrupted signature, RSA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2-badsign.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #46 (Valid, depth 2, EC-RSA-EC)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server7_int-ca.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #47 (Untrusted, depth 2, EC-RSA-EC)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server7_int-ca.crt":"data_files/test-ca.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #48 (Missing intermediate CA, EC-RSA-EC)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server7.crt":"data_files/test-ca.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #49 (Valid, depth 2, RSA-EC-RSA)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server8_int-ca2.crt":"data_files/test-ca.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #50 (Valid, multiple CAs)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/test-ca_cat12.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #51 (Valid, multiple CAs, reverse order)
-depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/test-ca_cat21.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Parse Selftest
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_C:POLARSSL_SELF_TEST
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_PARSE_C:POLARSSL_SELF_TEST
 x509_selftest:
 
 X509 Certificate ASN1 (Incorrect first tag)
-x509parse_crt:"":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT
+x509parse_crt:"":"":POLARSSL_ERR_X509_INVALID_FORMAT
 
 X509 Certificate ASN1 (Correct first tag, data length does not match)
-x509parse_crt:"300000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"300000":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (Correct first tag, no more data)
-x509parse_crt:"3000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"3000":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (Correct first tag, length data incorrect)
-x509parse_crt:"30023085":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_INVALID_LENGTH
+x509parse_crt:"30023085":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_INVALID_LENGTH
 
 X509 Certificate ASN1 (Correct first tag, length data incomplete)
-x509parse_crt:"30023083":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30023083":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (Correct first tag, length data incomplete)
-x509parse_crt:"30023081":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30023081":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (Correct first tag, length data incomplete)
-x509parse_crt:"3003308200":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"3003308200":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (Correct first tag, second tag no TBSCertificate)
-x509parse_crt:"300100":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"300100":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, no version tag, serial missing)
-x509parse_crt:"3003300100":"":POLARSSL_ERR_X509_CERT_INVALID_SERIAL + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"3003300100":"":POLARSSL_ERR_X509_INVALID_SERIAL + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, invalid version tag)
-x509parse_crt:"30053003a00101":"":POLARSSL_ERR_X509_CERT_INVALID_VERSION + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"30053003a00101":"":POLARSSL_ERR_X509_INVALID_VERSION + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, valid version tag, no length)
-x509parse_crt:"30053003a00102":"":POLARSSL_ERR_X509_CERT_INVALID_VERSION + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30053003a00102":"":POLARSSL_ERR_X509_INVALID_VERSION + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, valid version tag, invalid length)
-x509parse_crt:"30163014a012021000000000000000000000000000000000":"":POLARSSL_ERR_X509_CERT_INVALID_VERSION + POLARSSL_ERR_ASN1_INVALID_LENGTH
+x509parse_crt:"30163014a012021000000000000000000000000000000000":"":POLARSSL_ERR_X509_INVALID_VERSION + POLARSSL_ERR_ASN1_INVALID_LENGTH
 
 X509 Certificate ASN1 (TBSCertificate, valid version tag, no serial)
-x509parse_crt:"30073005a003020104":"":POLARSSL_ERR_X509_CERT_INVALID_SERIAL + POLARSSL_ERR_ASN1_OUT_OF_DATA 
+x509parse_crt:"30073005a003020104":"":POLARSSL_ERR_X509_INVALID_SERIAL + POLARSSL_ERR_ASN1_OUT_OF_DATA 
 
 X509 Certificate ASN1 (TBSCertificate, invalid length version tag)
-x509parse_crt:"30083006a00402010400":"":POLARSSL_ERR_X509_CERT_INVALID_VERSION + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"30083006a00402010400":"":POLARSSL_ERR_X509_INVALID_VERSION + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (TBSCertificate, incorrect serial tag)
-x509parse_crt:"30083006a00302010400":"":POLARSSL_ERR_X509_CERT_INVALID_SERIAL + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"30083006a00302010400":"":POLARSSL_ERR_X509_INVALID_SERIAL + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, incorrect serial length)
-x509parse_crt:"30083006a00302010482":"":POLARSSL_ERR_X509_CERT_INVALID_SERIAL + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30083006a00302010482":"":POLARSSL_ERR_X509_INVALID_SERIAL + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, correct serial, no alg)
-x509parse_crt:"300d300ba0030201048204deadbeef":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"300d300ba0030201048204deadbeef":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, correct serial, no alg oid)
-x509parse_crt:"300e300ca0030201048204deadbeef00":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"300e300ca0030201048204deadbeef00":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, alg oid no data in sequence)
-x509parse_crt:"300f300da0030201048204deadbeef3000":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"300f300da0030201048204deadbeef3000":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, alg with params)
-x509parse_crt:"30163014a0030201048204deadbeef30070604cafed00d01":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30163014a0030201048204deadbeef30070604cafed00d01":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, correct alg data, no params unknown version)
-x509parse_crt:"30153013a0030201048204deadbeef30060604cafed00d":"":POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION
+x509parse_crt:"30153013a0030201048204deadbeef30060604cafed00d":"":POLARSSL_ERR_X509_UNKNOWN_VERSION
 
 X509 Certificate ASN1 (TBSCertificate, correct alg data, unknown version)
-x509parse_crt:"30173015a0030201048204deadbeef30080604cafed00d0500":"":POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION
+x509parse_crt:"30173015a0030201048204deadbeef30080604cafed00d0500":"":POLARSSL_ERR_X509_UNKNOWN_VERSION
 
 X509 Certificate ASN1 (TBSCertificate, correct alg data, length mismatch)
-x509parse_crt:"30183016a0030201048204deadbeef30090604cafed00d050000":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"30183016a0030201048204deadbeef30090604cafed00d050000":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (TBSCertificate, correct alg, unknown alg_id)
-x509parse_crt:"30173015a0030201028204deadbeef30080604cafed00d0500":"":POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG + POLARSSL_ERR_OID_NOT_FOUND
+x509parse_crt:"30173015a0030201028204deadbeef30080604cafed00d0500":"":POLARSSL_ERR_X509_UNKNOWN_SIG_ALG + POLARSSL_ERR_OID_NOT_FOUND
 
 X509 Certificate ASN1 (TBSCertificate, correct alg, specific alg_id)
-x509parse_crt:"301c301aa0030201028204deadbeef300d06092a864886f70d0101020500":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"301c301aa0030201028204deadbeef300d06092a864886f70d0101020500":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, correct alg, unknown specific alg_id)
-x509parse_crt:"301c301aa0030201028204deadbeef300d06092a864886f70d0101010500":"":POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG + POLARSSL_ERR_OID_NOT_FOUND
+x509parse_crt:"301c301aa0030201028204deadbeef300d06092a864886f70d0101010500":"":POLARSSL_ERR_X509_UNKNOWN_SIG_ALG + POLARSSL_ERR_OID_NOT_FOUND
 
 X509 Certificate ASN1 (TBSCertificate, issuer no set data)
-x509parse_crt:"301e301ca0030201028204deadbeef300d06092a864886f70d01010205003000":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"301e301ca0030201028204deadbeef300d06092a864886f70d01010205003000":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, issuer no inner seq data)
-x509parse_crt:"3020301ea0030201028204deadbeef300d06092a864886f70d010102050030023100":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"3020301ea0030201028204deadbeef300d06092a864886f70d010102050030023100":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, issuer no inner set data)
-x509parse_crt:"30223020a0030201028204deadbeef300d06092a864886f70d0101020500300431023000":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30223020a0030201028204deadbeef300d06092a864886f70d0101020500300431023000":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, issuer two inner set datas)
-x509parse_crt:"30243022a0030201028204deadbeef300d06092a864886f70d01010205003006310430003000":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"30243022a0030201028204deadbeef300d06092a864886f70d01010205003006310430003000":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, issuer no oid data)
-x509parse_crt:"30243022a0030201028204deadbeef300d06092a864886f70d01010205003006310430020600":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30243022a0030201028204deadbeef300d06092a864886f70d01010205003006310430020600":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, issuer invalid tag)
-x509parse_crt:"302a3028a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600060454657374":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"302a3028a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600060454657374":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, issuer, no string data)
-x509parse_crt:"30253023a0030201028204deadbeef300d06092a864886f70d0101020500300731053003060013":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30253023a0030201028204deadbeef300d06092a864886f70d0101020500300731053003060013":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, issuer, no full following string)
-x509parse_crt:"302b3029a0030201028204deadbeef300d06092a864886f70d0101020500300d310b3009060013045465737400":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"302b3029a0030201028204deadbeef300d06092a864886f70d0101020500300d310b3009060013045465737400":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, valid issuer, no validity)
-x509parse_crt:"302a3028a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374":"":POLARSSL_ERR_X509_CERT_INVALID_DATE + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"302a3028a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374":"":POLARSSL_ERR_X509_INVALID_DATE + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, too much date data)
-x509parse_crt:"30493047a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301d170c303930313031303030303030170c30393132333132333539353900":"":POLARSSL_ERR_X509_CERT_INVALID_DATE + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"30493047a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301d170c303930313031303030303030170c30393132333132333539353900":"":POLARSSL_ERR_X509_INVALID_DATE + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (TBSCertificate, invalid from date)
-x509parse_crt:"30483046a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303000000000170c303931323331323300000000":"":POLARSSL_ERR_X509_CERT_INVALID_DATE
+x509parse_crt:"30483046a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303000000000170c303931323331323300000000":"":POLARSSL_ERR_X509_INVALID_DATE
 
 X509 Certificate ASN1 (TBSCertificate, invalid to date)
-x509parse_crt:"30483046a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323300000000":"":POLARSSL_ERR_X509_CERT_INVALID_DATE
+x509parse_crt:"30483046a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323300000000":"":POLARSSL_ERR_X509_INVALID_DATE
 
 X509 Certificate ASN1 (TBSCertificate, valid validity, no subject)
-x509parse_crt:"30493047a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c30393132333132333539353930":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30493047a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c30393132333132333539353930":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, valid subject, no pubkeyinfo)
-x509parse_crt:"30563054a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30563054a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, no alg)
-x509parse_crt:"30583056a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743000":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30583056a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743000":"":POLARSSL_ERR_PK_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, valid subject, unknown pk alg)
-x509parse_crt:"30673065a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374300f300d06092A864886F70D0101000500":"":POLARSSL_ERR_X509_UNKNOWN_PK_ALG
+x509parse_crt:"30673065a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374300f300d06092A864886F70D0101000500":"":POLARSSL_ERR_PK_UNKNOWN_PK_ALG
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, no bitstring)
-x509parse_crt:"30673065a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374300f300d06092A864886F70D0101010500":"":POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30673065a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374300f300d06092A864886F70D0101010500":"":POLARSSL_ERR_PK_INVALID_PUBKEY + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, no bitstring data)
-x509parse_crt:"30693067a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743011300d06092A864886F70D01010105000300":"":POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + POLARSSL_ERR_ASN1_INVALID_DATA
+x509parse_crt:"30693067a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743011300d06092A864886F70D01010105000300":"":POLARSSL_ERR_PK_INVALID_PUBKEY + POLARSSL_ERR_ASN1_INVALID_DATA
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, invalid bitstring start)
-x509parse_crt:"306a3068a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743012300d06092A864886F70D0101010500030101":"":POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + POLARSSL_ERR_ASN1_INVALID_DATA
+x509parse_crt:"306a3068a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743012300d06092A864886F70D0101010500030101":"":POLARSSL_ERR_PK_INVALID_PUBKEY + POLARSSL_ERR_ASN1_INVALID_DATA
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, invalid internal bitstring length)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"306d306ba0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743015300d06092A864886F70D0101010500030400300000":"":POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"306d306ba0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743015300d06092A864886F70D0101010500030400300000":"":POLARSSL_ERR_PK_INVALID_PUBKEY + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, invalid internal bitstring tag)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"306d306ba0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743015300d06092A864886F70D0101010500030400310000":"":POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"306d306ba0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a300806001304546573743015300d06092A864886F70D0101010500030400310000":"":POLARSSL_ERR_PK_INVALID_PUBKEY + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, invalid mpi)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"30743072a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374301c300d06092A864886F70D0101010500030b0030080202ffff0302ffff":"":POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"30743072a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374301c300d06092A864886F70D0101010500030b0030080202ffff0302ffff":"":POLARSSL_ERR_PK_INVALID_PUBKEY + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, total length mismatch)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"30753073a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374301d300d06092A864886F70D0101010500030b0030080202ffff0202ffff00":"":POLARSSL_ERR_X509_CERT_INVALID_PUBKEY + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"30753073a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374301d300d06092A864886F70D0101010500030b0030080202ffff0202ffff00":"":POLARSSL_ERR_PK_INVALID_PUBKEY + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (TBSCertificate, pubkey, check failed)
 depends_on:POLARSSL_RSA_C
@@ -711,15 +535,15 @@ x509parse_crt:"308183308180a0030201028204deadbeef300d06092a864886f70d01010205003
 
 X509 Certificate ASN1 (TBSCertificate v3, Optional UIDs, Extensions not present)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308183308180a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"308183308180a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate v3, issuerID wrong tag)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308184308181a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff00":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"308184308181a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff00":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (TBSCertificate v3, UIDs, no ext)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308189308186a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bb":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"308189308186a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bb":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate v3, UIDs, invalid length)
 depends_on:POLARSSL_RSA_C
@@ -727,63 +551,63 @@ x509parse_crt:"308189308186a0030201028204deadbeef300d06092a864886f70d01010205003
 
 X509 Certificate ASN1 (TBSCertificate v3, ext empty)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"30818b308188a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba300":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30818b308188a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba300":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate v3, ext length mismatch)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"30818e30818ba0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba303300000":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"30818e30818ba0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba303300000":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (TBSCertificate v3, first ext invalid)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"30818f30818ca0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba30330023000":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30818f30818ca0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba30330023000":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate v3, first ext invalid tag)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"30819030818da0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba3043002310000":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"30819030818da0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba3043002310000":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate v3, ext BasicContraint tag, bool len missing)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308198308195a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba30c300a30060603551d1301010100":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"308198308195a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba30c300a30060603551d1301010100":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate v3, ext BasicContraint tag, data missing)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308198308195a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba30c300a30080603551d1301010100":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"308198308195a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba30c300a30080603551d1301010100":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate v3, ext BasicContraint tag, no octet present)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308198308195a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba30d300b30090603551d1301010100":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"308198308195a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba30d300b30090603551d1301010100":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate v3, ext BasicContraint tag, octet data missing)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"30819c308199a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba311300f300d0603551d130101010403300100":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crt:"30819c308199a0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba311300f300d0603551d130101010403300100":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Certificate ASN1 (TBSCertificate v3, ext BasicContraint tag, no pathlen)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"30819f30819ca0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba314301230100603551d130101010406300402010102":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"30819f30819ca0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba314301230100603551d130101010406300402010102":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate v3, ext BasicContraint tag, octet len mismatch)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"3081a230819fa0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba317301530130603551d130101010409300702010102010100":"":POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"3081a230819fa0030201028204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa101aaa201bba317301530130603551d130101010409300702010102010100":"":POLARSSL_ERR_X509_INVALID_EXTENSIONS + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (correct pubkey, no sig_alg)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308183308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"308183308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (sig_alg mismatch)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308192308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0102020500":"":POLARSSL_ERR_X509_CERT_SIG_MISMATCH
+x509parse_crt:"308192308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0102020500":"":POLARSSL_ERR_X509_SIG_MISMATCH
 
 X509 Certificate ASN1 (sig_alg, no sig)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308192308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500":"":POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crt:"308192308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500":"":POLARSSL_ERR_X509_INVALID_SIGNATURE + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (signature, invalid sig data)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308195308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030100":"":POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE + POLARSSL_ERR_ASN1_INVALID_DATA
+x509parse_crt:"308195308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030100":"":POLARSSL_ERR_X509_INVALID_SIGNATURE + POLARSSL_ERR_ASN1_INVALID_DATA
 
 X509 Certificate ASN1 (signature, data left)
 depends_on:POLARSSL_RSA_C
-x509parse_crt:"308197308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff00":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crt:"308197308180a0030201008204deadbeef300d06092a864886f70d0101020500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d0101020500030200ff00":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 Certificate ASN1 (correct)
 depends_on:POLARSSL_RSA_C
@@ -842,76 +666,55 @@ depends_on:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509parse_crt:"3081E430819F020104300D06092A864886F70D0101050500300F310D300B0603550403130454657374301E170D3133303731303135303233375A170D3233303730383135303233375A300F310D300B06035504031304546573743049301306072A8648CE3D020106082A8648CE3D03010103320004E962551A325B21B50CF6B990E33D4318FD16677130726357A196E3EFE7107BCB6BDC6D9DB2A4DF7C964ACFE81798433D300D06092A864886F70D01010505000331001A6C18CD1E457474B2D3912743F44B571341A7859A0122774A8E19A671680878936949F904C9255BDD6FFFDB33A7E6D8":"cert. version \: 1\nserial number \: 04\nissuer name   \: CN=Test\nsubject name  \: CN=Test\nissued  on    \: 2013-07-10 15\:02\:37\nexpires on    \: 2023-07-08 15\:02\:37\nsigned using  \: RSA with SHA1\nEC key size   \: 192 bits\n":0
 
 X509 CRL ASN1 (Incorrect first tag)
-x509parse_crl:"":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT
+x509parse_crl:"":"":POLARSSL_ERR_X509_INVALID_FORMAT
 
 X509 CRL ASN1 (Correct first tag, data length does not match)
-x509parse_crl:"300000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crl:"300000":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 CRL ASN1 (TBSCertList, tag missing)
-x509parse_crl:"3000":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crl:"3000":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 CRL ASN1 (TBSCertList, version tag len missing)
-x509parse_crl:"3003300102":"":POLARSSL_ERR_X509_CERT_INVALID_VERSION + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crl:"3003300102":"":POLARSSL_ERR_X509_INVALID_VERSION + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 CRL ASN1 (TBSCertList, version correct, alg missing)
-x509parse_crl:"30053003020100":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crl:"30053003020100":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 CRL ASN1 (TBSCertList, alg correct, incorrect version)
-x509parse_crl:"300b3009020102300406000500":"":POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION
+x509parse_crl:"300b3009020102300406000500":"":POLARSSL_ERR_X509_UNKNOWN_VERSION
 
 X509 CRL ASN1 (TBSCertList, correct version, sig_oid1 unknown)
-x509parse_crl:"300b3009020100300406000500":"":POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG
+x509parse_crl:"300b3009020100300406000500":"":POLARSSL_ERR_X509_UNKNOWN_SIG_ALG
 
 X509 CRL ASN1 (TBSCertList, sig_oid1 id unknown)
-x509parse_crl:"30143012020100300d06092a864886f70d01010f0500":"":POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG
+x509parse_crl:"30143012020100300d06092a864886f70d01010f0500":"":POLARSSL_ERR_X509_UNKNOWN_SIG_ALG
 
 X509 CRL ASN1 (TBSCertList, sig_oid1 correct, issuer missing)
-x509parse_crl:"30143012020100300d06092a864886f70d01010e0500":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crl:"30143012020100300d06092a864886f70d01010e0500":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 CRL ASN1 (TBSCertList, issuer set missing)
-x509parse_crl:"30163014020100300d06092a864886f70d01010e05003000":"":POLARSSL_ERR_X509_CERT_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crl:"30163014020100300d06092a864886f70d01010e05003000":"":POLARSSL_ERR_X509_INVALID_NAME + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 CRL ASN1 (TBSCertList, correct issuer, thisUpdate missing)
-x509parse_crl:"30253023020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344":"":POLARSSL_ERR_X509_CERT_INVALID_DATE + POLARSSL_ERR_ASN1_OUT_OF_DATA
+x509parse_crl:"30253023020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344":"":POLARSSL_ERR_X509_INVALID_DATE + POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 CRL ASN1 (TBSCertList, correct thisUpdate, nextUpdate missing, entries length missing)
 x509parse_crl:"30343032020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c30393031303130303030303030":"":POLARSSL_ERR_ASN1_OUT_OF_DATA
 
 X509 CRL ASN1 (TBSCertList, entries present, invalid sig_alg)
-x509parse_crl:"304a3047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd170c30383132333132333539353900":"":POLARSSL_ERR_X509_CERT_INVALID_ALG + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crl:"304a3047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd170c30383132333132333539353900":"":POLARSSL_ERR_X509_INVALID_ALG + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRL ASN1 (TBSCertList, entries present, date in entry invalid)
-x509parse_crl:"304a3047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd190c30383132333132333539353900":"":POLARSSL_ERR_X509_CERT_INVALID_DATE + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
+x509parse_crl:"304a3047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd190c30383132333132333539353900":"":POLARSSL_ERR_X509_INVALID_DATE + POLARSSL_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRL ASN1 (TBSCertList, sig_alg present, sig_alg does not match)
-x509parse_crl:"30583047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd170c303831323331323335393539300d06092a864886f70d01010d0500":"":POLARSSL_ERR_X509_CERT_SIG_MISMATCH
+x509parse_crl:"30583047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd170c303831323331323335393539300d06092a864886f70d01010d0500":"":POLARSSL_ERR_X509_SIG_MISMATCH
 
 X509 CRL ASN1 (TBSCertList, sig present, len mismatch)
-x509parse_crl:"305d3047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd170c303831323331323335393539300d06092a864886f70d01010e05000302000100":"":POLARSSL_ERR_X509_CERT_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
+x509parse_crl:"305d3047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd170c303831323331323335393539300d06092a864886f70d01010e05000302000100":"":POLARSSL_ERR_X509_INVALID_FORMAT + POLARSSL_ERR_ASN1_LENGTH_MISMATCH
 
 X509 CRL ASN1 (TBSCertList, sig present)
 x509parse_crl:"305c3047020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030301430128202abcd170c303831323331323335393539300d06092a864886f70d01010e050003020001":"CRL version   \: 1\nissuer name   \: CN=ABCD\nthis update   \: 2009-01-01 00\:00\:00\nnext update   \: 0000-00-00 00\:00\:00\nRevoked certificates\:\nserial number\: AB\:CD revocation date\: 2008-12-31 23\:59\:59\nsigned using  \: RSA with SHA-224\n":0
 
 X509 CRL ASN1 (TBSCertList, no entries)
 x509parse_crl:"30463031020100300d06092a864886f70d01010e0500300f310d300b0603550403130441424344170c303930313031303030303030300d06092a864886f70d01010e050003020001":"CRL version   \: 1\nissuer name   \: CN=ABCD\nthis update   \: 2009-01-01 00\:00\:00\nnext update   \: 0000-00-00 00\:00\:00\nRevoked certificates\:\nsigned using  \: RSA with SHA-224\n":0
-
-X509 Key ASN1 (Incorrect first tag)
-x509parse_key_rsa:"":"":POLARSSL_ERR_X509_KEY_INVALID_FORMAT
-
-X509 Key ASN1 (RSAPrivateKey, incorrect version tag)
-x509parse_key_rsa:"300100":"":POLARSSL_ERR_X509_KEY_INVALID_FORMAT
-
-X509 Key ASN1 (RSAPrivateKey, version tag missing)
-x509parse_key_rsa:"3000":"":POLARSSL_ERR_X509_KEY_INVALID_FORMAT
-
-X509 Key ASN1 (RSAPrivateKey, invalid version)
-x509parse_key_rsa:"3003020101":"":POLARSSL_ERR_X509_KEY_INVALID_FORMAT
-
-X509 Key ASN1 (RSAPrivateKey, correct version, incorrect tag)
-x509parse_key_rsa:"300402010000":"":POLARSSL_ERR_X509_KEY_INVALID_FORMAT
-
-X509 Key ASN1 (RSAPrivateKey, values present, length mismatch)
-x509parse_key_rsa:"301c02010002010102010102010102010102010102010102010102010100":"":POLARSSL_ERR_X509_KEY_INVALID_FORMAT
-
-X509 Key ASN1 (RSAPrivateKey, values present, check_privkey fails)
-x509parse_key_rsa:"301b020100020101020101020101020101020101020101020101020101":"":POLARSSL_ERR_X509_KEY_INVALID_FORMAT

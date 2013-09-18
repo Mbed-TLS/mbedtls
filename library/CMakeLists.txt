@@ -41,19 +41,26 @@ set(src
      pkcs12.c
      pk.c
      pk_wrap.c
+     pkparse.c
+     pkwrite.c
      rsa.c
      sha1.c
      sha256.c
      sha512.c
      ssl_cache.c
      ssl_ciphersuites.c
-     ssl_cli.c 
-     ssl_srv.c 
+     ssl_cli.c
+     ssl_srv.c
      ssl_tls.c
      timing.c
      version.c
-     x509parse.c
-     x509write.c
+     x509.c
+     x509_crt.c
+     x509_crl.c
+     x509_csr.c
+     x509_create.c
+     x509write_crt.c
+     x509write_csr.c
      xtea.c
 )
 

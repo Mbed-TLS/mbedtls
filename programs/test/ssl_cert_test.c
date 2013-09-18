@@ -33,7 +33,7 @@
 #include "polarssl/config.h"
 
 #include "polarssl/certs.h"
-#include "polarssl/x509.h"
+#include "polarssl/x509_crt.h"
 
 #if defined _MSC_VER && !defined snprintf
 #define snprintf _snprintf
@@ -66,29 +66,31 @@ const char *client_private_keys[MAX_CLIENT_CERTS] =
 };
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_X509_PARSE_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_PK_PARSE_C) || \
+    !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_X509_CRT_PARSE_C and/or POLARSSL_FS_IO and/or "
+           "POLARSSL_PK_PARSE_C not defined.\n");
     return( 0 );
 }
 #else
 int main( int argc, char *argv[] )
 {
     int ret, i;
-    x509_cert cacert;
+    x509_crt cacert;
     x509_crl crl;
     char buf[10240];
 
     ((void) argc);
     ((void) argv);
 
-    memset( &cacert, 0, sizeof( x509_cert ) );
-    memset( &crl, 0, sizeof( x509_crl ) );
+    x509_crt_init( &cacert );
+    x509_crl_init( &crl );
 
     /*
      * 1.1. Load the trusted CA
@@ -98,18 +100,18 @@ int main( int argc, char *argv[] )
 
     /*
      * Alternatively, you may load the CA certificates from a .pem or
-     * .crt file by calling x509parse_crtfile( &cacert, "myca.crt" ).
+     * .crt file by calling x509_crt_parse_file( &cacert, "myca.crt" ).
      */
-    ret = x509parse_crtfile( &cacert, "ssl/test-ca/test-ca.crt" );
+    ret = x509_crt_parse_file( &cacert, "ssl/test-ca/test-ca.crt" );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crtfile returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crt_parse_file returned %d\n\n", ret );
         goto exit;
     }
 
     printf( " ok\n" );
 
-    x509parse_cert_info( buf, 1024, "CRT: ", &cacert );
+    x509_crt_info( buf, 1024, "CRT: ", &cacert );
     printf("%s\n", buf );
 
     /*
@@ -118,16 +120,16 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the CRL ..." );
     fflush( stdout );
 
-    ret = x509parse_crlfile( &crl, "ssl/test-ca/crl.pem" );
+    ret = x509_crl_parse_file( &crl, "ssl/test-ca/crl.pem" );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crlfile returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crl_parse_file returned %d\n\n", ret );
         goto exit;
     }
 
     printf( " ok\n" );
 
-    x509parse_crl_info( buf, 1024, "CRL: ", &crl );
+    x509_crl_info( buf, 1024, "CRL: ", &crl );
     printf("%s\n", buf );
 
     for( i = 0; i < MAX_CLIENT_CERTS; i++ )
@@ -137,21 +139,21 @@ int main( int argc, char *argv[] )
          */
         char    name[512];
         int flags;
-        x509_cert clicert;
-        rsa_context rsa;
+        x509_crt clicert;
+        pk_context pk;
 
-        memset( &clicert, 0, sizeof( x509_cert ) );
-        memset( &rsa, 0, sizeof( rsa_context ) );
+        x509_crt_init( &clicert );
+        pk_init( &pk );
 
         snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
 
         printf( "  . Loading the client certificate %s...", name );
         fflush( stdout );
 
-        ret = x509parse_crtfile( &clicert, name );
+        ret = x509_crt_parse_file( &clicert, name );
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+            printf( " failed\n  !  x509_crt_parse_file returned %d\n\n", ret );
             goto exit;
         }
 
@@ -163,7 +165,8 @@ int main( int argc, char *argv[] )
         printf( "  . Verify the client certificate with CA certificate..." );
         fflush( stdout );
 
-        ret = x509parse_verify( &clicert, &cacert, &crl, NULL, &flags, NULL, NULL );
+        ret = x509_crt_verify( &clicert, &cacert, &crl, NULL, &flags, NULL,
+                               NULL );
         if( ret != 0 )
         {
             if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
@@ -181,7 +184,7 @@ int main( int argc, char *argv[] )
                 if( flags & BADCRL_EXPIRED )
                     printf( " CRL_EXPIRED " );
             } else {
-                printf( " failed\n  !  x509parse_verify returned %d\n\n", ret );
+                printf( " failed\n  !  x509_crt_verify returned %d\n\n", ret );
                 goto exit;
             }
         }
@@ -196,10 +199,10 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the client private key %s...", name );
         fflush( stdout );
 
-        ret = x509parse_keyfile_rsa( &rsa, name, NULL );
+        ret = pk_parse_keyfile( &pk, name, NULL );
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_key_rsa returned %d\n\n", ret );
+            printf( " failed\n  !  pk_parse_keyfile returned %d\n\n", ret );
             goto exit;
         }
 
@@ -220,21 +223,21 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        ret = mpi_cmp_mpi(&rsa.N, &pk_rsa( clicert.pk )->N);
+        ret = mpi_cmp_mpi(&pk_rsa( pk )->N, &pk_rsa( clicert.pk )->N);
         if( ret != 0 )
         {
             printf( " failed\n  !  mpi_cmp_mpi for N returned %d\n\n", ret );
             goto exit;
         }
 
-        ret = mpi_cmp_mpi(&rsa.E, &pk_rsa( clicert.pk )->E);
+        ret = mpi_cmp_mpi(&pk_rsa( pk )->E, &pk_rsa( clicert.pk )->E);
         if( ret != 0 )
         {
             printf( " failed\n  !  mpi_cmp_mpi for E returned %d\n\n", ret );
             goto exit;
         }
 
-        ret = rsa_check_privkey( &rsa );
+        ret = rsa_check_privkey( pk_rsa( pk ) );
         if( ret != 0 )
         {
             printf( " failed\n  !  rsa_check_privkey returned %d\n\n", ret );
@@ -243,12 +246,12 @@ int main( int argc, char *argv[] )
 
         printf( " ok\n" );
 
-        x509_free( &clicert );
-        rsa_free( &rsa );
+        x509_crt_free( &clicert );
+        pk_free( &pk );
     }
 
 exit:
-    x509_free( &cacert );
+    x509_crt_free( &cacert );
     x509_crl_free( &crl );
 
 #if defined(_WIN32)
@@ -258,5 +261,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_X509_PARSE_C &&
-          POLARSSL_FS_IO */
+#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_X509_CRT_PARSE_C &&
+          POLARSSL_FS_IO && POLARSSL_PK_PARSE_C */

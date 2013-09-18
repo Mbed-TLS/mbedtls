@@ -33,21 +33,21 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/x509write.h"
+#include "polarssl/x509_csr.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/error.h"
 
-#if !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_X509_PARSE_C) ||   \
-    !defined(POLARSSL_FS_IO) ||                                             \
+#if !defined(POLARSSL_X509_CSR_WRITE_C) || !defined(POLARSSL_FS_IO) ||  \
+    !defined(POLARSSL_PK_PARSE_C) ||                                    \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_X509_WRITE_C and/or POLARSSL_X509_PARSE_C and/or "
-            "POLARSSL_FS_IO and/or "
+    printf( "POLARSSL_X509_CSR_WRITE_C and/or POLARSSL_FS_IO and/or "
+            "POLARSSL_PK_PARSE_C and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
             "not defined.\n");
     return( 0 );
@@ -292,11 +292,11 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the private key ..." );
     fflush( stdout );
 
-    ret = x509parse_keyfile( &key, opt.filename, NULL );
+    ret = pk_parse_keyfile( &key, opt.filename, NULL );
 
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_keyfile returned %d", ret );
+        printf( " failed\n  !  pk_parse_keyfile returned %d", ret );
         goto exit;
     }
 
@@ -341,5 +341,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_X509_WRITE_C && POLARSSL_X509_PARSE_C && POLARSSL_FS_IO &&
+#endif /* POLARSSL_X509_CSR_WRITE_C && POLARSSL_PK_PARSE_C && POLARSSL_FS_IO &&
           POLARSSL_ENTROPY_C && POLARSSL_CTR_DRBG_C */

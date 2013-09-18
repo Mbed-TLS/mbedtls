@@ -33,16 +33,16 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/x509write.h"
+#include "polarssl/pk.h"
 #include "polarssl/error.h"
 
-#if !defined(POLARSSL_X509_WRITE_C) || !defined(POLARSSL_FS_IO)
+#if !defined(POLARSSL_PK_WRITE_C) || !defined(POLARSSL_FS_IO)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_X509_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
+    printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
     return( 0 );
 }
 #else
@@ -89,14 +89,14 @@ static int write_public_key( pk_context *key, const char *output_file )
 
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        if( ( ret = x509write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
+        if( ( ret = pk_write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
             return( ret );
 
         len = strlen( (char *) output_buf );
     }
     else
     {
-        if( ( ret = x509write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
+        if( ( ret = pk_write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
 
         len = ret;
@@ -125,14 +125,14 @@ static int write_private_key( pk_context *key, const char *output_file )
     memset(output_buf, 0, 16000);
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        if( ( ret = x509write_key_pem( key, output_buf, 16000 ) ) != 0 )
+        if( ( ret = pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
             return( ret );
 
         len = strlen( (char *) output_buf );
     }
     else
     {
-        if( ( ret = x509write_key_der( key, output_buf, 16000 ) ) < 0 )
+        if( ( ret = pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
 
         len = ret;
@@ -250,11 +250,11 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = x509parse_keyfile( &key, opt.filename, NULL );
+        ret = pk_parse_keyfile( &key, opt.filename, NULL );
 
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_key returned %d", ret );
+            printf( " failed\n  !  pk_parse_key returned %d", ret );
             goto exit;
         }
 
@@ -291,11 +291,11 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the public key ..." );
         fflush( stdout );
 
-        ret = x509parse_public_keyfile( &key, opt.filename );
+        ret = pk_parse_public_keyfile( &key, opt.filename );
 
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_public_key returned %d", ret );
+            printf( " failed\n  !  pk_parse_public_key returned %d", ret );
             goto exit;
         }
 

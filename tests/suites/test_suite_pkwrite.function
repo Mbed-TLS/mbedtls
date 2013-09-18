@@ -1,0 +1,68 @@
+/* BEGIN_HEADER */
+#include <polarssl/pk.h>
+#include <polarssl/pem.h>
+#include <polarssl/oid.h>
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_PK_WRITE_C:POLARSSL_BIGNUM_C:POLARSSL_FS_IO
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void pk_write_pubkey_check( char *key_file )
+{
+    pk_context key;
+    unsigned char buf[5000];
+    unsigned char check_buf[5000];
+    int ret;
+    FILE *f;
+
+    memset( buf, 0, sizeof( buf ) );
+    memset( check_buf, 0, sizeof( check_buf ) );
+
+    pk_init( &key );
+    TEST_ASSERT( pk_parse_public_keyfile( &key, key_file ) == 0 );
+
+    ret = pk_write_pubkey_pem( &key, buf, sizeof( buf ) - 1);
+    TEST_ASSERT( ret >= 0 );
+
+    f = fopen( key_file, "r" );
+    TEST_ASSERT( f != NULL );
+    fread( check_buf, 1, sizeof( check_buf ) - 1, f );
+    fclose( f );
+
+    TEST_ASSERT( strncmp( (char *) buf, (char *) check_buf, sizeof( buf ) ) == 0 );
+
+    pk_free( &key );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void pk_write_key_check( char *key_file )
+{
+    pk_context key;
+    unsigned char buf[5000];
+    unsigned char check_buf[5000];
+    int ret;
+    FILE *f;
+
+    memset( buf, 0, sizeof( buf ) );
+    memset( check_buf, 0, sizeof( check_buf ) );
+
+    pk_init( &key );
+    TEST_ASSERT( pk_parse_keyfile( &key, key_file, NULL ) == 0 );
+
+    ret = pk_write_key_pem( &key, buf, sizeof( buf ) - 1);
+    TEST_ASSERT( ret >= 0 );
+
+    f = fopen( key_file, "r" );
+    TEST_ASSERT( f != NULL );
+    fread( check_buf, 1, sizeof( check_buf ) - 1, f );
+    fclose( f );
+
+    TEST_ASSERT( strncmp( (char *) buf, (char *) check_buf, sizeof( buf ) ) == 0 );
+
+    pk_free( &key );
+}
+/* END_CASE */

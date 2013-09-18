@@ -54,7 +54,7 @@
     debug_print_ecp( ssl, level, __FILE__, __LINE__, text, X );
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 #define SSL_DEBUG_CRT( level, text, crt )                \
     debug_print_crt( ssl, level, __FILE__, __LINE__, text, crt );
 #endif
@@ -99,10 +99,10 @@ void debug_print_ecp( const ssl_context *ssl, int level,
                       const char *text, const ecp_point *X );
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 void debug_print_crt( const ssl_context *ssl, int level,
                       const char *file, int line,
-                      const char *text, const x509_cert *crt );
+                      const char *text, const x509_crt *crt );
 #endif
 
 #ifdef __cplusplus

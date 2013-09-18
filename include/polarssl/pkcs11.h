@@ -33,7 +33,7 @@
 
 #if defined(POLARSSL_PKCS11_C)
 
-#include "x509.h"
+#include "x509_crt.h"
 
 #include <pkcs11-helper-1.0/pkcs11h-certificate.h>
 
@@ -65,7 +65,7 @@ typedef struct {
  *
  * \return              0 on success.
  */
-int pkcs11_x509_cert_init( x509_cert *cert, pkcs11h_certificate_t pkcs11h_cert );
+int pkcs11_x509_cert_init( x509_crt *cert, pkcs11h_certificate_t pkcs11h_cert );
 
 /**
  * Initialise a pkcs11_context, storing the given certificate. Note that the

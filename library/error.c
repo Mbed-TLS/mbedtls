@@ -109,7 +109,7 @@
 #include "polarssl/pbkdf2.h"
 #endif
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #endif
 
@@ -145,12 +145,8 @@
 #include "polarssl/ssl.h"
 #endif
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 #include "polarssl/x509.h"
-#endif
-
-#if defined(POLARSSL_X509_WRITE_C)
-#include "polarssl/x509write.h"
 #endif
 
 #if defined(POLARSSL_XTEA_C)
@@ -206,6 +202,12 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "DHM - Making of the public value failed" );
         if( use_ret == -(POLARSSL_ERR_DHM_CALC_SECRET_FAILED) )
             snprintf( buf, buflen, "DHM - Calculation of the DHM secret failed" );
+        if( use_ret == -(POLARSSL_ERR_DHM_INVALID_FORMAT) )
+            snprintf( buf, buflen, "DHM - The ASN.1 data is not formatted correctly" );
+        if( use_ret == -(POLARSSL_ERR_DHM_MALLOC_FAILED) )
+            snprintf( buf, buflen, "DHM - Allocation of memory failed" );
+        if( use_ret == -(POLARSSL_ERR_DHM_FILE_IO_ERROR) )
+            snprintf( buf, buflen, "DHM - Read/write of file failed" );
 #endif /* POLARSSL_DHM_C */
 
 #if defined(POLARSSL_ECP_C)
@@ -214,9 +216,11 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_ECP_BUFFER_TOO_SMALL) )
             snprintf( buf, buflen, "ECP - The buffer is too small to write to" );
         if( use_ret == -(POLARSSL_ERR_ECP_GENERIC) )
-            snprintf( buf, buflen, "ECP -  Generic ECP error" );
+            snprintf( buf, buflen, "ECP - Generic ECP error" );
         if( use_ret == -(POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "ECP - Requested curve not available" );
+        if( use_ret == -(POLARSSL_ERR_ECP_VERIFY_FAILED) )
+            snprintf( buf, buflen, "ECP - The signature is not valid" );
 #endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_MD_C)
@@ -230,7 +234,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "MD - Opening or reading of file failed" );
 #endif /* POLARSSL_MD_C */
 
-#if defined(POLARSSL_PEM_C)
+#if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
         if( use_ret == -(POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT) )
             snprintf( buf, buflen, "PEM - No PEM header or footer found" );
         if( use_ret == -(POLARSSL_ERR_PEM_INVALID_DATA) )
@@ -249,7 +253,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "PEM - Unavailable feature, e.g. hashing/encryption combination" );
         if( use_ret == -(POLARSSL_ERR_PEM_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "PEM - Bad input parameters to function" );
-#endif /* POLARSSL_PEM_C */
+#endif /* POLARSSL_PEM_PARSE_C || POLARSSL_PEM_WRITE_C */
 
 #if defined(POLARSSL_PK_C)
         if( use_ret == -(POLARSSL_ERR_PK_MALLOC_FAILED) )
@@ -258,6 +262,26 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "PK - Type mismatch, eg attempt to encrypt with an ECDSA key" );
         if( use_ret == -(POLARSSL_ERR_PK_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "PK - Bad input parameters to function" );
+        if( use_ret == -(POLARSSL_ERR_PK_FILE_IO_ERROR) )
+            snprintf( buf, buflen, "PK - Read/write of file failed" );
+        if( use_ret == -(POLARSSL_ERR_PK_KEY_INVALID_VERSION) )
+            snprintf( buf, buflen, "PK - Unsupported key version" );
+        if( use_ret == -(POLARSSL_ERR_PK_KEY_INVALID_FORMAT) )
+            snprintf( buf, buflen, "PK - Invalid key tag or value" );
+        if( use_ret == -(POLARSSL_ERR_PK_UNKNOWN_PK_ALG) )
+            snprintf( buf, buflen, "PK - Key algorithm is unsupported (only RSA and EC are supported)" );
+        if( use_ret == -(POLARSSL_ERR_PK_PASSWORD_REQUIRED) )
+            snprintf( buf, buflen, "PK - Private key password can't be empty" );
+        if( use_ret == -(POLARSSL_ERR_PK_PASSWORD_MISMATCH) )
+            snprintf( buf, buflen, "PK - Given private key password does not allow for correct decryption" );
+        if( use_ret == -(POLARSSL_ERR_PK_INVALID_PUBKEY) )
+            snprintf( buf, buflen, "PK - The pubkey tag or value is invalid (only RSA and EC are supported)" );
+        if( use_ret == -(POLARSSL_ERR_PK_INVALID_ALG) )
+            snprintf( buf, buflen, "PK - The algorithm tag or value is invalid" );
+        if( use_ret == -(POLARSSL_ERR_PK_UNKNOWN_NAMED_CURVE) )
+            snprintf( buf, buflen, "PK - Elliptic curve is unsupported (only NIST curves are supported)" );
+        if( use_ret == -(POLARSSL_ERR_PK_FEATURE_UNAVAILABLE) )
+            snprintf( buf, buflen, "PK - Unavailable feature, e.g. RSA disabled for RSA key" );
 #endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_PKCS12_C)
@@ -383,67 +407,44 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Public key type mismatch (eg, asked for RSA key exchange and presented EC key)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
         if( use_ret == -(POLARSSL_ERR_X509_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "X509 - Unavailable feature, e.g. RSA hashing/encryption combination" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_PEM) )
-            snprintf( buf, buflen, "X509 - The PEM-encoded certificate contains invalid elements, e.g. invalid character" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_FORMAT) )
-            snprintf( buf, buflen, "X509 - The certificate format is invalid, e.g. different type expected" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_VERSION) )
-            snprintf( buf, buflen, "X509 - The certificate version element is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_SERIAL) )
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_OID) )
+            snprintf( buf, buflen, "X509 - Requested OID is unknown" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_FORMAT) )
+            snprintf( buf, buflen, "X509 - The CRT/CRL/CSR format is invalid, e.g. different type expected" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_VERSION) )
+            snprintf( buf, buflen, "X509 - The CRT/CRL/CSR version element is invalid" );
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_SERIAL) )
             snprintf( buf, buflen, "X509 - The serial tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_ALG) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_ALG) )
             snprintf( buf, buflen, "X509 - The algorithm tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_NAME) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_NAME) )
             snprintf( buf, buflen, "X509 - The name tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_DATE) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_DATE) )
             snprintf( buf, buflen, "X509 - The date tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_PUBKEY) )
-            snprintf( buf, buflen, "X509 - The pubkey tag or value is invalid (only RSA is supported)" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_SIGNATURE) )
             snprintf( buf, buflen, "X509 - The signature tag or value invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS) )
+        if( use_ret == -(POLARSSL_ERR_X509_INVALID_EXTENSIONS) )
             snprintf( buf, buflen, "X509 - The extension tag or value is invalid" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION) )
-            snprintf( buf, buflen, "X509 - Certificate or CRL has an unsupported version number" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_SIG_ALG) )
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_VERSION) )
+            snprintf( buf, buflen, "X509 - CRT/CRL/CSR has an unsupported version number" );
+        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_SIG_ALG) )
             snprintf( buf, buflen, "X509 - Signature algorithm (oid) is unsupported" );
-        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_PK_ALG) )
-            snprintf( buf, buflen, "X509 - Key algorithm is unsupported (only RSA and EC are supported)" );
-        if( use_ret == -(POLARSSL_ERR_X509_CERT_SIG_MISMATCH) )
-            snprintf( buf, buflen, "X509 - Certificate signature algorithms do not match. (see \\c ::x509_cert sig_oid)" );
+        if( use_ret == -(POLARSSL_ERR_X509_SIG_MISMATCH) )
+            snprintf( buf, buflen, "X509 - Signature algorithms do not match. (see \\c ::x509_cert sig_oid)" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_VERIFY_FAILED) )
             snprintf( buf, buflen, "X509 - Certificate verification failed, e.g. CRL, CA or signature check failed" );
-        if( use_ret == -(POLARSSL_ERR_X509_KEY_INVALID_VERSION) )
-            snprintf( buf, buflen, "X509 - Unsupported RSA key version" );
-        if( use_ret == -(POLARSSL_ERR_X509_KEY_INVALID_FORMAT) )
-            snprintf( buf, buflen, "X509 - Invalid RSA key tag or value" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT) )
             snprintf( buf, buflen, "X509 - Format not recognized as DER or PEM" );
-        if( use_ret == -(POLARSSL_ERR_X509_INVALID_INPUT) )
+        if( use_ret == -(POLARSSL_ERR_X509_BAD_INPUT_DATA) )
             snprintf( buf, buflen, "X509 - Input invalid" );
         if( use_ret == -(POLARSSL_ERR_X509_MALLOC_FAILED) )
             snprintf( buf, buflen, "X509 - Allocation of memory failed" );
         if( use_ret == -(POLARSSL_ERR_X509_FILE_IO_ERROR) )
             snprintf( buf, buflen, "X509 - Read/write of file failed" );
-        if( use_ret == -(POLARSSL_ERR_X509_PASSWORD_REQUIRED) )
-            snprintf( buf, buflen, "X509 - Private key password can't be empty" );
-        if( use_ret == -(POLARSSL_ERR_X509_PASSWORD_MISMATCH) )
-            snprintf( buf, buflen, "X509 - Given private key password does not allow for correct decryption" );
-        if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_NAMED_CURVE) )
-            snprintf( buf, buflen, "X509 - Elliptic curve is unsupported (only NIST curves are supported)" );
-#endif /* POLARSSL_X509_PARSE_C */
-
-#if defined(POLARSSL_X509_WRITE_C)
-        if( use_ret == -(POLARSSL_ERR_X509WRITE_UNKNOWN_OID) )
-            snprintf( buf, buflen, "X509WRITE - Requested OID is unknown" );
-        if( use_ret == -(POLARSSL_ERR_X509WRITE_BAD_INPUT_DATA) )
-            snprintf( buf, buflen, "X509WRITE - Failed to allocate memory" );
-        if( use_ret == -(POLARSSL_ERR_X509WRITE_MALLOC_FAILED) )
-            snprintf( buf, buflen, "X509WRITE - Failed to allocate memory" );
-#endif /* POLARSSL_X509_WRITE_C */
+#endif /* POLARSSL_X509_USE,X509_CREATE_C */
 
         if( strlen( buf ) == 0 )
             snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );

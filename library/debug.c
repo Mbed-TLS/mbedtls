@@ -224,7 +224,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
 }
 #endif /* POLARSSL_BIGNUM_C */
 
-#if defined(POLARSSL_X509_PARSE_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 static void debug_print_pk( const ssl_context *ssl, int level,
                             const char *file, int line,
                             const char *text, const pk_context *pk )
@@ -260,7 +260,7 @@ static void debug_print_pk( const ssl_context *ssl, int level,
 
 void debug_print_crt( const ssl_context *ssl, int level,
                       const char *file, int line,
-                      const char *text, const x509_cert *crt )
+                      const char *text, const x509_crt *crt )
 {
     char str[1024], prefix[64];
     int i = 0, maxlen = sizeof( prefix ) - 1;
@@ -275,7 +275,7 @@ void debug_print_crt( const ssl_context *ssl, int level,
     while( crt != NULL )
     {
         char buf[1024];
-        x509parse_cert_info( buf, sizeof( buf ) - 1, prefix, crt );
+        x509_crt_info( buf, sizeof( buf ) - 1, prefix, crt );
 
         snprintf( str, maxlen, "%s(%04d): %s #%d:\n%s",
                   file, line, text, ++i, buf );
@@ -288,6 +288,6 @@ void debug_print_crt( const ssl_context *ssl, int level,
         crt = crt->next;
     }
 }
-#endif /* POLARSSL_X509_PARSE_C */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #endif

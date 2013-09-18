@@ -745,7 +745,10 @@ static int pk_parse_key_pkcs8_encrypted_der(
     }
     else
 #endif /* POLARSSL_PKCS5_C */
+    {
+        ((void) pwd);
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
+    }
 
     return( pk_parse_key_pkcs8_unencrypted_der( pk, buf, len ) );
 }

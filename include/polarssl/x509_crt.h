@@ -198,6 +198,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path );
 int x509_crt_info( char *buf, size_t size, const char *prefix,
                    const x509_crt *crt );
 
+#if defined(POLARSSL_X509_CRL_PARSE_C)
 /**
  * \brief          Verify the certificate signature
  *
@@ -241,7 +242,6 @@ int x509_crt_verify( x509_crt *crt,
                      int (*f_vrfy)(void *, x509_crt *, int, int *),
                      void *p_vrfy );
 
-#if defined(POLARSSL_X509_CRL_PARSE_C)
 /**
  * \brief          Verify the certificate signature
  *

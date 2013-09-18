@@ -740,13 +740,15 @@ static int ssl_parse_supported_point_formats_ext( ssl_context *ssl,
 
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
-    uint32_t t;
     int ret, i, comp;
     size_t n;
     size_t ext_len = 0;
     unsigned char *buf, *ext;
     int renegotiation_info_seen = 0;
     int handshake_failure = 0;
+#if defined(POLARSSL_DEBUG_C)
+    uint32_t t;
+#endif
 
     SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
@@ -807,13 +809,13 @@ static int ssl_parse_server_hello( ssl_context *ssl )
       | ( (uint32_t) buf[7] << 16 )
       | ( (uint32_t) buf[8] <<  8 )
       | ( (uint32_t) buf[9]       );
+    SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
 #endif
 
     memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
 
     n = buf[38];
 
-    SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
     SSL_DEBUG_BUF( 3,   "server hello, random bytes", buf + 6, 32 );
 
     if( n > 32 )

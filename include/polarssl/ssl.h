@@ -954,6 +954,7 @@ void ssl_set_ciphersuites_for_version( ssl_context *ssl,
                                        int major, int minor );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(POLARSSL_X509_CRL_PARSE_C)
 /**
  * \brief          Set the data required to verify peer certificate
  *
@@ -964,6 +965,7 @@ void ssl_set_ciphersuites_for_version( ssl_context *ssl,
  */
 void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
                        x509_crl *ca_crl, const char *peer_cn );
+#endif /* POLARSSL_X509_CRL_PARSE_C */
 
 /**
  * \brief          Set own certificate chain and private key

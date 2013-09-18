@@ -3242,11 +3242,6 @@ int ssl_init( ssl_context *ssl )
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
 
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-    ssl->hostname = NULL;
-    ssl->hostname_len = 0;
-#endif
-
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
 #endif
@@ -3529,13 +3524,38 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
-void ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
-                  const unsigned char *psk_identity, size_t psk_identity_len )
+int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
+                 const unsigned char *psk_identity, size_t psk_identity_len )
 {
-    ssl->psk     = psk;
+    if( psk == NULL || psk_identity == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    if( ssl->psk != NULL )
+    {
+        polarssl_free( ssl->psk );
+        polarssl_free( ssl->psk_identity );
+    }
+
     ssl->psk_len = psk_len;
-    ssl->psk_identity     = psk_identity;
     ssl->psk_identity_len = psk_identity_len;
+
+    ssl->psk = polarssl_malloc( ssl->psk_len );
+    ssl->psk_identity = polarssl_malloc( ssl->psk_identity_len );
+
+    if( ssl->psk == NULL || ssl->psk_identity == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    memcpy( ssl->psk, psk, ssl->psk_len );
+    memcpy( ssl->psk_identity, psk_identity, ssl->psk_identity_len );
+}
+
+void ssl_set_psk_cb( ssl_context *ssl,
+                     int (*f_psk)(void *, ssl_context *, const unsigned char *,
+                     size_t),
+                     void *p_psk )
+{
+    ssl->f_psk = f_psk;
+    ssl->p_psk = p_psk;
 }
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 
@@ -4146,11 +4166,23 @@ void ssl_free( ssl_context *ssl )
 #endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-    if ( ssl->hostname != NULL)
+    if ( ssl->hostname != NULL )
     {
         memset( ssl->hostname, 0, ssl->hostname_len );
         polarssl_free( ssl->hostname );
         ssl->hostname_len = 0;
+    }
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    if( ssl->psk != NULL )
+    {
+        memset( ssl->psk, 0, ssl->psk_len );
+        memset( ssl->psk_identity, 0, ssl->psk_identity_len );
+        polarssl_free( ssl->psk );
+        polarssl_free( ssl->psk_identity );
+        ssl->psk_len = 0;
+        ssl->psk_identity_len = 0;
     }
 #endif
 

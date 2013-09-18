@@ -409,6 +409,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Session ticket has expired" );
         if( use_ret == -(POLARSSL_ERR_SSL_PK_TYPE_MISMATCH) )
             snprintf( buf, buflen, "SSL - Public key type mismatch (eg, asked for RSA key exchange and presented EC key)" );
+        if( use_ret == -(POLARSSL_ERR_SSL_UNKNOWN_IDENTITY) )
+            snprintf( buf, buflen, "SSL - Unkown identity received (eg, PSK identity)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
@@ -437,7 +439,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_X509_UNKNOWN_SIG_ALG) )
             snprintf( buf, buflen, "X509 - Signature algorithm (oid) is unsupported" );
         if( use_ret == -(POLARSSL_ERR_X509_SIG_MISMATCH) )
-            snprintf( buf, buflen, "X509 - Signature algorithms do not match. (see \\c ::x509_cert sig_oid)" );
+            snprintf( buf, buflen, "X509 - Signature algorithms do not match. (see \\c ::x509_crt sig_oid)" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_VERIFY_FAILED) )
             snprintf( buf, buflen, "X509 - Certificate verification failed, e.g. CRL, CA or signature check failed" );
         if( use_ret == -(POLARSSL_ERR_X509_CERT_UNKNOWN_FORMAT) )

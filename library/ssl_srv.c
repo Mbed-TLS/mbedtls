@@ -2286,11 +2286,12 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
 static int ssl_parse_client_psk_identity( ssl_context *ssl, unsigned char **p,
                                           const unsigned char *end )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    int ret = 0;
     size_t n;
 
-    if( ssl->psk == NULL || ssl->psk_identity == NULL ||
-        ssl->psk_identity_len == 0 || ssl->psk_len == 0 )
+    if( ssl->f_psk == NULL &&
+        ( ssl->psk == NULL || ssl->psk_identity == NULL ||
+          ssl->psk_identity_len == 0 || ssl->psk_len == 0 ) )
     {
         SSL_DEBUG_MSG( 1, ( "got no pre-shared key" ) );
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -2314,11 +2315,32 @@ static int ssl_parse_client_psk_identity( ssl_context *ssl, unsigned char **p,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( n != ssl->psk_identity_len ||
-        memcmp( ssl->psk_identity, *p, n ) != 0 )
+    if( ssl->f_psk != NULL )
+    {
+        if( ( ret != ssl->f_psk( ssl->p_psk, ssl, *p, n ) ) != 0 )
+            ret = POLARSSL_ERR_SSL_UNKNOWN_IDENTITY;
+    }
+
+    if( ret == 0 )
+    {
+        if( n != ssl->psk_identity_len ||
+            memcmp( ssl->psk_identity, *p, n ) != 0 )
+        {
+            ret = POLARSSL_ERR_SSL_UNKNOWN_IDENTITY;
+        }
+    }
+
+    if( ret == POLARSSL_ERR_SSL_UNKNOWN_IDENTITY )
     {
         SSL_DEBUG_BUF( 3, "Unknown PSK identity", *p, n );
-        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        if( ( ret = ssl_send_alert_message( ssl,
+                              SSL_ALERT_LEVEL_FATAL,
+                              SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        return( POLARSSL_ERR_SSL_UNKNOWN_IDENTITY );
     }
 
     *p += n;

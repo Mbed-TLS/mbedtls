@@ -126,6 +126,7 @@
 #define POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
 #define POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED            -0x6D80  /**< Session ticket has expired. */
 #define POLARSSL_ERR_SSL_PK_TYPE_MISMATCH                  -0x6D00  /**< Public key type mismatch (eg, asked for RSA key exchange and presented EC key) */
+#define POLARSSL_ERR_SSL_UNKNOWN_IDENTITY                  -0x6C80  /**< Unkown identity received (eg, PSK identity) */
 
 /*
  * Various constants
@@ -588,6 +589,11 @@ struct _ssl_context
     void *p_vrfy;               /*!< context for verification         */
 #endif
 
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    int (*f_psk)(void *, ssl_context *, const unsigned char *, size_t);
+    void *p_psk;               /*!< context for PSK retrieval         */
+#endif
+
     /*
      * Session layer
      */
@@ -689,9 +695,9 @@ struct _ssl_context
     /*
      * PSK values
      */
-    const unsigned char *psk;
+    unsigned char *psk;
     size_t         psk_len;
-    const unsigned char *psk_identity;
+    unsigned char *psk_identity;
     size_t         psk_identity_len;
 #endif
 
@@ -1022,16 +1028,43 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
 /**
  * \brief          Set the Pre Shared Key (PSK) and the identity name connected
- *                 to it. The PSK is used in all PSK-based ciphersuites.
+ *                 to it.
  *
  * \param ssl      SSL context
  * \param psk      pointer to the pre-shared key
  * \param psk_len  pre-shared key length
  * \param psk_identity      pointer to the pre-shared key identity
  * \param psk_identity_len  identity key length
+ *
+ * \return         0 if successful or POLARSSL_ERR_SSL_MALLOC_FAILED
  */
-void ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
-                  const unsigned char *psk_identity, size_t psk_identity_len );
+int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
+                 const unsigned char *psk_identity, size_t psk_identity_len );
+
+/**
+ * \brief          Set the PSK callback (server-side only) (Optional).
+ *
+ *                 If set, the PSK callback is called for each
+ *                 handshake where a PSK ciphersuite was negotiated.
+ *                 The callback provides the identity received and wants to
+ *                 receive the actual PSK data and length.
+ *
+ *                 The callback has the following parameters: (void *parameter,
+ *                 ssl_context *ssl, const unsigned char *psk_identity,
+ *                 size_t identity_len)
+ *                 If a valid PSK identity is found, the callback should use
+ *                 ssl_set_psk() on the ssl context to set the correct PSK and
+ *                 identity and return 0.
+ *                 Any other return value will result in a denied PSK identity.
+ *
+ * \param ssl      SSL context
+ * \param f_psk    PSK identity function
+ * \param p_psk    PSK identity parameter
+ */
+void ssl_set_psk_cb( ssl_context *ssl,
+                     int (*f_psk)(void *, ssl_context *, const unsigned char *,
+                                  size_t),
+                     void *p_psk );
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 
 #if defined(POLARSSL_DHM_C)
@@ -1064,7 +1097,7 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
 /**
  * \brief          Set hostname for ServerName TLS extension
  *                 (client-side only)
- *                 
+ *
  *
  * \param ssl      SSL context
  * \param hostname the server hostname

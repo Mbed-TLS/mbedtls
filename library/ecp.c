@@ -95,6 +95,14 @@ const ecp_curve_info ecp_supported_curves[] =
 };
 
 /*
+ * List of supported curves and associated info
+ */
+const ecp_curve_info *ecp_curve_list( void )
+{
+    return ecp_supported_curves;
+}
+
+/*
  * Initialize (the components of) a point
  */
 void ecp_point_init( ecp_point *pt )
@@ -755,7 +763,7 @@ ecp_group_id ecp_grp_id_from_named_curve( uint16_t tls_id )
 {
     const ecp_curve_info *curve_info;
 
-    for( curve_info = ecp_supported_curves;
+    for( curve_info = ecp_curve_list();
          curve_info->grp_id != POLARSSL_ECP_DP_NONE;
          curve_info++ )
     {
@@ -773,7 +781,7 @@ uint16_t ecp_named_curve_from_grp_id( ecp_group_id grp_id )
 {
     const ecp_curve_info *curve_info;
 
-    for( curve_info = ecp_supported_curves;
+    for( curve_info = ecp_curve_list();
          curve_info->grp_id != POLARSSL_ECP_DP_NONE;
          curve_info++ )
     {

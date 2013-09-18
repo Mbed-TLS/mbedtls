@@ -240,7 +240,7 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding supported_elliptic_curves extension" ) );
 
-    for( curve = ecp_supported_curves;
+    for( curve = ecp_curve_list();
          curve->grp_id != POLARSSL_ECP_DP_NONE;
          curve++ )
     {

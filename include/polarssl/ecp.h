@@ -64,7 +64,7 @@ typedef enum
 } ecp_group_id;
 
 /**
- * Curve information for use by the SSL module
+ * Curve information for use by other modules
  */
 typedef struct
 {
@@ -73,11 +73,6 @@ typedef struct
     uint16_t size;          /*!< Curve size in bits         */
     const char *name;       /*!< Human-friendly name        */
 } ecp_curve_info;
-
-/**
- * List of supported curves
- */
-extern const ecp_curve_info ecp_supported_curves[];
 
 /**
  * \brief           ECP point structure (jacobian coordinates)
@@ -179,6 +174,13 @@ ecp_keypair;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * \brief           Return the list of supported curves with associated info
+ *
+ * \return          A statically allocated array, the last entry is 0.
+ */
+const ecp_curve_info *ecp_curve_list( void );
 
 /**
  * \brief           Initialize a point (as zero)

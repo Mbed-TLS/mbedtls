@@ -38,7 +38,7 @@
  */
 
 #if !defined(ECPARAMS)
-#define ECPARAMS    ecp_supported_curves[0].grp_id
+#define ECPARAMS    ecp_curve_list()->grp_id
 #endif
 
 #if !defined(POLARSSL_ECDSA_C) || \

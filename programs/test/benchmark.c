@@ -447,7 +447,7 @@ int main( int argc, char *argv[] )
 
         memset( buf, 0x2A, sizeof( buf ) );
 
-        for( curve_info = ecp_supported_curves;
+        for( curve_info = ecp_curve_list();
              curve_info->grp_id != POLARSSL_ECP_DP_NONE;
              curve_info++ )
         {
@@ -478,7 +478,7 @@ int main( int argc, char *argv[] )
         const ecp_curve_info *curve_info;
         size_t olen;
 
-        for( curve_info = ecp_supported_curves;
+        for( curve_info = ecp_curve_list();
              curve_info->grp_id != POLARSSL_ECP_DP_NONE;
              curve_info++ )
         {

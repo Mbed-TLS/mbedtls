@@ -379,7 +379,7 @@ int x509parse_csr_info( char *buf, size_t size, const char *prefix,
 
     ret = snprintf( p, n, "\n%ssubject name  : ", prefix );
     SAFE_SNPRINTF();
-    ret = x509parse_dn_gets( p, n, &csr->subject );
+    ret = x509_dn_gets( p, n, &csr->subject );
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%ssigned using  : ", prefix );

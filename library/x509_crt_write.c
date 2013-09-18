@@ -78,12 +78,12 @@ void x509write_crt_set_issuer_key( x509write_cert *ctx, pk_context *key )
 
 int x509write_crt_set_subject_name( x509write_cert *ctx, char *subject_name )
 {
-    return x509write_string_to_names( &ctx->subject, subject_name );
+    return x509_string_to_names( &ctx->subject, subject_name );
 }
 
 int x509write_crt_set_issuer_name( x509write_cert *ctx, char *issuer_name )
 {
-    return x509write_string_to_names( &ctx->issuer, issuer_name );
+    return x509_string_to_names( &ctx->issuer, issuer_name );
 }
 
 int x509write_crt_set_serial( x509write_cert *ctx, const mpi *serial )

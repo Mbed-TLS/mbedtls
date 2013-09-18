@@ -480,7 +480,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
  * Store the name in printable form into buf; no more
  * than size characters will be written
  */
-int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
+int x509_dn_gets( char *buf, size_t size, const x509_name *dn )
 {
     int ret;
     size_t i, n;
@@ -540,7 +540,7 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn )
  * Store the serial in printable form into buf; no more
  * than size characters will be written
  */
-int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial )
+int x509_serial_gets( char *buf, size_t size, const x509_buf *serial )
 {
     int ret;
     size_t i, n, nr;
@@ -615,7 +615,7 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
  * Return 0 if the x509_time is still valid, or 1 otherwise.
  */
 #if defined(POLARSSL_HAVE_TIME)
-int x509parse_time_expired( const x509_time *to )
+int x509_time_expired( const x509_time *to )
 {
     int year, mon, day;
     int hour, min, sec;
@@ -682,7 +682,7 @@ int x509parse_time_expired( const x509_time *to )
     return( 0 );
 }
 #else  /* POLARSSL_HAVE_TIME */
-int x509parse_time_expired( const x509_time *to )
+int x509_time_expired( const x509_time *to )
 {
     ((void) to);
     return( 0 );

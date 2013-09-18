@@ -175,6 +175,8 @@ inline int sha4_self_test( int verbose ) {
 #endif
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
+#include "x509.h"
+
 #define POLARSSL_ERR_X509_CERT_INVALID_FORMAT POLARSSL_ERR_X509_INVALID_FORMAT
 #define POLARSSL_ERR_X509_CERT_INVALID_VERSION POLARSSL_ERR_X509_INVALID_VERSION
 #define POLARSSL_ERR_X509_CERT_INVALID_ALG POLARSSL_ERR_X509_INVALID_ALG
@@ -186,6 +188,16 @@ inline int sha4_self_test( int verbose ) {
 #define POLARSSL_ERR_X509_CERT_INVALID_SIGNATURE POLARSSL_ERR_X509_INVALID_SIGNATURE
 #define POLARSSL_ERR_X509_CERT_INVALID_SERIAL POLARSSL_ERR_X509_INVALID_SERIAL
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION POLARSSL_ERR_X509_UNKNOWN_VERSION
+
+int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial ) {
+    return x509_serial_gets( buf, size, serial );
+}
+int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn ) {
+    return x509_dn_gets( buf, size, dn );
+}
+int x509parse_time_expired( const x509_time *time ) {
+    return x509_time_expired( time );
+}
 #endif /* POLARSSL_X509_USE_C || POLARSSL_X509_CREATE_C */
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)

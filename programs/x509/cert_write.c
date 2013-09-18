@@ -416,12 +416,12 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        ret = x509parse_dn_gets( issuer_name, sizeof(issuer_name),
+        ret = x509_dn_gets( issuer_name, sizeof(issuer_name),
                                  &issuer_crt.issuer );
         if( ret < 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -448,12 +448,12 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        ret = x509parse_dn_gets( subject_name, sizeof(subject_name),
+        ret = x509_dn_gets( subject_name, sizeof(subject_name),
                                  &csr.subject );
         if( ret < 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509_dn_gets returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 

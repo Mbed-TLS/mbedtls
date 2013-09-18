@@ -131,9 +131,9 @@ void x509_dn_gets( char *crt_file, char *entity, char *result_str )
 
     TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
     if( strcmp( entity, "subject" ) == 0 )
-        res =  x509parse_dn_gets( buf, 2000, &crt.subject );
+        res =  x509_dn_gets( buf, 2000, &crt.subject );
     else if( strcmp( entity, "issuer" ) == 0 )
-        res =  x509parse_dn_gets( buf, 2000, &crt.issuer );
+        res =  x509_dn_gets( buf, 2000, &crt.issuer );
     else
         TEST_ASSERT( "Unknown entity" == 0 );
 
@@ -156,9 +156,9 @@ void x509_time_expired( char *crt_file, char *entity, int result )
     TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
 
     if( strcmp( entity, "valid_from" ) == 0 )
-        TEST_ASSERT( x509parse_time_expired( &crt.valid_from ) == result );
+        TEST_ASSERT( x509_time_expired( &crt.valid_from ) == result );
     else if( strcmp( entity, "valid_to" ) == 0 )
-        TEST_ASSERT( x509parse_time_expired( &crt.valid_to ) == result );
+        TEST_ASSERT( x509_time_expired( &crt.valid_to ) == result );
     else
         TEST_ASSERT( "Unknown entity" == 0 );
 

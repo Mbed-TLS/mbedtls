@@ -1100,17 +1100,17 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                                prefix );
     SAFE_SNPRINTF();
 
-    ret = x509parse_serial_gets( p, n, &crt->serial);
+    ret = x509_serial_gets( p, n, &crt->serial);
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%sissuer name   : ", prefix );
     SAFE_SNPRINTF();
-    ret = x509parse_dn_gets( p, n, &crt->issuer  );
+    ret = x509_dn_gets( p, n, &crt->issuer  );
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%ssubject name  : ", prefix );
     SAFE_SNPRINTF();
-    ret = x509parse_dn_gets( p, n, &crt->subject );
+    ret = x509_dn_gets( p, n, &crt->subject );
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%sissued  on    : " \
@@ -1163,7 +1163,7 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
         if( crt->serial.len == cur->serial.len &&
             memcmp( crt->serial.p, cur->serial.p, crt->serial.len ) == 0 )
         {
-            if( x509parse_time_expired( &cur->revocation_date ) )
+            if( x509_time_expired( &cur->revocation_date ) )
                 return( 1 );
         }
 
@@ -1229,7 +1229,7 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         /*
          * Check for validity of CRL (Do not drop out)
          */
-        if( x509parse_time_expired( &crl_list->next_update ) )
+        if( x509_time_expired( &crl_list->next_update ) )
             flags |= BADCRL_EXPIRED;
 
         /*
@@ -1310,7 +1310,7 @@ static int x509parse_verify_top(
     unsigned char hash[POLARSSL_MD_MAX_SIZE];
     const md_info_t *md_info;
 
-    if( x509parse_time_expired( &child->valid_to ) )
+    if( x509_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
 
     /*
@@ -1388,7 +1388,7 @@ static int x509parse_verify_top(
         *flags |= x509parse_verifycrl( child, trust_ca, ca_crl );
 #endif
 
-        if( x509parse_time_expired( &trust_ca->valid_to ) )
+        if( x509_time_expired( &trust_ca->valid_to ) )
             ca_flags |= BADCERT_EXPIRED;
 
         if( NULL != f_vrfy )
@@ -1422,7 +1422,7 @@ static int x509parse_verify_child(
     x509_cert *grandparent;
     const md_info_t *md_info;
 
-    if( x509parse_time_expired( &child->valid_to ) )
+    if( x509_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
 
     md_info = md_info_from_type( child->sig_md );

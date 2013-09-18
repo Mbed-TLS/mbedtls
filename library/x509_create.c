@@ -31,7 +31,7 @@
 #include "polarssl/asn1write.h"
 #include "polarssl/oid.h"
 
-int x509write_string_to_names( asn1_named_data **head, char *name )
+int x509_string_to_names( asn1_named_data **head, char *name )
 {
     int ret = 0;
     char *s = name, *c = s;

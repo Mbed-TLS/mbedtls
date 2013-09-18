@@ -621,7 +621,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
 
     ret = snprintf( p, n, "\n%sissuer name   : ", prefix );
     SAFE_SNPRINTF();
-    ret = x509parse_dn_gets( p, n, &crl->issuer );
+    ret = x509_dn_gets( p, n, &crl->issuer );
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%sthis update   : " \
@@ -650,7 +650,7 @@ int x509parse_crl_info( char *buf, size_t size, const char *prefix,
                                prefix );
         SAFE_SNPRINTF();
 
-        ret = x509parse_serial_gets( p, n, &entry->serial);
+        ret = x509_serial_gets( p, n, &entry->serial);
         SAFE_SNPRINTF();
 
         ret = snprintf( p, n, " revocation date: " \

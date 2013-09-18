@@ -190,7 +190,7 @@ x509_time;
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn );
+int x509_dn_gets( char *buf, size_t size, const x509_name *dn );
 
 /**
  * \brief          Store the certificate serial in printable form into buf;
@@ -203,7 +203,7 @@ int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn );
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial );
+int x509_serial_gets( char *buf, size_t size, const x509_buf *serial );
 
 /**
  * \brief          Give an known OID, return its descriptive string.
@@ -237,7 +237,7 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
  * \return         Return 0 if the x509_time is still valid,
  *                 or 1 otherwise.
  */
-int x509parse_time_expired( const x509_time *time );
+int x509_time_expired( const x509_time *time );
 
 /**
  * \brief          Checkup routine
@@ -247,7 +247,8 @@ int x509parse_time_expired( const x509_time *time );
 int x509_self_test( int verbose );
 
 /*
- * Internal module functions
+ * Internal module functions. You probably do not want to use these unless you
+ * know you do.
  */
 int x509_get_name( unsigned char **p, const unsigned char *end,
                    x509_name *cur );
@@ -256,16 +257,15 @@ int x509_get_alg_null( unsigned char **p, const unsigned char *end,
 int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig );
 int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
                       pk_type_t *pk_alg );
-int x509_load_file( const char *path, unsigned char **buf, size_t *n );
-int x509_key_size_helper( char *buf, size_t size, const char *name );
 int x509_get_time( unsigned char **p, const unsigned char *end,
                    x509_time *time );
 int x509_get_serial( unsigned char **p, const unsigned char *end,
                      x509_buf *serial );
 int x509_get_ext( unsigned char **p, const unsigned char *end,
                   x509_buf *ext, int tag );
-
-int x509write_string_to_names( asn1_named_data **head, char *name );
+int x509_load_file( const char *path, unsigned char **buf, size_t *n );
+int x509_key_size_helper( char *buf, size_t size, const char *name );
+int x509_string_to_names( asn1_named_data **head, char *name );
 int x509_set_extension( asn1_named_data **head, const char *oid, size_t oid_len,                       int critical, const unsigned char *val, size_t val_len );
 int x509_write_extensions( unsigned char **p, unsigned char *start,
                            asn1_named_data *first );

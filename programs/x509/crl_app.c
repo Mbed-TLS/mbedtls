@@ -114,11 +114,11 @@ int main( int argc, char *argv[] )
     printf( "\n  . Loading the CRL ..." );
     fflush( stdout );
 
-    ret = x509parse_crlfile( &crl, opt.filename );
+    ret = x509_crl_parse_file( &crl, opt.filename );
 
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crl returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crl_parse_file returned %d\n\n", ret );
         x509_crl_free( &crl );
         goto exit;
     }
@@ -129,10 +129,10 @@ int main( int argc, char *argv[] )
      * 1.2 Print the CRL
      */
     printf( "  . CRL information    ...\n" );
-    ret = x509parse_crl_info( (char *) buf, sizeof( buf ) - 1, "      ", &crl );
+    ret = x509_crl_info( (char *) buf, sizeof( buf ) - 1, "      ", &crl );
     if( ret == -1 )
     {
-        printf( " failed\n  !  x509parse_crl_info returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crl_info returned %d\n\n", ret );
         x509_crl_free( &crl );
         goto exit;
     }

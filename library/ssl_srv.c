@@ -142,7 +142,7 @@ static int ssl_load_session( ssl_session *session,
 
         memset( session->peer_cert, 0, sizeof( x509_cert ) );
 
-        if( ( ret = x509parse_crt( session->peer_cert, p, cert_len ) ) != 0 )
+        if( ( ret = x509_crt_parse( session->peer_cert, p, cert_len ) ) != 0 )
         {
             x509_crt_free( session->peer_cert );
             polarssl_free( session->peer_cert );

@@ -113,8 +113,8 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
 #if defined(POLARSSL_CERTS_C)
-    ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ) );
+    ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_crt,
+                          strlen( test_ca_crt ) );
 #else
     ret = 1;
     printf("POLARSSL_CERTS_C not defined.");
@@ -122,7 +122,7 @@ int main( int argc, char *argv[] )
 
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 

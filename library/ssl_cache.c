@@ -96,8 +96,8 @@ int ssl_cache_get( void *data, ssl_session *session )
                 return( 1 );
 
             memset( session->peer_cert, 0, sizeof(x509_cert) );
-            if( x509parse_crt( session->peer_cert, entry->peer_cert.p,
-                               entry->peer_cert.len ) != 0 )
+            if( x509_crt_parse( session->peer_cert, entry->peer_cert.p,
+                                entry->peer_cert.len ) != 0 )
             {
                 polarssl_free( session->peer_cert );
                 session->peer_cert = NULL;

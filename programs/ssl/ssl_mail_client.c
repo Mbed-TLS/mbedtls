@@ -173,8 +173,8 @@ static int do_handshake( ssl_context *ssl, struct options *opt )
         printf( " ok\n" );
 
     printf( "  . Peer certificate information    ...\n" );
-    x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                         ssl_get_peer_cert( ssl ) );
+    x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                   ssl_get_peer_cert( ssl ) );
     printf( "%s\n", buf );
 
     return( 0 );
@@ -483,12 +483,12 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.ca_file ) )
-        ret = x509parse_crtfile( &cacert, opt.ca_file );
+        ret = x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
-                strlen( test_ca_crt ) );
+        ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_crt,
+                              strlen( test_ca_crt ) );
 #else
     {
         ret = 1;
@@ -497,7 +497,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
@@ -513,12 +513,12 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
-        ret = x509parse_crtfile( &clicert, opt.crt_file );
-    else 
+        ret = x509_crt_parse_file( &clicert, opt.crt_file );
+    else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &clicert, (const unsigned char *) test_cli_crt,
-                strlen( test_cli_crt ) );
+        ret = x509_crt_parse( &clicert, (const unsigned char *) test_cli_crt,
+                              strlen( test_cli_crt ) );
 #else
     {
         ret = -1;
@@ -527,7 +527,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 

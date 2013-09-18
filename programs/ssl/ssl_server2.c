@@ -525,14 +525,14 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.ca_path ) )
-        ret = x509parse_crtpath( &cacert, opt.ca_path );
+        ret = x509_crt_parse_path( &cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
-        ret = x509parse_crtfile( &cacert, opt.ca_file );
-    else 
+        ret = x509_crt_parse_file( &cacert, opt.ca_file );
+    else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
-                strlen( test_ca_crt ) );
+        ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_crt,
+                              strlen( test_ca_crt ) );
 #else
     {
         ret = 1;
@@ -541,7 +541,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -555,12 +555,12 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
-        ret = x509parse_crtfile( &srvcert, opt.crt_file );
-    else 
+        ret = x509_crt_parse_file( &srvcert, opt.crt_file );
+    else
 #endif
 #if defined(POLARSSL_CERTS_C)
-        ret = x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
-                strlen( test_srv_crt ) );
+        ret = x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
+                              strlen( test_srv_crt ) );
 #else
     {
         ret = 1;
@@ -569,7 +569,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -777,8 +777,8 @@ reset:
     if( ssl_get_peer_cert( &ssl ) )
     {
         printf( "  . Peer certificate information    ...\n" );
-        x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                             ssl_get_peer_cert( &ssl ) );
+        x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                       ssl_get_peer_cert( &ssl ) );
         printf( "%s\n", buf );
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */

@@ -10,7 +10,7 @@ int verify_none( void *data, x509_cert *crt, int certificate_depth, int *flags )
     ((void) crt);
     ((void) certificate_depth);
     *flags |= BADCERT_OTHER;
-    
+
     return 0;
 }
 
@@ -41,8 +41,8 @@ void x509_cert_info( char *crt_file, char *result_str )
     x509_crt_init( &crt );
     memset( buf, 0, 2000 );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
-    res = x509parse_cert_info( buf, 2000, "", &crt );
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
+    res = x509_crt_info( buf, 2000, "", &crt );
 
     x509_crt_free( &crt );
 
@@ -63,8 +63,8 @@ void x509_crl_info( char *crl_file, char *result_str )
     x509_crl_init( &crl );
     memset( buf, 0, 2000 );
 
-    TEST_ASSERT( x509parse_crlfile( &crl, crl_file ) == 0 );
-    res = x509parse_crl_info( buf, 2000, "", &crl );
+    TEST_ASSERT( x509_crl_parse_file( &crl, crl_file ) == 0 );
+    res = x509_crl_info( buf, 2000, "", &crl );
 
     x509_crl_free( &crl );
 
@@ -104,11 +104,11 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
     else
         TEST_ASSERT( "No known verify callback selected" == 0 );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
-    TEST_ASSERT( x509parse_crtfile( &ca, ca_file ) == 0 );
-    TEST_ASSERT( x509parse_crlfile( &crl, crl_file ) == 0 );
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
+    TEST_ASSERT( x509_crt_parse_file( &ca, ca_file ) == 0 );
+    TEST_ASSERT( x509_crl_parse_file( &crl, crl_file ) == 0 );
 
-    res = x509parse_verify( &crt, &ca, &crl, cn_name, &flags, f_vrfy, NULL );
+    res = x509_crt_verify( &crt, &ca, &crl, cn_name, &flags, f_vrfy, NULL );
 
     x509_crt_free( &crt );
     x509_crt_free( &ca );
@@ -129,7 +129,7 @@ void x509_dn_gets( char *crt_file, char *entity, char *result_str )
     x509_crt_init( &crt );
     memset( buf, 0, 2000 );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
     if( strcmp( entity, "subject" ) == 0 )
         res =  x509_dn_gets( buf, 2000, &crt.subject );
     else if( strcmp( entity, "issuer" ) == 0 )
@@ -153,7 +153,7 @@ void x509_time_expired( char *crt_file, char *entity, int result )
 
     x509_crt_init( &crt );
 
-    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
 
     if( strcmp( entity, "valid_from" ) == 0 )
         TEST_ASSERT( x509_time_expired( &crt.valid_from ) == result );
@@ -180,10 +180,10 @@ void x509parse_crt( char *crt_data, char *result_str, int result )
 
     data_len = unhexify( buf, crt_data );
 
-    TEST_ASSERT( x509parse_crt( &crt, buf, data_len ) == ( result ) );
+    TEST_ASSERT( x509_crt_parse( &crt, buf, data_len ) == ( result ) );
     if( ( result ) == 0 )
     {
-        res = x509parse_cert_info( (char *) output, 2000, "", &crt );
+        res = x509_crt_info( (char *) output, 2000, "", &crt );
 
         TEST_ASSERT( res != -1 );
         TEST_ASSERT( res != -2 );
@@ -209,10 +209,10 @@ void x509parse_crl( char *crl_data, char *result_str, int result )
 
     data_len = unhexify( buf, crl_data );
 
-    TEST_ASSERT( x509parse_crl( &crl, buf, data_len ) == ( result ) );
+    TEST_ASSERT( x509_crl_parse( &crl, buf, data_len ) == ( result ) );
     if( ( result ) == 0 )
     {
-        res = x509parse_crl_info( (char *) output, 2000, "", &crl );
+        res = x509_crl_info( (char *) output, 2000, "", &crl );
 
         TEST_ASSERT( res != -1 );
         TEST_ASSERT( res != -2 );

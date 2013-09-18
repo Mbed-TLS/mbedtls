@@ -409,10 +409,10 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the issuer certificate ..." );
         fflush( stdout );
 
-        if( ( ret = x509parse_crtfile( &issuer_crt, opt.issuer_crt ) ) != 0 )
+        if( ( ret = x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_crtfile returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509_crt_parse_file returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -441,10 +441,10 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the certificate request ..." );
         fflush( stdout );
 
-        if( ( ret = x509parse_csrfile( &csr, opt.request_file ) ) != 0 )
+        if( ( ret = x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
         {
             error_strerror( ret, buf, 1024 );
-            printf( " failed\n  !  x509parse_csrfile returned -0x%02x - %s\n\n", -ret, buf );
+            printf( " failed\n  !  x509_csr_parse_file returned -0x%02x - %s\n\n", -ret, buf );
             goto exit;
         }
 

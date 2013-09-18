@@ -85,8 +85,8 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 
         memset( dst->peer_cert, 0, sizeof(x509_cert) );
 
-        if( ( ret = x509parse_crt( dst->peer_cert, src->peer_cert->raw.p,
-                                   src->peer_cert->raw.len ) != 0 ) )
+        if( ( ret = x509_crt_parse( dst->peer_cert, src->peer_cert->raw.p,
+                                    src->peer_cert->raw.len ) != 0 ) )
         {
             polarssl_free( dst->peer_cert );
             dst->peer_cert = NULL;
@@ -2516,11 +2516,11 @@ int ssl_parse_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
-        ret = x509parse_crt_der( ssl->session_negotiate->peer_cert,
-                                 ssl->in_msg + i, n );
+        ret = x509_crt_parse_der( ssl->session_negotiate->peer_cert,
+                                  ssl->in_msg + i, n );
         if( ret != 0 )
         {
-            SSL_DEBUG_RET( 1, " x509parse_crt", ret );
+            SSL_DEBUG_RET( 1, " x509_crt_parse_der", ret );
             return( ret );
         }
 
@@ -2537,10 +2537,10 @@ int ssl_parse_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED );
         }
 
-        ret = x509parse_verify( ssl->session_negotiate->peer_cert,
-                                ssl->ca_chain, ssl->ca_crl, ssl->peer_cn,
-                               &ssl->session_negotiate->verify_result,
-                                ssl->f_vrfy, ssl->p_vrfy );
+        ret = x509_crt_verify( ssl->session_negotiate->peer_cert,
+                               ssl->ca_chain, ssl->ca_crl, ssl->peer_cn,
+                              &ssl->session_negotiate->verify_result,
+                               ssl->f_vrfy, ssl->p_vrfy );
 
         if( ret != 0 )
             SSL_DEBUG_RET( 1, "x509_verify_cert", ret );

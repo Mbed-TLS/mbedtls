@@ -189,13 +189,13 @@ inline int sha4_self_test( int verbose ) {
 #define POLARSSL_ERR_X509_CERT_INVALID_SERIAL POLARSSL_ERR_X509_INVALID_SERIAL
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION POLARSSL_ERR_X509_UNKNOWN_VERSION
 
-int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial ) {
+inline int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial ) {
     return x509_serial_gets( buf, size, serial );
 }
-int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn ) {
+inline int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn ) {
     return x509_dn_gets( buf, size, dn );
 }
-int x509parse_time_expired( const x509_time *time ) {
+inline int x509parse_time_expired( const x509_time *time ) {
     return x509_time_expired( time );
 }
 #endif /* POLARSSL_X509_USE_C || POLARSSL_X509_CREATE_C */
@@ -203,11 +203,66 @@ int x509parse_time_expired( const x509_time *time ) {
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 #define POLARSSL_X509_PARSE_C
 #include "x509_crt.h"
-
+inline int x509parse_crt_der( x509_cert *chain, const unsigned char *buf,
+                              size_t buflen ) {
+    return x509_crt_parse_der( chain, buf, buflen );
+}
+inline int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen ) {
+    return x509_crt_parse( chain, buf, buflen );
+}
+inline int x509parse_crtfile( x509_cert *chain, const char *path ) {
+    return x509_crt_parse_file( chain, path );
+}
+inline int x509parse_crtpath( x509_cert *chain, const char *path ) {
+    return x509_crt_parse_path( chain, path );
+}
+inline int x509parse_cert_info( char *buf, size_t size, const char *prefix,
+                                const x509_cert *crt ) {
+    return x509_crt_info( buf, size, prefix, crt );
+}
+inline int x509parse_verify( x509_cert *crt, x509_cert *trust_ca,
+                             x509_crl *ca_crl, const char *cn, int *flags,
+                             int (*f_vrfy)(void *, x509_cert *, int, int *),
+                             void *p_vrfy ) {
+    return x509_crt_verify( crt, trust_ca, ca_crl, cn, flags, f_vrfy, p_vrfy );
+}
+inline int x509parse_revoked( const x509_cert *crt, const x509_crl *crl ) {
+    return x509_crt_revoked( crt, crl );
+}
 inline void x509_free( x509_cert *crt ) {
     return x509_crt_free( crt );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
+
+#if defined(POLARSSL_X509_CRL_PARSE_C)
+#define POLARSSL_X509_PARSE_C
+#include "x509_crl.h"
+inline int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen ) {
+    return x509_crl_parse( chain, buf, buflen );
+}
+inline int x509parse_crlfile( x509_crl *chain, const char *path ) {
+    return x509_crl_parse_file( chain, path );
+}
+inline int x509parse_crl_info( char *buf, size_t size, const char *prefix,
+                               const x509_crl *crl ) {
+    return x509_crl_info( buf, size, prefix, crl );
+}
+#endif /* POLARSSL_X509_CRL_PARSE_C */
+
+#if defined(POLARSSL_X509_CSR_PARSE_C)
+#define POLARSSL_X509_PARSE_C
+#include "x509_csr.h"
+inline int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen ) {
+    return x509_csr_parse( csr, buf, buflen );
+}
+inline int x509parse_csrfile( x509_csr *csr, const char *path ) {
+    return x509_csr_parse_file( csr, path );
+}
+inline int x509parse_csr_info( char *buf, size_t size, const char *prefix,
+                               const x509_csr *csr ) {
+    return x509_csr_info( buf, size, prefix, csr );
+}
+#endif /* POLARSSL_X509_CSR_PARSE_C */
 
 #if defined(POLARSSL_SSL_TLS_C)
 #include "ssl_ciphersuites.h"

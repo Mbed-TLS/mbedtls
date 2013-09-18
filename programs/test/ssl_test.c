@@ -214,19 +214,19 @@ static int ssl_test( struct options *opt )
         printf("POLARSSL_CERTS_C not defined.\n");
         goto exit;
 #else
-        ret =  x509parse_crt( &srvcert, (const unsigned char *) test_srv_crt,
-                              strlen( test_srv_crt ) );
+        ret =  x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
+                               strlen( test_srv_crt ) );
         if( ret != 0 )
         {
-            printf( "  !  x509parse_crt returned %d\n\n", ret );
+            printf( "  !  x509_crt_parse returned %d\n\n", ret );
             goto exit;
         }
 
-        ret =  x509parse_crt( &srvcert, (const unsigned char *) test_ca_crt,
-                              strlen( test_ca_crt ) );
+        ret =  x509_crt_parse( &srvcert, (const unsigned char *) test_ca_crt,
+                               strlen( test_ca_crt ) );
         if( ret != 0 )
         {
-            printf( "  !  x509parse_crt returned %d\n\n", ret );
+            printf( "  !  x509_crt_parse returned %d\n\n", ret );
             goto exit;
         }
 

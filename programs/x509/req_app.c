@@ -114,11 +114,11 @@ int main( int argc, char *argv[] )
     printf( "\n  . Loading the CSR ..." );
     fflush( stdout );
 
-    ret = x509parse_csrfile( &csr, opt.filename );
+    ret = x509_csr_parse_file( &csr, opt.filename );
 
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_csr returned %d\n\n", ret );
+        printf( " failed\n  !  x509_csr_parse_file returned %d\n\n", ret );
         x509_csr_free( &csr );
         goto exit;
     }
@@ -129,10 +129,10 @@ int main( int argc, char *argv[] )
      * 1.2 Print the CSR
      */
     printf( "  . CSR information    ...\n" );
-    ret = x509parse_csr_info( (char *) buf, sizeof( buf ) - 1, "      ", &csr );
+    ret = x509_csr_info( (char *) buf, sizeof( buf ) - 1, "      ", &csr );
     if( ret == -1 )
     {
-        printf( " failed\n  !  x509parse_csr_info returned %d\n\n", ret );
+        printf( " failed\n  !  x509_csr_info returned %d\n\n", ret );
         x509_csr_free( &csr );
         goto exit;
     }

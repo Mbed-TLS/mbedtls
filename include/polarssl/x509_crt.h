@@ -132,8 +132,8 @@ x509write_cert;
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_crt_der( x509_cert *chain, const unsigned char *buf,
-                       size_t buflen );
+int x509_crt_parse_der( x509_cert *chain, const unsigned char *buf,
+                        size_t buflen );
 
 /**
  * \brief          Parse one or more certificates and add them
@@ -149,7 +149,7 @@ int x509parse_crt_der( x509_cert *chain, const unsigned char *buf,
  * \return         0 if all certificates parsed successfully, a positive number
  *                 if partly successful or a specific X509 or PEM error code
  */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen );
+int x509_crt_parse( x509_cert *chain, const unsigned char *buf, size_t buflen );
 
 #if defined(POLARSSL_FS_IO)
 /**
@@ -165,7 +165,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen );
  * \return         0 if all certificates parsed successfully, a positive number
  *                 if partly successful or a specific X509 or PEM error code
  */
-int x509parse_crtfile( x509_cert *chain, const char *path );
+int x509_crt_parse_file( x509_cert *chain, const char *path );
 
 /**
  * \brief          Load one or more certificate files from a path and add them
@@ -180,7 +180,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path );
  * \return         0 if all certificates parsed successfully, a positive number
  *                 if partly successful or a specific X509 or PEM error code
  */
-int x509parse_crtpath( x509_cert *chain, const char *path );
+int x509_crt_parse_path( x509_cert *chain, const char *path );
 #endif /* POLARSSL_FS_IO */
 
 /**
@@ -195,8 +195,8 @@ int x509parse_crtpath( x509_cert *chain, const char *path );
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509parse_cert_info( char *buf, size_t size, const char *prefix,
-                         const x509_cert *crt );
+int x509_crt_info( char *buf, size_t size, const char *prefix,
+                   const x509_cert *crt );
 
 /**
  * \brief          Verify the certificate signature
@@ -234,12 +234,12 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
  *                 or another error in case of a fatal error encountered
  *                 during the verification process.
  */
-int x509parse_verify( x509_cert *crt,
-                      x509_cert *trust_ca,
-                      x509_crl *ca_crl,
-                      const char *cn, int *flags,
-                      int (*f_vrfy)(void *, x509_cert *, int, int *),
-                      void *p_vrfy );
+int x509_crt_verify( x509_cert *crt,
+                     x509_cert *trust_ca,
+                     x509_crl *ca_crl,
+                     const char *cn, int *flags,
+                     int (*f_vrfy)(void *, x509_cert *, int, int *),
+                     void *p_vrfy );
 
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /**
@@ -251,7 +251,7 @@ int x509parse_verify( x509_cert *crt,
  * \return         1 if the certificate is revoked, 0 otherwise
  *
  */
-int x509parse_revoked( const x509_cert *crt, const x509_crl *crl );
+int x509_crt_revoked( const x509_cert *crt, const x509_crl *crl );
 #endif /* POLARSSL_X509_CRL_PARSE_C */
 
 /**

@@ -515,8 +515,8 @@ static int x509_get_crt_ext( unsigned char **p,
 /*
  * Parse and fill a single X.509 certificate in DER format
  */
-static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
-                                   size_t buflen )
+static int x509_crt_parse_der_core( x509_cert *crt, const unsigned char *buf,
+                                    size_t buflen )
 {
     int ret;
     size_t len;
@@ -756,7 +756,8 @@ static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
  * Parse one X.509 certificate in DER format from a buffer and add them to a
  * chained list
  */
-int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen )
+int x509_crt_parse_der( x509_cert *chain, const unsigned char *buf,
+                        size_t buflen )
 {
     int ret;
     x509_cert *crt = chain, *prev = NULL;
@@ -788,7 +789,7 @@ int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen
         x509_crt_init( crt );
     }
 
-    if( ( ret = x509parse_crt_der_core( crt, buf, buflen ) ) != 0 )
+    if( ( ret = x509_crt_parse_der_core( crt, buf, buflen ) ) != 0 )
     {
         if( prev )
             prev->next = NULL;
@@ -805,7 +806,7 @@ int x509parse_crt_der( x509_cert *chain, const unsigned char *buf, size_t buflen
 /*
  * Parse one or more PEM certificates from a buffer and add them to the chained list
  */
-int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
+int x509_crt_parse( x509_cert *chain, const unsigned char *buf, size_t buflen )
 {
     int success = 0, first_error = 0, total_failed = 0;
     int buf_format = X509_FORMAT_DER;
@@ -826,7 +827,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 #endif
 
     if( buf_format == X509_FORMAT_DER )
-        return x509parse_crt_der( chain, buf, buflen );
+        return x509_crt_parse_der( chain, buf, buflen );
 
 #if defined(POLARSSL_PEM_PARSE_C)
     if( buf_format == X509_FORMAT_PEM )
@@ -874,7 +875,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
             else
                 break;
 
-            ret = x509parse_crt_der( chain, pem.buf, pem.buflen );
+            ret = x509_crt_parse_der( chain, pem.buf, pem.buflen );
 
             pem_free( &pem );
 
@@ -910,7 +911,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 /*
  * Load one or more certificates and add them to the chained list
  */
-int x509parse_crtfile( x509_cert *chain, const char *path )
+int x509_crt_parse_file( x509_cert *chain, const char *path )
 {
     int ret;
     size_t n;
@@ -919,7 +920,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path )
     if ( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
-    ret = x509parse_crt( chain, buf, n );
+    ret = x509_crt_parse( chain, buf, n );
 
     memset( buf, 0, n + 1 );
     polarssl_free( buf );
@@ -927,7 +928,7 @@ int x509parse_crtfile( x509_cert *chain, const char *path )
     return( ret );
 }
 
-int x509parse_crtpath( x509_cert *chain, const char *path )
+int x509_crt_parse_path( x509_cert *chain, const char *path )
 {
     int ret = 0;
 #if defined(_WIN32)
@@ -969,7 +970,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 									 p, len - 1,
 									 NULL, NULL );
 
-        w_ret = x509parse_crtfile( chain, filename );
+        w_ret = x509_crt_parse_file( chain, filename );
         if( w_ret < 0 )
             ret++;
         else
@@ -1012,7 +1013,7 @@ cleanup:
 
         // Ignore parse errors
         //
-        t_ret = x509parse_crtfile( chain, entry_name );
+        t_ret = x509_crt_parse_file( chain, entry_name );
         if( t_ret < 0 )
             ret++;
         else
@@ -1081,8 +1082,8 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
  */
 #define BEFORE_COLON    14
 #define BC              "14"
-int x509parse_cert_info( char *buf, size_t size, const char *prefix,
-                         const x509_cert *crt )
+int x509_crt_info( char *buf, size_t size, const char *prefix,
+                   const x509_cert *crt )
 {
     int ret;
     size_t n;
@@ -1154,7 +1155,7 @@ int x509parse_cert_info( char *buf, size_t size, const char *prefix,
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.
  */
-int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
+int x509_crt_revoked( const x509_cert *crt, const x509_crl *crl )
 {
     const x509_crl_entry *cur = &crl->entry;
 
@@ -1176,8 +1177,8 @@ int x509parse_revoked( const x509_cert *crt, const x509_crl *crl )
 /*
  * Check that the given certificate is valid accoring to the CRL.
  */
-static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
-        x509_crl *crl_list)
+static int x509_crt_verifycrl( x509_cert *crt, x509_cert *ca,
+                               x509_crl *crl_list)
 {
     int flags = 0;
     unsigned char hash[POLARSSL_MD_MAX_SIZE];
@@ -1235,7 +1236,7 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         /*
          * Check if certificate is revoked
          */
-        if( x509parse_revoked(crt, crl_list) )
+        if( x509_crt_revoked(crt, crl_list) )
         {
             flags |= BADCERT_REVOKED;
             break;
@@ -1299,7 +1300,7 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
     return( 0 );
 }
 
-static int x509parse_verify_top(
+static int x509_crt_verify_top(
                 x509_cert *child, x509_cert *trust_ca,
                 x509_crl *ca_crl, int path_cnt, int *flags,
                 int (*f_vrfy)(void *, x509_cert *, int, int *),
@@ -1385,7 +1386,7 @@ static int x509parse_verify_top(
     {
 #if defined(POLARSSL_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the chain's top crt */
-        *flags |= x509parse_verifycrl( child, trust_ca, ca_crl );
+        *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl );
 #endif
 
         if( x509_time_expired( &trust_ca->valid_to ) )
@@ -1410,7 +1411,7 @@ static int x509parse_verify_top(
     return( 0 );
 }
 
-static int x509parse_verify_child(
+static int x509_crt_verify_child(
                 x509_cert *child, x509_cert *parent, x509_cert *trust_ca,
                 x509_crl *ca_crl, int path_cnt, int *flags,
                 int (*f_vrfy)(void *, x509_cert *, int, int *),
@@ -1447,7 +1448,7 @@ static int x509parse_verify_child(
 
 #if defined(POLARSSL_X509_CRL_PARSE_C)
     /* Check trusted CA's CRL for the given crt */
-    *flags |= x509parse_verifycrl(child, parent, ca_crl);
+    *flags |= x509_crt_verifycrl(child, parent, ca_crl);
 #endif
 
     grandparent = parent->next;
@@ -1471,13 +1472,13 @@ static int x509parse_verify_child(
         /*
          * Part of the chain
          */
-        ret = x509parse_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509parse_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -1495,12 +1496,12 @@ static int x509parse_verify_child(
 /*
  * Verify the certificate validity
  */
-int x509parse_verify( x509_cert *crt,
-                      x509_cert *trust_ca,
-                      x509_crl *ca_crl,
-                      const char *cn, int *flags,
-                      int (*f_vrfy)(void *, x509_cert *, int, int *),
-                      void *p_vrfy )
+int x509_crt_verify( x509_cert *crt,
+                     x509_cert *trust_ca,
+                     x509_crl *ca_crl,
+                     const char *cn, int *flags,
+                     int (*f_vrfy)(void *, x509_cert *, int, int *),
+                     void *p_vrfy )
 {
     size_t cn_len;
     int ret;
@@ -1585,13 +1586,13 @@ int x509parse_verify( x509_cert *crt,
         /*
          * Part of the chain
          */
-        ret = x509parse_verify_child( crt, parent, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509parse_verify_top( crt, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( crt, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }

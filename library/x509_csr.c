@@ -87,7 +87,7 @@ static int x509_csr_get_version( unsigned char **p,
 /*
  * Parse a CSR
  */
-int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
+int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
@@ -287,7 +287,7 @@ int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen )
 /*
  * Load a CSR into the structure
  */
-int x509parse_csrfile( x509_csr *csr, const char *path )
+int x509_csr_parse_file( x509_csr *csr, const char *path )
 {
     int ret;
     size_t n;
@@ -296,7 +296,7 @@ int x509parse_csrfile( x509_csr *csr, const char *path )
     if ( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
-    ret = x509parse_csr( csr, buf, n );
+    ret = x509_csr_parse( csr, buf, n );
 
     memset( buf, 0, n + 1 );
     polarssl_free( buf );
@@ -361,8 +361,8 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 /*
  * Return an informational string about the CSR.
  */
-int x509parse_csr_info( char *buf, size_t size, const char *prefix,
-                        const x509_csr *csr )
+int x509_csr_info( char *buf, size_t size, const char *prefix,
+                   const x509_csr *csr )
 {
     int ret;
     size_t n;

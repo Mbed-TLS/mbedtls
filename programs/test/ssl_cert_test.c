@@ -100,18 +100,18 @@ int main( int argc, char *argv[] )
 
     /*
      * Alternatively, you may load the CA certificates from a .pem or
-     * .crt file by calling x509parse_crtfile( &cacert, "myca.crt" ).
+     * .crt file by calling x509_crt_parse_file( &cacert, "myca.crt" ).
      */
-    ret = x509parse_crtfile( &cacert, "ssl/test-ca/test-ca.crt" );
+    ret = x509_crt_parse_file( &cacert, "ssl/test-ca/test-ca.crt" );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crtfile returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crt_parse_file returned %d\n\n", ret );
         goto exit;
     }
 
     printf( " ok\n" );
 
-    x509parse_cert_info( buf, 1024, "CRT: ", &cacert );
+    x509_crt_info( buf, 1024, "CRT: ", &cacert );
     printf("%s\n", buf );
 
     /*
@@ -120,16 +120,16 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the CRL ..." );
     fflush( stdout );
 
-    ret = x509parse_crlfile( &crl, "ssl/test-ca/crl.pem" );
+    ret = x509_crl_parse_file( &crl, "ssl/test-ca/crl.pem" );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509parse_crlfile returned %d\n\n", ret );
+        printf( " failed\n  !  x509_crl_parse_file returned %d\n\n", ret );
         goto exit;
     }
 
     printf( " ok\n" );
 
-    x509parse_crl_info( buf, 1024, "CRL: ", &crl );
+    x509_crl_info( buf, 1024, "CRL: ", &crl );
     printf("%s\n", buf );
 
     for( i = 0; i < MAX_CLIENT_CERTS; i++ )
@@ -150,10 +150,10 @@ int main( int argc, char *argv[] )
         printf( "  . Loading the client certificate %s...", name );
         fflush( stdout );
 
-        ret = x509parse_crtfile( &clicert, name );
+        ret = x509_crt_parse_file( &clicert, name );
         if( ret != 0 )
         {
-            printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+            printf( " failed\n  !  x509_crt_parse_file returned %d\n\n", ret );
             goto exit;
         }
 
@@ -165,7 +165,8 @@ int main( int argc, char *argv[] )
         printf( "  . Verify the client certificate with CA certificate..." );
         fflush( stdout );
 
-        ret = x509parse_verify( &clicert, &cacert, &crl, NULL, &flags, NULL, NULL );
+        ret = x509_crt_verify( &clicert, &cacert, &crl, NULL, &flags, NULL,
+                               NULL );
         if( ret != 0 )
         {
             if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
@@ -183,7 +184,7 @@ int main( int argc, char *argv[] )
                 if( flags & BADCRL_EXPIRED )
                     printf( " CRL_EXPIRED " );
             } else {
-                printf( " failed\n  !  x509parse_verify returned %d\n\n", ret );
+                printf( " failed\n  !  x509_crt_verify returned %d\n\n", ret );
                 goto exit;
             }
         }

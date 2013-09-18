@@ -88,7 +88,7 @@ x509write_csr;
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen );
+int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen );
 
 #if defined(POLARSSL_FS_IO)
 /**
@@ -99,7 +99,7 @@ int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_csrfile( x509_csr *csr, const char *path );
+int x509_csr_parse_file( x509_csr *csr, const char *path );
 #endif /* POLARSSL_FS_IO */
 
 /**
@@ -114,8 +114,8 @@ int x509parse_csrfile( x509_csr *csr, const char *path );
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509parse_csr_info( char *buf, size_t size, const char *prefix,
-                        const x509_csr *csr );
+int x509_csr_info( char *buf, size_t size, const char *prefix,
+                   const x509_csr *csr );
 
 /**
  * \brief          Initialize a CSR

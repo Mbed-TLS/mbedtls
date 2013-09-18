@@ -37,7 +37,7 @@ void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
 
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
-    TEST_ASSERT( x509parse_crtfile( &crt, crt_file ) == 0 );
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
     debug_print_crt( &ssl, 0, file, line, prefix, &crt);
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );

@@ -101,7 +101,7 @@ static int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     ((void) data);
 
     printf( "\nVerify requested for (Depth %d):\n", depth );
-    x509parse_cert_info( buf, sizeof( buf ) - 1, "", crt );
+    x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
     printf( "%s", buf );
 
     if( ( (*flags) & BADCERT_EXPIRED ) != 0 )
@@ -248,18 +248,18 @@ int main( int argc, char *argv[] )
 
     if( strlen( opt.ca_path ) )
     {
-        ret = x509parse_crtpath( &cacert, opt.ca_path );
+        ret = x509_crt_parse_path( &cacert, opt.ca_path );
         verify = 1;
     }
     else if( strlen( opt.ca_file ) )
     {
-        ret = x509parse_crtfile( &cacert, opt.ca_file );
+        ret = x509_crt_parse_file( &cacert, opt.ca_file );
         verify = 1;
     }
 
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509parse_crt returned -0x%x\n\n", -ret );
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -277,18 +277,18 @@ int main( int argc, char *argv[] )
         printf( "\n  . Loading the certificate(s) ..." );
         fflush( stdout );
 
-        ret = x509parse_crtfile( &crt, opt.filename );
+        ret = x509_crt_parse_file( &crt, opt.filename );
 
         if( ret < 0 )
         {
-            printf( " failed\n  !  x509parse_crt returned %d\n\n", ret );
+            printf( " failed\n  !  x509_crt_parse_file returned %d\n\n", ret );
             x509_crt_free( &crt );
             goto exit;
         }
 
         if( opt.permissive == 0 && ret > 0 )
         {
-            printf( " failed\n  !  x509parse_crt failed to parse %d certificates\n\n", ret );
+            printf( " failed\n  !  x509_crt_parse failed to parse %d certificates\n\n", ret );
             x509_crt_free( &crt );
             goto exit;
         }
@@ -301,10 +301,11 @@ int main( int argc, char *argv[] )
         while( cur != NULL )
         {
             printf( "  . Peer certificate information    ...\n" );
-            ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ", cur );
+            ret = x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                                 cur );
             if( ret == -1 )
             {
-                printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
+                printf( " failed\n  !  x509_crt_info returned %d\n\n", ret );
                 x509_crt_free( &crt );
                 goto exit;
             }
@@ -321,8 +322,8 @@ int main( int argc, char *argv[] )
         {
             printf( "  . Verifying X.509 certificate..." );
 
-            if( ( ret = x509parse_verify( &crt, &cacert, NULL, NULL, &flags,
-                            my_verify, NULL ) ) != 0 )
+            if( ( ret = x509_crt_verify( &crt, &cacert, NULL, NULL, &flags,
+                                         my_verify, NULL ) ) != 0 )
             {
                 printf( " failed\n" );
 
@@ -426,11 +427,11 @@ int main( int argc, char *argv[] )
          * 5. Print the certificate
          */
         printf( "  . Peer certificate information    ...\n" );
-        ret = x509parse_cert_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                                   ssl.session->peer_cert );
+        ret = x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
+                             ssl.session->peer_cert );
         if( ret == -1 )
         {
-            printf( " failed\n  !  x509parse_cert_info returned %d\n\n", ret );
+            printf( " failed\n  !  x509_crt_info returned %d\n\n", ret );
             ssl_free( &ssl );
             goto exit;
         }

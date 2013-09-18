@@ -104,7 +104,7 @@ x509_crl;
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen );
+int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen );
 
 #if defined(POLARSSL_FS_IO)
 /**
@@ -116,12 +116,11 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen );
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int x509parse_crlfile( x509_crl *chain, const char *path );
+int x509_crl_parse_file( x509_crl *chain, const char *path );
 #endif /* POLARSSL_FS_IO */
 
 /**
- * \brief          Returns an informational string about the
- *                 CRL.
+ * \brief          Returns an informational string about the CRL.
  *
  * \param buf      Buffer to write to
  * \param size     Maximum size of buffer
@@ -131,8 +130,8 @@ int x509parse_crlfile( x509_crl *chain, const char *path );
  * \return         The amount of data written to the buffer, or -1 in
  *                 case of an error.
  */
-int x509parse_crl_info( char *buf, size_t size, const char *prefix,
-                        const x509_crl *crl );
+int x509_crl_info( char *buf, size_t size, const char *prefix,
+                   const x509_crl *crl );
 
 /**
  * \brief          Initialize a CRL (chain)

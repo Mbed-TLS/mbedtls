@@ -710,8 +710,8 @@ int x509_self_test( int verbose )
 
     memset( &clicert, 0, sizeof( x509_cert ) );
 
-    ret = x509parse_crt( &clicert, (const unsigned char *) test_cli_crt,
-                         strlen( test_cli_crt ) );
+    ret = x509_crt_parse( &clicert, (const unsigned char *) test_cli_crt,
+                          strlen( test_cli_crt ) );
     if( ret != 0 )
     {
         if( verbose != 0 )
@@ -722,8 +722,8 @@ int x509_self_test( int verbose )
 
     memset( &cacert, 0, sizeof( x509_cert ) );
 
-    ret = x509parse_crt( &cacert, (const unsigned char *) test_ca_crt,
-                         strlen( test_ca_crt ) );
+    ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_crt,
+                          strlen( test_ca_crt ) );
     if( ret != 0 )
     {
         if( verbose != 0 )
@@ -735,7 +735,7 @@ int x509_self_test( int verbose )
     if( verbose != 0 )
         printf( "passed\n  X.509 signature verify: ");
 
-    ret = x509parse_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
+    ret = x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
     if( ret != 0 )
     {
         if( verbose != 0 )

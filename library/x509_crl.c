@@ -243,7 +243,7 @@ static int x509_get_entries( unsigned char **p,
 /*
  * Parse one or more CRLs and add them to the chained list
  */
-int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
+int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
@@ -516,7 +516,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
         crl = crl->next;
         x509_crl_init( crl );
 
-        return( x509parse_crl( crl, buf, buflen ) );
+        return( x509_crl_parse( crl, buf, buflen ) );
     }
 
     return( 0 );
@@ -526,7 +526,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
 /*
  * Load one or more CRLs and add them to the chained list
  */
-int x509parse_crlfile( x509_crl *chain, const char *path )
+int x509_crl_parse_file( x509_crl *chain, const char *path )
 {
     int ret;
     size_t n;
@@ -535,7 +535,7 @@ int x509parse_crlfile( x509_crl *chain, const char *path )
     if ( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
-    ret = x509parse_crl( chain, buf, n );
+    ret = x509_crl_parse( chain, buf, n );
 
     memset( buf, 0, n + 1 );
     polarssl_free( buf );
@@ -603,8 +603,8 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 /*
  * Return an informational string about the CRL.
  */
-int x509parse_crl_info( char *buf, size_t size, const char *prefix,
-                        const x509_crl *crl )
+int x509_crl_info( char *buf, size_t size, const char *prefix,
+                   const x509_crl *crl )
 {
     int ret;
     size_t n;

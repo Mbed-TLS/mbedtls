@@ -3547,6 +3547,8 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
 
     memcpy( ssl->psk, psk, ssl->psk_len );
     memcpy( ssl->psk_identity, psk_identity, ssl->psk_identity_len );
+
+    return( 0 );
 }
 
 void ssl_set_psk_cb( ssl_context *ssl,

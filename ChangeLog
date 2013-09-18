@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Development
+= PolarSSL-1.3 branch
 Features
    * Elliptic Curve Cryptography module added
    * Elliptic Curve Diffie Hellman module added
@@ -12,8 +12,7 @@ Features
    * PSK and DHE-PSK based ciphersuites added
    * Memory allocation abstraction layer added
    * Buffer-based memory allocator added (no malloc() / free() / HEAP usage)
-   * Public Key abstration layer added
-   * Also compiles / runs without time-based functions (!POLARSSL_HAVE_TIME)
+   * Public Key abstraction layer added
    * Parsing Elliptic Curve keys
    * Parsing Elliptic Curve certificates
    * Support for max_fragment_length extension (RFC 6066)
@@ -46,7 +45,7 @@ Changes
    * All RSA operations require a random generator for blinding purposes
    * X509 core refactored
    * x509_crt_verify() now case insensitive for cn (RFC 6125 6.4)
-
+   * Also compiles / runs without time-based functions (!POLARSSL_HAVE_TIME)
 
 Bugfix
    * Fixed parse error in ssl_parse_certificate_request()

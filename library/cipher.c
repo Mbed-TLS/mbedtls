@@ -728,7 +728,7 @@ int cipher_check_tag( cipher_context_t *ctx,
             diff |= tag[i] ^ check_tag[i];
 
         if( diff != 0 )
-            return( POLARSSL_ERR_GCM_AUTH_FAILED );
+            return( POLARSSL_ERR_CIPHER_AUTH_FAILED );
 
         return( 0 );
     }

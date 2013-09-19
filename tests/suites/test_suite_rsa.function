@@ -531,7 +531,7 @@ void rsa_gen_key( int nrbits, int exponent, int result)
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
 void rsa_selftest()
 {
     TEST_ASSERT( rsa_self_test( 0 ) == 0 );

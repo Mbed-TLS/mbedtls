@@ -83,7 +83,7 @@
  * RSA       4   9
  * ECP       4   7 (Started from top)
  * MD        5   4
- * CIPHER    6   5
+ * CIPHER    6   6
  * SSL       6   7 (Started from top)
  * SSL       7   31
  *

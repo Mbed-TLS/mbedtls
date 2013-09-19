@@ -236,5 +236,4 @@ Run through parity bit tests
 des_key_parity_run:
 
 DES Selftest
-depends_on:POLARSSL_SELF_TEST
 des_selftest:

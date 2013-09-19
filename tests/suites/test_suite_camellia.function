@@ -197,7 +197,7 @@ void camellia_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
 void camellia_selftest()
 {
     TEST_ASSERT( camellia_self_test( 0 ) == 0 );

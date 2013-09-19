@@ -187,6 +187,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "CIPHER - Input data contains invalid padding and is rejected" );
         if( use_ret == -(POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED) )
             snprintf( buf, buflen, "CIPHER - Decryption of block requires a full block" );
+        if( use_ret == -(POLARSSL_ERR_CIPHER_AUTH_FAILED) )
+            snprintf( buf, buflen, "CIPHER - Authentication failed (for AEAD modes)" );
 #endif /* POLARSSL_CIPHER_C */
 
 #if defined(POLARSSL_DHM_C)

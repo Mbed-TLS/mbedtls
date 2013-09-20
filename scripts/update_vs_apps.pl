@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+# create individual project files for example programs
+# for VS6 and VS2010
+
 use warnings;
 use strict;
 

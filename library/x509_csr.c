@@ -43,9 +43,6 @@
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
-#if defined(POLARSSL_ASN1_WRITE_C)
-#include "polarssl/asn1write.h"
-#endif
 
 #if defined(POLARSSL_MEMORY_C)
 #include "polarssl/memory.h"

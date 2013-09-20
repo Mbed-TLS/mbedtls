@@ -420,9 +420,9 @@
 /**
  * \def POLARSSL_GENPRIME
  *
- * Enable the RSA prime-number generation code.
+ * Enable the prime-number generation code.
  *
- * Requires: POLARSSL_BIGNUM_C, POLARSSL_RSA_C
+ * Requires: POLARSSL_BIGNUM_C
  */
 #define POLARSSL_GENPRIME
 
@@ -749,7 +749,11 @@
  * Enable the generic ASN1 parser.
  *
  * Module:  library/asn1.c
- * Caller:  library/x509parse.c
+ * Caller:  library/x509.c
+ *          library/dhm.c
+ *          library/pkcs12.c
+ *          library/pkcs5.c
+ *          library/pkparse.c
  */
 #define POLARSSL_ASN1_PARSE_C
 
@@ -759,6 +763,11 @@
  * Enable the generic ASN1 writer.
  *
  * Module:  library/asn1write.c
+ * Caller:  library/ecdsa.c
+ *          library/pkwrite.c
+ *          library/x509_create.c
+ *          library/x509write_crt.c
+ *          library/x509write_csr.c
  */
 #define POLARSSL_ASN1_WRITE_C
 
@@ -781,9 +790,9 @@
  *
  * Module:  library/bignum.c
  * Caller:  library/dhm.c
+ *          library/ecp.c
  *          library/rsa.c
  *          library/ssl_tls.c
- *          library/x509parse.c
  *
  * This module is required for RSA and DHM support.
  */
@@ -1046,7 +1055,7 @@
  * Enable the MD2 hash algorithm.
  *
  * Module:  library/md2.c
- * Caller:  library/x509parse.c
+ * Caller:
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
  *
@@ -1059,7 +1068,7 @@
  * Enable the MD4 hash algorithm.
  *
  * Module:  library/md4.c
- * Caller:  library/x509parse.c
+ * Caller:
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
  *
@@ -1072,9 +1081,9 @@
  * Enable the MD5 hash algorithm.
  *
  * Module:  library/md5.c
- * Caller:  library/pem.c
+ * Caller:  library/md.c
+ *          library/pem.c
  *          library/ssl_tls.c
- *          library/x509parse.c
  *
  * This module is required for SSL/TLS and X.509.
  * PEM_PARSE uses MD5 for decrypting encrypted keys.
@@ -1127,9 +1136,18 @@
  * Enable the OID database.
  *
  * Module:  library/oid.c
- * Caller:  library/rsa.c
- *          library/x509parse.c
- *          library/x509write.c
+ * Caller:  library/asn1write.c
+ *          library/pkcs5.c
+ *          library/pkparse.c
+ *          library/pkwrite.c
+ *          library/rsa.c
+ *          library/x509.c
+ *          library/x509_create.c
+ *          library/x509_crl.c
+ *          library/x509_crt.c
+ *          library/x509_csr.c
+ *          library/x509write_crt.c
+ *          library/x509write_csr.c
  *
  * This modules translates between OIDs and internal values.
  */
@@ -1167,8 +1185,11 @@
  * Enable PEM decoding / parsing.
  *
  * Module:  library/pem.c
- * Caller:  library/x509parse.c
+ * Caller:  library/dhm.c
  *          library/pkparse.c
+ *          library/x509_crl.c
+ *          library/x509_crt.c
+ *          library/x509_csr.c
  *
  * Requires: POLARSSL_BASE64_C
  *
@@ -1182,8 +1203,9 @@
  * Enable PEM encoding / writing.
  *
  * Module:  library/pem.c
- * Caller:  library/x509write.c
- *          library/pkwrite.c
+ * Caller:  library/pkwrite.c
+ *          library/x509write_crt.c
+ *          library/x509write_csr.c
  *
  * Requires: POLARSSL_BASE64_C
  *
@@ -1213,7 +1235,8 @@
  * Enable the generic public (asymetric) key parser.
  *
  * Module:  library/pkparse.c
- * Caller:  library/x509parse.c
+ * Caller:  library/x509_crt.c
+ *          library/x509_csr.c
  *
  * Requires: POLARSSL_PK_C
  *
@@ -1270,7 +1293,7 @@
  * Adds algorithms for parsing PKCS#8 encrypted private keys
  *
  * Module:  library/pkcs12.c
- * Caller:  library/x509parse.c
+ * Caller:  library/pkparse.c
  *
  * Requires: POLARSSL_ASN1_PARSE_C, POLARSSL_CIPHER_C, POLARSSL_MD_C
  * Can use:  POLARSSL_ARC4_C
@@ -1302,10 +1325,11 @@
  * Enable the SHA1 cryptographic hash algorithm.
  *
  * Module:  library/sha1.c
- * Caller:  library/ssl_cli.c
+ * Caller:  library/md.c
+ *          library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c
- *          library/x509parse.c
+ *          library/x509write_crt.c
  *
  * This module is required for SSL/TLS and SHA1-signed certificates.
  */
@@ -1318,8 +1342,11 @@
  * (Used to be POLARSSL_SHA2_C)
  *
  * Module:  library/sha256.c
- * Caller:  library/md_wrap.c
- *          library/x509parse.c
+ * Caller:  library/entropy.c
+ *          library/md.c
+ *          library/ssl_cli.c
+ *          library/ssl_srv.c
+ *          library/ssl_tls.c
  *
  * This module adds support for SHA-224 and SHA-256.
  * This module is required for the SSL/TLS 1.2 PRF function.
@@ -1333,8 +1360,10 @@
  * (Used to be POLARSSL_SHA4_C)
  *
  * Module:  library/sha512.c
- * Caller:  library/md_wrap.c
- *          library/x509parse.c
+ * Caller:  library/entropy.c
+ *          library/md.c
+ *          library/ssl_cli.c
+ *          library/ssl_srv.c
  *
  * This module adds support for SHA-384 and SHA-512.
  */

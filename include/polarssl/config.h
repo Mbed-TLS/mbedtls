@@ -71,9 +71,7 @@
 /**
  * \def POLARSSL_HAVE_ASM
  *
- * The compiler has support for asm()
- *
- * Uncomment to enable the use of assembly code.
+ * The compiler has support for asm().
  *
  * Requires support for asm() in compiler.
  *
@@ -82,6 +80,7 @@
  *      library/padlock.c
  *      include/polarssl/bn_mul.h
  *
+ * Comment to disable the use of assembly code.
  */
 #define POLARSSL_HAVE_ASM
 
@@ -91,19 +90,18 @@
  * CPU supports SSE2 instruction set.
  *
  * Uncomment if the CPU supports SSE2 (IA-32 specific).
- *
 #define POLARSSL_HAVE_SSE2
  */
 
 /**
  * \def POLARSSL_HAVE_TIME
  *
- * System has time.h and time() / localtime()  / gettimeofday()
+ * System has time.h and time() / localtime()  / gettimeofday().
  *
  * Comment if your system does not support time functions
  */
 #define POLARSSL_HAVE_TIME
-/* \} name */
+/* \} name SECTION: System support */
 
 /**
  * \name SECTION: PolarSSL feature support
@@ -218,7 +216,7 @@
 /**
  * \def POLARSSL_ENABLE_WEAK_CIPHERSUITES
  *
- * Enable weak ciphersuites in SSL / TLS
+ * Enable weak ciphersuites in SSL / TLS.
  * Warning: Only do so when you know what you are doing. This allows for
  * channels with virtually no security at all!
  *
@@ -247,7 +245,7 @@
 /**
  * \def POLARSSL_KEY_EXCHANGE_PSK_ENABLED
  *
- * Enable the PSK based ciphersuite modes in SSL / TLS
+ * Enable the PSK based ciphersuite modes in SSL / TLS.
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -265,7 +263,7 @@
 /**
  * \def POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED
  *
- * Enable the DHE-PSK based ciphersuite modes in SSL / TLS
+ * Enable the DHE-PSK based ciphersuite modes in SSL / TLS.
  *
  * Requires: POLARSSL_DHM_C
  *
@@ -285,7 +283,7 @@
 /**
  * \def POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED
  *
- * Enable the RSA-PSK based ciphersuite modes in SSL / TLS
+ * Enable the RSA-PSK based ciphersuite modes in SSL / TLS.
  * (NOT YET IMPLEMENTED)
  * Requires: POLARSSL_RSA_C, POLARSSL_PKCS1_V15,
  *           POLARSSL_X509_CRT_PARSE_C, POLARSSL_X509_CRL_PARSE_C
@@ -306,7 +304,7 @@
 /**
  * \def POLARSSL_KEY_EXCHANGE_RSA_ENABLED
  *
- * Enable the RSA-only based ciphersuite modes in SSL / TLS
+ * Enable the RSA-only based ciphersuite modes in SSL / TLS.
  *
  * Requires: POLARSSL_RSA_C, POLARSSL_PKCS1_V15,
  *           POLARSSL_X509_CRT_PARSE_C, POLARSSL_X509_CRL_PARSE_C
@@ -332,7 +330,7 @@
 /**
  * \def POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED
  *
- * Enable the DHE-RSA based ciphersuite modes in SSL / TLS
+ * Enable the DHE-RSA based ciphersuite modes in SSL / TLS.
  *
  * Requires: POLARSSL_DHM_C, POLARSSL_RSA_C, POLARSSL_PKCS1_V15,
  *           POLARSSL_X509_CRT_PARSE_C, POLARSSL_X509_CRL_PARSE_C
@@ -354,7 +352,7 @@
 /**
  * \def POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED
  *
- * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS
+ * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS.
  *
  * Requires: POLARSSL_ECDH_C, POLARSSL_RSA_C, POLARSSL_PKCS1_V15,
  *           POLARSSL_X509_CRT_PARSE_C, POLARSSL_X509_CRL_PARSE_C
@@ -377,7 +375,7 @@
 /**
  * \def POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
  *
- * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS
+ * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS.
  *
  * Requires: POLARSSL_ECDH_C, POLARSSL_ECDSA_C, POLARSSL_X509_CRT_PARSE_C,
  *           POLARSSL_X509_CRL_PARSE_C
@@ -422,9 +420,9 @@
 /**
  * \def POLARSSL_GENPRIME
  *
- * Requires: POLARSSL_BIGNUM_C, POLARSSL_RSA_C
- *
  * Enable the RSA prime-number generation code.
+ *
+ * Requires: POLARSSL_BIGNUM_C, POLARSSL_RSA_C
  */
 #define POLARSSL_GENPRIME
 
@@ -488,9 +486,10 @@
 /**
  * \def POLARSSL_PKCS1_V15
  *
+ * Enable support for PKCS#1 v1.5 encoding.
+ *
  * Requires: POLARSSL_RSA_C
  *
- * Enable support for PKCS#1 v1.5 encoding.
  * This enables support for PKCS#1 v1.5 operations.
  */
 #define POLARSSL_PKCS1_V15
@@ -498,9 +497,10 @@
 /**
  * \def POLARSSL_PKCS1_V21
  *
+ * Enable support for PKCS#1 v2.1 encoding.
+ *
  * Requires: POLARSSL_MD_C, POLARSSL_RSA_C
  *
- * Enable support for PKCS#1 v2.1 encoding.
  * This enables support for RSAES-OAEP and RSASSA-PSS operations.
  */
 #define POLARSSL_PKCS1_V21
@@ -566,7 +566,7 @@
  * \def POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
  *
  * Enable support for receiving and parsing SSLv2 Client Hello messages for the
- * SSL Server module (POLARSSL_SSL_SRV_C)
+ * SSL Server module (POLARSSL_SSL_SRV_C).
  *
  * Comment this macro to disable support for SSLv2 Client Hello messages.
  */
@@ -575,7 +575,7 @@
 /**
  * \def POLARSSL_SSL_MAX_FRAGMENT_LENGTH
  *
- * Enable support for RFC 6066 max_fragment_length extension in SSL
+ * Enable support for RFC 6066 max_fragment_length extension in SSL.
  *
  * Comment this macro to disable support for the max_fragment_length extension
  */
@@ -584,7 +584,7 @@
 /**
  * \def POLARSSL_SSL_PROTO_SSL3
  *
- * Enable support for SSL 3.0
+ * Enable support for SSL 3.0.
  *
  * Requires: POLARSSL_MD5_C
  *           POLARSSL_SHA1_C
@@ -596,7 +596,7 @@
 /**
  * \def POLARSSL_SSL_PROTO_TLS1
  *
- * Enable support for TLS 1.0
+ * Enable support for TLS 1.0.
  *
  * Requires: POLARSSL_MD5_C
  *           POLARSSL_SHA1_C
@@ -608,7 +608,7 @@
 /**
  * \def POLARSSL_SSL_PROTO_TLS1_1
  *
- * Enable support for TLS 1.1
+ * Enable support for TLS 1.1.
  *
  * Requires: POLARSSL_MD5_C
  *           POLARSSL_SHA1_C
@@ -620,7 +620,7 @@
 /**
  * \def POLARSSL_SSL_PROTO_TLS1_2
  *
- * Enable support for TLS 1.2
+ * Enable support for TLS 1.2.
  *
  * Requires: POLARSSL_SHA256_C or POLARSSL_SHA512_C
  *           (Depends on ciphersuites)
@@ -632,7 +632,7 @@
 /**
  * \def POLARSSL_SSL_SESSION_TICKETS
  *
- * Enable support for RFC 5077 session tickets in SSL
+ * Enable support for RFC 5077 session tickets in SSL.
  *
  * Requires: POLARSSL_AES_C
  *           POLARSSL_SHA256_C
@@ -645,7 +645,7 @@
 /**
  * \def POLARSSL_SSL_SERVER_NAME_INDICATION
  *
- * Enable support for RFC 6066 server name indication (SNI) in SSL
+ * Enable support for RFC 6066 server name indication (SNI) in SSL.
  *
  * Comment this macro to disable support for server name indication in SSL
  */
@@ -654,7 +654,7 @@
 /**
  * \def POLARSSL_SSL_TRUNCATED_HMAC
  *
- * Enable support for RFC 6066 truncated HMAC in SSL
+ * Enable support for RFC 6066 truncated HMAC in SSL.
  *
  * Comment this macro to disable support for truncated HMAC in SSL
  */
@@ -686,7 +686,7 @@
  * Uncomment to enable use of ZLIB
 #define POLARSSL_ZLIB_SUPPORT
  */
-/* \} name */
+/* \} name SECTION: PolarSSL feature support */
 
 /**
  * \name SECTION: PolarSSL modules
@@ -846,7 +846,7 @@
 /**
  * \def POLARSSL_CTR_DRBG_C
  *
- * Enable the CTR_DRBG AES-256-based random generator
+ * Enable the CTR_DRBG AES-256-based random generator.
  *
  * Module:  library/ctr_drbg.c
  * Caller:
@@ -992,7 +992,7 @@
 /**
  * \def POLARSSL_GCM_C
  *
- * Enable the Galois/Counter Mode (GCM) for AES
+ * Enable the Galois/Counter Mode (GCM) for AES.
  *
  * Module:  library/gcm.c
  *
@@ -1043,7 +1043,7 @@
 /**
  * \def POLARSSL_MD2_C
  *
- * Enable the MD2 hash algorithm
+ * Enable the MD2 hash algorithm.
  *
  * Module:  library/md2.c
  * Caller:  library/x509parse.c
@@ -1056,7 +1056,7 @@
 /**
  * \def POLARSSL_MD4_C
  *
- * Enable the MD4 hash algorithm
+ * Enable the MD4 hash algorithm.
  *
  * Module:  library/md4.c
  * Caller:  library/x509parse.c
@@ -1069,7 +1069,7 @@
 /**
  * \def POLARSSL_MD5_C
  *
- * Enable the MD5 hash algorithm
+ * Enable the MD5 hash algorithm.
  *
  * Module:  library/md5.c
  * Caller:  library/pem.c
@@ -1096,8 +1096,11 @@
  */
 
 /**
- * The buffer allocator implementation that makes use of a (stack) based
- * buffer to 'allocate' dynamic memory. (replaces malloc() and free() calls)
+ * \def POLARSSL_MEMORY_BUFFER_ALLOC_C
+ *
+ * Enable the buffer allocator implementation that makes use of a (stack)
+ * based buffer to 'allocate' dynamic memory. (replaces malloc() and free()
+ * calls)
  *
  * Module:  library/memory_buffer_alloc.c
  *
@@ -1121,7 +1124,7 @@
 /**
  * \def POLARSSL_OID_C
  *
- * Enable the OID database
+ * Enable the OID database.
  *
  * Module:  library/oid.c
  * Caller:  library/rsa.c
@@ -1147,7 +1150,7 @@
 /**
  * \def POLARSSL_PBKDF2_C
  *
- * Enable PKCS#5 PBKDF2 key derivation function
+ * Enable PKCS#5 PBKDF2 key derivation function.
  * DEPRECATED: Use POLARSSL_PKCS5_C instead
  *
  * Module:  library/pbkdf2.c
@@ -1161,7 +1164,7 @@
 /**
  * \def POLARSSL_PEM_PARSE_C
  *
- * Enable PEM decoding / parsing
+ * Enable PEM decoding / parsing.
  *
  * Module:  library/pem.c
  * Caller:  library/x509parse.c
@@ -1176,7 +1179,7 @@
 /**
  * \def POLARSSL_PEM_WRITE_C
  *
- * Enable PEM encoding / writing
+ * Enable PEM encoding / writing.
  *
  * Module:  library/pem.c
  * Caller:  library/x509write.c
@@ -1235,7 +1238,7 @@
 /**
  * \def POLARSSL_PKCS5_C
  *
- * Enable PKCS#5 functions
+ * Enable PKCS#5 functions.
  *
  * Module:  library/pkcs5.c
  *
@@ -1263,7 +1266,7 @@
 /**
  * \def POLARSSL_PKCS12_C
  *
- * Enable PKCS#12 PBE functions
+ * Enable PKCS#12 PBE functions.
  * Adds algorithms for parsing PKCS#8 encrypted private keys
  *
  * Module:  library/pkcs12.c
@@ -1419,7 +1422,7 @@
 /**
  * \def POLARSSL_X509_USE_C
  *
- * Enable X.509 core for using certificates
+ * Enable X.509 core for using certificates.
  *
  * Module:  library/x509.c
  * Caller:  library/x509_crl.c
@@ -1480,7 +1483,7 @@
 /**
  * \def POLARSSL_X509_CREATE_C
  *
- * Enable X.509 core for creating certificates
+ * Enable X.509 core for creating certificates.
  *
  * Module:  library/x509_create.c
  *
@@ -1506,7 +1509,7 @@
 /**
  * \def POLARSSL_X509_CSR_WRITE_C
  *
- * Enable creating X.509 Certificate Signing Requests (CSR)
+ * Enable creating X.509 Certificate Signing Requests (CSR).
  *
  * Module:  library/x509_csr_write.c
  *
@@ -1526,7 +1529,7 @@
  */
 #define POLARSSL_XTEA_C
 
-/* \} name */
+/* \} name SECTION: PolarSSL modules */
 
 /**
  * \name SECTION: Module configuration options

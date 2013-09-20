@@ -1194,10 +1194,11 @@
  * Enable the generic public (asymetric) key layer.
  *
  * Module:  library/pk.c
- * Caller:  library/x509parse.c
- *          library/ssl_tls.c
+ * Caller:  library/ssl_tls.c
  *          library/ssl_cli.c
  *          library/ssl_srv.c
+ *
+ * Requires: POLARSSL_RSA_C or POLARSSL_ECP_C
  *
  * Uncomment to enable generic public key wrappers.
  */
@@ -1385,7 +1386,7 @@
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * Requires: POLARSSL_CIPHER_C, POLARSSL_PK_C, POLARSSL_MD_C
+ * Requires: POLARSSL_CIPHER_C, POLARSSL_MD_C
  *           and at least one of the POLARSSL_SSL_PROTO_* defines
  *
  * This module is required for SSL/TLS.
@@ -1708,7 +1709,7 @@
 #endif
 
 #if defined(POLARSSL_SSL_TLS_C) && ( !defined(POLARSSL_CIPHER_C) ||     \
-    !defined(POLARSSL_PK_C) || !defined(POLARSSL_MD_C) )
+    !defined(POLARSSL_MD_C) )
 #error "POLARSSL_SSL_TLS_C defined, but not all prerequisites"
 #endif
 

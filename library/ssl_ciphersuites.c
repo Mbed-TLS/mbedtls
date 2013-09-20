@@ -972,6 +972,7 @@ int ssl_get_ciphersuite_id( const char *ciphersuite_name )
     return( cur->id );
 }
 
+#if defined(POLARSSL_PK_C)
 pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info )
 {
     switch( info->key_exchange )
@@ -989,6 +990,7 @@ pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info )
             return( POLARSSL_PK_NONE );
     }
 }
+#endif
 
 int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
 {

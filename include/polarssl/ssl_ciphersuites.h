@@ -197,7 +197,9 @@ const int *ssl_list_ciphersuites( void );
 const ssl_ciphersuite_t *ssl_ciphersuite_from_string( const char *ciphersuite_name );
 const ssl_ciphersuite_t *ssl_ciphersuite_from_id( int ciphersuite_id );
 
+#if defined(POLARSSL_PK_C)
 pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info );
+#endif
 
 int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info );
 

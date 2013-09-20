@@ -4188,11 +4188,13 @@ void ssl_free( ssl_context *ssl )
     }
 #endif
 
+#if defined(POLARSSL_PK_C)
     if( ssl->pk_key_own_alloc )
     {
         pk_free( ssl->pk_key );
         polarssl_free( ssl->pk_key );
     }
+#endif
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_finish != NULL )
@@ -4208,8 +4210,9 @@ void ssl_free( ssl_context *ssl )
     memset( ssl, 0, sizeof( ssl_context ) );
 }
 
+#if defined(POLARSSL_PK_C)
 /*
- * Get the SSL_SIG_* constant corresponding to a public key
+ * Convert between POLARSSL_PK_XXX and SSL_SIG_XXX
  */
 unsigned char ssl_sig_from_pk( pk_context *pk )
 {
@@ -4240,7 +4243,11 @@ pk_type_t ssl_pk_alg_from_sig( unsigned char sig )
             return( POLARSSL_PK_NONE );
     }
 }
+#endif
 
+/*
+ * Convert between SSL_HASH_XXX and POLARSSL_MD_XXX
+ */
 md_type_t ssl_md_alg_from_hash( unsigned char hash )
 {
     switch( hash )

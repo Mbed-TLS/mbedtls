@@ -649,8 +649,10 @@ struct _ssl_context
     /*
      * PKI layer
      */
+#if defined(POLARSSL_PK_C)
     pk_context *pk_key;                 /*!<  own private key         */
     int pk_key_own_alloc;               /*!<  did we allocate pk_key? */
+#endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     x509_crt *own_cert;                 /*!<  own X.509 certificate   */
@@ -1493,8 +1495,11 @@ int ssl_write_finished( ssl_context *ssl );
 
 void ssl_optimize_checksum( ssl_context *ssl, const ssl_ciphersuite_t *ciphersuite_info );
 
+#if defined(POLARSSL_PK_C)
 unsigned char ssl_sig_from_pk( pk_context *pk );
 pk_type_t ssl_pk_alg_from_sig( unsigned char sig );
+#endif
+
 md_type_t ssl_md_alg_from_hash( unsigned char hash );
 
 #ifdef __cplusplus

@@ -888,7 +888,9 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     int handshake_failure = 0;
     const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
+#if defined(POLARSSL_PK_C)
     pk_type_t pk_alg;
+#endif
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
@@ -1301,11 +1303,13 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
                 /* If ciphersuite requires us to have a private key of a
                  * certain type, make sure we do */
+#if defined(POLARSSL_PK_C)
                 pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
                 if( pk_alg != POLARSSL_PK_NONE &&
                     ( ssl->pk_key == NULL ||
                       ! pk_can_do( ssl->pk_key, pk_alg ) ) )
                     continue;
+#endif
 
                 goto have_ciphersuite;
             }

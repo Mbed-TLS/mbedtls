@@ -32,12 +32,26 @@
 
 #include "polarssl/config.h"
 
+#if !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
+    !defined(POLARSSL_FS_IO)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_RSA_C and/or POLARSSL_X509_CRT_PARSE_C "
+           "not defined.\n");
+    return( 0 );
+}
+#else
+
 #include "polarssl/certs.h"
 #include "polarssl/x509_crt.h"
 
 #if defined _MSC_VER && !defined snprintf
 #define snprintf _snprintf
 #endif
+
 
 #define MAX_CLIENT_CERTS    8
 
@@ -65,20 +79,6 @@ const char *client_private_keys[MAX_CLIENT_CERTS] =
     "cert_digest.key"
 };
 
-#if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_PK_PARSE_C) || \
-    !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_X509_CRT_PARSE_C and/or POLARSSL_FS_IO and/or "
-           "POLARSSL_PK_PARSE_C not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     int ret, i;
@@ -261,5 +261,4 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_RSA_C && POLARSSL_X509_CRT_PARSE_C &&
-          POLARSSL_FS_IO && POLARSSL_PK_PARSE_C */
+#endif /* POLARSSL_RSA_C && POLARSSL_X509_CRT_PARSE_C && POLARSSL_FS_IO */

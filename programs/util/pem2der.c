@@ -39,6 +39,16 @@
 #define DFL_FILENAME            "file.pem"
 #define DFL_OUTPUT_FILENAME     "file.der"
 
+#if !defined(POLARSSL_BASE64_C) || !defined(POLARSSL_FS_IO)
+int main( int argc, char *argv[] )
+{
+    ((void) argc);
+    ((void) argv);
+
+    printf("POLARSSL_BASE64_C and/or POLARSSL_FS_IO not defined.\n");
+    return( 0 );
+}
+#else
 /*
  * global options
  */
@@ -161,16 +171,6 @@ static int write_file( const char *path, unsigned char *buf, size_t n )
     "    output_file=%%s      default: file.der\n"      \
     "\n"
 
-#if !defined(POLARSSL_BASE64_C) || !defined(POLARSSL_FS_IO)
-int main( int argc, char *argv[] )
-{
-    ((void) argc);
-    ((void) argv);
-
-    printf("POLARSSL_BASE64_C and/or POLARSSL_FS_IO not defined.\n");
-    return( 0 );
-}
-#else
 int main( int argc, char *argv[] )
 {
     int ret = 0;

@@ -33,12 +33,6 @@
 
 #include "polarssl/config.h"
 
-#include "polarssl/x509_crt.h"
-#include "polarssl/x509_csr.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/error.h"
-
 #if !defined(POLARSSL_X509_CRT_WRITE_C) ||                                  \
     !defined(POLARSSL_X509_CRT_PARSE_C) || !defined(POLARSSL_FS_IO) ||      \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
@@ -55,6 +49,12 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
+
+#include "polarssl/x509_crt.h"
+#include "polarssl/x509_csr.h"
+#include "polarssl/entropy.h"
+#include "polarssl/ctr_drbg.h"
+#include "polarssl/error.h"
 
 #define DFL_ISSUER_CRT          ""
 #define DFL_REQUEST_FILE        ""

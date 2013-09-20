@@ -254,7 +254,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
     unsigned char *enc_len_p = iv + 16;
     unsigned char *ticket = enc_len_p + 2;
     unsigned char *mac;
-    unsigned char computed_mac[16];
+    unsigned char computed_mac[32];
     size_t enc_len, clear_len, i;
     unsigned char pad_len;
 

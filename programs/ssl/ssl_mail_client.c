@@ -360,9 +360,10 @@ int main( int argc, char *argv[] )
     const int *list;
 
     /*
-     * Make sure memory references are valid.
+     * Make sure memory references are valid in case we exit early.
      */
     server_fd = 0;
+    memset( &ssl, 0, sizeof( ssl_context ) );
     x509_crt_init( &cacert );
     x509_crt_init( &clicert );
     pk_init( &pkey );

@@ -233,9 +233,10 @@ int main( int argc, char *argv[] )
 #endif
 
     /*
-     * Make sure memory references are valid.
+     * Make sure memory references are valid in case we exit early.
      */
     listen_fd = 0;
+    memset( &ssl, 0, sizeof( ssl_context ) );
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     x509_crt_init( &cacert );
     x509_crt_init( &srvcert );

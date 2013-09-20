@@ -406,7 +406,9 @@ int main( int argc, char *argv[] )
 
         ssl_set_own_cert( &ssl, &clicert, &pkey );
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
         ssl_set_hostname( &ssl, opt.server_name );
+#endif
 
         /*
          * 4. Handshake

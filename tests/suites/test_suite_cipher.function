@@ -335,7 +335,10 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
     unsigned char clear[200];
     unsigned char ad[200];
     unsigned char tag[20];
-    size_t key_len, iv_len, cipher_len, clear_len, ad_len, tag_len;
+    size_t key_len, iv_len, cipher_len, clear_len;
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+    size_t ad_len, tag_len;
+#endif
     cipher_context_t ctx;
     unsigned char output[200];
     size_t outlen, total_len;
@@ -352,8 +355,13 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
     iv_len = unhexify( iv, hex_iv );
     cipher_len = unhexify( cipher, hex_cipher );
     clear_len = unhexify( clear, hex_clear );
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
     ad_len = unhexify( ad, hex_ad );
     tag_len = unhexify( tag, hex_tag );
+#else
+    ((void) hex_ad);
+    ((void) hex_tag);
+#endif
 
     /* Prepare context */
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx,

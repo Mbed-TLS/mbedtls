@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     printf("POLARSSL_ECDSA_C and/or "
-           "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined\n"
+           "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined\n");
     return( 0 );
 }
 #else

@@ -1809,16 +1809,16 @@ static int ssl_write_certificate_request( ssl_context *ssl )
 static int ssl_write_server_key_exchange( ssl_context *ssl )
 {
     int ret;
-    size_t n = 0, len;
-    unsigned char *p = ssl->out_msg + 4;
+    size_t n = 0;
     const ssl_ciphersuite_t *ciphersuite_info;
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    unsigned char *p = ssl->out_msg + 4;
     unsigned char *dig_signed = p;
-    size_t dig_signed_len = 0;
+    size_t dig_signed_len = 0, len;
     ((void) dig_signed);
     ((void) dig_signed_len);
 #endif
@@ -2355,7 +2355,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 {
     int ret;
     const ssl_ciphersuite_t *ciphersuite_info;
-    unsigned char *p, *end;
 
     ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
@@ -2379,12 +2378,12 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    p = ssl->in_msg + 4;
-    end = ssl->in_msg + ssl->in_msglen;
-
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
+        unsigned char *p = ssl->in_msg + 4;
+        unsigned char *end = ssl->in_msg + ssl->in_msglen;
+
         if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
@@ -2436,6 +2435,9 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
     {
+        unsigned char *p = ssl->in_msg + 4;
+        unsigned char *end = ssl->in_msg + ssl->in_msglen;
+
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
@@ -2462,6 +2464,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
         size_t n;
+        unsigned char *p = ssl->in_msg + 4;
+        unsigned char *end = ssl->in_msg + ssl->in_msglen;
 
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {

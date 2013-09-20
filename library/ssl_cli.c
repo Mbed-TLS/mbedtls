@@ -1237,10 +1237,10 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 {
     int ret;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-    unsigned char *p, *end;
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    unsigned char *p, *end;
     size_t sig_len, params_len;
     unsigned char hash[64];
     md_type_t md_alg = POLARSSL_MD_NONE;
@@ -1287,8 +1287,12 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_BUF( 3,   "server key exchange", ssl->in_msg + 4, ssl->in_hslen - 4 );
 
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     p   = ssl->in_msg + 4;
     end = ssl->in_msg + ssl->in_hslen;
+#endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
@@ -1318,6 +1322,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
     {
+        unsigned char *p = ssl->in_msg + 4;
+        unsigned char *end = ssl->in_msg + ssl->in_hslen;
+
         if( ssl_parse_server_psk_hint( ssl, &p, end ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
@@ -1329,6 +1336,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
+        unsigned char *p = ssl->in_msg + 4;
+        unsigned char *end = ssl->in_msg + ssl->in_hslen;
+
         if( ssl_parse_server_psk_hint( ssl, &p, end ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
@@ -1336,7 +1346,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         }
         if( ssl_parse_server_dh_params( ssl, &p, end ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "failed to parsebad server key exchange message" ) );
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
     }

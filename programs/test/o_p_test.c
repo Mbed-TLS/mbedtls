@@ -23,9 +23,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _CRT_SECURE_NO_DEPRECATE
-#define _CRT_SECURE_NO_DEPRECATE 1
-#endif
+#include "polarssl/config.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -37,8 +35,6 @@
 #include <openssl/engine.h>
 #include <openssl/pem.h>
 #include <openssl/bio.h>
-
-#include "polarssl/config.h"
 
 #include "polarssl/pk.h"
 #include "polarssl/x509.h"

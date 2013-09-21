@@ -48,6 +48,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_mpi			test_suite_pbkdf2		\
 		test_suite_pkcs1_v21	test_suite_pkcs5		\
 		test_suite_pkparse		test_suite_pkwrite		\
+		test_suite_pk									\
 		test_suite_rsa			test_suite_shax			\
 		test_suite_x509parse	test_suite_x509write	\
 		test_suite_xtea			test_suite_version

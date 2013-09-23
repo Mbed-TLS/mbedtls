@@ -4136,6 +4136,27 @@ void ssl_transform_free( ssl_transform *transform )
     memset( transform, 0, sizeof( ssl_transform ) );
 }
 
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+static void ssl_key_cert_free( ssl_key_cert *key_cert )
+{
+    ssl_key_cert *cur = key_cert, *next;
+
+    while( cur != NULL )
+    {
+        next = cur->next;
+
+        if( cur->key_own_alloc )
+        {
+            pk_free( cur->key );
+            polarssl_free( cur->key );
+        }
+        polarssl_free( cur );
+
+        cur = next;
+    }
+}
+#endif /* POLARSSL_X509_CRT_PARSE_C */
+
 void ssl_handshake_free( ssl_handshake_params *handshake )
 {
 #if defined(POLARSSL_DHM_C)
@@ -4147,6 +4168,11 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     polarssl_free( handshake->curves );
+#endif
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    if( handshake->free_key_cert != 0 )
+        ssl_key_cert_free( handshake->key_cert );
 #endif
 
     memset( handshake, 0, sizeof( ssl_handshake_params ) );
@@ -4242,25 +4268,8 @@ void ssl_free( ssl_context *ssl )
 #endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    if( ssl->key_cert != NULL )
-    {
-        ssl_key_cert *cur = ssl->key_cert, *next;
-
-        while( cur != NULL )
-        {
-            next = cur->next;
-
-            if( cur->key_own_alloc )
-            {
-                pk_free( cur->key );
-                polarssl_free( cur->key );
-            }
-            polarssl_free( cur );
-
-            cur = next;
-        }
-    }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+    ssl_key_cert_free( ssl->key_cert );
+#endif
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_finish != NULL )

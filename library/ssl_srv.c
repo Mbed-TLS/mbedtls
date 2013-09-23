@@ -338,6 +338,26 @@ static int ssl_parse_ticket( ssl_context *ssl,
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+/*
+ * Wrapper around f_sni, allowing use of
+ * ssl_set_own_cert() but making it act on ssl->hanshake->key_cert instead.
+ */
+static int ssl_sni_wrapper( ssl_context *ssl,
+                            const unsigned char* name, size_t len )
+{
+    int ret;
+    ssl_key_cert *key_cert_ori = ssl->key_cert;
+
+    ssl->key_cert = NULL;
+    ret = ssl->f_sni( ssl->p_sni, ssl, name, len );
+    ssl->handshake->key_cert = ssl->key_cert;
+    ssl->handshake->free_key_cert = 1;
+
+    ssl->key_cert = key_cert_ori;
+
+    return( ret );
+}
+
 static int ssl_parse_servername_ext( ssl_context *ssl,
                                      const unsigned char *buf,
                                      size_t len )
@@ -365,7 +385,7 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
 
         if( p[0] == TLS_EXT_SERVERNAME_HOSTNAME )
         {
-            ret = ssl->f_sni( ssl->p_sni, ssl, p + 3, hostname_len );
+            ret = ssl_sni_wrapper( ssl, p + 3, hostname_len );
             if( ret != 0 )
             {
                 ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,

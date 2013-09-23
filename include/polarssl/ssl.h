@@ -494,6 +494,7 @@ struct _ssl_handshake_params
 #endif
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     ssl_key_cert *key_cert;             /*!<  Own key/cert in use     */
+    int free_key_cert;                  /*!<  Shall we free key_cert? */
 #endif
 
     /*

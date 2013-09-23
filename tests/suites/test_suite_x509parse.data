@@ -70,6 +70,10 @@ X509 Certificate information EC signed by RSA
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_cert_info:"data_files/server3.crt":"cert. version \: 3\nserial number \: 0D\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 09\:17\:03\nexpires on    \: 2023-08-07 09\:17\:03\nsigned using  \: RSA with SHA1\nEC key size   \: 192 bits\n"
 
+X509 certificate v1 with extension
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
+x509_cert_info:"data_files/cert_v1_with_ext.crt":"cert. version \: 1\nserial number \: BD\:ED\:44\:C7\:D2\:3E\:C2\:A4\nissuer name   \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nsubject name  \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nissued  on    \: 2013-07-04 16\:17\:02\nexpires on    \: 2014-07-04 16\:17\:02\nsigned using  \: RSA with SHA1\nRSA key size  \: 2048 bits\n"
+
 X509 CRL information #1
 depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-20 10\:24\:19\nnext update   \: 2011-02-20 11\:24\:19\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"

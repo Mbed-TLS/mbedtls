@@ -46,6 +46,8 @@ Changes
    * X509 core refactored
    * x509_crt_verify() now case insensitive for cn (RFC 6125 6.4)
    * Also compiles / runs without time-based functions (!POLARSSL_HAVE_TIME)
+   * Support faulty X509 v1 certificates with extensions
+     (POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3)
 
 Bugfix
    * Fixed parse error in ssl_parse_certificate_request()

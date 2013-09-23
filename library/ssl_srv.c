@@ -1306,8 +1306,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 #if defined(POLARSSL_PK_C)
                 pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
                 if( pk_alg != POLARSSL_PK_NONE &&
-                    ( ssl->pk_key == NULL ||
-                      ! pk_can_do( ssl->pk_key, pk_alg ) ) )
+                    ( ssl_own_key( ssl ) == NULL ||
+                      ! pk_can_do( ssl_own_key( ssl ), pk_alg ) ) )
                     continue;
 #endif
 
@@ -2065,7 +2065,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         /*
          * Make the signature
          */
-        if( ssl->pk_key == NULL )
+        if( ssl_own_key( ssl ) == NULL )
         {
             SSL_DEBUG_MSG( 1, ( "got no private key" ) );
             return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -2075,13 +2075,13 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
         {
             *(p++) = ssl->handshake->sig_alg;
-            *(p++) = ssl_sig_from_pk( ssl->pk_key );
+            *(p++) = ssl_sig_from_pk( ssl_own_key( ssl ) );
 
             n += 2;
         }
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
-        if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+        if( ( ret = pk_sign( ssl_own_key( ssl ), md_alg, hash, hashlen,
                         p + 2 , &signature_len,
                         ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
@@ -2221,7 +2221,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n = 0;
 
-    if( ! pk_can_do( ssl->pk_key, POLARSSL_PK_RSA ) )
+    if( ! pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
     {
         SSL_DEBUG_MSG( 1, ( "got no RSA private key" ) );
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -2231,7 +2231,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
      * Decrypt the premaster using own private RSA key
      */
     i = 4;
-    n = pk_get_len( ssl->pk_key );
+    n = pk_get_len( ssl_own_key( ssl ) );
     ssl->handshake->pmslen = 48;
 
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
@@ -2254,7 +2254,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    ret = pk_decrypt( ssl->pk_key,
+    ret = pk_decrypt( ssl_own_key( ssl ),
                       ssl->in_msg + i, n,
                       ssl->handshake->premaster, &ssl->handshake->pmslen,
                       sizeof(ssl->handshake->premaster),

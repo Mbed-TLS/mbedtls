@@ -1595,7 +1595,7 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
     {
 #if defined(POLARSSL_RSA_C)
         if( *p == SSL_CERT_TYPE_RSA_SIGN &&
-            pk_can_do( ssl->pk_key, POLARSSL_PK_RSA ) )
+            pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
         {
             ssl->handshake->cert_type = SSL_CERT_TYPE_RSA_SIGN;
             break;
@@ -1604,7 +1604,7 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
 #endif
 #if defined(POLARSSL_ECDSA_C)
         if( *p == SSL_CERT_TYPE_ECDSA_SIGN &&
-            pk_can_do( ssl->pk_key, POLARSSL_PK_ECDSA ) )
+            pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_ECDSA ) )
         {
             ssl->handshake->cert_type = SSL_CERT_TYPE_ECDSA_SIGN;
             break;
@@ -2005,14 +2005,14 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
-    if( ssl->client_auth == 0 || ssl->own_cert == NULL )
+    if( ssl->client_auth == 0 || ssl_own_cert( ssl ) == NULL )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
         ssl->state++;
         return( 0 );
     }
 
-    if( ssl->pk_key == NULL )
+    if( ssl_own_key( ssl ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "got no private key" ) );
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -2045,7 +2045,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         /*
          * For ECDSA, default hash is SHA-1 only
          */
-        if( pk_can_do( ssl->pk_key, POLARSSL_PK_ECDSA ) )
+        if( pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_ECDSA ) )
         {
             hash_start += 16;
             hashlen -= 16;
@@ -2084,7 +2084,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
             md_alg = POLARSSL_MD_SHA256;
             ssl->out_msg[4] = SSL_HASH_SHA256;
         }
-        ssl->out_msg[5] = ssl_sig_from_pk( ssl->pk_key );
+        ssl->out_msg[5] = ssl_sig_from_pk( ssl_own_key( ssl ) );
 
         /* Info from md_alg will be used instead */
         hashlen = 0;
@@ -2097,7 +2097,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
-    if( ( ret = pk_sign( ssl->pk_key, md_alg, hash_start, hashlen,
+    if( ( ret = pk_sign( ssl_own_key( ssl ), md_alg, hash_start, hashlen,
                          ssl->out_msg + 6 + offset, &n,
                          ssl->f_rng, ssl->p_rng ) ) != 0 )
     {

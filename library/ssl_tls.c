@@ -2302,7 +2302,7 @@ int ssl_write_certificate( ssl_context *ssl )
          * If using SSLv3 and got no cert, send an Alert message
          * (otherwise an empty Certificate message will be sent).
          */
-        if( ssl->own_cert  == NULL &&
+        if( ssl_own_cert( ssl )  == NULL &&
             ssl->minor_ver == SSL_MINOR_VERSION_0 )
         {
             ssl->out_msglen  = 2;
@@ -2317,14 +2317,14 @@ int ssl_write_certificate( ssl_context *ssl )
     }
     else /* SSL_IS_SERVER */
     {
-        if( ssl->own_cert == NULL )
+        if( ssl_own_cert( ssl ) == NULL )
         {
             SSL_DEBUG_MSG( 1, ( "got no certificate to send" ) );
             return( POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED );
         }
     }
 
-    SSL_DEBUG_CRT( 3, "own certificate", ssl->own_cert );
+    SSL_DEBUG_CRT( 3, "own certificate", ssl_own_cert( ssl ) );
 
     /*
      *     0  .  0    handshake type
@@ -2336,7 +2336,7 @@ int ssl_write_certificate( ssl_context *ssl )
      *    n+3 . ...   upper level cert, etc.
      */
     i = 7;
-    crt = ssl->own_cert;
+    crt = ssl_own_cert( ssl );
 
     while( crt != NULL )
     {
@@ -3462,6 +3462,30 @@ void ssl_set_ciphersuites_for_version( ssl_context *ssl, const int *ciphersuites
 }
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
+/* Add a new (empty) key_cert entry an return a pointer to it */
+static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
+{
+    ssl_key_cert *key_cert, *last;
+
+    if( ( key_cert = polarssl_malloc( sizeof( ssl_key_cert ) ) ) == NULL )
+        return( NULL );
+
+    memset( key_cert, 0, sizeof( ssl_key_cert ) );
+
+    /* Append the new key_cert to the (possibly empty) current list */
+    if( ssl->key_cert == NULL )
+        ssl->key_cert = key_cert;
+    else
+    {
+        last = ssl->key_cert;
+        while( last->next != NULL )
+            last = last->next;
+        last->next = key_cert;
+    }
+
+    return key_cert;
+}
+
 void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
                        x509_crl *ca_crl, const char *peer_cn )
 {
@@ -3470,11 +3494,18 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
     ssl->peer_cn    = peer_cn;
 }
 
-void ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
+int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
                        pk_context *pk_key )
 {
-    ssl->own_cert   = own_cert;
-    ssl->pk_key     = pk_key;
+    ssl_key_cert *key_cert = ssl_add_key_cert( ssl );
+
+    if( key_cert == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    key_cert->cert = own_cert;
+    key_cert->key  = pk_key;
+
+    return( 0 );
 }
 
 #if defined(POLARSSL_RSA_C)
@@ -3482,22 +3513,25 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
                            rsa_context *rsa_key )
 {
     int ret;
+    ssl_key_cert *key_cert = ssl_add_key_cert( ssl );
 
-    ssl->own_cert   = own_cert;
-
-    if( ( ssl->pk_key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+    if( key_cert == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    ssl->pk_key_own_alloc = 1;
+    if( ( key_cert->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    pk_init( ssl->pk_key );
+    pk_init( key_cert->key );
 
-    ret = pk_init_ctx( ssl->pk_key, pk_info_from_type( POLARSSL_PK_RSA ) );
+    ret = pk_init_ctx( key_cert->key, pk_info_from_type( POLARSSL_PK_RSA ) );
     if( ret != 0 )
         return( ret );
 
-    if( ( ret = rsa_copy( ssl->pk_key->pk_ctx, rsa_key ) ) != 0 )
+    if( ( ret = rsa_copy( key_cert->key->pk_ctx, rsa_key ) ) != 0 )
         return( ret );
+
+    key_cert->cert = own_cert;
+    key_cert->key_own_alloc = 1;
 
     return( 0 );
 }
@@ -3509,17 +3543,25 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
                           rsa_sign_func rsa_sign,
                           rsa_key_len_func rsa_key_len )
 {
-    ssl->own_cert    = own_cert;
+    int ret;
+    ssl_key_cert *key_cert = ssl_add_key_cert( ssl );
 
-    if( ( ssl->pk_key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+    if( key_cert == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    ssl->pk_key_own_alloc = 1;
+    if( ( key_cert->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    pk_init( ssl->pk_key );
+    pk_init( key_cert->key );
 
-    return( pk_init_ctx_rsa_alt( ssl->pk_key, rsa_key,
-                                 rsa_decrypt, rsa_sign, rsa_key_len ) );
+    if( ( ret = pk_init_ctx_rsa_alt( key_cert->key, rsa_key,
+                                 rsa_decrypt, rsa_sign, rsa_key_len ) ) != 0 )
+        return( ret );
+
+    key_cert->cert = own_cert;
+    key_cert->key_own_alloc = 1;
+
+    return( 0 );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
@@ -4188,13 +4230,26 @@ void ssl_free( ssl_context *ssl )
     }
 #endif
 
-#if defined(POLARSSL_PK_C)
-    if( ssl->pk_key_own_alloc )
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    if( ssl->key_cert != NULL )
     {
-        pk_free( ssl->pk_key );
-        polarssl_free( ssl->pk_key );
+        ssl_key_cert *cur = ssl->key_cert, *next;
+
+        while( cur != NULL )
+        {
+            next = cur->next;
+
+            if( cur->key_own_alloc )
+            {
+                pk_free( cur->key );
+                polarssl_free( cur->key );
+            }
+            polarssl_free( cur );
+
+            cur = next;
+        }
     }
-#endif
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_finish != NULL )

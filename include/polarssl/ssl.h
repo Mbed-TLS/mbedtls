@@ -56,9 +56,8 @@
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 #include "x509_crt.h"
-#endif
-
 #include "x509_crl.h"
+#endif
 
 #if defined(POLARSSL_DHM_C)
 #include "dhm.h"
@@ -394,6 +393,9 @@ typedef struct _ssl_handshake_params ssl_handshake_params;
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 typedef struct _ssl_ticket_keys ssl_ticket_keys;
 #endif
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+typedef struct _ssl_key_cert ssl_key_cert;
+#endif
 
 /*
  * This structure is used for storing current session data.
@@ -543,6 +545,19 @@ struct _ssl_ticket_keys
 };
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+/*
+ * List of certificate + private key pairs
+ */
+struct _ssl_key_cert
+{
+    x509_crt *cert;                 /*!< cert                       */
+    pk_context *key;                /*!< private key                */
+    int key_own_alloc;              /*!< did we allocate key?       */
+    ssl_key_cert *next;             /*!< next key/cert pair         */
+};
+#endif /* POLARSSL_X509_CRT_PARSE_C */
+
 struct _ssl_context
 {
     /*
@@ -647,22 +662,18 @@ struct _ssl_context
     /*
      * PKI layer
      */
-#if defined(POLARSSL_PK_C)
-    pk_context *pk_key;                 /*!<  own private key         */
-    int pk_key_own_alloc;               /*!<  did we allocate pk_key? */
-#endif
-
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    x509_crt *own_cert;                 /*!<  own X.509 certificate   */
-    x509_crt *ca_chain;                 /*!<  own trusted CA chain    */
-    const char *peer_cn;                /*!<  expected peer CN        */
-#endif /* POLARSSL_X509_CRT_PARSE_C */
-    x509_crl *ca_crl;                   /*!<  trusted CA CRLs         */
+    ssl_key_cert *key_cert;             /*!<  own certificate(s)/key(s) */
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    x509_crt *ca_chain;                 /*!<  own trusted CA chain      */
+    x509_crl *ca_crl;                   /*!<  trusted CA CRLs           */
+    const char *peer_cn;                /*!<  expected peer CN          */
+#endif /* POLARSSL_X509_CRT_PARSE_C */
+
     /*
      * Support for generating and checking session tickets
      */
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_ticket_keys *ticket_keys;       /*!<  keys for ticket encryption */
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
@@ -966,15 +977,22 @@ void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
 /**
  * \brief          Set own certificate chain and private key
  *
- *                 Note: own_cert should contain IN order from the bottom
- *                 up your certificate chain. The top certificate (self-signed)
+ * \note           own_cert should contain in order from the bottom up your
+ *                 certificate chain. The top certificate (self-signed)
  *                 can be omitted.
+ *
+ * \note           This function may be called more than once if you want to
+ *                 support multiple certificates (eg, one using RSA and one
+ *                 using ECDSA). However, on client, currently only the first
+ *                 certificate is used (subsequent calls have no effect).
  *
  * \param ssl      SSL context
  * \param own_cert own public certificate chain
  * \param pk_key   own private key
+ *
+ * \return         0 on success or POLARSSL_ERR_SSL_MALLOC_FAILED
  */
-void ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
+int ssl_set_own_cert( ssl_context *ssl, x509_crt *own_cert,
                        pk_context *pk_key );
 
 #if defined(POLARSSL_RSA_C)
@@ -1495,6 +1513,18 @@ pk_type_t ssl_pk_alg_from_sig( unsigned char sig );
 #endif
 
 md_type_t ssl_md_alg_from_hash( unsigned char hash );
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+static inline pk_context *ssl_own_key( ssl_context *ssl )
+{
+    return( ssl->key_cert == NULL ? NULL : ssl->key_cert->key );
+}
+
+static inline x509_crt *ssl_own_cert( ssl_context *ssl )
+{
+    return( ssl->key_cert == NULL ? NULL : ssl->key_cert->cert );
+}
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #ifdef __cplusplus
 }

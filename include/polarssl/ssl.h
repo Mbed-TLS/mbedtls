@@ -492,6 +492,9 @@ struct _ssl_handshake_params
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     int ec_curve;                       /*!<  Selected elliptic curve */
 #endif
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    ssl_key_cert *key_cert;             /*!<  Own key/cert in use     */
+#endif
 
     /*
      * Checksum contexts
@@ -1517,12 +1520,14 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash );
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 static inline pk_context *ssl_own_key( ssl_context *ssl )
 {
-    return( ssl->key_cert == NULL ? NULL : ssl->key_cert->key );
+    return( ssl->handshake->key_cert == NULL ? NULL
+            : ssl->handshake->key_cert->key );
 }
 
 static inline x509_crt *ssl_own_cert( ssl_context *ssl )
 {
-    return( ssl->key_cert == NULL ? NULL : ssl->key_cert->cert );
+    return( ssl->handshake->key_cert == NULL ? NULL
+            : ssl->handshake->key_cert->cert );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 

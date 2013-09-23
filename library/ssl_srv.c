@@ -1271,7 +1271,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     /*
      * Search for a matching ciphersuite
-     * (At the end because we need information from the EC-based extensions)
+     * (At the end because we need information from the EC-based extensions
+     * and certificate from the SNI callback triggered by the SNI extension.)
      */
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     for( i = 0; ciphersuites[i] != 0; i++ )
@@ -1301,14 +1302,32 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                     continue;
 #endif
 
-                /* If ciphersuite requires us to have a private key of a
-                 * certain type, make sure we do */
-#if defined(POLARSSL_PK_C)
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+                /*
+                 * Final check: if ciphersuite requires us to have a
+                 * certificate/key of a particular type:
+                 * - select the appropriate certificate if we have one, or
+                 * - try the next ciphersuite if we don't
+                 * This must be done last since we modify the key_cert list.
+                 */
                 pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-                if( pk_alg != POLARSSL_PK_NONE &&
-                    ( ssl_own_key( ssl ) == NULL ||
-                      ! pk_can_do( ssl_own_key( ssl ), pk_alg ) ) )
-                    continue;
+                if( pk_alg != POLARSSL_PK_NONE )
+                {
+                    ssl_key_cert *good = NULL;
+                    ssl_key_cert *cur = ssl->key_cert;
+
+                    while( cur != NULL && good == NULL )
+                    {
+                        if( pk_can_do( cur->key, pk_alg ) )
+                            good = cur;
+                        cur = cur->next;
+                    }
+
+                    if( good == NULL )
+                        continue;
+                    else
+                        ssl->handshake->key_cert = good;
+                }
 #endif
 
                 goto have_ciphersuite;

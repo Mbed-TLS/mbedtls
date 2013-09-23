@@ -3849,6 +3849,10 @@ int ssl_handshake( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
 
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    ssl->handshake->key_cert = ssl->key_cert;
+#endif
+
     while( ssl->state != SSL_HANDSHAKE_OVER )
     {
         ret = ssl_handshake_step( ssl );

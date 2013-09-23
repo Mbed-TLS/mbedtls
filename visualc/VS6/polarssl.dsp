@@ -241,6 +241,18 @@ SOURCE=..\..\library\pkcs5.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\pkparse.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\pk_wrap.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\pkwrite.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\rsa.c
 # End Source File
 # Begin Source File
@@ -285,11 +297,35 @@ SOURCE=..\..\library\version.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\library\x509parse.c
+SOURCE=..\..\library\x509.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\library\x509write.c
+SOURCE=..\..\library\x509_create.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\x509_create.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\x509_crl.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\x509_crt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\x509_csr.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\x509write_crt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\x509write_csr.c
 # End Source File
 # Begin Source File
 
@@ -501,11 +537,19 @@ SOURCE=..\..\include\polarssl\version.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\x509.h
+SOURCE=..\..\include\polarssl\x509_crl.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\x509write.h
+SOURCE=..\..\include\polarssl\x509_crt.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\x509_csr.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\x509.h
 # End Source File
 # Begin Source File
 

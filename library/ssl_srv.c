@@ -647,7 +647,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
             j += 2, p += 2 )
         {
-            if( p[0] == 0 && p[1] == ssl->ciphersuites[ssl->minor_ver][i] )
+            if( p[0] == 0 && p[1] == ssl->ciphersuites[ssl->minor_ver][i] &&
+                ssl_get_ciphersuite_min_version( p[1] ) <= ssl->minor_ver )
                 goto have_ciphersuite;
         }
     }

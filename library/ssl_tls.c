@@ -3521,6 +3521,50 @@ int ssl_get_ciphersuite_id( const char *ciphersuite_name )
     return( 0 );
 }
 
+int ssl_get_ciphersuite_min_version( const int ciphersuite_id )
+{
+    switch( ciphersuite_id )
+    {
+        case TLS_RSA_WITH_RC4_128_MD5:
+        case TLS_RSA_WITH_RC4_128_SHA:
+        case TLS_RSA_WITH_3DES_EDE_CBC_SHA:
+        case TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
+        case TLS_RSA_WITH_AES_128_CBC_SHA:
+        case TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
+        case TLS_RSA_WITH_AES_256_CBC_SHA:
+        case TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
+        case TLS_RSA_WITH_CAMELLIA_128_CBC_SHA:
+        case TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA:
+        case TLS_RSA_WITH_CAMELLIA_256_CBC_SHA:
+        case TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA:
+        case TLS_RSA_WITH_NULL_MD5:
+        case TLS_RSA_WITH_NULL_SHA:
+        case TLS_RSA_WITH_DES_CBC_SHA:
+        case TLS_DHE_RSA_WITH_DES_CBC_SHA:
+            return SSL_MINOR_VERSION_0;
+
+        case TLS_RSA_WITH_AES_128_CBC_SHA256:
+        case TLS_RSA_WITH_AES_256_CBC_SHA256:
+        case TLS_DHE_RSA_WITH_AES_128_CBC_SHA256:
+        case TLS_DHE_RSA_WITH_AES_256_CBC_SHA256:
+        case TLS_RSA_WITH_AES_128_GCM_SHA256:
+        case TLS_RSA_WITH_AES_256_GCM_SHA384:
+        case TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:
+        case TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:
+        case TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256:
+        case TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256:
+        case TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256:
+        case TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256:
+        case TLS_RSA_WITH_NULL_SHA256:
+            return SSL_MINOR_VERSION_3;
+
+        default:
+            break;
+    }
+
+    return SSL_MINOR_VERSION_0;
+}
+
 const char *ssl_get_ciphersuite( const ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )

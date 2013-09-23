@@ -1134,6 +1134,7 @@ int ssl_parse_finished( ssl_context *ssl );
 int ssl_write_finished( ssl_context *ssl );
 
 void ssl_optimize_checksum( ssl_context *ssl, int ciphersuite );
+int ssl_get_ciphersuite_min_version( const int ciphersuite_id );
 
 #ifdef __cplusplus
 }

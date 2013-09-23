@@ -4127,6 +4127,9 @@ void ssl_transform_free( ssl_transform *transform )
     inflateEnd( &transform->ctx_inflate );
 #endif
 
+    cipher_free_ctx( &transform->cipher_ctx_enc );
+    cipher_free_ctx( &transform->cipher_ctx_dec );
+
     md_free_ctx( &transform->md_ctx_enc );
     md_free_ctx( &transform->md_ctx_dec );
 

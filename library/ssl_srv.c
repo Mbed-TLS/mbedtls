@@ -1540,25 +1540,24 @@ static int ssl_write_server_hello( ssl_context *ssl )
          */
         ssl->state++;
 
+#if defined(POLARSSL_HAVE_TIME)
+        ssl->session_negotiate->start = time( NULL );
+#endif
+
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
-        if( ssl->handshake->new_session_ticket == 0 )
+        if( ssl->handshake->new_session_ticket != 0 )
+        {
+            ssl->session_negotiate->length = n = 0;
+            memset( ssl->session_negotiate->id, 0, 32 );
+        }
+        else
+#endif /* POLARSSL_SSL_SESSION_TICKETS */
         {
             ssl->session_negotiate->length = n = 32;
             if( ( ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id,
                                     n ) ) != 0 )
                 return( ret );
         }
-        else
-        {
-            ssl->session_negotiate->length = n = 0;
-            memset( ssl->session_negotiate->id, 0, 32 );
-        }
-#else
-        ssl->session_negotiate->length = n = 32;
-        if( ( ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id,
-                                n ) ) != 0 )
-            return( ret );
-#endif /* POLARSSL_SSL_SESSION_TICKETS */
     }
     else
     {
@@ -2719,6 +2718,7 @@ static int ssl_write_new_session_ticket( ssl_context *ssl )
 {
     int ret;
     size_t tlen;
+    uint32_t lifetime = (uint32_t) ssl->ticket_lifetime;
 
     SSL_DEBUG_MSG( 2, ( "=> write new session ticket" ) );
 
@@ -2735,10 +2735,11 @@ static int ssl_write_new_session_ticket( ssl_context *ssl )
      * 8  .  9   ticket_len (n)
      * 10 .  9+n ticket content
      */
-    ssl->out_msg[4] = 0x00;
-    ssl->out_msg[5] = 0x00;
-    ssl->out_msg[6] = 0x00;
-    ssl->out_msg[7] = 0x00;
+
+    ssl->out_msg[4] = ( lifetime >> 24 ) & 0xFF;
+    ssl->out_msg[5] = ( lifetime >> 16 ) & 0xFF;
+    ssl->out_msg[6] = ( lifetime >>  8 ) & 0xFF;
+    ssl->out_msg[7] = ( lifetime       ) & 0xFF;
 
     if( ( ret = ssl_write_ticket( ssl, &tlen ) ) != 0 )
     {

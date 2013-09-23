@@ -31,6 +31,7 @@
 
 #ifdef _MSC_VER
 #include <basetsd.h>
+typedef UINT32 uint32_t;
 typedef UINT64 uint64_t;
 #else
 #include <stdint.h>

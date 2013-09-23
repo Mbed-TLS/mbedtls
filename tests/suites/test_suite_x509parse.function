@@ -75,7 +75,7 @@ void x509_crl_info( char *crl_file, char *result_str )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C:POLARSSL_X509_CRL_PARSE_C */
 void x509_verify( char *crt_file, char *ca_file, char *crl_file,
                   char *cn_name_str, int result, int flags_result,
                   char *verify_callback )

@@ -1391,6 +1391,8 @@ static int x509_crt_verify_top(
 #if defined(POLARSSL_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the chain's top crt */
         *flags |= x509_crt_verifycrl( child, trust_ca, ca_crl );
+#else
+        ((void) ca_crl);
 #endif
 
         if( x509_time_expired( &trust_ca->valid_to ) )

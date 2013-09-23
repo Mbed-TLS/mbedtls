@@ -490,7 +490,7 @@ struct _ssl_handshake_params
     ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
-    int ec_curve;                       /*!<  Selected elliptic curve */
+    const ecp_curve_info **curves;      /*!<  Supported elliptic curves */
 #endif
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     ssl_key_cert *key_cert;             /*!<  Own key/cert in use     */

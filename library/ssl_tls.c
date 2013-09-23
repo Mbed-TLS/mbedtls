@@ -4145,6 +4145,10 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
     ecdh_free( &handshake->ecdh_ctx );
 #endif
 
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
+    polarssl_free( handshake->curves );
+#endif
+
     memset( handshake, 0, sizeof( ssl_handshake_params ) );
 }
 

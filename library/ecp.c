@@ -703,7 +703,8 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
  */
 int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len )
 {
-    unsigned int named_curve;
+    uint16_t tls_id;
+    const ecp_curve_info *curve_info;
 
     /*
      * We expect at least three bytes (see below)
@@ -720,10 +721,14 @@ int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len )
     /*
      * Next two bytes are the namedcurve value
      */
-    named_curve = *(*buf)++;
-    named_curve <<= 8;
-    named_curve |= *(*buf)++;
-    return ecp_use_known_dp( grp, ecp_grp_id_from_named_curve( named_curve ) );
+    tls_id = *(*buf)++;
+    tls_id <<= 8;
+    tls_id |= *(*buf)++;
+
+    if( ( curve_info = ecp_curve_info_from_tls_id( tls_id ) ) == NULL )
+        return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
+
+    return ecp_use_known_dp( grp, curve_info->grp_id );
 }
 
 /*
@@ -732,7 +737,10 @@ int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len )
 int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen )
 {
-    unsigned int named_curve;
+    const ecp_curve_info *curve_info;
+
+    if( ( curve_info = ecp_curve_info_from_grp_id( grp->id ) ) == NULL )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     /*
      * We are going to write 3 bytes (see below)
@@ -749,17 +757,16 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
     /*
      * Next two bytes are the namedcurve value
      */
-    named_curve = ecp_named_curve_from_grp_id( grp->id );
-    buf[0] = named_curve >> 8;
-    buf[1] = named_curve & 0xFF;
+    buf[0] = curve_info->tls_id >> 8;
+    buf[1] = curve_info->tls_id & 0xFF;
 
     return 0;
 }
 
 /*
- * Get the internal identifer from the TLS name
+ * Get the curve info from the TLS identifier
  */
-ecp_group_id ecp_grp_id_from_named_curve( uint16_t tls_id )
+const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id )
 {
     const ecp_curve_info *curve_info;
 
@@ -768,16 +775,16 @@ ecp_group_id ecp_grp_id_from_named_curve( uint16_t tls_id )
          curve_info++ )
     {
         if( curve_info->tls_id == tls_id )
-            return( curve_info->grp_id );
+            return( curve_info );
     }
 
-    return( POLARSSL_ECP_DP_NONE );
+    return( NULL );
 }
 
 /*
- * Get the TLS name for the internal identifer
+ * Get the curve info for the internal identifer
  */
-uint16_t ecp_named_curve_from_grp_id( ecp_group_id grp_id )
+const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id )
 {
     const ecp_curve_info *curve_info;
 
@@ -786,10 +793,10 @@ uint16_t ecp_named_curve_from_grp_id( ecp_group_id grp_id )
          curve_info++ )
     {
         if( curve_info->grp_id == grp_id )
-            return( curve_info->tls_id );
+            return( curve_info );
     }
 
-    return( 0 );
+    return( NULL );
 }
 
 /*

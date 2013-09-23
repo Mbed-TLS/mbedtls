@@ -503,7 +503,7 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
 {
     size_t list_size;
     const unsigned char *p;
-    ecp_group_id grp_id;
+    const ecp_curve_info *curve_info;
 
     list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( list_size + 2 != len ||
@@ -516,11 +516,11 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     p = buf + 2;
     while( list_size > 0 )
     {
-        grp_id = ecp_grp_id_from_named_curve( ( p[0] << 8 ) | p[1] );
+        curve_info = ecp_curve_info_from_tls_id( ( p[0] << 8 ) | p[1] );
 
-        if( grp_id != POLARSSL_ECP_DP_NONE )
+        if( curve_info != NULL )
         {
-            ssl->handshake->ec_curve = grp_id;
+            ssl->handshake->ec_curve = curve_info->grp_id;
             return( 0 );
         }
 

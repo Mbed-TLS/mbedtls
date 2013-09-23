@@ -197,8 +197,8 @@ int main( int argc, char *argv[] )
     buf[n    ] = (unsigned char)( rsa.len >> 8 );
     buf[n + 1] = (unsigned char)( rsa.len      );
 
-    if( ( ret = rsa_pkcs1_sign( &rsa, NULL, NULL, RSA_PRIVATE, SIG_RSA_SHA1,
-                                0, hash, buf + n + 2 ) ) != 0 )
+    if( ( ret = rsa_pkcs1_sign( &rsa, ctr_drbg_random, &ctr_drbg, RSA_PRIVATE,
+                                SIG_RSA_SHA1, 0, hash, buf + n + 2 ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_sign returned %d\n\n", ret );
         goto exit;

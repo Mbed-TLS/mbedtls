@@ -65,12 +65,14 @@ int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
 #endif
 
-static int ssl_rsa_decrypt( void *ctx, int mode, size_t *olen,
+static int ssl_rsa_decrypt( void *ctx,
+                        int (*f_rng)(void *, unsigned char *, size_t),
+                        void *p_rng, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
                         size_t output_max_len )
 {
-    return rsa_pkcs1_decrypt( (rsa_context *) ctx, mode, olen, input, output,
-                              output_max_len );
+    return rsa_pkcs1_decrypt( (rsa_context *) ctx, f_rng, p_rng, mode, olen,
+                              input, output, output_max_len );
 }
 
 static int ssl_rsa_sign( void *ctx,

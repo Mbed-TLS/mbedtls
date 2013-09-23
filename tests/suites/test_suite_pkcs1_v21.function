@@ -61,6 +61,9 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
     rsa_context ctx;
     mpi P1, Q1, H, G;
     size_t output_len;
+    rnd_pseudo_info rnd_info;
+
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V21, {hash} );
@@ -88,7 +91,7 @@ pkcs1_rsaes_oaep_decrypt:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input_N:rad
 
     unhexify( message_str, {message_hex_string} );
 
-    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, RSA_PRIVATE, &output_len, message_str, output, 1000 ) == {result} );
+    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, &output_len, message_str, output, 1000 ) == {result} );
     if( {result} == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -260,7 +263,7 @@ pkcs1_rsassa_pss_verify:mod:radix_N:input_N:radix_E:input_E:digest:hash:message_
 #endif
     }
 
-    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
 
     rsa_free( &ctx );
 }

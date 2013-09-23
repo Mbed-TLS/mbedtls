@@ -1376,7 +1376,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         }
 
         if( ssl->rsa_key ) {
-            ret = ssl->rsa_decrypt( ssl->rsa_key, RSA_PRIVATE,
+            ret = ssl->rsa_decrypt( ssl->rsa_key, ssl->f_rng, ssl->p_rng,
+                                    RSA_PRIVATE,
                                    &ssl->handshake->pmslen,
                                     ssl->in_msg + i,
                                     ssl->handshake->premaster,
@@ -1497,7 +1498,8 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-    ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa, RSA_PUBLIC,
+    ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa, 
+                            NULL, NULL, RSA_PUBLIC,
                             hash_id, hashlen, hash, ssl->in_msg + 6 + n );
     if( ret != 0 )
     {

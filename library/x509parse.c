@@ -3234,7 +3234,7 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
 
         x509_hash( crl_list->tbs.p, crl_list->tbs.len, hash_id, hash );
 
-        if( !rsa_pkcs1_verify( &ca->rsa, RSA_PUBLIC, hash_id,
+        if( !rsa_pkcs1_verify( &ca->rsa, NULL, NULL, RSA_PUBLIC, hash_id,
                               0, hash, crl_list->sig.p ) == 0 )
         {
             /*
@@ -3367,7 +3367,7 @@ static int x509parse_verify_top(
 
         x509_hash( child->tbs.p, child->tbs.len, hash_id, hash );
 
-        if( rsa_pkcs1_verify( &trust_ca->rsa, RSA_PUBLIC, hash_id,
+        if( rsa_pkcs1_verify( &trust_ca->rsa, NULL, NULL, RSA_PUBLIC, hash_id,
                     0, hash, child->sig.p ) != 0 )
         {
             trust_ca = trust_ca->next;
@@ -3434,8 +3434,8 @@ static int x509parse_verify_child(
 
     x509_hash( child->tbs.p, child->tbs.len, hash_id, hash );
 
-    if( rsa_pkcs1_verify( &parent->rsa, RSA_PUBLIC, hash_id, 0, hash,
-                           child->sig.p ) != 0 )
+    if( rsa_pkcs1_verify( &parent->rsa, NULL, NULL, RSA_PUBLIC, hash_id, 0,
+                           hash, child->sig.p ) != 0 )
         *flags |= BADCERT_NOT_TRUSTED;
         
     /* Check trusted CA's CRL for the given crt */

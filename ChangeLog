@@ -12,6 +12,8 @@ Bugfix
 Security
    * Fixed potential heap buffer overflow on large hostname setting
    * Fixed potential negative value misinterpretation in load_file()
+   * RSA blinding on CRT operations to counter timing attacks
+     (found by Cyril Arnaud and Pierre-Alain Fouque)
 
 = Version 1.2.8 released 2013-06-19
 Features

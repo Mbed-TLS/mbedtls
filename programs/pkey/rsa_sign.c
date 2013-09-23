@@ -34,16 +34,21 @@
 
 #include "polarssl/rsa.h"
 #include "polarssl/sha1.h"
+#include "polarssl/ctr_drbg.h"
+#include "polarssl/entropy.h"
 
 #if !defined(POLARSSL_BIGNUM_C) || !defined(POLARSSL_RSA_C) ||  \
-    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_SHA1_C) || !defined(POLARSSL_FS_IO) ||    \
+    !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
-           "POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
+           "POLARSSL_SHA1_C and/or POLARSSL_FS_IO "
+           "and/or POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
+           "not defined.\n");
     return( 0 );
 }
 #else
@@ -53,8 +58,11 @@ int main( int argc, char *argv[] )
     int ret;
     size_t i;
     rsa_context rsa;
+    entropy_context entropy;
+    ctr_drbg_context ctr_drbg;
     unsigned char hash[20];
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
+    const char *pers = "rsa_decrypt";
 
     ret = 1;
 
@@ -66,6 +74,18 @@ int main( int argc, char *argv[] )
         printf( "\n" );
 #endif
 
+        goto exit;
+    }
+
+    printf( "\n  . Seeding the random number generator..." );
+    fflush( stdout );
+
+    entropy_init( &entropy );
+    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
+    {
+        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
@@ -120,8 +140,8 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = rsa_pkcs1_sign( &rsa, NULL, NULL, RSA_PRIVATE, SIG_RSA_SHA1,
-                                20, hash, buf ) ) != 0 )
+    if( ( ret = rsa_pkcs1_sign( &rsa, ctr_drbg_random, &ctr_drbg, RSA_PRIVATE,
+                                SIG_RSA_SHA1, 20, hash, buf ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_sign returned -0x%0x\n\n", -ret );
         goto exit;

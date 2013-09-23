@@ -875,7 +875,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
     if( ( ret = rsa_pkcs1_verify( &ssl->session_negotiate->peer_cert->rsa,
-                                  RSA_PUBLIC,
+                                  NULL, NULL, RSA_PUBLIC,
                                   hash_id, hashlen, hash, p ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "rsa_pkcs1_verify", ret );

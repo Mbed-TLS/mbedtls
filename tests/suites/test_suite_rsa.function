@@ -24,6 +24,9 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
     rsa_context ctx;
     mpi P1, Q1, H, G;
     int msg_len;
+    rnd_pseudo_info rnd_info;
+
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, {padding_mode}, 0 );
@@ -92,7 +95,7 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
 #endif
     }
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, {digest}, 0, hash_result, output ) == {result} );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, {digest}, 0, hash_result, output ) == {result} );
     if( {result} == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -168,7 +171,7 @@ rsa_pkcs1_verify:message_hex_string:padding_mode:digest:mod:radix_N:input_N:radi
 #endif
     }
 
-    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );
 
     rsa_free( &ctx );
 }
@@ -185,6 +188,9 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     rsa_context ctx;
     mpi P1, Q1, H, G;
     int hash_len;
+    rnd_pseudo_info rnd_info;
+
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, {padding_mode}, 0 );
@@ -214,7 +220,7 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
     unhexify( message_str, {message_hex_string} );
     hash_len = unhexify( hash_result, {hash_result_string} );
 
-    TEST_ASSERT( rsa_pkcs1_sign( &ctx, NULL, NULL, RSA_PRIVATE, SIG_RSA_RAW, hash_len, hash_result, output ) == 0 );
+    TEST_ASSERT( rsa_pkcs1_sign( &ctx, rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, SIG_RSA_RAW, hash_len, hash_result, output ) == 0 );
 
     hexify( output_str, output, ctx.len );
 
@@ -249,7 +255,7 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     hash_len = unhexify( hash_result, {hash_result_string} );
     unhexify( result_str, {result_hex_str} );
 
-    TEST_ASSERT( rsa_pkcs1_verify( &ctx, RSA_PUBLIC, SIG_RSA_RAW, hash_len, hash_result, result_str ) == {correct} );
+    TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, SIG_RSA_RAW, hash_len, hash_result, result_str ) == {correct} );
 
     rsa_free( &ctx );
 }
@@ -335,6 +341,9 @@ rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:in
     rsa_context ctx;
     mpi P1, Q1, H, G;
     size_t output_len;
+    rnd_pseudo_info rnd_info;
+
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, {padding_mode}, 0 );
@@ -363,7 +372,7 @@ rsa_pkcs1_decrypt:message_hex_string:padding_mode:mod:radix_P:input_P:radix_Q:in
     unhexify( message_str, {message_hex_string} );
     output_len = 0;
 
-    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, RSA_PRIVATE, &output_len, message_str, output, {max_output} ) == {result} );
+    TEST_ASSERT( rsa_pkcs1_decrypt( &ctx, rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, &output_len, message_str, output, {max_output} ) == {result} );
     if( {result} == 0 )
     {
         hexify( output_str, output, ctx.len );
@@ -417,6 +426,9 @@ rsa_private:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input
     unsigned char output_str[1000];
     rsa_context ctx;
     mpi P1, Q1, H, G;
+    rnd_pseudo_info rnd_info;
+
+    memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V15, 0 );
@@ -444,7 +456,7 @@ rsa_private:message_hex_string:mod:radix_P:input_P:radix_Q:input_Q:radix_N:input
 
     unhexify( message_str, {message_hex_string} );
 
-    TEST_ASSERT( rsa_private( &ctx, message_str, output ) == {result} );
+    TEST_ASSERT( rsa_private( &ctx, rnd_pseudo_rand, &rnd_info, message_str, output ) == {result} );
     if( {result} == 0 )
     {
         hexify( output_str, output, ctx.len );

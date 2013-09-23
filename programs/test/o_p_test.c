@@ -185,7 +185,7 @@ int main( int argc, char *argv[] )
     printf( "  . Generating the RSA decrypted value for OpenSSL (PUBLIC) with PolarSSL (PRIVATE) ..." );
     fflush( stdout );
 
-    if( ( ret = rsa_pkcs1_decrypt( &p_rsa, RSA_PRIVATE, &olen, o_pub_encrypted, p_pub_decrypted, 1024 ) ) != 0 )
+    if( ( ret = rsa_pkcs1_decrypt( &p_rsa, ctr_drbg_random, &ctr_drbg, RSA_PRIVATE, &olen, o_pub_encrypted, p_pub_decrypted, 1024 ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );
     }
@@ -209,7 +209,7 @@ int main( int argc, char *argv[] )
     printf( "  . Generating the RSA decrypted value for OpenSSL (PRIVATE) with PolarSSL (PUBLIC) ..." );
     fflush( stdout );
 
-    if( ( ret = rsa_pkcs1_decrypt( &p_rsa, RSA_PUBLIC, &olen, o_priv_encrypted, p_priv_decrypted, 1024 ) ) != 0 )
+    if( ( ret = rsa_pkcs1_decrypt( &p_rsa, ctr_drbg_random, &ctr_drbg, RSA_PUBLIC, &olen, o_priv_encrypted, p_priv_decrypted, 1024 ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );
     }

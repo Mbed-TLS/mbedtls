@@ -151,6 +151,11 @@ typedef struct
     mpi RP;                     /*!<  cached R^2 mod P  */
     mpi RQ;                     /*!<  cached R^2 mod Q  */
 
+#if !defined(POLARSSL_RSA_NO_CRT)
+    mpi Vi;                     /*!<  cached blinding value     */
+    mpi Vf;                     /*!<  cached un-blinding value  */
+#endif
+
     int padding;                /*!<  RSA_PKCS_V15 for 1.5 padding and
                                       RSA_PKCS_v21 for OAEP/PSS         */
     int hash_id;                /*!<  Hash identifier of md_type_t as
@@ -242,6 +247,8 @@ int rsa_public( rsa_context *ctx,
  * \brief          Do an RSA private key operation
  *
  * \param ctx      RSA context
+ * \param f_rng    RNG function (Needed for blinding)
+ * \param p_rng    RNG parameter
  * \param input    input buffer
  * \param output   output buffer
  *
@@ -251,6 +258,8 @@ int rsa_public( rsa_context *ctx,
  *                 enough (eg. 128 bytes if RSA-1024 is used).
  */
 int rsa_private( rsa_context *ctx,
+                 int (*f_rng)(void *, unsigned char *, size_t),
+                 void *p_rng,
                  const unsigned char *input,
                  unsigned char *output );
 
@@ -260,7 +269,8 @@ int rsa_private( rsa_context *ctx,
  *                 RSA operation.
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Needed for padding and PKCS#1 v2.1 encoding)
+ * \param f_rng    RNG function (Needed for padding and PKCS#1 v2.1 encoding
+ *                               and RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param ilen     contains the plaintext length
@@ -283,7 +293,7 @@ int rsa_pkcs1_encrypt( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v1.5 encryption (RSAES-PKCS1-v1_5-ENCRYPT)
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Needed for padding)
+ * \param f_rng    RNG function (Needed for padding and RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param ilen     contains the plaintext length
@@ -306,7 +316,8 @@ int rsa_rsaes_pkcs1_v15_encrypt( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v2.1 OAEP encryption (RSAES-OAEP-ENCRYPT)
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Needed for padding and PKCS#1 v2.1 encoding)
+ * \param f_rng    RNG function (Needed for padding and PKCS#1 v2.1 encoding
+ *                               and RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param label    buffer holding the custom label to use
@@ -335,6 +346,8 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
  *                 the message padding
  *
  * \param ctx      RSA context
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param olen     will contain the plaintext length
  * \param input    buffer holding the encrypted data
@@ -348,6 +361,8 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
  *                 an error is thrown.
  */
 int rsa_pkcs1_decrypt( rsa_context *ctx,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng,
                        int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
@@ -357,6 +372,8 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v1.5 decryption (RSAES-PKCS1-v1_5-DECRYPT)
  *
  * \param ctx      RSA context
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param olen     will contain the plaintext length
  * \param input    buffer holding the encrypted data
@@ -370,6 +387,8 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
  *                 an error is thrown.
  */
 int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng,
                                  int mode, size_t *olen,
                                  const unsigned char *input,
                                  unsigned char *output,
@@ -379,6 +398,8 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v2.1 OAEP decryption (RSAES-OAEP-DECRYPT)
  *
  * \param ctx      RSA context
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param label    buffer holding the custom label to use
  * \param label_len contains the label length
@@ -394,6 +415,8 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
  *                 an error is thrown.
  */
 int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng,
                             int mode,
                             const unsigned char *label, size_t label_len,
                             size_t *olen,
@@ -407,7 +430,8 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
  *                 a message digest
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding)
+ * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding and for
+ *                 RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
@@ -440,6 +464,8 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v1.5 signature (RSASSA-PKCS1-v1_5-SIGN)
  *
  * \param ctx      RSA context
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
  * \param hashlen  message digest length (for SIG_RSA_RAW only)
@@ -453,6 +479,8 @@ int rsa_pkcs1_sign( rsa_context *ctx,
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  */
 int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng,
                                int mode,
                                int hash_id,
                                unsigned int hashlen,
@@ -463,7 +491,8 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v2.1 PSS signature (RSASSA-PSS-SIGN)
  *
  * \param ctx      RSA context
- * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding)
+ * \param f_rng    RNG function (Needed for PKCS#1 v2.1 encoding and for
+ *                               RSA_PRIVATE)
  * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
@@ -498,6 +527,8 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  *                 the message digest
  *
  * \param ctx      points to an RSA public key
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
  * \param hashlen  message digest length (for SIG_RSA_RAW only)
@@ -517,6 +548,8 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  *                 keep both hashes the same.
  */
 int rsa_pkcs1_verify( rsa_context *ctx,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng,
                       int mode,
                       int hash_id,
                       unsigned int hashlen,
@@ -527,6 +560,8 @@ int rsa_pkcs1_verify( rsa_context *ctx,
  * \brief          Perform a PKCS#1 v1.5 verification (RSASSA-PKCS1-v1_5-VERIFY)
  *
  * \param ctx      points to an RSA public key
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
  * \param hashlen  message digest length (for SIG_RSA_RAW only)
@@ -540,6 +575,8 @@ int rsa_pkcs1_verify( rsa_context *ctx,
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  */
 int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng,
                                  int mode,
                                  int hash_id,
                                  unsigned int hashlen,
@@ -551,6 +588,8 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  * \brief          Do a public RSA and check the message digest
  *
  * \param ctx      points to an RSA public key
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
  * \param mode     RSA_PUBLIC or RSA_PRIVATE
  * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
  * \param hashlen  message digest length (for SIG_RSA_RAW only)
@@ -570,6 +609,8 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  *                 keep both hashes the same.
  */
 int rsa_rsassa_pss_verify( rsa_context *ctx,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng,
                            int mode,
                            int hash_id,
                            unsigned int hashlen,

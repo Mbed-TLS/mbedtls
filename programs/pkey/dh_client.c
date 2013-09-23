@@ -205,7 +205,7 @@ int main( int argc, char *argv[] )
 
     sha1( buf, (int)( p - 2 - buf ), hash );
 
-    if( ( ret = rsa_pkcs1_verify( &rsa, RSA_PUBLIC, SIG_RSA_SHA1,
+    if( ( ret = rsa_pkcs1_verify( &rsa, NULL, NULL, RSA_PUBLIC, SIG_RSA_SHA1,
                                   0, hash, p ) ) != 0 )
     {
         printf( " failed\n  ! rsa_pkcs1_verify returned %d\n\n", ret );

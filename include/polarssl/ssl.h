@@ -270,7 +270,9 @@
  * Generic function pointers for allowing external RSA private key
  * implementations.
  */
-typedef int (*rsa_decrypt_func)( void *ctx, int mode, size_t *olen,
+typedef int (*rsa_decrypt_func)( void *ctx,
+                        int (*f_rng)(void *, unsigned char *, size_t),
+                        void *p_rng, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
                         size_t output_max_len ); 
 typedef int (*rsa_sign_func)( void *ctx,

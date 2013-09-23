@@ -25,6 +25,7 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	hash/md5sum			hash/sha1sum		\
 	hash/sha2sum		pkey/dh_client		\
 	pkey/dh_genprime	pkey/dh_server		\
+	pkey/gen_key							\
 	pkey/key_app		pkey/key_app_writer	\
 	pkey/mpi_demo		pkey/pk_decrypt		\
 	pkey/pk_encrypt		pkey/pk_sign		\
@@ -95,6 +96,10 @@ pkey/dh_server: pkey/dh_server.c ../library/libpolarssl.a
 pkey/ecdsa: pkey/ecdsa.c ../library/libpolarssl.a
 	echo   "  CC    pkey/ecdsa.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/ecdsa.c       $(LDFLAGS) -o $@
+
+pkey/gen_key: pkey/gen_key.c ../library/libpolarssl.a
+	echo   "  CC    pkey/gen_key.c"
+	$(CC) $(CFLAGS) $(OFLAGS) pkey/gen_key.c   $(LDFLAGS) -o $@
 
 pkey/key_app: pkey/key_app.c ../library/libpolarssl.a
 	echo   "  CC    pkey/key_app.c"

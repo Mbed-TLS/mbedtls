@@ -10,6 +10,9 @@ target_link_libraries(dh_server polarssl)
 add_executable(ecdsa ecdsa.c)
 target_link_libraries(ecdsa polarssl)
 
+add_executable(gen_key gen_key.c)
+target_link_libraries(gen_key polarssl)
+
 add_executable(key_app key_app.c)
 target_link_libraries(key_app polarssl)
 
@@ -52,6 +55,6 @@ target_link_libraries(pk_encrypt polarssl)
 add_executable(pk_decrypt pk_decrypt.c)
 target_link_libraries(pk_decrypt polarssl)
 
-install(TARGETS dh_client dh_genprime dh_server key_app mpi_demo rsa_genkey rsa_sign rsa_verify rsa_encrypt rsa_decrypt pk_encrypt pk_decrypt pk_sign pk_verify
+install(TARGETS dh_client dh_genprime dh_server key_app mpi_demo rsa_genkey rsa_sign rsa_verify rsa_encrypt rsa_decrypt pk_encrypt pk_decrypt pk_sign pk_verify gen_key
         DESTINATION "bin"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

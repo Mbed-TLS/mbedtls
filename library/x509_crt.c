@@ -946,7 +946,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     HANDLE hFind;
 
     if( len > MAX_PATH - 3 )
-        return( POLARSSL_ERR_X509_INVALID_INPUT );
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
 	memset( szDir, 0, sizeof(szDir) );
 	memset( filename, 0, MAX_PATH );

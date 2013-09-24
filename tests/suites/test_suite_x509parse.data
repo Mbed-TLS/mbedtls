@@ -44,27 +44,27 @@ x509_cert_info:"data_files/cert_sha512.crt":"cert. version \: 3\nserial number \
 
 X509 Certificate information EC, SHA1 Digest
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
-x509_cert_info:"data_files/server5.crt":"cert. version \: 3\nserial number \: 03\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 07\:57\:40\nexpires on    \: 2023-08-07 07\:57\:40\nsigned using  \: ECDSA with SHA1\nEC key size   \: 192 bits\n"
+x509_cert_info:"data_files/server5-sha1.crt":"cert. version \: 3\nserial number \: 12\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-09-24 16\:21\:27\nexpires on    \: 2023-09-22 16\:21\:27\nsigned using  \: ECDSA with SHA1\nEC key size   \: 256 bits\n"
 
 X509 Certificate information EC, SHA224 Digest
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
-x509_cert_info:"data_files/server5-sha224.crt":"cert. version \: 3\nserial number \: 06\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 08\:08\:12\nexpires on    \: 2023-08-07 08\:08\:12\nsigned using  \: ECDSA with SHA224\nEC key size   \: 192 bits\n"
+x509_cert_info:"data_files/server5-sha224.crt":"cert. version \: 3\nserial number \: 13\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-09-24 16\:21\:27\nexpires on    \: 2023-09-22 16\:21\:27\nsigned using  \: ECDSA with SHA224\nEC key size   \: 256 bits\n"
 
 X509 Certificate information EC, SHA256 Digest
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
-x509_cert_info:"data_files/server5-sha256.crt":"cert. version \: 3\nserial number \: 07\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 08\:08\:17\nexpires on    \: 2023-08-07 08\:08\:17\nsigned using  \: ECDSA with SHA256\nEC key size   \: 192 bits\n"
+x509_cert_info:"data_files/server5.crt":"cert. version \: 3\nserial number \: 09\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-09-24 15\:52\:04\nexpires on    \: 2023-09-22 15\:52\:04\nsigned using  \: ECDSA with SHA256\nEC key size   \: 256 bits\n"
 
 X509 Certificate information EC, SHA384 Digest
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
-x509_cert_info:"data_files/server5-sha384.crt":"cert. version \: 3\nserial number \: 08\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 08\:08\:25\nexpires on    \: 2023-08-07 08\:08\:25\nsigned using  \: ECDSA with SHA384\nEC key size   \: 192 bits\n"
+x509_cert_info:"data_files/server5-sha384.crt":"cert. version \: 3\nserial number \: 14\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-09-24 16\:21\:27\nexpires on    \: 2023-09-22 16\:21\:27\nsigned using  \: ECDSA with SHA384\nEC key size   \: 256 bits\n"
 
 X509 Certificate information EC, SHA512 Digest
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
-x509_cert_info:"data_files/server5-sha512.crt":"cert. version \: 3\nserial number \: 09\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 08\:08\:32\nexpires on    \: 2023-08-07 08\:08\:32\nsigned using  \: ECDSA with SHA512\nEC key size   \: 192 bits\n"
+x509_cert_info:"data_files/server5-sha512.crt":"cert. version \: 3\nserial number \: 15\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-09-24 16\:21\:27\nexpires on    \: 2023-09-22 16\:21\:27\nsigned using  \: ECDSA with SHA512\nEC key size   \: 256 bits\n"
 
 X509 Certificate information RSA signed by EC
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
-x509_cert_info:"data_files/server4.crt":"cert. version \: 3\nserial number \: 04\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 07\:57\:57\nexpires on    \: 2023-08-07 07\:57\:57\nsigned using  \: ECDSA with SHA1\nRSA key size  \: 1024 bits\n"
+x509_cert_info:"data_files/server4.crt":"cert. version \: 3\nserial number \: 08\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-09-24 15\:52\:04\nexpires on    \: 2023-09-22 15\:52\:04\nsigned using  \: ECDSA with SHA256\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information EC signed by RSA
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
@@ -112,23 +112,23 @@ x509_crl_info:"data_files/crl_sha512.pem":"CRL version   \: 1\nissuer name   \: 
 
 X509 CRL Information EC, SHA1 Digest
 depends_on:POLARSSL_PEM_PARSE_C
-x509_crl_info:"data_files/crl-ec.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:26\nnext update   \: 2023-08-07 08\:06\:26\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA1\n"
+x509_crl_info:"data_files/crl-ec-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA1\n"
 
 X509 CRL Information EC, SHA224 Digest
 depends_on:POLARSSL_PEM_PARSE_C
-x509_crl_info:"data_files/crl-ec-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:38\nnext update   \: 2023-08-07 08\:06\:38\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA224\n"
+x509_crl_info:"data_files/crl-ec-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA224\n"
 
 X509 CRL Information EC, SHA256 Digest
 depends_on:POLARSSL_PEM_PARSE_C
-x509_crl_info:"data_files/crl-ec-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:44\nnext update   \: 2023-08-07 08\:06\:44\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA256\n"
+x509_crl_info:"data_files/crl-ec-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA256\n"
 
 X509 CRL Information EC, SHA384 Digest
 depends_on:POLARSSL_PEM_PARSE_C
-x509_crl_info:"data_files/crl-ec-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:06\:52\nnext update   \: 2023-08-07 08\:06\:52\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA384\n"
+x509_crl_info:"data_files/crl-ec-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA384\n"
 
 X509 CRL Information EC, SHA512 Digest
 depends_on:POLARSSL_PEM_PARSE_C
-x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-08-09 08\:07\:01\nnext update   \: 2023-08-07 08\:07\:01\nRevoked certificates\:\nserial number\: 02 revocation date\: 2013-08-09 08\:04\:03\nsigned using  \: ECDSA with SHA512\n"
+x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA512\n"
 
 X509 Get Distinguished Name #1
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
@@ -300,31 +300,31 @@ x509_verify:"data_files/server3.crt":"data_files/test-ca.crt":"data_files/crl.pe
 
 X509 Certificate verification #33 (Valid, RSA cert, EC CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_PKCS1_V15
-x509_verify:"data_files/server4.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server4.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #34 (Valid, EC cert, EC CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #35 (Revoked, EC CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA1_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
 
-X509 Certificate verification #36 (Valid, EC CA, SHA224 Digest)
+X509 Certificate verification #36 (Valid, EC CA, SHA1 Digest)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509_verify:"data_files/server5-sha224.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server5-sha1.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
-X509 Certificate verification #37 (Valid, EC CA, SHA256 Digest)
+X509 Certificate verification #37 (Valid, EC CA, SHA224 Digest)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA256_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509_verify:"data_files/server5-sha256.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server5-sha224.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #38 (Valid, EC CA, SHA384 Digest)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA512_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509_verify:"data_files/server5-sha384.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server5-sha384.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #39 (Valid, EC CA, SHA512 Digest)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_SHA512_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509_verify:"data_files/server5-sha512.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server5-sha512.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #40 (Valid, depth 0, RSA, CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
@@ -332,7 +332,7 @@ x509_verify:"data_files/test-ca.crt":"data_files/test-ca.crt":"data_files/crl.pe
 
 X509 Certificate verification #41 (Valid, depth 0, EC, CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
-x509_verify:"data_files/test-ca2.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/test-ca2.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #42 (Depth 0, not CA, RSA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
@@ -340,11 +340,11 @@ x509_verify:"data_files/server2.crt":"data_files/server2.crt":"data_files/crl.pe
 
 X509 Certificate verification #43 (Depth 0, not CA, EC)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C
-x509_verify:"data_files/server5.crt":"data_files/server5.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+x509_verify:"data_files/server5.crt":"data_files/server5.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #44 (Corrupted signature, EC)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED
-x509_verify:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+x509_verify:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #45 (Corrupted signature, RSA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
@@ -352,19 +352,19 @@ x509_verify:"data_files/server2-badsign.crt":"data_files/test-ca.crt":"data_file
 
 X509 Certificate verification #46 (Valid, depth 2, EC-RSA-EC)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
-x509_verify:"data_files/server7_int-ca.crt":"data_files/test-ca2.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server7_int-ca.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #47 (Untrusted, depth 2, EC-RSA-EC)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
-x509_verify:"data_files/server7_int-ca.crt":"data_files/test-ca.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+x509_verify:"data_files/server7_int-ca.crt":"data_files/test-ca.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #48 (Missing intermediate CA, EC-RSA-EC)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
-x509_verify:"data_files/server7.crt":"data_files/test-ca.crt":"data_files/crl-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+x509_verify:"data_files/server7.crt":"data_files/test-ca.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #49 (Valid, depth 2, RSA-EC-RSA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
-x509_verify:"data_files/server8_int-ca2.crt":"data_files/test-ca.crt":"data_files/crl-ec.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server8_int-ca2.crt":"data_files/test-ca.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #50 (Valid, multiple CAs)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15

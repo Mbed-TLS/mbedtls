@@ -118,55 +118,6 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-static int parse_cert_key( x509_crt *crt, const char *crt_file,
-                           pk_context *key, const char *key_file )
-{
-    int ret;
-
-#if defined(POLARSSL_FS_IO)
-    if( strlen( crt_file ) )
-        ret = x509_crt_parse_file( crt, crt_file );
-    else
-#endif
-#if defined(POLARSSL_CERTS_C)
-        ret = x509_crt_parse( crt, (const unsigned char *) test_srv_crt,
-                              strlen( test_srv_crt ) );
-#else
-    {
-        ret = 1;
-        printf("POLARSSL_CERTS_C not defined.");
-    }
-#endif
-    if( ret != 0 )
-    {
-        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
-        return( ret );
-    }
-
-#if defined(POLARSSL_FS_IO)
-    if( strlen( key_file ) )
-        ret = pk_parse_keyfile( key, key_file, "" );
-    else
-#endif
-#if defined(POLARSSL_CERTS_C)
-        ret = pk_parse_key( key, (const unsigned char *) test_srv_key,
-                strlen( test_srv_key ), NULL, 0 );
-#else
-    {
-        ret = 1;
-        printf("POLARSSL_CERTS_C not defined.");
-    }
-#endif
-    if( ret != 0 )
-    {
-        printf( " failed\n  !  pk_parse_key returned -0x%x\n\n", -ret );
-        return( ret );
-    }
-
-    return( 0 );
-}
-#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 #if defined(POLARSSL_FS_IO)
@@ -617,11 +568,87 @@ int main( int argc, char *argv[] )
     printf( "  . Loading the server cert. and key..." );
     fflush( stdout );
 
-    if( parse_cert_key( &srvcert, opt.crt_file, &pkey, opt.key_file ) != 0 )
+#if defined(POLARSSL_FS_IO)
+    if( strlen( opt.crt_file ) )
+        ret = x509_crt_parse_file( &srvcert, opt.crt_file );
+    else
+#endif
+#if defined(POLARSSL_CERTS_C)
+        ret = x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
+                              strlen( test_srv_crt ) );
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
+    if( ret != 0 )
+    {
+        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
+    }
 
-    if( parse_cert_key( &srvcert2, opt.crt_file2, &pkey2, opt.key_file2 ) != 0 )
+#if defined(POLARSSL_FS_IO)
+    if( strlen( opt.key_file ) )
+        ret = pk_parse_keyfile( &pkey, opt.key_file, "" );
+    else
+#endif
+#if defined(POLARSSL_CERTS_C)
+        ret = pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
+                strlen( test_srv_key ), NULL, 0 );
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
+    if( ret != 0 )
+    {
+        printf( " failed\n  !  pk_parse_key returned -0x%x\n\n", -ret );
         goto exit;
+    }
+
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_ECDSA_C)
+#if defined(POLARSSL_FS_IO)
+    if( strlen( opt.crt_file2 ) )
+        ret = x509_crt_parse_file( &srvcert2, opt.crt_file2 );
+    else
+#endif
+#if defined(POLARSSL_CERTS_C)
+        ret = x509_crt_parse( &srvcert2, (const unsigned char *) test_srv_crt2,
+                              strlen( test_srv_crt2 ) );
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
+    if( ret != 0 )
+    {
+        printf( " failed\n  !  x509_crt_parse(2) returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
+#if defined(POLARSSL_FS_IO)
+    if( strlen( opt.key_file2 ) )
+        ret = pk_parse_keyfile( &pkey2, opt.key_file2, "" );
+    else
+#endif
+#if defined(POLARSSL_CERTS_C)
+        ret = pk_parse_key( &pkey2, (const unsigned char *) test_srv_key2,
+                strlen( test_srv_key2 ), NULL, 0 );
+#else
+    {
+        ret = 1;
+        printf("POLARSSL_CERTS_C not defined.");
+    }
+#endif
+    if( ret != 0 )
+    {
+        printf( " failed\n  !  pk_parse_key(2) returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+#endif /* POLARSSL_RSA_C && POLARSSL_ECDSA_C */
 
     printf( " ok\n" );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
@@ -680,7 +707,9 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
     ssl_set_own_cert( &ssl, &srvcert, &pkey );
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_ECDSA_C)
     ssl_set_own_cert( &ssl, &srvcert2, &pkey2 );
+#endif
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)

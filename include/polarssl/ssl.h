@@ -493,8 +493,16 @@ struct _ssl_handshake_params
     const ecp_curve_info **curves;      /*!<  Supported elliptic curves */
 #endif
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    ssl_key_cert *key_cert;             /*!<  Own key/cert in use     */
-    int free_key_cert;                  /*!<  Shall we free key_cert? */
+    /**
+     * Current key/cert or key/cert list.
+     * On client: pointer to ssl->key_cert, only the first entry used.
+     * On server: starts as a pointer to ssl->key_cert, then becomes
+     * a pointer to the chosen key from this list or the SNI list.
+     */
+    ssl_key_cert *key_cert;
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+    ssl_key_cert *sni_key_cert;         /*!<  key/cert list from SNI  */
+#endif
 #endif
 
     /*

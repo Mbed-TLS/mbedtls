@@ -339,8 +339,8 @@ static int ssl_parse_ticket( ssl_context *ssl,
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /*
- * Wrapper around f_sni, allowing use of
- * ssl_set_own_cert() but making it act on ssl->hanshake->key_cert instead.
+ * Wrapper around f_sni, allowing use of ssl_set_own_cert() but
+ * making it act on ssl->hanshake->sni_key_cert instead.
  */
 static int ssl_sni_wrapper( ssl_context *ssl,
                             const unsigned char* name, size_t len )
@@ -350,8 +350,7 @@ static int ssl_sni_wrapper( ssl_context *ssl,
 
     ssl->key_cert = NULL;
     ret = ssl->f_sni( ssl->p_sni, ssl, name, len );
-    ssl->handshake->key_cert = ssl->key_cert;
-    ssl->handshake->free_key_cert = 1;
+    ssl->handshake->sni_key_cert = ssl->key_cert;
 
     ssl->key_cert = key_cert_ori;
 
@@ -933,13 +932,20 @@ static int ssl_key_matches_curves( pk_context *pk,
 static int ssl_pick_cert( ssl_context *ssl,
                           const ssl_ciphersuite_t * ciphersuite_info )
 {
-    ssl_key_cert *cur;
+    ssl_key_cert *cur, *list;
     pk_type_t pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+    if( ssl->handshake->sni_key_cert != NULL )
+        list = ssl->handshake->sni_key_cert;
+    else
+#endif
+        list = ssl->handshake->key_cert;
 
     if( pk_alg == POLARSSL_PK_NONE )
         return( 0 );
 
-    for( cur = ssl->key_cert; cur != NULL; cur = cur->next )
+    for( cur = list; cur != NULL; cur = cur->next )
     {
         if( ! pk_can_do( cur->key, pk_alg ) )
             continue;

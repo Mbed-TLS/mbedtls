@@ -4170,9 +4170,23 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
     polarssl_free( handshake->curves );
 #endif
 
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    if( handshake->free_key_cert != 0 )
-        ssl_key_cert_free( handshake->key_cert );
+#if defined(POLARSSL_X509_CRT_PARSE_C) && \
+    defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+    /*
+     * Free only the linked list wrapper, not the keys themselves
+     * since the belong to the SNI callback
+     */
+    if( handshake->sni_key_cert != NULL )
+    {
+        ssl_key_cert *cur = handshake->sni_key_cert, *next;
+
+        while( cur != NULL )
+        {
+            next = cur->next;
+            polarssl_free( cur );
+            cur = next;
+        }
+    }
 #endif
 
     memset( handshake, 0, sizeof( ssl_handshake_params ) );

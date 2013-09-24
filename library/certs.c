@@ -28,7 +28,7 @@
 #if defined(POLARSSL_CERTS_C)
 
 #if defined(POLARSSL_ECDSA_C)
-const char test_ca_crt[] =
+const char test_ca_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIICUjCCAdegAwIBAgIJAMFD4n5iQ8zoMAoGCCqGSM49BAMCMD4xCzAJBgNVBAYT\r\n"
 "Ak5MMREwDwYDVQQKEwhQb2xhclNTTDEcMBoGA1UEAxMTUG9sYXJzc2wgVGVzdCBF\r\n"
@@ -45,7 +45,7 @@ const char test_ca_crt[] =
 "uCjn8pwUOkABXK8Mss90fzCfCEOtIA==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_ca_key[] =
+const char test_ca_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
 "DEK-Info: DES-EDE3-CBC,307EAB469933D64E\r\n"
@@ -56,9 +56,9 @@ const char test_ca_key[] =
 "a77x/sY1Bvii8S9/XhDTb6pTMx06wzrm\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
 
-const char test_ca_pwd[] = "PolarSSLTest";
+const char test_ca_pwd_ec[] = "PolarSSLTest";
 
-const char test_srv_crt[] =
+const char test_srv_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIICHzCCAaWgAwIBAgIBCTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n"
 "A1UEChMIUG9sYXJTU0wxHDAaBgNVBAMTE1BvbGFyc3NsIFRlc3QgRUMgQ0EwHhcN\r\n"
@@ -74,14 +74,14 @@ const char test_srv_crt[] =
 "fGa5kHvHARBPc8YAIVIqDvHH1Q==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_srv_key[] =
+const char test_srv_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "MHcCAQEEIPEqEyB2AnCoPL/9U/YDHvdqXYbIogTywwyp6/UfDw6noAoGCCqGSM49\r\n"
 "AwEHoUQDQgAEN8xW2XYJHlpyPsdZLf8gbu58+QaRdNCtFLX3aCJZYpJO5QDYIxH/\r\n"
 "6i/SNF1dFr2KiMJrdw1VzYoqDvoByLTt/w==\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
 
-const char test_cli_crt[] =
+const char test_cli_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIICLDCCAbKgAwIBAgIBDTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n"
 "A1UEChMIUG9sYXJTU0wxHDAaBgNVBAMTE1BvbGFyc3NsIFRlc3QgRUMgQ0EwHhcN\r\n"
@@ -97,15 +97,16 @@ const char test_cli_crt[] =
 "LwjQje5PDGHfd3h9tP38Qknu5bJqws0md2KOKHyeV0U=\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_cli_key[] =
+const char test_cli_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "MHcCAQEEIPb3hmTxZ3/mZI3vyk7p3U3wBf+WIop6hDhkFzJhmLcqoAoGCCqGSM49\r\n"
 "AwEHoUQDQgAEV+WusXPf06y7k7iB/xKu7uZTrM5VU/Y0Dswu42MlC9+Y4vNcYDaW\r\n"
 "wNUYFHDlf5/VS0UY5bBs1Vz4lo+HcKPkxw==\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
+#endif /* POLARSSL_ECDSA_C */
 
-#else /* !POLARSSL_ECDSA_C, so POLARSSL_RSA_C */
-const char test_ca_crt[] =
+#if defined(POLARSSL_RSA_C)
+const char test_ca_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDhzCCAm+gAwIBAgIBADANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -128,7 +129,7 @@ const char test_ca_crt[] =
 "7Z2mCGDNMhjQc+BYcdnl0lPXjdDK6V0qCg1dVewhUBcW5gZKzV7e9+DpVA==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_ca_key[] =
+const char test_ca_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
 "DEK-Info: DES-EDE3-CBC,A8A95B05D5B7206B\r\n"
@@ -160,9 +161,9 @@ const char test_ca_key[] =
 "P/eQiddSf0brnpiLJRh7qZrl9XuqYdpUqnoEdMAfotDOID8OtV7gt8a48ad8VPW2\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-const char test_ca_pwd[] = "PolarSSLTest";
+const char test_ca_pwd_rsa[] = "PolarSSLTest";
 
-const char test_srv_crt[] =
+const char test_srv_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDPzCCAiegAwIBAgIBATANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -184,7 +185,7 @@ const char test_srv_crt[] =
 "/WzRyYRBRjAI49mzHX6raleqnw==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_srv_key[] =
+const char test_srv_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEogIBAAKCAQEAqQIfPUBq1VVTi/027oJlLhVhXom/uOhFkNvuiBZS0/FDUEeW\r\n"
 "Ellkh2v9K+BG+XO+3c+S4ZFb7Wagb4kpeUWA0INq1UFDd185fAkER4KwVzlw7aPs\r\n"
@@ -213,7 +214,7 @@ const char test_srv_key[] =
 "mKsIVRBq4IfwiwyMNG2BYZQAwbSDjjPtn/kPBduPzPj7eriByhI=\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-const char test_cli_crt[] =
+const char test_cli_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDPzCCAiegAwIBAgIBBDANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -235,7 +236,7 @@ const char test_cli_crt[] =
 "D+stpAKiQLAWaAusIWKYEyw9MQ==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_cli_key[] =
+const char test_cli_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEpAIBAAKCAQEAyHTEzLn5tXnpRdkUYLB9u5Pyax6fM60Nj4o8VmXl3ETZzGaF\r\n"
 "B9X4J7BKNdBjngpuG7fa8H6r7gwQk4ZJGDTzqCrSV/Uu1C93KYRhTYJQj6eVSHD1\r\n"
@@ -263,13 +264,43 @@ const char test_cli_key[] =
 "bHFVW2r0dBTqegP2/KTOxKzaHfC1qf0RGDsUoJCNJrd1cwoCLG8P2EF4w3OBrKqv\r\n"
 "8u4ytY0F+Vlanj5lm3TaoHSVF1+NWPyOTiwevIECGKwSxvlki4fDAA==\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
-#endif /* !POLARSSL_ECDSA_C, so POLARSSL_RSA_C */
+#endif /* POLARSSL_RSA_C */
 
+#if defined(POLARSSL_DHM_C)
 const char test_dhm_params[] =
 "-----BEGIN DH PARAMETERS-----\r\n"
 "MIGHAoGBAJ419DBEOgmQTzo5qXl5fQcN9TN455wkOL7052HzxxRVMyhYmwQcgJvh\r\n"
 "1sa18fyfR9OiVEMYglOpkqVoGLN7qd5aQNNi5W7/C+VBdHTBJcGZJyyP5B3qcz32\r\n"
 "9mLJKudlVudV0Qxk5qUJaPZ/xupz0NyoVpviuiBOI1gNi8ovSXWzAgEC\r\n"
 "-----END DH PARAMETERS-----\r\n";
+#endif
+
+#if defined(POLARSSL_RSA_C)
+const char *test_ca_crt = test_ca_crt_rsa;
+const char *test_ca_key = test_ca_key_rsa;
+const char *test_ca_pwd = test_ca_pwd_rsa;
+const char *test_srv_crt = test_srv_crt_rsa;
+const char *test_srv_key = test_srv_key_rsa;
+const char *test_cli_crt = test_cli_crt_rsa;
+const char *test_cli_key = test_cli_key_rsa;
+#else /* ! POLARSSL_RSA_C, so POLARSSL_ECDSA_C */
+const char *test_ca_crt = test_ca_crt_ec;
+const char *test_ca_key = test_ca_key_ec;
+const char *test_ca_pwd = test_ca_pwd_ec;
+const char *test_srv_crt = test_srv_crt_ec;
+const char *test_srv_key = test_srv_key_ec;
+const char *test_cli_crt = test_cli_crt_ec;
+const char *test_cli_key = test_cli_key_ec;
+#endif
+
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_ECDSA_C)
+const char *test_ca_crt2 = test_ca_crt_ec;
+const char *test_ca_key2 = test_ca_key_ec;
+const char *test_ca_pwd2 = test_ca_pwd_ec;
+const char *test_srv_crt2 = test_srv_crt_ec;
+const char *test_srv_key2 = test_srv_key_ec;
+const char *test_cli_crt2 = test_cli_crt_ec;
+const char *test_cli_key2 = test_cli_key_ec;
+#endif
 
 #endif /* POLARSSL_CERTS_C */

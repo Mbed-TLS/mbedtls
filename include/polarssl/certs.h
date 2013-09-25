@@ -31,6 +31,9 @@
 extern "C" {
 #endif
 
+/* Concatenation of all available CA certificates */
+extern const char test_ca_list[];
+
 /* First set of certificates: RSA, or ECDSA if RSA is not available */
 extern const char *test_ca_crt;
 extern const char *test_ca_key;

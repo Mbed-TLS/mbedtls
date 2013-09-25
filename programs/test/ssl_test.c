@@ -218,8 +218,8 @@ static int ssl_test( struct options *opt )
             goto exit;
         }
 
-        ret =  x509_crt_parse( &srvcert, (const unsigned char *) test_ca_crt,
-                               strlen( test_ca_crt ) );
+        ret =  x509_crt_parse( &srvcert, (const unsigned char *) test_ca_list,
+                               strlen( test_ca_list ) );
         if( ret != 0 )
         {
             printf( "  !  x509_crt_parse returned %d\n\n", ret );

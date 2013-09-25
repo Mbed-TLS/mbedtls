@@ -302,14 +302,4 @@ const char *test_cli_crt = test_cli_crt_ec;
 const char *test_cli_key = test_cli_key_ec;
 #endif
 
-#if defined(POLARSSL_RSA_C) && defined(POLARSSL_ECDSA_C)
-const char *test_ca_crt2 = test_ca_crt_ec;
-const char *test_ca_key2 = test_ca_key_ec;
-const char *test_ca_pwd2 = test_ca_pwd_ec;
-const char *test_srv_crt2 = test_srv_crt_ec;
-const char *test_srv_key2 = test_srv_key_ec;
-const char *test_cli_crt2 = test_cli_crt_ec;
-const char *test_cli_key2 = test_cli_key_ec;
-#endif
-
 #endif /* POLARSSL_CERTS_C */

@@ -34,7 +34,10 @@ extern "C" {
 /* Concatenation of all available CA certificates */
 extern const char test_ca_list[];
 
-/* First set of certificates: RSA, or ECDSA if RSA is not available */
+/*
+ * Convenience for users who just want a certificate:
+ * RSA by default, or ECDSA if RSA i not available
+ */
 extern const char *test_ca_crt;
 extern const char *test_ca_key;
 extern const char *test_ca_pwd;
@@ -42,17 +45,6 @@ extern const char *test_srv_crt;
 extern const char *test_srv_key;
 extern const char *test_cli_crt;
 extern const char *test_cli_key;
-
-/* Second set of certificates: ECDSA is both are available */
-#if defined(POLARSSL_RSA_C) && defined(POLARSSL_RSA_C)
-extern const char *test_ca_crt2;
-extern const char *test_ca_key2;
-extern const char *test_ca_pwd2;
-extern const char *test_srv_crt2;
-extern const char *test_srv_key2;
-extern const char *test_cli_crt2;
-extern const char *test_cli_key2;
-#endif
 
 #if defined(POLARSSL_ECDSA_C)
 extern const char test_ca_crt_ec[];

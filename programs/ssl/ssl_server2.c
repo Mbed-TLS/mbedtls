@@ -127,11 +127,13 @@ static void my_debug( void *ctx, int level, const char *str )
     "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
     "                        default: \"\" (pre-loaded) (overrides ca_file)\n" \
     "    crt_file=%%s         Your own cert and chain (in bottom to top order, top may be omitted)\n" \
-    "                        default: \"\" (pre-loaded)\n" \
-    "    key_file=%%s         default: \"\" (pre-loaded)\n" \
+    "                        default: see note after key_file2\n" \
+    "    key_file=%%s         default: see note after key_file2\n" \
     "    crt_file2=%%s        Your second cert and chain (in bottom to top order, top may be omitted)\n" \
-    "                        default: \"\" (pre-loaded)\n" \
-    "    key_file2=%%s        default: \"\" (pre-loaded)\n"
+    "                        default: see note after key_file2\n" \
+    "    key_file2=%%s        default: see note below\n" \
+    "                        note: if neither crt_file/key_file nor crt_file2/key_file2 are used,\n" \
+    "                              preloaded certificate(s) and key(s) are used if available\n"
 #else
 #define USAGE_IO \
     "\n"                                                    \
@@ -222,6 +224,7 @@ int main( int argc, char *argv[] )
     pk_context pkey;
     x509_crt srvcert2;
     pk_context pkey2;
+    int key_cert_provided = 0;
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
@@ -570,85 +573,82 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
-        ret = x509_crt_parse_file( &srvcert, opt.crt_file );
-    else
-#endif
-#if defined(POLARSSL_CERTS_C)
-        ret = x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
-                              strlen( test_srv_crt ) );
-#else
     {
-        ret = 1;
-        printf("POLARSSL_CERTS_C not defined.");
+        key_cert_provided = 1;
+        if( ( ret = x509_crt_parse_file( &srvcert, opt.crt_file ) ) != 0 )
+        {
+            printf( " failed\n  !  x509_crt_parse_file returned -0x%x\n\n",
+                    -ret );
+            goto exit;
+        }
     }
-#endif
-    if( ret != 0 )
-    {
-        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
-        goto exit;
-    }
-
-#if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = pk_parse_keyfile( &pkey, opt.key_file, "" );
-    else
-#endif
-#if defined(POLARSSL_CERTS_C)
-        ret = pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
-                strlen( test_srv_key ), NULL, 0 );
-#else
     {
-        ret = 1;
-        printf("POLARSSL_CERTS_C not defined.");
+        key_cert_provided = 1;
+        if( ( ret = pk_parse_keyfile( &pkey, opt.key_file, "" ) ) != 0 )
+        {
+            printf( " failed\n  !  pk_parse_keyfile returned -0x%x\n\n", -ret );
+            goto exit;
+        }
     }
-#endif
-    if( ret != 0 )
-    {
-        printf( " failed\n  !  pk_parse_key returned -0x%x\n\n", -ret );
-        goto exit;
-    }
-
-#if defined(POLARSSL_RSA_C) && defined(POLARSSL_ECDSA_C)
-#if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file2 ) )
-        ret = x509_crt_parse_file( &srvcert2, opt.crt_file2 );
-    else
-#endif
-#if defined(POLARSSL_CERTS_C)
-        ret = x509_crt_parse( &srvcert2, (const unsigned char *) test_srv_crt2,
-                              strlen( test_srv_crt2 ) );
-#else
     {
-        ret = 1;
-        printf("POLARSSL_CERTS_C not defined.");
+        key_cert_provided = 1;
+        if( ( ret = x509_crt_parse_file( &srvcert2, opt.crt_file2 ) ) != 0 )
+        {
+            printf( " failed\n  !  x509_crt_parse_file(2) returned -0x%x\n\n",
+                    -ret );
+            goto exit;
+        }
     }
-#endif
-    if( ret != 0 )
-    {
-        printf( " failed\n  !  x509_crt_parse(2) returned -0x%x\n\n", -ret );
-        goto exit;
-    }
-
-#if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file2 ) )
-        ret = pk_parse_keyfile( &pkey2, opt.key_file2, "" );
-    else
-#endif
-#if defined(POLARSSL_CERTS_C)
-        ret = pk_parse_key( &pkey2, (const unsigned char *) test_srv_key2,
-                strlen( test_srv_key2 ), NULL, 0 );
-#else
     {
-        ret = 1;
-        printf("POLARSSL_CERTS_C not defined.");
+        key_cert_provided = 1;
+        if( ( ret = pk_parse_keyfile( &pkey2, opt.key_file2, "" ) ) != 0 )
+        {
+            printf( " failed\n  !  pk_parse_keyfile(2) returned -0x%x\n\n",
+                    -ret );
+            goto exit;
+        }
     }
 #endif
-    if( ret != 0 )
+    if( key_cert_provided == 0 )
     {
-        printf( " failed\n  !  pk_parse_key(2) returned -0x%x\n\n", -ret );
+#if !defined(POLARSSL_CERTS_C)
+        printf( "Not certificated or key provided, and \n"
+                "POLARSSL_CERTS_C not defined!\n" );
         goto exit;
-    }
+#else
+        if( ( ret = x509_crt_parse( &srvcert,
+                                    (const unsigned char *) test_srv_crt,
+                                    strlen( test_srv_crt ) ) ) != 0 )
+        {
+            printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+        if( ( ret = pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
+                                  strlen( test_srv_key ), NULL, 0 ) ) != 0 )
+        {
+            printf( " failed\n  !  pk_parse_key returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_ECDSA_C)
+        if( ( ret = x509_crt_parse( &srvcert2,
+                                    (const unsigned char *) test_srv_crt2,
+                                    strlen( test_srv_crt2 ) ) ) != 0 )
+        {
+            printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+        if( ( ret = pk_parse_key( &pkey2, (const unsigned char *) test_srv_key2,
+                                  strlen( test_srv_key2 ), NULL, 0 ) ) != 0 )
+        {
+            printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n", -ret );
+            goto exit;
+        }
 #endif /* POLARSSL_RSA_C && POLARSSL_ECDSA_C */
+#endif /* POLARSSL_CERTS_C */
+    }
 
     printf( " ok\n" );
 #endif /* POLARSSL_X509_CRT_PARSE_C */

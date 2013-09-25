@@ -45,9 +45,5 @@
 /* For testing with compat.sh */
 #define POLARSSL_FS_IO
 
-/* Temporary for current certificates */
-#define POLARSSL_ECP_DP_SECP192R1_ENABLED
-#define POLARSSL_SHA1_C
-
 /* marker for activate-config.pl
  * \} name SECTION: PolarSSL modules */

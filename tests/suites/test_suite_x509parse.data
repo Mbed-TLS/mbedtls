@@ -67,7 +67,7 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/server4.crt":"cert. version \: 3\nserial number \: 08\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-09-24 15\:52\:04\nexpires on    \: 2023-09-22 15\:52\:04\nsigned using  \: ECDSA with SHA256\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information EC signed by RSA
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
 x509_cert_info:"data_files/server3.crt":"cert. version \: 3\nserial number \: 0D\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2013-08-09 09\:17\:03\nexpires on    \: 2023-08-07 09\:17\:03\nsigned using  \: RSA with SHA1\nEC key size   \: 192 bits\n"
 
 X509 certificate v1 with extension
@@ -375,7 +375,7 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_
 x509_verify:"data_files/server2.crt":"data_files/test-ca_cat21.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Parse Selftest
-depends_on:POLARSSL_MD5_C:POLARSSL_PEM_PARSE_C:POLARSSL_SELF_TEST
+depends_on:POLARSSL_MD5_C:POLARSSL_PEM_PARSE_C
 x509_selftest:
 
 X509 Certificate ASN1 (Incorrect first tag)

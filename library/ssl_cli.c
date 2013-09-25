@@ -1619,14 +1619,6 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
         p++;
     }
 
-    // TODO: shall we abort now or send an empty certificate list later?
-
-    if( ssl->handshake->cert_type == 0 )
-    {
-        SSL_DEBUG_MSG( 1, ( "no known cert_type provided" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
-    }
-
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {

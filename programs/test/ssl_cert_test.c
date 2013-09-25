@@ -29,13 +29,14 @@
 #include <stdio.h>
 
 #if !defined(POLARSSL_RSA_C) || !defined(POLARSSL_X509_CRT_PARSE_C) || \
-    !defined(POLARSSL_FS_IO)
+    !defined(POLARSSL_FS_IO) || !defined(POLARSSL_X509_CRL_PARSE_C)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
     ((void) argv);
 
     printf("POLARSSL_RSA_C and/or POLARSSL_X509_CRT_PARSE_C "
+           "POLARSSL_FS_IO and/or POLARSSL_X509_CRL_PARSE_C "
            "not defined.\n");
     return( 0 );
 }
@@ -257,4 +258,5 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_RSA_C && POLARSSL_X509_CRT_PARSE_C && POLARSSL_FS_IO */
+#endif /* POLARSSL_RSA_C && POLARSSL_X509_CRT_PARSE_C && POLARSSL_FS_IO &&
+          POLARSSL_X509_CRL_PARSE_C */

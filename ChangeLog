@@ -25,6 +25,8 @@ Features
    * X509 Certificate writing with extensions (basic_constraints,
      issuer_key_identifier, etc)
    * Optional blinding for RSA, DHM and EC
+   * Support for multiple active certificate / key pairs in SSL servers for
+   	 the same host (Not to be confused with SNI!)
 
 Changes
    * Ability to enable / disable SSL v3 / TLS 1.0 / TLS 1.1 / TLS 1.2

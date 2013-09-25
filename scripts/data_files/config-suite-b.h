@@ -34,7 +34,6 @@
 #define POLARSSL_SSL_CLI_C
 #define POLARSSL_SSL_SRV_C
 #define POLARSSL_SSL_TLS_C
-#define POLARSSL_X509_CRL_PARSE_C
 #define POLARSSL_X509_CRT_PARSE_C
 #define POLARSSL_X509_USE_C
 
@@ -45,10 +44,6 @@
 
 /* For testing with compat.sh */
 #define POLARSSL_FS_IO
-
-/* Temporary for current certificates */
-#define POLARSSL_ECP_DP_SECP192R1_ENABLED
-#define POLARSSL_SHA1_C
 
 /* marker for activate-config.pl
  * \} name SECTION: PolarSSL modules */

@@ -64,6 +64,11 @@ typedef enum
 } ecp_group_id;
 
 /**
+ * Number of supported curves (plus one for NONE)
+ */
+#define POLARSSL_ECP_DP_MAX     6
+
+/**
  * Curve information for use by other modules
  */
 typedef struct
@@ -365,24 +370,22 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen );
 
 /**
- * \brief           Get a TLS NamedCurve value from an internal group identifier
+ * \brief           Get curve information from an internal group identifier
  *
  * \param grp_id    A POLARSSL_ECP_DP_XXX value
  *
- * \return          The associated TLS NamedCurve value on success,
- *                  0 on failure.
+ * \return          The associated curve information or NULL
  */
-uint16_t ecp_named_curve_from_grp_id( ecp_group_id id );
+const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id );
 
 /**
- * \brief           Get an internal group identifier from a TLS NamedCurve value
+ * \brief           Get curve information from a TLS NamedCurve value
  *
- * \param curve     A value from TLS's enum NamedCurve
+ * \param grp_id    A POLARSSL_ECP_DP_XXX value
  *
- * \return          The associated POLARSSL_ECP_DP_XXX identifer on success,
- *                  POLARSSL_ECP_DP_NONE on failure.
+ * \return          The associated curve information or NULL
  */
-ecp_group_id ecp_grp_id_from_named_curve( uint16_t curve );
+const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id );
 
 /**
  * \brief           Import a point from a TLS ECPoint record

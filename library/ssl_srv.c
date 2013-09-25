@@ -338,6 +338,25 @@ static int ssl_parse_ticket( ssl_context *ssl,
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+/*
+ * Wrapper around f_sni, allowing use of ssl_set_own_cert() but
+ * making it act on ssl->hanshake->sni_key_cert instead.
+ */
+static int ssl_sni_wrapper( ssl_context *ssl,
+                            const unsigned char* name, size_t len )
+{
+    int ret;
+    ssl_key_cert *key_cert_ori = ssl->key_cert;
+
+    ssl->key_cert = NULL;
+    ret = ssl->f_sni( ssl->p_sni, ssl, name, len );
+    ssl->handshake->sni_key_cert = ssl->key_cert;
+
+    ssl->key_cert = key_cert_ori;
+
+    return( ret );
+}
+
 static int ssl_parse_servername_ext( ssl_context *ssl,
                                      const unsigned char *buf,
                                      size_t len )
@@ -365,7 +384,7 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
 
         if( p[0] == TLS_EXT_SERVERNAME_HOSTNAME )
         {
-            ret = ssl->f_sni( ssl->p_sni, ssl, p + 3, hostname_len );
+            ret = ssl_sni_wrapper( ssl, p + 3, hostname_len );
             if( ret != 0 )
             {
                 ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
@@ -501,9 +520,9 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
                                                 const unsigned char *buf,
                                                 size_t len )
 {
-    size_t list_size;
+    size_t list_size, our_size;
     const unsigned char *p;
-    ecp_group_id grp_id;
+    const ecp_curve_info *curve_info, **curves;
 
     list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( list_size + 2 != len ||
@@ -513,15 +532,27 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    p = buf + 2;
-    while( list_size > 0 )
-    {
-        grp_id = ecp_grp_id_from_named_curve( ( p[0] << 8 ) | p[1] );
+    /* Don't allow our peer to make use allocated too much memory,
+     * and leave room for a final 0 */
+    our_size = list_size / 2 + 1;
+    if( our_size > POLARSSL_ECP_DP_MAX )
+        our_size = POLARSSL_ECP_DP_MAX;
 
-        if( grp_id != POLARSSL_ECP_DP_NONE )
+    if( ( curves = polarssl_malloc( our_size * sizeof( *curves ) ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    memset( curves, 0, our_size * sizeof( *curves ) );
+    ssl->handshake->curves = curves;
+
+    p = buf + 2;
+    while( list_size > 0 && our_size > 1 )
+    {
+        curve_info = ecp_curve_info_from_tls_id( ( p[0] << 8 ) | p[1] );
+
+        if( curve_info != NULL )
         {
-            ssl->handshake->ec_curve = grp_id;
-            return( 0 );
+            *curves++ = curve_info;
+            our_size--;
         }
 
         list_size -= 2;
@@ -875,6 +906,69 @@ have_ciphersuite_v2:
 }
 #endif /* POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
 
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+#if defined(POLARSSL_ECDSA_C)
+static int ssl_key_matches_curves( pk_context *pk,
+                                   const ecp_curve_info **curves )
+{
+    const ecp_curve_info **crv = curves;
+    ecp_group_id grp_id = pk_ec( *pk )->grp.id;
+
+    while( *crv != NULL )
+    {
+        if( (*crv)->grp_id == grp_id )
+            return( 1 );
+        crv++;
+    }
+
+    return( 0 );
+}
+#endif /* POLARSSL_ECDSA_C */
+
+/*
+ * Try picking a certificate for this ciphersuite,
+ * return 0 on success and -1 on failure.
+ */
+static int ssl_pick_cert( ssl_context *ssl,
+                          const ssl_ciphersuite_t * ciphersuite_info )
+{
+    ssl_key_cert *cur, *list;
+    pk_type_t pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+    if( ssl->handshake->sni_key_cert != NULL )
+        list = ssl->handshake->sni_key_cert;
+    else
+#endif
+        list = ssl->handshake->key_cert;
+
+    if( pk_alg == POLARSSL_PK_NONE )
+        return( 0 );
+
+    for( cur = list; cur != NULL; cur = cur->next )
+    {
+        if( ! pk_can_do( cur->key, pk_alg ) )
+            continue;
+
+#if defined(POLARSSL_ECDSA_C)
+        if( pk_alg == POLARSSL_PK_ECDSA )
+        {
+            if( ssl_key_matches_curves( cur->key, ssl->handshake->curves ) )
+                break;
+        }
+        else
+#endif
+            break;
+    }
+
+    if( cur == NULL )
+        return( -1 );
+
+    ssl->handshake->key_cert = cur;
+    return( 0 );
+}
+#endif /* POLARSSL_X509_CRT_PARSE_C */
+
 static int ssl_parse_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -888,9 +982,6 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     int handshake_failure = 0;
     const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
-#if defined(POLARSSL_PK_C)
-    pk_type_t pk_alg;
-#endif
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
@@ -1271,7 +1362,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     /*
      * Search for a matching ciphersuite
-     * (At the end because we need information from the EC-based extensions)
+     * (At the end because we need information from the EC-based extensions
+     * and certificate from the SNI callback triggered by the SNI extension.)
      */
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     for( i = 0; ciphersuites[i] != 0; i++ )
@@ -1297,17 +1389,19 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
                 if( ssl_ciphersuite_uses_ec( ciphersuite_info ) &&
-                    ssl->handshake->ec_curve == 0 )
+                    ssl->handshake->curves[0] == NULL )
                     continue;
 #endif
 
-                /* If ciphersuite requires us to have a private key of a
-                 * certain type, make sure we do */
-#if defined(POLARSSL_PK_C)
-                pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-                if( pk_alg != POLARSSL_PK_NONE &&
-                    ( ssl->pk_key == NULL ||
-                      ! pk_can_do( ssl->pk_key, pk_alg ) ) )
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+                /*
+                 * Final check: if ciphersuite requires us to have a
+                 * certificate/key of a particular type:
+                 * - select the appropriate certificate if we have one, or
+                 * - try the next ciphersuite if we don't
+                 * This must be done last since we modify the key_cert list.
+                 */
+                if( ssl_pick_cert( ssl, ciphersuite_info ) != 0 )
                     continue;
 #endif
 
@@ -1909,7 +2003,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          * } ServerECDHParams;
          */
         if( ( ret = ecp_use_known_dp( &ssl->handshake->ecdh_ctx.grp,
-                                       ssl->handshake->ec_curve ) ) != 0 )
+                                   ssl->handshake->curves[0]->grp_id ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecp_use_known_dp", ret );
             return( ret );
@@ -2065,7 +2159,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         /*
          * Make the signature
          */
-        if( ssl->pk_key == NULL )
+        if( ssl_own_key( ssl ) == NULL )
         {
             SSL_DEBUG_MSG( 1, ( "got no private key" ) );
             return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -2075,13 +2169,13 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
         {
             *(p++) = ssl->handshake->sig_alg;
-            *(p++) = ssl_sig_from_pk( ssl->pk_key );
+            *(p++) = ssl_sig_from_pk( ssl_own_key( ssl ) );
 
             n += 2;
         }
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
-        if( ( ret = pk_sign( ssl->pk_key, md_alg, hash, hashlen,
+        if( ( ret = pk_sign( ssl_own_key( ssl ), md_alg, hash, hashlen,
                         p + 2 , &signature_len,
                         ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
@@ -2221,7 +2315,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n = 0;
 
-    if( ! pk_can_do( ssl->pk_key, POLARSSL_PK_RSA ) )
+    if( ! pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
     {
         SSL_DEBUG_MSG( 1, ( "got no RSA private key" ) );
         return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
@@ -2231,7 +2325,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
      * Decrypt the premaster using own private RSA key
      */
     i = 4;
-    n = pk_get_len( ssl->pk_key );
+    n = pk_get_len( ssl_own_key( ssl ) );
     ssl->handshake->pmslen = 48;
 
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
@@ -2254,7 +2348,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    ret = pk_decrypt( ssl->pk_key,
+    ret = pk_decrypt( ssl_own_key( ssl ),
                       ssl->in_msg + i, n,
                       ssl->handshake->premaster, &ssl->handshake->pmslen,
                       sizeof(ssl->handshake->premaster),

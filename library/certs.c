@@ -28,100 +28,112 @@
 #if defined(POLARSSL_CERTS_C)
 
 #if defined(POLARSSL_ECDSA_C)
-const char test_ca_crt[] =
-"-----BEGIN CERTIFICATE-----\r\n"
-"MIICEjCCAbmgAwIBAgIJAK1CeXaecvbhMAkGByqGSM49BAEwPjELMAkGA1UEBhMC\r\n"
-"TkwxETAPBgNVBAoTCFBvbGFyU1NMMRwwGgYDVQQDExNQb2xhcnNzbCBUZXN0IEVD\r\n"
-"IENBMB4XDTEzMDgwOTA3NDk0NloXDTIzMDgwNzA3NDk0NlowPjELMAkGA1UEBhMC\r\n"
-"TkwxETAPBgNVBAoTCFBvbGFyU1NMMRwwGgYDVQQDExNQb2xhcnNzbCBUZXN0IEVD\r\n"
-"IENBMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAElrizLPspIX2+kNvC+BOpJnw1\r\n"
-"9tnAi5nsUnt8r6N+KDybdaVUWmLIqZCrjuaGKwOdOZtl/bBp8KOpLZ4UDujV/qOB\r\n"
-"oDCBnTAdBgNVHQ4EFgQUvEDvue6auzY54S2porosu6a9EHEwbgYDVR0jBGcwZYAU\r\n"
-"vEDvue6auzY54S2porosu6a9EHGhQqRAMD4xCzAJBgNVBAYTAk5MMREwDwYDVQQK\r\n"
-"EwhQb2xhclNTTDEcMBoGA1UEAxMTUG9sYXJzc2wgVGVzdCBFQyBDQYIJAK1CeXae\r\n"
-"cvbhMAwGA1UdEwQFMAMBAf8wCQYHKoZIzj0EAQNIADBFAiBs5rd9NzQs/wQZVS6D\r\n"
-"rjpOpzFteqBkqe6YgKWkG5kDVwIhAKr4Lr4v+MU1G5D5oSZXYxvUPBa4yARcD7QM\r\n"
-"espQnlFX\r\n"
-"-----END CERTIFICATE-----\r\n";
+#define TEST_CA_CRT_EC                                                  \
+"-----BEGIN CERTIFICATE-----\r\n"                                       \
+"MIICUjCCAdegAwIBAgIJAMFD4n5iQ8zoMAoGCCqGSM49BAMCMD4xCzAJBgNVBAYT\r\n"  \
+"Ak5MMREwDwYDVQQKEwhQb2xhclNTTDEcMBoGA1UEAxMTUG9sYXJzc2wgVGVzdCBF\r\n"  \
+"QyBDQTAeFw0xMzA5MjQxNTQ5NDhaFw0yMzA5MjIxNTQ5NDhaMD4xCzAJBgNVBAYT\r\n"  \
+"Ak5MMREwDwYDVQQKEwhQb2xhclNTTDEcMBoGA1UEAxMTUG9sYXJzc2wgVGVzdCBF\r\n"  \
+"QyBDQTB2MBAGByqGSM49AgEGBSuBBAAiA2IABMPaKzRBN1gvh1b+/Im6KUNLTuBu\r\n"  \
+"ww5XUzM5WNRStJGVOQsj318XJGJI/BqVKc4sLYfCiFKAr9ZqqyHduNMcbli4yuiy\r\n"  \
+"aY7zQa0pw7RfdadHb9UZKVVpmlM7ILRmFmAzHqOBoDCBnTAdBgNVHQ4EFgQUnW0g\r\n"  \
+"JEkBPyvLeLUZvH4kydv7NnwwbgYDVR0jBGcwZYAUnW0gJEkBPyvLeLUZvH4kydv7\r\n"  \
+"NnyhQqRAMD4xCzAJBgNVBAYTAk5MMREwDwYDVQQKEwhQb2xhclNTTDEcMBoGA1UE\r\n"  \
+"AxMTUG9sYXJzc2wgVGVzdCBFQyBDQYIJAMFD4n5iQ8zoMAwGA1UdEwQFMAMBAf8w\r\n"  \
+"CgYIKoZIzj0EAwIDaQAwZgIxAMO0YnNWKJUAfXgSJtJxexn4ipg+kv4znuR50v56\r\n"  \
+"t4d0PCu412mUC6Nnd7izvtE2MgIxAP1nnJQjZ8BWukszFQDG48wxCCyci9qpdSMv\r\n"  \
+"uCjn8pwUOkABXK8Mss90fzCfCEOtIA==\r\n"                                  \
+"-----END CERTIFICATE-----\r\n"
+const char test_ca_crt_ec[] = TEST_CA_CRT_EC;
 
-const char test_ca_key[] =
+const char test_ca_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
-"DEK-Info: AES-128-CBC,2A7435F5137D68C6402DB35E5BFD277A\r\n"
+"DEK-Info: DES-EDE3-CBC,307EAB469933D64E\r\n"
 "\r\n"
-"Sw5YgGVvNxXMvnGKYPuUqiDfjXhK/VTQ6dE9+33jwobKJvqR4pIrelw5QbJ5MCi2\r\n"
-"dRGEMi4hT+EiS1UZtagqYUQyYZegZB48eoSRySsfW3kqQ4aG99+4iDLCY+JhICs9\r\n"
-"aZdJhyUSOy2KRnFN/ZUy/Hvlsy10dw/Cp73TpJZmTz4=\r\n"
+"IxbrRmKcAzctJqPdTQLA4SWyBYYGYJVkYEna+F7Pa5t5Yg/gKADrFKcm6B72e7DG\r\n"
+"ihExtZI648s0zdYw6qSJ74vrPSuWDe5qm93BqsfVH9svtCzWHW0pm1p0KTBCFfUq\r\n"
+"UsuWTITwJImcnlAs1gaRZ3sAWm7cOUidL0fo2G0fYUFNcYoCSLffCFTEHBuPnagb\r\n"
+"a77x/sY1Bvii8S9/XhDTb6pTMx06wzrm\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
 
-const char test_ca_pwd[] = "PolarSSLTest";
+const char test_ca_pwd_ec[] = "PolarSSLTest";
 
-const char test_srv_crt[] =
+const char test_srv_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
-"MIIB7TCCAZSgAwIBAgIBAzAJBgcqhkjOPQQBMD4xCzAJBgNVBAYTAk5MMREwDwYD\r\n"
-"VQQKEwhQb2xhclNTTDEcMBoGA1UEAxMTUG9sYXJzc2wgVGVzdCBFQyBDQTAeFw0x\r\n"
-"MzA4MDkwNzU3NDBaFw0yMzA4MDcwNzU3NDBaMDQxCzAJBgNVBAYTAk5MMREwDwYD\r\n"
-"VQQKEwhQb2xhclNTTDESMBAGA1UEAxMJbG9jYWxob3N0MEkwEwYHKoZIzj0CAQYI\r\n"
-"KoZIzj0DAQEDMgAEy0Lh3ZfhEwBiC8jmJfEg8NGxCDqHEtz+hPgYs37hDz9wTOoY\r\n"
-"+CJDtEUcDedgFCpqo4GdMIGaMAkGA1UdEwQCMAAwHQYDVR0OBBYEFKItALYotNzi\r\n"
-"cfBPd7LwETtkYmdBMG4GA1UdIwRnMGWAFLxA77numrs2OeEtqaK6LLumvRBxoUKk\r\n"
-"QDA+MQswCQYDVQQGEwJOTDERMA8GA1UEChMIUG9sYXJTU0wxHDAaBgNVBAMTE1Bv\r\n"
-"bGFyc3NsIFRlc3QgRUMgQ0GCCQCtQnl2nnL24TAJBgcqhkjOPQQBA0gAMEUCIE/J\r\n"
-"rb3TrYL+z1OsZ2rtCmji7hrPj570X4Qkm1Pb5QEvAiEAiq46sM0+1DSAU0u8FcuL\r\n"
-"jbRvSP9W7EJjb9QR3zNYbX4=\r\n"
+"MIICHzCCAaWgAwIBAgIBCTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n"
+"A1UEChMIUG9sYXJTU0wxHDAaBgNVBAMTE1BvbGFyc3NsIFRlc3QgRUMgQ0EwHhcN\r\n"
+"MTMwOTI0MTU1MjA0WhcNMjMwOTIyMTU1MjA0WjA0MQswCQYDVQQGEwJOTDERMA8G\r\n"
+"A1UEChMIUG9sYXJTU0wxEjAQBgNVBAMTCWxvY2FsaG9zdDBZMBMGByqGSM49AgEG\r\n"
+"CCqGSM49AwEHA0IABDfMVtl2CR5acj7HWS3/IG7ufPkGkXTQrRS192giWWKSTuUA\r\n"
+"2CMR/+ov0jRdXRa9iojCa3cNVc2KKg76Aci07f+jgZ0wgZowCQYDVR0TBAIwADAd\r\n"
+"BgNVHQ4EFgQUUGGlj9QH2deCAQzlZX+MY0anE74wbgYDVR0jBGcwZYAUnW0gJEkB\r\n"
+"PyvLeLUZvH4kydv7NnyhQqRAMD4xCzAJBgNVBAYTAk5MMREwDwYDVQQKEwhQb2xh\r\n"
+"clNTTDEcMBoGA1UEAxMTUG9sYXJzc2wgVGVzdCBFQyBDQYIJAMFD4n5iQ8zoMAoG\r\n"
+"CCqGSM49BAMCA2gAMGUCMQCaLFzXptui5WQN8LlO3ddh1hMxx6tzgLvT03MTVK2S\r\n"
+"C12r0Lz3ri/moSEpNZWqPjkCMCE2f53GXcYLqyfyJR078c/xNSUU5+Xxl7VZ414V\r\n"
+"fGa5kHvHARBPc8YAIVIqDvHH1Q==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_srv_key[] =
+const char test_srv_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
-"MF8CAQEEGO82j8OXBoUhVyauCA8XZ288l595u7BXWqAKBggqhkjOPQMBAaE0AzIA\r\n"
-"BMtC4d2X4RMAYgvI5iXxIPDRsQg6hxLc/oT4GLN+4Q8/cEzqGPgiQ7RFHA3nYBQq\r\n"
-"ag==\r\n"
+"MHcCAQEEIPEqEyB2AnCoPL/9U/YDHvdqXYbIogTywwyp6/UfDw6noAoGCCqGSM49\r\n"
+"AwEHoUQDQgAEN8xW2XYJHlpyPsdZLf8gbu58+QaRdNCtFLX3aCJZYpJO5QDYIxH/\r\n"
+"6i/SNF1dFr2KiMJrdw1VzYoqDvoByLTt/w==\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
 
-const char test_cli_crt[] =
+const char test_cli_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
-"MIIBUjCB+gIBEjAJBgcqhkjOPQQBMD4xCzAJBgNVBAYTAk5MMREwDwYDVQQKEwhQ\r\n"
-"b2xhclNTTDEcMBoGA1UEAxMTUG9sYXJzc2wgVGVzdCBFQyBDQTAeFw0xMzA4MjIx\r\n"
-"NDQyMTdaFw0yMzA4MjAxNDQyMTdaMD8xCzAJBgNVBAYTAk5MMREwDwYDVQQKEwhQ\r\n"
-"b2xhclNTTDEdMBsGA1UEAxMUUG9sYXJTU0wgVGVzdCBDbGllbnQwSTATBgcqhkjO\r\n"
-"PQIBBggqhkjOPQMBAQMyAATnnXkhKuPh1tou3B+DV9lyE4IlISuYVm86E776WBm5\r\n"
-"+hNTqK0AaV6gqEL/XdLEGVwwCQYHKoZIzj0EAQNIADBFAiEA/xaze0PZk51nJJSR\r\n"
-"Z5SmN9VlzqgN2aSmL4JQRPzjDr0CIFOmuwP8WRdPUJvXh7NQgvl4kW3xkcrmfd6a\r\n"
-"zJbBMLxH\r\n"
+"MIICLDCCAbKgAwIBAgIBDTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n"
+"A1UEChMIUG9sYXJTU0wxHDAaBgNVBAMTE1BvbGFyc3NsIFRlc3QgRUMgQ0EwHhcN\r\n"
+"MTMwOTI0MTU1MjA0WhcNMjMwOTIyMTU1MjA0WjBBMQswCQYDVQQGEwJOTDERMA8G\r\n"
+"A1UEChMIUG9sYXJTU0wxHzAdBgNVBAMTFlBvbGFyU1NMIFRlc3QgQ2xpZW50IDIw\r\n"
+"WTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARX5a6xc9/TrLuTuIH/Eq7u5lOszlVT\r\n"
+"9jQOzC7jYyUL35ji81xgNpbA1RgUcOV/n9VLRRjlsGzVXPiWj4dwo+THo4GdMIGa\r\n"
+"MAkGA1UdEwQCMAAwHQYDVR0OBBYEFHoAX4Zk/OBd5REQO7LmO8QmP8/iMG4GA1Ud\r\n"
+"IwRnMGWAFJ1tICRJAT8ry3i1Gbx+JMnb+zZ8oUKkQDA+MQswCQYDVQQGEwJOTDER\r\n"
+"MA8GA1UEChMIUG9sYXJTU0wxHDAaBgNVBAMTE1BvbGFyc3NsIFRlc3QgRUMgQ0GC\r\n"
+"CQDBQ+J+YkPM6DAKBggqhkjOPQQDAgNoADBlAjBKZQ17IIOimbmoD/yN7o89u3BM\r\n"
+"lgOsjnhw3fIOoLIWy2WOGsk/LGF++DzvrRzuNiACMQCd8iem1XS4JK7haj8xocpU\r\n"
+"LwjQje5PDGHfd3h9tP38Qknu5bJqws0md2KOKHyeV0U=\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_cli_key[] =
+const char test_cli_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
-"MF8CAQEEGCTQxP5vTfEwCWdeLdPqgGQ4AuxGG3gPA6AKBggqhkjOPQMBAaE0AzIA\r\n"
-"BOedeSEq4+HW2i7cH4NX2XITgiUhK5hWbzoTvvpYGbn6E1OorQBpXqCoQv9d0sQZ\r\n"
-"XA==\r\n"
+"MHcCAQEEIPb3hmTxZ3/mZI3vyk7p3U3wBf+WIop6hDhkFzJhmLcqoAoGCCqGSM49\r\n"
+"AwEHoUQDQgAEV+WusXPf06y7k7iB/xKu7uZTrM5VU/Y0Dswu42MlC9+Y4vNcYDaW\r\n"
+"wNUYFHDlf5/VS0UY5bBs1Vz4lo+HcKPkxw==\r\n"
 "-----END EC PRIVATE KEY-----\r\n";
+#else
+#define TEST_CA_CRT_EC
+#endif /* POLARSSL_ECDSA_C */
 
-#else /* !POLARSSL_ECDSA_C, so POLARSSL_RSA_C */
-const char test_ca_crt[] =
-"-----BEGIN CERTIFICATE-----\r\n"
-"MIIDhzCCAm+gAwIBAgIBADANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
-"MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
-"MTEwMjEyMTQ0NDAwWhcNMjEwMjEyMTQ0NDAwWjA7MQswCQYDVQQGEwJOTDERMA8G\r\n"
-"A1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwggEiMA0G\r\n"
-"CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDA3zf8F7vglp0/ht6WMn1EpRagzSHx\r\n"
-"mdTs6st8GFgIlKXsm8WL3xoemTiZhx57wI053zhdcHgH057Zk+i5clHFzqMwUqny\r\n"
-"50BwFMtEonILwuVA+T7lpg6z+exKY8C4KQB0nFc7qKUEkHHxvYPZP9al4jwqj+8n\r\n"
-"YMPGn8u67GB9t+aEMr5P+1gmIgNb1LTV+/Xjli5wwOQuvfwu7uJBVcA0Ln0kcmnL\r\n"
-"R7EUQIN9Z/SG9jGr8XmksrUuEvmEF/Bibyc+E1ixVA0hmnM3oTDPb5Lc9un8rNsu\r\n"
-"KNF+AksjoBXyOGVkCeoMbo4bF6BxyLObyavpw/LPh5aPgAIynplYb6LVAgMBAAGj\r\n"
-"gZUwgZIwDAYDVR0TBAUwAwEB/zAdBgNVHQ4EFgQUtFrkpbPe0lL2udWmlQ/rPrzH\r\n"
-"/f8wYwYDVR0jBFwwWoAUtFrkpbPe0lL2udWmlQ/rPrzH/f+hP6Q9MDsxCzAJBgNV\r\n"
-"BAYTAk5MMREwDwYDVQQKEwhQb2xhclNTTDEZMBcGA1UEAxMQUG9sYXJTU0wgVGVz\r\n"
-"dCBDQYIBADANBgkqhkiG9w0BAQUFAAOCAQEAuP1U2ABUkIslsCfdlc2i94QHHYeJ\r\n"
-"SsR4EdgHtdciUI5I62J6Mom+Y0dT/7a+8S6MVMCZP6C5NyNyXw1GWY/YR82XTJ8H\r\n"
-"DBJiCTok5DbZ6SzaONBzdWHXwWwmi5vg1dxn7YxrM9d0IjxM27WNKs4sDQhZBQkF\r\n"
-"pjmfs2cb4oPl4Y9T9meTx/lvdkRYEug61Jfn6cA+qHpyPYdTH+UshITnmp5/Ztkf\r\n"
-"m/UTSLBNFNHesiTZeH31NcxYGdHSme9Nc/gfidRa0FLOCfWxRlFqAI47zG9jAQCZ\r\n"
-"7Z2mCGDNMhjQc+BYcdnl0lPXjdDK6V0qCg1dVewhUBcW5gZKzV7e9+DpVA==\r\n"
-"-----END CERTIFICATE-----\r\n";
+#if defined(POLARSSL_RSA_C)
+#define TEST_CA_CRT_RSA                                                 \
+"-----BEGIN CERTIFICATE-----\r\n"                                       \
+"MIIDhzCCAm+gAwIBAgIBADANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"  \
+"MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"  \
+"MTEwMjEyMTQ0NDAwWhcNMjEwMjEyMTQ0NDAwWjA7MQswCQYDVQQGEwJOTDERMA8G\r\n"  \
+"A1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwggEiMA0G\r\n"  \
+"CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDA3zf8F7vglp0/ht6WMn1EpRagzSHx\r\n"  \
+"mdTs6st8GFgIlKXsm8WL3xoemTiZhx57wI053zhdcHgH057Zk+i5clHFzqMwUqny\r\n"  \
+"50BwFMtEonILwuVA+T7lpg6z+exKY8C4KQB0nFc7qKUEkHHxvYPZP9al4jwqj+8n\r\n"  \
+"YMPGn8u67GB9t+aEMr5P+1gmIgNb1LTV+/Xjli5wwOQuvfwu7uJBVcA0Ln0kcmnL\r\n"  \
+"R7EUQIN9Z/SG9jGr8XmksrUuEvmEF/Bibyc+E1ixVA0hmnM3oTDPb5Lc9un8rNsu\r\n"  \
+"KNF+AksjoBXyOGVkCeoMbo4bF6BxyLObyavpw/LPh5aPgAIynplYb6LVAgMBAAGj\r\n"  \
+"gZUwgZIwDAYDVR0TBAUwAwEB/zAdBgNVHQ4EFgQUtFrkpbPe0lL2udWmlQ/rPrzH\r\n"  \
+"/f8wYwYDVR0jBFwwWoAUtFrkpbPe0lL2udWmlQ/rPrzH/f+hP6Q9MDsxCzAJBgNV\r\n"  \
+"BAYTAk5MMREwDwYDVQQKEwhQb2xhclNTTDEZMBcGA1UEAxMQUG9sYXJTU0wgVGVz\r\n"  \
+"dCBDQYIBADANBgkqhkiG9w0BAQUFAAOCAQEAuP1U2ABUkIslsCfdlc2i94QHHYeJ\r\n"  \
+"SsR4EdgHtdciUI5I62J6Mom+Y0dT/7a+8S6MVMCZP6C5NyNyXw1GWY/YR82XTJ8H\r\n"  \
+"DBJiCTok5DbZ6SzaONBzdWHXwWwmi5vg1dxn7YxrM9d0IjxM27WNKs4sDQhZBQkF\r\n"  \
+"pjmfs2cb4oPl4Y9T9meTx/lvdkRYEug61Jfn6cA+qHpyPYdTH+UshITnmp5/Ztkf\r\n"  \
+"m/UTSLBNFNHesiTZeH31NcxYGdHSme9Nc/gfidRa0FLOCfWxRlFqAI47zG9jAQCZ\r\n"  \
+"7Z2mCGDNMhjQc+BYcdnl0lPXjdDK6V0qCg1dVewhUBcW5gZKzV7e9+DpVA==\r\n"      \
+"-----END CERTIFICATE-----\r\n"
+const char test_ca_crt_rsa[] = TEST_CA_CRT_RSA;
 
-const char test_ca_key[] =
+const char test_ca_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
 "DEK-Info: DES-EDE3-CBC,A8A95B05D5B7206B\r\n"
@@ -153,9 +165,9 @@ const char test_ca_key[] =
 "P/eQiddSf0brnpiLJRh7qZrl9XuqYdpUqnoEdMAfotDOID8OtV7gt8a48ad8VPW2\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-const char test_ca_pwd[] = "PolarSSLTest";
+const char test_ca_pwd_rsa[] = "PolarSSLTest";
 
-const char test_srv_crt[] =
+const char test_srv_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDPzCCAiegAwIBAgIBATANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -177,7 +189,7 @@ const char test_srv_crt[] =
 "/WzRyYRBRjAI49mzHX6raleqnw==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_srv_key[] =
+const char test_srv_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEogIBAAKCAQEAqQIfPUBq1VVTi/027oJlLhVhXom/uOhFkNvuiBZS0/FDUEeW\r\n"
 "Ellkh2v9K+BG+XO+3c+S4ZFb7Wagb4kpeUWA0INq1UFDd185fAkER4KwVzlw7aPs\r\n"
@@ -194,7 +206,7 @@ const char test_srv_key[] =
 "oArQJGgkAdaq0pcTyOIjtTQVMFygdVmCEJmxh/3RutPcTeydqW9fphKDMej32J8e\r\n"
 "GniGmNGiclbcfNOS8E5TGp445yZb9P1+7AHng16bGg3Ykj5EA4G+HCcCgYEAyHAl\r\n"
 "//ekk8YjQElm+8izLtFkymIK0aCtEe9C/RIRhFYBeFaotC5dStNhBOncn4ovMAPD\r\n"
-"Lx/92YdI9op8ppln3a4B9XpW3k/SS5GrbT5cwOivBHNllZSmu/2qz5WPGcjVCOrB\r\n"
+"lX/92yDi9OP8PPLN3a4B9XpW3k/SS5GrbT5cwOivBHNllZSmu/2qz5WPGcjVCOrB\r\n"
 "LYl3YWr2h3EGKICT03kEoTkiDBvCeOpW7cCGl2cCgYBD5whoXHz1+ptPlI4YVjZt\r\n"
 "Xh86aU+ajpVPiEyJ84I6xXmO4SZXv8q6LaycR0ZMbcL+zBelMb4Z2nBv7jNrtuR7\r\n"
 "ZF28cdPv+YVr3esaybZE/73VjXup4SQPH6r3l7qKTVi+y6+FeJ4b2Xn8/MwgnT23\r\n"
@@ -206,7 +218,7 @@ const char test_srv_key[] =
 "mKsIVRBq4IfwiwyMNG2BYZQAwbSDjjPtn/kPBduPzPj7eriByhI=\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
 
-const char test_cli_crt[] =
+const char test_cli_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDPzCCAiegAwIBAgIBBDANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"
 "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\r\n"
@@ -228,7 +240,7 @@ const char test_cli_crt[] =
 "D+stpAKiQLAWaAusIWKYEyw9MQ==\r\n"
 "-----END CERTIFICATE-----\r\n";
 
-const char test_cli_key[] =
+const char test_cli_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEpAIBAAKCAQEAyHTEzLn5tXnpRdkUYLB9u5Pyax6fM60Nj4o8VmXl3ETZzGaF\r\n"
 "B9X4J7BKNdBjngpuG7fa8H6r7gwQk4ZJGDTzqCrSV/Uu1C93KYRhTYJQj6eVSHD1\r\n"
@@ -256,13 +268,38 @@ const char test_cli_key[] =
 "bHFVW2r0dBTqegP2/KTOxKzaHfC1qf0RGDsUoJCNJrd1cwoCLG8P2EF4w3OBrKqv\r\n"
 "8u4ytY0F+Vlanj5lm3TaoHSVF1+NWPyOTiwevIECGKwSxvlki4fDAA==\r\n"
 "-----END RSA PRIVATE KEY-----\r\n";
-#endif /* !POLARSSL_ECDSA_C, so POLARSSL_RSA_C */
+#else
+#define TEST_CA_CRT_RSA
+#endif /* POLARSSL_RSA_C */
 
+#if defined(POLARSSL_DHM_C)
 const char test_dhm_params[] =
 "-----BEGIN DH PARAMETERS-----\r\n"
 "MIGHAoGBAJ419DBEOgmQTzo5qXl5fQcN9TN455wkOL7052HzxxRVMyhYmwQcgJvh\r\n"
 "1sa18fyfR9OiVEMYglOpkqVoGLN7qd5aQNNi5W7/C+VBdHTBJcGZJyyP5B3qcz32\r\n"
 "9mLJKudlVudV0Qxk5qUJaPZ/xupz0NyoVpviuiBOI1gNi8ovSXWzAgEC\r\n"
 "-----END DH PARAMETERS-----\r\n";
+#endif
+
+/* Concatenation of all available CA certificates */
+const char test_ca_list[] = TEST_CA_CRT_RSA TEST_CA_CRT_EC;
+
+#if defined(POLARSSL_RSA_C)
+const char *test_ca_crt = test_ca_crt_rsa;
+const char *test_ca_key = test_ca_key_rsa;
+const char *test_ca_pwd = test_ca_pwd_rsa;
+const char *test_srv_crt = test_srv_crt_rsa;
+const char *test_srv_key = test_srv_key_rsa;
+const char *test_cli_crt = test_cli_crt_rsa;
+const char *test_cli_key = test_cli_key_rsa;
+#else /* ! POLARSSL_RSA_C, so POLARSSL_ECDSA_C */
+const char *test_ca_crt = test_ca_crt_ec;
+const char *test_ca_key = test_ca_key_ec;
+const char *test_ca_pwd = test_ca_pwd_ec;
+const char *test_srv_crt = test_srv_crt_ec;
+const char *test_srv_key = test_srv_key_ec;
+const char *test_cli_crt = test_cli_crt_ec;
+const char *test_cli_key = test_cli_key_ec;
+#endif
 
 #endif /* POLARSSL_CERTS_C */

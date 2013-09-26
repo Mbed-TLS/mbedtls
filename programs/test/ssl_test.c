@@ -329,7 +329,7 @@ static int ssl_test( struct options *opt )
 
         if( opt->command & COMMAND_READ )
         {
-            if( bytes_to_read == 0 )
+            while( bytes_to_read == 0 )
             {
                 bytes_to_read = rand() % opt->buffer_size;
                 offset_to_read = 0;
@@ -338,7 +338,7 @@ static int ssl_test( struct options *opt )
             ret = ssl_read( &ssl, read_buf + offset_to_read,
                             bytes_to_read );
 
-            if( ret >= 0 )
+            if( ret > 0 )
             {
                 for( i = 0; i < ret; i++ )
                 {
@@ -356,7 +356,9 @@ static int ssl_test( struct options *opt )
                 offset_to_read += ret;
             }
 
-            if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY ||
+            if( ret == 0 ||
+                ret == POLARSSL_ERR_SSL_CONN_EOF ||
+                ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY ||
                 ret == POLARSSL_ERR_NET_CONN_RESET )
             {
                 ret = 0;

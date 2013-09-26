@@ -1,4 +1,4 @@
-PolarSSL ChangeLog
+PolarSSL ChangeLog (Sorted per branch, date)
 
 = PolarSSL-1.3.0 released on 2013-09-26
 Features
@@ -58,6 +58,21 @@ Bugfix
    * Fixed file descriptor leaks
 
 Security
+   * RSA blinding on CRT operations to counter timing attacks
+     (found by Cyril Arnaud and Pierre-Alain Fouque)
+
+= Version 1.2.9 released 2013-09-25
+Changes
+   * x509_verify() now case insensitive for cn (RFC 6125 6.4)
+
+Bugfix
+   * Fixed potential memory leak when failing to resume a session
+   * Fixed potential file descriptor leaks (found by Remi Gacogne)
+   * Minor fixes
+
+Security
+   * Fixed potential heap buffer overflow on large hostname setting
+   * Fixed potential negative value misinterpretation in load_file()
    * RSA blinding on CRT operations to counter timing attacks
      (found by Cyril Arnaud and Pierre-Alain Fouque)
 
@@ -256,6 +271,17 @@ Bugfix
 Security
    * Fixed potential memory zeroization on miscrafted RSA key (found by Eloi
      Vanderbeken)
+
+= Version 1.1.8 released on 2013-09-25
+Bugfix
+   * Fixed potential memory leak when failing to resume a session
+   * Fixed potential file descriptor leaks
+
+Security
+   * Potential buffer-overflow for ssl_read_record() (independently found by
+     both TrustInSoft and Paul Brodeur of Leviathan Security Group)
+   * Potential negative value misinterpretation in load_file()
+   * Potential heap buffer overflow on large hostname setting
 
 = Version 1.1.7 released on 2013-06-19
 Changes

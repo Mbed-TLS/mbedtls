@@ -1389,7 +1389,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
                 if( ssl_ciphersuite_uses_ec( ciphersuite_info ) &&
-                    ssl->handshake->curves[0] == NULL )
+                    ( ssl->handshake->curves == NULL ||
+                      ssl->handshake->curves[0] == NULL ) )
                     continue;
 #endif
 

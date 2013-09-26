@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= PolarSSL-1.3 branch
+= PolarSSL-1.3.0 released on 2013-09-26
 Features
    * Elliptic Curve Cryptography module added
    * Elliptic Curve Diffie Hellman module added

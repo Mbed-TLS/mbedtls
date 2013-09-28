@@ -11,7 +11,8 @@ my $error_format_file = $data_dir.'/error.fmt';
 my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
                           "BASE64", "XTEA", "PBKDF2", "OID",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
-                          "MD2", "MD4", "MD5", "SHA1", "SHA256", "SHA512", "GCM" );
+                          "MD2", "MD4", "MD5", "SHA1", "SHA256", "SHA512",
+                          "GCM", "THREADING" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "ECP", "MD", "CIPHER", "SSL",
                            "PK", "PKCS12", "PKCS5" );
 

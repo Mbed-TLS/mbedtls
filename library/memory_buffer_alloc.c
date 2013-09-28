@@ -464,6 +464,11 @@ static void buffer_alloc_free( void *ptr )
         exit( 1 );
 }
 
+void memory_buffer_set_verify( int verify )
+{
+    heap.verify = verify;
+}
+
 int memory_buffer_alloc_verify()
 {
     return verify_chain();

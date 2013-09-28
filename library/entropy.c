@@ -64,6 +64,11 @@ void entropy_init( entropy_context *ctx )
 #endif /* POLARSSL_NO_DEFAULT_ENTROPY_SOURCES */
 }
 
+void entropy_free( entropy_context *ctx )
+{
+    ((void) ctx);
+}
+
 int entropy_add_source( entropy_context *ctx,
                         f_source_ptr f_source, void *p_source,
                         size_t threshold )

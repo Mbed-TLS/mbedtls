@@ -275,6 +275,7 @@ exit:
     net_close( server_fd );
     rsa_free( &rsa );
     dhm_free( &dhm );
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

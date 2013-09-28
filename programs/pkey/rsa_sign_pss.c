@@ -156,6 +156,7 @@ int main( int argc, char *argv[] )
 
 exit:
     pk_free( &pk );
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

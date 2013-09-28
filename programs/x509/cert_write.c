@@ -650,6 +650,7 @@ exit:
     pk_free( &loaded_subject_key );
     pk_free( &loaded_issuer_key );
     mpi_free( &serial );
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

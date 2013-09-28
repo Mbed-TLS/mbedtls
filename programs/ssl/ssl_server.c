@@ -367,6 +367,7 @@ exit:
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_free( &cache );
 #endif
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );

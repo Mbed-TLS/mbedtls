@@ -963,6 +963,7 @@ exit:
 #endif
 
     ssl_free( &ssl );
+    entropy_free( &entropy );
 
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_free( &cache );

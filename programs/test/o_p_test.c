@@ -252,6 +252,7 @@ int main( int argc, char *argv[] )
     printf( "String value (PolarSSL Private Encrypt, OpenSSL Public Decrypt): '%s'\n", o_priv_decrypted );
 
 exit:
+    entropy_free( &entropy );
 
 #ifdef WIN32
     printf( "  + Press Enter to exit this program.\n" );

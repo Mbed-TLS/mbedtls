@@ -136,6 +136,7 @@ int main( int argc, char *argv[] )
     ret = 0;
 
 exit:
+    entropy_free( &entropy );
 
 #if defined(POLARSSL_ERROR_C)
     polarssl_strerror( ret, (char *) buf, sizeof(buf) );

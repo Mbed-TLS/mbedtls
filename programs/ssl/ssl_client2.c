@@ -913,6 +913,7 @@ exit:
 #endif
     ssl_session_free( &saved_session );
     ssl_free( &ssl );
+    entropy_free( &entropy );
 
     memset( &ssl, 0, sizeof( ssl ) );
 

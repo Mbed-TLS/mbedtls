@@ -179,6 +179,7 @@ exit:
 
     ecdsa_free( &ctx_verify );
     ecdsa_free( &ctx_sign );
+    entropy_free( &entropy );
 
     return( ret );
 }

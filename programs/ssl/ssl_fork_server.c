@@ -361,6 +361,7 @@ exit:
     x509_crt_free( &srvcert );
     pk_free( &pkey );
     ssl_free( &ssl );
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );

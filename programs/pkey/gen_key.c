@@ -269,6 +269,7 @@ exit:
     }
 
     pk_free( &key );
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

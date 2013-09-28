@@ -111,6 +111,7 @@ cleanup:
     printf("\n");
 
     fclose( f );
+    entropy_free( &entropy );
 
     return( ret );
 }

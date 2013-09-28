@@ -117,6 +117,13 @@ entropy_context;
 void entropy_init( entropy_context *ctx );
 
 /**
+ * \brief           Free the data in the context
+ *
+ * \param ctx       Entropy context to free
+ */
+void entropy_free( entropy_context *ctx );
+
+/**
  * \brief           Adds an entropy source to poll
  *
  * \param ctx       Entropy context

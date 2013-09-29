@@ -38,6 +38,10 @@
 #endif
 #endif
 
+#if defined(POLARSSL_THREADING_C)
+#include "polarssl/threading.h"
+#endif
+
 #define MAGIC1       0xFF00AA55
 #define MAGIC2       0xEE119966
 #define MAX_BT 20
@@ -73,6 +77,9 @@ typedef struct
     size_t          total_used;
     size_t          maximum_used;
     size_t          header_count;
+#endif
+#if defined(POLARSSL_THREADING_C)
+    threading_mutex_t   mutex;
 #endif
 }
 buffer_alloc_ctx;
@@ -349,7 +356,6 @@ static void buffer_alloc_free( void *ptr )
     memory_header *hdr, *old = NULL;
     unsigned char *p = (unsigned char *) ptr;
 
-
     if( ptr == NULL || heap.buf == NULL || heap.first == NULL )
         return;
 
@@ -492,13 +498,37 @@ void memory_buffer_alloc_status()
 }
 #endif /* POLARSSL_MEMORY_BUFFER_ALLOC_DEBUG */
 
+#if defined(POLARSSL_THREADING_C)
+static void *buffer_alloc_malloc_mutexed( size_t len )
+{
+    void *buf;
+    polarssl_mutex_lock( &heap.mutex );
+    buf = buffer_alloc_malloc( len );
+    polarssl_mutex_unlock( &heap.mutex );
+    return( buf );
+}
+
+static void buffer_alloc_free_mutexed( void *ptr )
+{
+    polarssl_mutex_lock( &heap.mutex );
+    buffer_alloc_free( ptr );
+    polarssl_mutex_unlock( &heap.mutex );
+}
+#endif
+
 int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {
-    polarssl_malloc = buffer_alloc_malloc;
-    polarssl_free = buffer_alloc_free;
-
     memset( &heap, 0, sizeof(buffer_alloc_ctx) );
     memset( buf, 0, len );
+
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_init( &heap.mutex );
+    polarssl_malloc = buffer_alloc_malloc_mutexed;
+    polarssl_free = buffer_alloc_free_mutexed;
+#else
+    polarssl_malloc = buffer_alloc_malloc;
+    polarssl_free = buffer_alloc_free;
+#endif
 
     heap.buf = buf;
     heap.len = len;
@@ -509,6 +539,14 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
     heap.first->magic2 = MAGIC2;
     heap.first_free = heap.first;
     return( 0 );
+}
+
+void memory_buffer_alloc_free()
+{
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_free( &heap.mutex );
+#endif
+    memset( &heap, 0, sizeof(buffer_alloc_ctx) );
 }
 
 #endif /* POLARSSL_MEMORY_C && POLARSSL_MEMORY_BUFFER_ALLOC_C */

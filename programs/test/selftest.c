@@ -190,6 +190,9 @@ int main( int argc, char *argv[] )
         fflush( stdout ); getchar();
 #endif
     }
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    memory_buffer_alloc_free();
+#endif
 
     return( ret );
 }

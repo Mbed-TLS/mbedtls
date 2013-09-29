@@ -71,6 +71,8 @@ int memory_set_own( void * (*malloc_func)( size_t ),
  *          presented buffer and does not call malloc() and free().
  *          It sets the global polarssl_malloc() and polarssl_free() pointers
  *          to its own functions.
+ *          (Provided polarssl_malloc() and polarssl_free() are thread-safe if
+ *           POLARSSL_THREADING_C is defined)
  *
  * \note    This code is not optimized and provides a straight-forward
  *          implementation of a stack-based memory allocator.
@@ -81,6 +83,11 @@ int memory_set_own( void * (*malloc_func)( size_t ),
  * \return              0 if successful
  */
 int memory_buffer_alloc_init( unsigned char *buf, size_t len );
+
+/**
+ * \brief   Free the mutex for thread-safety and clear remaining memory
+ */
+void memory_buffer_alloc_free();
 
 /**
  * \brief   Determine when the allocator should automatically verify the state

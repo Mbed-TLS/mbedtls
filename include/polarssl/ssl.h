@@ -789,6 +789,7 @@ int ssl_get_ciphersuite_id( const char *ciphersuite_name );
 
 /**
  * \brief          Initialize an SSL context
+ *                 (An individual SSL context is not thread-safe)
  *
  * \param ssl      SSL context
  *

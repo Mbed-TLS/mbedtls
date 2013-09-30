@@ -450,6 +450,7 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
 
 /**
  * \brief           Multiplication by an integer: R = m * P
+ *                  (Not thread-safe to use same group in multiple threads)
  *
  * \param grp       ECP group
  * \param R         Destination point

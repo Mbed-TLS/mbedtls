@@ -56,7 +56,7 @@ typedef pthread_mutex_t threading_mutex_t;
  * \brief           Set your alternate threading implementation function
  *                  pointers
  *
- * \param mutex_init    the malloc function implementation
+ * \param mutex_init    the init function implementation
  * \param mutex_free    the free function implementation
  * \param mutex_lock    the lock function implementation
  * \param mutex_unlock  the unlock function implementation
@@ -71,6 +71,8 @@ int threading_set_alt( int (*mutex_init)( threading_mutex_t * ),
 
 /*
  * The function pointers for mutex_init, mutex_free, mutex_ and mutex_unlock
+ *
+ * All these functions are expected to work or the result will be undefined.
  */
 extern int (*polarssl_mutex_init)( threading_mutex_t *mutex );
 extern int (*polarssl_mutex_free)( threading_mutex_t *mutex );

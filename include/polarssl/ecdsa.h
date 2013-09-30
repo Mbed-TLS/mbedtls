@@ -88,6 +88,7 @@ int ecdsa_verify( ecp_group *grp,
 /**
  * \brief           Compute ECDSA signature and write it to buffer,
  *                  serialized as defined in RFC 4492 page 20.
+ *                  (Not thread-safe to use same context in multiple threads)
  *
  * \param ctx       ECDSA context
  * \param hash      Message hash

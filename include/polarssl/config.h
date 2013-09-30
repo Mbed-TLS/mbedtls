@@ -674,6 +674,8 @@
  * \def POLARSSL_THREADING_DUMMY
  *
  * Provide a dummy threading implementation.
+ * Warning: If you use this, all claims of thread-safety in the documentation
+ *          are void!
  *
  * Requires: POLARSSL_THREADING_C
  *

@@ -54,6 +54,10 @@ void rsa_init( rsa_context *ctx,
 
     ctx->padding = padding;
     ctx->hash_id = hash_id;
+
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_init( &ctx->mutex );
+#endif
 }
 
 #if defined(POLARSSL_GENPRIME)
@@ -298,6 +302,9 @@ int rsa_private( rsa_context *ctx,
                  unsigned char *output )
 {
     int ret;
+#if defined(POLARSSL_THREADING_C)
+    int locked = 0;
+#endif
     size_t olen;
     mpi T, T1, T2;
 
@@ -315,6 +322,10 @@ int rsa_private( rsa_context *ctx,
 #else
     if( f_rng != NULL )
     {
+#if defined(POLARSSL_THREADING_C)
+        polarssl_mutex_lock( &ctx->mutex );
+        locked = 1;
+#endif
         /*
          * Blinding
          * T = T * Vi mod N
@@ -361,7 +372,10 @@ int rsa_private( rsa_context *ctx,
     MPI_CHK( mpi_write_binary( &T, output, olen ) );
 
 cleanup:
-
+#if defined(POLARSSL_THREADING_C)
+    if( locked )
+        polarssl_mutex_unlock( &ctx->mutex );
+#endif
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
 
     if( ret != 0 )
@@ -1330,6 +1344,10 @@ void rsa_free( rsa_context *ctx )
     mpi_free( &ctx->QP ); mpi_free( &ctx->DQ ); mpi_free( &ctx->DP );
     mpi_free( &ctx->Q  ); mpi_free( &ctx->P  ); mpi_free( &ctx->D );
     mpi_free( &ctx->E  ); mpi_free( &ctx->N  );
+
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_free( &ctx->mutex );
+#endif
 }
 
 #if defined(POLARSSL_SELF_TEST)

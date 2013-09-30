@@ -136,6 +136,7 @@ int main( int argc, char *argv[] )
     printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
 
 exit:
+    entropy_free( &entropy );
 
 #if defined(POLARSSL_ERROR_C)
     polarssl_strerror( ret, (char *) buf, sizeof(buf) );

@@ -449,6 +449,7 @@ exit:
     x509_crt_free( &cacert );
     x509_crt_free( &clicert );
     pk_free( &pkey );
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

@@ -32,6 +32,10 @@
 #include "bignum.h"
 #include "md.h"
 
+#if defined(POLARSSL_THREADING_C)
+#include "threading.h"
+#endif
+
 /*
  * RSA Error codes
  */
@@ -100,6 +104,9 @@ typedef struct
                                       specified in the md.h header file
                                       for the EME-OAEP and EMSA-PSS
                                       encoding                          */
+#if defined(POLARSSL_THREADING_C)
+    threading_mutex_t mutex;    /*!<  Thread-safety mutex       */
+#endif
 }
 rsa_context;
 

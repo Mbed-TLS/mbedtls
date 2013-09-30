@@ -148,6 +148,7 @@ int main( int argc, char *argv[] )
     printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
 
 exit:
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

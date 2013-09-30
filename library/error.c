@@ -145,6 +145,10 @@
 #include "polarssl/ssl.h"
 #endif
 
+#if defined(POLARSSL_THREADING_C)
+#include "polarssl/threading.h"
+#endif
+
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)
 #include "polarssl/x509.h"
 #endif
@@ -646,6 +650,15 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_SHA512_FILE_IO_ERROR) )
         snprintf( buf, buflen, "SHA512 - Read/write error in file" );
 #endif /* POLARSSL_SHA512_C */
+
+#if defined(POLARSSL_THREADING_C)
+    if( use_ret == -(POLARSSL_ERR_THREADING_FEATURE_UNAVAILABLE) )
+        snprintf( buf, buflen, "THREADING - The selected feature is not available" );
+    if( use_ret == -(POLARSSL_ERR_THREADING_BAD_INPUT_DATA) )
+        snprintf( buf, buflen, "THREADING - Bad input parameters to function" );
+    if( use_ret == -(POLARSSL_ERR_THREADING_MUTEX_ERROR) )
+        snprintf( buf, buflen, "THREADING - Locking / unlocking / free failed with error code" );
+#endif /* POLARSSL_THREADING_C */
 
 #if defined(POLARSSL_XTEA_C)
     if( use_ret == -(POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH) )

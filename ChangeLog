@@ -12,6 +12,7 @@ Features
    * PSK and DHE-PSK based ciphersuites added
    * Memory allocation abstraction layer added
    * Buffer-based memory allocator added (no malloc() / free() / HEAP usage)
+   * Threading abstraction layer added (dummy / pthread / alternate)
    * Public Key abstraction layer added
    * Parsing Elliptic Curve keys
    * Parsing Elliptic Curve certificates

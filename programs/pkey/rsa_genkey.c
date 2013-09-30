@@ -150,6 +150,7 @@ exit:
         fclose( fpriv );
 
     rsa_free( &rsa );
+    entropy_free( &entropy );
 
 #if defined(_WIN32)
     printf( "  Press Enter to exit this program.\n" );

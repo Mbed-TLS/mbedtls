@@ -29,6 +29,10 @@
 
 #include "ssl.h"
 
+#if defined(POLARSSL_THREADING_C)
+#include "threading.h"
+#endif
+
 #if !defined(POLARSSL_CONFIG_OPTIONS)
 #define SSL_CACHE_DEFAULT_TIMEOUT       86400   /*!< 1 day  */
 #define SSL_CACHE_DEFAULT_MAX_ENTRIES      50   /*!< Maximum entries in cache */
@@ -64,6 +68,9 @@ struct _ssl_cache_context
     ssl_cache_entry *chain;     /*!< start of the chain     */
     int timeout;                /*!< cache entry timeout    */
     int max_entries;            /*!< maximum entries        */
+#if defined(POLARSSL_THREADING_C)
+    threading_mutex_t mutex;    /*!< mutex                  */
+#endif
 };
 
 /**
@@ -75,6 +82,7 @@ void ssl_cache_init( ssl_cache_context *cache );
 
 /**
  * \brief          Cache get callback implementation
+ *                 (Thread-safe if POLARSSL_THREADING_C is enabled)
  *
  * \param data     SSL cache context
  * \param session  session to retrieve entry for
@@ -83,6 +91,7 @@ int ssl_cache_get( void *data, ssl_session *session );
 
 /**
  * \brief          Cache set callback implementation
+ *                 (Thread-safe if POLARSSL_THREADING_C is enabled)
  *
  * \param data     SSL cache context
  * \param session  session to store entry for

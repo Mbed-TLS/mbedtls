@@ -202,8 +202,8 @@ int main()
     char *params[50];
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    unsigned char buf[1000000];
-    memory_buffer_alloc_init( buf, sizeof(buf) );
+    unsigned char alloc_buf[1000000];
+    memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
 #endif
 
     file = fopen( filename, "r" );
@@ -288,8 +288,11 @@ int main()
     fprintf( stdout, " (%d / %d tests (%d skipped))\n",
              total_tests - total_errors, total_tests, total_skipped );
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(POLARSSL_MEMORY_DEBUG)
     memory_buffer_alloc_status();
+#endif
+    memory_buffer_alloc_free();
 #endif
 
     return( total_errors != 0 );

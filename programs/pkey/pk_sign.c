@@ -149,6 +149,7 @@ int main( int argc, char *argv[] )
 
 exit:
     pk_free( &pk );
+    entropy_free( &entropy );
 
 #if defined(POLARSSL_ERROR_C)
     polarssl_strerror( ret, (char *) buf, sizeof(buf) );

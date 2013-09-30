@@ -41,6 +41,10 @@
 #endif
 #endif
 
+#if defined(POLARSSL_THREADING_C)
+#include "threading.h"
+#endif
+
 #if defined(POLARSSL_HAVEGE_C)
 #include "havege.h"
 #endif
@@ -106,6 +110,9 @@ typedef struct
 #if defined(POLARSSL_HAVEGE_C)
     havege_state    havege_data;
 #endif
+#if defined(POLARSSL_THREADING_C)
+    threading_mutex_t mutex;    /*!< mutex                  */
+#endif
 }
 entropy_context;
 
@@ -115,6 +122,13 @@ entropy_context;
  * \param ctx       Entropy context to initialize
  */
 void entropy_init( entropy_context *ctx );
+
+/**
+ * \brief           Free the data in the context
+ *
+ * \param ctx       Entropy context to free
+ */
+void entropy_free( entropy_context *ctx );
 
 /**
  * \brief           Adds an entropy source to poll
@@ -142,6 +156,7 @@ int entropy_gather( entropy_context *ctx );
 
 /**
  * \brief           Retrieve entropy from the accumulator (Max ENTROPY_BLOCK_SIZE)
+ *                  (Thread-safe if POLARSSL_THREADING_C is enabled)
  *
  * \param data      Entropy context
  * \param output    Buffer to fill

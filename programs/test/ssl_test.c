@@ -401,6 +401,7 @@ exit:
     x509_crt_free( &srvcert );
     pk_free( &pkey );
     ssl_free( &ssl );
+    entropy_free( &entropy );
     net_close( client_fd );
 
     return( ret );

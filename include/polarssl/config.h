@@ -660,6 +660,41 @@
 #define POLARSSL_SSL_TRUNCATED_HMAC
 
 /**
+ * \def POLARSSL_THREADING_ALT
+ *
+ * Provide your own alternate threading implementation.
+ *
+ * Requires: POLARSSL_THREADING_C
+ *
+ * Uncomment this to allow your own alternate threading implementation.
+#define POLARSSL_THREADING_ALT
+ */
+
+/**
+ * \def POLARSSL_THREADING_DUMMY
+ *
+ * Provide a dummy threading implementation.
+ * Warning: If you use this, all claims of thread-safety in the documentation
+ *          are void!
+ *
+ * Requires: POLARSSL_THREADING_C
+ *
+ * Uncomment this to enable code to compile like with threading enabled
+#define POLARSSL_THREADING_DUMMY
+ */
+
+/**
+ * \def POLARSSL_THREADING_PTHREAD
+ *
+ * Enable the pthread wrapper layer for the threading layer.
+ *
+ * Requires: POLARSSL_THREADING_C
+ *
+ * Uncomment this to enable pthread mutexes.
+#define POLARSSL_THREADING_PTHREAD
+ */
+
+/**
  * \def POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate
@@ -1436,6 +1471,27 @@
 #define POLARSSL_SSL_TLS_C
 
 /**
+ * \def POLARSSL_THREADING_C
+ *
+ * Enable the threading abstraction layer.
+ * By default PolarSSL assumes it is used in a non-threaded environment or that
+ * contexts are not shared between threads. If you do intend to use contexts
+ * between threads, you will need to enable this layer to prevent race
+ * conditions.
+ *
+ * Module:  library/threading.c
+ *
+ * This allows different threading implementations (self-implemented or
+ * provided).
+ *
+ * You will have to enable either POLARSSL_THREADING_ALT,
+ * POLARSSL_THREADING_PTHREAD or POLARSSL_THREADING_DUMMY.
+ *
+ * Enable this layer to allow use of mutexes within PolarSSL
+#define POLARSSL_THREADING_C
+ */
+
+/**
  * \def POLARSSL_TIMING_C
  *
  * Enable the portable timing interface.
@@ -1783,6 +1839,32 @@
       !defined(POLARSSL_CIPHER_MODE_CBC) )
 #error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
 #endif
+
+#if defined(POLARSSL_THREADING_DUMMY)
+#if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
+#error "POLARSSL_THREADING_DUMMY defined, but not all prerequisites"
+#endif
+#define POLARSSL_THREADING_IMPL
+#endif
+
+#if defined(POLARSSL_THREADING_PTHREAD)
+#if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
+#error "POLARSSL_THREADING_PTHREAD defined, but not all prerequisites"
+#endif
+#define POLARSSL_THREADING_IMPL
+#endif
+
+#if defined(POLARSSL_THREADING_ALT)
+#if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
+#error "POLARSSL_THREADING_ALT defined, but not all prerequisites"
+#endif
+#define POLARSSL_THREADING_IMPL
+#endif
+
+#if defined(POLARSSL_THREADING_C) && !defined(POLARSSL_THREADING_IMPL)
+#error "POLARSSL_THREADING_C defined, single threading implementation required"
+#endif
+#undef POLARSSL_THREADING_IMPL
 
 #if defined(POLARSSL_X509_USE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
     !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \

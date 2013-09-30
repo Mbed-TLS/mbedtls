@@ -40,6 +40,10 @@ void entropy_init( entropy_context *ctx )
 {
     memset( ctx, 0, sizeof(entropy_context) );
 
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_init( &ctx->mutex );
+#endif
+
 #if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
     sha512_starts( &ctx->accumulator, 0 );
 #else
@@ -62,6 +66,14 @@ void entropy_init( entropy_context *ctx )
                         ENTROPY_MIN_HAVEGE );
 #endif
 #endif /* POLARSSL_NO_DEFAULT_ENTROPY_SOURCES */
+}
+
+void entropy_free( entropy_context *ctx )
+{
+    ((void) ctx);
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_free( &ctx->mutex );
+#endif
 }
 
 int entropy_add_source( entropy_context *ctx,
@@ -170,16 +182,24 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     if( len > ENTROPY_BLOCK_SIZE )
         return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
 
+#if defined(POLARSSL_THREADING_C)
+    if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
+
     /*
      * Always gather extra entropy before a call
      */
     do
     {
         if( count++ > ENTROPY_MAX_LOOP )
-            return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+        {
+            ret = POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+            goto exit;
+        }
 
         if( ( ret = entropy_gather( ctx ) ) != 0 )
-            return( ret );
+            goto exit;
 
         reached = 0;
 
@@ -226,7 +246,15 @@ int entropy_func( void *data, unsigned char *output, size_t len )
 
     memcpy( output, buf, len );
 
-    return( 0 );
+    ret = 0;
+
+exit:
+#if defined(POLARSSL_THREADING_C)
+    if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
+        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    return( ret );
 }
 
 #endif

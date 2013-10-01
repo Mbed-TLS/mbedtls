@@ -274,4 +274,9 @@ int x509_write_names( unsigned char **p, unsigned char *start,
 int x509_write_sig( unsigned char **p, unsigned char *start,
                     const char *oid, size_t oid_len,
                     unsigned char *sig, size_t size );
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* x509.h */

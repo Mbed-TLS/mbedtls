@@ -176,10 +176,6 @@ ecp_keypair;
  */
 #define POLARSSL_ECP_TLS_NAMED_CURVE    3   /**< ECCurveType's named_curve */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * \brief           Return the list of supported curves with associated info
  *

@@ -192,6 +192,7 @@
     <ClInclude Include="..\..\include\polarssl\ssl_cache.h" />
     <ClInclude Include="..\..\include\polarssl\ssl_ciphersuites.h" />
     <ClInclude Include="..\..\include\polarssl\ssl.h" />
+    <ClInclude Include="..\..\include\polarssl\threading.h" />
     <ClInclude Include="..\..\include\polarssl\timing.h" />
     <ClInclude Include="..\..\include\polarssl\version.h" />
     <ClInclude Include="..\..\include\polarssl\x509_crl.h" />
@@ -252,6 +253,7 @@
     <ClCompile Include="..\..\library\ssl_cli.c" />
     <ClCompile Include="..\..\library\ssl_srv.c" />
     <ClCompile Include="..\..\library\ssl_tls.c" />
+    <ClCompile Include="..\..\library\threading.c" />
     <ClCompile Include="..\..\library\timing.c" />
     <ClCompile Include="..\..\library\version.c" />
     <ClCompile Include="..\..\library\x509.c" />

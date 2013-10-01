@@ -289,6 +289,10 @@ SOURCE=..\..\library\ssl_tls.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\threading.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\timing.c
 # End Source File
 # Begin Source File
@@ -526,6 +530,10 @@ SOURCE=..\..\include\polarssl\ssl_ciphersuites.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\ssl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\threading.h
 # End Source File
 # Begin Source File
 

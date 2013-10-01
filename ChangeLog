@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.1.8 released on 2013-09-25
+= Version 1.1.8 released on 2013-10-01
 Bugfix
    * Fixed potential memory leak when failing to resume a session
    * Fixed potential file descriptor leaks

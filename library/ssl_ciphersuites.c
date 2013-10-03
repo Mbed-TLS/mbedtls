@@ -34,6 +34,10 @@
 
 #include <stdlib.h>
 
+#if defined _MSC_VER && !defined strcasecmp
+#define strcasecmp _stricmp
+#endif
+
 /*
  * Ordered from most preferred to least preferred in terms of security.
  */

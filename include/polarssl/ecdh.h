@@ -27,7 +27,7 @@
 #ifndef POLARSSL_ECDH_H
 #define POLARSSL_ECDH_H
 
-#include "polarssl/ecp.h"
+#include "ecp.h"
 
 #ifdef __cplusplus
 extern "C" {

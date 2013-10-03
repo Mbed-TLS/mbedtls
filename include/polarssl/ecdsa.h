@@ -27,7 +27,7 @@
 #ifndef POLARSSL_ECDSA_H
 #define POLARSSL_ECDSA_H
 
-#include "polarssl/ecp.h"
+#include "ecp.h"
 
 /**
  * \brief           ECDSA context structure

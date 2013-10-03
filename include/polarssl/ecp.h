@@ -27,7 +27,7 @@
 #ifndef POLARSSL_ECP_H
 #define POLARSSL_ECP_H
 
-#include "polarssl/bignum.h"
+#include "bignum.h"
 
 /*
  * ECP error codes

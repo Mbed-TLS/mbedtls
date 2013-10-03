@@ -49,6 +49,10 @@
 #include "polarssl/ecdsa.h"
 #include "polarssl/ecdh.h"
 
+#if defined _MSC_VER && !defined snprintf
+#define snprintf _snprintf
+#endif
+
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-16s :  "
 #define TITLE_LEN       17

@@ -97,6 +97,10 @@ SOURCE=..\..\library\asn1parse.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\asn1write.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\base64.c
 # End Source File
 # Begin Source File
@@ -153,6 +157,10 @@ SOURCE=..\..\library\error.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\gcm.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\havege.c
 # End Source File
 # Begin Source File
@@ -185,7 +193,23 @@ SOURCE=..\..\library\padlock.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\pbkdf2.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\pem.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\pkcs11.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\pkcs12.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\pkcs5.c
 # End Source File
 # Begin Source File
 
@@ -205,6 +229,10 @@ SOURCE=..\..\library\sha4.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\ssl_cache.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\ssl_cli.c
 # End Source File
 # Begin Source File
@@ -221,7 +249,15 @@ SOURCE=..\..\library\timing.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\version.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\x509parse.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\x509write.c
 # End Source File
 # Begin Source File
 
@@ -309,6 +345,10 @@ SOURCE=..\..\include\polarssl\error.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\gcm.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\havege.h
 # End Source File
 # Begin Source File
@@ -341,7 +381,23 @@ SOURCE=..\..\include\polarssl\padlock.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\pbkdf2.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\pem.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\pkcs11.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\pkcs12.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\pkcs5.h
 # End Source File
 # Begin Source File
 
@@ -361,6 +417,10 @@ SOURCE=..\..\include\polarssl\sha4.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\ssl_cache.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\ssl.h
 # End Source File
 # Begin Source File
@@ -369,7 +429,15 @@ SOURCE=..\..\include\polarssl\timing.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\version.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\x509.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\x509write.h
 # End Source File
 # Begin Source File
 

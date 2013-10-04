@@ -4,6 +4,7 @@ PolarSSL ChangeLog
 Bugfix
    * Fixed memory leak in RSA as a result of introduction of blinding
    * Fixed ssl_pkcs11_decrypt() prototype
+   * Fixed MSVC project files
 
 = Version 1.2.9 released 2013-10-01
 Changes

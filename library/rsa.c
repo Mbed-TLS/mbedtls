@@ -267,7 +267,7 @@ cleanup:
 static int rsa_prepare_blinding( rsa_context *ctx,
                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    int ret;
+    int ret, count = 0;
 
     if( ctx->Vf.p != NULL )
     {
@@ -280,8 +280,14 @@ static int rsa_prepare_blinding( rsa_context *ctx,
         return( 0 );
     }
 
-    /* Unblinding value: Vf = random number */
-    MPI_CHK( mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );
+    /* Unblinding value: Vf = random number, invertible mod N */
+    do {
+        if( count++ > 10 )
+            return( POLARSSL_ERR_RSA_RNG_FAILED );
+
+        MPI_CHK( mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );
+        MPI_CHK( mpi_gcd( &ctx->Vi, &ctx->Vf, &ctx->N ) );
+    } while( mpi_cmp_int( &ctx->Vi, 1 ) != 0 );
 
     /* Blinding value: Vi =  Vf^(-e) mod N */
     MPI_CHK( mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N ) );

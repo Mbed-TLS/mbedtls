@@ -318,6 +318,8 @@ int rsa_private( rsa_context *ctx,
     }
 
 #if defined(POLARSSL_RSA_NO_CRT)
+    ((void) f_rng);
+    ((void) p_rng);
     MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
 #else
     if( f_rng != NULL )
@@ -1321,8 +1323,10 @@ int rsa_copy( rsa_context *dst, const rsa_context *src )
     MPI_CHK( mpi_copy( &dst->RP, &src->RP ) );
     MPI_CHK( mpi_copy( &dst->RQ, &src->RQ ) );
 
+#if !defined(POLARSSL_RSA_NO_CRT)
     MPI_CHK( mpi_copy( &dst->Vi, &src->Vi ) );
     MPI_CHK( mpi_copy( &dst->Vf, &src->Vf ) );
+#endif
 
     dst->padding = src->padding;
     dst->hash_id = src->padding;
@@ -1339,7 +1343,9 @@ cleanup:
  */
 void rsa_free( rsa_context *ctx )
 {
+#if !defined(POLARSSL_RSA_NO_CRT)
     mpi_free( &ctx->Vi ); mpi_free( &ctx->Vf );
+#endif
     mpi_free( &ctx->RQ ); mpi_free( &ctx->RP ); mpi_free( &ctx->RN );
     mpi_free( &ctx->QP ); mpi_free( &ctx->DQ ); mpi_free( &ctx->DP );
     mpi_free( &ctx->Q  ); mpi_free( &ctx->P  ); mpi_free( &ctx->D );

@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Branch 1.2
+Bugfix
+   * Fixed memory leak in RSA as a result of introduction of blinding
+
 = Version 1.2.9 released 2013-10-01
 Changes
    * x509_verify() now case insensitive for cn (RFC 6125 6.4)

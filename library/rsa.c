@@ -264,10 +264,14 @@ cleanup:
  *  DSS, and other systems. In : Advances in Cryptology—CRYPTO’96. Springer
  *  Berlin Heidelberg, 1996. p. 104-113.
  */
-static int rsa_prepare_blinding( rsa_context *ctx,
+static int rsa_prepare_blinding( rsa_context *ctx, mpi *Vi, mpi *Vf,
                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, count = 0;
+
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_lock( &ctx->mutex );
+#endif
 
     if( ctx->Vf.p != NULL )
     {
@@ -277,7 +281,7 @@ static int rsa_prepare_blinding( rsa_context *ctx,
         MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
         MPI_CHK( mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->N ) );
 
-        return( 0 );
+        goto done;
     }
 
     /* Unblinding value: Vf = random number, invertible mod N */
@@ -293,7 +297,18 @@ static int rsa_prepare_blinding( rsa_context *ctx,
     MPI_CHK( mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N ) );
     MPI_CHK( mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
 
+done:
+    if( Vi != &ctx->Vi )
+    {
+        MPI_CHK( mpi_copy( Vi, &ctx->Vi ) );
+        MPI_CHK( mpi_copy( Vf, &ctx->Vf ) );
+    }
+
 cleanup:
+#if defined(POLARSSL_THREADING_C)
+    polarssl_mutex_unlock( &ctx->mutex );
+#endif
+
     return( ret );
 }
 #endif
@@ -308,11 +323,27 @@ int rsa_private( rsa_context *ctx,
                  unsigned char *output )
 {
     int ret;
-#if defined(POLARSSL_THREADING_C)
-    int locked = 0;
-#endif
     size_t olen;
     mpi T, T1, T2;
+#if !defined(POLARSSL_RSA_NO_CRT)
+    mpi *Vi, *Vf;
+
+    /*
+     * When using the Chinese Remainder Theorem, we use blinding values.
+     * Without threading, we just read them directly from the context,
+     * otherwise we make a local copy in order to reduce locking contention.
+     */
+#if defined(POLARSSL_THREADING_C)
+    mpi Vi_copy, Vf_copy;
+
+    mpi_init( &Vi_copy ); mpi_init( &Vf_copy );
+    Vi = &Vi_copy;
+    Vf = &Vf_copy;
+#else
+    Vi = &ctx->Vi;
+    Vf = &ctx->Vf;
+#endif
+#endif
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
 
@@ -330,16 +361,12 @@ int rsa_private( rsa_context *ctx,
 #else
     if( f_rng != NULL )
     {
-#if defined(POLARSSL_THREADING_C)
-        polarssl_mutex_lock( &ctx->mutex );
-        locked = 1;
-#endif
         /*
          * Blinding
          * T = T * Vi mod N
          */
-        MPI_CHK( rsa_prepare_blinding( ctx, f_rng, p_rng ) );
-        MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vi ) );
+        MPI_CHK( rsa_prepare_blinding( ctx, Vi, Vf, f_rng, p_rng ) );
+        MPI_CHK( mpi_mul_mpi( &T, &T, Vi ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
@@ -371,7 +398,7 @@ int rsa_private( rsa_context *ctx,
          * Unblind
          * T = T * Vf mod N
          */
-        MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vf ) );
+        MPI_CHK( mpi_mul_mpi( &T, &T, Vf ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 #endif
@@ -380,11 +407,10 @@ int rsa_private( rsa_context *ctx,
     MPI_CHK( mpi_write_binary( &T, output, olen ) );
 
 cleanup:
-#if defined(POLARSSL_THREADING_C)
-    if( locked )
-        polarssl_mutex_unlock( &ctx->mutex );
-#endif
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
+#if !defined(POLARSSL_RSA_NO_CRT) && defined(POLARSSL_THREADING_C)
+    mpi_free( &Vi_copy ); mpi_free( &Vf_copy );
+#endif
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PRIVATE_FAILED + ret );

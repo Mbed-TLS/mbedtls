@@ -113,7 +113,7 @@ ecp_point;
  */
 typedef struct
 {
-    ecp_group_id id;    /*!<  RFC 4492 group ID                 */
+    ecp_group_id id;    /*!<  internal group identifier         */
     mpi P;              /*!<  prime modulus of the base field   */
     mpi A;              /*!<  currently unused (-3 assumed)     */
     mpi B;              /*!<  constant term in the equation     */
@@ -126,7 +126,7 @@ typedef struct
     int (*t_pre)(ecp_point *, void *);  /*!< currently unused   */
     int (*t_post)(ecp_point *, void *); /*!< currently unused   */
     void *t_data;                       /*!< currently unused   */
-    ecp_point *T;       /*!<  pre-computed points (unused now)  */
+    ecp_point *T;       /*!<  pre-computed points for ecp_mul() */
     size_t T_size;      /*!<  number for pre-computed points    */
 }
 ecp_group;

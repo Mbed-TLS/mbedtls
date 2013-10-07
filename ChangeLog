@@ -62,6 +62,15 @@ Security
    * RSA blinding on CRT operations to counter timing attacks
      (found by Cyril Arnaud and Pierre-Alain Fouque)
 
+= Version 1.2.10 released 2013-10-07
+Changes
+   * Changed RSA blinding to a slower but thread-safe version
+
+Bugfix
+   * Fixed memory leak in RSA as a result of introduction of blinding
+   * Fixed ssl_pkcs11_decrypt() prototype
+   * Fixed MSVC project files
+
 = Version 1.2.9 released 2013-10-01
 Changes
    * x509_verify() now case insensitive for cn (RFC 6125 6.4)

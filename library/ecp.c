@@ -70,28 +70,37 @@ unsigned long add_count, dbl_count;
 /*
  * List of supported curves:
  *  - internal ID
- *  - TLS NamedCurve ID (RFC 4492 section 5.1.1)
+ *  - TLS NamedCurve ID (RFC 4492 sec. 5.1.1, RFC 7071 sec. 2)
  *  - size in bits
- *  - readeble name
+ *  - readable name
  */
 const ecp_curve_info ecp_supported_curves[] =
 {
+#if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
+    { POLARSSL_ECP_DP_BP512R1,      28,     512,    "brainpool512r1"    },
+#endif
+#if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
+    { POLARSSL_ECP_DP_BP384R1,      27,     384,    "brainpool384r1"    },
+#endif
+#if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
+    { POLARSSL_ECP_DP_BP256R1,      26,     256,    "brainpool256r1"    },
+#endif
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1" },
+    { POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1"         },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP384R1,    24,     384,    "secp384r1" },
+    { POLARSSL_ECP_DP_SECP384R1,    24,     384,    "secp384r1"         },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP256R1,    23,     256,    "secp256r1" },
+    { POLARSSL_ECP_DP_SECP256R1,    23,     256,    "secp256r1"         },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP224R1,    21,     224,    "secp224r1" },
+    { POLARSSL_ECP_DP_SECP224R1,    21,     224,    "secp224r1"         },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP192R1,    19,     192,    "secp192r1" },
+    { POLARSSL_ECP_DP_SECP192R1,    19,     192,    "secp192r1"         },
 #endif
-    { POLARSSL_ECP_DP_NONE,          0,     0,      NULL        },
+    { POLARSSL_ECP_DP_NONE,          0,     0,      NULL                },
 };
 
 /*

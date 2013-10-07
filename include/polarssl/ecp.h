@@ -61,12 +61,15 @@ typedef enum
     POLARSSL_ECP_DP_SECP256R1,      /*!< 256-bits NIST curve  */
     POLARSSL_ECP_DP_SECP384R1,      /*!< 384-bits NIST curve  */
     POLARSSL_ECP_DP_SECP521R1,      /*!< 521-bits NIST curve  */
+    POLARSSL_ECP_DP_BP256R1,        /*!< 256-bits Brainpool curve */
+    POLARSSL_ECP_DP_BP384R1,        /*!< 384-bits Brainpool curve */
+    POLARSSL_ECP_DP_BP512R1,        /*!< 512-bits Brainpool curve */
 } ecp_group_id;
 
 /**
  * Number of supported curves (plus one for NONE)
  */
-#define POLARSSL_ECP_DP_MAX     6
+#define POLARSSL_ECP_DP_MAX     9
 
 /**
  * Curve information for use by other modules

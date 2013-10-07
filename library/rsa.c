@@ -252,46 +252,6 @@ cleanup:
     return( 0 );
 }
 
-#if !defined(POLARSSL_RSA_NO_CRT)
-/*
- * Generate or update blinding values, see section 10 of:
- *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
- *  DSS, and other systems. In : Advances in Cryptology—CRYPTO’96. Springer
- *  Berlin Heidelberg, 1996. p. 104-113.
- */
-static int rsa_prepare_blinding( rsa_context *ctx,
-                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
-{
-    int ret;
-
-    if( ctx->Vf.p != NULL )
-    {
-        /* We already have blinding values, just update them by squaring */
-        MPI_CHK( mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
-        MPI_CHK( mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );
-        MPI_CHK( mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
-        MPI_CHK( mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->N ) );
-
-        return( 0 );
-    }
-
-    /* Unblinding value: Vf = random number */
-    MPI_CHK( mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );
-
-    /* Mathematically speaking, the algorithm should check Vf
-     * against 0, P and Q (Vf should be relatively prime to N, and 0 < Vf < N),
-     * so that Vf^-1 exists.
-     */
-
-    /* Blinding value: Vi =  Vf^(-e) mod N */
-    MPI_CHK( mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N ) );
-    MPI_CHK( mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
-
-cleanup:
-    return( ret );
-}
-#endif
-
 /*
  * Do an RSA private key operation
  */
@@ -303,9 +263,10 @@ int rsa_private( rsa_context *ctx,
 {
     int ret;
     size_t olen;
-    mpi T, T1, T2;
+    mpi T, T1, T2, Vi, Vf;
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
+    mpi_init( &Vi ); mpi_init( &Vf );
 
     MPI_CHK( mpi_read_binary( &T, input, ctx->len ) );
 
@@ -326,8 +287,19 @@ int rsa_private( rsa_context *ctx,
          * Blinding
          * T = T * Vi mod N
          */
-        MPI_CHK( rsa_prepare_blinding( ctx, f_rng, p_rng ) );
-        MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vi ) );
+        /* Unblinding value: Vf = random number */
+        MPI_CHK( mpi_fill_random( &Vf, ctx->len - 1, f_rng, p_rng ) );
+
+        /* Mathematically speaking, the algorithm should check Vf
+         * against 0, P and Q (Vf should be relatively prime to N, and 0 < Vf < N),
+         * so that Vf^-1 exists.
+         */
+
+        /* Blinding value: Vi =  Vf^(-e) mod N */
+        MPI_CHK( mpi_inv_mod( &Vi, &Vf, &ctx->N ) );
+        MPI_CHK( mpi_exp_mod( &Vi, &Vi, &ctx->E, &ctx->N, &ctx->RN ) );
+
+        MPI_CHK( mpi_mul_mpi( &T, &T, &Vi ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
@@ -359,7 +331,7 @@ int rsa_private( rsa_context *ctx,
          * Unblind
          * T = T * Vf mod N
          */
-        MPI_CHK( mpi_mul_mpi( &T, &T, &ctx->Vf ) );
+        MPI_CHK( mpi_mul_mpi( &T, &T, &Vf ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 #endif
@@ -370,6 +342,7 @@ int rsa_private( rsa_context *ctx,
 cleanup:
 
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
+    mpi_free( &Vi ); mpi_free( &Vf );
 
     if( ret != 0 )
         return( POLARSSL_ERR_RSA_PRIVATE_FAILED + ret );
@@ -1354,9 +1327,6 @@ int rsa_pkcs1_verify( rsa_context *ctx,
  */
 void rsa_free( rsa_context *ctx )
 {
-#if !defined(POLARSSL_RSA_NO_CRT)
-    mpi_free( &ctx->Vi ); mpi_free( &ctx->Vf );
-#endif
     mpi_free( &ctx->RQ ); mpi_free( &ctx->RP ); mpi_free( &ctx->RN );
     mpi_free( &ctx->QP ); mpi_free( &ctx->DQ ); mpi_free( &ctx->DP );
     mpi_free( &ctx->Q  ); mpi_free( &ctx->P  ); mpi_free( &ctx->D );

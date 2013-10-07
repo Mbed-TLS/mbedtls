@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
-= Version 1.2.10 released 2013-10-04
+= Version 1.2.10 released 2013-10-07
+Changes
+   * Changed RSA blinding to a slower but thread-safe version
+
 Bugfix
    * Fixed memory leak in RSA as a result of introduction of blinding
    * Fixed ssl_pkcs11_decrypt() prototype

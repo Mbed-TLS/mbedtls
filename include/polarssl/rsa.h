@@ -151,11 +151,6 @@ typedef struct
     mpi RP;                     /*!<  cached R^2 mod P  */
     mpi RQ;                     /*!<  cached R^2 mod Q  */
 
-#if !defined(POLARSSL_RSA_NO_CRT)
-    mpi Vi;                     /*!<  cached blinding value     */
-    mpi Vf;                     /*!<  cached un-blinding value  */
-#endif
-
     int padding;                /*!<  RSA_PKCS_V15 for 1.5 padding and
                                       RSA_PKCS_v21 for OAEP/PSS         */
     int hash_id;                /*!<  Hash identifier of md_type_t as

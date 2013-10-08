@@ -1608,13 +1608,21 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
 
     /*
      * YY = Y^2
-     * RHS = X (X^2 - 3) + B = X^3 - 3X + B
+     * RHS = X (X^2 + A) + B = X^3 + A X + B
+     * with, as usual, A = -3 if A is ommited
      */
-    MPI_CHK( mpi_mul_mpi( &YY,  &pt->Y,  &pt->Y   ) );  MOD_MUL( YY  );
-    MPI_CHK( mpi_mul_mpi( &RHS, &pt->X,  &pt->X   ) );  MOD_MUL( RHS );
-    MPI_CHK( mpi_sub_int( &RHS, &RHS,    3        ) );  MOD_SUB( RHS );
-    MPI_CHK( mpi_mul_mpi( &RHS, &RHS,    &pt->X   ) );  MOD_MUL( RHS );
-    MPI_CHK( mpi_add_mpi( &RHS, &RHS,    &grp->B  ) );  MOD_ADD( RHS );
+    MPI_CHK( mpi_mul_mpi( &YY,  &pt->Y,   &pt->Y  ) );  MOD_MUL( YY  );
+    MPI_CHK( mpi_mul_mpi( &RHS, &pt->X,   &pt->X  ) );  MOD_MUL( RHS );
+    if( grp->A.p == NULL )
+    {
+        MPI_CHK( mpi_add_int( &RHS, &RHS, -3      ) );  MOD_SUB( RHS );
+    }
+    else
+    {
+        MPI_CHK( mpi_add_mpi( &RHS, &RHS, &grp->A ) );  MOD_ADD( RHS );
+    }
+    MPI_CHK( mpi_mul_mpi( &RHS, &RHS,     &pt->X  ) );  MOD_MUL( RHS );
+    MPI_CHK( mpi_add_mpi( &RHS, &RHS,     &grp->B ) );  MOD_ADD( RHS );
 
     if( mpi_cmp_mpi( &YY, &RHS ) != 0 )
         ret = POLARSSL_ERR_ECP_INVALID_KEY;

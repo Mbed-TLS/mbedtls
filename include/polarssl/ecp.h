@@ -105,6 +105,9 @@ ecp_point;
  * The curves we consider are defined by y^2 = x^3 + A x + B mod P,
  * and a generator for a large subgroup of order N is fixed.
  *
+ * If A is not set (ie A.p == NULL) then the value A = -3 is assumed,
+ * which allows the used of slightly faster point doubling formulas.
+ *
  * pbits and nbits must be the size of P and N in bits.
  *
  * If modp is NULL, reduction modulo P is done using a generic algorithm.
@@ -116,21 +119,21 @@ ecp_point;
  */
 typedef struct
 {
-    ecp_group_id id;    /*!<  internal group identifier         */
-    mpi P;              /*!<  prime modulus of the base field   */
-    mpi A;              /*!<  currently unused (-3 assumed)     */
-    mpi B;              /*!<  constant term in the equation     */
-    ecp_point G;        /*!<  generator of the subgroup used    */
-    mpi N;              /*!<  the order of G                    */
-    size_t pbits;       /*!<  number of bits in P               */
-    size_t nbits;       /*!<  number of bits in N               */
-    unsigned int h;     /*!<  cofactor (unused now: assume 1)   */
-    int (*modp)(mpi *); /*!<  function for fast reduction mod P */
-    int (*t_pre)(ecp_point *, void *);  /*!< currently unused   */
-    int (*t_post)(ecp_point *, void *); /*!< currently unused   */
-    void *t_data;                       /*!< currently unused   */
-    ecp_point *T;       /*!<  pre-computed points for ecp_mul() */
-    size_t T_size;      /*!<  number for pre-computed points    */
+    ecp_group_id id;    /*!<  internal group identifier                     */
+    mpi P;              /*!<  prime modulus of the base field               */
+    mpi A;              /*!<  linear term in the equation (default: -3)     */
+    mpi B;              /*!<  constant term in the equation                 */
+    ecp_point G;        /*!<  generator of the subgroup used                */
+    mpi N;              /*!<  the order of G                                */
+    size_t pbits;       /*!<  number of bits in P                           */
+    size_t nbits;       /*!<  number of bits in N                           */
+    unsigned int h;     /*!<  cofactor (unused now: assume 1)               */
+    int (*modp)(mpi *); /*!<  function for fast reduction mod P             */
+    int (*t_pre)(ecp_point *, void *);  /*!< currently unused               */
+    int (*t_post)(ecp_point *, void *); /*!< currently unused               */
+    void *t_data;                       /*!< currently unused               */
+    ecp_point *T;       /*!<  pre-computed points for ecp_mul()             */
+    size_t T_size;      /*!<  number for pre-computed points                */
 }
 ecp_group;
 

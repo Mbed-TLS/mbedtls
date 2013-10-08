@@ -172,6 +172,7 @@ void ecp_group_free( ecp_group *grp )
         return;
 
     mpi_free( &grp->P );
+    mpi_free( &grp->A );
     mpi_free( &grp->B );
     ecp_point_free( &grp->G );
     mpi_free( &grp->N );
@@ -262,15 +263,16 @@ cleanup:
 }
 
 /*
- * Import an ECP group from ASCII strings
+ * Import an ECP group from ASCII strings, general case (A used)
  */
-int ecp_group_read_string( ecp_group *grp, int radix,
-                           const char *p, const char *b,
+static int ecp_group_read_string_gen( ecp_group *grp, int radix,
+                           const char *p, const char *a, const char *b,
                            const char *gx, const char *gy, const char *n)
 {
     int ret;
 
     MPI_CHK( mpi_read_string( &grp->P, radix, p ) );
+    MPI_CHK( mpi_read_string( &grp->A, radix, a ) );
     MPI_CHK( mpi_read_string( &grp->B, radix, b ) );
     MPI_CHK( ecp_point_read_string( &grp->G, radix, gx, gy ) );
     MPI_CHK( mpi_read_string( &grp->N, radix, n ) );
@@ -279,6 +281,23 @@ int ecp_group_read_string( ecp_group *grp, int radix,
     grp->nbits = mpi_msb( &grp->N );
 
 cleanup:
+    if( ret != 0 )
+        ecp_group_free( grp );
+
+    return( ret );
+}
+
+/*
+ * Import an ECP group from ASCII strings, case A == -3 (A cleared)
+ */
+int ecp_group_read_string( ecp_group *grp, int radix,
+                           const char *p, const char *b,
+                           const char *gx, const char *gy, const char *n)
+{
+    int ret = ecp_group_read_string_gen( grp, radix, p, "00", b, gx, gy, n );
+
+    mpi_free( &grp->A );
+
     return( ret );
 }
 
@@ -761,8 +780,29 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
                         SECP521R1_GX, SECP521R1_GY, SECP521R1_N ) );
 #endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
+        case POLARSSL_ECP_DP_BP256R1:
+            return( ecp_group_read_string_gen( grp, 16,
+                        BP256R1_P, BP256R1_A, BP256R1_B,
+                        BP256R1_GX, BP256R1_GY, BP256R1_N ) );
+#endif /* POLARSSL_ECP_DP_BP256R1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
+        case POLARSSL_ECP_DP_BP384R1:
+            return( ecp_group_read_string_gen( grp, 16,
+                        BP384R1_P, BP384R1_A, BP384R1_B,
+                        BP384R1_GX, BP384R1_GY, BP384R1_N ) );
+#endif /* POLARSSL_ECP_DP_BP384R1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
+        case POLARSSL_ECP_DP_BP512R1:
+            return( ecp_group_read_string_gen( grp, 16,
+                        BP512R1_P, BP512R1_A, BP512R1_B,
+                        BP512R1_GX, BP512R1_GY, BP512R1_N ) );
+#endif /* POLARSSL_ECP_DP_BP512R1_ENABLED */
+
         default:
-            grp->id = POLARSSL_ECP_DP_NONE;
+            ecp_group_free( grp );
             return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
     }
 }
@@ -1016,13 +1056,17 @@ cleanup:
 
 
 /*
- * Point doubling R = 2 P, Jacobian coordinates (GECC 3.21)
+ * Point doubling R = 2 P, Jacobian coordinates with a == -3 (GECC 3.21)
  */
 static int ecp_double_jac( const ecp_group *grp, ecp_point *R,
                            const ecp_point *P )
 {
     int ret;
     mpi T1, T2, T3, X, Y, Z;
+
+    /* We can't handle A != -3 yet */
+    if( grp->A.p != NULL )
+        return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
 
 #if defined(POLARSSL_SELF_TEST)
     dbl_count++;

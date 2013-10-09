@@ -1054,23 +1054,14 @@ cleanup:
     return( ret );
 }
 
-
 /*
  * Point doubling R = 2 P, Jacobian coordinates with a == -3 (GECC 3.21)
  */
-static int ecp_double_jac( const ecp_group *grp, ecp_point *R,
-                           const ecp_point *P )
+static int ecp_double_jac_am3( const ecp_group *grp, ecp_point *R,
+                               const ecp_point *P )
 {
     int ret;
     mpi T1, T2, T3, X, Y, Z;
-
-    /* We can't handle A != -3 yet */
-    if( grp->A.p != NULL )
-        return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
-
-#if defined(POLARSSL_SELF_TEST)
-    dbl_count++;
-#endif
 
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
         return( ecp_set_zero( R ) );
@@ -1114,6 +1105,83 @@ cleanup:
     mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
 
     return( ret );
+}
+
+/*
+ * Point doubling R = 2 P, Jacobian coordinates with general A
+ * http://www.hyperelliptic.org/EFD/g1p/auto-code/shortw/jacobian/doubling/dbl-2007-bl.op3
+ */
+static int ecp_double_jac_gen( const ecp_group *grp, ecp_point *R,
+                               const ecp_point *P )
+{
+    int ret;
+    mpi XX, YY, YYYY, ZZ, t0, t1, t2, t3, S, t4, t5, t6, M, t7, t8, T, X3, t9,
+        t10, t11, Y3, t12, t13, t14, Z3;
+
+    mpi_init( &XX ); mpi_init( &YY ); mpi_init( &YYYY ); mpi_init( &ZZ );
+    mpi_init( &t0 ); mpi_init( &t1 ); mpi_init( &t2 ); mpi_init( &t3 );
+    mpi_init( &S ); mpi_init( &t4 ); mpi_init( &t5 ); mpi_init( &t6 );
+    mpi_init( &M ); mpi_init( &t7 ); mpi_init( &t8 ); mpi_init( &T );
+    mpi_init( &X3 ); mpi_init( &t9 ); mpi_init( &t10 ); mpi_init( &t11 );
+    mpi_init( &Y3 ); mpi_init( &t12 ); mpi_init( &t13 ); mpi_init( &t14 );
+    mpi_init( &Z3 );
+
+    MPI_CHK( mpi_mul_mpi( &XX,      &P->X,  &P->X   ) ); MOD_MUL( XX );
+    MPI_CHK( mpi_mul_mpi( &YY,      &P->Y,  &P->Y   ) ); MOD_MUL( YY );
+    MPI_CHK( mpi_mul_mpi( &YYYY,    &YY,    &YY     ) ); MOD_MUL( YYYY );
+    MPI_CHK( mpi_mul_mpi( &ZZ,      &P->Z,  &P->Z   ) ); MOD_MUL( ZZ );
+    MPI_CHK( mpi_add_mpi( &t0,      &P->X,  &YY     ) ); MOD_ADD( t0 );
+    MPI_CHK( mpi_mul_mpi( &t1,      &t0,    &t0     ) ); MOD_MUL( t1 );
+    MPI_CHK( mpi_sub_mpi( &t2,      &t1,    &XX     ) ); MOD_SUB( t2 );
+    MPI_CHK( mpi_sub_mpi( &t3,      &t2,    &YYYY   ) ); MOD_SUB( t3 );
+    MPI_CHK( mpi_mul_int( &S,       &t3,    2       ) ); MOD_ADD( S  );
+    MPI_CHK( mpi_mul_mpi( &t4,      &ZZ,    &ZZ     ) ); MOD_MUL( t4 );
+    MPI_CHK( mpi_mul_mpi( &t5,      &t4,    &grp->A ) ); MOD_MUL( t5 );
+    MPI_CHK( mpi_mul_int( &t6,      &XX,    3       ) ); MOD_ADD( t6 );
+    MPI_CHK( mpi_add_mpi( &M,       &t6,    &t5     ) ); MOD_ADD( M  );
+    MPI_CHK( mpi_mul_mpi( &t7,      &M,     &M      ) ); MOD_MUL( t7 );
+    MPI_CHK( mpi_mul_int( &t8,      &S,     2       ) ); MOD_ADD( t8 );
+    MPI_CHK( mpi_sub_mpi( &T,       &t7,    &t8     ) ); MOD_SUB( T  );
+    MPI_CHK( mpi_copy( &X3, &T ) );
+    MPI_CHK( mpi_sub_mpi( &t9,      &S,     &T      ) ); MOD_SUB( t9 );
+    MPI_CHK( mpi_mul_int( &t10,     &YYYY,  8       ) ); MOD_ADD( t10 );
+    MPI_CHK( mpi_mul_mpi( &t11,     &M,     &t9     ) ); MOD_MUL( t11 );
+    MPI_CHK( mpi_sub_mpi( &Y3,      &t11,   &t10    ) ); MOD_SUB( Y3 );
+    MPI_CHK( mpi_add_mpi( &t12,     &P->Y,  &P->Z   ) ); MOD_ADD( t12 );
+    MPI_CHK( mpi_mul_mpi( &t13,     &t12,   &t12    ) ); MOD_MUL( t13 );
+    MPI_CHK( mpi_sub_mpi( &t14,     &t13,   &YY     ) ); MOD_SUB( t14 );
+    MPI_CHK( mpi_sub_mpi( &Z3,      &t14,   &ZZ     ) ); MOD_SUB( Z3 );
+
+    MPI_CHK( mpi_copy( &R->X, &X3 ) );
+    MPI_CHK( mpi_copy( &R->Y, &Y3 ) );
+    MPI_CHK( mpi_copy( &R->Z, &Z3 ) );
+
+cleanup:
+    mpi_free( &XX ); mpi_free( &YY ); mpi_free( &YYYY ); mpi_free( &ZZ );
+    mpi_free( &t0 ); mpi_free( &t1 ); mpi_free( &t2 ); mpi_free( &t3 );
+    mpi_free( &S ); mpi_free( &t4 ); mpi_free( &t5 ); mpi_free( &t6 );
+    mpi_free( &M ); mpi_free( &t7 ); mpi_free( &t8 ); mpi_free( &T );
+    mpi_free( &X3 ); mpi_free( &t9 ); mpi_free( &t10 ); mpi_free( &t11 );
+    mpi_free( &Y3 ); mpi_free( &t12 ); mpi_free( &t13 ); mpi_free( &t14 );
+    mpi_free( &Z3 );
+
+    return( ret );
+}
+
+/*
+ * Point doubling R = 2 P, dispatcher function
+ */
+static int ecp_double_jac( const ecp_group *grp, ecp_point *R,
+                           const ecp_point *P )
+{
+#if defined(POLARSSL_SELF_TEST)
+    dbl_count++;
+#endif
+
+    if( grp->A.p != NULL )
+        return( ecp_double_jac_gen( grp, R, P ) );
+    else
+        return( ecp_double_jac_am3( grp, R, P ) );
 }
 
 /*

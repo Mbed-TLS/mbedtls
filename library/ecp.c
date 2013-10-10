@@ -1747,6 +1747,7 @@ int ecp_self_test( int verbose )
     ecp_point R, P;
     mpi m;
     unsigned long add_c_prev, dbl_c_prev;
+    /* exponents especially adapted for secp192r1 */
     const char *exponents[] =
     {
         "000000000000000000000000000000000000000000000000", /* zero */
@@ -1763,27 +1764,12 @@ int ecp_self_test( int verbose )
     ecp_point_init( &P );
     mpi_init( &m );
 
+    /* Use secp192r1 if available, or any available curve */
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
     MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP192R1 ) );
 #else
-#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
-    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP224R1 ) );
-#else
-#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
-    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP256R1 ) );
-#else
-#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP384R1 ) );
-#else
-#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
-    MPI_CHK( ecp_use_known_dp( &grp, POLARSSL_ECP_DP_SECP521R1 ) );
-#else
-#error No curves defines
-#endif /* POLARSSL_ECP_DP_SECP512R1_ENABLED */
-#endif /* POLARSSL_ECP_DP_SECP384R1_ENABLED */
-#endif /* POLARSSL_ECP_DP_SECP256R1_ENABLED */
-#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
-#endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
+    MPI_CHK( ecp_use_known_dp( &grp, ecp_curve_list()->grp_id ) );
+#endif
 
     if( verbose != 0 )
         printf( "  ECP test #1 (constant op_count, base point G): " );

@@ -97,7 +97,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void dhm_selftest()
 {
     TEST_ASSERT( dhm_self_test( 0 ) == 0 );

@@ -187,21 +187,21 @@ void md5_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_MD2_C:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_MD2_C:POLARSSL_SELF_TEST */
 void md2_selftest()
 {
     TEST_ASSERT( md2_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_MD4_C:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_MD4_C:POLARSSL_SELF_TEST */
 void md4_selftest()
 {
     TEST_ASSERT( md4_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_MD5_C:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_MD5_C:POLARSSL_SELF_TEST */
 void md5_selftest()
 {
     TEST_ASSERT( md5_self_test( 0 ) == 0 );

@@ -314,7 +314,7 @@ void des_key_parity_run()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void des_selftest()
 {
     TEST_ASSERT( des_self_test( 0 ) == 0 );

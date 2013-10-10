@@ -681,7 +681,7 @@ void mpi_shift_r( int radix_X, char *input_X, int shift_X, int radix_A,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void mpi_selftest()
 {
     TEST_ASSERT( mpi_self_test( 0 ) == 0 );

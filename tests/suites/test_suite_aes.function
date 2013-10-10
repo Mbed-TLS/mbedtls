@@ -197,7 +197,7 @@ void aes_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void aes_selftest()
 {
     TEST_ASSERT( aes_self_test( 0 ) == 0 );

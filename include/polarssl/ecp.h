@@ -105,9 +105,6 @@ ecp_point;
  * The curves we consider are defined by y^2 = x^3 + A x + B mod P,
  * and a generator for a large subgroup of order N is fixed.
  *
- * If A is not set (ie A.p == NULL) then the value A = -3 is assumed,
- * which allows the used of slightly faster point doubling formulas.
- *
  * pbits and nbits must be the size of P and N in bits.
  *
  * If modp is NULL, reduction modulo P is done using a generic algorithm.
@@ -121,7 +118,7 @@ typedef struct
 {
     ecp_group_id id;    /*!<  internal group identifier                     */
     mpi P;              /*!<  prime modulus of the base field               */
-    mpi A;              /*!<  linear term in the equation (default: -3)     */
+    mpi A;              /*!<  linear term in the equation                   */
     mpi B;              /*!<  constant term in the equation                 */
     ecp_point G;        /*!<  generator of the subgroup used                */
     mpi N;              /*!<  the order of G                                */

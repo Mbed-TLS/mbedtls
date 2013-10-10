@@ -288,15 +288,20 @@ cleanup:
 }
 
 /*
- * Import an ECP group from ASCII strings, case A == -3 (A cleared)
+ * Import an ECP group from ASCII strings, case A == -3
  */
 int ecp_group_read_string( ecp_group *grp, int radix,
                            const char *p, const char *b,
                            const char *gx, const char *gy, const char *n)
 {
-    int ret = ecp_group_read_string_gen( grp, radix, p, "00", b, gx, gy, n );
+    int ret;
 
-    mpi_free( &grp->A );
+    MPI_CHK( ecp_group_read_string_gen( grp, radix, p, "00", b, gx, gy, n ) );
+    MPI_CHK( mpi_add_int( &grp->A, &grp->P, -3 ) );
+
+cleanup:
+    if( ret != 0 )
+        ecp_group_free( grp );
 
     return( ret );
 }
@@ -1055,71 +1060,22 @@ cleanup:
 }
 
 /*
- * Point doubling R = 2 P, Jacobian coordinates with a == -3 (GECC 3.21)
- */
-static int ecp_double_jac_am3( const ecp_group *grp, ecp_point *R,
-                               const ecp_point *P )
-{
-    int ret;
-    mpi T1, T2, T3, X, Y, Z;
-
-    if( mpi_cmp_int( &P->Z, 0 ) == 0 )
-        return( ecp_set_zero( R ) );
-
-    mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 );
-    mpi_init( &X ); mpi_init( &Y ); mpi_init( &Z );
-
-    MPI_CHK( mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );  MOD_MUL( T1 );
-    MPI_CHK( mpi_sub_mpi( &T2,  &P->X,  &T1   ) );  MOD_SUB( T2 );
-    MPI_CHK( mpi_add_mpi( &T1,  &P->X,  &T1   ) );  MOD_ADD( T1 );
-    MPI_CHK( mpi_mul_mpi( &T2,  &T2,    &T1   ) );  MOD_MUL( T2 );
-    MPI_CHK( mpi_mul_int( &T2,  &T2,    3     ) );  MOD_ADD( T2 );
-    MPI_CHK( mpi_mul_int( &Y,   &P->Y,  2     ) );  MOD_ADD( Y  );
-    MPI_CHK( mpi_mul_mpi( &Z,   &Y,     &P->Z ) );  MOD_MUL( Z  );
-    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) );  MOD_MUL( Y  );
-    MPI_CHK( mpi_mul_mpi( &T3,  &Y,     &P->X ) );  MOD_MUL( T3 );
-    MPI_CHK( mpi_mul_mpi( &Y,   &Y,     &Y    ) );  MOD_MUL( Y  );
-
-    /*
-     * For Y = Y / 2 mod p, we must make sure that Y is even before
-     * using right-shift. No need to reduce mod p afterwards.
-     */
-    if( mpi_get_bit( &Y, 0 ) == 1 )
-        MPI_CHK( mpi_add_mpi( &Y, &Y, &grp->P ) );
-    MPI_CHK( mpi_shift_r( &Y,   1             ) );
-
-    MPI_CHK( mpi_mul_mpi( &X,   &T2,    &T2   ) );  MOD_MUL( X  );
-    MPI_CHK( mpi_mul_int( &T1,  &T3,    2     ) );  MOD_ADD( T1 );
-    MPI_CHK( mpi_sub_mpi( &X,   &X,     &T1   ) );  MOD_SUB( X  );
-    MPI_CHK( mpi_sub_mpi( &T1,  &T3,    &X    ) );  MOD_SUB( T1 );
-    MPI_CHK( mpi_mul_mpi( &T1,  &T1,    &T2   ) );  MOD_MUL( T1 );
-    MPI_CHK( mpi_sub_mpi( &Y,   &T1,    &Y    ) );  MOD_SUB( Y  );
-
-    MPI_CHK( mpi_copy( &R->X, &X ) );
-    MPI_CHK( mpi_copy( &R->Y, &Y ) );
-    MPI_CHK( mpi_copy( &R->Z, &Z ) );
-
-cleanup:
-
-    mpi_free( &T1 ); mpi_free( &T2 ); mpi_free( &T3 );
-    mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
-
-    return( ret );
-}
-
-/*
- * Point doubling R = 2 P, Jacobian coordinates with general A
+ * Point doubling R = 2 P, Jacobian coordinates
  *
  * http://www.hyperelliptic.org/EFD/g1p/auto-code/shortw/jacobian/doubling/dbl-2007-bl.op3
  * with heavy variable renaming, some reordering and one minor modification
  * (a = 2 * b, c = d - 2a replaced with c = d, c = c - b, c = c - b)
  * in order to use a lot less intermediate variables (6 vs 25).
  */
-static int ecp_double_jac_gen( const ecp_group *grp, ecp_point *R,
-                               const ecp_point *P )
+static int ecp_double_jac( const ecp_group *grp, ecp_point *R,
+                           const ecp_point *P )
 {
     int ret;
     mpi T1, T2, T3, X3, Y3, Z3;
+
+#if defined(POLARSSL_SELF_TEST)
+    dbl_count++;
+#endif
 
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 );
     mpi_init( &X3 ); mpi_init( &Y3 ); mpi_init( &Z3 );
@@ -1158,22 +1114,6 @@ cleanup:
     mpi_free( &X3 ); mpi_free( &Y3 ); mpi_free( &Z3 );
 
     return( ret );
-}
-
-/*
- * Point doubling R = 2 P, dispatcher function
- */
-static int ecp_double_jac( const ecp_group *grp, ecp_point *R,
-                           const ecp_point *P )
-{
-#if defined(POLARSSL_SELF_TEST)
-    dbl_count++;
-#endif
-
-    if( grp->A.p != NULL )
-        return( ecp_double_jac_gen( grp, R, P ) );
-    else
-        return( ecp_double_jac_am3( grp, R, P ) );
 }
 
 /*
@@ -1669,18 +1609,10 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
     /*
      * YY = Y^2
      * RHS = X (X^2 + A) + B = X^3 + A X + B
-     * with, as usual, A = -3 if A is ommited
      */
     MPI_CHK( mpi_mul_mpi( &YY,  &pt->Y,   &pt->Y  ) );  MOD_MUL( YY  );
     MPI_CHK( mpi_mul_mpi( &RHS, &pt->X,   &pt->X  ) );  MOD_MUL( RHS );
-    if( grp->A.p == NULL )
-    {
-        MPI_CHK( mpi_add_int( &RHS, &RHS, -3      ) );  MOD_SUB( RHS );
-    }
-    else
-    {
-        MPI_CHK( mpi_add_mpi( &RHS, &RHS, &grp->A ) );  MOD_ADD( RHS );
-    }
+    MPI_CHK( mpi_add_mpi( &RHS, &RHS,     &grp->A ) );  MOD_ADD( RHS );
     MPI_CHK( mpi_mul_mpi( &RHS, &RHS,     &pt->X  ) );  MOD_MUL( RHS );
     MPI_CHK( mpi_add_mpi( &RHS, &RHS,     &grp->B ) );  MOD_ADD( RHS );
 

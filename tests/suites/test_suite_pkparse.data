@@ -130,6 +130,18 @@ Parse Public EC Key #6 (RFC 5480, secp521r1)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP521R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_521_pub.pem":0
 
+Parse Public EC Key #7 (RFC 5480, brainpoolP256r1)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_BP256R1_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_bp256_pub.pem":0
+
+Parse Public EC Key #8 (RFC 5480, brainpoolP384r1)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_BP384R1_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_bp384_pub.pem":0
+
+Parse Public EC Key #9 (RFC 5480, brainpoolP512r1)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_BP512R1_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_bp512_pub.pem":0
+
 Parse EC Key #1 (SEC1 DER)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.sec1.der":"NULL":0
@@ -173,6 +185,18 @@ pk_parse_keyfile_ec:"data_files/ec_384_prv.pem":"NULL":0
 Parse EC Key #11 (SEC1 PEM, secp521r1)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP521R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_521_prv.pem":"NULL":0
+
+Parse EC Key #12 (SEC1 PEM, bp256r1)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_BP256R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_bp256_prv.pem":"NULL":0
+
+Parse EC Key #13 (SEC1 PEM, bp384r1)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_BP384R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_bp384_prv.pem":"NULL":0
+
+Parse EC Key #14 (SEC1 PEM, bp512r1)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_BP512R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_bp512_prv.pem":"NULL":0
 
 Key ASN1 (Incorrect first tag)
 pk_parse_key_rsa:"":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT

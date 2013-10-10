@@ -74,6 +74,8 @@
 #define OID_OIW_SECSIG_SHA1             OID_OIW_SECSIG_ALG "\x1a"
 #define OID_ORG_CERTICOM                "\x81\x04"  /* certicom(132) */
 #define OID_CERTICOM                    OID_ISO_IDENTIFIED_ORG OID_ORG_CERTICOM
+#define OID_ORG_TELETRUST               "\x24" /* teletrust(36) */
+#define OID_TELETRUST                   OID_ISO_IDENTIFIED_ORG OID_ORG_TELETRUST
 
 /*
  * ISO ITU OID parts
@@ -258,7 +260,7 @@
 #define OID_EC_ALG_ECDH                 OID_CERTICOM "\x01\x0c"
 
 /*
- * ECParameters namedCurve identifiers, from RFC 5480
+ * ECParameters namedCurve identifiers, from RFC 5480 and RFC 5639
  */
 
 /* secp192r1 OBJECT IDENTIFIER ::= {
@@ -280,6 +282,23 @@
 /* secp521r1 OBJECT IDENTIFIER ::= {
  *   iso(1) identified-organization(3) certicom(132) curve(0) 35 } */
 #define OID_EC_GRP_SECP521R1        OID_CERTICOM "\x00\x23"
+
+/* RFC 5639 4.1
+ * ecStdCurvesAndGeneration OBJECT IDENTIFIER::= {iso(1)
+ * identified-organization(3) teletrust(36) algorithm(3) signature-
+ * algorithm(3) ecSign(2) 8}
+ * ellipticCurve OBJECT IDENTIFIER ::= {ecStdCurvesAndGeneration 1}
+ * versionOne OBJECT IDENTIFIER ::= {ellipticCurve 1} */
+#define OID_EC_BRAINPOOL_V1         OID_TELETRUST "\x03\x03\x02\x08\x01\x01"
+
+/* brainpoolP256r1 OBJECT IDENTIFIER ::= {versionOne 7} */
+#define OID_EC_GRP_BP256R1          OID_EC_BRAINPOOL_V1 "\x07"
+
+/* brainpoolP384r1 OBJECT IDENTIFIER ::= {versionOne 11} */
+#define OID_EC_GRP_BP384R1          OID_EC_BRAINPOOL_V1 "\x0B"
+
+/* brainpoolP512r1 OBJECT IDENTIFIER ::= {versionOne 13} */
+#define OID_EC_GRP_BP512R1          OID_EC_BRAINPOOL_V1 "\x0D"
 
 /*
  * ECDSA signature identifers, from RFC 5480

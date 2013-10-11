@@ -674,7 +674,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 #if defined(POLARSSL_ERROR_STRERROR_BC)
 void error_strerror( int ret, char *buf, size_t buflen )
 {
-    return polarssl_strerror( ret, buf, buflen );
+    polarssl_strerror( ret, buf, buflen );
 }
 #endif /* POLARSSL_ERROR_STRERROR_BC */
 
@@ -698,7 +698,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 #if defined(POLARSSL_ERROR_STRERROR_BC)
 void error_strerror( int ret, char *buf, size_t buflen )
 {
-    return polarssl_strerror( ret, buf, buflen );
+    polarssl_strerror( ret, buf, buflen );
 }
 #endif /* POLARSSL_ERROR_STRERROR_BC */
 #endif /* POLARSSL_ERROR_STRERROR_DUMMY */

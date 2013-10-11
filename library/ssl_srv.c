@@ -1568,8 +1568,8 @@ static int ssl_write_server_hello( ssl_context *ssl )
 #if defined(POLARSSL_HAVE_TIME)
     time_t t;
 #endif
-    int ret, n;
-    size_t olen, ext_len = 0;
+    int ret;
+    size_t olen, ext_len = 0, n;
     unsigned char *buf, *p;
 
     SSL_DEBUG_MSG( 2, ( "=> write server hello" ) );
@@ -1813,7 +1813,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     p[1 + ct_len++] = SSL_CERT_TYPE_ECDSA_SIGN;
 #endif
 
-    p[0] = ct_len++;
+    p[0] = (unsigned char) ct_len++;
     p += ct_len;
 
     sa_len = 0;
@@ -1969,7 +1969,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         }
 
         if( ( ret = dhm_make_params( &ssl->handshake->dhm_ctx,
-                                      mpi_size( &ssl->handshake->dhm_ctx.P ),
+                                      (int) mpi_size( &ssl->handshake->dhm_ctx.P ),
                                       p,
                                       &len, ssl->f_rng, ssl->p_rng ) ) != 0 )
         {

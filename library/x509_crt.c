@@ -940,7 +940,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
 	char *p;
-    int len = strlen( path );
+    int len = (int) strlen( path );
 
 	WIN32_FIND_DATAW file_data;
     HANDLE hFind;

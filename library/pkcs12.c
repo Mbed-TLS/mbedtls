@@ -225,7 +225,7 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
                        const unsigned char *salt, size_t saltlen,
                        md_type_t md_type, int id, int iterations )
 {
-    int ret, i;
+    int ret;
     unsigned int j;
 
     unsigned char diversifier[128];
@@ -234,7 +234,7 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
     unsigned char *p;
     unsigned char c;
 
-    size_t hlen, use_len, v;
+    size_t hlen, use_len, v, i;
 
     const md_info_t *md_info;
     md_context_t md_ctx;
@@ -281,7 +281,7 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
             goto exit;
 
         // Perform remaining ( iterations - 1 ) recursive hash calculations
-        for( i = 1; i < iterations; i++ )
+        for( i = 1; i < (size_t) iterations; i++ )
         {
             if( ( ret = md( md_info, hash_output, hlen, hash_output ) ) != 0 )
                 goto exit;

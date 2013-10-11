@@ -71,7 +71,7 @@ static int pk_write_rsa_pubkey( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
-    return( len );
+    return( (int) len );
 }
 #endif /* POLARSSL_RSA_C */
 
@@ -99,7 +99,7 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
     *p -= len;
     memcpy( *p, buf, len );
 
-    return( len );
+    return( (int) len );
 }
 
 /*
@@ -120,7 +120,7 @@ static int pk_write_ec_param( unsigned char **p, unsigned char *start,
 
     ASN1_CHK_ADD( len, asn1_write_oid( p, start, oid, oid_len ) );
 
-    return( len );
+    return( (int) len );
 }
 #endif /* POLARSSL_ECP_C */
 
@@ -142,7 +142,7 @@ int pk_write_pubkey( unsigned char **p, unsigned char *start,
 #endif
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
-    return( len );
+    return( (int) len );
 }
 
 int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
@@ -189,7 +189,7 @@ int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
-    return( len );
+    return( (int) len );
 }
 
 int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
@@ -273,7 +273,7 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
 #endif
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
-    return( len );
+    return( (int) len );
 }
 
 #if defined(POLARSSL_PEM_WRITE_C)

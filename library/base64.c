@@ -137,7 +137,7 @@ int base64_decode( unsigned char *dst, size_t *dlen,
     uint32_t j, x;
     unsigned char *p;
 
-    for( i = j = n = 0; i < slen; i++ )
+    for( i = n = j = 0; i < slen; i++ )
     {
         if( ( slen - i ) >= 2 &&
             src[i] == '\r' && src[i + 1] == '\n' )

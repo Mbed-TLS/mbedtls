@@ -1018,11 +1018,11 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
          * Digest ::= OCTET STRING
          */
         *p++ = ASN1_SEQUENCE | ASN1_CONSTRUCTED;
-        *p++ = 0x08 + oid_size + hashlen;
+        *p++ = (unsigned char) ( 0x08 + oid_size + hashlen );
         *p++ = ASN1_SEQUENCE | ASN1_CONSTRUCTED;
-        *p++ = 0x04 + oid_size;
+        *p++ = (unsigned char) ( 0x04 + oid_size );
         *p++ = ASN1_OID;
-        *p++ = oid_size;
+        *p++ = oid_size & 0xFF;
         memcpy( p, oid, oid_size );
         p += oid_size;
         *p++ = ASN1_NULL;

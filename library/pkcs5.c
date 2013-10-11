@@ -269,7 +269,7 @@ int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
         use_len = ( key_length < md_size ) ? key_length : md_size;
         memcpy( out_p, work, use_len );
 
-        key_length -= use_len;
+        key_length -= (uint32_t) use_len;
         out_p += use_len;
 
         for( i = 4; i > 0; i-- )

@@ -59,7 +59,7 @@ int platform_entropy_poll( void *data, unsigned char *output, size_t len,
         return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
     }
 
-    if( CryptGenRandom( provider, len, output ) == FALSE )
+    if( CryptGenRandom( provider, (DWORD) len, output ) == FALSE )
         return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
 
     CryptReleaseContext( provider, 0 );

@@ -216,7 +216,7 @@ int cipher_update_ad( cipher_context_t *ctx,
 #if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
     {
-        return gcm_starts( ctx->cipher_ctx, ctx->operation,
+        return gcm_starts( (gcm_context *) ctx->cipher_ctx, ctx->operation,
                            ctx->iv, ctx->iv_size, ad, ad_len );
     }
 #endif
@@ -257,7 +257,8 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
     if( ctx->cipher_info->mode == POLARSSL_MODE_GCM )
     {
         *olen = ilen;
-        return gcm_update( ctx->cipher_ctx, ilen, input, output );
+        return gcm_update( (gcm_context *) ctx->cipher_ctx, ilen, input,
+                           output );
     }
 #endif
 
@@ -414,7 +415,7 @@ static void add_pkcs_padding( unsigned char *output, size_t output_len,
 static int get_pkcs_padding( unsigned char *input, size_t input_len,
         size_t *data_len )
 {
-    unsigned int i, padding_len = 0;
+    size_t i, padding_len = 0;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
@@ -487,7 +488,7 @@ static void add_zeros_and_len_padding( unsigned char *output,
 static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
                                       size_t *data_len )
 {
-    unsigned int i, padding_len = 0;
+    size_t i, padding_len = 0;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
@@ -514,7 +515,7 @@ static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
 static void add_zeros_padding( unsigned char *output,
                                size_t output_len, size_t data_len )
 {
-    unsigned char i;
+    size_t i;
 
     for( i = data_len; i < output_len; i++ )
         output[i] = 0x00;
@@ -693,7 +694,7 @@ int cipher_write_tag( cipher_context_t *ctx,
 
 #if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
-        return gcm_finish( ctx->cipher_ctx, tag, tag_len );
+        return gcm_finish( (gcm_context *) ctx->cipher_ctx, tag, tag_len );
 #endif
 
     return 0;
@@ -720,8 +721,11 @@ int cipher_check_tag( cipher_context_t *ctx,
         if( tag_len > sizeof( check_tag ) )
             return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
-        if( 0 != ( ret = gcm_finish( ctx->cipher_ctx, check_tag, tag_len ) ) )
+        if( 0 != ( ret = gcm_finish( (gcm_context *) ctx->cipher_ctx,
+                                     check_tag, tag_len ) ) )
+        {
             return( ret );
+        }
 
         /* Check the tag in "constant-time" */
         for( diff = 0, i = 0; i < tag_len; i++ )

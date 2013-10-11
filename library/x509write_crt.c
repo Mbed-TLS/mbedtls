@@ -270,7 +270,7 @@ static int x509_write_time( unsigned char **p, unsigned char *start,
         ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_GENERALIZED_TIME ) );
     }
 
-    return( len );
+    return( (int) len );
 }
 
 int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
@@ -396,7 +396,7 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     ASN1_CHK_ADD( len, asn1_write_len( &c2, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c2, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
-    return( len );
+    return( (int) len );
 }
 
 #define PEM_BEGIN_CRT           "-----BEGIN CERTIFICATE-----\n"

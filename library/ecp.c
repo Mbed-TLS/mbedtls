@@ -442,7 +442,7 @@ int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
     /*
      * write length to the first byte and update total length
      */
-    buf[0] = *olen;
+    buf[0] = (unsigned char) *olen;
     ++*olen;
 
     return 0;
@@ -1427,7 +1427,7 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
 {
     int ret;
     unsigned char w, m_is_odd, p_eq_g;
-    size_t pre_len, naf_len, i, j;
+    size_t pre_len = 1, naf_len, i, j;
     signed char naf[ MAX_NAF_LEN ];
     ecp_point Q, *T = NULL, S[2];
     mpi M;
@@ -1469,7 +1469,7 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     if( w < 2 || w >= grp->nbits )
         w = 2;
 
-    pre_len = 1 << ( w - 1 );
+    pre_len <<= ( w - 1 );
     naf_len = grp->nbits / w + 1;
 
     /*
@@ -1478,7 +1478,8 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
      */
     if( ! p_eq_g || grp->T == NULL )
     {
-        if( ( T = polarssl_malloc( pre_len * sizeof( ecp_point ) ) ) == NULL )
+        T = (ecp_point *) polarssl_malloc( pre_len * sizeof( ecp_point ) );
+        if( T == NULL )
         {
             ret = POLARSSL_ERR_ECP_MALLOC_FAILED;
             goto cleanup;

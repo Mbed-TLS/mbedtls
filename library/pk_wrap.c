@@ -68,7 +68,7 @@ static int rsa_verify_wrap( void *ctx, md_type_t md_alg,
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
     return( rsa_pkcs1_verify( (rsa_context *) ctx, NULL, NULL,
-                RSA_PUBLIC, md_alg, hash_len, hash, sig ) );
+                RSA_PUBLIC, md_alg, (unsigned int) hash_len, hash, sig ) );
 }
 
 static int rsa_sign_wrap( void *ctx, md_type_t md_alg,
@@ -79,7 +79,7 @@ static int rsa_sign_wrap( void *ctx, md_type_t md_alg,
     *sig_len = ((rsa_context *) ctx)->len;
 
     return( rsa_pkcs1_sign( (rsa_context *) ctx, f_rng, p_rng, RSA_PRIVATE,
-                md_alg, hash_len, hash, sig ) );
+                md_alg, (unsigned int) hash_len, hash, sig ) );
 }
 
 static int rsa_decrypt_wrap( void *ctx,
@@ -361,7 +361,7 @@ static int rsa_alt_sign_wrap( void *ctx, md_type_t md_alg,
     *sig_len = rsa_alt->key_len_func( rsa_alt->key );
 
     return( rsa_alt->sign_func( rsa_alt->key, f_rng, p_rng, RSA_PRIVATE,
-                md_alg, hash_len, hash, sig ) );
+                md_alg, (unsigned int) hash_len, hash, sig ) );
 }
 
 static int rsa_alt_decrypt_wrap( void *ctx,

@@ -108,7 +108,8 @@ static int block_cipher_df( unsigned char *output,
     unsigned char *p = buf, *iv;
     aes_context aes_ctx;
 
-    int i, j, buf_len, use_len;
+    int i, j;
+    size_t buf_len, use_len;
 
     memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
 
@@ -150,11 +151,12 @@ static int block_cipher_df( unsigned char *output,
             for( i = 0; i < CTR_DRBG_BLOCKSIZE; i++ )
                 chain[i] ^= p[i];
             p += CTR_DRBG_BLOCKSIZE;
-            use_len -= CTR_DRBG_BLOCKSIZE;
+            use_len -= ( use_len >= CTR_DRBG_BLOCKSIZE ) ?
+                       CTR_DRBG_BLOCKSIZE : use_len;
 
             aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, chain, chain );
         }
-        
+
         memcpy( tmp + j, chain, CTR_DRBG_BLOCKSIZE );
 
         /*

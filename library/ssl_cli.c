@@ -1714,7 +1714,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         i = 6;
 
         ret = dhm_make_public( &ssl->handshake->dhm_ctx,
-                                mpi_size( &ssl->handshake->dhm_ctx.P ),
+                                (int) mpi_size( &ssl->handshake->dhm_ctx.P ),
                                &ssl->out_msg[i], n,
                                 ssl->f_rng, ssl->p_rng );
         if( ret != 0 )
@@ -1845,7 +1845,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         ssl->out_msg[7 + ssl->psk_identity_len] = (unsigned char)( n      );
 
         ret = dhm_make_public( &ssl->handshake->dhm_ctx,
-                                mpi_size( &ssl->handshake->dhm_ctx.P ),
+                                (int) mpi_size( &ssl->handshake->dhm_ctx.P ),
                                &ssl->out_msg[8 + ssl->psk_identity_len], n,
                                 ssl->f_rng, ssl->p_rng );
         if( ret != 0 )

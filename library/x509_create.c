@@ -159,7 +159,7 @@ static int x509_write_name( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SET ) );
 
-    return( len );
+    return( (int) len );
 }
 
 int x509_write_names( unsigned char **p, unsigned char *start,
@@ -180,7 +180,7 @@ int x509_write_names( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
-    return( len );
+    return( (int) len );
 }
 
 int x509_write_sig( unsigned char **p, unsigned char *start,
@@ -208,7 +208,7 @@ int x509_write_sig( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( p, start, oid,
                                                         oid_len, 0 ) );
 
-    return( len );
+    return( (int) len );
 }
 
 static int x509_write_extension( unsigned char **p, unsigned char *start,
@@ -235,7 +235,7 @@ static int x509_write_extension( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
 
-    return( len );
+    return( (int) len );
 }
 
 /*
@@ -261,7 +261,7 @@ int x509_write_extensions( unsigned char **p, unsigned char *start,
         cur_ext = cur_ext->next;
     }
 
-    return( len );
+    return( (int) len );
 }
 
 #endif /* POLARSSL_X509_CREATE_C */

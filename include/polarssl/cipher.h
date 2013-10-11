@@ -379,7 +379,7 @@ static inline int cipher_get_iv_size( const cipher_context_t *ctx )
         return 0;
 
     if( ctx->iv_size != 0 )
-        return ctx->iv_size;
+        return (int) ctx->iv_size;
 
     return ctx->cipher_info->iv_size;
 }

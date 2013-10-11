@@ -3,6 +3,7 @@ PolarSSL ChangeLog (Sorted per branch, date)
 = Branch 1.3
 Changes
    * RSA blinding locks for a smaller amount of time
+   * TLS compression only allocates working buffer once
 
 Bugfix
    * Missing MSVC defines added

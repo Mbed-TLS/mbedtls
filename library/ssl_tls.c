@@ -706,6 +706,18 @@ int ssl_derive_keys( ssl_context *ssl )
     //
     if( session->compression == SSL_COMPRESS_DEFLATE )
     {
+        if( ssl->compress_buf == NULL )
+        {
+            SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );
+            ssl->compress_buf = polarssl_malloc( SSL_BUFFER_LEN );
+            if( ssl->compress_buf == NULL )
+            {
+                SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed",
+                                    SSL_BUFFER_LEN ) );
+                return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+            }
+        }
+
         SSL_DEBUG_MSG( 3, ( "Initializing zlib states" ) );
 
         memset( &transform->ctx_deflate, 0, sizeof( transform->ctx_deflate ) );
@@ -1662,19 +1674,12 @@ static int ssl_compress_buf( ssl_context *ssl )
     int ret;
     unsigned char *msg_post = ssl->out_msg;
     size_t len_pre = ssl->out_msglen;
-    unsigned char *msg_pre;
+    unsigned char *msg_pre = ssl->compress_buf;
 
     SSL_DEBUG_MSG( 2, ( "=> compress buf" ) );
 
     if( len_pre == 0 )
         return( 0 );
-
-    msg_pre = (unsigned char*) polarssl_malloc( len_pre );
-    if( msg_pre == NULL )
-    {
-        SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len_pre ) );
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
-    }
 
     memcpy( msg_pre, ssl->out_msg, len_pre );
 
@@ -1698,8 +1703,6 @@ static int ssl_compress_buf( ssl_context *ssl )
 
     ssl->out_msglen = SSL_BUFFER_LEN - ssl->transform_out->ctx_deflate.avail_out;
 
-    polarssl_free( msg_pre );
-
     SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
                    ssl->out_msglen ) );
 
@@ -1716,19 +1719,12 @@ static int ssl_decompress_buf( ssl_context *ssl )
     int ret;
     unsigned char *msg_post = ssl->in_msg;
     size_t len_pre = ssl->in_msglen;
-    unsigned char *msg_pre;
+    unsigned char *msg_pre = ssl->compress_buf;
 
     SSL_DEBUG_MSG( 2, ( "=> decompress buf" ) );
 
     if( len_pre == 0 )
         return( 0 );
-
-    msg_pre = (unsigned char*) polarssl_malloc( len_pre );
-    if( msg_pre == NULL )
-    {
-        SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len_pre ) );
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
-    }
 
     memcpy( msg_pre, ssl->in_msg, len_pre );
 
@@ -1751,8 +1747,6 @@ static int ssl_decompress_buf( ssl_context *ssl )
     }
 
     ssl->in_msglen = SSL_MAX_CONTENT_LEN - ssl->transform_in->ctx_inflate.avail_out;
-
-    polarssl_free( msg_pre );
 
     SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
                    ssl->in_msglen ) );
@@ -4227,6 +4221,14 @@ void ssl_free( ssl_context *ssl )
         memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
         polarssl_free( ssl->in_ctr );
     }
+
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    if( ssl->compress_buf != NULL )
+    {
+        memset( ssl->compress_buf, 0, SSL_BUFFER_LEN );
+        polarssl_free( ssl->compress_buf );
+    }
+#endif
 
 #if defined(POLARSSL_DHM_C)
     mpi_free( &ssl->dhm_P );

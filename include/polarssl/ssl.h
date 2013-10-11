@@ -667,6 +667,9 @@ struct _ssl_context
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
 
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    unsigned char *compress_buf;        /*!<  zlib data buffer        */
+#endif
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char mfl_code;     /*!< MaxFragmentLength chosen by us   */
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */

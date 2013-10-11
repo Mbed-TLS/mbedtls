@@ -281,6 +281,18 @@
 #define POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED
 
 /**
+ * \def POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+ *
+ * Enable the ECDHE-PSK based ciphersuite modes in SSL / TLS.
+ *
+ * Requires: POLARSSL_ECDH_C
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ */
+#define POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+
+/**
  * \def POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED
  *
  * Enable the RSA-PSK based ciphersuite modes in SSL / TLS.
@@ -1734,6 +1746,11 @@
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) && !defined(POLARSSL_DHM_C)
 #error "POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
+    !defined(POLARSSL_ECDH_C)
+#error "POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) &&                   \

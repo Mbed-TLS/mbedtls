@@ -166,6 +166,7 @@ typedef enum {
     POLARSSL_KEY_EXCHANGE_PSK,
     POLARSSL_KEY_EXCHANGE_DHE_PSK,
     POLARSSL_KEY_EXCHANGE_RSA_PSK,
+    POLARSSL_KEY_EXCHANGE_ECDHE_PSK,
 } key_exchange_type_t;
 
 typedef struct _ssl_ciphersuite_t ssl_ciphersuite_t;

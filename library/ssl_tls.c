@@ -2241,7 +2241,8 @@ int ssl_write_certificate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
         ssl->state++;
@@ -2260,7 +2261,8 @@ int ssl_parse_certificate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
@@ -2281,7 +2283,8 @@ int ssl_write_certificate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
         ssl->state++;
@@ -2390,7 +2393,8 @@ int ssl_parse_certificate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;

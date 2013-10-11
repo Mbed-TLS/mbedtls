@@ -1106,7 +1106,8 @@ static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 static int ssl_parse_server_ecdh_params( ssl_context *ssl,
                                          unsigned char **p,
                                          unsigned char *end )
@@ -1143,10 +1144,12 @@ static int ssl_parse_server_ecdh_params( ssl_context *ssl,
     return( ret );
 }
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 static int ssl_parse_server_psk_hint( ssl_context *ssl,
                                       unsigned char **p,
                                       unsigned char *end )
@@ -1177,7 +1180,8 @@ static int ssl_parse_server_psk_hint( ssl_context *ssl,
     return( ret );
 }
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
+          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
@@ -1254,7 +1258,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_RSA &&
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA &&
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_PSK &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_PSK &&
+        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;
@@ -1352,6 +1357,25 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    {
+        unsigned char *p = ssl->in_msg + 4;
+        unsigned char *end = ssl->in_msg + ssl->in_hslen;
+
+        if( ssl_parse_server_psk_hint( ssl, &p, end ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        }
+        if( ssl_parse_server_ecdh_params( ssl, &p, end ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        }
+    }
+    else
+#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
     {
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
@@ -1880,6 +1904,75 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    {
+        unsigned char *p = ssl->handshake->premaster;
+
+        /*
+         * ECDHE_PSK key exchange: RFC 5489, section 2
+         *
+         * opaque psk_identity<0..2^16-1>;
+         * ClientECDiffieHellmanPublic public;
+         */
+        if( ssl->psk == NULL )
+            return( POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED );
+
+        if( sizeof(ssl->handshake->premaster) < 4 + ssl->psk_identity_len )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+        i = 4;
+        n = ssl->psk_identity_len;
+        ssl->out_msg[4] = (unsigned char)( n >> 8 );
+        ssl->out_msg[5] = (unsigned char)( n      );
+
+        memcpy( ssl->out_msg + 6, ssl->psk_identity, ssl->psk_identity_len );
+
+        ret = ecdh_make_public( &ssl->handshake->ecdh_ctx, &n,
+                                &ssl->out_msg[8 + ssl->psk_identity_len], 512,
+                                ssl->f_rng, ssl->p_rng );
+        if( ret != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecdh_make_public", ret );
+            return( ret );
+        }
+
+        ssl->out_msg[6 + ssl->psk_identity_len] = (unsigned char)( n >> 8 );
+        ssl->out_msg[7 + ssl->psk_identity_len] = (unsigned char)( n      );
+
+        SSL_DEBUG_ECP( 3, "ECDH: Q", &ssl->handshake->ecdh_ctx.Q );
+
+        /*
+         * PMS = struct {
+         *     opaque other_secret<0..2^16-1>;
+         *     opaque psk<0..2^16-1>;
+         * };
+         * with "other_secret" containing Z from ECDH
+         */
+        if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &n,
+                                       p + 2, POLARSSL_MPI_MAX_SIZE,
+                                       ssl->f_rng, ssl->p_rng ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
+            return( ret );
+        }
+
+        *(p++) = (unsigned char)( n >> 8 );
+        *(p++) = (unsigned char)( n      );
+        p += n;
+
+        SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
+
+        *(p++) = (unsigned char)( ssl->psk_len >> 8 );
+        *(p++) = (unsigned char)( ssl->psk_len      );
+        memcpy( p, ssl->psk, ssl->psk_len );
+        p += ssl->psk_len;
+
+        ssl->handshake->pmslen = 4 + n + ssl->psk_len;
+        n = ssl->handshake->pmslen;
+    }
+    else
+#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA )
     {

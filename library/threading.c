@@ -117,7 +117,7 @@ int (*polarssl_mutex_free)( threading_mutex_t * ) = NULL;
 int (*polarssl_mutex_lock)( threading_mutex_t * ) = NULL;
 int (*polarssl_mutex_unlock)( threading_mutex_t * ) = NULL;
 
-int threading_set_own( int (*mutex_init)( threading_mutex_t * ),
+int threading_set_alt( int (*mutex_init)( threading_mutex_t * ),
                        int (*mutex_free)( threading_mutex_t * ),
                        int (*mutex_lock)( threading_mutex_t * ),
                        int (*mutex_unlock)( threading_mutex_t * ) )

@@ -9,6 +9,7 @@ Bugfix
    * Compile errors with POLARSSL_RSA_NO_CRT
    * Header files with 'polarssl/'
    * Const correctness
+   * Possible naming collision in dhm_context
 
 = PolarSSL-1.3.0 released on 2013-10-01
 Features

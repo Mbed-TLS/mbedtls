@@ -276,9 +276,9 @@ static int dhm_update_blinding( dhm_context *ctx,
      * Don't use any blinding the first time a particular X is used,
      * but remember it to use blinding next time.
      */
-    if( mpi_cmp_mpi( &ctx->X, &ctx->_X ) != 0 )
+    if( mpi_cmp_mpi( &ctx->X, &ctx->pX ) != 0 )
     {
-        MPI_CHK( mpi_copy( &ctx->_X, &ctx->X ) );
+        MPI_CHK( mpi_copy( &ctx->pX, &ctx->X ) );
         MPI_CHK( mpi_lset( &ctx->Vi, 1 ) );
         MPI_CHK( mpi_lset( &ctx->Vf, 1 ) );
 
@@ -384,7 +384,7 @@ cleanup:
  */
 void dhm_free( dhm_context *ctx )
 {
-    mpi_free( &ctx->_X); mpi_free( &ctx->Vf ); mpi_free( &ctx->Vi );
+    mpi_free( &ctx->pX); mpi_free( &ctx->Vf ); mpi_free( &ctx->Vi );
     mpi_free( &ctx->RP ); mpi_free( &ctx->K ); mpi_free( &ctx->GY );
     mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
     mpi_free( &ctx->P );

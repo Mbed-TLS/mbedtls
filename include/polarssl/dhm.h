@@ -152,7 +152,7 @@ typedef struct
     mpi RP;     /*!<  cached R^2 mod P  */
     mpi Vi;     /*!<  blinding value    */
     mpi Vf;     /*!<  un-blinding value */
-    mpi _X;     /*!<  previous X        */
+    mpi pX;     /*!<  previous X        */
 }
 dhm_context;
 

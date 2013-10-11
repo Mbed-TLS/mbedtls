@@ -32,6 +32,11 @@
 // Comment out to disable prototype change warnings
 #define SHOW_PROTOTYPE_CHANGE_WARNINGS
 
+#if defined _MSC_VER
+// MSVC does not support #warning
+#undef SHOW_PROTOTYPE_CHANGE_WARNINGS
+#endif
+
 #if defined(SHOW_PROTOTYPE_CHANGE_WARNINGS)
 #warning "You can disable these warnings by commenting SHOW_PROTOTYPE_CHANGE_WARNINGS in compat-1.2.h"
 #endif
@@ -53,14 +58,14 @@ inline void sha2_update( sha256_context *ctx, const unsigned char *input,
     sha256_update( ctx, input, ilen );
 }
 inline void sha2_finish( sha256_context *ctx, unsigned char output[32] ) {
-    return sha256_finish( ctx, output );
+    sha256_finish( ctx, output );
 }
 inline int sha2_file( const char *path, unsigned char output[32], int is224 ) {
     return sha256_file( path, output, is224 );
 }
 inline void sha2( const unsigned char *input, size_t ilen,
                   unsigned char output[32], int is224 ) {
-    return sha256( input, ilen, output, is224 );
+    sha256( input, ilen, output, is224 );
 }
 inline void sha2_hmac_starts( sha256_context *ctx, const unsigned char *key,
                               size_t keylen, int is224 ) {
@@ -102,14 +107,14 @@ inline void sha4_update( sha512_context *ctx, const unsigned char *input,
     sha512_update( ctx, input, ilen );
 }
 inline void sha4_finish( sha512_context *ctx, unsigned char output[64] ) {
-    return sha512_finish( ctx, output );
+    sha512_finish( ctx, output );
 }
 inline int sha4_file( const char *path, unsigned char output[64], int is384 ) {
     return sha512_file( path, output, is384 );
 }
 inline void sha4( const unsigned char *input, size_t ilen,
                   unsigned char output[32], int is384 ) {
-    return sha512( input, ilen, output, is384 );
+    sha512( input, ilen, output, is384 );
 }
 inline void sha4_hmac_starts( sha512_context *ctx, const unsigned char *key,
                               size_t keylen, int is384 ) {
@@ -232,7 +237,7 @@ inline int x509parse_revoked( const x509_cert *crt, const x509_crl *crl ) {
     return x509_crt_revoked( crt, crl );
 }
 inline void x509_free( x509_cert *crt ) {
-    return x509_crt_free( crt );
+    x509_crt_free( crt );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
@@ -354,7 +359,7 @@ inline int x509_write_pubkey_der( unsigned char *buf, size_t len, rsa_context *r
     int ret;
     pk_context ctx;
     if( ( ret = pk_init_ctx( &ctx, pk_info_from_type( POLARSSL_PK_RSA ) ) ) != 0 ) return( ret );
-    if( ( ret = rsa_copy( ctx.pk_ctx, rsa ) ) != 0 ) return( ret );
+    if( ( ret = rsa_copy( pk_rsa( ctx ), rsa ) ) != 0 ) return( ret );
     ret = pk_write_pubkey_der( &ctx, buf, len );
     pk_free( &ctx );
     return( ret );
@@ -363,7 +368,7 @@ inline int x509_write_key_der( unsigned char *buf, size_t len, rsa_context *rsa 
     int ret;
     pk_context ctx;
     if( ( ret = pk_init_ctx( &ctx, pk_info_from_type( POLARSSL_PK_RSA ) ) ) != 0 ) return( ret );
-    if( ( ret = rsa_copy( ctx.pk_ctx, rsa ) ) != 0 ) return( ret );
+    if( ( ret = rsa_copy( pk_rsa( ctx ), rsa ) ) != 0 ) return( ret );
     ret = pk_write_key_der( &ctx, buf, len );
     pk_free( &ctx );
     return( ret );

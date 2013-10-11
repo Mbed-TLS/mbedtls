@@ -958,7 +958,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
 	w_ret = MultiByteToWideChar( CP_ACP, 0, path, len, szDir, MAX_PATH - 3 );
 
     hFind = FindFirstFileW( szDir, &file_data );
-    if (hFind == INVALID_HANDLE_VALUE) 
+    if (hFind == INVALID_HANDLE_VALUE)
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
     len = MAX_PATH - len;
@@ -982,10 +982,9 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     }
     while( FindNextFileW( hFind, &file_data ) != 0 );
 
-    if (GetLastError() != ERROR_NO_MORE_FILES) 
+    if (GetLastError() != ERROR_NO_MORE_FILES)
         ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
 
-cleanup:
     FindClose( hFind );
 #else
     int t_ret, i;

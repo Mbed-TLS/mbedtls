@@ -312,7 +312,7 @@ int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
     unsigned char output_buf[4096];
-    char *begin, *end;
+    const char *begin, *end;
     size_t olen = 0;
 
     if( ( ret = pk_write_key_der( key, output_buf, sizeof(output_buf) ) ) < 0 )

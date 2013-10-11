@@ -112,7 +112,7 @@ typedef enum
 typedef struct
 {
     pk_debug_type type;
-    char *name;
+    const char *name;
     void *value;
 } pk_debug_item;
 

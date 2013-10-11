@@ -36,7 +36,7 @@ int x509_string_to_names( asn1_named_data **head, char *name )
     int ret = 0;
     char *s = name, *c = s;
     char *end = s + strlen( s );
-    char *oid = NULL;
+    const char *oid = NULL;
     int in_tag = 1;
     asn1_named_data *cur;
 

@@ -1,5 +1,14 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= Branch 1.3
+Changes
+   * RSA blinding locks for a smaller amount of time
+
+Bugfix
+   * Missing MSVC defines added
+   * Compile errors with POLARSSL_RSA_NO_CRT
+   * Header files with 'polarssl/'
+
 = PolarSSL-1.3.0 released on 2013-10-01
 Features
    * Elliptic Curve Cryptography module added

@@ -541,7 +541,8 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     if( ( curves = polarssl_malloc( our_size * sizeof( *curves ) ) ) == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-    memset( curves, 0, our_size * sizeof( *curves ) );
+	/* explicit void pointer cast for buggy MS compiler */
+    memset( (void *) curves, 0, our_size * sizeof( *curves ) );
     ssl->handshake->curves = curves;
 
     p = buf + 2;

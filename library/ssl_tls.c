@@ -4161,7 +4161,8 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 #endif
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
-    polarssl_free( handshake->curves );
+	/* explicit void pointer cast for buggy MS compiler */
+	polarssl_free( (void *) handshake->curves );
 #endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C) && \

@@ -61,6 +61,11 @@ void x509write_crt_free( x509write_cert *ctx )
     memset( ctx, 0, sizeof(x509write_cert) );
 }
 
+void x509write_crt_set_version( x509write_cert *ctx, int version )
+{
+    ctx->version = version;
+}
+
 void x509write_crt_set_md_alg( x509write_cert *ctx, md_type_t md_alg )
 {
     ctx->md_alg = md_alg;

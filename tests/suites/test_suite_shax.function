@@ -189,21 +189,21 @@ void sha512_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA1_C:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SHA1_C:POLARSSL_SELF_TEST */
 void sha1_selftest()
 {
     TEST_ASSERT( sha1_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA256_C:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SHA256_C:POLARSSL_SELF_TEST */
 void sha256_selftest()
 {
     TEST_ASSERT( sha256_self_test( 0 ) == 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SHA512_C:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SHA512_C:POLARSSL_SELF_TEST */
 void sha512_selftest()
 {
     TEST_ASSERT( sha512_self_test( 0 ) == 0 );

@@ -241,6 +241,9 @@
 #define POLARSSL_ECP_DP_SECP256R1_ENABLED
 #define POLARSSL_ECP_DP_SECP384R1_ENABLED
 #define POLARSSL_ECP_DP_SECP521R1_ENABLED
+#define POLARSSL_ECP_DP_BP256R1_ENABLED
+#define POLARSSL_ECP_DP_BP384R1_ENABLED
+#define POLARSSL_ECP_DP_BP512R1_ENABLED
 
 /**
  * \def POLARSSL_KEY_EXCHANGE_PSK_ENABLED
@@ -1013,7 +1016,7 @@
  * Caller:  library/ecdh.c
  *          library/ecdsa.c
  *
- * Requires: POLARSSL_BIGNUM_C
+ * Requires: POLARSSL_BIGNUM_C and at least one POLARSSL_ECP_DP_XXX_ENABLED
  */
 #define POLARSSL_ECP_C
 
@@ -1707,7 +1710,15 @@
 #error "POLARSSL_ECDSA_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ECP_C) && !defined(POLARSSL_BIGNUM_C)
+#if defined(POLARSSL_ECP_C) && !defined(POLARSSL_BIGNUM_C) || ( \
+    !defined(POLARSSL_ECP_DP_SECP192R1_ENABLED) &&              \
+    !defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) &&              \
+    !defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) &&              \
+    !defined(POLARSSL_ECP_DP_SECP384R1_ENABLED) &&              \
+    !defined(POLARSSL_ECP_DP_SECP521R1_ENABLED) &&              \
+    !defined(POLARSSL_ECP_DP_BP256R1_ENABLED)   &&              \
+    !defined(POLARSSL_ECP_DP_BP384R1_ENABLED)   &&              \
+    !defined(POLARSSL_ECP_DP_BP512R1_ENABLED) )
 #error "POLARSSL_ECP_C defined, but not all prerequisites"
 #endif
 

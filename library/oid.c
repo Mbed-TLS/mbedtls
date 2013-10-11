@@ -406,6 +406,18 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
         POLARSSL_ECP_DP_SECP521R1,
     },
     {
+        { ADD_LEN( OID_EC_GRP_BP256R1 ),   "brainpoolP256r1","brainpool256r1" },
+        POLARSSL_ECP_DP_BP256R1,
+    },
+    {
+        { ADD_LEN( OID_EC_GRP_BP384R1 ),   "brainpoolP384r1","brainpool384r1" },
+        POLARSSL_ECP_DP_BP384R1,
+    },
+    {
+        { ADD_LEN( OID_EC_GRP_BP512R1 ),   "brainpoolP512r1","brainpool512r1" },
+        POLARSSL_ECP_DP_BP512R1,
+    },
+    {
         { NULL, 0, NULL, NULL },
         0,
     },

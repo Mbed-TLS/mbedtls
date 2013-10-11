@@ -61,12 +61,15 @@ typedef enum
     POLARSSL_ECP_DP_SECP256R1,      /*!< 256-bits NIST curve  */
     POLARSSL_ECP_DP_SECP384R1,      /*!< 384-bits NIST curve  */
     POLARSSL_ECP_DP_SECP521R1,      /*!< 521-bits NIST curve  */
+    POLARSSL_ECP_DP_BP256R1,        /*!< 256-bits Brainpool curve */
+    POLARSSL_ECP_DP_BP384R1,        /*!< 384-bits Brainpool curve */
+    POLARSSL_ECP_DP_BP512R1,        /*!< 512-bits Brainpool curve */
 } ecp_group_id;
 
 /**
  * Number of supported curves (plus one for NONE)
  */
-#define POLARSSL_ECP_DP_MAX     6
+#define POLARSSL_ECP_DP_MAX     9
 
 /**
  * Curve information for use by other modules
@@ -113,21 +116,21 @@ ecp_point;
  */
 typedef struct
 {
-    ecp_group_id id;    /*!<  RFC 4492 group ID                 */
-    mpi P;              /*!<  prime modulus of the base field   */
-    mpi A;              /*!<  currently unused (-3 assumed)     */
-    mpi B;              /*!<  constant term in the equation     */
-    ecp_point G;        /*!<  generator of the subgroup used    */
-    mpi N;              /*!<  the order of G                    */
-    size_t pbits;       /*!<  number of bits in P               */
-    size_t nbits;       /*!<  number of bits in N               */
-    unsigned int h;     /*!<  cofactor (unused now: assume 1)   */
-    int (*modp)(mpi *); /*!<  function for fast reduction mod P */
-    int (*t_pre)(ecp_point *, void *);  /*!< currently unused   */
-    int (*t_post)(ecp_point *, void *); /*!< currently unused   */
-    void *t_data;                       /*!< currently unused   */
-    ecp_point *T;       /*!<  pre-computed points (unused now)  */
-    size_t T_size;      /*!<  number for pre-computed points    */
+    ecp_group_id id;    /*!<  internal group identifier                     */
+    mpi P;              /*!<  prime modulus of the base field               */
+    mpi A;              /*!<  linear term in the equation                   */
+    mpi B;              /*!<  constant term in the equation                 */
+    ecp_point G;        /*!<  generator of the subgroup used                */
+    mpi N;              /*!<  the order of G                                */
+    size_t pbits;       /*!<  number of bits in P                           */
+    size_t nbits;       /*!<  number of bits in N                           */
+    unsigned int h;     /*!<  cofactor (unused now: assume 1)               */
+    int (*modp)(mpi *); /*!<  function for fast reduction mod P             */
+    int (*t_pre)(ecp_point *, void *);  /*!< currently unused               */
+    int (*t_post)(ecp_point *, void *); /*!< currently unused               */
+    void *t_data;                       /*!< currently unused               */
+    ecp_point *T;       /*!<  pre-computed points for ecp_mul()             */
+    size_t T_size;      /*!<  number for pre-computed points                */
 }
 ecp_group;
 

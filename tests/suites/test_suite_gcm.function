@@ -108,7 +108,7 @@ void gcm_decrypt_and_verify( char *hex_key_string, char *hex_src_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void gcm_selftest()
 {
     TEST_ASSERT( gcm_self_test( 0 ) == 0 );

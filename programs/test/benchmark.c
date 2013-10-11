@@ -54,8 +54,8 @@
 #endif
 
 #define BUFSIZE         1024
-#define HEADER_FORMAT   "  %-16s :  "
-#define TITLE_LEN       17
+#define HEADER_FORMAT   "  %-18s :  "
+#define TITLE_LEN       19
 
 #if !defined(POLARSSL_TIMING_C)
 int main( int argc, char *argv[] )

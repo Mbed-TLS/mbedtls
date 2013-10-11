@@ -34,7 +34,7 @@ void arc4_crypt( char *hex_src_string, char *hex_key_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_SELFTEST_C */
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void arc4_selftest()
 {
     TEST_ASSERT( arc4_self_test( 0 ) == 0 );

@@ -826,6 +826,7 @@ void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
@@ -852,6 +853,19 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    if( key_ex == POLARSSL_KEY_EXCHANGE_RSA_PSK )
+    {
+        /*
+         * other_secret already set by the ClientKeyExchange message,
+         * and is 48 bytes long
+         */
+        *p++ = 0;
+        *p++ = 48;
+        p += 48;
+    }
+    else
+#endif /* POLARSSL_KEY_EXCHANGE_RSA_PKS_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( key_ex == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
@@ -913,6 +927,7 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
     return( 0 );
 }
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
           POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
@@ -3661,6 +3676,7 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
@@ -3699,6 +3715,7 @@ void ssl_set_psk_cb( ssl_context *ssl,
     ssl->p_psk = p_psk;
 }
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
           POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 

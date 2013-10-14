@@ -1183,6 +1183,72 @@ static int ssl_parse_server_psk_hint( ssl_context *ssl,
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED
           POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+/*
+ * Generate a pre-master secret and encrypt it with the server's RSA key
+ */
+static int ssl_write_encrypted_pms( ssl_context *ssl,
+                                    size_t offset, size_t *olen,
+                                    size_t pms_offset )
+{
+    int ret;
+    size_t len_bytes = ssl->minor_ver == SSL_MINOR_VERSION_0 ? 0 : 2;
+    unsigned char *p = ssl->handshake->premaster + pms_offset;
+
+    /*
+     * Generate (part of) the pre-master as
+     *  struct {
+     *      ProtocolVersion client_version;
+     *      opaque random[46];
+     *  } PreMasterSecret;
+     */
+    p[0] = (unsigned char) ssl->max_major_ver;
+    p[1] = (unsigned char) ssl->max_minor_ver;
+
+    if( ( ret = ssl->f_rng( ssl->p_rng, p + 2, 46 ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "f_rng", ret );
+        return( ret );
+    }
+
+    ssl->handshake->pmslen = 48;
+
+    /*
+     * Now write it out, encrypted
+     */
+    if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                POLARSSL_PK_RSA ) )
+    {
+        SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
+        return( POLARSSL_ERR_SSL_PK_TYPE_MISMATCH );
+    }
+
+    if( ( ret = pk_encrypt( &ssl->session_negotiate->peer_cert->pk,
+                            p, ssl->handshake->pmslen,
+                            ssl->out_msg + offset + len_bytes, olen,
+                            SSL_MAX_CONTENT_LEN - offset - len_bytes,
+                            ssl->f_rng, ssl->p_rng ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "rsa_pkcs1_encrypt", ret );
+        return( ret );
+    }
+
+#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_2)
+    if( len_bytes == 2 )
+    {
+        ssl->out_msg[offset+0] = (unsigned char)( *olen >> 8 );
+        ssl->out_msg[offset+1] = (unsigned char)( *olen      );
+        *olen += 2;
+    }
+#endif
+
+    return( 0 );
+}
+#endif /* POLARSSL_KEY_EXCHANGE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */
+
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
@@ -1258,6 +1324,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_RSA &&
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA &&
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_PSK &&
+        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_RSA_PSK &&
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_PSK &&
         ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
@@ -1324,8 +1391,10 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     else
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
     {
         unsigned char *p = ssl->in_msg + 4;
         unsigned char *end = ssl->in_msg + ssl->in_hslen;
@@ -1337,7 +1406,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         }
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
@@ -1803,9 +1873,11 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
@@ -1827,6 +1899,14 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
         {
             n = 0;
+        }
+        else
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+        if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
+        {
+            if( ( ret = ssl_write_encrypted_pms( ssl, i, &n, 2 ) ) != 0 )
+                return( ret );
         }
         else
 #endif
@@ -1885,56 +1965,21 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
           POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA )
     {
-        /*
-         * RSA key exchange -- send rsa_public(pkcs1 v1.5(premaster))
-         */
-        ssl->handshake->premaster[0] = (unsigned char) ssl->max_major_ver;
-        ssl->handshake->premaster[1] = (unsigned char) ssl->max_minor_ver;
-        ssl->handshake->pmslen = 48;
-
-        ret = ssl->f_rng( ssl->p_rng, ssl->handshake->premaster + 2,
-                          ssl->handshake->pmslen - 2 );
-        if( ret != 0 )
+        i = 4;
+        if( ( ret = ssl_write_encrypted_pms( ssl, i, &n, 0 ) ) != 0 )
             return( ret );
-
-        if( ! pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                         POLARSSL_PK_RSA ) )
-        {
-            SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
-            return( POLARSSL_ERR_SSL_PK_TYPE_MISMATCH );
-        }
-
-        i = ssl->minor_ver == SSL_MINOR_VERSION_0 ? 4 : 6;
-
-        ret = pk_encrypt( &ssl->session_negotiate->peer_cert->pk,
-                ssl->handshake->premaster, ssl->handshake->pmslen,
-                ssl->out_msg + i, &n, SSL_BUFFER_LEN,
-                ssl->f_rng, ssl->p_rng );
-        if( ret != 0 )
-        {
-            SSL_DEBUG_RET( 1, "rsa_pkcs1_encrypt", ret );
-            return( ret );
-        }
-
-#if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
-        {
-            ssl->out_msg[4] = (unsigned char)( n >> 8 );
-            ssl->out_msg[5] = (unsigned char)( n      );
-        }
-#endif
-
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_RSA_ENABLED */
     {
         ((void) ciphersuite_info);
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 

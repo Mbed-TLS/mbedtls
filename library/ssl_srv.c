@@ -2288,10 +2288,14 @@ static int ssl_parse_client_dh_public( ssl_context *ssl, unsigned char **p,
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
-static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
+static int ssl_parse_encrypted_pms( ssl_context *ssl,
+                                    const unsigned char *p,
+                                    const unsigned char *end,
+                                    size_t pms_offset )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t i, n = 0;
+    int ret;
+    size_t len = pk_get_len( ssl_own_key( ssl ) );
+    unsigned char *pms = ssl->handshake->premaster + pms_offset;
 
     if( ! pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
     {
@@ -2302,17 +2306,12 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
     /*
      * Decrypt the premaster using own private RSA key
      */
-    i = 4;
-    n = pk_get_len( ssl_own_key( ssl ) );
-    ssl->handshake->pmslen = 48;
-
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver != SSL_MINOR_VERSION_0 )
     {
-        i += 2;
-        if( ssl->in_msg[4] != ( ( n >> 8 ) & 0xFF ) ||
-            ssl->in_msg[5] != ( ( n      ) & 0xFF ) )
+        if( *p++ != ( ( len >> 8 ) & 0xFF ) ||
+            *p++ != ( ( len      ) & 0xFF ) )
         {
             SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
@@ -2320,21 +2319,20 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
     }
 #endif
 
-    if( ssl->in_hslen != i + n )
+    if( p + len != end )
     {
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    ret = pk_decrypt( ssl_own_key( ssl ),
-                      ssl->in_msg + i, n,
-                      ssl->handshake->premaster, &ssl->handshake->pmslen,
+    ret = pk_decrypt( ssl_own_key( ssl ), p, len,
+                      pms, &ssl->handshake->pmslen,
                       sizeof(ssl->handshake->premaster),
                       ssl->f_rng, ssl->p_rng );
 
     if( ret != 0 || ssl->handshake->pmslen != 48 ||
-        ssl->handshake->premaster[0] != ssl->handshake->max_major_ver ||
-        ssl->handshake->premaster[1] != ssl->handshake->max_minor_ver )
+        pms[0] != ssl->handshake->max_major_ver ||
+        pms[1] != ssl->handshake->max_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
 
@@ -2346,8 +2344,7 @@ static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
          */
         ssl->handshake->pmslen = 48;
 
-        ret = ssl->f_rng( ssl->p_rng, ssl->handshake->premaster,
-                          ssl->handshake->pmslen );
+        ret = ssl->f_rng( ssl->p_rng, pms, ssl->handshake->pmslen );
         if( ret != 0 )
             return( ret );
     }
@@ -2541,6 +2538,33 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
+    {
+        unsigned char *p = ssl->in_msg + 4;
+        unsigned char *end = ssl->in_msg + ssl->in_msglen;
+
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
+            return( ret );
+        }
+
+        if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, ( "ssl_parse_encrypted_pms" ), ret );
+            return( ret );
+        }
+
+        if( ( ret = ssl_psk_derive_premaster( ssl,
+                        ciphersuite_info->key_exchange ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_psk_derive_premaster", ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
@@ -2600,7 +2624,10 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA )
     {
-        if( ( ret = ssl_parse_encrypted_pms_secret( ssl ) ) != 0 )
+        if( ( ret = ssl_parse_encrypted_pms( ssl,
+                                             ssl->in_msg + 4,
+                                             ssl->in_msg + ssl->in_msglen,
+                                             0 ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_parse_ecrypted_pms_secret" ), ret );
             return( ret );

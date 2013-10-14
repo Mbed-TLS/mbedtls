@@ -130,7 +130,7 @@ int net_connect( int *fd, const char *host, int port )
     if( ( server_host = gethostbyname( host ) ) == NULL )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
 
-    if( ( *fd = socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
+    if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );
 
     memcpy( (void *) &server_addr.sin_addr,
@@ -172,7 +172,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
     signal( SIGPIPE, SIG_IGN );
 #endif
 
-    if( ( *fd = socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
+    if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );
 
     n = 1;
@@ -252,8 +252,8 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
     int n = (int) sizeof( client_addr );
 #endif
 
-    *client_fd = accept( bind_fd, (struct sockaddr *)
-                         &client_addr, &n );
+    *client_fd = (int) accept( bind_fd, (struct sockaddr *)
+                               &client_addr, &n );
 
     if( *client_fd < 0 )
     {

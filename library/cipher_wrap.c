@@ -1178,7 +1178,7 @@ const cipher_definition_t cipher_definitions[] =
 #endif /* POLARSSL_DES_C */
 
 #if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    { POLARSSL_CIPHER_NULL,                 &null_info },
+    { POLARSSL_CIPHER_NULL,                 &null_cipher_info },
 #endif /* POLARSSL_CIPHER_NULL_CIPHER */
 
     { 0, NULL }

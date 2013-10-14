@@ -7,6 +7,7 @@ Features
 Changes
    * RSA blinding locks for a smaller amount of time
    * TLS compression only allocates working buffer once
+   * Introduced POLARSSL_HAVE_READDIR_R for systems without it
 
 Bugfix
    * Missing MSVC defines added

@@ -94,6 +94,17 @@
  */
 
 /**
+ * \def POLARSSL_HAVE_READDIR_R
+ *
+ * (Non Windows) System has readdir_r().
+ *
+ * Required for x509_crt_parse_path() in non-Windows systems.
+ *
+ * Comment if your system does not have support.
+ */
+#define POLARSSL_HAVE_READDIR_R
+
+/**
  * \def POLARSSL_HAVE_TIME
  *
  * System has time.h and time() / localtime()  / gettimeofday().

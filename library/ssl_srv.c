@@ -2022,10 +2022,9 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         SSL_DEBUG_MSG( 2, ( "ECDH curve size: %d",
                             (int) ssl->handshake->ecdh_ctx.grp.nbits ) );
 
-        if( ( ret = ecdh_make_params( &ssl->handshake->ecdh_ctx,
-                                      &len,
-                                      p,
-                                      1000, ssl->f_rng, ssl->p_rng ) ) != 0 )
+        if( ( ret = ecdh_make_params( &ssl->handshake->ecdh_ctx, &len,
+                                      p, SSL_MAX_CONTENT_LEN - n,
+                                      ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecdh_make_params", ret );
             return( ret );
@@ -2532,26 +2531,18 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
             return( ret );
         }
 
-        // Set up the premaster secret
-        //
-        p = ssl->handshake->premaster;
-        *(p++) = (unsigned char)( ssl->psk_len >> 8 );
-        *(p++) = (unsigned char)( ssl->psk_len      );
-        p += ssl->psk_len;
-
-        *(p++) = (unsigned char)( ssl->psk_len >> 8 );
-        *(p++) = (unsigned char)( ssl->psk_len      );
-        memcpy( p, ssl->psk, ssl->psk_len );
-        p += ssl->psk_len;
-
-        ssl->handshake->pmslen = 4 + 2 * ssl->psk_len;
+        if( ( ret = ssl_psk_derive_premaster( ssl,
+                        ciphersuite_info->key_exchange ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_psk_derive_premaster", ret );
+            return( ret );
+        }
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
-        size_t n;
         unsigned char *p = ssl->in_msg + 4;
         unsigned char *end = ssl->in_msg + ssl->in_msglen;
 
@@ -2566,38 +2557,18 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
             return( ret );
         }
 
-        // Set up the premaster secret
-        //
-        p = ssl->handshake->premaster;
-        *(p++) = (unsigned char)( ssl->handshake->dhm_ctx.len >> 8 );
-        *(p++) = (unsigned char)( ssl->handshake->dhm_ctx.len      );
-
-        n = ssl->handshake->dhm_ctx.len;
-
-        if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
-                                      p, &n, ssl->f_rng, ssl->p_rng ) ) != 0 )
+        if( ( ret = ssl_psk_derive_premaster( ssl,
+                        ciphersuite_info->key_exchange ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
+            SSL_DEBUG_RET( 1, "ssl_psk_derive_premaster", ret );
+            return( ret );
         }
-
-        SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
-
-        p += ssl->handshake->dhm_ctx.len;
-
-        *(p++) = (unsigned char)( ssl->psk_len >> 8 );
-        *(p++) = (unsigned char)( ssl->psk_len      );
-        memcpy( p, ssl->psk, ssl->psk_len );
-        p += ssl->psk_len;
-
-        ssl->handshake->pmslen = 4 + ssl->handshake->dhm_ctx.len + ssl->psk_len;
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
-        size_t n;
         unsigned char *p = ssl->in_msg + 4;
         unsigned char *end = ssl->in_msg + ssl->in_msglen;
 
@@ -2616,31 +2587,12 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 
         SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
 
-        // Set up the premaster secret
-        //
-        p = ssl->handshake->premaster;
-
-        if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &n,
-                                       p + 2, POLARSSL_MPI_MAX_SIZE,
-                                       ssl->f_rng, ssl->p_rng ) ) != 0 )
+        if( ( ret = ssl_psk_derive_premaster( ssl,
+                        ciphersuite_info->key_exchange ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
+            SSL_DEBUG_RET( 1, "ssl_psk_derive_premaster", ret );
             return( ret );
         }
-
-        *(p++) = (unsigned char)( n >> 8 );
-        *(p++) = (unsigned char)( n      );
-        p += n;
-
-        SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
-
-        *(p++) = (unsigned char)( ssl->psk_len >> 8 );
-        *(p++) = (unsigned char)( ssl->psk_len      );
-        memcpy( p, ssl->psk, ssl->psk_len );
-        p += ssl->psk_len;
-
-        ssl->handshake->pmslen = 4 + n + ssl->psk_len;
-        n = ssl->handshake->pmslen;
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */

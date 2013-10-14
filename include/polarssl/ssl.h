@@ -1520,6 +1520,12 @@ int ssl_write_finished( ssl_context *ssl );
 
 void ssl_optimize_checksum( ssl_context *ssl, const ssl_ciphersuite_t *ciphersuite_info );
 
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex );
+#endif
+
 #if defined(POLARSSL_PK_C)
 unsigned char ssl_sig_from_pk( pk_context *pk );
 pk_type_t ssl_pk_alg_from_sig( unsigned char sig );

@@ -2287,41 +2287,6 @@ static int ssl_parse_client_dh_public( ssl_context *ssl, unsigned char **p,
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-static int ssl_parse_client_ecdh_public( ssl_context *ssl )
-{
-    int ret;
-    size_t n;
-
-    /*
-     * Receive client public key and calculate premaster
-     */
-    n = ssl->in_msg[3];
-
-    if( n < 1 || n > mpi_size( &ssl->handshake->ecdh_ctx.grp.P ) * 2 + 2 ||
-        n + 4 != ssl->in_hslen )
-    {
-        SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-    }
-
-    if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                   ssl->in_msg + 4, n ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
-        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
-    }
-
-    SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
-
-    return( ret );
-}
-#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
-
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
 static int ssl_parse_encrypted_pms_secret( ssl_context *ssl )
 {
@@ -2522,11 +2487,23 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
-        if( ( ret = ssl_parse_client_ecdh_public( ssl ) ) != 0 )
+        size_t n = ssl->in_msg[3];
+
+        if( n < 1 || n > mpi_size( &ssl->handshake->ecdh_ctx.grp.P ) * 2 + 2 ||
+            n + 4 != ssl->in_hslen )
         {
-            SSL_DEBUG_RET( 1, ( "ssl_parse_client_ecdh_public" ), ret );
-            return( ret );
+            SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
+
+        if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
+                                       ssl->in_msg + 4, n ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+        }
+
+        SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
 
         if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
                                       &ssl->handshake->pmslen,
@@ -2629,11 +2606,15 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
             return( ret );
         }
-        if( ( ret = ssl_parse_client_ecdh_public( ssl ) ) != 0 )
+
+        if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
+                                       p, end - p ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, ( "ssl_parse_client_ecdh_public" ), ret );
-            return( ret );
+            SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
         }
+
+        SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
 
         // Set up the premaster secret
         //
@@ -2668,7 +2649,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     {
         if( ( ret = ssl_parse_encrypted_pms_secret( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, ( "ssl_parse_client_ecdh_public" ), ret );
+            SSL_DEBUG_RET( 1, ( "ssl_parse_parse_ecrypted_pms_secret" ), ret );
             return( ret );
         }
     }

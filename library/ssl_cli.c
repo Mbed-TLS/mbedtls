@@ -1908,6 +1908,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         unsigned char *p = ssl->handshake->premaster;
+        size_t zlen;
 
         /*
          * ECDHE_PSK key exchange: RFC 5489, section 2
@@ -1922,23 +1923,20 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
         i = 4;
-        n = ssl->psk_identity_len;
-        ssl->out_msg[4] = (unsigned char)( n >> 8 );
-        ssl->out_msg[5] = (unsigned char)( n      );
+        ssl->out_msg[i++] = (unsigned char)( ssl->psk_identity_len >> 8 );
+        ssl->out_msg[i++] = (unsigned char)( ssl->psk_identity_len      );
 
-        memcpy( ssl->out_msg + 6, ssl->psk_identity, ssl->psk_identity_len );
+        memcpy( ssl->out_msg + i, ssl->psk_identity, ssl->psk_identity_len );
+        i += ssl->psk_identity_len;
 
         ret = ecdh_make_public( &ssl->handshake->ecdh_ctx, &n,
-                                &ssl->out_msg[8 + ssl->psk_identity_len], 512,
+                                &ssl->out_msg[i], 1000,
                                 ssl->f_rng, ssl->p_rng );
         if( ret != 0 )
         {
             SSL_DEBUG_RET( 1, "ecdh_make_public", ret );
             return( ret );
         }
-
-        ssl->out_msg[6 + ssl->psk_identity_len] = (unsigned char)( n >> 8 );
-        ssl->out_msg[7 + ssl->psk_identity_len] = (unsigned char)( n      );
 
         SSL_DEBUG_ECP( 3, "ECDH: Q", &ssl->handshake->ecdh_ctx.Q );
 
@@ -1949,7 +1947,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
          * };
          * with "other_secret" containing Z from ECDH
          */
-        if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &n,
+        if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, POLARSSL_MPI_MAX_SIZE,
                                        ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
@@ -1957,9 +1955,9 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
             return( ret );
         }
 
-        *(p++) = (unsigned char)( n >> 8 );
-        *(p++) = (unsigned char)( n      );
-        p += n;
+        *(p++) = (unsigned char)( zlen >> 8 );
+        *(p++) = (unsigned char)( zlen      );
+        p += zlen;
 
         SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
 
@@ -1968,8 +1966,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         memcpy( p, ssl->psk, ssl->psk_len );
         p += ssl->psk_len;
 
-        ssl->handshake->pmslen = 4 + n + ssl->psk_len;
-        n = ssl->handshake->pmslen;
+        ssl->handshake->pmslen = p - ssl->handshake->premaster;
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */

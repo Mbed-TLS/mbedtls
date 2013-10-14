@@ -830,7 +830,6 @@ void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 {
-    int ret;
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
 
@@ -856,6 +855,7 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( key_ex == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
+        int ret;
         size_t len = ssl->handshake->dhm_ctx.len;
 
         if( end - p < 2 + (int) len )
@@ -878,6 +878,7 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if( key_ex == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
+        int ret;
         size_t zlen;
 
         if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
@@ -3659,7 +3660,9 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
                  const unsigned char *psk_identity, size_t psk_identity_len )
 {
@@ -3695,7 +3698,9 @@ void ssl_set_psk_cb( ssl_context *ssl,
     ssl->f_psk = f_psk;
     ssl->p_psk = p_psk;
 }
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
 #if defined(POLARSSL_DHM_C)
 int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G )
@@ -4363,7 +4368,9 @@ void ssl_free( ssl_context *ssl )
     }
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if( ssl->psk != NULL )
     {
         memset( ssl->psk, 0, ssl->psk_len );

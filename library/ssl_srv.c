@@ -1915,6 +1915,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     unsigned char *p = ssl->out_msg + 4;
     unsigned char *dig_signed = p;
@@ -2637,6 +2638,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
@@ -2664,6 +2666,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );

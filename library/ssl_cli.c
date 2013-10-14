@@ -1147,9 +1147,7 @@ static int ssl_parse_server_ecdh_params( ssl_context *ssl,
           POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 static int ssl_parse_server_psk_hint( ssl_context *ssl,
                                       unsigned char **p,
                                       unsigned char *end )
@@ -1179,9 +1177,7 @@ static int ssl_parse_server_psk_hint( ssl_context *ssl,
 
     return( ret );
 }
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED
-          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) ||                           \
     defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
@@ -1872,10 +1868,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
     else
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
@@ -1964,10 +1957,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         }
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA )
     {

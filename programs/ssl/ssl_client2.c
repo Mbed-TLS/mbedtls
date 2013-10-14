@@ -166,17 +166,13 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_IO ""
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK                                                   \
     "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
     "    psk_identity=%%s     default: \"Client_identity\"\n"
 #else
 #define USAGE_PSK ""
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
@@ -244,9 +240,7 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, server_fd, i, written, frags;
     unsigned char buf[1024];
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[256];
     size_t psk_len = 0;
 #endif
@@ -500,9 +494,7 @@ int main( int argc, char *argv[] )
             opt.min_version = ciphersuite_info->min_minor_ver;
     }
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     /*
      * Unhexify the pre-shared key if any is given
      */
@@ -550,9 +542,7 @@ int main( int argc, char *argv[] )
             psk[ j / 2 ] |= c;
         }
     }
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
     /*
      * 0. Initialize the RNG and the session data
@@ -720,9 +710,7 @@ int main( int argc, char *argv[] )
     ssl_set_own_cert( &ssl, &clicert, &pkey );
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     ssl_set_psk( &ssl, psk, psk_len, (const unsigned char *) opt.psk_identity,
                  strlen( opt.psk_identity ) );
 #endif

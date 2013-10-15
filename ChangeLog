@@ -4,6 +4,7 @@ PolarSSL ChangeLog (Sorted per branch, date)
 Features
    * Support for Brainpool curves and TLS ciphersuites (RFC 7027)
    * Support for ECDHE-PSK key-exchange and ciphersuites
+   * Support for RSA-PSK key-exchange and ciphersuites
 
 Changes
    * RSA blinding locks for a smaller amount of time

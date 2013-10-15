@@ -251,9 +251,12 @@ static void debug_print_pk( const ssl_context *ssl, int level,
 
         if( items[i].type == POLARSSL_PK_DEBUG_MPI )
             debug_print_mpi( ssl, level, file, line, name, items[i].value );
-        else if( items[i].type == POLARSSL_PK_DEBUG_ECP )
+        else
+#if defined(POLARSSL_ECP_C)
+        if( items[i].type == POLARSSL_PK_DEBUG_ECP )
             debug_print_ecp( ssl, level, file, line, name, items[i].value );
         else
+#endif
             debug_print_msg( ssl, level, file, line, "should not happen" );
     }
 }

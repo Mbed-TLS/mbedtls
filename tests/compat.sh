@@ -401,9 +401,27 @@ case $TYPE in
             TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA        \
             TLS-DHE-PSK-WITH-AES-128-CBC-SHA         \
             TLS-DHE-PSK-WITH-AES-256-CBC-SHA         \
-            TLS-PSK-WITH-NULL-SHA                    \
             TLS-DHE-PSK-WITH-NULL-SHA                \
+            TLS-PSK-WITH-NULL-SHA                    \
+            TLS-RSA-PSK-WITH-RC4-128-SHA             \
+            TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA        \
+            TLS-RSA-PSK-WITH-AES-256-CBC-SHA         \
+            TLS-RSA-PSK-WITH-AES-128-CBC-SHA         \
+            TLS-RSA-WITH-NULL-SHA                    \
+            TLS-RSA-WITH-NULL-MD5                    \
             "
+
+
+        if [ "$MODE" != "ssl3" ];
+        then
+            P_CIPHERS="$P_CIPHERS                       \
+                TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA      \
+                TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA      \
+                TLS-ECDHE-PSK-WITH-3DES-EDE-CBC-SHA     \
+                TLS-ECDHE-PSK-WITH-RC4-128-SHA          \
+                TLS-ECDHE-PSK-WITH-NULL-SHA             \
+                "
+        fi
 
         if [ "$MODE" = "tls1_2" ];
         then
@@ -424,6 +442,19 @@ case $TYPE in
                 TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384     \
                 TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
                 TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
+                TLS-RSA-PSK-WITH-AES-256-CBC-SHA384         \
+                TLS-RSA-PSK-WITH-AES-256-GCM-SHA384         \
+                TLS-RSA-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
+                TLS-RSA-PSK-WITH-AES-128-CBC-SHA256         \
+                TLS-RSA-PSK-WITH-AES-128-GCM-SHA256         \
+                TLS-RSA-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
+                TLS-RSA-WITH-NULL-SHA256                    \
+                TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384       \
+                TLS-ECDHE-PSK-WITH-CAMELLIA-256-CBC-SHA384  \
+                TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256       \
+                TLS-ECDHE-PSK-WITH-CAMELLIA-128-CBC-SHA256  \
+                TLS-ECDHE-PSK-WITH-NULL-SHA384              \
+                TLS-ECDHE-PSK-WITH-NULL-SHA256              \
                 "
         fi
 

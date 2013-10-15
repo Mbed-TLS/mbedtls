@@ -1,6 +1,6 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
-= Branch 1.3
+= PolarSSL 1.3.1 released on 2013-10-15
 Features
    * Support for Brainpool curves and TLS ciphersuites (RFC 7027)
    * Support for ECDHE-PSK key-exchange and ciphersuites
@@ -22,7 +22,7 @@ Bugfix
    * threading_set_alt() name
    * Added missing x509write_crt_set_version()
 
-= PolarSSL-1.3.0 released on 2013-10-01
+= PolarSSL 1.3.0 released on 2013-10-01
 Features
    * Elliptic Curve Cryptography module added
    * Elliptic Curve Diffie Hellman module added

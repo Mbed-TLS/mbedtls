@@ -48,8 +48,8 @@
  * The system uses 8-bit wide native integers.
  *
  * Uncomment if native integers are 8-bit wide.
-#define POLARSSL_HAVE_INT8
  */
+//#define POLARSSL_HAVE_INT8
 
 /**
  * \def POLARSSL_HAVE_INT16
@@ -57,8 +57,8 @@
  * The system uses 16-bit wide native integers.
  *
  * Uncomment if native integers are 16-bit wide.
-#define POLARSSL_HAVE_INT16
  */
+//#define POLARSSL_HAVE_INT16
 
 /**
  * \def POLARSSL_HAVE_LONGLONG
@@ -90,8 +90,8 @@
  * CPU supports SSE2 instruction set.
  *
  * Uncomment if the CPU supports SSE2 (IA-32 specific).
-#define POLARSSL_HAVE_SSE2
  */
+//#define POLARSSL_HAVE_SSE2
 
 /**
  * \def POLARSSL_HAVE_READDIR_R
@@ -137,19 +137,19 @@
  *
  * Uncomment a macro to enable alternate implementation for core algorithm
  * functions
-#define POLARSSL_AES_ALT
-#define POLARSSL_ARC4_ALT
-#define POLARSSL_BLOWFISH_ALT
-#define POLARSSL_CAMELLIA_ALT
-#define POLARSSL_DES_ALT
-#define POLARSSL_XTEA_ALT
-#define POLARSSL_MD2_ALT
-#define POLARSSL_MD4_ALT
-#define POLARSSL_MD5_ALT
-#define POLARSSL_SHA1_ALT
-#define POLARSSL_SHA256_ALT
-#define POLARSSL_SHA512_ALT
  */
+//#define POLARSSL_AES_ALT
+//#define POLARSSL_ARC4_ALT
+//#define POLARSSL_BLOWFISH_ALT
+//#define POLARSSL_CAMELLIA_ALT
+//#define POLARSSL_DES_ALT
+//#define POLARSSL_XTEA_ALT
+//#define POLARSSL_MD2_ALT
+//#define POLARSSL_MD4_ALT
+//#define POLARSSL_MD5_ALT
+//#define POLARSSL_SHA1_ALT
+//#define POLARSSL_SHA256_ALT
+//#define POLARSSL_SHA512_ALT
 
 /**
  * \def POLARSSL_AES_ROM_TABLES
@@ -158,8 +158,8 @@
  *
  * Uncomment this macro to store the AES tables in ROM.
  *
-#define POLARSSL_AES_ROM_TABLES
  */
+//#define POLARSSL_AES_ROM_TABLES
 
 /**
  * \def POLARSSL_CIPHER_MODE_CBC
@@ -206,8 +206,8 @@
  *      TLS_RSA_PSK_WITH_NULL384
  *
  * Uncomment this macro to enable the NULL cipher and ciphersuites
-#define POLARSSL_CIPHER_NULL_CIPHER
  */
+//#define POLARSSL_CIPHER_NULL_CIPHER
 
 /**
  * \def POLARSSL_CIPHER_PADDING_XXX
@@ -236,8 +236,8 @@
  *      TLS_DHE_RSA_WITH_DES_CBC_SHA
  *
  * Uncomment this macro to enable weak ciphersuites
-#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
  */
+//#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
 /**
  * \def POLARSSL_ECP_XXXX_ENABLED
@@ -312,8 +312,8 @@
  *      TLS_RSA_PSK_WITH_AES_256_CBC_SHA384
  *      TLS_RSA_PSK_WITH_AES_128_GCM_SHA256
  *      TLS_RSA_PSK_WITH_AES_256_GCM_SHA384
-#define POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED
  */
+//#define POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED
 
 /**
  * \def POLARSSL_KEY_EXCHANGE_RSA_ENABLED
@@ -456,8 +456,8 @@
  * application.
  *
  * Uncomment this macro to prevent loading of default entropy functions.
-#define POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
  */
+//#define POLARSSL_NO_DEFAULT_ENTROPY_SOURCES
 
 /**
  * \def POLARSSL_NO_PLATFORM_ENTROPY
@@ -467,8 +467,8 @@
  * standards like the /dev/urandom or Windows CryptoAPI.
  *
  * Uncomment this macro to disable the built-in platform entropy functions.
-#define POLARSSL_NO_PLATFORM_ENTROPY
  */
+//#define POLARSSL_NO_PLATFORM_ENTROPY
 
 /**
  * \def POLARSSL_MEMORY_DEBUG
@@ -481,8 +481,8 @@
  *           fprintf()
  *
  * Uncomment this macro to let the buffer allocator print out error messages.
-#define POLARSSL_MEMORY_DEBUG
-*/
+ */
+//#define POLARSSL_MEMORY_DEBUG
 
 /**
  * \def POLARSSL_MEMORY_BACKTRACE
@@ -493,8 +493,8 @@
  *           GLIBC-compatible backtrace() an backtrace_symbols() support
  *
  * Uncomment this macro to include backtrace information
-#define POLARSSL_MEMORY_BACKTRACE
  */
+//#define POLARSSL_MEMORY_BACKTRACE
 
 /**
  * \def POLARSSL_PKCS1_V15
@@ -525,8 +525,8 @@
  *
  * Uncomment this macro to disable the use of CRT in RSA.
  *
-#define POLARSSL_RSA_NO_CRT
  */
+//#define POLARSSL_RSA_NO_CRT
 
 /**
  * \def POLARSSL_SELF_TEST
@@ -562,8 +562,8 @@
  * Uncomment this macro to report all debug messages on errors introducing
  * a timing side-channel.
  *
-#define POLARSSL_SSL_DEBUG_ALL
  */
+//#define POLARSSL_SSL_DEBUG_ALL
 
 /**
  * \def POLARSSL_SSL_HW_RECORD_ACCEL
@@ -572,8 +572,8 @@
  * individual records.
  *
  * Uncomment this macro to enable hooking functions.
-#define POLARSSL_SSL_HW_RECORD_ACCEL
  */
+//#define POLARSSL_SSL_HW_RECORD_ACCEL
 
 /**
  * \def POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
@@ -681,8 +681,8 @@
  * Requires: POLARSSL_THREADING_C
  *
  * Uncomment this to allow your own alternate threading implementation.
-#define POLARSSL_THREADING_ALT
  */
+//#define POLARSSL_THREADING_ALT
 
 /**
  * \def POLARSSL_THREADING_DUMMY
@@ -694,8 +694,8 @@
  * Requires: POLARSSL_THREADING_C
  *
  * Uncomment this to enable code to compile like with threading enabled
-#define POLARSSL_THREADING_DUMMY
  */
+//#define POLARSSL_THREADING_DUMMY
 
 /**
  * \def POLARSSL_THREADING_PTHREAD
@@ -705,8 +705,8 @@
  * Requires: POLARSSL_THREADING_C
  *
  * Uncomment this to enable pthread mutexes.
-#define POLARSSL_THREADING_PTHREAD
  */
+//#define POLARSSL_THREADING_PTHREAD
 
 /**
  * \def POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
@@ -715,9 +715,8 @@
  * and encountering an extension in a v1 or v2 certificate.
  *
  * Uncomment to prevent an error.
- *
-#define POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
  */
+//#define POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
 
 /**
  * \def POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
@@ -726,9 +725,8 @@
  * and encountering an unknown critical extension.
  *
  * Uncomment to prevent an error.
- *
-#define POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
  */
+//#define POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
 
 /**
  * \def POLARSSL_ZLIB_SUPPORT
@@ -743,8 +741,8 @@
  * This feature requires zlib library and headers to be present.
  *
  * Uncomment to enable use of ZLIB
-#define POLARSSL_ZLIB_SUPPORT
  */
+//#define POLARSSL_ZLIB_SUPPORT
 /* \} name SECTION: PolarSSL feature support */
 
 /**
@@ -1093,8 +1091,8 @@
  * Requires: POLARSSL_TIMING_C
  *
  * Uncomment to enable the HAVEGE random generator.
-#define POLARSSL_HAVEGE_C
  */
+//#define POLARSSL_HAVEGE_C
 
 /**
  * \def POLARSSL_MD_C
@@ -1117,9 +1115,8 @@
  * Caller:
  *
  * Uncomment to enable support for (rare) MD2-signed X.509 certs.
- *
-#define POLARSSL_MD2_C
  */
+//#define POLARSSL_MD2_C
 
 /**
  * \def POLARSSL_MD4_C
@@ -1130,9 +1127,8 @@
  * Caller:
  *
  * Uncomment to enable support for (rare) MD4-signed X.509 certs.
- *
-#define POLARSSL_MD4_C
  */
+//#define POLARSSL_MD4_C
 
 /**
  * \def POLARSSL_MD5_C
@@ -1160,8 +1156,8 @@
  * This allows different allocators (self-implemented or provided)
  *
  * Enable this layer to allow use of alternative memory allocators.
-#define POLARSSL_MEMORY_C
  */
+//#define POLARSSL_MEMORY_C
 
 /**
  * \def POLARSSL_MEMORY_BUFFER_ALLOC_C
@@ -1175,8 +1171,8 @@
  * Requires: POLARSSL_MEMORY_C
  *
  * Enable this module to enable the buffer memory allocator.
-#define POLARSSL_MEMORY_BUFFER_ALLOC_C
  */
+//#define POLARSSL_MEMORY_BUFFER_ALLOC_C
 
 /**
  * \def POLARSSL_NET_C
@@ -1342,8 +1338,8 @@
  *
  * This module enables SSL/TLS PKCS #11 smartcard support.
  * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
-#define POLARSSL_PKCS11_C
  */
+//#define POLARSSL_PKCS11_C
 
 /**
  * \def POLARSSL_PKCS12_C
@@ -1502,8 +1498,8 @@
  * POLARSSL_THREADING_PTHREAD or POLARSSL_THREADING_DUMMY.
  *
  * Enable this layer to allow use of mutexes within PolarSSL
-#define POLARSSL_THREADING_C
  */
+//#define POLARSSL_THREADING_C
 
 /**
  * \def POLARSSL_TIMING_C

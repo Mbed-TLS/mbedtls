@@ -1316,12 +1316,16 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;
         return( 0 );
     }
+    ((void) p);
+    ((void) end);
+#endif
 
     if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {

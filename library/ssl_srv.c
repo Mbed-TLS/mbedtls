@@ -2284,7 +2284,8 @@ static int ssl_parse_client_dh_public( ssl_context *ssl, unsigned char **p,
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
 static int ssl_parse_encrypted_pms( ssl_context *ssl,
                                     const unsigned char *p,
                                     const unsigned char *end,
@@ -2348,7 +2349,8 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
 
     return( ret );
 }
-#endif /* POLARSSL_KEY_EXCHANGE_RSA_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 static int ssl_parse_client_psk_identity( ssl_context *ssl, unsigned char **p,

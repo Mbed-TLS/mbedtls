@@ -1303,10 +1303,10 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 {
     int ret;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    unsigned char *p, *end;
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-    unsigned char *p, *end;
     size_t sig_len, params_len;
     unsigned char hash[64];
     md_type_t md_alg = POLARSSL_MD_NONE;
@@ -1316,13 +1316,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 
-    if( ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_RSA &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_RSA &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_PSK &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_RSA_PSK &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_PSK &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;
@@ -1341,9 +1335,14 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
+    /*
+     * ServerKeyExchange may be skipped with PSK and RSA-PSK when the server
+     * doesn't use a psk_identity_hint
+     */
     if( ssl->in_msg[0] != SSL_HS_SERVER_KEY_EXCHANGE )
     {
-        if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
+        if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+            ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
         {
             ssl->record_read = 1;
             goto exit;
@@ -1353,29 +1352,51 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    SSL_DEBUG_BUF( 3,   "server key exchange", ssl->in_msg + 4, ssl->in_hslen - 4 );
-
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     p   = ssl->in_msg + 4;
     end = ssl->in_msg + ssl->in_hslen;
-#endif
+    SSL_DEBUG_BUF( 3,   "server key exchange", p, ssl->in_hslen - 4 );
 
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    {
+        if( ssl_parse_server_psk_hint( ssl, &p, end ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        }
+    } /* FALLTROUGH */
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
+        ; /* nothing more to do */
+    else
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
         if( ssl_parse_server_dh_params( ssl, &p, end ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "failed to parsebad server key exchange message" ) );
+            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
     }
     else
-#endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
         if( ssl_parse_server_ecdh_params( ssl, &p, end ) != 0 )
@@ -1386,63 +1407,10 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
           POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
-    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
     {
-        unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_hslen;
-
-        if( ssl_parse_server_psk_hint( ssl, &p, end ) != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-        }
-    }
-    else
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
-    {
-        unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_hslen;
-
-        if( ssl_parse_server_psk_hint( ssl, &p, end ) != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-        }
-        if( ssl_parse_server_dh_params( ssl, &p, end ) != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-        }
-    }
-    else
-#endif /* POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
-    {
-        unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_hslen;
-
-        if( ssl_parse_server_psk_hint( ssl, &p, end ) != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-        }
-        if( ssl_parse_server_ecdh_params( ssl, &p, end ) != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-        }
-    }
-    else
-#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
-    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 

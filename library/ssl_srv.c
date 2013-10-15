@@ -1910,7 +1910,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 {
     int ret;
     size_t n = 0;
-    const ssl_ciphersuite_t *ciphersuite_info;
+    const ssl_ciphersuite_t *ciphersuite_info =
+                            ssl->transform_negotiate->ciphersuite_info;
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
@@ -1924,15 +1925,11 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     ((void) dig_signed_len);
 #endif
 
-    ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-
     SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 
-    if( ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_RSA &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_RSA &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_DHE_PSK &&
-        ciphersuite_info->key_exchange != POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;

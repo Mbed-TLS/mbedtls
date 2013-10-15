@@ -1161,7 +1161,7 @@ static int ssl_parse_server_psk_hint( ssl_context *ssl,
      *
      * opaque psk_identity_hint<0..2^16-1>;
      */
-    len = (*p)[1] << 8 | (*p)[0];
+    len = (*p)[0] << 8 | (*p)[1];
     *p += 2;
 
     if( (*p) + len > end )

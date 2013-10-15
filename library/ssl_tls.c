@@ -839,6 +839,97 @@ void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
 #endif /* POLARSSL_SHA512_C */
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
+{
+    unsigned char *p = ssl->handshake->premaster;
+    unsigned char *end = p + sizeof( ssl->handshake->premaster );
+
+    /*
+     * PMS = struct {
+     *     opaque other_secret<0..2^16-1>;
+     *     opaque psk<0..2^16-1>;
+     * };
+     * with "other_secret" depending on the particular key exchange
+     */
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    if( key_ex == POLARSSL_KEY_EXCHANGE_PSK )
+    {
+        if( end - p < 2 + (int) ssl->psk_len )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+        *(p++) = (unsigned char)( ssl->psk_len >> 8 );
+        *(p++) = (unsigned char)( ssl->psk_len      );
+        p += ssl->psk_len;
+    }
+    else
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    if( key_ex == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+    {
+        int ret;
+        size_t len = ssl->handshake->dhm_ctx.len;
+
+        if( end - p < 2 + (int) len )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+        *(p++) = (unsigned char)( len >> 8 );
+        *(p++) = (unsigned char)( len );
+        if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
+                                      p, &len, ssl->f_rng, ssl->p_rng ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
+            return( ret );
+        }
+        p += len;
+
+        SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+    }
+    else
+#endif /* POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+    if( key_ex == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    {
+        int ret;
+        size_t zlen;
+
+        if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
+                                       p + 2, end - (p + 2),
+                                       ssl->f_rng, ssl->p_rng ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
+            return( ret );
+        }
+
+        *(p++) = (unsigned char)( zlen >> 8 );
+        *(p++) = (unsigned char)( zlen      );
+        p += zlen;
+
+        SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
+    }
+    else
+#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+
+    /* opaque psk<0..2^16-1>; */
+    *(p++) = (unsigned char)( ssl->psk_len >> 8 );
+    *(p++) = (unsigned char)( ssl->psk_len      );
+    memcpy( p, ssl->psk, ssl->psk_len );
+    p += ssl->psk_len;
+
+    ssl->handshake->pmslen = p - ssl->handshake->premaster;
+
+    return( 0 );
+}
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+
 #if defined(POLARSSL_SSL_PROTO_SSL3)
 /*
  * SSLv3.0 MAC functions
@@ -2237,7 +2328,8 @@ int ssl_write_certificate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
         ssl->state++;
@@ -2256,7 +2348,8 @@ int ssl_parse_certificate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
@@ -2277,7 +2370,8 @@ int ssl_write_certificate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
         ssl->state++;
@@ -2386,7 +2480,8 @@ int ssl_parse_certificate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         ssl->state++;
@@ -3574,7 +3669,9 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
                  const unsigned char *psk_identity, size_t psk_identity_len )
 {
@@ -3610,7 +3707,9 @@ void ssl_set_psk_cb( ssl_context *ssl,
     ssl->f_psk = f_psk;
     ssl->p_psk = p_psk;
 }
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
 #if defined(POLARSSL_DHM_C)
 int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G )
@@ -4287,7 +4386,9 @@ void ssl_free( ssl_context *ssl )
     }
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if( ssl->psk != NULL )
     {
         memset( ssl->psk, 0, ssl->psk_len );

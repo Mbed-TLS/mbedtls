@@ -614,7 +614,9 @@ struct _ssl_context
     void *p_vrfy;               /*!< context for verification         */
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     int (*f_psk)(void *, ssl_context *, const unsigned char *, size_t);
     void *p_psk;               /*!< context for PSK retrieval         */
 #endif
@@ -715,7 +717,9 @@ struct _ssl_context
     mpi dhm_G;                          /*!<  generator for DHM       */
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     /*
      * PSK values
      */
@@ -1057,7 +1061,9 @@ int ssl_set_own_cert_alt( ssl_context *ssl, x509_crt *own_cert,
                           rsa_key_len_func rsa_key_len );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 /**
  * \brief          Set the Pre Shared Key (PSK) and the identity name connected
  *                 to it.
@@ -1097,7 +1103,9 @@ void ssl_set_psk_cb( ssl_context *ssl,
                      int (*f_psk)(void *, ssl_context *, const unsigned char *,
                                   size_t),
                      void *p_psk );
-#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
 #if defined(POLARSSL_DHM_C)
 /**
@@ -1522,6 +1530,12 @@ int ssl_parse_finished( ssl_context *ssl );
 int ssl_write_finished( ssl_context *ssl );
 
 void ssl_optimize_checksum( ssl_context *ssl, const ssl_ciphersuite_t *ciphersuite_info );
+
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED) ||                           \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                       \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex );
+#endif
 
 #if defined(POLARSSL_PK_C)
 unsigned char ssl_sig_from_pk( pk_context *pk );

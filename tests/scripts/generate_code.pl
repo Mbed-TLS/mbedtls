@@ -144,7 +144,12 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
         my @res = $test_data =~ /^$mapping_regex/msg;
         foreach my $value (@res)
         {
-            $mapping_values{$value} = 1 if ($value !~ /^\d+$/);
+            next unless ($value !~ /^\d+$/);
+            if ( $mapping_values{$value} ) {
+                ${ $mapping_values{$value} }{$function_pre_code} = 1;
+            } else {
+                $mapping_values{$value} = { $function_pre_code => 1 };
+            }
         }
     }
 
@@ -204,13 +209,23 @@ END
 # Make mapping code
 while( my ($key, $value) = each(%mapping_values) )
 {
-    $mapping_code .= << "END";
+    my $key_mapping_code = << "END";
     if( strcmp( str, "$key" ) == 0 )
     {
         *value = ( $key );
         return( 0 );
     }
 END
+
+    # handle depenencies, unless used at least one without depends
+    if ($value->{""}) {
+        $mapping_code .= $key_mapping_code;
+        next;
+    }
+    for my $ifdef ( keys %$value ) {
+        (my $endif = $ifdef) =~ s!ifdef!endif //!g;
+        $mapping_code .= $ifdef . $key_mapping_code . $endif;
+    }
 }
 
 $dispatch_code =~ s/^(.+)/    $1/mg;

@@ -451,6 +451,8 @@ int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
 /*
  * Wrapper around fast quasi-modp functions, with fall-back to mpi_mod_mpi.
  * See the documentation of struct ecp_group.
+ *
+ * This function is in the critial loop for ecp_mul, so pay attention to perf.
  */
 static int ecp_modp( mpi *N, const ecp_group *grp )
 {
@@ -459,16 +461,22 @@ static int ecp_modp( mpi *N, const ecp_group *grp )
     if( grp->modp == NULL )
         return( mpi_mod_mpi( N, N, &grp->P ) );
 
-    if( mpi_cmp_int( N, 0 ) < 0 || mpi_msb( N ) > 2 * grp->pbits )
+    /* N->s < 0 is a much faster test, which fails only if N is 0 */
+    if( ( N->s < 0 && mpi_cmp_int( N, 0 ) != 0 ) ||
+        mpi_msb( N ) > 2 * grp->pbits )
+    {
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    }
 
     MPI_CHK( grp->modp( N ) );
 
-    while( mpi_cmp_int( N, 0 ) < 0 )
+    /* N->s < 0 is a much faster test, which fails only if N is 0 */
+    while( N->s < 0 && mpi_cmp_int( N, 0 ) != 0 )
         MPI_CHK( mpi_add_mpi( N, N, &grp->P ) );
 
     while( mpi_cmp_mpi( N, &grp->P ) >= 0 )
-        MPI_CHK( mpi_sub_mpi( N, N, &grp->P ) );
+        /* we known P, N and the result are positive */
+        MPI_CHK( mpi_sub_abs( N, N, &grp->P ) );
 
 cleanup:
     return( ret );
@@ -915,17 +923,20 @@ const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id )
 
 /*
  * Reduce a mpi mod p in-place, to use after mpi_sub_mpi
+ * N->s < 0 is a very fast test, which fails only if N is 0
  */
 #define MOD_SUB( N )                                \
-    while( mpi_cmp_int( &N, 0 ) < 0 )               \
+    while( N.s < 0 && mpi_cmp_int( &N, 0 ) != 0 )               \
         MPI_CHK( mpi_add_mpi( &N, &N, &grp->P ) )
 
 /*
- * Reduce a mpi mod p in-place, to use after mpi_add_mpi and mpi_mul_int
+ * Reduce a mpi mod p in-place, to use after mpi_add_mpi and mpi_mul_int.
+ * We known P, N and the result are positive, so sub_abs is correct, and
+ * a bit faster.
  */
 #define MOD_ADD( N )                                \
     while( mpi_cmp_mpi( &N, &grp->P ) >= 0 )        \
-        MPI_CHK( mpi_sub_mpi( &N, &N, &grp->P ) )
+        MPI_CHK( mpi_sub_abs( &N, &N, &grp->P ) )
 
 /*
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)

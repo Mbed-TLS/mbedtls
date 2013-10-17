@@ -52,7 +52,7 @@ void pk_utils( int type, int size, int len, char *name )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
 void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
                        int mod, int radix_N, char *input_N, int radix_E,
                        char *input_E, char *result_hex_str, int result )

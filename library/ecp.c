@@ -547,12 +547,12 @@ cleanup:
 /*
  * Size of p521 in terms of t_uint
  */
-#define P521_SIZE_INT   ( 521 / CHAR_BIT / sizeof( t_uint ) + 1 )
+#define P521_SIZE_INT   ( 521 / 8 / sizeof( t_uint ) + 1 )
 
 /*
  * Bits to keep in the most significant t_uint
  */
-#if defined(POLARSS_HAVE_INT8)
+#if defined(POLARSSL_HAVE_INT8)
 #define P521_MASK       0x01
 #else
 #define P521_MASK       0x01FF
@@ -560,26 +560,36 @@ cleanup:
 
 /*
  * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)
+ * Write N as A1 + 2^521 A0, return A0 + A1
  */
 static int ecp_mod_p521( mpi *N )
 {
     int ret;
-    t_uint Mp[P521_SIZE_INT];
+    size_t i;
     mpi M;
+    t_uint Mp[P521_SIZE_INT+1];
+    /* Worst case for the size of M is when sizeof( t_uint ) == 16:
+     * we need to hold bits 513 to 1056, which is 34 limbs, that is
+     * P521_SIZE_INT + 1. Otherwise P521_SIZE is enough. */
 
     if( N->n < P521_SIZE_INT )
         return( 0 );
 
-    memset( Mp, 0, P521_SIZE_INT * sizeof( t_uint ) );
-    memcpy( Mp, N->p, P521_SIZE_INT * sizeof( t_uint ) );
-    Mp[P521_SIZE_INT - 1] &= P521_MASK;
-
+    /* M = A1 */
     M.s = 1;
-    M.n = P521_SIZE_INT;
+    M.n = N->n - ( P521_SIZE_INT - 1 );
+    if( M.n > P521_SIZE_INT + 1 )
+        M.n = P521_SIZE_INT + 1;
     M.p = Mp;
+    memcpy( Mp, N->p + P521_SIZE_INT - 1, M.n * sizeof( t_uint ) );
+    MPI_CHK( mpi_shift_r( &M, 521 % ( 8 * sizeof( t_uint ) ) ) );
 
-    MPI_CHK( mpi_shift_r( N, 521 ) );
+    /* N = A0 */
+    N->p[P521_SIZE_INT - 1] &= P521_MASK;
+    for( i = P521_SIZE_INT; i < N->n; i++ )
+        N->p[i] = 0;
 
+    /* N = A0 + A1 */
     MPI_CHK( mpi_add_abs( N, N, &M ) );
 
 cleanup:

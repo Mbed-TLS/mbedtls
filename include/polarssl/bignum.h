@@ -142,6 +142,7 @@ typedef uint32_t t_udbl;
        typedef unsigned int t_udbl __attribute__((mode(TI)));
        #define POLARSSL_HAVE_UDBL
     #else
+       #define POLARSSL_HAVE_INT32
        typedef  int32_t t_sint;
        typedef uint32_t t_uint;
        #if ( defined(_MSC_VER) && defined(_M_IX86) )

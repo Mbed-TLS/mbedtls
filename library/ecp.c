@@ -545,8 +545,6 @@ cleanup:
 
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
 
-/* For now, prototype version for 32-bit or little-endian 64 bits only */
-
 static inline void add32( uint32_t *dst, uint32_t src, signed char *carry )
 {
     *dst += src;
@@ -559,24 +557,44 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
     *dst -= src;
 }
 
-#define A( i )      ( ((uint32_t *) N->p)[i] )
-#define ADD( i )    add32( p, A( i ), &c );
-#define SUB( i )    sub32( p, A( i ), &c );
+#if defined(POLARSSL_HAVE_INT16) || defined(POLARSSL_HAVE_INT8)
+#error "Currently not supported, WIP"
+#elif defined(POLARSSL_HAVE_INT32)
+#define A( j )      N->p[j]
+#define STORE32     N->p[i] = cur;
+#else /* 64-bit */
+#define A( j ) j % 2 ? (uint32_t)( N->p[j/2] >> 32 ) : (uint32_t)( N->p[j/2] )
+#define STORE32                                   \
+    if( i % 2 ) {                                 \
+        N->p[i/2] &= 0x00000000FFFFFFFF;          \
+        N->p[i/2] |= ((uint64_t) cur) << 32;      \
+    } else {                                      \
+        N->p[i/2] &= 0xFFFFFFFF00000000;          \
+        N->p[i/2] |= (uint64_t) cur;              \
+    }
+#endif
+
+#define ADD( j )    add32( &cur, A( j ), &c );
+#define SUB( j )    sub32( &cur, A( j ), &c );
+
+#define LOAD32      cur = A( i );
+
+#define FIRST       c = 0; i = 0; LOAD32;
 
 #define NEXT                    \
-    p++;                        \
-    cc = c;                     \
-    c = 0;                      \
+    STORE32; i++; LOAD32;       \
+    cc = c; c = 0;              \
     if( cc < 0 )                \
-        sub32( p, -cc, &c );    \
+        sub32( &cur, -cc, &c ); \
     else                        \
-        add32( p, cc, &c );
+        add32( &cur, cc, &c );
 
-#define LAST                                    \
-    p++;                                        \
-    *p = c > 0 ? c : 0; /* see fix_negative */  \
-    while( ++p < end )                          \
-        *p = 0;                                 \
+#define LAST                                                    \
+    STORE32; i++;                                               \
+    cur = c > 0 ? c : 0; STORE32; /* see fix_negative */        \
+    cur = 0;                                                    \
+    while( ++i < N->n * sizeof( t_uint ) / sizeof( uint32_t ) ) \
+        STORE32;                                                \
     if( c < 0 ) fix_negative( N, c, bits );
 
 /*
@@ -607,16 +625,14 @@ static int ecp_mod_p224( mpi *N )
 {
     int ret;
     signed char c, cc;
-    uint32_t *p, *end;
+    uint32_t cur;
+    size_t i;
     size_t bits = 224;
 
-    /* Make sure we have the correct number of blocks */
+    /* Make sure we have enough blocks */
     MPI_CHK( mpi_grow( N, bits * 2 / 8 / sizeof( t_uint ) ) );
 
-    /* Currently assuming 32-bit ints, or 64-bits little-endian */
-    p = (uint32_t *) N->p;
-    end = (uint32_t *) (N->p + N->n);
-
+    FIRST;
     SUB(  7 ); SUB( 11 );               NEXT; // A0 += -A7 - A11
     SUB(  8 ); SUB( 12 );               NEXT; // A1 += -A8 - A12
     SUB(  9 ); SUB( 13 );               NEXT; // A2 += -A9 - A13

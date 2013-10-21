@@ -544,6 +544,93 @@ cleanup:
 #endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
+
+/* For now, prototype version for 32-bit or little-endian 64 bits only */
+
+static inline void add32( uint32_t *dst, uint32_t src, signed char *carry )
+{
+    *dst += src;
+    *carry += ( *dst < src );
+}
+
+static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
+{
+    *carry -= ( *dst < src );
+    *dst -= src;
+}
+
+#define A( i )      ( ((uint32_t *) N->p)[i] )
+#define ADD( i )    add32( p, A( i ), &c );
+#define SUB( i )    sub32( p, A( i ), &c );
+
+#define NEXT                    \
+    p++;                        \
+    cc = c;                     \
+    c = 0;                      \
+    if( cc < 0 )                \
+        sub32( p, -cc, &c );    \
+    else                        \
+        add32( p, cc, &c );
+
+#define LAST                                    \
+    p++;                                        \
+    *p = c > 0 ? c : 0; /* see fix_negative */  \
+    while( ++p < end )                          \
+        *p = 0;                                 \
+    if( c < 0 ) fix_negative( N, c, bits );
+
+/*
+ * If the result is negative, we get it in the form c * 2^192 + N,
+ * with c negative and N positive (the c >= 0 case is handled by LAST).
+ */
+static inline int fix_negative( mpi *N, signed char c, size_t bits )
+{
+    int ret;
+    mpi C;
+
+    mpi_init( &C );
+
+    MPI_CHK( mpi_lset( &C, c ) );
+    MPI_CHK( mpi_shift_l( &C, bits ) );
+    MPI_CHK( mpi_add_mpi( N, N, &C ) );
+
+cleanup:
+    mpi_free( &C );
+
+    return( ret );
+}
+
+/*
+ * Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
+ */
+static int ecp_mod_p224( mpi *N )
+{
+    int ret;
+    signed char c, cc;
+    uint32_t *p, *end;
+    size_t bits = 224;
+
+    /* Make sure we have the correct number of blocks */
+    MPI_CHK( mpi_grow( N, bits * 2 / 8 / sizeof( t_uint ) ) );
+
+    /* Currently assuming 32-bit ints, or 64-bits little-endian */
+    p = (uint32_t *) N->p;
+    end = (uint32_t *) (N->p + N->n);
+
+    SUB(  7 ); SUB( 11 );               NEXT; // A0 += -A7 - A11
+    SUB(  8 ); SUB( 12 );               NEXT; // A1 += -A8 - A12
+    SUB(  9 ); SUB( 13 );               NEXT; // A2 += -A9 - A13
+    SUB( 10 ); ADD(  7 ); ADD( 11 );    NEXT; // A3 += -A10 + A7 + A11
+    SUB( 11 ); ADD(  8 ); ADD( 12 );    NEXT; // A4 += -A11 + A8 + A12
+    SUB( 12 ); ADD(  9 ); ADD( 13 );    NEXT; // A5 += -A12 + A9 + A13
+    SUB( 13 ); ADD( 10 );               LAST; // A6 += -A13 + A10
+
+cleanup:
+    return( ret );
+}
+#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
 /*
  * Size of p521 in terms of t_uint
  */
@@ -761,6 +848,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
         case POLARSSL_ECP_DP_SECP224R1:
+            grp->modp = ecp_mod_p224;
             return( ecp_group_read_string( grp, 16,
                         SECP224R1_P, SECP224R1_B,
                         SECP224R1_GX, SECP224R1_GY, SECP224R1_N ) );

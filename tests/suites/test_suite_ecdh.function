@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include <polarssl/ecdh.h>
+#define WANT_NOT_RND_MPI
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -57,14 +58,14 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
 
     TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
 
-    TEST_ASSERT( ecdh_gen_public( &grp, &dA, &qA, &not_rnd, dA_str ) == 0 );
+    TEST_ASSERT( ecdh_gen_public( &grp, &dA, &qA, &not_rnd_mpi, dA_str ) == 0 );
     TEST_ASSERT( ! ecp_is_zero( &qA ) );
     TEST_ASSERT( mpi_read_string( &check, 16, xA_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qA.X, &check ) == 0 );
     TEST_ASSERT( mpi_read_string( &check, 16, yA_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qA.Y, &check ) == 0 );
 
-    TEST_ASSERT( ecdh_gen_public( &grp, &dB, &qB, &not_rnd, dB_str ) == 0 );
+    TEST_ASSERT( ecdh_gen_public( &grp, &dB, &qB, &not_rnd_mpi, dB_str ) == 0 );
     TEST_ASSERT( ! ecp_is_zero( &qB ) );
     TEST_ASSERT( mpi_read_string( &check, 16, xB_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qB.X, &check ) == 0 );

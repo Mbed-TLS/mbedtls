@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include <polarssl/ecdsa.h>
+#define WANT_NOT_RND_MPI
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -63,7 +64,7 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
     len = unhexify(buf, hash_str);
 
     TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, buf, len,
-                &not_rnd, k_str ) == 0 );
+                &not_rnd_mpi, k_str ) == 0 );
 
     TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );

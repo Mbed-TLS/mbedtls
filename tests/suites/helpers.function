@@ -2,6 +2,14 @@
 #include "polarssl/memory.h"
 #endif
 
+#if defined(WANT_NOT_RND_MPI)
+#if defined(POLARSSL_BIGNUM_C)
+#include "polarssl/bignum.h"
+#else
+#error "not_rnd_mpi() need bignum.c"
+#endif
+#endif
+
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;
@@ -225,48 +233,36 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
     return( 0 );
 }
 
+#if defined(WANT_NOT_RND_MPI)
 /**
- * This function returns a buffer given as a hex string.
+ * NOT random function, to match test vectors.
  *
- * The buffer is reversed so that the following are equivalent:
- *   mpi_fill_random( x, len, not_rnd, str );
+ * The following are equivalent:
+ *   mpi_fill_random( x, strlen( str ) / 2, not_rnd, str );
  *   mpi_read_string( x, 16, str );
- * (So, not random at all. Usefull to match test vectors.)
- * Based on unhexify(), just reversed (changes marked by "sic")
+ * Warning: no other use is supported!
  */
-static int not_rnd( void *in, unsigned char *out, size_t len )
+#define ciL    (sizeof(t_uint))         /* chars in limb  */
+#define CHARS_TO_LIMBS(i) (((i) + ciL - 1) / ciL)
+static int not_rnd_mpi( void *in, unsigned char *out, size_t len )
 {
-    unsigned char *obuf;
-    const char *ibuf = in;
-    unsigned char c, c2;
-    assert( len == strlen(ibuf) / 2 );
-    assert(!(strlen(ibuf) %1)); // must be even number of bytes
+    char *str = (char *) in;
+    mpi X;
 
-    obuf = out + (len - 1); // sic
-    while (*ibuf != 0)
-    {
-        c = *ibuf++;
-        if( c >= '0' && c <= '9' )
-            c -= '0';
-        else if( c >= 'a' && c <= 'f' )
-            c -= 'a' - 10;
-        else if( c >= 'A' && c <= 'F' )
-            c -= 'A' - 10;
-        else
-            assert( 0 );
+    /*
+     * The 'in' pointer we get is from an MPI prepared by mpi_fill_random(),
+     * just reconstruct the rest in order to be able to call mpi_read_string()
+     */
+    X.s = 1;
+    X.p = (t_uint *) out;
+    X.n = CHARS_TO_LIMBS( len );
 
-        c2 = *ibuf++;
-        if( c2 >= '0' && c2 <= '9' )
-            c2 -= '0';
-        else if( c2 >= 'a' && c2 <= 'f' )
-            c2 -= 'a' - 10;
-        else if( c2 >= 'A' && c2 <= 'F' )
-            c2 -= 'A' - 10;
-        else
-            assert( 0 );
+    /*
+     * If str is too long, mpi_read_string() will try to allocate a new buffer
+     * for X.p, which we want to avoid at all costs.
+     */
+    assert( strlen( str ) / 2 == len );
 
-        *obuf-- = ( c << 4 ) | c2; // sic
-    }
-
-    return( 0 );
+    return( mpi_read_string( &X, 16, str ) );
 }
+#endif /* WANT_NOT_RND_MPI */

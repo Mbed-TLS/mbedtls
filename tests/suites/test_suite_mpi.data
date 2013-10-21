@@ -282,7 +282,7 @@ mpi_sub_mpi:10:"-5":10:"-7":10:"2"
 Base test mpi_sub_mpi #3 (Test with negative base)
 mpi_sub_mpi:10:"-5":10:"7":10:"-12"
 
-Base test mpi_sub_mpi #4 (Test with negative substraction)
+Base test mpi_sub_mpi #4 (Test with negative subtraction)
 mpi_sub_mpi:10:"5":10:"-7":10:"12"
 
 Test mpi_sub_mpi #1

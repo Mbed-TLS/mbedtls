@@ -480,7 +480,7 @@ Changes
      in a function to allow easy future expansion
    * Changed symmetric cipher functions to
      identical interface (returning int result values)
-   * Changed ARC4 to use seperate input/output buffer
+   * Changed ARC4 to use separate input/output buffer
    * Added reset function for HMAC context as speed-up
      for specific use-cases
 
@@ -720,7 +720,7 @@ XySSL ChangeLog
     * Multiple fixes to enhance the compatibility with g++,
       thanks to Xosé Antón Otero Ferreira
     * Fixed a bug in the CBC code, thanks to dowst; also,
-      the bignum code is no longer dependant on long long
+      the bignum code is no longer dependent on long long
     * Updated rsa_pkcs1_sign to handle arbitrary large inputs
     * Updated timing.c for improved compatibility with i386
       and 486 processors, thanks to Arnaud Cornet

@@ -3184,7 +3184,7 @@ static void x509_hash( const unsigned char *in, size_t len, int alg,
 }
 
 /*
- * Check that the given certificate is valid accoring to the CRL.
+ * Check that the given certificate is valid according to the CRL.
  */
 static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         x509_crl *crl_list)

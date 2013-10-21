@@ -926,7 +926,7 @@ list of failed and passed checks.
 
 struct _fct_test_t
 {
-    /* List of failed and passed "checks" (fctchk_t). Two seperate
+    /* List of failed and passed "checks" (fctchk_t). Two separate
     lists make it faster to determine how many checks passed and how
     many checks failed. */
     fct_nlist_t failed_chks;
@@ -1950,7 +1950,7 @@ static fct_logger_types_t FCT_LOGGER_TYPES[] =
     {
         "junit",
         (fct_logger_new_fn)fct_junit_logger_new,
-        "junit compatable xml"
+        "junit compatible xml"
     },
     {NULL, (fct_logger_new_fn)NULL, NULL} /* Sentinel */
 };
@@ -3891,7 +3891,7 @@ the test suite in one object file, then refer it within
 the other one within the minimum amount of typing.
 
 Unfortunately without resorting to some supermacro
-work, I could only find a happy comprimise.
+work, I could only find a happy compromise.
 
 See test_multi.c for an example.
 */

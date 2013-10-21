@@ -12,7 +12,7 @@
  * - initialise an SSL/TLS context (see \c ssl_init()).
  * - perform an SSL/TLS handshake (see \c ssl_handshake()).
  * - read/write (see \c ssl_read() and \c ssl_write()).
- * - notify a peer that conection is being closed (see \c ssl_close_notify()).
+ * - notify a peer that connection is being closed (see \c ssl_close_notify()).
  *
  *
  * Many aspects of such a channel are set through parameters and callback

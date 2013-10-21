@@ -1018,7 +1018,7 @@ int ssl_handshake_step( ssl_context *ssl );
  *
  * \param ssl      SSL context
  *
- * \return         0 if succesful, or any ssl_handshake() return value.
+ * \return         0 if successful, or any ssl_handshake() return value.
  */
 int ssl_renegotiate( ssl_context *ssl );
 

@@ -389,7 +389,7 @@ int main( int argc, char *argv[] )
         }
 
         /*
-         * Substract the IV + HMAC length.
+         * Subtract the IV + HMAC length.
          */
         filesize -= ( 16 + md_get_size( md_info ) );
 

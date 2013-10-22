@@ -475,25 +475,36 @@ cleanup:
 }
 
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
-/*
- * 192 bits in terms of t_uint
- */
-#define P192_SIZE_INT   ( 192 / CHAR_BIT / sizeof( t_uint ) )
 
-/*
- * Table to get S1, S2, S3 of FIPS 186-3 D.2.1:
- * -1 means let this chunk be 0
- * a positive value i means A_i.
- */
-#define P192_CHUNKS         3
-#define P192_CHUNK_CHAR     ( 64 / CHAR_BIT )
-#define P192_CHUNK_INT      ( P192_CHUNK_CHAR / sizeof( t_uint ) )
+/* Add 64-bit chunks (dst += src) and update carry */
+static inline void add_64( t_uint *dst, t_uint *src, t_uint *carry )
+{
+    unsigned char i;
+    t_uint c = 0;
+    for( i = 0; i < 8 / sizeof( t_uint ); i++, dst++, src++ )
+    {
+        *dst += c;      c  = ( *dst < c );
+        *dst += *src;   c += ( *dst < *src );
+    }
+    *carry += c;
+}
 
-const signed char p192_tbl[][P192_CHUNKS] = {
-    { -1,   3,  3   }, /* S1 */
-    { 4,    4,  -1  }, /* S2 */
-    { 5,    5,  5   }, /* S3 */
-};
+/* Add carry to a 64-bit chunk and update carry */
+static inline void carry64( t_uint *dst, t_uint *carry )
+{
+    unsigned char i;
+    for( i = 0; i < 8 / sizeof( t_uint ); i++, dst++ )
+    {
+        *dst += *carry;
+        *carry  = ( *dst < *carry );
+    }
+}
+
+#define OFFSET      ( 8 / sizeof( t_uint ) )
+#define A( i )      ( N->p + ( i ) * OFFSET )
+#define ADD( i )    add_64( p, A( i ), &c )
+#define NEXT        p += OFFSET; carry64( p, &c )
+#define LAST        p += OFFSET; *p = c; while( ++p < end ) *p = 0
 
 /*
  * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
@@ -501,53 +512,27 @@ const signed char p192_tbl[][P192_CHUNKS] = {
 static int ecp_mod_p192( mpi *N )
 {
     int ret;
-    unsigned char i, j, offset;
-    signed char chunk;
-    mpi tmp, acc;
-    t_uint tmp_p[P192_SIZE_INT], acc_p[P192_SIZE_INT + 1];
+    t_uint c = 0;
+    t_uint *p, *end;
 
-    tmp.s = 1;
-    tmp.n = sizeof( tmp_p ) / sizeof( tmp_p[0] );
-    tmp.p = tmp_p;
+    /* Make sure we have the correct number of blocks */
+    MPI_CHK( mpi_grow( N, 6 * OFFSET ) );
+    p = N->p;
+    end = p + N->n;
 
-    acc.s = 1;
-    acc.n = sizeof( acc_p ) / sizeof( acc_p[0] );
-    acc.p = acc_p;
-
-    MPI_CHK( mpi_grow( N, P192_SIZE_INT * 2 ) );
-
-    /*
-     * acc = T
-     */
-    memset( acc_p, 0, sizeof( acc_p ) );
-    memcpy( acc_p, N->p, P192_CHUNK_CHAR * P192_CHUNKS );
-
-    for( i = 0; i < sizeof( p192_tbl ) / sizeof( p192_tbl[0] ); i++)
-    {
-        /*
-         * tmp = S_i
-         */
-        memset( tmp_p, 0, sizeof( tmp_p ) );
-        for( j = 0, offset = P192_CHUNKS - 1; j < P192_CHUNKS; j++, offset-- )
-        {
-            chunk = p192_tbl[i][j];
-            if( chunk >= 0 )
-                memcpy( tmp_p + offset * P192_CHUNK_INT,
-                        N->p + chunk * P192_CHUNK_INT,
-                        P192_CHUNK_CHAR );
-        }
-
-        /*
-         * acc += tmp
-         */
-        MPI_CHK( mpi_add_abs( &acc, &acc, &tmp ) );
-    }
-
-    MPI_CHK( mpi_copy( N, &acc ) );
+    ADD( 3 ); ADD( 5 );             NEXT; // A0 += A3 + A5
+    ADD( 3 ); ADD( 4 ); ADD( 5 );   NEXT; // A1 += A3 + A4 + A5
+    ADD( 4 ); ADD( 5 );             LAST; // A2 += A4 + A5
 
 cleanup:
     return( ret );
 }
+
+#undef OFFSET
+#undef A
+#undef ADD
+#undef NEXT
+#undef LAST
 #endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)

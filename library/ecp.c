@@ -543,7 +543,7 @@ cleanup:
 #undef LAST
 #endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
-#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
 
 static inline void add32( uint32_t *dst, uint32_t src, signed char *carry )
 {
@@ -557,12 +557,34 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
     *dst -= src;
 }
 
-#if defined(POLARSSL_HAVE_INT16) || defined(POLARSSL_HAVE_INT8)
-#error "Currently not supported, WIP"
+#if defined(POLARSSL_HAVE_INT8)
+
+#define MAX32       N->n / 4
+#define A( j )      (uint32_t)( N->p[4*j+0]       ) |  \
+                              ( N->p[4*j+1] << 8  ) |  \
+                              ( N->p[4*j+2] << 16 ) |  \
+                              ( N->p[4*j+3] << 24 )
+#define STORE32     N->p[4*i+0] = (uint8_t)( cur       );   \
+                    N->p[4*i+1] = (uint8_t)( cur >> 8  );   \
+                    N->p[4*i+2] = (uint8_t)( cur >> 16 );   \
+                    N->p[4*i+3] = (uint8_t)( cur >> 24 );
+
+#elif defined(POLARSSL_HAVE_INT16)
+
+#define MAX32       N->n / 2
+#define A( j )      (uint32_t)( N->p[2*j] ) | ( N->p[2*j+1] << 16 )
+#define STORE32     N->p[2*i+0] = (uint16_t)( cur       );  \
+                    N->p[2*i+1] = (uint16_t)( cur >> 16 );
+
 #elif defined(POLARSSL_HAVE_INT32)
+
+#define MAX32       N->n
 #define A( j )      N->p[j]
 #define STORE32     N->p[i] = cur;
+
 #else /* 64-bit */
+
+#define MAX32       N->n * 2
 #define A( j ) j % 2 ? (uint32_t)( N->p[j/2] >> 32 ) : (uint32_t)( N->p[j/2] )
 #define STORE32                                   \
     if( i % 2 ) {                                 \
@@ -572,6 +594,7 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
         N->p[i/2] &= 0xFFFFFFFF00000000;          \
         N->p[i/2] |= (uint64_t) cur;              \
     }
+
 #endif
 
 #define ADD( j )    add32( &cur, A( j ), &c );
@@ -587,14 +610,12 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
     if( cc < 0 )                \
         sub32( &cur, -cc, &c ); \
     else                        \
-        add32( &cur, cc, &c );
+        add32( &cur, cc, &c );  \
 
-#define LAST                                                    \
-    STORE32; i++;                                               \
-    cur = c > 0 ? c : 0; STORE32; /* see fix_negative */        \
-    cur = 0;                                                    \
-    while( ++i < N->n * sizeof( t_uint ) / sizeof( uint32_t ) ) \
-        STORE32;                                                \
+#define LAST                                    \
+    STORE32; i++;                               \
+    cur = c > 0 ? c : 0; STORE32;               \
+    cur = 0; while( ++i < MAX32 ) { STORE32; }  \
     if( c < 0 ) fix_negative( N, c, bits );
 
 /*

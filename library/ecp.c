@@ -705,6 +705,43 @@ cleanup:
 }
 #endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p256 (FIPS 186-3 D.2.3)
+ */
+static int ecp_mod_p256( mpi *N )
+{
+    INIT( 256 );
+
+    ADD(  8 ); ADD(  9 );
+    SUB( 11 ); SUB( 12 ); SUB( 13 ); SUB( 14 );             NEXT; // A0
+
+    ADD(  9 ); ADD( 10 );
+    SUB( 12 ); SUB( 13 ); SUB( 14 ); SUB( 15 );             NEXT; // A1
+
+    ADD( 10 ); ADD( 11 );
+    SUB( 13 ); SUB( 14 ); SUB( 15 );                        NEXT; // A2
+
+    ADD( 11 ); ADD( 11 ); ADD( 12 ); ADD( 12 ); ADD( 13 );
+    SUB( 15 ); SUB(  8 ); SUB(  9 );                        NEXT; // A3
+
+    ADD( 12 ); ADD( 12 ); ADD( 13 ); ADD( 13 ); ADD( 14 );
+    SUB(  9 ); SUB( 10 );                                   NEXT; // A4
+
+    ADD( 13 ); ADD( 13 ); ADD( 14 ); ADD( 14 ); ADD( 15 );
+    SUB( 10 ); SUB( 11 );                                   NEXT; // A5
+
+    ADD( 14 ); ADD( 14 ); ADD( 15 ); ADD( 15 ); ADD( 14 ); ADD( 13 );
+    SUB(  8 ); SUB(  9 );                                   NEXT; // A6
+
+    ADD( 15 ); ADD( 15 ); ADD( 15 ); ADD( 8 );
+    SUB( 10 ); SUB( 11 ); SUB( 12 ); SUB( 13 );             LAST; // A7
+
+cleanup:
+    return( ret );
+}
+#endif /* POLARSSL_ECP_DP_SECP256R1_ENABLED */
+
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
     defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
     defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
@@ -951,6 +988,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
         case POLARSSL_ECP_DP_SECP256R1:
+            grp->modp = ecp_mod_p256;
             return( ecp_group_read_string( grp, 16,
                         SECP256R1_P, SECP256R1_B,
                         SECP256R1_GX, SECP256R1_GY, SECP256R1_N ) );

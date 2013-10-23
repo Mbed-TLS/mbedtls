@@ -1736,12 +1736,20 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
 
 /*
  * Helpers for the main 'loop'
+ * (see fix_negative for the motivation of C)
  */
 #define INIT( b )                                           \
     int ret;                                                \
     signed char c = 0, cc;                                  \
     uint32_t cur;                                           \
     size_t i = 0, bits = b;                                 \
+    mpi C;                                                  \
+    t_uint Cp[ b / 8 / sizeof( t_uint) + 1 ];               \
+                                                            \
+    C.s = 1;                                                \
+    C.n = b / 8 / sizeof( t_uint) + 1;                      \
+    C.p = Cp;                                               \
+    memset( Cp, 0, C.n * sizeof( t_uint ) );                \
                                                             \
     MPI_CHK( mpi_grow( N, b * 2 / 8 / sizeof( t_uint ) ) ); \
     LOAD32;
@@ -1758,32 +1766,28 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
     STORE32; i++;                               \
     cur = c > 0 ? c : 0; STORE32;               \
     cur = 0; while( ++i < MAX32 ) { STORE32; }  \
-    if( c < 0 ) fix_negative( N, c, bits );
+    if( c < 0 ) fix_negative( N, c, &C, bits );
 
 /*
  * If the result is negative, we get it in the form
  * c * 2^(bits + 32) + N, with c negative and N positive shorter than 'bits'
  */
-static inline int fix_negative( mpi *N, signed char c, size_t bits )
+static inline int fix_negative( mpi *N, signed char c, mpi *C, size_t bits )
 {
     int ret;
-    mpi C;
-    t_uint Cp[ 384 / 8 / sizeof( t_uint) + 1 ];
 
     /* C = - c * 2^(bits + 32) */
-    C.s = 1;
-    C.n = bits / 8 / sizeof( t_uint ) + 1;
-    C.p = Cp;
-    memset( Cp, 0, C.n * sizeof( t_uint ) );
-#if defined(POLARSSL_HAVE_INT64)
+#if !defined(POLARSSL_HAVE_INT64)
+    ((void) bits);
+#else
     if( bits == 224 )
-        Cp[ C.n - 1 ] = ((t_uint) -c) << 32;
+        C->p[ C->n - 1 ] = ((t_uint) -c) << 32;
     else
 #endif
-        Cp[ C.n - 1 ] = (t_uint) -c;
+        C->p[ C->n - 1 ] = (t_uint) -c;
 
     /* N = - ( C - N ) */
-    MPI_CHK( mpi_sub_abs( N, &C, N ) );
+    MPI_CHK( mpi_sub_abs( N, C, N ) );
     N->s = -1;
 
 cleanup:

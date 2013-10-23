@@ -742,6 +742,55 @@ cleanup:
 }
 #endif /* POLARSSL_ECP_DP_SECP256R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
+ */
+static int ecp_mod_p384( mpi *N )
+{
+    INIT( 384 );
+
+    ADD( 12 ); ADD( 21 ); ADD( 20 );
+    SUB( 23 );                                              NEXT; // A0
+
+    ADD( 13 ); ADD( 22 ); ADD( 23 );
+    SUB( 12 ); SUB( 20 );                                   NEXT; // A2
+
+    ADD( 14 ); ADD( 23 );
+    SUB( 13 ); SUB( 21 );                                   NEXT; // A2
+
+    ADD( 15 ); ADD( 12 ); ADD( 20 ); ADD( 21 );
+    SUB( 14 ); SUB( 22 ); SUB( 23 );                        NEXT; // A3
+
+    ADD( 21 ); ADD( 21 ); ADD( 16 ); ADD( 13 ); ADD( 12 ); ADD( 20 ); ADD( 22 );
+    SUB( 15 ); SUB( 23 ); SUB( 23 );                        NEXT; // A4
+
+    ADD( 22 ); ADD( 22 ); ADD( 17 ); ADD( 14 ); ADD( 13 ); ADD( 21 ); ADD( 23 );
+    SUB( 16 );                                              NEXT; // A5
+
+    ADD( 23 ); ADD( 23 ); ADD( 18 ); ADD( 15 ); ADD( 14 ); ADD( 22 );
+    SUB( 17 );                                              NEXT; // A6
+
+    ADD( 19 ); ADD( 16 ); ADD( 15 ); ADD( 23 );
+    SUB( 18 );                                              NEXT; // A7
+
+    ADD( 20 ); ADD( 17 ); ADD( 16 );
+    SUB( 19 );                                              NEXT; // A8
+
+    ADD( 21 ); ADD( 18 ); ADD( 17 );
+    SUB( 20 );                                              NEXT; // A9
+
+    ADD( 22 ); ADD( 19 ); ADD( 18 );
+    SUB( 21 );                                              NEXT; // A10
+
+    ADD( 23 ); ADD( 20 ); ADD( 19 );
+    SUB( 22 );                                              LAST; // A11
+
+cleanup:
+    return( ret );
+}
+#endif /* POLARSSL_ECP_DP_SECP384R1_ENABLED */
+
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
     defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
     defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
@@ -996,6 +1045,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
         case POLARSSL_ECP_DP_SECP384R1:
+            grp->modp = ecp_mod_p384;
             return( ecp_group_read_string( grp, 16,
                         SECP384R1_P, SECP384R1_B,
                         SECP384R1_GX, SECP384R1_GY, SECP384R1_N ) );

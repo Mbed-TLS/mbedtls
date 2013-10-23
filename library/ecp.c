@@ -663,22 +663,32 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
     if( c < 0 ) fix_negative( N, c, bits );
 
 /*
- * If the result is negative, we get it in the form c * 2^192 + N,
- * with c negative and N positive (the c >= 0 case is handled by LAST).
+ * If the result is negative, we get it in the form
+ * c * 2^(bits + 32) + N, with c negative and N positive shorter than 'bits'
  */
 static inline int fix_negative( mpi *N, signed char c, size_t bits )
 {
     int ret;
     mpi C;
+    t_uint Cp[ 384 / 8 / sizeof( t_uint) + 1 ];
 
-    mpi_init( &C );
+    /* C = - c * 2^(bits + 32) */
+    C.s = 1;
+    C.n = bits / 8 / sizeof( t_uint ) + 1;
+    C.p = Cp;
+    memset( Cp, 0, C.n * sizeof( t_uint ) );
+#if defined(POLARSSL_HAVE_INT64)
+    if( bits == 224 )
+        Cp[ C.n - 1 ] = ((t_uint) -c) << 32;
+    else
+#endif
+        Cp[ C.n - 1 ] = (t_uint) -c;
 
-    MPI_CHK( mpi_lset( &C, c ) );
-    MPI_CHK( mpi_shift_l( &C, bits ) );
-    MPI_CHK( mpi_add_mpi( N, N, &C ) );
+    /* N = - ( C - N ) */
+    MPI_CHK( mpi_sub_abs( N, &C, N ) );
+    N->s = -1;
 
 cleanup:
-    mpi_free( &C );
 
     return( ret );
 }

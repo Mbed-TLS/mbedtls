@@ -1581,6 +1581,15 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
 }
 
 #if defined(POLARSSL_ECP_NIST_OPTIM)
+/*
+ * Fast reduction modulo the primes used by the NIST curves.
+ *
+ * These functions are: critical for speed, but not need for correct
+ * operations. So, we make the choice to heavily rely on the internals of our
+ * bignum library, which creates a tight coupling between these functions and
+ * our MPI implementation.  However, the coupling between the ECP module and
+ * MPI remains loose, since these functions can be deactivated at will.
+ */
 
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
 /*

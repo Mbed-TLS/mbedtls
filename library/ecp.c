@@ -482,6 +482,8 @@ cleanup:
     return( ret );
 }
 
+#if defined(POLARSSL_ECP_NIST_OPTIM)
+
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
 /*
  * Compared to the way things are presented in FIPS 186-3 D.2,
@@ -865,6 +867,8 @@ cleanup:
 #undef P521_MASK
 #endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
 
+#endif /* POLARSSL_ECP_NIST_OPTIM */
+
 /*
  * Domain parameters for secp192r1
  */
@@ -1021,7 +1025,9 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
     {
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
         case POLARSSL_ECP_DP_SECP192R1:
+#if defined(POLARSSL_ECP_NIST_OPTIM)
             grp->modp = ecp_mod_p192;
+#endif
             return( ecp_group_read_string( grp, 16,
                         SECP192R1_P, SECP192R1_B,
                         SECP192R1_GX, SECP192R1_GY, SECP192R1_N ) );
@@ -1029,7 +1035,9 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
         case POLARSSL_ECP_DP_SECP224R1:
+#if defined(POLARSSL_ECP_NIST_OPTIM)
             grp->modp = ecp_mod_p224;
+#endif
             return( ecp_group_read_string( grp, 16,
                         SECP224R1_P, SECP224R1_B,
                         SECP224R1_GX, SECP224R1_GY, SECP224R1_N ) );
@@ -1037,7 +1045,9 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
         case POLARSSL_ECP_DP_SECP256R1:
+#if defined(POLARSSL_ECP_NIST_OPTIM)
             grp->modp = ecp_mod_p256;
+#endif
             return( ecp_group_read_string( grp, 16,
                         SECP256R1_P, SECP256R1_B,
                         SECP256R1_GX, SECP256R1_GY, SECP256R1_N ) );
@@ -1045,7 +1055,9 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
         case POLARSSL_ECP_DP_SECP384R1:
+#if defined(POLARSSL_ECP_NIST_OPTIM)
             grp->modp = ecp_mod_p384;
+#endif
             return( ecp_group_read_string( grp, 16,
                         SECP384R1_P, SECP384R1_B,
                         SECP384R1_GX, SECP384R1_GY, SECP384R1_N ) );
@@ -1053,7 +1065,9 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
         case POLARSSL_ECP_DP_SECP521R1:
+#if defined(POLARSSL_ECP_NIST_OPTIM)
             grp->modp = ecp_mod_p521;
+#endif
             return( ecp_group_read_string( grp, 16,
                         SECP521R1_P, SECP521R1_B,
                         SECP521R1_GX, SECP521R1_GY, SECP521R1_N ) );

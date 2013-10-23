@@ -483,9 +483,20 @@ cleanup:
 }
 
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
+/*
+ * Compared to the way things are presented in FIPS 186-3 D.2,
+ * we proceed in columns, from right (least significant chunk) to left,
+ * adding chunks to N in place, and keeping a carry for the next chunk.
+ * This avoids moving things around in memory, and uselessly adding zeros,
+ * compared to the more straightforward, line-oriented approach.
+ *
+ * For this prime we need to handle data in chunks of 64 bits.
+ * Since this is always a multiple of our basic t_uint, we can
+ * use a t_uint * to designate such a chunk, and small loops to handle it.
+ */
 
 /* Add 64-bit chunks (dst += src) and update carry */
-static inline void add_64( t_uint *dst, t_uint *src, t_uint *carry )
+static inline void add64( t_uint *dst, t_uint *src, t_uint *carry )
 {
     unsigned char i;
     t_uint c = 0;
@@ -508,11 +519,11 @@ static inline void carry64( t_uint *dst, t_uint *carry )
     }
 }
 
-#define OFFSET      ( 8 / sizeof( t_uint ) )
-#define A( i )      ( N->p + ( i ) * OFFSET )
-#define ADD( i )    add_64( p, A( i ), &c )
-#define NEXT        p += OFFSET; carry64( p, &c )
-#define LAST        p += OFFSET; *p = c; while( ++p < end ) *p = 0
+#define WIDTH       8 / sizeof( t_uint )
+#define A( i )      N->p + i * WIDTH
+#define ADD( i )    add64( p, A( i ), &c )
+#define NEXT        p += WIDTH; carry64( p, &c )
+#define LAST        p += WIDTH; *p = c; while( ++p < end ) *p = 0
 
 /*
  * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
@@ -523,8 +534,9 @@ static int ecp_mod_p192( mpi *N )
     t_uint c = 0;
     t_uint *p, *end;
 
-    /* Make sure we have the correct number of blocks */
-    MPI_CHK( mpi_grow( N, 6 * OFFSET ) );
+    /* Make sure we have enough blocks so that A(5) is legal */
+    MPI_CHK( mpi_grow( N, 6 * WIDTH ) );
+
     p = N->p;
     end = p + N->n;
 
@@ -536,28 +548,35 @@ cleanup:
     return( ret );
 }
 
-#undef OFFSET
+#undef WIDTH
 #undef A
 #undef ADD
 #undef NEXT
 #undef LAST
 #endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
-#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+/*
+ * The reader is advised to first understand ecp_mod_p192() since the same
+ * general structure is used here, but with additional complications:
+ * (1) chunks of 32 bits, and (2) subtractions.
+ */
 
-static inline void add32( uint32_t *dst, uint32_t src, signed char *carry )
-{
-    *dst += src;
-    *carry += ( *dst < src );
-}
+/*
+ * For these primes, we need to handle data in chunks of 32 bits.
+ * This makes it more complicated if we use 64 bits limbs in MPI,
+ * which prevents us from using a uniform access method as for p192.
+ *
+ * So, we define a mini abstraction layer to access 32 bit chunks,
+ * load them in 'cur' for work, and store them back from 'cur' when done.
+ *
+ * While at it, also define the size of N in terms of 32-bit chunks.
+ */
+#define LOAD32      cur = A( i );
 
-static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
-{
-    *carry -= ( *dst < src );
-    *dst -= src;
-}
-
-#if defined(POLARSSL_HAVE_INT8)
+#if defined(POLARSSL_HAVE_INT8)     /* 8 bit */
 
 #define MAX32       N->n / 4
 #define A( j )      (uint32_t)( N->p[4*j+0]       ) |  \
@@ -569,20 +588,20 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
                     N->p[4*i+2] = (uint8_t)( cur >> 16 );   \
                     N->p[4*i+3] = (uint8_t)( cur >> 24 );
 
-#elif defined(POLARSSL_HAVE_INT16)
+#elif defined(POLARSSL_HAVE_INT16)  /* 16 bit */
 
 #define MAX32       N->n / 2
 #define A( j )      (uint32_t)( N->p[2*j] ) | ( N->p[2*j+1] << 16 )
 #define STORE32     N->p[2*i+0] = (uint16_t)( cur       );  \
                     N->p[2*i+1] = (uint16_t)( cur >> 16 );
 
-#elif defined(POLARSSL_HAVE_INT32)
+#elif defined(POLARSSL_HAVE_INT32)  /* 32 bit */
 
 #define MAX32       N->n
 #define A( j )      N->p[j]
 #define STORE32     N->p[i] = cur;
 
-#else /* 64-bit */
+#else                               /* 64-bit */
 
 #define MAX32       N->n * 2
 #define A( j ) j % 2 ? (uint32_t)( N->p[j/2] >> 32 ) : (uint32_t)( N->p[j/2] )
@@ -595,14 +614,37 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
         N->p[i/2] |= (uint64_t) cur;              \
     }
 
-#endif
+#endif /* sizeof( t_uint ) */
+
+/*
+ * Helpers for addition and subtraction of chunks, with signed carry.
+ */
+static inline void add32( uint32_t *dst, uint32_t src, signed char *carry )
+{
+    *dst += src;
+    *carry += ( *dst < src );
+}
+
+static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
+{
+    *carry -= ( *dst < src );
+    *dst -= src;
+}
 
 #define ADD( j )    add32( &cur, A( j ), &c );
 #define SUB( j )    sub32( &cur, A( j ), &c );
 
-#define LOAD32      cur = A( i );
-
-#define FIRST       c = 0; i = 0; LOAD32;
+/*
+ * Helpers for the main 'loop'
+ */
+#define INIT( b )                                           \
+    int ret;                                                \
+    signed char c = 0, cc;                                  \
+    uint32_t cur;                                           \
+    size_t i = 0, bits = b;                                 \
+                                                            \
+    MPI_CHK( mpi_grow( N, b * 2 / 8 / sizeof( t_uint ) ) ); \
+    LOAD32;
 
 #define NEXT                    \
     STORE32; i++; LOAD32;       \
@@ -638,22 +680,18 @@ cleanup:
 
     return( ret );
 }
+#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED ||
+          POLARSSL_ECP_DP_SECP256R1_ENABLED ||
+          POLARSSL_ECP_DP_SECP384R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
 /*
  * Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
  */
 static int ecp_mod_p224( mpi *N )
 {
-    int ret;
-    signed char c, cc;
-    uint32_t cur;
-    size_t i;
-    size_t bits = 224;
+    INIT( 224 );
 
-    /* Make sure we have enough blocks */
-    MPI_CHK( mpi_grow( N, bits * 2 / 8 / sizeof( t_uint ) ) );
-
-    FIRST;
     SUB(  7 ); SUB( 11 );               NEXT; // A0 += -A7 - A11
     SUB(  8 ); SUB( 12 );               NEXT; // A1 += -A8 - A12
     SUB(  9 ); SUB( 13 );               NEXT; // A2 += -A9 - A13
@@ -667,15 +705,32 @@ cleanup:
 }
 #endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
 
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+
+#undef A
+#undef LOAD32
+#undef STORE32
+#undef MAX32
+#undef INIT
+#undef NEXT
+#undef LAST
+
+#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED ||
+          POLARSSL_ECP_DP_SECP256R1_ENABLED ||
+          POLARSSL_ECP_DP_SECP384R1_ENABLED */
+
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
 /*
- * Size of p521 in terms of t_uint
+ * Here we have a real Mersenne prime, so things are more straightforward.
+ * However, things are aligned on a 'weird' boundary (521 bits).
  */
-#define P521_SIZE_INT   ( 521 / 8 / sizeof( t_uint ) + 1 )
 
-/*
- * Bits to keep in the most significant t_uint
- */
+/* Size of p521 in terms of t_uint */
+#define P521_WIDTH      ( 521 / 8 / sizeof( t_uint ) + 1 )
+
+/* Bits to keep in the most significant t_uint */
 #if defined(POLARSSL_HAVE_INT8)
 #define P521_MASK       0x01
 #else
@@ -691,26 +746,26 @@ static int ecp_mod_p521( mpi *N )
     int ret;
     size_t i;
     mpi M;
-    t_uint Mp[P521_SIZE_INT+1];
-    /* Worst case for the size of M is when sizeof( t_uint ) == 16:
+    t_uint Mp[P521_WIDTH + 1];
+    /* Worst case for the size of M is when t_uint is 16 bits:
      * we need to hold bits 513 to 1056, which is 34 limbs, that is
-     * P521_SIZE_INT + 1. Otherwise P521_SIZE is enough. */
+     * P521_WIDTH + 1. Otherwise P521_WIDTH is enough. */
 
-    if( N->n < P521_SIZE_INT )
+    if( N->n < P521_WIDTH )
         return( 0 );
 
     /* M = A1 */
     M.s = 1;
-    M.n = N->n - ( P521_SIZE_INT - 1 );
-    if( M.n > P521_SIZE_INT + 1 )
-        M.n = P521_SIZE_INT + 1;
+    M.n = N->n - ( P521_WIDTH - 1 );
+    if( M.n > P521_WIDTH + 1 )
+        M.n = P521_WIDTH + 1;
     M.p = Mp;
-    memcpy( Mp, N->p + P521_SIZE_INT - 1, M.n * sizeof( t_uint ) );
+    memcpy( Mp, N->p + P521_WIDTH - 1, M.n * sizeof( t_uint ) );
     MPI_CHK( mpi_shift_r( &M, 521 % ( 8 * sizeof( t_uint ) ) ) );
 
     /* N = A0 */
-    N->p[P521_SIZE_INT - 1] &= P521_MASK;
-    for( i = P521_SIZE_INT; i < N->n; i++ )
+    N->p[P521_WIDTH - 1] &= P521_MASK;
+    for( i = P521_WIDTH; i < N->n; i++ )
         N->p[i] = 0;
 
     /* N = A0 + A1 */
@@ -719,6 +774,9 @@ static int ecp_mod_p521( mpi *N )
 cleanup:
     return( ret );
 }
+
+#undef P521_WIDTH
+#undef P521_MASK
 #endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
 
 /*

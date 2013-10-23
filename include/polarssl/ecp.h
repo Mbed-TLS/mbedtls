@@ -187,6 +187,24 @@ ecp_keypair;
 const ecp_curve_info *ecp_curve_list( void );
 
 /**
+ * \brief           Get curve information from an internal group identifier
+ *
+ * \param grp_id    A POLARSSL_ECP_DP_XXX value
+ *
+ * \return          The associated curve information or NULL
+ */
+const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id );
+
+/**
+ * \brief           Get curve information from a TLS NamedCurve value
+ *
+ * \param grp_id    A POLARSSL_ECP_DP_XXX value
+ *
+ * \return          The associated curve information or NULL
+ */
+const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id );
+
+/**
  * \brief           Initialize a point (as zero)
  */
 void ecp_point_init( ecp_point *pt );
@@ -217,25 +235,6 @@ void ecp_group_free( ecp_group *grp );
 void ecp_keypair_free( ecp_keypair *key );
 
 /**
- * \brief           Set a point to zero
- *
- * \param pt        Destination point
- *
- * \return          0 if successful,
- *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
- */
-int ecp_set_zero( ecp_point *pt );
-
-/**
- * \brief           Tell if a point is zero
- *
- * \param pt        Point to test
- *
- * \return          1 if point is zero, 0 otherwise
- */
-int ecp_is_zero( ecp_point *pt );
-
-/**
  * \brief           Copy the contents of point Q into P
  *
  * \param P         Destination point
@@ -258,6 +257,25 @@ int ecp_copy( ecp_point *P, const ecp_point *Q );
 int ecp_group_copy( ecp_group *dst, const ecp_group *src );
 
 /**
+ * \brief           Set a point to zero
+ *
+ * \param pt        Destination point
+ *
+ * \return          0 if successful,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ */
+int ecp_set_zero( ecp_point *pt );
+
+/**
+ * \brief           Tell if a point is zero
+ *
+ * \param pt        Point to test
+ *
+ * \return          1 if point is zero, 0 otherwise
+ */
+int ecp_is_zero( ecp_point *pt );
+
+/**
  * \brief           Import a non-zero point from two ASCII strings
  *
  * \param P         Destination point
@@ -269,25 +287,6 @@ int ecp_group_copy( ecp_group *dst, const ecp_group *src );
  */
 int ecp_point_read_string( ecp_point *P, int radix,
                            const char *x, const char *y );
-
-/**
- * \brief           Import an ECP group from null-terminated ASCII strings
- *
- * \param grp       Destination group
- * \param radix     Input numeric base
- * \param p         Prime modulus of the base field
- * \param b         Constant term in the equation
- * \param gx        The generator's X coordinate
- * \param gy        The generator's Y coordinate
- * \param n         The generator's order
- *
- * \return          0 if successful, or a POLARSSL_ERR_MPI_XXX error code
- *
- * \note            Sets all fields except modp.
- */
-int ecp_group_read_string( ecp_group *grp, int radix,
-                           const char *p, const char *b,
-                           const char *gx, const char *gy, const char *n);
 
 /**
  * \brief           Export a point into unsigned binary data
@@ -325,6 +324,58 @@ int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
  */
 int ecp_point_read_binary( const ecp_group *grp, ecp_point *P,
                            const unsigned char *buf, size_t ilen );
+
+/**
+ * \brief           Import a point from a TLS ECPoint record
+ *
+ * \param grp       ECP group used
+ * \param pt        Destination point
+ * \param buf       $(Start of input buffer)
+ * \param len       Buffer length
+ *
+ * \return          O if successful,
+ *                  POLARSSL_ERR_MPI_XXX if initialization failed
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
+ */
+int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
+                        const unsigned char **buf, size_t len );
+
+/**
+ * \brief           Export a point as a TLS ECPoint record
+ *
+ * \param grp       ECP group used
+ * \param pt        Point to export
+ * \param format    Export format
+ * \param olen      length of data written
+ * \param buf       Buffer to write to
+ * \param blen      Buffer length
+ *
+ * \return          0 if successful,
+ *                  or POLARSSL_ERR_ECP_BAD_INPUT_DATA
+ *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
+ */
+int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
+                         int format, size_t *olen,
+                         unsigned char *buf, size_t blen );
+
+/**
+ * \brief           Import an ECP group from null-terminated ASCII strings
+ *
+ * \param grp       Destination group
+ * \param radix     Input numeric base
+ * \param p         Prime modulus of the base field
+ * \param b         Constant term in the equation
+ * \param gx        The generator's X coordinate
+ * \param gy        The generator's Y coordinate
+ * \param n         The generator's order
+ *
+ * \return          0 if successful, or a POLARSSL_ERR_MPI_XXX error code
+ *
+ * \note            Sets all fields except modp.
+ */
+int ecp_group_read_string( ecp_group *grp, int radix,
+                           const char *p, const char *b,
+                           const char *gx, const char *gy, const char *n);
 
 /**
  * \brief           Set a group using well-known domain parameters
@@ -366,57 +417,6 @@ int ecp_tls_read_group( ecp_group *grp, const unsigned char **buf, size_t len );
  *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
  */
 int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
-                         unsigned char *buf, size_t blen );
-
-/**
- * \brief           Get curve information from an internal group identifier
- *
- * \param grp_id    A POLARSSL_ECP_DP_XXX value
- *
- * \return          The associated curve information or NULL
- */
-const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id );
-
-/**
- * \brief           Get curve information from a TLS NamedCurve value
- *
- * \param grp_id    A POLARSSL_ECP_DP_XXX value
- *
- * \return          The associated curve information or NULL
- */
-const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id );
-
-/**
- * \brief           Import a point from a TLS ECPoint record
- *
- * \param grp       ECP group used
- * \param pt        Destination point
- * \param buf       $(Start of input buffer)
- * \param len       Buffer length
- *
- * \return          O if successful,
- *                  POLARSSL_ERR_MPI_XXX if initialization failed
- *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
- */
-int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
-                        const unsigned char **buf, size_t len );
-
-/**
- * \brief           Export a point as a TLS ECPoint record
- *
- * \param grp       ECP group used
- * \param pt        Point to export
- * \param format    Export format
- * \param olen      length of data written
- * \param buf       Buffer to write to
- * \param blen      Buffer length
- *
- * \return          0 if successful,
- *                  or POLARSSL_ERR_ECP_BAD_INPUT_DATA
- *                  or POLARSSL_ERR_ECP_BUFFER_TOO_SMALL
- */
-int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
-                         int format, size_t *olen,
                          unsigned char *buf, size_t blen );
 
 /**

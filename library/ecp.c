@@ -112,6 +112,42 @@ const ecp_curve_info *ecp_curve_list( void )
 }
 
 /*
+ * Get the curve info for the internal identifer
+ */
+const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id )
+{
+    const ecp_curve_info *curve_info;
+
+    for( curve_info = ecp_curve_list();
+         curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+         curve_info++ )
+    {
+        if( curve_info->grp_id == grp_id )
+            return( curve_info );
+    }
+
+    return( NULL );
+}
+
+/*
+ * Get the curve info from the TLS identifier
+ */
+const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id )
+{
+    const ecp_curve_info *curve_info;
+
+    for( curve_info = ecp_curve_list();
+         curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+         curve_info++ )
+    {
+        if( curve_info->tls_id == tls_id )
+            return( curve_info );
+    }
+
+    return( NULL );
+}
+
+/*
  * Initialize (the components of) a point
  */
 void ecp_point_init( ecp_point *pt )
@@ -201,6 +237,29 @@ void ecp_keypair_free( ecp_keypair *key )
 }
 
 /*
+ * Copy the contents of a point
+ */
+int ecp_copy( ecp_point *P, const ecp_point *Q )
+{
+    int ret;
+
+    MPI_CHK( mpi_copy( &P->X, &Q->X ) );
+    MPI_CHK( mpi_copy( &P->Y, &Q->Y ) );
+    MPI_CHK( mpi_copy( &P->Z, &Q->Z ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Copy the contents of a group object
+ */
+int ecp_group_copy( ecp_group *dst, const ecp_group *src )
+{
+    return ecp_use_known_dp( dst, src->id );
+}
+
+/*
  * Set point to zero
  */
 int ecp_set_zero( ecp_point *pt )
@@ -224,29 +283,6 @@ int ecp_is_zero( ecp_point *pt )
 }
 
 /*
- * Copy the contents of Q into P
- */
-int ecp_copy( ecp_point *P, const ecp_point *Q )
-{
-    int ret;
-
-    MPI_CHK( mpi_copy( &P->X, &Q->X ) );
-    MPI_CHK( mpi_copy( &P->Y, &Q->Y ) );
-    MPI_CHK( mpi_copy( &P->Z, &Q->Z ) );
-
-cleanup:
-    return( ret );
-}
-
-/*
- * Copy the contents of a group object
- */
-int ecp_group_copy( ecp_group *dst, const ecp_group *src )
-{
-    return ecp_use_known_dp( dst, src->id );
-}
-
-/*
  * Import a non-zero point from ASCII strings
  */
 int ecp_point_read_string( ecp_point *P, int radix,
@@ -259,50 +295,6 @@ int ecp_point_read_string( ecp_point *P, int radix,
     MPI_CHK( mpi_lset( &P->Z, 1 ) );
 
 cleanup:
-    return( ret );
-}
-
-/*
- * Import an ECP group from ASCII strings, general case (A used)
- */
-static int ecp_group_read_string_gen( ecp_group *grp, int radix,
-                           const char *p, const char *a, const char *b,
-                           const char *gx, const char *gy, const char *n)
-{
-    int ret;
-
-    MPI_CHK( mpi_read_string( &grp->P, radix, p ) );
-    MPI_CHK( mpi_read_string( &grp->A, radix, a ) );
-    MPI_CHK( mpi_read_string( &grp->B, radix, b ) );
-    MPI_CHK( ecp_point_read_string( &grp->G, radix, gx, gy ) );
-    MPI_CHK( mpi_read_string( &grp->N, radix, n ) );
-
-    grp->pbits = mpi_msb( &grp->P );
-    grp->nbits = mpi_msb( &grp->N );
-
-cleanup:
-    if( ret != 0 )
-        ecp_group_free( grp );
-
-    return( ret );
-}
-
-/*
- * Import an ECP group from ASCII strings, case A == -3
- */
-int ecp_group_read_string( ecp_group *grp, int radix,
-                           const char *p, const char *b,
-                           const char *gx, const char *gy, const char *n)
-{
-    int ret;
-
-    MPI_CHK( ecp_group_read_string_gen( grp, radix, p, "00", b, gx, gy, n ) );
-    MPI_CHK( mpi_add_int( &grp->A, &grp->P, -3 ) );
-
-cleanup:
-    if( ret != 0 )
-        ecp_group_free( grp );
-
     return( ret );
 }
 
@@ -449,435 +441,48 @@ int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
 }
 
 /*
- * Wrapper around fast quasi-modp functions, with fall-back to mpi_mod_mpi.
- * See the documentation of struct ecp_group.
- *
- * This function is in the critial loop for ecp_mul, so pay attention to perf.
+ * Import an ECP group from ASCII strings, general case (A used)
  */
-static int ecp_modp( mpi *N, const ecp_group *grp )
+static int ecp_group_read_string_gen( ecp_group *grp, int radix,
+                           const char *p, const char *a, const char *b,
+                           const char *gx, const char *gy, const char *n)
 {
     int ret;
 
-    if( grp->modp == NULL )
-        return( mpi_mod_mpi( N, N, &grp->P ) );
+    MPI_CHK( mpi_read_string( &grp->P, radix, p ) );
+    MPI_CHK( mpi_read_string( &grp->A, radix, a ) );
+    MPI_CHK( mpi_read_string( &grp->B, radix, b ) );
+    MPI_CHK( ecp_point_read_string( &grp->G, radix, gx, gy ) );
+    MPI_CHK( mpi_read_string( &grp->N, radix, n ) );
 
-    /* N->s < 0 is a much faster test, which fails only if N is 0 */
-    if( ( N->s < 0 && mpi_cmp_int( N, 0 ) != 0 ) ||
-        mpi_msb( N ) > 2 * grp->pbits )
-    {
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
-    }
-
-    MPI_CHK( grp->modp( N ) );
-
-    /* N->s < 0 is a much faster test, which fails only if N is 0 */
-    while( N->s < 0 && mpi_cmp_int( N, 0 ) != 0 )
-        MPI_CHK( mpi_add_mpi( N, N, &grp->P ) );
-
-    while( mpi_cmp_mpi( N, &grp->P ) >= 0 )
-        /* we known P, N and the result are positive */
-        MPI_CHK( mpi_sub_abs( N, N, &grp->P ) );
+    grp->pbits = mpi_msb( &grp->P );
+    grp->nbits = mpi_msb( &grp->N );
 
 cleanup:
+    if( ret != 0 )
+        ecp_group_free( grp );
+
     return( ret );
 }
 
-#if defined(POLARSSL_ECP_NIST_OPTIM)
-
-#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
 /*
- * Compared to the way things are presented in FIPS 186-3 D.2,
- * we proceed in columns, from right (least significant chunk) to left,
- * adding chunks to N in place, and keeping a carry for the next chunk.
- * This avoids moving things around in memory, and uselessly adding zeros,
- * compared to the more straightforward, line-oriented approach.
- *
- * For this prime we need to handle data in chunks of 64 bits.
- * Since this is always a multiple of our basic t_uint, we can
- * use a t_uint * to designate such a chunk, and small loops to handle it.
+ * Import an ECP group from ASCII strings, case A == -3
  */
-
-/* Add 64-bit chunks (dst += src) and update carry */
-static inline void add64( t_uint *dst, t_uint *src, t_uint *carry )
-{
-    unsigned char i;
-    t_uint c = 0;
-    for( i = 0; i < 8 / sizeof( t_uint ); i++, dst++, src++ )
-    {
-        *dst += c;      c  = ( *dst < c );
-        *dst += *src;   c += ( *dst < *src );
-    }
-    *carry += c;
-}
-
-/* Add carry to a 64-bit chunk and update carry */
-static inline void carry64( t_uint *dst, t_uint *carry )
-{
-    unsigned char i;
-    for( i = 0; i < 8 / sizeof( t_uint ); i++, dst++ )
-    {
-        *dst += *carry;
-        *carry  = ( *dst < *carry );
-    }
-}
-
-#define WIDTH       8 / sizeof( t_uint )
-#define A( i )      N->p + i * WIDTH
-#define ADD( i )    add64( p, A( i ), &c )
-#define NEXT        p += WIDTH; carry64( p, &c )
-#define LAST        p += WIDTH; *p = c; while( ++p < end ) *p = 0
-
-/*
- * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
- */
-static int ecp_mod_p192( mpi *N )
+int ecp_group_read_string( ecp_group *grp, int radix,
+                           const char *p, const char *b,
+                           const char *gx, const char *gy, const char *n)
 {
     int ret;
-    t_uint c = 0;
-    t_uint *p, *end;
 
-    /* Make sure we have enough blocks so that A(5) is legal */
-    MPI_CHK( mpi_grow( N, 6 * WIDTH ) );
-
-    p = N->p;
-    end = p + N->n;
-
-    ADD( 3 ); ADD( 5 );             NEXT; // A0 += A3 + A5
-    ADD( 3 ); ADD( 4 ); ADD( 5 );   NEXT; // A1 += A3 + A4 + A5
-    ADD( 4 ); ADD( 5 );             LAST; // A2 += A4 + A5
+    MPI_CHK( ecp_group_read_string_gen( grp, radix, p, "00", b, gx, gy, n ) );
+    MPI_CHK( mpi_add_int( &grp->A, &grp->P, -3 ) );
 
 cleanup:
-    return( ret );
-}
-
-#undef WIDTH
-#undef A
-#undef ADD
-#undef NEXT
-#undef LAST
-#endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
-
-#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
-    defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
-    defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-/*
- * The reader is advised to first understand ecp_mod_p192() since the same
- * general structure is used here, but with additional complications:
- * (1) chunks of 32 bits, and (2) subtractions.
- */
-
-/*
- * For these primes, we need to handle data in chunks of 32 bits.
- * This makes it more complicated if we use 64 bits limbs in MPI,
- * which prevents us from using a uniform access method as for p192.
- *
- * So, we define a mini abstraction layer to access 32 bit chunks,
- * load them in 'cur' for work, and store them back from 'cur' when done.
- *
- * While at it, also define the size of N in terms of 32-bit chunks.
- */
-#define LOAD32      cur = A( i );
-
-#if defined(POLARSSL_HAVE_INT8)     /* 8 bit */
-
-#define MAX32       N->n / 4
-#define A( j )      (uint32_t)( N->p[4*j+0]       ) |  \
-                              ( N->p[4*j+1] << 8  ) |  \
-                              ( N->p[4*j+2] << 16 ) |  \
-                              ( N->p[4*j+3] << 24 )
-#define STORE32     N->p[4*i+0] = (uint8_t)( cur       );   \
-                    N->p[4*i+1] = (uint8_t)( cur >> 8  );   \
-                    N->p[4*i+2] = (uint8_t)( cur >> 16 );   \
-                    N->p[4*i+3] = (uint8_t)( cur >> 24 );
-
-#elif defined(POLARSSL_HAVE_INT16)  /* 16 bit */
-
-#define MAX32       N->n / 2
-#define A( j )      (uint32_t)( N->p[2*j] ) | ( N->p[2*j+1] << 16 )
-#define STORE32     N->p[2*i+0] = (uint16_t)( cur       );  \
-                    N->p[2*i+1] = (uint16_t)( cur >> 16 );
-
-#elif defined(POLARSSL_HAVE_INT32)  /* 32 bit */
-
-#define MAX32       N->n
-#define A( j )      N->p[j]
-#define STORE32     N->p[i] = cur;
-
-#else                               /* 64-bit */
-
-#define MAX32       N->n * 2
-#define A( j ) j % 2 ? (uint32_t)( N->p[j/2] >> 32 ) : (uint32_t)( N->p[j/2] )
-#define STORE32                                   \
-    if( i % 2 ) {                                 \
-        N->p[i/2] &= 0x00000000FFFFFFFF;          \
-        N->p[i/2] |= ((uint64_t) cur) << 32;      \
-    } else {                                      \
-        N->p[i/2] &= 0xFFFFFFFF00000000;          \
-        N->p[i/2] |= (uint64_t) cur;              \
-    }
-
-#endif /* sizeof( t_uint ) */
-
-/*
- * Helpers for addition and subtraction of chunks, with signed carry.
- */
-static inline void add32( uint32_t *dst, uint32_t src, signed char *carry )
-{
-    *dst += src;
-    *carry += ( *dst < src );
-}
-
-static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
-{
-    *carry -= ( *dst < src );
-    *dst -= src;
-}
-
-#define ADD( j )    add32( &cur, A( j ), &c );
-#define SUB( j )    sub32( &cur, A( j ), &c );
-
-/*
- * Helpers for the main 'loop'
- */
-#define INIT( b )                                           \
-    int ret;                                                \
-    signed char c = 0, cc;                                  \
-    uint32_t cur;                                           \
-    size_t i = 0, bits = b;                                 \
-                                                            \
-    MPI_CHK( mpi_grow( N, b * 2 / 8 / sizeof( t_uint ) ) ); \
-    LOAD32;
-
-#define NEXT                    \
-    STORE32; i++; LOAD32;       \
-    cc = c; c = 0;              \
-    if( cc < 0 )                \
-        sub32( &cur, -cc, &c ); \
-    else                        \
-        add32( &cur, cc, &c );  \
-
-#define LAST                                    \
-    STORE32; i++;                               \
-    cur = c > 0 ? c : 0; STORE32;               \
-    cur = 0; while( ++i < MAX32 ) { STORE32; }  \
-    if( c < 0 ) fix_negative( N, c, bits );
-
-/*
- * If the result is negative, we get it in the form
- * c * 2^(bits + 32) + N, with c negative and N positive shorter than 'bits'
- */
-static inline int fix_negative( mpi *N, signed char c, size_t bits )
-{
-    int ret;
-    mpi C;
-    t_uint Cp[ 384 / 8 / sizeof( t_uint) + 1 ];
-
-    /* C = - c * 2^(bits + 32) */
-    C.s = 1;
-    C.n = bits / 8 / sizeof( t_uint ) + 1;
-    C.p = Cp;
-    memset( Cp, 0, C.n * sizeof( t_uint ) );
-#if defined(POLARSSL_HAVE_INT64)
-    if( bits == 224 )
-        Cp[ C.n - 1 ] = ((t_uint) -c) << 32;
-    else
-#endif
-        Cp[ C.n - 1 ] = (t_uint) -c;
-
-    /* N = - ( C - N ) */
-    MPI_CHK( mpi_sub_abs( N, &C, N ) );
-    N->s = -1;
-
-cleanup:
+    if( ret != 0 )
+        ecp_group_free( grp );
 
     return( ret );
 }
-#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED ||
-          POLARSSL_ECP_DP_SECP256R1_ENABLED ||
-          POLARSSL_ECP_DP_SECP384R1_ENABLED */
-
-#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
-/*
- * Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
- */
-static int ecp_mod_p224( mpi *N )
-{
-    INIT( 224 );
-
-    SUB(  7 ); SUB( 11 );               NEXT; // A0 += -A7 - A11
-    SUB(  8 ); SUB( 12 );               NEXT; // A1 += -A8 - A12
-    SUB(  9 ); SUB( 13 );               NEXT; // A2 += -A9 - A13
-    SUB( 10 ); ADD(  7 ); ADD( 11 );    NEXT; // A3 += -A10 + A7 + A11
-    SUB( 11 ); ADD(  8 ); ADD( 12 );    NEXT; // A4 += -A11 + A8 + A12
-    SUB( 12 ); ADD(  9 ); ADD( 13 );    NEXT; // A5 += -A12 + A9 + A13
-    SUB( 13 ); ADD( 10 );               LAST; // A6 += -A13 + A10
-
-cleanup:
-    return( ret );
-}
-#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
-
-#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
-/*
- * Fast quasi-reduction modulo p256 (FIPS 186-3 D.2.3)
- */
-static int ecp_mod_p256( mpi *N )
-{
-    INIT( 256 );
-
-    ADD(  8 ); ADD(  9 );
-    SUB( 11 ); SUB( 12 ); SUB( 13 ); SUB( 14 );             NEXT; // A0
-
-    ADD(  9 ); ADD( 10 );
-    SUB( 12 ); SUB( 13 ); SUB( 14 ); SUB( 15 );             NEXT; // A1
-
-    ADD( 10 ); ADD( 11 );
-    SUB( 13 ); SUB( 14 ); SUB( 15 );                        NEXT; // A2
-
-    ADD( 11 ); ADD( 11 ); ADD( 12 ); ADD( 12 ); ADD( 13 );
-    SUB( 15 ); SUB(  8 ); SUB(  9 );                        NEXT; // A3
-
-    ADD( 12 ); ADD( 12 ); ADD( 13 ); ADD( 13 ); ADD( 14 );
-    SUB(  9 ); SUB( 10 );                                   NEXT; // A4
-
-    ADD( 13 ); ADD( 13 ); ADD( 14 ); ADD( 14 ); ADD( 15 );
-    SUB( 10 ); SUB( 11 );                                   NEXT; // A5
-
-    ADD( 14 ); ADD( 14 ); ADD( 15 ); ADD( 15 ); ADD( 14 ); ADD( 13 );
-    SUB(  8 ); SUB(  9 );                                   NEXT; // A6
-
-    ADD( 15 ); ADD( 15 ); ADD( 15 ); ADD( 8 );
-    SUB( 10 ); SUB( 11 ); SUB( 12 ); SUB( 13 );             LAST; // A7
-
-cleanup:
-    return( ret );
-}
-#endif /* POLARSSL_ECP_DP_SECP256R1_ENABLED */
-
-#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-/*
- * Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
- */
-static int ecp_mod_p384( mpi *N )
-{
-    INIT( 384 );
-
-    ADD( 12 ); ADD( 21 ); ADD( 20 );
-    SUB( 23 );                                              NEXT; // A0
-
-    ADD( 13 ); ADD( 22 ); ADD( 23 );
-    SUB( 12 ); SUB( 20 );                                   NEXT; // A2
-
-    ADD( 14 ); ADD( 23 );
-    SUB( 13 ); SUB( 21 );                                   NEXT; // A2
-
-    ADD( 15 ); ADD( 12 ); ADD( 20 ); ADD( 21 );
-    SUB( 14 ); SUB( 22 ); SUB( 23 );                        NEXT; // A3
-
-    ADD( 21 ); ADD( 21 ); ADD( 16 ); ADD( 13 ); ADD( 12 ); ADD( 20 ); ADD( 22 );
-    SUB( 15 ); SUB( 23 ); SUB( 23 );                        NEXT; // A4
-
-    ADD( 22 ); ADD( 22 ); ADD( 17 ); ADD( 14 ); ADD( 13 ); ADD( 21 ); ADD( 23 );
-    SUB( 16 );                                              NEXT; // A5
-
-    ADD( 23 ); ADD( 23 ); ADD( 18 ); ADD( 15 ); ADD( 14 ); ADD( 22 );
-    SUB( 17 );                                              NEXT; // A6
-
-    ADD( 19 ); ADD( 16 ); ADD( 15 ); ADD( 23 );
-    SUB( 18 );                                              NEXT; // A7
-
-    ADD( 20 ); ADD( 17 ); ADD( 16 );
-    SUB( 19 );                                              NEXT; // A8
-
-    ADD( 21 ); ADD( 18 ); ADD( 17 );
-    SUB( 20 );                                              NEXT; // A9
-
-    ADD( 22 ); ADD( 19 ); ADD( 18 );
-    SUB( 21 );                                              NEXT; // A10
-
-    ADD( 23 ); ADD( 20 ); ADD( 19 );
-    SUB( 22 );                                              LAST; // A11
-
-cleanup:
-    return( ret );
-}
-#endif /* POLARSSL_ECP_DP_SECP384R1_ENABLED */
-
-#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
-    defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
-    defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-
-#undef A
-#undef LOAD32
-#undef STORE32
-#undef MAX32
-#undef INIT
-#undef NEXT
-#undef LAST
-
-#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED ||
-          POLARSSL_ECP_DP_SECP256R1_ENABLED ||
-          POLARSSL_ECP_DP_SECP384R1_ENABLED */
-
-#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
-/*
- * Here we have a real Mersenne prime, so things are more straightforward.
- * However, things are aligned on a 'weird' boundary (521 bits).
- */
-
-/* Size of p521 in terms of t_uint */
-#define P521_WIDTH      ( 521 / 8 / sizeof( t_uint ) + 1 )
-
-/* Bits to keep in the most significant t_uint */
-#if defined(POLARSSL_HAVE_INT8)
-#define P521_MASK       0x01
-#else
-#define P521_MASK       0x01FF
-#endif
-
-/*
- * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)
- * Write N as A1 + 2^521 A0, return A0 + A1
- */
-static int ecp_mod_p521( mpi *N )
-{
-    int ret;
-    size_t i;
-    mpi M;
-    t_uint Mp[P521_WIDTH + 1];
-    /* Worst case for the size of M is when t_uint is 16 bits:
-     * we need to hold bits 513 to 1056, which is 34 limbs, that is
-     * P521_WIDTH + 1. Otherwise P521_WIDTH is enough. */
-
-    if( N->n < P521_WIDTH )
-        return( 0 );
-
-    /* M = A1 */
-    M.s = 1;
-    M.n = N->n - ( P521_WIDTH - 1 );
-    if( M.n > P521_WIDTH + 1 )
-        M.n = P521_WIDTH + 1;
-    M.p = Mp;
-    memcpy( Mp, N->p + P521_WIDTH - 1, M.n * sizeof( t_uint ) );
-    MPI_CHK( mpi_shift_r( &M, 521 % ( 8 * sizeof( t_uint ) ) ) );
-
-    /* N = A0 */
-    N->p[P521_WIDTH - 1] &= P521_MASK;
-    for( i = P521_WIDTH; i < N->n; i++ )
-        N->p[i] = 0;
-
-    /* N = A0 + A1 */
-    MPI_CHK( mpi_add_abs( N, N, &M ) );
-
-cleanup:
-    return( ret );
-}
-
-#undef P521_WIDTH
-#undef P521_MASK
-#endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
-
-#endif /* POLARSSL_ECP_NIST_OPTIM */
 
 /*
  * Domain parameters for secp192r1
@@ -1023,6 +628,15 @@ cleanup:
 #define BP512R1_N \
     "AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA703308" \
     "70553E5C414CA92619418661197FAC10471DB1D381085DDADDB58796829CA90069"
+
+#if defined(POLARSSL_ECP_NIST_OPTIM)
+/* Forward declarations */
+static int ecp_mod_p192( mpi * );
+static int ecp_mod_p224( mpi * );
+static int ecp_mod_p256( mpi * );
+static int ecp_mod_p384( mpi * );
+static int ecp_mod_p521( mpi * );
+#endif
 
 /*
  * Set a group using well-known domain parameters
@@ -1176,39 +790,37 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
 }
 
 /*
- * Get the curve info from the TLS identifier
+ * Wrapper around fast quasi-modp functions, with fall-back to mpi_mod_mpi.
+ * See the documentation of struct ecp_group.
+ *
+ * This function is in the critial loop for ecp_mul, so pay attention to perf.
  */
-const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id )
+static int ecp_modp( mpi *N, const ecp_group *grp )
 {
-    const ecp_curve_info *curve_info;
+    int ret;
 
-    for( curve_info = ecp_curve_list();
-         curve_info->grp_id != POLARSSL_ECP_DP_NONE;
-         curve_info++ )
+    if( grp->modp == NULL )
+        return( mpi_mod_mpi( N, N, &grp->P ) );
+
+    /* N->s < 0 is a much faster test, which fails only if N is 0 */
+    if( ( N->s < 0 && mpi_cmp_int( N, 0 ) != 0 ) ||
+        mpi_msb( N ) > 2 * grp->pbits )
     {
-        if( curve_info->tls_id == tls_id )
-            return( curve_info );
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
     }
 
-    return( NULL );
-}
+    MPI_CHK( grp->modp( N ) );
 
-/*
- * Get the curve info for the internal identifer
- */
-const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id )
-{
-    const ecp_curve_info *curve_info;
+    /* N->s < 0 is a much faster test, which fails only if N is 0 */
+    while( N->s < 0 && mpi_cmp_int( N, 0 ) != 0 )
+        MPI_CHK( mpi_add_mpi( N, N, &grp->P ) );
 
-    for( curve_info = ecp_curve_list();
-         curve_info->grp_id != POLARSSL_ECP_DP_NONE;
-         curve_info++ )
-    {
-        if( curve_info->grp_id == grp_id )
-            return( curve_info );
-    }
+    while( mpi_cmp_mpi( N, &grp->P ) >= 0 )
+        /* we known P, N and the result are positive */
+        MPI_CHK( mpi_sub_abs( N, N, &grp->P ) );
 
-    return( NULL );
+cleanup:
+    return( ret );
 }
 
 /*
@@ -1231,7 +843,7 @@ const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id )
  * N->s < 0 is a very fast test, which fails only if N is 0
  */
 #define MOD_SUB( N )                                \
-    while( N.s < 0 && mpi_cmp_int( &N, 0 ) != 0 )               \
+    while( N.s < 0 && mpi_cmp_int( &N, 0 ) != 0 )   \
         MPI_CHK( mpi_add_mpi( &N, &N, &grp->P ) )
 
 /*
@@ -1418,7 +1030,7 @@ cleanup:
 }
 
 /*
- * Addition or subtraction: R = P + Q or R = P + Q,
+ * Addition or subtraction: R = P + Q or R = P - Q,
  * mixed affine-Jacobian coordinates (GECC 3.22)
  *
  * The coordinates of Q must be normalized (= affine),
@@ -1967,6 +1579,396 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
 
     return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
 }
+
+#if defined(POLARSSL_ECP_NIST_OPTIM)
+
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
+/*
+ * Compared to the way things are presented in FIPS 186-3 D.2,
+ * we proceed in columns, from right (least significant chunk) to left,
+ * adding chunks to N in place, and keeping a carry for the next chunk.
+ * This avoids moving things around in memory, and uselessly adding zeros,
+ * compared to the more straightforward, line-oriented approach.
+ *
+ * For this prime we need to handle data in chunks of 64 bits.
+ * Since this is always a multiple of our basic t_uint, we can
+ * use a t_uint * to designate such a chunk, and small loops to handle it.
+ */
+
+/* Add 64-bit chunks (dst += src) and update carry */
+static inline void add64( t_uint *dst, t_uint *src, t_uint *carry )
+{
+    unsigned char i;
+    t_uint c = 0;
+    for( i = 0; i < 8 / sizeof( t_uint ); i++, dst++, src++ )
+    {
+        *dst += c;      c  = ( *dst < c );
+        *dst += *src;   c += ( *dst < *src );
+    }
+    *carry += c;
+}
+
+/* Add carry to a 64-bit chunk and update carry */
+static inline void carry64( t_uint *dst, t_uint *carry )
+{
+    unsigned char i;
+    for( i = 0; i < 8 / sizeof( t_uint ); i++, dst++ )
+    {
+        *dst += *carry;
+        *carry  = ( *dst < *carry );
+    }
+}
+
+#define WIDTH       8 / sizeof( t_uint )
+#define A( i )      N->p + i * WIDTH
+#define ADD( i )    add64( p, A( i ), &c )
+#define NEXT        p += WIDTH; carry64( p, &c )
+#define LAST        p += WIDTH; *p = c; while( ++p < end ) *p = 0
+
+/*
+ * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
+ */
+static int ecp_mod_p192( mpi *N )
+{
+    int ret;
+    t_uint c = 0;
+    t_uint *p, *end;
+
+    /* Make sure we have enough blocks so that A(5) is legal */
+    MPI_CHK( mpi_grow( N, 6 * WIDTH ) );
+
+    p = N->p;
+    end = p + N->n;
+
+    ADD( 3 ); ADD( 5 );             NEXT; // A0 += A3 + A5
+    ADD( 3 ); ADD( 4 ); ADD( 5 );   NEXT; // A1 += A3 + A4 + A5
+    ADD( 4 ); ADD( 5 );             LAST; // A2 += A4 + A5
+
+cleanup:
+    return( ret );
+}
+
+#undef WIDTH
+#undef A
+#undef ADD
+#undef NEXT
+#undef LAST
+#endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+/*
+ * The reader is advised to first understand ecp_mod_p192() since the same
+ * general structure is used here, but with additional complications:
+ * (1) chunks of 32 bits, and (2) subtractions.
+ */
+
+/*
+ * For these primes, we need to handle data in chunks of 32 bits.
+ * This makes it more complicated if we use 64 bits limbs in MPI,
+ * which prevents us from using a uniform access method as for p192.
+ *
+ * So, we define a mini abstraction layer to access 32 bit chunks,
+ * load them in 'cur' for work, and store them back from 'cur' when done.
+ *
+ * While at it, also define the size of N in terms of 32-bit chunks.
+ */
+#define LOAD32      cur = A( i );
+
+#if defined(POLARSSL_HAVE_INT8)     /* 8 bit */
+
+#define MAX32       N->n / 4
+#define A( j )      (uint32_t)( N->p[4*j+0]       ) |  \
+                              ( N->p[4*j+1] << 8  ) |  \
+                              ( N->p[4*j+2] << 16 ) |  \
+                              ( N->p[4*j+3] << 24 )
+#define STORE32     N->p[4*i+0] = (uint8_t)( cur       );   \
+                    N->p[4*i+1] = (uint8_t)( cur >> 8  );   \
+                    N->p[4*i+2] = (uint8_t)( cur >> 16 );   \
+                    N->p[4*i+3] = (uint8_t)( cur >> 24 );
+
+#elif defined(POLARSSL_HAVE_INT16)  /* 16 bit */
+
+#define MAX32       N->n / 2
+#define A( j )      (uint32_t)( N->p[2*j] ) | ( N->p[2*j+1] << 16 )
+#define STORE32     N->p[2*i+0] = (uint16_t)( cur       );  \
+                    N->p[2*i+1] = (uint16_t)( cur >> 16 );
+
+#elif defined(POLARSSL_HAVE_INT32)  /* 32 bit */
+
+#define MAX32       N->n
+#define A( j )      N->p[j]
+#define STORE32     N->p[i] = cur;
+
+#else                               /* 64-bit */
+
+#define MAX32       N->n * 2
+#define A( j ) j % 2 ? (uint32_t)( N->p[j/2] >> 32 ) : (uint32_t)( N->p[j/2] )
+#define STORE32                                   \
+    if( i % 2 ) {                                 \
+        N->p[i/2] &= 0x00000000FFFFFFFF;          \
+        N->p[i/2] |= ((uint64_t) cur) << 32;      \
+    } else {                                      \
+        N->p[i/2] &= 0xFFFFFFFF00000000;          \
+        N->p[i/2] |= (uint64_t) cur;              \
+    }
+
+#endif /* sizeof( t_uint ) */
+
+/*
+ * Helpers for addition and subtraction of chunks, with signed carry.
+ */
+static inline void add32( uint32_t *dst, uint32_t src, signed char *carry )
+{
+    *dst += src;
+    *carry += ( *dst < src );
+}
+
+static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
+{
+    *carry -= ( *dst < src );
+    *dst -= src;
+}
+
+#define ADD( j )    add32( &cur, A( j ), &c );
+#define SUB( j )    sub32( &cur, A( j ), &c );
+
+/*
+ * Helpers for the main 'loop'
+ */
+#define INIT( b )                                           \
+    int ret;                                                \
+    signed char c = 0, cc;                                  \
+    uint32_t cur;                                           \
+    size_t i = 0, bits = b;                                 \
+                                                            \
+    MPI_CHK( mpi_grow( N, b * 2 / 8 / sizeof( t_uint ) ) ); \
+    LOAD32;
+
+#define NEXT                    \
+    STORE32; i++; LOAD32;       \
+    cc = c; c = 0;              \
+    if( cc < 0 )                \
+        sub32( &cur, -cc, &c ); \
+    else                        \
+        add32( &cur, cc, &c );  \
+
+#define LAST                                    \
+    STORE32; i++;                               \
+    cur = c > 0 ? c : 0; STORE32;               \
+    cur = 0; while( ++i < MAX32 ) { STORE32; }  \
+    if( c < 0 ) fix_negative( N, c, bits );
+
+/*
+ * If the result is negative, we get it in the form
+ * c * 2^(bits + 32) + N, with c negative and N positive shorter than 'bits'
+ */
+static inline int fix_negative( mpi *N, signed char c, size_t bits )
+{
+    int ret;
+    mpi C;
+    t_uint Cp[ 384 / 8 / sizeof( t_uint) + 1 ];
+
+    /* C = - c * 2^(bits + 32) */
+    C.s = 1;
+    C.n = bits / 8 / sizeof( t_uint ) + 1;
+    C.p = Cp;
+    memset( Cp, 0, C.n * sizeof( t_uint ) );
+#if defined(POLARSSL_HAVE_INT64)
+    if( bits == 224 )
+        Cp[ C.n - 1 ] = ((t_uint) -c) << 32;
+    else
+#endif
+        Cp[ C.n - 1 ] = (t_uint) -c;
+
+    /* N = - ( C - N ) */
+    MPI_CHK( mpi_sub_abs( N, &C, N ) );
+    N->s = -1;
+
+cleanup:
+
+    return( ret );
+}
+
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
+ */
+static int ecp_mod_p224( mpi *N )
+{
+    INIT( 224 );
+
+    SUB(  7 ); SUB( 11 );               NEXT; // A0 += -A7 - A11
+    SUB(  8 ); SUB( 12 );               NEXT; // A1 += -A8 - A12
+    SUB(  9 ); SUB( 13 );               NEXT; // A2 += -A9 - A13
+    SUB( 10 ); ADD(  7 ); ADD( 11 );    NEXT; // A3 += -A10 + A7 + A11
+    SUB( 11 ); ADD(  8 ); ADD( 12 );    NEXT; // A4 += -A11 + A8 + A12
+    SUB( 12 ); ADD(  9 ); ADD( 13 );    NEXT; // A5 += -A12 + A9 + A13
+    SUB( 13 ); ADD( 10 );               LAST; // A6 += -A13 + A10
+
+cleanup:
+    return( ret );
+}
+#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p256 (FIPS 186-3 D.2.3)
+ */
+static int ecp_mod_p256( mpi *N )
+{
+    INIT( 256 );
+
+    ADD(  8 ); ADD(  9 );
+    SUB( 11 ); SUB( 12 ); SUB( 13 ); SUB( 14 );             NEXT; // A0
+
+    ADD(  9 ); ADD( 10 );
+    SUB( 12 ); SUB( 13 ); SUB( 14 ); SUB( 15 );             NEXT; // A1
+
+    ADD( 10 ); ADD( 11 );
+    SUB( 13 ); SUB( 14 ); SUB( 15 );                        NEXT; // A2
+
+    ADD( 11 ); ADD( 11 ); ADD( 12 ); ADD( 12 ); ADD( 13 );
+    SUB( 15 ); SUB(  8 ); SUB(  9 );                        NEXT; // A3
+
+    ADD( 12 ); ADD( 12 ); ADD( 13 ); ADD( 13 ); ADD( 14 );
+    SUB(  9 ); SUB( 10 );                                   NEXT; // A4
+
+    ADD( 13 ); ADD( 13 ); ADD( 14 ); ADD( 14 ); ADD( 15 );
+    SUB( 10 ); SUB( 11 );                                   NEXT; // A5
+
+    ADD( 14 ); ADD( 14 ); ADD( 15 ); ADD( 15 ); ADD( 14 ); ADD( 13 );
+    SUB(  8 ); SUB(  9 );                                   NEXT; // A6
+
+    ADD( 15 ); ADD( 15 ); ADD( 15 ); ADD( 8 );
+    SUB( 10 ); SUB( 11 ); SUB( 12 ); SUB( 13 );             LAST; // A7
+
+cleanup:
+    return( ret );
+}
+#endif /* POLARSSL_ECP_DP_SECP256R1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
+ */
+static int ecp_mod_p384( mpi *N )
+{
+    INIT( 384 );
+
+    ADD( 12 ); ADD( 21 ); ADD( 20 );
+    SUB( 23 );                                              NEXT; // A0
+
+    ADD( 13 ); ADD( 22 ); ADD( 23 );
+    SUB( 12 ); SUB( 20 );                                   NEXT; // A2
+
+    ADD( 14 ); ADD( 23 );
+    SUB( 13 ); SUB( 21 );                                   NEXT; // A2
+
+    ADD( 15 ); ADD( 12 ); ADD( 20 ); ADD( 21 );
+    SUB( 14 ); SUB( 22 ); SUB( 23 );                        NEXT; // A3
+
+    ADD( 21 ); ADD( 21 ); ADD( 16 ); ADD( 13 ); ADD( 12 ); ADD( 20 ); ADD( 22 );
+    SUB( 15 ); SUB( 23 ); SUB( 23 );                        NEXT; // A4
+
+    ADD( 22 ); ADD( 22 ); ADD( 17 ); ADD( 14 ); ADD( 13 ); ADD( 21 ); ADD( 23 );
+    SUB( 16 );                                              NEXT; // A5
+
+    ADD( 23 ); ADD( 23 ); ADD( 18 ); ADD( 15 ); ADD( 14 ); ADD( 22 );
+    SUB( 17 );                                              NEXT; // A6
+
+    ADD( 19 ); ADD( 16 ); ADD( 15 ); ADD( 23 );
+    SUB( 18 );                                              NEXT; // A7
+
+    ADD( 20 ); ADD( 17 ); ADD( 16 );
+    SUB( 19 );                                              NEXT; // A8
+
+    ADD( 21 ); ADD( 18 ); ADD( 17 );
+    SUB( 20 );                                              NEXT; // A9
+
+    ADD( 22 ); ADD( 19 ); ADD( 18 );
+    SUB( 21 );                                              NEXT; // A10
+
+    ADD( 23 ); ADD( 20 ); ADD( 19 );
+    SUB( 22 );                                              LAST; // A11
+
+cleanup:
+    return( ret );
+}
+#endif /* POLARSSL_ECP_DP_SECP384R1_ENABLED */
+
+#undef A
+#undef LOAD32
+#undef STORE32
+#undef MAX32
+#undef INIT
+#undef NEXT
+#undef LAST
+
+#endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED ||
+          POLARSSL_ECP_DP_SECP256R1_ENABLED ||
+          POLARSSL_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
+/*
+ * Here we have an actual Mersenne prime, so things are more straightforward.
+ * However, chunks are aligned on a 'weird' boundary (521 bits).
+ */
+
+/* Size of p521 in terms of t_uint */
+#define P521_WIDTH      ( 521 / 8 / sizeof( t_uint ) + 1 )
+
+/* Bits to keep in the most significant t_uint */
+#if defined(POLARSSL_HAVE_INT8)
+#define P521_MASK       0x01
+#else
+#define P521_MASK       0x01FF
+#endif
+
+/*
+ * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)
+ * Write N as A1 + 2^521 A0, return A0 + A1
+ */
+static int ecp_mod_p521( mpi *N )
+{
+    int ret;
+    size_t i;
+    mpi M;
+    t_uint Mp[P521_WIDTH + 1];
+    /* Worst case for the size of M is when t_uint is 16 bits:
+     * we need to hold bits 513 to 1056, which is 34 limbs, that is
+     * P521_WIDTH + 1. Otherwise P521_WIDTH is enough. */
+
+    if( N->n < P521_WIDTH )
+        return( 0 );
+
+    /* M = A1 */
+    M.s = 1;
+    M.n = N->n - ( P521_WIDTH - 1 );
+    if( M.n > P521_WIDTH + 1 )
+        M.n = P521_WIDTH + 1;
+    M.p = Mp;
+    memcpy( Mp, N->p + P521_WIDTH - 1, M.n * sizeof( t_uint ) );
+    MPI_CHK( mpi_shift_r( &M, 521 % ( 8 * sizeof( t_uint ) ) ) );
+
+    /* N = A0 */
+    N->p[P521_WIDTH - 1] &= P521_MASK;
+    for( i = P521_WIDTH; i < N->n; i++ )
+        N->p[i] = 0;
+
+    /* N = A0 + A1 */
+    MPI_CHK( mpi_add_abs( N, N, &M ) );
+
+cleanup:
+    return( ret );
+}
+
+#undef P521_WIDTH
+#undef P521_MASK
+#endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
+
+#endif /* POLARSSL_ECP_NIST_OPTIM */
 
 #if defined(POLARSSL_SELF_TEST)
 

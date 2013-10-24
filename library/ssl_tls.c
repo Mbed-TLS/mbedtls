@@ -636,12 +636,14 @@ int ssl_derive_keys( ssl_context *ssl )
     switch( cipher_info->type )
     {
         case POLARSSL_CIPHER_ARC4_128:
+        case POLARSSL_CIPHER_DES_CBC:
         case POLARSSL_CIPHER_DES_EDE3_CBC:
         case POLARSSL_CIPHER_CAMELLIA_128_CBC:
         case POLARSSL_CIPHER_CAMELLIA_256_CBC:
+        case POLARSSL_CIPHER_CAMELLIA_128_GCM:
+        case POLARSSL_CIPHER_CAMELLIA_256_GCM:
         case POLARSSL_CIPHER_AES_128_CBC:
         case POLARSSL_CIPHER_AES_256_CBC:
-        case POLARSSL_CIPHER_DES_CBC:
         case POLARSSL_CIPHER_AES_128_GCM:
         case POLARSSL_CIPHER_AES_256_GCM:
             if( ( ret = cipher_init_ctx( &transform->cipher_ctx_enc,
@@ -1096,7 +1098,9 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #endif /* POLARSSL_ARC4_C */
 #if defined(POLARSSL_GCM_C)
     if( ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_128_GCM ||
-        ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM )
+        ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM ||
+        ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_CAMELLIA_128_GCM ||
+        ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_CAMELLIA_256_GCM )
     {
         size_t enc_msglen, olen, totlen;
         unsigned char *enc_msg;
@@ -1399,7 +1403,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #endif /* POLARSSL_ARC4_C */
 #if defined(POLARSSL_GCM_C)
     if( ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_128_GCM ||
-        ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM )
+        ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM ||
+        ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_CAMELLIA_128_GCM ||
+        ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_CAMELLIA_256_GCM )
     {
         unsigned char *dec_msg;
         unsigned char *dec_msg_result;

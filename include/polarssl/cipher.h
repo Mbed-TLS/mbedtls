@@ -152,9 +152,12 @@ enum {
     POLARSSL_KEY_LENGTH_DES_EDE = 128,
     /** Key length, in bits (including parity), for DES in three-key EDE */
     POLARSSL_KEY_LENGTH_DES_EDE3 = 192,
-    /** Maximum length of any IV, in bytes */
-    POLARSSL_MAX_IV_LENGTH = 16,
 };
+
+/** Maximum length of any IV, in bytes */
+#define POLARSSL_MAX_IV_LENGTH      16
+/** Maximum block size of any cipher, in bytes */
+#define POLARSSL_MAX_BLOCK_LENGTH   16
 
 /**
  * Base cipher information. The non-mode specific functions and values.
@@ -248,7 +251,7 @@ typedef struct {
     int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
 
     /** Buffer for data that hasn't been encrypted yet */
-    unsigned char unprocessed_data[POLARSSL_MAX_IV_LENGTH];
+    unsigned char unprocessed_data[POLARSSL_MAX_BLOCK_LENGTH];
 
     /** Number of bytes that still need processing */
     size_t unprocessed_len;

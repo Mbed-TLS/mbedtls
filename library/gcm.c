@@ -412,12 +412,12 @@ void gcm_free( gcm_context *ctx )
     memset( ctx, 0, sizeof( gcm_context ) );
 }
 
-#if defined(POLARSSL_SELF_TEST)
+#if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 
 #include <stdio.h>
 
 /*
- * GCM test vectors from:
+ * AES-GCM test vectors from:
  *
  * http://csrc.nist.gov/groups/STM/cavp/documents/mac/gcmtestvectors.zip
  */
@@ -850,6 +850,6 @@ int gcm_self_test( int verbose )
 
 
 
-#endif
+#endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
 
 #endif

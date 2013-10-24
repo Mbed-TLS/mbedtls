@@ -185,10 +185,20 @@ int cipher_set_iv( cipher_context_t *ctx,
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
+    /* avoid buffer overflow in ctx->iv */
+    if( iv_len > POLARSSL_MAX_IV_LENGTH )
+        return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
     if( ctx->cipher_info->accepts_variable_iv_size )
         actual_iv_size = iv_len;
     else
+    {
         actual_iv_size = ctx->cipher_info->iv_size;
+
+        /* avoid reading past the end of input buffer */
+        if( actual_iv_size > iv_len )
+            return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
 
     memcpy( ctx->iv, iv, actual_iv_size );
     ctx->iv_size = actual_iv_size;

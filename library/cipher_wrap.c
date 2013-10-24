@@ -1149,6 +1149,7 @@ const cipher_definition_t cipher_definitions[] =
 #if defined(POLARSSL_CAMELLIA_C)
     { POLARSSL_CIPHER_CAMELLIA_128_ECB,     &camellia_128_ecb_info },
     { POLARSSL_CIPHER_CAMELLIA_192_ECB,     &camellia_192_ecb_info },
+    { POLARSSL_CIPHER_CAMELLIA_256_ECB,     &camellia_256_ecb_info },
 #if defined(POLARSSL_CIPHER_MODE_CBC)
     { POLARSSL_CIPHER_CAMELLIA_128_CBC,     &camellia_128_cbc_info },
     { POLARSSL_CIPHER_CAMELLIA_192_CBC,     &camellia_192_cbc_info },

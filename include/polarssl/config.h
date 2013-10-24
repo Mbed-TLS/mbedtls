@@ -1085,7 +1085,7 @@
  *
  * Module:  library/gcm.c
  *
- * Requires: POLARSSL_AES_C
+ * Requires: POLARSSL_AES_C or POLARSSL_CAMELLIA_C
  *
  * This module enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -1765,7 +1765,8 @@
 #error "CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 
-#if defined(POLARSSL_GCM_C) && !defined(POLARSSL_AES_C)
+#if defined(POLARSSL_GCM_C) && (                                        \
+        !defined(POLARSSL_AES_C) && !defined(POLARSSL_CAMELLIA_C) )
 #error "POLARSSL_GCM_C defined, but not all prerequisites"
 #endif
 

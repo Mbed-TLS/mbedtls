@@ -37,12 +37,12 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_ecdh			test_suite_ecdsa		\
 		test_suite_ecp									\
 		test_suite_error								\
-		test_suite_gcm.decrypt_128						\
-		test_suite_gcm.decrypt_192						\
-		test_suite_gcm.decrypt_256						\
-		test_suite_gcm.encrypt_128						\
-		test_suite_gcm.encrypt_192						\
-		test_suite_gcm.encrypt_256						\
+		test_suite_gcm.aes128_de						\
+		test_suite_gcm.aes192_de						\
+		test_suite_gcm.aes256_de						\
+		test_suite_gcm.aes128_en						\
+		test_suite_gcm.aes192_en						\
+		test_suite_gcm.aes256_en						\
 		test_suite_hmac_shax							\
 		test_suite_md			test_suite_mdx			\
 		test_suite_mpi			test_suite_pbkdf2		\
@@ -104,29 +104,29 @@ test_suite_cipher.padding.c : suites/test_suite_cipher.function suites/test_suit
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.padding
 
-test_suite_gcm.decrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_128.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes128_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_128
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes128_de
 
-test_suite_gcm.decrypt_192.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_192.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes192_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_192
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes192_de
 
-test_suite_gcm.decrypt_256.c : suites/test_suite_gcm.function suites/test_suite_gcm.decrypt_256.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes256_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.decrypt_256
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes256_de
 
-test_suite_gcm.encrypt_128.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_128.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes128_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_128
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes128_en
 
-test_suite_gcm.encrypt_192.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_192.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes192_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_192
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes192_en
 
-test_suite_gcm.encrypt_256.c : suites/test_suite_gcm.function suites/test_suite_gcm.encrypt_256.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+test_suite_gcm.aes256_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
-	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.encrypt_256
+	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes256_en
 
 %.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
@@ -224,27 +224,27 @@ test_suite_error: test_suite_error.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.decrypt_128: test_suite_gcm.decrypt_128.c ../library/libpolarssl.a
+test_suite_gcm.aes128_de: test_suite_gcm.aes128_de.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.decrypt_192: test_suite_gcm.decrypt_192.c ../library/libpolarssl.a
+test_suite_gcm.aes192_de: test_suite_gcm.aes192_de.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.decrypt_256: test_suite_gcm.decrypt_256.c ../library/libpolarssl.a
+test_suite_gcm.aes256_de: test_suite_gcm.aes256_de.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.encrypt_128: test_suite_gcm.encrypt_128.c ../library/libpolarssl.a
+test_suite_gcm.aes128_en: test_suite_gcm.aes128_en.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.encrypt_192: test_suite_gcm.encrypt_192.c ../library/libpolarssl.a
+test_suite_gcm.aes192_en: test_suite_gcm.aes192_en.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.encrypt_256: test_suite_gcm.encrypt_256.c ../library/libpolarssl.a
+test_suite_gcm.aes256_en: test_suite_gcm.aes256_en.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

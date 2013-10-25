@@ -184,7 +184,6 @@ case $TYPE in
             TLS-RSA-WITH-3DES-EDE-CBC-SHA           \
             TLS-RSA-WITH-RC4-128-SHA                \
             TLS-RSA-WITH-RC4-128-MD5                \
-            TLS-RSA-EXPORT-WITH-RC4-40-MD5          \
             TLS-RSA-WITH-NULL-MD5                   \
             TLS-RSA-WITH-NULL-SHA                   \
             TLS-RSA-WITH-DES-CBC-SHA                \
@@ -209,7 +208,6 @@ case $TYPE in
             DES-CBC3-SHA                    \
             RC4-SHA                         \
             RC4-MD5                         \
-            EXP-RC4-MD5                     \
             NULL-MD5                        \
             NULL-SHA                        \
             DES-CBC-SHA                     \

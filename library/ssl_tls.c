@@ -633,74 +633,56 @@ int ssl_derive_keys( ssl_context *ssl )
     }
 #endif
 
-    switch( cipher_info->type )
+    if( cipher_info->type != POLARSSL_CIPHER_NULL )
     {
-        case POLARSSL_CIPHER_ARC4_128:
-        case POLARSSL_CIPHER_DES_CBC:
-        case POLARSSL_CIPHER_DES_EDE3_CBC:
-        case POLARSSL_CIPHER_CAMELLIA_128_CBC:
-        case POLARSSL_CIPHER_CAMELLIA_256_CBC:
-        case POLARSSL_CIPHER_CAMELLIA_128_GCM:
-        case POLARSSL_CIPHER_CAMELLIA_256_GCM:
-        case POLARSSL_CIPHER_AES_128_CBC:
-        case POLARSSL_CIPHER_AES_256_CBC:
-        case POLARSSL_CIPHER_AES_128_GCM:
-        case POLARSSL_CIPHER_AES_256_GCM:
-            if( ( ret = cipher_init_ctx( &transform->cipher_ctx_enc,
-                                         cipher_info ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "cipher_init_ctx", ret );
-                return( ret );
-            }
+        if( ( ret = cipher_init_ctx( &transform->cipher_ctx_enc,
+                                     cipher_info ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_init_ctx", ret );
+            return( ret );
+        }
 
-            if( ( ret = cipher_init_ctx( &transform->cipher_ctx_dec,
-                                         cipher_info ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "cipher_init_ctx", ret );
-                return( ret );
-            }
+        if( ( ret = cipher_init_ctx( &transform->cipher_ctx_dec,
+                                     cipher_info ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_init_ctx", ret );
+            return( ret );
+        }
 
-            if( ( ret = cipher_setkey( &transform->cipher_ctx_enc, key1,
-                                       cipher_info->key_length,
-                                       POLARSSL_ENCRYPT ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "cipher_setkey", ret );
-                return( ret );
-            }
+        if( ( ret = cipher_setkey( &transform->cipher_ctx_enc, key1,
+                                   cipher_info->key_length,
+                                   POLARSSL_ENCRYPT ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_setkey", ret );
+            return( ret );
+        }
 
-            if( ( ret = cipher_setkey( &transform->cipher_ctx_dec, key2,
-                                       cipher_info->key_length,
-                                       POLARSSL_DECRYPT ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "cipher_setkey", ret );
-                return( ret );
-            }
+        if( ( ret = cipher_setkey( &transform->cipher_ctx_dec, key2,
+                                   cipher_info->key_length,
+                                   POLARSSL_DECRYPT ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "cipher_setkey", ret );
+            return( ret );
+        }
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
-            if( cipher_info->mode == POLARSSL_MODE_CBC )
+        if( cipher_info->mode == POLARSSL_MODE_CBC )
+        {
+            if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_enc,
+                                                 POLARSSL_PADDING_NONE ) ) != 0 )
             {
-                if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_enc,
-                                                     POLARSSL_PADDING_NONE ) ) != 0 )
-                {
-                    SSL_DEBUG_RET( 1, "cipher_set_padding_mode", ret );
-                    return( ret );
-                }
-
-                if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_dec,
-                                                     POLARSSL_PADDING_NONE ) ) != 0 )
-                {
-                    SSL_DEBUG_RET( 1, "cipher_set_padding_mode", ret );
-                    return( ret );
-                }
+                SSL_DEBUG_RET( 1, "cipher_set_padding_mode", ret );
+                return( ret );
             }
+
+            if( ( ret = cipher_set_padding_mode( &transform->cipher_ctx_dec,
+                                                 POLARSSL_PADDING_NONE ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "cipher_set_padding_mode", ret );
+                return( ret );
+            }
+        }
 #endif /* POLARSSL_CIPHER_MODE_CBC */
-            break;
-
-        case POLARSSL_CIPHER_NULL:
-            break;
-
-        default:
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     memset( keyblk, 0, sizeof( keyblk ) );
@@ -1037,7 +1019,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     else
 #endif /* POLARSSL_CIPHER_NULL_CIPHER */
 #if defined(POLARSSL_ARC4_C)
-    if( ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_ARC4_128 )
+    if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode ==
+                                                        POLARSSL_MODE_STREAM )
     {
         int ret;
         size_t olen = 0;
@@ -1097,10 +1080,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     else
 #endif /* POLARSSL_ARC4_C */
 #if defined(POLARSSL_GCM_C)
-    if( ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_128_GCM ||
-        ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM ||
-        ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_CAMELLIA_128_GCM ||
-        ssl->transform_out->ciphersuite_info->cipher == POLARSSL_CIPHER_CAMELLIA_256_GCM )
+    if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode ==
+                                                        POLARSSL_MODE_GCM )
     {
         size_t enc_msglen, olen, totlen;
         unsigned char *enc_msg;
@@ -1203,7 +1184,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_GCM_C */
-#if defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(POLARSSL_CIPHER_MODE_CBC) &&                                    \
+    ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
     if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode ==
                                                         POLARSSL_MODE_CBC )
     {
@@ -1310,7 +1292,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #endif
     }
     else
-#endif /* POLARSSL_CIPHER_MODE_CBC */
+#endif /* POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_CAMELLIA_C ) */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -1349,7 +1332,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     else
 #endif /* POLARSSL_CIPHER_NULL_CIPHER */
 #if defined(POLARSSL_ARC4_C)
-    if( ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_ARC4_128 )
+    if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode ==
+                                                       POLARSSL_MODE_STREAM )
     {
         int ret;
         size_t olen = 0;
@@ -1402,10 +1386,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     else
 #endif /* POLARSSL_ARC4_C */
 #if defined(POLARSSL_GCM_C)
-    if( ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_128_GCM ||
-        ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_AES_256_GCM ||
-        ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_CAMELLIA_128_GCM ||
-        ssl->transform_in->ciphersuite_info->cipher == POLARSSL_CIPHER_CAMELLIA_256_GCM )
+    if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode ==
+                                                       POLARSSL_MODE_GCM )
     {
         unsigned char *dec_msg;
         unsigned char *dec_msg_result;
@@ -1491,7 +1473,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_GCM_C */
-#if defined(POLARSSL_CIPHER_MODE_CBC)
+#if defined(POLARSSL_CIPHER_MODE_CBC) &&                                    \
+    ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
     if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode ==
                                                        POLARSSL_MODE_CBC )
     {
@@ -1657,7 +1640,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         }
     }
     else
-#endif /* POLARSSL_CIPHER_MODE_CBC */
+#endif /* POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_CAMELLIA_C ) */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );

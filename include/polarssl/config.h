@@ -658,7 +658,7 @@
  *
  * Enable support for TLS 1.2.
  *
- * Requires: POLARSSL_SHA256_C or POLARSSL_SHA512_C
+ * Requires: POLARSSL_SHA1_C or POLARSSL_SHA256_C or POLARSSL_SHA512_C
  *           (Depends on ciphersuites)
  *
  * Comment this macro to disable support for TLS 1.2
@@ -1843,6 +1843,26 @@
 #if defined(POLARSSL_RSA_C) && ( !defined(POLARSSL_BIGNUM_C) ||         \
     !defined(POLARSSL_OID_C) )
 #error "POLARSSL_RSA_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_SSL3) && ( !defined(POLARSSL_MD5_C) ||     \
+    !defined(POLARSSL_SHA1_C) )
+#error "POLARSSL_SSL_PROTO_SSL3 defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_TLS1) && ( !defined(POLARSSL_MD5_C) ||     \
+    !defined(POLARSSL_SHA1_C) )
+#error "POLARSSL_SSL_PROTO_TLS1 defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_1) && ( !defined(POLARSSL_MD5_C) ||     \
+    !defined(POLARSSL_SHA1_C) )
+#error "POLARSSL_SSL_PROTO_TLS1_1 defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && ( !defined(POLARSSL_SHA1_C) &&     \
+    !defined(POLARSSL_SHA256_C) && !defined(POLARSSL_SHA512_C) )
+#error "POLARSSL_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_SSL_CLI_C) && !defined(POLARSSL_SSL_TLS_C)

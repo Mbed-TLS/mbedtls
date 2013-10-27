@@ -571,6 +571,7 @@ int main( int argc, char *argv[] )
 
     printf( " ok\n" );
 
+#if defined(POLARSSL_SHA1_C)
     printf( "  . Adding the Subject Key Identifier ..." );
     fflush( stdout );
 
@@ -596,6 +597,7 @@ int main( int argc, char *argv[] )
     }
 
     printf( " ok\n" );
+#endif /* POLARSSL_SHA1_C */
 
     if( opt.key_usage )
     {

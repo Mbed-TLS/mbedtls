@@ -400,6 +400,7 @@ int x509write_crt_set_extension( x509write_cert *ctx,
 int x509write_crt_set_basic_constraints( x509write_cert *ctx,
                                          int is_ca, int max_pathlen );
 
+#if defined(POLARSSL_SHA1_C)
 /**
  * \brief           Set the subjectKeyIdentifier extension for a CRT
  *                  Requires that x509write_crt_set_subject_key() has been
@@ -421,6 +422,7 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx );
  * \return          0 if successful, or a POLARSSL_ERR_X509WRITE_MALLOC_FAILED
  */
 int x509write_crt_set_authority_key_identifier( x509write_cert *ctx );
+#endif /* POLARSSL_SHA1_C */
 
 /**
  * \brief           Set the Key Usage Extension flags

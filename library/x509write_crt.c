@@ -156,6 +156,7 @@ int x509write_crt_set_basic_constraints( x509write_cert *ctx,
                                         0, buf + sizeof(buf) - len, len );
 }
 
+#if defined(POLARSSL_SHA1_C)
 int x509write_crt_set_subject_key_identifier( x509write_cert *ctx )
 {
     int ret;
@@ -202,6 +203,7 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
                                    OID_SIZE( OID_AUTHORITY_KEY_IDENTIFIER ),
                                    0, buf + sizeof(buf) - len, len );
 }
+#endif /* POLARSSL_SHA1_C */
 
 int x509write_crt_set_key_usage( x509write_cert *ctx, unsigned char key_usage )
 {

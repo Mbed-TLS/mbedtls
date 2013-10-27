@@ -916,6 +916,8 @@
  * Module:  library/certs.c
  * Caller:
  *
+ * Requires: POLARSSL_PEM_PARSE_C
+ *
  * This module is used for testing (ssl_client/server).
  */
 #define POLARSSL_CERTS_C
@@ -1721,12 +1723,16 @@
 /*
  * Sanity checks on defines and dependencies
  */
-#if defined(POLARSSL_DHM_C) && !defined(POLARSSL_BIGNUM_C)
-#error "POLARSSL_DHM_C defined, but not all prerequisites"
+#if defined(POLARSSL_CERTS_C) && !defined(POLARSSL_PEM_PARSE_C)
+#error "POLARSSL_CERTS_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_CTR_DRBG_C) && !defined(POLARSSL_AES_C)
 #error "POLARSSL_CTR_DRBG_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_DHM_C) && !defined(POLARSSL_BIGNUM_C)
+#error "POLARSSL_DHM_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_ECDH_C) && !defined(POLARSSL_ECP_C)

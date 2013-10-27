@@ -12,7 +12,7 @@ void error_strerror( int code, char *result_str )
 {
     char buf[500];
 
-    error_strerror( code, buf, 500 );
+    polarssl_strerror( code, buf, 500 );
 
     TEST_ASSERT( strcmp( buf, result_str ) == 0 );
 }

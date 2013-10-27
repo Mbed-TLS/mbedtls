@@ -291,12 +291,14 @@ int ecdsa_genkey( ecdsa_context *ctx, ecp_group_id gid,
  */
 int ecdsa_from_keypair( ecdsa_context *ctx, const ecp_keypair *key )
 {
-    int ret = ecp_group_copy( &ctx->grp, &key->grp ) ||
-              mpi_copy( &ctx->d, &key->d ) ||
-              ecp_copy( &ctx->Q, &key->Q );
+    int ret;
 
-    if( ret != 0 )
+    if( ( ret = ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
+        ( ret = mpi_copy( &ctx->d, &key->d ) ) != 0 ||
+        ( ret = ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
+    {
         ecdsa_free( ctx );
+    }
 
     return( ret );
 }

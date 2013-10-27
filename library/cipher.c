@@ -491,23 +491,25 @@ static void add_zeros_and_len_padding( unsigned char *output,
 static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
                                       size_t *data_len )
 {
-    size_t i, padding_len = 0;
+    size_t i, pad_idx;
+    unsigned char padding_len, bad = 0;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     padding_len = input[input_len - 1];
-
-    if( padding_len > input_len || padding_len == 0 )
-        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
-    for( i = input_len - padding_len; i < input_len - 1; i++ )
-        if( input[i] != 0x00 )
-            return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
     *data_len = input_len - padding_len;
 
-    return 0;
+    /* Avoid logical || since it results in a branch */
+    bad |= padding_len > input_len;
+    bad |= padding_len == 0;
+
+    /* The number of bytes checked must be independent of padding_len */
+    pad_idx = input_len - padding_len;
+    for( i = 0; i < input_len - 1; i++ )
+        bad |= input[i] * ( i >= pad_idx );
+
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 }
 #endif /* POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN */
 

@@ -1394,6 +1394,16 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                     continue;
 #endif
 
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+                /* If the ciphersuite requires a pre-shared key and we don't
+                 * have one, skip it now rather than failing later */
+                if( ssl_ciphersuite_uses_psk( ciphersuite_info ) &&
+                    ssl->f_psk == NULL &&
+                    ( ssl->psk == NULL || ssl->psk_identity == NULL ||
+                      ssl->psk_identity_len == 0 || ssl->psk_len == 0 ) )
+                    continue;
+#endif
+
 #if defined(POLARSSL_X509_CRT_PARSE_C)
                 /*
                  * Final check: if ciphersuite requires us to have a

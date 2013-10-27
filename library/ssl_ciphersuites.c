@@ -1210,4 +1210,19 @@ int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
     }
 }
 
+int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
+{
+    switch( info->key_exchange )
+    {
+        case POLARSSL_KEY_EXCHANGE_PSK:
+        case POLARSSL_KEY_EXCHANGE_RSA_PSK:
+        case POLARSSL_KEY_EXCHANGE_DHE_PSK:
+        case POLARSSL_KEY_EXCHANGE_ECDHE_PSK:
+            return( 1 );
+
+        default:
+            return( 0 );
+    }
+}
+
 #endif

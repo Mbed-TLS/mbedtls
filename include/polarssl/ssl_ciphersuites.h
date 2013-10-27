@@ -215,6 +215,7 @@ pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info );
 #endif
 
 int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info );
+int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info );
 
 #ifdef __cplusplus
 }

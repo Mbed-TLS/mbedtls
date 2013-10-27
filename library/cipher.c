@@ -456,20 +456,24 @@ static void add_one_and_zeros_padding( unsigned char *output,
 static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
                                       size_t *data_len )
 {
-    unsigned char *p = input + input_len - 1;
+    size_t i;
+    unsigned char done = 0, prev_done, bad;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
-    while( *p == 0x00 && p > input )
-        --p;
+    bad = 0xFF;
+    *data_len = 0;
+    for( i = input_len; i > 0; i-- )
+    {
+        prev_done = done;
+        done |= ( input[i-1] != 0 );
+        *data_len |= ( i - 1 ) * ( done != prev_done );
+        bad &= ( input[i-1] ^ 0x80 ) | ( done == prev_done );
+    }
 
-    if( *p != 0x80 )
-        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 
-    *data_len = p - input;
-
-    return 0;
 }
 #endif /* POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS */
 

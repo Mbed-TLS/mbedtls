@@ -1060,8 +1060,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect %d %d",
                                 ssl->out_msglen, olen ) );
-            // TODO Real error number
-            return( -1 );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         if( ( ret = cipher_finish( &ssl->transform_out->cipher_ctx_enc,
@@ -1075,8 +1074,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect %d %d",
                                 0, olen ) );
-            // TODO Real error number
-            return( -1 );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
     }
     else
@@ -1277,8 +1275,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect %d %d",
                                 enc_msglen, olen ) );
-            // TODO Real error number
-            return( -1 );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)
@@ -1360,8 +1357,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( ssl->in_msglen != olen )
         {
             SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect" ) );
-            // TODO Real error number
-            return( -1 );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         if( ( ret = cipher_finish( &ssl->transform_in->cipher_ctx_dec,
@@ -1374,8 +1370,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( 0 != olen )
         {
             SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect" ) );
-            // TODO Real error number
-            return( -1 );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
     }
     else
@@ -1557,8 +1552,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( dec_msglen != olen )
         {
             SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect" ) );
-            // TODO Real error number
-            return( -1 );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)

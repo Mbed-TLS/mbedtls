@@ -530,7 +530,7 @@ FN_OID_TYPED_FROM_ASN1(oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, oid_pkcs12_pbe_alg)
 FN_OID_GET_ATTR2(oid_get_pkcs12_pbe_alg, oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, md_type_t, md_alg, cipher_type_t, cipher_alg);
 #endif /* POLARSSL_PKCS12_C */
 
-#if defined _MSC_VER && !defined snprintf
+#if defined(_MSC_VER) && !defined snprintf
 #include <stdarg.h>
 
 #if !defined vsnprintf

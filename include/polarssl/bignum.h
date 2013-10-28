@@ -32,7 +32,7 @@
 
 #include "config.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 #if (_MSC_VER <= 1200)
 typedef   signed short  int16_t;

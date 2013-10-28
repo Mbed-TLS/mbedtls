@@ -32,11 +32,15 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#if defined _MSC_VER && !defined  snprintf
+#if defined(EFIX64) || defined(EFI32)
+#include <stdio.h>
+#endif
+
+#if defined(_MSC_VER) && !defined  snprintf
 #define  snprintf  _snprintf
 #endif
 
-#if defined _MSC_VER && !defined vsnprintf
+#if defined(_MSC_VER) && !defined vsnprintf
 #define vsnprintf _vsnprintf
 #endif
 

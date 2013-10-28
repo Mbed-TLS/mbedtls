@@ -29,7 +29,8 @@
 
 #include "polarssl/net.h"
 
-#if defined(_WIN32) || defined(_WIN32_WCE)
+#if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
+    !defined(EFI32)
 
 #include <winsock2.h>
 #include <windows.h>
@@ -64,7 +65,8 @@ static int wsa_init_done = 0;
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) ||  \
     defined(__DragonflyBSD__)
 #include <sys/endian.h>
-#elif defined(__APPLE__) || defined(HAVE_MACHINE_ENDIAN_H)
+#elif defined(__APPLE__) || defined(HAVE_MACHINE_ENDIAN_H) ||   \
+      defined(EFIX64) || defined(EFI32)
 #include <machine/endian.h>
 #elif defined(sun)
 #include <sys/isa_defs.h>
@@ -83,7 +85,7 @@ static int wsa_init_done = 0;
 #include <time.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
@@ -120,7 +122,9 @@ int net_connect( int *fd, const char *host, int port )
     struct sockaddr_in server_addr;
     struct hostent *server_host;
 
-#if defined(_WIN32) || defined(_WIN32_WCE)
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
+
     WSADATA wsaData;
 
     if( wsa_init_done == 0 )
@@ -131,7 +135,9 @@ int net_connect( int *fd, const char *host, int port )
         wsa_init_done = 1;
     }
 #else
+#if !defined(EFIX64) && !defined(EFI32)
     signal( SIGPIPE, SIG_IGN );
+#endif
 #endif
 
     if( ( server_host = gethostbyname( host ) ) == NULL )
@@ -165,7 +171,8 @@ int net_bind( int *fd, const char *bind_ip, int port )
     int n, c[4];
     struct sockaddr_in server_addr;
 
-#if defined(_WIN32) || defined(_WIN32_WCE)
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
     WSADATA wsaData;
 
     if( wsa_init_done == 0 )
@@ -176,7 +183,9 @@ int net_bind( int *fd, const char *bind_ip, int port )
         wsa_init_done = 1;
     }
 #else
+#if !defined(EFIX64) && !defined(EFI32)
     signal( SIGPIPE, SIG_IGN );
+#endif
 #endif
 
     if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
@@ -228,7 +237,8 @@ int net_bind( int *fd, const char *bind_ip, int port )
  */
 static int net_is_blocking( void )
 {
-#if defined(_WIN32) || defined(_WIN32_WCE)
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
     return( WSAGetLastError() == WSAEWOULDBLOCK );
 #else
     switch( errno )
@@ -282,7 +292,8 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
  */
 int net_set_block( int fd )
 {
-#if defined(_WIN32) || defined(_WIN32_WCE)
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
     u_long n = 0;
     return( ioctlsocket( fd, FIONBIO, &n ) );
 #else
@@ -292,7 +303,8 @@ int net_set_block( int fd )
 
 int net_set_nonblock( int fd )
 {
-#if defined(_WIN32) || defined(_WIN32_WCE)
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
     u_long n = 1;
     return( ioctlsocket( fd, FIONBIO, &n ) );
 #else
@@ -317,7 +329,7 @@ void net_usleep( unsigned long usec )
  * Read at most 'len' characters
  */
 int net_recv( void *ctx, unsigned char *buf, size_t len )
-{ 
+{
     int ret = read( *((int *) ctx), buf, len );
 
     if( ret < 0 )
@@ -325,7 +337,8 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
         if( net_is_blocking() != 0 )
             return( POLARSSL_ERR_NET_WANT_READ );
 
-#if defined(_WIN32) || defined(_WIN32_WCE)
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
         if( WSAGetLastError() == WSAECONNRESET )
             return( POLARSSL_ERR_NET_CONN_RESET );
 #else
@@ -354,7 +367,8 @@ int net_send( void *ctx, const unsigned char *buf, size_t len )
         if( net_is_blocking() != 0 )
             return( POLARSSL_ERR_NET_WANT_WRITE );
 
-#if defined(_WIN32) || defined(_WIN32_WCE)
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
         if( WSAGetLastError() == WSAECONNRESET )
             return( POLARSSL_ERR_NET_CONN_RESET );
 #else

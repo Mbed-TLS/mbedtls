@@ -160,7 +160,7 @@
 
 #include <string.h>
 
-#if defined _MSC_VER && !defined  snprintf
+#if defined(_MSC_VER) && !defined  snprintf
 #define  snprintf  _snprintf
 #endif
 

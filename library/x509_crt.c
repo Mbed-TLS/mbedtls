@@ -53,10 +53,14 @@
 
 #include <string.h>
 #include <stdlib.h>
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #include <windows.h>
 #else
 #include <time.h>
+#endif
+
+#if defined(EFIX64) || defined(EFI32)
+#include <stdio.h>
 #endif
 
 #if defined(POLARSSL_FS_IO)
@@ -935,7 +939,7 @@ int x509_crt_parse_file( x509_crt *chain, const char *path )
 int x509_crt_parse_path( x509_crt *chain, const char *path )
 {
     int ret = 0;
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     int w_ret;
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
@@ -1035,7 +1039,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
 }
 #endif /* POLARSSL_FS_IO */
 
-#if defined _MSC_VER && !defined snprintf
+#if defined(_MSC_VER) && !defined snprintf
 #include <stdarg.h>
 
 #if !defined vsnprintf

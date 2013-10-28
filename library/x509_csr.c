@@ -54,7 +54,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(POLARSSL_FS_IO)
+#if defined(POLARSSL_FS_IO) || defined(EFIX64) || defined(EFI32)
 #include <stdio.h>
 #endif
 
@@ -302,7 +302,7 @@ int x509_csr_parse_file( x509_csr *csr, const char *path )
 }
 #endif /* POLARSSL_FS_IO */
 
-#if defined _MSC_VER && !defined snprintf
+#if defined(_MSC_VER) && !defined snprintf
 #include <stdarg.h>
 
 #if !defined vsnprintf

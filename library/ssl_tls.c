@@ -47,7 +47,7 @@
 
 #include <stdlib.h>
 
-#if defined _MSC_VER && !defined strcasecmp
+#if defined(_MSC_VER) && !defined strcasecmp
 #define strcasecmp _stricmp
 #endif
 

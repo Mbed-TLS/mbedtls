@@ -36,8 +36,8 @@
 
 #include <stdlib.h>
 
-#if defined _MSC_VER && !defined strcasecmp
-#define strcasecmp _stricmp
+#if defined(_MSC_VER) && !defined strcasecmp
+#define  snprintf  _stricmp
 #endif
 
 static const int supported_digests[] = {

@@ -77,6 +77,7 @@ static int generic_check( const md_info_t *md_info, char *filename )
     int nb_tot1, nb_tot2;
     unsigned char sum[POLARSSL_MD_MAX_SIZE];
     char buf[POLARSSL_MD_MAX_SIZE * 2 + 1], line[1024];
+    char diff;
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
@@ -123,7 +124,12 @@ static int generic_check( const md_info_t *md_info, char *filename )
         for( i = 0; i < md_info->size; i++ )
             sprintf( buf + i * 2, "%02x", sum[i] );
 
-        if( memcmp( line, buf, 2 * md_info->size ) != 0 )
+        /* Use constant-time buffer comparison */
+        diff = 0;
+        for( i = 0; i < 2 * md_info->size; i++ )
+            diff |= line[i] ^ buf[i];
+
+        if( diff != 0 )
         {
             nb_err2++;
             fprintf( stderr, "wrong checksum: %s\n", line + 66 );

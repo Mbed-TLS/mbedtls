@@ -77,6 +77,7 @@ static int sha1_check( char *filename )
     int nb_tot1, nb_tot2;
     unsigned char sum[20];
     char buf[41], line[1024];
+    char diff;
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
@@ -117,7 +118,12 @@ static int sha1_check( char *filename )
         for( i = 0; i < 20; i++ )
             sprintf( buf + i * 2, "%02x", sum[i] );
 
-        if( memcmp( line, buf, 40 ) != 0 )
+        /* Use constant-time buffer comparison */
+        diff = 0;
+        for( i = 0; i < 40; i++ )
+            diff |= line[i] ^ buf[i];
+
+        if( diff != 0 )
         {
             nb_err2++;
             fprintf( stderr, "wrong checksum: %s\n", line + 42 );

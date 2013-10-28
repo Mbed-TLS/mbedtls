@@ -293,6 +293,10 @@ test_suite_pkwrite: test_suite_pkwrite.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
+test_suite_pk: test_suite_pk.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
 test_suite_rsa: test_suite_rsa.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@

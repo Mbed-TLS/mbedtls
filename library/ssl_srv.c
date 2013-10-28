@@ -74,8 +74,6 @@ static int ssl_save_session( const ssl_session *session,
     left -= sizeof( ssl_session );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    ((ssl_session *) buf)->peer_cert = NULL;
-
     if( session->peer_cert == NULL )
         cert_len = 0;
     else

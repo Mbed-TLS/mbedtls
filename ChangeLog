@@ -3,6 +3,7 @@ PolarSSL ChangeLog (Sorted per branch, date)
 = PolarSSL 1.3 branch
 Bugfix
    * Server does not send out extensions not advertised by client
+   * Prevent possible alignment warnings on casting from char * to 'aligned *'
 
 = PolarSSL 1.3.1 released on 2013-10-15
 Features

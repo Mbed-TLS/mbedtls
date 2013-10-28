@@ -47,9 +47,22 @@
  * Macro to generate an internal function for oid_XXX_from_asn1() (used by
  * the other functions)
  */
-#define FN_OID_TYPED_FROM_ASN1( TYPE_T, NAME, LIST )                              \
-static const TYPE_T * oid_ ## NAME ## _from_asn1( const asn1_buf *oid )           \
-{ return (const TYPE_T *) oid_descriptor_from_buf(LIST, sizeof(TYPE_T), oid->p, oid->len ); }
+#define FN_OID_TYPED_FROM_ASN1( TYPE_T, NAME, LIST )                        \
+static const TYPE_T * oid_ ## NAME ## _from_asn1( const asn1_buf *oid )     \
+{                                                                           \
+    const TYPE_T *p = LIST;                                                 \
+    const oid_descriptor_t *cur = (const oid_descriptor_t *) p;             \
+    if( p == NULL || oid == NULL ) return( NULL );                          \
+    while( cur->asn1 != NULL ) {                                            \
+        if( cur->asn1_len == oid->len &&                                    \
+            memcmp( cur->asn1, oid->p, oid->len ) == 0 ) {                  \
+            return( p );                                                    \
+        }                                                                   \
+        p++;                                                                \
+        cur = (const oid_descriptor_t *) p;                                 \
+    }                                                                       \
+    return( NULL );                                                         \
+}
 
 /*
  * Macro to generate a function for retrieving a single attribute from the
@@ -130,34 +143,6 @@ int FN_NAME( ATTR1_TYPE ATTR1, ATTR2_TYPE ATTR2, const char **oid ,         \
         cur++;                                                              \
     }                                                                       \
     return( POLARSSL_ERR_OID_NOT_FOUND );                                   \
-}
-
-/*
- * Core generic function
- */
-static const oid_descriptor_t *oid_descriptor_from_buf( const void *struct_set,
-                size_t struct_size, const unsigned char *oid, size_t len )
-{
-    const unsigned char *p = (const unsigned char *) struct_set;
-    const oid_descriptor_t *cur;
-
-    if( struct_set == NULL || oid == NULL )
-        return( NULL );
-
-    cur = (const oid_descriptor_t *) p;
-    while( cur->asn1 != NULL )
-    {
-        if( cur->asn1_len == len &&
-            memcmp( cur->asn1, oid, len ) == 0 )
-        {
-            return( cur );
-        }
-
-        p += struct_size;
-        cur = (const oid_descriptor_t *) p;
-    }
-
-    return( NULL );
 }
 
 /*

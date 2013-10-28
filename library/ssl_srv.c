@@ -1270,6 +1270,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
         case TLS_EXT_SUPPORTED_POINT_FORMATS:
             SSL_DEBUG_MSG( 3, ( "found supported point formats extension" ) );
+            ssl->handshake->cli_exts |= TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT;
 
             ret = ssl_parse_supported_point_formats( ssl, ext + 4, ext_size );
             if( ret != 0 )
@@ -1546,7 +1547,12 @@ static void ssl_write_supported_point_formats_ext( ssl_context *ssl,
     unsigned char *p = buf;
     ((void) ssl);
 
-    *olen = 0;
+    if( ( ssl->handshake->cli_exts &
+          TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT ) == 0 )
+    {
+        *olen = 0;
+        return;
+    }
 
     SSL_DEBUG_MSG( 3, ( "server hello, supported_point_formats extension" ) );
 

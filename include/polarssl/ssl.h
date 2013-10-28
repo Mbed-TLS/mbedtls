@@ -343,6 +343,13 @@
 #define TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
 /*
+ * TLS extension flags (for extensions with outgoing ServerHello content
+ * that need it (e.g. for RENEGOTIATION_INFO the server already knows because
+ * of state of the renegotiation flag, so no indicator is required)
+ */
+#define TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
+
+/*
  * Size defines
  */
 #if !defined(POLARSSL_MPI_MAX_SIZE)
@@ -546,6 +553,7 @@ struct _ssl_handshake_params
     int resume;                         /*!<  session resume indicator*/
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
+    int cli_exts;                       /*!< client extension presence*/
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     int new_session_ticket;             /*!< use NewSessionTicket?    */

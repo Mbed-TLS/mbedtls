@@ -155,7 +155,8 @@ void x509write_csr_init( x509write_csr *ctx );
  * \return          0 if subject name was parsed successfully, or
  *                  a specific error code
  */
-int x509write_csr_set_subject_name( x509write_csr *ctx, char *subject_name );
+int x509write_csr_set_subject_name( x509write_csr *ctx,
+                                    const char *subject_name );
 
 /**
  * \brief           Set the key for a CSR (public key will be included,

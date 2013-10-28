@@ -265,7 +265,7 @@ int x509_get_ext( unsigned char **p, const unsigned char *end,
                   x509_buf *ext, int tag );
 int x509_load_file( const char *path, unsigned char **buf, size_t *n );
 int x509_key_size_helper( char *buf, size_t size, const char *name );
-int x509_string_to_names( asn1_named_data **head, char *name );
+int x509_string_to_names( asn1_named_data **head, const char *name );
 int x509_set_extension( asn1_named_data **head, const char *oid, size_t oid_len,                       int critical, const unsigned char *val, size_t val_len );
 int x509_write_extensions( unsigned char **p, unsigned char *start,
                            asn1_named_data *first );

@@ -31,11 +31,11 @@
 #include "polarssl/asn1write.h"
 #include "polarssl/oid.h"
 
-int x509_string_to_names( asn1_named_data **head, char *name )
+int x509_string_to_names( asn1_named_data **head, const char *name )
 {
     int ret = 0;
-    char *s = name, *c = s;
-    char *end = s + strlen( s );
+    const char *s = name, *c = s;
+    const char *end = s + strlen( s );
     const char *oid = NULL;
     int in_tag = 1;
     asn1_named_data *cur;

@@ -66,7 +66,8 @@ void x509write_csr_set_key( x509write_csr *ctx, pk_context *key )
     ctx->key = key;
 }
 
-int x509write_csr_set_subject_name( x509write_csr *ctx, char *subject_name )
+int x509write_csr_set_subject_name( x509write_csr *ctx,
+                                    const char *subject_name )
 {
     return x509_string_to_names( &ctx->subject, subject_name );
 }

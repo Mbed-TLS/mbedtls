@@ -260,6 +260,17 @@
 #define POLARSSL_ECP_DP_BP512R1_ENABLED
 
 /**
+ * \def POLARSSL_ECP_NIST_OPTIM
+ *
+ * Enable specific 'modulo p' routines for each NIST prime.
+ * Depending on the prime and architecture, makes operations 4 to 8 times
+ * faster on the corresponding curve.
+ *
+ * Comment this macro to disable NIST curves optimisation.
+ */
+#define POLARSSL_ECP_NIST_OPTIM
+
+/**
  * \def POLARSSL_KEY_EXCHANGE_PSK_ENABLED
  *
  * Enable the PSK based ciphersuite modes in SSL / TLS.

@@ -229,8 +229,9 @@ void ecp_fast_mod( int id, char *N_str )
     mpi_init( &N ); mpi_init( &R );
     ecp_group_init( &grp );
 
-    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
     TEST_ASSERT( mpi_read_string( &N, 16, N_str ) == 0 );
+    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
+    TEST_ASSERT( grp.modp != NULL );
 
     /*
      * Store correct result before we touch N

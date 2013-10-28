@@ -128,6 +128,7 @@ typedef uint32_t t_udbl;
 #define POLARSSL_HAVE_UDBL
 #else
   #if ( defined(_MSC_VER) && defined(_M_AMD64) )
+    #define POLARSSL_HAVE_INT64
     typedef  int64_t t_sint;
     typedef uint64_t t_uint;
   #else
@@ -137,11 +138,13 @@ typedef uint32_t t_udbl;
           defined(__ia64__)  || defined(__alpha__)     || \
           (defined(__sparc__) && defined(__arch64__))  || \
           defined(__s390x__) ) )
+       #define POLARSSL_HAVE_INT64
        typedef  int64_t t_sint;
        typedef uint64_t t_uint;
        typedef unsigned int t_udbl __attribute__((mode(TI)));
        #define POLARSSL_HAVE_UDBL
     #else
+       #define POLARSSL_HAVE_INT32
        typedef  int32_t t_sint;
        typedef uint32_t t_uint;
        #if ( defined(_MSC_VER) && defined(_M_IX86) )

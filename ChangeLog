@@ -6,6 +6,9 @@ Features
    * Added optional optimization for NIST MODP curves (POLARSSL_ECP_NIST_OPTIM)
    * Support for Camellia-GCM mode and ciphersuites
 
+Changes
+   * Padding checks in cipher layer are now constant-time
+
 Bugfix
    * More stringent checks in cipher layer
    * Server does not send out extensions not advertised by client

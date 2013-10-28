@@ -416,7 +416,7 @@ static void add_pkcs_padding( unsigned char *output, size_t output_len,
         size_t data_len )
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i = 0;
+    unsigned char i;
 
     for( i = 0; i < padding_len; i++ )
         output[data_len + i] = (unsigned char) padding_len;
@@ -425,23 +425,26 @@ static void add_pkcs_padding( unsigned char *output, size_t output_len,
 static int get_pkcs_padding( unsigned char *input, size_t input_len,
         size_t *data_len )
 {
-    size_t i, padding_len = 0;
+    size_t i, pad_idx;
+    unsigned char padding_len, bad = 0;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     padding_len = input[input_len - 1];
-
-    if( padding_len > input_len || padding_len == 0 )
-        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
-    for( i = input_len - padding_len; i < input_len; i++ )
-        if( input[i] != padding_len )
-            return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
     *data_len = input_len - padding_len;
 
-    return 0;
+    /* Avoid logical || since it results in a branch */
+    bad |= padding_len > input_len;
+    bad |= padding_len == 0;
+
+    /* The number of bytes checked must be independent of padding_len,
+     * so pick input_len, which is usually 8 or 16 (one block) */
+    pad_idx = input_len - padding_len;
+    for( i = 0; i < input_len; i++ )
+        bad |= ( input[i] ^ padding_len ) * ( i >= pad_idx );
+
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 }
 #endif /* POLARSSL_CIPHER_PADDING_PKCS7 */
 
@@ -463,20 +466,24 @@ static void add_one_and_zeros_padding( unsigned char *output,
 static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
                                       size_t *data_len )
 {
-    unsigned char *p = input + input_len - 1;
+    size_t i;
+    unsigned char done = 0, prev_done, bad;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
-    while( *p == 0x00 && p > input )
-        --p;
+    bad = 0xFF;
+    *data_len = 0;
+    for( i = input_len; i > 0; i-- )
+    {
+        prev_done = done;
+        done |= ( input[i-1] != 0 );
+        *data_len |= ( i - 1 ) * ( done != prev_done );
+        bad &= ( input[i-1] ^ 0x80 ) | ( done == prev_done );
+    }
 
-    if( *p != 0x80 )
-        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 
-    *data_len = p - input;
-
-    return 0;
 }
 #endif /* POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS */
 
@@ -498,23 +505,25 @@ static void add_zeros_and_len_padding( unsigned char *output,
 static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
                                       size_t *data_len )
 {
-    size_t i, padding_len = 0;
+    size_t i, pad_idx;
+    unsigned char padding_len, bad = 0;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     padding_len = input[input_len - 1];
-
-    if( padding_len > input_len || padding_len == 0 )
-        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
-    for( i = input_len - padding_len; i < input_len - 1; i++ )
-        if( input[i] != 0x00 )
-            return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
     *data_len = input_len - padding_len;
 
-    return 0;
+    /* Avoid logical || since it results in a branch */
+    bad |= padding_len > input_len;
+    bad |= padding_len == 0;
+
+    /* The number of bytes checked must be independent of padding_len */
+    pad_idx = input_len - padding_len;
+    for( i = 0; i < input_len - 1; i++ )
+        bad |= input[i] * ( i >= pad_idx );
+
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 }
 #endif /* POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN */
 
@@ -534,14 +543,19 @@ static void add_zeros_padding( unsigned char *output,
 static int get_zeros_padding( unsigned char *input, size_t input_len,
                               size_t *data_len )
 {
-    unsigned char *p = input + input_len - 1;
+    size_t i;
+    unsigned char done = 0, prev_done;
+
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
-    while( *p == 0x00 && p > input )
-        --p;
-
-    *data_len = *p == 0x00 ? 0 : p - input + 1;
+    *data_len = 0;
+    for( i = input_len; i > 0; i-- )
+    {
+        prev_done = done;
+        done |= ( input[i-1] != 0 );
+        *data_len |= i * ( done != prev_done );
+    }
 
     return 0;
 }

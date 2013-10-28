@@ -106,9 +106,11 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
     }
     else
     {
+        /* Check verify-data in constant-time. The length OTOH is no secret */
         if( len    != 1 + ssl->verify_data_len ||
             buf[0] !=     ssl->verify_data_len ||
-            memcmp( buf + 1, ssl->peer_verify_data, ssl->verify_data_len ) != 0 )
+            safer_memcmp( buf + 1, ssl->peer_verify_data,
+                          ssl->verify_data_len ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "non-matching renegotiated connection field" ) );
 

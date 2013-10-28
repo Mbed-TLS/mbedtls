@@ -1136,6 +1136,20 @@ int ssl_write_finished( ssl_context *ssl );
 void ssl_optimize_checksum( ssl_context *ssl, int ciphersuite );
 int ssl_get_ciphersuite_min_version( const int ciphersuite_id );
 
+/* constant-time buffer comparison */
+static inline int safer_memcmp( const void *a, const void *b, size_t n )
+{
+    size_t i;
+    const unsigned char *A = (const unsigned char *) a;
+    const unsigned char *B = (const unsigned char *) b;
+    unsigned char diff = 0;
+
+    for( i = 0; i < n; i++ )
+        diff |= A[i] ^ B[i];
+
+    return( diff );
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -1547,8 +1547,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     SSL_DEBUG_BUF( 4, "computed mac", ssl->in_msg + ssl->in_msglen,
                    ssl->transform_in->maclen );
 
-    if( memcmp( tmp, ssl->in_msg + ssl->in_msglen,
-                     ssl->transform_in->maclen ) != 0 )
+    if( safer_memcmp( tmp, ssl->in_msg + ssl->in_msglen,
+                      ssl->transform_in->maclen ) != 0 )
     {
 #if defined(POLARSSL_SSL_DEBUG_ALL)
         SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
@@ -2886,7 +2886,7 @@ int ssl_parse_finished( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( memcmp( ssl->in_msg + 4, buf, hash_len ) != 0 )
+    if( safer_memcmp( ssl->in_msg + 4, buf, hash_len ) != 0 )
     {
         SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_FINISHED );

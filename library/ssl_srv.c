@@ -254,7 +254,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
     unsigned char *mac;
     unsigned char computed_mac[32];
     size_t enc_len, clear_len, i;
-    unsigned char pad_len;
+    unsigned char pad_len, diff;
 
     SSL_DEBUG_BUF( 3, "session ticket structure", buf, len );
 
@@ -267,19 +267,23 @@ static int ssl_parse_ticket( ssl_context *ssl,
     if( len != enc_len + 66 )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    /* Check name */
-    if( memcmp( key_name, ssl->ticket_keys->key_name, 16 ) != 0 )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    /* Check name, in constant time though it's not a big secret */
+    diff = 0;
+    for( i = 0; i < 16; i++ )
+        diff |= key_name[i] ^ ssl->ticket_keys->key_name[i];
+    /* don't return yet, check the MAC anyway */
 
-    /* Check mac */
+    /* Check mac, with constant-time buffer comparison */
     sha256_hmac( ssl->ticket_keys->mac_key, 16, buf, len - 32,
                  computed_mac, 0 );
-    ret = 0;
+
     for( i = 0; i < 32; i++ )
-        if( mac[i] != computed_mac[i] )
-            ret = POLARSSL_ERR_SSL_INVALID_MAC;
-    if( ret != 0 )
-        return( ret );
+        diff |= mac[i] ^ computed_mac[i];
+
+    /* Now return if ticket is not authentic, since we want to avoid
+     * decrypting arbitrary attacker-chosen data */
+    if( diff != 0 )
+        return( POLARSSL_ERR_SSL_INVALID_MAC );
 
     /* Decrypt */
     if( ( ret = aes_crypt_cbc( &ssl->ticket_keys->dec, AES_DECRYPT,
@@ -428,9 +432,11 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
     }
     else
     {
+        /* Check verify-data in constant-time. The length OTOH is no secret */
         if( len    != 1 + ssl->verify_data_len ||
             buf[0] !=     ssl->verify_data_len ||
-            memcmp( buf + 1, ssl->peer_verify_data, ssl->verify_data_len ) != 0 )
+            safer_memcmp( buf + 1, ssl->peer_verify_data,
+                          ssl->verify_data_len ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "non-matching renegotiated connection field" ) );
 
@@ -2408,8 +2414,10 @@ static int ssl_parse_client_psk_identity( ssl_context *ssl, unsigned char **p,
 
     if( ret == 0 )
     {
+        /* Identity is not a big secret since clients send it in the clear,
+         * but treat it carefully anyway, just in case */
         if( n != ssl->psk_identity_len ||
-            memcmp( ssl->psk_identity, *p, n ) != 0 )
+            safer_memcmp( ssl->psk_identity, *p, n ) != 0 )
         {
             ret = POLARSSL_ERR_SSL_UNKNOWN_IDENTITY;
         }

@@ -1565,6 +1565,20 @@ static inline x509_crt *ssl_own_cert( ssl_context *ssl )
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+/* constant-time buffer comparison */
+static inline int safer_memcmp( const void *a, const void *b, size_t n )
+{
+    size_t i;
+    const unsigned char *A = (const unsigned char *) a;
+    const unsigned char *B = (const unsigned char *) b;
+    unsigned char diff = 0;
+
+    for( i = 0; i < n; i++ )
+        diff |= A[i] ^ B[i];
+
+    return( diff );
+}
+
 #ifdef __cplusplus
 }
 #endif

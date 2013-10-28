@@ -79,6 +79,7 @@ int main( int argc, char *argv[] )
     unsigned char key[512];
     unsigned char digest[32];
     unsigned char buffer[1024];
+    unsigned char diff;
 
     aes_context aes_ctx;
     sha2_context sha_ctx;
@@ -401,7 +402,12 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        if( memcmp( digest, buffer, 32 ) != 0 )
+        /* Use constant-time buffer comparison */
+        diff = 0;
+        for( i = 0; i < 32; i++ )
+            diff |= digest[i] ^ buffer[i];
+
+        if( diff != 0 )
         {
             fprintf( stderr, "HMAC check failed: wrong key, "
                              "or file corrupted.\n" );

@@ -512,7 +512,7 @@ int main( int argc, char *argv[] )
 
     if( opt.selfsign )
     {
-        opt.issuer_name = opt.subject_name;
+        opt.subject_name = opt.issuer_name;
         subject_key = issuer_key;
     }
 

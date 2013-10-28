@@ -1,6 +1,9 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
 = PolarSSL 1.3 branch
+Features
+   * PK tests added to test framework
+
 Bugfix
    * Server does not send out extensions not advertised by client
    * Prevent possible alignment warnings on casting from char * to 'aligned *'

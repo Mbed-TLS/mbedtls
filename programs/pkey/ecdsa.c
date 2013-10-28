@@ -33,9 +33,14 @@
 #include <stdio.h>
 
 /*
- * Uncomment to force use of a specific curve
-#define ECPARAMS    POLARSSL_ECP_DP_SECP256R1
+ * Uncomment to show key and signature details
  */
+#define VERBOSE
+
+/*
+ * Uncomment to force use of a specific curve
+ */
+#define ECPARAMS    POLARSSL_ECP_DP_SECP192R1
 
 #if !defined(ECPARAMS)
 #define ECPARAMS    ecp_curve_list()->grp_id
@@ -53,6 +58,38 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
+
+#if defined(VERBOSE)
+static void dump_buf( char *title, unsigned char *buf, size_t len )
+{
+    size_t i;
+
+    printf( "%s", title );
+    for( i = 0; i < len; i++ )
+        printf("%c%c", "0123456789ABCDEF" [buf[i] / 16],
+                       "0123456789ABCDEF" [buf[i] % 16] );
+    printf( "\n" );
+}
+
+static void dump_pubkey( char *title, ecdsa_context *key )
+{
+    unsigned char buf[300];
+    size_t len;
+
+    if( ecp_point_write_binary( &key->grp, &key->Q,
+                POLARSSL_ECP_PF_UNCOMPRESSED, &len, buf, sizeof buf ) != 0 )
+    {
+        printf("internal error\n");
+        return;
+    }
+
+    dump_buf( title, buf, len );
+}
+#else
+#define dump_buf( a, b, c )
+#define dump_pubkey( a, b )
+#endif
+
 int main( int argc, char *argv[] )
 {
     int ret;
@@ -109,6 +146,8 @@ int main( int argc, char *argv[] )
 
     printf( " ok (key size: %d bits)\n", (int) ctx_sign.grp.pbits );
 
+    dump_pubkey( "  + Public key: ", &ctx_sign );
+
     /*
      * Sign some message hash
      */
@@ -124,6 +163,9 @@ int main( int argc, char *argv[] )
         goto exit;
     }
     printf( " ok (signature length = %zu)\n", sig_len );
+
+    dump_buf( "  + Hash: ", hash, sizeof hash );
+    dump_buf( "  + Signature: ", sig, sig_len );
 
     /*
      * Signature is serialized as defined by RFC 4492 p. 20,

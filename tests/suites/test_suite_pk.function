@@ -1,0 +1,282 @@
+/* BEGIN_HEADER */
+#include <polarssl/pk.h>
+
+static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
+
+static int pk_genkey( pk_context *pk )
+{
+#if defined(POLARSSL_RSA_C)
+    if( pk_get_type( pk ) == POLARSSL_PK_RSA )
+        return rsa_gen_key( pk_rsa( *pk ), rnd_std_rand, NULL, 512, 3 );
+#endif
+#if defined(POLARSSL_ECP_C)
+    if( pk_get_type( pk ) == POLARSSL_PK_ECKEY ||
+        pk_get_type( pk ) == POLARSSL_PK_ECKEY_DH ||
+        pk_get_type( pk ) == POLARSSL_PK_ECDSA )
+    {
+        int ret;
+        if( ( ret = ecp_use_known_dp( &pk_ec( *pk )->grp,
+                                      POLARSSL_ECP_DP_SECP192R1 ) ) != 0 )
+            return( ret );
+
+        return ecp_gen_keypair( &pk_ec( *pk )->grp, &pk_ec( *pk )->d,
+                                &pk_ec( *pk )->Q, rnd_std_rand, NULL );
+    }
+#endif
+    return( -1 );
+}
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_PK_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void pk_utils( int type, int size, int len, char *name )
+{
+    pk_context pk;
+
+    pk_init( &pk );
+
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( type ) ) == 0 );
+    TEST_ASSERT( pk_genkey( &pk ) == 0 );
+
+    TEST_ASSERT( (int) pk_get_type( &pk ) == type );
+    TEST_ASSERT( pk_can_do( &pk, type ) );
+    TEST_ASSERT( pk_get_size( &pk ) == (unsigned) size );
+    TEST_ASSERT( pk_get_len( &pk ) == (unsigned) len );
+    TEST_ASSERT( strcmp( pk_get_name( &pk), name ) == 0 );
+
+    pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
+                       int mod, int radix_N, char *input_N, int radix_E,
+                       char *input_E, char *result_hex_str, int result )
+{
+    unsigned char message_str[1000];
+    unsigned char hash_result[1000];
+    unsigned char result_str[1000];
+    rsa_context *rsa;
+    pk_context pk;
+    int msg_len;
+
+    pk_init( &pk );
+
+    memset( message_str, 0x00, 1000 );
+    memset( hash_result, 0x00, 1000 );
+    memset( result_str, 0x00, 1000 );
+
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( POLARSSL_PK_RSA ) ) == 0 );
+    rsa = pk_rsa( pk );
+
+    rsa->len = mod / 8;
+    TEST_ASSERT( mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+
+    msg_len = unhexify( message_str, message_hex_string );
+    unhexify( result_str, result_hex_str );
+
+    if( md_info_from_type( digest ) != NULL )
+        TEST_ASSERT( md( md_info_from_type( digest ), message_str, msg_len, hash_result ) == 0 );
+
+    TEST_ASSERT( pk_verify( &pk, digest, hash_result, 0,
+                            result_str, pk_get_len( &pk ) ) == result );
+
+    pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_ECDSA_C */
+void pk_ec_test_vec( int type, int id, char *key_str,
+                     char *hash_str, char * sig_str, int ret )
+{
+    pk_context pk;
+    ecp_keypair *eckey;
+    unsigned char hash[100], sig[500], key[500];
+    size_t hash_len, sig_len, key_len;
+
+    pk_init( &pk );
+
+    memset( hash, 0, sizeof( hash ) );  hash_len = unhexify(hash, hash_str);
+    memset( sig, 0, sizeof( sig ) );    sig_len = unhexify(sig, sig_str);
+    memset( key, 0, sizeof( key ) );    key_len = unhexify(key, key_str);
+
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( type ) ) == 0 );
+
+    TEST_ASSERT( pk_can_do( &pk, POLARSSL_PK_ECDSA ) );
+    eckey = pk_ec( pk );
+
+    TEST_ASSERT( ecp_use_known_dp( &eckey->grp, id ) == 0 );
+    TEST_ASSERT( ecp_point_read_binary( &eckey->grp, &eckey->Q,
+                                        key, key_len ) == 0 );
+
+    TEST_ASSERT( pk_verify( &pk, POLARSSL_MD_NONE,
+                            hash, hash_len, sig, sig_len ) == ret );
+
+    pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void pk_sign_verify( int type, int sign_ret, int verify_ret )
+{
+    pk_context pk;
+    unsigned char hash[50], sig[5000];
+    size_t sig_len;
+
+    pk_init( &pk );
+
+    memset( hash, 0x2a, sizeof hash );
+    memset( sig, 0, sizeof sig );
+
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( type ) ) == 0 );
+    TEST_ASSERT( pk_genkey( &pk ) == 0 );
+
+    TEST_ASSERT( pk_sign( &pk, POLARSSL_MD_NONE, hash, sizeof hash,
+                          sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
+
+    TEST_ASSERT( pk_verify( &pk, POLARSSL_MD_NONE,
+                            hash, sizeof hash, sig, sig_len ) == verify_ret );
+
+    pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+void pk_rsa_encrypt_test_vec( char *message_hex, int mod,
+                            int radix_N, char *input_N,
+                            int radix_E, char *input_E,
+                            char *result_hex, int ret )
+{
+    unsigned char message[1000];
+    unsigned char output[1000];
+    unsigned char result[1000];
+    size_t msg_len, olen, res_len;
+    rnd_pseudo_info rnd_info;
+    rsa_context *rsa;
+    pk_context pk;
+
+    memset( &rnd_info,  0, sizeof( rnd_pseudo_info ) );
+    memset( message,    0, sizeof( message ) );
+    memset( output,     0, sizeof( output ) );
+    memset( result,     0, sizeof( result ) );
+
+    msg_len = unhexify( message, message_hex );
+    res_len = unhexify( result, result_hex );
+
+    pk_init( &pk );
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( POLARSSL_PK_RSA ) ) == 0 );
+    rsa = pk_rsa( pk );
+
+    rsa->len = mod / 8;
+    TEST_ASSERT( mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+
+    TEST_ASSERT( pk_encrypt( &pk, message, msg_len,
+                             output, &olen, sizeof( output ),
+                             rnd_pseudo_rand, &rnd_info ) == ret );
+    TEST_ASSERT( olen == res_len );
+    TEST_ASSERT( memcmp( output, result, olen ) == 0 );
+
+    pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+void pk_rsa_decrypt_test_vec( char *cipher_hex, int mod,
+                            int radix_P, char *input_P,
+                            int radix_Q, char *input_Q,
+                            int radix_N, char *input_N,
+                            int radix_E, char *input_E,
+                            char *clear_hex, int ret )
+{
+    unsigned char clear[1000];
+    unsigned char output[1000];
+    unsigned char cipher[1000];
+    size_t clear_len, olen, cipher_len;
+    rnd_pseudo_info rnd_info;
+    mpi P1, Q1, H, G;
+    rsa_context *rsa;
+    pk_context pk;
+
+    pk_init( &pk );
+    mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
+
+    memset( &rnd_info,  0, sizeof( rnd_pseudo_info ) );
+    memset( clear,      0, sizeof( clear ) );
+    memset( cipher,     0, sizeof( cipher ) );
+
+    clear_len = unhexify( clear, clear_hex );
+    cipher_len = unhexify( cipher, cipher_hex );
+
+    /* init pk-rsa context */
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( POLARSSL_PK_RSA ) ) == 0 );
+    rsa = pk_rsa( pk );
+
+    /* load public key */
+    rsa->len = mod / 8;
+    TEST_ASSERT( mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+
+    /* load private key */
+    TEST_ASSERT( mpi_read_string( &rsa->P, radix_P, input_P ) == 0 );
+    TEST_ASSERT( mpi_read_string( &rsa->Q, radix_Q, input_Q ) == 0 );
+    TEST_ASSERT( mpi_sub_int( &P1, &rsa->P, 1 ) == 0 );
+    TEST_ASSERT( mpi_sub_int( &Q1, &rsa->Q, 1 ) == 0 );
+    TEST_ASSERT( mpi_mul_mpi( &H, &P1, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_gcd( &G, &rsa->E, &H  ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &rsa->D , &rsa->E, &H  ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &rsa->DP, &rsa->D, &P1 ) == 0 );
+    TEST_ASSERT( mpi_mod_mpi( &rsa->DQ, &rsa->D, &Q1 ) == 0 );
+    TEST_ASSERT( mpi_inv_mod( &rsa->QP, &rsa->Q, &rsa->P ) == 0 );
+
+    /* decryption test */
+    memset( output, 0, sizeof( output ) );
+    olen = 0;
+    TEST_ASSERT( pk_decrypt( &pk, cipher, cipher_len,
+                             output, &olen, sizeof( output ),
+                             rnd_pseudo_rand, &rnd_info ) == ret );
+    if( ret == 0 )
+    {
+        TEST_ASSERT( olen == clear_len );
+        TEST_ASSERT( memcmp( output, clear, olen ) == 0 );
+    }
+
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void pk_ec_nocrypt( int type )
+{
+    pk_context pk;
+    unsigned char output[100];
+    unsigned char input[100];
+    rnd_pseudo_info rnd_info;
+    size_t olen = 0;
+    int ret = POLARSSL_ERR_PK_TYPE_MISMATCH;
+
+    pk_init( &pk );
+
+    memset( &rnd_info,  0, sizeof( rnd_pseudo_info ) );
+    memset( output,     0, sizeof( output ) );
+    memset( input,      0, sizeof( input ) );
+
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( type ) ) == 0 );
+
+    TEST_ASSERT( pk_encrypt( &pk, input, sizeof( input ),
+                             output, &olen, sizeof( output ),
+                             rnd_pseudo_rand, &rnd_info ) == ret );
+
+    TEST_ASSERT( pk_decrypt( &pk, input, sizeof( input ),
+                             output, &olen, sizeof( output ),
+                             rnd_pseudo_rand, &rnd_info ) == ret );
+
+    pk_free( &pk );
+}
+/* END_CASE */

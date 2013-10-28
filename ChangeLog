@@ -4,8 +4,10 @@ PolarSSL ChangeLog (Sorted per branch, date)
 Features
    * PK tests added to test framework
    * Added optional optimization for NIST MODP curves (POLARSSL_ECP_NIST_OPTIM)
+   * Support for Camellia-GCM mode and ciphersuites
 
 Bugfix
+   * More stringent checks in cipher layer
    * Server does not send out extensions not advertised by client
    * Prevent possible alignment warnings on casting from char * to 'aligned *'
    * Misc fixes and additions to dependency checks

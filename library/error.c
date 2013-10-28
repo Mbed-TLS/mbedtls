@@ -422,6 +422,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Public key type mismatch (eg, asked for RSA key exchange and presented EC key)" );
         if( use_ret == -(POLARSSL_ERR_SSL_UNKNOWN_IDENTITY) )
             snprintf( buf, buflen, "SSL - Unkown identity received (eg, PSK identity)" );
+        if( use_ret == -(POLARSSL_ERR_SSL_INTERNAL_ERROR) )
+            snprintf( buf, buflen, "SSL - Internal error (eg, unexpected failure in lower-level module)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)

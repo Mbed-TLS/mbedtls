@@ -184,7 +184,6 @@ case $TYPE in
             TLS-RSA-WITH-3DES-EDE-CBC-SHA           \
             TLS-RSA-WITH-RC4-128-SHA                \
             TLS-RSA-WITH-RC4-128-MD5                \
-            TLS-RSA-EXPORT-WITH-RC4-40-MD5          \
             TLS-RSA-WITH-NULL-MD5                   \
             TLS-RSA-WITH-NULL-SHA                   \
             TLS-RSA-WITH-DES-CBC-SHA                \
@@ -209,7 +208,6 @@ case $TYPE in
             DES-CBC3-SHA                    \
             RC4-SHA                         \
             RC4-MD5                         \
-            EXP-RC4-MD5                     \
             NULL-MD5                        \
             NULL-SHA                        \
             DES-CBC-SHA                     \
@@ -384,11 +382,17 @@ case $TYPE in
         then
             P_CIPHERS="$P_CIPHERS                           \
                 TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256        \
-                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256    \
                 TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256        \
+                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256    \
                 TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256    \
                 TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
                 TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-128-GCM-SHA256      \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-256-GCM-SHA384      \
+                TLS-DHE-RSA-WITH-CAMELLIA-128-GCM-SHA256    \
+                TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384    \
+                TLS-RSA-WITH-CAMELLIA-128-GCM-SHA256        \
+                TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384        \
                 "
         fi
 
@@ -440,6 +444,12 @@ case $TYPE in
                 TLS-DHE-PSK-WITH-NULL-SHA384             \
                 TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256     \
                 TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384     \
+                TLS-RSA-PSK-WITH-CAMELLIA-128-GCM-SHA256 \
+                TLS-RSA-PSK-WITH-CAMELLIA-256-GCM-SHA384 \
+                TLS-PSK-WITH-CAMELLIA-128-GCM-SHA256     \
+                TLS-PSK-WITH-CAMELLIA-256-GCM-SHA384     \
+                TLS-DHE-PSK-WITH-CAMELLIA-128-GCM-SHA256 \
+                TLS-DHE-PSK-WITH-CAMELLIA-256-GCM-SHA384 \
                 TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
                 TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
                 TLS-RSA-PSK-WITH-AES-256-CBC-SHA384         \

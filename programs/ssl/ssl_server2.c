@@ -50,7 +50,6 @@
 #endif
 
 #define DFL_SERVER_PORT         4433
-#define DFL_REQUEST_PAGE        "/"
 #define DFL_DEBUG_LEVEL         0
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
@@ -83,6 +82,9 @@
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
     "<h2>PolarSSL Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n" // LONG_RESPONSE
+
+/* Temporary, should become a runtime option later */
+// #define TEST_RENEGO
 
 /*
  * global options
@@ -938,6 +940,34 @@ reset:
 
     buf[written] = '\0';
     printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
+
+#ifdef TEST_RENEGO
+    /*
+     * Request renegotiation (this must be done when the client is still
+     * waiting for input from our side).
+     */
+    printf( "  . Requestion renegotiation..." );
+    fflush( stdout );
+    while( ( ret = ssl_write_hello_request( &ssl ) ) != 0 )
+    {
+        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        {
+            printf( " failed\n  ! ssl_write_hello_request returned %d\n\n", ret );
+            goto exit;
+        }
+    }
+
+    if( ( ret = ssl_read( &ssl, buf, 0 ) ) != 0 )
+    {
+        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        {
+            printf( " failed\n  ! ssl_read returned %d\n\n", ret );
+            goto exit;
+        }
+    }
+
+    printf( " ok\n" );
+#endif
 
     ret = 0;
     goto reset;

@@ -1930,7 +1930,8 @@ int ssl_write_record( ssl_context *ssl )
         ssl->out_msg[2] = (unsigned char)( ( len - 4 ) >>  8 );
         ssl->out_msg[3] = (unsigned char)( ( len - 4 )       );
 
-        ssl->handshake->update_checksum( ssl, ssl->out_msg, len );
+        if( ssl->out_msg[0] != SSL_HS_HELLO_REQUEST )
+            ssl->handshake->update_checksum( ssl, ssl->out_msg, len );
     }
 
 #if defined(POLARSSL_ZLIB_SUPPORT)

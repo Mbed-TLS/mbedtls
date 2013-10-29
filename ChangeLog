@@ -16,6 +16,7 @@ Bugfix
    * Misc fixes and additions to dependency checks
    * Const correctness
    * cert_write with selfsign should use issuer_name as subject_name
+   * Fix ECDSA corner case: missing reduction mod N (found by DualTachyon)
 
 = PolarSSL 1.3.1 released on 2013-10-15
 Features

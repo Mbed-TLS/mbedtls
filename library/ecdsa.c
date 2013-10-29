@@ -68,12 +68,13 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
     {
         /*
          * Steps 1-3: generate a suitable ephemeral keypair
+         * and set r = xR mod n
          */
         key_tries = 0;
         do
         {
             MPI_CHK( ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
-            MPI_CHK( mpi_copy( r, &R.X ) );
+            MPI_CHK( mpi_mod_mpi( r, &R.X, &grp->N ) );
 
             if( key_tries++ > 10 )
             {
@@ -176,7 +177,13 @@ int ecdsa_verify( ecp_group *grp,
     }
 
     /*
-     * Step 6: check that xR == r
+     * Step 6: convert xR to an integer (no-op)
+     * Step 7: reduce xR mod n (gives v)
+     */
+    MPI_CHK( mpi_mod_mpi( &R.X, &R.X, &grp->N ) );
+
+    /*
+     * Step 8: check if v (that is, R.X) is equal to r
      */
     if( mpi_cmp_mpi( &R.X, r ) != 0 )
     {

@@ -93,7 +93,7 @@ typedef UINT32 uint32_t;
 /*
  * htons() is not always available.
  * By default go for LITTLE_ENDIAN variant. Otherwise hope for _BYTE_ORDER and __BIG_ENDIAN
- * to help determine endianess.
+ * to help determine endianness.
  */
 #if defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN
 #define POLARSSL_HTONS(n) (n)

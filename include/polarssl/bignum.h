@@ -436,7 +436,7 @@ int mpi_cmp_int( const mpi *X, t_sint z );
 int mpi_add_abs( mpi *X, const mpi *A, const mpi *B );
 
 /**
- * \brief          Unsigned substraction: X = |A| - |B|
+ * \brief          Unsigned subtraction: X = |A| - |B|
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI
@@ -460,7 +460,7 @@ int mpi_sub_abs( mpi *X, const mpi *A, const mpi *B );
 int mpi_add_mpi( mpi *X, const mpi *A, const mpi *B );
 
 /**
- * \brief          Signed substraction: X = A - B
+ * \brief          Signed subtraction: X = A - B
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI
@@ -484,7 +484,7 @@ int mpi_sub_mpi( mpi *X, const mpi *A, const mpi *B );
 int mpi_add_int( mpi *X, const mpi *A, t_sint b );
 
 /**
- * \brief          Signed substraction: X = A - b
+ * \brief          Signed subtraction: X = A - b
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI

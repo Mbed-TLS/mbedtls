@@ -1184,7 +1184,7 @@ int x509_crt_revoked( const x509_crt *crt, const x509_crl *crl )
 }
 
 /*
- * Check that the given certificate is valid accoring to the CRL.
+ * Check that the given certificate is valid according to the CRL.
  */
 static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
                                x509_crl *crl_list)

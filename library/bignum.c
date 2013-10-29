@@ -1493,7 +1493,7 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
 
         for( i = 0; i < wsize - 1; i++ )
             mpi_montmul( &W[j], &W[j], N, mm, &T );
-    
+
         /*
          * W[i] = W[i - 1] * W[1]
          */
@@ -1516,8 +1516,10 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
     {
         if( bufsize == 0 )
         {
-            if( nblimbs-- == 0 )
+            if( nblimbs == 0 )
                 break;
+
+            nblimbs--;
 
             bufsize = sizeof( t_uint ) << 3;
         }

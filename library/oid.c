@@ -184,6 +184,18 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
         "emailAddress",
     },
     {
+        { ADD_LEN( OID_AT_SERIAL_NUMBER ),"id-at-serialNumber",            "Serial number" },
+        "serialNumber",
+    },
+    {
+        { ADD_LEN( OID_AT_POSTAL_ADDRESS ),"id-at-postalAddress",          "Postal address" },
+        "postalAddress",
+    },
+    {
+        { ADD_LEN( OID_AT_POSTAL_CODE ), "id-at-postalCode",               "Postal code" },
+        "postalCode",
+    },
+    {
         { NULL, 0, NULL, NULL },
         NULL,
     }

@@ -31,6 +31,10 @@
 #include "polarssl/asn1write.h"
 #include "polarssl/oid.h"
 
+#if defined(_MSC_VER) && !defined strncasecmp
+#define strncasecmp _strnicmp
+#endif
+
 int x509_string_to_names( asn1_named_data **head, const char *name )
 {
     int ret = 0;
@@ -47,20 +51,26 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
     {
         if( in_tag && *c == '=' )
         {
-            if( memcmp( s, "CN", 2 ) == 0 && c - s == 2 )
+            if( c - s == 2 && strncasecmp( s, "CN", 2 ) == 0 )
                 oid = OID_AT_CN;
-            else if( memcmp( s, "C", 1 ) == 0 && c - s == 1 )
+            else if( c - s == 1 && strncasecmp( s, "C", 1 ) == 0 )
                 oid = OID_AT_COUNTRY;
-            else if( memcmp( s, "O", 1 ) == 0 && c - s == 1 )
+            else if( c - s == 1 && strncasecmp( s, "O", 1 ) == 0 )
                 oid = OID_AT_ORGANIZATION;
-            else if( memcmp( s, "L", 1 ) == 0 && c - s == 1 )
+            else if( c - s == 1 && strncasecmp( s, "L", 1 ) == 0 )
                 oid = OID_AT_LOCALITY;
-            else if( memcmp( s, "R", 1 ) == 0 && c - s == 1 )
+            else if( c - s == 1 && strncasecmp( s, "R", 1 ) == 0 )
                 oid = OID_PKCS9_EMAIL;
-            else if( memcmp( s, "OU", 2 ) == 0 && c - s == 2 )
+            else if( c - s == 2 && strncasecmp( s, "OU", 2 ) == 0 )
                 oid = OID_AT_ORG_UNIT;
-            else if( memcmp( s, "ST", 2 ) == 0 && c - s == 2 )
+            else if( c - s == 2 && strncasecmp( s, "ST", 2 ) == 0 )
                 oid = OID_AT_STATE;
+            else if( c - s == 12 && strncasecmp( s, "serialNumber", 12 ) == 0 )
+                oid = OID_AT_SERIAL_NUMBER;
+            else if( c - s == 13 && strncasecmp( s, "postalAddress", 13 ) == 0 )
+                oid = OID_AT_POSTAL_ADDRESS;
+            else if( c - s == 10 && strncasecmp( s, "postalCode", 10 ) == 0 )
+                oid = OID_AT_POSTAL_CODE;
             else
             {
                 ret = POLARSSL_ERR_X509_UNKNOWN_OID;

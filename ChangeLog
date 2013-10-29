@@ -8,6 +8,7 @@ Features
 
 Changes
    * Padding checks in cipher layer are now constant-time
+   * Support for serialNumber, postalAddress and postalCode in X509 names
 
 Bugfix
    * More stringent checks in cipher layer

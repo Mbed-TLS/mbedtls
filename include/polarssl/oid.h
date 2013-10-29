@@ -104,11 +104,14 @@
  */
 #define OID_AT                          OID_ISO_CCITT_DS "\x04" /**< id-at OBJECT IDENTIFIER ::= {joint-iso-ccitt(2) ds(5) 4} */
 #define OID_AT_CN                       OID_AT "\x03" /**< id-at-commonName AttributeType:= {id-at 3} */
+#define OID_AT_SERIAL_NUMBER            OID_AT "\x05" /**< id-at-serialNumber AttributeType:= {id-at 5} */
 #define OID_AT_COUNTRY                  OID_AT "\x06" /**< id-at-countryName AttributeType:= {id-at 6} */
 #define OID_AT_LOCALITY                 OID_AT "\x07" /**< id-at-locality AttributeType:= {id-at 7} */
 #define OID_AT_STATE                    OID_AT "\x08" /**< id-at-state AttributeType:= {id-at 8} */
 #define OID_AT_ORGANIZATION             OID_AT "\x0A" /**< id-at-organizationName AttributeType:= {id-at 10} */
 #define OID_AT_ORG_UNIT                 OID_AT "\x0B" /**< id-at-organizationalUnitName AttributeType:= {id-at 11} */
+#define OID_AT_POSTAL_ADDRESS           OID_AT "\x10" /**< id-at-postalAddress AttributeType:= {id-at 16} */
+#define OID_AT_POSTAL_CODE              OID_AT "\x11" /**< id-at-postalCode AttributeType:= {id-at 17} */
 
 /*
  * OIDs for standard certificate extensions

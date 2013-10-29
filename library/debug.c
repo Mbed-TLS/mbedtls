@@ -36,13 +36,15 @@
 #include <stdio.h>
 #endif
 
-#if defined(_MSC_VER) && !defined  snprintf
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
+#if !defined  snprintf
 #define  snprintf  _snprintf
 #endif
 
-#if defined(_MSC_VER) && !defined vsnprintf
+#if !defined vsnprintf
 #define vsnprintf _vsnprintf
 #endif
+#endif /* _MSC_VER */
 
 char *debug_fmt( const char *format, ... )
 {

@@ -1039,7 +1039,8 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
 }
 #endif /* POLARSSL_FS_IO */
 
-#if defined(_MSC_VER) && !defined snprintf
+#if defined(_MSC_VER) && !defined snprintf && !defined(EFIX64) && \
+    !defined(EFI32)
 #include <stdarg.h>
 
 #if !defined vsnprintf

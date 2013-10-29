@@ -429,7 +429,8 @@ int x509_load_file( const char *path, unsigned char **buf, size_t *n )
 }
 #endif /* POLARSSL_FS_IO */
 
-#if defined(_MSC_VER) && !defined snprintf
+#if defined(_MSC_VER) && !defined snprintf && !defined(EFIX64) && \
+    !defined(EFI32)
 #include <stdarg.h>
 
 #if !defined vsnprintf

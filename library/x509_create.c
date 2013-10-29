@@ -31,7 +31,8 @@
 #include "polarssl/asn1write.h"
 #include "polarssl/oid.h"
 
-#if defined(_MSC_VER) && !defined strncasecmp
+#if defined(_MSC_VER) && !defined strncasecmp && !defined(EFIX64) && \
+    !defined(EFI32)
 #define strncasecmp _strnicmp
 #endif
 

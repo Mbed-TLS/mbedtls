@@ -160,7 +160,8 @@
 
 #include <string.h>
 
-#if defined(_MSC_VER) && !defined  snprintf
+#if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
+    !defined(EFI32)
 #define  snprintf  _snprintf
 #endif
 

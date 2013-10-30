@@ -1566,8 +1566,6 @@ static inline x509_crt *ssl_own_cert( ssl_context *ssl )
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-int ssl_write_hello_request( ssl_context *ssl );
-
 #ifdef __cplusplus
 }
 #endif

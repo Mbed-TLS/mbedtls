@@ -3972,9 +3972,37 @@ int ssl_handshake( ssl_context *ssl )
 }
 
 /*
- * Renegotiate current connection
+ * Write HelloRequest to request renegotiation on server
  */
-int ssl_renegotiate( ssl_context *ssl )
+static int ssl_write_hello_request( ssl_context *ssl )
+{
+    int ret;
+
+    SSL_DEBUG_MSG( 2, ( "=> write hello request" ) );
+
+    ssl->out_msglen  = 4;
+    ssl->out_msgtype = SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = SSL_HS_HELLO_REQUEST;
+
+    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        return( ret );
+    }
+
+    SSL_DEBUG_MSG( 2, ( "<= write hello request" ) );
+
+    return( 0 );
+}
+
+/*
+ * Actually renegotiate current connection, triggered by either:
+ * - calling ssl_renegotiate() on client,
+ * - receiving a HelloRequestion on client during ssl_read(),
+ * - receiving any handshake message on server during ssl_read() after the
+ *   initial handshake is completed
+ */
+static int ssl_do_renegotiate( ssl_context *ssl )
 {
     int ret;
 
@@ -4004,6 +4032,18 @@ int ssl_renegotiate( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "<= renegotiate" ) );
 
     return( 0 );
+}
+
+/*
+ * Renegotiate current connection on client,
+ * or request renegotiation on server
+ */
+int ssl_renegotiate( ssl_context *ssl )
+{
+    if( ssl->endpoint == SSL_IS_CLIENT )
+        return( ssl_do_renegotiate( ssl ) );
+    else
+        return( ssl_write_hello_request( ssl ) );
 }
 
 /*
@@ -4101,9 +4141,9 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
             else
             {
-                if( ( ret = ssl_renegotiate( ssl ) ) != 0 )
+                if( ( ret = ssl_do_renegotiate( ssl ) ) != 0 )
                 {
-                    SSL_DEBUG_RET( 1, "ssl_renegotiate", ret );
+                    SSL_DEBUG_RET( 1, "ssl_do_renegotiate", ret );
                     return( ret );
                 }
 

@@ -335,30 +335,6 @@ static int ssl_parse_ticket( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
-/*
- * Write HelloRequest to request renegotiation
- */
-int ssl_write_hello_request( ssl_context *ssl )
-{
-    int ret;
-
-    SSL_DEBUG_MSG( 2, ( "=> write hello request" ) );
-
-    ssl->out_msglen  = 4;
-    ssl->out_msgtype = SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = SSL_HS_HELLO_REQUEST;
-
-    if( ( ret = ssl_write_record( ssl ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
-        return( ret );
-    }
-
-    SSL_DEBUG_MSG( 2, ( "<= write hello request" ) );
-
-    return( 0 );
-}
-
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /*
  * Wrapper around f_sni, allowing use of ssl_set_own_cert() but

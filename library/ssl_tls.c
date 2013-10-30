@@ -3998,30 +3998,23 @@ static int ssl_write_hello_request( ssl_context *ssl )
 /*
  * Actually renegotiate current connection, triggered by either:
  * - calling ssl_renegotiate() on client,
- * - receiving a HelloRequestion on client during ssl_read(),
+ * - receiving a HelloRequest on client during ssl_read(),
  * - receiving any handshake message on server during ssl_read() after the
  *   initial handshake is completed
+ * If the handshake doesn't complete due to waiting for I/O, it will continue
+ * during the next calls to ssl_renegotiate() or ssl_read() respectively.
  */
-static int ssl_do_renegotiate( ssl_context *ssl )
+static int ssl_start_renegotiation( ssl_context *ssl )
 {
     int ret;
 
     SSL_DEBUG_MSG( 2, ( "=> renegotiate" ) );
 
-    /*
-     * If renegotiation is already in progress, skip checks/init
-     */
-    if( ssl->renegotiation != SSL_RENEGOTIATION )
-    {
-        if( ssl->state != SSL_HANDSHAKE_OVER )
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
+        return( ret );
 
-        if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
-            return( ret );
-
-        ssl->state = SSL_HELLO_REQUEST;
-        ssl->renegotiation = SSL_RENEGOTIATION;
-    }
+    ssl->state = SSL_HELLO_REQUEST;
+    ssl->renegotiation = SSL_RENEGOTIATION;
 
     if( ( ret = ssl_handshake( ssl ) ) != 0 )
     {
@@ -4040,10 +4033,42 @@ static int ssl_do_renegotiate( ssl_context *ssl )
  */
 int ssl_renegotiate( ssl_context *ssl )
 {
-    if( ssl->endpoint == SSL_IS_CLIENT )
-        return( ssl_do_renegotiate( ssl ) );
-    else
+    int ret;
+
+    /* On server, just send the request */
+    if( ssl->endpoint == SSL_IS_SERVER )
+    {
+        if( ssl->state != SSL_HANDSHAKE_OVER )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
         return( ssl_write_hello_request( ssl ) );
+    }
+
+    /*
+     * On client, either start the renegotiation process or,
+     * if already in progress, continue the handshake
+     */
+    if( ssl->renegotiation != SSL_RENEGOTIATION )
+    {
+        if( ssl->state != SSL_HANDSHAKE_OVER )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+        if( ( ret = ssl_start_renegotiation( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
+            return( ret );
+        }
+    }
+    else
+    {
+        if( ( ret = ssl_handshake( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_handshake", ret );
+            return( ret );
+        }
+    }
+
+    return( 0 );
 }
 
 /*
@@ -4141,9 +4166,9 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
             else
             {
-                if( ( ret = ssl_do_renegotiate( ssl ) ) != 0 )
+                if( ( ret = ssl_start_renegotiation( ssl ) ) != 0 )
                 {
-                    SSL_DEBUG_RET( 1, "ssl_do_renegotiate", ret );
+                    SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
                     return( ret );
                 }
 

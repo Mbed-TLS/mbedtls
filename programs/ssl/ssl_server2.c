@@ -83,7 +83,7 @@
     "<h2>PolarSSL Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n" // LONG_RESPONSE
 
-/* Temporary, should become a runtime option later */
+/* Uncomment to test server-initiated renegotiation */
 // #define TEST_RENEGO
 
 /*
@@ -948,15 +948,20 @@ reset:
      */
     printf( "  . Requestion renegotiation..." );
     fflush( stdout );
-    while( ( ret = ssl_write_hello_request( &ssl ) ) != 0 )
+    while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
-            printf( " failed\n  ! ssl_write_hello_request returned %d\n\n", ret );
+            printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
             goto exit;
         }
     }
 
+    /*
+     * Should be a while loop, not an if, but here we're not actually
+     * expecting data from the client, and since we're running tests locally,
+     * we can just hope the handshake will finish the during the first call.
+     */
     if( ( ret = ssl_read( &ssl, buf, 0 ) ) != 0 )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )

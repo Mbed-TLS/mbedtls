@@ -1422,7 +1422,10 @@ int ssl_handshake( ssl_context *ssl );
 int ssl_handshake_step( ssl_context *ssl );
 
 /**
- * \brief          Perform an SSL renegotiation on the running connection
+ * \brief          Initiate an SSL renegotiation on the running connection.
+ *                 Client: perform the renegotiation right now.
+ *                 Server: request renegotiation, which will be performed
+ *                 during the next call to ssl_read() if honored by client.
  *
  * \param ssl      SSL context
  *

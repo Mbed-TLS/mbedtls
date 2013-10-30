@@ -71,7 +71,7 @@
  * longer paquets (for fragmentation purposes) */
 #define GET_REQUEST "GET %s HTTP/1.0\r\n" /* LONG_HEADER */ "\r\n"
 
-/* Temporary, should become a runtime option later */
+/* Uncomment to test client-initiated renegotiation */
 // #define TEST_RENEGO
 
 /*

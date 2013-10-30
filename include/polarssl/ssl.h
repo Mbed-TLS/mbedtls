@@ -202,6 +202,7 @@
 #define SSL_INITIAL_HANDSHAKE           0
 #define SSL_RENEGOTIATION               1   /* In progress */
 #define SSL_RENEGOTIATION_DONE          2   /* Done */
+#define SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
 
 #define SSL_LEGACY_RENEGOTIATION        0
 #define SSL_SECURE_RENEGOTIATION        1

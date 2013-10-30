@@ -967,7 +967,12 @@ reset:
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
             printf( " failed\n  ! ssl_read returned %d\n\n", ret );
-            goto exit;
+
+            /* Unexpected message probably means client didn't renegotiate */
+            if( ret == POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE )
+                goto reset;
+            else
+                goto exit;
         }
     }
 

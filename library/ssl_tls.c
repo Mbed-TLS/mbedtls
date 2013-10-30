@@ -3990,6 +3990,8 @@ static int ssl_write_hello_request( ssl_context *ssl )
         return( ret );
     }
 
+    ssl->renegotiation = SSL_RENEGOTIATION_PENDING;
+
     SSL_DEBUG_MSG( 2, ( "<= write hello request" ) );
 
     return( 0 );
@@ -4174,6 +4176,12 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
                 return( POLARSSL_ERR_NET_WANT_READ );
             }
+        }
+        else if( ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
+        {
+            SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
+                                "but not honored by client" ) );
+            return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
         }
         else if( ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
         {

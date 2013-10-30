@@ -3023,6 +3023,9 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     polarssl_free( ssl->handshake );
     ssl->handshake = NULL;
 
+    if( ssl->renegotiation == SSL_RENEGOTIATION )
+        ssl->renegotiation =  SSL_RENEGOTIATION_DONE;
+
     /*
      * Switch in our now active transform context
      */
@@ -3977,14 +3980,20 @@ int ssl_renegotiate( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> renegotiate" ) );
 
-    if( ssl->state != SSL_HANDSHAKE_OVER )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    /*
+     * If renegotiation is already in progress, skip checks/init
+     */
+    if( ssl->renegotiation != SSL_RENEGOTIATION )
+    {
+        if( ssl->state != SSL_HANDSHAKE_OVER )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->state = SSL_HELLO_REQUEST;
-    ssl->renegotiation = SSL_RENEGOTIATION;
+        if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
+            return( ret );
 
-    if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
-        return( ret );
+        ssl->state = SSL_HELLO_REQUEST;
+        ssl->renegotiation = SSL_RENEGOTIATION;
+    }
 
     if( ( ret = ssl_handshake( ssl ) ) != 0 )
     {

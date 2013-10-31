@@ -76,6 +76,7 @@ int main( int argc, char *argv[] )
     unsigned char digest[POLARSSL_MD_MAX_SIZE];
     unsigned char buffer[1024];
     unsigned char output[1024];
+    unsigned char diff;
 
     const cipher_info_t *cipher_info;
     const md_info_t *md_info;
@@ -476,7 +477,12 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        if( memcmp( digest, buffer, md_get_size( md_info ) ) != 0 )
+        /* Use constant-time buffer comparison */
+        diff = 0;
+        for( i = 0; i < md_get_size( md_info ); i++ )
+            diff |= digest[i] ^ buffer[i];
+
+        if( diff != 0 )
         {
             fprintf( stderr, "HMAC check failed: wrong key, "
                              "or file corrupted.\n" );

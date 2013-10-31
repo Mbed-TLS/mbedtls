@@ -3971,6 +3971,7 @@ int ssl_handshake( ssl_context *ssl )
     return( ret );
 }
 
+#if defined(POLARSSL_SSL_SRV_C)
 /*
  * Write HelloRequest to request renegotiation on server
  */
@@ -3996,6 +3997,7 @@ static int ssl_write_hello_request( ssl_context *ssl )
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_SRV_C */
 
 /*
  * Actually renegotiate current connection, triggered by either:
@@ -4035,8 +4037,9 @@ static int ssl_start_renegotiation( ssl_context *ssl )
  */
 int ssl_renegotiate( ssl_context *ssl )
 {
-    int ret;
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
+#if defined(POLARSSL_SSL_SRV_C)
     /* On server, just send the request */
     if( ssl->endpoint == SSL_IS_SERVER )
     {
@@ -4045,7 +4048,9 @@ int ssl_renegotiate( ssl_context *ssl )
 
         return( ssl_write_hello_request( ssl ) );
     }
+#endif /* POLARSSL_SSL_SRV_C */
 
+#if defined(POLARSSL_SSL_CLI_C)
     /*
      * On client, either start the renegotiation process or,
      * if already in progress, continue the handshake
@@ -4069,8 +4074,9 @@ int ssl_renegotiate( ssl_context *ssl )
             return( ret );
         }
     }
+#endif /* POLARSSL_SSL_CLI_C */
 
-    return( 0 );
+    return( ret );
 }
 
 /*

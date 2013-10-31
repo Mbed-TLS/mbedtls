@@ -200,7 +200,9 @@
 #define SSL_VERIFY_REQUIRED             2
 
 #define SSL_INITIAL_HANDSHAKE           0
-#define SSL_RENEGOTIATION               1
+#define SSL_RENEGOTIATION               1   /* In progress */
+#define SSL_RENEGOTIATION_DONE          2   /* Done */
+#define SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
 
 #define SSL_LEGACY_RENEGOTIATION        0
 #define SSL_SECURE_RENEGOTIATION        1
@@ -1421,7 +1423,10 @@ int ssl_handshake( ssl_context *ssl );
 int ssl_handshake_step( ssl_context *ssl );
 
 /**
- * \brief          Perform an SSL renegotiation on the running connection
+ * \brief          Initiate an SSL renegotiation on the running connection.
+ *                 Client: perform the renegotiation right now.
+ *                 Server: request renegotiation, which will be performed
+ *                 during the next call to ssl_read() if honored by client.
  *
  * \param ssl      SSL context
  *

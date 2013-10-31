@@ -71,6 +71,9 @@
  * longer paquets (for fragmentation purposes) */
 #define GET_REQUEST "GET %s HTTP/1.0\r\n" /* LONG_HEADER */ "\r\n"
 
+/* Uncomment to test client-initiated renegotiation */
+// #define TEST_RENEGO
+
 /*
  * global options
  */
@@ -791,6 +794,24 @@ int main( int argc, char *argv[] )
         printf( "%s\n", buf );
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
+
+#ifdef TEST_RENEGO
+    /*
+     * Perform renegotiation (this must be done when the server is waiting
+     * for input from our side).
+     */
+    printf( "  . Performing renegotiation..." );
+    fflush( stdout );
+    while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
+    {
+        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        {
+            printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
+            goto exit;
+        }
+    }
+    printf( " ok\n" );
+#endif
 
     /*
      * 6. Write the GET request

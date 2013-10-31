@@ -38,6 +38,7 @@
 #if defined(__ARMCC_VERSION) && !defined(inline)
 #define inline __inline
 #endif /* __ARMCC_VERSION */
+#endif /* _MSC_VER */
 
 #if defined(_MSC_VER)
 // MSVC does not support #warning

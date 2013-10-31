@@ -8,7 +8,9 @@ Features
 
 Changes
    * Padding checks in cipher layer are now constant-time
+   * Value comparisons in SSL layer are now constant-time
    * Support for serialNumber, postalAddress and postalCode in X509 names
+   * SSL Renegotiation was refactored
 
 Bugfix
    * More stringent checks in cipher layer
@@ -19,6 +21,7 @@ Bugfix
    * cert_write with selfsign should use issuer_name as subject_name
    * Fix ECDSA corner case: missing reduction mod N (found by DualTachyon)
    * Defines to handle UEFI environment under MSVC
+   * Server-side initiated renegotiations send HelloRequest
 
 = PolarSSL 1.3.1 released on 2013-10-15
 Features

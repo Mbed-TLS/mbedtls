@@ -3581,7 +3581,10 @@ static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
 
     /* Append the new key_cert to the (possibly empty) current list */
     if( ssl->key_cert == NULL )
+    {
         ssl->key_cert = key_cert;
+        ssl->handshake->key_cert = key_cert;
+    }
     else
     {
         last = ssl->key_cert;

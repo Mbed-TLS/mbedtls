@@ -1,6 +1,6 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
-= PolarSSL 1.3 branch
+= PolarSSL 1.3.2 released on 2013-11-04
 Features
    * PK tests added to test framework
    * Added optional optimization for NIST MODP curves (POLARSSL_ECP_NIST_OPTIM)

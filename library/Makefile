@@ -22,9 +22,9 @@ ifdef SHARED
 CFLAGS += -fPIC
 endif
 
-SONAME=libpolarssl.so.0
+SONAME=libpolarssl.so.5
 
-DLEXT=so
+DLEXT=so.5
 # OSX shared library extension:
 # DLEXT=dylib
 
@@ -61,7 +61,7 @@ endif
 
 static: libpolarssl.a
 
-shared: libpolarssl.$(DLEXT)
+shared: libpolarssl.$(DLEXT) libpolarssl.so
 
 libpolarssl.a: $(OBJS)
 	echo "  AR    $@"
@@ -69,17 +69,21 @@ libpolarssl.a: $(OBJS)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libpolarssl.so: libpolarssl.a
+libpolarssl.${DLEXT}: libpolarssl.a
 	echo "  LD    $@"
 	$(CC) ${LDFLAGS} -shared -Wl,-soname,$(SONAME) -o $@ $(OBJS)
+
+libpolarssl.so: libpolarssl.${DLEXT}
+	echo "  LN    $@ -> libpolarssl.${DLEXT}"
+	ln -sf libpolarssl.${DLEXT} $@
 
 libpolarssl.dylib: libpolarssl.a
 	echo "  LD    $@"
 	$(CC) ${LDFLAGS} -dynamiclib -o $@ $(OBJS)
 
-libpolarssl.dll: libpolarssl.a 
-	echo "  LD    $@" 
-	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32 
+libpolarssl.dll: libpolarssl.a
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32
 
 .c.o:
 	echo "  CC    $<"

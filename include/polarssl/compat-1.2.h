@@ -58,42 +58,42 @@
  */
 typedef sha256_context sha2_context;
 
-inline void sha2_starts( sha256_context *ctx, int is224 ) {
+static inline void sha2_starts( sha256_context *ctx, int is224 ) {
     sha256_starts( ctx, is224 );
 }
-inline void sha2_update( sha256_context *ctx, const unsigned char *input,
+static inline void sha2_update( sha256_context *ctx, const unsigned char *input,
                          size_t ilen ) {
     sha256_update( ctx, input, ilen );
 }
-inline void sha2_finish( sha256_context *ctx, unsigned char output[32] ) {
+static inline void sha2_finish( sha256_context *ctx, unsigned char output[32] ) {
     sha256_finish( ctx, output );
 }
-inline int sha2_file( const char *path, unsigned char output[32], int is224 ) {
+static inline int sha2_file( const char *path, unsigned char output[32], int is224 ) {
     return sha256_file( path, output, is224 );
 }
-inline void sha2( const unsigned char *input, size_t ilen,
+static inline void sha2( const unsigned char *input, size_t ilen,
                   unsigned char output[32], int is224 ) {
     sha256( input, ilen, output, is224 );
 }
-inline void sha2_hmac_starts( sha256_context *ctx, const unsigned char *key,
+static inline void sha2_hmac_starts( sha256_context *ctx, const unsigned char *key,
                               size_t keylen, int is224 ) {
     sha256_hmac_starts( ctx, key, keylen, is224 );
 }
-inline void sha2_hmac_update( sha256_context *ctx, const unsigned char *input, size_t ilen ) {
+static inline void sha2_hmac_update( sha256_context *ctx, const unsigned char *input, size_t ilen ) {
     sha256_hmac_update( ctx, input, ilen );
 }
-inline void sha2_hmac_finish( sha256_context *ctx, unsigned char output[32] ) {
+static inline void sha2_hmac_finish( sha256_context *ctx, unsigned char output[32] ) {
     sha256_hmac_finish( ctx, output );
 }
-inline void sha2_hmac_reset( sha256_context *ctx ) {
+static inline void sha2_hmac_reset( sha256_context *ctx ) {
     sha256_hmac_reset( ctx );
 }
-inline void sha2_hmac( const unsigned char *key, size_t keylen,
+static inline void sha2_hmac( const unsigned char *key, size_t keylen,
                        const unsigned char *input, size_t ilen,
                        unsigned char output[32], int is224 ) {
     sha256_hmac( key, keylen, input, ilen, output, is224 );
 }
-inline int sha2_self_test( int verbose ) {
+static inline int sha2_self_test( int verbose ) {
     return sha256_self_test( verbose );
 }
 #endif /* POLARSSL_SHA256_C */
@@ -107,42 +107,42 @@ inline int sha2_self_test( int verbose ) {
  */
 typedef sha512_context sha4_context;
 
-inline void sha4_starts( sha512_context *ctx, int is384 ) {
+static inline void sha4_starts( sha512_context *ctx, int is384 ) {
     sha512_starts( ctx, is384 );
 }
-inline void sha4_update( sha512_context *ctx, const unsigned char *input,
+static inline void sha4_update( sha512_context *ctx, const unsigned char *input,
                          size_t ilen ) {
     sha512_update( ctx, input, ilen );
 }
-inline void sha4_finish( sha512_context *ctx, unsigned char output[64] ) {
+static inline void sha4_finish( sha512_context *ctx, unsigned char output[64] ) {
     sha512_finish( ctx, output );
 }
-inline int sha4_file( const char *path, unsigned char output[64], int is384 ) {
+static inline int sha4_file( const char *path, unsigned char output[64], int is384 ) {
     return sha512_file( path, output, is384 );
 }
-inline void sha4( const unsigned char *input, size_t ilen,
+static inline void sha4( const unsigned char *input, size_t ilen,
                   unsigned char output[32], int is384 ) {
     sha512( input, ilen, output, is384 );
 }
-inline void sha4_hmac_starts( sha512_context *ctx, const unsigned char *key,
+static inline void sha4_hmac_starts( sha512_context *ctx, const unsigned char *key,
                               size_t keylen, int is384 ) {
     sha512_hmac_starts( ctx, key, keylen, is384 );
 }
-inline void sha4_hmac_update( sha512_context *ctx, const unsigned char *input, size_t ilen ) {
+static inline void sha4_hmac_update( sha512_context *ctx, const unsigned char *input, size_t ilen ) {
     sha512_hmac_update( ctx, input, ilen );
 }
-inline void sha4_hmac_finish( sha512_context *ctx, unsigned char output[64] ) {
+static inline void sha4_hmac_finish( sha512_context *ctx, unsigned char output[64] ) {
     sha512_hmac_finish( ctx, output );
 }
-inline void sha4_hmac_reset( sha512_context *ctx ) {
+static inline void sha4_hmac_reset( sha512_context *ctx ) {
     sha512_hmac_reset( ctx );
 }
-inline void sha4_hmac( const unsigned char *key, size_t keylen,
+static inline void sha4_hmac( const unsigned char *key, size_t keylen,
                        const unsigned char *input, size_t ilen,
                        unsigned char output[64], int is384 ) {
     sha512_hmac( key, keylen, input, ilen, output, is384 );
 }
-inline int sha4_self_test( int verbose ) {
+static inline int sha4_self_test( int verbose ) {
     return sha512_self_test( verbose );
 }
 #endif /* POLARSSL_SHA512_C */
@@ -202,13 +202,13 @@ inline int sha4_self_test( int verbose ) {
 #define POLARSSL_ERR_X509_CERT_INVALID_SERIAL POLARSSL_ERR_X509_INVALID_SERIAL
 #define POLARSSL_ERR_X509_CERT_UNKNOWN_VERSION POLARSSL_ERR_X509_UNKNOWN_VERSION
 
-inline int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial ) {
+static inline int x509parse_serial_gets( char *buf, size_t size, const x509_buf *serial ) {
     return x509_serial_gets( buf, size, serial );
 }
-inline int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn ) {
+static inline int x509parse_dn_gets( char *buf, size_t size, const x509_name *dn ) {
     return x509_dn_gets( buf, size, dn );
 }
-inline int x509parse_time_expired( const x509_time *time ) {
+static inline int x509parse_time_expired( const x509_time *time ) {
     return x509_time_expired( time );
 }
 #endif /* POLARSSL_X509_USE_C || POLARSSL_X509_CREATE_C */
@@ -218,33 +218,33 @@ inline int x509parse_time_expired( const x509_time *time ) {
 #include "x509_crt.h"
 typedef x509_crt x509_cert;
 
-inline int x509parse_crt_der( x509_cert *chain, const unsigned char *buf,
+static inline int x509parse_crt_der( x509_cert *chain, const unsigned char *buf,
                               size_t buflen ) {
     return x509_crt_parse_der( chain, buf, buflen );
 }
-inline int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen ) {
+static inline int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen ) {
     return x509_crt_parse( chain, buf, buflen );
 }
-inline int x509parse_crtfile( x509_cert *chain, const char *path ) {
+static inline int x509parse_crtfile( x509_cert *chain, const char *path ) {
     return x509_crt_parse_file( chain, path );
 }
-inline int x509parse_crtpath( x509_cert *chain, const char *path ) {
+static inline int x509parse_crtpath( x509_cert *chain, const char *path ) {
     return x509_crt_parse_path( chain, path );
 }
-inline int x509parse_cert_info( char *buf, size_t size, const char *prefix,
+static inline int x509parse_cert_info( char *buf, size_t size, const char *prefix,
                                 const x509_cert *crt ) {
     return x509_crt_info( buf, size, prefix, crt );
 }
-inline int x509parse_verify( x509_cert *crt, x509_cert *trust_ca,
+static inline int x509parse_verify( x509_cert *crt, x509_cert *trust_ca,
                              x509_crl *ca_crl, const char *cn, int *flags,
                              int (*f_vrfy)(void *, x509_cert *, int, int *),
                              void *p_vrfy ) {
     return x509_crt_verify( crt, trust_ca, ca_crl, cn, flags, f_vrfy, p_vrfy );
 }
-inline int x509parse_revoked( const x509_cert *crt, const x509_crl *crl ) {
+static inline int x509parse_revoked( const x509_cert *crt, const x509_crl *crl ) {
     return x509_crt_revoked( crt, crl );
 }
-inline void x509_free( x509_cert *crt ) {
+static inline void x509_free( x509_cert *crt ) {
     x509_crt_free( crt );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
@@ -252,13 +252,13 @@ inline void x509_free( x509_cert *crt ) {
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 #define POLARSSL_X509_PARSE_C
 #include "x509_crl.h"
-inline int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen ) {
+static inline int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen ) {
     return x509_crl_parse( chain, buf, buflen );
 }
-inline int x509parse_crlfile( x509_crl *chain, const char *path ) {
+static inline int x509parse_crlfile( x509_crl *chain, const char *path ) {
     return x509_crl_parse_file( chain, path );
 }
-inline int x509parse_crl_info( char *buf, size_t size, const char *prefix,
+static inline int x509parse_crl_info( char *buf, size_t size, const char *prefix,
                                const x509_crl *crl ) {
     return x509_crl_info( buf, size, prefix, crl );
 }
@@ -267,13 +267,13 @@ inline int x509parse_crl_info( char *buf, size_t size, const char *prefix,
 #if defined(POLARSSL_X509_CSR_PARSE_C)
 #define POLARSSL_X509_PARSE_C
 #include "x509_csr.h"
-inline int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen ) {
+static inline int x509parse_csr( x509_csr *csr, const unsigned char *buf, size_t buflen ) {
     return x509_csr_parse( csr, buf, buflen );
 }
-inline int x509parse_csrfile( x509_csr *csr, const char *path ) {
+static inline int x509parse_csrfile( x509_csr *csr, const char *path ) {
     return x509_csr_parse_file( csr, path );
 }
-inline int x509parse_csr_info( char *buf, size_t size, const char *prefix,
+static inline int x509parse_csr_info( char *buf, size_t size, const char *prefix,
                                const x509_csr *csr ) {
     return x509_csr_info( buf, size, prefix, csr );
 }
@@ -295,7 +295,7 @@ inline int x509parse_csr_info( char *buf, size_t size, const char *prefix,
 #define POLARSSL_ERR_X509_CERT_INVALID_PUBKEY POLARSSL_ERR_PK_INVALID_PUBKEY
 
 #if defined(POLARSSL_FS_IO)
-inline int x509parse_keyfile( rsa_context *rsa, const char *path,
+static inline int x509parse_keyfile( rsa_context *rsa, const char *path,
                               const char *pwd ) {
     int ret;
     pk_context pk;
@@ -310,7 +310,7 @@ inline int x509parse_keyfile( rsa_context *rsa, const char *path,
     pk_free( &pk );
     return( ret );
 }
-inline int x509parse_public_keyfile( rsa_context *rsa, const char *path ) {
+static inline int x509parse_public_keyfile( rsa_context *rsa, const char *path ) {
     int ret;
     pk_context pk;
     pk_init( &pk );
@@ -326,7 +326,7 @@ inline int x509parse_public_keyfile( rsa_context *rsa, const char *path ) {
 }
 #endif /* POLARSSL_FS_IO */
 
-inline int x509parse_key( rsa_context *rsa, const unsigned char *key,
+static inline int x509parse_key( rsa_context *rsa, const unsigned char *key,
                           size_t keylen,
                           const unsigned char *pwd, size_t pwdlen ) {
     int ret;
@@ -343,7 +343,7 @@ inline int x509parse_key( rsa_context *rsa, const unsigned char *key,
     return( ret );
 }
 
-inline int x509parse_public_key( rsa_context *rsa,
+static inline int x509parse_public_key( rsa_context *rsa,
                                  const unsigned char *key, size_t keylen )
 {
     int ret;
@@ -363,7 +363,7 @@ inline int x509parse_public_key( rsa_context *rsa,
 
 #if defined(POLARSSL_PK_WRITE_C) && defined(POLARSSL_RSA_C)
 #include "pk.h"
-inline int x509_write_pubkey_der( unsigned char *buf, size_t len, rsa_context *rsa ) {
+static inline int x509_write_pubkey_der( unsigned char *buf, size_t len, rsa_context *rsa ) {
     int ret;
     pk_context ctx;
     if( ( ret = pk_init_ctx( &ctx, pk_info_from_type( POLARSSL_PK_RSA ) ) ) != 0 ) return( ret );
@@ -372,7 +372,7 @@ inline int x509_write_pubkey_der( unsigned char *buf, size_t len, rsa_context *r
     pk_free( &ctx );
     return( ret );
 }
-inline int x509_write_key_der( unsigned char *buf, size_t len, rsa_context *rsa ) {
+static inline int x509_write_key_der( unsigned char *buf, size_t len, rsa_context *rsa ) {
     int ret;
     pk_context ctx;
     if( ( ret = pk_init_ctx( &ctx, pk_info_from_type( POLARSSL_PK_RSA ) ) ) != 0 ) return( ret );

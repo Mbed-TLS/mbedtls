@@ -128,7 +128,7 @@ int pkcs11_decrypt( pkcs11_context *ctx,
  */
 int pkcs11_sign( pkcs11_context *ctx,
                     int mode,
-                    int hash_id,
+                    md_type_t md_alg,
                     unsigned int hashlen,
                     const unsigned char *hash,
                     unsigned char *sig );
@@ -146,12 +146,12 @@ static inline int ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
 
 static inline int ssl_pkcs11_sign( void *ctx, 
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                     int mode, int hash_id, unsigned int hashlen,
+                     int mode, md_type_t md_alg, unsigned int hashlen,
                      const unsigned char *hash, unsigned char *sig )
 {
     ((void) f_rng);
     ((void) p_rng);
-    return pkcs11_sign( (pkcs11_context *) ctx, mode, hash_id,
+    return pkcs11_sign( (pkcs11_context *) ctx, mode, md_alg,
                         hashlen, hash, sig );
 }
 

@@ -188,7 +188,7 @@ typedef int (*pk_rsa_alt_decrypt_func)( void *ctx, int mode, size_t *olen,
                     size_t output_max_len );
 typedef int (*pk_rsa_alt_sign_func)( void *ctx,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                    int mode, int hash_id, unsigned int hashlen,
+                    int mode, md_type_t md_alg, unsigned int hashlen,
                     const unsigned char *hash, unsigned char *sig );
 typedef size_t (*pk_rsa_alt_key_len_func)( void *ctx );
 

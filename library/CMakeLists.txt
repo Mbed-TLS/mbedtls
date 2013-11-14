@@ -82,6 +82,10 @@ endif(NOT USE_SHARED_POLARSSL_LIBRARY)
 
 target_link_libraries(polarssl ${libs})
 
+if(ZLIB_FOUND)
+target_link_libraries(polarssl ${ZLIB_LIBRARIES})
+endif(ZLIB_FOUND)
+
 install(TARGETS polarssl
         DESTINATION ${LIB_INSTALL_DIR}
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

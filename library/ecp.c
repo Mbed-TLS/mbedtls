@@ -41,6 +41,11 @@
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
  *     Embedded Systems. Springer Berlin Heidelberg, 1999. p. 292-302.
  *     <http://link.springer.com/chapter/10.1007/3-540-48059-5_25>
+ *
+ * [3] HEDABOU, Mustapha, PINEL, Pierre, et BÉNÉTEAU, Lucien. A comb method to
+ *     render ECC resistant against Side Channel Attacks. IACR Cryptology
+ *     ePrint Archive, 2004, vol. 2004, p. 342.
+ *     <http://eprint.iacr.org/2004/342.pdf>
  */
 
 #include "polarssl/config.h"
@@ -902,7 +907,7 @@ cleanup:
 }
 
 /*
- * Normalize jacobian coordinates of an array of points,
+ * Normalize jacobian coordinates of an array of (pointers to) points,
  * using Montgomery's trick to perform only one inversion mod P.
  * (See for example Cohen's "A Course in Computational Algebraic Number
  * Theory", Algorithm 10.3.4.)
@@ -911,14 +916,14 @@ cleanup:
  * This should never happen, see choice of w in ecp_mul().
  */
 static int ecp_normalize_many( const ecp_group *grp,
-                               ecp_point T[], size_t t_len )
+                               ecp_point *T[], size_t t_len )
 {
     int ret;
     size_t i;
     mpi *c, u, Zi, ZZi;
 
     if( t_len < 2 )
-        return( ecp_normalize( grp, T ) );
+        return( ecp_normalize( grp, *T ) );
 
     if( ( c = (mpi *) polarssl_malloc( t_len * sizeof( mpi ) ) ) == NULL )
         return( POLARSSL_ERR_ECP_MALLOC_FAILED );
@@ -930,10 +935,10 @@ static int ecp_normalize_many( const ecp_group *grp,
     /*
      * c[i] = Z_0 * ... * Z_i
      */
-    MPI_CHK( mpi_copy( &c[0], &T[0].Z ) );
+    MPI_CHK( mpi_copy( &c[0], &T[0]->Z ) );
     for( i = 1; i < t_len; i++ )
     {
-        MPI_CHK( mpi_mul_mpi( &c[i], &c[i-1], &T[i].Z ) );
+        MPI_CHK( mpi_mul_mpi( &c[i], &c[i-1], &T[i]->Z ) );
         MOD_MUL( c[i] );
     }
 
@@ -953,18 +958,18 @@ static int ecp_normalize_many( const ecp_group *grp,
         }
         else
         {
-            MPI_CHK( mpi_mul_mpi( &Zi, &u, &c[i-1] ) ); MOD_MUL( Zi );
-            MPI_CHK( mpi_mul_mpi( &u,  &u, &T[i].Z ) ); MOD_MUL( u );
+            MPI_CHK( mpi_mul_mpi( &Zi, &u, &c[i-1]  ) ); MOD_MUL( Zi );
+            MPI_CHK( mpi_mul_mpi( &u,  &u, &T[i]->Z ) ); MOD_MUL( u );
         }
 
         /*
          * proceed as in normalize()
          */
-        MPI_CHK( mpi_mul_mpi( &ZZi,    &Zi,     &Zi     ) ); MOD_MUL( ZZi );
-        MPI_CHK( mpi_mul_mpi( &T[i].X, &T[i].X, &ZZi    ) ); MOD_MUL( T[i].X );
-        MPI_CHK( mpi_mul_mpi( &T[i].Y, &T[i].Y, &ZZi    ) ); MOD_MUL( T[i].Y );
-        MPI_CHK( mpi_mul_mpi( &T[i].Y, &T[i].Y, &Zi     ) ); MOD_MUL( T[i].Y );
-        MPI_CHK( mpi_lset( &T[i].Z, 1 ) );
+        MPI_CHK( mpi_mul_mpi( &ZZi,     &Zi,      &Zi  ) ); MOD_MUL( ZZi );
+        MPI_CHK( mpi_mul_mpi( &T[i]->X, &T[i]->X, &ZZi ) ); MOD_MUL( T[i]->X );
+        MPI_CHK( mpi_mul_mpi( &T[i]->Y, &T[i]->Y, &ZZi ) ); MOD_MUL( T[i]->Y );
+        MPI_CHK( mpi_mul_mpi( &T[i]->Y, &T[i]->Y, &Zi  ) ); MOD_MUL( T[i]->Y );
+        MPI_CHK( mpi_lset( &T[i]->Z, 1 ) );
 
         if( i == 0 )
             break;
@@ -1250,6 +1255,7 @@ static int ecp_precompute( const ecp_group *grp,
     int ret;
     size_t i;
     ecp_point PP;
+    ecp_point *TT[ 1 << ( POLARSSL_ECP_WINDOW_SIZE - 1 ) ];
 
     ecp_point_init( &PP );
 
@@ -1261,9 +1267,11 @@ static int ecp_precompute( const ecp_group *grp,
         MPI_CHK( ecp_add_mixed( grp, &T[i], &T[i-1], &PP, +1 ) );
 
     /*
-     * T[0] = P already has normalized coordinates
+     * T[0] = P already has normalized coordinates, normalize others
      */
-    MPI_CHK( ecp_normalize_many( grp, T + 1, t_len - 1 ) );
+    for( i = 1; i < t_len; i++ )
+        TT[i-1] = &T[i];
+    MPI_CHK( ecp_normalize_many( grp, TT, t_len - 1 ) );
 
 cleanup:
 
@@ -1342,9 +1350,9 @@ cleanup:
  * countermeasure against DPA in 5.3 of [2] (with the obvious adaptation that
  * we use jacobian coordinates, not standard projective coordinates).
  */
-int ecp_mul( ecp_group *grp, ecp_point *R,
-             const mpi *m, const ecp_point *P,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+int ecp_mul_wnaf( ecp_group *grp, ecp_point *R,
+                  const mpi *m, const ecp_point *P,
+                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
     unsigned char w, m_is_odd, p_eq_g;
@@ -1485,6 +1493,276 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     MPI_CHK( ecp_add( grp, &S[1], P, P ) );
     MPI_CHK( ecp_sub( grp, R, &Q, &S[m_is_odd] ) );
 
+
+cleanup:
+
+    if( T != NULL && ! p_eq_g )
+    {
+        for( i = 0; i < pre_len; i++ )
+            ecp_point_free( &T[i] );
+        polarssl_free( T );
+    }
+
+    ecp_point_free( &S[1] );
+    ecp_point_free( &S[0] );
+    ecp_point_free( &Q );
+    mpi_free( &M );
+
+    return( ret );
+}
+
+/*
+ * Compute the representation of m that will be used with the comb method.
+ *
+ * The basic comb method is described in GECC 3.44 for example. We use a
+ * modified version [3] that provides resistance to SPA by avoiding zero
+ * digits in the representation. We represent (K_i, s_i) from the paper as a
+ * single signed char.
+ *
+ * Calling conventions:
+ * - x is an array of size d
+ * - w is the size, ie number of teeth, of the comb
+ * - m is the MPI, expected to be odd and such that, if l = bitlength(m):
+ *   ceil( l / w ) <= d (these two assumptions are not checked, an incorrect
+ *   result my be returned if they are not satisfied)
+ */
+static void ecp_comb_fixed( signed char x[], size_t d,
+                            unsigned char w, const mpi *m )
+{
+    size_t i, j;
+
+    memset( x, 0, d );
+
+    /* For x[0] use the classical comb value without adjustement */
+    for( j = 0; j < w; j++ )
+        x[0] |= mpi_get_bit( m, d * j ) << j;
+
+    for( i = 1; i < d; i++ )
+    {
+        /* Get the classical comb value */
+        for( j = 0; j < w; j++ )
+            x[i] |= mpi_get_bit( m, i + d * j ) << j;
+
+        /* Adjust if it's zero */
+        if( x[i] == 0 )
+        {
+            x[i] = x[i-1];
+            x[i-1] *= -1;
+        }
+    }
+}
+
+/*
+ * Precompute points for the comb method
+ *
+ * If i = i_{w-1} ... i_0 is the binary representation of i, then
+ * T[i-1] = i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + i_0 P
+ *
+ * T must be able to hold at least 2^w - 1 elements
+ */
+static int ecp_precompute_comb( const ecp_group *grp,
+                                ecp_point T[], const ecp_point *P,
+                                unsigned char w, size_t d )
+{
+    int ret;
+    unsigned char i, mask;
+    size_t j, t_len = ( 1U << w ) - 1;
+    ecp_point *cur, *TT[t_len - 1];
+
+    /*
+     * Compute the 2^{di}
+     */
+    MPI_CHK( ecp_copy( &T[0], P ) );
+
+    for( i = 1; i < w; i++ )
+    {
+        cur = T + ( 1 << i ) - 1;
+        ecp_copy( cur, T + ( 1 << (i-1) ) - 1 );
+        for( j = 0; j < d; j++ )
+            MPI_CHK( ecp_double_jac( grp, cur, cur ) );
+        TT[i-1] = cur;
+    }
+
+    /* P already normalized, so w - 1 points to do */
+    ecp_normalize_many( grp, TT, w - 1);
+
+    /*
+     * Compute the remaining ones using the minimal number of additions
+     */
+    j = 0;
+    for( i = 3; i < (1U << w); i++ )
+    {
+        if( T[i - 1].X.p != NULL )
+            continue;
+
+        /* Find the least significant non-zero bit of the index */
+        for( mask = 1; mask != 0; mask <<=1 )
+            if( ( i & mask ) != 0 )
+                break;
+
+        /* Use the previously computed values */
+        ecp_add_mixed( grp, &T[i - 1], &T[i - mask - 1], &T[mask - 1], +1 );
+
+        /* Register for normalisation */
+        TT[j++] = &T[i - 1];
+    }
+
+    ecp_normalize_many( grp, TT, j );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Select precomputed point: R = sign(i) * T[ abs(i) ]
+ */
+static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
+                            const ecp_point T[], signed char i )
+{
+    int ret;
+
+    if( i > 0 )
+        return( ecp_copy( R, &T[i - 1] ) );
+
+    MPI_CHK( ecp_copy( R, &T[-i - 1] ) );
+
+    /*
+     * -R = (R.X, -R.Y, R.Z), and
+     * -R.Y mod P = P - R.Y unless R.Y == 0
+     */
+    if( mpi_cmp_int( &R->Y, 0 ) != 0 )
+        MPI_CHK( mpi_sub_mpi( &R->Y, &grp->P, &R->Y ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Core multiplication algorithm for the (modified) comb method.
+ * This part is actually common with the basic comb method (GECC 3.44)
+ */
+static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
+                              const ecp_point T[], const signed char x[],
+                              size_t d )
+{
+    int ret;
+    ecp_point Txi;
+    size_t i;
+
+    ecp_point_init( &Txi );
+
+    /* Avoid useless doubling/addition of 0 by better initialisation */
+    i = d - 1;
+    MPI_CHK( ecp_select_comb( grp, R, T, x[i] ) );
+
+    while( i-- != 0 )
+    {
+        MPI_CHK( ecp_double_jac( grp, R, R ) );
+        MPI_CHK( ecp_select_comb( grp, &Txi, T, x[i] ) );
+        MPI_CHK( ecp_add_mixed( grp, R, R, &Txi, +1 ) );
+    }
+
+cleanup:
+    ecp_point_free( &Txi );
+
+    return( ret );
+}
+
+/*
+ * Multiplication using the comb method, WIP
+ */
+int ecp_mul_comb( ecp_group *grp, ecp_point *R,
+                  const mpi *m, const ecp_point *P,
+                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+    unsigned char w, m_is_odd, p_eq_g;
+    size_t pre_len, d, i;
+    signed char k[100]; // TODO
+    ecp_point Q, *T = NULL, S[2];
+    mpi M;
+
+    (void) f_rng;
+    (void) p_rng; // TODO
+
+    if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    mpi_init( &M );
+    ecp_point_init( &Q );
+    ecp_point_init( &S[0] );
+    ecp_point_init( &S[1] );
+
+    /*
+     * Check if P == G
+     */
+    p_eq_g = ( mpi_cmp_int( &P->Z, 1 ) == 0 &&
+               mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
+               mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
+
+    /* TODO: adjust exact value */
+    w = grp->nbits >= 192 ? 5 : 2;
+
+    pre_len = 1U << w;
+    d = ( grp->nbits + w - 1 ) / w;
+
+    /*
+     * Prepare precomputed points: if P == G we want to
+     * use grp->T if already initialized, or initiliaze it.
+     */
+    if( ! p_eq_g || grp->T == NULL )
+    {
+        T = (ecp_point *) polarssl_malloc( pre_len * sizeof( ecp_point ) );
+        if( T == NULL )
+        {
+            ret = POLARSSL_ERR_ECP_MALLOC_FAILED;
+            goto cleanup;
+        }
+
+        for( i = 0; i < pre_len; i++ )
+            ecp_point_init( &T[i] );
+
+        MPI_CHK( ecp_precompute_comb( grp, T, P, w, d ) );
+
+        if( p_eq_g )
+        {
+            grp->T = T;
+            grp->T_size = pre_len;
+        }
+    }
+    else
+    {
+        T = grp->T;
+
+        /* Should never happen, but we want to be extra sure */
+        if( pre_len != grp->T_size )
+        {
+            ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+    }
+
+    /*
+     * Make sure M is odd (M = m + 1 or M = m + 2)
+     * later we'll get m * P by subtracting P or 2 * P to M * P.
+     */
+    m_is_odd = ( mpi_get_bit( m, 0 ) == 1 );
+
+    MPI_CHK( mpi_copy( &M, m ) );
+    MPI_CHK( mpi_add_int( &M, &M, 1 + m_is_odd ) );
+
+    /*
+     * Go for comb multiplication, Q = M * P
+     */
+    ecp_comb_fixed( k, d, w, &M );
+    ecp_mul_comb_core( grp, &Q, T, k, d );
+
+    /*
+     * Now get m * P from M * P
+     */
+    MPI_CHK( ecp_copy( &S[0], P ) );
+    MPI_CHK( ecp_add( grp, &S[1], P, P ) );
+    MPI_CHK( ecp_sub( grp, R, &Q, &S[m_is_odd] ) );
 
 cleanup:
 

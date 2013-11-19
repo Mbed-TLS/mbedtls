@@ -3583,7 +3583,8 @@ static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
     if( ssl->key_cert == NULL )
     {
         ssl->key_cert = key_cert;
-        ssl->handshake->key_cert = key_cert;
+        if( ssl->handshake != NULL )
+            ssl->handshake->key_cert = key_cert;
     }
     else
     {

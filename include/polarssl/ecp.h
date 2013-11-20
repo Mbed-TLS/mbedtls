@@ -157,16 +157,16 @@ ecp_keypair;
 #define POLARSSL_ECP_MAX_PT_LEN   ( 2 * POLARSSL_ECP_MAX_BYTES + 1 )
 
 /*
- * Maximum window size (actually, NAF width) used for point multipliation.
- * Default: 8.
- * Minimum value: 2. Maximum value: 8.
+ * Maximum "window" size used for point multiplication.
+ * Default: 6.
+ * Minimum value: 2. Maximum value: 7.
  *
  * Result is an array of at most ( 1 << ( POLARSSL_ECP_WINDOW_SIZE - 1 ) )
  * points used for point multiplication.
  *
  * Reduction in size may reduce speed for big curves.
  */
-#define POLARSSL_ECP_WINDOW_SIZE    8   /**< Maximum NAF width used. */
+#define POLARSSL_ECP_WINDOW_SIZE    6   /**< Maximum window size used. */
 
 /*
  * Point formats, from RFC 4492's enum ECPointFormat

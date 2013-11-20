@@ -1512,13 +1512,26 @@ cleanup:
 }
 
 /*
- * Compute the representation of m that will be used with the comb method.
+ * Check and define parameters used by the comb method (see below for details)
+ */
+#if POLARSSL_ECP_WINDOW_SIZE < 2 || POLARSSL_ECP_WINDOW_SIZE > 7
+#error "POLARSSL_ECP_WINDOW_SIZE out of bounds"
+#endif
+
+/* d = ceil( n / w ) */
+#define COMB_MAX_D      ( POLARSSL_ECP_MAX_BITS + 1 ) / 2
+
+/* number of precomputed points */
+#define COMB_MAX_PRE    ( 1 << ( POLARSSL_ECP_WINDOW_SIZE - 1 ) )
+
+/*
+ * Compute the representation of m that will be used with our comb method.
  *
  * The basic comb method is described in GECC 3.44 for example. We use a
  * modified version that provides resistance to SPA by avoiding zero
  * digits in the representation as in [3]. We modify the method further by
  * requiring that all K_i be odd, which has the small cost that our
- * representation uses on more K, due to carries.
+ * representation uses one more K_i, due to carries.
  *
  * Also, for the sake of compactness, only the seven low-order bits of x[i]
  * are used to represent K_i, and the msb of x[i] encodes the the sign (s_i in
@@ -1526,7 +1539,8 @@ cleanup:
  *
  * Calling conventions:
  * - x is an array of size d + 1
- * - w is the size, ie number of teeth, of the comb
+ * - w is the size, ie number of teeth, of the comb, and must be between
+ *   2 and 7 (in practice, between 2 and POLARSSL_ECP_WINDOW_SIZE)
  * - m is the MPI, expected to be odd and such that bitlength(m) <= w * d
  *   (the result will be incorrect if these assumptions are not satisfied)
  */
@@ -1582,8 +1596,9 @@ static int ecp_precompute_comb( const ecp_group *grp,
                                 unsigned char w, size_t d )
 {
     int ret;
-    unsigned char i, j, k;
-    ecp_point *cur, *TT[200]; // TODO
+    unsigned char i, k;
+    size_t j;
+    ecp_point *cur, *TT[COMB_MAX_PRE - 1];
 
     /*
      * Set T[0] = P and
@@ -1689,7 +1704,7 @@ int ecp_mul_comb( ecp_group *grp, ecp_point *R,
     int ret;
     unsigned char w, m_is_odd, p_eq_g;
     size_t pre_len, d, i;
-    unsigned char k[200]; // TODO
+    unsigned char k[COMB_MAX_D + 1];
     ecp_point Q, *T = NULL, S[2];
     mpi M;
 
@@ -1714,7 +1729,7 @@ int ecp_mul_comb( ecp_group *grp, ecp_point *R,
     /* TODO: adjust exact value */
     w = grp->nbits >= 192 ? 5 : 2;
 
-    pre_len = 1U << w;
+    pre_len = 1U << ( w - 1 );
     d = ( grp->nbits + w - 1 ) / w;
 
     /*

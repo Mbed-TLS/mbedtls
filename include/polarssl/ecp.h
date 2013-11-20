@@ -476,14 +476,9 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  *                  has very low overhead, it is recommended to always provide
  *                  a non-NULL f_rng parameter when using secret inputs.
  */
-// Temporary, WIP
-int ecp_mul_wnaf( ecp_group *grp, ecp_point *R,
-                  const mpi *m, const ecp_point *P,
-                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
-int ecp_mul_comb( ecp_group *grp, ecp_point *R,
-                  const mpi *m, const ecp_point *P,
-                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
-#define ecp_mul ecp_mul_comb
+int ecp_mul( ecp_group *grp, ecp_point *R,
+             const mpi *m, const ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
  * \brief           Check that a point is a valid public key on this curve

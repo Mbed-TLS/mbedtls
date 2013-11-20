@@ -1273,11 +1273,15 @@ static int x509_name_cmp( const void *s1, const void *s2, size_t len )
     {
         diff = n1[i] ^ n2[i];
 
-        if( ( n1[i] >= 'a' || n1[i] <= 'z' ) && ( diff == 0 || diff == 32 ) )
+        if( diff == 0 )
             continue;
 
-        if( ( n1[i] >= 'A' || n1[i] <= 'Z' ) && ( diff == 0 || diff == 32 ) )
+        if( diff == 32 &&
+            ( ( n1[i] >= 'a' && n1[i] <= 'z' ) ||
+              ( n1[i] >= 'A' && n1[i] <= 'Z' ) ) )
+        {
             continue;
+        }
 
         return( 1 );
     }

@@ -1,5 +1,9 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= PolarSSL 1.3 branch
+Bugfix
+   * Fixed X.509 hostname comparison (with non-regular characters)
+
 = PolarSSL 1.3.2 released on 2013-11-04
 Features
    * PK tests added to test framework

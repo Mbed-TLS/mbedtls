@@ -1668,8 +1668,10 @@ cleanup:
  * This part is actually common with the basic comb method (GECC 3.44)
  */
 static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
-                              const ecp_point T[], const unsigned char x[],
-                              size_t d )
+                              const ecp_point T[],
+                              const unsigned char x[], size_t d,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng )
 {
     int ret;
     ecp_point Txi;
@@ -1677,9 +1679,11 @@ static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
 
     ecp_point_init( &Txi );
 
-    /* Avoid useless doubling/addition of 0 by better initialisation */
+    /* Start with a non-zero point and randomize its coordinates */
     i = d;
     MPI_CHK( ecp_select_comb( grp, R, T, x[i] ) );
+    if( f_rng != 0 )
+        MPI_CHK( ecp_randomize_coordinates( grp, R, f_rng, p_rng ) );
 
     while( i-- != 0 )
     {
@@ -1707,9 +1711,6 @@ int ecp_mul_comb( ecp_group *grp, ecp_point *R,
     unsigned char k[COMB_MAX_D + 1];
     ecp_point Q, *T = NULL, S[2];
     mpi M;
-
-    (void) f_rng;
-    (void) p_rng; // TODO
 
     if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
@@ -1781,7 +1782,7 @@ int ecp_mul_comb( ecp_group *grp, ecp_point *R,
      * Go for comb multiplication, Q = M * P
      */
     ecp_comb_fixed( k, d, w, &M );
-    ecp_mul_comb_core( grp, &Q, T, k, d );
+    ecp_mul_comb_core( grp, &Q, T, k, d, f_rng, p_rng );
 
     /*
      * Now get m * P from M * P

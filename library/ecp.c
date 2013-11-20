@@ -1515,27 +1515,33 @@ cleanup:
  * Compute the representation of m that will be used with the comb method.
  *
  * The basic comb method is described in GECC 3.44 for example. We use a
- * modified version [3] that provides resistance to SPA by avoiding zero
- * digits in the representation. We represent (K_i, s_i) from the paper as a
- * single signed char.
+ * modified version that provides resistance to SPA by avoiding zero
+ * digits in the representation as in [3]. We modify the method further by
+ * requiring that all K_i be odd, which has the small cost that our
+ * representation uses on more K, due to carries.
+ *
+ * Also, for the sake of compactness, only the seven low-order bits of x[i]
+ * are used to represent K_i, and the msb of x[i] encodes the the sign (s_i in
+ * the paper): it is set if and only if if s_i == -1;
  *
  * Calling conventions:
- * - x is an array of size d
+ * - x is an array of size d + 1
  * - w is the size, ie number of teeth, of the comb
- * - m is the MPI, expected to be odd and such that, if l = bitlength(m):
- *   ceil( l / w ) <= d (these two assumptions are not checked, an incorrect
- *   result my be returned if they are not satisfied)
+ * - m is the MPI, expected to be odd and such that bitlength(m) <= w * d
+ *   (the result will be incorrect if these assumptions are not satisfied)
  */
-static void ecp_comb_fixed( signed char x[], size_t d,
+static void ecp_comb_fixed( unsigned char x[], size_t d,
                             unsigned char w, const mpi *m )
 {
     size_t i, j;
+    unsigned char c, cc, adjust;
 
-    memset( x, 0, d );
+    memset( x, 0, d+1 );
 
     /* For x[0] use the classical comb value without adjustement */
     for( j = 0; j < w; j++ )
         x[0] |= mpi_get_bit( m, d * j ) << j;
+    c = 0;
 
     for( i = 1; i < d; i++ )
     {
@@ -1543,95 +1549,100 @@ static void ecp_comb_fixed( signed char x[], size_t d,
         for( j = 0; j < w; j++ )
             x[i] |= mpi_get_bit( m, i + d * j ) << j;
 
-        /* Adjust if it's zero */
-        if( x[i] == 0 )
-        {
-            x[i] = x[i-1];
-            x[i-1] *= -1;
-        }
+        /* Add carry and update it */
+        cc   = x[i] & c;
+        x[i] = x[i] ^ c;
+        c = cc;
+
+        /* Make sure x[i] is odd, avoiding if-branches */
+        adjust = 1 - ( x[i] & 0x01 );
+        c   |= x[i] & ( x[i-1] * adjust );
+        x[i] = x[i] ^ ( x[i-1] * adjust );
+        x[i-1] |= adjust << 7;
     }
+
+    /* Finish with the carry */
+    x[i] = c;
+    adjust = 1 - ( x[i] & 0x01 );
+    c   |= x[i] & ( x[i-1] * adjust );
+    x[i] = x[i] ^ ( x[i-1] * adjust );
+    x[i-1] |= adjust << 7;
 }
 
 /*
  * Precompute points for the comb method
  *
- * If i = i_{w-1} ... i_0 is the binary representation of i, then
- * T[i-1] = i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + i_0 P
+ * If i = i_{w-1} ... i_1 is the binary representation of i, then
+ * T[i] = i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + P
  *
- * T must be able to hold at least 2^w - 1 elements
+ * T must be able to hold at least 2^{w - 1} elements
  */
 static int ecp_precompute_comb( const ecp_group *grp,
                                 ecp_point T[], const ecp_point *P,
                                 unsigned char w, size_t d )
 {
     int ret;
-    unsigned char i, mask;
-    size_t j, t_len = ( 1U << w ) - 1;
-    ecp_point *cur, *TT[t_len - 1];
+    unsigned char i, j, k;
+    ecp_point *cur, *TT[200]; // TODO
 
     /*
-     * Compute the 2^{di}
+     * Set T[0] = P and
+     * T[2^{l-1}] = 2^{dl} P for l = 1 .. w-1 (this is not the final value)
      */
     MPI_CHK( ecp_copy( &T[0], P ) );
 
-    for( i = 1; i < w; i++ )
+    k = 0;
+    for( i = 1; i < ( 1U << (w-1) ); i <<= 1 )
     {
-        cur = T + ( 1 << i ) - 1;
-        ecp_copy( cur, T + ( 1 << (i-1) ) - 1 );
+        cur = T + i;
+        MPI_CHK( ecp_copy( cur, T + ( i >> 1 ) ) );
         for( j = 0; j < d; j++ )
             MPI_CHK( ecp_double_jac( grp, cur, cur ) );
-        TT[i-1] = cur;
+
+        TT[k++] = cur;
     }
 
-    /* P already normalized, so w - 1 points to do */
-    ecp_normalize_many( grp, TT, w - 1);
+    ecp_normalize_many( grp, TT, k );
 
     /*
      * Compute the remaining ones using the minimal number of additions
+     * Be careful to update T[2^l] only after using it!
      */
-    j = 0;
-    for( i = 3; i < (1U << w); i++ )
+    k = 0;
+    for( i = 1; i < ( 1U << (w-1) ); i <<= 1 )
     {
-        if( T[i - 1].X.p != NULL )
-            continue;
-
-        /* Find the least significant non-zero bit of the index */
-        for( mask = 1; mask != 0; mask <<=1 )
-            if( ( i & mask ) != 0 )
-                break;
-
-        /* Use the previously computed values */
-        ecp_add_mixed( grp, &T[i - 1], &T[i - mask - 1], &T[mask - 1], +1 );
-
-        /* Register for normalisation */
-        TT[j++] = &T[i - 1];
+        j = i;
+        while( j-- )
+        {
+            ecp_add_mixed( grp, &T[i + j], &T[j], &T[i], +1 );
+            TT[k++] = &T[i + j];
+        }
     }
 
-    ecp_normalize_many( grp, TT, j );
+    ecp_normalize_many( grp, TT, k );
 
 cleanup:
     return( ret );
 }
 
 /*
- * Select precomputed point: R = sign(i) * T[ abs(i) ]
+ * Select precomputed point: R = sign(i) * T[ abs(i) / 2 ]
  */
 static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
-                            const ecp_point T[], signed char i )
+                            const ecp_point T[], unsigned char i )
 {
     int ret;
 
-    if( i > 0 )
-        return( ecp_copy( R, &T[i - 1] ) );
-
-    MPI_CHK( ecp_copy( R, &T[-i - 1] ) );
+    /* Ignore the "sign" bit */
+    MPI_CHK( ecp_copy( R, &T[ ( i & 0x7Fu ) >> 1 ] ) );
 
     /*
      * -R = (R.X, -R.Y, R.Z), and
      * -R.Y mod P = P - R.Y unless R.Y == 0
      */
-    if( mpi_cmp_int( &R->Y, 0 ) != 0 )
-        MPI_CHK( mpi_sub_mpi( &R->Y, &grp->P, &R->Y ) );
+    if( ( i & 0x80 ) != 0 )
+        if( mpi_cmp_int( &R->Y, 0 ) != 0 )
+            MPI_CHK( mpi_sub_mpi( &R->Y, &grp->P, &R->Y ) );
 
 cleanup:
     return( ret );
@@ -1642,7 +1653,7 @@ cleanup:
  * This part is actually common with the basic comb method (GECC 3.44)
  */
 static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
-                              const ecp_point T[], const signed char x[],
+                              const ecp_point T[], const unsigned char x[],
                               size_t d )
 {
     int ret;
@@ -1652,7 +1663,7 @@ static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
     ecp_point_init( &Txi );
 
     /* Avoid useless doubling/addition of 0 by better initialisation */
-    i = d - 1;
+    i = d;
     MPI_CHK( ecp_select_comb( grp, R, T, x[i] ) );
 
     while( i-- != 0 )
@@ -1678,7 +1689,7 @@ int ecp_mul_comb( ecp_group *grp, ecp_point *R,
     int ret;
     unsigned char w, m_is_odd, p_eq_g;
     size_t pre_len, d, i;
-    signed char k[100]; // TODO
+    unsigned char k[200]; // TODO
     ecp_point Q, *T = NULL, S[2];
     mpi M;
 

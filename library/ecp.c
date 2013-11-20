@@ -870,6 +870,7 @@ cleanup:
 
 /*
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)
+ * Cost: 1N := 1I + 3M + 1S
  */
 static int ecp_normalize( const ecp_group *grp, ecp_point *pt )
 {
@@ -914,6 +915,8 @@ cleanup:
  *
  * Warning: fails (returning an error) if one of the points is zero!
  * This should never happen, see choice of w in ecp_mul().
+ *
+ * Cost: 1N(t) := 1I + (6t - 3)M + 1S
  */
 static int ecp_normalize_many( const ecp_group *grp,
                                ecp_point *T[], size_t t_len )
@@ -992,6 +995,8 @@ cleanup:
  * with heavy variable renaming, some reordering and one minor modification
  * (a = 2 * b, c = d - 2a replaced with c = d, c = c - b, c = c - b)
  * in order to use a lot less intermediate variables (6 vs 25).
+ *
+ * Cost: 1D := 2M + 8S
  */
 static int ecp_double_jac( const ecp_group *grp, ecp_point *R,
                            const ecp_point *P )
@@ -1052,6 +1057,8 @@ cleanup:
  * If sign >= 0, perform addition, otherwise perform subtraction,
  * taking advantage of the fact that, for Q != 0, we have
  * -Q = (Q.X, -Q.Y, Q.Z)
+ *
+ * Cost: 1A := 8M + 3S
  */
 static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
                           const ecp_point *P, const ecp_point *Q,
@@ -1153,6 +1160,7 @@ cleanup:
 
 /*
  * Addition: R = P + Q, result's coordinates normalized
+ * Cost: 1A + 1N = 1I + 11M + 4S
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )
@@ -1168,6 +1176,7 @@ cleanup:
 
 /*
  * Subtraction: R = P - Q, result's coordinates normalized
+ * Cost: 1A + 1N = 1I + 11M + 4S
  */
 int ecp_sub( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )
@@ -1589,7 +1598,9 @@ static void ecp_comb_fixed( unsigned char x[], size_t d,
  * If i = i_{w-1} ... i_1 is the binary representation of i, then
  * T[i] = i_{w-1} 2^{(w-1)d} P + ... + i_1 2^d P + P
  *
- * T must be able to hold at least 2^{w - 1} elements
+ * T must be able to hold 2^{w - 1} elements
+ *
+ * Cost: d(w-1) D + (2^{w-1} - 1) A + 1 N(w-1) + 1 N(2^{w-1} - 1)
  */
 static int ecp_precompute_comb( const ecp_group *grp,
                                 ecp_point T[], const ecp_point *P,
@@ -1666,6 +1677,8 @@ cleanup:
 /*
  * Core multiplication algorithm for the (modified) comb method.
  * This part is actually common with the basic comb method (GECC 3.44)
+ *
+ * Cost: d A + d D + 1 R
  */
 static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
                               const ecp_point T[],
@@ -1699,7 +1712,7 @@ cleanup:
 }
 
 /*
- * Multiplication using the comb method, WIP
+ * Multiplication using the comb method
  */
 int ecp_mul_comb( ecp_group *grp, ecp_point *R,
                   const mpi *m, const ecp_point *P,
@@ -1727,9 +1740,30 @@ int ecp_mul_comb( ecp_group *grp, ecp_point *R,
                mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
                mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
 
-    /* TODO: adjust exact value */
-    w = grp->nbits >= 192 ? 5 : 2;
+    /*
+     * Minimize the number of multiplications, that is minimize
+     * 10 * d * w + 18 * 2^(w-1) + 11 * d + 7 * w
+     * (see costs of the various parts, with 1S = 1M)
+     */
+    w = grp->nbits >= 384 ? 5 : 4;
 
+    /*
+     * If P == G, pre-compute a bit more, since this may be re-used later.
+     * Just adding one ups the cost of the first mul by at most 3%.
+     */
+    if( p_eq_g )
+        w++;
+
+    /*
+     * Make sure w is within limits.
+     * (The last test is useful only for very small curves in the test suite.)
+     */
+    if( w > POLARSSL_ECP_WINDOW_SIZE )
+        w = POLARSSL_ECP_WINDOW_SIZE;
+    if( w < 2 || w >= grp->nbits )
+        w = 2;
+
+    /* Other sizes that depend on w */
     pre_len = 1U << ( w - 1 );
     d = ( grp->nbits + w - 1 ) / w;
 

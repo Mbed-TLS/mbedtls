@@ -31,12 +31,6 @@
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants
  *
- * [1] OKEYA, Katsuyuki and TAKAGI, Tsuyoshi. The width-w NAF method provides
- *     small memory and fast elliptic scalar multiplications secure against
- *     side channel attacks. In : Topics in Cryptology—CT-RSA 2003. Springer
- *     Berlin Heidelberg, 2003. p. 328-343.
- *     <http://rd.springer.com/chapter/10.1007/3-540-36563-X_23>.
- *
  * [2] CORON, Jean-Sébastien. Resistance against differential power analysis
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
  *     Embedded Systems. Springer Berlin Heidelberg, 1999. p. 292-302.
@@ -1194,6 +1188,8 @@ cleanup:
  * Randomize jacobian coordinates:
  * (X, Y, Z) -> (l^2 X, l^3 Y, l Z) for random l
  * This is sort of the reverse operation of ecp_normalize().
+ *
+ * This countermeasure was first suggested in [2].
  */
 static int ecp_randomize_coordinates( const ecp_group *grp, ecp_point *pt,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )

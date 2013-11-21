@@ -1276,35 +1276,26 @@ static void ecp_comb_fixed( unsigned char x[], size_t d,
 
     memset( x, 0, d+1 );
 
-    /* For x[0] use the classical comb value without adjustement */
-    for( j = 0; j < w; j++ )
-        x[0] |= mpi_get_bit( m, d * j ) << j;
-    c = 0;
-
-    for( i = 1; i < d; i++ )
-    {
-        /* Get the classical comb value */
+    /* First get the classical comb values (except for x_d = 0) */
+    for( i = 0; i < d; i++ )
         for( j = 0; j < w; j++ )
             x[i] |= mpi_get_bit( m, i + d * j ) << j;
 
+    /* Now make sure x_1 .. x_d are odd */
+    c = 0;
+    for( i = 1; i <= d; i++ )
+    {
         /* Add carry and update it */
         cc   = x[i] & c;
         x[i] = x[i] ^ c;
         c = cc;
 
-        /* Make sure x[i] is odd, avoiding if-branches */
+        /* Adjust if needed, avoiding branches */
         adjust = 1 - ( x[i] & 0x01 );
         c   |= x[i] & ( x[i-1] * adjust );
         x[i] = x[i] ^ ( x[i-1] * adjust );
         x[i-1] |= adjust << 7;
     }
-
-    /* Finish with the carry */
-    x[i] = c;
-    adjust = 1 - ( x[i] & 0x01 );
-    c   |= x[i] & ( x[i-1] * adjust );
-    x[i] = x[i] ^ ( x[i-1] * adjust );
-    x[i-1] |= adjust << 7;
 }
 
 /*
@@ -1487,9 +1478,12 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
 
     /*
      * Prepare precomputed points: if P == G we want to
-     * use grp->T if already initialized, or initiliaze it.
+     * use grp->T if already initialized, or initialize it.
      */
-    if( ! p_eq_g || grp->T == NULL )
+    if( p_eq_g )
+        T = grp->T;
+
+    if( T == NULL )
     {
         T = (ecp_point *) polarssl_malloc( pre_len * sizeof( ecp_point ) );
         if( T == NULL )
@@ -1507,17 +1501,6 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
         {
             grp->T = T;
             grp->T_size = pre_len;
-        }
-    }
-    else
-    {
-        T = grp->T;
-
-        /* Should never happen, but we want to be extra sure */
-        if( pre_len != grp->T_size )
-        {
-            ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
-            goto cleanup;
         }
     }
 

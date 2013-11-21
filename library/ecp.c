@@ -1449,13 +1449,16 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     /*
      * Sanity checks (before we even initialize anything)
      */
+    if( mpi_cmp_int( &P->Z, 1 ) != 0 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
     if( ( ret = ecp_check_privkey( grp, m ) ) != 0 )
         return( ret );
 
-    /* We'll need this later, but do it now to possibly avoid cheking P */
-    p_eq_g = ( mpi_cmp_int( &P->Z, 1 ) == 0 &&
-               mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
+    /* We'll need this later, but do it now to possibly avoid checking P */
+    p_eq_g = ( mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
                mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
+
     if( ! p_eq_g && ( ret = ecp_check_pubkey( grp, P ) ) != 0 )
         return( ret );
 
@@ -1466,7 +1469,7 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
 
     /*
      * Minimize the number of multiplications, that is minimize
-     * 10 * d * w + 18 * 2^(w-1) + 11 * d + 7 * w
+     * 10 * d * w + 18 * 2^(w-1) + 11 * d + 7 * w, with d = ceil( nbits / w )
      * (see costs of the various parts, with 1S = 1M)
      */
     w = grp->nbits >= 384 ? 5 : 4;
@@ -1479,12 +1482,12 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
         w++;
 
     /*
-     * Make sure w is within limits.
+     * Make sure w is within bounds.
      * (The last test is useful only for very small curves in the test suite.)
      */
     if( w > POLARSSL_ECP_WINDOW_SIZE )
         w = POLARSSL_ECP_WINDOW_SIZE;
-    if( w < 2 || w >= grp->nbits )
+    if( w >= grp->nbits )
         w = 2;
 
     /* Other sizes that depend on w */

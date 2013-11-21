@@ -1354,11 +1354,17 @@ static int ecp_precompute_comb( const ecp_group *grp,
     ecp_normalize_many( grp, TT, k );
 
     /*
-     * Post-precessing: reclaim some memory by not storing Z (always 1)
+     * Post-precessing: reclaim some memory by
+     * - not storing Z (always 1)
+     * - shrinking other coordinates
+     * However keep the same number of limbs as P, which will be useful in
+     * ecp_select_comb()
      */
     for( i = 0; i < ( 1U << (w-1) ); i++ )
     {
         mpi_free( &T[i].Z );
+        mpi_shrink( &T[i].X, grp->P.n );
+        mpi_shrink( &T[i].Y, grp->P.n );
     }
 
 cleanup:

@@ -6,6 +6,7 @@ Changes
 
 Bugfix
    * Fixed X.509 hostname comparison (with non-regular characters)
+   * SSL now gracefully handles missing RNG
 
 = Version 1.2.10 released 2013-10-07
 Changes

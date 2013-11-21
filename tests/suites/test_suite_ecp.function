@@ -115,12 +115,15 @@ void ecp_small_mul( int m_str, int r_zero, int x_r, int y_r, int ret )
 
     TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) == ret );
 
-    if( r_zero )
-        TEST_ASSERT( mpi_cmp_int( &R.Z, 0 ) == 0 );
-    else
+    if( ret == 0 )
     {
-        TEST_ASSERT( mpi_cmp_int( &R.X, x_r ) == 0 );
-        TEST_ASSERT( mpi_cmp_int( &R.Y, y_r ) == 0 );
+        if( r_zero )
+            TEST_ASSERT( mpi_cmp_int( &R.Z, 0 ) == 0 );
+        else
+        {
+            TEST_ASSERT( mpi_cmp_int( &R.X, x_r ) == 0 );
+            TEST_ASSERT( mpi_cmp_int( &R.Y, y_r ) == 0 );
+        }
     }
 
     /* try again with randomization */
@@ -129,12 +132,15 @@ void ecp_small_mul( int m_str, int r_zero, int x_r, int y_r, int ret )
     TEST_ASSERT( ecp_mul( &grp, &R, &m, &grp.G,
                           &rnd_pseudo_rand, &rnd_info ) == ret );
 
-    if( r_zero )
-        TEST_ASSERT( mpi_cmp_int( &R.Z, 0 ) == 0 );
-    else
+    if( ret == 0 )
     {
-        TEST_ASSERT( mpi_cmp_int( &R.X, x_r ) == 0 );
-        TEST_ASSERT( mpi_cmp_int( &R.Y, y_r ) == 0 );
+        if( r_zero )
+            TEST_ASSERT( mpi_cmp_int( &R.Z, 0 ) == 0 );
+        else
+        {
+            TEST_ASSERT( mpi_cmp_int( &R.X, x_r ) == 0 );
+            TEST_ASSERT( mpi_cmp_int( &R.Y, y_r ) == 0 );
+        }
     }
 
     ecp_group_free( &grp );

@@ -1440,20 +1440,23 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     ecp_point Q, *T = NULL, S[2];
     mpi M;
 
-    if( mpi_cmp_int( m, 0 ) < 0 || mpi_msb( m ) > grp->nbits )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    /*
+     * Sanity checks (before we even initialize anything)
+     */
+    if( ( ret = ecp_check_privkey( grp, m ) ) != 0 )
+        return( ret );
+
+    /* We'll need this later, but do it now to possibly avoid cheking P */
+    p_eq_g = ( mpi_cmp_int( &P->Z, 1 ) == 0 &&
+               mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
+               mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
+    if( ! p_eq_g && ( ret = ecp_check_pubkey( grp, P ) ) != 0 )
+        return( ret );
 
     mpi_init( &M );
     ecp_point_init( &Q );
     ecp_point_init( &S[0] );
     ecp_point_init( &S[1] );
-
-    /*
-     * Check if P == G
-     */
-    p_eq_g = ( mpi_cmp_int( &P->Z, 1 ) == 0 &&
-               mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
-               mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
 
     /*
      * Minimize the number of multiplications, that is minimize
@@ -2061,13 +2064,12 @@ int ecp_self_test( int verbose )
     /* exponents especially adapted for secp192r1 */
     const char *exponents[] =
     {
-        "000000000000000000000000000000000000000000000000", /* zero */
         "000000000000000000000000000000000000000000000001", /* one */
-        "FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22831", /* N */
+        "FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22830", /* N - 1 */
         "5EA6F389A38B8BC81E767753B15AA5569E1782E30ABE7D25", /* random */
-        "400000000000000000000000000000000000000000000000",
-        "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
-        "555555555555555555555555555555555555555555555555",
+        "400000000000000000000000000000000000000000000000", /* one and zeros */
+        "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", /* all ones */
+        "555555555555555555555555555555555555555555555555", /* 101010... */
     };
 
     ecp_group_init( &grp );

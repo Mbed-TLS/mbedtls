@@ -459,22 +459,19 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful,
+ *                  POLARSSL_ERR_ECP_INVALID_KEY if m is not a valid privkey
+ *                  or P is not a valid pubkey,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
- *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if m < 0 of m has greater
- *                  bit length than N, the number of points in the group.
  *
  * \note            In order to prevent simple timing attacks, this function
  *                  executes a constant number of operations (that is, point
  *                  doubling and addition of distinct points) for random m in
  *                  the allowed range.
  *
- * \note            If f_rng is not NULL, it is used to randomize projective
- *                  coordinates of indermediate results, in order to prevent
- *                  more elaborate timing attacks relying on intermediate
- *                  operations. (This is a prophylactic measure since no such
- *                  attack has been published yet.) Since this contermeasure
- *                  has very low overhead, it is recommended to always provide
- *                  a non-NULL f_rng parameter when using secret inputs.
+ * \note            If f_rng is not NULL, it is used to randomize intermediate
+ *                  results in order to prevent potential attacks targetting
+ *                  these results. It is recommended to always provide a
+ *                  non-NULL f_rng (the overhead is negligible).
  */
 int ecp_mul( ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P,

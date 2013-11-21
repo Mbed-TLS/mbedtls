@@ -309,6 +309,26 @@ void mpi_shrink( int before, int used, int min, int after )
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_safe_cond_assign( char *x_str, char *y_str )
+{
+    mpi X, Y, XX;
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &XX );
+
+    TEST_ASSERT( mpi_read_string( &X, 16, x_str ) == 0 );
+    TEST_ASSERT( mpi_read_string( &Y, 16, y_str ) == 0 );
+    TEST_ASSERT( mpi_copy( &XX, &X ) == 0 );
+
+    TEST_ASSERT( mpi_safe_cond_assign( &X, &Y, 0 ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &XX ) == 0 );
+
+    TEST_ASSERT( mpi_safe_cond_assign( &X, &Y, 1 ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &Y ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &XX );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_swap( int input_X,  int input_Y )
 {
     mpi X, Y, A;

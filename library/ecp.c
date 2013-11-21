@@ -1353,6 +1353,14 @@ static int ecp_precompute_comb( const ecp_group *grp,
 
     ecp_normalize_many( grp, TT, k );
 
+    /*
+     * Post-precessing: reclaim some memory by not storing Z (always 1)
+     */
+    for( i = 0; i < ( 1U << (w-1) ); i++ )
+    {
+        mpi_free( &T[i].Z );
+    }
+
 cleanup:
     return( ret );
 }
@@ -1367,6 +1375,9 @@ static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
 
     /* Ignore the "sign" bit */
     MPI_CHK( ecp_copy( R, &T[ ( i & 0x7Fu ) >> 1 ] ) );
+
+    /* Restore the Z coordinate */
+    MPI_CHK( mpi_lset( &R->Z, 1 ) );
 
     /*
      * -R = (R.X, -R.Y, R.Z), and

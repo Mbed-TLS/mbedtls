@@ -206,13 +206,22 @@ Test mpi_shrink #8
 mpi_shrink:4:0:0:1
 
 Test mpi_safe_cond_assign #1
-mpi_safe_cond_assign:"01":"02"
+mpi_safe_cond_assign:+1:"01":+1:"02"
 
 Test mpi_safe_cond_assign #2
-mpi_safe_cond_assign:"FF000000000000000001":"02"
+mpi_safe_cond_assign:+1:"FF000000000000000001":+1:"02"
 
 Test mpi_safe_cond_assign #3
-mpi_safe_cond_assign:"01":"FF000000000000000002"
+mpi_safe_cond_assign:+1:"01":+1:"FF000000000000000002"
+
+Test mpi_safe_cond_assign #4
+mpi_safe_cond_assign:+1:"01":-1:"02"
+
+Test mpi_safe_cond_assign #5
+mpi_safe_cond_assign:-1:"01":+1:"02"
+
+Test mpi_safe_cond_assign #6
+mpi_safe_cond_assign:-1:"01":-1:"02"
 
 Base test mpi_add_abs #1
 mpi_add_abs:10:"12345678":10:"642531":10:"12988209"

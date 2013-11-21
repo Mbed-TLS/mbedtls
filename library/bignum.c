@@ -222,6 +222,7 @@ int mpi_safe_cond_assign( mpi *X, mpi *Y, unsigned char assign )
         MPI_CHK( mpi_grow( X, Y->n ) );
 
     /* Do the conditional assign safely */
+    X->s = X->s * (1 - assign) + Y->s * assign;
     for( i = 0; i < X->n; i++ )
         X->p[i] = X->p[i] * (1 - assign) + Y->p[i] * assign;
 

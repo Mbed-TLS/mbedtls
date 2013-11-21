@@ -358,8 +358,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - An unknown cipher was received" );
         if( use_ret == -(POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN) )
             snprintf( buf, buflen, "SSL - The server has no ciphersuites in common with the client" );
-        if( use_ret == -(POLARSSL_ERR_SSL_NO_SESSION_FOUND) )
-            snprintf( buf, buflen, "SSL - No session to recover was found" );
+        if( use_ret == -(POLARSSL_ERR_SSL_NO_RNG) )
+            snprintf( buf, buflen, "SSL - No RNG was provided to the SSL module" );
         if( use_ret == -(POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE) )
             snprintf( buf, buflen, "SSL - No client certification received from the client, but required by the authentication mode" );
         if( use_ret == -(POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE) )

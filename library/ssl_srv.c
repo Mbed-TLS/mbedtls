@@ -1594,6 +1594,12 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write server hello" ) );
 
+    if( ssl->f_rng == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "no RNG provided") );
+        return( POLARSSL_ERR_SSL_NO_RNG );
+    }
+
     /*
      *     0  .   0   handshake type
      *     1  .   3   handshake length

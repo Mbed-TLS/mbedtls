@@ -390,6 +390,12 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
+    if( ssl->f_rng == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "no RNG provided") );
+        return( POLARSSL_ERR_SSL_NO_RNG );
+    }
+
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
     {
         ssl->major_ver = ssl->min_major_ver;

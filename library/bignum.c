@@ -120,6 +120,45 @@ int mpi_grow( mpi *X, size_t nblimbs )
 }
 
 /*
+ * Resize down as much as possible,
+ * while keeping at least the specified number of limbs
+ */
+int mpi_shrink( mpi *X, size_t nblimbs )
+{
+    t_uint *p;
+    size_t i;
+
+    /* Actually resize up in this case */
+    if( X->n <= nblimbs )
+        return( mpi_grow( X, nblimbs ) );
+
+    for( i = X->n - 1; i > 0; i-- )
+        if( X->p[i] != 0 )
+            break;
+    i++;
+
+    if( i < nblimbs )
+        i = nblimbs;
+
+    if( ( p = (t_uint *) polarssl_malloc( i * ciL ) ) == NULL )
+        return( POLARSSL_ERR_MPI_MALLOC_FAILED );
+
+    memset( p, 0, i * ciL );
+
+    if( X->p != NULL )
+    {
+        memcpy( p, X->p, i * ciL );
+        memset( X->p, 0, X->n * ciL );
+        polarssl_free( X->p );
+    }
+
+    X->n = i;
+    X->p = p;
+
+    return( 0 );
+}
+
+/*
  * Copy the contents of Y into X
  */
 int mpi_copy( mpi *X, const mpi *Y )

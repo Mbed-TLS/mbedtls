@@ -202,6 +202,17 @@ void mpi_free( mpi *X );
 int mpi_grow( mpi *X, size_t nblimbs );
 
 /**
+ * \brief          Resize down, keeping at least the specified number of limbs
+ *
+ * \param X        MPI to shrink
+ * \param nblimbs  The minimum number of limbs to keep
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ */
+int mpi_shrink( mpi *X, size_t nblimbs );
+
+/**
  * \brief          Copy the contents of Y into X
  *
  * \param X        Destination MPI

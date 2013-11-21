@@ -293,6 +293,22 @@ void mpi_copy_self( int input_X )
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_shrink( int before, int used, int min, int after )
+{
+    mpi X;
+    mpi_init( &X );
+
+    TEST_ASSERT( mpi_grow( &X, before ) == 0 );
+    TEST_ASSERT( used <= before );
+    memset( X.p, 0x2a, used * sizeof( t_uint ) );
+    TEST_ASSERT( mpi_shrink( &X, min ) == 0 );
+    TEST_ASSERT( X.n == (size_t) after );
+
+    mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_swap( int input_X,  int input_Y )
 {
     mpi X, Y, A;

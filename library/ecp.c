@@ -983,6 +983,31 @@ cleanup:
 }
 
 /*
+ * Conditional point inversion: Q -> -Q = (Q.X, -Q.Y, Q.Z) without leak.
+ * "inv" must be 0 (don't invert) or 1 (invert) or the result will be invalid
+ */
+static int ecp_safe_invert( const ecp_group *grp,
+                            ecp_point *Q,
+                            unsigned char inv )
+{
+    int ret;
+    unsigned char nonzero;
+    mpi mQY;
+
+    mpi_init( &mQY );
+
+    /* Use the fact that -Q.Y mod P = P - Q.Y unless Q.Y == 0 */
+    MPI_CHK( mpi_sub_mpi( &mQY, &grp->P, &Q->Y ) );
+    nonzero = mpi_cmp_int( &Q->Y, 0 ) != 0;
+    MPI_CHK( mpi_safe_cond_assign( &Q->Y, &mQY, inv & nonzero ) );
+
+cleanup:
+    mpi_free( &mQY );
+
+    return( ret );
+}
+
+/*
  * Point doubling R = 2 P, Jacobian coordinates
  *
  * http://www.hyperelliptic.org/EFD/g1p/auto-code/shortw/jacobian/doubling/dbl-2007-bl.op3
@@ -1068,6 +1093,7 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
     /*
      * Trivial cases: P == 0 or Q == 0
      * (Check Q first, so that we know Q != 0 when we compute -Q.)
+     * This will never happen during ecp_mul() so we don't mind the branches.
      */
     if( mpi_cmp_int( &Q->Z, 0 ) == 0 )
         return( ecp_copy( R, P ) );
@@ -1103,6 +1129,7 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
     /*
      * For subtraction, -Q.Y should have been used instead of Q.Y,
      * so we replace T2 by -T2, which is P - T2 mod P
+     * (Again, not used by ecp_mul(), so not worry about the branch.)
      */
     if( sign < 0 )
     {
@@ -1113,6 +1140,7 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
     MPI_CHK( mpi_sub_mpi( &T1,  &T1,    &P->X ) );  MOD_SUB( T1 );
     MPI_CHK( mpi_sub_mpi( &T2,  &T2,    &P->Y ) );  MOD_SUB( T2 );
 
+    /* TODO: make sure it never happens during ecp_mul() */
     if( mpi_cmp_int( &T1, 0 ) == 0 )
     {
         if( mpi_cmp_int( &T2, 0 ) == 0 )
@@ -1353,8 +1381,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
      * Post-precessing: reclaim some memory by
      * - not storing Z (always 1)
      * - shrinking other coordinates
-     * However keep the same number of limbs as P, which will be useful in
-     * ecp_select_comb()
+     * Keep the same number of limbs as P to avoid re-growing on next use.
      */
     for( i = 0; i < ( 1U << (w-1) ); i++ )
     {
@@ -1381,13 +1408,8 @@ static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
     /* Restore the Z coordinate */
     MPI_CHK( mpi_lset( &R->Z, 1 ) );
 
-    /*
-     * -R = (R.X, -R.Y, R.Z), and
-     * -R.Y mod P = P - R.Y unless R.Y == 0
-     */
-    if( ( i & 0x80 ) != 0 )
-        if( mpi_cmp_int( &R->Y, 0 ) != 0 )
-            MPI_CHK( mpi_sub_mpi( &R->Y, &grp->P, &R->Y ) );
+    /* Safely invert result if i is "negative" */
+    MPI_CHK( ecp_safe_invert( grp, R, i >> 7 ) );
 
 cleanup:
     return( ret );

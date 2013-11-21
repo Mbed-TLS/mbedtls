@@ -246,7 +246,8 @@ void mpi_swap( mpi *X, mpi *Y );
  *                      if( assign ) mpi_copy( X, Y );
  *                 except that it avoids leaking any information about whether
  *                 the assignment was done or not (the above code may leak
- *                 information through branch prediction analysis).
+ *                 information through branch prediction and/or memory access
+ *                 patterns analysis).
  */
 int mpi_safe_cond_assign( mpi *X, mpi *Y, unsigned char assign );
 

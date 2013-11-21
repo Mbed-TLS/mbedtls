@@ -463,15 +463,15 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  *                  or P is not a valid pubkey,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
  *
- * \note            In order to prevent simple timing attacks, this function
- *                  executes a constant number of operations (that is, point
- *                  doubling and addition of distinct points) for random m in
- *                  the allowed range.
+ * \note            In order to prevent timing attacks, this function
+ *                  executes the exact same sequence of (base field)
+ *                  operations for any valid m. It avoids any if-branch or
+ *                  array index depending on the value of m.
  *
  * \note            If f_rng is not NULL, it is used to randomize intermediate
- *                  results in order to prevent potential attacks targetting
- *                  these results. It is recommended to always provide a
- *                  non-NULL f_rng (the overhead is negligible).
+ *                  results in order to prevent potential timing attacks
+ *                  targetting these results. It is recommended to always
+ *                  provide a non-NULL f_rng (the overhead is negligible).
  */
 int ecp_mul( ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P,

@@ -1385,14 +1385,23 @@ cleanup:
  * Select precomputed point: R = sign(i) * T[ abs(i) / 2 ]
  */
 static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
-                            const ecp_point T[], unsigned char i )
+                            ecp_point T[], unsigned char t_len,
+                            unsigned char i )
 {
     int ret;
+    unsigned char ii, j;
 
-    /* Ignore the "sign" bit */
-    MPI_CHK( ecp_copy( R, &T[ ( i & 0x7Fu ) >> 1 ] ) );
+    /* Ignore the "sign" bit and scale down */
+    ii =  ( i & 0x7Fu ) >> 1;
 
-    /* Restore the Z coordinate */
+    /* Read the whole table to thwart cache-based timing attacks */
+    for( j = 0; j < t_len; j++ )
+    {
+        MPI_CHK( mpi_safe_cond_assign( &R->X, &T[j].X, j == ii ) );
+        MPI_CHK( mpi_safe_cond_assign( &R->Y, &T[j].Y, j == ii ) );
+    }
+
+    /* The Z coordinate is always 1 */
     MPI_CHK( mpi_lset( &R->Z, 1 ) );
 
     /* Safely invert result if i is "negative" */
@@ -1409,7 +1418,7 @@ cleanup:
  * Cost: d A + d D + 1 R
  */
 static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
-                              const ecp_point T[],
+                              ecp_point T[], unsigned char t_len,
                               const unsigned char x[], size_t d,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng )
@@ -1422,14 +1431,14 @@ static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
 
     /* Start with a non-zero point and randomize its coordinates */
     i = d;
-    MPI_CHK( ecp_select_comb( grp, R, T, x[i] ) );
+    MPI_CHK( ecp_select_comb( grp, R, T, t_len, x[i] ) );
     if( f_rng != 0 )
         MPI_CHK( ecp_randomize_coordinates( grp, R, f_rng, p_rng ) );
 
     while( i-- != 0 )
     {
         MPI_CHK( ecp_double_jac( grp, R, R ) );
-        MPI_CHK( ecp_select_comb( grp, &Txi, T, x[i] ) );
+        MPI_CHK( ecp_select_comb( grp, &Txi, T, t_len, x[i] ) );
         MPI_CHK( ecp_add_mixed( grp, R, R, &Txi ) );
     }
 
@@ -1447,8 +1456,8 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
-    unsigned char w, m_is_odd, p_eq_g;
-    size_t pre_len, d, i;
+    unsigned char w, m_is_odd, p_eq_g, pre_len, i;
+    size_t d;
     unsigned char k[COMB_MAX_D + 1];
     ecp_point *T;
     mpi M, mm;
@@ -1542,7 +1551,7 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
      * Go for comb multiplication, R = M * P
      */
     ecp_comb_fixed( k, d, w, &M );
-    ecp_mul_comb_core( grp, R, T, k, d, f_rng, p_rng );
+    MPI_CHK( ecp_mul_comb_core( grp, R, T, pre_len, k, d, f_rng, p_rng ) );
 
     /*
      * Now get m * P from M * P and normalize it

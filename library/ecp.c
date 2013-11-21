@@ -1072,6 +1072,14 @@ cleanup:
  * The coordinates of Q must be normalized (= affine),
  * but those of P don't need to. R is not normalized.
  *
+ * Special cases: (1) P or Q is zero, (2) R is zero, (3) P == Q.
+ * None of these cases can happen as intermediate step in ecp_mul():
+ * - at each step, P, Q and R are multiples of the base point, the factor
+ *   being less than its order, so none of them is zero;
+ * - Q is an odd multiple of the base point, P an even multiple,
+ *   due to the choice of precomputed points in the modified comb method.
+ * So branches for these cases do not leak secret information.
+ *
  * Cost: 1A := 8M + 3S
  */
 static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
@@ -1085,8 +1093,7 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
 #endif
 
     /*
-     * Trivial cases: P == 0 or Q == 0
-     * This will never happen during ecp_mul() so we don't mind the branches.
+     * Trivial cases: P == 0 or Q == 0 (case 1)
      */
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
         return( ecp_copy( R, Q ) );
@@ -1110,7 +1117,7 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
     MPI_CHK( mpi_sub_mpi( &T1,  &T1,    &P->X ) );  MOD_SUB( T1 );
     MPI_CHK( mpi_sub_mpi( &T2,  &T2,    &P->Y ) );  MOD_SUB( T2 );
 
-    /* TODO: make sure it never happens during ecp_mul() */
+    /* Special cases (2) and (3) */
     if( mpi_cmp_int( &T1, 0 ) == 0 )
     {
         if( mpi_cmp_int( &T2, 0 ) == 0 )
@@ -1443,14 +1450,17 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     unsigned char w, m_is_odd, p_eq_g;
     size_t pre_len, d, i;
     unsigned char k[COMB_MAX_D + 1];
-    ecp_point Q, *T = NULL, S[2];
-    mpi M;
+    ecp_point *T;
+    mpi M, mm;
 
     /*
      * Sanity checks (before we even initialize anything)
      */
-    if( mpi_cmp_int( &P->Z, 1 ) != 0 )
+    if( mpi_cmp_int( &P->Z, 1 ) != 0 ||
+        mpi_get_bit( &grp->N, 0 ) != 1 )
+    {
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    }
 
     if( ( ret = ecp_check_privkey( grp, m ) ) != 0 )
         return( ret );
@@ -1463,9 +1473,7 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
         return( ret );
 
     mpi_init( &M );
-    ecp_point_init( &Q );
-    ecp_point_init( &S[0] );
-    ecp_point_init( &S[1] );
+    mpi_init( &mm );
 
     /*
      * Minimize the number of multiplications, that is minimize
@@ -1498,8 +1506,7 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
      * Prepare precomputed points: if P == G we want to
      * use grp->T if already initialized, or initialize it.
      */
-    if( p_eq_g )
-        T = grp->T;
+    T = p_eq_g ? grp->T : NULL;
 
     if( T == NULL )
     {
@@ -1523,26 +1530,25 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     }
 
     /*
-     * Make sure M is odd (M = m + 1 or M = m + 2)
-     * later we'll get m * P by subtracting P or 2 * P to M * P.
+     * Make sure M is odd (M = m or M = N - m, since N is odd)
+     * using the fact that m * P = - (N - m) * P
      */
     m_is_odd = ( mpi_get_bit( m, 0 ) == 1 );
-
     MPI_CHK( mpi_copy( &M, m ) );
-    MPI_CHK( mpi_add_int( &M, &M, 1 + m_is_odd ) );
+    MPI_CHK( mpi_sub_mpi( &mm, &grp->N, m ) );
+    MPI_CHK( mpi_safe_cond_assign( &M, &mm, ! m_is_odd ) );
 
     /*
-     * Go for comb multiplication, Q = M * P
+     * Go for comb multiplication, R = M * P
      */
     ecp_comb_fixed( k, d, w, &M );
-    ecp_mul_comb_core( grp, &Q, T, k, d, f_rng, p_rng );
+    ecp_mul_comb_core( grp, R, T, k, d, f_rng, p_rng );
 
     /*
-     * Now get m * P from M * P
+     * Now get m * P from M * P and normalize it
      */
-    MPI_CHK( ecp_copy( &S[0], P ) );
-    MPI_CHK( ecp_add( grp, &S[1], P, P ) );
-    MPI_CHK( ecp_sub( grp, R, &Q, &S[m_is_odd] ) );
+    MPI_CHK( ecp_safe_invert( grp, R, ! m_is_odd ) );
+    MPI_CHK( ecp_normalize( grp, R ) );
 
 cleanup:
 
@@ -1553,10 +1559,11 @@ cleanup:
         polarssl_free( T );
     }
 
-    ecp_point_free( &S[1] );
-    ecp_point_free( &S[0] );
-    ecp_point_free( &Q );
     mpi_free( &M );
+    mpi_free( &mm );
+
+    if( ret != 0 )
+        ecp_point_free( R );
 
     return( ret );
 }

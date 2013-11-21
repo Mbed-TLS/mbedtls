@@ -68,10 +68,10 @@
 
 #if defined(POLARSSL_SELF_TEST)
 /*
- * Counts of point addition and doubling operations.
+ * Counts of point addition and doubling, and field multiplications.
  * Used to test resistance of point multiplication to simple timing attacks.
  */
-unsigned long add_count, dbl_count;
+unsigned long add_count, dbl_count, mul_count;
 #endif
 
 /*
@@ -843,7 +843,14 @@ cleanup:
 /*
  * Reduce a mpi mod p in-place, general case, to use after mpi_mul_mpi
  */
-#define MOD_MUL( N )    MPI_CHK( ecp_modp( &N, grp ) )
+#if defined(POLARSSL_SELF_TEST)
+#define INC_MUL_COUNT   mul_count++;
+#else
+#define INC_MUL_COUNT
+#endif
+
+#define MOD_MUL( N )    do { MPI_CHK( ecp_modp( &N, grp ) ); INC_MUL_COUNT } \
+                        while( 0 )
 
 /*
  * Reduce a mpi mod p in-place, to use after mpi_sub_mpi
@@ -2077,7 +2084,7 @@ int ecp_self_test( int verbose )
     ecp_group grp;
     ecp_point R, P;
     mpi m;
-    unsigned long add_c_prev, dbl_c_prev;
+    unsigned long add_c_prev, dbl_c_prev, mul_c_prev;
     /* exponents especially adapted for secp192r1 */
     const char *exponents[] =
     {
@@ -2110,6 +2117,7 @@ int ecp_self_test( int verbose )
 
     add_count = 0;
     dbl_count = 0;
+    mul_count = 0;
     MPI_CHK( mpi_read_string( &m, 16, exponents[0] ) );
     MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) );
 
@@ -2117,13 +2125,17 @@ int ecp_self_test( int verbose )
     {
         add_c_prev = add_count;
         dbl_c_prev = dbl_count;
+        mul_c_prev = mul_count;
         add_count = 0;
         dbl_count = 0;
+        mul_count = 0;
 
         MPI_CHK( mpi_read_string( &m, 16, exponents[i] ) );
         MPI_CHK( ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) );
 
-        if( add_count != add_c_prev || dbl_count != dbl_c_prev )
+        if( add_count != add_c_prev ||
+            dbl_count != dbl_c_prev ||
+            mul_count != mul_c_prev )
         {
             if( verbose != 0 )
                 printf( "failed (%zu)\n", i );
@@ -2142,6 +2154,7 @@ int ecp_self_test( int verbose )
 
     add_count = 0;
     dbl_count = 0;
+    mul_count = 0;
     MPI_CHK( mpi_read_string( &m, 16, exponents[0] ) );
     MPI_CHK( ecp_mul( &grp, &R, &m, &P, NULL, NULL ) );
 
@@ -2149,13 +2162,17 @@ int ecp_self_test( int verbose )
     {
         add_c_prev = add_count;
         dbl_c_prev = dbl_count;
+        mul_c_prev = mul_count;
         add_count = 0;
         dbl_count = 0;
+        mul_count = 0;
 
         MPI_CHK( mpi_read_string( &m, 16, exponents[i] ) );
         MPI_CHK( ecp_mul( &grp, &R, &m, &P, NULL, NULL ) );
 
-        if( add_count != add_c_prev || dbl_count != dbl_c_prev )
+        if( add_count != add_c_prev ||
+            dbl_count != dbl_c_prev ||
+            mul_count != mul_c_prev )
         {
             if( verbose != 0 )
                 printf( "failed (%zu)\n", i );

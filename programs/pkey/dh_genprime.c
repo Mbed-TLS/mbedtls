@@ -74,6 +74,8 @@ int main( int argc, char *argv[] )
     printf( "         predefined DHM parameters from dhm.h instead!\n\n" );
     printf( "============================================================\n\n" );
 
+    printf( "  ! Generating large primes may take minutes!\n" );
+
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 

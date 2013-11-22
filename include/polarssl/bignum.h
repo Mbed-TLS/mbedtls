@@ -653,7 +653,7 @@ int mpi_inv_mod( mpi *X, const mpi *A, const mpi *N );
  *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
  *                 POLARSSL_ERR_MPI_NOT_ACCEPTABLE if X is not prime
  */
-int mpi_is_prime( mpi *X,
+int mpi_is_prime( const mpi *X,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng );
 

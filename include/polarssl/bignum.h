@@ -58,7 +58,7 @@ typedef UINT64 uint64_t;
 #define POLARSSL_ERR_MPI_NOT_ACCEPTABLE                    -0x000E  /**< The input arguments are not acceptable. */
 #define POLARSSL_ERR_MPI_MALLOC_FAILED                     -0x0010  /**< Memory allocation failed. */
 
-#define MPI_CHK(f) if( ( ret = f ) != 0 ) goto cleanup
+#define MPI_CHK(f) do { if( ( ret = f ) != 0 ) goto cleanup; } while( 0 )
 
 /*
  * Maximum size MPIs are allowed to grow to in number of limbs.

@@ -1923,6 +1923,7 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
 {
     int ret;
     size_t k, n;
+    t_uint r;
     mpi Y;
 
     if( nbits < 3 || nbits > POLARSSL_MPI_MAX_BITS )
@@ -1952,7 +1953,19 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
     }
     else
     {
-        MPI_CHK( mpi_sub_int( &Y, X, 1 ) );
+        /*
+         * An necessary condition for Y and X = 2Y + 1 to be prime
+         * is X = 2 mod 3 (which is equivalent to Y = 2 mod 3).
+         * Make sure it is satisfied, while keeping X = 3 mod 4
+         */
+        MPI_CHK( mpi_mod_int( &r, X, 3 ) );
+        if( r == 0 )
+            MPI_CHK( mpi_add_int( X, X, 8 ) );
+        else if( r == 1 )
+            MPI_CHK( mpi_add_int( X, X, 4 ) );
+
+        /* Set Y = (X-1) / 2, which is X / 2 because X is odd */
+        MPI_CHK( mpi_copy( &Y, X ) );
         MPI_CHK( mpi_shift_r( &Y, 1 ) );
 
         while( 1 )
@@ -1969,9 +1982,13 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
             if( ret != POLARSSL_ERR_MPI_NOT_ACCEPTABLE )
                 goto cleanup;
 
-            /* Keep X = 3 mod 4 */
-            MPI_CHK( mpi_add_int(  X,  X, 4 ) );
-            MPI_CHK( mpi_add_int( &Y, &Y, 2 ) );
+            /*
+             * Next candidates. We want to preserve
+             * Y = 1 mod 2 and Y = 2 mod 3 (eq X = 3 mod 4 and X = 2 mod 3)
+             * so up Y by 6 and X by 12.
+             */
+            MPI_CHK( mpi_add_int(  X,  X, 12 ) );
+            MPI_CHK( mpi_add_int( &Y, &Y, 6  ) );
         }
     }
 

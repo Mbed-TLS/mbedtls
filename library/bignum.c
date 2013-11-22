@@ -1969,9 +1969,9 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
             if( ret != POLARSSL_ERR_MPI_NOT_ACCEPTABLE )
                 goto cleanup;
 
-            MPI_CHK( mpi_add_int( &Y, X, 1 ) );
-            MPI_CHK( mpi_add_int(  X, X, 2 ) );
-            MPI_CHK( mpi_shift_r( &Y, 1 ) );
+            /* Keep X = 3 mod 4 */
+            MPI_CHK( mpi_add_int(  X,  X, 4 ) );
+            MPI_CHK( mpi_add_int( &Y, &Y, 2 ) );
         }
     }
 

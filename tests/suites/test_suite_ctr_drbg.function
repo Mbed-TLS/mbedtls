@@ -1,7 +1,7 @@
 /* BEGIN_HEADER */
 #include <polarssl/ctr_drbg.h>
 
-int test_offset;
+extern int test_offset;
 int entropy_func( void *data, unsigned char *buf, size_t len )
 {
     unsigned char *p = (unsigned char *) data;

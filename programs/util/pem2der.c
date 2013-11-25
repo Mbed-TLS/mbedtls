@@ -50,8 +50,8 @@ int main( int argc, char *argv[] )
  */
 struct options
 {
-    char *filename;             /* filename of the input file             */
-    char *output_file;          /* where to store the output              */
+    const char *filename;       /* filename of the input file             */
+    const char *output_file;    /* where to store the output              */
 } opt;
 
 int convert_pem_to_der( const unsigned char *input, size_t ilen,
@@ -61,11 +61,11 @@ int convert_pem_to_der( const unsigned char *input, size_t ilen,
     const unsigned char *s1, *s2, *end = input + ilen;
     size_t len = 0;
 
-    s1 = (unsigned char *) strstr( (char *) input, "-----BEGIN" );
+    s1 = (unsigned char *) strstr( (const char *) input, "-----BEGIN" );
     if( s1 == NULL )
         return( -1 );
 
-    s2 = (unsigned char *) strstr( (char *) input, "-----END" );
+    s2 = (unsigned char *) strstr( (const char *) input, "-----END" );
     if( s2 == NULL )
         return( -1 );
 

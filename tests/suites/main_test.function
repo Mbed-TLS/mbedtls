@@ -6,7 +6,7 @@ static int test_errors = 0;
 SUITE_PRE_DEP
 #define TEST_SUITE_ACTIVE
 
-static int test_assert( int correct, char *test )
+static int test_assert( int correct, const char *test )
 {
     if( correct )
         return( 0 );

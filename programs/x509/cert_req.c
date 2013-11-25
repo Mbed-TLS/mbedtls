@@ -62,15 +62,15 @@ int main( int argc, char *argv[] )
  */
 struct options
 {
-    char *filename;             /* filename of the key file             */
+    const char *filename;       /* filename of the key file             */
     int debug_level;            /* level of debugging                   */
-    char *output_file;          /* where to store the constructed key file  */
-    char *subject_name;         /* subject name for certificate request */
+    const char *output_file;    /* where to store the constructed key file  */
+    const char *subject_name;   /* subject name for certificate request */
     unsigned char key_usage;    /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
 
-int write_certificate_request( x509write_csr *req, char *output_file,
+int write_certificate_request( x509write_csr *req, const char *output_file,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng )
 {

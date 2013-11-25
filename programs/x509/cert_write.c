@@ -75,18 +75,18 @@ int main( int argc, char *argv[] )
  */
 struct options
 {
-    char *issuer_crt;           /* filename of the issuer certificate   */
-    char *request_file;         /* filename of the certificate request  */
-    char *subject_key;          /* filename of the subject key file     */
-    char *issuer_key;           /* filename of the issuer key file      */
-    char *subject_pwd;          /* password for the subject key file    */
-    char *issuer_pwd;           /* password for the issuer key file     */
-    char *output_file;          /* where to store the constructed key file  */
-    char *subject_name;         /* subject name for certificate         */
-    char *issuer_name;          /* issuer name for certificate          */
-    char *not_before;           /* validity period not before           */
-    char *not_after;            /* validity period not after            */
-    char *serial;               /* serial number string                 */
+    const char *issuer_crt;     /* filename of the issuer certificate   */
+    const char *request_file;   /* filename of the certificate request  */
+    const char *subject_key;    /* filename of the subject key file     */
+    const char *issuer_key;     /* filename of the issuer key file      */
+    const char *subject_pwd;    /* password for the subject key file    */
+    const char *issuer_pwd;     /* password for the issuer key file     */
+    const char *output_file;    /* where to store the constructed key file  */
+    const char *subject_name;   /* subject name for certificate         */
+    const char *issuer_name;    /* issuer name for certificate          */
+    const char *not_before;     /* validity period not before           */
+    const char *not_after;      /* validity period not after            */
+    const char *serial;         /* serial number string                 */
     int selfsign;               /* selfsign the certificate             */
     int is_ca;                  /* is a CA certificate                  */
     int max_pathlen;            /* maximum CA path length               */
@@ -94,7 +94,7 @@ struct options
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
 
-int write_certificate( x509write_cert *crt, char *output_file,
+int write_certificate( x509write_cert *crt, const char *output_file,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng )
 {

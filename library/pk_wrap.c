@@ -57,7 +57,7 @@ static int rsa_can_do( pk_type_t type )
 #if defined(POLARSSL_RSA_C)
 static size_t rsa_get_size( const void *ctx )
 {
-    return( 8 * ((rsa_context *) ctx)->len );
+    return( 8 * ((const rsa_context *) ctx)->len );
 }
 
 static int rsa_verify_wrap( void *ctx, md_type_t md_alg,
@@ -346,7 +346,7 @@ const pk_info_t ecdsa_info = {
 
 static size_t rsa_alt_get_size( const void *ctx )
 {
-    rsa_alt_context *rsa_alt = (rsa_alt_context *) ctx;
+    const rsa_alt_context *rsa_alt = (const rsa_alt_context *) ctx;
 
     return( rsa_alt->key_len_func( rsa_alt->key ) );
 }

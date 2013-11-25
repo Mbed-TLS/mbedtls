@@ -60,7 +60,7 @@ int main( int argc, char *argv[] )
 #else
 
 #if defined(VERBOSE)
-static void dump_buf( char *title, unsigned char *buf, size_t len )
+static void dump_buf( const char *title, unsigned char *buf, size_t len )
 {
     size_t i;
 
@@ -71,7 +71,7 @@ static void dump_buf( char *title, unsigned char *buf, size_t len )
     printf( "\n" );
 }
 
-static void dump_pubkey( char *title, ecdsa_context *key )
+static void dump_pubkey( const char *title, ecdsa_context *key )
 {
     unsigned char buf[300];
     size_t len;

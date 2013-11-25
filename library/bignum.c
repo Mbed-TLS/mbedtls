@@ -1797,46 +1797,51 @@ static const int small_prime[] =
 };
 
 /*
- * Miller-Rabin primality test  (HAC 4.24)
+ * Small divisors test (X must be positive)
+ *
+ * Return values:
+ * 0: no small factor (possible prime, more tests needed)
+ * 1: certain prime
+ * POLARSSL_ERR_MPI_NOT_ACCEPTABLE: certain non-prime
+ * other negative: error
  */
-int mpi_is_prime( mpi *X,
-                  int (*f_rng)(void *, unsigned char *, size_t),
-                  void *p_rng )
+static int mpi_check_small_factors( const mpi *X )
 {
-    int ret, xs;
-    size_t i, j, n, s;
-    mpi W, R, T, A, RR;
+    int ret = 0;
+    size_t i;
+    t_uint r;
 
-    if( mpi_cmp_int( X, 0 ) == 0 ||
-        mpi_cmp_int( X, 1 ) == 0 )
-        return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
-
-    if( mpi_cmp_int( X, 2 ) == 0 )
-        return( 0 );
-
-    mpi_init( &W ); mpi_init( &R ); mpi_init( &T ); mpi_init( &A );
-    mpi_init( &RR );
-
-    xs = X->s; X->s = 1;
-
-    /*
-     * test trivial factors first
-     */
     if( ( X->p[0] & 1 ) == 0 )
         return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
 
     for( i = 0; small_prime[i] > 0; i++ )
     {
-        t_uint r;
-
         if( mpi_cmp_int( X, small_prime[i] ) <= 0 )
-            return( 0 );
+            return( 1 );
 
         MPI_CHK( mpi_mod_int( &r, X, small_prime[i] ) );
 
         if( r == 0 )
             return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
     }
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Miller-Rabin pseudo-primality test  (HAC 4.24)
+ */
+static int mpi_miller_rabin( const mpi *X,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    int ret;
+    size_t i, j, n, s;
+    mpi W, R, T, A, RR;
+
+    mpi_init( &W ); mpi_init( &R ); mpi_init( &T ); mpi_init( &A );
+    mpi_init( &RR );
 
     /*
      * W = |X| - 1
@@ -1905,13 +1910,38 @@ int mpi_is_prime( mpi *X,
     }
 
 cleanup:
-
-    X->s = xs;
-
     mpi_free( &W ); mpi_free( &R ); mpi_free( &T ); mpi_free( &A );
     mpi_free( &RR );
 
     return( ret );
+}
+
+/*
+ * Pseudo-primality test: small factors, then Miller-Rabin
+ */
+int mpi_is_prime( mpi *X,
+                  int (*f_rng)(void *, unsigned char *, size_t),
+                  void *p_rng )
+{
+    int ret;
+    const mpi XX = { 1, X->n, X->p }; /* Abs(X) */
+
+    if( mpi_cmp_int( &XX, 0 ) == 0 ||
+        mpi_cmp_int( &XX, 1 ) == 0 )
+        return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
+
+    if( mpi_cmp_int( &XX, 2 ) == 0 )
+        return( 0 );
+
+    if( ( ret = mpi_check_small_factors( &XX ) ) != 0 )
+    {
+        if( ret == 1 )
+            return( 0 );
+
+        return( ret );
+    }
+
+    return( mpi_miller_rabin( &XX, f_rng, p_rng ) );
 }
 
 /*
@@ -1923,6 +1953,7 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
 {
     int ret;
     size_t k, n;
+    t_uint r;
     mpi Y;
 
     if( nbits < 3 || nbits > POLARSSL_MPI_MAX_BITS )
@@ -1952,26 +1983,45 @@ int mpi_gen_prime( mpi *X, size_t nbits, int dh_flag,
     }
     else
     {
-        MPI_CHK( mpi_sub_int( &Y, X, 1 ) );
+        /*
+         * An necessary condition for Y and X = 2Y + 1 to be prime
+         * is X = 2 mod 3 (which is equivalent to Y = 2 mod 3).
+         * Make sure it is satisfied, while keeping X = 3 mod 4
+         */
+        MPI_CHK( mpi_mod_int( &r, X, 3 ) );
+        if( r == 0 )
+            MPI_CHK( mpi_add_int( X, X, 8 ) );
+        else if( r == 1 )
+            MPI_CHK( mpi_add_int( X, X, 4 ) );
+
+        /* Set Y = (X-1) / 2, which is X / 2 because X is odd */
+        MPI_CHK( mpi_copy( &Y, X ) );
         MPI_CHK( mpi_shift_r( &Y, 1 ) );
 
         while( 1 )
         {
-            if( ( ret = mpi_is_prime( X, f_rng, p_rng ) ) == 0 )
+            /*
+             * First, check small factors for X and Y
+             * before doing Miller-Rabin on any of them
+             */
+            if( ( ret = mpi_check_small_factors(  X         ) ) == 0 &&
+                ( ret = mpi_check_small_factors( &Y         ) ) == 0 &&
+                ( ret = mpi_miller_rabin(  X, f_rng, p_rng  ) ) == 0 &&
+                ( ret = mpi_miller_rabin( &Y, f_rng, p_rng  ) ) == 0 )
             {
-                if( ( ret = mpi_is_prime( &Y, f_rng, p_rng ) ) == 0 )
-                    break;
-
-                if( ret != POLARSSL_ERR_MPI_NOT_ACCEPTABLE )
-                    goto cleanup;
+                break;
             }
 
             if( ret != POLARSSL_ERR_MPI_NOT_ACCEPTABLE )
                 goto cleanup;
 
-            MPI_CHK( mpi_add_int( &Y, X, 1 ) );
-            MPI_CHK( mpi_add_int(  X, X, 2 ) );
-            MPI_CHK( mpi_shift_r( &Y, 1 ) );
+            /*
+             * Next candidates. We want to preserve Y = (X-1) / 2 and
+             * Y = 1 mod 2 and Y = 2 mod 3 (eq X = 3 mod 4 and X = 2 mod 3)
+             * so up Y by 6 and X by 12.
+             */
+            MPI_CHK( mpi_add_int(  X,  X, 12 ) );
+            MPI_CHK( mpi_add_int( &Y, &Y, 6  ) );
         }
     }
 

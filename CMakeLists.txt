@@ -7,6 +7,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
   set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 -fprofile-arcs -ftest-coverage -lgcov")
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement -Wlogical-op -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations")
+  set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement -Wlogical-op -Wcast-qual -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations")
 endif(CMAKE_COMPILER_IS_GNUCC)
  
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")

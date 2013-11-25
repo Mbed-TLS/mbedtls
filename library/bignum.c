@@ -206,8 +206,10 @@ void mpi_swap( mpi *X, mpi *Y )
 
 /*
  * Conditionally assign X = Y, without leaking information
+ * about whether the assignment was made or not.
+ * (Leaking information about the respective sizes of X and Y is ok however.)
  */
-int mpi_safe_cond_assign( mpi *X, mpi *Y, unsigned char assign )
+int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign )
 {
     int ret = 0;
     size_t i;
@@ -215,16 +217,15 @@ int mpi_safe_cond_assign( mpi *X, mpi *Y, unsigned char assign )
     if( assign * ( 1 - assign ) != 0 )
         return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
-    /* Make sure both MPIs have the same size */
-    if( X->n > Y->n )
-        MPI_CHK( mpi_grow( Y, X->n ) );
     if( Y->n > X->n )
         MPI_CHK( mpi_grow( X, Y->n ) );
 
     /* Do the conditional assign safely */
     X->s = X->s * (1 - assign) + Y->s * assign;
-    for( i = 0; i < X->n; i++ )
+    for( i = 0; i < Y->n; i++ )
         X->p[i] = X->p[i] * (1 - assign) + Y->p[i] * assign;
+    for( ; i < X->n; i++ )
+        X->p[i] *= (1 - assign);
 
 cleanup:
     return( ret );

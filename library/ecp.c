@@ -1392,7 +1392,7 @@ cleanup:
  * Select precomputed point: R = sign(i) * T[ abs(i) / 2 ]
  */
 static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
-                            ecp_point T[], unsigned char t_len,
+                            const ecp_point T[], unsigned char t_len,
                             unsigned char i )
 {
     int ret;
@@ -1425,7 +1425,7 @@ cleanup:
  * Cost: d A + d D + 1 R
  */
 static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
-                              ecp_point T[], unsigned char t_len,
+                              const ecp_point T[], unsigned char t_len,
                               const unsigned char x[], size_t d,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng )

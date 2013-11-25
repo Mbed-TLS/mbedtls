@@ -249,7 +249,7 @@ void mpi_swap( mpi *X, mpi *Y );
  *                 information through branch prediction and/or memory access
  *                 patterns analysis).
  */
-int mpi_safe_cond_assign( mpi *X, mpi *Y, unsigned char assign );
+int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign );
 
 /**
  * \brief          Set value from integer

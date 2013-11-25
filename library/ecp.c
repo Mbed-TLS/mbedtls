@@ -1781,17 +1781,17 @@ cleanup:
                               ( N->p[4*j+1] << 8  ) |  \
                               ( N->p[4*j+2] << 16 ) |  \
                               ( N->p[4*j+3] << 24 )
-#define STORE32     N->p[4*i+0] = (uint8_t)( cur       );   \
-                    N->p[4*i+1] = (uint8_t)( cur >> 8  );   \
-                    N->p[4*i+2] = (uint8_t)( cur >> 16 );   \
-                    N->p[4*i+3] = (uint8_t)( cur >> 24 );
+#define STORE32     N->p[4*i+0] = (t_uint)( cur       );   \
+                    N->p[4*i+1] = (t_uint)( cur >> 8  );   \
+                    N->p[4*i+2] = (t_uint)( cur >> 16 );   \
+                    N->p[4*i+3] = (t_uint)( cur >> 24 );
 
 #elif defined(POLARSSL_HAVE_INT16)  /* 16 bit */
 
 #define MAX32       N->n / 2
 #define A( j )      (uint32_t)( N->p[2*j] ) | ( N->p[2*j+1] << 16 )
-#define STORE32     N->p[2*i+0] = (uint16_t)( cur       );  \
-                    N->p[2*i+1] = (uint16_t)( cur >> 16 );
+#define STORE32     N->p[2*i+0] = (t_uint)( cur       );  \
+                    N->p[2*i+1] = (t_uint)( cur >> 16 );
 
 #elif defined(POLARSSL_HAVE_INT32)  /* 32 bit */
 
@@ -1806,10 +1806,10 @@ cleanup:
 #define STORE32                                   \
     if( i % 2 ) {                                 \
         N->p[i/2] &= 0x00000000FFFFFFFF;          \
-        N->p[i/2] |= ((uint64_t) cur) << 32;      \
+        N->p[i/2] |= ((t_uint) cur) << 32;        \
     } else {                                      \
         N->p[i/2] &= 0xFFFFFFFF00000000;          \
-        N->p[i/2] |= (uint64_t) cur;              \
+        N->p[i/2] |= (t_uint) cur;                \
     }
 
 #endif /* sizeof( t_uint ) */

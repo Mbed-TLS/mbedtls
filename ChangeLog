@@ -7,6 +7,7 @@ Changes
 Bugfix
    * Fixed X.509 hostname comparison (with non-regular characters)
    * SSL now gracefully handles missing RNG
+   * crypt_and_hash app checks MAC before final decryption
 
 = Version 1.2.10 released 2013-10-07
 Changes

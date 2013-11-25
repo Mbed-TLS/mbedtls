@@ -454,17 +454,6 @@ int main( int argc, char *argv[] )
         }
 
         /*
-         * Write the final block of data
-         */
-        cipher_finish( &cipher_ctx, output, &olen );
-
-        if( fwrite( output, 1, olen, fout ) != olen )
-        {
-            fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
-            goto exit;
-        }
-
-        /*
          * Verify the message authentication code.
          */
         md_hmac_finish( &md_ctx, digest );
@@ -484,6 +473,17 @@ int main( int argc, char *argv[] )
         {
             fprintf( stderr, "HMAC check failed: wrong key, "
                              "or file corrupted.\n" );
+            goto exit;
+        }
+
+        /*
+         * Write the final block of data
+         */
+        cipher_finish( &cipher_ctx, output, &olen );
+
+        if( fwrite( output, 1, olen, fout ) != olen )
+        {
+            fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
             goto exit;
         }
     }

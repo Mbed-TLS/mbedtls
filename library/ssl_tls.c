@@ -2315,6 +2315,7 @@ int ssl_send_alert_message( ssl_context *ssl,
  * Handshake functions
  */
 #if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
+    !defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)   && \
     !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
@@ -2487,7 +2488,8 @@ int ssl_parse_certificate( ssl_context *ssl )
     }
 
     if( ssl->endpoint == SSL_IS_SERVER &&
-        ssl->authmode == SSL_VERIFY_NONE )
+        ( ssl->authmode == SSL_VERIFY_NONE ||
+          ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ) )
     {
         ssl->session_negotiate->verify_result = BADCERT_SKIP_VERIFY;
         SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );

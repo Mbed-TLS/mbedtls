@@ -1988,6 +1988,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
@@ -2013,6 +2014,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {

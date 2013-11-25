@@ -1777,6 +1777,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
@@ -1803,6 +1804,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     ssl->state++;
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK ||
         ssl->authmode == SSL_VERIFY_NONE )
@@ -2689,6 +2691,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
@@ -2717,6 +2720,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {

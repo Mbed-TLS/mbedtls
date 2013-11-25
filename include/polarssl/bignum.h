@@ -506,8 +506,9 @@ int mpi_mul_mpi( mpi *X, const mpi *A, const mpi *B );
 
 /**
  * \brief          Baseline multiplication: X = A * b
- *                 Note: b is an unsigned integer type, thus
- *                 Negative values of b are ignored.
+ *                 Note: despite the functon signature, b is treated as a
+ *                 t_uint.  Negative values of b are treated as large positive
+ *                 values.
  *
  * \param X        Destination MPI
  * \param A        Left-hand MPI

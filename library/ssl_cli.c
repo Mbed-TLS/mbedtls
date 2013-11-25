@@ -1592,14 +1592,50 @@ exit:
     return( 0 );
 }
 
+#if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
+    !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+static int ssl_parse_certificate_request( ssl_context *ssl )
+{
+    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+
+    SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
+
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    {
+        SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
+        ssl->state++;
+        return( 0 );
+    }
+
+    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
+    return( ret );
+}
+#else
 static int ssl_parse_certificate_request( ssl_context *ssl )
 {
     int ret;
     unsigned char *buf, *p;
     size_t n = 0, m = 0;
     size_t cert_type_len = 0, dn_len = 0;
+    const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
+
+    if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
+    {
+        SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
+        ssl->state++;
+        return( 0 );
+    }
 
     /*
      *     0  .   0   handshake type
@@ -1726,6 +1762,10 @@ exit:
 
     return( 0 );
 }
+#endif /* !POLARSSL_KEY_EXCHANGE_RSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 static int ssl_parse_server_hello_done( ssl_context *ssl )
 {

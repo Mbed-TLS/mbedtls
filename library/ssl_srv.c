@@ -1933,7 +1933,8 @@ static int ssl_write_certificate_request( ssl_context *ssl )
 }
 #endif /* !POLARSSL_KEY_EXCHANGE_RSA_ENABLED &&
           !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED &&
-          !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+          !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
+          !POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 static int ssl_write_server_key_exchange( ssl_context *ssl )
 {

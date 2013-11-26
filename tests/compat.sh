@@ -366,7 +366,7 @@ case $TYPE in
 
     "ECDSA")
 
-        if [ "$MODE" = "tls1_2" ];
+        if [ "$MODE" != "ssl3" ];
         then
             P_CIPHERS="$P_CIPHERS                               \
                 TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256    \
@@ -378,6 +378,14 @@ case $TYPE in
 
     "RSA")
 
+        if [ "$MODE" != "ssl3" ];
+        then
+            P_CIPHERS="$P_CIPHERS                           \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
+                "
+        fi
+
         if [ "$MODE" = "tls1_2" ];
         then
             P_CIPHERS="$P_CIPHERS                           \
@@ -385,10 +393,8 @@ case $TYPE in
                 TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256        \
                 TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256    \
                 TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256    \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-128-GCM-SHA256      \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-256-GCM-SHA384      \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-128-GCM-SHA256  \
+                TLS-ECDHE-RSA-WITH-CAMELLIA-256-GCM-SHA384  \
                 TLS-DHE-RSA-WITH-CAMELLIA-128-GCM-SHA256    \
                 TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384    \
                 TLS-RSA-WITH-CAMELLIA-128-GCM-SHA256        \
@@ -413,6 +419,24 @@ case $TYPE in
             TLS-RSA-PSK-WITH-AES-128-CBC-SHA         \
             TLS-RSA-WITH-NULL-SHA                    \
             TLS-RSA-WITH-NULL-MD5                    \
+            TLS-PSK-WITH-AES-128-CBC-SHA256          \
+            TLS-PSK-WITH-AES-256-CBC-SHA384          \
+            TLS-DHE-PSK-WITH-AES-128-CBC-SHA256      \
+            TLS-DHE-PSK-WITH-AES-256-CBC-SHA384      \
+            TLS-PSK-WITH-NULL-SHA256                 \
+            TLS-PSK-WITH-NULL-SHA384                 \
+            TLS-DHE-PSK-WITH-NULL-SHA256             \
+            TLS-DHE-PSK-WITH-NULL-SHA384             \
+            TLS-RSA-PSK-WITH-AES-256-CBC-SHA384      \
+            TLS-RSA-PSK-WITH-AES-128-CBC-SHA256      \
+            TLS-RSA-PSK-WITH-NULL-SHA256             \
+            TLS-RSA-PSK-WITH-NULL-SHA384             \
+            TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
+            TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
+            TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256     \
+            TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384     \
+            TLS-RSA-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
+            TLS-RSA-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
             "
 
 
@@ -424,47 +448,31 @@ case $TYPE in
                 TLS-ECDHE-PSK-WITH-3DES-EDE-CBC-SHA     \
                 TLS-ECDHE-PSK-WITH-RC4-128-SHA          \
                 TLS-ECDHE-PSK-WITH-NULL-SHA             \
-                "
-        fi
-
-        if [ "$MODE" = "tls1_2" ];
-        then
-            P_CIPHERS="$P_CIPHERS                        \
-                TLS-PSK-WITH-AES-128-CBC-SHA256          \
-                TLS-PSK-WITH-AES-256-CBC-SHA384          \
-                TLS-DHE-PSK-WITH-AES-128-CBC-SHA256      \
-                TLS-DHE-PSK-WITH-AES-256-CBC-SHA384      \
-                TLS-PSK-WITH-AES-128-GCM-SHA256          \
-                TLS-PSK-WITH-AES-256-GCM-SHA384          \
-                TLS-DHE-PSK-WITH-AES-128-GCM-SHA256      \
-                TLS-DHE-PSK-WITH-AES-256-GCM-SHA384      \
-                TLS-PSK-WITH-NULL-SHA256                 \
-                TLS-PSK-WITH-NULL-SHA384                 \
-                TLS-DHE-PSK-WITH-NULL-SHA256             \
-                TLS-DHE-PSK-WITH-NULL-SHA384             \
-                TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256     \
-                TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384     \
-                TLS-RSA-PSK-WITH-CAMELLIA-128-GCM-SHA256 \
-                TLS-RSA-PSK-WITH-CAMELLIA-256-GCM-SHA384 \
-                TLS-PSK-WITH-CAMELLIA-128-GCM-SHA256     \
-                TLS-PSK-WITH-CAMELLIA-256-GCM-SHA384     \
-                TLS-DHE-PSK-WITH-CAMELLIA-128-GCM-SHA256 \
-                TLS-DHE-PSK-WITH-CAMELLIA-256-GCM-SHA384 \
-                TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
-                TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
-                TLS-RSA-PSK-WITH-AES-256-CBC-SHA384         \
-                TLS-RSA-PSK-WITH-AES-256-GCM-SHA384         \
-                TLS-RSA-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
-                TLS-RSA-PSK-WITH-AES-128-CBC-SHA256         \
-                TLS-RSA-PSK-WITH-AES-128-GCM-SHA256         \
-                TLS-RSA-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
-                TLS-RSA-WITH-NULL-SHA256                    \
                 TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384       \
                 TLS-ECDHE-PSK-WITH-CAMELLIA-256-CBC-SHA384  \
                 TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256       \
                 TLS-ECDHE-PSK-WITH-CAMELLIA-128-CBC-SHA256  \
                 TLS-ECDHE-PSK-WITH-NULL-SHA384              \
                 TLS-ECDHE-PSK-WITH-NULL-SHA256              \
+                "
+        fi
+
+        if [ "$MODE" = "tls1_2" ];
+        then
+            P_CIPHERS="$P_CIPHERS                        \
+                TLS-PSK-WITH-AES-128-GCM-SHA256          \
+                TLS-PSK-WITH-AES-256-GCM-SHA384          \
+                TLS-DHE-PSK-WITH-AES-128-GCM-SHA256      \
+                TLS-DHE-PSK-WITH-AES-256-GCM-SHA384      \
+                TLS-RSA-PSK-WITH-CAMELLIA-128-GCM-SHA256 \
+                TLS-RSA-PSK-WITH-CAMELLIA-256-GCM-SHA384 \
+                TLS-PSK-WITH-CAMELLIA-128-GCM-SHA256     \
+                TLS-PSK-WITH-CAMELLIA-256-GCM-SHA384     \
+                TLS-DHE-PSK-WITH-CAMELLIA-128-GCM-SHA256 \
+                TLS-DHE-PSK-WITH-CAMELLIA-256-GCM-SHA384 \
+                TLS-RSA-PSK-WITH-AES-256-GCM-SHA384         \
+                TLS-RSA-PSK-WITH-AES-128-GCM-SHA256         \
+                TLS-RSA-WITH-NULL-SHA256                    \
                 "
         fi
 

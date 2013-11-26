@@ -224,6 +224,27 @@ void x509parse_crl( char *crl_data, char *result_str, int result )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
+void x509_crt_parse_path( char *crt_path, int ret, int nb_crt )
+{
+    x509_crt chain, *cur;
+    int i;
+
+    x509_crt_init( &chain );
+
+    TEST_ASSERT( x509_crt_parse_path( &chain, crt_path ) == ret );
+
+    /* Check how many certs we got */
+    for( i = 0, cur = &chain; cur != NULL; cur = cur->next )
+        if( cur->raw.p != NULL )
+            i++;
+
+    TEST_ASSERT( i == nb_crt );
+
+    x509_crt_init( &chain );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_SELF_TEST */
 void x509_selftest()
 {

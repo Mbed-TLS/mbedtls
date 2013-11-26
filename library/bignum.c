@@ -120,6 +120,45 @@ int mpi_grow( mpi *X, size_t nblimbs )
 }
 
 /*
+ * Resize down as much as possible,
+ * while keeping at least the specified number of limbs
+ */
+int mpi_shrink( mpi *X, size_t nblimbs )
+{
+    t_uint *p;
+    size_t i;
+
+    /* Actually resize up in this case */
+    if( X->n <= nblimbs )
+        return( mpi_grow( X, nblimbs ) );
+
+    for( i = X->n - 1; i > 0; i-- )
+        if( X->p[i] != 0 )
+            break;
+    i++;
+
+    if( i < nblimbs )
+        i = nblimbs;
+
+    if( ( p = (t_uint *) polarssl_malloc( i * ciL ) ) == NULL )
+        return( POLARSSL_ERR_MPI_MALLOC_FAILED );
+
+    memset( p, 0, i * ciL );
+
+    if( X->p != NULL )
+    {
+        memcpy( p, X->p, i * ciL );
+        memset( X->p, 0, X->n * ciL );
+        polarssl_free( X->p );
+    }
+
+    X->n = i;
+    X->p = p;
+
+    return( 0 );
+}
+
+/*
  * Copy the contents of Y into X
  */
 int mpi_copy( mpi *X, const mpi *Y )
@@ -163,6 +202,33 @@ void mpi_swap( mpi *X, mpi *Y )
     memcpy( &T,  X, sizeof( mpi ) );
     memcpy(  X,  Y, sizeof( mpi ) );
     memcpy(  Y, &T, sizeof( mpi ) );
+}
+
+/*
+ * Conditionally assign X = Y, without leaking information
+ * about whether the assignment was made or not.
+ * (Leaking information about the respective sizes of X and Y is ok however.)
+ */
+int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign )
+{
+    int ret = 0;
+    size_t i;
+
+    if( assign * ( 1 - assign ) != 0 )
+        return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
+
+    if( Y->n > X->n )
+        MPI_CHK( mpi_grow( X, Y->n ) );
+
+    /* Do the conditional assign safely */
+    X->s = X->s * (1 - assign) + Y->s * assign;
+    for( i = 0; i < Y->n; i++ )
+        X->p[i] = X->p[i] * (1 - assign) + Y->p[i] * assign;
+    for( ; i < X->n; i++ )
+        X->p[i] *= (1 - assign);
+
+cleanup:
+    return( ret );
 }
 
 /*

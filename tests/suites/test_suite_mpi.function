@@ -293,6 +293,45 @@ void mpi_copy_self( int input_X )
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_shrink( int before, int used, int min, int after )
+{
+    mpi X;
+    mpi_init( &X );
+
+    TEST_ASSERT( mpi_grow( &X, before ) == 0 );
+    TEST_ASSERT( used <= before );
+    memset( X.p, 0x2a, used * sizeof( t_uint ) );
+    TEST_ASSERT( mpi_shrink( &X, min ) == 0 );
+    TEST_ASSERT( X.n == (size_t) after );
+
+    mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_safe_cond_assign( int x_sign, char *x_str,
+                           int y_sign, char *y_str )
+{
+    mpi X, Y, XX;
+    mpi_init( &X ); mpi_init( &Y ); mpi_init( &XX );
+
+    TEST_ASSERT( mpi_read_string( &X, 16, x_str ) == 0 );
+    X.s = x_sign;
+    TEST_ASSERT( mpi_read_string( &Y, 16, y_str ) == 0 );
+    Y.s = y_sign;
+    TEST_ASSERT( mpi_copy( &XX, &X ) == 0 );
+
+    TEST_ASSERT( mpi_safe_cond_assign( &X, &Y, 0 ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &XX ) == 0 );
+
+    TEST_ASSERT( mpi_safe_cond_assign( &X, &Y, 1 ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &Y ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y ); mpi_free( &XX );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_swap( int input_X,  int input_Y )
 {
     mpi X, Y, A;

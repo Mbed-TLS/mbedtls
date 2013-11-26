@@ -157,16 +157,16 @@ ecp_keypair;
 #define POLARSSL_ECP_MAX_PT_LEN   ( 2 * POLARSSL_ECP_MAX_BYTES + 1 )
 
 /*
- * Maximum window size (actually, NAF width) used for point multipliation.
- * Default: 8.
- * Minimum value: 2. Maximum value: 8.
+ * Maximum "window" size used for point multiplication.
+ * Default: 6.
+ * Minimum value: 2. Maximum value: 7.
  *
  * Result is an array of at most ( 1 << ( POLARSSL_ECP_WINDOW_SIZE - 1 ) )
  * points used for point multiplication.
  *
  * Reduction in size may reduce speed for big curves.
  */
-#define POLARSSL_ECP_WINDOW_SIZE    8   /**< Maximum NAF width used. */
+#define POLARSSL_ECP_WINDOW_SIZE    6   /**< Maximum window size used. */
 
 /*
  * Point formats, from RFC 4492's enum ECPointFormat
@@ -459,27 +459,23 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful,
+ *                  POLARSSL_ERR_ECP_INVALID_KEY if m is not a valid privkey
+ *                  or P is not a valid pubkey,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
- *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if m < 0 of m has greater
- *                  bit length than N, the number of points in the group.
  *
- * \note            In order to prevent simple timing attacks, this function
- *                  executes a constant number of operations (that is, point
- *                  doubling and addition of distinct points) for random m in
- *                  the allowed range.
+ * \note            In order to prevent timing attacks, this function
+ *                  executes the exact same sequence of (base field)
+ *                  operations for any valid m. It avoids any if-branch or
+ *                  array index depending on the value of m.
  *
- * \note            If f_rng is not NULL, it is used to randomize projective
- *                  coordinates of indermediate results, in order to prevent
- *                  more elaborate timing attacks relying on intermediate
- *                  operations. (This is a prophylactic measure since no such
- *                  attack has been published yet.) Since this contermeasure
- *                  has very low overhead, it is recommended to always provide
- *                  a non-NULL f_rng parameter when using secret inputs.
+ * \note            If f_rng is not NULL, it is used to randomize intermediate
+ *                  results in order to prevent potential timing attacks
+ *                  targetting these results. It is recommended to always
+ *                  provide a non-NULL f_rng (the overhead is negligible).
  */
 int ecp_mul( ecp_group *grp, ecp_point *R,
              const mpi *m, const ecp_point *P,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
-
 
 /**
  * \brief           Check that a point is a valid public key on this curve

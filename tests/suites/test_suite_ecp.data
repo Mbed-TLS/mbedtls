@@ -50,10 +50,10 @@ ECP small subtraction #9
 ecp_small_sub:0:"14":"11":0:"14":"36":0:27:30
 
 ECP small multiplication negative
-ecp_small_mul:-1:0:0:0:POLARSSL_ERR_ECP_BAD_INPUT_DATA
+ecp_small_mul:-1:0:0:0:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small multiplication #0
-ecp_small_mul:0:1:0:0:0
+ecp_small_mul:0:1:0:0:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small multiplication #1
 ecp_small_mul:1:0:17:42:0
@@ -92,16 +92,10 @@ ECP small multiplication #12
 ecp_small_mul:12:0:17:05:0
 
 ECP small multiplication #13
-ecp_small_mul:13:1:0:0:0
+ecp_small_mul:13:1:0:0:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small multiplication #14
-ecp_small_mul:1:0:17:42:0
-
-ECP small multiplication #15
-ecp_small_mul:2:0:20:01:0
-
-ECP small multiplication too big
-ecp_small_mul:-1:0:0:0:POLARSSL_ERR_ECP_BAD_INPUT_DATA
+ecp_small_mul:14:0:17:42:POLARSSL_ERR_ECP_INVALID_KEY
 
 ECP small check pubkey #1
 ecp_small_check_pub:1:1:0:POLARSSL_ERR_ECP_INVALID_KEY

@@ -202,6 +202,17 @@ void mpi_free( mpi *X );
 int mpi_grow( mpi *X, size_t nblimbs );
 
 /**
+ * \brief          Resize down, keeping at least the specified number of limbs
+ *
+ * \param X        MPI to shrink
+ * \param nblimbs  The minimum number of limbs to keep
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ */
+int mpi_shrink( mpi *X, size_t nblimbs );
+
+/**
  * \brief          Copy the contents of Y into X
  *
  * \param X        Destination MPI
@@ -219,6 +230,26 @@ int mpi_copy( mpi *X, const mpi *Y );
  * \param Y        Second MPI value
  */
 void mpi_swap( mpi *X, mpi *Y );
+
+/**
+ * \brief          Safe conditional assignement X = Y if assign is 1
+ *
+ * \param X        MPI to conditionally assign to
+ * \param Y        Value to be assigned
+ * \param assign   1: perform the assignment, 0: leave X untouched
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if assing is not 0 or 1
+ *
+ * \note           This function is equivalent to
+ *                      if( assign ) mpi_copy( X, Y );
+ *                 except that it avoids leaking any information about whether
+ *                 the assignment was done or not (the above code may leak
+ *                 information through branch prediction and/or memory access
+ *                 patterns analysis).
+ */
+int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign );
 
 /**
  * \brief          Set value from integer

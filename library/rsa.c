@@ -591,6 +591,9 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     const md_info_t *md_info;
     md_context_t md_ctx;
 
+    /*
+     * Parameters sanity checks
+     */
     if( ctx->padding != RSA_PKCS_V21 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
@@ -599,6 +602,13 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     if( ilen < 16 || ilen > sizeof( buf ) )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
+    md_info = md_info_from_type( ctx->hash_id );
+    if( md_info == NULL )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+    /*
+     * RSA operation
+     */
     ret = ( mode == RSA_PUBLIC )
           ? rsa_public(  ctx, input, buf )
           : rsa_private( ctx, f_rng, p_rng, input, buf );
@@ -606,38 +616,37 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     if( ret != 0 )
         return( ret );
 
+    /*
+     * Unmask data
+     */
+    hlen = md_get_size( md_info );
+
+    md_init_ctx( &md_ctx, md_info );
+
+    /* Generate lHash */
+    md( md_info, label, label_len, lhash );
+
+    /* seed: Apply seedMask to maskedSeed */
+    mgf_mask( buf + 1, hlen, buf + hlen + 1, ilen - hlen - 1,
+               &md_ctx );
+
+    /* DB: Apply dbMask to maskedDB */
+    mgf_mask( buf + hlen + 1, ilen - hlen - 1, buf + 1, hlen,
+               &md_ctx );
+
+    md_free_ctx( &md_ctx );
+
+    /*
+     * Check contents
+     */
     p = buf;
 
     if( *p++ != 0 )
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
-    md_info = md_info_from_type( ctx->hash_id );
-    if( md_info == NULL )
-        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+    p += hlen; /* Skip seed */
 
-    hlen = md_get_size( md_info );
-
-    md_init_ctx( &md_ctx, md_info );
-
-    // Generate lHash
-    //
-    md( md_info, label, label_len, lhash );
-
-    // seed: Apply seedMask to maskedSeed
-    //
-    mgf_mask( buf + 1, hlen, buf + hlen + 1, ilen - hlen - 1,
-               &md_ctx );
-
-    // DB: Apply dbMask to maskedDB
-    //
-    mgf_mask( buf + hlen + 1, ilen - hlen - 1, buf + 1, hlen,
-               &md_ctx );
-
-    p += hlen;
-    md_free_ctx( &md_ctx );
-
-    // Check validity
-    //
+    /* Check lHash */
     if( memcmp( lhash, p, hlen ) != 0 )
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
 

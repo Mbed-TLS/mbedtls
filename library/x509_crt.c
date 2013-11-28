@@ -51,6 +51,10 @@
 #define polarssl_free       free
 #endif
 
+#if defined(POLARSSL_THREADING_C)
+#include "polarssl/threading.h"
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
@@ -936,6 +940,10 @@ int x509_crt_parse_file( x509_crt *chain, const char *path )
     return( ret );
 }
 
+#if defined(POLARSSL_THREADING_PTHREAD)
+static threading_mutex_t readdir_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 int x509_crt_parse_path( x509_crt *chain, const char *path )
 {
     int ret = 0;
@@ -1000,6 +1008,11 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     if( dir == NULL)
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
+#if defined(POLARSSL_THREADING_PTHREAD)
+    if( ( ret = polarssl_mutex_lock( &readdir_mutex ) ) != 0 )
+        return( ret );
+#endif
+
     while( ( entry = readdir( dir ) ) != NULL )
     {
         snprintf( entry_name, sizeof entry_name, "%s/%s", path, entry->d_name );
@@ -1007,7 +1020,8 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
         if( stat( entry_name, &sb ) == -1 )
         {
             closedir( dir );
-            return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+            ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
+            goto cleanup;
         }
 
         if( !S_ISREG( sb.st_mode ) )
@@ -1022,6 +1036,13 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
             ret += t_ret;
     }
     closedir( dir );
+
+cleanup:
+#if defined(POLARSSL_THREADING_PTHREAD)
+    if( polarssl_mutex_unlock( &readdir_mutex ) != 0 )
+        ret = POLARSSL_ERR_THREADING_MUTEX_ERROR;
+#endif
+
 #endif /* _WIN32 */
 
     return( ret );

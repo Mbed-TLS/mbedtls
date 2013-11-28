@@ -69,6 +69,11 @@ if(WIN32)
 set(libs ws2_32)
 endif(WIN32)
 
+if(CMAKE_COMPILER_IS_GNUCC)
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS_CHECK} -Wmissing-declarations -Wmissing-prototypes")
+  set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
+endif(CMAKE_COMPILER_IS_GNUCC)
+
 if(NOT USE_SHARED_POLARSSL_LIBRARY)
 
 add_library(polarssl STATIC ${src})

@@ -583,8 +583,8 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
                             size_t output_max_len )
 {
     int ret;
-    size_t ilen;
-    unsigned char *p;
+    size_t ilen, i, pad_len;
+    unsigned char *p, bad, pad_done;
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
     unsigned char lhash[POLARSSL_MD_MAX_SIZE];
     unsigned int hlen;
@@ -617,7 +617,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
         return( ret );
 
     /*
-     * Unmask data
+     * Unmask data and generate lHash
      */
     hlen = md_get_size( md_info );
 
@@ -637,28 +637,39 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     md_free_ctx( &md_ctx );
 
     /*
-     * Check contents
+     * Check contents, in "constant-time"
      */
     p = buf;
+    bad = 0;
 
-    if( *p++ != 0 )
-        return( POLARSSL_ERR_RSA_INVALID_PADDING );
+    bad |= *p++; /* First byte must be 0 */
 
     p += hlen; /* Skip seed */
 
     /* Check lHash */
-    if( memcmp( lhash, p, hlen ) != 0 )
-        return( POLARSSL_ERR_RSA_INVALID_PADDING );
+    for( i = 0; i < hlen; i++ )
+        bad |= lhash[i] ^ *p++;
 
-    p += hlen;
+    /* Get zero-padding len, but always read till end of buffer
+     * (minus one, for the 01 byte) */
+    pad_len = 0;
+    pad_done = 0;
+    for( i = 0; i < ilen - 2 * hlen - 2; i++ )
+    {
+        pad_done |= p[i];
+        pad_len += ( pad_done == 0 );
+    }
 
-    while( *p == 0 && p < buf + ilen )
-        p++;
+    p += pad_len;
+    bad |= *p++ ^ 0x01;
 
-    if( p == buf + ilen )
-        return( POLARSSL_ERR_RSA_INVALID_PADDING );
-
-    if( *p++ != 0x01 )
+    /*
+     * The only information "leaked" is whether the padding was correct or not
+     * (eg, no data is copied if it was not correct). This meets the
+     * recommendations in PKCS#1 v2.2: an opponent cannot distinguish between
+     * the different error conditions.
+     */
+    if( bad != 0 )
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
     if (ilen - (p - buf) > output_max_len)

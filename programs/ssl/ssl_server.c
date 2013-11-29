@@ -222,28 +222,6 @@ reset:
     /*
      * 3. Wait until a client connects
      */
-#if defined(_WIN32_WCE)
-    {
-        SHELLEXECUTEINFO sei;
-
-        ZeroMemory( &sei, sizeof( SHELLEXECUTEINFO ) );
-
-        sei.cbSize = sizeof( SHELLEXECUTEINFO );
-        sei.fMask = 0;
-        sei.hwnd = 0;
-        sei.lpVerb = _T( "open" );
-        sei.lpFile = _T( "https://localhost:4433/" );
-        sei.lpParameters = NULL;
-        sei.lpDirectory = NULL;
-        sei.nShow = SW_SHOWNORMAL;
-
-        ShellExecuteEx( &sei );
-    }
-#elif defined(_WIN32)
-    ShellExecute( NULL, "open", "https://localhost:4433/",
-                  NULL, NULL, SW_SHOWNORMAL );
-#endif
-
     client_fd = -1;
 
     printf( "  . Waiting for a remote connection ..." );

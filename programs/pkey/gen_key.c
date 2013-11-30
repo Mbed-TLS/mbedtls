@@ -56,6 +56,7 @@ int main( int argc, char *argv[] )
 
 #define DFL_TYPE                POLARSSL_PK_RSA
 #define DFL_RSA_KEYSIZE         4096
+#define DFL_EC_CURVE            ecp_curve_list()->grp_id
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_FORMAT              FORMAT_PEM
 
@@ -66,6 +67,7 @@ struct options
 {
     int type;                   /* the type of key to generate          */
     int rsa_keysize;            /* length of key in bits                */
+    int ec_curve;               /* curve identifier for EC keys         */
     const char *filename;       /* filename of the key file             */
     int format;                 /* the output format to use             */
 } opt;
@@ -111,6 +113,7 @@ static int write_private_key( pk_context *key, const char *output_file )
     "\n acceptable parameters:\n"                       \
     "    type=rsa|ec           default: rsa\n"          \
     "    rsa_keysize=%%d        default: 4096\n"        \
+    "    ec_curve=%%s           see below\n"            \
     "    filename=%%s           default: keyfile.key\n" \
     "    format=pem|der        default: pem\n"          \
     "\n"
@@ -125,6 +128,9 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     const char *pers = "gen_key";
+#if defined(POLARSSL_ECP_C)
+    const ecp_curve_info *curve_info;
+#endif
 
     /*
      * Set to sane values
@@ -137,11 +143,19 @@ int main( int argc, char *argv[] )
     usage:
         ret = 1;
         printf( USAGE );
+#if defined(POLARSSL_ECP_C)
+        printf( " availabled ec_curve values:\n" );
+        curve_info = ecp_curve_list();
+        printf( "    %s (default)\n", curve_info->name );
+        while( ( ++curve_info )->name != NULL )
+            printf( "    %s\n", curve_info->name );
+#endif
         goto exit;
     }
 
     opt.type                = DFL_TYPE;
     opt.rsa_keysize         = DFL_RSA_KEYSIZE;
+    opt.ec_curve            = DFL_EC_CURVE;
     opt.filename            = DFL_FILENAME;
     opt.format              = DFL_FORMAT;
 
@@ -175,6 +189,12 @@ int main( int argc, char *argv[] )
             opt.rsa_keysize = atoi( q );
             if( opt.rsa_keysize < 1024 || opt.rsa_keysize > 8192 )
                 goto usage;
+        }
+        else if( strcmp( p, "ec_curve" ) == 0 )
+        {
+            if( ( curve_info = ecp_curve_info_from_name( q ) ) == NULL )
+                goto usage;
+            opt.ec_curve = curve_info->grp_id;
         }
         else if( strcmp( p, "filename" ) == 0 )
             opt.filename = q;
@@ -222,8 +242,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_ECP_C)
     if( opt.type == POLARSSL_PK_ECKEY )
     {
-        // TODO: allow other curves
-        ret = ecp_gen_key( POLARSSL_ECP_DP_SECP256R1, pk_ec( key ),
+        ret = ecp_gen_key( opt.ec_curve, pk_ec( key ),
                           ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
@@ -262,9 +281,11 @@ int main( int argc, char *argv[] )
     if( pk_get_type( &key ) == POLARSSL_PK_ECKEY )
     {
         ecp_keypair *ecp = pk_ec( key );
-        mpi_write_file( "X_Q: ", &ecp->Q.X, 16, NULL );
-        mpi_write_file( "Y_Q: ", &ecp->Q.Y, 16, NULL );
-        mpi_write_file( "D  : ", &ecp->d  , 16, NULL );
+        printf( "curve: %s\n",
+                ecp_curve_info_from_grp_id( ecp->grp.id )->name );
+        mpi_write_file( "X_Q:   ", &ecp->Q.X, 16, NULL );
+        mpi_write_file( "Y_Q:   ", &ecp->Q.Y, 16, NULL );
+        mpi_write_file( "D:     ", &ecp->d  , 16, NULL );
     }
     else
 #endif

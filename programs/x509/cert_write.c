@@ -183,7 +183,7 @@ int main( int argc, char *argv[] )
                 *subject_key = &loaded_subject_key;
     char buf[1024];
     char issuer_name[128];
-    int i, j, n;
+    int i;
     char *p, *q, *r;
 #if defined(POLARSSL_X509_CSR_PARSE_C)
     char subject_name[128];
@@ -243,13 +243,6 @@ int main( int argc, char *argv[] )
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;
         *q++ = '\0';
-
-        n = strlen( p );
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
 
         if( strcmp( p, "request_file" ) == 0 )
             opt.request_file = q;

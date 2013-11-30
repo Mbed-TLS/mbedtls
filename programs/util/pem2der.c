@@ -174,7 +174,7 @@ int main( int argc, char *argv[] )
     unsigned char der_buffer[4096];
     char buf[1024];
     size_t pem_size, der_size = sizeof(der_buffer);
-    int i, j, n;
+    int i;
     char *p, *q;
 
     /*
@@ -200,13 +200,6 @@ int main( int argc, char *argv[] )
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;
         *q++ = '\0';
-
-        n = strlen( p );
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
 
         if( strcmp( p, "filename" ) == 0 )
             opt.filename = q;

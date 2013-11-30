@@ -427,7 +427,7 @@ exit:
 
 int main( int argc, char *argv[] )
 {
-    int i, j, n;
+    int i;
     const int *list;
     int ret = 1;
     int nb_conn;
@@ -465,14 +465,6 @@ int main( int argc, char *argv[] )
 
     for( i = 1; i < argc; i++ )
     {
-        n = strlen( argv[i] );
-
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
-
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
             continue;

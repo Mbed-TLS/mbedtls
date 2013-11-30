@@ -128,7 +128,7 @@ int main( int argc, char *argv[] )
     int ret = 0;
     rsa_context rsa;
     char buf[1024];
-    int i, j, n;
+    int i;
     char *p, *q;
     char *s, *c, *end;
     int in_tag;
@@ -161,13 +161,6 @@ int main( int argc, char *argv[] )
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;
         *q++ = '\0';
-
-        n = strlen( p );
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
 
         if( strcmp( p, "filename" ) == 0 )
             opt.filename = q;

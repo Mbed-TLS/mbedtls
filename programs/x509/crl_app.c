@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
     int ret = 0;
     unsigned char buf[100000];
     x509_crl crl;
-    int i, j, n;
+    int i;
     char *p, *q;
 
     /*
@@ -100,14 +100,6 @@ int main( int argc, char *argv[] )
 
     for( i = 1; i < argc; i++ )
     {
-        n = strlen( argv[i] );
-
-        for( j = 0; j < n; j++ )
-        {
-            if( argv[i][j] >= 'A' && argv[i][j] <= 'Z' )
-                argv[i][j] |= 0x20;
-        }
-
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
             goto usage;

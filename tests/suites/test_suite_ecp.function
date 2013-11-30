@@ -522,6 +522,24 @@ void ecp_gen_keypair( int id )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ecp_gen_key( int id )
+{
+    ecp_keypair key;
+    rnd_pseudo_info rnd_info;
+
+    ecp_keypair_init( &key );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( ecp_gen_key( id, &key, &rnd_pseudo_rand, &rnd_info ) == 0 );
+
+    TEST_ASSERT( ecp_check_pubkey( &key.grp, &key.Q ) == 0 );
+    TEST_ASSERT( ecp_check_privkey( &key.grp, &key.d ) == 0 );
+
+    ecp_keypair_free( &key );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void ecp_selftest()
 {

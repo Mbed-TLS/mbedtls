@@ -1669,6 +1669,20 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
     return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
 }
 
+/*
+ * Generate a keypair, prettier wrapper
+ */
+int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+
+    if( ( ret = ecp_use_known_dp( &key->grp, grp_id ) ) != 0 )
+        return( ret );
+
+    return( ecp_gen_keypair( &key->grp, &key->d, &key->Q, f_rng, p_rng ) );
+}
+
 #if defined(POLARSSL_ECP_NIST_OPTIM)
 /*
  * Fast reduction modulo the primes used by the NIST curves.

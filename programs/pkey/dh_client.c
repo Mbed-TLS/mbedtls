@@ -215,7 +215,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     n = dhm.len;
-    if( ( ret = dhm_make_public( &dhm, dhm.len, buf, n,
+    if( ( ret = dhm_make_public( &dhm, (int) dhm.len, buf, n,
                                  ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         printf( " failed\n  ! dhm_make_public returned %d\n\n", ret );

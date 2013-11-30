@@ -419,13 +419,13 @@ int main( int argc, char *argv[] )
             mpi_read_string( &dhm.P, 16, dhm_P[i] );
             mpi_read_string( &dhm.G, 16, dhm_G[i] );
             dhm.len = mpi_size( &dhm.P );
-            dhm_make_public( &dhm, dhm.len, buf, dhm.len, myrand, NULL );
+            dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
             mpi_copy( &dhm.GY, &dhm.GX );
 
             snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
                     olen = sizeof( buf );
-                    ret |= dhm_make_public( &dhm, dhm.len, buf, dhm.len,
+                    ret |= dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len,
                                             myrand, NULL );
                     ret |= dhm_calc_secret( &dhm, buf, &olen, myrand, NULL ) );
 

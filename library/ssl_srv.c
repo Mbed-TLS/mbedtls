@@ -974,31 +974,22 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     }
 
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
+    ciphersuite_info = NULL;
     for( i = 0; ciphersuites[i] != 0; i++ )
     {
         for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
         {
-            // Only allow non-ECC ciphersuites as we do not have extensions
-            //
-            if( p[0] == 0 && p[1] == 0 &&
-                ( ( ciphersuites[i] >> 8 ) & 0xFF ) == 0 &&
-                p[2] == ( ciphersuites[i] & 0xFF ) )
-            {
-                ciphersuite_info = ssl_ciphersuite_from_id( ciphersuites[i] );
+            if( p[0] != 0 ||
+                p[1] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
+                p[2] != ( ( ciphersuites[i]      ) & 0xFF ) )
+                continue;
 
-                if( ciphersuite_info == NULL )
-                {
-                    SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
-                                   ciphersuites[i] ) );
-                    return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-                }
+            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
+                                               &ciphersuite_info ) ) != 0 )
+                return( ret );
 
-                if( ciphersuite_info->min_minor_ver > ssl->minor_ver ||
-                    ciphersuite_info->max_minor_ver < ssl->minor_ver )
-                    continue;
-
+            if( ciphersuite_info != NULL )
                 goto have_ciphersuite_v2;
-            }
         }
     }
 
@@ -1435,19 +1426,18 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     ciphersuite_info = NULL;
     for( i = 0; ciphersuites[i] != 0; i++ )
     {
-        for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
-            j += 2, p += 2 )
+        for( j = 0, p = buf + 41 + sess_len; j < ciph_len; j += 2, p += 2 )
         {
-            if( p[0] == ( ( ciphersuites[i] >> 8 ) & 0xFF ) &&
-                p[1] == ( ( ciphersuites[i]      ) & 0xFF ) )
-            {
-                if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
-                                                   &ciphersuite_info ) ) != 0 )
-                    return( ret );
+            if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
+                p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )
+                continue;
 
-                if( ciphersuite_info != NULL )
-                    goto have_ciphersuite;
-            }
+            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
+                                               &ciphersuite_info ) ) != 0 )
+                return( ret );
+
+            if( ciphersuite_info != NULL )
+                goto have_ciphersuite;
         }
     }
 

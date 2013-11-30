@@ -205,6 +205,15 @@ const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id );
 const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id );
 
 /**
+ * \brief           Get curve information from a human-readable name
+ *
+ * \param name      The name
+ *
+ * \return          The associated curve information or NULL
+ */
+const ecp_curve_info *ecp_curve_info_from_name( const char *name );
+
+/**
  * \brief           Initialize a point (as zero)
  */
 void ecp_point_init( ecp_point *pt );

@@ -975,9 +975,15 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
 
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     ciphersuite_info = NULL;
+#if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
+    for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
+    {
+        for( i = 0; ciphersuites[i] != 0; i++ )
+#else
     for( i = 0; ciphersuites[i] != 0; i++ )
     {
         for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
+#endif
         {
             if( p[0] != 0 ||
                 p[1] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
@@ -1424,9 +1430,15 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      */
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     ciphersuite_info = NULL;
+#if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
+    for( j = 0, p = buf + 41 + sess_len; j < ciph_len; j += 2, p += 2 )
+    {
+        for( i = 0; ciphersuites[i] != 0; i++ )
+#else
     for( i = 0; ciphersuites[i] != 0; i++ )
     {
         for( j = 0, p = buf + 41 + sess_len; j < ciph_len; j += 2, p += 2 )
+#endif
         {
             if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
                 p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )

@@ -170,7 +170,7 @@ int main( int argc, char *argv[] )
             fgets( buf, 1024, f );
             fclose( f );
 
-            i = strlen( buf );
+            i = (int) strlen( buf );
             if( buf[i - 1] == '\n' ) buf[i - 1] = '\0';
             if( buf[i - 2] == '\r' ) buf[i - 2] = '\0';
             opt.password = buf;

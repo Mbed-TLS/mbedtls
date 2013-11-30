@@ -32,8 +32,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <signal.h>
+
+#if !defined(_MSC_VER) || defined(EFIX64) || defined(EFI32)
+#include <unistd.h>
+#endif
 
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"

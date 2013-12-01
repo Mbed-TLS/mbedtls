@@ -75,7 +75,7 @@
  * Counts of point addition and doubling, and field multiplications.
  * Used to test resistance of point multiplication to simple timing attacks.
  */
-unsigned long add_count, dbl_count, mul_count;
+static unsigned long add_count, dbl_count, mul_count;
 #endif
 
 /*
@@ -85,7 +85,7 @@ unsigned long add_count, dbl_count, mul_count;
  *  - size in bits
  *  - readable name
  */
-const ecp_curve_info ecp_supported_curves[] =
+static const ecp_curve_info ecp_supported_curves[] =
 {
 #if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
     { POLARSSL_ECP_DP_BP512R1,      28,     512,    "brainpoolP512r1"   },

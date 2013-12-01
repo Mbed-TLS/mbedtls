@@ -55,7 +55,6 @@
 #define polarssl_free       free
 #endif
 
-#include <limits.h>
 #include <stdlib.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \

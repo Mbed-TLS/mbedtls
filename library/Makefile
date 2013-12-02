@@ -40,7 +40,7 @@ OBJS=	aes.o		arc4.o		asn1parse.o		\
 		certs.o		cipher.o	cipher_wrap.o	\
 		ctr_drbg.o	debug.o		des.o			\
 		dhm.o		ecdh.o		ecdsa.o			\
-		ecp.o									\
+		ecp.o		ecp_curves.o				\
 		entropy.o	entropy_poll.o				\
 		error.o		gcm.o		havege.o		\
 		md.o		md_wrap.o	md2.o			\

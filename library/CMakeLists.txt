@@ -17,6 +17,7 @@ set(src
      des.c
      dhm.c
      ecp.c
+     ecp_curves.c
      ecdh.c
      ecdsa.c
      entropy.c

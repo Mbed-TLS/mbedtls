@@ -314,11 +314,15 @@ cleanup:
 
 #if defined(POLARSSL_ECP_NIST_OPTIM)
 /* Forward declarations */
-int ecp_mod_p192( mpi * );
-int ecp_mod_p224( mpi * );
-int ecp_mod_p256( mpi * );
-int ecp_mod_p384( mpi * );
-int ecp_mod_p521( mpi * );
+static int ecp_mod_p192( mpi * );
+static int ecp_mod_p224( mpi * );
+static int ecp_mod_p256( mpi * );
+static int ecp_mod_p384( mpi * );
+static int ecp_mod_p521( mpi * );
+
+#define NIST_MODP( P )      grp->modp = ecp_mod_ ## P;
+#else
+#define NIST_MODP( P )
 #endif
 
 #define LOAD_GROUP( G )     ecp_group_read_binary( grp,     \
@@ -340,41 +344,31 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
     {
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
         case POLARSSL_ECP_DP_SECP192R1:
-#if defined(POLARSSL_ECP_NIST_OPTIM)
-            grp->modp = ecp_mod_p192;
-#endif
+            NIST_MODP( p192 );
             return( LOAD_GROUP( secp192r1 ) );
 #endif /* POLARSSL_ECP_DP_SECP192R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
         case POLARSSL_ECP_DP_SECP224R1:
-#if defined(POLARSSL_ECP_NIST_OPTIM)
-            grp->modp = ecp_mod_p224;
-#endif
+            NIST_MODP( p224 );
             return( LOAD_GROUP( secp224r1 ) );
 #endif /* POLARSSL_ECP_DP_SECP224R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
         case POLARSSL_ECP_DP_SECP256R1:
-#if defined(POLARSSL_ECP_NIST_OPTIM)
-            grp->modp = ecp_mod_p256;
-#endif
+            NIST_MODP( p256 );
             return( LOAD_GROUP( secp256r1 ) );
 #endif /* POLARSSL_ECP_DP_SECP256R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
         case POLARSSL_ECP_DP_SECP384R1:
-#if defined(POLARSSL_ECP_NIST_OPTIM)
-            grp->modp = ecp_mod_p384;
-#endif
+            NIST_MODP( p384 );
             return( LOAD_GROUP( secp384r1 ) );
 #endif /* POLARSSL_ECP_DP_SECP384R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
         case POLARSSL_ECP_DP_SECP521R1:
-#if defined(POLARSSL_ECP_NIST_OPTIM)
-            grp->modp = ecp_mod_p521;
-#endif
+            NIST_MODP( p521 );
             return( LOAD_GROUP( secp521r1 ) );
 #endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
 
@@ -456,7 +450,7 @@ static inline void carry64( t_uint *dst, t_uint *carry )
 /*
  * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
  */
-int ecp_mod_p192( mpi *N )
+static int ecp_mod_p192( mpi *N )
 {
     int ret;
     t_uint c = 0;
@@ -627,7 +621,7 @@ cleanup:
 /*
  * Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
  */
-int ecp_mod_p224( mpi *N )
+static int ecp_mod_p224( mpi *N )
 {
     INIT( 224 );
 
@@ -648,7 +642,7 @@ cleanup:
 /*
  * Fast quasi-reduction modulo p256 (FIPS 186-3 D.2.3)
  */
-int ecp_mod_p256( mpi *N )
+static int ecp_mod_p256( mpi *N )
 {
     INIT( 256 );
 
@@ -685,7 +679,7 @@ cleanup:
 /*
  * Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
  */
-int ecp_mod_p384( mpi *N )
+static int ecp_mod_p384( mpi *N )
 {
     INIT( 384 );
 
@@ -762,7 +756,7 @@ cleanup:
  * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)
  * Write N as A1 + 2^521 A0, return A0 + A1
  */
-int ecp_mod_p521( mpi *N )
+static int ecp_mod_p521( mpi *N )
 {
     int ret;
     size_t i;

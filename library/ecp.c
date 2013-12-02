@@ -636,7 +636,7 @@ cleanup:
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)
  * Cost: 1N := 1I + 3M + 1S
  */
-static int ecp_normalize( const ecp_group *grp, ecp_point *pt )
+static int ecp_normalize_jac( const ecp_group *grp, ecp_point *pt )
 {
     int ret;
     mpi Zi, ZZi;
@@ -682,7 +682,7 @@ cleanup:
  *
  * Cost: 1N(t) := 1I + (6t - 3)M + 1S
  */
-static int ecp_normalize_many( const ecp_group *grp,
+static int ecp_normalize_jac_many( const ecp_group *grp,
                                ecp_point *T[], size_t t_len )
 {
     int ret;
@@ -690,7 +690,7 @@ static int ecp_normalize_many( const ecp_group *grp,
     mpi *c, u, Zi, ZZi;
 
     if( t_len < 2 )
-        return( ecp_normalize( grp, *T ) );
+        return( ecp_normalize_jac( grp, *T ) );
 
     if( ( c = (mpi *) polarssl_malloc( t_len * sizeof( mpi ) ) ) == NULL )
         return( POLARSSL_ERR_ECP_MALLOC_FAILED );
@@ -756,7 +756,7 @@ cleanup:
  * Conditional point inversion: Q -> -Q = (Q.X, -Q.Y, Q.Z) without leak.
  * "inv" must be 0 (don't invert) or 1 (invert) or the result will be invalid
  */
-static int ecp_safe_invert( const ecp_group *grp,
+static int ecp_safe_invert_jac( const ecp_group *grp,
                             ecp_point *Q,
                             unsigned char inv )
 {
@@ -937,7 +937,7 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
     int ret;
 
     MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
-    MPI_CHK( ecp_normalize( grp, R ) );
+    MPI_CHK( ecp_normalize_jac( grp, R ) );
 
 cleanup:
     return( ret );
@@ -961,7 +961,7 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
         MPI_CHK( mpi_sub_mpi( &mQ.Y, &grp->P, &mQ.Y ) );
 
     MPI_CHK( ecp_add_mixed( grp, R, P, &mQ ) );
-    MPI_CHK( ecp_normalize( grp, R ) );
+    MPI_CHK( ecp_normalize_jac( grp, R ) );
 
 cleanup:
     ecp_point_free( &mQ );
@@ -972,7 +972,7 @@ cleanup:
 /*
  * Randomize jacobian coordinates:
  * (X, Y, Z) -> (l^2 X, l^3 Y, l Z) for random l
- * This is sort of the reverse operation of ecp_normalize().
+ * This is sort of the reverse operation of ecp_normalize_jac().
  *
  * This countermeasure was first suggested in [2].
  */
@@ -1115,7 +1115,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
         TT[k++] = cur;
     }
 
-    ecp_normalize_many( grp, TT, k );
+    ecp_normalize_jac_many( grp, TT, k );
 
     /*
      * Compute the remaining ones using the minimal number of additions
@@ -1132,7 +1132,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
         }
     }
 
-    ecp_normalize_many( grp, TT, k );
+    ecp_normalize_jac_many( grp, TT, k );
 
     /*
      * Post-precessing: reclaim some memory by
@@ -1175,7 +1175,7 @@ static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
     MPI_CHK( mpi_lset( &R->Z, 1 ) );
 
     /* Safely invert result if i is "negative" */
-    MPI_CHK( ecp_safe_invert( grp, R, i >> 7 ) );
+    MPI_CHK( ecp_safe_invert_jac( grp, R, i >> 7 ) );
 
 cleanup:
     return( ret );
@@ -1326,8 +1326,8 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     /*
      * Now get m * P from M * P and normalize it
      */
-    MPI_CHK( ecp_safe_invert( grp, R, ! m_is_odd ) );
-    MPI_CHK( ecp_normalize( grp, R ) );
+    MPI_CHK( ecp_safe_invert_jac( grp, R, ! m_is_odd ) );
+    MPI_CHK( ecp_normalize_jac( grp, R ) );
 
 cleanup:
 

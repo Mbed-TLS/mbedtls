@@ -470,31 +470,6 @@ int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
 }
 
 /*
- * Import an ECP group from ASCII strings, general case (A used)
- */
-static int ecp_group_read_string_gen( ecp_group *grp, int radix,
-                           const char *p, const char *a, const char *b,
-                           const char *gx, const char *gy, const char *n)
-{
-    int ret;
-
-    MPI_CHK( mpi_read_string( &grp->P, radix, p ) );
-    MPI_CHK( mpi_read_string( &grp->A, radix, a ) );
-    MPI_CHK( mpi_read_string( &grp->B, radix, b ) );
-    MPI_CHK( ecp_point_read_string( &grp->G, radix, gx, gy ) );
-    MPI_CHK( mpi_read_string( &grp->N, radix, n ) );
-
-    grp->pbits = mpi_msb( &grp->P );
-    grp->nbits = mpi_msb( &grp->N );
-
-cleanup:
-    if( ret != 0 )
-        ecp_group_free( grp );
-
-    return( ret );
-}
-
-/*
  * Import an ECP group from ASCII strings, case A == -3
  */
 int ecp_group_read_string( ecp_group *grp, int radix,
@@ -503,8 +478,14 @@ int ecp_group_read_string( ecp_group *grp, int radix,
 {
     int ret;
 
-    MPI_CHK( ecp_group_read_string_gen( grp, radix, p, "00", b, gx, gy, n ) );
+    MPI_CHK( mpi_read_string( &grp->P, radix, p ) );
     MPI_CHK( mpi_add_int( &grp->A, &grp->P, -3 ) );
+    MPI_CHK( mpi_read_string( &grp->B, radix, b ) );
+    MPI_CHK( ecp_point_read_string( &grp->G, radix, gx, gy ) );
+    MPI_CHK( mpi_read_string( &grp->N, radix, n ) );
+
+    grp->pbits = mpi_msb( &grp->P );
+    grp->nbits = mpi_msb( &grp->N );
 
 cleanup:
     if( ret != 0 )

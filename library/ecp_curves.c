@@ -29,6 +29,14 @@
 
 #include "polarssl/ecp.h"
 
+#if defined(_MSC_VER) && !defined(inline)
+#define inline _inline
+#else
+#if defined(__ARMCC_VERSION) && !defined(inline)
+#define inline __inline
+#endif /* __ARMCC_VERSION */
+#endif /*_MSC_VER */
+
 /*
  * Domain parameters for secp192r1
  */

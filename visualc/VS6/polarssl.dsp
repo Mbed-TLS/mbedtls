@@ -157,6 +157,10 @@ SOURCE=..\..\library\ecp.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\ecp_curves.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\entropy.c
 # End Source File
 # Begin Source File

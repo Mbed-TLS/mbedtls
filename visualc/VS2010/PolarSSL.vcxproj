@@ -218,6 +218,7 @@
     <ClCompile Include="..\..\library\ecdh.c" />
     <ClCompile Include="..\..\library\ecdsa.c" />
     <ClCompile Include="..\..\library\ecp.c" />
+    <ClCompile Include="..\..\library\ecp_curves.c" />
     <ClCompile Include="..\..\library\entropy.c" />
     <ClCompile Include="..\..\library\entropy_poll.c" />
     <ClCompile Include="..\..\library\error.c" />

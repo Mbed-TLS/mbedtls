@@ -51,6 +51,10 @@
 #define polarssl_free       free
 #endif
 
+#if defined(POLARSSL_THREADING_C)
+#include "polarssl/threading.h"
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
@@ -936,6 +940,10 @@ int x509_crt_parse_file( x509_crt *chain, const char *path )
     return( ret );
 }
 
+#if defined(POLARSSL_THREADING_PTHREAD)
+static threading_mutex_t readdir_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 int x509_crt_parse_path( x509_crt *chain, const char *path )
 {
     int ret = 0;
@@ -991,29 +999,29 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
 
     FindClose( hFind );
 #else /* _WIN32 */
-#if defined(POLARSSL_HAVE_READDIR_R)
-    int t_ret, i;
+    int t_ret;
     struct stat sb;
-    struct dirent entry, *result = NULL;
+    struct dirent *entry;
     char entry_name[255];
     DIR *dir = opendir( path );
 
     if( dir == NULL)
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
-    while( ( t_ret = readdir_r( dir, &entry, &result ) ) == 0 )
+#if defined(POLARSSL_THREADING_PTHREAD)
+    if( ( ret = polarssl_mutex_lock( &readdir_mutex ) ) != 0 )
+        return( ret );
+#endif
+
+    while( ( entry = readdir( dir ) ) != NULL )
     {
-        if( result == NULL )
-            break;
+        snprintf( entry_name, sizeof entry_name, "%s/%s", path, entry->d_name );
 
-        snprintf( entry_name, sizeof(entry_name), "%s/%s", path, entry.d_name );
-
-        i = stat( entry_name, &sb );
-
-        if( i == -1 )
+        if( stat( entry_name, &sb ) == -1 )
         {
             closedir( dir );
-            return( POLARSSL_ERR_X509_FILE_IO_ERROR );
+            ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
+            goto cleanup;
         }
 
         if( !S_ISREG( sb.st_mode ) )
@@ -1028,11 +1036,13 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
             ret += t_ret;
     }
     closedir( dir );
-#else /* POLARSSL_HAVE_READDIR_R */
-    ((void) chain);
-    ((void) path);
-    ret = POLARSSL_ERR_X509_FEATURE_UNAVAILABLE;
-#endif /* POLARSSL_HAVE_READDIR_R */
+
+cleanup:
+#if defined(POLARSSL_THREADING_PTHREAD)
+    if( polarssl_mutex_unlock( &readdir_mutex ) != 0 )
+        ret = POLARSSL_ERR_THREADING_MUTEX_ERROR;
+#endif
+
 #endif /* _WIN32 */
 
     return( ret );

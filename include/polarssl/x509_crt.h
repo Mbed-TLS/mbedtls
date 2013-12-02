@@ -172,6 +172,11 @@ int x509_crt_parse_file( x509_crt *chain, const char *path );
  *                 of failed certificates it encountered. If none complete
  *                 correctly, the first error is returned.
  *
+ * \warning        This function is NOT thread-safe unless
+ *                 POLARSSL_THREADING_PTHREADS is defined. If you're using an
+ *                 alternative threading implementation, you should either use
+ *                 this function only in the main thread, or mutex it.
+ *
  * \param chain    points to the start of the chain
  * \param path     directory / folder to read the certificate files from
  *

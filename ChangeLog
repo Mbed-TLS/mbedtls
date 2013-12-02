@@ -5,6 +5,7 @@ Changes
    * gen_prime() speedup
    * Speedup of ECP multiplication operation
    * Relaxed some SHA2 ciphersuite's version requirements
+   * Dropped use of readdir_r() instead of readdir() with threading support
 
 Bugfix
    * Fixed X.509 hostname comparison (with non-regular characters)

@@ -12,6 +12,7 @@ Changes
    * Relaxed some SHA2 ciphersuite's version requirements
    * Dropped use of readdir_r() instead of readdir() with threading support
    * More constant-time checks in the RSA module
+   * Split off curves from ecp.c into ecp_curves.c
 
 Bugfix
    * Fixed X.509 hostname comparison (with non-regular characters)

@@ -241,7 +241,7 @@ void x509_crt_parse_path( char *crt_path, int ret, int nb_crt )
 
     TEST_ASSERT( i == nb_crt );
 
-    x509_crt_init( &chain );
+    x509_crt_free( &chain );
 }
 /* END_CASE */
 

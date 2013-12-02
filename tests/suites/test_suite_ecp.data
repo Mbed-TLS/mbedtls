@@ -1,3 +1,35 @@
+ECP curve info #1
+depends_on:POLARSSL_ECP_DP_BP512R1_ENABLED
+ecp_curve_info:POLARSSL_ECP_DP_BP512R1:28:512:"brainpoolP512r1"
+
+ECP curve info #2
+depends_on:POLARSSL_ECP_DP_BP384R1_ENABLED
+ecp_curve_info:POLARSSL_ECP_DP_BP384R1:27:384:"brainpoolP384r1"
+
+ECP curve info #3
+depends_on:POLARSSL_ECP_DP_BP256R1_ENABLED
+ecp_curve_info:POLARSSL_ECP_DP_BP256R1:26:256:"brainpoolP256r1"
+
+ECP curve info #4
+depends_on:POLARSSL_ECP_DP_SECP521R1_ENABLED
+ecp_curve_info:POLARSSL_ECP_DP_SECP521R1:25:521:"secp521r1"
+
+ECP curve info #5
+depends_on:POLARSSL_ECP_DP_SECP384R1_ENABLED
+ecp_curve_info:POLARSSL_ECP_DP_SECP384R1:24:384:"secp384r1"
+
+ECP curve info #6
+depends_on:POLARSSL_ECP_DP_SECP256R1_ENABLED
+ecp_curve_info:POLARSSL_ECP_DP_SECP256R1:23:256:"secp256r1"
+
+ECP curve info #7
+depends_on:POLARSSL_ECP_DP_SECP224R1_ENABLED
+ecp_curve_info:POLARSSL_ECP_DP_SECP224R1:21:224:"secp224r1"
+
+ECP curve info #8
+depends_on:POLARSSL_ECP_DP_SECP192R1_ENABLED
+ecp_curve_info:POLARSSL_ECP_DP_SECP192R1:19:192:"secp192r1"
+
 ECP small addition #1
 ecp_small_add:1:"":"":1:"":"":1:0:0
 
@@ -246,6 +278,10 @@ ecp_check_privkey:POLARSSL_ECP_DP_SECP192R1
 ECP gen keypair
 depends_on:POLARSSL_ECP_DP_SECP192R1_ENABLED
 ecp_gen_keypair:POLARSSL_ECP_DP_SECP192R1
+
+ECP gen keypair wrapper
+depends_on:POLARSSL_ECP_DP_SECP192R1_ENABLED
+ecp_gen_key:POLARSSL_ECP_DP_SECP192R1
 
 ECP mod p192 small (more than 192 bits, less limbs than 2 * 192 bits)
 depends_on:POLARSSL_ECP_DP_SECP192R1_ENABLED

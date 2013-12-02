@@ -205,6 +205,15 @@ const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id );
 const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id );
 
 /**
+ * \brief           Get curve information from a human-readable name
+ *
+ * \param name      The name
+ *
+ * \return          The associated curve information or NULL
+ */
+const ecp_curve_info *ecp_curve_info_from_name( const char *name );
+
+/**
  * \brief           Initialize a point (as zero)
  */
 void ecp_point_init( ecp_point *pt );
@@ -534,6 +543,20 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d );
 int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
+
+/**
+ * \brief           Generate a keypair
+ *
+ * \param grp_id    ECP group identifier
+ * \param key       Destination keypair
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ */
+int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
  * \brief          Checkup routine

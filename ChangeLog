@@ -1,6 +1,9 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
 = PolarSSL 1.3 branch
+Features
+   * EC key generation support in gen_key app
+
 Changes
    * gen_prime() speedup
    * Speedup of ECP multiplication operation

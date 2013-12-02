@@ -58,6 +58,11 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
+    !defined(EFI32)
+#define strcasecmp _stricmp
+#endif
+
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
 #else
@@ -84,13 +89,13 @@ unsigned long add_count, dbl_count, mul_count;
 const ecp_curve_info ecp_supported_curves[] =
 {
 #if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
-    { POLARSSL_ECP_DP_BP512R1,      28,     512,    "brainpool512r1"    },
+    { POLARSSL_ECP_DP_BP512R1,      28,     512,    "brainpoolP512r1"   },
 #endif
 #if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
-    { POLARSSL_ECP_DP_BP384R1,      27,     384,    "brainpool384r1"    },
+    { POLARSSL_ECP_DP_BP384R1,      27,     384,    "brainpoolP384r1"   },
 #endif
 #if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
-    { POLARSSL_ECP_DP_BP256R1,      26,     256,    "brainpool256r1"    },
+    { POLARSSL_ECP_DP_BP256R1,      26,     256,    "brainpoolP256r1"   },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
     { POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1"         },
@@ -148,6 +153,24 @@ const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id )
          curve_info++ )
     {
         if( curve_info->tls_id == tls_id )
+            return( curve_info );
+    }
+
+    return( NULL );
+}
+
+/*
+ * Get the curve info from the name
+ */
+const ecp_curve_info *ecp_curve_info_from_name( const char *name )
+{
+    const ecp_curve_info *curve_info;
+
+    for( curve_info = ecp_curve_list();
+         curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+         curve_info++ )
+    {
+        if( strcasecmp( curve_info->name, name ) == 0 )
             return( curve_info );
     }
 
@@ -1667,6 +1690,20 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
     while( mpi_cmp_int( d, 1 ) < 0 );
 
     return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
+}
+
+/*
+ * Generate a keypair, prettier wrapper
+ */
+int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+
+    if( ( ret = ecp_use_known_dp( &key->grp, grp_id ) ) != 0 )
+        return( ret );
+
+    return( ecp_gen_keypair( &key->grp, &key->d, &key->Q, f_rng, p_rng ) );
 }
 
 #if defined(POLARSSL_ECP_NIST_OPTIM)

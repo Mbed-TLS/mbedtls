@@ -10,6 +10,22 @@
  */
 
 /* BEGIN_CASE */
+void ecp_curve_info( int id, int tls_id, int size, char *name )
+{
+    const ecp_curve_info *by_id, *by_tls, *by_name;
+
+    TEST_ASSERT( ( by_id   = ecp_curve_info_from_grp_id( id     ) ) != NULL );
+    TEST_ASSERT( ( by_tls  = ecp_curve_info_from_tls_id( tls_id ) ) != NULL );
+    TEST_ASSERT( ( by_name = ecp_curve_info_from_name(   name   ) ) != NULL );
+
+    TEST_ASSERT( by_id == by_tls  );
+    TEST_ASSERT( by_id == by_name );
+
+    TEST_ASSERT( by_id->size == size );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ecp_small_add( int a_zero, char *x_a, char *y_a, int b_zero, char *x_b,
                     char *y_b, int c_zero, int x_c, int y_c )
 {
@@ -519,6 +535,24 @@ void ecp_gen_keypair( int id )
     ecp_group_free( &grp );
     ecp_point_free( &Q );
     mpi_free( &d );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_gen_key( int id )
+{
+    ecp_keypair key;
+    rnd_pseudo_info rnd_info;
+
+    ecp_keypair_init( &key );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( ecp_gen_key( id, &key, &rnd_pseudo_rand, &rnd_info ) == 0 );
+
+    TEST_ASSERT( ecp_check_pubkey( &key.grp, &key.Q ) == 0 );
+    TEST_ASSERT( ecp_check_privkey( &key.grp, &key.d ) == 0 );
+
+    ecp_keypair_free( &key );
 }
 /* END_CASE */
 

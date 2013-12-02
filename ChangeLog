@@ -3,6 +3,8 @@ PolarSSL ChangeLog (Sorted per branch, date)
 = PolarSSL 1.3 branch
 Features
    * EC key generation support in gen_key app
+   * Support for adhering to client ciphersuite order preference
+     (POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
 
 Changes
    * gen_prime() speedup

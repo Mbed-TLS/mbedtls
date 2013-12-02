@@ -680,6 +680,129 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+/*
+ * Auxiliary functions for ServerHello parsing and related actions
+ */
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+/*
+ * Return 1 if the given EC key uses the given curve, 0 otherwise
+ */
+#if defined(POLARSSL_ECDSA_C)
+static int ssl_key_matches_curves( pk_context *pk,
+                                   const ecp_curve_info **curves )
+{
+    const ecp_curve_info **crv = curves;
+    ecp_group_id grp_id = pk_ec( *pk )->grp.id;
+
+    while( *crv != NULL )
+    {
+        if( (*crv)->grp_id == grp_id )
+            return( 1 );
+        crv++;
+    }
+
+    return( 0 );
+}
+#endif /* POLARSSL_ECDSA_C */
+
+/*
+ * Try picking a certificate for this ciphersuite,
+ * return 0 on success and -1 on failure.
+ */
+static int ssl_pick_cert( ssl_context *ssl,
+                          const ssl_ciphersuite_t * ciphersuite_info )
+{
+    ssl_key_cert *cur, *list;
+    pk_type_t pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
+    if( ssl->handshake->sni_key_cert != NULL )
+        list = ssl->handshake->sni_key_cert;
+    else
+#endif
+        list = ssl->handshake->key_cert;
+
+    if( pk_alg == POLARSSL_PK_NONE )
+        return( 0 );
+
+    for( cur = list; cur != NULL; cur = cur->next )
+    {
+        if( ! pk_can_do( cur->key, pk_alg ) )
+            continue;
+
+#if defined(POLARSSL_ECDSA_C)
+        if( pk_alg == POLARSSL_PK_ECDSA )
+        {
+            if( ssl_key_matches_curves( cur->key, ssl->handshake->curves ) )
+                break;
+        }
+        else
+#endif
+            break;
+    }
+
+    if( cur == NULL )
+        return( -1 );
+
+    ssl->handshake->key_cert = cur;
+    return( 0 );
+}
+#endif /* POLARSSL_X509_CRT_PARSE_C */
+
+/*
+ * Check if a given ciphersuite is suitable for use with our config/keys/etc
+ * Sets ciphersuite_info only if the suite matches.
+ */
+static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
+                                  const ssl_ciphersuite_t **ciphersuite_info )
+{
+    const ssl_ciphersuite_t *suite_info;
+
+    suite_info = ssl_ciphersuite_from_id( suite_id );
+    if( suite_info == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found", suite_id ) );
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    if( suite_info->min_minor_ver > ssl->minor_ver ||
+        suite_info->max_minor_ver < ssl->minor_ver )
+        return( 0 );
+
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
+    if( ssl_ciphersuite_uses_ec( suite_info ) &&
+        ( ssl->handshake->curves == NULL ||
+          ssl->handshake->curves[0] == NULL ) )
+        return( 0 );
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    /* If the ciphersuite requires a pre-shared key and we don't
+     * have one, skip it now rather than failing later */
+    if( ssl_ciphersuite_uses_psk( suite_info ) &&
+        ssl->f_psk == NULL &&
+        ( ssl->psk == NULL || ssl->psk_identity == NULL ||
+          ssl->psk_identity_len == 0 || ssl->psk_len == 0 ) )
+        return( 0 );
+#endif
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    /*
+     * Final check: if ciphersuite requires us to have a
+     * certificate/key of a particular type:
+     * - select the appropriate certificate if we have one, or
+     * - try the next ciphersuite if we don't
+     * This must be done last since we modify the key_cert list.
+     */
+    if( ssl_pick_cert( ssl, suite_info ) != 0 )
+        return( 0 );
+#endif
+
+    *ciphersuite_info = suite_info;
+    return( 0 );
+}
+
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( ssl_context *ssl )
 {
@@ -851,31 +974,28 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     }
 
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
+    ciphersuite_info = NULL;
+#if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
+    for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
+    {
+        for( i = 0; ciphersuites[i] != 0; i++ )
+#else
     for( i = 0; ciphersuites[i] != 0; i++ )
     {
         for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
+#endif
         {
-            // Only allow non-ECC ciphersuites as we do not have extensions
-            //
-            if( p[0] == 0 && p[1] == 0 &&
-                ( ( ciphersuites[i] >> 8 ) & 0xFF ) == 0 &&
-                p[2] == ( ciphersuites[i] & 0xFF ) )
-            {
-                ciphersuite_info = ssl_ciphersuite_from_id( ciphersuites[i] );
+            if( p[0] != 0 ||
+                p[1] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
+                p[2] != ( ( ciphersuites[i]      ) & 0xFF ) )
+                continue;
 
-                if( ciphersuite_info == NULL )
-                {
-                    SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
-                                   ciphersuites[i] ) );
-                    return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-                }
+            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
+                                               &ciphersuite_info ) ) != 0 )
+                return( ret );
 
-                if( ciphersuite_info->min_minor_ver > ssl->minor_ver ||
-                    ciphersuite_info->max_minor_ver < ssl->minor_ver )
-                    continue;
-
+            if( ciphersuite_info != NULL )
                 goto have_ciphersuite_v2;
-            }
         }
     }
 
@@ -910,69 +1030,6 @@ have_ciphersuite_v2:
     return( 0 );
 }
 #endif /* POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
-
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-#if defined(POLARSSL_ECDSA_C)
-static int ssl_key_matches_curves( pk_context *pk,
-                                   const ecp_curve_info **curves )
-{
-    const ecp_curve_info **crv = curves;
-    ecp_group_id grp_id = pk_ec( *pk )->grp.id;
-
-    while( *crv != NULL )
-    {
-        if( (*crv)->grp_id == grp_id )
-            return( 1 );
-        crv++;
-    }
-
-    return( 0 );
-}
-#endif /* POLARSSL_ECDSA_C */
-
-/*
- * Try picking a certificate for this ciphersuite,
- * return 0 on success and -1 on failure.
- */
-static int ssl_pick_cert( ssl_context *ssl,
-                          const ssl_ciphersuite_t * ciphersuite_info )
-{
-    ssl_key_cert *cur, *list;
-    pk_type_t pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-
-#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_key_cert != NULL )
-        list = ssl->handshake->sni_key_cert;
-    else
-#endif
-        list = ssl->handshake->key_cert;
-
-    if( pk_alg == POLARSSL_PK_NONE )
-        return( 0 );
-
-    for( cur = list; cur != NULL; cur = cur->next )
-    {
-        if( ! pk_can_do( cur->key, pk_alg ) )
-            continue;
-
-#if defined(POLARSSL_ECDSA_C)
-        if( pk_alg == POLARSSL_PK_ECDSA )
-        {
-            if( ssl_key_matches_curves( cur->key, ssl->handshake->curves ) )
-                break;
-        }
-        else
-#endif
-            break;
-    }
-
-    if( cur == NULL )
-        return( -1 );
-
-    ssl->handshake->key_cert = cur;
-    return( 0 );
-}
-#endif /* POLARSSL_X509_CRT_PARSE_C */
 
 static int ssl_parse_client_hello( ssl_context *ssl )
 {
@@ -1372,58 +1429,27 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      * and certificate from the SNI callback triggered by the SNI extension.)
      */
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
+    ciphersuite_info = NULL;
+#if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
+    for( j = 0, p = buf + 41 + sess_len; j < ciph_len; j += 2, p += 2 )
+    {
+        for( i = 0; ciphersuites[i] != 0; i++ )
+#else
     for( i = 0; ciphersuites[i] != 0; i++ )
     {
-        for( j = 0, p = buf + 41 + sess_len; j < ciph_len;
-            j += 2, p += 2 )
+        for( j = 0, p = buf + 41 + sess_len; j < ciph_len; j += 2, p += 2 )
+#endif
         {
-            if( p[0] == ( ( ciphersuites[i] >> 8 ) & 0xFF ) &&
-                p[1] == ( ( ciphersuites[i]      ) & 0xFF ) )
-            {
-                ciphersuite_info = ssl_ciphersuite_from_id( ciphersuites[i] );
+            if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
+                p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )
+                continue;
 
-                if( ciphersuite_info == NULL )
-                {
-                    SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found",
-                                   ciphersuites[i] ) );
-                    return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-                }
+            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
+                                               &ciphersuite_info ) ) != 0 )
+                return( ret );
 
-                if( ciphersuite_info->min_minor_ver > ssl->minor_ver ||
-                    ciphersuite_info->max_minor_ver < ssl->minor_ver )
-                    continue;
-
-#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
-                if( ssl_ciphersuite_uses_ec( ciphersuite_info ) &&
-                    ( ssl->handshake->curves == NULL ||
-                      ssl->handshake->curves[0] == NULL ) )
-                    continue;
-#endif
-
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-                /* If the ciphersuite requires a pre-shared key and we don't
-                 * have one, skip it now rather than failing later */
-                if( ssl_ciphersuite_uses_psk( ciphersuite_info ) &&
-                    ssl->f_psk == NULL &&
-                    ( ssl->psk == NULL || ssl->psk_identity == NULL ||
-                      ssl->psk_identity_len == 0 || ssl->psk_len == 0 ) )
-                    continue;
-#endif
-
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-                /*
-                 * Final check: if ciphersuite requires us to have a
-                 * certificate/key of a particular type:
-                 * - select the appropriate certificate if we have one, or
-                 * - try the next ciphersuite if we don't
-                 * This must be done last since we modify the key_cert list.
-                 */
-                if( ssl_pick_cert( ssl, ciphersuite_info ) != 0 )
-                    continue;
-#endif
-
+            if( ciphersuite_info != NULL )
                 goto have_ciphersuite;
-            }
         }
     }
 

@@ -64,10 +64,16 @@ typedef enum
     POLARSSL_ECP_DP_BP256R1,        /*!< 256-bits Brainpool curve */
     POLARSSL_ECP_DP_BP384R1,        /*!< 384-bits Brainpool curve */
     POLARSSL_ECP_DP_BP512R1,        /*!< 512-bits Brainpool curve */
+    POLARSSL_ECP_DP_M221,           /*!< (not implemented yet)    */
+    POLARSSL_ECP_DP_M255,           /*!< Curve25519               */
+    POLARSSL_ECP_DP_M383,           /*!< (not implemented yet)    */
+    POLARSSL_ECP_DP_M511,           /*!< (not implemented yet)    */
 } ecp_group_id;
 
 /**
- * Number of supported curves (plus one for NONE)
+ * Number of supported curves (plus one for NONE).
+ *
+ * (Montgomery curves excluded for now.)
  */
 #define POLARSSL_ECP_DP_MAX     9
 

@@ -342,10 +342,38 @@ static int ecp_mod_p521( mpi * );
                             G ## _n,  sizeof( G ## _n  ) )
 
 /*
+ * Specialized function for creating the Curve25519 group
+ */
+static int ecp_use_curve25519( ecp_group *grp )
+{
+    int ret;
+
+    /* Actually ( A + 2 ) / 4 */
+    MPI_CHK( mpi_read_string( &grp->A, 16, "01DB42" ) );
+
+    /* P = 2^255 - 19 */
+    MPI_CHK( mpi_lset( &grp->P, 1 ) );
+    MPI_CHK( mpi_shift_l( &grp->P, 255 ) );
+    MPI_CHK( mpi_sub_int( &grp->P, &grp->P, 19 ) );
+    grp->pbits = mpi_msb( &grp->P );
+
+    /* Actually, the required msb for private keys */
+    grp->nbits = 254;
+
+cleanup:
+    if( ret != 0 )
+        ecp_group_free( grp );
+
+    return( ret );
+}
+
+/*
  * Set a group using well-known domain parameters
  */
 int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 {
+    ecp_group_free( grp );
+
     grp->id = id;
 
     switch( id )
@@ -394,6 +422,11 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
         case POLARSSL_ECP_DP_BP512R1:
             return( LOAD_GROUP( brainpoolP512r1 ) );
 #endif /* POLARSSL_ECP_DP_BP512R1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_M255_ENABLED)
+        case POLARSSL_ECP_DP_M255:
+            return( ecp_use_curve25519( grp ) );
+#endif /* POLARSSL_ECP_DP_M255_ENABLED */
 
         default:
             ecp_group_free( grp );

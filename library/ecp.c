@@ -1348,6 +1348,116 @@ cleanup:
 }
 
 /*
+ * Normalize Montgomery x/z coordinates: X = X/Z, Z = 1
+ * Cost: 1M + 1I
+ */
+static int ecp_normalize_mxz( const ecp_group *grp, ecp_point *P )
+{
+    int ret;
+
+    MPI_CHK( mpi_inv_mod( &P->Z, &P->Z, &grp->P ) );
+    MPI_CHK( mpi_mul_mpi( &P->X, &P->X, &P->Z ) ); MOD_MUL( P->X );
+    MPI_CHK( mpi_lset( &P->Z, 1 ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Double-and-add: R = 2P, S = P + Q, with d = X(P - Q),
+ * for Montgomery curves in x/z coordinates.
+ *
+ * http://www.hyperelliptic.org/EFD/g1p/auto-code/montgom/xz/ladder/mladd-1987-m.op3
+ * with
+ * d =  X1
+ * P = (X2, Z2)
+ * Q = (X3, Z3)
+ * R = (X4, Z4)
+ * S = (X5, Z5)
+ * and eliminating temporary variables tO, ..., t4.
+ *
+ * Cost: 5M + 4S
+ */
+static int ecp_double_add_mxz( const ecp_group *grp,
+                               ecp_point *R, ecp_point *S,
+                               const ecp_point *P, const ecp_point *Q,
+                               const mpi *d )
+{
+    int ret;
+    mpi A, AA, B, BB, E, C, D, DA, CB;
+
+    mpi_init( &A ); mpi_init( &AA ); mpi_init( &B );
+    mpi_init( &BB ); mpi_init( &E ); mpi_init( &C );
+    mpi_init( &D ); mpi_init( &DA ); mpi_init( &CB );
+
+    MPI_CHK( mpi_add_mpi( &A,    &P->X,   &P->Z ) ); MOD_ADD( A    );
+    MPI_CHK( mpi_mul_mpi( &AA,   &A,      &A    ) ); MOD_MUL( AA   );
+    MPI_CHK( mpi_sub_mpi( &B,    &P->X,   &P->Z ) ); MOD_SUB( B    );
+    MPI_CHK( mpi_mul_mpi( &BB,   &B,      &B    ) ); MOD_MUL( BB   );
+    MPI_CHK( mpi_sub_mpi( &E,    &AA,     &BB   ) ); MOD_SUB( E    );
+    MPI_CHK( mpi_add_mpi( &C,    &Q->X,   &Q->Z ) ); MOD_ADD( C    );
+    MPI_CHK( mpi_sub_mpi( &D,    &Q->X,   &Q->Z ) ); MOD_SUB( D    );
+    MPI_CHK( mpi_mul_mpi( &DA,   &D,      &A    ) ); MOD_MUL( DA   );
+    MPI_CHK( mpi_mul_mpi( &CB,   &C,      &B    ) ); MOD_MUL( CB   );
+    MPI_CHK( mpi_add_mpi( &S->X, &DA,     &CB   ) ); MOD_MUL( S->X );
+    MPI_CHK( mpi_mul_mpi( &S->X, &S->X,   &S->X ) ); MOD_MUL( S->X );
+    MPI_CHK( mpi_sub_mpi( &S->Z, &DA,     &CB   ) ); MOD_SUB( S->Z );
+    MPI_CHK( mpi_mul_mpi( &S->Z, &S->Z,   &S->Z ) ); MOD_MUL( S->Z );
+    MPI_CHK( mpi_mul_mpi( &S->Z, d,       &S->Z ) ); MOD_MUL( S->Z );
+    MPI_CHK( mpi_mul_mpi( &R->X, &AA,     &BB   ) ); MOD_MUL( R->X );
+    MPI_CHK( mpi_mul_mpi( &R->Z, &grp->A, &E    ) ); MOD_MUL( R->Z );
+    MPI_CHK( mpi_add_mpi( &R->Z, &BB,     &R->Z ) ); MOD_ADD( R->Z );
+    MPI_CHK( mpi_mul_mpi( &R->Z, &E,      &R->Z ) ); MOD_MUL( R->Z );
+
+cleanup:
+    mpi_free( &A ); mpi_free( &AA ); mpi_free( &B );
+    mpi_free( &BB ); mpi_free( &E ); mpi_free( &C );
+    mpi_free( &D ); mpi_free( &DA ); mpi_free( &CB );
+
+    return( ret );
+}
+
+/*
+ * Multiplication with Montgomery ladder in x/z coordinates
+ */
+int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
+                 const mpi *m, const ecp_point *P,
+                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+    size_t i;
+    ecp_point RP;
+    mpi PX;
+
+    ecp_point_init( &RP ); mpi_init( &PX );
+
+    /* Save PX and read P before writing to R, in case P == R */
+    mpi_copy( &PX, &P->X );
+    MPI_CHK( ecp_copy( &RP, P ) );
+    MPI_CHK( ecp_set_zero( R ) );
+
+    // TODO: randomize RP coordinates
+    (void) f_rng; (void) p_rng;
+
+    i = mpi_msb( m ) + 1;
+    while( i-- > 0 )
+    {
+        // TODO: no branch, and constant memory-access pattern
+        if( mpi_get_bit( m, i ) )
+            MPI_CHK( ecp_double_add_mxz( grp, &RP, R, &RP, R, &PX ) );
+        else
+            MPI_CHK( ecp_double_add_mxz( grp, R, &RP, R, &RP, &PX ) );
+    }
+
+    MPI_CHK( ecp_normalize_mxz( grp, R ) );
+
+cleanup:
+    ecp_point_free( &RP ); mpi_free( &PX );
+
+    return( ret );
+}
+
+/*
  * Check that a point is valid as a public key (SEC1 3.2.3.1)
  */
 int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )

@@ -976,7 +976,7 @@ cleanup:
  *
  * This countermeasure was first suggested in [2].
  */
-static int ecp_randomize_coordinates( const ecp_group *grp, ecp_point *pt,
+static int ecp_randomize_jac( const ecp_group *grp, ecp_point *pt,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
@@ -1203,7 +1203,7 @@ static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
     i = d;
     MPI_CHK( ecp_select_comb( grp, R, T, t_len, x[i] ) );
     if( f_rng != 0 )
-        MPI_CHK( ecp_randomize_coordinates( grp, R, f_rng, p_rng ) );
+        MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
 
     while( i-- != 0 )
     {
@@ -1364,6 +1364,46 @@ cleanup:
 }
 
 /*
+ * Randomize projective x/z coordinates:
+ * (X, Z) -> (l X, l Z) for random l
+ * This is sort of the reverse operation of ecp_normalize_mxz().
+ *
+ * This countermeasure was first suggested in [2].
+ * Cost: 2M
+ */
+static int ecp_randomize_mxz( const ecp_group *grp, ecp_point *P,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+    mpi l;
+    size_t p_size = (grp->pbits + 7) / 8;
+    int count = 0;
+
+    mpi_init( &l );
+
+    /* Generate l such that 1 < l < p */
+    do
+    {
+        mpi_fill_random( &l, p_size, f_rng, p_rng );
+
+        while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
+            mpi_shift_r( &l, 1 );
+
+        if( count++ > 10 )
+            return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+    }
+    while( mpi_cmp_int( &l, 1 ) <= 0 );
+
+    MPI_CHK( mpi_mul_mpi( &P->X, &P->X, &l ) ); MOD_MUL( P->X );
+    MPI_CHK( mpi_mul_mpi( &P->Z, &P->Z, &l ) ); MOD_MUL( P->Z );
+
+cleanup:
+    mpi_free( &l );
+
+    return( ret );
+}
+
+/*
  * Double-and-add: R = 2P, S = P + Q, with d = X(P - Q),
  * for Montgomery curves in x/z coordinates.
  *
@@ -1431,13 +1471,13 @@ int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
 
     ecp_point_init( &RP ); mpi_init( &PX );
 
-    /* Save PX and read P before writing to R, in case P == R */
+    /* Save PX and read from P before writing to R, in case P == R */
     mpi_copy( &PX, &P->X );
     MPI_CHK( ecp_copy( &RP, P ) );
     MPI_CHK( ecp_set_zero( R ) );
 
-    // TODO: randomize RP coordinates
-    (void) f_rng; (void) p_rng;
+    /* Randomize coordinates of the starting point */
+    MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
 
     i = mpi_msb( m ) + 1;
     while( i-- > 0 )

@@ -280,7 +280,8 @@ int mpi_set_bit( mpi *X, size_t pos, unsigned char val )
         MPI_CHK( mpi_grow( X, off + 1 ) );
     }
 
-    X->p[off] = ( X->p[off] & ~( 0x01 << idx ) ) | ( val << idx );
+    X->p[off] &= ~( (t_uint) 0x01 << idx );
+    X->p[off] |= (t_uint) val << idx;
 
 cleanup:
     

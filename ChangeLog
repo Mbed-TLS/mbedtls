@@ -15,6 +15,7 @@ Changes
    * Split off curves from ecp.c into ecp_curves.c
 
 Bugfix
+   * Fixed bug in mpi_set_bit() on platforms where t_uint is wider than int
    * Fixed X.509 hostname comparison (with non-regular characters)
    * SSL now gracefully handles missing RNG
    * Missing defines / cases for RSA_PSK key exchange

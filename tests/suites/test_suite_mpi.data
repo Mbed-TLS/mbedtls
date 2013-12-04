@@ -665,6 +665,12 @@ mpi_set_bit:10:"49979687":80:0:10:"49979687"
 Test bit set (Add above existing limbs with a 1)
 mpi_set_bit:10:"49979687":80:1:10:"1208925819614629224685863"
 
+Test bit set (Bit index larger than 31 with a 0)
+mpi_set_bit:16:"FFFFFFFFFFFFFFFF":32:0:16:"FFFFFFFEFFFFFFFF"
+
+Test bit set (Bit index larger than 31 with a 1)
+mpi_set_bit:16:"00":32:1:16:"0100000000"
+
 MPI Selftest
 depends_on:POLARSSL_SELF_TEST
 mpi_selftest:

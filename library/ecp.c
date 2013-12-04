@@ -946,6 +946,9 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
 {
     int ret;
 
+    if( ecp_is_montgomery( grp ) )
+        return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
+
     MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
     MPI_CHK( ecp_normalize_jac( grp, R ) );
 
@@ -964,6 +967,9 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
     ecp_point mQ;
 
     ecp_point_init( &mQ );
+
+    if( ecp_is_montgomery( grp ) )
+        return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
 
     /* mQ = - Q */
     ecp_copy( &mQ, Q );

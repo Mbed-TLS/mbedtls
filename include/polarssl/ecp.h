@@ -444,6 +444,9 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *
+ * \note            This function does not support Montgomery curves, such as
+ *                  Curve25519.
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q );
@@ -458,6 +461,9 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
  *
  * \return          0 if successful,
  *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *
+ * \note            This function does not support Montgomery curves, such as
+ *                  Curve25519.
  */
 int ecp_sub( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q );

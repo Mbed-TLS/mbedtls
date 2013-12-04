@@ -189,6 +189,27 @@ void ecp_small_check_pub( int x, int y, int z, int ret )
 /* END_CASE */
 
 /* BEGIN_CASE */
+void ecp_check_pub_mx( int grp_id, char *key_hex, int ret )
+{
+    ecp_group grp;
+    ecp_point P;
+
+    ecp_group_init( &grp );
+    ecp_point_init( &P );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, grp_id ) == 0 );
+
+    TEST_ASSERT( mpi_read_string( &P.X, 16, key_hex ) == 0 );
+    TEST_ASSERT( mpi_lset( &P.Z, 1 ) == 0 );
+
+    TEST_ASSERT( ecp_check_pubkey( &grp, &P ) == ret );
+
+    ecp_group_free( &grp );
+    ecp_point_free( &P );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ecp_test_vect( int id, char *dA_str, char *xA_str, char *yA_str,
                     char *dB_str, char *xB_str, char *yB_str, char *xZ_str,
                     char *yZ_str )
@@ -490,7 +511,7 @@ void ecp_tls_write_read_group( int id )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecp_check_privkey( int id )
+void ecp_check_privkey( int id, char *key_hex, int ret )
 {
     ecp_group grp;
     mpi d;
@@ -499,12 +520,9 @@ void ecp_check_privkey( int id )
     mpi_init( &d );
 
     TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
+    TEST_ASSERT( mpi_read_string( &d, 16, key_hex ) == 0 );
 
-    TEST_ASSERT( mpi_lset( &d, 0 ) == 0 );
-    TEST_ASSERT( ecp_check_privkey( &grp, &d ) == POLARSSL_ERR_ECP_INVALID_KEY );
-
-    TEST_ASSERT( mpi_copy( &d, &grp.N ) == 0 );
-    TEST_ASSERT( ecp_check_privkey( &grp, &d ) == POLARSSL_ERR_ECP_INVALID_KEY );
+    TEST_ASSERT( ecp_check_privkey( &grp, &d ) == ret );
 
     ecp_group_free( &grp );
     mpi_free( &d );

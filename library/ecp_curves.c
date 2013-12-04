@@ -357,6 +357,12 @@ static int ecp_use_curve25519( ecp_group *grp )
     MPI_CHK( mpi_sub_int( &grp->P, &grp->P, 19 ) );
     grp->pbits = mpi_msb( &grp->P );
 
+    /* Y intentionaly not set, since we use x/z coordinates.
+     * This is used as a marker to identify Montgomery curves! */
+    MPI_CHK( mpi_lset( &grp->G.X, 9 ) );
+    MPI_CHK( mpi_lset( &grp->G.Z, 1 ) );
+    mpi_free( &grp->G.Y );
+
     /* Actually, the required msb for private keys */
     grp->nbits = 254;
 

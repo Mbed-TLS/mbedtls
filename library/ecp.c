@@ -177,6 +177,14 @@ const ecp_curve_info *ecp_curve_info_from_name( const char *name )
 }
 
 /*
+ * Tell if a group structure is associated to a Montgomery curve
+ */
+static inline int ecp_is_montgomery( const ecp_group *grp )
+{
+    return( grp->G.X.p != NULL && grp->G.Y.p == NULL );
+}
+
+/*
  * Initialize (the components of) a point
  */
 void ecp_point_init( ecp_point *pt )
@@ -1498,22 +1506,31 @@ cleanup:
 }
 
 /*
- * Check that a point is valid as a public key (SEC1 3.2.3.1)
+ * Check that a point is valid as a public key
  */
 int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
 {
     int ret;
     mpi YY, RHS;
 
-    if( mpi_cmp_int( &pt->Z, 0 ) == 0 )
-        return( POLARSSL_ERR_ECP_INVALID_KEY );
-
-    /*
-     * pt coordinates must be normalized for our checks
-     */
+    /* Must use affine coordinates */
     if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
         return( POLARSSL_ERR_ECP_INVALID_KEY );
 
+    if( ecp_is_montgomery( grp ) )
+    {
+        /* Just check X is the correct number of bytes */
+        if( mpi_size( &pt->X ) > ( grp->nbits + 7 ) / 8 )
+            return( POLARSSL_ERR_ECP_INVALID_KEY );
+
+        return( 0 );
+    }
+
+    /*
+     * Ok, so we have a short Weierstrass curve as in SEC1 3.2.3.1
+     */
+
+    /* pt coordinates must be normalized for our checks */
     if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
         mpi_cmp_int( &pt->Y, 0 ) < 0 ||
         mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
@@ -1521,6 +1538,12 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
         return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     mpi_init( &YY ); mpi_init( &RHS );
+
+    if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
+        mpi_cmp_int( &pt->Y, 0 ) < 0 ||
+        mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
+        mpi_cmp_mpi( &pt->Y, &grp->P ) >= 0 )
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     /*
      * YY = Y^2
@@ -1543,13 +1566,26 @@ cleanup:
 }
 
 /*
- * Check that an mpi is valid as a private key (SEC1 3.2)
+ * Check that an mpi is valid as a private key
  */
 int ecp_check_privkey( const ecp_group *grp, const mpi *d )
 {
-    /* We want 1 <= d <= N-1 */
-    if ( mpi_cmp_int( d, 1 ) < 0 || mpi_cmp_mpi( d, &grp->N ) >= 0 )
-        return( POLARSSL_ERR_ECP_INVALID_KEY );
+    if( ecp_is_montgomery( grp ) )
+    {
+        /* see the Curve25519 paper */
+        if( mpi_get_bit( d, 0 ) != 0 ||
+            mpi_get_bit( d, 1 ) != 0 ||
+            mpi_get_bit( d, 2 ) != 0 ||
+            mpi_msb( d ) - 1 != grp->nbits ) /* mpi_msb is one-based! */
+            return( POLARSSL_ERR_ECP_INVALID_KEY );
+    }
+    else
+    {
+        /* see SEC1 3.2 */
+        if( mpi_cmp_int( d, 1 ) < 0 ||
+            mpi_cmp_mpi( d, &grp->N ) >= 0 )
+            return( POLARSSL_ERR_ECP_INVALID_KEY );
+    }
 
     return( 0 );
 }

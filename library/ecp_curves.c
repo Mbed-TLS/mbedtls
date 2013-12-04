@@ -322,16 +322,29 @@ cleanup:
 
 #if defined(POLARSSL_ECP_NIST_OPTIM)
 /* Forward declarations */
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
 static int ecp_mod_p192( mpi * );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
 static int ecp_mod_p224( mpi * );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
 static int ecp_mod_p256( mpi * );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
 static int ecp_mod_p384( mpi * );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
 static int ecp_mod_p521( mpi * );
+#endif
+#if defined(POLARSSL_ECP_DP_M255_ENABLED)
+static int ecp_mod_p255( mpi * );
+#endif
 
 #define NIST_MODP( P )      grp->modp = ecp_mod_ ## P;
 #else
 #define NIST_MODP( P )
-#endif
+#endif /* POLARSSL_ECP_NIST_OPTIM */
 
 #define LOAD_GROUP( G )     ecp_group_read_binary( grp,     \
                             G ## _p,  sizeof( G ## _p  ),   \
@@ -431,6 +444,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_M255_ENABLED)
         case POLARSSL_ECP_DP_M255:
+            grp->modp = ecp_mod_p255;
             return( ecp_use_curve25519( grp ) );
 #endif /* POLARSSL_ECP_DP_M255_ENABLED */
 
@@ -842,5 +856,49 @@ cleanup:
 #endif /* POLARSSL_ECP_DP_SECP521R1_ENABLED */
 
 #endif /* POLARSSL_ECP_NIST_OPTIM */
+
+#if defined(POLARSSL_ECP_DP_M255_ENABLED)
+
+/* Size of p255 in terms of t_uint */
+#define P255_WIDTH      ( 255 / 8 / sizeof( t_uint ) + 1 )
+
+/*
+ * Fast quasi-reduction modulo p255 = 2^255 - 19
+ * Write N as A1 + 2^255 A1, return A0 + 19 * A1
+ */
+static int ecp_mod_p255( mpi *N )
+{
+    int ret;
+    size_t i;
+    mpi M;
+    t_uint Mp[P255_WIDTH + 2];
+
+    if( N->n < P255_WIDTH )
+        return( 0 );
+
+    /* M = A1 */
+    M.s = 1;
+    M.n = N->n - ( P255_WIDTH - 1 );
+    if( M.n > P255_WIDTH + 1 )
+        M.n = P255_WIDTH + 1;
+    M.p = Mp;
+    memset( Mp, 0, sizeof Mp );
+    memcpy( Mp, N->p + P255_WIDTH - 1, M.n * sizeof( t_uint ) );
+    MPI_CHK( mpi_shift_r( &M, 255 % ( 8 * sizeof( t_uint ) ) ) );
+    M.n++; /* Make room for multiplication by 19 */
+
+    /* N = A0 */
+    mpi_set_bit( N, 255, 0 );
+    for( i = P255_WIDTH; i < N->n; i++ )
+        N->p[i] = 0;
+
+    /* N = A0 + 19 * A1 */
+    MPI_CHK( mpi_mul_int( &M, &M, 19 ) );
+    MPI_CHK( mpi_add_abs( N, N, &M ) );
+
+cleanup:
+    return( ret );
+}
+#endif /* POLARSSL_ECP_DP_M255_ENABLED */
 
 #endif

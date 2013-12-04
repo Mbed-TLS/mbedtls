@@ -298,13 +298,11 @@ void ecp_test_vec_x( int id, char *dA_hex, char *xA_hex,
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xS ) == 0 );
 
-    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &grp.G,
-                          &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &grp.G, NULL, NULL ) == 0 );
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xB ) == 0 );
 
-    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &R,
-                          &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &R, NULL, NULL ) == 0 );
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xS ) == 0 );
 

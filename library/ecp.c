@@ -1475,12 +1475,17 @@ static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
     /* Save PX and read from P before writing to R, in case P == R */
     mpi_copy( &PX, &P->X );
     MPI_CHK( ecp_copy( &RP, P ) );
-    MPI_CHK( ecp_set_zero( R ) );
+
+    /* Set R to zero in modified x/z coordinates */
+    MPI_CHK( mpi_lset( &R->X, 1 ) );
+    MPI_CHK( mpi_lset( &R->Z, 0 ) );
+    mpi_free( &R->Y );
 
     /* Randomize coordinates of the starting point */
-    MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
+    if( f_rng != NULL )
+        MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
 
-    i = mpi_msb( m ) + 1;
+    i = mpi_msb( m ); /* one past the (zero-based) most significant bit */
     while( i-- > 0 )
     {
         // TODO: no branch, and constant memory-access pattern

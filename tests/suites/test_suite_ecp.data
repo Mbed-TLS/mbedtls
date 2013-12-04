@@ -325,6 +325,10 @@ ECP gen keypair
 depends_on:POLARSSL_ECP_DP_SECP192R1_ENABLED
 ecp_gen_keypair:POLARSSL_ECP_DP_SECP192R1
 
+ECP gen keypair
+depends_on:POLARSSL_ECP_DP_M255_ENABLED
+ecp_gen_keypair:POLARSSL_ECP_DP_M255
+
 ECP gen keypair wrapper
 depends_on:POLARSSL_ECP_DP_SECP192R1_ENABLED
 ecp_gen_key:POLARSSL_ECP_DP_SECP192R1

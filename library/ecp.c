@@ -31,6 +31,8 @@
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants
  *
+ * [M255] http://cr.yp.to/ecdh/curve25519-20060209.pdf
+ *
  * [2] CORON, Jean-Sébastien. Resistance against differential power analysis
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
  *     Embedded Systems. Springer Berlin Heidelberg, 1999. p. 292-302.
@@ -1534,7 +1536,7 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
 
     if( ecp_is_montgomery( grp ) )
     {
-        /* Just check X is the correct number of bytes */
+        /* [M255 p. 5] Just check X is the correct number of bytes */
         if( mpi_size( &pt->X ) > ( grp->nbits + 7 ) / 8 )
             return( POLARSSL_ERR_ECP_INVALID_KEY );
 
@@ -1587,7 +1589,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
 {
     if( ecp_is_montgomery( grp ) )
     {
-        /* see the Curve25519 paper */
+        /* see [M255] page 5 */
         if( mpi_get_bit( d, 0 ) != 0 ||
             mpi_get_bit( d, 1 ) != 0 ||
             mpi_get_bit( d, 2 ) != 0 ||
@@ -1606,7 +1608,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
 }
 
 /*
- * Generate a keypair (SEC1 3.2.1)
+ * Generate a keypair
  */
 int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
@@ -1615,20 +1617,40 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
     int count = 0;
     size_t n_size = (grp->nbits + 7) / 8;
 
-    /*
-     * Generate d such that 1 <= n < N
-     */
-    do
+    if( ecp_is_montgomery( grp ) )
     {
+        /* [M225] page 5 */
+        size_t b;
+
         mpi_fill_random( d, n_size, f_rng, p_rng );
 
-        while( mpi_cmp_mpi( d, &grp->N ) >= 0 )
-            mpi_shift_r( d, 1 );
+        /* Make sure the most significant bit is nbits */
+        b = mpi_msb( d ) - 1; /* mpi_msb is one-based */
+        if( b > grp->nbits )
+            mpi_shift_r( d, b - grp->nbits );
+        else
+            mpi_set_bit( d, grp->nbits, 1 );
 
-        if( count++ > 10 )
-            return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+        /* Make sure the last three bits are unset */
+        mpi_set_bit( d, 0, 0 );
+        mpi_set_bit( d, 1, 0 );
+        mpi_set_bit( d, 2, 0 );
     }
-    while( mpi_cmp_int( d, 1 ) < 0 );
+    else
+    {
+        /* SEC1 3.2.1: Generate d such that 1 <= n < N */
+        do
+        {
+            mpi_fill_random( d, n_size, f_rng, p_rng );
+
+            while( mpi_cmp_mpi( d, &grp->N ) >= 0 )
+                mpi_shift_r( d, 1 );
+
+            if( count++ > 10 )
+                return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+        }
+        while( mpi_cmp_int( d, 1 ) < 0 );
+    }
 
     return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
 }

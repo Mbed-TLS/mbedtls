@@ -1227,11 +1227,13 @@ cleanup:
 }
 
 /*
- * Multiplication using the comb method
+ * Multiplication using the comb method,
+ * for curves in short Weierstrass form
  */
-int ecp_mul( ecp_group *grp, ecp_point *R,
-             const mpi *m, const ecp_point *P,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+static int ecp_mul_comb( ecp_group *grp, ecp_point *R,
+                         const mpi *m, const ecp_point *P,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng )
 {
     int ret;
     unsigned char w, m_is_odd, p_eq_g, pre_len, i;
@@ -1240,27 +1242,12 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     ecp_point *T;
     mpi M, mm;
 
-    /*
-     * Sanity checks (before we even initialize anything)
-     */
-    if( mpi_cmp_int( &P->Z, 1 ) != 0 ||
-        mpi_get_bit( &grp->N, 0 ) != 1 )
-    {
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
-    }
-
-    if( ( ret = ecp_check_privkey( grp, m ) ) != 0 )
-        return( ret );
-
-    /* We'll need this later, but do it now to possibly avoid checking P */
-    p_eq_g = ( mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
-               mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
-
-    if( ! p_eq_g && ( ret = ecp_check_pubkey( grp, P ) ) != 0 )
-        return( ret );
-
     mpi_init( &M );
     mpi_init( &mm );
+
+    /* we need N to be odd to trnaform m in an odd number, check now */
+    if( mpi_get_bit( &grp->N, 0 ) != 1 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     /*
      * Minimize the number of multiplications, that is minimize
@@ -1273,6 +1260,8 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
      * If P == G, pre-compute a bit more, since this may be re-used later.
      * Just adding one ups the cost of the first mul by at most 3%.
      */
+    p_eq_g = ( mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
+               mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
     if( p_eq_g )
         w++;
 
@@ -1466,11 +1455,13 @@ cleanup:
 }
 
 /*
- * Multiplication with Montgomery ladder in x/z coordinates
+ * Multiplication with Montgomery ladder in x/z coordinates,
+ * for curves in Montgomery form
  */
-int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
-                 const mpi *m, const ecp_point *P,
-                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
+                        const mpi *m, const ecp_point *P,
+                        int (*f_rng)(void *, unsigned char *, size_t),
+                        void *p_rng )
 {
     int ret;
     size_t i;
@@ -1503,6 +1494,30 @@ cleanup:
     ecp_point_free( &RP ); mpi_free( &PX );
 
     return( ret );
+}
+
+/*
+ * Multiplication R = m * P
+ */
+int ecp_mul( ecp_group *grp, ecp_point *R,
+             const mpi *m, const ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+
+    /* Common sanity checks */
+    if( mpi_cmp_int( &P->Z, 1 ) != 0 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    if( ( ret = ecp_check_privkey( grp, m ) ) != 0 ||
+        ( ret = ecp_check_pubkey( grp, P ) ) != 0 )
+        return( ret );
+
+    /* Actual multiplication aglorithm depending of curve type */
+    if( ecp_is_montgomery( grp ) )
+        return( ecp_mul_mxz( grp, R, m, P, f_rng, p_rng ) );
+    else
+        return( ecp_mul_comb( grp, R, m, P, f_rng, p_rng ) );
 }
 
 /*

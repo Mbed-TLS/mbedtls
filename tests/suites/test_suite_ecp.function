@@ -264,6 +264,58 @@ void ecp_test_vect( int id, char *dA_str, char *xA_str, char *yA_str,
 /* END_CASE */
 
 /* BEGIN_CASE */
+void ecp_test_vec_x( int id, char *dA_hex, char *xA_hex,
+                     char *dB_hex, char *xB_hex, char *xS_hex )
+{
+    ecp_group grp;
+    ecp_point R;
+    mpi dA, xA, dB, xB, xS;
+    rnd_pseudo_info rnd_info;
+
+    ecp_group_init( &grp ); ecp_point_init( &R );
+    mpi_init( &dA ); mpi_init( &xA );
+    mpi_init( &dB ); mpi_init( &xB );
+    mpi_init( &xS );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
+
+    TEST_ASSERT( ecp_check_pubkey( &grp, &grp.G ) == 0 );
+
+    TEST_ASSERT( mpi_read_string( &dA, 16, dA_hex ) == 0 );
+    TEST_ASSERT( mpi_read_string( &dB, 16, dB_hex ) == 0 );
+    TEST_ASSERT( mpi_read_string( &xA, 16, xA_hex ) == 0 );
+    TEST_ASSERT( mpi_read_string( &xB, 16, xB_hex ) == 0 );
+    TEST_ASSERT( mpi_read_string( &xS, 16, xS_hex ) == 0 );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &grp.G,
+                          &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.X, &xA ) == 0 );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &R,
+                          &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.X, &xS ) == 0 );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &dB, &grp.G,
+                          &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.X, &xB ) == 0 );
+
+    TEST_ASSERT( ecp_mul( &grp, &R, &dA, &R,
+                          &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &R.X, &xS ) == 0 );
+
+    ecp_group_free( &grp ); ecp_point_free( &R );
+    mpi_free( &dA ); mpi_free( &xA );
+    mpi_free( &dB ); mpi_free( &xB );
+    mpi_free( &xS );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ecp_fast_mod( int id, char *N_str )
 {
     ecp_group grp;

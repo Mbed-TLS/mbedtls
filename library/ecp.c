@@ -1473,6 +1473,7 @@ static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
 {
     int ret;
     size_t i;
+    unsigned char b;
     ecp_point RP;
     mpi PX;
 
@@ -1491,14 +1492,23 @@ static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
     if( f_rng != NULL )
         MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
 
+    /* Loop invariant: R = result so far, RP = R + P */
     i = mpi_msb( m ); /* one past the (zero-based) most significant bit */
     while( i-- > 0 )
     {
-        // TODO: no branch, and constant memory-access pattern
-        if( mpi_get_bit( m, i ) )
-            MPI_CHK( ecp_double_add_mxz( grp, &RP, R, &RP, R, &PX ) );
-        else
-            MPI_CHK( ecp_double_add_mxz( grp, R, &RP, R, &RP, &PX ) );
+        b = mpi_get_bit( m, i );
+        /*
+         *  if (b) R = 2R + P else R = 2R,
+         * which is:
+         *  if (b) double_add( RP, R, RP, R )
+         *  else   double_add( R, RP, R, RP )
+         * but using safe conditional swaps to avoid leaks
+         */
+        MPI_CHK( mpi_safe_cond_swap( &R->X, &RP.X, b ) );
+        MPI_CHK( mpi_safe_cond_swap( &R->Z, &RP.Z, b ) );
+        MPI_CHK( ecp_double_add_mxz( grp, R, &RP, R, &RP, &PX ) );
+        MPI_CHK( mpi_safe_cond_swap( &R->X, &RP.X, b ) );
+        MPI_CHK( mpi_safe_cond_swap( &R->Z, &RP.Z, b ) );
     }
 
     MPI_CHK( ecp_normalize_mxz( grp, R ) );

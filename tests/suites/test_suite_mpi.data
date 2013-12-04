@@ -223,6 +223,24 @@ mpi_safe_cond_assign:-1:"01":+1:"02"
 Test mpi_safe_cond_assign #6
 mpi_safe_cond_assign:-1:"01":-1:"02"
 
+Test mpi_safe_cond_swap #1
+mpi_safe_cond_swap:+1:"01":+1:"02"
+
+Test mpi_safe_cond_swap #2
+mpi_safe_cond_swap:+1:"FF000000000000000001":+1:"02"
+
+Test mpi_safe_cond_swap #3
+mpi_safe_cond_swap:+1:"01":+1:"FF000000000000000002"
+
+Test mpi_safe_cond_swap #4
+mpi_safe_cond_swap:+1:"01":-1:"02"
+
+Test mpi_safe_cond_swap #5
+mpi_safe_cond_swap:-1:"01":+1:"02"
+
+Test mpi_safe_cond_swap #6
+mpi_safe_cond_swap:-1:"01":-1:"02"
+
 Base test mpi_add_abs #1
 mpi_add_abs:10:"12345678":10:"642531":10:"12988209"
 

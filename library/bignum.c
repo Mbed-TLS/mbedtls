@@ -214,18 +214,55 @@ int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign )
     int ret = 0;
     size_t i;
 
-    if( assign * ( 1 - assign ) != 0 )
-        return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
+    /* make sure assign is 0 or 1 */
+    assign = ( assign != 0 );
 
-    if( Y->n > X->n )
-        MPI_CHK( mpi_grow( X, Y->n ) );
+    MPI_CHK( mpi_grow( X, Y->n ) );
 
-    /* Do the conditional assign safely */
     X->s = X->s * (1 - assign) + Y->s * assign;
+
     for( i = 0; i < Y->n; i++ )
         X->p[i] = X->p[i] * (1 - assign) + Y->p[i] * assign;
+
     for( ; i < X->n; i++ )
         X->p[i] *= (1 - assign);
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Conditionally swap X and Y, without leaking information
+ * about whether the swap was made or not.
+ * Here it is not ok to simply swap the pointers, which whould lead to
+ * different memory access patterns when X and Y are used afterwards.
+ */
+int mpi_safe_cond_swap( mpi *X, mpi *Y, unsigned char swap )
+{
+    int ret, s;
+    size_t i;
+    t_uint tmp;
+
+    if( X == Y )
+        return( 0 );
+
+    /* make sure swap is 0 or 1 */
+    swap = ( swap != 0 );
+
+    MPI_CHK( mpi_grow( X, Y->n ) );
+    MPI_CHK( mpi_grow( Y, X->n ) );
+
+    s = X->s;
+    X->s = X->s * (1 - swap) + Y->s * swap;
+    Y->s = Y->s * (1 - swap) +    s * swap;
+
+
+    for( i = 0; i < X->n; i++ )
+    {
+        tmp = X->p[i];
+        X->p[i] = X->p[i] * (1 - swap) + Y->p[i] * swap;
+        Y->p[i] = Y->p[i] * (1 - swap) +     tmp * swap;
+    }
 
 cleanup:
     return( ret );

@@ -236,11 +236,10 @@ void mpi_swap( mpi *X, mpi *Y );
  *
  * \param X        MPI to conditionally assign to
  * \param Y        Value to be assigned
- * \param assign   1: perform the assignment, 0: leave X untouched
+ * \param assign   1: perform the assignment, 0: keep X's original value
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
- *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if assing is not 0 or 1
  *
  * \note           This function is equivalent to
  *                      if( assign ) mpi_copy( X, Y );
@@ -250,6 +249,25 @@ void mpi_swap( mpi *X, mpi *Y );
  *                 patterns analysis).
  */
 int mpi_safe_cond_assign( mpi *X, const mpi *Y, unsigned char assign );
+
+/**
+ * \brief          Safe conditional swap X <-> Y if swap is 1
+ *
+ * \param X        First mpi value
+ * \param Y        Second mpi value
+ * \param assign   1: perform the swap, 0: keep X and Y's original values
+ *
+ * \return         0 if successful,
+ *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *
+ * \note           This function is equivalent to
+ *                      if( assign ) mpi_swap( X, Y );
+ *                 except that it avoids leaking any information about whether
+ *                 the assignment was done or not (the above code may leak
+ *                 information through branch prediction and/or memory access
+ *                 patterns analysis).
+ */
+int mpi_safe_cond_swap( mpi *X, mpi *Y, unsigned char assign );
 
 /**
  * \brief          Set value from integer

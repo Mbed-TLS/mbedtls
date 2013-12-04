@@ -80,6 +80,34 @@
 static unsigned long add_count, dbl_count, mul_count;
 #endif
 
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP384R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP521R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_BP256R1_ENABLED)   ||   \
+    defined(POLARSSL_ECP_DP_BP384R1_ENABLED)   ||   \
+    defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
+#define POLARSSL_ECP_SHORT_WEIERSTRASS
+#endif
+
+#if defined(POLARSSL_ECP_DP_M221_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_M255_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_M383_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_M511_ENABLED)
+#define POLARSSL_ECP_MONTGOMERY
+#endif
+
+/*
+ * Curve types: internal for now, might be exposed later
+ */
+typedef enum
+{
+    POLARSSL_ECP_TYPE_NONE = 0,
+    POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
+    POLARSSL_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
+} ecp_curve_type;
+
 /*
  * List of supported curves:
  *  - internal ID
@@ -179,11 +207,17 @@ const ecp_curve_info *ecp_curve_info_from_name( const char *name )
 }
 
 /*
- * Tell if a group structure is associated to a Montgomery curve
+ * Get the type of a curve
  */
-static inline int ecp_is_montgomery( const ecp_group *grp )
+static inline ecp_curve_type ecp_get_type( const ecp_group *grp )
 {
-    return( grp->G.X.p != NULL && grp->G.Y.p == NULL );
+    if( grp->G.X.p == NULL )
+        return( POLARSSL_ECP_TYPE_NONE );
+
+    if( grp->G.Y.p == NULL )
+        return( POLARSSL_ECP_TYPE_MONTGOMERY );
+    else
+        return( POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS );
 }
 
 /*
@@ -642,6 +676,15 @@ cleanup:
     while( mpi_cmp_mpi( &N, &grp->P ) >= 0 )        \
         MPI_CHK( mpi_sub_abs( &N, &N, &grp->P ) )
 
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+/*
+ * For curves in short Weierstrass form, we do all the internal operations in
+ * Jacobian coordinates.
+ *
+ * For multiplication, we'll use a comb method with coutermeasueres against
+ * SPA, hence timing attacks.
+ */
+
 /*
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)
  * Cost: 1N := 1I + 3M + 1S
@@ -693,7 +736,7 @@ cleanup:
  * Cost: 1N(t) := 1I + (6t - 3)M + 1S
  */
 static int ecp_normalize_jac_many( const ecp_group *grp,
-                               ecp_point *T[], size_t t_len )
+                                   ecp_point *T[], size_t t_len )
 {
     int ret;
     size_t i;
@@ -946,7 +989,7 @@ int ecp_add( const ecp_group *grp, ecp_point *R,
 {
     int ret;
 
-    if( ecp_is_montgomery( grp ) )
+    if( ecp_get_type( grp ) != POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
         return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
 
     MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
@@ -968,7 +1011,7 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
 
     ecp_point_init( &mQ );
 
-    if( ecp_is_montgomery( grp ) )
+    if( ecp_get_type( grp ) != POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
         return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
 
     /* mQ = - Q */
@@ -1352,6 +1395,17 @@ cleanup:
     return( ret );
 }
 
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
+
+#if defined(POLARSSL_ECP_MONTGOMERY)
+/*
+ * For Montgomery curves, we do all the internal arithmetic in projective
+ * coordinates. Import/export of points uses only the x coordinates, which is
+ * internaly represented as X / Z.
+ *
+ * For scalar multiplication, we'll use a Montgomery ladder.
+ */
+
 /*
  * Normalize Montgomery x/z coordinates: X = X/Z, Z = 1
  * Cost: 1M + 1I
@@ -1519,6 +1573,8 @@ cleanup:
     return( ret );
 }
 
+#endif /* POLARSSL_ECP_MONTGOMERY */
+
 /*
  * Multiplication R = m * P
  */
@@ -1536,16 +1592,21 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
         ( ret = ecp_check_pubkey( grp, P ) ) != 0 )
         return( ret );
 
-    /* Actual multiplication aglorithm depending of curve type */
-    if( ecp_is_montgomery( grp ) )
+#if defined(POLARSSL_ECP_MONTGOMERY)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
         return( ecp_mul_mxz( grp, R, m, P, f_rng, p_rng ) );
-    else
+#endif
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
         return( ecp_mul_comb( grp, R, m, P, f_rng, p_rng ) );
+#endif
+    return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 }
 
 /*
  * Check that a point is valid as a public key
  */
+// TODO
 int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
 {
     int ret;
@@ -1555,7 +1616,7 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
     if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
         return( POLARSSL_ERR_ECP_INVALID_KEY );
 
-    if( ecp_is_montgomery( grp ) )
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
     {
         /* [M255 p. 5] Just check X is the correct number of bytes */
         if( mpi_size( &pt->X ) > ( grp->nbits + 7 ) / 8 )
@@ -1608,7 +1669,7 @@ cleanup:
  */
 int ecp_check_privkey( const ecp_group *grp, const mpi *d )
 {
-    if( ecp_is_montgomery( grp ) )
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
     {
         /* see [M255] page 5 */
         if( mpi_get_bit( d, 0 ) != 0 ||
@@ -1638,7 +1699,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
     int count = 0;
     size_t n_size = (grp->nbits + 7) / 8;
 
-    if( ecp_is_montgomery( grp ) )
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
     {
         /* [M225] page 5 */
         size_t b;

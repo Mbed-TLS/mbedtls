@@ -223,6 +223,24 @@ mpi_safe_cond_assign:-1:"01":+1:"02"
 Test mpi_safe_cond_assign #6
 mpi_safe_cond_assign:-1:"01":-1:"02"
 
+Test mpi_safe_cond_swap #1
+mpi_safe_cond_swap:+1:"01":+1:"02"
+
+Test mpi_safe_cond_swap #2
+mpi_safe_cond_swap:+1:"FF000000000000000001":+1:"02"
+
+Test mpi_safe_cond_swap #3
+mpi_safe_cond_swap:+1:"01":+1:"FF000000000000000002"
+
+Test mpi_safe_cond_swap #4
+mpi_safe_cond_swap:+1:"01":-1:"02"
+
+Test mpi_safe_cond_swap #5
+mpi_safe_cond_swap:-1:"01":+1:"02"
+
+Test mpi_safe_cond_swap #6
+mpi_safe_cond_swap:-1:"01":-1:"02"
+
 Base test mpi_add_abs #1
 mpi_add_abs:10:"12345678":10:"642531":10:"12988209"
 
@@ -664,6 +682,12 @@ mpi_set_bit:10:"49979687":80:0:10:"49979687"
 
 Test bit set (Add above existing limbs with a 1)
 mpi_set_bit:10:"49979687":80:1:10:"1208925819614629224685863"
+
+Test bit set (Bit index larger than 31 with a 0)
+mpi_set_bit:16:"FFFFFFFFFFFFFFFF":32:0:16:"FFFFFFFEFFFFFFFF"
+
+Test bit set (Bit index larger than 31 with a 1)
+mpi_set_bit:16:"00":32:1:16:"0100000000"
 
 MPI Selftest
 depends_on:POLARSSL_SELF_TEST

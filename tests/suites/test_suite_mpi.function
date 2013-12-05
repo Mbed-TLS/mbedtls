@@ -332,6 +332,36 @@ void mpi_safe_cond_assign( int x_sign, char *x_str,
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_safe_cond_swap( int x_sign, char *x_str,
+                         int y_sign, char *y_str )
+{
+    mpi X, Y, XX, YY;
+
+    mpi_init( &X ); mpi_init( &Y );
+    mpi_init( &XX ); mpi_init( &YY );
+
+    TEST_ASSERT( mpi_read_string( &X, 16, x_str ) == 0 );
+    X.s = x_sign;
+    TEST_ASSERT( mpi_read_string( &Y, 16, y_str ) == 0 );
+    Y.s = y_sign;
+
+    TEST_ASSERT( mpi_copy( &XX, &X ) == 0 );
+    TEST_ASSERT( mpi_copy( &YY, &Y ) == 0 );
+
+    TEST_ASSERT( mpi_safe_cond_swap( &X, &Y, 0 ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &XX ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &Y, &YY ) == 0 );
+
+    TEST_ASSERT( mpi_safe_cond_swap( &X, &Y, 1 ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &Y, &XX ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &X, &YY ) == 0 );
+
+    mpi_free( &X ); mpi_free( &Y );
+    mpi_free( &XX ); mpi_free( &YY );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_swap( int input_X,  int input_Y )
 {
     mpi X, Y, A;

@@ -59,6 +59,10 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
     ecp_point R;
     mpi k, e;
 
+    /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
+    if( grp->N.p == NULL )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
     ecp_point_init( &R );
     mpi_init( &k );
     mpi_init( &e );
@@ -128,6 +132,10 @@ int ecdsa_verify( ecp_group *grp,
 
     ecp_point_init( &R ); ecp_point_init( &P );
     mpi_init( &e ); mpi_init( &s_inv ); mpi_init( &u1 ); mpi_init( &u2 );
+
+    /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
+    if( grp->N.p == NULL )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     /*
      * Step 1: make sure r and s are in range 1..n-1

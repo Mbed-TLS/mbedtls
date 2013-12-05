@@ -5,6 +5,7 @@ Features
    * EC key generation support in gen_key app
    * Support for adhering to client ciphersuite order preference
      (POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
+   * Support for Curve25519
 
 Changes
    * gen_prime() speedup
@@ -15,6 +16,7 @@ Changes
    * Split off curves from ecp.c into ecp_curves.c
 
 Bugfix
+   * Fixed bug in mpi_set_bit() on platforms where t_uint is wider than int
    * Fixed X.509 hostname comparison (with non-regular characters)
    * SSL now gracefully handles missing RNG
    * Missing defines / cases for RSA_PSK key exchange

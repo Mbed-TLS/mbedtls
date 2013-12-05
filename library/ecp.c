@@ -31,6 +31,8 @@
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants
  *
+ * [M255] http://cr.yp.to/ecdh/curve25519-20060209.pdf
+ *
  * [2] CORON, Jean-Sébastien. Resistance against differential power analysis
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
  *     Embedded Systems. Springer Berlin Heidelberg, 1999. p. 292-302.
@@ -77,6 +79,34 @@
  */
 static unsigned long add_count, dbl_count, mul_count;
 #endif
+
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP224R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP256R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP384R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP521R1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_BP256R1_ENABLED)   ||   \
+    defined(POLARSSL_ECP_DP_BP384R1_ENABLED)   ||   \
+    defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
+#define POLARSSL_ECP_SHORT_WEIERSTRASS
+#endif
+
+#if defined(POLARSSL_ECP_DP_M221_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_M255_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_M383_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_M511_ENABLED)
+#define POLARSSL_ECP_MONTGOMERY
+#endif
+
+/*
+ * Curve types: internal for now, might be exposed later
+ */
+typedef enum
+{
+    POLARSSL_ECP_TYPE_NONE = 0,
+    POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
+    POLARSSL_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
+} ecp_curve_type;
 
 /*
  * List of supported curves:
@@ -174,6 +204,20 @@ const ecp_curve_info *ecp_curve_info_from_name( const char *name )
     }
 
     return( NULL );
+}
+
+/*
+ * Get the type of a curve
+ */
+static inline ecp_curve_type ecp_get_type( const ecp_group *grp )
+{
+    if( grp->G.X.p == NULL )
+        return( POLARSSL_ECP_TYPE_NONE );
+
+    if( grp->G.Y.p == NULL )
+        return( POLARSSL_ECP_TYPE_MONTGOMERY );
+    else
+        return( POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS );
 }
 
 /*
@@ -632,11 +676,20 @@ cleanup:
     while( mpi_cmp_mpi( &N, &grp->P ) >= 0 )        \
         MPI_CHK( mpi_sub_abs( &N, &N, &grp->P ) )
 
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+/*
+ * For curves in short Weierstrass form, we do all the internal operations in
+ * Jacobian coordinates.
+ *
+ * For multiplication, we'll use a comb method with coutermeasueres against
+ * SPA, hence timing attacks.
+ */
+
 /*
  * Normalize jacobian coordinates so that Z == 0 || Z == 1  (GECC 3.2.1)
  * Cost: 1N := 1I + 3M + 1S
  */
-static int ecp_normalize( const ecp_group *grp, ecp_point *pt )
+static int ecp_normalize_jac( const ecp_group *grp, ecp_point *pt )
 {
     int ret;
     mpi Zi, ZZi;
@@ -678,19 +731,19 @@ cleanup:
  * Theory", Algorithm 10.3.4.)
  *
  * Warning: fails (returning an error) if one of the points is zero!
- * This should never happen, see choice of w in ecp_mul().
+ * This should never happen, see choice of w in ecp_mul_comb().
  *
  * Cost: 1N(t) := 1I + (6t - 3)M + 1S
  */
-static int ecp_normalize_many( const ecp_group *grp,
-                               ecp_point *T[], size_t t_len )
+static int ecp_normalize_jac_many( const ecp_group *grp,
+                                   ecp_point *T[], size_t t_len )
 {
     int ret;
     size_t i;
     mpi *c, u, Zi, ZZi;
 
     if( t_len < 2 )
-        return( ecp_normalize( grp, *T ) );
+        return( ecp_normalize_jac( grp, *T ) );
 
     if( ( c = (mpi *) polarssl_malloc( t_len * sizeof( mpi ) ) ) == NULL )
         return( POLARSSL_ERR_ECP_MALLOC_FAILED );
@@ -756,7 +809,7 @@ cleanup:
  * Conditional point inversion: Q -> -Q = (Q.X, -Q.Y, Q.Z) without leak.
  * "inv" must be 0 (don't invert) or 1 (invert) or the result will be invalid
  */
-static int ecp_safe_invert( const ecp_group *grp,
+static int ecp_safe_invert_jac( const ecp_group *grp,
                             ecp_point *Q,
                             unsigned char inv )
 {
@@ -843,7 +896,7 @@ cleanup:
  * but those of P don't need to. R is not normalized.
  *
  * Special cases: (1) P or Q is zero, (2) R is zero, (3) P == Q.
- * None of these cases can happen as intermediate step in ecp_mul():
+ * None of these cases can happen as intermediate step in ecp_mul_comb():
  * - at each step, P, Q and R are multiples of the base point, the factor
  *   being less than its order, so none of them is zero;
  * - Q is an odd multiple of the base point, P an even multiple,
@@ -929,15 +982,17 @@ cleanup:
 
 /*
  * Addition: R = P + Q, result's coordinates normalized
- * Cost: 1A + 1N = 1I + 11M + 4S
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )
 {
     int ret;
 
+    if( ecp_get_type( grp ) != POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
+        return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
+
     MPI_CHK( ecp_add_mixed( grp, R, P, Q ) );
-    MPI_CHK( ecp_normalize( grp, R ) );
+    MPI_CHK( ecp_normalize_jac( grp, R ) );
 
 cleanup:
     return( ret );
@@ -945,7 +1000,6 @@ cleanup:
 
 /*
  * Subtraction: R = P - Q, result's coordinates normalized
- * Cost: 1A + 1N = 1I + 11M + 4S
  */
 int ecp_sub( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )
@@ -955,13 +1009,16 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
 
     ecp_point_init( &mQ );
 
+    if( ecp_get_type( grp ) != POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
+        return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
+
     /* mQ = - Q */
     ecp_copy( &mQ, Q );
     if( mpi_cmp_int( &mQ.Y, 0 ) != 0 )
         MPI_CHK( mpi_sub_mpi( &mQ.Y, &grp->P, &mQ.Y ) );
 
     MPI_CHK( ecp_add_mixed( grp, R, P, &mQ ) );
-    MPI_CHK( ecp_normalize( grp, R ) );
+    MPI_CHK( ecp_normalize_jac( grp, R ) );
 
 cleanup:
     ecp_point_free( &mQ );
@@ -972,11 +1029,11 @@ cleanup:
 /*
  * Randomize jacobian coordinates:
  * (X, Y, Z) -> (l^2 X, l^3 Y, l Z) for random l
- * This is sort of the reverse operation of ecp_normalize().
+ * This is sort of the reverse operation of ecp_normalize_jac().
  *
  * This countermeasure was first suggested in [2].
  */
-static int ecp_randomize_coordinates( const ecp_group *grp, ecp_point *pt,
+static int ecp_randomize_jac( const ecp_group *grp, ecp_point *pt,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
@@ -1115,7 +1172,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
         TT[k++] = cur;
     }
 
-    ecp_normalize_many( grp, TT, k );
+    ecp_normalize_jac_many( grp, TT, k );
 
     /*
      * Compute the remaining ones using the minimal number of additions
@@ -1132,7 +1189,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
         }
     }
 
-    ecp_normalize_many( grp, TT, k );
+    ecp_normalize_jac_many( grp, TT, k );
 
     /*
      * Post-precessing: reclaim some memory by
@@ -1175,7 +1232,7 @@ static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
     MPI_CHK( mpi_lset( &R->Z, 1 ) );
 
     /* Safely invert result if i is "negative" */
-    MPI_CHK( ecp_safe_invert( grp, R, i >> 7 ) );
+    MPI_CHK( ecp_safe_invert_jac( grp, R, i >> 7 ) );
 
 cleanup:
     return( ret );
@@ -1203,7 +1260,7 @@ static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
     i = d;
     MPI_CHK( ecp_select_comb( grp, R, T, t_len, x[i] ) );
     if( f_rng != 0 )
-        MPI_CHK( ecp_randomize_coordinates( grp, R, f_rng, p_rng ) );
+        MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
 
     while( i-- != 0 )
     {
@@ -1219,11 +1276,13 @@ cleanup:
 }
 
 /*
- * Multiplication using the comb method
+ * Multiplication using the comb method,
+ * for curves in short Weierstrass form
  */
-int ecp_mul( ecp_group *grp, ecp_point *R,
-             const mpi *m, const ecp_point *P,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+static int ecp_mul_comb( ecp_group *grp, ecp_point *R,
+                         const mpi *m, const ecp_point *P,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng )
 {
     int ret;
     unsigned char w, m_is_odd, p_eq_g, pre_len, i;
@@ -1232,27 +1291,12 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     ecp_point *T;
     mpi M, mm;
 
-    /*
-     * Sanity checks (before we even initialize anything)
-     */
-    if( mpi_cmp_int( &P->Z, 1 ) != 0 ||
-        mpi_get_bit( &grp->N, 0 ) != 1 )
-    {
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
-    }
-
-    if( ( ret = ecp_check_privkey( grp, m ) ) != 0 )
-        return( ret );
-
-    /* We'll need this later, but do it now to possibly avoid checking P */
-    p_eq_g = ( mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
-               mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
-
-    if( ! p_eq_g && ( ret = ecp_check_pubkey( grp, P ) ) != 0 )
-        return( ret );
-
     mpi_init( &M );
     mpi_init( &mm );
+
+    /* we need N to be odd to trnaform m in an odd number, check now */
+    if( mpi_get_bit( &grp->N, 0 ) != 1 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     /*
      * Minimize the number of multiplications, that is minimize
@@ -1265,6 +1309,8 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
      * If P == G, pre-compute a bit more, since this may be re-used later.
      * Just adding one ups the cost of the first mul by at most 3%.
      */
+    p_eq_g = ( mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
+               mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
     if( p_eq_g )
         w++;
 
@@ -1326,8 +1372,8 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     /*
      * Now get m * P from M * P and normalize it
      */
-    MPI_CHK( ecp_safe_invert( grp, R, ! m_is_odd ) );
-    MPI_CHK( ecp_normalize( grp, R ) );
+    MPI_CHK( ecp_safe_invert_jac( grp, R, ! m_is_odd ) );
+    MPI_CHK( ecp_normalize_jac( grp, R ) );
 
 cleanup:
 
@@ -1347,23 +1393,228 @@ cleanup:
     return( ret );
 }
 
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
+
+#if defined(POLARSSL_ECP_MONTGOMERY)
 /*
- * Check that a point is valid as a public key (SEC1 3.2.3.1)
+ * For Montgomery curves, we do all the internal arithmetic in projective
+ * coordinates. Import/export of points uses only the x coordinates, which is
+ * internaly represented as X / Z.
+ *
+ * For scalar multiplication, we'll use a Montgomery ladder.
  */
-int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
+
+/*
+ * Normalize Montgomery x/z coordinates: X = X/Z, Z = 1
+ * Cost: 1M + 1I
+ */
+static int ecp_normalize_mxz( const ecp_group *grp, ecp_point *P )
+{
+    int ret;
+
+    MPI_CHK( mpi_inv_mod( &P->Z, &P->Z, &grp->P ) );
+    MPI_CHK( mpi_mul_mpi( &P->X, &P->X, &P->Z ) ); MOD_MUL( P->X );
+    MPI_CHK( mpi_lset( &P->Z, 1 ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Randomize projective x/z coordinates:
+ * (X, Z) -> (l X, l Z) for random l
+ * This is sort of the reverse operation of ecp_normalize_mxz().
+ *
+ * This countermeasure was first suggested in [2].
+ * Cost: 2M
+ */
+static int ecp_randomize_mxz( const ecp_group *grp, ecp_point *P,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+    mpi l;
+    size_t p_size = (grp->pbits + 7) / 8;
+    int count = 0;
+
+    mpi_init( &l );
+
+    /* Generate l such that 1 < l < p */
+    do
+    {
+        mpi_fill_random( &l, p_size, f_rng, p_rng );
+
+        while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
+            mpi_shift_r( &l, 1 );
+
+        if( count++ > 10 )
+            return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+    }
+    while( mpi_cmp_int( &l, 1 ) <= 0 );
+
+    MPI_CHK( mpi_mul_mpi( &P->X, &P->X, &l ) ); MOD_MUL( P->X );
+    MPI_CHK( mpi_mul_mpi( &P->Z, &P->Z, &l ) ); MOD_MUL( P->Z );
+
+cleanup:
+    mpi_free( &l );
+
+    return( ret );
+}
+
+/*
+ * Double-and-add: R = 2P, S = P + Q, with d = X(P - Q),
+ * for Montgomery curves in x/z coordinates.
+ *
+ * http://www.hyperelliptic.org/EFD/g1p/auto-code/montgom/xz/ladder/mladd-1987-m.op3
+ * with
+ * d =  X1
+ * P = (X2, Z2)
+ * Q = (X3, Z3)
+ * R = (X4, Z4)
+ * S = (X5, Z5)
+ * and eliminating temporary variables tO, ..., t4.
+ *
+ * Cost: 5M + 4S
+ */
+static int ecp_double_add_mxz( const ecp_group *grp,
+                               ecp_point *R, ecp_point *S,
+                               const ecp_point *P, const ecp_point *Q,
+                               const mpi *d )
+{
+    int ret;
+    mpi A, AA, B, BB, E, C, D, DA, CB;
+
+    mpi_init( &A ); mpi_init( &AA ); mpi_init( &B );
+    mpi_init( &BB ); mpi_init( &E ); mpi_init( &C );
+    mpi_init( &D ); mpi_init( &DA ); mpi_init( &CB );
+
+    MPI_CHK( mpi_add_mpi( &A,    &P->X,   &P->Z ) ); MOD_ADD( A    );
+    MPI_CHK( mpi_mul_mpi( &AA,   &A,      &A    ) ); MOD_MUL( AA   );
+    MPI_CHK( mpi_sub_mpi( &B,    &P->X,   &P->Z ) ); MOD_SUB( B    );
+    MPI_CHK( mpi_mul_mpi( &BB,   &B,      &B    ) ); MOD_MUL( BB   );
+    MPI_CHK( mpi_sub_mpi( &E,    &AA,     &BB   ) ); MOD_SUB( E    );
+    MPI_CHK( mpi_add_mpi( &C,    &Q->X,   &Q->Z ) ); MOD_ADD( C    );
+    MPI_CHK( mpi_sub_mpi( &D,    &Q->X,   &Q->Z ) ); MOD_SUB( D    );
+    MPI_CHK( mpi_mul_mpi( &DA,   &D,      &A    ) ); MOD_MUL( DA   );
+    MPI_CHK( mpi_mul_mpi( &CB,   &C,      &B    ) ); MOD_MUL( CB   );
+    MPI_CHK( mpi_add_mpi( &S->X, &DA,     &CB   ) ); MOD_MUL( S->X );
+    MPI_CHK( mpi_mul_mpi( &S->X, &S->X,   &S->X ) ); MOD_MUL( S->X );
+    MPI_CHK( mpi_sub_mpi( &S->Z, &DA,     &CB   ) ); MOD_SUB( S->Z );
+    MPI_CHK( mpi_mul_mpi( &S->Z, &S->Z,   &S->Z ) ); MOD_MUL( S->Z );
+    MPI_CHK( mpi_mul_mpi( &S->Z, d,       &S->Z ) ); MOD_MUL( S->Z );
+    MPI_CHK( mpi_mul_mpi( &R->X, &AA,     &BB   ) ); MOD_MUL( R->X );
+    MPI_CHK( mpi_mul_mpi( &R->Z, &grp->A, &E    ) ); MOD_MUL( R->Z );
+    MPI_CHK( mpi_add_mpi( &R->Z, &BB,     &R->Z ) ); MOD_ADD( R->Z );
+    MPI_CHK( mpi_mul_mpi( &R->Z, &E,      &R->Z ) ); MOD_MUL( R->Z );
+
+cleanup:
+    mpi_free( &A ); mpi_free( &AA ); mpi_free( &B );
+    mpi_free( &BB ); mpi_free( &E ); mpi_free( &C );
+    mpi_free( &D ); mpi_free( &DA ); mpi_free( &CB );
+
+    return( ret );
+}
+
+/*
+ * Multiplication with Montgomery ladder in x/z coordinates,
+ * for curves in Montgomery form
+ */
+static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
+                        const mpi *m, const ecp_point *P,
+                        int (*f_rng)(void *, unsigned char *, size_t),
+                        void *p_rng )
+{
+    int ret;
+    size_t i;
+    unsigned char b;
+    ecp_point RP;
+    mpi PX;
+
+    ecp_point_init( &RP ); mpi_init( &PX );
+
+    /* Save PX and read from P before writing to R, in case P == R */
+    mpi_copy( &PX, &P->X );
+    MPI_CHK( ecp_copy( &RP, P ) );
+
+    /* Set R to zero in modified x/z coordinates */
+    MPI_CHK( mpi_lset( &R->X, 1 ) );
+    MPI_CHK( mpi_lset( &R->Z, 0 ) );
+    mpi_free( &R->Y );
+
+    /* RP.X might be sligtly larger than P, so reduce it */
+    MOD_ADD( RP.X );
+
+    /* Randomize coordinates of the starting point */
+    if( f_rng != NULL )
+        MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
+
+    /* Loop invariant: R = result so far, RP = R + P */
+    i = mpi_msb( m ); /* one past the (zero-based) most significant bit */
+    while( i-- > 0 )
+    {
+        b = mpi_get_bit( m, i );
+        /*
+         *  if (b) R = 2R + P else R = 2R,
+         * which is:
+         *  if (b) double_add( RP, R, RP, R )
+         *  else   double_add( R, RP, R, RP )
+         * but using safe conditional swaps to avoid leaks
+         */
+        MPI_CHK( mpi_safe_cond_swap( &R->X, &RP.X, b ) );
+        MPI_CHK( mpi_safe_cond_swap( &R->Z, &RP.Z, b ) );
+        MPI_CHK( ecp_double_add_mxz( grp, R, &RP, R, &RP, &PX ) );
+        MPI_CHK( mpi_safe_cond_swap( &R->X, &RP.X, b ) );
+        MPI_CHK( mpi_safe_cond_swap( &R->Z, &RP.Z, b ) );
+    }
+
+    MPI_CHK( ecp_normalize_mxz( grp, R ) );
+
+cleanup:
+    ecp_point_free( &RP ); mpi_free( &PX );
+
+    return( ret );
+}
+
+#endif /* POLARSSL_ECP_MONTGOMERY */
+
+/*
+ * Multiplication R = m * P
+ */
+int ecp_mul( ecp_group *grp, ecp_point *R,
+             const mpi *m, const ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret;
+
+    /* Common sanity checks */
+    if( mpi_cmp_int( &P->Z, 1 ) != 0 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    if( ( ret = ecp_check_privkey( grp, m ) ) != 0 ||
+        ( ret = ecp_check_pubkey( grp, P ) ) != 0 )
+        return( ret );
+
+#if defined(POLARSSL_ECP_MONTGOMERY)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
+        return( ecp_mul_mxz( grp, R, m, P, f_rng, p_rng ) );
+#endif
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
+        return( ecp_mul_comb( grp, R, m, P, f_rng, p_rng ) );
+#endif
+    return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+}
+
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+/*
+ * Check that an affine point is valid as a public key,
+ * short weierstrass curves (SEC1 3.2.3.1)
+ */
+static int ecp_check_pubkey_sw( const ecp_group *grp, const ecp_point *pt )
 {
     int ret;
     mpi YY, RHS;
 
-    if( mpi_cmp_int( &pt->Z, 0 ) == 0 )
-        return( POLARSSL_ERR_ECP_INVALID_KEY );
-
-    /*
-     * pt coordinates must be normalized for our checks
-     */
-    if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
-        return( POLARSSL_ERR_ECP_INVALID_KEY );
-
+    /* pt coordinates must be normalized for our checks */
     if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
         mpi_cmp_int( &pt->Y, 0 ) < 0 ||
         mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
@@ -1391,43 +1642,127 @@ cleanup:
 
     return( ret );
 }
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
 
+
+#if defined(POLARSSL_ECP_MONTGOMERY)
 /*
- * Check that an mpi is valid as a private key (SEC1 3.2)
+ * Check validity of a public key for Montgomery curves with x-only schemes
  */
-int ecp_check_privkey( const ecp_group *grp, const mpi *d )
+static int ecp_check_pubkey_mx( const ecp_group *grp, const ecp_point *pt )
 {
-    /* We want 1 <= d <= N-1 */
-    if ( mpi_cmp_int( d, 1 ) < 0 || mpi_cmp_mpi( d, &grp->N ) >= 0 )
+    /* [M255 p. 5] Just check X is the correct number of bytes */
+    if( mpi_size( &pt->X ) > ( grp->nbits + 7 ) / 8 )
         return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     return( 0 );
 }
+#endif /* POLARSSL_ECP_MONTGOMERY */
 
 /*
- * Generate a keypair (SEC1 3.2.1)
+ * Check that a point is valid as a public key
+ */
+int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
+{
+    /* Must use affine coordinates */
+    if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
+
+#if defined(POLARSSL_ECP_MONTGOMERY)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
+        return( ecp_check_pubkey_mx( grp, pt ) );
+#endif
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
+        return( ecp_check_pubkey_sw( grp, pt ) );
+#endif
+    return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+}
+
+/*
+ * Check that an mpi is valid as a private key
+ */
+int ecp_check_privkey( const ecp_group *grp, const mpi *d )
+{
+#if defined(POLARSSL_ECP_MONTGOMERY)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
+    {
+        /* see [M255] page 5 */
+        if( mpi_get_bit( d, 0 ) != 0 ||
+            mpi_get_bit( d, 1 ) != 0 ||
+            mpi_get_bit( d, 2 ) != 0 ||
+            mpi_msb( d ) - 1 != grp->nbits ) /* mpi_msb is one-based! */
+            return( POLARSSL_ERR_ECP_INVALID_KEY );
+        else
+            return( 0 );
+    }
+#endif
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
+    {
+        /* see SEC1 3.2 */
+        if( mpi_cmp_int( d, 1 ) < 0 ||
+            mpi_cmp_mpi( d, &grp->N ) >= 0 )
+            return( POLARSSL_ERR_ECP_INVALID_KEY );
+        else
+            return( 0 );
+    }
+#endif
+
+    return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+}
+
+/*
+ * Generate a keypair
  */
 int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int count = 0;
     size_t n_size = (grp->nbits + 7) / 8;
 
-    /*
-     * Generate d such that 1 <= n < N
-     */
-    do
+#if defined(POLARSSL_ECP_MONTGOMERY)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
     {
+        /* [M225] page 5 */
+        size_t b;
+
         mpi_fill_random( d, n_size, f_rng, p_rng );
 
-        while( mpi_cmp_mpi( d, &grp->N ) >= 0 )
-            mpi_shift_r( d, 1 );
+        /* Make sure the most significant bit is nbits */
+        b = mpi_msb( d ) - 1; /* mpi_msb is one-based */
+        if( b > grp->nbits )
+            mpi_shift_r( d, b - grp->nbits );
+        else
+            mpi_set_bit( d, grp->nbits, 1 );
 
-        if( count++ > 10 )
-            return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+        /* Make sure the last three bits are unset */
+        mpi_set_bit( d, 0, 0 );
+        mpi_set_bit( d, 1, 0 );
+        mpi_set_bit( d, 2, 0 );
     }
-    while( mpi_cmp_int( d, 1 ) < 0 );
+    else
+#endif
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
+    {
+        /* SEC1 3.2.1: Generate d such that 1 <= n < N */
+        int count = 0;
+        do
+        {
+            mpi_fill_random( d, n_size, f_rng, p_rng );
+
+            while( mpi_cmp_mpi( d, &grp->N ) >= 0 )
+                mpi_shift_r( d, 1 );
+
+            if( count++ > 10 )
+                return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+        }
+        while( mpi_cmp_int( d, 1 ) < 0 );
+    }
+    else
+#endif
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
 }

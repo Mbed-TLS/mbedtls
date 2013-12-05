@@ -108,10 +108,16 @@ ecp_point;
 /**
  * \brief           ECP group structure
  *
- * The curves we consider are defined by y^2 = x^3 + A x + B mod P,
- * and a generator for a large subgroup of order N is fixed.
+ * We consider two types of curves equations:
+ * 1. Short Weierstrass y^2 = x^3 + A x + B     mod P   (SEC1 + RFC 4492)
+ * 2. Montgomery,       y^2 = x^3 + A x^2 + x   mod P   (M255 + draft)
+ * In both cases, a generator G for a prime-order subgroup is fixed. In the
+ * short weierstrass, this subgroup is actually the whole curve, and its
+ * cardinal is denoted by N.
  *
- * pbits and nbits must be the size of P and N in bits.
+ * In the case of Montgomery curves, we don't store A but (A + 2) / 4 which is
+ * the quantity actualy used in the formulas. Also, nbits is not the size of N
+ * but the required size for private keys.
  *
  * If modp is NULL, reduction modulo P is done using a generic algorithm.
  * Otherwise, it must point to a function that takes an mpi in the range
@@ -124,18 +130,18 @@ typedef struct
 {
     ecp_group_id id;    /*!<  internal group identifier                     */
     mpi P;              /*!<  prime modulus of the base field               */
-    mpi A;              /*!<  linear term in the equation                   */
-    mpi B;              /*!<  constant term in the equation                 */
-    ecp_point G;        /*!<  generator of the subgroup used                */
-    mpi N;              /*!<  the order of G                                */
+    mpi A;              /*!<  1. A in the equation, or 2. (A + 2) / 4       */
+    mpi B;              /*!<  1. B in the equation, or 2. unused            */
+    ecp_point G;        /*!<  generator of the (sub)group used              */
+    mpi N;              /*!<  1. the order of G, or 2. unused               */
     size_t pbits;       /*!<  number of bits in P                           */
-    size_t nbits;       /*!<  number of bits in N                           */
-    unsigned int h;     /*!<  cofactor (unused now: assume 1)               */
+    size_t nbits;       /*!<  number of bits in 1. P, or 2. private keys    */
+    unsigned int h;     /*!<  unused                                        */
     int (*modp)(mpi *); /*!<  function for fast reduction mod P             */
-    int (*t_pre)(ecp_point *, void *);  /*!< currently unused               */
-    int (*t_post)(ecp_point *, void *); /*!< currently unused               */
-    void *t_data;                       /*!< currently unused               */
-    ecp_point *T;       /*!<  pre-computed points for ecp_mul()             */
+    int (*t_pre)(ecp_point *, void *);  /*!< unused                         */
+    int (*t_post)(ecp_point *, void *); /*!< unused                         */
+    void *t_data;                       /*!< unused                         */
+    ecp_point *T;       /*!<  pre-computed points for ecp_mul_comb()        */
     size_t T_size;      /*!<  number for pre-computed points                */
 }
 ecp_group;

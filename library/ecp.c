@@ -731,7 +731,7 @@ cleanup:
  * Theory", Algorithm 10.3.4.)
  *
  * Warning: fails (returning an error) if one of the points is zero!
- * This should never happen, see choice of w in ecp_mul().
+ * This should never happen, see choice of w in ecp_mul_comb().
  *
  * Cost: 1N(t) := 1I + (6t - 3)M + 1S
  */
@@ -896,7 +896,7 @@ cleanup:
  * but those of P don't need to. R is not normalized.
  *
  * Special cases: (1) P or Q is zero, (2) R is zero, (3) P == Q.
- * None of these cases can happen as intermediate step in ecp_mul():
+ * None of these cases can happen as intermediate step in ecp_mul_comb():
  * - at each step, P, Q and R are multiples of the base point, the factor
  *   being less than its order, so none of them is zero;
  * - Q is an odd multiple of the base point, P an even multiple,
@@ -982,7 +982,6 @@ cleanup:
 
 /*
  * Addition: R = P + Q, result's coordinates normalized
- * Cost: 1A + 1N = 1I + 11M + 4S
  */
 int ecp_add( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )
@@ -1001,7 +1000,6 @@ cleanup:
 
 /*
  * Subtraction: R = P - Q, result's coordinates normalized
- * Cost: 1A + 1N = 1I + 11M + 4S
  */
 int ecp_sub( const ecp_group *grp, ecp_point *R,
              const ecp_point *P, const ecp_point *Q )

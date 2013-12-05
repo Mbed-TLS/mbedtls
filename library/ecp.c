@@ -1540,6 +1540,9 @@ static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
     MPI_CHK( mpi_lset( &R->Z, 0 ) );
     mpi_free( &R->Y );
 
+    /* RP.X might be sligtly larger than P, so reduce it */
+    MOD_ADD( RP.X );
+
     /* Randomize coordinates of the starting point */
     if( f_rng != NULL )
         MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );

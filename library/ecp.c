@@ -1603,31 +1603,15 @@ int ecp_mul( ecp_group *grp, ecp_point *R,
     return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 }
 
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
 /*
- * Check that a point is valid as a public key
+ * Check that an affine point is valid as a public key,
+ * short weierstrass curves (SEC1 3.2.3.1)
  */
-// TODO
-int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
+static int ecp_check_pubkey_sw( const ecp_group *grp, const ecp_point *pt )
 {
     int ret;
     mpi YY, RHS;
-
-    /* Must use affine coordinates */
-    if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
-        return( POLARSSL_ERR_ECP_INVALID_KEY );
-
-    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
-    {
-        /* [M255 p. 5] Just check X is the correct number of bytes */
-        if( mpi_size( &pt->X ) > ( grp->nbits + 7 ) / 8 )
-            return( POLARSSL_ERR_ECP_INVALID_KEY );
-
-        return( 0 );
-    }
-
-    /*
-     * Ok, so we have a short Weierstrass curve as in SEC1 3.2.3.1
-     */
 
     /* pt coordinates must be normalized for our checks */
     if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
@@ -1637,12 +1621,6 @@ int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
         return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     mpi_init( &YY ); mpi_init( &RHS );
-
-    if( mpi_cmp_int( &pt->X, 0 ) < 0 ||
-        mpi_cmp_int( &pt->Y, 0 ) < 0 ||
-        mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
-        mpi_cmp_mpi( &pt->Y, &grp->P ) >= 0 )
-        return( POLARSSL_ERR_ECP_INVALID_KEY );
 
     /*
      * YY = Y^2
@@ -1663,12 +1641,49 @@ cleanup:
 
     return( ret );
 }
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
+
+
+#if defined(POLARSSL_ECP_MONTGOMERY)
+/*
+ * Check validity of a public key for Montgomery curves with x-only schemes
+ */
+static int ecp_check_pubkey_mx( const ecp_group *grp, const ecp_point *pt )
+{
+    /* [M255 p. 5] Just check X is the correct number of bytes */
+    if( mpi_size( &pt->X ) > ( grp->nbits + 7 ) / 8 )
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
+
+    return( 0 );
+}
+#endif /* POLARSSL_ECP_MONTGOMERY */
+
+/*
+ * Check that a point is valid as a public key
+ */
+int ecp_check_pubkey( const ecp_group *grp, const ecp_point *pt )
+{
+    /* Must use affine coordinates */
+    if( mpi_cmp_int( &pt->Z, 1 ) != 0 )
+        return( POLARSSL_ERR_ECP_INVALID_KEY );
+
+#if defined(POLARSSL_ECP_MONTGOMERY)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
+        return( ecp_check_pubkey_mx( grp, pt ) );
+#endif
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
+        return( ecp_check_pubkey_sw( grp, pt ) );
+#endif
+    return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+}
 
 /*
  * Check that an mpi is valid as a private key
  */
 int ecp_check_privkey( const ecp_group *grp, const mpi *d )
 {
+#if defined(POLARSSL_ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
     {
         /* see [M255] page 5 */
@@ -1677,16 +1692,23 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
             mpi_get_bit( d, 2 ) != 0 ||
             mpi_msb( d ) - 1 != grp->nbits ) /* mpi_msb is one-based! */
             return( POLARSSL_ERR_ECP_INVALID_KEY );
+        else
+            return( 0 );
     }
-    else
+#endif
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
     {
         /* see SEC1 3.2 */
         if( mpi_cmp_int( d, 1 ) < 0 ||
             mpi_cmp_mpi( d, &grp->N ) >= 0 )
             return( POLARSSL_ERR_ECP_INVALID_KEY );
+        else
+            return( 0 );
     }
+#endif
 
-    return( 0 );
+    return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 }
 
 /*
@@ -1696,9 +1718,9 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int count = 0;
     size_t n_size = (grp->nbits + 7) / 8;
 
+#if defined(POLARSSL_ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )
     {
         /* [M225] page 5 */
@@ -1719,8 +1741,12 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
         mpi_set_bit( d, 2, 0 );
     }
     else
+#endif
+#if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
+    if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
     {
         /* SEC1 3.2.1: Generate d such that 1 <= n < N */
+        int count = 0;
         do
         {
             mpi_fill_random( d, n_size, f_rng, p_rng );
@@ -1733,6 +1759,9 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
         }
         while( mpi_cmp_int( d, 1 ) < 0 );
     }
+    else
+#endif
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
 }

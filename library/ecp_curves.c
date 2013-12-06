@@ -485,6 +485,8 @@ static int ecp_group_load( ecp_group *grp,
     grp->pbits = mpi_msb( &grp->P );
     grp->nbits = mpi_msb( &grp->N );
 
+    grp->h = 1;
+
     return( 0 );
 }
 

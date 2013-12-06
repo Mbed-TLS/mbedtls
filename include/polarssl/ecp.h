@@ -136,7 +136,7 @@ typedef struct
     mpi N;              /*!<  1. the order of G, or 2. unused               */
     size_t pbits;       /*!<  number of bits in P                           */
     size_t nbits;       /*!<  number of bits in 1. P, or 2. private keys    */
-    unsigned int h;     /*!<  unused                                        */
+    unsigned int h;     /*!<  internal: 1 if the constants are static       */
     int (*modp)(mpi *); /*!<  function for fast reduction mod P             */
     int (*t_pre)(ecp_point *, void *);  /*!< unused                         */
     int (*t_post)(ecp_point *, void *); /*!< unused                         */

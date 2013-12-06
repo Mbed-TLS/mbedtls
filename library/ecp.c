@@ -277,18 +277,17 @@ void ecp_group_free( ecp_group *grp )
 {
     size_t i;
 
-    /* FIXME WIP */
-    if( grp->id != 0 )
-        return;
-
     if( grp == NULL )
         return;
 
-    mpi_free( &grp->P );
-    mpi_free( &grp->A );
-    mpi_free( &grp->B );
-    ecp_point_free( &grp->G );
-    mpi_free( &grp->N );
+    if( grp->h != 1 )
+    {
+        mpi_free( &grp->P );
+        mpi_free( &grp->A );
+        mpi_free( &grp->B );
+        ecp_point_free( &grp->G );
+        mpi_free( &grp->N );
+    }
 
     if( grp->T != NULL )
     {

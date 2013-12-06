@@ -451,6 +451,17 @@ static inline void ecp_mpi_load( mpi *X, const t_uint *p, size_t len )
 }
 
 /*
+ * Set an MPI to static value 1
+ */
+static inline void ecp_mpi_set1( mpi *X )
+{
+    static t_uint one[] = { 1 };
+    X->s = 1;
+    X->n = 1;
+    X->p = one;
+}
+
+/*
  * Make group available from embedded constants
  */
 static int ecp_group_load( ecp_group *grp,
@@ -461,28 +472,20 @@ static int ecp_group_load( ecp_group *grp,
                            const t_uint *gy, size_t gylen,
                            const t_uint *n,  size_t nlen)
 {
-    int ret;
-
     ecp_mpi_load( &grp->P, p, plen );
     if( a != NULL )
         ecp_mpi_load( &grp->A, a, alen );
-    else
-        MPI_CHK( mpi_sub_int( &grp->A, &grp->P, 3 ) );
     ecp_mpi_load( &grp->B, b, blen );
     ecp_mpi_load( &grp->N, n, nlen );
 
     ecp_mpi_load( &grp->G.X, gx, gxlen );
     ecp_mpi_load( &grp->G.Y, gy, gylen );
-    MPI_CHK( mpi_lset( &grp->G.Z, 1 ) );
+    ecp_mpi_set1( &grp->G.Z );
 
     grp->pbits = mpi_msb( &grp->P );
     grp->nbits = mpi_msb( &grp->N );
 
-cleanup:
-    if( ret != 0 )
-        ecp_group_free( grp );
-
-    return( ret );
+    return( 0 );
 }
 
 #if defined(POLARSSL_ECP_NIST_OPTIM)

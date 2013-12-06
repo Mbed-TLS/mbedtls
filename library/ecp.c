@@ -277,6 +277,10 @@ void ecp_group_free( ecp_group *grp )
 {
     size_t i;
 
+    /* FIXME WIP */
+    if( grp->id != 0 )
+        return;
+
     if( grp == NULL )
         return;
 

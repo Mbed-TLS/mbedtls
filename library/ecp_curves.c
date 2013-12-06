@@ -86,7 +86,6 @@ static t_uint secp192r1_p[] = {
     BYTES_TO_T_UINT( 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
     BYTES_TO_T_UINT( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
 };
-static t_uint *secp192r1_a = NULL;
 static t_uint secp192r1_b[] = {
     BYTES_TO_T_UINT( 0xB1, 0xB9, 0x46, 0xC1, 0xEC, 0xDE, 0xB8, 0xFE ),
     BYTES_TO_T_UINT( 0x49, 0x30, 0x24, 0x72, 0xAB, 0xE9, 0xA7, 0x0F ),
@@ -117,7 +116,6 @@ static t_uint secp224r1_p[] = {
     BYTES_TO_T_UINT( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
     BYTES_TO_T_UINT( 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00 ),
 };
-static t_uint *secp224r1_a = NULL;
 static t_uint secp224r1_b[] = {
     BYTES_TO_T_UINT( 0xB4, 0xFF, 0x55, 0x23, 0x43, 0x39, 0x0B, 0x27 ),
     BYTES_TO_T_UINT( 0xBA, 0xD8, 0xBF, 0xD7, 0xB7, 0xB0, 0x44, 0x50 ),
@@ -152,7 +150,6 @@ static t_uint secp256r1_p[] = {
     BYTES_TO_T_UINT( 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ),
     BYTES_TO_T_UINT( 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF ),
 };
-static t_uint *secp256r1_a = NULL;
 static t_uint secp256r1_b[] = {
     BYTES_TO_T_UINT( 0x4B, 0x60, 0xD2, 0x27, 0x3E, 0x3C, 0xCE, 0x3B ),
     BYTES_TO_T_UINT( 0xF6, 0xB0, 0x53, 0xCC, 0xB0, 0x06, 0x1D, 0x65 ),
@@ -189,7 +186,6 @@ static t_uint secp384r1_p[] = {
     BYTES_TO_T_UINT( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
     BYTES_TO_T_UINT( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
 };
-static t_uint *secp384r1_a = NULL;
 static t_uint secp384r1_b[] = {
     BYTES_TO_T_UINT( 0xEF, 0x2A, 0xEC, 0xD3, 0xED, 0xC8, 0x85, 0x2A ),
     BYTES_TO_T_UINT( 0x9D, 0xD1, 0x2E, 0x8A, 0x8D, 0x39, 0x56, 0xC6 ),
@@ -237,7 +233,6 @@ static t_uint secp521r1_p[] = {
     BYTES_TO_T_UINT( 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ),
     BYTES_TO_T_UINT( 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ),
 };
-static t_uint *secp521r1_a = NULL;
 static t_uint secp521r1_b[] = {
     BYTES_TO_T_UINT( 0x00, 0x3F, 0x50, 0x6B, 0xD4, 0x1F, 0x45, 0xEF ),
     BYTES_TO_T_UINT( 0xF1, 0x34, 0x2C, 0x3D, 0x88, 0xDF, 0x73, 0x35 ),
@@ -516,13 +511,22 @@ static int ecp_mod_p255( mpi * );
 #define NIST_MODP( P )
 #endif /* POLARSSL_ECP_NIST_OPTIM */
 
-#define LOAD_GROUP( G )    ecp_group_load( grp,     \
-                           G ## _p,  sizeof( G ## _p  ),   \
-                           G ## _a,  sizeof( G ## _a  ),   \
-                           G ## _b,  sizeof( G ## _b  ),   \
-                           G ## _gx, sizeof( G ## _gx ),   \
-                           G ## _gy, sizeof( G ## _gy ),   \
-                           G ## _n,  sizeof( G ## _n  ) )
+#define LOAD_GROUP_A( G )   ecp_group_load( grp,            \
+                            G ## _p,  sizeof( G ## _p  ),   \
+                            G ## _a,  sizeof( G ## _a  ),   \
+                            G ## _b,  sizeof( G ## _b  ),   \
+                            G ## _gx, sizeof( G ## _gx ),   \
+                            G ## _gy, sizeof( G ## _gy ),   \
+                            G ## _n,  sizeof( G ## _n  ) )
+
+#define LOAD_GROUP( G )     ecp_group_load( grp,            \
+                            G ## _p,  sizeof( G ## _p  ),   \
+                            NULL,     0,                    \
+                            G ## _b,  sizeof( G ## _b  ),   \
+                            G ## _gx, sizeof( G ## _gx ),   \
+                            G ## _gy, sizeof( G ## _gy ),   \
+                            G ## _n,  sizeof( G ## _n  ) )
+
 /*
  * Specialized function for creating the Curve25519 group
  */
@@ -598,17 +602,17 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
         case POLARSSL_ECP_DP_BP256R1:
-            return( LOAD_GROUP( brainpoolP256r1 ) );
+            return( LOAD_GROUP_A( brainpoolP256r1 ) );
 #endif /* POLARSSL_ECP_DP_BP256R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
         case POLARSSL_ECP_DP_BP384R1:
-            return( LOAD_GROUP( brainpoolP384r1 ) );
+            return( LOAD_GROUP_A( brainpoolP384r1 ) );
 #endif /* POLARSSL_ECP_DP_BP384R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
         case POLARSSL_ECP_DP_BP512R1:
-            return( LOAD_GROUP( brainpoolP512r1 ) );
+            return( LOAD_GROUP_A( brainpoolP512r1 ) );
 #endif /* POLARSSL_ECP_DP_BP512R1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_M255_ENABLED)

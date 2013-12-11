@@ -161,13 +161,17 @@ typedef struct
 }
 ecp_keypair;
 
+#if !defined(POLARSSL_CONFIG_OPTIONS)
 /**
  * Maximum size of the groups (that is, of N and P)
  */
-#define POLARSSL_ECP_MAX_BITS     521
+#define POLARSSL_ECP_MAX_BITS     521   /**< Maximum bit size of groups */
+#endif
+
 #define POLARSSL_ECP_MAX_BYTES    ( ( POLARSSL_ECP_MAX_BITS + 7 ) / 8 )
 #define POLARSSL_ECP_MAX_PT_LEN   ( 2 * POLARSSL_ECP_MAX_BYTES + 1 )
 
+#if !defined(POLARSSL_CONFIG_OPTIONS)
 /*
  * Maximum "window" size used for point multiplication.
  * Default: 6.
@@ -178,7 +182,8 @@ ecp_keypair;
  *
  * Reduction in size may reduce speed for big curves.
  */
-#define POLARSSL_ECP_WINDOW_SIZE    6   /**< Maximum window size used. */
+#define POLARSSL_ECP_WINDOW_SIZE    6   /**< Maximum window size used */
+#endif
 
 /*
  * Point formats, from RFC 4492's enum ECPointFormat

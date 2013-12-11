@@ -1784,6 +1784,11 @@
 #define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
 #define CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
 
+// ECP options
+//
+#define POLARSSL_ECP_MAX_BITS             521 /**< Maximum bit size of groups */
+#define POLARSSL_ECP_WINDOW_SIZE            6 /**< Maximum window size used */
+
 // Entropy options
 //
 #define ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */

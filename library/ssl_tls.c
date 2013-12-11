@@ -2316,11 +2316,13 @@ int ssl_send_alert_message( ssl_context *ssl,
 /*
  * Handshake functions
  */
-#if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)       && \
-    !defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)   && \
-    !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
-    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if !defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)         && \
+    !defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)     && \
+    !defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)     && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)    && \
+    !defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 int ssl_write_certificate( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -2649,9 +2651,13 @@ int ssl_parse_certificate( ssl_context *ssl )
 
     return( ret );
 }
-#endif /* !POLARSSL_KEY_EXCHANGE_RSA_ENABLED &&
-          !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED &&
-          !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+#endif /* !POLARSSL_KEY_EXCHANGE_RSA_ENABLED
+          !POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED
+          !POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED
+          !POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+          !POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+          !POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED
+          !POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
 int ssl_write_change_cipher_spec( ssl_context *ssl )
 {

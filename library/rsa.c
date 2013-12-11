@@ -1454,7 +1454,7 @@ void rsa_free( rsa_context *ctx )
 #define RSA_PT  "\xAA\xBB\xCC\x03\x02\x01\x00\xFF\xFF\xFF\xFF\xFF" \
                 "\x11\x22\x33\x0A\x0B\x0C\xCC\xDD\xDD\xDD\xDD\xDD"
 
-#if defined(POLARSSL_PCKS1_V15)
+#if defined(POLARSSL_PKCS1_V15)
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
     size_t i;
@@ -1474,7 +1474,7 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
  */
 int rsa_self_test( int verbose )
 {
-#if defined(POLARSSL_PCKS1_V15)
+#if defined(POLARSSL_PKCS1_V15)
     size_t len;
     rsa_context rsa;
     unsigned char rsa_plaintext[PT_LEN];

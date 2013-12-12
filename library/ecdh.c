@@ -166,6 +166,32 @@ int ecdh_read_params( ecdh_context *ctx,
 }
 
 /*
+ * Get parameters from a keypair
+ */
+int ecdh_get_params( ecdh_context *ctx, const ecp_keypair *key,
+                     ecdh_side side )
+{
+    int ret;
+
+    if( ( ret = ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 )
+        return( ret );
+
+    /* If it's not our key, just import the public part as Qp */
+    if( side == POLARSSL_ECDH_THEIRS )
+        return( ecp_copy( &ctx->Qp, &key->Q ) );
+
+    /* Our key: import public (as Q) and private parts */
+    if( side != POLARSSL_ECDH_OURS )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    if( ( ret = ecp_copy( &ctx->Q, &key->Q ) ) != 0 ||
+        ( ret = mpi_copy( &ctx->d, &key->d ) ) != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+/*
  * Setup and export the client public value
  */
 int ecdh_make_public( ecdh_context *ctx, size_t *olen,

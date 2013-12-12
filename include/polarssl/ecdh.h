@@ -34,6 +34,15 @@ extern "C" {
 #endif
 
 /**
+ * When importing from an EC key, select if it is our key or the peer's key
+ */
+typedef enum
+{
+    POLARSSL_ECDH_OURS,
+    POLARSSL_ECDH_THEIRS,
+} ecdh_side;
+
+/**
  * \brief           ECDH context structure
  */
 typedef struct
@@ -133,6 +142,18 @@ int ecdh_make_params( ecdh_context *ctx, size_t *olen,
  */
 int ecdh_read_params( ecdh_context *ctx,
                       const unsigned char **buf, const unsigned char *end );
+
+/**
+ * \brief           Setup an ECDH context from an EC key
+ *
+ * \param ctx       ECDH constext to set
+ * \param key       EC key to use
+ * \param ours      Is it our key (1) or the peer's key (0) ?
+ *
+ * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
+ */
+int ecdh_get_params( ecdh_context *ctx, const ecp_keypair *key,
+                     ecdh_side side );
 
 /**
  * \brief           Setup and export the client's public value

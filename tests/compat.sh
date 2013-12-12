@@ -129,21 +129,24 @@ case $TYPE in
         O_SERVER_ARGS="$O_SERVER_BASE -cert data_files/server5.crt -key data_files/server5.key"
         O_CLIENT_ARGS="$O_CLIENT_BASE -cert data_files/server6.crt -key data_files/server6.key"
 
-        P_CIPHERS="                                 \
-            TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
-            TLS-ECDHE-ECDSA-WITH-RC4-128-SHA        \
-            TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
-            TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
-            TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
-            "
+        if [ "$MODE" != "ssl3" ];
+        then
+            P_CIPHERS="                                 \
+                TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
+                TLS-ECDHE-ECDSA-WITH-RC4-128-SHA        \
+                TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
+                TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
+                TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
+                "
 
-        O_CIPHERS="                         \
-            ECDHE-ECDSA-NULL-SHA            \
-            ECDHE-ECDSA-RC4-SHA             \
-            ECDHE-ECDSA-DES-CBC3-SHA        \
-            ECDHE-ECDSA-AES128-SHA          \
-            ECDHE-ECDSA-AES256-SHA          \
-            "
+            O_CIPHERS="                         \
+                ECDHE-ECDSA-NULL-SHA            \
+                ECDHE-ECDSA-RC4-SHA             \
+                ECDHE-ECDSA-DES-CBC3-SHA        \
+                ECDHE-ECDSA-AES128-SHA          \
+                ECDHE-ECDSA-AES256-SHA          \
+                "
+        fi
 
         if [ "$MODE" = "tls1_2" ];
         then
@@ -188,11 +191,6 @@ case $TYPE in
             TLS-RSA-WITH-NULL-SHA                   \
             TLS-RSA-WITH-DES-CBC-SHA                \
             TLS-DHE-RSA-WITH-DES-CBC-SHA            \
-            TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
-            TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
-            TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
-            TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
-            TLS-ECDHE-RSA-WITH-NULL-SHA             \
             "
 
         O_CIPHERS="                         \
@@ -212,12 +210,26 @@ case $TYPE in
             NULL-SHA                        \
             DES-CBC-SHA                     \
             EDH-RSA-DES-CBC-SHA             \
-            ECDHE-RSA-AES256-SHA            \
-            ECDHE-RSA-AES128-SHA            \
-            ECDHE-RSA-DES-CBC3-SHA          \
-            ECDHE-RSA-RC4-SHA               \
-            ECDHE-RSA-NULL-SHA              \
             "
+
+        if [ "$MODE" != "ssl3" ];
+        then
+            P_CIPHERS="                                 \
+                TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
+                TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
+                TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
+                TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
+                TLS-ECDHE-RSA-WITH-NULL-SHA             \
+                "
+
+            O_CIPHERS="                         \
+                ECDHE-RSA-AES256-SHA            \
+                ECDHE-RSA-AES128-SHA            \
+                ECDHE-RSA-DES-CBC3-SHA          \
+                ECDHE-RSA-RC4-SHA               \
+                ECDHE-RSA-NULL-SHA              \
+                "
+        fi
 
         if [ "$MODE" = "tls1_2" ];
         then

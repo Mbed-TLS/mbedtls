@@ -137,6 +137,11 @@ case $TYPE in
                 TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
                 TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
                 TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
+                TLS-ECDH-ECDSA-WITH-NULL-SHA            \
+                TLS-ECDH-ECDSA-WITH-RC4-128-SHA         \
+                TLS-ECDH-ECDSA-WITH-3DES-EDE-CBC-SHA    \
+                TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA     \
+                TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA     \
                 "
 
             O_CIPHERS="                         \
@@ -145,6 +150,11 @@ case $TYPE in
                 ECDHE-ECDSA-DES-CBC3-SHA        \
                 ECDHE-ECDSA-AES128-SHA          \
                 ECDHE-ECDSA-AES256-SHA          \
+                ECDH-ECDSA-NULL-SHA             \
+                ECDH-ECDSA-RC4-SHA              \
+                ECDH-ECDSA-DES-CBC3-SHA         \
+                ECDH-ECDSA-AES128-SHA           \
+                ECDH-ECDSA-AES256-SHA           \
                 "
         fi
 
@@ -155,6 +165,10 @@ case $TYPE in
                 TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384         \
                 TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256         \
                 TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384         \
+                TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256          \
+                TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384          \
+                TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256          \
+                TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384          \
                 "
 
             O_CIPHERS="                         \
@@ -162,6 +176,10 @@ case $TYPE in
                 ECDHE-ECDSA-AES256-SHA384       \
                 ECDHE-ECDSA-AES128-GCM-SHA256   \
                 ECDHE-ECDSA-AES256-GCM-SHA384   \
+                ECDH-ECDSA-AES128-SHA256        \
+                ECDH-ECDSA-AES256-SHA384        \
+                ECDH-ECDSA-AES128-GCM-SHA256    \
+                ECDH-ECDSA-AES256-GCM-SHA384    \
                 "
         fi
 
@@ -386,6 +404,18 @@ case $TYPE in
             P_CIPHERS="$P_CIPHERS                               \
                 TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256    \
                 TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384    \
+                TLS-ECDH-ECDSA-WITH-CAMELLIA-128-CBC-SHA256     \
+                TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384     \
+                "
+        fi
+
+        if [ "$MODE" = "tls1_2" ];
+        then
+            P_CIPHERS="$P_CIPHERS                               \
+                TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-GCM-SHA256    \
+                TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-GCM-SHA384    \
+                TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
+                TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
                 "
         fi
 

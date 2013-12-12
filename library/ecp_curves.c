@@ -80,7 +80,7 @@
     BYTES_TO_T_UINT_4( a, b, 0, 0 )
 
 #define BYTES_TO_T_UINT_8( a, b, c, d, e, f, g, h ) \
-    BYTES_TO_T_UINT_4( a, b, c, d )                 \
+    BYTES_TO_T_UINT_4( a, b, c, d ),                \
     BYTES_TO_T_UINT_4( e, f, g, h )
 
 #else /* 64-bits */

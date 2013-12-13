@@ -81,6 +81,11 @@ static int wsa_init_done = 0;
 #include <stdlib.h>
 #include <stdio.h>
 
+#if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
+    !defined(EFI32)
+#define  snprintf  _snprintf
+#endif
+
 #if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
 #endif
@@ -142,6 +147,53 @@ static void net_prepare( void )
  */
 int net_connect( int *fd, const char *host, int port )
 {
+#if defined(POLARSSL_HAVE_IPV6)
+    int ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
+    struct addrinfo hints, *addr_list, *cur;
+    char port_str[6];
+
+    net_prepare();
+
+    /* getaddrinfo expects port as a string */
+    memset( port_str, 0, sizeof( port_str ) );
+    snprintf( port_str, sizeof( port_str ), "%d", port );
+
+    /* Do name resolution with both IPv6 and IPv4, but only TCP */
+    memset( &hints, 0, sizeof( hints ) );
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    if( getaddrinfo( host, port_str, &hints, &addr_list ) != 0 )
+        return( POLARSSL_ERR_NET_UNKNOWN_HOST );
+
+    /* Try the sockaddrs until a connection succeeds */
+    for( cur = addr_list; cur != NULL; cur = cur->ai_next )
+    {
+        *fd = socket( cur->ai_family, cur->ai_socktype, cur->ai_protocol );
+        if( *fd < 0 )
+        {
+            ret = POLARSSL_ERR_NET_SOCKET_FAILED;
+            continue;
+        }
+
+        if( connect( *fd, cur->ai_addr, cur->ai_addrlen ) == 0 )
+        {
+            ret = 0;
+            break;
+        }
+
+        close( *fd );
+        ret = POLARSSL_ERR_NET_CONNECT_FAILED;
+    }
+
+    freeaddrinfo( addr_list );
+
+    return( ret );
+
+#else
+    /* Legacy IPv4-only version */
+
     struct sockaddr_in server_addr;
     struct hostent *server_host;
 
@@ -168,6 +220,7 @@ int net_connect( int *fd, const char *host, int port )
     }
 
     return( 0 );
+#endif /* POLARSSL_HAVE_IPV6 */
 }
 
 /*

@@ -101,6 +101,16 @@
  * Comment if your system does not support time functions
  */
 #define POLARSSL_HAVE_TIME
+
+/**
+ * \def POLARSSL_HAVE_IPV6
+ *
+ * System supports the basic socket interface for IPv6 (RFC 3493),
+ * specifically getaddrinfo().
+ *
+ * Comment if your system does not support the IPv6 socket interface
+ */
+#define POLARSSL_HAVE_IPV6
 /* \} name SECTION: System support */
 
 /**

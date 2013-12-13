@@ -106,7 +106,7 @@
  * \def POLARSSL_HAVE_IPV6
  *
  * System supports the basic socket interface for IPv6 (RFC 3493),
- * specifically getaddrinfo().
+ * specifically getaddrinfo(), freeaddrinfo() and struct sockaddr_storage.
  *
  * Comment if your system does not support the IPv6 socket interface
  */

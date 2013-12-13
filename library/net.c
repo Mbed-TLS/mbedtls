@@ -115,16 +115,12 @@ unsigned long  net_htonl(unsigned long  n);
 #define net_htonl(n) POLARSSL_HTONL(n)
 
 /*
- * Initiate a TCP connection with host:port
+ * Prepare for using the sockets interface
  */
-int net_connect( int *fd, const char *host, int port )
+static void net_prepare( void )
 {
-    struct sockaddr_in server_addr;
-    struct hostent *server_host;
-
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
-
     WSADATA wsaData;
 
     if( wsa_init_done == 0 )
@@ -139,6 +135,17 @@ int net_connect( int *fd, const char *host, int port )
     signal( SIGPIPE, SIG_IGN );
 #endif
 #endif
+}
+
+/*
+ * Initiate a TCP connection with host:port
+ */
+int net_connect( int *fd, const char *host, int port )
+{
+    struct sockaddr_in server_addr;
+    struct hostent *server_host;
+
+    net_prepare();
 
     if( ( server_host = gethostbyname( host ) ) == NULL )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
@@ -171,22 +178,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
     int n, c[4];
     struct sockaddr_in server_addr;
 
-#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
-    !defined(EFI32)
-    WSADATA wsaData;
-
-    if( wsa_init_done == 0 )
-    {
-        if( WSAStartup( MAKEWORD(2,0), &wsaData ) == SOCKET_ERROR )
-            return( POLARSSL_ERR_NET_SOCKET_FAILED );
-
-        wsa_init_done = 1;
-    }
-#else
-#if !defined(EFIX64) && !defined(EFI32)
-    signal( SIGPIPE, SIG_IGN );
-#endif
-#endif
+    net_prepare();
 
     if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );

@@ -49,6 +49,7 @@
 #include "polarssl/memory.h"
 #endif
 
+#define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         4433
 #define DFL_DEBUG_LEVEL         0
 #define DFL_CA_FILE             ""
@@ -91,6 +92,7 @@
  */
 struct options
 {
+    const char *server_addr;    /* address on which the ssl service runs    */
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     const char *ca_file;        /* the file with the CA certificate(s)      */
@@ -172,6 +174,7 @@ static void my_debug( void *ctx, int level, const char *str )
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
+    "    server_addr=%%d      default: (all interfaces)\n"  \
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     USAGE_IO                                                \
@@ -281,6 +284,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.ca_file             = DFL_CA_FILE;
@@ -313,6 +317,8 @@ int main( int argc, char *argv[] )
             if( opt.server_port < 1 || opt.server_port > 65535 )
                 goto usage;
         }
+        else if( strcmp( p, "server_addr" ) == 0 )
+            opt.server_addr = q;
         else if( strcmp( p, "debug_level" ) == 0 )
         {
             opt.debug_level = atoi( q );
@@ -678,7 +684,8 @@ int main( int argc, char *argv[] )
     printf( "  . Bind on tcp://localhost:%-4d/ ...", opt.server_port );
     fflush( stdout );
 
-    if( ( ret = net_bind( &listen_fd, NULL, opt.server_port ) ) != 0 )
+    if( ( ret = net_bind( &listen_fd, opt.server_addr,
+                                      opt.server_port ) ) != 0 )
     {
         printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
         goto exit;

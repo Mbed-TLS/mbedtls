@@ -364,7 +364,11 @@ static int net_is_blocking( void )
  */
 int net_accept( int bind_fd, int *client_fd, void *client_ip )
 {
+#if defined(POLARSSL_HAVE_IPV6)
+    struct sockaddr_storage client_addr;
+#else
     struct sockaddr_in client_addr;
+#endif
 
 #if defined(__socklen_t_defined) || defined(_SOCKLEN_T) ||  \
     defined(_SOCKLEN_T_DECLARED)
@@ -385,8 +389,25 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
     }
 
     if( client_ip != NULL )
+    {
+#if defined(POLARSSL_HAVE_IPV6)
+        if( client_addr.ss_family == AF_INET )
+        {
+            struct sockaddr_in *addr4 = (struct sockaddr_in *) &client_addr;
+            memcpy( client_ip, &addr4->sin_addr.s_addr,
+                        sizeof( addr4->sin_addr.s_addr ) );
+        }
+        else
+        {
+            struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) &client_addr;
+            memcpy( client_ip, &addr6->sin6_addr.s6_addr,
+                        sizeof( addr6->sin6_addr.s6_addr ) );
+        }
+#else
         memcpy( client_ip, &client_addr.sin_addr.s_addr,
                     sizeof( client_addr.sin_addr.s_addr ) );
+#endif /* POLARSSL_HAVE_IPV6 */
+    }
 
     return( 0 );
 }

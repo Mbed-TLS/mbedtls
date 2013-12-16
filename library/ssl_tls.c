@@ -3449,17 +3449,24 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
     if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->key_name, 16 ) ) != 0 )
+    {
+        polarssl_free( tkeys );
         return( ret );
+    }
 
     if( ( ret = ssl->f_rng( ssl->p_rng, buf, 16 ) ) != 0 ||
         ( ret = aes_setkey_enc( &tkeys->enc, buf, 128 ) ) != 0 ||
         ( ret = aes_setkey_dec( &tkeys->dec, buf, 128 ) ) != 0 )
     {
-            return( ret );
+        polarssl_free( tkeys );
+        return( ret );
     }
 
     if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->mac_key, 16 ) ) != 0 )
+    {
+        polarssl_free( tkeys );
         return( ret );
+    }
 
     ssl->ticket_keys = tkeys;
 

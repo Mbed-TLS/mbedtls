@@ -875,6 +875,20 @@
  */
 
 /**
+ * \def POLARSSL_AESNI_C
+ *
+ * Enable AES-NI support on x86-64.
+ *
+ * Module:  library/aesni.c
+ * Caller:  library/aes.c
+ *
+ * Requires: POLARSSL_HAVE_ASM
+ *
+ * This modules adds support for the AES-NI instructions on x86-64
+ */
+#define POLARSSL_AESNI_C
+
+/**
  * \def POLARSSL_AES_C
  *
  * Enable the AES block cipher.
@@ -1414,6 +1428,8 @@
  * Module:  library/padlock.c
  * Caller:  library/aes.c
  *
+ * Requires: POLARSSL_HAVE_ASM
+ *
  * This modules adds support for the VIA PadLock on x86.
  */
 #define POLARSSL_PADLOCK_C
@@ -1902,6 +1918,10 @@
 /*
  * Sanity checks on defines and dependencies
  */
+#if defined(POLARSSL_AESNI_C) && !defined(POLARSSL_HAVE_ASM)
+#error "POLARSSL_AESNI_C defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_CERTS_C) && !defined(POLARSSL_PEM_PARSE_C)
 #error "POLARSSL_CERTS_C defined, but not all prerequisites"
 #endif
@@ -2010,6 +2030,10 @@
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && !defined(POLARSSL_MEMORY_C)
 #error "POLARSSL_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PADLOCK_C) && !defined(POLARSSL_HAVE_ASM)
+#error "POLARSSL_PADLOCK_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_PBKDF2_C) && !defined(POLARSSL_MD_C)

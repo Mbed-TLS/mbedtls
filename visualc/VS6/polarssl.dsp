@@ -89,6 +89,10 @@ SOURCE=..\..\library\aes.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\aesni.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\arc4.c
 # End Source File
 # Begin Source File
@@ -346,6 +350,10 @@ SOURCE=..\..\library\xtea.c
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\aes.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\aesni.h
 # End Source File
 # Begin Source File
 

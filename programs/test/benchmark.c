@@ -298,6 +298,8 @@ int main( int argc, char *argv[] )
             TIME_AND_TSC( title,
                     gcm_crypt_and_tag( &gcm, GCM_ENCRYPT, BUFSIZE, tmp,
                         12, NULL, 0, buf, buf, 16, tmp ) );
+
+            gcm_free( &gcm );
         }
     }
 #endif

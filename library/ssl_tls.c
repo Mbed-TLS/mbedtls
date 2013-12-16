@@ -3824,7 +3824,7 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
 {
-    if( mfl_code >= sizeof( mfl_code_to_length ) ||
+    if( mfl_code >= SSL_MAX_FRAG_LEN_INVALID ||
         mfl_code_to_length[mfl_code] > SSL_MAX_CONTENT_LEN )
     {
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );

@@ -241,12 +241,12 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 {
     int ret;
 
-    *olen = 0;
-
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
     {
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
+
+    *olen = 0;
 
     if( ctx->cipher_info->mode == POLARSSL_MODE_ECB )
     {

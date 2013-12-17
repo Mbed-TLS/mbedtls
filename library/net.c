@@ -35,6 +35,10 @@
 #include <winsock2.h>
 #include <windows.h>
 
+#if defined(POLARSSL_HAVE_IPV6)
+#include <ws2tcpip.h>
+#endif
+
 #if defined(_WIN32_WCE)
 #pragma comment( lib, "ws2.lib" )
 #else

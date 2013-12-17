@@ -941,6 +941,8 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
         padlen = 40;
     else if( md_type == POLARSSL_MD_SHA256 )
         padlen = 32;
+    else if( md_type == POLARSSL_MD_SHA384 )
+        padlen = 16;
 
     memcpy( header, ctr, 8 );
     header[ 8] = (unsigned char)  type;

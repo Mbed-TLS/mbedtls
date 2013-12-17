@@ -471,8 +471,8 @@ struct _ssl_transform
 
 #if defined(POLARSSL_SSL_PROTO_SSL3)
     /* Needed only for SSL v3.0 secret */
-    unsigned char mac_enc[32];          /*!<  SSL v3.0 secret (enc)   */
-    unsigned char mac_dec[32];          /*!<  SSL v3.0 secret (dec)   */
+    unsigned char mac_enc[48];          /*!<  SSL v3.0 secret (enc)   */
+    unsigned char mac_dec[48];          /*!<  SSL v3.0 secret (dec)   */
 #endif /* POLARSSL_SSL_PROTO_SSL3 */
 
     md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */

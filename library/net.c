@@ -32,12 +32,13 @@
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
 
-#include <winsock2.h>
-#include <windows.h>
-
 #if defined(POLARSSL_HAVE_IPV6)
+#define _WIN32_WINNT 0x0501
 #include <ws2tcpip.h>
 #endif
+
+#include <winsock2.h>
+#include <windows.h>
 
 #if defined(_WIN32_WCE)
 #pragma comment( lib, "ws2.lib" )

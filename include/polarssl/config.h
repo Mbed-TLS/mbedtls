@@ -108,6 +108,8 @@
  * System supports the basic socket interface for IPv6 (RFC 3493),
  * specifically getaddrinfo(), freeaddrinfo() and struct sockaddr_storage.
  *
+ * Note: on Windows/MingW, XP or higher is required.
+ *
  * Comment if your system does not support the IPv6 socket interface
  */
 #define POLARSSL_HAVE_IPV6

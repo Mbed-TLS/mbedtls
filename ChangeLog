@@ -6,6 +6,7 @@ Features
    * Support for adhering to client ciphersuite order preference
      (POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
    * Support for Curve25519
+   * Support for ECDH-RSA and ECDH-ECDSA key exchanges and ciphersuites
 
 Changes
    * gen_prime() speedup

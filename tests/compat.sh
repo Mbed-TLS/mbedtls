@@ -260,7 +260,8 @@ case $TYPE in
 
         P_SERVER_ARGS="$P_SERVER_BASE psk=6162636465666768696a6b6c6d6e6f70"
         P_CLIENT_ARGS="$P_CLIENT_BASE psk=6162636465666768696a6b6c6d6e6f70"
-        O_SERVER_ARGS="$O_SERVER_BASE -psk 6162636465666768696a6b6c6d6e6f70"
+        # openssl s_server won't start without certificates...
+        O_SERVER_ARGS="$O_SERVER_BASE -psk 6162636465666768696a6b6c6d6e6f70 -cert data_files/server1.crt -key data_files/server1.key"
         O_CLIENT_ARGS="$O_CLIENT_BASE -psk 6162636465666768696a6b6c6d6e6f70"
 
         P_CIPHERS="                                 \
@@ -289,8 +290,8 @@ then
 fi
 
 
-log "$OPENSSL s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE"
-$OPENSSL s_server -cert data_files/server2.crt -key data_files/server2.key -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE >/dev/null 2>&1 &
+log "$OPENSSL s_server -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE"
+$OPENSSL s_server -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE >/dev/null 2>&1 &
 PROCESS_ID=$!
 
 sleep 1
@@ -309,6 +310,8 @@ do
     elif [ "$EXIT" != "0" ];
     then
         echo Failed
+        echo "$OPENSSL s_server -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE"
+        echo "ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS"
         echo $RESULT
         let "failed++"
     else
@@ -341,8 +344,8 @@ do
             let "skipped++"
         else
             echo Failed
-            echo ../programs/ssl/ssl_server2 $P_SERVER_ARGS 
-            echo $OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS 
+            echo "ssl_server2 $P_SERVER_ARGS force_version=$MODE"
+            echo "$OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS"
             echo $RESULT
             let "failed++"
         fi
@@ -499,6 +502,8 @@ do
     elif [ "$EXIT" != "0" ];
     then
         echo Failed
+        echo "ssl_server2 $P_SERVER_ARGS"
+        echo "ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS"
         echo $RESULT
         let "failed++"
     else

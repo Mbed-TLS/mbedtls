@@ -229,7 +229,7 @@ int net_connect( int *fd, const char *host, int port )
 int net_bind( int *fd, const char *bind_ip, int port )
 {
 #if defined(POLARSSL_HAVE_IPV6)
-    int ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
+    int n, ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
     struct addrinfo hints, *addr_list, *cur;
     char port_str[6];
 
@@ -259,6 +259,10 @@ int net_bind( int *fd, const char *bind_ip, int port )
             ret = POLARSSL_ERR_NET_SOCKET_FAILED;
             continue;
         }
+
+        n = 1;
+        setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
+                    (const char *) &n, sizeof( n ) );
 
         if( bind( *fd, cur->ai_addr, cur->ai_addrlen ) != 0 )
         {

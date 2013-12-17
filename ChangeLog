@@ -7,6 +7,7 @@ Features
      (POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
    * Support for Curve25519
    * Support for ECDH-RSA and ECDH-ECDSA key exchanges and ciphersuites
+   * Support for IPv6 in the NET module
 
 Changes
    * gen_prime() speedup

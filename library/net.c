@@ -81,6 +81,11 @@ static int wsa_init_done = 0;
 #include <stdlib.h>
 #include <stdio.h>
 
+#if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
+    !defined(EFI32)
+#define  snprintf  _snprintf
+#endif
+
 #if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
 #endif
@@ -115,16 +120,12 @@ unsigned long  net_htonl(unsigned long  n);
 #define net_htonl(n) POLARSSL_HTONL(n)
 
 /*
- * Initiate a TCP connection with host:port
+ * Prepare for using the sockets interface
  */
-int net_connect( int *fd, const char *host, int port )
+static void net_prepare( void )
 {
-    struct sockaddr_in server_addr;
-    struct hostent *server_host;
-
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
-
     WSADATA wsaData;
 
     if( wsa_init_done == 0 )
@@ -139,6 +140,64 @@ int net_connect( int *fd, const char *host, int port )
     signal( SIGPIPE, SIG_IGN );
 #endif
 #endif
+}
+
+/*
+ * Initiate a TCP connection with host:port
+ */
+int net_connect( int *fd, const char *host, int port )
+{
+#if defined(POLARSSL_HAVE_IPV6)
+    int ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
+    struct addrinfo hints, *addr_list, *cur;
+    char port_str[6];
+
+    net_prepare();
+
+    /* getaddrinfo expects port as a string */
+    memset( port_str, 0, sizeof( port_str ) );
+    snprintf( port_str, sizeof( port_str ), "%d", port );
+
+    /* Do name resolution with both IPv6 and IPv4, but only TCP */
+    memset( &hints, 0, sizeof( hints ) );
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    if( getaddrinfo( host, port_str, &hints, &addr_list ) != 0 )
+        return( POLARSSL_ERR_NET_UNKNOWN_HOST );
+
+    /* Try the sockaddrs until a connection succeeds */
+    for( cur = addr_list; cur != NULL; cur = cur->ai_next )
+    {
+        *fd = socket( cur->ai_family, cur->ai_socktype, cur->ai_protocol );
+        if( *fd < 0 )
+        {
+            ret = POLARSSL_ERR_NET_SOCKET_FAILED;
+            continue;
+        }
+
+        if( connect( *fd, cur->ai_addr, cur->ai_addrlen ) == 0 )
+        {
+            ret = 0;
+            break;
+        }
+
+        close( *fd );
+        ret = POLARSSL_ERR_NET_CONNECT_FAILED;
+    }
+
+    freeaddrinfo( addr_list );
+
+    return( ret );
+
+#else
+    /* Legacy IPv4-only version */
+
+    struct sockaddr_in server_addr;
+    struct hostent *server_host;
+
+    net_prepare();
 
     if( ( server_host = gethostbyname( host ) ) == NULL )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
@@ -161,6 +220,7 @@ int net_connect( int *fd, const char *host, int port )
     }
 
     return( 0 );
+#endif /* POLARSSL_HAVE_IPV6 */
 }
 
 /*
@@ -168,25 +228,72 @@ int net_connect( int *fd, const char *host, int port )
  */
 int net_bind( int *fd, const char *bind_ip, int port )
 {
+#if defined(POLARSSL_HAVE_IPV6)
+    int n, ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
+    struct addrinfo hints, *addr_list, *cur;
+    char port_str[6];
+
+    net_prepare();
+
+    /* getaddrinfo expects port as a string */
+    memset( port_str, 0, sizeof( port_str ) );
+    snprintf( port_str, sizeof( port_str ), "%d", port );
+
+    /* Bind to IPv6 and/or IPv4, but only in TCP */
+    memset( &hints, 0, sizeof( hints ) );
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    if( bind_ip == NULL )
+        hints.ai_flags = AI_PASSIVE;
+
+    if( getaddrinfo( bind_ip, port_str, &hints, &addr_list ) != 0 )
+        return( POLARSSL_ERR_NET_UNKNOWN_HOST );
+
+    /* Try the sockaddrs until a binding succeeds */
+    for( cur = addr_list; cur != NULL; cur = cur->ai_next )
+    {
+        *fd = socket( cur->ai_family, cur->ai_socktype, cur->ai_protocol );
+        if( *fd < 0 )
+        {
+            ret = POLARSSL_ERR_NET_SOCKET_FAILED;
+            continue;
+        }
+
+        n = 1;
+        setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
+                    (const char *) &n, sizeof( n ) );
+
+        if( bind( *fd, cur->ai_addr, cur->ai_addrlen ) != 0 )
+        {
+            close( *fd );
+            ret = POLARSSL_ERR_NET_BIND_FAILED;
+            continue;
+        }
+
+        if( listen( *fd, POLARSSL_NET_LISTEN_BACKLOG ) != 0 )
+        {
+            close( *fd );
+            ret = POLARSSL_ERR_NET_LISTEN_FAILED;
+            continue;
+        }
+
+        /* I we ever get there, it's a success */
+        ret = 0;
+        break;
+    }
+
+    freeaddrinfo( addr_list );
+
+    return( ret );
+
+#else
+    /* Legacy IPv4-only version */
+
     int n, c[4];
     struct sockaddr_in server_addr;
 
-#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
-    !defined(EFI32)
-    WSADATA wsaData;
-
-    if( wsa_init_done == 0 )
-    {
-        if( WSAStartup( MAKEWORD(2,0), &wsaData ) == SOCKET_ERROR )
-            return( POLARSSL_ERR_NET_SOCKET_FAILED );
-
-        wsa_init_done = 1;
-    }
-#else
-#if !defined(EFIX64) && !defined(EFI32)
-    signal( SIGPIPE, SIG_IGN );
-#endif
-#endif
+    net_prepare();
 
     if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );
@@ -230,6 +337,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
     }
 
     return( 0 );
+#endif /* POLARSSL_HAVE_IPV6 */
 }
 
 /*
@@ -260,7 +368,11 @@ static int net_is_blocking( void )
  */
 int net_accept( int bind_fd, int *client_fd, void *client_ip )
 {
+#if defined(POLARSSL_HAVE_IPV6)
+    struct sockaddr_storage client_addr;
+#else
     struct sockaddr_in client_addr;
+#endif
 
 #if defined(__socklen_t_defined) || defined(_SOCKLEN_T) ||  \
     defined(_SOCKLEN_T_DECLARED)
@@ -281,8 +393,25 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
     }
 
     if( client_ip != NULL )
+    {
+#if defined(POLARSSL_HAVE_IPV6)
+        if( client_addr.ss_family == AF_INET )
+        {
+            struct sockaddr_in *addr4 = (struct sockaddr_in *) &client_addr;
+            memcpy( client_ip, &addr4->sin_addr.s_addr,
+                        sizeof( addr4->sin_addr.s_addr ) );
+        }
+        else
+        {
+            struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) &client_addr;
+            memcpy( client_ip, &addr6->sin6_addr.s6_addr,
+                        sizeof( addr6->sin6_addr.s6_addr ) );
+        }
+#else
         memcpy( client_ip, &client_addr.sin_addr.s_addr,
                     sizeof( client_addr.sin_addr.s_addr ) );
+#endif /* POLARSSL_HAVE_IPV6 */
+    }
 
     return( 0 );
 }

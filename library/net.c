@@ -122,7 +122,7 @@ unsigned long  net_htonl(unsigned long  n);
 /*
  * Prepare for using the sockets interface
  */
-static void net_prepare( void )
+static int net_prepare( void )
 {
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
@@ -139,6 +139,7 @@ static void net_prepare( void )
 #if !defined(EFIX64) && !defined(EFI32)
     signal( SIGPIPE, SIG_IGN );
 #endif
+    return( 0 );
 #endif
 }
 
@@ -148,11 +149,12 @@ static void net_prepare( void )
 int net_connect( int *fd, const char *host, int port )
 {
 #if defined(POLARSSL_HAVE_IPV6)
-    int ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
+    int ret;
     struct addrinfo hints, *addr_list, *cur;
     char port_str[6];
 
-    net_prepare();
+    if( ( ret = net_prepare() ) != 0 )
+        return( ret );
 
     /* getaddrinfo expects port as a string */
     memset( port_str, 0, sizeof( port_str ) );
@@ -168,6 +170,7 @@ int net_connect( int *fd, const char *host, int port )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
 
     /* Try the sockaddrs until a connection succeeds */
+    ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
     for( cur = addr_list; cur != NULL; cur = cur->ai_next )
     {
         *fd = socket( cur->ai_family, cur->ai_socktype, cur->ai_protocol );
@@ -194,10 +197,12 @@ int net_connect( int *fd, const char *host, int port )
 #else
     /* Legacy IPv4-only version */
 
+    int ret;
     struct sockaddr_in server_addr;
     struct hostent *server_host;
 
-    net_prepare();
+    if( ( ret = net_prepare() ) != 0 )
+        return( ret );
 
     if( ( server_host = gethostbyname( host ) ) == NULL )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
@@ -229,11 +234,12 @@ int net_connect( int *fd, const char *host, int port )
 int net_bind( int *fd, const char *bind_ip, int port )
 {
 #if defined(POLARSSL_HAVE_IPV6)
-    int n, ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
+    int n, ret;
     struct addrinfo hints, *addr_list, *cur;
     char port_str[6];
 
-    net_prepare();
+    if( ( ret = net_prepare() ) != 0 )
+        return( ret );
 
     /* getaddrinfo expects port as a string */
     memset( port_str, 0, sizeof( port_str ) );
@@ -251,6 +257,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
 
     /* Try the sockaddrs until a binding succeeds */
+    ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
     for( cur = addr_list; cur != NULL; cur = cur->ai_next )
     {
         *fd = socket( cur->ai_family, cur->ai_socktype, cur->ai_protocol );
@@ -290,10 +297,11 @@ int net_bind( int *fd, const char *bind_ip, int port )
 #else
     /* Legacy IPv4-only version */
 
-    int n, c[4];
+    int ret, n, c[4];
     struct sockaddr_in server_addr;
 
-    net_prepare();
+    if( ( ret = net_prepare() ) != 0 )
+        return( ret );
 
     if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );

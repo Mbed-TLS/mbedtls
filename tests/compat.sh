@@ -321,8 +321,8 @@ done
 kill $PROCESS_ID
 wait $PROCESS_ID 2>/dev/null
 
-log "../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE > /dev/null"
-../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE > /dev/null &
+log "../programs/ssl/ssl_server2 server_addr=0.0.0.0 $P_SERVER_ARGS force_version=$MODE > /dev/null"
+../programs/ssl/ssl_server2 server_addr=0.0.0.0 $P_SERVER_ARGS force_version=$MODE > /dev/null &
 PROCESS_ID=$!
 
 sleep 1
@@ -357,8 +357,8 @@ done
 kill $PROCESS_ID
 wait $PROCESS_ID 2>/dev/null
 
-log "../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE"
-../programs/ssl/ssl_server2 $P_SERVER_ARGS force_version=$MODE > /dev/null &
+log "../programs/ssl/ssl_server2 server_addr=0.0.0.0 $P_SERVER_ARGS force_version=$MODE"
+../programs/ssl/ssl_server2 server_addr=0.0.0.0 $P_SERVER_ARGS force_version=$MODE > /dev/null &
 PROCESS_ID=$!
 
 sleep 1

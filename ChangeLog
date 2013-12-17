@@ -15,6 +15,7 @@ Changes
    * Dropped use of readdir_r() instead of readdir() with threading support
    * More constant-time checks in the RSA module
    * Split off curves from ecp.c into ecp_curves.c
+   * Curves are now stored fully in ROM
 
 Bugfix
    * Fixed bug in mpi_set_bit() on platforms where t_uint is wider than int

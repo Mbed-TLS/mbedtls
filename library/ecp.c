@@ -280,11 +280,14 @@ void ecp_group_free( ecp_group *grp )
     if( grp == NULL )
         return;
 
-    mpi_free( &grp->P );
-    mpi_free( &grp->A );
-    mpi_free( &grp->B );
-    ecp_point_free( &grp->G );
-    mpi_free( &grp->N );
+    if( grp->h != 1 )
+    {
+        mpi_free( &grp->P );
+        mpi_free( &grp->A );
+        mpi_free( &grp->B );
+        ecp_point_free( &grp->G );
+        mpi_free( &grp->N );
+    }
 
     if( grp->T != NULL )
     {
@@ -523,7 +526,6 @@ int ecp_group_read_string( ecp_group *grp, int radix,
     int ret;
 
     MPI_CHK( mpi_read_string( &grp->P, radix, p ) );
-    MPI_CHK( mpi_add_int( &grp->A, &grp->P, -3 ) );
     MPI_CHK( mpi_read_string( &grp->B, radix, b ) );
     MPI_CHK( ecp_point_read_string( &grp->G, radix, gx, gy ) );
     MPI_CHK( mpi_read_string( &grp->N, radix, n ) );
@@ -864,7 +866,17 @@ static int ecp_double_jac( const ecp_group *grp, ecp_point *R,
     MPI_CHK( mpi_mul_mpi( &Z3,  &P->Z,  &P->Z   ) ); MOD_MUL( Z3 );
     MPI_CHK( mpi_mul_mpi( &X3,  &Z3,    &Z3     ) ); MOD_MUL( X3 );
     MPI_CHK( mpi_mul_int( &T3,  &T3,    3       ) ); MOD_ADD( T3 );
-    MPI_CHK( mpi_mul_mpi( &X3,  &X3,    &grp->A ) ); MOD_MUL( X3 );
+
+    /* Special case for A = -3 */
+    if( grp->A.p == NULL )
+    {
+        MPI_CHK( mpi_mul_int( &X3, &X3, 3 ) );
+        X3.s = -1; /* mpi_mul_int doesn't handle negative numbers */
+        MOD_SUB( X3 );
+    }
+    else
+        MPI_CHK( mpi_mul_mpi( &X3,  &X3,    &grp->A ) ); MOD_MUL( X3 );
+
     MPI_CHK( mpi_add_mpi( &T3,  &T3,    &X3     ) ); MOD_ADD( T3 );
     MPI_CHK( mpi_mul_mpi( &X3,  &T3,    &T3     ) ); MOD_MUL( X3 );
     MPI_CHK( mpi_sub_mpi( &X3,  &X3,    &T1     ) ); MOD_SUB( X3 );
@@ -1629,7 +1641,17 @@ static int ecp_check_pubkey_sw( const ecp_group *grp, const ecp_point *pt )
      */
     MPI_CHK( mpi_mul_mpi( &YY,  &pt->Y,   &pt->Y  ) );  MOD_MUL( YY  );
     MPI_CHK( mpi_mul_mpi( &RHS, &pt->X,   &pt->X  ) );  MOD_MUL( RHS );
-    MPI_CHK( mpi_add_mpi( &RHS, &RHS,     &grp->A ) );  MOD_ADD( RHS );
+
+    /* Special case for A = -3 */
+    if( grp->A.p == NULL )
+    {
+        MPI_CHK( mpi_sub_int( &RHS, &RHS, 3       ) );  MOD_SUB( RHS );
+    }
+    else
+    {
+        MPI_CHK( mpi_add_mpi( &RHS, &RHS, &grp->A ) );  MOD_ADD( RHS );
+    }
+
     MPI_CHK( mpi_mul_mpi( &RHS, &RHS,     &pt->X  ) );  MOD_MUL( RHS );
     MPI_CHK( mpi_add_mpi( &RHS, &RHS,     &grp->B ) );  MOD_ADD( RHS );
 

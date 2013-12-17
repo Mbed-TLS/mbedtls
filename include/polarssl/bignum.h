@@ -127,12 +127,18 @@ typedef uint16_t t_uint;
 typedef uint32_t t_udbl;
 #define POLARSSL_HAVE_UDBL
 #else
-  #if ( defined(_MSC_VER) && defined(_M_AMD64) )
+  /*
+   * 32-bit integers can be forced on 64-bit arches (eg. for testing purposes)
+   * by defining POLARSSL_HAVE_INT32 and undefining POARSSL_HAVE_ASM
+   */
+  #if ( ! defined(POLARSSL_HAVE_INT32) && \
+          defined(_MSC_VER) && defined(_M_AMD64) )
     #define POLARSSL_HAVE_INT64
     typedef  int64_t t_sint;
     typedef uint64_t t_uint;
   #else
-    #if ( defined(__GNUC__) && (                          \
+    #if ( ! defined(POLARSSL_HAVE_INT32) &&               \
+          defined(__GNUC__) && (                          \
           defined(__amd64__) || defined(__x86_64__)    || \
           defined(__ppc64__) || defined(__powerpc64__) || \
           defined(__ia64__)  || defined(__alpha__)     || \

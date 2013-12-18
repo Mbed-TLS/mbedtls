@@ -29,6 +29,9 @@
 
 #include "aes.h"
 
+#define POLARSSL_AESNI_AES      0x02000000u
+#define POLARSSL_AESNI_CLMUL    0x00000002u
+
 #if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) &&  \
     ( defined(__amd64__) || defined(__x86_64__) )   &&  \
     ! defined(POLARSSL_HAVE_X86_64)
@@ -38,11 +41,14 @@
 #if defined(POLARSSL_HAVE_X86_64)
 
 /**
- * \brief          AES-NI detection routine
+ * \brief          AES-NI features detection routine
  *
- * \return         1 if CPU supports AES-NI, 0 otherwise
+ * \param what     The feature to detect
+ *                 (POLARSSL_AESNI_AES or POLARSSL_AESNI_CLMUL)
+ *
+ * \return         1 if CPU has support for the feature, 0 otherwise
  */
-int aesni_supported( void );
+int aesni_supports( unsigned int what );
 
 /**
  * \brief          AES-NI AES-ECB block en(de)cryption

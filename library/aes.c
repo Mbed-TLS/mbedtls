@@ -677,7 +677,7 @@ int aes_crypt_ecb( aes_context *ctx,
     uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 
 #if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
-    if( aesni_supported() )
+    if( aesni_supports( POLARSSL_AESNI_AES ) )
         return( aesni_crypt_ecb( ctx, mode, input, output ) );
 #endif
 

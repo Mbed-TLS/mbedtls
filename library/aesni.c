@@ -37,24 +37,24 @@
 #if defined(POLARSSL_HAVE_X86_64)
 
 /*
- * AES-NI support detection routine, [AES-WP] figure 23
+ * AES-NI support detection routine
  */
-int aesni_supported( void )
+int aesni_supports( unsigned int what )
 {
-    static int supported = -1;
-    unsigned int c;
+    static int done = 0;
+    static unsigned int c = 0;
 
-    if( supported == -1 )
+    if( ! done )
     {
         asm( "movl  $1, %%eax   \n"
              "cpuid             \n"
              : "=c" (c)
              :
              : "eax", "ebx", "edx" );
-        supported = ( ( c & 0x02000000 ) != 0 );
+        done = 1;
     }
 
-    return( supported );
+    return( ( c & what ) != 0 );
 }
 
 /*

@@ -38,6 +38,7 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
+/* padlock.c and aesni.c rely on these values! */
 #define AES_ENCRYPT     1
 #define AES_DECRYPT     0
 

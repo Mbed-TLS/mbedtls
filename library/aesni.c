@@ -32,6 +32,7 @@
 #if defined(POLARSSL_AESNI_C)
 
 #include "polarssl/aesni.h"
+#include <stdio.h>
 
 #if defined(POLARSSL_HAVE_X86_64)
 
@@ -56,6 +57,50 @@ int aesni_supported( void )
     return( supported );
 }
 
+/*
+ * AES-NI AES-ECB block en(de)cryption
+ */
+int aesni_crypt_ecb( aes_context *ctx,
+                     int mode,
+                     const unsigned char input[16],
+                     unsigned char output[16] )
+{
+    asm( "movdqu    (%3), %%xmm0    \n" // load input
+         "movdqu    (%1), %%xmm1    \n" // load round key 0
+         "pxor      %%xmm1, %%xmm0  \n" // round 0
+         "addq      $16, %1         \n" // point to next round key
+         "subl      $1, %0          \n" // normal rounds = nr - 1
+         "test      %2, %2          \n" // mode?
+         "jz        2f              \n" // 0 = decrypt
+
+         "1:                        \n" // encryption loop
+         "movdqu    (%1), %%xmm1    \n" // load round key
+         "aesenc    %%xmm1, %%xmm0  \n" // do round
+         "addq      $16, %1         \n" // point to next round key
+         "subl      $1, %0          \n" // loop
+         "jnz       1b              \n"
+         "movdqu    (%1), %%xmm1    \n" // load round key
+         "aesenclast %%xmm1, %%xmm0 \n" // last round
+         "jmp       3f              \n"
+
+         "2:                        \n" // decryption loop
+         "movdqu    (%1), %%xmm1    \n"
+         "aesdec    %%xmm1, %%xmm0  \n"
+         "addq      $16, %1         \n"
+         "subl      $1, %0          \n"
+         "jnz       2b              \n"
+         "movdqu    (%1), %%xmm1    \n" // load round key
+         "aesdeclast %%xmm1, %%xmm0 \n" // last round
+
+         "3:                        \n"
+         "movdqu    %%xmm0, (%4)    \n" // export output
+         :
+         : "r" (ctx->nr), "r" (ctx->rk), "r" (mode), "r" (input), "r" (output)
+         : "memory", "cc", "xmm0", "xmm1" );
+
+
+    return( 0 );
+}
 #endif /* POLARSSL_HAVE_X86_64 */
 
 #endif /* POLARSSL_AESNI_C */

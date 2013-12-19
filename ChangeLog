@@ -26,6 +26,7 @@ Bugfix
    * crypt_and_hash app checks MAC before final decryption
    * Potential memory leak in ssl_ticket_keys_init()
    * Memory leak in benchmark application
+   * Fixed x509_crt_parse_path() bug on Windows platforms
 
 = PolarSSL 1.3.2 released on 2013-11-04
 Features

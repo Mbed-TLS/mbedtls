@@ -1,5 +1,15 @@
+find_package(Threads)
+
 set(libs
      polarssl
+)
+
+set(targets
+     ssl_client1
+     ssl_client2
+     ssl_server
+     ssl_fork_server
+     ssl_mail_client
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)
@@ -28,6 +38,12 @@ target_link_libraries(ssl_fork_server ${libs})
 add_executable(ssl_mail_client ssl_mail_client.c)
 target_link_libraries(ssl_mail_client ${libs})
 
-install(TARGETS ssl_client1 ssl_client2 ssl_server ssl_fork_server ssl_mail_client
+if(THREADS_FOUND)
+    add_executable(ssl_pthread_server ssl_pthread_server.c)
+    target_link_libraries(ssl_pthread_server ${libs} pthread)
+    set(targets ${targets} ssl_pthread_server)
+endif(THREADS_FOUND)
+
+install(TARGETS ${targets}
         DESTINATION "bin"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

@@ -49,6 +49,10 @@ ifdef OPENSSL
 APPS +=	test/o_p_test
 endif
 
+ifdef PTHREAD
+APPS +=	ssl/ssl_pthread_server
+endif
+
 .SILENT:
 
 all: $(APPS)
@@ -188,6 +192,10 @@ ssl/ssl_server2: ssl/ssl_server2.c ../library/libpolarssl.a
 ssl/ssl_fork_server: ssl/ssl_fork_server.c ../library/libpolarssl.a
 	echo   "  CC    ssl/ssl_fork_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_fork_server.c   $(LDFLAGS) -o $@
+
+ssl/ssl_pthread_server: ssl/ssl_pthread_server.c ../library/libpolarssl.a
+	echo   "  CC    ssl/ssl_pthread_server.c"
+	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_pthread_server.c   $(LDFLAGS) -o $@ -lpthread
 
 ssl/ssl_mail_client: ssl/ssl_mail_client.c ../library/libpolarssl.a
 	echo   "  CC    ssl/ssl_mail_client.c"

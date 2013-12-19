@@ -573,6 +573,7 @@ static int ecp_mod_p255( mpi * );
                             G ## _gy, sizeof( G ## _gy ),   \
                             G ## _n,  sizeof( G ## _n  ) )
 
+#if defined(POLARSSL_ECP_DP_M255_ENABLED)
 /*
  * Specialized function for creating the Curve25519 group
  */
@@ -604,6 +605,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* POLARSSL_ECP_DP_M255_ENABLED */
 
 /*
  * Set a group using well-known domain parameters

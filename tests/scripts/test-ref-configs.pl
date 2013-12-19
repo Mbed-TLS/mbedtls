@@ -15,6 +15,20 @@ my %configs = (
     'config-suite-b.h'          => "-m tls1_2 -f 'ECDSA.*GCM'",
 );
 
+if ($#ARGV >= 0) {
+    # filter configs
+    my @filtered_keys;
+    my %filtered_configs;
+
+    foreach my $filter (@ARGV) {
+        push (@filtered_keys, $filter);
+    }
+    @filtered_keys = grep { exists $configs{$ARGV[0]} } @filtered_keys;
+    @filtered_configs{@filtered_keys} = @configs{@filtered_keys};
+
+    %configs = %filtered_configs;
+}
+
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
 
 my $test = system( "grep -i cmake Makefile >/dev/null" ) ? 'check' : 'test';

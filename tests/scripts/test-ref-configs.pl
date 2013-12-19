@@ -11,7 +11,7 @@ use strict;
 my %configs = (
     'config-psk-rc4-tls1_0.h'   => "-m tls1   -f 'PSK.*RC4'",
     'config-mini-tls1_1.h'
-    => "-m tls1_1 -f '^DES-CBC3-SHA\$\|^TLS_RSA_WITH_3DES_EDE_CBC_SHA\$'",
+    => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
     'config-suite-b.h'          => "-m tls1_2 -f 'ECDSA.*GCM'",
 );
 

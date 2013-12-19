@@ -5,7 +5,9 @@ static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 
 static int pk_genkey( pk_context *pk )
 {
-#if defined(POLARSSL_RSA_C)
+    ((void) pk);
+
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME)
     if( pk_get_type( pk ) == POLARSSL_PK_RSA )
         return rsa_gen_key( pk_rsa( *pk ), rnd_std_rand, NULL, 512, 3 );
 #endif

@@ -1314,8 +1314,12 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
 static int ssl_decrypt_buf( ssl_context *ssl )
 {
-    size_t i, padlen = 0, correct = 1;
-    unsigned char tmp[POLARSSL_SSL_MAX_MAC_SIZE];
+    size_t i;
+#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER) ||     \
+    ( defined(POLARSSL_CIPHER_MODE_CBC) &&                                  \
+      ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
+    size_t padlen = 0, correct = 1;
+#endif
 
     SSL_DEBUG_MSG( 2, ( "=> decrypt buf" ) );
 
@@ -1387,8 +1391,6 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         size_t dec_msglen, olen, totlen;
         unsigned char add_data[13];
         int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
-
-        padlen = 0;
 
         dec_msglen = ssl->in_msglen - ( ssl->transform_in->ivlen -
                                         ssl->transform_in->fixed_ivlen );
@@ -1651,6 +1653,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode !=
                                                         POLARSSL_MODE_GCM )
     {
+        unsigned char tmp[POLARSSL_SSL_MAX_MAC_SIZE];
+
         ssl->in_msglen -= ( ssl->transform_in->maclen + padlen );
 
         ssl->in_hdr[3] = (unsigned char)( ssl->in_msglen >> 8 );

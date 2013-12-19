@@ -30,6 +30,10 @@ Bugfix
    * Memory leak in benchmark application
    * Fixed x509_crt_parse_path() bug on Windows platforms
 
+Security
+   * Possible remotely-triggered out-of-bounds memory access fixed (found by
+     TrustInSoft)
+
 = PolarSSL 1.3.2 released on 2013-11-04
 Features
    * PK tests added to test framework

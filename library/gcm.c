@@ -22,9 +22,17 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
 /*
- *  http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf
+ * http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf
+ *
+ * See also:
+ * [MGV] http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-revised-spec.pdf
+ *
+ * We use the algorithm described as Shoup's method with 4-bit tables in
+ * [MGV] 4.1, pp. 12-13, to enhance speed without using too much memory.
  */
+
 #include "polarssl/config.h"
 
 #if defined(POLARSSL_GCM_C)
@@ -54,6 +62,14 @@
 }
 #endif
 
+/*
+ * Precompute small multiples of H, that is set
+ *      HH[i] || HL[i] = H times i,
+ * where i is seen as a field element as in [MGV], ie high-order bits
+ * correspond to low powers of P. The result is stored in the same way, that
+ * is the high-order bit of HH corresponds to P^0 and the low-order bit of HL
+ * corresponds to P^127.
+ */
 static int gcm_gen_table( gcm_context *ctx )
 {
     int ret, i, j;
@@ -66,6 +82,7 @@ static int gcm_gen_table( gcm_context *ctx )
     if( ( ret = cipher_update( &ctx->cipher_ctx, h, 16, h, &olen ) ) != 0 )
         return( ret );
 
+    /* 0 corresponds to 0 in GF(2^128) */
     ctx->HH[0] = 0;
     ctx->HL[0] = 0;
 
@@ -77,6 +94,7 @@ static int gcm_gen_table( gcm_context *ctx )
     GET_UINT32_BE( lo, h,  12 );
     vl = (uint64_t) hi << 32 | lo;
 
+    /* 8 = 1000 corresponds to 1 in GF(2^128) */
     ctx->HL[8] = vl;
     ctx->HH[8] = vh;
 
@@ -135,6 +153,11 @@ int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
     return( 0 );
 }
 
+/*
+ * Shoup's method for multiplication use this table with
+ *      last4[x] = x times P^128
+ * where x and last4[x] are seen as elements of GF(2^128) as in [MGV]
+ */
 static const uint64_t last4[16] =
 {
     0x0000, 0x1c20, 0x3840, 0x2460,
@@ -143,6 +166,10 @@ static const uint64_t last4[16] =
     0x9180, 0x8da0, 0xa9c0, 0xb5e0
 };
 
+/*
+ * Sets output to x times H using the precomputed tables.
+ * x and output are seen as elements of GF(2^128) as in [MGV].
+ */
 static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
                       unsigned char output[16] )
 {

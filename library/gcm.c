@@ -39,6 +39,10 @@
 
 #include "polarssl/gcm.h"
 
+#if defined(POLARSSL_AESNI_C)
+#include "polarssl/aesni.h"
+#endif
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -82,10 +86,7 @@ static int gcm_gen_table( gcm_context *ctx )
     if( ( ret = cipher_update( &ctx->cipher_ctx, h, 16, h, &olen ) ) != 0 )
         return( ret );
 
-    /* 0 corresponds to 0 in GF(2^128) */
-    ctx->HH[0] = 0;
-    ctx->HL[0] = 0;
-
+    /* pack h as two 64-bits ints, big-endian */
     GET_UINT32_BE( hi, h,  0  );
     GET_UINT32_BE( lo, h,  4  );
     vh = (uint64_t) hi << 32 | lo;
@@ -97,6 +98,16 @@ static int gcm_gen_table( gcm_context *ctx )
     /* 8 = 1000 corresponds to 1 in GF(2^128) */
     ctx->HL[8] = vl;
     ctx->HH[8] = vh;
+
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+    /* With CLMUL support, we need only h, not the rest of the table */
+    if( aesni_supports( POLARSSL_AESNI_CLMUL ) )
+        return( 0 );
+#endif
+
+    /* 0 corresponds to 0 in GF(2^128) */
+    ctx->HH[0] = 0;
+    ctx->HL[0] = 0;
 
     for( i = 4; i > 0; i >>= 1 )
     {
@@ -177,6 +188,20 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
     unsigned char z[16];
     unsigned char lo, hi, rem;
     uint64_t zh, zl;
+
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+    if( aesni_supports( POLARSSL_AESNI_CLMUL ) ) {
+        unsigned char h[16];
+
+        PUT_UINT32_BE( ctx->HH[8] >> 32, h,  0 );
+        PUT_UINT32_BE( ctx->HH[8],       h,  4 );
+        PUT_UINT32_BE( ctx->HL[8] >> 32, h,  8 );
+        PUT_UINT32_BE( ctx->HL[8],       h, 12 );
+
+        (void) aesni_gcm_mult( output, x, h );
+        return;
+    }
+#endif
 
     memset( z, 0x00, 16 );
 

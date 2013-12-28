@@ -215,6 +215,28 @@ int aesni_gcm_mult( unsigned char c[16],
     return( 0 );
 }
 
+/*
+ * Compute decryption round keys from encryption round keys
+ */
+void aesni_inverse_key( unsigned char *invkey,
+                        const unsigned char *fwdkey, int nr )
+{
+    unsigned char *ik = invkey;
+    const unsigned char *fk = fwdkey + 16 * nr;
+
+    memcpy( ik, fk, 16 );
+
+    for( fk -= 16, ik += 16; fk > fwdkey; fk -= 16, ik += 16 )
+        asm( "movdqu (%0), %%xmm0       \n"
+             "aesimc %%xmm0, %%xmm0     \n"
+             "movdqu %%xmm0, (%1)       \n"
+             :
+             : "r" (fk), "r" (ik)
+             : "memory", "xmm0" );
+
+    memcpy( ik, fk, 16 );
+}
+
 #endif /* POLARSSL_HAVE_X86_64 */
 
 #endif /* POLARSSL_AESNI_C */

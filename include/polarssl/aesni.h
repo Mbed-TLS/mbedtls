@@ -81,6 +81,16 @@ int aesni_gcm_mult( unsigned char c[16],
                     const unsigned char a[16],
                     const unsigned char b[16] );
 
+/**
+ * \brief           Compute decryption round keys from encryption round keys
+ *
+ * \param invkey    Round keys for the equivalent inverse cipher
+ * \param fwdkey    Original round keys (for encryption)
+ * \param nr        Number of rounds (that is, number of round keys minus one)
+ */
+void aesni_inverse_key( unsigned char *invkey,
+                        const unsigned char *fwdkey, int nr );
+
 #endif /* POLARSSL_HAVE_X86_64 */
 
 #endif /* POLARSSL_AESNI_H */

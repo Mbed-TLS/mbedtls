@@ -91,6 +91,19 @@ int aesni_gcm_mult( unsigned char c[16],
 void aesni_inverse_key( unsigned char *invkey,
                         const unsigned char *fwdkey, int nr );
 
+/**
+ * \brief           Perform key expansion (for encryption)
+ *
+ * \param rk        Destination buffer where the round keys are written
+ * \param key       Encryption key
+ * \param bits      Key size in bits (must be 128, 192 or 256)
+ *
+ * \return          0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
+ */
+int aesni_setkey_enc( unsigned char *rk,
+                      const unsigned char *key,
+                      size_t bits );
+
 #endif /* POLARSSL_HAVE_X86_64 */
 
 #endif /* POLARSSL_AESNI_H */

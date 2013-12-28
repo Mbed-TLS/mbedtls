@@ -237,6 +237,70 @@ void aesni_inverse_key( unsigned char *invkey,
     memcpy( ik, fk, 16 );
 }
 
+/*
+ * Key expansion, 128-bit case
+ */
+void aesni_setkey_enc_128( unsigned char *rk,
+                           const unsigned char *key )
+{
+    asm( "movdqu (%1), %%xmm0               \n" // copy the original key
+         "movdqu %%xmm0, (%0)               \n" // as round key 0
+         "jmp 2f                            \n" // skip auxiliary routine
+
+         /*
+          * On entry xmm0 is r3:r2:r1:r0 and xmm1 is X:stuff:stuff:stuff
+          * with X = rot( sub( r3 ) ) ^ RCON.
+          *
+          * On exit, xmm0 is r7:r6:r5:r4
+          * with r4 = X + r0, r5 = r4 + r1, r6 = r5 + r2, r7 = r6 + r3
+          * and those are written to the round key buffer.
+          */
+         "1:                                \n"
+         "pshufd $0xff, %%xmm1, %%xmm1      \n" // X:X:X:X
+         "pxor %%xmm0, %%xmm1               \n" // X+r3:X+r2:X+r1:r4
+         "pslldq $4, %%xmm0                 \n" // r2:r1:r0:0
+         "pxor %%xmm0, %%xmm1               \n" // X+r3+r2:X+r2+r1:r5:r4
+         "pslldq $4, %%xmm0                 \n" // etc
+         "pxor %%xmm0, %%xmm1               \n"
+         "pslldq $4, %%xmm0                 \n"
+         "pxor %%xmm1, %%xmm0               \n" // update xmm0 for next time!
+         "add $16, %0                       \n" // point to next round key
+         "movdqu %%xmm0, (%0)               \n" // write it
+         "ret                               \n"
+
+         /* Main "loop" */
+         "2:                                    \n"
+         "aeskeygenassist $0x01, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x02, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x04, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x08, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x10, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x20, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x40, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x80, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x1B, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "aeskeygenassist $0x36, %%xmm0, %%xmm1 \ncall 1b   \n"
+         :
+         : "r" (rk), "r" (key)
+         : "memory", "cc", "0" );
+}
+
+/*
+ * Key expansion, wrapper
+ */
+int aesni_setkey_enc( unsigned char *rk,
+                      const unsigned char *key,
+                      size_t bits )
+{
+    switch( bits )
+    {
+        case 128: aesni_setkey_enc_128( rk, key ); break;
+        default : return( POLARSSL_ERR_AES_INVALID_KEY_LENGTH );
+    }
+
+    return( 0 );
+}
+
 #endif /* POLARSSL_HAVE_X86_64 */
 
 #endif /* POLARSSL_AESNI_C */

@@ -248,6 +248,8 @@ void aesni_setkey_enc_128( unsigned char *rk,
          "jmp 2f                            \n" // skip auxiliary routine
 
          /*
+          * Finish generating the next round key.
+          *
           * On entry xmm0 is r3:r2:r1:r0 and xmm1 is X:stuff:stuff:stuff
           * with X = rot( sub( r3 ) ) ^ RCON.
           *
@@ -286,6 +288,72 @@ void aesni_setkey_enc_128( unsigned char *rk,
 }
 
 /*
+ * Key expansion, 256-bit case
+ */
+void aesni_setkey_enc_256( unsigned char *rk,
+                           const unsigned char *key )
+{
+    asm( "movdqu (%1), %%xmm0           \n"
+         "movdqu %%xmm0, (%0)           \n"
+         "add $16, %0                   \n"
+         "movdqu 16(%1), %%xmm1         \n"
+         "movdqu %%xmm1, (%0)           \n"
+         "jmp 2f                        \n" // skip auxiliary routine
+
+         /*
+          * Finish generating the next two round keys.
+          *
+          * On entry xmm0 is r3:r2:r1:r0, xmm1 is r7:r6:r5:r4 and
+          * xmm2 is X:stuff:stuff:stuff with X = rot( sub( r7 )) ^ RCON
+          *
+          * On exit, xmm0 is r11:r10:r9:r8 and xmm1 is r15:r14:r13:r12
+          * and those have been written to the output buffer.
+          */
+         "1:                                \n"
+         "pshufd $0xff, %%xmm2, %%xmm2      \n"
+         "pxor %%xmm0, %%xmm2               \n"
+         "pslldq $4, %%xmm0                 \n"
+         "pxor %%xmm0, %%xmm2               \n"
+         "pslldq $4, %%xmm0                 \n"
+         "pxor %%xmm0, %%xmm2               \n"
+         "pslldq $4, %%xmm0                 \n"
+         "pxor %%xmm2, %%xmm0               \n"
+         "add $16, %0                       \n"
+         "movdqu %%xmm0, (%0)               \n"
+
+         /* Set xmm2 to stuff:Y:stuff:stuff with Y = subword( r11 )
+          * and proceed to generate next round key from there */
+         "aeskeygenassist $0, %%xmm0, %%xmm2\n"
+         "pshufd $0xaa, %%xmm2, %%xmm2      \n"
+         "pxor %%xmm1, %%xmm2               \n"
+         "pslldq $4, %%xmm1                 \n"
+         "pxor %%xmm1, %%xmm2               \n"
+         "pslldq $4, %%xmm1                 \n"
+         "pxor %%xmm1, %%xmm2               \n"
+         "pslldq $4, %%xmm1                 \n"
+         "pxor %%xmm2, %%xmm1               \n"
+         "add $16, %0                       \n"
+         "movdqu %%xmm1, (%0)               \n"
+         "ret                               \n"
+
+         /*
+          * Main "loop" - Generating one more key than necessary,
+          * see definition of aes_context.buf
+          */
+         "2:                                    \n"
+         "aeskeygenassist $0x01, %%xmm1, %%xmm2 \ncall 1b   \n"
+         "aeskeygenassist $0x02, %%xmm1, %%xmm2 \ncall 1b   \n"
+         "aeskeygenassist $0x04, %%xmm1, %%xmm2 \ncall 1b   \n"
+         "aeskeygenassist $0x08, %%xmm1, %%xmm2 \ncall 1b   \n"
+         "aeskeygenassist $0x10, %%xmm1, %%xmm2 \ncall 1b   \n"
+         "aeskeygenassist $0x20, %%xmm1, %%xmm2 \ncall 1b   \n"
+         "aeskeygenassist $0x40, %%xmm1, %%xmm2 \ncall 1b   \n"
+         :
+         : "r" (rk), "r" (key)
+         : "memory", "cc", "0" );
+}
+
+/*
  * Key expansion, wrapper
  */
 int aesni_setkey_enc( unsigned char *rk,
@@ -295,6 +363,7 @@ int aesni_setkey_enc( unsigned char *rk,
     switch( bits )
     {
         case 128: aesni_setkey_enc_128( rk, key ); break;
+        case 256: aesni_setkey_enc_256( rk, key ); break;
         default : return( POLARSSL_ERR_AES_INVALID_KEY_LENGTH );
     }
 

@@ -1,3 +1,4 @@
+set(THREADS_USE_PTHREADS_WIN32 true)
 find_package(Threads)
 
 set(libs
@@ -40,7 +41,7 @@ target_link_libraries(ssl_mail_client ${libs})
 
 if(THREADS_FOUND)
     add_executable(ssl_pthread_server ssl_pthread_server.c)
-    target_link_libraries(ssl_pthread_server ${libs} pthread)
+    target_link_libraries(ssl_pthread_server ${libs} ${CMAKE_THREAD_LIBS_INIT})
     set(targets ${targets} ssl_pthread_server)
 endif(THREADS_FOUND)
 

@@ -240,8 +240,8 @@ void aesni_inverse_key( unsigned char *invkey,
 /*
  * Key expansion, 128-bit case
  */
-void aesni_setkey_enc_128( unsigned char *rk,
-                           const unsigned char *key )
+static void aesni_setkey_enc_128( unsigned char *rk,
+                                  const unsigned char *key )
 {
     asm( "movdqu (%1), %%xmm0               \n" // copy the original key
          "movdqu %%xmm0, (%0)               \n" // as round key 0
@@ -290,8 +290,8 @@ void aesni_setkey_enc_128( unsigned char *rk,
 /*
  * Key expansion, 192-bit case
  */
-void aesni_setkey_enc_192( unsigned char *rk,
-                           const unsigned char *key )
+static void aesni_setkey_enc_192( unsigned char *rk,
+                                  const unsigned char *key )
 {
     asm( "movdqu (%1), %%xmm0   \n" // copy original round key
          "movdqu %%xmm0, (%0)   \n"
@@ -347,8 +347,8 @@ void aesni_setkey_enc_192( unsigned char *rk,
 /*
  * Key expansion, 256-bit case
  */
-void aesni_setkey_enc_256( unsigned char *rk,
-                           const unsigned char *key )
+static void aesni_setkey_enc_256( unsigned char *rk,
+                                  const unsigned char *key )
 {
     asm( "movdqu (%1), %%xmm0           \n"
          "movdqu %%xmm0, (%0)           \n"

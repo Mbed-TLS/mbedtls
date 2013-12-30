@@ -37,6 +37,9 @@
 #if defined(POLARSSL_PADLOCK_C)
 #include "polarssl/padlock.h"
 #endif
+#if defined(POLARSSL_AESNI_C)
+#include "polarssl/aesni.h"
+#endif
 
 #if !defined(POLARSSL_AES_ALT)
 
@@ -480,6 +483,11 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int key
 #endif
     ctx->rk = RK = ctx->buf;
 
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+    if( aesni_supports( POLARSSL_AESNI_AES ) )
+        return( aesni_setkey_enc( (unsigned char *) ctx->rk, key, keysize ) );
+#endif
+
     for( i = 0; i < (keysize >> 5); i++ )
     {
         GET_UINT32_LE( RK[i], key, i << 2 );
@@ -588,6 +596,15 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int key
     if( ret != 0 )
         return( ret );
 
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+    if( aesni_supports( POLARSSL_AESNI_AES ) )
+    {
+        aesni_inverse_key( (unsigned char *) ctx->rk,
+                           (const unsigned char *) cty.rk, ctx->nr );
+        goto done;
+    }
+#endif
+
     SK = cty.rk + cty.nr * 4;
 
     *RK++ = *SK++;
@@ -611,6 +628,7 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int key
     *RK++ = *SK++;
     *RK++ = *SK++;
 
+done:
     memset( &cty, 0, sizeof( aes_context ) );
 
     return( 0 );
@@ -672,6 +690,11 @@ int aes_crypt_ecb( aes_context *ctx,
 {
     int i;
     uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
+
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+    if( aesni_supports( POLARSSL_AESNI_AES ) )
+        return( aesni_crypt_ecb( ctx, mode, input, output ) );
+#endif
 
 #if defined(POLARSSL_PADLOCK_C) && defined(POLARSSL_HAVE_X86)
     if( aes_padlock_ace )

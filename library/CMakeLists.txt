@@ -2,6 +2,7 @@ option(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL as a shared library." OFF)
 
 set(src
      aes.c
+     aesni.c
      arc4.c
      asn1parse.c
      asn1write.c

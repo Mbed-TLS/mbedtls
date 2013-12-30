@@ -38,6 +38,7 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
+/* padlock.c and aesni.c rely on these values! */
 #define AES_ENCRYPT     1
 #define AES_DECRYPT     0
 
@@ -54,6 +55,11 @@ extern "C" {
 
 /**
  * \brief          AES context structure
+ *
+ * \note           buf is able to hold 32 extra bytes, which can be used:
+ *                 - for alignment purposes if VIA padlock is used, and/or
+ *                 - to simplify key expansion in the 256-bit case by
+ *                 generating an extra round key
  */
 typedef struct
 {

@@ -8,6 +8,7 @@ Features
    * Support for Curve25519
    * Support for ECDH-RSA and ECDH-ECDSA key exchanges and ciphersuites
    * Support for IPv6 in the NET module
+   * AES-NI support for AES, AES-GCM and AES key scheduling
 
 Changes
    * gen_prime() speedup

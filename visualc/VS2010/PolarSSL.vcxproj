@@ -143,6 +143,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\polarssl\aes.h" />
+    <ClInclude Include="..\..\include\polarssl\aesni.h" />
     <ClInclude Include="..\..\include\polarssl\arc4.h" />
     <ClInclude Include="..\..\include\polarssl\asn1.h" />
     <ClInclude Include="..\..\include\polarssl\asn1write.h" />
@@ -201,6 +202,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\library\aes.c" />
+    <ClCompile Include="..\..\library\aesni.c" />
     <ClCompile Include="..\..\library\arc4.c" />
     <ClCompile Include="..\..\library\asn1parse.c" />
     <ClCompile Include="..\..\library\asn1write.c" />

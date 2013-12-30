@@ -7,10 +7,13 @@ if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
   set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 -fprofile-arcs -ftest-coverage -lgcov")
-  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Wlogical-op -Wwrite-strings")
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Wlogical-op -Wwrite-strings -Werror")
   set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNUCC)
 
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
+    CACHE STRING "Choose the type of build: None Debug Release Coverage Check CheckFull"
+    FORCE)
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
   if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_SHARED_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")

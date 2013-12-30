@@ -107,9 +107,9 @@ int aesni_crypt_ecb( aes_context *ctx,
  * GCM multiplication: c = a times b in GF(2^128)
  * Based on [CLMUL-WP] algorithms 1 (with equation 27) and 5.
  */
-int aesni_gcm_mult( unsigned char c[16],
-                    const unsigned char a[16],
-                    const unsigned char b[16] )
+void aesni_gcm_mult( unsigned char c[16],
+                     const unsigned char a[16],
+                     const unsigned char b[16] )
 {
     unsigned char aa[16], bb[16], cc[16];
     size_t i;

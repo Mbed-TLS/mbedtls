@@ -74,12 +74,10 @@ int aesni_crypt_ecb( aes_context *ctx,
  *
  * \note           Both operands and result are bit strings interpreted as
  *                 elements of GF(2^128) as per the GCM spec.
- *
- * \return         0 on success (cannot fail)
  */
-int aesni_gcm_mult( unsigned char c[16],
-                    const unsigned char a[16],
-                    const unsigned char b[16] );
+void aesni_gcm_mult( unsigned char c[16],
+                     const unsigned char a[16],
+                     const unsigned char b[16] );
 
 /**
  * \brief           Compute decryption round keys from encryption round keys

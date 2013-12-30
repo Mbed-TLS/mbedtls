@@ -198,7 +198,7 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
         PUT_UINT32_BE( ctx->HL[8] >> 32, h,  8 );
         PUT_UINT32_BE( ctx->HL[8],       h, 12 );
 
-        (void) aesni_gcm_mult( output, x, h );
+        aesni_gcm_mult( output, x, h );
         return;
     }
 #endif

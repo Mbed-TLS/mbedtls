@@ -3,6 +3,8 @@ project(POLARSSL C)
 
 enable_testing()
 
+string(REGEX MATCH "clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER}")
+
 if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
@@ -10,6 +12,12 @@ if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Wlogical-op -Wwrite-strings -Werror")
   set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNUCC)
+
+if(CMAKE_COMPILER_IS_CLANG)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
+  set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Wpointer-arith -Wwrite-strings -Wdocumentation -Werror")
+endif(CMAKE_COMPILER_IS_CLANG)
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
     CACHE STRING "Choose the type of build: None Debug Release Coverage Check CheckFull"

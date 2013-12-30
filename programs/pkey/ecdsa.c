@@ -162,7 +162,7 @@ int main( int argc, char *argv[] )
         printf( " failed\n  ! ecdsa_genkey returned %d\n", ret );
         goto exit;
     }
-    printf( " ok (signature length = %u)\n", sig_len );
+    printf( " ok (signature length = %u)\n", (unsigned int) sig_len );
 
     dump_buf( "  + Hash: ", hash, sizeof hash );
     dump_buf( "  + Signature: ", sig, sig_len );

@@ -1315,12 +1315,17 @@ static int ecp_mul_comb( ecp_group *grp, ecp_point *R,
 
     /*
      * If P == G, pre-compute a bit more, since this may be re-used later.
-     * Just adding one ups the cost of the first mul by at most 3%.
+     * Just adding one avoids upping the cost of the first mul too much,
+     * and the memory cost too.
      */
+#if POLARSSL_ECP_FIXED_POINT_OPTIM == 1
     p_eq_g = ( mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
                mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
     if( p_eq_g )
         w++;
+#else
+    p_eq_g = 0;
+#endif
 
     /*
      * Make sure w is within bounds.

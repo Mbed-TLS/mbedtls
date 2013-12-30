@@ -212,7 +212,7 @@ void aesni_gcm_mult( unsigned char c[16],
     for( i = 0; i < 16; i++ )
         c[i] = cc[15 - i];
 
-    return( 0 );
+    return;
 }
 
 /*

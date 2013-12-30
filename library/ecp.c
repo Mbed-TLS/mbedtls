@@ -798,8 +798,8 @@ static int ecp_normalize_jac_many( const ecp_group *grp,
          * - shrinking other coordinates, but still keeping the same number of
          *   limbs as P, as otherwise it will too likely be regrown too fast.
          */
-        mpi_shrink( &T[i]->X, grp->P.n );
-        mpi_shrink( &T[i]->Y, grp->P.n );
+        MPI_CHK( mpi_shrink( &T[i]->X, grp->P.n ) );
+        MPI_CHK( mpi_shrink( &T[i]->Y, grp->P.n ) );
         mpi_free( &T[i]->Z );
 
         if( i == 0 )
@@ -1036,7 +1036,7 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
         return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
 
     /* mQ = - Q */
-    ecp_copy( &mQ, Q );
+    MPI_CHK( ecp_copy( &mQ, Q ) );
     if( mpi_cmp_int( &mQ.Y, 0 ) != 0 )
         MPI_CHK( mpi_sub_mpi( &mQ.Y, &grp->P, &mQ.Y ) );
 
@@ -1195,7 +1195,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
         TT[k++] = cur;
     }
 
-    ecp_normalize_jac_many( grp, TT, k );
+    MPI_CHK( ecp_normalize_jac_many( grp, TT, k ) );
 
     /*
      * Compute the remaining ones using the minimal number of additions
@@ -1207,12 +1207,12 @@ static int ecp_precompute_comb( const ecp_group *grp,
         j = i;
         while( j-- )
         {
-            ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] );
+            MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] ) );
             TT[k++] = &T[i + j];
         }
     }
 
-    ecp_normalize_jac_many( grp, TT, k );
+    MPI_CHK( ecp_normalize_jac_many( grp, TT, k ) );
 
 cleanup:
     return( ret );

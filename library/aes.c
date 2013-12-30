@@ -628,7 +628,9 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int key
     *RK++ = *SK++;
     *RK++ = *SK++;
 
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
 done:
+#endif
     memset( &cty, 0, sizeof( aes_context ) );
 
     return( 0 );

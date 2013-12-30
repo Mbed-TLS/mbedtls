@@ -485,11 +485,7 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int key
 
 #if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
     if( aesni_supports( POLARSSL_AESNI_AES ) )
-    {
-        int ret = aesni_setkey_enc( (unsigned char *) ctx->rk, key, keysize );
-        // XXX: temporary while some key size aren't handled
-        if( ret == 0 ) return( ret );
-    }
+        return( aesni_setkey_enc( (unsigned char *) ctx->rk, key, keysize ) );
 #endif
 
     for( i = 0; i < (keysize >> 5); i++ )

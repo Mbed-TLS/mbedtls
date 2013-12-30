@@ -915,6 +915,8 @@ cleanup:
  *   due to the choice of precomputed points in the modified comb method.
  * So branches for these cases do not leak secret information.
  *
+ * We accept Q->Z being unset (saving memory in tables) as meaning 1.
+ *
  * Cost: 1A := 8M + 3S
  */
 static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
@@ -933,13 +935,13 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
         return( ecp_copy( R, Q ) );
 
-    if( mpi_cmp_int( &Q->Z, 0 ) == 0 )
+    if( Q->Z.p != NULL && mpi_cmp_int( &Q->Z, 0 ) == 0 )
         return( ecp_copy( R, P ) );
 
     /*
      * Make sure Q coordinates are normalized
      */
-    if( mpi_cmp_int( &Q->Z, 1 ) != 0 )
+    if( Q->Z.p != NULL && mpi_cmp_int( &Q->Z, 1 ) != 0 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 ); mpi_init( &T4 );
@@ -1240,9 +1242,6 @@ static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
         MPI_CHK( mpi_safe_cond_assign( &R->Y, &T[j].Y, j == ii ) );
     }
 
-    /* The Z coordinate is always 1 */
-    MPI_CHK( mpi_lset( &R->Z, 1 ) );
-
     /* Safely invert result if i is "negative" */
     MPI_CHK( ecp_safe_invert_jac( grp, R, i >> 7 ) );
 
@@ -1271,6 +1270,7 @@ static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
     /* Start with a non-zero point and randomize its coordinates */
     i = d;
     MPI_CHK( ecp_select_comb( grp, R, T, t_len, x[i] ) );
+    MPI_CHK( mpi_lset( &R->Z, 1 ) );
     if( f_rng != 0 )
         MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
 

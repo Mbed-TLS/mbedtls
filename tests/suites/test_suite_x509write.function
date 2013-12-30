@@ -21,7 +21,7 @@ void x509_csr_check( char *key_file, int md_type,
     int ret;
     size_t olen = 0, pem_len = 0;
     FILE *f;
-    char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
+    const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     rnd_pseudo_info rnd_info;
 
     memset( &rnd_info, 0x2a, sizeof( rnd_pseudo_info ) );

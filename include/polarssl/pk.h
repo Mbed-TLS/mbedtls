@@ -453,14 +453,14 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path );
  *                        return value to determine where you should start
  *                        using the buffer
  *
- * \param key       private to write away
+ * \param ctx       private to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int pk_write_key_der( pk_context *pk, unsigned char *buf, size_t size );
+int pk_write_key_der( pk_context *ctx, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a public key to a SubjectPublicKeyInfo DER structure
@@ -468,37 +468,37 @@ int pk_write_key_der( pk_context *pk, unsigned char *buf, size_t size );
  *                        return value to determine where you should start
  *                        using the buffer
  *
- * \param key       public key to write away
+ * \param ctx       public key to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size );
+int pk_write_pubkey_der( pk_context *ctx, unsigned char *buf, size_t size );
 
 #if defined(POLARSSL_PEM_WRITE_C)
 /**
  * \brief           Write a public key to a PEM string
  *
- * \param key       public key to write away
+ * \param ctx       public key to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
  * \return          0 successful, or a specific error code
  */
-int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size );
+int pk_write_pubkey_pem( pk_context *ctx, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a private key to a PKCS#1 or SEC1 PEM string
  *
- * \param key       private to write away
+ * \param ctx       private to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
  *
  * \return          0 successful, or a specific error code
  */
-int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size );
+int pk_write_key_pem( pk_context *ctx, unsigned char *buf, size_t size );
 #endif /* POLARSSL_PEM_WRITE_C */
 #endif /* POLARSSL_PK_WRITE_C */
 

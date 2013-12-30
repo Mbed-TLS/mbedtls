@@ -526,7 +526,6 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
 
 /**
  * \brief          Perform a PKCS#1 v2.1 PSS verification (RSASSA-PSS-VERIFY)
- * \brief          Do a public RSA and check the message digest
  *
  * \param ctx      points to an RSA public key
  * \param f_rng    RNG function (Only needed for RSA_PRIVATE)

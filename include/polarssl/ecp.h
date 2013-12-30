@@ -215,7 +215,7 @@ const ecp_curve_info *ecp_curve_info_from_grp_id( ecp_group_id grp_id );
 /**
  * \brief           Get curve information from a TLS NamedCurve value
  *
- * \param grp_id    A POLARSSL_ECP_DP_XXX value
+ * \param tls_id    A POLARSSL_ECP_DP_XXX value
  *
  * \return          The associated curve information or NULL
  */

@@ -201,7 +201,7 @@ int gcm_finish( gcm_context *ctx,
 /**
  * \brief           Free a GCM context and underlying cipher sub-context
  *
- * \param ctx
+ * \param ctx       GCM context to free
  */
 void gcm_free( gcm_context *ctx );
 

@@ -226,7 +226,7 @@ typedef enum {
 
 typedef struct _ssl_ciphersuite_t ssl_ciphersuite_t;
 
-#define POLARSSL_CIPHERSUITE_WEAK   0x01    /*<! Weak ciphersuite flag      */
+#define POLARSSL_CIPHERSUITE_WEAK   0x01    /**< Weak ciphersuite flag      */
 
 /**
  * \brief   This structure is used for storing ciphersuite information

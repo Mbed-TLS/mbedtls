@@ -148,7 +148,7 @@ int ecdh_read_params( ecdh_context *ctx,
  *
  * \param ctx       ECDH constext to set
  * \param key       EC key to use
- * \param ours      Is it our key (1) or the peer's key (0) ?
+ * \param side      Is it our key (1) or the peer's key (0) ?
  *
  * \return          0 if successful, or an POLARSSL_ERR_ECP_XXX error code
  */

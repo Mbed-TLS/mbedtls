@@ -81,7 +81,8 @@ extern "C" {
  * \return          0 if no critical failures occurred,
  *                  POLARSSL_ERR_ENTROPY_SOURCE_FAILED otherwise
  */
-typedef int (*f_source_ptr)(void *, unsigned char *, size_t, size_t *);
+typedef int (*f_source_ptr)(void *data, unsigned char *output, size_t len,
+                            size_t *olen);
 
 /**
  * \brief           Entropy source state

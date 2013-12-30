@@ -40,11 +40,13 @@
 #include <winsock2.h>
 #include <windows.h>
 
+#if defined(_MSC_VER)
 #if defined(_WIN32_WCE)
 #pragma comment( lib, "ws2.lib" )
 #else
 #pragma comment( lib, "ws2_32.lib" )
 #endif
+#endif /* _MSC_VER */
 
 #define read(fd,buf,len)        recv(fd,(char*)buf,(int) len,0)
 #define write(fd,buf,len)       send(fd,(char*)buf,(int) len,0)

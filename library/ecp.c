@@ -1869,7 +1869,7 @@ int ecp_self_test( int verbose )
             mul_count != mul_c_prev )
         {
             if( verbose != 0 )
-                printf( "failed (%zu)\n", i );
+                printf( "failed (%u)\n", i );
 
             ret = 1;
             goto cleanup;
@@ -1906,7 +1906,7 @@ int ecp_self_test( int verbose )
             mul_count != mul_c_prev )
         {
             if( verbose != 0 )
-                printf( "failed (%zu)\n", i );
+                printf( "failed (%u)\n", i );
 
             ret = 1;
             goto cleanup;

@@ -791,7 +791,16 @@ static int ecp_normalize_jac_many( const ecp_group *grp,
         MPI_CHK( mpi_mul_mpi( &T[i]->X, &T[i]->X, &ZZi ) ); MOD_MUL( T[i]->X );
         MPI_CHK( mpi_mul_mpi( &T[i]->Y, &T[i]->Y, &ZZi ) ); MOD_MUL( T[i]->Y );
         MPI_CHK( mpi_mul_mpi( &T[i]->Y, &T[i]->Y, &Zi  ) ); MOD_MUL( T[i]->Y );
-        MPI_CHK( mpi_lset( &T[i]->Z, 1 ) );
+
+        /*
+         * Post-precessing: reclaim some memory by shrinking coordinates
+         * - not storing Z (always 1)
+         * - shrinking other coordinates, but still keeping the same number of
+         *   limbs as P, as otherwise it will too likely be regrown too fast.
+         */
+        mpi_shrink( &T[i]->X, grp->P.n );
+        mpi_shrink( &T[i]->Y, grp->P.n );
+        mpi_free( &T[i]->Z );
 
         if( i == 0 )
             break;
@@ -1204,19 +1213,6 @@ static int ecp_precompute_comb( const ecp_group *grp,
     }
 
     ecp_normalize_jac_many( grp, TT, k );
-
-    /*
-     * Post-precessing: reclaim some memory by
-     * - not storing Z (always 1)
-     * - shrinking other coordinates
-     * Keep the same number of limbs as P to avoid re-growing on next use.
-     */
-    for( i = 0; i < ( 1U << (w-1) ); i++ )
-    {
-        mpi_free( &T[i].Z );
-        mpi_shrink( &T[i].X, grp->P.n );
-        mpi_shrink( &T[i].Y, grp->P.n );
-    }
 
 cleanup:
     return( ret );

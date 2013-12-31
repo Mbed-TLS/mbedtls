@@ -180,7 +180,8 @@ int net_connect( int *fd, const char *host, int port )
     ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
     for( cur = addr_list; cur != NULL; cur = cur->ai_next )
     {
-        *fd = socket( cur->ai_family, cur->ai_socktype, cur->ai_protocol );
+        *fd = (int) socket( cur->ai_family, cur->ai_socktype,
+                            cur->ai_protocol );
         if( *fd < 0 )
         {
             ret = POLARSSL_ERR_NET_SOCKET_FAILED;
@@ -267,7 +268,8 @@ int net_bind( int *fd, const char *bind_ip, int port )
     ret = POLARSSL_ERR_NET_UNKNOWN_HOST;
     for( cur = addr_list; cur != NULL; cur = cur->ai_next )
     {
-        *fd = socket( cur->ai_family, cur->ai_socktype, cur->ai_protocol );
+        *fd = (int) socket( cur->ai_family, cur->ai_socktype,
+                            cur->ai_protocol );
         if( *fd < 0 )
         {
             ret = POLARSSL_ERR_NET_SOCKET_FAILED;

@@ -20,6 +20,7 @@ Changes
    * Split off curves from ecp.c into ecp_curves.c
    * Curves are now stored fully in ROM
    * Memory usage optimizations in ECP module
+   * Removed POLARSSL_THREADING_DUMMY
 
 Bugfix
    * Fixed bug in mpi_set_bit() on platforms where t_uint is wider than int

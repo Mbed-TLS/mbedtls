@@ -39,10 +39,6 @@ extern "C" {
 #define POLARSSL_ERR_THREADING_BAD_INPUT_DATA              -0x001C  /**< Bad input parameters to function. */
 #define POLARSSL_ERR_THREADING_MUTEX_ERROR                 -0x001E  /**< Locking / unlocking / free failed with error code. */
 
-#if defined(POLARSSL_THREADING_DUMMY)
-typedef void threading_mutex_t;
-#endif
-
 #if defined(POLARSSL_THREADING_PTHREAD)
 #include <pthread.h>
 typedef pthread_mutex_t threading_mutex_t;

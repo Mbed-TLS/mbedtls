@@ -29,37 +29,6 @@
 
 #include "polarssl/threading.h"
 
-#if defined(POLARSSL_THREADING_DUMMY)
-static int threading_mutex_init_dummy( threading_mutex_t *mutex )
-{
-    ((void) mutex );
-    return( 0 );
-}
-
-static int threading_mutex_free_dummy( threading_mutex_t *mutex )
-{
-    ((void) mutex );
-    return( 0 );
-}
-
-static int threading_mutex_lock_dummy( threading_mutex_t *mutex )
-{
-    ((void) mutex );
-    return( 0 );
-}
-
-static int threading_mutex_unlock_dummy( threading_mutex_t *mutex )
-{
-    ((void) mutex );
-    return( 0 );
-}
-
-int (*polarssl_mutex_init)( threading_mutex_t * ) = threading_mutex_init_dummy;
-int (*polarssl_mutex_free)( threading_mutex_t * ) = threading_mutex_free_dummy;
-int (*polarssl_mutex_lock)( threading_mutex_t * ) = threading_mutex_lock_dummy;
-int (*polarssl_mutex_unlock)( threading_mutex_t * ) = threading_mutex_unlock_dummy;
-#endif /* POLARSSL_THREADING_DUMMY */
-
 #if defined(POLARSSL_THREADING_PTHREAD)
 static int threading_mutex_init_pthread( threading_mutex_t *mutex )
 {

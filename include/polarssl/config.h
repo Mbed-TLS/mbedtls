@@ -807,19 +807,6 @@
 //#define POLARSSL_THREADING_ALT
 
 /**
- * \def POLARSSL_THREADING_DUMMY
- *
- * Provide a dummy threading implementation.
- * Warning: If you use this, all claims of thread-safety in the documentation
- *          are void!
- *
- * Requires: POLARSSL_THREADING_C
- *
- * Uncomment this to enable code to compile like with threading enabled
- */
-//#define POLARSSL_THREADING_DUMMY
-
-/**
  * \def POLARSSL_THREADING_PTHREAD
  *
  * Enable the pthread wrapper layer for the threading layer.
@@ -1709,8 +1696,8 @@
  * This allows different threading implementations (self-implemented or
  * provided).
  *
- * You will have to enable either POLARSSL_THREADING_ALT,
- * POLARSSL_THREADING_PTHREAD or POLARSSL_THREADING_DUMMY.
+ * You will have to enable either POLARSSL_THREADING_ALT or
+ * POLARSSL_THREADING_PTHREAD.
  *
  * Enable this layer to allow use of mutexes within PolarSSL
  */
@@ -2125,13 +2112,6 @@
     ( !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) ||            \
       !defined(POLARSSL_CIPHER_MODE_CBC) )
 #error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_THREADING_DUMMY)
-#if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
-#error "POLARSSL_THREADING_DUMMY defined, but not all prerequisites"
-#endif
-#define POLARSSL_THREADING_IMPL
 #endif
 
 #if defined(POLARSSL_THREADING_PTHREAD)

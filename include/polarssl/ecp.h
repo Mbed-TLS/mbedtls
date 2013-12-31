@@ -178,11 +178,33 @@ ecp_keypair;
  * Minimum value: 2. Maximum value: 7.
  *
  * Result is an array of at most ( 1 << ( POLARSSL_ECP_WINDOW_SIZE - 1 ) )
- * points used for point multiplication.
+ * points used for point multiplication. This value is directly tied to EC
+ * peak memory usage, so decreasing it by one should roughly cut memory usage
+ * by two (if large curves are in use).
  *
- * Reduction in size may reduce speed for big curves.
+ * Reduction in size may reduce speed, but larger curves are impacted first.
+ * Sample performances (in ECDHE handshakes/s, with FIXED_POINT_OPTIM = 1):
+ *      w-size:     6       5       4       3       2
+ *      521       145     141     135     120      97
+ *      384       214     209     198     177     146
+ *      256       320     320     303     262     226
+ *      224       475     475     453     398     342
+ *      192       640     640     633     587     476
  */
 #define POLARSSL_ECP_WINDOW_SIZE    6   /**< Maximum window size used */
+
+/*
+ * Trade memory for speed on fixed-point multiplication.
+ *
+ * This speeds up repeated multiplication of the generator (that is, the
+ * multiplication in ECDSA signatures, and half of the multiplications in
+ * ECDSA verification and ECDHE) by a factor roughly 3 to 4.
+ *
+ * The cost is increasing EC peak memory usage by a factor roughly 2.
+ *
+ * Change this value to 0 to reduce peak memory usage.
+ */
+#define POLARSSL_ECP_FIXED_POINT_OPTIM  1   /**< Enable fixed-point speed-up */
 #endif
 
 /*

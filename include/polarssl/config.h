@@ -1890,6 +1890,7 @@
 //
 #define POLARSSL_ECP_MAX_BITS             521 /**< Maximum bit size of groups */
 #define POLARSSL_ECP_WINDOW_SIZE            6 /**< Maximum window size used */
+#define POLARSSL_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
 
 // Entropy options
 //

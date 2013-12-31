@@ -791,7 +791,16 @@ static int ecp_normalize_jac_many( const ecp_group *grp,
         MPI_CHK( mpi_mul_mpi( &T[i]->X, &T[i]->X, &ZZi ) ); MOD_MUL( T[i]->X );
         MPI_CHK( mpi_mul_mpi( &T[i]->Y, &T[i]->Y, &ZZi ) ); MOD_MUL( T[i]->Y );
         MPI_CHK( mpi_mul_mpi( &T[i]->Y, &T[i]->Y, &Zi  ) ); MOD_MUL( T[i]->Y );
-        MPI_CHK( mpi_lset( &T[i]->Z, 1 ) );
+
+        /*
+         * Post-precessing: reclaim some memory by shrinking coordinates
+         * - not storing Z (always 1)
+         * - shrinking other coordinates, but still keeping the same number of
+         *   limbs as P, as otherwise it will too likely be regrown too fast.
+         */
+        MPI_CHK( mpi_shrink( &T[i]->X, grp->P.n ) );
+        MPI_CHK( mpi_shrink( &T[i]->Y, grp->P.n ) );
+        mpi_free( &T[i]->Z );
 
         if( i == 0 )
             break;
@@ -915,6 +924,8 @@ cleanup:
  *   due to the choice of precomputed points in the modified comb method.
  * So branches for these cases do not leak secret information.
  *
+ * We accept Q->Z being unset (saving memory in tables) as meaning 1.
+ *
  * Cost: 1A := 8M + 3S
  */
 static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
@@ -933,13 +944,13 @@ static int ecp_add_mixed( const ecp_group *grp, ecp_point *R,
     if( mpi_cmp_int( &P->Z, 0 ) == 0 )
         return( ecp_copy( R, Q ) );
 
-    if( mpi_cmp_int( &Q->Z, 0 ) == 0 )
+    if( Q->Z.p != NULL && mpi_cmp_int( &Q->Z, 0 ) == 0 )
         return( ecp_copy( R, P ) );
 
     /*
      * Make sure Q coordinates are normalized
      */
-    if( mpi_cmp_int( &Q->Z, 1 ) != 0 )
+    if( Q->Z.p != NULL && mpi_cmp_int( &Q->Z, 1 ) != 0 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     mpi_init( &T1 ); mpi_init( &T2 ); mpi_init( &T3 ); mpi_init( &T4 );
@@ -1025,7 +1036,7 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
         return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
 
     /* mQ = - Q */
-    ecp_copy( &mQ, Q );
+    MPI_CHK( ecp_copy( &mQ, Q ) );
     if( mpi_cmp_int( &mQ.Y, 0 ) != 0 )
         MPI_CHK( mpi_sub_mpi( &mQ.Y, &grp->P, &mQ.Y ) );
 
@@ -1184,7 +1195,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
         TT[k++] = cur;
     }
 
-    ecp_normalize_jac_many( grp, TT, k );
+    MPI_CHK( ecp_normalize_jac_many( grp, TT, k ) );
 
     /*
      * Compute the remaining ones using the minimal number of additions
@@ -1196,25 +1207,12 @@ static int ecp_precompute_comb( const ecp_group *grp,
         j = i;
         while( j-- )
         {
-            ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] );
+            MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] ) );
             TT[k++] = &T[i + j];
         }
     }
 
-    ecp_normalize_jac_many( grp, TT, k );
-
-    /*
-     * Post-precessing: reclaim some memory by
-     * - not storing Z (always 1)
-     * - shrinking other coordinates
-     * Keep the same number of limbs as P to avoid re-growing on next use.
-     */
-    for( i = 0; i < ( 1U << (w-1) ); i++ )
-    {
-        mpi_free( &T[i].Z );
-        mpi_shrink( &T[i].X, grp->P.n );
-        mpi_shrink( &T[i].Y, grp->P.n );
-    }
+    MPI_CHK( ecp_normalize_jac_many( grp, TT, k ) );
 
 cleanup:
     return( ret );
@@ -1239,9 +1237,6 @@ static int ecp_select_comb( const ecp_group *grp, ecp_point *R,
         MPI_CHK( mpi_safe_cond_assign( &R->X, &T[j].X, j == ii ) );
         MPI_CHK( mpi_safe_cond_assign( &R->Y, &T[j].Y, j == ii ) );
     }
-
-    /* The Z coordinate is always 1 */
-    MPI_CHK( mpi_lset( &R->Z, 1 ) );
 
     /* Safely invert result if i is "negative" */
     MPI_CHK( ecp_safe_invert_jac( grp, R, i >> 7 ) );
@@ -1271,6 +1266,7 @@ static int ecp_mul_comb_core( const ecp_group *grp, ecp_point *R,
     /* Start with a non-zero point and randomize its coordinates */
     i = d;
     MPI_CHK( ecp_select_comb( grp, R, T, t_len, x[i] ) );
+    MPI_CHK( mpi_lset( &R->Z, 1 ) );
     if( f_rng != 0 )
         MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
 
@@ -1319,12 +1315,17 @@ static int ecp_mul_comb( ecp_group *grp, ecp_point *R,
 
     /*
      * If P == G, pre-compute a bit more, since this may be re-used later.
-     * Just adding one ups the cost of the first mul by at most 3%.
+     * Just adding one avoids upping the cost of the first mul too much,
+     * and the memory cost too.
      */
+#if POLARSSL_ECP_FIXED_POINT_OPTIM == 1
     p_eq_g = ( mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
                mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
     if( p_eq_g )
         w++;
+#else
+    p_eq_g = 0;
+#endif
 
     /*
      * Make sure w is within bounds.

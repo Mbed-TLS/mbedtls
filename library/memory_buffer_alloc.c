@@ -77,6 +77,7 @@ typedef struct
     size_t          total_used;
     size_t          maximum_used;
     size_t          header_count;
+    size_t          maximum_header_count;
 #endif
 #if defined(POLARSSL_THREADING_C)
     threading_mutex_t   mutex;
@@ -335,6 +336,8 @@ static void *buffer_alloc_malloc( size_t len )
 
 #if defined(POLARSSL_MEMORY_DEBUG)
     heap.header_count++;
+    if( heap.header_count > heap.maximum_header_count )
+        heap.maximum_header_count = heap.header_count;
     heap.total_used += cur->size;
     if( heap.total_used > heap.maximum_used)
         heap.maximum_used = heap.total_used;
@@ -484,8 +487,11 @@ int memory_buffer_alloc_verify()
 void memory_buffer_alloc_status()
 {
     fprintf( stderr,
-             "Current use: %u blocks / %u bytes, max: %u bytes, malloc / free: %u / %u\n",
-             heap.header_count, heap.total_used, heap.maximum_used,
+             "Current use: %u blocks / %u bytes, max: %u blocks / %u bytes (total %u bytes), malloc / free: %u / %u\n",
+             heap.header_count, heap.total_used,
+             heap.maximum_header_count, heap.maximum_used,
+             heap.maximum_header_count * sizeof( memory_header )
+             + heap.maximum_used,
              heap.malloc_count, heap.free_count );
 
     if( heap.first->next == NULL )

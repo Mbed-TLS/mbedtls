@@ -1161,7 +1161,7 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
 
     buf[0] &= 0xFF >> ( siglen * 8 - msb );
 
-    while( *p == 0 && p < buf + siglen )
+    while( p < buf + siglen && *p == 0 )
         p++;
 
     if( p == buf + siglen ||

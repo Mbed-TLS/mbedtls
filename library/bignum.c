@@ -1104,9 +1104,9 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
     while( mpi_cmp_mpi( &X, &Y ) >= 0 )
     {
         Z.p[n - t]++;
-        mpi_sub_mpi( &X, &X, &Y );
+        MPI_CHK( mpi_sub_mpi( &X, &X, &Y ) );
     }
-    mpi_shift_r( &Y, biL * (n - t) );
+    MPI_CHK( mpi_shift_r( &Y, biL * (n - t) ) );
 
     for( i = n; i > t ; i-- )
     {
@@ -1199,15 +1199,15 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
 
     if( Q != NULL )
     {
-        mpi_copy( Q, &Z );
+        MPI_CHK( mpi_copy( Q, &Z ) );
         Q->s = A->s * B->s;
     }
 
     if( R != NULL )
     {
-        mpi_shift_r( &X, k );
+        MPI_CHK( mpi_shift_r( &X, k ) );
         X.s = A->s;
-        mpi_copy( R, &X );
+        MPI_CHK( mpi_copy( R, &X ) );
 
         if( mpi_cmp_int( R, 0 ) == 0 )
             R->s = 1;

@@ -30,6 +30,8 @@ Bugfix
    * Potential memory leak in ssl_ticket_keys_init()
    * Memory leak in benchmark application
    * Fixed x509_crt_parse_path() bug on Windows platforms
+   * Added missing MPI_CHK() around some statements in mpi_div_mpi() (found by
+     TrustInSoft)
 
 Security
    * Possible remotely-triggered out-of-bounds memory access fixed (found by

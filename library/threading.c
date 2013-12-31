@@ -81,10 +81,16 @@ int (*polarssl_mutex_unlock)( threading_mutex_t * ) = threading_mutex_unlock_pth
 #endif /* POLARSSL_THREADING_PTHREAD */
 
 #if defined(POLARSSL_THREADING_ALT)
-int (*polarssl_mutex_init)( threading_mutex_t * ) = NULL;
-int (*polarssl_mutex_free)( threading_mutex_t * ) = NULL;
-int (*polarssl_mutex_lock)( threading_mutex_t * ) = NULL;
-int (*polarssl_mutex_unlock)( threading_mutex_t * ) = NULL;
+static int threading_mutex_fail( threading_mutex_t *mutex )
+{
+    ((void) mutex );
+    return( POLARSSL_ERR_THREADING_BAD_INPUT_DATA );
+}
+
+int (*polarssl_mutex_init)( threading_mutex_t * ) = threading_mutex_fail;
+int (*polarssl_mutex_free)( threading_mutex_t * ) = threading_mutex_fail;
+int (*polarssl_mutex_lock)( threading_mutex_t * ) = threading_mutex_fail;
+int (*polarssl_mutex_unlock)( threading_mutex_t * ) = threading_mutex_fail;
 
 int threading_set_alt( int (*mutex_init)( threading_mutex_t * ),
                        int (*mutex_free)( threading_mutex_t * ),

@@ -32,6 +32,8 @@ Bugfix
    * Fixed x509_crt_parse_path() bug on Windows platforms
    * Added missing MPI_CHK() around some statements in mpi_div_mpi() (found by
      TrustInSoft)
+   * Fixed potential overflow in certificate size verification in
+     ssl_write_certificate() (found by TrustInSoft)
 
 Security
    * Possible remotely-triggered out-of-bounds memory access fixed (found by

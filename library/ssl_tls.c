@@ -2223,7 +2223,7 @@ int ssl_write_certificate( ssl_context *ssl )
     while( crt != NULL )
     {
         n = crt->raw.len;
-        if( i + 3 + n > SSL_MAX_CONTENT_LEN )
+        if( n > SSL_MAX_CONTENT_LEN - 3 - i )
         {
             SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
                            i + 3 + n, SSL_MAX_CONTENT_LEN ) );

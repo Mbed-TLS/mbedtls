@@ -11,6 +11,8 @@ Bugfix
    * Fixed x509_crt_parse_path() bug on Windows platforms
    * Added missing MPI_CHK() around some statements in mpi_div_mpi() (found by
      TrustInSoft)
+   * Fixed potential overflow in certificate size verification in
+     ssl_write_certificate() (found by TrustInSoft)
 
 = Version 1.2.10 released 2013-10-07
 Changes

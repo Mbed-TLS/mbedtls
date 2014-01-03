@@ -1771,17 +1771,26 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
     {
         /* SEC1 3.2.1: Generate d such that 1 <= n < N */
         int count = 0;
+        unsigned char rnd[POLARSSL_ECP_MAX_BYTES];
+
+        /*
+         * Match the procedure given in RFC 6979 (deterministic ECDSA):
+         * - use the same byte ordering;
+         * - keep the leftmost nbits bits of the generated octet string;
+         * - try until result is in the desired range.
+         * This also avoids any biais, which is especially important for ECDSA.
+         */
         do
         {
-            mpi_fill_random( d, n_size, f_rng, p_rng );
-
-            while( mpi_cmp_mpi( d, &grp->N ) >= 0 )
-                mpi_shift_r( d, 1 );
+            f_rng( p_rng, rnd, n_size );
+            mpi_read_binary( d, rnd, n_size );
+            mpi_shift_r( d, 8 * n_size - grp->nbits );
 
             if( count++ > 10 )
                 return( POLARSSL_ERR_ECP_RANDOM_FAILED );
         }
-        while( mpi_cmp_int( d, 1 ) < 0 );
+        while( mpi_cmp_int( d, 1 ) < 0 ||
+               mpi_cmp_mpi( d, &grp->N ) >= 0 );
     }
     else
 #endif

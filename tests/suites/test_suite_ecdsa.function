@@ -47,29 +47,45 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
     ecp_group grp;
     ecp_point Q;
     mpi d, r, s, r_check, s_check;
-    unsigned char buf[66];
-    size_t len;
+    unsigned char hash[66], rnd_buf[66];
+    size_t hlen;
+    rnd_buf_info rnd_info;
 
     ecp_group_init( &grp );
     ecp_point_init( &Q );
     mpi_init( &d ); mpi_init( &r ); mpi_init( &s );
     mpi_init( &r_check ); mpi_init( &s_check );
-    memset( buf, 0, sizeof( buf ) );
+    memset( hash, 0, sizeof( hash ) );
+    memset( rnd_buf, 0, sizeof( rnd_buf ) );
 
     TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
     TEST_ASSERT( ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
     TEST_ASSERT( mpi_read_string( &d, 16, d_str ) == 0 );
     TEST_ASSERT( mpi_read_string( &r_check, 16, r_str ) == 0 );
     TEST_ASSERT( mpi_read_string( &s_check, 16, s_str ) == 0 );
-    len = unhexify(buf, hash_str);
+    hlen = unhexify(hash, hash_str);
+    rnd_info.buf = rnd_buf;
+    rnd_info.length = unhexify( rnd_buf, k_str );
 
-    TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, buf, len,
-                &not_rnd_mpi, k_str ) == 0 );
+    /* Fix rnd_buf by shifting it left if necessary */
+    if( grp.nbits % 8 != 0 )
+    {
+        unsigned char shift = 8 - ( grp.nbits % 8 );
+        size_t i;
+
+        for( i = 0; i < rnd_info.length - 1; i++ )
+            rnd_buf[i] = rnd_buf[i] << shift | rnd_buf[i+1] >> ( 8 - shift );
+
+        rnd_buf[rnd_info.length-1] <<= shift;
+    }
+
+    TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, hash, hlen,
+                 rnd_buffer_rand, &rnd_info ) == 0 );
 
     TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );
 
-    TEST_ASSERT( ecdsa_verify( &grp, buf, len, &Q, &r_check, &s_check ) == 0 );
+    TEST_ASSERT( ecdsa_verify( &grp, hash, hlen, &Q, &r_check, &s_check ) == 0 );
 
     ecp_group_free( &grp );
     ecp_point_free( &Q );

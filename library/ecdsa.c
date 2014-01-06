@@ -49,52 +49,48 @@ typedef struct
 } hmac_drbg_context;
 
 /*
+ * Simplified HMAC_DRBG update, using optional additional data
+ */
+static void hmac_drbg_update( hmac_drbg_context *ctx,
+                              const unsigned char *data, size_t data_len )
+{
+    size_t md_len = ctx->md_ctx.md_info->size;
+    unsigned char rounds = ( data != NULL && data_len != 0 ) ? 2 : 1;
+    unsigned char sep[1];
+
+    for( sep[0] = 0; sep[0] < rounds; sep[0]++ )
+    {
+        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
+        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
+        md_hmac_update( &ctx->md_ctx, sep, 1 );
+        if( rounds == 2 )
+            md_hmac_update( &ctx->md_ctx, data, data_len );
+        md_hmac_finish( &ctx->md_ctx, ctx->K );
+
+        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
+        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
+        md_hmac_finish( &ctx->md_ctx, ctx->V );
+    }
+}
+
+/*
  * Simplified HMAC_DRBG initialisation.
  *
  * Uses an entropy buffer rather than callback,
- * assumes personalisation is not null,
+ * assume personalisation string is included in entropy buffer,
  * assumes md_info is not NULL and valid.
  */
 static void hmac_drbg_init( hmac_drbg_context *ctx,
                             const md_info_t * md_info,
-                            const unsigned char *entropy, size_t entropy_len,
-                            const unsigned char *pers, size_t pers_len )
+                            const unsigned char *data, size_t data_len )
 {
-    unsigned char sep[1];
-    size_t md_len = md_info->size;
-
     memset( ctx, 0, sizeof( hmac_drbg_context ) );
     md_init_ctx( &ctx->md_ctx, md_info );
 
-    memset( ctx->V, 0x01, md_len );
+    memset( ctx->V, 0x01, md_info->size );
     /* ctx->K is already 0 */
 
-    sep[0] = 0x00;
-    md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-    md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-    md_hmac_update( &ctx->md_ctx, sep, 1 );
-    md_hmac_update( &ctx->md_ctx, entropy, entropy_len );
-    md_hmac_update( &ctx->md_ctx, pers, pers_len );
-    md_hmac_finish( &ctx->md_ctx, ctx->K );
-
-    /* Step e */
-    md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-    md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-    md_hmac_finish( &ctx->md_ctx, ctx->V );
-
-    /* Step f */
-    sep[0] = 0x01;
-    md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-    md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-    md_hmac_update( &ctx->md_ctx, sep, 1 );
-    md_hmac_update( &ctx->md_ctx, entropy, entropy_len );
-    md_hmac_update( &ctx->md_ctx, pers, pers_len );
-    md_hmac_finish( &ctx->md_ctx, ctx->K );
-
-    /* Step g */
-    md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-    md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-    md_hmac_finish( &ctx->md_ctx, ctx->V );
+    hmac_drbg_update( ctx, data, data_len );
 }
 
 /*
@@ -104,7 +100,6 @@ static int hmac_drbg_random( void *state,
                              unsigned char *output, size_t out_len )
 {
     hmac_drbg_context *ctx = (hmac_drbg_context *) state;
-    unsigned char sep[1] = { 0 };
     size_t md_len = ctx->md_ctx.md_info->size;
     size_t left = out_len;
     unsigned char *out = output;
@@ -122,14 +117,7 @@ static int hmac_drbg_random( void *state,
         left -= use_len;
     }
 
-    md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-    md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-    md_hmac_update( &ctx->md_ctx, sep, 1 );
-    md_hmac_finish( &ctx->md_ctx, ctx->K );
-
-    md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-    md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-    md_hmac_finish( &ctx->md_ctx, ctx->V );
+    hmac_drbg_update( ctx, NULL, 0 );
 
     return( 0 );
 }
@@ -249,8 +237,7 @@ int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
 {
     int ret;
     hmac_drbg_context rng_ctx;
-    unsigned char key[POLARSSL_ECP_MAX_BYTES];
-    unsigned char hash[POLARSSL_ECP_MAX_BYTES];
+    unsigned char data[2 * POLARSSL_ECP_MAX_BYTES];
     size_t grp_len = ( grp->nbits + 7 ) / 8;
     const md_info_t *md_info;
     mpi h;
@@ -261,15 +248,12 @@ int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
     mpi_init( &h );
     memset( &rng_ctx, 0, sizeof( hmac_drbg_context ) );
 
-    /* Export private key as entropy source */
-    MPI_CHK( mpi_write_binary( d, key, grp_len ) );
-
-    /* Export message hash as additional data; need to reduce it first */
+    /* Use private key and message hash (reduced) to initialize HMAC_DRBG */
+    MPI_CHK( mpi_write_binary( d, data, grp_len ) );
     MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
-    MPI_CHK( mpi_write_binary( &h, hash, grp_len ) );
+    MPI_CHK( mpi_write_binary( &h, data + grp_len, grp_len ) );
+    hmac_drbg_init( &rng_ctx, md_info, data, 2 * grp_len );
 
-    /* Initialize HMAC_DRBG and use it for signature */
-    hmac_drbg_init( &rng_ctx, md_info, key, grp_len, hash, grp_len );
     ret = ecdsa_sign( grp, r, s, d, buf, blen,
                       hmac_drbg_random, &rng_ctx );
 

@@ -29,6 +29,10 @@
 
 #include "ecp.h"
 
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+#include "polarssl/md.h"
+#endif
+
 /**
  * \brief           ECDSA context structure
  *
@@ -66,6 +70,27 @@ extern "C" {
 int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
                 const mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+/**
+ * \brief           Compute ECDSA signature of a previously hashed message
+ *                  (deterministic version)
+ *
+ * \param grp       ECP group
+ * \param r         First output integer
+ * \param s         Second output integer
+ * \param d         Private signing key
+ * \param buf       Message hash
+ * \param blen      Length of buf
+ * \param md_alg    MD algorithm used to hash the message
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ */
+int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
+                    const mpi *d, const unsigned char *buf, size_t blen,
+                    md_type_t md_alg );
+#endif
 
 /**
  * \brief           Verify ECDSA signature of a previously hashed message

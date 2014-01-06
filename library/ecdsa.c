@@ -37,14 +37,6 @@
 #include "polarssl/asn1write.h"
 
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
-#include "polarssl/md.h"
-#endif
-
-/*
- * If using deterministic ECDSA (RFC 6979), we need HMAC_DRBG.
- * Actually a simplified version is enough, so we implement it below.
- */
-#if defined(POLARSSL_ECDSA_DETERMINISTIC)
 /*
  * Simplified HMAC_DRBG context.
  * No reseed counter, no prediction resistance flag.
@@ -63,10 +55,10 @@ typedef struct
  * assumes personalisation is not null,
  * assumes md_info is not NULL and valid.
  */
-static int hmac_drbg_init( hmac_drbg_context *ctx,
-                           const md_info_t * md_info,
-                           const unsigned char *entropy, size_t entropy_len,
-                           const unsigned char *pers, size_t pers_len )
+static void hmac_drbg_init( hmac_drbg_context *ctx,
+                            const md_info_t * md_info,
+                            const unsigned char *entropy, size_t entropy_len,
+                            const unsigned char *pers, size_t pers_len )
 {
     unsigned char sep[1];
     size_t md_len = md_info->size;
@@ -103,8 +95,6 @@ static int hmac_drbg_init( hmac_drbg_context *ctx,
     md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
     md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
     md_hmac_finish( &ctx->md_ctx, ctx->V );
-
-    return( 0 );
 }
 
 /*
@@ -249,6 +239,47 @@ cleanup:
     return( ret );
 }
 
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+/*
+ * Deterministic signature wrapper
+ */
+int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
+                    const mpi *d, const unsigned char *buf, size_t blen,
+                    md_type_t md_alg )
+{
+    int ret;
+    hmac_drbg_context rng_ctx;
+    unsigned char key[POLARSSL_ECP_MAX_BYTES];
+    unsigned char hash[POLARSSL_ECP_MAX_BYTES];
+    size_t grp_len = ( grp->nbits + 7 ) / 8;
+    const md_info_t *md_info;
+    mpi h;
+
+    if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    mpi_init( &h );
+    memset( &rng_ctx, 0, sizeof( hmac_drbg_context ) );
+
+    /* Export private key as entropy source */
+    MPI_CHK( mpi_write_binary( d, key, grp_len ) );
+
+    /* Export message hash as additional data; need to reduce it first */
+    MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
+    MPI_CHK( mpi_write_binary( &h, hash, grp_len ) );
+
+    /* Initialize HMAC_DRBG and use it for signature */
+    hmac_drbg_init( &rng_ctx, md_info, key, grp_len, hash, grp_len );
+    ret = ecdsa_sign( grp, r, s, d, buf, blen,
+                      hmac_drbg_random, &rng_ctx );
+
+cleanup:
+    hmac_drbg_free( &rng_ctx );
+    mpi_free( &h );
+
+    return( ret );
+}
+#endif
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)

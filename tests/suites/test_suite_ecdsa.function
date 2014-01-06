@@ -94,6 +94,41 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_ECDSA_DETERMINISTIC */
+void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
+                             char *msg, char *r_str, char *s_str )
+{
+    ecp_group grp;
+    mpi d, r, s, r_check, s_check;
+    unsigned char hash[POLARSSL_MD_MAX_SIZE];
+    size_t hlen;
+    const md_info_t *md_info;
+
+    ecp_group_init( &grp );
+    mpi_init( &d ); mpi_init( &r ); mpi_init( &s );
+    mpi_init( &r_check ); mpi_init( &s_check );
+    memset( hash, 0, sizeof( hash ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
+    TEST_ASSERT( mpi_read_string( &d, 16, d_str ) == 0 );
+    TEST_ASSERT( mpi_read_string( &r_check, 16, r_str ) == 0 );
+    TEST_ASSERT( mpi_read_string( &s_check, 16, s_str ) == 0 );
+
+    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    hlen = md_info->size;
+    md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
+
+    TEST_ASSERT( ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, md_alg ) == 0 );
+
+    TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );
+
+    ecp_group_free( &grp );
+    mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
+    mpi_free( &r_check ); mpi_free( &s_check );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ecdsa_write_read_random( int id )
 {

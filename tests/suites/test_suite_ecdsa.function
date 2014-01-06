@@ -186,3 +186,35 @@ void ecdsa_write_read_random( int id )
     ecdsa_free( &ctx );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ecdsa_write_read_det_random( int id, int md_alg )
+{
+    ecdsa_context ctx;
+    rnd_pseudo_info rnd_info;
+    unsigned char msg[100];
+    unsigned char hash[POLARSSL_MD_MAX_SIZE];
+    unsigned char sig[200];
+    size_t sig_len;
+
+    ecdsa_init( &ctx );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( hash, 0, sizeof( hash ) );
+    memset( sig, 0x2a, sizeof( sig ) );
+
+    /* prepare material for signature */
+    TEST_ASSERT( rnd_pseudo_rand( &rnd_info, msg, sizeof( msg ) ) == 0 );
+    md( md_info_from_type( md_alg ), msg, sizeof( msg ), hash );
+
+    /* generate signing key */
+    TEST_ASSERT( ecdsa_genkey( &ctx, id, &rnd_pseudo_rand, &rnd_info ) == 0 );
+
+    /* generate and write signature, then read and verify it */
+    TEST_ASSERT( ecdsa_write_signature_det( &ctx, hash, sizeof( hash ),
+                 sig, &sig_len, md_alg ) == 0 );
+    TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) == 0 );
+
+    ecdsa_free( &ctx );
+}
+/* END_CASE */

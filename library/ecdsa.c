@@ -372,24 +372,15 @@ cleanup:
 #define MAX_SIG_LEN ( 3 + 2 * ( 2 + POLARSSL_ECP_MAX_BYTES ) )
 
 /*
- * Compute and write signature
+ * Convert a signature (given by context) to ASN.1
  */
-int ecdsa_write_signature( ecdsa_context *ctx,
-                           const unsigned char *hash, size_t hlen,
-                           unsigned char *sig, size_t *slen,
-                           int (*f_rng)(void *, unsigned char *, size_t),
-                           void *p_rng )
+static int ecdsa_signature_to_asn1( ecdsa_context *ctx,
+                                    unsigned char *sig, size_t *slen )
 {
     int ret;
     unsigned char buf[MAX_SIG_LEN];
     unsigned char *p = buf + sizeof( buf );
     size_t len = 0;
-
-    if( ( ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
-                            hash, hlen, f_rng, p_rng ) ) != 0 )
-    {
-        return( ret );
-    }
 
     ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, &ctx->s ) );
     ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, &ctx->r ) );
@@ -402,6 +393,45 @@ int ecdsa_write_signature( ecdsa_context *ctx,
     *slen = len;
 
     return( 0 );
+}
+
+/*
+ * Compute and write signature
+ */
+int ecdsa_write_signature( ecdsa_context *ctx,
+                           const unsigned char *hash, size_t hlen,
+                           unsigned char *sig, size_t *slen,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng )
+{
+    int ret;
+
+    if( ( ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
+                            hash, hlen, f_rng, p_rng ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
+}
+
+/*
+ * Compute and write signature deterministically
+ */
+int ecdsa_write_signature_det( ecdsa_context *ctx,
+                               const unsigned char *hash, size_t hlen,
+                               unsigned char *sig, size_t *slen,
+                               md_type_t md_alg )
+{
+    int ret;
+
+    if( ( ret = ecdsa_sign_det( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
+                                hash, hlen, md_alg ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
 }
 
 /*

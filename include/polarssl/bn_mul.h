@@ -690,33 +690,43 @@
 
 #if defined(__mips__)
 
-#define MULADDC_INIT                            \
-    asm( "lw     $10, %0        " :: "m" (s));  \
-    asm( "lw     $11, %0        " :: "m" (d));  \
-    asm( "lw     $12, %0        " :: "m" (c));  \
-    asm( "lw     $13, %0        " :: "m" (b));
+#define MULADDC_INIT            \
+    asm(                        \
+        "                       \
+        lw     $10, %3;         \
+        lw     $11, %4;         \
+        lw     $12, %5;         \
+        lw     $13, %6;         \
+        "
 
-#define MULADDC_CORE                            \
-    asm( "lw     $14, 0($10)    " );            \
-    asm( "multu  $13, $14       " );            \
-    asm( "addi   $10, $10, 4    " );            \
-    asm( "mflo   $14            " );            \
-    asm( "mfhi   $9             " );            \
-    asm( "addu   $14, $12, $14  " );            \
-    asm( "lw     $15, 0($11)    " );            \
-    asm( "sltu   $12, $14, $12  " );            \
-    asm( "addu   $15, $14, $15  " );            \
-    asm( "sltu   $14, $15, $14  " );            \
-    asm( "addu   $12, $12, $9   " );            \
-    asm( "sw     $15, 0($11)    " );            \
-    asm( "addu   $12, $12, $14  " );            \
-    asm( "addi   $11, $11, 4    " );
+#define MULADDC_CORE            \
+        "                       \
+        lw     $14, 0($10);     \
+        multu  $13, $14;        \
+        addi   $10, $10, 4;     \
+        mflo   $14;             \
+        mfhi   $9;              \
+        addu   $14, $12, $14;   \
+        lw     $15, 0($11);     \
+        sltu   $12, $14, $12;   \
+        addu   $15, $14, $15;   \
+        sltu   $14, $15, $14;   \
+        addu   $12, $12, $9;    \
+        sw     $15, 0($11);     \
+        addu   $12, $12, $14;   \
+        addi   $11, $11, 4;     \
+        "
 
-#define MULADDC_STOP                            \
-    asm( "sw     $12, %0        " : "=m" (c));  \
-    asm( "sw     $11, %0        " : "=m" (d));  \
-    asm( "sw     $10, %0        " : "=m" (s) :: \
-    "$9", "$10", "$11", "$12", "$13", "$14", "$15" );
+#define MULADDC_STOP            \
+        "                       \
+        sw     $12, %0;         \
+        sw     $11, %1;         \
+        sw     $10, %2;         \
+        "                       \
+        : "=m" (c), "=m" (d), "=m" (s)                      \
+        : "m" (s), "m" (d), "m" (c), "m" (b)                \
+        : "$9", "$10", "$11", "$12", "$13", "$14", "$15"    \
+    );
 
 #endif /* MIPS */
 #endif /* GNUC */

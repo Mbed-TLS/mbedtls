@@ -131,6 +131,32 @@ static void hmac_drbg_free( hmac_drbg_context *ctx )
 
     memset( ctx, 0, sizeof( hmac_drbg_context ) );
 }
+
+/*
+ * This a hopefully temporary compatibility function.
+ *
+ * Since we can't ensure the caller will pass a valid md_alg before the next
+ * interface change, try to pick up a decent md by size.
+ *
+ * Argument is the minimum size in bytes of the MD output.
+ */
+const md_info_t *md_info_by_size( int min_size )
+{
+    const md_info_t *md_cur, *md_picked = NULL;
+    const int *md_alg;
+
+    for( md_alg = md_list(); *md_alg != 0; md_alg++ )
+    {
+        if( ( md_cur = md_info_from_type( *md_alg ) ) == NULL ||
+            md_cur->size < min_size ||
+            ( md_picked != NULL && md_cur->size > md_picked->size ) )
+            continue;
+
+        md_picked = md_cur;
+    }
+
+    return( md_picked );
+}
 #endif
 
 /*
@@ -242,7 +268,13 @@ int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
     const md_info_t *md_info;
     mpi h;
 
-    if( ( md_info = md_info_from_type( md_alg ) ) == NULL )
+    /* Temporary fallback */
+    if( md_alg == POLARSSL_MD_NONE )
+        md_info = md_info_by_size( blen );
+    else
+        md_info = md_info_from_type( md_alg );
+
+    if( md_info == NULL )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     mpi_init( &h );

@@ -539,47 +539,57 @@
 
 #if defined(__microblaze__) || defined(microblaze)
 
-#define MULADDC_INIT                            \
-    asm( "lwi   r3,   %0        " :: "m" (s));  \
-    asm( "lwi   r4,   %0        " :: "m" (d));  \
-    asm( "lwi   r5,   %0        " :: "m" (c));  \
-    asm( "lwi   r6,   %0        " :: "m" (b));  \
-    asm( "andi  r7,   r6, 0xffff" );            \
-    asm( "bsrli r6,   r6, 16    " );
+#define MULADDC_INIT            \
+    asm(                        \
+        "                       \
+        lwi   r3,   %3;         \
+        lwi   r4,   %4;         \
+        lwi   r5,   %5;         \
+        lwi   r6,   %6;         \
+        andi  r7,   r6, 0xffff; \
+        bsrli r6,   r6, 16;     \
+        "
 
-#define MULADDC_CORE                            \
-    asm( "lhui  r8,   r3,   0   " );            \
-    asm( "addi  r3,   r3,   2   " );            \
-    asm( "lhui  r9,   r3,   0   " );            \
-    asm( "addi  r3,   r3,   2   " );            \
-    asm( "mul   r10,  r9,  r6   " );            \
-    asm( "mul   r11,  r8,  r7   " );            \
-    asm( "mul   r12,  r9,  r7   " );            \
-    asm( "mul   r13,  r8,  r6   " );            \
-    asm( "bsrli  r8, r10,  16   " );            \
-    asm( "bsrli  r9, r11,  16   " );            \
-    asm( "add   r13, r13,  r8   " );            \
-    asm( "add   r13, r13,  r9   " );            \
-    asm( "bslli r10, r10,  16   " );            \
-    asm( "bslli r11, r11,  16   " );            \
-    asm( "add   r12, r12, r10   " );            \
-    asm( "addc  r13, r13,  r0   " );            \
-    asm( "add   r12, r12, r11   " );            \
-    asm( "addc  r13, r13,  r0   " );            \
-    asm( "lwi   r10,  r4,   0   " );            \
-    asm( "add   r12, r12, r10   " );            \
-    asm( "addc  r13, r13,  r0   " );            \
-    asm( "add   r12, r12,  r5   " );            \
-    asm( "addc   r5, r13,  r0   " );            \
-    asm( "swi   r12,  r4,   0   " );            \
-    asm( "addi   r4,  r4,   4   " );
+#define MULADDC_CORE            \
+        "                       \
+        lhui  r8,   r3,   0;    \
+        addi  r3,   r3,   2;    \
+        lhui  r9,   r3,   0;    \
+        addi  r3,   r3,   2;    \
+        mul   r10,  r9,  r6;    \
+        mul   r11,  r8,  r7;    \
+        mul   r12,  r9,  r7;    \
+        mul   r13,  r8,  r6;    \
+        bsrli  r8, r10,  16;    \
+        bsrli  r9, r11,  16;    \
+        add   r13, r13,  r8;    \
+        add   r13, r13,  r9;    \
+        bslli r10, r10,  16;    \
+        bslli r11, r11,  16;    \
+        add   r12, r12, r10;    \
+        addc  r13, r13,  r0;    \
+        add   r12, r12, r11;    \
+        addc  r13, r13,  r0;    \
+        lwi   r10,  r4,   0;    \
+        add   r12, r12, r10;    \
+        addc  r13, r13,  r0;    \
+        add   r12, r12,  r5;    \
+        addc   r5, r13,  r0;    \
+        swi   r12,  r4,   0;    \
+        addi   r4,  r4,   4;    \
+        "
 
-#define MULADDC_STOP                            \
-    asm( "swi   r5,   %0        " : "=m" (c));  \
-    asm( "swi   r4,   %0        " : "=m" (d));  \
-    asm( "swi   r3,   %0        " : "=m" (s) :: \
-     "r3", "r4" , "r5" , "r6" , "r7" , "r8" ,   \
-     "r9", "r10", "r11", "r12", "r13" );
+#define MULADDC_STOP            \
+        "                       \
+        swi   r5,   %0;         \
+        swi   r4,   %1;         \
+        swi   r3,   %2;         \
+        "                       \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "r3", "r4"  "r5", "r6", "r7", "r8",       \
+          "r9", "r10", "r11", "r12", "r13"          \
+    );
 
 #endif /* MicroBlaze */
 

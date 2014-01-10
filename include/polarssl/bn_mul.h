@@ -595,27 +595,37 @@
 
 #if defined(__tricore__)
 
-#define MULADDC_INIT                            \
-    asm( "ld.a   %%a2, %0       " :: "m" (s));  \
-    asm( "ld.a   %%a3, %0       " :: "m" (d));  \
-    asm( "ld.w   %%d4, %0       " :: "m" (c));  \
-    asm( "ld.w   %%d1, %0       " :: "m" (b));  \
-    asm( "xor    %d5, %d5       " );
+#define MULADDC_INIT                    \
+    asm(                                \
+        "                               \
+        ld.a   %%a2, %3;                \
+        ld.a   %%a3, %4;                \
+        ld.w   %%d4, %5;                \
+        ld.w   %%d1, %6;                \
+        xor    %%d5, %%d5;              \
+        "
 
-#define MULADDC_CORE                            \
-    asm( "ld.w   %d0,   [%a2+]      " );        \
-    asm( "madd.u %e2, %e4, %d0, %d1 " );        \
-    asm( "ld.w   %d0,   [%a3]       " );        \
-    asm( "addx   %d2,    %d2,  %d0  " );        \
-    asm( "addc   %d3,    %d3,    0  " );        \
-    asm( "mov    %d4,    %d3        " );        \
-    asm( "st.w  [%a3+],  %d2        " );
+#define MULADDC_CORE                    \
+        "                               \
+        ld.w   %%d0,   [%%a2+];         \
+        madd.u %%e2, %%e4, %%d0, %%d1;  \
+        ld.w   %%d0,   [%%a3];          \
+        addx   %%d2,    %%d2,  %%d0;    \
+        addc   %%d3,    %%d3,    0;     \
+        mov    %%d4,    %%d3;           \
+        st.w  [%%a3+],  %%d2;           \
+        "
 
-#define MULADDC_STOP                            \
-    asm( "st.w   %0, %%d4       " : "=m" (c));  \
-    asm( "st.a   %0, %%a3       " : "=m" (d));  \
-    asm( "st.a   %0, %%a2       " : "=m" (s) :: \
-    "d0", "d1", "e2", "d4", "a2", "a3" );
+#define MULADDC_STOP                    \
+        "                               \
+        st.w   %0, %%d4;                \
+        st.a   %1, %%a3;                \
+        st.a   %2, %%a2;                \
+        "                               \
+        : "=m" (c), "=m" (d), "=m" (s)          \
+        : "m" (s), "m" (d), "m" (c), "m" (b)    \
+        : "d0", "d1", "e2", "d4", "a2", "a3"    \
+    );
 
 #endif /* TriCore */
 

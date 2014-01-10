@@ -732,33 +732,42 @@
 
 #if defined(__alpha__)
 
-#define MULADDC_INIT                            \
-    asm( "ldq    $1, %0         " :: "m" (s));  \
-    asm( "ldq    $2, %0         " :: "m" (d));  \
-    asm( "ldq    $3, %0         " :: "m" (c));  \
-    asm( "ldq    $4, %0         " :: "m" (b));
+#define MULADDC_INIT            \
+    asm(                        \
+        "                       \
+        ldq    $1, %3;          \
+        ldq    $2, %4;          \
+        ldq    $3, %5;          \
+        ldq    $4, %6;          \
+        "
 
-#define MULADDC_CORE                            \
-    asm( "ldq    $6,  0($1)     " );            \
-    asm( "addq   $1,  8, $1     " );            \
-    asm( "mulq   $6, $4, $7     " );            \
-    asm( "umulh  $6, $4, $6     " );            \
-    asm( "addq   $7, $3, $7     " );            \
-    asm( "cmpult $7, $3, $3     " );            \
-    asm( "ldq    $5,  0($2)     " );            \
-    asm( "addq   $7, $5, $7     " );            \
-    asm( "cmpult $7, $5, $5     " );            \
-    asm( "stq    $7,  0($2)     " );            \
-    asm( "addq   $2,  8, $2     " );            \
-    asm( "addq   $6, $3, $3     " );            \
-    asm( "addq   $5, $3, $3     " );
+#define MULADDC_CORE            \
+        "                       \
+        ldq    $6,  0($1);      \
+        addq   $1,  8, $1;      \
+        mulq   $6, $4, $7;      \
+        umulh  $6, $4, $6;      \
+        addq   $7, $3, $7;      \
+        cmpult $7, $3, $3;      \
+        ldq    $5,  0($2);      \
+        addq   $7, $5, $7;      \
+        cmpult $7, $5, $5;      \
+        stq    $7,  0($2);      \
+        addq   $2,  8, $2;      \
+        addq   $6, $3, $3;      \
+        addq   $5, $3, $3;      \
+        "
 
 #define MULADDC_STOP                            \
-    asm( "stq    $3, %0         " : "=m" (c));  \
-    asm( "stq    $2, %0         " : "=m" (d));  \
-    asm( "stq    $1, %0         " : "=m" (s) :: \
-    "$1", "$2", "$3", "$4", "$5", "$6", "$7" );
-
+        "                       \
+        stq    $3, %0;          \
+        stq    $2, %1;          \
+        stq    $1, %2;          \
+        "                       \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "$1", "$2", "$3", "$4", "$5", "$6", "$7"  \
+    );
 #endif /* Alpha */
 
 #if defined(__mips__)

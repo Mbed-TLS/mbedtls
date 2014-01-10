@@ -78,7 +78,7 @@ typedef enum
  *
  * (Montgomery curves excluded for now.)
  */
-#define POLARSSL_ECP_DP_MAX     9
+#define POLARSSL_ECP_DP_MAX     12
 
 /**
  * Curve information for use by other modules

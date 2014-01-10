@@ -403,6 +403,18 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
         POLARSSL_ECP_DP_SECP521R1,
     },
     {
+        { ADD_LEN( OID_EC_GRP_SECP192K1 ), "secp192k1",    "secp192k1" },
+        POLARSSL_ECP_DP_SECP192K1,
+    },
+    {
+        { ADD_LEN( OID_EC_GRP_SECP224K1 ), "secp224k1",    "secp224k1" },
+        POLARSSL_ECP_DP_SECP224K1,
+    },
+    {
+        { ADD_LEN( OID_EC_GRP_SECP256K1 ), "secp256k1",    "secp256k1" },
+        POLARSSL_ECP_DP_SECP256K1,
+    },
+    {
         { ADD_LEN( OID_EC_GRP_BP256R1 ),   "brainpoolP256r1","brainpool256r1" },
         POLARSSL_ECP_DP_BP256R1,
     },

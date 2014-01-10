@@ -141,6 +141,15 @@ static const ecp_curve_info ecp_supported_curves[] =
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
     { POLARSSL_ECP_DP_SECP192R1,    19,     192,    "secp192r1"         },
 #endif
+#if defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
+    { POLARSSL_ECP_DP_SECP256K1,    22,     256,    "secp256k1"         },
+#endif
+#if defined(POLARSSL_ECP_DP_SECP224K1_ENABLED)
+    { POLARSSL_ECP_DP_SECP224K1,    20,     224,    "secp224k1"         },
+#endif
+#if defined(POLARSSL_ECP_DP_SECP192K1_ENABLED)
+    { POLARSSL_ECP_DP_SECP192K1,    18,     192,    "secp192k1"         },
+#endif
     { POLARSSL_ECP_DP_NONE,          0,     0,      NULL                },
 };
 

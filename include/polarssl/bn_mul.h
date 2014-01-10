@@ -206,70 +206,82 @@
 
 #if defined(__mc68020__) || defined(__mcpu32__)
 
-#define MULADDC_INIT                            \
-    asm( "movl   %0, %%a2       " :: "m" (s));  \
-    asm( "movl   %0, %%a3       " :: "m" (d));  \
-    asm( "movl   %0, %%d3       " :: "m" (c));  \
-    asm( "movl   %0, %%d2       " :: "m" (b));  \
-    asm( "moveq  #0, %d0        " );
+#define MULADDC_INIT            \
+    asm(                        \
+        "                       \
+        movl   %3, %%a2;        \
+        movl   %4, %%a3;        \
+        movl   %5, %%d3;        \
+        movl   %6, %%d2;        \
+        moveq  #0, %%d0;        \
+        "
 
-#define MULADDC_CORE                            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addl   %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "moveq  #0,  %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "addxl  %d4, %d3       " );
+#define MULADDC_CORE            \
+        "                       \
+        movel  %%a2@+, %%d1;    \
+        mulul  %%d2, %%d4:%%d1; \
+        addl   %%d3, %%d1;      \
+        addxl  %%d0, %%d4;      \
+        moveq  #0,   %%d3;      \
+        addl   %%d1, %%a3@+;    \
+        addxl  %%d4, %%d3;      \
+        "
 
-#define MULADDC_STOP                            \
-    asm( "movl   %%d3, %0       " : "=m" (c));  \
-    asm( "movl   %%a3, %0       " : "=m" (d));  \
-    asm( "movl   %%a2, %0       " : "=m" (s) :: \
-    "d0", "d1", "d2", "d3", "d4", "a2", "a3" );
+#define MULADDC_STOP            \
+        "                       \
+        movl   %%d3, %0;        \
+        movl   %%a3, %1;        \
+        movl   %%a2, %2;        \
+        "                       \
+        : "=m" (c), "=m" (d), "=m" (s)              \
+        : "m" (s), "m" (d), "m" (c), "m" (b)        \
+        : "d0", "d1", "d2", "d3", "d4", "a2", "a3"  \
+    );
 
-#define MULADDC_HUIT                            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addxl  %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d3:%d1   " );            \
-    asm( "addxl  %d4, %d1       " );            \
-    asm( "addxl  %d0, %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addxl  %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d3:%d1   " );            \
-    asm( "addxl  %d4, %d1       " );            \
-    asm( "addxl  %d0, %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addxl  %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d3:%d1   " );            \
-    asm( "addxl  %d4, %d1       " );            \
-    asm( "addxl  %d0, %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d4:%d1   " );            \
-    asm( "addxl  %d3, %d1       " );            \
-    asm( "addxl  %d0, %d4       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "movel  %a2@+, %d1     " );            \
-    asm( "mulul  %d2, %d3:%d1   " );            \
-    asm( "addxl  %d4, %d1       " );            \
-    asm( "addxl  %d0, %d3       " );            \
-    asm( "addl   %d1, %a3@+     " );            \
-    asm( "addxl  %d0, %d3       " );
+#define MULADDC_HUIT                \
+        "                           \
+        movel  %%a2@+,  %%d1;       \
+        mulul  %%d2,    %%d4:%%d1;  \
+        addxl  %%d3,    %%d1;       \
+        addxl  %%d0,    %%d4;       \
+        addl   %%d1,    %%a3@+;     \
+        movel  %%a2@+,  %%d1;       \
+        mulul  %%d2,    %%d3:%%d1;  \
+        addxl  %%d4,    %%d1;       \
+        addxl  %%d0,    %%d3;       \
+        addl   %%d1,    %%a3@+;     \
+        movel  %%a2@+,  %%d1;       \
+        mulul  %%d2,    %%d4:%%d1;  \
+        addxl  %%d3,    %%d1;       \
+        addxl  %%d0,    %%d4;       \
+        addl   %%d1,    %%a3@+;     \
+        movel  %%a2@+,  %%d1;       \
+        mulul  %%d2,    %%d3:%%d1;  \
+        addxl  %%d4,    %%d1;       \
+        addxl  %%d0,    %%d3;       \
+        addl   %%d1,    %%a3@+;     \
+        movel  %%a2@+,  %%d1;       \
+        mulul  %%d2,    %%d4:%%d1;  \
+        addxl  %%d3,    %%d1;       \
+        addxl  %%d0,    %%d4;       \
+        addl   %%d1,    %%a3@+;     \
+        movel  %%a2@+,  %%d1;       \
+        mulul  %%d2,    %%d3:%%d1;  \
+        addxl  %%d4,    %%d1;       \
+        addxl  %%d0,    %%d3;       \
+        addl   %%d1,    %%a3@+;     \
+        movel  %%a2@+,  %%d1;       \
+        mulul  %%d2,    %%d4:%%d1;  \
+        addxl  %%d3,    %%d1;       \
+        addxl  %%d0,    %%d4;       \
+        addl   %%d1,    %%a3@+;     \
+        movel  %%a2@+,  %%d1;       \
+        mulul  %%d2,    %%d3:%%d1;  \
+        addxl  %%d4,    %%d1;       \
+        addxl  %%d0,    %%d3;       \
+        addl   %%d1,    %%a3@+;     \
+        addxl  %%d0,    %%d3;       \
+        "
 
 #endif /* MC68000 */
 

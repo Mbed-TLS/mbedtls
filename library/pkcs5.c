@@ -42,6 +42,12 @@
 #include "polarssl/cipher.h"
 #include "polarssl/oid.h"
 
+#if defined(POLARSSL_PRINTF)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
                                       asn1_buf *salt, int *iterations,
                                       int *keylen, md_type_t *md_type )
@@ -357,7 +363,7 @@ int pkcs5_self_test( int verbose )
 
     for( i = 0; i < MAX_TESTS; i++ )
     {
-        printf( "  PBKDF2 (SHA1) #%d: ", i );
+        polarssl_printf( "  PBKDF2 (SHA1) #%d: ", i );
 
         ret = pkcs5_pbkdf2_hmac( &sha1_ctx, password[i], plen[i], salt[i],
                                   slen[i], it_cnt[i], key_len[i], key );
@@ -365,16 +371,16 @@ int pkcs5_self_test( int verbose )
             memcmp( result_key[i], key, key_len[i] ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
-    printf( "\n" );
+    polarssl_printf( "\n" );
 
     if( ( ret = md_free_ctx( &sha1_ctx ) ) != 0 )
         return( 1 );

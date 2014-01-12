@@ -38,6 +38,12 @@
 #include <stdio.h>
 #endif
 
+#if defined(POLARSSL_PRINTF)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #if !defined(POLARSSL_SHA1_ALT)
 
 /*
@@ -548,7 +554,7 @@ int sha1_self_test( int verbose )
     for( i = 0; i < 3; i++ )
     {
         if( verbose != 0 )
-            printf( "  SHA-1 test #%d: ", i + 1 );
+            polarssl_printf( "  SHA-1 test #%d: ", i + 1 );
 
         sha1_starts( &ctx );
 
@@ -568,22 +574,22 @@ int sha1_self_test( int verbose )
         if( memcmp( sha1sum, sha1_test_sum[i], 20 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     for( i = 0; i < 7; i++ )
     {
         if( verbose != 0 )
-            printf( "  HMAC-SHA-1 test #%d: ", i + 1 );
+            polarssl_printf( "  HMAC-SHA-1 test #%d: ", i + 1 );
 
         if( i == 5 || i == 6 )
         {
@@ -604,17 +610,17 @@ int sha1_self_test( int verbose )
         if( memcmp( sha1sum, sha1_hmac_test_sum[i], buflen ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

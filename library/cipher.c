@@ -40,6 +40,12 @@
 
 #include <stdlib.h>
 
+#if defined(POLARSSL_PRINTF)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
 #define POLARSSL_CIPHER_MODE_STREAM
 #endif
@@ -772,7 +778,7 @@ int cipher_check_tag( cipher_context_t *ctx,
 #include <stdio.h>
 
 #define ASSERT(x) if (!(x)) { \
-        printf( "failed with %i at %s\n", value, (#x) ); \
+        polarssl_printf( "failed with %i at %s\n", value, (#x) ); \
     return( 1 ); \
 }
 /*

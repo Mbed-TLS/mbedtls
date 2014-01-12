@@ -50,6 +50,12 @@
 #define polarssl_free       free
 #endif
 
+#if defined(POLARSSL_PRINTF)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 /*
  * helper to validate the mpi size and import it
  */
@@ -548,19 +554,19 @@ int dhm_self_test( int verbose )
     dhm_context dhm;
 
     if( verbose != 0 )
-        printf( "  DHM parameter load: " );
+        polarssl_printf( "  DHM parameter load: " );
 
     if( ( ret = dhm_parse_dhm( &dhm, (const unsigned char *) test_dhm_params,
                                strlen( test_dhm_params ) ) ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        printf( "passed\n\n" );
+        polarssl_printf( "passed\n\n" );
 
     dhm_free( &dhm );
 

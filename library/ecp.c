@@ -57,6 +57,12 @@
 #define polarssl_free       free
 #endif
 
+#if defined(POLARSSL_PRINTF)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include <stdlib.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
@@ -1841,7 +1847,7 @@ int ecp_self_test( int verbose )
 #endif
 
     if( verbose != 0 )
-        printf( "  ECP test #1 (constant op_count, base point G): " );
+        polarssl_printf( "  ECP test #1 (constant op_count, base point G): " );
 
     /* Do a dummy multiplication first to trigger precomputation */
     MPI_CHK( mpi_lset( &m, 2 ) );
@@ -1870,7 +1876,7 @@ int ecp_self_test( int verbose )
             mul_count != mul_c_prev )
         {
             if( verbose != 0 )
-                printf( "failed (%u)\n", (unsigned int) i );
+                polarssl_printf( "failed (%u)\n", (unsigned int) i );
 
             ret = 1;
             goto cleanup;
@@ -1878,10 +1884,10 @@ int ecp_self_test( int verbose )
     }
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     if( verbose != 0 )
-        printf( "  ECP test #2 (constant op_count, other point): " );
+        polarssl_printf( "  ECP test #2 (constant op_count, other point): " );
     /* We computed P = 2G last time, use it */
 
     add_count = 0;
@@ -1907,7 +1913,7 @@ int ecp_self_test( int verbose )
             mul_count != mul_c_prev )
         {
             if( verbose != 0 )
-                printf( "failed (%u)\n", (unsigned int) i );
+                polarssl_printf( "failed (%u)\n", (unsigned int) i );
 
             ret = 1;
             goto cleanup;
@@ -1915,12 +1921,12 @@ int ecp_self_test( int verbose )
     }
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
 cleanup:
 
     if( ret < 0 && verbose != 0 )
-        printf( "Unexpected error, return code = %08X\n", ret );
+        polarssl_printf( "Unexpected error, return code = %08X\n", ret );
 
     ecp_group_free( &grp );
     ecp_point_free( &R );
@@ -1928,7 +1934,7 @@ cleanup:
     mpi_free( &m );
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( ret );
 }

@@ -38,6 +38,12 @@
 #include <stdio.h>
 #endif
 
+#if defined(POLARSSL_PRINTF)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #if !defined(POLARSSL_MD5_ALT)
 
 /*
@@ -522,29 +528,29 @@ int md5_self_test( int verbose )
     for( i = 0; i < 7; i++ )
     {
         if( verbose != 0 )
-            printf( "  MD5 test #%d: ", i + 1 );
+            polarssl_printf( "  MD5 test #%d: ", i + 1 );
 
         md5( md5_test_buf[i], md5_test_buflen[i], md5sum );
 
         if( memcmp( md5sum, md5_test_sum[i], 16 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     for( i = 0; i < 7; i++ )
     {
         if( verbose != 0 )
-            printf( "  HMAC-MD5 test #%d: ", i + 1 );
+            polarssl_printf( "  HMAC-MD5 test #%d: ", i + 1 );
 
         if( i == 5 || i == 6 )
         {
@@ -565,17 +571,17 @@ int md5_self_test( int verbose )
         if( memcmp( md5sum, md5_hmac_test_sum[i], buflen ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

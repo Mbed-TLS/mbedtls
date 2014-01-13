@@ -34,6 +34,7 @@
  *     \c camellia_crypt_cfb128() and \c camellia_crypt_ctr()).
  *   - DES/3DES (see \c des_crypt_ecb(), \c des_crypt_cbc(), \c des3_crypt_ecb()
  *     and \c des3_crypt_cbc()).
+ *   - GCM (AES-GCM and CAMELLIA-GCM) (see \c gcm_init())
  *   - XTEA (see \c xtea_crypt_ecb()).
  * - Asymmetric:
  *   - Diffie-Hellman-Merkle (see \c dhm_read_public(), \c dhm_make_public()

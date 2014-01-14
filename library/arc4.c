@@ -102,7 +102,13 @@ int arc4_crypt( arc4_context *ctx, size_t length, const unsigned char *input,
 #if defined(POLARSSL_SELF_TEST)
 
 #include <string.h>
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 /*
  * ARC4 tests vectors as posted by Eric Rescorla in sep. 1994:
@@ -143,7 +149,7 @@ int arc4_self_test( int verbose )
     for( i = 0; i < 3; i++ )
     {
         if( verbose != 0 )
-            printf( "  ARC4 test #%d: ", i + 1 );
+            polarssl_printf( "  ARC4 test #%d: ", i + 1 );
 
         memcpy( ibuf, arc4_test_pt[i], 8 );
 
@@ -153,17 +159,17 @@ int arc4_self_test( int verbose )
         if( memcmp( obuf, arc4_test_ct[i], 8 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

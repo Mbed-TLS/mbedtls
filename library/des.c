@@ -761,7 +761,12 @@ int des3_crypt_cbc( des3_context *ctx,
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 /*
  * DES and 3DES test vectors from:
@@ -839,7 +844,7 @@ int des_self_test( int verbose )
         v = i  & 1;
 
         if( verbose != 0 )
-            printf( "  DES%c-ECB-%3d (%s): ",
+            polarssl_printf( "  DES%c-ECB-%3d (%s): ",
                     ( u == 0 ) ? ' ' : '3', 56 + u * 56,
                     ( v == DES_DECRYPT ) ? "dec" : "enc" );
 
@@ -889,17 +894,17 @@ int des_self_test( int verbose )
                 memcmp( buf, des3_test_ecb_enc[u], 8 ) != 0 ) )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
     /*
@@ -911,7 +916,7 @@ int des_self_test( int verbose )
         v = i  & 1;
 
         if( verbose != 0 )
-            printf( "  DES%c-CBC-%3d (%s): ",
+            polarssl_printf( "  DES%c-CBC-%3d (%s): ",
                     ( u == 0 ) ? ' ' : '3', 56 + u * 56,
                     ( v == DES_DECRYPT ) ? "dec" : "enc" );
 
@@ -984,18 +989,18 @@ int des_self_test( int verbose )
                 memcmp( buf, des3_test_cbc_enc[u], 8 ) != 0 ) )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

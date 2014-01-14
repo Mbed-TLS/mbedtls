@@ -448,6 +448,12 @@ void sha512_hmac( const unsigned char *key, size_t keylen,
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 /*
  * FIPS-180-2 test vectors
  */
@@ -681,7 +687,7 @@ int sha512_self_test( int verbose )
         k = i < 3;
 
         if( verbose != 0 )
-            printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
+            polarssl_printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
 
         sha512_starts( &ctx, k );
 
@@ -701,17 +707,17 @@ int sha512_self_test( int verbose )
         if( memcmp( sha512sum, sha512_test_sum[i], 64 - k * 16 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     for( i = 0; i < 14; i++ )
     {
@@ -719,7 +725,7 @@ int sha512_self_test( int verbose )
         k = i < 7;
 
         if( verbose != 0 )
-            printf( "  HMAC-SHA-%d test #%d: ", 512 - k * 128, j + 1 );
+            polarssl_printf( "  HMAC-SHA-%d test #%d: ", 512 - k * 128, j + 1 );
 
         if( j == 5 || j == 6 )
         {
@@ -740,17 +746,17 @@ int sha512_self_test( int verbose )
         if( memcmp( sha512sum, sha512_hmac_test_sum[i], buflen ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

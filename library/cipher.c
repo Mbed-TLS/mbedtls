@@ -769,10 +769,15 @@ int cipher_check_tag( cipher_context_t *ctx,
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 #define ASSERT(x) if (!(x)) { \
-        printf( "failed with %i at %s\n", value, (#x) ); \
+        polarssl_printf( "failed with %i at %s\n", value, (#x) ); \
     return( 1 ); \
 }
 /*

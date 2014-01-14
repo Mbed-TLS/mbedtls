@@ -408,7 +408,12 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 unsigned char entropy_source_pr[96] =
     { 0xc1, 0x80, 0x81, 0xa6, 0x5d, 0x44, 0x02, 0x16,
@@ -472,13 +477,13 @@ int ctr_drbg_self_test( int verbose )
      * Based on a NIST CTR_DRBG test vector (PR = True)
      */
     if( verbose != 0 )
-        printf( "  CTR_DRBG (PR = TRUE) : " );
+        polarssl_printf( "  CTR_DRBG (PR = TRUE) : " );
 
     test_offset = 0;
     if( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy, entropy_source_pr, nonce_pers_pr, 16, 32 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
@@ -487,7 +492,7 @@ int ctr_drbg_self_test( int verbose )
     if( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
@@ -495,7 +500,7 @@ int ctr_drbg_self_test( int verbose )
     if( ctr_drbg_random( &ctx, buf, CTR_DRBG_BLOCKSIZE ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
@@ -503,25 +508,25 @@ int ctr_drbg_self_test( int verbose )
     if( memcmp( buf, result_pr, CTR_DRBG_BLOCKSIZE ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
     
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     /*
      * Based on a NIST CTR_DRBG test vector (PR = FALSE)
      */
     if( verbose != 0 )
-        printf( "  CTR_DRBG (PR = FALSE): " );
+        polarssl_printf( "  CTR_DRBG (PR = FALSE): " );
 
     test_offset = 0;
     if( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy, entropy_source_nopr, nonce_pers_nopr, 16, 32 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
@@ -529,7 +534,7 @@ int ctr_drbg_self_test( int verbose )
     if( ctr_drbg_random( &ctx, buf, 16 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
@@ -537,7 +542,7 @@ int ctr_drbg_self_test( int verbose )
     if( ctr_drbg_reseed( &ctx, NULL, 0 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
@@ -545,7 +550,7 @@ int ctr_drbg_self_test( int verbose )
     if( ctr_drbg_random( &ctx, buf, 16 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
@@ -553,16 +558,16 @@ int ctr_drbg_self_test( int verbose )
     if( memcmp( buf, result_nopr, 16 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
     
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     if( verbose != 0 )
-            printf( "\n" );
+            polarssl_printf( "\n" );
 
     return( 0 );
 }

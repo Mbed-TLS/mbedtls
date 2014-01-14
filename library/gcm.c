@@ -466,7 +466,12 @@ void gcm_free( gcm_context *ctx )
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 /*
  * AES-GCM test vectors from:
@@ -710,7 +715,7 @@ int gcm_self_test( int verbose )
         for( i = 0; i < MAX_TESTS; i++ )
         {
             if( verbose != 0 )
-                printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "enc" );
+                polarssl_printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "enc" );
 
             gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
@@ -725,7 +730,7 @@ int gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    printf( "failed\n" );
+                    polarssl_printf( "failed\n" );
 
                 return( 1 );
             }
@@ -733,10 +738,10 @@ int gcm_self_test( int verbose )
             gcm_free( &ctx );
 
             if( verbose != 0 )
-                printf( "passed\n" );
+                polarssl_printf( "passed\n" );
 
             if( verbose != 0 )
-                printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "dec" );
+                polarssl_printf( "  AES-GCM-%3d #%d (%s): ", key_len, i, "dec" );
 
             gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
@@ -751,7 +756,7 @@ int gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    printf( "failed\n" );
+                    polarssl_printf( "failed\n" );
 
                 return( 1 );
             }
@@ -759,10 +764,10 @@ int gcm_self_test( int verbose )
             gcm_free( &ctx );
 
             if( verbose != 0 )
-                printf( "passed\n" );
+                polarssl_printf( "passed\n" );
 
             if( verbose != 0 )
-                printf( "  AES-GCM-%3d #%d split (%s): ", key_len, i, "enc" );
+                polarssl_printf( "  AES-GCM-%3d #%d split (%s): ", key_len, i, "enc" );
 
             gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
@@ -772,7 +777,7 @@ int gcm_self_test( int verbose )
             if( ret != 0 )
             {
                 if( verbose != 0 )
-                    printf( "failed\n" );
+                    polarssl_printf( "failed\n" );
 
                 return( 1 );
             }
@@ -784,7 +789,7 @@ int gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        printf( "failed\n" );
+                        polarssl_printf( "failed\n" );
 
                     return( 1 );
                 }
@@ -793,7 +798,7 @@ int gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        printf( "failed\n" );
+                        polarssl_printf( "failed\n" );
 
                     return( 1 );
                 }
@@ -804,7 +809,7 @@ int gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        printf( "failed\n" );
+                        polarssl_printf( "failed\n" );
 
                     return( 1 );
                 }
@@ -816,7 +821,7 @@ int gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    printf( "failed\n" );
+                    polarssl_printf( "failed\n" );
 
                 return( 1 );
             }
@@ -824,10 +829,10 @@ int gcm_self_test( int verbose )
             gcm_free( &ctx );
 
             if( verbose != 0 )
-                printf( "passed\n" );
+                polarssl_printf( "passed\n" );
 
             if( verbose != 0 )
-                printf( "  AES-GCM-%3d #%d split (%s): ", key_len, i, "dec" );
+                polarssl_printf( "  AES-GCM-%3d #%d split (%s): ", key_len, i, "dec" );
 
             gcm_init( &ctx, cipher, key[key_index[i]], key_len );
 
@@ -837,7 +842,7 @@ int gcm_self_test( int verbose )
             if( ret != 0 )
             {
                 if( verbose != 0 )
-                    printf( "failed\n" );
+                    polarssl_printf( "failed\n" );
 
                 return( 1 );
             }
@@ -849,7 +854,7 @@ int gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        printf( "failed\n" );
+                        polarssl_printf( "failed\n" );
 
                     return( 1 );
                 }
@@ -858,7 +863,7 @@ int gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        printf( "failed\n" );
+                        polarssl_printf( "failed\n" );
 
                     return( 1 );
                 }
@@ -869,7 +874,7 @@ int gcm_self_test( int verbose )
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
-                        printf( "failed\n" );
+                        polarssl_printf( "failed\n" );
 
                     return( 1 );
                 }
@@ -881,7 +886,7 @@ int gcm_self_test( int verbose )
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 if( verbose != 0 )
-                    printf( "failed\n" );
+                    polarssl_printf( "failed\n" );
 
                 return( 1 );
             }
@@ -889,13 +894,13 @@ int gcm_self_test( int verbose )
             gcm_free( &ctx );
 
             if( verbose != 0 )
-                printf( "passed\n" );
+                polarssl_printf( "passed\n" );
 
         }
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

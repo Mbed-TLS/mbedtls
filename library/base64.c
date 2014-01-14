@@ -194,7 +194,13 @@ int base64_decode( unsigned char *dst, size_t *dlen,
 #if defined(POLARSSL_SELF_TEST)
 
 #include <string.h>
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 static const unsigned char base64_test_dec[64] =
 {
@@ -222,7 +228,7 @@ int base64_self_test( int verbose )
     unsigned char buffer[128];
 
     if( verbose != 0 )
-        printf( "  Base64 encoding test: " );
+        polarssl_printf( "  Base64 encoding test: " );
 
     len = sizeof( buffer );
     src = base64_test_dec;
@@ -231,13 +237,13 @@ int base64_self_test( int verbose )
          memcmp( base64_test_enc, buffer, 88 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        printf( "passed\n  Base64 decoding test: " );
+        polarssl_printf( "passed\n  Base64 decoding test: " );
 
     len = sizeof( buffer );
     src = base64_test_enc;
@@ -246,13 +252,13 @@ int base64_self_test( int verbose )
          memcmp( base64_test_dec, buffer, 64 ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        printf( "passed\n\n" );
+        polarssl_printf( "passed\n\n" );
 
     return( 0 );
 }

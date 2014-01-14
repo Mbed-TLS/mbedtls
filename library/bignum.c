@@ -550,6 +550,13 @@ cleanup:
 }
 
 #if defined(POLARSSL_FS_IO)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 /*
  * Read X from an opened file
  */
@@ -616,7 +623,7 @@ int mpi_write_file( const char *p, const mpi *X, int radix, FILE *fout )
             return( POLARSSL_ERR_MPI_FILE_IO_ERROR );
     }
     else
-        printf( "%s%s", p, s );
+        polarssl_printf( "%s%s", p, s );
 
 cleanup:
 
@@ -2140,6 +2147,12 @@ cleanup:
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #define GCD_PAIR_COUNT  3
 
 static const int gcd_pairs[GCD_PAIR_COUNT][3] =
@@ -2189,18 +2202,18 @@ int mpi_self_test( int verbose )
         "30879B56C61DE584A0F53A2447A51E" ) );
 
     if( verbose != 0 )
-        printf( "  MPI test #1 (mul_mpi): " );
+        polarssl_printf( "  MPI test #1 (mul_mpi): " );
 
     if( mpi_cmp_mpi( &X, &U ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     MPI_CHK( mpi_div_mpi( &X, &Y, &A, &N ) );
 
@@ -2213,19 +2226,19 @@ int mpi_self_test( int verbose )
         "9EE50D0657C77F374E903CDFA4C642" ) );
 
     if( verbose != 0 )
-        printf( "  MPI test #2 (div_mpi): " );
+        polarssl_printf( "  MPI test #2 (div_mpi): " );
 
     if( mpi_cmp_mpi( &X, &U ) != 0 ||
         mpi_cmp_mpi( &Y, &V ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     MPI_CHK( mpi_exp_mod( &X, &A, &E, &N, NULL ) );
 
@@ -2235,18 +2248,18 @@ int mpi_self_test( int verbose )
         "325D24D6A3C12710F10A09FA08AB87" ) );
 
     if( verbose != 0 )
-        printf( "  MPI test #3 (exp_mod): " );
+        polarssl_printf( "  MPI test #3 (exp_mod): " );
 
     if( mpi_cmp_mpi( &X, &U ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     MPI_CHK( mpi_inv_mod( &X, &A, &N ) );
 
@@ -2256,21 +2269,21 @@ int mpi_self_test( int verbose )
         "C5B8A74DAC4D09E03B5E0BE779F2DF61" ) );
 
     if( verbose != 0 )
-        printf( "  MPI test #4 (inv_mod): " );
+        polarssl_printf( "  MPI test #4 (inv_mod): " );
 
     if( mpi_cmp_mpi( &X, &U ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( 1 );
     }
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     if( verbose != 0 )
-        printf( "  MPI test #5 (simple gcd): " );
+        polarssl_printf( "  MPI test #5 (simple gcd): " );
 
     for ( i = 0; i < GCD_PAIR_COUNT; i++)
     {
@@ -2282,25 +2295,25 @@ int mpi_self_test( int verbose )
 	    if( mpi_cmp_int( &A, gcd_pairs[i][2] ) != 0 )
 	    {
 		    if( verbose != 0 )
-			    printf( "failed at %d\n", i );
+			    polarssl_printf( "failed at %d\n", i );
 
 		    return( 1 );
 	    }
     }
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
 cleanup:
 
     if( ret != 0 && verbose != 0 )
-        printf( "Unexpected error, return code = %08X\n", ret );
+        polarssl_printf( "Unexpected error, return code = %08X\n", ret );
 
     mpi_free( &A ); mpi_free( &E ); mpi_free( &N ); mpi_free( &X );
     mpi_free( &Y ); mpi_free( &U ); mpi_free( &V );
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( ret );
 }

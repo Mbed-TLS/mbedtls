@@ -392,6 +392,12 @@ void md4_hmac( const unsigned char *key, size_t keylen,
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 /*
  * RFC 1320 test vectors
  */
@@ -436,7 +442,7 @@ int md4_self_test( int verbose )
     for( i = 0; i < 7; i++ )
     {
         if( verbose != 0 )
-            printf( "  MD4 test #%d: ", i + 1 );
+            polarssl_printf( "  MD4 test #%d: ", i + 1 );
 
         md4( (unsigned char *) md4_test_str[i],
              strlen( md4_test_str[i] ), md4sum );
@@ -444,17 +450,17 @@ int md4_self_test( int verbose )
         if( memcmp( md4sum, md4_test_sum[i], 16 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

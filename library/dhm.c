@@ -536,6 +536,12 @@ int dhm_parse_dhmfile( dhm_context *dhm, const char *path )
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include "polarssl/certs.h"
 
 /*
@@ -548,19 +554,19 @@ int dhm_self_test( int verbose )
     dhm_context dhm;
 
     if( verbose != 0 )
-        printf( "  DHM parameter load: " );
+        polarssl_printf( "  DHM parameter load: " );
 
     if( ( ret = dhm_parse_dhm( &dhm, (const unsigned char *) test_dhm_params,
                                strlen( test_dhm_params ) ) ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        printf( "passed\n\n" );
+        polarssl_printf( "passed\n\n" );
 
     dhm_free( &dhm );
 

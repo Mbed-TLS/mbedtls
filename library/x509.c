@@ -696,6 +696,12 @@ int x509_time_expired( const x509_time *to )
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include "polarssl/x509_crt.h"
 #include "polarssl/certs.h"
 
@@ -711,7 +717,7 @@ int x509_self_test( int verbose )
     x509_crt clicert;
 
     if( verbose != 0 )
-        printf( "  X.509 certificate load: " );
+        polarssl_printf( "  X.509 certificate load: " );
 
     x509_crt_init( &clicert );
 
@@ -720,7 +726,7 @@ int x509_self_test( int verbose )
     if( ret != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( ret );
     }
@@ -732,27 +738,27 @@ int x509_self_test( int verbose )
     if( ret != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        printf( "passed\n  X.509 signature verify: ");
+        polarssl_printf( "passed\n  X.509 signature verify: ");
 
     ret = x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
     if( ret != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
-        printf("ret = %d, &flags = %04x\n", ret, flags);
+        polarssl_printf("ret = %d, &flags = %04x\n", ret, flags);
 
         return( ret );
     }
 
     if( verbose != 0 )
-        printf( "passed\n\n");
+        polarssl_printf( "passed\n\n");
 
     x509_crt_free( &cacert  );
     x509_crt_free( &clicert );

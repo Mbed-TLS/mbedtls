@@ -34,7 +34,7 @@
 
 #include "polarssl/arc4.h"
 
-#if defined(POLARSSL_PRINTF)
+#if defined(POLARSSL_PRINTF_C)
 #include "polarssl/polarssl_printf.h"
 #else
 #define polarssl_printf     printf

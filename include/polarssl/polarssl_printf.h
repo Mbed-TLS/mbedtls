@@ -29,7 +29,7 @@
 
 #include "config.h"
 
-#ifdef POLARSSL_PRINTF
+#ifdef POLARSSL_PRINTF_C
 
 #include <stdio.h>
 
@@ -61,5 +61,5 @@ int printf_set_own( int ( *printf_func ) ( const char *fmt, ... ),
 }
 #endif
 
-#endif /* POLARSSL_PRINTF */
+#endif /* POLARSSL_PRINTF_C */
 #endif /* polarssl_printf.h */

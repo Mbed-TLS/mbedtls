@@ -1559,7 +1559,7 @@
 #define POLARSSL_PKCS12_C
 
 /**
- * \def POLARSSL_PRINTF
+ * \def POLARSSL_PRINTF_C
  *
  * Enable the printf relocation layer.
  * By default PolarSSL uses printf() and fprintf() for various console outputs.
@@ -1569,7 +1569,7 @@
  * At the moment printf() is used by POLARSSL_SELF_TEST and fprintf() is used by
  * POLARSSL_MEMORY_DEBUG.
  */
-//#define POLARSSL_PRINTF
+//#define POLARSSL_PRINTF_C
 
 /**
  * \def POLARSSL_RSA_C

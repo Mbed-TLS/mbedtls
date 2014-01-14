@@ -972,8 +972,13 @@ void ssl_set_session_cache( ssl_context *ssl,
 int ssl_set_session( ssl_context *ssl, const ssl_session *session );
 
 /**
- * \brief               Set the list of allowed ciphersuites
+ * \brief               Set the list of allowed ciphersuites and the preference
+ *                      order. First in the list has the highest preference.
  *                      (Overrides all version specific lists)
+ *
+ *                      Note: The PolarSSL SSL server uses its own preferences
+ *                      over the preference of the connection SSL client unless
+ *                      POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
  *
  * \param ssl           SSL context
  * \param ciphersuites  0-terminated list of allowed ciphersuites
@@ -981,8 +986,8 @@ int ssl_set_session( ssl_context *ssl, const ssl_session *session );
 void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites );
 
 /**
- * \brief               Set the list of allowed ciphersuites for a specific
- *                      version of the protocol.
+ * \brief               Set the list of allowed ciphersuites and the
+ *                      preference order for a specific version of the protocol.
  *                      (Only useful on the server side)
  *
  * \param ssl           SSL context

@@ -34,12 +34,6 @@
 
 #include "polarssl/arc4.h"
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #if !defined(POLARSSL_ARC4_ALT)
 
 /*
@@ -108,7 +102,13 @@ int arc4_crypt( arc4_context *ctx, size_t length, const unsigned char *input,
 #if defined(POLARSSL_SELF_TEST)
 
 #include <string.h>
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 /*
  * ARC4 tests vectors as posted by Eric Rescorla in sep. 1994:

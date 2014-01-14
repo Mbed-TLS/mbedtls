@@ -38,12 +38,6 @@
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 /*
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
  * tests to succeed (which require known length fixed entropy)
@@ -414,7 +408,12 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 unsigned char entropy_source_pr[96] =
     { 0xc1, 0x80, 0x81, 0xa6, 0x5d, 0x44, 0x02, 0x16,

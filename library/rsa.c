@@ -43,12 +43,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 /*
  * Initialize an RSA context
  */
@@ -1405,6 +1399,12 @@ void rsa_free( rsa_context *ctx )
 #if defined(POLARSSL_SELF_TEST)
 
 #include "polarssl/sha1.h"
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
 
 /*
  * Example RSA-1024 keypair, for test purposes

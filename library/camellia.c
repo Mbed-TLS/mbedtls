@@ -35,12 +35,6 @@
 
 #include "polarssl/camellia.h"
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #if !defined(POLARSSL_CAMELLIA_ALT)
 
 /*
@@ -670,7 +664,12 @@ int camellia_crypt_ctr( camellia_context *ctx,
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 /*
  * Camellia test vectors from:

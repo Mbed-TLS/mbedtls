@@ -36,12 +36,6 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 static const unsigned char base64_enc_map[64] =
 {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
@@ -200,7 +194,13 @@ int base64_decode( unsigned char *dst, size_t *dlen,
 #if defined(POLARSSL_SELF_TEST)
 
 #include <string.h>
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 static const unsigned char base64_test_dec[64] =
 {

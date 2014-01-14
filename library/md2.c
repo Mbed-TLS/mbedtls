@@ -39,12 +39,6 @@
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #if !defined(POLARSSL_MD2_ALT)
 
 static const unsigned char PI_SUBST[256] =
@@ -301,6 +295,12 @@ void md2_hmac( const unsigned char *key, size_t keylen,
 }
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
 
 /*
  * RFC 1319 test vectors

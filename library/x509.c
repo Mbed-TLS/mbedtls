@@ -52,12 +52,6 @@
 #define polarssl_free       free
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #include <string.h>
 #include <stdlib.h>
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
@@ -701,6 +695,12 @@ int x509_time_expired( const x509_time *to )
 #endif /* POLARSSL_HAVE_TIME */
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
 
 #include "polarssl/x509_crt.h"
 #include "polarssl/certs.h"

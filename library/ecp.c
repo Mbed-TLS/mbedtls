@@ -57,12 +57,6 @@
 #define polarssl_free       free
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #include <stdlib.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
@@ -1811,6 +1805,12 @@ int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
 }
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
 
 /*
  * Checkup routine

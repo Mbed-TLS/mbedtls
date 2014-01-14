@@ -38,12 +38,6 @@
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #if !defined(POLARSSL_SHA512_ALT)
 
 /*
@@ -453,6 +447,12 @@ void sha512_hmac( const unsigned char *key, size_t keylen,
 }
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
 
 /*
  * FIPS-180-2 test vectors

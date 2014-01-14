@@ -44,12 +44,6 @@
 #define polarssl_free       free
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #include <stdlib.h>
 
 #define ciL    (sizeof(t_uint))         /* chars in limb  */
@@ -556,6 +550,13 @@ cleanup:
 }
 
 #if defined(POLARSSL_FS_IO)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 /*
  * Read X from an opened file
  */
@@ -2145,6 +2146,12 @@ cleanup:
 #endif /* POLARSSL_GENPRIME */
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
 
 #define GCD_PAIR_COUNT  3
 

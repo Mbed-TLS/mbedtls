@@ -39,12 +39,6 @@
 #include <stdio.h>
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #if !defined(POLARSSL_MD4_ALT)
 
 /*
@@ -397,6 +391,12 @@ void md4_hmac( const unsigned char *key, size_t keylen,
 }
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
 
 /*
  * RFC 1320 test vectors

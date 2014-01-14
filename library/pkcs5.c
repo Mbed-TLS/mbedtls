@@ -42,12 +42,6 @@
 #include "polarssl/cipher.h"
 #include "polarssl/oid.h"
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
                                       asn1_buf *salt, int *iterations,
                                       int *keylen, md_type_t *md_type )
@@ -288,7 +282,12 @@ int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 #define MAX_TESTS   6
 

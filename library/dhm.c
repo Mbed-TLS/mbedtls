@@ -50,12 +50,6 @@
 #define polarssl_free       free
 #endif
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 /*
  * helper to validate the mpi size and import it
  */
@@ -541,6 +535,12 @@ int dhm_parse_dhmfile( dhm_context *dhm, const char *path )
 #endif /* POLARSSL_ASN1_PARSE_C */
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
+#define polarssl_printf     printf
+#endif
 
 #include "polarssl/certs.h"
 

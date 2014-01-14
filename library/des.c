@@ -35,12 +35,6 @@
 
 #include "polarssl/des.h"
 
-#if defined(POLARSSL_PRINTF_C)
-#include "polarssl/polarssl_printf.h"
-#else
-#define polarssl_printf     printf
-#endif
-
 #if !defined(POLARSSL_DES_ALT)
 
 /*
@@ -767,7 +761,12 @@ int des3_crypt_cbc( des3_context *ctx,
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if defined(POLARSSL_PRINTF_C)
+#include "polarssl/polarssl_printf.h"
+#else
 #include <stdio.h>
+#define polarssl_printf     printf
+#endif
 
 /*
  * DES and 3DES test vectors from:

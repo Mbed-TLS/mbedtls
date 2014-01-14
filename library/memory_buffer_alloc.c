@@ -42,10 +42,12 @@
 #include "polarssl/threading.h"
 #endif
 
+#if defined(POLARSSL_MEMORY_DEBUG)
 #if defined(POLARSSL_PRINTF_C)
 #include "polarssl/polarssl_printf.h"
 #else
 #define polarssl_fprintf    fprintf
+#endif
 #endif
 
 #define MAGIC1       0xFF00AA55

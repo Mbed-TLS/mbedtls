@@ -52,6 +52,9 @@ typedef struct
     uint32_t total[2];          /*!< number of bytes processed  */
     uint32_t state[5];          /*!< intermediate digest state  */
     unsigned char buffer[64];   /*!< data block being processed */
+
+    unsigned char ipad[64];     /*!< HMAC: inner padding        */
+    unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 rmd160_context;
 
@@ -78,7 +81,7 @@ void rmd160_update( rmd160_context *ctx,
  * \param ctx      RMD160 context
  * \param output   RMD160 checksum result
  */
-void rmd160_finish( rmd160_context *ctx, unsigned char output[16] );
+void rmd160_finish( rmd160_context *ctx, unsigned char output[20] );
 
 /**
  * \brief          Output = RMD160( input buffer )
@@ -88,7 +91,7 @@ void rmd160_finish( rmd160_context *ctx, unsigned char output[16] );
  * \param output   RMD160 checksum result
  */
 void rmd160( const unsigned char *input, size_t ilen,
-             unsigned char output[16] );
+             unsigned char output[20] );
 
 #if defined(POLARSSL_FS_IO)
 /**
@@ -99,9 +102,56 @@ void rmd160( const unsigned char *input, size_t ilen,
  *
  * \return         0 if successful, or POLARSSL_ERR_RMD160_FILE_IO_ERROR
  */
-int rmd160_file( const char *path, unsigned char output[16] );
+int rmd160_file( const char *path, unsigned char output[20] );
 #endif /* POLARSSL_FS_IO */
 
+/**
+ * \brief          RMD160 HMAC context setup
+ *
+ * \param ctx      HMAC context to be initialized
+ * \param key      HMAC secret key
+ * \param keylen   length of the HMAC key
+ */
+void rmd160_hmac_starts( rmd160_context *ctx,
+                         const unsigned char *key, size_t keylen );
+
+/**
+ * \brief          RMD160 HMAC process buffer
+ *
+ * \param ctx      HMAC context
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ */
+void rmd160_hmac_update( rmd160_context *ctx,
+                         const unsigned char *input, size_t ilen );
+
+/**
+ * \brief          RMD160 HMAC final digest
+ *
+ * \param ctx      HMAC context
+ * \param output   RMD160 HMAC checksum result
+ */
+void rmd160_hmac_finish( rmd160_context *ctx, unsigned char output[20] );
+
+/**
+ * \brief          RMD160 HMAC context reset
+ *
+ * \param ctx      HMAC context to be reset
+ */
+void rmd160_hmac_reset( rmd160_context *ctx );
+
+/**
+ * \brief          Output = HMAC-RMD160( hmac key, input buffer )
+ *
+ * \param key      HMAC secret key
+ * \param keylen   length of the HMAC key
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ * \param output   HMAC-RMD160 result
+ */
+void rmd160_hmac( const unsigned char *key, size_t keylen,
+                  const unsigned char *input, size_t ilen,
+                  unsigned char output[20] );
 
 /**
  * \brief          Checkup routine

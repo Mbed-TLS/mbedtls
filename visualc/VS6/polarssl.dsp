@@ -261,6 +261,10 @@ SOURCE=..\..\library\pkwrite.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\rmd160.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\rsa.c
 # End Source File
 # Begin Source File
@@ -514,6 +518,10 @@ SOURCE=..\..\include\polarssl\pkcs5.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\pk.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\rmd160.h
 # End Source File
 # Begin Source File
 

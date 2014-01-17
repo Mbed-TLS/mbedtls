@@ -1559,6 +1559,17 @@
 #define POLARSSL_PKCS12_C
 
 /**
+ * \def POLARSSL_RMD160_C
+ *
+ * Enable the RIPEMD-160 hash algorithm.
+ *
+ * Module:  library/rmd160.c
+ * Caller:  library/md.c
+ *
+ */
+#define POLARSSL_RMD160_C
+
+/**
  * \def POLARSSL_RSA_C
  *
  * Enable the RSA public-key cryptosystem.

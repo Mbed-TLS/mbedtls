@@ -2,6 +2,7 @@
 #include <polarssl/md2.h>
 #include <polarssl/md4.h>
 #include <polarssl/md5.h>
+#include <polarssl/rmd160.h>
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:POLARSSL_MD2_C */
@@ -59,6 +60,26 @@ void md5_text( char *text_src_string, char *hex_hash_string )
 
     md5( src_str, strlen( (char *) src_str ), output );
     hexify( hash_str, output, 16 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_RMD160_C */
+void rmd160_text( char *text_src_string, char *hex_hash_string )
+{
+    unsigned char src_str[1000];
+    unsigned char hash_str[41];
+    unsigned char output[20];
+
+    memset(src_str, 0x00, sizeof src_str);
+    memset(hash_str, 0x00, sizeof hash_str);
+    memset(output, 0x00, sizeof output);
+
+    strcpy( (char *) src_str, text_src_string );
+
+    rmd160( src_str, strlen( (char *) src_str ), output );
+    hexify( hash_str, output, sizeof output );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
@@ -187,6 +208,22 @@ void md5_file( char *filename, char *hex_hash_string )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_RMD160_C:POLARSSL_FS_IO */
+void rmd160_file( char *filename, char *hex_hash_string )
+{
+    unsigned char hash_str[41];
+    unsigned char output[20];
+
+    memset(hash_str, 0x00, sizeof hash_str );
+    memset(output, 0x00, sizeof output );
+
+    rmd160_file( filename, output);
+    hexify( hash_str, output, 20 );
+
+    TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_MD2_C:POLARSSL_SELF_TEST */
 void md2_selftest()
 {
@@ -205,5 +242,12 @@ void md4_selftest()
 void md5_selftest()
 {
     TEST_ASSERT( md5_self_test( 0 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_RMD160_C:POLARSSL_SELF_TEST */
+void rmd160_selftest()
+{
+    TEST_ASSERT( rmd160_self_test( 0 ) == 0 );
 }
 /* END_CASE */

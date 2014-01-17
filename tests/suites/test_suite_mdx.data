@@ -82,6 +82,30 @@ md5 Test vector RFC1321 #7
 depends_on:POLARSSL_MD5_C
 md5_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
 
+rmd160 Test vector from paper #1
+rmd160_text:"":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
+
+rmd160 Test vector from paper #2
+rmd160_text:"a":"0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"
+
+rmd160 Test vector from paper #3
+rmd160_text:"abc":"8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"
+
+rmd160 Test vector from paper #4
+rmd160_text:"message digest":"5d0689ef49d2fae572b881b123a85ffa21595f36"
+
+rmd160 Test vector from paper #5
+rmd160_text:"abcdefghijklmnopqrstuvwxyz":"f71c27109c692c1b56bbdceb5b9d2865b3708dbc"
+
+rmd160 Test vector from paper #6
+rmd160_text:"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq":"12a053384a9c0c88e405a06c27dcf49ada62eb2b"
+
+rmd160 Test vector from paper #7
+rmd160_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"b0e20b6e3116640286ed3a87a5713079b21f5189"
+
+rmd160 Test vector from paper #8
+rmd160_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
+
 HMAC-MD2 Hash File OpenSSL test #1
 depends_on:POLARSSL_MD2_C
 md2_hmac:16:"61616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"d5732582f494f5ddf35efd166c85af9c"
@@ -206,6 +230,21 @@ MD5 Hash file #4
 depends_on:POLARSSL_MD5_C
 md5_file:"data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
 
+RMD160 Hash file #0 (from paper)
+rmd160_file:"data_files/hash_file_5":"52783243c1697bdbe16d37f97f68f08325dc1528"
+
+RMD160 Hash file #1
+rmd160_file:"data_files/hash_file_1":"82f1d072f0ec0c2b353703a7b575a04c113af1a6"
+
+RMD160 Hash file #2
+rmd160_file:"data_files/hash_file_2":"996fbc8b79206ba7393ebcd246584069b1c08f0f"
+
+RMD160 Hash file #3
+rmd160_file:"data_files/hash_file_3":"8653b46d65998fa8c8846efa17937e742533ae48"
+
+RMD160 Hash file #4
+rmd160_file:"data_files/hash_file_4":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
+
 MD2 Selftest
 depends_on:POLARSSL_MD2_C:POLARSSL_SELF_TEST
 md2_selftest:
@@ -217,3 +256,7 @@ md4_selftest:
 MD5 Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_SELF_TEST
 md5_selftest:
+
+RMD160 Selftest
+depends_on:POLARSSL_RMD160_C:POLARSSL_SELF_TEST
+rmd160_selftest:

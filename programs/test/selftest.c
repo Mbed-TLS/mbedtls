@@ -34,6 +34,7 @@
 #include "polarssl/md2.h"
 #include "polarssl/md4.h"
 #include "polarssl/md5.h"
+#include "polarssl/rmd160.h"
 #include "polarssl/sha1.h"
 #include "polarssl/sha256.h"
 #include "polarssl/sha512.h"
@@ -86,6 +87,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_MD5_C)
     if( ( ret = md5_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(POLARSSL_RMD160_C)
+    if( ( ret = rmd160_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

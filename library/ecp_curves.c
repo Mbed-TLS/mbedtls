@@ -643,14 +643,19 @@ static int ecp_mod_p384( mpi * );
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
 static int ecp_mod_p521( mpi * );
 #endif
-#if defined(POLARSSL_ECP_DP_M255_ENABLED)
-static int ecp_mod_p255( mpi * );
-#endif
 
 #define NIST_MODP( P )      grp->modp = ecp_mod_ ## P;
 #else
 #define NIST_MODP( P )
 #endif /* POLARSSL_ECP_NIST_OPTIM */
+
+/* Additional forward declarations */
+#if defined(POLARSSL_ECP_DP_M255_ENABLED)
+static int ecp_mod_p255( mpi * );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
+static int ecp_mod_p256k1( mpi * );
+#endif
 
 #define LOAD_GROUP_A( G )   ecp_group_load( grp,            \
                             G ## _p,  sizeof( G ## _p  ),   \
@@ -755,6 +760,7 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
         case POLARSSL_ECP_DP_SECP256K1:
+            grp->modp = ecp_mod_p256k1;
             return( LOAD_GROUP_A( secp256k1 ) );
 #endif /* POLARSSL_ECP_DP_SECP256K1_ENABLED */
 
@@ -1195,7 +1201,7 @@ cleanup:
 
 /*
  * Fast quasi-reduction modulo p255 = 2^255 - 19
- * Write N as A1 + 2^255 A1, return A0 + 19 * A1
+ * Write N as A0 + 2^255 A1, return A0 + 19 * A1
  */
 static int ecp_mod_p255( mpi *N )
 {
@@ -1231,5 +1237,81 @@ cleanup:
     return( ret );
 }
 #endif /* POLARSSL_ECP_DP_M255_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
+
+/* Size of p256k1 in terms of t_uint */
+#define P256K1_WIDTH      ( 256 / 8 / sizeof( t_uint ) )
+
+/* Value of R (see below) */
+static t_uint p256k1_r_p[] = {
+    BYTES_TO_T_UINT_8( 0xD1, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 ),
+};
+#define P256K1_R_WIDTH    ( sizeof( p256k1_r_p ) / sizeof( t_uint ) )
+
+/*
+ * Fast quasi-reduction modulo p256k1 = 2^256 - R,
+ * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 4294968273
+ *
+ * Write N as A0 + 2^256 A1, return A0 + R * A1.
+ * Actually do two passes, since R is big.
+ */
+static int ecp_mod_p256k1( mpi *N )
+{
+    int ret;
+    size_t i;
+    mpi M, R;
+    t_uint Mp[P256K1_WIDTH + P256K1_R_WIDTH];
+
+    if( N->n < P256K1_WIDTH )
+        return( 0 );
+
+    /* Init R */
+    R.s = 1;
+    R.p = p256k1_r_p;
+    R.n = P256K1_R_WIDTH;
+
+    /* Common setup for M */
+    M.s = 1;
+    M.p = Mp;
+
+    /* M = A1 */
+    M.n = N->n - P256K1_WIDTH;
+    if( M.n > P256K1_WIDTH )
+        M.n = P256K1_WIDTH;
+    memset( Mp, 0, sizeof Mp );
+    memcpy( Mp, N->p + P256K1_WIDTH, M.n * sizeof( t_uint ) );
+    M.n += R.n; /* Make room for multiplication by R */
+
+    /* N = A0 */
+    for( i = P256K1_WIDTH; i < N->n; i++ )
+        N->p[i] = 0;
+
+    /* N = A0 + R * A1 */
+    MPI_CHK( mpi_mul_mpi( &M, &M, &R ) );
+    MPI_CHK( mpi_add_abs( N, N, &M ) );
+
+    /* Second pass */
+
+    /* M = A1 */
+    M.n = N->n - P256K1_WIDTH;
+    if( M.n > P256K1_WIDTH )
+        M.n = P256K1_WIDTH;
+    memset( Mp, 0, sizeof Mp );
+    memcpy( Mp, N->p + P256K1_WIDTH, M.n * sizeof( t_uint ) );
+    M.n += R.n; /* Make room for multiplication by R */
+
+    /* N = A0 */
+    for( i = P256K1_WIDTH; i < N->n; i++ )
+        N->p[i] = 0;
+
+    /* N = A0 + R * A1 */
+    MPI_CHK( mpi_mul_mpi( &M, &M, &R ) );
+    MPI_CHK( mpi_add_abs( N, N, &M ) );
+
+cleanup:
+    return( ret );
+}
+#endif /* POLARSSL_ECP_DP_SECP256K1_ENABLED */
 
 #endif

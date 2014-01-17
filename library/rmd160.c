@@ -81,6 +81,9 @@ void rmd160_starts( rmd160_context *ctx )
     ctx->state[4] = 0xC3D2E1F0;
 }
 
+/*
+ * Process one block
+ */
 void rmd160_process( rmd160_context *ctx, const unsigned char data[64] )
 {
     uint32_t A, B, C, D, E, Ap, Bp, Cp, Dp, Ep, X[16];

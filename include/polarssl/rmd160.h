@@ -160,6 +160,9 @@ void rmd160_hmac( const unsigned char *key, size_t keylen,
  */
 int rmd160_self_test( int verbose );
 
+/* Internal use */
+void rmd160_process( rmd160_context *ctx, const unsigned char data[64] );
+
 #ifdef __cplusplus
 }
 #endif

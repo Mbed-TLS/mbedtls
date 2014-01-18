@@ -653,6 +653,12 @@ static int ecp_mod_p521( mpi * );
 #if defined(POLARSSL_ECP_DP_M255_ENABLED)
 static int ecp_mod_p255( mpi * );
 #endif
+#if defined(POLARSSL_ECP_DP_SECP192K1_ENABLED)
+static int ecp_mod_p192k1( mpi * );
+#endif
+#if defined(POLARSSL_ECP_DP_SECP224K1_ENABLED)
+static int ecp_mod_p224k1( mpi * );
+#endif
 #if defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
 static int ecp_mod_p256k1( mpi * );
 #endif
@@ -750,11 +756,13 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id id )
 
 #if defined(POLARSSL_ECP_DP_SECP192K1_ENABLED)
         case POLARSSL_ECP_DP_SECP192K1:
+            grp->modp = ecp_mod_p192k1;
             return( LOAD_GROUP_A( secp192k1 ) );
 #endif /* POLARSSL_ECP_DP_SECP192K1_ENABLED */
 
 #if defined(POLARSSL_ECP_DP_SECP224K1_ENABLED)
         case POLARSSL_ECP_DP_SECP224K1:
+            grp->modp = ecp_mod_p224k1;
             return( LOAD_GROUP_A( secp224k1 ) );
 #endif /* POLARSSL_ECP_DP_SECP224K1_ENABLED */
 
@@ -1238,53 +1246,52 @@ cleanup:
 }
 #endif /* POLARSSL_ECP_DP_M255_ENABLED */
 
-#if defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
-
-/* Size of p256k1 in terms of t_uint */
-#define P256K1_WIDTH      ( 256 / 8 / sizeof( t_uint ) )
-
-/* Value of R (see below) */
-static t_uint p256k1_r_p[] = {
-    BYTES_TO_T_UINT_8( 0xD1, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 ),
-};
-#define P256K1_R_WIDTH    ( sizeof( p256k1_r_p ) / sizeof( t_uint ) )
-
+#if defined(POLARSSL_ECP_DP_SECP192K1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP224K1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
 /*
- * Fast quasi-reduction modulo p256k1 = 2^256 - R,
- * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 4294968273
+ * Fast quasi-reduction modulo P = 2^s - R,
+ * with R about 33 bits, used by the Koblitz curves.
  *
- * Write N as A0 + 2^256 A1, return A0 + R * A1.
+ * Write N as A0 + 2^224 A1, return A0 + R * A1.
  * Actually do two passes, since R is big.
  */
-static int ecp_mod_p256k1( mpi *N )
+#define P_KOBLITZ_MAX   ( 256 / 8 / sizeof( t_uint ) )  // Max limbs in P
+#define P_KOBLITZ_R     ( 8 / sizeof( t_uint ) )        // Limbs in R
+static inline int ecp_mod_koblitz( mpi *N, t_uint *Rp, size_t p_limbs,
+                                   size_t adjust, size_t shift, t_uint mask )
 {
     int ret;
     size_t i;
     mpi M, R;
-    t_uint Mp[P256K1_WIDTH + P256K1_R_WIDTH];
+    t_uint Mp[P_KOBLITZ_MAX + P_KOBLITZ_R];
 
-    if( N->n < P256K1_WIDTH )
+    if( N->n < p_limbs )
         return( 0 );
 
     /* Init R */
     R.s = 1;
-    R.p = p256k1_r_p;
-    R.n = P256K1_R_WIDTH;
+    R.p = Rp;
+    R.n = P_KOBLITZ_R;
 
     /* Common setup for M */
     M.s = 1;
     M.p = Mp;
 
     /* M = A1 */
-    M.n = N->n - P256K1_WIDTH;
-    if( M.n > P256K1_WIDTH )
-        M.n = P256K1_WIDTH;
+    M.n = N->n - ( p_limbs - adjust );
+    if( M.n > p_limbs + adjust )
+        M.n = p_limbs + adjust;
     memset( Mp, 0, sizeof Mp );
-    memcpy( Mp, N->p + P256K1_WIDTH, M.n * sizeof( t_uint ) );
-    M.n += R.n; /* Make room for multiplication by R */
+    memcpy( Mp, N->p + p_limbs - adjust, M.n * sizeof( t_uint ) );
+    if (shift != 0 )
+        MPI_CHK( mpi_shift_r( &M, shift ) );
+    M.n += R.n - adjust; /* Make room for multiplication by R */
 
     /* N = A0 */
-    for( i = P256K1_WIDTH; i < N->n; i++ )
+    if (mask != 0 )
+        N->p[p_limbs - 1] &= mask;
+    for( i = p_limbs; i < N->n; i++ )
         N->p[i] = 0;
 
     /* N = A0 + R * A1 */
@@ -1294,15 +1301,19 @@ static int ecp_mod_p256k1( mpi *N )
     /* Second pass */
 
     /* M = A1 */
-    M.n = N->n - P256K1_WIDTH;
-    if( M.n > P256K1_WIDTH )
-        M.n = P256K1_WIDTH;
+    M.n = N->n - ( p_limbs - adjust );
+    if( M.n > p_limbs + adjust )
+        M.n = p_limbs + adjust;
     memset( Mp, 0, sizeof Mp );
-    memcpy( Mp, N->p + P256K1_WIDTH, M.n * sizeof( t_uint ) );
-    M.n += R.n; /* Make room for multiplication by R */
+    memcpy( Mp, N->p + p_limbs - adjust, M.n * sizeof( t_uint ) );
+    if (shift != 0 )
+        MPI_CHK( mpi_shift_r( &M, shift ) );
+    M.n += R.n - adjust; /* Make room for multiplication by R */
 
     /* N = A0 */
-    for( i = P256K1_WIDTH; i < N->n; i++ )
+    if (mask != 0 )
+        N->p[p_limbs - 1] &= mask;
+    for( i = p_limbs; i < N->n; i++ )
         N->p[i] = 0;
 
     /* N = A0 + R * A1 */
@@ -1311,6 +1322,54 @@ static int ecp_mod_p256k1( mpi *N )
 
 cleanup:
     return( ret );
+}
+#endif /* POLARSSL_ECP_DP_SECP192K1_ENABLED) ||
+          POLARSSL_ECP_DP_SECP224K1_ENABLED) ||
+          POLARSSL_ECP_DP_SECP256K1_ENABLED) */
+
+#if defined(POLARSSL_ECP_DP_SECP192K1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p192k1 = 2^192 - R,
+ * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
+ */
+static int ecp_mod_p192k1( mpi *N )
+{
+    static t_uint Rp[] = {
+        BYTES_TO_T_UINT_8( 0xC9, 0x11, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 ) };
+
+    return( ecp_mod_koblitz( N, Rp, 192 / 8 / sizeof( t_uint ), 0, 0, 0 ) );
+}
+#endif /* POLARSSL_ECP_DP_SECP192K1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_SECP224K1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p224k1 = 2^224 - R,
+ * with R = 2^32 + 2^12 + 2^11 + 2^9 + 2^7 + 2^4 + 2 + 1 = 0x0100001A93
+ */
+static int ecp_mod_p224k1( mpi *N )
+{
+    static t_uint Rp[] = {
+        BYTES_TO_T_UINT_8( 0x93, 0x1A, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 ) };
+
+#if defined(POLARSSL_HAVE_INT64)
+    return( ecp_mod_koblitz( N, Rp, 4, 1, 32, 0xFFFFFFFF ) );
+#else
+    return( ecp_mod_koblitz( N, Rp, 224 / 8 / sizeof( t_uint ), 0, 0, 0 ) );
+#endif
+}
+
+#endif /* POLARSSL_ECP_DP_SECP224K1_ENABLED */
+
+#if defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p256k1 = 2^256 - R,
+ * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 0x01000003D1
+ */
+static int ecp_mod_p256k1( mpi *N )
+{
+    static t_uint Rp[] = {
+        BYTES_TO_T_UINT_8( 0xD1, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 ) };
+    return( ecp_mod_koblitz( N, Rp, 256 / 8 / sizeof( t_uint ), 0, 0, 0 ) );
 }
 #endif /* POLARSSL_ECP_DP_SECP256K1_ENABLED */
 

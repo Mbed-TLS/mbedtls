@@ -309,9 +309,15 @@ int gcm_auth_decrypt( gcm_context *ctx,
                       const unsigned char *input,
                       unsigned char *output )
 {
+    int ret;
     unsigned char check_tag[16];
 
-    gcm_crypt_and_tag( ctx, GCM_DECRYPT, length, iv, iv_len, add, add_len, input, output, tag_len, check_tag );
+    if( ( ret = gcm_crypt_and_tag( ctx, GCM_DECRYPT, length,
+                                   iv, iv_len, add, add_len,
+                                   input, output, tag_len, check_tag ) ) != 0 )
+    {
+        return( ret );
+    }
 
     if( memcmp( check_tag, tag, tag_len ) == 0 )
         return( 0 );

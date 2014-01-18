@@ -596,6 +596,12 @@ int ssl_derive_keys( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_SSL3)
     if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
+        if( transform->maclen > sizeof transform->mac_enc )
+        {
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+
         memcpy( transform->mac_enc, mac_enc, transform->maclen );
         memcpy( transform->mac_dec, mac_dec, transform->maclen );
     }

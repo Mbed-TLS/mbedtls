@@ -1410,6 +1410,7 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
      */
     mpi_montg_init( &mm, N );
     mpi_init( &RR ); mpi_init( &T );
+    mpi_init( &Apos );
     memset( W, 0, sizeof( W ) );
 
     i = mpi_msb( E );
@@ -1429,8 +1430,6 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
      * Compensate for negative A (and correct at the end)
      */
     neg = ( A->s == -1 );
-
-    mpi_init( &Apos );
     if( neg )
     {
         MPI_CHK( mpi_copy( &Apos, A ) );

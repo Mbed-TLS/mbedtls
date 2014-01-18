@@ -32,6 +32,7 @@ ssl/ssl_client1
 ssl/ssl_client2
 ssl/ssl_fork_server
 ssl/ssl_mail_client
+ssl/ssl_pthread_server
 ssl/ssl_server
 ssl/ssl_server2
 test/benchmark

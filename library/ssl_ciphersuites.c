@@ -1650,6 +1650,7 @@ pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info )
 }
 #endif
 
+#if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
 {
     switch( info->key_exchange )
@@ -1665,7 +1666,9 @@ int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
             return( 0 );
     }
 }
+#endif
 
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
 {
     switch( info->key_exchange )
@@ -1680,5 +1683,6 @@ int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
             return( 0 );
     }
 }
+#endif
 
 #endif

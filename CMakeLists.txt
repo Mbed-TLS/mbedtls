@@ -53,6 +53,9 @@ add_subdirectory(include)
 if(CMAKE_COMPILER_IS_GNUCC)
   add_subdirectory(tests)
 endif(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_COMPILER_IS_CLANG)
+  add_subdirectory(tests)
+endif(CMAKE_COMPILER_IS_CLANG)
 
 add_subdirectory(programs)
 

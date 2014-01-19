@@ -2092,10 +2092,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
@@ -2108,8 +2105,41 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ECPoint      public;
          * } ServerECDHParams;
          */
+
+        unsigned int pref_idx, curv_idx, found;
+
+        /* Match our preference list against the agreed curves */
+        for( pref_idx = 0, found = 0;
+             ssl->ecdh_curve_list[pref_idx] != POLARSSL_ECP_DP_NONE;
+             pref_idx++ )
+        {
+            /* Look through the agreed curve list */
+            for( curv_idx = 0;
+                 ssl->handshake->curves[curv_idx] != NULL;
+                 curv_idx++ )
+            {
+                if (ssl->handshake->curves[curv_idx]->grp_id ==
+                    ssl->ecdh_curve_list[pref_idx] )
+                {
+                    /* We found our most preferred curve */
+                    found = 1;
+                    break;
+                }
+            }
+
+            /* Exit the search if we have found our curve */
+            if( found == 1 )
+            {
+                break;
+            }
+        }
+        /* If we haven't found any allowed / preferred curve,
+         * ssl->ecdh_curve_list[pref_idx] will contain POLARSSL_ECP_DP_NONE and
+         * ecp_use_known_dp() will fail.
+         */
+
         if( ( ret = ecp_use_known_dp( &ssl->handshake->ecdh_ctx.grp,
-                                   ssl->handshake->curves[0]->grp_id ) ) != 0 )
+                                       ssl->ecdh_curve_list[pref_idx] ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecp_use_known_dp", ret );
             return( ret );
@@ -2134,9 +2164,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
         SSL_DEBUG_ECP( 3, "ECDH: Q ", &ssl->handshake->ecdh_ctx.Q );
     }
-#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \

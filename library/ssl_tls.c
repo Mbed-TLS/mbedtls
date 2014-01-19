@@ -3321,6 +3321,46 @@ static int ssl_handshake_init( ssl_context *ssl )
  */
 int ssl_init( ssl_context *ssl )
 {
+
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+    /*
+    * ECDHE allowed curves and preference list
+    *
+    * We start with the most secure curves. From the same size curves, we prefer
+    * the SECP ones because they are much faster.
+    *
+    * TODO: Add the Montgomery curves
+    */
+    static const ecp_group_id ecdh_default_curve_list[] =
+    {
+#if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
+        POLARSSL_ECP_DP_SECP521R1,
+#endif
+#if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
+        POLARSSL_ECP_DP_BP512R1,
+#endif
+#if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
+        POLARSSL_ECP_DP_SECP384R1,
+#endif
+#if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
+        POLARSSL_ECP_DP_BP384R1,
+#endif
+#if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
+        POLARSSL_ECP_DP_SECP256R1,
+#endif
+#if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
+        POLARSSL_ECP_DP_BP256R1,
+#endif
+#if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
+        POLARSSL_ECP_DP_SECP224R1,
+#endif
+#if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
+        POLARSSL_ECP_DP_SECP192R1,
+#endif
+        POLARSSL_ECP_DP_NONE
+    };
+#endif
+
     int ret;
     int len = SSL_BUFFER_LEN;
 
@@ -3378,6 +3418,10 @@ int ssl_init( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+    ssl->ecdh_curve_list = ecdh_default_curve_list;
 #endif
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
@@ -4605,4 +4649,14 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash )
     }
 }
 
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+/*
+ * Set the allowed ECDH curves.
+ */
+void ssl_set_ecdh_curves( ssl_context *ssl, const ecp_group_id *ecdh_curve_list )
+{
+  ssl->ecdh_curve_list = ecdh_curve_list;
+}
 #endif

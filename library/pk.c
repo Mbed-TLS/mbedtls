@@ -109,6 +109,20 @@ int pk_init_ctx( pk_context *ctx, const pk_info_t *info )
 }
 
 /*
+ * Set RSA padding
+ */
+int pk_rsa_set_padding( pk_context *ctx, int padding, int hash_id )
+{
+    if( ctx == NULL || ctx->pk_info == NULL ||
+        ctx->pk_info->type != POLARSSL_PK_RSA )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    rsa_set_padding( pk_rsa( *ctx ), padding, hash_id );
+
+    return( 0 );
+}
+
+/*
  * Initialize an RSA-alt context
  */
 int pk_init_ctx_rsa_alt( pk_context *ctx, void * key,

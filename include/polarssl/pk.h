@@ -222,10 +222,30 @@ void pk_free( pk_context *ctx );
  *                  POLARSSL_ERR_PK_BAD_INPUT_DATA on invalid input,
  *                  POLARSSL_ERR_PK_MALLOC_FAILED on allocation failure.
  *
- * \note            For contexts holding an RSA-alt key, use
+ * \note            For RSA contexts, padding defaults to PKCS_V15.
+ *                  Use pk_rsa_set_padding() to change it.
+ *
+ * \note            To create a context holding an RSA-alt key, use
  *                  \c pk_init_ctx_rsa_alt() instead.
  */
 int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
+
+#if defined(POLARSSL_RSA_C)
+/**
+ * \brief          Set the padding method for an RSA key
+ *
+ *                 Note: Set padding to RSA_PKCS_V21 for the RSAES-OAEP
+ *                 encryption scheme and the RSASSA-PSS signature scheme.
+ *
+ * \param ctx      PK context to be set
+ * \param padding  RSA_PKCS_V15 or RSA_PKCS_V21
+ * \param hash_id  RSA_PKCS_V21 hash identifier
+ *
+ * \note           The hash_id parameter is actually ignored
+ *                 when using RSA_PKCS_V15 padding.
+ */
+int pk_rsa_set_padding( pk_context *ctx, int padding, int hash_id );
+#endif /* POLARSSL_RSA_C */
 
 /**
  * \brief           Initialize an RSA-alt context

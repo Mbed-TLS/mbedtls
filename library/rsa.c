@@ -60,6 +60,17 @@ void rsa_init( rsa_context *ctx,
 #endif
 }
 
+/*
+ * Set padding method after initialisation
+ */
+void rsa_set_padding( rsa_context *ctx,
+                      int padding,
+                      int hash_id)
+{
+    ctx->padding = padding;
+    ctx->hash_id = hash_id;
+}
+
 #if defined(POLARSSL_GENPRIME)
 
 /*

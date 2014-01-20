@@ -54,15 +54,33 @@ void pk_utils( int type, int size, int len, char *name )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void pk_set_rsa_padding( int type, int padding, int hash_id, int ret )
+{
+    pk_context pk;
+    unsigned char hash[50], sig[5000];
+    size_t sig_len;
+
+    pk_init( &pk );
+
+    memset( hash, 0x2a, sizeof hash );
+    memset( sig, 0, sizeof sig );
+
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( type ) ) == 0 );
+    TEST_ASSERT( pk_rsa_set_padding( &pk, padding, hash_id ) == ret );
+
+    pk_free( &pk );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_RSA_C */
-void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
+void pk_rsa_verify_test_vec( char *message_hex_string, int digest, int scheme,
                        int mod, int radix_N, char *input_N, int radix_E,
                        char *input_E, char *result_hex_str, int result )
 {
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
-    rsa_context *rsa;
     pk_context pk;
     int msg_len;
 
@@ -73,11 +91,16 @@ void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
     memset( result_str, 0x00, 1000 );
 
     TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( POLARSSL_PK_RSA ) ) == 0 );
-    rsa = pk_rsa( pk );
+    TEST_ASSERT( pk_rsa_set_padding( &pk, scheme, digest ) == 0 );
 
-    rsa->len = mod / 8;
-    TEST_ASSERT( mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
-    TEST_ASSERT( mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+    /* Set RSA key manually */
+    {
+        rsa_context *rsa = pk_rsa( pk );
+
+        rsa->len = mod / 8;
+        TEST_ASSERT( mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
+        TEST_ASSERT( mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+    }
 
     msg_len = unhexify( message_str, message_hex_string );
     unhexify( result_str, result_hex_str );

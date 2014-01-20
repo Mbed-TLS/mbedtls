@@ -105,7 +105,7 @@ static int block_cipher_df( unsigned char *output,
     unsigned char tmp[CTR_DRBG_SEEDLEN];
     unsigned char key[CTR_DRBG_KEYSIZE];
     unsigned char chain[CTR_DRBG_BLOCKSIZE];
-    unsigned char *p = buf, *iv;
+    unsigned char *p, *iv;
     aes_context aes_ctx;
 
     int i, j;

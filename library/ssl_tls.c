@@ -1097,8 +1097,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         unsigned char add_data[13];
         int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
 
-        enc_msglen = ssl->out_msglen;
-
         memcpy( add_data, ssl->out_ctr, 8 );
         add_data[8]  = ssl->out_msgtype;
         add_data[9]  = ssl->major_ver;

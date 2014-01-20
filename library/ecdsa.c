@@ -349,7 +349,8 @@ void ecdsa_free( ecdsa_context *ctx )
  */
 int ecdsa_self_test( int verbose )
 {
-    return( verbose++ );
+    ((void) verbose );
+    return( 0 );
 }
 
 #endif

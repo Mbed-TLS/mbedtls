@@ -258,7 +258,8 @@ int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
  */
 int ecdh_self_test( int verbose )
 {
-    return( verbose++ );
+    ((void) verbose );
+    return( 0 );
 }
 
 #endif

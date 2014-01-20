@@ -911,8 +911,6 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
 
     memset( sig, 0, olen );
 
-    msb = mpi_msb( &ctx->N ) - 1;
-
     // Generate salt of length slen
     //
     if( ( ret = f_rng( p_rng, salt, slen ) ) != 0 )

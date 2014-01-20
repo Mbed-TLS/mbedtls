@@ -112,13 +112,7 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
     if( ret == 0 )
     {
         /*
-         * Was PEM encoded
-         */
-        buflen -= use_len;
-        buf += use_len;
-
-        /*
-         * Steal PEM buffer
+         * Was PEM encoded, steal PEM buffer
          */
         p = pem.buf;
         pem.buf = NULL;
@@ -142,8 +136,6 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
         memcpy( p, buf, buflen );
-
-        buflen = 0;
     }
 
     csr->raw.p = p;

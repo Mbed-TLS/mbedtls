@@ -543,8 +543,6 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
 
     memcpy( p, buf, buflen );
 
-    buflen = 0;
-
     crt->raw.p = p;
     crt->raw.len = len;
     end = p + len;

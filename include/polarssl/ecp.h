@@ -256,6 +256,13 @@ const ecp_curve_info *ecp_curve_info_from_tls_id( uint16_t tls_id );
 const ecp_curve_info *ecp_curve_info_from_name( const char *name );
 
 /**
+ * \brief           Get the default ECDH curve list
+ *
+ * \return          The default ECDH curve list
+ */
+ecp_group_id *ecp_get_default_echd_curve_list( void );
+
+/**
  * \brief           Initialize a point (as zero)
  */
 void ecp_point_init( ecp_point *pt );

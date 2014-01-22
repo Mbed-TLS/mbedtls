@@ -114,26 +114,32 @@ typedef enum
  *  - TLS NamedCurve ID (RFC 4492 sec. 5.1.1, RFC 7071 sec. 2)
  *  - size in bits
  *  - readable name
+ *
+ * The sequence of elements in this list also determines the default preference
+ * of the curves used by an ECHDE handshake.
+ * We start with the most secure curves. From the same sized curves, we prefer
+ * the SECP ones because they are much faster.
+ *
  */
 static const ecp_curve_info ecp_supported_curves[] =
 {
-#if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
-    { POLARSSL_ECP_DP_BP512R1,      28,     512,    "brainpoolP512r1"   },
-#endif
-#if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
-    { POLARSSL_ECP_DP_BP384R1,      27,     384,    "brainpoolP384r1"   },
-#endif
-#if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
-    { POLARSSL_ECP_DP_BP256R1,      26,     256,    "brainpoolP256r1"   },
-#endif
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
     { POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1"         },
+#endif
+#if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
+    { POLARSSL_ECP_DP_BP512R1,      28,     512,    "brainpoolP512r1"   },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
     { POLARSSL_ECP_DP_SECP384R1,    24,     384,    "secp384r1"         },
 #endif
+#if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
+    { POLARSSL_ECP_DP_BP384R1,      27,     384,    "brainpoolP384r1"   },
+#endif
 #if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
     { POLARSSL_ECP_DP_SECP256R1,    23,     256,    "secp256r1"         },
+#endif
+#if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
+    { POLARSSL_ECP_DP_BP256R1,      26,     256,    "brainpoolP256r1"   },
 #endif
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
     { POLARSSL_ECP_DP_SECP224R1,    21,     224,    "secp224r1"         },
@@ -143,6 +149,8 @@ static const ecp_curve_info ecp_supported_curves[] =
 #endif
     { POLARSSL_ECP_DP_NONE,          0,     0,      NULL                },
 };
+#define ECP_NUM_SUPPORTED_CURVES ( sizeof( ecp_supported_curves ) / \
+                                   sizeof( ecp_curve_info )         )
 
 /*
  * List of supported curves and associated info
@@ -204,6 +212,23 @@ const ecp_curve_info *ecp_curve_info_from_name( const char *name )
     }
 
     return( NULL );
+}
+
+/*
+ * Get the default ECDH curve list
+ */
+ecp_group_id *ecp_get_default_echd_curve_list( void )
+{
+    static ecp_group_id ecdh_default_curve_list[ECP_NUM_SUPPORTED_CURVES];
+    int i;
+
+    /* Build the list of default curves based on ecp_supported_curves[] */
+    for( i = 0; i < ECP_NUM_SUPPORTED_CURVES; i++)
+    {
+        ecdh_default_curve_list[i] = ecp_supported_curves[i].grp_id;
+    }
+
+    return ecdh_default_curve_list;
 }
 
 /*

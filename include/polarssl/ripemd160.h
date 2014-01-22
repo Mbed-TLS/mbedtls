@@ -40,6 +40,10 @@ typedef UINT32 uint32_t;
 
 #define POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR              -0x0074  /**< Read/write error in file. */
 
+#if !defined(POLARSSL_RIPEMD160_ALT)
+// Regular implementation
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -82,6 +86,21 @@ void ripemd160_update( ripemd160_context *ctx,
  * \param output   RIPEMD-160 checksum result
  */
 void ripemd160_finish( ripemd160_context *ctx, unsigned char output[20] );
+
+/* Internal use */
+void ripemd160_process( ripemd160_context *ctx, const unsigned char data[64] );
+
+#ifdef __cplusplus
+}
+#endif
+
+#else  /* POLARSSL_RIPEMD160_ALT */
+#include "ripemd160.h"
+#endif /* POLARSSL_RIPEMD160_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Output = RIPEMD-160( input buffer )
@@ -159,9 +178,6 @@ void ripemd160_hmac( const unsigned char *key, size_t keylen,
  * \return         0 if successful, or 1 if the test failed
  */
 int ripemd160_self_test( int verbose );
-
-/* Internal use */
-void ripemd160_process( ripemd160_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }

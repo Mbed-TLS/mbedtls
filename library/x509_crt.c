@@ -529,6 +529,9 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     int ret;
     size_t len;
     unsigned char *p, *end, *crt_end;
+    x509_buf sig_params;
+
+    memset( &sig_params, 0, sizeof( x509_buf ) );
 
     /*
      * Check for valid input
@@ -592,7 +595,8 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
      */
     if( ( ret = x509_get_version(  &p, end, &crt->version  ) ) != 0 ||
         ( ret = x509_get_serial(   &p, end, &crt->serial   ) ) != 0 ||
-        ( ret = x509_get_alg_null( &p, end, &crt->sig_oid1 ) ) != 0 )
+        ( ret = x509_get_alg(      &p, end, &crt->sig_oid1,
+                                            &crt->sig_params ) ) != 0 )
     {
         x509_crt_free( crt );
         return( ret );
@@ -733,14 +737,16 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
-    if( ( ret = x509_get_alg_null( &p, end, &crt->sig_oid2 ) ) != 0 )
+    if( ( ret = x509_get_alg( &p, end, &crt->sig_oid2, &sig_params ) ) != 0 )
     {
         x509_crt_free( crt );
         return( ret );
     }
 
     if( crt->sig_oid1.len != crt->sig_oid2.len ||
-        memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 )
+        memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 ||
+        crt->sig_params.len != sig_params.len ||
+        memcmp( crt->sig_params.p, sig_params.p, sig_params.len ) != 0 )
     {
         x509_crt_free( crt );
         return( POLARSSL_ERR_X509_SIG_MISMATCH );

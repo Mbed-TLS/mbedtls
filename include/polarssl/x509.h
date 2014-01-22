@@ -254,6 +254,8 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
                    x509_name *cur );
 int x509_get_alg_null( unsigned char **p, const unsigned char *end,
                        x509_buf *alg );
+int x509_get_alg( unsigned char **p, const unsigned char *end,
+                  x509_buf *alg, x509_buf *params );
 int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig );
 int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
                       pk_type_t *pk_alg );

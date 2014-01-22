@@ -45,8 +45,8 @@
 #include "polarssl/md5.h"
 #endif
 
-#if defined(POLARSSL_RMD160_C)
-#include "polarssl/rmd160.h"
+#if defined(POLARSSL_RIPEMD160_C)
+#include "polarssl/ripemd160.h"
 #endif
 
 #if defined(POLARSSL_SHA1_C)
@@ -324,27 +324,27 @@ const md_info_t md5_info = {
 
 #endif
 
-#if defined(POLARSSL_RMD160_C)
+#if defined(POLARSSL_RIPEMD160_C)
 
-static void rmd160_starts_wrap( void *ctx )
+static void ripemd160_starts_wrap( void *ctx )
 {
-    rmd160_starts( (rmd160_context *) ctx );
+    ripemd160_starts( (ripemd160_context *) ctx );
 }
 
-static void rmd160_update_wrap( void *ctx, const unsigned char *input, size_t ilen )
+static void ripemd160_update_wrap( void *ctx, const unsigned char *input, size_t ilen )
 {
-    rmd160_update( (rmd160_context *) ctx, input, ilen );
+    ripemd160_update( (ripemd160_context *) ctx, input, ilen );
 }
 
-static void rmd160_finish_wrap( void *ctx, unsigned char *output )
+static void ripemd160_finish_wrap( void *ctx, unsigned char *output )
 {
-    rmd160_finish( (rmd160_context *) ctx, output );
+    ripemd160_finish( (ripemd160_context *) ctx, output );
 }
 
-static int rmd160_file_wrap( const char *path, unsigned char *output )
+static int ripemd160_file_wrap( const char *path, unsigned char *output )
 {
 #if defined(POLARSSL_FS_IO)
-    return rmd160_file( path, output );
+    return ripemd160_file( path, output );
 #else
     ((void) path);
     ((void) output);
@@ -352,58 +352,58 @@ static int rmd160_file_wrap( const char *path, unsigned char *output )
 #endif
 }
 
-static void rmd160_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
+static void ripemd160_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
 {
-    rmd160_hmac_starts( (rmd160_context *) ctx, key, keylen );
+    ripemd160_hmac_starts( (ripemd160_context *) ctx, key, keylen );
 }
 
-static void rmd160_hmac_update_wrap( void *ctx, const unsigned char *input, size_t ilen )
+static void ripemd160_hmac_update_wrap( void *ctx, const unsigned char *input, size_t ilen )
 {
-    rmd160_hmac_update( (rmd160_context *) ctx, input, ilen );
+    ripemd160_hmac_update( (ripemd160_context *) ctx, input, ilen );
 }
 
-static void rmd160_hmac_finish_wrap( void *ctx, unsigned char *output )
+static void ripemd160_hmac_finish_wrap( void *ctx, unsigned char *output )
 {
-    rmd160_hmac_finish( (rmd160_context *) ctx, output );
+    ripemd160_hmac_finish( (ripemd160_context *) ctx, output );
 }
 
-static void rmd160_hmac_reset_wrap( void *ctx )
+static void ripemd160_hmac_reset_wrap( void *ctx )
 {
-    rmd160_hmac_reset( (rmd160_context *) ctx );
+    ripemd160_hmac_reset( (ripemd160_context *) ctx );
 }
 
-static void * rmd160_ctx_alloc( void )
+static void * ripemd160_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( rmd160_context ) );
+    return polarssl_malloc( sizeof( ripemd160_context ) );
 }
 
-static void rmd160_ctx_free( void *ctx )
+static void ripemd160_ctx_free( void *ctx )
 {
     polarssl_free( ctx );
 }
 
-static void rmd160_process_wrap( void *ctx, const unsigned char *data )
+static void ripemd160_process_wrap( void *ctx, const unsigned char *data )
 {
-    rmd160_process( (rmd160_context *) ctx, data );
+    ripemd160_process( (ripemd160_context *) ctx, data );
 }
 
-const md_info_t rmd160_info = {
-    POLARSSL_MD_RMD160,
-    "RMD160",
+const md_info_t ripemd160_info = {
+    POLARSSL_MD_RIPEMD160,
+    "RIPEMD160",
     20,
-    rmd160_starts_wrap,
-    rmd160_update_wrap,
-    rmd160_finish_wrap,
-    rmd160,
-    rmd160_file_wrap,
-    rmd160_hmac_starts_wrap,
-    rmd160_hmac_update_wrap,
-    rmd160_hmac_finish_wrap,
-    rmd160_hmac_reset_wrap,
-    rmd160_hmac,
-    rmd160_ctx_alloc,
-    rmd160_ctx_free,
-    rmd160_process_wrap,
+    ripemd160_starts_wrap,
+    ripemd160_update_wrap,
+    ripemd160_finish_wrap,
+    ripemd160,
+    ripemd160_file_wrap,
+    ripemd160_hmac_starts_wrap,
+    ripemd160_hmac_update_wrap,
+    ripemd160_hmac_finish_wrap,
+    ripemd160_hmac_reset_wrap,
+    ripemd160_hmac,
+    ripemd160_ctx_alloc,
+    ripemd160_ctx_free,
+    ripemd160_process_wrap,
 };
 
 #endif

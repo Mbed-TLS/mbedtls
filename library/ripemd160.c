@@ -31,9 +31,9 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_RMD160_C)
+#if defined(POLARSSL_RIPEMD160_C)
 
-#include "polarssl/rmd160.h"
+#include "polarssl/ripemd160.h"
 
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
@@ -67,9 +67,9 @@
 #endif
 
 /*
- * RMD160 context setup
+ * RIPEMD-160 context setup
  */
-void rmd160_starts( rmd160_context *ctx )
+void ripemd160_starts( ripemd160_context *ctx )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -84,7 +84,7 @@ void rmd160_starts( rmd160_context *ctx )
 /*
  * Process one block
  */
-void rmd160_process( rmd160_context *ctx, const unsigned char data[64] )
+void ripemd160_process( ripemd160_context *ctx, const unsigned char data[64] )
 {
     uint32_t A, B, C, D, E, Ap, Bp, Cp, Dp, Ep, X[16];
 
@@ -262,10 +262,10 @@ void rmd160_process( rmd160_context *ctx, const unsigned char data[64] )
 }
 
 /*
- * RMD160 process buffer
+ * RIPEMD-160 process buffer
  */
-void rmd160_update( rmd160_context *ctx,
-                    const unsigned char *input, size_t ilen )
+void ripemd160_update( ripemd160_context *ctx,
+                       const unsigned char *input, size_t ilen )
 {
     size_t fill;
     uint32_t left;
@@ -285,7 +285,7 @@ void rmd160_update( rmd160_context *ctx,
     if( left && ilen >= fill )
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
-        rmd160_process( ctx, ctx->buffer );
+        ripemd160_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
         left = 0;
@@ -293,7 +293,7 @@ void rmd160_update( rmd160_context *ctx,
 
     while( ilen >= 64 )
     {
-        rmd160_process( ctx, input );
+        ripemd160_process( ctx, input );
         input += 64;
         ilen  -= 64;
     }
@@ -304,7 +304,7 @@ void rmd160_update( rmd160_context *ctx,
     }
 }
 
-static const unsigned char rmd160_padding[64] =
+static const unsigned char ripemd160_padding[64] =
 {
  0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -313,9 +313,9 @@ static const unsigned char rmd160_padding[64] =
 };
 
 /*
- * RMD160 final digest
+ * RIPEMD-160 final digest
  */
-void rmd160_finish( rmd160_context *ctx, unsigned char output[20] )
+void ripemd160_finish( ripemd160_context *ctx, unsigned char output[20] )
 {
     uint32_t last, padn;
     uint32_t high, low;
@@ -331,8 +331,8 @@ void rmd160_finish( rmd160_context *ctx, unsigned char output[20] )
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    rmd160_update( ctx, rmd160_padding, padn );
-    rmd160_update( ctx, msglen, 8 );
+    ripemd160_update( ctx, ripemd160_padding, padn );
+    ripemd160_update( ctx, msglen, 8 );
 
     PUT_UINT32_LE( ctx->state[0], output,  0 );
     PUT_UINT32_LE( ctx->state[1], output,  4 );
@@ -342,46 +342,47 @@ void rmd160_finish( rmd160_context *ctx, unsigned char output[20] )
 }
 
 /*
- * output = RMD160( input buffer )
+ * output = RIPEMD-160( input buffer )
  */
-void rmd160( const unsigned char *input, size_t ilen, unsigned char output[20] )
+void ripemd160( const unsigned char *input, size_t ilen,
+                unsigned char output[20] )
 {
-    rmd160_context ctx;
+    ripemd160_context ctx;
 
-    rmd160_starts( &ctx );
-    rmd160_update( &ctx, input, ilen );
-    rmd160_finish( &ctx, output );
+    ripemd160_starts( &ctx );
+    ripemd160_update( &ctx, input, ilen );
+    ripemd160_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( rmd160_context ) );
+    memset( &ctx, 0, sizeof( ripemd160_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
 /*
- * output = RMD160( file contents )
+ * output = RIPEMD-160( file contents )
  */
-int rmd160_file( const char *path, unsigned char output[20] )
+int ripemd160_file( const char *path, unsigned char output[20] )
 {
     FILE *f;
     size_t n;
-    rmd160_context ctx;
+    ripemd160_context ctx;
     unsigned char buf[1024];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( POLARSSL_ERR_RMD160_FILE_IO_ERROR );
+        return( POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR );
 
-    rmd160_starts( &ctx );
+    ripemd160_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
-        rmd160_update( &ctx, buf, n );
+        ripemd160_update( &ctx, buf, n );
 
-    rmd160_finish( &ctx, output );
+    ripemd160_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( rmd160_context ) );
+    memset( &ctx, 0, sizeof( ripemd160_context ) );
 
     if( ferror( f ) != 0 )
     {
         fclose( f );
-        return( POLARSSL_ERR_RMD160_FILE_IO_ERROR );
+        return( POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR );
     }
 
     fclose( f );
@@ -389,19 +390,18 @@ int rmd160_file( const char *path, unsigned char output[20] )
 }
 #endif /* POLARSSL_FS_IO */
 
-
 /*
- * RMD160 HMAC context setup
+ * RIPEMD-160 HMAC context setup
  */
-void rmd160_hmac_starts( rmd160_context *ctx,
-                         const unsigned char *key, size_t keylen )
+void ripemd160_hmac_starts( ripemd160_context *ctx,
+                            const unsigned char *key, size_t keylen )
 {
     size_t i;
     unsigned char sum[20];
 
     if( keylen > 64 )
     {
-        rmd160( key, keylen, sum );
+        ripemd160( key, keylen, sum );
         keylen = 20;
         key = sum;
     }
@@ -415,60 +415,60 @@ void rmd160_hmac_starts( rmd160_context *ctx,
         ctx->opad[i] = (unsigned char)( ctx->opad[i] ^ key[i] );
     }
 
-    rmd160_starts( ctx );
-    rmd160_update( ctx, ctx->ipad, 64 );
+    ripemd160_starts( ctx );
+    ripemd160_update( ctx, ctx->ipad, 64 );
 
     memset( sum, 0, sizeof( sum ) );
 }
 
 /*
- * RMD160 HMAC process buffer
+ * RIPEMD-160 HMAC process buffer
  */
-void rmd160_hmac_update( rmd160_context *ctx,
-                         const unsigned char *input, size_t ilen )
+void ripemd160_hmac_update( ripemd160_context *ctx,
+                            const unsigned char *input, size_t ilen )
 {
-    rmd160_update( ctx, input, ilen );
+    ripemd160_update( ctx, input, ilen );
 }
 
 /*
- * RMD160 HMAC final digest
+ * RIPEMD-160 HMAC final digest
  */
-void rmd160_hmac_finish( rmd160_context *ctx, unsigned char output[20] )
+void ripemd160_hmac_finish( ripemd160_context *ctx, unsigned char output[20] )
 {
     unsigned char tmpbuf[20];
 
-    rmd160_finish( ctx, tmpbuf );
-    rmd160_starts( ctx );
-    rmd160_update( ctx, ctx->opad, 64 );
-    rmd160_update( ctx, tmpbuf, 20 );
-    rmd160_finish( ctx, output );
+    ripemd160_finish( ctx, tmpbuf );
+    ripemd160_starts( ctx );
+    ripemd160_update( ctx, ctx->opad, 64 );
+    ripemd160_update( ctx, tmpbuf, 20 );
+    ripemd160_finish( ctx, output );
 
     memset( tmpbuf, 0, sizeof( tmpbuf ) );
 }
 
 /*
- * RMD160 HMAC context reset
+ * RIPEMD-160 HMAC context reset
  */
-void rmd160_hmac_reset( rmd160_context *ctx )
+void ripemd160_hmac_reset( ripemd160_context *ctx )
 {
-    rmd160_starts( ctx );
-    rmd160_update( ctx, ctx->ipad, 64 );
+    ripemd160_starts( ctx );
+    ripemd160_update( ctx, ctx->ipad, 64 );
 }
 
 /*
- * output = HMAC-RMD160( hmac key, input buffer )
+ * output = HMAC-RIPEMD-160( hmac key, input buffer )
  */
-void rmd160_hmac( const unsigned char *key, size_t keylen,
-                  const unsigned char *input, size_t ilen,
-                  unsigned char output[20] )
+void ripemd160_hmac( const unsigned char *key, size_t keylen,
+                     const unsigned char *input, size_t ilen,
+                     unsigned char output[20] )
 {
-    rmd160_context ctx;
+    ripemd160_context ctx;
 
-    rmd160_hmac_starts( &ctx, key, keylen );
-    rmd160_hmac_update( &ctx, input, ilen );
-    rmd160_hmac_finish( &ctx, output );
+    ripemd160_hmac_starts( &ctx, key, keylen );
+    ripemd160_hmac_update( &ctx, input, ilen );
+    ripemd160_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( rmd160_context ) );
+    memset( &ctx, 0, sizeof( ripemd160_context ) );
 }
 
 
@@ -479,7 +479,7 @@ void rmd160_hmac( const unsigned char *key, size_t keylen,
  */
 #define TESTS   8
 #define KEYS    2
-static const char *rmd160_test_input[TESTS] =
+static const char *ripemd160_test_input[TESTS] =
 {
     "",
     "a",
@@ -492,7 +492,7 @@ static const char *rmd160_test_input[TESTS] =
         "1234567890123456789012345678901234567890",
 };
 
-static const unsigned char rmd160_test_md[TESTS][20] =
+static const unsigned char ripemd160_test_md[TESTS][20] =
 {
     { 0x9c, 0x11, 0x85, 0xa5, 0xc5, 0xe9, 0xfc, 0x54, 0x61, 0x28,
       0x08, 0x97, 0x7e, 0xe8, 0xf5, 0x48, 0xb2, 0x25, 0x8d, 0x31 },
@@ -512,7 +512,7 @@ static const unsigned char rmd160_test_md[TESTS][20] =
       0xd3, 0x32, 0x3c, 0xab, 0x82, 0xbf, 0x63, 0x32, 0x6b, 0xfb },
 };
 
-static const unsigned char rmd160_test_hmac[KEYS][TESTS][20] =
+static const unsigned char ripemd160_test_hmac[KEYS][TESTS][20] =
 {
   {
     { 0xcf, 0x38, 0x76, 0x77, 0xbf, 0xda, 0x84, 0x83, 0xe6, 0x3b,
@@ -552,7 +552,7 @@ static const unsigned char rmd160_test_hmac[KEYS][TESTS][20] =
   },
 };
 
-static const unsigned char rmd160_test_key[KEYS][20] =
+static const unsigned char ripemd160_test_key[KEYS][20] =
 {
     { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99,
       0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x01, 0x23, 0x45, 0x67 },
@@ -563,7 +563,7 @@ static const unsigned char rmd160_test_key[KEYS][20] =
 /*
  * Checkup routine
  */
-int rmd160_self_test( int verbose )
+int ripemd160_self_test( int verbose )
 {
     int i, j;
     unsigned char output[20];
@@ -573,13 +573,13 @@ int rmd160_self_test( int verbose )
     for( i = 0; i < TESTS; i++ )
     {
         if( verbose != 0 )
-            printf( "  RMD160 test #%d: ", i + 1 );
+            printf( "  RIPEMD-160 test #%d: ", i + 1 );
 
-        rmd160( (const unsigned char *) rmd160_test_input[i],
-                strlen( rmd160_test_input[i] ),
-                output );
+        ripemd160( (const unsigned char *) ripemd160_test_input[i],
+                   strlen( ripemd160_test_input[i] ),
+                   output );
 
-        if( memcmp( output, rmd160_test_md[i], 20 ) != 0 )
+        if( memcmp( output, ripemd160_test_md[i], 20 ) != 0 )
         {
             if( verbose != 0 )
                 printf( "failed\n" );
@@ -593,14 +593,14 @@ int rmd160_self_test( int verbose )
         for( j = 0; j < KEYS; j++ )
         {
             if( verbose != 0 )
-                printf( "  HMAC-RMD160 test #%d, key #%d: ", i + 1, j + 1 );
+                printf( "  HMAC-RIPEMD-160 test #%d, key #%d: ", i + 1, j + 1 );
 
-            rmd160_hmac( rmd160_test_key[j], 20,
-                         (const unsigned char *) rmd160_test_input[i],
-                         strlen( rmd160_test_input[i] ),
-                         output );
+            ripemd160_hmac( ripemd160_test_key[j], 20,
+                            (const unsigned char *) ripemd160_test_input[i],
+                            strlen( ripemd160_test_input[i] ),
+                            output );
 
-            if( memcmp( output, rmd160_test_hmac[j][i], 20 ) != 0 )
+            if( memcmp( output, ripemd160_test_hmac[j][i], 20 ) != 0 )
             {
                 if( verbose != 0 )
                     printf( "failed\n" );

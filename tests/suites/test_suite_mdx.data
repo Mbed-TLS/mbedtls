@@ -61,29 +61,29 @@ md5_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"d174a
 md5 Test vector RFC1321 #7
 md5_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
 
-rmd160 Test vector from paper #1
-rmd160_text:"":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
+ripemd160 Test vector from paper #1
+ripemd160_text:"":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
-rmd160 Test vector from paper #2
-rmd160_text:"a":"0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"
+ripemd160 Test vector from paper #2
+ripemd160_text:"a":"0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"
 
-rmd160 Test vector from paper #3
-rmd160_text:"abc":"8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"
+ripemd160 Test vector from paper #3
+ripemd160_text:"abc":"8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"
 
-rmd160 Test vector from paper #4
-rmd160_text:"message digest":"5d0689ef49d2fae572b881b123a85ffa21595f36"
+ripemd160 Test vector from paper #4
+ripemd160_text:"message digest":"5d0689ef49d2fae572b881b123a85ffa21595f36"
 
-rmd160 Test vector from paper #5
-rmd160_text:"abcdefghijklmnopqrstuvwxyz":"f71c27109c692c1b56bbdceb5b9d2865b3708dbc"
+ripemd160 Test vector from paper #5
+ripemd160_text:"abcdefghijklmnopqrstuvwxyz":"f71c27109c692c1b56bbdceb5b9d2865b3708dbc"
 
-rmd160 Test vector from paper #6
-rmd160_text:"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq":"12a053384a9c0c88e405a06c27dcf49ada62eb2b"
+ripemd160 Test vector from paper #6
+ripemd160_text:"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq":"12a053384a9c0c88e405a06c27dcf49ada62eb2b"
 
-rmd160 Test vector from paper #7
-rmd160_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"b0e20b6e3116640286ed3a87a5713079b21f5189"
+ripemd160 Test vector from paper #7
+ripemd160_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"b0e20b6e3116640286ed3a87a5713079b21f5189"
 
-rmd160 Test vector from paper #8
-rmd160_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
+ripemd160 Test vector from paper #8
+ripemd160_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
 
 HMAC-MD2 Hash File OpenSSL test #1
 md2_hmac:16:"61616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"d5732582f494f5ddf35efd166c85af9c"
@@ -142,26 +142,26 @@ md4_hmac:16:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"5570c
 HMAC-MD5 Bouncy Castle test #1
 md5_hmac:16:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"5ccec34ea9656392457fa1ac27f08fbc"
 
-HMAC-RMD160 Test vector RFC 2286 #1
-rmd160_hmac:20:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"24cb4bd67d20fc1a5d2ed7732dcc39377f0a5668"
+HMAC-RIPEMD160 Test vector RFC 2286 #1
+ripemd160_hmac:20:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"24cb4bd67d20fc1a5d2ed7732dcc39377f0a5668"
 
-HMAC-RMD160 Test vector RFC 2286 #2
-rmd160_hmac:20:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"dda6c0213a485a9e24f4742064a7f033b43c4069"
+HMAC-RIPEMD160 Test vector RFC 2286 #2
+ripemd160_hmac:20:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"dda6c0213a485a9e24f4742064a7f033b43c4069"
 
-HMAC-RMD160 Test vector RFC 2286 #3
-rmd160_hmac:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"b0b105360de759960ab4f35298e116e295d8e7c1"
+HMAC-RIPEMD160 Test vector RFC 2286 #3
+ripemd160_hmac:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"b0b105360de759960ab4f35298e116e295d8e7c1"
 
-HMAC-RMD160 Test vector RFC 2286 #4
-rmd160_hmac:20:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"d5ca862f4d21d5e610e18b4cf1beb97a4365ecf4"
+HMAC-RIPEMD160 Test vector RFC 2286 #4
+ripemd160_hmac:20:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"d5ca862f4d21d5e610e18b4cf1beb97a4365ecf4"
 
-HMAC-RMD160 Test vector RFC 2286 #5
-rmd160_hmac:20:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"7619693978f91d90539ae786500ff3d8e0518e39"
+HMAC-RIPEMD160 Test vector RFC 2286 #5
+ripemd160_hmac:20:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"7619693978f91d90539ae786500ff3d8e0518e39"
 
-HMAC-RMD160 Test vector RFC 2286 #6
-rmd160_hmac:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6466ca07ac5eac29e1bd523e5ada7605b791fd8b"
+HMAC-RIPEMD160 Test vector RFC 2286 #6
+ripemd160_hmac:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6466ca07ac5eac29e1bd523e5ada7605b791fd8b"
 
-HMAC-RMD160 Test vector RFC 2286 #7
-rmd160_hmac:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"69ea60798d71616cce5fd0871e23754cd75d5a0a"
+HMAC-RIPEMD160 Test vector RFC 2286 #7
+ripemd160_hmac:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"69ea60798d71616cce5fd0871e23754cd75d5a0a"
 
 MD2 Hash file #1
 md2_file:"data_files/hash_file_1":"b593c098712d2e21628c8986695451a8"
@@ -199,20 +199,20 @@ md5_file:"data_files/hash_file_3":"d945bcc6200ea95d061a2a818167d920"
 MD5 Hash file #4
 md5_file:"data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
 
-RMD160 Hash file #0 (from paper)
-rmd160_file:"data_files/hash_file_5":"52783243c1697bdbe16d37f97f68f08325dc1528"
+RIPEMD160 Hash file #0 (from paper)
+ripemd160_file:"data_files/hash_file_5":"52783243c1697bdbe16d37f97f68f08325dc1528"
 
-RMD160 Hash file #1
-rmd160_file:"data_files/hash_file_1":"82f1d072f0ec0c2b353703a7b575a04c113af1a6"
+RIPEMD160 Hash file #1
+ripemd160_file:"data_files/hash_file_1":"82f1d072f0ec0c2b353703a7b575a04c113af1a6"
 
-RMD160 Hash file #2
-rmd160_file:"data_files/hash_file_2":"996fbc8b79206ba7393ebcd246584069b1c08f0f"
+RIPEMD160 Hash file #2
+ripemd160_file:"data_files/hash_file_2":"996fbc8b79206ba7393ebcd246584069b1c08f0f"
 
-RMD160 Hash file #3
-rmd160_file:"data_files/hash_file_3":"8653b46d65998fa8c8846efa17937e742533ae48"
+RIPEMD160 Hash file #3
+ripemd160_file:"data_files/hash_file_3":"8653b46d65998fa8c8846efa17937e742533ae48"
 
-RMD160 Hash file #4
-rmd160_file:"data_files/hash_file_4":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
+RIPEMD160 Hash file #4
+ripemd160_file:"data_files/hash_file_4":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
 MD2 Selftest
 md2_selftest:
@@ -223,5 +223,5 @@ md4_selftest:
 MD5 Selftest
 md5_selftest:
 
-RMD160 Selftest
-rmd160_selftest:
+RIPEMD160 Selftest
+ripemd160_selftest:

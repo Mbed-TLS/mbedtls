@@ -261,7 +261,7 @@ SOURCE=..\..\library\pkwrite.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\library\rmd160.c
+SOURCE=..\..\library\ripemd160.c
 # End Source File
 # Begin Source File
 
@@ -521,7 +521,7 @@ SOURCE=..\..\include\polarssl\pk.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\rmd160.h
+SOURCE=..\..\include\polarssl\ripemd160.h
 # End Source File
 # Begin Source File
 

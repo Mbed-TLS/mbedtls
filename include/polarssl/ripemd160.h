@@ -24,8 +24,8 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#ifndef POLARSSL_RMD160_H
-#define POLARSSL_RMD160_H
+#ifndef POLARSSL_RIPEMD160_H
+#define POLARSSL_RIPEMD160_H
 
 #include "config.h"
 
@@ -38,14 +38,14 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_RMD160_FILE_IO_ERROR                 -0x0074  /**< Read/write error in file. */
+#define POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR              -0x0074  /**< Read/write error in file. */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * \brief          RMD160 context structure
+ * \brief          RIPEMD-160 context structure
  */
 typedef struct
 {
@@ -56,115 +56,115 @@ typedef struct
     unsigned char ipad[64];     /*!< HMAC: inner padding        */
     unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
-rmd160_context;
+ripemd160_context;
 
 /**
- * \brief          RMD160 context setup
+ * \brief          RIPEMD-160 context setup
  *
  * \param ctx      context to be initialized
  */
-void rmd160_starts( rmd160_context *ctx );
+void ripemd160_starts( ripemd160_context *ctx );
 
 /**
- * \brief          RMD160 process buffer
+ * \brief          RIPEMD-160 process buffer
  *
- * \param ctx      RMD160 context
+ * \param ctx      RIPEMD-160 context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void rmd160_update( rmd160_context *ctx,
-                    const unsigned char *input, size_t ilen );
+void ripemd160_update( ripemd160_context *ctx,
+                       const unsigned char *input, size_t ilen );
 
 /**
- * \brief          RMD160 final digest
+ * \brief          RIPEMD-160 final digest
  *
- * \param ctx      RMD160 context
- * \param output   RMD160 checksum result
+ * \param ctx      RIPEMD-160 context
+ * \param output   RIPEMD-160 checksum result
  */
-void rmd160_finish( rmd160_context *ctx, unsigned char output[20] );
+void ripemd160_finish( ripemd160_context *ctx, unsigned char output[20] );
 
 /**
- * \brief          Output = RMD160( input buffer )
+ * \brief          Output = RIPEMD-160( input buffer )
  *
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
- * \param output   RMD160 checksum result
+ * \param output   RIPEMD-160 checksum result
  */
-void rmd160( const unsigned char *input, size_t ilen,
-             unsigned char output[20] );
+void ripemd160( const unsigned char *input, size_t ilen,
+                unsigned char output[20] );
 
 #if defined(POLARSSL_FS_IO)
 /**
- * \brief          Output = RMD160( file contents )
+ * \brief          Output = RIPEMD-160( file contents )
  *
  * \param path     input file name
- * \param output   RMD160 checksum result
+ * \param output   RIPEMD-160 checksum result
  *
- * \return         0 if successful, or POLARSSL_ERR_RMD160_FILE_IO_ERROR
+ * \return         0 if successful, or POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR
  */
-int rmd160_file( const char *path, unsigned char output[20] );
+int ripemd160_file( const char *path, unsigned char output[20] );
 #endif /* POLARSSL_FS_IO */
 
 /**
- * \brief          RMD160 HMAC context setup
+ * \brief          RIPEMD-160 HMAC context setup
  *
  * \param ctx      HMAC context to be initialized
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  */
-void rmd160_hmac_starts( rmd160_context *ctx,
-                         const unsigned char *key, size_t keylen );
+void ripemd160_hmac_starts( ripemd160_context *ctx,
+                            const unsigned char *key, size_t keylen );
 
 /**
- * \brief          RMD160 HMAC process buffer
+ * \brief          RIPEMD-160 HMAC process buffer
  *
  * \param ctx      HMAC context
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void rmd160_hmac_update( rmd160_context *ctx,
-                         const unsigned char *input, size_t ilen );
+void ripemd160_hmac_update( ripemd160_context *ctx,
+                            const unsigned char *input, size_t ilen );
 
 /**
- * \brief          RMD160 HMAC final digest
+ * \brief          RIPEMD-160 HMAC final digest
  *
  * \param ctx      HMAC context
- * \param output   RMD160 HMAC checksum result
+ * \param output   RIPEMD-160 HMAC checksum result
  */
-void rmd160_hmac_finish( rmd160_context *ctx, unsigned char output[20] );
+void ripemd160_hmac_finish( ripemd160_context *ctx, unsigned char output[20] );
 
 /**
- * \brief          RMD160 HMAC context reset
+ * \brief          RIPEMD-160 HMAC context reset
  *
  * \param ctx      HMAC context to be reset
  */
-void rmd160_hmac_reset( rmd160_context *ctx );
+void ripemd160_hmac_reset( ripemd160_context *ctx );
 
 /**
- * \brief          Output = HMAC-RMD160( hmac key, input buffer )
+ * \brief          Output = HMAC-RIPEMD-160( hmac key, input buffer )
  *
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
- * \param output   HMAC-RMD160 result
+ * \param output   HMAC-RIPEMD-160 result
  */
-void rmd160_hmac( const unsigned char *key, size_t keylen,
-                  const unsigned char *input, size_t ilen,
-                  unsigned char output[20] );
+void ripemd160_hmac( const unsigned char *key, size_t keylen,
+                     const unsigned char *input, size_t ilen,
+                     unsigned char output[20] );
 
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int rmd160_self_test( int verbose );
+int ripemd160_self_test( int verbose );
 
 /* Internal use */
-void rmd160_process( rmd160_context *ctx, const unsigned char data[64] );
+void ripemd160_process( ripemd160_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* rmd160.h */
+#endif /* ripemd160.h */

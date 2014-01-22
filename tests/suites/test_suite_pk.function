@@ -59,7 +59,6 @@ void pk_set_rsa_padding( int type, int padding, int hash_id, int ret )
 {
     pk_context pk;
     unsigned char hash[50], sig[5000];
-    size_t sig_len;
 
     pk_init( &pk );
 

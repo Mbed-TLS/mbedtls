@@ -83,6 +83,12 @@
 #define POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED
 #endif
 
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#define POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED
+#endif
+
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
 #else
@@ -721,6 +727,9 @@ struct _ssl_context
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+    const ecp_group_id *ecdh_curve_list;/*!<  allowed curves for ECDH */
+#endif
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
     int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
 #endif
@@ -1142,6 +1151,19 @@ int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
  * \return         0 if successful
  */
 int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+/**
+ * \brief          Set the allowed ECDH curves.
+ *
+ *                 The sequence of the curves in the list also determines the
+ *                 handshake curve preference.
+ *
+ * \param ssl      SSL context
+ * \param ecdh_curve_list Zero terminated list of the allowed ECDH curves
+ */
+void ssl_set_ecdh_curves( ssl_context *ssl, const ecp_group_id *ecdh_curve_list );
 #endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)

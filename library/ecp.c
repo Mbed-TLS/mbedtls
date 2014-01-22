@@ -114,41 +114,77 @@ typedef enum
  *  - TLS NamedCurve ID (RFC 4492 sec. 5.1.1, RFC 7071 sec. 2)
  *  - size in bits
  *  - readable name
+ *
+ * The sequence of elements in this list also determines the default preference
+ * of the curves used by an ECHDE handshake.
+ * We start with the most secure curves. From the same sized curves, we prefer
+ * the SECP ones because they are much faster.
+ *
  */
-static const ecp_curve_info ecp_supported_curves[] =
-{
-#if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
-    { POLARSSL_ECP_DP_BP512R1,      28,     512,    "brainpoolP512r1"   },
-#endif
-#if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
-    { POLARSSL_ECP_DP_BP384R1,      27,     384,    "brainpoolP384r1"   },
-#endif
-#if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
-    { POLARSSL_ECP_DP_BP256R1,      26,     256,    "brainpoolP256r1"   },
-#endif
+#define CURVE_LIST                                                              \
+ADD_CURVE_01( POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1"       ) \
+ADD_CURVE_02( POLARSSL_ECP_DP_BP512R1,      28,     512,    "brainpoolP512r1" ) \
+ADD_CURVE_03( POLARSSL_ECP_DP_SECP384R1,    24,     384,    "secp384r1"       ) \
+ADD_CURVE_04( POLARSSL_ECP_DP_BP384R1,      27,     384,    "brainpoolP384r1" ) \
+ADD_CURVE_05( POLARSSL_ECP_DP_SECP256R1,    23,     256,    "secp256r1"       ) \
+ADD_CURVE_06( POLARSSL_ECP_DP_BP256R1,      26,     256,    "brainpoolP256r1" ) \
+ADD_CURVE_07( POLARSSL_ECP_DP_SECP224R1,    21,     224,    "secp224r1"       ) \
+ADD_CURVE_08( POLARSSL_ECP_DP_SECP192R1,    19,     192,    "secp192r1"       ) \
+ADD_CURVE(    POLARSSL_ECP_DP_NONE,          0,     0,      NULL              )
+
+/* Filter out the curves that are not defined */
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1"         },
+#define ADD_CURVE_01 ADD_CURVE
+#else
+#define ADD_CURVE_01(a, b, c , d)
+#endif
+#if defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
+#define ADD_CURVE_02 ADD_CURVE
+#else
+#define ADD_CURVE_02(a, b, c , d)
 #endif
 #if defined(POLARSSL_ECP_DP_SECP384R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP384R1,    24,     384,    "secp384r1"         },
+#define ADD_CURVE_03 ADD_CURVE
+#else
+#define ADD_CURVE_03(a, b, c , d)
+#endif
+#if defined(POLARSSL_ECP_DP_BP384R1_ENABLED)
+#define ADD_CURVE_04 ADD_CURVE
+#else
+#define ADD_CURVE_04(a, b, c , d)
 #endif
 #if defined(POLARSSL_ECP_DP_SECP256R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP256R1,    23,     256,    "secp256r1"         },
+#define ADD_CURVE_05 ADD_CURVE
+#else
+#define ADD_CURVE_05(a, b, c , d)
+#endif
+#if defined(POLARSSL_ECP_DP_BP256R1_ENABLED)
+#define ADD_CURVE_06 ADD_CURVE
+#else
+#define ADD_CURVE_06(a, b, c , d)
 #endif
 #if defined(POLARSSL_ECP_DP_SECP224R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP224R1,    21,     224,    "secp224r1"         },
+#define ADD_CURVE_07 ADD_CURVE
+#else
+#define ADD_CURVE_07(a, b, c , d)
 #endif
 #if defined(POLARSSL_ECP_DP_SECP192R1_ENABLED)
-    { POLARSSL_ECP_DP_SECP192R1,    19,     192,    "secp192r1"         },
+#define ADD_CURVE_08 ADD_CURVE
+#else
+#define ADD_CURVE_08(a, b, c , d)
 #endif
-    { POLARSSL_ECP_DP_NONE,          0,     0,      NULL                },
-};
 
 /*
  * List of supported curves and associated info
  */
+#define ADD_CURVE( a, b, c, d) { a, b, c, d },
 const ecp_curve_info *ecp_curve_list( void )
 {
+    static const ecp_curve_info ecp_supported_curves[] =
+    {
+        CURVE_LIST
+    };
+
     return ecp_supported_curves;
 }
 
@@ -204,6 +240,21 @@ const ecp_curve_info *ecp_curve_info_from_name( const char *name )
     }
 
     return( NULL );
+}
+
+/*
+ * Get the default ECDH curve list
+ */
+#undef  ADD_CURVE
+#define ADD_CURVE( a, b, c, d) a,
+const ecp_group_id *ecp_get_default_echd_curve_list( void )
+{
+    static const ecp_group_id ecdh_default_curve_list[] =
+    {
+        CURVE_LIST
+    };
+
+    return ecdh_default_curve_list;
 }
 
 /*

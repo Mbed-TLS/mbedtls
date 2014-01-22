@@ -3380,6 +3380,10 @@ int ssl_init( ssl_context *ssl )
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
 #endif
 
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+    ssl->ecdh_curve_list = ecp_get_default_echd_curve_list( );
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -4605,4 +4609,14 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash )
     }
 }
 
+#endif
+
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+/*
+ * Set the allowed ECDH curves.
+ */
+void ssl_set_ecdh_curves( ssl_context *ssl, const ecp_group_id *ecdh_curve_list )
+{
+  ssl->ecdh_curve_list = ecdh_curve_list;
+}
 #endif

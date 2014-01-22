@@ -45,6 +45,10 @@
 #include "polarssl/md5.h"
 #endif
 
+#if defined(POLARSSL_RIPEMD160_C)
+#include "polarssl/ripemd160.h"
+#endif
+
 #if defined(POLARSSL_SHA1_C)
 #include "polarssl/sha1.h"
 #endif
@@ -316,6 +320,90 @@ const md_info_t md5_info = {
     md5_ctx_alloc,
     md5_ctx_free,
     md5_process_wrap,
+};
+
+#endif
+
+#if defined(POLARSSL_RIPEMD160_C)
+
+static void ripemd160_starts_wrap( void *ctx )
+{
+    ripemd160_starts( (ripemd160_context *) ctx );
+}
+
+static void ripemd160_update_wrap( void *ctx, const unsigned char *input, size_t ilen )
+{
+    ripemd160_update( (ripemd160_context *) ctx, input, ilen );
+}
+
+static void ripemd160_finish_wrap( void *ctx, unsigned char *output )
+{
+    ripemd160_finish( (ripemd160_context *) ctx, output );
+}
+
+static int ripemd160_file_wrap( const char *path, unsigned char *output )
+{
+#if defined(POLARSSL_FS_IO)
+    return ripemd160_file( path, output );
+#else
+    ((void) path);
+    ((void) output);
+    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+#endif
+}
+
+static void ripemd160_hmac_starts_wrap( void *ctx, const unsigned char *key, size_t keylen )
+{
+    ripemd160_hmac_starts( (ripemd160_context *) ctx, key, keylen );
+}
+
+static void ripemd160_hmac_update_wrap( void *ctx, const unsigned char *input, size_t ilen )
+{
+    ripemd160_hmac_update( (ripemd160_context *) ctx, input, ilen );
+}
+
+static void ripemd160_hmac_finish_wrap( void *ctx, unsigned char *output )
+{
+    ripemd160_hmac_finish( (ripemd160_context *) ctx, output );
+}
+
+static void ripemd160_hmac_reset_wrap( void *ctx )
+{
+    ripemd160_hmac_reset( (ripemd160_context *) ctx );
+}
+
+static void * ripemd160_ctx_alloc( void )
+{
+    return polarssl_malloc( sizeof( ripemd160_context ) );
+}
+
+static void ripemd160_ctx_free( void *ctx )
+{
+    polarssl_free( ctx );
+}
+
+static void ripemd160_process_wrap( void *ctx, const unsigned char *data )
+{
+    ripemd160_process( (ripemd160_context *) ctx, data );
+}
+
+const md_info_t ripemd160_info = {
+    POLARSSL_MD_RIPEMD160,
+    "RIPEMD160",
+    20,
+    ripemd160_starts_wrap,
+    ripemd160_update_wrap,
+    ripemd160_finish_wrap,
+    ripemd160,
+    ripemd160_file_wrap,
+    ripemd160_hmac_starts_wrap,
+    ripemd160_hmac_update_wrap,
+    ripemd160_hmac_finish_wrap,
+    ripemd160_hmac_reset_wrap,
+    ripemd160_hmac,
+    ripemd160_ctx_alloc,
+    ripemd160_ctx_free,
+    ripemd160_process_wrap,
 };
 
 #endif

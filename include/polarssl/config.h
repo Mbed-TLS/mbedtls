@@ -148,6 +148,7 @@
 //#define POLARSSL_MD2_ALT
 //#define POLARSSL_MD4_ALT
 //#define POLARSSL_MD5_ALT
+//#define POLARSSL_RIPEMD160_ALT
 //#define POLARSSL_SHA1_ALT
 //#define POLARSSL_SHA256_ALT
 //#define POLARSSL_SHA512_ALT
@@ -1560,6 +1561,17 @@
  * This module enables PKCS#12 functions.
  */
 #define POLARSSL_PKCS12_C
+
+/**
+ * \def POLARSSL_RIPEMD160_C
+ *
+ * Enable the RIPEMD-160 hash algorithm.
+ *
+ * Module:  library/ripemd160.c
+ * Caller:  library/md.c
+ *
+ */
+#define POLARSSL_RIPEMD160_C
 
 /**
  * \def POLARSSL_RSA_C

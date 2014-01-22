@@ -33,6 +33,7 @@
 
 #include "polarssl/md4.h"
 #include "polarssl/md5.h"
+#include "polarssl/ripemd160.h"
 #include "polarssl/sha1.h"
 #include "polarssl/sha256.h"
 #include "polarssl/sha512.h"
@@ -132,20 +133,20 @@ do {                                                                    \
     if( ret != 0 )                                                      \
         printf( "FAILED\n" );                                           \
     else                                                                \
-        printf( "%9lu " TYPE "/s\n", i / 3 );                                  \
+        printf( "%9lu " TYPE "/s\n", i / 3 );                           \
 } while( 0 )
 
 unsigned char buf[BUFSIZE];
 
 typedef struct {
-    char md4, md5, sha1, sha256, sha512,
+    char md4, md5, ripemd160, sha1, sha256, sha512,
          arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,
          havege, ctr_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
 
 #define OPTIONS                                                         \
-    "md4, md5, sha1, sha256, sha512,\n"                                 \
+    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,\n"          \
     "havege, ctr_drbg,\n"                                               \
     "rsa, dhm, ecdsa, ecdh.\n"
@@ -169,6 +170,8 @@ int main( int argc, char *argv[] )
                 todo.md4 = 1;
             else if( strcmp( argv[i], "md5" ) == 0 )
                 todo.md5 = 1;
+            else if( strcmp( argv[i], "ripemd160" ) == 0 )
+                todo.ripemd160 = 1;
             else if( strcmp( argv[i], "sha1" ) == 0 )
                 todo.sha1 = 1;
             else if( strcmp( argv[i], "sha256" ) == 0 )
@@ -221,6 +224,11 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_MD5_C)
     if( todo.md5 )
         TIME_AND_TSC( "MD5", md5( buf, BUFSIZE, tmp ) );
+#endif
+
+#if defined(POLARSSL_RIPEMD160_C)
+    if( todo.ripemd160 )
+        TIME_AND_TSC( "RIPEMD160", ripemd160( buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(POLARSSL_SHA1_C)

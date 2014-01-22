@@ -58,6 +58,7 @@ typedef enum {
     POLARSSL_MD_SHA256,
     POLARSSL_MD_SHA384,
     POLARSSL_MD_SHA512,
+    POLARSSL_MD_RIPEMD160,
 } md_type_t;
 
 #if defined(POLARSSL_SHA512_C)

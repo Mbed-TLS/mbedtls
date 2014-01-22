@@ -184,6 +184,7 @@
     <ClInclude Include="..\..\include\polarssl\pkcs12.h" />
     <ClInclude Include="..\..\include\polarssl\pkcs5.h" />
     <ClInclude Include="..\..\include\polarssl\pk.h" />
+    <ClInclude Include="..\..\include\polarssl\ripemd160.h" />
     <ClInclude Include="..\..\include\polarssl\rsa.h" />
     <ClInclude Include="..\..\include\polarssl\sha1.h" />
     <ClInclude Include="..\..\include\polarssl\sha256.h" />
@@ -245,6 +246,7 @@
     <ClCompile Include="..\..\library\pkparse.c" />
     <ClCompile Include="..\..\library\pk_wrap.c" />
     <ClCompile Include="..\..\library\pkwrite.c" />
+    <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\sha1.c" />
     <ClCompile Include="..\..\library\sha256.c" />

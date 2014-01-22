@@ -55,6 +55,10 @@ static const int supported_digests[] = {
         POLARSSL_MD_MD5,
 #endif
 
+#if defined(POLARSSL_RIPEMD160_C)
+        POLARSSL_MD_RIPEMD160,
+#endif
+
 #if defined(POLARSSL_SHA1_C)
         POLARSSL_MD_SHA1,
 #endif
@@ -95,6 +99,10 @@ const md_info_t *md_info_from_string( const char *md_name )
     if( !strcasecmp( "MD5", md_name ) )
         return md_info_from_type( POLARSSL_MD_MD5 );
 #endif
+#if defined(POLARSSL_RIPEMD160_C)
+    if( !strcasecmp( "RIPEMD160", md_name ) )
+        return md_info_from_type( POLARSSL_MD_RIPEMD160 );
+#endif
 #if defined(POLARSSL_SHA1_C)
     if( !strcasecmp( "SHA1", md_name ) || !strcasecmp( "SHA", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA1 );
@@ -129,6 +137,10 @@ const md_info_t *md_info_from_type( md_type_t md_type )
 #if defined(POLARSSL_MD5_C)
         case POLARSSL_MD_MD5:
             return &md5_info;
+#endif
+#if defined(POLARSSL_RIPEMD160_C)
+        case POLARSSL_MD_RIPEMD160:
+            return &ripemd160_info;
 #endif
 #if defined(POLARSSL_SHA1_C)
         case POLARSSL_MD_SHA1:

@@ -45,6 +45,9 @@ extern const md_info_t md4_info;
 #if defined(POLARSSL_MD5_C)
 extern const md_info_t md5_info;
 #endif
+#if defined(POLARSSL_RIPEMD160_C)
+extern const md_info_t ripemd160_info;
+#endif
 #if defined(POLARSSL_SHA1_C)
 extern const md_info_t sha1_info;
 #endif

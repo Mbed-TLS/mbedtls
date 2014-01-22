@@ -68,6 +68,9 @@ typedef enum
     POLARSSL_ECP_DP_M255,           /*!< Curve25519               */
     POLARSSL_ECP_DP_M383,           /*!< (not implemented yet)    */
     POLARSSL_ECP_DP_M511,           /*!< (not implemented yet)    */
+    POLARSSL_ECP_DP_SECP192K1,      /*!< (not implemented yet)    */
+    POLARSSL_ECP_DP_SECP224K1,      /*!< (not implemented yet)    */
+    POLARSSL_ECP_DP_SECP256K1,      /*!< 256-bits Koblitz curve   */
 } ecp_group_id;
 
 /**
@@ -75,7 +78,7 @@ typedef enum
  *
  * (Montgomery curves excluded for now.)
  */
-#define POLARSSL_ECP_DP_MAX     9
+#define POLARSSL_ECP_DP_MAX     12
 
 /**
  * Curve information for use by other modules

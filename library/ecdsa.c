@@ -43,8 +43,16 @@
 static int derive_mpi( const ecp_group *grp, mpi *x,
                        const unsigned char *buf, size_t blen )
 {
+    int ret;
     size_t n_size = (grp->nbits + 7) / 8;
-    return( mpi_read_binary( x, buf, blen > n_size ? n_size : blen ) );
+    size_t use_size = blen > n_size ? n_size : blen;
+
+    MPI_CHK( mpi_read_binary( x, buf, use_size ) );
+    if( use_size * 8 > grp->nbits )
+        MPI_CHK( mpi_shift_r( x, use_size * 8 - grp->nbits ) );
+
+cleanup:
+    return( ret );
 }
 
 /*

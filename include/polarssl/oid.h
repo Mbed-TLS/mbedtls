@@ -263,7 +263,7 @@
 #define OID_EC_ALG_ECDH                 OID_CERTICOM "\x01\x0c"
 
 /*
- * ECParameters namedCurve identifiers, from RFC 5480 and RFC 5639
+ * ECParameters namedCurve identifiers, from RFC 5480, RFC 5639, and SEC2
  */
 
 /* secp192r1 OBJECT IDENTIFIER ::= {
@@ -285,6 +285,18 @@
 /* secp521r1 OBJECT IDENTIFIER ::= {
  *   iso(1) identified-organization(3) certicom(132) curve(0) 35 } */
 #define OID_EC_GRP_SECP521R1        OID_CERTICOM "\x00\x23"
+
+/* secp192k1 OBJECT IDENTIFIER ::= {
+ *   iso(1) identified-organization(3) certicom(132) curve(0) 31 } */
+#define OID_EC_GRP_SECP192K1        OID_CERTICOM "\x00\x1f"
+
+/* secp224k1 OBJECT IDENTIFIER ::= {
+ *   iso(1) identified-organization(3) certicom(132) curve(0) 32 } */
+#define OID_EC_GRP_SECP224K1        OID_CERTICOM "\x00\x20"
+
+/* secp256k1 OBJECT IDENTIFIER ::= {
+ *   iso(1) identified-organization(3) certicom(132) curve(0) 10 } */
+#define OID_EC_GRP_SECP256K1        OID_CERTICOM "\x00\x0a"
 
 /* RFC 5639 4.1
  * ecStdCurvesAndGeneration OBJECT IDENTIFIER::= {iso(1)

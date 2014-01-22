@@ -257,7 +257,7 @@ const ecp_curve_info *ecp_curve_info_from_name( const char *name );
  *
  * \return          The default ECDH curve list
  */
-ecp_group_id *ecp_get_default_echd_curve_list( void );
+const ecp_group_id *ecp_get_default_echd_curve_list( void );
 
 /**
  * \brief           Initialize a point (as zero)

@@ -138,6 +138,92 @@ int x509_get_alg( unsigned char **p, const unsigned char *end,
 }
 
 /*
+ *    RSASSA-PSS-params  ::=  SEQUENCE  {
+ *       hashAlgorithm     [0] HashAlgorithm DEFAULT sha1Identifier,
+ *       maskGenAlgorithm  [1] MaskGenAlgorithm DEFAULT mgf1SHA1Identifier,
+ *       saltLength        [2] INTEGER DEFAULT 20,
+ *       trailerField      [3] INTEGER DEFAULT 1  }
+ *    -- Note that the tags in this Sequence are explicit.
+ */
+int x509_get_rsassa_pss_params( const x509_buf *params,
+                                md_type_t *md_alg,
+                                int *salt_len,
+                                int *trailer_field )
+{
+    int ret;
+    unsigned char *p;
+    const unsigned char *end;
+    size_t len;
+    x509_buf alg_id;
+
+    /* First set everything to defaults */
+    *md_alg = POLARSSL_MD_SHA1;
+    *salt_len = 20;
+    *trailer_field = 1;
+
+    /* Make sure params is a SEQUENCE and setup bounds */
+    if( params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+        return( POLARSSL_ERR_X509_INVALID_ALG +
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
+
+    p = (unsigned char *) params->p;
+    end = p + params->len;
+
+    if( p == end )
+        return( 0 );
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) == 0 )
+    {
+        /* HashAlgorithm  ::=  AlgorithmIdentifier (without parameters) */
+        // TODO: WIP
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
+    {
+        /* MaskGenAlgorithm  ::=  AlgorithmIdentifier */
+        // TODO: WIP
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( p == end )
+        return( 0 );
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 2 ) ) == 0 )
+    {
+        /* salt_len */
+        if( ( ret = asn1_get_int( &p, p + len, salt_len ) ) != 0 )
+            return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( p == end )
+        return( 0 );
+
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) ) == 0 )
+    {
+        /* trailer_field */
+        if( ( ret = asn1_get_int( &p, p + len, trailer_field ) ) != 0 )
+            return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( p != end )
+        return( POLARSSL_ERR_X509_INVALID_ALG +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+/*
  *  AttributeTypeAndValue ::= SEQUENCE {
  *    type     AttributeType,
  *    value    AttributeValue }

@@ -1573,8 +1573,9 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
      * W[1] = A * R^2 * R^-1 mod N = A * R mod N
      */
     if( mpi_cmp_mpi( A, N ) >= 0 )
-        mpi_mod_mpi( &W[1], A, N );
-    else   mpi_copy( &W[1], A );
+        MPI_CHK( mpi_mod_mpi( &W[1], A, N ) );
+    else
+        MPI_CHK( mpi_copy( &W[1], A ) );
 
     mpi_montmul( &W[1], &RR, N, mm, &T );
 
@@ -1694,7 +1695,7 @@ int mpi_exp_mod( mpi *X, const mpi *A, const mpi *E, const mpi *N, mpi *_RR )
     if( neg )
     {
         X->s = -1;
-        mpi_add_mpi( X, N, X );
+        MPI_CHK( mpi_add_mpi( X, N, X ) );
     }
 
 cleanup:

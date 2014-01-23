@@ -30,6 +30,7 @@ install(TARGETS selftest benchmark ssl_test ssl_cert_test
 
 if(OPENSSL_FOUND)
     add_executable(o_p_test o_p_test.c)
+    include_directories(${OPENSSL_INCLUDE_DIR})
     target_link_libraries(o_p_test ${libs} ${OPENSSL_LIBRARIES})
 
     install(TARGETS o_p_test

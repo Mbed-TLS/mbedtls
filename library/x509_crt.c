@@ -617,6 +617,22 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
         return( ret );
     }
 
+    if( crt->sig_pk == POLARSSL_PK_RSASSA_PSS )
+    {
+        int salt_len, trailer_field;
+
+        if( ( ret = x509_get_rsassa_pss_params( &crt->sig_params,
+                        &crt->sig_md, &salt_len, &trailer_field ) ) != 0 )
+            return( ret );
+    }
+    else
+    {
+        /* Make sure parameters were absent or NULL */
+        if( ( crt->sig_params.tag != ASN1_NULL && crt->sig_params.tag != 0 ) ||
+              crt->sig_params.len != 0 )
+        return( POLARSSL_ERR_X509_INVALID_ALG );
+    }
+
     /*
      * issuer               Name
      */
@@ -1165,6 +1181,21 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
     else
         ret = snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
+
+    if( crt->sig_pk == POLARSSL_PK_RSASSA_PSS )
+    {
+        md_type_t md_alg;
+        int salt_len, trailer_field;
+
+        if( ( ret = x509_get_rsassa_pss_params( &crt->sig_params,
+                        &md_alg, &salt_len, &trailer_field ) ) != 0 )
+            return( ret );
+
+        // TODO: SHA1 harcoded twice (WIP)
+        ret = snprintf( p, n, " (SHA1, MGF1-SHA1, %d, %d)",
+                              salt_len, trailer_field );
+        SAFE_SNPRINTF();
+    }
 
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
                                       pk_get_name( &crt->pk ) ) ) != 0 )

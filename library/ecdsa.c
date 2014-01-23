@@ -36,6 +36,129 @@
 #include "polarssl/ecdsa.h"
 #include "polarssl/asn1write.h"
 
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+/*
+ * Simplified HMAC_DRBG context.
+ * No reseed counter, no prediction resistance flag.
+ */
+typedef struct
+{
+    md_context_t md_ctx;
+    unsigned char V[POLARSSL_MD_MAX_SIZE];
+    unsigned char K[POLARSSL_MD_MAX_SIZE];
+} hmac_drbg_context;
+
+/*
+ * Simplified HMAC_DRBG update, using optional additional data
+ */
+static void hmac_drbg_update( hmac_drbg_context *ctx,
+                              const unsigned char *data, size_t data_len )
+{
+    size_t md_len = ctx->md_ctx.md_info->size;
+    unsigned char rounds = ( data != NULL && data_len != 0 ) ? 2 : 1;
+    unsigned char sep[1];
+
+    for( sep[0] = 0; sep[0] < rounds; sep[0]++ )
+    {
+        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
+        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
+        md_hmac_update( &ctx->md_ctx, sep, 1 );
+        if( rounds == 2 )
+            md_hmac_update( &ctx->md_ctx, data, data_len );
+        md_hmac_finish( &ctx->md_ctx, ctx->K );
+
+        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
+        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
+        md_hmac_finish( &ctx->md_ctx, ctx->V );
+    }
+}
+
+/*
+ * Simplified HMAC_DRBG initialisation.
+ *
+ * Uses an entropy buffer rather than callback,
+ * assume personalisation string is included in entropy buffer,
+ * assumes md_info is not NULL and valid.
+ */
+static void hmac_drbg_init( hmac_drbg_context *ctx,
+                            const md_info_t * md_info,
+                            const unsigned char *data, size_t data_len )
+{
+    memset( ctx, 0, sizeof( hmac_drbg_context ) );
+    md_init_ctx( &ctx->md_ctx, md_info );
+
+    memset( ctx->V, 0x01, md_info->size );
+    /* ctx->K is already 0 */
+
+    hmac_drbg_update( ctx, data, data_len );
+}
+
+/*
+ * Simplified HMAC_DRBG random function
+ */
+static int hmac_drbg_random( void *state,
+                             unsigned char *output, size_t out_len )
+{
+    hmac_drbg_context *ctx = (hmac_drbg_context *) state;
+    size_t md_len = ctx->md_ctx.md_info->size;
+    size_t left = out_len;
+    unsigned char *out = output;
+
+    while( left != 0 )
+    {
+        size_t use_len = left > md_len ? md_len : left;
+
+        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
+        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
+        md_hmac_finish( &ctx->md_ctx, ctx->V );
+
+        memcpy( out, ctx->V, use_len );
+        out += use_len;
+        left -= use_len;
+    }
+
+    hmac_drbg_update( ctx, NULL, 0 );
+
+    return( 0 );
+}
+
+static void hmac_drbg_free( hmac_drbg_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    md_free_ctx( &ctx->md_ctx );
+
+    memset( ctx, 0, sizeof( hmac_drbg_context ) );
+}
+
+/*
+ * This a hopefully temporary compatibility function.
+ *
+ * Since we can't ensure the caller will pass a valid md_alg before the next
+ * interface change, try to pick up a decent md by size.
+ *
+ * Argument is the minimum size in bytes of the MD output.
+ */
+const md_info_t *md_info_by_size( int min_size )
+{
+    const md_info_t *md_cur, *md_picked = NULL;
+    const int *md_alg;
+
+    for( md_alg = md_list(); *md_alg != 0; md_alg++ )
+    {
+        if( ( md_cur = md_info_from_type( *md_alg ) ) == NULL ||
+            md_cur->size < min_size ||
+            ( md_picked != NULL && md_cur->size > md_picked->size ) )
+            continue;
+
+        md_picked = md_cur;
+    }
+
+    return( md_picked );
+}
+#endif
+
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -50,6 +173,10 @@ static int derive_mpi( const ecp_group *grp, mpi *x,
     MPI_CHK( mpi_read_binary( x, buf, use_size ) );
     if( use_size * 8 > grp->nbits )
         MPI_CHK( mpi_shift_r( x, use_size * 8 - grp->nbits ) );
+
+    /* While at it, reduce modulo N */
+    if( mpi_cmp_mpi( x, &grp->N ) >= 0 )
+        MPI_CHK( mpi_sub_mpi( x, x, &grp->N ) );
 
 cleanup:
     return( ret );
@@ -126,6 +253,49 @@ cleanup:
     return( ret );
 }
 
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+/*
+ * Deterministic signature wrapper
+ */
+int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
+                    const mpi *d, const unsigned char *buf, size_t blen,
+                    md_type_t md_alg )
+{
+    int ret;
+    hmac_drbg_context rng_ctx;
+    unsigned char data[2 * POLARSSL_ECP_MAX_BYTES];
+    size_t grp_len = ( grp->nbits + 7 ) / 8;
+    const md_info_t *md_info;
+    mpi h;
+
+    /* Temporary fallback */
+    if( md_alg == POLARSSL_MD_NONE )
+        md_info = md_info_by_size( blen );
+    else
+        md_info = md_info_from_type( md_alg );
+
+    if( md_info == NULL )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    mpi_init( &h );
+    memset( &rng_ctx, 0, sizeof( hmac_drbg_context ) );
+
+    /* Use private key and message hash (reduced) to initialize HMAC_DRBG */
+    MPI_CHK( mpi_write_binary( d, data, grp_len ) );
+    MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
+    MPI_CHK( mpi_write_binary( &h, data + grp_len, grp_len ) );
+    hmac_drbg_init( &rng_ctx, md_info, data, 2 * grp_len );
+
+    ret = ecdsa_sign( grp, r, s, d, buf, blen,
+                      hmac_drbg_random, &rng_ctx );
+
+cleanup:
+    hmac_drbg_free( &rng_ctx );
+    mpi_free( &h );
+
+    return( ret );
+}
+#endif
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
@@ -234,24 +404,15 @@ cleanup:
 #define MAX_SIG_LEN ( 3 + 2 * ( 2 + POLARSSL_ECP_MAX_BYTES ) )
 
 /*
- * Compute and write signature
+ * Convert a signature (given by context) to ASN.1
  */
-int ecdsa_write_signature( ecdsa_context *ctx,
-                           const unsigned char *hash, size_t hlen,
-                           unsigned char *sig, size_t *slen,
-                           int (*f_rng)(void *, unsigned char *, size_t),
-                           void *p_rng )
+static int ecdsa_signature_to_asn1( ecdsa_context *ctx,
+                                    unsigned char *sig, size_t *slen )
 {
     int ret;
     unsigned char buf[MAX_SIG_LEN];
     unsigned char *p = buf + sizeof( buf );
     size_t len = 0;
-
-    if( ( ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
-                            hash, hlen, f_rng, p_rng ) ) != 0 )
-    {
-        return( ret );
-    }
 
     ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, &ctx->s ) );
     ASN1_CHK_ADD( len, asn1_write_mpi( &p, buf, &ctx->r ) );
@@ -264,6 +425,45 @@ int ecdsa_write_signature( ecdsa_context *ctx,
     *slen = len;
 
     return( 0 );
+}
+
+/*
+ * Compute and write signature
+ */
+int ecdsa_write_signature( ecdsa_context *ctx,
+                           const unsigned char *hash, size_t hlen,
+                           unsigned char *sig, size_t *slen,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng )
+{
+    int ret;
+
+    if( ( ret = ecdsa_sign( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
+                            hash, hlen, f_rng, p_rng ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
+}
+
+/*
+ * Compute and write signature deterministically
+ */
+int ecdsa_write_signature_det( ecdsa_context *ctx,
+                               const unsigned char *hash, size_t hlen,
+                               unsigned char *sig, size_t *slen,
+                               md_type_t md_alg )
+{
+    int ret;
+
+    if( ( ret = ecdsa_sign_det( &ctx->grp, &ctx->r, &ctx->s, &ctx->d,
+                                hash, hlen, md_alg ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
 }
 
 /*

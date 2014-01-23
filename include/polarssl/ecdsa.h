@@ -29,6 +29,10 @@
 
 #include "ecp.h"
 
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+#include "polarssl/md.h"
+#endif
+
 /**
  * \brief           ECDSA context structure
  *
@@ -66,6 +70,27 @@ extern "C" {
 int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
                 const mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+/**
+ * \brief           Compute ECDSA signature of a previously hashed message
+ *                  (deterministic version)
+ *
+ * \param grp       ECP group
+ * \param r         First output integer
+ * \param s         Second output integer
+ * \param d         Private signing key
+ * \param buf       Message hash
+ * \param blen      Length of buf
+ * \param md_alg    MD algorithm used to hash the message
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP_XXX or POLARSSL_MPI_XXX error code
+ */
+int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
+                    const mpi *d, const unsigned char *buf, size_t blen,
+                    md_type_t md_alg );
+#endif
 
 /**
  * \brief           Verify ECDSA signature of a previously hashed message
@@ -111,6 +136,34 @@ int ecdsa_write_signature( ecdsa_context *ctx,
                            unsigned char *sig, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
+
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+/**
+ * \brief           Compute ECDSA signature and write it to buffer,
+ *                  serialized as defined in RFC 4492 page 20.
+ *                  Deterministic version, RFC 6979.
+ *                  (Not thread-safe to use same context in multiple threads)
+ *
+ * \param ctx       ECDSA context
+ * \param hash      Message hash
+ * \param hlen      Length of hash
+ * \param sig       Buffer that will hold the signature
+ * \param slen      Length of the signature written
+ * \param md_alg    MD algorithm used to hash the message
+ *
+ * \note            The "sig" buffer must be at least as large as twice the
+ *                  size of the curve used, plus 7 (eg. 71 bytes if a 256-bit
+ *                  curve is used).
+ *
+ * \return          0 if successful,
+ *                  or a POLARSSL_ERR_ECP, POLARSSL_ERR_MPI or
+ *                  POLARSSL_ERR_ASN1 error code
+ */
+int ecdsa_write_signature_det( ecdsa_context *ctx,
+                               const unsigned char *hash, size_t hlen,
+                               unsigned char *sig, size_t *slen,
+                               md_type_t md_alg );
+#endif
 
 /**
  * \brief           Read and verify an ECDSA signature

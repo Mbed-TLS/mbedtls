@@ -47,32 +47,83 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
     ecp_group grp;
     ecp_point Q;
     mpi d, r, s, r_check, s_check;
-    unsigned char buf[66];
-    size_t len;
+    unsigned char hash[66], rnd_buf[66];
+    size_t hlen;
+    rnd_buf_info rnd_info;
 
     ecp_group_init( &grp );
     ecp_point_init( &Q );
     mpi_init( &d ); mpi_init( &r ); mpi_init( &s );
     mpi_init( &r_check ); mpi_init( &s_check );
-    memset( buf, 0, sizeof( buf ) );
+    memset( hash, 0, sizeof( hash ) );
+    memset( rnd_buf, 0, sizeof( rnd_buf ) );
 
     TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
     TEST_ASSERT( ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
     TEST_ASSERT( mpi_read_string( &d, 16, d_str ) == 0 );
     TEST_ASSERT( mpi_read_string( &r_check, 16, r_str ) == 0 );
     TEST_ASSERT( mpi_read_string( &s_check, 16, s_str ) == 0 );
-    len = unhexify(buf, hash_str);
+    hlen = unhexify(hash, hash_str);
+    rnd_info.buf = rnd_buf;
+    rnd_info.length = unhexify( rnd_buf, k_str );
 
-    TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, buf, len,
-                &not_rnd_mpi, k_str ) == 0 );
+    /* Fix rnd_buf by shifting it left if necessary */
+    if( grp.nbits % 8 != 0 )
+    {
+        unsigned char shift = 8 - ( grp.nbits % 8 );
+        size_t i;
+
+        for( i = 0; i < rnd_info.length - 1; i++ )
+            rnd_buf[i] = rnd_buf[i] << shift | rnd_buf[i+1] >> ( 8 - shift );
+
+        rnd_buf[rnd_info.length-1] <<= shift;
+    }
+
+    TEST_ASSERT( ecdsa_sign( &grp, &r, &s, &d, hash, hlen,
+                 rnd_buffer_rand, &rnd_info ) == 0 );
 
     TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );
 
-    TEST_ASSERT( ecdsa_verify( &grp, buf, len, &Q, &r_check, &s_check ) == 0 );
+    TEST_ASSERT( ecdsa_verify( &grp, hash, hlen, &Q, &r_check, &s_check ) == 0 );
 
     ecp_group_free( &grp );
     ecp_point_free( &Q );
+    mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
+    mpi_free( &r_check ); mpi_free( &s_check );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_ECDSA_DETERMINISTIC */
+void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
+                             char *msg, char *r_str, char *s_str )
+{
+    ecp_group grp;
+    mpi d, r, s, r_check, s_check;
+    unsigned char hash[POLARSSL_MD_MAX_SIZE];
+    size_t hlen;
+    const md_info_t *md_info;
+
+    ecp_group_init( &grp );
+    mpi_init( &d ); mpi_init( &r ); mpi_init( &s );
+    mpi_init( &r_check ); mpi_init( &s_check );
+    memset( hash, 0, sizeof( hash ) );
+
+    TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
+    TEST_ASSERT( mpi_read_string( &d, 16, d_str ) == 0 );
+    TEST_ASSERT( mpi_read_string( &r_check, 16, r_str ) == 0 );
+    TEST_ASSERT( mpi_read_string( &s_check, 16, s_str ) == 0 );
+
+    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    hlen = md_info->size;
+    md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
+
+    TEST_ASSERT( ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, md_alg ) == 0 );
+
+    TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );
+
+    ecp_group_free( &grp );
     mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
     mpi_free( &r_check ); mpi_free( &s_check );
 }
@@ -131,6 +182,38 @@ void ecdsa_write_read_random( int id )
     TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
                  sig, sig_len ) != 0 );
     sig[sig_len - 1]--;
+
+    ecdsa_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecdsa_write_read_det_random( int id, int md_alg )
+{
+    ecdsa_context ctx;
+    rnd_pseudo_info rnd_info;
+    unsigned char msg[100];
+    unsigned char hash[POLARSSL_MD_MAX_SIZE];
+    unsigned char sig[200];
+    size_t sig_len;
+
+    ecdsa_init( &ctx );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( hash, 0, sizeof( hash ) );
+    memset( sig, 0x2a, sizeof( sig ) );
+
+    /* prepare material for signature */
+    TEST_ASSERT( rnd_pseudo_rand( &rnd_info, msg, sizeof( msg ) ) == 0 );
+    md( md_info_from_type( md_alg ), msg, sizeof( msg ), hash );
+
+    /* generate signing key */
+    TEST_ASSERT( ecdsa_genkey( &ctx, id, &rnd_pseudo_rand, &rnd_info ) == 0 );
+
+    /* generate and write signature, then read and verify it */
+    TEST_ASSERT( ecdsa_write_signature_det( &ctx, hash, sizeof( hash ),
+                 sig, &sig_len, md_alg ) == 0 );
+    TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) == 0 );
 
     ecdsa_free( &ctx );
 }

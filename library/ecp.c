@@ -1751,6 +1751,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
+    int ret;
     size_t n_size = (grp->nbits + 7) / 8;
 
 #if defined(POLARSSL_ECP_MONTGOMERY)
@@ -1759,19 +1760,19 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
         /* [M225] page 5 */
         size_t b;
 
-        mpi_fill_random( d, n_size, f_rng, p_rng );
+        MPI_CHK( mpi_fill_random( d, n_size, f_rng, p_rng ) );
 
         /* Make sure the most significant bit is nbits */
         b = mpi_msb( d ) - 1; /* mpi_msb is one-based */
         if( b > grp->nbits )
-            mpi_shift_r( d, b - grp->nbits );
+            MPI_CHK( mpi_shift_r( d, b - grp->nbits ) );
         else
-            mpi_set_bit( d, grp->nbits, 1 );
+            MPI_CHK( mpi_set_bit( d, grp->nbits, 1 ) );
 
         /* Make sure the last three bits are unset */
-        mpi_set_bit( d, 0, 0 );
-        mpi_set_bit( d, 1, 0 );
-        mpi_set_bit( d, 2, 0 );
+        MPI_CHK( mpi_set_bit( d, 0, 0 ) );
+        MPI_CHK( mpi_set_bit( d, 1, 0 ) );
+        MPI_CHK( mpi_set_bit( d, 2, 0 ) );
     }
     else
 #endif
@@ -1780,21 +1781,34 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
     {
         /* SEC1 3.2.1: Generate d such that 1 <= n < N */
         int count = 0;
+        unsigned char rnd[POLARSSL_ECP_MAX_BYTES];
+
+        /*
+         * Match the procedure given in RFC 6979 (deterministic ECDSA):
+         * - use the same byte ordering;
+         * - keep the leftmost nbits bits of the generated octet string;
+         * - try until result is in the desired range.
+         * This also avoids any biais, which is especially important for ECDSA.
+         */
         do
         {
-            mpi_fill_random( d, n_size, f_rng, p_rng );
-
-            while( mpi_cmp_mpi( d, &grp->N ) >= 0 )
-                mpi_shift_r( d, 1 );
+            MPI_CHK( f_rng( p_rng, rnd, n_size ) );
+            MPI_CHK( mpi_read_binary( d, rnd, n_size ) );
+            MPI_CHK( mpi_shift_r( d, 8 * n_size - grp->nbits ) );
 
             if( count++ > 10 )
                 return( POLARSSL_ERR_ECP_RANDOM_FAILED );
         }
-        while( mpi_cmp_int( d, 1 ) < 0 );
+        while( mpi_cmp_int( d, 1 ) < 0 ||
+               mpi_cmp_mpi( d, &grp->N ) >= 0 );
     }
     else
 #endif
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+cleanup:
+    if( ret != 0 )
+        return( ret );
 
     return( ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
 }

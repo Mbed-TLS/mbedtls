@@ -303,10 +303,19 @@ static int ecdsa_sign_wrap( void *ctx, md_type_t md_alg,
                    unsigned char *sig, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
+    /* Use deterministic ECDSA by default if available */
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
+    ((void) f_rng);
+    ((void) p_rng);
+
+    return( ecdsa_write_signature_det( (ecdsa_context *) ctx,
+                hash, hash_len, sig, sig_len, md_alg ) );
+#else
     ((void) md_alg);
 
     return( ecdsa_write_signature( (ecdsa_context *) ctx,
                 hash, hash_len, sig, sig_len, f_rng, p_rng ) );
+#endif
 }
 
 static void *ecdsa_alloc_wrap( void )

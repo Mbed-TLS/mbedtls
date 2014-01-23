@@ -2,14 +2,6 @@
 #include "polarssl/memory.h"
 #endif
 
-#if defined(WANT_NOT_RND_MPI)
-#if defined(POLARSSL_BIGNUM_C)
-#include "polarssl/bignum.h"
-#else
-#error "not_rnd_mpi() need bignum.c"
-#endif
-#endif
-
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;
@@ -233,37 +225,3 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 
     return( 0 );
 }
-
-#if defined(WANT_NOT_RND_MPI)
-/**
- * NOT random function, to match test vectors.
- *
- * The following are equivalent:
- *   mpi_fill_random( x, strlen( str ) / 2, not_rnd, str );
- *   mpi_read_string( x, 16, str );
- * Warning: no other use is supported!
- */
-#define ciL    (sizeof(t_uint))         /* chars in limb  */
-#define CHARS_TO_LIMBS(i) (((i) + ciL - 1) / ciL)
-static int not_rnd_mpi( void *in, unsigned char *out, size_t len )
-{
-    char *str = (char *) in;
-    mpi X;
-
-    /*
-     * The 'in' pointer we get is from an MPI prepared by mpi_fill_random(),
-     * just reconstruct the rest in order to be able to call mpi_read_string()
-     */
-    X.s = 1;
-    X.p = (t_uint *) out;
-    X.n = CHARS_TO_LIMBS( len );
-
-    /*
-     * If str is too long, mpi_read_string() will try to allocate a new buffer
-     * for X.p, which we want to avoid at all costs.
-     */
-    assert( strlen( str ) / 2 == len );
-
-    return( mpi_read_string( &X, 16, str ) );
-}
-#endif /* WANT_NOT_RND_MPI */

@@ -1,6 +1,5 @@
 /* BEGIN_HEADER */
 #include <polarssl/ecdh.h>
-#define WANT_NOT_RND_MPI
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

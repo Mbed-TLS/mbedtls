@@ -30,6 +30,7 @@ function(add_test_suite suite_name)
 endfunction(add_test_suite)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function -Wno-unused-value")
+set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS_CHECK} -Wno-unused-function -Wno-unused-value")
 
 add_test_suite(aes aes.ecb)
 add_test_suite(aes aes.cbc)

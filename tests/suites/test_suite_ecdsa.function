@@ -186,7 +186,7 @@ void ecdsa_write_read_random( int id )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_ECDSA_DETERMINISTIC */
 void ecdsa_write_read_det_random( int id, int md_alg )
 {
     ecdsa_context ctx;

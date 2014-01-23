@@ -231,7 +231,7 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
                                                      size_t *olen )
 {
     unsigned char *p = buf;
-    unsigned char elliptic_curve_list[20];
+    unsigned char *elliptic_curve_list = p + 6;
     size_t elliptic_curve_len = 0;
     const ecp_curve_info *curve;
     ((void) ssl);
@@ -259,8 +259,6 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
 
     *p++ = (unsigned char)( ( ( elliptic_curve_len     ) >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( ( elliptic_curve_len     )      ) & 0xFF );
-
-    memcpy( p, elliptic_curve_list, elliptic_curve_len );
 
     *olen = 6 + elliptic_curve_len;
 }

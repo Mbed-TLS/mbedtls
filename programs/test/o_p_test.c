@@ -32,7 +32,9 @@
 #include <sys/stat.h>
 
 #include <openssl/rsa.h>
+#ifndef OPENSSL_NO_ENGINE
 #include <openssl/engine.h>
+#endif
 #include <openssl/pem.h>
 #include <openssl/bio.h>
 

@@ -50,6 +50,9 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
     ecp_group grp;
     ecp_point qA, qB;
     mpi dA, dB, zA, zB, check;
+    unsigned char rnd_buf_A[POLARSSL_ECP_MAX_BYTES];
+    unsigned char rnd_buf_B[POLARSSL_ECP_MAX_BYTES];
+    rnd_buf_info rnd_info_A, rnd_info_B;
 
     ecp_group_init( &grp );
     ecp_point_init( &qA ); ecp_point_init( &qB );
@@ -58,14 +61,48 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
 
     TEST_ASSERT( ecp_use_known_dp( &grp, id ) == 0 );
 
-    TEST_ASSERT( ecdh_gen_public( &grp, &dA, &qA, &not_rnd_mpi, dA_str ) == 0 );
+    rnd_info_A.buf = rnd_buf_A;
+    rnd_info_A.length = unhexify( rnd_buf_A, dA_str );
+
+    /* Fix rnd_buf_A by shifting it left if necessary */
+    if( grp.nbits % 8 != 0 )
+    {
+        unsigned char shift = 8 - ( grp.nbits % 8 );
+        size_t i;
+
+        for( i = 0; i < rnd_info_A.length - 1; i++ )
+            rnd_buf_A[i] = rnd_buf_A[i] << shift
+                         | rnd_buf_A[i+1] >> ( 8 - shift );
+
+        rnd_buf_A[rnd_info_A.length-1] <<= shift;
+    }
+
+    rnd_info_B.buf = rnd_buf_B;
+    rnd_info_B.length = unhexify( rnd_buf_B, dB_str );
+
+    /* Fix rnd_buf_B by shifting it left if necessary */
+    if( grp.nbits % 8 != 0 )
+    {
+        unsigned char shift = 8 - ( grp.nbits % 8 );
+        size_t i;
+
+        for( i = 0; i < rnd_info_B.length - 1; i++ )
+            rnd_buf_B[i] = rnd_buf_B[i] << shift
+                         | rnd_buf_B[i+1] >> ( 8 - shift );
+
+        rnd_buf_B[rnd_info_B.length-1] <<= shift;
+    }
+
+    TEST_ASSERT( ecdh_gen_public( &grp, &dA, &qA,
+                                  rnd_buffer_rand, &rnd_info_A ) == 0 );
     TEST_ASSERT( ! ecp_is_zero( &qA ) );
     TEST_ASSERT( mpi_read_string( &check, 16, xA_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qA.X, &check ) == 0 );
     TEST_ASSERT( mpi_read_string( &check, 16, yA_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qA.Y, &check ) == 0 );
 
-    TEST_ASSERT( ecdh_gen_public( &grp, &dB, &qB, &not_rnd_mpi, dB_str ) == 0 );
+    TEST_ASSERT( ecdh_gen_public( &grp, &dB, &qB,
+                                  rnd_buffer_rand, &rnd_info_B ) == 0 );
     TEST_ASSERT( ! ecp_is_zero( &qB ) );
     TEST_ASSERT( mpi_read_string( &check, 16, xB_str ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &qB.X, &check ) == 0 );

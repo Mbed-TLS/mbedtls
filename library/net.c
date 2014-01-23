@@ -357,15 +357,31 @@ int net_bind( int *fd, const char *bind_ip, int port )
 #endif /* POLARSSL_HAVE_IPV6 */
 }
 
-/*
- * Check if the current operation is blocking
- */
-static int net_is_blocking( void )
-{
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
     !defined(EFI32)
+/*
+ * Check if the requested operation would be blocking on a non-blocking socket
+ * and thus 'failed' with a negative return value.
+ */
+static int net_would_block( int fd )
+{
     return( WSAGetLastError() == WSAEWOULDBLOCK );
+}
 #else
+/*
+ * Check if the requested operation would be blocking on a non-blocking socket
+ * and thus 'failed' with a negative return value.
+ *
+ * Note: on a blocking socket this function always returns 0!
+ */
+static int net_would_block( int fd )
+{
+    /*
+     * Never return 'WOULD BLOCK' on a non-blocking socket
+     */
+    if( ( fcntl( fd, F_GETFL ) & O_NONBLOCK ) != O_NONBLOCK )
+        return( 0 );
+
     switch( errno )
     {
 #if defined EAGAIN
@@ -377,8 +393,8 @@ static int net_is_blocking( void )
             return( 1 );
     }
     return( 0 );
-#endif
 }
+#endif
 
 /*
  * Accept a connection from a remote client
@@ -403,7 +419,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 
     if( *client_fd < 0 )
     {
-        if( net_is_blocking() != 0 )
+        if( net_would_block( *client_fd ) != 0 )
             return( POLARSSL_ERR_NET_WANT_READ );
 
         return( POLARSSL_ERR_NET_ACCEPT_FAILED );
@@ -476,11 +492,12 @@ void net_usleep( unsigned long usec )
  */
 int net_recv( void *ctx, unsigned char *buf, size_t len )
 {
-    int ret = read( *((int *) ctx), buf, len );
+    int fd = *((int *) ctx);
+    int ret = read( fd, buf, len );
 
     if( ret < 0 )
     {
-        if( net_is_blocking() != 0 )
+        if( net_would_block( fd ) != 0 )
             return( POLARSSL_ERR_NET_WANT_READ );
 
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
@@ -506,11 +523,12 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
  */
 int net_send( void *ctx, const unsigned char *buf, size_t len )
 {
-    int ret = write( *((int *) ctx), buf, len );
+    int fd = *((int *) ctx);
+    int ret = write( fd, buf, len );
 
     if( ret < 0 )
     {
-        if( net_is_blocking() != 0 )
+        if( net_would_block( fd ) != 0 )
             return( POLARSSL_ERR_NET_WANT_WRITE );
 
 #if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \

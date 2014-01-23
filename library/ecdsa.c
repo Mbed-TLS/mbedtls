@@ -295,7 +295,8 @@ cleanup:
 
     return( ret );
 }
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
+
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
@@ -447,6 +448,7 @@ int ecdsa_write_signature( ecdsa_context *ctx,
     return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
 }
 
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
 /*
  * Compute and write signature deterministically
  */
@@ -465,6 +467,7 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
 
     return( ecdsa_signature_to_asn1( ctx, sig, slen ) );
 }
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /*
  * Read and check signature

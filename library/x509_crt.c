@@ -620,9 +620,12 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     if( crt->sig_pk == POLARSSL_PK_RSASSA_PSS )
     {
         int salt_len, trailer_field;
+        md_type_t mgf_md;
 
-        if( ( ret = x509_get_rsassa_pss_params( &crt->sig_params,
-                        &crt->sig_md, &salt_len, &trailer_field ) ) != 0 )
+        /* Make sure params are valid */
+        ret = x509_get_rsassa_pss_params( &crt->sig_params,
+                &crt->sig_md, &mgf_md, &salt_len, &trailer_field );
+        if( ret != 0 )
             return( ret );
     }
     else
@@ -1184,15 +1187,20 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->sig_pk == POLARSSL_PK_RSASSA_PSS )
     {
-        md_type_t md_alg;
+        md_type_t md_alg, mgf_md;
+        const md_info_t *md_info, *mgf_md_info;
         int salt_len, trailer_field;
 
         if( ( ret = x509_get_rsassa_pss_params( &crt->sig_params,
-                        &md_alg, &salt_len, &trailer_field ) ) != 0 )
+                        &md_alg, &mgf_md, &salt_len, &trailer_field ) ) != 0 )
             return( ret );
 
-        // TODO: SHA1 harcoded twice (WIP)
-        ret = snprintf( p, n, " (SHA1, MGF1-SHA1, %d, %d)",
+        md_info = md_info_from_type( md_alg );
+        mgf_md_info = md_info_from_type( mgf_md );
+
+        ret = snprintf( p, n, " (%s, MGF1-%s, 0x%02X, %d)",
+                              md_info ? md_info->name : "???",
+                              mgf_md_info ? mgf_md_info->name : "???",
                               salt_len, trailer_field );
         SAFE_SNPRINTF();
     }

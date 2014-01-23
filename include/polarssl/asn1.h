@@ -97,9 +97,13 @@
 /** Returns the size of the binary string, without the trailing \\0 */
 #define OID_SIZE(x) (sizeof(x) - 1)
 
-/** Compares two asn1_buf structures for the same OID. Only works for
- *  'defined' oid_str values (OID_HMAC_SHA1), you cannot use a 'unsigned
- *  char *oid' here!
+/**
+ * Compares an asn1_buf structure to a reference OID.
+ *
+ * Only works for 'defined' oid_str values (OID_HMAC_SHA1), you cannot use a
+ * 'unsigned char *oid' here!
+ *
+ * Warning: returns true when the OIDs are equal (unlike memcmp)!
  */
 #define OID_CMP(oid_str, oid_buf)                                   \
         ( ( OID_SIZE(oid_str) == (oid_buf)->len ) &&                \

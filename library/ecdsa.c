@@ -140,7 +140,7 @@ static void hmac_drbg_free( hmac_drbg_context *ctx )
  *
  * Argument is the minimum size in bytes of the MD output.
  */
-const md_info_t *md_info_by_size( int min_size )
+static const md_info_t *md_info_by_size( int min_size )
 {
     const md_info_t *md_cur, *md_picked = NULL;
     const int *md_alg;

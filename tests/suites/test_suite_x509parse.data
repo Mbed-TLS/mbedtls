@@ -170,6 +170,54 @@ X509 CRL Information EC, SHA512 Digest
 depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA512\n"
 
+X509 CSR Information RSA with MD4
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server1.req.md4":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD4\nRSA key size  \: 2048 bits\n"
+
+X509 CSR Information RSA with MD5
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server1.req.md5":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD5\nRSA key size  \: 2048 bits\n"
+
+X509 CSR Information RSA with SHA1
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server1.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA1\nRSA key size  \: 2048 bits\n"
+
+X509 CSR Information RSA with SHA224
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server1.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-224\nRSA key size  \: 2048 bits\n"
+
+X509 CSR Information RSA with SHA256
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server1.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
+
+X509 CSR Information RSA with SHA384
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server1.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-384\nRSA key size  \: 2048 bits\n"
+
+X509 CSR Information RSA with SHA512
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server1.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-512\nRSA key size  \: 2048 bits\n"
+
+X509 CSR Information EC with SHA1
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server5.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA1\nEC key size   \: 256 bits\n"
+
+X509 CSR Information EC with SHA224
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server5.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA224\nEC key size   \: 256 bits\n"
+
+X509 CSR Information EC with SHA256
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server5.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA256\nEC key size   \: 256 bits\n"
+
+X509 CSR Information EC with SHA384
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server5.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA384\nEC key size   \: 256 bits\n"
+
+X509 CSR Information EC with SHA512
+depends_on:POLARSSL_PEM_PARSE_C
+x509_csr_info:"data_files/server5.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA512\nEC key size   \: 256 bits\n"
+
 X509 Get Distinguished Name #1
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_dn_gets:"data_files/server1.crt":"subject":"C=NL, O=PolarSSL, CN=PolarSSL Server 1"

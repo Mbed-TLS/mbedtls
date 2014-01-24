@@ -1,5 +1,8 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+TODO: bump SOVERSION
+(internal-but-not-static function x509_get_sig_alg() changed prototype)
+
 = PolarSSL 1.3 branch
 Features
    * Support for the Koblitz curves: secp192k1, secp224k1, secp256k1

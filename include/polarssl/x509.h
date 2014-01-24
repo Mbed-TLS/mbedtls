@@ -262,8 +262,8 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
                                 int *salt_len, int *trailer_field );
 #endif
 int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig );
-int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
-                      pk_type_t *pk_alg );
+int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
+                      md_type_t *md_alg, pk_type_t *pk_alg );
 int x509_get_time( unsigned char **p, const unsigned char *end,
                    x509_time *time );
 int x509_get_serial( unsigned char **p, const unsigned char *end,

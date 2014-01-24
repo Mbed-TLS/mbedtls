@@ -906,6 +906,39 @@ int aes_crypt_cfb128( aes_context *ctx,
 
     return( 0 );
 }
+
+/*
+ * AES-CFB8 buffer encryption/decryption
+ */
+#include <stdio.h>
+int aes_crypt_cfb8( aes_context *ctx,
+                       int mode,
+                       size_t length,
+                       unsigned char iv[16],
+                       const unsigned char *input,
+                       unsigned char *output )
+{
+    unsigned char c;
+    unsigned char ov[17];
+
+    while( length-- )
+    {
+        memcpy(ov, iv, 16);
+        aes_crypt_ecb( ctx, AES_ENCRYPT, iv, iv );
+
+        if( mode == AES_DECRYPT )
+            ov[16] = *input;
+
+        c = *output++ = (unsigned char)( iv[0] ^ *input++ );
+
+        if( mode == AES_ENCRYPT )
+            ov[16] = c;
+
+        memcpy(iv, ov + 1, 16);
+    }
+
+    return( 0 );
+}
 #endif /*POLARSSL_CIPHER_MODE_CFB */
 
 #if defined(POLARSSL_CIPHER_MODE_CTR)

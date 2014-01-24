@@ -197,6 +197,66 @@ void aes_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CFB */
+void aes_encrypt_cfb8( char *hex_key_string, char *hex_iv_string,
+                       char *hex_src_string, char *hex_dst_string )
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    aes_context ctx;
+    int key_len, src_len;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, hex_key_string );
+    unhexify( iv_str, hex_iv_string );
+    src_len = unhexify( src_str, hex_src_string );
+
+    aes_setkey_enc( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( aes_crypt_cfb8( &ctx, AES_ENCRYPT, src_len, iv_str, src_str, output ) == 0 );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CFB */
+void aes_decrypt_cfb8( char *hex_key_string, char *hex_iv_string,
+                       char *hex_src_string, char *hex_dst_string )
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    aes_context ctx;
+    int key_len, src_len;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+
+    key_len = unhexify( key_str, hex_key_string );
+    unhexify( iv_str, hex_iv_string );
+    src_len = unhexify( src_str, hex_src_string );
+
+    aes_setkey_enc( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( aes_crypt_cfb8( &ctx, AES_DECRYPT, src_len, iv_str, src_str, output ) == 0 );
+    hexify( dst_str, output, src_len );
+
+    TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void aes_selftest()
 {

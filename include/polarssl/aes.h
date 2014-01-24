@@ -155,6 +155,29 @@ int aes_crypt_cfb128( aes_context *ctx,
                        unsigned char *output );
 
 /**
+ * \brief          AES-CFB8 buffer encryption/decryption.
+ *
+ * Note: Due to the nature of CFB you should use the same key schedule for
+ * both encryption and decryption. So a context initialized with
+ * aes_setkey_enc() for both AES_ENCRYPT and AES_DECRYPT.
+ *
+ * \param ctx      AES context
+ * \param mode     AES_ENCRYPT or AES_DECRYPT
+ * \param length   length of the input data
+ * \param iv       initialization vector (updated after use)
+ * \param input    buffer holding the input data
+ * \param output   buffer holding the output data
+ *
+ * \return         0 if successful
+ */
+int aes_crypt_cfb8( aes_context *ctx,
+                    int mode,
+                    size_t length,
+                    unsigned char iv[16],
+                    const unsigned char *input,
+                    unsigned char *output );
+
+/**
  * \brief               AES-CTR buffer encryption/decryption
  *
  * Warning: You have to keep the maximum use of your counter in mind!

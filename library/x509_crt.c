@@ -615,35 +615,16 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
         return( POLARSSL_ERR_X509_UNKNOWN_VERSION );
     }
 
-    if( ( ret = x509_get_sig_alg( &crt->sig_oid1, &crt->sig_md,
-                                  &crt->sig_pk ) ) != 0 )
+    if( ( ret = x509_get_sig_alg( &crt->sig_oid1, &sig_params,
+                                  &crt->sig_md, &crt->sig_pk ) ) != 0 )
     {
         x509_crt_free( crt );
         return( ret );
     }
 
 #if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-    if( crt->sig_pk == POLARSSL_PK_RSASSA_PSS )
-    {
-        int salt_len, trailer_field;
-        md_type_t mgf_md;
-
-        /* Make sure params are valid */
-        ret = x509_get_rsassa_pss_params( &sig_params,
-                &crt->sig_md, &mgf_md, &salt_len, &trailer_field );
-        if( ret != 0 )
-            return( ret );
-
-        memcpy( &crt->sig_params, &sig_params, sizeof( x509_buf ) );
-    }
-    else
+    memcpy( &crt->sig_params, &sig_params, sizeof( x509_buf ) );
 #endif
-    {
-        /* Make sure parameters are absent or NULL */
-        if( ( sig_params.tag != ASN1_NULL && sig_params.tag != 0 ) ||
-              sig_params.len != 0 )
-        return( POLARSSL_ERR_X509_INVALID_ALG );
-    }
 
     /*
      * issuer               Name

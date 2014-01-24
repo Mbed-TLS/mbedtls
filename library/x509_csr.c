@@ -254,35 +254,16 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
         return( ret );
     }
 
-    if( ( ret = x509_get_sig_alg( &csr->sig_oid, &csr->sig_md,
-                                  &csr->sig_pk ) ) != 0 )
+    if( ( ret = x509_get_sig_alg( &csr->sig_oid, &sig_params,
+                                  &csr->sig_md, &csr->sig_pk ) ) != 0 )
     {
         x509_csr_free( csr );
         return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG );
     }
 
 #if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-    if( csr->sig_pk == POLARSSL_PK_RSASSA_PSS )
-    {
-        int salt_len, trailer_field;
-        md_type_t mgf_md;
-
-        /* Make sure params are valid */
-        ret = x509_get_rsassa_pss_params( &sig_params,
-                &csr->sig_md, &mgf_md, &salt_len, &trailer_field );
-        if( ret != 0 )
-            return( ret );
-
-        memcpy( &csr->sig_params, &sig_params, sizeof( x509_buf ) );
-    }
-    else
+    memcpy( &csr->sig_params, &sig_params, sizeof( x509_buf ) );
 #endif
-    {
-        /* Make sure parameters are absent or NULL */
-        if( ( sig_params.tag != ASN1_NULL && sig_params.tag != 0 ) ||
-              sig_params.len != 0 )
-        return( POLARSSL_ERR_X509_INVALID_ALG );
-    }
 
     if( ( ret = x509_get_sig( &p, end, &csr->sig ) ) != 0 )
     {

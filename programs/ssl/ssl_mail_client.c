@@ -628,7 +628,7 @@ int main( int argc, char *argv[] )
         fflush( stdout );
 
         gethostname( hostname, 32 );
-        len = sprintf( (char *) buf, "EHLO %s\n", hostname );
+        len = sprintf( (char *) buf, "EHLO %s\r\n", hostname );
         ret = write_ssl_and_get_response( &ssl, buf, len );
         if( ret < 200 || ret > 299 )
         {
@@ -654,7 +654,7 @@ int main( int argc, char *argv[] )
         fflush( stdout );
 
         gethostname( hostname, 32 );
-        len = sprintf( (char *) buf, "EHLO %s\n", hostname );
+        len = sprintf( (char *) buf, "EHLO %s\r\n", hostname );
         ret = write_and_get_response( server_fd, buf, len );
         if( ret < 200 || ret > 299 )
         {
@@ -668,7 +668,7 @@ int main( int argc, char *argv[] )
         fflush( stdout );
 
         gethostname( hostname, 32 );
-        len = sprintf( (char *) buf, "STARTTLS\n" );
+        len = sprintf( (char *) buf, "STARTTLS\r\n" );
         ret = write_and_get_response( server_fd, buf, len );
         if( ret < 200 || ret > 299 )
         {
@@ -688,7 +688,7 @@ int main( int argc, char *argv[] )
         printf( "  > Write AUTH LOGIN to server:" );
         fflush( stdout );
 
-        len = sprintf( (char *) buf, "AUTH LOGIN\n" );
+        len = sprintf( (char *) buf, "AUTH LOGIN\r\n" );
         ret = write_ssl_and_get_response( &ssl, buf, len );
         if( ret < 200 || ret > 399 )
         {
@@ -704,7 +704,7 @@ int main( int argc, char *argv[] )
         n = sizeof( buf );
         len = base64_encode( base, &n, (const unsigned char *) opt.user_name,
                              strlen( opt.user_name ) );
-        len = sprintf( (char *) buf, "%s\n", base );
+        len = sprintf( (char *) buf, "%s\r\n", base );
         ret = write_ssl_and_get_response( &ssl, buf, len );
         if( ret < 300 || ret > 399 )
         {
@@ -719,7 +719,7 @@ int main( int argc, char *argv[] )
 
         len = base64_encode( base, &n, (const unsigned char *) opt.user_pwd,
                              strlen( opt.user_pwd ) );
-        len = sprintf( (char *) buf, "%s\n", base );
+        len = sprintf( (char *) buf, "%s\r\n", base );
         ret = write_ssl_and_get_response( &ssl, buf, len );
         if( ret < 200 || ret > 399 )
         {
@@ -734,7 +734,7 @@ int main( int argc, char *argv[] )
     printf( "  > Write MAIL FROM to server:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, "MAIL FROM:<%s>\n", opt.mail_from );
+    len = sprintf( (char *) buf, "MAIL FROM:<%s>\r\n", opt.mail_from );
     ret = write_ssl_and_get_response( &ssl, buf, len );
     if( ret < 200 || ret > 299 )
     {
@@ -747,7 +747,7 @@ int main( int argc, char *argv[] )
     printf( "  > Write RCPT TO to server:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, "RCPT TO:<%s>\n", opt.mail_to );
+    len = sprintf( (char *) buf, "RCPT TO:<%s>\r\n", opt.mail_to );
     ret = write_ssl_and_get_response( &ssl, buf, len );
     if( ret < 200 || ret > 299 )
     {
@@ -760,7 +760,7 @@ int main( int argc, char *argv[] )
     printf( "  > Write DATA to server:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, "DATA\n" );
+    len = sprintf( (char *) buf, "DATA\r\n" );
     ret = write_ssl_and_get_response( &ssl, buf, len );
     if( ret < 300 || ret > 399 )
     {
@@ -773,10 +773,10 @@ int main( int argc, char *argv[] )
     printf( "  > Write content to server:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, "From: %s\nSubject: PolarSSL Test mail\n\n"
+    len = sprintf( (char *) buf, "From: %s\r\nSubject: PolarSSL Test mail\r\n\r\n"
             "This is a simple test mail from the "
-            "PolarSSL mail client example.\n"
-            "\n"
+            "PolarSSL mail client example.\r\n"
+            "\r\n"
             "Enjoy!", opt.mail_from );
     ret = write_ssl_data( &ssl, buf, len );
 

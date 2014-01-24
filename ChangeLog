@@ -11,6 +11,7 @@ Features
 Bugfix
    * Potential memory leak in bignum_selftest()
    * Replaced expired test certificate
+   * ssl_mail_client now terminates lines with CRLF, instead of LF
 
 = PolarSSL 1.3.3 released on 2013-12-31
 Features

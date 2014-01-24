@@ -43,23 +43,23 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_sha512.crt":"cert. version \: 3\nserial number \: 0B\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA512\nissued  on    \: 2011-02-12 14\:44\:07\nexpires on    \: 2021-02-12 14\:44\:07\nsigned using  \: RSA with SHA-512\nRSA key size  \: 2048 bits\n"
 
 X509 Certificate information RSA-PSS, SHA1 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
 x509_cert_info:"data_files/server9.crt":"cert. version \: 3\nserial number \: 16\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2014-01-20 13\:38\:16\nexpires on    \: 2024-01-18 13\:38\:16\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0xEA, 1)\nRSA key size  \: 1024 bits\n"
 
 X509 Certificate information RSA-PSS, SHA224 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
 x509_cert_info:"data_files/server9-sha224.crt":"cert. version \: 3\nserial number \: 17\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2014-01-20 13\:57\:36\nexpires on    \: 2024-01-18 13\:57\:36\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0xE2, 1)\nRSA key size  \: 1024 bits\n"
 
 X509 Certificate information RSA-PSS, SHA256 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
 x509_cert_info:"data_files/server9-sha256.crt":"cert. version \: 3\nserial number \: 18\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2014-01-20 13\:57\:45\nexpires on    \: 2024-01-18 13\:57\:45\nsigned using  \: RSASSA-PSS (SHA256, MGF1-SHA256, 0xDE, 1)\nRSA key size  \: 1024 bits\n"
 
 X509 Certificate information RSA-PSS, SHA384 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
 x509_cert_info:"data_files/server9-sha384.crt":"cert. version \: 3\nserial number \: 19\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2014-01-20 13\:57\:58\nexpires on    \: 2024-01-18 13\:57\:58\nsigned using  \: RSASSA-PSS (SHA384, MGF1-SHA384, 0xCE, 1)\nRSA key size  \: 1024 bits\n"
 
 X509 Certificate information RSA-PSS, SHA512 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
 x509_cert_info:"data_files/server9-sha512.crt":"cert. version \: 3\nserial number \: 1A\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nissued  on    \: 2014-01-20 13\:58\:12\nexpires on    \: 2024-01-18 13\:58\:12\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0xBE, 1)\nRSA key size  \: 1024 bits\n"
 
 X509 Certificate information EC, SHA1 Digest

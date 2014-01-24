@@ -256,9 +256,11 @@ int x509_get_alg_null( unsigned char **p, const unsigned char *end,
                        x509_buf *alg );
 int x509_get_alg( unsigned char **p, const unsigned char *end,
                   x509_buf *alg, x509_buf *params );
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
 int x509_get_rsassa_pss_params( const x509_buf *params,
                                 md_type_t *md_alg, md_type_t *mgf_md,
                                 int *salt_len, int *trailer_field );
+#endif
 int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig );
 int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
                       pk_type_t *pk_alg );

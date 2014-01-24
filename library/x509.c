@@ -183,7 +183,7 @@ static int x509_get_hash_alg( const x509_buf *alg, md_type_t *md_alg )
     if( p == end )
         return( 0 );
 
-    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_NULL ) ) != 0 )
+    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_NULL ) ) != 0 || len != 0 )
         return( POLARSSL_ERR_X509_INVALID_ALG + ret );
 
     if( p != end )
@@ -207,7 +207,7 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
 {
     int ret;
     unsigned char *p;
-    const unsigned char *end;
+    const unsigned char *end, *end2;
     size_t len;
     x509_buf alg_id, alg_params;
 
@@ -228,24 +228,41 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
     if( p == end )
         return( 0 );
 
+    /*
+     * HashAlgorithm
+     */
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) == 0 )
     {
+        end2 = p + len;
+
         /* HashAlgorithm ::= AlgorithmIdentifier (without parameters) */
-        if( ( ret = x509_get_alg_null( &p, p + len, &alg_id ) ) != 0 )
+        if( ( ret = x509_get_alg_null( &p, end2, &alg_id ) ) != 0 )
             return( ret );
 
         if( ( ret = oid_get_md_alg( &alg_id, md_alg ) ) != 0 )
             return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
     else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
         return( POLARSSL_ERR_X509_INVALID_ALG + ret );
 
+    if( p == end )
+        return( 0 );
+
+    /*
+     * MaskGenAlgorithm
+     */
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
     {
+        end2 = p + len;
+
         /* MaskGenAlgorithm ::= AlgorithmIdentifier (params = HashAlgorithm) */
-        if( ( ret = x509_get_alg( &p, p + len, &alg_id, &alg_params ) ) != 0 )
+        if( ( ret = x509_get_alg( &p, end2, &alg_id, &alg_params ) ) != 0 )
             return( ret );
 
         /* Only MFG1 is recognised for now */
@@ -256,6 +273,10 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
         /* Parse HashAlgorithm */
         if( ( ret = x509_get_hash_alg( &alg_params, mgf_md ) ) != 0 )
             return( ret );
+
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
     else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
         return( POLARSSL_ERR_X509_INVALID_ALG + ret );
@@ -263,12 +284,20 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
     if( p == end )
         return( 0 );
 
+    /*
+     * salt_len
+     */
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 2 ) ) == 0 )
     {
-        /* salt_len */
-        if( ( ret = asn1_get_int( &p, p + len, salt_len ) ) != 0 )
+        end2 = p + len;
+
+        if( ( ret = asn1_get_int( &p, end2, salt_len ) ) != 0 )
             return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
     else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
         return( POLARSSL_ERR_X509_INVALID_ALG + ret );
@@ -276,12 +305,20 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
     if( p == end )
         return( 0 );
 
+    /*
+     * trailer_field
+     */
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) ) == 0 )
     {
-        /* trailer_field */
-        if( ( ret = asn1_get_int( &p, p + len, trailer_field ) ) != 0 )
+        end2 = p + len;
+
+        if( ( ret = asn1_get_int( &p, end2, trailer_field ) ) != 0 )
             return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
     else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
         return( POLARSSL_ERR_X509_INVALID_ALG + ret );

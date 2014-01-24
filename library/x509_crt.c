@@ -601,7 +601,7 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     if( ( ret = x509_get_version(  &p, end, &crt->version  ) ) != 0 ||
         ( ret = x509_get_serial(   &p, end, &crt->serial   ) ) != 0 ||
         ( ret = x509_get_alg(      &p, end, &crt->sig_oid1,
-                                            &crt->sig_params ) ) != 0 )
+                                            &sig_params ) ) != 0 )
     {
         x509_crt_free( crt );
         return( ret );
@@ -622,22 +622,26 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
         return( ret );
     }
 
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
     if( crt->sig_pk == POLARSSL_PK_RSASSA_PSS )
     {
         int salt_len, trailer_field;
         md_type_t mgf_md;
 
         /* Make sure params are valid */
-        ret = x509_get_rsassa_pss_params( &crt->sig_params,
+        ret = x509_get_rsassa_pss_params( &sig_params,
                 &crt->sig_md, &mgf_md, &salt_len, &trailer_field );
         if( ret != 0 )
             return( ret );
+
+        memcpy( &crt->sig_params, &sig_params, sizeof( x509_buf ) );
     }
     else
+#endif
     {
-        /* Make sure parameters were absent or NULL */
-        if( ( crt->sig_params.tag != ASN1_NULL && crt->sig_params.tag != 0 ) ||
-              crt->sig_params.len != 0 )
+        /* Make sure parameters are absent or NULL */
+        if( ( sig_params.tag != ASN1_NULL && sig_params.tag != 0 ) ||
+              sig_params.len != 0 )
         return( POLARSSL_ERR_X509_INVALID_ALG );
     }
 
@@ -768,9 +772,13 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     }
 
     if( crt->sig_oid1.len != crt->sig_oid2.len ||
-        memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 ||
+        memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+        ||
         crt->sig_params.len != sig_params.len ||
-        memcmp( crt->sig_params.p, sig_params.p, sig_params.len ) != 0 )
+        memcmp( crt->sig_params.p, sig_params.p, sig_params.len ) != 0
+#endif
+        )
     {
         x509_crt_free( crt );
         return( POLARSSL_ERR_X509_SIG_MISMATCH );
@@ -1319,6 +1327,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
         ret = snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
 
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
     if( crt->sig_pk == POLARSSL_PK_RSASSA_PSS )
     {
         md_type_t md_alg, mgf_md;
@@ -1338,6 +1347,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
                               salt_len, trailer_field );
         SAFE_SNPRINTF();
     }
+#endif /* POLARSSL_RSASSA_PSS_CERTIFICATES */
 
     /* Key size */
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,

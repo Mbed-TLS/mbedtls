@@ -137,6 +137,7 @@ int x509_get_alg( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
 /*
  * HashAlgorithm ::= AlgorithmIdentifier
  *
@@ -329,6 +330,7 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
 
     return( 0 );
 }
+#endif /* POLARSSL_RSASSA_PSS_CERTIFICATES */
 
 /*
  *  AttributeTypeAndValue ::= SEQUENCE {

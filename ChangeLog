@@ -16,6 +16,7 @@ Bugfix
    * Fix ASM format in bn_mul.h
    * Potential memory leak in bignum_selftest()
    * Replaced expired test certificate
+   * ssl_mail_client now terminates lines with CRLF, instead of LF
 
 = Version 1.2.10 released 2013-10-07
 Changes

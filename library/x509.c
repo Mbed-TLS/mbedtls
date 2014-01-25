@@ -811,6 +811,52 @@ int x509_serial_gets( char *buf, size_t size, const x509_buf *serial )
 }
 
 /*
+ * Helper for writing signature alrogithms
+ */
+int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
+                       pk_type_t pk_alg, const x509_buf *sig_params )
+{
+    int ret;
+    char *p = buf;
+    size_t n = size;
+    const char *desc = NULL;
+
+    ret = oid_get_sig_alg_desc( sig_oid, &desc );
+    if( ret != 0 )
+        ret = snprintf( p, n, "???"  );
+    else
+        ret = snprintf( p, n, "%s", desc );
+    SAFE_SNPRINTF();
+
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+    if( pk_alg == POLARSSL_PK_RSASSA_PSS )
+    {
+        md_type_t md_alg, mgf_md;
+        const md_info_t *md_info, *mgf_md_info;
+        int salt_len, trailer_field;
+
+        if( ( ret = x509_get_rsassa_pss_params( sig_params,
+                        &md_alg, &mgf_md, &salt_len, &trailer_field ) ) != 0 )
+            return( ret );
+
+        md_info = md_info_from_type( md_alg );
+        mgf_md_info = md_info_from_type( mgf_md );
+
+        ret = snprintf( p, n, " (%s, MGF1-%s, 0x%02X, %d)",
+                              md_info ? md_info->name : "???",
+                              mgf_md_info ? mgf_md_info->name : "???",
+                              salt_len, trailer_field );
+        SAFE_SNPRINTF();
+    }
+#else
+    ((void) pk_alg);
+    ((void) sig_params);
+#endif /* POLARSSL_RSASSA_PSS_CERTIFICATES */
+
+    return( (int) size - n );
+}
+
+/*
  * Helper for writing "RSA key size", "EC key size", etc
  */
 int x509_key_size_helper( char *buf, size_t size, const char *name )

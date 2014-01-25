@@ -625,8 +625,12 @@ int x509_crl_info( char *buf, size_t size, const char *prefix,
     int ret;
     size_t n;
     char *p;
-    const char *desc;
     const x509_crl_entry *entry;
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+    const x509_buf *sig_params = &crl->sig_params;
+#else
+    const x509_buf *sig_params = NULL;
+#endif
 
     p = buf;
     n = size;
@@ -682,34 +686,8 @@ int x509_crl_info( char *buf, size_t size, const char *prefix,
     ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
     SAFE_SNPRINTF();
 
-    ret = oid_get_sig_alg_desc( &crl->sig_oid1, &desc );
-    if( ret != 0 )
-        ret = snprintf( p, n, "???"  );
-    else
-        ret = snprintf( p, n, "%s", desc );
+    ret = x509_sig_alg_gets( p, n, &crl->sig_oid1, crl->sig_pk, sig_params );
     SAFE_SNPRINTF();
-
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-    if( crl->sig_pk == POLARSSL_PK_RSASSA_PSS )
-    {
-        md_type_t md_alg, mgf_md;
-        const md_info_t *md_info, *mgf_md_info;
-        int salt_len, trailer_field;
-
-        if( ( ret = x509_get_rsassa_pss_params( &crl->sig_params,
-                        &md_alg, &mgf_md, &salt_len, &trailer_field ) ) != 0 )
-            return( ret );
-
-        md_info = md_info_from_type( md_alg );
-        mgf_md_info = md_info_from_type( mgf_md );
-
-        ret = snprintf( p, n, " (%s, MGF1-%s, 0x%02X, %d)",
-                              md_info ? md_info->name : "???",
-                              mgf_md_info ? mgf_md_info->name : "???",
-                              salt_len, trailer_field );
-        SAFE_SNPRINTF();
-    }
-#endif /* POLARSSL_RSASSA_PSS_CERTIFICATES */
 
     ret = snprintf( p, n, "\n" );
     SAFE_SNPRINTF();

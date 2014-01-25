@@ -293,6 +293,8 @@ int x509_get_serial( unsigned char **p, const unsigned char *end,
 int x509_get_ext( unsigned char **p, const unsigned char *end,
                   x509_buf *ext, int tag );
 int x509_load_file( const char *path, unsigned char **buf, size_t *n );
+int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
+                       pk_type_t pk_alg, const x509_buf *sig_params );
 int x509_key_size_helper( char *buf, size_t size, const char *name );
 int x509_string_to_names( asn1_named_data **head, const char *name );
 int x509_set_extension( asn1_named_data **head, const char *oid, size_t oid_len,

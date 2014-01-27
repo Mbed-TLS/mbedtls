@@ -290,7 +290,7 @@
  * may result in a compromise of the long-term signing key. This is avoided by
  * the deterministic variant.
  *
- * Requires: POLARSSL_MD_C
+ * Requires: POLARSSL_HMAC_DRBG_C
  *
  * Comment this macro to disable deterministic ECDSA.
  */
@@ -1976,7 +1976,7 @@
 #error "POLARSSL_ECDSA_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC) && !defined(POLARSSL_MD_C)
+#if defined(POLARSSL_ECDSA_DETERMINISTIC) && !defined(POLARSSL_HMAC_DRBG_C)
 #error "POLARSSL_ECDSA_DETERMINISTIC defined, but not all prerequisites"
 #endif
 

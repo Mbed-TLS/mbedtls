@@ -5,6 +5,7 @@ Features
    * Support for the Koblitz curves: secp192k1, secp224k1, secp256k1
    * Support for RIPEMD-160
    * Support for AES CFB8 mode
+   * Support for deterministic ECDSA (RFC 6979)
 
 Bugfix
    * Potential memory leak in bignum_selftest()

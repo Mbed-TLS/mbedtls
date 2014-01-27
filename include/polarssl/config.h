@@ -1312,6 +1312,20 @@
 //#define POLARSSL_HAVEGE_C
 
 /**
+ * \def POLARSSL_HMAC_DRBG_C
+ *
+ * Enable the HMAC_DRBG random generator.
+ *
+ * Module:  library/hmac_drbg.c
+ * Caller:
+ *
+ * Requires: POLARSSL_MD_C
+ *
+ * Uncomment to enable the HMAC_DRBG random number geerator.
+ */
+#define POLARSSL_HMAC_DRBG_C
+
+/**
  * \def POLARSSL_MD_C
  *
  * Enable the generic message digest layer.
@@ -1998,6 +2012,10 @@
 
 #if defined(POLARSSL_HAVEGE_C) && !defined(POLARSSL_TIMING_C)
 #error "POLARSSL_HAVEGE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_HMAC_DRBG) && !defined(POLARSSL_MD_C)
+#error "POLARSSL_HMAC_DRBG_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \

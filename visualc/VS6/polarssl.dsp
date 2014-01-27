@@ -185,6 +185,10 @@ SOURCE=..\..\library\havege.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\hmac_drbg.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\md2.c
 # End Source File
 # Begin Source File
@@ -454,6 +458,10 @@ SOURCE=..\..\include\polarssl\gcm.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\havege.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\hmac_drbg.h
 # End Source File
 # Begin Source File
 

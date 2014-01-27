@@ -13,9 +13,11 @@ Bugfix
    * ssl_mail_client now terminates lines with CRLF, instead of LF
    * net module handles timeouts on blocking sockets better (found by Tilman
      Sauerbeck)
+   * Assembly format fixes in bn_mul.h
+
+Security
    * Missing MPI_CHK calls added around unguarded mpi calls (found by
      TrustInSoft)
-   * Assembly format fixes in bn_mul.h
 
 = PolarSSL 1.3.3 released on 2013-12-31
 Features

@@ -125,24 +125,7 @@ rsa_context;
  */
 void rsa_init( rsa_context *ctx,
                int padding,
-               int hash_id );
-
-/**
- * \brief          Set the padding method on an initilized RSA context.
- *
- *                 Note: Set padding to RSA_PKCS_V21 for the RSAES-OAEP
- *                 encryption scheme and the RSASSA-PSS signature scheme.
- *
- * \param ctx      RSA context to be set
- * \param padding  RSA_PKCS_V15 or RSA_PKCS_V21
- * \param hash_id  RSA_PKCS_V21 hash identifier
- *
- * \note           The hash_id parameter is actually ignored
- *                 when using RSA_PKCS_V15 padding.
- */
-void rsa_set_padding( rsa_context *ctx,
-                      int padding,
-                      int hash_id );
+               int hash_id);
 
 /**
  * \brief          Generate an RSA keypair

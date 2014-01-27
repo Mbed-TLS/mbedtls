@@ -5,8 +5,6 @@ Features
    * Support for the Koblitz curves: secp192k1, secp224k1, secp256k1
    * Support for RIPEMD-160
    * Support for AES CFB8 mode
-   * Allow for use of PKCS#1 v2.1 via the PK layer (pk_rsa_set_padding() and
-     rsa_set_padding())
 
 Bugfix
    * Potential memory leak in bignum_selftest()

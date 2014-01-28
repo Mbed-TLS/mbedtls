@@ -25,7 +25,7 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_TIMING_C)
+#if defined(POLARSSL_TIMING_C) && !defined(POLARSSL_TIMING_ALT)
 
 #include "polarssl/timing.h"
 

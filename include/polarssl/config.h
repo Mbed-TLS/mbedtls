@@ -1745,6 +1745,17 @@
 #define POLARSSL_TIMING_C
 
 /**
+ * \def POLARSSL_TIMING_ALT
+ *
+ * Provide your own alternate timing implementation.
+ *
+ * Requires: POLARSSL_TIMING_C
+ *
+ * Uncomment this to allow your own alternate timing implementation.
+ */
+//#define POLARSSL_TIMING_ALT
+
+/**
  * \def POLARSSL_VERSION_C
  *
  * Enable run-time version information.

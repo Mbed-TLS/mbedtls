@@ -42,13 +42,16 @@
 #define HMAC_DRBG_MAX_REQUEST       1024    /**< Maximum number of requested bytes per call */
 #define HMAC_DRBG_MAX_SEED_INPUT    384     /**< Maximum size of (re)seed buffer */
 
+#define HMAC_DRBG_PR_OFF        0       /**< No prediction resistance       */
+#define HMAC_DRBG_PR_ON         1       /**< Prediction resistance enabled  */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
  * HMAC_DRBG context.
- * TODO: reseed counter, prediction resistance flag.
+ * TODO: reseed counter.
  */
 typedef struct
 {
@@ -57,12 +60,11 @@ typedef struct
     unsigned char K[POLARSSL_MD_MAX_SIZE];
 
     size_t entropy_len;         /*!< entropy bytes grabbed on each (re)seed */
+    int prediction_resistance;  /*!< enable prediction resistance (Automatic
+                                     reseed before every random generation) */
 
-    /*
-     * Callbacks (Entropy)
-     */
-    int (*f_entropy)(void *, unsigned char *, size_t);
-    void *p_entropy;            /*!< context for the entropy function */
+    int (*f_entropy)(void *, unsigned char *, size_t); /*!< entropy function */
+    void *p_entropy;            /*!< context for the entropy function        */
 } hmac_drbg_context;
 
 /**
@@ -111,6 +113,18 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
 int hmac_drbg_init_buf( hmac_drbg_context *ctx,
                         const md_info_t * md_info,
                         const unsigned char *data, size_t data_len );
+
+/**
+ * \brief               Enable / disable prediction resistance (Default: Off)
+ *
+ * Note: If enabled, entropy is used for ctx->entropy_len before each call!
+ *       Only use this if you have ample supply of good entropy!
+ *
+ * \param ctx           HMAC_DRBG context
+ * \param resistance    HMAC_DRBG_PR_ON or HMAC_DRBG_PR_OFF
+ */
+void hmac_drbg_set_prediction_resistance( hmac_drbg_context *ctx,
+                                          int resistance );
 
 /**
  * \brief               Set the amount of entropy grabbed on each reseed

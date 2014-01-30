@@ -171,6 +171,15 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
 }
 
 /*
+ * Set prediction resistance
+ */
+void hmac_drbg_set_prediction_resistance( hmac_drbg_context *ctx,
+                                          int resistance )
+{
+    ctx->prediction_resistance = resistance;
+}
+
+/*
  * Set entropy length grabbed for reseeds
  */
 void hmac_drbg_set_entropy_len( hmac_drbg_context *ctx, size_t len )
@@ -185,12 +194,19 @@ int hmac_drbg_random_with_add( void *p_rng,
                                unsigned char *output, size_t out_len,
                                const unsigned char *additional, size_t add_len )
 {
+    int ret;
     hmac_drbg_context *ctx = (hmac_drbg_context *) p_rng;
     size_t md_len = md_get_size( ctx->md_ctx.md_info );
     size_t left = out_len;
     unsigned char *out = output;
 
-    /* 1. Check reseed counter (TODO) */
+    /* 1. Check reseed counter (TODO) and PR */
+    if( ctx->f_entropy != NULL &&
+        ctx->prediction_resistance == HMAC_DRBG_PR_ON )
+    {
+        if( ( ret = hmac_drbg_reseed( ctx, additional, add_len ) ) != 0 )
+            return( ret );
+    }
 
     /* 2. Use additional data if any */
     if( additional != NULL && add_len != 0 )

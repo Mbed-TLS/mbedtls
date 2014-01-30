@@ -1916,6 +1916,13 @@
 #define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
 #define CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
 
+// HMAC_DRBG options
+//
+#define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */
+#define POLARSSL_HMAC_DRBG_MAX_INPUT           256 /**< Maximum number of additional input bytes */
+#define POLARSSL_HMAC_DRBG_MAX_REQUEST        1024 /**< Maximum number of requested bytes per call */
+#define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT      384 /**< Maximum size of (re)seed buffer */
+
 // ECP options
 //
 #define POLARSSL_ECP_MAX_BITS             521 /**< Maximum bit size of groups */

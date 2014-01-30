@@ -114,7 +114,8 @@ int hmac_drbg_reseed( hmac_drbg_context *ctx,
     /* 2. Update state */
     hmac_drbg_update( ctx, seed, seedlen );
 
-    /* 3. Reset reseed_counter (TODO) */
+    /* 3. Reset reseed_counter */
+    ctx->reseed_counter = 1;
 
     /* 4. Done */
     return( 0 );
@@ -144,6 +145,8 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
+
+    ctx->reseed_interval = HMAC_DRBG_RESEED_INTERVAL;
 
     /*
      * See SP800-57 5.6.1 (p. 65-66) for the security strength provided by
@@ -188,6 +191,14 @@ void hmac_drbg_set_entropy_len( hmac_drbg_context *ctx, size_t len )
 }
 
 /*
+ * Set reseed interval
+ */
+void hmac_drbg_set_reseed_interval( hmac_drbg_context *ctx, int interval )
+{
+    ctx->reseed_interval = interval;
+}
+
+/*
  * HMAC_DRBG random function with optional additional data (10.1.2.5)
  */
 int hmac_drbg_random_with_add( void *p_rng,
@@ -200,9 +211,10 @@ int hmac_drbg_random_with_add( void *p_rng,
     size_t left = out_len;
     unsigned char *out = output;
 
-    /* 1. Check reseed counter (TODO) and PR */
+    /* 1. Check reseed counter and PR */
     if( ctx->f_entropy != NULL &&
-        ctx->prediction_resistance == HMAC_DRBG_PR_ON )
+        ( ctx->prediction_resistance == HMAC_DRBG_PR_ON ||
+          ctx->reseed_counter > ctx->reseed_interval ) )
     {
         if( ( ret = hmac_drbg_reseed( ctx, additional, add_len ) ) != 0 )
             return( ret );
@@ -229,7 +241,8 @@ int hmac_drbg_random_with_add( void *p_rng,
     /* 6. Update */
     hmac_drbg_update( ctx, additional, add_len );
 
-    /* 7. Update reseed counter (TODO) */
+    /* 7. Update reseed counter */
+    ctx->reseed_counter++;
 
     /* 8. Done */
     return( 0 );

@@ -51,18 +51,22 @@ extern "C" {
 
 /**
  * HMAC_DRBG context.
- * TODO: reseed counter.
  */
 typedef struct
 {
-    md_context_t md_ctx;
-    unsigned char V[POLARSSL_MD_MAX_SIZE];
-    unsigned char K[POLARSSL_MD_MAX_SIZE];
+    /* Working state */
+    md_context_t md_ctx;                    /*!< HMAC context       */
+    unsigned char V[POLARSSL_MD_MAX_SIZE];  /*!< V in the spec      */
+    unsigned char K[POLARSSL_MD_MAX_SIZE];  /*!< Key in the spec    */
+    int reseed_counter;                     /*!< reseed counter     */
 
+    /* Administrative state */
     size_t entropy_len;         /*!< entropy bytes grabbed on each (re)seed */
     int prediction_resistance;  /*!< enable prediction resistance (Automatic
                                      reseed before every random generation) */
+    int reseed_interval;        /*!< reseed interval   */
 
+    /* Callbacks */
     int (*f_entropy)(void *, unsigned char *, size_t); /*!< entropy function */
     void *p_entropy;            /*!< context for the entropy function        */
 } hmac_drbg_context;
@@ -128,13 +132,24 @@ void hmac_drbg_set_prediction_resistance( hmac_drbg_context *ctx,
 
 /**
  * \brief               Set the amount of entropy grabbed on each reseed
- *                      (Default: HMAC_DRBG_ENTROPY_LEN)
+ *                      (Default: given by the security strength, which
+ *                      depends on the hash used, see \c hmac_drbg_init() )
  *
  * \param ctx           HMAC_DRBG context
- * \param len           Amount of entropy to grab
+ * \param len           Amount of entropy to grab, in bytes
  */
 void hmac_drbg_set_entropy_len( hmac_drbg_context *ctx,
                                 size_t len );
+
+/**
+ * \brief               Set the reseed interval
+ *                      (Default: HMAC_DRBG_RESEED_INTERVAL)
+ *
+ * \param ctx           HMAC_DRBG context
+ * \param interval      Reseed interval
+ */
+void hmac_drbg_set_reseed_interval( hmac_drbg_context *ctx,
+                                    int interval );
 
 /**
  * \brief               HMAC_DRBG update state
@@ -165,7 +180,7 @@ int hmac_drbg_reseed( hmac_drbg_context *ctx,
 /**
  * \brief               HMAC_DRBG generate random with additional update input
  *
- * Note: Automatically reseeds if reseed_counter is reached.
+ * Note: Automatically reseeds if reseed_counter is reached or PR is enabled.
  *
  * \param p_rng         HMAC_DRBG context
  * \param output        Buffer to fill
@@ -185,7 +200,7 @@ int hmac_drbg_random_with_add( void *p_rng,
 /**
  * \brief               HMAC_DRBG generate random
  *
- * Note: Automatically reseeds if reseed_counter is reached.
+ * Note: Automatically reseeds if reseed_counter is reached or PR is enabled.
  *
  * \param p_rng         HMAC_DRBG context
  * \param output        Buffer to fill

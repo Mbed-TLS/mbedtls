@@ -85,7 +85,7 @@ int hmac_drbg_init_buf( hmac_drbg_context *ctx,
 }
 
 /*
- * HMAC_DRBG reseeding (10.1.2.4)
+ * HMAC_DRBG reseeding: 10.1.2.4 (arabic) + 9.2 (Roman)
  */
 int hmac_drbg_reseed( hmac_drbg_context *ctx,
                       const unsigned char *additional, size_t len )
@@ -93,18 +93,22 @@ int hmac_drbg_reseed( hmac_drbg_context *ctx,
     unsigned char seed[HMAC_DRBG_MAX_SEED_INPUT];
     size_t seedlen;
 
-    if( ctx->entropy_len + len > HMAC_DRBG_MAX_SEED_INPUT )
+    /* III. Check input length */
+    if( len > HMAC_DRBG_MAX_INPUT ||
+        ctx->entropy_len + len > HMAC_DRBG_MAX_SEED_INPUT )
+    {
         return( POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG );
+    }
 
     memset( seed, 0, HMAC_DRBG_MAX_SEED_INPUT );
 
-    /* 1a. Gather entropy_len bytes of entropy for the seed */
+    /* IV. Gather entropy_len bytes of entropy for the seed */
     if( ctx->f_entropy( ctx->p_entropy, seed, ctx->entropy_len ) != 0 )
         return( POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED );
 
     seedlen = ctx->entropy_len;
 
-    /* 1b. Append additional data if any */
+    /* 1. Concatenate entropy and additional data if any */
     if( additional != NULL && len != 0 )
     {
         memcpy( seed + seedlen, additional, len );
@@ -122,7 +126,7 @@ int hmac_drbg_reseed( hmac_drbg_context *ctx,
 }
 
 /*
- * HMAC_DRBG initialisation
+ * HMAC_DRBG initialisation (10.1.2.3 + 9.1)
  */
 int hmac_drbg_init( hmac_drbg_context *ctx,
                     const md_info_t * md_info,
@@ -199,7 +203,8 @@ void hmac_drbg_set_reseed_interval( hmac_drbg_context *ctx, int interval )
 }
 
 /*
- * HMAC_DRBG random function with optional additional data (10.1.2.5)
+ * HMAC_DRBG random function with optional additional data:
+ * 10.1.2.5 (arabic) + 9.3 (Roman)
  */
 int hmac_drbg_random_with_add( void *p_rng,
                                unsigned char *output, size_t out_len,
@@ -211,13 +216,23 @@ int hmac_drbg_random_with_add( void *p_rng,
     size_t left = out_len;
     unsigned char *out = output;
 
-    /* 1. Check reseed counter and PR */
+    /* II. Check request length */
+    if( out_len > HMAC_DRBG_MAX_REQUEST )
+        return( POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG );
+
+    /* III. Check input length */
+    if( add_len > HMAC_DRBG_MAX_INPUT )
+        return( POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG );
+
+    /* 1. (aka VII and IX) Check reseed counter and PR */
     if( ctx->f_entropy != NULL &&
         ( ctx->prediction_resistance == HMAC_DRBG_PR_ON ||
           ctx->reseed_counter > ctx->reseed_interval ) )
     {
         if( ( ret = hmac_drbg_reseed( ctx, additional, add_len ) ) != 0 )
             return( ret );
+
+        add_len = 0; /* VII.4 */
     }
 
     /* 2. Use additional data if any */

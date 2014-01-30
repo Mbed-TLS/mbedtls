@@ -193,7 +193,7 @@ int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
     MPI_CHK( mpi_write_binary( d, data, grp_len ) );
     MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
     MPI_CHK( mpi_write_binary( &h, data + grp_len, grp_len ) );
-    hmac_drbg_init( &rng_ctx, md_info, data, 2 * grp_len );
+    hmac_drbg_init_buf( &rng_ctx, md_info, data, 2 * grp_len );
 
     ret = ecdsa_sign( grp, r, s, d, buf, blen,
                       hmac_drbg_random, &rng_ctx );

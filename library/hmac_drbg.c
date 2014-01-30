@@ -63,11 +63,11 @@ void hmac_drbg_update( hmac_drbg_context *ctx,
 }
 
 /*
- * Simplified HMAC_DRBG initialisation.
+ * Simplified HMAC_DRBG initialisation (for use with deterministic ECDSA)
  */
-int hmac_drbg_init( hmac_drbg_context *ctx,
-                    const md_info_t * md_info,
-                    const unsigned char *data, size_t data_len )
+int hmac_drbg_init_buf( hmac_drbg_context *ctx,
+                        const md_info_t * md_info,
+                        const unsigned char *data, size_t data_len )
 {
     int ret;
 
@@ -80,6 +80,78 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
     /* ctx->K is already 0 */
 
     hmac_drbg_update( ctx, data, data_len );
+
+    return( 0 );
+}
+
+/*
+ * HMAC_DRBG initialisation
+ */
+int hmac_drbg_init( hmac_drbg_context *ctx,
+                    const md_info_t * md_info,
+                    int (*f_entropy)(void *, unsigned char *, size_t),
+                    void *p_entropy,
+                    const unsigned char *custom,
+                    size_t len )
+{
+    int ret;
+    unsigned char seed[HMAC_DRBG_MAX_SEED_INPUT];
+    size_t seedlen, init_entropy_len;
+
+    memset( ctx, 0, sizeof( hmac_drbg_context ) );
+
+    if( ( ret = md_init_ctx( &ctx->md_ctx, md_info ) ) != 0 )
+        return( ret );
+
+    /*
+     * See SP800-57 5.6.1 (p. 65-66) for the security strength provided by
+     * each hash function, then according to SP800-90A rev1 10.1 table 2,
+     * min_entropy_len (in bits) is security_strength.
+     */
+    ctx->entropy_len = md_info->size <= 20 ? 16 : /* 160-bits hash -> 128 */
+                       md_info->size <= 28 ? 24 : /* 224-bits hash -> 192 */
+                                             32;  /* better (256+) -> 256 */
+
+    ctx->f_entropy = f_entropy;
+    ctx->p_entropy = p_entropy;
+
+    /*
+     * For initialisation, use more entropy to emulate a nonce
+     */
+    init_entropy_len = ctx->entropy_len * 3 / 2;
+
+    if( init_entropy_len + len > HMAC_DRBG_MAX_SEED_INPUT )
+        return( POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG );
+
+    memset( seed, 0, HMAC_DRBG_MAX_SEED_INPUT );
+
+    /*
+     * Gather init_entropy_len bytes of entropy for initial seed
+     */
+    if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
+                             init_entropy_len ) )
+    {
+        return( POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED );
+    }
+
+    seedlen = init_entropy_len;
+
+    /*
+     * Add additional data
+     */
+    if( custom != NULL && len != 0 )
+    {
+        memcpy( seed + seedlen, custom, len );
+        seedlen += len;
+    }
+
+    /*
+     * Set initial state and update it with initialisation data
+     */
+    memset( ctx->V, 0x01, md_info->size );
+    /* ctx->K is already 0 */
+
+    hmac_drbg_update( ctx, seed, seedlen );
 
     return( 0 );
 }

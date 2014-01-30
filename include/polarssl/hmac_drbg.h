@@ -29,19 +29,40 @@
 
 #include "md.h"
 
+/*
+ * ! Same values as ctr_drbg.h !
+ */
+#define POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED        -0x0034  /**< The entropy source failed. */
+#define POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG              -0x0036  /**< Too many random requested in single call. */
+#define POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG                -0x0038  /**< Input too large (Entropy + additional). */
+#define POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x003A  /**< Read/write error in file. */
+
+#define HMAC_DRBG_RESEED_INTERVAL   10000   /**< Interval before reseed is performed by default */
+#define HMAC_DRBG_MAX_INPUT         256     /**< Maximum number of additional input bytes */
+#define HMAC_DRBG_MAX_REQUEST       1024    /**< Maximum number of requested bytes per call */
+#define HMAC_DRBG_MAX_SEED_INPUT    384     /**< Maximum size of (re)seed buffer */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*
- * Simplified HMAC_DRBG context.
- * No reseed counter, no prediction resistance flag.
+/**
+ * HMAC_DRBG context.
+ * TODO: reseed counter, prediction resistance flag.
  */
 typedef struct
 {
     md_context_t md_ctx;
     unsigned char V[POLARSSL_MD_MAX_SIZE];
     unsigned char K[POLARSSL_MD_MAX_SIZE];
+
+    size_t entropy_len;         /*!< entropy bytes grabbed on each (re)seed */
+
+    /*
+     * Callbacks (Entropy)
+     */
+    int (*f_entropy)(void *, unsigned char *, size_t);
+    void *p_entropy;            /*!< context for the entropy function */
 } hmac_drbg_context;
 
 /**
@@ -49,18 +70,47 @@ typedef struct
  *
  * \param ctx           HMAC_DRBG context to be initialised
  * \param md_info       MD algorithm to use for HMAC_DRBG
- * \param data          Concatenation of entropy string and additional data
- * \param data_len      Length of data in bytes
+ * \param f_entropy     Entropy callback (p_entropy, buffer to fill, buffer
+ *                      length)
+ * \param p_entropy     Entropy context
+ * \param custom        Personalization data (Device specific identifiers)
+ *                      (Can be NULL)
+ * \param len           Length of personalization data
  *
- * \todo                Use entropy callback rather than buffer.
+ * \note                The "security strength" as defined by NIST is set to:
+ *                      128 bits if md_alg is SHA-1,
+ *                      192 bits if md_alg is SHA-224,
+ *                      256 bits if md_alg is SHA-256 or higher.
+ *                      Note that SHA-256 is just as efficient as SHA-224.
  *
  * \return              0 if successful, or
  *                      POLARSSL_ERR_MD_BAD_INPUT_DATA, or
- *                      POLARSSL_ERR_MD_ALLOC_FAILED
+ *                      POLARSSL_ERR_MD_ALLOC_FAILED, or
+ *                      POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED.
  */
 int hmac_drbg_init( hmac_drbg_context *ctx,
                     const md_info_t * md_info,
-                    const unsigned char *data, size_t data_len );
+                    int (*f_entropy)(void *, unsigned char *, size_t),
+                    void *p_entropy,
+                    const unsigned char *custom,
+                    size_t len );
+
+/**
+ * \brief               Simplified HMAC_DRBG initialisation.
+ *                      (For use with deterministic ECDSA.)
+ *
+ * \param ctx           HMAC_DRBG context to be initialised
+ * \param md_info       MD algorithm to use for HMAC_DRBG
+ * \param data          Concatenation of entropy string and additional data
+ * \param data_len      Length of data in bytes
+ *
+ * \return              0 if successful, or
+ *                      POLARSSL_ERR_MD_BAD_INPUT_DATA, or
+ *                      POLARSSL_ERR_MD_ALLOC_FAILED.
+ */
+int hmac_drbg_init_buf( hmac_drbg_context *ctx,
+                        const md_info_t * md_info,
+                        const unsigned char *data, size_t data_len );
 
 /**
  * \brief               HMAC_DRBG update state

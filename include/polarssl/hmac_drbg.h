@@ -37,13 +37,13 @@
 #define POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG                -0x0038  /**< Input too large (Entropy + additional). */
 #define POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x003A  /**< Read/write error in file. */
 
-#define HMAC_DRBG_RESEED_INTERVAL   10000   /**< Interval before reseed is performed by default */
-#define HMAC_DRBG_MAX_INPUT         256     /**< Maximum number of additional input bytes */
-#define HMAC_DRBG_MAX_REQUEST       1024    /**< Maximum number of requested bytes per call */
-#define HMAC_DRBG_MAX_SEED_INPUT    384     /**< Maximum size of (re)seed buffer */
+#define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000   /**< Interval before reseed is performed by default */
+#define POLARSSL_HMAC_DRBG_MAX_INPUT         256     /**< Maximum number of additional input bytes */
+#define POLARSSL_HMAC_DRBG_MAX_REQUEST       1024    /**< Maximum number of requested bytes per call */
+#define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT    384     /**< Maximum size of (re)seed buffer */
 
-#define HMAC_DRBG_PR_OFF        0       /**< No prediction resistance       */
-#define HMAC_DRBG_PR_ON         1       /**< Prediction resistance enabled  */
+#define POLARSSL_HMAC_DRBG_PR_OFF   0   /**< No prediction resistance       */
+#define POLARSSL_HMAC_DRBG_PR_ON    1   /**< Prediction resistance enabled  */
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,7 +125,7 @@ int hmac_drbg_init_buf( hmac_drbg_context *ctx,
  *       Only use this if you have ample supply of good entropy!
  *
  * \param ctx           HMAC_DRBG context
- * \param resistance    HMAC_DRBG_PR_ON or HMAC_DRBG_PR_OFF
+ * \param resistance    POLARSSL_HMAC_DRBG_PR_ON or POLARSSL_HMAC_DRBG_PR_OFF
  */
 void hmac_drbg_set_prediction_resistance( hmac_drbg_context *ctx,
                                           int resistance );
@@ -143,7 +143,7 @@ void hmac_drbg_set_entropy_len( hmac_drbg_context *ctx,
 
 /**
  * \brief               Set the reseed interval
- *                      (Default: HMAC_DRBG_RESEED_INTERVAL)
+ *                      (Default: POLARSSL_HMAC_DRBG_RESEED_INTERVAL)
  *
  * \param ctx           HMAC_DRBG context
  * \param interval      Reseed interval

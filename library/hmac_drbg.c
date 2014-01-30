@@ -90,17 +90,17 @@ int hmac_drbg_init_buf( hmac_drbg_context *ctx,
 int hmac_drbg_reseed( hmac_drbg_context *ctx,
                       const unsigned char *additional, size_t len )
 {
-    unsigned char seed[HMAC_DRBG_MAX_SEED_INPUT];
+    unsigned char seed[POLARSSL_HMAC_DRBG_MAX_SEED_INPUT];
     size_t seedlen;
 
     /* III. Check input length */
-    if( len > HMAC_DRBG_MAX_INPUT ||
-        ctx->entropy_len + len > HMAC_DRBG_MAX_SEED_INPUT )
+    if( len > POLARSSL_HMAC_DRBG_MAX_INPUT ||
+        ctx->entropy_len + len > POLARSSL_HMAC_DRBG_MAX_SEED_INPUT )
     {
         return( POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG );
     }
 
-    memset( seed, 0, HMAC_DRBG_MAX_SEED_INPUT );
+    memset( seed, 0, POLARSSL_HMAC_DRBG_MAX_SEED_INPUT );
 
     /* IV. Gather entropy_len bytes of entropy for the seed */
     if( ctx->f_entropy( ctx->p_entropy, seed, ctx->entropy_len ) != 0 )
@@ -150,7 +150,7 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
 
-    ctx->reseed_interval = HMAC_DRBG_RESEED_INTERVAL;
+    ctx->reseed_interval = POLARSSL_HMAC_DRBG_RESEED_INTERVAL;
 
     /*
      * See SP800-57 5.6.1 (p. 65-66) for the security strength provided by
@@ -217,16 +217,16 @@ int hmac_drbg_random_with_add( void *p_rng,
     unsigned char *out = output;
 
     /* II. Check request length */
-    if( out_len > HMAC_DRBG_MAX_REQUEST )
+    if( out_len > POLARSSL_HMAC_DRBG_MAX_REQUEST )
         return( POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG );
 
     /* III. Check input length */
-    if( add_len > HMAC_DRBG_MAX_INPUT )
+    if( add_len > POLARSSL_HMAC_DRBG_MAX_INPUT )
         return( POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG );
 
     /* 1. (aka VII and IX) Check reseed counter and PR */
-    if( ctx->f_entropy != NULL &&
-        ( ctx->prediction_resistance == HMAC_DRBG_PR_ON ||
+    if( ctx->f_entropy != NULL && /* For no-reseeding instances */
+        ( ctx->prediction_resistance == POLARSSL_HMAC_DRBG_PR_ON ||
           ctx->reseed_counter > ctx->reseed_interval ) )
     {
         if( ( ret = hmac_drbg_reseed( ctx, additional, add_len ) ) != 0 )

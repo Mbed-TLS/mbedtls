@@ -35,6 +35,10 @@
 
 #include "polarssl/hmac_drbg.h"
 
+#if defined(POLARSSL_FS_IO)
+#include <stdio.h>
+#endif
+
 /*
  * HMAC_DRBG update, using optional additional data (10.1.2.2)
  */
@@ -283,6 +287,65 @@ void hmac_drbg_free( hmac_drbg_context *ctx )
 
     memset( ctx, 0, sizeof( hmac_drbg_context ) );
 }
+
+#if defined(POLARSSL_FS_IO)
+int hmac_drbg_write_seed_file( hmac_drbg_context *ctx, const char *path )
+{
+    int ret = POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR;
+    FILE *f;
+    unsigned char buf[ POLARSSL_HMAC_DRBG_MAX_INPUT ];
+
+    if( ( f = fopen( path, "wb" ) ) == NULL )
+        return( POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR );
+
+    if( ( ret = hmac_drbg_random( ctx, buf, sizeof( buf ) ) ) != 0 )
+        goto exit;
+
+    if( fwrite( buf, 1, sizeof( buf ), f ) != sizeof( buf ) )
+    {
+        ret = POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR;
+        goto exit;
+    }
+
+    ret = 0;
+
+exit:
+    fclose( f );
+    return( ret );
+}
+
+int hmac_drbg_update_seed_file( hmac_drbg_context *ctx, const char *path )
+{
+    FILE *f;
+    size_t n;
+    unsigned char buf[ POLARSSL_HMAC_DRBG_MAX_INPUT ];
+
+    if( ( f = fopen( path, "rb" ) ) == NULL )
+        return( POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR );
+
+    fseek( f, 0, SEEK_END );
+    n = (size_t) ftell( f );
+    fseek( f, 0, SEEK_SET );
+
+    if( n > POLARSSL_HMAC_DRBG_MAX_INPUT )
+    {
+        fclose( f );
+        return( POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG );
+    }
+
+    if( fread( buf, 1, n, f ) != n )
+    {
+        fclose( f );
+        return( POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR );
+    }
+
+    fclose( f );
+
+    hmac_drbg_update( ctx, buf, n );
+
+    return( hmac_drbg_write_seed_file( ctx, path ) );
+}
+#endif /* POLARSSL_FS_IO */
 
 
 #if defined(POLARSSL_SELF_TEST)

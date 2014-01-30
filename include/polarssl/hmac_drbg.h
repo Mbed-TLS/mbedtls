@@ -221,6 +221,32 @@ int hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len );
  */
 void hmac_drbg_free( hmac_drbg_context *ctx );
 
+#if defined(POLARSSL_FS_IO)
+/**
+ * \brief               Write a seed file
+ *
+ * \param ctx           HMAC_DRBG context
+ * \param path          Name of the file
+ *
+ * \return              0 if successful, 1 on file error, or
+ *                      POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED
+ */
+int hmac_drbg_write_seed_file( hmac_drbg_context *ctx, const char *path );
+
+/**
+ * \brief               Read and update a seed file. Seed is added to this
+ *                      instance
+ *
+ * \param ctx           HMAC_DRBG context
+ * \param path          Name of the file
+ *
+ * \return              0 if successful, 1 on file error,
+ *                      POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED or
+ *                      POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG
+ */
+int hmac_drbg_update_seed_file( hmac_drbg_context *ctx, const char *path );
+#endif
+
 
 #if defined(POLARSSL_SELF_TEST)
 /**

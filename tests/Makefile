@@ -44,6 +44,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_gcm.aes192_en						\
 		test_suite_gcm.aes256_en						\
 		test_suite_gcm.camellia	test_suite_hmac_shax	\
+		test_suite_hmac_drbg.misc						\
 		test_suite_hmac_drbg.no_reseed					\
 		test_suite_md			test_suite_mdx			\
 		test_suite_mpi			test_suite_pbkdf2		\
@@ -133,6 +134,10 @@ test_suite_gcm.aes256_en.c : suites/test_suite_gcm.function suites/test_suite_gc
 test_suite_gcm.camellia.c : suites/test_suite_gcm.function suites/test_suite_gcm.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.camellia
+
+test_suite_hmac_drbg.misc.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.misc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.misc
 
 test_suite_hmac_drbg.no_reseed.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.no_reseed.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
@@ -259,6 +264,10 @@ test_suite_gcm.aes256_en: test_suite_gcm.aes256_en.c ../library/libpolarssl.a
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_gcm.camellia: test_suite_gcm.camellia.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_hmac_drbg.misc: test_suite_hmac_drbg.misc.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

@@ -1,2 +1,3 @@
 /test_suite*
 data_files/mpi_write
+data_files/hmac_drbg_seed

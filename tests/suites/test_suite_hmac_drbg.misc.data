@@ -1,0 +1,40 @@
+HMAC_DRBG write/update seed file SHA-1
+depends_on:POLARSSL_SHA1_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA1:"data_files/hmac_drbg_seed":0
+
+HMAC_DRBG write/update seed file SHA-1
+depends_on:POLARSSL_SHA1_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA1:"no_such_dir/file":POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR
+
+HMAC_DRBG write/update seed file SHA-224
+depends_on:POLARSSL_SHA256_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA224:"data_files/hmac_drbg_seed":0
+
+HMAC_DRBG write/update seed file SHA-224
+depends_on:POLARSSL_SHA256_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA224:"no_such_dir/file":POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR
+
+HMAC_DRBG write/update seed file SHA-256
+depends_on:POLARSSL_SHA256_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA256:"data_files/hmac_drbg_seed":0
+
+HMAC_DRBG write/update seed file SHA-256
+depends_on:POLARSSL_SHA256_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA256:"no_such_dir/file":POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR
+
+HMAC_DRBG write/update seed file SHA-384
+depends_on:POLARSSL_SHA512_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA384:"data_files/hmac_drbg_seed":0
+
+HMAC_DRBG write/update seed file SHA-384
+depends_on:POLARSSL_SHA512_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA384:"no_such_dir/file":POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR
+
+HMAC_DRBG write/update seed file SHA-512
+depends_on:POLARSSL_SHA512_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA512:"data_files/hmac_drbg_seed":0
+
+HMAC_DRBG write/update seed file SHA-512
+depends_on:POLARSSL_SHA512_C
+hmac_drbg_seed_file:POLARSSL_MD_SHA512:"no_such_dir/file":POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR
+

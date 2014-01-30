@@ -136,6 +136,19 @@ void hmac_drbg_update( hmac_drbg_context *ctx,
                        const unsigned char *additional, size_t add_len );
 
 /**
+ * \brief               HMAC_DRBG reseeding (extracts data from entropy source)
+ *
+ * \param ctx           HMAC_DRBG context
+ * \param additional    Additional data to add to state (Can be NULL)
+ * \param len           Length of additional data
+ *
+ * \return              0 if successful, or
+ *                      POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED
+ */
+int hmac_drbg_reseed( hmac_drbg_context *ctx,
+                      const unsigned char *additional, size_t len );
+
+/**
  * \brief               HMAC_DRBG generate random with additional update input
  *
  * Note: Automatically reseeds if reseed_counter is reached.

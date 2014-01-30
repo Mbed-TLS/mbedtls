@@ -229,7 +229,7 @@ int hmac_drbg_random_with_add( void *p_rng,
     {
         size_t use_len = left > md_len ? md_len : left;
 
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
+        md_hmac_reset( &ctx->md_ctx );
         md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
         md_hmac_finish( &ctx->md_ctx, ctx->V );
 

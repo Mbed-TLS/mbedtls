@@ -24,8 +24,9 @@
  */
 
 /*
- *  The NIST SP 800-90 DRBGs are described in the following publication.
+ *  The NIST SP 800-90A DRBGs are described in the following publication.
  *  http://csrc.nist.gov/publications/nistpubs/800-90A/SP800-90A.pdf
+ *  References below are based on rev. 1 (January 2012).
  */
 
 #include "polarssl/config.h"
@@ -35,7 +36,7 @@
 #include "polarssl/hmac_drbg.h"
 
 /*
- * HMAC_DRBG update, using optional additional data
+ * HMAC_DRBG update, using optional additional data (10.1.2.2)
  */
 void hmac_drbg_update( hmac_drbg_context *ctx,
                        const unsigned char *additional, size_t add_len )
@@ -46,6 +47,7 @@ void hmac_drbg_update( hmac_drbg_context *ctx,
 
     for( sep[0] = 0; sep[0] < rounds; sep[0]++ )
     {
+        /* Step 1 or 4 */
         md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
         md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
         md_hmac_update( &ctx->md_ctx, sep, 1 );
@@ -53,6 +55,7 @@ void hmac_drbg_update( hmac_drbg_context *ctx,
             md_hmac_update( &ctx->md_ctx, additional, add_len );
         md_hmac_finish( &ctx->md_ctx, ctx->K );
 
+        /* Step 2 or 5 */
         md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
         md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
         md_hmac_finish( &ctx->md_ctx, ctx->V );
@@ -82,15 +85,24 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
 }
 
 /*
- * Simplified HMAC_DRBG random function
+ * HMAC_DRBG random function with optional additional data (10.1.2.5)
  */
-int hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len )
+int hmac_drbg_random_with_add( void *p_rng,
+                               unsigned char *output, size_t out_len,
+                               const unsigned char *additional, size_t add_len )
 {
     hmac_drbg_context *ctx = (hmac_drbg_context *) p_rng;
-    size_t md_len = ctx->md_ctx.md_info->size;
+    size_t md_len = md_get_size( ctx->md_ctx.md_info );
     size_t left = out_len;
     unsigned char *out = output;
 
+    /* 1. Check reseed counter (TODO) */
+
+    /* 2. Use additional data if any */
+    if( additional != NULL && add_len != 0 )
+        hmac_drbg_update( ctx, additional, add_len );
+
+    /* 3, 4, 5. Generate bytes */
     while( left != 0 )
     {
         size_t use_len = left > md_len ? md_len : left;
@@ -104,9 +116,21 @@ int hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len )
         left -= use_len;
     }
 
-    hmac_drbg_update( ctx, NULL, 0 );
+    /* 6. Update */
+    hmac_drbg_update( ctx, additional, add_len );
 
+    /* 7. Update reseed counter (TODO) */
+
+    /* 8. Done */
     return( 0 );
+}
+
+/*
+ * HMAC_DRBG random function
+ */
+int hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len )
+{
+    return( hmac_drbg_random_with_add( p_rng, output, out_len, NULL, 0 ) );
 }
 
 /*

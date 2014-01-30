@@ -76,15 +76,37 @@ void hmac_drbg_update( hmac_drbg_context *ctx,
                        const unsigned char *additional, size_t add_len );
 
 /**
+ * \brief               HMAC_DRBG generate random with additional update input
+ *
+ * Note: Automatically reseeds if reseed_counter is reached.
+ *
+ * \param p_rng         HMAC_DRBG context
+ * \param output        Buffer to fill
+ * \param output_len    Length of the buffer
+ * \param additional    Additional data to update with (can be NULL)
+ * \param add_len       Length of additional data (can be 0)
+ *
+ * \return              0 if successful, or
+ *                      TODO: POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED, or
+ *                      TODO: POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG
+ */
+int hmac_drbg_random_with_add( void *p_rng,
+                               unsigned char *output, size_t output_len,
+                               const unsigned char *additional,
+                               size_t add_len );
+
+/**
  * \brief               HMAC_DRBG generate random
  *
- * Note: Automatically reseeds if reseed_counter is reached. (TODO)
+ * Note: Automatically reseeds if reseed_counter is reached.
  *
  * \param p_rng         HMAC_DRBG context
  * \param output        Buffer to fill
  * \param output_len    Length of the buffer
  *
- * \return              0 if successful.
+ * \return              0 if successful, or
+ *                      TODO: POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED, or
+ *                      TODO: POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG
  */
 int hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len );
 

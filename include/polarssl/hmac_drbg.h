@@ -96,7 +96,7 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
                     size_t len );
 
 /**
- * \brief               Simplified HMAC_DRBG initialisation.
+ * \brief               Initilisation of simpified HMAC_DRBG (never reseeds).
  *                      (For use with deterministic ECDSA.)
  *
  * \param ctx           HMAC_DRBG context to be initialised
@@ -111,6 +111,16 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
 int hmac_drbg_init_buf( hmac_drbg_context *ctx,
                         const md_info_t * md_info,
                         const unsigned char *data, size_t data_len );
+
+/**
+ * \brief               Set the amount of entropy grabbed on each reseed
+ *                      (Default: HMAC_DRBG_ENTROPY_LEN)
+ *
+ * \param ctx           HMAC_DRBG context
+ * \param len           Amount of entropy to grab
+ */
+void hmac_drbg_set_entropy_len( hmac_drbg_context *ctx,
+                                size_t len );
 
 /**
  * \brief               HMAC_DRBG update state

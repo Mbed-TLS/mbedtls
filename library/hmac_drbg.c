@@ -157,6 +157,14 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
 }
 
 /*
+ * Set entropy length grabbed for reseeds
+ */
+void hmac_drbg_set_entropy_len( hmac_drbg_context *ctx, size_t len )
+{
+    ctx->entropy_len = len;
+}
+
+/*
  * HMAC_DRBG random function with optional additional data (10.1.2.5)
  */
 int hmac_drbg_random_with_add( void *p_rng,

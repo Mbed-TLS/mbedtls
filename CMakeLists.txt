@@ -74,6 +74,12 @@ ADD_CUSTOM_TARGET(test-ref-config
     COMMAND tests/scripts/test-ref-configs.pl
     )
 
+ADD_CUSTOM_TARGET(lcov
+    COMMAND geninfo *.gcda
+    COMMAND genhtml -o ../../../Coverage *.info
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/library/CMakeFiles/polarssl.dir
+    )
+
 ADD_CUSTOM_TARGET(memcheck
     COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
     COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null

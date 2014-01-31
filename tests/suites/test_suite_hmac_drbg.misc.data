@@ -78,3 +78,5 @@ HMAC_DRBG from buffer SHA-512
 depends_on:POLARSSL_SHA512_C
 hmac_drbg_buf:POLARSSL_MD_SHA512
 
+HMAC_DRBG self test
+hmac_drbg_selftest:

@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "polarssl/hmac_drbg.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/dhm.h"
 #include "polarssl/gcm.h"
@@ -140,7 +141,7 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-#if defined(POLARSSL_RSA_C) && defined(POLARSSL_BIGNUM_C)
+#if defined(POLARSSL_RSA_C)
     if( ( ret = rsa_self_test( v ) ) != 0 )
         return( ret );
 #endif
@@ -162,6 +163,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_CTR_DRBG_C)
     if( ( ret = ctr_drbg_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(POLARSSL_HMAC_DRBG_C)
+    if( ( ret = hmac_drbg_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

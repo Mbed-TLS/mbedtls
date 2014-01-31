@@ -81,3 +81,10 @@ void ctr_drbg_validate_nopr( char *add_init_string, char *entropy_string,
     TEST_ASSERT( strcmp( (char *) output_str, result_str ) == 0 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+void ctr_drbg_selftest( )
+{
+    TEST_ASSERT( ctr_drbg_self_test( 0 ) == 0 );
+}
+/* END_CASE */

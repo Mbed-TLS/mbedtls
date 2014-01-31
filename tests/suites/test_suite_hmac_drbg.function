@@ -229,3 +229,43 @@ void hmac_drbg_nopr( int md_alg,
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void hmac_drbg_pr( int md_alg,
+                   char *entropy_hex, char *custom_hex,
+                   char *add1_hex, char *add2_hex,
+                   char *output_hex )
+{
+    unsigned char entropy[512];
+    unsigned char custom[512];
+    unsigned char add1[512];
+    unsigned char add2[512];
+    unsigned char output[512];
+    unsigned char my_output[512];
+    size_t custom_len, add1_len, add2_len, out_len;
+    entropy_ctx p_entropy;
+    const md_info_t *md_info;
+    hmac_drbg_context ctx;
+
+    memset( my_output, 0, sizeof my_output );
+
+    custom_len = unhexify( custom, custom_hex );
+    add1_len = unhexify( add1, add1_hex );
+    add2_len = unhexify( add2, add2_hex );
+    out_len = unhexify( output, output_hex );
+    p_entropy.len = unhexify( entropy, entropy_hex );
+    p_entropy.p = entropy;
+
+    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    TEST_ASSERT( hmac_drbg_init( &ctx, md_info, entropy_func, &p_entropy,
+                                 custom, custom_len ) == 0 );
+    hmac_drbg_set_prediction_resistance( &ctx, POLARSSL_HMAC_DRBG_PR_ON );
+    TEST_ASSERT( hmac_drbg_random_with_add( &ctx, my_output, out_len,
+                                            add1, add1_len ) == 0 );
+    TEST_ASSERT( hmac_drbg_random_with_add( &ctx, my_output, out_len,
+                                            add2, add2_len ) == 0 );
+    hmac_drbg_free( &ctx );
+
+    TEST_ASSERT( memcmp( my_output, output, out_len ) == 0 );
+}
+/* END_CASE */
+

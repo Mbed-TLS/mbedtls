@@ -47,6 +47,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_hmac_drbg.misc						\
 		test_suite_hmac_drbg.no_reseed					\
 		test_suite_hmac_drbg.nopr						\
+		test_suite_hmac_drbg.pr							\
 		test_suite_md			test_suite_mdx			\
 		test_suite_mpi			test_suite_pbkdf2		\
 		test_suite_pkcs1_v21	test_suite_pkcs5		\
@@ -147,6 +148,10 @@ test_suite_hmac_drbg.no_reseed.c : suites/test_suite_hmac_drbg.function suites/t
 test_suite_hmac_drbg.nopr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.nopr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.nopr
+
+test_suite_hmac_drbg.pr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.pr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.pr
 
 %.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
@@ -281,6 +286,10 @@ test_suite_hmac_drbg.no_reseed: test_suite_hmac_drbg.no_reseed.c ../library/libp
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_hmac_drbg.nopr: test_suite_hmac_drbg.nopr.c ../library/libpolarssl.a
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_hmac_drbg.pr: test_suite_hmac_drbg.pr.c ../library/libpolarssl.a
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

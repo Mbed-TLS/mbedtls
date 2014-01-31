@@ -52,6 +52,9 @@ clean:
 check: lib
 	( cd tests && $(MAKE) && $(MAKE) check )
 
+test-ref-configs:
+	tests/scripts/test-ref-configs.pl
+
 apidoc:
 	mkdir -p apidoc
 	doxygen doxygen/polarssl.doxyfile

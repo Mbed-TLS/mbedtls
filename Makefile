@@ -49,8 +49,8 @@ clean:
 	cd programs && $(MAKE) clean && cd ..
 	cd tests    && $(MAKE) clean && cd ..
 
-check:
-	( cd tests && $(MAKE) check )
+check: lib
+	( cd tests && $(MAKE) && $(MAKE) check )
 
 apidoc:
 	mkdir -p apidoc

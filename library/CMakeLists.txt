@@ -46,6 +46,7 @@ set(src
      pk_wrap.c
      pkparse.c
      pkwrite.c
+     platform.c
      ripemd160.c
      rsa.c
      sha1.c

@@ -113,6 +113,24 @@
  * Comment if your system does not support the IPv6 socket interface
  */
 #define POLARSSL_HAVE_IPV6
+
+/**
+ * \def POLARSSL_PLATFORM_XXX_ALT
+ *
+ * Uncomment a macro to let PolarSSL support the function in the platform
+ * abstraction layer.
+ *
+ * Example: In case you uncomment POLARSSL_PLATFORM_PRINTF_ALT, PolarSSL will
+ * provide a function "platform_set_printf()" that allows you to set an
+ * alternative printf function pointer.
+ *
+ * All these define require POLARSSL_PLATFORM_C to be defined!
+ *
+ * Uncomment a macro to enable alternate implementation of specific base
+ * platform function
+ */
+//#define POLARSSL_PLATFORM_PRINTF_ALT
+//#define POLARSSL_PLATFORM_FPRINTF_ALT
 /* \} name SECTION: System support */
 
 /**
@@ -1621,6 +1639,19 @@
 #define POLARSSL_PKCS12_C
 
 /**
+ * \def POLARSSL_PLATFORM_C
+ *
+ * Enable the platform abstraction layer that allows you to re-assign
+ * functions like malloc(), free(), printf(), fprintf()
+ *
+ * Module:  library/platform.c
+ * Caller:  Most other .c files
+ *
+ * This module enables abstraction of common (libc) functions.
+ */
+#define POLARSSL_PLATFORM_C
+
+/**
  * \def POLARSSL_RIPEMD160_C
  *
  * Enable the RIPEMD-160 hash algorithm.
@@ -1968,6 +1999,10 @@
 #define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
 #define POLARSSL_MEMORY_STDMALLOC      malloc /**< Default allocator to use, can be undefined */
 #define POLARSSL_MEMORY_STDFREE          free /**< Default free to use, can be undefined */
+
+// Platform options
+#define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
+#define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use, can be undefined */
 
 // SSL Cache options
 //

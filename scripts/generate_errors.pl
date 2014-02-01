@@ -11,8 +11,8 @@ my $error_format_file = $data_dir.'/error.fmt';
 my @low_level_modules = ( "AES", "ASN1", "BLOWFISH", "CAMELLIA", "BIGNUM",
                           "BASE64", "XTEA", "PBKDF2", "OID",
                           "PADLOCK", "DES", "NET", "CTR_DRBG", "ENTROPY",
-                          "MD2", "MD4", "MD5", "SHA1", "SHA256", "SHA512",
-                          "GCM", "THREADING" );
+                          "HMAC_DRBG", "MD2", "MD4", "MD5", "RIPEMD160",
+                          "SHA1", "SHA256", "SHA512", "GCM", "THREADING" );
 my @high_level_modules = ( "PEM", "X509", "DHM", "RSA", "ECP", "MD", "CIPHER", "SSL",
                            "PK", "PKCS12", "PKCS5" );
 
@@ -48,6 +48,7 @@ while (my $line = <GREP>)
     # Fix faulty ones
     $module_name = "BIGNUM" if ($module_name eq "MPI");
     $module_name = "CTR_DRBG" if ($module_name eq "CTR");
+    $module_name = "HMAC_DRBG" if ($module_name eq "HMAC");
 
     my $define_name = $module_name;
     $define_name = "X509_USE,X509_CREATE" if ($define_name eq "X509");

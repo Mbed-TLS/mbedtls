@@ -32,10 +32,10 @@
 /*
  * ! Same values as ctr_drbg.h !
  */
-#define POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED        -0x0034  /**< The entropy source failed. */
-#define POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG              -0x0036  /**< Too many random requested in single call. */
-#define POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG                -0x0038  /**< Input too large (Entropy + additional). */
-#define POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x003A  /**< Read/write error in file. */
+#define POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED        -0x0001  /**< The entropy source failed. */
+#define POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG              -0x0003  /**< Too many random requested in single call. */
+#define POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG                -0x0005  /**< Input too large (Entropy + additional). */
+#define POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x0007  /**< Read/write error in file. */
 
 #if !defined(POLARSSL_CONFIG_OPTIONS)
 #define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000   /**< Interval before reseed is performed by default */

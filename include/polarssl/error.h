@@ -41,15 +41,17 @@
  *
  * 16 bit error code bit-segmentation
  *
- * 1 bit  - Intentionally not used
+ * 1 bit  - Sign bit
  * 3 bits - High level module ID
  * 5 bits - Module-dependent error code
- * 6 bits - Low level module errors
- * 1 bit  - Intentionally not used
+ * 7 bits - Low level module errors
  *
- * Low-level module errors (0x007E-0x0002)
+ * For historical reasons, low-level error codes are divided in even and odd,
+ * and even codes were assigned first.
  *
- * Module   Nr  Codes assigned 
+ * Low-level module errors (0x0001-0x00FF)
+ *
+ * Module   Nr  Codes assigned
  * MPI       7  0x0002-0x0010
  * GCM       2  0x0012-0x0014
  * BLOWFISH  2  0x0016-0x0018
@@ -61,7 +63,7 @@
  * OID       1  0x002E-0x002E
  * PADLOCK   1  0x0030-0x0030
  * DES       1  0x0032-0x0032
- * CTR_DBRG  3  0x0034-0x003A
+ * CTR_DBRG  4  0x0034-0x003A
  * ENTROPY   3  0x003C-0x0040
  * NET      11  0x0042-0x0056
  * ASN1      7  0x0060-0x006C
@@ -72,6 +74,8 @@
  * SHA256    1  0x0078-0x0078
  * SHA512    1  0x007A-0x007A
  * PBKDF2    1  0x007C-0x007C
+ * RIPEMD160 1  0x007E-0x007E
+ * HMAC_DRBG 4  0x0001-0x0007
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
  * Name      ID  Nr of Errors
@@ -88,7 +92,7 @@
  * SSL       6   8 (Started from top)
  * SSL       7   31
  *
- * Module dependent error code (5 bits 0x.08.-0x.F8.)
+ * Module dependent error code (5 bits 0x.00.-0x.F8.)
  */
 
 #ifdef __cplusplus

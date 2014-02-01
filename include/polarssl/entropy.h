@@ -133,6 +133,7 @@ void entropy_free( entropy_context *ctx );
 
 /**
  * \brief           Adds an entropy source to poll
+ *                  (Thread-safe if POLARSSL_THREADING_C is enabled)
  *
  * \param ctx       Entropy context
  * \param f_source  Entropy function
@@ -148,6 +149,7 @@ int entropy_add_source( entropy_context *ctx,
 
 /**
  * \brief           Trigger an extra gather poll for the accumulator
+ *                  (Thread-safe if POLARSSL_THREADING_C is enabled)
  *
  * \param ctx       Entropy context
  *
@@ -169,6 +171,7 @@ int entropy_func( void *data, unsigned char *output, size_t len );
 
 /**
  * \brief           Add data to the accumulator manually
+ *                  (Thread-safe if POLARSSL_THREADING_C is enabled)
  * 
  * \param ctx       Entropy context
  * \param data      Data to add

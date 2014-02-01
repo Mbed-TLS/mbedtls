@@ -61,7 +61,9 @@ int verify_int( char *str, int *value )
             continue;
         }
 
-        if( str[i] < '0' || str[i] > '9' )
+        if( ! ( ( str[i] >= '0' && str[i] <= '9' ) ||
+                ( hex && ( ( str[i] >= 'a' && str[i] <= 'f' ) ||
+                           ( str[i] >= 'A' && str[i] <= 'F' ) ) ) ) )
         {
             digits = 0;
             break;

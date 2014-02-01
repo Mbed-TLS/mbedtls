@@ -14,8 +14,8 @@ Non existing high error
 error_strerror:-0x8880:"UNKNOWN ERROR CODE (8880)"
 
 Non existing low error
-error_strerror:-0x0001:"UNKNOWN ERROR CODE (0001)"
+error_strerror:-0x007F:"UNKNOWN ERROR CODE (007F)"
 
 Non existing low and high error
-error_strerror:-0x8881:"UNKNOWN ERROR CODE (8880) \: UNKNOWN ERROR CODE (0001)"
+error_strerror:-0x88FF:"UNKNOWN ERROR CODE (8880) \: UNKNOWN ERROR CODE (007F)"
 

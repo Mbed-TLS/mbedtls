@@ -48,19 +48,20 @@ void hmac_drbg_update( hmac_drbg_context *ctx,
     size_t md_len = ctx->md_ctx.md_info->size;
     unsigned char rounds = ( additional != NULL && add_len != 0 ) ? 2 : 1;
     unsigned char sep[1];
+    unsigned char K[POLARSSL_MD_MAX_SIZE];
 
     for( sep[0] = 0; sep[0] < rounds; sep[0]++ )
     {
         /* Step 1 or 4 */
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
+        md_hmac_reset( &ctx->md_ctx );
         md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
         md_hmac_update( &ctx->md_ctx, sep, 1 );
         if( rounds == 2 )
             md_hmac_update( &ctx->md_ctx, additional, add_len );
-        md_hmac_finish( &ctx->md_ctx, ctx->K );
+        md_hmac_finish( &ctx->md_ctx, K );
 
         /* Step 2 or 5 */
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
+        md_hmac_starts( &ctx->md_ctx, K, md_len );
         md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
         md_hmac_finish( &ctx->md_ctx, ctx->V );
     }
@@ -80,8 +81,13 @@ int hmac_drbg_init_buf( hmac_drbg_context *ctx,
     if( ( ret = md_init_ctx( &ctx->md_ctx, md_info ) ) != 0 )
         return( ret );
 
+    /*
+     * Set initial working state.
+     * Use the V memory location, which is currently all 0, to initialize the
+     * MD context with an all-zero key. Then set V to its initial value.
+     */
+    md_hmac_starts( &ctx->md_ctx, ctx->V, md_info->size );
     memset( ctx->V, 0x01, md_info->size );
-    /* ctx->K is already 0 */
 
     hmac_drbg_update( ctx, data, data_len );
 
@@ -147,9 +153,13 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
     if( ( ret = md_init_ctx( &ctx->md_ctx, md_info ) ) != 0 )
         return( ret );
 
-    /* Set initial working state */
+    /*
+     * Set initial working state.
+     * Use the V memory location, which is currently all 0, to initialize the
+     * MD context with an all-zero key. Then set V to its initial value.
+     */
+    md_hmac_starts( &ctx->md_ctx, ctx->V, md_info->size );
     memset( ctx->V, 0x01, md_info->size );
-    /* ctx->K is already 0 */
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;

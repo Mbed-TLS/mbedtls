@@ -56,11 +56,11 @@ extern "C" {
  */
 typedef struct
 {
-    /* Working state */
-    md_context_t md_ctx;                    /*!< HMAC context       */
-    unsigned char V[POLARSSL_MD_MAX_SIZE];  /*!< V in the spec      */
-    unsigned char K[POLARSSL_MD_MAX_SIZE];  /*!< Key in the spec    */
-    int reseed_counter;                     /*!< reseed counter     */
+    /* Working state: the key K is not stored explicitely,
+     * but is implied by the HMAC context */
+    md_context_t md_ctx;                    /*!< HMAC context (inc. K)  */
+    unsigned char V[POLARSSL_MD_MAX_SIZE];  /*!< V in the spec          */
+    int reseed_counter;                     /*!< reseed counter         */
 
     /* Administrative state */
     size_t entropy_len;         /*!< entropy bytes grabbed on each (re)seed */

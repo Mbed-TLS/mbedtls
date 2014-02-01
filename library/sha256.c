@@ -1,7 +1,7 @@
 /*
  *  FIPS-180-2 compliant SHA-256 implementation
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -36,6 +36,12 @@
 
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
 #endif
 
 #if !defined(POLARSSL_SHA256_ALT)
@@ -626,7 +632,7 @@ int sha256_self_test( int verbose )
         k = i < 3;
 
         if( verbose != 0 )
-            printf( "  SHA-%d test #%d: ", 256 - k * 32, j + 1 );
+            polarssl_printf( "  SHA-%d test #%d: ", 256 - k * 32, j + 1 );
 
         sha256_starts( &ctx, k );
 
@@ -646,17 +652,17 @@ int sha256_self_test( int verbose )
         if( memcmp( sha256sum, sha256_test_sum[i], 32 - k * 4 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     for( i = 0; i < 14; i++ )
     {
@@ -664,7 +670,7 @@ int sha256_self_test( int verbose )
         k = i < 7;
 
         if( verbose != 0 )
-            printf( "  HMAC-SHA-%d test #%d: ", 256 - k * 32, j + 1 );
+            polarssl_printf( "  HMAC-SHA-%d test #%d: ", 256 - k * 32, j + 1 );
 
         if( j == 5 || j == 6 )
         {
@@ -685,17 +691,17 @@ int sha256_self_test( int verbose )
         if( memcmp( sha256sum, sha256_hmac_test_sum[i], buflen ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

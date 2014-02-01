@@ -1,7 +1,7 @@
 /*
  *  CTR_DRBG implementation based on AES-256 (NIST SP 800-90)
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -36,6 +36,12 @@
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
 #endif
 
 /*
@@ -460,11 +466,11 @@ static int ctr_drbg_self_test_entropy( void *data, unsigned char *buf,
     return( 0 );
 }
 
-#define CHK( c )    if( (c) != 0 )                      \
-                    {                                   \
-                        if( verbose != 0 )              \
-                            printf( "failed\n" );       \
-                        return( 1 );                    \
+#define CHK( c )    if( (c) != 0 )                          \
+                    {                                       \
+                        if( verbose != 0 )                  \
+                            polarssl_printf( "failed\n" );  \
+                        return( 1 );                        \
                     }
 
 /*
@@ -479,7 +485,7 @@ int ctr_drbg_self_test( int verbose )
      * Based on a NIST CTR_DRBG test vector (PR = True)
      */
     if( verbose != 0 )
-        printf( "  CTR_DRBG (PR = TRUE) : " );
+        polarssl_printf( "  CTR_DRBG (PR = TRUE) : " );
 
     test_offset = 0;
     CHK( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
@@ -490,13 +496,13 @@ int ctr_drbg_self_test( int verbose )
     CHK( memcmp( buf, result_pr, CTR_DRBG_BLOCKSIZE ) );
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     /*
      * Based on a NIST CTR_DRBG test vector (PR = FALSE)
      */
     if( verbose != 0 )
-        printf( "  CTR_DRBG (PR = FALSE): " );
+        polarssl_printf( "  CTR_DRBG (PR = FALSE): " );
 
     test_offset = 0;
     CHK( ctr_drbg_init_entropy_len( &ctx, ctr_drbg_self_test_entropy,
@@ -507,10 +513,10 @@ int ctr_drbg_self_test( int verbose )
     CHK( memcmp( buf, result_nopr, 16 ) );
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     if( verbose != 0 )
-            printf( "\n" );
+            polarssl_printf( "\n" );
 
     return( 0 );
 }

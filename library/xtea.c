@@ -29,6 +29,12 @@
 
 #include "polarssl/xtea.h"
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
+#endif
+
 #if !defined(POLARSSL_XTEA_ALT)
 
 /*
@@ -220,7 +226,7 @@ int xtea_self_test( int verbose )
     for( i = 0; i < 6; i++ )
     {
         if( verbose != 0 )
-            printf( "  XTEA test #%d: ", i + 1 );
+            polarssl_printf( "  XTEA test #%d: ", i + 1 );
 
         memcpy( buf, xtea_test_pt[i], 8 );
 
@@ -230,17 +236,17 @@ int xtea_self_test( int verbose )
         if( memcmp( buf, xtea_test_ct[i], 8 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

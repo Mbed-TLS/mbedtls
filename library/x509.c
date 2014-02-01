@@ -1,7 +1,7 @@
 /*
  *  X.509 certificate and private key decoding
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -45,9 +45,10 @@
 #include "polarssl/pem.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
+#define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
@@ -991,7 +992,7 @@ int x509_self_test( int verbose )
     x509_crt clicert;
 
     if( verbose != 0 )
-        printf( "  X.509 certificate load: " );
+        polarssl_printf( "  X.509 certificate load: " );
 
     x509_crt_init( &clicert );
 
@@ -1000,7 +1001,7 @@ int x509_self_test( int verbose )
     if( ret != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( ret );
     }
@@ -1012,27 +1013,27 @@ int x509_self_test( int verbose )
     if( ret != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        printf( "passed\n  X.509 signature verify: ");
+        polarssl_printf( "passed\n  X.509 signature verify: ");
 
     ret = x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
     if( ret != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
-        printf("ret = %d, &flags = %04x\n", ret, flags);
+        polarssl_printf("ret = %d, &flags = %04x\n", ret, flags);
 
         return( ret );
     }
 
     if( verbose != 0 )
-        printf( "passed\n\n");
+        polarssl_printf( "passed\n\n");
 
     x509_crt_free( &cacert  );
     x509_crt_free( &clicert );

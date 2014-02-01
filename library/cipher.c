@@ -1,11 +1,11 @@
 /**
  * \file cipher.c
- * 
+ *
  * \brief Generic cipher wrapper for PolarSSL
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -769,16 +769,9 @@ int cipher_check_tag( cipher_context_t *ctx,
 
 #if defined(POLARSSL_SELF_TEST)
 
-#include <stdio.h>
-
-#define ASSERT(x) if (!(x)) { \
-        printf( "failed with %i at %s\n", value, (#x) ); \
-    return( 1 ); \
-}
 /*
  * Checkup routine
  */
-
 int cipher_self_test( int verbose )
 {
     ((void) verbose);

@@ -1256,11 +1256,28 @@
  * Module:  library/entropy.c
  * Caller:
  *
- * Requires: POLARSSL_SHA512_C
+ * Requires: POLARSSL_SHA512_C or POLARSSL_SHA256_C
  *
  * This module provides a generic entropy pool
  */
 #define POLARSSL_ENTROPY_C
+
+/**
+ * \def POLARSSL_ENTROPY_SHA256_ACCUMULATOR
+ *
+ * Use the SHA-256 based entropy accumulator instead of the SHA-512 based.
+ *
+ * Module:  library/entropy.c
+ *
+ * Requires: POLARSSL_SHA256_C
+ *
+ * On 32-bit systems SHA-256 can be much faster than SHA-512. Use this option
+ * if you have performance concerns.
+ *
+ * This option will be automatically selected, if you have defined
+ * POLARSSL_SHA256_C but not POLARSSL_SHA512_C.
+ */
+//#define POLARSSL_ENTROPY_SHA256_ACCUMULATOR
 
 /**
  * \def POLARSSL_ERROR_C
@@ -1989,6 +2006,10 @@
 #if defined(POLARSSL_ENTROPY_C) && !defined(POLARSSL_SHA512_C) &&        \
     defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 32)
 #error "CTR_DRBG_ENTROPY_LEN value too high"
+#endif
+#if defined(POLARSSL_ENTROPY_C) && \
+    defined(POLARSSL_ENTROPY_SHA256_ACCUMULATOR) && !defined(POLARSSL_SHA256_C)
+#error "POLARSSL_ENTROPY_SHA256_ACCUMULATOR defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_GCM_C) && (                                        \

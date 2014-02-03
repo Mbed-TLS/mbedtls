@@ -3424,7 +3424,8 @@ int ssl_init( ssl_context *ssl )
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
+    defined(POLARSSL_SSL_SET_ECDH_CURVES)
     ssl->ecdh_curve_list = ecdh_default_curve_list;
 #endif
 
@@ -4655,7 +4656,8 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash )
 
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
+    defined(POLARSSL_SSL_SET_ECDH_CURVES)
 /*
  * Set the allowed ECDH curves.
  */

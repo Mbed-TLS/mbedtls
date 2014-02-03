@@ -814,6 +814,22 @@
 #define POLARSSL_SSL_TRUNCATED_HMAC
 
 /**
+ * \def POLARSSL_SSL_SET_ECDH_CURVES
+ *
+ * Enable ssl_set_ecdh_curves().
+ *
+ * This is disabled by default since it breaks binary compatibility with the
+ * 1.3.x line. If you choose to enable it, you will need to rebuild your
+ * application against the new header files, relinking will not be enough.
+ * It will be enabled by default, or no longer an option, in the 1.4 branch.
+ *
+ * TODO: actually disable it when done working on this branch ,)
+ *
+ * Uncomment to make ssl_set_ecdh_curves() available.
+ */
+#define POLARSSL_SSL_SET_ECDH_CURVES
+
+/**
  * \def POLARSSL_THREADING_ALT
  *
  * Provide your own alternate threading implementation.

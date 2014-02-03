@@ -2105,7 +2105,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ECPoint      public;
          * } ServerECDHParams;
          */
-
+        ecp_group_id grp_id;
+#if defined(POLARSSL_SSL_SET_ECDH_CURVES)
         unsigned int pref_idx, curv_idx, found;
 
         /* Match our preference list against the agreed curves */
@@ -2137,9 +2138,13 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          * ssl->ecdh_curve_list[pref_idx] will contain POLARSSL_ECP_DP_NONE and
          * ecp_use_known_dp() will fail.
          */
+        grp_id = ssl->ecdh_curve_list[pref_idx];
+#else
+        grp_id = ssl->handshake->curves[0]->grp_id;
+#endif /* POLARSSL_SSL_SET_ECDH_CURVES */
 
         if( ( ret = ecp_use_known_dp( &ssl->handshake->ecdh_ctx.grp,
-                                       ssl->ecdh_curve_list[pref_idx] ) ) != 0 )
+                                       grp_id ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecp_use_known_dp", ret );
             return( ret );

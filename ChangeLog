@@ -7,6 +7,7 @@ Features
 Bugfix
    * ecp_gen_keypair() does more tries to prevent failure because of
      statistics
+   * Fix buf in RSA PKCS#1 v1.5 "reversed" operations
 
 = PolarSSL 1.3.4 released on 2014-01-27
 Features

@@ -336,9 +336,10 @@ void rsa_public( char *message_hex_string, int mod, int radix_N, char *input_N,
     unsigned char message_str[1000];
     unsigned char output[1000];
     unsigned char output_str[1000];
-    rsa_context ctx;
+    rsa_context ctx, ctx2; /* Also test rsa_copy() while at it */
 
     rsa_init( &ctx, RSA_PKCS_V15, 0 );
+    rsa_init( &ctx2, RSA_PKCS_V15, 0 );
     memset( message_str, 0x00, 1000 );
     memset( output, 0x00, 1000 );
     memset( output_str, 0x00, 1000 );
@@ -359,7 +360,23 @@ void rsa_public( char *message_hex_string, int mod, int radix_N, char *input_N,
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
+    /* And now with the copy */
+    TEST_ASSERT( rsa_copy( &ctx2, &ctx ) == 0 );
     rsa_free( &ctx );
+
+    TEST_ASSERT( rsa_check_pubkey( &ctx2 ) == 0 );
+
+    memset( output, 0x00, 1000 );
+    memset( output_str, 0x00, 1000 );
+    TEST_ASSERT( rsa_public( &ctx2, message_str, output ) == result );
+    if( result == 0 )
+    {
+        hexify( output_str, output, ctx2.len );
+
+        TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
+    }
+
+    rsa_free( &ctx2 );
 }
 /* END_CASE */
 
@@ -371,13 +388,14 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
     unsigned char message_str[1000];
     unsigned char output[1000];
     unsigned char output_str[1000];
-    rsa_context ctx;
+    rsa_context ctx, ctx2; /* Also test rsa_copy() while at it */
     mpi P1, Q1, H, G;
     rnd_pseudo_info rnd_info;
     int i;
 
     mpi_init( &P1 ); mpi_init( &Q1 ); mpi_init( &H ); mpi_init( &G );
     rsa_init( &ctx, RSA_PKCS_V15, 0 );
+    rsa_init( &ctx2, RSA_PKCS_V15, 0 );
 
     memset( message_str, 0x00, 1000 );
     memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
@@ -417,8 +435,26 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
         }
     }
 
-    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    /* And now one more time with the copy */
+    TEST_ASSERT( rsa_copy( &ctx2, &ctx ) == 0 );
     rsa_free( &ctx );
+
+    TEST_ASSERT( rsa_check_privkey( &ctx2 ) == 0 );
+
+    memset( output, 0x00, 1000 );
+    memset( output_str, 0x00, 1000 );
+    TEST_ASSERT( rsa_private( &ctx2, rnd_pseudo_rand, &rnd_info,
+                              message_str, output ) == result );
+    if( result == 0 )
+    {
+        hexify( output_str, output, ctx2.len );
+
+        TEST_ASSERT( strcasecmp( (char *) output_str,
+                                          result_hex_str ) == 0 );
+    }
+
+    mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
+    rsa_free( &ctx2 );
 }
 /* END_CASE */
 

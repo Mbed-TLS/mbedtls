@@ -745,7 +745,7 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
          * (minus one, for the 00 byte) */
         for( i = 0; i < ilen - 3; i++ )
         {
-            pad_done |= ( p[i] == 0xFF );
+            pad_done |= ( p[i] != 0xFF );
             pad_count += ( pad_done == 0 );
         }
 

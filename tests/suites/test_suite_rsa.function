@@ -226,6 +226,21 @@ rsa_pkcs1_sign_raw:message_hex_string:hash_result_string:padding_mode:mod:radix_
 
     TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
 
+    /* For PKCS#1 v1.5, there is an alternative way to generate signatures */
+    if( {padding_mode} == RSA_PKCS_V15 )
+    {
+        memset( output, 0x00, 1000 );
+        memset( output_str, 0x00, 1000 );
+
+        TEST_ASSERT( rsa_rsaes_pkcs1_v15_encrypt( &ctx,
+                    &rnd_pseudo_rand, &rnd_info, RSA_PRIVATE,
+                    hash_len, hash_result, output ) == 0 );
+
+        hexify( output_str, output, ctx.len );
+
+        TEST_ASSERT( strcasecmp( (char *) output_str, {result_hex_str} ) == 0 );
+    }
+
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
     rsa_free( &ctx );
 }
@@ -237,13 +252,15 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
+    unsigned char output[1000];
     rsa_context ctx;
-    size_t hash_len;
+    size_t hash_len, olen;
 
     rsa_init( &ctx, {padding_mode}, 0 );
     memset( message_str, 0x00, 1000 );
     memset( hash_result, 0x00, 1000 );
     memset( result_str, 0x00, 1000 );
+    memset( output, 0x00, sizeof( output ) );
 
     ctx.len = {mod} / 8;
     TEST_ASSERT( mpi_read_string( &ctx.N, {radix_N}, {input_N} ) == 0 );
@@ -256,6 +273,22 @@ rsa_pkcs1_verify_raw:message_hex_string:hash_result_string:padding_mode:mod:radi
     unhexify( result_str, {result_hex_str} );
 
     TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, SIG_RSA_RAW, hash_len, hash_result, result_str ) == {correct} );
+
+    /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
+    if( {padding_mode} == RSA_PKCS_V15 )
+    {
+        int ok;
+
+        TEST_ASSERT( rsa_rsaes_pkcs1_v15_decrypt( &ctx,
+                    NULL, NULL, RSA_PUBLIC,
+                    &olen, result_str, output, sizeof( output ) ) == 0 );
+
+        ok = olen == hash_len && memcmp( output, hash_result, olen ) == 0;
+        if( {correct} == 0 )
+            TEST_ASSERT( ok == 1 );
+        else
+            TEST_ASSERT( ok == 0 );
+    }
 
     rsa_free( &ctx );
 }

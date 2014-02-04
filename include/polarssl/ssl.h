@@ -1162,14 +1162,19 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
     defined(POLARSSL_SSL_SET_CURVES)
 /**
- * \brief          Set the allowed ECDH curves.
+ * \brief          Set the allowed curves in order of preference.
  *                 (Default: all defined curves.)
  *
- *                 The sequence of the curves in the list also determines the
- *                 handshake curve preference.
+ *                 On server: this only affects selection of the ECDHE curve;
+ *                 the curves used for ECDH and ECDSA are determined by the
+ *                 list of available certificates instead.
+ *
+ *                 On client: this affects the list of curves offered for any
+ *                 use. The server can override our preferences.
  *
  * \param ssl      SSL context
- * \param curves   Zero terminated list of the allowed ECDH curves
+ * \param curves   Ordered list of allowed curves,
+ *                 terminated by POLARSSL_ECP_DP_NONE.
  */
 void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curves );
 #endif

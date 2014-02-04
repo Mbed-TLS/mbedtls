@@ -29,7 +29,6 @@
 
 #include "config.h"
 
-#include <stdlib.h>
 #include <stdio.h>
 
 #ifdef __cplusplus
@@ -47,6 +46,7 @@ extern "C" {
 #if defined(POLARSSL_MEMORY_C)
 #include "memory.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif

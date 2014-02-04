@@ -727,8 +727,7 @@ struct _ssl_context
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
-    defined(POLARSSL_SSL_SET_CURVES)
+#if defined(POLARSSL_SSL_SET_CURVES)
     const ecp_group_id *curve_list;     /*!<  allowed curves                 */
 #endif
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
@@ -1159,8 +1158,7 @@ int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
 int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
-    defined(POLARSSL_SSL_SET_CURVES)
+#if defined(POLARSSL_SSL_SET_CURVES)
 /**
  * \brief          Set the allowed curves in order of preference.
  *                 (Default: all defined curves.)

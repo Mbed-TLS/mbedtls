@@ -3384,8 +3384,7 @@ int ssl_init( ssl_context *ssl )
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
-    defined(POLARSSL_SSL_SET_CURVES)
+#if defined(POLARSSL_SSL_SET_CURVES)
     ssl->curve_list = ecp_grp_id_list( );
 #endif
 
@@ -3800,6 +3799,16 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx )
     return( 0 );
 }
 #endif /* POLARSSL_DHM_C */
+
+#if defined(POLARSSL_SSL_SET_CURVES)
+/*
+ * Set the allowed elliptic curves
+ */
+void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curve_list )
+{
+  ssl->curve_list = curve_list;
+}
+#endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 int ssl_set_hostname( ssl_context *ssl, const char *hostname )
@@ -4616,13 +4625,3 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash )
 
 #endif
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
-    defined(POLARSSL_SSL_SET_CURVES)
-/*
- * Set the allowed ECDH curves.
- */
-void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curve_list )
-{
-  ssl->curve_list = curve_list;
-}
-#endif

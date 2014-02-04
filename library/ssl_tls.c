@@ -3386,7 +3386,7 @@ int ssl_init( ssl_context *ssl )
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
     defined(POLARSSL_SSL_SET_CURVES)
-    ssl->curve_list = ecp_get_default_echd_curve_list( );
+    ssl->curve_list = ecp_grp_id_list( );
 #endif
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )

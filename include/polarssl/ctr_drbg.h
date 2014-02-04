@@ -30,7 +30,6 @@
 #include <string.h>
 
 #include "aes.h"
-#include "entropy.h"
 
 #define POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED        -0x0034  /**< The entropy source failed. */
 #define POLARSSL_ERR_CTR_DRBG_REQUEST_TOO_BIG              -0x0036  /**< Too many random requested in single call. */
@@ -44,7 +43,7 @@
                                             /**< The seed length (counter + AES key)            */
 
 #if !defined(POLARSSL_CONFIG_OPTIONS)
-#if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
+#if defined(POLARSSL_SHA512_C) && !defined(POLARSSL_ENTROPY_SHA256)
 #define CTR_DRBG_ENTROPY_LEN        48      /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
 #else
 #define CTR_DRBG_ENTROPY_LEN        32      /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */

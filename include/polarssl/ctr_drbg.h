@@ -43,7 +43,7 @@
                                             /**< The seed length (counter + AES key)            */
 
 #if !defined(POLARSSL_CONFIG_OPTIONS)
-#if defined(POLARSSL_SHA512_C)
+#if defined(POLARSSL_SHA512_C) && !defined(POLARSSL_ENTROPY_SHA256)
 #define CTR_DRBG_ENTROPY_LEN        48      /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
 #else
 #define CTR_DRBG_ENTROPY_LEN        32      /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */

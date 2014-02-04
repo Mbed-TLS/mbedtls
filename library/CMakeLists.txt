@@ -32,7 +32,6 @@ set(src
      md2.c
      md4.c
      md5.c
-     memory.c
      memory_buffer_alloc.c
      net.c
      oid.c

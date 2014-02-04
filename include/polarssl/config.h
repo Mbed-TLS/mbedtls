@@ -3,7 +3,7 @@
  *
  * \brief Configuration options (set of defines)
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -113,6 +113,24 @@
  * Comment if your system does not support the IPv6 socket interface
  */
 #define POLARSSL_HAVE_IPV6
+
+/**
+ * \def POLARSSL_PLATFORM_MEMORY
+ *
+ * Enable the memory allocation layer.
+ *
+ * By default PolarSSL uses the system-provided malloc() and free().
+ * This allows different allocators (self-implemented or provided) to be
+ * provided to the platform abstraction layer.
+ *
+ * Enabling POLARSSL_PLATFORM_MEMORY will provide "platform_set_malloc_free()"
+ * to allow you to set an alternative malloc() and free() function pointer.
+ *
+ * Requires: POLARSSL_PLATFORM_C
+ *
+ * Enable this layer to allow use of alternative memory allocators.
+ */
+//#define POLARSSL_PLATFORM_MEMORY
 
 /**
  * \def POLARSSL_PLATFORM_XXX_ALT
@@ -642,7 +660,6 @@
  * function for 'debug output' of allocated memory.
  *
  * Requires: POLARSSL_MEMORY_BUFFER_ALLOC_C
- *           fprintf()
  *
  * Uncomment this macro to let the buffer allocator print out error messages.
  */
@@ -1426,17 +1443,8 @@
 
 /**
  * \def POLARSSL_MEMORY_C
- *
- * Enable the memory allocation layer.
- * By default PolarSSL uses the system-provided malloc() and free().
- * (As long as POLARSSL_MEMORY_STDMALLOC and POLARSSL_MEMORY_STDFREE
- * are defined and unmodified)
- *
- * This allows different allocators (self-implemented or provided)
- *
- * Enable this layer to allow use of alternative memory allocators.
+ * Deprecated since 1.3.5. Please use POLARSSL_PLATFORM_MEMORY instead.
  */
-//#define POLARSSL_MEMORY_C
 
 /**
  * \def POLARSSL_MEMORY_BUFFER_ALLOC_C
@@ -1447,7 +1455,8 @@
  *
  * Module:  library/memory_buffer_alloc.c
  *
- * Requires: POLARSSL_MEMORY_C
+ * Requires: POLARSSL_PLATFORM_C
+ *           POLARSSL_PLATFORM_MEMORY (to use it within PolarSSL)
  *
  * Enable this module to enable the buffer memory allocator.
  */
@@ -1995,12 +2004,12 @@
 #define ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
 #define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
 
-// Memory options
+// Memory buffer allocator options
 #define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
-#define POLARSSL_MEMORY_STDMALLOC      malloc /**< Default allocator to use, can be undefined */
-#define POLARSSL_MEMORY_STDFREE          free /**< Default free to use, can be undefined */
 
 // Platform options
+#define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
+#define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
 #define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use, can be undefined */
 
@@ -2143,7 +2152,8 @@
 #error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && !defined(POLARSSL_MEMORY_C)
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) &&                          \
+    ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
 #error "POLARSSL_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
 #endif
 

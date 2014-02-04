@@ -38,13 +38,27 @@ extern "C" {
 #if !defined(POLARSSL_CONFIG_OPTIONS)
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
 #define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use */
+#define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use */
+#define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use */
 #endif /* POLARSSL_CONFIG_OPTIONS */
 
 /*
  * The function pointers for malloc and free
  */
 #if defined(POLARSSL_MEMORY_C)
-#include "memory.h"
+extern void * (*polarssl_malloc)( size_t len );
+extern void (*polarssl_free)( void *ptr );
+
+/**
+ * \brief   Set your own memory implementation function pointers
+ *
+ * \param malloc_func   the malloc function implementation
+ * \param free_func     the free function implementation
+ *
+ * \return              0 if successful
+ */
+int platform_set_malloc_free( void * (*malloc_func)( size_t ),
+                              void (*free_func)( void * ) );
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc

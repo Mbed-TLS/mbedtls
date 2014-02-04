@@ -25,9 +25,9 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_MEMORY_C) && defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
 
-#include "polarssl/memory.h"
+#include "polarssl/memory_buffer_alloc.h"
 
 #include <string.h>
 
@@ -544,11 +544,10 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_init( &heap.mutex );
-    polarssl_malloc = buffer_alloc_malloc_mutexed;
-    polarssl_free = buffer_alloc_free_mutexed;
+    platform_set_malloc_free( buffer_alloc_malloc_mutexed,
+                              buffer_alloc_free_mutexed );
 #else
-    polarssl_malloc = buffer_alloc_malloc;
-    polarssl_free = buffer_alloc_free;
+    platform_set_malloc_free( buffer_alloc_malloc, buffer_alloc_free );
 #endif
 
     heap.buf = buf;
@@ -570,4 +569,4 @@ void memory_buffer_alloc_free()
     memset( &heap, 0, sizeof(buffer_alloc_ctx) );
 }
 
-#endif /* POLARSSL_MEMORY_C && POLARSSL_MEMORY_BUFFER_ALLOC_C */
+#endif /* POLARSSL_MEMORY_BUFFER_ALLOC_C */

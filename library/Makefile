@@ -46,7 +46,7 @@ OBJS=	aes.o		aesni.o		arc4.o			\
 		error.o		gcm.o		havege.o		\
 		hmac_drbg.o								\
 		md.o		md_wrap.o	md2.o			\
-		md4.o		md5.o		memory.o		\
+		md4.o		md5.o						\
 		memory_buffer_alloc.o	net.o			\
 		oid.o									\
 		padlock.o	pbkdf2.o	pem.o			\

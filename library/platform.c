@@ -29,6 +29,38 @@
 
 #include "polarssl/platform.h"
 
+#if defined(POLARSSL_PLATFORM_MEMORY)
+#if !defined(POLARSSL_PLATFORM_STD_MALLOC)
+static void *platform_malloc_uninit( size_t len )
+{
+    ((void) len);
+    return( NULL );
+}
+
+#define POLARSSL_PLATFORM_STD_MALLOC   memory_malloc_uninit
+#endif /* !POLARSSL_PLATFORM_STD_MALLOC */
+
+#if !defined(POLARSSL_PLATFORM_STD_FREE)
+static void platform_free_uninit( void *ptr )
+{
+    ((void) ptr);
+}
+
+#define POLARSSL_PLATFORM_STD_FREE     memory_free_uninit
+#endif /* !POLARSSL_PLATFORM_STD_FREE */
+
+void * (*polarssl_malloc)( size_t ) = POLARSSL_PLATFORM_STD_MALLOC;
+void (*polarssl_free)( void * )     = POLARSSL_PLATFORM_STD_FREE;
+
+int platform_set_malloc_free( void * (*malloc_func)( size_t ),
+                              void (*free_func)( void * ) )
+{
+    polarssl_malloc = malloc_func;
+    polarssl_free = free_func;
+    return( 0 );
+}
+#endif /* POLARSSL_PLATFORM_MEMORY */
+
 #if defined(POLARSSL_PLATFORM_PRINTF_ALT)
 #if !defined(POLARSSL_PLATFORM_STD_PRINTF)
 /*

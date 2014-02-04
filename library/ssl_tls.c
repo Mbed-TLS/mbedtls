@@ -3335,7 +3335,7 @@ int ssl_init( ssl_context *ssl )
     *
     * TODO: Add the Montgomery curves
     */
-    static const ecp_group_id ecdh_default_curve_list[] =
+    static const ecp_group_id default_curve_list[] =
     {
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
         POLARSSL_ECP_DP_SECP521R1,
@@ -3425,8 +3425,8 @@ int ssl_init( ssl_context *ssl )
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
-    defined(POLARSSL_SSL_SET_ECDH_CURVES)
-    ssl->ecdh_curve_list = ecdh_default_curve_list;
+    defined(POLARSSL_SSL_SET_CURVES)
+    ssl->curve_list = default_curve_list;
 #endif
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
@@ -4657,12 +4657,12 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash )
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED) && \
-    defined(POLARSSL_SSL_SET_ECDH_CURVES)
+    defined(POLARSSL_SSL_SET_CURVES)
 /*
  * Set the allowed ECDH curves.
  */
-void ssl_set_ecdh_curves( ssl_context *ssl, const ecp_group_id *ecdh_curve_list )
+void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curve_list )
 {
-  ssl->ecdh_curve_list = ecdh_curve_list;
+  ssl->curve_list = curve_list;
 }
 #endif

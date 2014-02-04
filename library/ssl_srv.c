@@ -2106,12 +2106,12 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          * } ServerECDHParams;
          */
         ecp_group_id grp_id;
-#if defined(POLARSSL_SSL_SET_ECDH_CURVES)
+#if defined(POLARSSL_SSL_SET_CURVES)
         unsigned int pref_idx, curv_idx, found;
 
         /* Match our preference list against the agreed curves */
         for( pref_idx = 0, found = 0;
-             ssl->ecdh_curve_list[pref_idx] != POLARSSL_ECP_DP_NONE;
+             ssl->curve_list[pref_idx] != POLARSSL_ECP_DP_NONE;
              pref_idx++ )
         {
             /* Look through the agreed curve list */
@@ -2120,7 +2120,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
                  curv_idx++ )
             {
                 if (ssl->handshake->curves[curv_idx]->grp_id ==
-                    ssl->ecdh_curve_list[pref_idx] )
+                    ssl->curve_list[pref_idx] )
                 {
                     /* We found our most preferred curve */
                     found = 1;
@@ -2130,18 +2130,18 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
             /* Exit the search if we have found our curve */
             if( found == 1 )
-            {
                 break;
-            }
         }
-        /* If we haven't found any allowed / preferred curve,
-         * ssl->ecdh_curve_list[pref_idx] will contain POLARSSL_ECP_DP_NONE and
+
+        /*
+         * If we haven't found any allowed / preferred curve,
+         * ssl->curve_list[pref_idx] will contain POLARSSL_ECP_DP_NONE and
          * ecp_use_known_dp() will fail.
          */
-        grp_id = ssl->ecdh_curve_list[pref_idx];
+        grp_id = ssl->curve_list[pref_idx];
 #else
         grp_id = ssl->handshake->curves[0]->grp_id;
-#endif /* POLARSSL_SSL_SET_ECDH_CURVES */
+#endif /* POLARSSL_SSL_SET_CURVES */
 
         if( ( ret = ecp_use_known_dp( &ssl->handshake->ecdh_ctx.grp,
                                        grp_id ) ) != 0 )

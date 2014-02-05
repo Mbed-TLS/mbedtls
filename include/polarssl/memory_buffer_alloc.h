@@ -66,7 +66,7 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len );
 /**
  * \brief   Free the mutex for thread-safety and clear remaining memory
  */
-void memory_buffer_alloc_free();
+void memory_buffer_alloc_free( void );
 
 /**
  * \brief   Determine when the allocator should automatically verify the state
@@ -85,7 +85,7 @@ void memory_buffer_set_verify( int verify );
  *          Prints out a list of 'still allocated' blocks and their stack
  *          trace if POLARSSL_MEMORY_BACKTRACE is defined.
  */
-void memory_buffer_alloc_status();
+void memory_buffer_alloc_status( void );
 #endif /* POLARSSL_MEMORY_DEBUG */
 
 /**
@@ -99,7 +99,7 @@ void memory_buffer_alloc_status();
  *
  * \returns             0 if verified, 1 otherwise
  */
-int memory_buffer_alloc_verify();
+int memory_buffer_alloc_verify( void );
 
 #ifdef __cplusplus
 }

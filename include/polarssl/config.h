@@ -290,7 +290,7 @@
  * may result in a compromise of the long-term signing key. This is avoided by
  * the deterministic variant.
  *
- * Requires: POLARSSL_MD_C
+ * Requires: POLARSSL_HMAC_DRBG_C
  *
  * Comment this macro to disable deterministic ECDSA.
  */
@@ -1312,6 +1312,20 @@
 //#define POLARSSL_HAVEGE_C
 
 /**
+ * \def POLARSSL_HMAC_DRBG_C
+ *
+ * Enable the HMAC_DRBG random generator.
+ *
+ * Module:  library/hmac_drbg.c
+ * Caller:
+ *
+ * Requires: POLARSSL_MD_C
+ *
+ * Uncomment to enable the HMAC_DRBG random number geerator.
+ */
+#define POLARSSL_HMAC_DRBG_C
+
+/**
  * \def POLARSSL_MD_C
  *
  * Enable the generic message digest layer.
@@ -1902,6 +1916,13 @@
 #define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
 #define CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
 
+// HMAC_DRBG options
+//
+#define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */
+#define POLARSSL_HMAC_DRBG_MAX_INPUT           256 /**< Maximum number of additional input bytes */
+#define POLARSSL_HMAC_DRBG_MAX_REQUEST        1024 /**< Maximum number of requested bytes per call */
+#define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT      384 /**< Maximum size of (re)seed buffer */
+
 // ECP options
 //
 #define POLARSSL_ECP_MAX_BITS             521 /**< Maximum bit size of groups */
@@ -1962,7 +1983,7 @@
 #error "POLARSSL_ECDSA_C defined, but not all prerequisites"
 #endif
 
-#if defined(POLARSSL_ECDSA_DETERMINISTIC) && !defined(POLARSSL_MD_C)
+#if defined(POLARSSL_ECDSA_DETERMINISTIC) && !defined(POLARSSL_HMAC_DRBG_C)
 #error "POLARSSL_ECDSA_DETERMINISTIC defined, but not all prerequisites"
 #endif
 
@@ -2002,6 +2023,10 @@
 
 #if defined(POLARSSL_HAVEGE_C) && !defined(POLARSSL_TIMING_C)
 #error "POLARSSL_HAVEGE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_HMAC_DRBG) && !defined(POLARSSL_MD_C)
+#error "POLARSSL_HMAC_DRBG_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \

@@ -718,3 +718,15 @@ ctr_drbg_validate_nopr:"898064243e44ff67151736ce8bb6f1c759cab4aaca9b87543a1ac984
 CTR_DRBG NIST Validation (AES-256 use df,False,256,128,256,256) #14
 ctr_drbg_validate_nopr:"50de72903b9d99764123ffaa0c721e14ad1ab5c46a34c040f25324ba1d937b8ef10467161fcf2978c2a680ac5570c6d2":"5c9954fd0143e62c3bf2d5734052e3c9370f7b9d75c70f58fe33b12e3997ee2c8db84f8467affd7cfd9a9e7ec60da6f31bf9bf32aedf644e4934bd1fc916bc8d":"d5dc4c9fc7171fcbfdaead558a565ffd55d245a58b22ad1666ee05131e33f49e":"ea3114e92e6a19f53b207a0a54cd363a6d053fed0a827f92556f0a8580f7a342":"53686f069b455af4692888d11fac15cf7b4bd38e198de4e62b7098f875198a75":"9fb0df053e0345e5640aa97fedef50a6"
 
+CTR_DRBG entropy usage
+ctr_drbg_entropy_usage:
+
+CTR_DRBG write/update seed file
+ctr_drbg_seed_file:"data_files/ctr_drbg_seed":0
+
+CTR_DRBG write/update seed file
+ctr_drbg_seed_file:"no_such_dir/file":POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR
+
+CTR_DRBG self test
+ctr_drbg_selftest:
+

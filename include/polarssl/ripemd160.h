@@ -38,7 +38,7 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR              -0x0074  /**< Read/write error in file. */
+#define POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR              -0x007E  /**< Read/write error in file. */
 
 #if !defined(POLARSSL_RIPEMD160_ALT)
 // Regular implementation

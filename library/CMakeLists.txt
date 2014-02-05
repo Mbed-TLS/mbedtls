@@ -26,6 +26,7 @@ set(src
      error.c
      gcm.c
      havege.c
+     hmac_drbg.c
      md.c
      md_wrap.c
      md2.c

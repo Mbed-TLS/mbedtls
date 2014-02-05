@@ -168,6 +168,7 @@
     <ClInclude Include="..\..\include\polarssl\error.h" />
     <ClInclude Include="..\..\include\polarssl\gcm.h" />
     <ClInclude Include="..\..\include\polarssl\havege.h" />
+    <ClInclude Include="..\..\include\polarssl\hmac_drbg.h" />
     <ClInclude Include="..\..\include\polarssl\md2.h" />
     <ClInclude Include="..\..\include\polarssl\md4.h" />
     <ClInclude Include="..\..\include\polarssl\md5.h" />
@@ -227,6 +228,7 @@
     <ClCompile Include="..\..\library\error.c" />
     <ClCompile Include="..\..\library\gcm.c" />
     <ClCompile Include="..\..\library\havege.c" />
+    <ClCompile Include="..\..\library\hmac_drbg.c" />
     <ClCompile Include="..\..\library\md2.c" />
     <ClCompile Include="..\..\library\md4.c" />
     <ClCompile Include="..\..\library\md5.c" />

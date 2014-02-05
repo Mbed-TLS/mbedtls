@@ -37,101 +37,10 @@
 #include "polarssl/asn1write.h"
 
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
-/*
- * Simplified HMAC_DRBG context.
- * No reseed counter, no prediction resistance flag.
- */
-typedef struct
-{
-    md_context_t md_ctx;
-    unsigned char V[POLARSSL_MD_MAX_SIZE];
-    unsigned char K[POLARSSL_MD_MAX_SIZE];
-} hmac_drbg_context;
+#include "polarssl/hmac_drbg.h"
+#endif
 
-/*
- * Simplified HMAC_DRBG update, using optional additional data
- */
-static void hmac_drbg_update( hmac_drbg_context *ctx,
-                              const unsigned char *data, size_t data_len )
-{
-    size_t md_len = ctx->md_ctx.md_info->size;
-    unsigned char rounds = ( data != NULL && data_len != 0 ) ? 2 : 1;
-    unsigned char sep[1];
-
-    for( sep[0] = 0; sep[0] < rounds; sep[0]++ )
-    {
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-        md_hmac_update( &ctx->md_ctx, sep, 1 );
-        if( rounds == 2 )
-            md_hmac_update( &ctx->md_ctx, data, data_len );
-        md_hmac_finish( &ctx->md_ctx, ctx->K );
-
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-        md_hmac_finish( &ctx->md_ctx, ctx->V );
-    }
-}
-
-/*
- * Simplified HMAC_DRBG initialisation.
- *
- * Uses an entropy buffer rather than callback,
- * assume personalisation string is included in entropy buffer,
- * assumes md_info is not NULL and valid.
- */
-static void hmac_drbg_init( hmac_drbg_context *ctx,
-                            const md_info_t * md_info,
-                            const unsigned char *data, size_t data_len )
-{
-    memset( ctx, 0, sizeof( hmac_drbg_context ) );
-    md_init_ctx( &ctx->md_ctx, md_info );
-
-    memset( ctx->V, 0x01, md_info->size );
-    /* ctx->K is already 0 */
-
-    hmac_drbg_update( ctx, data, data_len );
-}
-
-/*
- * Simplified HMAC_DRBG random function
- */
-static int hmac_drbg_random( void *state,
-                             unsigned char *output, size_t out_len )
-{
-    hmac_drbg_context *ctx = (hmac_drbg_context *) state;
-    size_t md_len = ctx->md_ctx.md_info->size;
-    size_t left = out_len;
-    unsigned char *out = output;
-
-    while( left != 0 )
-    {
-        size_t use_len = left > md_len ? md_len : left;
-
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-        md_hmac_finish( &ctx->md_ctx, ctx->V );
-
-        memcpy( out, ctx->V, use_len );
-        out += use_len;
-        left -= use_len;
-    }
-
-    hmac_drbg_update( ctx, NULL, 0 );
-
-    return( 0 );
-}
-
-static void hmac_drbg_free( hmac_drbg_context *ctx )
-{
-    if( ctx == NULL )
-        return;
-
-    md_free_ctx( &ctx->md_ctx );
-
-    memset( ctx, 0, sizeof( hmac_drbg_context ) );
-}
-
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
 /*
  * This a hopefully temporary compatibility function.
  *
@@ -284,7 +193,7 @@ int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
     MPI_CHK( mpi_write_binary( d, data, grp_len ) );
     MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
     MPI_CHK( mpi_write_binary( &h, data + grp_len, grp_len ) );
-    hmac_drbg_init( &rng_ctx, md_info, data, 2 * grp_len );
+    hmac_drbg_init_buf( &rng_ctx, md_info, data, 2 * grp_len );
 
     ret = ecdsa_sign( grp, r, s, d, buf, blen,
                       hmac_drbg_random, &rng_ctx );

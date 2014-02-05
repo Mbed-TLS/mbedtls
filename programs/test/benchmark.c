@@ -45,6 +45,7 @@
 #include "polarssl/gcm.h"
 #include "polarssl/havege.h"
 #include "polarssl/ctr_drbg.h"
+#include "polarssl/hmac_drbg.h"
 #include "polarssl/rsa.h"
 #include "polarssl/dhm.h"
 #include "polarssl/ecdsa.h"
@@ -55,8 +56,8 @@
 #endif
 
 #define BUFSIZE         1024
-#define HEADER_FORMAT   "  %-18s :  "
-#define TITLE_LEN       19
+#define HEADER_FORMAT   "  %-24s :  "
+#define TITLE_LEN       15
 
 #if !defined(POLARSSL_TIMING_C)
 int main( int argc, char *argv[] )
@@ -141,14 +142,14 @@ unsigned char buf[BUFSIZE];
 typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
          arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,
-         havege, ctr_drbg,
+         havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
 
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,\n"          \
-    "havege, ctr_drbg,\n"                                               \
+    "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
 
 int main( int argc, char *argv[] )
@@ -196,6 +197,8 @@ int main( int argc, char *argv[] )
                 todo.havege = 1;
             else if( strcmp( argv[i], "ctr_drbg" ) == 0 )
                 todo.ctr_drbg = 1;
+            else if( strcmp( argv[i], "hmac_drbg" ) == 0 )
+                todo.hmac_drbg = 1;
             else if( strcmp( argv[i], "rsa" ) == 0 )
                 todo.rsa = 1;
             else if( strcmp( argv[i], "dhm" ) == 0 )
@@ -377,6 +380,56 @@ int main( int argc, char *argv[] )
         TIME_AND_TSC( "CTR_DRBG (PR)",
                 if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
                 exit(1) );
+    }
+#endif
+
+#if defined(POLARSSL_HMAC_DRBG_C)
+    if( todo.hmac_drbg )
+    {
+        hmac_drbg_context hmac_drbg;
+        const md_info_t *md_info;
+
+#if defined(POLARSSL_SHA1_C)
+        if( ( md_info = md_info_from_type( POLARSSL_MD_SHA1 ) ) == NULL )
+            exit(1);
+
+        if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+            exit(1);
+        TIME_AND_TSC( "HMAC_DRBG SHA-1 (NOPR)",
+                if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
+                exit(1) );
+        hmac_drbg_free( &hmac_drbg );
+
+        if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+            exit(1);
+        hmac_drbg_set_prediction_resistance( &hmac_drbg,
+                                             POLARSSL_HMAC_DRBG_PR_ON );
+        TIME_AND_TSC( "HMAC_DRBG SHA-1 (PR)",
+                if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
+                exit(1) );
+        hmac_drbg_free( &hmac_drbg );
+#endif
+
+#if defined(POLARSSL_SHA256_C)
+        if( ( md_info = md_info_from_type( POLARSSL_MD_SHA256 ) ) == NULL )
+            exit(1);
+
+        if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+            exit(1);
+        TIME_AND_TSC( "HMAC_DRBG SHA-256 (NOPR)",
+                if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
+                exit(1) );
+        hmac_drbg_free( &hmac_drbg );
+
+        if( hmac_drbg_init( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
+            exit(1);
+        hmac_drbg_set_prediction_resistance( &hmac_drbg,
+                                             POLARSSL_HMAC_DRBG_PR_ON );
+        TIME_AND_TSC( "HMAC_DRBG SHA-256 (PR)",
+                if( hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
+                exit(1) );
+        hmac_drbg_free( &hmac_drbg );
+#endif
     }
 #endif
 

@@ -77,6 +77,10 @@
 #include "polarssl/gcm.h"
 #endif
 
+#if defined(POLARSSL_HMAC_DRBG_C)
+#include "polarssl/hmac_drbg.h"
+#endif
+
 #if defined(POLARSSL_MD_C)
 #include "polarssl/md.h"
 #endif
@@ -123,6 +127,10 @@
 
 #if defined(POLARSSL_PKCS5_C)
 #include "polarssl/pkcs5.h"
+#endif
+
+#if defined(POLARSSL_RIPEMD160_C)
+#include "polarssl/ripemd160.h"
 #endif
 
 #if defined(POLARSSL_RSA_C)
@@ -589,6 +597,17 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "GCM - Bad input parameters to function" );
 #endif /* POLARSSL_GCM_C */
 
+#if defined(POLARSSL_HMAC_DRBG_C)
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED) )
+        snprintf( buf, buflen, "HMAC_DRBG - The entropy source failed" );
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG) )
+        snprintf( buf, buflen, "HMAC_DRBG - Too many random requested in single call" );
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG) )
+        snprintf( buf, buflen, "HMAC_DRBG - Input too large (Entropy + additional)" );
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "HMAC_DRBG - Read/write error in file" );
+#endif /* POLARSSL_HMAC_DRBG_C */
+
 #if defined(POLARSSL_MD2_C)
     if( use_ret == -(POLARSSL_ERR_MD2_FILE_IO_ERROR) )
         snprintf( buf, buflen, "MD2 - Read/write error in file" );
@@ -643,6 +662,11 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_PBKDF2_BAD_INPUT_DATA) )
         snprintf( buf, buflen, "PBKDF2 - Bad input parameters to function" );
 #endif /* POLARSSL_PBKDF2_C */
+
+#if defined(POLARSSL_RIPEMD160_C)
+    if( use_ret == -(POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "RIPEMD160 - Read/write error in file" );
+#endif /* POLARSSL_RIPEMD160_C */
 
 #if defined(POLARSSL_SHA1_C)
     if( use_ret == -(POLARSSL_ERR_SHA1_FILE_IO_ERROR) )

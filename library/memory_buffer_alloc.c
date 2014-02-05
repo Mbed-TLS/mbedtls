@@ -517,7 +517,7 @@ void memory_buffer_alloc_status()
         debug_chain();
     }
 }
-#endif /* POLARSSL_MEMORY_BUFFER_ALLOC_DEBUG */
+#endif /* POLARSSL_MEMORY_DEBUG */
 
 #if defined(POLARSSL_THREADING_C)
 static void *buffer_alloc_malloc_mutexed( size_t len )

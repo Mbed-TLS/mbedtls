@@ -8,7 +8,8 @@ string(REGEX MATCH "clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER}")
 if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
-  set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 -fprofile-arcs -ftest-coverage -lgcov")
+  set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
+  set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fno-omit-frame-pointer -g3 -O1")
   set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -Wlogical-op -Wwrite-strings")
   set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNUCC)
@@ -16,16 +17,22 @@ endif(CMAKE_COMPILER_IS_GNUCC)
 if(CMAKE_COMPILER_IS_CLANG)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
+  set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
+  set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fno-omit-frame-pointer -g3 -O1")
   set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -Wpointer-arith -Wwrite-strings -Wdocumentation")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-    CACHE STRING "Choose the type of build: None Debug Release Coverage Check CheckFull"
+    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan Check CheckFull"
     FORCE)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
   if(CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_SHARED_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
+    set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
   endif(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
+  endif(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library." OFF)
@@ -62,6 +69,16 @@ add_subdirectory(programs)
 ADD_CUSTOM_TARGET(apidoc
                   COMMAND doxygen doxygen/polarssl.doxyfile
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+ADD_CUSTOM_TARGET(test-ref-config
+    COMMAND tests/scripts/test-ref-configs.pl
+    )
+
+ADD_CUSTOM_TARGET(lcov
+    COMMAND geninfo *.gcda
+    COMMAND genhtml -o ../../../Coverage *.info
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/library/CMakeFiles/polarssl.dir
+    )
 
 ADD_CUSTOM_TARGET(memcheck
     COMMAND ctest -O memcheck.log -D ExperimentalMemCheck

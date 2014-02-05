@@ -48,9 +48,18 @@ clean:
 	cd library  && $(MAKE) clean && cd ..
 	cd programs && $(MAKE) clean && cd ..
 	cd tests    && $(MAKE) clean && cd ..
+	find . \( -name \*.gcno -o -name \*.gcda -o -name *.info \) -exec rm {} +
 
-check:
-	( cd tests && $(MAKE) check )
+check: lib
+	( cd tests && $(MAKE) && $(MAKE) check )
+
+test-ref-configs:
+	tests/scripts/test-ref-configs.pl
+
+lcov:
+	rm -rf Coverage
+	( cd library && geninfo *.gcda )
+	( cd library && genhtml -o ../Coverage *.info )
 
 apidoc:
 	mkdir -p apidoc

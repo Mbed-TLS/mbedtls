@@ -50,6 +50,7 @@
 #include "polarssl/dhm.h"
 #include "polarssl/ecdsa.h"
 #include "polarssl/ecdh.h"
+#include "polarssl/error.h"
 
 #if defined _MSC_VER && !defined snprintf
 #define snprintf _snprintf
@@ -57,7 +58,7 @@
 
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
-#define TITLE_LEN       15
+#define TITLE_LEN       25
 
 #if !defined(POLARSSL_TIMING_C)
 int main( int argc, char *argv[] )
@@ -132,7 +133,10 @@ do {                                                                    \
     }                                                                   \
                                                                         \
     if( ret != 0 )                                                      \
-        printf( "FAILED\n" );                                           \
+    {                                                                   \
+        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        printf( "FAILED: %s\n", tmp );                                  \
+    }                                                                   \
     else                                                                \
         printf( "%9lu " TYPE "/s\n", i / 3 );                           \
 } while( 0 )

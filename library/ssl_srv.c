@@ -536,7 +536,7 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    /* Don't allow our peer to make use allocated too much memory,
+    /* Don't allow our peer to make us allocate too much memory,
      * and leave room for a final 0 */
     our_size = list_size / 2 + 1;
     if( our_size > POLARSSL_ECP_DP_MAX )
@@ -2092,10 +2092,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 #endif /* POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
@@ -2108,15 +2105,35 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ECPoint      public;
          * } ServerECDHParams;
          */
+        const ecp_curve_info **curve;
+#if defined(POLARSSL_SSL_SET_CURVES)
+        const ecp_group_id *gid;
+
+        /* Match our preference list against the offered curves */
+        for( gid = ssl->curve_list; *gid != POLARSSL_ECP_DP_NONE; gid++ )
+            for( curve = ssl->handshake->curves; *curve != NULL; curve++ )
+                if( (*curve)->grp_id == *gid )
+                    goto curve_matching_done;
+
+curve_matching_done:
+#else
+        curve = ssl->handshake->curves;
+#endif
+
+        if( *curve == NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
+            return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+        }
+
+        SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", (*curve)->name ) );
+
         if( ( ret = ecp_use_known_dp( &ssl->handshake->ecdh_ctx.grp,
-                                   ssl->handshake->curves[0]->grp_id ) ) != 0 )
+                                       (*curve)->grp_id ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecp_use_known_dp", ret );
             return( ret );
         }
-
-        SSL_DEBUG_MSG( 2, ( "ECDH curve size: %d",
-                            (int) ssl->handshake->ecdh_ctx.grp.nbits ) );
 
         if( ( ret = ecdh_make_params( &ssl->handshake->ecdh_ctx, &len,
                                       p, SSL_MAX_CONTENT_LEN - n,
@@ -2134,9 +2151,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
 
         SSL_DEBUG_ECP( 3, "ECDH: Q ", &ssl->handshake->ecdh_ctx.Q );
     }
-#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
@@ -2600,10 +2615,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         }
 
         SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
-
-        SSL_DEBUG_MSG( 0, ( "ECDH: id %d", ssl->handshake->ecdh_ctx.grp.id ) );
-        SSL_DEBUG_ECP( 0, "ECDH: Q  ", &ssl->handshake->ecdh_ctx.Q );
-        SSL_DEBUG_MPI( 0, "ECDH: d  ", &ssl->handshake->ecdh_ctx.d );
 
         if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
                                       &ssl->handshake->pmslen,

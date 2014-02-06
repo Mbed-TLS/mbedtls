@@ -222,11 +222,21 @@ ecp_keypair;
 #define POLARSSL_ECP_TLS_NAMED_CURVE    3   /**< ECCurveType's named_curve */
 
 /**
- * \brief           Return the list of supported curves with associated info
+ * \brief           Get the list of supported curves in order of preferrence
+ *                  (full information)
  *
  * \return          A statically allocated array, the last entry is 0.
  */
 const ecp_curve_info *ecp_curve_list( void );
+
+/**
+ * \brief           Get the list of supported curves in order of preferrence
+ *                  (grp_id only)
+ *
+ * \return          A statically allocated array,
+ *                  terminated with POLARSSL_ECP_DP_NONE.
+ */
+const ecp_group_id *ecp_grp_id_list( void );
 
 /**
  * \brief           Get curve information from an internal group identifier

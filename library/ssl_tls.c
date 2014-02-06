@@ -2664,7 +2664,23 @@ int ssl_parse_certificate( ssl_context *ssl )
                                ssl->f_vrfy, ssl->p_vrfy );
 
         if( ret != 0 )
+        {
             SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
+        }
+#if defined(POLARSSL_SSL_SET_CURVES)
+        else
+        {
+            pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
+
+            /* If certificate uses an EC key, make sure the curve is OK */
+            if( pk_can_do( pk, POLARSSL_PK_ECKEY ) &&
+                ! ssl_curve_is_acceptable( ssl, pk_ec( *pk )->grp.id ) )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad server certificate (EC key curve)" ) );
+                ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
+            }
+        }
+#endif
 
         if( ssl->authmode != SSL_VERIFY_REQUIRED )
             ret = 0;
@@ -3384,6 +3400,10 @@ int ssl_init( ssl_context *ssl )
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
 #endif
 
+#if defined(POLARSSL_SSL_SET_CURVES)
+    ssl->curve_list = ecp_grp_id_list( );
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -3795,6 +3815,16 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx )
     return( 0 );
 }
 #endif /* POLARSSL_DHM_C */
+
+#if defined(POLARSSL_SSL_SET_CURVES)
+/*
+ * Set the allowed elliptic curves
+ */
+void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curve_list )
+{
+  ssl->curve_list = curve_list;
+}
+#endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 int ssl_set_hostname( ssl_context *ssl, const char *hostname )
@@ -4609,4 +4639,21 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash )
     }
 }
 
+#endif
+
+#if defined(POLARSSL_SSL_SET_CURVES)
+/*
+ * Check is a curve proposed by the peer is in our list.
+ * Return 1 if we're willing to use it, 0 otherwise.
+ */
+int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id )
+{
+    const ecp_group_id *gid;
+
+    for( gid = ssl->curve_list; *gid != POLARSSL_ECP_DP_NONE; gid++ )
+        if( *gid == grp_id )
+            return( 1 );
+
+    return( 0 );
+}
 #endif

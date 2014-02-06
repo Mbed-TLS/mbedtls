@@ -83,6 +83,12 @@
 #define POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED
 #endif
 
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#define POLARSSL_KEY_EXCHANGE__SOME__ECDHE_ENABLED
+#endif
+
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
 #else
@@ -721,6 +727,9 @@ struct _ssl_context
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
+#if defined(POLARSSL_SSL_SET_CURVES)
+    const ecp_group_id *curve_list;     /*!<  allowed curves                 */
+#endif
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
     int trunc_hmac;                     /*!<  negotiate truncated hmac?      */
 #endif
@@ -1149,6 +1158,28 @@ int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
 int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
 #endif
 
+#if defined(POLARSSL_SSL_SET_CURVES)
+/**
+ * \brief          Set the allowed curves in order of preference.
+ *                 (Default: all defined curves.)
+ *
+ *                 On server: this only affects selection of the ECDHE curve;
+ *                 the curves used for ECDH and ECDSA are determined by the
+ *                 list of available certificates instead.
+ *
+ *                 On client: this affects the list of curves offered for any
+ *                 use. The server can override our preference order.
+ *
+ *                 Both sides: limits the set of curves used by peer to the
+ *                 listed curves for any use (ECDH(E), certificates).
+ *
+ * \param ssl      SSL context
+ * \param curves   Ordered list of allowed curves,
+ *                 terminated by POLARSSL_ECP_DP_NONE.
+ */
+void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curves );
+#endif
+
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /**
  * \brief          Set hostname for ServerName TLS extension
@@ -1560,6 +1591,10 @@ pk_type_t ssl_pk_alg_from_sig( unsigned char sig );
 #endif
 
 md_type_t ssl_md_alg_from_hash( unsigned char hash );
+
+#if defined(POLARSSL_SSL_SET_CURVES)
+int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id );
+#endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 static inline pk_context *ssl_own_key( ssl_context *ssl )

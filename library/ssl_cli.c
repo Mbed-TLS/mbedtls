@@ -233,19 +233,26 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
     unsigned char *p = buf;
     unsigned char *elliptic_curve_list = p + 6;
     size_t elliptic_curve_len = 0;
-    const ecp_curve_info *curve;
-    ((void) ssl);
+    const ecp_curve_info *info;
+#if defined(POLARSSL_SSL_SET_CURVES)
+    const ecp_group_id *grp_id;
+#endif
 
     *olen = 0;
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding supported_elliptic_curves extension" ) );
 
-    for( curve = ecp_curve_list();
-         curve->grp_id != POLARSSL_ECP_DP_NONE;
-         curve++ )
+#if defined(POLARSSL_SSL_SET_CURVES)
+    for( grp_id = ssl->curve_list; *grp_id != POLARSSL_ECP_DP_NONE; grp_id++ )
     {
-        elliptic_curve_list[elliptic_curve_len++] = curve->tls_id >> 8;
-        elliptic_curve_list[elliptic_curve_len++] = curve->tls_id & 0xFF;
+        info = ecp_curve_info_from_grp_id( *grp_id );
+#else
+    for( info = ecp_curve_list(); info->grp_id != POLARSSL_ECP_DP_NONE; info++ )
+    {
+#endif
+
+        elliptic_curve_list[elliptic_curve_len++] = info->tls_id >> 8;
+        elliptic_curve_list[elliptic_curve_len++] = info->tls_id & 0xFF;
     }
 
     if( elliptic_curve_len == 0 )
@@ -1118,14 +1125,24 @@ static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
     defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 static int ssl_check_server_ecdh_params( const ssl_context *ssl )
 {
-    SSL_DEBUG_MSG( 2, ( "ECDH curve size: %d",
-                        (int) ssl->handshake->ecdh_ctx.grp.nbits ) );
+    const ecp_curve_info *curve_info;
 
-    if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||
-        ssl->handshake->ecdh_ctx.grp.nbits > 521 )
+    curve_info = ecp_curve_info_from_grp_id( ssl->handshake->ecdh_ctx.grp.id );
+    if( curve_info == NULL )
     {
+        SSL_DEBUG_MSG( 1, ( "Should never happen" ) );
         return( -1 );
     }
+
+    SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
+
+#if defined(POLARSSL_SSL_ECP_SET_CURVES)
+    if( ! ssl_curve_is_acceptable( ssl, ssl->handshake->ecdh_ctx.grp.id ) )
+#else
+    if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||
+        ssl->handshake->ecdh_ctx.grp.nbits > 521 )
+#endif
+        return( -1 );
 
     SSL_DEBUG_ECP( 3, "ECDH: Qp", &ssl->handshake->ecdh_ctx.Qp );
 
@@ -1160,7 +1177,7 @@ static int ssl_parse_server_ecdh_params( ssl_context *ssl,
 
     if( ssl_check_server_ecdh_params( ssl ) != 0 )
     {
-        SSL_DEBUG_MSG( 1, ( "bad server key exchange message (ECDH length)" ) );
+        SSL_DEBUG_MSG( 1, ( "bad server key exchange message (ECDHE curve)" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
@@ -1348,7 +1365,7 @@ static int ssl_get_ecdh_params_from_cert( ssl_context *ssl )
 
     if( ssl_check_server_ecdh_params( ssl ) != 0 )
     {
-        SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH length)" ) );
+        SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH curve)" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
@@ -1390,7 +1407,11 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDH_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDH_ECDSA )
     {
-        ssl_get_ecdh_params_from_cert( ssl );
+        if( ( ret = ssl_get_ecdh_params_from_cert( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_get_ecdh_params_from_cert", ret );
+            return( ret );
+        }
 
         SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
         ssl->state++;

@@ -1,7 +1,7 @@
 /*
  *  Buffer-based memory allocator
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -25,9 +25,9 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_MEMORY_C) && defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
 
-#include "polarssl/memory.h"
+#include "polarssl/memory_buffer_alloc.h"
 
 #include <string.h>
 
@@ -40,6 +40,12 @@
 
 #if defined(POLARSSL_THREADING_C)
 #include "polarssl/threading.h"
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_fprintf fprintf
 #endif
 
 #define MAGIC1       0xFF00AA55
@@ -94,17 +100,18 @@ static void debug_header( memory_header *hdr )
     size_t i;
 #endif
 
-    fprintf( stderr, "HDR:  PTR(%10u), PREV(%10u), NEXT(%10u), ALLOC(%u), SIZE(%10u)\n",
-            (size_t) hdr, (size_t) hdr->prev, (size_t) hdr->next,
-            hdr->alloc, hdr->size );
-    fprintf( stderr, "      FPREV(%10u), FNEXT(%10u)\n",
-            (size_t) hdr->prev_free, (size_t) hdr->next_free );
+    polarssl_fprintf( stderr, "HDR:  PTR(%10u), PREV(%10u), NEXT(%10u), "
+                              "ALLOC(%u), SIZE(%10u)\n",
+                      (size_t) hdr, (size_t) hdr->prev, (size_t) hdr->next,
+                      hdr->alloc, hdr->size );
+    polarssl_fprintf( stderr, "      FPREV(%10u), FNEXT(%10u)\n",
+                      (size_t) hdr->prev_free, (size_t) hdr->next_free );
 
 #if defined(POLARSSL_MEMORY_BACKTRACE)
-    fprintf( stderr, "TRACE: \n" );
+    polarssl_fprintf( stderr, "TRACE: \n" );
     for( i = 0; i < hdr->trace_count; i++ )
-        fprintf( stderr, "%s\n", hdr->trace[i] );
-    fprintf( stderr, "\n" );
+        polarssl_fprintf( stderr, "%s\n", hdr->trace[i] );
+    polarssl_fprintf( stderr, "\n" );
 #endif
 }
 
@@ -112,14 +119,14 @@ static void debug_chain()
 {
     memory_header *cur = heap.first;
 
-    fprintf( stderr, "\nBlock list\n" );
+    polarssl_fprintf( stderr, "\nBlock list\n" );
     while( cur != NULL )
     {
         debug_header( cur );
         cur = cur->next;
     }
 
-    fprintf( stderr, "Free list\n" );
+    polarssl_fprintf( stderr, "Free list\n" );
     cur = heap.first_free;
 
     while( cur != NULL )
@@ -135,7 +142,7 @@ static int verify_header( memory_header *hdr )
     if( hdr->magic1 != MAGIC1 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: MAGIC1 mismatch\n" );
+        polarssl_fprintf( stderr, "FATAL: MAGIC1 mismatch\n" );
 #endif
         return( 1 );
     }
@@ -143,7 +150,7 @@ static int verify_header( memory_header *hdr )
     if( hdr->magic2 != MAGIC2 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: MAGIC2 mismatch\n" );
+        polarssl_fprintf( stderr, "FATAL: MAGIC2 mismatch\n" );
 #endif
         return( 1 );
     }
@@ -151,7 +158,7 @@ static int verify_header( memory_header *hdr )
     if( hdr->alloc > 1 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: alloc has illegal value\n" );
+        polarssl_fprintf( stderr, "FATAL: alloc has illegal value\n" );
 #endif
         return( 1 );
     }
@@ -159,7 +166,7 @@ static int verify_header( memory_header *hdr )
     if( hdr->prev != NULL && hdr->prev == hdr->next )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: prev == next\n" );
+        polarssl_fprintf( stderr, "FATAL: prev == next\n" );
 #endif
         return( 1 );
     }
@@ -167,7 +174,7 @@ static int verify_header( memory_header *hdr )
     if( hdr->prev_free != NULL && hdr->prev_free == hdr->next_free )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: prev_free == next_free\n" );
+        polarssl_fprintf( stderr, "FATAL: prev_free == next_free\n" );
 #endif
         return( 1 );
     }
@@ -182,7 +189,8 @@ static int verify_chain()
     if( verify_header( heap.first ) != 0 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: verification of first header failed\n" );
+        polarssl_fprintf( stderr, "FATAL: verification of first header "
+                                  "failed\n" );
 #endif
         return( 1 );
     }
@@ -190,7 +198,8 @@ static int verify_chain()
     if( heap.first->prev != NULL )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: verification failed: first->prev != NULL\n" );
+        polarssl_fprintf( stderr, "FATAL: verification failed: "
+                                  "first->prev != NULL\n" );
 #endif
         return( 1 );
     }
@@ -200,7 +209,8 @@ static int verify_chain()
         if( verify_header( cur ) != 0 )
         {
 #if defined(POLARSSL_MEMORY_DEBUG)
-            fprintf( stderr, "FATAL: verification of header failed\n" );
+            polarssl_fprintf( stderr, "FATAL: verification of header "
+                                      "failed\n" );
 #endif
             return( 1 );
         }
@@ -208,7 +218,8 @@ static int verify_chain()
         if( cur->prev != prv )
         {
 #if defined(POLARSSL_MEMORY_DEBUG)
-            fprintf( stderr, "FATAL: verification failed: cur->prev != prv\n" );
+            polarssl_fprintf( stderr, "FATAL: verification failed: "
+                                      "cur->prev != prv\n" );
 #endif
             return( 1 );
         }
@@ -254,7 +265,8 @@ static void *buffer_alloc_malloc( size_t len )
     if( cur->alloc != 0 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: block in free_list but allocated data\n" );
+        polarssl_fprintf( stderr, "FATAL: block in free_list but allocated "
+                                  "data\n" );
 #endif
         exit( 1 );
     }
@@ -365,7 +377,8 @@ static void buffer_alloc_free( void *ptr )
     if( p < heap.buf || p > heap.buf + heap.len )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: polarssl_free() outside of managed space\n" );
+        polarssl_fprintf( stderr, "FATAL: polarssl_free() outside of managed "
+                                  "space\n" );
 #endif
         exit( 1 );
     }
@@ -379,7 +392,8 @@ static void buffer_alloc_free( void *ptr )
     if( hdr->alloc != 1 )
     {
 #if defined(POLARSSL_MEMORY_DEBUG)
-        fprintf( stderr, "FATAL: polarssl_free() on unallocated data\n" );
+        polarssl_fprintf( stderr, "FATAL: polarssl_free() on unallocated "
+                                  "data\n" );
 #endif
         exit( 1 );
     }
@@ -486,23 +500,24 @@ int memory_buffer_alloc_verify()
 #if defined(POLARSSL_MEMORY_DEBUG)
 void memory_buffer_alloc_status()
 {
-    fprintf( stderr,
-             "Current use: %u blocks / %u bytes, max: %u blocks / %u bytes (total %u bytes), malloc / free: %u / %u\n",
-             heap.header_count, heap.total_used,
-             heap.maximum_header_count, heap.maximum_used,
-             heap.maximum_header_count * sizeof( memory_header )
-             + heap.maximum_used,
-             heap.malloc_count, heap.free_count );
+    polarssl_fprintf( stderr,
+                      "Current use: %u blocks / %u bytes, max: %u blocks / "
+                      "%u bytes (total %u bytes), malloc / free: %u / %u\n",
+                      heap.header_count, heap.total_used,
+                      heap.maximum_header_count, heap.maximum_used,
+                      heap.maximum_header_count * sizeof( memory_header )
+                      + heap.maximum_used,
+                      heap.malloc_count, heap.free_count );
 
     if( heap.first->next == NULL )
-        fprintf( stderr, "All memory de-allocated in stack buffer\n" );
+        polarssl_fprintf( stderr, "All memory de-allocated in stack buffer\n" );
     else
     {
-        fprintf( stderr, "Memory currently allocated:\n" );
+        polarssl_fprintf( stderr, "Memory currently allocated:\n" );
         debug_chain();
     }
 }
-#endif /* POLARSSL_MEMORY_BUFFER_ALLOC_DEBUG */
+#endif /* POLARSSL_MEMORY_DEBUG */
 
 #if defined(POLARSSL_THREADING_C)
 static void *buffer_alloc_malloc_mutexed( size_t len )
@@ -529,11 +544,10 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_init( &heap.mutex );
-    polarssl_malloc = buffer_alloc_malloc_mutexed;
-    polarssl_free = buffer_alloc_free_mutexed;
+    platform_set_malloc_free( buffer_alloc_malloc_mutexed,
+                              buffer_alloc_free_mutexed );
 #else
-    polarssl_malloc = buffer_alloc_malloc;
-    polarssl_free = buffer_alloc_free;
+    platform_set_malloc_free( buffer_alloc_malloc, buffer_alloc_free );
 #endif
 
     heap.buf = buf;
@@ -555,4 +569,4 @@ void memory_buffer_alloc_free()
     memset( &heap, 0, sizeof(buffer_alloc_ctx) );
 }
 
-#endif /* POLARSSL_MEMORY_C && POLARSSL_MEMORY_BUFFER_ALLOC_C */
+#endif /* POLARSSL_MEMORY_BUFFER_ALLOC_C */

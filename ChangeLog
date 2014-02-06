@@ -9,6 +9,10 @@ Features
    * Option to set the Curve preference order
    * Support for RSASSA-PSS keys and signatures in certificates, CSRs
      and CRLs
+   * Single Platform compatilibity layer (for memory / printf / fprintf)
+
+Changes
+   * Deprecated the Memory layer
 
 Bugfix
    * ecp_gen_keypair() does more tries to prevent failure because of

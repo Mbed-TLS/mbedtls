@@ -39,6 +39,12 @@
 #include <stdio.h>
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
+#endif
+
 /*
  * HMAC_DRBG update, using optional additional data (10.1.2.2)
  */
@@ -368,7 +374,7 @@ int hmac_drbg_self_test( int verbose )
 {
 
     if( verbose != 0 )
-            printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }
@@ -418,11 +424,11 @@ static int hmac_drbg_self_test_entropy( void *data,
     return( 0 );
 }
 
-#define CHK( c )    if( (c) != 0 )                      \
-                    {                                   \
-                        if( verbose != 0 )              \
-                            printf( "failed\n" );       \
-                        return( 1 );                    \
+#define CHK( c )    if( (c) != 0 )                          \
+                    {                                       \
+                        if( verbose != 0 )                  \
+                            polarssl_printf( "failed\n" );  \
+                        return( 1 );                        \
                     }
 
 /*
@@ -438,7 +444,7 @@ int hmac_drbg_self_test( int verbose )
      * PR = True
      */
     if( verbose != 0 )
-        printf( "  HMAC_DRBG (PR = True) : " );
+        polarssl_printf( "  HMAC_DRBG (PR = True) : " );
 
     test_offset = 0;
     CHK( hmac_drbg_init( &ctx, md_info,
@@ -451,13 +457,13 @@ int hmac_drbg_self_test( int verbose )
     hmac_drbg_free( &ctx );
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     /*
      * PR = False
      */
     if( verbose != 0 )
-        printf( "  HMAC_DRBG (PR = False) : " );
+        polarssl_printf( "  HMAC_DRBG (PR = False) : " );
 
     test_offset = 0;
     CHK( hmac_drbg_init( &ctx, md_info,
@@ -470,10 +476,10 @@ int hmac_drbg_self_test( int verbose )
     hmac_drbg_free( &ctx );
 
     if( verbose != 0 )
-        printf( "passed\n" );
+        polarssl_printf( "passed\n" );
 
     if( verbose != 0 )
-            printf( "\n" );
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

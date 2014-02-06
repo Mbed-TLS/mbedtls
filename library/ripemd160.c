@@ -43,6 +43,12 @@
 #include <string.h>
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
+#endif
+
 /*
  * 32-bit integer manipulation macros (little endian)
  */
@@ -573,7 +579,7 @@ int ripemd160_self_test( int verbose )
     for( i = 0; i < TESTS; i++ )
     {
         if( verbose != 0 )
-            printf( "  RIPEMD-160 test #%d: ", i + 1 );
+            polarssl_printf( "  RIPEMD-160 test #%d: ", i + 1 );
 
         ripemd160( (const unsigned char *) ripemd160_test_input[i],
                    strlen( ripemd160_test_input[i] ),
@@ -582,18 +588,19 @@ int ripemd160_self_test( int verbose )
         if( memcmp( output, ripemd160_test_md[i], 20 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
 
         for( j = 0; j < KEYS; j++ )
         {
             if( verbose != 0 )
-                printf( "  HMAC-RIPEMD-160 test #%d, key #%d: ", i + 1, j + 1 );
+                polarssl_printf( "  HMAC-RIPEMD-160 test #%d, key #%d: ",
+                                 i + 1, j + 1 );
 
             ripemd160_hmac( ripemd160_test_key[j], 20,
                             (const unsigned char *) ripemd160_test_input[i],
@@ -603,17 +610,17 @@ int ripemd160_self_test( int verbose )
             if( memcmp( output, ripemd160_test_hmac[j][i], 20 ) != 0 )
             {
                 if( verbose != 0 )
-                    printf( "failed\n" );
+                    polarssl_printf( "failed\n" );
 
                 return( 1 );
             }
 
             if( verbose != 0 )
-                printf( "passed\n" );
+                polarssl_printf( "passed\n" );
         }
 
         if( verbose != 0 )
-            printf( "\n" );
+            polarssl_printf( "\n" );
     }
 
     return( 0 );

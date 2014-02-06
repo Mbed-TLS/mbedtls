@@ -32,7 +32,6 @@ set(src
      md2.c
      md4.c
      md5.c
-     memory.c
      memory_buffer_alloc.c
      net.c
      oid.c
@@ -46,6 +45,7 @@ set(src
      pk_wrap.c
      pkparse.c
      pkwrite.c
+     platform.c
      ripemd160.c
      rsa.c
      sha1.c

@@ -1,7 +1,7 @@
 /*
  *  Diffie-Hellman-Merkle key exchange
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -42,10 +42,11 @@
 #include "polarssl/asn1.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #include <stdlib.h>
+#define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
@@ -548,19 +549,19 @@ int dhm_self_test( int verbose )
     dhm_context dhm;
 
     if( verbose != 0 )
-        printf( "  DHM parameter load: " );
+        polarssl_printf( "  DHM parameter load: " );
 
     if( ( ret = dhm_parse_dhm( &dhm, (const unsigned char *) test_dhm_params,
                                strlen( test_dhm_params ) ) ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
         return( ret );
     }
 
     if( verbose != 0 )
-        printf( "passed\n\n" );
+        polarssl_printf( "passed\n\n" );
 
     dhm_free( &dhm );
 

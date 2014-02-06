@@ -222,6 +222,12 @@
 #error "POLARSSL_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_SSL_PROTO_DTLS) && (       \
+    !defined(POLARSSL_SSL_PROTO_TLS1_1) &&      \
+    !defined(POLARSSL_SSL_PROTO_TLS1_2) )
+#error "POLARSSL_SSL_PROTO_DTLS defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_SSL_CLI_C) && !defined(POLARSSL_SSL_TLS_C)
 #error "POLARSSL_SSL_CLI_C defined, but not all prerequisites"
 #endif

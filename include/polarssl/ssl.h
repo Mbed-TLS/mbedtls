@@ -156,6 +156,9 @@
 #define SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 
+#define SSL_TRANSPORT_STREAM            0   /*!< TLS      */
+#define SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
+
 /* Determine minimum supported version */
 #define SSL_MIN_MAJOR_VERSION           SSL_MAJOR_VERSION_3
 
@@ -686,6 +689,7 @@ struct _ssl_context
      * Miscellaneous
      */
     int state;                  /*!< SSL handshake: current state     */
+    int transport;              /*!< Transport: stream or datagram    */
     int renegotiation;          /*!< Initial or renegotiation         */
     int renego_records_seen;    /*!< Records since renego request     */
 
@@ -946,6 +950,17 @@ int ssl_session_reset( ssl_context *ssl );
  *                 some other ssl_set_foo() functions depend on it.
  */
 void ssl_set_endpoint( ssl_context *ssl, int endpoint );
+
+/**
+ * \brief          Set the transport type (TLS or DTLS).
+ *                 Default: TLS
+ *
+ * \param ssl      SSL context
+ * \param transport transport type:
+ *                  SSL_TRANSPORT_STREAM for TLS,
+ *                  SSL_TRANSPORT_DATAGRAM for DTLS.
+ */
+void ssl_set_transport( ssl_context *ssl, int transport );
 
 /**
  * \brief          Set the certificate verification mode

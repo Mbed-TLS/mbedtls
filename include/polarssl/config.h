@@ -877,26 +877,41 @@
 /**
  * \def POLARSSL_SSL_PROTO_TLS1_1
  *
- * Enable support for TLS 1.1.
+ * Enable support for TLS 1.1 (and DTLS 1.0 if DTLS is enabled).
  *
  * Requires: POLARSSL_MD5_C
  *           POLARSSL_SHA1_C
  *
- * Comment this macro to disable support for TLS 1.1
+ * Comment this macro to disable support for TLS 1.1 / DTLS 1.0
  */
 #define POLARSSL_SSL_PROTO_TLS1_1
 
 /**
  * \def POLARSSL_SSL_PROTO_TLS1_2
  *
- * Enable support for TLS 1.2.
+ * Enable support for TLS 1.2 (and DTLS 1.2 if DTLS is enabled).
  *
  * Requires: POLARSSL_SHA1_C or POLARSSL_SHA256_C or POLARSSL_SHA512_C
  *           (Depends on ciphersuites)
  *
- * Comment this macro to disable support for TLS 1.2
+ * Comment this macro to disable support for TLS 1.2 / DTLS 1.2
  */
 #define POLARSSL_SSL_PROTO_TLS1_2
+
+/**
+ * \def POLARSSL_SSL_PROTO_DTLS
+ *
+ * Enable support for DTLS (all available versions).
+ *
+ * Enable this and POLARSSL_SSL_PROTO_TLS1_1 to enable DTLS 1.0,
+ * and/or this and POLARSSL_SSL_PROTO_TLS1_2 to enable DTLS 1.2.
+ *
+ * Requires: POLARSSL_SSL_PROTO_TLS1_1
+ *        or POLARSSL_SSL_PROTO_TLS1_2
+ *
+ * Comment this macro to disable support for DTLS
+ */
+#define POLARSSL_SSL_PROTO_DTLS
 
 /**
  * \def POLARSSL_SSL_ALPN

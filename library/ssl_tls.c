@@ -3597,6 +3597,11 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint )
 #endif
 }
 
+void ssl_set_transport( ssl_context *ssl, int transport )
+{
+    ssl->transport = transport;
+}
+
 void ssl_set_authmode( ssl_context *ssl, int authmode )
 {
     ssl->authmode   = authmode;

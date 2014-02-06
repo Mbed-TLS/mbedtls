@@ -22,6 +22,7 @@ Bugfix
      statistics
    * Fix buf in RSA PKCS#1 v1.5 "reversed" operations
    * Threading in x509_crt depended on PTHREAD instead of generic
+   * Fixed testing with out-of-source builds using cmake
 
 = PolarSSL 1.3.4 released on 2014-01-27
 Features

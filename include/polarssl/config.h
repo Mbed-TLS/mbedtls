@@ -160,6 +160,19 @@
  */
 
 /**
+ * \def POLARSSL_TIMING_ALT
+ *
+ * Uncomment to provide your own alternate implementation for hardclock(),
+ * get_timer(), set_alarm() and m_sleep().
+ *
+ * Only works if you have POLARSSL_TIMING_C enabled.
+ *
+ * You will need to provide a header "timing_alt.h" and an implementation at
+ * compile time.
+ */
+//#define POLARSSL_TIMING_ALT
+
+/**
  * \def POLARSSL_XXX_ALT
  *
  * Uncomment a macro to let PolarSSL use your alternate core implementation of

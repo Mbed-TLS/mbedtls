@@ -3,7 +3,7 @@
  *
  * \brief Portable interface to the CPU cycle counter
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -26,6 +26,12 @@
  */
 #ifndef POLARSSL_TIMING_H
 #define POLARSSL_TIMING_H
+
+#include "config.h"
+
+#if !defined(POLARSSL_TIMING_ALT)
+// Regular implementation
+//
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,5 +77,9 @@ void m_sleep( int milliseconds );
 #ifdef __cplusplus
 }
 #endif
+
+#else  /* POLARSSL_TIMING_ALT */
+#include "timing_alt.h"
+#endif /* POLARSSL_TIMING_ALT */
 
 #endif /* timing.h */

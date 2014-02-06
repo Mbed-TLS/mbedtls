@@ -1,7 +1,7 @@
 /*
  *  Portable interface to the CPU cycle counter
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -25,7 +25,7 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_TIMING_C)
+#if defined(POLARSSL_TIMING_C) && !defined(POLARSSL_TIMING_ALT)
 
 #include "polarssl/timing.h"
 

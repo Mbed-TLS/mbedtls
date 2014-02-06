@@ -10,6 +10,7 @@ Features
    * Support for RSASSA-PSS keys and signatures in certificates, CSRs
      and CRLs
    * Single Platform compatilibity layer (for memory / printf / fprintf)
+   * Ability to provide alternate timing implementation
 
 Changes
    * Deprecated the Memory layer

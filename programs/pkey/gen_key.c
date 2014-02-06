@@ -170,7 +170,7 @@ int main( int argc, char *argv[] )
         {
             if( strcmp( q, "rsa" ) == 0 )
                 opt.type = POLARSSL_PK_RSA;
-            if( strcmp( q, "ec" ) == 0 )
+            else if( strcmp( q, "ec" ) == 0 )
                 opt.type = POLARSSL_PK_ECKEY;
             else
                 goto usage;

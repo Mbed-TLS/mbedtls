@@ -1125,9 +1125,16 @@ static int ssl_parse_server_dh_params( ssl_context *ssl, unsigned char **p,
     defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 static int ssl_check_server_ecdh_params( const ssl_context *ssl )
 {
-    // TODO: print name instead
-    SSL_DEBUG_MSG( 2, ( "ECDH curve size: %d",
-                        (int) ssl->handshake->ecdh_ctx.grp.nbits ) );
+    const ecp_curve_info *curve_info;
+
+    curve_info = ecp_curve_info_from_grp_id( ssl->handshake->ecdh_ctx.grp.id );
+    if( curve_info == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "Should never happen" ) );
+        return( -1 );
+    }
+
+    SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
 
 #if defined(POLARSSL_SSL_ECP_SET_CURVES)
     if( ! ssl_curve_is_acceptable( ssl, ssl->handshake->ecdh_ctx.grp.id ) )

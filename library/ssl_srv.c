@@ -536,7 +536,7 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    /* Don't allow our peer to make use allocated too much memory,
+    /* Don't allow our peer to make us allocate too much memory,
      * and leave room for a final 0 */
     our_size = list_size / 2 + 1;
     if( our_size > POLARSSL_ECP_DP_MAX )
@@ -2105,53 +2105,35 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ECPoint      public;
          * } ServerECDHParams;
          */
-        ecp_group_id grp_id;
+        const ecp_curve_info **curve;
 #if defined(POLARSSL_SSL_SET_CURVES)
-        unsigned int pref_idx, curv_idx, found;
+        const ecp_group_id *gid;
 
-        /* Match our preference list against the agreed curves */
-        for( pref_idx = 0, found = 0;
-             ssl->curve_list[pref_idx] != POLARSSL_ECP_DP_NONE;
-             pref_idx++ )
+        /* Match our preference list against the offered curves */
+        for( gid = ssl->curve_list; *gid != POLARSSL_ECP_DP_NONE; gid++ )
+            for( curve = ssl->handshake->curves; *curve != NULL; curve++ )
+                if( (*curve)->grp_id == *gid )
+                    goto curve_matching_done;
+
+curve_matching_done:
+#else
+        curve = ssl->handshake->curves;
+#endif
+
+        if( *curve == NULL )
         {
-            /* Look through the agreed curve list */
-            for( curv_idx = 0;
-                 ssl->handshake->curves[curv_idx] != NULL;
-                 curv_idx++ )
-            {
-                if (ssl->handshake->curves[curv_idx]->grp_id ==
-                    ssl->curve_list[pref_idx] )
-                {
-                    /* We found our most preferred curve */
-                    found = 1;
-                    break;
-                }
-            }
-
-            /* Exit the search if we have found our curve */
-            if( found == 1 )
-                break;
+            SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
+            return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
         }
 
-        /*
-         * If we haven't found any allowed / preferred curve,
-         * ssl->curve_list[pref_idx] will contain POLARSSL_ECP_DP_NONE and
-         * ecp_use_known_dp() will fail.
-         */
-        grp_id = ssl->curve_list[pref_idx];
-#else
-        grp_id = ssl->handshake->curves[0]->grp_id;
-#endif /* POLARSSL_SSL_SET_CURVES */
+        SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", (*curve)->name ) );
 
         if( ( ret = ecp_use_known_dp( &ssl->handshake->ecdh_ctx.grp,
-                                       grp_id ) ) != 0 )
+                                       (*curve)->grp_id ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecp_use_known_dp", ret );
             return( ret );
         }
-
-        SSL_DEBUG_MSG( 2, ( "ECDH curve size: %d",
-                            (int) ssl->handshake->ecdh_ctx.grp.nbits ) );
 
         if( ( ret = ecdh_make_params( &ssl->handshake->ecdh_ctx, &len,
                                       p, SSL_MAX_CONTENT_LEN - n,

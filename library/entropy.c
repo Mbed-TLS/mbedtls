@@ -80,10 +80,19 @@ int entropy_add_source( entropy_context *ctx,
                         f_source_ptr f_source, void *p_source,
                         size_t threshold )
 {
-    int index = ctx->source_count;
+    int index, ret = 0;
 
+#if defined(POLARSSL_THREADING_C)
+    if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
+
+    index = ctx->source_count;
     if( index >= ENTROPY_MAX_SOURCES )
-        return( POLARSSL_ERR_ENTROPY_MAX_SOURCES );
+    {
+        ret = POLARSSL_ERR_ENTROPY_MAX_SOURCES;
+        goto exit;
+    }
 
     ctx->source[index].f_source = f_source;
     ctx->source[index].p_source = p_source;
@@ -91,7 +100,13 @@ int entropy_add_source( entropy_context *ctx,
 
     ctx->source_count++;
 
-    return( 0 );
+exit:
+#if defined(POLARSSL_THREADING_C)
+    if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
+        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    return( ret );
 }
 
 /*
@@ -133,18 +148,32 @@ static int entropy_update( entropy_context *ctx, unsigned char source_id,
 int entropy_update_manual( entropy_context *ctx,
                            const unsigned char *data, size_t len )
 {
-    return entropy_update( ctx, ENTROPY_SOURCE_MANUAL, data, len );
+    int ret;
+
+#if defined(POLARSSL_THREADING_C)
+    if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
+#endif
+
+    ret = entropy_update( ctx, ENTROPY_SOURCE_MANUAL, data, len );
+
+#if defined(POLARSSL_THREADING_C)
+    if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
+        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    return ( ret );
 }
 
 /*
  * Run through the different sources to add entropy to our accumulator
  */
-int entropy_gather( entropy_context *ctx )
+static int entropy_gather_internal( entropy_context *ctx )
 {
     int ret, i;
     unsigned char buf[ENTROPY_MAX_GATHER];
     size_t olen;
-    
+
     if( ctx->source_count == 0 )
         return( POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED );
 
@@ -173,6 +202,28 @@ int entropy_gather( entropy_context *ctx )
     return( 0 );
 }
 
+/*
+ * Thread-safe wrapper for entropy_gather_internal()
+ */
+int entropy_gather( entropy_context *ctx )
+{
+  int ret;
+
+#if defined(POLARSSL_THREADING_C)
+  if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
+      return( ret );
+#endif
+
+  ret = entropy_gather_internal( ctx );
+
+#if defined(POLARSSL_THREADING_C)
+  if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
+      return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+  return ( ret );
+}
+
 int entropy_func( void *data, unsigned char *output, size_t len )
 {
     int ret, count = 0, i, reached;
@@ -198,7 +249,7 @@ int entropy_func( void *data, unsigned char *output, size_t len )
             goto exit;
         }
 
-        if( ( ret = entropy_gather( ctx ) ) != 0 )
+        if( ( ret = entropy_gather_internal( ctx ) ) != 0 )
             goto exit;
 
         reached = 0;

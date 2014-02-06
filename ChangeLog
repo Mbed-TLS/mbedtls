@@ -3,6 +3,7 @@ PolarSSL ChangeLog (Sorted per branch, date)
 = PolarSSL 1.3 branch
 Features
    * HMAC-DRBG as a separate module
+   * Option to set the Curve preference order
 
 Bugfix
    * ecp_gen_keypair() does more tries to prevent failure because of

@@ -236,6 +236,8 @@ static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
     const ecp_curve_info *info;
 #if defined(POLARSSL_SSL_SET_CURVES)
     const ecp_group_id *grp_id;
+#else
+    ((void) ssl);
 #endif
 
     *olen = 0;

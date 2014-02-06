@@ -2616,10 +2616,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 
         SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
 
-        SSL_DEBUG_MSG( 0, ( "ECDH: id %d", ssl->handshake->ecdh_ctx.grp.id ) );
-        SSL_DEBUG_ECP( 0, "ECDH: Q  ", &ssl->handshake->ecdh_ctx.Q );
-        SSL_DEBUG_MPI( 0, "ECDH: d  ", &ssl->handshake->ecdh_ctx.d );
-
         if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
                                       &ssl->handshake->pmslen,
                                        ssl->handshake->premaster,

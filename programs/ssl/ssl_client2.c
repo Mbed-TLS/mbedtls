@@ -95,6 +95,7 @@ int main( int argc, char *argv[] )
 #define DFL_RECO_DELAY          0
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
+#define DFL_TRANSPORT           SSL_TRANSPORT_STREAM
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -132,6 +133,7 @@ struct options
     int reco_delay;             /* delay in seconds before resuming session */
     int tickets;                /* enable / disable session tickets         */
     const char *alpn_string;    /* ALPN supported protocols                 */
+    int transport;              /* TLS or DTLS?                             */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -293,6 +295,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    request_page=%%s     default: \".\"\n"             \
     "    request_size=%%d     default: about 34 (basic request)\n" \
     "                        (minimum: 0, max: 16384)\n" \
+    "    dtls=%%d             default: 0 (TLS)\n"           \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
@@ -429,6 +432,16 @@ int main( int argc, char *argv[] )
         {
             opt.server_port = atoi( q );
             if( opt.server_port < 1 || opt.server_port > 65535 )
+                goto usage;
+        }
+        else if( strcmp( p, "dtls" ) == 0 )
+        {
+            int t = atoi( q );
+            if( t == 0 )
+                opt.transport = SSL_TRANSPORT_STREAM;
+            else if( t == 1 )
+                opt.transport = SSL_TRANSPORT_DATAGRAM;
+            else
                 goto usage;
         }
         else if( strcmp( p, "debug_level" ) == 0 )
@@ -863,6 +876,7 @@ int main( int argc, char *argv[] )
 #endif
 
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
+    ssl_set_transport( &ssl, opt.transport );
     ssl_set_authmode( &ssl, opt.auth_mode );
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)

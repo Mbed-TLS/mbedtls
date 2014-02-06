@@ -116,6 +116,7 @@ int main( int argc, char *argv[] )
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
 #define DFL_DHM_FILE            NULL
+#define DFL_TRANSPORT           SSL_TRANSPORT_STREAM
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -176,6 +177,7 @@ struct options
     char *sni;                  /* string describing sni information        */
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
+    int transport;              /* TLS or DTLS?                             */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -304,6 +306,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "\n acceptable parameters:\n"                           \
     "    server_addr=%%d      default: (all interfaces)\n"  \
     "    server_port=%%d      default: 4433\n"              \
+    "    dtls=%%d             default: 0 (TLS)\n"           \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
@@ -713,6 +716,7 @@ int main( int argc, char *argv[] )
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.dhm_file            = DFL_DHM_FILE;
+    opt.transport           = DFL_TRANSPORT;
 
     for( i = 1; i < argc; i++ )
     {
@@ -729,6 +733,16 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "server_addr" ) == 0 )
             opt.server_addr = q;
+        else if( strcmp( p, "dtls" ) == 0 )
+        {
+            int t = atoi( q );
+            if( t == 0 )
+                opt.transport = SSL_TRANSPORT_STREAM;
+            else if( t == 1 )
+                opt.transport = SSL_TRANSPORT_DATAGRAM;
+            else
+                goto usage;
+        }
         else if( strcmp( p, "debug_level" ) == 0 )
         {
             opt.debug_level = atoi( q );
@@ -1247,6 +1261,7 @@ int main( int argc, char *argv[] )
     }
 
     ssl_set_endpoint( &ssl, SSL_IS_SERVER );
+    ssl_set_transport( &ssl, opt.transport );
     ssl_set_authmode( &ssl, opt.auth_mode );
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)

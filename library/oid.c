@@ -328,6 +328,10 @@ static const oid_sig_alg_t oid_sig_alg[] =
         POLARSSL_MD_SHA512,   POLARSSL_PK_ECDSA,
     },
     {
+        { ADD_LEN( OID_RSASSA_PSS ),        "RSASSA-PSS",           "RSASSA-PSS" },
+        POLARSSL_MD_NONE,     POLARSSL_PK_RSASSA_PSS,
+    },
+    {
         { NULL, 0, NULL, NULL },
         0, 0,
     },

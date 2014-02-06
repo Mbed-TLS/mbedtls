@@ -11,6 +11,8 @@ Features
      and CRLs
    * Single Platform compatilibity layer (for memory / printf / fprintf)
    * Ability to provide alternate timing implementation
+   * Ability to force the entropy module to use SHA-256 as its basis
+     (POLARSSL_ENTROPY_FORCE_SHA256)
 
 Changes
    * Deprecated the Memory layer

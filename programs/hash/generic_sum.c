@@ -150,6 +150,8 @@ static int generic_check( const md_info_t *md_info, char *filename )
                 "not match\n", nb_err2, nb_tot2 );
     }
 
+    fclose( f );
+
     return( nb_err1 != 0 || nb_err2 != 0 );
 }
 

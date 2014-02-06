@@ -149,10 +149,6 @@ void debug_print_ecp( const ssl_context *ssl, int level,
     snprintf( str, maxlen, "%s(Y)", text );
     str[maxlen] = '\0';
     debug_print_mpi( ssl, level, file, line, str, &X->Y );
-
-    snprintf( str, maxlen, "%s(Z)", text );
-    str[maxlen] = '\0';
-    debug_print_mpi( ssl, level, file, line, str, &X->Z );
 }
 #endif /* POLARSSL_ECP_C */
 

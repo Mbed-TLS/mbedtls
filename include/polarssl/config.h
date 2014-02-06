@@ -823,11 +823,9 @@
  * application against the new header files, relinking will not be enough.
  * It will be enabled by default, or no longer an option, in the 1.4 branch.
  *
- * TODO: actually disable it when done working on this branch ,)
- *
  * Uncomment to make ssl_set_curves() available.
  */
-#define POLARSSL_SSL_SET_CURVES
+//#define POLARSSL_SSL_SET_CURVES
 
 /**
  * \def POLARSSL_THREADING_ALT

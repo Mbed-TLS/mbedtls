@@ -847,6 +847,12 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
         suite_info->max_minor_ver < ssl->minor_ver )
         return( 0 );
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ( suite_info->flags & POLARSSL_CIPHERSUITE_NODTLS ) )
+        return( 0 );
+#endif
+
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     if( ssl_ciphersuite_uses_ec( suite_info ) &&
         ( ssl->handshake->curves == NULL ||

@@ -588,6 +588,12 @@ static int ssl_write_client_hello( ssl_context *ssl )
             ciphersuite_info->max_minor_ver < ssl->min_minor_ver )
             continue;
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+        if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+            ( ciphersuite_info->flags & POLARSSL_CIPHERSUITE_NODTLS ) )
+            continue;
+#endif
+
         SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
                        ciphersuites[i] ) );
 

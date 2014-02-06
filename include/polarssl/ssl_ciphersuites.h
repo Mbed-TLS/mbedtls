@@ -253,6 +253,7 @@ typedef struct _ssl_ciphersuite_t ssl_ciphersuite_t;
 #define POLARSSL_CIPHERSUITE_WEAK       0x01    /**< Weak ciphersuite flag  */
 #define POLARSSL_CIPHERSUITE_SHORT_TAG  0x02    /**< Short authentication tag,
                                                      eg for CCM_8 */
+#define POLARSSL_CIPHERSUITE_NODTLS     0x04    /**< Can't be used with DTLS */
 
 /**
  * \brief   This structure is used for storing ciphersuite information

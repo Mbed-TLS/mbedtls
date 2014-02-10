@@ -959,6 +959,9 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint );
  * \param transport transport type:
  *                  SSL_TRANSPORT_STREAM for TLS,
  *                  SSL_TRANSPORT_DATAGRAM for DTLS.
+ *
+ * \note            If DTLS is selected and max and/or min version are less
+ *                  than TLS 1.1 (DTLS 1.0) they are upped to that value.
  */
 void ssl_set_transport( ssl_context *ssl, int transport );
 
@@ -1122,6 +1125,9 @@ void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites );
  * \param minor         Minor version number (SSL_MINOR_VERSION_0,
  *                      SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
  *                      SSL_MINOR_VERSION_3 supported)
+ *
+ * \note                With DTLS, use SSL_MINOR_VERSION_2 for DTLS 1.0
+ *                      and SSL_MINOR_VERSION_3 for DTLS 1.2
  */
 void ssl_set_ciphersuites_for_version( ssl_context *ssl,
                                        const int *ciphersuites,
@@ -1379,6 +1385,9 @@ const char *ssl_get_alpn_protocol( const ssl_context *ssl );
  * \param minor    Minor version number (SSL_MINOR_VERSION_0,
  *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
  *                 SSL_MINOR_VERSION_3 supported)
+ *
+ * \note           With DTLS, use SSL_MINOR_VERSION_2 for DTLS 1.0 and
+ *                 SSL_MINOR_VERSION_3 for DTLS 1.2
  */
 void ssl_set_max_version( ssl_context *ssl, int major, int minor );
 
@@ -1395,6 +1404,9 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor );
  * \param minor    Minor version number (SSL_MINOR_VERSION_0,
  *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
  *                 SSL_MINOR_VERSION_3 supported)
+ *
+ * \note           With DTLS, use SSL_MINOR_VERSION_2 for DTLS 1.0 and
+ *                 SSL_MINOR_VERSION_3 for DTLS 1.2
  */
 void ssl_set_min_version( ssl_context *ssl, int major, int minor );
 

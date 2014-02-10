@@ -3600,6 +3600,13 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint )
 void ssl_set_transport( ssl_context *ssl, int transport )
 {
     ssl->transport = transport;
+
+    /* DTLS starts with TLS1.1 */
+    if( ssl->min_minor_ver < SSL_MINOR_VERSION_2 )
+        ssl->min_minor_ver = SSL_MINOR_VERSION_2;
+
+    if( ssl->max_minor_ver < SSL_MINOR_VERSION_2 )
+        ssl->max_minor_ver = SSL_MINOR_VERSION_2;
 }
 
 void ssl_set_authmode( ssl_context *ssl, int authmode )
@@ -3964,22 +3971,30 @@ const char *ssl_get_alpn_protocol( const ssl_context *ssl )
 
 void ssl_set_max_version( ssl_context *ssl, int major, int minor )
 {
-    if( major >= SSL_MIN_MAJOR_VERSION && major <= SSL_MAX_MAJOR_VERSION &&
-        minor >= SSL_MIN_MINOR_VERSION && minor <= SSL_MAX_MINOR_VERSION )
+    if( major < SSL_MIN_MAJOR_VERSION || major > SSL_MAX_MAJOR_VERSION ||
+        minor < SSL_MIN_MINOR_VERSION || minor > SSL_MAX_MINOR_VERSION ||
+        ( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+          minor < SSL_MINOR_VERSION_2 ) )
     {
-        ssl->max_major_ver = major;
-        ssl->max_minor_ver = minor;
+        return;
     }
+
+    ssl->max_major_ver = major;
+    ssl->max_minor_ver = minor;
 }
 
 void ssl_set_min_version( ssl_context *ssl, int major, int minor )
 {
-    if( major >= SSL_MIN_MAJOR_VERSION && major <= SSL_MAX_MAJOR_VERSION &&
-        minor >= SSL_MIN_MINOR_VERSION && minor <= SSL_MAX_MINOR_VERSION )
+    if( major < SSL_MIN_MAJOR_VERSION || major > SSL_MAX_MAJOR_VERSION ||
+        minor < SSL_MIN_MINOR_VERSION || minor > SSL_MAX_MINOR_VERSION ||
+        ( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+          minor < SSL_MINOR_VERSION_2 ) )
     {
-        ssl->min_major_ver = major;
-        ssl->min_minor_ver = minor;
+        return;
     }
+
+    ssl->min_major_ver = major;
+    ssl->min_minor_ver = minor;
 }
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
@@ -4067,6 +4082,23 @@ const char *ssl_get_ciphersuite( const ssl_context *ssl )
 
 const char *ssl_get_version( const ssl_context *ssl )
 {
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        switch( ssl->minor_ver )
+        {
+            case SSL_MINOR_VERSION_2:
+                return( "DTLSv1.0" );
+
+            case SSL_MINOR_VERSION_3:
+                return( "DTLSv1.2" );
+
+            default:
+                return( "unknown (DTLS)" );
+        }
+    }
+#endif
+
     switch( ssl->minor_ver )
     {
         case SSL_MINOR_VERSION_0:
@@ -4082,9 +4114,8 @@ const char *ssl_get_version( const ssl_context *ssl )
             return( "TLSv1.2" );
 
         default:
-            break;
+            return( "unknown" );
     }
-    return( "unknown" );
 }
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)

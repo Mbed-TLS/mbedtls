@@ -876,8 +876,13 @@ int main( int argc, char *argv[] )
 #endif
 
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
-    ssl_set_transport( &ssl, opt.transport );
     ssl_set_authmode( &ssl, opt.auth_mode );
+
+    if( ( ret = ssl_set_transport( &ssl, opt.transport ) ) != 0 )
+    {
+        printf( "selected transport is not available\n" );
+        goto exit;
+    }
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     if( ( ret = ssl_set_max_frag_len( &ssl, opt.mfl_code ) ) != 0 )
@@ -963,9 +968,24 @@ int main( int argc, char *argv[] )
 #endif
 
     if( opt.min_version != -1 )
-        ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
+    {
+        ret = ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
+        if( ret != 0 )
+        {
+            printf( " selected min_version is not available\n" );
+            goto exit;
+        }
+    }
+
     if( opt.max_version != -1 )
-        ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
+    {
+        ret = ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
+        if( ret != 0 )
+        {
+            printf( " selected max_version is not available\n" );
+            goto exit;
+        }
+    }
 
     /*
      * 4. Handshake

@@ -3597,16 +3597,31 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint )
 #endif
 }
 
-void ssl_set_transport( ssl_context *ssl, int transport )
+int ssl_set_transport( ssl_context *ssl, int transport )
 {
-    ssl->transport = transport;
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl->transport = transport;
 
-    /* DTLS starts with TLS1.1 */
-    if( ssl->min_minor_ver < SSL_MINOR_VERSION_2 )
-        ssl->min_minor_ver = SSL_MINOR_VERSION_2;
+        /* DTLS starts with TLS1.1 */
+        if( ssl->min_minor_ver < SSL_MINOR_VERSION_2 )
+            ssl->min_minor_ver = SSL_MINOR_VERSION_2;
 
-    if( ssl->max_minor_ver < SSL_MINOR_VERSION_2 )
-        ssl->max_minor_ver = SSL_MINOR_VERSION_2;
+        if( ssl->max_minor_ver < SSL_MINOR_VERSION_2 )
+            ssl->max_minor_ver = SSL_MINOR_VERSION_2;
+
+        return( 0 );
+    }
+#endif
+
+    if( transport == SSL_TRANSPORT_STREAM )
+    {
+        ssl->transport = transport;
+        return( 0 );
+    }
+
+    return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 }
 
 void ssl_set_authmode( ssl_context *ssl, int authmode )
@@ -3969,32 +3984,39 @@ const char *ssl_get_alpn_protocol( const ssl_context *ssl )
 }
 #endif /* POLARSSL_SSL_ALPN */
 
-void ssl_set_max_version( ssl_context *ssl, int major, int minor )
+static int ssl_check_version( const ssl_context *ssl, int major, int minor )
 {
     if( major < SSL_MIN_MAJOR_VERSION || major > SSL_MAX_MAJOR_VERSION ||
         minor < SSL_MIN_MINOR_VERSION || minor > SSL_MAX_MINOR_VERSION ||
         ( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
           minor < SSL_MINOR_VERSION_2 ) )
     {
-        return;
+        return( -1 );
     }
+
+    return( 0 );
+}
+
+int ssl_set_max_version( ssl_context *ssl, int major, int minor )
+{
+    if( ssl_check_version( ssl, major, minor ) != 0 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->max_major_ver = major;
     ssl->max_minor_ver = minor;
+
+    return( 0 );
 }
 
-void ssl_set_min_version( ssl_context *ssl, int major, int minor )
+int ssl_set_min_version( ssl_context *ssl, int major, int minor )
 {
-    if( major < SSL_MIN_MAJOR_VERSION || major > SSL_MAX_MAJOR_VERSION ||
-        minor < SSL_MIN_MINOR_VERSION || minor > SSL_MAX_MINOR_VERSION ||
-        ( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-          minor < SSL_MINOR_VERSION_2 ) )
-    {
-        return;
-    }
+    if( ssl_check_version( ssl, major, minor ) != 0 )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->min_major_ver = major;
     ssl->min_minor_ver = minor;
+
+    return( 0 );
 }
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)

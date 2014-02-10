@@ -959,11 +959,12 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint );
  * \param transport transport type:
  *                  SSL_TRANSPORT_STREAM for TLS,
  *                  SSL_TRANSPORT_DATAGRAM for DTLS.
+ * \return         0 on success or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  *
  * \note            If DTLS is selected and max and/or min version are less
  *                  than TLS 1.1 (DTLS 1.0) they are upped to that value.
  */
-void ssl_set_transport( ssl_context *ssl, int transport );
+int ssl_set_transport( ssl_context *ssl, int transport );
 
 /**
  * \brief          Set the certificate verification mode
@@ -1377,38 +1378,35 @@ const char *ssl_get_alpn_protocol( const ssl_context *ssl );
  *                 (Default: SSL_MAX_MAJOR_VERSION, SSL_MAX_MINOR_VERSION)
  *
  *                 Note: This ignores ciphersuites from 'higher' versions.
- *                 Note: Input outside of the SSL_MAX_XXXXX_VERSION and
- *                       SSL_MIN_XXXXX_VERSION range is ignored.
  *
  * \param ssl      SSL context
  * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (SSL_MINOR_VERSION_0,
  *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
  *                 SSL_MINOR_VERSION_3 supported)
+ * \return         0 on success or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  *
  * \note           With DTLS, use SSL_MINOR_VERSION_2 for DTLS 1.0 and
  *                 SSL_MINOR_VERSION_3 for DTLS 1.2
  */
-void ssl_set_max_version( ssl_context *ssl, int major, int minor );
+int ssl_set_max_version( ssl_context *ssl, int major, int minor );
 
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
  *                 (Default: SSL_MIN_MAJOR_VERSION, SSL_MIN_MINOR_VERSION)
  *
- *                 Note: Input outside of the SSL_MAX_XXXXX_VERSION and
- *                       SSL_MIN_XXXXX_VERSION range is ignored.
- *
  * \param ssl      SSL context
  * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (SSL_MINOR_VERSION_0,
  *                 SSL_MINOR_VERSION_1 and SSL_MINOR_VERSION_2,
  *                 SSL_MINOR_VERSION_3 supported)
+ * \return         0 on success or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  *
  * \note           With DTLS, use SSL_MINOR_VERSION_2 for DTLS 1.0 and
  *                 SSL_MINOR_VERSION_3 for DTLS 1.2
  */
-void ssl_set_min_version( ssl_context *ssl, int major, int minor );
+int ssl_set_min_version( ssl_context *ssl, int major, int minor );
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /**

@@ -1818,6 +1818,11 @@ int ssl_check_cert_usage( const x509_crt *cert,
                           int cert_endpoint );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+void ssl_write_version( int major, int minor, int transport,
+                        unsigned char ver[2] );
+void ssl_read_version( int *major, int *minor, int transport,
+                       const unsigned char ver[2] );
+
 /* constant-time buffer comparison */
 static inline int safer_memcmp( const void *a, const void *b, size_t n )
 {

@@ -1126,8 +1126,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
         memcpy( add_data, ssl->out_ctr, 8 );
         add_data[8]  = ssl->out_msgtype;
-        add_data[9]  = ssl->major_ver;
-        add_data[10] = ssl->minor_ver;
+        ssl_write_version( ssl->major_ver, ssl->minor_ver,
+                           ssl->transport, add_data + 9 );
         add_data[11] = ( ssl->out_msglen >> 8 ) & 0xFF;
         add_data[12] = ssl->out_msglen & 0xFF;
 
@@ -1377,8 +1377,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         memcpy( add_data, ssl->in_ctr, 8 );
         add_data[8]  = ssl->in_msgtype;
-        add_data[9]  = ssl->major_ver;
-        add_data[10] = ssl->minor_ver;
+        ssl_write_version( ssl->major_ver, ssl->minor_ver,
+                           ssl->transport, add_data + 9 );
         add_data[11] = ( ssl->in_msglen >> 8 ) & 0xFF;
         add_data[12] = ssl->in_msglen & 0xFF;
 
@@ -1937,8 +1937,8 @@ int ssl_write_record( ssl_context *ssl )
     if( !done )
     {
         ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
-        ssl->out_hdr[1] = (unsigned char) ssl->major_ver;
-        ssl->out_hdr[2] = (unsigned char) ssl->minor_ver;
+        ssl_write_version( ssl->major_ver, ssl->minor_ver,
+                           ssl->transport, ssl->out_hdr + 1 );
         ssl->out_hdr[3] = (unsigned char)( len >> 8 );
         ssl->out_hdr[4] = (unsigned char)( len      );
 
@@ -1980,6 +1980,7 @@ int ssl_write_record( ssl_context *ssl )
 int ssl_read_record( ssl_context *ssl )
 {
     int ret, done = 0;
+    int major_ver, minor_ver;
 
     SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
@@ -2038,13 +2039,15 @@ int ssl_read_record( ssl_context *ssl )
                      ssl->in_hdr[0], ssl->in_hdr[1], ssl->in_hdr[2],
                    ( ssl->in_hdr[3] << 8 ) | ssl->in_hdr[4] ) );
 
-    if( ssl->in_hdr[1] != ssl->major_ver )
+    ssl_read_version( &major_ver, &minor_ver, ssl->transport, ssl->in_hdr + 1 );
+
+    if( major_ver != ssl->major_ver )
     {
         SSL_DEBUG_MSG( 1, ( "major version mismatch" ) );
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
 
-    if( ssl->in_hdr[2] > ssl->max_minor_ver )
+    if( minor_ver > ssl->max_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "minor version mismatch" ) );
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
@@ -4946,5 +4949,54 @@ int ssl_check_cert_usage( const x509_crt *cert,
     return( 0 );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
+
+/*
+ * Convert version numbers to/from wire format
+ * and, for DTLS, to/from TLS equivalent.
+ *
+ * For TLS this is the identity.
+ * For DTLS, use one complement (v -> 255 - v, and then map as follows:
+ * 1.0 <-> 3.2      (DTLS 1.0 is based on TLS 1.1)
+ * 1.x <-> 3.x+1    for x != 0 (DTLS 1.2 based on TLS 1.2)
+ */
+void ssl_write_version( int major, int minor, int transport,
+                        unsigned char ver[2] )
+{
+    if( transport == SSL_TRANSPORT_STREAM )
+    {
+        ver[0] = (unsigned char) major;
+        ver[1] = (unsigned char) minor;
+    }
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    else
+    {
+        if( minor == SSL_MINOR_VERSION_2 )
+            --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
+
+        ver[0] = (unsigned char)( 255 - ( major - 2 ) );
+        ver[1] = (unsigned char)( 255 - ( minor - 1 ) );
+    }
+#endif
+}
+
+void ssl_read_version( int *major, int *minor, int transport,
+                       const unsigned char ver[2] )
+{
+    if( transport == SSL_TRANSPORT_STREAM )
+    {
+        *major = ver[0];
+        *minor = ver[1];
+    }
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    else
+    {
+        *major = 255 - ver[0] + 2;
+        *minor = 255 - ver[1] + 1;
+
+        if( *minor == SSL_MINOR_VERSION_1 )
+            ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
+    }
+#endif
+}
 
 #endif /* POLARSSL_SSL_TLS_C */

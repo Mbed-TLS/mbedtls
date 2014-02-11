@@ -486,8 +486,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
     buf = ssl->out_msg;
     p = buf + 4;
 
-    *p++ = (unsigned char) ssl->max_major_ver;
-    *p++ = (unsigned char) ssl->max_minor_ver;
+    ssl_write_version( ssl->max_major_ver, ssl->max_minor_ver,
+                       ssl->transport, p );
+    p += 2;
 
     SSL_DEBUG_MSG( 3, ( "client hello, max version: [%d:%d]",
                    buf[4], buf[5] ) );
@@ -932,26 +933,25 @@ static int ssl_parse_server_hello( ssl_context *ssl )
                    buf[4], buf[5] ) );
 
     if( ssl->in_hslen < 42 ||
-        buf[0] != SSL_HS_SERVER_HELLO ||
-        buf[4] != SSL_MAJOR_VERSION_3 )
+        buf[0] != SSL_HS_SERVER_HELLO )
     {
         SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
-    if( buf[5] > ssl->max_minor_ver )
-    {
-        SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
-    }
+    ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
+                      ssl->transport, buf + 4 );
 
-    ssl->minor_ver = buf[5];
-
-    if( ssl->minor_ver < ssl->min_minor_ver )
+    if( ssl->major_ver < ssl->min_major_ver ||
+        ssl->minor_ver < ssl->min_minor_ver ||
+        ssl->major_ver > ssl->max_major_ver ||
+        ssl->minor_ver > ssl->max_minor_ver )
     {
-        SSL_DEBUG_MSG( 1, ( "server only supports ssl smaller than minimum"
-                            " [%d:%d] < [%d:%d]", ssl->major_ver,
-                            ssl->minor_ver, buf[4], buf[5] ) );
+        SSL_DEBUG_MSG( 1, ( "server version out of bounds - "
+                            " min: [%d:%d], server: [%d:%d], max: [%d:%d]",
+                            ssl->min_major_ver, ssl->min_minor_ver,
+                            ssl->major_ver, ssl->minor_ver,
+                            ssl->max_major_ver, ssl->max_minor_ver ) );
 
         ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
                                      SSL_ALERT_MSG_PROTOCOL_VERSION );
@@ -1404,8 +1404,8 @@ static int ssl_write_encrypted_pms( ssl_context *ssl,
      *      opaque random[46];
      *  } PreMasterSecret;
      */
-    p[0] = (unsigned char) ssl->max_major_ver;
-    p[1] = (unsigned char) ssl->max_minor_ver;
+    ssl_write_version( ssl->max_major_ver, ssl->max_minor_ver,
+                       ssl->transport, p );
 
     if( ( ret = ssl->f_rng( ssl->p_rng, p + 2, 46 ) ) != 0 )
     {

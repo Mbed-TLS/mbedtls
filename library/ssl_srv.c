@@ -1129,6 +1129,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     int handshake_failure = 0;
     const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
+    int major, minor;
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
@@ -1142,7 +1143,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     buf = ssl->in_hdr;
 
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
-    if( ( buf[0] & 0x80 ) != 0 )
+    if( ssl->transport == SSL_TRANSPORT_STREAM && ( buf[0] & 0x80 ) != 0 )
         return ssl_parse_client_hello_v2( ssl );
 #endif
 
@@ -1163,13 +1164,19 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      *     1  .   2   protocol version
      *     3  .   4   message length
      */
+    if( buf[0] != SSL_MSG_HANDSHAKE )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    ssl_read_version( &major, &minor, ssl->transport, buf + 1 );
 
     /* According to RFC 5246 Appendix E.1, the version here is typically
      * "{03,00}, the lowest version number supported by the client, [or] the
      * value of ClientHello.client_version", so the only meaningful check here
      * is the major version shouldn't be less than 3 */
-    if( buf[0] != SSL_MSG_HANDSHAKE ||
-        buf[1] < SSL_MAJOR_VERSION_3 )
+    if( major < SSL_MAJOR_VERSION_3 )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -1231,8 +1238,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    ssl->major_ver = buf[4];
-    ssl->minor_ver = buf[5];
+    ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
+                      ssl->transport, buf + 4 );
 
     ssl->handshake->max_major_ver = ssl->major_ver;
     ssl->handshake->max_minor_ver = ssl->minor_ver;
@@ -1782,11 +1789,12 @@ static int ssl_write_server_hello( ssl_context *ssl )
     buf = ssl->out_msg;
     p = buf + 4;
 
-    *p++ = (unsigned char) ssl->major_ver;
-    *p++ = (unsigned char) ssl->minor_ver;
+    ssl_write_version( ssl->major_ver, ssl->minor_ver,
+                       ssl->transport, p );
+    p += 2;
 
     SSL_DEBUG_MSG( 3, ( "server hello, chosen version: [%d:%d]",
-                   buf[4], buf[5] ) );
+                        buf[4], buf[5] ) );
 
 #if defined(POLARSSL_HAVE_TIME)
     t = time( NULL );
@@ -2564,6 +2572,7 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
     int ret;
     size_t len = pk_get_len( ssl_own_key( ssl ) );
     unsigned char *pms = ssl->handshake->premaster + pms_offset;
+    unsigned char ver[2];
 
     if( ! pk_can_do( ssl_own_key( ssl ), POLARSSL_PK_RSA ) )
     {
@@ -2593,14 +2602,18 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
+    ssl_write_version( ssl->handshake->max_major_ver,
+                       ssl->handshake->max_minor_ver,
+                       ssl->transport, ver );
+
     ret = pk_decrypt( ssl_own_key( ssl ), p, len,
                       pms, &ssl->handshake->pmslen,
                       sizeof( ssl->handshake->premaster ) - pms_offset,
                       ssl->f_rng, ssl->p_rng );
 
     if( ret != 0 || ssl->handshake->pmslen != 48 ||
-        pms[0] != ssl->handshake->max_major_ver ||
-        pms[1] != ssl->handshake->max_minor_ver )
+        pms[0] != ver[0] ||
+        pms[1] != ver[1] )
     {
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
 

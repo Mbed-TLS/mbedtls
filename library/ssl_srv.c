@@ -441,15 +441,20 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                    buf[1], buf[2] ) );
 
     /*
-     * SSLv3 Client Hello
+     * SSLv3/TLS Client Hello
      *
      * Record layer:
      *     0  .   0   message type
      *     1  .   2   protocol version
      *     3  .   4   message length
      */
+
+    /* According to RFC 5246 Appendix E.1, the version here is typically
+     * "{03,00}, the lowest version number supported by the client, [or] the
+     * value of ClientHello.client_version", so the only meaningful check here
+     * is the major version shouldn't be less than 3 */
     if( buf[0] != SSL_MSG_HANDSHAKE ||
-        buf[1] != SSL_MAJOR_VERSION_3 )
+        buf[1] < SSL_MAJOR_VERSION_3 )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -504,21 +509,24 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     /*
      * Check the handshake type and protocol version
      */
-    if( buf[0] != SSL_HS_CLIENT_HELLO ||
-        buf[4] != SSL_MAJOR_VERSION_3 )
+    if( buf[0] != SSL_HS_CLIENT_HELLO )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    ssl->major_ver = SSL_MAJOR_VERSION_3;
-    ssl->minor_ver = ( buf[5] <= SSL_MINOR_VERSION_3 )
-                     ? buf[5]  : SSL_MINOR_VERSION_3;
+    ssl->major_ver = buf[4];
+    ssl->minor_ver = buf[5];
 
-    if( ssl->minor_ver < ssl->min_minor_ver )
+    ssl->max_major_ver = ssl->major_ver;
+    ssl->max_minor_ver = ssl->minor_ver;
+
+    if( ssl->major_ver < ssl->min_major_ver ||
+        ssl->minor_ver < ssl->min_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
-                            " [%d:%d] < [%d:%d]", ssl->major_ver, ssl->minor_ver,
+                            " [%d:%d] < [%d:%d]",
+                            ssl->major_ver, ssl->minor_ver,
                             ssl->min_major_ver, ssl->min_minor_ver ) );
 
         ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
@@ -527,8 +535,13 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
     }
 
-    ssl->max_major_ver = buf[4];
-    ssl->max_minor_ver = buf[5];
+    if( ssl->major_ver > ssl->max_major_ver )
+    {
+        ssl->major_ver = ssl->max_major_ver;
+        ssl->minor_ver = ssl->max_minor_ver;
+    }
+    else if( ssl->minor_ver > ssl->max_minor_ver )
+        ssl->minor_ver = ssl->max_minor_ver;
 
     memcpy( ssl->handshake->randbytes, buf + 6, 32 );
 

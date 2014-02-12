@@ -331,7 +331,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: ssl3, tls1, tls1_1, tls1_2\n"     \
+    "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
     "\n"                                                                \
     "    version_suites=a,b,c,d      per-version ciphersuites\n"        \
     "                                in order from ssl3 to tls1_2\n"    \
@@ -821,9 +821,11 @@ int main( int argc, char *argv[] )
                 opt.min_version = SSL_MINOR_VERSION_0;
             else if( strcmp( q, "tls1" ) == 0 )
                 opt.min_version = SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 )
+            else if( strcmp( q, "tls1_1" ) == 0 ||
+                     strcmp( q, "dtls1" ) == 0 )
                 opt.min_version = SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 )
+            else if( strcmp( q, "tls1_2" ) == 0 ||
+                     strcmp( q, "dtls1_2" ) == 0 )
                 opt.min_version = SSL_MINOR_VERSION_3;
             else
                 goto usage;
@@ -834,9 +836,11 @@ int main( int argc, char *argv[] )
                 opt.max_version = SSL_MINOR_VERSION_0;
             else if( strcmp( q, "tls1" ) == 0 )
                 opt.max_version = SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 )
+            else if( strcmp( q, "tls1_1" ) == 0 ||
+                     strcmp( q, "dtls1" ) == 0 )
                 opt.max_version = SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 )
+            else if( strcmp( q, "tls1_2" ) == 0 ||
+                     strcmp( q, "dtls1_2" ) == 0 )
                 opt.max_version = SSL_MINOR_VERSION_3;
             else
                 goto usage;
@@ -853,12 +857,14 @@ int main( int argc, char *argv[] )
                 opt.min_version = SSL_MINOR_VERSION_1;
                 opt.max_version = SSL_MINOR_VERSION_1;
             }
-            else if( strcmp( q, "tls1_1" ) == 0 )
+            else if( strcmp( q, "tls1_1" ) == 0 ||
+                     strcmp( q, "dtls1" ) == 0 )
             {
                 opt.min_version = SSL_MINOR_VERSION_2;
                 opt.max_version = SSL_MINOR_VERSION_2;
             }
-            else if( strcmp( q, "tls1_2" ) == 0 )
+            else if( strcmp( q, "tls1_2" ) == 0 ||
+                     strcmp( q, "dtls1_2" ) == 0 )
             {
                 opt.min_version = SSL_MINOR_VERSION_3;
                 opt.max_version = SSL_MINOR_VERSION_3;

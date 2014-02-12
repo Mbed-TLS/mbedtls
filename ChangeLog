@@ -19,6 +19,7 @@ Bugfix
      statistics
    * Fix buf in RSA PKCS#1 v1.5 "reversed" operations
    * Fixed testing with out-of-source builds using cmake
+   * Fixed version-major intolerance in server
 
 = PolarSSL 1.3.4 released on 2014-01-27
 Features

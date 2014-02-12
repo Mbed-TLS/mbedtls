@@ -203,22 +203,6 @@
 //#define POLARSSL_SHA512_ALT
 
 /**
- * \def POLARSSL_RSASSA_PSS_CERTIFICATES
- *
- * Enable parsing and verification of X.509 certificates and CRLs signed with
- * RSASSA-PSS.
- *
- * This is disabled by default since it breaks binary compatibility with the
- * 1.3.x line. If you choose to enable it, you will need to rebuild your
- * application against the new header files, relinking will not be enough.
- *
- * TODO: actually disable it when done working on this branch ,)
- *
- * Uncomment this macro to allow using RSASSA-PSS in certificates.
- */
-#define POLARSSL_RSASSA_PSS_CERTIFICATES
-
-/**
  * \def POLARSSL_AES_ROM_TABLES
  *
  * Store the AES tables in ROM.
@@ -2222,11 +2206,6 @@
 #if defined(POLARSSL_RSA_C) && ( !defined(POLARSSL_BIGNUM_C) ||         \
     !defined(POLARSSL_OID_C) )
 #error "POLARSSL_RSA_C defined, but not all prerequisites"
-#endif
-
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES) &&                        \
-    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_PKCS1_V21) )
-#error "POLARSSL_RSASSA_PSS_CERTIFICATES defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_SSL_PROTO_SSL3) && ( !defined(POLARSSL_MD5_C) ||     \

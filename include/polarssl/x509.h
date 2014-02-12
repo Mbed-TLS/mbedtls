@@ -254,16 +254,9 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
                    x509_name *cur );
 int x509_get_alg_null( unsigned char **p, const unsigned char *end,
                        x509_buf *alg );
-int x509_get_alg( unsigned char **p, const unsigned char *end,
-                  x509_buf *alg, x509_buf *params );
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-int x509_get_rsassa_pss_params( const x509_buf *params,
-                                md_type_t *md_alg, md_type_t *mgf_md,
-                                int *salt_len, int *trailer_field );
-#endif
 int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig );
-int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
-                      md_type_t *md_alg, pk_type_t *pk_alg );
+int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
+                      pk_type_t *pk_alg );
 int x509_get_time( unsigned char **p, const unsigned char *end,
                    x509_time *time );
 int x509_get_serial( unsigned char **p, const unsigned char *end,
@@ -271,8 +264,6 @@ int x509_get_serial( unsigned char **p, const unsigned char *end,
 int x509_get_ext( unsigned char **p, const unsigned char *end,
                   x509_buf *ext, int tag );
 int x509_load_file( const char *path, unsigned char **buf, size_t *n );
-int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
-                       pk_type_t pk_alg, const x509_buf *sig_params );
 int x509_key_size_helper( char *buf, size_t size, const char *name );
 int x509_string_to_names( asn1_named_data **head, const char *name );
 int x509_set_extension( asn1_named_data **head, const char *oid, size_t oid_len,                       int critical, const unsigned char *val, size_t val_len );

@@ -1,14 +1,9 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
-TODO: bump SOVERSION
-(internal-but-not-static function x509_get_sig_alg() changed prototype)
-
 = PolarSSL 1.3 branch
 Features
    * HMAC-DRBG as a separate module
    * Option to set the Curve preference order
-   * Support for RSASSA-PSS keys and signatures in certificates, CSRs
-     and CRLs
    * Single Platform compatilibity layer (for memory / printf / fprintf)
    * Ability to provide alternate timing implementation
    * Ability to force the entropy module to use SHA-256 as its basis

@@ -1,7 +1,6 @@
 /* BEGIN_HEADER */
 #include <polarssl/x509_crt.h>
 #include <polarssl/x509_crl.h>
-#include <polarssl/x509_csr.h>
 #include <polarssl/pem.h>
 #include <polarssl/oid.h>
 
@@ -68,28 +67,6 @@ void x509_crl_info( char *crl_file, char *result_str )
     res = x509_crl_info( buf, 2000, "", &crl );
 
     x509_crl_free( &crl );
-
-    TEST_ASSERT( res != -1 );
-    TEST_ASSERT( res != -2 );
-
-    TEST_ASSERT( strcmp( buf, result_str ) == 0 );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CSR_PARSE_C */
-void x509_csr_info( char *csr_file, char *result_str )
-{
-    x509_csr   csr;
-    char buf[2000];
-    int res;
-
-    x509_csr_init( &csr );
-    memset( buf, 0, 2000 );
-
-    TEST_ASSERT( x509_csr_parse_file( &csr, csr_file ) == 0 );
-    res = x509_csr_info( buf, 2000, "", &csr );
-
-    x509_csr_free( &csr );
 
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );

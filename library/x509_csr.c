@@ -89,7 +89,6 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
     int ret;
     size_t len;
     unsigned char *p, *end;
-    x509_buf sig_params;
 #if defined(POLARSSL_PEM_PARSE_C)
     size_t use_len;
     pem_context pem;
@@ -244,22 +243,18 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signature            BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &csr->sig_oid, &sig_params ) ) != 0 )
+    if( ( ret = x509_get_alg_null( &p, end, &csr->sig_oid ) ) != 0 )
     {
         x509_csr_free( csr );
         return( ret );
     }
 
-    if( ( ret = x509_get_sig_alg( &csr->sig_oid, &sig_params,
-                                  &csr->sig_md, &csr->sig_pk ) ) != 0 )
+    if( ( ret = x509_get_sig_alg( &csr->sig_oid, &csr->sig_md,
+                                  &csr->sig_pk ) ) != 0 )
     {
         x509_csr_free( csr );
         return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG );
     }
-
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-    memcpy( &csr->sig_params, &sig_params, sizeof( x509_buf ) );
-#endif
 
     if( ( ret = x509_get_sig( &p, end, &csr->sig ) ) != 0 )
     {
@@ -362,12 +357,8 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
     int ret;
     size_t n;
     char *p;
+    const char *desc;
     char key_size_str[BEFORE_COLON];
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-    const x509_buf *sig_params = &csr->sig_params;
-#else
-    const x509_buf *sig_params = NULL;
-#endif
 
     p = buf;
     n = size;
@@ -384,7 +375,11 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
     ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
     SAFE_SNPRINTF();
 
-    ret = x509_sig_alg_gets( p, n, &csr->sig_oid, csr->sig_pk, sig_params );
+    ret = oid_get_sig_alg_desc( &csr->sig_oid, &desc );
+    if( ret != 0 )
+        ret = snprintf( p, n, "???"  );
+    else
+        ret = snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
 
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,

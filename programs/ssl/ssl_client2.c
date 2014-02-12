@@ -742,8 +742,8 @@ int main( int argc, char *argv[] )
         }
     }
 
-    printf( " ok\n    [ Ciphersuite is %s ]\n",
-            ssl_get_ciphersuite( &ssl ) );
+    printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
+            ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
 
     if( opt.reconnect != 0 )
     {

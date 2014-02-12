@@ -808,8 +808,8 @@ reset:
         }
     }
 
-    printf( " ok\n    [ Ciphersuite is %s ]\n",
-            ssl_get_ciphersuite( &ssl ) );
+    printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
+            ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /*

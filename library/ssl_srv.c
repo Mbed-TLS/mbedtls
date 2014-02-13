@@ -1147,13 +1147,13 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         return ssl_parse_client_hello_v2( ssl );
 #endif
 
-    SSL_DEBUG_BUF( 4, "record header", buf, 5 );
+    SSL_DEBUG_BUF( 4, "record header", buf, 5 ); // TODO: 13 for DTLS
 
     SSL_DEBUG_MSG( 3, ( "client hello v3, message type: %d",
                    buf[0] ) );
     SSL_DEBUG_MSG( 3, ( "client hello v3, message len.: %d",
-                   ( buf[3] << 8 ) | buf[4] ) );
-    SSL_DEBUG_MSG( 3, ( "client hello v3, protocol ver: [%d:%d]",
+                   ( ssl->in_len[0] << 8 ) | ssl->in_len[1] ) );
+    SSL_DEBUG_MSG( 3, ( "client hello v3, protocol version: [%d:%d]",
                    buf[1], buf[2] ) );
 
     /*
@@ -1182,7 +1182,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    n = ( buf[3] << 8 ) | buf[4];
+    n = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
 
     if( n < 45 || n > SSL_MAX_CONTENT_LEN )
     {

@@ -1607,8 +1607,8 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         ssl->in_msglen -= ( ssl->transform_in->maclen + padlen );
 
-        ssl->in_hdr[3] = (unsigned char)( ssl->in_msglen >> 8 );
-        ssl->in_hdr[4] = (unsigned char)( ssl->in_msglen      );
+        ssl->in_len[0] = (unsigned char)( ssl->in_msglen >> 8 );
+        ssl->in_len[1] = (unsigned char)( ssl->in_msglen      );
 
         memcpy( tmp, ssl->in_msg + ssl->in_msglen, ssl->transform_in->maclen );
 
@@ -1941,8 +1941,9 @@ int ssl_write_record( ssl_context *ssl )
         ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
         ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->transport, ssl->out_hdr + 1 );
-        ssl->out_hdr[3] = (unsigned char)( len >> 8 );
-        ssl->out_hdr[4] = (unsigned char)( len      );
+
+        ssl->out_len[0] = (unsigned char)( len >> 8 );
+        ssl->out_len[1] = (unsigned char)( len      );
 
         if( ssl->transform_out != NULL )
         {
@@ -1953,8 +1954,8 @@ int ssl_write_record( ssl_context *ssl )
             }
 
             len = ssl->out_msglen;
-            ssl->out_hdr[3] = (unsigned char)( len >> 8 );
-            ssl->out_hdr[4] = (unsigned char)( len      );
+            ssl->out_len[0] = (unsigned char)( len >> 8 );
+            ssl->out_len[1] = (unsigned char)( len      );
         }
 
         ssl->out_left = 5 + ssl->out_msglen;
@@ -1962,7 +1963,7 @@ int ssl_write_record( ssl_context *ssl )
         SSL_DEBUG_MSG( 3, ( "output record: msgtype = %d, "
                             "version = [%d:%d], msglen = %d",
                        ssl->out_hdr[0], ssl->out_hdr[1], ssl->out_hdr[2],
-                     ( ssl->out_hdr[3] << 8 ) | ssl->out_hdr[4] ) );
+                     ( ssl->out_len[0] << 8 ) | ssl->out_len[1] ) );
 
         SSL_DEBUG_BUF( 4, "output record sent to network",
                        ssl->out_hdr, 5 + ssl->out_msglen );
@@ -2034,12 +2035,12 @@ int ssl_read_record( ssl_context *ssl )
     }
 
     ssl->in_msgtype =  ssl->in_hdr[0];
-    ssl->in_msglen = ( ssl->in_hdr[3] << 8 ) | ssl->in_hdr[4];
+    ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
 
     SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
                         "version = [%d:%d], msglen = %d",
                      ssl->in_hdr[0], ssl->in_hdr[1], ssl->in_hdr[2],
-                   ( ssl->in_hdr[3] << 8 ) | ssl->in_hdr[4] ) );
+                   ( ssl->in_len[0] << 8 ) | ssl->in_len[1] ) );
 
     ssl_read_version( &major_ver, &minor_ver, ssl->transport, ssl->in_hdr + 1 );
 
@@ -2170,8 +2171,9 @@ int ssl_read_record( ssl_context *ssl )
             return( ret );
         }
 
-        ssl->in_hdr[3] = (unsigned char)( ssl->in_msglen >> 8 );
-        ssl->in_hdr[4] = (unsigned char)( ssl->in_msglen      );
+        // TODO: what's the purpose of these lines? is in_len used?
+        ssl->in_len[0] = (unsigned char)( ssl->in_msglen >> 8 );
+        ssl->in_len[1] = (unsigned char)( ssl->in_msglen      );
     }
 #endif /* POLARSSL_ZLIB_SUPPORT */
 

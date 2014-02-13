@@ -1057,7 +1057,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
         {
-            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_ctr, 13 );
+            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_buf, 13 );
             md_hmac_update( &ssl->transform_out->md_ctx_enc,
                              ssl->out_msg, ssl->out_msglen );
             md_hmac_finish( &ssl->transform_out->md_ctx_enc,
@@ -1284,6 +1284,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
+    // TODO: adapt for DTLS (start from i = 6)
     for( i = 8; i > 0; i-- )
         if( ++ssl->out_ctr[i - 1] != 0 )
             break;
@@ -1644,7 +1645,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
             extra_run &= correct * 0xFF;
 
-            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_ctr, 13 );
+            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_buf, 13 );
             md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_msg,
                              ssl->in_msglen );
             md_hmac_finish( &ssl->transform_in->md_ctx_dec,
@@ -1701,6 +1702,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     else
         ssl->nb_zero = 0;
 
+    // TODO: DTLS: i = 6
     for( i = 8; i > 0; i-- )
         if( ++ssl->in_ctr[i - 1] != 0 )
             break;
@@ -3154,6 +3156,7 @@ int ssl_write_finished( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "switching to new transform spec for outbound data" ) );
     ssl->transform_out = ssl->transform_negotiate;
     ssl->session_out = ssl->session_negotiate;
+    // TODO: DTLS epoch?
     memset( ssl->out_ctr, 0, 8 );
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
@@ -3195,6 +3198,7 @@ int ssl_parse_finished( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "switching to new transform spec for inbound data" ) );
     ssl->transform_in = ssl->transform_negotiate;
     ssl->session_in = ssl->session_negotiate;
+    // TODO: DTLS epoch?
     memset( ssl->in_ctr, 0, 8 );
 
     /*
@@ -3411,34 +3415,38 @@ int ssl_init( ssl_context *ssl )
 #endif
 
     /*
-     * Prepare base structures
+     * Prepare base structures (assume TLS for now)
      */
-    ssl->in_ctr = (unsigned char *) polarssl_malloc( len );
-    ssl->in_hdr = ssl->in_ctr +  8;
-    ssl->in_iv  = ssl->in_ctr + 13;
-    ssl->in_msg = ssl->in_ctr + 13;
+    ssl->in_buf = (unsigned char *) polarssl_malloc( len );
+    ssl->in_ctr = ssl->in_buf;
+    ssl->in_hdr = ssl->in_buf +  8;
+    ssl->in_len = ssl->in_buf + 11;
+    ssl->in_iv  = ssl->in_buf + 13;
+    ssl->in_msg = ssl->in_buf + 13;
 
-    if( ssl->in_ctr == NULL )
+    if( ssl->in_buf == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    ssl->out_ctr = (unsigned char *) polarssl_malloc( len );
-    ssl->out_hdr = ssl->out_ctr +  8;
-    ssl->out_iv  = ssl->out_ctr + 13;
-    ssl->out_msg = ssl->out_ctr + 13;
+    ssl->out_buf = (unsigned char *) polarssl_malloc( len );
+    ssl->out_ctr = ssl->out_buf;
+    ssl->out_hdr = ssl->out_buf +  8;
+    ssl->out_len = ssl->out_buf + 11;
+    ssl->out_iv  = ssl->out_buf + 13;
+    ssl->out_msg = ssl->out_buf + 13;
 
-    if( ssl->out_ctr == NULL )
+    if( ssl->out_buf == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
-        polarssl_free( ssl->in_ctr );
-        ssl->in_ctr = NULL;
+        polarssl_free( ssl->in_buf );
+        ssl->in_buf = NULL;
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
-    memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
+    memset( ssl-> in_buf, 0, SSL_BUFFER_LEN );
+    memset( ssl->out_buf, 0, SSL_BUFFER_LEN );
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
@@ -3472,7 +3480,7 @@ int ssl_session_reset( ssl_context *ssl )
 
     ssl->in_offt = NULL;
 
-    ssl->in_msg = ssl->in_ctr + 13;
+    ssl->in_msg = ssl->in_buf + 13;
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
     ssl->in_left = 0;
@@ -3481,7 +3489,7 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->nb_zero = 0;
     ssl->record_read = 0;
 
-    ssl->out_msg = ssl->out_ctr + 13;
+    ssl->out_msg = ssl->out_buf + 13;
     ssl->out_msgtype = 0;
     ssl->out_msglen = 0;
     ssl->out_left = 0;
@@ -3491,8 +3499,8 @@ int ssl_session_reset( ssl_context *ssl )
 
     ssl->renego_records_seen = 0;
 
-    memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
-    memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
+    memset( ssl->out_buf, 0, SSL_BUFFER_LEN );
+    memset( ssl->in_buf, 0, SSL_BUFFER_LEN );
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_reset != NULL )
@@ -4690,16 +4698,16 @@ void ssl_free( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> free" ) );
 
-    if( ssl->out_ctr != NULL )
+    if( ssl->out_buf != NULL )
     {
-        polarssl_zeroize( ssl->out_ctr, SSL_BUFFER_LEN );
-        polarssl_free( ssl->out_ctr );
+        polarssl_zeroize( ssl->out_buf, SSL_BUFFER_LEN );
+        polarssl_free( ssl->out_buf );
     }
 
-    if( ssl->in_ctr != NULL )
+    if( ssl->in_buf != NULL )
     {
-        polarssl_zeroize( ssl->in_ctr, SSL_BUFFER_LEN );
-        polarssl_free( ssl->in_ctr );
+        polarssl_zeroize( ssl->in_buf, SSL_BUFFER_LEN );
+        polarssl_free( ssl->in_buf );
     }
 
 #if defined(POLARSSL_ZLIB_SUPPORT)

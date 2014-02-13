@@ -756,9 +756,11 @@ struct _ssl_context
     /*
      * Record layer (incoming data)
      */
+    unsigned char *in_buf;      /*!< input buffer                     */
     unsigned char *in_ctr;      /*!< 64-bit incoming message counter  */
-    unsigned char *in_hdr;      /*!< 5-byte record header (in_ctr+8)  */
-    unsigned char *in_iv;       /*!< ivlen-byte IV (in_hdr+5)         */
+    unsigned char *in_hdr;      /*!< start of record header           */
+    unsigned char *in_len;      /*!< two-bytes message length field   */
+    unsigned char *in_iv;       /*!< ivlen-byte IV                    */
     unsigned char *in_msg;      /*!< message contents (in_iv+ivlen)   */
     unsigned char *in_offt;     /*!< read offset in application data  */
 
@@ -773,9 +775,11 @@ struct _ssl_context
     /*
      * Record layer (outgoing data)
      */
+    unsigned char *out_buf;     /*!< output buffer                    */
     unsigned char *out_ctr;     /*!< 64-bit outgoing message counter  */
-    unsigned char *out_hdr;     /*!< 5-byte record header (out_ctr+8) */
-    unsigned char *out_iv;      /*!< ivlen-byte IV (out_hdr+5)        */
+    unsigned char *out_hdr;     /*!< start of record header           */
+    unsigned char *out_len;     /*!< two-bytes message length field   */
+    unsigned char *out_iv;      /*!< ivlen-byte IV                    */
     unsigned char *out_msg;     /*!< message contents (out_iv+ivlen)  */
 
     int out_msgtype;            /*!< record header: message type      */

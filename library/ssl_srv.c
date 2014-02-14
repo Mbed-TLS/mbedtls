@@ -1134,7 +1134,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
-        ( ret = ssl_fetch_input( ssl, 5 ) ) != 0 )
+        ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
         return( ret );
@@ -1147,7 +1147,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         return ssl_parse_client_hello_v2( ssl );
 #endif
 
-    SSL_DEBUG_BUF( 4, "record header", buf, 5 ); // TODO: 13 for DTLS
+    SSL_DEBUG_BUF( 4, "record header", buf, ssl_hdr_len( ssl ) );
 
     SSL_DEBUG_MSG( 3, ( "client hello v3, message type: %d",
                    buf[0] ) );
@@ -1191,7 +1191,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     }
 
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
-        ( ret = ssl_fetch_input( ssl, 5 + n ) ) != 0 )
+        ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) + n ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
         return( ret );
@@ -1199,7 +1199,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     buf = ssl->in_msg;
     if( !ssl->renegotiation )
-        n = ssl->in_left - 5;
+        n = ssl->in_left - ssl_hdr_len( ssl );
     else
         n = ssl->in_msglen;
 

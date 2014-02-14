@@ -1827,6 +1827,15 @@ void ssl_write_version( int major, int minor, int transport,
 void ssl_read_version( int *major, int *minor, int transport,
                        const unsigned char ver[2] );
 
+static inline size_t ssl_hdr_len( const ssl_context *ssl )
+{
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        return( 13 );
+#endif
+    return( 5 );
+}
+
 /* constant-time buffer comparison */
 static inline int safer_memcmp( const void *a, const void *b, size_t n )
 {

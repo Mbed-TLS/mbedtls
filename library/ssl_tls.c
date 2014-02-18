@@ -1067,7 +1067,9 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
         {
-            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_buf, 13 );
+            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_ctr, 8 );
+            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_hdr, 3 );
+            md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_len, 2 );
             md_hmac_update( &ssl->transform_out->md_ctx_enc,
                              ssl->out_msg, ssl->out_msglen );
             md_hmac_finish( &ssl->transform_out->md_ctx_enc,
@@ -1643,7 +1645,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
             extra_run &= correct * 0xFF;
 
-            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_buf, 13 );
+            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_ctr, 8 );
+            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_hdr, 3 );
+            md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_len, 2 );
             md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_msg,
                              ssl->in_msglen );
             md_hmac_finish( &ssl->transform_in->md_ctx_dec,

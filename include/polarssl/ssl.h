@@ -616,6 +616,9 @@ struct _ssl_handshake_params
     ssl_key_cert *sni_key_cert;         /*!<  key/cert list from SNI  */
 #endif
 #endif /* POLARSSL_X509_CRT_PARSE_C */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    unsigned int msg_seq;               /*!<  DTLS handshake sequence number */
+#endif
 
     /*
      * Checksum contexts

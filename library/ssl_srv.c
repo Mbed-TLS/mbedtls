@@ -1203,6 +1203,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     else
         n = ssl->in_msglen;
 
+    SSL_DEBUG_BUF( 4, "record contents", buf, n );
+
     ssl->handshake->update_checksum( ssl, buf, n );
 
     /*
@@ -1211,7 +1213,17 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
-        // TODO: DTLS: actually use the additional fields before removing them!
+        // TODO: DTLS: check message_seq
+
+        /* For now we don't support fragmentation, so make sure
+         * fragment_offset == 0 and fragment_length == length */
+        if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
+            memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "handshake fragmentation not supported" ) );
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+
 
         memmove( buf + 4, buf + 12, n - 12 );
         n -= 8;
@@ -1233,8 +1245,6 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      *   42+y . 41+z  compression algs
      *    ..  .  ..   extensions
      */
-    SSL_DEBUG_BUF( 4, "record contents", buf, n );
-
     SSL_DEBUG_MSG( 3, ( "client hello v3, handshake type: %d",
                    buf[0] ) );
     SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %d",

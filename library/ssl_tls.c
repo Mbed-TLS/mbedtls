@@ -1934,12 +1934,19 @@ int ssl_write_record( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
         if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
         {
-            memmove( ssl->out_msg + 12, ssl->out_msg + 4, ssl->out_msglen - 4 );
+            /* Make room for the additional DTLS fields */
+            memmove( ssl->out_msg + 12, ssl->out_msg + 4, len - 4 );
             ssl->out_msglen += 8;
             len += 8;
 
-            // TODO: DTLS: fill additional fields correctly
-            memset( ssl->out_msg + 4, 0x00, 8 );
+            /* Write message_seq and update it */
+            ssl->out_msg[4] = ( ssl->handshake->msg_seq >> 8 ) & 0xFF;
+            ssl->out_msg[5] = ( ssl->handshake->msg_seq      ) & 0xFF;
+            ++( ssl->handshake->msg_seq );
+
+            /* We don't fragment, so frag_offset = 0 and frag_len = len */
+            memset( ssl->out_msg + 6, 0x00, 3 );
+            memcpy( ssl->out_msg + 9, ssl->out_msg + 1, 3 );
         }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 
@@ -2048,7 +2055,16 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
-        // TODO: DTLS: actually use the additional fields before removing them!
+        // TODO: DTLS: check message_seq
+
+        /* For now we don't support fragmentation, so make sure
+         * fragment_offset == 0 and fragment_length == length */
+        if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
+            memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "handshake fragmentation not supported" ) );
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
 
         memmove( ssl->in_msg + 4, ssl->in_msg + 12, ssl->in_hslen - 12 );
         ssl->in_hslen -= 8;

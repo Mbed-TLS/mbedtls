@@ -354,7 +354,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /*
  * Wrapper around f_sni, allowing use of ssl_set_own_cert() but
- * making it act on ssl->hanshake->sni_key_cert instead.
+ * making it act on ssl->handshake->sni_key_cert instead.
  */
 static int ssl_sni_wrapper( ssl_context *ssl,
                             const unsigned char* name, size_t len )
@@ -1204,6 +1204,19 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         n = ssl->in_msglen;
 
     ssl->handshake->update_checksum( ssl, buf, n );
+
+    /*
+     * For DTLS, we move data so that is looks like TLS handshake format
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        // TODO: DTLS: actually use the additional fields before removing them!
+
+        memmove( buf + 4, buf + 12, n - 12 );
+        n -= 8;
+    }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     /*
      * SSL layer:

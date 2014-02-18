@@ -1924,6 +1924,25 @@ int ssl_write_record( ssl_context *ssl )
         ssl->out_msg[2] = (unsigned char)( ( len - 4 ) >>  8 );
         ssl->out_msg[3] = (unsigned char)( ( len - 4 )       );
 
+        /*
+         * DTLS has additional fields in the Handshake layer,
+         * between the length field and the actual payload:
+         *      uint16 message_seq;
+         *      uint24 fragment_offset;
+         *      uint24 fragment_length;
+         */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        {
+            memmove( ssl->out_msg + 12, ssl->out_msg + 4, ssl->out_msglen - 4 );
+            ssl->out_msglen += 8;
+            len += 8;
+
+            // TODO: DTLS: fill additional fields correctly
+            memset( ssl->out_msg + 4, 0x00, 8 );
+        }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+
         if( ssl->out_msg[0] != SSL_HS_HELLO_REQUEST )
             ssl->handshake->update_checksum( ssl, ssl->out_msg, len );
     }
@@ -2004,33 +2023,37 @@ int ssl_write_record( ssl_context *ssl )
 
 static int ssl_prepare_handshake_record( ssl_context *ssl )
 {
-    ssl->in_hslen  = 4;
+    ssl->in_hslen  = ssl->transport == SSL_TRANSPORT_DATAGRAM ? 12 : 4;
     ssl->in_hslen += ( ssl->in_msg[2] << 8 ) | ssl->in_msg[3];
 
     SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
                         " %d, type = %d, hslen = %d",
-                   ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
+                        ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
 
-    /*
-     * Additional checks to validate the handshake header
-     */
-    if( ssl->in_msglen < 4 || ssl->in_msg[1] != 0 )
+    /* We don't handle handshake messages larger than one record (for now) */
+    if( ssl->in_msg[1] != 0 ||
+        ssl->in_msglen < ssl->in_hslen )
     {
         SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
 
-    if( ssl->in_msglen < ssl->in_hslen )
-    {
-        SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
-    }
-
-    /*
-     * Update handshake checksum
-     */
     if( ssl->state != SSL_HANDSHAKE_OVER )
         ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+
+    /*
+     * For DTLS, we move data so that is looks like
+     * TLS handshake format to other functions.
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        // TODO: DTLS: actually use the additional fields before removing them!
+
+        memmove( ssl->in_msg + 4, ssl->in_msg + 12, ssl->in_hslen - 12 );
+        ssl->in_hslen -= 8;
+    }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     return( 0 );
 }
@@ -2042,8 +2065,16 @@ int ssl_read_record( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
-    if( ssl->in_hslen != 0 &&
-        ssl->in_hslen < ssl->in_msglen )
+    /*
+     * With DTLS, we cheated on in_hslen to make the handshake message look
+     * like TLS format, restore the truth now
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->in_hslen != 0 && ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl->in_hslen += 8;
+#endif
+
+    if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
     {
         /*
          * Get next Handshake message in the current record

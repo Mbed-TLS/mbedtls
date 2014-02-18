@@ -2002,6 +2002,39 @@ int ssl_write_record( ssl_context *ssl )
     return( 0 );
 }
 
+static int ssl_prepare_handshake_record( ssl_context *ssl )
+{
+    ssl->in_hslen  = 4;
+    ssl->in_hslen += ( ssl->in_msg[2] << 8 ) | ssl->in_msg[3];
+
+    SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
+                        " %d, type = %d, hslen = %d",
+                   ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
+
+    /*
+     * Additional checks to validate the handshake header
+     */
+    if( ssl->in_msglen < 4 || ssl->in_msg[1] != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
+        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+    }
+
+    if( ssl->in_msglen < ssl->in_hslen )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
+        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+    }
+
+    /*
+     * Update handshake checksum
+     */
+    if( ssl->state != SSL_HANDSHAKE_OVER )
+        ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+
+    return( 0 );
+}
+
 int ssl_read_record( ssl_context *ssl )
 {
     int ret, done = 0;
@@ -2020,27 +2053,8 @@ int ssl_read_record( ssl_context *ssl )
         memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
                  ssl->in_msglen );
 
-        ssl->in_hslen  = 4;
-        ssl->in_hslen += ( ssl->in_msg[2] << 8 ) | ssl->in_msg[3];
-
-        SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
-                            " %d, type = %d, hslen = %d",
-                       ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
-
-        if( ssl->in_msglen < 4 || ssl->in_msg[1] != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
-        }
-
-        if( ssl->in_msglen < ssl->in_hslen )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
-        }
-
-        if( ssl->state != SSL_HANDSHAKE_OVER )
-            ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
+            return( ret );
 
         return( 0 );
     }
@@ -2219,30 +2233,8 @@ int ssl_read_record( ssl_context *ssl )
 
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
     {
-        ssl->in_hslen  = 4;
-        ssl->in_hslen += ( ssl->in_msg[2] << 8 ) | ssl->in_msg[3];
-
-        SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
-                            " %d, type = %d, hslen = %d",
-                       ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
-
-        /*
-         * Additional checks to validate the handshake header
-         */
-        if( ssl->in_msglen < 4 || ssl->in_msg[1] != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
-        }
-
-        if( ssl->in_msglen < ssl->in_hslen )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
-            return( POLARSSL_ERR_SSL_INVALID_RECORD );
-        }
-
-        if( ssl->state != SSL_HANDSHAKE_OVER )
-            ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
+            return( ret );
     }
 
     if( ssl->in_msgtype == SSL_MSG_ALERT )

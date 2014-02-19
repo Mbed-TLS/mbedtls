@@ -463,6 +463,68 @@ start_server() {
     sleep 1
 }
 
+# run_client <name> <cipher>
+run_client() {
+    # run the command and interpret result
+    case $1 in
+        [Oo]pen*)
+            CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
+            log "$CLIENT_CMD"
+            OUTPUT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $CLIENT_CMD 2>&1 )"
+            EXIT=$?
+
+            if [ "$EXIT" == "0" ]; then
+                RESULT=0
+            else
+                SUPPORTED="$( echo $OUTPUT | grep 'Cipher is (NONE)' )"
+                if [ "X$SUPPORTED" != "X" ]; then
+                    RESULT=1
+                else
+                    RESULT=2
+                fi
+            fi
+            ;;
+
+        [Pp]olar*)
+            CLIENT_CMD="../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$2"
+            log "$CLIENT_CMD"
+            OUTPUT="$( $CLIENT_CMD )"
+            EXIT=$?
+
+            case $EXIT in
+                "0")    RESULT=0    ;;
+                "2")    RESULT=1    ;;
+                *)      RESULT=2    ;;
+            esac
+            ;;
+
+        *)
+            echo "error: invalid client name: $1" >&2
+            exit 1
+            ;;
+    esac
+
+    # report and count result
+    let "tests++"
+    echo -n "$SERVER_NAME Server - $1 Client - $2 : $EXIT - "
+    case $RESULT in
+        "0")
+            echo Success
+            ;;
+        "1")
+            echo "Ciphersuite not supported"
+            let "skipped++"
+            ;;
+        "2")
+            echo Failed
+            echo "$SERVER_CMD"
+            echo "$CLIENT_CMD"
+            echo "$OUTPUT"
+            let "failed++"
+            ;;
+    esac
+}
+
 for VERIFY in $VERIFIES;
 do
 
@@ -480,84 +542,26 @@ setup_ciphersuites
 
 start_server "OpenSSL"
 
-for i in $P_CIPHERS;
-do
-    let "tests++"
-    log "../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i"
-    RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i )"
-    EXIT=$?
-    echo -n "$SERVER_NAME Server - PolarSSL Client - $i : $EXIT - "
-    if [ "$EXIT" = "2" ];
-    then
-        echo Ciphersuite not supported in client
-        let "skipped++"
-    elif [ "$EXIT" != "0" ];
-    then
-        echo Failed
-        echo "$SERVER_CMD"
-        echo "ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
-        echo $RESULT
-        let "failed++"
-    else
-        echo Success
-    fi
+for i in $P_CIPHERS; do
+    run_client PolarSSL $i
 done
+
 kill $PROCESS_ID 2>/dev/null
 wait $PROCESS_ID 2>/dev/null
 
 start_server "PolarSSL"
 
-for i in $O_CIPHERS;
-do
-    let "tests++"
-    log "$OPENSSL s_client $O_CLIENT_ARGS -cipher $i"
-    RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $OPENSSL s_client $O_CLIENT_ARGS -cipher $i 2>&1 )"
-    EXIT=$?
-    echo -n "$SERVER_NAME Server - OpenSSL Client - $i : $EXIT - "
-
-    if [ "$EXIT" != "0" ];
-    then
-        SUPPORTED="$( echo $RESULT | grep 'Cipher is (NONE)' )"
-        if [ "X$SUPPORTED" != "X" ]
-        then
-            echo "Ciphersuite not supported in server"
-            let "skipped++"
-        else
-            echo Failed
-            echo "$SERVER_CMD"
-            echo "$OPENSSL s_client $O_CLIENT_ARGS -cipher $i"
-            echo $RESULT
-            let "failed++"
-        fi
-    else
-        echo Success
-    fi
+for i in $O_CIPHERS; do
+    run_client OpenSSL $i
 done
 
+echo "-----------"
 add_polarssl_ciphersuites
 
-for i in $P_CIPHERS;
-do
-    let "tests++"
-    log "../programs/ssl/ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
-    RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS )"
-    EXIT=$?
-    echo -n "$SERVER_NAME Server - PolarSSL Client - $i : $EXIT - "
-    if [ "$EXIT" = "2" ];
-    then
-        echo Ciphersuite not supported in client
-        let "skipped++"
-    elif [ "$EXIT" != "0" ];
-    then
-        echo Failed
-        echo "$SERVER_CMD"
-        echo "ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
-        echo $RESULT
-        let "failed++"
-    else
-        echo Success
-    fi
+for i in $P_CIPHERS; do
+    run_client PolarSSL $i
 done
+
 kill $PROCESS_ID 2>/dev/null
 wait $PROCESS_ID 2>/dev/null
 

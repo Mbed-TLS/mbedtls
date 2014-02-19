@@ -84,22 +84,48 @@ filter()
   echo "$NEW_LIST"
 }
 
+setup_arguments()
+{
+    if [ "X$VERIFY" = "XYES" ];
+    then
+        P_SERVER_BASE="ca_file=data_files/test-ca_cat12.crt auth_mode=required"
+        P_CLIENT_BASE="ca_file=data_files/test-ca_cat12.crt"
+        O_SERVER_BASE="-CAfile data_files/test-ca_cat12.crt -Verify 10"
+        O_CLIENT_BASE="-CAfile data_files/test-ca_cat12.crt"
+    else
+        P_SERVER_BASE=""
+        P_CLIENT_BASE=""
+        O_SERVER_BASE=""
+        O_CLIENT_BASE=""
+    fi
+
+    case $TYPE in
+        "ECDSA")
+            P_SERVER_ARGS="$P_SERVER_BASE crt_file=data_files/server5.crt key_file=data_files/server5.key"
+            P_CLIENT_ARGS="$P_CLIENT_BASE crt_file=data_files/server6.crt key_file=data_files/server6.key"
+            O_SERVER_ARGS="$O_SERVER_BASE -cert data_files/server5.crt -key data_files/server5.key"
+            O_CLIENT_ARGS="$O_CLIENT_BASE -cert data_files/server6.crt -key data_files/server6.key"
+            ;;
+
+        "RSA")
+            P_SERVER_ARGS="$P_SERVER_BASE crt_file=data_files/server1.crt key_file=data_files/server1.key"
+            P_CLIENT_ARGS="$P_CLIENT_BASE crt_file=data_files/server2.crt key_file=data_files/server2.key"
+            O_SERVER_ARGS="$O_SERVER_BASE -cert data_files/server1.crt -key data_files/server1.key"
+            O_CLIENT_ARGS="$O_CLIENT_BASE -cert data_files/server2.crt -key data_files/server2.key"
+            ;;
+
+        "PSK")
+            P_SERVER_ARGS="$P_SERVER_BASE psk=6162636465666768696a6b6c6d6e6f70"
+            P_CLIENT_ARGS="$P_CLIENT_BASE psk=6162636465666768696a6b6c6d6e6f70"
+            # openssl s_server won't start without certificates...
+            O_SERVER_ARGS="$O_SERVER_BASE -psk 6162636465666768696a6b6c6d6e6f70 -cert data_files/server1.crt -key data_files/server1.key"
+            O_CLIENT_ARGS="$O_CLIENT_BASE -psk 6162636465666768696a6b6c6d6e6f70"
+            ;;
+    esac
+}
+
 for VERIFY in $VERIFIES;
 do
-
-if [ "X$VERIFY" = "XYES" ];
-then
-    P_SERVER_BASE="ca_file=data_files/test-ca_cat12.crt auth_mode=required"
-    P_CLIENT_BASE="ca_file=data_files/test-ca_cat12.crt"
-    O_SERVER_BASE="-CAfile data_files/test-ca_cat12.crt -Verify 10"
-    O_CLIENT_BASE="-CAfile data_files/test-ca_cat12.crt"
-else
-    P_SERVER_BASE=""
-    P_CLIENT_BASE=""
-    O_SERVER_BASE=""
-    O_CLIENT_BASE=""
-fi
-
 
 for MODE in $MODES;
 do
@@ -120,17 +146,14 @@ echo "-----------"
 for TYPE in $TYPES;
 do
 
+setup_arguments
+
 P_CIPHERS=""
 O_CIPHERS=""
 
 case $TYPE in
 
     "ECDSA")
-
-        P_SERVER_ARGS="$P_SERVER_BASE crt_file=data_files/server5.crt key_file=data_files/server5.key"
-        P_CLIENT_ARGS="$P_CLIENT_BASE crt_file=data_files/server6.crt key_file=data_files/server6.key"
-        O_SERVER_ARGS="$O_SERVER_BASE -cert data_files/server5.crt -key data_files/server5.key"
-        O_CLIENT_ARGS="$O_CLIENT_BASE -cert data_files/server6.crt -key data_files/server6.key"
 
         if [ "$MODE" != "ssl3" ];
         then
@@ -189,11 +212,6 @@ case $TYPE in
         ;;
 
     "RSA")
-
-        P_SERVER_ARGS="$P_SERVER_BASE crt_file=data_files/server1.crt key_file=data_files/server1.key"
-        P_CLIENT_ARGS="$P_CLIENT_BASE crt_file=data_files/server2.crt key_file=data_files/server2.key"
-        O_SERVER_ARGS="$O_SERVER_BASE -cert data_files/server1.crt -key data_files/server1.key"
-        O_CLIENT_ARGS="$O_CLIENT_BASE -cert data_files/server2.crt -key data_files/server2.key"
 
         P_CIPHERS="$P_CIPHERS                       \
             TLS-DHE-RSA-WITH-AES-128-CBC-SHA        \
@@ -290,12 +308,6 @@ case $TYPE in
         ;;
 
     "PSK")
-
-        P_SERVER_ARGS="$P_SERVER_BASE psk=6162636465666768696a6b6c6d6e6f70"
-        P_CLIENT_ARGS="$P_CLIENT_BASE psk=6162636465666768696a6b6c6d6e6f70"
-        # openssl s_server won't start without certificates...
-        O_SERVER_ARGS="$O_SERVER_BASE -psk 6162636465666768696a6b6c6d6e6f70 -cert data_files/server1.crt -key data_files/server1.key"
-        O_CLIENT_ARGS="$O_CLIENT_BASE -psk 6162636465666768696a6b6c6d6e6f70"
 
         P_CIPHERS="$P_CIPHERS                       \
             TLS-PSK-WITH-RC4-128-SHA                \

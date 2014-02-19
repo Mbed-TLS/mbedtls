@@ -476,7 +476,7 @@ run_client() {
         [Oo]pen*)
             CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
-            OUTPUT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $CLIENT_CMD 2>&1 )"
+            OUTPUT="$( ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD 2>&1 )"
             EXIT=$?
 
             if [ "$EXIT" == "0" ]; then

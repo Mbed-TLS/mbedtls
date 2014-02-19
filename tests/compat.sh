@@ -517,15 +517,6 @@ do
     fi
 done
 
-kill $PROCESS_ID 2>/dev/null
-wait $PROCESS_ID 2>/dev/null
-
-log "../programs/ssl/ssl_server2 server_addr=0.0.0.0 $P_SERVER_ARGS force_version=$MODE"
-../programs/ssl/ssl_server2 server_addr=0.0.0.0 $P_SERVER_ARGS force_version=$MODE > /dev/null &
-PROCESS_ID=$!
-
-sleep 1
-
 add_polarssl_ciphersuites
 
 for i in $P_CIPHERS;

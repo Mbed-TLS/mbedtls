@@ -437,6 +437,32 @@ setup_arguments()
     esac
 }
 
+# start_server <name>
+# also saves name and command
+start_server() {
+    echo "-----------"
+
+    case $1 in
+        [Oo]pen*)
+            SERVER_CMD="$OPENSSL s_server $O_SERVER_ARGS"
+            ;;
+        [Pp]olar*)
+            SERVER_CMD="../programs/ssl/ssl_server2 $P_SERVER_ARGS"
+            ;;
+        *)
+            echo "error: invalid server name: $1" >&2
+            exit 1
+            ;;
+    esac
+    SERVER_NAME=$1
+
+    log "$SERVER_CMD"
+    $SERVER_CMD >/dev/null 2>&1 &
+    PROCESS_ID=$!
+
+    sleep 1
+}
+
 for VERIFY in $VERIFIES;
 do
 
@@ -445,7 +471,6 @@ do
 
 echo "-----------"
 echo "Running for $MODE (Verify: $VERIFY)"
-echo "-----------"
 
 for TYPE in $TYPES;
 do
@@ -453,11 +478,7 @@ do
 setup_arguments
 setup_ciphersuites
 
-log "$OPENSSL s_server $O_SERVER_ARGS"
-$OPENSSL s_server $O_SERVER_ARGS >/dev/null 2>&1 &
-PROCESS_ID=$!
-
-sleep 1
+start_server "OpenSSL"
 
 for i in $P_CIPHERS;
 do
@@ -465,7 +486,7 @@ do
     log "../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i"
     RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i )"
     EXIT=$?
-    echo -n "OpenSSL Server - PolarSSL Client - $i : $EXIT - "
+    echo -n "$SERVER_NAME Server - PolarSSL Client - $i : $EXIT - "
     if [ "$EXIT" = "2" ];
     then
         echo Ciphersuite not supported in client
@@ -473,7 +494,7 @@ do
     elif [ "$EXIT" != "0" ];
     then
         echo Failed
-        echo "$OPENSSL s_server $O_SERVER_ARGS"
+        echo "$SERVER_CMD"
         echo "ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
         echo $RESULT
         let "failed++"
@@ -484,11 +505,7 @@ done
 kill $PROCESS_ID 2>/dev/null
 wait $PROCESS_ID 2>/dev/null
 
-log "../programs/ssl/ssl_server2 $P_SERVER_ARGS > /dev/null"
-../programs/ssl/ssl_server2 $P_SERVER_ARGS > /dev/null &
-PROCESS_ID=$!
-
-sleep 1
+start_server "PolarSSL"
 
 for i in $O_CIPHERS;
 do
@@ -496,7 +513,7 @@ do
     log "$OPENSSL s_client $O_CLIENT_ARGS -cipher $i"
     RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $OPENSSL s_client $O_CLIENT_ARGS -cipher $i 2>&1 )"
     EXIT=$?
-    echo -n "PolarSSL Server - OpenSSL Client - $i : $EXIT - "
+    echo -n "$SERVER_NAME Server - OpenSSL Client - $i : $EXIT - "
 
     if [ "$EXIT" != "0" ];
     then
@@ -507,7 +524,7 @@ do
             let "skipped++"
         else
             echo Failed
-            echo "ssl_server2 $P_SERVER_ARGS"
+            echo "$SERVER_CMD"
             echo "$OPENSSL s_client $O_CLIENT_ARGS -cipher $i"
             echo $RESULT
             let "failed++"
@@ -525,7 +542,7 @@ do
     log "../programs/ssl/ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
     RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS )"
     EXIT=$?
-    echo -n "PolarSSL Server - PolarSSL Client - $i : $EXIT - "
+    echo -n "$SERVER_NAME Server - PolarSSL Client - $i : $EXIT - "
     if [ "$EXIT" = "2" ];
     then
         echo Ciphersuite not supported in client
@@ -533,7 +550,7 @@ do
     elif [ "$EXIT" != "0" ];
     then
         echo Failed
-        echo "ssl_server2 $P_SERVER_ARGS"
+        echo "$SERVER_CMD"
         echo "ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
         echo $RESULT
         let "failed++"

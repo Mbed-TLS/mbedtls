@@ -177,19 +177,22 @@ static void my_debug( void *ctx, int level, const char *str )
     "    server_addr=%%d      default: (all interfaces)\n"  \
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "\n"                                                    \
+    "    auth_mode=%%s        default: \"optional\"\n"      \
+    "                        options: none, optional, required\n" \
     USAGE_IO                                                \
-    "    request_page=%%s     default: \".\"\n"             \
+    "\n"                                                    \
+    USAGE_PSK                                               \
+    "\n"                                                    \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
-    USAGE_TICKETS                                           \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
+    USAGE_TICKETS                                           \
+    USAGE_MAX_FRAG_LEN                                      \
+    "\n"                                                    \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
-    "    auth_mode=%%s        default: \"optional\"\n"      \
-    "                        options: none, optional, required\n" \
-    USAGE_MAX_FRAG_LEN                                      \
-    USAGE_PSK                                               \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"

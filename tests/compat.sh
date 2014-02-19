@@ -463,8 +463,15 @@ start_server() {
     sleep 1
 }
 
-# terminate the running server
+# terminate the running server (try closing it cleanly if possible)
 stop_server() {
+    case $SERVER_NAME in
+        [Pp]olar*)
+            echo SERVERQUIT | $OPENSSL s_client $O_CLIENT_ARGS >/dev/null 2>&1
+            sleep 1
+            ;;
+    esac
+
     kill $PROCESS_ID 2>/dev/null
     wait $PROCESS_ID 2>/dev/null
 }

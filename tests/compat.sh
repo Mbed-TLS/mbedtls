@@ -390,40 +390,49 @@ add_polarssl_ciphersuites()
 
 setup_arguments()
 {
+    # avoid an avalanche of errors due to typos
+    case $MODE in
+        ssl3|tls1|tls1_1|tls1_2)
+            ;;
+        *)
+            echo "error: invalid mode: $MODE" >&2
+            exit 1;
+    esac
+
+    P_SERVER_ARGS="server_addr=0.0.0.0 force_version=$MODE"
+    P_CLIENT_ARGS="server_name=0.0.0.0 force_version=$MODE"
+    O_SERVER_ARGS="-www -quiet -cipher NULL,ALL -$MODE"
+    O_CLIENT_ARGS="-$MODE"
+
     if [ "X$VERIFY" = "XYES" ];
     then
-        P_SERVER_BASE="ca_file=data_files/test-ca_cat12.crt auth_mode=required"
-        P_CLIENT_BASE="ca_file=data_files/test-ca_cat12.crt"
-        O_SERVER_BASE="-CAfile data_files/test-ca_cat12.crt -Verify 10"
-        O_CLIENT_BASE="-CAfile data_files/test-ca_cat12.crt"
-    else
-        P_SERVER_BASE=""
-        P_CLIENT_BASE=""
-        O_SERVER_BASE=""
-        O_CLIENT_BASE=""
+        P_SERVER_ARGS="$P_SERVER_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
+        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/test-ca_cat12.crt"
+        O_SERVER_ARGS="$O_SERVER_ARGS -CAfile data_files/test-ca_cat12.crt -Verify 10"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/test-ca_cat12.crt"
     fi
 
     case $TYPE in
         "ECDSA")
-            P_SERVER_ARGS="$P_SERVER_BASE crt_file=data_files/server5.crt key_file=data_files/server5.key"
-            P_CLIENT_ARGS="$P_CLIENT_BASE crt_file=data_files/server6.crt key_file=data_files/server6.key"
-            O_SERVER_ARGS="$O_SERVER_BASE -cert data_files/server5.crt -key data_files/server5.key"
-            O_CLIENT_ARGS="$O_CLIENT_BASE -cert data_files/server6.crt -key data_files/server6.key"
+            P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server5.crt key_file=data_files/server5.key"
+            P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server6.crt key_file=data_files/server6.key"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server5.crt -key data_files/server5.key"
+            O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server6.crt -key data_files/server6.key"
             ;;
 
         "RSA")
-            P_SERVER_ARGS="$P_SERVER_BASE crt_file=data_files/server1.crt key_file=data_files/server1.key"
-            P_CLIENT_ARGS="$P_CLIENT_BASE crt_file=data_files/server2.crt key_file=data_files/server2.key"
-            O_SERVER_ARGS="$O_SERVER_BASE -cert data_files/server1.crt -key data_files/server1.key"
-            O_CLIENT_ARGS="$O_CLIENT_BASE -cert data_files/server2.crt -key data_files/server2.key"
+            P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
+            P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server1.crt -key data_files/server1.key"
+            O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server2.crt -key data_files/server2.key"
             ;;
 
         "PSK")
-            P_SERVER_ARGS="$P_SERVER_BASE psk=6162636465666768696a6b6c6d6e6f70"
-            P_CLIENT_ARGS="$P_CLIENT_BASE psk=6162636465666768696a6b6c6d6e6f70"
+            P_SERVER_ARGS="$P_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70"
+            P_CLIENT_ARGS="$P_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70"
             # openssl s_server won't start without certificates...
-            O_SERVER_ARGS="$O_SERVER_BASE -psk 6162636465666768696a6b6c6d6e6f70 -cert data_files/server1.crt -key data_files/server1.key"
-            O_CLIENT_ARGS="$O_CLIENT_BASE -psk 6162636465666768696a6b6c6d6e6f70"
+            O_SERVER_ARGS="$O_SERVER_ARGS -psk 6162636465666768696a6b6c6d6e6f70 -cert data_files/server1.crt -key data_files/server1.key"
+            O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
             ;;
     esac
 }
@@ -433,15 +442,6 @@ do
 
 for MODE in $MODES;
 do
-
-# avoid an avalanche of errors due to typos
-case $MODE in
-    ssl3|tls1|tls1_1|tls1_2)
-        ;;
-    *)
-        echo "error: invalid mode: $MODE" >&2
-        exit 1;
-esac
 
 echo "-----------"
 echo "Running for $MODE (Verify: $VERIFY)"
@@ -453,8 +453,8 @@ do
 setup_arguments
 setup_ciphersuites
 
-log "$OPENSSL s_server -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE"
-$OPENSSL s_server -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE >/dev/null 2>&1 &
+log "$OPENSSL s_server $O_SERVER_ARGS"
+$OPENSSL s_server $O_SERVER_ARGS >/dev/null 2>&1 &
 PROCESS_ID=$!
 
 sleep 1
@@ -462,8 +462,8 @@ sleep 1
 for i in $P_CIPHERS;
 do
     let "tests++"
-    log "../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i force_version=$MODE"
-    RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i force_version=$MODE )"
+    log "../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i"
+    RESULT="$( ../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$i )"
     EXIT=$?
     echo -n "OpenSSL Server - PolarSSL Client - $i : $EXIT - "
     if [ "$EXIT" = "2" ];
@@ -473,8 +473,8 @@ do
     elif [ "$EXIT" != "0" ];
     then
         echo Failed
-        echo "$OPENSSL s_server -www -quiet -cipher NULL,ALL $O_SERVER_ARGS -$MODE"
-        echo "ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS"
+        echo "$OPENSSL s_server $O_SERVER_ARGS"
+        echo "ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
         echo $RESULT
         let "failed++"
     else
@@ -484,8 +484,8 @@ done
 kill $PROCESS_ID 2>/dev/null
 wait $PROCESS_ID 2>/dev/null
 
-log "../programs/ssl/ssl_server2 server_addr=0.0.0.0 $P_SERVER_ARGS force_version=$MODE > /dev/null"
-../programs/ssl/ssl_server2 server_addr=0.0.0.0 $P_SERVER_ARGS force_version=$MODE > /dev/null &
+log "../programs/ssl/ssl_server2 $P_SERVER_ARGS > /dev/null"
+../programs/ssl/ssl_server2 $P_SERVER_ARGS > /dev/null &
 PROCESS_ID=$!
 
 sleep 1
@@ -493,8 +493,8 @@ sleep 1
 for i in $O_CIPHERS;
 do
     let "tests++"
-    log "$OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS"
-    RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS 2>&1 )"
+    log "$OPENSSL s_client $O_CLIENT_ARGS -cipher $i"
+    RESULT="$( ( echo -e 'GET HTTP/1.0'; echo; sleep 1 ) | $OPENSSL s_client $O_CLIENT_ARGS -cipher $i 2>&1 )"
     EXIT=$?
     echo -n "PolarSSL Server - OpenSSL Client - $i : $EXIT - "
 
@@ -507,8 +507,8 @@ do
             let "skipped++"
         else
             echo Failed
-            echo "ssl_server2 $P_SERVER_ARGS force_version=$MODE"
-            echo "$OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS"
+            echo "ssl_server2 $P_SERVER_ARGS"
+            echo "$OPENSSL s_client $O_CLIENT_ARGS -cipher $i"
             echo $RESULT
             let "failed++"
         fi
@@ -522,8 +522,8 @@ add_polarssl_ciphersuites
 for i in $P_CIPHERS;
 do
     let "tests++"
-    log "../programs/ssl/ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS"
-    RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS )"
+    log "../programs/ssl/ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
+    RESULT="$( ../programs/ssl/ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS )"
     EXIT=$?
     echo -n "PolarSSL Server - PolarSSL Client - $i : $EXIT - "
     if [ "$EXIT" = "2" ];
@@ -534,7 +534,7 @@ do
     then
         echo Failed
         echo "ssl_server2 $P_SERVER_ARGS"
-        echo "ssl_client2 force_ciphersuite=$i force_version=$MODE $P_CLIENT_ARGS"
+        echo "ssl_client2 force_ciphersuite=$i $P_CLIENT_ARGS"
         echo $RESULT
         let "failed++"
     else

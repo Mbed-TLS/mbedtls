@@ -63,7 +63,7 @@ do
   shift
 done
 
-log () {
+log() {
   if [ "X" != "X$VERBOSE" ]; then
     echo "$@"
   fi
@@ -463,6 +463,12 @@ start_server() {
     sleep 1
 }
 
+# terminate the running server
+stop_server() {
+    kill $PROCESS_ID 2>/dev/null
+    wait $PROCESS_ID 2>/dev/null
+}
+
 # run_client <name> <cipher>
 run_client() {
     # run the command and interpret result
@@ -525,48 +531,40 @@ run_client() {
     esac
 }
 
-for VERIFY in $VERIFIES;
-do
+for VERIFY in $VERIFIES; do
+    for MODE in $MODES; do
+        echo "-----------"
+        echo "Running for $MODE (Verify: $VERIFY)"
+        for TYPE in $TYPES; do
 
-for MODE in $MODES;
-do
+            setup_arguments
+            setup_ciphersuites
 
-echo "-----------"
-echo "Running for $MODE (Verify: $VERIFY)"
+            start_server "OpenSSL"
 
-for TYPE in $TYPES;
-do
+            for i in $P_CIPHERS; do
+                run_client PolarSSL $i
+            done
 
-setup_arguments
-setup_ciphersuites
+            stop_server
 
-start_server "OpenSSL"
+            start_server "PolarSSL"
 
-for i in $P_CIPHERS; do
-    run_client PolarSSL $i
-done
+            for i in $O_CIPHERS; do
+                run_client OpenSSL $i
+            done
 
-kill $PROCESS_ID 2>/dev/null
-wait $PROCESS_ID 2>/dev/null
+            echo "-----------"
+            add_polarssl_ciphersuites
 
-start_server "PolarSSL"
+            for i in $P_CIPHERS; do
+                run_client PolarSSL $i
+            done
 
-for i in $O_CIPHERS; do
-    run_client OpenSSL $i
-done
+            stop_server
 
-echo "-----------"
-add_polarssl_ciphersuites
-
-for i in $P_CIPHERS; do
-    run_client PolarSSL $i
-done
-
-kill $PROCESS_ID 2>/dev/null
-wait $PROCESS_ID 2>/dev/null
-
-done
-done
+        done
+    done
 done
 
 echo ""

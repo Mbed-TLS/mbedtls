@@ -50,6 +50,7 @@
 #define DFL_FORCE_CIPHER        0
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
+#define DFL_RENEGOTIATE         0
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
@@ -71,9 +72,6 @@
  * longer paquets (for fragmentation purposes) */
 #define GET_REQUEST "GET %s HTTP/1.0\r\n" /* LONG_HEADER */ "\r\n"
 
-/* Uncomment to test client-initiated renegotiation */
-// #define TEST_RENEGO
-
 /*
  * global options
  */
@@ -92,6 +90,7 @@ struct options
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
+    int renegotiate;            /* attempt renegotiation?                   */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
@@ -215,6 +214,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "\n"                                                    \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled)\n"      \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
@@ -313,6 +313,7 @@ int main( int argc, char *argv[] )
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
+    opt.renegotiate         = DFL_RENEGOTIATE;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
@@ -378,6 +379,12 @@ int main( int argc, char *argv[] )
         {
             opt.allow_legacy = atoi( q );
             if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "renegotiate" ) == 0 )
+        {
+            opt.renegotiate = atoi( q );
+            if( opt.renegotiate < 0 || opt.renegotiate > 1 )
                 goto usage;
         }
         else if( strcmp( p, "reconnect" ) == 0 )
@@ -800,23 +807,25 @@ int main( int argc, char *argv[] )
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-#ifdef TEST_RENEGO
-    /*
-     * Perform renegotiation (this must be done when the server is waiting
-     * for input from our side).
-     */
-    printf( "  . Performing renegotiation..." );
-    fflush( stdout );
-    while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
+    if( opt.renegotiate )
     {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        /*
+         * Perform renegotiation (this must be done when the server is waiting
+         * for input from our side).
+         */
+        printf( "  . Performing renegotiation..." );
+        fflush( stdout );
+        while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
-            goto exit;
+            if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
+                goto exit;
+            }
         }
+        printf( " ok\n" );
     }
-    printf( " ok\n" );
-#endif
 
     /*
      * 6. Write the GET request

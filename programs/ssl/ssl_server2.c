@@ -63,6 +63,7 @@
 #define DFL_FORCE_CIPHER        0
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
+#define DFL_RENEGOTIATE         0
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
@@ -84,9 +85,6 @@
     "<h2>PolarSSL Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n" // LONG_RESPONSE
 
-/* Uncomment to test server-initiated renegotiation */
-// #define TEST_RENEGO
-
 /*
  * global options
  */
@@ -106,6 +104,7 @@ struct options
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
+    int renegotiate;            /* attempt renegotiation?                   */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
@@ -186,6 +185,7 @@ static void my_debug( void *ctx, int level, const char *str )
     "\n"                                                    \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     "\n"                                                    \
@@ -301,6 +301,7 @@ int main( int argc, char *argv[] )
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
+    opt.renegotiate         = DFL_RENEGOTIATE;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
@@ -366,6 +367,12 @@ int main( int argc, char *argv[] )
         {
             opt.allow_legacy = atoi( q );
             if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "renegotiate" ) == 0 )
+        {
+            opt.renegotiate = atoi( q );
+            if( opt.renegotiate < 0 || opt.renegotiate > 1 )
                 goto usage;
         }
         else if( strcmp( p, "min_version" ) == 0 )
@@ -929,43 +936,48 @@ reset:
     buf[written] = '\0';
     printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
 
-#ifdef TEST_RENEGO
-    /*
-     * Request renegotiation (this must be done when the client is still
-     * waiting for input from our side).
-     */
-    printf( "  . Requestion renegotiation..." );
-    fflush( stdout );
-    while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
+    if( opt.renegotiate )
     {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        /*
+         * Request renegotiation (this must be done when the client is still
+         * waiting for input from our side).
+         */
+        printf( "  . Requestion renegotiation..." );
+        fflush( stdout );
+        while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
-            goto exit;
-        }
-    }
-
-    /*
-     * Should be a while loop, not an if, but here we're not actually
-     * expecting data from the client, and since we're running tests locally,
-     * we can just hope the handshake will finish the during the first call.
-     */
-    if( ( ret = ssl_read( &ssl, buf, 0 ) ) != 0 )
-    {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
-        {
-            printf( " failed\n  ! ssl_read returned %d\n\n", ret );
-
-            /* Unexpected message probably means client didn't renegotiate */
-            if( ret == POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE )
-                goto reset;
-            else
+            if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
                 goto exit;
+            }
         }
-    }
 
-    printf( " ok\n" );
-#endif
+        /*
+         * Should be a while loop, not an if, but here we're not actually
+         * expecting data from the client, and since we're running tests
+         * locally, we can just hope the handshake will finish the during the
+         * first call.
+         */
+        if( ( ret = ssl_read( &ssl, buf, 0 ) ) != 0 )
+        {
+            if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_read returned %d\n\n", ret );
+
+                /* Unexpected message probably means client didn't renegotiate
+                 * as requested */
+                if( ret == POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE )
+                    goto reset;
+                else
+                    goto exit;
+            }
+        }
+
+        printf( " ok\n" );
+    }
 
     ret = 0;
     goto reset;

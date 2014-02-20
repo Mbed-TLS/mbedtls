@@ -32,7 +32,9 @@ run_test() {
     shift 2
 
     # check client exit code
-    if [ "$1" = 0 -a "$CLI_EXIT" != 0 ]; then
+    if [ \( "$1" = 0 -a "$CLI_EXIT" != 0 \) -o \
+         \( "$1" != 0 -a "$CLI_EXIT" = 0 \) ]
+    then
         echo "FAIL - client exit"
         return
     fi
@@ -84,11 +86,21 @@ run_test() {
 
 killall -q openssl ssl_server ssl_server2
 
-run_test    "Truncated HMAC" \
+# Tests for Truncated HMAC extension
+
+run_test    "Truncated HMAC #0" \
+            "debug_level=5" \
+            "trunc_hmac=0 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "dumping 'computed mac' (20 bytes)"
+
+run_test    "Truncated HMAC #1" \
             "debug_level=5" \
             "trunc_hmac=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -s "dumping 'computed mac' (10 bytes)"
+
+# Tests for Session Tickets
 
 run_test    "Session resume using tickets" \
             "debug_level=4 tickets=1" \
@@ -98,6 +110,8 @@ run_test    "Session resume using tickets" \
             -s "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
+
+# Test for Session Resume base in session-ID and cache
 
 run_test    "Session resume using cache #1" \
             "debug_level=4 tickets=0" \
@@ -116,6 +130,8 @@ run_test    "Session resume using cache #2" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
+
+# Tests for Max Fragment Length extension
 
 run_test    "Max fragment length #1" \
             "debug_level=4" \
@@ -143,3 +159,85 @@ run_test    "Max fragment length #3" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension"
+
+# Tests for renegotiation
+
+run_test    "Renegotiation #0 (none)" \
+            "debug_level=4" \
+            "debug_level=4" \
+            0 \
+            -C "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -S "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -C "renegotiate" \
+            -S "renegotiate" \
+            -S "write hello request"
+
+run_test    "Renegotiation #1 (enabled, client-initiated)" \
+            "debug_level=4" \
+            "debug_level=4 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "renegotiate" \
+            -s "renegotiate" \
+            -S "write hello request"
+
+run_test    "Renegotiation #2 (enabled, server-initiated)" \
+            "debug_level=4 renegotiate=1" \
+            "debug_level=4" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "renegotiate" \
+            -s "renegotiate" \
+            -s "write hello request"
+
+run_test    "Renegotiation #3 (enabled, double)" \
+            "debug_level=4 renegotiate=1" \
+            "debug_level=4 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "renegotiate" \
+            -s "renegotiate" \
+            -s "write hello request"
+
+run_test    "Renegotiation #4 (client-initiated, server-rejected)" \
+            "debug_level=4 renegotiation=0" \
+            "debug_level=4 renegotiate=1" \
+            1 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -S "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "renegotiate" \
+            -S "renegotiate" \
+            -S "write hello request"
+
+run_test    "Renegotiation #5 (server-initiated, client-rejected)" \
+            "debug_level=4 renegotiate=1" \
+            "debug_level=4 renegotiation=0" \
+            0 \
+            -C "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -S "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -C "renegotiate" \
+            -S "renegotiate" \
+            -s "write hello request" \
+            -s "SSL - An unexpected message was received from our peer" \
+            -s "failed"

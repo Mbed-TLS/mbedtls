@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Test interop with OpenSSL for each common ciphersuite and version.
+# Also test selfop for ciphersuites not shared with OpenSSL.
+
 killall -q openssl ssl_server ssl_server2
 
 let "tests = 0"

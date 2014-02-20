@@ -1690,6 +1690,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         ssl->f_get_cache != NULL &&
         ssl->f_get_cache( ssl->p_get_cache, ssl->session_negotiate ) == 0 )
     {
+        SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
         ssl->handshake->resume = 1;
     }
 

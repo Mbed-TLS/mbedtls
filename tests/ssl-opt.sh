@@ -86,7 +86,33 @@ killall -q openssl ssl_server ssl_server2
 
 run_test    "Truncated HMAC" \
             "debug_level=5" \
-            "debug_level=5 trunc_hmac=1 \
-                force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "trunc_hmac=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
-            -s "dumping 'computed mac' (10 bytes)$"
+            -s "dumping 'computed mac' (10 bytes)"
+
+run_test    "Session resume using tickets" \
+            "debug_level=4 tickets=1" \
+            "debug_level=4 reconnect=1 tickets=1" \
+            0 \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache #1" \
+            "debug_level=4 tickets=0" \
+            "debug_level=4 reconnect=1 tickets=1" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache #2" \
+            "debug_level=4 tickets=1" \
+            "debug_level=4 reconnect=1 tickets=0" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"

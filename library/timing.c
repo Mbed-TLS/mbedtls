@@ -302,7 +302,7 @@ void m_sleep( int milliseconds )
     struct timeval tv;
 
     tv.tv_sec  = milliseconds / 1000;
-    tv.tv_usec = milliseconds * 1000;
+    tv.tv_usec = ( milliseconds % 1000 ) * 1000;
 
     select( 0, NULL, NULL, NULL, &tv );
 }

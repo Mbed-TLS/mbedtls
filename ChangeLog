@@ -17,7 +17,7 @@ Changes
 Bugfix
    * ecp_gen_keypair() does more tries to prevent failure because of
      statistics
-   * Fix buf in RSA PKCS#1 v1.5 "reversed" operations
+   * Fix bug in RSA PKCS#1 v1.5 "reversed" operations
    * Fixed testing with out-of-source builds using cmake
    * Fixed version-major intolerance in server
 

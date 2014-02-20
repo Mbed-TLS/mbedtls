@@ -70,6 +70,7 @@
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 #define DFL_CACHE_MAX           -1
+#define DFL_CACHE_TIMEOUT       -1
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -112,6 +113,7 @@ struct options
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int tickets;                /* enable / disable session tickets         */
     int cache_max;              /* max number of session cache entries      */
+    int cache_timeout;          /* expiration delay of session cache entries */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -166,7 +168,8 @@ static void my_debug( void *ctx, int level, const char *str )
 
 #if defined(POLARSSL_SSL_CACHE_C)
 #define USAGE_CACHE                                             \
-    "   cache_max=%%d         default: cache default (50)\n"
+    "    cache_max=%%d        default: cache default (50)\n"    \
+    "    cache_timeout=%%d    default: cache default (1d)\n"
 #else
 #define USAGE_CACHE ""
 #endif /* POLARSSL_SSL_CACHE_C */
@@ -196,6 +199,7 @@ static void my_debug( void *ctx, int level, const char *str )
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    renegotiate=%%d      default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
+    USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
     "\n"                                                    \
     "    min_version=%%s      default: \"ssl3\"\n"          \
@@ -317,6 +321,7 @@ int main( int argc, char *argv[] )
     opt.mfl_code            = DFL_MFL_CODE;
     opt.tickets             = DFL_TICKETS;
     opt.cache_max           = DFL_CACHE_MAX;
+    opt.cache_timeout       = DFL_CACHE_TIMEOUT;
 
     for( i = 1; i < argc; i++ )
     {
@@ -470,6 +475,12 @@ int main( int argc, char *argv[] )
         {
             opt.cache_max = atoi( q );
             if( opt.cache_max < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "cache_timeout" ) == 0 )
+        {
+            opt.cache_timeout = atoi( q );
+            if( opt.cache_timeout < 0 )
                 goto usage;
         }
         else
@@ -744,6 +755,9 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_CACHE_C)
     if( opt.cache_max != -1 )
         ssl_cache_set_max_entries( &cache, opt.cache_max );
+
+    if( opt.cache_timeout != -1 )
+        ssl_cache_set_timeout( &cache, opt.cache_timeout );
 
     ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
                                  ssl_cache_set, &cache );

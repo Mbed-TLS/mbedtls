@@ -27,7 +27,7 @@ run_test() {
     sleep 1
     $CLI_CMD $2 > cli_out
     CLI_EXIT=$?
-    echo SERVERQUIT | openssl s_client >/dev/null 2>&1
+    echo SERVERQUIT | openssl s_client -no_ticket >/dev/null 2>&1
     wait $SRV_PID
     shift 2
 
@@ -106,6 +106,11 @@ run_test    "Session resume using tickets #1" \
             "debug_level=4 tickets=1" \
             "debug_level=4 reconnect=1 tickets=1" \
             0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
             -S "session successfully restored from cache" \
             -s "session successfully restored from ticket" \
             -s "a session has been resumed" \
@@ -115,43 +120,85 @@ run_test    "Session resume using tickets #2" \
             "debug_level=4 tickets=1 cache_max=0" \
             "debug_level=4 reconnect=1 tickets=1" \
             0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
             -S "session successfully restored from cache" \
             -s "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-# Test for Session Resume based on session-ID and cache
+# Tests for Session Resume based on session-ID and cache
 
-run_test    "Session resume using cache #1" \
+run_test    "Session resume using cache #1 (tickets enabled on client)" \
             "debug_level=4 tickets=0" \
-            "debug_level=4 reconnect=1 tickets=1" \
+            "debug_level=4 tickets=1 reconnect=1" \
             0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-run_test    "Session resume using cache #2" \
+run_test    "Session resume using cache #2 (tickets enabled on server)" \
             "debug_level=4 tickets=1" \
-            "debug_level=4 reconnect=1 tickets=0" \
+            "debug_level=4 tickets=0 reconnect=1" \
             0 \
+            -C "client hello, adding session ticket extension" \
+            -S "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-run_test    "Session resume using cache #3" \
+run_test    "Session resume using cache #3 (cache_max=0)" \
             "debug_level=4 tickets=0 cache_max=0" \
-            "debug_level=4 reconnect=1 tickets=0" \
+            "debug_level=4 tickets=0 reconnect=1" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
-            -s "no session has been resumed" \
-            -c "no session has been resumed"
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
 
-run_test    "Session resume using cache #4" \
-            "debug_level=4 tickets=1 cache_max=1" \
-            "debug_level=4 reconnect=1 tickets=0" \
+run_test    "Session resume using cache #4 (cache_max=1)" \
+            "debug_level=4 tickets=0 cache_max=1" \
+            "debug_level=4 tickets=0 reconnect=1" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache #5 (timemout > delay)" \
+            "debug_level=4 tickets=0 cache_timeout=1" \
+            "debug_level=4 tickets=0 reconnect=1 reco_delay=0" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache #6 (timeout < delay)" \
+            "debug_level=4 tickets=0 cache_timeout=1" \
+            "debug_level=4 tickets=0 reconnect=1 reco_delay=2" \
+            0 \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
+
+run_test    "Session resume using cache #7 (no timeout)" \
+            "debug_level=4 tickets=0 cache_timeout=0" \
+            "debug_level=4 tickets=0 reconnect=1 reco_delay=2" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \

@@ -37,6 +37,10 @@
 #include "polarssl/x509.h"
 #include "polarssl/error.h"
 
+#if defined(POLARSSL_TIMING_C)
+#include "polarssl/timing.h"
+#endif
+
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
@@ -57,6 +61,7 @@
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          0
 #define DFL_RECONNECT           0
+#define DFL_RECO_DELAY          0
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 
 #define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
@@ -97,6 +102,7 @@ struct options
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
     int reconnect;              /* attempt to resume session                */
+    int reco_delay;             /* delay in seconds before resuming session */
     int tickets;                /* enable / disable session tickets         */
 } opt;
 
@@ -198,6 +204,13 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_TIMING_C)
+#define USAGE_TIME \
+    "    reco_delay=%%d      default: 0 seconds\n"
+#else
+#define USAGE_TIME ""
+#endif /* POLARSSL_TIMING_C */
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -216,6 +229,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    renegotiate=%%d      default: 0 (disabled)\n"      \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
+    USAGE_TIME                                              \
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
@@ -320,6 +334,7 @@ int main( int argc, char *argv[] )
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.reconnect           = DFL_RECONNECT;
+    opt.reco_delay          = DFL_RECO_DELAY;
     opt.tickets             = DFL_TICKETS;
 
     for( i = 1; i < argc; i++ )
@@ -391,6 +406,12 @@ int main( int argc, char *argv[] )
         {
             opt.reconnect = atoi( q );
             if( opt.reconnect < 0 || opt.reconnect > 2 )
+                goto usage;
+        }
+        else if( strcmp( p, "reco_delay" ) == 0 )
+        {
+            opt.reco_delay = atoi( q );
+            if( opt.reco_delay < 0 )
                 goto usage;
         }
         else if( strcmp( p, "tickets" ) == 0 )
@@ -892,8 +913,10 @@ send_request:
     {
         --opt.reconnect;
 
-        // printf( "  ! Press a key to reconnect\n" );
-        // (void) getchar();
+#if defined(POLARSSL_TIMING_C)
+        if( opt.reco_delay > 0 )
+            m_sleep( 1000 * opt.reco_delay );
+#endif
 
         printf( "  . Reconnecting with saved session..." );
         fflush( stdout );

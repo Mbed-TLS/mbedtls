@@ -116,3 +116,30 @@ run_test    "Session resume using cache #2" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
+
+run_test    "Max fragment length #1" \
+            "debug_level=4" \
+            "debug_level=4" \
+            0 \
+            -C "client hello, adding max_fragment_length extension" \
+            -S "found max fragment length extension" \
+            -S "server hello, max_fragment_length extension" \
+            -C "found max_fragment_length extension"
+
+run_test    "Max fragment length #2" \
+            "debug_level=4" \
+            "debug_level=4 max_frag_len=4096" \
+            0 \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+run_test    "Max fragment length #3" \
+            "debug_level=4 max_frag_len=4096" \
+            "debug_level=4" \
+            0 \
+            -C "client hello, adding max_fragment_length extension" \
+            -S "found max fragment length extension" \
+            -S "server hello, max_fragment_length extension" \
+            -C "found max_fragment_length extension"

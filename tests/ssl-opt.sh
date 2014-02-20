@@ -102,7 +102,7 @@ run_test    "Truncated HMAC #1" \
 
 # Tests for Session Tickets
 
-run_test    "Session resume using tickets" \
+run_test    "Session resume using tickets #1" \
             "debug_level=4 tickets=1" \
             "debug_level=4 reconnect=1 tickets=1" \
             0 \
@@ -111,7 +111,16 @@ run_test    "Session resume using tickets" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-# Test for Session Resume base in session-ID and cache
+run_test    "Session resume using tickets #2" \
+            "debug_level=4 tickets=1 cache_max=0" \
+            "debug_level=4 reconnect=1 tickets=1" \
+            0 \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+# Test for Session Resume based on session-ID and cache
 
 run_test    "Session resume using cache #1" \
             "debug_level=4 tickets=0" \
@@ -124,6 +133,24 @@ run_test    "Session resume using cache #1" \
 
 run_test    "Session resume using cache #2" \
             "debug_level=4 tickets=1" \
+            "debug_level=4 reconnect=1 tickets=0" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache #3" \
+            "debug_level=4 tickets=0 cache_max=0" \
+            "debug_level=4 reconnect=1 tickets=0" \
+            0 \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "no session has been resumed" \
+            -c "no session has been resumed"
+
+run_test    "Session resume using cache #4" \
+            "debug_level=4 tickets=1 cache_max=1" \
             "debug_level=4 reconnect=1 tickets=0" \
             0 \
             -s "session successfully restored from cache" \

@@ -69,6 +69,7 @@
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
+#define DFL_CACHE_MAX           -1
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -110,6 +111,7 @@ struct options
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int tickets;                /* enable / disable session tickets         */
+    int cache_max;              /* max number of session cache entries      */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -161,6 +163,13 @@ static void my_debug( void *ctx, int level, const char *str )
 #else
 #define USAGE_TICKETS ""
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
+
+#if defined(POLARSSL_SSL_CACHE_C)
+#define USAGE_CACHE                                             \
+    "   cache_max=%%d         default: cache default (50)\n"
+#else
+#define USAGE_CACHE ""
+#endif /* POLARSSL_SSL_CACHE_C */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 #define USAGE_MAX_FRAG_LEN                                      \
@@ -307,6 +316,7 @@ int main( int argc, char *argv[] )
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.tickets             = DFL_TICKETS;
+    opt.cache_max           = DFL_CACHE_MAX;
 
     for( i = 1; i < argc; i++ )
     {
@@ -454,6 +464,12 @@ int main( int argc, char *argv[] )
         {
             opt.tickets = atoi( q );
             if( opt.tickets < 0 || opt.tickets > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "cache_max" ) == 0 )
+        {
+            opt.cache_max = atoi( q );
+            if( opt.cache_max < 0 )
                 goto usage;
         }
         else
@@ -726,6 +742,9 @@ int main( int argc, char *argv[] )
     ssl_set_dbg( &ssl, my_debug, stdout );
 
 #if defined(POLARSSL_SSL_CACHE_C)
+    if( opt.cache_max != -1 )
+        ssl_cache_set_max_entries( &cache, opt.cache_max );
+
     ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
                                  ssl_cache_set, &cache );
 #endif

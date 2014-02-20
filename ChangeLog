@@ -33,6 +33,8 @@ Bugfix
    * Programs rsa_sign_pss and rsa_verify_pss were not using PSS since 1.3.0
    * Bignum's MIPS-32 assembly was used on MIPS-64, causing chaos. (Found by
      Alex Wilson.)
+   * Fixed bug in ssl_cache: when max_entries = 0 and TIMING_C is enabled,
+     entries would still be created.
 
 = PolarSSL 1.3.4 released on 2014-01-27
 Features

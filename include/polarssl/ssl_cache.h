@@ -106,7 +106,7 @@ int ssl_cache_set( void *data, const ssl_session *session );
  *                 A timeout of 0 indicates no timeout.
  *
  * \param cache    SSL cache context
- * \param timeout  cache entry timeout
+ * \param timeout  cache entry timeout in seconds
  */
 void ssl_cache_set_timeout( ssl_cache_context *cache, int timeout );
 #endif /* POLARSSL_HAVE_TIME */

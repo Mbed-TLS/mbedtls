@@ -186,8 +186,14 @@ int ssl_cache_set( void *data, const ssl_session *session )
         /*
          * Reuse oldest entry if max_entries reached
          */
-        if( old != NULL && count >= cache->max_entries )
+        if( count >= cache->max_entries )
         {
+            if( old == NULL )
+            {
+                ret = 1;
+                goto exit;
+            }
+
             cur = old;
             memset( &cur->session, 0, sizeof(ssl_session) );
 #if defined(POLARSSL_X509_CRT_PARSE_C)
@@ -228,6 +234,9 @@ int ssl_cache_set( void *data, const ssl_session *session )
 #endif /* POLARSSL_HAVE_TIME */
         else
         {
+            /*
+             * max_entries not reached, create new entry
+             */
             cur = (ssl_cache_entry *) polarssl_malloc( sizeof(ssl_cache_entry) );
             if( cur == NULL )
             {

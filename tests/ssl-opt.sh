@@ -53,7 +53,9 @@ run_test() {
     sleep 1
     $CLI_CMD $2 > cli_out
     CLI_EXIT=$?
-    echo SERVERQUIT | openssl s_client -no_ticket >/dev/null 2>&1
+    echo SERVERQUIT | openssl s_client -no_ticket \
+        -cert data_files/cli2.crt -key data_files/cli2.key \
+        >/dev/null 2>&1
     wait $SRV_PID
     shift 2
 
@@ -67,7 +69,7 @@ run_test() {
     if [ \( "$1" = 0 -a "$CLI_EXIT" != 0 \) -o \
          \( "$1" != 0 -a "$CLI_EXIT" = 0 \) ]
     then
-        fail "client exit"
+        fail "bad client exit code"
         return
     fi
     shift
@@ -375,6 +377,91 @@ run_test    "Renegotiation #5 (server-initiated, client-rejected)" \
             -s "write hello request" \
             -s "SSL - An unexpected message was received from our peer" \
             -s "failed"
+
+# Tests for auth_mode
+
+run_test    "Authentication #1 (server badcert, client required)" \
+            "crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            "debug_level=2 auth_mode=required" \
+            1 \
+            -c "x509_verify_cert() returned" \
+            -c "! self-signed or not signed by a trusted CA" \
+            -c "! ssl_handshake returned" \
+            -c "X509 - Certificate verification failed"
+
+run_test    "Authentication #2 (server badcert, client optional)" \
+            "crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            "debug_level=2 auth_mode=optional" \
+            0 \
+            -c "x509_verify_cert() returned" \
+            -c "! self-signed or not signed by a trusted CA" \
+            -C "! ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+run_test    "Authentication #3 (server badcert, client none)" \
+            "crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            "debug_level=2 auth_mode=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! self-signed or not signed by a trusted CA" \
+            -C "! ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+run_test    "Authentication #4 (client badcert, server required)" \
+            "debug_level=4 auth_mode=required" \
+            "debug_level=4 crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            1 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -s "x509_verify_cert() returned" \
+            -S "! self-signed or not signed by a trusted CA" \
+            -s "! ssl_handshake returned" \
+            -c "! ssl_handshake returned" \
+            -s "X509 - Certificate verification failed"
+
+run_test    "Authentication #5 (client badcert, server optional)" \
+            "debug_level=4 auth_mode=optional" \
+            "debug_level=4 crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -s "x509_verify_cert() returned" \
+            -s "! self-signed or not signed by a trusted CA" \
+            -S "! ssl_handshake returned" \
+            -C "! ssl_handshake returned" \
+            -S "X509 - Certificate verification failed"
+
+run_test    "Authentication #6 (client badcert, server none)" \
+            "debug_level=4 auth_mode=none" \
+            "debug_level=4 crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            0 \
+            -s "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got no certificate request" \
+            -c "skip write certificate" \
+            -c "skip write certificate verify" \
+            -s "skip parse certificate verify" \
+            -S "x509_verify_cert() returned" \
+            -S "! self-signed or not signed by a trusted CA" \
+            -S "! ssl_handshake returned" \
+            -C "! ssl_handshake returned" \
+            -S "X509 - Certificate verification failed"
+
+# Final report
 
 echo "------------------------------------------------------------------------"
 

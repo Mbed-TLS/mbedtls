@@ -2042,7 +2042,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     {
         ssl_get_ecdh_params_from_cert( ssl );
 
-        SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
+        SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;
         return( 0 );
     }

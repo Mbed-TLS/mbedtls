@@ -58,8 +58,9 @@ test-ref-configs:
 
 lcov:
 	rm -rf Coverage
-	( cd library && geninfo *.gcda )
-	( cd library && genhtml -o ../Coverage *.info )
+	( cd library && lcov --capture --directory . -o polarssl.info )
+	( cd library && genhtml --title PolarSSL --legend --no-branch-coverage \
+	    -o ../Coverage polarssl.info )
 
 apidoc:
 	mkdir -p apidoc

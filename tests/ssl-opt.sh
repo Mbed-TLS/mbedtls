@@ -12,6 +12,9 @@ PROGS_DIR='../programs/ssl'
 SRV_CMD="$PROGS_DIR/ssl_server2"
 CLI_CMD="$PROGS_DIR/ssl_client2"
 
+TESTS=0
+FAILS=0
+
 # print_name <name>
 print_name() {
     echo -n "$1 "
@@ -19,12 +22,20 @@ print_name() {
     LEN=`echo 72 - $LEN | bc`
     for i in `seq 1 $LEN`; do echo -n '.'; done
     echo -n ' '
+
+    TESTS=`echo $TESTS + 1 | bc`
 }
 
 # fail <message>
 fail() {
     echo "FAIL"
     echo "    $1"
+
+    cp srv_out srv-${TESTS}.log
+    cp cli_out cli-${TESTS}.log
+    echo "    outputs saved to srv-${TESTS}.log and cli-${TESTS}.log"
+
+    FAILS=`echo $FAILS + 1 | bc`
 }
 
 # Usage: run_test name srv_args cli_args cli_exit [option [...]]
@@ -364,3 +375,15 @@ run_test    "Renegotiation #5 (server-initiated, client-rejected)" \
             -s "write hello request" \
             -s "SSL - An unexpected message was received from our peer" \
             -s "failed"
+
+echo "------------------------------------------------------------------------"
+
+if [ $FAILS = 0 ]; then
+    echo -n "PASSED"
+else
+    echo -n "FAILED"
+fi
+PASSES=`echo $TESTS - $FAILS | bc`
+echo " ($PASSES / $TESTS)"
+
+exit $FAILS

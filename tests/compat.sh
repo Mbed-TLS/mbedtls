@@ -403,16 +403,20 @@ setup_arguments()
     esac
 
     P_SERVER_ARGS="server_addr=0.0.0.0 force_version=$MODE"
-    P_CLIENT_ARGS="server_name=0.0.0.0 force_version=$MODE"
+    P_CLIENT_ARGS="server_name=localhost force_version=$MODE"
     O_SERVER_ARGS="-www -quiet -cipher NULL,ALL -$MODE"
     O_CLIENT_ARGS="-$MODE"
 
     if [ "X$VERIFY" = "XYES" ];
     then
         P_SERVER_ARGS="$P_SERVER_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
-        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/test-ca_cat12.crt"
+        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
         O_SERVER_ARGS="$O_SERVER_ARGS -CAfile data_files/test-ca_cat12.crt -Verify 10"
-        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/test-ca_cat12.crt"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/test-ca_cat12.crt -verify 10"
+    else
+        # ssl_server2 defaults to optional, but we want to test handshakes
+        # that don't exchange client certificate at all too
+        P_SERVER_ARGS="$P_SERVER_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=none"
     fi
 
     case $TYPE in
@@ -424,10 +428,10 @@ setup_arguments()
             ;;
 
         "RSA")
-            P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
-            P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key"
-            O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server1.crt -key data_files/server1.key"
-            O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server2.crt -key data_files/server2.key"
+            P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key"
+            P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server2.crt -key data_files/server2.key"
+            O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server1.crt -key data_files/server1.key"
             ;;
 
         "PSK")

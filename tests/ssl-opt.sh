@@ -12,13 +12,28 @@ PROGS_DIR='../programs/ssl'
 SRV_CMD="$PROGS_DIR/ssl_server2"
 CLI_CMD="$PROGS_DIR/ssl_client2"
 
+# print_name <name>
+print_name() {
+    echo -n "$1 "
+    LEN=`echo "$1" | wc -c`
+    LEN=`echo 72 - $LEN | bc`
+    for i in `seq 1 $LEN`; do echo -n '.'; done
+    echo -n ' '
+}
+
+# fail <message>
+fail() {
+    echo "FAIL"
+    echo "    $1"
+}
+
 # Usage: run_test name srv_args cli_args cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
 run_test() {
-    echo -n "$1: "
+    print_name "$1"
     shift
 
     # run the commands
@@ -31,11 +46,17 @@ run_test() {
     wait $SRV_PID
     shift 2
 
+    # check server exit code
+    if [ $? != 0 ]; then
+        fail "server fail"
+        return
+    fi
+
     # check client exit code
     if [ \( "$1" = 0 -a "$CLI_EXIT" != 0 \) -o \
          \( "$1" != 0 -a "$CLI_EXIT" = 0 \) ]
     then
-        echo "FAIL - client exit"
+        fail "client exit"
         return
     fi
     shift
@@ -46,28 +67,28 @@ run_test() {
         case $1 in
             "-s")
                 if grep "$2" srv_out >/dev/null; then :; else
-                    echo "FAIL - -s $2"
+                    fail "-s $2"
                     return
                 fi
                 ;;
 
             "-c")
                 if grep "$2" cli_out >/dev/null; then :; else
-                    echo "FAIL - -c $2"
+                    fail "-c $2"
                     return
                 fi
                 ;;
 
             "-S")
                 if grep "$2" srv_out >/dev/null; then
-                    echo "FAIL - -S $2"
+                    fail "-S $2"
                     return
                 fi
                 ;;
 
             "-C")
                 if grep "$2" cli_out >/dev/null; then
-                    echo "FAIL - -C $2"
+                    fail "-C $2"
                     return
                 fi
                 ;;

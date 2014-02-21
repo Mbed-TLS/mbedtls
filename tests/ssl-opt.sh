@@ -104,7 +104,7 @@ run_test    "Truncated HMAC #1" \
 
 run_test    "Session resume using tickets #1" \
             "debug_level=4 tickets=1" \
-            "debug_level=4 reconnect=1 tickets=1" \
+            "debug_level=4 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -118,7 +118,35 @@ run_test    "Session resume using tickets #1" \
 
 run_test    "Session resume using tickets #2" \
             "debug_level=4 tickets=1 cache_max=0" \
-            "debug_level=4 reconnect=1 tickets=1" \
+            "debug_level=4 tickets=1 reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using tickets #3" \
+            "debug_level=4 tickets=1 cache_max=0 ticket_timeout=1" \
+            "debug_level=4 tickets=1 reconnect=1 reco_delay=2" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
+
+run_test    "Session resume using tickets #4" \
+            "debug_level=4 tickets=1 cache_max=0 ticket_timeout=2" \
+            "debug_level=4 tickets=1 reconnect=1 reco_delay=0" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \

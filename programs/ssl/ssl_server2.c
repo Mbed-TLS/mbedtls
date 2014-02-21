@@ -69,6 +69,7 @@
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
+#define DFL_TICKET_TIMEOUT      -1
 #define DFL_CACHE_MAX           -1
 #define DFL_CACHE_TIMEOUT       -1
 
@@ -112,6 +113,7 @@ struct options
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int tickets;                /* enable / disable session tickets         */
+    int ticket_timeout;         /* session ticket lifetime                  */
     int cache_max;              /* max number of session cache entries      */
     int cache_timeout;          /* expiration delay of session cache entries */
 } opt;
@@ -161,7 +163,8 @@ static void my_debug( void *ctx, int level, const char *str )
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
-    "    tickets=%%d          default: 1 (enabled)\n"
+    "    tickets=%%d          default: 1 (enabled)\n"       \
+    "    ticket_timeout=%%d   default: ticket default (1d)\n"
 #else
 #define USAGE_TICKETS ""
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
@@ -320,6 +323,7 @@ int main( int argc, char *argv[] )
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.tickets             = DFL_TICKETS;
+    opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
     opt.cache_max           = DFL_CACHE_MAX;
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
 
@@ -469,6 +473,12 @@ int main( int argc, char *argv[] )
         {
             opt.tickets = atoi( q );
             if( opt.tickets < 0 || opt.tickets > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "ticket_timeout" ) == 0 )
+        {
+            opt.ticket_timeout = atoi( q );
+            if( opt.ticket_timeout < 0 )
                 goto usage;
         }
         else if( strcmp( p, "cache_max" ) == 0 )
@@ -765,6 +775,9 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_set_session_tickets( &ssl, opt.tickets );
+
+    if( opt.ticket_timeout != -1 )
+        ssl_set_session_ticket_lifetime( &ssl, opt.ticket_timeout );
 #endif
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )

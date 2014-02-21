@@ -2273,6 +2273,11 @@
 #error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && \
+        !defined(POLARSSL_X509_CRT_PARSE_C)
+#error "POLARSSL_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_THREADING_PTHREAD)
 #if !defined(POLARSSL_THREADING_C) || defined(POLARSSL_THREADING_IMPL)
 #error "POLARSSL_THREADING_PTHREAD defined, but not all prerequisites"

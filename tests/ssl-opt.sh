@@ -471,6 +471,6 @@ else
     echo -n "FAILED"
 fi
 PASSES=`echo $TESTS - $FAILS | bc`
-echo " ($PASSES / $TESTS)"
+echo " ($PASSES / $TESTS tests)"
 
 exit $FAILS

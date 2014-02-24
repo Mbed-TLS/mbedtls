@@ -447,8 +447,6 @@ setup_arguments()
 # start_server <name>
 # also saves name and command
 start_server() {
-    echo "-----------"
-
     case $1 in
         [Oo]pen*)
             SERVER_CMD="$OPENSSL s_server $O_SERVER_ARGS"
@@ -526,20 +524,26 @@ run_client() {
 
     # report and count result
     let "tests++"
-    echo -n "$SERVER_NAME Server - $1 Client - $2 : $EXIT - "
+    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+    TITLE="${1:0:1}->${SERVER_NAME:0:1} $MODE,$VERIF $2 "
+    echo -n "$TITLE"
+    LEN=`echo "$TITLE" | wc -c`
+    LEN=`echo 72 - $LEN | bc`
+    for i in `seq 1 $LEN`; do echo -n '.'; done; echo -n ' '
     case $RESULT in
         "0")
-            echo Success
+            echo PASS
             ;;
         "1")
-            echo "Ciphersuite not supported"
+            echo SKIP
             let "skipped++"
             ;;
         "2")
-            echo Failed
-            echo "$SERVER_CMD"
-            echo "$CLIENT_CMD"
-            echo "$OUTPUT"
+            echo FAIL
+            echo "  ! $SERVER_CMD"
+            echo "  ! $CLIENT_CMD"
+            echo -n "  ! ... "
+            echo "$OUTPUT" | tail -c72
             let "failed++"
             ;;
     esac
@@ -547,8 +551,6 @@ run_client() {
 
 for VERIFY in $VERIFIES; do
     for MODE in $MODES; do
-        echo "-----------"
-        echo "Running for $MODE (Verify: $VERIFY)"
         for TYPE in $TYPES; do
 
             setup_arguments
@@ -568,7 +570,6 @@ for VERIFY in $VERIFIES; do
                 run_client OpenSSL $i
             done
 
-            echo "-----------"
             add_polarssl_ciphersuites
 
             for i in $P_CIPHERS; do
@@ -581,9 +582,7 @@ for VERIFY in $VERIFIES; do
     done
 done
 
-echo ""
-echo "-------------------------------------------------------------------------"
-echo ""
+echo "------------------------------------------------------------------------"
 
 if (( failed != 0 ));
 then

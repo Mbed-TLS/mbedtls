@@ -56,6 +56,12 @@ check: lib
 test-ref-configs:
 	tests/scripts/test-ref-configs.pl
 
+testcov:
+	make check
+	programs/test/selftest
+	( cd tests && ./compat.sh )
+	( cd tests && ./ssl-opt.sh )
+
 lcov:
 	rm -rf Coverage
 	( cd library && lcov --capture --directory . -o polarssl.info )

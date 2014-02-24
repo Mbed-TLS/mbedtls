@@ -88,7 +88,10 @@ static unsigned long add_count, dbl_count, mul_count;
     defined(POLARSSL_ECP_DP_SECP521R1_ENABLED) ||   \
     defined(POLARSSL_ECP_DP_BP256R1_ENABLED)   ||   \
     defined(POLARSSL_ECP_DP_BP384R1_ENABLED)   ||   \
-    defined(POLARSSL_ECP_DP_BP512R1_ENABLED)
+    defined(POLARSSL_ECP_DP_BP512R1_ENABLED)   ||   \
+    defined(POLARSSL_ECP_DP_SECP192K1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP224K1_ENABLED) ||   \
+    defined(POLARSSL_ECP_DP_SECP256K1_ENABLED)
 #define POLARSSL_ECP_SHORT_WEIERSTRASS
 #endif
 

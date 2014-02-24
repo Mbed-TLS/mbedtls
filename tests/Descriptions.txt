@@ -1,0 +1,16 @@
+test_suites
+    The various 'test_suite_XXX' programs from the 'tests' directory, executed
+    using 'make check' (Unix make) or 'make test' (Cmake), include test cases
+    (reference test vectors, sanity checks, etc.) for all modules except the
+    SSL modules.
+
+compat
+    The 'tests/compat.sh' script checks interoperability with OpenSSL for every
+    ciphersuite, in every version, using client authentication or not.  For
+    each ciphersuite/version it performs a full handshake and a small data
+    exchange.
+
+ssl_opt
+    The 'tests/ssl-opt.sh' script checks various options and/or operations not
+    covered by compat.sh: session resumption (using session cache or tickets),
+    renegotiation, SNI, other extensions, etc.

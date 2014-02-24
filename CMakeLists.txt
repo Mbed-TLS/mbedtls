@@ -76,6 +76,9 @@ ADD_CUSTOM_TARGET(test-ref-config
     COMMAND tests/scripts/test-ref-configs.pl
     )
 
+# add programs/test/selftest even though the selftest functions are
+# called from the testsuites since it runs them in verbose mode,
+# avoiding spurious "uncovered" printf lines
 ADD_CUSTOM_TARGET(covtest
     COMMAND make test
     COMMAND programs/test/selftest
@@ -84,13 +87,14 @@ ADD_CUSTOM_TARGET(covtest
     )
 
 ADD_CUSTOM_TARGET(lcov
-    COMMAND lcov --capture --directory . -o polarssl.info
-    COMMAND genhtml --title PolarSSL --legend --no-branch-coverage -o ../../../Coverage polarssl.info
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/library/CMakeFiles/polarssl.dir
+    COMMAND rm -rf Coverage
+    COMMAND lcov --capture --directory library/CMakeFiles/polarssl.dir -o polarssl.info
+    COMMAND gendesc tests/Descriptions.txt -o descriptions
+    COMMAND genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage polarssl.info
+    COMMAND rm -f polarssl.info descriptions
     )
 
 ADD_CUSTOM_TARGET(memcheck
-    COMMAND rm -rf Coverage
     COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
     COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
     COMMAND rm -f memcheck.log

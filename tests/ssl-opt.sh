@@ -8,9 +8,14 @@
 #
 # Assumes all options are compiled in.
 
+set -u
+
 PROGS_DIR='../programs/ssl'
-P_SRV="$PROGS_DIR/ssl_server2"
+P_SRV="$PROGS_DIR/ssl_server2 server_addr=0.0.0.0" # force IPv4 for OpenSSL
 P_CLI="$PROGS_DIR/ssl_client2"
+
+O_ARGS="-www -cert data_files/server5.crt -key data_files/server5.key"
+O_CLI="echo 'GET / HTTP/1.0' | openssl s_client"
 
 TESTS=0
 FAILS=0
@@ -43,22 +48,27 @@ is_polar() {
     echo "$1" | grep 'ssl_server2\|ssl_client2' > /dev/null
 }
 
-# Usage: run_test name srv_args cli_args cli_exit [option [...]]
+# Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
 run_test() {
-    print_name "$1"
-    shift
+    NAME="$1"
+    SRV_CMD="$2"
+    CLI_CMD="$3"
+    CLI_EXPECT="$4"
+    shift 4
+
+    print_name "$NAME"
 
     # run the commands
-    $SHELL -c "$1" > srv_out 2>&1 &
+    $SHELL -c "$SRV_CMD" > srv_out 2>&1 &
     SRV_PID=$!
     sleep 1
-    $SHELL -c "$2" > cli_out 2>&1
+    $SHELL -c "$CLI_CMD" > cli_out 2>&1
     CLI_EXIT=$?
-    if is_polar $2; then
+    if is_polar "$SRV_CMD"; then
         echo SERVERQUIT | openssl s_client -no_ticket \
             -cert data_files/cli2.crt -key data_files/cli2.key \
             >/dev/null 2>&1
@@ -71,22 +81,20 @@ run_test() {
     # (usefull to avoid tests with only negative assertions and non-zero
     # expected client exit to incorrectly succeed in case of catastrophic
     # failure)
-    if is_polar $1; then
+    if is_polar "$SRV_CMD"; then
         if grep "Performing the SSL/TLS handshake" srv_out >/dev/null; then :;
         else
             fail "server failed to start"
             return
         fi
     fi
-    if is_polar $2; then
+    if is_polar "$CLI_CMD"; then
         if grep "Performing the SSL/TLS handshake" cli_out >/dev/null; then :;
         else
             fail "client failed to start"
             return
         fi
     fi
-
-    shift 2
 
     # check server exit code
     if [ $? != 0 ]; then
@@ -95,13 +103,12 @@ run_test() {
     fi
 
     # check client exit code
-    if [ \( "$1" = 0 -a "$CLI_EXIT" != 0 \) -o \
-         \( "$1" != 0 -a "$CLI_EXIT" = 0 \) ]
+    if [ \( "$CLI_EXPECT" = 0 -a "$CLI_EXIT" != 0 \) -o \
+         \( "$CLI_EXPECT" != 0 -a "$CLI_EXIT" = 0 \) ]
     then
         fail "bad client exit code"
         return
     fi
-    shift
 
     # check options
     while [ $# -gt 0 ]
@@ -167,7 +174,7 @@ run_test    "SSLv2 ClientHello #0 (reference)" \
 # Adding a SSL2-only suite makes OpenSSL client send SSLv2 ClientHello
 run_test    "SSLv2 ClientHello #1 (actual test)" \
             "$P_SRV debug_level=3" \
-            "echo GET / HTTP/1.0 | openssl s_client -cipher DES-CBC-MD5:ALL" \
+            "$O_CLI -cipher 'DES-CBC-MD5:ALL'" \
             0 \
             -s "parse client hello v2" \
             -S "ssl_handshake returned"
@@ -188,7 +195,7 @@ run_test    "Truncated HMAC #1" \
 
 # Tests for Session Tickets
 
-run_test    "Session resume using tickets #1" \
+run_test    "Session resume using tickets #1 (basic)" \
             "$P_SRV debug_level=4 tickets=1" \
             "$P_CLI debug_level=4 tickets=1 reconnect=1" \
             0 \
@@ -202,7 +209,7 @@ run_test    "Session resume using tickets #1" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-run_test    "Session resume using tickets #2" \
+run_test    "Session resume using tickets #2 (cache disabled)" \
             "$P_SRV debug_level=4 tickets=1 cache_max=0" \
             "$P_CLI debug_level=4 tickets=1 reconnect=1" \
             0 \
@@ -216,7 +223,7 @@ run_test    "Session resume using tickets #2" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-run_test    "Session resume using tickets #3" \
+run_test    "Session resume using tickets #3 (timeout)" \
             "$P_SRV debug_level=4 tickets=1 cache_max=0 ticket_timeout=1" \
             "$P_CLI debug_level=4 tickets=1 reconnect=1 reco_delay=2" \
             0 \
@@ -230,7 +237,7 @@ run_test    "Session resume using tickets #3" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
-run_test    "Session resume using tickets #4" \
+run_test    "Session resume using tickets #4 (no timeout)" \
             "$P_SRV debug_level=4 tickets=1 cache_max=0 ticket_timeout=2" \
             "$P_CLI debug_level=4 tickets=1 reconnect=1 reco_delay=0" \
             0 \
@@ -243,6 +250,25 @@ run_test    "Session resume using tickets #4" \
             -s "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
+
+run_test    "Session resume using tickets #5 (openssl server)" \
+            "openssl s_server $O_ARGS" \
+            "$P_CLI debug_level=4 tickets=1 reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using tickets #6 (openssl client)" \
+            "$P_SRV debug_level=4 tickets=1" \
+            "($O_CLI -sess_out sess; $O_CLI -sess_in sess; rm -f sess)" \
+            0 \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed"
 
 # Tests for Session Resume based on session-ID and cache
 

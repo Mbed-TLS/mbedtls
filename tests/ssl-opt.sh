@@ -345,6 +345,24 @@ run_test    "Session resume using cache #7 (no timeout)" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+run_test    "Session resume using cache #8 (openssl client)" \
+            "$P_SRV debug_level=4 tickets=0" \
+            "($O_CLI -sess_out sess; $O_CLI -sess_in sess; rm -f sess)" \
+            0 \
+            -s "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed"
+
+run_test    "Session resume using cache #9 (openssl server)" \
+            "openssl s_server $O_ARGS" \
+            "$P_CLI debug_level=4 tickets=0 reconnect=1" \
+            0 \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
+            -c "a session has been resumed"
+
 # Tests for Max Fragment Length extension
 
 run_test    "Max fragment length #1" \

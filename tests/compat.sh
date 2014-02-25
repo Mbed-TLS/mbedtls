@@ -3,8 +3,6 @@
 # Test interop with OpenSSL for each common ciphersuite and version.
 # Also test selfop for ciphersuites not shared with OpenSSL.
 
-killall -q openssl ssl_server ssl_server2
-
 let "tests = 0"
 let "failed = 0"
 let "skipped = 0"
@@ -481,6 +479,12 @@ stop_server() {
     wait $PROCESS_ID 2>/dev/null
 }
 
+# kill the running server (used when killed by signal)
+cleanup() {
+    kill $PROCESS_ID
+    exit 1
+}
+
 # run_client <name> <cipher>
 run_client() {
     # run the command and interpret result
@@ -548,6 +552,9 @@ run_client() {
             ;;
     esac
 }
+
+killall -q openssl ssl_server ssl_server2
+trap cleanup INT TERM HUP
 
 for VERIFY in $VERIFIES; do
     for MODE in $MODES; do

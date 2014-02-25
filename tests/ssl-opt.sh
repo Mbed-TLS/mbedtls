@@ -48,10 +48,10 @@ run_test() {
     shift
 
     # run the commands
-    eval "$1" > srv_out 2>&1 &
+    $SHELL -c "$1" > srv_out 2>&1 &
     SRV_PID=$!
     sleep 1
-    eval "$2" > cli_out 2>&1
+    $SHELL -c "$2" > cli_out 2>&1
     CLI_EXIT=$?
     echo SERVERQUIT | openssl s_client -no_ticket \
         -cert data_files/cli2.crt -key data_files/cli2.key \
@@ -118,7 +118,13 @@ run_test() {
     rm -r srv_out cli_out
 }
 
+cleanup() {
+    kill $SRV_PID
+    exit 1
+}
+
 killall -q openssl ssl_server ssl_server2
+trap cleanup INT TERM HUP
 
 # Test for SSLv2 ClientHello
 

@@ -42,6 +42,7 @@
 #endif
 
 #define DFL_SERVER_NAME         "localhost"
+#define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_DEBUG_LEVEL         0
@@ -83,6 +84,7 @@
 struct options
 {
     const char *server_name;    /* hostname of the server (client only)     */
+    const char *server_addr;    /* address of the server (client only)      */
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     const char *request_page;   /* page on server to request                */
@@ -215,6 +217,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
     "    server_name=%%s      default: localhost\n"         \
+    "    server_addr=%%s      default: given by name\n"     \
     "    server_port=%%d      default: 4433\n"              \
     "    request_page=%%s     default: \".\"\n"             \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
@@ -315,6 +318,7 @@ int main( int argc, char *argv[] )
     }
 
     opt.server_name         = DFL_SERVER_NAME;
+    opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.request_page        = DFL_REQUEST_PAGE;
@@ -346,6 +350,8 @@ int main( int argc, char *argv[] )
 
         if( strcmp( p, "server_name" ) == 0 )
             opt.server_name = q;
+        else if( strcmp( p, "server_addr" ) == 0 )
+            opt.server_addr = q;
         else if( strcmp( p, "server_port" ) == 0 )
         {
             opt.server_port = atoi( q );
@@ -682,11 +688,14 @@ int main( int argc, char *argv[] )
     /*
      * 2. Start the connection
      */
-    printf( "  . Connecting to tcp/%s/%-4d...", opt.server_name,
+    if( opt.server_addr == NULL)
+        opt.server_addr = opt.server_name;
+
+    printf( "  . Connecting to tcp/%s/%-4d...", opt.server_addr,
                                                 opt.server_port );
     fflush( stdout );
 
-    if( ( ret = net_connect( &server_fd, opt.server_name,
+    if( ( ret = net_connect( &server_fd, opt.server_addr,
                                          opt.server_port ) ) != 0 )
     {
         printf( " failed\n  ! net_connect returned -0x%x\n\n", -ret );

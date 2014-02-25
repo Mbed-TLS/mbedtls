@@ -48,10 +48,10 @@ run_test() {
     shift
 
     # run the commands
-    $SRV_CMD $1 > srv_out &
+    $SHELL -c "$SRV_CMD $1" > srv_out &
     SRV_PID=$!
     sleep 1
-    $CLI_CMD $2 > cli_out
+    $SHELL -c "$CLI_CMD $2" > cli_out
     CLI_EXIT=$?
     echo SERVERQUIT | openssl s_client -no_ticket \
         -cert data_files/cli2.crt -key data_files/cli2.key \
@@ -460,6 +460,53 @@ run_test    "Authentication #6 (client badcert, server none)" \
             -S "! ssl_handshake returned" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
+
+# tests for SNI
+
+run_test    "SNI #0 (no SNI callback)" \
+            "debug_level=4 server_addr=127.0.0.1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "debug_level=0 server_addr=127.0.0.1 \
+             server_name=localhost" \
+             0 \
+             -S "parse ServerName extension" \
+             -c "issuer name *: C=NL, O=PolarSSL, CN=Polarssl Test EC CA" \
+             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
+
+run_test    "SNI #1 (matching cert 1)" \
+            "debug_level=4 server_addr=127.0.0.1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni='localhost,data_files/server2.crt,data_files/server2.key,PolarSSL Server 1,data_files/server1.crt,data_files/server1.key'" \
+            "debug_level=0 server_addr=127.0.0.1 \
+             server_name=localhost" \
+             0 \
+             -s "parse ServerName extension" \
+             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
+             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
+
+run_test    "SNI #2 (matching cert 2)" \
+            "debug_level=4 server_addr=127.0.0.1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni='localhost,data_files/server2.crt,data_files/server2.key,PolarSSL Server 1,data_files/server1.crt,data_files/server1.key'" \
+            "debug_level=0 server_addr=127.0.0.1 \
+             server_name='PolarSSL Server 1'" \
+             0 \
+             -s "parse ServerName extension" \
+             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
+             -c "subject name *: C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+
+run_test    "SNI #3 (no matching cert)" \
+            "debug_level=4 server_addr=127.0.0.1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni='localhost,data_files/server2.crt,data_files/server2.key,PolarSSL Server 1,data_files/server1.crt,data_files/server1.key'" \
+            "debug_level=0 server_addr=127.0.0.1 \
+             server_name='PolarSSL Server 2'" \
+             1 \
+             -s "parse ServerName extension" \
+             -s "ssl_sni_wrapper() returned" \
+             -s "ssl_handshake returned" \
+             -c "ssl_handshake returned" \
+             -c "SSL - A fatal alert message was received from our peer"
 
 # Final report
 

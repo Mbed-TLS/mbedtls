@@ -367,6 +367,8 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
     size_t servername_list_size, hostname_len;
     const unsigned char *p;
 
+    SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
+
     servername_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( servername_list_size + 2 != len )
     {
@@ -389,6 +391,7 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
             ret = ssl_sni_wrapper( ssl, p + 3, hostname_len );
             if( ret != 0 )
             {
+                SSL_DEBUG_RET( 1, "ssl_sni_wrapper", ret );
                 ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
                         SSL_ALERT_MSG_UNRECOGNIZED_NAME );
                 return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );

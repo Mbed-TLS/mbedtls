@@ -38,6 +38,11 @@ fail() {
     FAILS=`echo $FAILS + 1 | bc`
 }
 
+# is_polar <cmd_line>
+is_polar() {
+    echo "$1" | grep 'ssl_server2\|ssl_client2' > /dev/null
+}
+
 # Usage: run_test name srv_args cli_args cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -53,10 +58,34 @@ run_test() {
     sleep 1
     $SHELL -c "$2" > cli_out 2>&1
     CLI_EXIT=$?
-    echo SERVERQUIT | openssl s_client -no_ticket \
-        -cert data_files/cli2.crt -key data_files/cli2.key \
-        >/dev/null 2>&1
+    if is_polar $2; then
+        echo SERVERQUIT | openssl s_client -no_ticket \
+            -cert data_files/cli2.crt -key data_files/cli2.key \
+            >/dev/null 2>&1
+    else
+        kill $SRV_PID
+    fi
     wait $SRV_PID
+
+    # check if the client and server went at least to the handshake stage
+    # (usefull to avoid tests with only negative assertions and non-zero
+    # expected client exit to incorrectly succeed in case of catastrophic
+    # failure)
+    if is_polar $1; then
+        if grep "Performing the SSL/TLS handshake" srv_out >/dev/null; then :;
+        else
+            fail "server failed to start"
+            return
+        fi
+    fi
+    if is_polar $2; then
+        if grep "Performing the SSL/TLS handshake" cli_out >/dev/null; then :;
+        else
+            fail "client failed to start"
+            return
+        fi
+    fi
+
     shift 2
 
     # check server exit code

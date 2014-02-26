@@ -46,6 +46,7 @@
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_DEBUG_LEVEL         0
+#define DFL_NBIO                0
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -87,6 +88,7 @@ struct options
     const char *server_addr;    /* address of the server (client only)      */
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
+    int nbio;                   /* should I/O be blocking?                  */
     const char *request_page;   /* page on server to request                */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
@@ -115,6 +117,44 @@ static void my_debug( void *ctx, int level, const char *str )
         fprintf( (FILE *) ctx, "%s", str );
         fflush(  (FILE *) ctx  );
     }
+}
+
+/*
+ * Test recv/send functions that make sure each try returns
+ * WANT_READ/WANT_WRITE at least once before sucesseding
+ */
+static int my_recv( void *ctx, unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_READ );
+    }
+
+    ret = net_recv( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_READ )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
+}
+
+static int my_send( void *ctx, const unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_WRITE );
+    }
+
+    ret = net_send( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
 }
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
@@ -221,8 +261,10 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    server_port=%%d      default: 4433\n"              \
     "    request_page=%%s     default: \".\"\n"             \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "    nbio=%%d             default: 0 (blocking I/O)\n"  \
+    "                        options: 1 (non-blocking), 2 (added delays)\n" \
     "\n"                                                    \
-    "    auth_mode=%%s        default: \"optional\"\n"          \
+    "    auth_mode=%%s        default: \"optional\"\n"      \
     "                        options: none, optional, required\n" \
     USAGE_IO                                                \
     "\n"                                                    \
@@ -321,6 +363,7 @@ int main( int argc, char *argv[] )
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
+    opt.nbio                = DFL_NBIO;
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
@@ -362,6 +405,12 @@ int main( int argc, char *argv[] )
         {
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
+                goto usage;
+        }
+        else if( strcmp( p, "nbio" ) == 0 )
+        {
+            opt.nbio = atoi( q );
+            if( opt.nbio < 0 || opt.nbio > 2 )
                 goto usage;
         }
         else if( strcmp( p, "request_page" ) == 0 )
@@ -702,6 +751,16 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    if( opt.nbio > 0 )
+        ret = net_set_nonblock( server_fd );
+    else
+        ret = net_set_block( server_fd );
+    if( ret != 0 )
+    {
+        printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
     printf( " ok\n" );
 
     /*
@@ -737,8 +796,11 @@ int main( int argc, char *argv[] )
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );
-    ssl_set_bio( &ssl, net_recv, &server_fd,
-                       net_send, &server_fd );
+
+    if( opt.nbio == 2 )
+        ssl_set_bio( &ssl, my_recv, &server_fd, my_send, &server_fd );
+    else
+        ssl_set_bio( &ssl, net_recv, &server_fd, net_send, &server_fd );
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_set_session_tickets( &ssl, opt.tickets );

@@ -3003,14 +3003,17 @@ static int ssl_write_new_session_ticket( ssl_context *ssl )
 
     ssl->out_msglen = 10 + tlen;
 
+    /*
+     * Morally equivalent to updating ssl->state, but NewSessionTicket and
+     * ChangeCipherSpec share the same state.
+     */
+    ssl->handshake->new_session_ticket = 0;
+
     if( ( ret = ssl_write_record( ssl ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_write_record", ret );
         return( ret );
     }
-
-    /* No need to remember writing a NewSessionTicket any more */
-    ssl->handshake->new_session_ticket = 0;
 
     SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
 

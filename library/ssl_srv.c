@@ -310,7 +310,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
     if( ( ret = ssl_load_session( &session, ticket, clear_len ) ) != 0 )
     {
         SSL_DEBUG_MSG( 1, ( "failed to parse ticket content" ) );
-        memset( &session, 0, sizeof( ssl_session ) );
+        ssl_session_free( &session );
         return( ret );
     }
 
@@ -319,7 +319,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
     if( (int) ( time( NULL) - session.start ) > ssl->ticket_lifetime )
     {
         SSL_DEBUG_MSG( 1, ( "session ticket expired" ) );
-        memset( &session, 0, sizeof( ssl_session ) );
+        ssl_session_free( &session );
         return( POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED );
     }
 #endif

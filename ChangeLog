@@ -3,7 +3,7 @@ PolarSSL ChangeLog (Sorted per branch, date)
 = PolarSSL 1.3 branch
 Features
    * HMAC-DRBG as a separate module
-   * Option to set the Curve preference order
+   * Option to set the Curve preference order (disabled by default)
    * Single Platform compatilibity layer (for memory / printf / fprintf)
    * Ability to provide alternate timing implementation
    * Ability to force the entropy module to use SHA-256 as its basis
@@ -33,11 +33,12 @@ Bugfix
    * Programs rsa_sign_pss and rsa_verify_pss were not using PSS since 1.3.0
    * Bignum's MIPS-32 assembly was used on MIPS-64, causing chaos. (Found by
      Alex Wilson.)
-   * Fixed bug in ssl_cache: when max_entries = 0 and TIMING_C is enabled,
-     entries would still be created.
-   * Fixed bug in m_sleep: whould sleep twice too long on most Unix platforms.
+   * ssl_cache was creating entries when max_entries=0 if TIMING_C was enabled.
+   * m_sleep() was sleeping twice too long on most Unix platforms.
    * Fixed bug with session tickets and non-blocking I/O in the unlikely case
    send() would return an EAGAIN error when sending the ticket.
+   * ssl_cache was leaking memory when reusing a timed out entry containing a
+   client certificate.
 
 = PolarSSL 1.3.4 released on 2014-01-27
 Features

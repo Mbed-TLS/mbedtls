@@ -195,14 +195,6 @@ int ssl_cache_set( void *data, const ssl_session *session )
             }
 
             cur = old;
-            memset( &cur->session, 0, sizeof(ssl_session) );
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-            if( cur->peer_cert.p != NULL )
-            {
-                polarssl_free( cur->peer_cert.p );
-                memset( &cur->peer_cert, 0, sizeof(x509_buf) );
-            }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
         }
 #else /* POLARSSL_HAVE_TIME */
         /*
@@ -219,16 +211,7 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
             cur = cache->chain;
             cache->chain = cur->next;
-
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-            if( cur->peer_cert.p != NULL )
-            {
-                polarssl_free( cur->peer_cert.p );
-                memset( &cur->peer_cert, 0, sizeof(x509_buf) );
-            }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
-
-            memset( cur, 0, sizeof(ssl_cache_entry) );
+            cur->next = NULL;
             prv->next = cur;
         }
 #endif /* POLARSSL_HAVE_TIME */
@@ -260,6 +243,15 @@ int ssl_cache_set( void *data, const ssl_session *session )
     memcpy( &cur->session, session, sizeof( ssl_session ) );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
+    /*
+     * If we're reusing an entry, free its certificate first
+     */
+    if( cur->peer_cert.p != NULL )
+    {
+        polarssl_free( cur->peer_cert.p );
+        memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+    }
+
     /*
      * Store peer certificate
      */

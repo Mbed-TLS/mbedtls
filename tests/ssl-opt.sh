@@ -604,6 +604,64 @@ run_test    "SNI #3 (no matching cert)" \
              -c "ssl_handshake returned" \
              -c "SSL - A fatal alert message was received from our peer"
 
+# Tests for non-blocking I/O: exercise a variety of handshake flows
+
+run_test    "Non-blocking I/O #1 (basic handshake)" \
+            "$P_SRV nbio=2 tickets=0 auth_mode=none" \
+            "$P_CLI nbio=2 tickets=0" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Non-blocking I/O #2 (client auth)" \
+            "$P_SRV nbio=2 tickets=0 auth_mode=required" \
+            "$P_CLI nbio=2 tickets=0" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Non-blocking I/O #3 (ticket)" \
+            "$P_SRV nbio=2 tickets=1 auth_mode=none" \
+            "$P_CLI nbio=2 tickets=1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Non-blocking I/O #4 (ticket + client auth)" \
+            "$P_SRV nbio=2 tickets=1 auth_mode=required" \
+            "$P_CLI nbio=2 tickets=1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Non-blocking I/O #5 (ticket + client auth + resume)" \
+            "$P_SRV nbio=2 tickets=1 auth_mode=required" \
+            "$P_CLI nbio=2 tickets=1 reconnect=1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Non-blocking I/O #6 (ticket + resume)" \
+            "$P_SRV nbio=2 tickets=1 auth_mode=none" \
+            "$P_CLI nbio=2 tickets=1 reconnect=1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Non-blocking I/O #7 (session-id resume)" \
+            "$P_SRV nbio=2 tickets=0 auth_mode=none" \
+            "$P_CLI nbio=2 tickets=0 reconnect=1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
 # Final report
 
 echo "------------------------------------------------------------------------"

@@ -151,7 +151,7 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
-    rm -r srv_out cli_out
+    rm -f srv_out cli_out
 }
 
 cleanup() {
@@ -166,7 +166,7 @@ trap cleanup INT TERM HUP
 
 run_test    "SSLv2 ClientHello #0 (reference)" \
             "$P_SRV debug_level=3" \
-            "echo GET / HTTP/1.0 | openssl s_client -no_ssl2" \
+            "$O_CLI -no_ssl2" \
             0 \
             -S "parse client hello v2" \
             -S "ssl_handshake returned"
@@ -661,6 +661,76 @@ run_test    "Non-blocking I/O #7 (session-id resume)" \
             -S "ssl_handshake returned" \
             -C "ssl_handshake returned" \
             -c "Read from server: .* bytes read"
+
+run_test    "Version check #1 (all -> 1.2)" \
+            "$P_SRV" \
+            "$P_CLI" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -s "Protocol is TLSv1.2" \
+            -c "Protocol is TLSv1.2"
+
+run_test    "Version check #2 (cli max 1.1 -> 1.1)" \
+            "$P_SRV" \
+            "$P_CLI max_version=tls1_1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -s "Protocol is TLSv1.1" \
+            -c "Protocol is TLSv1.1"
+
+run_test    "Version check #3 (srv max 1.1 -> 1.1)" \
+            "$P_SRV max_version=tls1_1" \
+            "$P_CLI" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -s "Protocol is TLSv1.1" \
+            -c "Protocol is TLSv1.1"
+
+run_test    "Version check #4 (cli+srv max 1.1 -> 1.1)" \
+            "$P_SRV max_version=tls1_1" \
+            "$P_CLI max_version=tls1_1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -s "Protocol is TLSv1.1" \
+            -c "Protocol is TLSv1.1"
+
+run_test    "Version check #5 (cli max 1.1, srv min 1.1 -> 1.1)" \
+            "$P_SRV min_version=tls1_1" \
+            "$P_CLI max_version=tls1_1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -s "Protocol is TLSv1.1" \
+            -c "Protocol is TLSv1.1"
+
+run_test    "Version check #6 (cli min 1.1, srv max 1.1 -> 1.1)" \
+            "$P_SRV max_version=tls1_1" \
+            "$P_CLI min_version=tls1_1" \
+            0 \
+            -S "ssl_handshake returned" \
+            -C "ssl_handshake returned" \
+            -s "Protocol is TLSv1.1" \
+            -c "Protocol is TLSv1.1"
+
+run_test    "Version check #7 (cli min 1.2, srv max 1.1 -> fail)" \
+            "$P_SRV max_version=tls1_1" \
+            "$P_CLI min_version=tls1_2" \
+            1 \
+            -s "ssl_handshake returned" \
+            -c "ssl_handshake returned" \
+            -c "SSL - Handshake protocol not within min/max boundaries"
+
+run_test    "Version check #8 (srv min 1.2, cli max 1.1 -> fail)" \
+            "$P_SRV min_version=tls1_2" \
+            "$P_CLI max_version=tls1_1" \
+            1 \
+            -s "ssl_handshake returned" \
+            -c "ssl_handshake returned" \
+            -s "SSL - Handshake protocol not within min/max boundaries"
 
 # Final report
 

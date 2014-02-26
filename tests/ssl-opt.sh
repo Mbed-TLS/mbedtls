@@ -20,6 +20,34 @@ O_CLI="echo 'GET / HTTP/1.0' | openssl s_client"
 TESTS=0
 FAILS=0
 
+MEMCHECK=0
+
+print_usage() {
+    echo "Usage: $0 [options]"
+    echo -e "  -h, --help\tPrint this help."
+    echo -e "  -m, --memcheck\tCheck memory leaks."
+}
+
+get_options() {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -m|--memcheck)
+                MEMCHECK=1
+                ;;
+            -h|--help)
+                print_usage
+                exit 0
+                ;;
+            *)
+                echo "Unkown argument: '$1'"
+                print_usage
+                exit 1
+                ;;
+        esac
+        shift
+    done
+}
+
 # print_name <name>
 print_name() {
     echo -n "$1 "
@@ -48,6 +76,17 @@ is_polar() {
     echo "$1" | grep 'ssl_server2\|ssl_client2' > /dev/null
 }
 
+# has_mem_err <log_file_name>
+has_mem_err() {
+    if ( grep -F 'All heap blocks were freed -- no leaks are possible' "$1" &&
+         grep -F 'ERROR SUMMARY: 0 errors from 0 contexts' "$1" ) > /dev/null
+    then
+        return 1 # false: does not have errors
+    else
+        return 0 # true: has errors
+    fi
+}
+
 # Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -61,6 +100,16 @@ run_test() {
     shift 4
 
     print_name "$NAME"
+
+    # prepend valgrind to our commands if active
+    if [ "$MEMCHECK" -gt 0 ]; then
+        if is_polar "$SRV_CMD"; then
+            SRV_CMD="valgrind --leak-check=full $SRV_CMD"
+        fi
+        if is_polar "$CLI_CMD"; then
+            CLI_CMD="valgrind --leak-check=full $CLI_CMD"
+        fi
+    fi
 
     # run the commands
     $SHELL -c "$SRV_CMD" > srv_out 2>&1 &
@@ -110,7 +159,7 @@ run_test() {
         return
     fi
 
-    # check options
+    # check other assertions
     while [ $# -gt 0 ]
     do
         case $1 in
@@ -149,15 +198,30 @@ run_test() {
         shift 2
     done
 
+    # check valgrind's results
+    if [ "$MEMCHECK" -gt 0 ]; then
+        if is_polar "$SRV_CMD" && has_mem_err srv_out; then
+            fail "Server has memory errors"
+            return
+        fi
+        if is_polar "$CLI_CMD" && has_mem_err cli_out; then
+            fail "Client has memory errors"
+            return
+        fi
+    fi
+
     # if we're here, everything is ok
     echo "PASS"
     rm -f srv_out cli_out
 }
 
 cleanup() {
+    rm -f cli_out srv_out sess
     kill $SRV_PID
     exit 1
 }
+
+get_options "$@"
 
 killall -q openssl ssl_server ssl_server2
 trap cleanup INT TERM HUP
@@ -237,21 +301,7 @@ run_test    "Session resume using tickets #3 (timeout)" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
-run_test    "Session resume using tickets #4 (no timeout)" \
-            "$P_SRV debug_level=4 tickets=1 cache_max=0 ticket_timeout=2" \
-            "$P_CLI debug_level=4 tickets=1 reconnect=1 reco_delay=0" \
-            0 \
-            -c "client hello, adding session ticket extension" \
-            -s "found session ticket extension" \
-            -s "server hello, adding session ticket extension" \
-            -c "found session_ticket extension" \
-            -c "parse new session ticket" \
-            -S "session successfully restored from cache" \
-            -s "session successfully restored from ticket" \
-            -s "a session has been resumed" \
-            -c "a session has been resumed"
-
-run_test    "Session resume using tickets #5 (openssl server)" \
+run_test    "Session resume using tickets #4 (openssl server)" \
             "openssl s_server $O_ARGS" \
             "$P_CLI debug_level=4 tickets=1 reconnect=1" \
             0 \
@@ -260,7 +310,7 @@ run_test    "Session resume using tickets #5 (openssl server)" \
             -c "parse new session ticket" \
             -c "a session has been resumed"
 
-run_test    "Session resume using tickets #6 (openssl client)" \
+run_test    "Session resume using tickets #5 (openssl client)" \
             "$P_SRV debug_level=4 tickets=1" \
             "($O_CLI -sess_out sess; $O_CLI -sess_in sess; rm -f sess)" \
             0 \
@@ -319,7 +369,7 @@ run_test    "Session resume using cache #4 (cache_max=1)" \
             -c "a session has been resumed"
 
 run_test    "Session resume using cache #5 (timemout > delay)" \
-            "$P_SRV debug_level=4 tickets=0 cache_timeout=1" \
+            "$P_SRV debug_level=4 tickets=0" \
             "$P_CLI debug_level=4 tickets=0 reconnect=1 reco_delay=0" \
             0 \
             -s "session successfully restored from cache" \
@@ -403,8 +453,8 @@ run_test    "Renegotiation #0 (none)" \
             -S "found renegotiation extension" \
             -s "server hello, secure renegotiation extension" \
             -c "found renegotiation extension" \
-            -C "renegotiate" \
-            -S "renegotiate" \
+            -C "=> renegotiate" \
+            -S "=> renegotiate" \
             -S "write hello request"
 
 run_test    "Renegotiation #1 (enabled, client-initiated)" \
@@ -416,8 +466,8 @@ run_test    "Renegotiation #1 (enabled, client-initiated)" \
             -s "found renegotiation extension" \
             -s "server hello, secure renegotiation extension" \
             -c "found renegotiation extension" \
-            -c "renegotiate" \
-            -s "renegotiate" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
             -S "write hello request"
 
 run_test    "Renegotiation #2 (enabled, server-initiated)" \
@@ -429,8 +479,8 @@ run_test    "Renegotiation #2 (enabled, server-initiated)" \
             -s "found renegotiation extension" \
             -s "server hello, secure renegotiation extension" \
             -c "found renegotiation extension" \
-            -c "renegotiate" \
-            -s "renegotiate" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
             -s "write hello request"
 
 run_test    "Renegotiation #3 (enabled, double)" \
@@ -442,8 +492,8 @@ run_test    "Renegotiation #3 (enabled, double)" \
             -s "found renegotiation extension" \
             -s "server hello, secure renegotiation extension" \
             -c "found renegotiation extension" \
-            -c "renegotiate" \
-            -s "renegotiate" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
             -s "write hello request"
 
 run_test    "Renegotiation #4 (client-initiated, server-rejected)" \
@@ -455,8 +505,8 @@ run_test    "Renegotiation #4 (client-initiated, server-rejected)" \
             -S "found renegotiation extension" \
             -s "server hello, secure renegotiation extension" \
             -c "found renegotiation extension" \
-            -c "renegotiate" \
-            -S "renegotiate" \
+            -c "=> renegotiate" \
+            -S "=> renegotiate" \
             -S "write hello request"
 
 run_test    "Renegotiation #5 (server-initiated, client-rejected)" \
@@ -468,8 +518,8 @@ run_test    "Renegotiation #5 (server-initiated, client-rejected)" \
             -S "found renegotiation extension" \
             -s "server hello, secure renegotiation extension" \
             -c "found renegotiation extension" \
-            -C "renegotiate" \
-            -S "renegotiate" \
+            -C "=> renegotiate" \
+            -S "=> renegotiate" \
             -s "write hello request" \
             -s "SSL - An unexpected message was received from our peer" \
             -s "failed"

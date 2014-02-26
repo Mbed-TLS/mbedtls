@@ -58,7 +58,7 @@ test-ref-configs:
 
 # note: for coverage testing, build with:
 # CFLAGS='--coverage' make OFLAGS='-g3 -O0'
-testcov:
+covtest:
 	make check
 	# add programs/test/selftest even though the selftest functions are
 	# called from the testsuites since it runs them in verbose mode,

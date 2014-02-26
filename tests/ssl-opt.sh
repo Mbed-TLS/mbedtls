@@ -221,6 +221,10 @@ cleanup() {
     exit 1
 }
 
+#
+# MAIN
+#
+
 get_options "$@"
 
 killall -q openssl ssl_server ssl_server2

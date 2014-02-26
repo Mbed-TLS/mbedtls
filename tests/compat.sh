@@ -14,55 +14,47 @@ OPENSSL=openssl
 FILTER=""
 VERBOSE=""
 
-# Parse arguments
-#
-until [ -z "$1" ]
-do
-  case "$1" in
-    -f|--filter)
-      # Filter ciphersuites
-      shift
-      FILTER=$1
-      ;;
-    -m|--modes)
-      # Perform modes
-      shift
-      MODES=$1
-      ;;
-    -t|--types)
-      # Key exchange types
-      shift
-      TYPES=$1
-      ;;
-    -V|--verify)
-      # Verifiction modes
-      shift
-      VERIFIES=$1
-      ;;
-    -v|--verbose)
-      # Set verbosity
-      shift
-      VERBOSE=1
-      ;;
-    -h|--help)
-      # print help
-      echo "Usage: $0"
-      echo -e "  -f|--filter\tFilter ciphersuites to test (Default: all)"
-      echo -e "  -h|--help\t\tPrint this help."
-      echo -e "  -m|--modes\tWhich modes to perform (Default: \"ssl3 tls1 tls1_1 tls1_2\")"
-      echo -e "  -t|--types\tWhich key exchange type to perform (Default: \"ECDSA RSA PSK\")"
-      echo -e "  -V|--verify\tWhich verification modes to perform (Default: \"NO YES\")"
-      echo -e "  -v|--verbose\t\tSet verbose output."
-      exit 1
-      ;;
-    *)
-      # print error
-      echo "Unknown argument: '$1'"
-      exit 1
-      ;;
-  esac
-  shift
-done
+print_usage() {
+    echo "Usage: $0"
+    echo -e "  -f|--filter\tFilter ciphersuites to test (Default: all)"
+    echo -e "  -h|--help\t\tPrint this help."
+    echo -e "  -m|--modes\tWhich modes to perform (Default: \"ssl3 tls1 tls1_1 tls1_2\")"
+    echo -e "  -t|--types\tWhich key exchange type to perform (Default: \"ECDSA RSA PSK\")"
+    echo -e "  -V|--verify\tWhich verification modes to perform (Default: \"NO YES\")"
+    echo -e "  -v|--verbose\t\tSet verbose output."
+}
+
+get_options() {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -f|--filter)
+                shift; FILTER=$1
+                ;;
+            -m|--modes)
+                shift; MODES=$1
+                ;;
+            -t|--types)
+                shift; TYPES=$1
+                ;;
+            -V|--verify)
+                shift; VERIFIES=$1
+                ;;
+            -v|--verbose)
+                VERBOSE=1
+                ;;
+            -h|--help)
+                print_usage
+                exit 0
+                ;;
+            *)
+                echo "Unknown argument: '$1'"
+                print_usage
+                exit 1
+                ;;
+        esac
+        shift
+    done
+}
 
 log() {
   if [ "X" != "X$VERBOSE" ]; then
@@ -552,6 +544,12 @@ run_client() {
             ;;
     esac
 }
+
+#
+# MAIN
+#
+
+get_options "$@"
 
 killall -q openssl ssl_server ssl_server2
 trap cleanup INT TERM HUP

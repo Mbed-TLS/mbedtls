@@ -415,29 +415,41 @@ setup_arguments()
     else
         # ssl_server2 defaults to optional, but we want to test handshakes
         # that don't exchange client certificate at all too
-        P_SERVER_ARGS="$P_SERVER_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=none"
+        P_SERVER_ARGS="$P_SERVER_ARGS ca_file=none auth_mode=none"
+        # give dummy CA to clients
+        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/cli2.crt"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/cli2.crt"
     fi
 
     case $TYPE in
         "ECDSA")
             P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server5.crt key_file=data_files/server5.key"
-            P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server6.crt key_file=data_files/server6.key"
             O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server5.crt -key data_files/server5.key"
-            O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server6.crt -key data_files/server6.key"
+            if [ "X$VERIFY" = "XYES" ]; then
+                P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server6.crt key_file=data_files/server6.key"
+                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server6.crt -key data_files/server6.key"
+            else
+                P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=none key_file=none"
+            fi
             ;;
 
         "RSA")
             P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key"
-            P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
             O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server2.crt -key data_files/server2.key"
-            O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server1.crt -key data_files/server1.key"
+            if [ "X$VERIFY" = "XYES" ]; then
+                P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
+                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server1.crt -key data_files/server1.key"
+            else
+                P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=none key_file=none"
+            fi
             ;;
 
         "PSK")
-            P_SERVER_ARGS="$P_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70"
-            P_CLIENT_ARGS="$P_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70"
-            # openssl s_server won't start without certificates...
-            O_SERVER_ARGS="$O_SERVER_ARGS -psk 6162636465666768696a6b6c6d6e6f70 -cert data_files/server1.crt -key data_files/server1.key"
+            # give our server a certificate for RSA-PSK
+            # (should be a separate type, but harder to close with openssl)
+            P_SERVER_ARGS="$P_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70 ca_file=none crt_file=data_files/server2.crt key_file=data_files/server2.key"
+            P_CLIENT_ARGS="$P_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
+            O_SERVER_ARGS="$O_SERVER_ARGS -psk 6162636465666768696a6b6c6d6e6f70 -nocert"
             O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
             ;;
     esac
@@ -554,8 +566,8 @@ run_client() {
             echo FAIL
             echo "  ! $SERVER_CMD"
             echo "  ! $CLIENT_CMD"
-            echo -n "  ! ... "
-            tail -n1 cli_out
+            echo -n "  ! end of client output: "
+            tail -n5 cli_out
             let "failed++"
             ;;
     esac

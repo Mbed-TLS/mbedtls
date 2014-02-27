@@ -3,9 +3,12 @@
 # Test interop with OpenSSL for each common ciphersuite and version.
 # Also test selfop for ciphersuites not shared with OpenSSL.
 
+set -u
+
 let "tests = 0"
 let "failed = 0"
 let "skipped = 0"
+let "srvmem = 0"
 
 # default values, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
@@ -17,6 +20,7 @@ VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
 VERBOSE=""
+MEMCHECK=0
 
 print_usage() {
     echo "Usage: $0"
@@ -25,6 +29,7 @@ print_usage() {
     echo -e "  -m|--modes\tWhich modes to perform (Default: \"ssl3 tls1 tls1_1 tls1_2\")"
     echo -e "  -t|--types\tWhich key exchange type to perform (Default: \"ECDSA RSA PSK\")"
     echo -e "  -V|--verify\tWhich verification modes to perform (Default: \"NO YES\")"
+    echo -e "  -M, --memcheck\tCheck memory leaks and errors."
     echo -e "  -v|--verbose\t\tSet verbose output."
 }
 
@@ -45,6 +50,9 @@ get_options() {
                 ;;
             -v|--verbose)
                 VERBOSE=1
+                ;;
+            -M|--memcheck)
+                MEMCHECK=1
                 ;;
             -h|--help)
                 print_usage
@@ -455,6 +463,22 @@ setup_arguments()
     esac
 }
 
+# is_polar <cmd_line>
+is_polar() {
+    echo "$1" | grep 'ssl_server2\|ssl_client2' > /dev/null
+}
+
+# has_mem_err <log_file_name>
+has_mem_err() {
+    if ( grep -F 'All heap blocks were freed -- no leaks are possible' "$1" &&
+         grep -F 'ERROR SUMMARY: 0 errors from 0 contexts' "$1" ) > /dev/null
+    then
+        return 1 # false: does not have errors
+    else
+        return 0 # true: has errors
+    fi
+}
+
 # start_server <name>
 # also saves name and command
 start_server() {
@@ -464,6 +488,9 @@ start_server() {
             ;;
         [Pp]olar*)
             SERVER_CMD="$P_SRV $P_SERVER_ARGS"
+            if [ "$MEMCHECK" -gt 0 ]; then
+                SERVER_CMD="valgrind --leak-check=full $SERVER_CMD"
+            fi
             ;;
         *)
             echo "error: invalid server name: $1" >&2
@@ -494,6 +521,15 @@ stop_server() {
     esac
 
     wait $PROCESS_ID 2>/dev/null
+
+    if [ "$MEMCHECK" -gt 0 ]; then
+        if is_polar "$SERVER_CMD" && has_mem_err srv_out; then
+            echo "  ! Server had memory errors"
+            let "srvmem++"
+            return
+        fi
+    fi
+
     rm -f srv_out
 }
 
@@ -536,8 +572,11 @@ run_client() {
 
         [Pp]olar*)
             CLIENT_CMD="$P_CLI $P_CLIENT_ARGS force_ciphersuite=$2"
+            if [ "$MEMCHECK" -gt 0 ]; then
+                CLIENT_CMD="valgrind --leak-check=full $CLIENT_CMD"
+            fi
             log "$CLIENT_CMD"
-            $CLIENT_CMD > cli_out
+            $CLIENT_CMD > cli_out 2>&1
             EXIT=$?
 
             case $EXIT in
@@ -545,6 +584,13 @@ run_client() {
                 "2")    RESULT=1    ;;
                 *)      RESULT=2    ;;
             esac
+
+            if [ "$MEMCHECK" -gt 0 ]; then
+                if is_polar "$CLIENT_CMD" && has_mem_err cli_out; then
+                    RESULT=2
+                fi
+            fi
+
             ;;
 
         *)
@@ -566,8 +612,9 @@ run_client() {
             echo FAIL
             echo "  ! $SERVER_CMD"
             echo "  ! $CLIENT_CMD"
-            echo -n "  ! end of client output: "
-            tail -n5 cli_out
+            cp srv_out c-srv-${tests}.log
+            cp cli_out c-cli-${tests}.log
+            echo "  ! outputs saved to c-srv-${tests}.log, c-cli-${tests}.log"
             let "failed++"
             ;;
     esac
@@ -637,7 +684,7 @@ done
 
 echo "------------------------------------------------------------------------"
 
-if (( failed != 0 ));
+if (( failed != 0 && srvmem != 0 ));
 then
     echo -n "FAILED"
 else
@@ -645,6 +692,7 @@ else
 fi
 
 let "passed = tests - failed"
-echo " ($passed / $tests tests ($skipped skipped))"
+echo " ($passed / $tests tests ($skipped skipped, $srvmem server memory errors)"
 
+let "failed += srvmem"
 exit $failed

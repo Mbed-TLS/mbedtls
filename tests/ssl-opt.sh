@@ -63,11 +63,11 @@ print_name() {
 # fail <message>
 fail() {
     echo "FAIL"
-    echo "    $1"
+    echo "  ! $1"
 
-    cp srv_out srv-${TESTS}.log
-    cp cli_out cli-${TESTS}.log
-    echo "    outputs saved to srv-${TESTS}.log and cli-${TESTS}.log"
+    cp srv_out o-srv-${TESTS}.log
+    cp cli_out o-cli-${TESTS}.log
+    echo "  ! outputs saved to o-srv-${TESTS}.log and o-cli-${TESTS}.log"
 
     FAILS=`echo $FAILS + 1 | bc`
 }

@@ -626,6 +626,60 @@ run_test    "Authentication #6 (client badcert, server none)" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
+run_test    "Authentication #7 (client no cert, server optional)" \
+            "$P_SRV debug_level=4 auth_mode=optional" \
+            "$P_CLI debug_level=4 crt_file=none key_file=none" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate$" \
+            -C "got no certificate to send" \
+            -S "SSLv3 client has no certificate" \
+            -c "skip write certificate verify" \
+            -s "skip parse certificate verify" \
+            -s "! no client certificate sent" \
+            -S "! ssl_handshake returned" \
+            -C "! ssl_handshake returned" \
+            -S "X509 - Certificate verification failed"
+
+run_test    "Authentication #8 (openssl client no cert, server optional)" \
+            "$P_SRV debug_level=4 auth_mode=optional" \
+            "$O_CLI" \
+            0 \
+            -S "skip write certificate request" \
+            -s "skip parse certificate verify" \
+            -s "! no client certificate sent" \
+            -S "! ssl_handshake returned" \
+            -S "X509 - Certificate verification failed"
+
+run_test    "Authentication #9 (client no cert, openssl server optional)" \
+            "$O_SRV -verify 10" \
+            "$P_CLI debug_level=4 crt_file=none key_file=none" \
+            0 \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate$" \
+            -c "skip write certificate verify" \
+            -C "! ssl_handshake returned"
+
+run_test    "Authentication #10 (client no cert, ssl3)" \
+            "$P_SRV debug_level=4 auth_mode=optional force_version=ssl3" \
+            "$P_CLI debug_level=4 crt_file=none key_file=none" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate$" \
+            -c "skip write certificate verify" \
+            -c "got no certificate to send" \
+            -s "SSLv3 client has no certificate" \
+            -s "skip parse certificate verify" \
+            -s "! no client certificate sent" \
+            -S "! ssl_handshake returned" \
+            -C "! ssl_handshake returned" \
+            -S "X509 - Certificate verification failed"
+
 # tests for SNI
 
 run_test    "SNI #0 (no SNI callback)" \

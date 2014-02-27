@@ -457,7 +457,7 @@ start_server() {
     SERVER_NAME=$1
 
     log "$SERVER_CMD"
-    $SERVER_CMD >/dev/null 2>&1 &
+    $SERVER_CMD >srv_out 2>&1 &
     PROCESS_ID=$!
 
     sleep 1
@@ -474,29 +474,39 @@ stop_server() {
 
     kill $PROCESS_ID 2>/dev/null
     wait $PROCESS_ID 2>/dev/null
+    rm -f srv_out
 }
 
 # kill the running server (used when killed by signal)
 cleanup() {
+    rm -f srv_out cli_out
     kill $PROCESS_ID
     exit 1
 }
 
 # run_client <name> <cipher>
 run_client() {
+    # announce what we're going to do
+    let "tests++"
+    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+    TITLE="${1:0:1}->${SERVER_NAME:0:1} $MODE,$VERIF $2 "
+    echo -n "$TITLE"
+    LEN=`echo "$TITLE" | wc -c`
+    LEN=`echo 72 - $LEN | bc`
+    for i in `seq 1 $LEN`; do echo -n '.'; done; echo -n ' '
+
     # run the command and interpret result
     case $1 in
         [Oo]pen*)
             CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
-            OUTPUT="$( ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD 2>&1 )"
+            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD > cli_out 2>&1
             EXIT=$?
 
             if [ "$EXIT" == "0" ]; then
                 RESULT=0
             else
-                SUPPORTED="$( echo $OUTPUT | grep 'Cipher is (NONE)' )"
-                if [ "X$SUPPORTED" != "X" ]; then
+                if grep 'Cipher is (NONE)' cli_out >/dev/null; then
                     RESULT=1
                 else
                     RESULT=2
@@ -507,7 +517,7 @@ run_client() {
         [Pp]olar*)
             CLIENT_CMD="../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$2"
             log "$CLIENT_CMD"
-            OUTPUT="$( $CLIENT_CMD )"
+            $CLIENT_CMD > cli_out
             EXIT=$?
 
             case $EXIT in
@@ -524,13 +534,6 @@ run_client() {
     esac
 
     # report and count result
-    let "tests++"
-    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-    TITLE="${1:0:1}->${SERVER_NAME:0:1} $MODE,$VERIF $2 "
-    echo -n "$TITLE"
-    LEN=`echo "$TITLE" | wc -c`
-    LEN=`echo 72 - $LEN | bc`
-    for i in `seq 1 $LEN`; do echo -n '.'; done; echo -n ' '
     case $RESULT in
         "0")
             echo PASS
@@ -544,10 +547,12 @@ run_client() {
             echo "  ! $SERVER_CMD"
             echo "  ! $CLIENT_CMD"
             echo -n "  ! ... "
-            echo "$OUTPUT" | tail -c72
+            tail -n1 cli_out
             let "failed++"
             ;;
     esac
+
+    rm -f cli_out
 }
 
 #

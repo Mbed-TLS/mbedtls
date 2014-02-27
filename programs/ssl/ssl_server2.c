@@ -786,9 +786,15 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.ca_path ) )
-        ret = x509_crt_parse_path( &cacert, opt.ca_path );
+        if( strcmp( opt.ca_path, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_path( &cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
-        ret = x509_crt_parse_file( &cacert, opt.ca_file );
+        if( strcmp( opt.ca_file, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
@@ -815,7 +821,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
 #if defined(POLARSSL_FS_IO)
-    if( strlen( opt.crt_file ) )
+    if( strlen( opt.crt_file ) && strcmp( opt.crt_file, "none" ) != 0 )
     {
         key_cert_init++;
         if( ( ret = x509_crt_parse_file( &srvcert, opt.crt_file ) ) != 0 )
@@ -825,7 +831,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-    if( strlen( opt.key_file ) )
+    if( strlen( opt.key_file ) && strcmp( opt.key_file, "none" ) != 0 )
     {
         key_cert_init++;
         if( ( ret = pk_parse_keyfile( &pkey, opt.key_file, "" ) ) != 0 )
@@ -840,7 +846,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( strlen( opt.crt_file2 ) )
+    if( strlen( opt.crt_file2 ) && strcmp( opt.crt_file2, "none" ) != 0 )
     {
         key_cert_init2++;
         if( ( ret = x509_crt_parse_file( &srvcert2, opt.crt_file2 ) ) != 0 )
@@ -850,7 +856,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-    if( strlen( opt.key_file2 ) )
+    if( strlen( opt.key_file2 ) && strcmp( opt.key_file2, "none" ) != 0 )
     {
         key_cert_init2++;
         if( ( ret = pk_parse_keyfile( &pkey2, opt.key_file2, "" ) ) != 0 )
@@ -866,7 +872,12 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 #endif
-    if( key_cert_init == 0 && key_cert_init2 == 0 )
+    if( key_cert_init == 0 &&
+        strcmp( opt.crt_file, "none" ) != 0 &&
+        strcmp( opt.key_file, "none" ) != 0 &&
+        key_cert_init2 == 0 &&
+        strcmp( opt.crt_file2, "none" ) != 0 &&
+        strcmp( opt.key_file2, "none" ) != 0 )
     {
 #if !defined(POLARSSL_CERTS_C)
         printf( "Not certificated or key provided, and \n"
@@ -991,7 +1002,11 @@ int main( int argc, char *argv[] )
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
+    if( strcmp( opt.ca_path, "none" ) != 0 &&
+        strcmp( opt.ca_file, "none" ) != 0 )
+    {
+        ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
+    }
     if( key_cert_init )
         ssl_set_own_cert( &ssl, &srvcert, &pkey );
     if( key_cert_init2 )

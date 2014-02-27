@@ -661,9 +661,15 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.ca_path ) )
-        ret = x509_crt_parse_path( &cacert, opt.ca_path );
+        if( strcmp( opt.ca_path, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_path( &cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
-        ret = x509_crt_parse_file( &cacert, opt.ca_file );
+        if( strcmp( opt.ca_file, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
@@ -693,7 +699,10 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
-        ret = x509_crt_parse_file( &clicert, opt.crt_file );
+        if( strcmp( opt.crt_file, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_file( &clicert, opt.crt_file );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
@@ -713,7 +722,10 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = pk_parse_keyfile( &pkey, opt.key_file, "" );
+        if( strcmp( opt.key_file, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = pk_parse_keyfile( &pkey, opt.key_file, "" );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
@@ -813,8 +825,16 @@ int main( int argc, char *argv[] )
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
-    ssl_set_own_cert( &ssl, &clicert, &pkey );
+    if( strcmp( opt.ca_path, "none" ) != 0 &&
+        strcmp( opt.ca_file, "none" ) != 0 )
+    {
+        ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
+    }
+    if( strcmp( opt.crt_file, "none" ) != 0 &&
+        strcmp( opt.key_file, "none" ) != 0 )
+    {
+        ssl_set_own_cert( &ssl, &clicert, &pkey );
+    }
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)

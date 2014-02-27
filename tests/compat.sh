@@ -74,7 +74,8 @@ filter()
     NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" )"
   done
 
-  echo "$NEW_LIST"
+  # make sure the list is actually empty if it contains only whitespace
+  echo "$NEW_LIST" | sed -e 's/^[[:space:]]*//'
 }
 
 setup_ciphersuites()
@@ -374,11 +375,15 @@ add_polarssl_ciphersuites()
     esac
 
     # Filter new ciphersuites and add them
-    if [ "X" != "X$FILTER" ];
-    then
+    if [ "X" != "X$FILTER" ]; then
         ADD_CIPHERS=$( filter "$ADD_CIPHERS" "$FILTER" )
     fi
-    P_CIPHERS="$P_CIPHERS $ADD_CIPHERS"
+    # avoid P_CIPHERS being only ' '
+    if [ "X" != "X$P_CIPHERS" ]; then
+        P_CIPHERS="$P_CIPHERS $ADD_CIPHERS"
+    else
+        P_CIPHERS="$ADD_CIPHERS"
+    fi
 }
 
 setup_arguments()
@@ -561,27 +566,31 @@ for VERIFY in $VERIFIES; do
             setup_arguments
             setup_ciphersuites
 
-            start_server "OpenSSL"
+            if [ "X" != "X$P_CIPHERS" ]; then
+                start_server "OpenSSL"
+                for i in $P_CIPHERS; do
+                    run_client PolarSSL $i
+                done
+                stop_server
+            fi
 
-            for i in $P_CIPHERS; do
-                run_client PolarSSL $i
-            done
-
-            stop_server
-
-            start_server "PolarSSL"
-
-            for i in $O_CIPHERS; do
-                run_client OpenSSL $i
-            done
+            if [ "X" != "X$O_CIPHERS" ]; then
+                start_server "PolarSSL"
+                for i in $O_CIPHERS; do
+                    run_client OpenSSL $i
+                done
+                stop_server
+            fi
 
             add_polarssl_ciphersuites
 
-            for i in $P_CIPHERS; do
-                run_client PolarSSL $i
-            done
-
-            stop_server
+            if [ "X" != "X$P_CIPHERS" ]; then
+                start_server "PolarSSL"
+                for i in $P_CIPHERS; do
+                    run_client PolarSSL $i
+                done
+                stop_server
+            fi
 
         done
     done

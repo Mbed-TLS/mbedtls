@@ -74,8 +74,8 @@ filter()
     NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" )"
   done
 
-  # make sure the list is actually empty if it contains only whitespace
-  echo "$NEW_LIST" | sed -e 's/^[[:space:]]*//'
+  # normalize whitespace
+  echo "$NEW_LIST" | sed -e 's/[[:space:]]\+/ /g' -e 's/^ //' -e 's/ $//'
 }
 
 setup_ciphersuites()
@@ -463,16 +463,20 @@ start_server() {
     sleep 1
 }
 
-# terminate the running server (try closing it cleanly if possible)
+# terminate the running server (closing it cleanly if it is ours)
 stop_server() {
     case $SERVER_NAME in
         [Pp]olar*)
-            echo SERVERQUIT | $OPENSSL s_client $O_CLIENT_ARGS >/dev/null 2>&1
-            sleep 1
+            # we must force a PSK suite when in PSK mode (otherwise client
+            # auth will fail), so use $O_CIPHERS
+            CS=$( echo "$O_CIPHERS" | tr ' ' ':' )
+            echo SERVERQUIT | \
+                $OPENSSL s_client $O_CLIENT_ARGS -cipher "$CS" >/dev/null 2>&1
             ;;
+        *)
+            kill $PROCESS_ID 2>/dev/null
     esac
 
-    kill $PROCESS_ID 2>/dev/null
     wait $PROCESS_ID 2>/dev/null
     rm -f srv_out
 }

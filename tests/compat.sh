@@ -7,10 +7,14 @@ let "tests = 0"
 let "failed = 0"
 let "skipped = 0"
 
+# default values, can be overriden by the environment
+: ${P_SRV:=../programs/ssl/ssl_server2}
+: ${P_CLI:=../programs/ssl/ssl_client2}
+: ${OPENSSL:=openssl}
+
 MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
-OPENSSL=openssl
 FILTER=""
 VERBOSE=""
 
@@ -447,7 +451,7 @@ start_server() {
             SERVER_CMD="$OPENSSL s_server $O_SERVER_ARGS"
             ;;
         [Pp]olar*)
-            SERVER_CMD="../programs/ssl/ssl_server2 $P_SERVER_ARGS"
+            SERVER_CMD="$P_SRV $P_SERVER_ARGS"
             ;;
         *)
             echo "error: invalid server name: $1" >&2
@@ -519,7 +523,7 @@ run_client() {
             ;;
 
         [Pp]olar*)
-            CLIENT_CMD="../programs/ssl/ssl_client2 $P_CLIENT_ARGS force_ciphersuite=$2"
+            CLIENT_CMD="$P_CLI $P_CLIENT_ARGS force_ciphersuite=$2"
             log "$CLIENT_CMD"
             $CLIENT_CMD > cli_out
             EXIT=$?
@@ -562,6 +566,20 @@ run_client() {
 #
 # MAIN
 #
+
+# sanity checks, avoid an avalanche of errors
+if [ ! -x "$P_SRV" ]; then
+    echo "Command '$P_SRV' is not an executable file"
+    exit 1
+fi
+if [ ! -x "$P_CLI" ]; then
+    echo "Command '$P_CLI' is not an executable file"
+    exit 1
+fi
+if which $OPENSSL >/dev/null 2>&1; then :; else
+    echo "Command '$OPENSSL' not found"
+    exit 1
+fi
 
 get_options "$@"
 

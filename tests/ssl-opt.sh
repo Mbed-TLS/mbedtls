@@ -10,12 +10,13 @@
 
 set -u
 
-PROGS_DIR='../programs/ssl'
-P_SRV="$PROGS_DIR/ssl_server2 server_addr=0.0.0.0" # force IPv4 for OpenSSL
-P_CLI="$PROGS_DIR/ssl_client2"
+# default values, can be overriden by the environment
+: ${P_SRV:=../programs/ssl/ssl_server2}
+: ${P_CLI:=../programs/ssl/ssl_client2}
+: ${OPENSSL:=openssl}
 
-O_ARGS="-www -cert data_files/server5.crt -key data_files/server5.key"
-O_CLI="echo 'GET / HTTP/1.0' | openssl s_client"
+O_SRV="$OPENSSL s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL s_client"
 
 TESTS=0
 FAILS=0
@@ -25,7 +26,7 @@ MEMCHECK=0
 print_usage() {
     echo "Usage: $0 [options]"
     echo -e "  -h, --help\tPrint this help."
-    echo -e "  -m, --memcheck\tCheck memory leaks."
+    echo -e "  -m, --memcheck\tCheck memory leaks and errors."
 }
 
 get_options() {
@@ -118,7 +119,7 @@ run_test() {
     $SHELL -c "$CLI_CMD" > cli_out 2>&1
     CLI_EXIT=$?
     if is_polar "$SRV_CMD"; then
-        echo SERVERQUIT | openssl s_client -no_ticket \
+        echo SERVERQUIT | $OPENSSL s_client -no_ticket \
             -cert data_files/cli2.crt -key data_files/cli2.key \
             >/dev/null 2>&1
     else
@@ -225,6 +226,20 @@ cleanup() {
 # MAIN
 #
 
+# sanity checks, avoid an avalanche of errors
+if [ ! -x "$P_SRV" ]; then
+    echo "Command '$P_SRV' is not an executable file"
+    exit 1
+fi
+if [ ! -x "$P_CLI" ]; then
+    echo "Command '$P_CLI' is not an executable file"
+    exit 1
+fi
+if which $OPENSSL >/dev/null 2>&1; then :; else
+    echo "Command '$OPENSSL' not found"
+    exit 1
+fi
+
 get_options "$@"
 
 killall -q openssl ssl_server ssl_server2
@@ -306,7 +321,7 @@ run_test    "Session resume using tickets #3 (timeout)" \
             -C "a session has been resumed"
 
 run_test    "Session resume using tickets #4 (openssl server)" \
-            "openssl s_server $O_ARGS" \
+            "$O_SRV" \
             "$P_CLI debug_level=4 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
@@ -410,7 +425,7 @@ run_test    "Session resume using cache #8 (openssl client)" \
             -s "a session has been resumed"
 
 run_test    "Session resume using cache #9 (openssl server)" \
-            "openssl s_server $O_ARGS" \
+            "$O_SRV" \
             "$P_CLI debug_level=4 tickets=0 reconnect=1" \
             0 \
             -C "found session_ticket extension" \

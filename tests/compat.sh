@@ -90,11 +90,25 @@ filter()
   echo "$NEW_LIST" | sed -e 's/[[:space:]]\+/ /g' -e 's/^ //' -e 's/ $//'
 }
 
-setup_ciphersuites()
+filter_ciphersuites()
+{
+    if [ "X" != "X$FILTER" ];
+    then
+        P_CIPHERS=$( filter "$P_CIPHERS" "$FILTER" )
+        O_CIPHERS=$( filter "$O_CIPHERS" "$FILTER" )
+        G_CIPHERS=$( filter "$G_CIPHERS" "$FILTER" )
+    fi
+}
+
+reset_ciphersuites()
 {
     P_CIPHERS=""
     O_CIPHERS=""
+    G_CIPHERS=""
+}
 
+add_openssl_ciphersuites()
+{
     case $TYPE in
 
         "ECDSA")
@@ -254,54 +268,31 @@ setup_ciphersuites()
                 "
             ;;
     esac
-
-    # Filter ciphersuites
-    if [ "X" != "X$FILTER" ];
-    then
-        O_CIPHERS=$( filter "$O_CIPHERS" "$FILTER" )
-        P_CIPHERS=$( filter "$P_CIPHERS" "$FILTER" )
-    fi
-
 }
 
-add_polarssl_ciphersuites()
+add_gnutls_ciphersuites()
 {
-    ADD_CIPHERS=""
-
+    # TODO: add to G_CIPHERS too
     case $TYPE in
 
         "ECDSA")
-            if [ "$MODE" != "ssl3" ];
-            then
-                ADD_CIPHERS="$ADD_CIPHERS                           \
-                    TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256    \
-                    TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384    \
-                    TLS-ECDH-ECDSA-WITH-CAMELLIA-128-CBC-SHA256     \
-                    TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384     \
-                    "
-            fi
             if [ "$MODE" = "tls1_2" ];
             then
-                ADD_CIPHERS="$ADD_CIPHERS                           \
+                P_CIPHERS="$P_CIPHERS                               \
+                    TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256    \
+                    TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384    \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-GCM-SHA256    \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-GCM-SHA384    \
-                    TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
-                    TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
                     "
             fi
             ;;
 
         "RSA")
-            if [ "$MODE" != "ssl3" ];
-            then
-                ADD_CIPHERS="$ADD_CIPHERS                       \
-                    TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
-                    TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
-                    "
-            fi
             if [ "$MODE" = "tls1_2" ];
             then
-                ADD_CIPHERS="$ADD_CIPHERS                       \
+                P_CIPHERS="$P_CIPHERS                           \
+                    TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
+                    TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
                     TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256        \
                     TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256        \
                     TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256    \
@@ -317,57 +308,50 @@ add_polarssl_ciphersuites()
             ;;
 
         "PSK")
-            ADD_CIPHERS="$ADD_CIPHERS                    \
-                TLS-DHE-PSK-WITH-RC4-128-SHA             \
-                TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA        \
-                TLS-DHE-PSK-WITH-AES-128-CBC-SHA         \
-                TLS-DHE-PSK-WITH-AES-256-CBC-SHA         \
-                TLS-DHE-PSK-WITH-NULL-SHA                \
-                TLS-PSK-WITH-NULL-SHA                    \
-                TLS-RSA-PSK-WITH-RC4-128-SHA             \
-                TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA        \
-                TLS-RSA-PSK-WITH-AES-256-CBC-SHA         \
-                TLS-RSA-PSK-WITH-AES-128-CBC-SHA         \
-                TLS-RSA-WITH-NULL-SHA                    \
-                TLS-RSA-WITH-NULL-MD5                    \
-                TLS-PSK-WITH-AES-128-CBC-SHA256          \
-                TLS-PSK-WITH-AES-256-CBC-SHA384          \
-                TLS-DHE-PSK-WITH-AES-128-CBC-SHA256      \
-                TLS-DHE-PSK-WITH-AES-256-CBC-SHA384      \
-                TLS-PSK-WITH-NULL-SHA256                 \
-                TLS-PSK-WITH-NULL-SHA384                 \
-                TLS-DHE-PSK-WITH-NULL-SHA256             \
-                TLS-DHE-PSK-WITH-NULL-SHA384             \
-                TLS-RSA-PSK-WITH-AES-256-CBC-SHA384      \
-                TLS-RSA-PSK-WITH-AES-128-CBC-SHA256      \
-                TLS-RSA-PSK-WITH-NULL-SHA256             \
-                TLS-RSA-PSK-WITH-NULL-SHA384             \
-                TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
-                TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
-                TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256     \
-                TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384     \
-                TLS-RSA-PSK-WITH-CAMELLIA-256-CBC-SHA384 \
-                TLS-RSA-PSK-WITH-CAMELLIA-128-CBC-SHA256 \
-                "
+            # GnuTLS 3.2.11 (2014-02-13) requires TLS 1.x for most *PSK suites
             if [ "$MODE" != "ssl3" ];
             then
-                ADD_CIPHERS="$ADD_CIPHERS                       \
+                P_CIPHERS="$P_CIPHERS                           \
                     TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
                     TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA          \
                     TLS-ECDHE-PSK-WITH-3DES-EDE-CBC-SHA         \
-                    TLS-ECDHE-PSK-WITH-RC4-128-SHA              \
-                    TLS-ECDHE-PSK-WITH-NULL-SHA                 \
+                    TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA           \
+                    TLS-DHE-PSK-WITH-AES-128-CBC-SHA            \
+                    TLS-DHE-PSK-WITH-AES-256-CBC-SHA            \
+                    TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA           \
+                    TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
+                    TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
+                    TLS-RSA-WITH-NULL-SHA                       \
+                    TLS-RSA-WITH-NULL-MD5                       \
+                    "
+            fi
+            if [ "$MODE" = "tls1_2" ];
+            then
+                P_CIPHERS="$P_CIPHERS                           \
                     TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384       \
                     TLS-ECDHE-PSK-WITH-CAMELLIA-256-CBC-SHA384  \
                     TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256       \
                     TLS-ECDHE-PSK-WITH-CAMELLIA-128-CBC-SHA256  \
                     TLS-ECDHE-PSK-WITH-NULL-SHA384              \
                     TLS-ECDHE-PSK-WITH-NULL-SHA256              \
-                    "
-            fi
-            if [ "$MODE" = "tls1_2" ];
-            then
-                ADD_CIPHERS="$ADD_CIPHERS                       \
+                    TLS-PSK-WITH-AES-128-CBC-SHA256             \
+                    TLS-PSK-WITH-AES-256-CBC-SHA384             \
+                    TLS-DHE-PSK-WITH-AES-128-CBC-SHA256         \
+                    TLS-DHE-PSK-WITH-AES-256-CBC-SHA384         \
+                    TLS-PSK-WITH-NULL-SHA256                    \
+                    TLS-PSK-WITH-NULL-SHA384                    \
+                    TLS-DHE-PSK-WITH-NULL-SHA256                \
+                    TLS-DHE-PSK-WITH-NULL-SHA384                \
+                    TLS-RSA-PSK-WITH-AES-256-CBC-SHA384         \
+                    TLS-RSA-PSK-WITH-AES-128-CBC-SHA256         \
+                    TLS-RSA-PSK-WITH-NULL-SHA256                \
+                    TLS-RSA-PSK-WITH-NULL-SHA384                \
+                    TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
+                    TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
+                    TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256        \
+                    TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384        \
+                    TLS-RSA-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
+                    TLS-RSA-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
                     TLS-PSK-WITH-AES-128-GCM-SHA256             \
                     TLS-PSK-WITH-AES-256-GCM-SHA384             \
                     TLS-DHE-PSK-WITH-AES-128-GCM-SHA256         \
@@ -385,24 +369,64 @@ add_polarssl_ciphersuites()
             fi
             ;;
     esac
+}
 
-    # Filter new ciphersuites and add them
-    if [ "X" != "X$FILTER" ]; then
-        ADD_CIPHERS=$( filter "$ADD_CIPHERS" "$FILTER" )
-    fi
-    # avoid P_CIPHERS being only ' '
-    if [ "X" != "X$P_CIPHERS" ]; then
-        P_CIPHERS="$P_CIPHERS $ADD_CIPHERS"
-    else
-        P_CIPHERS="$ADD_CIPHERS"
-    fi
+add_polarssl_ciphersuites()
+{
+    case $TYPE in
+
+        "ECDSA")
+            if [ "$MODE" != "ssl3" ];
+            then
+                P_CIPHERS="$P_CIPHERS                               \
+                    TLS-ECDH-ECDSA-WITH-CAMELLIA-128-CBC-SHA256     \
+                    TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384     \
+                    "
+            fi
+            if [ "$MODE" = "tls1_2" ];
+            then
+                P_CIPHERS="$P_CIPHERS                               \
+                    TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
+                    TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
+                    "
+            fi
+            ;;
+
+        "RSA")
+            ;;
+
+        "PSK")
+            P_CIPHERS="$P_CIPHERS                        \
+                TLS-PSK-WITH-NULL-SHA                    \
+                TLS-DHE-PSK-WITH-RC4-128-SHA             \
+                TLS-DHE-PSK-WITH-NULL-SHA                \
+                TLS-RSA-PSK-WITH-RC4-128-SHA             \
+                "
+            if [ "$MODE" != "ssl3" ];
+            then
+                P_CIPHERS="$P_CIPHERS                    \
+                    TLS-ECDHE-PSK-WITH-RC4-128-SHA       \
+                    TLS-ECDHE-PSK-WITH-NULL-SHA          \
+                    "
+            fi
+            ;;
+    esac
 }
 
 setup_arguments()
 {
-    # avoid an avalanche of errors due to typos
     case $MODE in
-        ssl3|tls1|tls1_1|tls1_2)
+        "ssl3")
+            G_PRIO_MODE="+VERS-SSL3.0"
+            ;;
+        "tls1")
+            G_PRIO_MODE="+VERS-TLS1.0"
+            ;;
+        "tls1_1")
+            G_PRIO_MODE="+VERS-TLS1.1"
+            ;;
+        "tls1_2")
+            G_PRIO_MODE="+VERS-TLS1.2"
             ;;
         *)
             echo "error: invalid mode: $MODE" >&2
@@ -410,20 +434,26 @@ setup_arguments()
     esac
 
     P_SERVER_ARGS="server_addr=0.0.0.0 force_version=$MODE"
-    P_CLIENT_ARGS="server_name=localhost force_version=$MODE"
-    O_SERVER_ARGS="-www -quiet -cipher NULL,ALL -$MODE"
+    O_SERVER_ARGS="-www -cipher NULL,ALL -$MODE"
+    G_SERVER_ARGS="-p 4433 --http"
+    G_PRIO_BASE="EXPORT:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL"
+
+    P_CLIENT_ARGS="force_version=$MODE"
     O_CLIENT_ARGS="-$MODE"
 
     if [ "X$VERIFY" = "XYES" ];
     then
         P_SERVER_ARGS="$P_SERVER_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
-        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
         O_SERVER_ARGS="$O_SERVER_ARGS -CAfile data_files/test-ca_cat12.crt -Verify 10"
+        G_SERVER_ARGS="$G_SERVER_ARGS --x509cafile data_files/test-ca_cat12.crt --require-client-cert"
+
+        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
         O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/test-ca_cat12.crt -verify 10"
     else
-        # ssl_server2 defaults to optional, but we want to test handshakes
-        # that don't exchange client certificate at all too
+        # don't request a client cert at all
         P_SERVER_ARGS="$P_SERVER_ARGS ca_file=none auth_mode=none"
+        G_SERVER_ARGS="$G_SERVER_ARGS --disable-client-cert"
+
         # give dummy CA to clients
         P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/cli2.crt"
         O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/cli2.crt"
@@ -433,6 +463,8 @@ setup_arguments()
         "ECDSA")
             P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server5.crt key_file=data_files/server5.key"
             O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server5.crt -key data_files/server5.key"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
+
             if [ "X$VERIFY" = "XYES" ]; then
                 P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server6.crt key_file=data_files/server6.key"
                 O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server6.crt -key data_files/server6.key"
@@ -444,6 +476,8 @@ setup_arguments()
         "RSA")
             P_SERVER_ARGS="$P_SERVER_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key"
             O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server2.crt -key data_files/server2.key"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server2.crt --x509keyfile data_files/server2.key"
+
             if [ "X$VERIFY" = "XYES" ]; then
                 P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
                 O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server1.crt -key data_files/server1.key"
@@ -453,11 +487,13 @@ setup_arguments()
             ;;
 
         "PSK")
-            # give our server a certificate for RSA-PSK
+            # give RSA-PSK-capable server a RSA cert
             # (should be a separate type, but harder to close with openssl)
             P_SERVER_ARGS="$P_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70 ca_file=none crt_file=data_files/server2.crt key_file=data_files/server2.key"
-            P_CLIENT_ARGS="$P_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
             O_SERVER_ARGS="$O_SERVER_ARGS -psk 6162636465666768696a6b6c6d6e6f70 -nocert"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server2.crt --x509keyfile data_files/server2.key --pskpasswd data_files/passwd.psk"
+
+            P_CLIENT_ARGS="$P_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
             O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
             ;;
     esac
@@ -485,6 +521,9 @@ start_server() {
     case $1 in
         [Oo]pen*)
             SERVER_CMD="$OPENSSL s_server $O_SERVER_ARGS"
+            ;;
+        [Gg]nu*)
+            SERVER_CMD="gnutls-serv $G_SERVER_ARGS --priority $G_PRIO_BASE:$G_PRIO_MODE"
             ;;
         [Pp]olar*)
             SERVER_CMD="$P_SRV $P_SERVER_ARGS"
@@ -642,7 +681,7 @@ fi
 
 get_options "$@"
 
-killall -q openssl ssl_server ssl_server2
+killall -q gnutls-serv openssl ssl_server ssl_server2
 trap cleanup INT TERM HUP
 
 for VERIFY in $VERIFIES; do
@@ -650,7 +689,10 @@ for VERIFY in $VERIFIES; do
         for TYPE in $TYPES; do
 
             setup_arguments
-            setup_ciphersuites
+
+            reset_ciphersuites
+            add_openssl_ciphersuites
+            filter_ciphersuites
 
             if [ "X" != "X$P_CIPHERS" ]; then
                 start_server "OpenSSL"
@@ -668,7 +710,31 @@ for VERIFY in $VERIFIES; do
                 stop_server
             fi
 
+            reset_ciphersuites
+            add_gnutls_ciphersuites
+            filter_ciphersuites
+
+            if [ "X" != "X$P_CIPHERS" ]; then
+                start_server "GnuTLS"
+                for i in $P_CIPHERS; do
+                    run_client PolarSSL $i
+                done
+                stop_server
+            fi
+
+            if [ "X" != "X$G_CIPHERS" ]; then
+                start_server "PolarSSL"
+                for i in $G_CIPHERS; do
+                    run_client GnuTLS $i
+                done
+                stop_server
+            fi
+
+            reset_ciphersuites
+            add_openssl_ciphersuites
+            add_gnutls_ciphersuites
             add_polarssl_ciphersuites
+            filter_ciphersuites
 
             if [ "X" != "X$P_CIPHERS" ]; then
                 start_server "PolarSSL"

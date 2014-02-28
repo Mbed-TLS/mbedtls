@@ -1050,6 +1050,9 @@ exit:
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
         printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
+
+        if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
+            ret = 0;
     }
 #endif
 

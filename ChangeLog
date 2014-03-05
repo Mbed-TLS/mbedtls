@@ -28,6 +28,8 @@ Bugfix
    * Fixed testing with out-of-source builds using cmake
    * Fixed version-major intolerance in server
    * Fixed CMake symlinking on out-of-source builds
+   * Bignum's MIPS-32 assembly was used on MIPS-64, causing chaos. (Found by
+     Alex Wilson.)
 
 = Version 1.2.10 released 2013-10-07
 Changes

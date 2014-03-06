@@ -41,7 +41,7 @@ if(ENABLE_ZLIB_SUPPORT)
   find_package(ZLIB)
 
   if(ZLIB_FOUND)
-    include_directories(ZLIB_INCLUDE_DIR)
+    include_directories(${ZLIB_INCLUDE_DIR})
   endif(ZLIB_FOUND)
 endif(ENABLE_ZLIB_SUPPORT)
 

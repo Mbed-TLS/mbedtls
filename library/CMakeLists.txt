@@ -1,4 +1,5 @@
-option(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL as a shared library." OFF)
+option(USE_STATIC_POLARSSL_LIBRARY "Build PolarSSL static library." ON)
+option(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL shared library." OFF)
 
 set(src
      aes.c
@@ -52,19 +53,43 @@ if(WIN32)
 set(libs ws2_32)
 endif(WIN32)
 
-if(NOT USE_SHARED_POLARSSL_LIBRARY)
+if(CMAKE_COMPILER_IS_GNUCC)
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS_CHECK} -Wmissing-declarations -Wmissing-prototypes")
+  set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
+endif(CMAKE_COMPILER_IS_GNUCC)
 
-add_library(polarssl STATIC ${src})
+if (NOT USE_STATIC_POLARSSL_LIBRARY AND NOT USE_SHARED_POLARSSL_LIBRARY)
+	message(FATAL_ERROR "Need to choose static or shared polarssl build!")
+endif(NOT USE_STATIC_POLARSSL_LIBRARY AND NOT USE_SHARED_POLARSSL_LIBRARY)
 
-else(NOT USE_SHARED_POLARSSL_LIBRARY)
+if(USE_STATIC_POLARSSL_LIBRARY AND USE_SHARED_POLARSSL_LIBRARY)
+	# if we build both static an shared, then let
+	# tests and programs link to the shared lib target
+	set(polarssl_static_target "polarssl_static")
+elseif(USE_STATIC_POLARSSL_LIBRARY)
+	set(polarssl_static_target "polarssl")
+endif()
 
-add_library(polarssl SHARED ${src})
-set_target_properties(polarssl PROPERTIES VERSION 1.2.10 SOVERSION 3)
+if(USE_STATIC_POLARSSL_LIBRARY)
+	add_library(${polarssl_static_target} STATIC ${src})
+	set_target_properties(${polarssl_static_target} PROPERTIES OUTPUT_NAME polarssl)
 
-endif(NOT USE_SHARED_POLARSSL_LIBRARY)
+	install(TARGETS ${polarssl_static_target}
+			DESTINATION ${LIB_INSTALL_DIR}
+			PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+endif()
 
-target_link_libraries(polarssl ${libs})
+if(USE_SHARED_POLARSSL_LIBRARY)
+	add_library(polarssl SHARED ${src})
+	set_target_properties(polarssl PROPERTIES VERSION 1.2.10 SOVERSION 3)
 
-install(TARGETS polarssl
-        DESTINATION ${LIB_INSTALL_DIR}
-        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+	target_link_libraries(polarssl ${libs})
+
+	if(ZLIB_FOUND)
+		target_link_libraries(polarssl ${ZLIB_LIBRARIES})
+	endif(ZLIB_FOUND)
+
+	install(TARGETS polarssl
+			DESTINATION ${LIB_INSTALL_DIR}
+			PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+endif(USE_SHARED_POLARSSL_LIBRARY)

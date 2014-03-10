@@ -14,6 +14,11 @@ Changes
    * entropy_add_source(), entropy_update_manual() and entropy_gather()
      now thread-safe if POLARSSL_THREADING_C defined
 
+Security
+   * Forbid change of server certificate during renegotiation to prevent
+     "triple handshake" attack when authentication mode is optional (the
+     attack was already impossible when authentication is required).
+
 Bugfix
    * ecp_gen_keypair() does more tries to prevent failure because of
      statistics

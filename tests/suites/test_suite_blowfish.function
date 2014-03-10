@@ -136,7 +136,7 @@ void blowfish_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CFB */
 void blowfish_encrypt_cfb64( char *hex_key_string, char *hex_iv_string,
                              char *hex_src_string, char *hex_dst_string )
 {
@@ -167,7 +167,7 @@ void blowfish_encrypt_cfb64( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CFB */
 void blowfish_decrypt_cfb64( char *hex_key_string, char *hex_iv_string,
                              char *hex_src_string, char *hex_dst_string )
 {
@@ -198,7 +198,7 @@ void blowfish_decrypt_cfb64( char *hex_key_string, char *hex_iv_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:POLARSSL_CIPHER_MODE_CTR */
 void blowfish_encrypt_ctr( char *hex_key_string, char *hex_iv_string,
                            char *hex_src_string, char *hex_dst_string )
 {

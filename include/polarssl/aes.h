@@ -129,6 +129,7 @@ int aes_crypt_cbc( aes_context *ctx,
                     unsigned char *output );
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
 /**
  * \brief          AES-CFB128 buffer encryption/decryption.
  *
@@ -176,7 +177,9 @@ int aes_crypt_cfb8( aes_context *ctx,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output );
+#endif /*POLARSSL_CIPHER_MODE_CFB */
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
 /**
  * \brief               AES-CTR buffer encryption/decryption
  *
@@ -206,6 +209,7 @@ int aes_crypt_ctr( aes_context *ctx,
                        unsigned char stream_block[16],
                        const unsigned char *input,
                        unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #ifdef __cplusplus
 }

@@ -982,6 +982,7 @@ int aes_crypt_ctr( aes_context *ctx,
     return( 0 );
 }
 #endif /* POLARSSL_CIPHER_MODE_CTR */
+
 #endif /* !POLARSSL_AES_ALT */
 
 #if defined(POLARSSL_SELF_TEST)

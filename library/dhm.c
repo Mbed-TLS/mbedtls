@@ -567,8 +567,10 @@ int dhm_self_test( int verbose )
 
     return( 0 );
 #else
-    ((void) verbose);
-    return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
+    if( verbose != 0 )
+        polarssl_printf( "  DHM parameter load: skipped\n" );
+
+    return( 0 );
 #endif
 }
 

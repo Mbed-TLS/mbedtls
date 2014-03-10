@@ -166,6 +166,26 @@ void x509_time_expired( char *crt_file, char *entity, int result )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_USE_C */
+void x509_time_future( char *crt_file, char *entity, int result )
+{
+    x509_crt   crt;
+
+    x509_crt_init( &crt );
+
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
+
+    if( strcmp( entity, "valid_from" ) == 0 )
+        TEST_ASSERT( x509_time_future( &crt.valid_from ) == result );
+    else if( strcmp( entity, "valid_to" ) == 0 )
+        TEST_ASSERT( x509_time_future( &crt.valid_to ) == result );
+    else
+        TEST_ASSERT( "Unknown entity" == 0 );
+
+    x509_crt_free( &crt );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C */
 void x509parse_crt( char *crt_data, char *result_str, int result )
 {

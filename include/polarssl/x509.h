@@ -230,14 +230,25 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
 
 /**
  * \brief          Check a given x509_time against the system time and check
- *                 if it is valid.
+ *                 if it is not expired.
  *
  * \param time     x509_time to check
  *
- * \return         Return 0 if the x509_time is still valid,
- *                 or 1 otherwise.
+ * \return         0 if the x509_time is still valid,
+ *                 1 otherwise.
  */
 int x509_time_expired( const x509_time *time );
+
+/**
+ * \brief          Check a given x509_time against the system time and check
+ *                 if it is not from the future.
+ *
+ * \param time     x509_time to check
+ *
+ * \return         0 if the x509_time is already valid,
+ *                 1 otherwise.
+ */
+int x509_time_future( const x509_time *time );
 
 /**
  * \brief          Checkup routine

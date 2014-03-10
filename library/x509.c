@@ -621,22 +621,20 @@ int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid )
  * Return 0 if the x509_time is still valid, or 1 otherwise.
  */
 #if defined(POLARSSL_HAVE_TIME)
-int x509_time_expired( const x509_time *to )
-{
-    int year, mon, day;
-    int hour, min, sec;
 
+static void x509_get_current_time( x509_time *now )
+{
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     SYSTEMTIME st;
 
     GetLocalTime(&st);
 
-    year = st.wYear;
-    mon = st.wMonth;
-    day = st.wDay;
-    hour = st.wHour;
-    min = st.wMinute;
-    sec = st.wSecond;
+    now->year = st.wYear;
+    now->mon = st.wMonth;
+    now->day = st.wDay;
+    now->hour = st.wHour;
+    now->min = st.wMinute;
+    now->sec = st.wSecond;
 #else
     struct tm *lt;
     time_t tt;
@@ -644,53 +642,85 @@ int x509_time_expired( const x509_time *to )
     tt = time( NULL );
     lt = localtime( &tt );
 
-    year = lt->tm_year + 1900;
-    mon = lt->tm_mon + 1;
-    day = lt->tm_mday;
-    hour = lt->tm_hour;
-    min = lt->tm_min;
-    sec = lt->tm_sec;
+    now->year = lt->tm_year + 1900;
+    now->mon = lt->tm_mon + 1;
+    now->day = lt->tm_mday;
+    now->hour = lt->tm_hour;
+    now->min = lt->tm_min;
+    now->sec = lt->tm_sec;
 #endif
+}
 
-    if( year  > to->year )
+/*
+ * Return 0 if before <= after, 1 otherwise
+ */
+static int x509_check_time( const x509_time *before, const x509_time *after )
+{
+    if( before->year  > after->year )
         return( 1 );
 
-    if( year == to->year &&
-        mon   > to->mon )
+    if( before->year == after->year &&
+        before->mon   > after->mon )
         return( 1 );
 
-    if( year == to->year &&
-        mon  == to->mon  &&
-        day   > to->day )
+    if( before->year == after->year &&
+        before->mon  == after->mon  &&
+        before->day   > after->day )
         return( 1 );
 
-    if( year == to->year &&
-        mon  == to->mon  &&
-        day  == to->day  &&
-        hour  > to->hour )
+    if( before->year == after->year &&
+        before->mon  == after->mon  &&
+        before->day  == after->day  &&
+        before->hour  > after->hour )
         return( 1 );
 
-    if( year == to->year &&
-        mon  == to->mon  &&
-        day  == to->day  &&
-        hour == to->hour &&
-        min   > to->min  )
+    if( before->year == after->year &&
+        before->mon  == after->mon  &&
+        before->day  == after->day  &&
+        before->hour == after->hour &&
+        before->min   > after->min  )
         return( 1 );
 
-    if( year == to->year &&
-        mon  == to->mon  &&
-        day  == to->day  &&
-        hour == to->hour &&
-        min  == to->min  &&
-        sec   > to->sec  )
+    if( before->year == after->year &&
+        before->mon  == after->mon  &&
+        before->day  == after->day  &&
+        before->hour == after->hour &&
+        before->min  == after->min  &&
+        before->sec   > after->sec  )
         return( 1 );
 
     return( 0 );
 }
+
+int x509_time_expired( const x509_time *to )
+{
+    x509_time now;
+
+    x509_get_current_time( &now );
+
+    return( x509_check_time( &now, to ) );
+}
+
+int x509_time_future( const x509_time *from )
+{
+    x509_time now;
+
+    x509_get_current_time( &now );
+
+    return( x509_check_time( from, &now ) );
+}
+
 #else  /* POLARSSL_HAVE_TIME */
+
 int x509_time_expired( const x509_time *to )
 {
     ((void) to);
+    return( 0 );
+}
+
+int x509_time_future( const x509_time *from )
+{
+    ((void) from);
     return( 0 );
 }
 #endif /* POLARSSL_HAVE_TIME */

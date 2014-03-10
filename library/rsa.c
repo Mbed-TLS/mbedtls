@@ -58,12 +58,20 @@ void rsa_init( rsa_context *ctx,
 {
     memset( ctx, 0, sizeof( rsa_context ) );
 
-    ctx->padding = padding;
-    ctx->hash_id = hash_id;
+    rsa_set_padding( ctx, padding, hash_id );
 
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_init( &ctx->mutex );
 #endif
+}
+
+/*
+ * Set padding for an existing RSA context
+ */
+void rsa_set_padding( rsa_context *ctx, int padding, int hash_id )
+{
+    ctx->padding = padding;
+    ctx->hash_id = hash_id;
 }
 
 #if defined(POLARSSL_GENPRIME)

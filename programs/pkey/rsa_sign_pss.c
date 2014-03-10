@@ -101,7 +101,8 @@ int main( int argc, char *argv[] )
     if( ( ret = pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
     {
         ret = 1;
-        printf( " failed\n  ! Could not open '%s'\n", argv[1] );
+        printf( " failed\n  ! Could not read key from '%s'\n", argv[1] );
+        printf( "  ! pk_parse_public_keyfile returned %d\n\n", ret );
         goto exit;
     }
 
@@ -111,6 +112,8 @@ int main( int argc, char *argv[] )
         printf( " failed\n  ! Key is not an RSA key\n" );
         goto exit;
     }
+
+    rsa_set_padding( pk_rsa( pk ), RSA_PKCS_V21, POLARSSL_MD_SHA1 );
 
     /*
      * Compute the SHA-1 hash of the input file,

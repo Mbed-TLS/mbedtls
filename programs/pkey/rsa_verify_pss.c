@@ -81,7 +81,8 @@ int main( int argc, char *argv[] )
 
     if( ( ret = pk_parse_public_keyfile( &pk, argv[1] ) ) != 0 )
     {
-        printf( " failed\n  ! pk_parse_public_keyfile returned %d\n\n", ret );
+        printf( " failed\n  ! Could not read key from '%s'\n", argv[1] );
+        printf( "  ! pk_parse_public_keyfile returned %d\n\n", ret );
         goto exit;
     }
 
@@ -91,6 +92,8 @@ int main( int argc, char *argv[] )
         printf( " failed\n  ! Key is not an RSA key\n" );
         goto exit;
     }
+
+    rsa_set_padding( pk_rsa( pk ), RSA_PKCS_V21, POLARSSL_MD_SHA1 );
 
     /*
      * Extract the RSA signature from the text file

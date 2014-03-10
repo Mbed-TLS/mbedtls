@@ -29,6 +29,7 @@ Bugfix
    * Fixed version-major intolerance in server
    * Fixed CMake symlinking on out-of-source builds
    * Fixed dependency issues in test suite
+   * Programs rsa_sign_pss and rsa_verify_pss were not using PSS since 1.3.0
 
 = PolarSSL 1.3.4 released on 2014-01-27
 Features

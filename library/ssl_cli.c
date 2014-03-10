@@ -867,14 +867,14 @@ static int ssl_parse_server_hello( ssl_context *ssl )
      * Initialize update checksum functions
      */
     ssl->transform_negotiate->ciphersuite_info = ssl_ciphersuite_from_id( i );
-    ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     if( ssl->transform_negotiate->ciphersuite_info == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "ciphersuite info for %02x not found",
-                          ssl->ciphersuite_list[ssl->minor_ver][i] ) );
+        SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found", i ) );
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
     }
+
+    ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );

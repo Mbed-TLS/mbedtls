@@ -4,6 +4,11 @@ PolarSSL ChangeLog
 Changes
    * Introduced POLARSSL_HAVE_READDIR_R for systems without it
 
+Security
+   * Forbid change of server certificate during renegotiation to prevent
+     "triple handshake" attack when authentication mode is optional (the
+     attack was already impossible when authentication is required).
+
 Bugfix
    * Fixed X.509 hostname comparison (with non-regular characters)
    * SSL now gracefully handles missing RNG

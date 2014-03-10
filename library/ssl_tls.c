@@ -2402,6 +2402,30 @@ int ssl_parse_certificate( ssl_context *ssl )
 
     SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
 
+    /*
+     * On client, make sure the server cert doesn't change during renego to
+     * avoid "triple handshake" attack: https://secure-resumption.com/
+     */
+    if( ssl->endpoint == SSL_IS_CLIENT &&
+        ssl->renegotiation == SSL_RENEGOTIATION )
+    {
+        if( ssl->session->peer_cert == NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
+        }
+
+        if( ssl->session->peer_cert->raw.len !=
+            ssl->session_negotiate->peer_cert->raw.len ||
+            memcmp( ssl->session->peer_cert->raw.p,
+                    ssl->session_negotiate->peer_cert->raw.p,
+                    ssl->session->peer_cert->raw.len ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "server cert changed during renegotiation" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
+        }
+    }
+
     if( ssl->authmode != SSL_VERIFY_NONE )
     {
         if( ssl->ca_chain == NULL )

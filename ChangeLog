@@ -9,6 +9,7 @@ Security
      "triple handshake" attack when authentication mode is optional (the
      attack was already impossible when authentication is required).
    * Check notBefore timestamp of certificates and CRLs from the future.
+   * Forbid sequence number wrapping
 
 Bugfix
    * Fixed X.509 hostname comparison (with non-regular characters)

@@ -1191,6 +1191,13 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         if( ++ssl->out_ctr[i - 1] != 0 )
             break;
 
+    /* The loops goes to its end iff the counter is wrapping */
+    if( i == 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
+        return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+    }
+
     SSL_DEBUG_MSG( 2, ( "<= encrypt buf" ) );
 
     return( 0 );
@@ -1588,6 +1595,13 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     for( i = 8; i > 0; i-- )
         if( ++ssl->in_ctr[i - 1] != 0 )
             break;
+
+    /* The loops goes to its end iff the counter is wrapping */
+    if( i == 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "incoming message counter would wrap" ) );
+        return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+    }
 
     SSL_DEBUG_MSG( 2, ( "<= decrypt buf" ) );
 

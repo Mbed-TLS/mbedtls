@@ -1255,6 +1255,9 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
         if( x509_time_expired( &crl_list->next_update ) )
             flags |= BADCRL_EXPIRED;
 
+        if( x509_time_future( &crl_list->this_update ) )
+            flags |= BADCRL_FUTURE;
+
         /*
          * Check if certificate is revoked
          */
@@ -1340,6 +1343,9 @@ static int x509_crt_verify_top(
     if( x509_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
 
+    if( x509_time_future( &child->valid_from ) )
+        *flags |= BADCERT_FUTURE;
+
     /*
      * Child is the top of the chain. Check against the trust_ca list.
      */
@@ -1420,6 +1426,9 @@ static int x509_crt_verify_top(
         if( x509_time_expired( &trust_ca->valid_to ) )
             ca_flags |= BADCERT_EXPIRED;
 
+        if( x509_time_future( &trust_ca->valid_from ) )
+            ca_flags |= BADCERT_FUTURE;
+
         if( NULL != f_vrfy )
         {
             if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1, &ca_flags ) ) != 0 )
@@ -1451,8 +1460,8 @@ static int x509_crt_verify_child(
     x509_crt *grandparent;
     const md_info_t *md_info;
 
-    if( x509_time_expired( &child->valid_to ) )
-        *flags |= BADCERT_EXPIRED;
+    if( x509_time_future( &child->valid_from ) )
+        *flags |= BADCERT_FUTURE;
 
     md_info = md_info_from_type( child->sig_md );
     if( md_info == NULL )

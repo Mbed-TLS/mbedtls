@@ -194,21 +194,37 @@ X509 Time Future #6
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C
 x509_time_future:"data_files/test-ca2.crt":"valid_to":1
 
-X509 Certificate verification #1 (Revoked Cert, Expired CRL)
+X509 Certificate verification #1 (Revoked Cert, Expired CRL, no CN)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_EXPIRED:"NULL"
+
+X509 Certificate verification #1a (Revoked Cert, Future CRL, no CN)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_ECP_C:
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_FUTURE:"NULL"
 
 X509 Certificate verification #2 (Revoked Cert, Expired CRL)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Server 1":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_EXPIRED:"NULL"
 
-X509 Certificate verification #3 (Revoked Cert, Expired CRL, CN Mismatch)
+X509 Certificate verification #2a (Revoked Cert, Future CRL)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_ECP_C:
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"localhost":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_FUTURE:"NULL"
+
+X509 Certificate verification #3 (Revoked Cert, Future CRL, CN Mismatch)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Wrong CN":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_EXPIRED | BADCERT_CN_MISMATCH:"NULL"
+
+X509 Certificate verification #3a (Revoked Cert, Expired CRL, CN Mismatch)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_ECP_C:
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"Wrong CN":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_FUTURE | BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #4 (Valid Cert, Expired CRL)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_EXPIRED:"NULL"
+
+X509 Certificate verification #4a (Revoked Cert, Future CRL)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_ECP_C:
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_FUTURE:"NULL"
 
 X509 Certificate verification #5 (Revoked Cert)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
@@ -223,8 +239,16 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V1
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"PolarSSL Wrong CN":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCERT_CN_MISMATCH:"NULL"
 
 X509 Certificate verification #8 (Valid Cert)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_verify:"data_files/server2.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_ECP_C:
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha1.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #8a (Expired Cert)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_ECP_C:
+x509_verify:"data_files/server5-expired.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_EXPIRED:"NULL"
+
+X509 Certificate verification #8b (Future Cert)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_ECP_C:
+x509_verify:"data_files/server5-future.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_FUTURE:"NULL"
 
 X509 Certificate verification #9 (Not trusted Cert)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15

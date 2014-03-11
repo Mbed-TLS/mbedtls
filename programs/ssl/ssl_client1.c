@@ -155,6 +155,8 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
+    /* OPTIONAL is not optimal for security,
+     * but makes interop easier in this simplified example */
     ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );
     ssl_set_ca_chain( &ssl, &cacert, NULL, "PolarSSL Server 1" );
 
@@ -185,6 +187,7 @@ int main( int argc, char *argv[] )
      */
     printf( "  . Verifying peer X.509 certificate..." );
 
+    /* In real life, we may want to bail out when ret != 0 */
     if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
     {
         printf( " failed\n" );

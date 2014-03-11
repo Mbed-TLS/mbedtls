@@ -156,6 +156,7 @@ static int do_handshake( ssl_context *ssl, struct options *opt )
      */
     printf( "  . Verifying peer X.509 certificate..." );
 
+    /* In real life, we may want to bail out when ret != 0 */
     if( ( ret = ssl_get_verify_result( ssl ) ) != 0 )
     {
         printf( " failed\n" );
@@ -590,6 +591,8 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
+    /* OPTIONAL is not optimal for security,
+     * but makes interop easier in this simplified example */
     ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );

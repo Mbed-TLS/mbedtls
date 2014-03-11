@@ -939,6 +939,10 @@
  * If set, the SSL/TLS module uses ZLIB to support compression and
  * decompression of packet data.
  *
+ * \warning TLS-level compression MAY REDUCE SECURITY! See for example the
+ * CRIME attack. Before enabling this option, you should examine with care if
+ * CRIME or similar exploits may be a applicable to your use case.
+ *
  * Used in: library/ssl_tls.c
  *          library/ssl_cli.c
  *          library/ssl_srv.c

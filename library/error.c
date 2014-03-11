@@ -600,14 +600,14 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 #endif /* POLARSSL_GCM_C */
 
 #if defined(POLARSSL_HMAC_DRBG_C)
-    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED) )
-        snprintf( buf, buflen, "HMAC_DRBG - The entropy source failed" );
     if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_REQUEST_TOO_BIG) )
         snprintf( buf, buflen, "HMAC_DRBG - Too many random requested in single call" );
     if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG) )
         snprintf( buf, buflen, "HMAC_DRBG - Input too large (Entropy + additional)" );
     if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR) )
         snprintf( buf, buflen, "HMAC_DRBG - Read/write error in file" );
+    if( use_ret == -(POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED) )
+        snprintf( buf, buflen, "HMAC_DRBG - The entropy source failed" );
 #endif /* POLARSSL_HMAC_DRBG_C */
 
 #if defined(POLARSSL_MD2_C)

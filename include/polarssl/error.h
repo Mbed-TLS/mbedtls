@@ -47,9 +47,9 @@
  * 7 bits - Low level module errors
  *
  * For historical reasons, low-level error codes are divided in even and odd,
- * and even codes were assigned first.
+ * even codes were assigned first, and -1 is reserved for other errors.
  *
- * Low-level module errors (0x0001-0x00FF)
+ * Low-level module errors (0x0002-0x007E, 0x0003-0x007F)
  *
  * Module   Nr  Codes assigned
  * MPI       7  0x0002-0x0010
@@ -75,9 +75,9 @@
  * SHA512    1  0x007A-0x007A
  * PBKDF2    1  0x007C-0x007C
  * RIPEMD160 1  0x007E-0x007E
- * HMAC_DRBG 4  0x0001-0x0007
+ * HMAC_DRBG 4  0x0003-0x0009
  *
- * High-level module nr (3 bits - 0x1...-0x8...)
+ * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors
  * PEM       1   9
  * PKCS#12   1   4 (Started from top)

@@ -1323,14 +1323,13 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b )
 static void mpi_montg_init( t_uint *mm, const mpi *N )
 {
     t_uint x, m0 = N->p[0];
+    unsigned int i;
 
     x  = m0;
     x += ( ( m0 + 2 ) & 4 ) << 1;
-    x *= ( 2 - ( m0 * x ) );
 
-    if( biL >= 16 ) x *= ( 2 - ( m0 * x ) );
-    if( biL >= 32 ) x *= ( 2 - ( m0 * x ) );
-    if( biL >= 64 ) x *= ( 2 - ( m0 * x ) );
+    for( i = biL; i >= 8; i /= 2 )
+        x *= ( 2 - ( m0 * x ) );
 
     *mm = ~x + 1;
 }

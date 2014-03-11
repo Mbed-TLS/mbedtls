@@ -620,6 +620,12 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint );
  *
  *  SSL_VERIFY_REQUIRED:  peer *must* present a valid certificate,
  *                        handshake is aborted if verification failed.
+ *
+ * \note On client, SSL_VERIFY_REQUIRED is the recommended mode.
+ * With SSL_VERIFY_OPTIONAL, the user needs to call ssl_get_verify_result() at
+ * the right time(s), which may not be obvious, while REQUIRED always perform
+ * the verification as soon as possible. For example, REQUIRED was protecting
+ * against the "triple handshake" attack even before it was found.
  */
 void ssl_set_authmode( ssl_context *ssl, int authmode );
 

@@ -3,6 +3,7 @@ PolarSSL ChangeLog
 = Branch 1.2
 Changes
    * Introduced POLARSSL_HAVE_READDIR_R for systems without it
+   * Improvements to the CMake build system, contributed by Julian Ospald.
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

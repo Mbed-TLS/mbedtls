@@ -13,6 +13,7 @@ Changes
    * Deprecated the Memory layer
    * entropy_add_source(), entropy_update_manual() and entropy_gather()
      now thread-safe if POLARSSL_THREADING_C defined
+   * Improvements to the CMake build system, contributed by Julian Ospald.
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

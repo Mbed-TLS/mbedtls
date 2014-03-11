@@ -54,7 +54,7 @@
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
-#define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
+#define DFL_AUTH_MODE           SSL_VERIFY_REQUIRED
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\n\r\n"
 
@@ -156,7 +156,7 @@ int my_verify( void *data, x509_cert *crt, int depth, int *flags )
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
-    "    auth_mode=%%s        default: \"optional\"\n"          \
+    "    auth_mode=%%s        default: \"required\"\n"      \
     "                        options: none, optional, required\n" \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
@@ -521,7 +521,16 @@ int main( int argc, char *argv[] )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
-            printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
+            printf( " failed\n  ! ssl_handshake returned -0x%x\n", -ret );
+            if( ret == POLARSSL_ERR_X509_CERT_VERIFY_FAILED )
+                printf(
+                    "    Unable to verify the server's certificate. "
+                        "Either it is invalid,\n"
+                    "    or you didn't set ca_file or ca_path "
+                        "to an appropriate value.\n"
+                    "    Alternatively, you may want to use "
+                        "auth_mode=optional for testing purposes.\n" );
+            printf( "\n" );
             goto exit;
         }
     }

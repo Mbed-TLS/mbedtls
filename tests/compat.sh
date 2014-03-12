@@ -455,7 +455,7 @@ setup_arguments()
         G_SERVER_ARGS="$G_SERVER_ARGS --disable-client-cert"
 
         # give dummy CA to clients
-        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/cli2.crt"
+        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/cli2.crt auth_mode=optional"
         O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/cli2.crt"
     fi
 

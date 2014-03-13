@@ -626,7 +626,8 @@ start_server() {
     SERVER_NAME=$1
 
     log "$SERVER_CMD"
-    $SERVER_CMD >srv_out 2>&1 &
+    echo "$SERVER_CMD" > srv_out
+    $SERVER_CMD >> srv_out 2>&1 &
     PROCESS_ID=$!
 
     sleep 1
@@ -683,7 +684,8 @@ run_client() {
         [Oo]pen*)
             CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
-            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD > cli_out 2>&1
+            echo "$CLIENT_CMD" > cli_out
+            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> cli_out 2>&1
             EXIT=$?
 
             if [ "$EXIT" == "0" ]; then
@@ -700,7 +702,8 @@ run_client() {
         [Gg]nu*)
             CLIENT_CMD="gnutls-cli $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 localhost"
             log "$CLIENT_CMD"
-            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD > cli_out 2>&1
+            echo "$CLIENT_CMD" > cli_out
+            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> cli_out 2>&1
             EXIT=$?
 
             if [ "$EXIT" == "0" ]; then
@@ -724,7 +727,8 @@ run_client() {
                 CLIENT_CMD="valgrind --leak-check=full $CLIENT_CMD"
             fi
             log "$CLIENT_CMD"
-            $CLIENT_CMD > cli_out 2>&1
+            echo "$CLIENT_CMD" > cli_out
+            $CLIENT_CMD >> cli_out 2>&1
             EXIT=$?
 
             case $EXIT in
@@ -884,8 +888,14 @@ else
     echo -n "PASSED"
 fi
 
+if [ "$MEMCHECK" -gt 0 ]; then
+    MEMREPORT=", $srvmem server memory errors"
+else
+    MEMREPORT=""
+fi
+
 let "passed = tests - failed"
-echo " ($passed / $tests tests ($skipped skipped, $srvmem server memory errors)"
+echo " ($passed / $tests tests ($skipped skipped$MEMREPORT))"
 
 let "failed += srvmem"
 exit $failed

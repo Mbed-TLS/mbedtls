@@ -113,10 +113,12 @@ run_test() {
     fi
 
     # run the commands
-    $SHELL -c "$SRV_CMD" > srv_out 2>&1 &
+    echo "$SRV_CMD" > srv_out
+    $SHELL -c "$SRV_CMD" >> srv_out 2>&1 &
     SRV_PID=$!
     sleep 1
-    $SHELL -c "$CLI_CMD" > cli_out 2>&1
+    echo "$CLI_CMD" > cli_out
+    $SHELL -c "$CLI_CMD" >> cli_out 2>&1
     CLI_EXIT=$?
     if is_polar "$SRV_CMD"; then
         echo SERVERQUIT | $OPENSSL s_client -no_ticket \

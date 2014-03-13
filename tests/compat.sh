@@ -283,7 +283,13 @@ add_gnutls_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384    \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-GCM-SHA256    \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-GCM-SHA384    \
-                    "
+                   "
+                G_CIPHERS="$G_CIPHERS                               \
+                    +ECDHE-ECDSA:+CAMELLIA-128-CBC:+SHA256          \
+                    +ECDHE-ECDSA:+CAMELLIA-256-CBC:+SHA384          \
+                    +ECDHE-ECDSA:+CAMELLIA-128-GCM:+AEAD            \
+                    +ECDHE-ECDSA:+CAMELLIA-256-GCM:+AEAD            \
+                   "
             fi
             ;;
 
@@ -303,7 +309,28 @@ add_gnutls_ciphersuites()
                     TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384    \
                     TLS-RSA-WITH-CAMELLIA-128-GCM-SHA256        \
                     TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384        \
+                    TLS-RSA-WITH-NULL-SHA256                    \
+                    TLS-RSA-WITH-NULL-SHA                       \
+                    TLS-RSA-WITH-NULL-MD5                       \
                     "
+                G_CIPHERS="$G_CIPHERS                           \
+                    +ECDHE-RSA:+CAMELLIA-128-CBC:+SHA256        \
+                    +ECDHE-RSA:+CAMELLIA-256-CBC:+SHA384        \
+                    +RSA:+CAMELLIA-128-CBC:+SHA256              \
+                    +RSA:+CAMELLIA-256-CBC:+SHA256              \
+                    +DHE-RSA:+CAMELLIA-128-CBC:+SHA256          \
+                    +DHE-RSA:+CAMELLIA-256-CBC:+SHA256          \
+                    +ECDHE-RSA:+CAMELLIA-128-GCM:+AEAD          \
+                    +ECDHE-RSA:+CAMELLIA-256-GCM:+AEAD          \
+                    +DHE-RSA:+CAMELLIA-128-GCM:+AEAD            \
+                    +DHE-RSA:+CAMELLIA-256-GCM:+AEAD            \
+                    +RSA:+CAMELLIA-128-GCM:+AEAD                \
+                    +RSA:+CAMELLIA-256-GCM:+AEAD                \
+                    "
+                    # TODO: "skip" detection?
+                    # +RSA:+NULL:+SHA256                          \
+                    # +RSA:+NULL:+SHA1                            \
+                    # +RSA:+NULL:+MD5                             \
             fi
             ;;
 
@@ -321,8 +348,17 @@ add_gnutls_ciphersuites()
                     TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA           \
                     TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
                     TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
-                    TLS-RSA-WITH-NULL-SHA                       \
-                    TLS-RSA-WITH-NULL-MD5                       \
+                    "
+                G_CIPHERS="$G_CIPHERS                           \
+                    +ECDHE-PSK:+AES-256-CBC:+SHA1               \
+                    +ECDHE-PSK:+AES-128-CBC:+SHA1               \
+                    +ECDHE-PSK:+3DES-CBC:+SHA1                  \
+                    +DHE-PSK:+3DES-CBC:+SHA1                    \
+                    +DHE-PSK:+AES-128-CBC:+SHA1                 \
+                    +DHE-PSK:+AES-256-CBC:+SHA1                 \
+                    +RSA-PSK:+3DES-CBC:+SHA1                    \
+                    +RSA-PSK:+AES-256-CBC:+SHA1                 \
+                    +RSA-PSK:+AES-128-CBC:+SHA1                 \
                     "
             fi
             if [ "$MODE" = "tls1_2" ];
@@ -364,8 +400,46 @@ add_gnutls_ciphersuites()
                     TLS-DHE-PSK-WITH-CAMELLIA-256-GCM-SHA384    \
                     TLS-RSA-PSK-WITH-AES-256-GCM-SHA384         \
                     TLS-RSA-PSK-WITH-AES-128-GCM-SHA256         \
-                    TLS-RSA-WITH-NULL-SHA256                    \
                     "
+                G_CIPHERS="$G_CIPHERS                           \
+                    +ECDHE-PSK:+AES-256-CBC:+SHA384             \
+                    +ECDHE-PSK:+CAMELLIA-256-CBC:+SHA384        \
+                    +ECDHE-PSK:+AES-128-CBC:+SHA256             \
+                    +ECDHE-PSK:+CAMELLIA-128-CBC:+SHA256        \
+                    +PSK:+AES-128-CBC:+SHA256                   \
+                    +PSK:+AES-256-CBC:+SHA384                   \
+                    +DHE-PSK:+AES-128-CBC:+SHA256               \
+                    +DHE-PSK:+AES-256-CBC:+SHA384               \
+                    +RSA-PSK:+AES-256-CBC:+SHA384               \
+                    +RSA-PSK:+AES-128-CBC:+SHA256               \
+                    +DHE-PSK:+CAMELLIA-128-CBC:+SHA256          \
+                    +DHE-PSK:+CAMELLIA-256-CBC:+SHA384          \
+                    +PSK:+CAMELLIA-128-CBC:+SHA256              \
+                    +PSK:+CAMELLIA-256-CBC:+SHA384              \
+                    +RSA-PSK:+CAMELLIA-256-CBC:+SHA384          \
+                    +RSA-PSK:+CAMELLIA-128-CBC:+SHA256          \
+                    +PSK:+AES-128-GCM:+AEAD                     \
+                    +PSK:+AES-256-GCM:+AEAD                     \
+                    +DHE-PSK:+AES-128-GCM:+AEAD                 \
+                    +DHE-PSK:+AES-256-GCM:+AEAD                 \
+                    +RSA-PSK:+CAMELLIA-128-GCM:+AEAD            \
+                    +RSA-PSK:+CAMELLIA-256-GCM:+AEAD            \
+                    +PSK:+CAMELLIA-128-GCM:+AEAD                \
+                    +PSK:+CAMELLIA-256-GCM:+AEAD                \
+                    +DHE-PSK:+CAMELLIA-128-GCM:+AEAD            \
+                    +DHE-PSK:+CAMELLIA-256-GCM:+AEAD            \
+                    +RSA-PSK:+AES-256-GCM:+AEAD                 \
+                    +RSA-PSK:+AES-128-GCM:+AEAD                 \
+                    "
+                    # TODO: "skip" detection
+                    # +ECDHE-PSK:+NULL:+SHA384                    \
+                    # +ECDHE-PSK:+NULL:+SHA256                    \
+                    # +PSK:+NULL:+SHA256                          \
+                    # +PSK:+NULL:+SHA384                          \
+                    # +DHE-PSK:+NULL:+SHA256                      \
+                    # +DHE-PSK:+NULL:+SHA384                      \
+                    # +RSA-PSK:+NULL:+SHA256                      \
+                    # +RSA-PSK:+NULL:+SHA384                      \
             fi
             ;;
     esac
@@ -436,10 +510,12 @@ setup_arguments()
     P_SERVER_ARGS="server_addr=0.0.0.0 force_version=$MODE"
     O_SERVER_ARGS="-www -cipher NULL,ALL -$MODE"
     G_SERVER_ARGS="-p 4433 --http"
-    G_PRIO_BASE="EXPORT:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL"
+    G_SERVER_PRIO="EXPORT:+NULL:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
     P_CLIENT_ARGS="force_version=$MODE"
     O_CLIENT_ARGS="-$MODE"
+    G_CLIENT_ARGS="-p 4433"
+    G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
 
     if [ "X$VERIFY" = "XYES" ];
     then
@@ -449,6 +525,7 @@ setup_arguments()
 
         P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
         O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/test-ca_cat12.crt -verify 10"
+        G_CLIENT_ARGS="$G_CLIENT_ARGS --x509cafile data_files/test-ca_cat12.crt"
     else
         # don't request a client cert at all
         P_SERVER_ARGS="$P_SERVER_ARGS ca_file=none auth_mode=none"
@@ -457,6 +534,7 @@ setup_arguments()
         # give dummy CA to clients
         P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/cli2.crt auth_mode=optional"
         O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/cli2.crt"
+        G_CLIENT_ARGS="$G_CLIENT_ARGS --x509cafile data_files/cli2.crt --insecure"
     fi
 
     case $TYPE in
@@ -468,6 +546,7 @@ setup_arguments()
             if [ "X$VERIFY" = "XYES" ]; then
                 P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server6.crt key_file=data_files/server6.key"
                 O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server6.crt -key data_files/server6.key"
+                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile data_files/server6.crt --x509keyfile data_files/server6.key"
             else
                 P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=none key_file=none"
             fi
@@ -481,6 +560,7 @@ setup_arguments()
             if [ "X$VERIFY" = "XYES" ]; then
                 P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
                 O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server1.crt -key data_files/server1.key"
+                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile data_files/server1.crt --x509keyfile data_files/server1.key"
             else
                 P_CLIENT_ARGS="$P_CLIENT_ARGS crt_file=none key_file=none"
             fi
@@ -495,6 +575,7 @@ setup_arguments()
 
             P_CLIENT_ARGS="$P_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
             O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
+            G_CLIENT_ARGS="$G_CLIENT_ARGS --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70"
             ;;
     esac
 }
@@ -523,7 +604,7 @@ start_server() {
             SERVER_CMD="$OPENSSL s_server $O_SERVER_ARGS"
             ;;
         [Gg]nu*)
-            SERVER_CMD="gnutls-serv $G_SERVER_ARGS --priority $G_PRIO_BASE:$G_PRIO_MODE"
+            SERVER_CMD="gnutls-serv $G_SERVER_ARGS --priority $G_SERVER_PRIO"
             ;;
         [Pp]olar*)
             SERVER_CMD="$P_SRV $P_SERVER_ARGS"
@@ -554,6 +635,7 @@ stop_server() {
             CS=$( echo "$O_CIPHERS" | tr ' ' ':' )
             echo SERVERQUIT | \
                 $OPENSSL s_client $O_CLIENT_ARGS -cipher "$CS" >/dev/null 2>&1
+            sleep 1; kill $PROCESS_ID 2>/dev/null # XXX temporary
             ;;
         *)
             kill $PROCESS_ID 2>/dev/null
@@ -606,6 +688,19 @@ run_client() {
                 else
                     RESULT=2
                 fi
+            fi
+            ;;
+
+        [Gg]nu*)
+            CLIENT_CMD="gnutls-cli $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 localhost"
+            log "$CLIENT_CMD"
+            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD > cli_out 2>&1
+            EXIT=$?
+
+            if [ "$EXIT" == "0" ]; then
+                RESULT=0
+            else
+                RESULT=2 # TODO
             fi
             ;;
 

@@ -13,10 +13,10 @@ set -u
 # default values, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
-: ${OPENSSL:=openssl}
+: ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system
 
-O_SRV="$OPENSSL s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL s_client"
+O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 
 TESTS=0
 FAILS=0
@@ -237,8 +237,8 @@ if [ ! -x "$P_CLI" ]; then
     echo "Command '$P_CLI' is not an executable file"
     exit 1
 fi
-if which $OPENSSL >/dev/null 2>&1; then :; else
-    echo "Command '$OPENSSL' not found"
+if which $OPENSSL_CMD >/dev/null 2>&1; then :; else
+    echo "Command '$OPENSSL_CMD' not found"
     exit 1
 fi
 

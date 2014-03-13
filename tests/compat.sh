@@ -13,7 +13,9 @@ let "srvmem = 0"
 # default values, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
-: ${OPENSSL:=openssl}
+: ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system
+: ${GNUTLS_CLI:=gnutls-cli}
+: ${GNUTLS_SERV:=gnutls-serv}
 
 MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
@@ -607,10 +609,10 @@ has_mem_err() {
 start_server() {
     case $1 in
         [Oo]pen*)
-            SERVER_CMD="$OPENSSL s_server $O_SERVER_ARGS"
+            SERVER_CMD="$OPENSSL_CMD s_server $O_SERVER_ARGS"
             ;;
         [Gg]nu*)
-            SERVER_CMD="gnutls-serv $G_SERVER_ARGS --priority $G_SERVER_PRIO"
+            SERVER_CMD="$GNUTLS_SERV $G_SERVER_ARGS --priority $G_SERVER_PRIO"
             ;;
         [Pp]olar*)
             SERVER_CMD="$P_SRV $P_SERVER_ARGS"
@@ -687,7 +689,7 @@ run_client() {
     # run the command and interpret result
     case $1 in
         [Oo]pen*)
-            CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
+            CLIENT_CMD="$OPENSSL_CMD s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > cli_out
             ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> cli_out 2>&1
@@ -705,7 +707,7 @@ run_client() {
             ;;
 
         [Gg]nu*)
-            CLIENT_CMD="gnutls-cli $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 localhost"
+            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 localhost"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > cli_out
             ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> cli_out 2>&1
@@ -792,10 +794,12 @@ if [ ! -x "$P_CLI" ]; then
     echo "Command '$P_CLI' is not an executable file"
     exit 1
 fi
-if which $OPENSSL >/dev/null 2>&1; then :; else
-    echo "Command '$OPENSSL' not found"
-    exit 1
-fi
+for CMD in $OPENSSL_CMD $GNUTLS_CLI $GNUTLS_SERV; do
+    if which "$CMD" >/dev/null 2>&1; then :; else
+        echo "Command '$CMD' not found"
+        exit 1
+    fi
+done
 
 get_options "$@"
 

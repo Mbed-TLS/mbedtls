@@ -638,11 +638,16 @@ stop_server() {
     case $SERVER_NAME in
         [Pp]olar*)
             # we must force a PSK suite when in PSK mode (otherwise client
-            # auth will fail), so use $O_CIPHERS
-            CS=$( echo "$O_CIPHERS" | tr ' ' ':' )
-            echo SERVERQUIT | \
-                $OPENSSL s_client $O_CLIENT_ARGS -cipher "$CS" >/dev/null 2>&1
-            sleep 1; kill $PROCESS_ID 2>/dev/null # XXX temporary
+            # auth will fail), so try every entry in $P_CIPHERS in turn (in
+            # case the first one is not implemented in this configuration)
+            for i in $P_CIPHERS; do
+                "$P_CLI" $P_CLIENT_ARGS request_page=SERVERQUIT auth_mode=none \
+                    crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
+                    force_ciphersuite=$i >/dev/null
+                if [ "$?" == 0 ]; then
+                    break
+                fi
+            done
             ;;
         *)
             kill $PROCESS_ID 2>/dev/null

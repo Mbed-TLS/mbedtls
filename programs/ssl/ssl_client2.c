@@ -946,7 +946,10 @@ send_request:
     printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
+    if( strcmp( opt.request_page, "SERVERQUIT" ) == 0 )
+        len = sprintf( (char *) buf, "%s", opt.request_page );
+    else
+        len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
 
     for( written = 0, frags = 0; written < len; written += ret, frags++ )
     {

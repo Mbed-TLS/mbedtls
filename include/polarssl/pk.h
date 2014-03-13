@@ -400,6 +400,12 @@ pk_type_t pk_get_type( const pk_context *ctx );
  * \param pwd       password for decryption (optional)
  * \param pwdlen    size of the password
  *
+ * \note            On entry, ctx must be empty, either freshly initialised
+ *                  with pk_init() or reset with pk_free(). If you need a
+ *                  specific key type, check the result with pk_can_do().
+ *
+ * \note            The key is also checked for correctness.
+ *
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int pk_parse_key( pk_context *ctx,
@@ -413,6 +419,12 @@ int pk_parse_key( pk_context *ctx,
  * \param ctx       key to be initialized
  * \param key       input buffer
  * \param keylen    size of the buffer
+ *
+ * \note            On entry, ctx must be empty, either freshly initialised
+ *                  with pk_init() or reset with pk_free(). If you need a
+ *                  specific key type, check the result with pk_can_do().
+ *
+ * \note            The key is also checked for correctness.
  *
  * \return          0 if successful, or a specific PK or PEM error code
  */
@@ -428,6 +440,12 @@ int pk_parse_public_key( pk_context *ctx,
  * \param path      filename to read the private key from
  * \param password  password to decrypt the file (can be NULL)
  *
+ * \note            On entry, ctx must be empty, either freshly initialised
+ *                  with pk_init() or reset with pk_free(). If you need a
+ *                  specific key type, check the result with pk_can_do().
+ *
+ * \note            The key is also checked for correctness.
+ *
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int pk_parse_keyfile( pk_context *ctx,
@@ -439,6 +457,12 @@ int pk_parse_keyfile( pk_context *ctx,
  *
  * \param ctx       key to be initialized
  * \param path      filename to read the private key from
+ *
+ * \note            On entry, ctx must be empty, either freshly initialised
+ *                  with pk_init() or reset with pk_free(). If you need a
+ *                  specific key type, check the result with pk_can_do().
+ *
+ * \note            The key is also checked for correctness.
  *
  * \return          0 if successful, or a specific PK or PEM error code
  */

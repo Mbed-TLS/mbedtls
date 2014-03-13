@@ -19,18 +19,23 @@ MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
+EXCLUDE='NULL\|DES-CBC-' # avoid plain DES but keep 3DES-EDE-CBC (PolarSSL), DES-CBC3 (OpenSSL)
 VERBOSE=""
+PEERS="OpenSSL PolarSSL" # GnuTLS not enabled by default, 3.2.4 might not be available on all buildbot machines
 MEMCHECK=0
 
 print_usage() {
     echo "Usage: $0"
-    echo -e "  -f|--filter\tFilter ciphersuites to test (Default: all)"
-    echo -e "  -h|--help\t\tPrint this help."
-    echo -e "  -m|--modes\tWhich modes to perform (Default: \"ssl3 tls1 tls1_1 tls1_2\")"
-    echo -e "  -t|--types\tWhich key exchange type to perform (Default: \"ECDSA RSA PSK\")"
-    echo -e "  -V|--verify\tWhich verification modes to perform (Default: \"NO YES\")"
-    echo -e "  -M, --memcheck\tCheck memory leaks and errors."
-    echo -e "  -v|--verbose\t\tSet verbose output."
+    echo -e "  -h|--help\tPrint this help."
+    echo -e "  -f|--filter\tOnly matching ciphersuites are tested (Default: '$FILTER')"
+    echo -e "  -e|--exclude\tMatching ciphersuites are excluded (Default: '$EXCLUDE')"
+    echo -e "  -m|--modes\tWhich modes to perform (Default: '$MODES')"
+    echo -e "  -t|--types\tWhich key exchange type to perform (Default: '$TYPES')"
+    echo -e "  -V|--verify\tWhich verification modes to perform (Default: '$VERIFIES')"
+    echo -e "  -p|--peers\tWhich peers to use (Default: '$PEERS')"
+    echo -e "            \tAlso available: GnuTLS (needs v3.2.4 or higher)"
+    echo -e "  -M|--memcheck\tCheck memory leaks and errors."
+    echo -e "  -v|--verbose\tSet verbose output."
 }
 
 get_options() {
@@ -38,6 +43,9 @@ get_options() {
         case "$1" in
             -f|--filter)
                 shift; FILTER=$1
+                ;;
+            -e|--exclude)
+                shift; EXCLUDE=$1
                 ;;
             -m|--modes)
                 shift; MODES=$1
@@ -47,6 +55,9 @@ get_options() {
                 ;;
             -V|--verify)
                 shift; VERIFIES=$1
+                ;;
+            -p|--peers)
+                shift; PEERS=$1
                 ;;
             -v|--verbose)
                 VERBOSE=1
@@ -76,14 +87,12 @@ log() {
 
 filter()
 {
-  LIST=$1
-  FILTER=$2
-
+  LIST="$1"
   NEW_LIST=""
 
   for i in $LIST;
   do
-    NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" )"
+    NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" | grep -v "$EXCLUDE" )"
   done
 
   # normalize whitespace
@@ -92,11 +101,11 @@ filter()
 
 filter_ciphersuites()
 {
-    if [ "X" != "X$FILTER" ];
+    if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
     then
-        P_CIPHERS=$( filter "$P_CIPHERS" "$FILTER" )
-        O_CIPHERS=$( filter "$O_CIPHERS" "$FILTER" )
-        G_CIPHERS=$( filter "$G_CIPHERS" "$FILTER" )
+        P_CIPHERS=$( filter "$P_CIPHERS" )
+        O_CIPHERS=$( filter "$O_CIPHERS" )
+        G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 }
 
@@ -272,7 +281,6 @@ add_openssl_ciphersuites()
 
 add_gnutls_ciphersuites()
 {
-    # TODO: add to G_CIPHERS too
     case $TYPE in
 
         "ECDSA")
@@ -326,11 +334,10 @@ add_gnutls_ciphersuites()
                     +DHE-RSA:+CAMELLIA-256-GCM:+AEAD            \
                     +RSA:+CAMELLIA-128-GCM:+AEAD                \
                     +RSA:+CAMELLIA-256-GCM:+AEAD                \
+                    +RSA:+NULL:+SHA256                          \
+                    +RSA:+NULL:+SHA1                            \
+                    +RSA:+NULL:+MD5                             \
                     "
-                    # TODO: "skip" detection?
-                    # +RSA:+NULL:+SHA256                          \
-                    # +RSA:+NULL:+SHA1                            \
-                    # +RSA:+NULL:+MD5                             \
             fi
             ;;
 
@@ -430,16 +437,15 @@ add_gnutls_ciphersuites()
                     +DHE-PSK:+CAMELLIA-256-GCM:+AEAD            \
                     +RSA-PSK:+AES-256-GCM:+AEAD                 \
                     +RSA-PSK:+AES-128-GCM:+AEAD                 \
+                    +ECDHE-PSK:+NULL:+SHA384                    \
+                    +ECDHE-PSK:+NULL:+SHA256                    \
+                    +PSK:+NULL:+SHA256                          \
+                    +PSK:+NULL:+SHA384                          \
+                    +DHE-PSK:+NULL:+SHA256                      \
+                    +DHE-PSK:+NULL:+SHA384                      \
+                    +RSA-PSK:+NULL:+SHA256                      \
+                    +RSA-PSK:+NULL:+SHA384                      \
                     "
-                    # TODO: "skip" detection
-                    # +ECDHE-PSK:+NULL:+SHA384                    \
-                    # +ECDHE-PSK:+NULL:+SHA256                    \
-                    # +PSK:+NULL:+SHA256                          \
-                    # +PSK:+NULL:+SHA384                          \
-                    # +DHE-PSK:+NULL:+SHA256                      \
-                    # +DHE-PSK:+NULL:+SHA384                      \
-                    # +RSA-PSK:+NULL:+SHA256                      \
-                    # +RSA-PSK:+NULL:+SHA384                      \
             fi
             ;;
     esac
@@ -514,7 +520,7 @@ setup_arguments()
 
     P_CLIENT_ARGS="force_version=$MODE"
     O_CLIENT_ARGS="-$MODE"
-    G_CLIENT_ARGS="-p 4433"
+    G_CLIENT_ARGS="-p 4433 --debug 3"
     G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
 
     if [ "X$VERIFY" = "XYES" ];
@@ -700,7 +706,15 @@ run_client() {
             if [ "$EXIT" == "0" ]; then
                 RESULT=0
             else
-                RESULT=2 # TODO
+                RESULT=2
+                # interpret early failure, with a handshake_failure alert
+                # before the server hello, as "no ciphersuite in common"
+                if grep -F 'Received alert [40]: Handshake failed' cli_out; then
+                    if grep -i 'SERVER HELLO .* was received' cli_out; then :
+                    else
+                        RESULT=1
+                    fi
+                fi >/dev/null
             fi
             ;;
 
@@ -782,63 +796,81 @@ trap cleanup INT TERM HUP
 for VERIFY in $VERIFIES; do
     for MODE in $MODES; do
         for TYPE in $TYPES; do
+            for PEER in $PEERS; do
 
             setup_arguments
 
-            reset_ciphersuites
-            add_openssl_ciphersuites
-            filter_ciphersuites
+            case "$PEER" in
 
-            if [ "X" != "X$P_CIPHERS" ]; then
-                start_server "OpenSSL"
-                for i in $P_CIPHERS; do
-                    run_client PolarSSL $i
-                done
-                stop_server
-            fi
+                [Oo]pen*)
 
-            if [ "X" != "X$O_CIPHERS" ]; then
-                start_server "PolarSSL"
-                for i in $O_CIPHERS; do
-                    run_client OpenSSL $i
-                done
-                stop_server
-            fi
+                    reset_ciphersuites
+                    add_openssl_ciphersuites
+                    filter_ciphersuites
 
-            reset_ciphersuites
-            add_gnutls_ciphersuites
-            filter_ciphersuites
+                    if [ "X" != "X$P_CIPHERS" ]; then
+                        start_server "OpenSSL"
+                        for i in $P_CIPHERS; do
+                            run_client PolarSSL $i
+                        done
+                        stop_server
+                    fi
 
-            if [ "X" != "X$P_CIPHERS" ]; then
-                start_server "GnuTLS"
-                for i in $P_CIPHERS; do
-                    run_client PolarSSL $i
-                done
-                stop_server
-            fi
+                    if [ "X" != "X$O_CIPHERS" ]; then
+                        start_server "PolarSSL"
+                        for i in $O_CIPHERS; do
+                            run_client OpenSSL $i
+                        done
+                        stop_server
+                    fi
 
-            if [ "X" != "X$G_CIPHERS" ]; then
-                start_server "PolarSSL"
-                for i in $G_CIPHERS; do
-                    run_client GnuTLS $i
-                done
-                stop_server
-            fi
+                    ;;
 
-            reset_ciphersuites
-            add_openssl_ciphersuites
-            add_gnutls_ciphersuites
-            add_polarssl_ciphersuites
-            filter_ciphersuites
+                [Gg]nu*)
 
-            if [ "X" != "X$P_CIPHERS" ]; then
-                start_server "PolarSSL"
-                for i in $P_CIPHERS; do
-                    run_client PolarSSL $i
-                done
-                stop_server
-            fi
+                    reset_ciphersuites
+                    add_gnutls_ciphersuites
+                    filter_ciphersuites
 
+                    if [ "X" != "X$P_CIPHERS" ]; then
+                        start_server "GnuTLS"
+                        for i in $P_CIPHERS; do
+                            run_client PolarSSL $i
+                        done
+                        stop_server
+                    fi
+
+                    if [ "X" != "X$G_CIPHERS" ]; then
+                        start_server "PolarSSL"
+                        for i in $G_CIPHERS; do
+                            run_client GnuTLS $i
+                        done
+                        stop_server
+                    fi
+
+                    ;;
+
+                [Pp]olar*)
+
+                    reset_ciphersuites
+                    add_openssl_ciphersuites
+                    add_gnutls_ciphersuites
+                    add_polarssl_ciphersuites
+                    filter_ciphersuites
+
+                    if [ "X" != "X$P_CIPHERS" ]; then
+                        start_server "PolarSSL"
+                        for i in $P_CIPHERS; do
+                            run_client PolarSSL $i
+                        done
+                        stop_server
+                    fi
+
+                    ;;
+
+                esac
+
+            done
         done
     done
 done

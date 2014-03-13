@@ -22,16 +22,26 @@ TESTS=0
 FAILS=0
 
 MEMCHECK=0
+FILTER='.*'
+EXCLUDE='SSLv2' # disabled by default, needs OpenSSL compiled with SSLv2
 
 print_usage() {
     echo "Usage: $0 [options]"
-    echo -e "  -h, --help\tPrint this help."
-    echo -e "  -m, --memcheck\tCheck memory leaks and errors."
+    echo -e "  -h|--help\tPrint this help."
+    echo -e "  -m|--memcheck\tCheck memory leaks and errors."
+    echo -e "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')"
+    echo -e "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')"
 }
 
 get_options() {
     while [ $# -gt 0 ]; do
         case "$1" in
+            -f|--filter)
+                shift; FILTER=$1
+                ;;
+            -e|--exclude)
+                shift; EXCLUDE=$1
+                ;;
             -m|--memcheck)
                 MEMCHECK=1
                 ;;
@@ -99,6 +109,11 @@ run_test() {
     CLI_CMD="$3"
     CLI_EXPECT="$4"
     shift 4
+
+    if echo "$NAME" | grep "$FILTER" | grep -v "$EXCLUDE" >/dev/null; then :
+    else
+        return
+    fi
 
     print_name "$NAME"
 

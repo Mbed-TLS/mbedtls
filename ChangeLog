@@ -4,6 +4,8 @@ PolarSSL ChangeLog
 Changes
    * Introduced POLARSSL_HAVE_READDIR_R for systems without it
    * Improvements to the CMake build system, contributed by Julian Ospald.
+   * Work around a bug of the version of Clang shipped by Apple with Mavericks
+     that prevented bignum.c from compiling. (Reported by Rafael Baptista.)
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

@@ -785,23 +785,43 @@ run_client() {
 # MAIN
 #
 
+get_options "$@"
+
 # sanity checks, avoid an avalanche of errors
 if [ ! -x "$P_SRV" ]; then
-    echo "Command '$P_SRV' is not an executable file"
+    echo "Command '$P_SRV' is not an executable file" >&2
     exit 1
 fi
 if [ ! -x "$P_CLI" ]; then
-    echo "Command '$P_CLI' is not an executable file"
+    echo "Command '$P_CLI' is not an executable file" >&2
     exit 1
 fi
-for CMD in $OPENSSL_CMD $GNUTLS_CLI $GNUTLS_SERV; do
-    if which "$CMD" >/dev/null 2>&1; then :; else
-        echo "Command '$CMD' not found"
+
+if echo "$PEERS" | grep -i openssl > /dev/null; then
+    if which "$OPENSSL_CMD" >/dev/null 2>&1; then :; else
+        echo "Command '$OPENSSL_CMD' not found" >&2
         exit 1
     fi
-done
+fi
 
-get_options "$@"
+if echo "$PEERS" | grep -i gnutls > /dev/null; then
+    for CMD in "$GNUTLS_CLI" "$GNUTLS_SERV"; do
+        if which "$CMD" >/dev/null 2>&1; then :; else
+            echo "Command '$CMD' not found" >&2
+            exit 1
+        fi
+    done
+fi
+
+for PEER in $PEERS; do
+    case "$PEER" in
+        [Pp]olar*|[Oo]pen*|[Gg]nu*)
+            ;;
+        *)
+            echo "Unknown peers: $PEER" >&2
+            exit 1
+    esac
+done
 
 killall -q gnutls-serv openssl ssl_server ssl_server2
 trap cleanup INT TERM HUP

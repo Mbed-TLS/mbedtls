@@ -316,6 +316,15 @@
 #define OID_EC_GRP_BP512R1          OID_EC_BRAINPOOL_V1 "\x0D"
 
 /*
+ * SEC1 C.1
+ *
+ * prime-field OBJECT IDENTIFIER ::= { id-fieldType 1 }
+ * id-fieldType OBJECT IDENTIFIER ::= { ansi-X9-62 fieldType(1)}
+ */
+#define OID_ANSI_X9_62_FIELD_TYPE   OID_ANSI_X9_62 "\x01"
+#define OID_ANSI_X9_62_PRIME_FIELD  OID_ANSI_X9_62_FIELD_TYPE "\x01"
+
+/*
  * ECDSA signature identifers, from RFC 5480
  */
 #define OID_ANSI_X9_62_SIG          OID_ANSI_X9_62 "\x04" /* signatures(4) */

@@ -14,6 +14,8 @@ Changes
    * entropy_add_source(), entropy_update_manual() and entropy_gather()
      now thread-safe if POLARSSL_THREADING_C defined
    * Improvements to the CMake build system, contributed by Julian Ospald.
+   * Work around a bug of the version of Clang shipped by Apple with Mavericks
+     that prevented bignum.c from compiling. (Reported by Rafael Baptista.)
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

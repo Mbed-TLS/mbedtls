@@ -310,7 +310,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
     if( ( ret = ssl_load_session( &session, ticket, clear_len ) ) != 0 )
     {
         SSL_DEBUG_MSG( 1, ( "failed to parse ticket content" ) );
-        memset( &session, 0, sizeof( ssl_session ) );
+        ssl_session_free( &session );
         return( ret );
     }
 
@@ -319,7 +319,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
     if( (int) ( time( NULL) - session.start ) > ssl->ticket_lifetime )
     {
         SSL_DEBUG_MSG( 1, ( "session ticket expired" ) );
-        memset( &session, 0, sizeof( ssl_session ) );
+        ssl_session_free( &session );
         return( POLARSSL_ERR_SSL_SESSION_TICKET_EXPIRED );
     }
 #endif
@@ -367,6 +367,8 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
     size_t servername_list_size, hostname_len;
     const unsigned char *p;
 
+    SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
+
     servername_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( servername_list_size + 2 != len )
     {
@@ -389,6 +391,7 @@ static int ssl_parse_servername_ext( ssl_context *ssl,
             ret = ssl_sni_wrapper( ssl, p + 3, hostname_len );
             if( ret != 0 )
             {
+                SSL_DEBUG_RET( 1, "ssl_sni_wrapper", ret );
                 ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
                         SSL_ALERT_MSG_UNRECOGNIZED_NAME );
                 return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -1690,6 +1693,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         ssl->f_get_cache != NULL &&
         ssl->f_get_cache( ssl->p_get_cache, ssl->session_negotiate ) == 0 )
     {
+        SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
         ssl->handshake->resume = 1;
     }
 
@@ -2041,7 +2045,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     {
         ssl_get_ecdh_params_from_cert( ssl );
 
-        SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
+        SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
         ssl->state++;
         return( 0 );
     }
@@ -2999,14 +3003,17 @@ static int ssl_write_new_session_ticket( ssl_context *ssl )
 
     ssl->out_msglen = 10 + tlen;
 
+    /*
+     * Morally equivalent to updating ssl->state, but NewSessionTicket and
+     * ChangeCipherSpec share the same state.
+     */
+    ssl->handshake->new_session_ticket = 0;
+
     if( ( ret = ssl_write_record( ssl ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_write_record", ret );
         return( ret );
     }
-
-    /* No need to remember writing a NewSessionTicket any more */
-    ssl->handshake->new_session_ticket = 0;
 
     SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
 

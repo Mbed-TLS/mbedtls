@@ -186,17 +186,15 @@ int ssl_cache_set( void *data, const ssl_session *session )
         /*
          * Reuse oldest entry if max_entries reached
          */
-        if( old != NULL && count >= cache->max_entries )
+        if( count >= cache->max_entries )
         {
-            cur = old;
-            memset( &cur->session, 0, sizeof(ssl_session) );
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-            if( cur->peer_cert.p != NULL )
+            if( old == NULL )
             {
-                polarssl_free( cur->peer_cert.p );
-                memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+                ret = 1;
+                goto exit;
             }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+
+            cur = old;
         }
 #else /* POLARSSL_HAVE_TIME */
         /*
@@ -213,21 +211,15 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
             cur = cache->chain;
             cache->chain = cur->next;
-
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-            if( cur->peer_cert.p != NULL )
-            {
-                polarssl_free( cur->peer_cert.p );
-                memset( &cur->peer_cert, 0, sizeof(x509_buf) );
-            }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
-
-            memset( cur, 0, sizeof(ssl_cache_entry) );
+            cur->next = NULL;
             prv->next = cur;
         }
 #endif /* POLARSSL_HAVE_TIME */
         else
         {
+            /*
+             * max_entries not reached, create new entry
+             */
             cur = (ssl_cache_entry *) polarssl_malloc( sizeof(ssl_cache_entry) );
             if( cur == NULL )
             {
@@ -251,6 +243,15 @@ int ssl_cache_set( void *data, const ssl_session *session )
     memcpy( &cur->session, session, sizeof( ssl_session ) );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
+    /*
+     * If we're reusing an entry, free its certificate first
+     */
+    if( cur->peer_cert.p != NULL )
+    {
+        polarssl_free( cur->peer_cert.p );
+        memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+    }
+
     /*
      * Store peer certificate
      */

@@ -37,10 +37,16 @@
 #include "polarssl/x509.h"
 #include "polarssl/error.h"
 
+#if defined(POLARSSL_TIMING_C)
+#include "polarssl/timing.h"
+#endif
+
 #define DFL_SERVER_NAME         "localhost"
+#define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_DEBUG_LEVEL         0
+#define DFL_NBIO                0
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -50,12 +56,14 @@
 #define DFL_FORCE_CIPHER        0
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
+#define DFL_RENEGOTIATE         0
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_REQUIRED
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          0
 #define DFL_RECONNECT           0
+#define DFL_RECO_DELAY          0
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 
 #define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
@@ -71,17 +79,16 @@
  * longer paquets (for fragmentation purposes) */
 #define GET_REQUEST "GET %s HTTP/1.0\r\n" /* LONG_HEADER */ "\r\n"
 
-/* Uncomment to test client-initiated renegotiation */
-// #define TEST_RENEGO
-
 /*
  * global options
  */
 struct options
 {
     const char *server_name;    /* hostname of the server (client only)     */
+    const char *server_addr;    /* address of the server (client only)      */
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
+    int nbio;                   /* should I/O be blocking?                  */
     const char *request_page;   /* page on server to request                */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
@@ -92,12 +99,14 @@ struct options
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
+    int renegotiate;            /* attempt renegotiation?                   */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
     int reconnect;              /* attempt to resume session                */
+    int reco_delay;             /* delay in seconds before resuming session */
     int tickets;                /* enable / disable session tickets         */
 } opt;
 
@@ -108,6 +117,44 @@ static void my_debug( void *ctx, int level, const char *str )
         fprintf( (FILE *) ctx, "%s", str );
         fflush(  (FILE *) ctx  );
     }
+}
+
+/*
+ * Test recv/send functions that make sure each try returns
+ * WANT_READ/WANT_WRITE at least once before sucesseding
+ */
+static int my_recv( void *ctx, unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_READ );
+    }
+
+    ret = net_recv( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_READ )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
+}
+
+static int my_send( void *ctx, const unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_WRITE );
+    }
+
+    ret = net_send( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
 }
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
@@ -199,18 +246,38 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_TIMING_C)
+#define USAGE_TIME \
+    "    reco_delay=%%d      default: 0 seconds\n"
+#else
+#define USAGE_TIME ""
+#endif /* POLARSSL_TIMING_C */
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
     "    server_name=%%s      default: localhost\n"         \
+    "    server_addr=%%s      default: given by name\n"     \
     "    server_port=%%d      default: 4433\n"              \
-    "    debug_level=%%d      default: 0 (disabled)\n"      \
-    USAGE_IO                                                \
     "    request_page=%%s     default: \".\"\n"             \
+    "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "    nbio=%%d             default: 0 (blocking I/O)\n"  \
+    "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "\n"                                                    \
+    "    auth_mode=%%s        default: \"optional\"\n"      \
+    "                        options: none, optional, required\n" \
+    USAGE_IO                                                \
+    "\n"                                                    \
+    USAGE_PSK                                               \
+    "\n"                                                    \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled)\n"      \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
+    USAGE_TIME                                              \
     USAGE_TICKETS                                           \
+    USAGE_MAX_FRAG_LEN                                      \
+    USAGE_TRUNC_HMAC                                        \
     "\n"                                                    \
     "    min_version=%%s      default: \"\" (ssl3)\n"       \
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
@@ -218,9 +285,6 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
     "    auth_mode=%%s        default: \"required\"\n"      \
     "                        options: none, optional, required\n" \
-    USAGE_MAX_FRAG_LEN                                      \
-    USAGE_TRUNC_HMAC                                        \
-    USAGE_PSK                                               \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
@@ -296,8 +360,10 @@ int main( int argc, char *argv[] )
     }
 
     opt.server_name         = DFL_SERVER_NAME;
+    opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
+    opt.nbio                = DFL_NBIO;
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
@@ -308,12 +374,14 @@ int main( int argc, char *argv[] )
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
+    opt.renegotiate         = DFL_RENEGOTIATE;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.reconnect           = DFL_RECONNECT;
+    opt.reco_delay          = DFL_RECO_DELAY;
     opt.tickets             = DFL_TICKETS;
 
     for( i = 1; i < argc; i++ )
@@ -325,6 +393,8 @@ int main( int argc, char *argv[] )
 
         if( strcmp( p, "server_name" ) == 0 )
             opt.server_name = q;
+        else if( strcmp( p, "server_addr" ) == 0 )
+            opt.server_addr = q;
         else if( strcmp( p, "server_port" ) == 0 )
         {
             opt.server_port = atoi( q );
@@ -335,6 +405,12 @@ int main( int argc, char *argv[] )
         {
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
+                goto usage;
+        }
+        else if( strcmp( p, "nbio" ) == 0 )
+        {
+            opt.nbio = atoi( q );
+            if( opt.nbio < 0 || opt.nbio > 2 )
                 goto usage;
         }
         else if( strcmp( p, "request_page" ) == 0 )
@@ -375,10 +451,22 @@ int main( int argc, char *argv[] )
             if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
                 goto usage;
         }
+        else if( strcmp( p, "renegotiate" ) == 0 )
+        {
+            opt.renegotiate = atoi( q );
+            if( opt.renegotiate < 0 || opt.renegotiate > 1 )
+                goto usage;
+        }
         else if( strcmp( p, "reconnect" ) == 0 )
         {
             opt.reconnect = atoi( q );
             if( opt.reconnect < 0 || opt.reconnect > 2 )
+                goto usage;
+        }
+        else if( strcmp( p, "reco_delay" ) == 0 )
+        {
+            opt.reco_delay = atoi( q );
+            if( opt.reco_delay < 0 )
                 goto usage;
         }
         else if( strcmp( p, "tickets" ) == 0 )
@@ -573,9 +661,15 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.ca_path ) )
-        ret = x509_crt_parse_path( &cacert, opt.ca_path );
+        if( strcmp( opt.ca_path, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_path( &cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
-        ret = x509_crt_parse_file( &cacert, opt.ca_file );
+        if( strcmp( opt.ca_file, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
@@ -605,7 +699,10 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.crt_file ) )
-        ret = x509_crt_parse_file( &clicert, opt.crt_file );
+        if( strcmp( opt.crt_file, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_file( &clicert, opt.crt_file );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
@@ -625,7 +722,10 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = pk_parse_keyfile( &pkey, opt.key_file, "" );
+        if( strcmp( opt.key_file, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = pk_parse_keyfile( &pkey, opt.key_file, "" );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
@@ -649,14 +749,27 @@ int main( int argc, char *argv[] )
     /*
      * 2. Start the connection
      */
-    printf( "  . Connecting to tcp/%s/%-4d...", opt.server_name,
+    if( opt.server_addr == NULL)
+        opt.server_addr = opt.server_name;
+
+    printf( "  . Connecting to tcp/%s/%-4d...", opt.server_addr,
                                                 opt.server_port );
     fflush( stdout );
 
-    if( ( ret = net_connect( &server_fd, opt.server_name,
+    if( ( ret = net_connect( &server_fd, opt.server_addr,
                                          opt.server_port ) ) != 0 )
     {
         printf( " failed\n  ! net_connect returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
+    if( opt.nbio > 0 )
+        ret = net_set_nonblock( server_fd );
+    else
+        ret = net_set_block( server_fd );
+    if( ret != 0 )
+    {
+        printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -695,8 +808,11 @@ int main( int argc, char *argv[] )
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );
-    ssl_set_bio( &ssl, net_recv, &server_fd,
-                       net_send, &server_fd );
+
+    if( opt.nbio == 2 )
+        ssl_set_bio( &ssl, my_recv, &server_fd, my_send, &server_fd );
+    else
+        ssl_set_bio( &ssl, net_recv, &server_fd, net_send, &server_fd );
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_set_session_tickets( &ssl, opt.tickets );
@@ -709,8 +825,16 @@ int main( int argc, char *argv[] )
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
-    ssl_set_own_cert( &ssl, &clicert, &pkey );
+    if( strcmp( opt.ca_path, "none" ) != 0 &&
+        strcmp( opt.ca_file, "none" ) != 0 )
+    {
+        ssl_set_ca_chain( &ssl, &cacert, NULL, opt.server_name );
+    }
+    if( strcmp( opt.crt_file, "none" ) != 0 &&
+        strcmp( opt.key_file, "none" ) != 0 )
+    {
+        ssl_set_own_cert( &ssl, &clicert, &pkey );
+    }
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -804,23 +928,25 @@ int main( int argc, char *argv[] )
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-#ifdef TEST_RENEGO
-    /*
-     * Perform renegotiation (this must be done when the server is waiting
-     * for input from our side).
-     */
-    printf( "  . Performing renegotiation..." );
-    fflush( stdout );
-    while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
+    if( opt.renegotiate )
     {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        /*
+         * Perform renegotiation (this must be done when the server is waiting
+         * for input from our side).
+         */
+        printf( "  . Performing renegotiation..." );
+        fflush( stdout );
+        while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
-            goto exit;
+            if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
+                goto exit;
+            }
         }
+        printf( " ok\n" );
     }
-    printf( " ok\n" );
-#endif
 
     /*
      * 6. Write the GET request
@@ -829,7 +955,10 @@ send_request:
     printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
+    if( strcmp( opt.request_page, "SERVERQUIT" ) == 0 )
+        len = sprintf( (char *) buf, "%s", opt.request_page );
+    else
+        len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
 
     for( written = 0, frags = 0; written < len; written += ret, frags++ )
     {
@@ -887,8 +1016,10 @@ send_request:
     {
         --opt.reconnect;
 
-        // printf( "  ! Press a key to reconnect\n" );
-        // (void) getchar();
+#if defined(POLARSSL_TIMING_C)
+        if( opt.reco_delay > 0 )
+            m_sleep( 1000 * opt.reco_delay );
+#endif
 
         printf( "  . Reconnecting with saved session..." );
         fflush( stdout );
@@ -931,6 +1062,9 @@ exit:
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
         printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
+
+        if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
+            ret = 0;
     }
 #endif
 

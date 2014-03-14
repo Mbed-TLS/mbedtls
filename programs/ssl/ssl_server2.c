@@ -25,6 +25,17 @@
 
 #include "polarssl/config.h"
 
+#if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && defined(POLARSSL_FS_IO)
+#define POLARSSL_SNI
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #if defined(_WIN32)
 #include <windows.h>
 #endif
@@ -52,6 +63,7 @@
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         4433
 #define DFL_DEBUG_LEVEL         0
+#define DFL_NBIO                0
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -63,11 +75,16 @@
 #define DFL_FORCE_CIPHER        0
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
+#define DFL_RENEGOTIATE         0
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
+#define DFL_TICKET_TIMEOUT      -1
+#define DFL_CACHE_MAX           -1
+#define DFL_CACHE_TIMEOUT       -1
+#define DFL_SNI                 NULL
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -84,9 +101,6 @@
     "<h2>PolarSSL Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n" // LONG_RESPONSE
 
-/* Uncomment to test server-initiated renegotiation */
-// #define TEST_RENEGO
-
 /*
  * global options
  */
@@ -95,6 +109,7 @@ struct options
     const char *server_addr;    /* address on which the ssl service runs    */
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
+    int nbio;                   /* should I/O be blocking?                  */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the server certificate     */
@@ -106,11 +121,16 @@ struct options
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
+    int renegotiate;            /* attempt renegotiation?                   */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int tickets;                /* enable / disable session tickets         */
+    int ticket_timeout;         /* session ticket lifetime                  */
+    int cache_max;              /* max number of session cache entries      */
+    int cache_timeout;          /* expiration delay of session cache entries */
+    char *sni;                  /* string decribing sni information         */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -122,6 +142,43 @@ static void my_debug( void *ctx, int level, const char *str )
     }
 }
 
+/*
+ * Test recv/send functions that make sure each try returns
+ * WANT_READ/WANT_WRITE at least once before sucesseding
+ */
+static int my_recv( void *ctx, unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_READ );
+    }
+
+    ret = net_recv( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_READ )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
+}
+
+static int my_send( void *ctx, const unsigned char *buf, size_t len )
+{
+    static int first_try = 1;
+    int ret;
+
+    if( first_try )
+    {
+        first_try = 0;
+        return( POLARSSL_ERR_NET_WANT_WRITE );
+    }
+
+    ret = net_send( ctx, buf, len );
+    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
+        first_try = 1; /* Next call will be a new operation */
+    return( ret );
+}
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 #if defined(POLARSSL_FS_IO)
@@ -158,10 +215,27 @@ static void my_debug( void *ctx, int level, const char *str )
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
-    "    tickets=%%d          default: 1 (enabled)\n"
+    "    tickets=%%d          default: 1 (enabled)\n"       \
+    "    ticket_timeout=%%d   default: ticket default (1d)\n"
 #else
 #define USAGE_TICKETS ""
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
+
+#if defined(POLARSSL_SSL_CACHE_C)
+#define USAGE_CACHE                                             \
+    "    cache_max=%%d        default: cache default (50)\n"    \
+    "    cache_timeout=%%d    default: cache default (1d)\n"
+#else
+#define USAGE_CACHE ""
+#endif /* POLARSSL_SSL_CACHE_C */
+
+#if defined(POLARSSL_SNI)
+#define USAGE_SNI                                                           \
+    "    sni=%%s              name1,cert1,key1[,name2,cert2,key2[,...]]\n"  \
+    "                         default: disabled\n"
+#else
+#define USAGE_SNI ""
+#endif /* POLARSSL_SNI */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 #define USAGE_MAX_FRAG_LEN                                      \
@@ -177,19 +251,27 @@ static void my_debug( void *ctx, int level, const char *str )
     "    server_addr=%%d      default: (all interfaces)\n"  \
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "    nbio=%%d             default: 0 (blocking I/O)\n"  \
+    "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "\n"                                                    \
+    "    auth_mode=%%s        default: \"optional\"\n"      \
+    "                        options: none, optional, required\n" \
     USAGE_IO                                                \
-    "    request_page=%%s     default: \".\"\n"             \
+    USAGE_SNI                                               \
+    "\n"                                                    \
+    USAGE_PSK                                               \
+    "\n"                                                    \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
-    USAGE_TICKETS                                           \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled)\n"      \
+    USAGE_TICKETS                                           \
+    USAGE_CACHE                                             \
+    USAGE_MAX_FRAG_LEN                                      \
+    "\n"                                                    \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
-    "    auth_mode=%%s        default: \"optional\"\n"      \
-    "                        options: none, optional, required\n" \
-    USAGE_MAX_FRAG_LEN                                      \
-    USAGE_PSK                                               \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
@@ -208,6 +290,116 @@ int main( int argc, char *argv[] )
     return( 0 );
 }
 #else
+
+#if defined(POLARSSL_SNI)
+typedef struct _sni_entry sni_entry;
+
+struct _sni_entry {
+    const char *name;
+    x509_crt *cert;
+    pk_context *key;
+    sni_entry *next;
+};
+
+/*
+ * Parse a string of triplets name1,crt1,key1[,name2,crt2,key2[,...]]
+ * into a usable sni_entry list.
+ *
+ * Note: this is not production quality: leaks memory if parsing fails,
+ * and error reporting is poor.
+ */
+sni_entry *sni_parse( char *sni_string )
+{
+    sni_entry *cur = NULL, *new = NULL;
+    char *p = sni_string;
+    char *end = p;
+    char *crt_file, *key_file;
+
+    while( *end != '\0' )
+        ++end;
+    *end = ',';
+
+    while( p <= end )
+    {
+        if( ( new = polarssl_malloc( sizeof( sni_entry ) ) ) == NULL )
+            return( NULL );
+
+        memset( new, 0, sizeof( sni_entry ) );
+
+        if( ( new->cert = polarssl_malloc( sizeof( x509_crt ) ) ) == NULL ||
+            ( new->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
+            return( NULL );
+
+        x509_crt_init( new->cert );
+        pk_init( new->key );
+
+        new->name = p;
+        while( *p != ',' ) if( ++p > end ) return( NULL );
+        *p++ = '\0';
+
+        crt_file = p;
+        while( *p != ',' ) if( ++p > end ) return( NULL );
+        *p++ = '\0';
+
+        key_file = p;
+        while( *p != ',' ) if( ++p > end ) return( NULL );
+        *p++ = '\0';
+
+        if( x509_crt_parse_file( new->cert, crt_file ) != 0 ||
+            pk_parse_keyfile( new->key, key_file, "" ) != 0 )
+            return( NULL );
+
+        new->next = cur;
+        cur = new;
+
+    }
+
+    return( cur );
+}
+
+void sni_free( sni_entry *head )
+{
+    sni_entry *cur = head, *next;
+
+    while( cur != NULL )
+    {
+        x509_crt_free( cur->cert );
+        polarssl_free( cur->cert );
+
+        pk_free( cur->key );
+        polarssl_free( cur->key );
+
+        next = cur->next;
+        polarssl_free( cur );
+        cur = next;
+    }
+}
+
+/*
+ * SNI callback.
+ */
+int sni_callback( void *p_info, ssl_context *ssl,
+                  const unsigned char *name, size_t name_len )
+{
+    sni_entry *cur = (sni_entry *) p_info;
+
+    while( cur != NULL )
+    {
+        if( name_len == strlen( cur->name ) &&
+            memcmp( name, cur->name, name_len ) == 0 )
+        {
+            ssl_set_own_cert( ssl, cur->cert, cur->key );
+            return( 0 );
+        }
+
+        cur = cur->next;
+    }
+
+    return( -1 );
+}
+
+#endif /* POLARSSL_SNI */
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags;
@@ -233,6 +425,9 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
+#endif
+#if defined(POLARSSL_SNI)
+    sni_entry *sni_info = NULL;
 #endif
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[100000];
@@ -287,6 +482,7 @@ int main( int argc, char *argv[] )
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
+    opt.nbio                = DFL_NBIO;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -298,11 +494,16 @@ int main( int argc, char *argv[] )
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
+    opt.renegotiate         = DFL_RENEGOTIATE;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.tickets             = DFL_TICKETS;
+    opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
+    opt.cache_max           = DFL_CACHE_MAX;
+    opt.cache_timeout       = DFL_CACHE_TIMEOUT;
+    opt.sni                 = DFL_SNI;
 
     for( i = 1; i < argc; i++ )
     {
@@ -323,6 +524,12 @@ int main( int argc, char *argv[] )
         {
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
+                goto usage;
+        }
+        else if( strcmp( p, "nbio" ) == 0 )
+        {
+            opt.nbio = atoi( q );
+            if( opt.nbio < 0 || opt.nbio > 2 )
                 goto usage;
         }
         else if( strcmp( p, "ca_file" ) == 0 )
@@ -363,6 +570,12 @@ int main( int argc, char *argv[] )
         {
             opt.allow_legacy = atoi( q );
             if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "renegotiate" ) == 0 )
+        {
+            opt.renegotiate = atoi( q );
+            if( opt.renegotiate < 0 || opt.renegotiate > 1 )
                 goto usage;
         }
         else if( strcmp( p, "min_version" ) == 0 )
@@ -445,6 +658,28 @@ int main( int argc, char *argv[] )
             opt.tickets = atoi( q );
             if( opt.tickets < 0 || opt.tickets > 1 )
                 goto usage;
+        }
+        else if( strcmp( p, "ticket_timeout" ) == 0 )
+        {
+            opt.ticket_timeout = atoi( q );
+            if( opt.ticket_timeout < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "cache_max" ) == 0 )
+        {
+            opt.cache_max = atoi( q );
+            if( opt.cache_max < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "cache_timeout" ) == 0 )
+        {
+            opt.cache_timeout = atoi( q );
+            if( opt.cache_timeout < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "sni" ) == 0 )
+        {
+            opt.sni = q;
         }
         else
             goto usage;
@@ -551,9 +786,15 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_FS_IO)
     if( strlen( opt.ca_path ) )
-        ret = x509_crt_parse_path( &cacert, opt.ca_path );
+        if( strcmp( opt.ca_path, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_path( &cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
-        ret = x509_crt_parse_file( &cacert, opt.ca_file );
+        if( strcmp( opt.ca_file, "none" ) == 0 )
+            ret = 0;
+        else
+            ret = x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
 #if defined(POLARSSL_CERTS_C)
@@ -580,7 +821,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
 #if defined(POLARSSL_FS_IO)
-    if( strlen( opt.crt_file ) )
+    if( strlen( opt.crt_file ) && strcmp( opt.crt_file, "none" ) != 0 )
     {
         key_cert_init++;
         if( ( ret = x509_crt_parse_file( &srvcert, opt.crt_file ) ) != 0 )
@@ -590,7 +831,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-    if( strlen( opt.key_file ) )
+    if( strlen( opt.key_file ) && strcmp( opt.key_file, "none" ) != 0 )
     {
         key_cert_init++;
         if( ( ret = pk_parse_keyfile( &pkey, opt.key_file, "" ) ) != 0 )
@@ -605,7 +846,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( strlen( opt.crt_file2 ) )
+    if( strlen( opt.crt_file2 ) && strcmp( opt.crt_file2, "none" ) != 0 )
     {
         key_cert_init2++;
         if( ( ret = x509_crt_parse_file( &srvcert2, opt.crt_file2 ) ) != 0 )
@@ -615,7 +856,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-    if( strlen( opt.key_file2 ) )
+    if( strlen( opt.key_file2 ) && strcmp( opt.key_file2, "none" ) != 0 )
     {
         key_cert_init2++;
         if( ( ret = pk_parse_keyfile( &pkey2, opt.key_file2, "" ) ) != 0 )
@@ -631,7 +872,12 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 #endif
-    if( key_cert_init == 0 && key_cert_init2 == 0 )
+    if( key_cert_init == 0 &&
+        strcmp( opt.crt_file, "none" ) != 0 &&
+        strcmp( opt.key_file, "none" ) != 0 &&
+        key_cert_init2 == 0 &&
+        strcmp( opt.crt_file2, "none" ) != 0 &&
+        strcmp( opt.key_file2, "none" ) != 0 )
     {
 #if !defined(POLARSSL_CERTS_C)
         printf( "Not certificated or key provided, and \n"
@@ -678,6 +924,22 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+#if defined(POLARSSL_SNI)
+    if( opt.sni != NULL )
+    {
+        printf( "  . Setting up SNI information..." );
+        fflush( stdout );
+
+        if( ( sni_info = sni_parse( opt.sni ) ) == NULL )
+        {
+            printf( " failed\n" );
+            goto exit;
+        }
+
+        printf( " ok\n" );
+    }
+#endif /* POLARSSL_SNI */
+
     /*
      * 2. Setup the listening TCP socket
      */
@@ -716,12 +978,21 @@ int main( int argc, char *argv[] )
     ssl_set_dbg( &ssl, my_debug, stdout );
 
 #if defined(POLARSSL_SSL_CACHE_C)
+    if( opt.cache_max != -1 )
+        ssl_cache_set_max_entries( &cache, opt.cache_max );
+
+    if( opt.cache_timeout != -1 )
+        ssl_cache_set_timeout( &cache, opt.cache_timeout );
+
     ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
                                  ssl_cache_set, &cache );
 #endif
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_set_session_tickets( &ssl, opt.tickets );
+
+    if( opt.ticket_timeout != -1 )
+        ssl_set_session_ticket_lifetime( &ssl, opt.ticket_timeout );
 #endif
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
@@ -731,11 +1002,20 @@ int main( int argc, char *argv[] )
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-    ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
+    if( strcmp( opt.ca_path, "none" ) != 0 &&
+        strcmp( opt.ca_file, "none" ) != 0 )
+    {
+        ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
+    }
     if( key_cert_init )
         ssl_set_own_cert( &ssl, &srvcert, &pkey );
     if( key_cert_init2 )
         ssl_set_own_cert( &ssl, &srvcert2, &pkey2 );
+#endif
+
+#if defined(POLARSSL_SNI)
+    if( opt.sni != NULL )
+        ssl_set_sni( &ssl, sni_callback, sni_info );
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -788,8 +1068,20 @@ reset:
         goto exit;
     }
 
-    ssl_set_bio( &ssl, net_recv, &client_fd,
-                       net_send, &client_fd );
+    if( opt.nbio > 0 )
+        ret = net_set_nonblock( client_fd );
+    else
+        ret = net_set_block( client_fd );
+    if( ret != 0 )
+    {
+        printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+
+    if( opt.nbio == 2 )
+        ssl_set_bio( &ssl, my_recv, &client_fd, my_send, &client_fd );
+    else
+        ssl_set_bio( &ssl, net_recv, &client_fd, net_send, &client_fd );
 
     printf( " ok\n" );
 
@@ -926,43 +1218,48 @@ reset:
     buf[written] = '\0';
     printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
 
-#ifdef TEST_RENEGO
-    /*
-     * Request renegotiation (this must be done when the client is still
-     * waiting for input from our side).
-     */
-    printf( "  . Requestion renegotiation..." );
-    fflush( stdout );
-    while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
+    if( opt.renegotiate )
     {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        /*
+         * Request renegotiation (this must be done when the client is still
+         * waiting for input from our side).
+         */
+        printf( "  . Requestion renegotiation..." );
+        fflush( stdout );
+        while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
-            goto exit;
-        }
-    }
-
-    /*
-     * Should be a while loop, not an if, but here we're not actually
-     * expecting data from the client, and since we're running tests locally,
-     * we can just hope the handshake will finish the during the first call.
-     */
-    if( ( ret = ssl_read( &ssl, buf, 0 ) ) != 0 )
-    {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
-        {
-            printf( " failed\n  ! ssl_read returned %d\n\n", ret );
-
-            /* Unexpected message probably means client didn't renegotiate */
-            if( ret == POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE )
-                goto reset;
-            else
+            if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
                 goto exit;
+            }
         }
-    }
 
-    printf( " ok\n" );
-#endif
+        /*
+         * Should be a while loop, not an if, but here we're not actually
+         * expecting data from the client, and since we're running tests
+         * locally, we can just hope the handshake will finish the during the
+         * first call.
+         */
+        if( ( ret = ssl_read( &ssl, buf, 0 ) ) != 0 )
+        {
+            if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_read returned %d\n\n", ret );
+
+                /* Unexpected message probably means client didn't renegotiate
+                 * as requested */
+                if( ret == POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE )
+                    goto reset;
+                else
+                    goto exit;
+            }
+        }
+
+        printf( " ok\n" );
+    }
 
     ret = 0;
     goto reset;
@@ -985,6 +1282,9 @@ exit:
     pk_free( &pkey );
     x509_crt_free( &srvcert2 );
     pk_free( &pkey2 );
+#endif
+#if defined(POLARSSL_SNI)
+    sni_free( sni_info );
 #endif
 
     ssl_free( &ssl );

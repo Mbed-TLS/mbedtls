@@ -1118,7 +1118,7 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
  *
  *                 If set, the PSK callback is called for each
  *                 handshake where a PSK ciphersuite was negotiated.
- *                 The callback provides the identity received and wants to
+ *                 The caller provides the identity received and wants to
  *                 receive the actual PSK data and length.
  *
  *                 The callback has the following parameters: (void *parameter,

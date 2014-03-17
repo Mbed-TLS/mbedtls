@@ -94,6 +94,12 @@ endif()
 if(USE_STATIC_POLARSSL_LIBRARY)
 	add_library(${polarssl_static_target} STATIC ${src})
 	set_target_properties(${polarssl_static_target} PROPERTIES OUTPUT_NAME polarssl)
+	target_link_libraries(${polarssl_static_target} ${libs})
+
+	if(ZLIB_FOUND)
+		target_link_libraries(${polarssl_static_target} ${ZLIB_LIBRARIES})
+	endif(ZLIB_FOUND)
+
 
 	install(TARGETS ${polarssl_static_target}
 			DESTINATION ${LIB_INSTALL_DIR}

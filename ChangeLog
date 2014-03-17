@@ -8,6 +8,8 @@ Features
    * Ability to provide alternate timing implementation
    * Ability to force the entropy module to use SHA-256 as its basis
      (POLARSSL_ENTROPY_FORCE_SHA256)
+   * Testing script ssl-opt.sh added for testing 'live' ssl option
+     interoperability against OpenSSL and PolarSSL
 
 Changes
    * Deprecated the Memory layer
@@ -16,6 +18,8 @@ Changes
    * Improvements to the CMake build system, contributed by Julian Ospald.
    * Work around a bug of the version of Clang shipped by Apple with Mavericks
      that prevented bignum.c from compiling. (Reported by Rafael Baptista.)
+   * Revamped the compat.sh interoperatibility script to include support for
+     testing against GnuTLS
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

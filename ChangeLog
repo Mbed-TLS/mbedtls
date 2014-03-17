@@ -43,6 +43,8 @@ Bugfix
    client certificate.
    * ssl_srv was leaking memory when client presented a timed out ticket
    containing a client certificate
+   * ssl_init() was leaving a dirty pointer in ssl_context if malloc of
+     out_ctr failed
 
 = PolarSSL 1.3.4 released on 2014-01-27
 Features

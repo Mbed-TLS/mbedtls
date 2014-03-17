@@ -3427,7 +3427,8 @@ int ssl_init( ssl_context *ssl )
     if( ssl->out_ctr == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc(%d bytes) failed", len ) );
-        polarssl_free( ssl-> in_ctr );
+        polarssl_free( ssl->in_ctr );
+        ssl->in_ctr = NULL;
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 

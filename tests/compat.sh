@@ -539,10 +539,9 @@ setup_arguments()
         P_SERVER_ARGS="$P_SERVER_ARGS ca_file=none auth_mode=none"
         G_SERVER_ARGS="$G_SERVER_ARGS --disable-client-cert"
 
-        # give dummy CA to clients
-        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=data_files/cli2.crt auth_mode=optional"
-        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/cli2.crt"
-        G_CLIENT_ARGS="$G_CLIENT_ARGS --x509cafile data_files/cli2.crt --insecure"
+        P_CLIENT_ARGS="$P_CLIENT_ARGS ca_file=none auth_mode=none"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS"
+        G_CLIENT_ARGS="$G_CLIENT_ARGS --insecure"
     fi
 
     case $TYPE in
@@ -643,8 +642,8 @@ stop_server() {
             # auth will fail), so try every entry in $P_CIPHERS in turn (in
             # case the first one is not implemented in this configuration)
             for i in $P_CIPHERS; do
+                log "$P_CLI $P_CLIENT_ARGS request_page=SERVERQUIT auth_mode=none force_ciphersuite=$i"
                 "$P_CLI" $P_CLIENT_ARGS request_page=SERVERQUIT auth_mode=none \
-                    crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
                     force_ciphersuite=$i >/dev/null
                 if [ "$?" == 0 ]; then
                     break

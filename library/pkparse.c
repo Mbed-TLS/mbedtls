@@ -163,8 +163,11 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
 
     /* Tag may be either OID or SEQUENCE */
     params->tag = **p;
-    if( params->tag != ASN1_OID &&
-        params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+    if( params->tag != ASN1_OID
+#if defined(POLARSSL_PK_PARSE_EC_EXTENDED)
+            && params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE )
+#endif
+            )
     {
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
@@ -185,6 +188,7 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
+#if defined(POLARSSL_PK_PARSE_EC_EXTENDED)
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and (mostly) fill the group with it.
  * WARNING: the resulting group should only be used with
@@ -411,6 +415,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* POLARSSL_PK_PARSE_EC_EXTENDED */
 
 /*
  * Use EC parameters to initialise an EC group
@@ -432,8 +437,12 @@ static int pk_use_ecparams( const asn1_buf *params, ecp_group *grp )
     }
     else
     {
+#if defined(POLARSSL_PK_PARSE_EC_EXTENDED)
         if( ( ret = pk_group_id_from_specified( params, &grp_id ) ) != 0 )
             return( ret );
+#else
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
+#endif
     }
 
     /*

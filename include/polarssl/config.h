@@ -588,6 +588,20 @@
 #define POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
 /**
+ * \def POLARSSL_PK_PARSE_EC_EXTENDED
+ *
+ * Enhance support for reading EC keys using variants of SEC1 not allowed by
+ * RFC 5915 and RFC 5480.
+ *
+ * Currently this means parsing the SpecifiedECDomain choice of EC
+ * parameters (only known groups are supported, not arbitrary domains, to
+ * avoid validation issues).
+ *
+ * Disable if you only need to support RFC 5915 + 5480 key formats.
+ */
+#define POLARSSL_PK_PARSE_EC_EXTENDED
+
+/**
  * \def POLARSSL_ERROR_STRERROR_BC
  *
  * Make available the backward compatible error_strerror() next to the

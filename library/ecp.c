@@ -478,7 +478,8 @@ cleanup:
  * Import a point from unsigned binary data (SEC1 2.3.4)
  */
 int ecp_point_read_binary( const ecp_group *grp, ecp_point *pt,
-                           const unsigned char *buf, size_t ilen ) {
+                           const unsigned char *buf, size_t ilen )
+{
     int ret;
     size_t plen;
 
@@ -487,7 +488,10 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *pt,
 
     plen = mpi_size( &grp->P );
 
-    if( ilen != 2 * plen + 1 || buf[0] != 0x04 )
+    if( buf[0] != 0x04 )
+        return( POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
+
+    if( ilen != 2 * plen + 1 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     MPI_CHK( mpi_read_binary( &pt->X, buf + 1, plen ) );

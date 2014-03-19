@@ -186,43 +186,6 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
 }
 
 /*
- * Import a point from unsigned binary data (SEC1 2.3.4), sloppy version:
- * accepts compressed point, but then don't fill the Y coordinate, only its
- * parity bit.  This is a hack to be able to read SpecifiedECDomain to the
- * degree that we can check if it is one of the known groups,
- * see pk_group_from_specified() and ultimately pk_group_id_from_specified().
- */
-static int pk_ecp_point_read_sloppy( const ecp_group *grp, ecp_point *pt,
-                                     const unsigned char *buf, size_t ilen )
-{
-    int ret;
-    size_t plen;
-
-    if( ilen == 1 && buf[0] == 0x00 )
-        return( ecp_set_zero( pt ) );
-
-    plen = mpi_size( &grp->P );
-
-    if( ilen == 2 * plen + 1 && buf[0] == 0x04 )
-    {
-        MPI_CHK( mpi_read_binary( &pt->X, buf + 1, plen ) );
-        MPI_CHK( mpi_read_binary( &pt->Y, buf + 1 + plen, plen ) );
-        MPI_CHK( mpi_lset( &pt->Z, 1 ) );
-    }
-    else if( ilen == plen + 1 && ( buf[0] == 0x02 || buf[0] == 0x03 ) )
-    {
-        MPI_CHK( mpi_read_binary( &pt->X, buf + 1, plen ) );
-        MPI_CHK( mpi_lset( &pt->Y, buf[0] - 2 ) );
-        MPI_CHK( mpi_lset( &pt->Z, 1 ) );
-    }
-    else
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
-
-cleanup:
-    return( ret );
-}
-
-/*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and (mostly) fill the group with it.
  * WARNING: the resulting group should only be used with
  * pk_group_id_from_specified(), since its base point may not be set correctly
@@ -344,10 +307,26 @@ static int pk_group_from_specified( const asn1_buf *params, ecp_group *grp )
     /*
      * ECPoint ::= OCTET STRING
      */
-    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 ||
-        ( ret = pk_ecp_point_read_sloppy( grp, &grp->G,
-                                    ( const unsigned char *) p, len ) ) != 0 )
+    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    if( ( ret = ecp_point_read_binary( grp, &grp->G,
+                                      ( const unsigned char *) p, len ) ) != 0 )
+    {
+        /*
+         * If we can't read the point because it's compressed, cheat by
+         * reading only the X coordinate and the parity bit of Y.
+         */
+        if( ret != POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE ||
+            ( p[0] != 0x02 && p[0] != 0x03 ) ||
+            len != mpi_size( &grp->P ) + 1 ||
+            mpi_read_binary( &grp->G.X, p + 1, len - 1 ) != 0 ||
+            mpi_lset( &grp->G.Y, p[0] - 2 ) != 0 ||
+            mpi_lset( &grp->G.Z, 1 ) != 0 )
+        {
+            return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
+        }
+    }
 
     p += len;
 
@@ -471,6 +450,10 @@ static int pk_use_ecparams( const asn1_buf *params, ecp_group *grp )
 
 /*
  * EC public key is an EC point
+ *
+ * The caller is responsible for clearing the structure upon failure if
+ * desired. Take care to pass along the possible ECP_FEATURE_UNAVAILABLE
+ * return code of ecp_point_read_binary() and leave p in a usable state.
  */
 static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
                             ecp_keypair *key )
@@ -478,19 +461,17 @@ static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
     int ret;
 
     if( ( ret = ecp_point_read_binary( &key->grp, &key->Q,
-                    (const unsigned char *) *p, end - *p ) ) != 0 ||
-        ( ret = ecp_check_pubkey( &key->grp, &key->Q ) ) != 0 )
+                    (const unsigned char *) *p, end - *p ) ) == 0 )
     {
-        ecp_keypair_free( key );
-        return( POLARSSL_ERR_PK_INVALID_PUBKEY );
+        ret = ecp_check_pubkey( &key->grp, &key->Q );
     }
 
     /*
-     * We know ecp_point_read_binary consumed all bytes
+     * We know ecp_point_read_binary consumed all bytes or failed
      */
     *p = (unsigned char *) end;
 
-    return( 0 );
+    return( ret );
 }
 #endif /* POLARSSL_ECP_C */
 
@@ -801,6 +782,15 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
 
         if( ( ret = pk_get_ecpubkey( &p, end2, eck ) ) == 0 )
             pubkey_done = 1;
+        else
+        {
+            /*
+             * The only acceptable failure mode of pk_get_ecpubkey() above
+             * is if the point format is not recognized.
+             */
+            if( ret != POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE )
+                return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
+        }
     }
     else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
     {

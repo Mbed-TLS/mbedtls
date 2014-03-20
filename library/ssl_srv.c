@@ -1120,10 +1120,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 {
     int ret;
     unsigned int i, j;
-    size_t n;
-    unsigned int ciph_len, sess_len;
-    unsigned int comp_len;
-    unsigned int ext_len = 0;
+    unsigned int ciph_offset, comp_offset, ext_offset;
+    unsigned int msg_len, ciph_len, sess_len, comp_len, ext_len;
     unsigned char *buf, *p, *ext;
     int renegotiation_info_seen = 0;
     int handshake_failure = 0;
@@ -1133,6 +1131,11 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
+    /*
+     * If renegotiating, then the input was read with ssl_read_record(),
+     * otherwise read it ourselves manually in order to support SSLv2
+     * ClientHello, which doesn't use the same record layer format.
+     */
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
         ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) ) ) != 0 )
     {
@@ -1149,13 +1152,6 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     SSL_DEBUG_BUF( 4, "record header", buf, ssl_hdr_len( ssl ) );
 
-    SSL_DEBUG_MSG( 3, ( "client hello v3, message type: %d",
-                   buf[0] ) );
-    SSL_DEBUG_MSG( 3, ( "client hello v3, message len.: %d",
-                   ( ssl->in_len[0] << 8 ) | ssl->in_len[1] ) );
-    SSL_DEBUG_MSG( 3, ( "client hello v3, protocol version: [%d:%d]",
-                   buf[1], buf[2] ) );
-
     /*
      * SSLv3/TLS Client Hello
      *
@@ -1164,11 +1160,20 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      *     1  .   2   protocol version
      *     3  .   4   message length
      */
+    SSL_DEBUG_MSG( 3, ( "client hello v3, message type: %d",
+                   buf[0] ) );
+
     if( buf[0] != SSL_MSG_HANDSHAKE )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
+
+    SSL_DEBUG_MSG( 3, ( "client hello v3, message len.: %d",
+                   ( ssl->in_len[0] << 8 ) | ssl->in_len[1] ) );
+
+    SSL_DEBUG_MSG( 3, ( "client hello v3, protocol version: [%d:%d]",
+                   buf[1], buf[2] ) );
 
     ssl_read_version( &major, &minor, ssl->transport, buf + 1 );
 
@@ -1182,30 +1187,34 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    n = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
+    msg_len = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
 
-    if( n < 45 || n > SSL_MAX_CONTENT_LEN )
+    /*
+     * Minimum length of a ClientHello is 42 plus headers (see below).
+     */
+    if( msg_len > SSL_MAX_CONTENT_LEN ||
+        msg_len < 42 + ssl_hdr_len( ssl ) )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
-        ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) + n ) ) != 0 )
+        ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) + msg_len ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
         return( ret );
     }
 
     buf = ssl->in_msg;
-    if( !ssl->renegotiation )
-        n = ssl->in_left - ssl_hdr_len( ssl );
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+        msg_len = ssl->in_left - ssl_hdr_len( ssl );
     else
-        n = ssl->in_msglen;
+        msg_len = ssl->in_msglen;
 
-    SSL_DEBUG_BUF( 4, "record contents", buf, n );
+    SSL_DEBUG_BUF( 4, "record contents", buf, msg_len );
 
-    ssl->handshake->update_checksum( ssl, buf, n );
+    ssl->handshake->update_checksum( ssl, buf, msg_len );
 
     /*
      * For DTLS, we move data so that is looks like TLS handshake format
@@ -1215,8 +1224,14 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     {
         // TODO: DTLS: check message_seq
 
-        /* For now we don't support fragmentation, so make sure
-         * fragment_offset == 0 and fragment_length == length */
+        /*
+         * For now we don't support fragmentation, so make sure
+         * fragment_offset == 0 and fragment_length == length
+         *
+         * TODO: DTLS: support fragmentation??
+         * Well, ClientHello is rarely much longer than 512 bytes
+         * so it will probably never be fragmented anyway...
+         */
         if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
             memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
         {
@@ -1224,9 +1239,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
         }
 
-
-        memmove( buf + 4, buf + 12, n - 12 );
-        n -= 8;
+        memmove( buf + 4, buf + 12, msg_len - 12 );
+        msg_len -= 8;
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 
@@ -1235,31 +1249,47 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      *     0  .   0   handshake type
      *     1  .   3   handshake length
      *     4  .   5   protocol version
-     *     6  .   9   UNIX time()
-     *    10  .  37   random bytes
+     *     6  .  37   random bytes (starting with 4 byte of Unix time)
      *    38  .  38   session id length
      *    39  . 38+x  session id
-     *   39+x . 40+x  ciphersuitelist length
-     *   41+x . 40+y  ciphersuitelist
-     *   41+y . 41+y  compression alg length
-     *   42+y . 41+z  compression algs
-     *    ..  .  ..   extensions
+     *   39+x . 40+x  ciphersuite list length
+     *   41+x .  ..   ciphersuite list
+     *    ..  .  ..   compression alg. list length (1 byte)
+     *    ..  .  ..   compression alg. list
+     *    ..  .  ..   extensions length (2 bytes, optional)
+     *    ..  .  ..   extensions (optional)
+     *
+     * Minimal length (with everything empty and extensions ommitted) is
+     * 4 + 2 + 32 + 1 + 2 + 1 = 42 bytes, which has been checked already,
+     * so we're fine until 'session id length' included.
      */
-    SSL_DEBUG_MSG( 3, ( "client hello v3, handshake type: %d",
-                   buf[0] ) );
-    SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %d",
-                   ( buf[1] << 16 ) | ( buf[2] << 8 ) | buf[3] ) );
-    SSL_DEBUG_MSG( 3, ( "client hello v3, max. version: [%d:%d]",
-                   buf[4], buf[5] ) );
 
     /*
-     * Check the handshake type and protocol version
+     * Check the handshake type and message length
      */
+    SSL_DEBUG_MSG( 3, ( "client hello v3, handshake type: %d", buf[0] ) );
+
     if( buf[0] != SSL_HS_CLIENT_HELLO )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
+
+    SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %d",
+                   ( buf[1] << 16 ) | ( buf[2] << 8 ) | buf[3] ) );
+
+    if( buf[1] != 0 ||
+        msg_len != (unsigned int) 4 + ( ( buf[2] << 8 ) | buf[3] ) )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    /*
+     * Check and save the protocol version
+     */
+    SSL_DEBUG_MSG( 3, ( "client hello v3, max. version: [%d:%d]",
+                   buf[4], buf[5] ) );
 
     ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
                       ssl->transport, buf + 4 );
@@ -1289,27 +1319,28 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     else if( ssl->minor_ver > ssl->max_minor_ver )
         ssl->minor_ver = ssl->max_minor_ver;
 
+    /*
+     * Save client random (inc. Unix time)
+     */
+    SSL_DEBUG_BUF( 3, "client hello, random bytes",
+                   buf +  6,  32 );
+
     memcpy( ssl->handshake->randbytes, buf + 6, 32 );
 
     /*
-     * Check the handshake message length
-     */
-    if( buf[1] != 0 || n != (unsigned int) 4 + ( ( buf[2] << 8 ) | buf[3] ) )
-    {
-        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-    }
-
-    /*
-     * Check the session length
+     * Check the session ID length and save session ID
      */
     sess_len = buf[38];
 
-    if( sess_len > 32 || sess_len > n - 42 )
+    if( sess_len > sizeof( ssl->session_negotiate->id ) ||
+        sess_len + 39 + 2 > msg_len ) /* 2 for cipherlist length field */
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
+
+    SSL_DEBUG_BUF( 3, "client hello, session id",
+                   buf + 39, sess_len );
 
     ssl->session_negotiate->length = sess_len;
     memset( ssl->session_negotiate->id, 0,
@@ -1318,51 +1349,47 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             ssl->session_negotiate->length );
 
     /*
-     * Check the ciphersuitelist length
+     * Check the ciphersuitelist length (will be parsed later)
      */
-    ciph_len = ( buf[39 + sess_len] << 8 )
-             | ( buf[40 + sess_len]      );
+    ciph_offset = 39 + sess_len;
 
-    if( ciph_len < 2 || ( ciph_len % 2 ) != 0 || ciph_len > n - 42 - sess_len )
+    ciph_len = ( buf[ciph_offset + 0] << 8 )
+             | ( buf[ciph_offset + 1]      );
+
+    if( ciph_len < 2 ||
+        ciph_len + 2 + ciph_offset + 1 > msg_len || /* 1 for comp. alg. len */
+        ( ciph_len % 2 ) != 0 )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    /*
-     * Check the compression algorithms length
-     */
-    comp_len = buf[41 + sess_len + ciph_len];
+    SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
+                   buf + ciph_offset + 2,  ciph_len );
 
-    if( comp_len < 1 || comp_len > 16 ||
-        comp_len > n - 42 - sess_len - ciph_len )
+    /*
+     * Check the compression algorithms length and pick one
+     */
+    comp_offset = ciph_offset + 2 + ciph_len;
+
+    comp_len = buf[comp_offset];
+
+    if( comp_len < 1 ||
+        comp_len > 16 ||
+        comp_len + comp_offset + 1 > msg_len )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    /*
-     * Check the extension length
-     */
-    if( n > 42 + sess_len + ciph_len + comp_len )
-    {
-        ext_len = ( buf[42 + sess_len + ciph_len + comp_len] << 8 )
-                | ( buf[43 + sess_len + ciph_len + comp_len]      );
-
-        if( ( ext_len > 0 && ext_len < 4 ) ||
-            n != 44 + sess_len + ciph_len + comp_len + ext_len )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            SSL_DEBUG_BUF( 3, "Ext", buf + 44 + sess_len + ciph_len + comp_len, ext_len);
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-    }
+    SSL_DEBUG_BUF( 3, "client hello, compression",
+                      buf + comp_offset + 1, comp_len );
 
     ssl->session_negotiate->compression = SSL_COMPRESS_NULL;
 #if defined(POLARSSL_ZLIB_SUPPORT)
     for( i = 0; i < comp_len; ++i )
     {
-        if( buf[42 + sess_len + ciph_len + i] == SSL_COMPRESS_DEFLATE )
+        if( buf[comp_offset + 1 + i] == SSL_COMPRESS_DEFLATE )
         {
             ssl->session_negotiate->compression = SSL_COMPRESS_DEFLATE;
             break;
@@ -1370,40 +1397,36 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     }
 #endif
 
-    SSL_DEBUG_BUF( 3, "client hello, random bytes",
-                   buf +  6,  32 );
-    SSL_DEBUG_BUF( 3, "client hello, session id",
-                   buf + 38,  sess_len );
-    SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
-                   buf + 41 + sess_len,  ciph_len );
-    SSL_DEBUG_BUF( 3, "client hello, compression",
-                   buf + 42 + sess_len + ciph_len, comp_len );
-
     /*
-     * Check for TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+     * Check the extension length
      */
-    for( i = 0, p = buf + 41 + sess_len; i < ciph_len; i += 2, p += 2 )
+    ext_offset = comp_offset + 1 + comp_len;
+    if( msg_len > ext_offset )
     {
-        if( p[0] == 0 && p[1] == SSL_EMPTY_RENEGOTIATION_INFO )
+        if( msg_len < ext_offset + 2 )
         {
-            SSL_DEBUG_MSG( 3, ( "received TLS_EMPTY_RENEGOTIATION_INFO " ) );
-            if( ssl->renegotiation == SSL_RENEGOTIATION )
-            {
-                SSL_DEBUG_MSG( 1, ( "received RENEGOTIATION SCSV during renegotiation" ) );
+            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
 
-                if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
-                    return( ret );
+        ext_len = ( buf[ext_offset + 0] << 8 )
+                | ( buf[ext_offset + 1]      );
 
-                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-            }
-            ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
-            break;
+        if( ( ext_len > 0 && ext_len < 4 ) ||
+            msg_len != ext_offset + 2 + ext_len )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+            SSL_DEBUG_BUF( 3, "client hello extensions",
+                              buf + ext_offset + 2, ext_len );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
     }
+    else
+        ext_len = 0;
 
-    ext = buf + 44 + sess_len + ciph_len + comp_len;
+    ext = buf + ext_offset + 2;
 
-    while( ext_len )
+    while( ext_len != 0 )
     {
         unsigned int ext_id   = ( ( ext[0] <<  8 )
                                 | ( ext[1]       ) );
@@ -1525,6 +1548,28 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     }
 
     /*
+     * Check for TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+     */
+    for( i = 0, p = buf + ciph_offset + 2; i < ciph_len; i += 2, p += 2 )
+    {
+        if( p[0] == 0 && p[1] == SSL_EMPTY_RENEGOTIATION_INFO )
+        {
+            SSL_DEBUG_MSG( 3, ( "received TLS_EMPTY_RENEGOTIATION_INFO " ) );
+            if( ssl->renegotiation == SSL_RENEGOTIATION )
+            {
+                SSL_DEBUG_MSG( 1, ( "received RENEGOTIATION SCSV during renegotiation" ) );
+
+                if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                    return( ret );
+
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+            ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
+            break;
+        }
+    }
+
+    /*
      * Renegotiation security checks
      */
     if( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
@@ -1571,13 +1616,13 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     ciphersuite_info = NULL;
 #if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
-    for( j = 0, p = buf + 41 + sess_len; j < ciph_len; j += 2, p += 2 )
+    for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
     {
         for( i = 0; ciphersuites[i] != 0; i++ )
 #else
     for( i = 0; ciphersuites[i] != 0; i++ )
     {
-        for( j = 0, p = buf + 41 + sess_len; j < ciph_len; j += 2, p += 2 )
+        for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
 #endif
         {
             if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||

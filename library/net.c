@@ -33,6 +33,10 @@
     !defined(EFI32)
 
 #if defined(POLARSSL_HAVE_IPV6)
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+/* Enables getaddrinfo() & Co */
 #define _WIN32_WINNT 0x0501
 #include <ws2tcpip.h>
 #endif
@@ -365,6 +369,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
  */
 static int net_would_block( int fd )
 {
+    ((void) fd);
     return( WSAGetLastError() == WSAEWOULDBLOCK );
 }
 #else

@@ -414,7 +414,7 @@ static const unsigned char result_nopr[OUTPUT_LEN] = {
     0xe8, 0x5f, 0x13, 0x0f, 0xc8, 0xa4, 0x59, 0xb7 };
 
 /* "Entropy" from buffer */
-static int test_offset;
+static size_t test_offset;
 static int hmac_drbg_self_test_entropy( void *data,
                                         unsigned char *buf, size_t len )
 {

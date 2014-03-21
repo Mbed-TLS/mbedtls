@@ -1122,6 +1122,9 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     unsigned int i, j;
     unsigned int ciph_offset, comp_offset, ext_offset;
     unsigned int msg_len, ciph_len, sess_len, comp_len, ext_len;
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    unsigned int cookie_offset, cookie_len;
+#endif
     unsigned char *buf, *p, *ext;
     int renegotiation_info_seen = 0;
     int handshake_failure = 0;
@@ -1249,11 +1252,13 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      *     0  .   0   handshake type
      *     1  .   3   handshake length
      *     4  .   5   protocol version
-     *     6  .  37   random bytes (starting with 4 byte of Unix time)
-     *    38  .  38   session id length
+     *     6  .  37   random bytes (starting with 4 bytes of Unix time)
+     *    38  .  38   session id length (1 byte)
      *    39  . 38+x  session id
-     *   39+x . 40+x  ciphersuite list length
-     *   41+x .  ..   ciphersuite list
+     *   39+x . 39+x  DTLS only: cookie length (1 byte)
+     *   40+x .  ..   DTSL only: cookie
+     *    ..  .  ..   ciphersuite list length (2 bytes)
+     *    ..  .  ..   ciphersuite list
      *    ..  .  ..   compression alg. list length (1 byte)
      *    ..  .  ..   compression alg. list
      *    ..  .  ..   extensions length (2 bytes, optional)
@@ -1333,7 +1338,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     sess_len = buf[38];
 
     if( sess_len > sizeof( ssl->session_negotiate->id ) ||
-        sess_len + 39 + 2 > msg_len ) /* 2 for cipherlist length field */
+        sess_len + 38 + 2 > msg_len ) /* 2 for cipherlist length field */
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -1349,9 +1354,37 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             ssl->session_negotiate->length );
 
     /*
+     * Check the cookie length and content
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        cookie_offset = 39 + sess_len;
+        cookie_len = buf[cookie_offset];
+
+        if( // cookie_len > <MAX> || // TODO-DTLS
+            cookie_offset + 1 + cookie_len + 2 > msg_len )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
+
+        SSL_DEBUG_BUF( 3, "client hello, cookie",
+                       buf + cookie_offset + 1, cookie_len );
+
+        // TODO-DTLS: check cookie, reject if invalid!
+    }
+#endif
+
+    /*
      * Check the ciphersuitelist length (will be parsed later)
      */
-    ciph_offset = 39 + sess_len;
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ciph_offset = cookie_offset + 1 + cookie_len;
+    else
+#endif
+        ciph_offset = 39 + sess_len;
 
     ciph_len = ( buf[ciph_offset + 0] << 8 )
              | ( buf[ciph_offset + 1]      );

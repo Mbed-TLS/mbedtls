@@ -520,11 +520,13 @@ static int ssl_write_client_hello( ssl_context *ssl )
     /*
      *    38  .  38   session id length
      *    39  . 39+n  session id
-     *   40+n . 41+n  ciphersuitelist length
-     *   42+n . ..    ciphersuitelist
-     *   ..   . ..    compression methods length
+     *   39+n . 39+n  DTLS only: cookie length (1 byte)
+     *   40+n .  ..   DTSL only: cookie
+     *   ..   . ..    ciphersuitelist length (2 bytes)
+     *   ..   . ..    ciphersuitelist
+     *   ..   . ..    compression methods length (1 byte)
      *   ..   . ..    compression methods
-     *   ..   . ..    extensions length
+     *   ..   . ..    extensions length (2 bytes)
      *   ..   . ..    extensions
      */
     n = ssl->session_negotiate->length;
@@ -561,16 +563,29 @@ static int ssl_write_client_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "client hello, session id len.: %d", n ) );
     SSL_DEBUG_BUF( 3,   "client hello, session id", buf + 39, n );
 
-    ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
-    n = 0;
-    q = p;
-
-    // Skip writing ciphersuite length for now
-    p += 2;
+    /*
+     * DTLS cookie
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        /* TODO-DTLS: for now, just send an empty cookie, later on must send
+         * back the cookie from HelloVerifyRequest */
+        *p++ = 0;
+    }
+#endif
 
     /*
-     * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+     * Ciphersuite list
      */
+    ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
+
+    /* Skip writing ciphersuite length for now */
+    n = 0;
+    q = p;
+    p += 2;
+
+    /* Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV */
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
     {
         *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO >> 8 );

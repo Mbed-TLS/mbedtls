@@ -32,6 +32,8 @@ option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library.
 
 option(ENABLE_ZLIB_SUPPORT "Build PolarSSL with zlib library." OFF)
 
+option(ENABLE_PROGRAMS "Build PolarSSL programs." ON)
+
 if(LIB_INSTALL_DIR)
 else()
 set(LIB_INSTALL_DIR lib)
@@ -57,7 +59,9 @@ if(CMAKE_COMPILER_IS_CLANG)
   add_subdirectory(tests)
 endif(CMAKE_COMPILER_IS_CLANG)
 
-add_subdirectory(programs)
+if(ENABLE_PROGRAMS)
+  add_subdirectory(programs)
+endif()
 
 ADD_CUSTOM_TARGET(apidoc
                   COMMAND doxygen doxygen/polarssl.doxyfile

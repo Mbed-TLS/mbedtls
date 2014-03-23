@@ -1242,11 +1242,15 @@ int main( int argc, char *argv[] )
     /*
      * 2. Setup the listening TCP socket
      */
-    printf( "  . Bind on tcp://localhost:%-4d/ ...", opt.server_port );
+    printf( "  . Bind on %s://%s:%-4d/ ...",
+            opt.transport == SSL_TRANSPORT_STREAM ? "tcp" : "udp",
+            opt.server_addr ? opt.server_addr : "*",
+            opt.server_port );
     fflush( stdout );
 
-    if( ( ret = net_bind( &listen_fd, opt.server_addr,
-                                      opt.server_port, NET_PROTO_TCP ) ) != 0 )
+    if( ( ret = net_bind( &listen_fd, opt.server_addr, opt.server_port,
+                          opt.transport == SSL_TRANSPORT_STREAM ?
+                          NET_PROTO_TCP : NET_PROTO_UDP ) ) != 0 )
     {
         printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
         goto exit;
@@ -1435,7 +1439,32 @@ reset:
 #endif
 
     if( client_fd != -1 )
+    {
         net_close( client_fd );
+
+        /*
+         * With UDP, client_fd == bind_fd, so we just closed bind_fd. Bind it
+         * again. (We really want to close it, to empty the message queue.)
+         */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+        if( opt.transport == SSL_TRANSPORT_DATAGRAM )
+        {
+            printf( "  . Bind on udp://%s:%-4d/ ...",
+                    opt.server_addr ? opt.server_addr : "*",
+                    opt.server_port );
+            fflush( stdout );
+
+            if( ( ret = net_bind( &listen_fd, opt.server_addr, opt.server_port,
+                                  NET_PROTO_UDP ) ) != 0 )
+            {
+                printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
+                goto exit;
+            }
+
+            printf( " ok\n" );
+        }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+    }
 
     ssl_session_reset( &ssl );
 

@@ -839,12 +839,14 @@ int main( int argc, char *argv[] )
     if( opt.server_addr == NULL)
         opt.server_addr = opt.server_name;
 
-    printf( "  . Connecting to tcp/%s/%-4d...", opt.server_addr,
-                                                opt.server_port );
+    printf( "  . Connecting to %s/%s/%-4d...",
+            opt.transport == SSL_TRANSPORT_STREAM ? "tcp" : "udp",
+            opt.server_addr, opt.server_port );
     fflush( stdout );
 
-    if( ( ret = net_connect( &server_fd, opt.server_addr,
-                             opt.server_port, NET_PROTO_TCP ) ) != 0 )
+    if( ( ret = net_connect( &server_fd, opt.server_addr, opt.server_port,
+                             opt.transport == SSL_TRANSPORT_STREAM ?
+                             NET_PROTO_TCP : NET_PROTO_UDP ) ) != 0 )
     {
         printf( " failed\n  ! net_connect returned -0x%x\n\n", -ret );
         goto exit;
@@ -1259,8 +1261,9 @@ reconnect:
             goto exit;
         }
 
-        if( ( ret = net_connect( &server_fd, opt.server_name,
-                                 opt.server_port , NET_PROTO_TCP) ) != 0 )
+        if( ( ret = net_connect( &server_fd, opt.server_name, opt.server_port,
+                                 opt.transport == SSL_TRANSPORT_STREAM ?
+                                 NET_PROTO_TCP : NET_PROTO_UDP ) ) != 0 )
         {
             printf( " failed\n  ! net_connect returned -0x%x\n\n", -ret );
             goto exit;

@@ -135,7 +135,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     if( ( ret = net_connect( &server_fd, SERVER_NAME,
-                                         SERVER_PORT ) ) != 0 )
+                                         SERVER_PORT, NET_PROTO_TCP ) ) != 0 )
     {
         printf( " failed\n  ! net_connect returned %d\n\n", ret );
         goto exit;

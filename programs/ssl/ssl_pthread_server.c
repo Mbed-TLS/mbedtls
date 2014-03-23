@@ -445,7 +445,7 @@ int main( int argc, char *argv[] )
     printf( "  . Bind on https://localhost:4433/ ..." );
     fflush( stdout );
 
-    if( ( ret = net_bind( &listen_fd, NULL, 4433 ) ) != 0 )
+    if( ( ret = net_bind( &listen_fd, NULL, 4433, NET_PROTO_TCP ) ) != 0 )
     {
         printf( " failed\n  ! net_bind returned %d\n\n", ret );
         goto exit;

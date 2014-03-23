@@ -163,7 +163,7 @@ int main( int argc, char *argv[] )
     printf( "\n  . Waiting for a remote connection" );
     fflush( stdout );
 
-    if( ( ret = net_bind( &listen_fd, NULL, SERVER_PORT ) ) != 0 )
+    if( ( ret = net_bind( &listen_fd, NULL, SERVER_PORT, NET_PROTO_TCP ) ) != 0 )
     {
         printf( " failed\n  ! net_bind returned %d\n\n", ret );
         goto exit;

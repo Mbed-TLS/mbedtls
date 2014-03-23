@@ -1246,7 +1246,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     if( ( ret = net_bind( &listen_fd, opt.server_addr,
-                                      opt.server_port ) ) != 0 )
+                                      opt.server_port, NET_PROTO_TCP ) ) != 0 )
     {
         printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
         goto exit;

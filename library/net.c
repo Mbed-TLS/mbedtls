@@ -160,9 +160,9 @@ static int net_prepare( void )
 }
 
 /*
- * Initiate a TCP connection with host:port
+ * Initiate a TCP connection with host:port and the given protocol
  */
-int net_connect( int *fd, const char *host, int port )
+int net_connect( int *fd, const char *host, int port, int proto )
 {
 #if defined(POLARSSL_HAVE_IPV6)
     int ret;
@@ -176,11 +176,11 @@ int net_connect( int *fd, const char *host, int port )
     memset( port_str, 0, sizeof( port_str ) );
     snprintf( port_str, sizeof( port_str ), "%d", port );
 
-    /* Do name resolution with both IPv6 and IPv4, but only TCP */
+    /* Do name resolution with both IPv6 and IPv4 */
     memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_socktype = proto == NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
+    hints.ai_protocol = proto == NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
 
     if( getaddrinfo( host, port_str, &hints, &addr_list ) != 0 )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
@@ -224,7 +224,9 @@ int net_connect( int *fd, const char *host, int port )
     if( ( server_host = gethostbyname( host ) ) == NULL )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
 
-    if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
+    if( ( *fd = (int) socket( AF_INET,
+                    proto == NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM,
+                    proto == NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP ) ) < 0 )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );
 
     memcpy( (void *) &server_addr.sin_addr,
@@ -248,7 +250,7 @@ int net_connect( int *fd, const char *host, int port )
 /*
  * Create a listening socket on bind_ip:port
  */
-int net_bind( int *fd, const char *bind_ip, int port )
+int net_bind( int *fd, const char *bind_ip, int port, int proto )
 {
 #if defined(POLARSSL_HAVE_IPV6)
     int n, ret;
@@ -265,8 +267,8 @@ int net_bind( int *fd, const char *bind_ip, int port )
     /* Bind to IPv6 and/or IPv4, but only in TCP */
     memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_socktype = proto == NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
+    hints.ai_protocol = proto == NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
     if( bind_ip == NULL )
         hints.ai_flags = AI_PASSIVE;
 
@@ -301,11 +303,15 @@ int net_bind( int *fd, const char *bind_ip, int port )
             continue;
         }
 
-        if( listen( *fd, POLARSSL_NET_LISTEN_BACKLOG ) != 0 )
+        /* Listen only makes sense for TCP */
+        if( proto == NET_PROTO_TCP )
         {
-            close( *fd );
-            ret = POLARSSL_ERR_NET_LISTEN_FAILED;
-            continue;
+            if( listen( *fd, POLARSSL_NET_LISTEN_BACKLOG ) != 0 )
+            {
+                close( *fd );
+                ret = POLARSSL_ERR_NET_LISTEN_FAILED;
+                continue;
+            }
         }
 
         /* I we ever get there, it's a success */
@@ -326,7 +332,9 @@ int net_bind( int *fd, const char *bind_ip, int port )
     if( ( ret = net_prepare() ) != 0 )
         return( ret );
 
-    if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
+    if( ( *fd = (int) socket( AF_INET,
+                    proto == NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM,
+                    proto == NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP ) ) < 0 )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );
 
     n = 1;
@@ -361,10 +369,14 @@ int net_bind( int *fd, const char *bind_ip, int port )
         return( POLARSSL_ERR_NET_BIND_FAILED );
     }
 
-    if( listen( *fd, POLARSSL_NET_LISTEN_BACKLOG ) != 0 )
+    /* Listen only makes sense for TCP */
+    if( proto == NET_PROTO_TCP )
     {
-        close( *fd );
-        return( POLARSSL_ERR_NET_LISTEN_FAILED );
+        if( listen( *fd, POLARSSL_NET_LISTEN_BACKLOG ) != 0 )
+        {
+            close( *fd );
+            return( POLARSSL_ERR_NET_LISTEN_FAILED );
+        }
     }
 
     return( 0 );
@@ -416,6 +428,9 @@ static int net_would_block( int fd )
  */
 int net_accept( int bind_fd, int *client_fd, void *client_ip )
 {
+    int ret;
+    int type;
+
 #if defined(POLARSSL_HAVE_IPV6)
     struct sockaddr_storage client_addr;
 #else
@@ -425,19 +440,49 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 #if defined(__socklen_t_defined) || defined(_SOCKLEN_T) ||  \
     defined(_SOCKLEN_T_DECLARED)
     socklen_t n = (socklen_t) sizeof( client_addr );
+    socklen_t type_len = (socklen_t) sizeof( type );
 #else
     int n = (int) sizeof( client_addr );
+    int type_len = (int) sizeof( type );
 #endif
 
-    *client_fd = (int) accept( bind_fd, (struct sockaddr *)
-                               &client_addr, &n );
+    /* Is this a TCP or UDP socket? */
+    if( getsockopt( bind_fd, SOL_SOCKET, SO_TYPE, &type, &type_len ) != 0 ||
+        ( type != SOCK_STREAM && type != SOCK_DGRAM ) )
+    {
+        return( POLARSSL_ERR_NET_ACCEPT_FAILED );
+    }
 
-    if( *client_fd < 0 )
+    if( type == SOCK_STREAM )
+    {
+        /* TCP: actual accept() */
+        ret = *client_fd = (int) accept( bind_fd,
+                                         (struct sockaddr *) &client_addr, &n );
+    }
+    else
+    {
+        /* UDP: wait for a message, but keep it in the queue */
+        char buf[1] = { 0 };
+
+        ret = recvfrom( bind_fd, buf, 0, MSG_PEEK,
+                        (struct sockaddr *) &client_addr, &n );
+    }
+
+    if( ret < 0 )
     {
         if( net_would_block( bind_fd ) != 0 )
             return( POLARSSL_ERR_NET_WANT_READ );
 
         return( POLARSSL_ERR_NET_ACCEPT_FAILED );
+    }
+
+    /* UDP: hijack the listening socket for communicating with the client */
+    if( type != SOCK_STREAM )
+    {
+        if( connect( bind_fd, (struct sockaddr *) &client_addr, n ) != 0 )
+            return( POLARSSL_ERR_NET_ACCEPT_FAILED );
+
+        *client_fd = bind_fd;
     }
 
     if( client_ip != NULL )

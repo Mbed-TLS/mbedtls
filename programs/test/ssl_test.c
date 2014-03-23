@@ -193,7 +193,7 @@ static int ssl_test( struct options *opt )
     if( opt->opmode == OPMODE_CLIENT )
     {
         if( ( ret = net_connect( &client_fd, opt->server_name,
-                                             opt->server_port ) ) != 0 )
+                                 opt->server_port, NET_PROTO_TCP ) ) != 0 )
         {
             printf( "  ! net_connect returned %d\n\n", ret );
             return( ret );
@@ -242,7 +242,7 @@ static int ssl_test( struct options *opt )
         if( server_fd < 0 )
         {
             if( ( ret = net_bind( &server_fd, NULL,
-                                   opt->server_port ) ) != 0 )
+                                   opt->server_port, NET_PROTO_TCP ) ) != 0 )
             {
                 printf( "  ! net_bind returned %d\n\n", ret );
                 return( ret );

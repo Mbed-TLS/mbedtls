@@ -43,38 +43,48 @@
 
 #define POLARSSL_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
 
+#define NET_PROTO_TCP 0 /**< The TCP transport protocol */
+#define NET_PROTO_UDP 1 /**< The UDP transport protocol */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * \brief          Initiate a TCP connection with host:port
+ * \brief          Initiate a connection with host:port in the given protocol
  *
  * \param fd       Socket to use
  * \param host     Host to connect to
  * \param port     Port to connect to
+ * \param proto    Protocol: NET_PROTO_TCP or NET_PROTO_UDP
  *
  * \return         0 if successful, or one of:
  *                      POLARSSL_ERR_NET_SOCKET_FAILED,
  *                      POLARSSL_ERR_NET_UNKNOWN_HOST,
  *                      POLARSSL_ERR_NET_CONNECT_FAILED
+ *
+ * \note           Sets the socket in connected mode even with UDP.
  */
-int net_connect( int *fd, const char *host, int port );
+int net_connect( int *fd, const char *host, int port, int proto );
 
 /**
- * \brief          Create a listening socket on bind_ip:port.
- *                 If bind_ip == NULL, all interfaces are binded.
+ * \brief          Create a receiving socket on bind_ip:port in the chosen
+ *                 protocol. If bind_ip == NULL, all interfaces are bound.
  *
  * \param fd       Socket to use
  * \param bind_ip  IP to bind to, can be NULL
  * \param port     Port number to use
+ * \param proto    Protocol: NET_PROTO_TCP or NET_PROTO_UDP
  *
  * \return         0 if successful, or one of:
  *                      POLARSSL_ERR_NET_SOCKET_FAILED,
  *                      POLARSSL_ERR_NET_BIND_FAILED,
  *                      POLARSSL_ERR_NET_LISTEN_FAILED
+ *
+ * \note           Regardless of the protocol, opens the sockets and binds it.
+ *                 In addition, make the socket listening if protocol is TCP.
  */
-int net_bind( int *fd, const char *bind_ip, int port );
+int net_bind( int *fd, const char *bind_ip, int port, int proto );
 
 /**
  * \brief           Accept a connection from a remote client
@@ -87,6 +97,10 @@ int net_bind( int *fd, const char *bind_ip, int port );
  * \return          0 if successful, POLARSSL_ERR_NET_ACCEPT_FAILED, or
  *                  POLARSSL_ERR_NET_WANT_READ is bind_fd was set to
  *                  non-blocking and accept() is blocking.
+ *
+ * \note            With UDP, connects the bind_fd to the client and just copy
+ *                  its descriptor to client_fd. New clients will not be able
+ *                  to connect until you close the socket and bind a new one.
  */
 int net_accept( int bind_fd, int *client_fd, void *client_ip );
 

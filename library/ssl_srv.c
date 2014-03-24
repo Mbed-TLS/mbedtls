@@ -1192,39 +1192,46 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     msg_len = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
 
-    /*
-     * Minimum length of a ClientHello is 42 plus headers (see below).
-     */
-    if( msg_len > SSL_MAX_CONTENT_LEN ||
-        msg_len < 42 + ssl_hdr_len( ssl ) )
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
     {
-        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-    }
+        if( msg_len > SSL_MAX_CONTENT_LEN )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
 
-    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
-        ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) + msg_len ) ) != 0 )
+        if( ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) + msg_len ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+            return( ret );
+        }
+    }
+    else
     {
-        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
-        return( ret );
+        /* Set by ssl_read_record() */
+        msg_len = ssl->in_hslen;
     }
 
     buf = ssl->in_msg;
-    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
-        msg_len = ssl->in_left - ssl_hdr_len( ssl );
-    else
-        msg_len = ssl->in_msglen;
 
     SSL_DEBUG_BUF( 4, "record contents", buf, msg_len );
 
     ssl->handshake->update_checksum( ssl, buf, msg_len );
 
     /*
-     * For DTLS, we move data so that is looks like TLS handshake format
+     * The DTLS handshake layer contains additional fields.  Use them, then
+     * remove them so that it looks like TLS format to the rest of the code.
      */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
+        /* 1 (type) + 3 (len) + 2 (seq) + 3 (frag_offset) + 3 (frag_len) */
+        if( msg_len < 12 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
+
         // TODO: DTLS: check message_seq
 
         /*
@@ -1242,6 +1249,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
         }
 
+        /* Remove the additional fields */
         memmove( buf + 4, buf + 12, msg_len - 12 );
         msg_len -= 8;
     }
@@ -1265,13 +1273,19 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      *    ..  .  ..   extensions (optional)
      *
      * Minimal length (with everything empty and extensions ommitted) is
-     * 4 + 2 + 32 + 1 + 2 + 1 = 42 bytes, which has been checked already,
-     * so we're fine until 'session id length' included.
+     * 4 + 2 + 32 + 1 + 2 + 1 = 42 bytes. Check that first, so that we can
+     * read at least up to session id length without worrying.
      */
 
     /*
      * Check the handshake type and message length
      */
+    if( msg_len < 42 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
     SSL_DEBUG_MSG( 3, ( "client hello v3, handshake type: %d", buf[0] ) );
 
     if( buf[0] != SSL_HS_CLIENT_HELLO )

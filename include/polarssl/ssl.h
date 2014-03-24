@@ -1762,10 +1762,6 @@ int ssl_send_fatal_handshake_failure( ssl_context *ssl );
 int ssl_derive_keys( ssl_context *ssl );
 
 int ssl_read_record( ssl_context *ssl );
-/**
- * \return         0 if successful, POLARSSL_ERR_SSL_CONN_EOF on EOF or
- *                 another negative error code.
- */
 int ssl_fetch_input( ssl_context *ssl, size_t nb_want );
 
 int ssl_write_record( ssl_context *ssl );

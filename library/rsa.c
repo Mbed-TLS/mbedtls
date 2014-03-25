@@ -1381,7 +1381,7 @@ int rsa_copy( rsa_context *dst, const rsa_context *src )
 #endif
 
     dst->padding = src->padding;
-    dst->hash_id = src->padding;
+    dst->hash_id = src->hash_id;
 
 cleanup:
     if( ret != 0 )

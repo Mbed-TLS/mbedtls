@@ -51,6 +51,7 @@ Bugfix
      containing a client certificate
    * ssl_init() was leaving a dirty pointer in ssl_context if malloc of
      out_ctr failed
+   * Fix typo in rsa_copy() that impacted PKCS#1 v2 contexts
 
 = PolarSSL 1.3.4 released on 2014-01-27
 Features

@@ -9,10 +9,10 @@ use warnings;
 use strict;
 
 my %configs = (
-    'config-psk-rc4-tls1_0.h'   => "-m tls1   -f 'PSK.*RC4'",
+    'config-psk-rc4-tls1_0.h'   => '-m tls1   -f \'^PSK.*RC4\|TLS-PSK.*RC4\'',
     'config-mini-tls1_1.h'
     => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
-    'config-suite-b.h'          => "-m tls1_2 -f 'ECDSA.*GCM'",
+    'config-suite-b.h'          => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM'",
 );
 
 if ($#ARGV >= 0) {
@@ -54,6 +54,7 @@ while( my ($conf, $args) = each %configs ) {
 
     system( "make" ) and abort "Failed to build: $conf\n";
     system( "make $test" ) and abort "Failed test suite: $conf\n";
+    print "\nrunning compat.sh $args\n";
     system( "cd tests && ./compat.sh $args" )
         and abort "Failed compat.sh: $conf\n";
 }

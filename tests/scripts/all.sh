@@ -35,6 +35,8 @@ cleanup()
 {
     make clean
     find -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} \+
+    rm -f include/Makefile include/polarssl/Makefile programs/*/Makefile
+    git update-index --no-skip-worktree {.,library,programs,tests}/Makefile
     git checkout -- {.,library,programs,tests}/Makefile
 }
 

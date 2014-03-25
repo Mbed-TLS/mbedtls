@@ -270,6 +270,21 @@ static void *handle_ssl_connection( void *data )
     printf( "  [ #%d ]  %d bytes written\n=====\n%s\n=====\n",
             thread_id, len, (char *) buf );
 
+    printf( "  [ #%d ]  . Closing the connection...", thread_id );
+
+    while( ( ret = ssl_close_notify( &ssl ) ) < 0 )
+    {
+        if( ret != POLARSSL_ERR_NET_WANT_READ &&
+            ret != POLARSSL_ERR_NET_WANT_WRITE )
+        {
+            printf( "  [ #%d ]  failed: ssl_close_notify returned -0x%04x\n",
+                    thread_id, ret );
+            goto thread_exit;
+        }
+    }
+
+    printf( " ok\n" );
+
     ret = 0;
 
 thread_exit:

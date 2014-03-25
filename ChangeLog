@@ -4,6 +4,7 @@ PolarSSL ChangeLog (Sorted per branch, date)
 
 Bugfix
    * The length of various ClientKeyExchange messages was not properly checked.
+   * Some example server programs were not sending the close_notify alert.
 
 = PolarSSL 1.3.5 released on 2014-03-26
 Features

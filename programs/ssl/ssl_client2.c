@@ -1002,6 +1002,7 @@ send_request:
         if( ret == 0 )
         {
             printf("\n\nEOF\n\n");
+            ssl_close_notify( &ssl );
             break;
         }
 
@@ -1010,11 +1011,11 @@ send_request:
     }
     while( 1 );
 
-    ssl_close_notify( &ssl );
-
     if( opt.reconnect != 0 )
     {
         --opt.reconnect;
+
+        net_close( server_fd );
 
 #if defined(POLARSSL_TIMING_C)
         if( opt.reco_delay > 0 )
@@ -1055,6 +1056,8 @@ send_request:
     }
 
 exit:
+    if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
+        ret = 0;
 
 #ifdef POLARSSL_ERROR_C
     if( ret != 0 )
@@ -1062,9 +1065,6 @@ exit:
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
         printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
-
-        if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
-            ret = 0;
     }
 #endif
 

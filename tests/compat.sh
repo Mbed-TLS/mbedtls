@@ -3,28 +3,43 @@
 # Test interop with OpenSSL for each common ciphersuite and version.
 # Also test selfop for ciphersuites not shared with OpenSSL.
 
+# test if those two are set in the environment before assigning defaults
+if [ -n "$GNUTLS_CLI" -a -n "$GNUTLS_SERV" ]; then
+    GNUTLS_AVAILABLE=1
+else
+    GNUTLS_AVAILABLE=0
+fi
+
+# catch undefined variables from now on
 set -u
 
+# initialise counters
 let "tests = 0"
 let "failed = 0"
 let "skipped = 0"
 let "srvmem = 0"
 
-# default values, can be overriden by the environment
+# default commands, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
 : ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 
+# default values for options
 MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
 EXCLUDE='NULL\|DES-CBC-' # avoid plain DES but keep 3DES-EDE-CBC (PolarSSL), DES-CBC3 (OpenSSL)
 VERBOSE=""
-PEERS="OpenSSL PolarSSL" # GnuTLS not enabled by default, 3.2.4 might not be available on all buildbot machines
 MEMCHECK=0
+# GnuTLS not enabled by default, 3.2.4 might not be available everywhere
+if [ "$GNUTLS_AVAILABLE" -gt 0 ]; then
+    PEERS="OpenSSL PolarSSL GnuTLS"
+else
+    PEERS="OpenSSL PolarSSL"
+fi
 
 print_usage() {
     echo "Usage: $0"
@@ -898,6 +913,11 @@ for VERIFY in $VERIFIES; do
                         stop_server
                     fi
 
+                    ;;
+
+                *)
+                    echo "Unkown peer: $PEER" >&2
+                    exit 1
                     ;;
 
                 esac

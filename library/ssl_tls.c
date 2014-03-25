@@ -72,6 +72,8 @@ static inline size_t ssl_ep_len( const ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
         return( 2 );
+#else
+    ((void) ssl);
 #endif
     return( 0 );
 }
@@ -1038,7 +1040,6 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
  */
 static int ssl_encrypt_buf( ssl_context *ssl )
 {
-    size_t i;
     const cipher_mode_t mode = cipher_get_cipher_mode(
                                         &ssl->transform_out->cipher_ctx_enc );
 
@@ -1210,7 +1211,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     {
         int ret;
         unsigned char *enc_msg;
-        size_t enc_msglen, padlen, olen = 0;
+        size_t enc_msglen, padlen, olen = 0, i;
 
         padlen = ssl->transform_out->ivlen - ( ssl->out_msglen + 1 ) %
                  ssl->transform_out->ivlen;
@@ -5107,13 +5108,8 @@ int ssl_check_cert_usage( const x509_crt *cert,
 void ssl_write_version( int major, int minor, int transport,
                         unsigned char ver[2] )
 {
-    if( transport == SSL_TRANSPORT_STREAM )
-    {
-        ver[0] = (unsigned char) major;
-        ver[1] = (unsigned char) minor;
-    }
 #if defined(POLARSSL_SSL_PROTO_DTLS)
-    else
+    if( transport == SSL_TRANSPORT_DATAGRAM )
     {
         if( minor == SSL_MINOR_VERSION_2 )
             --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
@@ -5121,19 +5117,21 @@ void ssl_write_version( int major, int minor, int transport,
         ver[0] = (unsigned char)( 255 - ( major - 2 ) );
         ver[1] = (unsigned char)( 255 - ( minor - 1 ) );
     }
+    else
+#else
+    ((void) transport);
 #endif
+    {
+        ver[0] = (unsigned char) major;
+        ver[1] = (unsigned char) minor;
+    }
 }
 
 void ssl_read_version( int *major, int *minor, int transport,
                        const unsigned char ver[2] )
 {
-    if( transport == SSL_TRANSPORT_STREAM )
-    {
-        *major = ver[0];
-        *minor = ver[1];
-    }
 #if defined(POLARSSL_SSL_PROTO_DTLS)
-    else
+    if( transport == SSL_TRANSPORT_DATAGRAM )
     {
         *major = 255 - ver[0] + 2;
         *minor = 255 - ver[1] + 1;
@@ -5141,7 +5139,14 @@ void ssl_read_version( int *major, int *minor, int transport,
         if( *minor == SSL_MINOR_VERSION_1 )
             ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
     }
+    else
+#else
+    ((void) transport);
 #endif
+    {
+        *major = ver[0];
+        *minor = ver[1];
+    }
 }
 
 #endif /* POLARSSL_SSL_TLS_C */

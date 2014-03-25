@@ -1831,6 +1831,8 @@ static inline size_t ssl_hdr_len( const ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
         return( 13 );
+#else
+    ((void) ssl);
 #endif
     return( 5 );
 }

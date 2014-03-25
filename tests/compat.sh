@@ -679,8 +679,8 @@ run_client() {
     # announce what we're going to do
     let "tests++"
     VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-    TITLE="${1:0:1}->${SERVER_NAME:0:1} $MODE,$VERIF $2 "
-    echo -n "$TITLE"
+    TITLE="${1:0:1}->${SERVER_NAME:0:1} $MODE,$VERIF $2"
+    echo -n "$TITLE "
     LEN=`echo "$TITLE" | wc -c`
     LEN=`echo 72 - $LEN | bc`
     for i in `seq 1 $LEN`; do echo -n '.'; done; echo -n ' '
@@ -757,6 +757,8 @@ run_client() {
             ;;
     esac
 
+    echo "EXIT: $EXIT" >> cli_out
+
     # report and count result
     case $RESULT in
         "0")
@@ -768,8 +770,6 @@ run_client() {
             ;;
         "2")
             echo FAIL
-            echo "  ! $SERVER_CMD"
-            echo "  ! $CLIENT_CMD"
             cp srv_out c-srv-${tests}.log
             cp cli_out c-cli-${tests}.log
             echo "  ! outputs saved to c-srv-${tests}.log, c-cli-${tests}.log"

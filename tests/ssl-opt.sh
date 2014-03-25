@@ -135,6 +135,8 @@ run_test() {
     echo "$CLI_CMD" > cli_out
     $SHELL -c "$CLI_CMD" >> cli_out 2>&1
     CLI_EXIT=$?
+    echo "EXIT: $CLI_EXIT" >> cli_out
+
     if is_polar "$SRV_CMD"; then
         "$P_CLI" request_page=SERVERQUIT tickets=0 auth_mode=none \
             crt_file=data_files/cli2.crt key_file=data_files/cli2.key \

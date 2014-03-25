@@ -22,6 +22,7 @@ Changes
      that prevented bignum.c from compiling. (Reported by Rafael Baptista.)
    * Revamped the compat.sh interoperatibility script to include support for
      testing against GnuTLS
+   * Deprecated ssl_set_own_cert_rsa() and ssl_set_own_cert_rsa_alt()
 
 Security
    * Forbid change of server certificate during renegotiation to prevent
@@ -29,12 +30,12 @@ Security
      attack was already impossible when authentication is required).
    * Check notBefore timestamp of certificates and CRLs from the future.
    * Forbid sequence number wrapping
-   * Fix possible buffer overflow with overlong PSK
+   * Fixed possible buffer overflow with overlong PSK
 
 Bugfix
    * ecp_gen_keypair() does more tries to prevent failure because of
      statistics
-   * Fix bug in RSA PKCS#1 v1.5 "reversed" operations
+   * Fixed bug in RSA PKCS#1 v1.5 "reversed" operations
    * Fixed testing with out-of-source builds using cmake
    * Fixed version-major intolerance in server
    * Fixed CMake symlinking on out-of-source builds

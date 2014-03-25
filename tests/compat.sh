@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Test interop with OpenSSL for each common ciphersuite and version.
-# Also test selfop for ciphersuites not shared with OpenSSL.
+# Test interop with OpenSSL and GnuTLS (and self-op while at it).
+#
+# Check each common ciphersuite, with each version, both ways (client/server),
+# with and without client authentication.
 
 # test if those two are set in the environment before assigning defaults
 if [ -n "$GNUTLS_CLI" -a -n "$GNUTLS_SERV" ]; then
@@ -133,7 +135,7 @@ reset_ciphersuites()
     G_CIPHERS=""
 }
 
-add_openssl_ciphersuites()
+add_common_ciphersuites()
 {
     case $TYPE in
 
@@ -146,11 +148,13 @@ add_openssl_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
                     TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
                     TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
-                    TLS-ECDH-ECDSA-WITH-NULL-SHA            \
-                    TLS-ECDH-ECDSA-WITH-RC4-128-SHA         \
-                    TLS-ECDH-ECDSA-WITH-3DES-EDE-CBC-SHA    \
-                    TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA     \
-                    TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA     \
+                    "
+                G_CIPHERS="$G_CIPHERS                       \
+                    +ECDHE-ECDSA:+NULL:+SHA1                \
+                    +ECDHE-ECDSA:+ARCFOUR-128:+SHA1         \
+                    +ECDHE-ECDSA:+3DES-CBC:+SHA1            \
+                    +ECDHE-ECDSA:+AES-128-CBC:+SHA1         \
+                    +ECDHE-ECDSA:+AES-256-CBC:+SHA1         \
                     "
                 O_CIPHERS="$O_CIPHERS               \
                     ECDHE-ECDSA-NULL-SHA            \
@@ -158,11 +162,6 @@ add_openssl_ciphersuites()
                     ECDHE-ECDSA-DES-CBC3-SHA        \
                     ECDHE-ECDSA-AES128-SHA          \
                     ECDHE-ECDSA-AES256-SHA          \
-                    ECDH-ECDSA-NULL-SHA             \
-                    ECDH-ECDSA-RC4-SHA              \
-                    ECDH-ECDSA-DES-CBC3-SHA         \
-                    ECDH-ECDSA-AES128-SHA           \
-                    ECDH-ECDSA-AES256-SHA           \
                     "
             fi
             if [ "$MODE" = "tls1_2" ];
@@ -172,20 +171,18 @@ add_openssl_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384         \
                     TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256         \
                     TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384         \
-                    TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256          \
-                    TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384          \
-                    TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256          \
-                    TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384          \
+                    "
+                G_CIPHERS="$G_CIPHERS                               \
+                    +ECDHE-ECDSA:+AES-128-CBC:+SHA256               \
+                    +ECDHE-ECDSA:+AES-256-CBC:+SHA384               \
+                    +ECDHE-ECDSA:+AES-128-GCM:+AEAD                 \
+                    +ECDHE-ECDSA:+AES-256-GCM:+AEAD                 \
                     "
                 O_CIPHERS="$O_CIPHERS               \
                     ECDHE-ECDSA-AES128-SHA256       \
                     ECDHE-ECDSA-AES256-SHA384       \
                     ECDHE-ECDSA-AES128-GCM-SHA256   \
                     ECDHE-ECDSA-AES256-GCM-SHA384   \
-                    ECDH-ECDSA-AES128-SHA256        \
-                    ECDH-ECDSA-AES256-SHA384        \
-                    ECDH-ECDSA-AES128-GCM-SHA256    \
-                    ECDH-ECDSA-AES256-GCM-SHA384    \
                     "
             fi
             ;;
@@ -206,8 +203,22 @@ add_openssl_ciphersuites()
                 TLS-RSA-WITH-RC4-128-MD5                \
                 TLS-RSA-WITH-NULL-MD5                   \
                 TLS-RSA-WITH-NULL-SHA                   \
-                TLS-RSA-WITH-DES-CBC-SHA                \
-                TLS-DHE-RSA-WITH-DES-CBC-SHA            \
+                "
+            G_CIPHERS="$G_CIPHERS                       \
+                +DHE-RSA:+AES-128-CBC:+SHA1             \
+                +DHE-RSA:+AES-256-CBC:+SHA1             \
+                +DHE-RSA:+CAMELLIA-128-CBC:+SHA1        \
+                +DHE-RSA:+CAMELLIA-256-CBC:+SHA1        \
+                +DHE-RSA:+3DES-CBC:+SHA1                \
+                +RSA:+AES-256-CBC:+SHA1                 \
+                +RSA:+CAMELLIA-256-CBC:+SHA1            \
+                +RSA:+AES-128-CBC:+SHA1                 \
+                +RSA:+CAMELLIA-128-CBC:+SHA1            \
+                +RSA:+3DES-CBC:+SHA1                    \
+                +RSA:+ARCFOUR-128:+SHA1                 \
+                +RSA:+ARCFOUR-128:+MD5                  \
+                +RSA:+NULL:+MD5                         \
+                +RSA:+NULL:+SHA1                        \
                 "
             O_CIPHERS="$O_CIPHERS               \
                 DHE-RSA-AES128-SHA              \
@@ -224,8 +235,6 @@ add_openssl_ciphersuites()
                 RC4-MD5                         \
                 NULL-MD5                        \
                 NULL-SHA                        \
-                DES-CBC-SHA                     \
-                EDH-RSA-DES-CBC-SHA             \
                 "
             if [ "$MODE" != "ssl3" ];
             then
@@ -235,6 +244,13 @@ add_openssl_ciphersuites()
                     TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
                     TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
                     TLS-ECDHE-RSA-WITH-NULL-SHA             \
+                    "
+                G_CIPHERS="$G_CIPHERS                       \
+                    +ECDHE-RSA:+AES-128-CBC:+SHA1           \
+                    +ECDHE-RSA:+AES-256-CBC:+SHA1           \
+                    +ECDHE-RSA:+3DES-CBC:+SHA1              \
+                    +ECDHE-RSA:+ARCFOUR-128:+SHA1           \
+                    +ECDHE-RSA:+NULL:+SHA1                  \
                     "
                 O_CIPHERS="$O_CIPHERS               \
                     ECDHE-RSA-AES256-SHA            \
@@ -261,6 +277,21 @@ add_openssl_ciphersuites()
                     TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256   \
                     TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384   \
                     "
+                G_CIPHERS="$G_CIPHERS                       \
+                    +RSA:+NULL:+SHA256                      \
+                    +RSA:+AES-128-CBC:+SHA256               \
+                    +DHE-RSA:+AES-128-CBC:+SHA256           \
+                    +RSA:+AES-256-CBC:+SHA256               \
+                    +DHE-RSA:+AES-256-CBC:+SHA256           \
+                    +ECDHE-RSA:+AES-128-CBC:+SHA256         \
+                    +ECDHE-RSA:+AES-256-CBC:+SHA384         \
+                    +RSA:+AES-128-GCM:+AEAD                 \
+                    +RSA:+AES-256-GCM:+AEAD                 \
+                    +DHE-RSA:+AES-128-GCM:+AEAD             \
+                    +DHE-RSA:+AES-256-GCM:+AEAD             \
+                    +ECDHE-RSA:+AES-128-GCM:+AEAD           \
+                    +ECDHE-RSA:+AES-256-GCM:+AEAD           \
+                    "
                 O_CIPHERS="$O_CIPHERS           \
                     NULL-SHA256                 \
                     AES128-SHA256               \
@@ -286,12 +317,73 @@ add_openssl_ciphersuites()
                 TLS-PSK-WITH-AES-128-CBC-SHA            \
                 TLS-PSK-WITH-AES-256-CBC-SHA            \
                 "
+            G_CIPHERS="$G_CIPHERS                       \
+                +PSK:+ARCFOUR-128:+SHA1                 \
+                +PSK:+3DES-CBC:+SHA1                    \
+                +PSK:+AES-128-CBC:+SHA1                 \
+                +PSK:+AES-256-CBC:+SHA1                 \
+                "
             O_CIPHERS="$O_CIPHERS               \
                 PSK-RC4-SHA                     \
                 PSK-3DES-EDE-CBC-SHA            \
                 PSK-AES128-CBC-SHA              \
                 PSK-AES256-CBC-SHA              \
                 "
+            ;;
+    esac
+}
+
+add_openssl_ciphersuites()
+{
+    case $TYPE in
+
+        "ECDSA")
+            if [ "$MODE" != "ssl3" ];
+            then
+                P_CIPHERS="$P_CIPHERS                       \
+                    TLS-ECDH-ECDSA-WITH-NULL-SHA            \
+                    TLS-ECDH-ECDSA-WITH-RC4-128-SHA         \
+                    TLS-ECDH-ECDSA-WITH-3DES-EDE-CBC-SHA    \
+                    TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA     \
+                    TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA     \
+                    "
+                O_CIPHERS="$O_CIPHERS               \
+                    ECDH-ECDSA-NULL-SHA             \
+                    ECDH-ECDSA-RC4-SHA              \
+                    ECDH-ECDSA-DES-CBC3-SHA         \
+                    ECDH-ECDSA-AES128-SHA           \
+                    ECDH-ECDSA-AES256-SHA           \
+                    "
+            fi
+            if [ "$MODE" = "tls1_2" ];
+            then
+                P_CIPHERS="$P_CIPHERS                               \
+                    TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256          \
+                    TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384          \
+                    TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256          \
+                    TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384          \
+                    "
+                O_CIPHERS="$O_CIPHERS               \
+                    ECDH-ECDSA-AES128-SHA256        \
+                    ECDH-ECDSA-AES256-SHA384        \
+                    ECDH-ECDSA-AES128-GCM-SHA256    \
+                    ECDH-ECDSA-AES256-GCM-SHA384    \
+                    "
+            fi
+            ;;
+
+        "RSA")
+            P_CIPHERS="$P_CIPHERS                       \
+                TLS-RSA-WITH-DES-CBC-SHA                \
+                TLS-DHE-RSA-WITH-DES-CBC-SHA            \
+                "
+            O_CIPHERS="$O_CIPHERS               \
+                DES-CBC-SHA                     \
+                EDH-RSA-DES-CBC-SHA             \
+                "
+            ;;
+
+        "PSK")
             ;;
     esac
 }
@@ -533,7 +625,7 @@ setup_arguments()
     P_SERVER_ARGS="server_addr=0.0.0.0 force_version=$MODE"
     O_SERVER_ARGS="-www -cipher NULL,ALL -$MODE"
     G_SERVER_ARGS="-p 4433 --http"
-    G_SERVER_PRIO="EXPORT:+NULL:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+    G_SERVER_PRIO="EXPORT:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
     P_CLIENT_ARGS="force_version=$MODE"
     O_CLIENT_ARGS="-$MODE"
@@ -852,6 +944,7 @@ for VERIFY in $VERIFIES; do
                 [Oo]pen*)
 
                     reset_ciphersuites
+                    add_common_ciphersuites
                     add_openssl_ciphersuites
                     filter_ciphersuites
 
@@ -876,6 +969,7 @@ for VERIFY in $VERIFIES; do
                 [Gg]nu*)
 
                     reset_ciphersuites
+                    add_common_ciphersuites
                     add_gnutls_ciphersuites
                     filter_ciphersuites
 
@@ -900,6 +994,7 @@ for VERIFY in $VERIFIES; do
                 [Pp]olar*)
 
                     reset_ciphersuites
+                    add_common_ciphersuites
                     add_openssl_ciphersuites
                     add_gnutls_ciphersuites
                     add_polarssl_ciphersuites

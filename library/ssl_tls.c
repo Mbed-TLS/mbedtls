@@ -916,6 +916,9 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
     }
 
     /* opaque psk<0..2^16-1>; */
+    if( end - p < 2 + (int) ssl->psk_len )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
     *(p++) = (unsigned char)( ssl->psk_len >> 8 );
     *(p++) = (unsigned char)( ssl->psk_len      );
     memcpy( p, ssl->psk, ssl->psk_len );
@@ -3782,6 +3785,14 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
                  const unsigned char *psk_identity, size_t psk_identity_len )
 {
     if( psk == NULL || psk_identity == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    /*
+     * The length will be check later anyway, but in case it is obviously
+     * too large, better abort now. The PMS is as follows:
+     * other_len (2 bytes) + other + psk_len (2 bytes) + psk
+     */
+    if( psk_len + 4 > POLARSSL_PREMASTER_SIZE )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     if( ssl->psk != NULL )

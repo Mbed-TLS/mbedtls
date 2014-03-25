@@ -2455,7 +2455,7 @@ static int ssl_parse_encrypted_pms( ssl_context *ssl,
 
     ret = pk_decrypt( ssl_own_key( ssl ), p, len,
                       pms, &ssl->handshake->pmslen,
-                      sizeof(ssl->handshake->premaster),
+                      sizeof( ssl->handshake->premaster ) - pms_offset,
                       ssl->f_rng, ssl->p_rng );
 
     if( ret != 0 || ssl->handshake->pmslen != 48 ||

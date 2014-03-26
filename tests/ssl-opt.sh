@@ -129,11 +129,11 @@ run_test() {
 
     # run the commands
     echo "$SRV_CMD" > srv_out
-    $SHELL -c "$SRV_CMD" >> srv_out 2>&1 &
+    $SRV_CMD >> srv_out 2>&1 &
     SRV_PID=$!
     sleep 1
     echo "$CLI_CMD" > cli_out
-    $SHELL -c "$CLI_CMD" >> cli_out 2>&1
+    eval "$CLI_CMD" >> cli_out 2>&1
     CLI_EXIT=$?
     echo "EXIT: $CLI_EXIT" >> cli_out
 
@@ -714,7 +714,7 @@ run_test    "SNI #0 (no SNI callback)" \
 run_test    "SNI #1 (matching cert 1)" \
             "$P_SRV debug_level=4 server_addr=127.0.0.1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
-             sni='localhost,data_files/server2.crt,data_files/server2.key,PolarSSL Server 1,data_files/server1.crt,data_files/server1.key'" \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
             "$P_CLI debug_level=0 server_addr=127.0.0.1 \
              server_name=localhost" \
              0 \
@@ -725,20 +725,20 @@ run_test    "SNI #1 (matching cert 1)" \
 run_test    "SNI #2 (matching cert 2)" \
             "$P_SRV debug_level=4 server_addr=127.0.0.1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
-             sni='localhost,data_files/server2.crt,data_files/server2.key,PolarSSL Server 1,data_files/server1.crt,data_files/server1.key'" \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
             "$P_CLI debug_level=0 server_addr=127.0.0.1 \
-             server_name='PolarSSL Server 1'" \
+             server_name=polarssl.example" \
              0 \
              -s "parse ServerName extension" \
              -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
-             -c "subject name *: C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+             -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
 
 run_test    "SNI #3 (no matching cert)" \
             "$P_SRV debug_level=4 server_addr=127.0.0.1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
-             sni='localhost,data_files/server2.crt,data_files/server2.key,PolarSSL Server 1,data_files/server1.crt,data_files/server1.key'" \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
             "$P_CLI debug_level=0 server_addr=127.0.0.1 \
-             server_name='PolarSSL Server 2'" \
+             server_name=nonesuch.example" \
              1 \
              -s "parse ServerName extension" \
              -s "ssl_sni_wrapper() returned" \

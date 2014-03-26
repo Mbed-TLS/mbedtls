@@ -3318,6 +3318,9 @@ static int ssl_handshake_init( ssl_context *ssl )
     {
         ssl->transform_negotiate =
             (ssl_transform *) polarssl_malloc( sizeof(ssl_transform) );
+
+        if( ssl->transform_negotiate != NULL )
+            memset( ssl->transform_negotiate, 0, sizeof(ssl_transform) );
     }
 
     if( ssl->session_negotiate )
@@ -3326,6 +3329,9 @@ static int ssl_handshake_init( ssl_context *ssl )
     {
         ssl->session_negotiate =
             (ssl_session *) polarssl_malloc( sizeof(ssl_session) );
+
+        if( ssl->session_negotiate != NULL )
+            memset( ssl->session_negotiate, 0, sizeof(ssl_session) );
     }
 
     if( ssl->handshake )
@@ -3334,6 +3340,9 @@ static int ssl_handshake_init( ssl_context *ssl )
     {
         ssl->handshake = (ssl_handshake_params *)
             polarssl_malloc( sizeof(ssl_handshake_params) );
+
+        if( ssl->handshake != NULL )
+            memset( ssl->handshake, 0, sizeof(ssl_handshake_params) );
     }
 
     if( ssl->handshake == NULL ||
@@ -3343,10 +3352,6 @@ static int ssl_handshake_init( ssl_context *ssl )
         SSL_DEBUG_MSG( 1, ( "malloc() of ssl sub-contexts failed" ) );
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
-
-    memset( ssl->handshake, 0, sizeof(ssl_handshake_params) );
-    memset( ssl->transform_negotiate, 0, sizeof(ssl_transform) );
-    memset( ssl->session_negotiate, 0, sizeof(ssl_session) );
 
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)

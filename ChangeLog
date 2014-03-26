@@ -32,6 +32,8 @@ Security
    * Check notBefore timestamp of certificates and CRLs from the future.
    * Forbid sequence number wrapping
    * Fixed possible buffer overflow with overlong PSK
+   * Possible remotely-triggered out-of-bounds memory access fixed (found by
+     TrustInSoft)
 
 Bugfix
    * ecp_gen_keypair() does more tries to prevent failure because of

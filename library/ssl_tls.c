@@ -1626,16 +1626,15 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
             /*
              * Padding is guaranteed to be incorrect if:
-             *   1. padlen - 1 > ssl->in_msglen
+             *   1. padlen >= ssl->in_msglen
              *
-             *   2. ssl->in_msglen + padlen >
-             *        SSL_MAX_CONTENT_LEN + 256 (max padding)
+             *   2. padding_idx > SSL_MAX_CONTENT_LEN
              *
              * In both cases we reset padding_idx to a safe value (0) to
              * prevent out-of-buffer reads.
              */
-            correct &= ( ssl->in_msglen >= padlen - 1 );
-            correct &= ( ssl->in_msglen + padlen <= SSL_MAX_CONTENT_LEN + 256 );
+            correct &= ( ssl->in_msglen >= padlen + 1 );
+            correct &= ( padding_idx <= SSL_MAX_CONTENT_LEN );
 
             padding_idx *= correct;
 

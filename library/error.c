@@ -590,6 +590,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "ENTROPY - No more sources can be added" );
     if( use_ret == -(POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED) )
         snprintf( buf, buflen, "ENTROPY - No sources have been added to poll" );
+    if( use_ret == -(POLARSSL_ERR_ENTROPY_FILE_IO_ERROR) )
+        snprintf( buf, buflen, "ENTROPY - Read/write error in file" );
 #endif /* POLARSSL_ENTROPY_C */
 
 #if defined(POLARSSL_GCM_C)

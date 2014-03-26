@@ -52,6 +52,7 @@
 #define POLARSSL_ERR_ENTROPY_SOURCE_FAILED                 -0x003C  /**< Critical entropy source failure. */
 #define POLARSSL_ERR_ENTROPY_MAX_SOURCES                   -0x003E  /**< No more sources can be added. */
 #define POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED            -0x0040  /**< No sources have been added to poll. */
+#define POLARSSL_ERR_ENTROPY_FILE_IO_ERROR                 -0x0058  /**< Read/write error in file. */
 
 #if !defined(POLARSSL_CONFIG_OPTIONS)
 #define ENTROPY_MAX_SOURCES     20      /**< Maximum number of sources supported */
@@ -64,6 +65,7 @@
 #define ENTROPY_BLOCK_SIZE      32      /**< Block size of entropy accumulator (SHA-256) */
 #endif
 
+#define ENTROPY_MAX_SEED_SIZE   1024    /**< Maximum size of seed we read from seed file */
 #define ENTROPY_SOURCE_MANUAL   ENTROPY_MAX_SOURCES
 
 #ifdef __cplusplus
@@ -181,6 +183,34 @@ int entropy_func( void *data, unsigned char *output, size_t len );
  */
 int entropy_update_manual( entropy_context *ctx,
                            const unsigned char *data, size_t len );
+
+#if defined(POLARSSL_FS_IO)
+/**
+ * \brief               Write a seed file
+ *
+ * \param ctx           Entropy context
+ * \param path          Name of the file
+ *
+ * \return              0 if successful,
+ *                      POLARSSL_ERR_ENTROPY_FILE_IO_ERROR on file error, or
+ *                      POLARSSL_ERR_ENTROPY_SOURCE_FAILED
+ */
+int entropy_write_seed_file( entropy_context *ctx, const char *path );
+
+/**
+ * \brief               Read and update a seed file. Seed is added to this
+ *                      instance. No more than ENTROPY_MAX_SEED_SIZE bytes are
+ *                      read from the seed file. The rest is ignored.
+ *
+ * \param ctx           Entropy context
+ * \param path          Name of the file
+ *
+ * \return              0 if successful,
+ *                      POLARSSL_ERR_ENTROPY_FILE_IO_ERROR on file error,
+ *                      POLARSSL_ERR_ENTROPY_SOURCE_FAILED
+ */
+int entropy_update_seed_file( entropy_context *ctx, const char *path );
+#endif
 
 #ifdef __cplusplus
 }

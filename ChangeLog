@@ -11,6 +11,7 @@ Features
    * Testing script ssl-opt.sh added for testing 'live' ssl option
      interoperability against OpenSSL and PolarSSL
    * Support for reading EC keys that use SpecifiedECDomain in some cases.
+   * Entropy module now supports seed writing and reading
 
 Changes
    * Deprecated the Memory layer

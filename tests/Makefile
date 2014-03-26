@@ -9,6 +9,14 @@ CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-state
 OFLAGS	= -O2
 LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
 
+ifndef SHARED
+DEP=../library/libpolarssl.a
+CHECK_PRELOAD=
+else
+DEP=../library/libpolarssl.so
+CHECK_PRELOAD= LD_PRELOAD=../library/libpolarssl.so
+endif
+
 ifdef DEBUG
 CFLAGS += -g3
 endif
@@ -157,207 +165,207 @@ test_suite_hmac_drbg.pr.c : suites/test_suite_hmac_drbg.function suites/test_sui
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites $* $*
 
-test_suite_aes.ecb: test_suite_aes.ecb.c ../library/libpolarssl.a
+test_suite_aes.ecb: test_suite_aes.ecb.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_aes.cbc: test_suite_aes.cbc.c ../library/libpolarssl.a
+test_suite_aes.cbc: test_suite_aes.cbc.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_aes.cfb: test_suite_aes.cfb.c ../library/libpolarssl.a
+test_suite_aes.cfb: test_suite_aes.cfb.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_aes.rest: test_suite_aes.rest.c ../library/libpolarssl.a
+test_suite_aes.rest: test_suite_aes.rest.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_arc4: test_suite_arc4.c ../library/libpolarssl.a
+test_suite_arc4: test_suite_arc4.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_base64: test_suite_base64.c ../library/libpolarssl.a
+test_suite_base64: test_suite_base64.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_blowfish: test_suite_blowfish.c ../library/libpolarssl.a
+test_suite_blowfish: test_suite_blowfish.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_camellia: test_suite_camellia.c ../library/libpolarssl.a
+test_suite_camellia: test_suite_camellia.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.aes: test_suite_cipher.aes.c ../library/libpolarssl.a
+test_suite_cipher.aes: test_suite_cipher.aes.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.arc4: test_suite_cipher.arc4.c ../library/libpolarssl.a
+test_suite_cipher.arc4: test_suite_cipher.arc4.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.gcm: test_suite_cipher.gcm.c ../library/libpolarssl.a
+test_suite_cipher.gcm: test_suite_cipher.gcm.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.blowfish: test_suite_cipher.blowfish.c ../library/libpolarssl.a
+test_suite_cipher.blowfish: test_suite_cipher.blowfish.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.camellia: test_suite_cipher.camellia.c ../library/libpolarssl.a
+test_suite_cipher.camellia: test_suite_cipher.camellia.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.des: test_suite_cipher.des.c ../library/libpolarssl.a
+test_suite_cipher.des: test_suite_cipher.des.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.null: test_suite_cipher.null.c ../library/libpolarssl.a
+test_suite_cipher.null: test_suite_cipher.null.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_cipher.padding: test_suite_cipher.padding.c ../library/libpolarssl.a
+test_suite_cipher.padding: test_suite_cipher.padding.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_ctr_drbg: test_suite_ctr_drbg.c ../library/libpolarssl.a
+test_suite_ctr_drbg: test_suite_ctr_drbg.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_des: test_suite_des.c ../library/libpolarssl.a
+test_suite_des: test_suite_des.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_dhm: test_suite_dhm.c ../library/libpolarssl.a
+test_suite_dhm: test_suite_dhm.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_ecdh: test_suite_ecdh.c ../library/libpolarssl.a
+test_suite_ecdh: test_suite_ecdh.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_ecdsa: test_suite_ecdsa.c ../library/libpolarssl.a
+test_suite_ecdsa: test_suite_ecdsa.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_ecp: test_suite_ecp.c ../library/libpolarssl.a
+test_suite_ecp: test_suite_ecp.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_error: test_suite_error.c ../library/libpolarssl.a
+test_suite_error: test_suite_error.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.aes128_de: test_suite_gcm.aes128_de.c ../library/libpolarssl.a
+test_suite_gcm.aes128_de: test_suite_gcm.aes128_de.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.aes192_de: test_suite_gcm.aes192_de.c ../library/libpolarssl.a
+test_suite_gcm.aes192_de: test_suite_gcm.aes192_de.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.aes256_de: test_suite_gcm.aes256_de.c ../library/libpolarssl.a
+test_suite_gcm.aes256_de: test_suite_gcm.aes256_de.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.aes128_en: test_suite_gcm.aes128_en.c ../library/libpolarssl.a
+test_suite_gcm.aes128_en: test_suite_gcm.aes128_en.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.aes192_en: test_suite_gcm.aes192_en.c ../library/libpolarssl.a
+test_suite_gcm.aes192_en: test_suite_gcm.aes192_en.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.aes256_en: test_suite_gcm.aes256_en.c ../library/libpolarssl.a
+test_suite_gcm.aes256_en: test_suite_gcm.aes256_en.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_gcm.camellia: test_suite_gcm.camellia.c ../library/libpolarssl.a
+test_suite_gcm.camellia: test_suite_gcm.camellia.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_hmac_drbg.misc: test_suite_hmac_drbg.misc.c ../library/libpolarssl.a
+test_suite_hmac_drbg.misc: test_suite_hmac_drbg.misc.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_hmac_drbg.no_reseed: test_suite_hmac_drbg.no_reseed.c ../library/libpolarssl.a
+test_suite_hmac_drbg.no_reseed: test_suite_hmac_drbg.no_reseed.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_hmac_drbg.nopr: test_suite_hmac_drbg.nopr.c ../library/libpolarssl.a
+test_suite_hmac_drbg.nopr: test_suite_hmac_drbg.nopr.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_hmac_drbg.pr: test_suite_hmac_drbg.pr.c ../library/libpolarssl.a
+test_suite_hmac_drbg.pr: test_suite_hmac_drbg.pr.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_hmac_shax: test_suite_hmac_shax.c ../library/libpolarssl.a
+test_suite_hmac_shax: test_suite_hmac_shax.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_md: test_suite_md.c ../library/libpolarssl.a
+test_suite_md: test_suite_md.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_mdx: test_suite_mdx.c ../library/libpolarssl.a
+test_suite_mdx: test_suite_mdx.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_mpi: test_suite_mpi.c ../library/libpolarssl.a
+test_suite_mpi: test_suite_mpi.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_pbkdf2: test_suite_pbkdf2.c ../library/libpolarssl.a
+test_suite_pbkdf2: test_suite_pbkdf2.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_pkcs1_v21: test_suite_pkcs1_v21.c ../library/libpolarssl.a
+test_suite_pkcs1_v21: test_suite_pkcs1_v21.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_pkcs5: test_suite_pkcs5.c ../library/libpolarssl.a
+test_suite_pkcs5: test_suite_pkcs5.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_pkparse: test_suite_pkparse.c ../library/libpolarssl.a
+test_suite_pkparse: test_suite_pkparse.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_pkwrite: test_suite_pkwrite.c ../library/libpolarssl.a
+test_suite_pkwrite: test_suite_pkwrite.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_pk: test_suite_pk.c ../library/libpolarssl.a
+test_suite_pk: test_suite_pk.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_rsa: test_suite_rsa.c ../library/libpolarssl.a
+test_suite_rsa: test_suite_rsa.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_shax: test_suite_shax.c ../library/libpolarssl.a
+test_suite_shax: test_suite_shax.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_x509parse: test_suite_x509parse.c ../library/libpolarssl.a
+test_suite_x509parse: test_suite_x509parse.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_x509write: test_suite_x509write.c ../library/libpolarssl.a
+test_suite_x509write: test_suite_x509write.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_xtea: test_suite_xtea.c ../library/libpolarssl.a
+test_suite_xtea: test_suite_xtea.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_debug: test_suite_debug.c ../library/libpolarssl.a
+test_suite_debug: test_suite_debug.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
-test_suite_version: test_suite_version.c ../library/libpolarssl.a
+test_suite_version: test_suite_version.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
@@ -371,12 +379,12 @@ endif
 
 check: $(APPS)
 ifndef WINDOWS
-	echo "Running checks (Success if all tests PASSED)"	
+	echo "Running checks (Success if all tests PASSED)"
 	RETURN=0;																\
 	for i in $(APPS);														\
 	do																		\
 		echo " - $${i}";													\
-		RESULT=`./$${i} | grep -v 'PASS$$' | grep -v -- '----' | grep -v '^$$'`;	\
+		RESULT=`$(CHECK_PRELOAD) ./$${i} | grep -v 'PASS$$' | grep -v -- '----' | grep -v '^$$'`;	\
 		FAILED=`echo $$RESULT |grep FAILED`; 								\
 		echo "   $$RESULT";													\
 		if [ "$$FAILED" != "" ];											\

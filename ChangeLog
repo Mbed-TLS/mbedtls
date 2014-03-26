@@ -23,6 +23,7 @@ Changes
    * Revamped the compat.sh interoperatibility script to include support for
      testing against GnuTLS
    * Deprecated ssl_set_own_cert_rsa() and ssl_set_own_cert_rsa_alt()
+   * Improvements to tests/Makefile, contributed by Oden Eriksson.
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

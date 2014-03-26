@@ -270,23 +270,18 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     sha512_finish( &ctx->accumulator, buf );
 
     /*
-     * Perform second SHA-512 on entropy
-     */
-    sha512( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
-
-    /*
      * Reset accumulator and counters and recycle existing entropy
      */
     memset( &ctx->accumulator, 0, sizeof( sha512_context ) );
     sha512_starts( &ctx->accumulator, 0 );
     sha512_update( &ctx->accumulator, buf, ENTROPY_BLOCK_SIZE );
-#else /* POLARSSL_ENTROPY_SHA512_ACCUMULATOR */
-    sha256_finish( &ctx->accumulator, buf );
 
     /*
-     * Perform second SHA-256 on entropy
+     * Perform second SHA-512 on entropy
      */
-    sha256( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
+    sha512( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
+#else /* POLARSSL_ENTROPY_SHA512_ACCUMULATOR */
+    sha256_finish( &ctx->accumulator, buf );
 
     /*
      * Reset accumulator and counters and recycle existing entropy
@@ -294,6 +289,11 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     memset( &ctx->accumulator, 0, sizeof( sha256_context ) );
     sha256_starts( &ctx->accumulator, 0 );
     sha256_update( &ctx->accumulator, buf, ENTROPY_BLOCK_SIZE );
+
+    /*
+     * Perform second SHA-256 on entropy
+     */
+    sha256( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
 #endif /* POLARSSL_ENTROPY_SHA512_ACCUMULATOR */
 
     for( i = 0; i < ctx->source_count; i++ )

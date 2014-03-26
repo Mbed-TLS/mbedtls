@@ -574,17 +574,27 @@ int main( int argc, char *argv[] )
                 opt.min_version = SSL_MINOR_VERSION_1;
                 opt.max_version = SSL_MINOR_VERSION_1;
             }
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
+            else if( strcmp( q, "tls1_1" ) == 0 )
             {
                 opt.min_version = SSL_MINOR_VERSION_2;
                 opt.max_version = SSL_MINOR_VERSION_2;
             }
-            else if( strcmp( q, "tls1_2" ) == 0 ||
-                     strcmp( q, "dtls1_2" ) == 0 )
+            else if( strcmp( q, "tls1_2" ) == 0 )
             {
                 opt.min_version = SSL_MINOR_VERSION_3;
                 opt.max_version = SSL_MINOR_VERSION_3;
+            }
+            else if( strcmp( q, "dtls1" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_2;
+                opt.max_version = SSL_MINOR_VERSION_2;
+                opt.transport = SSL_TRANSPORT_DATAGRAM;
+            }
+            else if( strcmp( q, "dtls1_2" ) == 0 )
+            {
+                opt.min_version = SSL_MINOR_VERSION_3;
+                opt.max_version = SSL_MINOR_VERSION_3;
+                opt.transport = SSL_TRANSPORT_DATAGRAM;
             }
             else
                 goto usage;

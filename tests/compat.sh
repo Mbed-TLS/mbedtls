@@ -203,6 +203,7 @@ add_common_ciphersuites()
                 TLS-RSA-WITH-RC4-128-MD5                \
                 TLS-RSA-WITH-NULL-MD5                   \
                 TLS-RSA-WITH-NULL-SHA                   \
+                TLS-RSA-WITH-NULL-SHA256                \
                 "
             G_CIPHERS="$G_CIPHERS                       \
                 +DHE-RSA:+AES-128-CBC:+SHA1             \
@@ -219,6 +220,7 @@ add_common_ciphersuites()
                 +RSA:+ARCFOUR-128:+MD5                  \
                 +RSA:+NULL:+MD5                         \
                 +RSA:+NULL:+SHA1                        \
+                +RSA:+NULL:+SHA256                      \
                 "
             O_CIPHERS="$O_CIPHERS               \
                 DHE-RSA-AES128-SHA              \
@@ -263,7 +265,6 @@ add_common_ciphersuites()
             if [ "$MODE" = "tls1_2" ];
             then
                 P_CIPHERS="$P_CIPHERS                       \
-                    TLS-RSA-WITH-NULL-SHA256                \
                     TLS-RSA-WITH-AES-128-CBC-SHA256         \
                     TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
                     TLS-RSA-WITH-AES-256-CBC-SHA256         \
@@ -278,7 +279,6 @@ add_common_ciphersuites()
                     TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384   \
                     "
                 G_CIPHERS="$G_CIPHERS                       \
-                    +RSA:+NULL:+SHA256                      \
                     +RSA:+AES-128-CBC:+SHA256               \
                     +DHE-RSA:+AES-128-CBC:+SHA256           \
                     +RSA:+AES-256-CBC:+SHA256               \
@@ -426,9 +426,6 @@ add_gnutls_ciphersuites()
                     TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384    \
                     TLS-RSA-WITH-CAMELLIA-128-GCM-SHA256        \
                     TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384        \
-                    TLS-RSA-WITH-NULL-SHA256                    \
-                    TLS-RSA-WITH-NULL-SHA                       \
-                    TLS-RSA-WITH-NULL-MD5                       \
                     "
                 G_CIPHERS="$G_CIPHERS                           \
                     +ECDHE-RSA:+CAMELLIA-128-CBC:+SHA256        \
@@ -443,9 +440,6 @@ add_gnutls_ciphersuites()
                     +DHE-RSA:+CAMELLIA-256-GCM:+AEAD            \
                     +RSA:+CAMELLIA-128-GCM:+AEAD                \
                     +RSA:+CAMELLIA-256-GCM:+AEAD                \
-                    +RSA:+NULL:+SHA256                          \
-                    +RSA:+NULL:+SHA1                            \
-                    +RSA:+NULL:+MD5                             \
                     "
             fi
             ;;

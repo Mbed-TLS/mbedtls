@@ -40,7 +40,7 @@ else
 fi
 
 # default values for options
-MODES="ssl3 tls1 tls1_1 tls1_2"
+MODES="ssl3 tls1 tls1_1 tls1_2 dtls1 dtls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
@@ -106,8 +106,38 @@ get_options() {
 
 log() {
   if [ "X" != "X$VERBOSE" ]; then
+    echo ""
     echo "$@"
   fi
+}
+
+# is_dtls <mode>
+is_dtls()
+{
+    test "$1" = "dtls1" -o "$1" = "dtls1_2"
+}
+
+# minor_ver <mode>
+minor_ver()
+{
+    case "$1" in
+        ssl3)
+            echo 0
+            ;;
+        tls1)
+            echo 1
+            ;;
+        tls1_1|dtls1)
+            echo 2
+            ;;
+        tls1_2|dtls1_2)
+            echo 3
+            ;;
+        *)
+            echo "error: invalid mode: $MODE" >&2
+            # exiting is no good here, typically called in a subshell
+            echo -1
+    esac
 }
 
 filter()
@@ -115,9 +145,15 @@ filter()
   LIST="$1"
   NEW_LIST=""
 
+  if is_dtls "$MODE"; then
+      EXCLMODE="$EXCLUDE"'\|RC4'
+  else
+      EXCLMODE="$EXCLUDE"
+  fi
+
   for i in $LIST;
   do
-    NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" | grep -v "$EXCLUDE" )"
+    NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" | grep -v "$EXCLMODE" )"
   done
 
   # normalize whitespace
@@ -146,7 +182,7 @@ add_common_ciphersuites()
     case $TYPE in
 
         "ECDSA")
-            if [ "$MODE" != "ssl3" ];
+            if [ `minor_ver "$MODE"` -gt 0 ]
             then
                 P_CIPHERS="$P_CIPHERS                       \
                     TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
@@ -170,7 +206,7 @@ add_common_ciphersuites()
                     ECDHE-ECDSA-AES256-SHA          \
                     "
             fi
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 P_CIPHERS="$P_CIPHERS                               \
                     TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256         \
@@ -242,7 +278,7 @@ add_common_ciphersuites()
                 NULL-MD5                        \
                 NULL-SHA                        \
                 "
-            if [ "$MODE" != "ssl3" ];
+            if [ `minor_ver "$MODE"` -gt 0 ]
             then
                 P_CIPHERS="$P_CIPHERS                       \
                     TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
@@ -266,7 +302,7 @@ add_common_ciphersuites()
                     ECDHE-RSA-NULL-SHA              \
                     "
             fi
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 P_CIPHERS="$P_CIPHERS                       \
                     TLS-RSA-WITH-AES-128-CBC-SHA256         \
@@ -342,7 +378,7 @@ add_openssl_ciphersuites()
     case $TYPE in
 
         "ECDSA")
-            if [ "$MODE" != "ssl3" ];
+            if [ `minor_ver "$MODE"` -gt 0 ]
             then
                 P_CIPHERS="$P_CIPHERS                       \
                     TLS-ECDH-ECDSA-WITH-NULL-SHA            \
@@ -359,7 +395,7 @@ add_openssl_ciphersuites()
                     ECDH-ECDSA-AES256-SHA           \
                     "
             fi
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 P_CIPHERS="$P_CIPHERS                               \
                     TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256          \
@@ -397,7 +433,7 @@ add_gnutls_ciphersuites()
     case $TYPE in
 
         "ECDSA")
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 P_CIPHERS="$P_CIPHERS                               \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256    \
@@ -415,7 +451,7 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            if [ "$MODE" != "ssl3" ];
+            if [ `minor_ver "$MODE"` -gt 0 ]
             then
                 P_CIPHERS="$P_CIPHERS                           \
                     TLS-RSA-WITH-NULL-SHA256                    \
@@ -424,7 +460,7 @@ add_gnutls_ciphersuites()
                     +RSA:+NULL:+SHA256                          \
                     "
             fi
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 P_CIPHERS="$P_CIPHERS                           \
                     TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
@@ -470,7 +506,7 @@ add_gnutls_ciphersuites()
                 +DHE-PSK:+AES-256-CBC:+SHA1                     \
                 +DHE-PSK:+ARCFOUR-128:+SHA1                     \
                 "
-            if [ "$MODE" != "ssl3" ];
+            if [ `minor_ver "$MODE"` -gt 0 ]
             then
                 P_CIPHERS="$P_CIPHERS                           \
                     TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
@@ -493,7 +529,7 @@ add_gnutls_ciphersuites()
                     +RSA-PSK:+ARCFOUR-128:+SHA1                 \
                     "
             fi
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 P_CIPHERS="$P_CIPHERS                           \
                     TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384       \
@@ -581,14 +617,14 @@ add_polarssl_ciphersuites()
     case $TYPE in
 
         "ECDSA")
-            if [ "$MODE" != "ssl3" ];
+            if [ `minor_ver "$MODE"` -gt 0 ]
             then
                 P_CIPHERS="$P_CIPHERS                               \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-128-CBC-SHA256     \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384     \
                     "
             fi
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 P_CIPHERS="$P_CIPHERS                               \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
@@ -623,7 +659,7 @@ add_polarssl_ciphersuites()
                 TLS-PSK-WITH-NULL-SHA                    \
                 TLS-DHE-PSK-WITH-NULL-SHA                \
                 "
-            if [ "$MODE" != "ssl3" ];
+            if [ `minor_ver "$MODE"` -gt 0 ]
             then
                 P_CIPHERS="$P_CIPHERS                    \
                     TLS-ECDHE-PSK-WITH-NULL-SHA          \
@@ -649,7 +685,8 @@ add_polarssl_ciphersuites()
 
 setup_arguments()
 {
-    case $MODE in
+    G_MODE=""
+    case "$MODE" in
         "ssl3")
             G_PRIO_MODE="+VERS-SSL3.0"
             ;;
@@ -662,6 +699,14 @@ setup_arguments()
         "tls1_2")
             G_PRIO_MODE="+VERS-TLS1.2"
             ;;
+        "dtls1")
+            G_PRIO_MODE="+VERS-DTLS1.0"
+            G_MODE="-u"
+            ;;
+        "dtls1_2")
+            G_PRIO_MODE="+VERS-DTLS1.2"
+            G_MODE="-u"
+            ;;
         *)
             echo "error: invalid mode: $MODE" >&2
             exit 1;
@@ -669,12 +714,12 @@ setup_arguments()
 
     P_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
     O_SERVER_ARGS="-accept $PORT -www -cipher NULL,ALL -$MODE"
-    G_SERVER_ARGS="-p $PORT --http"
+    G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="EXPORT:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
-    P_CLIENT_ARGS="server_port=$PORT force_version=$MODE"
+    P_CLIENT_ARGS="server_port=$PORT server_addr=127.0.0.1 force_version=$MODE"
     O_CLIENT_ARGS="-connect localhost:$PORT -$MODE"
-    G_CLIENT_ARGS="-p $PORT --debug 3"
+    G_CLIENT_ARGS="-p $PORT --debug 3 $G_MODE"
     G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
 
     if [ "X$VERIFY" = "XYES" ];
@@ -1012,6 +1057,11 @@ for VERIFY in $VERIFIES; do
 
                 [Oo]pen*)
 
+                    # for now, skip interop test for DTLS
+                    if is_dtls "$MODE"; then
+                        continue
+                    fi
+
                     reset_ciphersuites
                     add_common_ciphersuites
                     add_openssl_ciphersuites
@@ -1036,6 +1086,11 @@ for VERIFY in $VERIFIES; do
                     ;;
 
                 [Gg]nu*)
+
+                    # for now, skip interop test for DTLS
+                    if is_dtls "$MODE"; then
+                        continue
+                    fi
 
                     reset_ciphersuites
                     add_common_ciphersuites

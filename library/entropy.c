@@ -184,11 +184,6 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     memset( buf, 0, ENTROPY_BLOCK_SIZE );
 
     sha4_finish( &ctx->accumulator, buf );
-                
-    /*
-     * Perform second SHA-512 on entropy
-     */
-    sha4( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
 
     /*
      * Reset accumulator and counters and recycle existing entropy
@@ -196,6 +191,11 @@ int entropy_func( void *data, unsigned char *output, size_t len )
     memset( &ctx->accumulator, 0, sizeof( sha4_context ) );
     sha4_starts( &ctx->accumulator, 0 );
     sha4_update( &ctx->accumulator, buf, ENTROPY_BLOCK_SIZE );
+
+    /*
+     * Perform second SHA-512 on entropy
+     */
+    sha4( buf, ENTROPY_BLOCK_SIZE, buf, 0 );
 
     for( i = 0; i < ctx->source_count; i++ )
         ctx->source[i].size = 0;

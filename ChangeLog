@@ -10,6 +10,7 @@ Features
      (POLARSSL_ENTROPY_FORCE_SHA256)
    * Testing script ssl-opt.sh added for testing 'live' ssl option
      interoperability against OpenSSL and PolarSSL
+   * Support for reading EC keys that use SpecifiedECDomain in some cases.
 
 Changes
    * Deprecated the Memory layer

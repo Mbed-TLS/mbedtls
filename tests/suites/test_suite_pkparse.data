@@ -198,6 +198,10 @@ Parse EC Key #14 (SEC1 PEM, bp512r1)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_BP512R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_bp512_prv.pem":"NULL":0
 
+Parse EC Key #15 (SEC1 DER, secp256k1, SpecifiedECDomain)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256K1_ENABLED:POLARSSL_PK_PARSE_EC_EXTENDED
+pk_parse_keyfile_ec:"data_files/ec_prv.specdom.der":"NULL":0
+
 Key ASN1 (Incorrect first tag)
 pk_parse_key_rsa:"":"":POLARSSL_ERR_PK_KEY_INVALID_FORMAT
 

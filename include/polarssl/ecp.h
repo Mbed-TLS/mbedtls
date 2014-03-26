@@ -376,8 +376,10 @@ int ecp_point_write_binary( const ecp_group *grp, const ecp_point *P,
  * \param ilen      Actual length of input
  *
  * \return          0 if successful,
- *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
- *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid,
+ *                  POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
+ *                  POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE if the point format
+ *                  is not implemented.
  *
  * \note            This function does NOT check that the point actually
  *                  belongs to the given group, see ecp_check_pubkey() for

@@ -9,6 +9,7 @@ Changes
    * Improvements to the CMake build system, contributed by Julian Ospald.
    * Work around a bug of the version of Clang shipped by Apple with Mavericks
      that prevented bignum.c from compiling. (Reported by Rafael Baptista.)
+   * Improvements to tests/Makefile, contributed by Oden Eriksson.
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

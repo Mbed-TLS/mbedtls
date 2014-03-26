@@ -199,7 +199,8 @@ int ctr_drbg_random( void *p_rng,
  *
  * \param path          Name of the file
  *
- * \return              0 if successful, 1 on file error, or
+ * \return              0 if successful,
+ *                      POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR on file error, or
  *                      POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED
  */
 int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path );
@@ -210,7 +211,8 @@ int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path );
  *
  * \param path          Name of the file
  *
- * \return              0 if successful, 1 on file error,
+ * \return              0 if successful,
+ *                      POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR on file error,
  *                      POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
  *                      POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG
  */

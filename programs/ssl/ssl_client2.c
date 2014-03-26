@@ -656,10 +656,22 @@ int main( int argc, char *argv[] )
             ret = 2;
             goto usage;
         }
-        if( opt.max_version > ciphersuite_info->max_minor_ver )
+
+        /* If the server selects a version that's not supported by
+         * this suite, then there will be no common ciphersuite... */
+        if( opt.max_version == -1 ||
+            opt.max_version > ciphersuite_info->max_minor_ver )
+        {
             opt.max_version = ciphersuite_info->max_minor_ver;
+        }
         if( opt.min_version < ciphersuite_info->min_minor_ver )
+        {
             opt.min_version = ciphersuite_info->min_minor_ver;
+            /* DTLS starts with TLS 1.1 */
+            if( opt.transport == SSL_TRANSPORT_DATAGRAM &&
+                opt.min_version < SSL_MINOR_VERSION_2 )
+                opt.min_version = SSL_MINOR_VERSION_2;
+        }
     }
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -886,8 +898,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    printf( " ok\n" );
-
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     if( opt.debug_level > 0 )
         ssl_set_verify( &ssl, my_verify, NULL );
@@ -898,7 +908,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = ssl_set_transport( &ssl, opt.transport ) ) != 0 )
     {
-        printf( "selected transport is not available\n" );
+        printf( " failed\n  ! selected transport is not available\n" );
         goto exit;
     }
 
@@ -990,7 +1000,7 @@ int main( int argc, char *argv[] )
         ret = ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
         if( ret != 0 )
         {
-            printf( " selected min_version is not available\n" );
+            printf( " failed\n  ! selected min_version is not available\n" );
             goto exit;
         }
     }
@@ -1000,10 +1010,12 @@ int main( int argc, char *argv[] )
         ret = ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
         if( ret != 0 )
         {
-            printf( " selected max_version is not available\n" );
+            printf( " failed\n  ! selected max_version is not available\n" );
             goto exit;
         }
     }
+
+    printf( " ok\n" );
 
     /*
      * 4. Handshake

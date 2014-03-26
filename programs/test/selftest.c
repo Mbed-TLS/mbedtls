@@ -106,7 +106,7 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-#if defined(POLARSSL_SHAbkdf2512_C)
+#if defined(POLARSSL_SHA512_C)
     if( ( ret = sha512_self_test( v ) ) != 0 )
         return( ret );
 #endif

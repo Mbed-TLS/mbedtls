@@ -218,10 +218,19 @@ int ecdh_make_public( ecdh_context *ctx, size_t *olen,
 int ecdh_read_public( ecdh_context *ctx,
                       const unsigned char *buf, size_t blen )
 {
+    int ret;
+    const unsigned char *p = buf;
+
     if( ctx == NULL )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
-    return ecp_tls_read_point( &ctx->grp, &ctx->Qp, &buf, blen );
+    if( ( ret = ecp_tls_read_point( &ctx->grp, &ctx->Qp, &p, blen ) ) != 0 )
+        return( ret );
+
+    if( (size_t)( p - buf ) != blen )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
+    return( 0 );
 }
 
 /*

@@ -2394,18 +2394,19 @@ static int ssl_parse_client_dh_public( ssl_context *ssl, unsigned char **p,
     n = ( (*p)[0] << 8 ) | (*p)[1];
     *p += 2;
 
-    if( n < 1 || n > ssl->handshake->dhm_ctx.len || *p + n > end )
+    if( *p + n > end )
     {
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( ( ret = dhm_read_public( &ssl->handshake->dhm_ctx,
-                                  *p, n ) ) != 0 )
+    if( ( ret = dhm_read_public( &ssl->handshake->dhm_ctx, *p, n ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "dhm_read_public", ret );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
     }
+
+    *p += n;
 
     SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
 
@@ -2583,12 +2584,18 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
         unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_msglen;
+        unsigned char *end = ssl->in_msg + ssl->in_hslen;
 
         if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
             return( ret );
+        }
+
+        if( p != end )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
 
         ssl->handshake->pmslen = ssl->handshake->dhm_ctx.len;
@@ -2615,17 +2622,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDH_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDH_ECDSA )
     {
-        size_t n = ssl->in_msg[3];
-
-        if( n < 1 || n > mpi_size( &ssl->handshake->ecdh_ctx.grp.P ) * 2 + 2 ||
-            n + 4 != ssl->in_hslen )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-        }
-
         if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                       ssl->in_msg + 4, n ) ) != 0 )
+                                       ssl->in_msg + 4, ssl->in_hslen - 4 ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
@@ -2654,12 +2652,18 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
     {
         unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_msglen;
+        unsigned char *end = ssl->in_msg + ssl->in_hslen;
 
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
             return( ret );
+        }
+
+        if( p != end )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
 
         if( ( ret = ssl_psk_derive_premaster( ssl,
@@ -2675,7 +2679,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
     {
         unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_msglen;
+        unsigned char *end = ssl->in_msg + ssl->in_hslen;
 
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
@@ -2702,7 +2706,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
         unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_msglen;
+        unsigned char *end = ssl->in_msg + ssl->in_hslen;
 
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
@@ -2713,6 +2717,12 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
             return( ret );
+        }
+
+        if( p != end )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
 
         if( ( ret = ssl_psk_derive_premaster( ssl,
@@ -2728,7 +2738,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
         unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_msglen;
+        unsigned char *end = ssl->in_msg + ssl->in_hslen;
 
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
@@ -2759,10 +2769,10 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     {
         if( ( ret = ssl_parse_encrypted_pms( ssl,
                                              ssl->in_msg + 4,
-                                             ssl->in_msg + ssl->in_msglen,
+                                             ssl->in_msg + ssl->in_hslen,
                                              0 ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, ( "ssl_parse_parse_ecrypted_pms_secret" ), ret );
+            SSL_DEBUG_RET( 1, ( "ssl_parse_parse_encrypted_pms_secret" ), ret );
             return( ret );
         }
     }

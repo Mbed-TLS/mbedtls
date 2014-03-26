@@ -472,7 +472,7 @@ void ecp_tls_write_read_point( int id )
     TEST_ASSERT( ecp_tls_write_point( &grp, &grp.G,
                     POLARSSL_ECP_PF_COMPRESSED, &olen, buf, 256 ) == 0 );
     TEST_ASSERT( ecp_tls_read_point( &grp, &pt, &vbuf, olen )
-                 == POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+                 == POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE );
     TEST_ASSERT( vbuf == buf + olen );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;

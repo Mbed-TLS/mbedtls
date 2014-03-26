@@ -483,8 +483,13 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *pt,
     int ret;
     size_t plen;
 
-    if( ilen == 1 && buf[0] == 0x00 )
-        return( ecp_set_zero( pt ) );
+    if( buf[0] == 0x00 )
+    {
+        if( ilen == 1 )
+            return( ecp_set_zero( pt ) );
+        else
+            return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    }
 
     plen = mpi_size( &grp->P );
 

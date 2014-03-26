@@ -1,6 +1,9 @@
 PolarSSL ChangeLog
 
 = Branch 1.2
+Features
+   * Entropy module now supports seed writing and reading
+
 Changes
    * Introduced POLARSSL_HAVE_READDIR_R for systems without it
    * Improvements to the CMake build system, contributed by Julian Ospald.

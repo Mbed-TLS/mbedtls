@@ -173,16 +173,6 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-#if defined(POLARSSL_PBKDF2_C)
-    if( ( ret = pbkdf2_self_test( v ) ) != 0 )
-        return( ret );
-#else
-#if defined(POLARSSL_PKCS5_C)
-    if( ( ret = pkcs5_self_test( v ) ) != 0 )
-        return( ret );
-#endif
-#endif
-
 #if defined(POLARSSL_ECP_C)
     if( ( ret = ecp_self_test( v ) ) != 0 )
         return( ret );
@@ -191,6 +181,18 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_DHM_C)
     if( ( ret = dhm_self_test( v ) ) != 0 )
         return( ret );
+#endif
+
+/* Slow tests last */
+
+#if defined(POLARSSL_PBKDF2_C)
+    if( ( ret = pbkdf2_self_test( v ) ) != 0 )
+        return( ret );
+#else
+#if defined(POLARSSL_PKCS5_C)
+    if( ( ret = pkcs5_self_test( v ) ) != 0 )
+        return( ret );
+#endif
 #endif
 
 #if defined(POLARSSL_TIMING_C)

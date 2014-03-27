@@ -361,9 +361,13 @@ int pkcs5_self_test( int verbose )
     if( ( ret = md_init_ctx( &sha1_ctx, info_sha1 ) ) != 0 )
         return( 1 );
 
+    if( verbose != 0 )
+        polarssl_printf( "  PBKDF2 warning: test #3 may be slow!\n" );
+
     for( i = 0; i < MAX_TESTS; i++ )
     {
-        polarssl_printf( "  PBKDF2 (SHA1) #%d: ", i );
+        if( verbose != 0 )
+            polarssl_printf( "  PBKDF2 (SHA1) #%d: ", i );
 
         ret = pkcs5_pbkdf2_hmac( &sha1_ctx, password[i], plen[i], salt[i],
                                   slen[i], it_cnt[i], key_len[i], key );

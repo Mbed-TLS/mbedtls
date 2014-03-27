@@ -621,12 +621,14 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
 int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
+#if defined(POLARSSL_SELF_TEST)
 /**
  * \brief          Checkup routine
  *
- * \return         0 if successful, or 1 if the test failed
+ * \return         0 if successful, or 1 if a test failed
  */
 int ecp_self_test( int verbose );
+#endif
 
 #ifdef __cplusplus
 }

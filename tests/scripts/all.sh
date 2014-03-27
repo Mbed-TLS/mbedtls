@@ -5,6 +5,9 @@
 # Warning: includes various build modes, so it will mess with the current
 # CMake configuration. After this script is run, the CMake cache is lost and
 # CMake is not initialised any more!
+#
+# Assumes gcc, clang (recent enough for using ASan) are available, as weel as
+# cmake. Also assumes valgrind is available if --memcheck is used.
 
 # Abort on errors (and uninitiliased variables)
 set -eu
@@ -40,50 +43,50 @@ cleanup()
     git checkout -- {.,library,programs,tests}/Makefile
 }
 
-# Step 0: compile with max warnings, with GCC and Clang
+msg()
+{
+    echo ""
+    echo "******************************************************************"
+    echo "* $1"
+    echo "******************************************************************"
+}
 
-if which gcc > /dev/null; then
-    cleanup
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
-    make
-fi
+# Step 1: various build types
 
-if which clang > /dev/null; then
-    cleanup
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
-    make
-fi
-
-# Step 1: Unix Make, default compiler, all test suites/scripts
-
+msg "Unix make, default compiler and flags"
 cleanup
 make
-make check
+
+msg "cmake, gcc with lots of warnings"
+cleanup
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
+make
+
+msg "cmake, clang with lots of warnings"
+cleanup
+CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
+make
+
+# Step 2: Full tests, with ASan
+
+msg "ASan build and full tests"
+cleanup
+cmake -D CMAKE_BUILD_TYPE:String=ASan .
+make
+make test
 cd tests
 ./compat.sh
 ./ssl-opt.sh
 cd ..
 tests/scripts/test-ref-configs.pl
 
-# Step 2: using ASan
-
-if [ "$MEMORY" -gt 0 ]; then
-    cleanup
-    cmake -D CMAKE_BUILD_TYPE:String=ASan .
-    make
-    make test
-    cd tests
-    ./compat.sh
-    ./ssl-opt.sh
-    cd ..
-    tests/scripts/test-ref-configs.pl
-fi
-
 # Step 3: using valgrind's memcheck
 
 if [ "$MEMORY" -gt 0 ] && which valgrind >/dev/null; then
+    msg "Release build, full tests with valgrind's memcheck"
     cleanup
-    cmake -D CMAKE_BUILD_TYPE:String=Debug .
+    # optimized build to compensate a bit for valgrind slowdown
+    cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
     make memcheck
     cd tests
@@ -95,5 +98,6 @@ fi
 
 # Done
 
+echo "Done."
 cleanup
 

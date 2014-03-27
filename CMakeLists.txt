@@ -11,7 +11,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
   set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
   set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fno-omit-frame-pointer -g3 -O1")
-  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -Wlogical-op -Wwrite-strings")
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -O1 -Wlogical-op -Wwrite-strings")
   set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNUCC)
 
@@ -21,7 +21,7 @@ if(CMAKE_COMPILER_IS_CLANG)
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
   set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
   set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fno-omit-frame-pointer -g3 -O1")
-  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -Wpointer-arith -Wwrite-strings -Wdocumentation -Wunreachable-code")
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -O1 -Wpointer-arith -Wwrite-strings -Wdocumentation -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}

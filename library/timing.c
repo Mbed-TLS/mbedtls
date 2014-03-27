@@ -55,7 +55,7 @@ struct _hr_time
 #endif
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-	(defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
+    (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -89,7 +89,7 @@ unsigned long hardclock( void )
 unsigned long hardclock( void )
 {
     unsigned long lo, hi;
-    asm( "rdtsc" : "=a" (lo), "=d" (hi) ); 
+    asm( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo | (hi << 32) );
 }
 #endif
@@ -181,9 +181,9 @@ unsigned long hardclock( void )
 {
     LARGE_INTEGER offset;
 
-	QueryPerformanceCounter( &offset );
+    QueryPerformanceCounter( &offset );
 
-	return (unsigned long)( offset.QuadPart );
+    return (unsigned long)( offset.QuadPart );
 }
 #endif
 
@@ -234,17 +234,17 @@ unsigned long get_timer( struct hr_time *val, int reset )
 }
 
 DWORD WINAPI TimerProc( LPVOID uElapse )
-{   
+{
     Sleep( (DWORD) uElapse );
-    alarmed = 1; 
+    alarmed = 1;
     return( TRUE );
 }
 
 void set_alarm( int seconds )
-{   
+{
     DWORD ThreadId;
 
-    alarmed = 0; 
+    alarmed = 0;
     CloseHandle( CreateThread( NULL, 0, TimerProc,
         (LPVOID) ( seconds * 1000 ), 0, &ThreadId ) );
 }
@@ -285,7 +285,7 @@ void m_sleep( int milliseconds )
 #else
 
 static void sighandler( int signum )
-{   
+{
     alarmed = 1;
     signal( signum, sighandler );
 }

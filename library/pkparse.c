@@ -355,7 +355,7 @@ static int pk_group_from_specified( const asn1_buf *params, ecp_group *grp )
  */
 static int pk_group_id_from_group( const ecp_group *grp, ecp_group_id *grp_id )
 {
-    int ret;
+    int ret = 0;
     ecp_group ref;
     const ecp_group_id *id;
 

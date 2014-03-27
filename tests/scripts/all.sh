@@ -74,6 +74,7 @@ cleanup
 cmake -D CMAKE_BUILD_TYPE:String=ASan .
 make
 make test
+programs/test/selftest
 cd tests
 ./compat.sh
 ./ssl-opt.sh

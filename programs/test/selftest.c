@@ -49,6 +49,7 @@
 #include "polarssl/x509.h"
 #include "polarssl/xtea.h"
 #include "polarssl/pkcs5.h"
+#include "polarssl/pbkdf2.h"
 #include "polarssl/ecp.h"
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
@@ -171,9 +172,14 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
+#if defined(POLARSSL_PBKDF2_C)
+    if( ( ret = pbkdf2_self_test( v ) ) != 0 )
+        return( ret );
+#else
 #if defined(POLARSSL_PKCS5_C)
     if( ( ret = pkcs5_self_test( v ) ) != 0 )
         return( ret );
+#endif
 #endif
 
 #if defined(POLARSSL_ECP_C)

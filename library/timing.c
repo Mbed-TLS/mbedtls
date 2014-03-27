@@ -83,7 +83,7 @@ unsigned long hardclock( void )
 unsigned long hardclock( void )
 {
     unsigned long lo, hi;
-    asm( "rdtsc" : "=a" (lo), "=d" (hi) );
+    asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo );
 }
 #endif
@@ -96,7 +96,7 @@ unsigned long hardclock( void )
 unsigned long hardclock( void )
 {
     unsigned long lo, hi;
-    asm( "rdtsc" : "=a" (lo), "=d" (hi) );
+    asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo | (hi << 32) );
 }
 #endif
@@ -112,9 +112,9 @@ unsigned long hardclock( void )
 
     do
     {
-        asm( "mftbu %0" : "=r" (tbu0) );
-        asm( "mftb  %0" : "=r" (tbl ) );
-        asm( "mftbu %0" : "=r" (tbu1) );
+        asm volatile( "mftbu %0" : "=r" (tbu0) );
+        asm volatile( "mftb  %0" : "=r" (tbl ) );
+        asm volatile( "mftbu %0" : "=r" (tbu1) );
     }
     while( tbu0 != tbu1 );
 
@@ -133,7 +133,7 @@ unsigned long hardclock( void )
 unsigned long hardclock( void )
 {
     unsigned long tick;
-    asm( "rdpr %%tick, %0;" : "=&r" (tick) );
+    asm volatile( "rdpr %%tick, %0;" : "=&r" (tick) );
     return( tick );
 }
 #endif
@@ -147,8 +147,8 @@ unsigned long hardclock( void )
 unsigned long hardclock( void )
 {
     unsigned long tick;
-    asm( ".byte 0x83, 0x41, 0x00, 0x00" );
-    asm( "mov   %%g1, %0" : "=r" (tick) );
+    asm volatile( ".byte 0x83, 0x41, 0x00, 0x00" );
+    asm volatile( "mov   %%g1, %0" : "=r" (tick) );
     return( tick );
 }
 #endif
@@ -161,7 +161,7 @@ unsigned long hardclock( void )
 unsigned long hardclock( void )
 {
     unsigned long cc;
-    asm( "rpcc %0" : "=r" (cc) );
+    asm volatile( "rpcc %0" : "=r" (cc) );
     return( cc & 0xFFFFFFFF );
 }
 #endif
@@ -174,7 +174,7 @@ unsigned long hardclock( void )
 unsigned long hardclock( void )
 {
     unsigned long itc;
-    asm( "mov %0 = ar.itc" : "=r" (itc) );
+    asm volatile( "mov %0 = ar.itc" : "=r" (itc) );
     return( itc );
 }
 #endif

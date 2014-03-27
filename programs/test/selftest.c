@@ -51,6 +51,7 @@
 #include "polarssl/pkcs5.h"
 #include "polarssl/pbkdf2.h"
 #include "polarssl/ecp.h"
+#include "polarssl/timing.h"
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
 #include "polarssl/memory.h"
@@ -189,6 +190,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_DHM_C)
     if( ( ret = dhm_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(POLARSSL_TIMING_C)
+    if( ( ret = timing_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

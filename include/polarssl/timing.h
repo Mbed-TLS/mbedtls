@@ -74,6 +74,15 @@ void set_alarm( int seconds );
  */
 void m_sleep( int milliseconds );
 
+#if defined(POLARSSL_SELF_TEST)
+/**
+ * \brief          Checkup routine
+ *
+ * \return         0 if successful, or 1 if a test failed
+ */
+int timing_self_test( int verbose );
+#endif
+
 #ifdef __cplusplus
 }
 #endif

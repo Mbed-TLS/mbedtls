@@ -11,8 +11,8 @@
  */
 
 /* BEGIN_CASE depends_on:POLARSSL_PEM_WRITE_C:POLARSSL_X509_CSR_WRITE_C */
-void x509_csr_check( char *key_file, int md_type,
-                          char *cert_req_check_file )
+void x509_csr_check( char *key_file, char *cert_req_check_file,
+                     int md_type, int key_usage, int cert_type )
 {
     pk_context key;
     x509write_csr req;
@@ -33,6 +33,10 @@ void x509_csr_check( char *key_file, int md_type,
     x509write_csr_set_md_alg( &req, md_type );
     x509write_csr_set_key( &req, &key );
     TEST_ASSERT( x509write_csr_set_subject_name( &req, subject_name ) == 0 );
+    if( key_usage != 0 )
+        TEST_ASSERT( x509write_csr_set_key_usage( &req, key_usage ) == 0 );
+    if( cert_type != 0 )
+        TEST_ASSERT( x509write_csr_set_ns_cert_type( &req, cert_type ) == 0 );
 
     ret = x509write_csr_pem( &req, buf, sizeof(buf),
                              rnd_pseudo_rand, &rnd_info );

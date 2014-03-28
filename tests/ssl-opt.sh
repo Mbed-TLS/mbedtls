@@ -10,6 +10,14 @@
 
 set -u
 
+# test if it is defined from the environment before assining default
+# if yes, assume it means it's a build with all the options we need (SSLv2)
+if [ -n "${OPENSSL_CMD:-}" ]; then
+    OPENSSL_OK=1
+else
+    OPENSSL_OK=0
+fi
+
 # default values, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
@@ -23,7 +31,11 @@ FAILS=0
 
 MEMCHECK=0
 FILTER='.*'
-EXCLUDE='SSLv2' # disabled by default, needs OpenSSL compiled with SSLv2
+if [ "$OPENSSL_OK" -gt 0 ]; then
+    EXCLUDE='^$'
+else
+    EXCLUDE='SSLv2'
+fi
 
 print_usage() {
     echo "Usage: $0 [options]"
@@ -245,6 +257,8 @@ cleanup() {
 # MAIN
 #
 
+get_options "$@"
+
 # sanity checks, avoid an avalanche of errors
 if [ ! -x "$P_SRV" ]; then
     echo "Command '$P_SRV' is not an executable file"
@@ -258,8 +272,6 @@ if which $OPENSSL_CMD >/dev/null 2>&1; then :; else
     echo "Command '$OPENSSL_CMD' not found"
     exit 1
 fi
-
-get_options "$@"
 
 killall -q openssl ssl_server ssl_server2
 trap cleanup INT TERM HUP

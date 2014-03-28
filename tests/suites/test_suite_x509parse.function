@@ -265,6 +265,57 @@ void x509_crt_parse_path( char *crt_path, int ret, int nb_crt )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void x509_oid_desc( char *oid_str, char *ref_desc )
+{
+    x509_buf oid;
+    const char *desc;
+    unsigned char buf[20];
+
+    memset( buf, 0, sizeof buf );
+
+    oid.tag = ASN1_OID;
+    oid.len = unhexify( buf, oid_str );
+    oid.p   = buf;
+
+    desc = x509_oid_get_description( &oid );
+
+    if( strcmp( ref_desc, "notfound" ) == 0 )
+        TEST_ASSERT( desc == NULL );
+    else
+    {
+        TEST_ASSERT( desc != NULL );
+        TEST_ASSERT( strcmp( desc, ref_desc ) == 0 );
+    }
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void x509_oid_numstr( char *oid_str, char *numstr, int blen, int ret )
+{
+    x509_buf oid;
+    unsigned char oid_buf[20];
+    char num_buf[100];
+
+    memset( oid_buf, 0x00, sizeof oid_buf );
+    memset( num_buf, 0x2a, sizeof num_buf );
+
+    oid.tag = ASN1_OID;
+    oid.len = unhexify( oid_buf, oid_str );
+    oid.p   = oid_buf;
+
+    TEST_ASSERT( (size_t) blen <= sizeof num_buf );
+
+    TEST_ASSERT( x509_oid_get_numeric_string( num_buf, blen, &oid ) == ret );
+
+    if( ret >= 0 )
+    {
+        TEST_ASSERT( num_buf[ret] == 0 );
+        TEST_ASSERT( strcmp( num_buf, numstr ) == 0 );
+    }
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_SELF_TEST */
 void x509_selftest()
 {

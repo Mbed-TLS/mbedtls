@@ -590,16 +590,14 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 #define snprintf compat_snprintf
 #endif
 
-#define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
-
 #define SAFE_SNPRINTF()                         \
 {                                               \
     if( ret == -1 )                             \
-        return( -1 );                           \
+        return POLARSSL_ERR_OID_BUF_TOO_SMALL;  \
                                                 \
-    if ( (unsigned int) ret > n ) {             \
+    if ( (unsigned int) ret >= n ) {            \
         p[n - 1] = '\0';                        \
-        return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;\
+        return POLARSSL_ERR_OID_BUF_TOO_SMALL;  \
     }                                           \
                                                 \
     n -= (unsigned int) ret;                    \
@@ -630,7 +628,7 @@ int oid_get_numeric_string( char *buf, size_t size,
     {
         /* Prevent overflow in value. */
         if ( ( ( value << 7 ) >> 7 ) != value )
-            return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
+            return( POLARSSL_ERR_OID_BUF_TOO_SMALL );
 
         value <<= 7;
         value += oid->p[i] & 0x7F;

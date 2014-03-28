@@ -19,6 +19,8 @@ Bugfix
      Gergely Budai).
    * Fix #include path in ecdsa.h which wasn't accepted by some compilers.
      (found by Gergely Budai)
+   * oid_get_numeric_string() used to truncate the output without returning an
+     error if the output buffer was just 1 byte too small.
 
 = PolarSSL 1.3.5 released on 2014-03-26
 Features

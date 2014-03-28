@@ -802,3 +802,27 @@ x509_crt_parse_path:"data_files/dir2":0:2
 X509 CRT parse path #4 (two certs, one non-cert)
 depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_SHA256_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABLED
 x509_crt_parse_path:"data_files/dir3":1:2
+
+X509 OID description #1
+x509_oid_desc:"2B06010505070301":"TLS Web Server Authentication"
+
+X509 OID description #2
+x509_oid_desc:"2B0601050507030f":"notfound"
+
+X509 OID description #3
+x509_oid_desc:"2B0601050507030100":"notfound"
+
+X509 OID numstring #1 (wide buffer)
+x509_oid_numstr:"2B06010505070301":"1.3.6.1.5.5.7.3.1":20:17
+
+X509 OID numstring #2 (buffer just fits)
+x509_oid_numstr:"2B06010505070301":"1.3.6.1.5.5.7.3.1":18:17
+
+X509 OID numstring #3 (buffer too small)
+x509_oid_numstr:"2B06010505070301":"1.3.6.1.5.5.7.3.1":17:POLARSSL_ERR_OID_BUF_TOO_SMALL
+
+X509 OID numstring #4 (larger number)
+x509_oid_numstr:"2A864886F70D":"1.2.840.113549":15:14
+
+X509 OID numstring #5 (arithmetic overflow)
+x509_oid_numstr:"2A8648F9F8F7F6F5F4F3F2F1F001":"":100:POLARSSL_ERR_OID_BUF_TOO_SMALL

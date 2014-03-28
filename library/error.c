@@ -655,6 +655,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 #if defined(POLARSSL_OID_C)
     if( use_ret == -(POLARSSL_ERR_OID_NOT_FOUND) )
         snprintf( buf, buflen, "OID - OID is not found" );
+    if( use_ret == -(POLARSSL_ERR_OID_BUF_TOO_SMALL) )
+        snprintf( buf, buflen, "OID - output buffer is too small" );
 #endif /* POLARSSL_OID_C */
 
 #if defined(POLARSSL_PADLOCK_C)

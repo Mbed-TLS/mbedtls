@@ -8,6 +8,37 @@
  */
 
 /* BEGIN_CASE */
+void md_list( )
+{
+    const int *md_type_ptr;
+
+    for( md_type_ptr = md_list(); *md_type_ptr != 0; md_type_ptr++ )
+        TEST_ASSERT( md_info_from_type( *md_type_ptr ) != NULL );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void md_info( int md_type, char *md_name, int md_size )
+{
+    const md_info_t *md_info;
+    const int *md_type_ptr;
+    int found;
+
+    TEST_ASSERT( ( md_info = md_info_from_type( md_type ) ) != NULL );
+    TEST_ASSERT( md_info == md_info_from_string( md_name ) );
+
+    TEST_ASSERT( md_get_type( md_info ) == (md_type_t) md_type );
+    TEST_ASSERT( md_get_size( md_info ) == (unsigned char) md_size );
+
+    found = 0;
+    for( md_type_ptr = md_list(); *md_type_ptr != 0; md_type_ptr++ )
+        if( *md_type_ptr == md_type )
+            found = 1;
+    TEST_ASSERT( found == 1 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void md_text( char *text_md_name, char *text_src_string, char *hex_hash_string )
 {
     char md_name[100];

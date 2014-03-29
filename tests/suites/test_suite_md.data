@@ -1,3 +1,42 @@
+MD list
+md_list:
+
+Information on MD2
+depends_on:POLARSSL_MD2_C
+md_info:POLARSSL_MD_MD2:"MD2":16
+
+Information on MD4
+depends_on:POLARSSL_MD4_C
+md_info:POLARSSL_MD_MD4:"MD4":16
+
+Information on MD5
+depends_on:POLARSSL_MD5_C
+md_info:POLARSSL_MD_MD5:"MD5":16
+
+Information on RIPEMD160
+depends_on:POLARSSL_RIPEMD160_C
+md_info:POLARSSL_MD_RIPEMD160:"RIPEMD160":20
+
+Information on SHA1
+depends_on:POLARSSL_SHA1_C
+md_info:POLARSSL_MD_SHA1:"SHA1":20
+
+Information on SHA224
+depends_on:POLARSSL_SHA256_C
+md_info:POLARSSL_MD_SHA224:"SHA224":28
+
+Information on SHA256
+depends_on:POLARSSL_SHA256_C
+md_info:POLARSSL_MD_SHA256:"SHA256":32
+
+Information on SHA384
+depends_on:POLARSSL_SHA512_C
+md_info:POLARSSL_MD_SHA384:"SHA384":48
+
+Information on SHA512
+depends_on:POLARSSL_SHA512_C
+md_info:POLARSSL_MD_SHA512:"SHA512":64
+
 generic md2 Test vector RFC1319 #1
 depends_on:POLARSSL_MD2_C
 md_text:"md2":"":"8350e5a3e24c153df2275c9f80692773"

@@ -82,35 +82,35 @@ generic md5 Test vector RFC1321 #7
 depends_on:POLARSSL_MD5_C
 md_text:"md5":"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
 
-ripemd160 Test vector from paper #1
+generic ripemd160 Test vector from paper #1
 depends_on:POLARSSL_RIPEMD160_C
 md_text:"ripemd160":"":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
-ripemd160 Test vector from paper #2
+generic ripemd160 Test vector from paper #2
 depends_on:POLARSSL_RIPEMD160_C
 md_text:"ripemd160":"a":"0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"
 
-ripemd160 Test vector from paper #3
+generic ripemd160 Test vector from paper #3
 depends_on:POLARSSL_RIPEMD160_C
 md_text:"ripemd160":"abc":"8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"
 
-ripemd160 Test vector from paper #4
+generic ripemd160 Test vector from paper #4
 depends_on:POLARSSL_RIPEMD160_C
 md_text:"ripemd160":"message digest":"5d0689ef49d2fae572b881b123a85ffa21595f36"
 
-ripemd160 Test vector from paper #5
+generic ripemd160 Test vector from paper #5
 depends_on:POLARSSL_RIPEMD160_C
 md_text:"ripemd160":"abcdefghijklmnopqrstuvwxyz":"f71c27109c692c1b56bbdceb5b9d2865b3708dbc"
 
-ripemd160 Test vector from paper #6
+generic ripemd160 Test vector from paper #6
 depends_on:POLARSSL_RIPEMD160_C
 md_text:"ripemd160":"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq":"12a053384a9c0c88e405a06c27dcf49ada62eb2b"
 
-ripemd160 Test vector from paper #7
+generic ripemd160 Test vector from paper #7
 depends_on:POLARSSL_RIPEMD160_C
 md_text:"ripemd160":"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"b0e20b6e3116640286ed3a87a5713079b21f5189"
 
-ripemd160 Test vector from paper #8
+generic ripemd160 Test vector from paper #8
 depends_on:POLARSSL_RIPEMD160_C
 md_text:"ripemd160":"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
 
@@ -178,31 +178,31 @@ generic HMAC-MD5 Test Vector RFC2202 #7
 depends_on:POLARSSL_MD5_C
 md_hmac:"md5":16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"6f630fad67cda0ee1fb1f562db3aa53e"
 
-HMAC-RIPEMD160 Test vector RFC 2286 #1
+generic HMAC-RIPEMD160 Test vector RFC 2286 #1
 depends_on:POLARSSL_RIPEMD160_C
 md_hmac:"ripemd160":20:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"24cb4bd67d20fc1a5d2ed7732dcc39377f0a5668"
 
-HMAC-RIPEMD160 Test vector RFC 2286 #2
+generic HMAC-RIPEMD160 Test vector RFC 2286 #2
 depends_on:POLARSSL_RIPEMD160_C
 md_hmac:"ripemd160":20:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"dda6c0213a485a9e24f4742064a7f033b43c4069"
 
-HMAC-RIPEMD160 Test vector RFC 2286 #3
+generic HMAC-RIPEMD160 Test vector RFC 2286 #3
 depends_on:POLARSSL_RIPEMD160_C
 md_hmac:"ripemd160":20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"b0b105360de759960ab4f35298e116e295d8e7c1"
 
-HMAC-RIPEMD160 Test vector RFC 2286 #4
+generic HMAC-RIPEMD160 Test vector RFC 2286 #4
 depends_on:POLARSSL_RIPEMD160_C
 md_hmac:"ripemd160":20:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"d5ca862f4d21d5e610e18b4cf1beb97a4365ecf4"
 
-HMAC-RIPEMD160 Test vector RFC 2286 #5
+generic HMAC-RIPEMD160 Test vector RFC 2286 #5
 depends_on:POLARSSL_RIPEMD160_C
 md_hmac:"ripemd160":20:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"7619693978f91d90539ae786500ff3d8e0518e39"
 
-HMAC-RIPEMD160 Test vector RFC 2286 #6
+generic HMAC-RIPEMD160 Test vector RFC 2286 #6
 depends_on:POLARSSL_RIPEMD160_C
 md_hmac:"ripemd160":20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6466ca07ac5eac29e1bd523e5ada7605b791fd8b"
 
-HMAC-RIPEMD160 Test vector RFC 2286 #7
+generic HMAC-RIPEMD160 Test vector RFC 2286 #7
 depends_on:POLARSSL_RIPEMD160_C
 md_hmac:"ripemd160":20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"69ea60798d71616cce5fd0871e23754cd75d5a0a"
 
@@ -290,6 +290,38 @@ generic multi step md5 Test vector RFC1321 #7
 depends_on:POLARSSL_MD5_C
 md_text_multi:"md5":"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
 
+generic multi step ripemd160 Test vector from paper #1
+depends_on:POLARSSL_RIPEMD160_C
+md_text_multi:"ripemd160":"":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
+
+generic multi step ripemd160 Test vector from paper #2
+depends_on:POLARSSL_RIPEMD160_C
+md_text_multi:"ripemd160":"a":"0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"
+
+generic multi step ripemd160 Test vector from paper #3
+depends_on:POLARSSL_RIPEMD160_C
+md_text_multi:"ripemd160":"abc":"8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"
+
+generic multi step ripemd160 Test vector from paper #4
+depends_on:POLARSSL_RIPEMD160_C
+md_text_multi:"ripemd160":"message digest":"5d0689ef49d2fae572b881b123a85ffa21595f36"
+
+generic multi step ripemd160 Test vector from paper #5
+depends_on:POLARSSL_RIPEMD160_C
+md_text_multi:"ripemd160":"abcdefghijklmnopqrstuvwxyz":"f71c27109c692c1b56bbdceb5b9d2865b3708dbc"
+
+generic multi step ripemd160 Test vector from paper #6
+depends_on:POLARSSL_RIPEMD160_C
+md_text_multi:"ripemd160":"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq":"12a053384a9c0c88e405a06c27dcf49ada62eb2b"
+
+generic multi step ripemd160 Test vector from paper #7
+depends_on:POLARSSL_RIPEMD160_C
+md_text_multi:"ripemd160":"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"b0e20b6e3116640286ed3a87a5713079b21f5189"
+
+generic multi step ripemd160 Test vector from paper #8
+depends_on:POLARSSL_RIPEMD160_C
+md_text_multi:"ripemd160":"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
+
 generic multi step HMAC-MD2 Hash File OpenSSL test #1
 depends_on:POLARSSL_MD2_C
 md_hmac_multi:"md2":16:"61616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"d5732582f494f5ddf35efd166c85af9c"
@@ -354,6 +386,34 @@ generic multi step HMAC-MD5 Test Vector RFC2202 #7
 depends_on:POLARSSL_MD5_C
 md_hmac_multi:"md5":16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"6f630fad67cda0ee1fb1f562db3aa53e"
 
+generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #1
+depends_on:POLARSSL_RIPEMD160_C
+md_hmac_multi:"ripemd160":20:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"24cb4bd67d20fc1a5d2ed7732dcc39377f0a5668"
+
+generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #2
+depends_on:POLARSSL_RIPEMD160_C
+md_hmac_multi:"ripemd160":20:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"dda6c0213a485a9e24f4742064a7f033b43c4069"
+
+generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #3
+depends_on:POLARSSL_RIPEMD160_C
+md_hmac_multi:"ripemd160":20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"b0b105360de759960ab4f35298e116e295d8e7c1"
+
+generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #4
+depends_on:POLARSSL_RIPEMD160_C
+md_hmac_multi:"ripemd160":20:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"d5ca862f4d21d5e610e18b4cf1beb97a4365ecf4"
+
+generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #5
+depends_on:POLARSSL_RIPEMD160_C
+md_hmac_multi:"ripemd160":20:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"7619693978f91d90539ae786500ff3d8e0518e39"
+
+generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #6
+depends_on:POLARSSL_RIPEMD160_C
+md_hmac_multi:"ripemd160":20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6466ca07ac5eac29e1bd523e5ada7605b791fd8b"
+
+generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #7
+depends_on:POLARSSL_RIPEMD160_C
+md_hmac_multi:"ripemd160":20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"69ea60798d71616cce5fd0871e23754cd75d5a0a"
+
 generic MD2 Hash file #1
 depends_on:POLARSSL_MD2_C
 md_file:"md2":"data_files/hash_file_1":"b593c098712d2e21628c8986695451a8"
@@ -401,6 +461,26 @@ md_file:"md5":"data_files/hash_file_3":"d945bcc6200ea95d061a2a818167d920"
 generic MD5 Hash file #4
 depends_on:POLARSSL_MD5_C
 md_file:"md5":"data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
+
+generic RIPEMD160 Hash file #0 (from paper)
+depends_on:POLARSSL_RIPEMD160_C
+md_file:"ripemd160":"data_files/hash_file_5":"52783243c1697bdbe16d37f97f68f08325dc1528"
+
+generic RIPEMD160 Hash file #1
+depends_on:POLARSSL_RIPEMD160_C
+md_file:"ripemd160":"data_files/hash_file_1":"82f1d072f0ec0c2b353703a7b575a04c113af1a6"
+
+generic RIPEMD160 Hash file #2
+depends_on:POLARSSL_RIPEMD160_C
+md_file:"ripemd160":"data_files/hash_file_2":"996fbc8b79206ba7393ebcd246584069b1c08f0f"
+
+generic RIPEMD160 Hash file #3
+depends_on:POLARSSL_RIPEMD160_C
+md_file:"ripemd160":"data_files/hash_file_3":"8653b46d65998fa8c8846efa17937e742533ae48"
+
+generic RIPEMD160 Hash file #4
+depends_on:POLARSSL_RIPEMD160_C
+md_file:"ripemd160":"data_files/hash_file_4":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
 generic HMAC-SHA-1 Test Vector FIPS-198a #1
 depends_on:POLARSSL_SHA1_C
@@ -1009,26 +1089,6 @@ md_hex_multi:"sha512":"49297dd63e5f":"1fcc1e6f6870859d11649f5e5336a9cd16329c029b
 generic multi step SHA-512 Test Vector NIST CAVS #8
 depends_on:POLARSSL_SHA512_C
 md_hex_multi:"sha512":"990d1ae71a62d7bda9bfdaa1762a68d296eee72a4cd946f287a898fbabc002ea941fd8d4d991030b4d27a637cce501a834bb95eab1b7889a3e784c7968e67cbf552006b206b68f76d9191327524fcc251aeb56af483d10b4e0c6c5e599ee8c0fe4faeca8293844a8547c6a9a90d093f2526873a19ad4a5e776794c68c742fb834793d2dfcb7fea46c63af4b70fd11cb6e41834e72ee40edb067b292a794990c288d5007e73f349fb383af6a756b8301ad6e5e0aa8cd614399bb3a452376b1575afa6bdaeaafc286cb064bb91edef97c632b6c1113d107fa93a0905098a105043c2f05397f702514439a08a9e5ddc196100721d45c8fc17d2ed659376f8a00bd5cb9a0860e26d8a29d8d6aaf52de97e9346033d6db501a35dbbaf97c20b830cd2d18c2532f3a59cc497ee64c0e57d8d060e5069b28d86edf1adcf59144b221ce3ddaef134b3124fbc7dd000240eff0f5f5f41e83cd7f5bb37c9ae21953fe302b0f6e8b68fa91c6ab99265c64b2fd9cd4942be04321bb5d6d71932376c6f2f88e02422ba6a5e2cb765df93fd5dd0728c6abdaf03bce22e0678a544e2c3636f741b6f4447ee58a8fc656b43ef817932176adbfc2e04b2c812c273cd6cbfa4098f0be036a34221fa02643f5ee2e0b38135f2a18ecd2f16ebc45f8eb31b8ab967a1567ee016904188910861ca1fa205c7adaa194b286893ffe2f4fbe0384c2aef72a4522aeafd3ebc71f9db71eeeef86c48394a1c86d5b36c352cc33a0a2c800bc99e62fd65b3a2fd69e0b53996ec13d8ce483ce9319efd9a85acefabdb5342226febb83fd1daf4b24265f50c61c6de74077ef89b6fecf9f29a1f871af1e9f89b2d345cda7499bd45c42fa5d195a1e1a6ba84851889e730da3b2b916e96152ae0c92154b49719841db7e7cc707ba8a5d7b101eb4ac7b629bb327817910fff61580b59aab78182d1a2e33473d05b00b170b29e331870826cfe45af206aa7d0246bbd8566ca7cfb2d3c10bfa1db7dd48dd786036469ce7282093d78b5e1a5b0fc81a54c8ed4ceac1e5305305e78284ac276f5d7862727aff246e17addde50c670028d572cbfc0be2e4f8b2eb28fa68ad7b4c6c2a239c460441bfb5ea049f23b08563b4e47729a59e5986a61a6093dbd54f8c36ebe87edae01f251cb060ad1364ce677d7e8d5a4a4ca966a7241cc360bc2acb280e5f9e9c1b032ad6a180a35e0c5180b9d16d026c865b252098cc1d99ba7375ca31c7702c0d943d5e3dd2f6861fa55bd46d94b67ed3e52eccd8dd06d968e01897d6de97ed3058d91dd":"8e4bc6f8b8c60fe4d68c61d9b159c8693c3151c46749af58da228442d927f23359bd6ccd6c2ec8fa3f00a86cecbfa728e1ad60b821ed22fcd309ba91a4138bc9"
-
-RIPEMD160 Hash file #0 (from paper)
-depends_on:POLARSSL_RIPEMD160_C
-md_file:"ripemd160":"data_files/hash_file_5":"52783243c1697bdbe16d37f97f68f08325dc1528"
-
-RIPEMD160 Hash file #1
-depends_on:POLARSSL_RIPEMD160_C
-md_file:"ripemd160":"data_files/hash_file_1":"82f1d072f0ec0c2b353703a7b575a04c113af1a6"
-
-RIPEMD160 Hash file #2
-depends_on:POLARSSL_RIPEMD160_C
-md_file:"ripemd160":"data_files/hash_file_2":"996fbc8b79206ba7393ebcd246584069b1c08f0f"
-
-RIPEMD160 Hash file #3
-depends_on:POLARSSL_RIPEMD160_C
-md_file:"ripemd160":"data_files/hash_file_3":"8653b46d65998fa8c8846efa17937e742533ae48"
-
-RIPEMD160 Hash file #4
-depends_on:POLARSSL_RIPEMD160_C
-md_file:"ripemd160":"data_files/hash_file_4":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
 generic SHA1 Hash file #1
 depends_on:POLARSSL_SHA1_C

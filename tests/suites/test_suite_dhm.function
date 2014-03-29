@@ -97,6 +97,29 @@ void dhm_do_dhm( int radix_P, char *input_P,
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
+void dhm_file( char *filename, char *p, char *g, int len )
+{
+    dhm_context ctx;
+    mpi P, G;
+
+    memset( &ctx, 0, sizeof ctx );
+    mpi_init( &P ); mpi_init( &G );
+
+    TEST_ASSERT( mpi_read_string( &P, 16, p ) == 0 );
+    TEST_ASSERT( mpi_read_string( &G, 16, g ) == 0 );
+
+    TEST_ASSERT( dhm_parse_dhmfile( &ctx, filename ) == 0 );
+
+    TEST_ASSERT( ctx.len == (size_t) len );
+    TEST_ASSERT( mpi_cmp_mpi( &ctx.P, &P ) == 0 );
+    TEST_ASSERT( mpi_cmp_mpi( &ctx.G, &G ) == 0 );
+
+    mpi_free( &P ); mpi_free( &G );
+    dhm_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void dhm_selftest()
 {

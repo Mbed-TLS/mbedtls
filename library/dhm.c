@@ -460,6 +460,8 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
 
     ret = 0;
 
+    dhm->len = mpi_size( &dhm->P );
+
 exit:
 #if defined(POLARSSL_PEM_PARSE_C)
     pem_free( &pem );

@@ -94,18 +94,48 @@ void md2_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
     unsigned char hash_str[33];
     unsigned char output[16];
     int key_len, src_len;
+    md2_context ctx;
 
     memset( src_str, 0x00, sizeof src_str );
     memset( key_str, 0x00, sizeof key_str );
-    memset( hash_str, 0x00, sizeof hash_str );
-    memset( output, 0x00, sizeof output );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    md2_hmac( key_str, key_len, src_str, src_len, output );
-    hexify( hash_str, output, sizeof  output );
+    /* Test the all-in-one interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
 
+    md2_hmac( key_str, key_len, src_str, src_len, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    md2_hmac_starts( &ctx, key_str, key_len );
+    md2_hmac_update( &ctx, src_str, 0 );
+    md2_hmac_update( &ctx, src_str, src_len / 2 );
+    md2_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    md2_hmac_update( &ctx, src_str + src_len, 0 );
+    md2_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    md2_hmac_reset( &ctx );
+    md2_hmac_update( &ctx, src_str, src_len / 2 );
+    md2_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    md2_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */
@@ -119,18 +149,48 @@ void md4_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
     unsigned char hash_str[33];
     unsigned char output[16];
     int key_len, src_len;
+    md4_context ctx;
 
     memset( src_str, 0x00, sizeof src_str );
     memset( key_str, 0x00, sizeof key_str );
-    memset( hash_str, 0x00, sizeof hash_str );
-    memset( output, 0x00, sizeof output );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    md4_hmac( key_str, key_len, src_str, src_len, output );
-    hexify( hash_str, output, sizeof  output );
+    /* Test the all-in-one interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
 
+    md4_hmac( key_str, key_len, src_str, src_len, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    md4_hmac_starts( &ctx, key_str, key_len );
+    md4_hmac_update( &ctx, src_str, 0 );
+    md4_hmac_update( &ctx, src_str, src_len / 2 );
+    md4_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    md4_hmac_update( &ctx, src_str + src_len, 0 );
+    md4_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    md4_hmac_reset( &ctx );
+    md4_hmac_update( &ctx, src_str, src_len / 2 );
+    md4_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    md4_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */
@@ -144,18 +204,48 @@ void md5_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
     unsigned char hash_str[33];
     unsigned char output[16];
     int key_len, src_len;
+    md5_context ctx;
 
     memset( src_str, 0x00, sizeof src_str );
     memset( key_str, 0x00, sizeof key_str );
-    memset( hash_str, 0x00, sizeof hash_str );
-    memset( output, 0x00, sizeof output );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    md5_hmac( key_str, key_len, src_str, src_len, output );
-    hexify( hash_str, output, sizeof  output );
+    /* Test the all-in-one interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
 
+    md5_hmac( key_str, key_len, src_str, src_len, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    md5_hmac_starts( &ctx, key_str, key_len );
+    md5_hmac_update( &ctx, src_str, 0 );
+    md5_hmac_update( &ctx, src_str, src_len / 2 );
+    md5_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    md5_hmac_update( &ctx, src_str + src_len, 0 );
+    md5_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    md5_hmac_reset( &ctx );
+    md5_hmac_update( &ctx, src_str, src_len / 2 );
+    md5_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    md5_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */
@@ -169,18 +259,48 @@ void ripemd160_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
     unsigned char hash_str[41];
     unsigned char output[20];
     int key_len, src_len;
+    ripemd160_context ctx;
 
     memset( src_str, 0x00, sizeof src_str );
     memset( key_str, 0x00, sizeof key_str );
-    memset( hash_str, 0x00, sizeof hash_str );
-    memset( output, 0x00, sizeof output );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    ripemd160_hmac( key_str, key_len, src_str, src_len, output );
-    hexify( hash_str, output, sizeof  output );
+    /* Test the all-in-one interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
 
+    ripemd160_hmac( key_str, key_len, src_str, src_len, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    ripemd160_hmac_starts( &ctx, key_str, key_len );
+    ripemd160_hmac_update( &ctx, src_str, 0 );
+    ripemd160_hmac_update( &ctx, src_str, src_len / 2 );
+    ripemd160_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    ripemd160_hmac_update( &ctx, src_str + src_len, 0 );
+    ripemd160_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    ripemd160_hmac_reset( &ctx );
+    ripemd160_hmac_update( &ctx, src_str, src_len / 2 );
+    ripemd160_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    ripemd160_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */

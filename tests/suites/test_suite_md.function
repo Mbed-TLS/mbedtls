@@ -197,11 +197,23 @@ void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
     TEST_ASSERT ( ctx.md_ctx != NULL );
     TEST_ASSERT ( 0 == md_hmac_update( &ctx, src_str, src_len ) );
     TEST_ASSERT ( 0 == md_hmac_finish( &ctx, output ) );
+
+    hexify( hash_str, output, md_get_size(md_info) );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Test again, for reset() */
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 100);
+
+    TEST_ASSERT ( 0 == md_hmac_reset( &ctx ) );
+    TEST_ASSERT ( 0 == md_hmac_update( &ctx, src_str, src_len ) );
+    TEST_ASSERT ( 0 == md_hmac_finish( &ctx, output ) );
     TEST_ASSERT ( 0 == md_free_ctx( &ctx ) );
 
     hexify( hash_str, output, md_get_size(md_info) );
-
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    TEST_ASSERT ( 0 == md_free_ctx( &ctx ) );
 }
 /* END_CASE */
 

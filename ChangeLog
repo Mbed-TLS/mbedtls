@@ -9,6 +9,8 @@ Security
 Bugfix
    * The length of various ClientKeyExchange messages was not properly checked.
    * Some example server programs were not sending the close_notify alert.
+   * Potential memory leak in mpi_exp_mod() when error occurs during
+     calculation of RR.
 
 = PolarSSL 1.3.5 released on 2014-03-26
 Features

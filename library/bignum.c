@@ -1715,7 +1715,7 @@ cleanup:
 
     mpi_free( &W[1] ); mpi_free( &T ); mpi_free( &Apos );
 
-    if( _RR == NULL )
+    if( _RR == NULL || _RR->p == NULL )
         mpi_free( &RR );
 
     return( ret );

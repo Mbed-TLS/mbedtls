@@ -118,6 +118,9 @@ ecp_point;
  * short weierstrass, this subgroup is actually the whole curve, and its
  * cardinal is denoted by N.
  *
+ * In the case of Short Weierstrass curves, our code requires that N is an odd
+ * prime. (Use odd in ecp_mul() and prime in ecdsa_sign() for blinding.)
+ *
  * In the case of Montgomery curves, we don't store A but (A + 2) / 4 which is
  * the quantity actualy used in the formulas. Also, nbits is not the size of N
  * but the required size for private keys.

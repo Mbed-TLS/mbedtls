@@ -99,17 +99,16 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
                 const mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    int ret, key_tries, sign_tries;
+    int ret, key_tries, sign_tries, blind_tries;
     ecp_point R;
-    mpi k, e;
+    mpi k, e, t;
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( grp->N.p == NULL )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     ecp_point_init( &R );
-    mpi_init( &k );
-    mpi_init( &e );
+    mpi_init( &k ); mpi_init( &e ); mpi_init( &t );
 
     sign_tries = 0;
     do
@@ -138,10 +137,30 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
         MPI_CHK( derive_mpi( grp, &e, buf, blen ) );
 
         /*
-         * Step 6: compute s = (e + r * d) / k mod n
+         * Generate a random value to blind inv_mod in next step,
+         * avoiding a potential timing leak.
+         */
+        blind_tries = 0;
+        do
+        {
+            size_t n_size = (grp->nbits + 7) / 8;
+            MPI_CHK( mpi_fill_random( &t, n_size, f_rng, p_rng ) );
+            MPI_CHK( mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
+
+            /* See ecp_gen_keypair() */
+            if( ++blind_tries > 30 )
+                return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+        }
+        while( mpi_cmp_int( &t, 1 ) < 0 ||
+               mpi_cmp_mpi( &t, &grp->N ) >= 0 );
+
+        /*
+         * Step 6: compute s = (e + r * d) / k = t (e + rd) / (kt) mod n
          */
         MPI_CHK( mpi_mul_mpi( s, r, d ) );
         MPI_CHK( mpi_add_mpi( &e, &e, s ) );
+        MPI_CHK( mpi_mul_mpi( &e, &e, &t ) );
+        MPI_CHK( mpi_mul_mpi( &k, &k, &t ) );
         MPI_CHK( mpi_inv_mod( s, &k, &grp->N ) );
         MPI_CHK( mpi_mul_mpi( s, s, &e ) );
         MPI_CHK( mpi_mod_mpi( s, s, &grp->N ) );
@@ -156,8 +175,7 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
 
 cleanup:
     ecp_point_free( &R );
-    mpi_free( &k );
-    mpi_free( &e );
+    mpi_free( &k ); mpi_free( &e ); mpi_free( &t );
 
     return( ret );
 }

@@ -54,7 +54,7 @@
 #define DFL_PSK                 ""
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_FORCE_CIPHER        0
-#define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
+#define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_RENEGOTIATE         0
 #define DFL_MIN_VERSION         -1

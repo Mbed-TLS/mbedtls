@@ -1107,19 +1107,25 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     size_t n = *size;
     char *p = *buf;
     const x509_sequence *cur = subject_alt_name;
+    const char *sep = "";
+    size_t sep_len = 0;
 
     while( cur != NULL )
     {
-        if( cur->buf.len + 1 >= n )
+        if( cur->buf.len + sep_len >= n )
         {
             *p = '\0';
             return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
         }
 
-        n -= cur->buf.len + 1;
-        *p++ = ' ';
+        n -= cur->buf.len + sep_len;
+        for( i = 0; i < sep_len; i++ )
+            *p++ = sep[i];
         for( i = 0; i < cur->buf.len; i++ )
             *p++ = cur->buf.p[i];
+
+        sep = ", ";
+        sep_len = 2;
 
         cur = cur->next;
     }
@@ -1138,46 +1144,55 @@ static int x509_info_cert_type( char **buf, size_t *size,
     int ret;
     size_t n = *size;
     char *p = *buf;
+    const char *sep = "";
 
     if( ns_cert_type & NS_CERT_TYPE_SSL_CLIENT )
     {
-        ret = snprintf( p, n, " SSL Client" );
+        ret = snprintf( p, n, "%sSSL Client", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( ns_cert_type & NS_CERT_TYPE_SSL_SERVER )
     {
-        ret = snprintf( p, n, " SSL Server" );
+        ret = snprintf( p, n, "%sSSL Server", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( ns_cert_type & NS_CERT_TYPE_EMAIL )
     {
-        ret = snprintf( p, n, " Email" );
+        ret = snprintf( p, n, "%sEmail", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( ns_cert_type & NS_CERT_TYPE_OBJECT_SIGNING )
     {
-        ret = snprintf( p, n, " Object Signing" );
+        ret = snprintf( p, n, "%sObject Signing", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( ns_cert_type & NS_CERT_TYPE_RESERVED )
     {
-        ret = snprintf( p, n, " Reserved" );
+        ret = snprintf( p, n, "%sReserved", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( ns_cert_type & NS_CERT_TYPE_SSL_CA )
     {
-        ret = snprintf( p, n, " SSL CA" );
+        ret = snprintf( p, n, "%sSSL CA", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( ns_cert_type & NS_CERT_TYPE_EMAIL_CA )
     {
-        ret = snprintf( p, n, " Email CA" );
+        ret = snprintf( p, n, "%sEmail CA", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( ns_cert_type & NS_CERT_TYPE_OBJECT_SIGNING_CA )
     {
-        ret = snprintf( p, n, " Object Signing CA" );
+        ret = snprintf( p, n, "%sObject Signing CA", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
 
     *size = n;
@@ -1192,41 +1207,49 @@ static int x509_info_key_usage( char **buf, size_t *size,
     int ret;
     size_t n = *size;
     char *p = *buf;
+    const char *sep = "";
 
     if( key_usage & KU_DIGITAL_SIGNATURE )
     {
-        ret = snprintf( p, n, " digitalSignature" );
+        ret = snprintf( p, n, "%sDigital Signature", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( key_usage & KU_NON_REPUDIATION )
     {
-        ret = snprintf( p, n, " nonRepudiation" );
+        ret = snprintf( p, n, "%sNon Repudiation", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( key_usage & KU_KEY_ENCIPHERMENT )
     {
-        ret = snprintf( p, n, " keyEncipherment" );
+        ret = snprintf( p, n, "%sKey Encipherment", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( key_usage & KU_DATA_ENCIPHERMENT )
     {
-        ret = snprintf( p, n, " dataEncipherment" );
+        ret = snprintf( p, n, "%sData Encipherment", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( key_usage & KU_KEY_AGREEMENT )
     {
-        ret = snprintf( p, n, " keyAgreement" );
+        ret = snprintf( p, n, "%sKey Agreement", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( key_usage & KU_KEY_CERT_SIGN )
     {
-        ret = snprintf( p, n, " keyCertSign" );
+        ret = snprintf( p, n, "%sKey Cert Sign", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
     if( key_usage & KU_CRL_SIGN )
     {
-        ret = snprintf( p, n, " cRLSign" );
+        ret = snprintf( p, n, "%sCRL Sign", sep );
         SAFE_SNPRINTF();
+        sep = ", ";
     }
 
     *size = n;
@@ -1243,14 +1266,17 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
     size_t n = *size;
     char *p = *buf;
     const x509_sequence *cur = extended_key_usage;
+    const char *sep = "";
 
     while( cur != NULL )
     {
         if( oid_get_extended_key_usage( &cur->buf, &desc ) != 0 )
             desc = "???";
 
-        ret = snprintf( p, n, " %s", desc );
+        ret = snprintf( p, n, "%s%s", sep, desc );
         SAFE_SNPRINTF();
+
+        sep = ", ";
 
         cur = cur->next;
     }
@@ -1352,7 +1378,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_SUBJECT_ALT_NAME )
     {
-        ret = snprintf( p, n, "\n%ssubject alt name  :", prefix );
+        ret = snprintf( p, n, "\n%ssubject alt name  : ", prefix );
         SAFE_SNPRINTF();
 
         if( ( ret = x509_info_subject_alt_name( &p, &n,
@@ -1362,7 +1388,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_NS_CERT_TYPE )
     {
-        ret = snprintf( p, n, "\n%scert. type        :", prefix );
+        ret = snprintf( p, n, "\n%scert. type        : ", prefix );
         SAFE_SNPRINTF();
 
         if( ( ret = x509_info_cert_type( &p, &n, crt->ns_cert_type ) ) != 0 )
@@ -1371,7 +1397,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_KEY_USAGE )
     {
-        ret = snprintf( p, n, "\n%skey usage         :", prefix );
+        ret = snprintf( p, n, "\n%skey usage         : ", prefix );
         SAFE_SNPRINTF();
 
         if( ( ret = x509_info_key_usage( &p, &n, crt->key_usage ) ) != 0 )
@@ -1380,7 +1406,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_EXTENDED_KEY_USAGE )
     {
-        ret = snprintf( p, n, "\n%sext key usage     :", prefix );
+        ret = snprintf( p, n, "\n%sext key usage     : ", prefix );
         SAFE_SNPRINTF();
 
         if( ( ret = x509_info_ext_key_usage( &p, &n,

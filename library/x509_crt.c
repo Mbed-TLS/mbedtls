@@ -1235,6 +1235,32 @@ static int x509_info_key_usage( char **buf, size_t *size,
     return( 0 );
 }
 
+static int x509_info_ext_key_usage( char **buf, size_t *size,
+                                    const x509_sequence *extended_key_usage )
+{
+    int ret;
+    const char *desc;
+    size_t n = *size;
+    char *p = *buf;
+    const x509_sequence *cur = extended_key_usage;
+
+    while( cur != NULL )
+    {
+        if( oid_get_extended_key_usage( &cur->buf, &desc ) != 0 )
+            desc = "???";
+
+        ret = snprintf( p, n, " %s", desc );
+        SAFE_SNPRINTF();
+
+        cur = cur->next;
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 /*
  * Return an informational string about the certificate.
  */
@@ -1354,9 +1380,12 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_EXTENDED_KEY_USAGE )
     {
-        ret = snprintf( p, n, "\n%sext key usage     : ", prefix );
+        ret = snprintf( p, n, "\n%sext key usage     :", prefix );
         SAFE_SNPRINTF();
-        /* TODO */
+
+        if( ( ret = x509_info_ext_key_usage( &p, &n,
+                                             &crt->ext_key_usage ) ) != 0 )
+            return( ret );
     }
 
     ret = snprintf( p, n, "\n" );

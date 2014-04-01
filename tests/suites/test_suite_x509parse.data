@@ -78,6 +78,10 @@ X509 Certificate information, Subject Alt Name + Key Usage
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_example_multi_nocn.crt":"cert. version     \: 3\nserial number     \: F7\:C6\:7F\:F8\:E9\:A9\:63\:F9\nissuer name       \: C=NL\nsubject name      \: C=NL\nissued  on        \: 2014-01-22 10\:04\:33\nexpires on        \: 2024-01-22 10\:04\:33\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nsubject alt name  \: www.shotokan-braunschweig.de www.massimo-abate.eu\nkey usage         \: digitalSignature nonRepudiation keyEncipherment\n"
 
+X509 Certificate information, Key Usage + Extended Key Usage
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+x509_cert_info:"data_files/server1.ext_ku.crt":"cert. version     \: 3\nserial number     \: 21\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2014-04-01 14\:44\:43\nexpires on        \: 2024-03-29 14\:44\:43\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nkey usage         \: digitalSignature nonRepudiation keyEncipherment\next key usage     \: TLS Web Server Authentication\n"
+
 X509 Certificate information RSA signed by EC
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/server4.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 15\:52\:04\nexpires on        \: 2023-09-22 15\:52\:04\nsigned using      \: ECDSA with SHA256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"

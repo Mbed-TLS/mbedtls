@@ -1138,6 +1138,17 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     return( 0 );
 }
 
+#define PRINT_ITEM(i)                           \
+    {                                           \
+        ret = snprintf( p, n, "%s" i, sep );    \
+        SAFE_SNPRINTF();                        \
+        sep = ", ";                             \
+    }
+
+#define CERT_TYPE(type,name)                    \
+    if( ns_cert_type & type )                   \
+        PRINT_ITEM( name );
+
 static int x509_info_cert_type( char **buf, size_t *size,
                                 unsigned char ns_cert_type )
 {
@@ -1146,60 +1157,24 @@ static int x509_info_cert_type( char **buf, size_t *size,
     char *p = *buf;
     const char *sep = "";
 
-    if( ns_cert_type & NS_CERT_TYPE_SSL_CLIENT )
-    {
-        ret = snprintf( p, n, "%sSSL Client", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( ns_cert_type & NS_CERT_TYPE_SSL_SERVER )
-    {
-        ret = snprintf( p, n, "%sSSL Server", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( ns_cert_type & NS_CERT_TYPE_EMAIL )
-    {
-        ret = snprintf( p, n, "%sEmail", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( ns_cert_type & NS_CERT_TYPE_OBJECT_SIGNING )
-    {
-        ret = snprintf( p, n, "%sObject Signing", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( ns_cert_type & NS_CERT_TYPE_RESERVED )
-    {
-        ret = snprintf( p, n, "%sReserved", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( ns_cert_type & NS_CERT_TYPE_SSL_CA )
-    {
-        ret = snprintf( p, n, "%sSSL CA", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( ns_cert_type & NS_CERT_TYPE_EMAIL_CA )
-    {
-        ret = snprintf( p, n, "%sEmail CA", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( ns_cert_type & NS_CERT_TYPE_OBJECT_SIGNING_CA )
-    {
-        ret = snprintf( p, n, "%sObject Signing CA", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
+    CERT_TYPE( NS_CERT_TYPE_SSL_CLIENT,         "SSL Client" );
+    CERT_TYPE( NS_CERT_TYPE_SSL_SERVER,         "SSL Server" );
+    CERT_TYPE( NS_CERT_TYPE_EMAIL,              "Email" );
+    CERT_TYPE( NS_CERT_TYPE_OBJECT_SIGNING,     "Object Signing" );
+    CERT_TYPE( NS_CERT_TYPE_RESERVED,           "Reserved" );
+    CERT_TYPE( NS_CERT_TYPE_SSL_CA,             "SSL CA" );
+    CERT_TYPE( NS_CERT_TYPE_EMAIL_CA,           "Email CA" );
+    CERT_TYPE( NS_CERT_TYPE_OBJECT_SIGNING_CA,  "Object Signing CA" );
 
     *size = n;
     *buf = p;
 
     return( 0 );
 }
+
+#define KEY_USAGE(code,name)    \
+    if( key_usage & code )      \
+        PRINT_ITEM( name );
 
 static int x509_info_key_usage( char **buf, size_t *size,
                                 unsigned char key_usage )
@@ -1209,48 +1184,13 @@ static int x509_info_key_usage( char **buf, size_t *size,
     char *p = *buf;
     const char *sep = "";
 
-    if( key_usage & KU_DIGITAL_SIGNATURE )
-    {
-        ret = snprintf( p, n, "%sDigital Signature", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( key_usage & KU_NON_REPUDIATION )
-    {
-        ret = snprintf( p, n, "%sNon Repudiation", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( key_usage & KU_KEY_ENCIPHERMENT )
-    {
-        ret = snprintf( p, n, "%sKey Encipherment", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( key_usage & KU_DATA_ENCIPHERMENT )
-    {
-        ret = snprintf( p, n, "%sData Encipherment", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( key_usage & KU_KEY_AGREEMENT )
-    {
-        ret = snprintf( p, n, "%sKey Agreement", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( key_usage & KU_KEY_CERT_SIGN )
-    {
-        ret = snprintf( p, n, "%sKey Cert Sign", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
-    if( key_usage & KU_CRL_SIGN )
-    {
-        ret = snprintf( p, n, "%sCRL Sign", sep );
-        SAFE_SNPRINTF();
-        sep = ", ";
-    }
+    KEY_USAGE( KU_DIGITAL_SIGNATURE,    "Digital Signature" );
+    KEY_USAGE( KU_NON_REPUDIATION,      "Non Repudiation" );
+    KEY_USAGE( KU_KEY_ENCIPHERMENT,     "Key Encipherment" );
+    KEY_USAGE( KU_DATA_ENCIPHERMENT,    "Data Encipherment" );
+    KEY_USAGE( KU_KEY_AGREEMENT,        "Key Agreement" );
+    KEY_USAGE( KU_KEY_CERT_SIGN,        "Key Cert Sign" );
+    KEY_USAGE( KU_CRL_SIGN,             "CRL Sign" );
 
     *size = n;
     *buf = p;

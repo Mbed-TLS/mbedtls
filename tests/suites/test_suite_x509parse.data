@@ -66,6 +66,10 @@ X509 Certificate information, NS Cert Type
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/server1.cert_type.crt":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\ncert. type        \: SSL Server\n"
 
+X509 Certificate information, NS Cert Type
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+x509_cert_info:"data_files/cert_example_multi.crt":"cert. version     \: 3\nserial number     \: 11\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=www.example.com\nissued  on        \: 2012-05-10 13\:23\:41\nexpires on        \: 2022-05-11 13\:23\:41\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \: example.com example.net *.example.org\n"
+
 X509 Certificate information RSA signed by EC
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/server4.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 15\:52\:04\nexpires on        \: 2023-09-22 15\:52\:04\nsigned using      \: ECDSA with SHA256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
@@ -76,7 +80,7 @@ x509_cert_info:"data_files/server3.crt":"cert. version     \: 3\nserial number  
 
 X509 certificate v1 with extension
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
-x509_cert_info:"data_files/cert_v1_with_ext.crt":"cert. version     \: 1\nserial number     \: BD\:ED\:44\:C7\:D2\:3E\:C2\:A4\nissuer name       \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nsubject name      \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nissued  on        \: 2013-07-04 16\:17\:02\nexpires on        \: 2014-07-04 16\:17\:02\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_v1_with_ext.crt":"cert. version     \: 1\nserial number     \: BD\:ED\:44\:C7\:D2\:3E\:C2\:A4\nissuer name       \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nsubject name      \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nissued  on        \: 2013-07-04 16\:17\:02\nexpires on        \: 2014-07-04 16\:17\:02\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nsubject alt name  \: identity-check.org www.identity-check.org\n"
 
 X509 CRL information #1
 depends_on:POLARSSL_PEM_PARSE_C

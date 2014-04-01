@@ -341,20 +341,15 @@ static int x509_get_subject_alt_name( unsigned char **p,
             return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
                     POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 
+        /* Skip everything but DNS name */
         if( tag != ( ASN1_CONTEXT_SPECIFIC | 2 ) )
         {
             *p += tag_len;
             continue;
         }
 
-        buf = &(cur->buf);
-        buf->tag = tag;
-        buf->p = *p;
-        buf->len = tag_len;
-        *p += buf->len;
-
         /* Allocate and assign next pointer */
-        if (*p < end)
+        if( cur->buf.p != NULL )
         {
             cur->next = (asn1_sequence *) polarssl_malloc(
                  sizeof( asn1_sequence ) );
@@ -366,6 +361,12 @@ static int x509_get_subject_alt_name( unsigned char **p,
             memset( cur->next, 0, sizeof( asn1_sequence ) );
             cur = cur->next;
         }
+
+        buf = &(cur->buf);
+        buf->tag = tag;
+        buf->p = *p;
+        buf->len = tag_len;
+        *p += buf->len;
     }
 
     /* Set final sequence entry's next pointer to NULL */
@@ -1099,6 +1100,38 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     p += (unsigned int) ret;                    \
 }
 
+static int x509_info_subject_alt_name( char **buf, size_t *size,
+                                       const x509_sequence *subject_alt_name )
+{
+    size_t i;
+    size_t n = *size;
+    char *p = *buf;
+    const x509_sequence *cur = subject_alt_name;
+
+    while( cur != NULL )
+    {
+        if( cur->buf.len + 1 >= n )
+        {
+            *p = '\0';
+            return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
+        }
+
+        n -= cur->buf.len + 1;
+        *p++ = ' ';
+        for( i = 0; i < cur->buf.len; i++ )
+            *p++ = cur->buf.p[i];
+
+        cur = cur->next;
+    }
+
+    *p = '\0';
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 static int x509_info_cert_type( char **buf, size_t *size,
                                 unsigned char ns_cert_type )
 {
@@ -1244,9 +1277,12 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_SUBJECT_ALT_NAME )
     {
-        ret = snprintf( p, n, "\n%ssubject alt name  : ", prefix );
+        ret = snprintf( p, n, "\n%ssubject alt name  :", prefix );
         SAFE_SNPRINTF();
-        /* TODO */
+
+        if( ( ret = x509_info_subject_alt_name( &p, &n,
+                                            &crt->subject_alt_names ) ) != 0 )
+            return( ret );
     }
 
     if( crt->ext_types & EXT_NS_CERT_TYPE )

@@ -1102,8 +1102,8 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 /*
  * Return an informational string about the certificate.
  */
-#define BEFORE_COLON    14
-#define BC              "14"
+#define BEFORE_COLON    18
+#define BC              "18"
 int x509_crt_info( char *buf, size_t size, const char *prefix,
                    const x509_crt *crt )
 {
@@ -1116,41 +1116,41 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
     p = buf;
     n = size;
 
-    ret = snprintf( p, n, "%scert. version : %d\n",
+    ret = snprintf( p, n, "%scert. version     : %d\n",
                                prefix, crt->version );
     SAFE_SNPRINTF();
-    ret = snprintf( p, n, "%sserial number : ",
+    ret = snprintf( p, n, "%sserial number     : ",
                                prefix );
     SAFE_SNPRINTF();
 
     ret = x509_serial_gets( p, n, &crt->serial);
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sissuer name   : ", prefix );
+    ret = snprintf( p, n, "\n%sissuer name       : ", prefix );
     SAFE_SNPRINTF();
     ret = x509_dn_gets( p, n, &crt->issuer  );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssubject name  : ", prefix );
+    ret = snprintf( p, n, "\n%ssubject name      : ", prefix );
     SAFE_SNPRINTF();
     ret = x509_dn_gets( p, n, &crt->subject );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sissued  on    : " \
+    ret = snprintf( p, n, "\n%sissued  on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_from.year, crt->valid_from.mon,
                    crt->valid_from.day,  crt->valid_from.hour,
                    crt->valid_from.min,  crt->valid_from.sec );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%sexpires on    : " \
+    ret = snprintf( p, n, "\n%sexpires on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    crt->valid_to.year, crt->valid_to.mon,
                    crt->valid_to.day,  crt->valid_to.hour,
                    crt->valid_to.min,  crt->valid_to.sec );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
+    ret = snprintf( p, n, "\n%ssigned using      : ", prefix );
     SAFE_SNPRINTF();
 
     ret = oid_get_sig_alg_desc( &crt->sig_oid1, &desc );
@@ -1160,14 +1160,63 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
         ret = snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
 
+    /* Key size */
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
                                       pk_get_name( &crt->pk ) ) ) != 0 )
     {
         return( ret );
     }
 
-    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
+    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
                           (int) pk_get_size( &crt->pk ) );
+    SAFE_SNPRINTF();
+
+    /*
+     * Optional extensions
+     */
+
+    if( crt->ext_types & EXT_BASIC_CONSTRAINTS )
+    {
+        ret = snprintf( p, n, "\n%sbasic constraints : CA=%s", prefix,
+                        crt->ca_istrue ? "true" : "false" );
+        SAFE_SNPRINTF();
+
+        if( crt->max_pathlen > 0 )
+        {
+            ret = snprintf( p, n, ", max_pathlen=%d", crt->max_pathlen - 1 );
+            SAFE_SNPRINTF();
+        }
+    }
+
+    if( crt->ext_types & EXT_SUBJECT_ALT_NAME )
+    {
+        ret = snprintf( p, n, "\n%ssubject alt name  : ", prefix );
+        SAFE_SNPRINTF();
+        /* TODO */
+    }
+
+    if( crt->ext_types & EXT_NS_CERT_TYPE )
+    {
+        ret = snprintf( p, n, "\n%scert. type        : ", prefix );
+        SAFE_SNPRINTF();
+        /* TODO */
+    }
+
+    if( crt->ext_types & EXT_KEY_USAGE )
+    {
+        ret = snprintf( p, n, "\n%skey usage         : ", prefix );
+        SAFE_SNPRINTF();
+        /* TODO */
+    }
+
+    if( crt->ext_types & EXT_EXTENDED_KEY_USAGE )
+    {
+        ret = snprintf( p, n, "\n%sext key usage     : ", prefix );
+        SAFE_SNPRINTF();
+        /* TODO */
+    }
+
+    ret = snprintf( p, n, "\n" );
     SAFE_SNPRINTF();
 
     return( (int) ( size - n ) );

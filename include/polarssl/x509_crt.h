@@ -72,18 +72,18 @@ typedef struct _x509_crt
 
     x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
     x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
-    x509_buf v3_ext;            /**< Optional X.509 v3 extensions. Only Basic Contraints are supported at this time. */
+    x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
     x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName supported). */
 
     int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
     int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
 
-    unsigned char key_usage;    /**< Optional key usage extension value: See the values below */
+    unsigned char key_usage;    /**< Optional key usage extension value: See the values in x509.h */
 
     x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
 
-    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values below */
+    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
 
     x509_buf sig_oid2;          /**< Signature algorithm. Must match sig_oid1. */
     x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */

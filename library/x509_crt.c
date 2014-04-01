@@ -1099,6 +1099,60 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     p += (unsigned int) ret;                    \
 }
 
+static int x509_info_cert_type( char **buf, size_t *size,
+                                unsigned char ns_cert_type )
+{
+    int ret;
+    size_t n = *size;
+    char *p = *buf;
+
+    if( ns_cert_type & NS_CERT_TYPE_SSL_CLIENT )
+    {
+        ret = snprintf( p, n, " SSL Client" );
+        SAFE_SNPRINTF();
+    }
+    if( ns_cert_type & NS_CERT_TYPE_SSL_SERVER )
+    {
+        ret = snprintf( p, n, " SSL Server" );
+        SAFE_SNPRINTF();
+    }
+    if( ns_cert_type & NS_CERT_TYPE_EMAIL )
+    {
+        ret = snprintf( p, n, " Email" );
+        SAFE_SNPRINTF();
+    }
+    if( ns_cert_type & NS_CERT_TYPE_OBJECT_SIGNING )
+    {
+        ret = snprintf( p, n, " Object Signing" );
+        SAFE_SNPRINTF();
+    }
+    if( ns_cert_type & NS_CERT_TYPE_RESERVED )
+    {
+        ret = snprintf( p, n, " Reserved" );
+        SAFE_SNPRINTF();
+    }
+    if( ns_cert_type & NS_CERT_TYPE_SSL_CA )
+    {
+        ret = snprintf( p, n, " SSL CA" );
+        SAFE_SNPRINTF();
+    }
+    if( ns_cert_type & NS_CERT_TYPE_EMAIL_CA )
+    {
+        ret = snprintf( p, n, " Email CA" );
+        SAFE_SNPRINTF();
+    }
+    if( ns_cert_type & NS_CERT_TYPE_OBJECT_SIGNING_CA )
+    {
+        ret = snprintf( p, n, " Object Signing CA" );
+        SAFE_SNPRINTF();
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 /*
  * Return an informational string about the certificate.
  */
@@ -1197,9 +1251,11 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_NS_CERT_TYPE )
     {
-        ret = snprintf( p, n, "\n%scert. type        : ", prefix );
+        ret = snprintf( p, n, "\n%scert. type        :", prefix );
         SAFE_SNPRINTF();
-        /* TODO */
+
+        if( ( ret = x509_info_cert_type( &p, &n, crt->ns_cert_type ) ) != 0 )
+            return( ret );
     }
 
     if( crt->ext_types & EXT_KEY_USAGE )

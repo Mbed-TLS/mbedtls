@@ -1186,6 +1186,55 @@ static int x509_info_cert_type( char **buf, size_t *size,
     return( 0 );
 }
 
+static int x509_info_key_usage( char **buf, size_t *size,
+                                unsigned char key_usage )
+{
+    int ret;
+    size_t n = *size;
+    char *p = *buf;
+
+    if( key_usage & KU_DIGITAL_SIGNATURE )
+    {
+        ret = snprintf( p, n, " digitalSignature" );
+        SAFE_SNPRINTF();
+    }
+    if( key_usage & KU_NON_REPUDIATION )
+    {
+        ret = snprintf( p, n, " nonRepudiation" );
+        SAFE_SNPRINTF();
+    }
+    if( key_usage & KU_KEY_ENCIPHERMENT )
+    {
+        ret = snprintf( p, n, " keyEncipherment" );
+        SAFE_SNPRINTF();
+    }
+    if( key_usage & KU_DATA_ENCIPHERMENT )
+    {
+        ret = snprintf( p, n, " dataEncipherment" );
+        SAFE_SNPRINTF();
+    }
+    if( key_usage & KU_KEY_AGREEMENT )
+    {
+        ret = snprintf( p, n, " keyAgreement" );
+        SAFE_SNPRINTF();
+    }
+    if( key_usage & KU_KEY_CERT_SIGN )
+    {
+        ret = snprintf( p, n, " keyCertSign" );
+        SAFE_SNPRINTF();
+    }
+    if( key_usage & KU_CRL_SIGN )
+    {
+        ret = snprintf( p, n, " cRLSign" );
+        SAFE_SNPRINTF();
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 /*
  * Return an informational string about the certificate.
  */
@@ -1296,9 +1345,11 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & EXT_KEY_USAGE )
     {
-        ret = snprintf( p, n, "\n%skey usage         : ", prefix );
+        ret = snprintf( p, n, "\n%skey usage         :", prefix );
         SAFE_SNPRINTF();
-        /* TODO */
+
+        if( ( ret = x509_info_key_usage( &p, &n, crt->key_usage ) ) != 0 )
+            return( ret );
     }
 
     if( crt->ext_types & EXT_EXTENDED_KEY_USAGE )

@@ -31,7 +31,7 @@
 
 #include "config.h"
 
-#if defined(POLARSSL_SHA512_C) && !defined(POLARSSL_FORCE_ENTROPY_SHA256)
+#if defined(POLARSSL_SHA512_C) && !defined(POLARSSL_ENTROPY_FORCE_SHA256)
 #include "sha512.h"
 #define POLARSSL_ENTROPY_SHA512_ACCUMULATOR
 #else

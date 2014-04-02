@@ -319,6 +319,11 @@ void m_sleep( int milliseconds )
 
 #if defined(POLARSSL_SELF_TEST)
 
+/* To test net_usleep against our functions */
+#if defined(POLARSSL_NET_C)
+#include "polarssl/net.h"
+#endif
+
 /*
  * Checkup routine
  */
@@ -339,11 +344,11 @@ int timing_self_test( int verbose )
     {
         (void) get_timer( &hires, 1 );
 
-        m_sleep( 1000 * secs );
+        m_sleep( 500 * secs );
 
         millisecs = get_timer( &hires, 0 );
 
-        if( millisecs < 900 * secs || millisecs > 1100 * secs )
+        if( millisecs < 450 * secs || millisecs > 550 * secs )
         {
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
@@ -425,6 +430,31 @@ hard_test:
 
     if( verbose != 0 )
         polarssl_printf( "\n" );
+
+#if defined(POLARSSL_NET_C)
+    if( verbose != 0 )
+        polarssl_printf( "  TIMING test #4 (net_usleep/ get_timer): " );
+
+    for( secs = 1; secs <= 3; secs++ )
+    {
+        (void) get_timer( &hires, 1 );
+
+        net_usleep( 500000 * secs );
+
+        millisecs = get_timer( &hires, 0 );
+
+        if( millisecs < 450 * secs || millisecs > 550 * secs )
+        {
+            if( verbose != 0 )
+                polarssl_printf( "failed\n" );
+
+            return( 1 );
+        }
+    }
+
+    if( verbose != 0 )
+        polarssl_printf( "passed\n" );
+#endif
 
     return( 0 );
 }

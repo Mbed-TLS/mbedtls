@@ -2119,8 +2119,9 @@
     defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 64)
 #error "CTR_DRBG_ENTROPY_LEN value too high"
 #endif
-#if defined(POLARSSL_ENTROPY_C) && !defined(POLARSSL_SHA512_C) &&        \
-    defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 32)
+#if defined(POLARSSL_ENTROPY_C) &&                                            \
+    ( !defined(POLARSSL_SHA512_C) || defined(POLARSSL_ENTROPY_FORCE_SHA256) ) \
+    && defined(POLARSSL_CONFIG_OPTIONS) && (CTR_DRBG_ENTROPY_LEN > 32)
 #error "CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 #if defined(POLARSSL_ENTROPY_C) && \

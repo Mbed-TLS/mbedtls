@@ -41,6 +41,10 @@ extern "C" {
 #define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use */
 #define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use */
 #define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use */
+#else /* POLARSSL_CONFIG_OPTIONS */
+#if defined(POLARSSL_PLATFORM_STD_MEM_HDR)
+#include POLARSSL_PLATFORM_STD_MEM_HDR
+#endif
 #endif /* POLARSSL_CONFIG_OPTIONS */
 
 /*

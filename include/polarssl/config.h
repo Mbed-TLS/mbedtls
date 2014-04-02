@@ -2040,6 +2040,8 @@
 #define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
 
 // Platform options
+//
+#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include for default allocator. Don't define if no header is needed. */
 #define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
 #define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */

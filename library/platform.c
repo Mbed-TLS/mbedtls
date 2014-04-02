@@ -37,7 +37,7 @@ static void *platform_malloc_uninit( size_t len )
     return( NULL );
 }
 
-#define POLARSSL_PLATFORM_STD_MALLOC   memory_malloc_uninit
+#define POLARSSL_PLATFORM_STD_MALLOC   platform_malloc_uninit
 #endif /* !POLARSSL_PLATFORM_STD_MALLOC */
 
 #if !defined(POLARSSL_PLATFORM_STD_FREE)
@@ -46,7 +46,7 @@ static void platform_free_uninit( void *ptr )
     ((void) ptr);
 }
 
-#define POLARSSL_PLATFORM_STD_FREE     memory_free_uninit
+#define POLARSSL_PLATFORM_STD_FREE     platform_free_uninit
 #endif /* !POLARSSL_PLATFORM_STD_FREE */
 
 void * (*polarssl_malloc)( size_t ) = POLARSSL_PLATFORM_STD_MALLOC;

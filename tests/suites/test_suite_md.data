@@ -1,5 +1,5 @@
-MD list
-md_list:
+MD process
+md_process:
 
 Information on MD2
 depends_on:POLARSSL_MD2_C

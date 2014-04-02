@@ -8,12 +8,30 @@
  */
 
 /* BEGIN_CASE */
-void md_list( )
+void md_process( )
 {
     const int *md_type_ptr;
+    const md_info_t *info;
+    md_context_t ctx;
+    unsigned char buf[150];
 
+    memset( &ctx, 0, sizeof ctx );
+
+    /*
+     * Very minimal testing of md_process, just make sure the various
+     * xxx_process_wrap() function pointers are valid. (Testing that they
+     * indeed do the right thing whould require messing with the internal
+     * state of the underlying md/sha context.)
+     *
+     * Also tests that md_list() only returns valid MDs.
+     */
     for( md_type_ptr = md_list(); *md_type_ptr != 0; md_type_ptr++ )
-        TEST_ASSERT( md_info_from_type( *md_type_ptr ) != NULL );
+    {
+        TEST_ASSERT( ( info = md_info_from_type( *md_type_ptr ) ) != NULL );
+        TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
+        TEST_ASSERT( md_process( &ctx, buf ) == 0 );
+        TEST_ASSERT( md_free_ctx( &ctx ) == 0 );
+    }
 }
 /* END_CASE */
 

@@ -10,21 +10,51 @@ void sha1_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[41];
+    unsigned char hash_str[41];
+    unsigned char output[20];
     int key_len, src_len;
+    sha1_context ctx;
 
-    memset(src_str, 0x00, 10000);
-    memset(key_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 41);
+    memset(src_str, 0x00, sizeof src_str);
+    memset(key_str, 0x00, sizeof key_str);
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    sha1_hmac( key_str, key_len, src_str, src_len, output );
-    hexify( hash_str, output, 20 );
+    /* Test the all-in-one interface */
+    memset(hash_str, 0x00, sizeof hash_str);
+    memset(output, 0x00, sizeof output);
 
+    sha1_hmac( key_str, key_len, src_str, src_len, output );
+
+    hexify( hash_str, output, sizeof output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    sha1_hmac_starts( &ctx, key_str, key_len );
+    sha1_hmac_update( &ctx, src_str, 0 );
+    sha1_hmac_update( &ctx, src_str, src_len / 2 );
+    sha1_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha1_hmac_update( &ctx, src_str + src_len, 0 );
+    sha1_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    sha1_hmac_reset( &ctx );
+    sha1_hmac_update( &ctx, src_str, src_len / 2 );
+    sha1_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha1_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */
@@ -35,21 +65,51 @@ void sha224_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[57];
+    unsigned char hash_str[57];
+    unsigned char output[28];
     int key_len, src_len;
+    sha256_context ctx;
 
-    memset(src_str, 0x00, 10000);
-    memset(key_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 57);
+    memset(src_str, 0x00, sizeof src_str);
+    memset(key_str, 0x00, sizeof key_str);
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    sha256_hmac( key_str, key_len, src_str, src_len, output, 1 );
-    hexify( hash_str, output, 28 );
+    /* Test the all-in-one interface */
+    memset(hash_str, 0x00, sizeof hash_str);
+    memset(output, 0x00, sizeof output);
 
+    sha256_hmac( key_str, key_len, src_str, src_len, output, 1 );
+
+    hexify( hash_str, output, sizeof output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    sha256_hmac_starts( &ctx, key_str, key_len, 1 );
+    sha256_hmac_update( &ctx, src_str, 0 );
+    sha256_hmac_update( &ctx, src_str, src_len / 2 );
+    sha256_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha256_hmac_update( &ctx, src_str + src_len, 0 );
+    sha256_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    sha256_hmac_reset( &ctx );
+    sha256_hmac_update( &ctx, src_str, src_len / 2 );
+    sha256_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha256_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */
@@ -60,21 +120,51 @@ void sha256_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[65];
+    unsigned char hash_str[65];
+    unsigned char output[32];
     int key_len, src_len;
+    sha256_context ctx;
 
-    memset(src_str, 0x00, 10000);
-    memset(key_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 65);
+    memset(src_str, 0x00, sizeof src_str);
+    memset(key_str, 0x00, sizeof key_str);
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    sha256_hmac( key_str, key_len, src_str, src_len, output, 0 );
-    hexify( hash_str, output, 32 );
+    /* Test the all-in-one interface */
+    memset(hash_str, 0x00, sizeof hash_str);
+    memset(output, 0x00, sizeof output);
 
+    sha256_hmac( key_str, key_len, src_str, src_len, output, 0 );
+
+    hexify( hash_str, output, sizeof output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    sha256_hmac_starts( &ctx, key_str, key_len, 0 );
+    sha256_hmac_update( &ctx, src_str, 0 );
+    sha256_hmac_update( &ctx, src_str, src_len / 2 );
+    sha256_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha256_hmac_update( &ctx, src_str + src_len, 0 );
+    sha256_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    sha256_hmac_reset( &ctx );
+    sha256_hmac_update( &ctx, src_str, src_len / 2 );
+    sha256_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha256_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */
@@ -85,21 +175,51 @@ void sha384_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[97];
+    unsigned char hash_str[97];
+    unsigned char output[48];
     int key_len, src_len;
+    sha512_context ctx;
 
-    memset(src_str, 0x00, 10000);
-    memset(key_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 97);
+    memset(src_str, 0x00, sizeof src_str);
+    memset(key_str, 0x00, sizeof key_str);
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    sha512_hmac( key_str, key_len, src_str, src_len, output, 1 );
-    hexify( hash_str, output, 48 );
+    /* Test the all-in-one interface */
+    memset(hash_str, 0x00, sizeof hash_str);
+    memset(output, 0x00, sizeof output);
 
+    sha512_hmac( key_str, key_len, src_str, src_len, output, 1 );
+
+    hexify( hash_str, output, sizeof output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    sha512_hmac_starts( &ctx, key_str, key_len, 1 );
+    sha512_hmac_update( &ctx, src_str, 0 );
+    sha512_hmac_update( &ctx, src_str, src_len / 2 );
+    sha512_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha512_hmac_update( &ctx, src_str + src_len, 0 );
+    sha512_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    sha512_hmac_reset( &ctx );
+    sha512_hmac_update( &ctx, src_str, src_len / 2 );
+    sha512_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha512_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */
@@ -110,21 +230,51 @@ void sha512_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 {
     unsigned char src_str[10000];
     unsigned char key_str[10000];
-    unsigned char hash_str[10000];
-    unsigned char output[129];
+    unsigned char hash_str[129];
+    unsigned char output[64];
     int key_len, src_len;
+    sha512_context ctx;
 
-    memset(src_str, 0x00, 10000);
-    memset(key_str, 0x00, 10000);
-    memset(hash_str, 0x00, 10000);
-    memset(output, 0x00, 129);
+    memset(src_str, 0x00, sizeof src_str);
+    memset(key_str, 0x00, sizeof key_str);
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    sha512_hmac( key_str, key_len, src_str, src_len, output, 0 );
-    hexify( hash_str, output, 64 );
+    /* Test the all-in-one interface */
+    memset(hash_str, 0x00, sizeof hash_str);
+    memset(output, 0x00, sizeof output);
 
+    sha512_hmac( key_str, key_len, src_str, src_len, output, 0 );
+
+    hexify( hash_str, output, sizeof output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Also test the "streaming" interface */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+    memset( &ctx, 0x00, sizeof ctx );
+
+    sha512_hmac_starts( &ctx, key_str, key_len, 0 );
+    sha512_hmac_update( &ctx, src_str, 0 );
+    sha512_hmac_update( &ctx, src_str, src_len / 2 );
+    sha512_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha512_hmac_update( &ctx, src_str + src_len, 0 );
+    sha512_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
+    TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    /* Again, to test hmac_reset() */
+    memset( hash_str, 0x00, sizeof hash_str );
+    memset( output, 0x00, sizeof output );
+
+    sha512_hmac_reset( &ctx );
+    sha512_hmac_update( &ctx, src_str, src_len / 2 );
+    sha512_hmac_update( &ctx, src_str + src_len / 2, src_len - src_len / 2 );
+    sha512_hmac_finish( &ctx, output );
+
+    hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 }
 /* END_CASE */

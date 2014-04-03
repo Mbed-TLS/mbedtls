@@ -77,3 +77,7 @@ pk_ec_nocrypt:POLARSSL_PK_ECKEY_DH
 ECDSA nocrypt
 depends_on:POLARSSL_ECDSA_C
 pk_ec_nocrypt:POLARSSL_PK_ECDSA
+
+RSA_ALT consistency
+depends_on:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_GENPRIME
+pk_rsa_alt:

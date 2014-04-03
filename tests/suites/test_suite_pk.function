@@ -3,13 +3,16 @@
 
 static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 
+#define RSA_KEY_SIZE 512
+#define RSA_KEY_LEN   64
+
 static int pk_genkey( pk_context *pk )
 {
     ((void) pk);
 
 #if defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME)
     if( pk_get_type( pk ) == POLARSSL_PK_RSA )
-        return rsa_gen_key( pk_rsa( *pk ), rnd_std_rand, NULL, 512, 3 );
+        return rsa_gen_key( pk_rsa( *pk ), rnd_std_rand, NULL, RSA_KEY_SIZE, 3 );
 #endif
 #if defined(POLARSSL_ECP_C)
     if( pk_get_type( pk ) == POLARSSL_PK_ECKEY ||
@@ -27,6 +30,28 @@ static int pk_genkey( pk_context *pk )
 #endif
     return( -1 );
 }
+
+#if defined(POLARSSL_RSA_C)
+int rsa_decrypt_func( void *ctx, int mode, size_t *olen,
+                       const unsigned char *input, unsigned char *output,
+                       size_t output_max_len )
+{
+    return( rsa_pkcs1_decrypt( (rsa_context *) ctx, NULL, NULL, mode, olen,
+                               input, output, output_max_len ) );
+}
+int rsa_sign_func( void *ctx,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                   int mode, md_type_t md_alg, unsigned int hashlen,
+                   const unsigned char *hash, unsigned char *sig )
+{
+    return( rsa_pkcs1_sign( (rsa_context *) ctx, f_rng, p_rng, mode,
+                            md_alg, hashlen, hash, sig ) );
+}
+size_t rsa_key_len_func( void *ctx )
+{
+    return( ((const rsa_context *) ctx)->len );
+}
+#endif /* POLARSSL_RSA_C */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -280,5 +305,79 @@ void pk_ec_nocrypt( int type )
                              rnd_pseudo_rand, &rnd_info ) == ret );
 
     pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+void pk_rsa_alt( )
+{
+    /*
+     * An rsa_alt context can only do private operations (decrypt, sign).
+     * Test it against the public operations (encrypt, verify) of a
+     * corresponding rsa context.
+     */
+    rsa_context raw;
+    pk_context rsa, alt;
+    pk_debug_item dbg_items[10];
+    unsigned char hash[50], sig[1000];
+    unsigned char msg[50], ciph[1000], test[1000];
+    size_t sig_len, ciph_len, test_len;
+    int ret = POLARSSL_ERR_PK_TYPE_MISMATCH;
+
+    rsa_init( &raw, RSA_PKCS_V15, POLARSSL_MD_NONE );
+    pk_init( &rsa ); pk_init( &alt );
+
+    memset( hash, 0x2a, sizeof hash );
+    memset( sig, 0, sizeof sig );
+    memset( msg, 0x2a, sizeof msg );
+    memset( ciph, 0, sizeof ciph );
+    memset( test, 0, sizeof test );
+
+    /* Initiliaze PK RSA context with random key */
+    TEST_ASSERT( pk_init_ctx( &rsa,
+                              pk_info_from_type( POLARSSL_PK_RSA ) ) == 0 );
+    TEST_ASSERT( pk_genkey( &rsa ) == 0 );
+
+    /* Extract key to the raw rsa context */
+    TEST_ASSERT( rsa_copy( &raw, pk_rsa( rsa ) ) == 0 );
+
+    /* Initialize PK RSA_ALT context */
+    TEST_ASSERT( pk_init_ctx_rsa_alt( &alt, (void *) &raw,
+                 rsa_decrypt_func, rsa_sign_func, rsa_key_len_func ) == 0 );
+
+    /* Test administrative functions */
+    TEST_ASSERT( pk_can_do( &alt, POLARSSL_PK_RSA ) );
+    TEST_ASSERT( pk_get_size( &alt ) == RSA_KEY_SIZE );
+    TEST_ASSERT( pk_get_len( &alt ) == RSA_KEY_LEN );
+    TEST_ASSERT( pk_get_type( &alt ) == POLARSSL_PK_RSA_ALT );
+    TEST_ASSERT( strcmp( pk_get_name( &alt ), "RSA-alt" ) == 0 );
+
+    /* Test signature */
+    TEST_ASSERT( pk_sign( &alt, POLARSSL_MD_NONE, hash, sizeof hash,
+                          sig, &sig_len, rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( sig_len == RSA_KEY_LEN );
+    TEST_ASSERT( pk_verify( &rsa, POLARSSL_MD_NONE,
+                            hash, sizeof hash, sig, sig_len ) == 0 );
+
+    /* Test decrypt */
+    TEST_ASSERT( pk_encrypt( &rsa, msg, sizeof msg,
+                             ciph, &ciph_len, sizeof ciph,
+                             rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( pk_decrypt( &alt, ciph, ciph_len,
+                             test, &test_len, sizeof test,
+                             rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( test_len == sizeof msg );
+    TEST_ASSERT( memcmp( test, msg, test_len ) == 0 );
+
+    /* Test forbidden operations */
+    TEST_ASSERT( pk_encrypt( &alt, msg, sizeof msg,
+                             ciph, &ciph_len, sizeof ciph,
+                             rnd_std_rand, NULL ) == ret );
+    TEST_ASSERT( pk_verify( &alt, POLARSSL_MD_NONE,
+                            hash, sizeof hash, sig, sig_len ) == ret );
+    TEST_ASSERT( pk_debug( &alt, dbg_items ) == ret );
+
+    rsa_free( &raw );
+    pk_free( &rsa ); pk_free( &alt );
 }
 /* END_CASE */

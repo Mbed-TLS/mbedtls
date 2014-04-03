@@ -234,7 +234,7 @@ int pk_init_ctx( pk_context *ctx, const pk_info_t *info );
  * \param key       RSA key pointer
  * \param decrypt_func  Decryption function
  * \param sign_func     Signing function
- * \param key_len_func  Function returning key length
+ * \param key_len_func  Function returning key length in bytes
  *
  * \return          0 on success, or POLARSSL_ERR_PK_BAD_INPUT_DATA if the
  *                  context wasn't already initialized as RSA_ALT.

@@ -30,7 +30,7 @@
 #include "ecp.h"
 
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
-#include "polarssl/md.h"
+#include "md.h"
 #endif
 
 /**

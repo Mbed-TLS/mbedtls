@@ -213,10 +213,6 @@ SOURCE=..\..\library\memory_buffer_alloc.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\library\memory.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\library\net.c
 # End Source File
 # Begin Source File
@@ -262,6 +258,10 @@ SOURCE=..\..\library\pk_wrap.c
 # Begin Source File
 
 SOURCE=..\..\library\pkwrite.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\library\platform.c
 # End Source File
 # Begin Source File
 
@@ -485,6 +485,10 @@ SOURCE=..\..\include\polarssl\md_wrap.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\memory_buffer_alloc.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\memory.h
 # End Source File
 # Begin Source File
@@ -526,6 +530,14 @@ SOURCE=..\..\include\polarssl\pkcs5.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\pk.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\pk_wrap.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\platform.h
 # End Source File
 # Begin Source File
 

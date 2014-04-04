@@ -175,6 +175,7 @@
     <ClInclude Include="..\..\include\polarssl\md.h" />
     <ClInclude Include="..\..\include\polarssl\md_wrap.h" />
     <ClInclude Include="..\..\include\polarssl\memory.h" />
+    <ClInclude Include="..\..\include\polarssl\memory_buffer_alloc.h" />
     <ClInclude Include="..\..\include\polarssl\net.h" />
     <ClInclude Include="..\..\include\polarssl\oid.h" />
     <ClInclude Include="..\..\include\polarssl\openssl.h" />
@@ -185,6 +186,8 @@
     <ClInclude Include="..\..\include\polarssl\pkcs12.h" />
     <ClInclude Include="..\..\include\polarssl\pkcs5.h" />
     <ClInclude Include="..\..\include\polarssl\pk.h" />
+    <ClInclude Include="..\..\include\polarssl\pk_wrap.h" />
+    <ClInclude Include="..\..\include\polarssl\platform.h" />
     <ClInclude Include="..\..\include\polarssl\ripemd160.h" />
     <ClInclude Include="..\..\include\polarssl\rsa.h" />
     <ClInclude Include="..\..\include\polarssl\sha1.h" />
@@ -235,7 +238,6 @@
     <ClCompile Include="..\..\library\md.c" />
     <ClCompile Include="..\..\library\md_wrap.c" />
     <ClCompile Include="..\..\library\memory_buffer_alloc.c" />
-    <ClCompile Include="..\..\library\memory.c" />
     <ClCompile Include="..\..\library\net.c" />
     <ClCompile Include="..\..\library\oid.c" />
     <ClCompile Include="..\..\library\padlock.c" />
@@ -248,6 +250,7 @@
     <ClCompile Include="..\..\library\pkparse.c" />
     <ClCompile Include="..\..\library\pk_wrap.c" />
     <ClCompile Include="..\..\library\pkwrite.c" />
+    <ClCompile Include="..\..\library\platform.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\sha1.c" />

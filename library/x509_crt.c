@@ -69,7 +69,7 @@
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
-#if !defined(_WIN32)
+#if !defined(_WIN32) || defined(EFIX64) || defined(EFI32)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>

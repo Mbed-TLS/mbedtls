@@ -110,24 +110,27 @@
 
 /*
  * X.509 extension types
+ *
+ * Comments refer to the status for using certificates. Status can be
+ * different for writing certificates or reading CRLs or CSRs.
  */
 #define EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
 #define EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
-#define EXT_KEY_USAGE                   (1 << 2)
+#define EXT_KEY_USAGE                   (1 << 2)    /* Parsed but not used */
 #define EXT_CERTIFICATE_POLICIES        (1 << 3)
 #define EXT_POLICY_MAPPINGS             (1 << 4)
-#define EXT_SUBJECT_ALT_NAME            (1 << 5)
+#define EXT_SUBJECT_ALT_NAME            (1 << 5)    /* Supported (DNS) */
 #define EXT_ISSUER_ALT_NAME             (1 << 6)
 #define EXT_SUBJECT_DIRECTORY_ATTRS     (1 << 7)
-#define EXT_BASIC_CONSTRAINTS           (1 << 8)
+#define EXT_BASIC_CONSTRAINTS           (1 << 8)    /* Supported */
 #define EXT_NAME_CONSTRAINTS            (1 << 9)
 #define EXT_POLICY_CONSTRAINTS          (1 << 10)
-#define EXT_EXTENDED_KEY_USAGE          (1 << 11)
+#define EXT_EXTENDED_KEY_USAGE          (1 << 11)   /* Parsed but not used */
 #define EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
 #define EXT_INIHIBIT_ANYPOLICY          (1 << 13)
 #define EXT_FRESHEST_CRL                (1 << 14)
 
-#define EXT_NS_CERT_TYPE                (1 << 16)
+#define EXT_NS_CERT_TYPE                (1 << 16)   /* Parsed (and then ?) */
 
 /*
  * Storage format identifiers

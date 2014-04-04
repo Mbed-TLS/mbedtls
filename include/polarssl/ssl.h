@@ -762,6 +762,14 @@ struct _ssl_context
     size_t         hostname_len;
 #endif
 
+#if defined(POLARSSL_SSL_ALPN)
+    /*
+     * ALPN extension
+     */
+    const char **alpn_list;     /*!<  ordered list of supported protocols   */
+    const char *alpn_chosen;    /*!<  negotiated protocol                   */
+#endif
+
     /*
      * Secure renegotiation
      */
@@ -1231,6 +1239,28 @@ void ssl_set_sni( ssl_context *ssl,
                                size_t),
                   void *p_sni );
 #endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
+
+#if defined(POLARSSL_SSL_ALPN)
+/**
+ * \brief          Set the supported Application Layer Protocols.
+ *
+ * \param ssl      SSL context
+ * \param protos   NULL-terminated list of supported protocols,
+ *                 in decreasing preference order.
+ */
+void ssl_set_alpn_protocols( ssl_context *ssl, const char **protos );
+
+/**
+ * \brief          Get the name of the negotiated Application Layer Protocol.
+ *                 This function should be called after the handshake is
+ *                 completed.
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Protcol name, or NULL if no protocol was negotiated.
+ */
+const char *ssl_get_alpn_protocol( const ssl_context *ssl );
+#endif /* POLARSSL_SSL_ALPN */
 
 /**
  * \brief          Set the maximum supported version sent from the client side

@@ -3520,6 +3520,10 @@ int ssl_session_reset( ssl_context *ssl )
         ssl->session = NULL;
     }
 
+#if defined(POLARSSL_SSL_ALPN)
+    ssl->alpn_chosen = NULL;
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -3913,6 +3917,18 @@ void ssl_set_sni( ssl_context *ssl,
     ssl->p_sni = p_sni;
 }
 #endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
+
+#if defined(POLARSSL_SSL_ALPN)
+void ssl_set_alpn_protocols( ssl_context *ssl, const char **protos )
+{
+    ssl->alpn_list = protos;
+}
+
+const char *ssl_get_alpn_protocol( const ssl_context *ssl )
+{
+    return ssl->alpn_chosen;
+}
+#endif /* POLARSSL_SSL_ALPN */
 
 void ssl_set_max_version( ssl_context *ssl, int major, int minor )
 {

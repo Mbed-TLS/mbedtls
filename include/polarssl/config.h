@@ -645,7 +645,7 @@
  * Do not add default entropy sources. These are the platform specific,
  * hardclock and HAVEGE based poll functions.
  *
- * This is useful to have more control over the added entropy sources in an 
+ * This is useful to have more control over the added entropy sources in an
  * application.
  *
  * Uncomment this macro to prevent loading of default entropy functions.
@@ -1366,7 +1366,7 @@
  * Module:  library/error.c
  * Caller:
  *
- * This module enables err_strerror().
+ * This module enables polarssl_strerror().
  */
 #define POLARSSL_ERROR_C
 

@@ -220,7 +220,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
 #ifdef POLARSSL_ERROR_C
-        error_strerror( ret, buf, 1024 );
+        polarssl_strerror( ret, buf, 1024 );
 #endif
         printf( " failed\n  !  load_file returned %d - %s\n\n", ret, buf );
         goto exit;
@@ -237,7 +237,7 @@ int main( int argc, char *argv[] )
     if( ( ret = convert_pem_to_der( pem_buffer, pem_size, der_buffer, &der_size ) ) != 0 )
     {
 #ifdef POLARSSL_ERROR_C
-        error_strerror( ret, buf, 1024 );
+        polarssl_strerror( ret, buf, 1024 );
 #endif
         printf( " failed\n  !  convert_pem_to_der %d - %s\n\n", ret, buf );
         goto exit;
@@ -256,7 +256,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
 #ifdef POLARSSL_ERROR_C
-        error_strerror( ret, buf, 1024 );
+        polarssl_strerror( ret, buf, 1024 );
 #endif
         printf( " failed\n  !  write_file returned %d - %s\n\n", ret, buf );
         goto exit;

@@ -19,6 +19,8 @@ Bugfix
      Gergely Budai).
    * Fix #include path in ecdsa.h which wasn't accepted by some compilers.
      (found by Gergely Budai)
+   * Fix compile errors when POLARSSL_ERROR_STRERROR_BC is undefined (found by
+     Shuo Chen).
 
 = PolarSSL 1.3.5 released on 2014-03-26
 Features

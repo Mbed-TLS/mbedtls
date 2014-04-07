@@ -1450,7 +1450,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_ALPN)
         case TLS_EXT_ALPN:
-            SSL_DEBUG_MSG( 3, ( "found ALPN extension" ) );
+            SSL_DEBUG_MSG( 3, ( "found alpn extension" ) );
 
             ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size );
             if( ret != 0 )
@@ -1708,7 +1708,7 @@ static void ssl_write_alpn_ext( ssl_context *ssl,
         return;
     }
 
-    SSL_DEBUG_MSG( 3, ( "server hello, alpn extension" ) );
+    SSL_DEBUG_MSG( 3, ( "server hello, adding alpn extension" ) );
 
     /*
      * 0 . 1    ext identifier

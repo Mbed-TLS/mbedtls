@@ -396,7 +396,7 @@ static void ssl_write_alpn_ext( ssl_context *ssl,
         return;
     }
 
-    SSL_DEBUG_MSG( 3, ( "client hello, adding ALPN extension" ) );
+    SSL_DEBUG_MSG( 3, ( "client hello, adding alpn extension" ) );
 
     *p++ = (unsigned char)( ( TLS_EXT_ALPN >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( TLS_EXT_ALPN      ) & 0xFF );

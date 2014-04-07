@@ -871,7 +871,7 @@
  *
  * Uncomment this macro to enable support for ALPN.
  */
-#define POLARSSL_SSL_ALPN
+//#define POLARSSL_SSL_ALPN
 
 /**
  * \def POLARSSL_SSL_SESSION_TICKETS

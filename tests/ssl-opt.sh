@@ -21,6 +21,8 @@ O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 TESTS=0
 FAILS=0
 
+CONFIG_H='../include/polarssl/config.h'
+
 MEMCHECK=0
 FILTER='.*'
 EXCLUDE='SSLv2' # disabled by default, needs OpenSSL compiled with SSLv2
@@ -878,6 +880,8 @@ run_test    "Version check #8 (srv min 1.2, cli max 1.1 -> fail)" \
 
 # Tests for ALPN extension
 
+if grep '^#define POLARSSL_SSL_ALPN' $CONFIG_H >/dev/null; then
+
 run_test    "ALPN #0 (none)" \
             "$P_SRV debug_level=4" \
             "$P_CLI debug_level=4" \
@@ -961,6 +965,8 @@ run_test    "ALPN #6 (both, no common)" \
             -C "found alpn extension" \
             -C "Application Layer Protocol is 1234" \
             -S "Application Layer Protocol is 1234"
+
+fi
 
 # Final report
 

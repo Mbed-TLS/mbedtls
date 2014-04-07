@@ -348,6 +348,8 @@
 
 #define TLS_EXT_SIG_ALG                     13
 
+#define TLS_EXT_ALPN                        16
+
 #define TLS_EXT_SESSION_TICKET              35
 
 #define TLS_EXT_RENEGOTIATION_INFO      0xFF01
@@ -1247,8 +1249,10 @@ void ssl_set_sni( ssl_context *ssl,
  * \param ssl      SSL context
  * \param protos   NULL-terminated list of supported protocols,
  *                 in decreasing preference order.
+ *
+ * \return         0 on success, or POLARSSL_ERR_SSL_BAD_INPUT_DATA.
  */
-void ssl_set_alpn_protocols( ssl_context *ssl, const char **protos );
+int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos );
 
 /**
  * \brief          Get the name of the negotiated Application Layer Protocol.

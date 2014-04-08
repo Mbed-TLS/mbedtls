@@ -1647,6 +1647,9 @@ static int x509_crt_verify_child(
     x509_crt *grandparent;
     const md_info_t *md_info;
 
+    if( x509_time_expired( &child->valid_to ) )
+        *flags |= BADCERT_EXPIRED;
+
     if( x509_time_future( &child->valid_from ) )
         *flags |= BADCERT_FUTURE;
 

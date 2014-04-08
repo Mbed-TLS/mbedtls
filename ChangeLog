@@ -8,6 +8,10 @@ Changes
 Security
    * Avoid potential timing leak in ecdsa_sign() by blinding modular division.
      (Found by Watson Ladd.)
+   * The notAfter date of some certificates was no longer checked since 1.3.5.
+     This affects certificates in the user-supplied chain except the top
+     certificate. If the user-supplied chain contains only one certificates,
+     it is not affected (ie, its notAfter date is properly checked).
 
 Bugfix
    * The length of various ClientKeyExchange messages was not properly checked.

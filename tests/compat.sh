@@ -1018,7 +1018,7 @@ done
 
 echo "------------------------------------------------------------------------"
 
-if (( failed != 0 && srvmem != 0 ));
+if (( failed != 0 || srvmem != 0 ));
 then
     echo -n "FAILED"
 else

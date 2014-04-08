@@ -1527,6 +1527,34 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
     return( 0 );
 }
 
+/*
+ * Iterate upwards in the given cert chain to find our parent.
+ *
+ * Ignore any upper cert that can't be used to sign other certificates
+ * (basic constraints CA=true for now, keyUsage soon).
+ */
+static x509_crt *x509_crt_find_parent( x509_crt *crt )
+{
+    x509_crt *parent;
+
+    for( parent = crt->next; parent != NULL; parent = parent->next )
+    {
+        if( parent->version == 0 ||
+            parent->ca_istrue == 0 ||
+            crt->issuer_raw.len != parent->subject_raw.len ||
+            memcmp( crt->issuer_raw.p, parent->subject_raw.p,
+                    crt->issuer_raw.len ) != 0 )
+        {
+            continue;
+        }
+
+        /* If we get there, we found a suitable parent */
+        break;
+    }
+
+    return( parent );
+}
+
 static int x509_crt_verify_top(
                 x509_crt *child, x509_crt *trust_ca,
                 x509_crl *ca_crl, int path_cnt, int *flags,
@@ -1689,23 +1717,7 @@ static int x509_crt_verify_child(
     *flags |= x509_crt_verifycrl(child, parent, ca_crl);
 #endif
 
-    grandparent = parent->next;
-
-    while( grandparent != NULL )
-    {
-        if( grandparent->version == 0 ||
-            grandparent->ca_istrue == 0 ||
-            parent->issuer_raw.len != grandparent->subject_raw.len ||
-            memcmp( parent->issuer_raw.p, grandparent->subject_raw.p,
-                    parent->issuer_raw.len ) != 0 )
-        {
-            grandparent = grandparent->next;
-            continue;
-        }
-        break;
-    }
-
-    if( grandparent != NULL )
+    if( ( grandparent = x509_crt_find_parent( parent) ) != NULL )
     {
         /*
          * Part of the chain
@@ -1800,26 +1812,7 @@ int x509_crt_verify( x509_crt *crt,
         }
     }
 
-    /*
-     * Iterate upwards in the given cert chain, to find our crt parent.
-     * Ignore any upper cert with CA != TRUE.
-     */
-    parent = crt->next;
-
-    while( parent != NULL && parent->version != 0 )
-    {
-        if( parent->ca_istrue == 0 ||
-            crt->issuer_raw.len != parent->subject_raw.len ||
-            memcmp( crt->issuer_raw.p, parent->subject_raw.p,
-                    crt->issuer_raw.len ) != 0 )
-        {
-            parent = parent->next;
-            continue;
-        }
-        break;
-    }
-
-    if( parent != NULL )
+    if( ( parent = x509_crt_find_parent( crt ) ) != NULL )
     {
         /*
          * Part of the chain

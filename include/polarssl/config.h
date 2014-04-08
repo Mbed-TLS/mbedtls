@@ -866,12 +866,9 @@
  * Enable support for Application Layer Protocol Negotiation.
  * draft-ietf-tls-applayerprotoneg-05
  *
- * This is disabled by default in the 1.3.x line since it breaks ABI
- * compatibility.
- *
- * Uncomment this macro to enable support for ALPN.
+ * Comment this macro to disable support for ALPN.
  */
-//#define POLARSSL_SSL_ALPN
+#define POLARSSL_SSL_ALPN
 
 /**
  * \def POLARSSL_SSL_SESSION_TICKETS

@@ -12,6 +12,8 @@ Security
      This affects certificates in the user-supplied chain except the top
      certificate. If the user-supplied chain contains only one certificates,
      it is not affected (ie, its notAfter date is properly checked).
+   * Prevent potential NULL pointer dereference in ssl_read_record() (found by
+     TrustInSoft)
 
 Bugfix
    * The length of various ClientKeyExchange messages was not properly checked.

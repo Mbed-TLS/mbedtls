@@ -861,6 +861,16 @@
 #define POLARSSL_SSL_PROTO_TLS1_2
 
 /**
+ * \def POLARSSL_SSL_ALPN
+ *
+ * Enable support for Application Layer Protocol Negotiation.
+ * draft-ietf-tls-applayerprotoneg-05
+ *
+ * Comment this macro to disable support for ALPN.
+ */
+#define POLARSSL_SSL_ALPN
+
+/**
  * \def POLARSSL_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL.

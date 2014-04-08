@@ -85,6 +85,7 @@
 #define DFL_CACHE_MAX           -1
 #define DFL_CACHE_TIMEOUT       -1
 #define DFL_SNI                 NULL
+#define DFL_ALPN_STRING         NULL
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -131,6 +132,7 @@ struct options
     int cache_max;              /* max number of session cache entries      */
     int cache_timeout;          /* expiration delay of session cache entries */
     char *sni;                  /* string decribing sni information         */
+    const char *alpn_string;    /* ALPN supported protocols                 */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -245,6 +247,14 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_SSL_ALPN)
+#define USAGE_ALPN \
+    "    alpn=%%s             default: \"\" (disabled)\n"   \
+    "                        example: spdy/1,http/1.1\n"
+#else
+#define USAGE_ALPN ""
+#endif /* POLARSSL_SSL_ALPN */
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -267,6 +277,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     USAGE_TICKETS                                           \
     USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
+    USAGE_ALPN                                              \
     "\n"                                                    \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
@@ -429,6 +440,9 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SNI)
     sni_entry *sni_info = NULL;
 #endif
+#if defined(POLARSSL_SSL_ALPN)
+    const char *alpn_list[10];
+#endif
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[100000];
 #endif
@@ -455,6 +469,9 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_init( &cache );
+#endif
+#if defined(POLARSSL_SSL_ALPN)
+    memset( alpn_list, 0, sizeof alpn_list );
 #endif
 
     if( argc == 0 )
@@ -504,6 +521,7 @@ int main( int argc, char *argv[] )
     opt.cache_max           = DFL_CACHE_MAX;
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
     opt.sni                 = DFL_SNI;
+    opt.alpn_string         = DFL_ALPN_STRING;
 
     for( i = 1; i < argc; i++ )
     {
@@ -653,6 +671,10 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+        else if( strcmp( p, "alpn" ) == 0 )
+        {
+            opt.alpn_string = q;
+        }
         else if( strcmp( p, "tickets" ) == 0 )
         {
             opt.tickets = atoi( q );
@@ -759,6 +781,26 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(POLARSSL_SSL_ALPN)
+    if( opt.alpn_string != NULL )
+    {
+        p = (char *) opt.alpn_string;
+        i = 0;
+
+        /* Leave room for a final NULL in alpn_list */
+        while( i < (int) sizeof alpn_list - 1 && *p != '\0' )
+        {
+            alpn_list[i++] = p;
+
+            /* Terminate the current string and move on to next one */
+            while( *p != ',' && *p != '\0' )
+                p++;
+            if( *p == ',' )
+                *p++ = '\0';
+        }
+    }
+#endif /* POLARSSL_SSL_ALPN */
 
     /*
      * 0. Initialize the RNG and the session data
@@ -974,6 +1016,11 @@ int main( int argc, char *argv[] )
     ssl_set_max_frag_len( &ssl, opt.mfl_code );
 #endif
 
+#if defined(POLARSSL_SSL_ALPN)
+    if( opt.alpn_string != NULL )
+        ssl_set_alpn_protocols( &ssl, alpn_list );
+#endif
+
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );
 
@@ -1102,6 +1149,15 @@ reset:
 
     printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
             ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
+
+#if defined(POLARSSL_SSL_ALPN)
+    if( opt.alpn_string != NULL )
+    {
+        const char *alp = ssl_get_alpn_protocol( &ssl );
+        printf( "    [ Application Layer Protocol is %s ]\n",
+                alp ? alp : "(none)" );
+    }
+#endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /*

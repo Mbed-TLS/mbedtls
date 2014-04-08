@@ -3521,6 +3521,10 @@ int ssl_session_reset( ssl_context *ssl )
         ssl->session = NULL;
     }
 
+#if defined(POLARSSL_SSL_ALPN)
+    ssl->alpn_chosen = NULL;
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -3914,6 +3918,37 @@ void ssl_set_sni( ssl_context *ssl,
     ssl->p_sni = p_sni;
 }
 #endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
+
+#if defined(POLARSSL_SSL_ALPN)
+int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos )
+{
+    size_t cur_len, tot_len;
+    const char **p;
+
+    /*
+     * "Empty strings MUST NOT be included and byte strings MUST NOT be
+     * truncated". Check lengths now rather than later.
+     */
+    tot_len = 0;
+    for( p = protos; *p != NULL; p++ )
+    {
+        cur_len = strlen( *p );
+        tot_len += cur_len;
+
+        if( cur_len == 0 || cur_len > 255 || tot_len > 65535 )
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    ssl->alpn_list = protos;
+
+    return( 0 );
+}
+
+const char *ssl_get_alpn_protocol( const ssl_context *ssl )
+{
+    return ssl->alpn_chosen;
+}
+#endif /* POLARSSL_SSL_ALPN */
 
 void ssl_set_max_version( ssl_context *ssl, int major, int minor )
 {

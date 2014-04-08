@@ -21,6 +21,8 @@ O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 TESTS=0
 FAILS=0
 
+CONFIG_H='../include/polarssl/config.h'
+
 MEMCHECK=0
 FILTER='.*'
 EXCLUDE='SSLv2' # disabled by default, needs OpenSSL compiled with SSLv2
@@ -804,6 +806,8 @@ run_test    "Non-blocking I/O #7 (session-id resume)" \
             -C "ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
+# Tests for version negotiation
+
 run_test    "Version check #1 (all -> 1.2)" \
             "$P_SRV" \
             "$P_CLI" \
@@ -873,6 +877,96 @@ run_test    "Version check #8 (srv min 1.2, cli max 1.1 -> fail)" \
             -s "ssl_handshake returned" \
             -c "ssl_handshake returned" \
             -s "SSL - Handshake protocol not within min/max boundaries"
+
+# Tests for ALPN extension
+
+if grep '^#define POLARSSL_SSL_ALPN' $CONFIG_H >/dev/null; then
+
+run_test    "ALPN #0 (none)" \
+            "$P_SRV debug_level=4" \
+            "$P_CLI debug_level=4" \
+            0 \
+            -C "client hello, adding alpn extension" \
+            -S "found alpn extension" \
+            -C "got an alert message, type: \\[2:120]" \
+            -S "server hello, adding alpn extension" \
+            -C "found alpn extension " \
+            -C "Application Layer Protocol is" \
+            -S "Application Layer Protocol is"
+
+run_test    "ALPN #1 (client only)" \
+            "$P_SRV debug_level=4" \
+            "$P_CLI debug_level=4 alpn=abc,1234" \
+            0 \
+            -c "client hello, adding alpn extension" \
+            -s "found alpn extension" \
+            -C "got an alert message, type: \\[2:120]" \
+            -S "server hello, adding alpn extension" \
+            -C "found alpn extension " \
+            -c "Application Layer Protocol is (none)" \
+            -S "Application Layer Protocol is"
+
+run_test    "ALPN #2 (server only)" \
+            "$P_SRV debug_level=4 alpn=abc,1234" \
+            "$P_CLI debug_level=4" \
+            0 \
+            -C "client hello, adding alpn extension" \
+            -S "found alpn extension" \
+            -C "got an alert message, type: \\[2:120]" \
+            -S "server hello, adding alpn extension" \
+            -C "found alpn extension " \
+            -C "Application Layer Protocol is" \
+            -s "Application Layer Protocol is (none)"
+
+run_test    "ALPN #3 (both, common cli1-srv1)" \
+            "$P_SRV debug_level=4 alpn=abc,1234" \
+            "$P_CLI debug_level=4 alpn=abc,1234" \
+            0 \
+            -c "client hello, adding alpn extension" \
+            -s "found alpn extension" \
+            -C "got an alert message, type: \\[2:120]" \
+            -s "server hello, adding alpn extension" \
+            -c "found alpn extension" \
+            -c "Application Layer Protocol is abc" \
+            -s "Application Layer Protocol is abc"
+
+run_test    "ALPN #4 (both, common cli2-srv1)" \
+            "$P_SRV debug_level=4 alpn=abc,1234" \
+            "$P_CLI debug_level=4 alpn=1234,abc" \
+            0 \
+            -c "client hello, adding alpn extension" \
+            -s "found alpn extension" \
+            -C "got an alert message, type: \\[2:120]" \
+            -s "server hello, adding alpn extension" \
+            -c "found alpn extension" \
+            -c "Application Layer Protocol is abc" \
+            -s "Application Layer Protocol is abc"
+
+run_test    "ALPN #5 (both, common cli1-srv2)" \
+            "$P_SRV debug_level=4 alpn=abc,1234" \
+            "$P_CLI debug_level=4 alpn=1234,abcde" \
+            0 \
+            -c "client hello, adding alpn extension" \
+            -s "found alpn extension" \
+            -C "got an alert message, type: \\[2:120]" \
+            -s "server hello, adding alpn extension" \
+            -c "found alpn extension" \
+            -c "Application Layer Protocol is 1234" \
+            -s "Application Layer Protocol is 1234"
+
+run_test    "ALPN #6 (both, no common)" \
+            "$P_SRV debug_level=4 alpn=abc,123" \
+            "$P_CLI debug_level=4 alpn=1234,abcde" \
+            1 \
+            -c "client hello, adding alpn extension" \
+            -s "found alpn extension" \
+            -c "got an alert message, type: \\[2:120]" \
+            -S "server hello, adding alpn extension" \
+            -C "found alpn extension" \
+            -C "Application Layer Protocol is 1234" \
+            -S "Application Layer Protocol is 1234"
+
+fi
 
 # Final report
 

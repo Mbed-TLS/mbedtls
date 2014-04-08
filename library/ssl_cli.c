@@ -383,6 +383,54 @@ static void ssl_write_session_ticket_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+#if defined(POLARSSL_SSL_ALPN)
+static void ssl_write_alpn_ext( ssl_context *ssl,
+                                unsigned char *buf, size_t *olen )
+{
+    unsigned char *p = buf;
+    const char **cur;
+
+    if( ssl->alpn_list == NULL )
+    {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding alpn extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_ALPN >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_ALPN      ) & 0xFF );
+
+    /*
+     * opaque ProtocolName<1..2^8-1>;
+     *
+     * struct {
+     *     ProtocolName protocol_name_list<2..2^16-1>
+     * } ProtocolNameList;
+     */
+
+    /* Skip writing extension and list length for now */
+    p += 4;
+
+    for( cur = ssl->alpn_list; *cur != NULL; cur++ )
+    {
+        *p = (unsigned char)( strlen( *cur ) & 0xFF );
+        memcpy( p + 1, *cur, *p );
+        p += 1 + *p;
+    }
+
+    *olen = p - buf;
+
+    /* List length = olen - 2 (ext_type) - 2 (ext_len) - 2 (list_len) */
+    buf[4] = (unsigned char)( ( ( *olen - 6 ) >> 8 ) & 0xFF );
+    buf[5] = (unsigned char)( ( ( *olen - 6 )      ) & 0xFF );
+
+    /* Extension length = olen - 2 (ext_type) - 2 (ext_len) */
+    buf[2] = (unsigned char)( ( ( *olen - 4 ) >> 8 ) & 0xFF );
+    buf[3] = (unsigned char)( ( ( *olen - 4 )      ) & 0xFF );
+}
+#endif /* POLARSSL_SSL_ALPN */
+
 static int ssl_write_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -595,6 +643,11 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(POLARSSL_SSL_ALPN)
+    ssl_write_alpn_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#endif
+
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
 
@@ -752,6 +805,54 @@ static int ssl_parse_supported_point_formats_ext( ssl_context *ssl,
     return( 0 );
 }
 #endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
+
+#if defined(POLARSSL_SSL_ALPN)
+static int ssl_parse_alpn_ext( ssl_context *ssl,
+                               const unsigned char *buf, size_t len )
+{
+    size_t list_len, name_len;
+    const char **p;
+
+    /* If we didn't send it, the server shouldn't send it */
+    if( ssl->alpn_list == NULL )
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+
+    /*
+     * opaque ProtocolName<1..2^8-1>;
+     *
+     * struct {
+     *     ProtocolName protocol_name_list<2..2^16-1>
+     * } ProtocolNameList;
+     *
+     * the "ProtocolNameList" MUST contain exactly one "ProtocolName"
+     */
+
+    /* Min length is 2 (list_len) + 1 (name_len) + 1 (name) */
+    if( len < 4 )
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+
+    list_len = ( buf[0] << 8 ) | buf[1];
+    if( list_len != len - 2 )
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+
+    name_len = buf[2];
+    if( name_len != list_len - 1 )
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+
+    /* Check that the server chosen protocol was in our list and save it */
+    for( p = ssl->alpn_list; *p != NULL; p++ )
+    {
+        if( name_len == strlen( *p ) &&
+            memcmp( buf + 3, *p, name_len ) == 0 )
+        {
+            ssl->alpn_chosen = *p;
+            return( 0 );
+        }
+    }
+
+    return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+}
+#endif /* POLARSSL_SSL_ALPN */
 
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
@@ -1022,6 +1123,16 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
             break;
 #endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
+
+#if defined(POLARSSL_SSL_ALPN)
+        case TLS_EXT_ALPN:
+            SSL_DEBUG_MSG( 3, ( "found alpn extension" ) );
+
+            if( ( ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size ) ) != 0 )
+                return( ret );
+
+            break;
+#endif /* POLARSSL_SSL_ALPN */
 
         default:
             SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",

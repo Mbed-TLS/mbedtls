@@ -65,6 +65,7 @@
 #define DFL_RECONNECT           0
 #define DFL_RECO_DELAY          0
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
+#define DFL_ALPN_STRING         NULL
 
 #define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
     "-01--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
@@ -108,6 +109,7 @@ struct options
     int reconnect;              /* attempt to resume session                */
     int reco_delay;             /* delay in seconds before resuming session */
     int tickets;                /* enable / disable session tickets         */
+    const char *alpn_string;    /* ALPN supported protocols                 */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -248,10 +250,18 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 
 #if defined(POLARSSL_TIMING_C)
 #define USAGE_TIME \
-    "    reco_delay=%%d      default: 0 seconds\n"
+    "    reco_delay=%%d       default: 0 seconds\n"
 #else
 #define USAGE_TIME ""
 #endif /* POLARSSL_TIMING_C */
+
+#if defined(POLARSSL_SSL_ALPN)
+#define USAGE_ALPN \
+    "    alpn=%%s             default: \"\" (disabled)\n"   \
+    "                        example: spdy/1,http/1.1\n"
+#else
+#define USAGE_ALPN ""
+#endif /* POLARSSL_SSL_ALPN */
 
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
@@ -278,6 +288,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
+    USAGE_ALPN                                              \
     "\n"                                                    \
     "    min_version=%%s      default: \"\" (ssl3)\n"       \
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
@@ -311,6 +322,9 @@ int main( int argc, char *argv[] )
     unsigned char psk[256];
     size_t psk_len = 0;
 #endif
+#if defined(POLARSSL_SSL_ALPN)
+    const char *alpn_list[10];
+#endif
     const char *pers = "ssl_client2";
 
     entropy_context entropy;
@@ -335,6 +349,9 @@ int main( int argc, char *argv[] )
     x509_crt_init( &cacert );
     x509_crt_init( &clicert );
     pk_init( &pkey );
+#endif
+#if defined(POLARSSL_SSL_ALPN)
+    memset( alpn_list, 0, sizeof alpn_list );
 #endif
 
     if( argc == 0 )
@@ -383,6 +400,7 @@ int main( int argc, char *argv[] )
     opt.reconnect           = DFL_RECONNECT;
     opt.reco_delay          = DFL_RECO_DELAY;
     opt.tickets             = DFL_TICKETS;
+    opt.alpn_string         = DFL_ALPN_STRING;
 
     for( i = 1; i < argc; i++ )
     {
@@ -474,6 +492,10 @@ int main( int argc, char *argv[] )
             opt.tickets = atoi( q );
             if( opt.tickets < 0 || opt.tickets > 2 )
                 goto usage;
+        }
+        else if( strcmp( p, "alpn" ) == 0 )
+        {
+            opt.alpn_string = q;
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
@@ -634,6 +656,26 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(POLARSSL_SSL_ALPN)
+    if( opt.alpn_string != NULL )
+    {
+        p = (char *) opt.alpn_string;
+        i = 0;
+
+        /* Leave room for a final NULL in alpn_list */
+        while( i < (int) sizeof alpn_list - 1 && *p != '\0' )
+        {
+            alpn_list[i++] = p;
+
+            /* Terminate the current string and move on to next one */
+            while( *p != ',' && *p != '\0' )
+                p++;
+            if( *p == ',' )
+                *p++ = '\0';
+        }
+    }
+#endif /* POLARSSL_SSL_ALPN */
 
     /*
      * 0. Initialize the RNG and the session data
@@ -806,6 +848,11 @@ int main( int argc, char *argv[] )
         ssl_set_truncated_hmac( &ssl, SSL_TRUNC_HMAC_ENABLED );
 #endif
 
+#if defined(POLARSSL_SSL_ALPN)
+    if( opt.alpn_string != NULL )
+        ssl_set_alpn_protocols( &ssl, alpn_list );
+#endif
+
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
     ssl_set_dbg( &ssl, my_debug, stdout );
 
@@ -877,6 +924,15 @@ int main( int argc, char *argv[] )
 
     printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
             ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
+
+#if defined(POLARSSL_SSL_ALPN)
+    if( opt.alpn_string != NULL )
+    {
+        const char *alp = ssl_get_alpn_protocol( &ssl );
+        printf( "    [ Application Layer Protocol is %s ]\n",
+                alp ? alp : "(none)" );
+    }
+#endif
 
     if( opt.reconnect != 0 )
     {

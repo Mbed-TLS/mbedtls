@@ -442,6 +442,26 @@ X509 Certificate verification #51 (Valid, multiple CAs, reverse order)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/test-ca_cat21.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #52 (CA keyUsage valid)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-crt_crl.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #53 (CA keyUsage missing cRLSign)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-crt.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_NOT_TRUSTED:"NULL"
+
+X509 Certificate verification #54 (CA keyUsage missing cRLSign, no CRL)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-crt.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #55 (CA keyUsage missing keyCertSign)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-crl.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+
+X509 Certificate verification #55 (CA keyUsage plain wrong)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-ds.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+
 X509 Parse Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_PARSE_C
 x509_selftest:

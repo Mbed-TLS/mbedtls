@@ -1425,6 +1425,17 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
         }
 
         /*
+         * Check if the CA is configured to sign CRLs
+         */
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+        if( x509_crt_check_key_usage( ca, KU_CRL_SIGN ) != 0 )
+        {
+            flags |= BADCRL_NOT_TRUSTED;
+            break;
+        }
+#endif
+
+        /*
          * Check if CRL is correctly signed by the trusted CA
          */
         md_info = md_info_from_type( crl_list->sig_md );
@@ -1548,6 +1559,11 @@ static x509_crt *x509_crt_find_parent( x509_crt *crt )
             continue;
         }
 
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+        if( x509_crt_check_key_usage( parent, KU_KEY_CERT_SIGN ) != 0 )
+            continue;
+#endif
+
         /* If we get there, we found a suitable parent */
         break;
     }
@@ -1598,6 +1614,14 @@ static int x509_crt_verify_top(
             trust_ca = trust_ca->next;
             continue;
         }
+
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+        if( x509_crt_check_key_usage( trust_ca, KU_KEY_CERT_SIGN ) != 0 )
+        {
+            trust_ca = trust_ca->next;
+            continue;
+        }
+#endif
 
         /*
          * Reduce path_len to check against if top of the chain is

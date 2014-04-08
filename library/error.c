@@ -308,6 +308,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "PK - Elliptic curve is unsupported (only NIST curves are supported)" );
         if( use_ret == -(POLARSSL_ERR_PK_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "PK - Unavailable feature, e.g. RSA disabled for RSA key" );
+        if( use_ret == -(POLARSSL_ERR_PK_SIG_LEN_MISMATCH) )
+            snprintf( buf, buflen, "PK - The signature is valid but its length is less than expected" );
 #endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_PKCS12_C)

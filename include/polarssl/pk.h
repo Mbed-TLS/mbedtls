@@ -57,6 +57,7 @@
 #define POLARSSL_ERR_PK_INVALID_ALG         -0x2A80  /**< The algorithm tag or value is invalid. */
 #define POLARSSL_ERR_PK_UNKNOWN_NAMED_CURVE -0x2A00  /**< Elliptic curve is unsupported (only NIST curves are supported). */
 #define POLARSSL_ERR_PK_FEATURE_UNAVAILABLE -0x2980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
+#define POLARSSL_ERR_PK_SIG_LEN_MISMATCH    -0x2000  /**< The signature is valid but its length is less than expected. */
 
 
 #if defined(POLARSSL_RSA_C)
@@ -288,6 +289,8 @@ int pk_can_do( pk_context *ctx, pk_type_t type );
  * \param sig_len   Signature length
  *
  * \return          0 on success (signature is valid),
+ *                  POLARSSL_ERR_PK_SIG_LEN_MISMATCH if the signature is
+ *                  valid but its actual length is less than sig_len,
  *                  or a specific error code.
  *
  * \note            If hash_len is 0, then the length associated with md_alg

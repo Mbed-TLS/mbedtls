@@ -1,31 +1,59 @@
 Certificate Request check Server1 SHA1
 depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_csr_check:"data_files/server1.key":POLARSSL_MD_SHA1:"data_files/server1.req.sha1"
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.sha1":POLARSSL_MD_SHA1:0:0
 
 Certificate Request check Server1 SHA224
 depends_on:POLARSSL_SHA256_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_csr_check:"data_files/server1.key":POLARSSL_MD_SHA224:"data_files/server1.req.sha224"
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.sha224":POLARSSL_MD_SHA224:0:0
 
 Certificate Request check Server1 SHA256
 depends_on:POLARSSL_SHA256_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_csr_check:"data_files/server1.key":POLARSSL_MD_SHA256:"data_files/server1.req.sha256"
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.sha256":POLARSSL_MD_SHA256:0:0
 
 Certificate Request check Server1 SHA384
 depends_on:POLARSSL_SHA512_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_csr_check:"data_files/server1.key":POLARSSL_MD_SHA384:"data_files/server1.req.sha384"
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.sha384":POLARSSL_MD_SHA384:0:0
 
 Certificate Request check Server1 SHA512
 depends_on:POLARSSL_SHA512_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_csr_check:"data_files/server1.key":POLARSSL_MD_SHA512:"data_files/server1.req.sha512"
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.sha512":POLARSSL_MD_SHA512:0:0
 
 Certificate Request check Server1 MD4
 depends_on:POLARSSL_MD4_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_csr_check:"data_files/server1.key":POLARSSL_MD_MD4:"data_files/server1.req.md4"
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.md4":POLARSSL_MD_MD4:0:0
 
 Certificate Request check Server1 MD5
 depends_on:POLARSSL_MD5_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
-x509_csr_check:"data_files/server1.key":POLARSSL_MD_MD5:"data_files/server1.req.md5"
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.md5":POLARSSL_MD_MD5:0:0
+
+Certificate Request check Server1 key_usage
+depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.key_usage":POLARSSL_MD_SHA1:KU_DIGITAL_SIGNATURE | KU_NON_REPUDIATION | KU_KEY_ENCIPHERMENT:0
+
+Certificate Request check Server1 ns_cert_type
+depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.cert_type":POLARSSL_MD_SHA1:0:NS_CERT_TYPE_SSL_SERVER
+
+Certificate Request check Server1 key_usage + ns_cert_type
+depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.ku-ct":POLARSSL_MD_SHA1:KU_DIGITAL_SIGNATURE | KU_NON_REPUDIATION | KU_KEY_ENCIPHERMENT:NS_CERT_TYPE_SSL_SERVER
+
+Certificate Request check Server5 ECDSA, key_usage
+depends_on:POLARSSL_SHA1_C:POLARSSL_ECDSA_C:POLARSSL_ECDSA_DETERMINISTIC
+x509_csr_check:"data_files/server5.key":"data_files/server5.req.ku.sha1":POLARSSL_MD_SHA1:KU_DIGITAL_SIGNATURE | KU_NON_REPUDIATION:0
 
 Certificate write check Server1 SHA1
 depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_DES_C:POLARSSL_CIPHER_MODE_CBC:POLARSSL_MD5_C
-x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":POLARSSL_MD_SHA1:"data_files/server1.crt"
+x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":POLARSSL_MD_SHA1:0:0:-1:"data_files/server1.crt"
+
+Certificate write check Server1 SHA1, key_usage
+depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_DES_C:POLARSSL_CIPHER_MODE_CBC:POLARSSL_MD5_C
+x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":POLARSSL_MD_SHA1:KU_DIGITAL_SIGNATURE | KU_NON_REPUDIATION | KU_KEY_ENCIPHERMENT:0:-1:"data_files/server1.key_usage.crt"
+
+Certificate write check Server1 SHA1, ns_cert_type
+depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_DES_C:POLARSSL_CIPHER_MODE_CBC:POLARSSL_MD5_C
+x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":POLARSSL_MD_SHA1:0:NS_CERT_TYPE_SSL_SERVER:-1:"data_files/server1.cert_type.crt"
+
+Certificate write check Server1 SHA1, version 1
+depends_on:POLARSSL_SHA1_C:POLARSSL_RSA_C:POLARSSL_PKCS1_V15:POLARSSL_DES_C:POLARSSL_CIPHER_MODE_CBC:POLARSSL_MD5_C
+x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":POLARSSL_MD_SHA1:0:0:X509_CRT_VERSION_1:"data_files/server1.v1.crt"

@@ -357,7 +357,7 @@ static size_t rsa_alt_get_size( const void *ctx )
 {
     const rsa_alt_context *rsa_alt = (const rsa_alt_context *) ctx;
 
-    return( rsa_alt->key_len_func( rsa_alt->key ) );
+    return( 8 * rsa_alt->key_len_func( rsa_alt->key ) );
 }
 
 static int rsa_alt_sign_wrap( void *ctx, md_type_t md_alg,

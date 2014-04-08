@@ -1,3 +1,15 @@
+DES check weak key #1
+des_check_weak:"0101010101010101":1
+
+DES check weak key #2
+des_check_weak:"FEE0FEE0FEF1FEF1":1
+
+DES check weak key #3
+des_check_weak:"0101010101010100":0
+
+DES check weak key #4
+des_check_weak:"EEE0FEE0FEF1FEF1":0
+
 DES Encrypt OpenSSL Test Vector #1
 des_encrypt_ecb:"0000000000000000":"0000000000000000":"8CA64DE9C1B123A7"
 

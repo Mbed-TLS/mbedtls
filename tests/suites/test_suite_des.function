@@ -8,6 +8,19 @@
  */
 
 /* BEGIN_CASE */
+void des_check_weak( char *key_hex, int ret )
+{
+    unsigned char key[DES_KEY_SIZE];
+
+    memset( key, 0, sizeof key );
+
+    unhexify( key, key_hex );
+
+    TEST_ASSERT( des_key_check_weak( key ) == ret );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void des_encrypt_ecb( char *hex_key_string, char *hex_src_string,
                       char *hex_dst_string )
 {

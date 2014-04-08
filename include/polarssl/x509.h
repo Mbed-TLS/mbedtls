@@ -212,6 +212,8 @@ int x509_serial_gets( char *buf, size_t size, const x509_buf *serial );
 
 /**
  * \brief          Give an known OID, return its descriptive string.
+ *                 (Deprecated. Use oid_get_extended_key_usage() instead.)
+ *                 Warning: only works for extended_key_usage OIDs!
  *
  * \param oid      buffer containing the oid
  *
@@ -228,8 +230,8 @@ const char *x509_oid_get_description( x509_buf *oid );
  * \param size     Maximum size of buffer
  * \param oid      Buffer containing the OID
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         Length of the string written (exluding final NULL) or
+ *                 POLARSSL_ERR_OID_BUF_TO_SMALL in case of error
  */
 int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );
 

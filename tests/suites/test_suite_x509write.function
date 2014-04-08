@@ -11,8 +11,8 @@
  */
 
 /* BEGIN_CASE depends_on:POLARSSL_PEM_WRITE_C:POLARSSL_X509_CSR_WRITE_C */
-void x509_csr_check( char *key_file, int md_type,
-                          char *cert_req_check_file )
+void x509_csr_check( char *key_file, char *cert_req_check_file,
+                     int md_type, int key_usage, int cert_type )
 {
     pk_context key;
     x509write_csr req;
@@ -33,6 +33,10 @@ void x509_csr_check( char *key_file, int md_type,
     x509write_csr_set_md_alg( &req, md_type );
     x509write_csr_set_key( &req, &key );
     TEST_ASSERT( x509write_csr_set_subject_name( &req, subject_name ) == 0 );
+    if( key_usage != 0 )
+        TEST_ASSERT( x509write_csr_set_key_usage( &req, key_usage ) == 0 );
+    if( cert_type != 0 )
+        TEST_ASSERT( x509write_csr_set_ns_cert_type( &req, cert_type ) == 0 );
 
     ret = x509write_csr_pem( &req, buf, sizeof(buf),
                              rnd_pseudo_rand, &rnd_info );
@@ -58,7 +62,8 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *subject_name, char *issuer_key_file,
                      char *issuer_pwd, char *issuer_name,
                      char *serial_str, char *not_before, char *not_after,
-                     int md_type, char *cert_check_file )
+                     int md_type, int key_usage, int cert_type, int ver,
+                     char *cert_check_file )
 {
     pk_context subject_key, issuer_key;
     x509write_cert crt;
@@ -82,7 +87,9 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( mpi_read_string( &serial, 10, serial_str ) == 0 );
 
     x509write_crt_init( &crt );
-    x509write_crt_set_serial( &crt, &serial );
+    if( ver != -1 )
+        x509write_crt_set_version( &crt, ver );
+    TEST_ASSERT( x509write_crt_set_serial( &crt, &serial ) == 0 );
     TEST_ASSERT( x509write_crt_set_validity( &crt, not_before,
                                                    not_after ) == 0 );
     x509write_crt_set_md_alg( &crt, md_type );
@@ -91,9 +98,16 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     x509write_crt_set_subject_key( &crt, &subject_key );
     x509write_crt_set_issuer_key( &crt, &issuer_key );
 
-    TEST_ASSERT( x509write_crt_set_basic_constraints( &crt, 0, 0 ) == 0 );
-    TEST_ASSERT( x509write_crt_set_subject_key_identifier( &crt ) == 0 );
-    TEST_ASSERT( x509write_crt_set_authority_key_identifier( &crt ) == 0 );
+    if( crt.version >= X509_CRT_VERSION_3 )
+    {
+        TEST_ASSERT( x509write_crt_set_basic_constraints( &crt, 0, 0 ) == 0 );
+        TEST_ASSERT( x509write_crt_set_subject_key_identifier( &crt ) == 0 );
+        TEST_ASSERT( x509write_crt_set_authority_key_identifier( &crt ) == 0 );
+        if( key_usage != 0 )
+            TEST_ASSERT( x509write_crt_set_key_usage( &crt, key_usage ) == 0 );
+        if( cert_type != 0 )
+            TEST_ASSERT( x509write_crt_set_ns_cert_type( &crt, cert_type ) == 0 );
+    }
 
     ret = x509write_crt_pem( &crt, buf, sizeof(buf),
                              rnd_pseudo_rand, &rnd_info );

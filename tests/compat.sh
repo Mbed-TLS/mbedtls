@@ -5,15 +5,14 @@
 # Check each common ciphersuite, with each version, both ways (client/server),
 # with and without client authentication.
 
+set -u
+
 # test if those two are set in the environment before assigning defaults
-if [ -n "$GNUTLS_CLI" -a -n "$GNUTLS_SERV" ]; then
+if [ -n "${GNUTLS_CLI:-}" -a -n "${GNUTLS_SERV:-}" ]; then
     GNUTLS_AVAILABLE=1
 else
     GNUTLS_AVAILABLE=0
 fi
-
-# catch undefined variables from now on
-set -u
 
 # initialise counters
 let "tests = 0"

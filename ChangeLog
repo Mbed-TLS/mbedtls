@@ -17,6 +17,8 @@ Security
      attack was already impossible when authentication is required).
    * Check notBefore timestamp of certificates and CRLs from the future.
    * Forbid sequence number wrapping
+   * Prevent potential NULL pointer dereference in ssl_read_record() (found by
+     TrustInSoft)
 
 Bugfix
    * Fixed X.509 hostname comparison (with non-regular characters)

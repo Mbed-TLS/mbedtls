@@ -422,11 +422,14 @@ int ecdsa_read_signature( ecdsa_context *ctx,
         ( ret = asn1_get_mpi( &p, end, &ctx->s ) ) != 0 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA + ret );
 
-    if( p != end )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    if( ( ret = ecdsa_verify( &ctx->grp, hash, hlen,
+                              &ctx->Q, &ctx->r, &ctx->s ) ) != 0 )
+        return( ret );
 
-    return( ecdsa_verify( &ctx->grp, hash, hlen, &ctx->Q, &ctx->r, &ctx->s ) );
+    if( p != end )
+        return( POLARSSL_ERR_ECP_SIG_LEN_MISMATCH );
+
+    return( 0 );
 }
 
 /*

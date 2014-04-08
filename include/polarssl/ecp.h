@@ -39,6 +39,7 @@
 #define POLARSSL_ERR_ECP_MALLOC_FAILED                     -0x4D80  /**< Memory allocation failed. */
 #define POLARSSL_ERR_ECP_RANDOM_FAILED                     -0x4D00  /**< Generation of random value, such as (ephemeral) key, failed. */
 #define POLARSSL_ERR_ECP_INVALID_KEY                       -0x4C80  /**< Invalid private or public key. */
+#define POLARSSL_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< Signature is valid but shorter than the user-supplied length. */
 
 #ifdef __cplusplus
 extern "C" {

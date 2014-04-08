@@ -245,6 +245,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "ECP - Generation of random value, such as (ephemeral) key, failed" );
         if( use_ret == -(POLARSSL_ERR_ECP_INVALID_KEY) )
             snprintf( buf, buflen, "ECP - Invalid private or public key" );
+        if( use_ret == -(POLARSSL_ERR_ECP_SIG_LEN_MISMATCH) )
+            snprintf( buf, buflen, "ECP - Signature is valid but shorter than the user-supplied length" );
 #endif /* POLARSSL_ECP_C */
 
 #if defined(POLARSSL_MD_C)

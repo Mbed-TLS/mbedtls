@@ -175,7 +175,9 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
  * \param slen      Size of sig
  *
  * \return          0 if successful,
- *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid,
+ *                  POLARSSL_ERR_ECP_SIG_LEN_MISTMATCH if the signature is
+ *                  valid but its actual length is less than siglen,
  *                  or a POLARSSL_ERR_ECP or POLARSSL_ERR_MPI error code
  */
 int ecdsa_read_signature( ecdsa_context *ctx,

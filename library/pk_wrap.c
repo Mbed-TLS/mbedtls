@@ -259,7 +259,7 @@ const pk_info_t eckey_info = {
 };
 
 /*
- * EC key resticted to ECDH
+ * EC key restricted to ECDH
  */
 static int eckeydh_can_do( pk_type_t type )
 {

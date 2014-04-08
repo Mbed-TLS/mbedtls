@@ -122,7 +122,7 @@ ecp_point;
  * prime. (Use odd in ecp_mul() and prime in ecdsa_sign() for blinding.)
  *
  * In the case of Montgomery curves, we don't store A but (A + 2) / 4 which is
- * the quantity actualy used in the formulas. Also, nbits is not the size of N
+ * the quantity actually used in the formulas. Also, nbits is not the size of N
  * but the required size for private keys.
  *
  * If modp is NULL, reduction modulo P is done using a generic algorithm.
@@ -542,7 +542,7 @@ int ecp_sub( const ecp_group *grp, ecp_point *R,
  *
  * \note            If f_rng is not NULL, it is used to randomize intermediate
  *                  results in order to prevent potential timing attacks
- *                  targetting these results. It is recommended to always
+ *                  targeting these results. It is recommended to always
  *                  provide a non-NULL f_rng (the overhead is negligible).
  */
 int ecp_mul( ecp_group *grp, ecp_point *R,

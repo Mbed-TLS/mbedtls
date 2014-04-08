@@ -86,7 +86,7 @@ const pk_info_t * pk_info_from_type( pk_type_t pk_type )
         case POLARSSL_PK_ECDSA:
             return &ecdsa_info;
 #endif
-        /* POLARSSL_PK_RSA_ALT ommited on purpose */
+        /* POLARSSL_PK_RSA_ALT omitted on purpose */
         default:
             return NULL;
     }

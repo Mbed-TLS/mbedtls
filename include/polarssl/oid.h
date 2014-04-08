@@ -326,7 +326,7 @@
 #define OID_ANSI_X9_62_PRIME_FIELD  OID_ANSI_X9_62_FIELD_TYPE "\x01"
 
 /*
- * ECDSA signature identifers, from RFC 5480
+ * ECDSA signature identifiers, from RFC 5480
  */
 #define OID_ANSI_X9_62_SIG          OID_ANSI_X9_62 "\x04" /* signatures(4) */
 #define OID_ANSI_X9_62_SIG_SHA2     OID_ANSI_X9_62_SIG "\x03" /* ecdsa-with-SHA2(3) */

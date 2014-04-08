@@ -230,7 +230,7 @@ const char *x509_oid_get_description( x509_buf *oid );
  * \param size     Maximum size of buffer
  * \param oid      Buffer containing the OID
  *
- * \return         Length of the string written (exluding final NULL) or
+ * \return         Length of the string written (excluding final NULL) or
  *                 POLARSSL_ERR_OID_BUF_TO_SMALL in case of error
  */
 int x509_oid_get_numeric_string( char *buf, size_t size, x509_buf *oid );

@@ -211,21 +211,21 @@ static int entropy_gather_internal( entropy_context *ctx )
  */
 int entropy_gather( entropy_context *ctx )
 {
-  int ret;
+    int ret;
 
 #if defined(POLARSSL_THREADING_C)
-  if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
-      return( ret );
+    if( ( ret = polarssl_mutex_lock( &ctx->mutex ) ) != 0 )
+        return( ret );
 #endif
 
-  ret = entropy_gather_internal( ctx );
+    ret = entropy_gather_internal( ctx );
 
 #if defined(POLARSSL_THREADING_C)
-  if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
-      return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
+    if( polarssl_mutex_unlock( &ctx->mutex ) != 0 )
+        return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-  return ( ret );
+    return( ret );
 }
 
 int entropy_func( void *data, unsigned char *output, size_t len )

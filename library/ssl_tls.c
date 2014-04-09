@@ -2724,7 +2724,7 @@ int ssl_parse_certificate( ssl_context *ssl )
             if( pk_can_do( pk, POLARSSL_PK_ECKEY ) &&
                 ! ssl_curve_is_acceptable( ssl, pk_ec( *pk )->grp.id ) )
             {
-                SSL_DEBUG_MSG( 1, ( "bad server certificate (EC key curve)" ) );
+                SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
                 if( ret == 0 )
                     ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
             }
@@ -2735,7 +2735,7 @@ int ssl_parse_certificate( ssl_context *ssl )
                                   ciphersuite_info,
                                   ! ssl->endpoint ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "bad server certificate (usage ext.)" ) );
+            SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
             if( ret == 0 )
                 ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
         }

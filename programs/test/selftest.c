@@ -195,7 +195,10 @@ int main( int argc, char *argv[] )
 #endif
 #endif
 
-#if defined(POLARSSL_TIMING_C)
+/*
+ * Not reliable enough yet
+ */
+#if 0 && defined(POLARSSL_TIMING_C)
     if( ( ret = timing_self_test( v ) ) != 0 )
         return( ret );
 #endif

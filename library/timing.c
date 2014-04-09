@@ -326,6 +326,9 @@ void m_sleep( int milliseconds )
 
 /*
  * Checkup routine
+ *
+ * Warning: this is work in progress, some tests may not be reliable enough
+ * yet! False positives may happen.
  */
 int timing_self_test( int verbose )
 {

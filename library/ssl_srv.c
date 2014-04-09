@@ -797,6 +797,20 @@ static int ssl_pick_cert( ssl_context *ssl,
         if( ! pk_can_do( cur->key, pk_alg ) )
             continue;
 
+        /*
+         * This avoids sending the client a cert it'll reject based on
+         * keyUsage or other extensions.
+         *
+         * It also allows the user to provision different certificates for
+         * different uses based on keyUsage, eg if they want to avoid signing
+         * and decrypting with the same RSA key.
+         */
+        if( ssl_check_cert_usage( cur->cert, ciphersuite_info,
+                                  SSL_IS_SERVER ) != 0 )
+        {
+            continue;
+        }
+
 #if defined(POLARSSL_ECDSA_C)
         if( pk_alg == POLARSSL_PK_ECDSA )
         {

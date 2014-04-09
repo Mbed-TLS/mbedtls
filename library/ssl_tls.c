@@ -2699,6 +2699,9 @@ int ssl_parse_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_CA_CHAIN_REQUIRED );
         }
 
+        /*
+         * Main check: verify certificate
+         */
         ret = x509_crt_verify( ssl->session_negotiate->peer_cert,
                                ssl->ca_chain, ssl->ca_crl, ssl->peer_cn,
                               &ssl->session_negotiate->verify_result,
@@ -2708,20 +2711,34 @@ int ssl_parse_certificate( ssl_context *ssl )
         {
             SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
         }
+
+        /*
+         * Secondary checks: always done, but change 'ret' only if it was 0
+         */
+
 #if defined(POLARSSL_SSL_SET_CURVES)
-        else
         {
-            pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
+            const pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
 
             /* If certificate uses an EC key, make sure the curve is OK */
             if( pk_can_do( pk, POLARSSL_PK_ECKEY ) &&
                 ! ssl_curve_is_acceptable( ssl, pk_ec( *pk )->grp.id ) )
             {
                 SSL_DEBUG_MSG( 1, ( "bad server certificate (EC key curve)" ) );
-                ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
+                if( ret == 0 )
+                    ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
             }
         }
 #endif
+
+        if( ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
+                                  ciphersuite_info,
+                                  ! ssl->endpoint ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad server certificate (usage ext.)" ) );
+            if( ret == 0 )
+                ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
+        }
 
         if( ssl->authmode != SSL_VERIFY_REQUIRED )
             ret = 0;
@@ -4747,3 +4764,54 @@ int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id )
     return( 0 );
 }
 #endif
+
+int ssl_check_cert_usage( const x509_crt *cert,
+                          const ssl_ciphersuite_t *ciphersuite,
+                          int cert_endpoint )
+{
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    int usage = 0;
+#endif
+
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    if( cert_endpoint == SSL_IS_SERVER )
+    {
+        /* Server part of the key exchange */
+        switch( ciphersuite->key_exchange )
+        {
+            case POLARSSL_KEY_EXCHANGE_RSA:
+            case POLARSSL_KEY_EXCHANGE_RSA_PSK:
+                usage = KU_KEY_ENCIPHERMENT;
+                break;
+
+            case POLARSSL_KEY_EXCHANGE_DHE_RSA:
+            case POLARSSL_KEY_EXCHANGE_ECDHE_RSA:
+            case POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA:
+                usage = KU_DIGITAL_SIGNATURE;
+                break;
+
+            case POLARSSL_KEY_EXCHANGE_ECDH_RSA:
+            case POLARSSL_KEY_EXCHANGE_ECDH_ECDSA:
+                usage = KU_KEY_AGREEMENT;
+                break;
+
+            /* Don't use default: we want warnings when adding new values */
+            case POLARSSL_KEY_EXCHANGE_NONE:
+            case POLARSSL_KEY_EXCHANGE_PSK:
+            case POLARSSL_KEY_EXCHANGE_DHE_PSK:
+            case POLARSSL_KEY_EXCHANGE_ECDHE_PSK:
+                usage = 0;
+        }
+    }
+    else
+    {
+        /* Client auth: we only implement rsa_sign and ecdsa_sign for now */
+        usage = KU_DIGITAL_SIGNATURE;
+    }
+
+    if( x509_crt_check_key_usage( cert, usage ) != 0 )
+        return( -1 );
+#endif /* POLARSSL_X509_CHECK_KEY_USAGE */
+
+    return( 0 );
+}

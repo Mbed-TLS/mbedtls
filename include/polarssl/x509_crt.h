@@ -253,7 +253,7 @@ int x509_crt_verify( x509_crt *crt,
  *                 certificate to perform an RSA key exchange).
  *
  * \return         0 is these uses of the certificate are allowed,
- *                 POLARSSL_ERR_X509_BAD_INPUT_DATA if the keyUsage extenson
+ *                 POLARSSL_ERR_X509_BAD_INPUT_DATA if the keyUsage extension
  *                 is present but does not contain all the bits set in the
  *                 usage argument.
  *

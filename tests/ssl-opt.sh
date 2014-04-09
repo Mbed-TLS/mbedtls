@@ -151,8 +151,9 @@ run_test() {
     CLI_EXIT=$?
     echo "EXIT: $CLI_EXIT" >> cli_out
 
+    # psk is usefull when server only has bad certs
     if is_polar "$SRV_CMD"; then
-        "$P_CLI" request_page=SERVERQUIT tickets=0 auth_mode=none \
+        "$P_CLI" request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
             crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
             >/dev/null
     else
@@ -979,6 +980,161 @@ run_test    "ALPN #6 (both, no common)" \
             -S "Application Layer Protocol is 1234"
 
 fi
+
+# Tests for keyUsage in leaf certificates, part 1:
+# server-side certificate/suite selection
+
+run_test    "keyUsage srv #1 (RSA, digitalSignature -> ECDHE-RSA)" \
+            "$P_SRV key_file=data_files/server2.key \
+             crt_file=data_files/server2.ku-ds.crt" \
+            "$P_CLI" \
+            0 \
+            -c "Ciphersuite is TLS-ECDHE-RSA-WITH-"
+
+
+run_test    "keyUsage srv #2 (RSA, keyEncipherment -> RSA)" \
+            "$P_SRV key_file=data_files/server2.key \
+             crt_file=data_files/server2.ku-ke.crt" \
+            "$P_CLI" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-"
+
+# add psk to leave an option for client to send SERVERQUIT
+run_test    "keyUsage srv #3 (RSA, keyAgreement -> fail)" \
+            "$P_SRV psk=abc123 key_file=data_files/server2.key \
+             crt_file=data_files/server2.ku-ka.crt" \
+            "$P_CLI psk=badbad" \
+            1 \
+            -C "Ciphersuite is "
+
+run_test    "keyUsage srv #4 (ECDSA, digitalSignature -> ECDHE-ECDSA)" \
+            "$P_SRV key_file=data_files/server5.key \
+             crt_file=data_files/server5.ku-ds.crt" \
+            "$P_CLI" \
+            0 \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
+
+
+run_test    "keyUsage srv #5 (ECDSA, keyAgreement -> ECDH-)" \
+            "$P_SRV key_file=data_files/server5.key \
+             crt_file=data_files/server5.ku-ka.crt" \
+            "$P_CLI" \
+            0 \
+            -c "Ciphersuite is TLS-ECDH-"
+
+# add psk to leave an option for client to send SERVERQUIT
+run_test    "keyUsage srv #6 (ECDSA, keyEncipherment -> fail)" \
+            "$P_SRV psk=abc123 key_file=data_files/server5.key \
+             crt_file=data_files/server5.ku-ke.crt" \
+            "$P_CLI psk=badbad" \
+            1 \
+            -C "Ciphersuite is "
+
+# Tests for keyUsage in leaf certificates, part 2:
+# client-side checking of server cert
+
+run_test    "keyUsage cli #1 (DigitalSignature+KeyEncipherment, RSA: OK)" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ds_ke.crt" \
+            "$P_CLI debug_level=2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -C "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-"
+
+run_test    "keyUsage cli #2 (DigitalSignature+KeyEncipherment, DHE-RSA: OK)" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ds_ke.crt" \
+            "$P_CLI debug_level=2 \
+             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -C "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-"
+
+run_test    "keyUsage cli #3 (KeyEncipherment, RSA: OK)" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ke.crt" \
+            "$P_CLI debug_level=2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -C "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-"
+
+run_test    "keyUsage cli #4 (KeyEncipherment, DHE-RSA: fail)" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ke.crt" \
+            "$P_CLI debug_level=2 \
+             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -c "bad certificate (usage extensions)" \
+            -c "Processing of the Certificate handshake message failed" \
+            -C "Ciphersuite is TLS-"
+
+run_test    "keyUsage cli #5 (DigitalSignature, DHE-RSA: OK)" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ds.crt" \
+            "$P_CLI debug_level=2 \
+             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -C "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-"
+
+run_test    "keyUsage cli #5 (DigitalSignature, RSA: fail)" \
+            "$O_SRV -key data_files/server2.key \
+             -cert data_files/server2.ku-ds.crt" \
+            "$P_CLI debug_level=2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -c "bad certificate (usage extensions)" \
+            -c "Processing of the Certificate handshake message failed" \
+            -C "Ciphersuite is TLS-"
+
+# Tests for keyUsage in leaf certificates, part 3:
+# server-side checking of client cert
+
+run_test    "keyUsage cli-auth #1 (RSA, DigitalSignature: OK)" \
+            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$O_CLI -key data_files/server2.key \
+             -cert data_files/server2.ku-ds.crt" \
+            0 \
+            -S "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+run_test    "keyUsage cli-auth #2 (RSA, KeyEncipherment: fail (soft))" \
+            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$O_CLI -key data_files/server2.key \
+             -cert data_files/server2.ku-ke.crt" \
+            0 \
+            -s "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+run_test    "keyUsage cli-auth #3 (RSA, KeyEncipherment: fail (hard))" \
+            "$P_SRV debug_level=2 auth_mode=required" \
+            "$O_CLI -key data_files/server2.key \
+             -cert data_files/server2.ku-ke.crt" \
+            1 \
+            -s "bad certificate (usage extensions)" \
+            -s "Processing of the Certificate handshake message failed"
+
+run_test    "keyUsage cli-auth #4 (ECDSA, DigitalSignature: OK)" \
+            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$O_CLI -key data_files/server5.key \
+             -cert data_files/server5.ku-ds.crt" \
+            0 \
+            -S "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+run_test    "keyUsage cli-auth #5 (ECDSA, KeyAgreement: fail (soft))" \
+            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$O_CLI -key data_files/server5.key \
+             -cert data_files/server5.ku-ka.crt" \
+            0 \
+            -s "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
 
 # Final report
 

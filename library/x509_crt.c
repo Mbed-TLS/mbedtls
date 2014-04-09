@@ -1360,6 +1360,17 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
     return( (int) ( size - n ) );
 }
 
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+int x509_crt_check_key_usage( const x509_crt *crt, int usage )
+{
+    if( ( crt->ext_types & EXT_KEY_USAGE ) != 0 &&
+        ( crt->key_usage & usage ) != usage )
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+
+    return( 0 );
+}
+#endif
+
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.
@@ -1412,6 +1423,17 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
             crl_list = crl_list->next;
             continue;
         }
+
+        /*
+         * Check if the CA is configured to sign CRLs
+         */
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+        if( x509_crt_check_key_usage( ca, KU_CRL_SIGN ) != 0 )
+        {
+            flags |= BADCRL_NOT_TRUSTED;
+            break;
+        }
+#endif
 
         /*
          * Check if CRL is correctly signed by the trusted CA
@@ -1516,6 +1538,30 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
     return( 0 );
 }
 
+/*
+ * Check if 'parent' is a suitable parent (signing CA) for 'child'.
+ * Return 0 if yes, -1 if not.
+ */
+static int x509_crt_check_parent( const x509_crt *child,
+                                  const x509_crt *parent )
+{
+    if( parent->version == 0 ||
+        parent->ca_istrue == 0 ||
+        child->issuer_raw.len != parent->subject_raw.len ||
+        memcmp( child->issuer_raw.p, parent->subject_raw.p,
+                child->issuer_raw.len ) != 0 )
+    {
+        return( -1 );
+    }
+
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    if( x509_crt_check_key_usage( parent, KU_KEY_CERT_SIGN ) != 0 )
+        return( -1 );
+#endif
+
+    return( 0 );
+}
+
 static int x509_crt_verify_top(
                 x509_crt *child, x509_crt *trust_ca,
                 x509_crl *ca_crl, int path_cnt, int *flags,
@@ -1549,16 +1595,10 @@ static int x509_crt_verify_top(
     else
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-    while( trust_ca != NULL )
+    for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {
-        if( trust_ca->version == 0 ||
-            child->issuer_raw.len != trust_ca->subject_raw.len ||
-            memcmp( child->issuer_raw.p, trust_ca->subject_raw.p,
-                    child->issuer_raw.len ) != 0 )
-        {
-            trust_ca = trust_ca->next;
+        if( x509_crt_check_parent( child, trust_ca ) != 0 )
             continue;
-        }
 
         /*
          * Reduce path_len to check against if top of the chain is
@@ -1574,7 +1614,6 @@ static int x509_crt_verify_top(
         if( trust_ca->max_pathlen > 0 &&
             trust_ca->max_pathlen < check_path_cnt )
         {
-            trust_ca = trust_ca->next;
             continue;
         }
 
@@ -1582,7 +1621,6 @@ static int x509_crt_verify_top(
             pk_verify( &trust_ca->pk, child->sig_md, hash, md_info->size,
                        child->sig.p, child->sig.len ) != 0 )
         {
-            trust_ca = trust_ca->next;
             continue;
         }
 
@@ -1678,34 +1716,27 @@ static int x509_crt_verify_child(
     *flags |= x509_crt_verifycrl(child, parent, ca_crl);
 #endif
 
-    grandparent = parent->next;
-
-    while( grandparent != NULL )
+    /* Look for a grandparent upwards the chain */
+    for( grandparent = parent->next;
+         grandparent != NULL;
+         grandparent = grandparent->next )
     {
-        if( grandparent->version == 0 ||
-            grandparent->ca_istrue == 0 ||
-            parent->issuer_raw.len != grandparent->subject_raw.len ||
-            memcmp( parent->issuer_raw.p, grandparent->subject_raw.p,
-                    parent->issuer_raw.len ) != 0 )
-        {
-            grandparent = grandparent->next;
-            continue;
-        }
-        break;
+        if( x509_crt_check_parent( parent, grandparent ) == 0 )
+            break;
     }
 
+    /* Is our parent part of the chain or at the top? */
     if( grandparent != NULL )
     {
-        /*
-         * Part of the chain
-         */
-        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
+                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( parent, trust_ca, ca_crl,
+                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -1789,37 +1820,25 @@ int x509_crt_verify( x509_crt *crt,
         }
     }
 
-    /*
-     * Iterate upwards in the given cert chain, to find our crt parent.
-     * Ignore any upper cert with CA != TRUE.
-     */
-    parent = crt->next;
-
-    while( parent != NULL && parent->version != 0 )
+    /* Look for a parent upwards the chain */
+    for( parent = crt->next; parent != NULL; parent = parent->next )
     {
-        if( parent->ca_istrue == 0 ||
-            crt->issuer_raw.len != parent->subject_raw.len ||
-            memcmp( crt->issuer_raw.p, parent->subject_raw.p,
-                    crt->issuer_raw.len ) != 0 )
-        {
-            parent = parent->next;
-            continue;
-        }
-        break;
+        if( x509_crt_check_parent( crt, parent ) == 0 )
+            break;
     }
 
+    /* Are we part of the chain or at the top? */
     if( parent != NULL )
     {
-        /*
-         * Part of the chain
-         */
-        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl,
+                                     pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( crt, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( crt, trust_ca, ca_crl,
+                                   pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }

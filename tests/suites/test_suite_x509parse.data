@@ -442,6 +442,26 @@ X509 Certificate verification #51 (Valid, multiple CAs, reverse order)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_RSA_C:POLARSSL_ECP_DP_SECP192R1_ENABLED:POLARSSL_PKCS1_V15
 x509_verify:"data_files/server2.crt":"data_files/test-ca_cat21.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #52 (CA keyUsage valid)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-crt_crl.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #53 (CA keyUsage missing cRLSign)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-crt.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_NOT_TRUSTED:"NULL"
+
+X509 Certificate verification #54 (CA keyUsage missing cRLSign, no CRL)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-crt.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #55 (CA keyUsage missing keyCertSign)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-crl.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+
+X509 Certificate verification #55 (CA keyUsage plain wrong)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-ds.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+
 X509 Parse Selftest
 depends_on:POLARSSL_MD5_C:POLARSSL_PEM_PARSE_C
 x509_selftest:
@@ -826,3 +846,28 @@ x509_oid_numstr:"2A864886F70D":"1.2.840.113549":15:14
 
 X509 OID numstring #5 (arithmetic overflow)
 x509_oid_numstr:"2A8648F9F8F7F6F5F4F3F2F1F001":"":100:POLARSSL_ERR_OID_BUF_TOO_SMALL
+
+X509 crt keyUsage #1 (no extension, expected KU)
+x509_check_key_usage:"data_files/server1.crt":KU_DIGITAL_SIGNATURE|KU_KEY_ENCIPHERMENT:0
+
+X509 crt keyUsage #2 (no extension, suprising KU)
+x509_check_key_usage:"data_files/server1.crt":KU_KEY_CERT_SIGN:0
+
+X509 crt keyUsage #3 (extension present, no KU)
+x509_check_key_usage:"data_files/server1.key_usage.crt":0:0
+
+X509 crt keyUsage #4 (extension present, single KU present)
+x509_check_key_usage:"data_files/server1.key_usage.crt":KU_DIGITAL_SIGNATURE:0
+
+X509 crt keyUsage #5 (extension present, single KU absent)
+x509_check_key_usage:"data_files/server1.key_usage.crt":KU_KEY_CERT_SIGN:POLARSSL_ERR_X509_BAD_INPUT_DATA
+
+X509 crt keyUsage #6 (extension present, combined KU present)
+x509_check_key_usage:"data_files/server1.key_usage.crt":KU_DIGITAL_SIGNATURE|KU_KEY_ENCIPHERMENT:0
+
+X509 crt keyUsage #7 (extension present, combined KU both absent)
+x509_check_key_usage:"data_files/server1.key_usage.crt":KU_KEY_CERT_SIGN|KU_CRL_SIGN:POLARSSL_ERR_X509_BAD_INPUT_DATA
+
+X509 crt keyUsage #8 (extension present, combined KU one absent)
+x509_check_key_usage:"data_files/server1.key_usage.crt":KU_KEY_ENCIPHERMENT|KU_KEY_AGREEMENT:POLARSSL_ERR_X509_BAD_INPUT_DATA
+

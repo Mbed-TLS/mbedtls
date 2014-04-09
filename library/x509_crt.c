@@ -1607,6 +1607,7 @@ static int x509_crt_verify_top(
     while( trust_ca != NULL )
     {
         if( trust_ca->version == 0 ||
+            trust_ca->ca_istrue == 0 ||
             child->issuer_raw.len != trust_ca->subject_raw.len ||
             memcmp( child->issuer_raw.p, trust_ca->subject_raw.p,
                     child->issuer_raw.len ) != 0 )

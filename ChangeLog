@@ -6,6 +6,7 @@ ABI Alert: ALPN changes the ABI for the next release.
 
 Features
    * Support for the ALPN SSL extension
+   * Add option 'use_dev_random' to gen_key application
 
 Changes
    * x509_crt_info() now prints information about parsed extensions as well

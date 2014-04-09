@@ -29,6 +29,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#if !defined(_WIN32) && defined(POLARSSL_FS_IO)
+#include <unistd.h>
+#endif /* !_WIN32 && POLARSSL_FS_IO */
+
 #include "polarssl/error.h"
 #include "polarssl/pk.h"
 #include "polarssl/ecdsa.h"
@@ -59,6 +63,7 @@ int main( int argc, char *argv[] )
 #define DFL_EC_CURVE            ecp_curve_list()->grp_id
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_FORMAT              FORMAT_PEM
+#define DFL_USE_DEV_RANDOM      0
 
 /*
  * global options
@@ -70,7 +75,47 @@ struct options
     int ec_curve;               /* curve identifier for EC keys         */
     const char *filename;       /* filename of the key file             */
     int format;                 /* the output format to use             */
+    int use_dev_random;         /* use /dev/random as entropy source    */
 } opt;
+
+#if !defined(_WIN32) && defined(POLARSSL_FS_IO)
+
+#define DEV_RANDOM_THRESHOLD        32
+
+int dev_random_entropy_poll( void *data, unsigned char *output,
+                             size_t len, size_t *olen )
+{
+    FILE *file;
+    size_t ret, left = len;
+    unsigned char *p = output;
+    ((void) data);
+
+    *olen = 0;
+
+    file = fopen( "/dev/random", "rb" );
+    if( file == NULL )
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+
+    while( left > 0 )
+    {
+        /* /dev/random can return much less than requested. If so, try again */
+        ret = fread( p, 1, left, file );
+        if( ret == 0 && ferror( file ) )
+        {
+            fclose( file );
+            return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+        }
+
+        p += ret;
+        left -= ret;
+        sleep( 1 );
+    }
+    fclose( file );
+    *olen = len;
+
+    return( 0 );
+}
+#endif /* !_WIN32 && POLARSSL_FS_IO */
 
 static int write_private_key( pk_context *key, const char *output_file )
 {
@@ -108,6 +153,13 @@ static int write_private_key( pk_context *key, const char *output_file )
     return( 0 );
 }
 
+#if !defined(_WIN32) && defined(POLARSSL_FS_IO)
+#define USAGE_DEV_RANDOM \
+    "    use_dev_random=0|1    default: 0\n"
+#else
+#define USAGE_DEV_RANDOM ""
+#endif /* !_WIN32 && POLARSSL_FS_IO */
+
 #define USAGE \
     "\n usage: gen_key param=<>...\n"                   \
     "\n acceptable parameters:\n"                       \
@@ -116,6 +168,7 @@ static int write_private_key( pk_context *key, const char *output_file )
     "    ec_curve=%%s           see below\n"            \
     "    filename=%%s           default: keyfile.key\n" \
     "    format=pem|der        default: pem\n"          \
+    USAGE_DEV_RANDOM                                    \
     "\n"
 
 int main( int argc, char *argv[] )
@@ -158,6 +211,7 @@ int main( int argc, char *argv[] )
     opt.ec_curve            = DFL_EC_CURVE;
     opt.filename            = DFL_FILENAME;
     opt.format              = DFL_FORMAT;
+    opt.use_dev_random      = DFL_USE_DEV_RANDOM;
 
     for( i = 1; i < argc; i++ )
     {
@@ -198,6 +252,12 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "filename" ) == 0 )
             opt.filename = q;
+        else if( strcmp( p, "use_dev_random" ) == 0 )
+        {
+            opt.use_dev_random = atoi( q );
+            if( opt.use_dev_random < 0 || opt.use_dev_random > 1 )
+                goto usage;
+        }
         else
             goto usage;
     }
@@ -206,6 +266,21 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     entropy_init( &entropy );
+#if !defined(_WIN32) && defined(POLARSSL_FS_IO)
+    if( opt.use_dev_random )
+    {
+        if( ( ret = entropy_add_source( &entropy, dev_random_entropy_poll,
+                                        NULL, DEV_RANDOM_THRESHOLD ) ) != 0 )
+        {
+            printf( " failed\n  ! entropy_add_source returned -0x%04x\n", -ret );
+            goto exit;
+        }
+
+        printf("\n    Using /dev/random, so can take a long time! " );
+        fflush( stdout );
+    }
+#endif /* !_WIN32 && POLARSSL_FS_IO */
+
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )

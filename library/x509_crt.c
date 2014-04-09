@@ -1595,13 +1595,10 @@ static int x509_crt_verify_top(
     else
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-    while( trust_ca != NULL )
+    for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {
         if( x509_crt_check_parent( child, trust_ca ) != 0 )
-        {
-            trust_ca = trust_ca->next;
             continue;
-        }
 
         /*
          * Reduce path_len to check against if top of the chain is
@@ -1617,7 +1614,6 @@ static int x509_crt_verify_top(
         if( trust_ca->max_pathlen > 0 &&
             trust_ca->max_pathlen < check_path_cnt )
         {
-            trust_ca = trust_ca->next;
             continue;
         }
 
@@ -1625,7 +1621,6 @@ static int x509_crt_verify_top(
             pk_verify( &trust_ca->pk, child->sig_md, hash, md_info->size,
                        child->sig.p, child->sig.len ) != 0 )
         {
-            trust_ca = trust_ca->next;
             continue;
         }
 
@@ -1733,16 +1728,15 @@ static int x509_crt_verify_child(
     /* Is our parent part of the chain or at the top? */
     if( grandparent != NULL )
     {
-        /*
-         * Part of the chain
-         */
-        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_child( parent, grandparent, trust_ca, ca_crl,
+                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( parent, trust_ca, ca_crl, path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( parent, trust_ca, ca_crl,
+                                path_cnt + 1, &parent_flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
@@ -1836,16 +1830,15 @@ int x509_crt_verify( x509_crt *crt,
     /* Are we part of the chain or at the top? */
     if( parent != NULL )
     {
-        /*
-         * Part of the chain
-         */
-        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_child( crt, parent, trust_ca, ca_crl,
+                                     pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }
     else
     {
-        ret = x509_crt_verify_top( crt, trust_ca, ca_crl, pathlen, flags, f_vrfy, p_vrfy );
+        ret = x509_crt_verify_top( crt, trust_ca, ca_crl,
+                                   pathlen, flags, f_vrfy, p_vrfy );
         if( ret != 0 )
             return( ret );
     }

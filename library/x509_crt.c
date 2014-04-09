@@ -1539,36 +1539,27 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
 }
 
 /*
- * Iterate upwards in the given cert chain to find our parent.
- *
- * Ignore any upper cert that can't be used to sign other certificates
- * (basic constraints CA=true for now, keyUsage soon).
+ * Check if 'parent' is a suitable parent (signing CA) for 'child'.
+ * Return 0 if yes, -1 if not.
  */
-static x509_crt *x509_crt_find_parent( x509_crt *crt )
+static int x509_crt_check_parent( const x509_crt *child,
+                                  const x509_crt *parent )
 {
-    x509_crt *parent;
-
-    for( parent = crt->next; parent != NULL; parent = parent->next )
+    if( parent->version == 0 ||
+        parent->ca_istrue == 0 ||
+        child->issuer_raw.len != parent->subject_raw.len ||
+        memcmp( child->issuer_raw.p, parent->subject_raw.p,
+                child->issuer_raw.len ) != 0 )
     {
-        if( parent->version == 0 ||
-            parent->ca_istrue == 0 ||
-            crt->issuer_raw.len != parent->subject_raw.len ||
-            memcmp( crt->issuer_raw.p, parent->subject_raw.p,
-                    crt->issuer_raw.len ) != 0 )
-        {
-            continue;
-        }
-
-#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
-        if( x509_crt_check_key_usage( parent, KU_KEY_CERT_SIGN ) != 0 )
-            continue;
-#endif
-
-        /* If we get there, we found a suitable parent */
-        break;
+        return( -1 );
     }
 
-    return( parent );
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    if( x509_crt_check_key_usage( parent, KU_KEY_CERT_SIGN ) != 0 )
+        return( -1 );
+#endif
+
+    return( 0 );
 }
 
 static int x509_crt_verify_top(
@@ -1606,23 +1597,11 @@ static int x509_crt_verify_top(
 
     while( trust_ca != NULL )
     {
-        if( trust_ca->version == 0 ||
-            trust_ca->ca_istrue == 0 ||
-            child->issuer_raw.len != trust_ca->subject_raw.len ||
-            memcmp( child->issuer_raw.p, trust_ca->subject_raw.p,
-                    child->issuer_raw.len ) != 0 )
+        if( x509_crt_check_parent( child, trust_ca ) != 0 )
         {
             trust_ca = trust_ca->next;
             continue;
         }
-
-#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
-        if( x509_crt_check_key_usage( trust_ca, KU_KEY_CERT_SIGN ) != 0 )
-        {
-            trust_ca = trust_ca->next;
-            continue;
-        }
-#endif
 
         /*
          * Reduce path_len to check against if top of the chain is
@@ -1742,7 +1721,17 @@ static int x509_crt_verify_child(
     *flags |= x509_crt_verifycrl(child, parent, ca_crl);
 #endif
 
-    if( ( grandparent = x509_crt_find_parent( parent) ) != NULL )
+    /* Look for a grandparent upwards the chain */
+    for( grandparent = parent->next;
+         grandparent != NULL;
+         grandparent = grandparent->next )
+    {
+        if( x509_crt_check_parent( parent, grandparent ) == 0 )
+            break;
+    }
+
+    /* Is our parent part of the chain or at the top? */
+    if( grandparent != NULL )
     {
         /*
          * Part of the chain
@@ -1837,7 +1826,15 @@ int x509_crt_verify( x509_crt *crt,
         }
     }
 
-    if( ( parent = x509_crt_find_parent( crt ) ) != NULL )
+    /* Look for a parent upwards the chain */
+    for( parent = crt->next; parent != NULL; parent = parent->next )
+    {
+        if( x509_crt_check_parent( crt, parent ) == 0 )
+            break;
+    }
+
+    /* Are we part of the chain or at the top? */
+    if( parent != NULL )
     {
         /*
          * Part of the chain

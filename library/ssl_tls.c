@@ -4765,6 +4765,7 @@ int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id )
 }
 #endif
 
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 int ssl_check_cert_usage( const x509_crt *cert,
                           const ssl_ciphersuite_t *ciphersuite,
                           int cert_endpoint )
@@ -4821,3 +4822,4 @@ int ssl_check_cert_usage( const x509_crt *cert,
 
     return( 0 );
 }
+#endif /* POLARSSL_X509_CRT_PARSE_C */

@@ -958,6 +958,20 @@
 //#define POLARSSL_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
 
 /**
+ * \def POLARSSL_X509_CHECK_KEY_USAGE
+ *
+ * Enable verification of the keyUsage extension (CA and leaf certificates).
+ *
+ * Disabling this avoids problems with mis-issued and/or misused
+ * (intermediate) CA and leaf certificates.
+ *
+ * \warning Depending on your PKI use, disabling this can be a security risk!
+ *
+ * Comment to skip keyUsage checking for both CA and leaf certificates.
+ */
+#define POLARSSL_X509_CHECK_KEY_USAGE
+
+/**
  * \def POLARSSL_ZLIB_SUPPORT
  *
  * If set, the SSL/TLS module uses ZLIB to support compression and

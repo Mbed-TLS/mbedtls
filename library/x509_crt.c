@@ -1360,6 +1360,17 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
     return( (int) ( size - n ) );
 }
 
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+int x509_crt_check_key_usage( const x509_crt *crt, int usage )
+{
+    if( ( crt->ext_types & EXT_KEY_USAGE ) != 0 &&
+        ( crt->key_usage & usage ) != usage )
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+
+    return( 0 );
+}
+#endif
+
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.

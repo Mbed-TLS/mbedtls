@@ -244,6 +244,26 @@ int x509_crt_verify( x509_crt *crt,
                      int (*f_vrfy)(void *, x509_crt *, int, int *),
                      void *p_vrfy );
 
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+/**
+ * \brief          Check usage of certificate against keyUsage extension.
+ *
+ * \param crt      Leaf certificate used.
+ * \param usage    Intended usage(s) (eg KU_KEY_ENCIPHERMENT before using the
+ *                 certificate to perform an RSA key exchange).
+ *
+ * \return         0 is these uses of the certificate are allowed,
+ *                 POLARSSL_ERR_X509_BAD_INPUT_DATA if the keyUsage extenson
+ *                 is present but does not contain all the bits set in the
+ *                 usage argument.
+ *
+ * \note           You should only call this function on leaf certificates, on
+ *                 (intermediate) CAs the keyUsage extension is automatically
+ *                 checked by \c x509_crt_verify().
+ */
+int x509_crt_check_key_usage( const x509_crt *crt, int usage );
+#endif /* POLARSSL_X509_CHECK_KEY_USAGE) */
+
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /**
  * \brief          Verify the certificate revocation status

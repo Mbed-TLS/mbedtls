@@ -4769,6 +4769,12 @@ int ssl_check_cert_usage( const x509_crt *cert,
                           const ssl_ciphersuite_t *ciphersuite,
                           int cert_endpoint )
 {
+#if !defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    ((void) cert);
+    ((void) ciphersuite);
+    ((void) cert_endpoint);
+#endif
+
 #if defined(POLARSSL_X509_CHECK_KEY_USAGE)
     int usage = 0;
 #endif

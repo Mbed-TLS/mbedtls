@@ -871,3 +871,24 @@ x509_check_key_usage:"data_files/server1.key_usage.crt":KU_KEY_CERT_SIGN|KU_CRL_
 X509 crt keyUsage #8 (extension present, combined KU one absent)
 x509_check_key_usage:"data_files/server1.key_usage.crt":KU_KEY_ENCIPHERMENT|KU_KEY_AGREEMENT:POLARSSL_ERR_X509_BAD_INPUT_DATA
 
+X509 crt extendedKeyUsage #1 (no extension, serverAuth)
+x509_check_extended_key_usage:"data_files/server5.crt":"2B06010505070301":0
+
+X509 crt extendedKeyUsage #2 (single value, present)
+x509_check_extended_key_usage:"data_files/server5.eku-srv.crt":"2B06010505070301":0
+
+X509 crt extendedKeyUsage #3 (single value, absent)
+x509_check_extended_key_usage:"data_files/server5.eku-cli.crt":"2B06010505070301":POLARSSL_ERR_X509_BAD_INPUT_DATA
+
+X509 crt extendedKeyUsage #4 (two values, first)
+x509_check_extended_key_usage:"data_files/server5.eku-srv_cli.crt":"2B06010505070301":0
+
+X509 crt extendedKeyUsage #5 (two values, second)
+x509_check_extended_key_usage:"data_files/server5.eku-srv_cli.crt":"2B06010505070302":0
+
+X509 crt extendedKeyUsage #6 (two values, other)
+x509_check_extended_key_usage:"data_files/server5.eku-srv_cli.crt":"2B06010505070303":POLARSSL_ERR_X509_BAD_INPUT_DATA
+
+X509 crt extendedKeyUsage #7 (any, random)
+x509_check_extended_key_usage:"data_files/server5.eku-cs_any.crt":"2B060105050703FF":0
+

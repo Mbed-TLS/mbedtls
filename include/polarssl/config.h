@@ -972,6 +972,19 @@
 #define POLARSSL_X509_CHECK_KEY_USAGE
 
 /**
+ * \def POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE
+ *
+ * Enable verification of the extendedKeyUsage extension (leaf certificates).
+ *
+ * Disabling this avoids problems with mis-issued and/or misused certificates.
+ *
+ * \warning Depending on your PKI use, disabling this can be a security risk!
+ *
+ * Comment to skip extendedKeyUsage checking for certificates.
+ */
+#define POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE
+
+/**
  * \def POLARSSL_ZLIB_SUPPORT
  *
  * If set, the SSL/TLS module uses ZLIB to support compression and

@@ -44,6 +44,8 @@ Bugfix
    * pk_get_size() and pk_get_len() were off by a factor 8 for RSA-alt keys.
    * Potential buffer overwrite in pem_write_buffer() because of low length
      indication (found by Thijs Alkemade)
+   * EC curves constants, which should be only in ROM since 1.3.3, were also
+     stored in RAM due to missing 'const's (found by Gergely Budai).
 
 = PolarSSL 1.3.5 released on 2014-03-26
 Features

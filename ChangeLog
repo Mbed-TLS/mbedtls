@@ -1,8 +1,6 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
-ABI Alert: ALPN changes the ABI for the next release.
-
-= PolarSSL 1.3 branch
+= PolarSSL 1.3.6 released on 2014-04-11
 
 Features
    * Support for the ALPN SSL extension

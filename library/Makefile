@@ -22,9 +22,9 @@ ifdef SHARED
 CFLAGS += -fPIC
 endif
 
-SONAME=libpolarssl.so.5
+SONAME=libpolarssl.so.6
 
-DLEXT=so.5
+DLEXT=so.6
 # OSX shared library extension:
 # DLEXT=dylib
 

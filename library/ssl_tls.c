@@ -1159,12 +1159,14 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                                     ssl->transform_out->ivlen ) ) != 0 ||
             ( ret = cipher_reset( &ssl->transform_out->cipher_ctx_enc ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_reset", ret );
             return( ret );
         }
 
         if( ( ret = cipher_update_ad( &ssl->transform_out->cipher_ctx_enc,
                                       add_data, 13 ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_update_ad", ret );
             return( ret );
         }
 
@@ -1172,6 +1174,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                                    enc_msg, enc_msglen,
                                    enc_msg, &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_update", ret );
             return( ret );
         }
         totlen = olen;
@@ -1179,6 +1182,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         if( ( ret = cipher_finish( &ssl->transform_out->cipher_ctx_enc,
                                    enc_msg + olen, &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_finish", ret );
             return( ret );
         }
         totlen += olen;
@@ -1197,6 +1201,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         if( ( ret = cipher_write_tag( &ssl->transform_out->cipher_ctx_enc,
                                       enc_msg + enc_msglen, 16 ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_write_tag", ret );
             return( ret );
         }
 
@@ -1450,12 +1455,14 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                     ssl->transform_in->ivlen ) ) != 0 ||
             ( ret = cipher_reset( &ssl->transform_in->cipher_ctx_dec ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_reset", ret );
             return( ret );
         }
 
         if( ( ret = cipher_update_ad( &ssl->transform_in->cipher_ctx_dec,
                                       add_data, 13 ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_update_ad", ret );
             return( ret );
         }
 
@@ -1463,6 +1470,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                    dec_msg, dec_msglen,
                                    dec_msg_result, &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_update", ret );
             return( ret );
         }
         totlen = olen;
@@ -1470,6 +1478,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( ( ret = cipher_finish( &ssl->transform_in->cipher_ctx_dec,
                                    dec_msg_result + olen, &olen ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_finish", ret );
             return( ret );
         }
         totlen += olen;

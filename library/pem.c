@@ -382,10 +382,11 @@ int pem_write_buffer( const char *header, const char *footer,
 {
     int ret;
     unsigned char *encode_buf, *c, *p = buf;
-    size_t len = 0, use_len = 0;
-    size_t add_len = strlen( header ) + strlen( footer ) + ( use_len / 64 ) + 1;
+    size_t len = 0, use_len = 0, add_len = 0;
 
     base64_encode( NULL, &use_len, der_data, der_len );
+    add_len = strlen( header ) + strlen( footer ) + ( use_len / 64 ) + 1;
+
     if( use_len + add_len > buf_len )
     {
         *olen = use_len + add_len;

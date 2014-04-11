@@ -42,6 +42,8 @@ Bugfix
    * dhm_parse_dhm() (hence dhm_parse_dhmfile()) did not set dhm->len.
    * Calling pk_debug() on an RSA-alt key would segfault.
    * pk_get_size() and pk_get_len() were off by a factor 8 for RSA-alt keys.
+   * Potential buffer overwrite in pem_write_buffer() because of low length
+     indication (found by Thijs Alkemade)
 
 = PolarSSL 1.3.5 released on 2014-03-26
 Features

@@ -1,0 +1,38 @@
+/* BEGIN_HEADER */
+#include <polarssl/base64.h>
+#include <polarssl/pem.h>
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_PEM_WRITE_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void pem_write_buffer( char *start, char *end, char *buf_str, char *result_str )
+{
+    unsigned char buf[5000];
+    unsigned char *check_buf;
+    int ret;
+    size_t buf_len, olen = 0, olen2 = 0;
+
+    memset( buf, 0, sizeof( buf ) );
+
+    buf_len = unhexify( buf, buf_str );
+
+    ret = pem_write_buffer( start, end, buf, buf_len, NULL, 0, &olen );
+    TEST_ASSERT( ret == POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
+
+    check_buf = (unsigned char *) polarssl_malloc( olen );
+    TEST_ASSERT( check_buf != NULL );
+
+    memset( check_buf, 0, olen );
+    ret = pem_write_buffer( start, end, buf, buf_len, check_buf, olen, &olen2 );
+
+    TEST_ASSERT( olen2 <= olen );
+    TEST_ASSERT( olen > strlen( (char*) result_str ) );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( strncmp( (char *) check_buf, (char *) result_str, olen ) == 0 );
+    polarssl_free( check_buf );
+}
+/* END_CASE */

@@ -58,6 +58,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_hmac_drbg.pr							\
 		test_suite_md			test_suite_mdx			\
 		test_suite_mpi			test_suite_pbkdf2		\
+		test_suite_pem									\
 		test_suite_pkcs1_v21	test_suite_pkcs5		\
 		test_suite_pkparse		test_suite_pkwrite		\
 		test_suite_pk									\
@@ -318,6 +319,10 @@ test_suite_mpi: test_suite_mpi.c $(DEP)
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_pbkdf2: test_suite_pbkdf2.c $(DEP)
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_pem: test_suite_pem.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

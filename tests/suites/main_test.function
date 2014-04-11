@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 static int test_errors = 0;
 
 SUITE_PRE_DEP

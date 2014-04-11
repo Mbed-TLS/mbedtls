@@ -1136,6 +1136,113 @@ run_test    "keyUsage cli-auth #5 (ECDSA, KeyAgreement: fail (soft))" \
             -s "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
+# Tests for extendedKeyUsage, part 1: server-side certificate/suite selection
+
+run_test    "extKeyUsage srv #1 (serverAuth -> OK)" \
+            "$P_SRV key_file=data_files/server5.key \
+             crt_file=data_files/server5.eku-srv.crt" \
+            "$P_CLI" \
+            0
+
+run_test    "extKeyUsage srv #2 (serverAuth,clientAuth -> OK)" \
+            "$P_SRV key_file=data_files/server5.key \
+             crt_file=data_files/server5.eku-srv.crt" \
+            "$P_CLI" \
+            0
+
+run_test    "extKeyUsage srv #3 (codeSign,anyEKU -> OK)" \
+            "$P_SRV key_file=data_files/server5.key \
+             crt_file=data_files/server5.eku-cs_any.crt" \
+            "$P_CLI" \
+            0
+
+# add psk to leave an option for client to send SERVERQUIT
+run_test    "extKeyUsage srv #4 (codeSign -> fail)" \
+            "$P_SRV psk=abc123 key_file=data_files/server5.key \
+             crt_file=data_files/server5.eku-cli.crt" \
+            "$P_CLI psk=badbad" \
+            1
+
+# Tests for extendedKeyUsage, part 2: client-side checking of server cert
+
+run_test    "extKeyUsage cli #1 (serverAuth -> OK)" \
+            "$O_SRV -key data_files/server5.key \
+             -cert data_files/server5.eku-srv.crt" \
+            "$P_CLI debug_level=2" \
+            0 \
+            -C "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-"
+
+run_test    "extKeyUsage cli #2 (serverAuth,clientAuth -> OK)" \
+            "$O_SRV -key data_files/server5.key \
+             -cert data_files/server5.eku-srv_cli.crt" \
+            "$P_CLI debug_level=2" \
+            0 \
+            -C "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-"
+
+run_test    "extKeyUsage cli #3 (codeSign,anyEKU -> OK)" \
+            "$O_SRV -key data_files/server5.key \
+             -cert data_files/server5.eku-cs_any.crt" \
+            "$P_CLI debug_level=2" \
+            0 \
+            -C "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-"
+
+run_test    "extKeyUsage cli #4 (codeSign -> fail)" \
+            "$O_SRV -key data_files/server5.key \
+             -cert data_files/server5.eku-cs.crt" \
+            "$P_CLI debug_level=2" \
+            1 \
+            -c "bad certificate (usage extensions)" \
+            -c "Processing of the Certificate handshake message failed" \
+            -C "Ciphersuite is TLS-"
+
+# Tests for extendedKeyUsage, part 3: server-side checking of client cert
+
+run_test    "extKeyUsage cli-auth #1 (clientAuth -> OK)" \
+            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$O_CLI -key data_files/server5.key \
+             -cert data_files/server5.eku-cli.crt" \
+            0 \
+            -S "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+run_test    "extKeyUsage cli-auth #2 (serverAuth,clientAuth -> OK)" \
+            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$O_CLI -key data_files/server5.key \
+             -cert data_files/server5.eku-srv_cli.crt" \
+            0 \
+            -S "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+run_test    "extKeyUsage cli-auth #3 (codeSign,anyEKU -> OK)" \
+            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$O_CLI -key data_files/server5.key \
+             -cert data_files/server5.eku-cs_any.crt" \
+            0 \
+            -S "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+run_test    "extKeyUsage cli-auth #4 (codeSign -> fail (soft))" \
+            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$O_CLI -key data_files/server5.key \
+             -cert data_files/server5.eku-cs.crt" \
+            0 \
+            -s "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+run_test    "extKeyUsage cli-auth #4b (codeSign -> fail (hard))" \
+            "$P_SRV debug_level=2 auth_mode=required" \
+            "$O_CLI -key data_files/server5.key \
+             -cert data_files/server5.eku-cs.crt" \
+            1 \
+            -s "bad certificate (usage extensions)" \
+            -s "Processing of the Certificate handshake message failed"
+
 # Final report
 
 echo "------------------------------------------------------------------------"

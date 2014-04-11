@@ -331,6 +331,25 @@ void x509_check_key_usage( char *crt_file, int usage, int ret )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE */
+void x509_check_extended_key_usage( char *crt_file, char *usage_hex, int ret )
+{
+    x509_crt crt;
+    char oid[50];
+    size_t len;
+
+    x509_crt_init( &crt );
+
+    len = unhexify( (unsigned char *) oid, usage_hex );
+
+    TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
+
+    TEST_ASSERT( x509_crt_check_extended_key_usage( &crt, oid, len ) == ret );
+
+    x509_crt_free( &crt );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_SELF_TEST */
 void x509_selftest()
 {

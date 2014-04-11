@@ -7,8 +7,10 @@ ABI Alert: ALPN changes the ABI for the next release.
 Features
    * Support for the ALPN SSL extension
    * Add option 'use_dev_random' to gen_key application
-   * Enable verification of the keyUsage extension with for CA and leaf
+   * Enable verification of the keyUsage extension for CA and leaf
      certificates (POLARSSL_X509_CHECK_KEY_USAGE)
+   * Enable verification of the extendedKeyUsage extension
+     (POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
 
 Changes
    * x509_crt_info() now prints information about parsed extensions as well

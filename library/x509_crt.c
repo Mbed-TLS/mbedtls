@@ -1371,6 +1371,38 @@ int x509_crt_check_key_usage( const x509_crt *crt, int usage )
 }
 #endif
 
+#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+int x509_crt_check_extended_key_usage( const x509_crt *crt,
+                                       const char *usage_oid,
+                                       size_t usage_len )
+{
+    const x509_sequence *cur;
+
+    /* Extension is not mandatory, absent means no restriction */
+    if( ( crt->ext_types & EXT_EXTENDED_KEY_USAGE ) == 0 )
+        return( 0 );
+
+    /*
+     * Look for the requested usage (or wildcard ANY) in our list
+     */
+    for( cur = &crt->ext_key_usage; cur != NULL; cur = cur->next )
+    {
+        const x509_buf *cur_oid = &cur->buf;
+
+        if( cur_oid->len == usage_len &&
+            memcmp( cur_oid->p, usage_oid, usage_len ) == 0 )
+        {
+            return( 0 );
+        }
+
+        if( OID_CMP( OID_ANY_EXTENDED_KEY_USAGE, cur_oid ) )
+            return( 0 );
+    }
+
+    return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+}
+#endif
+
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.

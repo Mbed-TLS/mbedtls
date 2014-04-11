@@ -264,6 +264,24 @@ int x509_crt_verify( x509_crt *crt,
 int x509_crt_check_key_usage( const x509_crt *crt, int usage );
 #endif /* POLARSSL_X509_CHECK_KEY_USAGE) */
 
+#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+/**
+ * \brief          Check usage of certificate against extentedJeyUsage.
+ *
+ * \param crt      Leaf certificate used.
+ * \param usage_oid Intended usage (eg OID_SERVER_AUTH or OID_CLIENT_AUTH).
+ * \param usage_len Length of usage_oid (eg given by OID_SIZE()).
+ *
+ * \return         0 is this use of the certificate is allowed,
+ *                 POLARSSL_ERR_X509_BAD_INPUT_DATA if not.
+ *
+ * \note           Usually only makes sense on leaf certificates.
+ */
+int x509_crt_check_extended_key_usage( const x509_crt *crt,
+                                       const char *usage_oid,
+                                       size_t usage_len );
+#endif /* POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE) */
+
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /**
  * \brief          Verify the certificate revocation status

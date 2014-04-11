@@ -244,7 +244,7 @@ void sha256_update( sha256_context *ctx, const unsigned char *input, size_t ilen
     size_t fill;
     uint32_t left;
 
-    if( ilen <= 0 )
+    if( ilen == 0 )
         return;
 
     left = ctx->total[0] & 0x3F;

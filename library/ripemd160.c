@@ -276,7 +276,7 @@ void ripemd160_update( ripemd160_context *ctx,
     size_t fill;
     uint32_t left;
 
-    if( ilen <= 0 )
+    if( ilen == 0 )
         return;
 
     left = ctx->total[0] & 0x3F;

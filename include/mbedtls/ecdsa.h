@@ -219,13 +219,6 @@ void ecdsa_init( ecdsa_context *ctx );
  */
 void ecdsa_free( ecdsa_context *ctx );
 
-/**
- * \brief          Checkup routine
- *
- * \return         0 if successful, or 1 if the test failed
- */
-int ecdsa_self_test( int verbose );
-
 #ifdef __cplusplus
 }
 #endif

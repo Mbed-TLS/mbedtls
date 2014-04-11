@@ -486,17 +486,4 @@ void ecdsa_free( ecdsa_context *ctx )
     mpi_free( &ctx->s );
 }
 
-#if defined(POLARSSL_SELF_TEST)
-
-/*
- * Checkup routine
- */
-int ecdsa_self_test( int verbose )
-{
-    ((void) verbose );
-    return( 0 );
-}
-
-#endif /* POLARSSL_SELF_TEST */
-
 #endif /* POLARSSL_ECDSA_C */

@@ -897,19 +897,4 @@ int cipher_auth_decrypt( cipher_context_t *ctx,
 }
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
-
-#if defined(POLARSSL_SELF_TEST)
-
-/*
- * Checkup routine
- */
-int cipher_self_test( int verbose )
-{
-    ((void) verbose);
-
-    return( 0 );
-}
-
-#endif /* POLARSSL_SELF_TEST */
-
 #endif /* POLARSSL_CIPHER_C */

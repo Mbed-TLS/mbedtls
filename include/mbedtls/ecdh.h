@@ -208,13 +208,6 @@ int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
 
-/**
- * \brief          Checkup routine
- *
- * \return         0 if successful, or 1 if the test failed
- */
-int ecdh_self_test( int verbose );
-
 #ifdef __cplusplus
 }
 #endif

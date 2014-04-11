@@ -757,13 +757,6 @@ int cipher_auth_decrypt( cipher_context_t *ctx,
                          const unsigned char *tag, size_t tag_len );
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
-/**
- * \brief          Checkup routine
- *
- * \return         0 if successful, or 1 if the test failed
- */
-int cipher_self_test( int verbose );
-
 #ifdef __cplusplus
 }
 #endif

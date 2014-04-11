@@ -262,18 +262,4 @@ int ecdh_calc_secret( ecdh_context *ctx, size_t *olen,
     return mpi_write_binary( &ctx->z, buf, *olen );
 }
 
-
-#if defined(POLARSSL_SELF_TEST)
-
-/*
- * Checkup routine
- */
-int ecdh_self_test( int verbose )
-{
-    ((void) verbose );
-    return( 0 );
-}
-
-#endif /* POLARSSL_SELF_TEST */
-
 #endif /* POLARSSL_ECDH_C */

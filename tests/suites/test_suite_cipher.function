@@ -667,10 +667,3 @@ void check_padding( int pad_mode, char *input_str, int ret, int dlen_check )
         TEST_ASSERT( dlen == (size_t) dlen_check );
 }
 /* END_CASE */
-
-/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
-void cipher_selftest()
-{
-    TEST_ASSERT( cipher_self_test( 0 ) == 0 );
-}
-/* END_CASE */

@@ -198,6 +198,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 
         // High level error codes
         //
+        // BEGIN generated code
 #if defined(POLARSSL_CIPHER_C)
         if( use_ret == -(POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE) )
             snprintf( buf, buflen, "CIPHER - The selected feature is not available" );
@@ -483,6 +484,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_X509_FILE_IO_ERROR) )
             snprintf( buf, buflen, "X509 - Read/write of file failed" );
 #endif /* POLARSSL_X509_USE,X509_CREATE_C */
+        // END generated code
 
         if( strlen( buf ) == 0 )
             snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
@@ -511,6 +513,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
 
     // Low level error codes
     //
+    // BEGIN generated code
 #if defined(POLARSSL_AES_C)
     if( use_ret == -(POLARSSL_ERR_AES_INVALID_KEY_LENGTH) )
         snprintf( buf, buflen, "AES - Invalid key length" );
@@ -710,6 +713,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_XTEA_INVALID_INPUT_LENGTH) )
         snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
 #endif /* POLARSSL_XTEA_C */
+    // END generated code
 
     if( strlen( buf ) != 0 )
         return;

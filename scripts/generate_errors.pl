@@ -135,11 +135,11 @@ while (my $line = <GREP>)
 
 if ($ll_old_define ne "")
 {
-    $ll_code_check .= "#endif /* POLARSSL_${ll_old_define}_C */\n\n";
+    $ll_code_check .= "#endif /* POLARSSL_${ll_old_define}_C */\n";
 }
 if ($hl_old_define ne "")
 {
-    $hl_code_check .= "#endif /* POLARSSL_${hl_old_define}_C */\n\n";
+    $hl_code_check .= "#endif /* POLARSSL_${hl_old_define}_C */\n";
 }
 
 $error_format =~ s/HEADER_INCLUDED\n/$headers/g;

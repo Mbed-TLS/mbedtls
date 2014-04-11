@@ -16,6 +16,7 @@ Changes
    * x509_crt_info() now prints information about parsed extensions as well
    * pk_verify() now returns a specific error code when the signature is valid
      but shorter than the supplied length.
+   * Use UTC time to check certificate validity.
 
 Security
    * Avoid potential timing leak in ecdsa_sign() by blinding modular division.

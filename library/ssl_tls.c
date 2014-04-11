@@ -38,6 +38,11 @@
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 
+#if defined(POLARSSL_X509_CRT_PARSE_C) && \
+    defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+#include "polarssl/oid.h"
+#endif
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
@@ -4770,14 +4775,18 @@ int ssl_check_cert_usage( const x509_crt *cert,
                           const ssl_ciphersuite_t *ciphersuite,
                           int cert_endpoint )
 {
-#if !defined(POLARSSL_X509_CHECK_KEY_USAGE)
-    ((void) cert);
-    ((void) ciphersuite);
-    ((void) cert_endpoint);
-#endif
-
 #if defined(POLARSSL_X509_CHECK_KEY_USAGE)
     int usage = 0;
+#endif
+#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+    const char *ext_oid;
+    size_t ext_len;
+#endif
+
+#if !defined(POLARSSL_X509_CHECK_KEY_USAGE) &&          \
+    !defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+    ((void) cert);
+    ((void) cert_endpoint);
 #endif
 
 #if defined(POLARSSL_X509_CHECK_KEY_USAGE)
@@ -4818,7 +4827,25 @@ int ssl_check_cert_usage( const x509_crt *cert,
 
     if( x509_crt_check_key_usage( cert, usage ) != 0 )
         return( -1 );
+#else
+    ((void) ciphersuite);
 #endif /* POLARSSL_X509_CHECK_KEY_USAGE */
+
+#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+    if( cert_endpoint == SSL_IS_SERVER )
+    {
+        ext_oid = OID_SERVER_AUTH;
+        ext_len = OID_SIZE( OID_SERVER_AUTH );
+    }
+    else
+    {
+        ext_oid = OID_CLIENT_AUTH;
+        ext_len = OID_SIZE( OID_CLIENT_AUTH );
+    }
+
+    if( x509_crt_check_extended_key_usage( cert, ext_oid, ext_len ) != 0 )
+        return( -1 );
+#endif /* POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE */
 
     return( 0 );
 }

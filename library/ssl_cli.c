@@ -1251,8 +1251,8 @@ static int ssl_check_server_ecdh_params( const ssl_context *ssl )
     curve_info = ecp_curve_info_from_grp_id( ssl->handshake->ecdh_ctx.grp.id );
     if( curve_info == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "Should never happen" ) );
-        return( -1 );
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
@@ -1634,7 +1634,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
           POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
@@ -1681,7 +1681,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 #endif
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         /*
@@ -1770,7 +1770,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
           POLARSSL_SSL_PROTO_TLS1_2 */
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
@@ -1810,7 +1810,6 @@ exit:
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_parse_certificate_request( ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
@@ -1825,8 +1824,8 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
-    return( ret );
+    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
 }
 #else
 static int ssl_parse_certificate_request( ssl_context *ssl )
@@ -2184,7 +2183,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         if( ( ret = ssl_psk_derive_premaster( ssl,
@@ -2208,7 +2207,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
     {
         ((void) ciphersuite_info);
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
@@ -2240,7 +2239,6 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
@@ -2255,8 +2253,8 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
-    return( ret );
+    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
 }
 #else
 static int ssl_write_certificate_verify( ssl_context *ssl )
@@ -2370,7 +2368,7 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     if( ( ret = pk_sign( ssl_own_key( ssl ), md_alg, hash_start, hashlen,

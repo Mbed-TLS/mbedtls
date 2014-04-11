@@ -444,7 +444,7 @@ int ssl_derive_keys( ssl_context *ssl )
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     /*
@@ -608,7 +608,7 @@ int ssl_derive_keys( ssl_context *ssl )
         if( transform->maclen > sizeof transform->mac_enc )
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         memcpy( transform->mac_enc, mac_enc, transform->maclen );
@@ -627,7 +627,7 @@ int ssl_derive_keys( ssl_context *ssl )
 #endif
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
@@ -922,7 +922,7 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
 #endif /* POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     /* opaque psk<0..2^16-1>; */
@@ -1028,7 +1028,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #endif
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         SSL_DEBUG_BUF( 4, "computed mac",
@@ -1186,7 +1186,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         if( totlen != enc_msglen )
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( -1 );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         /*
@@ -1316,7 +1316,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
           ( POLARSSL_AES_C || POLARSSL_CAMELLIA_C ) */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     for( i = 8; i > 0; i-- )
@@ -1477,7 +1477,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( totlen != dec_msglen )
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( -1 );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         /*
@@ -1673,7 +1673,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
           POLARSSL_SSL_PROTO_TLS1_2 */
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
     }
     else
@@ -1681,7 +1681,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
           ( POLARSSL_AES_C || POLARSSL_CAMELLIA_C ) */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     SSL_DEBUG_BUF( 4, "raw buffer after decryption",
@@ -1753,7 +1753,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
               POLARSSL_SSL_PROTO_TLS1_2 */
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         SSL_DEBUG_BUF( 4, "message  mac", tmp, ssl->transform_in->maclen );
@@ -2396,7 +2396,6 @@ int ssl_send_alert_message( ssl_context *ssl,
     !defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 int ssl_write_certificate( ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
@@ -2410,13 +2409,12 @@ int ssl_write_certificate( ssl_context *ssl )
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
-    return( ret );
+    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
 }
 
 int ssl_parse_certificate( ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
@@ -2430,8 +2428,8 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
-    return( ret );
+    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
 }
 #else
 int ssl_write_certificate( ssl_context *ssl )
@@ -2864,8 +2862,10 @@ void ssl_optimize_checksum( ssl_context *ssl,
     else
 #endif
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
-        /* Should never happen */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return;
+    }
 }
 
 static void ssl_update_checksum_start( ssl_context *ssl,
@@ -4387,7 +4387,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
           POLARSSL_SSL_PROTO_TLS1_2 */
                 {
                     SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+                    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
                 }
             }
             else

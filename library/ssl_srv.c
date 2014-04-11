@@ -1951,7 +1951,6 @@ static int ssl_write_server_hello( ssl_context *ssl )
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_write_certificate_request( ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
@@ -1966,8 +1965,8 @@ static int ssl_write_certificate_request( ssl_context *ssl )
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
-    return( ret );
+    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
 }
 #else
 static int ssl_write_certificate_request( ssl_context *ssl )
@@ -2329,7 +2328,7 @@ curve_matching_done:
             if( md_alg == POLARSSL_MD_NONE )
             {
                 SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+                return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
             }
         }
         else
@@ -2424,7 +2423,7 @@ curve_matching_done:
           POLARSSL_SSL_PROTO_TLS1_2 */
         {
             SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
         SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
@@ -2916,7 +2915,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #endif /* POLARSSL_KEY_EXCHANGE_RSA_ENABLED */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
@@ -2953,8 +2952,8 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 1, ( "should not happen" ) );
-    return( ret );
+    SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
 }
 #else
 static int ssl_parse_certificate_verify( ssl_context *ssl )
@@ -3084,7 +3083,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     sig_len = ( ssl->in_msg[4 + sa_len] << 8 ) | ssl->in_msg[5 + sa_len];

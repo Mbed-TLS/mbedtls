@@ -17,6 +17,7 @@ Changes
    * pk_verify() now returns a specific error code when the signature is valid
      but shorter than the supplied length.
    * Use UTC time to check certificate validity.
+   * Reject certificates with times not in UTC, per RFC 5280.
 
 Security
    * Avoid potential timing leak in ecdsa_sign() by blinding modular division.

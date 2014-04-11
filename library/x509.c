@@ -274,7 +274,7 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
                 len : sizeof( date ) - 1 );
 
-        if( sscanf( date, "%2d%2d%2d%2d%2d%2d",
+        if( sscanf( date, "%2d%2d%2d%2d%2d%2dZ",
                     &time->year, &time->mon, &time->day,
                     &time->hour, &time->min, &time->sec ) < 5 )
             return( POLARSSL_ERR_X509_INVALID_DATE );
@@ -298,7 +298,7 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
                 len : sizeof( date ) - 1 );
 
-        if( sscanf( date, "%4d%2d%2d%2d%2d%2d",
+        if( sscanf( date, "%4d%2d%2d%2d%2d%2dZ",
                     &time->year, &time->mon, &time->day,
                     &time->hour, &time->min, &time->sec ) < 5 )
             return( POLARSSL_ERR_X509_INVALID_DATE );

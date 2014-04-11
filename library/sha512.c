@@ -242,7 +242,7 @@ void sha512_update( sha512_context *ctx, const unsigned char *input,
     size_t fill;
     unsigned int left;
 
-    if( ilen <= 0 )
+    if( ilen == 0 )
         return;
 
     left = (unsigned int) (ctx->total[0] & 0x7F);

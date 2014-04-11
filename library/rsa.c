@@ -1603,12 +1603,12 @@ int mbedtls_rsa_self_test( int verbose )
 
     if( mbedtls_rsa_check_pubkey(  &rsa ) != 0 ||
         mbedtls_rsa_check_privkey( &rsa ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 encryption : " );
@@ -1617,12 +1617,12 @@ int mbedtls_rsa_self_test( int verbose )
 
     if( mbedtls_rsa_pkcs1_encrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PUBLIC, PT_LEN,
                            rsa_plaintext, rsa_ciphertext ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 decryption : " );
@@ -1630,20 +1630,20 @@ int mbedtls_rsa_self_test( int verbose )
     if( mbedtls_rsa_pkcs1_decrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PRIVATE, &len,
                            rsa_ciphertext, rsa_decrypted,
                            sizeof(rsa_decrypted) ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     if( memcmp( rsa_decrypted, rsa_plaintext, len ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
@@ -1656,24 +1656,24 @@ int mbedtls_rsa_self_test( int verbose )
 
     if( mbedtls_rsa_pkcs1_sign( &rsa, myrand, NULL, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA1, 0,
                         sha1sum, rsa_ciphertext ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 sig. verify: " );
 
     if( mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1, 0,
                           sha1sum, rsa_ciphertext ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );

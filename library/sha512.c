@@ -474,13 +474,13 @@ int mbedtls_sha512_self_test( int verbose )
         mbedtls_sha512_finish( &ctx, sha512sum );
 
         if( memcmp( sha512sum, sha512_test_sum[i], 64 - k * 16 ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

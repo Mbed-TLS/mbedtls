@@ -251,12 +251,12 @@ int mbedtls_base64_self_test( int verbose )
 
     if( mbedtls_base64_encode( buffer, sizeof( buffer ), &len, src, 64 ) != 0 ||
          memcmp( base64_test_enc, buffer, 88 ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n  Base64 decoding test: " );
@@ -265,12 +265,12 @@ int mbedtls_base64_self_test( int verbose )
 
     if( mbedtls_base64_decode( buffer, sizeof( buffer ), &len, src, 88 ) != 0 ||
          memcmp( base64_test_dec, buffer, 64 ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n\n" );

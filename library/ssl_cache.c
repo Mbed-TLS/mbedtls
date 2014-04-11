@@ -104,10 +104,10 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
         {
             if( ( session->peer_cert = mbedtls_calloc( 1,
                                  sizeof(mbedtls_x509_crt) ) ) == NULL )
-            {
+            { // LCOV_EXCL_START
                 ret = 1;
                 goto exit;
-            }
+            } // LCOV_EXCL_STOP
 
             mbedtls_x509_crt_init( session->peer_cert );
             if( mbedtls_x509_crt_parse( session->peer_cert, entry->peer_cert.p,
@@ -223,10 +223,10 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
              */
             cur = mbedtls_calloc( 1, sizeof(mbedtls_ssl_cache_entry) );
             if( cur == NULL )
-            {
+            { // LCOV_EXCL_START
                 ret = 1;
                 goto exit;
-            }
+            } // LCOV_EXCL_STOP
 
             if( prv == NULL )
                 cache->chain = cur;
@@ -258,10 +258,10 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
     {
         cur->peer_cert.p = mbedtls_calloc( 1, session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
-        {
+        { // LCOV_EXCL_START
             ret = 1;
             goto exit;
-        }
+        } // LCOV_EXCL_STOP
 
         memcpy( cur->peer_cert.p, session->peer_cert->raw.p,
                 session->peer_cert->raw.len );

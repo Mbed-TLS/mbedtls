@@ -489,7 +489,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
 
             if( cur->next == NULL )
                 return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                        MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+                        MBEDTLS_ERR_ASN1_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
             cur = cur->next;
         }
@@ -680,7 +680,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
 
     p = mbedtls_calloc( 1, len = buflen );
     if( p == NULL )
-        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
     memcpy( p, buf, buflen );
 
@@ -936,7 +936,7 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain, const unsigned char *bu
         crt->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
 
         if( crt->next == NULL )
-            return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+            return( MBEDTLS_ERR_X509_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
         prev = crt;
         mbedtls_x509_crt_init( crt->next );
@@ -1046,7 +1046,7 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain, const unsigned char *buf, s
                  * Quit parsing on a memory error
                  */
                 if( ret == MBEDTLS_ERR_X509_ALLOC_FAILED )
-                    return( ret );
+                    return( ret ); // LCOV_EXCL_LINE
 
                 if( first_error == 0 )
                     first_error = ret;

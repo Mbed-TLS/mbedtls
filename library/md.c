@@ -228,16 +228,16 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_inf
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
     if( ( ctx->md_ctx = md_info->ctx_alloc_func() ) == NULL )
-        return( MBEDTLS_ERR_MD_ALLOC_FAILED );
+        return( MBEDTLS_ERR_MD_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
     if( hmac != 0 )
     {
         ctx->hmac_ctx = mbedtls_calloc( 2, md_info->block_size );
         if( ctx->hmac_ctx == NULL )
-        {
+        { // LCOV_EXCL_START
             md_info->ctx_free_func( ctx->md_ctx );
             return( MBEDTLS_ERR_MD_ALLOC_FAILED );
-        }
+        } // LCOV_EXCL_STOP
     }
 
     ctx->md_info = md_info;
@@ -299,12 +299,12 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigne
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( MBEDTLS_ERR_MD_FILE_IO_ERROR );
+        return( MBEDTLS_ERR_MD_FILE_IO_ERROR ); // LCOV_EXCL_LINE
 
     mbedtls_md_init( &ctx );
 
     if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0 )
-        goto cleanup;
+        goto cleanup; // LCOV_EXCL_LINE
 
     md_info->starts_func( ctx.md_ctx );
 
@@ -312,10 +312,10 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigne
         md_info->update_func( ctx.md_ctx, buf, n );
 
     if( ferror( f ) != 0 )
-    {
+    { // LCOV_EXCL_START
         ret = MBEDTLS_ERR_MD_FILE_IO_ERROR;
         goto cleanup;
-    }
+    } // LCOV_EXCL_STOP
 
     md_info->finish_func( ctx.md_ctx, output );
 
@@ -423,7 +423,7 @@ int mbedtls_md_hmac( const mbedtls_md_info_t *md_info, const unsigned char *key,
     mbedtls_md_init( &ctx );
 
     if( ( ret = mbedtls_md_setup( &ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+        return( ret ); // LCOV_EXCL_LINE (alloc the only possible failure)
 
     mbedtls_md_hmac_starts( &ctx, key, keylen );
     mbedtls_md_hmac_update( &ctx, input, ilen );

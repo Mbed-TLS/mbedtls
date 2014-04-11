@@ -83,27 +83,27 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
 
     fseek( f, 0, SEEK_END );
     if( ( size = ftell( f ) ) == -1 )
-    {
+    { // LCOV_EXCL_START
         fclose( f );
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
-    }
+    } // LCOV_EXCL_STOP
     fseek( f, 0, SEEK_SET );
 
     *n = (size_t) size;
 
     if( *n + 1 == 0 ||
         ( *buf = mbedtls_calloc( 1, *n + 1 ) ) == NULL )
-    {
+    { // LCOV_EXCL_START
         fclose( f );
         return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-    }
+    } // LCOV_EXCL_STOP
 
     if( fread( *buf, 1, *n, f ) != *n )
-    {
+    { // LCOV_EXCL_START
         fclose( f );
         mbedtls_free( *buf );
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
-    }
+    } // LCOV_EXCL_STOP
 
     fclose( f );
 

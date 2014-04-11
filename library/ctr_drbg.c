@@ -429,10 +429,10 @@ int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char 
         goto exit;
 
     if( fwrite( buf, 1, MBEDTLS_CTR_DRBG_MAX_INPUT, f ) != MBEDTLS_CTR_DRBG_MAX_INPUT )
-    {
+    { // LCOV_EXCL_START
         ret = MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR;
         goto exit;
-    }
+    } // LCOV_EXCL_STOP
 
     ret = 0;
 
@@ -461,10 +461,10 @@ int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char
     }
 
     if( fread( buf, 1, n, f ) != n )
-    {
+    { // LCOV_EXCL_START
         fclose( f );
         return( MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR );
-    }
+    } // LCOV_EXCL_STOP
 
     fclose( f );
 

@@ -115,7 +115,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     p = mbedtls_calloc( 1, len = buflen );
 
     if( p == NULL )
-        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
     memcpy( p, buf, buflen );
 

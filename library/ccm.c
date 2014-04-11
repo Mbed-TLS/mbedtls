@@ -83,12 +83,12 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
     mbedtls_cipher_free( &ctx->cipher_ctx );
 
     if( ( ret = mbedtls_cipher_setup( &ctx->cipher_ctx, cipher_info ) ) != 0 )
-        return( ret );
+        return( ret ); // LCOV_EXCL_LINE (fails only if malloc fails of cipher_info is NULL)
 
     if( ( ret = mbedtls_cipher_setkey( &ctx->cipher_ctx, key, keybits,
                                MBEDTLS_ENCRYPT ) ) != 0 )
     {
-        return( ret );
+        return( ret ); // LCOV_EXCL_LINE (fails only on bad key size, already tested by cipher_info_from_values())
     }
 
     return( 0 );
@@ -407,12 +407,12 @@ int mbedtls_ccm_self_test( int verbose )
     mbedtls_ccm_init( &ctx );
 
     if( mbedtls_ccm_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, key, 8 * sizeof key ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "  CCM: setup failed" );
 
         return( 1 );
-    }
+    } // LCOV_EXCL_STOP
 
     for( i = 0; i < NB_TESTS; i++ )
     {
@@ -426,12 +426,12 @@ int mbedtls_ccm_self_test( int verbose )
 
         if( ret != 0 ||
             memcmp( out, res[i], msg_len[i] + tag_len[i] ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             return( 1 );
-        }
+        } // LCOV_EXCL_STOP
 
         ret = mbedtls_ccm_auth_decrypt( &ctx, msg_len[i],
                                 iv, iv_len[i], ad, add_len[i],
@@ -440,12 +440,12 @@ int mbedtls_ccm_self_test( int verbose )
 
         if( ret != 0 ||
             memcmp( out, msg, msg_len[i] ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             return( 1 );
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

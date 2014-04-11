@@ -169,6 +169,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         // High level error codes
         //
         // BEGIN generated code
+        // LCOV_EXCL_START
 #if defined(MBEDTLS_CIPHER_C)
         if( use_ret == -(MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE) )
             mbedtls_snprintf( buf, buflen, "CIPHER - The selected feature is not available" );
@@ -472,6 +473,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_X509_BUFFER_TOO_SMALL) )
             mbedtls_snprintf( buf, buflen, "X509 - Destination buffer is too small" );
 #endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
+        // LCOV_EXCL_STOP
         // END generated code
 
         if( strlen( buf ) == 0 )
@@ -502,6 +504,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     // Low level error codes
     //
     // BEGIN generated code
+    // LCOV_EXCL_START
 #if defined(MBEDTLS_AES_C)
     if( use_ret == -(MBEDTLS_ERR_AES_INVALID_KEY_LENGTH) )
         mbedtls_snprintf( buf, buflen, "AES - Invalid key length" );
@@ -670,6 +673,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
 #endif /* MBEDTLS_XTEA_C */
+    // LCOV_EXCL_STOP
     // END generated code
 
     if( strlen( buf ) != 0 )

@@ -360,10 +360,10 @@ int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *p
         goto exit;
 
     if( fwrite( buf, 1, MBEDTLS_ENTROPY_BLOCK_SIZE, f ) != MBEDTLS_ENTROPY_BLOCK_SIZE )
-    {
+    { // LCOV_EXCL_START
         ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
         goto exit;
-    }
+    } // LCOV_EXCL_STOP
 
     ret = 0;
 
@@ -389,10 +389,10 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
         n = MBEDTLS_ENTROPY_MAX_SEED_SIZE;
 
     if( fread( buf, 1, n, f ) != n )
-    {
+    { // LCOV_EXCL_START
         fclose( f );
         return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
-    }
+    } // LCOV_EXCL_STOP
 
     fclose( f );
 
@@ -437,15 +437,15 @@ int mbedtls_entropy_self_test( int verbose )
 
     /* First do a gather to make sure we have default sources */
     if( ( ret = mbedtls_entropy_gather( &ctx ) ) != 0 )
-        goto cleanup;
+        goto cleanup; // LCOV_EXCL_LINE
 
     ret = mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL, 16,
                                       MBEDTLS_ENTROPY_SOURCE_WEAK );
     if( ret != 0 )
-        goto cleanup;
+        goto cleanup; // LCOV_EXCL_LINE
 
     if( ( ret = mbedtls_entropy_update_manual( &ctx, buf, sizeof buf ) ) != 0 )
-        goto cleanup;
+        goto cleanup; // LCOV_EXCL_LINE
 
     /*
      * To test that mbedtls_entropy_func writes correct number of bytes:
@@ -458,7 +458,7 @@ int mbedtls_entropy_self_test( int verbose )
     for( i = 0; i < 8; i++ )
     {
         if( ( ret = mbedtls_entropy_func( &ctx, buf, sizeof( buf ) ) ) != 0 )
-            goto cleanup;
+            goto cleanup; // LCOV_EXCL_LINE
 
         for( j = 0; j < sizeof( buf ); j++ )
             acc[j] |= buf[j];
@@ -467,10 +467,10 @@ int mbedtls_entropy_self_test( int verbose )
     for( j = 0; j < sizeof( buf ); j++ )
     {
         if( acc[j] == 0 )
-        {
+        { // LCOV_EXCL_START
             ret = 1;
             goto cleanup;
-        }
+        } // LCOV_EXCL_STOP
     }
 
 cleanup:
@@ -479,7 +479,7 @@ cleanup:
     if( verbose != 0 )
     {
         if( ret != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "failed\n" ); // LCOV_EXCL_LINE
         else
             mbedtls_printf( "passed\n" );
 

@@ -468,7 +468,7 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
         cur->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
 
         if( cur->next == NULL )
-            return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+            return( MBEDTLS_ERR_X509_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
         cur = cur->next;
     }
@@ -594,7 +594,7 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
 
         pss_opts = mbedtls_calloc( 1, sizeof( mbedtls_pk_rsassa_pss_options ) );
         if( pss_opts == NULL )
-            return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+            return( MBEDTLS_ERR_X509_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
         ret = mbedtls_x509_get_rsassa_pss_params( sig_params,
                                           md_alg,
@@ -975,36 +975,36 @@ int mbedtls_x509_self_test( int verbose )
     ret = mbedtls_x509_crt_parse( &clicert, (const unsigned char *) mbedtls_test_cli_crt,
                            mbedtls_test_cli_crt_len );
     if( ret != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( ret );
-    }
+    } // LCOV_EXCL_STOP
 
     mbedtls_x509_crt_init( &cacert );
 
     ret = mbedtls_x509_crt_parse( &cacert, (const unsigned char *) mbedtls_test_ca_crt,
                           mbedtls_test_ca_crt_len );
     if( ret != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( ret );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n  X.509 signature verify: ");
 
     ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
     if( ret != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         return( ret );
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n\n");

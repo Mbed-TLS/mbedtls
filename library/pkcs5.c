@@ -379,13 +379,13 @@ int mbedtls_pkcs5_self_test( int verbose )
                                   slen[i], it_cnt[i], key_len[i], key );
         if( ret != 0 ||
             memcmp( result_key[i], key, key_len[i] ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

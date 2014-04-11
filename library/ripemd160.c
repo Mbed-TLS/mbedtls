@@ -445,12 +445,12 @@ int mbedtls_ripemd160_self_test( int verbose )
                    output );
 
         if( memcmp( output, ripemd160_test_md[i], 20 ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             return( 1 );
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

@@ -240,7 +240,7 @@ static int x509_get_entries( unsigned char **p,
             cur_entry->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl_entry ) );
 
             if( cur_entry->next == NULL )
-                return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+                return( MBEDTLS_ERR_X509_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
             cur_entry = cur_entry->next;
         }
@@ -282,10 +282,10 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
         crl->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl ) );
 
         if( crl->next == NULL )
-        {
+        { // LCOV_EXCL_START
             mbedtls_x509_crl_free( crl );
             return( MBEDTLS_ERR_X509_ALLOC_FAILED );
-        }
+        } // LCOV_EXCL_STOP
 
         mbedtls_x509_crl_init( crl->next );
         crl = crl->next;
@@ -295,7 +295,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
      * Copy raw DER-encoded CRL
      */
     if( ( p = mbedtls_calloc( 1, buflen ) ) == NULL )
-        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
     memcpy( p, buf, buflen );
 

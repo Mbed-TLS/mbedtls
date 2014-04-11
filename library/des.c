@@ -937,13 +937,13 @@ int mbedtls_des_self_test( int verbose )
                 memcmp( buf, des3_test_ecb_dec[u], 8 ) != 0 ) ||
             ( v != MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_ecb_enc[u], 8 ) != 0 ) )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
@@ -1033,13 +1033,13 @@ int mbedtls_des_self_test( int verbose )
                 memcmp( buf, des3_test_cbc_dec[u], 8 ) != 0 ) ||
             ( v != MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_cbc_enc[u], 8 ) != 0 ) )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

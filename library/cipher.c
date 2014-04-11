@@ -141,7 +141,7 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_in
     memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );
 
     if( NULL == ( ctx->cipher_ctx = cipher_info->base->ctx_alloc_func() ) )
-        return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+        return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED ); // LCOV_EXCL_LINE
 
     ctx->cipher_info = cipher_info;
 

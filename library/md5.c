@@ -382,12 +382,12 @@ int mbedtls_md5_self_test( int verbose )
         mbedtls_md5( md5_test_buf[i], md5_test_buflen[i], md5sum );
 
         if( memcmp( md5sum, md5_test_sum[i], 16 ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             return( 1 );
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

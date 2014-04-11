@@ -766,12 +766,12 @@ int mbedtls_gcm_self_test( int verbose )
             if( ret != 0 ||
                 memcmp( buf, ct[j * 6 + i], pt_len[i] ) != 0 ||
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
-            {
+            { // LCOV_EXCL_START
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );
 
                 return( 1 );
-            }
+            } // LCOV_EXCL_STOP
 
             mbedtls_gcm_free( &ctx );
 
@@ -793,12 +793,12 @@ int mbedtls_gcm_self_test( int verbose )
             if( ret != 0 ||
                 memcmp( buf, pt[pt_index[i]], pt_len[i] ) != 0 ||
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
-            {
+            { // LCOV_EXCL_START
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );
 
                 return( 1 );
-            }
+            } // LCOV_EXCL_STOP
 
             mbedtls_gcm_free( &ctx );
 
@@ -815,57 +815,57 @@ int mbedtls_gcm_self_test( int verbose )
                               iv[iv_index[i]], iv_len[i],
                               additional[add_index[i]], add_len[i] );
             if( ret != 0 )
-            {
+            { // LCOV_EXCL_START
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );
 
                 return( 1 );
-            }
+            } // LCOV_EXCL_STOP
 
             if( pt_len[i] > 32 )
             {
                 size_t rest_len = pt_len[i] - 32;
                 ret = mbedtls_gcm_update( &ctx, 32, pt[pt_index[i]], buf );
                 if( ret != 0 )
-                {
+                { // LCOV_EXCL_START
                     if( verbose != 0 )
                         mbedtls_printf( "failed\n" );
 
                     return( 1 );
-                }
+                } // LCOV_EXCL_STOP
 
                 ret = mbedtls_gcm_update( &ctx, rest_len, pt[pt_index[i]] + 32,
                                   buf + 32 );
                 if( ret != 0 )
-                {
+                { // LCOV_EXCL_START
                     if( verbose != 0 )
                         mbedtls_printf( "failed\n" );
 
                     return( 1 );
-                }
+                } // LCOV_EXCL_STOP
             }
             else
             {
                 ret = mbedtls_gcm_update( &ctx, pt_len[i], pt[pt_index[i]], buf );
                 if( ret != 0 )
-                {
+                { // LCOV_EXCL_START
                     if( verbose != 0 )
                         mbedtls_printf( "failed\n" );
 
                     return( 1 );
-                }
+                } // LCOV_EXCL_STOP
             }
 
             ret = mbedtls_gcm_finish( &ctx, tag_buf, 16 );
             if( ret != 0 ||
                 memcmp( buf, ct[j * 6 + i], pt_len[i] ) != 0 ||
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
-            {
+            { // LCOV_EXCL_START
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );
 
                 return( 1 );
-            }
+            } // LCOV_EXCL_STOP
 
             mbedtls_gcm_free( &ctx );
 
@@ -882,57 +882,57 @@ int mbedtls_gcm_self_test( int verbose )
                               iv[iv_index[i]], iv_len[i],
                               additional[add_index[i]], add_len[i] );
             if( ret != 0 )
-            {
+            { // LCOV_EXCL_START
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );
 
                 return( 1 );
-            }
+            } // LCOV_EXCL_STOP
 
             if( pt_len[i] > 32 )
             {
                 size_t rest_len = pt_len[i] - 32;
                 ret = mbedtls_gcm_update( &ctx, 32, ct[j * 6 + i], buf );
                 if( ret != 0 )
-                {
+                { // LCOV_EXCL_START
                     if( verbose != 0 )
                         mbedtls_printf( "failed\n" );
 
                     return( 1 );
-                }
+                } // LCOV_EXCL_STOP
 
                 ret = mbedtls_gcm_update( &ctx, rest_len, ct[j * 6 + i] + 32,
                                   buf + 32 );
                 if( ret != 0 )
-                {
+                { // LCOV_EXCL_START
                     if( verbose != 0 )
                         mbedtls_printf( "failed\n" );
 
                     return( 1 );
-                }
+                } // LCOV_EXCL_STOP
             }
             else
             {
                 ret = mbedtls_gcm_update( &ctx, pt_len[i], ct[j * 6 + i], buf );
                 if( ret != 0 )
-                {
+                { // LCOV_EXCL_START
                     if( verbose != 0 )
                         mbedtls_printf( "failed\n" );
 
                     return( 1 );
-                }
+                } // LCOV_EXCL_STOP
             }
 
             ret = mbedtls_gcm_finish( &ctx, tag_buf, 16 );
             if( ret != 0 ||
                 memcmp( buf, pt[pt_index[i]], pt_len[i] ) != 0 ||
                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
-            {
+            { // LCOV_EXCL_START
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );
 
                 return( 1 );
-            }
+            } // LCOV_EXCL_STOP
 
             mbedtls_gcm_free( &ctx );
 

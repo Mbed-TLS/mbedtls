@@ -179,13 +179,13 @@ int mbedtls_arc4_self_test( int verbose )
         mbedtls_arc4_crypt( &ctx, 8, ibuf, obuf );
 
         if( memcmp( obuf, arc4_test_ct[i], 8 ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

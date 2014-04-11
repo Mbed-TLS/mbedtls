@@ -313,26 +313,26 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data( mbedtls_asn1_named_data 
         // Add new entry if not present yet based on OID
         //
         if( ( cur = mbedtls_calloc( 1, sizeof(mbedtls_asn1_named_data) ) ) == NULL )
-            return( NULL );
+            return( NULL ); // LCOV_EXCL_LINE
 
         cur->oid.len = oid_len;
         cur->oid.p = mbedtls_calloc( 1, oid_len );
         if( cur->oid.p == NULL )
-        {
+        { // LCOV_EXCL_START
             mbedtls_free( cur );
             return( NULL );
-        }
+        } // LCOV_EXCL_STOP
 
         memcpy( cur->oid.p, oid, oid_len );
 
         cur->val.len = val_len;
         cur->val.p = mbedtls_calloc( 1, val_len );
         if( cur->val.p == NULL )
-        {
+        { // LCOV_EXCL_START
             mbedtls_free( cur->oid.p );
             mbedtls_free( cur );
             return( NULL );
-        }
+        } // LCOV_EXCL_STOP
 
         cur->next = *head;
         *head = cur;
@@ -347,11 +347,11 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data( mbedtls_asn1_named_data 
         cur->val.len = val_len;
         cur->val.p = mbedtls_calloc( 1, val_len );
         if( cur->val.p == NULL )
-        {
+        { // LCOV_EXCL_START
             mbedtls_free( cur->oid.p );
             mbedtls_free( cur );
             return( NULL );
-        }
+        } // LCOV_EXCL_STOP
     }
 
     if( val != NULL )

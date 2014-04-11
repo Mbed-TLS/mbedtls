@@ -521,27 +521,27 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
 
     fseek( f, 0, SEEK_END );
     if( ( size = ftell( f ) ) == -1 )
-    {
+    { // LCOV_EXCL_START
         fclose( f );
         return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
-    }
+    } // LCOV_EXCL_STOP
     fseek( f, 0, SEEK_SET );
 
     *n = (size_t) size;
 
     if( *n + 1 == 0 ||
         ( *buf = mbedtls_calloc( 1, *n + 1 ) ) == NULL )
-    {
+    { // LCOV_EXCL_START
         fclose( f );
         return( MBEDTLS_ERR_DHM_ALLOC_FAILED );
-    }
+    } // LCOV_EXCL_STOP
 
     if( fread( *buf, 1, *n, f ) != *n )
-    {
+    { // LCOV_EXCL_START
         fclose( f );
         mbedtls_free( *buf );
         return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
-    }
+    } // LCOV_EXCL_STOP
 
     fclose( f );
 
@@ -602,13 +602,13 @@ int mbedtls_dhm_self_test( int verbose )
     if( ( ret = mbedtls_dhm_parse_dhm( &dhm,
                     (const unsigned char *) mbedtls_test_dhm_params,
                     mbedtls_test_dhm_params_len ) ) != 0 )
-    {
+    { // LCOV_EXCL_START
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
 
         ret = 1;
         goto exit;
-    }
+    } // LCOV_EXCL_STOP
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n\n" );

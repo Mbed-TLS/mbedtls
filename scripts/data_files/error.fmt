@@ -62,7 +62,9 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         // High level error codes
         //
         // BEGIN generated code
+        // LCOV_EXCL_START
 HIGH_LEVEL_CODE_CHECKS
+        // LCOV_EXCL_STOP
         // END generated code
 
         if( strlen( buf ) == 0 )
@@ -93,7 +95,9 @@ HIGH_LEVEL_CODE_CHECKS
     // Low level error codes
     //
     // BEGIN generated code
+    // LCOV_EXCL_START
 LOW_LEVEL_CODE_CHECKS
+    // LCOV_EXCL_STOP
     // END generated code
 
     if( strlen( buf ) != 0 )

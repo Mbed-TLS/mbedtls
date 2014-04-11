@@ -422,13 +422,13 @@ int mbedtls_sha1_self_test( int verbose )
         mbedtls_sha1_finish( &ctx, sha1sum );
 
         if( memcmp( sha1sum, sha1_test_sum[i], 20 ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             ret = 1;
             goto exit;
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

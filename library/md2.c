@@ -266,12 +266,12 @@ int mbedtls_md2_self_test( int verbose )
              strlen( md2_test_str[i] ), md2sum );
 
         if( memcmp( md2sum, md2_test_sum[i], 16 ) != 0 )
-        {
+        { // LCOV_EXCL_START
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
             return( 1 );
-        }
+        } // LCOV_EXCL_STOP
 
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );

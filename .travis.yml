@@ -1,0 +1,5 @@
+language: c
+script:
+    - cmake -D CMAKE_BUILD_TYPE:String="Debug" .
+    - make
+    - make test

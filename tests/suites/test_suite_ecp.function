@@ -14,9 +14,12 @@ void ecp_curve_info( int id, int tls_id, int size, char *name )
 {
     const ecp_curve_info *by_id, *by_tls, *by_name;
 
-    TEST_ASSERT( ( by_id   = ecp_curve_info_from_grp_id( id     ) ) != NULL );
-    TEST_ASSERT( ( by_tls  = ecp_curve_info_from_tls_id( tls_id ) ) != NULL );
-    TEST_ASSERT( ( by_name = ecp_curve_info_from_name(   name   ) ) != NULL );
+    by_id   = ecp_curve_info_from_grp_id( id     );
+    by_tls  = ecp_curve_info_from_tls_id( tls_id );
+    by_name = ecp_curve_info_from_name(   name   );
+    TEST_ASSERT( by_id   != NULL );
+    TEST_ASSERT( by_tls  != NULL );
+    TEST_ASSERT( by_name != NULL );
 
     TEST_ASSERT( by_id == by_tls  );
     TEST_ASSERT( by_id == by_name );
@@ -547,7 +550,8 @@ void ecp_tls_write_read_group( int id )
     TEST_ASSERT( ecp_use_known_dp( &grp1, id ) == 0 );
 
     TEST_ASSERT( ecp_tls_write_group( &grp1, &len, buf, 10 ) == 0 );
-    TEST_ASSERT( ( ret = ecp_tls_read_group( &grp2, &vbuf, len ) ) == 0 );
+    ret = ecp_tls_read_group( &grp2, &vbuf, len );
+    TEST_ASSERT( ret == 0 );
 
     if( ret == 0 )
     {

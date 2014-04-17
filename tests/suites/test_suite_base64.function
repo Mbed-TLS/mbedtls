@@ -39,7 +39,8 @@ void base64_decode( char *src_string, char *dst_string, int result )
     memset(dst_str, 0x00, 1000);
 
     strncpy( (char *) src_str, src_string, sizeof(src_str) - 1 );
-    TEST_ASSERT( res = base64_decode( dst_str, &len, src_str, strlen( (char *) src_str ) ) == result );
+    res = base64_decode( dst_str, &len, src_str, strlen( (char *) src_str ) );
+    TEST_ASSERT( res == result );
     if( result == 0 )
     {
         TEST_ASSERT( strcmp( (char *) dst_str, dst_string ) == 0 );

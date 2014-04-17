@@ -44,7 +44,8 @@ void hmac_drbg_entropy_usage( int md_alg )
     entropy.len = sizeof( buf );
     entropy.p = buf;
 
-    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    md_info = md_info_from_type( md_alg );
+    TEST_ASSERT( md_info != NULL );
 
     /* Init must use entropy */
     last_len = entropy.len;
@@ -110,7 +111,9 @@ void hmac_drbg_seed_file( int md_alg, char *path, int ret )
     const md_info_t *md_info;
     hmac_drbg_context ctx;
 
-    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    md_info = md_info_from_type( md_alg );
+    TEST_ASSERT( md_info != NULL );
+
     TEST_ASSERT( hmac_drbg_init( &ctx, md_info, rnd_std_rand, NULL,
                                  NULL, 0 ) == 0 );
 
@@ -133,7 +136,8 @@ void hmac_drbg_buf( int md_alg )
     memset( buf, 0, sizeof( buf ) );
     memset( out, 0, sizeof( out ) );
 
-    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    md_info = md_info_from_type( md_alg );
+    TEST_ASSERT( md_info != NULL );
     TEST_ASSERT( hmac_drbg_init_buf( &ctx, md_info, buf, sizeof( buf ) ) == 0 );
 
     /* Make sure it never tries to reseed (would segfault otherwise) */
@@ -174,7 +178,8 @@ void hmac_drbg_no_reseed( int md_alg,
     p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
 
-    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    md_info = md_info_from_type( md_alg );
+    TEST_ASSERT( md_info != NULL );
 
     /* Test the simplified buffer-based variant */
     memcpy( data, entropy, p_entropy.len );
@@ -231,7 +236,9 @@ void hmac_drbg_nopr( int md_alg,
     p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
 
-    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    md_info = md_info_from_type( md_alg );
+    TEST_ASSERT( md_info != NULL );
+
     TEST_ASSERT( hmac_drbg_init( &ctx, md_info, entropy_func, &p_entropy,
                                  custom, custom_len ) == 0 );
     TEST_ASSERT( hmac_drbg_reseed( &ctx, add1, add1_len ) == 0 );
@@ -272,7 +279,9 @@ void hmac_drbg_pr( int md_alg,
     p_entropy.len = unhexify( entropy, entropy_hex );
     p_entropy.p = entropy;
 
-    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    md_info = md_info_from_type( md_alg );
+    TEST_ASSERT( md_info != NULL );
+
     TEST_ASSERT( hmac_drbg_init( &ctx, md_info, entropy_func, &p_entropy,
                                  custom, custom_len ) == 0 );
     hmac_drbg_set_prediction_resistance( &ctx, POLARSSL_HMAC_DRBG_PR_ON );

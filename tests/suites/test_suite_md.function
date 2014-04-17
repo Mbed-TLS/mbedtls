@@ -27,7 +27,8 @@ void md_process( )
      */
     for( md_type_ptr = md_list(); *md_type_ptr != 0; md_type_ptr++ )
     {
-        TEST_ASSERT( ( info = md_info_from_type( *md_type_ptr ) ) != NULL );
+        info = md_info_from_type( *md_type_ptr );
+        TEST_ASSERT( info != NULL );
         TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
         TEST_ASSERT( md_process( &ctx, buf ) == 0 );
         TEST_ASSERT( md_free_ctx( &ctx ) == 0 );
@@ -42,7 +43,8 @@ void md_info( int md_type, char *md_name, int md_size )
     const int *md_type_ptr;
     int found;
 
-    TEST_ASSERT( ( md_info = md_info_from_type( md_type ) ) != NULL );
+    md_info = md_info_from_type( md_type );
+    TEST_ASSERT( md_info != NULL );
     TEST_ASSERT( md_info == md_info_from_string( md_name ) );
 
     TEST_ASSERT( md_get_type( md_info ) == (md_type_t) md_type );

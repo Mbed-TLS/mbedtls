@@ -113,7 +113,8 @@ void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
     TEST_ASSERT( mpi_read_string( &r_check, 16, r_str ) == 0 );
     TEST_ASSERT( mpi_read_string( &s_check, 16, s_str ) == 0 );
 
-    TEST_ASSERT( ( md_info = md_info_from_type( md_alg ) ) != NULL );
+    md_info = md_info_from_type( md_alg );
+    TEST_ASSERT( md_info != NULL );
     hlen = md_info->size;
     md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
 

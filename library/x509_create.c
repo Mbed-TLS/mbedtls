@@ -43,7 +43,6 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
     const char *end = s + strlen( s );
     const char *oid = NULL;
     int in_tag = 1;
-    asn1_named_data *cur;
 
     /* Clear existing chain if present */
     asn1_free_named_data_list( head );
@@ -84,9 +83,9 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
 
         if( !in_tag && ( *c == ',' || c == end ) )
         {
-            if( ( cur = asn1_store_named_data( head, oid, strlen( oid ),
-                                               (unsigned char *) s,
-                                               c - s ) ) == NULL )
+            if( asn1_store_named_data( head, oid, strlen( oid ),
+                                       (unsigned char *) s,
+                                       c - s ) == NULL )
             {
                 return( POLARSSL_ERR_X509_MALLOC_FAILED );
             }

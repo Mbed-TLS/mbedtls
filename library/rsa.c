@@ -1424,6 +1424,7 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
  */
 int rsa_self_test( int verbose )
 {
+    int ret = 0;
     size_t len;
     rsa_context rsa;
     unsigned char rsa_plaintext[PT_LEN];
@@ -1436,14 +1437,14 @@ int rsa_self_test( int verbose )
     rsa_init( &rsa, RSA_PKCS_V15, 0 );
 
     rsa.len = KEY_LEN;
-    mpi_read_string( &rsa.N , 16, RSA_N  );
-    mpi_read_string( &rsa.E , 16, RSA_E  );
-    mpi_read_string( &rsa.D , 16, RSA_D  );
-    mpi_read_string( &rsa.P , 16, RSA_P  );
-    mpi_read_string( &rsa.Q , 16, RSA_Q  );
-    mpi_read_string( &rsa.DP, 16, RSA_DP );
-    mpi_read_string( &rsa.DQ, 16, RSA_DQ );
-    mpi_read_string( &rsa.QP, 16, RSA_QP );
+    MPI_CHK( mpi_read_string( &rsa.N , 16, RSA_N  ) );
+    MPI_CHK( mpi_read_string( &rsa.E , 16, RSA_E  ) );
+    MPI_CHK( mpi_read_string( &rsa.D , 16, RSA_D  ) );
+    MPI_CHK( mpi_read_string( &rsa.P , 16, RSA_P  ) );
+    MPI_CHK( mpi_read_string( &rsa.Q , 16, RSA_Q  ) );
+    MPI_CHK( mpi_read_string( &rsa.DP, 16, RSA_DP ) );
+    MPI_CHK( mpi_read_string( &rsa.DQ, 16, RSA_DQ ) );
+    MPI_CHK( mpi_read_string( &rsa.QP, 16, RSA_QP ) );
 
     if( verbose != 0 )
         printf( "  RSA key validation: " );
@@ -1523,9 +1524,9 @@ int rsa_self_test( int verbose )
         printf( "passed\n\n" );
 #endif /* POLARSSL_SHA1_C */
 
+cleanup:
     rsa_free( &rsa );
-
-    return( 0 );
+    return( ret );
 }
 
 #endif

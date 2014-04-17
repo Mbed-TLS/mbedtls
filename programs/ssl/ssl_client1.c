@@ -277,8 +277,10 @@ exit:
     }
 #endif
 
+    if( server_fd != -1 )
+        net_close( server_fd );
+
     x509_crt_free( &cacert );
-    net_close( server_fd );
     ssl_free( &ssl );
     entropy_free( &entropy );
 

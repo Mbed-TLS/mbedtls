@@ -89,9 +89,12 @@ int write_certificate_request( x509write_csr *req, const char *output_file,
         return( -1 );
 
     if( fwrite( output_buf, 1, len, f ) != len )
+    {
+        fclose( f );
         return( -1 );
+    }
 
-    fclose(f);
+    fclose( f );
 
     return( 0 );
 }

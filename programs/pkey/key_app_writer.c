@@ -104,9 +104,12 @@ static int write_public_key( pk_context *key, const char *output_file )
         return( -1 );
 
     if( fwrite( c, 1, len, f ) != len )
+    {
+        fclose( f );
         return( -1 );
+    }
 
-    fclose(f);
+    fclose( f );
 
     return( 0 );
 }
@@ -140,9 +143,12 @@ static int write_private_key( pk_context *key, const char *output_file )
         return( -1 );
 
     if( fwrite( c, 1, len, f ) != len )
+    {
+        fclose( f );
         return( -1 );
+    }
 
-    fclose(f);
+    fclose( f );
 
     return( 0 );
 }

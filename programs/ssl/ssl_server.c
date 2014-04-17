@@ -100,17 +100,19 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
+    memset( &ssl, 0, sizeof(ssl_context) );
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_init( &cache );
 #endif
+    x509_crt_init( &srvcert );
+    pk_init( &pkey );
+    entropy_init( &entropy );
 
     /*
      * 1. Load the certificates and private RSA key
      */
     printf( "\n  . Loading the server cert. and key..." );
     fflush( stdout );
-
-    x509_crt_init( &srvcert );
 
     /*
      * This demonstration program uses embedded test certificates.
@@ -133,7 +135,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    pk_init( &pkey );
     ret =  pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
                          strlen( test_srv_key ), NULL, 0 );
     if( ret != 0 )
@@ -164,7 +165,6 @@ int main( int argc, char *argv[] )
     printf( "  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
@@ -352,7 +352,9 @@ exit:
     }
 #endif
 
-    net_close( client_fd );
+    if( client_fd != -1 )
+        net_close( client_fd );
+
     x509_crt_free( &srvcert );
     pk_free( &pkey );
     ssl_free( &ssl );

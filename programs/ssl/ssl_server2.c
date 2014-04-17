@@ -339,30 +339,44 @@ sni_entry *sni_parse( char *sni_string )
 
         if( ( new->cert = polarssl_malloc( sizeof( x509_crt ) ) ) == NULL ||
             ( new->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
-            return( NULL );
+        {
+            cur = NULL;
+            goto exit;
+        }
 
         x509_crt_init( new->cert );
         pk_init( new->key );
 
         new->name = p;
-        while( *p != ',' ) if( ++p > end ) return( NULL );
+        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
         *p++ = '\0';
 
         crt_file = p;
-        while( *p != ',' ) if( ++p > end ) return( NULL );
+        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
         *p++ = '\0';
 
         key_file = p;
-        while( *p != ',' ) if( ++p > end ) return( NULL );
+        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
         *p++ = '\0';
 
         if( x509_crt_parse_file( new->cert, crt_file ) != 0 ||
             pk_parse_keyfile( new->key, key_file, "" ) != 0 )
-            return( NULL );
+        {
+            cur = NULL;
+            goto exit;
+        }
 
         new->next = cur;
         cur = new;
+        new = NULL;
+    }
 
+exit:
+    if( new != NULL )
+    {
+        x509_crt_free( new->cert);
+        pk_free( new->key );
+        polarssl_free( new );
     }
 
     return( cur );
@@ -1345,7 +1359,9 @@ exit:
     }
 #endif
 
-    net_close( client_fd );
+    if( client_fd != -1 )
+        net_close( client_fd );
+
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     x509_crt_free( &cacert );
     x509_crt_free( &srvcert );

@@ -113,9 +113,12 @@ int write_certificate( x509write_cert *crt, const char *output_file,
         return( -1 );
 
     if( fwrite( output_buf, 1, len, f ) != len )
+    {
+        fclose( f );
         return( -1 );
+    }
 
-    fclose(f);
+    fclose( f );
 
     return( 0 );
 }

@@ -65,6 +65,7 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     mpi_init( &G ); mpi_init( &P ); mpi_init( &Q );
+    entropy_init( &entropy );
 
     if( ( ret = mpi_read_string( &G, 10, GENERATOR ) ) != 0 )
     {
@@ -84,7 +85,6 @@ int main( int argc, char *argv[] )
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )

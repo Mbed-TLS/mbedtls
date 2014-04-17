@@ -167,7 +167,11 @@ static int ssl_test( struct options *opt )
 
     ret = 1;
 
+    memset( &ssl, 0, sizeof(ssl_context) );
     entropy_init( &entropy );
+    x509_crt_init( &srvcert );
+    pk_init( &pkey );
+
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
@@ -183,8 +187,6 @@ static int ssl_test( struct options *opt )
     memset( read_state, 0, sizeof( read_state ) );
     memset( write_state, 0, sizeof( write_state ) );
 
-    x509_crt_init( &srvcert );
-    pk_init( &pkey );
 
     if( opt->opmode == OPMODE_CLIENT )
     {
@@ -198,7 +200,7 @@ static int ssl_test( struct options *opt )
         if( ( ret = ssl_init( &ssl ) ) != 0 )
         {
             printf( "  ! ssl_init returned %d\n\n", ret );
-            return( ret );
+            goto exit;
         }
 
         ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
@@ -408,7 +410,9 @@ exit:
     pk_free( &pkey );
     ssl_free( &ssl );
     entropy_free( &entropy );
-    net_close( client_fd );
+
+    if( client_fd != -1 )
+        net_close( client_fd );
 
     return( ret );
 }

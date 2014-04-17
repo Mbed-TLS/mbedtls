@@ -272,7 +272,9 @@ int main( int argc, char *argv[] )
 
 exit:
 
-    net_close( server_fd );
+    if( server_fd != -1 )
+        net_close( server_fd );
+
     rsa_free( &rsa );
     dhm_free( &dhm );
     entropy_free( &entropy );

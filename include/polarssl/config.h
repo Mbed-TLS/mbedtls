@@ -263,8 +263,8 @@
  *      TLS_PSK_WITH_NULL_SHA
  *
  * Uncomment this macro to enable the NULL cipher and ciphersuites
-#define POLARSSL_CIPHER_NULL_CIPHER
  */
+//#define POLARSSL_CIPHER_NULL_CIPHER
 
 /**
  * \def POLARSSL_CIPHER_PADDING_XXX
@@ -293,8 +293,8 @@
  *      TLS_DHE_RSA_WITH_DES_CBC_SHA
  *
  * Uncomment this macro to enable weak ciphersuites
-#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
  */
+//#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
 /**
  * \def POLARSSL_ECP_XXXX_ENABLED

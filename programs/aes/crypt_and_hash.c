@@ -168,7 +168,11 @@ int main( int argc, char *argv[] )
         fprintf( stderr, "Cipher '%s' not found\n", argv[4] );
         goto exit;
     }
-    cipher_init_ctx( &cipher_ctx, cipher_info);
+    if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info) ) != 0 )
+    {
+        fprintf( stderr, "cipher_init_ctx failed\n" );
+        goto exit;
+    }
 
     md_info = md_info_from_string( argv[5] );
     if( md_info == NULL )
@@ -325,11 +329,16 @@ int main( int argc, char *argv[] )
 
             if( fread( buffer, 1, ilen, fin ) != ilen )
             {
-                fprintf( stderr, "fread(%ld bytes) failed\n", (long) n );
+                fprintf( stderr, "fread(%ld bytes) failed\n", (long) ilen );
                 goto exit;
             }
 
-            cipher_update( &cipher_ctx, buffer, ilen, output, &olen );
+            if( cipher_update( &cipher_ctx, buffer, ilen, output, &olen ) != 0 )
+            {
+                fprintf( stderr, "cipher_update() returned error\n");
+                goto exit;
+            }
+
             md_hmac_update( &md_ctx, output, olen );
 
             if( fwrite( output, 1, olen, fout ) != olen )
@@ -423,9 +432,18 @@ int main( int argc, char *argv[] )
 
         memset( key, 0, sizeof( key ) );
 
-        cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
-            POLARSSL_DECRYPT );
-        cipher_reset( &cipher_ctx, IV);
+        if( cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
+                           POLARSSL_DECRYPT ) != 0 )
+        {
+            fprintf( stderr, "cipher_setkey() returned error\n" );
+            goto exit;
+        }
+
+        if( cipher_reset( &cipher_ctx, IV ) != 0 )
+        {
+            fprintf( stderr, "cipher_reset() returned error\n" );
+            goto exit;
+        }
 
         md_hmac_starts( &md_ctx, digest, 32 );
 
@@ -443,8 +461,13 @@ int main( int argc, char *argv[] )
             }
 
             md_hmac_update( &md_ctx, buffer, cipher_get_block_size( &cipher_ctx ) );
-            cipher_update( &cipher_ctx, buffer, cipher_get_block_size( &cipher_ctx ),
-                output, &olen );
+            if( cipher_update( &cipher_ctx, buffer,
+                               cipher_get_block_size( &cipher_ctx ),
+                               output, &olen ) != 0 )
+            {
+                fprintf( stderr, "cipher_update() returned error\n" );
+                goto exit;
+            }
 
             if( fwrite( output, 1, olen, fout ) != olen )
             {

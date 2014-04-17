@@ -278,7 +278,13 @@ static int ssl_test( struct options *opt )
     else  ssl_set_ciphersuites( &ssl, opt->force_ciphersuite );
 
     if( opt->iomode == IOMODE_NONBLOCK )
-        net_set_nonblock( client_fd );
+    {
+        if( ( ret = net_set_nonblock( client_fd ) ) != 0 )
+        {
+            printf( "  ! net_set_nonblock returned %d\n\n", ret );
+            return( ret );
+        }
+    }
 
      read_buf = (unsigned char *) malloc( opt->buffer_size );
     write_buf = (unsigned char *) malloc( opt->buffer_size );

@@ -69,7 +69,12 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     mpi_init( &G ); mpi_init( &P ); mpi_init( &Q );
-    mpi_read_string( &G, 10, GENERATOR );
+
+    if( ( ret = mpi_read_string( &G, 10, GENERATOR ) ) != 0 )
+    {
+        printf( " failed\n  ! mpi_read_string returned %d\n", ret );
+        goto exit;
+    }
 
     printf( "\nWARNING: You should not generate and use your own DHM primes\n" );
     printf( "         unless you are very certain of what you are doing!\n" );

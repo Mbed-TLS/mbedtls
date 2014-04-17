@@ -281,8 +281,13 @@ int net_bind( int *fd, const char *bind_ip, int port )
         }
 
         n = 1;
-        setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
-                    (const char *) &n, sizeof( n ) );
+        if( setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
+                        (const char *) &n, sizeof( n ) ) != 0 )
+        {
+            close( *fd );
+            ret = POLARSSL_ERR_NET_SOCKET_FAILED;
+            continue;
+        }
 
         if( bind( *fd, cur->ai_addr, cur->ai_addrlen ) != 0 )
         {

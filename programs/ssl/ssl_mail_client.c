@@ -287,6 +287,7 @@ static int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
             return -1;
         }
 
+        data[len] = '\0';
         printf("\n%s", data);
         len = ret;
         for( i = 0; i < len; i++ )

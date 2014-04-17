@@ -222,6 +222,7 @@ int main( int argc, char *argv[] )
     printf( "\n" );
 
     memset( buf, 0xAA, sizeof( buf ) );
+    memset( tmp, 0xBB, sizeof( tmp ) );
 
 #if defined(POLARSSL_MD4_C)
     if( todo.md4 )

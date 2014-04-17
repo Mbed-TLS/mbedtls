@@ -2250,7 +2250,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
          *     ECPoint      public;
          * } ServerECDHParams;
          */
-        const ecp_curve_info **curve;
+        const ecp_curve_info **curve = NULL;
 #if defined(POLARSSL_SSL_SET_CURVES)
         const ecp_group_id *gid;
 

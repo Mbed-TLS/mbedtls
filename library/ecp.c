@@ -1125,7 +1125,7 @@ static int ecp_randomize_jac( const ecp_group *grp, ecp_point *pt,
         mpi_fill_random( &l, p_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
-            mpi_shift_r( &l, 1 );
+            MPI_CHK( mpi_shift_r( &l, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_ECP_RANDOM_FAILED );
@@ -1510,7 +1510,7 @@ static int ecp_randomize_mxz( const ecp_group *grp, ecp_point *P,
         mpi_fill_random( &l, p_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &l, &grp->P ) >= 0 )
-            mpi_shift_r( &l, 1 );
+            MPI_CHK( mpi_shift_r( &l, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_ECP_RANDOM_FAILED );
@@ -1598,7 +1598,7 @@ static int ecp_mul_mxz( ecp_group *grp, ecp_point *R,
     ecp_point_init( &RP ); mpi_init( &PX );
 
     /* Save PX and read from P before writing to R, in case P == R */
-    mpi_copy( &PX, &P->X );
+    MPI_CHK( mpi_copy( &PX, &P->X ) );
     MPI_CHK( ecp_copy( &RP, P ) );
 
     /* Set R to zero in modified x/z coordinates */

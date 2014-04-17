@@ -1233,7 +1233,7 @@ static int ecp_mod_p255( mpi *N )
     M.n++; /* Make room for multiplication by 19 */
 
     /* N = A0 */
-    mpi_set_bit( N, 255, 0 );
+    MPI_CHK( mpi_set_bit( N, 255, 0 ) );
     for( i = P255_WIDTH; i < N->n; i++ )
         N->p[i] = 0;
 

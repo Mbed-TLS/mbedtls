@@ -92,8 +92,9 @@ static int dhm_check_range( const mpi *param, const mpi *P )
     int ret = POLARSSL_ERR_DHM_BAD_INPUT_DATA;
 
     mpi_init( &L ); mpi_init( &U );
-    mpi_lset( &L, 2 );
-    mpi_sub_int( &U, P, 2 );
+
+    MPI_CHK( mpi_lset( &L, 2 ) );
+    MPI_CHK( mpi_sub_int( &U, P, 2 ) );
 
     if( mpi_cmp_mpi( param, &L ) >= 0 &&
         mpi_cmp_mpi( param, &U ) <= 0 )
@@ -101,8 +102,8 @@ static int dhm_check_range( const mpi *param, const mpi *P )
         ret = 0;
     }
 
+cleanup:
     mpi_free( &L ); mpi_free( &U );
-
     return( ret );
 }
 
@@ -153,7 +154,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
         mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-            mpi_shift_r( &ctx->X, 1 );
+            MPI_CHK( mpi_shift_r( &ctx->X, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_DHM_MAKE_PARAMS_FAILED );
@@ -239,7 +240,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
         mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-            mpi_shift_r( &ctx->X, 1 );
+            MPI_CHK( mpi_shift_r( &ctx->X, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED );
@@ -312,7 +313,7 @@ static int dhm_update_blinding( dhm_context *ctx,
         mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng );
 
         while( mpi_cmp_mpi( &ctx->Vi, &ctx->P ) >= 0 )
-            mpi_shift_r( &ctx->Vi, 1 );
+            MPI_CHK( mpi_shift_r( &ctx->Vi, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );

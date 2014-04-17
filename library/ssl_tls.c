@@ -2723,7 +2723,7 @@ int ssl_parse_certificate( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_SET_CURVES)
         {
-            const pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
+            pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
 
             /* If certificate uses an EC key, make sure the curve is OK */
             if( pk_can_do( pk, POLARSSL_PK_ECKEY ) &&

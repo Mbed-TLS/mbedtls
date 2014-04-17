@@ -70,9 +70,8 @@ void md_text( char *text_md_name, char *text_src_string, char *hex_hash_string )
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 100);
 
-    strcpy( (char *) src_str, text_src_string );
-    
-    strncpy( (char *) md_name, text_md_name, 100 );
+    strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
 
@@ -98,7 +97,7 @@ void md_hex( char *text_md_name, char *hex_src_string, char *hex_hash_string )
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, text_md_name, 100 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
 
@@ -128,9 +127,8 @@ void md_text_multi( char *text_md_name, char *text_src_string,
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 100);
 
-    strcpy( (char *) src_str, text_src_string );
-    
-    strncpy( (char *) md_name, text_md_name, 100 );
+    strncpy( (char *) src_str, text_src_string, sizeof(src_str) - 1 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
@@ -164,7 +162,7 @@ void md_hex_multi( char *text_md_name, char *hex_src_string,
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, text_md_name, 100 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string(md_name);
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
@@ -201,7 +199,7 @@ void md_hmac( char *text_md_name, int trunc_size, char *hex_key_string,
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, text_md_name, 100 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
 
@@ -234,7 +232,7 @@ void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
     memset(hash_str, 0x00, 10000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, text_md_name, 100 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
@@ -278,7 +276,7 @@ void md_file( char *text_md_name, char *filename, char *hex_hash_string )
     memset(hash_str, 0x00, 1000);
     memset(output, 0x00, 100);
 
-    strncpy( (char *) md_name, text_md_name, 100 );
+    strncpy( (char *) md_name, text_md_name, sizeof(md_name) - 1 );
     md_info = md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
 

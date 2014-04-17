@@ -483,11 +483,16 @@ int main( int argc, char *argv[] )
         {
             memset( &dhm, 0, sizeof( dhm_context ) );
 
-            mpi_read_string( &dhm.P, 16, dhm_P[i] );
-            mpi_read_string( &dhm.G, 16, dhm_G[i] );
+            if( mpi_read_string( &dhm.P, 16, dhm_P[i] ) != 0 ||
+                mpi_read_string( &dhm.G, 16, dhm_G[i] ) != 0 )
+            {
+                exit( 1 );
+            }
+
             dhm.len = mpi_size( &dhm.P );
             dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
-            mpi_copy( &dhm.GY, &dhm.GX );
+            if( mpi_copy( &dhm.GY, &dhm.GX ) != 0 )
+                exit( 1 );
 
             snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",

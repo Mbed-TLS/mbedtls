@@ -921,7 +921,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
                                     const unsigned char *key, size_t keylen,
                                     const unsigned char *pwd, size_t pwdlen )
 {
-    int ret;
+    int ret, decrypted = 0;
     size_t len;
     unsigned char buf[2048];
     unsigned char *p, *end;
@@ -985,6 +985,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
 
             return( ret );
         }
+
+        decrypted = 1;
     }
     else if( OID_CMP( OID_PKCS12_PBE_SHA1_RC4_128, &pbe_alg_oid ) )
     {
@@ -1001,6 +1003,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
         //
         if( *buf != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
             return( POLARSSL_ERR_PK_PASSWORD_MISMATCH );
+
+        decrypted = 1;
     }
     else
 #endif /* POLARSSL_PKCS12_C */
@@ -1015,13 +1019,17 @@ static int pk_parse_key_pkcs8_encrypted_der(
 
             return( ret );
         }
+
+        decrypted = 1;
     }
     else
 #endif /* POLARSSL_PKCS5_C */
     {
         ((void) pwd);
-        return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
     }
+
+    if( decrypted == 0 )
+        return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( pk_parse_key_pkcs8_unencrypted_der( pk, buf, len ) );
 }

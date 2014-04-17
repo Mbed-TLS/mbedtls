@@ -125,6 +125,7 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     memset( buf, 0xAA, sizeof( buf ) );
+    memset( tmp, 0xBB, sizeof( tmp ) );
 
     printf( "\n" );
 

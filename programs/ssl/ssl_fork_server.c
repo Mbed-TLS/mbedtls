@@ -334,7 +334,7 @@ int main( int argc, char *argv[] )
         len = sprintf( (char *) buf, HTTP_RESPONSE,
                 ssl_get_ciphersuite( &ssl ) );
 
-        while( cnt < 100 )
+        while( cnt++ < 100 )
         {
             while( ( ret = ssl_write( &ssl, buf, len ) ) <= 0 )
             {

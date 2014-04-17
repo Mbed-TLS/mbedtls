@@ -146,7 +146,12 @@ int main( int argc, char *argv[] )
                 printf( " failed\n  !  fopen returned NULL\n" );
                 goto exit;
             }
-            fgets( buf, sizeof(buf), f );
+            if( fgets( buf, sizeof(buf), f ) == NULL )
+            {
+                fclose( f );
+                printf( "Error: fgets() failed to retrieve password\n" );
+                goto exit;
+            }
             fclose( f );
 
             i = (int) strlen( buf );

@@ -101,6 +101,7 @@ void mpi_read_file( int radix_X, char *input_file, char *input_A,
     mpi_init( &X );
 
     file = fopen( input_file, "r" );
+    TEST_ASSERT( file != NULL );
     TEST_ASSERT( mpi_read_file( &X, radix_X, file ) == result );
     fclose(file);
 

@@ -59,14 +59,15 @@ int main( int argc, char *argv[] )
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret;
+    int ret = 1;
     size_t i;
     rsa_context rsa;
     unsigned char hash[20];
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
     char filename[512];
 
-    ret = 1;
+    rsa_init( &rsa, RSA_PKCS_V21, POLARSSL_MD_SHA1 );
+
     if( argc != 3 )
     {
         printf( "usage: rsa_verify_pss <key_file> <filename>\n" );
@@ -80,8 +81,6 @@ int main( int argc, char *argv[] )
 
     printf( "\n  . Reading public key from '%s'", argv[1] );
     fflush( stdout );
-
-    rsa_init( &rsa, RSA_PKCS_V21, POLARSSL_MD_SHA1 );
 
     if( ( ret = x509parse_public_keyfile( &rsa, argv[1] ) ) != 0 )
     {

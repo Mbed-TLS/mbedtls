@@ -279,8 +279,10 @@ exit:
     }
 #endif
 
+    if( server_fd != -1 )
+        net_close( server_fd );
+
     x509_free( &cacert );
-    net_close( server_fd );
     ssl_free( &ssl );
 
     memset( &ssl, 0, sizeof( ssl ) );

@@ -136,6 +136,8 @@ static int sha1_check( char *filename )
         n = sizeof( line );
     }
 
+    fclose( f );
+
     if( nb_err1 != 0 )
     {
         printf( "WARNING: %d (out of %d) input files could "

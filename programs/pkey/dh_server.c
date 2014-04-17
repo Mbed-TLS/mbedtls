@@ -276,7 +276,9 @@ int main( int argc, char *argv[] )
 
 exit:
 
-    net_close( client_fd );
+    if( client_fd != -1 )
+        net_close( client_fd );
+
     rsa_free( &rsa );
     dhm_free( &dhm );
 

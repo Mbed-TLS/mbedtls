@@ -712,7 +712,10 @@ exit:
     }
 #endif
 
-    net_close( client_fd );
+
+    if( client_fd != -1 )
+        net_close( client_fd );
+
     x509_free( &srvcert );
     x509_free( &cacert );
     rsa_free( &rsa );

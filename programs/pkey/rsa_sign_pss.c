@@ -62,7 +62,7 @@ int main( int argc, char *argv[] )
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret;
+    int ret = 1;
     rsa_context rsa;
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
@@ -71,7 +71,8 @@ int main( int argc, char *argv[] )
     char filename[512];
     const char *pers = "rsa_sign_pss";
 
-    ret = 1;
+    entropy_init( &entropy );
+    rsa_init( &rsa, RSA_PKCS_V21, POLARSSL_MD_SHA1 );
 
     if( argc != 3 )
     {
@@ -87,7 +88,6 @@ int main( int argc, char *argv[] )
     printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    entropy_init( &entropy );
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
@@ -98,8 +98,6 @@ int main( int argc, char *argv[] )
 
     printf( "\n  . Reading private key from '%s'", argv[1] );
     fflush( stdout );
-
-    rsa_init( &rsa, RSA_PKCS_V21, POLARSSL_MD_SHA1 );
 
     if( ( ret = x509parse_keyfile( &rsa, argv[1], "" ) ) != 0 )
     {

@@ -1,0 +1,13 @@
+language: c
+compiler:
+ - clang
+ - gcc
+before_install: sudo apt-get update
+install: sudo apt-get install bc gnutls-bin valgrind perl
+script:
+ - cmake -D CMAKE_BUILD_TYPE:String="Check" .
+ - make
+ - make test
+ - ( cd tests && ./compat.sh )
+ - ( cd tests && ./ssl-opt.sh )
+ - tests/scripts/test-ref-configs.pl

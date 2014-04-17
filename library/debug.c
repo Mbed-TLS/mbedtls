@@ -243,7 +243,7 @@ static void debug_print_pk( const ssl_context *ssl, int level,
         return;
     }
 
-    for( i = 0; i < sizeof( items ); i++ )
+    for( i = 0; i < POLARSSL_PK_DEBUG_MAX_ITEMS; i++ )
     {
         if( items[i].type == POLARSSL_PK_DEBUG_NONE )
             return;

@@ -65,6 +65,8 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
                 oid = OID_AT_ORG_UNIT;
             else if( c - s == 2 && strncasecmp( s, "ST", 2 ) == 0 )
                 oid = OID_AT_STATE;
+            else if( c - s == 12 && strncasecmp( s, "emailAddress", 12 ) == 0 )
+                oid = OID_PKCS9_EMAIL;
             else if( c - s == 12 && strncasecmp( s, "serialNumber", 12 ) == 0 )
                 oid = OID_AT_SERIAL_NUMBER;
             else if( c - s == 13 && strncasecmp( s, "postalAddress", 13 ) == 0 )

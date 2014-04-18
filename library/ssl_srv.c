@@ -2073,7 +2073,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
     crt = ssl->ca_chain;
 
     total_dn_size = 0;
-    while( crt != NULL )
+    while( crt != NULL && crt->version != 0 )
     {
         if( p - buf > 4096 )
             break;

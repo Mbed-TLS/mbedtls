@@ -32,6 +32,8 @@ Bugfix
    * Fix dependencies issues in X.509 test suite.
    * Some parts of ssl_tls.c were compiled even when the module was disabled.
    * Fix detection of DragonflyBSD in net.c (found by Markus Pfeiffer)
+   * Fix detection of Clang on some Apple platforms with CMake
+     (found by Barry K. Nathan)
 
 = PolarSSL 1.3.6 released on 2014-04-11
 

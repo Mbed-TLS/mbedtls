@@ -228,9 +228,17 @@
 #define SSL_SESSION_TICKETS_DISABLED     0
 #define SSL_SESSION_TICKETS_ENABLED      1
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(SSL_DEFAULT_TICKET_LIFETIME)
 #define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif
 
 /*
  * Size of the input / output buffer.
@@ -239,9 +247,11 @@
  * communicate with you anymore. Only change this value if you control
  * both sides of the connection and have it reduced at both sides!
  */
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+#if !defined(SSL_MAX_CONTENT_LEN)
 #define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif
+
+/* \} name SECTION: Module settings */
 
 /*
  * Allow an extra 301 bytes for the record header

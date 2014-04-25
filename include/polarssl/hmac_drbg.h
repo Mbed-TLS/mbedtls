@@ -37,12 +37,31 @@
 #define POLARSSL_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x0007  /**< Read/write error in file. */
 #define POLARSSL_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED        -0x0009  /**< The entropy source failed. */
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(POLARSSL_HMAC_DRBG_RESEED_INTERVAL)
 #define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000   /**< Interval before reseed is performed by default */
+#endif
+
+#if !defined(POLARSSL_HMAC_DRBG_MAX_INPUT)
 #define POLARSSL_HMAC_DRBG_MAX_INPUT         256     /**< Maximum number of additional input bytes */
+#endif
+
+#if !defined(POLARSSL_HMAC_DRBG_MAX_REQUEST)
 #define POLARSSL_HMAC_DRBG_MAX_REQUEST       1024    /**< Maximum number of requested bytes per call */
+#endif
+
+#if !defined(POLARSSL_HMAC_DRBG_MAX_SEED_INPUT)
 #define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT    384     /**< Maximum size of (re)seed buffer */
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif
+
+/* \} name SECTION: Module settings */
 
 #define POLARSSL_HMAC_DRBG_PR_OFF   0   /**< No prediction resistance       */
 #define POLARSSL_HMAC_DRBG_PR_ON    1   /**< Prediction resistance enabled  */

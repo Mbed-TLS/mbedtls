@@ -35,17 +35,35 @@
 extern "C" {
 #endif
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
 #include <stdlib.h>
+#if !defined(POLARSSL_PLATFORM_STD_PRINTF)
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
+#endif
+#if !defined(POLARSSL_PLATFORM_STD_FPRINTF)
 #define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use */
+#endif
+#if !defined(POLARSSL_PLATFORM_STD_MALLOC)
 #define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use */
+#endif
+#if !defined(POLARSSL_PLATFORM_STD_FREE)
 #define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use */
-#else /* POLARSSL_CONFIG_OPTIONS */
+#endif
+#else /* POLARSSL_PLATFORM_NO_STD_FUNCTIONS */
 #if defined(POLARSSL_PLATFORM_STD_MEM_HDR)
 #include POLARSSL_PLATFORM_STD_MEM_HDR
 #endif
-#endif /* POLARSSL_CONFIG_OPTIONS */
+#endif /* POLARSSL_PLATFORM_NO_STD_FUNCTIONS */
+
+/* \} name SECTION: Module settings */
 
 /*
  * The function pointers for malloc and free

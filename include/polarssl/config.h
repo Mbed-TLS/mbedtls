@@ -133,6 +133,24 @@
 //#define POLARSSL_PLATFORM_MEMORY
 
 /**
+ * \def POLARSSL_PLATFORM_NO_STD_FUNCTIONS
+ *
+ * Do not assign standard functions in the platform layer (e.g. malloc() to
+ * POLARSSL_PLATFORM_STD_MALLOC and printf() to POLARSSL_PLATFORM_STD_PRINTF)
+ *
+ * This makes sure there are no linking errors on platforms that do not support
+ * these functions. You will HAVE to provide alternatives, either at runtime
+ * via the platform_set_xxx() functions or at compile time by setting
+ * the POLARSSL_PLATFORM_STD_XXX defines.
+ *
+ * Requires: POLARSSL_PLATFORM_C
+ *
+ * Uncomment to prevent default assignment of standard functions in the
+ * platform layer.
+ */
+//#define POLARSSL_PLATFORM_NO_STD_FUNCTIONS
+
+/**
  * \def POLARSSL_PLATFORM_XXX_ALT
  *
  * Uncomment a macro to let PolarSSL support the function in the platform
@@ -2026,75 +2044,58 @@
  * This section allows for the setting of module specific sizes and
  * configuration options. The default values are already present in the
  * relevant header files and should suffice for the regular use cases.
- * Our advice is to enable POLARSSL_CONFIG_OPTIONS and change values here
- * only if you have a good reason and know the consequences.
  *
- * If POLARSSL_CONFIG_OPTIONS is undefined here the options in the module
- * header file take precedence.
+ * Our advice is to enable options and change their values here
+ * only if you have a good reason and know the consequences.
  *
  * Please check the respective header file for documentation on these
  * parameters (to prevent duplicate documentation).
- *
- * Uncomment POLARSSL_CONFIG_OPTIONS to enable using the values defined here.
  * \{
  */
-//#define POLARSSL_CONFIG_OPTIONS   /**< Enable config.h module value configuration */
 
-#if defined(POLARSSL_CONFIG_OPTIONS)
+/* MPI / BIGNUM options */
+//#define POLARSSL_MPI_WINDOW_SIZE            6 /**< Maximum windows size used. */
+//#define POLARSSL_MPI_MAX_SIZE             512 /**< Maximum number of bytes for usable MPIs. */
 
-// MPI / BIGNUM options
-//
-#define POLARSSL_MPI_WINDOW_SIZE            6 /**< Maximum windows size used. */
-#define POLARSSL_MPI_MAX_SIZE             512 /**< Maximum number of bytes for usable MPIs. */
+/* CTR_DRBG options */
+//#define CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
+//#define CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
+//#define CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
+//#define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
+//#define CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
 
-// CTR_DRBG options
-//
-#define CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
-#define CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
-#define CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
-#define CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
-#define CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
+/* HMAC_DRBG options */
+//#define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */
+//#define POLARSSL_HMAC_DRBG_MAX_INPUT           256 /**< Maximum number of additional input bytes */
+//#define POLARSSL_HMAC_DRBG_MAX_REQUEST        1024 /**< Maximum number of requested bytes per call */
+//#define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT      384 /**< Maximum size of (re)seed buffer */
 
-// HMAC_DRBG options
-//
-#define POLARSSL_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */
-#define POLARSSL_HMAC_DRBG_MAX_INPUT           256 /**< Maximum number of additional input bytes */
-#define POLARSSL_HMAC_DRBG_MAX_REQUEST        1024 /**< Maximum number of requested bytes per call */
-#define POLARSSL_HMAC_DRBG_MAX_SEED_INPUT      384 /**< Maximum size of (re)seed buffer */
+/* ECP options */
+//#define POLARSSL_ECP_MAX_BITS             521 /**< Maximum bit size of groups */
+//#define POLARSSL_ECP_WINDOW_SIZE            6 /**< Maximum window size used */
+//#define POLARSSL_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
 
-// ECP options
-//
-#define POLARSSL_ECP_MAX_BITS             521 /**< Maximum bit size of groups */
-#define POLARSSL_ECP_WINDOW_SIZE            6 /**< Maximum window size used */
-#define POLARSSL_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
+/* Entropy options */
+//#define ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
+//#define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
 
-// Entropy options
-//
-#define ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
-#define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
+/* Memory buffer allocator options */
+//#define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
 
-// Memory buffer allocator options
-#define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
+/* Platform options */
+//#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include if POLARSSL_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
+//#define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use, can be undefined */
 
-// Platform options
-//
-#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include for default allocator. Don't define if no header is needed. */
-#define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
-#define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
-#define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
-#define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use, can be undefined */
+/* SSL Cache options */
+//#define SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
+//#define SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
 
-// SSL Cache options
-//
-#define SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
-#define SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
-
-// SSL options
-//
-#define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
-#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
-
-#endif /* POLARSSL_CONFIG_OPTIONS */
+/* SSL options */
+//#define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
+//#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 
 /* \} name */
 

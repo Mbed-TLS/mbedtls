@@ -33,10 +33,23 @@
 #include "threading.h"
 #endif
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(SSL_CACHE_DEFAULT_TIMEOUT)
 #define SSL_CACHE_DEFAULT_TIMEOUT       86400   /*!< 1 day  */
+#endif
+
+#if !defined(SSL_CACHE_DEFAULT_MAX_ENTRIES)
 #define SSL_CACHE_DEFAULT_MAX_ENTRIES      50   /*!< Maximum entries in cache */
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif
+
+/* \} name SECTION: Module settings */
 
 #ifdef __cplusplus
 extern "C" {

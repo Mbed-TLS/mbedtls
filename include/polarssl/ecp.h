@@ -168,7 +168,15 @@ typedef struct
 }
 ecp_keypair;
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(POLARSSL_ECP_MAX_BITS)
 /**
  * Maximum size of the groups (that is, of N and P)
  */
@@ -178,7 +186,7 @@ ecp_keypair;
 #define POLARSSL_ECP_MAX_BYTES    ( ( POLARSSL_ECP_MAX_BITS + 7 ) / 8 )
 #define POLARSSL_ECP_MAX_PT_LEN   ( 2 * POLARSSL_ECP_MAX_BYTES + 1 )
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+#if !defined(POLARSSL_ECP_WINDOW_SIZE)
 /*
  * Maximum "window" size used for point multiplication.
  * Default: 6.
@@ -195,11 +203,14 @@ ecp_keypair;
  *      521       145     141     135     120      97
  *      384       214     209     198     177     146
  *      256       320     320     303     262     226
+
  *      224       475     475     453     398     342
  *      192       640     640     633     587     476
  */
 #define POLARSSL_ECP_WINDOW_SIZE    6   /**< Maximum window size used */
+#endif
 
+#if !defined(POLARSSL_ECP_FIXED_POINT_OPTIM)
 /*
  * Trade memory for speed on fixed-point multiplication.
  *
@@ -213,6 +224,8 @@ ecp_keypair;
  */
 #define POLARSSL_ECP_FIXED_POINT_OPTIM  1   /**< Enable fixed-point speed-up */
 #endif
+
+/* \} name SECTION: Module settings */
 
 /*
  * Point formats, from RFC 4492's enum ECPointFormat

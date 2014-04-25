@@ -54,10 +54,23 @@
 #define POLARSSL_ERR_ENTROPY_NO_SOURCES_DEFINED            -0x0040  /**< No sources have been added to poll. */
 #define POLARSSL_ERR_ENTROPY_FILE_IO_ERROR                 -0x0058  /**< Read/write error in file. */
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(ENTROPY_MAX_SOURCES)
 #define ENTROPY_MAX_SOURCES     20      /**< Maximum number of sources supported */
+#endif
+
+#if !defined(ENTROPY_MAX_GATHER)
 #define ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */
-#endif /* !POLARSSL_CONFIG_OPTIONS  */
+#endif
+
+/* \} name SECTION: Module settings */
 
 #if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
 #define ENTROPY_BLOCK_SIZE      64      /**< Block size of entropy accumulator (SHA-512) */

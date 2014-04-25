@@ -31,9 +31,19 @@
 
 #include <stdlib.h>
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(POLARSSL_MEMORY_ALIGN_MULTIPLE)
 #define POLARSSL_MEMORY_ALIGN_MULTIPLE       4 /**< Align on multiples of this value */
-#endif /* POLARSSL_CONFIG_OPTIONS */
+#endif
+
+/* \} name SECTION: Module settings */
 
 #define MEMORY_VERIFY_NONE         0
 #define MEMORY_VERIFY_ALLOC        (1 << 0)

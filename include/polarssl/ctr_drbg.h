@@ -42,17 +42,39 @@
 #define CTR_DRBG_SEEDLEN            ( CTR_DRBG_KEYSIZE + CTR_DRBG_BLOCKSIZE )
                                             /**< The seed length (counter + AES key)            */
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(CTR_DRBG_ENTROPY_LEN)
 #if defined(POLARSSL_SHA512_C) && !defined(POLARSSL_ENTROPY_FORCE_SHA256)
 #define CTR_DRBG_ENTROPY_LEN        48      /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
 #else
 #define CTR_DRBG_ENTROPY_LEN        32      /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
 #endif
+#endif
+
+#if !defined(CTR_DRBG_RESEED_INTERVAL)
 #define CTR_DRBG_RESEED_INTERVAL    10000   /**< Interval before reseed is performed by default */
+#endif
+
+#if !defined(CTR_DRBG_MAX_INPUT)
 #define CTR_DRBG_MAX_INPUT          256     /**< Maximum number of additional input bytes */
+#endif
+
+#if !defined(CTR_DRBG_MAX_REQUEST)
 #define CTR_DRBG_MAX_REQUEST        1024    /**< Maximum number of requested bytes per call */
+#endif
+
+#if !defined(CTR_DRBG_MAX_SEED_INPUT)
 #define CTR_DRBG_MAX_SEED_INPUT     384     /**< Maximum size of (re)seed buffer */
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif
+
+/* \} name SECTION: Module settings */
 
 #define CTR_DRBG_PR_OFF             0       /**< No prediction resistance       */
 #define CTR_DRBG_PR_ON              1       /**< Prediction resistance enabled  */

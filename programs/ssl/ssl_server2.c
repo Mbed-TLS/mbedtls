@@ -51,6 +51,7 @@
 #include "polarssl/certs.h"
 #include "polarssl/x509.h"
 #include "polarssl/error.h"
+#include "polarssl/debug.h"
 
 #if defined(POLARSSL_SSL_CACHE_C)
 #include "polarssl/ssl_cache.h"
@@ -137,11 +138,10 @@ struct options
 
 static void my_debug( void *ctx, int level, const char *str )
 {
-    if( level < opt.debug_level )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
+    ((void) level);
+
+    fprintf( (FILE *) ctx, "%s", str );
+    fflush(  (FILE *) ctx  );
 }
 
 /*
@@ -720,6 +720,10 @@ int main( int argc, char *argv[] )
         else
             goto usage;
     }
+
+#if defined(POLARSSL_DEBUG_C)
+    debug_set_threshold( opt.debug_level );
+#endif
 
     if( opt.force_ciphersuite[0] > 0 )
     {

@@ -40,6 +40,7 @@
 #include "polarssl/ssl.h"
 #include "polarssl/net.h"
 #include "polarssl/error.h"
+#include "polarssl/debug.h"
 
 #if defined(POLARSSL_SSL_CACHE_C)
 #include "polarssl/ssl_cache.h"
@@ -73,11 +74,10 @@ int main( int argc, char *argv[] )
 
 static void my_debug( void *ctx, int level, const char *str )
 {
-    if( level < DEBUG_LEVEL )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
+    ((void) level);
+
+    fprintf( (FILE *) ctx, "%s", str );
+    fflush(  (FILE *) ctx  );
 }
 
 int main( int argc, char *argv[] )
@@ -107,6 +107,10 @@ int main( int argc, char *argv[] )
     x509_crt_init( &srvcert );
     pk_init( &pkey );
     entropy_init( &entropy );
+
+#if defined(POLARSSL_DEBUG_C)
+    debug_set_threshold( DEBUG_LEVEL );
+#endif
 
     /*
      * 1. Load the certificates and private RSA key

@@ -47,10 +47,16 @@
 #endif /* _MSC_VER */
 
 static int debug_log_mode = POLARSSL_DEBUG_DFL_MODE;
+static int debug_threshold = 0;
 
 void debug_set_log_mode( int log_mode )
 {
     debug_log_mode = log_mode;
+}
+
+void debug_set_threshold( int threshold )
+{
+    debug_threshold = threshold;
 }
 
 char *debug_fmt( const char *format, ... )
@@ -73,7 +79,7 @@ void debug_print_msg( const ssl_context *ssl, int level,
     char str[512];
     int maxlen = sizeof( str ) - 1;
 
-    if( ssl->f_dbg == NULL )
+    if( ssl->f_dbg == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == POLARSSL_DEBUG_LOG_RAW )
@@ -95,7 +101,7 @@ void debug_print_ret( const ssl_context *ssl, int level,
     int maxlen = sizeof( str ) - 1;
     size_t idx = 0;
 
-    if( ssl->f_dbg == NULL )
+    if( ssl->f_dbg == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
@@ -115,7 +121,7 @@ void debug_print_buf( const ssl_context *ssl, int level,
     char str[512];
     size_t i, maxlen = sizeof( str ) - 1, idx = 0;
 
-    if( ssl->f_dbg == NULL )
+    if( ssl->f_dbg == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
@@ -169,6 +175,9 @@ void debug_print_ecp( const ssl_context *ssl, int level,
     char str[512];
     int maxlen = sizeof( str ) - 1;
 
+    if( ssl->f_dbg == NULL || level > debug_threshold )
+        return;
+
     snprintf( str, maxlen, "%s(X)", text );
     str[maxlen] = '\0';
     debug_print_mpi( ssl, level, file, line, str, &X->X );
@@ -188,7 +197,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
     int j, k, maxlen = sizeof( str ) - 1, zeros = 1;
     size_t i, n, idx = 0;
 
-    if( ssl->f_dbg == NULL || X == NULL )
+    if( ssl->f_dbg == NULL || X == NULL || level > debug_threshold )
         return;
 
     for( n = X->n - 1; n > 0; n-- )
@@ -301,7 +310,7 @@ void debug_print_crt( const ssl_context *ssl, int level,
     char str[1024], prefix[64];
     int i = 0, maxlen = sizeof( prefix ) - 1, idx = 0;
 
-    if( ssl->f_dbg == NULL || crt == NULL )
+    if( ssl->f_dbg == NULL || crt == NULL || level > debug_threshold )
         return;
 
     if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )

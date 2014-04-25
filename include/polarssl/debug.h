@@ -52,14 +52,6 @@
 
 /* \} name SECTION: Module settings */
 
-/**
- * \brief   Set the log mode for the debug functions globally
- *          (Default value: POLARSSL_DEBUG_DFL_MODE)
- *
- * \param log_mode  The log mode to use (POLARSSL_DEBUG_LOG_FULL or
- *                                       POLARSSL_DEBUG_LOG_RAW)
- */
-void debug_set_log_mode( int log_mode );
 
 #define SSL_DEBUG_MSG( level, args )                    \
     debug_print_msg( ssl, level, __FILE__, __LINE__, debug_fmt args );
@@ -99,6 +91,24 @@ void debug_set_log_mode( int log_mode );
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * \brief   Set the log mode for the debug functions globally
+ *          (Default value: POLARSSL_DEBUG_DFL_MODE)
+ *
+ * \param log_mode      The log mode to use (POLARSSL_DEBUG_LOG_FULL or
+ *                                           POLARSSL_DEBUG_LOG_RAW)
+ */
+void debug_set_log_mode( int log_mode );
+
+/**
+ * \brief   Set the level threshold to handle globally. Messages that have a
+ *          level over the threshold value are ignored.
+ *          (Default value: 0 (No debug))
+ *
+ * \param threshold     maximum level of messages to pass on
+ */
+void debug_set_threshold( int threshold );
 
 char *debug_fmt( const char *format, ... );
 

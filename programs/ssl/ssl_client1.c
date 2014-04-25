@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 #include "polarssl/net.h"
+#include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
@@ -61,11 +62,10 @@ int main( int argc, char *argv[] )
 
 static void my_debug( void *ctx, int level, const char *str )
 {
-    if( level < DEBUG_LEVEL )
-    {
-        fprintf( (FILE *) ctx, "%s", str );
-        fflush(  (FILE *) ctx  );
-    }
+    ((void) level);
+
+    fprintf( (FILE *) ctx, "%s", str );
+    fflush(  (FILE *) ctx  );
 }
 
 int main( int argc, char *argv[] )
@@ -81,6 +81,10 @@ int main( int argc, char *argv[] )
 
     ((void) argc);
     ((void) argv);
+
+#if defined(POLARSSL_DEBUG_C)
+    debug_set_threshold( DEBUG_LEVEL );
+#endif
 
     /*
      * 0. Initialize the RNG and the session data

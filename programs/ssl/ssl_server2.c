@@ -430,7 +430,7 @@ int main( int argc, char *argv[] )
     int ret = 0, len, written, frags;
     int listen_fd;
     int client_fd = -1;
-    unsigned char buf[1024];
+    unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[256];
     size_t psk_len = 0;
@@ -1245,6 +1245,7 @@ reset:
         }
 
         len = ret;
+        buf[len] = '\0';
         printf( " %d bytes read\n\n%s\n", len, (char *) buf );
 
         if( memcmp( buf, "SERVERQUIT", 10 ) == 0 )

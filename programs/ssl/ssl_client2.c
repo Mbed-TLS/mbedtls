@@ -41,10 +41,17 @@
 #include "polarssl/timing.h"
 #endif
 
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
+#if !defined  snprintf
+#define  snprintf  _snprintf
+#endif
+#endif
+
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
+#define DFL_REQUEST_SIZE        0
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
 #define DFL_CA_FILE             ""
@@ -67,18 +74,8 @@
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
 
-#define LONG_HEADER "User-agent: blah-blah-blah-blah-blah-blah-blah-blah-"   \
-    "-01--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
-    "-02--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
-    "-03--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
-    "-04--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
-    "-05--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
-    "-06--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-" \
-    "-07--blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-END\r\n"
-
-/* Uncomment LONG_HEADER in the definition of GET_REQUEST to test sending
- * longer paquets (for fragmentation purposes) */
-#define GET_REQUEST "GET %s HTTP/1.0\r\n" /* LONG_HEADER */ "\r\n"
+#define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
+#define GET_REQUEST_END "\r\n\r\n"
 
 /*
  * global options
@@ -91,6 +88,7 @@ struct options
     int debug_level;            /* level of debugging                       */
     int nbio;                   /* should I/O be blocking?                  */
     const char *request_page;   /* page on server to request                */
+    int request_size;           /* pad request with header to requested size */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the client certificate     */
@@ -270,6 +268,8 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    server_addr=%%s      default: given by name\n"     \
     "    server_port=%%d      default: 4433\n"              \
     "    request_page=%%s     default: \".\"\n"             \
+    "    request_size=%%d     default: 0 (no extra padding)\n" \
+    "                        (minimum: 16, max: " ")\n" \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
@@ -317,7 +317,7 @@ int main( int argc, char *argv[] )
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, server_fd, i, written, frags;
-    unsigned char buf[1024];
+    unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[256];
     size_t psk_len = 0;
@@ -382,6 +382,7 @@ int main( int argc, char *argv[] )
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.nbio                = DFL_NBIO;
     opt.request_page        = DFL_REQUEST_PAGE;
+    opt.request_size        = DFL_REQUEST_SIZE;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -433,6 +434,12 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "request_page" ) == 0 )
             opt.request_page = q;
+        else if( strcmp( p, "request_size" ) == 0 )
+        {
+            opt.request_size = atoi( q );
+            if( opt.request_size < 0 || opt.request_size > SSL_MAX_CONTENT_LEN )
+                goto usage;
+        }
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
@@ -1014,7 +1021,23 @@ send_request:
     if( strcmp( opt.request_page, "SERVERQUIT" ) == 0 )
         len = sprintf( (char *) buf, "%s", opt.request_page );
     else
-        len = sprintf( (char *) buf, GET_REQUEST, opt.request_page );
+    {
+        size_t tail_len = strlen( GET_REQUEST_END );
+
+        len = snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
+                        opt.request_page );
+
+        // Add padding to GET request to reach opt.request_size in length
+        //
+        if( len + tail_len < (size_t) opt.request_size )
+        {
+            memset( buf + len, 'A', opt.request_size - len - tail_len );
+            len += opt.request_size - len - tail_len;
+        }
+
+        strncpy( (char *) buf + len, GET_REQUEST_END, sizeof(buf) - len - 1 );
+        len += tail_len;
+    }
 
     for( written = 0, frags = 0; written < len; written += ret, frags++ )
     {
@@ -1063,6 +1086,7 @@ send_request:
         }
 
         len = ret;
+        buf[len] = '\0';
         printf( " %d bytes read\n\n%s", len, (char *) buf );
     }
     while( 1 );

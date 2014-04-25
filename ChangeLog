@@ -10,6 +10,7 @@ Bugfix
      (found by Matthew Page)
    * Typos in platform.c and pkcs11.c (found by Daniel Phillips and Steffan
      Karger)
+   * cert_write app should use subject of issuer certificate as issuer of cert
 
 = PolarSSL 1.3.6 released on 2014-04-11
 

@@ -409,7 +409,7 @@ int main( int argc, char *argv[] )
         }
 
         ret = x509_dn_gets( issuer_name, sizeof(issuer_name),
-                                 &issuer_crt.issuer );
+                                 &issuer_crt.subject );
         if( ret < 0 )
         {
             polarssl_strerror( ret, buf, 1024 );

@@ -3,8 +3,7 @@
  * Distinguishing features: no bignum, no PK, no X509.
  *
  * Can be activated with:
- *      cd scripts
- *      ./activate-config.pl data_files/config-mini-tls1_1.h
+ *      scripts/activate-config.pl configs/config-mini-tls1_1.h
  */
 
 /* PolarSSL feature support */

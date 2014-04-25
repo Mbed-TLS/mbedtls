@@ -1,16 +1,16 @@
 /*
- * Minimal configuration for TLS NSA Suite B Profile (RFC 6460)
+ * Minimal configuration for TLS 1.1 (RFC 4346), implementing only the
+ * required ciphersuite: TLS_RSA_WITH_3DES_EDE_CBC_SHA
  *
  * Can be activated with:
- *      cd scripts
- *      ./activate-config.pl data_files/config-mini-tls1_1.h
+ *      scripts/activate-config.pl configs/config-mini-tls1_1.h
  */
 
 /* PolarSSL feature support */
-#define POLARSSL_ECP_DP_SECP256R1_ENABLED
-#define POLARSSL_ECP_DP_SECP384R1_ENABLED
-#define POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-#define POLARSSL_SSL_PROTO_TLS1_2
+#define POLARSSL_CIPHER_MODE_CBC
+#define POLARSSL_PKCS1_V15
+#define POLARSSL_KEY_EXCHANGE_RSA_ENABLED
+#define POLARSSL_SSL_PROTO_TLS1_1
 
 /* PolarSSL modules */
 #define POLARSSL_AES_C
@@ -19,18 +19,17 @@
 #define POLARSSL_BIGNUM_C
 #define POLARSSL_CIPHER_C
 #define POLARSSL_CTR_DRBG_C
-#define POLARSSL_ECDH_C
-#define POLARSSL_ECDSA_C
-#define POLARSSL_ECP_C
+#define POLARSSL_DES_C
 #define POLARSSL_ENTROPY_C
-#define POLARSSL_GCM_C
 #define POLARSSL_MD_C
+#define POLARSSL_MD5_C
 #define POLARSSL_NET_C
 #define POLARSSL_OID_C
 #define POLARSSL_PK_C
 #define POLARSSL_PK_PARSE_C
+#define POLARSSL_RSA_C
+#define POLARSSL_SHA1_C
 #define POLARSSL_SHA256_C
-#define POLARSSL_SHA512_C
 #define POLARSSL_SSL_CLI_C
 #define POLARSSL_SSL_SRV_C
 #define POLARSSL_SSL_TLS_C

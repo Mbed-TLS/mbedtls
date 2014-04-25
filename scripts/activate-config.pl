@@ -5,7 +5,7 @@
 use warnings;
 use strict;
 
-my $config_h = "../include/polarssl/config.h";
+my $config_h = "include/polarssl/config.h";
 
 exit( main() );
 

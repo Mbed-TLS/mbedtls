@@ -46,6 +46,13 @@
 #endif
 #endif /* _MSC_VER */
 
+static int debug_log_mode = POLARSSL_DEBUG_DFL_MODE;
+
+void debug_set_log_mode( int log_mode )
+{
+    debug_log_mode = log_mode;
+}
+
 char *debug_fmt( const char *format, ... )
 {
     va_list argp;
@@ -69,6 +76,12 @@ void debug_print_msg( const ssl_context *ssl, int level,
     if( ssl->f_dbg == NULL )
         return;
 
+    if( debug_log_mode == POLARSSL_DEBUG_LOG_RAW )
+    {
+        ssl->f_dbg( ssl->p_dbg, level, str );
+        return;
+    }
+
     snprintf( str, maxlen, "%s(%04d): %s\n", file, line, text );
     str[maxlen] = '\0';
     ssl->f_dbg( ssl->p_dbg, level, str );
@@ -80,12 +93,16 @@ void debug_print_ret( const ssl_context *ssl, int level,
 {
     char str[512];
     int maxlen = sizeof( str ) - 1;
+    size_t idx = 0;
 
     if( ssl->f_dbg == NULL )
         return;
 
-    snprintf( str, maxlen, "%s(%04d): %s() returned %d (-0x%04x)\n",
-              file, line, text, ret, -ret );
+    if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
+        idx = snprintf( str, maxlen, "%s(%04d): ", file, line );
+
+    snprintf( str + idx, maxlen - idx, "%s() returned %d (-0x%04x)\n",
+              text, ret, -ret );
 
     str[maxlen] = '\0';
     ssl->f_dbg( ssl->p_dbg, level, str );
@@ -96,13 +113,16 @@ void debug_print_buf( const ssl_context *ssl, int level,
                       unsigned char *buf, size_t len )
 {
     char str[512];
-    size_t i, maxlen = sizeof( str ) - 1;
+    size_t i, maxlen = sizeof( str ) - 1, idx = 0;
 
     if( ssl->f_dbg == NULL )
         return;
 
-    snprintf( str, maxlen, "%s(%04d): dumping '%s' (%d bytes)\n",
-              file, line, text, (unsigned int) len );
+    if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
+        idx = snprintf( str, maxlen, "%s(%04d): ", file, line );
+
+    snprintf( str + idx, maxlen - idx, "dumping '%s' (%d bytes)\n",
+              text, (unsigned int) len );
 
     str[maxlen] = '\0';
     ssl->f_dbg( ssl->p_dbg, level, str );
@@ -117,8 +137,10 @@ void debug_print_buf( const ssl_context *ssl, int level,
             if( i > 0 )
                 ssl->f_dbg( ssl->p_dbg, level, "\n" );
 
-            snprintf( str, maxlen, "%s(%04d): %04x: ", file, line,
-                      (unsigned int) i );
+            if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
+                idx = snprintf( str, maxlen, "%s(%04d): ", file, line );
+
+            snprintf( str + idx, maxlen - idx, "%04x: ", (unsigned int) i );
 
             str[maxlen] = '\0';
             ssl->f_dbg( ssl->p_dbg, level, str );
@@ -159,7 +181,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
 {
     char str[512];
     int j, k, maxlen = sizeof( str ) - 1, zeros = 1;
-    size_t i, n;
+    size_t i, n, idx = 0;
 
     if( ssl->f_dbg == NULL || X == NULL )
         return;
@@ -172,9 +194,11 @@ void debug_print_mpi( const ssl_context *ssl, int level,
         if( ( ( X->p[n] >> j ) & 1 ) != 0 )
             break;
 
-    snprintf( str, maxlen, "%s(%04d): value of '%s' (%d bits) is:\n",
-              file, line, text, 
-              (int) ( ( n * ( sizeof(t_uint) << 3 ) ) + j + 1 ) );
+    if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
+        idx = snprintf( str, maxlen, "%s(%04d): ", file, line );
+
+    snprintf( str + idx, maxlen - idx, "value of '%s' (%d bits) is:\n",
+              text, (int) ( ( n * ( sizeof(t_uint) << 3 ) ) + j + 1 ) );
 
     str[maxlen] = '\0';
     ssl->f_dbg( ssl->p_dbg, level, str );
@@ -196,10 +220,12 @@ void debug_print_mpi( const ssl_context *ssl, int level,
                 if( j > 0 )
                     ssl->f_dbg( ssl->p_dbg, level, "\n" );
 
-                snprintf( str, maxlen, "%s(%04d): ", file, line );
-
-                str[maxlen] = '\0';
-                ssl->f_dbg( ssl->p_dbg, level, str );
+                if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
+                {
+                    snprintf( str, maxlen, "%s(%04d): ", file, line );
+                    str[maxlen] = '\0';
+                    ssl->f_dbg( ssl->p_dbg, level, str );
+                }
             }
 
             snprintf( str, maxlen, " %02x", (unsigned int)
@@ -215,10 +241,13 @@ void debug_print_mpi( const ssl_context *ssl, int level,
 
     if( zeros == 1 )
     {
-        snprintf( str, maxlen, "%s(%04d): ", file, line );
+        if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
+        {
+            snprintf( str, maxlen, "%s(%04d): ", file, line );
 
-        str[maxlen] = '\0';
-        ssl->f_dbg( ssl->p_dbg, level, str );
+            str[maxlen] = '\0';
+            ssl->f_dbg( ssl->p_dbg, level, str );
+        }
         ssl->f_dbg( ssl->p_dbg, level, " 00" );
     }
 
@@ -268,13 +297,19 @@ void debug_print_crt( const ssl_context *ssl, int level,
                       const char *text, const x509_crt *crt )
 {
     char str[1024], prefix[64];
-    int i = 0, maxlen = sizeof( prefix ) - 1;
+    int i = 0, maxlen = sizeof( prefix ) - 1, idx = 0;
 
     if( ssl->f_dbg == NULL || crt == NULL )
         return;
 
-    snprintf( prefix, maxlen, "%s(%04d): ", file, line );
-    prefix[maxlen] = '\0';
+    if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
+    {
+        snprintf( prefix, maxlen, "%s(%04d): ", file, line );
+        prefix[maxlen] = '\0';
+    }
+    else
+        prefix[0] = '\0';
+
     maxlen = sizeof( str ) - 1;
 
     while( crt != NULL )
@@ -282,8 +317,11 @@ void debug_print_crt( const ssl_context *ssl, int level,
         char buf[1024];
         x509_crt_info( buf, sizeof( buf ) - 1, prefix, crt );
 
-        snprintf( str, maxlen, "%s(%04d): %s #%d:\n%s",
-                  file, line, text, ++i, buf );
+        if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
+            idx = snprintf( str, maxlen, "%s(%04d): ", file, line );
+
+        snprintf( str + idx, maxlen - idx, "%s #%d:\n%s",
+                  text, ++i, buf );
 
         str[maxlen] = '\0';
         ssl->f_dbg( ssl->p_dbg, level, str );

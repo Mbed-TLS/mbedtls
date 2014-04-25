@@ -23,7 +23,7 @@ void string_debug(void *data, int level, const char *str)
  */
 
 /* BEGIN_CASE */
-void debug_print_ret( char *file, int line, char *text, int value,
+void debug_print_ret( int mode, char *file, int line, char *text, int value,
                       char *result_str )
 {
     ssl_context ssl;
@@ -33,6 +33,7 @@ void debug_print_ret( char *file, int line, char *text, int value,
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
 
+    debug_set_log_mode( mode );
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
     debug_print_ret( &ssl, 0, file, line, text, value);
@@ -42,8 +43,8 @@ void debug_print_ret( char *file, int line, char *text, int value,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void debug_print_buf( char *file, int line, char *text, char *data_string,
-                      char *result_str )
+void debug_print_buf( int mode, char *file, int line, char *text,
+                      char *data_string, char *result_str )
 {
     unsigned char data[10000];
     ssl_context ssl;
@@ -57,6 +58,7 @@ void debug_print_buf( char *file, int line, char *text, char *data_string,
 
     data_len = unhexify( data, data_string );
 
+    debug_set_log_mode( mode );
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
     debug_print_buf( &ssl, 0, file, line, text, data, data_len );
@@ -66,8 +68,8 @@ void debug_print_buf( char *file, int line, char *text, char *data_string,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C */
-void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
-                      char *result_str )
+void debug_print_crt( int mode, char *crt_file, char *file, int line,
+                      char *prefix, char *result_str )
 {
     x509_crt   crt;
     ssl_context ssl;
@@ -78,6 +80,7 @@ void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
     memset( buffer.buf, 0, 2000 );
     buffer.ptr = buffer.buf;
 
+    debug_set_log_mode( mode );
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
     TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
@@ -90,7 +93,7 @@ void debug_print_crt( char *crt_file, char *file, int line, char *prefix,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:POLARSSL_BIGNUM_C */
-void debug_print_mpi( int radix, char *value, char *file, int line,
+void debug_print_mpi( int mode, int radix, char *value, char *file, int line,
                       char *prefix, char *result_str )
 {
     ssl_context ssl;
@@ -104,6 +107,8 @@ void debug_print_mpi( int radix, char *value, char *file, int line,
     buffer.ptr = buffer.buf;
 
     TEST_ASSERT( mpi_read_string( &val, radix, value ) == 0 );
+
+    debug_set_log_mode( mode );
     ssl_set_dbg(&ssl, string_debug, &buffer);
 
     debug_print_mpi( &ssl, 0, file, line, prefix, &val);

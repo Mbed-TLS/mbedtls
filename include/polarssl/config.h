@@ -2097,6 +2097,9 @@
 //#define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
 //#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 
+/* Debug options */
+//#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */
+
 /* \} name */
 
 /*

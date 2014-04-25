@@ -35,6 +35,32 @@
 
 #if defined(POLARSSL_DEBUG_C)
 
+#define POLARSSL_DEBUG_LOG_FULL         0 /**< Include file:line in log lines */
+#define POLARSSL_DEBUG_LOG_RAW          1 /**< Only log raw debug lines */
+
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(POLARSSL_DEBUG_DFL_MODE)
+#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */
+#endif
+
+/* \} name SECTION: Module settings */
+
+/**
+ * \brief   Set the log mode for the debug functions globally
+ *          (Default value: POLARSSL_DEBUG_DFL_MODE)
+ *
+ * \param log_mode  The log mode to use (POLARSSL_DEBUG_LOG_FULL or
+ *                                       POLARSSL_DEBUG_LOG_RAW)
+ */
+void debug_set_log_mode( int log_mode );
+
 #define SSL_DEBUG_MSG( level, args )                    \
     debug_print_msg( ssl, level, __FILE__, __LINE__, debug_fmt args );
 

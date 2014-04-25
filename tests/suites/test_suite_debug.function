@@ -14,6 +14,13 @@ void string_debug(void *data, int level, const char *str)
 
     memcpy(buffer->ptr, str, strlen(str));
     buffer->ptr += strlen(str);
+
+    /* Detect if debug messages output partial lines and mark them */
+    if( *(buffer->ptr - 1) != '\n' )
+    {
+        *buffer->ptr = '*';
+        buffer->ptr++;
+    }
 }
 /* END_HEADER */
 

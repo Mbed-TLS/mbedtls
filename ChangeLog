@@ -8,7 +8,8 @@ Changes
 Bugfix
    * Only iterate over actual certificates in ssl_write_certificate_request()
      (found by Matthew Page)
-   * Typo in platform.c (found by Daniel Phillips)
+   * Typos in platform.c and pkcs11.c (found by Daniel Phillips and Steffan
+     Karger)
 
 = PolarSSL 1.3.6 released on 2014-04-11
 

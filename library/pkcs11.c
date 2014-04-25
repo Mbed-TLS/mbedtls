@@ -189,7 +189,7 @@ int pkcs11_sign( pkcs11_context *ctx,
     }
 
     sig_len = ctx->len;
-    if ( hashlen > ctx_len || asn_len > sig_len ||
+    if ( hashlen > sig_len || asn_len > sig_len ||
          hashlen + asn_len > sig_len )
     {
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );

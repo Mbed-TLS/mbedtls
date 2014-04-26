@@ -59,6 +59,32 @@ int aesni_supports( unsigned int what )
 }
 
 /*
+ * Binutils needs to be at least 2.19 to support AES-NI instructions.
+ * Unfortunately, a lot of users have a lower version now (2014-04).
+ * Emit bytecode directly in order to support "old" version of gas.
+ *
+ * Opcodes from the Intel architecture reference manual, vol. 3.
+ * We always use registers, so we don't need prefixes for memory operands.
+ * Operand macros are in gas order (src, dst) as opposed to Intel order
+ * (dst, src) in order to blend better into the surrounding assembly code.
+ */
+#define AESDEC      ".byte 0x66,0x0F,0x38,0xDE,"
+#define AESDECLAST  ".byte 0x66,0x0F,0x38,0xDF,"
+#define AESENC      ".byte 0x66,0x0F,0x38,0xDC,"
+#define AESENCLAST  ".byte 0x66,0x0F,0x38,0xDD,"
+#define AESIMC      ".byte 0x66,0x0F,0x38,0xDB,"
+#define AESKEYGENA  ".byte 0x66,0x0F,0x3A,0xDF,"
+#define PCLMULQDQ   ".byte 0x66,0x0F,0x3A,0x44,"
+
+#define xmm0_xmm0   "0xC0"
+#define xmm0_xmm1   "0xC8"
+#define xmm0_xmm2   "0xD0"
+#define xmm0_xmm3   "0xD8"
+#define xmm0_xmm4   "0xE0"
+#define xmm1_xmm0   "0xC1"
+#define xmm1_xmm2   "0xD1"
+
+/*
  * AES-NI AES-ECB block en(de)cryption
  */
 int aesni_crypt_ecb( aes_context *ctx,
@@ -76,22 +102,22 @@ int aesni_crypt_ecb( aes_context *ctx,
 
          "1:                        \n" // encryption loop
          "movdqu    (%1), %%xmm1    \n" // load round key
-         "aesenc    %%xmm1, %%xmm0  \n" // do round
+         AESENC     xmm1_xmm0      "\n" // do round
          "addq      $16, %1         \n" // point to next round key
          "subl      $1, %0          \n" // loop
          "jnz       1b              \n"
          "movdqu    (%1), %%xmm1    \n" // load round key
-         "aesenclast %%xmm1, %%xmm0 \n" // last round
+         AESENCLAST xmm1_xmm0      "\n" // last round
          "jmp       3f              \n"
 
          "2:                        \n" // decryption loop
          "movdqu    (%1), %%xmm1    \n"
-         "aesdec    %%xmm1, %%xmm0  \n"
+         AESDEC     xmm1_xmm0      "\n" // do round
          "addq      $16, %1         \n"
          "subl      $1, %0          \n"
          "jnz       2b              \n"
          "movdqu    (%1), %%xmm1    \n" // load round key
-         "aesdeclast %%xmm1, %%xmm0 \n" // last round
+         AESDECLAST xmm1_xmm0      "\n" // last round
 
          "3:                        \n"
          "movdqu    %%xmm0, (%4)    \n" // export output
@@ -131,10 +157,10 @@ void aesni_gcm_mult( unsigned char c[16],
          "movdqa %%xmm1, %%xmm2             \n" // copy of b1:b0
          "movdqa %%xmm1, %%xmm3             \n" // same
          "movdqa %%xmm1, %%xmm4             \n" // same
-         "pclmulqdq $0x00, %%xmm0, %%xmm1   \n" // a0*b0 = c1:c0
-         "pclmulqdq $0x11, %%xmm0, %%xmm2   \n" // a1*b1 = d1:d0
-         "pclmulqdq $0x10, %%xmm0, %%xmm3   \n" // a0*b1 = e1:e0
-         "pclmulqdq $0x01, %%xmm0, %%xmm4   \n" // a1*b0 = f1:f0
+         PCLMULQDQ xmm0_xmm1 ",0x00         \n" // a0*b0 = c1:c0
+         PCLMULQDQ xmm0_xmm2 ",0x11         \n" // a1*b1 = d1:d0
+         PCLMULQDQ xmm0_xmm3 ",0x10         \n" // a0*b1 = e1:e0
+         PCLMULQDQ xmm0_xmm4 ",0x01         \n" // a1*b0 = f1:f0
          "pxor %%xmm3, %%xmm4               \n" // e1+f1:e0+f0
          "movdqa %%xmm4, %%xmm3             \n" // same
          "psrldq $8, %%xmm4                 \n" // 0:e1+f1
@@ -228,7 +254,7 @@ void aesni_inverse_key( unsigned char *invkey,
 
     for( fk -= 16, ik += 16; fk > fwdkey; fk -= 16, ik += 16 )
         asm( "movdqu (%0), %%xmm0       \n"
-             "aesimc %%xmm0, %%xmm0     \n"
+             AESIMC  xmm0_xmm0         "\n"
              "movdqu %%xmm0, (%1)       \n"
              :
              : "r" (fk), "r" (ik)
@@ -271,17 +297,17 @@ static void aesni_setkey_enc_128( unsigned char *rk,
          "ret                               \n"
 
          /* Main "loop" */
-         "2:                                    \n"
-         "aeskeygenassist $0x01, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x02, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x04, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x08, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x10, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x20, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x40, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x80, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x1B, %%xmm0, %%xmm1 \ncall 1b   \n"
-         "aeskeygenassist $0x36, %%xmm0, %%xmm1 \ncall 1b   \n"
+         "2:                                \n"
+         AESKEYGENA xmm0_xmm1 ",0x01        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x02        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x04        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x08        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x10        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x20        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x40        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x80        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x1B        \ncall 1b   \n"
+         AESKEYGENA xmm0_xmm1 ",0x36        \ncall 1b   \n"
          :
          : "r" (rk), "r" (key)
          : "memory", "cc", "0" );
@@ -329,15 +355,15 @@ static void aesni_setkey_enc_192( unsigned char *rk,
          "add $8, %0                    \n"
          "ret                           \n"
 
-         "2:                                    \n"
-         "aeskeygenassist $0x01, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x02, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x04, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x08, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x10, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x20, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x40, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x80, %%xmm1, %%xmm2 \ncall 1b   \n"
+         "2:                            \n"
+         AESKEYGENA xmm1_xmm2 ",0x01    \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x02    \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x04    \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x08    \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x10    \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x20    \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x40    \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x80    \ncall 1b   \n"
 
          :
          : "r" (rk), "r" (key)
@@ -380,7 +406,7 @@ static void aesni_setkey_enc_256( unsigned char *rk,
 
          /* Set xmm2 to stuff:Y:stuff:stuff with Y = subword( r11 )
           * and proceed to generate next round key from there */
-         "aeskeygenassist $0, %%xmm0, %%xmm2\n"
+         AESKEYGENA xmm0_xmm2 ",0x00        \n"
          "pshufd $0xaa, %%xmm2, %%xmm2      \n"
          "pxor %%xmm1, %%xmm2               \n"
          "pslldq $4, %%xmm1                 \n"
@@ -397,14 +423,14 @@ static void aesni_setkey_enc_256( unsigned char *rk,
           * Main "loop" - Generating one more key than necessary,
           * see definition of aes_context.buf
           */
-         "2:                                    \n"
-         "aeskeygenassist $0x01, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x02, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x04, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x08, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x10, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x20, %%xmm1, %%xmm2 \ncall 1b   \n"
-         "aeskeygenassist $0x40, %%xmm1, %%xmm2 \ncall 1b   \n"
+         "2:                                \n"
+         AESKEYGENA xmm1_xmm2 ",0x01        \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x02        \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x04        \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x08        \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x10        \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x20        \ncall 1b   \n"
+         AESKEYGENA xmm1_xmm2 ",0x40        \ncall 1b   \n"
          :
          : "r" (rk), "r" (key)
          : "memory", "cc", "0" );

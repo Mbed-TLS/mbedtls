@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 2.6)
 project(POLARSSL C)
 
-enable_testing()
+option(ENABLE_TESTING "Build PolarSSL tests." ON)
+
+if(ENABLE_TESTING)
+  enable_testing()
+endif()
 
 string(REGEX MATCH "clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER}")
 
@@ -42,6 +46,7 @@ option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library.
 option(ENABLE_ZLIB_SUPPORT "Build PolarSSL with zlib library." OFF)
 option(ENABLE_PROGRAMS "Build PolarSSL programs." ON)
 
+
 if(LIB_INSTALL_DIR)
 else()
 set(LIB_INSTALL_DIR lib)
@@ -60,12 +65,14 @@ endif(ENABLE_ZLIB_SUPPORT)
 add_subdirectory(library)
 add_subdirectory(include)
 
-if(CMAKE_COMPILER_IS_GNUCC)
-  add_subdirectory(tests)
-endif(CMAKE_COMPILER_IS_GNUCC)
-if(CMAKE_COMPILER_IS_CLANG)
-  add_subdirectory(tests)
-endif(CMAKE_COMPILER_IS_CLANG)
+if(ENABLE_TESTING)
+  if(CMAKE_COMPILER_IS_GNUCC)
+    add_subdirectory(tests)
+  endif(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_COMPILER_IS_CLANG)
+    add_subdirectory(tests)
+  endif(CMAKE_COMPILER_IS_CLANG)
+endif()
 
 if(ENABLE_PROGRAMS)
   add_subdirectory(programs)

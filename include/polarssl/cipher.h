@@ -30,7 +30,11 @@
 #ifndef POLARSSL_CIPHER_H
 #define POLARSSL_CIPHER_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_GCM_C)
 #define POLARSSL_CIPHER_MODE_AEAD

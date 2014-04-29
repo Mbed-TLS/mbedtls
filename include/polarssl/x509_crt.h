@@ -27,7 +27,11 @@
 #ifndef POLARSSL_X509_CRT_H
 #define POLARSSL_X509_CRT_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include "x509.h"
 

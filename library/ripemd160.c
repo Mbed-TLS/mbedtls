@@ -29,7 +29,11 @@
  *  http://ehash.iaik.tugraz.at/wiki/RIPEMD-160
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_RIPEMD160_C)
 

@@ -29,7 +29,11 @@
  * - attributes: PKCS#9 v2.0 aka RFC 2985
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_X509_CRT_WRITE_C)
 

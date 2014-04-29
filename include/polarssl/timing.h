@@ -27,7 +27,11 @@
 #ifndef POLARSSL_TIMING_H
 #define POLARSSL_TIMING_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if !defined(POLARSSL_TIMING_ALT)
 // Regular implementation

@@ -27,7 +27,11 @@
 #ifndef POLARSSL_RIPEMD160_H
 #define POLARSSL_RIPEMD160_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 

@@ -27,7 +27,11 @@
 #ifndef POLARSSL_RSA_H
 #define POLARSSL_RSA_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include "bignum.h"
 #include "md.h"

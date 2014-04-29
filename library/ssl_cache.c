@@ -27,7 +27,11 @@
  * to store and retrieve the session information.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SSL_CACHE_C)
 

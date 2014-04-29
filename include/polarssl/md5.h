@@ -27,7 +27,11 @@
 #ifndef POLARSSL_MD5_H
 #define POLARSSL_MD5_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 

@@ -33,7 +33,11 @@
  * [MGV] 4.1, pp. 12-13, to enhance speed without using too much memory.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_GCM_C)
 

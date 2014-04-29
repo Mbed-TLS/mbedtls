@@ -42,11 +42,11 @@
 /*
  * Ordered from most preferred to least preferred in terms of security.
  *
- * Current rule (except weak and null which come last):
+ * Current rule (except rc4, weak and null which come last):
  * 1. By key exchange:
  *    Forward-secure non-PSK > forward-secure PSK > other non-PSK > other PSK
  * 2. By key length and cipher:
- *    AES-256 > Camellia-256 > AES-128 > Camellia-128 > 3DES > RC4
+ *    AES-256 > Camellia-256 > AES-128 > Camellia-128 > 3DES
  * 3. By cipher mode when relevant GCM > CBC
  * 4. By hash function used
  * 5. By key exchange/auth again: EC > non-EC
@@ -97,8 +97,6 @@ static const int ciphersuite_preference[] =
     TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
     TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
     TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
-    TLS_ECDHE_RSA_WITH_RC4_128_SHA,
 
     /* The PSK ephemeral suites */
     TLS_DHE_PSK_WITH_AES_256_GCM_SHA384,
@@ -121,8 +119,6 @@ static const int ciphersuite_preference[] =
 
     TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA,
     TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDHE_PSK_WITH_RC4_128_SHA,
-    TLS_DHE_PSK_WITH_RC4_128_SHA,
 
     /* All AES-256 suites */
     TLS_RSA_WITH_AES_256_GCM_SHA384,
@@ -166,12 +162,8 @@ static const int ciphersuite_preference[] =
 
     /* All remaining >= 128-bit suites */
     TLS_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_RSA_WITH_RC4_128_SHA,
-    TLS_RSA_WITH_RC4_128_MD5,
     TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDH_RSA_WITH_RC4_128_SHA,
     TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
 
     /* The RSA PSK suites */
     TLS_RSA_PSK_WITH_AES_256_GCM_SHA384,
@@ -187,7 +179,6 @@ static const int ciphersuite_preference[] =
     TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256,
 
     TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
-    TLS_RSA_PSK_WITH_RC4_128_SHA,
 
     /* The PSK suites */
     TLS_PSK_WITH_AES_256_GCM_SHA384,
@@ -203,6 +194,17 @@ static const int ciphersuite_preference[] =
     TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256,
 
     TLS_PSK_WITH_3DES_EDE_CBC_SHA,
+
+    /* RC4 suites */
+    TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+    TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+    TLS_ECDHE_PSK_WITH_RC4_128_SHA,
+    TLS_DHE_PSK_WITH_RC4_128_SHA,
+    TLS_RSA_WITH_RC4_128_SHA,
+    TLS_RSA_WITH_RC4_128_MD5,
+    TLS_ECDH_RSA_WITH_RC4_128_SHA,
+    TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
+    TLS_RSA_PSK_WITH_RC4_128_SHA,
     TLS_PSK_WITH_RC4_128_SHA,
 
     /* Weak suites */

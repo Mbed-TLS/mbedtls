@@ -13,6 +13,7 @@ Changes
    * Debug module only outputs full lines instead of parts
    * Better support for the different Attribute Types from IETF PKIX (RFC 5280)
    * AES-NI now compiles with "old" assemblers too
+   * Ciphersuites based on RC4 now have the lowest priority by default
 
 Bugfix
    * Only iterate over actual certificates in ssl_write_certificate_request()

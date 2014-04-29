@@ -4753,8 +4753,6 @@ md_type_t ssl_md_alg_from_hash( unsigned char hash )
     }
 }
 
-#endif
-
 #if defined(POLARSSL_SSL_SET_CURVES)
 /*
  * Check is a curve proposed by the peer is in our list.
@@ -4852,3 +4850,5 @@ int ssl_check_cert_usage( const x509_crt *cert,
     return( 0 );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
+
+#endif /* POLARSSL_SSL_TLS_C */

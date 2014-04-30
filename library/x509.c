@@ -739,7 +739,7 @@ int x509_time_future( const x509_time *from )
  */
 int x509_self_test( int verbose )
 {
-#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_MD5_C)
+#if defined(POLARSSL_CERTS_C) && defined(POLARSSL_SHA1_C)
     int ret;
     int flags;
     x509_crt cacert;

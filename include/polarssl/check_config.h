@@ -73,7 +73,6 @@
     !defined(POLARSSL_ECP_DP_BP256R1_ENABLED)   &&                  \
     !defined(POLARSSL_ECP_DP_BP384R1_ENABLED)   &&                  \
     !defined(POLARSSL_ECP_DP_BP512R1_ENABLED)   &&                  \
-    !defined(POLARSSL_ECP_DP_M255_ENABLED)      &&                  \
     !defined(POLARSSL_ECP_DP_SECP192K1_ENABLED) &&                  \
     !defined(POLARSSL_ECP_DP_SECP224K1_ENABLED) &&                  \
     !defined(POLARSSL_ECP_DP_SECP256K1_ENABLED) ) )

@@ -35,12 +35,13 @@
 
 #include <string.h>
 
-#if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
+#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
     !defined(EFI32)
-#define  snprintf  _snprintf
+#define strcasecmp _stricmp
 #endif
 
 const char *features[] = {
+#if defined(POLARSSL_VERSION_FEATURES)
 #if defined(POLARSSL_HAVE_INT8)
     "POLARSSL_HAVE_INT8",
 #endif /* POLARSSL_HAVE_INT8 */
@@ -524,12 +525,16 @@ const char *features[] = {
 #if defined(POLARSSL_XTEA_C)
     "POLARSSL_XTEA_C",
 #endif /* POLARSSL_XTEA_C */
+#endif
     NULL
 };
 
 int version_check_feature( const char *feature )
 {
     const char **idx = features;
+
+    if( *idx == NULL )
+        return( -2 );
 
     if( feature == NULL )
         return( -1 );

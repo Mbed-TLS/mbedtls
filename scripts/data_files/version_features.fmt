@@ -35,9 +35,9 @@
 
 #include <string.h>
 
-#if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
+#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
     !defined(EFI32)
-#define  snprintf  _snprintf
+#define strcasecmp _stricmp
 #endif
 
 const char *features[] = {

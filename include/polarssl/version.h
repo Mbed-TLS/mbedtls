@@ -71,8 +71,11 @@ void version_get_string( char *string );
 /**
  * Get the full version string ("PolarSSL x.y.z").
  *
- * \param string    The string that will receive the value.
- *                  (Should be at least 18 bytes in size)
+ * \param string    The string that will receive the value. The PolarSSL version
+ *                  string will use 18 bytes AT MOST including a terminating
+ *                  null byte.
+ *                  (So the buffer should be at least 18 bytes to receive this
+ *                  version string).
  */
 void version_get_string_full( char *string );
 

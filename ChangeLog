@@ -51,6 +51,7 @@ Bugfix
      calculation of RR.
    * Improve interoperability by not writing extension length in ClientHello
      when no extensions are present (found by Matthew Page)
+   * rsa_check_pubkey() now allows an E up to N
 
 = Version 1.2.10 released 2013-10-07
 Changes

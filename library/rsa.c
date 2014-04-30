@@ -168,7 +168,7 @@ int rsa_check_pubkey( const rsa_context *ctx )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
     if( mpi_msb( &ctx->E ) < 2 ||
-        mpi_msb( &ctx->E ) > 64 )
+        mpi_cmp_mpi( &ctx->E, &ctx->N ) >= 0 )
         return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
 
     return( 0 );

@@ -22,6 +22,7 @@ Bugfix
      ciphersuites, for full SSL frames of data.
    * Improve interoperability by not writing extension length in ClientHello /
      ServerHello when no extensions are present (found by Matthew Page)
+   * rsa_check_pubkey() now allows an E up to N
 
 = PolarSSL 1.3.6 released on 2014-04-11
 

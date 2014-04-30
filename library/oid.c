@@ -196,6 +196,38 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
         "postalCode",
     },
     {
+        { ADD_LEN( OID_AT_SUR_NAME ),    "id-at-surName",                  "Surname" },
+        "SN",
+    },
+    {
+        { ADD_LEN( OID_AT_GIVEN_NAME ),  "id-at-givenName",                "Given name" },
+        "GN",
+    },
+    {
+        { ADD_LEN( OID_AT_INITIALS ),    "id-at-initials",                 "Initials" },
+        "initials",
+    },
+    {
+        { ADD_LEN( OID_AT_GENERATION_QUALIFIER ), "id-at-generationQualifier", "Generation qualifier" },
+        "generationQualifier",
+    },
+    {
+        { ADD_LEN( OID_AT_TITLE ),       "id-at-title",                    "Title" },
+        "title",
+    },
+    {
+        { ADD_LEN( OID_AT_DN_QUALIFIER ),"id-at-dnQualifier",              "Distinguished Name qualifier" },
+        "dnQualifier",
+    },
+    {
+        { ADD_LEN( OID_AT_PSEUDONYM ),   "id-at-pseudonym",                "Pseudonym" },
+        "pseudonym",
+    },
+    {
+        { ADD_LEN( OID_DOMAIN_COMPONENT ), "id-domainComponent",           "Domain component" },
+        "DC",
+    },
+    {
         { NULL, 0, NULL, NULL },
         NULL,
     }

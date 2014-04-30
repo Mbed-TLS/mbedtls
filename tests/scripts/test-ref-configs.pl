@@ -49,7 +49,7 @@ while( my ($conf, $args) = each %configs ) {
     print "* Testing configuration: $conf\n";
     print "******************************************\n";
 
-    system( "scripts/activate-config.pl configs/$conf" )
+    system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";
 
     system( "make" ) and abort "Failed to build: $conf\n";

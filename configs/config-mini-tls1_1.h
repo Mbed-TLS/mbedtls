@@ -2,9 +2,16 @@
  * Minimal configuration for TLS 1.1 (RFC 4346), implementing only the
  * required ciphersuite: TLS_RSA_WITH_3DES_EDE_CBC_SHA
  *
- * Can be activated with:
- *      scripts/activate-config.pl configs/config-mini-tls1_1.h
+ * See README.txt for usage instructions.
  */
+
+#ifndef POLARSSL_CONFIG_H
+#define POLARSSL_CONFIG_H
+
+/* System support */
+#define POLARSSL_HAVE_ASM
+#define POLARSSL_HAVE_TIME
+#define POLARSSL_HAVE_IPV6
 
 /* PolarSSL feature support */
 #define POLARSSL_CIPHER_MODE_CBC
@@ -44,5 +51,4 @@
 /* For testing with compat.sh */
 #define POLARSSL_FS_IO
 
-/* marker for activate-config.pl
- * \} name SECTION: PolarSSL modules */
+#endif /* POLARSSL_CONFIG_H */

@@ -413,6 +413,10 @@ SOURCE=..\..\include\polarssl\config.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\check_config.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\ctr_drbg.h
 # End Source File
 # Begin Source File

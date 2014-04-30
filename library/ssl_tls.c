@@ -1725,6 +1725,12 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 
     SSL_DEBUG_MSG( 2, ( "=> fetch input" ) );
 
+    if( nb_want > SSL_BUFFER_LEN - 8 )
+    {
+        SSL_DEBUG_MSG( 1, ( "requesting more data than fits" ) );
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     while( ssl->in_left < nb_want )
     {
         len = nb_want - ssl->in_left;
@@ -1959,13 +1965,20 @@ int ssl_read_record( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
 
+    /* Sanity check (outer boundaries) */
+    if( ssl->in_msglen < 1 || ssl->in_msglen > SSL_BUFFER_LEN - 13 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+    }
+
     /*
-     * Make sure the message length is acceptable
+     * Make sure the message length is acceptable for the current transform
+     * and protocol version.
      */
     if( ssl->transform_in == NULL )
     {
-        if( ssl->in_msglen < 1 ||
-            ssl->in_msglen > SSL_MAX_CONTENT_LEN )
+        if( ssl->in_msglen > SSL_MAX_CONTENT_LEN )
         {
             SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );

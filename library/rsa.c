@@ -1469,6 +1469,7 @@ void rsa_free( rsa_context *ctx )
 #if defined(POLARSSL_PKCS1_V15)
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
+#if !defined(__OpenBSD__)
     size_t i;
 
     if( rng_state != NULL )
@@ -1476,6 +1477,12 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
 
     for( i = 0; i < len; ++i )
         output[i] = rand();
+#else
+    if( rng_state != NULL )
+        rng_state = NULL;
+
+    arc4random_buf( output, len );
+#endif /* !OpenBSD */
 
     return( 0 );
 }

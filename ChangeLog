@@ -12,6 +12,7 @@ Changes
      checked and filled in the relevant module headers
    * Debug module only outputs full lines instead of parts
    * Better support for the different Attribute Types from IETF PKIX (RFC 5280)
+   * AES-NI now compiles with "old" assemblers too
 
 Bugfix
    * Only iterate over actual certificates in ssl_write_certificate_request()

@@ -29,7 +29,11 @@
  * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ECDSA_C)
 

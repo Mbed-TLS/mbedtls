@@ -29,7 +29,11 @@
 #ifndef POLARSSL_MD_WRAP_H
 #define POLARSSL_MD_WRAP_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 #include "md.h"
 
 #ifdef __cplusplus

@@ -29,7 +29,11 @@
  *  http://www.ietf.org/rfc/rfc1319.txt
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_MD2_C)
 

@@ -28,7 +28,11 @@
 #ifndef POLARSSL_PK_H
 #define POLARSSL_PK_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include "md.h"
 

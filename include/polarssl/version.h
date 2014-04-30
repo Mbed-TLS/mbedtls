@@ -31,7 +31,11 @@
 #ifndef POLARSSL_VERSION_H
 #define POLARSSL_VERSION_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 /**
  * The version number x.y.z is split into three parts.

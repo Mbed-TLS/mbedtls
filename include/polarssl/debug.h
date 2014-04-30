@@ -27,7 +27,11 @@
 #ifndef POLARSSL_DEBUG_H
 #define POLARSSL_DEBUG_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 #include "ssl.h"
 #if defined(POLARSSL_ECP_C)
 #include "ecp.h"

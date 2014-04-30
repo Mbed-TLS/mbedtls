@@ -30,7 +30,11 @@
  *  Contact: seznec(at)irisa_dot_fr - orocheco(at)irisa_dot_fr
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_HAVEGE_C)
 

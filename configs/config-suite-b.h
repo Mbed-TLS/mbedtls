@@ -1,9 +1,16 @@
 /*
  * Minimal configuration for TLS NSA Suite B Profile (RFC 6460)
  *
- * Can be activated with:
- *      scripts/activate-config.pl configs/config-mini-tls1_1.h
+ * See README.txt for usage instructions.
  */
+
+#ifndef POLARSSL_CONFIG_H
+#define POLARSSL_CONFIG_H
+
+/* System support */
+#define POLARSSL_HAVE_ASM
+#define POLARSSL_HAVE_TIME
+#define POLARSSL_HAVE_IPV6
 
 /* PolarSSL feature support */
 #define POLARSSL_ECP_DP_SECP256R1_ENABLED
@@ -44,5 +51,6 @@
 /* For testing with compat.sh */
 #define POLARSSL_FS_IO
 
-/* marker for activate-config.pl
- * \} name SECTION: PolarSSL modules */
+#include "check_config.h"
+
+#endif /* POLARSSL_CONFIG_H */

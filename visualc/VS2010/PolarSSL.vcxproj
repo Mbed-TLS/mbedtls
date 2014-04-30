@@ -156,6 +156,7 @@
     <ClInclude Include="..\..\include\polarssl\cipher.h" />
     <ClInclude Include="..\..\include\polarssl\cipher_wrap.h" />
     <ClInclude Include="..\..\include\polarssl\config.h" />
+    <ClInclude Include="..\..\include\polarssl\check_config.h" />
     <ClInclude Include="..\..\include\polarssl\ctr_drbg.h" />
     <ClInclude Include="..\..\include\polarssl\debug.h" />
     <ClInclude Include="..\..\include\polarssl\des.h" />

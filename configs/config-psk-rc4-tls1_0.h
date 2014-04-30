@@ -2,9 +2,15 @@
  * Custom compact configuration for TLS 1.0 with PSK and RC4
  * Distinguishing features: no bignum, no PK, no X509.
  *
- * Can be activated with:
- *      scripts/activate-config.pl configs/config-mini-tls1_1.h
+ * See README.txt for usage instructions.
  */
+
+#ifndef POLARSSL_CONFIG_H
+#define POLARSSL_CONFIG_H
+
+/* System support */
+#define POLARSSL_HAVE_TIME
+#define POLARSSL_HAVE_IPV6
 
 /* PolarSSL feature support */
 #define POLARSSL_KEY_EXCHANGE_PSK_ENABLED
@@ -28,5 +34,6 @@
 #define POLARSSL_SSL_SRV_C
 #define POLARSSL_SSL_TLS_C
 
-/* marker for activate-config.pl
- * \} name SECTION: PolarSSL modules */
+#include "check_config.h"
+
+#endif /* POLARSSL_CONFIG_H */

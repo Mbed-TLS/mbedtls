@@ -4,29 +4,34 @@
 # - build
 # - run test suite
 # - run compat.sh
+#
+# Usage: tests/scripts/test-ref-configs.pl [config-name [...]]
 
 use warnings;
 use strict;
 
 my %configs = (
-    'config-psk-rc4-tls1_0.h'   => '-m tls1   -f \'^PSK.*RC4\|TLS-PSK.*RC4\'',
+    'config-psk-rc4-tls1_0.h'
+        => '-m tls1   -f \'^PSK.*RC4\|TLS-PSK.*RC4\'',
     'config-mini-tls1_1.h'
-    => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
-    'config-suite-b.h'          => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM'",
+        => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
+    'config-suite-b.h'
+        => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM'",
 );
 
+# If no config-name is provided, use all known configs.
+# Otherwise, use the provided names only.
 if ($#ARGV >= 0) {
-    # filter configs
-    my @filtered_keys;
-    my %filtered_configs;
+    my %configs_ori = ( %configs );
+    %configs = ();
 
-    foreach my $filter (@ARGV) {
-        push (@filtered_keys, $filter);
+    foreach my $conf_name (@ARGV) {
+        if( ! exists $configs_ori{$conf_name} ) {
+            die "Unknown configuration: $conf_name\n";
+        } else {
+            $configs{$conf_name} = $configs_ori{$conf_name};
+        }
     }
-    @filtered_keys = grep { exists $configs{$ARGV[0]} } @filtered_keys;
-    @filtered_configs{@filtered_keys} = @configs{@filtered_keys};
-
-    %configs = %filtered_configs;
 }
 
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
@@ -49,7 +54,7 @@ while( my ($conf, $args) = each %configs ) {
     print "* Testing configuration: $conf\n";
     print "******************************************\n";
 
-    system( "scripts/activate-config.pl configs/$conf" )
+    system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";
 
     system( "make" ) and abort "Failed to build: $conf\n";

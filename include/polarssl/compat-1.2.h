@@ -27,7 +27,11 @@
 #ifndef POLARSSL_COMPAT_1_2_H
 #define POLARSSL_COMPAT_1_2_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 // Comment out to disable prototype change warnings
 #define SHOW_PROTOTYPE_CHANGE_WARNINGS

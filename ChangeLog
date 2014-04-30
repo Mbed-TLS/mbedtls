@@ -18,6 +18,8 @@ Bugfix
    * cert_write app should use subject of issuer certificate as issuer of cert
    * Fix false reject in padding check in ssl_decrypt_buf() for CBC
      ciphersuites, for full SSL frames of data.
+   * Improve interoperability by not writing extension length in ClientHello /
+     ServerHello when no extensions are present (found by Matthew Page)
 
 = PolarSSL 1.3.6 released on 2014-04-11
 

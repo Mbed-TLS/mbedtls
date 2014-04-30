@@ -60,6 +60,7 @@ set(src
      threading.c
      timing.c
      version.c
+     version_features.c
      x509.c
      x509_crt.c
      x509_crl.c

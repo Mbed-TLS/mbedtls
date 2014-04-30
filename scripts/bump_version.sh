@@ -84,3 +84,8 @@ do
   mv tmp $i
 done
 
+[ $VERBOSE ] && echo "Re-generating library/error.c"
+scripts/generate_errors.pl include/polarssl scripts/data_files library/error.c
+
+[ $VERBOSE ] && echo "Re-generating library/version_features.c"
+scripts/generate_features.pl include/polarssl scripts/data_files library/version_features.c

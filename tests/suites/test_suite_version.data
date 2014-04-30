@@ -3,3 +3,13 @@ check_compiletime_version:"1.3.6"
 
 Check runtime library version
 check_runtime_version:"1.3.6"
+
+Check for POLARSSL_VERSION_C
+check_feature:"POLARSSL_VERSION_C":0
+
+Check for POLARSSL_AES_C when already present
+depends_on:POLARSSL_AES_C
+check_feature:"POLARSSL_AES_C":0
+
+Check for unknown define
+check_feature:"POLARSSL_UNKNOWN":-1

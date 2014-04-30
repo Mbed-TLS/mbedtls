@@ -4,6 +4,8 @@ PolarSSL ChangeLog (Sorted per branch, date)
 Features
    * debug_set_log_mode() added to determine raw or full logging
    * debug_set_threshold() added to ignore messages over threshold level
+   * version_check_feature() added to check for compile-time options at
+     run-time
 
 Changes
    * POLARSSL_CONFIG_OPTIONS has been removed. All values are individually

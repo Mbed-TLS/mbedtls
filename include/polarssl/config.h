@@ -956,6 +956,19 @@
 //#define POLARSSL_THREADING_PTHREAD
 
 /**
+ * \def POLARSSL_VERSION_FEATURES
+ *
+ * Allow run-time checking of compile-time enabled features. Thus allowing users
+ * to check at run-time if the library is for instance compiled with threading
+ * support via version_check_feature().
+ *
+ * Requires: POLARSSL_VERSION_C
+ *
+ * Comment this to disable run-time checking and save ROM space
+ */
+#define POLARSSL_VERSION_FEATURES
+
+/**
  * \def POLARSSL_X509_ALLOW_EXTENSIONS_NON_V3
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate
@@ -2100,9 +2113,11 @@
 /* Debug options */
 //#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */
 
-/* \} name */
+/* \} name SECTION: Module configuration options */
 
-/*
+/**
+ * \name SECTION: Sanity checks
+ *
  * Sanity checks on defines and dependencies
  */
 #if defined(POLARSSL_AESNI_C) && !defined(POLARSSL_HAVE_ASM)
@@ -2355,6 +2370,10 @@
 #endif
 #undef POLARSSL_THREADING_IMPL
 
+#if defined(POLARSSL_VERSION_FEATURES) && !defined(POLARSSL_VERSION_C)
+#error "POLARSSL_VERSION_FEATURES defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_X509_USE_C) && ( !defined(POLARSSL_BIGNUM_C) ||  \
     !defined(POLARSSL_OID_C) || !defined(POLARSSL_ASN1_PARSE_C) ||      \
     !defined(POLARSSL_PK_PARSE_C) )
@@ -2386,5 +2405,7 @@
 #if defined(POLARSSL_X509_CSR_WRITE_C) && ( !defined(POLARSSL_X509_CREATE_C) )
 #error "POLARSSL_X509_CSR_WRITE_C defined, but not all prerequisites"
 #endif
+
+/* \} name SECTION: Sanity checks */
 
 #endif /* config.h */

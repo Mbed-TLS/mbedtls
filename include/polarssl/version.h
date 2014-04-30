@@ -3,7 +3,7 @@
  *
  * \brief Run-time version information
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -82,6 +82,22 @@ void version_get_string( char *string );
  *                  version string).
  */
 void version_get_string_full( char *string );
+
+/**
+ * \brief           Check if support for a feature was compiled into this
+ *                  PolarSSL binary. This allows you to see at runtime if the
+ *                  library was for instance compiled with or without
+ *                  Multi-threading support.
+ *
+ *                  Note: only checks against defines in the sections "System
+ *                        support", "PolarSSL modules" and "PolarSSL feature
+ *                        support" in config.h
+ *
+ * \param feature   The string for the define to check (e.g. "POLARSSL_AES_C")
+ *
+ * \return          0 if the feature is present, -1 if not.
+ */
+int version_check_feature( const char *feature );
 
 #ifdef __cplusplus
 }

@@ -317,6 +317,10 @@ SOURCE=..\..\library\version.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\version_features.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\x509.c
 # End Source File
 # Begin Source File

@@ -41,13 +41,18 @@
 #endif
 
 const char *features[] = {
+#if defined(POLARSSL_VERSION_FEATURES)
 FEATURE_DEFINES
+#endif
     NULL
 };
 
 int version_check_feature( const char *feature )
 {
     const char **idx = features;
+
+    if( *idx == NULL )
+        return( -2 );
 
     if( feature == NULL )
         return( -1 );

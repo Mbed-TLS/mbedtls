@@ -99,7 +99,9 @@ void version_get_string_full( char *string );
  *
  * \param feature   The string for the define to check (e.g. "POLARSSL_AES_C")
  *
- * \return          0 if the feature is present, -1 if not.
+ * \return          0 if the feature is present, -1 if the feature is not
+ *                  present and -2 if support for feature checking as a whole
+ *                  was not compiled in.
  */
 int version_check_feature( const char *feature );
 

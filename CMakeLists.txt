@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(POLARSSL C)
 
-enable_testing()
-
 string(REGEX MATCH "clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER}")
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -41,6 +39,11 @@ option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library.
 
 option(ENABLE_ZLIB_SUPPORT "Build PolarSSL with zlib library." OFF)
 option(ENABLE_PROGRAMS "Build PolarSSL programs." ON)
+option(ENABLE_TESTING "Build PolarSSL tests." ON)
+
+if(ENABLE_TESTING)
+  enable_testing()
+endif()
 
 if(LIB_INSTALL_DIR)
 else()
@@ -60,12 +63,14 @@ endif(ENABLE_ZLIB_SUPPORT)
 add_subdirectory(library)
 add_subdirectory(include)
 
-if(CMAKE_COMPILER_IS_GNUCC)
-  add_subdirectory(tests)
-endif(CMAKE_COMPILER_IS_GNUCC)
-if(CMAKE_COMPILER_IS_CLANG)
-  add_subdirectory(tests)
-endif(CMAKE_COMPILER_IS_CLANG)
+if(ENABLE_TESTING)
+  if(CMAKE_COMPILER_IS_GNUCC)
+    add_subdirectory(tests)
+  endif(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_COMPILER_IS_CLANG)
+    add_subdirectory(tests)
+  endif(CMAKE_COMPILER_IS_CLANG)
+endif()
 
 if(ENABLE_PROGRAMS)
   add_subdirectory(programs)
@@ -75,21 +80,22 @@ ADD_CUSTOM_TARGET(apidoc
                   COMMAND doxygen doxygen/polarssl.doxyfile
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-ADD_CUSTOM_TARGET(test-ref-config
+if(ENABLE_TESTING)
+  ADD_CUSTOM_TARGET(test-ref-config
     COMMAND tests/scripts/test-ref-configs.pl
     )
 
-# add programs/test/selftest even though the selftest functions are
-# called from the testsuites since it runs them in verbose mode,
-# avoiding spurious "uncovered" printf lines
-ADD_CUSTOM_TARGET(covtest
+  # add programs/test/selftest even though the selftest functions are
+  # called from the testsuites since it runs them in verbose mode,
+  # avoiding spurious "uncovered" printf lines
+  ADD_CUSTOM_TARGET(covtest
     COMMAND make test
     COMMAND programs/test/selftest
     COMMAND cd tests && ./compat.sh
     COMMAND cd tests && ./ssl-opt.sh
     )
 
-ADD_CUSTOM_TARGET(lcov
+  ADD_CUSTOM_TARGET(lcov
     COMMAND rm -rf Coverage
     COMMAND lcov --capture --directory library/CMakeFiles/polarssl.dir -o polarssl.info
     COMMAND gendesc tests/Descriptions.txt -o descriptions
@@ -97,8 +103,9 @@ ADD_CUSTOM_TARGET(lcov
     COMMAND rm -f polarssl.info descriptions
     )
 
-ADD_CUSTOM_TARGET(memcheck
+  ADD_CUSTOM_TARGET(memcheck
     COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
     COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
     COMMAND rm -f memcheck.log
     )
+endif()

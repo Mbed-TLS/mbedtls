@@ -1657,16 +1657,28 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Fill X with size bytes of random.
+ *
+ * Use a temporary bytes representation to make sure the result is the same
+ * regardless of the platform endianness (usefull when f_rng is actually
+ * deterministic, eg for tests).
+ */
 int mpi_fill_random( mpi *X, size_t size,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
     int ret;
+    unsigned char buf[POLARSSL_MPI_MAX_SIZE];
+
+    if( size > POLARSSL_MPI_MAX_SIZE )
+        return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
     MPI_CHK( mpi_grow( X, CHARS_TO_LIMBS( size ) ) );
     MPI_CHK( mpi_lset( X, 0 ) );
 
-    MPI_CHK( f_rng( p_rng, (unsigned char *) X->p, size ) );
+    MPI_CHK( f_rng( p_rng, buf, size ) );
+    MPI_CHK( mpi_read_binary( X, buf, size ) );
 
 cleanup:
     return( ret );

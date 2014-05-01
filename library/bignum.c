@@ -1782,7 +1782,7 @@ cleanup:
  * Fill X with size bytes of random.
  *
  * Use a temporary bytes representation to make sure the result is the same
- * regardless of the platform endianness (usefull when f_rng is actually
+ * regardless of the platform endianness (useful when f_rng is actually
  * deterministic, eg for tests).
  */
 int mpi_fill_random( mpi *X, size_t size,

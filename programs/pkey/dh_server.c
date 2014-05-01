@@ -178,7 +178,7 @@ int main( int argc, char *argv[] )
 
     memset( buf, 0, sizeof( buf ) );
 
-    if( ( ret = dhm_make_params( &dhm, (int) mpi_size( &dhm.P ), buf, &n,
+    if( ( ret = dhm_make_params( &dhm, (int) mpi_size( &dhm.P ), buf, &n, 2048,
                                  ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         printf( " failed\n  ! dhm_make_params returned %d\n\n", ret );

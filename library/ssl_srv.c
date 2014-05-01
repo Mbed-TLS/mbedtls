@@ -2145,6 +2145,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     unsigned char *p = ssl->out_msg + 4;
+    size_t p_len = ssl->out_msglen - 4;
     unsigned char *dig_signed = p;
     size_t dig_signed_len = 0, len;
     ((void) dig_signed);
@@ -2217,7 +2218,7 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         if( ( ret = dhm_make_params( &ssl->handshake->dhm_ctx,
                                       (int) mpi_size( &ssl->handshake->dhm_ctx.P ),
                                       p,
-                                      &len, ssl->f_rng, ssl->p_rng ) ) != 0 )
+                                      &len, p_len, ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_make_params", ret );
             return( ret );

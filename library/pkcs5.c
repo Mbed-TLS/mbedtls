@@ -366,7 +366,7 @@ int pkcs5_self_test( int verbose )
         return( 1 );
 
     if( verbose != 0 )
-        polarssl_printf( "  PBKDF2 warning: test #3 may be slow!\n" );
+        polarssl_printf( "  PBKDF2 note: test #3 may be slow!\n" );
 
     for( i = 0; i < MAX_TESTS; i++ )
     {

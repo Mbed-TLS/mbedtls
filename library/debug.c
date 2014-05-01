@@ -348,4 +348,4 @@ void debug_print_crt( const ssl_context *ssl, int level,
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-#endif
+#endif /* POLARSSL_DEBUG_C */

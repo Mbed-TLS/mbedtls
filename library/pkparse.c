@@ -1,7 +1,7 @@
 /*
  *  Public Key layer for parsing key files and structures
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -1236,7 +1236,7 @@ int pk_parse_public_key( pk_context *ctx,
         pem_free( &pem );
         return( ret );
     }
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
     p = (unsigned char *) key;
 
     ret = pk_parse_subpubkey( &p, p + keylen, ctx );

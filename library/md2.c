@@ -373,6 +373,6 @@ int md2_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_MD2_C */

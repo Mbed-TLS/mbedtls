@@ -648,4 +648,4 @@ int ecp_self_test( int verbose );
 }
 #endif
 
-#endif
+#endif /* ecp.h */

@@ -1,6 +1,6 @@
 /**
  * \file md_wrap.h
- * 
+ *
  * \brief Message digest wrappers.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>

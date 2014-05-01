@@ -1,6 +1,6 @@
 /**
  * \file cipher.h
- * 
+ *
  * \brief Generic cipher wrapper.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>

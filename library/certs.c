@@ -1,7 +1,7 @@
 /*
  *  X.509 test certificates
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -305,6 +305,6 @@ const char *test_srv_crt = test_srv_crt_ec;
 const char *test_srv_key = test_srv_key_ec;
 const char *test_cli_crt = test_cli_crt_ec;
 const char *test_cli_key = test_cli_key_ec;
-#endif
+#endif /* POLARSSL_RSA_C */
 
 #endif /* POLARSSL_CERTS_C */

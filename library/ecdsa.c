@@ -1,7 +1,7 @@
 /*
  *  Elliptic curve DSA
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -70,7 +70,7 @@ static const md_info_t *md_info_by_size( size_t min_size )
 
     return( md_picked );
 }
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /*
  * Derive a suitable integer for group grp from a buffer of length len
@@ -498,6 +498,6 @@ int ecdsa_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif /* defined(POLARSSL_ECDSA_C) */
+#endif /* POLARSSL_ECDSA_C */

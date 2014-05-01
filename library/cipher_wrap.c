@@ -1,6 +1,6 @@
 /**
  * \file cipher_wrap.c
- * 
+ *
  * \brief Generic cipher wrapper for PolarSSL
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
@@ -82,7 +82,7 @@ static void gcm_ctx_free( void *ctx )
     gcm_free( ctx );
     polarssl_free( ctx );
 }
-#endif
+#endif /* POLARSSL_GCM_C */
 
 #if defined(POLARSSL_AES_C)
 
@@ -124,7 +124,7 @@ static int aes_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t lengt
     ((void) output);
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
-#endif
+#endif /* POLARSSL_CIPHER_MODE_CFB */
 }
 
 static int aes_crypt_ctr_wrap( void *ctx, size_t length,
@@ -144,7 +144,7 @@ static int aes_crypt_ctr_wrap( void *ctx, size_t length,
     ((void) output);
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
-#endif
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 }
 
 static int aes_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
@@ -372,7 +372,7 @@ const cipher_info_t aes_256_gcm_info = {
 };
 #endif /* POLARSSL_GCM_C */
 
-#endif
+#endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_CAMELLIA_C)
 
@@ -414,7 +414,7 @@ static int camellia_crypt_cfb128_wrap( void *ctx, operation_t operation, size_t 
     ((void) output);
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
-#endif
+#endif /* POLARSSL_CIPHER_MODE_CFB */
 }
 
 static int camellia_crypt_ctr_wrap( void *ctx, size_t length,
@@ -434,7 +434,7 @@ static int camellia_crypt_ctr_wrap( void *ctx, size_t length,
     ((void) output);
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
-#endif
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 }
 
 static int camellia_setkey_dec_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
@@ -909,7 +909,7 @@ const cipher_info_t des_ede3_cbc_info = {
     &des_ede3_info
 };
 #endif /* POLARSSL_CIPHER_MODE_CBC */
-#endif
+#endif /* POLARSSL_DES_C */
 
 #if defined(POLARSSL_BLOWFISH_C)
 
@@ -951,7 +951,7 @@ static int blowfish_crypt_cfb64_wrap( void *ctx, operation_t operation, size_t l
     ((void) output);
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
-#endif
+#endif /* POLARSSL_CIPHER_MODE_CFB */
 }
 
 static int blowfish_crypt_ctr_wrap( void *ctx, size_t length,
@@ -971,7 +971,7 @@ static int blowfish_crypt_ctr_wrap( void *ctx, size_t length,
     ((void) output);
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
-#endif
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 }
 
 static int blowfish_setkey_wrap( void *ctx, const unsigned char *key, unsigned int key_length )
@@ -1254,4 +1254,4 @@ const cipher_definition_t cipher_definitions[] =
 #define NUM_CIPHERS sizeof cipher_definitions / sizeof cipher_definitions[0]
 int supported_ciphers[NUM_CIPHERS];
 
-#endif
+#endif /* POLARSSL_CIPHER_C */

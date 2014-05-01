@@ -85,7 +85,7 @@ int asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
  * \return          the length written or a negative error code
  */
 int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X );
-#endif
+#endif /* POLARSSL_BIGNUM_C */
 
 /**
  * \brief           Write a NULL tag (ASN1_NULL) with zero data in ASN.1 format

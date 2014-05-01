@@ -491,7 +491,7 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
             ssl->handshake->sig_alg = SSL_HASH_SHA384;
             break;
         }
-#endif
+#endif /* POLARSSL_SHA512_C */
 #if defined(POLARSSL_SHA256_C)
         if( p[0] == SSL_HASH_SHA256 )
         {
@@ -503,7 +503,7 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
             ssl->handshake->sig_alg = SSL_HASH_SHA224;
             break;
         }
-#endif
+#endif /* POLARSSL_SHA256_C */
         if( p[0] == SSL_HASH_SHA1 )
         {
             ssl->handshake->sig_alg = SSL_HASH_SHA1;
@@ -552,7 +552,7 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
     if( ( curves = polarssl_malloc( our_size * sizeof( *curves ) ) ) == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
-	/* explicit void pointer cast for buggy MS compiler */
+    /* explicit void pointer cast for buggy MS compiler */
     memset( (void *) curves, 0, our_size * sizeof( *curves ) );
     ssl->handshake->curves = curves;
 
@@ -1798,7 +1798,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         return( ret );
 
     p += 4;
-#endif
+#endif /* POLARSSL_HAVE_TIME */
 
     if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
         return( ret );
@@ -1997,7 +1997,7 @@ static int ssl_write_certificate_request( ssl_context *ssl )
      *     4  .   4   cert type count
      *     5  .. m-1  cert types
      *     m  .. m+1  sig alg length (TLS 1.2 only)
-     *    m+1 .. n-1  SignatureAndHashAlgorithms (TLS 1.2 only) 
+     *    m+1 .. n-1  SignatureAndHashAlgorithms (TLS 1.2 only)
      *     n  .. n+1  length of all DNs
      *    n+2 .. n+3  length of DN 1
      *    n+4 .. ...  Distinguished Name #1
@@ -3037,7 +3037,8 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         }
     }
     else
-#endif
+#endif /* POLARSSL_SSL_PROTO_SSL3 || POLARSSL_SSL_PROTO_TLS1 ||
+          POLARSSL_SSL_PROTO_TLS1_1 */
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
@@ -3282,4 +3283,4 @@ int ssl_handshake_server_step( ssl_context *ssl )
 
     return( ret );
 }
-#endif
+#endif /* POLARSSL_SSL_SRV_C */

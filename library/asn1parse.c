@@ -387,4 +387,4 @@ asn1_named_data *asn1_find_named_data( asn1_named_data *list,
     return( list );
 }
 
-#endif
+#endif /* POLARSSL_ASN1_PARSE_C */

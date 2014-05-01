@@ -1,7 +1,7 @@
 /*
  *  Elliptic curves over GF(p): curve-specific data and functions
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -1377,4 +1377,4 @@ static int ecp_mod_p256k1( mpi *N )
 }
 #endif /* POLARSSL_ECP_DP_SECP256K1_ENABLED */
 
-#endif
+#endif /* POLARSSL_ECP_C */

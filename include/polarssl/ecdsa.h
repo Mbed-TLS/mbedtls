@@ -90,7 +90,7 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
 int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
                     const mpi *d, const unsigned char *buf, size_t blen,
                     md_type_t md_alg );
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /**
  * \brief           Verify ECDSA signature of a previously hashed message
@@ -163,7 +163,7 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
                                const unsigned char *hash, size_t hlen,
                                unsigned char *sig, size_t *slen,
                                md_type_t md_alg );
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /**
  * \brief           Read and verify an ECDSA signature
@@ -233,4 +233,4 @@ int ecdsa_self_test( int verbose );
 }
 #endif
 
-#endif
+#endif /* ecdsa.h */

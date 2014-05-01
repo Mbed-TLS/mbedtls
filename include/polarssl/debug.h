@@ -81,7 +81,7 @@
     debug_print_crt( ssl, level, __FILE__, __LINE__, text, crt );
 #endif
 
-#else
+#else /* POLARSSL_DEBUG_C */
 
 #define SSL_DEBUG_MSG( level, args )            do { } while( 0 )
 #define SSL_DEBUG_RET( level, text, ret )       do { } while( 0 )
@@ -90,7 +90,7 @@
 #define SSL_DEBUG_ECP( level, text, X )         do { } while( 0 )
 #define SSL_DEBUG_CRT( level, text, crt )       do { } while( 0 )
 
-#endif
+#endif /* POLARSSL_DEBUG_C */
 
 #ifdef __cplusplus
 extern "C" {

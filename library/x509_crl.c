@@ -158,7 +158,7 @@ static int x509_get_crl_entry_ext( unsigned char **p,
         return( POLARSSL_ERR_X509_INVALID_EXTENSIONS + ret );
     }
 
-	end = *p + ext->len;
+    end = *p + ext->len;
 
     if( end != *p + ext->len )
         return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
@@ -316,7 +316,7 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
         return( ret );
     }
     else
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
     {
         /*
          * nope, copy the raw DER data
@@ -583,7 +583,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 
@@ -751,4 +751,4 @@ void x509_crl_free( x509_crl *crl )
     while( crl_cur != NULL );
 }
 
-#endif
+#endif /* POLARSSL_X509_CRL_PARSE_C */

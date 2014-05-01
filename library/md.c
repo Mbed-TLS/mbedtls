@@ -1,11 +1,11 @@
 /**
  * \file md.c
- * 
+ *
  * \brief Generic message digest wrapper for PolarSSL
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -256,7 +256,7 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
     ((void) output);
 
     return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
-#endif
+#endif /* POLARSSL_FS_IO */
 }
 
 int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
@@ -321,4 +321,4 @@ int md_process( md_context_t *ctx, const unsigned char *data )
     return 0;
 }
 
-#endif
+#endif /* POLARSSL_MD_C */

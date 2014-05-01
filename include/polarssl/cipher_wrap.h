@@ -1,6 +1,6 @@
 /**
  * \file cipher_wrap.h
- * 
+ *
  * \brief Cipher wrappers.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>

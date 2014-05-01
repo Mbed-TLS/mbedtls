@@ -1,7 +1,7 @@
 /*
  *  An 32-bit implementation of the XTEA algorithm
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -255,6 +255,6 @@ int xtea_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_XTEA_C */

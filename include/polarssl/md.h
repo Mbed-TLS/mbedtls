@@ -1,6 +1,6 @@
 /**
  * \file md.h
- * 
+ *
  * \brief Generic message digest wrapper
  *
  * \author Adriaan de Jong <dejong@fox-it.com>

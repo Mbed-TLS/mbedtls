@@ -191,7 +191,7 @@ int entropy_func( void *data, unsigned char *output, size_t len );
 /**
  * \brief           Add data to the accumulator manually
  *                  (Thread-safe if POLARSSL_THREADING_C is enabled)
- * 
+ *
  * \param ctx       Entropy context
  * \param data      Data to add
  * \param len       Length of data
@@ -227,7 +227,7 @@ int entropy_write_seed_file( entropy_context *ctx, const char *path );
  *                      POLARSSL_ERR_ENTROPY_SOURCE_FAILED
  */
 int entropy_update_seed_file( entropy_context *ctx, const char *path );
-#endif
+#endif /* POLARSSL_FS_IO */
 
 #ifdef __cplusplus
 }

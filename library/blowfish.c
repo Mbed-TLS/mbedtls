@@ -1,7 +1,7 @@
 /*
  *  Blowfish implementation
  *
- *  Copyright (C) 2012-2013, Brainspark B.V.
+ *  Copyright (C) 2012-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -75,7 +75,7 @@ static const uint32_t P[BLOWFISH_ROUNDS + 2] = {
 /* declarations of data at the end of this file */
 static const uint32_t S[4][256];
 
-static uint32_t F(blowfish_context *ctx, uint32_t x) 
+static uint32_t F(blowfish_context *ctx, uint32_t x)
 {
    unsigned short a, b, c, d;
    uint32_t  y;
@@ -94,7 +94,7 @@ static uint32_t F(blowfish_context *ctx, uint32_t x)
    return y;
 }
 
-static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr) 
+static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
 {
     uint32_t  Xl, Xr, temp;
     short i;
@@ -102,7 +102,7 @@ static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     Xl = *xl;
     Xr = *xr;
 
-    for (i = 0; i < BLOWFISH_ROUNDS; ++i) 
+    for (i = 0; i < BLOWFISH_ROUNDS; ++i)
     {
         Xl = Xl ^ ctx->P[i];
         Xr = F(ctx, Xl) ^ Xr;
@@ -123,7 +123,7 @@ static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     *xr = Xr;
 }
 
-static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr) 
+static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
 {
     uint32_t  Xl, Xr, temp;
     short i;
@@ -131,7 +131,7 @@ static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     Xl = *xl;
     Xr = *xr;
 
-    for (i = BLOWFISH_ROUNDS + 1; i > 1; --i) 
+    for (i = BLOWFISH_ROUNDS + 1; i > 1; --i)
     {
         Xl = Xl ^ ctx->P[i];
         Xr = F(ctx, Xl) ^ Xr;
@@ -161,14 +161,14 @@ int blowfish_setkey( blowfish_context *ctx, const unsigned char *key, unsigned i
     uint32_t data, datal, datar;
 
     if( keysize < BLOWFISH_MIN_KEY || keysize > BLOWFISH_MAX_KEY ||
-        ( keysize % 8 ) ) 
+        ( keysize % 8 ) )
     {
         return POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH;
     }
 
     keysize >>= 3;
 
-    for( i = 0; i < 4; i++ ) 
+    for( i = 0; i < 4; i++ )
     {
         for( j = 0; j < 256; j++ )
             ctx->S[i][j] = S[i][j];
@@ -219,8 +219,8 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
 {
     uint32_t X0, X1;
 
-    GET_UINT32_BE( X0, input,  0 ); 
-    GET_UINT32_BE( X1, input,  4 ); 
+    GET_UINT32_BE( X0, input,  0 );
+    GET_UINT32_BE( X1, input,  4 );
 
     if( mode == BLOWFISH_DECRYPT )
     {

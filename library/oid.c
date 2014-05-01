@@ -3,7 +3,7 @@
  *
  * \brief Object Identifier (OID) database
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -624,7 +624,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define SAFE_SNPRINTF()                         \
 {                                               \

@@ -329,7 +329,7 @@
     );
 
 
-#else
+#else /* __MACH__ && __APPLE__ */
 
 #define MULADDC_INIT                \
     asm(                            \
@@ -369,7 +369,7 @@
         : "r3", "r4", "r5", "r6", "r7", "r8", "r9"  \
     );
 
-#endif
+#endif /* __MACH__ && __APPLE__ */
 
 #else /* PPC32 */
 
@@ -413,7 +413,7 @@
         : "r3", "r4", "r5", "r6", "r7", "r8", "r9"  \
     );
 
-#else
+#else /* __MACH__ && __APPLE__ */
 
 #define MULADDC_INIT                \
     asm(                            \
@@ -453,7 +453,7 @@
         : "r3", "r4", "r5", "r6", "r7", "r8", "r9"  \
     );
 
-#endif
+#endif /* __MACH__ && __APPLE__ */
 
 #endif /* PPC32 */
 #endif /* PPC64 */

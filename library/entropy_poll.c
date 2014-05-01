@@ -1,7 +1,7 @@
 /*
  *  Platform-specific and custom entropy polling functions
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -71,7 +71,7 @@ int platform_entropy_poll( void *data, unsigned char *output, size_t len,
 
     return( 0 );
 }
-#else
+#else /* _WIN32 && !EFIX64 && !EFI32 */
 
 #include <stdio.h>
 
@@ -87,7 +87,7 @@ int platform_entropy_poll( void *data,
     file = fopen( "/dev/urandom", "rb" );
     if( file == NULL )
         return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
-    
+
     ret = fread( output, 1, len, file );
     if( ret != len )
     {
@@ -100,8 +100,8 @@ int platform_entropy_poll( void *data,
 
     return( 0 );
 }
-#endif
-#endif
+#endif /* _WIN32 && !EFIX64 && !EFI32 */
+#endif /* !POLARSSL_NO_PLATFORM_ENTROPY */
 
 #if defined(POLARSSL_TIMING_C)
 int hardclock_poll( void *data,
@@ -119,7 +119,7 @@ int hardclock_poll( void *data,
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_TIMING_C */
 
 #if defined(POLARSSL_HAVEGE_C)
 int havege_poll( void *data,
@@ -135,6 +135,6 @@ int havege_poll( void *data,
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_HAVEGE_C */
 
 #endif /* POLARSSL_ENTROPY_C */

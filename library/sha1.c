@@ -454,7 +454,7 @@ void sha1_hmac( const unsigned char *key, size_t keylen,
 /*
  * FIPS-180-1 test vectors
  */
-static unsigned char sha1_test_buf[3][57] = 
+static unsigned char sha1_test_buf[3][57] =
 {
     { "abc" },
     { "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" },
@@ -629,6 +629,6 @@ int sha1_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_SHA1_C */

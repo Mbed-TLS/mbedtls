@@ -912,7 +912,7 @@ int x509_crt_parse( x509_crt *chain, const unsigned char *buf, size_t buflen )
             success = 1;
         }
     }
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
 
     if( success )
         return( total_failed );
@@ -954,23 +954,23 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     int w_ret;
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
-	char *p;
+    char *p;
     int len = (int) strlen( path );
 
-	WIN32_FIND_DATAW file_data;
+    WIN32_FIND_DATAW file_data;
     HANDLE hFind;
 
     if( len > MAX_PATH - 3 )
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
-	memset( szDir, 0, sizeof(szDir) );
-	memset( filename, 0, MAX_PATH );
-	memcpy( filename, path, len );
-	filename[len++] = '\\';
-	p = filename + len;
+    memset( szDir, 0, sizeof(szDir) );
+    memset( filename, 0, MAX_PATH );
+    memcpy( filename, path, len );
+    filename[len++] = '\\';
+    p = filename + len;
     filename[len++] = '*';
 
-	w_ret = MultiByteToWideChar( CP_ACP, 0, filename, len, szDir, MAX_PATH - 3 );
+    w_ret = MultiByteToWideChar( CP_ACP, 0, filename, len, szDir, MAX_PATH - 3 );
 
     hFind = FindFirstFileW( szDir, &file_data );
     if (hFind == INVALID_HANDLE_VALUE)
@@ -979,15 +979,15 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     len = MAX_PATH - len;
     do
     {
-		memset( p, 0, len );
+        memset( p, 0, len );
 
         if( file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             continue;
 
-		w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
-									 lstrlenW(file_data.cFileName),
-									 p, len - 1,
-									 NULL, NULL );
+        w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
+                                     lstrlenW(file_data.cFileName),
+                                     p, len - 1,
+                                     NULL, NULL );
 
         w_ret = x509_crt_parse_file( chain, filename );
         if( w_ret < 0 )
@@ -1086,7 +1086,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER  && !snprintf && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 
@@ -1405,7 +1405,7 @@ int x509_crt_check_extended_key_usage( const x509_crt *crt,
 
     return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 }
-#endif
+#endif /* POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE */
 
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /*
@@ -1971,4 +1971,4 @@ void x509_crt_free( x509_crt *crt )
     while( cert_cur != NULL );
 }
 
-#endif
+#endif /* POLARSSL_X509_CRT_PARSE_C */

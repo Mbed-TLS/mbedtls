@@ -129,7 +129,7 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
         return( ret );
     }
     else
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
     {
         /*
          * nope, copy the raw DER data
@@ -332,7 +332,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 

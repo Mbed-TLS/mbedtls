@@ -407,7 +407,7 @@ void md4_hmac( const unsigned char *key, size_t keylen,
  */
 static const char md4_test_str[7][81] =
 {
-    { "" }, 
+    { "" },
     { "a" },
     { "abc" },
     { "message digest" },
@@ -469,6 +469,6 @@ int md4_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_MD4_C */

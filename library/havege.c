@@ -1,7 +1,7 @@
 /**
  *  \brief HAVEGE: HArdware Volatile Entropy Gathering and Expansion
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -223,7 +223,7 @@ int havege_random( void *p_rng, unsigned char *buf, size_t len )
         val ^= hs->pool[hs->offset[1]++];
 
         memcpy( p, &val, use_len );
-        
+
         len -= use_len;
         p += use_len;
     }
@@ -231,4 +231,4 @@ int havege_random( void *p_rng, unsigned char *buf, size_t len )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_HAVEGE_C */

@@ -265,7 +265,7 @@ int hmac_drbg_write_seed_file( hmac_drbg_context *ctx, const char *path );
  *                      POLARSSL_ERR_HMAC_DRBG_INPUT_TOO_BIG
  */
 int hmac_drbg_update_seed_file( hmac_drbg_context *ctx, const char *path );
-#endif
+#endif /* POLARSSL_FS_IO */
 
 
 #if defined(POLARSSL_SELF_TEST)

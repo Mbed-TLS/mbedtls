@@ -346,16 +346,16 @@ static const uint32_t RCON[10] =
     0x0000001B, 0x00000036
 };
 
-#else
+#else /* POLARSSL_AES_ROM_TABLES */
 
 /*
  * Forward S-box & tables
  */
 static unsigned char FSb[256];
-static uint32_t FT0[256]; 
-static uint32_t FT1[256]; 
-static uint32_t FT2[256]; 
-static uint32_t FT3[256]; 
+static uint32_t FT0[256];
+static uint32_t FT1[256];
+static uint32_t FT2[256];
+static uint32_t FT3[256];
 
 /*
  * Reverse S-box & tables
@@ -456,7 +456,7 @@ static void aes_gen_tables( void )
     }
 }
 
-#endif
+#endif /* POLARSSL_AES_ROM_TABLES */
 
 /*
  * AES key schedule (encryption)
@@ -826,7 +826,7 @@ int aes_crypt_cbc( aes_context *ctx,
     {
         if( padlock_xcryptcbc( ctx, mode, length, iv, input, output ) == 0 )
             return( 0 );
-        
+
         // If padlock data misaligned, we just fall back to
         // unaccelerated mode
         //
@@ -1424,6 +1424,6 @@ int aes_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_AES_C */

@@ -1,7 +1,7 @@
 /*
  *  Entropy accumulator implementation
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -372,4 +372,4 @@ int entropy_update_seed_file( entropy_context *ctx, const char *path )
 }
 #endif /* POLARSSL_FS_IO */
 
-#endif
+#endif /* POLARSSL_ENTROPY_C */

@@ -51,7 +51,7 @@ typedef UINT32 uint32_t;
 typedef UINT64 uint64_t;
 #else
 #include <inttypes.h>
-#endif
+#endif /* _MSC_VER && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
 #define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
@@ -644,7 +644,7 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
 /**
  * \brief          Sliding-window exponentiation: X = A^E mod N
  *
- * \param X        Destination MPI 
+ * \param X        Destination MPI
  * \param A        Left-hand MPI
  * \param E        Exponent MPI
  * \param N        Modular MPI

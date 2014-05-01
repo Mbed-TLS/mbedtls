@@ -1776,7 +1776,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
         else
             return( 0 );
     }
-#endif
+#endif /* POLARSSL_ECP_MONTGOMERY */
 #if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
     {
@@ -1787,7 +1787,7 @@ int ecp_check_privkey( const ecp_group *grp, const mpi *d )
         else
             return( 0 );
     }
-#endif
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
 
     return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 }
@@ -1823,7 +1823,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
         MPI_CHK( mpi_set_bit( d, 2, 0 ) );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_MONTGOMERY */
 #if defined(POLARSSL_ECP_SHORT_WEIERSTRASS)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_SHORT_WEIERSTRASS )
     {
@@ -1860,7 +1860,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                mpi_cmp_mpi( d, &grp->N ) >= 0 );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_SHORT_WEIERSTRASS */
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
 cleanup:
@@ -2013,6 +2013,6 @@ cleanup:
     return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_ECP_C */

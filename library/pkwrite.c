@@ -221,7 +221,7 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
     }
     else
-#endif
+#endif /* POLARSSL_RSA_C */
 #if defined(POLARSSL_ECP_C)
     if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
     {
@@ -274,7 +274,7 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_C */
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( (int) len );

@@ -313,7 +313,7 @@ int mpi_set_bit( mpi *X, size_t pos, unsigned char val )
 
     if( val != 0 && val != 1 )
         return POLARSSL_ERR_MPI_BAD_INPUT_DATA;
-        
+
     if( X->n * biL <= pos )
     {
         if( val == 0 )
@@ -326,7 +326,7 @@ int mpi_set_bit( mpi *X, size_t pos, unsigned char val )
     X->p[off] |= (t_uint) val << idx;
 
 cleanup:
-    
+
     return( ret );
 }
 
@@ -860,7 +860,7 @@ int mpi_add_abs( mpi *X, const mpi *A, const mpi *B )
 
     if( X != A )
         MPI_CHK( mpi_copy( X, A ) );
-   
+
     /*
      * X should always be positive as a result of unsigned additions.
      */
@@ -1083,7 +1083,7 @@ void mpi_mul_hlp( size_t i, t_uint *s, t_uint *d, t_uint b )
         MULADDC_CORE
         MULADDC_STOP
     }
-#else
+#else /* MULADDC_HUIT */
     for( ; i >= 16; i -= 16 )
     {
         MULADDC_INIT
@@ -1116,7 +1116,7 @@ void mpi_mul_hlp( size_t i, t_uint *s, t_uint *d, t_uint b )
         MULADDC_CORE
         MULADDC_STOP
     }
-#endif
+#endif /* MULADDC_HUIT */
 
     t++;
 
@@ -2333,6 +2333,6 @@ cleanup:
     return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_BIGNUM_C */

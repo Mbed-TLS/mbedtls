@@ -168,10 +168,10 @@
 #else
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
 #define SSL_MIN_MINOR_VERSION           SSL_MINOR_VERSION_3
-#endif
-#endif
-#endif
-#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* POLARSSL_SSL_PROTO_TLS1_1 */
+#endif /* POLARSSL_SSL_PROTO_TLS1   */
+#endif /* POLARSSL_SSL_PROTO_SSL3   */
 
 /* Determine maximum supported version */
 #define SSL_MAX_MAJOR_VERSION           SSL_MAJOR_VERSION_3
@@ -187,10 +187,10 @@
 #else
 #if defined(POLARSSL_SSL_PROTO_SSL3)
 #define SSL_MAX_MINOR_VERSION           SSL_MINOR_VERSION_0
-#endif
-#endif
-#endif
-#endif
+#endif /* POLARSSL_SSL_PROTO_SSL3   */
+#endif /* POLARSSL_SSL_PROTO_TLS1   */
+#endif /* POLARSSL_SSL_PROTO_TLS1_1 */
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */
@@ -395,7 +395,7 @@ extern "C" {
  */
 typedef int (*rsa_decrypt_func)( void *ctx, int mode, size_t *olen,
                         const unsigned char *input, unsigned char *output,
-                        size_t output_max_len ); 
+                        size_t output_max_len );
 typedef int (*rsa_sign_func)( void *ctx,
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                      int mode, md_type_t md_alg, unsigned int hashlen,
@@ -545,7 +545,7 @@ struct _ssl_handshake_params
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     ssl_key_cert *sni_key_cert;         /*!<  key/cert list from SNI  */
 #endif
-#endif
+#endif /* POLARSSL_X509_CRT_PARSE_C */
 
     /*
      * Checksum contexts
@@ -814,7 +814,7 @@ extern int (*ssl_hw_record_reset)(ssl_context *ssl);
 extern int (*ssl_hw_record_write)(ssl_context *ssl);
 extern int (*ssl_hw_record_read)(ssl_context *ssl);
 extern int (*ssl_hw_record_finish)(ssl_context *ssl);
-#endif
+#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
 
 /**
  * \brief Returns the list of ciphersuites supported by the SSL/TLS module.
@@ -1195,7 +1195,7 @@ int ssl_set_dh_param( ssl_context *ssl, const char *dhm_P, const char *dhm_G );
  * \return         0 if successful
  */
 int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
-#endif
+#endif /* POLARSSL_DHM_C */
 
 #if defined(POLARSSL_SSL_SET_CURVES)
 /**
@@ -1217,7 +1217,7 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx );
  *                 terminated by POLARSSL_ECP_DP_NONE.
  */
 void ssl_set_curves( ssl_context *ssl, const ecp_group_id *curves );
-#endif
+#endif /* POLARSSL_SSL_SET_CURVES */
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /**
@@ -1395,7 +1395,7 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
 /**
  * \brief          Prevent or allow legacy renegotiation.
  *                 (Default: SSL_LEGACY_NO_RENEGOTIATION)
- *                 
+ *
  *                 SSL_LEGACY_NO_RENEGOTIATION allows connections to
  *                 be established even if the peer does not support
  *                 secure renegotiation, but does not allow renegotiation

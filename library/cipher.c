@@ -376,7 +376,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
         return 0;
     }
-#endif
+#endif /* POLARSSL_CIPHER_MODE_CFB */
 
 #if defined(POLARSSL_CIPHER_MODE_CTR)
     if( ctx->cipher_info->mode == POLARSSL_MODE_CTR )
@@ -392,7 +392,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
         return 0;
     }
-#endif
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #if defined(POLARSSL_CIPHER_MODE_STREAM)
     if( ctx->cipher_info->mode == POLARSSL_MODE_STREAM )
@@ -407,7 +407,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
         return 0;
     }
-#endif
+#endif /* POLARSSL_CIPHER_MODE_STREAM */
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
@@ -728,7 +728,7 @@ int cipher_write_tag( cipher_context_t *ctx,
 
     return 0;
 }
- 
+
 int cipher_check_tag( cipher_context_t *ctx,
                       const unsigned char *tag, size_t tag_len )
 {
@@ -765,7 +765,7 @@ int cipher_check_tag( cipher_context_t *ctx,
 
         return( 0 );
     }
-#endif
+#endif /* POLARSSL_GCM_C */
 
     return( 0 );
 }
@@ -783,6 +783,6 @@ int cipher_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_CIPHER_C */

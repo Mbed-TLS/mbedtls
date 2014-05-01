@@ -3,7 +3,7 @@
  *
  * \brief SSL ciphersuites for PolarSSL
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -1654,7 +1654,7 @@ pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info )
             return( POLARSSL_PK_NONE );
     }
 }
-#endif
+#endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
@@ -1672,7 +1672,7 @@ int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
             return( 0 );
     }
 }
-#endif
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
@@ -1689,6 +1689,6 @@ int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
             return( 0 );
     }
 }
-#endif
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#endif
+#endif /* POLARSSL_SSL_TLS_C */

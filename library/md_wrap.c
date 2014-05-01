@@ -158,7 +158,7 @@ const md_info_t md2_info = {
     md2_process_wrap,
 };
 
-#endif
+#endif /* POLARSSL_MD2_C */
 
 #if defined(POLARSSL_MD4_C)
 
@@ -242,7 +242,7 @@ const md_info_t md4_info = {
     md4_process_wrap,
 };
 
-#endif
+#endif /* POLARSSL_MD4_C */
 
 #if defined(POLARSSL_MD5_C)
 
@@ -326,7 +326,7 @@ const md_info_t md5_info = {
     md5_process_wrap,
 };
 
-#endif
+#endif /* POLARSSL_MD5_C */
 
 #if defined(POLARSSL_RIPEMD160_C)
 
@@ -410,7 +410,7 @@ const md_info_t ripemd160_info = {
     ripemd160_process_wrap,
 };
 
-#endif
+#endif /* POLARSSL_RIPEMD160_C */
 
 #if defined(POLARSSL_SHA1_C)
 
@@ -494,7 +494,7 @@ const md_info_t sha1_info = {
     sha1_process_wrap,
 };
 
-#endif
+#endif /* POLARSSL_SHA1_C */
 
 /*
  * Wrappers for generic message digests
@@ -687,7 +687,7 @@ const md_info_t sha256_info = {
     sha256_process_wrap,
 };
 
-#endif
+#endif /* POLARSSL_SHA256_C */
 
 #if defined(POLARSSL_SHA512_C)
 
@@ -877,6 +877,6 @@ const md_info_t sha512_info = {
     sha512_process_wrap,
 };
 
-#endif
+#endif /* POLARSSL_SHA512_C */
 
-#endif
+#endif /* POLARSSL_MD_C */

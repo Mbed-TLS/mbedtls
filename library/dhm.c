@@ -431,7 +431,7 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
     p = ( ret == 0 ) ? pem.buf : (unsigned char *) dhmin;
 #else
     p = (unsigned char *) dhmin;
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
     end = p + dhminlen;
 
     /*
@@ -578,9 +578,9 @@ int dhm_self_test( int verbose )
         polarssl_printf( "  DHM parameter load: skipped\n" );
 
     return( 0 );
-#endif
+#endif /* POLARSSL_CERTS_C */
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_DHM_C */

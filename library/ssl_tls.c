@@ -122,18 +122,18 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 int (*ssl_hw_record_init)(ssl_context *ssl,
-                       const unsigned char *key_enc, const unsigned char *key_dec,
-                       size_t keylen,
-                       const unsigned char *iv_enc,  const unsigned char *iv_dec,
-                       size_t ivlen,
-                       const unsigned char *mac_enc, const unsigned char *mac_dec,
-                       size_t maclen) = NULL;
+                     const unsigned char *key_enc, const unsigned char *key_dec,
+                     size_t keylen,
+                     const unsigned char *iv_enc,  const unsigned char *iv_dec,
+                     size_t ivlen,
+                     const unsigned char *mac_enc, const unsigned char *mac_dec,
+                     size_t maclen) = NULL;
 int (*ssl_hw_record_activate)(ssl_context *ssl, int direction) = NULL;
 int (*ssl_hw_record_reset)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_write)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
 int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
-#endif
+#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
 
 /*
  * Key material generation
@@ -363,7 +363,7 @@ static void ssl_update_checksum_sha384(ssl_context *, const unsigned char *, siz
 static void ssl_calc_verify_tls_sha384(ssl_context *,unsigned char *);
 static void ssl_calc_finished_tls_sha384(ssl_context *,unsigned char *,int);
 #endif
-#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
 int ssl_derive_keys( ssl_context *ssl )
 {
@@ -441,7 +441,7 @@ int ssl_derive_keys( ssl_context *ssl )
     }
     else
 #endif
-#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -615,7 +615,7 @@ int ssl_derive_keys( ssl_context *ssl )
         memcpy( transform->mac_dec, mac_dec, transform->maclen );
     }
     else
-#endif
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
@@ -647,7 +647,7 @@ int ssl_derive_keys( ssl_context *ssl )
             return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
         }
     }
-#endif
+#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
 
     if( ( ret = cipher_init_ctx( &transform->cipher_ctx_enc,
                                  cipher_info ) ) != 0 )
@@ -777,7 +777,7 @@ void ssl_calc_verify_ssl( ssl_context *ssl, unsigned char hash[36] )
 
     return;
 }
-#endif
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
 void ssl_calc_verify_tls( ssl_context *ssl, unsigned char hash[36] )
@@ -1621,7 +1621,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             }
         }
         else
-#endif
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver > SSL_MINOR_VERSION_0 )
@@ -1719,7 +1719,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
              * Process MAC and always update for padlen afterwards to make
              * total time independent of padlen
              *
-             * extra_run compensates MAC check for padlen 
+             * extra_run compensates MAC check for padlen
              *
              * Known timing attacks:
              *  - Lucky Thirteen (http://www.isg.rhul.ac.uk/tls/TLStiming.pdf)
@@ -2021,7 +2021,7 @@ int ssl_write_record( ssl_context *ssl )
         if( ret == 0 )
             done = 1;
     }
-#endif
+#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
     if( !done )
     {
         ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
@@ -2218,7 +2218,7 @@ int ssl_read_record( ssl_context *ssl )
         if( ret == 0 )
             done = 1;
     }
-#endif
+#endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
     if( !done && ssl->transform_in != NULL )
     {
         if( ( ret = ssl_decrypt_buf( ssl ) ) != 0 )
@@ -2753,7 +2753,7 @@ int ssl_parse_certificate( ssl_context *ssl )
                     ret = POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE;
             }
         }
-#endif
+#endif /* POLARSSL_SSL_SET_CURVES */
 
         if( ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
                                   ciphersuite_info,
@@ -4358,7 +4358,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                         return( ret );
                 }
                 else
-#endif
+#endif /* POLARSSL_SSL_PROTO_SSL3 */
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_2)
                 if( ssl->minor_ver >= SSL_MINOR_VERSION_1 )
@@ -4371,7 +4371,8 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                     }
                 }
                 else
-#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 ||
+          POLARSSL_SSL_PROTO_TLS1_2 */
                 {
                     SSL_DEBUG_MSG( 1, ( "should never happen" ) );
                     return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -4562,8 +4563,8 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 #endif
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
-	/* explicit void pointer cast for buggy MS compiler */
-	polarssl_free( (void *) handshake->curves );
+    /* explicit void pointer cast for buggy MS compiler */
+    polarssl_free( (void *) handshake->curves );
 #endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C) && \
@@ -4583,7 +4584,7 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
             cur = next;
         }
     }
-#endif
+#endif /* POLARSSL_X509_CRT_PARSE_C && POLARSSL_SSL_SERVER_NAME_INDICATION */
 
     memset( handshake, 0, sizeof( ssl_handshake_params ) );
 }
@@ -4736,7 +4737,7 @@ pk_type_t ssl_pk_alg_from_sig( unsigned char sig )
             return( POLARSSL_PK_NONE );
     }
 }
-#endif
+#endif /* POLARSSL_PK_C */
 
 /*
  * Convert between SSL_HASH_XXX and POLARSSL_MD_XXX
@@ -4785,7 +4786,7 @@ int ssl_curve_is_acceptable( const ssl_context *ssl, ecp_group_id grp_id )
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_SSL_SET_CURVES */
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 int ssl_check_cert_usage( const x509_crt *cert,

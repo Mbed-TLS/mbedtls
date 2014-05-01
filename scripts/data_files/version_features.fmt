@@ -43,7 +43,7 @@
 const char *features[] = {
 #if defined(POLARSSL_VERSION_FEATURES)
 FEATURE_DEFINES
-#endif
+#endif /* POLARSSL_VERSION_FEATURES */
     NULL
 };
 

@@ -211,7 +211,7 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
         aesni_gcm_mult( output, x, h );
         return;
     }
-#endif
+#endif /* POLARSSL_AESNI_C && POLARSSL_HAVE_X86_64 */
 
     memset( z, 0x00, 16 );
 
@@ -924,4 +924,4 @@ int gcm_self_test( int verbose )
 
 #endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
 
-#endif
+#endif /* POLARSSL_GCM_C */

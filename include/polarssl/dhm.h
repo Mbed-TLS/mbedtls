@@ -285,4 +285,4 @@ int dhm_self_test( int verbose );
 }
 #endif
 
-#endif
+#endif /* dhm.h */

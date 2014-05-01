@@ -212,4 +212,4 @@ int ecdh_self_test( int verbose );
 }
 #endif
 
-#endif
+#endif /* ecdh.h */

@@ -539,7 +539,7 @@ static void buffer_alloc_free_mutexed( void *ptr )
     buffer_alloc_free( ptr );
     polarssl_mutex_unlock( &heap.mutex );
 }
-#endif
+#endif /* POLARSSL_THREADING_C */
 
 int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {

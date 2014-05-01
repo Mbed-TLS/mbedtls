@@ -363,4 +363,4 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
 
     return( cur );
 }
-#endif
+#endif /* POLARSSL_ASN1_WRITE_C */

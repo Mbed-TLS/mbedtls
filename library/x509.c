@@ -468,7 +468,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 
@@ -652,7 +652,7 @@ static void x509_get_current_time( x509_time *now )
     now->hour = lt.tm_hour;
     now->min = lt.tm_min;
     now->sec = lt.tm_sec;
-#endif
+#endif /* _WIN32 && !EFIX64 && !EFI32 */
 }
 
 /*
@@ -796,9 +796,9 @@ int x509_self_test( int verbose )
 #else
     ((void) verbose);
     return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-#endif
+#endif /* POLARSSL_CERTS_C && POLARSSL_SHA1_C */
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
 #endif /* POLARSSL_X509_USE_C */

@@ -496,7 +496,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
         return( ret );
 
     p += 4;
-#endif
+#endif /* POLARSSL_HAVE_TIME */
 
     if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
         return( ret );
@@ -607,7 +607,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     *p++ = 1;
     *p++ = SSL_COMPRESS_NULL;
-#endif
+#endif /* POLARSSL_ZLIB_SUPPORT */
 
     // First write extensions, then the total length
     //
@@ -1268,8 +1268,11 @@ static int ssl_check_server_ecdh_params( const ssl_context *ssl )
 
     return( 0 );
 }
-#endif
-
+#endif /* POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
@@ -1539,7 +1542,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     }
     ((void) p);
     ((void) end);
-#endif
+#endif /* POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+          POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
     if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {
@@ -1661,7 +1665,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             }
         }
         else
-#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
         if( ssl->minor_ver < SSL_MINOR_VERSION_3 )
@@ -2608,4 +2612,4 @@ int ssl_handshake_client_step( ssl_context *ssl )
 
     return( ret );
 }
-#endif
+#endif /* POLARSSL_SSL_CLI_C */

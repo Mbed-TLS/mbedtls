@@ -1,7 +1,7 @@
 /*
  *  Elliptic curve Diffie-Hellman
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -275,6 +275,6 @@ int ecdh_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif /* defined(POLARSSL_ECDH_C) */
+#endif /* POLARSSL_ECDH_C */

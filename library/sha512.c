@@ -65,7 +65,7 @@
         | ( (uint64_t) (b)[(i) + 6] <<  8 )       \
         | ( (uint64_t) (b)[(i) + 7]       );      \
 }
-#endif
+#endif /* GET_UINT64_BE */
 
 #ifndef PUT_UINT64_BE
 #define PUT_UINT64_BE(n,b,i)                            \
@@ -79,7 +79,7 @@
     (b)[(i) + 6] = (unsigned char) ( (n) >>  8 );       \
     (b)[(i) + 7] = (unsigned char) ( (n)       );       \
 }
-#endif
+#endif /* PUT_UINT64_BE */
 
 /*
  * Round constants
@@ -461,7 +461,7 @@ void sha512_hmac( const unsigned char *key, size_t keylen,
 /*
  * FIPS-180-2 test vectors
  */
-static unsigned char sha512_test_buf[3][113] = 
+static unsigned char sha512_test_buf[3][113] =
 {
     { "abc" },
     { "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
@@ -765,6 +765,6 @@ int sha512_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_SHA512_C */

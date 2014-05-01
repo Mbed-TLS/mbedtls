@@ -525,7 +525,7 @@ const char *features[] = {
 #if defined(POLARSSL_XTEA_C)
     "POLARSSL_XTEA_C",
 #endif /* POLARSSL_XTEA_C */
-#endif
+#endif /* POLARSSL_VERSION_FEATURES */
     NULL
 };
 

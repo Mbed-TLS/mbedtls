@@ -104,7 +104,7 @@ int rsa_gen_key( rsa_context *ctx,
 
     do
     {
-        MPI_CHK( mpi_gen_prime( &ctx->P, ( nbits + 1 ) >> 1, 0, 
+        MPI_CHK( mpi_gen_prime( &ctx->P, ( nbits + 1 ) >> 1, 0,
                                 f_rng, p_rng ) );
 
         MPI_CHK( mpi_gen_prime( &ctx->Q, ( nbits + 1 ) >> 1, 0,
@@ -153,7 +153,7 @@ cleanup:
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_GENPRIME */
 
 /*
  * Check a public RSA key
@@ -329,7 +329,7 @@ cleanup:
 
     return( ret );
 }
-#endif
+#endif /* !POLARSSL_RSA_NO_CRT */
 
 /*
  * Do an RSA private key operation
@@ -361,7 +361,7 @@ int rsa_private( rsa_context *ctx,
     Vi = &ctx->Vi;
     Vf = &ctx->Vf;
 #endif
-#endif
+#endif /* !POLARSSL_RSA_NO_CRT */
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
 
@@ -419,7 +419,7 @@ int rsa_private( rsa_context *ctx,
         MPI_CHK( mpi_mul_mpi( &T, &T, Vf ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
-#endif
+#endif /* POLARSSL_RSA_NO_CRT */
 
     olen = ctx->len;
     MPI_CHK( mpi_write_binary( &T, output, olen ) );
@@ -483,7 +483,7 @@ static void mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
         dlen -= use_len;
     }
 }
-#endif
+#endif /* POLARSSL_PKCS1_V21 */
 
 #if defined(POLARSSL_PKCS1_V21)
 /*
@@ -1490,7 +1490,7 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
 
     return( 0 );
 }
-#endif
+#endif /* POLARSSL_PKCS1_V15 */
 
 /*
  * Checkup routine
@@ -1606,6 +1606,6 @@ cleanup:
     return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_RSA_C */

@@ -108,7 +108,7 @@ ctr_drbg_context;
 
 /**
  * \brief               CTR_DRBG initialization
- * 
+ *
  * Note: Personalization data can be provided in addition to the more generic
  *       entropy source to make this instantiation as unique as possible.
  *
@@ -163,7 +163,7 @@ void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx,
 
 /**
  * \brief               CTR_DRBG reseeding (extracts data from entropy source)
- * 
+ *
  * \param ctx           CTR_DRBG context
  * \param additional    Additional data to add to state (Can be NULL)
  * \param len           Length of additional data
@@ -245,7 +245,7 @@ int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path );
  *                      POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG
  */
 int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path );
-#endif
+#endif /* POLARSSL_FS_IO */
 
 /**
  * \brief               Checkup routine

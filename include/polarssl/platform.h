@@ -86,10 +86,10 @@ extern void (*polarssl_free)( void *ptr );
  */
 int platform_set_malloc_free( void * (*malloc_func)( size_t ),
                               void (*free_func)( void * ) );
-#else
+#else /* POLARSSL_PLATFORM_ENTROPY */
 #define polarssl_malloc     malloc
 #define polarssl_free       free
-#endif
+#endif /* POLARSSL_PLATFORM_ENTROPY */
 
 /*
  * The function pointers for printf
@@ -105,9 +105,9 @@ extern int (*polarssl_printf)( const char *format, ... );
  * \return              0
  */
 int platform_set_printf( int (*printf_func)( const char *, ... ) );
-#else
+#else /* POLARSSL_PLATFORM_PRINTF_ALT */
 #define polarssl_printf     printf
-#endif
+#endif /* POLARSSL_PLATFORM_PRINTF_ALT */
 
 /*
  * The function pointers for fprintf

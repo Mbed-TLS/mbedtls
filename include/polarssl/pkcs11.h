@@ -148,7 +148,7 @@ static inline int ssl_pkcs11_decrypt( void *ctx, int mode, size_t *olen,
                            output_max_len );
 }
 
-static inline int ssl_pkcs11_sign( void *ctx, 
+static inline int ssl_pkcs11_sign( void *ctx,
                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                      int mode, md_type_t md_alg, unsigned int hashlen,
                      const unsigned char *hash, unsigned char *sig )

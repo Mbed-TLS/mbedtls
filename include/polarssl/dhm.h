@@ -41,6 +41,7 @@
 #define POLARSSL_ERR_DHM_INVALID_FORMAT                    -0x3380  /**< The ASN.1 data is not formatted correctly. */
 #define POLARSSL_ERR_DHM_MALLOC_FAILED                     -0x3400  /**< Allocation of memory failed. */
 #define POLARSSL_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read/write of file failed. */
+#define POLARSSL_ERR_DHM_BUFFER_TOO_SMALL                  -0x3500  /**< The buffer is too small to write to. */
 
 /**
  * RFC 2409 defines a number of standardized Diffie-Hellman groups
@@ -189,6 +190,7 @@ int dhm_read_params( dhm_context *ctx,
  * \param x_size   private value size in bytes
  * \param output   destination buffer
  * \param olen     number of chars written
+ * \param osize    size of the output buffer
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter
  *
@@ -199,7 +201,7 @@ int dhm_read_params( dhm_context *ctx,
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */
 int dhm_make_params( dhm_context *ctx, int x_size,
-                     unsigned char *output, size_t *olen,
+                     unsigned char *output, size_t *olen, size_t osize,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
 

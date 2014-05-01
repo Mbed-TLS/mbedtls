@@ -44,7 +44,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
     /*
      * First key exchange
      */
-    TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, 1000, &rnd_pseudo_rand, &rnd_info ) == 0 );
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
     TEST_ASSERT( dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
@@ -77,7 +77,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
     sec_srv_len = 1000;
     p = ske;
 
-    TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( dhm_make_params( &ctx_srv, x_size, ske, &ske_len, 1000, &rnd_pseudo_rand, &rnd_info ) == 0 );
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
     TEST_ASSERT( dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );

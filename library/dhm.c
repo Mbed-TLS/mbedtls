@@ -134,12 +134,12 @@ int dhm_read_params( dhm_context *ctx,
  * Setup and write the ServerKeyExchange parameters
  */
 int dhm_make_params( dhm_context *ctx, int x_size,
-                     unsigned char *output, size_t *olen,
+                     unsigned char *output, size_t *olen, size_t osize,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
     int ret, count = 0;
-    size_t n1, n2, n3;
+    size_t n, n1, n2, n3;
     unsigned char *p;
 
     if( mpi_cmp_int( &ctx->P, 0 ) == 0 )
@@ -180,6 +180,11 @@ int dhm_make_params( dhm_context *ctx, int x_size,
     n1 = mpi_size( &ctx->P  );
     n2 = mpi_size( &ctx->G  );
     n3 = mpi_size( &ctx->GX );
+
+    n = (n1 + 2) + (n2 + 2) + (n3 + 2);
+
+    if( osize < n )
+        return( POLARSSL_ERR_DHM_BUFFER_TOO_SMALL );
 
     p = output;
     DHM_MPI_EXPORT( &ctx->P , n1 );

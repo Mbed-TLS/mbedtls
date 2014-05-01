@@ -355,7 +355,7 @@ int main( int argc, char *argv[] )
     pk_init( &pkey );
 #endif
 #if defined(POLARSSL_SSL_ALPN)
-    memset( alpn_list, 0, sizeof alpn_list );
+    memset( (void * ) alpn_list, 0, sizeof( alpn_list ) );
 #endif
 
     if( argc == 0 )

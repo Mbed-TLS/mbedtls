@@ -489,7 +489,7 @@ int main( int argc, char *argv[] )
     ssl_cache_init( &cache );
 #endif
 #if defined(POLARSSL_SSL_ALPN)
-    memset( alpn_list, 0, sizeof alpn_list );
+    memset( (void *) alpn_list, 0, sizeof( alpn_list ) );
 #endif
 
     if( argc == 0 )

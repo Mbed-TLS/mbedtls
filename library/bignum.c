@@ -1794,9 +1794,6 @@ int mpi_fill_random( mpi *X, size_t size,
     if( size > POLARSSL_MPI_MAX_SIZE )
         return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
-    MPI_CHK( mpi_grow( X, CHARS_TO_LIMBS( size ) ) );
-    MPI_CHK( mpi_lset( X, 0 ) );
-
     MPI_CHK( f_rng( p_rng, buf, size ) );
     MPI_CHK( mpi_read_binary( X, buf, size ) );
 

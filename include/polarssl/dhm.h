@@ -43,6 +43,8 @@
 #define POLARSSL_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read/write of file failed. */
 
 /**
+ * RFC 2409 defines a number of standardized Diffie-Hellman groups
+ * that can be used.
  * RFC 3526 defines a number of standardized Diffie-Hellman groups
  * for IKE.
  * RFC 5114 defines a number of standardized Diffie-Hellman groups
@@ -51,11 +53,22 @@
  * Some are included here for convenience.
  *
  * Included are:
+ *  RFC 2409 6.2.  1024-bit MODP Group (Second Oakley Group)
  *  RFC 3526 3.    2048-bit MODP Group
  *  RFC 3526 4.    3072-bit MODP Group
  *  RFC 5114 2.1.  1024-bit MODP Group with 160-bit Prime Order Subgroup
  *  RFC 5114 2.2.  2048-bit MODP Group with 224-bit Prime Order Subgroup
  */
+#define POLARSSL_DHM_RFC2409_MODP_1024_P               \
+    "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" \
+    "29024E088A67CC74020BBEA63B139B22514A08798E3404DD" \
+    "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" \
+    "E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" \
+    "EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE65381" \
+    "FFFFFFFFFFFFFFFF"
+
+#define POLARSSL_DHM_RFC2409_MODP_1024_G          "02"
+
 #define POLARSSL_DHM_RFC3526_MODP_2048_P               \
     "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" \
     "29024E088A67CC74020BBEA63B139B22514A08798E3404DD" \

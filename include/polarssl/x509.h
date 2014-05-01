@@ -3,7 +3,7 @@
  *
  * \brief X.509 generic defines and structures
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -288,7 +288,9 @@ int x509_get_ext( unsigned char **p, const unsigned char *end,
 int x509_load_file( const char *path, unsigned char **buf, size_t *n );
 int x509_key_size_helper( char *buf, size_t size, const char *name );
 int x509_string_to_names( asn1_named_data **head, const char *name );
-int x509_set_extension( asn1_named_data **head, const char *oid, size_t oid_len,                       int critical, const unsigned char *val, size_t val_len );
+int x509_set_extension( asn1_named_data **head, const char *oid, size_t oid_len,
+                        int critical, const unsigned char *val,
+                        size_t val_len );
 int x509_write_extensions( unsigned char **p, unsigned char *start,
                            asn1_named_data *first );
 int x509_write_names( unsigned char **p, unsigned char *start,

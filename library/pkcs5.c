@@ -162,8 +162,11 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( md_info == NULL )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
-    if( ( ret = asn1_get_alg( &p, end, &enc_scheme_oid, &enc_scheme_params ) ) != 0 )
+    if( ( ret = asn1_get_alg( &p, end, &enc_scheme_oid,
+                              &enc_scheme_params ) ) != 0 )
+    {
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
+    }
 
     if ( oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );

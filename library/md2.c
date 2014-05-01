@@ -228,7 +228,8 @@ int md2_file( const char *path, unsigned char output[16] )
 /*
  * MD2 HMAC context setup
  */
-void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen )
+void md2_hmac_starts( md2_context *ctx, const unsigned char *key,
+                      size_t keylen )
 {
     size_t i;
     unsigned char sum[16];
@@ -258,7 +259,8 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen 
 /*
  * MD2 HMAC process buffer
  */
-void md2_hmac_update( md2_context *ctx, const unsigned char *input, size_t ilen )
+void md2_hmac_update( md2_context *ctx, const unsigned char *input,
+                      size_t ilen )
 {
     md2_update( ctx, input, ilen );
 }

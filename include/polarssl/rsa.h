@@ -3,7 +3,7 @@
  *
  * \brief The RSA public-key cryptosystem
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -503,8 +503,8 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  *
  * \note           In case of PKCS#1 v2.1 encoding keep in mind that
  *                 the hash_id in the RSA context is the one used for the
- *                 verification. hash_id in the function call is the type of hash
- *                 that is verified. According to RFC 3447 it is advised to
+ *                 verification. hash_id in the function call is the type of
+ *                 hash that is verified. According to RFC 3447 it is advised to
  *                 keep both hashes the same.
  */
 int rsa_pkcs1_verify( rsa_context *ctx,
@@ -563,8 +563,8 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  *
  * \note           In case of PKCS#1 v2.1 encoding keep in mind that
  *                 the hash_id in the RSA context is the one used for the
- *                 verification. hash_id in the function call is the type of hash
- *                 that is verified. According to RFC 3447 it is advised to
+ *                 verification. hash_id in the function call is the type of
+ *                 hash that is verified. According to RFC 3447 it is advised to
  *                 keep both hashes the same.
  */
 int rsa_rsassa_pss_verify( rsa_context *ctx,

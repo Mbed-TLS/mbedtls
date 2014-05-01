@@ -722,7 +722,8 @@ int ssl_derive_keys( ssl_context *ssl )
         memset( &transform->ctx_deflate, 0, sizeof( transform->ctx_deflate ) );
         memset( &transform->ctx_inflate, 0, sizeof( transform->ctx_inflate ) );
 
-        if( deflateInit( &transform->ctx_deflate, Z_DEFAULT_COMPRESSION ) != Z_OK ||
+        if( deflateInit( &transform->ctx_deflate,
+                         Z_DEFAULT_COMPRESSION )   != Z_OK ||
             inflateInit( &transform->ctx_inflate ) != Z_OK )
         {
             SSL_DEBUG_MSG( 1, ( "Failed to initialize compression" ) );
@@ -1123,8 +1124,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
          * Generate IV
          */
         ret = ssl->f_rng( ssl->p_rng,
-                    ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
-                    ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
+                ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
+                ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
         if( ret != 0 )
             return( ret );
 
@@ -1133,7 +1134,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                 ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
 
         SSL_DEBUG_BUF( 4, "IV used", ssl->out_iv,
-                       ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
+                ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
 
         /*
          * Fix pointer positions and message length with added IV
@@ -1254,7 +1255,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
         SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
                             "including %d bytes of IV and %d bytes of padding",
-                       ssl->out_msglen, ssl->transform_out->ivlen, padlen + 1 ) );
+                            ssl->out_msglen, ssl->transform_out->ivlen,
+                            padlen + 1 ) );
 
         SSL_DEBUG_BUF( 4, "before encrypt: output payload",
                        ssl->out_iv, ssl->out_msglen );
@@ -1524,8 +1526,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( ssl->in_msglen < minlen + ssl->transform_in->ivlen ||
             ssl->in_msglen < minlen + ssl->transform_in->maclen + 1 )
         {
-            SSL_DEBUG_MSG( 1, ( "msglen (%d) < max( ivlen(%d), maclen (%d) + 1 ) ( + expl IV )",
-                           ssl->in_msglen, ssl->transform_in->ivlen, ssl->transform_in->maclen ) );
+            SSL_DEBUG_MSG( 1, ( "msglen (%d) < max( ivlen(%d), maclen (%d) "
+                                "+ 1 ) ( + expl IV )", ssl->in_msglen,
+                                ssl->transform_in->ivlen,
+                                ssl->transform_in->maclen ) );
             return( POLARSSL_ERR_SSL_INVALID_MAC );
         }
 
@@ -1843,7 +1847,8 @@ static int ssl_compress_buf( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
     }
 
-    ssl->out_msglen = SSL_BUFFER_LEN - ssl->transform_out->ctx_deflate.avail_out;
+    ssl->out_msglen = SSL_BUFFER_LEN -
+                      ssl->transform_out->ctx_deflate.avail_out;
 
     SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
                    ssl->out_msglen ) );
@@ -1888,7 +1893,8 @@ static int ssl_decompress_buf( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_COMPRESSION_FAILED );
     }
 
-    ssl->in_msglen = SSL_MAX_CONTENT_LEN - ssl->transform_in->ctx_inflate.avail_out;
+    ssl->in_msglen = SSL_MAX_CONTENT_LEN -
+                     ssl->transform_in->ctx_inflate.avail_out;
 
     SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
                    ssl->in_msglen ) );
@@ -2183,7 +2189,8 @@ int ssl_read_record( ssl_context *ssl )
          * TLS encrypted messages can have up to 256 bytes of padding
          */
         if( ssl->minor_ver >= SSL_MINOR_VERSION_1 &&
-            ssl->in_msglen > ssl->transform_in->minlen + SSL_MAX_CONTENT_LEN + 256 )
+            ssl->in_msglen > ssl->transform_in->minlen +
+                             SSL_MAX_CONTENT_LEN + 256 )
         {
             SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
@@ -3236,7 +3243,8 @@ int ssl_write_finished( ssl_context *ssl )
         ssl->state++;
 
     /*
-     * Switch to our negotiated transform and session parameters for outbound data.
+     * Switch to our negotiated transform and session parameters for outbound
+     * data.
      */
     SSL_DEBUG_MSG( 3, ( "switching to new transform spec for outbound data" ) );
     ssl->transform_out = ssl->transform_negotiate;
@@ -3276,7 +3284,8 @@ int ssl_parse_finished( ssl_context *ssl )
     ssl->handshake->calc_finished( ssl, buf, ssl->endpoint ^ 1 );
 
     /*
-     * Switch to our negotiated transform and session parameters for inbound data.
+     * Switch to our negotiated transform and session parameters for inbound
+     * data.
      */
     SSL_DEBUG_MSG( 3, ( "switching to new transform spec for inbound data" ) );
     ssl->transform_in = ssl->transform_negotiate;
@@ -3707,7 +3716,8 @@ void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites )
     ssl->ciphersuite_list[SSL_MINOR_VERSION_3] = ciphersuites;
 }
 
-void ssl_set_ciphersuites_for_version( ssl_context *ssl, const int *ciphersuites,
+void ssl_set_ciphersuites_for_version( ssl_context *ssl,
+                                       const int *ciphersuites,
                                        int major, int minor )
 {
     if( major != SSL_MAJOR_VERSION_3 )
@@ -3855,7 +3865,8 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
     ssl->psk_identity_len = psk_identity_len;
 
     ssl->psk = (unsigned char *) polarssl_malloc( ssl->psk_len );
-    ssl->psk_identity = (unsigned char *) polarssl_malloc( ssl->psk_identity_len );
+    ssl->psk_identity = (unsigned char *)
+                                polarssl_malloc( ssl->psk_identity_len );
 
     if( ssl->psk == NULL || ssl->psk_identity == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
@@ -4344,7 +4355,8 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
             if( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
                 ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&
-                  ssl->allow_legacy_renegotiation == SSL_LEGACY_NO_RENEGOTIATION ) )
+                  ssl->allow_legacy_renegotiation ==
+                                                SSL_LEGACY_NO_RENEGOTIATION ) )
             {
                 SSL_DEBUG_MSG( 3, ( "ignoring renegotiation, sending alert" ) );
 

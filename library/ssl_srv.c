@@ -953,7 +953,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     if( ssl->minor_ver < ssl->min_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
-                            " [%d:%d] < [%d:%d]", ssl->major_ver, ssl->minor_ver,
+                            " [%d:%d] < [%d:%d]",
+                            ssl->major_ver, ssl->minor_ver,
                             ssl->min_major_ver, ssl->min_minor_ver ) );
 
         ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
@@ -1028,7 +1029,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
 
     p = buf + 6 + ciph_len;
     ssl->session_negotiate->length = sess_len;
-    memset( ssl->session_negotiate->id, 0, sizeof( ssl->session_negotiate->id ) );
+    memset( ssl->session_negotiate->id, 0,
+            sizeof( ssl->session_negotiate->id ) );
     memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->length );
 
     p += sess_len;
@@ -2222,9 +2224,8 @@ static int ssl_write_server_key_exchange( ssl_context *ssl )
         }
 
         if( ( ret = dhm_make_params( &ssl->handshake->dhm_ctx,
-                                      (int) mpi_size( &ssl->handshake->dhm_ctx.P ),
-                                      p,
-                                      &len, ssl->f_rng, ssl->p_rng ) ) != 0 )
+                        (int) mpi_size( &ssl->handshake->dhm_ctx.P ),
+                        p, &len, ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_make_params", ret );
             return( ret );
@@ -2758,7 +2759,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDH_ECDSA )
     {
         if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                       ssl->in_msg + 4, ssl->in_hslen - 4 ) ) != 0 )
+                        ssl->in_msg + 4, ssl->in_hslen - 4 ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );

@@ -1575,7 +1575,8 @@ const int *ssl_list_ciphersuites( void )
     return supported_ciphersuites;
 };
 
-const ssl_ciphersuite_t *ssl_ciphersuite_from_string( const char *ciphersuite_name )
+const ssl_ciphersuite_t *ssl_ciphersuite_from_string(
+                                                const char *ciphersuite_name )
 {
     const ssl_ciphersuite_t *cur = ciphersuite_definitions;
 

@@ -105,7 +105,9 @@ int ssl_cache_get( void *data, ssl_session *session )
          */
         if( entry->peer_cert.p != NULL )
         {
-            session->peer_cert = (x509_crt *) polarssl_malloc( sizeof(x509_crt) );
+            session->peer_cert =
+                (x509_crt *) polarssl_malloc( sizeof(x509_crt) );
+
             if( session->peer_cert == NULL )
             {
                 ret = 1;
@@ -224,7 +226,8 @@ int ssl_cache_set( void *data, const ssl_session *session )
             /*
              * max_entries not reached, create new entry
              */
-            cur = (ssl_cache_entry *) polarssl_malloc( sizeof(ssl_cache_entry) );
+            cur = (ssl_cache_entry *)
+                        polarssl_malloc( sizeof(ssl_cache_entry) );
             if( cur == NULL )
             {
                 ret = 1;
@@ -261,7 +264,8 @@ int ssl_cache_set( void *data, const ssl_session *session )
      */
     if( session->peer_cert != NULL )
     {
-        cur->peer_cert.p = (unsigned char *) polarssl_malloc( session->peer_cert->raw.len );
+        cur->peer_cert.p = (unsigned char *)
+                                polarssl_malloc( session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
         {
             ret = 1;

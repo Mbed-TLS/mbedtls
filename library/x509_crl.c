@@ -224,10 +224,12 @@ static int x509_get_entries( unsigned char **p,
         if( ( ret = x509_get_serial( p, end2, &cur_entry->serial ) ) != 0 )
             return( ret );
 
-        if( ( ret = x509_get_time( p, end2, &cur_entry->revocation_date ) ) != 0 )
+        if( ( ret = x509_get_time( p, end2,
+                                   &cur_entry->revocation_date ) ) != 0 )
             return( ret );
 
-        if( ( ret = x509_get_crl_entry_ext( p, end2, &cur_entry->entry_ext ) ) != 0 )
+        if( ( ret = x509_get_crl_entry_ext( p, end2,
+                                            &cur_entry->entry_ext ) ) != 0 )
             return( ret );
 
         if ( *p < end )

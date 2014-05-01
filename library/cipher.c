@@ -240,8 +240,8 @@ int cipher_update_ad( cipher_context_t *ctx,
 }
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
-int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
-        unsigned char *output, size_t *olen )
+int cipher_update( cipher_context_t *ctx, const unsigned char *input,
+                   size_t ilen, unsigned char *output, size_t *olen )
 {
     int ret;
 

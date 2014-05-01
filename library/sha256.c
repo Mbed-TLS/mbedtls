@@ -243,7 +243,8 @@ void sha256_process( sha256_context *ctx, const unsigned char data[64] )
 /*
  * SHA-256 process buffer
  */
-void sha256_update( sha256_context *ctx, const unsigned char *input, size_t ilen )
+void sha256_update( sha256_context *ctx, const unsigned char *input,
+                    size_t ilen )
 {
     size_t fill;
     uint32_t left;
@@ -407,7 +408,8 @@ void sha256_hmac_starts( sha256_context *ctx, const unsigned char *key,
 /*
  * SHA-256 HMAC process buffer
  */
-void sha256_hmac_update( sha256_context *ctx, const unsigned char *input, size_t ilen )
+void sha256_hmac_update( sha256_context *ctx, const unsigned char *input,
+                         size_t ilen )
 {
     sha256_update( ctx, input, ilen );
 }

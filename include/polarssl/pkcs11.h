@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -93,7 +93,8 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
 void pkcs11_priv_key_free( pkcs11_context *priv_key );
 
 /**
- * \brief          Do an RSA private key decrypt, then remove the message padding
+ * \brief          Do an RSA private key decrypt, then remove the message
+ *                 padding
  *
  * \param ctx      PKCS #11 context
  * \param mode     must be RSA_PRIVATE, for compatibility with rsa.c's signature
@@ -119,8 +120,8 @@ int pkcs11_decrypt( pkcs11_context *ctx,
  *
  * \param ctx      PKCS #11 context
  * \param mode     must be RSA_PRIVATE, for compatibility with rsa.c's signature
- * \param hash_id  SIG_RSA_RAW, SIG_RSA_MD{2,4,5} or SIG_RSA_SHA{1,224,256,384,512}
- * \param hashlen  message digest length (for SIG_RSA_RAW only)
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
  * \param hash     buffer holding the message digest
  * \param sig      buffer that will hold the ciphertext
  *

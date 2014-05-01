@@ -57,7 +57,8 @@ void pem_init( pem_context *ctx )
 /*
  * Read a 16-byte hex string and convert it to binary
  */
-static int pem_get_iv( const unsigned char *s, unsigned char *iv, size_t iv_len )
+static int pem_get_iv( const unsigned char *s, unsigned char *iv,
+                       size_t iv_len )
 {
     size_t i, j, k;
 

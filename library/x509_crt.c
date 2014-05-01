@@ -819,7 +819,8 @@ int x509_crt_parse_der( x509_crt *chain, const unsigned char *buf,
 }
 
 /*
- * Parse one or more PEM certificates from a buffer and add them to the chained list
+ * Parse one or more PEM certificates from a buffer and add them to the chained
+ * list
  */
 int x509_crt_parse( x509_crt *chain, const unsigned char *buf, size_t buflen )
 {
@@ -970,7 +971,8 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     p = filename + len;
     filename[len++] = '*';
 
-    w_ret = MultiByteToWideChar( CP_ACP, 0, filename, len, szDir, MAX_PATH - 3 );
+    w_ret = MultiByteToWideChar( CP_ACP, 0, filename, len, szDir,
+                                 MAX_PATH - 3 );
 
     hFind = FindFirstFileW( szDir, &file_data );
     if (hFind == INVALID_HANDLE_VALUE)
@@ -1692,8 +1694,11 @@ static int x509_crt_verify_top(
 
         if( NULL != f_vrfy )
         {
-            if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1, &ca_flags ) ) != 0 )
+            if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1,
+                                &ca_flags ) ) != 0 )
+            {
                 return( ret );
+            }
         }
     }
 

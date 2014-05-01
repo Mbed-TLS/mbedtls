@@ -1,7 +1,7 @@
 /*
  *  PKCS#12 Personal Information Exchange Syntax
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -96,7 +96,8 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
     memset(&salt, 0, sizeof(asn1_buf));
     memset(&unipwd, 0, sizeof(unipwd));
 
-    if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt, &iterations ) ) != 0 )
+    if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt,
+                                         &iterations ) ) != 0 )
         return( ret );
 
     for(i = 0; i < pwdlen; i++)

@@ -65,7 +65,8 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
                 oid = OID_AT_COUNTRY;
             else if( c - s == 1 && strncasecmp( s, "O", 1 ) == 0 )
                 oid = OID_AT_ORGANIZATION;
-            else if( c - s == 16 && strncasecmp( s, "organizationName", 16 ) == 0 )
+            else if( c - s == 16 &&
+                     strncasecmp( s, "organizationName", 16 ) == 0 )
                 oid = OID_AT_ORGANIZATION;
             else if( c - s == 1 && strncasecmp( s, "L", 1 ) == 0 )
                 oid = OID_AT_LOCALITY;
@@ -75,11 +76,13 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
                 oid = OID_PKCS9_EMAIL;
             else if( c - s == 2 && strncasecmp( s, "OU", 2 ) == 0 )
                 oid = OID_AT_ORG_UNIT;
-            else if( c - s == 22 && strncasecmp( s, "organizationalUnitName", 22 ) == 0 )
+            else if( c - s == 22 &&
+                     strncasecmp( s, "organizationalUnitName", 22 ) == 0 )
                 oid = OID_AT_ORG_UNIT;
             else if( c - s == 2 && strncasecmp( s, "ST", 2 ) == 0 )
                 oid = OID_AT_STATE;
-            else if( c - s == 19 && strncasecmp( s, "stateOrProvinceName", 19 ) == 0 )
+            else if( c - s == 19 &&
+                     strncasecmp( s, "stateOrProvinceName", 19 ) == 0 )
                 oid = OID_AT_STATE;
             else if( c - s == 12 && strncasecmp( s, "emailAddress", 12 ) == 0 )
                 oid = OID_PKCS9_EMAIL;
@@ -105,9 +108,11 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
                 oid = OID_AT_INITIALS;
             else if( c - s == 9 && strncasecmp( s, "pseudonym", 9 ) == 0 )
                 oid = OID_AT_PSEUDONYM;
-            else if( c - s == 19 && strncasecmp( s, "generationQualifier", 19 ) == 0 )
+            else if( c - s == 19 &&
+                     strncasecmp( s, "generationQualifier", 19 ) == 0 )
                 oid = OID_AT_GENERATION_QUALIFIER;
-            else if( c - s == 15 && strncasecmp( s, "domainComponent", 15 ) == 0 )
+            else if( c - s == 15 &&
+                     strncasecmp( s, "domainComponent", 15 ) == 0 )
                 oid = OID_DOMAIN_COMPONENT;
             else if( c - s == 2 && strncasecmp( s, "DC", 2 ) == 0 )
                 oid = OID_DOMAIN_COMPONENT;
@@ -204,10 +209,12 @@ static int x509_write_name( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_oid( p, start, oid, oid_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SET ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SET ) );
 
     return( (int) len );
 }
@@ -228,7 +235,8 @@ int x509_write_names( unsigned char **p, unsigned char *start,
     }
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
@@ -283,7 +291,8 @@ static int x509_write_extension( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_OID ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }

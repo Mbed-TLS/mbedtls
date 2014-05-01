@@ -3,7 +3,7 @@
  *
  * \brief  Multi-precision integer library
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -652,8 +652,8 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
- *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even or if
- *                 E is negative
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even or
+ *                 if E is negative
  *
  * \note           _RR is used to avoid re-computing R*R mod N across
  *                 multiple calls, which speeds up things a bit. It can
@@ -721,7 +721,8 @@ int mpi_is_prime( mpi *X,
  * \brief          Prime number generation
  *
  * \param X        Destination MPI
- * \param nbits    Required size of X in bits ( 3 <= nbits <= POLARSSL_MPI_MAX_BITS )
+ * \param nbits    Required size of X in bits
+ *                 ( 3 <= nbits <= POLARSSL_MPI_MAX_BITS )
  * \param dh_flag  If 1, then (X-1)/2 will be prime too
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter

@@ -3,7 +3,7 @@
  *
  * \brief SSL/TLS functions.
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -825,8 +825,8 @@ extern int (*ssl_hw_record_finish)(ssl_context *ssl);
 const int *ssl_list_ciphersuites( void );
 
 /**
- * \brief               Return the name of the ciphersuite associated with the given
- *                      ID
+ * \brief               Return the name of the ciphersuite associated with the
+ *                      given ID
  *
  * \param ciphersuite_id SSL ciphersuite ID
  *
@@ -835,8 +835,8 @@ const int *ssl_list_ciphersuites( void );
 const char *ssl_get_ciphersuite_name( const int ciphersuite_id );
 
 /**
- * \brief               Return the ID of the ciphersuite associated with the given
- *                      name
+ * \brief               Return the ID of the ciphersuite associated with the
+ *                      given name
  *
  * \param ciphersuite_name SSL ciphersuite name
  *
@@ -1642,7 +1642,8 @@ int ssl_write_change_cipher_spec( ssl_context *ssl );
 int ssl_parse_finished( ssl_context *ssl );
 int ssl_write_finished( ssl_context *ssl );
 
-void ssl_optimize_checksum( ssl_context *ssl, const ssl_ciphersuite_t *ciphersuite_info );
+void ssl_optimize_checksum( ssl_context *ssl,
+                            const ssl_ciphersuite_t *ciphersuite_info );
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex );

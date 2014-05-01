@@ -324,7 +324,8 @@ int md4_file( const char *path, unsigned char output[16] )
 /*
  * MD4 HMAC context setup
  */
-void md4_hmac_starts( md4_context *ctx, const unsigned char *key, size_t keylen )
+void md4_hmac_starts( md4_context *ctx, const unsigned char *key,
+                      size_t keylen )
 {
     size_t i;
     unsigned char sum[16];
@@ -354,7 +355,8 @@ void md4_hmac_starts( md4_context *ctx, const unsigned char *key, size_t keylen 
 /*
  * MD4 HMAC process buffer
  */
-void md4_hmac_update( md4_context *ctx, const unsigned char *input, size_t ilen )
+void md4_hmac_update( md4_context *ctx, const unsigned char *input,
+                      size_t ilen )
 {
     md4_update( ctx, input, ilen );
 }

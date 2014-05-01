@@ -281,7 +281,8 @@ static void *buffer_alloc_malloc( size_t len )
 
     // Found location, split block if > memory_header + 4 room left
     //
-    if( cur->size - len < sizeof(memory_header) + POLARSSL_MEMORY_ALIGN_MULTIPLE )
+    if( cur->size - len < sizeof(memory_header) +
+                          POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
         cur->alloc = 1;
 

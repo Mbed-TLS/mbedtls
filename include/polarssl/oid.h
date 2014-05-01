@@ -3,7 +3,7 @@
  *
  * \brief Object Identifier (OID) database
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -63,7 +63,7 @@
  */
 #define OID_COUNTRY_US                  "\x86\x48"      /* {us(840)} */
 #define OID_ORG_RSA_DATA_SECURITY       "\x86\xf7\x0d"  /* {rsadsi(113549)} */
-#define OID_RSA_COMPANY                 OID_ISO_MEMBER_BODIES OID_COUNTRY_US    \
+#define OID_RSA_COMPANY                 OID_ISO_MEMBER_BODIES OID_COUNTRY_US \
                                         OID_ORG_RSA_DATA_SECURITY /* {iso(1) member-body(2) us(840) rsadsi(113549)} */
 #define OID_ORG_ANSI_X9_62              "\xce\x3d" /* ansi-X9-62(10045) */
 #define OID_ANSI_X9_62                  OID_ISO_MEMBER_BODIES OID_COUNTRY_US \

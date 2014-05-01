@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -173,29 +173,34 @@ typedef struct {
 
     /** Encrypt using ECB */
     int (*ecb_func)( void *ctx, operation_t mode,
-            const unsigned char *input, unsigned char *output );
+                     const unsigned char *input, unsigned char *output );
 
     /** Encrypt using CBC */
-    int (*cbc_func)( void *ctx, operation_t mode, size_t length, unsigned char *iv,
-            const unsigned char *input, unsigned char *output );
+    int (*cbc_func)( void *ctx, operation_t mode, size_t length,
+                     unsigned char *iv, const unsigned char *input,
+                     unsigned char *output );
 
     /** Encrypt using CFB (Full length) */
     int (*cfb_func)( void *ctx, operation_t mode, size_t length, size_t *iv_off,
-            unsigned char *iv, const unsigned char *input, unsigned char *output );
+                     unsigned char *iv, const unsigned char *input,
+                     unsigned char *output );
 
     /** Encrypt using CTR */
-    int (*ctr_func)( void *ctx, size_t length, size_t *nc_off, unsigned char *nonce_counter,
-            unsigned char *stream_block, const unsigned char *input, unsigned char *output );
+    int (*ctr_func)( void *ctx, size_t length, size_t *nc_off,
+                     unsigned char *nonce_counter, unsigned char *stream_block,
+                     const unsigned char *input, unsigned char *output );
 
     /** Encrypt using STREAM */
     int (*stream_func)( void *ctx, size_t length,
                         const unsigned char *input, unsigned char *output );
 
     /** Set key for encryption purposes */
-    int (*setkey_enc_func)( void *ctx, const unsigned char *key, unsigned int key_length);
+    int (*setkey_enc_func)( void *ctx, const unsigned char *key,
+                            unsigned int key_length );
 
     /** Set key for decryption purposes */
-    int (*setkey_dec_func)( void *ctx, const unsigned char *key, unsigned int key_length);
+    int (*setkey_dec_func)( void *ctx, const unsigned char *key,
+                            unsigned int key_length);
 
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
@@ -323,9 +328,9 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
  * \param ctx           context to initialise. May not be NULL.
  * \param cipher_info   cipher to use.
  *
- * \return              \c 0 on success,
- *                      \c POLARSSL_ERR_CIPHER_BAD_INPUT_DATA on parameter failure,
- *                      \c POLARSSL_ERR_CIPHER_ALLOC_FAILED if allocation of the
+ * \return              0 on success,
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA on parameter failure,
+ *                      POLARSSL_ERR_CIPHER_ALLOC_FAILED if allocation of the
  *                      cipher-specific context failed.
  */
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
@@ -474,8 +479,8 @@ static inline operation_t cipher_get_operation( const cipher_context_t *ctx )
  *                      parameter verification fails or a cipher specific
  *                      error code.
  */
-int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_length,
-        const operation_t operation );
+int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
+                   int key_length, const operation_t operation );
 
 #if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
 /**
@@ -568,8 +573,8 @@ int cipher_update_ad( cipher_context_t *ctx,
  *                      function, except the last one before cipher_finish(),
  *                      must have ilen a multiple of the block size.
  */
-int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
-        unsigned char *output, size_t *olen );
+int cipher_update( cipher_context_t *ctx, const unsigned char *input,
+                   size_t ilen, unsigned char *output, size_t *olen );
 
 /**
  * \brief               Generic cipher finalisation function. If data still

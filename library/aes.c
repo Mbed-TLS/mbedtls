@@ -461,7 +461,8 @@ static void aes_gen_tables( void )
 /*
  * AES key schedule (encryption)
  */
-int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int keysize )
+int aes_setkey_enc( aes_context *ctx, const unsigned char *key,
+                    unsigned int keysize )
 {
     unsigned int i;
     uint32_t *RK;
@@ -576,7 +577,8 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int key
 /*
  * AES key schedule (decryption)
  */
-int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int keysize )
+int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
+                    unsigned int keysize )
 {
     int i, j;
     aes_context cty;
@@ -1387,7 +1389,8 @@ int aes_self_test( int verbose )
             len = aes_test_ctr_len[u];
             memcpy( buf, aes_test_ctr_ct[u], len );
 
-            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block, buf, buf );
+            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
+                           buf, buf );
 
             if( memcmp( buf, aes_test_ctr_pt[u], len ) != 0 )
             {
@@ -1402,7 +1405,8 @@ int aes_self_test( int verbose )
             len = aes_test_ctr_len[u];
             memcpy( buf, aes_test_ctr_pt[u], len );
 
-            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block, buf, buf );
+            aes_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
+                           buf, buf );
 
             if( memcmp( buf, aes_test_ctr_ct[u], len ) != 0 )
             {

@@ -402,7 +402,8 @@ void dhm_free( dhm_context *ctx )
 /*
  * Parse DHM parameters
  */
-int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen )
+int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
+                   size_t dhminlen )
 {
     int ret;
     size_t len;

@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -92,16 +92,18 @@ typedef struct {
 
     /** Generic digest function */
     void (*digest_func)( const unsigned char *input, size_t ilen,
-                            unsigned char *output );
+                         unsigned char *output );
 
     /** Generic file digest function */
     int (*file_func)( const char *path, unsigned char *output );
 
     /** HMAC Initialisation function */
-    void (*hmac_starts_func)( void *ctx, const unsigned char *key, size_t keylen );
+    void (*hmac_starts_func)( void *ctx, const unsigned char *key,
+                              size_t keylen );
 
     /** HMAC update function */
-    void (*hmac_update_func)( void *ctx, const unsigned char *input, size_t ilen );
+    void (*hmac_update_func)( void *ctx, const unsigned char *input,
+                              size_t ilen );
 
     /** HMAC finalisation function */
     void (*hmac_finish_func)( void *ctx, unsigned char *output);
@@ -111,8 +113,8 @@ typedef struct {
 
     /** Generic HMAC function */
     void (*hmac_func)( const unsigned char *key, size_t keylen,
-                    const unsigned char *input, size_t ilen,
-                    unsigned char *output );
+                       const unsigned char *input, size_t ilen,
+                       unsigned char *output );
 
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
@@ -171,8 +173,8 @@ const md_info_t *md_info_from_string( const char *md_name );
 const md_info_t *md_info_from_type( md_type_t md_type );
 
 /**
- * \brief          Initialises and fills the message digest context structure with
- *                 the appropriate values.
+ * \brief          Initialises and fills the message digest context structure
+ *                 with the appropriate values.
  *
  * \param ctx      context to initialise. May not be NULL. The
  *                 digest-specific context (ctx->md_ctx) must be NULL. It will
@@ -299,7 +301,8 @@ int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
  *                 failed, POLARSSL_ERR_MD_FILE_READ_FAILED if fread failed,
  *                 POLARSSL_ERR_MD_BAD_INPUT_DATA if md_info was NULL.
  */
-int md_file( const md_info_t *md_info, const char *path, unsigned char *output );
+int md_file( const md_info_t *md_info, const char *path,
+             unsigned char *output );
 
 /**
  * \brief          Generic HMAC context setup
@@ -311,7 +314,8 @@ int md_file( const md_info_t *md_info, const char *path, unsigned char *output )
  * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
  *                 verification fails.
  */
-int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen );
+int md_hmac_starts( md_context_t *ctx, const unsigned char *key,
+                    size_t keylen );
 
 /**
  * \brief          Generic HMAC process buffer
@@ -323,7 +327,8 @@ int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
  * \returns        0 on success, POLARSSL_ERR_MD_BAD_INPUT_DATA if parameter
  *                 verification fails.
  */
-int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen );
+int md_hmac_update( md_context_t *ctx, const unsigned char *input,
+                    size_t ilen );
 
 /**
  * \brief          Generic HMAC final digest

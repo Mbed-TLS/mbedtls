@@ -1469,7 +1469,8 @@ static void mpi_montg_init( t_uint *mm, const mpi *N )
 /*
  * Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
  */
-static void mpi_montmul( mpi *A, const mpi *B, const mpi *N, t_uint mm, const mpi *T )
+static void mpi_montmul( mpi *A, const mpi *B, const mpi *N, t_uint mm,
+                         const mpi *T )
 {
     size_t i, n, m;
     t_uint u0, u1, *d;

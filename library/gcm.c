@@ -808,7 +808,8 @@ int gcm_self_test( int verbose )
                     return( 1 );
                 }
 
-                ret = gcm_update( &ctx, rest_len, pt[pt_index[i]] + 32, buf + 32 );
+                ret = gcm_update( &ctx, rest_len, pt[pt_index[i]] + 32,
+                                  buf + 32 );
                 if( ret != 0 )
                 {
                     if( verbose != 0 )
@@ -874,7 +875,8 @@ int gcm_self_test( int verbose )
                     return( 1 );
                 }
 
-                ret = gcm_update( &ctx, rest_len, ct[j * 6 + i] + 32, buf + 32 );
+                ret = gcm_update( &ctx, rest_len, ct[j * 6 + i] + 32,
+                                  buf + 32 );
                 if( ret != 0 )
                 {
                     if( verbose != 0 )

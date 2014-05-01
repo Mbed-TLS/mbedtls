@@ -3,7 +3,7 @@
  *
  * \brief DES block cipher
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -136,7 +136,8 @@ int des_setkey_dec( des_context *ctx, const unsigned char key[DES_KEY_SIZE] );
  *
  * \return         0
  */
-int des3_set2key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 2] );
+int des3_set2key_enc( des3_context *ctx,
+                      const unsigned char key[DES_KEY_SIZE * 2] );
 
 /**
  * \brief          Triple-DES key schedule (112-bit, decryption)
@@ -146,7 +147,8 @@ int des3_set2key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 
  *
  * \return         0
  */
-int des3_set2key_dec( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 2] );
+int des3_set2key_dec( des3_context *ctx,
+                      const unsigned char key[DES_KEY_SIZE * 2] );
 
 /**
  * \brief          Triple-DES key schedule (168-bit, encryption)
@@ -156,7 +158,8 @@ int des3_set2key_dec( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 
  *
  * \return         0
  */
-int des3_set3key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 3] );
+int des3_set3key_enc( des3_context *ctx,
+                      const unsigned char key[DES_KEY_SIZE * 3] );
 
 /**
  * \brief          Triple-DES key schedule (168-bit, decryption)
@@ -166,7 +169,8 @@ int des3_set3key_enc( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 
  *
  * \return         0
  */
-int des3_set3key_dec( des3_context *ctx, const unsigned char key[DES_KEY_SIZE * 3] );
+int des3_set3key_dec( des3_context *ctx,
+                      const unsigned char key[DES_KEY_SIZE * 3] );
 
 /**
  * \brief          DES-ECB block encryption/decryption

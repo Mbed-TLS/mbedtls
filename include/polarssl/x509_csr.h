@@ -3,7 +3,7 @@
  *
  * \brief X.509 certificate signing request parsing and writing
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -204,7 +204,8 @@ int x509write_csr_set_ns_cert_type( x509write_csr *ctx,
                                     unsigned char ns_cert_type );
 
 /**
- * \brief           Generic function to add to or replace an extension in the CSR
+ * \brief           Generic function to add to or replace an extension in the
+ *                  CSR
  *
  * \param ctx       CSR context to use
  * \param oid       OID of the extension

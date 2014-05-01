@@ -3,7 +3,7 @@
  *
  * \brief MD2 message digest algorithm (hash function)
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -122,7 +122,8 @@ int md2_file( const char *path, unsigned char output[16] );
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  */
-void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen );
+void md2_hmac_starts( md2_context *ctx, const unsigned char *key,
+                      size_t keylen );
 
 /**
  * \brief          MD2 HMAC process buffer
@@ -131,7 +132,8 @@ void md2_hmac_starts( md2_context *ctx, const unsigned char *key, size_t keylen 
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void md2_hmac_update( md2_context *ctx, const unsigned char *input, size_t ilen );
+void md2_hmac_update( md2_context *ctx, const unsigned char *input,
+                      size_t ilen );
 
 /**
  * \brief          MD2 HMAC final digest

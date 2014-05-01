@@ -336,7 +336,8 @@ int ctr_drbg_random_with_add( void *p_rng,
          */
         aes_crypt_ecb( &ctx->aes_ctx, AES_ENCRYPT, ctx->counter, tmp );
 
-        use_len = (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE : output_len;
+        use_len = (output_len > CTR_DRBG_BLOCKSIZE ) ? CTR_DRBG_BLOCKSIZE :
+                                                       output_len;
         /*
          * Copy random block to destination
          */

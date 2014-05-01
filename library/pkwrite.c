@@ -73,7 +73,8 @@ static int pk_write_rsa_pubkey( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_mpi( p, start, &rsa->N ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
@@ -191,7 +192,8 @@ int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
                                                         par_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
@@ -218,7 +220,8 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 0 ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
     }
     else
 #endif /* POLARSSL_RSA_C */
@@ -271,7 +274,8 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 1 ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
     }
     else
 #endif /* POLARSSL_ECP_C */

@@ -3,7 +3,7 @@
  *
  * \brief AES block cipher
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -82,7 +82,8 @@ aes_context;
  *
  * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
  */
-int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int keysize );
+int aes_setkey_enc( aes_context *ctx, const unsigned char *key,
+                    unsigned int keysize );
 
 /**
  * \brief          AES key schedule (decryption)
@@ -93,7 +94,8 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int key
  *
  * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_KEY_LENGTH
  */
-int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int keysize );
+int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
+                    unsigned int keysize );
 
 /**
  * \brief          AES-ECB block encryption/decryption

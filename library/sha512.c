@@ -236,7 +236,8 @@ void sha512_process( sha512_context *ctx, const unsigned char data[128] )
 /*
  * SHA-512 process buffer
  */
-void sha512_update( sha512_context *ctx, const unsigned char *input, size_t ilen )
+void sha512_update( sha512_context *ctx, const unsigned char *input,
+                    size_t ilen )
 {
     size_t fill;
     unsigned int left;

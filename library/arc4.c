@@ -49,7 +49,8 @@
 /*
  * ARC4 key schedule
  */
-void arc4_setup( arc4_context *ctx, const unsigned char *key, unsigned int keylen )
+void arc4_setup( arc4_context *ctx, const unsigned char *key,
+                 unsigned int keylen )
 {
     int i, j, a;
     unsigned int k;

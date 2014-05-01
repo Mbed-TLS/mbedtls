@@ -3,7 +3,7 @@
  *
  * \brief Camellia block cipher
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -75,7 +75,8 @@ camellia_context;
  *
  * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH
  */
-int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key, unsigned int keysize );
+int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key,
+                         unsigned int keysize );
 
 /**
  * \brief          CAMELLIA key schedule (decryption)
@@ -86,7 +87,8 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key, unsign
  *
  * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH
  */
-int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key, unsigned int keysize );
+int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
+                         unsigned int keysize );
 
 /**
  * \brief          CAMELLIA-ECB block encryption/decryption
@@ -116,7 +118,8 @@ int camellia_crypt_ecb( camellia_context *ctx,
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
  *
- * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH
+ * \return         0 if successful, or
+ *                 POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH
  */
 int camellia_crypt_cbc( camellia_context *ctx,
                     int mode,
@@ -142,7 +145,8 @@ int camellia_crypt_cbc( camellia_context *ctx,
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
  *
- * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH
+ * \return         0 if successful, or
+ *                 POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH
  */
 int camellia_crypt_cfb128( camellia_context *ctx,
                        int mode,

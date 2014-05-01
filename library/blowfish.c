@@ -155,7 +155,8 @@ static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
 /*
  * Blowfish key schedule
  */
-int blowfish_setkey( blowfish_context *ctx, const unsigned char *key, unsigned int keysize )
+int blowfish_setkey( blowfish_context *ctx, const unsigned char *key,
+                     unsigned int keysize )
 {
     unsigned int i, j, k;
     uint32_t data, datal, datar;
@@ -357,7 +358,8 @@ int blowfish_crypt_ctr( blowfish_context *ctx,
     while( length-- )
     {
         if( n == 0 ) {
-            blowfish_crypt_ecb( ctx, BLOWFISH_ENCRYPT, nonce_counter, stream_block );
+            blowfish_crypt_ecb( ctx, BLOWFISH_ENCRYPT, nonce_counter,
+                                stream_block );
 
             for( i = BLOWFISH_BLOCKSIZE; i > 0; i-- )
                 if( ++nonce_counter[i - 1] != 0 )

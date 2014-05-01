@@ -91,7 +91,8 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 5 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) | (*p)[4];
+            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) |
+                   (*p)[4];
             (*p) += 5;
             break;
 

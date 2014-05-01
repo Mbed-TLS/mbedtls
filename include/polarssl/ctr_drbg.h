@@ -3,7 +3,7 @@
  *
  * \brief CTR_DRBG based on AES-256 (NIST SP 800-90)
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -91,8 +91,9 @@ typedef struct
     unsigned char counter[16];  /*!<  counter (V)       */
     int reseed_counter;         /*!<  reseed counter    */
     int prediction_resistance;  /*!<  enable prediction resistance (Automatic
-                                      reseed before every random generation)        */
-    size_t entropy_len;         /*!<  amount of entropy grabbed on each (re)seed    */
+                                      reseed before every random generation)  */
+    size_t entropy_len;         /*!<  amount of entropy grabbed on each
+                                      (re)seed          */
     int reseed_interval;        /*!<  reseed interval   */
 
     aes_context aes_ctx;        /*!<  AES context       */
@@ -255,7 +256,9 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path );
 int ctr_drbg_self_test( int verbose );
 
 /* Internal functions (do not call directly) */
-int ctr_drbg_init_entropy_len( ctr_drbg_context *, int (*)(void *, unsigned char *, size_t), void *, const unsigned char *, size_t, size_t );
+int ctr_drbg_init_entropy_len( ctr_drbg_context *,
+                               int (*)(void *, unsigned char *, size_t), void *,
+                               const unsigned char *, size_t, size_t );
 
 #ifdef __cplusplus
 }

@@ -374,7 +374,8 @@ int sha1_file( const char *path, unsigned char output[20] )
 /*
  * SHA-1 HMAC context setup
  */
-void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key, size_t keylen )
+void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key,
+                       size_t keylen )
 {
     size_t i;
     unsigned char sum[20];
@@ -404,7 +405,8 @@ void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key, size_t keyle
 /*
  * SHA-1 HMAC process buffer
  */
-void sha1_hmac_update( sha1_context *ctx, const unsigned char *input, size_t ilen )
+void sha1_hmac_update( sha1_context *ctx, const unsigned char *input,
+                       size_t ilen )
 {
     sha1_update( ctx, input, ilen );
 }

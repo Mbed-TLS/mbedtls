@@ -918,8 +918,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     if( ssl->minor_ver < ssl->min_minor_ver )
     {
         SSL_DEBUG_MSG( 1, ( "server only supports ssl smaller than minimum"
-                            " [%d:%d] < [%d:%d]", ssl->major_ver, ssl->minor_ver,
-                            buf[4], buf[5] ) );
+                            " [%d:%d] < [%d:%d]", ssl->major_ver,
+                            ssl->minor_ver, buf[4], buf[5] ) );
 
         ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
                                      SSL_ALERT_MSG_PROTOCOL_VERSION );
@@ -1074,7 +1074,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
             renegotiation_info_seen = 1;
 
-            if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size ) ) != 0 )
+            if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4,
+                                                      ext_size ) ) != 0 )
                 return( ret );
 
             break;
@@ -1751,7 +1752,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
              *     ServerDHParams params;
              * };
              */
-            if( ( ret = md_init_ctx( &ctx, md_info_from_type( md_alg ) ) ) != 0 )
+            if( ( ret = md_init_ctx( &ctx,
+                                     md_info_from_type( md_alg ) ) ) != 0 )
             {
                 SSL_DEBUG_RET( 1, "md_init_ctx", ret );
                 return( ret );

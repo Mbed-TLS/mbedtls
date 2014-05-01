@@ -3,7 +3,7 @@
  *
  * \brief Entropy accumulator implementation
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -177,7 +177,8 @@ int entropy_add_source( entropy_context *ctx,
 int entropy_gather( entropy_context *ctx );
 
 /**
- * \brief           Retrieve entropy from the accumulator (Max ENTROPY_BLOCK_SIZE)
+ * \brief           Retrieve entropy from the accumulator
+ *                  (Maximum length: ENTROPY_BLOCK_SIZE)
  *                  (Thread-safe if POLARSSL_THREADING_C is enabled)
  *
  * \param data      Entropy context

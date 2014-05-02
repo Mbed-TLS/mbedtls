@@ -20,9 +20,13 @@ We intentionally only use the absolute minimum of **Make** functionality, as we 
 
 In order to build the source using Make, just enter at the command line::
 
+::
+
     make
 
 In order to run the tests, enter::
+
+::
 
     make check
 
@@ -35,8 +39,9 @@ CMake
 
 In order to build the source using CMake, just enter at the command line::
 
-    cmake .
+::
 
+    cmake .
     make
 
 There are 3 different active build modes specified within the CMake buildsystem:
@@ -50,9 +55,13 @@ There are 3 different active build modes specified within the CMake buildsystem:
 
 Switching build modes in CMake is simple. For debug mode, enter at the command line:
 
+::
+
     cmake -D CMAKE_BUILD_TYPE:String="Debug" .
 
 In order to run the tests, enter::
+
+::
 
     make test
 

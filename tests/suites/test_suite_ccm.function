@@ -1,0 +1,15 @@
+/* BEGIN_HEADER */
+#include <polarssl/ccm.h>
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_CCM_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST:POLARSSL_AES_C */
+void ccm_self_test( )
+{
+    TEST_ASSERT( ccm_self_test( 0 ) == 0 );
+}
+/* END_CASE */

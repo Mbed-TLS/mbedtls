@@ -34,7 +34,8 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_aes.cfb		test_suite_aes.rest		\
 		test_suite_arc4									\
 		test_suite_base64		test_suite_blowfish		\
-		test_suite_camellia		test_suite_cipher.aes	\
+		test_suite_camellia		test_suite_ccm			\
+		test_suite_cipher.aes							\
 		test_suite_cipher.arc4	test_suite_cipher.gcm	\
 		test_suite_cipher.blowfish						\
 		test_suite_cipher.camellia						\
@@ -195,6 +196,10 @@ test_suite_blowfish: test_suite_blowfish.c $(DEP)
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_camellia: test_suite_camellia.c $(DEP)
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_ccm: test_suite_ccm.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

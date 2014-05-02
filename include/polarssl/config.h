@@ -1275,6 +1275,20 @@
 #define POLARSSL_CAMELLIA_C
 
 /**
+ * \def POLARSSL_GCM_C
+ *
+ * Enable the Counter with CBC-MAC (CCM) mode for 128-bit block cipher.
+ *
+ * Module:  library/ccm.c
+ *
+ * Requires: POLARSSL_AES_C or POLARSSL_CAMELLIA_C
+ *
+ * This module enables the AES-CCM ciphersuites, if other requisites are
+ * enabled as well.
+ */
+#define POLARSSL_CCM_C
+
+/**
  * \def POLARSSL_CERTS_C
  *
  * Enable the test certificates.

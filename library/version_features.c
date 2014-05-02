@@ -366,6 +366,9 @@ const char *features[] = {
 #if defined(POLARSSL_CAMELLIA_C)
     "POLARSSL_CAMELLIA_C",
 #endif /* POLARSSL_CAMELLIA_C */
+#if defined(POLARSSL_CCM_C)
+    "POLARSSL_CCM_C",
+#endif /* POLARSSL_CCM_C */
 #if defined(POLARSSL_CERTS_C)
     "POLARSSL_CERTS_C",
 #endif /* POLARSSL_CERTS_C */

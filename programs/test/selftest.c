@@ -36,6 +36,7 @@
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/dhm.h"
 #include "polarssl/gcm.h"
+#include "polarssl/ccm.h"
 #include "polarssl/md2.h"
 #include "polarssl/md4.h"
 #include "polarssl/md5.h"
@@ -132,8 +133,13 @@ int main( int argc, char *argv[] )
         return( ret );
 #endif
 
-#if defined(POLARSSL_GCM_C)
+#if defined(POLARSSL_GCM_C) && defined(POLARSSL_AES_C)
     if( ( ret = gcm_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(POLARSSL_CCM_C) && defined(POLARSSL_AES_C)
+    if( ( ret = ccm_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

@@ -53,6 +53,10 @@
 #include "polarssl/camellia.h"
 #endif
 
+#if defined(POLARSSL_CCM_C)
+#include "polarssl/ccm.h"
+#endif
+
 #if defined(POLARSSL_CIPHER_C)
 #include "polarssl/cipher.h"
 #endif
@@ -574,6 +578,13 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH) )
         snprintf( buf, buflen, "CAMELLIA - Invalid data input length" );
 #endif /* POLARSSL_CAMELLIA_C */
+
+#if defined(POLARSSL_CCM_C)
+    if( use_ret == -(POLARSSL_ERR_CCM_BAD_INPUT) )
+        snprintf( buf, buflen, "CCM - Bad input parameters to function" );
+    if( use_ret == -(POLARSSL_ERR_CCM_AUTH_FAILED) )
+        snprintf( buf, buflen, "CCM - Authenticated decryption failed" );
+#endif /* POLARSSL_CCM_C */
 
 #if defined(POLARSSL_CTR_DRBG_C)
     if( use_ret == -(POLARSSL_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED) )

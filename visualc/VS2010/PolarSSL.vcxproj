@@ -152,6 +152,7 @@
     <ClInclude Include="..\..\include\polarssl\blowfish.h" />
     <ClInclude Include="..\..\include\polarssl\bn_mul.h" />
     <ClInclude Include="..\..\include\polarssl\camellia.h" />
+    <ClInclude Include="..\..\include\polarssl\ccm.h" />
     <ClInclude Include="..\..\include\polarssl\certs.h" />
     <ClInclude Include="..\..\include\polarssl\cipher.h" />
     <ClInclude Include="..\..\include\polarssl\cipher_wrap.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="..\..\library\bignum.c" />
     <ClCompile Include="..\..\library\blowfish.c" />
     <ClCompile Include="..\..\library\camellia.c" />
+    <ClCompile Include="..\..\library\ccm.c" />
     <ClCompile Include="..\..\library\certs.c" />
     <ClCompile Include="..\..\library\cipher.c" />
     <ClCompile Include="..\..\library\cipher_wrap.c" />

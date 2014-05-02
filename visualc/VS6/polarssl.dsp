@@ -121,6 +121,10 @@ SOURCE=..\..\library\camellia.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\ccm.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\certs.c
 # End Source File
 # Begin Source File
@@ -398,6 +402,10 @@ SOURCE=..\..\include\polarssl\bn_mul.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\camellia.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\ccm.h
 # End Source File
 # Begin Source File
 

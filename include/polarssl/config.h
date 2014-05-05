@@ -2093,7 +2093,7 @@
 //#define ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
 
 /* Memory buffer allocator options */
-//#define MEMORY_ALIGN_MULTIPLE               4 /**< Align on multiples of this value */
+//#define POLARSSL_MEMORY_ALIGN_MULTIPLE      4 /**< Align on multiples of this value */
 
 /* Platform options */
 //#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include if POLARSSL_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */

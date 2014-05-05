@@ -555,6 +555,13 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
     platform_set_malloc_free( buffer_alloc_malloc, buffer_alloc_free );
 #endif
 
+    if( (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE )
+    {
+        buf += POLARSSL_MEMORY_ALIGN_MULTIPLE
+             - (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
+        len -= (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
+    }
+
     heap.buf = buf;
     heap.len = len;
 

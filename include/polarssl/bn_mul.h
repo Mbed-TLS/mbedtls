@@ -285,43 +285,46 @@
 
 #endif /* MC68000 */
 
-#if defined(__powerpc__)   || defined(__ppc__)
 #if defined(__powerpc64__) || defined(__ppc64__)
 
 #if defined(__MACH__) && defined(__APPLE__)
+/* Apple gcc + Apple cctools assembler (i.e. a typical Xcode toolchain with
+ * PPC support) treats semicolons as comment delimiters when targeting PPC,
+ * even for inline assembly. Thus, newlines (\n) are required.
+ */
 
 #define MULADDC_INIT                \
     asm(                            \
         "                           \
-        ld     r3, %3;              \
-        ld     r4, %4;              \
-        ld     r5, %5;              \
-        ld     r6, %6;              \
-        addi   r3, r3, -8;          \
-        addi   r4, r4, -8;          \
-        addic  r5, r5,  0;          \
+        ld     r3, %3\n             \
+        ld     r4, %4\n             \
+        ld     r5, %5\n             \
+        ld     r6, %6\n             \
+        addi   r3, r3, -8\n         \
+        addi   r4, r4, -8\n         \
+        addic  r5, r5,  0\n         \
         "
 
 #define MULADDC_CORE                \
         "                           \
-        ldu    r7, 8(r3);           \
-        mulld  r8, r7, r6;          \
-        mulhdu r9, r7, r6;          \
-        adde   r8, r8, r5;          \
-        ld     r7, 8(r4);           \
-        addze  r5, r9;              \
-        addc   r8, r8, r7;          \
-        stdu   r8, 8(r4);           \
+        ldu    r7, 8(r3)\n          \
+        mulld  r8, r7, r6\n         \
+        mulhdu r9, r7, r6\n         \
+        adde   r8, r8, r5\n         \
+        ld     r7, 8(r4)\n          \
+        addze  r5, r9\n             \
+        addc   r8, r8, r7\n         \
+        stdu   r8, 8(r4)\n          \
         "
 
 #define MULADDC_STOP                \
         "                           \
-        addze  r5, r5;              \
-        addi   r4, r4, 8;           \
-        addi   r3, r3, 8;           \
-        std    r5, %0;              \
-        std    r4, %1;              \
-        std    r3, %2;              \
+        addze  r5, r5\n             \
+        addi   r4, r4, 8\n          \
+        addi   r3, r3, 8\n          \
+        std    r5, %0\n             \
+        std    r4, %1\n             \
+        std    r3, %2\n             \
         "                           \
         : "=m" (c), "=m" (d), "=m" (s)              \
         : "m" (s), "m" (d), "m" (c), "m" (b)        \
@@ -371,42 +374,46 @@
 
 #endif /* __MACH__ && __APPLE__ */
 
-#else /* PPC32 */
+#elif defined(__powerpc__) || defined(__ppc__) /* end PPC64/begin PPC32  */
 
 #if defined(__MACH__) && defined(__APPLE__)
+/* Apple gcc + Apple cctools assembler (i.e. a typical Xcode toolchain with
+ * PPC support) treats semicolons as comment delimiters when targeting PPC,
+ * even for inline assembly. Thus, newlines (\n) are required.
+ */
 
 #define MULADDC_INIT            \
     asm(                        \
         "                       \
-        lwz    r3, %3;          \
-        lwz    r4, %4;          \
-        lwz    r5, %5;          \
-        lwz    r6, %6;          \
-        addi   r3, r3, -4;      \
-        addi   r4, r4, -4;      \
-        addic  r5, r5,  0;      \
+        lwz    r3, %3\n         \
+        lwz    r4, %4\n         \
+        lwz    r5, %5\n         \
+        lwz    r6, %6\n         \
+        addi   r3, r3, -4\n     \
+        addi   r4, r4, -4\n     \
+        addic  r5, r5,  0\n     \
         "
 
 #define MULADDC_CORE            \
         "                       \
-        lwzu   r7, 4(r3);       \
-        mullw  r8, r7, r6;      \
-        mulhwu r9, r7, r6;      \
-        adde   r8, r8, r5;      \
-        lwz    r7, 4(r4);       \
-        addze  r5, r9;          \
-        addc   r8, r8, r7;      \
-        stwu   r8, 4(r4);       \
+        lwzu   r7, 4(r3)\n      \
+        mullw  r8, r7, r6\n     \
+        mulhwu r9, r7, r6\n     \
+        adde   r8, r8, r5\n     \
+        lwz    r7, 4(r4)\n      \
+        addze  r5, r9\n         \
+        addc   r8, r8, r7\n     \
+        stwu   r8, 4(r4)\n      \
         "
 
 #define MULADDC_STOP            \
         "                       \
-        addze  r5, r5;          \
-        addi   r4, r4, 4;       \
-        addi   r3, r3, 4;       \
-        stw    r5, %0;          \
-        stw    r4, %1;          \
-        stw    r3, %2;          \
+        addze  r5, r5\n         \
+        addi   r4, r4, 4\n      \
+        addi   r3, r3, 4\n      \
+        stw    r5, %0\n         \
+        stw    r4, %1\n         \
+        stw    r3, %2\n         \
         "                       \
         : "=m" (c), "=m" (d), "=m" (s)              \
         : "m" (s), "m" (d), "m" (c), "m" (b)        \
@@ -456,7 +463,6 @@
 #endif /* __MACH__ && __APPLE__ */
 
 #endif /* PPC32 */
-#endif /* PPC64 */
 
 #if defined(__sparc__) && defined(__sparc64__)
 

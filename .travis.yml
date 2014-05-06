@@ -22,7 +22,5 @@ addons:
       description: "PolarSSL Open Source SSL Library"
     notification_email: p.j.bakker@polarssl.org
     build_command_prepend:
-    - cmake -D CMAKE_BUILD_TYPE:String="Check" .
-    - make clean
     build_command: make
     branch_pattern: development

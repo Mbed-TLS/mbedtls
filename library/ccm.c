@@ -81,6 +81,206 @@ void ccm_free( ccm_context *ctx )
     memset( ctx, 0, sizeof( ccm_context ) );
 }
 
+#define UPDATE_CBC_MAC( src )                                       \
+{                                                                   \
+    size_t olen;                                                    \
+                                                                    \
+    for( i = 0; i < 16; i++ )                                       \
+        src[i] ^= y[i];                                             \
+                                                                    \
+    if( ( ret = cipher_update( &ctx->cipher_ctx, src, 16,           \
+                               y, &olen ) ) != 0 )                  \
+    {                                                               \
+        return( ret );                                              \
+    }                                                               \
+}
+
+#define CTR_CRYPT_BLOCK( dst, src )                                 \
+{                                                                   \
+    size_t olen;                                                    \
+                                                                    \
+    if( ( ret = cipher_update( &ctx->cipher_ctx, ctr, 16,           \
+                               dst, &olen ) ) != 0 )                \
+    {                                                               \
+        return( ret );                                              \
+    }                                                               \
+                                                                    \
+    for( i = 0; i < 16; i++ )                                       \
+        dst[i] ^= src[i];                                           \
+}
+
+/*
+ * Authenticated encryption
+ */
+int ccm_crypt_and_tag( ccm_context *ctx, size_t length,
+                       const unsigned char *iv, size_t iv_len,
+                       const unsigned char *add, size_t add_len,
+                       const unsigned char *input, unsigned char *output,
+                       unsigned char *tag, size_t tag_len )
+{
+    int ret;
+    unsigned char i;
+    unsigned char q = 16 - 1 - iv_len;
+    size_t len_left;
+    unsigned char b[16];
+    unsigned char y[16];
+    unsigned char ctr[16];
+    const unsigned char *src;
+    unsigned char *dst;
+
+    /*
+     * Check length requirements: SP800-38C A.1
+     * Additional requirement: a < 2^16 - 2^8 to simplify the code.
+     * 'length' checked later (when writing it to the first block)
+     */
+    if( tag_len < 4 || tag_len > 16 || tag_len % 2 != 0 )
+        return( POLARSSL_ERR_CCM_BAD_INPUT );
+
+    /* Also implies q is within bounds */
+    if( iv_len < 7 || iv_len > 13 )
+        return( POLARSSL_ERR_CCM_BAD_INPUT );
+
+    if( add_len > 0xFF00 )
+        return( POLARSSL_ERR_CCM_BAD_INPUT );
+
+    /*
+     * First block B_0:
+     * 0        .. 0        flags
+     * 1        .. iv_len   nonce (aka iv)
+     * iv_len+1 .. 15       length
+     *
+     * With flags as (bits):
+     * 7        0
+     * 6        add present?
+     * 5 .. 3   (t - 2) / 2
+     * 2 .. 0   q - 1
+     */
+    b[0] = 0;
+    b[0] |= ( add_len > 0 ) << 6;
+    b[0] |= ( ( tag_len - 2 ) / 2 ) << 3;
+    b[0] |= q - 1;
+
+    memcpy( b + 1, iv, iv_len );
+
+    for( i = 0, len_left = length; i < q; i++, len_left >>= 8 )
+        b[15-i] = (unsigned char)( len_left & 0xFF );
+
+    if( len_left > 0 )
+        return( POLARSSL_ERR_CCM_BAD_INPUT );
+
+
+    /* Start CBC-MAC with first block */
+    memset( y, 0, 16 );
+    UPDATE_CBC_MAC( b );
+
+    /*
+     * If there is additional data, update CBC-MAC with
+     * add_len, add, 0 (padding to a block boundary)
+     */
+    if( add_len > 0 )
+    {
+        size_t use_len;
+        len_left = add_len;
+        src = add;
+
+        memset( b, 0, 16 );
+        b[0] = (unsigned char)( ( add_len >> 8 ) & 0xFF );
+        b[1] = (unsigned char)( ( add_len      ) & 0xFF );
+
+        use_len = len_left < 16 - 2 ? len_left : 16 - 2;
+        memcpy( b + 2, src, use_len );
+        len_left -= use_len;
+        src += use_len;
+
+        UPDATE_CBC_MAC( b );
+
+        while( len_left > 16 )
+        {
+            memcpy( b, src, 16 );
+            UPDATE_CBC_MAC( b );
+
+            len_left -= 16;
+            src += 16;
+        }
+
+        if( len_left > 0 )
+        {
+            memset( b, 0, 16 );
+            memcpy( b, src, len_left );
+
+            UPDATE_CBC_MAC( b );
+        }
+    }
+
+    /*
+     * Counter block:
+     * 0        .. 0        flags
+     * 1        .. iv_len   nonce (aka iv)
+     * iv_len+1 .. 15       counter (initially 1)
+     *
+     * With flags as (bits):
+     * 7 .. 3   0
+     * 2 .. 0   q - 1
+     */
+    ctr[0] = q - 1;
+    memcpy( ctr + 1, iv, iv_len );
+    memset( ctr + 1 + iv_len, 0, q );
+    ctr[15] = 1;
+
+    len_left = length;
+    src = input;
+    dst = output;
+
+    /*
+     * Authenticate and encrypt message
+     */
+    while( len_left > 16 )
+    {
+        memcpy( b, src, 16 );
+        UPDATE_CBC_MAC( b );
+        CTR_CRYPT_BLOCK( dst, src );
+
+        dst += 16;
+        src += 16;
+        len_left -= 16;
+
+        for( i = 0; i < q; i++ )
+            if( ++ctr[15-i] != 0 )
+                break;
+    }
+
+    if( len_left > 0 )
+    {
+        unsigned char mask[16];
+        size_t olen;
+
+        memset( b, 0, 16 );
+        memcpy( b, src, len_left );
+
+        UPDATE_CBC_MAC( b );
+
+        if( ( ret = cipher_update( &ctx->cipher_ctx, ctr, 16,
+                                   mask, &olen ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        for( i = 0; i < len_left; i++ )
+            dst[i] = src[i] ^ mask[i];
+    }
+
+    /*
+     * Authentication: reset counter and encrypt internal tag
+     */
+    for( i = 0; i < q; i++ )
+        ctr[15-i] = 0;
+
+    CTR_CRYPT_BLOCK( b, y );
+    memcpy( tag, b, tag_len );
+
+    return( 0 );
+}
+
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 
@@ -90,10 +290,92 @@ void ccm_free( ccm_context *ctx )
 #define polarssl_printf printf
 #endif
 
+/*
+ * Examples 1 to 3 from SP800-38C Appendix C
+ */
+
+#define NB_TESTS 3
+
+/*
+ * The data is the same for all tests, only the used length changes
+ */
+static const unsigned char key[] = {
+    0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
+    0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f
+};
+
+static const unsigned char iv[] = {
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+    0x18, 0x19, 0x1a, 0x1b
+};
+
+static const unsigned char ad[] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x10, 0x11, 0x12, 0x13
+};
+
+static const unsigned char msg[] = {
+    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
+    0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+};
+
+static const size_t iv_len [NB_TESTS] = { 7, 8,  12 };
+static const size_t add_len[NB_TESTS] = { 8, 16, 20 };
+static const size_t msg_len[NB_TESTS] = { 4, 16, 24 };
+static const size_t tag_len[NB_TESTS] = { 4, 6,  8  };
+
+static const unsigned char res[NB_TESTS][32] = {
+    {   0x71, 0x62, 0x01, 0x5b, 0x4d, 0xac, 0x25, 0x5d },
+    {   0xd2, 0xa1, 0xf0, 0xe0, 0x51, 0xea, 0x5f, 0x62,
+        0x08, 0x1a, 0x77, 0x92, 0x07, 0x3d, 0x59, 0x3d,
+        0x1f, 0xc6, 0x4f, 0xbf, 0xac, 0xcd },
+    {   0xe3, 0xb2, 0x01, 0xa9, 0xf5, 0xb7, 0x1a, 0x7a,
+        0x9b, 0x1c, 0xea, 0xec, 0xcd, 0x97, 0xe7, 0x0b,
+        0x61, 0x76, 0xaa, 0xd9, 0xa4, 0x42, 0x8a, 0xa5,
+        0x48, 0x43, 0x92, 0xfb, 0xc1, 0xb0, 0x99, 0x51 }
+};
+
 int ccm_self_test( int verbose )
 {
-    if( verbose != 0 )
-        polarssl_printf( "  CCM: skip\n" );
+    ccm_context ctx;
+    unsigned char out[32];
+    size_t i;
+    int ret;
+
+    if( ccm_init( &ctx, POLARSSL_CIPHER_ID_AES, key, 8 * sizeof key ) != 0 )
+    {
+        if( verbose != 0 )
+            polarssl_printf( "  CCM: setup failed" );
+
+        return( 1 );
+    }
+
+    for( i = 0; i < NB_TESTS; i++ )
+    {
+        if( verbose != 0 )
+            polarssl_printf( "  CCM-AES #%u: ", (unsigned int) i + 1 );
+
+        ret =  ccm_crypt_and_tag( &ctx, msg_len[i],
+                                  iv, iv_len[i], ad, add_len[i],
+                                  msg, out,
+                                  out + msg_len[i], tag_len[i] );
+
+        if( ret != 0 ||
+            memcmp( out, res[i], msg_len[i] + tag_len[i] ) != 0 )
+        {
+            if( verbose != 0 )
+                polarssl_printf( "failed\n" );
+
+            return( 1 );
+        }
+
+        if( verbose != 0 )
+            polarssl_printf( "passed\n" );
+    }
+
+    ccm_free( &ctx );
 
     if( verbose != 0 )
         polarssl_printf( "\n" );

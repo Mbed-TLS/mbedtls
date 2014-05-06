@@ -30,3 +30,46 @@ void ccm_init( int cipher_id, int key_size, int result )
     ccm_free( &ctx );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ccm_encrypt_and_tag( int cipher_id,
+                          char *key_hex, char *msg_hex,
+                          char *iv_hex, char *add_hex,
+                          char *result_hex )
+{
+    unsigned char key[128];
+    unsigned char msg[128];
+    unsigned char iv[128];
+    unsigned char add[128];
+    unsigned char output[144];
+    unsigned char result[144];
+    ccm_context ctx;
+    size_t key_len, msg_len, iv_len, add_len, tag_len, result_len;
+
+    memset( key, 0x00, sizeof( key ) );
+    memset( msg, 0x00, sizeof( msg ) );
+    memset( iv, 0x00, sizeof( iv ) );
+    memset( add, 0x00, sizeof( add ) );
+    memset( output, 0x00, sizeof( output ) );
+    memset( result, 0x00, sizeof( result ) );
+
+    key_len = unhexify( key, key_hex );
+    msg_len = unhexify( msg, msg_hex );
+    iv_len = unhexify( iv, iv_hex );
+    add_len = unhexify( add, add_hex );
+    result_len = unhexify( result, result_hex );
+    tag_len = result_len - msg_len;
+
+    TEST_ASSERT( ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
+
+    TEST_ASSERT( ccm_crypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
+                 msg, output, output + msg_len, tag_len ) == 0 );
+
+    TEST_ASSERT( memcmp( output, result, result_len ) == 0 );
+
+    /* Check we didn't write past the end */
+    TEST_ASSERT( output[result_len] == 0 && output[result_len + 1] == 0 );
+
+    ccm_free( &ctx );
+}
+/* END_CASE */

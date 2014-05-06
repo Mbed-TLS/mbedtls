@@ -64,6 +64,40 @@ int ccm_init( ccm_context *ctx, cipher_id_t cipher,
  */
 void ccm_free( ccm_context *ctx );
 
+/**
+ * \brief           CCM buffer encryption
+ *
+ * \todo            Document if input/output buffers can be the same
+ *
+ * \param ctx       CCM context
+ * \param length    length of the input data in bytes
+ * \param iv        nonce (initialization vector)
+ * \param iv_len    length of IV in bytes
+ *                  must be 2, 3, 4, 5, 6, 7 or 8
+ * \param add       additional data
+ * \param add_len   length of additional data in bytes
+ *                  must be less than 2^16 - 2^8
+ * \param input     buffer holding the input data
+ * \param output    buffer for holding the output data
+ *                  must be at least 'length' bytes wide
+ * \param tag       buffer for holding the tag
+ * \param tag_len   length of the tag to generate in bytes
+ *                  must be 4, 6, 8, 10, 14 or 16
+ *
+ * \note            The tag is written to a separete buffer. To get the tag
+ *                  concatenated with the output as in the CCM spec, use
+ *                  tag = output + length and make sure the output buffer is
+ *                  at least length + tag_len wide.
+ *
+ * \return          0 if successful
+ */
+int ccm_crypt_and_tag( ccm_context *ctx, size_t length,
+                       const unsigned char *iv, size_t iv_len,
+                       const unsigned char *add, size_t add_len,
+                       const unsigned char *input, unsigned char *output,
+                       unsigned char *tag, size_t tag_len );
+
+
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 /**
  * \brief          Checkup routine

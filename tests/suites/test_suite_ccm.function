@@ -74,12 +74,12 @@ void ccm_encrypt_and_tag( int cipher_id,
                           char *iv_hex, char *add_hex,
                           char *result_hex )
 {
-    unsigned char key[128];
-    unsigned char msg[128];
-    unsigned char iv[128];
-    unsigned char add[128];
-    unsigned char output[144];
-    unsigned char result[144];
+    unsigned char key[32];
+    unsigned char msg[50];
+    unsigned char iv[13];
+    unsigned char add[32];
+    unsigned char output[50];
+    unsigned char result[50];
     ccm_context ctx;
     size_t key_len, msg_len, iv_len, add_len, tag_len, result_len;
 
@@ -117,12 +117,12 @@ void ccm_auth_decrypt( int cipher_id,
                        char *iv_hex, char *add_hex,
                        int tag_len, char *result_hex )
 {
-    unsigned char key[128];
-    unsigned char msg[128];
-    unsigned char iv[128];
-    unsigned char add[128];
-    unsigned char output[144];
-    unsigned char result[144];
+    unsigned char key[32];
+    unsigned char msg[50];
+    unsigned char iv[13];
+    unsigned char add[32];
+    unsigned char output[50];
+    unsigned char result[50];
     ccm_context ctx;
     size_t key_len, msg_len, iv_len, add_len, result_len;
     int ret;

@@ -73,3 +73,66 @@ void ccm_encrypt_and_tag( int cipher_id,
     ccm_free( &ctx );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ccm_auth_decrypt( int cipher_id,
+                       char *key_hex, char *msg_hex,
+                       char *iv_hex, char *add_hex,
+                       int tag_len, char *result_hex )
+{
+    unsigned char key[128];
+    unsigned char msg[128];
+    unsigned char iv[128];
+    unsigned char add[128];
+    unsigned char output[144];
+    unsigned char result[144];
+    ccm_context ctx;
+    size_t key_len, msg_len, iv_len, add_len, result_len;
+    int ret;
+
+    memset( key, 0x00, sizeof( key ) );
+    memset( msg, 0x00, sizeof( msg ) );
+    memset( iv, 0x00, sizeof( iv ) );
+    memset( add, 0x00, sizeof( add ) );
+    memset( output, 0xFF, sizeof( output ) );
+    memset( result, 0x00, sizeof( result ) );
+
+    key_len = unhexify( key, key_hex );
+    msg_len = unhexify( msg, msg_hex );
+    iv_len = unhexify( iv, iv_hex );
+    add_len = unhexify( add, add_hex );
+    msg_len -= tag_len;
+
+    if( strcmp( "FAIL", result_hex ) == 0 )
+    {
+        ret = POLARSSL_ERR_CCM_AUTH_FAILED;
+    }
+    else
+    {
+        ret = 0;
+        result_len = unhexify( result, result_hex );
+    }
+
+    TEST_ASSERT( ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
+
+    TEST_ASSERT( ccm_auth_decrypt( &ctx, msg_len, iv, iv_len, add, add_len,
+                 msg, output, msg + msg_len, tag_len ) == ret );
+
+    if( ret == 0 )
+    {
+        TEST_ASSERT( memcmp( output, result, result_len ) == 0 );
+    }
+    else
+    {
+        size_t i;
+
+        for( i = 0; i < msg_len; i++ )
+            TEST_ASSERT( output[i] == 0 );
+    }
+
+    /* Check we didn't write past the end */
+    TEST_ASSERT( output[msg_len] == 0xFF && output[msg_len + 1] == 0xFF );
+
+    ccm_free( &ctx );
+}
+/* END_CASE */

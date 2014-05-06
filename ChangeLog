@@ -1,5 +1,9 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= PolarSSL 1.3 branch
+Bugfix
+   * Fix in debug_print_msg()
+
 = PolarSSL 1.3.7 released on 2014-05-02
 Features
    * debug_set_log_mode() added to determine raw or full logging

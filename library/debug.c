@@ -88,7 +88,7 @@ void debug_print_msg( const ssl_context *ssl, int level,
 
     if( debug_log_mode == POLARSSL_DEBUG_LOG_RAW )
     {
-        ssl->f_dbg( ssl->p_dbg, level, str );
+        ssl->f_dbg( ssl->p_dbg, level, text );
         return;
     }
 

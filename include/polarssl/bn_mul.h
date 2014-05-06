@@ -285,7 +285,6 @@
 
 #endif /* MC68000 */
 
-#if defined(__powerpc__)   || defined(__ppc__)
 #if defined(__powerpc64__) || defined(__ppc64__)
 
 #if defined(__MACH__) && defined(__APPLE__)
@@ -371,7 +370,7 @@
 
 #endif /* __MACH__ && __APPLE__ */
 
-#else /* PPC32 */
+#elif defined(__powerpc__) || defined(__ppc__) /* end PPC64/begin PPC32  */
 
 #if defined(__MACH__) && defined(__APPLE__)
 
@@ -456,7 +455,6 @@
 #endif /* __MACH__ && __APPLE__ */
 
 #endif /* PPC32 */
-#endif /* PPC64 */
 
 #if defined(__sparc__) && defined(__sparc64__)
 

@@ -36,6 +36,34 @@
 extern "C" {
 #endif
 
+/**
+ * \brief          CCM context structure
+ */
+typedef struct {
+    cipher_context_t cipher_ctx;    /*!< cipher context used */
+}
+ccm_context;
+
+/**
+ * \brief           CCM initialization (encryption and decryption)
+ *
+ * \param ctx       CCM context to be initialized
+ * \param cipher    cipher to use (a 128-bit block cipher)
+ * \param key       encryption key
+ * \param keysize   key size in bits (must be acceptable by the cipher)
+ *
+ * \return          0 if successful, or a cipher specific error code
+ */
+int ccm_init( ccm_context *ctx, cipher_id_t cipher,
+              const unsigned char *key, unsigned int keysize );
+
+/**
+ * \brief           Free a CCM context and underlying cipher sub-context
+ *
+ * \param ctx       CCM context to free
+ */
+void ccm_free( ccm_context *ctx );
+
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 /**
  * \brief          Checkup routine

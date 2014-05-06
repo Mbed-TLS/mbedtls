@@ -42,6 +42,45 @@
 
 #include "polarssl/ccm.h"
 
+/*
+ * Initialize context
+ */
+int ccm_init( ccm_context *ctx, cipher_id_t cipher,
+              const unsigned char *key, unsigned int keysize )
+{
+    int ret;
+    const cipher_info_t *cipher_info;
+
+    memset( ctx, 0, sizeof( ccm_context ) );
+
+    cipher_info = cipher_info_from_values( cipher, keysize, POLARSSL_MODE_ECB );
+    if( cipher_info == NULL )
+        return( POLARSSL_ERR_CCM_BAD_INPUT );
+
+    if( cipher_info->block_size != 16 )
+        return( POLARSSL_ERR_CCM_BAD_INPUT );
+
+    if( ( ret = cipher_init_ctx( &ctx->cipher_ctx, cipher_info ) ) != 0 )
+        return( ret );
+
+    if( ( ret = cipher_setkey( &ctx->cipher_ctx, key, keysize,
+                               POLARSSL_ENCRYPT ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
+
+/*
+ * Free context
+ */
+void ccm_free( ccm_context *ctx )
+{
+    (void) cipher_free_ctx( &ctx->cipher_ctx );
+    memset( ctx, 0, sizeof( ccm_context ) );
+}
+
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 

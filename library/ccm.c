@@ -42,6 +42,9 @@
 
 #include "polarssl/ccm.h"
 
+#define CCM_ENCRYPT 0
+#define CCM_DECRYPT 1
+
 /*
  * Initialize context
  */
@@ -110,13 +113,13 @@ void ccm_free( ccm_context *ctx )
 }
 
 /*
- * Authenticated encryption
+ * Authenticated encryption or decryption
  */
-int ccm_crypt_and_tag( ccm_context *ctx, size_t length,
-                       const unsigned char *iv, size_t iv_len,
-                       const unsigned char *add, size_t add_len,
-                       const unsigned char *input, unsigned char *output,
-                       unsigned char *tag, size_t tag_len )
+static int ccm_auth_crypt( ccm_context *ctx, int mode, size_t length,
+                           const unsigned char *iv, size_t iv_len,
+                           const unsigned char *add, size_t add_len,
+                           const unsigned char *input, unsigned char *output,
+                           unsigned char *tag, size_t tag_len )
 {
     int ret;
     unsigned char i;
@@ -142,6 +145,9 @@ int ccm_crypt_and_tag( ccm_context *ctx, size_t length,
 
     if( add_len > 0xFF00 )
         return( POLARSSL_ERR_CCM_BAD_INPUT );
+
+    if( mode != CCM_ENCRYPT )
+        return( POLARSSL_ERR_CCM_BAD_INPUT ); /* Not implemented yet */
 
     /*
      * First block B_0:
@@ -281,6 +287,53 @@ int ccm_crypt_and_tag( ccm_context *ctx, size_t length,
     return( 0 );
 }
 
+/*
+ * Authenticated encryption
+ */
+int ccm_encrypt_and_tag( ccm_context *ctx, size_t length,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *add, size_t add_len,
+                         const unsigned char *input, unsigned char *output,
+                         unsigned char *tag, size_t tag_len )
+{
+    return( ccm_auth_crypt( ctx, CCM_ENCRYPT, length, iv, iv_len,
+                            add, add_len, input, output, tag, tag_len ) );
+}
+
+/*
+ * Authenticated decryption
+ */
+int ccm_auth_decrypt( ccm_context *ctx, size_t length,
+                      const unsigned char *iv, size_t iv_len,
+                      const unsigned char *add, size_t add_len,
+                      const unsigned char *input, unsigned char *output,
+                      const unsigned char *tag, size_t tag_len )
+{
+    int ret;
+    unsigned char check_tag[16];
+    unsigned char i;
+    int diff;
+
+    if( ( ret = ccm_auth_crypt( ctx, CCM_DECRYPT, length,
+                                iv, iv_len, add, add_len,
+                                input, output, check_tag, tag_len ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Check tag in "constant-time" */
+    for( diff = 0, i = 0; i < tag_len; i++ )
+        diff |= tag[i] ^ check_tag[i];
+
+    if( diff != 0 )
+    {
+        memset( output, 0, length );
+        return( POLARSSL_ERR_CCM_AUTH_FAILED );
+    }
+
+    return( 0 );
+}
+
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 
@@ -357,10 +410,10 @@ int ccm_self_test( int verbose )
         if( verbose != 0 )
             polarssl_printf( "  CCM-AES #%u: ", (unsigned int) i + 1 );
 
-        ret =  ccm_crypt_and_tag( &ctx, msg_len[i],
-                                  iv, iv_len[i], ad, add_len[i],
-                                  msg, out,
-                                  out + msg_len[i], tag_len[i] );
+        ret =  ccm_encrypt_and_tag( &ctx, msg_len[i],
+                                    iv, iv_len[i], ad, add_len[i],
+                                    msg, out,
+                                    out + msg_len[i], tag_len[i] );
 
         if( ret != 0 ||
             memcmp( out, res[i], msg_len[i] + tag_len[i] ) != 0 )

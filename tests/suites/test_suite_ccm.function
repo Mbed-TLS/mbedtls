@@ -62,7 +62,7 @@ void ccm_encrypt_and_tag( int cipher_id,
 
     TEST_ASSERT( ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
 
-    TEST_ASSERT( ccm_crypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
+    TEST_ASSERT( ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
                  msg, output, output + msg_len, tag_len ) == 0 );
 
     TEST_ASSERT( memcmp( output, result, result_len ) == 0 );

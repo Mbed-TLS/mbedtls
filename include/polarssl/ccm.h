@@ -84,19 +84,43 @@ void ccm_free( ccm_context *ctx );
  * \param tag_len   length of the tag to generate in bytes
  *                  must be 4, 6, 8, 10, 14 or 16
  *
- * \note            The tag is written to a separete buffer. To get the tag
+ * \note            The tag is written to a separate buffer. To get the tag
  *                  concatenated with the output as in the CCM spec, use
  *                  tag = output + length and make sure the output buffer is
  *                  at least length + tag_len wide.
  *
  * \return          0 if successful
  */
-int ccm_crypt_and_tag( ccm_context *ctx, size_t length,
-                       const unsigned char *iv, size_t iv_len,
-                       const unsigned char *add, size_t add_len,
-                       const unsigned char *input, unsigned char *output,
-                       unsigned char *tag, size_t tag_len );
+int ccm_encrypt_and_tag( ccm_context *ctx, size_t length,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *add, size_t add_len,
+                         const unsigned char *input, unsigned char *output,
+                         unsigned char *tag, size_t tag_len );
 
+/**
+ * \brief           CCM buffer authenticated decryption
+ *
+ * \todo            Document if input/output buffers can be the same
+ *
+ * \param ctx       CCM context
+ * \param length    length of the input data
+ * \param iv        initialization vector
+ * \param iv_len    length of IV
+ * \param add       additional data
+ * \param add_len   length of additional data
+ * \param input     buffer holding the input data
+ * \param output    buffer for holding the output data
+ * \param tag       buffer holding the tag
+ * \param tag_len   length of the tag
+ *
+ * \return         0 if successful and authenticated,
+ *                 POLARSSL_ERR_CCM_AUTH_FAILED if tag does not match
+ */
+int ccm_auth_decrypt( ccm_context *ctx, size_t length,
+                      const unsigned char *iv, size_t iv_len,
+                      const unsigned char *add, size_t add_len,
+                      const unsigned char *input, unsigned char *output,
+                      const unsigned char *tag, size_t tag_len );
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 /**

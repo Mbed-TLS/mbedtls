@@ -134,7 +134,7 @@ typedef uint32_t t_udbl;
 #else
   /*
    * 32-bit integers can be forced on 64-bit arches (eg. for testing purposes)
-   * by defining POLARSSL_HAVE_INT32 and undefining POARSSL_HAVE_ASM
+   * by defining POLARSSL_HAVE_INT32 and undefining POLARSSL_HAVE_ASM
    */
   #if ( ! defined(POLARSSL_HAVE_INT32) && \
           defined(_MSC_VER) && defined(_M_AMD64) )

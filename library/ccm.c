@@ -103,7 +103,7 @@ void ccm_free( ccm_context *ctx )
 /*
  * Encrypt or decrypt a partial block with CTR
  * Warning: using b for temporary storage! src and dst must not be b!
- * (This avoids allocating one more 16 bytes buffer.)
+ * This avoids allocating one more 16 bytes buffer while allowing src == dst.
  */
 #define CTR_CRYPT( dst, src, len  )                                            \
     if( ( ret = cipher_update( &ctx->cipher_ctx, ctr, 16, b, &olen ) ) != 0 )  \

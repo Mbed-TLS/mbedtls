@@ -67,8 +67,6 @@ void ccm_free( ccm_context *ctx );
 /**
  * \brief           CCM buffer encryption
  *
- * \todo            Document if input/output buffers can be the same
- *
  * \param ctx       CCM context
  * \param length    length of the input data in bytes
  * \param iv        nonce (initialization vector)
@@ -99,8 +97,6 @@ int ccm_encrypt_and_tag( ccm_context *ctx, size_t length,
 
 /**
  * \brief           CCM buffer authenticated decryption
- *
- * \todo            Document if input/output buffers can be the same
  *
  * \param ctx       CCM context
  * \param length    length of the input data

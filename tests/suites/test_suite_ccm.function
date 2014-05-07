@@ -78,7 +78,6 @@ void ccm_encrypt_and_tag( int cipher_id,
     unsigned char msg[50];
     unsigned char iv[13];
     unsigned char add[32];
-    unsigned char output[50];
     unsigned char result[50];
     ccm_context ctx;
     size_t key_len, msg_len, iv_len, add_len, tag_len, result_len;
@@ -87,7 +86,6 @@ void ccm_encrypt_and_tag( int cipher_id,
     memset( msg, 0x00, sizeof( msg ) );
     memset( iv, 0x00, sizeof( iv ) );
     memset( add, 0x00, sizeof( add ) );
-    memset( output, 0x00, sizeof( output ) );
     memset( result, 0x00, sizeof( result ) );
 
     key_len = unhexify( key, key_hex );
@@ -99,13 +97,14 @@ void ccm_encrypt_and_tag( int cipher_id,
 
     TEST_ASSERT( ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
 
+    /* Test with input == output */
     TEST_ASSERT( ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
-                 msg, output, output + msg_len, tag_len ) == 0 );
+                 msg, msg, msg + msg_len, tag_len ) == 0 );
 
-    TEST_ASSERT( memcmp( output, result, result_len ) == 0 );
+    TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
 
     /* Check we didn't write past the end */
-    TEST_ASSERT( output[result_len] == 0 && output[result_len + 1] == 0 );
+    TEST_ASSERT( msg[result_len] == 0 && msg[result_len + 1] == 0 );
 
     ccm_free( &ctx );
 }
@@ -121,7 +120,7 @@ void ccm_auth_decrypt( int cipher_id,
     unsigned char msg[50];
     unsigned char iv[13];
     unsigned char add[32];
-    unsigned char output[50];
+    unsigned char tag[16];
     unsigned char result[50];
     ccm_context ctx;
     size_t key_len, msg_len, iv_len, add_len, result_len;
@@ -131,7 +130,7 @@ void ccm_auth_decrypt( int cipher_id,
     memset( msg, 0x00, sizeof( msg ) );
     memset( iv, 0x00, sizeof( iv ) );
     memset( add, 0x00, sizeof( add ) );
-    memset( output, 0xFF, sizeof( output ) );
+    memset( tag, 0x00, sizeof( tag ) );
     memset( result, 0x00, sizeof( result ) );
 
     key_len = unhexify( key, key_hex );
@@ -139,6 +138,7 @@ void ccm_auth_decrypt( int cipher_id,
     iv_len = unhexify( iv, iv_hex );
     add_len = unhexify( add, add_hex );
     msg_len -= tag_len;
+    memcpy( tag, msg + msg_len, tag_len );
 
     if( strcmp( "FAIL", result_hex ) == 0 )
     {
@@ -152,23 +152,24 @@ void ccm_auth_decrypt( int cipher_id,
 
     TEST_ASSERT( ccm_init( &ctx, cipher_id, key, key_len * 8 ) == 0 );
 
+    /* Test with input == output */
     TEST_ASSERT( ccm_auth_decrypt( &ctx, msg_len, iv, iv_len, add, add_len,
-                 msg, output, msg + msg_len, tag_len ) == ret );
+                 msg, msg, msg + msg_len, tag_len ) == ret );
 
     if( ret == 0 )
     {
-        TEST_ASSERT( memcmp( output, result, result_len ) == 0 );
+        TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
     }
     else
     {
         size_t i;
 
         for( i = 0; i < msg_len; i++ )
-            TEST_ASSERT( output[i] == 0 );
+            TEST_ASSERT( msg[i] == 0 );
     }
 
-    /* Check we didn't write past the end */
-    TEST_ASSERT( output[msg_len] == 0xFF && output[msg_len + 1] == 0xFF );
+    /* Check we didn't write past the end (where the original tag is) */
+    TEST_ASSERT( memcmp( msg + msg_len, tag, tag_len ) == 0 );
 
     ccm_free( &ctx );
 }

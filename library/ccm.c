@@ -84,33 +84,33 @@ void ccm_free( ccm_context *ctx )
     memset( ctx, 0, sizeof( ccm_context ) );
 }
 
-#define UPDATE_CBC_MAC( src )                                       \
-{                                                                   \
-    size_t olen;                                                    \
-                                                                    \
-    for( i = 0; i < 16; i++ )                                       \
-        src[i] ^= y[i];                                             \
-                                                                    \
-    if( ( ret = cipher_update( &ctx->cipher_ctx, src, 16,           \
-                               y, &olen ) ) != 0 )                  \
-    {                                                               \
-        return( ret );                                              \
-    }                                                               \
-}
+/*
+ * Macros for common operations.
+ * Results in smaller compiled code than static inline functions.
+ */
 
-#define CTR_CRYPT_BLOCK( dst, src )                                 \
-{                                                                   \
-    size_t olen;                                                    \
-                                                                    \
-    if( ( ret = cipher_update( &ctx->cipher_ctx, ctr, 16,           \
-                               dst, &olen ) ) != 0 )                \
-    {                                                               \
-        return( ret );                                              \
-    }                                                               \
-                                                                    \
-    for( i = 0; i < 16; i++ )                                       \
-        dst[i] ^= src[i];                                           \
-}
+/*
+ * Update the CBC-MAC state in y using a block in b
+ * (Always using b as the source helps the compiler optimise a bit better.)
+ */
+#define UPDATE_CBC_MAC                                                      \
+    for( i = 0; i < 16; i++ )                                               \
+        y[i] ^= b[i];                                                       \
+                                                                            \
+    if( ( ret = cipher_update( &ctx->cipher_ctx, y, 16, y, &olen ) ) != 0 ) \
+        return( ret );
+
+/*
+ * Encrypt or decrypt a partial block with CTR
+ * Warning: using b for temporary storage! src and dst must not be b!
+ * (This avoids allocating one more 16 bytes buffer.)
+ */
+#define CTR_CRYPT( dst, src, len  )                                            \
+    if( ( ret = cipher_update( &ctx->cipher_ctx, ctr, 16, b, &olen ) ) != 0 )  \
+        return( ret );                                                         \
+                                                                               \
+    for( i = 0; i < len; i++ )                                                 \
+        dst[i] = src[i] ^ b[i];
 
 /*
  * Authenticated encryption or decryption
@@ -124,7 +124,7 @@ static int ccm_auth_crypt( ccm_context *ctx, int mode, size_t length,
     int ret;
     unsigned char i;
     unsigned char q = 16 - 1 - iv_len;
-    size_t len_left;
+    size_t len_left, olen;
     unsigned char b[16];
     unsigned char y[16];
     unsigned char ctr[16];
@@ -174,7 +174,7 @@ static int ccm_auth_crypt( ccm_context *ctx, int mode, size_t length,
 
     /* Start CBC-MAC with first block */
     memset( y, 0, 16 );
-    UPDATE_CBC_MAC( b );
+    UPDATE_CBC_MAC;
 
     /*
      * If there is additional data, update CBC-MAC with
@@ -195,28 +195,23 @@ static int ccm_auth_crypt( ccm_context *ctx, int mode, size_t length,
         len_left -= use_len;
         src += use_len;
 
-        UPDATE_CBC_MAC( b );
+        UPDATE_CBC_MAC;
 
-        while( len_left > 16 )
+        while( len_left > 0 )
         {
-            memcpy( b, src, 16 );
-            UPDATE_CBC_MAC( b );
+            use_len = len_left > 16 ? 16 : len_left;
 
-            len_left -= 16;
-            src += 16;
-        }
-
-        if( len_left > 0 )
-        {
             memset( b, 0, 16 );
-            memcpy( b, src, len_left );
+            memcpy( b, src, use_len );
+            UPDATE_CBC_MAC;
 
-            UPDATE_CBC_MAC( b );
+            len_left -= use_len;
+            src += use_len;
         }
     }
 
     /*
-     * Counter block:
+     * Prepare counter block for encryption:
      * 0        .. 0        flags
      * 1        .. iv_len   nonce (aka iv)
      * iv_len+1 .. 15       counter (initially 1)
@@ -230,34 +225,39 @@ static int ccm_auth_crypt( ccm_context *ctx, int mode, size_t length,
     memset( ctr + 1 + iv_len, 0, q );
     ctr[15] = 1;
 
+    /*
+     * Authenticate and {en,de}crypt the message.
+     *
+     * The only difference between encryption and decryption is
+     * the respective order of authentication and {en,de}cryption.
+     */
     len_left = length;
     src = input;
     dst = output;
 
-    /*
-     * Authenticate and crypt message
-     * The only difference between encryption and decryption is
-     * the respective order of authentication and {en,de}cryption
-     */
-    while( len_left > 16 )
+    while( len_left > 0 )
     {
+        unsigned char use_len = len_left > 16 ? 16 : len_left;
+
         if( mode == CCM_ENCRYPT )
         {
-            memcpy( b, src, 16 );
-            UPDATE_CBC_MAC( b );
+            memset( b, 0, 16 );
+            memcpy( b, src, use_len );
+            UPDATE_CBC_MAC;
         }
 
-        CTR_CRYPT_BLOCK( dst, src );
+        CTR_CRYPT( dst, src, use_len );
 
         if( mode == CCM_DECRYPT )
         {
-            memcpy( b, dst, 16 );
-            UPDATE_CBC_MAC( b );
+            memset( b, 0, 16 );
+            memcpy( b, dst, use_len );
+            UPDATE_CBC_MAC;
         }
 
-        dst += 16;
-        src += 16;
-        len_left -= 16;
+        dst += use_len;
+        src += use_len;
+        len_left -= use_len;
 
         /*
          * Increment counter.
@@ -268,43 +268,14 @@ static int ccm_auth_crypt( ccm_context *ctx, int mode, size_t length,
                 break;
     }
 
-    if( len_left > 0 )
-    {
-        unsigned char mask[16];
-        size_t olen;
-
-        if( mode == CCM_ENCRYPT )
-        {
-            memset( b, 0, 16 );
-            memcpy( b, src, len_left );
-            UPDATE_CBC_MAC( b );
-        }
-
-        if( ( ret = cipher_update( &ctx->cipher_ctx, ctr, 16,
-                                   mask, &olen ) ) != 0 )
-        {
-            return( ret );
-        }
-
-        for( i = 0; i < len_left; i++ )
-            dst[i] = src[i] ^ mask[i];
-
-        if( mode == CCM_DECRYPT )
-        {
-            memset( b, 0, 16 );
-            memcpy( b, dst, len_left );
-            UPDATE_CBC_MAC( b );
-        }
-    }
-
     /*
-     * Authentication: reset counter and {en,de}crypt internal tag
+     * Authentication: reset counter and crypt/mask internal tag
      */
     for( i = 0; i < q; i++ )
         ctr[15-i] = 0;
 
-    CTR_CRYPT_BLOCK( b, y );
-    memcpy( tag, b, tag_len );
+    CTR_CRYPT( y, y, 16 );
+    memcpy( tag, y, tag_len );
 
     return( 0 );
 }

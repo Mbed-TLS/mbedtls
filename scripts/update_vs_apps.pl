@@ -2,19 +2,30 @@
 
 # create individual project files for example programs
 # for VS6 and VS2010
+#
+# Must be run from PolarSSL root or scripts directory.
+# Takes no argument.
 
 use warnings;
 use strict;
 
-my $vs6_dir = "../visualc/VS6";
+my $vs6_dir = "visualc/VS6";
 my $vs6_ext = "dsp";
-my $vs6_template_file = "data_files/vs6-app-template.$vs6_ext";
+my $vs6_app_tpl_file = "scripts/data_files/vs6-app-template.$vs6_ext";
 
-my $vsx_dir = "../visualc/VS2010";
+my $vsx_dir = "visualc/VS2010";
 my $vsx_ext = "vcxproj";
-my $vsx_template_file = "data_files/vs2010-app-template.$vsx_ext";
+my $vsx_app_tpl_file = "scripts/data_files/vs2010-app-template.$vsx_ext";
+
+my $programs_dir = 'programs';
 
 exit( main() );
+
+sub check_dirs {
+    return -d $vs6_dir
+        && -d $vsx_dir
+        && -d $programs_dir;
+}
 
 sub slurp_file {
     my ($filename) = @_;
@@ -43,24 +54,31 @@ sub gen_app {
 }
 
 sub get_app_list {
-    my $app_list = `cd ../programs && make list`;
+    my $app_list = `cd $programs_dir && make list`;
     die "make list failed: $!\n" if $?;
 
     return split /\s+/, $app_list;
 }
 
-sub main {
-    -d $vs6_dir || die "VS6 directory not found: $vs6_dir\n";
-    -d $vsx_dir || die "VS2010 directory not found: $vsx_dir\n";
-
-    my $vs6_tpl = slurp_file( $vs6_template_file );
-    my $vsx_tpl = slurp_file( $vsx_template_file );
+sub gen_app_files {
+    my $vs6_tpl = slurp_file( $vs6_app_tpl_file );
+    my $vsx_tpl = slurp_file( $vsx_app_tpl_file );
 
     for my $app ( get_app_list() ) {
-        printf "$app\n";
         gen_app( $app, $vs6_tpl, $vs6_dir, $vs6_ext );
         gen_app( $app, $vsx_tpl, $vsx_dir, $vsx_ext );
     }
+}
+
+sub main {
+    if( ! check_dirs() ) {
+        chdir '..' or die;
+        check_dirs or die "Must but run from PolarSSL root or scripts dir\n";
+    }
+
+    print "Generating apps files: ";
+    gen_app_files();
+    print "done.\n";
 
     return 0;
 }

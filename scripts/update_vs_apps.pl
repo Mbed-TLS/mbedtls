@@ -12,18 +12,41 @@ use strict;
 my $vs6_dir = "visualc/VS6";
 my $vs6_ext = "dsp";
 my $vs6_app_tpl_file = "scripts/data_files/vs6-app-template.$vs6_ext";
+my $vs6_main_tpl_file = "scripts/data_files/vs6-main-template.$vs6_ext";
+my $vs6_main_file = "$vs6_dir/polarssl.$vs6_ext";
 
 my $vsx_dir = "visualc/VS2010";
 my $vsx_ext = "vcxproj";
 my $vsx_app_tpl_file = "scripts/data_files/vs2010-app-template.$vsx_ext";
+my $vsx_main_tpl_file = "scripts/data_files/vs2010-main-template.$vsx_ext";
+my $vsx_main_file = "$vsx_dir/PolarSSL.$vsx_ext";
 
 my $programs_dir = 'programs';
+my $header_dir = 'include/polarssl';
+my $source_dir = 'library';
+
+# Need windows line endings!
+my $vs6_file_tpl = <<EOT;
+# Begin Source File\r
+\r
+SOURCE=..\\..\\{FILE}\r
+# End Source File\r
+EOT
+
+my $vsx_hdr_tpl = <<EOT;
+    <ClInclude Include="..\\..\\{FILE}" />\r
+EOT
+my $vsx_src_tpl = <<EOT;
+    <ClCompile Include="..\\..\\{FILE}" />\r
+EOT
 
 exit( main() );
 
 sub check_dirs {
     return -d $vs6_dir
         && -d $vsx_dir
+        && -d $header_dir
+        && -d $source_dir
         && -d $programs_dir;
 }
 
@@ -61,13 +84,42 @@ sub get_app_list {
 }
 
 sub gen_app_files {
+    my @app_list = @_;
+
     my $vs6_tpl = slurp_file( $vs6_app_tpl_file );
     my $vsx_tpl = slurp_file( $vsx_app_tpl_file );
 
-    for my $app ( get_app_list() ) {
+    for my $app ( @app_list ) {
         gen_app( $app, $vs6_tpl, $vs6_dir, $vs6_ext );
         gen_app( $app, $vsx_tpl, $vsx_dir, $vsx_ext );
     }
+}
+
+sub gen_entry_list {
+    my ($tpl, @files) = @_;
+
+    my $entries;
+    for my $file (@files) {
+        (my $entry = $tpl) =~ s/{FILE}/$file/;
+        $entries .= $entry;
+    }
+
+    return $entries;
+}
+
+sub gen_main_file {
+    my ($headers, $sources, $hdr_tpl, $src_tpl, $main_tpl, $main_out) = @_;
+
+    my $header_entries = gen_entry_list( $hdr_tpl, @$headers );
+    my $source_entries = gen_entry_list( $src_tpl, @$sources );
+
+    my $out = slurp_file( $main_tpl );
+    $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
+    $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
+
+    open my $fh, '>', $main_out or die;
+    print $fh $out;
+    close $fh;
 }
 
 sub main {
@@ -76,8 +128,23 @@ sub main {
         check_dirs or die "Must but run from PolarSSL root or scripts dir\n";
     }
 
-    print "Generating apps files: ";
-    gen_app_files();
+    my @app_list = get_app_list();
+    my @headers = <$header_dir/*.h>;
+    my @sources = <$source_dir/*.c>;
+    map { s!/!\\!g } @headers;
+    map { s!/!\\!g } @sources;
+
+    print "Generating apps files... ";
+    gen_app_files( @app_list );
+    print "done.\n";
+
+    print "Generating main files... ";
+    gen_main_file( \@headers, \@sources,
+                   $vs6_file_tpl, $vs6_file_tpl,
+                   $vs6_main_tpl_file, $vs6_main_file );
+    gen_main_file( \@headers, \@sources,
+                   $vsx_hdr_tpl, $vsx_src_tpl,
+                   $vsx_main_tpl_file, $vsx_main_file );
     print "done.\n";
 
     return 0;

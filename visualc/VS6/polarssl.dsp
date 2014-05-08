@@ -74,7 +74,7 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
 
-!ENDIF 
+!ENDIF
 
 # Begin Target
 
@@ -189,6 +189,10 @@ SOURCE=..\..\library\hmac_drbg.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\md.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\md2.c
 # End Source File
 # Begin Source File
@@ -198,10 +202,6 @@ SOURCE=..\..\library\md4.c
 # Begin Source File
 
 SOURCE=..\..\library\md5.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\library\md.c
 # End Source File
 # Begin Source File
 
@@ -237,6 +237,10 @@ SOURCE=..\..\library\pk.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\pk_wrap.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\pkcs11.c
 # End Source File
 # Begin Source File
@@ -250,10 +254,6 @@ SOURCE=..\..\library\pkcs5.c
 # Begin Source File
 
 SOURCE=..\..\library\pkparse.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\library\pk_wrap.c
 # End Source File
 # Begin Source File
 
@@ -322,10 +322,6 @@ SOURCE=..\..\library\version_features.c
 # Begin Source File
 
 SOURCE=..\..\library\x509.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\library\x509_create.c
 # End Source File
 # Begin Source File
 
@@ -405,6 +401,10 @@ SOURCE=..\..\include\polarssl\certs.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\check_config.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\cipher.h
 # End Source File
 # Begin Source File
@@ -413,11 +413,11 @@ SOURCE=..\..\include\polarssl\cipher_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\config.h
+SOURCE=..\..\include\polarssl\compat-1.2.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\check_config.h
+SOURCE=..\..\include\polarssl\config.h
 # End Source File
 # Begin Source File
 
@@ -473,6 +473,10 @@ SOURCE=..\..\include\polarssl\hmac_drbg.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\md.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\md2.h
 # End Source File
 # Begin Source File
@@ -485,19 +489,15 @@ SOURCE=..\..\include\polarssl\md5.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\md.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\polarssl\md_wrap.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\memory_buffer_alloc.h
+SOURCE=..\..\include\polarssl\memory.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\polarssl\memory.h
+SOURCE=..\..\include\polarssl\memory_buffer_alloc.h
 # End Source File
 # Begin Source File
 
@@ -525,6 +525,14 @@ SOURCE=..\..\include\polarssl\pem.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\pk.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\pk_wrap.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\pkcs11.h
 # End Source File
 # Begin Source File
@@ -534,14 +542,6 @@ SOURCE=..\..\include\polarssl\pkcs12.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\pkcs5.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\polarssl\pk.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\polarssl\pk_wrap.h
 # End Source File
 # Begin Source File
 
@@ -569,15 +569,15 @@ SOURCE=..\..\include\polarssl\sha512.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\ssl.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\ssl_cache.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\ssl_ciphersuites.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\polarssl\ssl.h
 # End Source File
 # Begin Source File
 
@@ -593,6 +593,10 @@ SOURCE=..\..\include\polarssl\version.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\x509.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\x509_crl.h
 # End Source File
 # Begin Source File
@@ -602,10 +606,6 @@ SOURCE=..\..\include\polarssl\x509_crt.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\x509_csr.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\polarssl\x509.h
 # End Source File
 # Begin Source File
 

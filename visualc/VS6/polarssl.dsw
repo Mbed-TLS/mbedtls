@@ -18,7 +18,82 @@ Package=<4>
 
 ###############################################################################
 
-Project: "benchmark"=.\benchmark.dsp - Package Owner=<4>
+Project: "crypt_and_hash"=.\crypt_and_hash.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "hello"=.\hello.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "generic_sum"=.\generic_sum.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "md5sum"=.\md5sum.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "sha1sum"=.\sha1sum.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "sha2sum"=.\sha2sum.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -78,7 +153,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "hello"=.\hello.dsp - Package Owner=<4>
+Project: "gen_key"=.\gen_key.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -93,7 +168,22 @@ Package=<4>
 
 ###############################################################################
 
-Project: "md5sum"=.\md5sum.dsp - Package Owner=<4>
+Project: "key_app"=.\key_app.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "key_app_writer"=.\key_app_writer.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -123,7 +213,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "polarssl"=.\polarssl.dsp - Package Owner=<4>
+Project: "pk_decrypt"=.\pk_decrypt.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -131,11 +221,89 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pk_encrypt"=.\pk_encrypt.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pk_sign"=.\pk_sign.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pk_verify"=.\pk_verify.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
 }}}
 
 ###############################################################################
 
 Project: "rsa_genkey"=.\rsa_genkey.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "rsa_decrypt"=.\rsa_decrypt.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "rsa_encrypt"=.\rsa_encrypt.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -180,7 +348,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "selftest"=.\selftest.dsp - Package Owner=<4>
+Project: "rsa_sign_pss"=.\rsa_sign_pss.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -195,37 +363,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "sha1sum"=.\sha1sum.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name polarssl
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "sha2sum"=.\sha2sum.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name polarssl
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "ssl_cert_test"=.\ssl_cert_test.dsp - Package Owner=<4>
+Project: "rsa_verify_pss"=.\rsa_verify_pss.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -271,6 +409,231 @@ Package=<4>
 ###############################################################################
 
 Project: "ssl_server"=.\ssl_server.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ssl_server2"=.\ssl_server2.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ssl_fork_server"=.\ssl_fork_server.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ssl_mail_client"=.\ssl_mail_client.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "gen_entropy"=.\gen_entropy.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "gen_random_havege"=.\gen_random_havege.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "gen_random_ctr_drbg"=.\gen_random_ctr_drbg.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ssl_cert_test"=.\ssl_cert_test.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "benchmark"=.\benchmark.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "selftest"=.\selftest.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ssl_test"=.\ssl_test.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "pem2der"=.\pem2der.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "strerror"=.\strerror.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "cert_app"=.\cert_app.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "crl_app"=.\crl_app.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "cert_req"=.\cert_req.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

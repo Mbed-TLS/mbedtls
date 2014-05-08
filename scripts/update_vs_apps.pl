@@ -14,6 +14,8 @@ my $vs6_ext = "dsp";
 my $vs6_app_tpl_file = "scripts/data_files/vs6-app-template.$vs6_ext";
 my $vs6_main_tpl_file = "scripts/data_files/vs6-main-template.$vs6_ext";
 my $vs6_main_file = "$vs6_dir/polarssl.$vs6_ext";
+my $vs6_wsp_tpl_file = "scripts/data_files/vs6-workspace-template.dsw";
+my $vs6_wsp_file = "$vs6_dir/polarssl.dsw";
 
 my $vsx_dir = "visualc/VS2010";
 my $vsx_ext = "vcxproj";
@@ -29,15 +31,33 @@ my $source_dir = 'library';
 my $vs6_file_tpl = <<EOT;
 # Begin Source File\r
 \r
-SOURCE=..\\..\\{FILE}\r
+SOURCE=..\\..\\{NAME}\r
 # End Source File\r
 EOT
 
+my $vs6_wsp_entry_tpl = <<EOT;
+###############################################################################\r
+\r
+Project: "{NAME}"=.\\{NAME}.dsp - Package Owner=<4>\r
+\r
+Package=<5>\r
+{{{\r
+}}}\r
+\r
+Package=<4>\r
+{{{\r
+    Begin Project Dependency\r
+    Project_Dep_Name polarssl\r
+    End Project Dependency\r
+}}}\r
+\r
+EOT
+
 my $vsx_hdr_tpl = <<EOT;
-    <ClInclude Include="..\\..\\{FILE}" />\r
+    <ClInclude Include="..\\..\\{NAME}" />\r
 EOT
 my $vsx_src_tpl = <<EOT;
-    <ClCompile Include="..\\..\\{FILE}" />\r
+    <ClCompile Include="..\\..\\{NAME}" />\r
 EOT
 
 exit( main() );
@@ -96,11 +116,11 @@ sub gen_app_files {
 }
 
 sub gen_entry_list {
-    my ($tpl, @files) = @_;
+    my ($tpl, @names) = @_;
 
     my $entries;
-    for my $file (@files) {
-        (my $entry = $tpl) =~ s/{FILE}/$file/;
+    for my $name (@names) {
+        (my $entry = $tpl) =~ s/{NAME}/$name/g;
         $entries .= $entry;
     }
 
@@ -118,6 +138,20 @@ sub gen_main_file {
     $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
 
     open my $fh, '>', $main_out or die;
+    print $fh $out;
+    close $fh;
+}
+
+sub gen_vs6_workspace {
+    my (@app_names) = @_;
+
+    map { s!.*/!! } @app_names;
+    my $entries = gen_entry_list( $vs6_wsp_entry_tpl, @app_names );
+
+    my $out = slurp_file( $vs6_wsp_tpl_file );
+    $out =~ s/APP_ENTRIES\r\n/$entries/m;
+
+    open my $fh, '>', $vs6_wsp_file or die;
     print $fh $out;
     close $fh;
 }
@@ -146,6 +180,11 @@ sub main {
                    $vsx_hdr_tpl, $vsx_src_tpl,
                    $vsx_main_tpl_file, $vsx_main_file );
     print "done.\n";
+
+    print "Generating VS6 workspace file... ";
+    gen_vs6_workspace( @app_list );
+    print "done.\n";
+
 
     return 0;
 }

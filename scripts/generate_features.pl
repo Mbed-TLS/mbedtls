@@ -3,9 +3,26 @@
 
 use strict;
 
-my $include_dir = shift or die "Missing include directory";
-my $data_dir = shift or die "Missing data directory";
-my $feature_file = shift or die "Missing destination file";
+my ($include_dir, $data_dir, $feature_file);
+
+if( @ARGV ) {
+    die "Invalid number of arguments" if scalar @ARGV != 3;
+    ($include_dir, $data_dir, $feature_file) = @ARGV;
+
+    -d $include_dir or die "No such directory: $include_dir\n";
+    -d $data_dir or die "No such directory: $data_dir\n";
+} else {
+    $include_dir = 'include/polarssl';
+    $data_dir = 'scripts/data_files';
+    $feature_file = 'library/version_features.c';
+
+    unless( -d $include_dir && -d $data_dir ) {
+        chdir '..' or die;
+        -d $include_dir && -d $data_dir
+            or die "Without arguments, must be run from root or scripts\n"
+    }
+}
+
 my $feature_format_file = $data_dir.'/version_features.fmt';
 
 my @sections = ( "System support", "PolarSSL modules",

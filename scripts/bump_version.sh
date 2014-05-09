@@ -85,10 +85,10 @@ do
 done
 
 [ $VERBOSE ] && echo "Re-generating library/error.c"
-scripts/generate_errors.pl include/polarssl scripts/data_files library/error.c
+scripts/generate_errors.pl
 
 [ $VERBOSE ] && echo "Re-generating library/version_features.c"
-scripts/generate_features.pl include/polarssl scripts/data_files library/version_features.c
+scripts/generate_features.pl
 
 [ $VERBOSE ] && echo "Re-generating visualc files"
 scripts/generate_visualc_files.pl

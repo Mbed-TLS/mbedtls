@@ -27,7 +27,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{54880004-9AA2-434D-A2F0-7F59D6F1536A}</ProjectGuid>
+    <ProjectGuid>{10F967D6-468F-3BCA-2D58-36A32E376930}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>crl_app</RootNamespace>
   </PropertyGroup>

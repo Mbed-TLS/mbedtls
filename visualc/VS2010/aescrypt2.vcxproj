@@ -27,7 +27,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{54880004-9AA2-434D-A2F0-7F59D6F1536A}</ProjectGuid>
+    <ProjectGuid>{46298485-CE22-B800-3D95-6D6C821819A1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>aescrypt2</RootNamespace>
   </PropertyGroup>

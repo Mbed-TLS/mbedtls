@@ -27,7 +27,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{54880004-9AA2-434D-A2F0-7F59D6F1536A}</ProjectGuid>
+    <ProjectGuid>{5129B724-3FB6-CE34-FF51-57031A33C50B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>key_app</RootNamespace>
   </PropertyGroup>

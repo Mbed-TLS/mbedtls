@@ -8,6 +8,7 @@
 
 use warnings;
 use strict;
+use Digest::MD5 'md5_hex';
 
 my $vs6_dir = "visualc/VS6";
 my $vs6_ext = "dsp";
@@ -81,15 +82,26 @@ sub slurp_file {
     return $content;
 }
 
+sub gen_app_guid {
+    my ($path) = @_;
+
+    my $guid = md5_hex( "PolarSSL:$path" );
+    $guid =~ s/(.{8})(.{4})(.{4})(.{4})(.{12})/\U{$1-$2-$3-$4-$5}/;
+
+    return $guid;
+}
+
 sub gen_app {
     my ($path, $template, $dir, $ext) = @_;
 
+    my $guid = gen_app_guid( $path );
     $path =~ s!/!\\!g;
     (my $appname = $path) =~ s/.*\\//;
 
     my $content = $template;
     $content =~ s/<PATHNAME>/$path/g;
     $content =~ s/<APPNAME>/$appname/g;
+    $content =~ s/<GUID>/$guid/g;
 
     open my $app_fh, '>', "$dir/$appname.$ext";
     print $app_fh $content;

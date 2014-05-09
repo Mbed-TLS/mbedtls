@@ -21,8 +21,11 @@ MEMORY=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        -m|--memory)
+        -m1)
             MEMORY=1
+            ;;
+        -m2)
+            MEMORY=2
             ;;
         *)
             echo "Unknown argument: '$1'" >&2
@@ -83,16 +86,17 @@ tests/scripts/test-ref-configs.pl
 
 # Step 3: using valgrind's memcheck
 
-if [ "$MEMORY" -gt 0 ] && which valgrind >/dev/null; then
-    msg "Release build, full tests with valgrind's memcheck"
-    cleanup
-    # optimized build to compensate a bit for valgrind slowdown
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    make
-    make memcheck
+msg "Release build, test suites with valgrind's memcheck"
+cleanup
+# optimized build to compensate a bit for valgrind slowdown
+cmake -D CMAKE_BUILD_TYPE:String=Release .
+make
+make memcheck
+
+if [ "$MEMORY" -gt 0 ]; then
     cd tests
-    ./compat.sh --memcheck
     ./ssl-opt.sh --memcheck
+    [ "$MEMORY" -gt 1 ] && ./compat.sh --memcheck
     cd ..
     # no test-ref-configs: doesn't have a memcheck option (yet?)
 fi

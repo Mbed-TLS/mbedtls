@@ -23,6 +23,8 @@ my $vsx_ext = "vcxproj";
 my $vsx_app_tpl_file = "scripts/data_files/vs2010-app-template.$vsx_ext";
 my $vsx_main_tpl_file = "scripts/data_files/vs2010-main-template.$vsx_ext";
 my $vsx_main_file = "$vsx_dir/PolarSSL.$vsx_ext";
+my $vsx_sln_tpl_file = "scripts/data_files/vs2010-sln-template.sln";
+my $vsx_sln_file = "$vsx_dir/PolarSSL.sln";
 
 my $programs_dir = 'programs';
 my $header_dir = 'include/polarssl';
@@ -59,6 +61,25 @@ my $vsx_hdr_tpl = <<EOT;
 EOT
 my $vsx_src_tpl = <<EOT;
     <ClCompile Include="..\\..\\{NAME}" />\r
+EOT
+
+my $vsx_sln_app_entry_tpl = <<EOT;
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "{APPNAME}", "{APPNAME}.vcxproj", "{GUID}"\r
+	ProjectSection(ProjectDependencies) = postProject\r
+		{46CF2D25-6A36-4189-B59C-E4815388E554} = {46CF2D25-6A36-4189-B59C-E4815388E554}\r
+	EndProjectSection\r
+EndProject\r
+EOT
+
+my $vsx_sln_conf_entry_tpl = <<EOT;
+		{GUID}.Debug|Win32.ActiveCfg = Debug|Win32\r
+		{GUID}.Debug|Win32.Build.0 = Debug|Win32\r
+		{GUID}.Debug|x64.ActiveCfg = Debug|x64\r
+		{GUID}.Debug|x64.Build.0 = Debug|x64\r
+		{GUID}.Release|Win32.ActiveCfg = Release|Win32\r
+		{GUID}.Release|Win32.Build.0 = Release|Win32\r
+		{GUID}.Release|x64.ActiveCfg = Release|x64\r
+		{GUID}.Release|x64.Build.0 = Release|x64\r
 EOT
 
 exit( main() );
@@ -168,6 +189,35 @@ sub gen_vs6_workspace {
     close $fh;
 }
 
+sub gen_vsx_solution {
+    my (@app_names) = @_;
+
+    my ($app_entries, $conf_entries);
+    for my $path (@app_names) {
+        my $guid = gen_app_guid( $path );
+        (my $appname = $path) =~ s!.*/!!;
+
+        my $app_entry = $vsx_sln_app_entry_tpl;
+        $app_entry =~ s/{APPNAME}/$appname/g;
+        $app_entry =~ s/{GUID}/$guid/g;
+
+        $app_entries .= $app_entry;
+
+        my $conf_entry = $vsx_sln_conf_entry_tpl;
+        $conf_entry =~ s/{GUID}/$guid/g;
+
+        $conf_entries .= $conf_entry;
+    }
+
+    my $out = slurp_file( $vsx_sln_tpl_file );
+    $out =~ s/APP_ENTRIES\r\n/$app_entries/m;
+    $out =~ s/CONF_ENTRIES\r\n/$conf_entries/m;
+
+    open my $fh, '>', $vsx_sln_file or die;
+    print $fh $out;
+    close $fh;
+}
+
 sub main {
     if( ! check_dirs() ) {
         chdir '..' or die;
@@ -197,6 +247,9 @@ sub main {
     gen_vs6_workspace( @app_list );
     print "done.\n";
 
+    print "Generating VS2010 solution file... ";
+    gen_vsx_solution( @app_list );
+    print "done.\n";
 
     return 0;
 }

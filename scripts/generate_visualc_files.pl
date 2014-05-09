@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 
-# create individual project files for example programs
-# for VS6 and VS2010
+# Generate files for MS Visual Studio:
+# - for VS6: main project (library) file, individual app files, workspace
+# - for VS2010: main file, individual apps, solution file
 #
 # Must be run from PolarSSL root or scripts directory.
 # Takes no argument.

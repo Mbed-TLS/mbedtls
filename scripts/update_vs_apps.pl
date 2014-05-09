@@ -103,6 +103,14 @@ sub slurp_file {
     return $content;
 }
 
+sub content_to_file {
+    my ($content, $filename) = @_;
+
+    open my $fh, '>', $filename or die "Could not write to $filename\n";
+    print $fh $content;
+    close $fh;
+}
+
 sub gen_app_guid {
     my ($path) = @_;
 
@@ -124,9 +132,7 @@ sub gen_app {
     $content =~ s/<APPNAME>/$appname/g;
     $content =~ s/<GUID>/$guid/g;
 
-    open my $app_fh, '>', "$dir/$appname.$ext";
-    print $app_fh $content;
-    close $app_fh;
+    content_to_file( $content, "$dir/$appname.$ext" );
 }
 
 sub get_app_list {
@@ -170,9 +176,7 @@ sub gen_main_file {
     $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
     $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
 
-    open my $fh, '>', $main_out or die;
-    print $fh $out;
-    close $fh;
+    content_to_file( $out, $main_out );
 }
 
 sub gen_vs6_workspace {
@@ -184,9 +188,7 @@ sub gen_vs6_workspace {
     my $out = slurp_file( $vs6_wsp_tpl_file );
     $out =~ s/APP_ENTRIES\r\n/$entries/m;
 
-    open my $fh, '>', $vs6_wsp_file or die;
-    print $fh $out;
-    close $fh;
+    content_to_file( $out, $vs6_wsp_file );
 }
 
 sub gen_vsx_solution {
@@ -213,9 +215,7 @@ sub gen_vsx_solution {
     $out =~ s/APP_ENTRIES\r\n/$app_entries/m;
     $out =~ s/CONF_ENTRIES\r\n/$conf_entries/m;
 
-    open my $fh, '>', $vsx_sln_file or die;
-    print $fh $out;
-    close $fh;
+    content_to_file( $out, $vsx_sln_file );
 }
 
 sub main {

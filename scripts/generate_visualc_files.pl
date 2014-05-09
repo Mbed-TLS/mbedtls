@@ -231,26 +231,18 @@ sub main {
     map { s!/!\\!g } @headers;
     map { s!/!\\!g } @sources;
 
-    print "Generating apps files... ";
     gen_app_files( @app_list );
-    print "done.\n";
 
-    print "Generating main files... ";
     gen_main_file( \@headers, \@sources,
                    $vs6_file_tpl, $vs6_file_tpl,
                    $vs6_main_tpl_file, $vs6_main_file );
     gen_main_file( \@headers, \@sources,
                    $vsx_hdr_tpl, $vsx_src_tpl,
                    $vsx_main_tpl_file, $vsx_main_file );
-    print "done.\n";
 
-    print "Generating VS6 workspace file... ";
     gen_vs6_workspace( @app_list );
-    print "done.\n";
 
-    print "Generating VS2010 solution file... ";
     gen_vsx_solution( @app_list );
-    print "done.\n";
 
     return 0;
 }

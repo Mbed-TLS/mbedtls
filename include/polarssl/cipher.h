@@ -127,7 +127,7 @@ typedef enum {
     POLARSSL_MODE_ECB,
     POLARSSL_MODE_CBC,
     POLARSSL_MODE_CFB,
-    POLARSSL_MODE_OFB,
+    POLARSSL_MODE_OFB, /* Unused! */
     POLARSSL_MODE_CTR,
     POLARSSL_MODE_GCM,
     POLARSSL_MODE_STREAM,
@@ -506,7 +506,7 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
  * \param iv_len        IV length for ciphers with variable-size IV;
  *                      discarded by ciphers with fixed-size IV.
  *
- * \returns             O on success, or POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+ * \returns             0 on success, or POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
  *
  * \note                Some ciphers don't use IVs nor NONCE. For these
  *                      ciphers, this function has no effect.
@@ -626,6 +626,38 @@ int cipher_write_tag( cipher_context_t *ctx,
 int cipher_check_tag( cipher_context_t *ctx,
                       const unsigned char *tag, size_t tag_len );
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
+
+/**
+ * \brief               Generic all-in-one encryption/decryption
+ *                      (for all ciphers except AEAD constructs).
+ *
+ * \param ctx           generic cipher context
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
+ * \param input         buffer holding the input data
+ * \param ilen          length of the input data
+ * \param output        buffer for the output data. Should be able to hold at
+ *                      least ilen + block_size. Cannot be the same buffer as
+ *                      input!
+ * \param olen          length of the output data, will be filled with the
+ *                      actual number of bytes written.
+ *
+ * \note                Some ciphers don't use IVs nor NONCE. For these
+ *                      ciphers, use iv = NULL and iv_len = 0.
+ *
+ * \returns             0 on success, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA, or
+ *                      POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED if decryption
+ *                      expected a full block but was not provided one, or
+ *                      POLARSSL_ERR_CIPHER_INVALID_PADDING on invalid padding
+ *                      while decrypting, or
+ *                      a cipher specific error code.
+ */
+int cipher_crypt( cipher_context_t *ctx,
+                  const unsigned char *iv, size_t iv_len,
+                  const unsigned char *input, size_t ilen,
+                  unsigned char *output, size_t *olen );
 
 /**
  * \brief          Checkup routine

@@ -771,6 +771,34 @@ int cipher_check_tag( cipher_context_t *ctx,
 }
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
+/*
+ * Packet-oriented wrapper for non-AEAD modes
+ */
+int cipher_crypt( cipher_context_t *ctx,
+                  const unsigned char *iv, size_t iv_len,
+                  const unsigned char *input, size_t ilen,
+                  unsigned char *output, size_t *olen )
+{
+    int ret;
+    size_t finish_olen;
+
+    if( ( ret = cipher_set_iv( ctx, iv, iv_len ) ) != 0 )
+        return( ret );
+
+    if( ( ret = cipher_reset( ctx ) ) != 0 )
+        return( ret );
+
+    if( ( ret = cipher_update( ctx, input, ilen, output, olen ) ) != 0 )
+        return( ret );
+
+    if( ( ret = cipher_finish( ctx, output + *olen, &finish_olen ) ) != 0 )
+        return( ret );
+
+    *olen += finish_olen;
+
+    return( 0 );
+}
+
 #if defined(POLARSSL_SELF_TEST)
 
 /*

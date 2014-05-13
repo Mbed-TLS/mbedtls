@@ -799,6 +799,62 @@ int cipher_crypt( cipher_context_t *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+/*
+ * Packet-oriented encryption for AEAD modes
+ */
+int cipher_auth_encrypt( cipher_context_t *ctx,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *ad, size_t ad_len,
+                         const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen,
+                         unsigned char *tag, size_t tag_len )
+{
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+    {
+        *olen = ilen;
+        return( gcm_crypt_and_tag( ctx->cipher_ctx, GCM_ENCRYPT, ilen,
+                                   iv, iv_len, ad, ad_len, input, output,
+                                   tag_len, tag ) );
+    }
+#endif
+
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
+}
+
+/*
+ * Packet-oriented decryption for AEAD modes
+ */
+int cipher_auth_decrypt( cipher_context_t *ctx,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *ad, size_t ad_len,
+                         const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen,
+                         const unsigned char *tag, size_t tag_len )
+{
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+    {
+        int ret;
+
+        *olen = ilen;
+        ret = gcm_auth_decrypt( ctx->cipher_ctx, ilen,
+                                iv, iv_len, ad, ad_len,
+                                tag, tag_len, input, output );
+
+        if( ret == POLARSSL_ERR_GCM_AUTH_FAILED )
+            ret = POLARSSL_ERR_CIPHER_AUTH_FAILED;
+
+        return( ret );
+    }
+#endif
+
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
+}
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
+
+
 #if defined(POLARSSL_SELF_TEST)
 
 /*

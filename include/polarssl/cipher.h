@@ -659,6 +659,71 @@ int cipher_crypt( cipher_context_t *ctx,
                   const unsigned char *input, size_t ilen,
                   unsigned char *output, size_t *olen );
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+/**
+ * \brief               Generic autenticated encryption (AEAD ciphers).
+ *
+ * \param ctx           generic cipher context
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
+ * \param ad            Additional data to authenticate.
+ * \param ad_len        Length of ad.
+ * \param input         buffer holding the input data
+ * \param ilen          length of the input data
+ * \param output        buffer for the output data.
+ *                      Should be able to hold at least ilen.
+ * \param olen          length of the output data, will be filled with the
+ *                      actual number of bytes written.
+ * \param tag           buffer for the authentication tag
+ * \param tag_len       desired tag length
+ *
+ * \returns             0 on success, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA, or
+ *                      a cipher specific error code.
+ */
+int cipher_auth_encrypt( cipher_context_t *ctx,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *ad, size_t ad_len,
+                         const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen,
+                         unsigned char *tag, size_t tag_len );
+
+/**
+ * \brief               Generic autenticated decryption (AEAD ciphers).
+ *
+ * \param ctx           generic cipher context
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
+ * \param ad            Additional data to be authenticated.
+ * \param ad_len        Length of ad.
+ * \param input         buffer holding the input data
+ * \param ilen          length of the input data
+ * \param output        buffer for the output data.
+ *                      Should be able to hold at least ilen.
+ * \param olen          length of the output data, will be filled with the
+ *                      actual number of bytes written.
+ * \param tag           buffer holding the authentication tag
+ * \param tag_len       length of the authentication tag
+ *
+ * \returns             0 on success, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA, or
+ *                      POLARSSL_ERR_CIPHER_AUTH_FAILED if data isn't authentic,
+ *                      or a cipher specific error code.
+ *
+ * \note                If the data is not authentic, then the output buffer
+ *                      is zeroed out to prevent the unauthentic plaintext to
+ *                      be used by mistake, making this interface safer.
+ */
+int cipher_auth_decrypt( cipher_context_t *ctx,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *ad, size_t ad_len,
+                         const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen,
+                         const unsigned char *tag, size_t tag_len );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
+
 /**
  * \brief          Checkup routine
  *

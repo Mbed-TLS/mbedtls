@@ -61,6 +61,10 @@
 #include "polarssl/gcm.h"
 #endif
 
+#if defined(POLARSSL_CCM_C)
+#include "polarssl/ccm.h"
+#endif
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
@@ -83,6 +87,20 @@ static void gcm_ctx_free( void *ctx )
     polarssl_free( ctx );
 }
 #endif /* POLARSSL_GCM_C */
+
+#if defined(POLARSSL_CCM_C)
+/* shared by all CCM ciphers */
+static void *ccm_ctx_alloc( void )
+{
+    return polarssl_malloc( sizeof( ccm_context ) );
+}
+
+static void ccm_ctx_free( void *ctx )
+{
+    ccm_free( ctx );
+    polarssl_free( ctx );
+}
+#endif /* POLARSSL_CCM_C */
 
 #if defined(POLARSSL_AES_C)
 
@@ -377,6 +395,61 @@ const cipher_info_t aes_256_gcm_info = {
     &gcm_aes_info
 };
 #endif /* POLARSSL_GCM_C */
+
+#if defined(POLARSSL_CCM_C)
+static int ccm_aes_setkey_wrap( void *ctx, const unsigned char *key,
+                                unsigned int key_length )
+{
+    return ccm_init( (ccm_context *) ctx, POLARSSL_CIPHER_ID_AES,
+                     key, key_length );
+}
+
+const cipher_base_t ccm_aes_info = {
+    POLARSSL_CIPHER_ID_AES,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    ccm_aes_setkey_wrap,
+    ccm_aes_setkey_wrap,
+    ccm_ctx_alloc,
+    ccm_ctx_free,
+};
+
+const cipher_info_t aes_128_ccm_info = {
+    POLARSSL_CIPHER_AES_128_CCM,
+    POLARSSL_MODE_CCM,
+    128,
+    "AES-128-CCM",
+    12,
+    1,
+    16,
+    &ccm_aes_info
+};
+
+const cipher_info_t aes_192_ccm_info = {
+    POLARSSL_CIPHER_AES_192_CCM,
+    POLARSSL_MODE_CCM,
+    192,
+    "AES-192-CCM",
+    12,
+    1,
+    16,
+    &ccm_aes_info
+};
+
+const cipher_info_t aes_256_ccm_info = {
+    POLARSSL_CIPHER_AES_256_CCM,
+    POLARSSL_MODE_CCM,
+    256,
+    "AES-256-CCM",
+    12,
+    1,
+    16,
+    &ccm_aes_info
+};
+#endif /* POLARSSL_CCM_C */
 
 #endif /* POLARSSL_AES_C */
 
@@ -675,6 +748,61 @@ const cipher_info_t camellia_256_gcm_info = {
     &gcm_camellia_info
 };
 #endif /* POLARSSL_GCM_C */
+
+#if defined(POLARSSL_CCM_C)
+static int ccm_camellia_setkey_wrap( void *ctx, const unsigned char *key,
+                                     unsigned int key_length )
+{
+    return ccm_init( (ccm_context *) ctx, POLARSSL_CIPHER_ID_CAMELLIA,
+                     key, key_length );
+}
+
+const cipher_base_t ccm_camellia_info = {
+    POLARSSL_CIPHER_ID_CAMELLIA,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    ccm_camellia_setkey_wrap,
+    ccm_camellia_setkey_wrap,
+    ccm_ctx_alloc,
+    ccm_ctx_free,
+};
+
+const cipher_info_t camellia_128_ccm_info = {
+    POLARSSL_CIPHER_CAMELLIA_128_CCM,
+    POLARSSL_MODE_CCM,
+    128,
+    "CAMELLIA-128-CCM",
+    12,
+    1,
+    16,
+    &ccm_camellia_info
+};
+
+const cipher_info_t camellia_192_ccm_info = {
+    POLARSSL_CIPHER_CAMELLIA_192_CCM,
+    POLARSSL_MODE_CCM,
+    192,
+    "CAMELLIA-192-CCM",
+    12,
+    1,
+    16,
+    &ccm_camellia_info
+};
+
+const cipher_info_t camellia_256_ccm_info = {
+    POLARSSL_CIPHER_CAMELLIA_256_CCM,
+    POLARSSL_MODE_CCM,
+    256,
+    "CAMELLIA-256-CCM",
+    12,
+    1,
+    16,
+    &ccm_camellia_info
+};
+#endif /* POLARSSL_CCM_C */
 
 #endif /* POLARSSL_CAMELLIA_C */
 
@@ -1217,6 +1345,11 @@ const cipher_definition_t cipher_definitions[] =
     { POLARSSL_CIPHER_AES_192_GCM,          &aes_192_gcm_info },
     { POLARSSL_CIPHER_AES_256_GCM,          &aes_256_gcm_info },
 #endif
+#if defined(POLARSSL_CCM_C)
+    { POLARSSL_CIPHER_AES_128_CCM,          &aes_128_ccm_info },
+    { POLARSSL_CIPHER_AES_192_CCM,          &aes_192_ccm_info },
+    { POLARSSL_CIPHER_AES_256_CCM,          &aes_256_ccm_info },
+#endif
 #endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_ARC4_C)
@@ -1259,6 +1392,11 @@ const cipher_definition_t cipher_definitions[] =
     { POLARSSL_CIPHER_CAMELLIA_128_GCM,     &camellia_128_gcm_info },
     { POLARSSL_CIPHER_CAMELLIA_192_GCM,     &camellia_192_gcm_info },
     { POLARSSL_CIPHER_CAMELLIA_256_GCM,     &camellia_256_gcm_info },
+#endif
+#if defined(POLARSSL_CCM_C)
+    { POLARSSL_CIPHER_CAMELLIA_128_CCM,     &camellia_128_ccm_info },
+    { POLARSSL_CIPHER_CAMELLIA_192_CCM,     &camellia_192_ccm_info },
+    { POLARSSL_CIPHER_CAMELLIA_256_CCM,     &camellia_256_ccm_info },
 #endif
 #endif /* POLARSSL_CAMELLIA_C */
 

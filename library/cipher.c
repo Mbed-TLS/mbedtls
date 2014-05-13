@@ -42,6 +42,10 @@
 #include "polarssl/gcm.h"
 #endif
 
+#if defined(POLARSSL_CCM_C)
+#include "polarssl/ccm.h"
+#endif
+
 #include <stdlib.h>
 
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
@@ -818,7 +822,16 @@ int cipher_auth_encrypt( cipher_context_t *ctx,
                                    iv, iv_len, ad, ad_len, input, output,
                                    tag_len, tag ) );
     }
-#endif
+#endif /* POLARSSL_GCM_C */
+#if defined(POLARSSL_CCM_C)
+    if( POLARSSL_MODE_CCM == ctx->cipher_info->mode )
+    {
+        *olen = ilen;
+        return( ccm_encrypt_and_tag( ctx->cipher_ctx, ilen,
+                                     iv, iv_len, ad, ad_len, input, output,
+                                     tag, tag_len ) );
+    }
+#endif /* POLARSSL_CCM_C */
 
     return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
@@ -848,7 +861,23 @@ int cipher_auth_decrypt( cipher_context_t *ctx,
 
         return( ret );
     }
-#endif
+#endif /* POLARSSL_GCM_C */
+#if defined(POLARSSL_CCM_C)
+    if( POLARSSL_MODE_CCM == ctx->cipher_info->mode )
+    {
+        int ret;
+
+        *olen = ilen;
+        ret = ccm_auth_decrypt( ctx->cipher_ctx, ilen,
+                                iv, iv_len, ad, ad_len,
+                                input, output, tag, tag_len );
+
+        if( ret == POLARSSL_ERR_CCM_AUTH_FAILED )
+            ret = POLARSSL_ERR_CIPHER_AUTH_FAILED;
+
+        return( ret );
+    }
+#endif /* POLARSSL_CCM_C */
 
     return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }

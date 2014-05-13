@@ -1079,10 +1079,10 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode ==
                                                         POLARSSL_MODE_GCM )
     {
-        size_t enc_msglen, olen, totlen;
+        size_t enc_msglen, olen;
         unsigned char *enc_msg;
         unsigned char add_data[13];
-        int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+        int ret;
 
         memcpy( add_data, ssl->out_ctr, 8 );
         add_data[8]  = ssl->out_msgtype;
@@ -1126,53 +1126,28 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                        ssl->out_msg, ssl->out_msglen );
 
         /*
-         * Encrypt
+         * Encrypt and authenticate
          */
-        if( ( ret = cipher_set_iv( &ssl->transform_out->cipher_ctx_enc,
-                                    ssl->transform_out->iv_enc,
-                                    ssl->transform_out->ivlen ) ) != 0 ||
-            ( ret = cipher_reset( &ssl->transform_out->cipher_ctx_enc ) ) != 0 )
+        if( ( ret = cipher_auth_encrypt( &ssl->transform_out->cipher_ctx_enc,
+                                         ssl->transform_out->iv_enc,
+                                         ssl->transform_out->ivlen,
+                                         add_data, 13,
+                                         enc_msg, enc_msglen,
+                                         enc_msg, &olen,
+                                         enc_msg + enc_msglen, 16 ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_auth_encrypt", ret );
             return( ret );
         }
 
-        if( ( ret = cipher_update_ad( &ssl->transform_out->cipher_ctx_enc,
-                                      add_data, 13 ) ) != 0 )
+        if( olen != enc_msglen )
         {
-            return( ret );
+            SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect %d %d",
+                                enc_msglen, olen ) );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
-        if( ( ret = cipher_update( &ssl->transform_out->cipher_ctx_enc,
-                                   enc_msg, enc_msglen,
-                                   enc_msg, &olen ) ) != 0 )
-        {
-            return( ret );
-        }
-        totlen = olen;
-
-        if( ( ret = cipher_finish( &ssl->transform_out->cipher_ctx_enc,
-                                   enc_msg + olen, &olen ) ) != 0 )
-        {
-            return( ret );
-        }
-        totlen += olen;
-
-        if( totlen != enc_msglen )
-        {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( -1 );
-        }
-
-        /*
-         * Authenticate
-         */
         ssl->out_msglen += 16;
-
-        if( ( ret = cipher_write_tag( &ssl->transform_out->cipher_ctx_enc,
-                                      enc_msg + enc_msglen, 16 ) ) != 0 )
-        {
-            return( ret );
-        }
 
         SSL_DEBUG_BUF( 4, "after encrypt: tag", enc_msg + enc_msglen, 16 );
     }
@@ -1341,9 +1316,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     {
         unsigned char *dec_msg;
         unsigned char *dec_msg_result;
-        size_t dec_msglen, olen, totlen;
+        size_t dec_msglen, olen;
         unsigned char add_data[13];
-        int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+        int ret;
 
         dec_msglen = ssl->in_msglen - ( ssl->transform_in->ivlen -
                                         ssl->transform_in->fixed_ivlen );
@@ -1371,53 +1346,30 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, 16 );
 
         /*
-         * Decrypt
+         * Decrypt and authenticate
          */
-        if( ( ret = cipher_set_iv( &ssl->transform_in->cipher_ctx_dec,
-                                    ssl->transform_in->iv_dec,
-                                    ssl->transform_in->ivlen ) ) != 0 ||
-            ( ret = cipher_reset( &ssl->transform_in->cipher_ctx_dec ) ) != 0 )
+        if( ( ret = cipher_auth_decrypt( &ssl->transform_in->cipher_ctx_dec,
+                                         ssl->transform_in->iv_dec,
+                                         ssl->transform_in->ivlen,
+                                         add_data, 13,
+                                         dec_msg, dec_msglen,
+                                         dec_msg_result, &olen,
+                                         dec_msg + dec_msglen, 16 ) ) != 0 )
         {
+            SSL_DEBUG_RET( 1, "cipher_auth_decrypt", ret );
+
+            if( ret == POLARSSL_ERR_CIPHER_AUTH_FAILED )
+                return( POLARSSL_ERR_SSL_INVALID_MAC );
+
             return( ret );
         }
 
-        if( ( ret = cipher_update_ad( &ssl->transform_in->cipher_ctx_dec,
-                                      add_data, 13 ) ) != 0 )
+        if( olen != dec_msglen )
         {
-            return( ret );
+            SSL_DEBUG_MSG( 1, ( "total decrypted length incorrect %d %d",
+                                dec_msglen, olen ) );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
-
-        if( ( ret = cipher_update( &ssl->transform_in->cipher_ctx_dec,
-                                   dec_msg, dec_msglen,
-                                   dec_msg_result, &olen ) ) != 0 )
-        {
-            return( ret );
-        }
-        totlen = olen;
-
-        if( ( ret = cipher_finish( &ssl->transform_in->cipher_ctx_dec,
-                                   dec_msg_result + olen, &olen ) ) != 0 )
-        {
-            return( ret );
-        }
-        totlen += olen;
-
-        if( totlen != dec_msglen )
-        {
-            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( -1 );
-        }
-
-        /*
-         * Authenticate
-         */
-        if( ( ret = cipher_check_tag( &ssl->transform_in->cipher_ctx_dec,
-                                      dec_msg + dec_msglen, 16 ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "cipher_check_tag", ret );
-            return( POLARSSL_ERR_SSL_INVALID_MAC );
-        }
-
     }
     else
 #endif /* POLARSSL_GCM_C */

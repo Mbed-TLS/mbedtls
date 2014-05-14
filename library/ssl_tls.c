@@ -991,6 +991,8 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
 static int ssl_encrypt_buf( ssl_context *ssl )
 {
     size_t i;
+    const cipher_mode_t mode = cipher_get_cipher_mode(
+                                        &ssl->transform_out->cipher_ctx_enc );
 
     SSL_DEBUG_MSG( 2, ( "=> encrypt buf" ) );
 
@@ -1000,8 +1002,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER) ||     \
     ( defined(POLARSSL_CIPHER_MODE_CBC) &&                                  \
       ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
-    if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode !=
-                                                        POLARSSL_MODE_GCM )
+    if( mode != POLARSSL_MODE_GCM )
     {
 #if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
@@ -1043,8 +1044,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
      * Encrypt
      */
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode ==
-                                                        POLARSSL_MODE_STREAM )
+    if( mode == POLARSSL_MODE_STREAM )
     {
         int ret;
         size_t olen = 0;
@@ -1076,8 +1076,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     else
 #endif /* POLARSSL_ARC4_C || POLARSSL_CIPHER_NULL_CIPHER */
 #if defined(POLARSSL_GCM_C)
-    if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode ==
-                                                        POLARSSL_MODE_GCM )
+    if( mode == POLARSSL_MODE_GCM )
     {
         size_t enc_msglen, olen;
         unsigned char *enc_msg;
@@ -1155,8 +1154,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 #endif /* POLARSSL_GCM_C */
 #if defined(POLARSSL_CIPHER_MODE_CBC) &&                                    \
     ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
-    if( ssl->transform_out->cipher_ctx_enc.cipher_info->mode ==
-                                                        POLARSSL_MODE_CBC )
+    if( mode == POLARSSL_MODE_CBC )
     {
         int ret;
         unsigned char *enc_msg;
@@ -1268,6 +1266,8 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 static int ssl_decrypt_buf( ssl_context *ssl )
 {
     size_t i;
+    const cipher_mode_t mode = cipher_get_cipher_mode(
+                                        &ssl->transform_in->cipher_ctx_dec );
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER) ||     \
     ( defined(POLARSSL_CIPHER_MODE_CBC) &&                                  \
       ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
@@ -1284,8 +1284,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     }
 
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode ==
-                                                       POLARSSL_MODE_STREAM )
+    if( mode == POLARSSL_MODE_STREAM )
     {
         int ret;
         size_t olen = 0;
@@ -1311,8 +1310,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     else
 #endif /* POLARSSL_ARC4_C || POLARSSL_CIPHER_NULL_CIPHER */
 #if defined(POLARSSL_GCM_C)
-    if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode ==
-                                                       POLARSSL_MODE_GCM )
+    if( mode == POLARSSL_MODE_GCM )
     {
         unsigned char *dec_msg;
         unsigned char *dec_msg_result;
@@ -1375,8 +1373,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #endif /* POLARSSL_GCM_C */
 #if defined(POLARSSL_CIPHER_MODE_CBC) &&                                    \
     ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
-    if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode ==
-                                                       POLARSSL_MODE_CBC )
+    if( mode == POLARSSL_MODE_CBC )
     {
         /*
          * Decrypt and check the padding
@@ -1553,8 +1550,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER) ||     \
     ( defined(POLARSSL_CIPHER_MODE_CBC) &&                                  \
       ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
-    if( ssl->transform_in->cipher_ctx_dec.cipher_info->mode !=
-                                                        POLARSSL_MODE_GCM )
+    if( mode != POLARSSL_MODE_GCM )
     {
         unsigned char tmp[POLARSSL_SSL_MAX_MAC_SIZE];
 

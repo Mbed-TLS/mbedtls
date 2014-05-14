@@ -506,7 +506,8 @@ int ssl_derive_keys( ssl_context *ssl )
      * Determine the appropriate key, IV and MAC length.
      */
 
-    if( cipher_info->mode == POLARSSL_MODE_GCM )
+    if( cipher_info->mode == POLARSSL_MODE_GCM ||
+        cipher_info->mode == POLARSSL_MODE_CCM )
     {
         transform->keylen = cipher_info->key_length;
         transform->keylen /= 8;
@@ -997,12 +998,13 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "=> encrypt buf" ) );
 
     /*
-     * Add MAC before encrypt, except for GCM
+     * Add MAC before encrypt, except for AEAD modes
      */
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER) ||     \
     ( defined(POLARSSL_CIPHER_MODE_CBC) &&                                  \
       ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
-    if( mode != POLARSSL_MODE_GCM )
+    if( mode != POLARSSL_MODE_GCM &&
+        mode != POLARSSL_MODE_CCM )
     {
 #if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
@@ -1038,7 +1040,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
         ssl->out_msglen += ssl->transform_out->maclen;
     }
-#endif /* GCM not the only option */
+#endif /* AEAD not the only option */
 
     /*
      * Encrypt
@@ -1075,13 +1077,16 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_ARC4_C || POLARSSL_CIPHER_NULL_CIPHER */
-#if defined(POLARSSL_GCM_C)
-    if( mode == POLARSSL_MODE_GCM )
+#if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
+    if( mode == POLARSSL_MODE_GCM ||
+        mode == POLARSSL_MODE_CCM )
     {
+        int ret;
         size_t enc_msglen, olen;
         unsigned char *enc_msg;
         unsigned char add_data[13];
-        int ret;
+        unsigned char taglen = ssl->transform_out->ciphersuite_info->flags &
+                               POLARSSL_CIPHERSUITE_SHORT_TAG ? 8 : 16;
 
         memcpy( add_data, ssl->out_ctr, 8 );
         add_data[8]  = ssl->out_msgtype;
@@ -1133,7 +1138,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                                          add_data, 13,
                                          enc_msg, enc_msglen,
                                          enc_msg, &olen,
-                                         enc_msg + enc_msglen, 16 ) ) != 0 )
+                                         enc_msg + enc_msglen, taglen ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "cipher_auth_encrypt", ret );
             return( ret );
@@ -1146,12 +1151,12 @@ static int ssl_encrypt_buf( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
-        ssl->out_msglen += 16;
+        ssl->out_msglen += taglen;
 
-        SSL_DEBUG_BUF( 4, "after encrypt: tag", enc_msg + enc_msglen, 16 );
+        SSL_DEBUG_BUF( 4, "after encrypt: tag", enc_msg + enc_msglen, taglen );
     }
     else
-#endif /* POLARSSL_GCM_C */
+#endif /* POLARSSL_GCM_C || POLARSSL_CCM_C */
 #if defined(POLARSSL_CIPHER_MODE_CBC) &&                                    \
     ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
     if( mode == POLARSSL_MODE_CBC )
@@ -1309,18 +1314,21 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     }
     else
 #endif /* POLARSSL_ARC4_C || POLARSSL_CIPHER_NULL_CIPHER */
-#if defined(POLARSSL_GCM_C)
-    if( mode == POLARSSL_MODE_GCM )
+#if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
+    if( mode == POLARSSL_MODE_GCM ||
+        mode == POLARSSL_MODE_CCM )
     {
+        int ret;
+        size_t dec_msglen, olen;
         unsigned char *dec_msg;
         unsigned char *dec_msg_result;
-        size_t dec_msglen, olen;
         unsigned char add_data[13];
-        int ret;
+        unsigned char taglen = ssl->transform_in->ciphersuite_info->flags &
+                               POLARSSL_CIPHERSUITE_SHORT_TAG ? 8 : 16;
 
         dec_msglen = ssl->in_msglen - ( ssl->transform_in->ivlen -
                                         ssl->transform_in->fixed_ivlen );
-        dec_msglen -= 16;
+        dec_msglen -= taglen;
         dec_msg = ssl->in_msg;
         dec_msg_result = ssl->in_msg;
         ssl->in_msglen = dec_msglen;
@@ -1341,7 +1349,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         SSL_DEBUG_BUF( 4, "IV used", ssl->transform_in->iv_dec,
                                      ssl->transform_in->ivlen );
-        SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, 16 );
+        SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, taglen );
 
         /*
          * Decrypt and authenticate
@@ -1352,7 +1360,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                                          add_data, 13,
                                          dec_msg, dec_msglen,
                                          dec_msg_result, &olen,
-                                         dec_msg + dec_msglen, 16 ) ) != 0 )
+                                         dec_msg + dec_msglen, taglen ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "cipher_auth_decrypt", ret );
 
@@ -1370,7 +1378,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         }
     }
     else
-#endif /* POLARSSL_GCM_C */
+#endif /* POLARSSL_GCM_C || POLARSSL_CCM_C */
 #if defined(POLARSSL_CIPHER_MODE_CBC) &&                                    \
     ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
     if( mode == POLARSSL_MODE_CBC )
@@ -1545,12 +1553,13 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                    ssl->in_msg, ssl->in_msglen );
 
     /*
-     * Always compute the MAC (RFC4346, CBCTIME), except for GCM of course
+     * Always compute the MAC (RFC4346, CBCTIME), except for AEAD of course
      */
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER) ||     \
     ( defined(POLARSSL_CIPHER_MODE_CBC) &&                                  \
       ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
-    if( mode != POLARSSL_MODE_GCM )
+    if( mode != POLARSSL_MODE_GCM &&
+        mode != POLARSSL_MODE_CCM )
     {
         unsigned char tmp[POLARSSL_SSL_MAX_MAC_SIZE];
 
@@ -1631,7 +1640,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( correct == 0 )
             return( POLARSSL_ERR_SSL_INVALID_MAC );
     }
-#endif /* GCM not the only option */
+#endif /* AEAD not the only option */
 
     if( ssl->in_msglen == 0 )
     {

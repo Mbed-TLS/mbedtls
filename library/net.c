@@ -118,7 +118,7 @@ int net_connect( int *fd, const char *host, int port )
 
     if( wsa_init_done == 0 )
     {
-        if( WSAStartup( MAKEWORD(2,0), &wsaData ) == SOCKET_ERROR )
+        if( WSAStartup( MAKEWORD(2,0), &wsaData ) != 0 )
             return( POLARSSL_ERR_NET_SOCKET_FAILED );
 
         wsa_init_done = 1;

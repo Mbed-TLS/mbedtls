@@ -95,7 +95,7 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data_files" target)
 
     if (NOT EXISTS ${link})
-        if (UNIX)
+        if (CMAKE_HOST_UNIX)
             set(command ln -s ${target} ${link})
         else()
             set(command cmd.exe /c mklink ${link} ${target})

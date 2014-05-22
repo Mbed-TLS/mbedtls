@@ -56,6 +56,8 @@ Bugfix
    * mpi_fill_random() was creating numbers larger than requested on
      big-endian platform when size was not an integer number of limbs
    * Fix detection of DragonflyBSD in net.c (found by Markus Pfeiffer)
+   * Stricter check on SSL ClientHello internal sizes compared to actual packet
+     size (found by TrustInSoft)
 
 = Version 1.2.10 released 2013-10-07
 Changes

@@ -493,8 +493,9 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      *    38  .  38   session id length
      *    39  . 38+x  session id
      *   39+x . 40+x  ciphersuitelist length
-     *   41+x .  ..   ciphersuitelist
-     *    ..  .  ..   compression alg.
+     *   41+x . 40+y  ciphersuitelist
+     *   41+y . 41+y  compression alg length
+     *   42+y . 41+z  compression algs
      *    ..  .  ..   extensions
      */
     SSL_DEBUG_BUF( 4, "record contents", buf, n );
@@ -559,7 +560,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      */
     sess_len = buf[38];
 
-    if( sess_len > 32 )
+    if( sess_len > 32 || sess_len > n - 42 )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -577,7 +578,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     ciph_len = ( buf[39 + sess_len] << 8 )
              | ( buf[40 + sess_len]      );
 
-    if( ciph_len < 2 || ciph_len > 256 || ( ciph_len % 2 ) != 0 )
+    if( ciph_len < 2 || ( ciph_len % 2 ) != 0 || ciph_len > n - 42 - sess_len )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -588,7 +589,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      */
     comp_len = buf[41 + sess_len + ciph_len];
 
-    if( comp_len < 1 || comp_len > 16 )
+    if( comp_len < 1 || comp_len > 16 ||
+        comp_len > n - 42 - sess_len - ciph_len )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );

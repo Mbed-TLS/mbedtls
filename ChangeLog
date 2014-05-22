@@ -5,6 +5,8 @@ Bugfix
    * Fix in debug_print_msg()
    * Enforce alignment in the buffer allocator even if buffer is not alligned
    * Remove less-than-zero checks on unsigned numbers
+   * Stricter check on SSL ClientHello internal sizes compared to actual packet
+     size (found by TrustInSoft)
 
 = PolarSSL 1.3.7 released on 2014-05-02
 Features

@@ -1,6 +1,10 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
 = PolarSSL 1.3 branch
+Features
+   * Add CCM module and cipher mode to Cipher Layer
+   * Support for CCM and CCM_8 ciphersuites
+
 Bugfix
    * Fix in debug_print_msg()
    * Enforce alignment in the buffer allocator even if buffer is not alligned

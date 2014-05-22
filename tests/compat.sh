@@ -570,11 +570,28 @@ add_polarssl_ciphersuites()
                 P_CIPHERS="$P_CIPHERS                               \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
+                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM                \
+                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM                \
+                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8              \
+                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8              \
                     "
             fi
             ;;
 
         "RSA")
+            if [ "$MODE" = "tls1_2" ];
+            then
+                P_CIPHERS="$P_CIPHERS                               \
+                    TLS-RSA-WITH-AES-128-CCM                        \
+                    TLS-RSA-WITH-AES-256-CCM                        \
+                    TLS-DHE-RSA-WITH-AES-128-CCM                    \
+                    TLS-DHE-RSA-WITH-AES-256-CCM                    \
+                    TLS-RSA-WITH-AES-128-CCM-8                      \
+                    TLS-RSA-WITH-AES-256-CCM-8                      \
+                    TLS-DHE-RSA-WITH-AES-128-CCM-8                  \
+                    TLS-DHE-RSA-WITH-AES-256-CCM-8                  \
+                    "
+            fi
             ;;
 
         "PSK")
@@ -589,6 +606,19 @@ add_polarssl_ciphersuites()
                 P_CIPHERS="$P_CIPHERS                    \
                     TLS-ECDHE-PSK-WITH-RC4-128-SHA       \
                     TLS-ECDHE-PSK-WITH-NULL-SHA          \
+                    "
+            fi
+            if [ "$MODE" = "tls1_2" ];
+            then
+                P_CIPHERS="$P_CIPHERS                               \
+                    TLS-PSK-WITH-AES-128-CCM                        \
+                    TLS-PSK-WITH-AES-256-CCM                        \
+                    TLS-DHE-PSK-WITH-AES-128-CCM                    \
+                    TLS-DHE-PSK-WITH-AES-256-CCM                    \
+                    TLS-PSK-WITH-AES-128-CCM-8                      \
+                    TLS-PSK-WITH-AES-256-CCM-8                      \
+                    TLS-DHE-PSK-WITH-AES-128-CCM-8                  \
+                    TLS-DHE-PSK-WITH-AES-256-CCM-8                  \
                     "
             fi
             ;;

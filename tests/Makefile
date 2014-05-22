@@ -34,8 +34,10 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_aes.cfb		test_suite_aes.rest		\
 		test_suite_arc4									\
 		test_suite_base64		test_suite_blowfish		\
-		test_suite_camellia		test_suite_cipher.aes	\
-		test_suite_cipher.arc4	test_suite_cipher.gcm	\
+		test_suite_camellia		test_suite_ccm			\
+		test_suite_cipher.aes							\
+		test_suite_cipher.arc4	test_suite_cipher.ccm	\
+		test_suite_cipher.gcm							\
 		test_suite_cipher.blowfish						\
 		test_suite_cipher.camellia						\
 		test_suite_cipher.des	test_suite_cipher.null	\
@@ -93,6 +95,10 @@ test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_ci
 test_suite_cipher.arc4.c : suites/test_suite_cipher.function suites/test_suite_cipher.arc4.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
 	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.arc4
+
+test_suite_cipher.ccm.c : suites/test_suite_cipher.function suites/test_suite_cipher.ccm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo   "  Generate	$@"
+	scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.ccm
 
 test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo   "  Generate	$@"
@@ -198,11 +204,19 @@ test_suite_camellia: test_suite_camellia.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
+test_suite_ccm: test_suite_ccm.c $(DEP)
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
 test_suite_cipher.aes: test_suite_cipher.aes.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_cipher.arc4: test_suite_cipher.arc4.c $(DEP)
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_cipher.ccm: test_suite_cipher.ccm.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

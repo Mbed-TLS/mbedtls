@@ -47,6 +47,7 @@
 #include "polarssl/blowfish.h"
 #include "polarssl/camellia.h"
 #include "polarssl/gcm.h"
+#include "polarssl/ccm.h"
 #include "polarssl/havege.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/hmac_drbg.h"
@@ -157,14 +158,14 @@ unsigned char buf[BUFSIZE];
 
 typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
-         arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,
+         arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
 
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
-    "arc4, des3, des, aes_cbc, aes_gcm, camellia, blowfish,\n"          \
+    "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
 
@@ -205,6 +206,8 @@ int main( int argc, char *argv[] )
                 todo.aes_cbc = 1;
             else if( strcmp( argv[i], "aes_gcm" ) == 0 )
                 todo.aes_gcm = 1;
+            else if( strcmp( argv[i], "aes_ccm" ) == 0 )
+                todo.aes_ccm = 1;
             else if( strcmp( argv[i], "camellia" ) == 0 )
                 todo.camellia = 1;
             else if( strcmp( argv[i], "blowfish" ) == 0 )
@@ -226,7 +229,7 @@ int main( int argc, char *argv[] )
             else
             {
                 printf( "Unrecognized option: %s\n", argv[i] );
-                printf( "Available options:" OPTIONS );
+                printf( "Available options: " OPTIONS );
             }
         }
     }
@@ -328,6 +331,26 @@ int main( int argc, char *argv[] )
                         12, NULL, 0, buf, buf, 16, tmp ) );
 
             gcm_free( &gcm );
+        }
+    }
+#endif
+#if defined(POLARSSL_CCM_C)
+    if( todo.aes_ccm )
+    {
+        ccm_context ccm;
+        for( keysize = 128; keysize <= 256; keysize += 64 )
+        {
+            snprintf( title, sizeof( title ), "AES-CCM-%d", keysize );
+
+            memset( buf, 0, sizeof( buf ) );
+            memset( tmp, 0, sizeof( tmp ) );
+            ccm_init( &ccm, POLARSSL_CIPHER_ID_AES, tmp, keysize );
+
+            TIME_AND_TSC( title,
+                    ccm_encrypt_and_tag( &ccm, BUFSIZE, tmp,
+                        12, NULL, 0, buf, buf, tmp, 16 ) );
+
+            ccm_free( &ccm );
         }
     }
 #endif

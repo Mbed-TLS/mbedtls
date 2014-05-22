@@ -77,6 +77,7 @@
  * PBKDF2    1  0x007C-0x007C
  * RIPEMD160 1  0x007E-0x007E
  * HMAC_DRBG 4  0x0003-0x0009
+ * CCM       2                  0x000D-0x000F
  *
  * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors

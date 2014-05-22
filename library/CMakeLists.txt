@@ -11,6 +11,7 @@ set(src
      bignum.c
      blowfish.c
      camellia.c
+     ccm.c
      certs.c
      cipher.c
      cipher_wrap.c

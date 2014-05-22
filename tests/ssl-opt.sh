@@ -984,12 +984,12 @@ fi
 # Tests for keyUsage in leaf certificates, part 1:
 # server-side certificate/suite selection
 
-run_test    "keyUsage srv #1 (RSA, digitalSignature -> ECDHE-RSA)" \
+run_test    "keyUsage srv #1 (RSA, digitalSignature -> (EC)DHE-RSA)" \
             "$P_SRV key_file=data_files/server2.key \
              crt_file=data_files/server2.ku-ds.crt" \
             "$P_CLI" \
             0 \
-            -c "Ciphersuite is TLS-ECDHE-RSA-WITH-"
+            -c "Ciphersuite is TLS-[EC]*DHE-RSA-WITH-"
 
 
 run_test    "keyUsage srv #2 (RSA, keyEncipherment -> RSA)" \

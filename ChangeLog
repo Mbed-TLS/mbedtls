@@ -7,7 +7,7 @@ Features
 
 Bugfix
    * Fix in debug_print_msg()
-   * Enforce alignment in the buffer allocator even if buffer is not alligned
+   * Enforce alignment in the buffer allocator even if buffer is not aligned
    * Remove less-than-zero checks on unsigned numbers
    * Stricter check on SSL ClientHello internal sizes compared to actual packet
      size (found by TrustInSoft)

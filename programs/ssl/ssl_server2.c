@@ -136,7 +136,7 @@ struct options
     int ticket_timeout;         /* session ticket lifetime                  */
     int cache_max;              /* max number of session cache entries      */
     int cache_timeout;          /* expiration delay of session cache entries */
-    char *sni;                  /* string decribing sni information         */
+    char *sni;                  /* string describing sni information        */
     const char *alpn_string;    /* ALPN supported protocols                 */
 } opt;
 

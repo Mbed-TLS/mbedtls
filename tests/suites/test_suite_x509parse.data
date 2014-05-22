@@ -850,7 +850,7 @@ x509_oid_numstr:"2A8648F9F8F7F6F5F4F3F2F1F001":"":100:POLARSSL_ERR_OID_BUF_TOO_S
 X509 crt keyUsage #1 (no extension, expected KU)
 x509_check_key_usage:"data_files/server1.crt":KU_DIGITAL_SIGNATURE|KU_KEY_ENCIPHERMENT:0
 
-X509 crt keyUsage #2 (no extension, suprising KU)
+X509 crt keyUsage #2 (no extension, surprising KU)
 x509_check_key_usage:"data_files/server1.crt":KU_KEY_CERT_SIGN:0
 
 X509 crt keyUsage #3 (extension present, no KU)

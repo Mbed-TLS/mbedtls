@@ -64,7 +64,7 @@ get_options() {
                 exit 0
                 ;;
             *)
-                echo "Unkown argument: '$1'"
+                echo "Unknown argument: '$1'"
                 print_usage
                 exit 1
                 ;;
@@ -151,7 +151,7 @@ run_test() {
     CLI_EXIT=$?
     echo "EXIT: $CLI_EXIT" >> cli_out
 
-    # psk is usefull when server only has bad certs
+    # psk is useful when server only has bad certs
     if is_polar "$SRV_CMD"; then
         "$P_CLI" request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
             crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
@@ -162,7 +162,7 @@ run_test() {
     wait $SRV_PID
 
     # check if the client and server went at least to the handshake stage
-    # (usefull to avoid tests with only negative assertions and non-zero
+    # (useful to avoid tests with only negative assertions and non-zero
     # expected client exit to incorrectly succeed in case of catastrophic
     # failure)
     if is_polar "$SRV_CMD"; then
@@ -227,7 +227,7 @@ run_test() {
                 ;;
 
             *)
-                echo "Unkown test: $1" >&2
+                echo "Unknown test: $1" >&2
                 exit 1
         esac
         shift 2

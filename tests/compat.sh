@@ -1034,7 +1034,7 @@ for VERIFY in $VERIFIES; do
                     ;;
 
                 *)
-                    echo "Unkown peer: $PEER" >&2
+                    echo "Unknown peer: $PEER" >&2
                     exit 1
                     ;;
 

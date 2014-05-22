@@ -1275,7 +1275,7 @@
 #define POLARSSL_CAMELLIA_C
 
 /**
- * \def POLARSSL_GCM_C
+ * \def POLARSSL_CCM_C
  *
  * Enable the Counter with CBC-MAC (CCM) mode for 128-bit block cipher.
  *

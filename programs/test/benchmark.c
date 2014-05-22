@@ -121,6 +121,15 @@ do {                                                                    \
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );          \
 } while( 0 )
 
+#if defined(POLARSSL_ERROR_C)
+#define PRINT_ERROR                                                     \
+        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        printf( "FAILED: %s\n", tmp );
+#else
+#define PRINT_ERROR                                                     \
+        printf( "FAILED: -0x%04x\n", -ret );
+#endif
+
 #define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
 do {                                                                    \
     unsigned long i;                                                    \
@@ -138,8 +147,7 @@ do {                                                                    \
                                                                         \
     if( ret != 0 )                                                      \
     {                                                                   \
-        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
-        printf( "FAILED: %s\n", tmp );                                  \
+PRINT_ERROR;                                                            \
     }                                                                   \
     else                                                                \
         printf( "%9lu " TYPE "/s\n", i / 3 );                           \

@@ -167,51 +167,51 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_dn_gets:"data_files/server2.crt":"issuer":"C=NL, O=PolarSSL, CN=PolarSSL Test CA"
 
 X509 Time Expired #1
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_HAVE_TIME
 x509_time_expired:"data_files/server1.crt":"valid_from":1
 
 X509 Time Expired #2
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_HAVE_TIME
 x509_time_expired:"data_files/server1.crt":"valid_to":0
 
 X509 Time Expired #3
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_HAVE_TIME
 x509_time_expired:"data_files/server2.crt":"valid_from":1
 
 X509 Time Expired #4
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_HAVE_TIME
 x509_time_expired:"data_files/server2.crt":"valid_to":0
 
 X509 Time Expired #5
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_HAVE_TIME
 x509_time_expired:"data_files/test-ca.crt":"valid_from":1
 
 X509 Time Expired #6
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C:POLARSSL_HAVE_TIME
 x509_time_expired:"data_files/test-ca.crt":"valid_to":0
 
 X509 Time Future #1
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_HAVE_TIME
 x509_time_future:"data_files/server5.crt":"valid_from":0
 
 X509 Time Future #2
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_HAVE_TIME
 x509_time_future:"data_files/server5.crt":"valid_to":1
 
 X509 Time Future #3
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_HAVE_TIME
 x509_time_future:"data_files/server5-future.crt":"valid_from":1
 
 X509 Time Future #4
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_HAVE_TIME
 x509_time_future:"data_files/server5-future.crt":"valid_to":1
 
 X509 Time Future #5
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_HAVE_TIME
 x509_time_future:"data_files/test-ca2.crt":"valid_from":0
 
 X509 Time Future #6
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECP_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_HAVE_TIME
 x509_time_future:"data_files/test-ca2.crt":"valid_to":1
 
 X509 Certificate verification #1 (Revoked Cert, Expired CRL, no CN)

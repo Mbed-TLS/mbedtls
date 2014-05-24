@@ -837,14 +837,11 @@ int des_self_test( int verbose )
     int i, j, u, v;
     des_context ctx;
     des3_context ctx3;
-    unsigned char key[24];
     unsigned char buf[8];
 #if defined(POLARSSL_CIPHER_MODE_CBC)
     unsigned char prv[8];
     unsigned char iv[8];
 #endif
-
-    memset( key, 0, 24 );
 
     /*
      * ECB mode

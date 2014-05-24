@@ -37,6 +37,7 @@
 #if defined(POLARSSL_SHA1_C)
 
 #include "polarssl/sha1.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
@@ -334,7 +335,7 @@ void sha1( const unsigned char *input, size_t ilen, unsigned char output[20] )
     sha1_update( &ctx, input, ilen );
     sha1_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha1_context ) );
+    secure_memzero( &ctx, sizeof( sha1_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -358,7 +359,7 @@ int sha1_file( const char *path, unsigned char output[20] )
 
     sha1_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha1_context ) );
+    secure_memzero( &ctx, sizeof( sha1_context ) );
 
     if( ferror( f ) != 0 )
     {
@@ -399,7 +400,7 @@ void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key,
     sha1_starts( ctx );
     sha1_update( ctx, ctx->ipad, 64 );
 
-    memset( sum, 0, sizeof( sum ) );
+    secure_memzero( sum, sizeof( sum ) );
 }
 
 /*
@@ -424,7 +425,7 @@ void sha1_hmac_finish( sha1_context *ctx, unsigned char output[20] )
     sha1_update( ctx, tmpbuf, 20 );
     sha1_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    secure_memzero( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -449,7 +450,7 @@ void sha1_hmac( const unsigned char *key, size_t keylen,
     sha1_hmac_update( &ctx, input, ilen );
     sha1_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha1_context ) );
+    secure_memzero( &ctx, sizeof( sha1_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

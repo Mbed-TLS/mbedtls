@@ -36,6 +36,7 @@
 #if defined(POLARSSL_ECP_C)
 #include "polarssl/ecp.h"
 #endif
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
@@ -337,7 +338,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
 
     ssl_session_free( ssl->session_negotiate );
     memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
-    memset( &session, 0, sizeof( ssl_session ) );
+    secure_memzero( &session, sizeof( ssl_session ) );
 
     return( 0 );
 }

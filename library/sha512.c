@@ -37,6 +37,7 @@
 #if defined(POLARSSL_SHA512_C)
 
 #include "polarssl/sha512.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
@@ -335,7 +336,7 @@ void sha512( const unsigned char *input, size_t ilen,
     sha512_update( &ctx, input, ilen );
     sha512_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha512_context ) );
+    secure_memzero( &ctx, sizeof( sha512_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -359,7 +360,7 @@ int sha512_file( const char *path, unsigned char output[64], int is384 )
 
     sha512_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha512_context ) );
+    secure_memzero( &ctx, sizeof( sha512_context ) );
 
     if( ferror( f ) != 0 )
     {
@@ -400,7 +401,7 @@ void sha512_hmac_starts( sha512_context *ctx, const unsigned char *key,
     sha512_starts( ctx, is384 );
     sha512_update( ctx, ctx->ipad, 128 );
 
-    memset( sum, 0, sizeof( sum ) );
+    secure_memzero( sum, sizeof( sum ) );
 }
 
 /*
@@ -429,7 +430,7 @@ void sha512_hmac_finish( sha512_context *ctx, unsigned char output[64] )
     sha512_update( ctx, tmpbuf, hlen );
     sha512_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    secure_memzero( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -454,7 +455,7 @@ void sha512_hmac( const unsigned char *key, size_t keylen,
     sha512_hmac_update( &ctx, input, ilen );
     sha512_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha512_context ) );
+    secure_memzero( &ctx, sizeof( sha512_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

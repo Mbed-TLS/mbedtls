@@ -41,6 +41,7 @@
 
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_X509_CRT_PARSE_C) && \
     defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
@@ -175,11 +176,11 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
         md5_finish( &md5, dstbuf + i * 16 );
     }
 
-    memset( &md5,  0, sizeof( md5  ) );
-    memset( &sha1, 0, sizeof( sha1 ) );
+    secure_memzero( &md5,  sizeof( md5  ) );
+    secure_memzero( &sha1, sizeof( sha1 ) );
 
-    memset( padding, 0, sizeof( padding ) );
-    memset( sha1sum, 0, sizeof( sha1sum ) );
+    secure_memzero( padding, sizeof( padding ) );
+    secure_memzero( sha1sum, sizeof( sha1sum ) );
 
     return( 0 );
 }
@@ -241,8 +242,8 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
             dstbuf[i + j] = (unsigned char)( dstbuf[i + j] ^ h_i[j] );
     }
 
-    memset( tmp, 0, sizeof( tmp ) );
-    memset( h_i, 0, sizeof( h_i ) );
+    secure_memzero( tmp, sizeof( tmp ) );
+    secure_memzero( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -284,8 +285,8 @@ static int tls_prf_sha256( const unsigned char *secret, size_t slen,
             dstbuf[i + j]  = h_i[j];
     }
 
-    memset( tmp, 0, sizeof( tmp ) );
-    memset( h_i, 0, sizeof( h_i ) );
+    secure_memzero( tmp, sizeof( tmp ) );
+    secure_memzero( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -326,8 +327,8 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
             dstbuf[i + j]  = h_i[j];
     }
 
-    memset( tmp, 0, sizeof( tmp ) );
-    memset( h_i, 0, sizeof( h_i ) );
+    secure_memzero( tmp, sizeof( tmp ) );
+    secure_memzero( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -477,7 +478,7 @@ int ssl_derive_keys( ssl_context *ssl )
     memcpy( tmp, handshake->randbytes, 64 );
     memcpy( handshake->randbytes, tmp + 32, 32 );
     memcpy( handshake->randbytes + 32, tmp, 32 );
-    memset( tmp, 0, sizeof( tmp ) );
+    secure_memzero( tmp, sizeof( tmp ) );
 
     /*
      *  SSLv3:
@@ -698,7 +699,7 @@ int ssl_derive_keys( ssl_context *ssl )
     }
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
-    memset( keyblk, 0, sizeof( keyblk ) );
+    secure_memzero( keyblk, sizeof( keyblk ) );
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
     // Initialize compression
@@ -2985,12 +2986,12 @@ static void ssl_calc_finished_ssl(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
 
-    memset(  &md5, 0, sizeof(  md5_context ) );
-    memset( &sha1, 0, sizeof( sha1_context ) );
+    secure_memzero(  &md5, sizeof(  md5_context ) );
+    secure_memzero( &sha1, sizeof( sha1_context ) );
 
-    memset(  padbuf, 0, sizeof(  padbuf ) );
-    memset(  md5sum, 0, sizeof(  md5sum ) );
-    memset( sha1sum, 0, sizeof( sha1sum ) );
+    secure_memzero(  padbuf, sizeof(  padbuf ) );
+    secure_memzero(  md5sum, sizeof(  md5sum ) );
+    secure_memzero( sha1sum, sizeof( sha1sum ) );
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -3043,10 +3044,10 @@ static void ssl_calc_finished_tls(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    memset(  &md5, 0, sizeof(  md5_context ) );
-    memset( &sha1, 0, sizeof( sha1_context ) );
+    secure_memzero(  &md5, sizeof(  md5_context ) );
+    secure_memzero( &sha1, sizeof( sha1_context ) );
 
-    memset(  padbuf, 0, sizeof(  padbuf ) );
+    secure_memzero(  padbuf, sizeof(  padbuf ) );
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -3092,9 +3093,9 @@ static void ssl_calc_finished_tls_sha256(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    memset( &sha256, 0, sizeof( sha256_context ) );
+    secure_memzero( &sha256, sizeof( sha256_context ) );
 
-    memset(  padbuf, 0, sizeof(  padbuf ) );
+    secure_memzero(  padbuf, sizeof(  padbuf ) );
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -3139,9 +3140,9 @@ static void ssl_calc_finished_tls_sha384(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    memset( &sha512, 0, sizeof( sha512_context ) );
+    secure_memzero( &sha512, sizeof( sha512_context ) );
 
-    memset(  padbuf, 0, sizeof(  padbuf ) );
+    secure_memzero(  padbuf, sizeof(  padbuf ) );
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }

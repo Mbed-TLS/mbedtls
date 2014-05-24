@@ -38,6 +38,7 @@
 #if defined(POLARSSL_DES_C)
 
 #include "polarssl/des.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
@@ -519,7 +520,7 @@ int des3_set2key_enc( des3_context *ctx,
     uint32_t sk[96];
 
     des3_set2key( ctx->sk, sk, key );
-    memset( sk,  0, sizeof( sk ) );
+    secure_memzero( sk, sizeof( sk ) );
 
     return( 0 );
 }
@@ -533,7 +534,7 @@ int des3_set2key_dec( des3_context *ctx,
     uint32_t sk[96];
 
     des3_set2key( sk, ctx->sk, key );
-    memset( sk,  0, sizeof( sk ) );
+    secure_memzero( sk, sizeof( sk ) );
 
     return( 0 );
 }
@@ -570,7 +571,7 @@ int des3_set3key_enc( des3_context *ctx,
     uint32_t sk[96];
 
     des3_set3key( ctx->sk, sk, key );
-    memset( sk, 0, sizeof( sk ) );
+    secure_memzero( sk, sizeof( sk ) );
 
     return( 0 );
 }
@@ -584,7 +585,7 @@ int des3_set3key_dec( des3_context *ctx,
     uint32_t sk[96];
 
     des3_set3key( sk, ctx->sk, key );
-    memset( sk, 0, sizeof( sk ) );
+    secure_memzero( sk, sizeof( sk ) );
 
     return( 0 );
 }

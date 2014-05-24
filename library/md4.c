@@ -38,6 +38,7 @@
 #if defined(POLARSSL_MD4_C)
 
 #include "polarssl/md4.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
@@ -284,7 +285,7 @@ void md4( const unsigned char *input, size_t ilen, unsigned char output[16] )
     md4_update( &ctx, input, ilen );
     md4_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md4_context ) );
+    secure_memzero( &ctx, sizeof( md4_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -308,7 +309,7 @@ int md4_file( const char *path, unsigned char output[16] )
 
     md4_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md4_context ) );
+    secure_memzero( &ctx, sizeof( md4_context ) );
 
     if( ferror( f ) != 0 )
     {
@@ -399,7 +400,7 @@ void md4_hmac( const unsigned char *key, size_t keylen,
     md4_hmac_update( &ctx, input, ilen );
     md4_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md4_context ) );
+    secure_memzero( &ctx, sizeof( md4_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

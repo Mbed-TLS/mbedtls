@@ -557,6 +557,10 @@ SOURCE=..\..\include\polarssl\rsa.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\polarssl\secure_memzero.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\polarssl\sha1.h
 # End Source File
 # Begin Source File

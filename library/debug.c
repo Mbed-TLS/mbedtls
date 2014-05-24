@@ -95,7 +95,7 @@ void debug_print_buf( const ssl_context *ssl, int level,
     if( ssl->f_dbg == NULL )
         return;
 
-    snprintf( str, maxlen, "%s(%04d): dumping '%s' (%d bytes)\n",
+    snprintf( str, maxlen, "%s(%04d): dumping '%s' (%u bytes)\n",
               file, line, text, (unsigned int) len );
 
     str[maxlen] = '\0';

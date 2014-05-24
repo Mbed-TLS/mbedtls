@@ -484,7 +484,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "X509 - Read/write of file failed" );
 #endif /* POLARSSL_X509_USE,X509_CREATE_C */
 
-        if( strlen( buf ) == 0 )
+        if( buf[0] == '\0' )
             snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
     }
 
@@ -711,7 +711,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
 #endif /* POLARSSL_XTEA_C */
 
-    if( strlen( buf ) != 0 )
+    if( buf[0] != '\0' )
         return;
 
     snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );

@@ -691,7 +691,7 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
 static int ssl_parse_alpn_ext( ssl_context *ssl,
                                unsigned char *buf, size_t len )
 {
-    size_t list_len, cur_len;
+    size_t list_len, cur_len, pours_len;
     const unsigned char *theirs, *start, *end;
     const char **ours;
 
@@ -722,6 +722,7 @@ static int ssl_parse_alpn_ext( ssl_context *ssl,
     end = buf + len;
     for( ours = ssl->alpn_list; *ours != NULL; ours++ )
     {
+        pours_len = strlen( *ours );
         for( theirs = start; theirs != end; theirs += cur_len )
         {
             /* If the list is well formed, we should get equality first */
@@ -734,7 +735,7 @@ static int ssl_parse_alpn_ext( ssl_context *ssl,
             if( cur_len == 0 )
                 return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
 
-            if( cur_len == strlen( *ours ) &&
+            if( cur_len == pours_len &&
                 memcmp( theirs, *ours, cur_len ) == 0 )
             {
                 ssl->alpn_chosen = *ours;

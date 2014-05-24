@@ -321,8 +321,7 @@ void ssl_cache_free( ssl_cache_context *cache )
         ssl_session_free( &prv->session );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-        if( prv->peer_cert.p != NULL )
-            polarssl_free( prv->peer_cert.p );
+        polarssl_free( prv->peer_cert.p );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
         polarssl_free( prv );

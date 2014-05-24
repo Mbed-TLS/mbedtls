@@ -2654,7 +2654,7 @@ static int ssl_parse_client_psk_identity( ssl_context *ssl, unsigned char **p,
 
     if( ssl->f_psk != NULL )
     {
-        if( ( ret != ssl->f_psk( ssl->p_psk, ssl, *p, n ) ) != 0 )
+        if( ssl->f_psk( ssl->p_psk, ssl, *p, n ) != 0 )
             ret = POLARSSL_ERR_SSL_UNKNOWN_IDENTITY;
     }
 

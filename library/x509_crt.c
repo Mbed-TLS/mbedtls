@@ -1551,11 +1551,13 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
 {
     size_t i;
     size_t cn_idx = 0;
+    size_t cn_len;
 
     if( name->len < 3 || name->p[0] != '*' || name->p[1] != '.' )
         return( 0 );
 
-    for( i = 0; i < strlen( cn ); ++i )
+    cn_len = strlen( cn );
+    for( i = 0; i < cn_len; ++i )
     {
         if( cn[i] == '.' )
         {

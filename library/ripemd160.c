@@ -577,6 +577,7 @@ int ripemd160_self_test( int verbose )
 {
     int i, j;
     unsigned char output[20];
+    size_t ripemd160_test_input_i_len;
 
     memset( output, 0, sizeof output );
 
@@ -585,8 +586,9 @@ int ripemd160_self_test( int verbose )
         if( verbose != 0 )
             polarssl_printf( "  RIPEMD-160 test #%d: ", i + 1 );
 
+        ripemd160_test_input_i_len = strlen( ripemd160_test_input[i] );
         ripemd160( (const unsigned char *) ripemd160_test_input[i],
-                   strlen( ripemd160_test_input[i] ),
+                   ripemd160_test_input_i_len,
                    output );
 
         if( memcmp( output, ripemd160_test_md[i], 20 ) != 0 )
@@ -608,7 +610,7 @@ int ripemd160_self_test( int verbose )
 
             ripemd160_hmac( ripemd160_test_key[j], 20,
                             (const unsigned char *) ripemd160_test_input[i],
-                            strlen( ripemd160_test_input[i] ),
+                            ripemd160_test_input_i_len,
                             output );
 
             if( memcmp( output, ripemd160_test_hmac[j][i], 20 ) != 0 )

@@ -131,7 +131,7 @@ void debug_print_buf( const ssl_context *ssl, int level,
     if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
         idx = snprintf( str, maxlen, "%s(%04d): ", file, line );
 
-    snprintf( str + idx, maxlen - idx, "dumping '%s' (%d bytes)\n",
+    snprintf( str + idx, maxlen - idx, "dumping '%s' (%u bytes)\n",
               text, (unsigned int) len );
 
     str[maxlen] = '\0';

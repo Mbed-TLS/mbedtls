@@ -565,10 +565,6 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key,
                 RK[15] = RK[7] ^ RK[14];
             }
             break;
-
-        default:
-
-            break;
     }
 
     return( 0 );
@@ -586,14 +582,6 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
     uint32_t *SK;
     int ret;
 
-    switch( keysize )
-    {
-        case 128: ctx->nr = 10; break;
-        case 192: ctx->nr = 12; break;
-        case 256: ctx->nr = 14; break;
-        default : return( POLARSSL_ERR_AES_INVALID_KEY_LENGTH );
-    }
-
 #if defined(POLARSSL_PADLOCK_C) && defined(PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
         aes_padlock_ace = padlock_supports( PADLOCK_ACE );
@@ -604,9 +592,11 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
 #endif
     ctx->rk = RK = ctx->buf;
 
-    ret = aes_setkey_enc( &cty, key, keysize );
-    if( ret != 0 )
+    /* Also checks keysize */
+    if( ( ret = aes_setkey_enc( &cty, key, keysize ) ) != 0 )
         return( ret );
+
+    ctx->nr = cty.nr;
 
 #if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
     if( aesni_supports( POLARSSL_AESNI_AES ) )

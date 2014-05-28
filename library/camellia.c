@@ -435,20 +435,14 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
     uint32_t *SK;
     int ret;
 
-    switch( keysize )
-    {
-        case 128: ctx->nr = 3; idx = 0; break;
-        case 192:
-        case 256: ctx->nr = 4; idx = 1; break;
-        default : return( POLARSSL_ERR_CAMELLIA_INVALID_KEY_LENGTH );
-    }
-
-    RK = ctx->rk;
-
-    ret = camellia_setkey_enc(&cty, key, keysize);
-    if( ret != 0 )
+    /* Also checks keysize */
+    if( ( ret = camellia_setkey_enc(&cty, key, keysize) ) )
         return( ret );
 
+    ctx->nr = cty.nr;
+    idx = ( ctx->nr == 4 );
+
+    RK = ctx->rk;
     SK = cty.rk + 24 * 2 + 8 * idx * 2;
 
     *RK++ = *SK++;

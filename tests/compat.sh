@@ -645,14 +645,14 @@ setup_arguments()
             exit 1;
     esac
 
-    P_SERVER_ARGS="server_addr=0.0.0.0 force_version=$MODE"
-    O_SERVER_ARGS="-www -cipher NULL,ALL -$MODE"
-    G_SERVER_ARGS="-p 4433 --http"
+    P_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
+    O_SERVER_ARGS="-accept $PORT -www -cipher NULL,ALL -$MODE"
+    G_SERVER_ARGS="-p $PORT --http"
     G_SERVER_PRIO="EXPORT:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
-    P_CLIENT_ARGS="force_version=$MODE"
-    O_CLIENT_ARGS="-$MODE"
-    G_CLIENT_ARGS="-p 4433 --debug 3"
+    P_CLIENT_ARGS="server_port=$PORT force_version=$MODE"
+    O_CLIENT_ARGS="-connect localhost:$PORT -$MODE"
+    G_CLIENT_ARGS="-p $PORT --debug 3"
     G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
 
     if [ "X$VERIFY" = "XYES" ];
@@ -952,7 +952,10 @@ for PEER in $PEERS; do
     esac
 done
 
-killall -q gnutls-serv openssl ssl_server ssl_server2
+# Pick a "unique" port in the range 10000-19999.
+PORT="0000$$"
+PORT="1$(echo $PORT | tail -c 4)"
+
 trap cleanup INT TERM HUP
 
 for VERIFY in $VERIFIES; do

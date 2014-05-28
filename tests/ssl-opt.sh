@@ -153,7 +153,7 @@ run_test() {
 
     # psk is useful when server only has bad certs
     if is_polar "$SRV_CMD"; then
-        "$P_CLI" request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
+        $P_CLI request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
             crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
             >/dev/null
     else
@@ -276,7 +276,16 @@ if which $OPENSSL_CMD >/dev/null 2>&1; then :; else
     exit 1
 fi
 
-killall -q openssl ssl_server ssl_server2
+# Pick a "unique" port in the range 10000-19999.
+PORT="0000$$"
+PORT="1$(echo $PORT | tail -c 4)"
+
+# fix commands to use this port
+P_SRV="$P_SRV server_port=$PORT"
+P_CLI="$P_CLI server_port=$PORT"
+O_SRV="$O_SRV -accept $PORT"
+O_CLI="$O_CLI -connect localhost:$PORT"
+
 trap cleanup INT TERM HUP
 
 # Test for SSLv2 ClientHello

@@ -337,6 +337,25 @@ void m_sleep( int milliseconds )
 #endif
 
 /*
+ * Busy-waits for the given number of milliseconds.
+ * Used for testing hardclock.
+ */
+static void busy_msleep( unsigned long msec )
+{
+    struct hr_time hires;
+    unsigned long i = 0; /* for busy-waiting */
+    volatile unsigned long j; /* to prevent optimisation */
+
+    (void) get_timer( &hires, 1 );
+
+    while( get_timer( &hires, 0 ) < msec )
+        i++;
+
+    j = i;
+    (void) j;
+}
+
+/*
  * Checkup routine
  *
  * Warning: this is work in progress, some tests may not be reliable enough
@@ -350,7 +369,7 @@ int timing_self_test( int verbose )
     struct hr_time hires;
 
     if( verbose != 0)
-        polarssl_printf( "  TIMING tests warning: will take some time!\n" );
+        polarssl_printf( "  TIMING tests note: will take some time!\n" );
 
     if( verbose != 0 )
         polarssl_printf( "  TIMING test #1 (m_sleep   / get_timer): " );
@@ -401,7 +420,7 @@ int timing_self_test( int verbose )
         polarssl_printf( "passed\n" );
 
     if( verbose != 0 )
-        polarssl_printf( "  TIMING test #3 (hardclock / m_sleep  ): " );
+        polarssl_printf( "  TIMING test #3 (hardclock / get_timer): " );
 
     /*
      * Allow one failure for possible counter wrapping.
@@ -420,15 +439,17 @@ hard_test:
     }
 
     /* Get a reference ratio cycles/ms */
+    millisecs = 1;
     cycles = hardclock();
-    m_sleep( 1 );
+    busy_msleep( millisecs );
     cycles = hardclock() - cycles;
-    ratio = cycles / 1;
+    ratio = cycles / millisecs;
 
+    /* Check that the ratio is mostly constant */
     for( millisecs = 2; millisecs <= 4; millisecs++ )
     {
         cycles = hardclock();
-        m_sleep( millisecs );
+        busy_msleep( millisecs );
         cycles = hardclock() - cycles;
 
         /* Allow variation up to 20% */
@@ -442,9 +463,6 @@ hard_test:
 
     if( verbose != 0 )
         polarssl_printf( "passed\n" );
-
-    if( verbose != 0 )
-        polarssl_printf( "\n" );
 
 #if defined(POLARSSL_NET_C)
     if( verbose != 0 )
@@ -470,6 +488,9 @@ hard_test:
     if( verbose != 0 )
         polarssl_printf( "passed\n" );
 #endif /* POLARSSL_NET_C */
+
+    if( verbose != 0 )
+        polarssl_printf( "\n" );
 
     return( 0 );
 }

@@ -1550,12 +1550,12 @@ static int x509_name_cmp( const void *s1, const void *s2, size_t len )
 static int x509_wildcard_verify( const char *cn, x509_buf *name )
 {
     size_t i;
-    size_t cn_idx = 0;
+    size_t cn_idx = 0, cn_len = strlen( cn );
 
     if( name->len < 3 || name->p[0] != '*' || name->p[1] != '.' )
         return( 0 );
 
-    for( i = 0; i < strlen( cn ); ++i )
+    for( i = 0; i < cn_len; ++i )
     {
         if( cn[i] == '.' )
         {
@@ -1567,7 +1567,7 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
     if( cn_idx == 0 )
         return( 0 );
 
-    if( strlen( cn ) - cn_idx == name->len - 1 &&
+    if( cn_len - cn_idx == name->len - 1 &&
         x509_name_cmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
     {
         return( 1 );

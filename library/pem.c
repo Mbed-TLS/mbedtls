@@ -370,11 +370,8 @@ int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
 
 void pem_free( pem_context *ctx )
 {
-    if( ctx->buf )
-        polarssl_free( ctx->buf );
-
-    if( ctx->info )
-        polarssl_free( ctx->info );
+    polarssl_free( ctx->buf );
+    polarssl_free( ctx->info );
 
     memset( ctx, 0, sizeof( pem_context ) );
 }

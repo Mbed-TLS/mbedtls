@@ -757,8 +757,8 @@ start_server() {
     SERVER_NAME=$1
 
     log "$SERVER_CMD"
-    echo "$SERVER_CMD" > srv_out
-    $SERVER_CMD >> srv_out 2>&1 &
+    echo "$SERVER_CMD" > $SRV_OUT
+    $SERVER_CMD >> $SRV_OUT 2>&1 &
     PROCESS_ID=$!
 
     sleep 1
@@ -787,19 +787,19 @@ stop_server() {
     wait $PROCESS_ID 2>/dev/null
 
     if [ "$MEMCHECK" -gt 0 ]; then
-        if is_polar "$SERVER_CMD" && has_mem_err srv_out; then
+        if is_polar "$SERVER_CMD" && has_mem_err $SRV_OUT; then
             echo "  ! Server had memory errors"
             let "srvmem++"
             return
         fi
     fi
 
-    rm -f srv_out
+    rm -f $SRV_OUT
 }
 
 # kill the running server (used when killed by signal)
 cleanup() {
-    rm -f srv_out cli_out
+    rm -f $SRV_OUT $CLI_OUT
     kill $PROCESS_ID
     exit 1
 }
@@ -820,14 +820,14 @@ run_client() {
         [Oo]pen*)
             CLIENT_CMD="$OPENSSL_CMD s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
-            echo "$CLIENT_CMD" > cli_out
-            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> cli_out 2>&1
+            echo "$CLIENT_CMD" > $CLI_OUT
+            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1
             EXIT=$?
 
             if [ "$EXIT" == "0" ]; then
                 RESULT=0
             else
-                if grep 'Cipher is (NONE)' cli_out >/dev/null; then
+                if grep 'Cipher is (NONE)' $CLI_OUT >/dev/null; then
                     RESULT=1
                 else
                     RESULT=2
@@ -838,8 +838,8 @@ run_client() {
         [Gg]nu*)
             CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 localhost"
             log "$CLIENT_CMD"
-            echo "$CLIENT_CMD" > cli_out
-            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> cli_out 2>&1
+            echo "$CLIENT_CMD" > $CLI_OUT
+            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1
             EXIT=$?
 
             if [ "$EXIT" == "0" ]; then
@@ -848,8 +848,8 @@ run_client() {
                 RESULT=2
                 # interpret early failure, with a handshake_failure alert
                 # before the server hello, as "no ciphersuite in common"
-                if grep -F 'Received alert [40]: Handshake failed' cli_out; then
-                    if grep -i 'SERVER HELLO .* was received' cli_out; then :
+                if grep -F 'Received alert [40]: Handshake failed' $CLI_OUT; then
+                    if grep -i 'SERVER HELLO .* was received' $CLI_OUT; then :
                     else
                         RESULT=1
                     fi
@@ -863,8 +863,8 @@ run_client() {
                 CLIENT_CMD="valgrind --leak-check=full $CLIENT_CMD"
             fi
             log "$CLIENT_CMD"
-            echo "$CLIENT_CMD" > cli_out
-            $CLIENT_CMD >> cli_out 2>&1
+            echo "$CLIENT_CMD" > $CLI_OUT
+            $CLIENT_CMD >> $CLI_OUT 2>&1
             EXIT=$?
 
             case $EXIT in
@@ -874,7 +874,7 @@ run_client() {
             esac
 
             if [ "$MEMCHECK" -gt 0 ]; then
-                if is_polar "$CLIENT_CMD" && has_mem_err cli_out; then
+                if is_polar "$CLIENT_CMD" && has_mem_err $CLI_OUT; then
                     RESULT=2
                 fi
             fi
@@ -887,7 +887,7 @@ run_client() {
             ;;
     esac
 
-    echo "EXIT: $EXIT" >> cli_out
+    echo "EXIT: $EXIT" >> $CLI_OUT
 
     # report and count result
     case $RESULT in
@@ -900,14 +900,14 @@ run_client() {
             ;;
         "2")
             echo FAIL
-            cp srv_out c-srv-${tests}.log
-            cp cli_out c-cli-${tests}.log
+            cp $SRV_OUT c-srv-${tests}.log
+            cp $CLI_OUT c-cli-${tests}.log
             echo "  ! outputs saved to c-srv-${tests}.log, c-cli-${tests}.log"
             let "failed++"
             ;;
     esac
 
-    rm -f cli_out
+    rm -f $CLI_OUT
 }
 
 #
@@ -955,6 +955,10 @@ done
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"
 PORT="1$(echo $PORT | tail -c 4)"
+
+# Also pick a unique name for intermediate files
+SRV_OUT="srv_out.$$"
+CLI_OUT="cli_out.$$"
 
 trap cleanup INT TERM HUP
 

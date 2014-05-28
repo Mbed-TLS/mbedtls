@@ -65,6 +65,7 @@ int main( int argc, char *argv[] )
 #define DFL_MODE                MODE_NONE
 #define DFL_FILENAME            "cert.crt"
 #define DFL_CA_FILE             ""
+#define DFL_CRL_FILE            ""
 #define DFL_CA_PATH             ""
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_PORT         4433
@@ -79,6 +80,7 @@ struct options
     int mode;                   /* the mode to run the application in   */
     const char *filename;       /* filename of the certificate file     */
     const char *ca_file;        /* the file with the CA certificate(s)  */
+    const char *crl_file;       /* the file with the CRL to use         */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *server_name;    /* hostname of the server (client only) */
     int server_port;            /* port on which the ssl service runs   */
@@ -134,6 +136,8 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_IO \
     "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
     "                        default: \"\" (none)\n" \
+    "    crl_file=%%s         The single CRL file you want to use\n" \
+    "                        default: \"\" (none)\n" \
     "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
     "                        default: \"\" (none) (overrides ca_file)\n"
 
@@ -158,6 +162,7 @@ int main( int argc, char *argv[] )
     ssl_context ssl;
     x509_crt cacert;
     x509_crt clicert;
+    x509_crl cacrl;
     pk_context pkey;
     int i, j;
     int flags, verify = 0;
@@ -170,6 +175,7 @@ int main( int argc, char *argv[] )
     server_fd = 0;
     x509_crt_init( &cacert );
     x509_crt_init( &clicert );
+    x509_crl_init( &cacrl );
     pk_init( &pkey );
 
     if( argc == 0 )
@@ -182,6 +188,7 @@ int main( int argc, char *argv[] )
     opt.mode                = DFL_MODE;
     opt.filename            = DFL_FILENAME;
     opt.ca_file             = DFL_CA_FILE;
+    opt.crl_file            = DFL_CRL_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.server_name         = DFL_SERVER_NAME;
     opt.server_port         = DFL_SERVER_PORT;
@@ -214,6 +221,8 @@ int main( int argc, char *argv[] )
             opt.filename = q;
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
+        else if( strcmp( p, "crl_file" ) == 0 )
+            opt.crl_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
             opt.ca_path = q;
         else if( strcmp( p, "server_name" ) == 0 )
@@ -264,6 +273,18 @@ int main( int argc, char *argv[] )
     }
 
     printf( " ok (%d skipped)\n", ret );
+
+    if( strlen( opt.crl_file ) )
+    {
+        ret = x509_crl_parse_file( &cacrl, opt.crl_file );
+        verify = 1;
+    }
+
+    if( ret < 0 )
+    {
+        printf( " failed\n  !  x509_crl_parse returned -0x%x\n\n", -ret );
+        goto exit;
+    }
 
     if( opt.mode == MODE_FILE )
     {
@@ -322,7 +343,7 @@ int main( int argc, char *argv[] )
         {
             printf( "  . Verifying X.509 certificate..." );
 
-            if( ( ret = x509_crt_verify( &crt, &cacert, NULL, NULL, &flags,
+            if( ( ret = x509_crt_verify( &crt, &cacert, &cacrl, NULL, &flags,
                                          my_verify, NULL ) ) != 0 )
             {
                 printf( " failed\n" );
@@ -452,6 +473,7 @@ exit:
         net_close( server_fd );
     x509_crt_free( &cacert );
     x509_crt_free( &clicert );
+    x509_crl_free( &cacrl );
     pk_free( &pkey );
     entropy_free( &entropy );
 

@@ -1070,8 +1070,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
         if( ssl->out_msglen != olen )
         {
-            SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect %d %d",
-                                ssl->out_msglen, olen ) );
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
     }
@@ -1146,8 +1145,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
         if( olen != enc_msglen )
         {
-            SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect %d %d",
-                                enc_msglen, olen ) );
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
@@ -1225,8 +1223,7 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
         if( enc_msglen != olen )
         {
-            SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect %d %d",
-                                enc_msglen, olen ) );
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
@@ -1308,7 +1305,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         if( ssl->in_msglen != olen )
         {
-            SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect" ) );
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
     }
@@ -1372,8 +1369,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         if( olen != dec_msglen )
         {
-            SSL_DEBUG_MSG( 1, ( "total decrypted length incorrect %d %d",
-                                dec_msglen, olen ) );
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
     }
@@ -1448,7 +1444,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
         if( dec_msglen != olen )
         {
-            SSL_DEBUG_MSG( 1, ( "total encrypted length incorrect" ) );
+            SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 

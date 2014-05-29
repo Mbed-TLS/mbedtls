@@ -151,15 +151,23 @@ run_test() {
     CLI_EXIT=$?
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
 
-    # psk is useful when server only has bad certs
     if is_polar "$SRV_CMD"; then
+        # start watchdog in case SERVERQUIT fails
+        ( sleep 10; echo "SERVERQUIT TIMEOUT"; kill $MAIN_PID ) &
+        WATCHDOG_PID=$!
+
+        # psk is useful when server only has bad certs
         $P_CLI request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
             crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
             >/dev/null
+
+        wait $SRV_PID
+        kill $WATCHDOG_PID
+        wait $WATCHDOG_PID
     else
         kill $SRV_PID
+        wait $SRV_PID
     fi
-    wait $SRV_PID
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero
@@ -275,6 +283,9 @@ if which $OPENSSL_CMD >/dev/null 2>&1; then :; else
     echo "Command '$OPENSSL_CMD' not found"
     exit 1
 fi
+
+# used by watchdog
+MAIN_PID="$$"
 
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"

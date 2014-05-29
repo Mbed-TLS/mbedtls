@@ -768,6 +768,10 @@ start_server() {
 stop_server() {
     case $SERVER_NAME in
         [Pp]olar*)
+            # start watchdog in case SERVERQUIT fails
+            ( sleep 20; echo "SERVERQUIT TIMEOUT"; kill $MAIN_PID ) &
+            WATCHDOG_PID=$!
+
             # we must force a PSK suite when in PSK mode (otherwise client
             # auth will fail), so try every entry in $P_CIPHERS in turn (in
             # case the first one is not implemented in this configuration)
@@ -779,12 +783,16 @@ stop_server() {
                     break
                 fi
             done
+
+            wait $PROCESS_ID 2>/dev/null
+            kill $WATCHDOG_PID 2>/dev/null
+            wait $WATCHDOG_PID 2>/dev/null
             ;;
         *)
             kill $PROCESS_ID 2>/dev/null
+            wait $PROCESS_ID 2>/dev/null
     esac
 
-    wait $PROCESS_ID 2>/dev/null
 
     if [ "$MEMCHECK" -gt 0 ]; then
         if is_polar "$SERVER_CMD" && has_mem_err $SRV_OUT; then
@@ -951,6 +959,9 @@ for PEER in $PEERS; do
             exit 1
     esac
 done
+
+# used by watchdog
+MAIN_PID="$$"
 
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"

@@ -183,7 +183,7 @@ int entropy_gather( entropy_context *ctx );
  *
  * \param data      Entropy context
  * \param output    Buffer to fill
- * \param len       Length of buffer
+ * \param len       Number of bytes desired, must be at most ENTROPY_BLOCK_SIZE
  *
  * \return          0 if successful, or POLARSSL_ERR_ENTROPY_SOURCE_FAILED
  */

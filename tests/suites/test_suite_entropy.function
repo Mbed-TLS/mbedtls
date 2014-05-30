@@ -1,0 +1,29 @@
+/* BEGIN_HEADER */
+#include <polarssl/entropy.h>
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_ENTROPY_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
+void entropy_seed_file( char *path, int ret )
+{
+    entropy_context ctx;
+
+    entropy_init( &ctx );
+
+    TEST_ASSERT( entropy_write_seed_file( &ctx, path ) == ret );
+    TEST_ASSERT( entropy_update_seed_file( &ctx, path ) == ret );
+
+    entropy_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+void entropy_selftest( )
+{
+    TEST_ASSERT( entropy_self_test( 0 ) == 0 );
+}
+/* END_CASE */

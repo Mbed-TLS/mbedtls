@@ -46,7 +46,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_des			test_suite_dhm			\
 		test_suite_ecdh			test_suite_ecdsa		\
 		test_suite_ecp									\
-		test_suite_error								\
+		test_suite_error		test_suite_entropy		\
 		test_suite_gcm.aes128_de						\
 		test_suite_gcm.aes192_de						\
 		test_suite_gcm.aes256_de						\
@@ -269,6 +269,10 @@ test_suite_ecdsa: test_suite_ecdsa.c $(DEP)
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_ecp: test_suite_ecp.c $(DEP)
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_entropy: test_suite_entropy.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

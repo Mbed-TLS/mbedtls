@@ -230,6 +230,15 @@ int entropy_write_seed_file( entropy_context *ctx, const char *path );
 int entropy_update_seed_file( entropy_context *ctx, const char *path );
 #endif /* POLARSSL_FS_IO */
 
+#if defined(POLARSSL_SELF_TEST)
+/**
+ * \brief          Checkup routine
+ *
+ * \return         0 if successful, or 1 if a test failed
+ */
+int entropy_self_test( int verbose );
+#endif /* POLARSSL_SELF_TEST */
+
 #ifdef __cplusplus
 }
 #endif

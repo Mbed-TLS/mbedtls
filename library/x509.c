@@ -201,10 +201,14 @@ static int x509_get_hash_alg( const x509_buf *alg, md_type_t *md_alg )
  *       saltLength        [2] INTEGER DEFAULT 20,
  *       trailerField      [3] INTEGER DEFAULT 1  }
  *    -- Note that the tags in this Sequence are explicit.
+ *
+ * RFC 4055 (which defines use of RSASSA-PSS in PKIX) states that the value
+ * of trailerField MUST be 1, and PKCS#1 v2.2 doesn't even define any other
+ * option. Enfore this at parsing time.
  */
 int x509_get_rsassa_pss_params( const x509_buf *params,
                                 md_type_t *md_alg, md_type_t *mgf_md,
-                                int *salt_len, int *trailer_field )
+                                int *salt_len )
 {
     int ret;
     unsigned char *p;
@@ -216,7 +220,6 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
     *md_alg = POLARSSL_MD_SHA1;
     *mgf_md = POLARSSL_MD_SHA1;
     *salt_len = 20;
-    *trailer_field = 1;
 
     /* Make sure params is a SEQUENCE and setup bounds */
     if( params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
@@ -307,19 +310,24 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
         return( 0 );
 
     /*
-     * trailer_field
+     * trailer_field (if present, must be 1)
      */
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) ) == 0 )
     {
+        int trailer_field;
+
         end2 = p + len;
 
-        if( ( ret = asn1_get_int( &p, end2, trailer_field ) ) != 0 )
+        if( ( ret = asn1_get_int( &p, end2, &trailer_field ) ) != 0 )
             return( POLARSSL_ERR_X509_INVALID_ALG + ret );
 
         if( p != end2 )
             return( POLARSSL_ERR_X509_INVALID_ALG +
                     POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+        if( trailer_field != 1 )
+            return( POLARSSL_ERR_X509_INVALID_ALG );
     }
     else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
         return( POLARSSL_ERR_X509_INVALID_ALG + ret );
@@ -561,12 +569,12 @@ int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
 #if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
     if( *pk_alg == POLARSSL_PK_RSASSA_PSS )
     {
-        int salt_len, trailer_field;
+        int salt_len;
         md_type_t mgf_md;
 
         /* Make sure params are valid */
         ret = x509_get_rsassa_pss_params( sig_params,
-                md_alg, &mgf_md, &salt_len, &trailer_field );
+                                          md_alg, &mgf_md, &salt_len );
         if( ret != 0 )
             return( ret );
 
@@ -838,19 +846,19 @@ int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
     {
         md_type_t md_alg, mgf_md;
         const md_info_t *md_info, *mgf_md_info;
-        int salt_len, trailer_field;
+        int salt_len;
 
         if( ( ret = x509_get_rsassa_pss_params( sig_params,
-                        &md_alg, &mgf_md, &salt_len, &trailer_field ) ) != 0 )
+                        &md_alg, &mgf_md, &salt_len ) ) != 0 )
             return( ret );
 
         md_info = md_info_from_type( md_alg );
         mgf_md_info = md_info_from_type( mgf_md );
 
-        ret = snprintf( p, n, " (%s, MGF1-%s, 0x%02X, %d)",
+        ret = snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
                               md_info ? md_info->name : "???",
                               mgf_md_info ? mgf_md_info->name : "???",
-                              salt_len, trailer_field );
+                              salt_len );
         SAFE_SNPRINTF();
     }
 #else

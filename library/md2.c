@@ -279,7 +279,7 @@ void md2_hmac_finish( md2_context *ctx, unsigned char output[16] )
     md2_update( ctx, tmpbuf, 16 );
     md2_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    secure_memzero( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*

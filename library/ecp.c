@@ -53,6 +53,7 @@
 #if defined(POLARSSL_ECP_C)
 
 #include "polarssl/ecp.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
@@ -344,7 +345,7 @@ void ecp_group_free( ecp_group *grp )
         polarssl_free( grp->T );
     }
 
-    memset( grp, 0, sizeof( ecp_group ) );
+    secure_memzero( grp, sizeof( ecp_group ) );
 }
 
 /*

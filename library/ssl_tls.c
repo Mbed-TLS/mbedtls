@@ -4542,7 +4542,7 @@ void ssl_transform_free( ssl_transform *transform )
     md_free_ctx( &transform->md_ctx_enc );
     md_free_ctx( &transform->md_ctx_dec );
 
-    memset( transform, 0, sizeof( ssl_transform ) );
+    secure_memzero( transform, sizeof( ssl_transform ) );
 }
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
@@ -4599,7 +4599,7 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C && POLARSSL_SSL_SERVER_NAME_INDICATION */
 
-    memset( handshake, 0, sizeof( ssl_handshake_params ) );
+    secure_memzero( handshake, sizeof( ssl_handshake_params ) );
 }
 
 void ssl_session_free( ssl_session *session )
@@ -4616,7 +4616,7 @@ void ssl_session_free( ssl_session *session )
     polarssl_free( session->ticket );
 #endif
 
-    memset( session, 0, sizeof( ssl_session ) );
+    secure_memzero( session, sizeof( ssl_session ) );
 }
 
 /*
@@ -4628,20 +4628,20 @@ void ssl_free( ssl_context *ssl )
 
     if( ssl->out_ctr != NULL )
     {
-        memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
+        secure_memzero( ssl->out_ctr, SSL_BUFFER_LEN );
         polarssl_free( ssl->out_ctr );
     }
 
     if( ssl->in_ctr != NULL )
     {
-        memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
+        secure_memzero( ssl->in_ctr, SSL_BUFFER_LEN );
         polarssl_free( ssl->in_ctr );
     }
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
     if( ssl->compress_buf != NULL )
     {
-        memset( ssl->compress_buf, 0, SSL_BUFFER_LEN );
+        secure_memzero( ssl->compress_buf, SSL_BUFFER_LEN );
         polarssl_free( ssl->compress_buf );
     }
 #endif
@@ -4681,7 +4681,7 @@ void ssl_free( ssl_context *ssl )
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
     if ( ssl->hostname != NULL )
     {
-        memset( ssl->hostname, 0, ssl->hostname_len );
+        secure_memzero( ssl->hostname, ssl->hostname_len );
         polarssl_free( ssl->hostname );
         ssl->hostname_len = 0;
     }
@@ -4690,8 +4690,8 @@ void ssl_free( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( ssl->psk != NULL )
     {
-        memset( ssl->psk, 0, ssl->psk_len );
-        memset( ssl->psk_identity, 0, ssl->psk_identity_len );
+        secure_memzero( ssl->psk, ssl->psk_len );
+        secure_memzero( ssl->psk_identity, ssl->psk_identity_len );
         polarssl_free( ssl->psk );
         polarssl_free( ssl->psk_identity );
         ssl->psk_len = 0;
@@ -4714,7 +4714,7 @@ void ssl_free( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "<= free" ) );
 
     /* Actually clear after last debug message */
-    memset( ssl, 0, sizeof( ssl_context ) );
+    secure_memzero( ssl, sizeof( ssl_context ) );
 }
 
 #if defined(POLARSSL_PK_C)

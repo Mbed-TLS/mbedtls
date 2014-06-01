@@ -100,8 +100,8 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
     {
         memcpy( key, md5sum, keylen );
 
-        memset( &md5_ctx, 0, sizeof(  md5_ctx ) );
-        memset( md5sum, 0, 16 );
+        secure_memzero( &md5_ctx, sizeof(  md5_ctx ) );
+        secure_memzero( md5sum, 16 );
         return;
     }
 
@@ -377,7 +377,7 @@ void pem_free( pem_context *ctx )
     if( ctx->info )
         polarssl_free( ctx->info );
 
-    memset( ctx, 0, sizeof( pem_context ) );
+    secure_memzero( ctx, sizeof( pem_context ) );
 }
 #endif /* POLARSSL_PEM_PARSE_C */
 

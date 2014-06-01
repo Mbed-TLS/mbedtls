@@ -42,6 +42,7 @@
 #if defined(POLARSSL_GCM_C)
 
 #include "polarssl/gcm.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_AESNI_C)
 #include "polarssl/aesni.h"
@@ -477,7 +478,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
 void gcm_free( gcm_context *ctx )
 {
     (void) cipher_free_ctx( &ctx->cipher_ctx );
-    memset( ctx, 0, sizeof( gcm_context ) );
+    secure_memzero( ctx, sizeof( gcm_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)

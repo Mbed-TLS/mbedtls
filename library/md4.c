@@ -375,7 +375,7 @@ void md4_hmac_finish( md4_context *ctx, unsigned char output[16] )
     md4_update( ctx, tmpbuf, 16 );
     md4_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    secure_memzero( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*

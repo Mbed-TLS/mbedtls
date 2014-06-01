@@ -37,6 +37,7 @@
 #if defined(POLARSSL_DHM_C)
 
 #include "polarssl/dhm.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
@@ -395,7 +396,7 @@ void dhm_free( dhm_context *ctx )
     mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
     mpi_free( &ctx->P );
 
-    memset( ctx, 0, sizeof( dhm_context ) );
+    secure_memzero( ctx, sizeof( dhm_context ) );
 }
 
 #if defined(POLARSSL_ASN1_PARSE_C)
@@ -535,7 +536,7 @@ int dhm_parse_dhmfile( dhm_context *dhm, const char *path )
 
     ret = dhm_parse_dhm( dhm, buf, n );
 
-    memset( buf, 0, n + 1 );
+    secure_memzero( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );

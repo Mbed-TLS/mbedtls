@@ -44,6 +44,7 @@
 
 #include "polarssl/x509_csr.h"
 #include "polarssl/oid.h"
+#include "polarssl/secure_memzero.h"
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
@@ -291,7 +292,7 @@ int x509_csr_parse_file( x509_csr *csr, const char *path )
 
     ret = x509_csr_parse( csr, buf, n );
 
-    memset( buf, 0, n + 1 );
+    secure_memzero( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -425,17 +426,17 @@ void x509_csr_free( x509_csr *csr )
     {
         name_prv = name_cur;
         name_cur = name_cur->next;
-        memset( name_prv, 0, sizeof( x509_name ) );
+        secure_memzero( name_prv, sizeof( x509_name ) );
         polarssl_free( name_prv );
     }
 
     if( csr->raw.p != NULL )
     {
-        memset( csr->raw.p, 0, csr->raw.len );
+        secure_memzero( csr->raw.p, csr->raw.len );
         polarssl_free( csr->raw.p );
     }
 
-    memset( csr, 0, sizeof( x509_csr ) );
+    secure_memzero( csr, sizeof( x509_csr ) );
 }
 
 #endif /* POLARSSL_X509_CSR_PARSE_C */

@@ -34,6 +34,7 @@
 #include "md5.h"
 #include "rsa.h"
 #include "sha1.h"
+#include "polarssl/secure_memzero.h"
 
 #define AES_SIZE                16
 #define AES_BLOCK_SIZE          16
@@ -113,7 +114,7 @@ inline rsa_context* d2i_RSA_PUBKEY( void *ignore, unsigned char **bufptr,
     }
     else
     {
-        memset( rsa, 0, sizeof( rsa_context ) );
+        secure_memzero( rsa, sizeof( rsa_context ) );
         free( rsa );
         return( 0 );
     }

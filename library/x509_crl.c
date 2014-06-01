@@ -44,6 +44,7 @@
 
 #include "polarssl/x509_crl.h"
 #include "polarssl/oid.h"
+#include "polarssl/secure_memzero.h"
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
@@ -544,7 +545,7 @@ int x509_crl_parse_file( x509_crl *chain, const char *path )
 
     ret = x509_crl_parse( chain, buf, n );
 
-    memset( buf, 0, n + 1 );
+    secure_memzero( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -717,7 +718,7 @@ void x509_crl_free( x509_crl *crl )
         {
             name_prv = name_cur;
             name_cur = name_cur->next;
-            memset( name_prv, 0, sizeof( x509_name ) );
+            secure_memzero( name_prv, sizeof( x509_name ) );
             polarssl_free( name_prv );
         }
 
@@ -726,13 +727,13 @@ void x509_crl_free( x509_crl *crl )
         {
             entry_prv = entry_cur;
             entry_cur = entry_cur->next;
-            memset( entry_prv, 0, sizeof( x509_crl_entry ) );
+            secure_memzero( entry_prv, sizeof( x509_crl_entry ) );
             polarssl_free( entry_prv );
         }
 
         if( crl_cur->raw.p != NULL )
         {
-            memset( crl_cur->raw.p, 0, crl_cur->raw.len );
+            secure_memzero( crl_cur->raw.p, crl_cur->raw.len );
             polarssl_free( crl_cur->raw.p );
         }
 
@@ -746,7 +747,7 @@ void x509_crl_free( x509_crl *crl )
         crl_prv = crl_cur;
         crl_cur = crl_cur->next;
 
-        memset( crl_prv, 0, sizeof( x509_crl ) );
+        secure_memzero( crl_prv, sizeof( x509_crl ) );
         if( crl_prv != crl )
             polarssl_free( crl_prv );
     }

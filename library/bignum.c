@@ -40,6 +40,7 @@
 
 #include "polarssl/bignum.h"
 #include "polarssl/bn_mul.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
@@ -84,7 +85,7 @@ void mpi_free( mpi *X )
 
     if( X->p != NULL )
     {
-        memset( X->p, 0, X->n * ciL );
+        secure_memzero( X->p, X->n * ciL );
         polarssl_free( X->p );
     }
 
@@ -113,7 +114,7 @@ int mpi_grow( mpi *X, size_t nblimbs )
         if( X->p != NULL )
         {
             memcpy( p, X->p, X->n * ciL );
-            memset( X->p, 0, X->n * ciL );
+            secure_memzero( X->p, X->n * ciL );
             polarssl_free( X->p );
         }
 
@@ -153,7 +154,7 @@ int mpi_shrink( mpi *X, size_t nblimbs )
     if( X->p != NULL )
     {
         memcpy( p, X->p, i * ciL );
-        memset( X->p, 0, X->n * ciL );
+        secure_memzero( X->p, X->n * ciL );
         polarssl_free( X->p );
     }
 

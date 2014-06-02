@@ -126,6 +126,17 @@ rsa_context;
  *
  * \note           The hash_id parameter is actually ignored
  *                 when using RSA_PKCS_V15 padding.
+ *
+ * \note           Choice of padding mode is strictly enforced for private key
+ *                 operations, since there might be security concerns in
+ *                 mixing padding modes. For public key operations it's merely
+ *                 a default value, which can be overriden by calling specific
+ *                 rsa_rsaes_xxx or rsa_rsassa_xxx functions.
+ *
+ * \note           The chosen hash is always used for OEAP encryption.
+ *                 For PSS signatures, it's always used for making signatures,
+ *                 but can be overriden (and always is, if set to
+ *                 POLARSSL_MD_NONE) for verifying them.
  */
 void rsa_init( rsa_context *ctx,
                int padding,
@@ -133,16 +144,11 @@ void rsa_init( rsa_context *ctx,
 
 /**
  * \brief          Set padding for an already initialized RSA context
- *
- *                 Note: Set padding to RSA_PKCS_V21 for the RSAES-OAEP
- *                 encryption scheme and the RSASSA-PSS signature scheme.
+ *                 See \c rsa_init() for details.
  *
  * \param ctx      RSA context to be set
  * \param padding  RSA_PKCS_V15 or RSA_PKCS_V21
  * \param hash_id  RSA_PKCS_V21 hash identifier
- *
- * \note           The hash_id parameter is actually ignored
- *                 when using RSA_PKCS_V15 padding.
  */
 void rsa_set_padding( rsa_context *ctx, int padding, int hash_id);
 
@@ -405,11 +411,8 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           In case of PKCS#1 v2.1 encoding keep in mind that
- *                 the hash_id in the RSA context is the one used for the
- *                 encoding. hash_id in the function call is the type of hash
- *                 that is encoded. According to RFC 3447 it is advised to
- *                 keep both hashes the same.
+ * \note           In case of PKCS#1 v2.1 encoding, see comments on
+ * \note           \c rsa_rsassa_pss_sign() for details on md_alg and hash_id.
  */
 int rsa_pkcs1_sign( rsa_context *ctx,
                     int (*f_rng)(void *, unsigned char *, size_t),
@@ -466,9 +469,8 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           In case of PKCS#1 v2.1 encoding keep in mind that
- *                 the hash_id in the RSA context is the one used for the
- *                 encoding. hash_id in the function call is the type of hash
+ * \note           The hash_id in the RSA context is the one used for the
+ *                 encoding. md_alg in the function call is the type of hash
  *                 that is encoded. According to RFC 3447 it is advised to
  *                 keep both hashes the same.
  */
@@ -501,11 +503,8 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           In case of PKCS#1 v2.1 encoding keep in mind that
- *                 the hash_id in the RSA context is the one used for the
- *                 verification. hash_id in the function call is the type of
- *                 hash that is verified. According to RFC 3447 it is advised to
- *                 keep both hashes the same.
+ * \note           In case of PKCS#1 v2.1 encoding, see comments on
+ *                 \c rsa_rsassa_pss_verify() about md_alg and hash_id.
  */
 int rsa_pkcs1_verify( rsa_context *ctx,
                       int (*f_rng)(void *, unsigned char *, size_t),
@@ -561,11 +560,11 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           In case of PKCS#1 v2.1 encoding keep in mind that
- *                 the hash_id in the RSA context is the one used for the
- *                 verification. hash_id in the function call is the type of
+ * \note           The hash_id in the RSA context is the one used for the
+ *                 verification. md_alg in the function call is the type of
  *                 hash that is verified. According to RFC 3447 it is advised to
- *                 keep both hashes the same.
+ *                 keep both hashes the same. If hash_id in the RSA context is
+ *                 unset, the md_alg from the function call is used.
  */
 int rsa_rsassa_pss_verify( rsa_context *ctx,
                            int (*f_rng)(void *, unsigned char *, size_t),

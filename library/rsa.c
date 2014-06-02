@@ -505,7 +505,10 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
     const md_info_t *md_info;
     md_context_t md_ctx;
 
-    if( ctx->padding != RSA_PKCS_V21 || f_rng == NULL )
+    if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V21 )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+    if( f_rng == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     md_info = md_info_from_type( ctx->hash_id );
@@ -515,7 +518,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
     olen = ctx->len;
     hlen = md_get_size( md_info );
 
-    if( olen < ilen + 2 * hlen + 2 || f_rng == NULL )
+    if( olen < ilen + 2 * hlen + 2 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     memset( output, 0, olen );
@@ -572,7 +575,10 @@ int rsa_rsaes_pkcs1_v15_encrypt( rsa_context *ctx,
     int ret;
     unsigned char *p = output;
 
-    if( ctx->padding != RSA_PKCS_V15 || f_rng == NULL )
+    if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V15 )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+    if( f_rng == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     olen = ctx->len;
@@ -675,7 +681,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     /*
      * Parameters sanity checks
      */
-    if( ctx->padding != RSA_PKCS_V21 )
+    if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V21 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     ilen = ctx->len;
@@ -780,7 +786,7 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
     unsigned char *p, bad, pad_done = 0;
     unsigned char buf[POLARSSL_MPI_MAX_SIZE];
 
-    if( ctx->padding != RSA_PKCS_V15 )
+    if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V15 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     ilen = ctx->len;
@@ -901,7 +907,10 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
     const md_info_t *md_info;
     md_context_t md_ctx;
 
-    if( ctx->padding != RSA_PKCS_V21 || f_rng == NULL )
+    if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V21 )
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
+
+    if( f_rng == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     olen = ctx->len;
@@ -995,7 +1004,7 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
     unsigned char *p = sig;
     const char *oid;
 
-    if( ctx->padding != RSA_PKCS_V15 )
+    if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V15 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     olen = ctx->len;
@@ -1117,7 +1126,7 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
     const md_info_t *md_info;
     md_context_t md_ctx;
 
-    if( ctx->padding != RSA_PKCS_V21 )
+    if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V21 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     siglen = ctx->len;
@@ -1148,7 +1157,8 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
         hashlen = md_get_size( md_info );
     }
 
-    md_info = md_info_from_type( ctx->hash_id );
+    md_info = md_info_from_type( ctx->hash_id != POLARSSL_MD_NONE ?
+                                 ctx->hash_id : md_alg );
     if( md_info == NULL )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
@@ -1227,7 +1237,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
     const md_info_t *md_info;
     asn1_buf oid;
 
-    if( ctx->padding != RSA_PKCS_V15 )
+    if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V15 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     siglen = ctx->len;

@@ -191,6 +191,7 @@
     <ClInclude Include="..\..\include\polarssl\platform.h" />
     <ClInclude Include="..\..\include\polarssl\ripemd160.h" />
     <ClInclude Include="..\..\include\polarssl\rsa.h" />
+    <ClInclude Include="..\..\include\polarssl\secure_memzero.h" />
     <ClInclude Include="..\..\include\polarssl\sha1.h" />
     <ClInclude Include="..\..\include\polarssl\sha256.h" />
     <ClInclude Include="..\..\include\polarssl\sha512.h" />

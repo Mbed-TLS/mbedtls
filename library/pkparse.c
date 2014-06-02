@@ -34,6 +34,7 @@
 #include "polarssl/pk.h"
 #include "polarssl/asn1.h"
 #include "polarssl/oid.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_RSA_C)
 #include "polarssl/rsa.h"
@@ -124,7 +125,7 @@ int pk_parse_keyfile( pk_context *ctx,
         ret = pk_parse_key( ctx, buf, n,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
-    memset( buf, 0, n + 1 );
+    secure_memzero( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -144,7 +145,7 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path )
 
     ret = pk_parse_public_key( ctx, buf, n );
 
-    memset( buf, 0, n + 1 );
+    secure_memzero( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );

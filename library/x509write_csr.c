@@ -39,6 +39,7 @@
 #include "polarssl/x509_csr.h"
 #include "polarssl/oid.h"
 #include "polarssl/asn1write.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
@@ -57,7 +58,7 @@ void x509write_csr_free( x509write_csr *ctx )
     asn1_free_named_data_list( &ctx->subject );
     asn1_free_named_data_list( &ctx->extensions );
 
-    memset( ctx, 0, sizeof(x509write_csr) );
+    secure_memzero( ctx, sizeof(x509write_csr) );
 }
 
 void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg )

@@ -36,6 +36,7 @@
 #if defined(POLARSSL_MD_C)
 
 #include "polarssl/md_wrap.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_MD2_C)
 #include "polarssl/md2.h"
@@ -132,6 +133,9 @@ static void * md2_ctx_alloc( void )
 
 static void md2_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( md2_context ) );
     polarssl_free( ctx );
 }
 
@@ -221,6 +225,9 @@ static void *md4_ctx_alloc( void )
 
 static void md4_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( md4_context ) );
     polarssl_free( ctx );
 }
 
@@ -308,6 +315,9 @@ static void * md5_ctx_alloc( void )
 
 static void md5_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( md5_context ) );
     polarssl_free( ctx );
 }
 
@@ -395,6 +405,9 @@ static void * ripemd160_ctx_alloc( void )
 
 static void ripemd160_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( ripemd160_context ) );
     polarssl_free( ctx );
 }
 
@@ -482,6 +495,9 @@ static void * sha1_ctx_alloc( void )
 
 static void sha1_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( sha1_context ) );
     polarssl_free( ctx );
 }
 
@@ -585,6 +601,9 @@ static void * sha224_ctx_alloc( void )
 
 static void sha224_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( sha256_context ) );
     polarssl_free( ctx );
 }
 
@@ -681,6 +700,9 @@ static void * sha256_ctx_alloc( void )
 
 static void sha256_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( sha256_context ) );
     polarssl_free( ctx );
 }
 
@@ -781,6 +803,9 @@ static void * sha384_ctx_alloc( void )
 
 static void sha384_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( sha512_context ) );
     polarssl_free( ctx );
 }
 
@@ -877,6 +902,9 @@ static void * sha512_ctx_alloc( void )
 
 static void sha512_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( sha512_context ) );
     polarssl_free( ctx );
 }
 

@@ -38,6 +38,7 @@
 #if defined(POLARSSL_HMAC_DRBG_C)
 
 #include "polarssl/hmac_drbg.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
@@ -305,7 +306,7 @@ void hmac_drbg_free( hmac_drbg_context *ctx )
 
     md_free_ctx( &ctx->md_ctx );
 
-    memset( ctx, 0, sizeof( hmac_drbg_context ) );
+    secure_memzero( ctx, sizeof( hmac_drbg_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)

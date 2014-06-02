@@ -38,6 +38,7 @@
 #if defined(POLARSSL_MD2_C)
 
 #include "polarssl/md2.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
@@ -188,7 +189,7 @@ void md2( const unsigned char *input, size_t ilen, unsigned char output[16] )
     md2_update( &ctx, input, ilen );
     md2_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md2_context ) );
+    secure_memzero( &ctx, sizeof( md2_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -212,7 +213,7 @@ int md2_file( const char *path, unsigned char output[16] )
 
     md2_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md2_context ) );
+    secure_memzero( &ctx, sizeof( md2_context ) );
 
     if( ferror( f ) != 0 )
     {
@@ -278,7 +279,7 @@ void md2_hmac_finish( md2_context *ctx, unsigned char output[16] )
     md2_update( ctx, tmpbuf, 16 );
     md2_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    secure_memzero( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -303,7 +304,7 @@ void md2_hmac( const unsigned char *key, size_t keylen,
     md2_hmac_update( &ctx, input, ilen );
     md2_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md2_context ) );
+    secure_memzero( &ctx, sizeof( md2_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

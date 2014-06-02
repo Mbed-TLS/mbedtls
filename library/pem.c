@@ -36,6 +36,7 @@
 #include "polarssl/aes.h"
 #include "polarssl/md5.h"
 #include "polarssl/cipher.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
@@ -99,8 +100,8 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
     {
         memcpy( key, md5sum, keylen );
 
-        memset( &md5_ctx, 0, sizeof(  md5_ctx ) );
-        memset( md5sum, 0, 16 );
+        secure_memzero( &md5_ctx, sizeof(  md5_ctx ) );
+        secure_memzero( md5sum, 16 );
         return;
     }
 
@@ -121,8 +122,8 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
 
     memcpy( key + 16, md5sum, use_len );
 
-    memset( &md5_ctx, 0, sizeof(  md5_ctx ) );
-    memset( md5sum, 0, 16 );
+    secure_memzero( &md5_ctx, sizeof(  md5_ctx ) );
+    secure_memzero( md5sum, 16 );
 }
 
 #if defined(POLARSSL_DES_C)
@@ -142,8 +143,8 @@ static void pem_des_decrypt( unsigned char des_iv[8],
     des_crypt_cbc( &des_ctx, DES_DECRYPT, buflen,
                      des_iv, buf, buf );
 
-    memset( &des_ctx, 0, sizeof( des_ctx ) );
-    memset( des_key, 0, 8 );
+    secure_memzero( &des_ctx, sizeof( des_ctx ) );
+    secure_memzero( des_key, 8 );
 }
 
 /*
@@ -162,8 +163,8 @@ static void pem_des3_decrypt( unsigned char des3_iv[8],
     des3_crypt_cbc( &des3_ctx, DES_DECRYPT, buflen,
                      des3_iv, buf, buf );
 
-    memset( &des3_ctx, 0, sizeof( des3_ctx ) );
-    memset( des3_key, 0, 24 );
+    secure_memzero( &des3_ctx, sizeof( des3_ctx ) );
+    secure_memzero( des3_key, 24 );
 }
 #endif /* POLARSSL_DES_C */
 
@@ -184,8 +185,8 @@ static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
     aes_crypt_cbc( &aes_ctx, AES_DECRYPT, buflen,
                      aes_iv, buf, buf );
 
-    memset( &aes_ctx, 0, sizeof( aes_ctx ) );
-    memset( aes_key, 0, keylen );
+    secure_memzero( &aes_ctx, sizeof( aes_ctx ) );
+    secure_memzero( aes_key, keylen );
 }
 #endif /* POLARSSL_AES_C */
 
@@ -376,7 +377,7 @@ void pem_free( pem_context *ctx )
     if( ctx->info )
         polarssl_free( ctx->info );
 
-    memset( ctx, 0, sizeof( pem_context ) );
+    secure_memzero( ctx, sizeof( pem_context ) );
 }
 #endif /* POLARSSL_PEM_PARSE_C */
 

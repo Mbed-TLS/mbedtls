@@ -38,6 +38,7 @@
 #if defined(POLARSSL_CAMELLIA_C)
 
 #include "polarssl/camellia.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
@@ -469,7 +470,7 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
 
-    memset( &cty, 0, sizeof( camellia_context ) );
+    secure_memzero( &cty, sizeof( camellia_context ) );
 
     return( 0 );
 }

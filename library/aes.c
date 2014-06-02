@@ -38,6 +38,7 @@
 #if defined(POLARSSL_AES_C)
 
 #include "polarssl/aes.h"
+#include "polarssl/secure_memzero.h"
 #if defined(POLARSSL_PADLOCK_C)
 #include "polarssl/padlock.h"
 #endif
@@ -643,7 +644,7 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
 #if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
 done:
 #endif
-    memset( &cty, 0, sizeof( aes_context ) );
+    secure_memzero( &cty, sizeof( aes_context ) );
 
     return( 0 );
 }

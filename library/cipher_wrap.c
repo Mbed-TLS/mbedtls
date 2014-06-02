@@ -36,6 +36,7 @@
 #if defined(POLARSSL_CIPHER_C)
 
 #include "polarssl/cipher_wrap.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_AES_C)
 #include "polarssl/aes.h"
@@ -169,6 +170,9 @@ static void * aes_ctx_alloc( void )
 
 static void aes_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( aes_context ) );
     polarssl_free( ctx );
 }
 
@@ -467,6 +471,9 @@ static void * camellia_ctx_alloc( void )
 
 static void camellia_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( camellia_context ) );
     polarssl_free( ctx );
 }
 
@@ -820,6 +827,17 @@ static void * des3_ctx_alloc( void )
 
 static void des_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( des_context ) );
+    polarssl_free( ctx );
+}
+
+static void des3_ctx_free( void *ctx )
+{
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( des3_context ) );
     polarssl_free( ctx );
 }
 
@@ -870,7 +888,7 @@ const cipher_base_t des_ede_info = {
     des3_set2key_enc_wrap,
     des3_set2key_dec_wrap,
     des3_ctx_alloc,
-    des_ctx_free
+    des3_ctx_free
 };
 
 const cipher_info_t des_ede_ecb_info = {
@@ -907,7 +925,7 @@ const cipher_base_t des_ede3_info = {
     des3_set3key_enc_wrap,
     des3_set3key_dec_wrap,
     des3_ctx_alloc,
-    des_ctx_free
+    des3_ctx_free
 };
 
 const cipher_info_t des_ede3_ecb_info = {
@@ -1015,6 +1033,9 @@ static void * blowfish_ctx_alloc( void )
 
 static void blowfish_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( blowfish_context ) );
     polarssl_free( ctx );
 }
 
@@ -1108,6 +1129,9 @@ static void * arc4_ctx_alloc( void )
 
 static void arc4_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
+    secure_memzero( ctx, sizeof( arc4_context ) );
     polarssl_free( ctx );
 }
 

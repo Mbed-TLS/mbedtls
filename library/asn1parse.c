@@ -32,6 +32,7 @@
 #if defined(POLARSSL_ASN1_PARSE_C)
 
 #include "polarssl/asn1.h"
+#include "polarssl/secure_memzero.h"
 
 #if defined(POLARSSL_BIGNUM_C)
 #include "polarssl/bignum.h"
@@ -311,7 +312,7 @@ int asn1_get_alg( unsigned char **p,
 
     if( *p == end )
     {
-        memset( params, 0, sizeof(asn1_buf) );
+        secure_memzero( params, sizeof(asn1_buf) );
         return( 0 );
     }
 
@@ -356,7 +357,7 @@ void asn1_free_named_data( asn1_named_data *cur )
     polarssl_free( cur->oid.p );
     polarssl_free( cur->val.p );
 
-    memset( cur, 0, sizeof( asn1_named_data ) );
+    secure_memzero( cur, sizeof( asn1_named_data ) );
 }
 
 void asn1_free_named_data_list( asn1_named_data **head )

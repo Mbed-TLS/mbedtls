@@ -170,6 +170,8 @@ static void * aes_ctx_alloc( void )
 
 static void aes_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
     secure_memzero( ctx, sizeof( aes_context ) );
     polarssl_free( ctx );
 }
@@ -469,6 +471,8 @@ static void * camellia_ctx_alloc( void )
 
 static void camellia_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
     secure_memzero( ctx, sizeof( camellia_context ) );
     polarssl_free( ctx );
 }
@@ -823,12 +827,16 @@ static void * des3_ctx_alloc( void )
 
 static void des_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
     secure_memzero( ctx, sizeof( des_context ) );
     polarssl_free( ctx );
 }
 
 static void des3_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
     secure_memzero( ctx, sizeof( des3_context ) );
     polarssl_free( ctx );
 }
@@ -1025,6 +1033,8 @@ static void * blowfish_ctx_alloc( void )
 
 static void blowfish_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
     secure_memzero( ctx, sizeof( blowfish_context ) );
     polarssl_free( ctx );
 }
@@ -1119,6 +1129,8 @@ static void * arc4_ctx_alloc( void )
 
 static void arc4_ctx_free( void *ctx )
 {
+    if ( ctx == NULL )
+        return;
     secure_memzero( ctx, sizeof( arc4_context ) );
     polarssl_free( ctx );
 }

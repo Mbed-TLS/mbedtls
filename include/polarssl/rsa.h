@@ -65,6 +65,8 @@
 #define RSA_SIGN        1
 #define RSA_CRYPT       2
 
+#define RSA_SALT_LEN_ANY    -1
+
 /*
  * The above constants may be used even if the RSA module is compile out,
  * eg for alternative (PKCS#11) RSA implemenations in the PK layers.
@@ -544,6 +546,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
 
 /**
  * \brief          Perform a PKCS#1 v2.1 PSS verification (RSASSA-PSS-VERIFY)
+ *                 (This is the "simple" version.)
  *
  * \param ctx      points to an RSA public key
  * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
@@ -574,6 +577,41 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
                            unsigned int hashlen,
                            const unsigned char *hash,
                            const unsigned char *sig );
+
+/**
+ * \brief          Perform a PKCS#1 v2.1 PSS verification (RSASSA-PSS-VERIFY)
+ *                 (This is the version with "full" options.)
+ *
+ * \param ctx      points to an RSA public key
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
+ * \param hash     buffer holding the message digest
+ * \param mgf1_hash_id message digest used for mask generation
+ * \param expected_salt_len Length of the salt used in padding, use
+ *                 RSA_SALT_LEN_ANY to accept any salt length
+ * \param sig      buffer holding the ciphertext
+ *
+ * \return         0 if the verify operation was successful,
+ *                 or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The "sig" buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
+ * \note           The hash_id in the RSA context is ignored.
+ */
+int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng,
+                               int mode,
+                               md_type_t md_alg,
+                               unsigned int hashlen,
+                               const unsigned char *hash,
+                               md_type_t mgf1_hash_id,
+                               int expected_salt_len,
+                               const unsigned char *sig );
 
 /**
  * \brief          Copy the components of an RSA context

@@ -1,16 +1,10 @@
 /* BEGIN_HEADER */
 #include <polarssl/rsa.h>
 #include <polarssl/md.h>
-#include <polarssl/md2.h>
-#include <polarssl/md4.h>
-#include <polarssl/md5.h>
-#include <polarssl/sha1.h>
-#include <polarssl/sha256.h>
-#include <polarssl/sha512.h>
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:POLARSSL_PKCS1_V21:POLARSSL_RSA_C:POLARSSL_BIGNUM_C:POLARSSL_SHA1_C:POLARSSL_GENPRIME
+ * depends_on:POLARSSL_PKCS1_V21:POLARSSL_RSA_C:POLARSSL_SHA1_C
  * END_DEPENDENCIES
  */
 

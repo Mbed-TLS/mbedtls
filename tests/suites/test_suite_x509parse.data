@@ -576,29 +576,37 @@ x509_verify:"data_files/server9.crt":"data_files/test-ca.crt":"data_files/crl.pe
 
 X509 Certificate verification #58 (Valid, RSASSA-PSS, SHA-224)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
-x509_verify:"data_files/server9-sha224.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server9-sha224.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha224.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #59 (Valid, RSASSA-PSS, SHA-256)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
-x509_verify:"data_files/server9-sha256.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server9-sha256.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #60 (Valid, RSASSA-PSS, SHA-384)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
-x509_verify:"data_files/server9-sha384.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server9-sha384.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha384.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #61 (Valid, RSASSA-PSS, SHA-512)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
-x509_verify:"data_files/server9-sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
+x509_verify:"data_files/server9-sha512.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha512.pem":"NULL":0:0:"NULL"
 
-X509 Certificate verification #57 (Valid, RSASSA-PSS, SHA-1, not top)
+X509 Certificate verification #62 (Revoked, RSASSA-PSS, SHA-1)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+x509_verify:"data_files/server9.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
+
+X509 Certificate verification #63 (Revoked, RSASSA-PSS, SHA-1, CRL badsign)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+x509_verify:"data_files/server9.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha1-badsign.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_NOT_TRUSTED:"NULL"
+
+X509 Certificate verification #64 (Valid, RSASSA-PSS, SHA-1, not top)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
 x509_verify:"data_files/server9-with-ca.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
-X509 Certificate verification #62 (RSASSA-PSS, SHA1, bad signature)
+X509 Certificate verification #65 (RSASSA-PSS, SHA1, bad cert signature)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
 x509_verify:"data_files/server9-badsign.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
-X509 Certificate verification #63 (RSASSA-PSS, SHA1, no RSA CA)
+X509 Certificate verification #66 (RSASSA-PSS, SHA1, no RSA CA)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
 x509_verify:"data_files/server9.crt":"data_files/test-ca2.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 

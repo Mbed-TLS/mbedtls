@@ -223,16 +223,10 @@
 /**
  * \def POLARSSL_RSASSA_PSS_CERTIFICATES
  *
- * Enable parsing and verification of X.509 certificates and CRLs signed with
- * RSASSA-PSS.
+ * Enable parsing and verification of X.509 certificates, CRLs and CSRS
+ * signed with RSASSA-PSS (aka PKCS#1 v2.1).
  *
- * This is disabled by default since it breaks binary compatibility with the
- * 1.3.x line. If you choose to enable it, you will need to rebuild your
- * application against the new header files, relinking will not be enough.
- *
- * TODO: actually disable it when done working on this branch ,)
- *
- * Uncomment this macro to allow using RSASSA-PSS in certificates.
+ * Comment this macro to disallow using RSASSA-PSS in certificates.
  */
 #define POLARSSL_RSASSA_PSS_CERTIFICATES
 

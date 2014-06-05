@@ -366,11 +366,6 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
     size_t n;
     char *p;
     char key_size_str[BEFORE_COLON];
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-    const void *sig_opts = csr->sig_opts;
-#else
-    const void *sig_opts = NULL;
-#endif
 
     p = buf;
     n = size;
@@ -388,7 +383,7 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
     SAFE_SNPRINTF();
 
     ret = x509_sig_alg_gets( p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
-                             sig_opts );
+                             csr->sig_opts );
     SAFE_SNPRINTF();
 
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,

@@ -67,9 +67,7 @@ typedef struct _x509_csr
     x509_buf sig;
     md_type_t sig_md;       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
     pk_type_t sig_pk;       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
     void *sig_opts;             /**< Signature options to be passed to pk_verify_ext(), eg for RSASSA-PSS */
-#endif
 }
 x509_csr;
 

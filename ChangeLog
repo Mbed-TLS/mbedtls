@@ -1,7 +1,8 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
-TODO: bump SOVERSION
+TODO: bump SOVERSION for ABI change
 (internal-but-not-static function x509_get_sig_alg() changed prototype)
+(and various x509 structures got a new member)
 
 = PolarSSL 1.3 branch
 Features

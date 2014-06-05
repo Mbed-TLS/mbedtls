@@ -1236,7 +1236,7 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
                            const unsigned char *sig )
 {
     md_type_t mgf1_hash_id = ( ctx->hash_id != POLARSSL_MD_NONE )
-                             ? ctx->hash_id
+                             ? (md_type_t) ctx->hash_id
                              : md_alg;
 
     return( rsa_rsassa_pss_verify_ext( ctx, f_rng, p_rng, mode,

@@ -285,7 +285,8 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
 #endif
 int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig );
 int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
-                      md_type_t *md_alg, pk_type_t *pk_alg );
+                      md_type_t *md_alg, pk_type_t *pk_alg,
+                      void **sig_opts );
 int x509_get_time( unsigned char **p, const unsigned char *end,
                    x509_time *time );
 int x509_get_serial( unsigned char **p, const unsigned char *end,

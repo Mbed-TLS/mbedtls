@@ -616,7 +616,8 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     }
 
     if( ( ret = x509_get_sig_alg( &crt->sig_oid1, &sig_params,
-                                  &crt->sig_md, &crt->sig_pk ) ) != 0 )
+                                  &crt->sig_md, &crt->sig_pk,
+                                  &crt->sig_opts ) ) != 0 )
     {
         x509_crt_free( crt );
         return( ret );
@@ -1960,6 +1961,10 @@ void x509_crt_free( x509_crt *crt )
     do
     {
         pk_free( &cert_cur->pk );
+
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+        polarssl_free( cert_cur->sig_opts );
+#endif
 
         name_cur = cert_cur->issuer.next;
         while( name_cur != NULL )

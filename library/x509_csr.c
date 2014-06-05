@@ -255,7 +255,8 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
     }
 
     if( ( ret = x509_get_sig_alg( &csr->sig_oid, &sig_params,
-                                  &csr->sig_md, &csr->sig_pk ) ) != 0 )
+                                  &csr->sig_md, &csr->sig_pk,
+                                  &csr->sig_opts ) ) != 0 )
     {
         x509_csr_free( csr );
         return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG );
@@ -424,6 +425,10 @@ void x509_csr_free( x509_csr *csr )
         return;
 
     pk_free( &csr->pk );
+
+#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+    polarssl_free( csr->sig_opts );
+#endif
 
     name_cur = csr->subject.next;
     while( name_cur != NULL )

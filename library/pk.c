@@ -189,6 +189,59 @@ int pk_verify( pk_context *ctx, md_type_t md_alg,
 }
 
 /*
+ * Verify a signature with options
+ */
+int pk_verify_ext( pk_type_t type, const void *options,
+                   pk_context *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   const unsigned char *sig, size_t sig_len )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ! pk_can_do( ctx, type ) )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+
+    if( type == POLARSSL_PK_RSASSA_PSS )
+    {
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_PKCS1_V21)
+        int ret;
+        const pk_rsassa_pss_options *pss_opts;
+
+        if( options == NULL )
+            return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+        pss_opts = (const pk_rsassa_pss_options *) options;
+
+        if( sig_len < pk_get_len( ctx ) )
+            return( POLARSSL_ERR_RSA_VERIFY_FAILED );
+
+        ret = rsa_rsassa_pss_verify_ext( pk_rsa( *ctx ),
+                NULL, NULL, RSA_PUBLIC,
+                md_alg, hash_len, hash,
+                pss_opts->mgf1_hash_id,
+                pss_opts->expected_salt_len,
+                sig );
+        if( ret != 0 )
+            return( ret );
+
+        if( sig_len > pk_get_len( ctx ) )
+            return( POLARSSL_ERR_PK_SIG_LEN_MISMATCH );
+
+        return( 0 );
+#else
+        return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
+#endif
+    }
+
+    /* General case: no options */
+    if( options != NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    return( pk_verify( ctx, md_alg, hash, hash_len, sig, sig_len ) );
+}
+
+/*
  * Make a signature
  */
 int pk_sign( pk_context *ctx, md_type_t md_alg,

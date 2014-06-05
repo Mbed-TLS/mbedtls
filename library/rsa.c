@@ -1204,6 +1204,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     if( expected_salt_len != RSA_SALT_LEN_ANY &&
         slen != (size_t) expected_salt_len )
     {
+        md_free_ctx( &md_ctx );
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 

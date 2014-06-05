@@ -95,7 +95,6 @@ typedef struct _x509_crt
     pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */
 #if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
     void *sig_opts;             /**< Signature options to be passed to pk_verify_ext(), eg for RSASSA-PSS */
-    x509_buf sig_params;        /**< Parameters for the signature algorithm */
 #endif
 
     struct _x509_crt *next;     /**< Next certificate in the CA-chain. */

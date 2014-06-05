@@ -256,14 +256,15 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
     size_t len;
     unsigned char *p, *end;
     x509_crl *crl;
-    x509_buf sig_params;
+    x509_buf sig_params1, sig_params2;
 
 #if defined(POLARSSL_PEM_PARSE_C)
     size_t use_len;
     pem_context pem;
 #endif
 
-    memset( &sig_params, 0, sizeof( x509_buf ) );
+    memset( &sig_params1, 0, sizeof( x509_buf ) );
+    memset( &sig_params2, 0, sizeof( x509_buf ) );
 
     crl = chain;
 
@@ -383,7 +384,7 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
      * signature            AlgorithmIdentifier
      */
     if( ( ret = x509_crl_get_version( &p, end, &crl->version ) ) != 0 ||
-        ( ret = x509_get_alg( &p, end, &crl->sig_oid1, &sig_params ) ) != 0 )
+        ( ret = x509_get_alg( &p, end, &crl->sig_oid1, &sig_params1 ) ) != 0 )
     {
         x509_crl_free( crl );
         return( ret );
@@ -397,17 +398,13 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
         return( POLARSSL_ERR_X509_UNKNOWN_VERSION );
     }
 
-    if( ( ret = x509_get_sig_alg( &crl->sig_oid1, &sig_params,
+    if( ( ret = x509_get_sig_alg( &crl->sig_oid1, &sig_params1,
                                   &crl->sig_md, &crl->sig_pk,
                                   &crl->sig_opts ) ) != 0 )
     {
         x509_crl_free( crl );
         return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG );
     }
-
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-    memcpy( &crl->sig_params, &sig_params, sizeof( x509_buf ) );
-#endif
 
     /*
      * issuer               Name
@@ -493,20 +490,16 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signatureValue       BIT STRING
      */
-    if( ( ret = x509_get_alg( &p, end, &crl->sig_oid2, &sig_params ) ) != 0 )
+    if( ( ret = x509_get_alg( &p, end, &crl->sig_oid2, &sig_params2 ) ) != 0 )
     {
         x509_crl_free( crl );
         return( ret );
     }
 
     if( crl->sig_oid1.len != crl->sig_oid2.len ||
-        memcmp( crl->sig_oid1.p, crl->sig_oid2.p, crl->sig_oid1.len ) != 0
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-        ||
-        crl->sig_params.len != sig_params.len ||
-        memcmp( crl->sig_params.p, sig_params.p, sig_params.len ) != 0
-#endif
-        )
+        memcmp( crl->sig_oid1.p, crl->sig_oid2.p, crl->sig_oid1.len ) != 0 ||
+        sig_params1.len != sig_params2.len ||
+        memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0)
     {
         x509_crl_free( crl );
         return( POLARSSL_ERR_X509_SIG_MISMATCH );

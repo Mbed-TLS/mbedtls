@@ -99,6 +99,8 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
     pem_context pem;
 #endif
 
+    memset( &sig_params, 0, sizeof( x509_buf ) );
+
     /*
      * Check for valid input
      */
@@ -261,10 +263,6 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
         x509_csr_free( csr );
         return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG );
     }
-
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-    memcpy( &csr->sig_params, &sig_params, sizeof( x509_buf ) );
-#endif
 
     if( ( ret = x509_get_sig( &p, end, &csr->sig ) ) != 0 )
     {

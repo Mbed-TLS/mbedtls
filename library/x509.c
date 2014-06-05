@@ -836,10 +836,11 @@ int x509_serial_gets( char *buf, size_t size, const x509_buf *serial )
 }
 
 /*
- * Helper for writing signature alrogithms
+ * Helper for writing signature algorithms
  */
 int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
-                       pk_type_t pk_alg, const x509_buf *sig_params )
+                       pk_type_t pk_alg, md_type_t md_alg,
+                       const void *sig_opts )
 {
     int ret;
     char *p = buf;
@@ -856,26 +857,24 @@ int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
 #if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
     if( pk_alg == POLARSSL_PK_RSASSA_PSS )
     {
-        md_type_t md_alg, mgf_md;
+        const pk_rsassa_pss_options *pss_opts;
         const md_info_t *md_info, *mgf_md_info;
-        int salt_len;
 
-        if( ( ret = x509_get_rsassa_pss_params( sig_params,
-                        &md_alg, &mgf_md, &salt_len ) ) != 0 )
-            return( ret );
+        pss_opts = (const pk_rsassa_pss_options *) sig_opts;
 
         md_info = md_info_from_type( md_alg );
-        mgf_md_info = md_info_from_type( mgf_md );
+        mgf_md_info = md_info_from_type( pss_opts->mgf1_hash_id );
 
         ret = snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
                               md_info ? md_info->name : "???",
                               mgf_md_info ? mgf_md_info->name : "???",
-                              salt_len );
+                              pss_opts->expected_salt_len );
         SAFE_SNPRINTF();
     }
 #else
     ((void) pk_alg);
-    ((void) sig_params);
+    ((void) md_alg);
+    ((void) sig_opts);
 #endif /* POLARSSL_RSASSA_PSS_CERTIFICATES */
 
     return( (int) size - n );

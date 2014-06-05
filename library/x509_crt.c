@@ -1659,24 +1659,9 @@ static int x509_crt_verify_top(
             continue;
         }
 
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-        if( child->sig_pk == POLARSSL_PK_RSASSA_PSS )
-        {
-            if( pk_can_do( &trust_ca->pk, POLARSSL_PK_RSA ) == 0 ||
-                rsa_rsassa_pss_verify( pk_rsa( trust_ca->pk ),
-                                       NULL, NULL, RSA_PUBLIC,
-                                       child->sig_md,
-                                       md_info->size, hash,
-                                       child->sig.p ) != 0 )
-            {
-                continue;
-            }
-        }
-        else
-#endif
-        if( pk_can_do( &trust_ca->pk, child->sig_pk ) == 0 ||
-            pk_verify( &trust_ca->pk, child->sig_md, hash, md_info->size,
-                       child->sig.p, child->sig.len ) != 0 )
+        if( pk_verify_ext( child->sig_pk, child->sig_opts, &trust_ca->pk,
+                           child->sig_md, hash, md_info->size,
+                           child->sig.p, child->sig.len ) != 0 )
         {
             continue;
         }
@@ -1763,24 +1748,9 @@ static int x509_crt_verify_child(
     {
         md( md_info, child->tbs.p, child->tbs.len, hash );
 
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
-        if( child->sig_pk == POLARSSL_PK_RSASSA_PSS )
-        {
-            if( pk_can_do( &parent->pk, POLARSSL_PK_RSA ) == 0 ||
-                rsa_rsassa_pss_verify( pk_rsa( parent->pk ),
-                                       NULL, NULL, RSA_PUBLIC,
-                                       child->sig_md,
-                                       md_info->size, hash,
-                                       child->sig.p ) != 0 )
-            {
-                *flags |= BADCERT_NOT_TRUSTED;
-            }
-        }
-        else
-#endif
-        if( pk_can_do( &parent->pk, child->sig_pk ) == 0 ||
-            pk_verify( &parent->pk, child->sig_md, hash, md_info->size,
-                       child->sig.p, child->sig.len ) != 0 )
+        if( pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
+                           child->sig_md, hash, md_info->size,
+                           child->sig.p, child->sig.len ) != 0 )
         {
             *flags |= BADCERT_NOT_TRUSTED;
         }

@@ -420,7 +420,7 @@ void x509_csr_free( x509_csr *csr )
 
     pk_free( &csr->pk );
 
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
     polarssl_free( csr->sig_opts );
 #endif
 

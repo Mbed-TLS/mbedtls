@@ -221,16 +221,6 @@
 //#define POLARSSL_SHA512_ALT
 
 /**
- * \def POLARSSL_RSASSA_PSS_CERTIFICATES
- *
- * Enable parsing and verification of X.509 certificates, CRLs and CSRS
- * signed with RSASSA-PSS (aka PKCS#1 v2.1).
- *
- * Comment this macro to disallow using RSASSA-PSS in certificates.
- */
-#define POLARSSL_RSASSA_PSS_CERTIFICATES
-
-/**
  * \def POLARSSL_AES_ROM_TABLES
  *
  * Store the AES tables in ROM.
@@ -1024,6 +1014,16 @@
  * Comment to skip extendedKeyUsage checking for certificates.
  */
 #define POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE
+
+/**
+ * \def POLARSSL_X509_RSASSA_PSS_SUPPORT
+ *
+ * Enable parsing and verification of X.509 certificates, CRLs and CSRS
+ * signed with RSASSA-PSS (aka PKCS#1 v2.1).
+ *
+ * Comment this macro to disallow using RSASSA-PSS in certificates.
+ */
+#define POLARSSL_X509_RSASSA_PSS_SUPPORT
 
 /**
  * \def POLARSSL_ZLIB_SUPPORT

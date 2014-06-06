@@ -373,7 +373,7 @@ void x509_check_extended_key_usage( char *crt_file, char *usage_hex, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES */
+/* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT */
 void x509_parse_rsassa_pss_params( char *hex_params, int params_tag,
                                    int ref_msg_md, int ref_mgf_md,
                                    int ref_salt_len, int ref_ret )

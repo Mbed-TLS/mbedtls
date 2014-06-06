@@ -43,23 +43,23 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSA_C
 x509_cert_info:"data_files/cert_sha512.crt":"cert. version     \: 3\nserial number     \: 0B\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA512\nissued  on        \: 2011-02-12 14\:44\:07\nexpires on        \: 2021-02-12 14\:44\:07\nsigned using      \: RSA with SHA-512\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information RSA-PSS, SHA1 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_cert_info:"data_files/server9.crt":"cert. version     \: 3\nserial number     \: 16\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2014-01-20 13\:38\:16\nexpires on        \: 2024-01-18 13\:38\:16\nsigned using      \: RSASSA-PSS (SHA1, MGF1-SHA1, 0xEA)\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information RSA-PSS, SHA224 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
 x509_cert_info:"data_files/server9-sha224.crt":"cert. version     \: 3\nserial number     \: 17\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2014-01-20 13\:57\:36\nexpires on        \: 2024-01-18 13\:57\:36\nsigned using      \: RSASSA-PSS (SHA224, MGF1-SHA224, 0xE2)\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information RSA-PSS, SHA256 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
 x509_cert_info:"data_files/server9-sha256.crt":"cert. version     \: 3\nserial number     \: 18\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2014-01-20 13\:57\:45\nexpires on        \: 2024-01-18 13\:57\:45\nsigned using      \: RSASSA-PSS (SHA256, MGF1-SHA256, 0xDE)\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information RSA-PSS, SHA384 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_cert_info:"data_files/server9-sha384.crt":"cert. version     \: 3\nserial number     \: 19\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2014-01-20 13\:57\:58\nexpires on        \: 2024-01-18 13\:57\:58\nsigned using      \: RSASSA-PSS (SHA384, MGF1-SHA384, 0xCE)\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information RSA-PSS, SHA512 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_cert_info:"data_files/server9-sha512.crt":"cert. version     \: 3\nserial number     \: 1A\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2014-01-20 13\:58\:12\nexpires on        \: 2024-01-18 13\:58\:12\nsigned using      \: RSASSA-PSS (SHA512, MGF1-SHA512, 0xBE)\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information EC, SHA1 Digest
@@ -151,23 +151,23 @@ depends_on:POLARSSL_PEM_PARSE_C
 x509_crl_info:"data_files/crl_sha512.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-512\n"
 
 X509 CRL information RSA-PSS, SHA1 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_crl_info:"data_files/crl-rsa-pss-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:46\:35\nnext update   \: 2024-01-18 13\:46\:35\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0xEA)\n"
 
 X509 CRL information RSA-PSS, SHA224 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
 x509_crl_info:"data_files/crl-rsa-pss-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:06\nnext update   \: 2024-01-18 13\:56\:06\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0xE2)\n"
 
 X509 CRL information RSA-PSS, SHA256 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
 x509_crl_info:"data_files/crl-rsa-pss-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:16\nnext update   \: 2024-01-18 13\:56\:16\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA256, MGF1-SHA256, 0xDE)\n"
 
 X509 CRL information RSA-PSS, SHA384 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_crl_info:"data_files/crl-rsa-pss-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:28\nnext update   \: 2024-01-18 13\:56\:28\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA384, MGF1-SHA384, 0xCE)\n"
 
 X509 CRL information RSA-PSS, SHA512 Digest
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_crl_info:"data_files/crl-rsa-pss-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:38\nnext update   \: 2024-01-18 13\:56\:38\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0xBE)\n"
 
 X509 CRL Information EC, SHA1 Digest
@@ -239,23 +239,23 @@ depends_on:POLARSSL_PEM_PARSE_C
 x509_csr_info:"data_files/server5.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA512\nEC key size   \: 256 bits\n"
 
 X509 CSR Information RSA-PSS with SHA1
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_csr_info:"data_files/server9.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0x6A)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA224
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
 x509_csr_info:"data_files/server9.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0x62)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA256
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
 x509_csr_info:"data_files/server9.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA256, MGF1-SHA256, 0x5E)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA384
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_csr_info:"data_files/server9.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA384, MGF1-SHA384, 0x4E)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA512
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_csr_info:"data_files/server9.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0x3E)\nRSA key size  \: 1024 bits\n"
 
 X509 Get Distinguished Name #1
@@ -571,47 +571,47 @@ depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C:POLARSSL_X509
 x509_verify:"data_files/server5.crt":"data_files/test-ca2.ku-ds.crt":"data_files/crl-ec-sha256.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #57 (Valid, RSASSA-PSS, SHA-1)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_verify:"data_files/server9.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #58 (Valid, RSASSA-PSS, SHA-224)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
 x509_verify:"data_files/server9-sha224.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha224.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #59 (Valid, RSASSA-PSS, SHA-256)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA256_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
 x509_verify:"data_files/server9-sha256.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha256.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #60 (Valid, RSASSA-PSS, SHA-384)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_verify:"data_files/server9-sha384.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha384.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #61 (Valid, RSASSA-PSS, SHA-512)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA512_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA512_C
 x509_verify:"data_files/server9-sha512.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha512.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #62 (Revoked, RSASSA-PSS, SHA-1)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_verify:"data_files/server9.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha1.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
 
 X509 Certificate verification #63 (Revoked, RSASSA-PSS, SHA-1, CRL badsign)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_verify:"data_files/server9.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha1-badsign.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCRL_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #64 (Valid, RSASSA-PSS, SHA-1, not top)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_verify:"data_files/server9-with-ca.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
 
 X509 Certificate verification #65 (RSASSA-PSS, SHA1, bad cert signature)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_verify:"data_files/server9-badsign.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #66 (RSASSA-PSS, SHA1, no RSA CA)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_verify:"data_files/server9.crt":"data_files/test-ca2.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #67 (Valid, RSASSA-PSS, all defaults)
-depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES:POLARSSL_SHA1_C
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_verify:"data_files/server9-defaults.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha1.pem":"NULL":0:0:"NULL"
 
 X509 Parse Selftest

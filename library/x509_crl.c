@@ -716,7 +716,7 @@ void x509_crl_free( x509_crl *crl )
 
     do
     {
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
         polarssl_free( crl_cur->sig_opts );
 #endif
 

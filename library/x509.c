@@ -137,7 +137,7 @@ int x509_get_alg( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
 /*
  * HashAlgorithm ::= AlgorithmIdentifier
  *
@@ -338,7 +338,7 @@ int x509_get_rsassa_pss_params( const x509_buf *params,
 
     return( 0 );
 }
-#endif /* POLARSSL_RSASSA_PSS_CERTIFICATES */
+#endif /* POLARSSL_X509_RSASSA_PSS_SUPPORT */
 
 /*
  *  AttributeTypeAndValue ::= SEQUENCE {
@@ -570,7 +570,7 @@ int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
     if( ( ret = oid_get_sig_alg( sig_oid, md_alg, pk_alg ) ) != 0 )
         return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG + ret );
 
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
     if( *pk_alg == POLARSSL_PK_RSASSA_PSS )
     {
         pk_rsassa_pss_options *pss_opts;
@@ -854,7 +854,7 @@ int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
         ret = snprintf( p, n, "%s", desc );
     SAFE_SNPRINTF();
 
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
     if( pk_alg == POLARSSL_PK_RSASSA_PSS )
     {
         const pk_rsassa_pss_options *pss_opts;
@@ -875,7 +875,7 @@ int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
     ((void) pk_alg);
     ((void) md_alg);
     ((void) sig_opts);
-#endif /* POLARSSL_RSASSA_PSS_CERTIFICATES */
+#endif /* POLARSSL_X509_RSASSA_PSS_SUPPORT */
 
     return( (int) size - n );
 }

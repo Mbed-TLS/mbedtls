@@ -1921,7 +1921,7 @@ void x509_crt_free( x509_crt *crt )
     {
         pk_free( &cert_cur->pk );
 
-#if defined(POLARSSL_RSASSA_PSS_CERTIFICATES)
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
         polarssl_free( cert_cur->sig_opts );
 #endif
 

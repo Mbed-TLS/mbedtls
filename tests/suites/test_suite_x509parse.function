@@ -373,6 +373,37 @@ void x509_check_extended_key_usage( char *crt_file, char *usage_hex, int ret )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_RSASSA_PSS_CERTIFICATES */
+void x509_parse_rsassa_pss_params( char *hex_params, int params_tag,
+                                   int ref_msg_md, int ref_mgf_md,
+                                   int ref_salt_len, int ref_ret )
+{
+    int my_ret;
+    x509_buf params;
+    md_type_t my_msg_md, my_mgf_md;
+    int my_salt_len;
+
+    params.p = unhexify_alloc( hex_params, &params.len );
+    params.tag = params_tag;
+
+    my_ret = x509_get_rsassa_pss_params( &params, &my_msg_md, &my_mgf_md,
+                                         &my_salt_len );
+
+    if( my_ret != ref_ret ) printf( "\n%04X\n", - my_ret );
+
+    TEST_ASSERT( my_ret == ref_ret );
+
+    if( ref_ret == 0 )
+    {
+        TEST_ASSERT( my_msg_md == (md_type_t) ref_msg_md );
+        TEST_ASSERT( my_mgf_md == (md_type_t) ref_mgf_md );
+        TEST_ASSERT( my_salt_len == ref_salt_len );
+    }
+
+    polarssl_free( params.p );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_SELF_TEST */
 void x509_selftest()
 {

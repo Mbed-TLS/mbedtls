@@ -2,6 +2,13 @@
 #include "polarssl/memory.h"
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT32 uint32_t;
@@ -92,6 +99,27 @@ static void hexify(unsigned char *obuf, const unsigned char *ibuf, int len)
         ++ibuf;
         len--;
     }
+}
+
+/**
+ * Allocate and fill a buffer from hex data.
+ *
+ * The buffer is sized exactly as needed. This allows to detect buffer
+ * overruns (including overreads) when running the test suite under valgrind.
+ *
+ * For convenience, dies if allocation fails.
+ */
+static unsigned char *unhexify_alloc( const char *ibuf, size_t *olen )
+{
+    unsigned char *obuf;
+
+    *olen = strlen(ibuf) / 2;
+
+    assert( ( obuf = polarssl_malloc( *olen ) ) != NULL );
+
+    (void) unhexify( obuf, ibuf );
+
+    return( obuf );
 }
 
 /**

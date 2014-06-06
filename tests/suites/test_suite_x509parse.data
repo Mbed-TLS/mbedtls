@@ -614,6 +614,14 @@ X509 Certificate verification #67 (Valid, RSASSA-PSS, all defaults)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA1_C
 x509_verify:"data_files/server9-defaults.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha1.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #68 (RSASSA-PSS, wrong salt_len)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
+x509_verify:"data_files/server9-bad-saltlen.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+
+X509 Certificate verification #69 (RSASSA-PSS, wrong mgf_hash)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_X509_RSASSA_PSS_SUPPORT:POLARSSL_SHA256_C
+x509_verify:"data_files/server9-bad-mgfhash.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
+
 X509 Parse Selftest
 depends_on:POLARSSL_SHA1_C:POLARSSL_PEM_PARSE_C:POLARSSL_CERTS_C
 x509_selftest:

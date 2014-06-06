@@ -8,6 +8,8 @@ TODO: bump SOVERSION for ABI change
 Features
    * Add CCM module and cipher mode to Cipher Layer
    * Support for CCM and CCM_8 ciphersuites
+   * Support for parsing and verifying RSASSA-PSS signatures in the X.509
+     modules (certificates, CRLs and CSRs).
 
 Bugfix
    * Fix in debug_print_msg()

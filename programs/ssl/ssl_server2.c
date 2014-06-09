@@ -108,6 +108,8 @@
     "<h2>PolarSSL Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n" // LONG_RESPONSE
 
+#define MAX_PSK_LEN     256
+
 /*
  * global options
  */
@@ -433,6 +435,47 @@ int sni_callback( void *p_info, ssl_context *ssl,
 
 #endif /* POLARSSL_SNI */
 
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+
+#define HEX2NUM( c )                    \
+        if( c >= '0' && c <= '9' )      \
+            c -= '0';                   \
+        else if( c >= 'a' && c <= 'f' ) \
+            c -= 'a' - 10;              \
+        else if( c >= 'A' && c <= 'F' ) \
+            c -= 'A' - 10;              \
+        else                            \
+            return( -1 );
+
+/*
+ * Convert a hex string to bytes.
+ * Return 0 on success, -1 on error.
+ */
+int unhexify( unsigned char *output, const char *input, size_t *olen )
+{
+    unsigned char c;
+    size_t j;
+
+    *olen = strlen( input );
+    if( *olen % 2 != 0 || *olen / 2 > MAX_PSK_LEN )
+        return( -1 );
+    *olen /= 2;
+
+    for( j = 0; j < *olen * 2; j += 2 )
+    {
+        c = input[j];
+        HEX2NUM( c );
+        output[ j / 2 ] = c << 4;
+
+        c = input[j + 1];
+        HEX2NUM( c );
+        output[ j / 2 ] |= c;
+    }
+
+    return( 0 );
+}
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags;
@@ -440,7 +483,7 @@ int main( int argc, char *argv[] )
     int client_fd = -1;
     unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    unsigned char psk[256];
+    unsigned char psk[MAX_PSK_LEN];
     size_t psk_len = 0;
 #endif
     const char *pers = "ssl_server2";
@@ -771,48 +814,12 @@ int main( int argc, char *argv[] )
     /*
      * Unhexify the pre-shared key if any is given
      */
-    if( strlen( opt.psk ) )
+    if( opt.psk != NULL )
     {
-        unsigned char c;
-        size_t j;
-
-        if( strlen( opt.psk ) % 2 != 0 )
+        if( unhexify( psk, opt.psk, &psk_len ) != 0 )
         {
             printf("pre-shared key not valid hex\n");
             goto exit;
-        }
-
-        psk_len = strlen( opt.psk ) / 2;
-
-        for( j = 0; j < strlen( opt.psk ); j += 2 )
-        {
-            c = opt.psk[j];
-            if( c >= '0' && c <= '9' )
-                c -= '0';
-            else if( c >= 'a' && c <= 'f' )
-                c -= 'a' - 10;
-            else if( c >= 'A' && c <= 'F' )
-                c -= 'A' - 10;
-            else
-            {
-                printf("pre-shared key not valid hex\n");
-                goto exit;
-            }
-            psk[ j / 2 ] = c << 4;
-
-            c = opt.psk[j + 1];
-            if( c >= '0' && c <= '9' )
-                c -= '0';
-            else if( c >= 'a' && c <= 'f' )
-                c -= 'a' - 10;
-            else if( c >= 'A' && c <= 'F' )
-                c -= 'A' - 10;
-            else
-            {
-                printf("pre-shared key not valid hex\n");
-                goto exit;
-            }
-            psk[ j / 2 ] |= c;
         }
     }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */

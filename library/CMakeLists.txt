@@ -1,5 +1,6 @@
 option(USE_STATIC_POLARSSL_LIBRARY "Build PolarSSL static library." ON)
 option(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL shared library." OFF)
+option(LINK_WITH_PTHREAD "Explicitly link PolarSSL library to pthread." OFF)
 
 set(src
      aes.c
@@ -102,6 +103,9 @@ if(USE_STATIC_POLARSSL_LIBRARY)
 		target_link_libraries(${polarssl_static_target} ${ZLIB_LIBRARIES})
 	endif(ZLIB_FOUND)
 
+	if(LINK_WITH_PTHREAD)
+        target_link_libraries(${polarssl_static_target} pthread)
+	endif()
 
 	install(TARGETS ${polarssl_static_target}
 			DESTINATION ${LIB_INSTALL_DIR}
@@ -117,6 +121,10 @@ if(USE_SHARED_POLARSSL_LIBRARY)
 	if(ZLIB_FOUND)
 		target_link_libraries(polarssl ${ZLIB_LIBRARIES})
 	endif(ZLIB_FOUND)
+
+	if(LINK_WITH_PTHREAD)
+        target_link_libraries(polarssl pthread)
+	endif()
 
 	install(TARGETS polarssl
 			DESTINATION ${LIB_INSTALL_DIR}

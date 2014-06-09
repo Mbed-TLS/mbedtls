@@ -1243,6 +1243,25 @@ run_test    "extKeyUsage cli-auth #4b (codeSign -> fail (hard))" \
             -s "bad certificate (usage extensions)" \
             -s "Processing of the Certificate handshake message failed"
 
+# Tests for DHM parameters loading
+
+run_test    "DHM parameters #0 (reference)" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=3" \
+            0 \
+            -c "value of 'DHM: P ' (2048 bits)" \
+            -c "value of 'DHM: G ' (2048 bits)"
+
+run_test    "DHM parameters #1 (other parameters)" \
+            "$P_SRV dhm_file=data_files/dhparams.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=3" \
+            0 \
+            -c "value of 'DHM: P ' (1024 bits)" \
+            -c "value of 'DHM: G ' (2 bits)"
+
+
 # Final report
 
 echo "------------------------------------------------------------------------"

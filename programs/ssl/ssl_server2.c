@@ -91,6 +91,7 @@
 #define DFL_CACHE_TIMEOUT       -1
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
+#define DFL_DHM_FILE            NULL
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -138,6 +139,7 @@ struct options
     int cache_timeout;          /* expiration delay of session cache entries */
     char *sni;                  /* string describing sni information        */
     const char *alpn_string;    /* ALPN supported protocols                 */
+    const char *dhm_file;       /* the file with the DH parameters          */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -200,7 +202,9 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "                        default: see note after key_file2\n" \
     "    key_file2=%%s        default: see note below\n" \
     "                        note: if neither crt_file/key_file nor crt_file2/key_file2 are used,\n" \
-    "                              preloaded certificate(s) and key(s) are used if available\n"
+    "                              preloaded certificate(s) and key(s) are used if available\n" \
+    "    dhm_file=%%s        File containing Diffie-Hellman parameters\n" \
+    "                       default: preloaded parameters\n"
 #else
 #define USAGE_IO \
     "\n"                                                    \
@@ -452,6 +456,9 @@ int main( int argc, char *argv[] )
     pk_context pkey2;
     int key_cert_init = 0, key_cert_init2 = 0;
 #endif
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
+    dhm_context dhm;
+#endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
 #endif
@@ -484,6 +491,9 @@ int main( int argc, char *argv[] )
     pk_init( &pkey );
     x509_crt_init( &srvcert2 );
     pk_init( &pkey2 );
+#endif
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
+    memset( &dhm, 0, sizeof( dhm_context ) );
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_init( &cache );
@@ -540,6 +550,7 @@ int main( int argc, char *argv[] )
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
+    opt.dhm_file            = DFL_DHM_FILE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -580,6 +591,8 @@ int main( int argc, char *argv[] )
             opt.crt_file2 = q;
         else if( strcmp( p, "key_file2" ) == 0 )
             opt.key_file2 = q;
+        else if( strcmp( p, "dhm_file" ) == 0 )
+            opt.dhm_file = q;
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
         else if( strcmp( p, "psk_identity" ) == 0 )
@@ -988,6 +1001,23 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
+    if( opt.dhm_file != NULL )
+    {
+        printf( "  . Loading DHM parameters..." );
+        fflush( stdout );
+
+        if( ( ret = dhm_parse_dhmfile( &dhm, opt.dhm_file ) ) != 0 )
+        {
+            printf( " failed\n  ! dhm_parse_dhmfile returned -0x%04X\n\n",
+                     -ret );
+            goto exit;
+        }
+
+        printf( " ok\n" );
+    }
+#endif
+
 #if defined(POLARSSL_SNI)
     if( opt.sni != NULL )
     {
@@ -1096,8 +1126,19 @@ int main( int argc, char *argv[] )
     /*
      * Use different group than default DHM group
      */
-    ssl_set_dh_param( &ssl, POLARSSL_DHM_RFC5114_MODP_2048_P,
-                            POLARSSL_DHM_RFC5114_MODP_2048_G );
+#if defined(POLARSSL_FS_IO)
+    if( opt.dhm_file != NULL )
+        ret = ssl_set_dh_param_ctx( &ssl, &dhm );
+    else
+#endif
+        ret = ssl_set_dh_param( &ssl, POLARSSL_DHM_RFC5114_MODP_2048_P,
+                                      POLARSSL_DHM_RFC5114_MODP_2048_G );
+
+    if( ret != 0 )
+    {
+        printf( "  failed\n  ssl_set_dh_param returned -0x%04X\n\n", - ret );
+        goto exit;
+    }
 #endif
 
     if( opt.min_version != -1 )

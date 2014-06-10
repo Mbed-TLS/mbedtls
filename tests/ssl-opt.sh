@@ -1261,6 +1261,55 @@ run_test    "DHM parameters #1 (other parameters)" \
             -c "value of 'DHM: P ' (1024 bits)" \
             -c "value of 'DHM: G ' (2 bits)"
 
+# Tests for PSK callback
+
+run_test    "PSK callback #0 (reference)" \
+            "$P_SRV psk=abc123 psk_identity=foo" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=foo psk=abc123" \
+            0 \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #1 (callback overrides other settings)" \
+            "$P_SRV psk=abc123 psk_identity=foo psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=foo psk=abc123" \
+            1 \
+            -s "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #2 (first id matches)" \
+            "$P_SRV psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=abc psk=dead" \
+            0 \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #3 (second id matches)" \
+            "$P_SRV psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=def psk=beef" \
+            0 \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #4 (no match)" \
+            "$P_SRV psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=ghi psk=beef" \
+            1 \
+            -s "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #5 (wrong key)" \
+            "$P_SRV psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=abc psk=beef" \
+            1 \
+            -S "SSL - Unknown identity received" \
+            -s "SSL - Verification of the message MAC failed"
 
 # Final report
 

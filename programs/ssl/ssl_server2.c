@@ -314,6 +314,16 @@ int main( int argc, char *argv[] )
 }
 #else
 
+/*
+ * Used by sni_parse and psk_parse to handle coma-separated lists
+ */
+#define GET_ITEM( dst )         \
+    dst = p;                    \
+    while( *p != ',' )          \
+        if( ++p > end )         \
+            return( NULL );     \
+    *p++ = '\0';
+
 #if defined(POLARSSL_SNI)
 typedef struct _sni_entry sni_entry;
 
@@ -328,8 +338,8 @@ struct _sni_entry {
  * Parse a string of triplets name1,crt1,key1[,name2,crt2,key2[,...]]
  * into a usable sni_entry list.
  *
- * Note: this is not production quality: leaks memory if parsing fails,
- * and error reporting is poor.
+ * Modifies the input string! This is not production quality!
+ * (leaks memory if parsing fails, no error reporting, ...)
  */
 sni_entry *sni_parse( char *sni_string )
 {
@@ -351,44 +361,21 @@ sni_entry *sni_parse( char *sni_string )
 
         if( ( new->cert = polarssl_malloc( sizeof( x509_crt ) ) ) == NULL ||
             ( new->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
-        {
-            cur = NULL;
-            goto exit;
-        }
+            return( NULL );
 
         x509_crt_init( new->cert );
         pk_init( new->key );
 
-        new->name = p;
-        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
-        *p++ = '\0';
-
-        crt_file = p;
-        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
-        *p++ = '\0';
-
-        key_file = p;
-        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
-        *p++ = '\0';
+        GET_ITEM( new->name );
+        GET_ITEM( crt_file );
+        GET_ITEM( key_file );
 
         if( x509_crt_parse_file( new->cert, crt_file ) != 0 ||
             pk_parse_keyfile( new->key, key_file, "" ) != 0 )
-        {
-            cur = NULL;
-            goto exit;
-        }
+            return( NULL );
 
         new->next = cur;
         cur = new;
-        new = NULL;
-    }
-
-exit:
-    if( new != NULL )
-    {
-        x509_crt_free( new->cert);
-        pk_free( new->key );
-        polarssl_free( new );
     }
 
     return( cur );
@@ -512,13 +499,8 @@ psk_entry *psk_parse( char *psk_string )
 
         memset( new, 0, sizeof( psk_entry ) );
 
-        new->name = p;
-        while( *p != ',' ) if( ++p > end ) return( NULL );
-        *p++ = '\0';
-
-        key_hex = p;
-        while( *p != ',' ) if( ++p > end ) return( NULL );
-        *p++ = '\0';
+        GET_ITEM( new->name );
+        GET_ITEM( key_hex );
 
         if( unhexify( new->key, key_hex, &new->key_len ) != 0 )
             return( NULL );

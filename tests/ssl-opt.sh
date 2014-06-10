@@ -1263,11 +1263,21 @@ run_test    "DHM parameters #1 (other parameters)" \
 
 # Tests for PSK callback
 
-run_test    "PSK callback #0 (reference)" \
+run_test    "PSK callback #0a (psk, no callback)" \
             "$P_SRV psk=abc123 psk_identity=foo" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             0 \
+            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #0b (no psk, no callback)" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=foo psk=abc123" \
+            1 \
+            -s "SSL - The server has no ciphersuites in common" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -1276,6 +1286,7 @@ run_test    "PSK callback #1 (callback overrides other settings)" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             1 \
+            -S "SSL - The server has no ciphersuites in common" \
             -s "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -1284,6 +1295,7 @@ run_test    "PSK callback #2 (first id matches)" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=dead" \
             0 \
+            -S "SSL - The server has no ciphersuites in common" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -1292,6 +1304,7 @@ run_test    "PSK callback #3 (second id matches)" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
+            -S "SSL - The server has no ciphersuites in common" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -1300,6 +1313,7 @@ run_test    "PSK callback #4 (no match)" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=ghi psk=beef" \
             1 \
+            -S "SSL - The server has no ciphersuites in common" \
             -s "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -1308,6 +1322,7 @@ run_test    "PSK callback #5 (wrong key)" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=beef" \
             1 \
+            -S "SSL - The server has no ciphersuites in common" \
             -S "SSL - Unknown identity received" \
             -s "SSL - Verification of the message MAC failed"
 

@@ -1210,8 +1210,18 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    ssl_set_psk( &ssl, psk, psk_len, (const unsigned char *) opt.psk_identity,
-                 strlen( opt.psk_identity ) );
+    if( strlen( opt.psk ) != 0 && strlen( opt.psk_identity ) != 0 )
+    {
+        ret = ssl_set_psk( &ssl, psk, psk_len,
+                           (const unsigned char *) opt.psk_identity,
+                           strlen( opt.psk_identity ) );
+        if( ret != 0 )
+        {
+            printf( "  failed\n  ssl_set_psk returned -0x%04X\n\n", - ret );
+            goto exit;
+        }
+    }
+
     if( opt.psk_list != NULL )
         ssl_set_psk_cb( &ssl, psk_callback, psk_info );
 #endif

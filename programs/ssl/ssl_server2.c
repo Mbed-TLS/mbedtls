@@ -112,6 +112,9 @@
 
 #define MAX_PSK_LEN     256
 
+/* Size of the basic I/O buffer. Able to hold our default response. */
+#define IO_BUF_LEN      200
+
 /*
  * global options
  */
@@ -562,7 +565,7 @@ int main( int argc, char *argv[] )
     int listen_fd;
     int client_fd = -1;
     int version_suites[4][2];
-    unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
+    unsigned char buf[IO_BUF_LEN];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MAX_PSK_LEN];
     size_t psk_len = 0;
@@ -1463,9 +1466,47 @@ reset:
             break;
         }
 
-        len = ret;
-        buf[len] = '\0';
-        printf( " %d bytes read\n\n%s\n", len, (char *) buf );
+        if( ssl_get_bytes_avail( &ssl ) == 0 )
+        {
+            len = ret;
+            buf[len] = '\0';
+            printf( " %d bytes read\n\n%s\n", len, (char *) buf );
+        }
+        else
+        {
+            int extra_len, ori_len;
+            unsigned char *larger_buf;
+
+            ori_len = ret;
+            extra_len = ssl_get_bytes_avail( &ssl );
+
+            larger_buf = polarssl_malloc( ori_len + extra_len + 1 );
+            if( larger_buf == NULL )
+            {
+                printf( "  ! memory allocation failed\n" );
+                ret = 1;
+                goto exit;
+            }
+
+            memset( larger_buf, 0, ori_len + extra_len );
+            memcpy( larger_buf, buf, ori_len );
+
+            /* This read should never fail */
+            ret = ssl_read( &ssl, larger_buf + ori_len, extra_len );
+            if( ret != extra_len )
+            {
+                printf( "  ! ssl_read failed on cached data\n" );
+                ret = 1;
+                goto exit;
+            }
+
+            larger_buf[ori_len + extra_len] = '\0';
+            printf( " %u bytes read (%u + %u)\n\n%s\n",
+                    ori_len + extra_len, ori_len, extra_len, (char *) buf );
+
+            polarssl_free( larger_buf );
+        }
+
 
         if( memcmp( buf, "SERVERQUIT", 10 ) == 0 )
         {

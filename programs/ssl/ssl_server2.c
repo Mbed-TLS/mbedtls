@@ -736,11 +736,9 @@ int main( int argc, char *argv[] )
             opt.psk_list = q;
         else if( strcmp( p, "force_ciphersuite" ) == 0 )
         {
-            opt.force_ciphersuite[0] = -1;
-
             opt.force_ciphersuite[0] = ssl_get_ciphersuite_id( q );
 
-            if( opt.force_ciphersuite[0] <= 0 )
+            if( opt.force_ciphersuite[0] == 0 )
             {
                 ret = 2;
                 goto usage;

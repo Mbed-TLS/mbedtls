@@ -1352,6 +1352,19 @@ run_test    "Per-version suites #4" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-AES-128-GCM-SHA256"
 
+# Tests for ssl_get_bytes_avail()
+
+run_test    "ssl_get_bytes_avail #1 (no extra data)" \
+            "$P_SRV" \
+            "$P_CLI request_size=100" \
+            0 \
+            -s "Read from client: 100 bytes read$"
+
+run_test    "ssl_get_bytes_avail #2 (extra data)" \
+            "$P_SRV" \
+            "$P_CLI request_size=500" \
+            0 \
+            -s "Read from client: 500 bytes read (.*+.*)"
 
 # Final report
 

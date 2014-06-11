@@ -112,7 +112,12 @@
 
 #define MAX_PSK_LEN     256
 
-/* Size of the basic I/O buffer. Able to hold our default response. */
+/*
+ * Size of the basic I/O buffer. Able to hold our default response.
+ *
+ * You will need to adapt the ssl_get_bytes_avail() test in ssl-opt.sh
+ * if you change this value to something outside the range <= 100 or > 500
+ */
 #define IO_BUF_LEN      200
 
 /*
@@ -1491,9 +1496,10 @@ reset:
             memset( larger_buf, 0, ori_len + extra_len );
             memcpy( larger_buf, buf, ori_len );
 
-            /* This read should never fail */
+            /* This read should never fail and get the whole cached data */
             ret = ssl_read( &ssl, larger_buf + ori_len, extra_len );
-            if( ret != extra_len )
+            if( ret != extra_len ||
+                ssl_get_bytes_avail( &ssl ) != 0 )
             {
                 printf( "  ! ssl_read failed on cached data\n" );
                 ret = 1;

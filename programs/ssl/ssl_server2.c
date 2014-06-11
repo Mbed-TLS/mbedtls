@@ -79,6 +79,7 @@
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_PSK_LIST            NULL
 #define DFL_FORCE_CIPHER        0
+#define DFL_VERSION_SUITES      NULL
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_RENEGOTIATE         0
@@ -130,6 +131,7 @@ struct options
     const char *psk_identity;   /* the pre-shared key identity              */
     char *psk_list;             /* list of PSK id/key pairs for callback    */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
+    const char *version_suites; /* per-version ciphersuites                 */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
     int renegotiate;            /* attempt renegotiation?                   */
@@ -294,9 +296,12 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
-    "\n"                                                    \
-    "    force_ciphersuite=<name>    default: all enabled\n"\
+    "                        options: ssl3, tls1, tls1_1, tls1_2\n"     \
+    "\n"                                                                \
+    "    version_suites=a,b,c,d      per-version ciphersuites\n"        \
+    "                                in order from ssl3 to tls1_2\n"    \
+    "                                default: all enabled\n"            \
+    "    force_ciphersuite=<name>    default: all enabled\n"            \
     " acceptable ciphersuite names:\n"
 
 #if !defined(POLARSSL_ENTROPY_C) ||  \
@@ -556,6 +561,7 @@ int main( int argc, char *argv[] )
     int ret = 0, len, written, frags;
     int listen_fd;
     int client_fd = -1;
+    int version_suites[4][2];
     unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MAX_PSK_LEN];
@@ -657,6 +663,7 @@ int main( int argc, char *argv[] )
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.psk_list            = DFL_PSK_LIST;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
+    opt.version_suites      = DFL_VERSION_SUITES;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.renegotiate         = DFL_RENEGOTIATE;
@@ -732,6 +739,8 @@ int main( int argc, char *argv[] )
             }
             opt.force_ciphersuite[1] = 0;
         }
+        else if( strcmp( p, "version_suites" ) == 0 )
+            opt.version_suites = q;
         else if( strcmp( p, "renegotiation" ) == 0 )
         {
             opt.renegotiation = (atoi( q )) ? SSL_RENEGOTIATION_ENABLED :
@@ -887,6 +896,47 @@ int main( int argc, char *argv[] )
             opt.max_version = ciphersuite_info->max_minor_ver;
         if( opt.min_version < ciphersuite_info->min_minor_ver )
             opt.min_version = ciphersuite_info->min_minor_ver;
+    }
+
+    if( opt.version_suites != NULL )
+    {
+        const char *name[4] = { 0 };
+
+        /* Parse 4-element coma-separated list */
+        for( i = 0, p = (char *) opt.version_suites;
+             i < 4 && *p != '\0';
+             i++ )
+        {
+            name[i] = p;
+
+            /* Terminate the current string and move on to next one */
+            while( *p != ',' && *p != '\0' )
+                p++;
+            if( *p == ',' )
+                *p++ = '\0';
+        }
+
+        if( i != 4 )
+        {
+            printf( "too few values for version_suites\n" );
+            ret = 1;
+            goto exit;
+        }
+
+        memset( version_suites, 0, sizeof( version_suites ) );
+
+        /* Get the suites identifiers from their name */
+        for( i = 0; i < 4; i++ )
+        {
+            version_suites[i][0] = ssl_get_ciphersuite_id( name[i] );
+
+            if( version_suites[i][0] == 0 )
+            {
+                printf( "unknown ciphersuite: '%s'\n", name[i] );
+                ret = 2;
+                goto usage;
+            }
+        }
     }
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1188,6 +1238,22 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
+
+    if( opt.version_suites != NULL )
+    {
+        ssl_set_ciphersuites_for_version( &ssl, version_suites[0],
+                                          SSL_MAJOR_VERSION_3,
+                                          SSL_MINOR_VERSION_0 );
+        ssl_set_ciphersuites_for_version( &ssl, version_suites[1],
+                                          SSL_MAJOR_VERSION_3,
+                                          SSL_MINOR_VERSION_1 );
+        ssl_set_ciphersuites_for_version( &ssl, version_suites[2],
+                                          SSL_MAJOR_VERSION_3,
+                                          SSL_MINOR_VERSION_2 );
+        ssl_set_ciphersuites_for_version( &ssl, version_suites[3],
+                                          SSL_MAJOR_VERSION_3,
+                                          SSL_MINOR_VERSION_3 );
+    }
 
     ssl_set_renegotiation( &ssl, opt.renegotiation );
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );

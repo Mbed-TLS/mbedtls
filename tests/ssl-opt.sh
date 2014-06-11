@@ -1326,6 +1326,33 @@ run_test    "PSK callback #5 (wrong key)" \
             -S "SSL - Unknown identity received" \
             -s "SSL - Verification of the message MAC failed"
 
+# Tests for ciphersuites per version
+
+run_test    "Per-version suites #1" \
+            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=ssl3" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-3DES-EDE-CBC-SHA"
+
+run_test    "Per-version suites #2" \
+            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=tls1" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-RC4-128-SHA"
+
+run_test    "Per-version suites #3" \
+            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=tls1_1" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-AES-128-CBC-SHA"
+
+run_test    "Per-version suites #4" \
+            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=tls1_2" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-AES-128-GCM-SHA256"
+
+
 # Final report
 
 echo "------------------------------------------------------------------------"

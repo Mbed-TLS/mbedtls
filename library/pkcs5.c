@@ -295,6 +295,16 @@ int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
 
 #if defined(POLARSSL_SELF_TEST)
 
+#if !defined(POLARSSL_SHA1_C)
+int pkcs5_self_test( int verbose )
+{
+    if( verbose != 0 )
+        polarssl_printf( "  PBKDF2 (SHA1): skipped\n\n" );
+
+    return( 0 );
+}
+#else
+
 #include <stdio.h>
 
 #define MAX_TESTS   6
@@ -398,6 +408,7 @@ int pkcs5_self_test( int verbose )
 
     return( 0 );
 }
+#endif /* POLARSSL_SHA1_C */
 
 #endif /* POLARSSL_SELF_TEST */
 

@@ -2940,7 +2940,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
     !defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_parse_certificate_verify( ssl_context *ssl )
 {
-    int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
     SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );

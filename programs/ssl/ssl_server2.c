@@ -574,7 +574,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MAX_PSK_LEN];
     size_t psk_len = 0;
-    psk_entry *psk_info;
+    psk_entry *psk_info = NULL;
 #endif
     const char *pers = "ssl_server2";
 

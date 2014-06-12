@@ -207,6 +207,10 @@
 
 #define OID_PKCS9_EMAIL         OID_PKCS9 "\x01" /**< emailAddress AttributeType ::= { pkcs-9 1 } */
 
+/* RFC 4055 */
+#define OID_RSASSA_PSS          OID_PKCS1 "\x0a" /**< id-RSASSA-PSS ::= { pkcs-1 10 } */
+#define OID_MGF1                OID_PKCS1 "\x08" /**< id-mgf1 ::= { pkcs-1 8 } */
+
 /*
  * Digest algorithms
  */

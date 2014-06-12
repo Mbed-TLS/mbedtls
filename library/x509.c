@@ -124,6 +124,223 @@ int x509_get_alg_null( unsigned char **p, const unsigned char *end,
 }
 
 /*
+ * Parse an algorithm identifier with (optional) paramaters
+ */
+int x509_get_alg( unsigned char **p, const unsigned char *end,
+                  x509_buf *alg, x509_buf *params )
+{
+    int ret;
+
+    if( ( ret = asn1_get_alg( p, end, alg, params ) ) != 0 )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    return( 0 );
+}
+
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
+/*
+ * HashAlgorithm ::= AlgorithmIdentifier
+ *
+ * AlgorithmIdentifier  ::=  SEQUENCE  {
+ *      algorithm               OBJECT IDENTIFIER,
+ *      parameters              ANY DEFINED BY algorithm OPTIONAL  }
+ *
+ * For HashAlgorithm, parameters MUST be NULL or absent.
+ */
+static int x509_get_hash_alg( const x509_buf *alg, md_type_t *md_alg )
+{
+    int ret;
+    unsigned char *p;
+    const unsigned char *end;
+    x509_buf md_oid;
+    size_t len;
+
+    /* Make sure we got a SEQUENCE and setup bounds */
+    if( alg->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+        return( POLARSSL_ERR_X509_INVALID_ALG +
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
+
+    p = (unsigned char *) alg->p;
+    end = p + alg->len;
+
+    if( p >= end )
+        return( POLARSSL_ERR_X509_INVALID_ALG +
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
+    /* Parse md_oid */
+    md_oid.tag = *p;
+
+    if( ( ret = asn1_get_tag( &p, end, &md_oid.len, ASN1_OID ) ) != 0 )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    md_oid.p = p;
+    p += md_oid.len;
+
+    /* Get md_alg from md_oid */
+    if( ( ret = oid_get_md_alg( &md_oid, md_alg ) ) != 0 )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    /* Make sure params is absent of NULL */
+    if( p == end )
+        return( 0 );
+
+    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_NULL ) ) != 0 || len != 0 )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( p != end )
+        return( POLARSSL_ERR_X509_INVALID_ALG +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+/*
+ *    RSASSA-PSS-params  ::=  SEQUENCE  {
+ *       hashAlgorithm     [0] HashAlgorithm DEFAULT sha1Identifier,
+ *       maskGenAlgorithm  [1] MaskGenAlgorithm DEFAULT mgf1SHA1Identifier,
+ *       saltLength        [2] INTEGER DEFAULT 20,
+ *       trailerField      [3] INTEGER DEFAULT 1  }
+ *    -- Note that the tags in this Sequence are explicit.
+ *
+ * RFC 4055 (which defines use of RSASSA-PSS in PKIX) states that the value
+ * of trailerField MUST be 1, and PKCS#1 v2.2 doesn't even define any other
+ * option. Enfore this at parsing time.
+ */
+int x509_get_rsassa_pss_params( const x509_buf *params,
+                                md_type_t *md_alg, md_type_t *mgf_md,
+                                int *salt_len )
+{
+    int ret;
+    unsigned char *p;
+    const unsigned char *end, *end2;
+    size_t len;
+    x509_buf alg_id, alg_params;
+
+    /* First set everything to defaults */
+    *md_alg = POLARSSL_MD_SHA1;
+    *mgf_md = POLARSSL_MD_SHA1;
+    *salt_len = 20;
+
+    /* Make sure params is a SEQUENCE and setup bounds */
+    if( params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+        return( POLARSSL_ERR_X509_INVALID_ALG +
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
+
+    p = (unsigned char *) params->p;
+    end = p + params->len;
+
+    if( p == end )
+        return( 0 );
+
+    /*
+     * HashAlgorithm
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) ) == 0 )
+    {
+        end2 = p + len;
+
+        /* HashAlgorithm ::= AlgorithmIdentifier (without parameters) */
+        if( ( ret = x509_get_alg_null( &p, end2, &alg_id ) ) != 0 )
+            return( ret );
+
+        if( ( ret = oid_get_md_alg( &alg_id, md_alg ) ) != 0 )
+            return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( p == end )
+        return( 0 );
+
+    /*
+     * MaskGenAlgorithm
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
+    {
+        end2 = p + len;
+
+        /* MaskGenAlgorithm ::= AlgorithmIdentifier (params = HashAlgorithm) */
+        if( ( ret = x509_get_alg( &p, end2, &alg_id, &alg_params ) ) != 0 )
+            return( ret );
+
+        /* Only MFG1 is recognised for now */
+        if( ! OID_CMP( OID_MGF1, &alg_id ) )
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE +
+                    POLARSSL_ERR_OID_NOT_FOUND );
+
+        /* Parse HashAlgorithm */
+        if( ( ret = x509_get_hash_alg( &alg_params, mgf_md ) ) != 0 )
+            return( ret );
+
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( p == end )
+        return( 0 );
+
+    /*
+     * salt_len
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 2 ) ) == 0 )
+    {
+        end2 = p + len;
+
+        if( ( ret = asn1_get_int( &p, end2, salt_len ) ) != 0 )
+            return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( p == end )
+        return( 0 );
+
+    /*
+     * trailer_field (if present, must be 1)
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+                    ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) ) == 0 )
+    {
+        int trailer_field;
+
+        end2 = p + len;
+
+        if( ( ret = asn1_get_int( &p, end2, &trailer_field ) ) != 0 )
+            return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+        if( p != end2 )
+            return( POLARSSL_ERR_X509_INVALID_ALG +
+                    POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+        if( trailer_field != 1 )
+            return( POLARSSL_ERR_X509_INVALID_ALG );
+    }
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+        return( POLARSSL_ERR_X509_INVALID_ALG + ret );
+
+    if( p != end )
+        return( POLARSSL_ERR_X509_INVALID_ALG +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+#endif /* POLARSSL_X509_RSASSA_PSS_SUPPORT */
+
+/*
  *  AttributeTypeAndValue ::= SEQUENCE {
  *    type     AttributeType,
  *    value    AttributeValue }
@@ -338,13 +555,50 @@ int x509_get_sig( unsigned char **p, const unsigned char *end, x509_buf *sig )
     return( 0 );
 }
 
-int x509_get_sig_alg( const x509_buf *sig_oid, md_type_t *md_alg,
-                      pk_type_t *pk_alg )
+/*
+ * Get signature algorithm from alg OID and optional parameters
+ */
+int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
+                      md_type_t *md_alg, pk_type_t *pk_alg,
+                      void **sig_opts )
 {
-    int ret = oid_get_sig_alg( sig_oid, md_alg, pk_alg );
+    int ret;
 
-    if( ret != 0 )
+    if( *sig_opts != NULL )
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+
+    if( ( ret = oid_get_sig_alg( sig_oid, md_alg, pk_alg ) ) != 0 )
         return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG + ret );
+
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
+    if( *pk_alg == POLARSSL_PK_RSASSA_PSS )
+    {
+        pk_rsassa_pss_options *pss_opts;
+
+        pss_opts = polarssl_malloc( sizeof( pk_rsassa_pss_options ) );
+        if( pss_opts == NULL )
+            return( POLARSSL_ERR_X509_MALLOC_FAILED );
+
+        ret = x509_get_rsassa_pss_params( sig_params,
+                                          md_alg,
+                                          &pss_opts->mgf1_hash_id,
+                                          &pss_opts->expected_salt_len );
+        if( ret != 0 )
+        {
+            polarssl_free( pss_opts );
+            return( ret );
+        }
+
+        *sig_opts = (void *) pss_opts;
+    }
+    else
+#endif
+    {
+        /* Make sure parameters are absent or NULL */
+        if( ( sig_params->tag != ASN1_NULL && sig_params->tag != 0 ) ||
+              sig_params->len != 0 )
+        return( POLARSSL_ERR_X509_INVALID_ALG );
+    }
 
     return( 0 );
 }
@@ -579,6 +833,51 @@ int x509_serial_gets( char *buf, size_t size, const x509_buf *serial )
     }
 
     return( (int) ( size - n ) );
+}
+
+/*
+ * Helper for writing signature algorithms
+ */
+int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
+                       pk_type_t pk_alg, md_type_t md_alg,
+                       const void *sig_opts )
+{
+    int ret;
+    char *p = buf;
+    size_t n = size;
+    const char *desc = NULL;
+
+    ret = oid_get_sig_alg_desc( sig_oid, &desc );
+    if( ret != 0 )
+        ret = snprintf( p, n, "???"  );
+    else
+        ret = snprintf( p, n, "%s", desc );
+    SAFE_SNPRINTF();
+
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
+    if( pk_alg == POLARSSL_PK_RSASSA_PSS )
+    {
+        const pk_rsassa_pss_options *pss_opts;
+        const md_info_t *md_info, *mgf_md_info;
+
+        pss_opts = (const pk_rsassa_pss_options *) sig_opts;
+
+        md_info = md_info_from_type( md_alg );
+        mgf_md_info = md_info_from_type( pss_opts->mgf1_hash_id );
+
+        ret = snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
+                              md_info ? md_info->name : "???",
+                              mgf_md_info ? mgf_md_info->name : "???",
+                              pss_opts->expected_salt_len );
+        SAFE_SNPRINTF();
+    }
+#else
+    ((void) pk_alg);
+    ((void) md_alg);
+    ((void) sig_opts);
+#endif /* POLARSSL_X509_RSASSA_PSS_SUPPORT */
+
+    return( (int) size - n );
 }
 
 /*

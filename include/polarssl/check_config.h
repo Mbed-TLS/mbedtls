@@ -197,6 +197,11 @@
 #error "POLARSSL_RSA_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT) &&                        \
+    ( !defined(POLARSSL_RSA_C) || !defined(POLARSSL_PKCS1_V21) )
+#error "POLARSSL_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_SSL_PROTO_SSL3) && ( !defined(POLARSSL_MD5_C) ||     \
     !defined(POLARSSL_SHA1_C) )
 #error "POLARSSL_SSL_PROTO_SSL3 defined, but not all prerequisites"

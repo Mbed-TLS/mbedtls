@@ -99,7 +99,19 @@ typedef enum {
     POLARSSL_PK_ECKEY_DH,
     POLARSSL_PK_ECDSA,
     POLARSSL_PK_RSA_ALT,
+    POLARSSL_PK_RSASSA_PSS,
 } pk_type_t;
+
+/**
+ * \brief           Options for RSASSA-PSS signature verification.
+ *                  See \c rsa_rsassa_pss_verify_ext()
+ */
+typedef struct
+{
+    md_type_t mgf1_hash_id;
+    int expected_salt_len;
+
+} pk_rsassa_pss_options;
 
 /**
  * \brief           Types for interfacing with the debug module
@@ -305,6 +317,39 @@ int pk_can_do( pk_context *ctx, pk_type_t type );
 int pk_verify( pk_context *ctx, md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len );
+
+/**
+ * \brief           Verify signature, with options
+ *
+ * \param type      Signature type to verify
+ * \param options   Pointer to type-specific options, or NULL
+ * \param ctx       PK context to use
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length or 0 (see notes)
+ * \param sig       Signature to verify
+ * \param sig_len   Signature length
+ *
+ * \return          0 on success (signature is valid),
+ *                  POLARSSL_ERR_PK_TYPE_MISMATCH if the PK context can't be
+ *                  used for this type of signatures,
+ *                  POLARSSL_ERR_PK_SIG_LEN_MISMATCH if the signature is
+ *                  valid but its actual length is less than sig_len,
+ *                  or a specific error code.
+ *
+ * \note            If hash_len is 0, then the length associated with md_alg
+ *                  is used instead, or an error returned if it is invalid.
+ *
+ * \note            md_alg may be POLARSSL_MD_NONE, only if hash_len != 0
+ *
+ * \note            If type is POLARSSL_PK_RSASSA_PSS, then options must point
+ *                  to a pk_rsassa_pss_options structure,
+ *                  otherwise it must be NULL.
+ */
+int pk_verify_ext( pk_type_t type, const void *options,
+                   pk_context *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   const unsigned char *sig, size_t sig_len );
 
 /**
  * \brief           Make signature

@@ -117,6 +117,71 @@ void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_RSA_C */
+void pk_rsa_verify_ext_test_vec( char *message_hex_string, int digest,
+                       int mod, int radix_N, char *input_N, int radix_E,
+                       char *input_E, char *result_hex_str,
+                       int pk_type, int mgf1_hash_id, int salt_len,
+                       int result )
+{
+    unsigned char message_str[1000];
+    unsigned char hash_result[1000];
+    unsigned char result_str[1000];
+    rsa_context *rsa;
+    pk_context pk;
+    pk_rsassa_pss_options pss_opts;
+    void *options;
+    int msg_len;
+    size_t hash_len;
+
+    pk_init( &pk );
+
+    memset( message_str, 0x00, 1000 );
+    memset( hash_result, 0x00, 1000 );
+    memset( result_str, 0x00, 1000 );
+
+    TEST_ASSERT( pk_init_ctx( &pk, pk_info_from_type( POLARSSL_PK_RSA ) ) == 0 );
+    rsa = pk_rsa( pk );
+
+    rsa->len = mod / 8;
+    TEST_ASSERT( mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+
+    msg_len = unhexify( message_str, message_hex_string );
+    unhexify( result_str, result_hex_str );
+
+    if( digest != POLARSSL_MD_NONE )
+    {
+        TEST_ASSERT( md( md_info_from_type( digest ),
+                     message_str, msg_len, hash_result ) == 0 );
+        hash_len = 0;
+    }
+    else
+    {
+        memcpy( hash_result, message_str, msg_len );
+        hash_len = msg_len;
+    }
+
+    if( mgf1_hash_id < 0 )
+    {
+        options = NULL;
+    }
+    else
+    {
+        options = &pss_opts;
+
+        pss_opts.mgf1_hash_id = mgf1_hash_id;
+        pss_opts.expected_salt_len = salt_len;
+    }
+
+    TEST_ASSERT( pk_verify_ext( pk_type, options, &pk,
+                                digest, hash_result, hash_len,
+                                result_str, pk_get_len( &pk ) ) == result );
+
+    pk_free( &pk );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_ECDSA_C */
 void pk_ec_test_vec( int type, int id, char *key_str,
                      char *hash_str, char * sig_str, int ret )

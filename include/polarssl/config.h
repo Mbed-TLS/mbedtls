@@ -1016,6 +1016,16 @@
 #define POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE
 
 /**
+ * \def POLARSSL_X509_RSASSA_PSS_SUPPORT
+ *
+ * Enable parsing and verification of X.509 certificates, CRLs and CSRS
+ * signed with RSASSA-PSS (aka PKCS#1 v2.1).
+ *
+ * Comment this macro to disallow using RSASSA-PSS in certificates.
+ */
+#define POLARSSL_X509_RSASSA_PSS_SUPPORT
+
+/**
  * \def POLARSSL_ZLIB_SUPPORT
  *
  * If set, the SSL/TLS module uses ZLIB to support compression and

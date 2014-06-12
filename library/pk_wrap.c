@@ -52,13 +52,13 @@
 #define polarssl_free       free
 #endif
 
-/* Used by RSA-alt too */
+#if defined(POLARSSL_RSA_C)
 static int rsa_can_do( pk_type_t type )
 {
-    return( type == POLARSSL_PK_RSA );
+    return( type == POLARSSL_PK_RSA ||
+            type == POLARSSL_PK_RSASSA_PSS );
 }
 
-#if defined(POLARSSL_RSA_C)
 static size_t rsa_get_size( const void *ctx )
 {
     return( 8 * ((const rsa_context *) ctx)->len );
@@ -372,6 +372,11 @@ const pk_info_t ecdsa_info = {
  * Support for alternative RSA-private implementations
  */
 
+static int rsa_alt_can_do( pk_type_t type )
+{
+    return( type == POLARSSL_PK_RSA );
+}
+
 static size_t rsa_alt_get_size( const void *ctx )
 {
     const rsa_alt_context *rsa_alt = (const rsa_alt_context *) ctx;
@@ -428,7 +433,7 @@ const pk_info_t rsa_alt_info = {
     POLARSSL_PK_RSA_ALT,
     "RSA-alt",
     rsa_alt_get_size,
-    rsa_can_do,
+    rsa_alt_can_do,
     NULL,
     rsa_alt_sign_wrap,
     rsa_alt_decrypt_wrap,

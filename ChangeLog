@@ -5,6 +5,10 @@ Features
    * Add CCM module and cipher mode to Cipher Layer
    * Support for CCM and CCM_8 ciphersuites
 
+Changes
+   * Add LINK_WITH_PTHREAD option in CMake for explicit linking that is
+     required on some platforms (e.g. OpenBSD)
+
 Bugfix
    * Fix in debug_print_msg()
    * Enforce alignment in the buffer allocator even if buffer is not aligned

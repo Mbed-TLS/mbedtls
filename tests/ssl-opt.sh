@@ -1294,6 +1294,129 @@ run_test    "extKeyUsage cli-auth #4b (codeSign -> fail (hard))" \
             -s "bad certificate (usage extensions)" \
             -s "Processing of the Certificate handshake message failed"
 
+# Tests for DHM parameters loading
+
+run_test    "DHM parameters #0 (reference)" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=3" \
+            0 \
+            -c "value of 'DHM: P ' (2048 bits)" \
+            -c "value of 'DHM: G ' (2048 bits)"
+
+run_test    "DHM parameters #1 (other parameters)" \
+            "$P_SRV dhm_file=data_files/dhparams.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=3" \
+            0 \
+            -c "value of 'DHM: P ' (1024 bits)" \
+            -c "value of 'DHM: G ' (2 bits)"
+
+# Tests for PSK callback
+
+run_test    "PSK callback #0a (psk, no callback)" \
+            "$P_SRV psk=abc123 psk_identity=foo" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=foo psk=abc123" \
+            0 \
+            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #0b (no psk, no callback)" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=foo psk=abc123" \
+            1 \
+            -s "SSL - The server has no ciphersuites in common" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #1 (callback overrides other settings)" \
+            "$P_SRV psk=abc123 psk_identity=foo psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=foo psk=abc123" \
+            1 \
+            -S "SSL - The server has no ciphersuites in common" \
+            -s "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #2 (first id matches)" \
+            "$P_SRV psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=abc psk=dead" \
+            0 \
+            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #3 (second id matches)" \
+            "$P_SRV psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=def psk=beef" \
+            0 \
+            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #4 (no match)" \
+            "$P_SRV psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=ghi psk=beef" \
+            1 \
+            -S "SSL - The server has no ciphersuites in common" \
+            -s "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+run_test    "PSK callback #5 (wrong key)" \
+            "$P_SRV psk_list=abc,dead,def,beef" \
+            "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=abc psk=beef" \
+            1 \
+            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - Unknown identity received" \
+            -s "SSL - Verification of the message MAC failed"
+
+# Tests for ciphersuites per version
+
+run_test    "Per-version suites #1" \
+            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=ssl3" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-3DES-EDE-CBC-SHA"
+
+run_test    "Per-version suites #2" \
+            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=tls1" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-RC4-128-SHA"
+
+run_test    "Per-version suites #3" \
+            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=tls1_1" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-AES-128-CBC-SHA"
+
+run_test    "Per-version suites #4" \
+            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=tls1_2" \
+            0 \
+            -c "Ciphersuite is TLS-RSA-WITH-AES-128-GCM-SHA256"
+
+# Tests for ssl_get_bytes_avail()
+
+run_test    "ssl_get_bytes_avail #1 (no extra data)" \
+            "$P_SRV" \
+            "$P_CLI request_size=100" \
+            0 \
+            -s "Read from client: 100 bytes read$"
+
+run_test    "ssl_get_bytes_avail #2 (extra data)" \
+            "$P_SRV" \
+            "$P_CLI request_size=500" \
+            0 \
+            -s "Read from client: 500 bytes read (.*+.*)"
+
 # Final report
 
 echo "------------------------------------------------------------------------"

@@ -77,7 +77,9 @@
 #define DFL_KEY_FILE2           ""
 #define DFL_PSK                 ""
 #define DFL_PSK_IDENTITY        "Client_identity"
+#define DFL_PSK_LIST            NULL
 #define DFL_FORCE_CIPHER        0
+#define DFL_VERSION_SUITES      NULL
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_RENEGOTIATE         0
@@ -91,6 +93,7 @@
 #define DFL_CACHE_TIMEOUT       -1
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
+#define DFL_DHM_FILE            NULL
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -106,6 +109,16 @@
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
     "<h2>PolarSSL Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n" // LONG_RESPONSE
+
+#define MAX_PSK_LEN     256
+
+/*
+ * Size of the basic I/O buffer. Able to hold our default response.
+ *
+ * You will need to adapt the ssl_get_bytes_avail() test in ssl-opt.sh
+ * if you change this value to something outside the range <= 100 or > 500
+ */
+#define IO_BUF_LEN      200
 
 /*
  * global options
@@ -124,7 +137,9 @@ struct options
     const char *key_file2;      /* the file with the 2nd server key         */
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
+    char *psk_list;             /* list of PSK id/key pairs for callback    */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
+    const char *version_suites; /* per-version ciphersuites                 */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
     int renegotiate;            /* attempt renegotiation?                   */
@@ -138,6 +153,7 @@ struct options
     int cache_timeout;          /* expiration delay of session cache entries */
     char *sni;                  /* string describing sni information        */
     const char *alpn_string;    /* ALPN supported protocols                 */
+    const char *dhm_file;       /* the file with the DH parameters          */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -200,7 +216,9 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "                        default: see note after key_file2\n" \
     "    key_file2=%%s        default: see note below\n" \
     "                        note: if neither crt_file/key_file nor crt_file2/key_file2 are used,\n" \
-    "                              preloaded certificate(s) and key(s) are used if available\n"
+    "                              preloaded certificate(s) and key(s) are used if available\n" \
+    "    dhm_file=%%s        File containing Diffie-Hellman parameters\n" \
+    "                       default: preloaded parameters\n"
 #else
 #define USAGE_IO \
     "\n"                                                    \
@@ -286,9 +304,12 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
-    "\n"                                                    \
-    "    force_ciphersuite=<name>    default: all enabled\n"\
+    "                        options: ssl3, tls1, tls1_1, tls1_2\n"     \
+    "\n"                                                                \
+    "    version_suites=a,b,c,d      per-version ciphersuites\n"        \
+    "                                in order from ssl3 to tls1_2\n"    \
+    "                                default: all enabled\n"            \
+    "    force_ciphersuite=<name>    default: all enabled\n"            \
     " acceptable ciphersuite names:\n"
 
 #if !defined(POLARSSL_ENTROPY_C) ||  \
@@ -306,6 +327,16 @@ int main( int argc, char *argv[] )
 }
 #else
 
+/*
+ * Used by sni_parse and psk_parse to handle coma-separated lists
+ */
+#define GET_ITEM( dst )         \
+    dst = p;                    \
+    while( *p != ',' )          \
+        if( ++p > end )         \
+            return( NULL );     \
+    *p++ = '\0';
+
 #if defined(POLARSSL_SNI)
 typedef struct _sni_entry sni_entry;
 
@@ -320,8 +351,8 @@ struct _sni_entry {
  * Parse a string of triplets name1,crt1,key1[,name2,crt2,key2[,...]]
  * into a usable sni_entry list.
  *
- * Note: this is not production quality: leaks memory if parsing fails,
- * and error reporting is poor.
+ * Modifies the input string! This is not production quality!
+ * (leaks memory if parsing fails, no error reporting, ...)
  */
 sni_entry *sni_parse( char *sni_string )
 {
@@ -343,44 +374,21 @@ sni_entry *sni_parse( char *sni_string )
 
         if( ( new->cert = polarssl_malloc( sizeof( x509_crt ) ) ) == NULL ||
             ( new->key = polarssl_malloc( sizeof( pk_context ) ) ) == NULL )
-        {
-            cur = NULL;
-            goto exit;
-        }
+            return( NULL );
 
         x509_crt_init( new->cert );
         pk_init( new->key );
 
-        new->name = p;
-        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
-        *p++ = '\0';
-
-        crt_file = p;
-        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
-        *p++ = '\0';
-
-        key_file = p;
-        while( *p != ',' ) if( ++p > end ) { cur = NULL; goto exit; }
-        *p++ = '\0';
+        GET_ITEM( new->name );
+        GET_ITEM( crt_file );
+        GET_ITEM( key_file );
 
         if( x509_crt_parse_file( new->cert, crt_file ) != 0 ||
             pk_parse_keyfile( new->key, key_file, "" ) != 0 )
-        {
-            cur = NULL;
-            goto exit;
-        }
+            return( NULL );
 
         new->next = cur;
         cur = new;
-        new = NULL;
-    }
-
-exit:
-    if( new != NULL )
-    {
-        x509_crt_free( new->cert);
-        pk_free( new->key );
-        polarssl_free( new );
     }
 
     return( cur );
@@ -429,15 +437,144 @@ int sni_callback( void *p_info, ssl_context *ssl,
 
 #endif /* POLARSSL_SNI */
 
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+
+#define HEX2NUM( c )                    \
+        if( c >= '0' && c <= '9' )      \
+            c -= '0';                   \
+        else if( c >= 'a' && c <= 'f' ) \
+            c -= 'a' - 10;              \
+        else if( c >= 'A' && c <= 'F' ) \
+            c -= 'A' - 10;              \
+        else                            \
+            return( -1 );
+
+/*
+ * Convert a hex string to bytes.
+ * Return 0 on success, -1 on error.
+ */
+int unhexify( unsigned char *output, const char *input, size_t *olen )
+{
+    unsigned char c;
+    size_t j;
+
+    *olen = strlen( input );
+    if( *olen % 2 != 0 || *olen / 2 > MAX_PSK_LEN )
+        return( -1 );
+    *olen /= 2;
+
+    for( j = 0; j < *olen * 2; j += 2 )
+    {
+        c = input[j];
+        HEX2NUM( c );
+        output[ j / 2 ] = c << 4;
+
+        c = input[j + 1];
+        HEX2NUM( c );
+        output[ j / 2 ] |= c;
+    }
+
+    return( 0 );
+}
+
+typedef struct _psk_entry psk_entry;
+
+struct _psk_entry
+{
+    const char *name;
+    size_t key_len;
+    unsigned char key[MAX_PSK_LEN];
+    psk_entry *next;
+};
+
+/*
+ * Parse a string of pairs name1,key1[,name2,key2[,...]]
+ * into a usable psk_entry list.
+ *
+ * Modifies the input string! This is not production quality!
+ * (leaks memory if parsing fails, no error reporting, ...)
+ */
+psk_entry *psk_parse( char *psk_string )
+{
+    psk_entry *cur = NULL, *new = NULL;
+    char *p = psk_string;
+    char *end = p;
+    char *key_hex;
+
+    while( *end != '\0' )
+        ++end;
+    *end = ',';
+
+    while( p <= end )
+    {
+        if( ( new = polarssl_malloc( sizeof( psk_entry ) ) ) == NULL )
+            return( NULL );
+
+        memset( new, 0, sizeof( psk_entry ) );
+
+        GET_ITEM( new->name );
+        GET_ITEM( key_hex );
+
+        if( unhexify( new->key, key_hex, &new->key_len ) != 0 )
+            return( NULL );
+
+        new->next = cur;
+        cur = new;
+    }
+
+    return( cur );
+}
+
+/*
+ * Free a list of psk_entry's
+ */
+void psk_free( psk_entry *head )
+{
+    psk_entry *next;
+
+    while( head != NULL )
+    {
+        next = head->next;
+        polarssl_free( head );
+        head = next;
+    }
+}
+
+/*
+ * PSK callback
+ */
+int psk_callback( void *p_info, ssl_context *ssl,
+                  const unsigned char *name, size_t name_len )
+{
+    psk_entry *cur = (psk_entry *) p_info;
+
+    while( cur != NULL )
+    {
+        if( name_len == strlen( cur->name ) &&
+            memcmp( name, cur->name, name_len ) == 0 )
+        {
+            return( ssl_set_psk( ssl, cur->key, cur->key_len,
+                                 name, name_len ) );
+        }
+
+        cur = cur->next;
+    }
+
+    return( -1 );
+}
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags;
     int listen_fd;
     int client_fd = -1;
-    unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
+    int version_suites[4][2];
+    unsigned char buf[IO_BUF_LEN];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    unsigned char psk[256];
+    unsigned char psk[MAX_PSK_LEN];
     size_t psk_len = 0;
+    psk_entry *psk_info;
 #endif
     const char *pers = "ssl_server2";
 
@@ -451,6 +588,9 @@ int main( int argc, char *argv[] )
     x509_crt srvcert2;
     pk_context pkey2;
     int key_cert_init = 0, key_cert_init2 = 0;
+#endif
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
+    dhm_context dhm;
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_context cache;
@@ -484,6 +624,9 @@ int main( int argc, char *argv[] )
     pk_init( &pkey );
     x509_crt_init( &srvcert2 );
     pk_init( &pkey2 );
+#endif
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
+    memset( &dhm, 0, sizeof( dhm_context ) );
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_init( &cache );
@@ -526,7 +669,9 @@ int main( int argc, char *argv[] )
     opt.key_file2           = DFL_KEY_FILE2;
     opt.psk                 = DFL_PSK;
     opt.psk_identity        = DFL_PSK_IDENTITY;
+    opt.psk_list            = DFL_PSK_LIST;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
+    opt.version_suites      = DFL_VERSION_SUITES;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.renegotiate         = DFL_RENEGOTIATE;
@@ -540,6 +685,7 @@ int main( int argc, char *argv[] )
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
+    opt.dhm_file            = DFL_DHM_FILE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -580,23 +726,27 @@ int main( int argc, char *argv[] )
             opt.crt_file2 = q;
         else if( strcmp( p, "key_file2" ) == 0 )
             opt.key_file2 = q;
+        else if( strcmp( p, "dhm_file" ) == 0 )
+            opt.dhm_file = q;
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
+        else if( strcmp( p, "psk_list" ) == 0 )
+            opt.psk_list = q;
         else if( strcmp( p, "force_ciphersuite" ) == 0 )
         {
-            opt.force_ciphersuite[0] = -1;
-
             opt.force_ciphersuite[0] = ssl_get_ciphersuite_id( q );
 
-            if( opt.force_ciphersuite[0] <= 0 )
+            if( opt.force_ciphersuite[0] == 0 )
             {
                 ret = 2;
                 goto usage;
             }
             opt.force_ciphersuite[1] = 0;
         }
+        else if( strcmp( p, "version_suites" ) == 0 )
+            opt.version_suites = q;
         else if( strcmp( p, "renegotiation" ) == 0 )
         {
             opt.renegotiation = (atoi( q )) ? SSL_RENEGOTIATION_ENABLED :
@@ -754,52 +904,63 @@ int main( int argc, char *argv[] )
             opt.min_version = ciphersuite_info->min_minor_ver;
     }
 
-#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    /*
-     * Unhexify the pre-shared key if any is given
-     */
-    if( strlen( opt.psk ) )
+    if( opt.version_suites != NULL )
     {
-        unsigned char c;
-        size_t j;
+        const char *name[4] = { 0 };
 
-        if( strlen( opt.psk ) % 2 != 0 )
+        /* Parse 4-element coma-separated list */
+        for( i = 0, p = (char *) opt.version_suites;
+             i < 4 && *p != '\0';
+             i++ )
         {
-            printf("pre-shared key not valid hex\n");
+            name[i] = p;
+
+            /* Terminate the current string and move on to next one */
+            while( *p != ',' && *p != '\0' )
+                p++;
+            if( *p == ',' )
+                *p++ = '\0';
+        }
+
+        if( i != 4 )
+        {
+            printf( "too few values for version_suites\n" );
+            ret = 1;
             goto exit;
         }
 
-        psk_len = strlen( opt.psk ) / 2;
+        memset( version_suites, 0, sizeof( version_suites ) );
 
-        for( j = 0; j < strlen( opt.psk ); j += 2 )
+        /* Get the suites identifiers from their name */
+        for( i = 0; i < 4; i++ )
         {
-            c = opt.psk[j];
-            if( c >= '0' && c <= '9' )
-                c -= '0';
-            else if( c >= 'a' && c <= 'f' )
-                c -= 'a' - 10;
-            else if( c >= 'A' && c <= 'F' )
-                c -= 'A' - 10;
-            else
-            {
-                printf("pre-shared key not valid hex\n");
-                goto exit;
-            }
-            psk[ j / 2 ] = c << 4;
+            version_suites[i][0] = ssl_get_ciphersuite_id( name[i] );
 
-            c = opt.psk[j + 1];
-            if( c >= '0' && c <= '9' )
-                c -= '0';
-            else if( c >= 'a' && c <= 'f' )
-                c -= 'a' - 10;
-            else if( c >= 'A' && c <= 'F' )
-                c -= 'A' - 10;
-            else
+            if( version_suites[i][0] == 0 )
             {
-                printf("pre-shared key not valid hex\n");
-                goto exit;
+                printf( "unknown ciphersuite: '%s'\n", name[i] );
+                ret = 2;
+                goto usage;
             }
-            psk[ j / 2 ] |= c;
+        }
+    }
+
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    /*
+     * Unhexify the pre-shared key and parse the list if any given
+     */
+    if( unhexify( psk, opt.psk, &psk_len ) != 0 )
+    {
+        printf( "pre-shared key not valid hex\n" );
+        goto exit;
+    }
+
+    if( opt.psk_list != NULL )
+    {
+        if( ( psk_info = psk_parse( opt.psk_list ) ) == NULL )
+        {
+            printf( "psk_list invalid" );
+            goto exit;
         }
     }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
@@ -988,6 +1149,23 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
+    if( opt.dhm_file != NULL )
+    {
+        printf( "  . Loading DHM parameters..." );
+        fflush( stdout );
+
+        if( ( ret = dhm_parse_dhmfile( &dhm, opt.dhm_file ) ) != 0 )
+        {
+            printf( " failed\n  ! dhm_parse_dhmfile returned -0x%04X\n\n",
+                     -ret );
+            goto exit;
+        }
+
+        printf( " ok\n" );
+    }
+#endif
+
 #if defined(POLARSSL_SNI)
     if( opt.sni != NULL )
     {
@@ -1067,6 +1245,22 @@ int main( int argc, char *argv[] )
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 
+    if( opt.version_suites != NULL )
+    {
+        ssl_set_ciphersuites_for_version( &ssl, version_suites[0],
+                                          SSL_MAJOR_VERSION_3,
+                                          SSL_MINOR_VERSION_0 );
+        ssl_set_ciphersuites_for_version( &ssl, version_suites[1],
+                                          SSL_MAJOR_VERSION_3,
+                                          SSL_MINOR_VERSION_1 );
+        ssl_set_ciphersuites_for_version( &ssl, version_suites[2],
+                                          SSL_MAJOR_VERSION_3,
+                                          SSL_MINOR_VERSION_2 );
+        ssl_set_ciphersuites_for_version( &ssl, version_suites[3],
+                                          SSL_MAJOR_VERSION_3,
+                                          SSL_MINOR_VERSION_3 );
+    }
+
     ssl_set_renegotiation( &ssl, opt.renegotiation );
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
 
@@ -1088,16 +1282,39 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    ssl_set_psk( &ssl, psk, psk_len, (const unsigned char *) opt.psk_identity,
-                 strlen( opt.psk_identity ) );
+    if( strlen( opt.psk ) != 0 && strlen( opt.psk_identity ) != 0 )
+    {
+        ret = ssl_set_psk( &ssl, psk, psk_len,
+                           (const unsigned char *) opt.psk_identity,
+                           strlen( opt.psk_identity ) );
+        if( ret != 0 )
+        {
+            printf( "  failed\n  ssl_set_psk returned -0x%04X\n\n", - ret );
+            goto exit;
+        }
+    }
+
+    if( opt.psk_list != NULL )
+        ssl_set_psk_cb( &ssl, psk_callback, psk_info );
 #endif
 
 #if defined(POLARSSL_DHM_C)
     /*
      * Use different group than default DHM group
      */
-    ssl_set_dh_param( &ssl, POLARSSL_DHM_RFC5114_MODP_2048_P,
-                            POLARSSL_DHM_RFC5114_MODP_2048_G );
+#if defined(POLARSSL_FS_IO)
+    if( opt.dhm_file != NULL )
+        ret = ssl_set_dh_param_ctx( &ssl, &dhm );
+    else
+#endif
+        ret = ssl_set_dh_param( &ssl, POLARSSL_DHM_RFC5114_MODP_2048_P,
+                                      POLARSSL_DHM_RFC5114_MODP_2048_G );
+
+    if( ret != 0 )
+    {
+        printf( "  failed\n  ssl_set_dh_param returned -0x%04X\n\n", - ret );
+        goto exit;
+    }
 #endif
 
     if( opt.min_version != -1 )
@@ -1252,9 +1469,48 @@ reset:
             break;
         }
 
-        len = ret;
-        buf[len] = '\0';
-        printf( " %d bytes read\n\n%s\n", len, (char *) buf );
+        if( ssl_get_bytes_avail( &ssl ) == 0 )
+        {
+            len = ret;
+            buf[len] = '\0';
+            printf( " %d bytes read\n\n%s\n", len, (char *) buf );
+        }
+        else
+        {
+            int extra_len, ori_len;
+            unsigned char *larger_buf;
+
+            ori_len = ret;
+            extra_len = ssl_get_bytes_avail( &ssl );
+
+            larger_buf = polarssl_malloc( ori_len + extra_len + 1 );
+            if( larger_buf == NULL )
+            {
+                printf( "  ! memory allocation failed\n" );
+                ret = 1;
+                goto exit;
+            }
+
+            memset( larger_buf, 0, ori_len + extra_len );
+            memcpy( larger_buf, buf, ori_len );
+
+            /* This read should never fail and get the whole cached data */
+            ret = ssl_read( &ssl, larger_buf + ori_len, extra_len );
+            if( ret != extra_len ||
+                ssl_get_bytes_avail( &ssl ) != 0 )
+            {
+                printf( "  ! ssl_read failed on cached data\n" );
+                ret = 1;
+                goto exit;
+            }
+
+            larger_buf[ori_len + extra_len] = '\0';
+            printf( " %u bytes read (%u + %u)\n\n%s\n",
+                    ori_len + extra_len, ori_len, extra_len, (char *) buf );
+
+            polarssl_free( larger_buf );
+        }
+
 
         if( memcmp( buf, "SERVERQUIT", 10 ) == 0 )
         {

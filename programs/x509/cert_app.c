@@ -175,7 +175,13 @@ int main( int argc, char *argv[] )
     server_fd = 0;
     x509_crt_init( &cacert );
     x509_crt_init( &clicert );
+#if defined(POLARSSL_X509_CRL_PARSE_C)
     x509_crl_init( &cacrl );
+#else
+    /* Zeroize structure as CRL parsing is not supported and we have to pass
+       it to the verify function */
+    memset( &cacrl, 0, sizeof(x509_crl) );
+#endif
     pk_init( &pkey );
 
     if( argc == 0 )
@@ -274,17 +280,18 @@ int main( int argc, char *argv[] )
 
     printf( " ok (%d skipped)\n", ret );
 
+#if defined(POLARSSL_X509_CRL_PARSE_C)
     if( strlen( opt.crl_file ) )
     {
-        ret = x509_crl_parse_file( &cacrl, opt.crl_file );
+        if( ( ret = x509_crl_parse_file( &cacrl, opt.crl_file ) ) != 0 )
+        {
+            printf( " failed\n  !  x509_crl_parse returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+
         verify = 1;
     }
-
-    if( ret < 0 )
-    {
-        printf( " failed\n  !  x509_crl_parse returned -0x%x\n\n", -ret );
-        goto exit;
-    }
+#endif
 
     if( opt.mode == MODE_FILE )
     {
@@ -473,7 +480,9 @@ exit:
         net_close( server_fd );
     x509_crt_free( &cacert );
     x509_crt_free( &clicert );
+#if defined(POLARSSL_X509_CRL_PARSE_C)
     x509_crl_free( &cacrl );
+#endif
     pk_free( &pkey );
     entropy_free( &entropy );
 

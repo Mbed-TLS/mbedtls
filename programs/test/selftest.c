@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "polarssl/entropy.h"
 #include "polarssl/hmac_drbg.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/dhm.h"
@@ -190,6 +191,11 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_DHM_C)
     if( ( ret = dhm_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+#if defined(POLARSSL_ENTROPY_C)
+    if( ( ret = entropy_self_test( v ) ) != 0 )
         return( ret );
 #endif
 

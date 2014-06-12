@@ -1,0 +1,171 @@
+/* BEGIN_HEADER */
+#include <polarssl/entropy.h>
+
+/*
+ * Number of calls made to entropy_dummy_source()
+ */
+static size_t entropy_dummy_calls;
+
+/*
+ * Dummy entropy source
+ *
+ * If data is NULL, write exactly the requested length.
+ * Otherwise, write the length indicated by data or error if negative
+ */
+static int entropy_dummy_source( void *data, unsigned char *output,
+                                 size_t len, size_t *olen )
+{
+    entropy_dummy_calls++;
+
+    if( data == NULL )
+        *olen = len;
+    else
+    {
+        int *d = (int *) data;
+
+        if( *d < 0 )
+            return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+        else
+            *olen = *d;
+    }
+
+    memset( output, 0x2a, *olen );
+
+    return( 0 );
+}
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_ENTROPY_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO */
+void entropy_seed_file( char *path, int ret )
+{
+    entropy_context ctx;
+
+    entropy_init( &ctx );
+
+    TEST_ASSERT( entropy_write_seed_file( &ctx, path ) == ret );
+    TEST_ASSERT( entropy_update_seed_file( &ctx, path ) == ret );
+
+    entropy_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void entropy_too_many_sources( )
+{
+    entropy_context ctx;
+    size_t i;
+
+    entropy_init( &ctx );
+
+    /*
+     * It's hard to tell precisely when the error will occur,
+     * since we don't know how many sources were automatically added.
+     */
+    for( i = 0; i < ENTROPY_MAX_SOURCES; i++ )
+        (void) entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 );
+
+    TEST_ASSERT( entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 )
+                 == POLARSSL_ERR_ENTROPY_MAX_SOURCES );
+
+    entropy_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void entropy_func_len( int len, int ret )
+{
+    entropy_context ctx;
+    unsigned char buf[ENTROPY_BLOCK_SIZE + 10] = { 0 };
+    unsigned char acc[ENTROPY_BLOCK_SIZE + 10] = { 0 };
+    size_t i, j;
+
+    entropy_init( &ctx );
+
+    /*
+     * See comments in entropy_self_test()
+     */
+    for( i = 0; i < 8; i++ )
+    {
+        TEST_ASSERT( entropy_func( &ctx, buf, len ) == ret );
+        for( j = 0; j < sizeof( buf ); j++ )
+            acc[j] |= buf[j];
+    }
+
+    if( ret == 0 )
+        for( j = 0; j < (size_t) len; j++ )
+            TEST_ASSERT( acc[j] != 0 );
+
+    for( j = len; j < sizeof( buf ); j++ )
+        TEST_ASSERT( acc[j] == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void entropy_source_fail( char *path )
+{
+    entropy_context ctx;
+    int fail = -1;
+    unsigned char buf[16];
+
+    entropy_init( &ctx );
+
+    TEST_ASSERT( entropy_add_source( &ctx, entropy_dummy_source, &fail, 16 )
+                 == 0 );
+
+    TEST_ASSERT( entropy_func( &ctx, buf, sizeof( buf ) )
+                 == POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+    TEST_ASSERT( entropy_gather( &ctx )
+                 == POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+#if defined(POLARSSL_FS_IO)
+    TEST_ASSERT( entropy_write_seed_file( &ctx, path )
+                 == POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+    TEST_ASSERT( entropy_update_seed_file( &ctx, path )
+                 == POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
+#else
+    ((void) path);
+#endif
+
+    entropy_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void entropy_threshold( int threshold, int chunk_size, int result )
+{
+    entropy_context ctx;
+    unsigned char buf[ENTROPY_BLOCK_SIZE] = { 0 };
+    int ret;
+
+    entropy_init( &ctx );
+
+    TEST_ASSERT( entropy_add_source( &ctx, entropy_dummy_source,
+                                     &chunk_size, threshold ) == 0 );
+
+    entropy_dummy_calls = 0;
+    ret = entropy_func( &ctx, buf, sizeof( buf ) );
+
+    if( result >= 0 )
+    {
+        TEST_ASSERT( ret == 0 );
+        TEST_ASSERT( entropy_dummy_calls == (size_t) result );
+    }
+    else
+    {
+        TEST_ASSERT( ret == result );
+    }
+
+    entropy_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+void entropy_selftest( )
+{
+    TEST_ASSERT( entropy_self_test( 0 ) == 0 );
+}
+/* END_CASE */

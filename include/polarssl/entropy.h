@@ -183,7 +183,7 @@ int entropy_gather( entropy_context *ctx );
  *
  * \param data      Entropy context
  * \param output    Buffer to fill
- * \param len       Length of buffer
+ * \param len       Number of bytes desired, must be at most ENTROPY_BLOCK_SIZE
  *
  * \return          0 if successful, or POLARSSL_ERR_ENTROPY_SOURCE_FAILED
  */
@@ -229,6 +229,15 @@ int entropy_write_seed_file( entropy_context *ctx, const char *path );
  */
 int entropy_update_seed_file( entropy_context *ctx, const char *path );
 #endif /* POLARSSL_FS_IO */
+
+#if defined(POLARSSL_SELF_TEST)
+/**
+ * \brief          Checkup routine
+ *
+ * \return         0 if successful, or 1 if a test failed
+ */
+int entropy_self_test( int verbose );
+#endif /* POLARSSL_SELF_TEST */
 
 #ifdef __cplusplus
 }

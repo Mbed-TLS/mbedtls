@@ -372,4 +372,97 @@ int entropy_update_seed_file( entropy_context *ctx, const char *path )
 }
 #endif /* POLARSSL_FS_IO */
 
+#if defined(POLARSSL_SELF_TEST)
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
+/*
+ * Dummy source function
+ */
+static int entropy_dummy_source( void *data, unsigned char *output,
+                                 size_t len, size_t *olen )
+{
+    ((void) data);
+
+    memset( output, 0x2a, len );
+    *olen = len;
+
+    return( 0 );
+}
+
+/*
+ * The actual entropy quality is hard to test, but we can at least
+ * test that the functions don't cause errors and write the correct
+ * amount of data to buffers.
+ */
+int entropy_self_test( int verbose )
+{
+    int ret = 0;
+    entropy_context ctx;
+    unsigned char buf[ENTROPY_BLOCK_SIZE] = { 0 };
+    unsigned char acc[ENTROPY_BLOCK_SIZE] = { 0 };
+    size_t i, j;
+
+    if( verbose != 0 )
+        polarssl_printf( "  ENTROPY test: " );
+
+    entropy_init( &ctx );
+
+    ret = entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 );
+    if( ret != 0 )
+        goto cleanup;
+
+    if( ( ret = entropy_gather( &ctx ) ) != 0 )
+        goto cleanup;
+
+    if( ( ret = entropy_update_manual( &ctx, buf, sizeof buf ) ) != 0 )
+        goto cleanup;
+
+    /*
+     * To test that entropy_func writes correct number of bytes:
+     * - use the whole buffer and rely on ASan to detect overruns
+     * - collect entropy 8 times and OR the result in an accumulator:
+     *   any byte should then be 0 with probably 2^(-64), so requiring
+     *   each of the 32 or 64 bytes to be non-zero has a false failure rate
+     *   of at most 2^(-58) which is acceptable.
+     */
+    for( i = 0; i < 8; i++ )
+    {
+        if( ( ret = entropy_func( &ctx, buf, sizeof( buf ) ) ) != 0 )
+            goto cleanup;
+
+        for( j = 0; j < sizeof( buf ); j++ )
+            acc[j] |= buf[j];
+    }
+
+    for( j = 0; j < sizeof( buf ); j++ )
+    {
+        if( acc[j] == 0 )
+        {
+            ret = 1;
+            goto cleanup;
+        }
+    }
+
+cleanup:
+    entropy_free( &ctx );
+
+    if( verbose != 0 )
+    {
+        if( ret != 0 )
+            polarssl_printf( "failed\n" );
+        else
+            polarssl_printf( "passed\n" );
+
+        polarssl_printf( "\n" );
+    }
+
+    return( ret != 0 );
+}
+#endif /* POLARSSL_SELF_TEST */
+
 #endif /* POLARSSL_ENTROPY_C */

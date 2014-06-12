@@ -52,13 +52,13 @@
 #define polarssl_printf printf
 #endif
 
-static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
+static int pkcs5_parse_pbkdf2_params( const asn1_buf *params,
                                       asn1_buf *salt, int *iterations,
                                       int *keylen, md_type_t *md_type )
 {
     int ret;
     asn1_buf prf_alg_oid;
-    unsigned char **p = &params->p;
+    unsigned char *p = params->p;
     const unsigned char *end = params->p + params->len;
 
     if( params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
@@ -73,28 +73,28 @@ static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
      *  }
      *
      */
-    if( ( ret = asn1_get_tag( p, end, &salt->len, ASN1_OCTET_STRING ) ) != 0 )
+    if( ( ret = asn1_get_tag( &p, end, &salt->len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
-    salt->p = *p;
-    *p += salt->len;
+    salt->p = p;
+    p += salt->len;
 
-    if( ( ret = asn1_get_int( p, end, iterations ) ) != 0 )
+    if( ( ret = asn1_get_int( &p, end, iterations ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
-    if( *p == end )
+    if( p == end )
         return( 0 );
 
-    if( ( ret = asn1_get_int( p, end, keylen ) ) != 0 )
+    if( ( ret = asn1_get_int( &p, end, keylen ) ) != 0 )
     {
         if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
             return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
     }
 
-    if( *p == end )
+    if( p == end )
         return( 0 );
 
-    if( ( ret = asn1_get_alg_null( p, end, &prf_alg_oid ) ) != 0 )
+    if( ( ret = asn1_get_alg_null( &p, end, &prf_alg_oid ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
     if( !OID_CMP( OID_HMAC_SHA1, &prf_alg_oid ) )
@@ -102,7 +102,7 @@ static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
 
     *md_type = POLARSSL_MD_SHA1;
 
-    if( *p != end )
+    if( p != end )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 

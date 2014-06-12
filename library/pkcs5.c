@@ -175,6 +175,10 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( cipher_info == NULL )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
+    /*
+     * The value of keylen from pkcs5_parse_pbkdf2_params() is ignored
+     * since it is optional and we don't know if it was set or not
+     */
     keylen = cipher_info->key_length / 8;
 
     if( enc_scheme_params.tag != ASN1_OCTET_STRING ||

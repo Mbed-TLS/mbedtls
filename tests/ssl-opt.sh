@@ -89,8 +89,8 @@ fail() {
     echo "FAIL"
     echo "  ! $1"
 
-    cp srv_out o-srv-${TESTS}.log
-    cp cli_out o-cli-${TESTS}.log
+    cp $SRV_OUT o-srv-${TESTS}.log
+    cp $CLI_OUT o-cli-${TESTS}.log
     echo "  ! outputs saved to o-srv-${TESTS}.log and o-cli-${TESTS}.log"
 
     FAILS=`echo $FAILS + 1 | bc`
@@ -110,6 +110,28 @@ has_mem_err() {
     else
         return 0 # true: has errors
     fi
+}
+
+# wait for server to be ready
+wait_srv_ready() {
+    if is_polar "$SRV_CMD"; then
+        READY_MSG="Waiting for a remote connection"
+    else
+        READY_MSG="ACCEPT"
+    fi
+
+    # If the server isn't ready after 10 secs, something probably went wrong
+    ( sleep 10; echo "SERVERSTART TIMEOUT"; kill $MAIN_PID ) &
+    WATCHDOG_PID=$!
+
+    while ! grep "$READY_MSG" $SRV_OUT >/dev/null; do
+        # don't use sleep, since the whole goal is to avoid wasting time,
+        # and 1 second is usually way more than the server needs to start
+        true
+    done
+
+    kill $WATCHDOG_PID
+    wait $WATCHDOG_PID
 }
 
 # Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
@@ -142,38 +164,46 @@ run_test() {
     fi
 
     # run the commands
-    echo "$SRV_CMD" > srv_out
-    $SRV_CMD >> srv_out 2>&1 &
+    echo "$SRV_CMD" > $SRV_OUT
+    $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
-    sleep 1
-    echo "$CLI_CMD" > cli_out
-    eval "$CLI_CMD" >> cli_out 2>&1
+    wait_srv_ready
+    echo "$CLI_CMD" > $CLI_OUT
+    eval "$CLI_CMD" >> $CLI_OUT 2>&1
     CLI_EXIT=$?
-    echo "EXIT: $CLI_EXIT" >> cli_out
+    echo "EXIT: $CLI_EXIT" >> $CLI_OUT
 
-    # psk is useful when server only has bad certs
     if is_polar "$SRV_CMD"; then
-        "$P_CLI" request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
+        # start watchdog in case SERVERQUIT fails
+        ( sleep 10; echo "SERVERQUIT TIMEOUT"; kill $MAIN_PID ) &
+        WATCHDOG_PID=$!
+
+        # psk is useful when server only has bad certs
+        $P_CLI request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
             crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
             >/dev/null
+
+        wait $SRV_PID
+        kill $WATCHDOG_PID
+        wait $WATCHDOG_PID
     else
         kill $SRV_PID
+        wait $SRV_PID
     fi
-    wait $SRV_PID
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero
     # expected client exit to incorrectly succeed in case of catastrophic
     # failure)
     if is_polar "$SRV_CMD"; then
-        if grep "Performing the SSL/TLS handshake" srv_out >/dev/null; then :;
+        if grep "Performing the SSL/TLS handshake" $SRV_OUT >/dev/null; then :;
         else
             fail "server failed to start"
             return
         fi
     fi
     if is_polar "$CLI_CMD"; then
-        if grep "Performing the SSL/TLS handshake" cli_out >/dev/null; then :;
+        if grep "Performing the SSL/TLS handshake" $CLI_OUT >/dev/null; then :;
         else
             fail "client failed to start"
             return
@@ -199,28 +229,28 @@ run_test() {
     do
         case $1 in
             "-s")
-                if grep "$2" srv_out >/dev/null; then :; else
+                if grep "$2" $SRV_OUT >/dev/null; then :; else
                     fail "-s $2"
                     return
                 fi
                 ;;
 
             "-c")
-                if grep "$2" cli_out >/dev/null; then :; else
+                if grep "$2" $CLI_OUT >/dev/null; then :; else
                     fail "-c $2"
                     return
                 fi
                 ;;
 
             "-S")
-                if grep "$2" srv_out >/dev/null; then
+                if grep "$2" $SRV_OUT >/dev/null; then
                     fail "-S $2"
                     return
                 fi
                 ;;
 
             "-C")
-                if grep "$2" cli_out >/dev/null; then
+                if grep "$2" $CLI_OUT >/dev/null; then
                     fail "-C $2"
                     return
                 fi
@@ -235,11 +265,11 @@ run_test() {
 
     # check valgrind's results
     if [ "$MEMCHECK" -gt 0 ]; then
-        if is_polar "$SRV_CMD" && has_mem_err srv_out; then
+        if is_polar "$SRV_CMD" && has_mem_err $SRV_OUT; then
             fail "Server has memory errors"
             return
         fi
-        if is_polar "$CLI_CMD" && has_mem_err cli_out; then
+        if is_polar "$CLI_CMD" && has_mem_err $CLI_OUT; then
             fail "Client has memory errors"
             return
         fi
@@ -247,11 +277,11 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
-    rm -f srv_out cli_out
+    rm -f $SRV_OUT $CLI_OUT
 }
 
 cleanup() {
-    rm -f cli_out srv_out sess
+    rm -f $CLI_OUT $SRV_OUT $SESSION
     kill $SRV_PID
     exit 1
 }
@@ -276,7 +306,24 @@ if which $OPENSSL_CMD >/dev/null 2>&1; then :; else
     exit 1
 fi
 
-killall -q openssl ssl_server ssl_server2
+# used by watchdog
+MAIN_PID="$$"
+
+# Pick a "unique" port in the range 10000-19999.
+PORT="0000$$"
+PORT="1$(echo $PORT | tail -c 4)"
+
+# fix commands to use this port
+P_SRV="$P_SRV server_port=$PORT"
+P_CLI="$P_CLI server_port=$PORT"
+O_SRV="$O_SRV -accept $PORT"
+O_CLI="$O_CLI -connect localhost:$PORT"
+
+# Also pick a unique name for intermediate files
+SRV_OUT="srv_out.$$"
+CLI_OUT="cli_out.$$"
+SESSION="session.$$"
+
 trap cleanup INT TERM HUP
 
 # Test for SSLv2 ClientHello
@@ -365,7 +412,9 @@ run_test    "Session resume using tickets #4 (openssl server)" \
 
 run_test    "Session resume using tickets #5 (openssl client)" \
             "$P_SRV debug_level=4 tickets=1" \
-            "($O_CLI -sess_out sess; $O_CLI -sess_in sess; rm -f sess)" \
+            "( $O_CLI -sess_out $SESSION; \
+               $O_CLI -sess_in $SESSION; \
+               rm -f $SESSION )" \
             0 \
             -s "found session ticket extension" \
             -s "server hello, adding session ticket extension" \
@@ -450,7 +499,9 @@ run_test    "Session resume using cache #7 (no timeout)" \
 
 run_test    "Session resume using cache #8 (openssl client)" \
             "$P_SRV debug_level=4 tickets=0" \
-            "($O_CLI -sess_out sess; $O_CLI -sess_in sess; rm -f sess)" \
+            "( $O_CLI -sess_out $SESSION; \
+               $O_CLI -sess_in $SESSION; \
+               rm -f $SESSION )" \
             0 \
             -s "found session ticket extension" \
             -S "server hello, adding session ticket extension" \

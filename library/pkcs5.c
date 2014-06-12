@@ -204,19 +204,8 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( ( ret = cipher_setkey( &cipher_ctx, key, 8 * keylen, mode ) ) != 0 )
         goto exit;
 
-    if( ( ret = cipher_set_iv( &cipher_ctx, iv, enc_scheme_params.len ) ) != 0 )
-        goto exit;
-
-    if( ( ret = cipher_reset( &cipher_ctx ) ) != 0 )
-        goto exit;
-
-    if( ( ret = cipher_update( &cipher_ctx, data, datalen,
-                                output, &olen ) ) != 0 )
-    {
-        goto exit;
-    }
-
-    if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
+    if( ( ret = cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
+                              data, datalen, output, &olen ) ) != 0 )
         ret = POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH;
 
 exit:

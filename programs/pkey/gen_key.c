@@ -143,7 +143,7 @@ static int write_private_key( pk_context *key, const char *output_file )
             return( ret );
 
         len = ret;
-        c = output_buf + sizeof(output_buf) - len - 1;
+        c = output_buf + sizeof(output_buf) - len;
     }
 
     if( ( f = fopen( output_file, "w" ) ) == NULL )

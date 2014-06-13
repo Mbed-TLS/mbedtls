@@ -27,6 +27,7 @@ Bugfix
    * Other minor issues (found by Peter Vaskovic)
    * Fix symlink command for cross compiling with CMake (found by Andre
      Heinecke)
+   * Fix DER output of gen_key app (found by Gergely Budai)
 
 = PolarSSL 1.3.7 released on 2014-05-02
 Features

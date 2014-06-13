@@ -112,28 +112,6 @@ has_mem_err() {
     fi
 }
 
-# wait for server to be ready
-wait_srv_ready() {
-    if is_polar "$SRV_CMD"; then
-        READY_MSG="Waiting for a remote connection"
-    else
-        READY_MSG="ACCEPT"
-    fi
-
-    # If the server isn't ready after 10 secs, something probably went wrong
-    ( sleep 10; echo "SERVERSTART TIMEOUT"; kill $MAIN_PID ) &
-    WATCHDOG_PID=$!
-
-    while ! grep "$READY_MSG" $SRV_OUT >/dev/null; do
-        # don't use sleep, since the whole goal is to avoid wasting time,
-        # and 1 second is usually way more than the server needs to start
-        true
-    done
-
-    kill $WATCHDOG_PID
-    wait $WATCHDOG_PID
-}
-
 # Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -167,7 +145,7 @@ run_test() {
     echo "$SRV_CMD" > $SRV_OUT
     $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
-    wait_srv_ready
+    sleep 1
     echo "$CLI_CMD" > $CLI_OUT
     eval "$CLI_CMD" >> $CLI_OUT 2>&1
     CLI_EXIT=$?

@@ -59,9 +59,7 @@ void pkcs5_pbes2( int params_tag, char *params_hex, char *pw_hex,
     data = unhexify_alloc( data_hex, &data_len );
     pw = unhexify_alloc( pw_hex, &pw_len );
     ref_out = unhexify_alloc( ref_out_hex, &ref_out_len );
-    my_out = polarssl_malloc( ref_out_len != 0 ? ref_out_len : 1 );
-    TEST_ASSERT( my_out != NULL );
-    memset( my_out, 0, ref_out_len );
+    my_out = zero_alloc( ref_out_len );
 
     my_ret = pkcs5_pbes2( &params, PKCS5_DECRYPT,
                           pw, pw_len, data, data_len, my_out );

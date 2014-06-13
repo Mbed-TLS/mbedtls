@@ -80,6 +80,11 @@
 #endif
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
@@ -946,7 +951,7 @@ int x509_crt_parse_file( x509_crt *chain, const char *path )
 
     ret = x509_crt_parse( chain, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -1930,7 +1935,7 @@ void x509_crt_free( x509_crt *crt )
         {
             name_prv = name_cur;
             name_cur = name_cur->next;
-            memset( name_prv, 0, sizeof( x509_name ) );
+            polarssl_zeroize( name_prv, sizeof( x509_name ) );
             polarssl_free( name_prv );
         }
 
@@ -1939,7 +1944,7 @@ void x509_crt_free( x509_crt *crt )
         {
             name_prv = name_cur;
             name_cur = name_cur->next;
-            memset( name_prv, 0, sizeof( x509_name ) );
+            polarssl_zeroize( name_prv, sizeof( x509_name ) );
             polarssl_free( name_prv );
         }
 
@@ -1948,7 +1953,7 @@ void x509_crt_free( x509_crt *crt )
         {
             seq_prv = seq_cur;
             seq_cur = seq_cur->next;
-            memset( seq_prv, 0, sizeof( x509_sequence ) );
+            polarssl_zeroize( seq_prv, sizeof( x509_sequence ) );
             polarssl_free( seq_prv );
         }
 
@@ -1957,13 +1962,13 @@ void x509_crt_free( x509_crt *crt )
         {
             seq_prv = seq_cur;
             seq_cur = seq_cur->next;
-            memset( seq_prv, 0, sizeof( x509_sequence ) );
+            polarssl_zeroize( seq_prv, sizeof( x509_sequence ) );
             polarssl_free( seq_prv );
         }
 
         if( cert_cur->raw.p != NULL )
         {
-            memset( cert_cur->raw.p, 0, cert_cur->raw.len );
+            polarssl_zeroize( cert_cur->raw.p, cert_cur->raw.len );
             polarssl_free( cert_cur->raw.p );
         }
 
@@ -1977,7 +1982,7 @@ void x509_crt_free( x509_crt *crt )
         cert_prv = cert_cur;
         cert_cur = cert_cur->next;
 
-        memset( cert_prv, 0, sizeof( x509_crt ) );
+        polarssl_zeroize( cert_prv, sizeof( x509_crt ) );
         if( cert_prv != crt )
             polarssl_free( cert_prv );
     }

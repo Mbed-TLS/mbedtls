@@ -77,6 +77,11 @@
 #endif /* __ARMCC_VERSION */
 #endif /*_MSC_VER */
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #if defined(POLARSSL_SELF_TEST)
 /*
  * Counts of point addition and doubling, and field multiplications.
@@ -344,7 +349,7 @@ void ecp_group_free( ecp_group *grp )
         polarssl_free( grp->T );
     }
 
-    memset( grp, 0, sizeof( ecp_group ) );
+    polarssl_zeroize( grp, sizeof( ecp_group ) );
 }
 
 /*

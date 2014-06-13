@@ -55,6 +55,11 @@
 #define polarssl_free       free
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * helper to validate the mpi size and import it
  */
@@ -395,7 +400,7 @@ void dhm_free( dhm_context *ctx )
     mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
     mpi_free( &ctx->P );
 
-    memset( ctx, 0, sizeof( dhm_context ) );
+    polarssl_zeroize( ctx, sizeof( dhm_context ) );
 }
 
 #if defined(POLARSSL_ASN1_PARSE_C)
@@ -535,7 +540,7 @@ int dhm_parse_dhmfile( dhm_context *dhm, const char *path )
 
     ret = dhm_parse_dhm( dhm, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );

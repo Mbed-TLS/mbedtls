@@ -48,6 +48,11 @@
 #define polarssl_printf printf
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #if !defined(POLARSSL_MD5_ALT)
 
 /*
@@ -301,7 +306,7 @@ void md5( const unsigned char *input, size_t ilen, unsigned char output[16] )
     md5_update( &ctx, input, ilen );
     md5_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md5_context ) );
+    polarssl_zeroize( &ctx, sizeof( md5_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -325,7 +330,7 @@ int md5_file( const char *path, unsigned char output[16] )
 
     md5_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md5_context ) );
+    polarssl_zeroize( &ctx, sizeof( md5_context ) );
 
     if( ferror( f ) != 0 )
     {
@@ -366,7 +371,7 @@ void md5_hmac_starts( md5_context *ctx, const unsigned char *key,
     md5_starts( ctx );
     md5_update( ctx, ctx->ipad, 64 );
 
-    memset( sum, 0, sizeof( sum ) );
+    polarssl_zeroize( sum, sizeof( sum ) );
 }
 
 /*
@@ -391,7 +396,7 @@ void md5_hmac_finish( md5_context *ctx, unsigned char output[16] )
     md5_update( ctx, tmpbuf, 16 );
     md5_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    polarssl_zeroize( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -416,7 +421,7 @@ void md5_hmac( const unsigned char *key, size_t keylen,
     md5_hmac_update( &ctx, input, ilen );
     md5_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( md5_context ) );
+    polarssl_zeroize( &ctx, sizeof( md5_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

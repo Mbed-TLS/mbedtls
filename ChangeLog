@@ -14,6 +14,8 @@ Features
 Changes
    * Add LINK_WITH_PTHREAD option in CMake for explicit linking that is
      required on some platforms (e.g. OpenBSD)
+   * Migrate zeroizing of data to polarssl_zeroize() instead of memset()
+     against unwanted compiler optimizations
 
 Bugfix
    * Fix in debug_print_msg()

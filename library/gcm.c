@@ -76,6 +76,11 @@
 }
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Precompute small multiples of H, that is set
  *      HH[i] || HL[i] = H times i,
@@ -464,7 +469,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
 
     if( diff != 0 )
     {
-        memset( output, 0, length );
+        polarssl_zeroize( output, length );
         return( POLARSSL_ERR_GCM_AUTH_FAILED );
     }
 
@@ -474,7 +479,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
 void gcm_free( gcm_context *ctx )
 {
     (void) cipher_free_ctx( &ctx->cipher_ctx );
-    memset( ctx, 0, sizeof( gcm_context ) );
+    polarssl_zeroize( ctx, sizeof( gcm_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)

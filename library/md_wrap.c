@@ -74,6 +74,11 @@
 
 #include <stdlib.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #if defined(POLARSSL_MD2_C)
 
 static void md2_starts_wrap( void *ctx )
@@ -132,6 +137,7 @@ static void * md2_ctx_alloc( void )
 
 static void md2_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( md2_context ) );
     polarssl_free( ctx );
 }
 
@@ -221,6 +227,7 @@ static void *md4_ctx_alloc( void )
 
 static void md4_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( md4_context ) );
     polarssl_free( ctx );
 }
 
@@ -308,6 +315,7 @@ static void * md5_ctx_alloc( void )
 
 static void md5_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( md5_context ) );
     polarssl_free( ctx );
 }
 
@@ -395,6 +403,7 @@ static void * ripemd160_ctx_alloc( void )
 
 static void ripemd160_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( ripemd160_context ) );
     polarssl_free( ctx );
 }
 
@@ -482,6 +491,7 @@ static void * sha1_ctx_alloc( void )
 
 static void sha1_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( sha1_context ) );
     polarssl_free( ctx );
 }
 
@@ -585,6 +595,7 @@ static void * sha224_ctx_alloc( void )
 
 static void sha224_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( sha256_context ) );
     polarssl_free( ctx );
 }
 
@@ -681,6 +692,7 @@ static void * sha256_ctx_alloc( void )
 
 static void sha256_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( sha256_context ) );
     polarssl_free( ctx );
 }
 
@@ -781,6 +793,7 @@ static void * sha384_ctx_alloc( void )
 
 static void sha384_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( sha512_context ) );
     polarssl_free( ctx );
 }
 
@@ -877,6 +890,7 @@ static void * sha512_ctx_alloc( void )
 
 static void sha512_ctx_free( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( sha512_context ) );
     polarssl_free( ctx );
 }
 

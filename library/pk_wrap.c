@@ -52,6 +52,11 @@
 #define polarssl_free       free
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #if defined(POLARSSL_RSA_C)
 static int rsa_can_do( pk_type_t type )
 {
@@ -426,6 +431,7 @@ static void *rsa_alt_alloc_wrap( void )
 
 static void rsa_alt_free_wrap( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( rsa_alt_context ) );
     polarssl_free( ctx );
 }
 

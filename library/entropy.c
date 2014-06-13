@@ -42,6 +42,11 @@
 #include "polarssl/havege.h"
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #define ENTROPY_MAX_LOOP    256     /**< Maximum amount to loop before error */
 
 void entropy_init( entropy_context *ctx )
@@ -78,7 +83,7 @@ void entropy_init( entropy_context *ctx )
 
 void entropy_free( entropy_context *ctx )
 {
-    ((void) ctx);
+    polarssl_zeroize( ctx, sizeof( entropy_context ) );
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_free( &ctx->mutex );
 #endif

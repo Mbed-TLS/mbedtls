@@ -46,6 +46,11 @@
 #include "polarssl/pem.h"
 #endif /* POLARSSL_PEM_WRITE_C */
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 void x509write_crt_init( x509write_cert *ctx )
 {
     memset( ctx, 0, sizeof(x509write_cert) );
@@ -62,7 +67,7 @@ void x509write_crt_free( x509write_cert *ctx )
     asn1_free_named_data_list( &ctx->issuer );
     asn1_free_named_data_list( &ctx->extensions );
 
-    memset( ctx, 0, sizeof(x509write_cert) );
+    polarssl_zeroize( ctx, sizeof(x509write_cert) );
 }
 
 void x509write_crt_set_version( x509write_cert *ctx, int version )

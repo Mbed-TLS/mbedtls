@@ -42,6 +42,11 @@
 
 #include "polarssl/ccm.h"
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #define CCM_ENCRYPT 0
 #define CCM_DECRYPT 1
 
@@ -81,7 +86,7 @@ int ccm_init( ccm_context *ctx, cipher_id_t cipher,
 void ccm_free( ccm_context *ctx )
 {
     (void) cipher_free_ctx( &ctx->cipher_ctx );
-    memset( ctx, 0, sizeof( ccm_context ) );
+    polarssl_zeroize( ctx, sizeof( ccm_context ) );
 }
 
 /*
@@ -320,7 +325,7 @@ int ccm_auth_decrypt( ccm_context *ctx, size_t length,
 
     if( diff != 0 )
     {
-        memset( output, 0, length );
+        polarssl_zeroize( output, length );
         return( POLARSSL_ERR_CCM_AUTH_FAILED );
     }
 

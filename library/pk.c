@@ -44,6 +44,11 @@
 #include "polarssl/ecdsa.h"
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Initialise a pk_context
  */
@@ -65,9 +70,8 @@ void pk_free( pk_context *ctx )
         return;
 
     ctx->pk_info->ctx_free_func( ctx->pk_ctx );
-    ctx->pk_ctx = NULL;
 
-    ctx->pk_info = NULL;
+    polarssl_zeroize( ctx, sizeof( pk_context ) );
 }
 
 /*

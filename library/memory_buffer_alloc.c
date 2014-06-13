@@ -52,6 +52,11 @@
 #define polarssl_fprintf fprintf
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #define MAGIC1       0xFF00AA55
 #define MAGIC2       0xEE119966
 #define MAX_BT 20
@@ -578,7 +583,7 @@ void memory_buffer_alloc_free()
 #if defined(POLARSSL_THREADING_C)
     polarssl_mutex_free( &heap.mutex );
 #endif
-    memset( &heap, 0, sizeof(buffer_alloc_ctx) );
+    polarssl_zeroize( &heap, sizeof(buffer_alloc_ctx) );
 }
 
 #endif /* POLARSSL_MEMORY_BUFFER_ALLOC_C */

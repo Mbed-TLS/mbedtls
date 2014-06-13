@@ -68,6 +68,11 @@
 #include <stdio.h>
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  *  Version  ::=  INTEGER  {  v1(0), v2(1)  }
  */
@@ -552,7 +557,7 @@ int x509_crl_parse_file( x509_crl *chain, const char *path )
 
     ret = x509_crl_parse( chain, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -725,7 +730,7 @@ void x509_crl_free( x509_crl *crl )
         {
             name_prv = name_cur;
             name_cur = name_cur->next;
-            memset( name_prv, 0, sizeof( x509_name ) );
+            polarssl_zeroize( name_prv, sizeof( x509_name ) );
             polarssl_free( name_prv );
         }
 
@@ -734,13 +739,13 @@ void x509_crl_free( x509_crl *crl )
         {
             entry_prv = entry_cur;
             entry_cur = entry_cur->next;
-            memset( entry_prv, 0, sizeof( x509_crl_entry ) );
+            polarssl_zeroize( entry_prv, sizeof( x509_crl_entry ) );
             polarssl_free( entry_prv );
         }
 
         if( crl_cur->raw.p != NULL )
         {
-            memset( crl_cur->raw.p, 0, crl_cur->raw.len );
+            polarssl_zeroize( crl_cur->raw.p, crl_cur->raw.len );
             polarssl_free( crl_cur->raw.p );
         }
 
@@ -754,7 +759,7 @@ void x509_crl_free( x509_crl *crl )
         crl_prv = crl_cur;
         crl_cur = crl_cur->next;
 
-        memset( crl_prv, 0, sizeof( x509_crl ) );
+        polarssl_zeroize( crl_prv, sizeof( x509_crl ) );
         if( crl_prv != crl )
             polarssl_free( crl_prv );
     }

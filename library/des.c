@@ -47,6 +47,11 @@
 
 #if !defined(POLARSSL_DES_ALT)
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -519,7 +524,7 @@ int des3_set2key_enc( des3_context *ctx,
     uint32_t sk[96];
 
     des3_set2key( ctx->sk, sk, key );
-    memset( sk,  0, sizeof( sk ) );
+    polarssl_zeroize( sk,  sizeof( sk ) );
 
     return( 0 );
 }
@@ -533,7 +538,7 @@ int des3_set2key_dec( des3_context *ctx,
     uint32_t sk[96];
 
     des3_set2key( sk, ctx->sk, key );
-    memset( sk,  0, sizeof( sk ) );
+    polarssl_zeroize( sk,  sizeof( sk ) );
 
     return( 0 );
 }
@@ -570,7 +575,7 @@ int des3_set3key_enc( des3_context *ctx,
     uint32_t sk[96];
 
     des3_set3key( ctx->sk, sk, key );
-    memset( sk, 0, sizeof( sk ) );
+    polarssl_zeroize( sk,  sizeof( sk ) );
 
     return( 0 );
 }
@@ -584,7 +589,7 @@ int des3_set3key_dec( des3_context *ctx,
     uint32_t sk[96];
 
     des3_set3key( sk, ctx->sk, key );
-    memset( sk, 0, sizeof( sk ) );
+    polarssl_zeroize( sk,  sizeof( sk ) );
 
     return( 0 );
 }

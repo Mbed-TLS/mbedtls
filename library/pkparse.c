@@ -62,6 +62,11 @@
 #define polarssl_free       free
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #if defined(POLARSSL_FS_IO)
 /*
  * Load all data from a file into a given buffer.
@@ -124,7 +129,7 @@ int pk_parse_keyfile( pk_context *ctx,
         ret = pk_parse_key( ctx, buf, n,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -144,7 +149,7 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path )
 
     ret = pk_parse_public_key( ctx, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );

@@ -47,6 +47,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 void x509write_csr_init( x509write_csr *ctx )
 {
     memset( ctx, 0, sizeof(x509write_csr) );
@@ -57,7 +62,7 @@ void x509write_csr_free( x509write_csr *ctx )
     asn1_free_named_data_list( &ctx->subject );
     asn1_free_named_data_list( &ctx->extensions );
 
-    memset( ctx, 0, sizeof(x509write_csr) );
+    polarssl_zeroize( ctx, sizeof(x509write_csr) );
 }
 
 void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg )

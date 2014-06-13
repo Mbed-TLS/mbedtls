@@ -45,6 +45,11 @@
 #define strcasecmp  _stricmp
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 static const int supported_digests[] = {
 
 #if defined(POLARSSL_MD2_C)
@@ -190,7 +195,8 @@ int md_free_ctx( md_context_t *ctx )
         return POLARSSL_ERR_MD_BAD_INPUT_DATA;
 
     ctx->md_info->ctx_free_func( ctx->md_ctx );
-    ctx->md_ctx = NULL;
+
+    polarssl_zeroize( ctx, sizeof( md_context_t ) );
 
     return 0;
 }

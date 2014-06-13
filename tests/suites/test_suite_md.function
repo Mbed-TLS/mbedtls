@@ -261,8 +261,6 @@ void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
 
     hexify( hash_str, output, md_get_size(md_info) );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
-
-    TEST_ASSERT ( 0 == md_free_ctx( &ctx ) );
 }
 /* END_CASE */
 

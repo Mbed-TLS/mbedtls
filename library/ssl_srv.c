@@ -52,6 +52,11 @@
 #endif
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Serialize a session in the following format:
  *  0   .   n-1     session structure, n = sizeof(ssl_session)
@@ -337,7 +342,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
 
     ssl_session_free( ssl->session_negotiate );
     memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
-    memset( &session, 0, sizeof( ssl_session ) );
+    polarssl_zeroize( &session, sizeof( ssl_session ) );
 
     return( 0 );
 }

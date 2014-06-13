@@ -51,6 +51,11 @@
 
 #include <stdlib.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #define ciL    (sizeof(t_uint))         /* chars in limb  */
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
@@ -84,7 +89,7 @@ void mpi_free( mpi *X )
 
     if( X->p != NULL )
     {
-        memset( X->p, 0, X->n * ciL );
+        polarssl_zeroize( X->p, X->n * ciL );
         polarssl_free( X->p );
     }
 
@@ -113,7 +118,7 @@ int mpi_grow( mpi *X, size_t nblimbs )
         if( X->p != NULL )
         {
             memcpy( p, X->p, X->n * ciL );
-            memset( X->p, 0, X->n * ciL );
+            polarssl_zeroize( X->p, X->n * ciL );
             polarssl_free( X->p );
         }
 
@@ -153,7 +158,7 @@ int mpi_shrink( mpi *X, size_t nblimbs )
     if( X->p != NULL )
     {
         memcpy( p, X->p, i * ciL );
-        memset( X->p, 0, X->n * ciL );
+        polarssl_zeroize( X->p, X->n * ciL );
         polarssl_free( X->p );
     }
 

@@ -54,6 +54,11 @@
 #define strcasecmp _stricmp
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
 int (*ssl_hw_record_init)(ssl_context *ssl,
                        const unsigned char *key_enc, const unsigned char *key_dec,
@@ -127,11 +132,11 @@ static int ssl3_prf( unsigned char *secret, size_t slen, char *label,
         md5_finish( &md5, dstbuf + i * 16 );
     }
 
-    memset( &md5,  0, sizeof( md5  ) );
-    memset( &sha1, 0, sizeof( sha1 ) );
+    polarssl_zeroize( &md5,  sizeof( md5  ) );
+    polarssl_zeroize( &sha1, sizeof( sha1 ) );
 
-    memset( padding, 0, sizeof( padding ) );
-    memset( sha1sum, 0, sizeof( sha1sum ) );
+    polarssl_zeroize( padding, sizeof( padding ) );
+    polarssl_zeroize( sha1sum, sizeof( sha1sum ) );
 
     return( 0 );
 }
@@ -190,8 +195,8 @@ static int tls1_prf( unsigned char *secret, size_t slen, char *label,
             dstbuf[i + j] = (unsigned char)( dstbuf[i + j] ^ h_i[j] );
     }
 
-    memset( tmp, 0, sizeof( tmp ) );
-    memset( h_i, 0, sizeof( h_i ) );
+    polarssl_zeroize( tmp, sizeof( tmp ) );
+    polarssl_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -229,8 +234,8 @@ static int tls_prf_sha256( unsigned char *secret, size_t slen, char *label,
             dstbuf[i + j]  = h_i[j];
     }
 
-    memset( tmp, 0, sizeof( tmp ) );
-    memset( h_i, 0, sizeof( h_i ) );
+    polarssl_zeroize( tmp, sizeof( tmp ) );
+    polarssl_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -269,8 +274,8 @@ static int tls_prf_sha384( unsigned char *secret, size_t slen, char *label,
             dstbuf[i + j]  = h_i[j];
     }
 
-    memset( tmp, 0, sizeof( tmp ) );
-    memset( h_i, 0, sizeof( h_i ) );
+    polarssl_zeroize( tmp, sizeof( tmp ) );
+    polarssl_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -357,7 +362,7 @@ int ssl_derive_keys( ssl_context *ssl )
                             "master secret",
                             handshake->randbytes, 64, session->master, 48 );
 
-        memset( handshake->premaster, 0, sizeof( handshake->premaster ) );
+        polarssl_zeroize( handshake->premaster, sizeof(handshake->premaster) );
     }
     else
         SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
@@ -368,7 +373,7 @@ int ssl_derive_keys( ssl_context *ssl )
     memcpy( tmp, handshake->randbytes, 64 );
     memcpy( handshake->randbytes, tmp + 32, 32 );
     memcpy( handshake->randbytes + 32, tmp, 32 );
-    memset( tmp, 0, sizeof( tmp ) );
+    polarssl_zeroize( tmp, sizeof( tmp ) );
 
     /*
      *  SSLv3:
@@ -391,7 +396,7 @@ int ssl_derive_keys( ssl_context *ssl )
     SSL_DEBUG_BUF( 4, "random bytes", handshake->randbytes, 64 );
     SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
 
-    memset( handshake->randbytes, 0, sizeof( handshake->randbytes ) );
+    polarssl_zeroize( handshake->randbytes, sizeof( handshake->randbytes ) );
 
     /*
      * Determine the appropriate key, IV and MAC length.
@@ -680,7 +685,7 @@ int ssl_derive_keys( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
-    memset( keyblk, 0, sizeof( keyblk ) );
+    polarssl_zeroize( keyblk, sizeof( keyblk ) );
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
     // Initialize compression
@@ -2654,12 +2659,12 @@ static void ssl_calc_finished_ssl(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
 
-    memset(  &md5, 0, sizeof(  md5_context ) );
-    memset( &sha1, 0, sizeof( sha1_context ) );
+    polarssl_zeroize(  &md5, sizeof(  md5_context ) );
+    polarssl_zeroize( &sha1, sizeof( sha1_context ) );
 
-    memset(  padbuf, 0, sizeof(  padbuf ) );
-    memset(  md5sum, 0, sizeof(  md5sum ) );
-    memset( sha1sum, 0, sizeof( sha1sum ) );
+    polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
+    polarssl_zeroize(  md5sum, sizeof(  md5sum ) );
+    polarssl_zeroize( sha1sum, sizeof( sha1sum ) );
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -2710,10 +2715,10 @@ static void ssl_calc_finished_tls(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    memset(  &md5, 0, sizeof(  md5_context ) );
-    memset( &sha1, 0, sizeof( sha1_context ) );
+    polarssl_zeroize(  &md5, sizeof(  md5_context ) );
+    polarssl_zeroize( &sha1, sizeof( sha1_context ) );
 
-    memset(  padbuf, 0, sizeof(  padbuf ) );
+    polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -2756,9 +2761,8 @@ static void ssl_calc_finished_tls_sha256(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    memset( &sha2, 0, sizeof( sha2_context ) );
-
-    memset(  padbuf, 0, sizeof(  padbuf ) );
+    polarssl_zeroize( &sha2, sizeof( sha2_context ) );
+    polarssl_zeroize( padbuf, sizeof( padbuf ) );
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -2802,9 +2806,8 @@ static void ssl_calc_finished_tls_sha384(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    memset( &sha4, 0, sizeof( sha4_context ) );
-
-    memset(  padbuf, 0, sizeof(  padbuf ) );
+    polarssl_zeroize( &sha4, sizeof( sha4_context ) );
+    polarssl_zeroize( padbuf, sizeof( padbuf ) );
 
     SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -4019,7 +4022,7 @@ void ssl_transform_free( ssl_transform *transform )
     inflateEnd( &transform->ctx_inflate );
 #endif
 
-    memset( transform, 0, sizeof( ssl_transform ) );
+    polarssl_zeroize( transform, sizeof( ssl_transform ) );
 }
 
 void ssl_handshake_free( ssl_handshake_params *handshake )
@@ -4027,7 +4030,7 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 #if defined(POLARSSL_DHM_C)
     dhm_free( &handshake->dhm_ctx );
 #endif
-    memset( handshake, 0, sizeof( ssl_handshake_params ) );
+    polarssl_zeroize( handshake, sizeof( ssl_handshake_params ) );
 }
 
 void ssl_session_free( ssl_session *session )
@@ -4038,7 +4041,7 @@ void ssl_session_free( ssl_session *session )
         free( session->peer_cert );
     }
 
-    memset( session, 0, sizeof( ssl_session ) );
+    polarssl_zeroize( session, sizeof( ssl_session ) );
 }
 
 /*
@@ -4052,14 +4055,14 @@ void ssl_free( ssl_context *ssl )
 
     if( ssl->out_ctr != NULL )
     {
-        memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
-          free( ssl->out_ctr );
+        polarssl_zeroize( ssl->out_ctr, SSL_BUFFER_LEN );
+        free( ssl->out_ctr );
     }
 
     if( ssl->in_ctr != NULL )
     {
-        memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
-          free( ssl->in_ctr );
+        polarssl_zeroize( ssl->in_ctr, SSL_BUFFER_LEN );
+        free( ssl->in_ctr );
     }
 
 #if defined(POLARSSL_DHM_C)
@@ -4092,7 +4095,7 @@ void ssl_free( ssl_context *ssl )
 
     if ( ssl->hostname != NULL)
     {
-        memset( ssl->hostname, 0, ssl->hostname_len );
+        polarssl_zeroize( ssl->hostname, ssl->hostname_len );
         free( ssl->hostname );
         ssl->hostname_len = 0;
     }
@@ -4108,7 +4111,7 @@ void ssl_free( ssl_context *ssl )
     SSL_DEBUG_MSG( 2, ( "<= free" ) );
 
     /* Actually clear after last debug message */
-    memset( ssl, 0, sizeof( ssl_context ) );
+    polarssl_zeroize( ssl, sizeof( ssl_context ) );
 }
 
 #endif

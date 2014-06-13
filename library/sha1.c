@@ -38,6 +38,11 @@
 #include <stdio.h>
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 #if !defined(POLARSSL_SHA1_ALT)
 
 /*
@@ -324,7 +329,7 @@ void sha1( const unsigned char *input, size_t ilen, unsigned char output[20] )
     sha1_update( &ctx, input, ilen );
     sha1_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha1_context ) );
+    polarssl_zeroize( &ctx, sizeof( sha1_context ) );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -348,7 +353,7 @@ int sha1_file( const char *path, unsigned char output[20] )
 
     sha1_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha1_context ) );
+    polarssl_zeroize( &ctx, sizeof( sha1_context ) );
 
     if( ferror( f ) != 0 )
     {
@@ -388,7 +393,7 @@ void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key, size_t keyle
     sha1_starts( ctx );
     sha1_update( ctx, ctx->ipad, 64 );
 
-    memset( sum, 0, sizeof( sum ) );
+    polarssl_zeroize( sum, sizeof( sum ) );
 }
 
 /*
@@ -412,7 +417,7 @@ void sha1_hmac_finish( sha1_context *ctx, unsigned char output[20] )
     sha1_update( ctx, tmpbuf, 20 );
     sha1_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    polarssl_zeroize( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -437,7 +442,7 @@ void sha1_hmac( const unsigned char *key, size_t keylen,
     sha1_hmac_update( &ctx, input, ilen );
     sha1_hmac_finish( &ctx, output );
 
-    memset( &ctx, 0, sizeof( sha1_context ) );
+    polarssl_zeroize( &ctx, sizeof( sha1_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

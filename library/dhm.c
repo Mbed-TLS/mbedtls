@@ -34,6 +34,11 @@
 
 #include "polarssl/dhm.h"
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * helper to validate the mpi size and import it
  */
@@ -286,6 +291,8 @@ void dhm_free( dhm_context *ctx )
     mpi_free( &ctx->RP ); mpi_free( &ctx->K ); mpi_free( &ctx->GY );
     mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
     mpi_free( &ctx->P );
+
+    polarssl_zeroize( ctx, sizeof( dhm_context ) );
 }
 
 #if defined(POLARSSL_SELF_TEST)

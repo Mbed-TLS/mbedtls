@@ -37,6 +37,11 @@
 
 #if !defined(POLARSSL_CAMELLIA_ALT)
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -456,7 +461,7 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key, unsign
     *RK++ = *SK++;
     *RK++ = *SK++;
 
-    memset( &cty, 0, sizeof( camellia_context ) );
+    polarssl_zeroize( &cty, sizeof( camellia_context ) );
 
     return( 0 );
 }

@@ -40,6 +40,11 @@
 #define strcasecmp _stricmp
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 static const int supported_ciphers[] = {
 
 #if defined(POLARSSL_AES_C)
@@ -320,6 +325,7 @@ int cipher_free_ctx( cipher_context_t *ctx )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     ctx->cipher_info->base->ctx_free_func( ctx->cipher_ctx );
+    polarssl_zeroize( ctx, sizeof(cipher_context_t) );
 
     return 0;
 }

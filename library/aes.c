@@ -40,6 +40,11 @@
 
 #if !defined(POLARSSL_AES_ALT)
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * 32-bit integer manipulation macros (little endian)
  */
@@ -611,7 +616,7 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int key
     *RK++ = *SK++;
     *RK++ = *SK++;
 
-    memset( &cty, 0, sizeof( aes_context ) );
+    polarssl_zeroize( &cty, sizeof( aes_context ) );
 
     return( 0 );
 }

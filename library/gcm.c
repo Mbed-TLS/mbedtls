@@ -54,6 +54,11 @@
 }
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 static void gcm_gen_table( gcm_context *ctx )
 {
     int i, j;
@@ -322,7 +327,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
     if( memcmp( check_tag, tag, tag_len ) == 0 )
         return( 0 );
 
-    memset( output, 0, length );
+    polarssl_zeroize( output, length );
 
     return( POLARSSL_ERR_GCM_AUTH_FAILED );
 }

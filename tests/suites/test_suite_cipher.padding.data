@@ -1,6 +1,9 @@
 Cipher list
 cipher_list:
 
+Cipher null/uninitialised arguments
+cipher_null_args:
+
 Set padding with AES-CBC
 depends_on:POLARSSL_AES_C:POLARSSL_CIPHER_MODE_CBC:POLARSSL_CIPHER_PADDING_PKCS7
 set_padding:POLARSSL_CIPHER_AES_128_CBC:POLARSSL_PADDING_PKCS7:0

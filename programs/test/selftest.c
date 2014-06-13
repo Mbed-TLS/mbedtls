@@ -211,7 +211,8 @@ int main( int argc, char *argv[] )
 #endif
 #endif
 
-#if defined(POLARSSL_TIMING_C)
+/* Not stable enough on Windows and FreeBSD yet */
+#if __linux__ && defined(POLARSSL_TIMING_C)
     if( ( ret = timing_self_test( v ) ) != 0 )
         return( ret );
 #endif

@@ -37,6 +37,63 @@ void md_process( )
 /* END_CASE */
 
 /* BEGIN_CASE */
+void md_null_args( )
+{
+    md_context_t ctx;
+    const md_info_t *info = md_info_from_type( *( md_list() ) );
+    unsigned char buf[1] = { 0 };
+
+    memset( &ctx, 0, sizeof( md_context_t ) );
+
+    TEST_ASSERT( md_get_size( NULL ) == 0 );
+
+    TEST_ASSERT( md_get_type( NULL ) == POLARSSL_MD_NONE );
+
+    TEST_ASSERT( md_info_from_string( NULL ) == NULL );
+
+    TEST_ASSERT( md_init_ctx( &ctx, NULL ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_init_ctx( NULL, info ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_starts( NULL ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_starts( &ctx ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_update( NULL, buf, 1 ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_update( &ctx, buf, 1 ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_finish( NULL, buf ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_finish( &ctx, buf ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md( NULL, buf, 1, buf ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_file( NULL, "", buf ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_hmac_starts( NULL, buf, 1 )
+                 == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_hmac_starts( &ctx, buf, 1 )
+                 == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_hmac_update( NULL, buf, 1 )
+                 == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_hmac_update( &ctx, buf, 1 )
+                 == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_hmac_finish( NULL, buf )
+                 == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_hmac_finish( &ctx, buf )
+                 == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_hmac_reset( NULL ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_hmac_reset( &ctx ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_hmac( NULL, buf, 1, buf, 1, buf )
+                 == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+
+    TEST_ASSERT( md_process( NULL, buf ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+    TEST_ASSERT( md_process( &ctx, buf ) == POLARSSL_ERR_MD_BAD_INPUT_DATA );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void md_info( int md_type, char *md_name, int md_size )
 {
     const md_info_t *md_info;

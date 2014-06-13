@@ -865,36 +865,6 @@ static int des3_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
-static int des_crypt_cfb128_wrap( void *ctx, operation_t operation,
-        size_t length, size_t *iv_off, unsigned char *iv,
-        const unsigned char *input, unsigned char *output )
-{
-    ((void) ctx);
-    ((void) operation);
-    ((void) length);
-    ((void) iv_off);
-    ((void) iv);
-    ((void) input);
-    ((void) output);
-
-    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
-}
-
-static int des_crypt_ctr_wrap( void *ctx, size_t length, size_t *nc_off,
-        unsigned char *nonce_counter, unsigned char *stream_block,
-        const unsigned char *input, unsigned char *output )
-{
-    ((void) ctx);
-    ((void) length);
-    ((void) nc_off);
-    ((void) nonce_counter);
-    ((void) stream_block);
-    ((void) input);
-    ((void) output);
-
-    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
-}
-
 static int des_setkey_dec_wrap( void *ctx, const unsigned char *key,
                                 unsigned int key_length )
 {
@@ -969,8 +939,8 @@ const cipher_base_t des_info = {
     POLARSSL_CIPHER_ID_DES,
     des_crypt_ecb_wrap,
     des_crypt_cbc_wrap,
-    des_crypt_cfb128_wrap,
-    des_crypt_ctr_wrap,
+    NULL,
+    NULL,
     NULL,
     des_setkey_enc_wrap,
     des_setkey_dec_wrap,
@@ -1006,8 +976,8 @@ const cipher_base_t des_ede_info = {
     POLARSSL_CIPHER_ID_DES,
     des3_crypt_ecb_wrap,
     des3_crypt_cbc_wrap,
-    des_crypt_cfb128_wrap,
-    des_crypt_ctr_wrap,
+    NULL,
+    NULL,
     NULL,
     des3_set2key_enc_wrap,
     des3_set2key_dec_wrap,
@@ -1043,8 +1013,8 @@ const cipher_base_t des_ede3_info = {
     POLARSSL_CIPHER_ID_DES,
     des3_crypt_ecb_wrap,
     des3_crypt_cbc_wrap,
-    des_crypt_cfb128_wrap,
-    des_crypt_ctr_wrap,
+    NULL,
+    NULL,
     NULL,
     des3_set3key_enc_wrap,
     des3_set3key_dec_wrap,

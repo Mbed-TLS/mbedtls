@@ -116,8 +116,8 @@ int x509_csr_parse_file( x509_csr *csr, const char *path );
  * \param prefix   A line prefix
  * \param csr      The X509 CSR to represent
  *
- * \return         The amount of data written to the buffer, or -1 in
- *                 case of an error.
+ * \return         The length of the string written (exluding the terminating
+ *                 null byte), or a negative value in case of an error.
  */
 int x509_csr_info( char *buf, size_t size, const char *prefix,
                    const x509_csr *csr );

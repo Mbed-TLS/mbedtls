@@ -85,7 +85,19 @@ x509write_csr;
 
 #if defined(POLARSSL_X509_CSR_PARSE_C)
 /**
- * \brief          Load a Certificate Signing Request (CSR)
+ * \brief          Load a Certificate Signing Request (CSR) in DER format
+ *
+ * \param csr      CSR context to fill
+ * \param buf      buffer holding the CRL data
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 error code
+ */
+int x509_csr_parse_der( x509_csr *csr,
+                        const unsigned char *buf, size_t buflen );
+
+/**
+ * \brief          Load a Certificate Signing Request (CSR), DER or PEM format
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data

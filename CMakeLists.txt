@@ -96,9 +96,11 @@ if(ENABLE_TESTING)
     COMMAND rm -rf Coverage
     COMMAND lcov --capture --initial --directory library/CMakeFiles/polarssl.dir -o files.info
     COMMAND lcov --capture --directory library/CMakeFiles/polarssl.dir -o tests.info
+    COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
+    COMMAND lcov --remove all.info -o final.info '*.h'
     COMMAND gendesc tests/Descriptions.txt -o descriptions
-    COMMAND genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage files.info tests.info
-    COMMAND rm -f files.info tests.info descriptions
+    COMMAND genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+    COMMAND rm -f files.info tests.info all.info final.info descriptions
     )
 
   ADD_CUSTOM_TARGET(memcheck

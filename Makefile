@@ -68,9 +68,11 @@ lcov:
 	rm -rf Coverage
 	lcov --capture --initial --directory library -o files.info
 	lcov --capture --directory library -o tests.info
+	lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
+	lcov --remove all.info -o final.info '*.h'
 	gendesc tests/Descriptions.txt -o descriptions
-	genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage files.info tests.info
-	rm -f files.info tests.info descriptions
+	genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+	rm -f files.info tests.info all.info final.info descriptions
 
 apidoc:
 	mkdir -p apidoc

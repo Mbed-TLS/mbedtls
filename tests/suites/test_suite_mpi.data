@@ -656,6 +656,22 @@ Test mpi_is_prime #20
 depends_on:POLARSSL_GENPRIME
 mpi_is_prime:10:"49979687":0
 
+Test mpi_gen_prime (Too small)
+depends_on:POLARSSL_GENPRIME
+mpi_gen_prime:2:0:POLARSSL_ERR_MPI_BAD_INPUT_DATA
+
+Test mpi_gen_prime (OK, minimum size)
+depends_on:POLARSSL_GENPRIME
+mpi_gen_prime:3:0:0
+
+Test mpi_gen_prime (Larger)
+depends_on:POLARSSL_GENPRIME
+mpi_gen_prime:128:0:0
+
+Test mpi_gen_prime (Safe)
+depends_on:POLARSSL_GENPRIME
+mpi_gen_prime:128:1:0
+
 Test bit getting (Value bit 25)
 mpi_get_bit:10:"49979687":25:1
 

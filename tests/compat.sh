@@ -965,7 +965,7 @@ MAIN_PID="$$"
 
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"
-PORT="1$(echo $PORT | tail -c 4)"
+PORT="1$(echo $PORT | tail -c 5)"
 
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"

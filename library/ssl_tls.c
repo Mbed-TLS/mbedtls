@@ -1327,10 +1327,18 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         unsigned char add_data[13];
         unsigned char taglen = ssl->transform_in->ciphersuite_info->flags &
                                POLARSSL_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+        unsigned char explicit_iv_len =  ssl->transform_in->ivlen -
+                                         ssl->transform_in->fixed_ivlen;
 
-        dec_msglen = ssl->in_msglen - ( ssl->transform_in->ivlen -
-                                        ssl->transform_in->fixed_ivlen );
-        dec_msglen -= taglen;
+        if( ssl->in_msglen < explicit_iv_len + taglen )
+        {
+            SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
+                                "+ taglen (%d)", ssl->in_msglen,
+                                explicit_iv_len, taglen ) );
+            return( POLARSSL_ERR_SSL_INVALID_MAC );
+        }
+        dec_msglen = ssl->in_msglen - explicit_iv_len - taglen;
+
         dec_msg = ssl->in_msg;
         dec_msg_result = ssl->in_msg;
         ssl->in_msglen = dec_msglen;

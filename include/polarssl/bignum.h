@@ -167,8 +167,8 @@ typedef uint32_t t_udbl;
            #define POLARSSL_HAVE_UDBL
          #endif
        #endif
-    #endif
-  #endif
+    #endif /* !POLARSSL_HAVE_INT32 && __GNUC__ && 64-bit platform */
+  #endif /* !POLARSSL_HAVE_INT32 && _MSC_VER && _M_AMD64 */
 #endif /* POLARSSL_HAVE_INT16 */
 #endif /* POLARSSL_HAVE_INT8  */
 

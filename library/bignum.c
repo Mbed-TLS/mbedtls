@@ -1301,7 +1301,7 @@ int mpi_div_mpi( mpi *Q, mpi *R, const mpi *A, const mpi *B )
             r0 -= m;
 
             Z.p[i - t - 1] = ( q1 << biH ) | q0;
-#endif
+#endif /* POLARSSL_HAVE_UDBL && !64-bit Apple with Clang 5.0 */
         }
 
         Z.p[i - t - 1]++;

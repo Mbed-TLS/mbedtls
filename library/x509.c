@@ -592,7 +592,7 @@ int x509_get_sig_alg( const x509_buf *sig_oid, const x509_buf *sig_params,
         *sig_opts = (void *) pss_opts;
     }
     else
-#endif
+#endif /* POLARSSL_X509_RSASSA_PSS_SUPPORT */
     {
         /* Make sure parameters are absent or NULL */
         if( ( sig_params->tag != ASN1_NULL && sig_params->tag != 0 ) ||

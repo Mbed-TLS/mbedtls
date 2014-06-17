@@ -62,7 +62,7 @@
 
 static int wsa_init_done = 0;
 
-#else
+#else /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -91,7 +91,7 @@ static int wsa_init_done = 0;
 #include <endian.h>
 #endif
 
-#endif
+#endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -409,7 +409,7 @@ static int net_would_block( int fd )
     }
     return( 0 );
 }
-#endif
+#endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 /*
  * Accept a connection from a remote client

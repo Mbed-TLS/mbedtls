@@ -208,7 +208,7 @@ ecp_keypair;
  *      192       640     640     633     587     476
  */
 #define POLARSSL_ECP_WINDOW_SIZE    6   /**< Maximum window size used */
-#endif
+#endif /* POLARSSL_ECP_WINDOW_SIZE */
 
 #if !defined(POLARSSL_ECP_FIXED_POINT_OPTIM)
 /*
@@ -223,7 +223,7 @@ ecp_keypair;
  * Change this value to 0 to reduce peak memory usage.
  */
 #define POLARSSL_ECP_FIXED_POINT_OPTIM  1   /**< Enable fixed-point speed-up */
-#endif
+#endif /* POLARSSL_ECP_FIXED_POINT_OPTIM */
 
 /* \} name SECTION: Module settings */
 

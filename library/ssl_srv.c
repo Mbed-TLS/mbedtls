@@ -2340,7 +2340,7 @@ curve_matching_done:
             }
         }
         else
-#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
         if ( ciphersuite_info->key_exchange ==

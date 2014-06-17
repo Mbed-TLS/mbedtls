@@ -483,7 +483,7 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
 
     tag = **p;
 
-    if ( tag == ASN1_UTC_TIME )
+    if( tag == ASN1_UTC_TIME )
     {
         (*p)++;
         ret = asn1_get_len( p, end, &len );
@@ -507,7 +507,7 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
 
         return( 0 );
     }
-    else if ( tag == ASN1_GENERALIZED_TIME )
+    else if( tag == ASN1_GENERALIZED_TIME )
     {
         (*p)++;
         ret = asn1_get_len( p, end, &len );
@@ -703,7 +703,7 @@ int x509_load_file( const char *path, unsigned char **buf, size_t *n )
  * This fuction tries to 'fix' this by at least suggesting enlarging the
  * size by 20.
  */
-static int compat_snprintf(char *str, size_t size, const char *format, ...)
+static int compat_snprintf( char *str, size_t size, const char *format, ... )
 {
     va_list ap;
     int res = -1;
@@ -715,7 +715,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     va_end( ap );
 
     // No quick fix possible
-    if ( res < 0 )
+    if( res < 0 )
         return( (int) size + 20 );
 
     return( res );
@@ -731,7 +731,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     if( ret == -1 )                                 \
         return( -1 );                               \
                                                     \
-    if ( (unsigned int) ret > n ) {                 \
+    if( (unsigned int) ret > n ) {                  \
         p[n - 1] = '\0';                            \
         return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL ); \
     }                                               \
@@ -930,7 +930,7 @@ static void x509_get_current_time( x509_time *now )
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     SYSTEMTIME st;
 
-    GetSystemTime(&st);
+    GetSystemTime( &st );
 
     now->year = st.wYear;
     now->mon = st.wMonth;
@@ -1080,7 +1080,7 @@ int x509_self_test( int verbose )
         if( verbose != 0 )
             polarssl_printf( "failed\n" );
 
-        polarssl_printf("ret = %d, &flags = %04x\n", ret, flags);
+        polarssl_printf( "ret = %d, &flags = %04x\n", ret, flags );
 
         return( ret );
     }

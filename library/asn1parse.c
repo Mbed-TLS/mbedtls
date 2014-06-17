@@ -194,7 +194,7 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
         return( ret );
 
     /* Check length, subtract one for actual bit string length */
-    if ( bs->len < 1 )
+    if( bs->len < 1 )
         return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
     bs->len -= 1;
 
@@ -265,7 +265,7 @@ int asn1_get_sequence_of( unsigned char **p,
         *p += buf->len;
 
         /* Allocate and assign next pointer */
-        if (*p < end)
+        if( *p < end )
         {
             cur->next = (asn1_sequence *) polarssl_malloc(
                  sizeof( asn1_sequence ) );

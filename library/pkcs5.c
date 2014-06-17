@@ -168,7 +168,7 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
     }
 
-    if ( oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )
+    if( oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
     cipher_info = cipher_info_from_type( cipher_alg );
@@ -188,8 +188,8 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
         goto exit;
 
-    if ( ( ret = pkcs5_pbkdf2_hmac( &md_ctx, pwd, pwdlen, salt.p, salt.len,
-                                    iterations, keylen, key ) ) != 0 )
+    if( ( ret = pkcs5_pbkdf2_hmac( &md_ctx, pwd, pwdlen, salt.p, salt.len,
+                                   iterations, keylen, key ) ) != 0 )
     {
         goto exit;
     }
@@ -260,7 +260,7 @@ int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
 
         memcpy( md1, work, md_size );
 
-        for ( i = 1; i < iteration_count; i++ )
+        for( i = 1; i < iteration_count; i++ )
         {
             // U2 ends up in md1
             //

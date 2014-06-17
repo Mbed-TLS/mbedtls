@@ -332,7 +332,7 @@ int des_key_check_key_parity( const unsigned char key[DES_KEY_SIZE] )
     int i;
 
     for( i = 0; i < DES_KEY_SIZE; i++ )
-        if ( key[i] != odd_parity_table[key[i] / 2] )
+        if( key[i] != odd_parity_table[key[i] / 2] )
             return( 1 );
 
     return( 0 );
@@ -387,7 +387,7 @@ int des_key_check_weak( const unsigned char key[DES_KEY_SIZE] )
     int i;
 
     for( i = 0; i < WEAK_KEY_COUNT; i++ )
-        if( memcmp( weak_key_table[i], key, DES_KEY_SIZE) == 0)
+        if( memcmp( weak_key_table[i], key, DES_KEY_SIZE) == 0 )
             return( 1 );
 
     return( 0 );

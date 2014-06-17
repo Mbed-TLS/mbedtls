@@ -71,7 +71,7 @@ void xtea_setup( xtea_context *ctx, const unsigned char key[16] )
 {
     int i;
 
-    memset(ctx, 0, sizeof(xtea_context));
+    memset( ctx, 0, sizeof(xtea_context) );
 
     for( i = 0; i < 4; i++ )
     {
@@ -142,7 +142,7 @@ int xtea_crypt_cbc( xtea_context *ctx, int mode, size_t length,
             memcpy( temp, input, 8 );
             xtea_crypt_ecb( ctx, mode, input, output );
 
-            for(i = 0; i < 8; i++)
+            for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
 
             memcpy( iv, temp, 8 );

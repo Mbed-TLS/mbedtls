@@ -211,7 +211,7 @@ static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
      */
     state = p + 2;
     if( ssl_save_session( ssl->session_negotiate, state,
-                          SSL_MAX_CONTENT_LEN - (state - ssl->out_ctr) - 48,
+                          SSL_MAX_CONTENT_LEN - ( state - ssl->out_ctr ) - 48,
                           &clear_len ) != 0 )
     {
         return( POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE );
@@ -2343,7 +2343,7 @@ curve_matching_done:
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
-        if ( ciphersuite_info->key_exchange ==
+        if( ciphersuite_info->key_exchange ==
                   POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
         {
             md_alg = POLARSSL_MD_SHA1;
@@ -2397,6 +2397,7 @@ curve_matching_done:
         if( md_alg != POLARSSL_MD_NONE )
         {
             md_context_t ctx;
+            const md_info_t *md_info = md_info_from_type( md_alg );
 
             /* Info from md_alg will be used instead */
             hashlen = 0;
@@ -2408,7 +2409,7 @@ curve_matching_done:
              *     ServerDHParams params;
              * };
              */
-            if( ( ret = md_init_ctx( &ctx, md_info_from_type(md_alg) ) ) != 0 )
+            if( ( ret = md_init_ctx( &ctx, md_info ) ) != 0 )
             {
                 SSL_DEBUG_RET( 1, "md_init_ctx", ret );
                 return( ret );

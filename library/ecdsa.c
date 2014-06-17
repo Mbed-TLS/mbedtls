@@ -80,7 +80,7 @@ static int derive_mpi( const ecp_group *grp, mpi *x,
                        const unsigned char *buf, size_t blen )
 {
     int ret;
-    size_t n_size = (grp->nbits + 7) / 8;
+    size_t n_size = ( grp->nbits + 7 ) / 8;
     size_t use_size = blen > n_size ? n_size : blen;
 
     MPI_CHK( mpi_read_binary( x, buf, use_size ) );
@@ -147,7 +147,7 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
         blind_tries = 0;
         do
         {
-            size_t n_size = (grp->nbits + 7) / 8;
+            size_t n_size = ( grp->nbits + 7 ) / 8;
             MPI_CHK( mpi_fill_random( &t, n_size, f_rng, p_rng ) );
             MPI_CHK( mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
 

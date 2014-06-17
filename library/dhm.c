@@ -535,7 +535,7 @@ int dhm_parse_dhmfile( dhm_context *dhm, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = dhm_parse_dhm( dhm, buf, n );

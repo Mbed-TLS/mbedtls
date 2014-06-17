@@ -120,7 +120,7 @@ int pk_parse_keyfile( pk_context *ctx,
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     if( pwd == NULL )
@@ -144,7 +144,7 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = pk_parse_public_key( ctx, buf, n );
@@ -810,7 +810,7 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
                 return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
         }
     }
-    else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
     {
         ecp_keypair_free( eck );
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );

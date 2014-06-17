@@ -295,7 +295,7 @@ int x509_csr_parse_file( x509_csr *csr, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = x509_csr_parse( csr, buf, n );
@@ -322,7 +322,7 @@ int x509_csr_parse_file( x509_csr *csr, const char *path )
  * This fuction tries to 'fix' this by at least suggesting enlarging the
  * size by 20.
  */
-static int compat_snprintf(char *str, size_t size, const char *format, ...)
+static int compat_snprintf( char *str, size_t size, const char *format, ... )
 {
     va_list ap;
     int res = -1;
@@ -334,7 +334,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     va_end( ap );
 
     // No quick fix possible
-    if ( res < 0 )
+    if( res < 0 )
         return( (int) size + 20 );
 
     return( res );
@@ -350,7 +350,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     if( ret == -1 )                                 \
         return( -1 );                               \
                                                     \
-    if ( (unsigned int) ret > n ) {                 \
+    if( (unsigned int) ret > n ) {                  \
         p[n - 1] = '\0';                            \
         return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL ); \
     }                                               \

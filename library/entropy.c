@@ -196,7 +196,7 @@ static int entropy_gather_internal( entropy_context *ctx )
     for( i = 0; i < ctx->source_count; i++ )
     {
         olen = 0;
-        if ( ( ret = ctx->source[i].f_source( ctx->source[i].p_source,
+        if( ( ret = ctx->source[i].f_source( ctx->source[i].p_source,
                         buf, ENTROPY_MAX_GATHER, &olen ) ) != 0 )
         {
             return( ret );

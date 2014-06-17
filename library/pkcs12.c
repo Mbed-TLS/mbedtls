@@ -93,14 +93,14 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
     size_t i;
     unsigned char unipwd[258];
 
-    memset(&salt, 0, sizeof(asn1_buf));
-    memset(&unipwd, 0, sizeof(unipwd));
+    memset( &salt, 0, sizeof(asn1_buf) );
+    memset( &unipwd, 0, sizeof(unipwd) );
 
     if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt,
                                          &iterations ) ) != 0 )
         return( ret );
 
-    for(i = 0; i < pwdlen; i++)
+    for( i = 0; i < pwdlen; i++ )
         unipwd[i * 2 + 1] = pwd[i];
 
     if( ( ret = pkcs12_derivation( key, keylen, unipwd, pwdlen * 2 + 2,
@@ -252,7 +252,7 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
     if( md_info == NULL )
         return( POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE );
 
-    if ( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
+    if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
         return( ret );
     hlen = md_get_size( md_info );
 

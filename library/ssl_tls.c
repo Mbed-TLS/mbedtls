@@ -126,18 +126,18 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 }
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-int (*ssl_hw_record_init)(ssl_context *ssl,
+int (*ssl_hw_record_init)( ssl_context *ssl,
                      const unsigned char *key_enc, const unsigned char *key_dec,
                      size_t keylen,
                      const unsigned char *iv_enc,  const unsigned char *iv_dec,
                      size_t ivlen,
                      const unsigned char *mac_enc, const unsigned char *mac_dec,
-                     size_t maclen) = NULL;
-int (*ssl_hw_record_activate)(ssl_context *ssl, int direction) = NULL;
-int (*ssl_hw_record_reset)(ssl_context *ssl) = NULL;
-int (*ssl_hw_record_write)(ssl_context *ssl) = NULL;
-int (*ssl_hw_record_read)(ssl_context *ssl) = NULL;
-int (*ssl_hw_record_finish)(ssl_context *ssl) = NULL;
+                     size_t maclen ) = NULL;
+int (*ssl_hw_record_activate)( ssl_context *ssl, int direction) = NULL;
+int (*ssl_hw_record_reset)( ssl_context *ssl ) = NULL;
+int (*ssl_hw_record_write)( ssl_context *ssl ) = NULL;
+int (*ssl_hw_record_read)( ssl_context *ssl ) = NULL;
+int (*ssl_hw_record_finish)( ssl_context *ssl ) = NULL;
 #endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
 
 /*
@@ -339,34 +339,34 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 #endif /* POLARSSL_SHA512_C */
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
-static void ssl_update_checksum_start(ssl_context *, const unsigned char *, size_t);
+static void ssl_update_checksum_start( ssl_context *, const unsigned char *, size_t );
 
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
-static void ssl_update_checksum_md5sha1(ssl_context *, const unsigned char *, size_t);
+static void ssl_update_checksum_md5sha1( ssl_context *, const unsigned char *, size_t );
 #endif
 
 #if defined(POLARSSL_SSL_PROTO_SSL3)
-static void ssl_calc_verify_ssl(ssl_context *,unsigned char *);
-static void ssl_calc_finished_ssl(ssl_context *,unsigned char *,int);
+static void ssl_calc_verify_ssl( ssl_context *, unsigned char * );
+static void ssl_calc_finished_ssl( ssl_context *, unsigned char *, int );
 #endif
 
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1)
-static void ssl_calc_verify_tls(ssl_context *,unsigned char *);
-static void ssl_calc_finished_tls(ssl_context *,unsigned char *,int);
+static void ssl_calc_verify_tls( ssl_context *, unsigned char * );
+static void ssl_calc_finished_tls( ssl_context *, unsigned char *, int );
 #endif
 
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
 #if defined(POLARSSL_SHA256_C)
-static void ssl_update_checksum_sha256(ssl_context *, const unsigned char *, size_t);
-static void ssl_calc_verify_tls_sha256(ssl_context *,unsigned char *);
-static void ssl_calc_finished_tls_sha256(ssl_context *,unsigned char *,int);
+static void ssl_update_checksum_sha256( ssl_context *, const unsigned char *, size_t );
+static void ssl_calc_verify_tls_sha256( ssl_context *,unsigned char * );
+static void ssl_calc_finished_tls_sha256( ssl_context *,unsigned char *, int );
 #endif
 
 #if defined(POLARSSL_SHA512_C)
-static void ssl_update_checksum_sha384(ssl_context *, const unsigned char *, size_t);
-static void ssl_calc_verify_tls_sha384(ssl_context *,unsigned char *);
-static void ssl_calc_finished_tls_sha384(ssl_context *,unsigned char *,int);
+static void ssl_update_checksum_sha384( ssl_context *, const unsigned char *, size_t );
+static void ssl_calc_verify_tls_sha384( ssl_context *, unsigned char * );
+static void ssl_calc_finished_tls_sha384( ssl_context *, unsigned char *, int );
 #endif
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
@@ -637,7 +637,7 @@ int ssl_derive_keys( ssl_context *ssl )
     }
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_init != NULL)
+    if( ssl_hw_record_init != NULL )
     {
         int ret = 0;
 
@@ -911,7 +911,7 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
         size_t zlen;
 
         if( ( ret = ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
-                                       p + 2, end - (p + 2),
+                                       p + 2, end - ( p + 2 ),
                                        ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecdh_calc_secret", ret );
@@ -1529,7 +1529,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             correct &= ( pad_count == padlen ); /* Only 1 on correct padding */
 
 #if defined(POLARSSL_SSL_DEBUG_ALL)
-            if( padlen > 0 && correct == 0)
+            if( padlen > 0 && correct == 0 )
                 SSL_DEBUG_MSG( 1, ( "bad padding byte detected" ) );
 #endif
             padlen &= correct * 0x1FF;
@@ -1879,7 +1879,7 @@ int ssl_write_record( ssl_context *ssl )
 #endif /*POLARSSL_ZLIB_SUPPORT */
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_write != NULL)
+    if( ssl_hw_record_write != NULL )
     {
         SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_write()" ) );
 
@@ -2077,7 +2077,7 @@ int ssl_read_record( ssl_context *ssl )
                    ssl->in_hdr, 5 + ssl->in_msglen );
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_read != NULL)
+    if( ssl_hw_record_read != NULL )
     {
         SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_read()" ) );
 
@@ -3118,7 +3118,7 @@ int ssl_write_finished( ssl_context *ssl )
     memset( ssl->out_ctr, 0, 8 );
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_activate != NULL)
+    if( ssl_hw_record_activate != NULL )
     {
         if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_OUTBOUND ) ) != 0 )
         {
@@ -3170,7 +3170,7 @@ int ssl_parse_finished( ssl_context *ssl )
         ssl->in_msg = ssl->in_iv;
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_activate != NULL)
+    if( ssl_hw_record_activate != NULL )
     {
         if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_INBOUND ) ) != 0 )
         {
@@ -3412,7 +3412,7 @@ int ssl_session_reset( ssl_context *ssl )
     memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_reset != NULL)
+    if( ssl_hw_record_reset != NULL )
     {
         SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_reset()" ) );
         if( ( ret = ssl_hw_record_reset( ssl ) ) != 0 )
@@ -3777,13 +3777,13 @@ int ssl_set_dh_param_ctx( ssl_context *ssl, dhm_context *dhm_ctx )
 {
     int ret;
 
-    if( ( ret = mpi_copy(&ssl->dhm_P, &dhm_ctx->P) ) != 0 )
+    if( ( ret = mpi_copy( &ssl->dhm_P, &dhm_ctx->P ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "mpi_copy", ret );
         return( ret );
     }
 
-    if( ( ret = mpi_copy(&ssl->dhm_G, &dhm_ctx->G) ) != 0 )
+    if( ( ret = mpi_copy( &ssl->dhm_G, &dhm_ctx->G ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "mpi_copy", ret );
         return( ret );
@@ -4544,7 +4544,7 @@ void ssl_free( ssl_context *ssl )
 #endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-    if ( ssl->hostname != NULL )
+    if( ssl->hostname != NULL )
     {
         polarssl_zeroize( ssl->hostname, ssl->hostname_len );
         polarssl_free( ssl->hostname );

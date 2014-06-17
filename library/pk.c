@@ -1,7 +1,7 @@
 /*
  *  Public Key abstraction layer
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -66,7 +66,7 @@ void pk_init( pk_context *ctx )
  */
 void pk_free( pk_context *ctx )
 {
-    if( ctx == NULL || ctx->pk_info == NULL)
+    if( ctx == NULL || ctx->pk_info == NULL )
         return;
 
     ctx->pk_info->ctx_free_func( ctx->pk_ctx );

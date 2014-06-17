@@ -603,7 +603,7 @@ int rsa_rsaes_pkcs1_v15_encrypt( rsa_context *ctx,
 
             // Check if RNG failed to generate data
             //
-            if( rng_dl == 0 || ret != 0)
+            if( rng_dl == 0 || ret != 0 )
                 return( POLARSSL_ERR_RSA_RNG_FAILED + ret );
 
             p++;
@@ -759,7 +759,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     if( bad != 0 )
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
-    if (ilen - (p - buf) > output_max_len)
+    if( ilen - ( p - buf ) > output_max_len )
         return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
 
     *olen = ilen - (p - buf);
@@ -844,7 +844,7 @@ int rsa_rsaes_pkcs1_v15_decrypt( rsa_context *ctx,
     if( bad )
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
 
-    if (ilen - (p - buf) > output_max_len)
+    if( ilen - ( p - buf ) > output_max_len )
         return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
 
     *olen = ilen - (p - buf);

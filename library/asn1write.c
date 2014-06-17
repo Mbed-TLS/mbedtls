@@ -118,7 +118,7 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
     // DER format assumes 2s complement for numbers, so the leftmost bit
     // should be 0 for positive numbers and 1 for negative numbers.
     //
-    if ( X->s ==1 && **p & 0x80 )
+    if( X->s ==1 && **p & 0x80 )
     {
         if( *p - start < 1 )
             return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
@@ -217,7 +217,7 @@ int asn1_write_int( unsigned char **p, unsigned char *start, int val )
     len += 1;
     *--(*p) = val;
 
-    if ( val > 0 && **p & 0x80 )
+    if( val > 0 && **p & 0x80 )
     {
         if( *p - start < 1 )
             return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );

@@ -130,8 +130,8 @@ typedef UINT32 uint32_t;
                            (((unsigned long )(n) & 0xFF000000) >> 24))
 #endif
 
-unsigned short net_htons(unsigned short n);
-unsigned long  net_htonl(unsigned long  n);
+unsigned short net_htons( unsigned short n );
+unsigned long  net_htonl( unsigned long  n );
 #define net_htons(n) POLARSSL_HTONS(n)
 #define net_htonl(n) POLARSSL_HTONL(n)
 

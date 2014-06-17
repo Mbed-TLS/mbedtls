@@ -134,7 +134,7 @@ static int gcm_gen_table( gcm_context *ctx )
         ctx->HH[i] = vh;
     }
 
-    for (i = 2; i < 16; i <<= 1 )
+    for( i = 2; i < 16; i <<= 1 )
     {
         uint64_t *HiL = ctx->HL + i, *HiH = ctx->HH + i;
         vh = *HiH;

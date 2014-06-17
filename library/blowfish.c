@@ -75,7 +75,7 @@ static const uint32_t P[BLOWFISH_ROUNDS + 2] = {
 /* declarations of data at the end of this file */
 static const uint32_t S[4][256];
 
-static uint32_t F(blowfish_context *ctx, uint32_t x)
+static uint32_t F( blowfish_context *ctx, uint32_t x )
 {
    unsigned short a, b, c, d;
    uint32_t  y;
@@ -94,7 +94,7 @@ static uint32_t F(blowfish_context *ctx, uint32_t x)
    return( y );
 }
 
-static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
+static void blowfish_enc( blowfish_context *ctx, uint32_t *xl, uint32_t *xr )
 {
     uint32_t  Xl, Xr, temp;
     short i;
@@ -102,10 +102,10 @@ static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     Xl = *xl;
     Xr = *xr;
 
-    for (i = 0; i < BLOWFISH_ROUNDS; ++i)
+    for( i = 0; i < BLOWFISH_ROUNDS; ++i )
     {
         Xl = Xl ^ ctx->P[i];
-        Xr = F(ctx, Xl) ^ Xr;
+        Xr = F( ctx, Xl ) ^ Xr;
 
         temp = Xl;
         Xl = Xr;
@@ -123,7 +123,7 @@ static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     *xr = Xr;
 }
 
-static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
+static void blowfish_dec( blowfish_context *ctx, uint32_t *xl, uint32_t *xr )
 {
     uint32_t  Xl, Xr, temp;
     short i;
@@ -131,10 +131,10 @@ static void blowfish_dec(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
     Xl = *xl;
     Xr = *xr;
 
-    for (i = BLOWFISH_ROUNDS + 1; i > 1; --i)
+    for( i = BLOWFISH_ROUNDS + 1; i > 1; --i )
     {
         Xl = Xl ^ ctx->P[i];
-        Xr = F(ctx, Xl) ^ Xr;
+        Xr = F( ctx, Xl ) ^ Xr;
 
         temp = Xl;
         Xl = Xr;
@@ -225,11 +225,11 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
 
     if( mode == BLOWFISH_DECRYPT )
     {
-        blowfish_dec(ctx, &X0, &X1);
+        blowfish_dec( ctx, &X0, &X1 );
     }
     else /* BLOWFISH_ENCRYPT */
     {
-        blowfish_enc(ctx, &X0, &X1);
+        blowfish_enc( ctx, &X0, &X1 );
     }
 
     PUT_UINT32_BE( X0, output,  0 );
@@ -318,7 +318,7 @@ int blowfish_crypt_cfb64( blowfish_context *ctx,
             *output++ = (unsigned char)( c ^ iv[n] );
             iv[n] = (unsigned char) c;
 
-            n = (n + 1) % BLOWFISH_BLOCKSIZE;
+            n = ( n + 1 ) % BLOWFISH_BLOCKSIZE;
         }
     }
     else
@@ -330,7 +330,7 @@ int blowfish_crypt_cfb64( blowfish_context *ctx,
 
             iv[n] = *output++ = (unsigned char)( iv[n] ^ *input++ );
 
-            n = (n + 1) % BLOWFISH_BLOCKSIZE;
+            n = ( n + 1 ) % BLOWFISH_BLOCKSIZE;
         }
     }
 
@@ -368,7 +368,7 @@ int blowfish_crypt_ctr( blowfish_context *ctx,
         c = *input++;
         *output++ = (unsigned char)( c ^ stream_block[n] );
 
-        n = (n + 1) % BLOWFISH_BLOCKSIZE;
+        n = ( n + 1 ) % BLOWFISH_BLOCKSIZE;
     }
 
     *nc_off = n;

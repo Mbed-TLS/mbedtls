@@ -1,7 +1,7 @@
 /*
  *  Debugging routines
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -229,7 +229,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
 
         for( k = sizeof( t_uint ) - 1; k >= 0; k-- )
         {
-            if( zeros && ( ( X->p[i - 1] >> (k << 3) ) & 0xFF ) == 0 )
+            if( zeros && ( ( X->p[i - 1] >> ( k << 3 ) ) & 0xFF ) == 0 )
                 continue;
             else
                 zeros = 0;
@@ -248,7 +248,7 @@ void debug_print_mpi( const ssl_context *ssl, int level,
             }
 
             idx += snprintf( str + idx, maxlen - idx, " %02x", (unsigned int)
-                             ( X->p[i - 1] >> (k << 3) ) & 0xFF );
+                             ( X->p[i - 1] >> ( k << 3 ) ) & 0xFF );
 
             j++;
         }

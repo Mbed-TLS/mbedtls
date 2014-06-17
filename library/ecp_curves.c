@@ -1288,12 +1288,12 @@ static inline int ecp_mod_koblitz( mpi *N, t_uint *Rp, size_t p_limbs,
         M.n = p_limbs + adjust;
     memset( Mp, 0, sizeof Mp );
     memcpy( Mp, N->p + p_limbs - adjust, M.n * sizeof( t_uint ) );
-    if (shift != 0 )
+    if( shift != 0 )
         MPI_CHK( mpi_shift_r( &M, shift ) );
     M.n += R.n - adjust; /* Make room for multiplication by R */
 
     /* N = A0 */
-    if (mask != 0 )
+    if( mask != 0 )
         N->p[p_limbs - 1] &= mask;
     for( i = p_limbs; i < N->n; i++ )
         N->p[i] = 0;
@@ -1310,12 +1310,12 @@ static inline int ecp_mod_koblitz( mpi *N, t_uint *Rp, size_t p_limbs,
         M.n = p_limbs + adjust;
     memset( Mp, 0, sizeof Mp );
     memcpy( Mp, N->p + p_limbs - adjust, M.n * sizeof( t_uint ) );
-    if (shift != 0 )
+    if( shift != 0 )
         MPI_CHK( mpi_shift_r( &M, shift ) );
     M.n += R.n - adjust; /* Make room for multiplication by R */
 
     /* N = A0 */
-    if (mask != 0 )
+    if( mask != 0 )
         N->p[p_limbs - 1] &= mask;
     for( i = p_limbs; i < N->n; i++ )
         N->p[i] = 0;

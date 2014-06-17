@@ -420,10 +420,10 @@ static void aes_gen_tables( void )
     {
         x = pow[255 - log[i]];
 
-        y  = x; y = ( (y << 1) | (y >> 7) ) & 0xFF;
-        x ^= y; y = ( (y << 1) | (y >> 7) ) & 0xFF;
-        x ^= y; y = ( (y << 1) | (y >> 7) ) & 0xFF;
-        x ^= y; y = ( (y << 1) | (y >> 7) ) & 0xFF;
+        y  = x; y = ( ( y << 1 ) | ( y >> 7 ) ) & 0xFF;
+        x ^= y; y = ( ( y << 1 ) | ( y >> 7 ) ) & 0xFF;
+        x ^= y; y = ( ( y << 1 ) | ( y >> 7 ) ) & 0xFF;
+        x ^= y; y = ( ( y << 1 ) | ( y >> 7 ) ) & 0xFF;
         x ^= y ^ 0x63;
 
         FSb[i] = (unsigned char) x;
@@ -504,7 +504,7 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key,
         return( aesni_setkey_enc( (unsigned char *) ctx->rk, key, keysize ) );
 #endif
 
-    for( i = 0; i < (keysize >> 5); i++ )
+    for( i = 0; i < ( keysize >> 5 ); i++ )
     {
         GET_UINT32_LE( RK[i], key, i << 2 );
     }
@@ -726,7 +726,7 @@ int aes_crypt_ecb( aes_context *ctx,
 
     if( mode == AES_DECRYPT )
     {
-        for( i = (ctx->nr >> 1) - 1; i > 0; i-- )
+        for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
         {
             AES_RROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
             AES_RROUND( X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
@@ -760,7 +760,7 @@ int aes_crypt_ecb( aes_context *ctx,
     }
     else /* AES_ENCRYPT */
     {
-        for( i = (ctx->nr >> 1) - 1; i > 0; i-- )
+        for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
         {
             AES_FROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
             AES_FROUND( X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
@@ -893,7 +893,7 @@ int aes_crypt_cfb128( aes_context *ctx,
             *output++ = (unsigned char)( c ^ iv[n] );
             iv[n] = (unsigned char) c;
 
-            n = (n + 1) & 0x0F;
+            n = ( n + 1 ) & 0x0F;
         }
     }
     else
@@ -905,7 +905,7 @@ int aes_crypt_cfb128( aes_context *ctx,
 
             iv[n] = *output++ = (unsigned char)( iv[n] ^ *input++ );
 
-            n = (n + 1) & 0x0F;
+            n = ( n + 1 ) & 0x0F;
         }
     }
 
@@ -930,7 +930,7 @@ int aes_crypt_cfb8( aes_context *ctx,
 
     while( length-- )
     {
-        memcpy(ov, iv, 16);
+        memcpy( ov, iv, 16 );
         aes_crypt_ecb( ctx, AES_ENCRYPT, iv, iv );
 
         if( mode == AES_DECRYPT )
@@ -941,7 +941,7 @@ int aes_crypt_cfb8( aes_context *ctx,
         if( mode == AES_ENCRYPT )
             ov[16] = c;
 
-        memcpy(iv, ov + 1, 16);
+        memcpy( iv, ov + 1, 16 );
     }
 
     return( 0 );
@@ -975,7 +975,7 @@ int aes_crypt_ctr( aes_context *ctx,
         c = *input++;
         *output++ = (unsigned char)( c ^ stream_block[n] );
 
-        n = (n + 1) & 0x0F;
+        n = ( n + 1 ) & 0x0F;
     }
 
     *nc_off = n;

@@ -66,7 +66,7 @@ struct _hr_time
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
+    ( defined(_MSC_VER) && defined(_M_IX86) ) || defined(__WATCOMC__)
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -95,7 +95,7 @@ unsigned long hardclock( void )
           __GNUC__ && __i386__ */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
+    defined(__GNUC__) && ( defined(__amd64__) || defined(__x86_64__) )
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -103,13 +103,13 @@ unsigned long hardclock( void )
 {
     unsigned long lo, hi;
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
-    return( lo | (hi << 32) );
+    return( lo | ( hi << 32 ) );
 }
 #endif /* !POLARSSL_HAVE_HARDCLOCK && POLARSSL_HAVE_ASM &&
           __GNUC__ && ( __amd64__ || __x86_64__ ) */
 
 #if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(POLARSSL_HAVE_ASM) &&  \
-    defined(__GNUC__) && (defined(__powerpc__) || defined(__ppc__))
+    defined(__GNUC__) && ( defined(__powerpc__) || defined(__ppc__) )
 
 #define POLARSSL_HAVE_HARDCLOCK
 
@@ -368,7 +368,7 @@ int timing_self_test( int verbose )
     int hardfail;
     struct hr_time hires;
 
-    if( verbose != 0)
+    if( verbose != 0 )
         polarssl_printf( "  TIMING tests note: will take some time!\n" );
 
     if( verbose != 0 )

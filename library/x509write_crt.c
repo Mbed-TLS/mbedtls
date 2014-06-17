@@ -115,8 +115,8 @@ int x509write_crt_set_serial( x509write_cert *ctx, const mpi *serial )
 int x509write_crt_set_validity( x509write_cert *ctx, const char *not_before,
                                 const char *not_after )
 {
-    if( strlen(not_before) != X509_RFC5280_UTC_TIME_LEN - 1 ||
-        strlen(not_after)  != X509_RFC5280_UTC_TIME_LEN - 1 )
+    if( strlen( not_before ) != X509_RFC5280_UTC_TIME_LEN - 1 ||
+        strlen( not_after )  != X509_RFC5280_UTC_TIME_LEN - 1 )
     {
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
     }
@@ -176,7 +176,7 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx )
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf));
+    memset( buf, 0, sizeof(buf) );
     ASN1_CHK_ADD( len, pk_write_pubkey( &c, buf, ctx->subject_key ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
@@ -198,7 +198,7 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf));
+    memset( buf, 0, sizeof(buf) );
     ASN1_CHK_ADD( len, pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );

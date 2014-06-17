@@ -345,7 +345,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
         {
             copy_len = ilen % cipher_get_block_size( ctx );
             if( copy_len == 0 && ctx->operation == POLARSSL_DECRYPT )
-                copy_len = cipher_get_block_size(ctx);
+                copy_len = cipher_get_block_size( ctx );
 
             memcpy( ctx->unprocessed_data, &( input[ilen - copy_len] ),
                     copy_len );
@@ -459,7 +459,7 @@ static int get_pkcs_padding( unsigned char *input, size_t input_len,
     for( i = 0; i < input_len; i++ )
         bad |= ( input[i] ^ padding_len ) * ( i >= pad_idx );
 
-    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0) );
+    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * ( bad != 0 ) );
 }
 #endif /* POLARSSL_CIPHER_PADDING_PKCS7 */
 
@@ -497,7 +497,7 @@ static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
         bad &= ( input[i-1] ^ 0x80 ) | ( done == prev_done );
     }
 
-    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0) );
+    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * ( bad != 0 ) );
 
 }
 #endif /* POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS */
@@ -538,7 +538,7 @@ static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
     for( i = 0; i < input_len - 1; i++ )
         bad |= input[i] * ( i >= pad_idx );
 
-    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0) );
+    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * ( bad != 0 ) );
 }
 #endif /* POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN */
 
@@ -637,7 +637,7 @@ int cipher_finish( cipher_context_t *ctx,
             ctx->add_padding( ctx->unprocessed_data, cipher_get_iv_size( ctx ),
                     ctx->unprocessed_len );
         }
-        else if ( cipher_get_block_size( ctx ) != ctx->unprocessed_len )
+        else if( cipher_get_block_size( ctx ) != ctx->unprocessed_len )
         {
             /*
              * For decrypt operations, expect a full block,

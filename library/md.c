@@ -234,7 +234,7 @@ int md_finish( md_context_t *ctx, unsigned char *output )
 int md( const md_info_t *md_info, const unsigned char *input, size_t ilen,
             unsigned char *output )
 {
-    if ( md_info == NULL )
+    if( md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
     md_info->digest_func( input, ilen, output );
@@ -270,7 +270,7 @@ int md_hmac_starts( md_context_t *ctx, const unsigned char *key, size_t keylen )
     if( ctx == NULL || ctx->md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_starts_func( ctx->md_ctx, key, keylen);
+    ctx->md_info->hmac_starts_func( ctx->md_ctx, key, keylen );
 
     return( 0 );
 }
@@ -285,12 +285,12 @@ int md_hmac_update( md_context_t *ctx, const unsigned char *input, size_t ilen )
     return( 0 );
 }
 
-int md_hmac_finish( md_context_t *ctx, unsigned char *output)
+int md_hmac_finish( md_context_t *ctx, unsigned char *output )
 {
     if( ctx == NULL || ctx->md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_finish_func( ctx->md_ctx, output);
+    ctx->md_info->hmac_finish_func( ctx->md_ctx, output );
 
     return( 0 );
 }
@@ -300,7 +300,7 @@ int md_hmac_reset( md_context_t *ctx )
     if( ctx == NULL || ctx->md_info == NULL )
         return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
 
-    ctx->md_info->hmac_reset_func( ctx->md_ctx);
+    ctx->md_info->hmac_reset_func( ctx->md_ctx );
 
     return( 0 );
 }

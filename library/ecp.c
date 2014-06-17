@@ -302,7 +302,7 @@ void ecp_group_init( ecp_group *grp )
  */
 void ecp_keypair_init( ecp_keypair *key )
 {
-    if ( key == NULL )
+    if( key == NULL )
         return;
 
     ecp_group_init( &key->grp );
@@ -357,7 +357,7 @@ void ecp_group_free( ecp_group *grp )
  */
 void ecp_keypair_free( ecp_keypair *key )
 {
-    if ( key == NULL )
+    if( key == NULL )
         return;
 
     ecp_group_free( &key->grp );
@@ -1123,7 +1123,7 @@ static int ecp_randomize_jac( const ecp_group *grp, ecp_point *pt,
 {
     int ret;
     mpi l, ll;
-    size_t p_size = (grp->pbits + 7) / 8;
+    size_t p_size = ( grp->pbits + 7 ) / 8;
     int count = 0;
 
     mpi_init( &l ); mpi_init( &ll );
@@ -1247,7 +1247,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
     MPI_CHK( ecp_copy( &T[0], P ) );
 
     k = 0;
-    for( i = 1; i < ( 1U << (w-1) ); i <<= 1 )
+    for( i = 1; i < ( 1U << ( w - 1 ) ); i <<= 1 )
     {
         cur = T + i;
         MPI_CHK( ecp_copy( cur, T + ( i >> 1 ) ) );
@@ -1264,7 +1264,7 @@ static int ecp_precompute_comb( const ecp_group *grp,
      * Be careful to update T[2^l] only after using it!
      */
     k = 0;
-    for( i = 1; i < ( 1U << (w-1) ); i <<= 1 )
+    for( i = 1; i < ( 1U << ( w - 1 ) ); i <<= 1 )
     {
         j = i;
         while( j-- )
@@ -1508,7 +1508,7 @@ static int ecp_randomize_mxz( const ecp_group *grp, ecp_point *P,
 {
     int ret;
     mpi l;
-    size_t p_size = (grp->pbits + 7) / 8;
+    size_t p_size = ( grp->pbits + 7 ) / 8;
     int count = 0;
 
     mpi_init( &l );
@@ -1805,7 +1805,7 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
                      void *p_rng )
 {
     int ret;
-    size_t n_size = (grp->nbits + 7) / 8;
+    size_t n_size = ( grp->nbits + 7 ) / 8;
 
 #if defined(POLARSSL_ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == POLARSSL_ECP_TYPE_MONTGOMERY )

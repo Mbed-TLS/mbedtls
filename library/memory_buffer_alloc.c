@@ -306,7 +306,7 @@ static void *buffer_alloc_malloc( size_t len )
 
 #if defined(POLARSSL_MEMORY_DEBUG)
         heap.total_used += cur->size;
-        if( heap.total_used > heap.maximum_used)
+        if( heap.total_used > heap.maximum_used )
             heap.maximum_used = heap.total_used;
 #endif
 #if defined(POLARSSL_MEMORY_BACKTRACE)
@@ -361,7 +361,7 @@ static void *buffer_alloc_malloc( size_t len )
     if( heap.header_count > heap.maximum_header_count )
         heap.maximum_header_count = heap.header_count;
     heap.total_used += cur->size;
-    if( heap.total_used > heap.maximum_used)
+    if( heap.total_used > heap.maximum_used )
         heap.maximum_used = heap.total_used;
 #endif
 #if defined(POLARSSL_MEMORY_BACKTRACE)

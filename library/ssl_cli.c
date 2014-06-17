@@ -71,7 +71,7 @@ static void ssl_write_hostname_ext( ssl_context *ssl,
 
     *olen = 0;
 
-    if ( ssl->hostname == NULL )
+    if( ssl->hostname == NULL )
         return;
 
     SSL_DEBUG_MSG( 3, ( "client hello, adding server name extension: %s",
@@ -2470,7 +2470,7 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
      * Zero-length ticket means the server changed his mind and doesn't want
      * to send a ticket after all, so just forget it
      */
-    if( ticket_len == 0)
+    if( ticket_len == 0 )
         return( 0 );
 
     polarssl_zeroize( ssl->session_negotiate->ticket,

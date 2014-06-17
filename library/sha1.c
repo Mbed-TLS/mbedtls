@@ -118,8 +118,8 @@ void sha1_process( sha1_context *ctx, const unsigned char data[64] )
 
 #define R(t)                                            \
 (                                                       \
-    temp = W[(t -  3) & 0x0F] ^ W[(t - 8) & 0x0F] ^     \
-           W[(t - 14) & 0x0F] ^ W[ t      & 0x0F],      \
+    temp = W[( t -  3 ) & 0x0F] ^ W[( t - 8 ) & 0x0F] ^ \
+           W[( t - 14 ) & 0x0F] ^ W[  t       & 0x0F],  \
     ( W[t & 0x0F] = S(temp,1) )                         \
 )
 

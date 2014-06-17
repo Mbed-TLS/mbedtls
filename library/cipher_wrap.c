@@ -1237,7 +1237,7 @@ static int arc4_setkey_wrap( void *ctx, const unsigned char *key,
                              unsigned int key_length )
 {
     /* we get key_length in bits, arc4 expects it in bytes */
-    if( key_length % 8 != 0)
+    if( key_length % 8 != 0 )
         return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     arc4_setup( (arc4_context *) ctx, key, key_length / 8 );

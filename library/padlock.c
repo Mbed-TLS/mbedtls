@@ -137,9 +137,9 @@ int padlock_xcryptcbc( aes_context *ctx,
     memcpy( iw, iv, 16 );
 
      ctrl = iw + 4;
-    *ctrl = 0x80 | ctx->nr | ( ( ctx->nr + (mode^1) - 10 ) << 9 );
+    *ctrl = 0x80 | ctx->nr | ( ( ctx->nr + ( mode ^ 1 ) - 10 ) << 9 );
 
-    count = (length + 15) >> 4;
+    count = ( length + 15 ) >> 4;
 
     asm( "pushfl; popfl         \n"     \
          "movl    %%ebx, %0     \n"     \

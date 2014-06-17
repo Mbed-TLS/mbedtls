@@ -723,7 +723,7 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     if( crt->version == 3 )
     {
 #endif
-        ret = x509_get_crt_ext( &p, end, crt);
+        ret = x509_get_crt_ext( &p, end, crt );
         if( ret != 0 )
         {
             x509_crt_free( crt );
@@ -758,7 +758,7 @@ static int x509_crt_parse_der_core( x509_crt *crt, const unsigned char *buf,
     if( crt->sig_oid1.len != crt->sig_oid2.len ||
         memcmp( crt->sig_oid1.p, crt->sig_oid2.p, crt->sig_oid1.len ) != 0 ||
         sig_params1.len != sig_params2.len ||
-        memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0)
+        memcmp( sig_params1.p, sig_params2.p, sig_params1.len ) != 0 )
     {
         x509_crt_free( crt );
         return( POLARSSL_ERR_X509_SIG_MISMATCH );
@@ -805,7 +805,7 @@ int x509_crt_parse_der( x509_crt *chain, const unsigned char *buf,
     /*
      * Add new certificate on the end of the chain if needed.
      */
-    if ( crt->version != 0 && crt->next == NULL)
+    if( crt->version != 0 && crt->next == NULL )
     {
         crt->next = (x509_crt *) polarssl_malloc( sizeof( x509_crt ) );
 
@@ -946,7 +946,7 @@ int x509_crt_parse_file( x509_crt *chain, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = x509_crt_parse( chain, buf, n );
@@ -988,7 +988,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
                                  MAX_PATH - 3 );
 
     hFind = FindFirstFileW( szDir, &file_data );
-    if (hFind == INVALID_HANDLE_VALUE)
+    if( hFind == INVALID_HANDLE_VALUE )
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
     len = MAX_PATH - len;
@@ -1000,7 +1000,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
             continue;
 
         w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
-                                     lstrlenW(file_data.cFileName),
+                                     lstrlenW( file_data.cFileName ),
                                      p, len - 1,
                                      NULL, NULL );
 
@@ -1012,7 +1012,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     }
     while( FindNextFileW( hFind, &file_data ) != 0 );
 
-    if (GetLastError() != ERROR_NO_MORE_FILES)
+    if( GetLastError() != ERROR_NO_MORE_FILES )
         ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
 
     FindClose( hFind );
@@ -1023,7 +1023,7 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
     char entry_name[255];
     DIR *dir = opendir( path );
 
-    if( dir == NULL)
+    if( dir == NULL )
         return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
 #if defined(POLARSSL_THREADING_PTHREAD)
@@ -1082,7 +1082,7 @@ cleanup:
  * This fuction tries to 'fix' this by at least suggesting enlarging the
  * size by 20.
  */
-static int compat_snprintf(char *str, size_t size, const char *format, ...)
+static int compat_snprintf( char *str, size_t size, const char *format, ... )
 {
     va_list ap;
     int res = -1;
@@ -1094,7 +1094,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     va_end( ap );
 
     // No quick fix possible
-    if ( res < 0 )
+    if( res < 0 )
         return( (int) size + 20 );
 
     return( res );
@@ -1110,7 +1110,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     if( ret == -1 )                                 \
         return( -1 );                               \
                                                     \
-    if ( (unsigned int) ret > n ) {                 \
+    if( (unsigned int) ret > n ) {                  \
         p[n - 1] = '\0';                            \
         return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL ); \
     }                                               \
@@ -1269,7 +1269,7 @@ int x509_crt_info( char *buf, size_t size, const char *prefix,
                                prefix );
     SAFE_SNPRINTF();
 
-    ret = x509_serial_gets( p, n, &crt->serial);
+    ret = x509_serial_gets( p, n, &crt->serial );
     SAFE_SNPRINTF();
 
     ret = snprintf( p, n, "\n%sissuer name       : ", prefix );
@@ -1517,7 +1517,7 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
         /*
          * Check if certificate is revoked
          */
-        if( x509_crt_revoked(crt, crl_list) )
+        if( x509_crt_revoked( crt, crl_list ) )
         {
             flags |= BADCERT_REVOKED;
             break;
@@ -1714,7 +1714,7 @@ static int x509_crt_verify_top(
     /* Call callback on top cert */
     if( NULL != f_vrfy )
     {
-        if( ( ret = f_vrfy(p_vrfy, child, path_cnt, flags ) ) != 0 )
+        if( ( ret = f_vrfy( p_vrfy, child, path_cnt, flags ) ) != 0 )
             return( ret );
     }
 

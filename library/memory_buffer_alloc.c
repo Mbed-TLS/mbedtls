@@ -318,7 +318,7 @@ static void *buffer_alloc_malloc( size_t len )
         if( ( heap.verify & MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
             exit( 1 );
 
-        return ( (unsigned char *) cur ) + sizeof(memory_header);
+        return( ( (unsigned char *) cur ) + sizeof(memory_header) );
     }
 
     p = ( (unsigned char *) cur ) + sizeof(memory_header) + len;
@@ -373,7 +373,7 @@ static void *buffer_alloc_malloc( size_t len )
     if( ( heap.verify & MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
         exit( 1 );
 
-    return ( (unsigned char *) cur ) + sizeof(memory_header);
+    return( ( (unsigned char *) cur ) + sizeof(memory_header) );
 }
 
 static void buffer_alloc_free( void *ptr )

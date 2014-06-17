@@ -176,7 +176,7 @@ static ecp_group_id ecp_supported_grp_id[POLARSSL_ECP_DP_MAX];
  */
 const ecp_curve_info *ecp_curve_list( void )
 {
-    return ecp_supported_curves;
+    return( ecp_supported_curves );
 }
 
 /*
@@ -202,7 +202,7 @@ const ecp_group_id *ecp_grp_id_list( void )
         init_done = 1;
     }
 
-    return ecp_supported_grp_id;
+    return( ecp_supported_grp_id );
 }
 
 /*
@@ -575,7 +575,7 @@ int ecp_tls_write_point( const ecp_group *grp, const ecp_point *pt,
     buf[0] = (unsigned char) *olen;
     ++*olen;
 
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -664,7 +664,7 @@ int ecp_tls_write_group( const ecp_group *grp, size_t *olen,
     buf[0] = curve_info->tls_id >> 8;
     buf[1] = curve_info->tls_id & 0xFF;
 
-    return 0;
+    return( 0 );
 }
 
 /*

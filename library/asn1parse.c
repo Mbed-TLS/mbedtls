@@ -211,7 +211,7 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
     if( *p != end )
         return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    return 0;
+    return( 0 );
 }
 
 /*

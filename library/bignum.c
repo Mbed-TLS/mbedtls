@@ -304,7 +304,7 @@ int mpi_get_bit( const mpi *X, size_t pos )
     if( X->n * biL <= pos )
         return( 0 );
 
-    return ( X->p[pos / biL] >> ( pos % biL ) ) & 0x01;
+    return( ( X->p[pos / biL] >> ( pos % biL ) ) & 0x01 );
 }
 
 /*
@@ -317,12 +317,12 @@ int mpi_set_bit( mpi *X, size_t pos, unsigned char val )
     size_t idx = pos % biL;
 
     if( val != 0 && val != 1 )
-        return POLARSSL_ERR_MPI_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_MPI_BAD_INPUT_DATA );
 
     if( X->n * biL <= pos )
     {
         if( val == 0 )
-            return ( 0 );
+            return( 0 );
 
         MPI_CHK( mpi_grow( X, off + 1 ) );
     }
@@ -1382,7 +1382,7 @@ int mpi_mod_mpi( mpi *R, const mpi *A, const mpi *B )
     int ret;
 
     if( mpi_cmp_int( B, 0 ) < 0 )
-        return POLARSSL_ERR_MPI_NEGATIVE_VALUE;
+        return( POLARSSL_ERR_MPI_NEGATIVE_VALUE );
 
     MPI_CHK( mpi_div_mpi( NULL, R, A, B ) );
 
@@ -1409,7 +1409,7 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b )
         return( POLARSSL_ERR_MPI_DIVISION_BY_ZERO );
 
     if( b < 0 )
-        return POLARSSL_ERR_MPI_NEGATIVE_VALUE;
+        return( POLARSSL_ERR_MPI_NEGATIVE_VALUE );
 
     /*
      * handle trivial cases

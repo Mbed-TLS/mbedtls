@@ -104,7 +104,7 @@ static int md2_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 
@@ -194,7 +194,7 @@ static int md4_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 
@@ -282,7 +282,7 @@ static int md5_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 
@@ -370,7 +370,7 @@ static int ripemd160_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 
@@ -458,7 +458,7 @@ static int sha1_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 
@@ -555,7 +555,7 @@ static int sha224_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 
@@ -652,7 +652,7 @@ static int sha256_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 
@@ -753,7 +753,7 @@ static int sha384_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 
@@ -850,7 +850,7 @@ static int sha512_file_wrap( const char *path, unsigned char *output )
 #else
     ((void) path);
     ((void) output);
-    return POLARSSL_ERR_MD_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_MD_FEATURE_UNAVAILABLE );
 #endif
 }
 

@@ -718,7 +718,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     if ( res < 0 )
         return( (int) size + 20 );
 
-    return res;
+    return( res );
 }
 
 #define snprintf compat_snprintf
@@ -726,18 +726,18 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 
-#define SAFE_SNPRINTF()                         \
-{                                               \
-    if( ret == -1 )                             \
-        return( -1 );                           \
-                                                \
-    if ( (unsigned int) ret > n ) {             \
-        p[n - 1] = '\0';                        \
-        return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;\
-    }                                           \
-                                                \
-    n -= (unsigned int) ret;                    \
-    p += (unsigned int) ret;                    \
+#define SAFE_SNPRINTF()                             \
+{                                                   \
+    if( ret == -1 )                                 \
+        return( -1 );                               \
+                                                    \
+    if ( (unsigned int) ret > n ) {                 \
+        p[n - 1] = '\0';                            \
+        return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL ); \
+    }                                               \
+                                                    \
+    n -= (unsigned int) ret;                        \
+    p += (unsigned int) ret;                        \
 }
 
 /*
@@ -890,7 +890,7 @@ int x509_key_size_helper( char *buf, size_t size, const char *name )
     int ret;
 
     if( strlen( name ) + sizeof( " key size" ) > size )
-        return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;
+        return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL );
 
     ret = snprintf( p, n, "%s key size", name );
     SAFE_SNPRINTF();

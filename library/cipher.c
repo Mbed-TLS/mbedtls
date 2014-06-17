@@ -82,7 +82,7 @@ const int *cipher_list( void )
         supported_init = 1;
     }
 
-    return supported_ciphers;
+    return( supported_ciphers );
 }
 
 const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
@@ -93,7 +93,7 @@ const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
         if( def->type == cipher_type )
             return( def->info );
 
-    return NULL;
+    return( NULL );
 }
 
 const cipher_info_t *cipher_info_from_string( const char *cipher_name )
@@ -101,13 +101,13 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name )
     const cipher_definition_t *def;
 
     if( NULL == cipher_name )
-        return NULL;
+        return( NULL );
 
     for( def = cipher_definitions; def->info != NULL; def++ )
         if( !  strcasecmp( def->info->name, cipher_name ) )
             return( def->info );
 
-    return NULL;
+    return( NULL );
 }
 
 const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
@@ -122,18 +122,18 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
             def->info->mode == mode )
             return( def->info );
 
-    return NULL;
+    return( NULL );
 }
 
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 {
     if( NULL == cipher_info || NULL == ctx )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     memset( ctx, 0, sizeof( cipher_context_t ) );
 
     if( NULL == ( ctx->cipher_ctx = cipher_info->base->ctx_alloc_func() ) )
-        return POLARSSL_ERR_CIPHER_ALLOC_FAILED;
+        return( POLARSSL_ERR_CIPHER_ALLOC_FAILED );
 
     ctx->cipher_info = cipher_info;
 
@@ -148,28 +148,28 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 #endif
 #endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
-    return 0;
+    return( 0 );
 }
 
 int cipher_free_ctx( cipher_context_t *ctx )
 {
     if( ctx == NULL || ctx->cipher_info == NULL )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     ctx->cipher_info->base->ctx_free_func( ctx->cipher_ctx );
     polarssl_zeroize( ctx, sizeof(cipher_context_t) );
 
-    return 0;
+    return( 0 );
 }
 
 int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
         int key_length, const operation_t operation )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     if( (int) ctx->cipher_info->key_length != key_length )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     ctx->key_length = key_length;
     ctx->operation = operation;
@@ -189,7 +189,7 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
         return ctx->cipher_info->base->setkey_dec_func( ctx->cipher_ctx, key,
                 ctx->key_length );
 
-    return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 }
 
 int cipher_set_iv( cipher_context_t *ctx,
@@ -198,11 +198,11 @@ int cipher_set_iv( cipher_context_t *ctx,
     size_t actual_iv_size;
 
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     /* avoid buffer overflow in ctx->iv */
     if( iv_len > POLARSSL_MAX_IV_LENGTH )
-        return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+        return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 
     if( ctx->cipher_info->accepts_variable_iv_size )
         actual_iv_size = iv_len;
@@ -212,23 +212,23 @@ int cipher_set_iv( cipher_context_t *ctx,
 
         /* avoid reading past the end of input buffer */
         if( actual_iv_size > iv_len )
-            return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+            return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
     memcpy( ctx->iv, iv, actual_iv_size );
     ctx->iv_size = actual_iv_size;
 
-    return 0;
+    return( 0 );
 }
 
 int cipher_reset( cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     ctx->unprocessed_len = 0;
 
-    return 0;
+    return( 0 );
 }
 
 #if defined(POLARSSL_CIPHER_MODE_AEAD)
@@ -236,7 +236,7 @@ int cipher_update_ad( cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
@@ -246,7 +246,7 @@ int cipher_update_ad( cipher_context_t *ctx,
     }
 #endif
 
-    return 0;
+    return( 0 );
 }
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
@@ -257,7 +257,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
 
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
     {
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
     *olen = 0;
@@ -265,17 +265,17 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
     if( ctx->cipher_info->mode == POLARSSL_MODE_ECB )
     {
         if( ilen != cipher_get_block_size( ctx ) )
-            return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+            return( POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED );
 
         *olen = ilen;
 
         if( 0 != ( ret = ctx->cipher_info->base->ecb_func( ctx->cipher_ctx,
                     ctx->operation, input, output ) ) )
         {
-            return ret;
+            return( ret );
         }
 
-        return 0;
+        return( 0 );
     }
 
 #if defined(POLARSSL_GCM_C)
@@ -290,7 +290,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
     if( input == output &&
        ( ctx->unprocessed_len != 0 || ilen % cipher_get_block_size( ctx ) ) )
     {
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -310,7 +310,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
                     ilen );
 
             ctx->unprocessed_len += ilen;
-            return 0;
+            return( 0 );
         }
 
         /*
@@ -327,7 +327,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
                     ctx->operation, cipher_get_block_size( ctx ), ctx->iv,
                     ctx->unprocessed_data, output ) ) )
             {
-                return ret;
+                return( ret );
             }
 
             *olen += cipher_get_block_size( ctx );
@@ -362,13 +362,13 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
             if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
                     ctx->operation, ilen, ctx->iv, input, output ) ) )
             {
-                return ret;
+                return( ret );
             }
 
             *olen += ilen;
         }
 
-        return 0;
+        return( 0 );
     }
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
@@ -379,12 +379,12 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
                 ctx->operation, ilen, &ctx->unprocessed_len, ctx->iv,
                 input, output ) ) )
         {
-            return ret;
+            return( ret );
         }
 
         *olen = ilen;
 
-        return 0;
+        return( 0 );
     }
 #endif /* POLARSSL_CIPHER_MODE_CFB */
 
@@ -395,12 +395,12 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
                 ilen, &ctx->unprocessed_len, ctx->iv,
                 ctx->unprocessed_data, input, output ) ) )
         {
-            return ret;
+            return( ret );
         }
 
         *olen = ilen;
 
-        return 0;
+        return( 0 );
     }
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 
@@ -410,16 +410,16 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
         if( 0 != ( ret = ctx->cipher_info->base->stream_func( ctx->cipher_ctx,
                                                     ilen, input, output ) ) )
         {
-            return ret;
+            return( ret );
         }
 
         *olen = ilen;
 
-        return 0;
+        return( 0 );
     }
 #endif /* POLARSSL_CIPHER_MODE_STREAM */
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
 
 #if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
@@ -444,7 +444,7 @@ static int get_pkcs_padding( unsigned char *input, size_t input_len,
     unsigned char padding_len, bad = 0;
 
     if( NULL == input || NULL == data_len )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     padding_len = input[input_len - 1];
     *data_len = input_len - padding_len;
@@ -459,7 +459,7 @@ static int get_pkcs_padding( unsigned char *input, size_t input_len,
     for( i = 0; i < input_len; i++ )
         bad |= ( input[i] ^ padding_len ) * ( i >= pad_idx );
 
-    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0) );
 }
 #endif /* POLARSSL_CIPHER_PADDING_PKCS7 */
 
@@ -485,7 +485,7 @@ static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
     unsigned char done = 0, prev_done, bad;
 
     if( NULL == input || NULL == data_len )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     bad = 0xFF;
     *data_len = 0;
@@ -497,7 +497,7 @@ static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
         bad &= ( input[i-1] ^ 0x80 ) | ( done == prev_done );
     }
 
-    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0) );
 
 }
 #endif /* POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS */
@@ -524,7 +524,7 @@ static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
     unsigned char padding_len, bad = 0;
 
     if( NULL == input || NULL == data_len )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     padding_len = input[input_len - 1];
     *data_len = input_len - padding_len;
@@ -538,7 +538,7 @@ static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
     for( i = 0; i < input_len - 1; i++ )
         bad |= input[i] * ( i >= pad_idx );
 
-    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return( POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0) );
 }
 #endif /* POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN */
 
@@ -562,7 +562,7 @@ static int get_zeros_padding( unsigned char *input, size_t input_len,
     unsigned char done = 0, prev_done;
 
     if( NULL == input || NULL == data_len )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     *data_len = 0;
     for( i = input_len; i > 0; i-- )
@@ -572,7 +572,7 @@ static int get_zeros_padding( unsigned char *input, size_t input_len,
         *data_len |= i * ( done != prev_done );
     }
 
-    return 0;
+    return( 0 );
 }
 #endif /* POLARSSL_CIPHER_PADDING_ZEROS */
 
@@ -586,11 +586,11 @@ static int get_no_padding( unsigned char *input, size_t input_len,
                               size_t *data_len )
 {
     if( NULL == input || NULL == data_len )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     *data_len = input_len;
 
-    return 0;
+    return( 0 );
 }
 #endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
@@ -598,7 +598,7 @@ int cipher_finish( cipher_context_t *ctx,
                    unsigned char *output, size_t *olen )
 {
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     *olen = 0;
 
@@ -607,15 +607,15 @@ int cipher_finish( cipher_context_t *ctx,
         POLARSSL_MODE_GCM == ctx->cipher_info->mode ||
         POLARSSL_MODE_STREAM == ctx->cipher_info->mode )
     {
-        return 0;
+        return( 0 );
     }
 
     if( POLARSSL_MODE_ECB == ctx->cipher_info->mode )
     {
         if( ctx->unprocessed_len != 0 )
-            return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+            return( POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED );
 
-        return 0;
+        return( 0 );
     }
 
 #if defined(POLARSSL_CIPHER_MODE_CBC)
@@ -629,9 +629,9 @@ int cipher_finish( cipher_context_t *ctx,
             if( NULL == ctx->add_padding )
             {
                 if( 0 != ctx->unprocessed_len )
-                    return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+                    return( POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED );
 
-                return 0;
+                return( 0 );
             }
 
             ctx->add_padding( ctx->unprocessed_data, cipher_get_iv_size( ctx ),
@@ -644,9 +644,9 @@ int cipher_finish( cipher_context_t *ctx,
              * or an empty block if no padding
              */
             if( NULL == ctx->add_padding && 0 == ctx->unprocessed_len )
-                return 0;
+                return( 0 );
 
-            return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+            return( POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED );
         }
 
         /* cipher block */
@@ -654,7 +654,7 @@ int cipher_finish( cipher_context_t *ctx,
                 ctx->operation, cipher_get_block_size( ctx ), ctx->iv,
                 ctx->unprocessed_data, output ) ) )
         {
-            return ret;
+            return( ret );
         }
 
         /* Set output size for decryption */
@@ -664,13 +664,13 @@ int cipher_finish( cipher_context_t *ctx,
 
         /* Set output size for encryption */
         *olen = cipher_get_block_size( ctx );
-        return 0;
+        return( 0 );
     }
 #else
     ((void) output);
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
 
 #if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
@@ -679,7 +679,7 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
     if( NULL == ctx ||
         POLARSSL_MODE_CBC != ctx->cipher_info->mode )
     {
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
     switch( mode )
@@ -714,10 +714,10 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
         break;
 
     default:
-        return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+        return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
     }
 
-    return 0;
+    return( 0 );
 }
 #endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
@@ -726,17 +726,17 @@ int cipher_write_tag( cipher_context_t *ctx,
                       unsigned char *tag, size_t tag_len )
 {
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == tag )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
     if( POLARSSL_ENCRYPT != ctx->operation )
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
         return gcm_finish( (gcm_context *) ctx->cipher_ctx, tag, tag_len );
 #endif
 
-    return 0;
+    return( 0 );
 }
 
 int cipher_check_tag( cipher_context_t *ctx,
@@ -747,7 +747,7 @@ int cipher_check_tag( cipher_context_t *ctx,
     if( NULL == ctx || NULL == ctx->cipher_info ||
         POLARSSL_DECRYPT != ctx->operation )
     {
-        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
 #if defined(POLARSSL_GCM_C)
@@ -758,7 +758,7 @@ int cipher_check_tag( cipher_context_t *ctx,
         int diff;
 
         if( tag_len > sizeof( check_tag ) )
-            return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+            return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
         if( 0 != ( ret = gcm_finish( (gcm_context *) ctx->cipher_ctx,
                                      check_tag, tag_len ) ) )

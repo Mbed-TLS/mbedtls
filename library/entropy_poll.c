@@ -60,11 +60,11 @@ int platform_entropy_poll( void *data, unsigned char *output, size_t len,
     if( CryptAcquireContext( &provider, NULL, NULL,
                               PROV_RSA_FULL, CRYPT_VERIFYCONTEXT ) == FALSE )
     {
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
     }
 
     if( CryptGenRandom( provider, (DWORD) len, output ) == FALSE )
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
 
     CryptReleaseContext( provider, 0 );
     *olen = len;
@@ -86,13 +86,13 @@ int platform_entropy_poll( void *data,
 
     file = fopen( "/dev/urandom", "rb" );
     if( file == NULL )
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
 
     ret = fread( output, 1, len, file );
     if( ret != len )
     {
         fclose( file );
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
     }
 
     fclose( file );
@@ -129,7 +129,7 @@ int havege_poll( void *data,
     *olen = 0;
 
     if( havege_random( hs, output, len ) != 0 )
-        return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
+        return( POLARSSL_ERR_ENTROPY_SOURCE_FAILED );
 
     *olen = len;
 

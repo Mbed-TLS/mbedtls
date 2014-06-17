@@ -650,7 +650,7 @@ int ssl_derive_keys( ssl_context *ssl )
                                         transform->maclen ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ssl_hw_record_init", ret );
-            return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
+            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
 #endif /* POLARSSL_SSL_HW_RECORD_ACCEL */
@@ -1887,7 +1887,7 @@ int ssl_write_record( ssl_context *ssl )
         if( ret != 0 && ret != POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH )
         {
             SSL_DEBUG_RET( 1, "ssl_hw_record_write", ret );
-            return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
+            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
         }
 
         if( ret == 0 )
@@ -2085,7 +2085,7 @@ int ssl_read_record( ssl_context *ssl )
         if( ret != 0 && ret != POLARSSL_ERR_SSL_HW_ACCEL_FALLTHROUGH )
         {
             SSL_DEBUG_RET( 1, "ssl_hw_record_read", ret );
-            return POLARSSL_ERR_SSL_HW_ACCEL_FAILED;
+            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
         }
 
         if( ret == 0 )
@@ -3622,7 +3622,7 @@ static ssl_key_cert *ssl_add_key_cert( ssl_context *ssl )
         last->next = key_cert;
     }
 
-    return key_cert;
+    return( key_cert );
 }
 
 void ssl_set_ca_chain( ssl_context *ssl, x509_crt *ca_chain,
@@ -3864,7 +3864,7 @@ int ssl_set_alpn_protocols( ssl_context *ssl, const char **protos )
 
 const char *ssl_get_alpn_protocol( const ssl_context *ssl )
 {
-    return ssl->alpn_chosen;
+    return( ssl->alpn_chosen );
 }
 #endif /* POLARSSL_SSL_ALPN */
 
@@ -3961,7 +3961,7 @@ int ssl_get_verify_result( const ssl_context *ssl )
 const char *ssl_get_ciphersuite( const ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )
-        return NULL;
+        return( NULL );
 
     return ssl_get_ciphersuite_name( ssl->session->ciphersuite );
 }
@@ -3992,9 +3992,9 @@ const char *ssl_get_version( const ssl_context *ssl )
 const x509_crt *ssl_get_peer_cert( const ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )
-        return NULL;
+        return( NULL );
 
-    return ssl->session->peer_cert;
+    return( ssl->session->peer_cert );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 

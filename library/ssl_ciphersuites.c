@@ -1702,7 +1702,7 @@ const int *ssl_list_ciphersuites( void )
         supported_init = 1;
     }
 
-    return supported_ciphersuites;
+    return( supported_ciphersuites );
 };
 
 const ssl_ciphersuite_t *ssl_ciphersuite_from_string(

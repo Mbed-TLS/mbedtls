@@ -201,7 +201,7 @@ static int x509_get_basic_constraints( unsigned char **p,
         return( POLARSSL_ERR_X509_INVALID_EXTENSIONS + ret );
 
     if( *p == end )
-        return 0;
+        return( 0 );
 
     if( ( ret = asn1_get_bool( p, end, ca_istrue ) ) != 0 )
     {
@@ -216,7 +216,7 @@ static int x509_get_basic_constraints( unsigned char **p,
     }
 
     if( *p == end )
-        return 0;
+        return( 0 );
 
     if( ( ret = asn1_get_int( p, end, max_pathlen ) ) != 0 )
         return( POLARSSL_ERR_X509_INVALID_EXTENSIONS + ret );
@@ -227,7 +227,7 @@ static int x509_get_basic_constraints( unsigned char **p,
 
     (*max_pathlen)++;
 
-    return 0;
+    return( 0 );
 }
 
 static int x509_get_ns_cert_type( unsigned char **p,
@@ -246,7 +246,7 @@ static int x509_get_ns_cert_type( unsigned char **p,
 
     /* Get actual bitstring */
     *ns_cert_type = *bs.p;
-    return 0;
+    return( 0 );
 }
 
 static int x509_get_key_usage( unsigned char **p,
@@ -265,7 +265,7 @@ static int x509_get_key_usage( unsigned char **p,
 
     /* Get actual bitstring */
     *key_usage = *bs.p;
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -287,7 +287,7 @@ static int x509_get_ext_key_usage( unsigned char **p,
         return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
                 POLARSSL_ERR_ASN1_INVALID_LENGTH );
 
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -472,7 +472,7 @@ static int x509_get_crt_ext( unsigned char **p,
             if( is_critical )
             {
                 /* Data is marked as critical: fail */
-                return ( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
+                return( POLARSSL_ERR_X509_INVALID_EXTENSIONS +
                         POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
             }
 #endif
@@ -487,35 +487,35 @@ static int x509_get_crt_ext( unsigned char **p,
             /* Parse basic constraints */
             if( ( ret = x509_get_basic_constraints( p, end_ext_octet,
                     &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
-                return ( ret );
+                return( ret );
             break;
 
         case EXT_KEY_USAGE:
             /* Parse key usage */
             if( ( ret = x509_get_key_usage( p, end_ext_octet,
                     &crt->key_usage ) ) != 0 )
-                return ( ret );
+                return( ret );
             break;
 
         case EXT_EXTENDED_KEY_USAGE:
             /* Parse extended key usage */
             if( ( ret = x509_get_ext_key_usage( p, end_ext_octet,
                     &crt->ext_key_usage ) ) != 0 )
-                return ( ret );
+                return( ret );
             break;
 
         case EXT_SUBJECT_ALT_NAME:
             /* Parse subject alt name */
             if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
                     &crt->subject_alt_names ) ) != 0 )
-                return ( ret );
+                return( ret );
             break;
 
         case EXT_NS_CERT_TYPE:
             /* Parse netscape certificate type */
             if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
                     &crt->ns_cert_type ) ) != 0 )
-                return ( ret );
+                return( ret );
             break;
 
         default:
@@ -1097,7 +1097,7 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     if ( res < 0 )
         return( (int) size + 20 );
 
-    return res;
+    return( res );
 }
 
 #define snprintf compat_snprintf
@@ -1105,18 +1105,18 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 
-#define SAFE_SNPRINTF()                         \
-{                                               \
-    if( ret == -1 )                             \
-        return( -1 );                           \
-                                                \
-    if ( (unsigned int) ret > n ) {             \
-        p[n - 1] = '\0';                        \
-        return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;\
-    }                                           \
-                                                \
-    n -= (unsigned int) ret;                    \
-    p += (unsigned int) ret;                    \
+#define SAFE_SNPRINTF()                             \
+{                                                   \
+    if( ret == -1 )                                 \
+        return( -1 );                               \
+                                                    \
+    if ( (unsigned int) ret > n ) {                 \
+        p[n - 1] = '\0';                            \
+        return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL ); \
+    }                                               \
+                                                    \
+    n -= (unsigned int) ret;                        \
+    p += (unsigned int) ret;                        \
 }
 
 static int x509_info_subject_alt_name( char **buf, size_t *size,
@@ -1525,7 +1525,7 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
 
         crl_list = crl_list->next;
     }
-    return flags;
+    return( flags );
 }
 #endif /* POLARSSL_X509_CRL_PARSE_C */
 

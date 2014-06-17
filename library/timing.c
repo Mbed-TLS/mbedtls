@@ -202,7 +202,7 @@ unsigned long hardclock( void )
 
     QueryPerformanceCounter( &offset );
 
-    return (unsigned long)( offset.QuadPart );
+    return( (unsigned long)( offset.QuadPart ) );
 }
 #endif /* !POLARSSL_HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
 

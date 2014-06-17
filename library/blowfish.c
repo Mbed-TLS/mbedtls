@@ -91,7 +91,7 @@ static uint32_t F(blowfish_context *ctx, uint32_t x)
    y = y ^ ctx->S[2][c];
    y = y + ctx->S[3][d];
 
-   return y;
+   return( y );
 }
 
 static void blowfish_enc(blowfish_context *ctx, uint32_t *xl, uint32_t *xr)
@@ -164,7 +164,7 @@ int blowfish_setkey( blowfish_context *ctx, const unsigned char *key,
     if( keysize < BLOWFISH_MIN_KEY || keysize > BLOWFISH_MAX_KEY ||
         ( keysize % 8 ) )
     {
-        return POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH;
+        return( POLARSSL_ERR_BLOWFISH_INVALID_KEY_LENGTH );
     }
 
     keysize >>= 3;

@@ -144,7 +144,7 @@ int ecdh_make_params( ecdh_context *ctx, size_t *olen,
         return( ret );
 
     *olen = grp_len + pt_len;
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -166,7 +166,7 @@ int ecdh_read_params( ecdh_context *ctx,
                 != 0 )
         return( ret );
 
-    return 0;
+    return( 0 );
 }
 
 /*

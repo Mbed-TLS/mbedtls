@@ -87,7 +87,7 @@ cleanup:
     if( NULL != cert_blob )
         polarssl_free( cert_blob );
 
-    return ret;
+    return( ret );
 }
 
 
@@ -113,7 +113,7 @@ int pkcs11_priv_key_init( pkcs11_context *priv_key,
 cleanup:
     x509_crt_free( &cert );
 
-    return ret;
+    return( ret );
 }
 
 void pkcs11_priv_key_free( pkcs11_context *priv_key )
@@ -172,10 +172,10 @@ int pkcs11_sign( pkcs11_context *ctx,
     const char *oid;
 
     if( NULL == ctx )
-        return POLARSSL_ERR_RSA_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     if( RSA_PRIVATE != mode )
-        return POLARSSL_ERR_RSA_BAD_INPUT_DATA;
+        return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
     if( md_alg != POLARSSL_MD_NONE )
     {

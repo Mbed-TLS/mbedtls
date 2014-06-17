@@ -82,21 +82,21 @@ const pk_info_t * pk_info_from_type( pk_type_t pk_type )
     switch( pk_type ) {
 #if defined(POLARSSL_RSA_C)
         case POLARSSL_PK_RSA:
-            return &rsa_info;
+            return( &rsa_info );
 #endif
 #if defined(POLARSSL_ECP_C)
         case POLARSSL_PK_ECKEY:
-            return &eckey_info;
+            return( &eckey_info );
         case POLARSSL_PK_ECKEY_DH:
-            return &eckeydh_info;
+            return( &eckeydh_info );
 #endif
 #if defined(POLARSSL_ECDSA_C)
         case POLARSSL_PK_ECDSA:
-            return &ecdsa_info;
+            return( &ecdsa_info );
 #endif
         /* POLARSSL_PK_RSA_ALT omitted on purpose */
         default:
-            return NULL;
+            return( NULL );
     }
 }
 

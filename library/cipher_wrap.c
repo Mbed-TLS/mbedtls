@@ -129,7 +129,7 @@ static int aes_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
@@ -149,7 +149,7 @@ static int aes_crypt_cfb128_wrap( void *ctx, operation_t operation,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CFB */
 }
 
@@ -169,7 +169,7 @@ static int aes_crypt_ctr_wrap( void *ctx, size_t length, size_t *nc_off,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 }
 
@@ -483,7 +483,7 @@ static int camellia_crypt_cbc_wrap( void *ctx, operation_t operation,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
@@ -503,7 +503,7 @@ static int camellia_crypt_cfb128_wrap( void *ctx, operation_t operation,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CFB */
 }
 
@@ -523,7 +523,7 @@ static int camellia_crypt_ctr_wrap( void *ctx, size_t length, size_t *nc_off,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 }
 
@@ -843,7 +843,7 @@ static int des_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
@@ -861,7 +861,7 @@ static int des3_crypt_cbc_wrap( void *ctx, operation_t operation, size_t length,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
@@ -877,7 +877,7 @@ static int des_crypt_cfb128_wrap( void *ctx, operation_t operation,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
 
 static int des_crypt_ctr_wrap( void *ctx, size_t length, size_t *nc_off,
@@ -892,7 +892,7 @@ static int des_crypt_ctr_wrap( void *ctx, size_t length, size_t *nc_off,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
 
 static int des_setkey_dec_wrap( void *ctx, const unsigned char *key,
@@ -1100,7 +1100,7 @@ static int blowfish_crypt_cbc_wrap( void *ctx, operation_t operation,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 }
 
@@ -1120,7 +1120,7 @@ static int blowfish_crypt_cfb64_wrap( void *ctx, operation_t operation,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CFB */
 }
 
@@ -1140,7 +1140,7 @@ static int blowfish_crypt_ctr_wrap( void *ctx, size_t length, size_t *nc_off,
     ((void) input);
     ((void) output);
 
-    return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 }
 
@@ -1302,7 +1302,7 @@ static int null_setkey( void *ctx, const unsigned char *key,
 
 static void * null_ctx_alloc( void )
 {
-    return (void *) 1;
+    return( (void *) 1 )
 }
 
 static void null_ctx_free( void *ctx )

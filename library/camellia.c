@@ -1050,7 +1050,7 @@ int camellia_self_test( int verbose )
         polarssl_printf( "\n" );
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 
-    return ( 0 );
+    return( 0 );
 }
 
 #endif /* POLARSSL_SELF_TEST */

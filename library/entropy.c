@@ -175,7 +175,7 @@ int entropy_update_manual( entropy_context *ctx,
         return( POLARSSL_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-    return ( ret );
+    return( ret );
 }
 
 /*

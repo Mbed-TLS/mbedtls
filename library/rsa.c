@@ -604,7 +604,7 @@ int rsa_rsaes_pkcs1_v15_encrypt( rsa_context *ctx,
             // Check if RNG failed to generate data
             //
             if( rng_dl == 0 || ret != 0)
-                return POLARSSL_ERR_RSA_RNG_FAILED + ret;
+                return( POLARSSL_ERR_RSA_RNG_FAILED + ret );
 
             p++;
         }

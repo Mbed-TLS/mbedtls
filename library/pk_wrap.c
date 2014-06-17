@@ -132,7 +132,7 @@ static void *rsa_alloc_wrap( void )
     if( ctx != NULL )
         rsa_init( (rsa_context *) ctx, 0, 0 );
 
-    return ctx;
+    return( ctx );
 }
 
 static void rsa_free_wrap( void *ctx )
@@ -426,7 +426,7 @@ static void *rsa_alt_alloc_wrap( void )
     if( ctx != NULL )
         memset( ctx, 0, sizeof( rsa_alt_context ) );
 
-    return ctx;
+    return( ctx );
 }
 
 static void rsa_alt_free_wrap( void *ctx )

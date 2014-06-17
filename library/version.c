@@ -38,7 +38,7 @@ const char version[] = POLARSSL_VERSION_STRING;
 
 unsigned int version_get_number()
 {
-    return POLARSSL_VERSION_NUMBER;
+    return( POLARSSL_VERSION_NUMBER );
 }
 
 void version_get_string( char *string )

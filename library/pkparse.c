@@ -830,7 +830,7 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
         return( ret );
     }
 
-    return 0;
+    return( 0 );
 }
 #endif /* POLARSSL_ECP_C */
 
@@ -919,7 +919,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #endif /* POLARSSL_ECP_C */
         return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
 
-    return 0;
+    return( 0 );
 }
 
 /*

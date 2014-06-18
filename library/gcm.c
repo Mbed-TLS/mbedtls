@@ -197,6 +197,15 @@ int gcm_crypt_and_tag( gcm_context *ctx,
     uint64_t orig_len = length * 8;
     uint64_t orig_add_len = add_len * 8;
 
+    /* IV and AD are limited to 2^64 bits, so 2^61 bytes */
+    if( ( (uint64_t) iv_len  ) >> 61 != 0 ||
+        ( (uint64_t) add_len ) >> 61 != 0 ||
+        tag_len > 16 || tag_len < 4 ||
+        length > 0x03FFFFE0llu )
+    {
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+    }
+
     memset( y, 0x00, 16 );
     memset( work_buf, 0x00, 16 );
     memset( tag, 0x00, tag_len );

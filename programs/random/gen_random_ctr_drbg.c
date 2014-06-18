@@ -115,6 +115,7 @@ cleanup:
     printf("\n");
 
     fclose( f );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
     return( ret );

@@ -83,7 +83,7 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
     memset( &rsa, 0, sizeof( rsa ) );
-    memset( &dhm, 0, sizeof( dhm ) );
+    dhm_init( &dhm );
     aes_init( &aes );
 
     /*
@@ -284,6 +284,7 @@ exit:
     aes_free( &aes );
     rsa_free( &rsa );
     dhm_free( &dhm );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(_WIN32)

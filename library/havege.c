@@ -43,6 +43,11 @@
 
 #include <string.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /* ------------------------------------------------------------------------
  * On average, one iteration accesses two 8-word blocks in the havege WALK
  * table, and generates 16 words in the RES array.
@@ -198,6 +203,14 @@ void havege_init( havege_state *hs )
     memset( hs, 0, sizeof( havege_state ) );
 
     havege_fill( hs );
+}
+
+void havege_free( havege_state *hs )
+{
+    if( hs == NULL )
+        return;
+
+    polarssl_zeroize( hs, sizeof( havege_state ) );
 }
 
 /*

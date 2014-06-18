@@ -597,6 +597,7 @@ void rsa_gen_key( int nrbits, int exponent, int result)
     }
 
     rsa_free( &ctx );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 }
 /* END_CASE */

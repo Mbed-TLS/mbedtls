@@ -414,6 +414,7 @@ int main( int argc, char *argv[] )
         havege_state hs;
         havege_init( &hs );
         TIME_AND_TSC( "HAVEGE", havege_random( &hs, buf, BUFSIZE ) );
+        havege_free( &hs );
     }
 #endif
 
@@ -434,6 +435,7 @@ int main( int argc, char *argv[] )
         TIME_AND_TSC( "CTR_DRBG (PR)",
                 if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
                 exit(1) );
+        ctr_drbg_free( &ctr_drbg );
     }
 #endif
 
@@ -531,7 +533,7 @@ int main( int argc, char *argv[] )
         size_t olen;
         for( i = 0; i < DHM_SIZES; i++ )
         {
-            memset( &dhm, 0, sizeof( dhm_context ) );
+            dhm_init( &dhm );
 
             if( mpi_read_string( &dhm.P, 16, dhm_P[i] ) != 0 ||
                 mpi_read_string( &dhm.G, 16, dhm_G[i] ) != 0 )

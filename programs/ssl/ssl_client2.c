@@ -1209,6 +1209,7 @@ exit:
 #endif
     ssl_session_free( &saved_session );
     ssl_free( &ssl );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
     memset( &ssl, 0, sizeof( ssl ) );

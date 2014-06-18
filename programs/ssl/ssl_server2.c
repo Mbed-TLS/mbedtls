@@ -626,7 +626,7 @@ int main( int argc, char *argv[] )
     pk_init( &pkey2 );
 #endif
 #if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
-    memset( &dhm, 0, sizeof( dhm_context ) );
+    dhm_init( &dhm );
 #endif
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_init( &cache );
@@ -1655,6 +1655,9 @@ exit:
     if( client_fd != -1 )
         net_close( client_fd );
 
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
+    dhm_free( &dhm );
+#endif
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     x509_crt_free( &cacert );
     x509_crt_free( &srvcert );
@@ -1673,6 +1676,7 @@ exit:
 #endif
 
     ssl_free( &ssl );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(POLARSSL_SSL_CACHE_C)

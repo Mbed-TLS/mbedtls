@@ -417,6 +417,7 @@ exit:
     x509_crt_free( &srvcert );
     pk_free( &pkey );
     ssl_free( &ssl );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
     if( client_fd != -1 )

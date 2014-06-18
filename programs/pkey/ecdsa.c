@@ -229,6 +229,7 @@ exit:
 
     ecdsa_free( &ctx_verify );
     ecdsa_free( &ctx_sign );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
     return( ret );

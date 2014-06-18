@@ -154,6 +154,7 @@ int main( int argc, char *argv[] )
 exit:
 
     mpi_free( &G ); mpi_free( &P ); mpi_free( &Q );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(_WIN32)

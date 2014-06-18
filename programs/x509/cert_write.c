@@ -652,6 +652,7 @@ exit:
     pk_free( &loaded_subject_key );
     pk_free( &loaded_issuer_key );
     mpi_free( &serial );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(_WIN32)

@@ -154,6 +154,7 @@ exit:
         fclose( fpriv );
 
     rsa_free( &rsa );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(_WIN32)

@@ -176,7 +176,7 @@ run_test() {
         # psk is useful when server only has bad certs
         $P_CLI request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
             crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
-            >/dev/null
+            >/dev/null 2>&1
 
         wait $SRV_PID
         kill $WATCHDOG_PID
@@ -1421,6 +1421,125 @@ run_test    "ssl_get_bytes_avail #2 (extra data)" \
             "$P_CLI request_size=500" \
             0 \
             -s "Read from client: 500 bytes read (.*+.*)"
+
+# Tests for small packets
+
+run_test    "Small packet SSLv3 BlockCipher" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=ssl3 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet SSLv3 StreamCipher" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=ssl3 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.0 BlockCipher" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.0 BlockCipher truncated MAC" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.0 StreamCipher truncated MAC" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
+             trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.1 BlockCipher" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.1 StreamCipher" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.1 BlockCipher truncated MAC" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.1 StreamCipher truncated MAC" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
+             trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 BlockCipher" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 BlockCipher larger MAC" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 BlockCipher truncated MAC" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 StreamCipher" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 StreamCipher truncated MAC" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
+             trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 AEAD" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 AEAD shorter tag" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
+            0 \
+            -s "Read from client: 1 bytes read"
 
 # Final report
 

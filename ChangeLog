@@ -34,6 +34,9 @@ Bugfix
    * Fix symlink command for cross compiling with CMake (found by Andre
      Heinecke)
    * Fix DER output of gen_key app (found by Gergely Budai)
+   * Very small packets were incorrectly rejected when truncated HMAC was in
+     use with some ciphersuites and versions (RC4 in all versions, CBC with
+     versions < TLS 1.1).
 
 = PolarSSL 1.3.7 released on 2014-05-02
 Features

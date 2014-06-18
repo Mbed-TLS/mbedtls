@@ -521,7 +521,10 @@ int ssl_derive_keys( ssl_context *ssl )
         transform->ivlen = 12;
         transform->fixed_ivlen = 4;
 
-        transform->minlen = 1; // FIXME
+        /* Minimum length is expicit IV + tag */
+        transform->minlen = transform->ivlen - transform->fixed_ivlen
+                            + ( transform->ciphersuite_info->flags &
+                                POLARSSL_CIPHERSUITE_SHORT_TAG ? 8 : 16 );
     }
     else
     {
@@ -551,14 +554,38 @@ int ssl_derive_keys( ssl_context *ssl )
         /* IV length */
         transform->ivlen = cipher_info->iv_size;
 
-        /* Minimum length: FIXME */
-        transform->minlen = transform->keylen;
-        if( transform->minlen < transform->maclen )
+        /* Minimum length */
+        if( cipher_info->mode == POLARSSL_MODE_STREAM )
+            transform->minlen = transform->maclen;
+        else
         {
-            if( cipher_info->mode == POLARSSL_MODE_STREAM )
-                transform->minlen = transform->maclen;
+            /*
+             * GenericBlockCipher:
+             * first multiple of blocklen greater than maclen
+             * + IV except for SSL3 and TLS 1.0
+             */
+            transform->minlen = transform->maclen
+                                + cipher_info->block_size
+                                - transform->maclen % cipher_info->block_size;
+
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)
+            if( ssl->minor_ver == SSL_MINOR_VERSION_0 ||
+                ssl->minor_ver == SSL_MINOR_VERSION_1 )
+                ; /* No need to adjust minlen */
             else
-                transform->minlen += transform->keylen;
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1_1) || defined(POLARSSL_SSL_PROTO_TLS1_2)
+            if( ssl->minor_ver == SSL_MINOR_VERSION_2 ||
+                ssl->minor_ver == SSL_MINOR_VERSION_3 )
+            {
+                transform->minlen += transform->ivlen;
+            }
+            else
+#endif
+            {
+                SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            }
         }
     }
 

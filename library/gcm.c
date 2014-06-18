@@ -266,6 +266,13 @@ int gcm_starts( gcm_context *ctx,
     const unsigned char *p;
     size_t use_len, olen = 0;
 
+    /* IV and AD are limited to 2^64 bits, so 2^61 bytes */
+    if( ( (uint64_t) iv_len  ) >> 61 != 0 ||
+        ( (uint64_t) add_len ) >> 61 != 0 )
+    {
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+    }
+
     memset( ctx->y, 0x00, sizeof(ctx->y) );
     memset( ctx->buf, 0x00, sizeof(ctx->buf) );
 
@@ -342,6 +349,14 @@ int gcm_update( gcm_context *ctx,
     if( output > input && (size_t) ( output - input ) < length )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
 
+    /* Total length is restricted to 2^39 - 256 bits, ie 2^36 - 2^5 bytes
+     * Also check for possible overflow */
+    if( ctx->len + length < ctx->len ||
+        (uint64_t) ctx->len + length > 0x03FFFFE0llu )
+    {
+        return( POLARSSL_ERR_GCM_BAD_INPUT );
+    }
+
     ctx->len += length;
 
     p = input;
@@ -387,7 +402,7 @@ int gcm_finish( gcm_context *ctx,
     uint64_t orig_len = ctx->len * 8;
     uint64_t orig_add_len = ctx->add_len * 8;
 
-    if( tag_len > 16 )
+    if( tag_len > 16 || tag_len < 4 )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
 
     if( tag_len != 0 )

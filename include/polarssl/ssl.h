@@ -258,8 +258,8 @@
 /* \} name SECTION: Module settings */
 
 /*
- * Allow an extra 301 bytes for the record header
- * and encryption overhead: counter (8) + header (5) + MAC (32) + padding (256)
+ * Allow an extra 301 bytes for the record header and encryption overhead:
+ * counter (8) + header (5) + IV(16) + MAC (48) + padding (256)
  * and allow for a maximum of 1024 of compression expansion if
  * enabled.
  */
@@ -269,7 +269,7 @@
 #define SSL_COMPRESSION_ADD             0
 #endif
 
-#define SSL_BUFFER_LEN (SSL_MAX_CONTENT_LEN + SSL_COMPRESSION_ADD + 301)
+#define SSL_BUFFER_LEN (SSL_MAX_CONTENT_LEN + SSL_COMPRESSION_ADD + 333)
 
 #define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
 

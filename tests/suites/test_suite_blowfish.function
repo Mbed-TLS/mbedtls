@@ -22,6 +22,7 @@ void blowfish_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    blowfish_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -34,6 +35,8 @@ void blowfish_encrypt_ecb( char *hex_key_string, char *hex_src_string,
 
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    blowfish_free( &ctx );
 }
 /* END_CASE */
 
@@ -52,6 +55,7 @@ void blowfish_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    blowfish_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -64,6 +68,8 @@ void blowfish_decrypt_ecb( char *hex_key_string, char *hex_src_string,
 
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    blowfish_free( &ctx );
 }
 /* END_CASE */
 
@@ -85,6 +91,7 @@ void blowfish_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    blowfish_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -99,6 +106,8 @@ void blowfish_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
 
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    blowfish_free( &ctx );
 }
 /* END_CASE */
 
@@ -120,6 +129,7 @@ void blowfish_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    blowfish_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -133,6 +143,8 @@ void blowfish_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
 
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    blowfish_free( &ctx );
 }
 /* END_CASE */
 
@@ -154,6 +166,7 @@ void blowfish_encrypt_cfb64( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    blowfish_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -164,6 +177,8 @@ void blowfish_encrypt_cfb64( char *hex_key_string, char *hex_iv_string,
     hexify( dst_str, output, src_len );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    blowfish_free( &ctx );
 }
 /* END_CASE */
 
@@ -185,6 +200,7 @@ void blowfish_decrypt_cfb64( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    blowfish_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -195,6 +211,8 @@ void blowfish_decrypt_cfb64( char *hex_key_string, char *hex_iv_string,
     hexify( dst_str, output, src_len );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    blowfish_free( &ctx );
 }
 /* END_CASE */
 
@@ -218,6 +236,7 @@ void blowfish_encrypt_ctr( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    blowfish_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -228,5 +247,7 @@ void blowfish_encrypt_ctr( char *hex_key_string, char *hex_iv_string,
     hexify( dst_str, output, src_len );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    blowfish_free( &ctx );
 }
 /* END_CASE */

@@ -34,6 +34,7 @@ void des_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    des_init( &ctx );
 
     unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -43,6 +44,8 @@ void des_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    des_free( &ctx );
 }
 /* END_CASE */
 
@@ -60,6 +63,7 @@ void des_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    des_init( &ctx );
 
     unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -69,6 +73,8 @@ void des_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    des_free( &ctx );
 }
 /* END_CASE */
 
@@ -89,6 +95,7 @@ void des_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    des_init( &ctx );
 
     unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -102,6 +109,8 @@ void des_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    des_free( &ctx );
 }
 /* END_CASE */
 
@@ -122,6 +131,7 @@ void des_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    des_init( &ctx );
 
     unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -135,6 +145,8 @@ void des_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    des_free( &ctx );
 }
 /* END_CASE */
 
@@ -152,6 +164,7 @@ void des3_encrypt_ecb( int key_count, char *hex_key_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    des3_init( &ctx );
 
     unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -167,6 +180,8 @@ void des3_encrypt_ecb( int key_count, char *hex_key_string,
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    des3_free( &ctx );
 }
 /* END_CASE */
 
@@ -184,6 +199,7 @@ void des3_decrypt_ecb( int key_count, char *hex_key_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    des3_init( &ctx );
 
     unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -199,6 +215,8 @@ void des3_decrypt_ecb( int key_count, char *hex_key_string,
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    des3_free( &ctx );
 }
 /* END_CASE */
 
@@ -220,6 +238,7 @@ void des3_encrypt_cbc( int key_count, char *hex_key_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    des3_init( &ctx );
 
     unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -240,6 +259,8 @@ void des3_encrypt_cbc( int key_count, char *hex_key_string,
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    des3_free( &ctx );
 }
 /* END_CASE */
 
@@ -261,6 +282,7 @@ void des3_decrypt_cbc( int key_count, char *hex_key_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    des3_init( &ctx );
 
     unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -281,6 +303,8 @@ void des3_decrypt_cbc( int key_count, char *hex_key_string,
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    des3_free( &ctx );
 }
 /* END_CASE */
 

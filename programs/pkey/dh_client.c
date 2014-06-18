@@ -84,6 +84,8 @@ int main( int argc, char *argv[] )
     memset( &rsa, 0, sizeof( rsa ) );
     memset( &dhm, 0, sizeof( dhm ) );
 
+    aes_init( &aes );
+
     /*
      * 1. Setup the RNG
      */
@@ -279,6 +281,7 @@ exit:
     if( server_fd != -1 )
         net_close( server_fd );
 
+    aes_free( &aes );
     rsa_free( &rsa );
     dhm_free( &dhm );
     entropy_free( &entropy );

@@ -48,6 +48,11 @@
 #define polarssl_printf printf
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
  * tests to succeed (which require known length fixed entropy)
@@ -93,6 +98,15 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
 {
     return( ctr_drbg_init_entropy_len( ctx, f_entropy, p_entropy, custom, len,
                                        CTR_DRBG_ENTROPY_LEN ) );
+}
+
+void ctr_drbg_free( ctr_drbg_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    aes_free( &ctx->aes_ctx );
+    polarssl_zeroize( ctx, sizeof( ctr_drbg_context ) );
 }
 
 void ctr_drbg_set_prediction_resistance( ctr_drbg_context *ctx, int resistance )

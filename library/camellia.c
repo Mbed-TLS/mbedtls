@@ -322,6 +322,19 @@ static void camellia_feistel( const uint32_t x[2], const uint32_t k[2],
     z[1] ^= I0;
 }
 
+void camellia_init( camellia_context *ctx )
+{
+    memset( ctx, 0, sizeof( camellia_context ) );
+}
+
+void camellia_free( camellia_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( camellia_context ) );
+}
+
 /*
  * Camellia key schedule (encryption)
  */
@@ -433,16 +446,17 @@ int camellia_setkey_enc( camellia_context *ctx, const unsigned char *key,
 int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
                          unsigned int keysize )
 {
-    int idx;
+    int idx, ret;
     size_t i;
     camellia_context cty;
     uint32_t *RK;
     uint32_t *SK;
-    int ret;
+
+    camellia_init( &cty );
 
     /* Also checks keysize */
     if( ( ret = camellia_setkey_enc( &cty, key, keysize ) ) )
-        return( ret );
+        goto exit;
 
     ctx->nr = cty.nr;
     idx = ( ctx->nr == 4 );
@@ -468,9 +482,10 @@ int camellia_setkey_dec( camellia_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
 
-    polarssl_zeroize( &cty, sizeof( camellia_context ) );
+exit:
+    camellia_free( &cty );
 
-    return( 0 );
+    return( ret );
 }
 
 /*

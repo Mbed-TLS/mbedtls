@@ -147,6 +147,8 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
     arc4_context ctx;
     ((void) mode);
 
+    arc4_init( &ctx );
+
     if( ( ret = pkcs12_pbe_derive_key_iv( pbe_params, POLARSSL_MD_SHA1,
                                           pwd, pwdlen,
                                           key, 16, NULL, 0 ) ) != 0 )
@@ -156,9 +158,13 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
 
     arc4_setup( &ctx, key, 16 );
     if( ( ret = arc4_crypt( &ctx, len, data, output ) ) != 0 )
-        return( ret );
+        goto exit;
 
-    return( 0 );
+exit:
+    polarssl_zeroize( key, sizeof( key ) );
+    arc4_free( &ctx );
+
+    return( ret );
 #endif /* POLARSSL_ARC4_C */
 }
 

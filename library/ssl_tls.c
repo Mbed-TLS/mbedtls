@@ -3482,6 +3482,14 @@ int ssl_session_reset( ssl_context *ssl )
 }
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
+static void ssl_ticket_keys_free( ssl_ticket_keys *tkeys )
+{
+    aes_free( &tkeys->enc );
+    aes_free( &tkeys->dec );
+
+    polarssl_zeroize( tkeys, sizeof(ssl_ticket_keys) );
+}
+
 /*
  * Allocate and initialize ticket keys
  */
@@ -3498,8 +3506,12 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
     if( tkeys == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
+    aes_init( &tkeys->enc );
+    aes_init( &tkeys->dec );
+
     if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->key_name, 16 ) ) != 0 )
     {
+        ssl_ticket_keys_free( tkeys );
         polarssl_free( tkeys );
         return( ret );
     }
@@ -3508,12 +3520,14 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
         ( ret = aes_setkey_enc( &tkeys->enc, buf, 128 ) ) != 0 ||
         ( ret = aes_setkey_dec( &tkeys->dec, buf, 128 ) ) != 0 )
     {
+        ssl_ticket_keys_free( tkeys );
         polarssl_free( tkeys );
         return( ret );
     }
 
     if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->mac_key, 16 ) ) != 0 )
     {
+        ssl_ticket_keys_free( tkeys );
         polarssl_free( tkeys );
         return( ret );
     }
@@ -4580,7 +4594,11 @@ void ssl_free( ssl_context *ssl )
     }
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
-    polarssl_free( ssl->ticket_keys );
+    if( ssl->ticket_keys )
+    {
+        ssl_ticket_keys_free( ssl->ticket_keys );
+        polarssl_free( ssl->ticket_keys );
+    }
 #endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)

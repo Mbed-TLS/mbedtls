@@ -55,9 +55,23 @@ typedef struct
 arc4_context;
 
 /**
- * \brief          ARC4 key schedule
+ * \brief          Initialize ARC4 context
  *
  * \param ctx      ARC4 context to be initialized
+ */
+void arc4_init( arc4_context *ctx );
+
+/**
+ * \brief          Clear ARC4 context
+ *
+ * \param ctx      ARC4 context to be cleared
+ */
+void arc4_free( arc4_context *ctx );
+
+/**
+ * \brief          ARC4 key schedule
+ *
+ * \param ctx      ARC4 context to be setup
  * \param key      the secret key
  * \param keylen   length of the key, in bytes
  */

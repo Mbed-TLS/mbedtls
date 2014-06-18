@@ -463,6 +463,19 @@ static void aes_gen_tables( void )
 
 #endif /* POLARSSL_AES_ROM_TABLES */
 
+void aes_init( aes_context *ctx )
+{
+    memset( ctx, 0, sizeof( aes_context ) );
+}
+
+void aes_free( aes_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( aes_context ) );
+}
+
 /*
  * AES key schedule (encryption)
  */
@@ -581,11 +594,12 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key,
 int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
                     unsigned int keysize )
 {
-    int i, j;
+    int i, j, ret;
     aes_context cty;
     uint32_t *RK;
     uint32_t *SK;
-    int ret;
+
+    aes_init( &cty );
 
 #if defined(POLARSSL_PADLOCK_C) && defined(PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
@@ -599,7 +613,7 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
 
     /* Also checks keysize */
     if( ( ret = aes_setkey_enc( &cty, key, keysize ) ) != 0 )
-        return( ret );
+        goto exit;
 
     ctx->nr = cty.nr;
 
@@ -608,7 +622,7 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
     {
         aesni_inverse_key( (unsigned char *) ctx->rk,
                            (const unsigned char *) cty.rk, ctx->nr );
-        goto done;
+        goto exit;
     }
 #endif
 
@@ -635,12 +649,10 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
 
-#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
-done:
-#endif
-    polarssl_zeroize( &cty, sizeof( aes_context ) );
+exit:
+    aes_free( &cty );
 
-    return( 0 );
+    return( ret );
 }
 
 #define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)     \
@@ -1171,7 +1183,7 @@ static const int aes_test_ctr_len[3] =
  */
 int aes_self_test( int verbose )
 {
-    int i, j, u, v;
+    int ret = 0, i, j, u, v;
     unsigned char key[32];
     unsigned char buf[64];
     unsigned char iv[16];
@@ -1189,6 +1201,7 @@ int aes_self_test( int verbose )
     aes_context ctx;
 
     memset( key, 0, 32 );
+    aes_init( &ctx );
 
     /*
      * ECB mode
@@ -1216,7 +1229,8 @@ int aes_self_test( int verbose )
                 if( verbose != 0 )
                     polarssl_printf( "failed\n" );
 
-                return( 1 );
+                ret = 1;
+                goto exit;
             }
         }
         else
@@ -1231,7 +1245,8 @@ int aes_self_test( int verbose )
                 if( verbose != 0 )
                     polarssl_printf( "failed\n" );
 
-                return( 1 );
+                ret = 1;
+                goto exit;
             }
         }
 
@@ -1271,7 +1286,8 @@ int aes_self_test( int verbose )
                 if( verbose != 0 )
                     polarssl_printf( "failed\n" );
 
-                return( 1 );
+                ret = 1;
+                goto exit;
             }
         }
         else
@@ -1294,7 +1310,8 @@ int aes_self_test( int verbose )
                 if( verbose != 0 )
                     polarssl_printf( "failed\n" );
 
-                return( 1 );
+                ret = 1;
+                goto exit;
             }
         }
 
@@ -1335,7 +1352,8 @@ int aes_self_test( int verbose )
                 if( verbose != 0 )
                     polarssl_printf( "failed\n" );
 
-                return( 1 );
+                ret = 1;
+                goto exit;
             }
         }
         else
@@ -1348,7 +1366,8 @@ int aes_self_test( int verbose )
                 if( verbose != 0 )
                     polarssl_printf( "failed\n" );
 
-                return( 1 );
+                ret = 1;
+                goto exit;
             }
         }
 
@@ -1392,7 +1411,8 @@ int aes_self_test( int verbose )
                 if( verbose != 0 )
                     polarssl_printf( "failed\n" );
 
-                return( 1 );
+                ret = 1;
+                goto exit;
             }
         }
         else
@@ -1408,7 +1428,8 @@ int aes_self_test( int verbose )
                 if( verbose != 0 )
                     polarssl_printf( "failed\n" );
 
-                return( 1 );
+                ret = 1;
+                goto exit;
             }
         }
 
@@ -1420,7 +1441,12 @@ int aes_self_test( int verbose )
         polarssl_printf( "\n" );
 #endif /* POLARSSL_CIPHER_MODE_CTR */
 
-    return( 0 );
+    ret = 0;
+
+exit:
+    aes_free( &ctx );
+
+    return( ret );
 }
 
 #endif /* POLARSSL_SELF_TEST */

@@ -66,6 +66,8 @@ int ctr_drbg_init_entropy_len(
     memset( ctx, 0, sizeof(ctr_drbg_context) );
     memset( key, 0, CTR_DRBG_KEYSIZE );
 
+    aes_init( &ctx->aes_ctx );
+
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
 
@@ -122,6 +124,7 @@ static int block_cipher_df( unsigned char *output,
     size_t buf_len, use_len;
 
     memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
+    aes_init( &aes_ctx );
 
     /*
      * Construct IV (16 bytes) and S in buffer
@@ -188,6 +191,8 @@ static int block_cipher_df( unsigned char *output,
         memcpy( p, iv, CTR_DRBG_BLOCKSIZE );
         p += CTR_DRBG_BLOCKSIZE;
     }
+
+    aes_free( &aes_ctx );
 
     return( 0 );
 }

@@ -41,6 +41,11 @@
 
 #if !defined(POLARSSL_XTEA_ALT)
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -63,6 +68,19 @@
     (b)[(i) + 3] = (unsigned char) ( (n)       );       \
 }
 #endif
+
+void xtea_init( xtea_context *ctx )
+{
+    memset( ctx, 0, sizeof( xtea_context ) );
+}
+
+void xtea_free( xtea_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( xtea_context ) );
+}
 
 /*
  * XTEA key schedule
@@ -223,10 +241,11 @@ static const unsigned char xtea_test_ct[6][8] =
  */
 int xtea_self_test( int verbose )
 {
-    int i;
+    int i, ret = 0;
     unsigned char buf[8];
     xtea_context ctx;
 
+    xtea_init( &ctx );
     for( i = 0; i < 6; i++ )
     {
         if( verbose != 0 )
@@ -242,7 +261,8 @@ int xtea_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -252,7 +272,10 @@ int xtea_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "\n" );
 
-    return( 0 );
+exit:
+    xtea_free( &ctx );
+
+    return( ret );
 }
 
 #endif /* POLARSSL_SELF_TEST */

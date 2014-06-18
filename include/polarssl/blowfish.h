@@ -71,6 +71,20 @@ typedef struct
 blowfish_context;
 
 /**
+ * \brief          Initialize Blowfish context
+ *
+ * \param ctx      Blowfish context to be initialized
+ */
+void blowfish_init( blowfish_context *ctx );
+
+/**
+ * \brief          Clear Blowfish context
+ *
+ * \param ctx      Blowfish context to be cleared
+ */
+void blowfish_free( blowfish_context *ctx );
+
+/**
  * \brief          Blowfish key schedule
  *
  * \param ctx      Blowfish context to be initialized

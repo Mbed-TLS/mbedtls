@@ -41,6 +41,11 @@
 
 #if !defined(POLARSSL_BLOWFISH_ALT)
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -150,6 +155,19 @@ static void blowfish_dec( blowfish_context *ctx, uint32_t *xl, uint32_t *xr )
 
     *xl = Xl;
     *xr = Xr;
+}
+
+void blowfish_init( blowfish_context *ctx )
+{
+    memset( ctx, 0, sizeof( blowfish_context ) );
+}
+
+void blowfish_free( blowfish_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( blowfish_context ) );
 }
 
 /*

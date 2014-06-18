@@ -1506,7 +1506,8 @@ reset:
 
             larger_buf[ori_len + extra_len] = '\0';
             printf( " %u bytes read (%u + %u)\n\n%s\n",
-                    ori_len + extra_len, ori_len, extra_len, (char *) buf );
+                    ori_len + extra_len, ori_len, extra_len,
+                    (char *) larger_buf );
 
             polarssl_free( larger_buf );
         }

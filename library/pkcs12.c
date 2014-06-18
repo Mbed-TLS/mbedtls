@@ -49,6 +49,11 @@
 #include "polarssl/des.h"
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 static int pkcs12_parse_pbe_params( asn1_buf *params,
                                     asn1_buf *salt, int *iterations )
 {
@@ -205,6 +210,8 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
         ret = POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH;
 
 exit:
+    polarssl_zeroize( key, sizeof( key ) );
+    polarssl_zeroize( iv,  sizeof( iv  ) );
     cipher_free_ctx( &cipher_ctx );
 
     return( ret );
@@ -330,6 +337,11 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
     ret = 0;
 
 exit:
+    polarssl_zeroize( salt_block, sizeof( salt_block ) );
+    polarssl_zeroize( pwd_block, sizeof( pwd_block ) );
+    polarssl_zeroize( hash_block, sizeof( hash_block ) );
+    polarssl_zeroize( hash_output, sizeof( hash_output ) );
+
     md_free_ctx( &md_ctx );
 
     return( ret );

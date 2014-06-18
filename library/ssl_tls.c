@@ -511,51 +511,47 @@ int ssl_derive_keys( ssl_context *ssl )
      * Determine the appropriate key, IV and MAC length.
      */
 
+    transform->keylen = cipher_info->key_length / 8;
+
     if( cipher_info->mode == POLARSSL_MODE_GCM ||
         cipher_info->mode == POLARSSL_MODE_CCM )
     {
-        transform->keylen = cipher_info->key_length;
-        transform->keylen /= 8;
-        transform->minlen = 1;
+        transform->maclen = 0;
+
         transform->ivlen = 12;
         transform->fixed_ivlen = 4;
-        transform->maclen = 0;
+
+        transform->minlen = 1; // FIXME
     }
     else
     {
-        if( md_info->type != POLARSSL_MD_NONE )
+        int ret;
+
+        /* Initialize HMAC contexts */
+        if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info ) ) != 0 ||
+            ( ret = md_init_ctx( &transform->md_ctx_dec, md_info ) ) != 0 )
         {
-            int ret;
-
-            if( ( ret = md_init_ctx( &transform->md_ctx_enc, md_info ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "md_init_ctx", ret );
-                return( ret );
-            }
-
-            if( ( ret = md_init_ctx( &transform->md_ctx_dec, md_info ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "md_init_ctx", ret );
-                return( ret );
-            }
-
-            transform->maclen = md_get_size( md_info );
-
-#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
-            /*
-             * If HMAC is to be truncated, we shall keep the leftmost bytes,
-             * (rfc 6066 page 13 or rfc 2104 section 4),
-             * so we only need to adjust the length here.
-             */
-            if( session->trunc_hmac == SSL_TRUNC_HMAC_ENABLED )
-                transform->maclen = SSL_TRUNCATED_HMAC_LEN;
-#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+            SSL_DEBUG_RET( 1, "md_init_ctx", ret );
+            return( ret );
         }
 
-        transform->keylen = cipher_info->key_length;
-        transform->keylen /= 8;
+        /* Get MAC length */
+        transform->maclen = md_get_size( md_info );
+
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+        /*
+         * If HMAC is to be truncated, we shall keep the leftmost bytes,
+         * (rfc 6066 page 13 or rfc 2104 section 4),
+         * so we only need to adjust the length here.
+         */
+        if( session->trunc_hmac == SSL_TRUNC_HMAC_ENABLED )
+            transform->maclen = SSL_TRUNCATED_HMAC_LEN;
+#endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+
+        /* IV length */
         transform->ivlen = cipher_info->iv_size;
 
+        /* Minimum length: FIXME */
         transform->minlen = transform->keylen;
         if( transform->minlen < transform->maclen )
         {

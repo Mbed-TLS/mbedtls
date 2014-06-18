@@ -56,7 +56,7 @@
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
-#define DFL_REQUEST_SIZE        0
+#define DFL_REQUEST_SIZE        -1
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
 #define DFL_CA_FILE             ""
@@ -272,8 +272,8 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    server_addr=%%s      default: given by name\n"     \
     "    server_port=%%d      default: 4433\n"              \
     "    request_page=%%s     default: \".\"\n"             \
-    "    request_size=%%d     default: 0 (no extra padding)\n" \
-    "                        (minimum: 16, max: " ")\n" \
+    "    request_size=%%d     default: about 34 (basic request)\n" \
+    "                        (minimum: 0, max: 16384)\n" \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
@@ -1033,9 +1033,9 @@ send_request:
         len = snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
                         opt.request_page );
 
-        // Add padding to GET request to reach opt.request_size in length
-        //
-        if( len + tail_len < (size_t) opt.request_size )
+        /* Add padding to GET request to reach opt.request_size in length */
+        if( opt.request_size != DFL_REQUEST_SIZE &&
+            len + tail_len < (size_t) opt.request_size )
         {
             memset( buf + len, 'A', opt.request_size - len - tail_len );
             len += opt.request_size - len - tail_len;
@@ -1043,6 +1043,17 @@ send_request:
 
         strncpy( (char *) buf + len, GET_REQUEST_END, sizeof(buf) - len - 1 );
         len += tail_len;
+    }
+
+    /* Truncate if request size is smaller than the "natural" size */
+    if( opt.request_size != DFL_REQUEST_SIZE &&
+        len > opt.request_size )
+    {
+        len = opt.request_size;
+
+        /* Still end with \r\n unless that's really not possible */
+        if( len >= 2 ) buf[len - 2] = '\r';
+        if( len >= 1 ) buf[len - 1] = '\n';
     }
 
     for( written = 0, frags = 0; written < len; written += ret, frags++ )

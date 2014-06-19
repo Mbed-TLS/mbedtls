@@ -1974,9 +1974,6 @@ int ssl_read_record( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
-    SSL_DEBUG_BUF( 4, "input record from network",
-                   ssl->in_hdr, 5 + ssl->in_msglen );
-
     if( ssl->in_hslen != 0 &&
         ssl->in_hslen < ssl->in_msglen )
     {

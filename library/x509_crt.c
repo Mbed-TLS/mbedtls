@@ -1589,13 +1589,21 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
  * Return 0 if yes, -1 if not.
  */
 static int x509_crt_check_parent( const x509_crt *child,
-                                  const x509_crt *parent )
+                                  const x509_crt *parent,
+                                  int top )
 {
-    if( parent->version == 0 ||
-        parent->ca_istrue == 0 ||
-        child->issuer_raw.len != parent->subject_raw.len ||
+    /* Parent must be the issuer */
+    if( child->issuer_raw.len != parent->subject_raw.len ||
         memcmp( child->issuer_raw.p, parent->subject_raw.p,
                 child->issuer_raw.len ) != 0 )
+    {
+        return( -1 );
+    }
+
+    /* Parent must have the basicConstraints CA bit set.
+     * Exception: v1/v2 certificates that are locally trusted. */
+    if( parent->ca_istrue == 0 &&
+        ! ( top && parent->version < 3 ) )
     {
         return( -1 );
     }
@@ -1643,7 +1651,7 @@ static int x509_crt_verify_top(
 
     for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {
-        if( x509_crt_check_parent( child, trust_ca ) != 0 )
+        if( x509_crt_check_parent( child, trust_ca, 1 ) != 0 )
             continue;
 
         /*
@@ -1770,7 +1778,7 @@ static int x509_crt_verify_child(
          grandparent != NULL;
          grandparent = grandparent->next )
     {
-        if( x509_crt_check_parent( parent, grandparent ) == 0 )
+        if( x509_crt_check_parent( parent, grandparent, 0 ) == 0 )
             break;
     }
 
@@ -1872,7 +1880,7 @@ int x509_crt_verify( x509_crt *crt,
     /* Look for a parent upwards the chain */
     for( parent = crt->next; parent != NULL; parent = parent->next )
     {
-        if( x509_crt_check_parent( crt, parent ) == 0 )
+        if( x509_crt_check_parent( crt, parent, 0 ) == 0 )
             break;
     }
 

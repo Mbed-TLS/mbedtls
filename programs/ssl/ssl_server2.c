@@ -1637,6 +1637,12 @@ exit:
 #if defined(POLARSSL_SNI)
     sni_free( sni_info );
 #endif
+#if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    psk_free( psk_info );
+#endif
+#if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
+    dhm_free( &dhm );
+#endif
 
     ssl_free( &ssl );
     entropy_free( &entropy );

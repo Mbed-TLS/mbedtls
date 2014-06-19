@@ -64,6 +64,8 @@ Bugfix
    * Stricter check on SSL ClientHello internal sizes compared to actual packet
      size (found by TrustInSoft)
    * Fix preprocessor checks for bn_mul PPC asm (found by Barry K. Nathan).
+   * Use \n\t rather than semicolons for bn_mul asm, since some assemblers
+     interpret semicolons as comment delimiters (found by Barry K. Nathan).
 
 = Version 1.2.10 released 2013-10-07
 Changes

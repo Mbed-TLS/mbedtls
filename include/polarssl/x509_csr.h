@@ -56,7 +56,7 @@ typedef struct _x509_csr
     x509_buf raw;           /**< The raw CSR data (DER). */
     x509_buf cri;           /**< The raw CertificateRequestInfo body (DER). */
 
-    int version;
+    int version;            /**< CSR version (1=v1). */
 
     x509_buf  subject_raw;  /**< The raw subject data (DER). */
     x509_name subject;      /**< The parsed subject data (named information object). */

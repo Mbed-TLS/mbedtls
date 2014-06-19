@@ -59,7 +59,7 @@ typedef struct _x509_crt
     x509_buf raw;               /**< The raw certificate data (DER). */
     x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;                /**< The X.509 version. (0=v1, 1=v2, 2=v3) */
+    int version;                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
     x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
     x509_buf sig_oid1;          /**< Signature algorithm, e.g. sha1RSA */
 

@@ -75,7 +75,7 @@ typedef struct _x509_crl
     x509_buf raw;           /**< The raw certificate data (DER). */
     x509_buf tbs;           /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;
+    int version;            /**< CRL version (1=v1, 2=v2) */
     x509_buf sig_oid1;
 
     x509_buf issuer_raw;    /**< The raw issuer data (DER). */

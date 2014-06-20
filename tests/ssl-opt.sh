@@ -112,6 +112,23 @@ has_mem_err() {
     fi
 }
 
+# wait for server to start: two versions depending on lsof availability
+wait_server_start() {
+    if which lsof >/dev/null; then
+        # make sure we don't loop forever
+        ( sleep "$DOG_DELAY"; echo "SERVERSTART TIMEOUT"; kill $MAIN_PID ) &
+        WATCHDOG_PID=$!
+
+        # make a tight loop, server usually takes less than 1 sec to start
+        until lsof -nbi TCP:"$PORT" | grep LISTEN >/dev/null; do :; done
+
+        kill $WATCHDOG_PID
+        wait $WATCHDOG_PID
+    else
+        sleep "$START_DELAY"
+    fi
+}
+
 # Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -145,7 +162,7 @@ run_test() {
     echo "$SRV_CMD" > $SRV_OUT
     $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
-    sleep 1
+    wait_server_start
     echo "$CLI_CMD" > $CLI_OUT
     eval "$CLI_CMD" >> $CLI_OUT 2>&1
     CLI_EXIT=$?
@@ -153,7 +170,7 @@ run_test() {
 
     if is_polar "$SRV_CMD"; then
         # start watchdog in case SERVERQUIT fails
-        ( sleep 10; echo "SERVERQUIT TIMEOUT"; kill $MAIN_PID ) &
+        ( sleep "$DOG_DELAY"; echo "SERVERQUIT TIMEOUT"; kill $MAIN_PID ) &
         WATCHDOG_PID=$!
 
         # psk is useful when server only has bad certs
@@ -260,7 +277,8 @@ run_test() {
 
 cleanup() {
     rm -f $CLI_OUT $SRV_OUT $SESSION
-    kill $SRV_PID
+    kill $SRV_PID >/dev/null 2>&1
+    kill $WATCHDOG_PID >/dev/null 2>&1
     exit 1
 }
 
@@ -286,6 +304,15 @@ fi
 
 # used by watchdog
 MAIN_PID="$$"
+
+# be more patient with valgrind
+if [ "$MEMCHECK" -gt 0 ]; then
+    START_DELAY=3
+    DOG_DELAY=30
+else
+    START_DELAY=1
+    DOG_DELAY=10
+fi
 
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"

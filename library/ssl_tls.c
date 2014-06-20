@@ -3334,6 +3334,9 @@ static int ssl_handshake_init( ssl_context *ssl )
     ssl->handshake->update_checksum = ssl_update_checksum_start;
     ssl->handshake->sig_alg = SSL_HASH_SHA1;
 
+#if defined(POLARSSL_DHM_C)
+    dhm_init( &ssl->handshake->dhm_ctx );
+#endif
 #if defined(POLARSSL_ECDH_C)
     ecdh_init( &ssl->handshake->ecdh_ctx );
 #endif

@@ -170,6 +170,13 @@ typedef struct
 dhm_context;
 
 /**
+ * \brief          Initialize DHM context
+ *
+ * \param ctx      DHM context to be initialized
+ */
+void dhm_init( dhm_context *ctx );
+
+/**
  * \brief          Parse the ServerKeyExchange parameters
  *
  * \param ctx      DHM context
@@ -256,7 +263,9 @@ int dhm_calc_secret( dhm_context *ctx,
                      void *p_rng );
 
 /**
- * \brief          Free the components of a DHM key
+ * \brief          Free and clear the components of a DHM key
+ *
+ * \param ctx      DHM context to free and clear
  */
 void dhm_free( dhm_context *ctx );
 

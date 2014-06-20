@@ -116,6 +116,11 @@ cleanup:
     return( ret );
 }
 
+void dhm_init( dhm_context *ctx )
+{
+    memset( ctx, 0, sizeof( dhm_context ) );
+}
+
 /*
  * Parse the ServerKeyExchange parameters
  */
@@ -124,8 +129,6 @@ int dhm_read_params( dhm_context *ctx,
                      const unsigned char *end )
 {
     int ret;
-
-    dhm_free( ctx );
 
     if( ( ret = dhm_read_bignum( &ctx->P,  p, end ) ) != 0 ||
         ( ret = dhm_read_bignum( &ctx->G,  p, end ) ) != 0 ||
@@ -417,7 +420,6 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
     pem_context pem;
 
     pem_init( &pem );
-    memset( dhm, 0, sizeof( dhm_context ) );
 
     ret = pem_read_buffer( &pem,
                            "-----BEGIN DH PARAMETERS-----",
@@ -561,6 +563,8 @@ int dhm_self_test( int verbose )
     int ret;
     dhm_context dhm;
 
+    dhm_init( &dhm );
+
     if( verbose != 0 )
         polarssl_printf( "  DHM parameter load: " );
 
@@ -570,15 +574,16 @@ int dhm_self_test( int verbose )
         if( verbose != 0 )
             polarssl_printf( "failed\n" );
 
-        return( ret );
+        goto exit;
     }
 
     if( verbose != 0 )
         polarssl_printf( "passed\n\n" );
 
+exit:
     dhm_free( &dhm );
 
-    return( 0 );
+    return( ret );
 #else
     if( verbose != 0 )
         polarssl_printf( "  DHM parameter load: skipped\n" );

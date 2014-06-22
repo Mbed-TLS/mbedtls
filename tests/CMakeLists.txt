@@ -95,10 +95,10 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data_files" target)
 
     if (NOT EXISTS ${link})
-        if (UNIX)
-            set(command ln -s ${target} ${link})
-        else()
+        if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
             set(command cmd.exe /c mklink ${link} ${target})
+        else()
+            set(command ln -s ${target} ${link})
         endif()
 
         execute_process(COMMAND ${command}

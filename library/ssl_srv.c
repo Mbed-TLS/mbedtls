@@ -2743,7 +2743,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
 
-        ssl->handshake->pmslen = ssl->handshake->dhm_ctx.len;
+        ssl->handshake->pmslen = POLARSSL_PREMASTER_SIZE;
 
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       ssl->handshake->premaster,

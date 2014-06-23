@@ -908,10 +908,7 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
     if( key_ex == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
         int ret;
-        size_t len = ssl->handshake->dhm_ctx.len;
-
-        if( end - p < 2 + (int) len )
-            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        size_t len = end - ( p + 2 );
 
         /* Write length only when we know the actual value */
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,

@@ -2055,7 +2055,7 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->handshake->dhm_ctx.X  );
         SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->handshake->dhm_ctx.GX );
 
-        ssl->handshake->pmslen = ssl->handshake->dhm_ctx.len;
+        ssl->handshake->pmslen = POLARSSL_PREMASTER_SIZE;
 
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       ssl->handshake->premaster,

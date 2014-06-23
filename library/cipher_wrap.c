@@ -374,7 +374,7 @@ const cipher_info_t aes_128_gcm_info = {
     128,
     "AES-128-GCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &gcm_aes_info
 };
@@ -385,7 +385,7 @@ const cipher_info_t aes_192_gcm_info = {
     192,
     "AES-192-GCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &gcm_aes_info
 };
@@ -396,7 +396,7 @@ const cipher_info_t aes_256_gcm_info = {
     256,
     "AES-256-GCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &gcm_aes_info
 };
@@ -429,7 +429,7 @@ const cipher_info_t aes_128_ccm_info = {
     128,
     "AES-128-CCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &ccm_aes_info
 };
@@ -440,7 +440,7 @@ const cipher_info_t aes_192_ccm_info = {
     192,
     "AES-192-CCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &ccm_aes_info
 };
@@ -451,7 +451,7 @@ const cipher_info_t aes_256_ccm_info = {
     256,
     "AES-256-CCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &ccm_aes_info
 };
@@ -728,7 +728,7 @@ const cipher_info_t camellia_128_gcm_info = {
     128,
     "CAMELLIA-128-GCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &gcm_camellia_info
 };
@@ -739,7 +739,7 @@ const cipher_info_t camellia_192_gcm_info = {
     192,
     "CAMELLIA-192-GCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &gcm_camellia_info
 };
@@ -750,7 +750,7 @@ const cipher_info_t camellia_256_gcm_info = {
     256,
     "CAMELLIA-256-GCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &gcm_camellia_info
 };
@@ -783,7 +783,7 @@ const cipher_info_t camellia_128_ccm_info = {
     128,
     "CAMELLIA-128-CCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &ccm_camellia_info
 };
@@ -794,7 +794,7 @@ const cipher_info_t camellia_192_ccm_info = {
     192,
     "CAMELLIA-192-CCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &ccm_camellia_info
 };
@@ -805,7 +805,7 @@ const cipher_info_t camellia_256_ccm_info = {
     256,
     "CAMELLIA-256-CCM",
     12,
-    1,
+    POLARSSL_CIPHER_VARIABLE_IV_LEN,
     16,
     &ccm_camellia_info
 };

@@ -49,6 +49,8 @@ Bugfix
    * Fix preprocessor checks for bn_mul PPC asm (found by Barry K. Nathan).
    * Use \n\t rather than semicolons for bn_mul asm, since some assemblers
      interpret semicolons as comment delimiters (found by Barry K. Nathan).
+   * Fix off-by-one error in parsing Supported Point Format extension that
+     caused some handshakes to fail.
 
 = PolarSSL 1.3.7 released on 2014-05-02
 Features

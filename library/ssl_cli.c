@@ -801,7 +801,7 @@ static int ssl_parse_supported_point_formats_ext( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
-    p = buf + 2;
+    p = buf + 1;
     while( list_size > 0 )
     {
         if( p[0] == POLARSSL_ECP_PF_UNCOMPRESSED ||

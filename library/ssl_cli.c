@@ -816,7 +816,8 @@ static int ssl_parse_supported_point_formats_ext( ssl_context *ssl,
         p++;
     }
 
-    return( 0 );
+    SSL_DEBUG_MSG( 1, ( "no point format in common" ) );
+    return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
 }
 #endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 

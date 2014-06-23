@@ -51,6 +51,6 @@
 /* For testing with compat.sh */
 #define POLARSSL_FS_IO
 
-#include "check_config.h"
+#include "polarssl/check_config.h"
 
 #endif /* POLARSSL_CONFIG_H */

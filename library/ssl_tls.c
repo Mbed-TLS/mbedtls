@@ -913,14 +913,16 @@ int ssl_psk_derive_premaster( ssl_context *ssl, key_exchange_type_t key_ex )
         if( end - p < 2 + (int) len )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-        *(p++) = (unsigned char)( len >> 8 );
-        *(p++) = (unsigned char)( len );
+        /* Write length only when we know the actual value */
         if( ( ret = dhm_calc_secret( &ssl->handshake->dhm_ctx,
-                                      p, &len, ssl->f_rng, ssl->p_rng ) ) != 0 )
+                                      p + 2, &len,
+                                      ssl->f_rng, ssl->p_rng ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "dhm_calc_secret", ret );
             return( ret );
         }
+        *(p++) = (unsigned char)( len >> 8 );
+        *(p++) = (unsigned char)( len );
         p += len;
 
         SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );

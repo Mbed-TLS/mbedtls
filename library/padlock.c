@@ -51,17 +51,17 @@ int padlock_supports( int feature )
 
     if( flags == -1 )
     {
-        asm( "movl  %%ebx, %0           \n"     \
-             "movl  $0xC0000000, %%eax  \n"     \
-             "cpuid                     \n"     \
-             "cmpl  $0xC0000001, %%eax  \n"     \
-             "movl  $0, %%edx           \n"     \
-             "jb    unsupported         \n"     \
-             "movl  $0xC0000001, %%eax  \n"     \
-             "cpuid                     \n"     \
-             "unsupported:              \n"     \
-             "movl  %%edx, %1           \n"     \
-             "movl  %2, %%ebx           \n"
+        asm( "movl  %%ebx, %0           \n\t"
+             "movl  $0xC0000000, %%eax  \n\t"
+             "cpuid                     \n\t"
+             "cmpl  $0xC0000001, %%eax  \n\t"
+             "movl  $0, %%edx           \n\t"
+             "jb    unsupported         \n\t"
+             "movl  $0xC0000001, %%eax  \n\t"
+             "cpuid                     \n\t"
+             "unsupported:              \n\t"
+             "movl  %%edx, %1           \n\t"
+             "movl  %2, %%ebx           \n\t"
              : "=m" (ebx), "=m" (edx)
              :  "m" (ebx)
              : "eax", "ecx", "edx" );
@@ -93,15 +93,16 @@ int padlock_xcryptecb( aes_context *ctx,
      ctrl = blk + 4;
     *ctrl = 0x80 | ctx->nr | ( ( ctx->nr + ( mode^1 ) - 10 ) << 9 );
 
-    asm( "pushfl; popfl         \n"     \
-         "movl    %%ebx, %0     \n"     \
-         "movl    $1, %%ecx     \n"     \
-         "movl    %2, %%edx     \n"     \
-         "movl    %3, %%ebx     \n"     \
-         "movl    %4, %%esi     \n"     \
-         "movl    %4, %%edi     \n"     \
-         ".byte  0xf3,0x0f,0xa7,0xc8\n" \
-         "movl    %1, %%ebx     \n"
+    asm( "pushfl                        \n\t"
+         "popfl                         \n\t"
+         "movl    %%ebx, %0             \n\t"
+         "movl    $1, %%ecx             \n\t"
+         "movl    %2, %%edx             \n\t"
+         "movl    %3, %%ebx             \n\t"
+         "movl    %4, %%esi             \n\t"
+         "movl    %4, %%edi             \n\t"
+         ".byte  0xf3,0x0f,0xa7,0xc8    \n\t"
+         "movl    %1, %%ebx             \n\t"
          : "=m" (ebx)
          :  "m" (ebx), "m" (ctrl), "m" (rk), "m" (blk)
          : "ecx", "edx", "esi", "edi" );
@@ -141,16 +142,17 @@ int padlock_xcryptcbc( aes_context *ctx,
 
     count = ( length + 15 ) >> 4;
 
-    asm( "pushfl; popfl         \n"     \
-         "movl    %%ebx, %0     \n"     \
-         "movl    %2, %%ecx     \n"     \
-         "movl    %3, %%edx     \n"     \
-         "movl    %4, %%ebx     \n"     \
-         "movl    %5, %%esi     \n"     \
-         "movl    %6, %%edi     \n"     \
-         "movl    %7, %%eax     \n"     \
-         ".byte  0xf3,0x0f,0xa7,0xd0\n" \
-         "movl    %1, %%ebx     \n"
+    asm( "pushfl                        \n\t"
+         "popfl                         \n\t"
+         "movl    %%ebx, %0             \n\t"
+         "movl    %2, %%ecx             \n\t"
+         "movl    %3, %%edx             \n\t"
+         "movl    %4, %%ebx             \n\t"
+         "movl    %5, %%esi             \n\t"
+         "movl    %6, %%edi             \n\t"
+         "movl    %7, %%eax             \n\t"
+         ".byte  0xf3,0x0f,0xa7,0xd0    \n\t"
+         "movl    %1, %%ebx             \n\t"
          : "=m" (ebx)
          :  "m" (ebx), "m" (count), "m" (ctrl),
             "m"  (rk), "m" (input), "m" (output), "m" (iw)

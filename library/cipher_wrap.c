@@ -1180,7 +1180,7 @@ const cipher_info_t blowfish_ecb_info = {
     128,
     "BLOWFISH-ECB",
     8,
-    0,
+    POLARSSL_CIPHER_VARIABLE_KEY_LEN,
     8,
     &blowfish_info
 };
@@ -1192,7 +1192,7 @@ const cipher_info_t blowfish_cbc_info = {
     128,
     "BLOWFISH-CBC",
     8,
-    0,
+    POLARSSL_CIPHER_VARIABLE_KEY_LEN,
     8,
     &blowfish_info
 };
@@ -1205,7 +1205,7 @@ const cipher_info_t blowfish_cfb64_info = {
     128,
     "BLOWFISH-CFB64",
     8,
-    0,
+    POLARSSL_CIPHER_VARIABLE_KEY_LEN,
     8,
     &blowfish_info
 };
@@ -1218,7 +1218,7 @@ const cipher_info_t blowfish_ctr_info = {
     128,
     "BLOWFISH-CTR",
     8,
-    0,
+    POLARSSL_CIPHER_VARIABLE_KEY_LEN,
     8,
     &blowfish_info
 };

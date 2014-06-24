@@ -43,8 +43,6 @@
 #define POLARSSL_MD5_C // ???
 #define POLARSSL_OID_C
 #define POLARSSL_PADLOCK_C
-#define POLARSSL_PEM_PARSE_C // ???
-#define POLARSSL_PEM_WRITE_C // ???
 #define POLARSSL_PK_C
 #define POLARSSL_PK_PARSE_C
 #define POLARSSL_PK_WRITE_C

@@ -168,8 +168,11 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     if( NULL == ctx || NULL == ctx->cipher_info )
         return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
-    if( (int) ctx->cipher_info->key_length != key_length )
+    if( ( ctx->cipher_info->flags & POLARSSL_CIPHER_VARIABLE_KEY_LEN ) == 0 &&
+        (int) ctx->cipher_info->key_length != key_length )
+    {
         return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    }
 
     ctx->key_length = key_length;
     ctx->operation = operation;
@@ -204,7 +207,7 @@ int cipher_set_iv( cipher_context_t *ctx,
     if( iv_len > POLARSSL_MAX_IV_LENGTH )
         return( POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE );
 
-    if( ctx->cipher_info->accepts_variable_iv_size )
+    if( ( ctx->cipher_info->flags & POLARSSL_CIPHER_VARIABLE_IV_LEN ) != 0 )
         actual_iv_size = iv_len;
     else
     {

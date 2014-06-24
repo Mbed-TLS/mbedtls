@@ -61,6 +61,9 @@
 #define POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED            -0x6280  /**< Decryption of block requires a full block. */
 #define POLARSSL_ERR_CIPHER_AUTH_FAILED                    -0x6300  /**< Authentication failed (for AEAD modes). */
 
+#define POLARSSL_CIPHER_VARIABLE_IV_LEN     0x01    /**< Cipher accepts IVs of variable length */
+#define POLARSSL_CIPHER_VARIABLE_KEY_LEN    0x02    /**< Cipher accepts keys of variable length */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -238,8 +241,8 @@ typedef struct {
      *  For cipher that accept many sizes: recommended size */
     unsigned int iv_size;
 
-    /** Flag for ciphers that accept many sizes of IV/NONCE */
-    int accepts_variable_iv_size;
+    /** Flags for variable IV size, variable key size, etc. */
+    int flags;
 
     /** block size, in bytes */
     unsigned int block_size;

@@ -52,7 +52,6 @@
 #define POLARSSL_SHA1_C
 #define POLARSSL_SHA256_C
 #define POLARSSL_X509_USE_C // !!!
-#define POLARSSL_X509_CRT_PARSE_C // !!!
 
 #include "check_config.h"
 

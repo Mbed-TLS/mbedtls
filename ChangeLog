@@ -43,6 +43,9 @@ Bugfix
      to 32 bytes with CBC-based ciphersuites and TLS >= 1.1
    * Restore ability to use a v1 cert as a CA if trusted locally. (This had
      been removed in 1.3.6.)
+   * Restore ability to locally trust a self-signed cert that is not a proper
+     CA for use as an end entity certificate. (This had been removed in
+     1.3.6.)
 
 = PolarSSL 1.3.7 released on 2014-05-02
 Features

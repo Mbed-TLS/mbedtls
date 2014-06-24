@@ -1587,11 +1587,16 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
 /*
  * Check if 'parent' is a suitable parent (signing CA) for 'child'.
  * Return 0 if yes, -1 if not.
+ *
+ * top means parent is a locally-trusted certificate
+ * bottom means child is the end entity cert
  */
 static int x509_crt_check_parent( const x509_crt *child,
                                   const x509_crt *parent,
-                                  int top )
+                                  int top, int bottom )
 {
+    int need_ca_bit;
+
     /* Parent must be the issuer */
     if( child->issuer_raw.len != parent->subject_raw.len ||
         memcmp( child->issuer_raw.p, parent->subject_raw.p,
@@ -1600,17 +1605,30 @@ static int x509_crt_check_parent( const x509_crt *child,
         return( -1 );
     }
 
-    /* Parent must have the basicConstraints CA bit set.
-     * Exception: v1/v2 certificates that are locally trusted. */
-    if( parent->ca_istrue == 0 &&
-        ! ( top && parent->version < 3 ) )
+    /* Parent must have the basicConstraints CA bit set as a general rule */
+    need_ca_bit = 1;
+
+    /* Exception: v1/v2 certificates that are locally trusted. */
+    if( top && parent->version < 3 )
+        need_ca_bit = 0;
+
+    /* Exception: self-signed end-entity certs that are locally trusted. */
+    if( top && bottom &&
+        child->raw.len == parent->raw.len &&
+        memcmp( child->raw.p, parent->raw.p, child->raw.len ) == 0 )
+    {
+        need_ca_bit = 0;
+    }
+
+    if( need_ca_bit && ! parent->ca_istrue )
+        return( -1 );
+
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+    if( need_ca_bit &&
+        x509_crt_check_key_usage( parent, KU_KEY_CERT_SIGN ) != 0 )
     {
         return( -1 );
     }
-
-#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
-    if( x509_crt_check_key_usage( parent, KU_KEY_CERT_SIGN ) != 0 )
-        return( -1 );
 #endif
 
     return( 0 );
@@ -1651,7 +1669,7 @@ static int x509_crt_verify_top(
 
     for( /* trust_ca */ ; trust_ca != NULL; trust_ca = trust_ca->next )
     {
-        if( x509_crt_check_parent( child, trust_ca, 1 ) != 0 )
+        if( x509_crt_check_parent( child, trust_ca, 1, path_cnt == 0 ) != 0 )
             continue;
 
         /*
@@ -1778,7 +1796,8 @@ static int x509_crt_verify_child(
          grandparent != NULL;
          grandparent = grandparent->next )
     {
-        if( x509_crt_check_parent( parent, grandparent, 0 ) == 0 )
+        if( x509_crt_check_parent( parent, grandparent,
+                                   0, path_cnt == 0 ) == 0 )
             break;
     }
 
@@ -1880,7 +1899,7 @@ int x509_crt_verify( x509_crt *crt,
     /* Look for a parent upwards the chain */
     for( parent = crt->next; parent != NULL; parent = parent->next )
     {
-        if( x509_crt_check_parent( crt, parent, 0 ) == 0 )
+        if( x509_crt_check_parent( crt, parent, 0, pathlen == 0 ) == 0 )
             break;
     }
 

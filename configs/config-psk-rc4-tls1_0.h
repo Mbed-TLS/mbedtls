@@ -12,8 +12,9 @@
 #define POLARSSL_CONFIG_H
 
 /* System support */
-#define POLARSSL_HAVE_TIME
-#define POLARSSL_HAVE_IPV6
+//#define POLARSSL_HAVE_IPV6 /* Optional */
+//#define POLARSSL_HAVE_TIME /* Optionnaly used in Hello messages */
+/* Other POLARSSL_HAVE_XXX flags irrelevant for this configuration */
 
 /* PolarSSL feature support */
 #define POLARSSL_KEY_EXCHANGE_PSK_ENABLED

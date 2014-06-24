@@ -36,7 +36,7 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_GCM_C)
+#if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
 #define POLARSSL_CIPHER_MODE_AEAD
 #endif
 
@@ -534,25 +534,21 @@ int cipher_set_iv( cipher_context_t *ctx,
  */
 int cipher_reset( cipher_context_t *ctx );
 
-#if defined(POLARSSL_CIPHER_MODE_AEAD)
+#if defined(POLARSSL_GCM_C)
 /**
  * \brief               Add additional data (for AEAD ciphers).
- *                      This function has no effect for non-AEAD ciphers.
- *                      For AEAD ciphers, it may or may not be called
- *                      repeatedly, and/or interleaved with calls to
- *                      cipher_udpate(), depending on the cipher.
- *                      E.g. for GCM is must be called exactly once, right
- *                      after cipher_reset().
+ *                      Currently only supported with GCM.
+ *                      Must be called exactly once, after cipher_reset().
  *
  * \param ctx           generic cipher context
  * \param ad            Additional data to use.
  * \param ad_len        Length of ad.
  *
- * \returns             0 on success, or a specific error code.
+ * \return              0 on success, or a specific error code.
  */
 int cipher_update_ad( cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len );
-#endif /* POLARSSL_CIPHER_MODE_AEAD */
+#endif /* POLARSSL_GCM_C */
 
 /**
  * \brief               Generic cipher update function. Encrypts/decrypts
@@ -606,10 +602,10 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input,
 int cipher_finish( cipher_context_t *ctx,
                    unsigned char *output, size_t *olen );
 
-#if defined(POLARSSL_CIPHER_MODE_AEAD)
+#if defined(POLARSSL_GCM_C)
 /**
  * \brief               Write tag for AEAD ciphers.
- *                      No effect for other ciphers.
+ *                      Currently only supported with GCM.
  *                      Must be called after cipher_finish().
  *
  * \param ctx           Generic cipher context
@@ -623,9 +619,8 @@ int cipher_write_tag( cipher_context_t *ctx,
 
 /**
  * \brief               Check tag for AEAD ciphers.
- *                      No effect for other ciphers.
- *                      Calling time depends on the cipher:
- *                      for GCM, must be called after cipher_finish().
+ *                      Currently only supported with GCM.
+ *                      Must be called after cipher_finish().
  *
  * \param ctx           Generic cipher context
  * \param tag           Buffer holding the tag
@@ -635,7 +630,7 @@ int cipher_write_tag( cipher_context_t *ctx,
  */
 int cipher_check_tag( cipher_context_t *ctx,
                       const unsigned char *tag, size_t tag_len );
-#endif /* POLARSSL_CIPHER_MODE_AEAD */
+#endif /* POLARSSL_GCM_C */
 
 /**
  * \brief               Generic all-in-one encryption/decryption

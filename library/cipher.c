@@ -234,24 +234,22 @@ int cipher_reset( cipher_context_t *ctx )
     return( 0 );
 }
 
-#if defined(POLARSSL_CIPHER_MODE_AEAD)
+#if defined(POLARSSL_GCM_C)
 int cipher_update_ad( cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
-#if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
     {
         return gcm_starts( (gcm_context *) ctx->cipher_ctx, ctx->operation,
                            ctx->iv, ctx->iv_size, ad, ad_len );
     }
-#endif
 
     return( 0 );
 }
-#endif /* POLARSSL_CIPHER_MODE_AEAD */
+#endif /* POLARSSL_GCM_C */
 
 int cipher_update( cipher_context_t *ctx, const unsigned char *input,
                    size_t ilen, unsigned char *output, size_t *olen )
@@ -724,7 +722,7 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
 }
 #endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
-#if defined(POLARSSL_CIPHER_MODE_AEAD)
+#if defined(POLARSSL_GCM_C)
 int cipher_write_tag( cipher_context_t *ctx,
                       unsigned char *tag, size_t tag_len )
 {
@@ -734,10 +732,8 @@ int cipher_write_tag( cipher_context_t *ctx,
     if( POLARSSL_ENCRYPT != ctx->operation )
         return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
 
-#if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
         return gcm_finish( (gcm_context *) ctx->cipher_ctx, tag, tag_len );
-#endif
 
     return( 0 );
 }
@@ -753,7 +749,6 @@ int cipher_check_tag( cipher_context_t *ctx,
         return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
-#if defined(POLARSSL_GCM_C)
     if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
     {
         unsigned char check_tag[16];
@@ -778,11 +773,10 @@ int cipher_check_tag( cipher_context_t *ctx,
 
         return( 0 );
     }
-#endif /* POLARSSL_GCM_C */
 
     return( 0 );
 }
-#endif /* POLARSSL_CIPHER_MODE_AEAD */
+#endif /* POLARSSL_GCM_C */
 
 /*
  * Packet-oriented wrapper for non-AEAD modes

@@ -1694,7 +1694,13 @@ const int *ssl_list_ciphersuites( void )
 
         for( i = 0; i < max - 1 && p[i] != 0; i++ )
         {
+#if defined(POLARSSL_REMOVE_ARC4_CIPHERSUITES)
+            const ssl_ciphersuite_t *cs_info;
+            if( ( cs_info = ssl_ciphersuite_from_id( p[i] ) ) != NULL &&
+                cs_info->cipher != POLARSSL_CIPHER_ARC4_128 )
+#else
             if( ssl_ciphersuite_from_id( p[i] ) != NULL )
+#endif
                 *(q++) = p[i];
         }
         *q = 0;

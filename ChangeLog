@@ -18,6 +18,8 @@ Features
    * Blowfish in the cipher layer now supports variable length keys.
    * Add example config.h for PSK with CCM, optimized for low RAM usage.
    * Optimize for RAM usage in example config.h for NSA Suite B profile.
+   * Add POLARSSL_REMOVE_ARC4_CIPHERSUITES to allow removing RC4 ciphersuites
+     from the default list (inactive by default).
 
 Changes
    * Add LINK_WITH_PTHREAD option in CMake for explicit linking that is

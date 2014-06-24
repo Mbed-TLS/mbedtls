@@ -315,6 +315,19 @@
 //#define POLARSSL_ENABLE_WEAK_CIPHERSUITES
 
 /**
+ * \def POLARSSL_REMOVE_ARC4_CIPHERSUITES
+ *
+ * Remove RC4 ciphersuites by default in SSL / TLS.
+ * This flag removes the ciphersuites based on RC4 from the default list as
+ * returned by ssl_list_ciphersuites(). However, it is still possible to
+ * enable (some of) them with ssl_set_ciphersuites() by including them
+ * explicitly.
+ *
+ * Uncomment this macro to remove RC4 ciphersuites by default.
+ */
+//#define POLARSSL_REMOVE_ARC4_CIPHERSUITES
+
+/**
  * \def POLARSSL_ECP_XXXX_ENABLED
  *
  * Enables specific curves within the Elliptic Curve module.

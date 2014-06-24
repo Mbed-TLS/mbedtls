@@ -60,8 +60,8 @@
 #define POLARSSL_AES_ROM_TABLES
 
 /* Save RAM by adjusting to our exact needs */
-#define POLARSSL_MPI_MAX_SIZE    96
 #define POLARSSL_ECP_MAX_BITS   384
+#define POLARSSL_MPI_MAX_SIZE    48 // 384 bits is 48 bytes
 
 /* Save RAM at the expense of speed, see ecp.h */
 #define POLARSSL_ECP_WINDOW_SIZE        2

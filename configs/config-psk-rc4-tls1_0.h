@@ -2,6 +2,10 @@
  * Custom compact configuration for TLS 1.0 with PSK and RC4
  * Distinguishing features: no bignum, no PK, no X509.
  *
+ * WARNING: RC4 is in the process of being deprecated!
+ * This configuration is kept for testing purposes only, DO NOT USE it!
+ * For a safe and lean PSK-based configuration, see config-ccm-psk-tls1_2.h
+ *
  * See README.txt for usage instructions.
  */
 #ifndef POLARSSL_CONFIG_H

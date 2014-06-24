@@ -19,6 +19,8 @@ my %configs = (
         => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM'",
     'config-picocoin.h'
         => 0,
+    'config-ccm-psk-tls1_2.h'
+        => '-m tls1_2 -f \'TLS-PSK.*AES.*CCM\'',
 );
 
 # If no config-name is provided, use all known configs.

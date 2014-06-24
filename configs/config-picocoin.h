@@ -51,7 +51,6 @@
 #define POLARSSL_RIPEMD160_C
 #define POLARSSL_SHA1_C
 #define POLARSSL_SHA256_C
-#define POLARSSL_X509_USE_C // !!!
 
 #include "check_config.h"
 

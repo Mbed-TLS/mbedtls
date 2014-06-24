@@ -44,6 +44,7 @@
 /*
  * Save RAM at the expense of interoperability: do this only if you control
  * both ends of the connection!  (See coments in "polarssl/ssl.h".)
+ * The optimal size here depends on the typical size of records.
  */
 #define SSL_MAX_CONTENT_LEN             512
 

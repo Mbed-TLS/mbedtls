@@ -72,7 +72,7 @@
 
 /*
  * You should adjust this to the exact number of sources you're using: default
- * is the "platform_entrpy_poll" source, but you may want to add other ones.
+ * is the "platform_entropy_poll" source, but you may want to add other ones.
  * Minimum is 2 for the entropy test suite.
  */
 #define ENTROPY_MAX_SOURCES 2

@@ -4,7 +4,6 @@
  *
  * See README.txt for usage instructions.
  */
-
 #ifndef POLARSSL_CONFIG_H
 #define POLARSSL_CONFIG_H
 
@@ -19,15 +18,12 @@
 /* PolarSSL modules */
 #define POLARSSL_AES_C
 #define POLARSSL_ARC4_C
-#define POLARSSL_ASN1_PARSE_C
-#define POLARSSL_ASN1_WRITE_C
 #define POLARSSL_CIPHER_C
 #define POLARSSL_CTR_DRBG_C
 #define POLARSSL_ENTROPY_C
 #define POLARSSL_MD_C
 #define POLARSSL_MD5_C
 #define POLARSSL_NET_C
-#define POLARSSL_OID_C
 #define POLARSSL_SHA1_C
 #define POLARSSL_SHA256_C
 #define POLARSSL_SSL_CLI_C

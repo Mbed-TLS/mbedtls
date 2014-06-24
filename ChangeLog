@@ -54,6 +54,7 @@ Bugfix
    * Fix possible miscomputation of the premaster secret with DHE-PSK key
      exchange that caused some handshakes to fail with other implementations.
      (Failure rate <= 1/255 with common DHM moduli.)
+   * Disable broken Sparc64 bn_mul assembly (found by Florian Obser).
 
 = PolarSSL 1.3.7 released on 2014-05-02
 Features

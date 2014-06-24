@@ -17,6 +17,8 @@ my %configs = (
         => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
     'config-suite-b.h'
         => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM'",
+    'config-picocoin.h'
+        => 0,
 );
 
 # If no config-name is provided, use all known configs.
@@ -59,9 +61,17 @@ while( my ($conf, $args) = each %configs ) {
 
     system( "make" ) and abort "Failed to build: $conf\n";
     system( "make $test" ) and abort "Failed test suite: $conf\n";
-    print "\nrunning compat.sh $args\n";
-    system( "cd tests && ./compat.sh $args" )
-        and abort "Failed compat.sh: $conf\n";
+
+    if( $args )
+    {
+        print "\nrunning compat.sh $args\n";
+        system( "cd tests && ./compat.sh $args" )
+            and abort "Failed compat.sh: $conf\n";
+    }
+    else
+    {
+        print "\nskipping compat.sh\n";
+    }
 }
 
 system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";

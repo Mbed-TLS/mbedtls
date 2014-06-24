@@ -719,6 +719,36 @@ void mpi_is_prime( int radix_X, char *input_X, int div_result )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_GENPRIME */
+void mpi_gen_prime( int bits, int safe, int ref_ret )
+{
+    mpi X;
+    int my_ret;
+
+    mpi_init( &X );
+
+    my_ret = mpi_gen_prime( &X, bits, safe, rnd_std_rand, NULL );
+    TEST_ASSERT( my_ret == ref_ret );
+
+    if( ref_ret == 0 )
+    {
+        size_t actual_bits = mpi_msb( &X );
+
+        TEST_ASSERT( actual_bits >= (size_t) bits );
+        TEST_ASSERT( actual_bits <= (size_t) bits + 1 );
+
+        TEST_ASSERT( mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
+        if( safe )
+        {
+            mpi_shift_r( &X, 1 ); /* X = ( X - 1 ) / 2 */
+            TEST_ASSERT( mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
+        }
+    }
+
+    mpi_free( &X );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void mpi_shift_l( int radix_X, char *input_X, int shift_X, int radix_A,
                   char *input_A)

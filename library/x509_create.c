@@ -40,6 +40,59 @@
 #define strncasecmp _strnicmp
 #endif
 
+typedef struct {
+    const char *name;
+    size_t name_len;
+    const char*oid;
+} x509_attr_descriptor_t;
+
+#define ADD_STRLEN( s )     s, sizeof( s ) - 1
+
+static const x509_attr_descriptor_t x509_attrs[] =
+{
+    { ADD_STRLEN( "CN" ),                       OID_AT_CN },
+    { ADD_STRLEN( "commonName" ),               OID_AT_CN },
+    { ADD_STRLEN( "C" ),                        OID_AT_COUNTRY },
+    { ADD_STRLEN( "countryName" ),              OID_AT_COUNTRY },
+    { ADD_STRLEN( "O" ),                        OID_AT_ORGANIZATION },
+    { ADD_STRLEN( "organizationName" ),         OID_AT_ORGANIZATION },
+    { ADD_STRLEN( "L" ),                        OID_AT_LOCALITY },
+    { ADD_STRLEN( "locality" ),                 OID_AT_LOCALITY },
+    { ADD_STRLEN( "R" ),                        OID_PKCS9_EMAIL },
+    { ADD_STRLEN( "OU" ),                       OID_AT_ORG_UNIT },
+    { ADD_STRLEN( "organizationalUnitName" ),   OID_AT_ORG_UNIT },
+    { ADD_STRLEN( "ST" ),                       OID_AT_STATE },
+    { ADD_STRLEN( "stateOrProvinceName" ),      OID_AT_STATE },
+    { ADD_STRLEN( "emailAddress" ),             OID_PKCS9_EMAIL },
+    { ADD_STRLEN( "serialNumber" ),             OID_AT_SERIAL_NUMBER },
+    { ADD_STRLEN( "postalAddress" ),            OID_AT_POSTAL_ADDRESS },
+    { ADD_STRLEN( "postalCode" ),               OID_AT_POSTAL_CODE },
+    { ADD_STRLEN( "dnQualifier" ),              OID_AT_DN_QUALIFIER },
+    { ADD_STRLEN( "title" ),                    OID_AT_TITLE },
+    { ADD_STRLEN( "surName" ),                  OID_AT_SUR_NAME },
+    { ADD_STRLEN( "SN" ),                       OID_AT_SUR_NAME },
+    { ADD_STRLEN( "givenName" ),                OID_AT_GIVEN_NAME },
+    { ADD_STRLEN( "GN" ),                       OID_AT_GIVEN_NAME },
+    { ADD_STRLEN( "initials" ),                 OID_AT_INITIALS },
+    { ADD_STRLEN( "pseudonym" ),                OID_AT_PSEUDONYM },
+    { ADD_STRLEN( "generationQualifier" ),      OID_AT_GENERATION_QUALIFIER },
+    { ADD_STRLEN( "domainComponent" ),          OID_DOMAIN_COMPONENT },
+    { ADD_STRLEN( "DC" ),                       OID_DOMAIN_COMPONENT },
+    { NULL, 0, NULL }
+};
+
+static const char *x509_at_oid_from_name( const char *name, size_t name_len )
+{
+    const x509_attr_descriptor_t *cur;
+
+    for( cur = x509_attrs; cur->name != NULL; cur++ )
+        if( cur->name_len == name_len &&
+            strncasecmp( cur->name, name, name_len ) == 0 )
+            break;
+
+    return( cur->oid );
+}
+
 int x509_string_to_names( asn1_named_data **head, const char *name )
 {
     int ret = 0;
@@ -55,68 +108,7 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
     {
         if( in_tag && *c == '=' )
         {
-            if( c - s == 2 && strncasecmp( s, "CN", 2 ) == 0 )
-                oid = OID_AT_CN;
-            else if( c - s == 10 && strncasecmp( s, "commonName", 10 ) == 0 )
-                oid = OID_AT_CN;
-            else if( c - s == 1 && strncasecmp( s, "C", 1 ) == 0 )
-                oid = OID_AT_COUNTRY;
-            else if( c - s == 11 && strncasecmp( s, "countryName", 11 ) == 0 )
-                oid = OID_AT_COUNTRY;
-            else if( c - s == 1 && strncasecmp( s, "O", 1 ) == 0 )
-                oid = OID_AT_ORGANIZATION;
-            else if( c - s == 16 &&
-                     strncasecmp( s, "organizationName", 16 ) == 0 )
-                oid = OID_AT_ORGANIZATION;
-            else if( c - s == 1 && strncasecmp( s, "L", 1 ) == 0 )
-                oid = OID_AT_LOCALITY;
-            else if( c - s == 8 && strncasecmp( s, "locality", 8 ) == 0 )
-                oid = OID_AT_LOCALITY;
-            else if( c - s == 1 && strncasecmp( s, "R", 1 ) == 0 )
-                oid = OID_PKCS9_EMAIL;
-            else if( c - s == 2 && strncasecmp( s, "OU", 2 ) == 0 )
-                oid = OID_AT_ORG_UNIT;
-            else if( c - s == 22 &&
-                     strncasecmp( s, "organizationalUnitName", 22 ) == 0 )
-                oid = OID_AT_ORG_UNIT;
-            else if( c - s == 2 && strncasecmp( s, "ST", 2 ) == 0 )
-                oid = OID_AT_STATE;
-            else if( c - s == 19 &&
-                     strncasecmp( s, "stateOrProvinceName", 19 ) == 0 )
-                oid = OID_AT_STATE;
-            else if( c - s == 12 && strncasecmp( s, "emailAddress", 12 ) == 0 )
-                oid = OID_PKCS9_EMAIL;
-            else if( c - s == 12 && strncasecmp( s, "serialNumber", 12 ) == 0 )
-                oid = OID_AT_SERIAL_NUMBER;
-            else if( c - s == 13 && strncasecmp( s, "postalAddress", 13 ) == 0 )
-                oid = OID_AT_POSTAL_ADDRESS;
-            else if( c - s == 10 && strncasecmp( s, "postalCode", 10 ) == 0 )
-                oid = OID_AT_POSTAL_CODE;
-            else if( c - s == 11 && strncasecmp( s, "dnQualifier", 11 ) == 0 )
-                oid = OID_AT_DN_QUALIFIER;
-            else if( c - s == 5 && strncasecmp( s, "title", 5 ) == 0 )
-                oid = OID_AT_TITLE;
-            else if( c - s == 7 && strncasecmp( s, "surName", 7 ) == 0 )
-                oid = OID_AT_SUR_NAME;
-            else if( c - s == 2 && strncasecmp( s, "SN", 2 ) == 0 )
-                oid = OID_AT_SUR_NAME;
-            else if( c - s == 9 && strncasecmp( s, "givenName", 9 ) == 0 )
-                oid = OID_AT_GIVEN_NAME;
-            else if( c - s == 2 && strncasecmp( s, "GN", 2 ) == 0 )
-                oid = OID_AT_GIVEN_NAME;
-            else if( c - s == 8 && strncasecmp( s, "initials", 8 ) == 0 )
-                oid = OID_AT_INITIALS;
-            else if( c - s == 9 && strncasecmp( s, "pseudonym", 9 ) == 0 )
-                oid = OID_AT_PSEUDONYM;
-            else if( c - s == 19 &&
-                     strncasecmp( s, "generationQualifier", 19 ) == 0 )
-                oid = OID_AT_GENERATION_QUALIFIER;
-            else if( c - s == 15 &&
-                     strncasecmp( s, "domainComponent", 15 ) == 0 )
-                oid = OID_DOMAIN_COMPONENT;
-            else if( c - s == 2 && strncasecmp( s, "DC", 2 ) == 0 )
-                oid = OID_DOMAIN_COMPONENT;
-            else
+            if( ( oid = x509_at_oid_from_name( s, c - s ) ) == NULL )
             {
                 ret = POLARSSL_ERR_X509_UNKNOWN_OID;
                 goto exit;

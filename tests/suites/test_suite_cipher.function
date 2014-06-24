@@ -22,6 +22,76 @@ void cipher_list( )
 /* END_CASE */
 
 /* BEGIN_CASE */
+void cipher_null_args( )
+{
+    cipher_context_t ctx;
+    const cipher_info_t *info = cipher_info_from_type( *( cipher_list() ) );
+    unsigned char buf[1] = { 0 };
+    size_t olen;
+
+    memset( &ctx, 0, sizeof( cipher_context_t ) );
+
+    TEST_ASSERT( cipher_get_block_size( NULL ) == 0 );
+    TEST_ASSERT( cipher_get_block_size( &ctx ) == 0 );
+
+    TEST_ASSERT( cipher_get_cipher_mode( NULL ) == POLARSSL_MODE_NONE );
+    TEST_ASSERT( cipher_get_cipher_mode( &ctx ) == POLARSSL_MODE_NONE );
+
+    TEST_ASSERT( cipher_get_iv_size( NULL ) == 0 );
+    TEST_ASSERT( cipher_get_iv_size( &ctx ) == 0 );
+
+    TEST_ASSERT( cipher_info_from_string( NULL ) == NULL );
+
+    TEST_ASSERT( cipher_init_ctx( &ctx, NULL )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_init_ctx( NULL, info )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( cipher_setkey( NULL, buf, 0, POLARSSL_ENCRYPT )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_setkey( &ctx, buf, 0, POLARSSL_ENCRYPT )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( cipher_set_iv( NULL, buf, 0 )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_set_iv( &ctx, buf, 0 )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( cipher_reset( NULL ) == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_reset( &ctx ) == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+    TEST_ASSERT( cipher_update_ad( NULL, buf, 0 )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_update_ad( &ctx, buf, 0 )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+#endif
+
+    TEST_ASSERT( cipher_update( NULL, buf, 0, buf, &olen )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_update( &ctx, buf, 0, buf, &olen )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( cipher_finish( NULL, buf, &olen )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_finish( &ctx, buf, &olen )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+    TEST_ASSERT( cipher_write_tag( NULL, buf, olen )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_write_tag( &ctx, buf, olen )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( cipher_check_tag( NULL, buf, olen )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( cipher_check_tag( &ctx, buf, olen )
+                 == POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
                   int length_val, int pad_mode )
 {

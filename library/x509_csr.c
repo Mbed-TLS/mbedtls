@@ -25,10 +25,9 @@
 /*
  *  The ITU-T X.509 standard defines a certificate format for PKI.
  *
- *  http://www.ietf.org/rfc/rfc3279.txt
- *  http://www.ietf.org/rfc/rfc3280.txt
- *
- *  ftp://ftp.rsasecurity.com/pub/pkcs/ascii/pkcs-1v2.asc
+ *  http://www.ietf.org/rfc/rfc5280.txt (Certificates and CRLs)
+ *  http://www.ietf.org/rfc/rfc3279.txt (Alg IDs for CRLs)
+ *  http://www.ietf.org/rfc/rfc2986.txt (CSRs, aka PKCS#10)
  *
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.680-0207.pdf
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
@@ -91,18 +90,15 @@ static int x509_csr_get_version( unsigned char **p,
 }
 
 /*
- * Parse a CSR
+ * Parse a CSR in DER format
  */
-int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
+int x509_csr_parse_der( x509_csr *csr,
+                        const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
     unsigned char *p, *end;
     x509_buf sig_params;
-#if defined(POLARSSL_PEM_PARSE_C)
-    size_t use_len;
-    pem_context pem;
-#endif
 
     memset( &sig_params, 0, sizeof( x509_buf ) );
 
@@ -114,41 +110,15 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
 
     x509_csr_init( csr );
 
-#if defined(POLARSSL_PEM_PARSE_C)
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
-                           "-----BEGIN CERTIFICATE REQUEST-----",
-                           "-----END CERTIFICATE REQUEST-----",
-                           buf, NULL, 0, &use_len );
+    /*
+     * first copy the raw DER data
+     */
+    p = (unsigned char *) polarssl_malloc( len = buflen );
 
-    if( ret == 0 )
-    {
-        /*
-         * Was PEM encoded, steal PEM buffer
-         */
-        p = pem.buf;
-        pem.buf = NULL;
-        len = pem.buflen;
-        pem_free( &pem );
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
-    else
-#endif /* POLARSSL_PEM_PARSE_C */
-    {
-        /*
-         * nope, copy the raw DER data
-         */
-        p = (unsigned char *) polarssl_malloc( len = buflen );
+    if( p == NULL )
+        return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
-        if( p == NULL )
-            return( POLARSSL_ERR_X509_MALLOC_FAILED );
-
-        memcpy( p, buf, buflen );
-    }
+    memcpy( p, buf, buflen );
 
     csr->raw.p = p;
     csr->raw.len = len;
@@ -283,6 +253,51 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
     }
 
     return( 0 );
+}
+
+/*
+ * Parse a CSR, allowing for PEM or raw DER encoding
+ */
+int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
+{
+    int ret;
+#if defined(POLARSSL_PEM_PARSE_C)
+    size_t use_len;
+    pem_context pem;
+#endif
+
+    /*
+     * Check for valid input
+     */
+    if( csr == NULL || buf == NULL )
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+
+#if defined(POLARSSL_PEM_PARSE_C)
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN CERTIFICATE REQUEST-----",
+                           "-----END CERTIFICATE REQUEST-----",
+                           buf, NULL, 0, &use_len );
+
+    if( ret == 0 )
+    {
+        /*
+         * Was PEM encoded, parse the result
+         */
+        if( ( ret = x509_csr_parse_der( csr, pem.buf, pem.buflen ) ) != 0 )
+            return( ret );
+
+        pem_free( &pem );
+        return( 0 );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
+    }
+    else
+#endif /* POLARSSL_PEM_PARSE_C */
+    return( x509_csr_parse_der( csr, buf, buflen ) );
 }
 
 #if defined(POLARSSL_FS_IO)

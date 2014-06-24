@@ -101,8 +101,8 @@ static int ssl_session_copy( ssl_session *dst, const ssl_session *src )
 
         x509_crt_init( dst->peer_cert );
 
-        if( ( ret = x509_crt_parse( dst->peer_cert, src->peer_cert->raw.p,
-                                    src->peer_cert->raw.len ) ) != 0 )
+        if( ( ret = x509_crt_parse_der( dst->peer_cert, src->peer_cert->raw.p,
+                                        src->peer_cert->raw.len ) ) != 0 )
         {
             polarssl_free( dst->peer_cert );
             dst->peer_cert = NULL;

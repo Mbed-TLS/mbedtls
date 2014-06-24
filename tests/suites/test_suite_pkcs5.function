@@ -43,3 +43,35 @@ void pbkdf2_hmac( int hash, char *hex_password_string,
     TEST_ASSERT( strcmp( (char *) dst_str, result_key_string ) == 0 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void pkcs5_pbes2( int params_tag, char *params_hex, char *pw_hex,
+                  char *data_hex, int ref_ret, char *ref_out_hex )
+{
+    int my_ret;
+    asn1_buf params;
+    unsigned char *my_out, *ref_out, *data, *pw;
+    size_t ref_out_len, data_len, pw_len;
+
+    params.tag = params_tag;
+    params.p = unhexify_alloc( params_hex, &params.len );
+
+    data = unhexify_alloc( data_hex, &data_len );
+    pw = unhexify_alloc( pw_hex, &pw_len );
+    ref_out = unhexify_alloc( ref_out_hex, &ref_out_len );
+    my_out = zero_alloc( ref_out_len );
+
+    my_ret = pkcs5_pbes2( &params, PKCS5_DECRYPT,
+                          pw, pw_len, data, data_len, my_out );
+    TEST_ASSERT( my_ret == ref_ret );
+
+    if( ref_ret == 0 )
+        TEST_ASSERT( memcmp( my_out, ref_out, ref_out_len ) == 0 );
+
+    polarssl_free( params.p );
+    polarssl_free( data );
+    polarssl_free( pw );
+    polarssl_free( ref_out );
+    polarssl_free( my_out );
+}
+/* END_CASE */

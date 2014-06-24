@@ -60,19 +60,19 @@ test-ref-configs:
 # CFLAGS='--coverage' make OFLAGS='-g3 -O0'
 covtest:
 	make check
-	# add programs/test/selftest even though the selftest functions are
-	# called from the testsuites since it runs them in verbose mode,
-	# avoiding spurious "uncovered" printf lines
 	programs/test/selftest
 	( cd tests && ./compat.sh )
 	( cd tests && ./ssl-opt.sh )
 
 lcov:
 	rm -rf Coverage
-	lcov --capture --directory library -o polarssl.info
+	lcov --capture --initial --directory library -o files.info
+	lcov --capture --directory library -o tests.info
+	lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
+	lcov --remove all.info -o final.info '*.h'
 	gendesc tests/Descriptions.txt -o descriptions
-	genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage polarssl.info
-	rm -f polarssl.info descriptions
+	genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+	rm -f files.info tests.info all.info final.info descriptions
 
 apidoc:
 	mkdir -p apidoc

@@ -85,9 +85,6 @@ if(ENABLE_TESTING)
     COMMAND tests/scripts/test-ref-configs.pl
     )
 
-  # add programs/test/selftest even though the selftest functions are
-  # called from the testsuites since it runs them in verbose mode,
-  # avoiding spurious "uncovered" printf lines
   ADD_CUSTOM_TARGET(covtest
     COMMAND make test
     COMMAND programs/test/selftest
@@ -97,10 +94,13 @@ if(ENABLE_TESTING)
 
   ADD_CUSTOM_TARGET(lcov
     COMMAND rm -rf Coverage
-    COMMAND lcov --capture --directory library/CMakeFiles/polarssl.dir -o polarssl.info
+    COMMAND lcov --capture --initial --directory library/CMakeFiles/polarssl.dir -o files.info
+    COMMAND lcov --capture --directory library/CMakeFiles/polarssl.dir -o tests.info
+    COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
+    COMMAND lcov --remove all.info -o final.info '*.h'
     COMMAND gendesc tests/Descriptions.txt -o descriptions
-    COMMAND genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage polarssl.info
-    COMMAND rm -f polarssl.info descriptions
+    COMMAND genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+    COMMAND rm -f files.info tests.info all.info final.info descriptions
     )
 
   ADD_CUSTOM_TARGET(memcheck

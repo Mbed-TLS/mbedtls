@@ -316,7 +316,7 @@ fi
 
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"
-PORT="1$(echo $PORT | tail -c 4)"
+PORT="1$(echo $PORT | tail -c 5)"
 
 # fix commands to use this port
 P_SRV="$P_SRV server_port=$PORT"

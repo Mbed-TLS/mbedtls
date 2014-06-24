@@ -1,6 +1,9 @@
 MD process
 md_process:
 
+MD NULL/uninitialised arguments
+md_null_args:
+
 Information on MD2
 depends_on:POLARSSL_MD2_C
 md_info:POLARSSL_MD_MD2:"MD2":16

@@ -66,6 +66,7 @@ Bugfix
    * Fix preprocessor checks for bn_mul PPC asm (found by Barry K. Nathan).
    * Use \n\t rather than semicolons for bn_mul asm, since some assemblers
      interpret semicolons as comment delimiters (found by Barry K. Nathan).
+   * Disable broken Sparc64 bn_mul assembly (found by Florian Obser).
 
 = Version 1.2.10 released 2013-10-07
 Changes

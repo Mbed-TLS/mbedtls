@@ -409,7 +409,11 @@
 
 #endif /* PPC32 */
 
-#if defined(__sparc__) && defined(__sparc64__)
+/*
+ * The Sparc64 assembly is reported to be broken.
+ * Disable it for now, until we're able to fix it.
+ */
+#if 0 && defined(__sparc__) && defined(__sparc64__)
 
 #define MULADDC_INIT                                    \
     asm(                                                \

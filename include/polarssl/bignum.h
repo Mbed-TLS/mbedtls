@@ -414,7 +414,9 @@ int mpi_write_file( const char *p, const mpi *X, int radix, FILE *fout );
 int mpi_read_binary( mpi *X, const unsigned char *buf, size_t buflen );
 
 /**
- * \brief          Export X into unsigned binary data, big endian
+ * \brief          Export X into unsigned binary data, big endian.
+ *                 Always fills the whole buffer, which will start with zeros
+ *                 if the number is smaller.
  *
  * \param X        Source MPI
  * \param buf      Output buffer

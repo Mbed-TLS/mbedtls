@@ -638,6 +638,9 @@
  * Make available the backward compatible error_strerror() next to the
  * current polarssl_strerror().
  *
+ * For new code, it is recommended to use polarssl_strerror() instead and
+ * disabled this.
+ *
  * Disable if you run into name conflicts and want to really remove the
  * error_strerror()
  */
@@ -647,7 +650,11 @@
  * \def POLARSSL_ERROR_STRERROR_DUMMY
  *
  * Enable a dummy error function to make use of polarssl_strerror() in
- * third party libraries easier.
+ * third party libraries easier when POLARSSL_ERROR_C is disabled
+ * (no effect when POLARSSL_ERROR_C is enabled).
+ *
+ * You can safely disable this if POLARSSL_ERROR_C is enabled, or if you're
+ * not using polarssl_strerror() or error_strerror() in your application.
  *
  * Disable if you run into name conflicts and want to really remove the
  * polarssl_strerror()

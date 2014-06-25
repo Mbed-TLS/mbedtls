@@ -19,7 +19,7 @@ if(CMAKE_COMPILER_IS_CLANG)
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
   set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
   set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fno-omit-frame-pointer -g3 -O1")
-  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -O1 -Wpointer-arith -Wwrite-strings -Wdocumentation -Wunreachable-code -Wmissing-prototypes")
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -O1 -Wpointer-arith -Wwrite-strings -Wdocumentation -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}

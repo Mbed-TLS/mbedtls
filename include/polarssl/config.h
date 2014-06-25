@@ -1233,10 +1233,11 @@
  * Module:  library/bignum.c
  * Caller:  library/dhm.c
  *          library/ecp.c
+ *          library/ecdsa.c
  *          library/rsa.c
  *          library/ssl_tls.c
  *
- * This module is required for RSA and DHM support.
+ * This module is required for RSA, DHM and ECC (ECDH, ECDSA) support.
  */
 #define POLARSSL_BIGNUM_C
 

@@ -29,9 +29,11 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_ERROR_C)
-
+#if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
 #include "polarssl/error.h"
+#endif
+
+#if defined(POLARSSL_ERROR_C)
 
 #if defined(POLARSSL_AES_C)
 #include "polarssl/aes.h"

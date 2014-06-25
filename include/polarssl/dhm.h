@@ -218,7 +218,8 @@ int dhm_make_public( dhm_context *ctx, int x_size,
  *
  * \param ctx      DHM context
  * \param output   destination buffer
- * \param olen     number of chars written
+ * \param olen     on entry, must hold the size of the destination buffer
+ *                 on exit, holds the actual number of bytes written
  *
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
  */

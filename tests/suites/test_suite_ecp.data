@@ -269,7 +269,7 @@ depends_on:POLARSSL_ECP_DP_SECP256R1_ENABLED
 ecp_tls_read_group:"030017":0:256
 
 ECP tls read group #5 (OK, buffer continues)
-depends_on:POLARSSL_ECP_DP_SECP256R1_ENABLED
+depends_on:POLARSSL_ECP_DP_SECP384R1_ENABLED
 ecp_tls_read_group:"0300180000":0:384
 
 ECP tls write-read group #1

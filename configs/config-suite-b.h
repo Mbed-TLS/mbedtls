@@ -1,6 +1,14 @@
 /*
  * Minimal configuration for TLS NSA Suite B Profile (RFC 6460)
  *
+ * Distinguishing features:
+ * - no RSA or classic DH, fully based on ECC
+ * - optimized for low RAM usage
+ *
+ * Possible improvements:
+ * - if 128-bit security is enough, disable secp384r1 and SHA-512
+ * - use embedded certs in DER format and disable PEM_PARSE_C and BASE64_C
+ *
  * See README.txt for usage instructions.
  */
 
@@ -48,8 +56,34 @@
 #define POLARSSL_CERTS_C
 #define POLARSSL_PEM_PARSE_C
 
-/* For testing with compat.sh */
-#define POLARSSL_FS_IO
+/* Save RAM at the expense of ROM */
+#define POLARSSL_AES_ROM_TABLES
+
+/* Save RAM by adjusting to our exact needs */
+#define POLARSSL_ECP_MAX_BITS   384
+#define POLARSSL_MPI_MAX_SIZE    48 // 384 bits is 48 bytes
+
+/* Save RAM at the expense of speed, see ecp.h */
+#define POLARSSL_ECP_WINDOW_SIZE        2
+#define POLARSSL_ECP_FIXED_POINT_OPTIM  0
+
+/* Uncomment for a significant speed benefit at the expense of some ROM */
+//#define POLARSSL_ECP_NIST_OPTIM
+
+/*
+ * You should adjust this to the exact number of sources you're using: default
+ * is the "platform_entropy_poll" source, but you may want to add other ones.
+ * Minimum is 2 for the entropy test suite.
+ */
+#define ENTROPY_MAX_SOURCES 2
+
+/*
+ * Save RAM at the expense of interoperability: do this only if you control
+ * both ends of the connection!  (See coments in "polarssl/ssl.h".)
+ * The minimum size here depends on the certificate chain used as well as the
+ * typical size of records.
+ */
+#define SSL_MAX_CONTENT_LEN             1024
 
 #include "polarssl/check_config.h"
 

@@ -63,8 +63,13 @@ int main( int argc, char *argv[] )
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_DEBUG_LEVEL         0
 #define DFL_OUTPUT_MODE         OUTPUT_MODE_NONE
+#if defined(POLARSSL_PEM_WRITE_C)
 #define DFL_OUTPUT_FILENAME     "keyfile.pem"
 #define DFL_OUTPUT_FORMAT       OUTPUT_FORMAT_PEM
+#else
+#define DFL_OUTPUT_FILENAME     "keyfile.der"
+#define DFL_OUTPUT_FORMAT       OUTPUT_FORMAT_DER
+#endif
 
 /*
  * global options
@@ -88,6 +93,7 @@ static int write_public_key( pk_context *key, const char *output_file )
 
     memset(output_buf, 0, 16000);
 
+#if defined(POLARSSL_PEM_WRITE_C)
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
         if( ( ret = pk_write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
@@ -96,6 +102,7 @@ static int write_public_key( pk_context *key, const char *output_file )
         len = strlen( (char *) output_buf );
     }
     else
+#endif
     {
         if( ( ret = pk_write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
@@ -127,6 +134,8 @@ static int write_private_key( pk_context *key, const char *output_file )
     size_t len = 0;
 
     memset(output_buf, 0, 16000);
+
+#if defined(POLARSSL_PEM_WRITE_C)
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
         if( ( ret = pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
@@ -135,6 +144,7 @@ static int write_private_key( pk_context *key, const char *output_file )
         len = strlen( (char *) output_buf );
     }
     else
+#endif
     {
         if( ( ret = pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
             return( ret );
@@ -157,14 +167,23 @@ static int write_private_key( pk_context *key, const char *output_file )
     return( 0 );
 }
 
+#if defined(POLARSSL_PEM_WRITE_C)
+#define USAGE_OUT \
+    "    output_file=%%s      default: keyfile.pem\n"   \
+    "    output_format=pem|der default: pem\n"
+#else
+#define USAGE_OUT \
+    "    output_file=%%s      default: keyfile.der\n"   \
+    "    output_format=der     default: der\n"
+#endif
+
 #define USAGE \
     "\n usage: key_app param=<>...\n"                   \
     "\n acceptable parameters:\n"                       \
     "    mode=private|public default: none\n"           \
     "    filename=%%s         default: keyfile.key\n"   \
     "    output_mode=private|public default: none\n"    \
-    "    output_file=%%s      default: keyfile.pem\n"   \
-    "    output_format=pem|der default: pem\n"          \
+    USAGE_OUT                                           \
     "\n"
 
 int main( int argc, char *argv[] )
@@ -222,9 +241,12 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "output_format" ) == 0 )
         {
+#if defined(POLARSSL_PEM_WRITE_C)
             if( strcmp( q, "pem" ) == 0 )
                 opt.output_format = OUTPUT_FORMAT_PEM;
-            else if( strcmp( q, "der" ) == 0 )
+            else
+#endif
+            if( strcmp( q, "der" ) == 0 )
                 opt.output_format = OUTPUT_FORMAT_DER;
             else
                 goto usage;

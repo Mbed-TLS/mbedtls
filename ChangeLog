@@ -16,6 +16,8 @@ Features
    * Support for parsing and verifying RSASSA-PSS signatures in the X.509
      modules (certificates, CRLs and CSRs).
    * Blowfish in the cipher layer now supports variable length keys.
+   * Add example config.h for PSK with CCM, optimized for low RAM usage.
+   * Optimize for RAM usage in example config.h for NSA Suite B profile.
 
 Changes
    * Add LINK_WITH_PTHREAD option in CMake for explicit linking that is

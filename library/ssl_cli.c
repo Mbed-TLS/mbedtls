@@ -148,8 +148,10 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
                                                 size_t *olen )
 {
     unsigned char *p = buf;
-    unsigned char *sig_alg_list = buf + 6;
     size_t sig_alg_len = 0;
+#if defined(POLARSSL_RSA_C) || defined(POLARSSL_ECDSA_C)
+    unsigned char *sig_alg_list = buf + 6;
+#endif
 
     *olen = 0;
 

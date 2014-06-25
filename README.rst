@@ -39,7 +39,7 @@ In order to build the source using CMake, just enter at the command line::
 
     make
 
-There are 3 different active build modes specified within the CMake buildsystem:
+There are 5 different active build modes specified within the CMake buildsystem:
 
 - Release.
   This generates the default code without any unnecessary information in the binary files.
@@ -47,6 +47,10 @@ There are 3 different active build modes specified within the CMake buildsystem:
   This generates debug information and disables optimization of the code.
 - Coverage.
   This generates code coverage information in addition to debug information.
+- ASan.
+  This instruments the code with AddressSanitizer to check for memory errors.
+- Check.
+  This activates more compiler warnings and treats them as errors.
 
 Switching build modes in CMake is simple. For debug mode, enter at the command line:
 

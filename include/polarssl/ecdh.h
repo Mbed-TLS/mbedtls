@@ -47,7 +47,7 @@ typedef enum
  */
 typedef struct
 {
-    ecp_group grp;      /*!<  ellipitic curve used                          */
+    ecp_group grp;      /*!<  elliptic curve used                           */
     mpi d;              /*!<  our secret value (private key)                */
     ecp_point Q;        /*!<  our public value (public key)                 */
     ecp_point Qp;       /*!<  peer's public value (public key)              */

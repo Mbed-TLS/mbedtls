@@ -639,7 +639,7 @@
  * current polarssl_strerror().
  *
  * For new code, it is recommended to use polarssl_strerror() instead and
- * disabled this.
+ * disable this.
  *
  * Disable if you run into name conflicts and want to really remove the
  * error_strerror()

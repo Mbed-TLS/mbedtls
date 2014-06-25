@@ -40,7 +40,7 @@
  */
 typedef struct
 {
-    ecp_group grp;      /*!<  ellipitic curve used          */
+    ecp_group grp;      /*!<  elliptic curve used           */
     mpi d;              /*!<  secret signature key          */
     ecp_point Q;        /*!<  public signature key          */
     mpi r;              /*!<  first integer from signature  */

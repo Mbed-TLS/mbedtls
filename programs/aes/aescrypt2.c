@@ -94,6 +94,7 @@ int main( int argc, char *argv[] )
 #endif
 
     aes_init( &aes_ctx );
+    sha256_init( &sha_ctx );
 
     /*
      * Parse the command-line arguments.
@@ -429,7 +430,7 @@ exit:
     memset( digest, 0, sizeof( digest ) );
 
     aes_free( &aes_ctx );
-    memset( &sha_ctx, 0, sizeof( sha256_context ) );
+    sha256_free( &sha_ctx );
 
     return( ret );
 }

@@ -17,6 +17,7 @@ void sha1_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     memset(src_str, 0x00, sizeof src_str);
     memset(key_str, 0x00, sizeof key_str);
+    sha1_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
@@ -56,6 +57,8 @@ void sha1_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    sha1_free( &ctx );
 }
 /* END_CASE */
 
@@ -72,6 +75,7 @@ void sha224_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     memset(src_str, 0x00, sizeof src_str);
     memset(key_str, 0x00, sizeof key_str);
+    sha256_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
@@ -111,6 +115,8 @@ void sha224_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    sha256_free( &ctx );
 }
 /* END_CASE */
 
@@ -127,6 +133,7 @@ void sha256_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     memset(src_str, 0x00, sizeof src_str);
     memset(key_str, 0x00, sizeof key_str);
+    sha256_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
@@ -166,6 +173,8 @@ void sha256_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    sha256_free( &ctx );
 }
 /* END_CASE */
 
@@ -182,6 +191,7 @@ void sha384_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     memset(src_str, 0x00, sizeof src_str);
     memset(key_str, 0x00, sizeof key_str);
+    sha512_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
@@ -221,6 +231,8 @@ void sha384_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    sha512_free( &ctx );
 }
 /* END_CASE */
 
@@ -237,6 +249,7 @@ void sha512_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     memset(src_str, 0x00, sizeof src_str);
     memset(key_str, 0x00, sizeof key_str);
+    sha512_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
@@ -276,5 +289,7 @@ void sha512_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
 
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
+
+    sha512_free( &ctx );
 }
 /* END_CASE */

@@ -92,6 +92,8 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
     unsigned char md5sum[16];
     size_t use_len;
 
+    md5_init( &md5_ctx );
+
     /*
      * key[ 0..15] = MD5(pwd || IV)
      */
@@ -104,7 +106,7 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
     {
         memcpy( key, md5sum, keylen );
 
-        polarssl_zeroize( &md5_ctx, sizeof(  md5_ctx ) );
+        md5_free( &md5_ctx );
         polarssl_zeroize( md5sum, 16 );
         return;
     }
@@ -126,7 +128,7 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
 
     memcpy( key + 16, md5sum, use_len );
 
-    polarssl_zeroize( &md5_ctx, sizeof(  md5_ctx ) );
+    md5_free( &md5_ctx );
     polarssl_zeroize( md5sum, 16 );
 }
 

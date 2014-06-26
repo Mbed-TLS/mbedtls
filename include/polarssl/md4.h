@@ -67,6 +67,20 @@ typedef struct
 md4_context;
 
 /**
+ * \brief          Initialize MD4 context
+ *
+ * \param ctx      MD4 context to be initialized
+ */
+void md4_init( md4_context *ctx );
+
+/**
+ * \brief          Clear MD4 context
+ *
+ * \param ctx      MD4 context to be cleared
+ */
+void md4_free( md4_context *ctx );
+
+/**
  * \brief          MD4 context setup
  *
  * \param ctx      context to be initialized

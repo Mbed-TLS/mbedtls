@@ -69,6 +69,20 @@ typedef struct
 sha512_context;
 
 /**
+ * \brief          Initialize SHA-512 context
+ *
+ * \param ctx      SHA-512 context to be initialized
+ */
+void sha512_init( sha512_context *ctx );
+
+/**
+ * \brief          Clear SHA-512 context
+ *
+ * \param ctx      SHA-512 context to be cleared
+ */
+void sha512_free( sha512_context *ctx );
+
+/**
  * \brief          SHA-512 context setup
  *
  * \param ctx      context to be initialized

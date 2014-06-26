@@ -398,12 +398,20 @@ static void ripemd160_hmac_reset_wrap( void *ctx )
 
 static void * ripemd160_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( ripemd160_context ) );
+    ripemd160_context *ctx;
+    ctx = (ripemd160_context *) polarssl_malloc( sizeof( ripemd160_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    ripemd160_init( ctx );
+
+    return( ctx );
 }
 
 static void ripemd160_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( ripemd160_context ) );
+    ripemd160_free( (ripemd160_context *) ctx );
     polarssl_free( ctx );
 }
 
@@ -486,12 +494,20 @@ static void sha1_hmac_reset_wrap( void *ctx )
 
 static void * sha1_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( sha1_context ) );
+    sha1_context *ctx;
+    ctx = (sha1_context *) polarssl_malloc( sizeof( sha1_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    sha1_init( ctx );
+
+    return( ctx );
 }
 
 static void sha1_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( sha1_context ) );
+    sha1_free( (sha1_context *) ctx );
     polarssl_free( ctx );
 }
 
@@ -687,12 +703,20 @@ static void sha256_hmac_wrap( const unsigned char *key, size_t keylen,
 
 static void * sha256_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( sha256_context ) );
+    sha256_context *ctx;
+    ctx = (sha256_context *) polarssl_malloc( sizeof( sha256_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    sha256_init( ctx );
+
+    return( ctx );
 }
 
 static void sha256_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( sha256_context ) );
+    sha256_free( (sha256_context *) ctx );
     polarssl_free( ctx );
 }
 
@@ -885,12 +909,20 @@ static void sha512_hmac_wrap( const unsigned char *key, size_t keylen,
 
 static void * sha512_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( sha512_context ) );
+    sha512_context *ctx;
+    ctx = (sha512_context *) polarssl_malloc( sizeof( sha512_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    sha512_init( ctx );
+
+    return( ctx );
 }
 
 static void sha512_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( sha512_context ) );
+    sha512_free( (sha512_context *) ctx );
     polarssl_free( ctx );
 }
 

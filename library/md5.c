@@ -78,6 +78,19 @@ static void polarssl_zeroize( void *v, size_t n ) {
 }
 #endif
 
+void md5_init( md5_context *ctx )
+{
+    memset( ctx, 0, sizeof( md5_context ) );
+}
+
+void md5_free( md5_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( md5_context ) );
+}
+
 /*
  * MD5 context setup
  */
@@ -302,11 +315,11 @@ void md5( const unsigned char *input, size_t ilen, unsigned char output[16] )
 {
     md5_context ctx;
 
+    md5_init( &ctx );
     md5_starts( &ctx );
     md5_update( &ctx, input, ilen );
     md5_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( md5_context ) );
+    md5_free( &ctx );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -323,14 +336,14 @@ int md5_file( const char *path, unsigned char output[16] )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_MD5_FILE_IO_ERROR );
 
+    md5_init( &ctx );
     md5_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         md5_update( &ctx, buf, n );
 
     md5_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( md5_context ) );
+    md5_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
@@ -417,11 +430,11 @@ void md5_hmac( const unsigned char *key, size_t keylen,
 {
     md5_context ctx;
 
+    md5_init( &ctx );
     md5_hmac_starts( &ctx, key, keylen );
     md5_hmac_update( &ctx, input, ilen );
     md5_hmac_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( md5_context ) );
+    md5_free( &ctx );
 }
 
 #if defined(POLARSSL_SELF_TEST)

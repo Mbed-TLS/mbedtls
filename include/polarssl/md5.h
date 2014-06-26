@@ -67,6 +67,20 @@ typedef struct
 md5_context;
 
 /**
+ * \brief          Initialize MD5 context
+ *
+ * \param ctx      MD5 context to be initialized
+ */
+void md5_init( md5_context *ctx );
+
+/**
+ * \brief          Clear MD5 context
+ *
+ * \param ctx      MD5 context to be cleared
+ */
+void md5_free( md5_context *ctx );
+
+/**
  * \brief          MD5 context setup
  *
  * \param ctx      context to be initialized

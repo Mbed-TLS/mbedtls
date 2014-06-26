@@ -2337,6 +2337,9 @@ curve_matching_done:
             md5_context md5;
             sha1_context sha1;
 
+            md5_init(  &md5  );
+            sha1_init( &sha1 );
+
             /*
              * digitally-signed struct {
              *     opaque md5_hash[16];
@@ -2361,6 +2364,9 @@ curve_matching_done:
             sha1_finish( &sha1, hash + 16 );
 
             hashlen = 36;
+
+            md5_free(  &md5  );
+            sha1_free( &sha1 );
         }
         else
 #endif /* POLARSSL_SSL_PROTO_SSL3 || POLARSSL_SSL_PROTO_TLS1 || \

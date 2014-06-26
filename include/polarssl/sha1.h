@@ -67,6 +67,20 @@ typedef struct
 sha1_context;
 
 /**
+ * \brief          Initialize SHA-1 context
+ *
+ * \param ctx      SHA-1 context to be initialized
+ */
+void sha1_init( sha1_context *ctx );
+
+/**
+ * \brief          Clear SHA-1 context
+ *
+ * \param ctx      SHA-1 context to be cleared
+ */
+void sha1_free( sha1_context *ctx );
+
+/**
  * \brief          SHA-1 context setup
  *
  * \param ctx      context to be initialized

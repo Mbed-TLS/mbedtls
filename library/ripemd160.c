@@ -81,6 +81,19 @@ static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
+void ripemd160_init( ripemd160_context *ctx )
+{
+    memset( ctx, 0, sizeof( ripemd160_context ) );
+}
+
+void ripemd160_free( ripemd160_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( ripemd160_context ) );
+}
+
 /*
  * RIPEMD-160 context setup
  */
@@ -364,11 +377,11 @@ void ripemd160( const unsigned char *input, size_t ilen,
 {
     ripemd160_context ctx;
 
+    ripemd160_init( &ctx );
     ripemd160_starts( &ctx );
     ripemd160_update( &ctx, input, ilen );
     ripemd160_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( ripemd160_context ) );
+    ripemd160_free( &ctx );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -385,14 +398,14 @@ int ripemd160_file( const char *path, unsigned char output[20] )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR );
 
+    ripemd160_init( &ctx );
     ripemd160_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         ripemd160_update( &ctx, buf, n );
 
     ripemd160_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( ripemd160_context ) );
+    ripemd160_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
@@ -479,11 +492,11 @@ void ripemd160_hmac( const unsigned char *key, size_t keylen,
 {
     ripemd160_context ctx;
 
+    ripemd160_init( &ctx );
     ripemd160_hmac_starts( &ctx, key, keylen );
     ripemd160_hmac_update( &ctx, input, ilen );
     ripemd160_hmac_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( ripemd160_context ) );
+    ripemd160_free( &ctx );
 }
 
 

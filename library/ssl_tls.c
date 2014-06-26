@@ -156,6 +156,9 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
     unsigned char sha1sum[20];
     ((void)label);
 
+    md5_init(  &md5  );
+    sha1_init( &sha1 );
+
     /*
      *  SSLv3:
      *    block =
@@ -180,8 +183,8 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
         md5_finish( &md5, dstbuf + i * 16 );
     }
 
-    polarssl_zeroize( &md5,  sizeof( md5  ) );
-    polarssl_zeroize( &sha1, sizeof( sha1 ) );
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
 
     polarssl_zeroize( padding, sizeof( padding ) );
     polarssl_zeroize( sha1sum, sizeof( sha1sum ) );
@@ -805,6 +808,9 @@ void ssl_calc_verify_ssl( ssl_context *ssl, unsigned char hash[36] )
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
+
     return;
 }
 #endif /* POLARSSL_SSL_PROTO_SSL3 */
@@ -826,6 +832,9 @@ void ssl_calc_verify_tls( ssl_context *ssl, unsigned char hash[36] )
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
+
     return;
 }
 #endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 */
@@ -844,6 +853,8 @@ void ssl_calc_verify_tls_sha256( ssl_context *ssl, unsigned char hash[32] )
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 32 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
+    sha256_free( &sha256 );
+
     return;
 }
 #endif /* POLARSSL_SHA256_C */
@@ -860,6 +871,8 @@ void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
 
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 48 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+
+    sha512_free( &sha512 );
 
     return;
 }
@@ -2878,8 +2891,8 @@ static void ssl_calc_finished_ssl(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
 
-    polarssl_zeroize(  &md5, sizeof(  md5_context ) );
-    polarssl_zeroize( &sha1, sizeof( sha1_context ) );
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
 
     polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
     polarssl_zeroize(  md5sum, sizeof(  md5sum ) );
@@ -2936,8 +2949,8 @@ static void ssl_calc_finished_tls(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    polarssl_zeroize(  &md5, sizeof(  md5_context ) );
-    polarssl_zeroize( &sha1, sizeof( sha1_context ) );
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
 
     polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
 
@@ -2985,7 +2998,7 @@ static void ssl_calc_finished_tls_sha256(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    polarssl_zeroize( &sha256, sizeof( sha256_context ) );
+    sha256_free( &sha256 );
 
     polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
 
@@ -3032,7 +3045,7 @@ static void ssl_calc_finished_tls_sha384(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    polarssl_zeroize( &sha512, sizeof( sha512_context ) );
+    sha512_free( &sha512 );
 
     polarssl_zeroize(  padbuf, sizeof( padbuf ) );
 
@@ -3302,14 +3315,18 @@ static int ssl_handshake_init( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
-     md5_starts( &ssl->handshake->fin_md5 );
+     md5_init(   &ssl->handshake->fin_md5  );
+    sha1_init(   &ssl->handshake->fin_sha1 );
+     md5_starts( &ssl->handshake->fin_md5  );
     sha1_starts( &ssl->handshake->fin_sha1 );
 #endif
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
 #if defined(POLARSSL_SHA256_C)
+    sha256_init(   &ssl->handshake->fin_sha256    );
     sha256_starts( &ssl->handshake->fin_sha256, 0 );
 #endif
 #if defined(POLARSSL_SHA512_C)
+    sha512_init(   &ssl->handshake->fin_sha512    );
     sha512_starts( &ssl->handshake->fin_sha512, 1 );
 #endif
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */

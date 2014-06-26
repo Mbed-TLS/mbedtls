@@ -1718,6 +1718,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             md5_context md5;
             sha1_context sha1;
 
+            md5_init(  &md5  );
+            sha1_init( &sha1 );
+
             hashlen = 36;
 
             /*
@@ -1742,6 +1745,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
             sha1_update( &sha1, ssl->handshake->randbytes, 64 );
             sha1_update( &sha1, ssl->in_msg + 4, params_len );
             sha1_finish( &sha1, hash + 16 );
+
+            md5_free(  &md5  );
+            sha1_free( &sha1 );
         }
         else
 #endif /* POLARSSL_SSL_PROTO_SSL3 || POLARSSL_SSL_PROTO_TLS1 || \

@@ -343,6 +343,8 @@ static int ssl_parse_ticket( ssl_context *ssl,
 
     ssl_session_free( ssl->session_negotiate );
     memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
+
+    /* Zeroize instead of free as we copied the content */
     polarssl_zeroize( &session, sizeof( ssl_session ) );
 
     return( 0 );

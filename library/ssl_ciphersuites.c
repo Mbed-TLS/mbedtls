@@ -260,10 +260,6 @@ static const int ciphersuite_preference[] =
     0
 };
 
-#define MAX_CIPHERSUITES    176
-static int supported_ciphersuites[MAX_CIPHERSUITES];
-static int supported_init = 0;
-
 static const ssl_ciphersuite_t ciphersuite_definitions[] =
 {
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
@@ -1679,6 +1675,11 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
     { 0, "", 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
+#define MAX_CIPHERSUITES    sizeof( ciphersuite_definitions     ) /         \
+                            sizeof( ciphersuite_definitions[0]  )
+static int supported_ciphersuites[MAX_CIPHERSUITES];
+static int supported_init = 0;
+
 const int *ssl_list_ciphersuites( void )
 {
     /*
@@ -1687,21 +1688,21 @@ const int *ssl_list_ciphersuites( void )
      */
     if( supported_init == 0 )
     {
-        const int *p = ciphersuite_preference;
-        int *q = supported_ciphersuites;
-        size_t i;
-        size_t max = sizeof(supported_ciphersuites) / sizeof(int);
+        const int *p;
+        int *q;
 
-        for( i = 0; i < max - 1 && p[i] != 0; i++ )
+        for( p = ciphersuite_preference, q = supported_ciphersuites;
+             *p != 0 && q < supported_ciphersuites + MAX_CIPHERSUITES - 1;
+             p++ )
         {
 #if defined(POLARSSL_REMOVE_ARC4_CIPHERSUITES)
             const ssl_ciphersuite_t *cs_info;
-            if( ( cs_info = ssl_ciphersuite_from_id( p[i] ) ) != NULL &&
+            if( ( cs_info = ssl_ciphersuite_from_id( *p ) ) != NULL &&
                 cs_info->cipher != POLARSSL_CIPHER_ARC4_128 )
 #else
-            if( ssl_ciphersuite_from_id( p[i] ) != NULL )
+            if( ssl_ciphersuite_from_id( *p ) != NULL )
 #endif
-                *(q++) = p[i];
+                *(q++) = *p;
         }
         *q = 0;
 

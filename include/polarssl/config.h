@@ -2155,6 +2155,20 @@
 //#define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
 //#define SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 
+/**
+ * Complete list of ciphersuites to use, in order of preference.
+ *
+ * \warning No dependency checking is done on that field! This option can only
+ * be used to restrict the set of available ciphersuites. It is your
+ * responsibility to make sure the needed modules are active.
+ *
+ * Use this to save a few hundred bytes of ROM (default ordering of all
+ * available ciphersuites) and a few to a few hundred bytes of RAM.
+ *
+ * The value below is only an example, not the default.
+ */
+//#define SSL_CIPHERSUITES TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+
 /* Debug options */
 //#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */
 

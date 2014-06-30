@@ -3,7 +3,7 @@
  * Distinguishing features:
  * - no bignum, no PK, no X509
  * - fully modern and secure (provided the pre-shared keys have high entropy)
- * - very low record overhead if using the CCM-8 suites
+ * - very low record overhead with CCM-8
  * - optimized for low RAM usage
  *
  * See README.txt for usage instructions.
@@ -43,6 +43,13 @@
  */
 #define ENTROPY_MAX_SOURCES 2
 
+/*
+ * Use only CCM_8 ciphersuites, and
+ * save ROM and a few bytes of RAM by specifying our own ciphersuite list
+ */
+#define SSL_CIPHERSUITES                        \
+        TLS_PSK_WITH_AES_256_CCM_8,             \
+        TLS_PSK_WITH_AES_128_CCM_8
 /*
  * Save RAM at the expense of interoperability: do this only if you control
  * both ends of the connection!  (See coments in "polarssl/ssl.h".)

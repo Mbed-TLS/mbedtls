@@ -93,6 +93,8 @@ int hmac_drbg_init_buf( hmac_drbg_context *ctx,
 
     memset( ctx, 0, sizeof( hmac_drbg_context ) );
 
+    md_init( &ctx->md_ctx );
+
     if( ( ret = md_init_ctx( &ctx->md_ctx, md_info ) ) != 0 )
         return( ret );
 
@@ -164,6 +166,8 @@ int hmac_drbg_init( hmac_drbg_context *ctx,
     size_t entropy_len;
 
     memset( ctx, 0, sizeof( hmac_drbg_context ) );
+
+    md_init( &ctx->md_ctx );
 
     if( ( ret = md_init_ctx( &ctx->md_ctx, md_info ) ) != 0 )
         return( ret );

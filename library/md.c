@@ -172,6 +172,22 @@ const md_info_t *md_info_from_type( md_type_t md_type )
     }
 }
 
+void md_init( md_context_t *ctx )
+{
+    memset( ctx, 0, sizeof( md_context_t ) );
+}
+
+void md_free( md_context_t *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    if( ctx->md_ctx )
+        ctx->md_info->ctx_free_func( ctx->md_ctx );
+
+    polarssl_zeroize( ctx, sizeof( md_context_t ) );
+}
+
 int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
 {
     if( md_info == NULL || ctx == NULL )
@@ -191,12 +207,7 @@ int md_init_ctx( md_context_t *ctx, const md_info_t *md_info )
 
 int md_free_ctx( md_context_t *ctx )
 {
-    if( ctx == NULL || ctx->md_info == NULL )
-        return( POLARSSL_ERR_MD_BAD_INPUT_DATA );
-
-    ctx->md_info->ctx_free_func( ctx->md_ctx );
-
-    polarssl_zeroize( ctx, sizeof( md_context_t ) );
+    md_free( ctx );
 
     return( 0 );
 }

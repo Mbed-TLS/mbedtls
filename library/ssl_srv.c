@@ -2380,6 +2380,8 @@ curve_matching_done:
             md_context_t ctx;
             const md_info_t *md_info = md_info_from_type( md_alg );
 
+            md_init( &ctx );
+
             /* Info from md_alg will be used instead */
             hashlen = 0;
 
@@ -2400,13 +2402,7 @@ curve_matching_done:
             md_update( &ctx, ssl->handshake->randbytes, 64 );
             md_update( &ctx, dig_signed, dig_signed_len );
             md_finish( &ctx, hash );
-
-            if( ( ret = md_free_ctx( &ctx ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "md_free_ctx", ret );
-                return( ret );
-            }
-
+            md_free( &ctx );
         }
         else
 #endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \

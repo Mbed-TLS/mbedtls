@@ -3311,6 +3311,12 @@ static void ssl_handshake_params_init( ssl_handshake_params *handshake,
 static void ssl_transform_init( ssl_transform *transform )
 {
     memset( transform, 0, sizeof(ssl_transform) );
+
+    cipher_init( &transform->cipher_ctx_enc );
+    cipher_init( &transform->cipher_ctx_dec );
+
+    md_init( &transform->md_ctx_enc );
+    md_init( &transform->md_ctx_dec );
 }
 
 void ssl_session_init( ssl_session *session )
@@ -4506,11 +4512,11 @@ void ssl_transform_free( ssl_transform *transform )
     inflateEnd( &transform->ctx_inflate );
 #endif
 
-    cipher_free_ctx( &transform->cipher_ctx_enc );
-    cipher_free_ctx( &transform->cipher_ctx_dec );
+    cipher_free( &transform->cipher_ctx_enc );
+    cipher_free( &transform->cipher_ctx_dec );
 
-    md_free_ctx( &transform->md_ctx_enc );
-    md_free_ctx( &transform->md_ctx_dec );
+    md_free( &transform->md_ctx_enc );
+    md_free( &transform->md_ctx_dec );
 
     polarssl_zeroize( transform, sizeof( ssl_transform ) );
 }

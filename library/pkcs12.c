@@ -194,6 +194,8 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
         return( ret );
     }
 
+    cipher_init( &cipher_ctx );
+
     if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
         goto exit;
 
@@ -218,7 +220,7 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
 exit:
     polarssl_zeroize( key, sizeof( key ) );
     polarssl_zeroize( iv,  sizeof( iv  ) );
-    cipher_free_ctx( &cipher_ctx );
+    cipher_free( &cipher_ctx );
 
     return( ret );
 }
@@ -264,6 +266,8 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
     md_info = md_info_from_type( md_type );
     if( md_info == NULL )
         return( POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE );
+
+    md_init( &md_ctx );
 
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
         return( ret );
@@ -348,7 +352,7 @@ exit:
     polarssl_zeroize( hash_block, sizeof( hash_block ) );
     polarssl_zeroize( hash_output, sizeof( hash_output ) );
 
-    md_free_ctx( &md_ctx );
+    md_free( &md_ctx );
 
     return( ret );
 }

@@ -130,9 +130,6 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     p = pbe_params->p;
     end = p + pbe_params->len;
 
-    memset( &md_ctx, 0, sizeof(md_context_t) );
-    memset( &cipher_ctx, 0, sizeof(cipher_context_t) );
-
     /*
      *  PBES2-params ::= SEQUENCE {
      *    keyDerivationFunc AlgorithmIdentifier {{PBES2-KDFs}},
@@ -187,6 +184,9 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT );
     }
 
+    md_init( &md_ctx );
+    cipher_init( &cipher_ctx );
+
     memcpy( iv, enc_scheme_params.p, enc_scheme_params.len );
 
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
@@ -209,8 +209,8 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
         ret = POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH;
 
 exit:
-    md_free_ctx( &md_ctx );
-    cipher_free_ctx( &cipher_ctx );
+    md_free( &md_ctx );
+    cipher_free( &cipher_ctx );
 
     return( ret );
 }
@@ -364,12 +364,20 @@ int pkcs5_self_test( int verbose )
     int ret, i;
     unsigned char key[64];
 
+    md_init( &sha1_ctx );
+
     info_sha1 = md_info_from_type( POLARSSL_MD_SHA1 );
     if( info_sha1 == NULL )
-        return( 1 );
+    {
+        ret = 1;
+        goto exit;
+    }
 
     if( ( ret = md_init_ctx( &sha1_ctx, info_sha1 ) ) != 0 )
-        return( 1 );
+    {
+        ret = 1;
+        goto exit;
+    }
 
     if( verbose != 0 )
         polarssl_printf( "  PBKDF2 note: test #3 may be slow!\n" );
@@ -387,7 +395,8 @@ int pkcs5_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -396,8 +405,8 @@ int pkcs5_self_test( int verbose )
 
     polarssl_printf( "\n" );
 
-    if( ( ret = md_free_ctx( &sha1_ctx ) ) != 0 )
-        return( 1 );
+exit:
+    md_free( &sha1_ctx );
 
     return( 0 );
 }

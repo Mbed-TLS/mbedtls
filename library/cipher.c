@@ -125,6 +125,22 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
     return( NULL );
 }
 
+void cipher_init( cipher_context_t *ctx )
+{
+    memset( ctx, 0, sizeof( cipher_context_t ) );
+}
+
+void cipher_free( cipher_context_t *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    if( ctx->cipher_ctx )
+        ctx->cipher_info->base->ctx_free_func( ctx->cipher_ctx );
+
+    polarssl_zeroize( ctx, sizeof(cipher_context_t) );
+}
+
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
 {
     if( NULL == cipher_info || NULL == ctx )
@@ -151,13 +167,10 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
     return( 0 );
 }
 
+/* Deprecated, redirects to cipher_free() */
 int cipher_free_ctx( cipher_context_t *ctx )
 {
-    if( ctx == NULL || ctx->cipher_info == NULL )
-        return( POLARSSL_ERR_CIPHER_BAD_INPUT_DATA );
-
-    ctx->cipher_info->base->ctx_free_func( ctx->cipher_ctx );
-    polarssl_zeroize( ctx, sizeof(cipher_context_t) );
+    cipher_free( ctx );
 
     return( 0 );
 }

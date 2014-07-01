@@ -15,7 +15,7 @@ void md_process( )
     md_context_t ctx;
     unsigned char buf[150];
 
-    memset( &ctx, 0, sizeof ctx );
+    md_init( &ctx );
 
     /*
      * Very minimal testing of md_process, just make sure the various
@@ -31,7 +31,7 @@ void md_process( )
         TEST_ASSERT( info != NULL );
         TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
         TEST_ASSERT( md_process( &ctx, buf ) == 0 );
-        TEST_ASSERT( md_free_ctx( &ctx ) == 0 );
+        md_free( &ctx );
     }
 }
 /* END_CASE */
@@ -43,7 +43,7 @@ void md_null_args( )
     const md_info_t *info = md_info_from_type( *( md_list() ) );
     unsigned char buf[1] = { 0 };
 
-    memset( &ctx, 0, sizeof( md_context_t ) );
+    md_init( &ctx );
 
     TEST_ASSERT( md_get_size( NULL ) == 0 );
 
@@ -177,9 +177,11 @@ void md_text_multi( char *text_md_name, char *text_src_string,
     unsigned char src_str[1000];
     unsigned char hash_str[1000];
     unsigned char output[100];
-    
+
     const md_info_t *md_info = NULL;
-    md_context_t ctx = MD_CONTEXT_T_INIT;
+    md_context_t ctx;
+
+    md_init( &ctx );
 
     memset(md_name, 0x00, 100);
     memset(src_str, 0x00, 1000);
@@ -196,8 +198,8 @@ void md_text_multi( char *text_md_name, char *text_src_string,
     TEST_ASSERT ( ctx.md_ctx != NULL );
     TEST_ASSERT ( 0 == md_update( &ctx, src_str, strlen( (char *) src_str ) ) );
     TEST_ASSERT ( 0 == md_finish( &ctx, output ) );
-    TEST_ASSERT ( 0 == md_free_ctx( &ctx ) );
-    
+    md_free( &ctx );
+
     hexify( hash_str, output, md_get_size(md_info) );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -214,7 +216,9 @@ void md_hex_multi( char *text_md_name, char *hex_src_string,
     unsigned char output[100];
     int src_len;
     const md_info_t *md_info = NULL;
-    md_context_t ctx = MD_CONTEXT_T_INIT;
+    md_context_t ctx;
+
+    md_init( &ctx );
 
     memset(md_name, 0x00, 100);
     memset(src_str, 0x00, 10000);
@@ -227,13 +231,13 @@ void md_hex_multi( char *text_md_name, char *hex_src_string,
     TEST_ASSERT ( 0 == md_init_ctx( &ctx, md_info ) );
 
     src_len = unhexify( src_str, hex_src_string );
-    
+
     TEST_ASSERT ( 0 == md_starts( &ctx ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
     TEST_ASSERT ( 0 == md_update( &ctx, src_str, src_len ) );
     TEST_ASSERT ( 0 == md_finish( &ctx, output ) );
-    TEST_ASSERT ( 0 == md_free_ctx( &ctx ) );
-    
+    md_free( &ctx );
+
     hexify( hash_str, output, md_get_size(md_info) );
 
     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );
@@ -283,7 +287,9 @@ void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
     unsigned char output[100];
     int key_len, src_len;
     const md_info_t *md_info = NULL;
-    md_context_t ctx = MD_CONTEXT_T_INIT;
+    md_context_t ctx;
+
+    md_init( &ctx );
 
     memset(md_name, 0x00, 100);
     memset(src_str, 0x00, 10000);
@@ -314,7 +320,7 @@ void md_hmac_multi( char *text_md_name, int trunc_size, char *hex_key_string,
     TEST_ASSERT ( 0 == md_hmac_reset( &ctx ) );
     TEST_ASSERT ( 0 == md_hmac_update( &ctx, src_str, src_len ) );
     TEST_ASSERT ( 0 == md_hmac_finish( &ctx, output ) );
-    TEST_ASSERT ( 0 == md_free_ctx( &ctx ) );
+    md_free( &ctx );
 
     hexify( hash_str, output, md_get_size(md_info) );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );

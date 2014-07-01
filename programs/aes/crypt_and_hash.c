@@ -95,8 +95,8 @@ int main( int argc, char *argv[] )
       off_t filesize, offset;
 #endif
 
-    memset( &cipher_ctx, 0, sizeof( cipher_context_t ));
-    memset( &md_ctx, 0, sizeof( md_context_t ));
+    cipher_init( &cipher_ctx );
+    md_init( &md_ctx );
 
     /*
      * Parse the command-line arguments.
@@ -533,8 +533,8 @@ exit:
     memset( buffer, 0, sizeof( buffer ) );
     memset( digest, 0, sizeof( digest ) );
 
-    cipher_free_ctx( &cipher_ctx );
-    md_free_ctx( &md_ctx );
+    cipher_free( &cipher_ctx );
+    md_free( &md_ctx );
 
     return( ret );
 }

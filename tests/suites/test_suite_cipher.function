@@ -29,7 +29,7 @@ void cipher_null_args( )
     unsigned char buf[1] = { 0 };
     size_t olen;
 
-    memset( &ctx, 0, sizeof( cipher_context_t ) );
+    cipher_init( &ctx );
 
     TEST_ASSERT( cipher_get_block_size( NULL ) == 0 );
     TEST_ASSERT( cipher_get_block_size( &ctx ) == 0 );
@@ -111,8 +111,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     /*
      * Prepare contexts
      */
-    memset( &ctx_dec, 0, sizeof( ctx_dec ) );
-    memset( &ctx_enc, 0, sizeof( ctx_enc ) );
+    cipher_init( &ctx_dec );
+    cipher_init( &ctx_enc );
 
     memset( key, 0x2a, sizeof( key ) );
 
@@ -207,8 +207,8 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     /*
      * Done
      */
-    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
-    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_enc ) );
+    cipher_free( &ctx_dec );
+    cipher_free( &ctx_enc );
 }
 /* END_CASE */
 
@@ -231,7 +231,7 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
     memset( key, 0, 32 );
     memset( iv , 0, 16 );
 
-    memset( &ctx, 0, sizeof( ctx ) );
+    cipher_init( &ctx );
 
     memset( inbuf, 5, 64 );
     memset( encbuf, 0, 64 );
@@ -259,7 +259,7 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
     TEST_ASSERT( ret == cipher_finish( &ctx, encbuf + outlen, &outlen ) );
 
     /* done */
-    TEST_ASSERT( 0 == cipher_free_ctx( &ctx ) );
+    cipher_free( &ctx );
 }
 /* END_CASE */
 
@@ -279,16 +279,16 @@ void dec_empty_buf()
 
     memset( key, 0, 32 );
     memset( iv , 0, 16 );
-    
-    memset( &ctx_dec, 0, sizeof( ctx_dec ) );
-    
+
+    cipher_init( &ctx_dec );
+
     memset( encbuf, 0, 64 );
     memset( decbuf, 0, 64 );
 
     /* Initialise context */
     cipher_info = cipher_info_from_type( POLARSSL_CIPHER_AES_128_CBC );
     TEST_ASSERT( NULL != cipher_info);
-    
+
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx_dec, cipher_info ) );
 
     TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, 128, POLARSSL_DECRYPT ) );
@@ -308,7 +308,7 @@ void dec_empty_buf()
                  &ctx_dec, decbuf + outlen, &outlen ) );
     TEST_ASSERT( 0 == outlen );
 
-    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
+    cipher_free( &ctx_dec );
 }
 /* END_CASE */
 
@@ -335,10 +335,10 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
 
     memset( key, 0, 32 );
     memset( iv , 0, 16 );
-    
-    memset( &ctx_dec, 0, sizeof( ctx_dec ) );
-    memset( &ctx_enc, 0, sizeof( ctx_enc ) );
-        
+
+    cipher_init( &ctx_dec );
+    cipher_init( &ctx_enc );
+
     memset( inbuf, 5, 64 );
     memset( encbuf, 0, 64 );
     memset( decbuf, 0, 64 );
@@ -346,10 +346,10 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     /* Initialise enc and dec contexts */
     cipher_info = cipher_info_from_type( cipher_id );
     TEST_ASSERT( NULL != cipher_info);
-    
+
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx_dec, cipher_info ) );
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx_enc, cipher_info ) );
-    
+
     TEST_ASSERT( 0 == cipher_setkey( &ctx_dec, key, key_len, POLARSSL_DECRYPT ) );
     TEST_ASSERT( 0 == cipher_setkey( &ctx_enc, key, key_len, POLARSSL_ENCRYPT ) );
 
@@ -397,8 +397,8 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
 
     TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );
 
-    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_dec ) );
-    TEST_ASSERT( 0 == cipher_free_ctx( &ctx_enc ) );
+    cipher_free( &ctx_dec );
+    cipher_free( &ctx_enc );
 }
 /* END_CASE */
 
@@ -422,6 +422,8 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
     cipher_context_t ctx;
     unsigned char output[200];
     size_t outlen, total_len;
+
+    cipher_init( &ctx );
 
     memset( key, 0x00, sizeof( key ) );
     memset( iv, 0x00, sizeof( iv ) );
@@ -477,7 +479,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
         TEST_ASSERT( 0 == memcmp( output, clear, clear_len ) );
     }
 
-    cipher_free_ctx( &ctx );
+    cipher_free( &ctx );
 }
 /* END_CASE */
 
@@ -498,6 +500,8 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
     cipher_context_t ctx;
     unsigned char output[200];
     size_t outlen;
+
+    cipher_init( &ctx );
 
     memset( key,    0x00, sizeof( key    ) );
     memset( iv,     0x00, sizeof( iv     ) );
@@ -563,7 +567,7 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
 
 
 cleanup:
-    cipher_free_ctx( &ctx );
+    cipher_free( &ctx );
 }
 /* END_CASE */
 
@@ -579,6 +583,8 @@ void test_vec_ecb( int cipher_id, int operation, char *hex_key,
     cipher_context_t ctx;
     unsigned char output[32];
     size_t outlen;
+
+    cipher_init( &ctx );
 
     memset( key, 0x00, sizeof( key ) );
     memset( input, 0x00, sizeof( input ) );
@@ -610,7 +616,7 @@ void test_vec_ecb( int cipher_id, int operation, char *hex_key,
         TEST_ASSERT( 0 == memcmp( output, result,
                                   cipher_get_block_size( &ctx ) ) );
 
-    cipher_free_ctx( &ctx );
+    cipher_free( &ctx );
 }
 /* END_CASE */
 
@@ -620,13 +626,15 @@ void set_padding( int cipher_id, int pad_mode, int ret )
     const cipher_info_t *cipher_info;
     cipher_context_t ctx;
 
+    cipher_init( &ctx );
+
     cipher_info = cipher_info_from_type( cipher_id );
     TEST_ASSERT( NULL != cipher_info );
     TEST_ASSERT( 0 == cipher_init_ctx( &ctx, cipher_info ) );
 
     TEST_ASSERT( ret == cipher_set_padding_mode( &ctx, pad_mode ) );
 
-    TEST_ASSERT( 0 == cipher_free_ctx( &ctx ) );
+    cipher_free( &ctx );
 }
 /* END_CASE */
 
@@ -639,7 +647,7 @@ void check_padding( int pad_mode, char *input_str, int ret, int dlen_check )
     size_t ilen, dlen;
 
     /* build a fake context just for getting access to get_padding */
-    memset( &ctx, 0, sizeof( ctx ) );
+    cipher_init( &ctx );
     cipher_info.mode = POLARSSL_MODE_CBC;
     ctx.cipher_info = &cipher_info;
 

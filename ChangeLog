@@ -33,6 +33,8 @@ Changes
    * md_list() now returns hashes strongest first
    * Selection of hash for signing ServerKeyExchange in TLS 1.2 now picks
      strongest offered by client.
+   * All public contexts have _init() and _free() functions now for simpler
+     usage pattern
 
 Bugfix
    * Fix in debug_print_msg()

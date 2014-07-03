@@ -34,6 +34,7 @@
 #endif
 #include "net.h"
 #include "bignum.h"
+#include "ecp.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -409,11 +410,42 @@
 /*
  * Size defines
  */
-#if !defined(POLARSSL_MPI_MAX_SIZE)
-#define POLARSSL_PREMASTER_SIZE             512
-#else
-#define POLARSSL_PREMASTER_SIZE             POLARSSL_MPI_MAX_SIZE
+#if !defined(POLARSSL_PSK_MAX_LEN)
+#define POLARSSL_PSK_MAX_LEN            32 /* 256 bits */
 #endif
+
+/* Dummy type used only for its size */
+union _ssl_premaster_secret
+{
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
+    unsigned char _pms_rsa[48];                         /* RFC 5246 8.1.1 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
+    unsigned char _pms_dhm[POLARSSL_MPI_MAX_SIZE];      /* RFC 5246 8.1.2 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)    || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    unsigned char _pms_ecdh[POLARSSL_ECP_MAX_BYTES];    /* RFC 4492 5.10 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    unsigned char _pms_psk[4 + 2 * POLARSSL_PSK_MAX_LEN];       /* RFC 4279 2 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    unsigned char _pms_dhe_psk[4 + POLARSSL_MPI_MAX_SIZE
+                                 + POLARSSL_PSK_MAX_LEN];       /* RFC 4279 3 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    unsigned char _pms_rsa_psk[52 + POLARSSL_PSK_MAX_LEN];      /* RFC 4279 4 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    unsigned char _pms_ecdhe_psk[4 + POLARSSL_ECP_MAX_BYTES
+                                   + POLARSSL_PSK_MAX_LEN];     /* RFC 5489 2 */
+#endif
+};
+
+#define POLARSSL_PREMASTER_SIZE     sizeof( union _ssl_premaster_secret )
 
 #ifdef __cplusplus
 extern "C" {

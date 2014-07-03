@@ -325,7 +325,7 @@ int main( int argc, char *argv[] )
     int ret = 0, len, server_fd, i, written, frags;
     unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    unsigned char psk[256];
+    unsigned char psk[POLARSSL_PSK_MAX_LEN];
     size_t psk_len = 0;
 #endif
 #if defined(POLARSSL_SSL_ALPN)

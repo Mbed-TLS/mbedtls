@@ -126,8 +126,6 @@ int main( int argc, char *argv[] )
     "<h2>PolarSSL Test Server</h2>\r\n" \
     "<p>Successful connection using: %s</p>\r\n" // LONG_RESPONSE
 
-#define MAX_PSK_LEN     256
-
 /*
  * Size of the basic I/O buffer. Able to hold our default response.
  *
@@ -460,7 +458,7 @@ int unhexify( unsigned char *output, const char *input, size_t *olen )
     size_t j;
 
     *olen = strlen( input );
-    if( *olen % 2 != 0 || *olen / 2 > MAX_PSK_LEN )
+    if( *olen % 2 != 0 || *olen / 2 > POLARSSL_PSK_MAX_LEN )
         return( -1 );
     *olen /= 2;
 
@@ -484,7 +482,7 @@ struct _psk_entry
 {
     const char *name;
     size_t key_len;
-    unsigned char key[MAX_PSK_LEN];
+    unsigned char key[POLARSSL_PSK_MAX_LEN];
     psk_entry *next;
 };
 
@@ -573,7 +571,7 @@ int main( int argc, char *argv[] )
     int version_suites[4][2];
     unsigned char buf[IO_BUF_LEN];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    unsigned char psk[MAX_PSK_LEN];
+    unsigned char psk[POLARSSL_PSK_MAX_LEN];
     size_t psk_len = 0;
     psk_entry *psk_info = NULL;
 #endif

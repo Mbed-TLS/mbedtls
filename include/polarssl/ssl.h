@@ -221,6 +221,9 @@
 #define SSL_RENEGOTIATION_DISABLED      0
 #define SSL_RENEGOTIATION_ENABLED       1
 
+#define SSL_RENEGOTIATION_NOT_ENFORCED  -1
+#define SSL_RENEGO_MAX_RECORDS_DEFAULT  16
+
 #define SSL_LEGACY_NO_RENEGOTIATION     0
 #define SSL_LEGACY_ALLOW_RENEGOTIATION  1
 #define SSL_LEGACY_BREAK_HANDSHAKE      2
@@ -620,6 +623,7 @@ struct _ssl_context
      */
     int state;                  /*!< SSL handshake: current state     */
     int renegotiation;          /*!< Initial or renegotiation         */
+    int renego_records_seen;    /*!< Records since renego request     */
 
     int major_ver;              /*!< equal to  SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
@@ -744,6 +748,7 @@ struct _ssl_context
     int verify_result;                  /*!<  verification result     */
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
+    int renego_max_records;             /*!<  grace period for renegotiation */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
 #if defined(POLARSSL_SSL_SET_CURVES)
     const ecp_group_id *curve_list;     /*!<  allowed curves                 */
@@ -1420,6 +1425,33 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
  *                                        SSL_LEGACY_BREAK_HANDSHAKE)
  */
 void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
+
+/**
+ * \brief          Enforce server-requested renegotiation.
+ *                 (Default: enforced, max_records = 16)
+ *                 (No effect on client.)
+ *
+ *                 When a server requests a renegotiation, the client can
+ *                 comply or ignore the request. This function allows the
+ *                 server to decide if it should enforce its renegotiation
+ *                 requests by closing the connection if the client doesn't
+ *                 initiate a renegotiation.
+ *
+ *                 However, records could already be in transit from the
+ *                 client to the server when the request is emitted. In order
+ *                 to increase reliability, the server can accept a number of
+ *                 records containing application data before the ClientHello
+ *                 that was requested.
+ *
+ *                 The optimal value is highly dependent on the specific usage
+ *                 scenario.
+ *
+ * \param ssl      SSL context
+ * \param max_records Use SSL_RENEGOTIATION_NOT_ENFORCED if you don't want to
+ *                 enforce renegotiation, or a non-negative value to enforce
+ *                 it but allow for a grace period of max_records records.
+ */
+void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records );
 
 /**
  * \brief          Return the number of data bytes available to read

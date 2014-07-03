@@ -630,8 +630,8 @@ run_test    "Renegotiation #5 (server-initiated, client-rejected)" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
-            -s "SSL - An unexpected message was received from our peer" \
-            -s "failed"
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
 
 # Tests for auth_mode
 

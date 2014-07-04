@@ -48,6 +48,45 @@ void base64_decode( char *src_string, char *dst_string, int result )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void base64_encode_hex( char *src_hex, char *dst, int dst_buf_size,
+                        int result )
+{
+    unsigned char *src, *res;
+    size_t len = dst_buf_size, src_len;
+
+    src = unhexify_alloc( src_hex, &src_len );
+    res = zero_alloc( dst_buf_size );
+
+    TEST_ASSERT( base64_encode( res, &len, src, src_len ) == result );
+    if( result == 0 )
+    {
+        TEST_ASSERT( len == strlen( dst ) );
+        TEST_ASSERT( memcmp( dst, res, len ) == 0 );
+    }
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void base64_decode_hex( char *src, char *dst_hex, int dst_buf_size,
+                        int result )
+{
+    unsigned char *dst, *res;
+    size_t len = dst_buf_size, dst_len;
+
+    dst = unhexify_alloc( dst_hex, &dst_len );
+    res = zero_alloc( dst_buf_size );
+
+    TEST_ASSERT( base64_decode( res, &len, (unsigned char *) src,
+                                strlen( src ) ) == result );
+    if( result == 0 )
+    {
+        TEST_ASSERT( len == dst_len );
+        TEST_ASSERT( memcmp( dst, res, len ) == 0 );
+    }
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
 void base64_selftest()
 {

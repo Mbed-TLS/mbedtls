@@ -55,6 +55,33 @@ base64_decode:"zm===":"":POLARSSL_ERR_BASE64_INVALID_CHARACTER
 Base64 decode (Invalid char after equal signs)
 base64_decode:"zm=masd":"":POLARSSL_ERR_BASE64_INVALID_CHARACTER
 
+Base64 encode hex #1
+base64_encode_hex:"010203040506070809":"AQIDBAUGBwgJ":13:0
+
+Base64 encode hex #2 (buffer too small)
+base64_encode_hex:"010203040506070809":"AQIDBAUGBwgJ":12:POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL
+
+Base64 encode hex #3
+base64_encode_hex:"0102030405060708":"AQIDBAUGBwg=":13:0
+
+Base64 encode hex #4
+base64_encode_hex:"01020304050607":"AQIDBAUGBw==":13:0
+
+Base64 decode hex #1
+base64_decode_hex:"AQIDBAUGBwgJ":"010203040506070809":9:0
+
+Base64 decode hex #2 (buffer too small)
+base64_decode_hex:"AQIDBAUGBwgJ":"010203040506070809":8:POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL
+
+Base64 decode hex #3
+base64_decode_hex:"AQIDBAUGBwg=":"0102030405060708":8:0
+
+Base64 decode hex #4
+base64_decode_hex:"AQIDBAUGBw==":"01020304050607":7:0
+
+Base64 decode hex #5 (buffer too small)
+base64_decode_hex:"AQIDBAUGBw==":"01020304050607":6:POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL
+
 Base64 Selftest
 depends_on:POLARSSL_SELF_TEST
 base64_selftest:

@@ -99,6 +99,7 @@ int main( int argc, char *argv[] )
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_RENEGOTIATE         0
+#define DFL_RENEGO_DELAY        -2
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
@@ -159,6 +160,7 @@ struct options
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
     int renegotiate;            /* attempt renegotiation?                   */
+    int renego_delay;           /* delay before enforcing renegotiation     */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
@@ -676,6 +678,7 @@ int main( int argc, char *argv[] )
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.renegotiate         = DFL_RENEGOTIATE;
+    opt.renego_delay        = DFL_RENEGO_DELAY;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
@@ -764,6 +767,10 @@ int main( int argc, char *argv[] )
             opt.renegotiate = atoi( q );
             if( opt.renegotiate < 0 || opt.renegotiate > 1 )
                 goto usage;
+        }
+        else if( strcmp( p, "renego_delay" ) == 0 )
+        {
+            opt.renego_delay = atoi( q );
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
@@ -1264,6 +1271,8 @@ int main( int argc, char *argv[] )
 
     ssl_set_renegotiation( &ssl, opt.renegotiation );
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+    if( opt.renego_delay != DFL_RENEGO_DELAY )
+        ssl_set_renegotiation_enforced( &ssl, opt.renego_delay );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     if( strcmp( opt.ca_path, "none" ) != 0 &&

@@ -3055,7 +3055,10 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     ssl->handshake = NULL;
 
     if( ssl->renegotiation == SSL_RENEGOTIATION )
+    {
         ssl->renegotiation =  SSL_RENEGOTIATION_DONE;
+        ssl->renego_records_seen = 0;
+    }
 
     /*
      * Switch in our now active transform context
@@ -3345,6 +3348,8 @@ int ssl_init( ssl_context *ssl )
 
     ssl_set_ciphersuites( ssl, ssl_list_ciphersuites() );
 
+    ssl->renego_max_records = SSL_RENEGO_MAX_RECORDS_DEFAULT;
+
 #if defined(POLARSSL_DHM_C)
     if( ( ret = mpi_read_string( &ssl->dhm_P, 16,
                                  POLARSSL_DHM_RFC5114_MODP_1024_P) ) != 0 ||
@@ -3434,6 +3439,8 @@ int ssl_session_reset( ssl_context *ssl )
 
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;
+
+    ssl->renego_records_seen = 0;
 
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
@@ -3952,6 +3959,11 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy )
     ssl->allow_legacy_renegotiation = allow_legacy;
 }
 
+void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records )
+{
+    ssl->renego_max_records = max_records;
+}
+
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
 {
@@ -4296,9 +4308,15 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
         }
         else if( ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
         {
-            SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
-                                "but not honored by client" ) );
-            return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+            ssl->renego_records_seen++;
+
+            if( ssl->renego_max_records >= 0 &&
+                ssl->renego_records_seen > ssl->renego_max_records )
+            {
+                SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
+                                    "but not honored by client" ) );
+                return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+            }
         }
         else if( ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
         {

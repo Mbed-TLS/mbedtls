@@ -20,6 +20,8 @@ Features
    * Optimize for RAM usage in example config.h for NSA Suite B profile.
    * Add POLARSSL_REMOVE_ARC4_CIPHERSUITES to allow removing RC4 ciphersuites
      from the default list (inactive by default).
+   * Add server-side enforcement of sent renegotiation requests
+     (ssl_set_renegotiation_enforced())
 
 Changes
    * Add LINK_WITH_PTHREAD option in CMake for explicit linking that is

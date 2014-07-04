@@ -3747,12 +3747,7 @@ int ssl_set_psk( ssl_context *ssl, const unsigned char *psk, size_t psk_len,
     if( psk == NULL || psk_identity == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    /*
-     * The length will be check later anyway, but in case it is obviously
-     * too large, better abort now. The PMS is as follows:
-     * other_len (2 bytes) + other + psk_len (2 bytes) + psk
-     */
-    if( psk_len + 4 > POLARSSL_PREMASTER_SIZE )
+    if( psk_len > POLARSSL_PSK_MAX_LEN )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     if( ssl->psk != NULL )

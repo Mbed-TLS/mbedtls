@@ -22,6 +22,8 @@ Features
      from the default list (inactive by default).
    * Add server-side enforcement of sent renegotiation requests
      (ssl_set_renegotiation_enforced())
+   * Add SSL_CIPHERSUITES config.h flag to allow specifying a list of
+     ciphersuites to use and save some memory if the list is small.
 
 Changes
    * Add LINK_WITH_PTHREAD option in CMake for explicit linking that is

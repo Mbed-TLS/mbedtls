@@ -77,6 +77,11 @@
  */
 #define ENTROPY_MAX_SOURCES 2
 
+/* Save ROM and a few bytes of RAM by specifying our own ciphersuite list */
+#define SSL_CIPHERSUITES                        \
+    TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,    \
+    TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+
 /*
  * Save RAM at the expense of interoperability: do this only if you control
  * both ends of the connection!  (See coments in "polarssl/ssl.h".)

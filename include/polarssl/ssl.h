@@ -34,6 +34,7 @@
 #endif
 #include "net.h"
 #include "bignum.h"
+#include "ecp.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -252,7 +253,9 @@
  * Note: the RFC defines the default size of SSL / TLS messages. If you
  * change the value here, other clients / servers may not be able to
  * communicate with you anymore. Only change this value if you control
- * both sides of the connection and have it reduced at both sides!
+ * both sides of the connection and have it reduced at both sides, or
+ * if you're using the Max Fragment Length extension and you know all your
+ * peers are using it too!
  */
 #if !defined(SSL_MAX_CONTENT_LEN)
 #define SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
@@ -261,8 +264,8 @@
 /* \} name SECTION: Module settings */
 
 /*
- * Allow an extra 301 bytes for the record header and encryption overhead:
- * counter (8) + header (5) + IV(16) + MAC (48) + padding (256)
+ * Allow extra bytes for record, authentication and encryption overhead:
+ * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256)
  * and allow for a maximum of 1024 of compression expansion if
  * enabled.
  */
@@ -272,8 +275,36 @@
 #define SSL_COMPRESSION_ADD             0
 #endif
 
-#define SSL_BUFFER_LEN (SSL_MAX_CONTENT_LEN + SSL_COMPRESSION_ADD + 333)
+#if defined(POLARSSL_RC4_C) || defined(POLARSSL_CIPHER_MODE_CBC)
+/* Ciphersuites using HMAC */
+#if defined(POLARSSL_SHA512_C)
+#define SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
+#elif defined(POLARSSL_SHA256_C)
+#define SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
+#else
+#define SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
+#endif
+#else
+/* AEAD ciphersuites: GCM and CCM use a 128 bits tag */
+#define SSL_MAC_ADD                 16
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+#define SSL_PADDING_ADD            256
+#else
+#define SSL_PADDING_ADD              0
+#endif
+
+#define SSL_BUFFER_LEN  ( SSL_MAX_CONTENT_LEN               \
+                        + SSL_COMPRESSION_ADD               \
+                        + 29 /* counter + header + IV */    \
+                        + SSL_MAC_ADD                       \
+                        + SSL_PADDING_ADD                   \
+                        )
+
+/*
+ * Signaling ciphersuite values (SCSV)
+ */
 #define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
 
 /*
@@ -382,11 +413,42 @@
 /*
  * Size defines
  */
-#if !defined(POLARSSL_MPI_MAX_SIZE)
-#define POLARSSL_PREMASTER_SIZE             512
-#else
-#define POLARSSL_PREMASTER_SIZE             POLARSSL_MPI_MAX_SIZE
+#if !defined(POLARSSL_PSK_MAX_LEN)
+#define POLARSSL_PSK_MAX_LEN            32 /* 256 bits */
 #endif
+
+/* Dummy type used only for its size */
+union _ssl_premaster_secret
+{
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
+    unsigned char _pms_rsa[48];                         /* RFC 5246 8.1.1 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
+    unsigned char _pms_dhm[POLARSSL_MPI_MAX_SIZE];      /* RFC 5246 8.1.2 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)    || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    unsigned char _pms_ecdh[POLARSSL_ECP_MAX_BYTES];    /* RFC 4492 5.10 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
+    unsigned char _pms_psk[4 + 2 * POLARSSL_PSK_MAX_LEN];       /* RFC 4279 2 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    unsigned char _pms_dhe_psk[4 + POLARSSL_MPI_MAX_SIZE
+                                 + POLARSSL_PSK_MAX_LEN];       /* RFC 4279 3 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    unsigned char _pms_rsa_psk[52 + POLARSSL_PSK_MAX_LEN];      /* RFC 4279 4 */
+#endif
+#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    unsigned char _pms_ecdhe_psk[4 + POLARSSL_ECP_MAX_BYTES
+                                   + POLARSSL_PSK_MAX_LEN];     /* RFC 5489 2 */
+#endif
+};
+
+#define POLARSSL_PREMASTER_SIZE     sizeof( union _ssl_premaster_secret )
 
 #ifdef __cplusplus
 extern "C" {

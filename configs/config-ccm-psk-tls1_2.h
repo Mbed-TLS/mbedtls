@@ -3,7 +3,7 @@
  * Distinguishing features:
  * - no bignum, no PK, no X509
  * - fully modern and secure (provided the pre-shared keys have high entropy)
- * - very low record overhead if using the CCM-8 suites
+ * - very low record overhead with CCM-8
  * - optimized for low RAM usage
  *
  * See README.txt for usage instructions.
@@ -13,7 +13,7 @@
 
 /* System support */
 //#define POLARSSL_HAVE_IPV6 /* Optional */
-//#define POLARSSL_HAVE_TIME /* Optionnaly used in Hello messages */
+//#define POLARSSL_HAVE_TIME /* Optionally used in Hello messages */
 /* Other POLARSSL_HAVE_XXX flags irrelevant for this configuration */
 
 /* PolarSSL feature support */
@@ -36,6 +36,9 @@
 /* Save RAM at the expense of ROM */
 #define POLARSSL_AES_ROM_TABLES
 
+/* Save some RAM by adjusting to your exact needs */
+#define POLARSSL_PSK_MAX_LEN    16 /* 128-bits keys are generally enough */
+
 /*
  * You should adjust this to the exact number of sources you're using: default
  * is the "platform_entropy_poll" source, but you may want to add other ones
@@ -44,8 +47,16 @@
 #define ENTROPY_MAX_SOURCES 2
 
 /*
+ * Use only CCM_8 ciphersuites, and
+ * save ROM and a few bytes of RAM by specifying our own ciphersuite list
+ */
+#define SSL_CIPHERSUITES                        \
+        TLS_PSK_WITH_AES_256_CCM_8,             \
+        TLS_PSK_WITH_AES_128_CCM_8
+
+/*
  * Save RAM at the expense of interoperability: do this only if you control
- * both ends of the connection!  (See coments in "polarssl/ssl.h".)
+ * both ends of the connection!  (See comments in "polarssl/ssl.h".)
  * The optimal size here depends on the typical size of records.
  */
 #define SSL_MAX_CONTENT_LEN             512

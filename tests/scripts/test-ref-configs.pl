@@ -20,7 +20,7 @@ my %configs = (
     'config-picocoin.h'
         => 0,
     'config-ccm-psk-tls1_2.h'
-        => '-m tls1_2 -f \'TLS-PSK.*AES.*CCM\'',
+        => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
 );
 
 # If no config-name is provided, use all known configs.

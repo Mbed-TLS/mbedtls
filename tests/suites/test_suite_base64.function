@@ -64,6 +64,9 @@ void base64_encode_hex( char *src_hex, char *dst, int dst_buf_size,
         TEST_ASSERT( len == strlen( dst ) );
         TEST_ASSERT( memcmp( dst, res, len ) == 0 );
     }
+
+    polarssl_free( src );
+    polarssl_free( res );
 }
 /* END_CASE */
 
@@ -84,6 +87,9 @@ void base64_decode_hex( char *src, char *dst_hex, int dst_buf_size,
         TEST_ASSERT( len == dst_len );
         TEST_ASSERT( memcmp( dst, res, len ) == 0 );
     }
+
+    polarssl_free( dst );
+    polarssl_free( res );
 }
 /* END_CASE */
 

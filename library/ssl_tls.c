@@ -526,6 +526,12 @@ int ssl_derive_keys( ssl_context *ssl )
                    transform->keylen, transform->minlen, transform->ivlen,
                    transform->maclen ) );
 
+    if( transform->maclen > sizeof transform->mac_enc )
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+
     /*
      * Finally setup the cipher contexts, IVs and MAC secrets.
      */

@@ -34,8 +34,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <signal.h>
+
+#if !defined(_MSC_VER)
+#include <unistd.h>
+#endif
 
 #include "polarssl/config.h"
 

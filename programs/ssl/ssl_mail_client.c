@@ -30,7 +30,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#else
+#include <io.h>
+#define read _read
+#define write _write
+#endif
 
 #if defined(_WIN32) || defined(_WIN32_WCE)
 

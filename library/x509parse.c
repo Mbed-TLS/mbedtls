@@ -1915,7 +1915,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 	p = filename + len;
     filename[len++] = '*';
 
-	w_ret = MultiByteToWideChar( CP_ACP, 0, path, len, szDir, MAX_PATH - 3 );
+	w_ret = MultiByteToWideChar( CP_ACP, 0, filename, len, szDir, MAX_PATH - 3 );
 
     hFind = FindFirstFileW( szDir, &file_data );
     if (hFind == INVALID_HANDLE_VALUE) 

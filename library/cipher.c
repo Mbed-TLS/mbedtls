@@ -500,7 +500,7 @@ static void add_pkcs_padding( unsigned char *output, size_t output_len,
         size_t data_len )
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i = 0;
+    unsigned char i;
 
     for( i = 0; i < padding_len; i++ )
         output[data_len + i] = (unsigned char) padding_len;
@@ -509,23 +509,26 @@ static void add_pkcs_padding( unsigned char *output, size_t output_len,
 static int get_pkcs_padding( unsigned char *input, unsigned int input_len,
         size_t *data_len)
 {
-    unsigned int i, padding_len = 0;
+    unsigned int i, pad_idx;
+    unsigned char padding_len, bad = 0;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     padding_len = input[input_len - 1];
-
-    if( padding_len > input_len )
-        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
-    for( i = input_len - padding_len; i < input_len; i++ )
-        if( input[i] != padding_len )
-            return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
     *data_len = input_len - padding_len;
 
-    return 0;
+    /* Avoid logical || since it results in a branch */
+    bad |= padding_len > input_len;
+    bad |= padding_len == 0;
+
+    /* The number of bytes checked must be independent of padding_len,
+     * so pick input_len, which is usually 8 or 16 (one block) */
+    pad_idx = input_len - padding_len;
+    for( i = 0; i < input_len; i++ )
+        bad |= ( input[i] ^ padding_len ) * ( i >= pad_idx );
+
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 }
 
 int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)

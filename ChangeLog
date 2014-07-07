@@ -13,6 +13,7 @@ Bugfix
      TrustInSoft)
    * Fixed potential overflow in certificate size verification in
      ssl_write_certificate() (found by TrustInSoft)
+   * Fix ASM format in bn_mul.h
 
 = Version 1.2.10 released 2013-10-07
 Changes

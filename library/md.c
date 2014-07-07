@@ -52,24 +52,9 @@ static void polarssl_zeroize( void *v, size_t n ) {
 
 static const int supported_digests[] = {
 
-#if defined(POLARSSL_MD2_C)
-        POLARSSL_MD_MD2,
-#endif
-
-#if defined(POLARSSL_MD4_C)
-        POLARSSL_MD_MD4,
-#endif
-
-#if defined(POLARSSL_MD5_C)
-        POLARSSL_MD_MD5,
-#endif
-
-#if defined(POLARSSL_RIPEMD160_C)
-        POLARSSL_MD_RIPEMD160,
-#endif
-
-#if defined(POLARSSL_SHA1_C)
-        POLARSSL_MD_SHA1,
+#if defined(POLARSSL_SHA512_C)
+        POLARSSL_MD_SHA384,
+        POLARSSL_MD_SHA512,
 #endif
 
 #if defined(POLARSSL_SHA256_C)
@@ -77,12 +62,27 @@ static const int supported_digests[] = {
         POLARSSL_MD_SHA256,
 #endif
 
-#if defined(POLARSSL_SHA512_C)
-        POLARSSL_MD_SHA384,
-        POLARSSL_MD_SHA512,
+#if defined(POLARSSL_SHA1_C)
+        POLARSSL_MD_SHA1,
 #endif
 
-        0
+#if defined(POLARSSL_RIPEMD160_C)
+        POLARSSL_MD_RIPEMD160,
+#endif
+
+#if defined(POLARSSL_MD5_C)
+        POLARSSL_MD_MD5,
+#endif
+
+#if defined(POLARSSL_MD4_C)
+        POLARSSL_MD_MD4,
+#endif
+
+#if defined(POLARSSL_MD2_C)
+        POLARSSL_MD_MD2,
+#endif
+
+        POLARSSL_MD_NONE
 };
 
 const int *md_list( void )

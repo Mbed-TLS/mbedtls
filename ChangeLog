@@ -30,6 +30,7 @@ Changes
      required on some platforms (e.g. OpenBSD)
    * Migrate zeroizing of data to polarssl_zeroize() instead of memset()
      against unwanted compiler optimizations
+   * md_list() now returns hashes strongest first
 
 Bugfix
    * Fix in debug_print_msg()

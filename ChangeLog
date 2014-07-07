@@ -4,6 +4,9 @@ PolarSSL ChangeLog
 Changes
    * Introduced POLARSSL_HAVE_READDIR_R for systems without it
 
+Bugfix
+   * Fixed X.509 hostname comparison (with non-regular characters)
+
 = Version 1.2.10 released 2013-10-07
 Changes
    * Changed RSA blinding to a slower but thread-safe version

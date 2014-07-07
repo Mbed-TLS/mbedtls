@@ -900,7 +900,6 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
 
     md_free_ctx( &md_ctx );
 
-    msb = mpi_msb( &ctx->N ) - 1;
     sig[0] &= 0xFF >> ( olen * 8 - msb );
 
     p += hlen;

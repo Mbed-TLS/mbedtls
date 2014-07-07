@@ -1155,8 +1155,6 @@ int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
 
     memcpy( p, buf, buflen );
 
-    buflen = 0;
-
     crt->raw.p = p;
     crt->raw.len = len;
     end = p + len;

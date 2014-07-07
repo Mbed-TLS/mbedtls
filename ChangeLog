@@ -1,5 +1,9 @@
 PolarSSL ChangeLog
 
+= Branch 1.2
+Changes
+   * Introduced POLARSSL_HAVE_READDIR_R for systems without it
+
 = Version 1.2.10 released 2013-10-07
 Changes
    * Changed RSA blinding to a slower but thread-safe version

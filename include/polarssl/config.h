@@ -94,6 +94,17 @@
  *
 #define POLARSSL_HAVE_SSE2
  */
+
+/**
+ * \def POLARSSL_HAVE_READDIR_R
+ *
+ * (Non Windows) System has readdir_r().
+ *
+ * Required for x509_crt_parse_path() in non-Windows systems.
+ *
+ * Comment if your system does not have support.
+ */
+#define POLARSSL_HAVE_READDIR_R
 /* \} name */
 
 /**

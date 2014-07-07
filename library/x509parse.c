@@ -1948,6 +1948,7 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
 cleanup:
     FindClose( hFind );
 #else
+#if defined(POLARSSL_HAVE_READDIR_R)
     int t_ret, i;
     struct stat sb;
     struct dirent entry, *result = NULL;
@@ -1984,7 +1985,12 @@ cleanup:
             ret += t_ret;
     }
     closedir( dir );
-#endif
+#else /* POLARSSL_HAVE_READDIR_R */
+    ((void) chain);
+    ((void) path);
+    ret = POLARSSL_ERR_X509_FEATURE_UNAVAILABLE;
+#endif /* POLARSSL_HAVE_READDIR_R */
+#endif /* _WIN32 */
 
     return( ret );
 }

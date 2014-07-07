@@ -226,6 +226,14 @@ X509 Time Expired #6:POLARSSL_FS_IO
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_time_expired:"data_files/test-ca.crt":valid_to:0
 
+X509 Time Future #1
+depends_on:POLARSSL_FS_IO
+x509_time_future:"data_files/server2.crt":valid_from:0
+
+X509 Time Future #2
+depends_on:POLARSSL_FS_IO
+x509_time_future:"data_files/server2.crt":valid_to:1
+
 X509 Certificate verification #1 (Revoked Cert, Expired CRL)
 depends_on:POLARSSL_PEM_C:POLARSSL_FS_IO
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":NULL:POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED | BADCRL_EXPIRED:NULL

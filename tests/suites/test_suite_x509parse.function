@@ -137,6 +137,20 @@ x509_time_expired:crt_file:entity:result
 END_CASE
 
 BEGIN_CASE
+x509_time_future:crt_file:entity:result
+{
+    x509_cert   crt;
+
+    memset( &crt, 0, sizeof( x509_cert ) );
+
+    TEST_ASSERT( x509parse_crtfile( &crt, {crt_file} ) == 0 );
+    TEST_ASSERT( x509parse_time_future( &crt.{entity} ) == {result} );
+
+    x509_free( &crt );
+}
+END_CASE
+
+BEGIN_CASE
 x509parse_keyfile:key_file:password:result
 {
     rsa_context rsa;

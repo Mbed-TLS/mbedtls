@@ -69,3 +69,25 @@ add_test_suite(version)
 add_test_suite(xtea)
 add_test_suite(x509parse)
 add_test_suite(x509write)
+
+# Make data_files available in an out-of-source build
+if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    # Get OS dependent path to use in `execute_process`
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/data_files" link)
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data_files" target)
+
+    if (UNIX)
+        set(command ln -s ${target} ${link})
+    else()
+        set(command cmd.exe /c mklink ${link} ${target})
+    endif()
+
+    execute_process(COMMAND ${command}
+                    RESULT_VARIABLE result
+                    ERROR_VARIABLE output)
+
+    if (NOT ${result} EQUAL 0)
+        message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
+    endif()
+endif()
+

@@ -18,6 +18,7 @@ Bugfix
    * Replaced expired test certificate
    * ssl_mail_client now terminates lines with CRLF, instead of LF
    * Fix bug in RSA PKCS#1 v1.5 "reversed" operations
+   * Fixed testing with out-of-source builds using cmake
 
 = Version 1.2.10 released 2013-10-07
 Changes

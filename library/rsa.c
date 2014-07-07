@@ -283,12 +283,20 @@ int rsa_private( rsa_context *ctx,
 #else
     if( f_rng != NULL )
     {
+        int count = 0;
+
         /*
          * Blinding
          * T = T * Vi mod N
          */
         /* Unblinding value: Vf = random number */
-        MPI_CHK( mpi_fill_random( &Vf, ctx->len - 1, f_rng, p_rng ) );
+        do {
+            if( count++ > 10 )
+                return( POLARSSL_ERR_RSA_RNG_FAILED );
+
+            MPI_CHK( mpi_fill_random( &Vf, ctx->len - 1, f_rng, p_rng ) );
+            MPI_CHK( mpi_gcd( &Vi, &Vf, &ctx->N ) );
+        } while( mpi_cmp_int( &Vi, 1 ) != 0 );
 
         /* Mathematically speaking, the algorithm should check Vf
          * against 0, P and Q (Vf should be relatively prime to N, and 0 < Vf < N),

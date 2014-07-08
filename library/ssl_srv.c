@@ -2635,11 +2635,10 @@ static int ssl_parse_client_psk_identity( ssl_context *ssl, unsigned char **p,
 
     if( ssl->f_psk != NULL )
     {
-        if( ( ret != ssl->f_psk( ssl->p_psk, ssl, *p, n ) ) != 0 )
+        if( ssl->f_psk( ssl->p_psk, ssl, *p, n ) != 0 )
             ret = POLARSSL_ERR_SSL_UNKNOWN_IDENTITY;
     }
-
-    if( ret == 0 )
+    else
     {
         /* Identity is not a big secret since clients send it in the clear,
          * but treat it carefully anyway, just in case */
@@ -2664,9 +2663,8 @@ static int ssl_parse_client_psk_identity( ssl_context *ssl, unsigned char **p,
     }
 
     *p += n;
-    ret = 0;
 
-    return( ret );
+    return( 0 );
 }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 

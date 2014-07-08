@@ -182,6 +182,10 @@ int main( int argc, char *argv[] )
 
     /*
      * Transfer public information to verifying context
+     *
+     * We could use the same context for verification and signatures, but we
+     * chose to use a new one in order to make it clear that the verifying
+     * context only needs the public key (Q), and not the private key (d).
      */
     printf( "  . Preparing verification context..." );
     fflush( stdout );

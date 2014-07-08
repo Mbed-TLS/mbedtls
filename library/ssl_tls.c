@@ -359,7 +359,7 @@ int ssl_derive_keys( ssl_context *ssl )
                        handshake->pmslen );
 
         handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                            "master secret",
+                            (char *) "master secret",
                             handshake->randbytes, 64, session->master, 48 );
 
         polarssl_zeroize( handshake->premaster, sizeof(handshake->premaster) );
@@ -387,7 +387,7 @@ int ssl_derive_keys( ssl_context *ssl )
      *  TLSv1:
      *    key block = PRF( master, "key expansion", randbytes )
      */
-    handshake->tls_prf( session->master, 48, "key expansion",
+    handshake->tls_prf( session->master, 48, (char *) "key expansion",
                         handshake->randbytes, 64, keyblk, 256 );
 
     SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
@@ -2995,7 +2995,7 @@ int ssl_parse_finished( ssl_context *ssl )
     return( 0 );
 }
 
-int ssl_handshake_init( ssl_context *ssl )
+static int ssl_handshake_init( ssl_context *ssl )
 {
     if( ssl->transform_negotiate )
         ssl_transform_free( ssl->transform_negotiate );

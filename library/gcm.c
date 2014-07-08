@@ -129,7 +129,8 @@ static const uint64_t last4[16] =
     0x9180, 0x8da0, 0xa9c0, 0xb5e0
 };
 
-void gcm_mult( gcm_context *ctx, const unsigned char x[16], unsigned char output[16] )
+static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
+                      unsigned char output[16] )
 {
     int i = 0;
     unsigned char z[16];

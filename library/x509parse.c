@@ -1135,8 +1135,8 @@ static int x509_get_sig_alg( const x509_buf *sig_oid, int *sig_alg )
 /*
  * Parse and fill a single X.509 certificate in DER format
  */
-int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
-                            size_t buflen )
+static int x509parse_crt_der_core( x509_cert *crt, const unsigned char *buf,
+                                   size_t buflen )
 {
     int ret;
     size_t len;
@@ -1471,8 +1471,8 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
             pem_init( &pem );
 
             ret = pem_read_buffer( &pem,
-                           "-----BEGIN CERTIFICATE-----",
-                           "-----END CERTIFICATE-----",
+                           (char *) "-----BEGIN CERTIFICATE-----",
+                           (char *) "-----END CERTIFICATE-----",
                            buf, NULL, 0, &use_len );
 
             if( ret == 0 )
@@ -1582,8 +1582,8 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
 #if defined(POLARSSL_PEM_C)
     pem_init( &pem );
     ret = pem_read_buffer( &pem,
-                           "-----BEGIN X509 CRL-----",
-                           "-----END X509 CRL-----",
+                           (char *) "-----BEGIN X509 CRL-----",
+                           (char *) "-----END X509 CRL-----",
                            buf, NULL, 0, &use_len );
 
     if( ret == 0 )
@@ -1831,7 +1831,7 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
 /*
  * Load all data from a file into a given buffer.
  */
-int load_file( const char *path, unsigned char **buf, size_t *n )
+static int load_file( const char *path, unsigned char **buf, size_t *n )
 {
     FILE *f;
     long size;
@@ -1943,7 +1943,6 @@ int x509parse_crtpath( x509_cert *chain, const char *path )
     if (GetLastError() != ERROR_NO_MORE_FILES) 
         ret = POLARSSL_ERR_X509_FILE_IO_ERROR;
 
-cleanup:
     FindClose( hFind );
 #else
 #if defined(POLARSSL_HAVE_READDIR_R)
@@ -2374,8 +2373,8 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
 
     pem_init( &pem );
     ret = pem_read_buffer( &pem,
-                           "-----BEGIN RSA PRIVATE KEY-----",
-                           "-----END RSA PRIVATE KEY-----",
+                           (char *) "-----BEGIN RSA PRIVATE KEY-----",
+                           (char *) "-----END RSA PRIVATE KEY-----",
                            key, pwd, pwdlen, &len );
     if( ret == 0 )
     {
@@ -2395,8 +2394,8 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
         return( ret );
 
     ret = pem_read_buffer( &pem,
-                           "-----BEGIN PRIVATE KEY-----",
-                           "-----END PRIVATE KEY-----",
+                           (char *) "-----BEGIN PRIVATE KEY-----",
+                           (char *) "-----END PRIVATE KEY-----",
                            key, NULL, 0, &len );
     if( ret == 0 )
     {
@@ -2413,8 +2412,8 @@ int x509parse_key( rsa_context *rsa, const unsigned char *key, size_t keylen,
         return( ret );
 
     ret = pem_read_buffer( &pem,
-                           "-----BEGIN ENCRYPTED PRIVATE KEY-----",
-                           "-----END ENCRYPTED PRIVATE KEY-----",
+                           (char *) "-----BEGIN ENCRYPTED PRIVATE KEY-----",
+                           (char *) "-----END ENCRYPTED PRIVATE KEY-----",
                            key, NULL, 0, &len );
     if( ret == 0 )
     {
@@ -2481,8 +2480,8 @@ int x509parse_public_key( rsa_context *rsa, const unsigned char *key, size_t key
 
     pem_init( &pem );
     ret = pem_read_buffer( &pem,
-            "-----BEGIN PUBLIC KEY-----",
-            "-----END PUBLIC KEY-----",
+            (char *) "-----BEGIN PUBLIC KEY-----",
+            (char *) "-----END PUBLIC KEY-----",
             key, NULL, 0, &len );
 
     if( ret == 0 )
@@ -2573,8 +2572,8 @@ int x509parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
     pem_init( &pem );
 
     ret = pem_read_buffer( &pem, 
-                           "-----BEGIN DH PARAMETERS-----",
-                           "-----END DH PARAMETERS-----",
+                           (char *) "-----BEGIN DH PARAMETERS-----",
+                           (char *) "-----END DH PARAMETERS-----",
                            dhmin, NULL, 0, &dhminlen );
 
     if( ret == 0 )
@@ -3319,7 +3318,7 @@ static int x509_name_cmp( const void *s1, const void *s2, size_t len )
     return( 0 );
 }
 
-int x509_wildcard_verify( const char *cn, x509_buf *name )
+static int x509_wildcard_verify( const char *cn, x509_buf *name )
 {
     size_t i;
     size_t cn_idx = 0;

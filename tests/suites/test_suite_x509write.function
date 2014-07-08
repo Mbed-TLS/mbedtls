@@ -56,7 +56,7 @@ x509_cert_req_check:key_file:md_type:cert_req_check_file
     fclose( f );
 
     pem_init( &pem );
-    pem_read_buffer( &pem, "-----BEGIN CERTIFICATE REQUEST-----", "-----END CERTIFICATE REQUEST-----", check_buf, NULL, 0, &olen );
+    pem_read_buffer( &pem, (char *) "-----BEGIN CERTIFICATE REQUEST-----", (char *) "-----END CERTIFICATE REQUEST-----", check_buf, NULL, 0, &olen );
 
     TEST_ASSERT( memcmp( c, pem.buf, pem.buflen ) == 0 );
     TEST_ASSERT( pem.buflen == (size_t) ret );

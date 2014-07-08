@@ -59,7 +59,7 @@ int x509_write_pubkey_der( unsigned char *buf, size_t size, rsa_context *rsa )
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_BIT_STRING ) );
 
-    ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf, OID_PKCS1_RSA ) );
+    ASN1_CHK_ADD( len, asn1_write_algorithm_identifier( &c, buf, (char *) OID_PKCS1_RSA ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
@@ -112,8 +112,8 @@ int x509_write_key_der( unsigned char *buf, size_t size, rsa_context *rsa )
     return( len );
 }
 
-int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
-                     char *name )
+static int x509_write_name( unsigned char **p, unsigned char *start, char *oid,
+                            char *name )
 {
     int ret;
     size_t string_len = 0;
@@ -178,8 +178,8 @@ static void x509_hash( const unsigned char *in, size_t len, int alg,
     }
 }
 
-int x509_write_sig( unsigned char **p, unsigned char *start, char *oid,
-                    unsigned char *sig, size_t size )
+static int x509_write_sig( unsigned char **p, unsigned char *start, char *oid,
+                           unsigned char *sig, size_t size )
 {
     int ret;
     size_t len = 0;
@@ -237,7 +237,7 @@ int x509_write_cert_req( unsigned char *buf, size_t size, rsa_context *rsa,
     ASN1_CHK_ADD( pub_len, asn1_write_len( &c, tmp_buf, pub_len ) );
     ASN1_CHK_ADD( pub_len, asn1_write_tag( &c, tmp_buf, ASN1_BIT_STRING ) );
 
-    ASN1_CHK_ADD( pub_len, asn1_write_algorithm_identifier( &c, tmp_buf, OID_PKCS1_RSA ) );
+    ASN1_CHK_ADD( pub_len, asn1_write_algorithm_identifier( &c, tmp_buf, (char *) OID_PKCS1_RSA ) );
 
     len += pub_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, pub_len ) );

@@ -85,8 +85,8 @@ int entropy_add_source( entropy_context *ctx,
 /*
  * Entropy accumulator update
  */
-int entropy_update( entropy_context *ctx, unsigned char source_id,
-                    const unsigned char *data, size_t len )
+static int entropy_update( entropy_context *ctx, unsigned char source_id,
+                           const unsigned char *data, size_t len )
 {
     unsigned char header[2];
     unsigned char tmp[ENTROPY_BLOCK_SIZE];

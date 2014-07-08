@@ -10,6 +10,7 @@ Changes
    * Work around a bug of the version of Clang shipped by Apple with Mavericks
      that prevented bignum.c from compiling. (Reported by Rafael Baptista.)
    * Improvements to tests/Makefile, contributed by Oden Eriksson.
+   * Use UTC time to check certificate validity.
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

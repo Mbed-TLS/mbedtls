@@ -3083,7 +3083,7 @@ static void x509_get_current_time( x509_time *now )
 #if defined(_WIN32)
     SYSTEMTIME st;
 
-    GetLocalTime(&st);
+    GetSystemTime(&st);
 
     now->year = st.wYear;
     now->mon = st.wMonth;
@@ -3096,7 +3096,7 @@ static void x509_get_current_time( x509_time *now )
     time_t tt;
 
     tt = time( NULL );
-    localtime_r( &tt, &lt );
+    gmtime_r( &tt, &lt );
 
     now->year = lt.tm_year + 1900;
     now->mon = lt.tm_mon + 1;

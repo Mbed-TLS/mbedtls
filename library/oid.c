@@ -534,10 +534,6 @@ static const oid_md_alg_t oid_md_alg[] =
         POLARSSL_MD_SHA1,
     },
     {
-        { ADD_LEN( OID_DIGEST_ALG_SHA1 ),      "id-sha1",      "SHA-1" },
-        POLARSSL_MD_SHA1,
-    },
-    {
         { ADD_LEN( OID_DIGEST_ALG_SHA224 ),    "id-sha224",    "SHA-224" },
         POLARSSL_MD_SHA224,
     },

@@ -176,8 +176,12 @@ int net_bind( int *fd, const char *bind_ip, int port )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );
 
     n = 1;
-    setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
-                (const char *) &n, sizeof( n ) );
+    if( setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
+                    (const char *) &n, sizeof( n ) ) != 0 )
+    {
+        close( *fd );
+        return( POLARSSL_ERR_NET_SOCKET_FAILED );
+    }
 
     server_addr.sin_addr.s_addr = net_htonl( INADDR_ANY );
     server_addr.sin_family      = AF_INET;

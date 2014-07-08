@@ -49,6 +49,8 @@ Bugfix
    * Some example server programs were not sending the close_notify alert.
    * Potential memory leak in mpi_exp_mod() when error occurs during
      calculation of RR.
+   * Improve interoperability by not writing extension length in ClientHello
+     when no extensions are present (found by Matthew Page)
 
 = Version 1.2.10 released 2013-10-07
 Changes

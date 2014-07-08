@@ -212,8 +212,11 @@ static int ssl_write_client_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
 
-    *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
+    if( ext_len > 0 )
+    {
+        *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
+    }
 
     if ( ssl->hostname != NULL )
     {

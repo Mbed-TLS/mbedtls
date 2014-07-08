@@ -11,6 +11,7 @@ Changes
      that prevented bignum.c from compiling. (Reported by Rafael Baptista.)
    * Improvements to tests/Makefile, contributed by Oden Eriksson.
    * Use UTC time to check certificate validity.
+   * Reject certificates with times not in UTC, per RFC 5280.
 
 Security
    * Forbid change of server certificate during renegotiation to prevent

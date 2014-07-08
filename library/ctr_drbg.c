@@ -448,7 +448,7 @@ unsigned char result_nopr[16] =
     { 0xa0, 0x54, 0x30, 0x3d, 0x8a, 0x7e, 0xa9, 0x88,
       0x9d, 0x90, 0x3e, 0x07, 0x7c, 0x6f, 0x21, 0x8f };
 
-int test_offset;
+static size_t test_offset;
 int ctr_drbg_self_test_entropy( void *data, unsigned char *buf, size_t len )
 {
     unsigned char *p = data;

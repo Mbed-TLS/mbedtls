@@ -223,6 +223,7 @@ int net_bind( int *fd, const char *bind_ip, int port )
  */
 static int net_would_block( int fd )
 {
+    ((void) fd);
     return( WSAGetLastError() == WSAEWOULDBLOCK );
 }
 #else

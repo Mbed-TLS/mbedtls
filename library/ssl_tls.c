@@ -1254,6 +1254,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         size_t dec_msglen;
         unsigned char add_data[13];
         int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
+        unsigned char taglen = 16;
+        unsigned char explicit_iv_len = ssl->transform_in->ivlen -
+                                        ssl->transform_in->fixed_ivlen;
 
 #if defined(POLARSSL_AES_C) && defined(POLARSSL_GCM_C)
         if( ssl->session_in->ciphersuite == TLS_RSA_WITH_AES_128_GCM_SHA256 ||
@@ -1261,11 +1264,16 @@ static int ssl_decrypt_buf( ssl_context *ssl )
             ssl->session_in->ciphersuite == TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ||
             ssl->session_in->ciphersuite == TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 )
         {
-            dec_msglen = ssl->in_msglen - ( ssl->transform_in->ivlen -
-                                            ssl->transform_in->fixed_ivlen );
-            dec_msglen -= 16;
-            dec_msg = ssl->in_msg + ( ssl->transform_in->ivlen -
-                                      ssl->transform_in->fixed_ivlen );
+            if( ssl->in_msglen < explicit_iv_len + taglen )
+            {
+                 SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
+                                     "+ taglen (%d)", ssl->in_msglen,
+                                     explicit_iv_len, taglen ) );
+                 return( POLARSSL_ERR_SSL_INVALID_MAC );
+            }
+            dec_msglen = ssl->in_msglen - explicit_iv_len - taglen;
+
+            dec_msg = ssl->in_msg + explicit_iv_len;
             dec_msg_result = ssl->in_msg;
             ssl->in_msglen = dec_msglen;
 

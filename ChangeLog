@@ -23,6 +23,9 @@ Security
    * Forbid sequence number wrapping
    * Prevent potential NULL pointer dereference in ssl_read_record() (found by
      TrustInSoft)
+   * Fix length checking for AEAD ciphersuites (found by Codenomicon).
+     It was possible to crash the server (and client) using crafted messages
+     when a GCM suite was chosen.
 
 Bugfix
    * Fixed X.509 hostname comparison (with non-regular characters)

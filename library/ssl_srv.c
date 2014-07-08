@@ -667,7 +667,7 @@ static int ssl_parse_session_ticket_ext( ssl_context *ssl,
 
 #if defined(POLARSSL_SSL_ALPN)
 static int ssl_parse_alpn_ext( ssl_context *ssl,
-                               unsigned char *buf, size_t len )
+                               const unsigned char *buf, size_t len )
 {
     size_t list_len, cur_len, ours_len;
     const unsigned char *theirs, *start, *end;

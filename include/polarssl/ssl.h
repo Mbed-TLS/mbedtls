@@ -587,8 +587,8 @@ struct _ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
-    int sig_alg;                        /*!<  Signature algorithm     */
-    int cert_type;                      /*!<  Requested cert type     */
+    int sig_alg;                        /*!<  Hash algorithm for signature   */
+    int cert_type;                      /*!<  Requested cert type            */
     int verify_sig_alg;                 /*!<  Signature algorithm for verify */
 #if defined(POLARSSL_DHM_C)
     dhm_context dhm_ctx;                /*!<  DHM key exchange        */

@@ -470,59 +470,31 @@ static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
 {
     size_t sig_alg_list_size;
     const unsigned char *p;
+    const unsigned char *end = buf + len;
+    const int *md_cur;
+
 
     sig_alg_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( sig_alg_list_size + 2 != len ||
-        sig_alg_list_size %2 != 0 )
+        sig_alg_list_size % 2 != 0 )
     {
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    p = buf + 2;
-    while( sig_alg_list_size > 0 )
-    {
-        /*
-         * For now, just ignore signature algorithm and rely on offered
-         * ciphersuites only. To be fixed later.
-         */
-#if defined(POLARSSL_SHA512_C)
-        if( p[0] == SSL_HASH_SHA512 )
-        {
-            ssl->handshake->sig_alg = SSL_HASH_SHA512;
-            break;
+    /*
+     * For now, ignore the SignatureAlgorithm part and rely on offered
+     * ciphersuites only for that part. To be fixed later.
+     *
+     * So, just look at the HashAlgorithm part.
+     */
+    for( md_cur = md_list(); *md_cur != POLARSSL_MD_NONE; md_cur++ ) {
+        for( p = buf + 2; p < end; p += 2 ) {
+            if( *md_cur == (int) ssl_md_alg_from_hash( p[0] ) ) {
+                ssl->handshake->sig_alg = p[0];
+                break;
+            }
         }
-        if( p[0] == SSL_HASH_SHA384 )
-        {
-            ssl->handshake->sig_alg = SSL_HASH_SHA384;
-            break;
-        }
-#endif /* POLARSSL_SHA512_C */
-#if defined(POLARSSL_SHA256_C)
-        if( p[0] == SSL_HASH_SHA256 )
-        {
-            ssl->handshake->sig_alg = SSL_HASH_SHA256;
-            break;
-        }
-        if( p[0] == SSL_HASH_SHA224 )
-        {
-            ssl->handshake->sig_alg = SSL_HASH_SHA224;
-            break;
-        }
-#endif /* POLARSSL_SHA256_C */
-        if( p[0] == SSL_HASH_SHA1 )
-        {
-            ssl->handshake->sig_alg = SSL_HASH_SHA1;
-            break;
-        }
-        if( p[0] == SSL_HASH_MD5 )
-        {
-            ssl->handshake->sig_alg = SSL_HASH_MD5;
-            break;
-        }
-
-        sig_alg_list_size -= 2;
-        p += 2;
     }
 
     SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %d",

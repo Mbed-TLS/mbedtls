@@ -492,6 +492,9 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *pt,
     int ret;
     size_t plen;
 
+    if ( ilen < 1 )
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+
     if( buf[0] == 0x00 )
     {
         if( ilen == 1 )
@@ -529,7 +532,7 @@ int ecp_tls_read_point( const ecp_group *grp, ecp_point *pt,
     const unsigned char *buf_start;
 
     /*
-     * We must have at least two bytes (1 for length, at least of for data)
+     * We must have at least two bytes (1 for length, at least one for data)
      */
     if( buf_len < 2 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );

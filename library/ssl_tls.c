@@ -1455,17 +1455,33 @@ static int ssl_decrypt_buf( ssl_context *ssl )
              * TLSv1+: always check the padding up to the first failure
              * and fake check up to 256 bytes of padding
              */
-            size_t pad_count = 0, fake_pad_count = 0;
+            size_t pad_count = 0, real_count = 1;
             size_t padding_idx = ssl->in_msglen - padlen - 1;
 
-            for( i = 1; i <= padlen; i++ )
-                pad_count += ( ssl->in_msg[padding_idx + i] == padlen - 1 );
+            /*
+             * Padding is guaranteed to be incorrect if:
+             *   1. padlen >= ssl->in_msglen
+             *
+             *   2. padding_idx >= SSL_MAX_CONTENT_LEN +
+             *                     ssl->transform_in->maclen
+             *
+             * In both cases we reset padding_idx to a safe value (0) to
+             * prevent out-of-buffer reads.
+             */
+            correct &= ( ssl->in_msglen >= padlen + 1 );
+            correct &= ( padding_idx < SSL_MAX_CONTENT_LEN +
+                                       ssl->transform_in->maclen );
 
-            for( ; i <= 256; i++ )
-                fake_pad_count += ( ssl->in_msg[padding_idx + i] == padlen - 1 );
+            padding_idx *= correct;
+
+            for( i = 1; i <= 256; i++ )
+            {
+                real_count &= ( i <= padlen );
+                pad_count += real_count *
+                             ( ssl->in_msg[padding_idx + i] == padlen - 1 );
+            }
 
             correct &= ( pad_count == padlen ); /* Only 1 on correct padding */
-            correct &= ( pad_count + fake_pad_count < 512 ); /* Always 1 */
 
 #if defined(POLARSSL_SSL_DEBUG_ALL)
             if( padlen > 0 && correct == 0)

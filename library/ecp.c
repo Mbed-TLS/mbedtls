@@ -131,7 +131,7 @@ typedef enum
  * Curves are listed in order: largest curves first, and for a given size,
  * fastest curves first. This provides the default order for the SSL module.
  */
-static const ecp_curve_info ecp_supported_curves[POLARSSL_ECP_DP_MAX] =
+static const ecp_curve_info ecp_supported_curves[] =
 {
 #if defined(POLARSSL_ECP_DP_SECP521R1_ENABLED)
     { POLARSSL_ECP_DP_SECP521R1,    25,     521,    "secp521r1"         },
@@ -169,7 +169,10 @@ static const ecp_curve_info ecp_supported_curves[POLARSSL_ECP_DP_MAX] =
     { POLARSSL_ECP_DP_NONE,          0,     0,      NULL                },
 };
 
-static ecp_group_id ecp_supported_grp_id[POLARSSL_ECP_DP_MAX];
+#define ECP_NB_CURVES   sizeof( ecp_supported_curves ) /    \
+                        sizeof( ecp_supported_curves[0] )
+
+static ecp_group_id ecp_supported_grp_id[ECP_NB_CURVES];
 
 /*
  * List of supported curves and associated info

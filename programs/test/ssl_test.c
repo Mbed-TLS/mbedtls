@@ -265,7 +265,11 @@ static int ssl_test( struct options *opt )
 
         ssl_set_endpoint( &ssl, SSL_IS_SERVER );
         ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
-        ssl_set_own_cert( &ssl, &srvcert, &pkey );
+        if( ( ret = ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            goto exit;
+        }
     }
 
     ssl_set_authmode( &ssl, SSL_VERIFY_NONE );

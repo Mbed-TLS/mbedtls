@@ -426,8 +426,7 @@ int sni_callback( void *p_info, ssl_context *ssl,
         if( name_len == strlen( cur->name ) &&
             memcmp( name, cur->name, name_len ) == 0 )
         {
-            ssl_set_own_cert( ssl, cur->cert, cur->key );
-            return( 0 );
+            return( ssl_set_own_cert( ssl, cur->cert, cur->key ) );
         }
 
         cur = cur->next;
@@ -1219,12 +1218,20 @@ int main( int argc, char *argv[] )
     ssl_set_authmode( &ssl, opt.auth_mode );
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
-    ssl_set_max_frag_len( &ssl, opt.mfl_code );
+    if( ( ret = ssl_set_max_frag_len( &ssl, opt.mfl_code ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_set_max_frag_len returned %d\n\n", ret );
+        goto exit;
+    };
 #endif
 
 #if defined(POLARSSL_SSL_ALPN)
     if( opt.alpn_string != NULL )
-        ssl_set_alpn_protocols( &ssl, alpn_list );
+        if( ( ret = ssl_set_alpn_protocols( &ssl, alpn_list ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_alpn_protocols returned %d\n\n", ret );
+            goto exit;
+        }
 #endif
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
@@ -1242,7 +1249,11 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
-    ssl_set_session_tickets( &ssl, opt.tickets );
+    if( ( ret = ssl_set_session_tickets( &ssl, opt.tickets ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_set_session_tickets returned %d\n\n", ret );
+        goto exit;
+    }
 
     if( opt.ticket_timeout != -1 )
         ssl_set_session_ticket_lifetime( &ssl, opt.ticket_timeout );
@@ -1279,9 +1290,17 @@ int main( int argc, char *argv[] )
         ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
     }
     if( key_cert_init )
-        ssl_set_own_cert( &ssl, &srvcert, &pkey );
+        if( ( ret = ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            goto exit;
+        }
     if( key_cert_init2 )
-        ssl_set_own_cert( &ssl, &srvcert2, &pkey2 );
+        if( ( ret = ssl_set_own_cert( &ssl, &srvcert2, &pkey2 ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            goto exit;
+        }
 #endif
 
 #if defined(POLARSSL_SNI)

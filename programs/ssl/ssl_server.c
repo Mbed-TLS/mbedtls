@@ -207,7 +207,11 @@ int main( int argc, char *argv[] )
 #endif
 
     ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
-    ssl_set_own_cert( &ssl, &srvcert, &pkey );
+    if( ( ret = ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+        goto exit;
+    }
 
     printf( " ok\n" );
 

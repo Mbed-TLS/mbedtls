@@ -432,10 +432,18 @@ int main( int argc, char *argv[] )
         ssl_set_bio( &ssl, net_recv, &server_fd,
                 net_send, &server_fd );
 
-        ssl_set_own_cert( &ssl, &clicert, &pkey );
+        if( ( ret = ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            goto exit;
+        }
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-        ssl_set_hostname( &ssl, opt.server_name );
+        if( ( ret = ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_hostname returned %d\n\n", ret );
+            goto exit;
+        }
 #endif
 
         /*

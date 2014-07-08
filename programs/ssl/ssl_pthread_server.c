@@ -173,7 +173,11 @@ static void *handle_ssl_connection( void *data )
 #endif
 
     ssl_set_ca_chain( &ssl, thread_info->ca_chain, NULL, NULL );
-    ssl_set_own_cert( &ssl, thread_info->server_cert, thread_info->server_key );
+    if( ( ret = ssl_set_own_cert( &ssl, thread_info->server_cert, thread_info->server_key ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+        goto exit;
+    }
 
     printf( "  [ #%d ]  ok\n", thread_id );
 

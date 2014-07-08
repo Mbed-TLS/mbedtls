@@ -855,17 +855,29 @@ int main( int argc, char *argv[] )
     ssl_set_authmode( &ssl, opt.auth_mode );
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
-    ssl_set_max_frag_len( &ssl, opt.mfl_code );
+    if( ( ret = ssl_set_max_frag_len( &ssl, opt.mfl_code ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_set_max_frag_len returned %d\n\n", ret );
+        goto exit;
+    }
 #endif
 
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != 0 )
-        ssl_set_truncated_hmac( &ssl, SSL_TRUNC_HMAC_ENABLED );
+        if( ( ret = ssl_set_truncated_hmac( &ssl, SSL_TRUNC_HMAC_ENABLED ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_truncated_hmac returned %d\n\n", ret );
+            goto exit;
+        }
 #endif
 
 #if defined(POLARSSL_SSL_ALPN)
     if( opt.alpn_string != NULL )
-        ssl_set_alpn_protocols( &ssl, alpn_list );
+        if( ( ret = ssl_set_alpn_protocols( &ssl, alpn_list ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_alpn_protocols returned %d\n\n", ret );
+            goto exit;
+        }
 #endif
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
@@ -877,7 +889,11 @@ int main( int argc, char *argv[] )
         ssl_set_bio( &ssl, net_recv, &server_fd, net_send, &server_fd );
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
-    ssl_set_session_tickets( &ssl, opt.tickets );
+    if( ( ret = ssl_set_session_tickets( &ssl, opt.tickets ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_set_session_tickets returned %d\n\n", ret );
+        goto exit;
+    }
 #endif
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
@@ -895,17 +911,30 @@ int main( int argc, char *argv[] )
     if( strcmp( opt.crt_file, "none" ) != 0 &&
         strcmp( opt.key_file, "none" ) != 0 )
     {
-        ssl_set_own_cert( &ssl, &clicert, &pkey );
+        if( ( ret = ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            goto exit;
+        }
     }
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    ssl_set_psk( &ssl, psk, psk_len, (const unsigned char *) opt.psk_identity,
-                 strlen( opt.psk_identity ) );
+    if( ( ret = ssl_set_psk( &ssl, psk, psk_len,
+                             (const unsigned char *) opt.psk_identity,
+                             strlen( opt.psk_identity ) ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_set_psk returned %d\n\n", ret );
+        goto exit;
+    }
 #endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
-    ssl_set_hostname( &ssl, opt.server_name );
+    if( ( ret = ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_set_hostname returned %d\n\n", ret );
+        goto exit;
+    }
 #endif
 
     if( opt.min_version != -1 )
@@ -1130,7 +1159,11 @@ send_request:
             goto exit;
         }
 
-        ssl_set_session( &ssl, &saved_session );
+        if( ( ret = ssl_set_session( &ssl, &saved_session ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_set_session returned %d\n\n", ret );
+            goto exit;
+        }
 
         if( ( ret = net_connect( &server_fd, opt.server_name,
                         opt.server_port ) ) != 0 )

@@ -50,7 +50,7 @@
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
 #define DFL_FORCE_CIPHER        0
-#define DFL_RENEGOTIATION       SSL_RENEGOTIATION_ENABLED
+#define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1

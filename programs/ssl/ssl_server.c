@@ -324,7 +324,21 @@ reset:
 
     len = ret;
     printf( " %d bytes written\n\n%s\n", len, (char *) buf );
-    
+
+    printf( "  . Closing the connection..." );
+
+    while( ( ret = ssl_close_notify( &ssl ) ) < 0 )
+    {
+        if( ret != POLARSSL_ERR_NET_WANT_READ &&
+            ret != POLARSSL_ERR_NET_WANT_WRITE )
+        {
+            printf( " failed\n  ! ssl_close_notify returned %d\n\n", ret );
+            goto reset;
+        }
+    }
+
+    printf( " ok\n" );
+
     ret = 0;
     goto reset;
 

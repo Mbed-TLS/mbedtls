@@ -42,6 +42,7 @@ Bugfix
    * ssl_handshake_init() was leaving dirty pointers in subcontexts if malloc
      of one of them failed
    * x509_get_current_time() uses localtime_r() to prevent thread issues
+   * Some example server programs were not sending the close_notify alert.
 
 = Version 1.2.10 released 2013-10-07
 Changes

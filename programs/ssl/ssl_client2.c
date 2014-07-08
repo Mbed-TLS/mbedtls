@@ -616,6 +616,7 @@ int main( int argc, char *argv[] )
         if( ret == 0 )
         {
             printf("\n\nEOF\n\n");
+            ssl_close_notify( &ssl );
             break;
         }
 
@@ -624,9 +625,9 @@ int main( int argc, char *argv[] )
     }
     while( 1 );
 
-    ssl_close_notify( &ssl );
-
 exit:
+    if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
+        ret = 0;
 
 #ifdef POLARSSL_ERROR_C
     if( ret != 0 )

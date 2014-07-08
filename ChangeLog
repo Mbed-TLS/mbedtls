@@ -39,6 +39,9 @@ Bugfix
      Alex Wilson.)
    * ssl_init() was leaving a dirty pointer in ssl_context if malloc of
      out_ctr failed
+   * ssl_handshake_init() was leaving dirty pointers in subcontexts if malloc
+     of one of them failed
+
 
 = Version 1.2.10 released 2013-10-07
 Changes

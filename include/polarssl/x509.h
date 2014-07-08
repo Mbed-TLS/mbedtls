@@ -80,6 +80,9 @@
 #define BADCERT_MISSING             0x40  /**< Certificate was missing. */
 #define BADCERT_SKIP_VERIFY         0x80  /**< Certificate verification was skipped. */
 #define BADCERT_OTHER             0x0100  /**< Other reason (can be used by verify callback) */
+#define BADCERT_FUTURE            0x0200  /**< The certificate validity starts in the future. */
+#define BADCRL_FUTURE             0x0400  /**< The CRL is from the future */
+
 /* \} name */
 /* \} addtogroup x509_module */
 

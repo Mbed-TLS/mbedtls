@@ -3275,6 +3275,9 @@ static int x509parse_verifycrl(x509_cert *crt, x509_cert *ca,
         if( x509parse_time_expired( &crl_list->next_update ) )
             flags |= BADCRL_EXPIRED;
 
+        if( x509parse_time_future( &crl_list->this_update ) )
+            flags |= BADCRL_FUTURE;
+
         /*
          * Check if certificate is revoked
          */
@@ -3358,6 +3361,9 @@ static int x509parse_verify_top(
     if( x509parse_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
 
+    if( x509parse_time_future( &child->valid_from ) )
+        *flags |= BADCERT_FUTURE;
+
     /*
      * Child is the top of the chain. Check against the trust_ca list.
      */
@@ -3426,6 +3432,9 @@ static int x509parse_verify_top(
         if( x509parse_time_expired( &trust_ca->valid_to ) )
             ca_flags |= BADCERT_EXPIRED;
 
+        if( x509parse_time_future( &trust_ca->valid_from ) )
+            ca_flags |= BADCERT_FUTURE;
+
         if( NULL != f_vrfy )
         {
             if( ( ret = f_vrfy( p_vrfy, trust_ca, path_cnt + 1, &ca_flags ) ) != 0 )
@@ -3458,6 +3467,9 @@ static int x509parse_verify_child(
 
     if( x509parse_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
+
+    if( x509parse_time_future( &child->valid_from ) )
+        *flags |= BADCERT_FUTURE;
 
     hash_id = child->sig_alg;
 

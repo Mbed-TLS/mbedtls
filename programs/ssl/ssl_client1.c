@@ -72,7 +72,7 @@ int main( int argc, char *argv[] )
 #else
 int main( int argc, char *argv[] )
 {
-    int ret, len, server_fd;
+    int ret, len, server_fd = -1;
     unsigned char buf[1024];
     const char *pers = "ssl_client1";
 

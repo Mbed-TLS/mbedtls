@@ -97,6 +97,9 @@ void write_public_key( rsa_context *rsa, const char *output_file )
     c = base_buf;
 
     f = fopen( output_file, "w" );
+    if( f == NULL )
+        return;
+
     fprintf(f, "-----BEGIN PUBLIC KEY-----\n");
     while (olen)
     {

@@ -97,7 +97,7 @@ int main( int argc, char *argv[] )
 {
     int ret, len, cnt = 0, pid;
     int listen_fd;
-    int client_fd;
+    int client_fd = -1;
     unsigned char buf[1024];
     const char *pers = "ssl_fork_server";
 

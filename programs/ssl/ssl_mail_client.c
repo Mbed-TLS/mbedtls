@@ -373,6 +373,7 @@ int main( int argc, char *argv[] )
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &clicert, 0, sizeof( x509_cert ) );
     memset( &rsa, 0, sizeof( rsa_context ) );
+    memset( &ssl, 0, sizeof( ssl_context ) );
 
     if( argc == 0 )
     {

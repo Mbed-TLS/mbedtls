@@ -113,6 +113,8 @@ int net_connect( int *fd, const char *host, int port )
     struct sockaddr_in server_addr;
     struct hostent *server_host;
 
+    memset( &server_addr, 0, sizeof( server_addr ) );
+
 #if defined(_WIN32) || defined(_WIN32_WCE)
     WSADATA wsaData;
 
@@ -157,6 +159,8 @@ int net_bind( int *fd, const char *bind_ip, int port )
 {
     int n, c[4];
     struct sockaddr_in server_addr;
+
+    memset( &server_addr, 0, sizeof( server_addr ) );
 
 #if defined(_WIN32) || defined(_WIN32_WCE)
     WSADATA wsaData;

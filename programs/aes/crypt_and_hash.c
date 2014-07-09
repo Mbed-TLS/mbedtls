@@ -502,7 +502,11 @@ int main( int argc, char *argv[] )
         /*
          * Write the final block of data
          */
-        cipher_finish( &cipher_ctx, output, &olen );
+        if( cipher_finish( &cipher_ctx, output, &olen ) != 0 )
+        {
+            fprintf( stderr, "cipher_finish() returned error\n" );
+            goto exit;
+        }
 
         if( fwrite( output, 1, olen, fout ) != olen )
         {

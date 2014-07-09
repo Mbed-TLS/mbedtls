@@ -259,6 +259,7 @@ int main( int argc, char *argv[] )
     memset( &cacert, 0, sizeof( x509_cert ) );
     memset( &srvcert, 0, sizeof( x509_cert ) );
     memset( &rsa, 0, sizeof( rsa_context ) );
+    memset( &ssl, 0, sizeof( ssl_context ) );
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_init( &cache );
 #endif

@@ -3270,8 +3270,7 @@ int ssl_parse_finished( ssl_context *ssl )
     return( 0 );
 }
 
-static void ssl_handshake_params_init( ssl_handshake_params *handshake,
-                                       ssl_key_cert *key_cert )
+static void ssl_handshake_params_init( ssl_handshake_params *handshake )
 {
     memset( handshake, 0, sizeof( ssl_handshake_params ) );
 
@@ -3301,10 +3300,6 @@ static void ssl_handshake_params_init( ssl_handshake_params *handshake,
 #endif
 #if defined(POLARSSL_ECDH_C)
     ecdh_init( &handshake->ecdh_ctx );
-#endif
-
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    handshake->key_cert = key_cert;
 #endif
 }
 
@@ -3377,7 +3372,11 @@ static int ssl_handshake_init( ssl_context *ssl )
     /* Initialize structures */
     ssl_session_init( ssl->session_negotiate );
     ssl_transform_init( ssl->transform_negotiate );
-    ssl_handshake_params_init( ssl->handshake, ssl->key_cert );
+    ssl_handshake_params_init( ssl->handshake );
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    ssl->handshake->key_cert = ssl->key_cert;
+#endif
 
     return( 0 );
 }

@@ -574,6 +574,7 @@ int dhm_self_test( int verbose )
         if( verbose != 0 )
             polarssl_printf( "failed\n" );
 
+        ret = 1;
         goto exit;
     }
 

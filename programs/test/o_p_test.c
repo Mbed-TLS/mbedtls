@@ -258,6 +258,7 @@ int main( int argc, char *argv[] )
     printf( "String value (PolarSSL Private Encrypt, OpenSSL Public Decrypt): '%s'\n", o_priv_decrypted );
 
 exit:
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #ifdef WIN32

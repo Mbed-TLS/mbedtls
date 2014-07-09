@@ -25,8 +25,8 @@ void dhm_do_dhm( int radix_P, char *input_P,
     int x_size, i;
     rnd_pseudo_info rnd_info;
 
-    memset( &ctx_srv, 0x00, sizeof( dhm_context ) );
-    memset( &ctx_cli, 0x00, sizeof( dhm_context ) );
+    dhm_init( &ctx_srv );
+    dhm_init( &ctx_cli );
     memset( ske, 0x00, 1000 );
     memset( pub_cli, 0x00, 1000 );
     memset( sec_srv, 0x00, 1000 );
@@ -103,7 +103,7 @@ void dhm_file( char *filename, char *p, char *g, int len )
     dhm_context ctx;
     mpi P, G;
 
-    memset( &ctx, 0, sizeof ctx );
+    dhm_init( &ctx );
     mpi_init( &P ); mpi_init( &G );
 
     TEST_ASSERT( mpi_read_string( &P, 16, p ) == 0 );

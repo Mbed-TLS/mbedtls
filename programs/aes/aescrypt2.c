@@ -93,6 +93,9 @@ int main( int argc, char *argv[] )
       off_t filesize, offset;
 #endif
 
+    aes_init( &aes_ctx );
+    sha256_init( &sha_ctx );
+
     /*
      * Parse the command-line arguments.
      */
@@ -357,7 +360,7 @@ int main( int argc, char *argv[] )
         }
 
         memset( key, 0, sizeof( key ) );
-          aes_setkey_dec( &aes_ctx, digest, 256 );
+        aes_setkey_dec( &aes_ctx, digest, 256 );
         sha256_hmac_starts( &sha_ctx, digest, 32, 0 );
 
         /*
@@ -426,8 +429,8 @@ exit:
     memset( buffer, 0, sizeof( buffer ) );
     memset( digest, 0, sizeof( digest ) );
 
-    memset( &aes_ctx, 0, sizeof(  aes_context ) );
-    memset( &sha_ctx, 0, sizeof( sha256_context ) );
+    aes_free( &aes_ctx );
+    sha256_free( &sha_ctx );
 
     return( ret );
 }

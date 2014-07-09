@@ -305,6 +305,32 @@ static const uint32_t RHs[16] =
 
 #define SWAP(a,b) { uint32_t t = a; a = b; b = t; t = 0; }
 
+void des_init( des_context *ctx )
+{
+    memset( ctx, 0, sizeof( des_context ) );
+}
+
+void des_free( des_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( des_context ) );
+}
+
+void des3_init( des3_context *ctx )
+{
+    memset( ctx, 0, sizeof( des3_context ) );
+}
+
+void des3_free( des3_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( des3_context ) );
+}
+
 static const unsigned char odd_parity_table[128] = { 1,  2,  4,  7,  8,
         11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31, 32, 35, 37, 38, 41, 42, 44,
         47, 49, 50, 52, 55, 56, 59, 61, 62, 64, 67, 69, 70, 73, 74, 76, 79, 81,
@@ -839,7 +865,7 @@ static const unsigned char des3_test_cbc_enc[3][8] =
  */
 int des_self_test( int verbose )
 {
-    int i, j, u, v;
+    int i, j, u, v, ret = 0;
     des_context ctx;
     des3_context ctx3;
     unsigned char buf[8];
@@ -848,6 +874,8 @@ int des_self_test( int verbose )
     unsigned char iv[8];
 #endif
 
+    des_init( &ctx );
+    des3_init( &ctx3 );
     /*
      * ECB mode
      */
@@ -909,7 +937,8 @@ int des_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -1004,7 +1033,8 @@ int des_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -1015,7 +1045,11 @@ int des_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "\n" );
 
-    return( 0 );
+exit:
+    des_free( &ctx );
+    des3_free( &ctx3 );
+
+    return( ret );
 }
 
 #endif /* POLARSSL_SELF_TEST */

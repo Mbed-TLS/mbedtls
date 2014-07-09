@@ -157,6 +157,8 @@ int gcm_init( gcm_context *ctx, cipher_id_t cipher, const unsigned char *key,
 
     memset( ctx, 0, sizeof(gcm_context) );
 
+    cipher_init( &ctx->cipher_ctx );
+
     cipher_info = cipher_info_from_values( cipher, keysize, POLARSSL_MODE_ECB );
     if( cipher_info == NULL )
         return( POLARSSL_ERR_GCM_BAD_INPUT );
@@ -493,7 +495,7 @@ int gcm_auth_decrypt( gcm_context *ctx,
 
 void gcm_free( gcm_context *ctx )
 {
-    (void) cipher_free_ctx( &ctx->cipher_ctx );
+    cipher_free( &ctx->cipher_ctx );
     polarssl_zeroize( ctx, sizeof( gcm_context ) );
 }
 

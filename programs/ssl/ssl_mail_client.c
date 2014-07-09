@@ -816,6 +816,7 @@ exit:
     x509_crt_free( &cacert );
     pk_free( &pkey );
     ssl_free( &ssl );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(_WIN32)

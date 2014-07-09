@@ -78,6 +78,34 @@ typedef struct
 des3_context;
 
 /**
+ * \brief          Initialize DES context
+ *
+ * \param ctx      DES context to be initialized
+ */
+void des_init( des_context *ctx );
+
+/**
+ * \brief          Clear DES context
+ *
+ * \param ctx      DES context to be cleared
+ */
+void des_free( des_context *ctx );
+
+/**
+ * \brief          Initialize Triple-DES context
+ *
+ * \param ctx      DES3 context to be initialized
+ */
+void des3_init( des3_context *ctx );
+
+/**
+ * \brief          Clear Triple-DES context
+ *
+ * \param ctx      DES3 context to be cleared
+ */
+void des3_free( des3_context *ctx );
+
+/**
  * \brief          Set key parity on the given key to odd.
  *
  *                 DES keys are 56 bits long, but each byte is padded with

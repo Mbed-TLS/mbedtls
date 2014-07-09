@@ -48,6 +48,11 @@
 #define polarssl_printf printf
 #endif
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Non-public function wrapped by ctr_crbg_init(). Necessary to allow NIST
  * tests to succeed (which require known length fixed entropy)
@@ -65,6 +70,8 @@ int ctr_drbg_init_entropy_len(
 
     memset( ctx, 0, sizeof(ctr_drbg_context) );
     memset( key, 0, CTR_DRBG_KEYSIZE );
+
+    aes_init( &ctx->aes_ctx );
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
@@ -91,6 +98,15 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
 {
     return( ctr_drbg_init_entropy_len( ctx, f_entropy, p_entropy, custom, len,
                                        CTR_DRBG_ENTROPY_LEN ) );
+}
+
+void ctr_drbg_free( ctr_drbg_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    aes_free( &ctx->aes_ctx );
+    polarssl_zeroize( ctx, sizeof( ctr_drbg_context ) );
 }
 
 void ctr_drbg_set_prediction_resistance( ctr_drbg_context *ctx, int resistance )
@@ -122,6 +138,7 @@ static int block_cipher_df( unsigned char *output,
     size_t buf_len, use_len;
 
     memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
+    aes_init( &aes_ctx );
 
     /*
      * Construct IV (16 bytes) and S in buffer
@@ -188,6 +205,8 @@ static int block_cipher_df( unsigned char *output,
         memcpy( p, iv, CTR_DRBG_BLOCKSIZE );
         p += CTR_DRBG_BLOCKSIZE;
     }
+
+    aes_free( &aes_ctx );
 
     return( 0 );
 }

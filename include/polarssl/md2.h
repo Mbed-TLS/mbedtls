@@ -61,6 +61,20 @@ typedef struct
 md2_context;
 
 /**
+ * \brief          Initialize MD2 context
+ *
+ * \param ctx      MD2 context to be initialized
+ */
+void md2_init( md2_context *ctx );
+
+/**
+ * \brief          Clear MD2 context
+ *
+ * \param ctx      MD2 context to be cleared
+ */
+void md2_free( md2_context *ctx );
+
+/**
  * \brief          MD2 context setup
  *
  * \param ctx      context to be initialized

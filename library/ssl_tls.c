@@ -156,6 +156,9 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
     unsigned char sha1sum[20];
     ((void)label);
 
+    md5_init(  &md5  );
+    sha1_init( &sha1 );
+
     /*
      *  SSLv3:
      *    block =
@@ -180,8 +183,8 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
         md5_finish( &md5, dstbuf + i * 16 );
     }
 
-    polarssl_zeroize( &md5,  sizeof( md5  ) );
-    polarssl_zeroize( &sha1, sizeof( sha1 ) );
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
 
     polarssl_zeroize( padding, sizeof( padding ) );
     polarssl_zeroize( sha1sum, sizeof( sha1sum ) );
@@ -805,6 +808,9 @@ void ssl_calc_verify_ssl( ssl_context *ssl, unsigned char hash[36] )
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
+
     return;
 }
 #endif /* POLARSSL_SSL_PROTO_SSL3 */
@@ -826,6 +832,9 @@ void ssl_calc_verify_tls( ssl_context *ssl, unsigned char hash[36] )
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 36 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
+
     return;
 }
 #endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 */
@@ -844,6 +853,8 @@ void ssl_calc_verify_tls_sha256( ssl_context *ssl, unsigned char hash[32] )
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 32 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
+    sha256_free( &sha256 );
+
     return;
 }
 #endif /* POLARSSL_SHA256_C */
@@ -860,6 +871,8 @@ void ssl_calc_verify_tls_sha384( ssl_context *ssl, unsigned char hash[48] )
 
     SSL_DEBUG_BUF( 3, "calculated verify result", hash, 48 );
     SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+
+    sha512_free( &sha512 );
 
     return;
 }
@@ -2878,8 +2891,8 @@ static void ssl_calc_finished_ssl(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
 
-    polarssl_zeroize(  &md5, sizeof(  md5_context ) );
-    polarssl_zeroize( &sha1, sizeof( sha1_context ) );
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
 
     polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
     polarssl_zeroize(  md5sum, sizeof(  md5sum ) );
@@ -2936,8 +2949,8 @@ static void ssl_calc_finished_tls(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    polarssl_zeroize(  &md5, sizeof(  md5_context ) );
-    polarssl_zeroize( &sha1, sizeof( sha1_context ) );
+    md5_free(  &md5  );
+    sha1_free( &sha1 );
 
     polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
 
@@ -2985,7 +2998,7 @@ static void ssl_calc_finished_tls_sha256(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    polarssl_zeroize( &sha256, sizeof( sha256_context ) );
+    sha256_free( &sha256 );
 
     polarssl_zeroize(  padbuf, sizeof(  padbuf ) );
 
@@ -3032,7 +3045,7 @@ static void ssl_calc_finished_tls_sha384(
 
     SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
-    polarssl_zeroize( &sha512, sizeof( sha512_context ) );
+    sha512_free( &sha512 );
 
     polarssl_zeroize(  padbuf, sizeof( padbuf ) );
 
@@ -3257,73 +3270,114 @@ int ssl_parse_finished( ssl_context *ssl )
     return( 0 );
 }
 
+static void ssl_handshake_params_init( ssl_handshake_params *handshake,
+                                       ssl_key_cert *key_cert )
+{
+    memset( handshake, 0, sizeof( ssl_handshake_params ) );
+
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
+     md5_init(   &handshake->fin_md5  );
+    sha1_init(   &handshake->fin_sha1 );
+     md5_starts( &handshake->fin_md5  );
+    sha1_starts( &handshake->fin_sha1 );
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
+    sha256_init(   &handshake->fin_sha256    );
+    sha256_starts( &handshake->fin_sha256, 0 );
+#endif
+#if defined(POLARSSL_SHA512_C)
+    sha512_init(   &handshake->fin_sha512    );
+    sha512_starts( &handshake->fin_sha512, 1 );
+#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+
+    handshake->update_checksum = ssl_update_checksum_start;
+    handshake->sig_alg = SSL_HASH_SHA1;
+
+#if defined(POLARSSL_DHM_C)
+    dhm_init( &handshake->dhm_ctx );
+#endif
+#if defined(POLARSSL_ECDH_C)
+    ecdh_init( &handshake->ecdh_ctx );
+#endif
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
+    handshake->key_cert = key_cert;
+#endif
+}
+
+static void ssl_transform_init( ssl_transform *transform )
+{
+    memset( transform, 0, sizeof(ssl_transform) );
+
+    cipher_init( &transform->cipher_ctx_enc );
+    cipher_init( &transform->cipher_ctx_dec );
+
+    md_init( &transform->md_ctx_enc );
+    md_init( &transform->md_ctx_dec );
+}
+
+void ssl_session_init( ssl_session *session )
+{
+    memset( session, 0, sizeof(ssl_session) );
+}
+
 static int ssl_handshake_init( ssl_context *ssl )
 {
+    /* Clear old handshake information if present */
     if( ssl->transform_negotiate )
         ssl_transform_free( ssl->transform_negotiate );
-    else
+    if( ssl->session_negotiate )
+        ssl_session_free( ssl->session_negotiate );
+    if( ssl->handshake )
+        ssl_handshake_free( ssl->handshake );
+
+    /*
+     * Either the pointers are now NULL or cleared properly and can be freed.
+     * Now allocate missing structures.
+     */
+    if( ssl->transform_negotiate == NULL )
     {
         ssl->transform_negotiate =
             (ssl_transform *) polarssl_malloc( sizeof(ssl_transform) );
-
-        if( ssl->transform_negotiate != NULL )
-            memset( ssl->transform_negotiate, 0, sizeof(ssl_transform) );
     }
 
-    if( ssl->session_negotiate )
-        ssl_session_free( ssl->session_negotiate );
-    else
+    if( ssl->session_negotiate == NULL )
     {
         ssl->session_negotiate =
             (ssl_session *) polarssl_malloc( sizeof(ssl_session) );
-
-        if( ssl->session_negotiate != NULL )
-            memset( ssl->session_negotiate, 0, sizeof(ssl_session) );
     }
 
-    if( ssl->handshake )
-        ssl_handshake_free( ssl->handshake );
-    else
+    if( ssl->handshake == NULL)
     {
         ssl->handshake = (ssl_handshake_params *)
             polarssl_malloc( sizeof(ssl_handshake_params) );
-
-        if( ssl->handshake != NULL )
-            memset( ssl->handshake, 0, sizeof(ssl_handshake_params) );
     }
 
+    /* All pointers should exist and can be directly freed without issue */
     if( ssl->handshake == NULL ||
         ssl->transform_negotiate == NULL ||
         ssl->session_negotiate == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc() of ssl sub-contexts failed" ) );
+
+        polarssl_free( ssl->handshake );
+        polarssl_free( ssl->transform_negotiate );
+        polarssl_free( ssl->session_negotiate );
+
+        ssl->handshake = NULL;
+        ssl->transform_negotiate = NULL;
+        ssl->session_negotiate = NULL;
+
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
-    defined(POLARSSL_SSL_PROTO_TLS1_1)
-     md5_starts( &ssl->handshake->fin_md5 );
-    sha1_starts( &ssl->handshake->fin_sha1 );
-#endif
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
-#if defined(POLARSSL_SHA256_C)
-    sha256_starts( &ssl->handshake->fin_sha256, 0 );
-#endif
-#if defined(POLARSSL_SHA512_C)
-    sha512_starts( &ssl->handshake->fin_sha512, 1 );
-#endif
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
-
-    ssl->handshake->update_checksum = ssl_update_checksum_start;
-    ssl->handshake->sig_alg = SSL_HASH_SHA1;
-
-#if defined(POLARSSL_ECDH_C)
-    ecdh_init( &ssl->handshake->ecdh_ctx );
-#endif
-
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-    ssl->handshake->key_cert = ssl->key_cert;
-#endif
+    /* Initialize structures */
+    ssl_session_init( ssl->session_negotiate );
+    ssl_transform_init( ssl->transform_negotiate );
+    ssl_handshake_params_init( ssl->handshake, ssl->key_cert );
 
     return( 0 );
 }
@@ -3482,6 +3536,14 @@ int ssl_session_reset( ssl_context *ssl )
 }
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
+static void ssl_ticket_keys_free( ssl_ticket_keys *tkeys )
+{
+    aes_free( &tkeys->enc );
+    aes_free( &tkeys->dec );
+
+    polarssl_zeroize( tkeys, sizeof(ssl_ticket_keys) );
+}
+
 /*
  * Allocate and initialize ticket keys
  */
@@ -3498,8 +3560,12 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
     if( tkeys == NULL )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
 
+    aes_init( &tkeys->enc );
+    aes_init( &tkeys->dec );
+
     if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->key_name, 16 ) ) != 0 )
     {
+        ssl_ticket_keys_free( tkeys );
         polarssl_free( tkeys );
         return( ret );
     }
@@ -3508,12 +3574,14 @@ static int ssl_ticket_keys_init( ssl_context *ssl )
         ( ret = aes_setkey_enc( &tkeys->enc, buf, 128 ) ) != 0 ||
         ( ret = aes_setkey_dec( &tkeys->dec, buf, 128 ) ) != 0 )
     {
+        ssl_ticket_keys_free( tkeys );
         polarssl_free( tkeys );
         return( ret );
     }
 
     if( ( ret = ssl->f_rng( ssl->p_rng, tkeys->mac_key, 16 ) ) != 0 )
     {
+        ssl_ticket_keys_free( tkeys );
         polarssl_free( tkeys );
         return( ret );
     }
@@ -4436,16 +4504,19 @@ int ssl_close_notify( ssl_context *ssl )
 
 void ssl_transform_free( ssl_transform *transform )
 {
+    if( transform == NULL )
+        return;
+
 #if defined(POLARSSL_ZLIB_SUPPORT)
     deflateEnd( &transform->ctx_deflate );
     inflateEnd( &transform->ctx_inflate );
 #endif
 
-    cipher_free_ctx( &transform->cipher_ctx_enc );
-    cipher_free_ctx( &transform->cipher_ctx_dec );
+    cipher_free( &transform->cipher_ctx_enc );
+    cipher_free( &transform->cipher_ctx_dec );
 
-    md_free_ctx( &transform->md_ctx_enc );
-    md_free_ctx( &transform->md_ctx_dec );
+    md_free( &transform->md_ctx_enc );
+    md_free( &transform->md_ctx_dec );
 
     polarssl_zeroize( transform, sizeof( ssl_transform ) );
 }
@@ -4473,6 +4544,9 @@ static void ssl_key_cert_free( ssl_key_cert *key_cert )
 
 void ssl_handshake_free( ssl_handshake_params *handshake )
 {
+    if( handshake == NULL )
+        return;
+
 #if defined(POLARSSL_DHM_C)
     dhm_free( &handshake->dhm_ctx );
 #endif
@@ -4509,6 +4583,9 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 
 void ssl_session_free( ssl_session *session )
 {
+    if( session == NULL )
+        return;
+
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     if( session->peer_cert != NULL )
     {
@@ -4529,6 +4606,9 @@ void ssl_session_free( ssl_session *session )
  */
 void ssl_free( ssl_context *ssl )
 {
+    if( ssl == NULL )
+        return;
+
     SSL_DEBUG_MSG( 2, ( "=> free" ) );
 
     if( ssl->out_ctr != NULL )
@@ -4580,7 +4660,11 @@ void ssl_free( ssl_context *ssl )
     }
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
-    polarssl_free( ssl->ticket_keys );
+    if( ssl->ticket_keys )
+    {
+        ssl_ticket_keys_free( ssl->ticket_keys );
+        polarssl_free( ssl->ticket_keys );
+    }
 #endif
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)

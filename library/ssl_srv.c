@@ -343,6 +343,8 @@ static int ssl_parse_ticket( ssl_context *ssl,
 
     ssl_session_free( ssl->session_negotiate );
     memcpy( ssl->session_negotiate, &session, sizeof( ssl_session ) );
+
+    /* Zeroize instead of free as we copied the content */
     polarssl_zeroize( &session, sizeof( ssl_session ) );
 
     return( 0 );
@@ -2337,6 +2339,9 @@ curve_matching_done:
             md5_context md5;
             sha1_context sha1;
 
+            md5_init(  &md5  );
+            sha1_init( &sha1 );
+
             /*
              * digitally-signed struct {
              *     opaque md5_hash[16];
@@ -2361,6 +2366,9 @@ curve_matching_done:
             sha1_finish( &sha1, hash + 16 );
 
             hashlen = 36;
+
+            md5_free(  &md5  );
+            sha1_free( &sha1 );
         }
         else
 #endif /* POLARSSL_SSL_PROTO_SSL3 || POLARSSL_SSL_PROTO_TLS1 || \
@@ -2371,6 +2379,8 @@ curve_matching_done:
         {
             md_context_t ctx;
             const md_info_t *md_info = md_info_from_type( md_alg );
+
+            md_init( &ctx );
 
             /* Info from md_alg will be used instead */
             hashlen = 0;
@@ -2392,13 +2402,7 @@ curve_matching_done:
             md_update( &ctx, ssl->handshake->randbytes, 64 );
             md_update( &ctx, dig_signed, dig_signed_len );
             md_finish( &ctx, hash );
-
-            if( ( ret = md_free_ctx( &ctx ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "md_free_ctx", ret );
-                return( ret );
-            }
-
+            md_free( &ctx );
         }
         else
 #endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \

@@ -131,6 +131,13 @@ int ctr_drbg_init( ctr_drbg_context *ctx,
                    size_t len );
 
 /**
+ * \brief               Clear CTR_CRBG context data
+ *
+ * \param ctx           CTR_DRBG context to clear
+ */
+void ctr_drbg_free( ctr_drbg_context *ctx );
+
+/**
  * \brief               Enable / disable prediction resistance (Default: Off)
  *
  * Note: If enabled, entropy is used for ctx->entropy_len before each call!

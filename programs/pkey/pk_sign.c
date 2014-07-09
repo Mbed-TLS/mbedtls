@@ -151,6 +151,7 @@ int main( int argc, char *argv[] )
 
 exit:
     pk_free( &pk );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(POLARSSL_ERROR_C)

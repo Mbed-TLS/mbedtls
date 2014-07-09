@@ -540,6 +540,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
     *p++ = 1;
     memcpy( p, input, ilen );
 
+    md_init( &md_ctx );
     md_init_ctx( &md_ctx, md_info );
 
     // maskedDB: Apply dbMask to DB
@@ -552,7 +553,7 @@ int rsa_rsaes_oaep_encrypt( rsa_context *ctx,
     mgf_mask( output + 1, hlen, output + hlen + 1, olen - hlen - 1,
                &md_ctx );
 
-    md_free_ctx( &md_ctx );
+    md_free( &md_ctx );
 
     return( ( mode == RSA_PUBLIC )
             ? rsa_public(  ctx, output, output )
@@ -708,6 +709,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
      */
     hlen = md_get_size( md_info );
 
+    md_init( &md_ctx );
     md_init_ctx( &md_ctx, md_info );
 
     /* Generate lHash */
@@ -721,7 +723,7 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
     mgf_mask( buf + hlen + 1, ilen - hlen - 1, buf + 1, hlen,
                &md_ctx );
 
-    md_free_ctx( &md_ctx );
+    md_free( &md_ctx );
 
     /*
      * Check contents, in "constant-time"
@@ -951,6 +953,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
     memcpy( p, salt, slen );
     p += slen;
 
+    md_init( &md_ctx );
     md_init_ctx( &md_ctx, md_info );
 
     // Generate H = Hash( M' )
@@ -970,7 +973,7 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
     //
     mgf_mask( sig + offset, olen - hlen - 1 - offset, p, hlen, &md_ctx );
 
-    md_free_ctx( &md_ctx );
+    md_free( &md_ctx );
 
     msb = mpi_msb( &ctx->N ) - 1;
     sig[0] &= 0xFF >> ( olen * 8 - msb );
@@ -1182,6 +1185,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     if( buf[0] >> ( 8 - siglen * 8 + msb ) )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
 
+    md_init( &md_ctx );
     md_init_ctx( &md_ctx, md_info );
 
     mgf_mask( p, siglen - hlen - 1, p + siglen - hlen - 1, hlen, &md_ctx );
@@ -1194,7 +1198,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     if( p == buf + siglen ||
         *p++ != 0x01 )
     {
-        md_free_ctx( &md_ctx );
+        md_free( &md_ctx );
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 
@@ -1204,7 +1208,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     if( expected_salt_len != RSA_SALT_LEN_ANY &&
         slen != (size_t) expected_salt_len )
     {
-        md_free_ctx( &md_ctx );
+        md_free( &md_ctx );
         return( POLARSSL_ERR_RSA_INVALID_PADDING );
     }
 
@@ -1216,7 +1220,7 @@ int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
     md_update( &md_ctx, p, slen );
     md_finish( &md_ctx, result );
 
-    md_free_ctx( &md_ctx );
+    md_free( &md_ctx );
 
     if( memcmp( p + slen, result, hlen ) == 0 )
         return( 0 );

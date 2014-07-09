@@ -74,6 +74,20 @@ typedef struct
 aes_context;
 
 /**
+ * \brief          Initialize AES context
+ *
+ * \param ctx      AES context to be initialized
+ */
+void aes_init( aes_context *ctx );
+
+/**
+ * \brief          Clear AES context
+ *
+ * \param ctx      AES context to be cleared
+ */
+void aes_free( aes_context *ctx );
+
+/**
  * \brief          AES key schedule (encryption)
  *
  * \param ctx      AES context to be initialized

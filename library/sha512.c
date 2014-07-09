@@ -133,6 +133,19 @@ static const uint64_t K[80] =
     UL64(0x5FCB6FAB3AD6FAEC),  UL64(0x6C44198C4A475817)
 };
 
+void sha512_init( sha512_context *ctx )
+{
+    memset( ctx, 0, sizeof( sha512_context ) );
+}
+
+void sha512_free( sha512_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( sha512_context ) );
+}
+
 /*
  * SHA-512 context setup
  */
@@ -336,11 +349,11 @@ void sha512( const unsigned char *input, size_t ilen,
 {
     sha512_context ctx;
 
+    sha512_init( &ctx );
     sha512_starts( &ctx, is384 );
     sha512_update( &ctx, input, ilen );
     sha512_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( sha512_context ) );
+    sha512_free( &ctx );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -357,14 +370,14 @@ int sha512_file( const char *path, unsigned char output[64], int is384 )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_SHA512_FILE_IO_ERROR );
 
+    sha512_init( &ctx );
     sha512_starts( &ctx, is384 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         sha512_update( &ctx, buf, n );
 
     sha512_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( sha512_context ) );
+    sha512_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
@@ -455,11 +468,11 @@ void sha512_hmac( const unsigned char *key, size_t keylen,
 {
     sha512_context ctx;
 
+    sha512_init( &ctx );
     sha512_hmac_starts( &ctx, key, keylen, is384 );
     sha512_hmac_update( &ctx, input, ilen );
     sha512_hmac_finish( &ctx, output );
-
-    polarssl_zeroize( &ctx, sizeof( sha512_context ) );
+    sha512_free( &ctx );
 }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -686,10 +699,12 @@ static const unsigned char sha512_hmac_test_sum[14][64] =
  */
 int sha512_self_test( int verbose )
 {
-    int i, j, k, buflen;
+    int i, j, k, buflen, ret = 0;
     unsigned char buf[1024];
     unsigned char sha512sum[64];
     sha512_context ctx;
+
+    sha512_init( &ctx );
 
     for( i = 0; i < 6; i++ )
     {
@@ -719,7 +734,8 @@ int sha512_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -758,7 +774,8 @@ int sha512_self_test( int verbose )
             if( verbose != 0 )
                 polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
@@ -768,7 +785,10 @@ int sha512_self_test( int verbose )
     if( verbose != 0 )
         polarssl_printf( "\n" );
 
-    return( 0 );
+exit:
+    sha512_free( &ctx );
+
+    return( ret );
 }
 
 #endif /* POLARSSL_SELF_TEST */

@@ -17,9 +17,11 @@ void pbkdf2_hmac( int hash, char *hex_password_string, char *hex_salt_string,
 
     md_context_t ctx;
     const md_info_t *info;
-    
+
     int pw_len, salt_len;
     unsigned char key[100];
+
+    md_init( &ctx );
 
     memset(pw_str, 0x00, 100);
     memset(salt_str, 0x00, 100);
@@ -36,7 +38,7 @@ void pbkdf2_hmac( int hash, char *hex_password_string, char *hex_salt_string,
     TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
     TEST_ASSERT( pbkdf2_hmac( &ctx, pw_str, pw_len, salt_str, salt_len,
                               it_cnt, key_len, key ) == 0 );
-    TEST_ASSERT( md_free_ctx( &ctx ) == 0 );
+    md_free( &ctx );
 
     hexify( dst_str, key, key_len );
     TEST_ASSERT( strcmp( (char *) dst_str, result_key_string ) == 0 );

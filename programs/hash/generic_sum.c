@@ -165,7 +165,7 @@ int main( int argc, char *argv[] )
     const md_info_t *md_info;
     md_context_t md_ctx;
 
-    memset( &md_ctx, 0, sizeof( md_context_t ));
+    md_init( &md_ctx );
 
     if( argc == 1 )
     {
@@ -217,7 +217,7 @@ int main( int argc, char *argv[] )
         ret |= generic_print( md_info, argv[i] );
 
 exit:
-    md_free_ctx( &md_ctx );
+    md_free( &md_ctx );
 
     return( ret );
 }

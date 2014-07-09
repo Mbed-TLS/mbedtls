@@ -74,11 +74,6 @@
 
 #include <stdlib.h>
 
-/* Implementation that should never be optimized out by the compiler */
-static void polarssl_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
-
 #if defined(POLARSSL_GCM_C)
 /* shared by all GCM ciphers */
 static void *gcm_ctx_alloc( void )
@@ -187,12 +182,19 @@ static int aes_setkey_enc_wrap( void *ctx, const unsigned char *key,
 
 static void * aes_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( aes_context ) );
+    aes_context *aes = (aes_context *) polarssl_malloc( sizeof( aes_context ) );
+
+    if( aes == NULL )
+        return( NULL );
+
+    aes_init( aes );
+
+    return( aes );
 }
 
 static void aes_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( aes_context ) );
+    aes_free( (aes_context *) ctx );
     polarssl_free( ctx );
 }
 
@@ -541,12 +543,20 @@ static int camellia_setkey_enc_wrap( void *ctx, const unsigned char *key,
 
 static void * camellia_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( camellia_context ) );
+    camellia_context *ctx;
+    ctx = (camellia_context *) polarssl_malloc( sizeof( camellia_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    camellia_init( ctx );
+
+    return( ctx );
 }
 
 static void camellia_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( camellia_context ) );
+    camellia_free( (camellia_context *) ctx );
     polarssl_free( ctx );
 }
 
@@ -915,23 +925,38 @@ static int des3_set3key_enc_wrap( void *ctx, const unsigned char *key,
 
 static void * des_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( des_context ) );
-}
+    des_context *des = (des_context *) polarssl_malloc( sizeof( des_context ) );
 
-static void * des3_ctx_alloc( void )
-{
-    return polarssl_malloc( sizeof( des3_context ) );
+    if( des == NULL )
+        return( NULL );
+
+    des_init( des );
+
+    return( des );
 }
 
 static void des_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( des_context ) );
+    des_free( (des_context *) ctx );
     polarssl_free( ctx );
+}
+
+static void * des3_ctx_alloc( void )
+{
+    des3_context *des3;
+    des3 = (des3_context *) polarssl_malloc( sizeof( des3_context ) );
+
+    if( des3 == NULL )
+        return( NULL );
+
+    des3_init( des3 );
+
+    return( des3 );
 }
 
 static void des3_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( des3_context ) );
+    des3_free( (des3_context *) ctx );
     polarssl_free( ctx );
 }
 
@@ -1122,12 +1147,20 @@ static int blowfish_setkey_wrap( void *ctx, const unsigned char *key,
 
 static void * blowfish_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( blowfish_context ) );
+    blowfish_context *ctx;
+    ctx = (blowfish_context *) polarssl_malloc( sizeof( blowfish_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    blowfish_init( ctx );
+
+    return( ctx );
 }
 
 static void blowfish_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( blowfish_context ) );
+    blowfish_free( (blowfish_context *) ctx );
     polarssl_free( ctx );
 }
 
@@ -1216,12 +1249,20 @@ static int arc4_setkey_wrap( void *ctx, const unsigned char *key,
 
 static void * arc4_ctx_alloc( void )
 {
-    return polarssl_malloc( sizeof( arc4_context ) );
+    arc4_context *ctx;
+    ctx = (arc4_context *) polarssl_malloc( sizeof( arc4_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    arc4_init( ctx );
+
+    return( ctx );
 }
 
 static void arc4_ctx_free( void *ctx )
 {
-    polarssl_zeroize( ctx, sizeof( arc4_context ) );
+    arc4_free( (arc4_context *) ctx );
     polarssl_free( ctx );
 }
 

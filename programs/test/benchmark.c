@@ -273,8 +273,10 @@ int main( int argc, char *argv[] )
     if( todo.arc4 )
     {
         arc4_context arc4;
+        arc4_init( &arc4 );
         arc4_setup( &arc4, tmp, 32 );
         TIME_AND_TSC( "ARC4", arc4_crypt( &arc4, BUFSIZE, buf, buf ) );
+        arc4_free( &arc4 );
     }
 #endif
 
@@ -282,17 +284,21 @@ int main( int argc, char *argv[] )
     if( todo.des3 )
     {
         des3_context des3;
+        des3_init( &des3 );
         des3_set3key_enc( &des3, tmp );
         TIME_AND_TSC( "3DES",
                 des3_crypt_cbc( &des3, DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        des3_free( &des3 );
     }
 
     if( todo.des )
     {
         des_context des;
+        des_init( &des );
         des_setkey_enc( &des, tmp );
         TIME_AND_TSC( "DES",
                 des_crypt_cbc( &des, DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        des_free( &des );
     }
 #endif
 
@@ -301,6 +307,7 @@ int main( int argc, char *argv[] )
     if( todo.aes_cbc )
     {
         aes_context aes;
+        aes_init( &aes );
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
             snprintf( title, sizeof( title ), "AES-CBC-%d", keysize );
@@ -312,6 +319,7 @@ int main( int argc, char *argv[] )
             TIME_AND_TSC( title,
                 aes_crypt_cbc( &aes, AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         }
+        aes_free( &aes );
     }
 #endif
 #if defined(POLARSSL_GCM_C)
@@ -360,6 +368,7 @@ int main( int argc, char *argv[] )
     if( todo.camellia )
     {
         camellia_context camellia;
+        camellia_init( &camellia );
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
             snprintf( title, sizeof( title ), "CAMELLIA-CBC-%d", keysize );
@@ -372,6 +381,7 @@ int main( int argc, char *argv[] )
                     camellia_crypt_cbc( &camellia, CAMELLIA_ENCRYPT,
                         BUFSIZE, tmp, buf, buf ) );
         }
+        camellia_free( &camellia );
     }
 #endif
 
@@ -379,6 +389,8 @@ int main( int argc, char *argv[] )
     if( todo.blowfish )
     {
         blowfish_context blowfish;
+        blowfish_init( &blowfish );
+
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
             snprintf( title, sizeof( title ), "BLOWFISH-CBC-%d", keysize );
@@ -391,6 +403,8 @@ int main( int argc, char *argv[] )
                     blowfish_crypt_cbc( &blowfish, BLOWFISH_ENCRYPT, BUFSIZE,
                         tmp, buf, buf ) );
         }
+
+        blowfish_free( &blowfish );
     }
 #endif
 
@@ -400,6 +414,7 @@ int main( int argc, char *argv[] )
         havege_state hs;
         havege_init( &hs );
         TIME_AND_TSC( "HAVEGE", havege_random( &hs, buf, BUFSIZE ) );
+        havege_free( &hs );
     }
 #endif
 
@@ -420,6 +435,7 @@ int main( int argc, char *argv[] )
         TIME_AND_TSC( "CTR_DRBG (PR)",
                 if( ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
                 exit(1) );
+        ctr_drbg_free( &ctr_drbg );
     }
 #endif
 
@@ -517,7 +533,7 @@ int main( int argc, char *argv[] )
         size_t olen;
         for( i = 0; i < DHM_SIZES; i++ )
         {
-            memset( &dhm, 0, sizeof( dhm_context ) );
+            dhm_init( &dhm );
 
             if( mpi_read_string( &dhm.P, 16, dhm_P[i] ) != 0 ||
                 mpi_read_string( &dhm.G, 16, dhm_G[i] ) != 0 )

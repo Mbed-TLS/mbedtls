@@ -68,6 +68,20 @@ typedef struct
 sha256_context;
 
 /**
+ * \brief          Initialize SHA-256 context
+ *
+ * \param ctx      SHA-256 context to be initialized
+ */
+void sha256_init( sha256_context *ctx );
+
+/**
+ * \brief          Clear SHA-256 context
+ *
+ * \param ctx      SHA-256 context to be cleared
+ */
+void sha256_free( sha256_context *ctx );
+
+/**
  * \brief          SHA-256 context setup
  *
  * \param ctx      context to be initialized

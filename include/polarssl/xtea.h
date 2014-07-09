@@ -65,6 +65,20 @@ typedef struct
 xtea_context;
 
 /**
+ * \brief          Initialize XTEA context
+ *
+ * \param ctx      XTEA context to be initialized
+ */
+void xtea_init( xtea_context *ctx );
+
+/**
+ * \brief          Clear XTEA context
+ *
+ * \param ctx      XTEA context to be cleared
+ */
+void xtea_free( xtea_context *ctx );
+
+/**
  * \brief          XTEA key schedule
  *
  * \param ctx      XTEA context to be initialized

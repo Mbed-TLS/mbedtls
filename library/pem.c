@@ -92,6 +92,8 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
     unsigned char md5sum[16];
     size_t use_len;
 
+    md5_init( &md5_ctx );
+
     /*
      * key[ 0..15] = MD5(pwd || IV)
      */
@@ -104,7 +106,7 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
     {
         memcpy( key, md5sum, keylen );
 
-        polarssl_zeroize( &md5_ctx, sizeof(  md5_ctx ) );
+        md5_free( &md5_ctx );
         polarssl_zeroize( md5sum, 16 );
         return;
     }
@@ -126,7 +128,7 @@ static void pem_pbkdf1( unsigned char *key, size_t keylen,
 
     memcpy( key + 16, md5sum, use_len );
 
-    polarssl_zeroize( &md5_ctx, sizeof(  md5_ctx ) );
+    md5_free( &md5_ctx );
     polarssl_zeroize( md5sum, 16 );
 }
 
@@ -141,13 +143,15 @@ static void pem_des_decrypt( unsigned char des_iv[8],
     des_context des_ctx;
     unsigned char des_key[8];
 
+    des_init( &des_ctx );
+
     pem_pbkdf1( des_key, 8, des_iv, pwd, pwdlen );
 
     des_setkey_dec( &des_ctx, des_key );
     des_crypt_cbc( &des_ctx, DES_DECRYPT, buflen,
                      des_iv, buf, buf );
 
-    polarssl_zeroize( &des_ctx, sizeof( des_ctx ) );
+    des_free( &des_ctx );
     polarssl_zeroize( des_key, 8 );
 }
 
@@ -161,13 +165,15 @@ static void pem_des3_decrypt( unsigned char des3_iv[8],
     des3_context des3_ctx;
     unsigned char des3_key[24];
 
+    des3_init( &des3_ctx );
+
     pem_pbkdf1( des3_key, 24, des3_iv, pwd, pwdlen );
 
     des3_set3key_dec( &des3_ctx, des3_key );
     des3_crypt_cbc( &des3_ctx, DES_DECRYPT, buflen,
                      des3_iv, buf, buf );
 
-    polarssl_zeroize( &des3_ctx, sizeof( des3_ctx ) );
+    des3_free( &des3_ctx );
     polarssl_zeroize( des3_key, 24 );
 }
 #endif /* POLARSSL_DES_C */
@@ -183,13 +189,15 @@ static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
     aes_context aes_ctx;
     unsigned char aes_key[32];
 
+    aes_init( &aes_ctx );
+
     pem_pbkdf1( aes_key, keylen, aes_iv, pwd, pwdlen );
 
     aes_setkey_dec( &aes_ctx, aes_key, keylen * 8 );
     aes_crypt_cbc( &aes_ctx, AES_DECRYPT, buflen,
                      aes_iv, buf, buf );
 
-    polarssl_zeroize( &aes_ctx, sizeof( aes_ctx ) );
+    aes_free( &aes_ctx );
     polarssl_zeroize( aes_key, keylen );
 }
 #endif /* POLARSSL_AES_C */

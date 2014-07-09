@@ -67,6 +67,20 @@ typedef struct
 camellia_context;
 
 /**
+ * \brief          Initialize CAMELLIA context
+ *
+ * \param ctx      CAMELLIA context to be initialized
+ */
+void camellia_init( camellia_context *ctx );
+
+/**
+ * \brief          Clear CAMELLIA context
+ *
+ * \param ctx      CAMELLIA context to be cleared
+ */
+void camellia_free( camellia_context *ctx );
+
+/**
  * \brief          CAMELLIA key schedule (encryption)
  *
  * \param ctx      CAMELLIA context to be initialized

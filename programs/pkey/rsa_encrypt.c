@@ -152,6 +152,7 @@ int main( int argc, char *argv[] )
     printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
 
 exit:
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(_WIN32)

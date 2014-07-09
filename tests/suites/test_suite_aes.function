@@ -22,6 +22,7 @@ void aes_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    aes_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -34,6 +35,8 @@ void aes_encrypt_ecb( char *hex_key_string, char *hex_src_string,
 
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    aes_free( &ctx );
 }
 /* END_CASE */
 
@@ -52,6 +55,7 @@ void aes_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    aes_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -64,6 +68,8 @@ void aes_decrypt_ecb( char *hex_key_string, char *hex_src_string,
 
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    aes_free( &ctx );
 }
 /* END_CASE */
 
@@ -85,6 +91,7 @@ void aes_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    aes_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -98,6 +105,8 @@ void aes_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
 
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    aes_free( &ctx );
 }
 /* END_CASE */
 
@@ -119,6 +128,7 @@ void aes_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    aes_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -132,6 +142,8 @@ void aes_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
 
         TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
+
+    aes_free( &ctx );
 }
 /* END_CASE */
 
@@ -153,6 +165,7 @@ void aes_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    aes_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -163,6 +176,8 @@ void aes_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     hexify( dst_str, output, 16 );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    aes_free( &ctx );
 }
 /* END_CASE */
 
@@ -184,6 +199,7 @@ void aes_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    aes_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -194,6 +210,8 @@ void aes_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     hexify( dst_str, output, 16 );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    aes_free( &ctx );
 }
 /* END_CASE */
 
@@ -214,6 +232,7 @@ void aes_encrypt_cfb8( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    aes_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -224,6 +243,8 @@ void aes_encrypt_cfb8( char *hex_key_string, char *hex_iv_string,
     hexify( dst_str, output, src_len );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    aes_free( &ctx );
 }
 /* END_CASE */
 
@@ -244,6 +265,7 @@ void aes_decrypt_cfb8( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
+    aes_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -254,6 +276,8 @@ void aes_decrypt_cfb8( char *hex_key_string, char *hex_iv_string,
     hexify( dst_str, output, src_len );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+    aes_free( &ctx );
 }
 /* END_CASE */
 

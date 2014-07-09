@@ -373,6 +373,7 @@ exit:
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_free( &cache );
 #endif
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(_WIN32)

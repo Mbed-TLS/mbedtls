@@ -332,8 +332,24 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
                                               const cipher_mode_t mode );
 
 /**
+ * \brief               Initialize a cipher_context (as NONE)
+ */
+void cipher_init( cipher_context_t *ctx );
+
+/**
+ * \brief               Free and clear the cipher-specific context of ctx.
+ *                      Freeing ctx itself remains the responsibility of the
+ *                      caller.
+ */
+void cipher_free( cipher_context_t *ctx );
+
+/**
  * \brief               Initialises and fills the cipher context structure with
  *                      the appropriate values.
+ *
+ * \note                Currently also clears structure. In future versions you
+ *                      will be required to call cipher_init() on the structure
+ *                      first.
  *
  * \param ctx           context to initialise. May not be NULL.
  * \param cipher_info   cipher to use.
@@ -349,10 +365,11 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
  * \brief               Free the cipher-specific context of ctx. Freeing ctx
  *                      itself remains the responsibility of the caller.
  *
+ * \note                Deprecated: Redirects to cipher_free()
+ *
  * \param ctx           Free the cipher-specific context
  *
- * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
- *                      parameter verification fails.
+ * \returns             0
  */
 int cipher_free_ctx( cipher_context_t *ctx );
 

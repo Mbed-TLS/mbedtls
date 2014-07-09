@@ -1683,6 +1683,13 @@ int ssl_close_notify( ssl_context *ssl );
 void ssl_free( ssl_context *ssl );
 
 /**
+ * \brief          Initialize SSL session structure
+ *
+ * \param session  SSL session
+ */
+void ssl_session_init( ssl_session *session );
+
+/**
  * \brief          Free referenced items in an SSL session including the
  *                 peer certificate and clear memory
  *

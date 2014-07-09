@@ -22,6 +22,7 @@ void arc4_crypt( char *hex_src_string, char *hex_key_string,
     memset(key_str, 0x00, 1000);
     memset(dst_str, 0x00, 1000);
     memset(dst_hexstr, 0x00, 2000);
+    arc4_init( &ctx );
 
     src_len = unhexify( src_str, hex_src_string );
     key_len = unhexify( key_str, hex_key_string );
@@ -31,6 +32,8 @@ void arc4_crypt( char *hex_src_string, char *hex_key_string,
     hexify( dst_hexstr, dst_str, src_len );
 
     TEST_ASSERT( strcmp( (char *) dst_hexstr, hex_dst_string ) == 0 );
+
+    arc4_free( &ctx );
 }
 /* END_CASE */
 

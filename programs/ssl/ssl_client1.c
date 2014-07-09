@@ -290,6 +290,7 @@ exit:
 
     x509_crt_free( &cacert );
     ssl_free( &ssl );
+    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
     memset( &ssl, 0, sizeof( ssl ) );

@@ -67,6 +67,20 @@ typedef struct
 ripemd160_context;
 
 /**
+ * \brief          Initialize RIPEMD-160 context
+ *
+ * \param ctx      RIPEMD-160 context to be initialized
+ */
+void ripemd160_init( ripemd160_context *ctx );
+
+/**
+ * \brief          Clear RIPEMD-160 context
+ *
+ * \param ctx      RIPEMD-160 context to be cleared
+ */
+void ripemd160_free( ripemd160_context *ctx );
+
+/**
  * \brief          RIPEMD-160 context setup
  *
  * \param ctx      context to be initialized

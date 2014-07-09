@@ -452,14 +452,14 @@ int ssl_derive_keys( ssl_context *ssl )
 #if defined(POLARSSL_GCM_C)
         case TLS_RSA_WITH_AES_128_GCM_SHA256:
         case TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:
-            transform->keylen = 16; transform->minlen = 1;
+            transform->keylen = 16; transform->minlen = 24;
             transform->ivlen  = 12; transform->maclen = 0;
             transform->fixed_ivlen = 4;
             break;
 
         case TLS_RSA_WITH_AES_256_GCM_SHA384:
         case TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:
-            transform->keylen = 32; transform->minlen = 1;
+            transform->keylen = 32; transform->minlen = 24;
             transform->ivlen  = 12; transform->maclen = 0;
             transform->fixed_ivlen = 4;
             break;

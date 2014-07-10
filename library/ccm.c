@@ -340,6 +340,7 @@ int ccm_auth_decrypt( ccm_context *ctx, size_t length,
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
 #endif
 

@@ -367,7 +367,7 @@ void x509_oid_numstr( char *oid_str, char *numstr, int blen, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_X509_CHECK_KEY_USAGE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C:POLARSSL_X509_CHECK_KEY_USAGE */
 void x509_check_key_usage( char *crt_file, int usage, int ret )
 {
     x509_crt crt;
@@ -382,7 +382,7 @@ void x509_check_key_usage( char *crt_file, int usage, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:POLARSSL_X509_CRT_PARSE_C:POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE */
+/* BEGIN_CASE depends_on:POLARSSL_FS_IO:POLARSSL_X509_CRT_PARSE_C:POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE */
 void x509_check_extended_key_usage( char *crt_file, char *usage_hex, int ret )
 {
     x509_crt crt;

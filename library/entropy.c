@@ -385,6 +385,7 @@ int entropy_update_seed_file( entropy_context *ctx, const char *path )
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf     printf
 #endif
 

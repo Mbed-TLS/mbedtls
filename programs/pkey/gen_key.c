@@ -146,7 +146,7 @@ static int write_private_key( pk_context *key, const char *output_file )
         c = output_buf + sizeof(output_buf) - len;
     }
 
-    if( ( f = fopen( output_file, "w" ) ) == NULL )
+    if( ( f = fopen( output_file, "wb" ) ) == NULL )
         return( -1 );
 
     if( fwrite( c, 1, len, f ) != len )

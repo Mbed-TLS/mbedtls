@@ -29,7 +29,7 @@ static int test_assert( int correct, const char *test )
 
 #define TEST_ASSERT( TEST )                         \
         do { test_assert( (TEST) ? 1 : 0, #TEST );  \
-             if( test_errors) return;               \
+             if( test_errors) goto exit;            \
         } while (0)
 
 int verify_string( char **str )

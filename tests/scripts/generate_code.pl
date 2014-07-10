@@ -86,7 +86,7 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
     {
         die "Test function does not have 'void' as return type\n";
     }
-    if ($function_decl !~ /^void (\w+)\(\s*(.*?)\s*\)\s*{(.*?)}/ms)
+    if ($function_decl !~ /^void (\w+)\(\s*(.*?)\s*\)\s*{(.*)}/ms)
     {
         die "Function declaration not in expected format\n";
     }
@@ -103,6 +103,12 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
     my $mapping_count = 0;
 
     $function_decl =~ s/^void /void test_suite_/;
+
+    # Add exit label if not present
+    if ($function_decl !~ /^exit:$/m)
+    {
+        $function_decl =~ s/}\s*$/\nexit:\n    return;\n}/;
+    }
 
     if ($function_deps =~ /^depends_on:/)
     {

@@ -36,6 +36,7 @@ void camellia_encrypt_ecb( char *hex_key_string, char *hex_src_string,
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
+exit:
     camellia_free( &ctx );
 }
 /* END_CASE */
@@ -69,6 +70,7 @@ void camellia_decrypt_ecb( char *hex_key_string, char *hex_src_string,
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
+exit:
     camellia_free( &ctx );
 }
 /* END_CASE */
@@ -106,6 +108,7 @@ void camellia_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
+exit:
     camellia_free( &ctx );
 }
 /* END_CASE */
@@ -143,6 +146,7 @@ void camellia_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
+exit:
     camellia_free( &ctx );
 }
 /* END_CASE */
@@ -177,6 +181,7 @@ void camellia_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
+exit:
     camellia_free( &ctx );
 }
 /* END_CASE */
@@ -211,6 +216,7 @@ void camellia_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
+exit:
     camellia_free( &ctx );
 }
 /* END_CASE */

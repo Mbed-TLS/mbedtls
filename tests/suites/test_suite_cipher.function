@@ -207,6 +207,7 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     /*
      * Done
      */
+exit:
     cipher_free( &ctx_dec );
     cipher_free( &ctx_enc );
 }
@@ -259,6 +260,7 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
     TEST_ASSERT( ret == cipher_finish( &ctx, encbuf + outlen, &outlen ) );
 
     /* done */
+exit:
     cipher_free( &ctx );
 }
 /* END_CASE */
@@ -308,6 +310,7 @@ void dec_empty_buf()
                  &ctx_dec, decbuf + outlen, &outlen ) );
     TEST_ASSERT( 0 == outlen );
 
+exit:
     cipher_free( &ctx_dec );
 }
 /* END_CASE */
@@ -397,6 +400,7 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
 
     TEST_ASSERT( 0 == memcmp(inbuf, decbuf, length) );
 
+exit:
     cipher_free( &ctx_dec );
     cipher_free( &ctx_enc );
 }
@@ -479,6 +483,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
         TEST_ASSERT( 0 == memcmp( output, clear, clear_len ) );
     }
 
+exit:
     cipher_free( &ctx );
 }
 /* END_CASE */
@@ -536,7 +541,7 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
     if( strcmp( hex_clear, "FAIL" ) == 0 )
     {
         TEST_ASSERT( ret == POLARSSL_ERR_CIPHER_AUTH_FAILED );
-        goto cleanup;
+        goto exit;
     }
 
     /* otherwise, make sure it was decrypted properly */
@@ -566,7 +571,7 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
     TEST_ASSERT( my_tag[tag_len + 1] == 0xFF );
 
 
-cleanup:
+exit:
     cipher_free( &ctx );
 }
 /* END_CASE */
@@ -616,6 +621,7 @@ void test_vec_ecb( int cipher_id, int operation, char *hex_key,
         TEST_ASSERT( 0 == memcmp( output, result,
                                   cipher_get_block_size( &ctx ) ) );
 
+exit:
     cipher_free( &ctx );
 }
 /* END_CASE */
@@ -634,6 +640,7 @@ void set_padding( int cipher_id, int pad_mode, int ret )
 
     TEST_ASSERT( ret == cipher_set_padding_mode( &ctx, pad_mode ) );
 
+exit:
     cipher_free( &ctx );
 }
 /* END_CASE */

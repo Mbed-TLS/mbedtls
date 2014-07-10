@@ -51,6 +51,7 @@ void gcm_encrypt_and_tag( int cipher_id,
         TEST_ASSERT( strcmp( (char *) tag_str, hex_tag_string ) == 0 );
     }
 
+exit:
     gcm_free( &ctx );
 }
 /* END_CASE */
@@ -106,6 +107,7 @@ void gcm_decrypt_and_verify( int cipher_id,
         }
     }
 
+exit:
     gcm_free( &ctx );
 }
 /* END_CASE */

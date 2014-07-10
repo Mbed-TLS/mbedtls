@@ -92,6 +92,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
     TEST_ASSERT( sec_srv_len != 0 );
     TEST_ASSERT( memcmp( sec_srv, sec_cli, sec_srv_len ) == 0 );
 
+exit:
     dhm_free( &ctx_srv );
     dhm_free( &ctx_cli );
 }
@@ -115,6 +116,7 @@ void dhm_file( char *filename, char *p, char *g, int len )
     TEST_ASSERT( mpi_cmp_mpi( &ctx.P, &P ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &ctx.G, &G ) == 0 );
 
+exit:
     mpi_free( &P ); mpi_free( &G );
     dhm_free( &ctx );
 }

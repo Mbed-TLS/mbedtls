@@ -12,7 +12,7 @@
 void pem_write_buffer( char *start, char *end, char *buf_str, char *result_str )
 {
     unsigned char buf[5000];
-    unsigned char *check_buf;
+    unsigned char *check_buf = NULL;
     int ret;
     size_t buf_len, olen = 0, olen2 = 0;
 
@@ -33,6 +33,8 @@ void pem_write_buffer( char *start, char *end, char *buf_str, char *result_str )
     TEST_ASSERT( olen > strlen( (char*) result_str ) );
     TEST_ASSERT( ret == 0 );
     TEST_ASSERT( strncmp( (char *) check_buf, (char *) result_str, olen ) == 0 );
+
+exit:
     polarssl_free( check_buf );
 }
 /* END_CASE */

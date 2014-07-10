@@ -46,6 +46,7 @@ void ctr_drbg_validate_pr( char *add_init_string, char *entropy_string,
     hexify( output_str, buf, 16 );
     TEST_ASSERT( strcmp( (char *) output_str, result_str ) == 0 );
 
+exit:
     ctr_drbg_free( &ctx );
 }
 /* END_CASE */
@@ -82,6 +83,7 @@ void ctr_drbg_validate_nopr( char *add_init_string, char *entropy_string,
     hexify( output_str, buf, 16 );
     TEST_ASSERT( strcmp( (char *) output_str, result_str ) == 0 );
 
+exit:
     ctr_drbg_free( &ctx );
 }
 /* END_CASE */
@@ -155,6 +157,7 @@ void ctr_drbg_entropy_usage( )
     TEST_ASSERT( ctr_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
     TEST_ASSERT( test_offset_idx - last_idx == 13 );
 
+exit:
     ctr_drbg_free( &ctx );
 }
 /* END_CASE */
@@ -168,6 +171,7 @@ void ctr_drbg_seed_file( char *path, int ret )
     TEST_ASSERT( ctr_drbg_write_seed_file( &ctx, path ) == ret );
     TEST_ASSERT( ctr_drbg_update_seed_file( &ctx, path ) == ret );
 
+exit:
     ctr_drbg_free( &ctx );
 }
 /* END_CASE */

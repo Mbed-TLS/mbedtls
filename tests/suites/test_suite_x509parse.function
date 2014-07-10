@@ -45,12 +45,13 @@ void x509_cert_info( char *crt_file, char *result_str )
     TEST_ASSERT( x509_crt_parse_file( &crt, crt_file ) == 0 );
     res = x509_crt_info( buf, 2000, "", &crt );
 
-    x509_crt_free( &crt );
-
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
     TEST_ASSERT( strcmp( buf, result_str ) == 0 );
+
+exit:
+    x509_crt_free( &crt );
 }
 /* END_CASE */
 
@@ -67,12 +68,13 @@ void x509_crl_info( char *crl_file, char *result_str )
     TEST_ASSERT( x509_crl_parse_file( &crl, crl_file ) == 0 );
     res = x509_crl_info( buf, 2000, "", &crl );
 
-    x509_crl_free( &crl );
-
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
     TEST_ASSERT( strcmp( buf, result_str ) == 0 );
+
+exit:
+    x509_crl_free( &crl );
 }
 /* END_CASE */
 
@@ -89,12 +91,13 @@ void x509_csr_info( char *csr_file, char *result_str )
     TEST_ASSERT( x509_csr_parse_file( &csr, csr_file ) == 0 );
     res = x509_csr_info( buf, 2000, "", &csr );
 
-    x509_csr_free( &csr );
-
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
     TEST_ASSERT( strcmp( buf, result_str ) == 0 );
+
+exit:
+    x509_csr_free( &csr );
 }
 /* END_CASE */
 
@@ -133,12 +136,13 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
 
     res = x509_crt_verify( &crt, &ca, &crl, cn_name, &flags, f_vrfy, NULL );
 
+    TEST_ASSERT( res == ( result ) );
+    TEST_ASSERT( flags == ( flags_result ) );
+
+exit:
     x509_crt_free( &crt );
     x509_crt_free( &ca );
     x509_crl_free( &crl );
-
-    TEST_ASSERT( res == ( result ) );
-    TEST_ASSERT( flags == ( flags_result ) );
 }
 /* END_CASE */
 
@@ -160,12 +164,13 @@ void x509_dn_gets( char *crt_file, char *entity, char *result_str )
     else
         TEST_ASSERT( "Unknown entity" == 0 );
 
-    x509_crt_free( &crt );
-
     TEST_ASSERT( res != -1 );
     TEST_ASSERT( res != -2 );
 
     TEST_ASSERT( strcmp( buf, result_str ) == 0 );
+
+exit:
+    x509_crt_free( &crt );
 }
 /* END_CASE */
 
@@ -185,6 +190,7 @@ void x509_time_expired( char *crt_file, char *entity, int result )
     else
         TEST_ASSERT( "Unknown entity" == 0 );
 
+exit:
     x509_crt_free( &crt );
 }
 /* END_CASE */
@@ -205,6 +211,7 @@ void x509_time_future( char *crt_file, char *entity, int result )
     else
         TEST_ASSERT( "Unknown entity" == 0 );
 
+exit:
     x509_crt_free( &crt );
 }
 /* END_CASE */
@@ -234,6 +241,7 @@ void x509parse_crt( char *crt_data, char *result_str, int result )
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
 
+exit:
     x509_crt_free( &crt );
 }
 /* END_CASE */
@@ -263,6 +271,7 @@ void x509parse_crl( char *crl_data, char *result_str, int result )
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
 
+exit:
     x509_crl_free( &crl );
 }
 /* END_CASE */
@@ -271,7 +280,7 @@ void x509parse_crl( char *crl_data, char *result_str, int result )
 void x509_csr_parse( char *csr_der_hex, char *ref_out, int ref_ret )
 {
     x509_csr csr;
-    unsigned char *csr_der;
+    unsigned char *csr_der = NULL;
     char my_out[1000];
     size_t csr_der_len;
     int my_ret;
@@ -290,6 +299,7 @@ void x509_csr_parse( char *csr_der_hex, char *ref_out, int ref_ret )
         TEST_ASSERT( strcmp( my_out, ref_out ) == 0 );
     }
 
+exit:
     x509_csr_free( &csr );
     polarssl_free( csr_der );
 }
@@ -312,6 +322,7 @@ void x509_crt_parse_path( char *crt_path, int ret, int nb_crt )
 
     TEST_ASSERT( i == nb_crt );
 
+exit:
     x509_crt_free( &chain );
 }
 /* END_CASE */
@@ -378,6 +389,7 @@ void x509_check_key_usage( char *crt_file, int usage, int ret )
 
     TEST_ASSERT( x509_crt_check_key_usage( &crt, usage ) == ret );
 
+exit:
     x509_crt_free( &crt );
 }
 /* END_CASE */
@@ -397,6 +409,7 @@ void x509_check_extended_key_usage( char *crt_file, char *usage_hex, int ret )
 
     TEST_ASSERT( x509_crt_check_extended_key_usage( &crt, oid, len ) == ret );
 
+exit:
     x509_crt_free( &crt );
 }
 /* END_CASE */
@@ -428,6 +441,7 @@ void x509_parse_rsassa_pss_params( char *hex_params, int params_tag,
         TEST_ASSERT( my_salt_len == ref_salt_len );
     }
 
+exit:
     polarssl_free( params.p );
 }
 /* END_CASE */

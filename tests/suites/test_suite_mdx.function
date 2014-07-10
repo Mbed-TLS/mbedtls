@@ -139,6 +139,7 @@ void md2_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 
+exit:
     md2_free( &ctx );
 }
 /* END_CASE */
@@ -197,6 +198,7 @@ void md4_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 
+exit:
     md4_free( &ctx );
 }
 /* END_CASE */
@@ -255,6 +257,7 @@ void md5_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 
+exit:
     md5_free( &ctx );
 }
 /* END_CASE */
@@ -313,6 +316,7 @@ void ripemd160_hmac( int trunc_size, char *hex_key_string, char *hex_src_string,
     hexify( hash_str, output, sizeof  output );
     TEST_ASSERT( strncmp( (char *) hash_str, hex_hash_string, trunc_size * 2 ) == 0 );
 
+exit:
     ripemd160_free( &ctx );
 }
 /* END_CASE */

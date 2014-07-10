@@ -71,6 +71,7 @@ void ecp_small_add( int a_zero, char *x_a, char *y_a, int b_zero, char *x_b,
         TEST_ASSERT( mpi_cmp_int( &C.Y, y_c ) == 0 );
     }
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &A ); ecp_point_free( &B ); ecp_point_free( &C );
 }
@@ -109,6 +110,7 @@ void ecp_small_sub( int a_zero, char *x_a, char *y_a, int b_zero, char *x_b,
         TEST_ASSERT( mpi_cmp_int( &C.Y, y_c ) == 0 );
     }
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &A ); ecp_point_free( &B ); ecp_point_free( &C );
 }
@@ -162,6 +164,7 @@ void ecp_small_mul( int m_str, int r_zero, int x_r, int y_r, int ret )
         }
     }
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &R );
     mpi_free( &m );
@@ -186,6 +189,7 @@ void ecp_small_check_pub( int x, int y, int z, int ret )
 
     TEST_ASSERT( ecp_check_pubkey( &grp, &P ) == ret );
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &P );
 }
@@ -207,6 +211,7 @@ void ecp_check_pub_mx( int grp_id, char *key_hex, int ret )
 
     TEST_ASSERT( ecp_check_pubkey( &grp, &P ) == ret );
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &P );
 }
@@ -260,6 +265,7 @@ void ecp_test_vect( int id, char *dA_str, char *xA_str, char *yA_str,
     TEST_ASSERT( mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
 
+exit:
     ecp_group_free( &grp ); ecp_point_free( &R );
     mpi_free( &dA ); mpi_free( &xA ); mpi_free( &yA ); mpi_free( &dB );
     mpi_free( &xB ); mpi_free( &yB ); mpi_free( &xZ ); mpi_free( &yZ );
@@ -309,6 +315,7 @@ void ecp_test_vec_x( int id, char *dA_hex, char *xA_hex,
     TEST_ASSERT( ecp_check_pubkey( &grp, &R ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &R.X, &xS ) == 0 );
 
+exit:
     ecp_group_free( &grp ); ecp_point_free( &R );
     mpi_free( &dA ); mpi_free( &xA );
     mpi_free( &dB ); mpi_free( &xB );
@@ -343,6 +350,7 @@ void ecp_fast_mod( int id, char *N_str )
     TEST_ASSERT( mpi_mod_mpi( &N, &N, &grp.P ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &N, &R ) == 0 );
 
+exit:
     mpi_free( &N ); mpi_free( &R );
     ecp_group_free( &grp );
 }
@@ -377,6 +385,7 @@ void ecp_write_binary( int id, char *x, char *y, char *z, int format,
         TEST_ASSERT( strcasecmp( (char *) str, out ) == 0 );
     }
 
+exit:
     ecp_group_free( &grp ); ecp_point_free( &P );
 }
 /* END_CASE */
@@ -413,6 +422,7 @@ void ecp_read_binary( int id, char *input, char *x, char *y, char *z,
         TEST_ASSERT( mpi_cmp_mpi( &P.Z, &Z ) == 0 );
     }
 
+exit:
     ecp_group_free( &grp ); ecp_point_free( &P );
     mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
 }
@@ -452,6 +462,7 @@ void ecp_tls_read_point( int id, char *input, char *x, char *y, char *z,
         TEST_ASSERT( *vbuf == 0x00 );
     }
 
+exit:
     ecp_group_free( &grp ); ecp_point_free( &P );
     mpi_free( &X ); mpi_free( &Y ); mpi_free( &Z );
 }
@@ -503,6 +514,7 @@ void ecp_tls_write_read_point( int id )
     TEST_ASSERT( ecp_is_zero( &pt ) );
     TEST_ASSERT( vbuf == buf + olen );
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &pt );
 }
@@ -530,6 +542,7 @@ void ecp_tls_read_group( char *record, int result, int bits )
         TEST_ASSERT( *vbuf == 0x00 );
     }
 
+exit:
     ecp_group_free( &grp );
 }
 /* END_CASE */
@@ -559,6 +572,7 @@ void ecp_tls_write_read_group( int id )
         TEST_ASSERT( grp1.id == grp2.id );
     }
 
+exit:
     ecp_group_free( &grp1 );
     ecp_group_free( &grp2 );
 }
@@ -578,6 +592,7 @@ void ecp_check_privkey( int id, char *key_hex, int ret )
 
     TEST_ASSERT( ecp_check_privkey( &grp, &d ) == ret );
 
+exit:
     ecp_group_free( &grp );
     mpi_free( &d );
 }
@@ -604,6 +619,7 @@ void ecp_gen_keypair( int id )
     TEST_ASSERT( ecp_check_pubkey( &grp, &Q ) == 0 );
     TEST_ASSERT( ecp_check_privkey( &grp, &d ) == 0 );
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &Q );
     mpi_free( &d );
@@ -624,6 +640,7 @@ void ecp_gen_key( int id )
     TEST_ASSERT( ecp_check_pubkey( &key.grp, &key.Q ) == 0 );
     TEST_ASSERT( ecp_check_privkey( &key.grp, &key.d ) == 0 );
 
+exit:
     ecp_keypair_free( &key );
 }
 /* END_CASE */

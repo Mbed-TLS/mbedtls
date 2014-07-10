@@ -52,7 +52,7 @@ void base64_decode( char *src_string, char *dst_string, int result )
 void base64_encode_hex( char *src_hex, char *dst, int dst_buf_size,
                         int result )
 {
-    unsigned char *src, *res;
+    unsigned char *src = NULL, *res = NULL;
     size_t len = dst_buf_size, src_len;
 
     src = unhexify_alloc( src_hex, &src_len );
@@ -65,6 +65,7 @@ void base64_encode_hex( char *src_hex, char *dst, int dst_buf_size,
         TEST_ASSERT( memcmp( dst, res, len ) == 0 );
     }
 
+exit:
     polarssl_free( src );
     polarssl_free( res );
 }
@@ -74,7 +75,7 @@ void base64_encode_hex( char *src_hex, char *dst, int dst_buf_size,
 void base64_decode_hex( char *src, char *dst_hex, int dst_buf_size,
                         int result )
 {
-    unsigned char *dst, *res;
+    unsigned char *dst = NULL, *res = NULL;
     size_t len = dst_buf_size, dst_len;
 
     dst = unhexify_alloc( dst_hex, &dst_len );
@@ -88,6 +89,7 @@ void base64_decode_hex( char *src, char *dst_hex, int dst_buf_size,
         TEST_ASSERT( memcmp( dst, res, len ) == 0 );
     }
 
+exit:
     polarssl_free( dst );
     polarssl_free( res );
 }

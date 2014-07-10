@@ -75,6 +75,7 @@ void pk_utils( int type, int size, int len, char *name )
     TEST_ASSERT( pk_get_len( &pk ) == (unsigned) len );
     TEST_ASSERT( strcmp( pk_get_name( &pk), name ) == 0 );
 
+exit:
     pk_free( &pk );
 }
 /* END_CASE */
@@ -113,6 +114,7 @@ void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
     TEST_ASSERT( pk_verify( &pk, digest, hash_result, 0,
                             result_str, pk_get_len( &pk ) ) == result );
 
+exit:
     pk_free( &pk );
 }
 /* END_CASE */
@@ -178,6 +180,7 @@ void pk_rsa_verify_ext_test_vec( char *message_hex_string, int digest,
                                 digest, hash_result, hash_len,
                                 result_str, pk_get_len( &pk ) ) == result );
 
+exit:
     pk_free( &pk );
 }
 /* END_CASE */
@@ -209,6 +212,7 @@ void pk_ec_test_vec( int type, int id, char *key_str,
     TEST_ASSERT( pk_verify( &pk, POLARSSL_MD_NONE,
                             hash, hash_len, sig, sig_len ) == ret );
 
+exit:
     pk_free( &pk );
 }
 /* END_CASE */
@@ -234,6 +238,7 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     TEST_ASSERT( pk_verify( &pk, POLARSSL_MD_NONE,
                             hash, sizeof hash, sig, sig_len ) == verify_ret );
 
+exit:
     pk_free( &pk );
 }
 /* END_CASE */
@@ -274,6 +279,7 @@ void pk_rsa_encrypt_test_vec( char *message_hex, int mod,
     TEST_ASSERT( olen == res_len );
     TEST_ASSERT( memcmp( output, result, olen ) == 0 );
 
+exit:
     pk_free( &pk );
 }
 /* END_CASE */
@@ -338,6 +344,7 @@ void pk_rsa_decrypt_test_vec( char *cipher_hex, int mod,
         TEST_ASSERT( memcmp( output, clear, olen ) == 0 );
     }
 
+exit:
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
     pk_free( &pk );
 }
@@ -369,6 +376,7 @@ void pk_ec_nocrypt( int type )
                              output, &olen, sizeof( output ),
                              rnd_pseudo_rand, &rnd_info ) == ret );
 
+exit:
     pk_free( &pk );
 }
 /* END_CASE */
@@ -442,6 +450,7 @@ void pk_rsa_alt( )
                             hash, sizeof hash, sig, sig_len ) == ret );
     TEST_ASSERT( pk_debug( &alt, dbg_items ) == ret );
 
+exit:
     rsa_free( &raw );
     pk_free( &rsa ); pk_free( &alt );
 }

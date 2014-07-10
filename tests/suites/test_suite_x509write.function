@@ -52,6 +52,7 @@ void x509_csr_check( char *key_file, char *cert_req_check_file,
     TEST_ASSERT( olen >= pem_len - 1 );
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
 
+exit:
     x509write_csr_free( &req );
     pk_free( &key );
 }
@@ -124,6 +125,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( olen >= pem_len - 1 );
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
 
+exit:
     x509write_crt_free( &crt );
     pk_free( &issuer_key );
     pk_free( &subject_key );

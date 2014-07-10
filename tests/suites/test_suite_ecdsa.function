@@ -32,6 +32,7 @@ void ecdsa_prim_random( int id )
                              &rnd_pseudo_rand, &rnd_info ) == 0 );
     TEST_ASSERT( ecdsa_verify( &grp, buf, sizeof( buf ), &Q, &r, &s ) == 0 );
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &Q );
     mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
@@ -86,6 +87,7 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
 
     TEST_ASSERT( ecdsa_verify( &grp, hash, hlen, &Q, &r_check, &s_check ) == 0 );
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &Q );
     mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
@@ -123,6 +125,7 @@ void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
     TEST_ASSERT( mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &s, &s_check ) == 0 );
 
+exit:
     ecp_group_free( &grp );
     mpi_free( &d ); mpi_free( &r ); mpi_free( &s );
     mpi_free( &r_check ); mpi_free( &s_check );
@@ -183,6 +186,7 @@ void ecdsa_write_read_random( int id )
                  sig, sig_len ) != 0 );
     sig[sig_len - 1]--;
 
+exit:
     ecdsa_free( &ctx );
 }
 /* END_CASE */
@@ -215,6 +219,7 @@ void ecdsa_write_read_det_random( int id, int md_alg )
     TEST_ASSERT( ecdsa_read_signature( &ctx, hash, sizeof( hash ),
                  sig, sig_len ) == 0 );
 
+exit:
     ecdsa_free( &ctx );
 }
 /* END_CASE */

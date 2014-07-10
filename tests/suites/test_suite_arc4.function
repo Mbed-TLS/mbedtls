@@ -33,6 +33,7 @@ void arc4_crypt( char *hex_src_string, char *hex_key_string,
 
     TEST_ASSERT( strcmp( (char *) dst_hexstr, hex_dst_string ) == 0 );
 
+exit:
     arc4_free( &ctx );
 }
 /* END_CASE */

@@ -117,6 +117,7 @@ void debug_print_crt( int mode, char *crt_file, char *file, int line,
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 
+exit:
     x509_crt_free( &crt );
 }
 /* END_CASE */
@@ -144,6 +145,7 @@ void debug_print_mpi( int mode, int radix, char *value, char *file, int line,
 
     TEST_ASSERT( strcmp( buffer.buf, result_str ) == 0 );
 
+exit:
     mpi_free( &val );
 }
 /* END_CASE */

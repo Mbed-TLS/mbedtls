@@ -50,6 +50,7 @@ void entropy_seed_file( char *path, int ret )
     TEST_ASSERT( entropy_write_seed_file( &ctx, path ) == ret );
     TEST_ASSERT( entropy_update_seed_file( &ctx, path ) == ret );
 
+exit:
     entropy_free( &ctx );
 }
 /* END_CASE */
@@ -72,6 +73,7 @@ void entropy_too_many_sources( )
     TEST_ASSERT( entropy_add_source( &ctx, entropy_dummy_source, NULL, 16 )
                  == POLARSSL_ERR_ENTROPY_MAX_SOURCES );
 
+exit:
     entropy_free( &ctx );
 }
 /* END_CASE */
@@ -130,6 +132,7 @@ void entropy_source_fail( char *path )
     ((void) path);
 #endif
 
+exit:
     entropy_free( &ctx );
 }
 /* END_CASE */
@@ -159,6 +162,7 @@ void entropy_threshold( int threshold, int chunk_size, int result )
         TEST_ASSERT( ret == result );
     }
 
+exit:
     entropy_free( &ctx );
 }
 /* END_CASE */

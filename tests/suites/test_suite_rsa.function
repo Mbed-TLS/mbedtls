@@ -69,6 +69,7 @@ void rsa_pkcs1_sign( char *message_hex_string, int padding_mode, int digest,
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
+exit:
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
     rsa_free( &ctx );
 }
@@ -104,6 +105,7 @@ void rsa_pkcs1_verify( char *message_hex_string, int padding_mode, int digest,
 
     TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, digest, 0, hash_result, result_str ) == result );
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */
@@ -175,6 +177,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
+exit:
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
     rsa_free( &ctx );
 }
@@ -227,6 +230,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
             TEST_ASSERT( ok == 0 );
     }
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */
@@ -266,6 +270,7 @@ void rsa_pkcs1_encrypt( char *message_hex_string, int padding_mode, int mod,
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */
@@ -303,6 +308,7 @@ void rsa_pkcs1_encrypt_bad_rng( char *message_hex_string, int padding_mode,
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */
@@ -357,6 +363,7 @@ void rsa_pkcs1_decrypt( char *message_hex_string, int padding_mode, int mod,
         TEST_ASSERT( strncasecmp( (char *) output_str, result_hex_str, strlen( result_hex_str ) ) == 0 );
     }
 
+exit:
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
     rsa_free( &ctx );
 }
@@ -395,6 +402,7 @@ void rsa_public( char *message_hex_string, int mod, int radix_N, char *input_N,
 
     /* And now with the copy */
     TEST_ASSERT( rsa_copy( &ctx2, &ctx ) == 0 );
+    /* clear the original to be sure */
     rsa_free( &ctx );
 
     TEST_ASSERT( rsa_check_pubkey( &ctx2 ) == 0 );
@@ -409,6 +417,8 @@ void rsa_public( char *message_hex_string, int mod, int radix_N, char *input_N,
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
+exit:
+    rsa_free( &ctx );
     rsa_free( &ctx2 );
 }
 /* END_CASE */
@@ -470,6 +480,7 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
 
     /* And now one more time with the copy */
     TEST_ASSERT( rsa_copy( &ctx2, &ctx ) == 0 );
+    /* clear the original to be sure */
     rsa_free( &ctx );
 
     TEST_ASSERT( rsa_check_privkey( &ctx2 ) == 0 );
@@ -486,8 +497,9 @@ void rsa_private( char *message_hex_string, int mod, int radix_P, char *input_P,
                                           result_hex_str ) == 0 );
     }
 
+exit:
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
-    rsa_free( &ctx2 );
+    rsa_free( &ctx ); rsa_free( &ctx2 );
 }
 /* END_CASE */
 
@@ -520,6 +532,7 @@ void rsa_check_pubkey( int radix_N, char *input_N, int radix_E, char *input_E,
 
     TEST_ASSERT( rsa_check_pubkey( &ctx ) == result );
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */
@@ -572,6 +585,7 @@ void rsa_check_privkey( int mod, int radix_P, char *input_P, int radix_Q,
 
     TEST_ASSERT( rsa_check_privkey( &ctx ) == result );
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */
@@ -596,6 +610,7 @@ void rsa_gen_key( int nrbits, int exponent, int result)
         TEST_ASSERT( rsa_check_privkey( &ctx ) == 0 );
     }
 
+exit:
     rsa_free( &ctx );
     ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );

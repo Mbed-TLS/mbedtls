@@ -34,6 +34,7 @@ void ecdh_primitive_random( int id )
 
     TEST_ASSERT( mpi_cmp_mpi( &zA, &zB ) == 0 );
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &qA ); ecp_point_free( &qB );
     mpi_free( &dA ); mpi_free( &dB );
@@ -114,6 +115,7 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
     TEST_ASSERT( ecdh_compute_shared( &grp, &zB, &qA, &dB, NULL, NULL ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &zB, &check ) == 0 );
 
+exit:
     ecp_group_free( &grp );
     ecp_point_free( &qA ); ecp_point_free( &qB );
     mpi_free( &dA ); mpi_free( &dB );
@@ -151,6 +153,7 @@ void ecdh_exchange( int id )
     TEST_ASSERT( ecdh_calc_secret( &cli, &len, buf, 1000, NULL, NULL ) == 0 );
     TEST_ASSERT( mpi_cmp_mpi( &srv.z, &cli.z ) == 0 );
 
+exit:
     ecdh_free( &srv );
     ecdh_free( &cli );
 }

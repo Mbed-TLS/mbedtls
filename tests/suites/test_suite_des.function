@@ -45,6 +45,7 @@ void des_encrypt_ecb( char *hex_key_string, char *hex_src_string,
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
+exit:
     des_free( &ctx );
 }
 /* END_CASE */
@@ -74,6 +75,7 @@ void des_decrypt_ecb( char *hex_key_string, char *hex_src_string,
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
+exit:
     des_free( &ctx );
 }
 /* END_CASE */
@@ -110,6 +112,7 @@ void des_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
+exit:
     des_free( &ctx );
 }
 /* END_CASE */
@@ -146,6 +149,7 @@ void des_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
+exit:
     des_free( &ctx );
 }
 /* END_CASE */
@@ -181,6 +185,7 @@ void des3_encrypt_ecb( int key_count, char *hex_key_string,
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
+exit:
     des3_free( &ctx );
 }
 /* END_CASE */
@@ -216,6 +221,7 @@ void des3_decrypt_ecb( int key_count, char *hex_key_string,
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
+exit:
     des3_free( &ctx );
 }
 /* END_CASE */
@@ -260,6 +266,7 @@ void des3_encrypt_cbc( int key_count, char *hex_key_string,
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
+exit:
     des3_free( &ctx );
 }
 /* END_CASE */
@@ -304,6 +311,7 @@ void des3_decrypt_cbc( int key_count, char *hex_key_string,
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
 
+exit:
     des3_free( &ctx );
 }
 /* END_CASE */

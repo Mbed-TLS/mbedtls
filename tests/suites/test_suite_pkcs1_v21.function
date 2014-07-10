@@ -46,6 +46,7 @@ void pkcs1_rsaes_oaep_encrypt( int mod, int radix_N, char *input_N, int radix_E,
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */
@@ -101,6 +102,7 @@ void pkcs1_rsaes_oaep_decrypt( int mod, int radix_P, char *input_P,
         TEST_ASSERT( strncasecmp( (char *) output_str, result_hex_str, strlen( result_hex_str ) ) == 0 );
     }
 
+exit:
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
     rsa_free( &ctx );
 }
@@ -164,6 +166,7 @@ void pkcs1_rsassa_pss_sign( int mod, int radix_P, char *input_P, int radix_Q,
         TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
     }
 
+exit:
     mpi_free( &P1 ); mpi_free( &Q1 ); mpi_free( &H ); mpi_free( &G );
     rsa_free( &ctx );
 }
@@ -201,6 +204,7 @@ void pkcs1_rsassa_pss_verify( int mod, int radix_N, char *input_N, int radix_E,
 
     TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, digest, 0, hash_result, result_str ) == result );
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */
@@ -257,6 +261,7 @@ void pkcs1_rsassa_pss_verify_ext( int mod,
                                         mgf_hash, salt_len,
                                         result_str ) == result_full );
 
+exit:
     rsa_free( &ctx );
 }
 /* END_CASE */

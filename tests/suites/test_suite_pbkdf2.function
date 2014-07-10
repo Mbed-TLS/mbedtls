@@ -38,9 +38,11 @@ void pbkdf2_hmac( int hash, char *hex_password_string, char *hex_salt_string,
     TEST_ASSERT( md_init_ctx( &ctx, info ) == 0 );
     TEST_ASSERT( pbkdf2_hmac( &ctx, pw_str, pw_len, salt_str, salt_len,
                               it_cnt, key_len, key ) == 0 );
-    md_free( &ctx );
 
     hexify( dst_str, key, key_len );
     TEST_ASSERT( strcmp( (char *) dst_str, result_key_string ) == 0 );
+
+exit:
+    md_free( &ctx );
 }
 /* END_CASE */

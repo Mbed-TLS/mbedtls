@@ -27,6 +27,7 @@ void ccm_init( int cipher_id, int key_size, int result )
     ret = ccm_init( &ctx, cipher_id, key, key_size );
     TEST_ASSERT( ret == result );
 
+exit:
     ccm_free( &ctx );
 }
 /* END_CASE */
@@ -64,6 +65,7 @@ void ccm_lengths( int msg_len, int iv_len, int add_len, int tag_len, int res )
     else
         TEST_ASSERT( decrypt_ret == res );
 
+exit:
     ccm_free( &ctx );
 }
 /* END_CASE */
@@ -106,6 +108,7 @@ void ccm_encrypt_and_tag( int cipher_id,
     /* Check we didn't write past the end */
     TEST_ASSERT( msg[result_len] == 0 && msg[result_len + 1] == 0 );
 
+exit:
     ccm_free( &ctx );
 }
 /* END_CASE */
@@ -171,6 +174,7 @@ void ccm_auth_decrypt( int cipher_id,
     /* Check we didn't write past the end (where the original tag is) */
     TEST_ASSERT( memcmp( msg + msg_len, tag, tag_len ) == 0 );
 
+exit:
     ccm_free( &ctx );
 }
 /* END_CASE */

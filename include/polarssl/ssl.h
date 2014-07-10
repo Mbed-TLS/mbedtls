@@ -770,6 +770,10 @@ struct _ssl_context
     int in_msgtype;             /*!< record header: message type      */
     size_t in_msglen;           /*!< record header: message length    */
     size_t in_left;             /*!< amount of data read so far       */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    size_t next_record_offset;  /*!< offset of the next record in datagram,
+                                     or 0 if none */
+#endif
 
     size_t in_hslen;            /*!< current handshake message length */
     int nb_zero;                /*!< # of 0-length encrypted messages */

@@ -1697,6 +1697,7 @@ have_ciphersuite:
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
     ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
+    /* ClientHello can't be bundled with another record in same datagram */
     ssl->in_left = 0;
     ssl->state++;
 

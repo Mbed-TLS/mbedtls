@@ -1821,14 +1821,19 @@ static int ssl_decompress_buf( ssl_context *ssl )
 #endif /* POLARSSL_ZLIB_SUPPORT */
 
 /*
- * Fill the input message buffer
+ * Fill the input message buffer by appending data to it.
+ * The amount of data already fetched is in ssl->in_left.
  *
  * If we return 0, is it guaranteed that (at least) nb_want bytes are
  * available (from this read and/or a previous one). Otherwise, an error code
  * is returned (possibly EOF or WANT_READ).
  *
- * Set ssl->in_left to 0 before calling to start a new record. Apart from
- * this, ssl->in_left is an internal variable and should never be read.
+ * With stream transport (TLS) on success ssl->in_left == nb_want, but
+ * with datagram transport (DTLS) on success ssl->in_left >= nb_want,
+ * since we always read a whole datagram at once.
+ *
+ * For DTLS, It is up to the caller to set ssl->next_record_offset when
+ * they're done reading a record.
  */
 int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 {
@@ -1846,13 +1851,43 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
+        /*
+         * The point is, we need to always read a full datagram at once, so we
+         * sometimes read more then requested, and handle the additional data.
+         * It could be the rest of the current record (while fetching the
+         * header) and/or some other records in the same datagram.
+         */
+
+        /*
+         * Move to the next record in the already read datagram if applicable
+         */
+        if( ssl->next_record_offset != 0 )
+        {
+            if( ssl->in_left < ssl->next_record_offset )
+            {
+                SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+            }
+
+            ssl->in_left -= ssl->next_record_offset;
+
+            if( ssl->in_left != 0 )
+            {
+                SSL_DEBUG_MSG( 2, ( "next record in same datagram, offset: %d",
+                                    ssl->next_record_offset ) );
+                memmove( ssl->in_hdr,
+                         ssl->in_hdr + ssl->next_record_offset,
+                         ssl->in_left );
+            }
+
+            ssl->next_record_offset = 0;
+        }
+
         SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                        ssl->in_left, nb_want ) );
 
         /*
-         * With UDP, we must always read a full datagram.
-         * Just remember how much we read and avoid reading again if we
-         * already have enough data.
+         * Done if we already have enough data.
          */
         if( nb_want <= ssl->in_left)
             return( 0 );
@@ -1884,6 +1919,9 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
     else
 #endif
     {
+        SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
+                       ssl->in_left, nb_want ) );
+
         while( ssl->in_left < nb_want )
         {
             len = nb_want - ssl->in_left;
@@ -2251,6 +2289,12 @@ int ssl_read_record( ssl_context *ssl )
         return( ret );
     }
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    /* Done reading this record, get ready for the next one */
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl->next_record_offset = ssl->in_msglen + ssl_hdr_len( ssl );
+#endif
+
     SSL_DEBUG_BUF( 4, "input record from network",
                    ssl->in_hdr, ssl_hdr_len( ssl ) + ssl->in_msglen );
 
@@ -2358,6 +2402,10 @@ int ssl_read_record( ssl_context *ssl )
         }
     }
 
+    /* With DTLS there might be other records in the same datagram */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport != SSL_TRANSPORT_DATAGRAM )
+#endif
     ssl->in_left = 0;
 
     SSL_DEBUG_MSG( 2, ( "<= read record" ) );
@@ -3597,6 +3645,9 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
     ssl->in_left = 0;
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    ssl->next_record_offset = 0;
+#endif
 
     ssl->in_hslen = 0;
     ssl->nb_zero = 0;

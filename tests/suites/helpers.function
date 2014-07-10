@@ -113,7 +113,8 @@ static unsigned char *zero_alloc( size_t len )
     void *p;
     size_t actual_len = len != 0 ? len : 1;
 
-    assert( ( p = polarssl_malloc( actual_len ) ) != NULL );
+    p = polarssl_malloc( actual_len );
+    assert( p != NULL );
 
     memset( p, 0x00, actual_len );
 
@@ -139,7 +140,8 @@ static unsigned char *unhexify_alloc( const char *ibuf, size_t *olen )
     if( *olen == 0 )
         return( zero_alloc( *olen ) );
 
-    assert( ( obuf = polarssl_malloc( *olen ) ) != NULL );
+    obuf = polarssl_malloc( *olen );
+    assert( obuf != NULL );
 
     (void) unhexify( obuf, ibuf );
 

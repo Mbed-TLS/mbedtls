@@ -146,7 +146,7 @@ filter()
   NEW_LIST=""
 
   if is_dtls "$MODE"; then
-      EXCLMODE="$EXCLUDE"'\|RC4'
+      EXCLMODE="$EXCLUDE"'\|RC4\|ARCFOUR'
   else
       EXCLMODE="$EXCLUDE"
   fi
@@ -167,6 +167,16 @@ filter_ciphersuites()
         P_CIPHERS=$( filter "$P_CIPHERS" )
         O_CIPHERS=$( filter "$O_CIPHERS" )
         G_CIPHERS=$( filter "$G_CIPHERS" )
+    fi
+
+    # Currently OpenSSL doesn't support DTLS 1.2
+    if [ `minor_ver "$MODE"` -ge 3 ] && is_dtls "$MODE"; then
+        O_CIPHERS=""
+    fi
+
+    # We need to force IPv4 by connecting to 127.0.0.1 but then auth fails
+    if [ "X$VERIFY" = "XYES" ] && is_dtls "$MODE"; then
+        G_CIPHERS=""
     fi
 }
 
@@ -904,7 +914,13 @@ run_client() {
             ;;
 
         [Gg]nu*)
-            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 localhost"
+            # need to force IPv4 with UDP, but keep localhost for auth
+            if is_dtls "$MODE"; then
+                G_HOST="127.0.0.1"
+            else
+                G_HOST="localhost"
+            fi
+            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 $G_HOST"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -1057,17 +1073,12 @@ for VERIFY in $VERIFIES; do
 
                 [Oo]pen*)
 
-                    # for now, skip interop test for DTLS
-                    if is_dtls "$MODE"; then
-                        continue
-                    fi
-
                     reset_ciphersuites
                     add_common_ciphersuites
                     add_openssl_ciphersuites
                     filter_ciphersuites
 
-                    if [ "X" != "X$P_CIPHERS" ]; then
+                    if [ "X" != "X$P_CIPHERS" ] && ! is_dtls "$MODE"; then
                         start_server "OpenSSL"
                         for i in $P_CIPHERS; do
                             run_client PolarSSL $i
@@ -1087,17 +1098,12 @@ for VERIFY in $VERIFIES; do
 
                 [Gg]nu*)
 
-                    # for now, skip interop test for DTLS
-                    if is_dtls "$MODE"; then
-                        continue
-                    fi
-
                     reset_ciphersuites
                     add_common_ciphersuites
                     add_gnutls_ciphersuites
                     filter_ciphersuites
 
-                    if [ "X" != "X$P_CIPHERS" ]; then
+                    if [ "X" != "X$P_CIPHERS" ] && ! is_dtls "$MODE"; then
                         start_server "GnuTLS"
                         for i in $P_CIPHERS; do
                             run_client PolarSSL $i

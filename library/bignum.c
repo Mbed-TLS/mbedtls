@@ -530,7 +530,7 @@ int mpi_write_string( const mpi *X, int radix, char *s, size_t *slen )
             {
                 c = ( X->p[i - 1] >> ( ( j - 1 ) << 3) ) & 0xFF;
 
-                if( c == 0 && k == 0 && ( i + j + 3 ) != 0 )
+                if( c == 0 && k == 0 && ( i + j ) != 2 )
                     continue;
 
                 *(p++) = "0123456789ABCDEF" [c / 16];

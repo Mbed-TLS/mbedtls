@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Branch 1.2
+= Version 1.2.11 released 2014-07-11
 Features
    * Entropy module now supports seed writing and reading
 

@@ -172,9 +172,15 @@ filter_ciphersuites()
     # Currently OpenSSL doesn't support DTLS 1.2
     if [ `minor_ver "$MODE"` -ge 3 ] && is_dtls "$MODE"; then
         O_CIPHERS=""
+        case "$PEER" in
+            [Oo]pen*)
+                P_CIPHERS=""
+                ;;
+        esac
     fi
 
-    # We need to force IPv4 by connecting to 127.0.0.1 but then auth fails
+    # For GnuTLS client -> PolarSSL server,
+    # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
     if [ "X$VERIFY" = "XYES" ] && is_dtls "$MODE"; then
         G_CIPHERS=""
     fi
@@ -723,9 +729,17 @@ setup_arguments()
     esac
 
     P_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
-    O_SERVER_ARGS="-accept $PORT -www -cipher NULL,ALL -$MODE"
+    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="EXPORT:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+
+    # with OpenSSL 1.0.1h, -www, -WWW and -HTTP break DTLS handshakes
+    if is_dtls "$MODE"; then
+        # temporary until we support handshake fragmentation
+        O_SERVER_ARGS="$O_SERVER_ARGS -mtu 16383"
+    else
+        O_SERVER_ARGS="$O_SERVER_ARGS -www"
+    fi
 
     P_CLIENT_ARGS="server_port=$PORT server_addr=127.0.0.1 force_version=$MODE"
     O_CLIENT_ARGS="-connect localhost:$PORT -$MODE"
@@ -835,7 +849,8 @@ start_server() {
 
     log "$SERVER_CMD"
     echo "$SERVER_CMD" > $SRV_OUT
-    $SERVER_CMD >> $SRV_OUT 2>&1 &
+    # for servers without -www or equivalent
+    yes Filler-text-for-server-to-send | $SERVER_CMD >> $SRV_OUT 2>&1 &
     PROCESS_ID=$!
 
     sleep 1
@@ -1078,7 +1093,7 @@ for VERIFY in $VERIFIES; do
                     add_openssl_ciphersuites
                     filter_ciphersuites
 
-                    if [ "X" != "X$P_CIPHERS" ] && ! is_dtls "$MODE"; then
+                    if [ "X" != "X$P_CIPHERS" ]; then
                         start_server "OpenSSL"
                         for i in $P_CIPHERS; do
                             run_client PolarSSL $i

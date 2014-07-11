@@ -176,7 +176,7 @@ static void *handle_ssl_connection( void *data )
     if( ( ret = ssl_set_own_cert( &ssl, thread_info->server_cert, thread_info->server_key ) ) != 0 )
     {
         printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
-        goto exit;
+        goto thread_exit;
     }
 
     printf( "  [ #%d ]  ok\n", thread_id );
@@ -363,6 +363,7 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     x509_crt srvcert;
     pk_context pkey;
+    ctr_drbg_context ctr_drbg;
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[100000];
 #endif

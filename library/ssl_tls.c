@@ -3288,7 +3288,7 @@ void ssl_handshake_wrapup( ssl_context *ssl )
 
 int ssl_write_finished( ssl_context *ssl )
 {
-    int ret, hash_len, i;
+    int ret, hash_len;
 
     SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
 
@@ -3337,11 +3337,29 @@ int ssl_write_finished( ssl_context *ssl )
     ssl->transform_out = ssl->transform_negotiate;
     ssl->session_out = ssl->session_negotiate;
 
-    memset( ssl->out_ctr + ssl_ep_len( ssl ), 0, 8 - ssl_ep_len( ssl ) );
-    for( i = ssl_ep_len( ssl ); i > 0; i-- )
-        if( ++ssl->out_ctr[i - 1] != 0 )
-            break;
-    // TODO: abort on epoch wrap!
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        unsigned char i;
+
+        /* Set sequence_number to zero */
+        memset( ssl->out_ctr + 2, 0, 6 );
+
+        /* Increment epoch */
+        for( i = 2; i > 0; i-- )
+            if( ++ssl->out_ctr[i - 1] != 0 )
+                break;
+
+        /* The loop goes to its end iff the counter is wrapping */
+        if( i == 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
+            return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+        }
+    }
+    else
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+    memset( ssl->out_ctr, 0, 8 );
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
     if( ssl_hw_record_activate != NULL )
@@ -3368,7 +3386,7 @@ int ssl_write_finished( ssl_context *ssl )
 int ssl_parse_finished( ssl_context *ssl )
 {
     int ret;
-    unsigned int hash_len, i;
+    unsigned int hash_len;
     unsigned char buf[36];
 
     SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
@@ -3385,11 +3403,29 @@ int ssl_parse_finished( ssl_context *ssl )
 
     /* Input counter/epoch not used with DTLS right now,
      * but it doesn't hurt to have this part ready */
-    memset( ssl->in_ctr + ssl_ep_len( ssl ), 0, 8 - ssl_ep_len( ssl ) );
-    for( i = ssl_ep_len( ssl ); i > 0; i-- )
-        if( ++ssl->in_ctr[i - 1] != 0 )
-            break;
-    // TODO: abort on epoch wrap!
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        unsigned char i;
+
+        /* Set sequence_number to zero */
+        memset( ssl->in_ctr + 2, 0, 6 );
+
+        /* Increment epoch */
+        for( i = 2; i > 0; i-- )
+            if( ++ssl->in_ctr[i - 1] != 0 )
+                break;
+
+        /* The loop goes to its end iff the counter is wrapping */
+        if( i == 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
+            return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+        }
+    }
+    else
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+    memset( ssl->in_ctr, 0, 8 );
 
     /*
      * Set the in_msg pointer to the correct location based on IV length

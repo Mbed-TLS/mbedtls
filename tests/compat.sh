@@ -160,6 +160,17 @@ filter()
   echo "$NEW_LIST" | sed -e 's/[[:space:]]\+/ /g' -e 's/^ //' -e 's/ $//'
 }
 
+# OpenSSL 1.0.1h with -Verify wants a ClientCertificate message even for
+# PSK ciphersuites with DTLS, which is incorrect, so disable them for now
+check_openssl_server_bug()
+{
+    if test "X$VERIFY" = "XYES" && is_dtls "$MODE" && \
+        echo "$1" | grep "^TLS-PSK" >/dev/null;
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
 filter_ciphersuites()
 {
     if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
@@ -169,7 +180,7 @@ filter_ciphersuites()
         G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 
-    # Currently OpenSSL doesn't support DTLS 1.2
+    # OpenSSL 1.0.1h doesn't support DTLS 1.2
     if [ `minor_ver "$MODE"` -ge 3 ] && is_dtls "$MODE"; then
         O_CIPHERS=""
         case "$PEER" in
@@ -908,6 +919,14 @@ run_client() {
     LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
     for i in `seq 1 $LEN`; do echo -n '.'; done; echo -n ' '
 
+    # should we skip?
+    if [ "X$SKIP_NEXT" = "XYES" ]; then
+        SKIP_NEXT="NO"
+        echo "SKIP"
+        SKIPPED=$(( $SKIPPED + 1 ))
+        return
+    fi
+
     # run the command and interpret result
     case $1 in
         [Oo]pen*)
@@ -1075,6 +1094,8 @@ else
     DOG_DELAY=10
 fi
 
+SKIP_NEXT="NO"
+
 trap cleanup INT TERM HUP
 
 for VERIFY in $VERIFIES; do
@@ -1096,6 +1117,7 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$P_CIPHERS" ]; then
                         start_server "OpenSSL"
                         for i in $P_CIPHERS; do
+                            check_openssl_server_bug $i
                             run_client PolarSSL $i
                         done
                         stop_server

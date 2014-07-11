@@ -955,7 +955,9 @@ static int ssl_parse_hello_verify_request( ssl_context *ssl )
     memcpy( ssl->handshake->verify_cookie, p, cookie_len );
     ssl->handshake->verify_cookie_len = cookie_len;
 
+    /* Start over at ClientHello */
     ssl->state = SSL_CLIENT_HELLO;
+    ssl_reset_checksum( ssl );
 
     SSL_DEBUG_MSG( 2, ( "<= parse hello verify request" ) );
 

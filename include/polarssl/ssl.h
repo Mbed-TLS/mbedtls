@@ -1766,6 +1766,7 @@ void ssl_handshake_wrapup( ssl_context *ssl );
 
 int ssl_send_fatal_handshake_failure( ssl_context *ssl );
 
+void ssl_reset_checksum( ssl_context *ssl );
 int ssl_derive_keys( ssl_context *ssl );
 
 int ssl_read_record( ssl_context *ssl );

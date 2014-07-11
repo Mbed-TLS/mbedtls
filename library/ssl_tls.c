@@ -2935,6 +2935,23 @@ void ssl_optimize_checksum( ssl_context *ssl,
     }
 }
 
+void ssl_reset_checksum( ssl_context *ssl )
+{
+#if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
+    defined(POLARSSL_SSL_PROTO_TLS1_1)
+     md5_starts( &ssl->handshake->fin_md5  );
+    sha1_starts( &ssl->handshake->fin_sha1 );
+#endif
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SHA256_C)
+    sha256_starts( &ssl->handshake->fin_sha256, 0 );
+#endif
+#if defined(POLARSSL_SHA512_C)
+    sha512_starts( &ssl->handshake->fin_sha512, 1 );
+#endif
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+}
+
 static void ssl_update_checksum_start( ssl_context *ssl,
                                        const unsigned char *buf, size_t len )
 {

@@ -711,11 +711,11 @@ setup_arguments()
             ;;
         "dtls1")
             G_PRIO_MODE="+VERS-DTLS1.0"
-            G_MODE="-u"
+            G_MODE="-u --mtu 16383" # we don't handle HS fragmentation yet
             ;;
         "dtls1_2")
             G_PRIO_MODE="+VERS-DTLS1.2"
-            G_MODE="-u"
+            G_MODE="-u --mtu 16383" # we don't handle HS fragmentation yet
             ;;
         *)
             echo "error: invalid mode: $MODE" >&2
@@ -1103,7 +1103,7 @@ for VERIFY in $VERIFIES; do
                     add_gnutls_ciphersuites
                     filter_ciphersuites
 
-                    if [ "X" != "X$P_CIPHERS" ] && ! is_dtls "$MODE"; then
+                    if [ "X" != "X$P_CIPHERS" ]; then
                         start_server "GnuTLS"
                         for i in $P_CIPHERS; do
                             run_client PolarSSL $i

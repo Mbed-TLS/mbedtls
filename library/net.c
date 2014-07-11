@@ -113,8 +113,6 @@ int net_connect( int *fd, const char *host, int port )
     struct sockaddr_in server_addr;
     struct hostent *server_host;
 
-    memset( &server_addr, 0, sizeof( server_addr ) );
-
 #if defined(_WIN32) || defined(_WIN32_WCE)
     WSADATA wsaData;
 
@@ -128,6 +126,8 @@ int net_connect( int *fd, const char *host, int port )
 #else
     signal( SIGPIPE, SIG_IGN );
 #endif
+
+    memset( &server_addr, 0, sizeof( server_addr ) );
 
     if( ( server_host = gethostbyname( host ) ) == NULL )
         return( POLARSSL_ERR_NET_UNKNOWN_HOST );
@@ -160,8 +160,6 @@ int net_bind( int *fd, const char *bind_ip, int port )
     int n, c[4];
     struct sockaddr_in server_addr;
 
-    memset( &server_addr, 0, sizeof( server_addr ) );
-
 #if defined(_WIN32) || defined(_WIN32_WCE)
     WSADATA wsaData;
 
@@ -175,6 +173,8 @@ int net_bind( int *fd, const char *bind_ip, int port )
 #else
     signal( SIGPIPE, SIG_IGN );
 #endif
+
+    memset( &server_addr, 0, sizeof( server_addr ) );
 
     if( ( *fd = (int) socket( AF_INET, SOCK_STREAM, IPPROTO_IP ) ) < 0 )
         return( POLARSSL_ERR_NET_SOCKET_FAILED );

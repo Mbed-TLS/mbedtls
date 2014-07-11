@@ -129,6 +129,10 @@ static void *handle_ssl_connection( void *data )
     ssl_context ssl;
     ctr_drbg_context ctr_drbg;
 
+    /* Make sure memory references are valid */
+    memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &ctr_drbg, 0, sizeof( ctr_drbg_context ) );
+
     snprintf( pers, sizeof(pers), "SSL Pthread Thread %d", thread_id );
     printf( "  [ #%d ]  Client FD %d\n", thread_id, client_fd );
     printf( "  [ #%d ]  Seeding the random number generator...\n", thread_id );
@@ -176,7 +180,7 @@ static void *handle_ssl_connection( void *data )
     if( ( ret = ssl_set_own_cert( &ssl, thread_info->server_cert, thread_info->server_key ) ) != 0 )
     {
         printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
-        goto exit;
+        goto thread_exit;
     }
 
     printf( "  [ #%d ]  ok\n", thread_id );
@@ -308,6 +312,7 @@ thread_exit:
 #endif
 
     net_close( client_fd );
+    ctr_drbg_free( &ctr_drbg );
     ssl_free( &ssl );
 
     thread_info->thread_complete = 1;
@@ -492,7 +497,6 @@ exit:
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_free( &cache );
 #endif
-    ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
     polarssl_mutex_free( &debug_mutex );

@@ -569,9 +569,22 @@ static int ssl_write_client_hello( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
-        /* TODO-DTLS: for now, just send an empty cookie, later on must send
-         * back the cookie from HelloVerifyRequest */
-        *p++ = 0;
+        if( ssl->handshake->verify_cookie == NULL )
+        {
+            SSL_DEBUG_MSG( 3, ( "no verify cookie to send" ) );
+            *p++ = 0;
+        }
+        else
+        {
+            SSL_DEBUG_BUF( 3, "client hello, cookie",
+                              ssl->handshake->verify_cookie,
+                              ssl->handshake->verify_cookie_len );
+
+            *p++ = ssl->handshake->verify_cookie_len;
+            memcpy( p, ssl->handshake->verify_cookie,
+                       ssl->handshake->verify_cookie_len );
+            p += ssl->handshake->verify_cookie_len;
+        }
     }
 #endif
 
@@ -893,6 +906,63 @@ static int ssl_parse_alpn_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_ALPN */
 
+/*
+ * Parse HelloVerifyRequest.  Only called after verifying the HS type.
+ */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+static int ssl_parse_hello_verify_request( ssl_context *ssl )
+{
+    const unsigned char *p = ssl->in_msg + 4;
+    int major_ver, minor_ver;
+    unsigned char cookie_len;
+
+    SSL_DEBUG_MSG( 2, ( "=> parse hello verify request" ) );
+
+    /*
+     * struct {
+     *   ProtocolVersion server_version;
+     *   opaque cookie<0..2^8-1>;
+     * } HelloVerifyRequest;
+     */
+    SSL_DEBUG_BUF( 3, "server version", (unsigned char *) p, 2 );
+    ssl_read_version( &major_ver, &minor_ver, ssl->transport, p );
+    p += 2;
+
+    if( major_ver != SSL_MAJOR_VERSION_3 ||
+        minor_ver < SSL_MINOR_VERSION_2 ||
+        minor_ver > SSL_MINOR_VERSION_3 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad server version" ) );
+
+        ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
+                                     SSL_ALERT_MSG_PROTOCOL_VERSION );
+
+        return( POLARSSL_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+    }
+
+    cookie_len = *p++;
+    SSL_DEBUG_BUF( 3, "cookie", (unsigned char *) p, cookie_len );
+
+    polarssl_free( ssl->handshake->verify_cookie );
+
+    ssl->handshake->verify_cookie = polarssl_malloc( cookie_len );
+    if( ssl->handshake->verify_cookie  == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "malloc failed (%d bytes)", cookie_len ) );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    }
+
+    memcpy( ssl->handshake->verify_cookie, p, cookie_len );
+    ssl->handshake->verify_cookie_len = cookie_len;
+
+    ssl->state = SSL_CLIENT_HELLO;
+
+    SSL_DEBUG_MSG( 2, ( "<= parse hello verify request" ) );
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
     int ret, i, comp;
@@ -944,8 +1014,24 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    SSL_DEBUG_MSG( 3, ( "server hello, chosen version: [%d:%d]",
-                   buf[4], buf[5] ) );
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        if( buf[0] == SSL_HS_HELLO_VERIFY_REQUEST )
+        {
+            SSL_DEBUG_MSG( 2, ( "received hello verify request" ) );
+            SSL_DEBUG_MSG( 2, ( "<= parse server hello" ) );
+            return( ssl_parse_hello_verify_request( ssl ) );
+        }
+        else
+        {
+            /* We made it through the verification process */
+            polarssl_free( ssl->handshake->verify_cookie );
+            ssl->handshake->verify_cookie = NULL;
+            ssl->handshake->verify_cookie_len = 0;
+        }
+    }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     if( ssl->in_hslen < 42 ||
         buf[0] != SSL_HS_SERVER_HELLO )
@@ -954,6 +1040,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
+    SSL_DEBUG_BUF( 3, "server hello, version", buf + 4, 2 );
     ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
                       ssl->transport, buf + 4 );
 

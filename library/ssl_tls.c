@@ -4854,6 +4854,10 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C && POLARSSL_SSL_SERVER_NAME_INDICATION */
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    polarssl_free( handshake->verify_cookie );
+#endif
+
     polarssl_zeroize( handshake, sizeof( ssl_handshake_params ) );
 }
 

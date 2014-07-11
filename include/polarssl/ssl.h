@@ -378,6 +378,7 @@
 #define SSL_HS_HELLO_REQUEST            0
 #define SSL_HS_CLIENT_HELLO             1
 #define SSL_HS_SERVER_HELLO             2
+#define SSL_HS_HELLO_VERIFY_REQUEST     3
 #define SSL_HS_NEW_SESSION_TICKET       4
 #define SSL_HS_CERTIFICATE             11
 #define SSL_HS_SERVER_KEY_EXCHANGE     12
@@ -618,6 +619,8 @@ struct _ssl_handshake_params
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     unsigned int msg_seq;               /*!<  DTLS handshake sequence number */
+    unsigned char *verify_cookie;       /*!<  cookie from HelloVerifyRequest */
+    unsigned char verify_cookie_len;    /*!<  cookie length                  */
 #endif
 
     /*

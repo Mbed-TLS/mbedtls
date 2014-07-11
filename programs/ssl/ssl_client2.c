@@ -1177,15 +1177,64 @@ send_request:
     printf( "  < Read from server:" );
     fflush( stdout );
 
-    do
+    /*
+     * TLS and DTLS need different reading styles (stream vs datagram)
+     */
+    if( opt.transport == SSL_TRANSPORT_STREAM )
+    {
+        do
+        {
+            len = sizeof( buf ) - 1;
+            memset( buf, 0, sizeof( buf ) );
+            ret = ssl_read( &ssl, buf, len );
+
+            if( ret == POLARSSL_ERR_NET_WANT_READ ||
+                ret == POLARSSL_ERR_NET_WANT_WRITE )
+                continue;
+
+            if( ret <= 0 )
+            {
+                switch( ret )
+                {
+                    case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
+                        printf( " connection was closed gracefully\n" );
+                        ret = 0;
+                        goto close_notify;
+
+                    case 0:
+                    case POLARSSL_ERR_NET_CONN_RESET:
+                        printf( " connection was reset by peer\n" );
+                        ret = 0;
+                        goto reconnect;
+
+                    default:
+                        printf( " ssl_read returned -0x%x\n", -ret );
+                        goto exit;
+                }
+            }
+
+            len = ret;
+            buf[len] = '\0';
+            printf( " %d bytes read\n\n%s", len, (char *) buf );
+
+            /* End of message should be detected according to the syntax of the
+             * application protocol (eg HTTP), just use a dummy test here. */
+            if( ret > 0 && buf[len-1] == '\n' )
+            {
+                ret = 0;
+                break;
+            }
+        }
+        while( 1 );
+    }
+    else /* Not stream, so datagram */
     {
         len = sizeof( buf ) - 1;
         memset( buf, 0, sizeof( buf ) );
-        ret = ssl_read( &ssl, buf, len );
 
-        if( ret == POLARSSL_ERR_NET_WANT_READ ||
-            ret == POLARSSL_ERR_NET_WANT_WRITE )
-            continue;
+        do ret = ssl_read( &ssl, buf, len );
+        while( ret == POLARSSL_ERR_NET_WANT_READ ||
+               ret == POLARSSL_ERR_NET_WANT_WRITE );
 
         if( ret <= 0 )
         {
@@ -1211,16 +1260,8 @@ send_request:
         len = ret;
         buf[len] = '\0';
         printf( " %d bytes read\n\n%s", len, (char *) buf );
-
-        /* End of message should be detected according to the syntax of the
-         * application protocol (eg HTTP), just use a dummy test here. */
-        if( ret > 0 && buf[len-1] == '\n' )
-        {
-            ret = 0;
-            break;
-        }
+        ret = 0;
     }
-    while( 1 );
 
     /*
      * 7b. Continue doing data exchanges?

@@ -2129,8 +2129,8 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
     if( ssl->in_msg[1] != 0 ||
         ssl->in_msglen < ssl->in_hslen )
     {
-        SSL_DEBUG_MSG( 1, ( "bad handshake length" ) );
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        SSL_DEBUG_MSG( 1, ( "handshake fragmentation not supported" ) );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     if( ssl->state != SSL_HANDSHAKE_OVER )

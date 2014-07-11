@@ -380,6 +380,76 @@ Security
    * RSA blinding on CRT operations to counter timing attacks
      (found by Cyril Arnaud and Pierre-Alain Fouque)
 
+= Version 1.2.11 released 2014-07-11
+Features
+   * Entropy module now supports seed writing and reading
+
+Changes
+   * Introduced POLARSSL_HAVE_READDIR_R for systems without it
+   * Improvements to the CMake build system, contributed by Julian Ospald.
+   * Work around a bug of the version of Clang shipped by Apple with Mavericks
+     that prevented bignum.c from compiling. (Reported by Rafael Baptista.)
+   * Improvements to tests/Makefile, contributed by Oden Eriksson.
+   * Use UTC time to check certificate validity.
+   * Reject certificates with times not in UTC, per RFC 5280.
+   * Migrate zeroizing of data to polarssl_zeroize() instead of memset()
+     against unwanted compiler optimizations
+
+Security
+   * Forbid change of server certificate during renegotiation to prevent
+     "triple handshake" attack when authentication mode is optional (the
+     attack was already impossible when authentication is required).
+   * Check notBefore timestamp of certificates and CRLs from the future.
+   * Forbid sequence number wrapping
+   * Prevent potential NULL pointer dereference in ssl_read_record() (found by
+     TrustInSoft)
+   * Fix length checking for AEAD ciphersuites (found by Codenomicon).
+     It was possible to crash the server (and client) using crafted messages
+     when a GCM suite was chosen.
+
+Bugfix
+   * Fixed X.509 hostname comparison (with non-regular characters)
+   * SSL now gracefully handles missing RNG
+   * crypt_and_hash app checks MAC before final decryption
+   * Fixed x509_crt_parse_path() bug on Windows platforms
+   * Added missing MPI_CHK() around some statements in mpi_div_mpi() (found by
+     TrustInSoft)
+   * Fixed potential overflow in certificate size verification in
+     ssl_write_certificate() (found by TrustInSoft)
+   * Fix ASM format in bn_mul.h
+   * Potential memory leak in bignum_selftest()
+   * Replaced expired test certificate
+   * ssl_mail_client now terminates lines with CRLF, instead of LF
+   * Fix bug in RSA PKCS#1 v1.5 "reversed" operations
+   * Fixed testing with out-of-source builds using cmake
+   * Fixed version-major intolerance in server
+   * Fixed CMake symlinking on out-of-source builds
+   * Bignum's MIPS-32 assembly was used on MIPS-64, causing chaos. (Found by
+     Alex Wilson.)
+   * ssl_init() was leaving a dirty pointer in ssl_context if malloc of
+     out_ctr failed
+   * ssl_handshake_init() was leaving dirty pointers in subcontexts if malloc
+     of one of them failed
+   * x509_get_current_time() uses localtime_r() to prevent thread issues
+   * Some example server programs were not sending the close_notify alert.
+   * Potential memory leak in mpi_exp_mod() when error occurs during
+     calculation of RR.
+   * Improve interoperability by not writing extension length in ClientHello
+     when no extensions are present (found by Matthew Page)
+   * rsa_check_pubkey() now allows an E up to N
+   * On OpenBSD, use arc4random_buf() instead of rand() to prevent warnings
+   * mpi_fill_random() was creating numbers larger than requested on
+     big-endian platform when size was not an integer number of limbs
+   * Fix detection of DragonflyBSD in net.c (found by Markus Pfeiffer)
+   * Stricter check on SSL ClientHello internal sizes compared to actual packet
+     size (found by TrustInSoft)
+   * Fix preprocessor checks for bn_mul PPC asm (found by Barry K. Nathan).
+   * Use \n\t rather than semicolons for bn_mul asm, since some assemblers
+     interpret semicolons as comment delimiters (found by Barry K. Nathan).
+   * Disable broken Sparc64 bn_mul assembly (found by Florian Obser).
+   * Fix base64_decode() to return and check length correctly (in case of
+     tight buffers)
+
 = Version 1.2.10 released 2013-10-07
 Changes
    * Changed RSA blinding to a slower but thread-safe version

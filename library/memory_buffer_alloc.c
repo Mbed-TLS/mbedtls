@@ -37,9 +37,9 @@
 
 #if defined(POLARSSL_MEMORY_DEBUG)
 #include <stdio.h>
+#endif
 #if defined(POLARSSL_MEMORY_BACKTRACE)
 #include <execinfo.h>
-#endif
 #endif
 
 #if defined(POLARSSL_THREADING_C)

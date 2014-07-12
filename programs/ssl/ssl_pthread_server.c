@@ -240,8 +240,6 @@ static void *handle_ssl_connection( void *data )
                             thread_id, -ret );
                     goto thread_exit;
             }
-
-            break;
         }
 
         len = ret;

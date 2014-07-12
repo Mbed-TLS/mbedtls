@@ -256,7 +256,6 @@
     <ClCompile Include="..\..\library\pkwrite.c" />
     <ClCompile Include="..\..\library\platform.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
-    <ClCompile Include="..\..\library\rnd_test.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\sha1.c" />
     <ClCompile Include="..\..\library\sha256.c" />

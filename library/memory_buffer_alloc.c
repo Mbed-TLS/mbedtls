@@ -109,11 +109,11 @@ static void debug_header( memory_header *hdr )
     size_t i;
 #endif
 
-    polarssl_fprintf( stderr, "HDR:  PTR(%10u), PREV(%10u), NEXT(%10u), "
-                              "ALLOC(%u), SIZE(%10u)\n",
+    polarssl_fprintf( stderr, "HDR:  PTR(%10zu), PREV(%10zu), NEXT(%10zu), "
+                              "ALLOC(%zu), SIZE(%10zu)\n",
                       (size_t) hdr, (size_t) hdr->prev, (size_t) hdr->next,
                       hdr->alloc, hdr->size );
-    polarssl_fprintf( stderr, "      FPREV(%10u), FNEXT(%10u)\n",
+    polarssl_fprintf( stderr, "      FPREV(%10zu), FNEXT(%10zu)\n",
                       (size_t) hdr->prev_free, (size_t) hdr->next_free );
 
 #if defined(POLARSSL_MEMORY_BACKTRACE)
@@ -511,8 +511,8 @@ int memory_buffer_alloc_verify()
 void memory_buffer_alloc_status()
 {
     polarssl_fprintf( stderr,
-                      "Current use: %u blocks / %u bytes, max: %u blocks / "
-                      "%u bytes (total %u bytes), malloc / free: %u / %u\n",
+                      "Current use: %zu blocks / %zu bytes, max: %zu blocks / "
+                      "%zu bytes (total %zu bytes), malloc / free: %zu / %zu\n",
                       heap.header_count, heap.total_used,
                       heap.maximum_header_count, heap.maximum_used,
                       heap.maximum_header_count * sizeof( memory_header )

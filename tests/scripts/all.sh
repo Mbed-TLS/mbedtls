@@ -17,6 +17,9 @@ if [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
+CONFIG_H='include/polarssl/config.h'
+CONFIG_BAK="$CONFIG_H.bak"
+
 MEMORY=0
 
 while [ $# -gt 0 ]; do
@@ -40,11 +43,18 @@ done
 cleanup()
 {
     make clean
+
     find -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} \+
     rm -f include/Makefile include/polarssl/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
     git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
+
+    if [ -f "$CONFIG_BAK" ]; then
+        mv "$CONFIG_BAK" "$CONFIG_H"
+    fi
 }
+
+trap cleanup INT TERM HUP
 
 msg()
 {
@@ -96,10 +106,26 @@ cd tests
 ./compat.sh
 cd ..
 
-msg "build: cmake, clang with lots of warnings" # ~ 40s
+msg "build: cmake, full config, clang with lots of warnings" # ~ 40s
 cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # too slow for tests
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
 make
+
+msg "test: main suites (full config)"
+make test
+
+msg "test: ssl-opt.sh default (full config)"
+cd tests
+./ssl-opt.sh -f Default
+cd ..
+
+msg "test: compat.sh 3DES & NULL (full config)"
+cd tests
+./compat.sh -e '^$' -f 'NULL\|3DES-EDE-CBC\|DES-CBC3'
+cd ..
 
 msg "build: Unix make, -O2" # ~ 30s
 cleanup

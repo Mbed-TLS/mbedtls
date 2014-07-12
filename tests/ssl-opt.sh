@@ -331,6 +331,15 @@ SESSION="session.$$"
 
 trap cleanup INT TERM HUP
 
+# Basic test
+
+run_test    "Default" \
+            "$P_SRV" \
+            "$P_CLI" \
+            0 \
+            -S "Last error was" \
+            -C "Last error was"
+
 # Test for SSLv2 ClientHello
 
 run_test    "SSLv2 ClientHello #0 (reference)" \

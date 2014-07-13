@@ -586,12 +586,6 @@ add_polarssl_ciphersuites()
             ;;
 
         "RSA")
-            if [ "$MODE" == "ssl3" ];
-            then
-                P_CIPHERS="$P_CIPHERS                               \
-                    TLS-RSA-WITH-NULL-SHA256                        \
-                    "
-            fi
             if [ "$MODE" = "tls1_2" ];
             then
                 P_CIPHERS="$P_CIPHERS                               \

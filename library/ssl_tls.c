@@ -991,18 +991,15 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
 {
     unsigned char header[11];
     unsigned char padding[48];
-    int padlen = 0;
+    int padlen;
     int md_size = md_get_size( md_ctx->md_info );
     int md_type = md_get_type( md_ctx->md_info );
 
+    /* Only MD5 and SHA-1 supported */
     if( md_type == POLARSSL_MD_MD5 )
         padlen = 48;
-    else if( md_type == POLARSSL_MD_SHA1 )
+    else
         padlen = 40;
-    else if( md_type == POLARSSL_MD_SHA256 )
-        padlen = 32;
-    else if( md_type == POLARSSL_MD_SHA384 )
-        padlen = 16;
 
     memcpy( header, ctr, 8 );
     header[ 8] = (unsigned char)  type;

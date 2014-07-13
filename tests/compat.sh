@@ -4,6 +4,10 @@
 #
 # Check each common ciphersuite, with each version, both ways (client/server),
 # with and without client authentication.
+#
+# Peer version requirements:
+# - OpenSSL 1.0.1e 11 Feb 2013
+# - GnuTLS 3.2.15 (probably works since 3.2.12 but tested only with 3.2.15)
 
 set -u
 
@@ -35,7 +39,7 @@ FILTER=""
 EXCLUDE='NULL\|DES-CBC-' # avoid plain DES but keep 3DES-EDE-CBC (PolarSSL), DES-CBC3 (OpenSSL)
 VERBOSE=""
 MEMCHECK=0
-# GnuTLS not enabled by default, 3.2.4 might not be available everywhere
+# GnuTLS not enabled by default
 if [ "$GNUTLS_AVAILABLE" -gt 0 ]; then
     PEERS="OpenSSL PolarSSL GnuTLS"
 else
@@ -51,7 +55,7 @@ print_usage() {
     echo -e "  -t|--types\tWhich key exchange type to perform (Default: '$TYPES')"
     echo -e "  -V|--verify\tWhich verification modes to perform (Default: '$VERIFIES')"
     echo -e "  -p|--peers\tWhich peers to use (Default: '$PEERS')"
-    echo -e "            \tAlso available: GnuTLS (needs v3.2.4 or higher)"
+    echo -e "            \tAlso available: GnuTLS (needs v3.2.15 or higher)"
     echo -e "  -M|--memcheck\tCheck memory leaks and errors."
     echo -e "  -v|--verbose\tSet verbose output."
 }
@@ -451,32 +455,39 @@ add_gnutls_ciphersuites()
             ;;
 
         "PSK")
-            # GnuTLS 3.2.11 (2014-02-13) requires TLS 1.x for most *PSK suites
+            P_CIPHERS="$P_CIPHERS                               \
+                TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA               \
+                TLS-DHE-PSK-WITH-AES-128-CBC-SHA                \
+                TLS-DHE-PSK-WITH-AES-256-CBC-SHA                \
+                TLS-DHE-PSK-WITH-RC4-128-SHA                    \
+                "
+            G_CIPHERS="$G_CIPHERS                               \
+                +DHE-PSK:+3DES-CBC:+SHA1                        \
+                +DHE-PSK:+AES-128-CBC:+SHA1                     \
+                +DHE-PSK:+AES-256-CBC:+SHA1                     \
+                +DHE-PSK:+ARCFOUR-128:+SHA1                     \
+                "
             if [ "$MODE" != "ssl3" ];
             then
                 P_CIPHERS="$P_CIPHERS                           \
                     TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
                     TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA          \
                     TLS-ECDHE-PSK-WITH-3DES-EDE-CBC-SHA         \
-                    TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA           \
-                    TLS-DHE-PSK-WITH-AES-128-CBC-SHA            \
-                    TLS-DHE-PSK-WITH-AES-256-CBC-SHA            \
+                    TLS-ECDHE-PSK-WITH-RC4-128-SHA              \
                     TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA           \
                     TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
                     TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
-                    TLS-RSA-PSK-WITH-NULL-SHA                   \
+                    TLS-RSA-PSK-WITH-RC4-128-SHA                \
                     "
                 G_CIPHERS="$G_CIPHERS                           \
-                    +ECDHE-PSK:+AES-256-CBC:+SHA1               \
-                    +ECDHE-PSK:+AES-128-CBC:+SHA1               \
                     +ECDHE-PSK:+3DES-CBC:+SHA1                  \
-                    +DHE-PSK:+3DES-CBC:+SHA1                    \
-                    +DHE-PSK:+AES-128-CBC:+SHA1                 \
-                    +DHE-PSK:+AES-256-CBC:+SHA1                 \
+                    +ECDHE-PSK:+AES-128-CBC:+SHA1               \
+                    +ECDHE-PSK:+AES-256-CBC:+SHA1               \
+                    +ECDHE-PSK:+ARCFOUR-128:+SHA1               \
                     +RSA-PSK:+3DES-CBC:+SHA1                    \
                     +RSA-PSK:+AES-256-CBC:+SHA1                 \
                     +RSA-PSK:+AES-128-CBC:+SHA1                 \
-                    +RSA-PSK:+NULL:+SHA1                        \
+                    +RSA-PSK:+ARCFOUR-128:+SHA1                 \
                     "
             fi
             if [ "$MODE" = "tls1_2" ];
@@ -604,17 +615,16 @@ add_polarssl_ciphersuites()
             ;;
 
         "PSK")
+            # *PKS-NULL-SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
             P_CIPHERS="$P_CIPHERS                        \
                 TLS-PSK-WITH-NULL-SHA                    \
-                TLS-DHE-PSK-WITH-RC4-128-SHA             \
                 TLS-DHE-PSK-WITH-NULL-SHA                \
-                TLS-RSA-PSK-WITH-RC4-128-SHA             \
                 "
             if [ "$MODE" != "ssl3" ];
             then
                 P_CIPHERS="$P_CIPHERS                    \
-                    TLS-ECDHE-PSK-WITH-RC4-128-SHA       \
                     TLS-ECDHE-PSK-WITH-NULL-SHA          \
+                    TLS-RSA-PSK-WITH-NULL-SHA            \
                     "
             fi
             if [ "$MODE" = "tls1_2" ];

@@ -202,7 +202,6 @@ add_common_ciphersuites()
                 TLS-RSA-WITH-RC4-128-MD5                \
                 TLS-RSA-WITH-NULL-MD5                   \
                 TLS-RSA-WITH-NULL-SHA                   \
-                TLS-RSA-WITH-NULL-SHA256                \
                 "
             G_CIPHERS="$G_CIPHERS                       \
                 +DHE-RSA:+AES-128-CBC:+SHA1             \
@@ -219,7 +218,6 @@ add_common_ciphersuites()
                 +RSA:+ARCFOUR-128:+MD5                  \
                 +RSA:+NULL:+MD5                         \
                 +RSA:+NULL:+SHA1                        \
-                +RSA:+NULL:+SHA256                      \
                 "
             O_CIPHERS="$O_CIPHERS               \
                 DHE-RSA-AES128-SHA              \
@@ -410,6 +408,15 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
+            if [ "$MODE" != "ssl3" ];
+            then
+                P_CIPHERS="$P_CIPHERS                           \
+                    TLS-RSA-WITH-NULL-SHA256                    \
+                    "
+                G_CIPHERS="$G_CIPHERS                           \
+                    +RSA:+NULL:+SHA256                          \
+                    "
+            fi
             if [ "$MODE" = "tls1_2" ];
             then
                 P_CIPHERS="$P_CIPHERS                           \
@@ -579,6 +586,12 @@ add_polarssl_ciphersuites()
             ;;
 
         "RSA")
+            if [ "$MODE" == "ssl3" ];
+            then
+                P_CIPHERS="$P_CIPHERS                               \
+                    TLS-RSA-WITH-NULL-SHA256                        \
+                    "
+            fi
             if [ "$MODE" = "tls1_2" ];
             then
                 P_CIPHERS="$P_CIPHERS                               \

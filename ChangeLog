@@ -8,6 +8,8 @@ Bugfix
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no
      standard defining how to use SHA-2 with SSL 3.0).
+   * Ciphersuites using RSA-PSK key exchange new require TLS 1.x (the spec is
+     ambiguous on how to encode some packets with SSL 3.0).
 
 = PolarSSL 1.3.8 released 2014-07-11
 Security

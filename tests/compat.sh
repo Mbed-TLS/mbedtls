@@ -464,6 +464,7 @@ add_gnutls_ciphersuites()
                     TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA           \
                     TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
                     TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
+                    TLS-RSA-PSK-WITH-NULL-SHA                   \
                     "
                 G_CIPHERS="$G_CIPHERS                           \
                     +ECDHE-PSK:+AES-256-CBC:+SHA1               \
@@ -475,6 +476,7 @@ add_gnutls_ciphersuites()
                     +RSA-PSK:+3DES-CBC:+SHA1                    \
                     +RSA-PSK:+AES-256-CBC:+SHA1                 \
                     +RSA-PSK:+AES-128-CBC:+SHA1                 \
+                    +RSA-PSK:+NULL:+SHA1                        \
                     "
             fi
             if [ "$MODE" = "tls1_2" ];

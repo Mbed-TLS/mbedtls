@@ -212,7 +212,7 @@ static int ssl_write_ticket( ssl_context *ssl, size_t *tlen )
      */
     state = p + 2;
     if( ssl_save_session( ssl->session_negotiate, state,
-                          SSL_MAX_CONTENT_LEN - ( state - ssl->out_ctr ) - 48,
+                          SSL_MAX_CONTENT_LEN - ( state - ssl->out_msg ) - 48,
                           &clear_len ) != 0 )
     {
         return( POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE );

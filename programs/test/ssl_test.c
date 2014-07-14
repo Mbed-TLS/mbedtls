@@ -145,8 +145,8 @@ int main( int argc, char *argv[] )
  */
 static int ssl_test( struct options *opt )
 {
-    int ret, i;
-    int client_fd;
+    int ret = 1, i;
+    int client_fd = -1;
     int bytes_to_read;
     int bytes_to_write;
     int offset_to_read = 0;
@@ -169,8 +169,6 @@ static int ssl_test( struct options *opt )
     ssl_context ssl;
     x509_cert srvcert;
     rsa_context rsa;
-
-    ret = 1;
 
     memset( &ssl, 0, sizeof(ssl_context) );
     entropy_init( &entropy );

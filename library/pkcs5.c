@@ -407,7 +407,7 @@ int pkcs5_self_test( int verbose )
 
     printf( "\n" );
 
-    return( 0 );
+    return( ret );
 }
 
 #endif /* POLARSSL_SELF_TEST */

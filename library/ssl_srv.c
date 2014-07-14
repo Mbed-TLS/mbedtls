@@ -1444,6 +1444,11 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     }
 #endif
 
+    /* See comments in ssl_write_client_hello() */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl->session_negotiate->compression = SSL_COMPRESS_NULL;
+#endif
     /*
      * Check the extension length
      */

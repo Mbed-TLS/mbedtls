@@ -450,6 +450,7 @@ static int ssl_write_client_hello( ssl_context *ssl )
     size_t i, n, olen, ext_len = 0;
     unsigned char *buf;
     unsigned char *p, *q;
+    unsigned char offer_compress;
 #if defined(POLARSSL_HAVE_TIME)
     time_t t;
 #endif
@@ -636,22 +637,42 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphersuites", n ) );
 
-
 #if defined(POLARSSL_ZLIB_SUPPORT)
-    SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 2 ) );
-    SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d %d",
-                        SSL_COMPRESS_DEFLATE, SSL_COMPRESS_NULL ) );
-
-    *p++ = 2;
-    *p++ = SSL_COMPRESS_DEFLATE;
-    *p++ = SSL_COMPRESS_NULL;
+    offer_compress = 1;
 #else
-    SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 1 ) );
-    SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d", SSL_COMPRESS_NULL ) );
+    offer_compress = 0;
+#endif
 
-    *p++ = 1;
-    *p++ = SSL_COMPRESS_NULL;
-#endif /* POLARSSL_ZLIB_SUPPORT */
+    /*
+     * We don't support compression with DTLS right now: is many records come
+     * in the same datagram, uncompressing one could overwrite the next one.
+     * We don't want to add complexity for handling that case unless there is
+     * an actual need for it.
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        offer_compress = 0;
+#endif
+
+    if( offer_compress )
+    {
+        SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 2 ) );
+        SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d %d",
+                            SSL_COMPRESS_DEFLATE, SSL_COMPRESS_NULL ) );
+
+        *p++ = 2;
+        *p++ = SSL_COMPRESS_DEFLATE;
+        *p++ = SSL_COMPRESS_NULL;
+    }
+    else
+    {
+        SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 1 ) );
+        SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d",
+                            SSL_COMPRESS_NULL ) );
+
+        *p++ = 1;
+        *p++ = SSL_COMPRESS_NULL;
+    }
 
     // First write extensions, then the total length
     //
@@ -967,10 +988,11 @@ static int ssl_parse_hello_verify_request( ssl_context *ssl )
 
 static int ssl_parse_server_hello( ssl_context *ssl )
 {
-    int ret, i, comp;
+    int ret, i;
     size_t n;
     size_t ext_len;
     unsigned char *buf, *ext;
+    unsigned char comp, accept_comp;
     int renegotiation_info_seen = 0;
     int handshake_failure = 0;
 #if defined(POLARSSL_DEBUG_C)
@@ -1113,8 +1135,32 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
+    /* ciphersuite (used later) */
     i = ( buf[39 + n] << 8 ) | buf[40 + n];
+
+    /*
+     * Read and check compression
+     */
     comp = buf[41 + n];
+
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    accept_comp = 1;
+#else
+    accept_comp = 0;
+#endif
+
+    /* See comments in ssl_write_client_hello() */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        accept_comp = 0;
+#endif
+
+    if( ( accept_comp == 0 && comp != SSL_COMPRESS_NULL ) ||
+        ( comp != SSL_COMPRESS_NULL && comp != SSL_COMPRESS_DEFLATE ) )
+    {
+        SSL_DEBUG_MSG( 1, ( "server hello, bad compression: %d", comp ) );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
 
     /*
      * Initialize update checksum functions

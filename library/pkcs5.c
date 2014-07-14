@@ -408,7 +408,7 @@ int pkcs5_self_test( int verbose )
 exit:
     md_free( &sha1_ctx );
 
-    return( 0 );
+    return( ret );
 }
 #endif /* POLARSSL_SHA1_C */
 

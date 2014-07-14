@@ -134,6 +134,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     {
         fclose( f );
         free( *buf );
+        *buf = NULL;
         return( -1 );
     }
 

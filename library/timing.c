@@ -283,14 +283,15 @@ unsigned long get_timer( struct hr_time *val, int reset )
 
     gettimeofday( &offset, NULL );
 
-    delta = ( offset.tv_sec  - t->start.tv_sec  ) * 1000
-          + ( offset.tv_usec - t->start.tv_usec ) / 1000;
-
     if( reset )
     {
         t->start.tv_sec  = offset.tv_sec;
         t->start.tv_usec = offset.tv_usec;
+        return( 0 );
     }
+
+    delta = ( offset.tv_sec  - t->start.tv_sec  ) * 1000
+          + ( offset.tv_usec - t->start.tv_usec ) / 1000;
 
     return( delta );
 }

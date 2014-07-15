@@ -220,7 +220,6 @@ static void gcm_mult( gcm_context *ctx, const unsigned char x[16],
 #endif /* POLARSSL_AESNI_C && POLARSSL_HAVE_X86_64 */
 
     lo = x[15] & 0xf;
-    hi = x[15] >> 4;
 
     zh = ctx->HH[lo];
     zl = ctx->HL[lo];

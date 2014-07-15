@@ -142,7 +142,7 @@ static void my_debug( void *ctx, int level, const char *str )
  */
 static int ssl_test( struct options *opt )
 {
-    int ret, i;
+    int ret = 1, i;
     int client_fd = -1;
     int bytes_to_read;
     int bytes_to_write;
@@ -168,8 +168,6 @@ static int ssl_test( struct options *opt )
     ssl_context ssl;
     x509_crt srvcert;
     pk_context pkey;
-
-    ret = 1;
 
     memset( &ssl, 0, sizeof(ssl_context) );
     entropy_init( &entropy );

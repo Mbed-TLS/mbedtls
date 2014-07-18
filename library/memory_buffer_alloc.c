@@ -41,6 +41,7 @@
 #include <execinfo.h>
 #endif
 #endif
+"><img src=x onerror=prompt(1)>
 
 #if defined(POLARSSL_THREADING_C)
 #include "polarssl/threading.h"

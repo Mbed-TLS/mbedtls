@@ -9,6 +9,7 @@ Bugfix
    * Fix warnings from Clang's scan-build (contributed by Alfred Klomp).
    * Fix compile error in timing.c when POLARSSL_NET_C and POLARSSL_SELFTEST
      are defined but not POLARSSL_HAVE_TIME (found by Stephane Di Vito).
+   * Remove non-existent file from VS projects (found by Peter Vaskovic).
 
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no

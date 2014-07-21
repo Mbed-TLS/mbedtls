@@ -273,10 +273,6 @@ SOURCE=..\..\library\ripemd160.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\library\rnd_test.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\library\rsa.c
 # End Source File
 # Begin Source File

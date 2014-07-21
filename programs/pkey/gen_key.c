@@ -248,7 +248,8 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "rsa_keysize" ) == 0 )
         {
             opt.rsa_keysize = atoi( q );
-            if( opt.rsa_keysize < 1024 || opt.rsa_keysize > 8192 )
+            if( opt.rsa_keysize < 1024 ||
+                opt.rsa_keysize > POLARSSL_MPI_MAX_BITS )
                 goto usage;
         }
         else if( strcmp( p, "ec_curve" ) == 0 )
@@ -373,7 +374,18 @@ int main( int argc, char *argv[] )
 #endif
         printf("  ! key type not supported\n");
 
-    write_private_key( &key, opt.filename );
+    /*
+     * 1.3 Export key
+     */
+    printf( "  . Writing key to file..." );
+
+    if( ( ret = write_private_key( &key, opt.filename ) ) != 0 )
+    {
+        printf( " failed\n" );
+        goto exit;
+    }
+
+    printf( " ok\n" );
 
 exit:
 

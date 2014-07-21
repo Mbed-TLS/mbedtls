@@ -294,10 +294,93 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
 #define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----\n"
 #define PEM_END_PRIVATE_KEY_EC      "-----END EC PRIVATE KEY-----\n"
 
+/*
+ * Max sizes of key per types. Shown as tag + len (+ content).
+ */
+
+#if defined(POLARSSL_RSA_C)
+/*
+ * RSA public keys:
+ *  SubjectPublicKeyInfo  ::=  SEQUENCE  {          1 + 3
+ *       algorithm            AlgorithmIdentifier,  1 + 1 (sequence)
+ *                                                + 1 + 1 + 9 (rsa oid)
+ *                                                + 1 + 1 (params null)
+ *       subjectPublicKey     BIT STRING }          1 + 3 + (1 + below)
+ *  RSAPublicKey ::= SEQUENCE {                     1 + 3
+ *      modulus           INTEGER,  -- n            1 + 3 + MPI_MAX + 1
+ *      publicExponent    INTEGER   -- e            1 + 3 + MPI_MAX + 1
+ *  }
+ */
+#define RSA_PUB_DER_MAX_BYTES   38 + 2 * POLARSSL_MPI_MAX_SIZE
+
+/*
+ * RSA private keys:
+ *  RSAPrivateKey ::= SEQUENCE {                    1 + 3
+ *      version           Version,                  1 + 1 + 1
+ *      modulus           INTEGER,                  1 + 3 + MPI_MAX + 1
+ *      publicExponent    INTEGER,                  1 + 3 + MPI_MAX + 1
+ *      privateExponent   INTEGER,                  1 + 3 + MPI_MAX + 1
+ *      prime1            INTEGER,                  1 + 3 + MPI_MAX / 2 + 1
+ *      prime2            INTEGER,                  1 + 3 + MPI_MAX / 2 + 1
+ *      exponent1         INTEGER,                  1 + 3 + MPI_MAX / 2 + 1
+ *      exponent2         INTEGER,                  1 + 3 + MPI_MAX / 2 + 1
+ *      coefficient       INTEGER,                  1 + 3 + MPI_MAX / 2 + 1
+ *      otherPrimeInfos   OtherPrimeInfos OPTIONAL  0 (not supported)
+ *  }
+ */
+#define MPI_MAX_SIZE_2          POLARSSL_MPI_MAX_SIZE / 2 + \
+                                POLARSSL_MPI_MAX_SIZE % 2
+#define RSA_PRV_DER_MAX_BYTES   47 + 3 * POLARSSL_MPI_MAX_SIZE \
+                                   + 5 * MPI_MAX_SIZE_2
+
+#else /* POLARSSL_RSA_C */
+
+#define RSA_PUB_DER_MAX_BYTES   0
+#define RSA_PRV_DER_MAX_BYTES   0
+
+#endif /* POLARSSL_RSA_C */
+
+#if defined(POLARSSL_ECP_C)
+/*
+ * EC public keys:
+ *  SubjectPublicKeyInfo  ::=  SEQUENCE  {      1 + 2
+ *    algorithm         AlgorithmIdentifier,    1 + 1 (sequence)
+ *                                            + 1 + 1 + 7 (ec oid)
+ *                                            + 1 + 1 + 9 (namedCurve oid)
+ *    subjectPublicKey  BIT STRING              1 + 2 + 1               [1]
+ *                                            + 1 (point format)        [1]
+ *                                            + 2 * ECP_MAX (coords)    [1]
+ *  }
+ */
+#define ECP_PUB_DER_MAX_BYTES   30 + 2 * POLARSSL_ECP_MAX_BYTES
+
+/*
+ * EC private keys:
+ * ECPrivateKey ::= SEQUENCE {                  1 + 2
+ *      version        INTEGER ,                1 + 1 + 1
+ *      privateKey     OCTET STRING,            1 + 1 + ECP_MAX
+ *      parameters [0] ECParameters OPTIONAL,   1 + 1 + (1 + 1 + 9)
+ *      publicKey  [1] BIT STRING OPTIONAL      1 + 2 + [1] above
+ *    }
+ */
+#define ECP_PRV_DER_MAX_BYTES   29 + 3 * POLARSSL_ECP_MAX_BYTES
+
+#else /* POLARSSL_ECP_C */
+
+#define ECP_PUB_DER_MAX_BYTES   0
+#define ECP_PRV_DER_MAX_BYTES   0
+
+#endif /* POLARSSL_ECP_C */
+
+#define PUB_DER_MAX_BYTES   RSA_PUB_DER_MAX_BYTES > ECP_PUB_DER_MAX_BYTES ? \
+                            RSA_PUB_DER_MAX_BYTES : ECP_PUB_DER_MAX_BYTES
+#define PRV_DER_MAX_BYTES   RSA_PRV_DER_MAX_BYTES > ECP_PRV_DER_MAX_BYTES ? \
+                            RSA_PRV_DER_MAX_BYTES : ECP_PRV_DER_MAX_BYTES
+
 int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
-    unsigned char output_buf[4096];
+    unsigned char output_buf[PUB_DER_MAX_BYTES];
     size_t olen = 0;
 
     if( ( ret = pk_write_pubkey_der( key, output_buf,
@@ -319,7 +402,7 @@ int pk_write_pubkey_pem( pk_context *key, unsigned char *buf, size_t size )
 int pk_write_key_pem( pk_context *key, unsigned char *buf, size_t size )
 {
     int ret;
-    unsigned char output_buf[4096];
+    unsigned char output_buf[PRV_DER_MAX_BYTES];
     const char *begin, *end;
     size_t olen = 0;
 

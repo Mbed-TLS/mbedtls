@@ -13,6 +13,8 @@ Changes
      standard defining how to use SHA-2 with SSL 3.0).
    * Ciphersuites using RSA-PSK key exchange new require TLS 1.x (the spec is
      ambiguous on how to encode some packets with SSL 3.0).
+   * Made buffer size in pk_write_(pub)key_pem() more dynamic, eg smaller if
+     RSA is disabled, larger if POLARSSL_MPI_MAX_SIZE is larger.
 
 = PolarSSL 1.3.8 released 2014-07-11
 Security

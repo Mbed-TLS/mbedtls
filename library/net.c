@@ -434,7 +434,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
 
     if( *client_fd < 0 )
     {
-        if( net_would_block( *client_fd ) != 0 )
+        if( net_would_block( bind_fd ) != 0 )
             return( POLARSSL_ERR_NET_WANT_READ );
 
         return( POLARSSL_ERR_NET_ACCEPT_FAILED );

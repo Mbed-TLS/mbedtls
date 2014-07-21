@@ -4,6 +4,7 @@ PolarSSL ChangeLog (Sorted per branch, date)
 Bugfix
    * Support escaping of commas in x509_string_to_names()
    * Fix compile error in ssl_pthread_server (found by Julian Ospald).
+   * Fix net_accept() regarding non-blocking sockets (found by Luca Pesce).
 
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no

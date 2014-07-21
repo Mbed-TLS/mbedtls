@@ -7,6 +7,8 @@ Bugfix
    * Fix net_accept() regarding non-blocking sockets (found by Luca Pesce).
    * Don't print uninitialised buffer in ssl_mail_client (found by Marc Abel).
    * Fix warnings from Clang's scan-build (contributed by Alfred Klomp).
+   * Fix compile error in timing.c when POLARSSL_NET_C and POLARSSL_SELFTEST
+     are defined but not POLARSSL_HAVE_TIME (found by Stephane Di Vito).
 
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no

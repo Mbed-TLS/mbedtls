@@ -333,7 +333,7 @@ void m_sleep( int milliseconds )
 #if defined(POLARSSL_SELF_TEST)
 
 /* To test net_usleep against our functions */
-#if defined(POLARSSL_NET_C)
+#if defined(POLARSSL_NET_C) && defined(POLARSSL_HAVE_TIME)
 #include "polarssl/net.h"
 #endif
 
@@ -465,7 +465,7 @@ hard_test:
     if( verbose != 0 )
         polarssl_printf( "passed\n" );
 
-#if defined(POLARSSL_NET_C)
+#if defined(POLARSSL_NET_C) && defined(POLARSSL_HAVE_TIME)
     if( verbose != 0 )
         polarssl_printf( "  TIMING test #4 (net_usleep/ get_timer): " );
 

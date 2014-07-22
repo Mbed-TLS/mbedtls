@@ -455,6 +455,17 @@ static int ssl_generate_random( ssl_context *ssl )
     time_t t;
 #endif
 
+    /*
+     * When responding to a verify request, MUST reuse random (RFC 6347 4.2.1)
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake->verify_cookie != NULL )
+    {
+        return( 0 );
+    }
+#endif
+
 #if defined(POLARSSL_HAVE_TIME)
     t = time( NULL );
     *p++ = (unsigned char)( t >> 24 );

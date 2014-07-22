@@ -444,6 +444,38 @@ static void ssl_write_alpn_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_ALPN */
 
+/*
+ * Generate random bytes for ClientHello
+ */
+static int ssl_generate_random( ssl_context *ssl )
+{
+    int ret;
+    unsigned char *p = ssl->handshake->randbytes;
+#if defined(POLARSSL_HAVE_TIME)
+    time_t t;
+#endif
+
+#if defined(POLARSSL_HAVE_TIME)
+    t = time( NULL );
+    *p++ = (unsigned char)( t >> 24 );
+    *p++ = (unsigned char)( t >> 16 );
+    *p++ = (unsigned char)( t >>  8 );
+    *p++ = (unsigned char)( t       );
+
+    SSL_DEBUG_MSG( 3, ( "client hello, current time: %lu", t ) );
+#else
+    if( ( ret = ssl->f_rng( ssl->p_rng, p, 4 ) ) != 0 )
+        return( ret );
+
+    p += 4;
+#endif /* POLARSSL_HAVE_TIME */
+
+    if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
 static int ssl_write_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -451,9 +483,6 @@ static int ssl_write_client_hello( ssl_context *ssl )
     unsigned char *buf;
     unsigned char *p, *q;
     unsigned char offer_compress;
-#if defined(POLARSSL_HAVE_TIME)
-    time_t t;
-#endif
     const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
 
@@ -494,29 +523,15 @@ static int ssl_write_client_hello( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "client hello, max version: [%d:%d]",
                    buf[4], buf[5] ) );
 
-#if defined(POLARSSL_HAVE_TIME)
-    t = time( NULL );
-    *p++ = (unsigned char)( t >> 24 );
-    *p++ = (unsigned char)( t >> 16 );
-    *p++ = (unsigned char)( t >>  8 );
-    *p++ = (unsigned char)( t       );
-
-    SSL_DEBUG_MSG( 3, ( "client hello, current time: %lu", t ) );
-#else
-    if( ( ret = ssl->f_rng( ssl->p_rng, p, 4 ) ) != 0 )
+    if( ( ret = ssl_generate_random( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_generate_random", ret );
         return( ret );
+    }
 
-    p += 4;
-#endif /* POLARSSL_HAVE_TIME */
-
-    if( ( ret = ssl->f_rng( ssl->p_rng, p, 28 ) ) != 0 )
-        return( ret );
-
-    p += 28;
-
-    memcpy( ssl->handshake->randbytes, buf + 6, 32 );
-
-    SSL_DEBUG_BUF( 3, "client hello, random bytes", buf + 6, 32 );
+    memcpy( p, ssl->handshake->randbytes, 32 );
+    SSL_DEBUG_BUF( 3, "client hello, random bytes", p, 32 );
+    p += 32;
 
     /*
      *    38  .  38   session id length

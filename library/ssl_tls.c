@@ -3749,6 +3749,12 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->alpn_chosen = NULL;
 #endif
 
+#if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
+    polarssl_free( ssl->cli_id );
+    ssl->cli_id = NULL;
+    ssl->cli_id_len = 0;
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -5031,6 +5037,10 @@ void ssl_free( ssl_context *ssl )
         SSL_DEBUG_MSG( 2, ( "going for ssl_hw_record_finish()" ) );
         ssl_hw_record_finish( ssl );
     }
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
+    polarssl_free( ssl->cli_id );
 #endif
 
     SSL_DEBUG_MSG( 2, ( "<= free" ) );

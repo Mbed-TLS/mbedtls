@@ -351,6 +351,26 @@ static int ssl_parse_ticket( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+int ssl_set_client_transport_id( ssl_context *ssl,
+                                 const unsigned char *info,
+                                 size_t ilen )
+{
+    if( ssl->endpoint != SSL_IS_SERVER )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    polarssl_free( ssl->cli_id );
+
+    if( ( ssl->cli_id = polarssl_malloc( ilen ) ) == NULL )
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+
+    memcpy( ssl->cli_id, info, ilen );
+    ssl->cli_id_len = ilen;
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /*
  * Wrapper around f_sni, allowing use of ssl_set_own_cert() but

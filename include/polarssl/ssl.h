@@ -876,6 +876,14 @@ struct _ssl_context
 #endif
 
     /*
+     * Client id (IP/port) for DTLS hello verify
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
+    unsigned char  *cli_id;         /*!<  transport-level ID of the client  */
+    size_t          cli_id_len;     /*!<  length of cli_id                  */
+#endif
+
+    /*
      * Secure renegotiation
      */
     int secure_renegotiation;           /*!<  does peer support legacy or
@@ -1057,6 +1065,33 @@ void ssl_set_dbg( ssl_context *ssl,
 void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
         int (*f_send)(void *, const unsigned char *, size_t), void *p_send );
+
+#if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
+/**
+ * \brief          Set client's transport-level identification info.
+ *                 (Only usable on server.)
+ *
+ *                 This is usually the IP address (and port), but could be
+ *                 anything identify the client depending on the underlying
+ *                 network stack. Used for HelloVerifyRequest with DTLS.
+ *                 This is *not* used to route the actual packets.
+ *
+ * \warning (TODO-DTLS) May change and even be removed before 2.0.0!
+ *
+ * \param ssl      SSL context
+ * \param info     Transport-level info identifying the client (eg IP + port)
+ * \param ilen     Length of info in bytes
+ *
+ * \note           An internal copy is made, so the info buffer can be reused.
+ *
+ * \return         0 on success,
+ *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used on client,
+ *                 POLARSSL_ERR_SSL_MALLOC_FAILED if out of memory.
+ */
+int ssl_set_client_transport_id( ssl_context *ssl,
+                                 const unsigned char *info,
+                                 size_t ilen );
+#endif /* POLARSSL_SSL_PROTO_DTLS && POLARSSL_SSL_SRV_C */
 
 /**
  * \brief          Set the session cache callbacks (server-side only)

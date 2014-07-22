@@ -1137,25 +1137,68 @@ have_ciphersuite_v2:
 #endif /* POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
+
+/*
+ * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-512 is
+ * available. Try SHA-256 first, 512 wastes resources since we need to stay
+ * with max 32 bytes of cookie for DTLS 1.0
+ */
+#if defined(POLARSSL_SHA256_C)
+#define HVR_MD      POLARSSL_MD_SHA256
+#define HVR_MD_LEN  32
+#define HVR_MD_USE  32
+#elif defined(POLARSSL_SHA512_C)
+#define HVR_MD      POLARSSL_MD_SHA384
+#define HVR_MD_LEN  48
+#define HVR_MD_USE  32
+#elif defined(POLARSSL_SHA1_C)
+#define HVR_MD      POLARSSL_MD_SHA1
+#define HVR_MD_LEN  20
+#define HVR_MD_USE  20
+#else
+#error "DTLS hello verify needs SHA-1 or SHA-2"
+#endif
+
 /*
  * Generate cookie for DTLS ClientHello verification
  */
 static int ssl_generate_verify_cookie( ssl_context *ssl )
 {
+    int ret;
     unsigned char *cookie = ssl->handshake->verify_cookie;
     unsigned char cookie_len;
+    unsigned char hmac_out[HVR_MD_LEN];
+    unsigned char hmac_key[32] = { 0 }; /* temporary! */
+    md_context_t hmac_ctx;
+
+    md_init( &hmac_ctx );
 
     polarssl_free( cookie );
 
-    cookie_len = 16; /* fixed for now */
+    cookie_len = HVR_MD_LEN;
+
     if( ( cookie = polarssl_malloc( cookie_len ) ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc (%d bytes) failed\n", cookie_len ) );
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    /* Dummy, fixed string for now */
-    memset( cookie, 0x2a, cookie_len );
+    /* Do a HMAC of client id */
+    ret = md_init_ctx( &hmac_ctx, md_info_from_type( HVR_MD ) );
+    if( ret != 0 )
+    {
+        SSL_DEBUG_RET( 0, "md_init_ctx", ret );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    /* Only possible error is if hmac_ctx wasn't initialized */
+    (void) md_hmac_starts( &hmac_ctx, hmac_key, sizeof( hmac_key ) );
+    (void) md_hmac_update( &hmac_ctx, ssl->cli_id, ssl->cli_id_len );
+    (void) md_hmac_finish( &hmac_ctx, hmac_out );
+
+    memcpy( cookie, hmac_out, HVR_MD_USE );
+
+    md_free( &hmac_ctx );
 
     ssl->handshake->verify_cookie = cookie;
     ssl->handshake->verify_cookie_len = cookie_len;

@@ -1116,6 +1116,34 @@ have_ciphersuite_v2:
 }
 #endif /* POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+/*
+ * Generate cookie for DTLS ClientHello verification
+ */
+static int ssl_generate_verify_cookie( ssl_context *ssl )
+{
+    unsigned char *cookie = ssl->handshake->verify_cookie;
+    unsigned char cookie_len;
+
+    polarssl_free( cookie );
+
+    cookie_len = 16; /* fixed for now */
+    if( ( cookie = polarssl_malloc( cookie_len ) ) == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "malloc (%d bytes) failed\n", cookie_len ) );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    }
+
+    /* Dummy, fixed string for now */
+    memset( cookie, 0x2a, cookie_len );
+
+    ssl->handshake->verify_cookie = cookie;
+    ssl->handshake->verify_cookie_len = cookie_len;
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+
 static int ssl_parse_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -1161,6 +1189,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      * Record layer:
      *     0  .   0   message type
      *     1  .   2   protocol version
+     *     3  .   11  DTLS: epoch + record sequence number
      *     3  .   4   message length
      */
     SSL_DEBUG_MSG( 3, ( "client hello v3, message type: %d",
@@ -1189,6 +1218,23 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
+
+    /* For DTLS if this is the initial handshake, remember the client sequence
+     * number to use it in our next message (RFC 6347 4.2.1) */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+    {
+        /* Epoch should be 0 for initial handshakes */
+        if( ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
+
+        memcpy( ssl->out_ctr + 2, ssl->in_ctr + 2, 6 );
+    }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     msg_len = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
 
@@ -1232,7 +1278,14 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
-        // TODO: DTLS: check message_seq
+        /*
+         * Copy the client's handshake message_seq on initial handshakes
+         */
+        if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+            ssl->handshake->msg_seq = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
+
+        // TODO: DTLS: check message_seq on non-initial handshakes?
+        // (or already done in ssl_read_record?)
 
         /*
          * For now we don't support fragmentation, so make sure
@@ -1376,8 +1429,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         cookie_offset = 39 + sess_len;
         cookie_len = buf[cookie_offset];
 
-        if( // cookie_len > <MAX> || // TODO-DTLS
-            cookie_offset + 1 + cookie_len + 2 > msg_len )
+        if( cookie_offset + 1 + cookie_len + 2 > msg_len )
         {
             SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -1386,9 +1438,34 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         SSL_DEBUG_BUF( 3, "client hello, cookie",
                        buf + cookie_offset + 1, cookie_len );
 
-        // TODO-DTLS: check cookie, reject if invalid!
+        /*
+         * Generate reference cookie content:
+         * - used for verification below,
+         * - stored to be sent if verification fails
+         */
+        if( ( ret = ssl_generate_verify_cookie( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_generate_verify_cookie", ret );
+            return( ret );
+        }
+
+        /* If the received cookie is OK, no need to send one */
+        if( cookie_len == ssl->handshake->verify_cookie_len &&
+            safer_memcmp( buf + cookie_offset + 1,
+                          ssl->handshake->verify_cookie,
+                          ssl->handshake->verify_cookie_len ) == 0 )
+        {
+            polarssl_free( ssl->handshake->verify_cookie );
+            ssl->handshake->verify_cookie = NULL;
+            ssl->handshake->verify_cookie_len = 0;
+        }
+
+        SSL_DEBUG_MSG( 2, ( "client hello, cookie verification %s",
+                            ssl->handshake->verify_cookie == NULL ?
+                            "passed" : "failed" ) );
+
     }
-#endif
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     /*
      * Check the ciphersuitelist length (will be parsed later)
@@ -1883,6 +1960,52 @@ static void ssl_write_alpn_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+static int ssl_write_hello_verify_request( ssl_context *ssl )
+{
+    int ret;
+    unsigned char *p = ssl->out_msg + 4;
+
+    SSL_DEBUG_MSG( 2, ( "=> write hello verify request" ) );
+
+    /*
+     * struct {
+     *   ProtocolVersion server_version;
+     *   opaque cookie<0..2^8-1>;
+     * } HelloVerifyRequest;
+     */
+
+    /* For now, use fixed version = DTLS 1.0 */
+    ssl_write_version( SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
+                       ssl->transport, p );
+    SSL_DEBUG_BUF( 3, "server version", (unsigned char *) p, 2 );
+    p += 2;
+
+    SSL_DEBUG_BUF( 3, "cookie", ssl->handshake->verify_cookie,
+                                ssl->handshake->verify_cookie_len );
+    *p++ = ssl->handshake->verify_cookie_len;
+    memcpy( p, ssl->handshake->verify_cookie,
+               ssl->handshake->verify_cookie_len );
+    p += ssl->handshake->verify_cookie_len;
+
+    ssl->out_msglen  = p - ssl->out_msg;
+    ssl->out_msgtype = SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = SSL_HS_HELLO_VERIFY_REQUEST;
+
+    ssl->state = SSL_CLIENT_HELLO;
+
+    if( ( ret = ssl_write_record( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+        return( ret );
+    }
+
+    SSL_DEBUG_MSG( 2, ( "<= write hello verify request" ) );
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+
 static int ssl_write_server_hello( ssl_context *ssl )
 {
 #if defined(POLARSSL_HAVE_TIME)
@@ -1893,6 +2016,23 @@ static int ssl_write_server_hello( ssl_context *ssl )
     unsigned char *buf, *p;
 
     SSL_DEBUG_MSG( 2, ( "=> write server hello" ) );
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake->verify_cookie != NULL )
+    {
+        SSL_DEBUG_MSG( 2, ( "client hello was not authenticated" ) );
+        SSL_DEBUG_MSG( 2, ( "<= write server hello" ) );
+
+        if( ( ret = ssl_write_hello_verify_request( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_write_hello_verify_request", ret );
+            return( ret );
+        }
+
+        return( POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED );
+    }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     if( ssl->f_rng == NULL )
     {

@@ -881,6 +881,7 @@ struct _ssl_context
 #if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
     unsigned char  *cli_id;         /*!<  transport-level ID of the client  */
     size_t          cli_id_len;     /*!<  length of cli_id                  */
+    md_context_t    hvr_hmac_ctx;   /*!<  HMAC data for HelloVerifyRequest  */
 #endif
 
     /*
@@ -1091,6 +1092,9 @@ void ssl_set_bio( ssl_context *ssl,
 int ssl_set_client_transport_id( ssl_context *ssl,
                                  const unsigned char *info,
                                  size_t ilen );
+
+/* Temporary */
+int ssl_setup_hvr_key( ssl_context *ssl );
 #endif /* POLARSSL_SSL_PROTO_DTLS && POLARSSL_SSL_SRV_C */
 
 /**

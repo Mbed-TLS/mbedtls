@@ -5041,6 +5041,7 @@ void ssl_free( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
     polarssl_free( ssl->cli_id );
+    md_free( &ssl->hvr_hmac_ctx );
 #endif
 
     SSL_DEBUG_MSG( 2, ( "<= free" ) );

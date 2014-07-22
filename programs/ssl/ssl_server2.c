@@ -1344,6 +1344,15 @@ int main( int argc, char *argv[] )
         ssl_set_session_ticket_lifetime( &ssl, opt.ticket_timeout );
 #endif
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( opt.transport == SSL_TRANSPORT_DATAGRAM &&
+        ( ret = ssl_setup_hvr_key( &ssl ) ) != 0 )
+    {
+        printf( " failed\n  ! ssl_setup_hvr_key returned %d\n\n", ret );
+        goto exit;
+    }
+#endif
+
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 

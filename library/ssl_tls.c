@@ -3749,7 +3749,7 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->alpn_chosen = NULL;
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     polarssl_free( ssl->cli_id );
     ssl->cli_id = NULL;
     ssl->cli_id_len = 0;
@@ -5039,7 +5039,7 @@ void ssl_free( ssl_context *ssl )
     }
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     polarssl_free( ssl->cli_id );
     md_free( &ssl->hvr_hmac_ctx );
 #endif

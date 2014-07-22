@@ -351,7 +351,7 @@ static int ssl_parse_ticket( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
 int ssl_set_client_transport_id( ssl_context *ssl,
                                  const unsigned char *info,
                                  size_t ilen )
@@ -369,7 +369,7 @@ int ssl_set_client_transport_id( ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
 /*
@@ -1136,7 +1136,7 @@ have_ciphersuite_v2:
 }
 #endif /* POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
 
 /*
  * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-512 is
@@ -1186,7 +1186,7 @@ int ssl_setup_hvr_key( ssl_context *ssl )
 /*
  * Generate cookie for DTLS ClientHello verification
  */
-static int ssl_generate_verify_cookie( ssl_context *ssl )
+static int ssl_cookie_generate( ssl_context *ssl )
 {
     int ret;
     unsigned char *cookie = ssl->handshake->verify_cookie;
@@ -1219,7 +1219,7 @@ static int ssl_generate_verify_cookie( ssl_context *ssl )
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
 static int ssl_parse_client_hello( ssl_context *ssl )
 {
@@ -1515,14 +1515,15 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         SSL_DEBUG_BUF( 3, "client hello, cookie",
                        buf + cookie_offset + 1, cookie_len );
 
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
         /*
          * Generate reference cookie content:
          * - used for verification below,
          * - stored to be sent if verification fails
          */
-        if( ( ret = ssl_generate_verify_cookie( ssl ) ) != 0 )
+        if( ( ret = ssl_cookie_generate( ssl ) ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_generate_verify_cookie", ret );
+            SSL_DEBUG_RET( 1, "ssl_cookie_generate", ret );
             return( ret );
         }
 
@@ -1540,7 +1541,16 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         SSL_DEBUG_MSG( 2, ( "client hello, cookie verification %s",
                             ssl->handshake->verify_cookie == NULL ?
                             "passed" : "failed" ) );
+#else
+        /* We know we didn't send a cookie, so it should be empty */
+        if( cookie_len != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+        }
 
+        SSL_DEBUG_MSG( 2, ( "cookie verification disabled" ) );
+#endif
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 
@@ -1603,6 +1613,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
         ssl->session_negotiate->compression = SSL_COMPRESS_NULL;
 #endif
+
     /*
      * Check the extension length
      */
@@ -2037,7 +2048,7 @@ static void ssl_write_alpn_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
 static int ssl_write_hello_verify_request( ssl_context *ssl )
 {
     int ret;
@@ -2081,7 +2092,7 @@ static int ssl_write_hello_verify_request( ssl_context *ssl )
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
 static int ssl_write_server_hello( ssl_context *ssl )
 {
@@ -2094,7 +2105,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write server hello" ) );
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake->verify_cookie != NULL )
     {
@@ -2109,7 +2120,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
         return( POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED );
     }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
     if( ssl->f_rng == NULL )
     {

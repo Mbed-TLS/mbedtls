@@ -924,6 +924,23 @@
 #define POLARSSL_SSL_ALPN
 
 /**
+ * \def POLARSSL_SSL_DTLS_HELLO_VERIFY
+ *
+ * Enable support for HelloVerifyRequest on DTLS servers.
+ *
+ * This feature is highly recommended to prevent DTLS servers being used as
+ * amplifiers in DoS attacks against other hosts. It should always be enabled
+ * unless you know for sure amplification cannot be a problem in the
+ * environment in which your server operates.
+ *
+ * Requires: POLARSSL_SSL_SRV_C
+ *           POLARSSL_POLARSSL_PROTO_DTLS
+ *
+ * Comment this to disable support for HelloVerifyRequest.
+ */
+#define POLARSSL_SSL_DTLS_HELLO_VERIFY
+
+/**
  * \def POLARSSL_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL.

@@ -263,6 +263,11 @@
 #error "Illegal protocol selection"
 #endif
 
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY) &&                              \
+    ( !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_SSL_PROTO_DTLS) )
+#error "POLARSSL_SSL_DTLS_HELLO_VERIFY  defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_SSL_SESSION_TICKETS) && defined(POLARSSL_SSL_TLS_C) && \
     ( !defined(POLARSSL_AES_C) || !defined(POLARSSL_SHA256_C) ||            \
       !defined(POLARSSL_CIPHER_MODE_CBC) )

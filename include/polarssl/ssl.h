@@ -878,7 +878,7 @@ struct _ssl_context
     /*
      * Client id (IP/port) for DTLS hello verify
      */
-#if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     unsigned char  *cli_id;         /*!<  transport-level ID of the client  */
     size_t          cli_id_len;     /*!<  length of cli_id                  */
     md_context_t    hvr_hmac_ctx;   /*!<  HMAC data for HelloVerifyRequest  */
@@ -1067,7 +1067,7 @@ void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
         int (*f_send)(void *, const unsigned char *, size_t), void *p_send );
 
-#if defined(POLARSSL_SSL_PROTO_DTLS) && defined(POLARSSL_SSL_SRV_C)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
 /**
  * \brief          Set client's transport-level identification info.
  *                 (Only usable on server.)
@@ -1095,7 +1095,7 @@ int ssl_set_client_transport_id( ssl_context *ssl,
 
 /* Temporary */
 int ssl_setup_hvr_key( ssl_context *ssl );
-#endif /* POLARSSL_SSL_PROTO_DTLS && POLARSSL_SSL_SRV_C */
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
 /**
  * \brief          Set the session cache callbacks (server-side only)

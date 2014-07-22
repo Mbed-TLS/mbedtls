@@ -1344,7 +1344,7 @@ int main( int argc, char *argv[] )
         ssl_set_session_ticket_lifetime( &ssl, opt.ticket_timeout );
 #endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     if( opt.transport == SSL_TRANSPORT_DATAGRAM &&
         ( ret = ssl_setup_hvr_key( &ssl ) ) != 0 )
     {
@@ -1538,7 +1538,7 @@ reset:
     else
         ssl_set_bio( &ssl, net_recv, &client_fd, net_send, &client_fd );
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     if( opt.transport == SSL_TRANSPORT_DATAGRAM )
     {
         if( ( ret = ssl_set_client_transport_id( &ssl, client_ip,
@@ -1549,7 +1549,7 @@ reset:
             goto exit;
         }
     }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
     printf( " ok\n" );
 

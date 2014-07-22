@@ -600,6 +600,7 @@ int main( int argc, char *argv[] )
     psk_entry *psk_info = NULL;
 #endif
     const char *pers = "ssl_server2";
+    unsigned char client_ip[16] = { 0 };
 
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
@@ -1498,7 +1499,7 @@ reset:
     printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
-    if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
+    if( ( ret = net_accept( listen_fd, &client_fd, client_ip ) ) != 0 )
     {
 #if !defined(_WIN32)
         if( received_sigterm )
@@ -1527,6 +1528,19 @@ reset:
         ssl_set_bio( &ssl, my_recv, &client_fd, my_send, &client_fd );
     else
         ssl_set_bio( &ssl, net_recv, &client_fd, net_send, &client_fd );
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( opt.transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        if( ( ret = ssl_set_client_transport_id( &ssl, client_ip,
+                                               sizeof( client_ip ) ) ) != 0 )
+        {
+            printf( " failed\n  ! "
+                    "ssl_set_client_tranport_id() returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+    }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     printf( " ok\n" );
 

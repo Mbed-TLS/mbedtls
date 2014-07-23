@@ -36,6 +36,9 @@
  * Either change them in config.h or define them on the compiler command line.
  * \{
  */
+#ifndef POLARSSL_SSL_COOKIE_TIMEOUT
+#define POLARSSL_SSL_COOKIE_TIMEOUT     60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
+#endif
 
 /* \} name SECTION: Module settings */
 
@@ -48,10 +51,13 @@ extern "C" {
  */
 typedef struct
 {
-    md_context_t    hmac_ctx;       /*!< context for the HMAC portion   */
+    md_context_t    hmac_ctx;   /*!< context for the HMAC portion   */
 #if !defined(POLARSSL_HAVE_TIME)
-    unsigned long   serial;         /*!< serial number for expiration   */
+    unsigned long   serial;     /*!< serial number for expiration   */
 #endif
+    unsigned long   timeout;    /*!< timeout delay, in seconds if HAVE_TIME,
+                                     or in number of tickets issued */
+
 } ssl_cookie_ctx;
 
 /**
@@ -65,6 +71,17 @@ void ssl_cookie_init( ssl_cookie_ctx *ctx );
 int ssl_cookie_setup( ssl_cookie_ctx *ctx,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
+
+/**
+ * \brief          Set expiration delay for cookies
+ *                 (Default POLARSSL_SSL_COOKIE_TIMEOUT)
+ *
+ * \param ctx      Cookie contex
+ * \param delay    Delay, in seconds if HAVE_TIME, or in number of cookies
+ *                 issued in the meantime.
+ *                 0 to disable expiration (NOT recommended)
+ */
+void ssl_cookie_set_timeout( ssl_cookie_ctx *ctx, unsigned long delay );
 
 /**
  * \brief          Free cookie context

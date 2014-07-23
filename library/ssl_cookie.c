@@ -76,14 +76,18 @@ static void polarssl_zeroize( void *v, size_t n ) {
  */
 #define COOKIE_LEN      ( 4 + COOKIE_HMAC_LEN )
 
-#define COOKIE_TIMEOUT  60
-
 void ssl_cookie_init( ssl_cookie_ctx *ctx )
 {
     md_init( &ctx->hmac_ctx );
 #if !defined(POLARSSL_HAVE_TIME)
     ctx->serial = 0;
 #endif
+    ctx->timeout = POLARSSL_SSL_COOKIE_TIMEOUT;
+}
+
+void ssl_cookie_set_timeout( ssl_cookie_ctx *ctx, unsigned long delay )
+{
+    ctx->timeout = delay;
 }
 
 void ssl_cookie_free( ssl_cookie_ctx *ctx )
@@ -211,7 +215,7 @@ int ssl_cookie_check( void *p_ctx,
                   ( (unsigned long) cookie[2] <<  8 ) |
                   ( (unsigned long) cookie[3]       );
 
-    if( cur_time - cookie_time > COOKIE_TIMEOUT )
+    if( ctx->timeout != 0 && cur_time - cookie_time > ctx->timeout )
         return( -1 );
 
     return( 0 );

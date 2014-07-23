@@ -1186,36 +1186,51 @@ int ssl_setup_hvr_key( ssl_context *ssl )
 /*
  * Generate cookie for DTLS ClientHello verification
  */
-static int ssl_cookie_generate( ssl_context *ssl )
+static int ssl_cookie_write( void *ctx,
+                             unsigned char **p, unsigned char *end,
+                             const unsigned char *cli_id, size_t cli_id_len )
 {
     int ret;
-    unsigned char *cookie = ssl->handshake->verify_cookie;
-    unsigned char cookie_len;
     unsigned char hmac_out[HVR_MD_LEN];
+    md_context_t *hmac_ctx = (md_context_t *) ctx;
 
-    polarssl_free( cookie );
+    if( (size_t)( end - *p ) < HVR_MD_USE )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    cookie_len = HVR_MD_LEN;
-
-    if( ( cookie = polarssl_malloc( cookie_len ) ) == NULL )
+    if( ( ret = md_hmac_reset(  hmac_ctx ) ) != 0 ||
+        ( ret = md_hmac_update( hmac_ctx, cli_id, cli_id_len ) ) != 0 ||
+        ( ret = md_hmac_finish( hmac_ctx, hmac_out ) ) != 0 )
     {
-        SSL_DEBUG_MSG( 1, ( "malloc (%d bytes) failed\n", cookie_len ) );
-        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
-    }
-
-    if( ( ret = md_hmac_reset(  &ssl->hvr_hmac_ctx ) ) != 0 ||
-        ( ret = md_hmac_update( &ssl->hvr_hmac_ctx,
-                                ssl->cli_id, ssl->cli_id_len ) ) != 0 ||
-        ( ret = md_hmac_finish( &ssl->hvr_hmac_ctx, hmac_out ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "md_hmac", ret );
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
-    memcpy( cookie, hmac_out, HVR_MD_USE );
+    memcpy( *p, hmac_out, HVR_MD_USE );
+    *p += HVR_MD_USE;
 
-    ssl->handshake->verify_cookie = cookie;
-    ssl->handshake->verify_cookie_len = cookie_len;
+    return( 0 );
+}
+
+/*
+ * Check a cookie
+ */
+static int ssl_cookie_check( void *ctx,
+                             const unsigned char *cookie, size_t cookie_len,
+                             const unsigned char *cli_id, size_t cli_id_len )
+{
+    unsigned char ref_cookie[HVR_MD_USE];
+    unsigned char *p = ref_cookie;
+    md_context_t *hmac_ctx = (md_context_t *) ctx;
+
+    if( cookie_len != HVR_MD_USE )
+        return( -1 );
+
+    if( ssl_cookie_write( hmac_ctx,
+                          &p, p + sizeof( ref_cookie ),
+                          cli_id, cli_id_len ) != 0 )
+        return( -1 );
+
+    if( safer_memcmp( cookie, ref_cookie, sizeof( ref_cookie ) ) != 0 )
+        return( -1 );
 
     return( 0 );
 }
@@ -1516,31 +1531,18 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                        buf + cookie_offset + 1, cookie_len );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-        /*
-         * Generate reference cookie content:
-         * - used for verification below,
-         * - stored to be sent if verification fails
-         */
-        if( ( ret = ssl_cookie_generate( ssl ) ) != 0 )
+        if( ssl_cookie_check( &ssl->hvr_hmac_ctx,
+                              buf + cookie_offset + 1, cookie_len,
+                              ssl->cli_id, ssl->cli_id_len ) != 0 )
         {
-            SSL_DEBUG_RET( 1, "ssl_cookie_generate", ret );
-            return( ret );
+            SSL_DEBUG_MSG( 2, ( "client hello, cookie verification failed" ) );
+            ssl->handshake->verify_cookie_len = 1;
         }
-
-        /* If the received cookie is OK, no need to send one */
-        if( cookie_len == ssl->handshake->verify_cookie_len &&
-            safer_memcmp( buf + cookie_offset + 1,
-                          ssl->handshake->verify_cookie,
-                          ssl->handshake->verify_cookie_len ) == 0 )
+        else
         {
-            polarssl_free( ssl->handshake->verify_cookie );
-            ssl->handshake->verify_cookie = NULL;
+            SSL_DEBUG_MSG( 2, ( "client hello, cookie verification passed" ) );
             ssl->handshake->verify_cookie_len = 0;
         }
-
-        SSL_DEBUG_MSG( 2, ( "client hello, cookie verification %s",
-                            ssl->handshake->verify_cookie == NULL ?
-                            "passed" : "failed" ) );
 #else
         /* We know we didn't send a cookie, so it should be empty */
         if( cookie_len != 0 )
@@ -1549,7 +1551,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
-        SSL_DEBUG_MSG( 2, ( "cookie verification disabled" ) );
+        SSL_DEBUG_MSG( 2, ( "client hello, cookie verification skipped" ) );
 #endif
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
@@ -2053,6 +2055,7 @@ static int ssl_write_hello_verify_request( ssl_context *ssl )
 {
     int ret;
     unsigned char *p = ssl->out_msg + 4;
+    unsigned char *cookie_len_byte;
 
     SSL_DEBUG_MSG( 2, ( "=> write hello verify request" ) );
 
@@ -2069,12 +2072,20 @@ static int ssl_write_hello_verify_request( ssl_context *ssl )
     SSL_DEBUG_BUF( 3, "server version", (unsigned char *) p, 2 );
     p += 2;
 
-    SSL_DEBUG_BUF( 3, "cookie", ssl->handshake->verify_cookie,
-                                ssl->handshake->verify_cookie_len );
-    *p++ = ssl->handshake->verify_cookie_len;
-    memcpy( p, ssl->handshake->verify_cookie,
-               ssl->handshake->verify_cookie_len );
-    p += ssl->handshake->verify_cookie_len;
+    /* Skip length byte until we know the length */
+    cookie_len_byte = p++;
+
+    if( ( ret = ssl_cookie_write( &ssl->hvr_hmac_ctx,
+                                  &p, ssl->out_buf + SSL_BUFFER_LEN,
+                                  ssl->cli_id, ssl->cli_id_len ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_cookie_generate", ret );
+        return( ret );
+    }
+
+    *cookie_len_byte = (unsigned char)( p - ( cookie_len_byte + 1 ) );
+
+    SSL_DEBUG_BUF( 3, "cookie sent", cookie_len_byte + 1, *cookie_len_byte );
 
     ssl->out_msglen  = p - ssl->out_msg;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
@@ -2107,7 +2118,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake->verify_cookie != NULL )
+        ssl->handshake->verify_cookie_len != 0 )
     {
         SSL_DEBUG_MSG( 2, ( "client hello was not authenticated" ) );
         SSL_DEBUG_MSG( 2, ( "<= write server hello" ) );

@@ -114,7 +114,7 @@ int ssl_cookie_write( void *p_ctx,
     unsigned char hmac_out[HVR_MD_LEN];
     ssl_cookie_ctx *ctx = (ssl_cookie_ctx *) p_ctx;
 
-    if( ctx == NULL )
+    if( ctx == NULL || cli_id == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     if( (size_t)( end - *p ) < HVR_MD_USE )

@@ -55,17 +55,17 @@ static void polarssl_zeroize( void *v, size_t n ) {
  * with max 32 bytes of cookie for DTLS 1.0
  */
 #if defined(POLARSSL_SHA256_C)
-#define HVR_MD      POLARSSL_MD_SHA256
-#define HVR_MD_LEN  32
-#define HVR_MD_USE  32
+#define COOKIE_MD       POLARSSL_MD_SHA224
+#define COOKIE_MD_LEN   32
+#define COOKIE_MD_USE   28
 #elif defined(POLARSSL_SHA512_C)
-#define HVR_MD      POLARSSL_MD_SHA384
-#define HVR_MD_LEN  48
-#define HVR_MD_USE  32
+#define COOKIE_MD       POLARSSL_MD_SHA384
+#define COOKIE_MD_LEN   48
+#define COOKIE_MD_USE   28
 #elif defined(POLARSSL_SHA1_C)
-#define HVR_MD      POLARSSL_MD_SHA1
-#define HVR_MD_LEN  20
-#define HVR_MD_USE  20
+#define COOKIE_MD       POLARSSL_MD_SHA1
+#define COOKIE_MD_LEN   20
+#define COOKIE_MD_USE   20
 #else
 #error "DTLS hello verify needs SHA-1 or SHA-2"
 #endif
@@ -85,12 +85,12 @@ int ssl_cookie_setup( ssl_cookie_ctx *ctx,
                       void *p_rng )
 {
     int ret;
-    unsigned char key[HVR_MD_LEN];
+    unsigned char key[COOKIE_MD_LEN];
 
     if( ( ret = f_rng( p_rng, key, sizeof( key ) ) ) != 0 )
         return( ret );
 
-    ret = md_init_ctx( &ctx->hmac_ctx, md_info_from_type( HVR_MD ) );
+    ret = md_init_ctx( &ctx->hmac_ctx, md_info_from_type( COOKIE_MD ) );
     if( ret != 0 )
         return( ret );
 
@@ -111,13 +111,13 @@ int ssl_cookie_write( void *p_ctx,
                       const unsigned char *cli_id, size_t cli_id_len )
 {
     int ret;
-    unsigned char hmac_out[HVR_MD_LEN];
+    unsigned char hmac_out[COOKIE_MD_LEN];
     ssl_cookie_ctx *ctx = (ssl_cookie_ctx *) p_ctx;
 
     if( ctx == NULL || cli_id == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    if( (size_t)( end - *p ) < HVR_MD_USE )
+    if( (size_t)( end - *p ) < COOKIE_MD_USE )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     if( ( ret = md_hmac_reset(  &ctx->hmac_ctx ) ) != 0 ||
@@ -127,8 +127,8 @@ int ssl_cookie_write( void *p_ctx,
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
-    memcpy( *p, hmac_out, HVR_MD_USE );
-    *p += HVR_MD_USE;
+    memcpy( *p, hmac_out, COOKIE_MD_USE );
+    *p += COOKIE_MD_USE;
 
     return( 0 );
 }
@@ -140,10 +140,10 @@ int ssl_cookie_check( void *p_ctx,
                       const unsigned char *cookie, size_t cookie_len,
                       const unsigned char *cli_id, size_t cli_id_len )
 {
-    unsigned char ref_cookie[HVR_MD_USE];
+    unsigned char ref_cookie[COOKIE_MD_USE];
     unsigned char *p = ref_cookie;
 
-    if( cookie_len != HVR_MD_USE )
+    if( cookie_len != COOKIE_MD_USE )
         return( -1 );
 
     if( ssl_cookie_write( p_ctx,

@@ -1146,115 +1146,6 @@ have_ciphersuite_v2:
 }
 #endif /* POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-
-/*
- * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-512 is
- * available. Try SHA-256 first, 512 wastes resources since we need to stay
- * with max 32 bytes of cookie for DTLS 1.0
- */
-#if defined(POLARSSL_SHA256_C)
-#define HVR_MD      POLARSSL_MD_SHA256
-#define HVR_MD_LEN  32
-#define HVR_MD_USE  32
-#elif defined(POLARSSL_SHA512_C)
-#define HVR_MD      POLARSSL_MD_SHA384
-#define HVR_MD_LEN  48
-#define HVR_MD_USE  32
-#elif defined(POLARSSL_SHA1_C)
-#define HVR_MD      POLARSSL_MD_SHA1
-#define HVR_MD_LEN  20
-#define HVR_MD_USE  20
-#else
-#error "DTLS hello verify needs SHA-1 or SHA-2"
-#endif
-
-void ssl_cookie_init( ssl_cookie_ctx *ctx )
-{
-    md_init( &ctx->hmac_ctx );
-}
-
-void ssl_cookie_free( ssl_cookie_ctx *ctx )
-{
-    md_free( &ctx->hmac_ctx );
-}
-
-int ssl_cookie_setup( ssl_cookie_ctx *ctx,
-                      int (*f_rng)(void *, unsigned char *, size_t),
-                      void *p_rng )
-{
-    int ret;
-    unsigned char key[HVR_MD_LEN];
-
-    if( ( ret = f_rng( p_rng, key, sizeof( key ) ) ) != 0 )
-        return( ret );
-
-    ret = md_init_ctx( &ctx->hmac_ctx, md_info_from_type( HVR_MD ) );
-    if( ret != 0 )
-        return( ret );
-
-    ret = md_hmac_starts( &ctx->hmac_ctx, key, sizeof( key ) );
-    if( ret != 0 )
-        return( ret );
-
-    polarssl_zeroize( key, sizeof( key ) );
-
-    return( 0 );
-}
-
-/*
- * Generate cookie for DTLS ClientHello verification
- */
-int ssl_cookie_write( void *ctx,
-                      unsigned char **p, unsigned char *end,
-                      const unsigned char *cli_id, size_t cli_id_len )
-{
-    int ret;
-    unsigned char hmac_out[HVR_MD_LEN];
-    md_context_t *hmac_ctx = (md_context_t *) ctx;
-
-    if( (size_t)( end - *p ) < HVR_MD_USE )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-
-    if( ( ret = md_hmac_reset(  hmac_ctx ) ) != 0 ||
-        ( ret = md_hmac_update( hmac_ctx, cli_id, cli_id_len ) ) != 0 ||
-        ( ret = md_hmac_finish( hmac_ctx, hmac_out ) ) != 0 )
-    {
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    memcpy( *p, hmac_out, HVR_MD_USE );
-    *p += HVR_MD_USE;
-
-    return( 0 );
-}
-
-/*
- * Check a cookie
- */
-int ssl_cookie_check( void *ctx,
-                      const unsigned char *cookie, size_t cookie_len,
-                      const unsigned char *cli_id, size_t cli_id_len )
-{
-    unsigned char ref_cookie[HVR_MD_USE];
-    unsigned char *p = ref_cookie;
-    md_context_t *hmac_ctx = (md_context_t *) ctx;
-
-    if( cookie_len != HVR_MD_USE )
-        return( -1 );
-
-    if( ssl_cookie_write( hmac_ctx,
-                          &p, p + sizeof( ref_cookie ),
-                          cli_id, cli_id_len ) != 0 )
-        return( -1 );
-
-    if( safer_memcmp( cookie, ref_cookie, sizeof( ref_cookie ) ) != 0 )
-        return( -1 );
-
-    return( 0 );
-}
-#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
-
 static int ssl_parse_client_hello( ssl_context *ssl )
 {
     int ret;
@@ -1571,7 +1462,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         }
 
         SSL_DEBUG_MSG( 2, ( "client hello, cookie verification skipped" ) );
-#endif
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 

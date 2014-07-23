@@ -1083,8 +1083,6 @@ void ssl_set_bio( ssl_context *ssl,
  *                 network stack. Used for HelloVerifyRequest with DTLS.
  *                 This is *not* used to route the actual packets.
  *
- * \warning (TODO-DTLS) May change and even be removed before 2.0.0!
- *
  * \param ssl      SSL context
  * \param info     Transport-level info identifying the client (eg IP + port)
  * \param ilen     Length of info in bytes
@@ -1147,45 +1145,6 @@ void ssl_set_dtls_cookies( ssl_context *ssl,
                            ssl_cookie_write_t *f_cookie_write,
                            ssl_cookie_check_t *f_cookie_check,
                            void *p_cookie );
-
-/* Note: the next things up to endif are to be moved in a separate module */
-
-/**
- * \brief          Default cookie generation function.
- *                 (See description of ssl_cookie_write_t.)
- */
-ssl_cookie_write_t ssl_cookie_write;
-
-/**
- * \brief          Default cookie verification function.
- *                 (See description of ssl_cookie_check_t.)
- */
-ssl_cookie_check_t ssl_cookie_check;
-
-/**
- * \brief          Context for the default cookie functions.
- */
-typedef struct
-{
-    md_context_t    hmac_ctx;
-} ssl_cookie_ctx;
-
-/**
- * \brief          Initialize cookie context
- */
-void ssl_cookie_init( ssl_cookie_ctx *ctx );
-
-/**
- * \brief          Setup cookie context (generate keys)
- */
-int ssl_cookie_setup( ssl_cookie_ctx *ctx,
-                      int (*f_rng)(void *, unsigned char *, size_t),
-                      void *p_rng );
-
-/**
- * \brief          Free cookie context
- */
-void ssl_cookie_free( ssl_cookie_ctx *ctx );
 #endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
 /**

@@ -55,6 +55,7 @@ set(src
      sha256.c
      sha512.c
      ssl_cache.c
+     ssl_cookie.c
      ssl_ciphersuites.c
      ssl_cli.c
      ssl_srv.c

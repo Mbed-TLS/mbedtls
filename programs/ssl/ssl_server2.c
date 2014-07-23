@@ -81,6 +81,10 @@ int main( int argc, char *argv[] )
 #include "polarssl/ssl_cache.h"
 #endif
 
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#include "polarssl/ssl_cookie.h"
+#endif
+
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
 #include "polarssl/memory.h"
 #endif

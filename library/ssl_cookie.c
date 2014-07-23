@@ -106,20 +106,23 @@ int ssl_cookie_setup( ssl_cookie_ctx *ctx,
 /*
  * Generate cookie for DTLS ClientHello verification
  */
-int ssl_cookie_write( void *ctx,
+int ssl_cookie_write( void *p_ctx,
                       unsigned char **p, unsigned char *end,
                       const unsigned char *cli_id, size_t cli_id_len )
 {
     int ret;
     unsigned char hmac_out[HVR_MD_LEN];
-    md_context_t *hmac_ctx = (md_context_t *) ctx;
+    ssl_cookie_ctx *ctx = (ssl_cookie_ctx *) p_ctx;
+
+    if( ctx == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     if( (size_t)( end - *p ) < HVR_MD_USE )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    if( ( ret = md_hmac_reset(  hmac_ctx ) ) != 0 ||
-        ( ret = md_hmac_update( hmac_ctx, cli_id, cli_id_len ) ) != 0 ||
-        ( ret = md_hmac_finish( hmac_ctx, hmac_out ) ) != 0 )
+    if( ( ret = md_hmac_reset(  &ctx->hmac_ctx ) ) != 0 ||
+        ( ret = md_hmac_update( &ctx->hmac_ctx, cli_id, cli_id_len ) ) != 0 ||
+        ( ret = md_hmac_finish( &ctx->hmac_ctx, hmac_out ) ) != 0 )
     {
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
@@ -133,18 +136,17 @@ int ssl_cookie_write( void *ctx,
 /*
  * Check a cookie
  */
-int ssl_cookie_check( void *ctx,
+int ssl_cookie_check( void *p_ctx,
                       const unsigned char *cookie, size_t cookie_len,
                       const unsigned char *cli_id, size_t cli_id_len )
 {
     unsigned char ref_cookie[HVR_MD_USE];
     unsigned char *p = ref_cookie;
-    md_context_t *hmac_ctx = (md_context_t *) ctx;
 
     if( cookie_len != HVR_MD_USE )
         return( -1 );
 
-    if( ssl_cookie_write( hmac_ctx,
+    if( ssl_cookie_write( p_ctx,
                           &p, p + sizeof( ref_cookie ),
                           cli_id, cli_id_len ) != 0 )
         return( -1 );

@@ -121,6 +121,7 @@ int main( int argc, char *argv[] )
 #define DFL_ALPN_STRING         NULL
 #define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           SSL_TRANSPORT_STREAM
+#define DFL_COOKIES             1
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -182,6 +183,7 @@ struct options
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
     int transport;              /* TLS or DTLS?                             */
+    int cookies;                /* Use cookies for DTLS? -1 to break them   */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -305,6 +307,14 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 #define USAGE_ALPN ""
 #endif /* POLARSSL_SSL_ALPN */
 
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#define USAGE_COOKIES \
+    "    cookies=0/1/-1      default: 1 (enabled)\n"        \
+    "                        0: disabled, -1: broken\n"
+#else
+#define USAGE_COOKIES ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -329,6 +339,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "    exchanges=%%d        default: 1\n"                 \
     USAGE_TICKETS                                           \
     USAGE_CACHE                                             \
+    USAGE_COOKIES                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_ALPN                                              \
     "\n"                                                    \
@@ -728,6 +739,7 @@ int main( int argc, char *argv[] )
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.dhm_file            = DFL_DHM_FILE;
     opt.transport           = DFL_TRANSPORT;
+    opt.cookies             = DFL_COOKIES;
 
     for( i = 1; i < argc; i++ )
     {
@@ -943,6 +955,12 @@ int main( int argc, char *argv[] )
         {
             opt.cache_timeout = atoi( q );
             if( opt.cache_timeout < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "cookies" ) == 0 )
+        {
+            opt.cookies = atoi( q );
+            if( opt.cookies < -1 || opt.cookies > 1)
                 goto usage;
         }
         else if( strcmp( p, "sni" ) == 0 )
@@ -1354,20 +1372,36 @@ int main( int argc, char *argv[] )
         ssl_set_session_ticket_lifetime( &ssl, opt.ticket_timeout );
 #endif
 
-#if defined(POLARSSL_SSL_COOKIE_C)
+#if defined(POLARSSL_SSL_PROTO_DTLS)
     if( opt.transport == SSL_TRANSPORT_DATAGRAM )
     {
-        if( ( ret = ssl_cookie_setup( &cookie_ctx,
-                                      ctr_drbg_random, &ctr_drbg ) ) != 0 )
+#if defined(POLARSSL_SSL_COOKIE_C)
+        if( opt.cookies > 0 )
         {
-            printf( " failed\n  ! ssl_setup_hvr_key returned %d\n\n", ret );
-            goto exit;
-        }
+            if( ( ret = ssl_cookie_setup( &cookie_ctx,
+                                          ctr_drbg_random, &ctr_drbg ) ) != 0 )
+            {
+                printf( " failed\n  ! ssl_setup_hvr_key returned %d\n\n", ret );
+                goto exit;
+            }
 
-        ssl_set_dtls_cookies( &ssl, ssl_cookie_write, ssl_cookie_check,
-                                   &cookie_ctx );
+            ssl_set_dtls_cookies( &ssl, ssl_cookie_write, ssl_cookie_check,
+                                       &cookie_ctx );
+        }
+        else
+#endif /* POLARSSL_SSL_COOKIE_C */
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+        if( opt.cookies == 0 )
+        {
+            ssl_set_dtls_cookies( &ssl, NULL, NULL, NULL );
+        }
+        else
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
+        {
+            ; /* Nothing to do */
+        }
     }
-#endif
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );

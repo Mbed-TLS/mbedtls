@@ -454,6 +454,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Unexpected message at ServerHello in renegotiation" );
         if( use_ret == -(POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED) )
             snprintf( buf, buflen, "SSL - DTLS client must retry for hello verification" );
+        if( use_ret == -(POLARSSL_ERR_SSL_BUFFER_TOO_SMALL) )
+            snprintf( buf, buflen, "SSL - A buffer is too small to receive or write a message" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)

@@ -130,7 +130,7 @@ static int ssl_cookie_hmac( md_context_t *hmac_ctx,
     unsigned char hmac_out[COOKIE_MD_OUTLEN];
 
     if( (size_t)( end - *p ) < COOKIE_HMAC_LEN )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_SSL_BUFFER_TOO_SMALL );
 
     if( ( ret = md_hmac_reset(  hmac_ctx ) ) != 0 ||
         ( ret = md_hmac_update( hmac_ctx, time, 4 ) ) != 0 ||
@@ -160,7 +160,7 @@ int ssl_cookie_write( void *p_ctx,
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
     if( (size_t)( end - *p ) < COOKIE_LEN )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        return( POLARSSL_ERR_SSL_BUFFER_TOO_SMALL );
 
 #if defined(POLARSSL_HAVE_TIME)
     t = (unsigned long) time( NULL );

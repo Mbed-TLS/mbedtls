@@ -263,6 +263,10 @@
 #error "Illegal protocol selection"
 #endif
 
+#if defined(POLARSSL_SSL_COOKIE_C) && !defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#error "POLARSSL_SSL_COOKIE_C  defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY) &&                              \
     ( !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_SSL_PROTO_DTLS) )
 #error "POLARSSL_SSL_DTLS_HELLO_VERIFY  defined, but not all prerequisites"

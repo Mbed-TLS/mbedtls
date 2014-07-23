@@ -1931,6 +1931,18 @@
 #define POLARSSL_SSL_CACHE_C
 
 /**
+ * \def POLARSSL_SSL_COOKIE_C
+ *
+ * Enable basic implementation of DTLS cookies for hello verification.
+ *
+ * Module:  library/ssl_cookie.c
+ * Caller:
+ *
+ * Requires: POLARSSL_SSL_DTLS_HELLO_VERIFY
+ */
+#define POLARSSL_SSL_COOKIE_C
+
+/**
  * \def POLARSSL_SSL_CLI_C
  *
  * Enable the SSL/TLS client code.

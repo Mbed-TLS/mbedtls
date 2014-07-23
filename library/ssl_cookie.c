@@ -33,7 +33,7 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(POLARSSL_SSL_COOKIE_C)
 
 #include "polarssl/ssl_cookie.h"
 

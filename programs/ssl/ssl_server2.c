@@ -81,7 +81,7 @@ int main( int argc, char *argv[] )
 #include "polarssl/ssl_cache.h"
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(POLARSSL_SSL_COOKIE_C)
 #include "polarssl/ssl_cookie.h"
 #endif
 
@@ -605,7 +605,7 @@ int main( int argc, char *argv[] )
 #endif
     const char *pers = "ssl_server2";
     unsigned char client_ip[16] = { 0 };
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(POLARSSL_SSL_COOKIE_C)
     ssl_cookie_ctx cookie_ctx;
 #endif
 
@@ -665,7 +665,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_ALPN)
     memset( (void *) alpn_list, 0, sizeof( alpn_list ) );
 #endif
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(POLARSSL_SSL_COOKIE_C)
     ssl_cookie_init( &cookie_ctx );
 #endif
 
@@ -1354,7 +1354,7 @@ int main( int argc, char *argv[] )
         ssl_set_session_ticket_lifetime( &ssl, opt.ticket_timeout );
 #endif
 
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(POLARSSL_SSL_COOKIE_C)
     if( opt.transport == SSL_TRANSPORT_DATAGRAM )
     {
         if( ( ret = ssl_cookie_setup( &cookie_ctx,
@@ -1860,7 +1860,7 @@ exit:
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_free( &cache );
 #endif
-#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+#if defined(POLARSSL_SSL_COOKIE_C)
     ssl_cookie_free( &cookie_ctx );
 #endif
 

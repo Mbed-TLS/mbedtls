@@ -6,7 +6,7 @@
 # rather specific options (max fragment length, truncated hmac, etc)
 # or procedures (session resumption from cache or ticket, renego, etc).
 #
-# Assumes all options are compiled in.
+# Assumes a build with default options.
 
 set -u
 
@@ -75,6 +75,7 @@ requires_openssl_with_sslv2() {
             OPENSSL_HAS_SSL2="NO"
         fi
     fi
+
     if [ "$OPENSSL_HAS_SSL2" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
@@ -90,6 +91,26 @@ requires_gnutls() {
         fi
     fi
     if [ "$GNUTLS_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+# skip next test if IPv6 isn't available on this host
+requires_ipv6() {
+    if [ -z "${HAS_IPV6:-}" ]; then
+        $P_SRV server_addr='::1' > $SRV_OUT 2>&1 &
+        SRV_PID=$!
+        sleep 1
+        kill $SRV_PID >/dev/null 2>&1
+        if grep "NET - Binding of the socket failed" $SRV_OUT >/dev/null; then
+            HAS_IPV6="NO"
+        else
+            HAS_IPV6="YES"
+        fi
+        rm -r $SRV_OUT
+    fi
+
+    if [ "$HAS_IPV6" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -148,7 +169,11 @@ wait_server_start() {
         WATCHDOG_PID=$!
 
         # make a tight loop, server usually takes less than 1 sec to start
-        until lsof -nbi TCP:"$PORT" | grep LISTEN >/dev/null; do :; done
+        if [ "$DTLS" -eq 1 ]; then
+            until lsof -nbi UDP:"$PORT" | grep UDP >/dev/null; do :; done
+        else
+            until lsof -nbi TCP:"$PORT" | grep LISTEN >/dev/null; do :; done
+        fi
 
         kill $WATCHDOG_PID
         wait $WATCHDOG_PID
@@ -172,6 +197,15 @@ wait_client_done() {
     wait $WATCHDOG_PID
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
+}
+
+# check if the given command uses dtls and sets global variable DTLS
+detect_dtls() {
+    if echo "$1" | grep ' dtls=1 \| -dtls1\| -u ' >/dev/null; then
+        DTLS=1
+    else
+        DTLS=0
+    fi
 }
 
 # Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
@@ -200,6 +234,9 @@ run_test() {
         SKIPS=$(( $SKIPS + 1 ))
         return
     fi
+
+    # update DTLS variable
+    detect_dtls "$SRV_CMD"
 
     # prepend valgrind to our commands if active
     if [ "$MEMCHECK" -gt 0 ]; then
@@ -358,9 +395,9 @@ fi
 PORT="0000$$"
 PORT="1$(echo $PORT | tail -c 5)"
 
-# fix commands to use this port
-P_SRV="$P_SRV server_port=$PORT"
-P_CLI="$P_CLI server_port=$PORT"
+# fix commands to use this port, force IPv4 while at it
+P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$PORT"
+P_CLI="$P_CLI server_addr=127.0.0.1 server_port=$PORT"
 O_SRV="$O_SRV -accept $PORT"
 O_CLI="$O_CLI -connect localhost:$PORT"
 G_SRV="$G_SRV -p $PORT"
@@ -958,43 +995,39 @@ run_test    "Authentication: client no cert, ssl3" \
 # tests for SNI
 
 run_test    "SNI: no SNI callback" \
-            "$P_SRV debug_level=3 server_addr=127.0.0.1 \
+            "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$P_CLI debug_level=0 server_addr=127.0.0.1 \
-             server_name=localhost" \
+            "$P_CLI server_name=localhost" \
              0 \
              -S "parse ServerName extension" \
              -c "issuer name *: C=NL, O=PolarSSL, CN=Polarssl Test EC CA" \
              -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 run_test    "SNI: matching cert 1" \
-            "$P_SRV debug_level=3 server_addr=127.0.0.1 \
+            "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
-            "$P_CLI debug_level=0 server_addr=127.0.0.1 \
-             server_name=localhost" \
+            "$P_CLI server_name=localhost" \
              0 \
              -s "parse ServerName extension" \
              -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
              -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 run_test    "SNI: matching cert 2" \
-            "$P_SRV debug_level=3 server_addr=127.0.0.1 \
+            "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
-            "$P_CLI debug_level=0 server_addr=127.0.0.1 \
-             server_name=polarssl.example" \
+            "$P_CLI server_name=polarssl.example" \
              0 \
              -s "parse ServerName extension" \
              -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
              -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
 
 run_test    "SNI: no matching cert" \
-            "$P_SRV debug_level=3 server_addr=127.0.0.1 \
+            "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
-            "$P_CLI debug_level=0 server_addr=127.0.0.1 \
-             server_name=nonesuch.example" \
+            "$P_CLI server_name=nonesuch.example" \
              1 \
              -s "parse ServerName extension" \
              -s "ssl_sni_wrapper() returned" \
@@ -1842,6 +1875,50 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
             -s "Read from client: 16384 bytes read"
+
+# Tests for DTLS HelloVerifyRequest
+
+run_test    "DTLS cookie: enabled" \
+            "$P_SRV dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -s "cookie verification failed" \
+            -s "cookie verification passed" \
+            -S "cookie verification skipped" \
+            -c "received hello verify request" \
+            -S "SSL - The requested feature is not available"
+
+run_test    "DTLS cookie: disabled" \
+            "$P_SRV dtls=1 debug_level=2 cookies=0" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -S "cookie verification failed" \
+            -S "cookie verification passed" \
+            -s "cookie verification skipped" \
+            -C "received hello verify request" \
+            -S "SSL - The requested feature is not available"
+
+# wait for client having a timeout, or server sending an alert
+#run_test    "DTLS cookie: default (failing)" \
+#            "$P_SRV dtls=1 debug_level=2 cookies=-1" \
+#            "$P_CLI dtls=1 debug_level=2" \
+#            0 \
+#            -S "cookie verification failed" \
+#            -S "cookie verification passed" \
+#            -S "cookie verification skipped" \
+#            -C "received hello verify request" \
+#            -s "SSL - The requested feature is not available"
+
+requires_ipv6
+run_test    "DTLS cookie: enabled, IPv6" \
+            "$P_SRV dtls=1 debug_level=2 server_addr=::1" \
+            "$P_CLI dtls=1 debug_level=2 server_addr=::1" \
+            0 \
+            -s "cookie verification failed" \
+            -s "cookie verification passed" \
+            -S "cookie verification skipped" \
+            -c "received hello verify request" \
+            -S "SSL - The requested feature is not available"
 
 # Final report
 

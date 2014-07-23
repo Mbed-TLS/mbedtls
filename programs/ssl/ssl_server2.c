@@ -601,6 +601,9 @@ int main( int argc, char *argv[] )
 #endif
     const char *pers = "ssl_server2";
     unsigned char client_ip[16] = { 0 };
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+    ssl_cookie_ctx cookie_ctx;
+#endif
 
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
@@ -657,6 +660,9 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_SSL_ALPN)
     memset( (void *) alpn_list, 0, sizeof( alpn_list ) );
+#endif
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+    ssl_cookie_init( &cookie_ctx );
 #endif
 
 #if !defined(_WIN32)
@@ -1345,11 +1351,17 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-    if( opt.transport == SSL_TRANSPORT_DATAGRAM &&
-        ( ret = ssl_setup_hvr_key( &ssl ) ) != 0 )
+    if( opt.transport == SSL_TRANSPORT_DATAGRAM )
     {
-        printf( " failed\n  ! ssl_setup_hvr_key returned %d\n\n", ret );
-        goto exit;
+        if( ( ret = ssl_cookie_setup( &cookie_ctx,
+                                      ctr_drbg_random, &ctr_drbg ) ) != 0 )
+        {
+            printf( " failed\n  ! ssl_setup_hvr_key returned %d\n\n", ret );
+            goto exit;
+        }
+
+        ssl_set_dtls_cookies( &ssl, ssl_cookie_write, ssl_cookie_check,
+                                   &cookie_ctx );
     }
 #endif
 
@@ -1843,6 +1855,9 @@ exit:
 
 #if defined(POLARSSL_SSL_CACHE_C)
     ssl_cache_free( &cache );
+#endif
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+    ssl_cookie_free( &cookie_ctx );
 #endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)

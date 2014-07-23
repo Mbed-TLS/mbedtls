@@ -878,12 +878,16 @@ struct _ssl_context
 #endif
 
     /*
-     * Client id (IP/port) for DTLS hello verify
+     * Information for DTLS hello verify
      */
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     unsigned char  *cli_id;         /*!<  transport-level ID of the client  */
     size_t          cli_id_len;     /*!<  length of cli_id                  */
-    md_context_t    hvr_hmac_ctx;   /*!<  HMAC data for HelloVerifyRequest  */
+    int (*f_cookie_write)( void *, unsigned char **, unsigned char *,
+                           const unsigned char *, size_t );
+    int (*f_cookie_check)( void *, const unsigned char *, size_t,
+                           const unsigned char *, size_t );
+    void *p_cookie;                 /*!<  context for the cookie callbacks  */
 #endif
 
     /*
@@ -1072,7 +1076,7 @@ void ssl_set_bio( ssl_context *ssl,
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
 /**
  * \brief          Set client's transport-level identification info.
- *                 (Only usable on server.)
+ *                 (Server only. DTLS only.)
  *
  *                 This is usually the IP address (and port), but could be
  *                 anything identify the client depending on the underlying
@@ -1095,8 +1099,93 @@ int ssl_set_client_transport_id( ssl_context *ssl,
                                  const unsigned char *info,
                                  size_t ilen );
 
-/* Temporary */
-int ssl_setup_hvr_key( ssl_context *ssl );
+/**
+ * \brief          Callback type: generate a cookie
+ *
+ * \param ctx      Context for the callback
+ * \param p        Buffer to write to,
+ *                 must be updated to point right after the cookie
+ * \param end      Pointer to one past the end of the output buffer
+ * \param info     Client ID info that was passed to
+ *                 \c ssl_set_client_transport_id()
+ * \param ilen     Length of info in bytes
+ *
+ * \return         The callback must return 0 on success,
+ *                 or a negative error code.
+ */
+typedef int ssl_cookie_write_t( void *ctx,
+                                unsigned char **p, unsigned char *end,
+                                const unsigned char *info, size_t ilen );
+
+/**
+ * \brief          Callback type: verify a cookie
+ *
+ * \param ctx      Context for the callback
+ * \param cookie   Cookie to verify
+ * \param clen     Length of cookie
+ * \param info     Client ID info that was passed to
+ *                 \c ssl_set_client_transport_id()
+ * \param ilen     Length of info in bytes
+ *
+ * \return         The callback must return 0 if cookie is valid,
+ *                 or a negative error code.
+ */
+typedef int ssl_cookie_check_t( void *ctx,
+                                const unsigned char *cookie, size_t clen,
+                                const unsigned char *info, size_t ilen );
+
+/**
+ * \brief           Register callbacks for DTLS cookies
+ *                  (Server only. DTLS only.)
+ *
+ * \param ssl               SSL context
+ * \param f_cookie_write    Cookie write callback
+ * \param f_cookie_check    Cookie check callback
+ * \param p_cookie          Context for both callbacks
+ */
+void ssl_set_dtls_cookies( ssl_context *ssl,
+                           ssl_cookie_write_t *f_cookie_write,
+                           ssl_cookie_check_t *f_cookie_check,
+                           void *p_cookie );
+
+/* Note: the next things up to endif are to be moved in a separate module */
+
+/**
+ * \brief          Default cookie generation function.
+ *                 (See description of ssl_cookie_write_t.)
+ */
+ssl_cookie_write_t ssl_cookie_write;
+
+/**
+ * \brief          Default cookie verification function.
+ *                 (See description of ssl_cookie_check_t.)
+ */
+ssl_cookie_check_t ssl_cookie_check;
+
+/**
+ * \brief          Context for the default cookie functions.
+ */
+typedef struct
+{
+    md_context_t    hmac_ctx;
+} ssl_cookie_ctx;
+
+/**
+ * \brief          Initialize cookie context
+ */
+void ssl_cookie_init( ssl_cookie_ctx *ctx );
+
+/**
+ * \brief          Setup cookie context (generate keys)
+ */
+int ssl_cookie_setup( ssl_cookie_ctx *ctx,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng );
+
+/**
+ * \brief          Free cookie context
+ */
+void ssl_cookie_free( ssl_cookie_ctx *ctx );
 #endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
 /**

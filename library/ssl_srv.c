@@ -369,6 +369,16 @@ int ssl_set_client_transport_id( ssl_context *ssl,
 
     return( 0 );
 }
+
+void ssl_set_dtls_cookies( ssl_context *ssl,
+                           ssl_cookie_write_t *f_cookie_write,
+                           ssl_cookie_check_t *f_cookie_check,
+                           void *p_cookie )
+{
+    ssl->f_cookie_write = f_cookie_write;
+    ssl->f_cookie_check = f_cookie_check;
+    ssl->p_cookie       = p_cookie;
+}
 #endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
@@ -1159,22 +1169,31 @@ have_ciphersuite_v2:
 #error "DTLS hello verify needs SHA-1 or SHA-2"
 #endif
 
-/*
- * Generate server key for HelloVerifyRequest
- */
-int ssl_setup_hvr_key( ssl_context *ssl )
+void ssl_cookie_init( ssl_cookie_ctx *ctx )
+{
+    md_init( &ctx->hmac_ctx );
+}
+
+void ssl_cookie_free( ssl_cookie_ctx *ctx )
+{
+    md_free( &ctx->hmac_ctx );
+}
+
+int ssl_cookie_setup( ssl_cookie_ctx *ctx,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng )
 {
     int ret;
     unsigned char key[HVR_MD_LEN];
 
-    if( ( ret = ssl->f_rng( ssl->p_rng, key, sizeof( key ) ) ) != 0 )
+    if( ( ret = f_rng( p_rng, key, sizeof( key ) ) ) != 0 )
         return( ret );
 
-    ret = md_init_ctx( &ssl->hvr_hmac_ctx, md_info_from_type( HVR_MD ) );
+    ret = md_init_ctx( &ctx->hmac_ctx, md_info_from_type( HVR_MD ) );
     if( ret != 0 )
         return( ret );
 
-    ret = md_hmac_starts( &ssl->hvr_hmac_ctx, key, sizeof( key ) );
+    ret = md_hmac_starts( &ctx->hmac_ctx, key, sizeof( key ) );
     if( ret != 0 )
         return( ret );
 
@@ -1186,9 +1205,9 @@ int ssl_setup_hvr_key( ssl_context *ssl )
 /*
  * Generate cookie for DTLS ClientHello verification
  */
-static int ssl_cookie_write( void *ctx,
-                             unsigned char **p, unsigned char *end,
-                             const unsigned char *cli_id, size_t cli_id_len )
+int ssl_cookie_write( void *ctx,
+                      unsigned char **p, unsigned char *end,
+                      const unsigned char *cli_id, size_t cli_id_len )
 {
     int ret;
     unsigned char hmac_out[HVR_MD_LEN];
@@ -1213,9 +1232,9 @@ static int ssl_cookie_write( void *ctx,
 /*
  * Check a cookie
  */
-static int ssl_cookie_check( void *ctx,
-                             const unsigned char *cookie, size_t cookie_len,
-                             const unsigned char *cli_id, size_t cli_id_len )
+int ssl_cookie_check( void *ctx,
+                      const unsigned char *cookie, size_t cookie_len,
+                      const unsigned char *cli_id, size_t cli_id_len )
 {
     unsigned char ref_cookie[HVR_MD_USE];
     unsigned char *p = ref_cookie;
@@ -1531,9 +1550,9 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                        buf + cookie_offset + 1, cookie_len );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-        if( ssl_cookie_check( &ssl->hvr_hmac_ctx,
-                              buf + cookie_offset + 1, cookie_len,
-                              ssl->cli_id, ssl->cli_id_len ) != 0 )
+        if( ssl->f_cookie_check( ssl->p_cookie,
+                                 buf + cookie_offset + 1, cookie_len,
+                                 ssl->cli_id, ssl->cli_id_len ) != 0 )
         {
             SSL_DEBUG_MSG( 2, ( "client hello, cookie verification failed" ) );
             ssl->handshake->verify_cookie_len = 1;
@@ -2075,11 +2094,11 @@ static int ssl_write_hello_verify_request( ssl_context *ssl )
     /* Skip length byte until we know the length */
     cookie_len_byte = p++;
 
-    if( ( ret = ssl_cookie_write( &ssl->hvr_hmac_ctx,
-                                  &p, ssl->out_buf + SSL_BUFFER_LEN,
-                                  ssl->cli_id, ssl->cli_id_len ) ) != 0 )
+    if( ( ret = ssl->f_cookie_write( ssl->p_cookie,
+                                     &p, ssl->out_buf + SSL_BUFFER_LEN,
+                                     ssl->cli_id, ssl->cli_id_len ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_cookie_generate", ret );
+        SSL_DEBUG_RET( 1, "f_cookie_write", ret );
         return( ret );
     }
 

@@ -55,24 +55,35 @@ static void polarssl_zeroize( void *v, size_t n ) {
  * with max 32 bytes of cookie for DTLS 1.0
  */
 #if defined(POLARSSL_SHA256_C)
-#define COOKIE_MD       POLARSSL_MD_SHA224
-#define COOKIE_MD_LEN   32
-#define COOKIE_MD_USE   28
+#define COOKIE_MD           POLARSSL_MD_SHA224
+#define COOKIE_MD_OUTLEN    32
+#define COOKIE_HMAC_LEN     28
 #elif defined(POLARSSL_SHA512_C)
-#define COOKIE_MD       POLARSSL_MD_SHA384
-#define COOKIE_MD_LEN   48
-#define COOKIE_MD_USE   28
+#define COOKIE_MD           POLARSSL_MD_SHA384
+#define COOKIE_MD_OUTLEN    48
+#define COOKIE_HMAC_LEN     28
 #elif defined(POLARSSL_SHA1_C)
-#define COOKIE_MD       POLARSSL_MD_SHA1
-#define COOKIE_MD_LEN   20
-#define COOKIE_MD_USE   20
+#define COOKIE_MD           POLARSSL_MD_SHA1
+#define COOKIE_MD_OUTLEN    20
+#define COOKIE_HMAC_LEN     20
 #else
 #error "DTLS hello verify needs SHA-1 or SHA-2"
 #endif
 
+/*
+ * Cookies are formed of a 4-bytes timestamp (or serial number) and
+ * an HMAC of timestemp and client ID.
+ */
+#define COOKIE_LEN      ( 4 + COOKIE_HMAC_LEN )
+
+#define COOKIE_TIMEOUT  60
+
 void ssl_cookie_init( ssl_cookie_ctx *ctx )
 {
     md_init( &ctx->hmac_ctx );
+#if !defined(POLARSSL_HAVE_TIME)
+    ctx->serial = 0;
+#endif
 }
 
 void ssl_cookie_free( ssl_cookie_ctx *ctx )
@@ -85,7 +96,7 @@ int ssl_cookie_setup( ssl_cookie_ctx *ctx,
                       void *p_rng )
 {
     int ret;
-    unsigned char key[COOKIE_MD_LEN];
+    unsigned char key[COOKIE_MD_OUTLEN];
 
     if( ( ret = f_rng( p_rng, key, sizeof( key ) ) ) != 0 )
         return( ret );
@@ -104,33 +115,63 @@ int ssl_cookie_setup( ssl_cookie_ctx *ctx,
 }
 
 /*
+ * Generate the HMAC part of a cookie
+ */
+static int ssl_cookie_hmac( md_context_t *hmac_ctx,
+                            const unsigned char time[4],
+                            unsigned char **p, unsigned char *end,
+                            const unsigned char *cli_id, size_t cli_id_len )
+{
+    int ret;
+    unsigned char hmac_out[COOKIE_MD_OUTLEN];
+
+    if( (size_t)( end - *p ) < COOKIE_HMAC_LEN )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    if( ( ret = md_hmac_reset(  hmac_ctx ) ) != 0 ||
+        ( ret = md_hmac_update( hmac_ctx, time, 4 ) ) != 0 ||
+        ( ret = md_hmac_update( hmac_ctx, cli_id, cli_id_len ) ) != 0 ||
+        ( ret = md_hmac_finish( hmac_ctx, hmac_out ) ) != 0 )
+    {
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    memcpy( *p, hmac_out, COOKIE_HMAC_LEN );
+    *p += COOKIE_HMAC_LEN;
+
+    return( 0 );
+}
+
+/*
  * Generate cookie for DTLS ClientHello verification
  */
 int ssl_cookie_write( void *p_ctx,
                       unsigned char **p, unsigned char *end,
                       const unsigned char *cli_id, size_t cli_id_len )
 {
-    int ret;
-    unsigned char hmac_out[COOKIE_MD_LEN];
     ssl_cookie_ctx *ctx = (ssl_cookie_ctx *) p_ctx;
+    unsigned long t;
 
     if( ctx == NULL || cli_id == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    if( (size_t)( end - *p ) < COOKIE_MD_USE )
+    if( (size_t)( end - *p ) < COOKIE_LEN )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 
-    if( ( ret = md_hmac_reset(  &ctx->hmac_ctx ) ) != 0 ||
-        ( ret = md_hmac_update( &ctx->hmac_ctx, cli_id, cli_id_len ) ) != 0 ||
-        ( ret = md_hmac_finish( &ctx->hmac_ctx, hmac_out ) ) != 0 )
-    {
-        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
-    }
+#if defined(POLARSSL_HAVE_TIME)
+    t = (unsigned long) time( NULL );
+#else
+    t = ctx->serial++;
+#endif
 
-    memcpy( *p, hmac_out, COOKIE_MD_USE );
-    *p += COOKIE_MD_USE;
+    (*p)[0] = (unsigned char)( t >> 24 );
+    (*p)[1] = (unsigned char)( t >> 16 );
+    (*p)[2] = (unsigned char)( t >>  8 );
+    (*p)[3] = (unsigned char)( t       );
+    *p += 4;
 
-    return( 0 );
+    return( ssl_cookie_hmac( &ctx->hmac_ctx, *p - 4,
+                             p, end, cli_id, cli_id_len ) );
 }
 
 /*
@@ -140,18 +181,37 @@ int ssl_cookie_check( void *p_ctx,
                       const unsigned char *cookie, size_t cookie_len,
                       const unsigned char *cli_id, size_t cli_id_len )
 {
-    unsigned char ref_cookie[COOKIE_MD_USE];
-    unsigned char *p = ref_cookie;
+    unsigned char ref_hmac[COOKIE_HMAC_LEN];
+    unsigned char *p = ref_hmac;
+    ssl_cookie_ctx *ctx = (ssl_cookie_ctx *) p_ctx;
+    unsigned long cur_time, cookie_time;
 
-    if( cookie_len != COOKIE_MD_USE )
+    if( ctx == NULL || cli_id == NULL )
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+    if( cookie_len != COOKIE_LEN )
         return( -1 );
 
-    if( ssl_cookie_write( p_ctx,
-                          &p, p + sizeof( ref_cookie ),
-                          cli_id, cli_id_len ) != 0 )
+    if( ssl_cookie_hmac( &ctx->hmac_ctx, cookie,
+                         &p, p + sizeof( ref_hmac ),
+                         cli_id, cli_id_len ) != 0 )
         return( -1 );
 
-    if( safer_memcmp( cookie, ref_cookie, sizeof( ref_cookie ) ) != 0 )
+    if( safer_memcmp( cookie + 4, ref_hmac, sizeof( ref_hmac ) ) != 0 )
+        return( -1 );
+
+#if defined(POLARSSL_HAVE_TIME)
+    cur_time = (unsigned long) time( NULL );
+#else
+    cur_time = ctx->serial;
+#endif
+
+    cookie_time = ( (unsigned long) cookie[0] << 24 ) |
+                  ( (unsigned long) cookie[1] << 16 ) |
+                  ( (unsigned long) cookie[2] <<  8 ) |
+                  ( (unsigned long) cookie[3]       );
+
+    if( cur_time - cookie_time > COOKIE_TIMEOUT )
         return( -1 );
 
     return( 0 );

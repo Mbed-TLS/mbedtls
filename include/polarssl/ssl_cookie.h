@@ -48,7 +48,10 @@ extern "C" {
  */
 typedef struct
 {
-    md_context_t    hmac_ctx;
+    md_context_t    hmac_ctx;       /*!< context for the HMAC portion   */
+#if !defined(POLARSSL_HAVE_TIME)
+    unsigned long   serial;         /*!< serial number for expiration   */
+#endif
 } ssl_cookie_ctx;
 
 /**

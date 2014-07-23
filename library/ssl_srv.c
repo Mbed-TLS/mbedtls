@@ -1441,28 +1441,33 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                        buf + cookie_offset + 1, cookie_len );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-        if( ssl->f_cookie_check( ssl->p_cookie,
-                                 buf + cookie_offset + 1, cookie_len,
-                                 ssl->cli_id, ssl->cli_id_len ) != 0 )
+        if( ssl->f_cookie_check != NULL )
         {
-            SSL_DEBUG_MSG( 2, ( "client hello, cookie verification failed" ) );
-            ssl->handshake->verify_cookie_len = 1;
+            if( ssl->f_cookie_check( ssl->p_cookie,
+                                     buf + cookie_offset + 1, cookie_len,
+                                     ssl->cli_id, ssl->cli_id_len ) != 0 )
+            {
+                SSL_DEBUG_MSG( 2, ( "cookie verification failed" ) );
+                ssl->handshake->verify_cookie_len = 1;
+            }
+            else
+            {
+                SSL_DEBUG_MSG( 2, ( "cookie verification passed" ) );
+                ssl->handshake->verify_cookie_len = 0;
+            }
         }
         else
-        {
-            SSL_DEBUG_MSG( 2, ( "client hello, cookie verification passed" ) );
-            ssl->handshake->verify_cookie_len = 0;
-        }
-#else
-        /* We know we didn't send a cookie, so it should be empty */
-        if( cookie_len != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
-        }
-
-        SSL_DEBUG_MSG( 2, ( "client hello, cookie verification skipped" ) );
 #endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
+        {
+            /* We know we didn't send a cookie, so it should be empty */
+            if( cookie_len != 0 )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+
+            SSL_DEBUG_MSG( 2, ( "cookie verification skipped" ) );
+        }
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 
@@ -1981,6 +1986,13 @@ static int ssl_write_hello_verify_request( ssl_context *ssl )
                        ssl->transport, p );
     SSL_DEBUG_BUF( 3, "server version", (unsigned char *) p, 2 );
     p += 2;
+
+    /* If we get here, f_cookie_check is not null */
+    if( ssl->f_cookie_write == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "inconsistent cookie callbacks" ) );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    }
 
     /* Skip length byte until we know the length */
     cookie_len_byte = p++;

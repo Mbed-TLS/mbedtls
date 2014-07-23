@@ -3607,6 +3607,35 @@ static int ssl_handshake_init( ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+/* Dummy cookie callbacks for defaults */
+static int ssl_cookie_write_dummy( void *ctx,
+                      unsigned char **p, unsigned char *end,
+                      const unsigned char *cli_id, size_t cli_id_len )
+{
+    ((void) ctx);
+    ((void) p);
+    ((void) end);
+    ((void) cli_id);
+    ((void) cli_id_len);
+
+    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+static int ssl_cookie_check_dummy( void *ctx,
+                      const unsigned char *cookie, size_t cookie_len,
+                      const unsigned char *cli_id, size_t cli_id_len )
+{
+    ((void) ctx);
+    ((void) cookie);
+    ((void) cookie_len);
+    ((void) cli_id);
+    ((void) cli_id_len);
+
+    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+#endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
+
 /*
  * Initialize an SSL context
  */
@@ -3668,6 +3697,11 @@ int ssl_init( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_SET_CURVES)
     ssl->curve_list = ecp_grp_id_list( );
+#endif
+
+#if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
+    ssl->f_cookie_write = ssl_cookie_write_dummy;
+    ssl->f_cookie_check = ssl_cookie_check_dummy;
 #endif
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )

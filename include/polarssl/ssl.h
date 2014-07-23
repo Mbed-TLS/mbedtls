@@ -1136,6 +1136,16 @@ typedef int ssl_cookie_check_t( void *ctx,
  * \brief           Register callbacks for DTLS cookies
  *                  (Server only. DTLS only.)
  *
+ *                  Default: dummy callbacks that fail, to force you to
+ *                  register working callbacks (and initialize their context).
+ *
+ *                  To disable HelloVerifyRequest, register NULL callbacks.
+ *
+ * \warning         Disabling hello verification allows your server to be used
+ *                  for amplification in DoS attacks against other hosts.
+ *                  Only disable if you known this can't happen in your
+ *                  particular environment.
+ *
  * \param ssl               SSL context
  * \param f_cookie_write    Cookie write callback
  * \param f_cookie_check    Cookie check callback

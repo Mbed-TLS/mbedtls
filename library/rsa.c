@@ -1005,7 +1005,7 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
 {
     size_t nb_pad, olen, oid_size = 0;
     unsigned char *p = sig;
-    const char *oid;
+    const char *oid = NULL;
 
     if( mode == RSA_PRIVATE && ctx->padding != RSA_PKCS_V15 )
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );

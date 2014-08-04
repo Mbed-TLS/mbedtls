@@ -375,6 +375,7 @@ int main( int argc, char *argv[] )
      */
     server_fd = 0;
     memset( &ssl, 0, sizeof( ssl_context ) );
+    memset( &buf, 0, sizeof( buf ) );
     x509_crt_init( &cacert );
     x509_crt_init( &clicert );
     pk_init( &pkey );

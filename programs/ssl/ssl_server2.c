@@ -1522,30 +1522,37 @@ reset:
 
     if( client_fd != -1 )
     {
-        net_close( client_fd );
-
-        /*
-         * With UDP, client_fd == bind_fd, so we just closed bind_fd. Bind it
-         * again. (We really want to close it, to empty the message queue.)
-         */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
         if( opt.transport == SSL_TRANSPORT_DATAGRAM )
         {
-            printf( "  . Bind on udp://%s:%-4d/ ...",
-                    opt.server_addr ? opt.server_addr : "*",
-                    opt.server_port );
-            fflush( stdout );
-
-            if( ( ret = net_bind( &listen_fd, opt.server_addr, opt.server_port,
-                                  NET_PROTO_UDP ) ) != 0 )
+            /* Keep the connection open if waiting for client to continue */
+            if( ret != POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED )
             {
-                printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
-                goto exit;
-            }
+                net_close( client_fd );
 
-            printf( " ok\n" );
+                /*
+                 * With UDP, client_fd == bind_fd, so we just closed bind_fd.
+                 * Bind it again. (We really want to close it, to empty the
+                 * message queue.)
+                 */
+                printf( "  . Bind on udp://%s:%-4d/ ...",
+                        opt.server_addr ? opt.server_addr : "*",
+                        opt.server_port );
+                fflush( stdout );
+
+                if( ( ret = net_bind( &listen_fd, opt.server_addr,
+                                      opt.server_port, NET_PROTO_UDP ) ) != 0 )
+                {
+                    printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
+                    goto exit;
+                }
+
+                printf( " ok\n" );
+            }
         }
+        else
 #endif /* POLARSSL_SSL_PROTO_DTLS */
+        net_close( client_fd );
     }
 
     ssl_session_reset( &ssl );

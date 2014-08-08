@@ -100,6 +100,8 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
     const char *end = s + strlen( s );
     const char *oid = NULL;
     int in_tag = 1;
+    char data[X509_MAX_DN_NAME_SIZE];
+    char *d = data;
 
     /* Clear existing chain if present */
     asn1_free_named_data_list( head );
@@ -116,13 +118,25 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
 
             s = c + 1;
             in_tag = 0;
+            d = data;
         }
 
-        if( !in_tag && ( *c == ',' || c == end ) )
+        if( !in_tag && *c == '\\' && c != end )
+        {
+            c++;
+
+            /* Check for valid escaped characters */
+            if( c == end || *c != ',' )
+            {
+                ret = POLARSSL_ERR_X509_INVALID_NAME;
+                goto exit;
+            }
+        }
+        else if( !in_tag && ( *c == ',' || c == end ) )
         {
             if( asn1_store_named_data( head, oid, strlen( oid ),
-                                       (unsigned char *) s,
-                                       c - s ) == NULL )
+                                       (unsigned char *) data,
+                                       d - data ) == NULL )
             {
                 return( POLARSSL_ERR_X509_MALLOC_FAILED );
             }
@@ -133,6 +147,18 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
             s = c + 1;
             in_tag = 1;
         }
+
+        if( !in_tag && s != c + 1 )
+        {
+            *(d++) = *c;
+
+            if( d - data == X509_MAX_DN_NAME_SIZE )
+            {
+                ret = POLARSSL_ERR_X509_INVALID_NAME;
+                goto exit;
+            }
+        }
+
         c++;
     }
 

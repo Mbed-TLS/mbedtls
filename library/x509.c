@@ -750,7 +750,7 @@ int x509_dn_gets( char *buf, size_t size, const x509_name *dn )
     unsigned char c;
     const x509_name *name;
     const char *short_name = NULL;
-    char s[128], *p;
+    char s[X509_MAX_DN_NAME_SIZE], *p;
 
     memset( s, 0, sizeof( s ) );
 

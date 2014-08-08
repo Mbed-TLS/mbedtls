@@ -143,6 +143,8 @@
 #define X509_FORMAT_DER                 1
 #define X509_FORMAT_PEM                 2
 
+#define X509_MAX_DN_NAME_SIZE         256 /**< Maximum value size of a DN entry */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

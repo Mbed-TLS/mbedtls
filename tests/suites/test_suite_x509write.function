@@ -132,3 +132,47 @@ exit:
     mpi_free( &serial );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_X509_CREATE_C:POLARSSL_X509_USE_C */
+void x509_string_to_names( char *name, char *parsed_name, int result )
+{
+    int ret;
+    size_t len = 0;
+    asn1_named_data *names = NULL;
+    x509_name parsed, *parsed_cur, *parsed_prv;
+    unsigned char buf[2048], *c;
+
+    memset( &parsed, 0, sizeof( parsed ) );
+    memset( buf, 0, sizeof( buf ) );
+    c = buf + sizeof( buf );
+
+    ret = x509_string_to_names( &names, name );
+    TEST_ASSERT( ret == result );
+
+    if( ret != 0 )
+        goto exit;
+
+    ret = x509_write_names( &c, buf, names );
+    TEST_ASSERT( ret > 0 );
+
+    TEST_ASSERT( asn1_get_tag( &c, buf + sizeof( buf ), &len,
+                        ASN1_CONSTRUCTED | ASN1_SEQUENCE ) == 0 );
+    TEST_ASSERT( x509_get_name( &c, buf + sizeof( buf ), &parsed ) == 0 );
+
+    ret = x509_dn_gets( (char *) buf, sizeof( buf ), &parsed );
+    TEST_ASSERT( ret > 0 );
+
+    TEST_ASSERT( strcmp( (char *) buf, parsed_name ) == 0 );
+
+exit:
+    asn1_free_named_data_list( &names );
+
+    parsed_cur = parsed.next;
+    while( parsed_cur != 0 )
+    {
+        parsed_prv = parsed_cur;
+        parsed_cur = parsed_cur->next;
+        polarssl_free( parsed_prv );
+    }
+}
+/* END_CASE */

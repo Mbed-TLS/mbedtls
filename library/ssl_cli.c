@@ -975,9 +975,14 @@ static int ssl_parse_hello_verify_request( ssl_context *ssl )
     ssl_read_version( &major_ver, &minor_ver, ssl->transport, p );
     p += 2;
 
-    if( major_ver != SSL_MAJOR_VERSION_3 ||
+    /*
+     * Since the RFC is not clear on this point, accept DTLS 1.0 (TLS 1.1)
+     * even is lower than our min version.
+     */
+    if( major_ver < SSL_MAJOR_VERSION_3 ||
         minor_ver < SSL_MINOR_VERSION_2 ||
-        minor_ver > SSL_MINOR_VERSION_3 )
+        major_ver > ssl->max_major_ver  ||
+        minor_ver > ssl->max_minor_ver  )
     {
         SSL_DEBUG_MSG( 1, ( "bad server version" ) );
 

@@ -1981,8 +1981,9 @@ static int ssl_write_hello_verify_request( ssl_context *ssl )
      * } HelloVerifyRequest;
      */
 
-    /* For now, use fixed version = DTLS 1.0 */
-    ssl_write_version( SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_1,
+    /* The RFC is not clear on this point, but sending the actual negotiated
+     * version looks like the most interoperable thing to do. */
+    ssl_write_version( ssl->major_ver, ssl->minor_ver,
                        ssl->transport, p );
     SSL_DEBUG_BUF( 3, "server version", (unsigned char *) p, 2 );
     p += 2;

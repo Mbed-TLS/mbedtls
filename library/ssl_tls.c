@@ -2219,14 +2219,32 @@ int ssl_read_record( ssl_context *ssl )
 
     ssl->in_msgtype =  ssl->in_hdr[0];
     ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
+    ssl_read_version( &major_ver, &minor_ver, ssl->transport, ssl->in_hdr + 1 );
 
     SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
                         "version = [%d:%d], msglen = %d",
-                     ssl->in_hdr[0], ssl->in_hdr[1], ssl->in_hdr[2],
-                   ( ssl->in_len[0] << 8 ) | ssl->in_len[1] ) );
+                        ssl->in_msgtype,
+                        major_ver, minor_ver, ssl->in_msglen ) );
 
-    ssl_read_version( &major_ver, &minor_ver, ssl->transport, ssl->in_hdr + 1 );
+    /* Check record type */
+    if( ssl->in_msgtype != SSL_MSG_HANDSHAKE &&
+        ssl->in_msgtype != SSL_MSG_ALERT &&
+        ssl->in_msgtype != SSL_MSG_CHANGE_CIPHER_SPEC &&
+        ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
+    {
+        SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
 
+        if( ( ret = ssl_send_alert_message( ssl,
+                        SSL_ALERT_LEVEL_FATAL,
+                        SSL_ALERT_MSG_UNEXPECTED_MESSAGE ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+    }
+
+    /* Check version */
     if( major_ver != ssl->major_ver )
     {
         SSL_DEBUG_MSG( 1, ( "major version mismatch" ) );
@@ -2239,21 +2257,19 @@ int ssl_read_record( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
 
-    /* Sanity check (outer boundaries) */
-    if( ssl->in_msglen < 1 ||
-        ssl->in_msglen > SSL_BUFFER_LEN - (size_t)( ssl->in_msg - ssl->in_buf ) )
+    /* Check length against the size of our buffer */
+    if( ssl->in_msglen > SSL_BUFFER_LEN
+                         - (size_t)( ssl->in_msg - ssl->in_buf ) )
     {
         SSL_DEBUG_MSG( 1, ( "bad message length" ) );
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
 
-    /*
-     * Make sure the message length is acceptable for the current transform
-     * and protocol version.
-     */
+    /* Check length against bounds of the current transform and version */
     if( ssl->transform_in == NULL )
     {
-        if( ssl->in_msglen > SSL_MAX_CONTENT_LEN )
+        if( ssl->in_msglen < 1 ||
+            ssl->in_msglen > SSL_MAX_CONTENT_LEN )
         {
             SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
@@ -2275,7 +2291,6 @@ int ssl_read_record( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
         }
 #endif
-
 #if defined(POLARSSL_SSL_PROTO_TLS1) || defined(POLARSSL_SSL_PROTO_TLS1_1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_2)
         /*
@@ -2369,23 +2384,6 @@ int ssl_read_record( ssl_context *ssl )
         ssl->in_len[1] = (unsigned char)( ssl->in_msglen      );
     }
 #endif /* POLARSSL_ZLIB_SUPPORT */
-
-    if( ssl->in_msgtype != SSL_MSG_HANDSHAKE &&
-        ssl->in_msgtype != SSL_MSG_ALERT &&
-        ssl->in_msgtype != SSL_MSG_CHANGE_CIPHER_SPEC &&
-        ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
-    {
-        SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
-
-        if( ( ret = ssl_send_alert_message( ssl,
-                        SSL_ALERT_LEVEL_FATAL,
-                        SSL_ALERT_MSG_UNEXPECTED_MESSAGE ) ) != 0 )
-        {
-            return( ret );
-        }
-
-        return( POLARSSL_ERR_SSL_INVALID_RECORD );
-    }
 
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
     {

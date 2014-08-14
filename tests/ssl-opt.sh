@@ -10,14 +10,6 @@
 
 set -u
 
-# test if it is defined from the environment before assining default
-# if yes, assume it means it's a build with all the options we need (SSLv2)
-if [ -n "${OPENSSL_CMD:-}" ]; then
-    OPENSSL_OK=1
-else
-    OPENSSL_OK=0
-fi
-
 # default values, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
@@ -28,16 +20,13 @@ O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 
 TESTS=0
 FAILS=0
+SKIPS=0
 
 CONFIG_H='../include/polarssl/config.h'
 
 MEMCHECK=0
 FILTER='.*'
-if [ "$OPENSSL_OK" -gt 0 ]; then
-    EXCLUDE='^$'
-else
-    EXCLUDE='SSLv2'
-fi
+EXCLUDE='^$'
 
 print_usage() {
     echo "Usage: $0 [options]"
@@ -71,6 +60,20 @@ get_options() {
         esac
         shift
     done
+}
+
+# skip next test if OpenSSL can't send SSLv2 ClientHello
+requires_openssl_with_sslv2() {
+    if [ -z "${OPENSSL_HAS_SSL2:-}" ]; then
+        if openssl ciphers -ssl2 >/dev/null 2>&1; then
+            OPENSSL_HAS_SSL2="YES"
+        else
+            OPENSSL_HAS_SSL2="NO"
+        fi
+    fi
+    if [ "$OPENSSL_HAS_SSL2" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
 }
 
 # print_name <name>
@@ -147,6 +150,14 @@ run_test() {
     fi
 
     print_name "$NAME"
+
+    # should we skip?
+    if [ "X$SKIP_NEXT" = "XYES" ]; then
+        SKIP_NEXT="NO"
+        echo "SKIP"
+        SKIPS=`echo $SKIPS + 1 | bc`
+        return
+    fi
 
     # prepend valgrind to our commands if active
     if [ "$MEMCHECK" -gt 0 ]; then
@@ -329,6 +340,8 @@ SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"
 SESSION="session.$$"
 
+SKIP_NEXT="NO"
+
 trap cleanup INT TERM HUP
 
 # Basic test
@@ -342,6 +355,7 @@ run_test    "Default" \
 
 # Test for SSLv2 ClientHello
 
+requires_openssl_with_sslv2
 run_test    "SSLv2 ClientHello #0 (reference)" \
             "$P_SRV debug_level=3" \
             "$O_CLI -no_ssl2" \
@@ -350,6 +364,7 @@ run_test    "SSLv2 ClientHello #0 (reference)" \
             -S "ssl_handshake returned"
 
 # Adding a SSL2-only suite makes OpenSSL client send SSLv2 ClientHello
+requires_openssl_with_sslv2
 run_test    "SSLv2 ClientHello #1 (actual test)" \
             "$P_SRV debug_level=3" \
             "$O_CLI -cipher 'DES-CBC-MD5:ALL'" \
@@ -1745,6 +1760,6 @@ else
     echo -n "FAILED"
 fi
 PASSES=`echo $TESTS - $FAILS | bc`
-echo " ($PASSES / $TESTS tests)"
+echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
 
 exit $FAILS

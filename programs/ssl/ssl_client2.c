@@ -322,7 +322,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, server_fd, i, written, frags;
+    int ret = 0, len, tail_len, server_fd, i, written, frags;
     unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[POLARSSL_PSK_MAX_LEN];
@@ -1055,26 +1055,20 @@ send_request:
     printf( "  > Write to server:" );
     fflush( stdout );
 
-    if( strcmp( opt.request_page, "SERVERQUIT" ) == 0 )
-        len = sprintf( (char *) buf, "%s", opt.request_page );
-    else
+    len = snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
+                    opt.request_page );
+    tail_len = strlen( GET_REQUEST_END );
+
+    /* Add padding to GET request to reach opt.request_size in length */
+    if( opt.request_size != DFL_REQUEST_SIZE &&
+        len + tail_len < opt.request_size )
     {
-        size_t tail_len = strlen( GET_REQUEST_END );
-
-        len = snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
-                        opt.request_page );
-
-        /* Add padding to GET request to reach opt.request_size in length */
-        if( opt.request_size != DFL_REQUEST_SIZE &&
-            len + tail_len < (size_t) opt.request_size )
-        {
-            memset( buf + len, 'A', opt.request_size - len - tail_len );
-            len += opt.request_size - len - tail_len;
-        }
-
-        strncpy( (char *) buf + len, GET_REQUEST_END, sizeof(buf) - len - 1 );
-        len += tail_len;
+        memset( buf + len, 'A', opt.request_size - len - tail_len );
+        len += opt.request_size - len - tail_len;
     }
+
+    strncpy( (char *) buf + len, GET_REQUEST_END, sizeof(buf) - len - 1 );
+    len += tail_len;
 
     /* Truncate if request size is smaller than the "natural" size */
     if( opt.request_size != DFL_REQUEST_SIZE &&

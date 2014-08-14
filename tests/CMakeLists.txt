@@ -32,7 +32,7 @@ endfunction(add_test_suite)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function -Wno-unused-value")
 set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS_CHECK} -Wno-unused-function -Wno-unused-value")
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS_CHECK} -Wno-unreachable-code")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 add_test_suite(aes aes.ecb)

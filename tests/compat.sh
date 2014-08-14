@@ -785,33 +785,8 @@ start_server() {
 
 # terminate the running server (closing it cleanly if it is ours)
 stop_server() {
-    case $SERVER_NAME in
-        [Pp]olar*)
-            # start watchdog in case SERVERQUIT fails
-            ( sleep 20; echo "SERVERQUIT TIMEOUT"; kill $MAIN_PID ) &
-            WATCHDOG_PID=$!
-
-            # we must force a PSK suite when in PSK mode (otherwise client
-            # auth will fail), so try every entry in $P_CIPHERS in turn (in
-            # case the first one is not implemented in this configuration)
-            for i in $P_CIPHERS; do
-                log "$P_CLI $P_CLIENT_ARGS request_page=SERVERQUIT auth_mode=none force_ciphersuite=$i"
-                "$P_CLI" $P_CLIENT_ARGS request_page=SERVERQUIT auth_mode=none \
-                    force_ciphersuite=$i >/dev/null
-                if [ "$?" == 0 ]; then
-                    break
-                fi
-            done
-
-            wait $PROCESS_ID 2>/dev/null
-            kill $WATCHDOG_PID 2>/dev/null
-            wait $WATCHDOG_PID 2>/dev/null
-            ;;
-        *)
-            kill $PROCESS_ID 2>/dev/null
-            wait $PROCESS_ID 2>/dev/null
-    esac
-
+    kill $PROCESS_ID 2>/dev/null
+    wait $PROCESS_ID 2>/dev/null
 
     if [ "$MEMCHECK" -gt 0 ]; then
         if is_polar "$SERVER_CMD" && has_mem_err $SRV_OUT; then

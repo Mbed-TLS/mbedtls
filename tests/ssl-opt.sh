@@ -179,23 +179,9 @@ run_test() {
     CLI_EXIT=$?
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
 
-    if is_polar "$SRV_CMD"; then
-        # start watchdog in case SERVERQUIT fails
-        ( sleep "$DOG_DELAY"; echo "SERVERQUIT TIMEOUT"; kill $MAIN_PID ) &
-        WATCHDOG_PID=$!
-
-        # psk is useful when server only has bad certs
-        $P_CLI request_page=SERVERQUIT tickets=0 auth_mode=none psk=abc123 \
-            crt_file=data_files/cli2.crt key_file=data_files/cli2.key \
-            >/dev/null 2>&1
-
-        wait $SRV_PID
-        kill $WATCHDOG_PID
-        wait $WATCHDOG_PID
-    else
-        kill $SRV_PID
-        wait $SRV_PID
-    fi
+    # kill the server
+    kill $SRV_PID
+    wait $SRV_PID
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero

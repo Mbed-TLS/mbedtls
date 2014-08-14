@@ -66,12 +66,13 @@ msg()
 
 # The test ordering tries to optimize for the following criteria:
 # 1. Catch possible problems early, by running first test that run quickly
-#    and/or are more likely to fail than others.
+#    and/or are more likely to fail than others (eg I use Clang most of the
+#    time, so start with a GCC build).
 # 2. Minimize total running time, by avoiding useless rebuilds
 #
 # Indicative running times are given for reference.
 
-msg "build: cmake, gcc with lots of warnings" # ~ 1 min
+msg "build: cmake, -Werror (gcc)" # ~ 1 min
 cleanup
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
 make
@@ -79,9 +80,9 @@ make
 msg "test: main suites with valgrind" # ~ 2 min 10s
 make memcheck
 
-msg "build: with ASan" # ~ 1 min
+msg "build: with ASan (clang)" # ~ 1 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=ASan .
+CC=clang cmake -D CMAKE_BUILD_TYPE:String=ASan .
 make
 
 msg "test: ssl-opt.sh (ASan build)" # ~ 1 min 10s
@@ -106,12 +107,12 @@ cd tests
 ./compat.sh
 cd ..
 
-msg "build: cmake, full config, clang with lots of warnings" # ~ 40s
+msg "build: cmake, full config" # ~ 40s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # too slow for tests
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
+cmake -D CMAKE_BUILD_TYPE:String=Check .
 make
 
 msg "test: main suites (full config)"
@@ -127,19 +128,19 @@ cd tests
 ./compat.sh -e '^$' -f 'NULL\|3DES-EDE-CBC\|DES-CBC3'
 cd ..
 
-msg "build: Unix make, -O2" # ~ 30s
+msg "build: Unix make, -O2 (gcc)" # ~ 30s
 cleanup
-make
+CC=gcc make
 
 # Optional parts that take a long time to run
 
-if [ "$MEMORY" -gt 0 ]; then
+if [ "$MEMORY" -ge 1 ]; then
     msg "test: ssl-opt --memcheck (-02 build)" # ~ 8 min
     cd tests
     ./ssl-opt.sh --memcheck
     cd ..
 
-    if [ "$MEMORY" -gt 1 ]; then
+    if [ "$MEMORY" -ge 2 ]; then
         msg "test: compat --memcheck (-02 build)" # ~ 42 min
         cd tests
         ./compat.sh --memcheck

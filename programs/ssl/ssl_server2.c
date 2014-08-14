@@ -63,6 +63,7 @@ int main( int argc, char *argv[] )
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <signal.h>
 
 #include "polarssl/net.h"
 #include "polarssl/ssl.h"
@@ -564,10 +565,19 @@ int psk_callback( void *p_info, ssl_context *ssl,
 }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
+/* Interruption handler to ensure clean exit (for valgrind testing) */
+static int listen_fd;
+static int received_sigterm = 0;
+void term_handler( int sig )
+{
+    ((void) sig);
+    received_sigterm = 1;
+    net_close( listen_fd ); /* causes net_accept() to abort */
+}
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags;
-    int listen_fd;
     int client_fd = -1;
     int version_suites[4][2];
     unsigned char buf[IO_BUF_LEN];
@@ -634,6 +644,9 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_ALPN)
     memset( (void *) alpn_list, 0, sizeof( alpn_list ) );
 #endif
+
+    /* Abort cleanly on SIGTERM */
+    signal( SIGTERM, term_handler );
 
     if( argc == 0 )
     {
@@ -1377,6 +1390,13 @@ reset:
 
     if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
     {
+        if( received_sigterm )
+        {
+            printf( " interrupted by SIGTERM\n" );
+            ret = 0;
+            goto exit;
+        }
+
         printf( " failed\n  ! net_accept returned -0x%x\n\n", -ret );
         goto exit;
     }

@@ -709,6 +709,32 @@ run_test    "Renegotiation #9 (server-initiated, client-accepted, delay 0)" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+run_test    "Renegotiation #10 (nbio, enabled, client-initiated)" \
+            "$P_SRV debug_level=4 nbio=2 exchanges=2 renegotiation=1" \
+            "$P_CLI debug_level=4 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -S "write hello request"
+
+run_test    "Renegotiation #11 (nbio, enabled, server-initiated)" \
+            "$P_SRV debug_level=4 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=4 nbio=2 exchanges=2 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request"
+
 # Tests for auth_mode
 
 run_test    "Authentication #1 (server badcert, client required)" \

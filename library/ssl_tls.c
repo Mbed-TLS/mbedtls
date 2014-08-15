@@ -4167,8 +4167,6 @@ static int ssl_write_hello_request( ssl_context *ssl )
         return( ret );
     }
 
-    ssl->renegotiation = SSL_RENEGOTIATION_PENDING;
-
     SSL_DEBUG_MSG( 2, ( "<= write hello request" ) );
 
     return( 0 );
@@ -4221,6 +4219,12 @@ int ssl_renegotiate( ssl_context *ssl )
     {
         if( ssl->state != SSL_HANDSHAKE_OVER )
             return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+
+        ssl->renegotiation = SSL_RENEGOTIATION_PENDING;
+
+        /* Did we already try/start sending HelloRequest? */
+        if( ssl->out_left != 0 )
+            return( ssl_flush_output( ssl ) );
 
         return( ssl_write_hello_request( ssl ) );
     }

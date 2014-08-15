@@ -12,6 +12,8 @@ Bugfix
    * Remove non-existent file from VS projects (found by Peter Vaskovic).
    * ssl_read() could return non-application data records on server while
      renegotation was pending, and on client when a HelloRequest was received.
+   * Server-initiated renegotiation would fail with non-blocking I/O if the
+     write callback returned WANT_WRITE when requesting renegotiation.
 
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no

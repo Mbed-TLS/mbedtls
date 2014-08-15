@@ -1545,7 +1545,7 @@ reset:
             {
                 printf( "  ! memory allocation failed\n" );
                 ret = 1;
-                goto exit;
+                goto reset;
             }
 
             memset( larger_buf, 0, ori_len + extra_len );
@@ -1558,7 +1558,7 @@ reset:
             {
                 printf( "  ! ssl_read failed on cached data\n" );
                 ret = 1;
-                goto exit;
+                goto reset;
             }
 
             larger_buf[ori_len + extra_len] = '\0';
@@ -1596,7 +1596,7 @@ reset:
             if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
                 printf( " failed\n  ! ssl_write returned %d\n\n", ret );
-                goto exit;
+                goto reset;
             }
         }
     }
@@ -1618,7 +1618,7 @@ reset:
                 ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
                 printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
-                goto exit;
+                goto reset;
             }
         }
 

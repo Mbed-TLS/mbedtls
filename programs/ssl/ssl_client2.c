@@ -85,6 +85,7 @@ int main( int argc, char *argv[] )
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_RENEGOTIATE         0
+#define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_REQUIRED
@@ -120,6 +121,8 @@ struct options
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
     int renegotiate;            /* attempt renegotiation?                   */
+    int renego_delay;           /* delay before enforcing renegotiation     */
+    int exchanges;              /* number of data exchanges                 */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
@@ -303,6 +306,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: 0 (disabled)\n"      \
     "    renegotiate=%%d      default: 0 (disabled)\n"      \
+    "    exchanges=%%d        default: 1\n"                 \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
     USAGE_TIME                                              \
     USAGE_TICKETS                                           \
@@ -399,6 +403,7 @@ int main( int argc, char *argv[] )
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.renegotiate         = DFL_RENEGOTIATE;
+    opt.exchanges           = DFL_EXCHANGES;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
@@ -484,6 +489,12 @@ int main( int argc, char *argv[] )
         {
             opt.renegotiate = atoi( q );
             if( opt.renegotiate < 0 || opt.renegotiate > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "exchanges" ) == 0 )
+        {
+            opt.exchanges = atoi( q );
+            if( opt.exchanges < 1 )
                 goto usage;
         }
         else if( strcmp( p, "reconnect" ) == 0 )
@@ -1136,11 +1147,25 @@ send_request:
         len = ret;
         buf[len] = '\0';
         printf( " %d bytes read\n\n%s", len, (char *) buf );
+
+        /* End of message should be detected according to the syntax of the
+         * application protocol (eg HTTP), just use a dummy test here. */
+        if( ret > 0 && buf[len-1] == '\n' )
+        {
+            ret = 0;
+            break;
+        }
     }
     while( 1 );
 
     /*
-     * 9. Reconnect?
+     * 7b. Continue doing data exchanges?
+     */
+    if( --opt.exchanges > 0 )
+        goto send_request;
+
+    /*
+     * 7c. Reconnect?
      */
 reconnect:
     if( opt.reconnect != 0 )

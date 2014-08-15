@@ -564,8 +564,8 @@ run_test    "Max fragment length #3" \
 # Tests for renegotiation
 
 run_test    "Renegotiation #0 (none)" \
-            "$P_SRV debug_level=4" \
-            "$P_CLI debug_level=4" \
+            "$P_SRV debug_level=4 exchanges=2" \
+            "$P_CLI debug_level=4 exchanges=2" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -577,8 +577,8 @@ run_test    "Renegotiation #0 (none)" \
             -S "write hello request"
 
 run_test    "Renegotiation #1 (enabled, client-initiated)" \
-            "$P_SRV debug_level=4 renegotiation=1" \
-            "$P_CLI debug_level=4 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -590,8 +590,8 @@ run_test    "Renegotiation #1 (enabled, client-initiated)" \
             -S "write hello request"
 
 run_test    "Renegotiation #2 (enabled, server-initiated)" \
-            "$P_SRV debug_level=4 renegotiation=1 renegotiate=1" \
-            "$P_CLI debug_level=4 renegotiation=1" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -603,8 +603,8 @@ run_test    "Renegotiation #2 (enabled, server-initiated)" \
             -s "write hello request"
 
 run_test    "Renegotiation #3 (enabled, double)" \
-            "$P_SRV debug_level=4 renegotiation=1 renegotiate=1" \
-            "$P_CLI debug_level=4 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -616,8 +616,8 @@ run_test    "Renegotiation #3 (enabled, double)" \
             -s "write hello request"
 
 run_test    "Renegotiation #4 (client-initiated, server-rejected)" \
-            "$P_SRV debug_level=4 renegotiation=0" \
-            "$P_CLI debug_level=4 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=0" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
             1 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -631,8 +631,8 @@ run_test    "Renegotiation #4 (client-initiated, server-rejected)" \
             -c "failed"
 
 run_test    "Renegotiation #5 (server-initiated, client-rejected, default)" \
-            "$P_SRV debug_level=4 renegotiation=1 renegotiate=1" \
-            "$P_CLI debug_level=4 renegotiation=0" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -646,9 +646,9 @@ run_test    "Renegotiation #5 (server-initiated, client-rejected, default)" \
             -S "failed"
 
 run_test    "Renegotiation #6 (server-initiated, client-rejected, not enforced)" \
-            "$P_SRV debug_level=4 renegotiation=1 renegotiate=1 \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=-1" \
-            "$P_CLI debug_level=4 renegotiation=0" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -661,10 +661,11 @@ run_test    "Renegotiation #6 (server-initiated, client-rejected, not enforced)"
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
-run_test    "Renegotiation #7 (server-initiated, client-rejected, delay 1)" \
-            "$P_SRV debug_level=4 renegotiation=1 renegotiate=1 \
-             renego_delay=1" \
-            "$P_CLI debug_level=4 renegotiation=0" \
+# delay 2 for 1 alert record + 1 application data record
+run_test    "Renegotiation #7 (server-initiated, client-rejected, delay 2)" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1 \
+             renego_delay=2" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -678,9 +679,9 @@ run_test    "Renegotiation #7 (server-initiated, client-rejected, delay 1)" \
             -S "failed"
 
 run_test    "Renegotiation #8 (server-initiated, client-rejected, delay 0)" \
-            "$P_SRV debug_level=4 renegotiation=1 renegotiate=1 \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=0" \
-            "$P_CLI debug_level=4 renegotiation=0" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -690,13 +691,12 @@ run_test    "Renegotiation #8 (server-initiated, client-rejected, delay 0)" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
-            -s "SSL - An unexpected message was received from our peer" \
-            -s "failed"
+            -s "SSL - An unexpected message was received from our peer"
 
 run_test    "Renegotiation #9 (server-initiated, client-accepted, delay 0)" \
-            "$P_SRV debug_level=4 renegotiation=1 renegotiate=1 \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=0" \
-            "$P_CLI debug_level=4 renegotiation=1" \
+            "$P_CLI debug_level=4 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \

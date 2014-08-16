@@ -16,6 +16,7 @@ Bugfix
      write callback returned WANT_WRITE when requesting renegotiation.
    * ssl_close_notify() could send more than one message in some circumstances
      with non-blocking I/O.
+   * Fix compiler warnings on iOS (found by Sander Niemeijer).
 
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no

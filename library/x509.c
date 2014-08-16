@@ -876,7 +876,7 @@ int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
     ((void) sig_opts);
 #endif /* POLARSSL_X509_RSASSA_PSS_SUPPORT */
 
-    return( (int) size - n );
+    return( (int)( size - n ) );
 }
 
 /*

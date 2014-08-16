@@ -222,7 +222,7 @@ int pk_verify_ext( pk_type_t type, const void *options,
 
         ret = rsa_rsassa_pss_verify_ext( pk_rsa( *ctx ),
                 NULL, NULL, RSA_PUBLIC,
-                md_alg, hash_len, hash,
+                md_alg, (unsigned int) hash_len, hash,
                 pss_opts->mgf1_hash_id,
                 pss_opts->expected_salt_len,
                 sig );

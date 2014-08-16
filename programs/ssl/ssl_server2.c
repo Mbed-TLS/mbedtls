@@ -1514,7 +1514,8 @@ reset:
         memset( buf, 0, sizeof( buf ) );
         ret = ssl_read( &ssl, buf, len );
 
-        if( ret == POLARSSL_ERR_NET_WANT_READ || ret == POLARSSL_ERR_NET_WANT_WRITE )
+        if( ret == POLARSSL_ERR_NET_WANT_READ ||
+            ret == POLARSSL_ERR_NET_WANT_WRITE )
             continue;
 
         if( ret <= 0 )
@@ -1523,18 +1524,18 @@ reset:
             {
                 case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
                     printf( " connection was closed gracefully\n" );
-                    break;
+                    goto close_notify;
 
+                case 0:
                 case POLARSSL_ERR_NET_CONN_RESET:
                     printf( " connection was reset by peer\n" );
-                    break;
+                    ret = POLARSSL_ERR_NET_CONN_RESET;
+                    goto reset;
 
                 default:
                     printf( " ssl_read returned -0x%x\n", -ret );
-                    break;
+                    goto close_notify;
             }
-
-            break;
         }
 
         if( ssl_get_bytes_avail( &ssl ) == 0 )
@@ -1658,10 +1659,22 @@ reset:
         printf( " ok\n" );
     }
 
+    /*
+     * 8. Close the connection cleanly
+     */
+close_notify:
     printf( "  . Closing the connection..." );
 
     while( ( ret = ssl_close_notify( &ssl ) ) < 0 )
     {
+        printf( " ret = %d (-0x%04X)", ret, -ret );
+        if( ret == POLARSSL_ERR_NET_CONN_RESET )
+        {
+            printf( " connection was reset by peer\n" );
+            ret = 0;
+            goto reset;
+        }
+
         if( ret != POLARSSL_ERR_NET_WANT_READ &&
             ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
@@ -1671,12 +1684,12 @@ reset:
     }
 
     printf( " ok\n" );
-
-    ret = 0;
     goto reset;
 
+    /*
+     * Cleanup and exit
+     */
 exit:
-
 #ifdef POLARSSL_ERROR_C
     if( ret != 0 )
     {

@@ -1108,23 +1108,29 @@ send_request:
         memset( buf, 0, sizeof( buf ) );
         ret = ssl_read( &ssl, buf, len );
 
-        if( ret == POLARSSL_ERR_NET_WANT_READ || ret == POLARSSL_ERR_NET_WANT_WRITE )
+        if( ret == POLARSSL_ERR_NET_WANT_READ ||
+            ret == POLARSSL_ERR_NET_WANT_WRITE )
             continue;
 
-        if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
-            break;
-
-        if( ret < 0 )
+        if( ret <= 0 )
         {
-            printf( "failed\n  ! ssl_read returned -0x%x\n\n", -ret );
-            break;
-        }
+            switch( ret )
+            {
+                case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
+                    printf( " connection was closed gracefully\n" );
+                    ret = 0;
+                    goto reconnect;
 
-        if( ret == 0 )
-        {
-            printf("\n\nEOF\n\n");
-            ssl_close_notify( &ssl );
-            break;
+                case 0:
+                case POLARSSL_ERR_NET_CONN_RESET:
+                    printf( " connection was reset by peer\n" );
+                    ret = 0;
+                    goto reconnect;
+
+                default:
+                    printf( " ssl_read returned -0x%x\n", -ret );
+                    goto exit;
+            }
         }
 
         len = ret;
@@ -1133,6 +1139,10 @@ send_request:
     }
     while( 1 );
 
+    /*
+     * 9. Reconnect?
+     */
+reconnect:
     if( opt.reconnect != 0 )
     {
         --opt.reconnect;
@@ -1181,10 +1191,10 @@ send_request:
         goto send_request;
     }
 
+    /*
+     * Cleanup and exit
+     */
 exit:
-    if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
-        ret = 0;
-
 #ifdef POLARSSL_ERROR_C
     if( ret != 0 )
     {
@@ -1196,6 +1206,7 @@ exit:
 
     if( server_fd )
         net_close( server_fd );
+
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     x509_crt_free( &clicert );
     x509_crt_free( &cacert );
@@ -1205,8 +1216,6 @@ exit:
     ssl_free( &ssl );
     ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
-
-    memset( &ssl, 0, sizeof( ssl ) );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

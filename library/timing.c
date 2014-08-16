@@ -378,7 +378,7 @@ int timing_self_test( int verbose )
     {
         (void) get_timer( &hires, 1 );
 
-        m_sleep( 500 * secs );
+        m_sleep( (int)(500 * secs) );
 
         millisecs = get_timer( &hires, 0 );
 
@@ -401,7 +401,7 @@ int timing_self_test( int verbose )
     {
         (void) get_timer( &hires, 1 );
 
-        set_alarm( secs );
+        set_alarm( (int)secs );
         while( !alarmed )
             ;
 

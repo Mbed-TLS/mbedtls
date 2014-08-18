@@ -568,9 +568,10 @@ int psk_callback( void *p_info, ssl_context *ssl,
 }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#if !defined(_WIN32)
-/* Interruption handler to ensure clean exit (for valgrind testing) */
 static int listen_fd;
+
+/* Interruption handler to ensure clean exit (for valgrind testing) */
+#if !defined(_WIN32)
 static int received_sigterm = 0;
 void term_handler( int sig )
 {

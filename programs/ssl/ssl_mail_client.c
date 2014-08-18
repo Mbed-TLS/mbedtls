@@ -352,7 +352,7 @@ static int write_and_get_response( int sock_fd, unsigned char *buf, size_t len )
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, server_fd;
-    unsigned char buf[1024] = { 0 };
+    unsigned char buf[1024];
 #if defined(POLARSSL_BASE64_C)
     unsigned char base[1024];
 #endif

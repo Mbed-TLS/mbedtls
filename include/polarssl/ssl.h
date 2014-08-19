@@ -204,6 +204,7 @@
 
 #define SSL_IS_CLIENT                   0
 #define SSL_IS_SERVER                   1
+
 #define SSL_COMPRESS_NULL               0
 #define SSL_COMPRESS_DEFLATE            1
 

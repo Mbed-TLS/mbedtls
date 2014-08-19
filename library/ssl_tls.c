@@ -2227,10 +2227,6 @@ int ssl_read_record( ssl_context *ssl )
         {
             SSL_DEBUG_MSG( 1, ( "is a fatal alert message (msg %d)",
                            ssl->in_msg[1] ) );
-            /**
-             * Subtract from error code as ssl->in_msg[1] is 7-bit positive
-             * error identifier.
-             */
             return( POLARSSL_ERR_SSL_FATAL_ALERT_MESSAGE );
         }
 
@@ -4181,10 +4177,10 @@ static int ssl_write_hello_request( ssl_context *ssl )
 
 /*
  * Actually renegotiate current connection, triggered by either:
- * - calling ssl_renegotiate() on client,
- * - receiving a HelloRequest on client during ssl_read(),
- * - receiving any handshake message on server during ssl_read() after the
- *   initial handshake is completed
+ * - any side: calling ssl_renegotiate(),
+ * - client: receiving a HelloRequest during ssl_read(),
+ * - server: receiving any handshake message on server during ssl_read() after
+ *   the initial handshake is completed.
  * If the handshake doesn't complete due to waiting for I/O, it will continue
  * during the next calls to ssl_renegotiate() or ssl_read() respectively.
  */

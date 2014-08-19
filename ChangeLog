@@ -10,6 +10,8 @@ Bugfix
    * Fix compile error in timing.c when POLARSSL_NET_C and POLARSSL_SELFTEST
      are defined but not POLARSSL_HAVE_TIME (found by Stephane Di Vito).
    * Remove non-existent file from VS projects (found by Peter Vaskovic).
+   * ssl_read() could return non-application data records on server while
+     renegotation was pending, and on client when a HelloRequest was received.
 
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no
@@ -18,6 +20,8 @@ Changes
      ambiguous on how to encode some packets with SSL 3.0).
    * Made buffer size in pk_write_(pub)key_pem() more dynamic, eg smaller if
      RSA is disabled, larger if POLARSSL_MPI_MAX_SIZE is larger.
+   * ssl_read() now returns POLARSSL_ERR_NET_WANT_READ rather than
+     POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE on harmless alerts.
 
 = PolarSSL 1.3.8 released 2014-07-11
 Security

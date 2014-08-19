@@ -904,6 +904,16 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     {
         if( ssl->renegotiation == SSL_RENEGOTIATION )
         {
+            ssl->renego_records_seen++;
+
+            if( ssl->renego_max_records >= 0 &&
+                ssl->renego_records_seen > ssl->renego_max_records )
+            {
+                SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
+                                    "but not honored by server" ) );
+                return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+            }
+
             SSL_DEBUG_MSG( 1, ( "non-handshake message during renego" ) );
             return( POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO );
         }

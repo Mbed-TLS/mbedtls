@@ -1493,22 +1493,25 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
 /**
  * \brief          Enforce server-requested renegotiation.
  *                 (Default: enforced, max_records = 16)
- *                 (No effect on client.)
  *
- *                 When a server requests a renegotiation, the client can
- *                 comply or ignore the request. This function allows the
- *                 server to decide if it should enforce its renegotiation
- *                 requests by closing the connection if the client doesn't
- *                 initiate a renegotiation.
+ *                 When we request a renegotiation, the peer can comply or
+ *                 ignore the request. This function allows us to decide
+ *                 whether to enforce our renegotiation requests by closing
+ *                 the connection if the peer doesn't comply.
  *
- *                 However, records could already be in transit from the
- *                 client to the server when the request is emitted. In order
- *                 to increase reliability, the server can accept a number of
- *                 records containing application data before the ClientHello
- *                 that was requested.
+ *                 However, records could already be in transit from the peer
+ *                 when the request is emitted. In order to increase
+ *                 reliability, we can accept a number of records before the
+ *                 expected handshake records.
  *
  *                 The optimal value is highly dependent on the specific usage
  *                 scenario.
+ *
+ * \warning        On client, the grace period can only happen during
+ *                 ssl_read(), as opposed to ssl_write() and ssl_renegotiate()
+ *                 which always behave as if max_record was 0. The reason is,
+ *                 if we receive application data from the server, we need a
+ *                 place to write it, which only happens during ssl_read().
  *
  * \param ssl      SSL context
  * \param max_records Use SSL_RENEGOTIATION_NOT_ENFORCED if you don't want to

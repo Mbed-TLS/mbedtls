@@ -4550,6 +4550,17 @@ static int ssl_start_renegotiation( ssl_context *ssl )
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
+    /* RFC 6347 4.2.2: "[...] the HelloRequest will have message_seq = 0 and
+     * the ServerHello will have message_seq = 1" */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->endpoint == SSL_IS_SERVER &&
+        ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
+    {
+        ssl->handshake->msg_seq = 1;
+    }
+#endif
+
     ssl->state = SSL_HELLO_REQUEST;
     ssl->renegotiation = SSL_RENEGOTIATION;
 

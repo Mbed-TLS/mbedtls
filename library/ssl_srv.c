@@ -1253,6 +1253,14 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
             return( ret );
         }
+
+    /* Done reading this record, get ready for the next one */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+            ssl->next_record_offset = msg_len + ssl_hdr_len( ssl );
+        else
+#endif
+            ssl->in_left = 0;
     }
     else
     {
@@ -1441,7 +1449,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                        buf + cookie_offset + 1, cookie_len );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
-        if( ssl->f_cookie_check != NULL )
+        if( ssl->f_cookie_check != NULL &&
+            ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
         {
             if( ssl->f_cookie_check( ssl->p_cookie,
                                      buf + cookie_offset + 1, cookie_len,
@@ -1784,8 +1793,6 @@ have_ciphersuite:
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
     ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
-    /* ClientHello can't be bundled with another record in same datagram */
-    ssl->in_left = 0;
     ssl->state++;
 
     SSL_DEBUG_MSG( 2, ( "<= parse client hello" ) );

@@ -2141,7 +2141,8 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
      * TLS handshake format to other functions.
      */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->state != SSL_HANDSHAKE_OVER )
     {
         // TODO: DTLS: check message_seq
 
@@ -2289,11 +2290,13 @@ int ssl_read_record( ssl_context *ssl )
         return( ret );
     }
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
     /* Done reading this record, get ready for the next one */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
         ssl->next_record_offset = ssl->in_msglen + ssl_hdr_len( ssl );
+    else
 #endif
+        ssl->in_left = 0;
 
     SSL_DEBUG_BUF( 4, "input record from network",
                    ssl->in_hdr, ssl_hdr_len( ssl ) + ssl->in_msglen );
@@ -2401,12 +2404,6 @@ int ssl_read_record( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY );
         }
     }
-
-    /* With DTLS there might be other records in the same datagram */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport != SSL_TRANSPORT_DATAGRAM )
-#endif
-    ssl->in_left = 0;
 
     SSL_DEBUG_MSG( 2, ( "<= read record" ) );
 

@@ -1589,6 +1589,22 @@ reset:
     /*
      * 7. Write the 200 Response
      */
+    if( opt.renegotiate )
+    {
+        /* Request renegotiation while the client is waiting for input */
+        printf( "  . Requestion renegotiation..." );
+        fflush( stdout );
+        while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
+        {
+            if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
+                goto reset;
+            }
+        }
+    }
+
     printf( "  > Write to client:" );
     fflush( stdout );
 
@@ -1618,22 +1634,6 @@ reset:
 
     if( opt.renegotiate )
     {
-        /*
-         * Request renegotiation (this must be done when the client is still
-         * waiting for input from our side).
-         */
-        printf( "  . Requestion renegotiation..." );
-        fflush( stdout );
-        while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
-        {
-            if( ret != POLARSSL_ERR_NET_WANT_READ &&
-                ret != POLARSSL_ERR_NET_WANT_WRITE )
-            {
-                printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
-                goto reset;
-            }
-        }
-
         /*
          * Should be a while loop, not an if, but here we're not actually
          * expecting data from the client, and since we're running tests

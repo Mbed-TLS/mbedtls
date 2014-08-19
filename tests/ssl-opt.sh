@@ -868,6 +868,19 @@ run_test    "Renegotiation: DTLS, client-initiated" \
             -s "=> renegotiate" \
             -S "write hello request"
 
+run_test    "Renegotiation: DTLS, server-initiated" \
+            "$P_SRV debug_level=3 dtls=1 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 dtls=1 exchanges=2 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request"
+
 # Tests for auth_mode
 
 run_test    "Authentication: server badcert, client required" \

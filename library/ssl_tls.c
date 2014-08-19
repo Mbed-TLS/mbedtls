@@ -2027,10 +2027,18 @@ int ssl_write_record( ssl_context *ssl )
             ssl->out_msglen += 8;
             len += 8;
 
-            /* Write message_seq and update it */
-            ssl->out_msg[4] = ( ssl->handshake->msg_seq >> 8 ) & 0xFF;
-            ssl->out_msg[5] = ( ssl->handshake->msg_seq      ) & 0xFF;
-            ++( ssl->handshake->msg_seq );
+            /* Write message_seq and update it, except for HelloRequest */
+            if( ssl->out_msg[0] != SSL_HS_HELLO_REQUEST )
+            {
+                ssl->out_msg[4] = ( ssl->handshake->msg_seq >> 8 ) & 0xFF;
+                ssl->out_msg[5] = ( ssl->handshake->msg_seq      ) & 0xFF;
+                ++( ssl->handshake->msg_seq );
+            }
+            else
+            {
+                ssl->out_msg[4] = 0;
+                ssl->out_msg[5] = 0;
+            }
 
             /* We don't fragment, so frag_offset = 0 and frag_len = len */
             memset( ssl->out_msg + 6, 0x00, 3 );
@@ -2137,12 +2145,15 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
         ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
 
     /*
-     * For DTLS, we move data so that is looks like
-     * TLS handshake format to other functions.
+     * For DTLS, we move data so that is looks like TLS handshake format to
+     * other functions.
+     * Except on server after the initial handshake (wait until after
+     * update_checksum() in ssl_parse_client_hello()).
      */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        ssl->state != SSL_HANDSHAKE_OVER )
+        ! ( ssl->endpoint == SSL_IS_SERVER &&
+            ssl->state == SSL_HANDSHAKE_OVER ) )
     {
         // TODO: DTLS: check message_seq
 

@@ -902,6 +902,12 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
+        if( ssl->renegotiation == SSL_RENEGOTIATION )
+        {
+            SSL_DEBUG_MSG( 1, ( "non-handshake message during renego" ) );
+            return( POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO );
+        }
+
         SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }

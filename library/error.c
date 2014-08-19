@@ -450,6 +450,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - Internal error (eg, unexpected failure in lower-level module)" );
         if( use_ret == -(POLARSSL_ERR_SSL_COUNTER_WRAPPING) )
             snprintf( buf, buflen, "SSL - A counter would wrap (eg, too many messages exchanged)" );
+        if( use_ret == -(POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO) )
+            snprintf( buf, buflen, "SSL - Unexpected message at ServerHello in renegotiation" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)

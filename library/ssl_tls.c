@@ -4260,14 +4260,19 @@ int ssl_renegotiate( ssl_context *ssl )
  */
 int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 {
-    int ret;
+    int ret, record_read = 0;
     size_t n;
 
     SSL_DEBUG_MSG( 2, ( "=> read" ) );
 
     if( ssl->state != SSL_HANDSHAKE_OVER )
     {
-        if( ( ret = ssl_handshake( ssl ) ) != 0 )
+        ret = ssl_handshake( ssl );
+        if( ret == POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
+        {
+            record_read = 1;
+        }
+        else if( ret != 0 )
         {
             SSL_DEBUG_RET( 1, "ssl_handshake", ret );
             return( ret );
@@ -4276,13 +4281,16 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
     if( ssl->in_offt == NULL )
     {
-        if( ( ret = ssl_read_record( ssl ) ) != 0 )
+        if( ! record_read )
         {
-            if( ret == POLARSSL_ERR_SSL_CONN_EOF )
-                return( 0 );
+            if( ( ret = ssl_read_record( ssl ) ) != 0 )
+            {
+                if( ret == POLARSSL_ERR_SSL_CONN_EOF )
+                    return( 0 );
 
-            SSL_DEBUG_RET( 1, "ssl_read_record", ret );
-            return( ret );
+                SSL_DEBUG_RET( 1, "ssl_read_record", ret );
+                return( ret );
+            }
         }
 
         if( ssl->in_msglen  == 0 &&
@@ -4352,15 +4360,22 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
             else
             {
-                if( ( ret = ssl_start_renegotiation( ssl ) ) != 0 )
+                ret = ssl_start_renegotiation( ssl );
+                if( ret == POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
+                {
+                    record_read = 1;
+                }
+                else if( ret != 0 )
                 {
                     SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
                     return( ret );
                 }
             }
 
-            /* Tell the user to call ssl_read() again */
-            return( POLARSSL_ERR_NET_WANT_READ );
+            /* If a non-handshake record was read during renego, fallthrough,
+             * else tell the user they should call ssl_read() again */
+            if( ! record_read )
+                return( POLARSSL_ERR_NET_WANT_READ );
         }
         else if( ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
         {

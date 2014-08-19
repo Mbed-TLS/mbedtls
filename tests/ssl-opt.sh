@@ -627,7 +627,7 @@ run_test    "Renegotiation #4 (client-initiated, server-rejected)" \
             -c "=> renegotiate" \
             -S "=> renegotiate" \
             -S "write hello request" \
-            -c "SSL - An unexpected message was received from our peer" \
+            -c "SSL - Unexpected message at ServerHello in renegotiation" \
             -c "failed"
 
 run_test    "Renegotiation #5 (server-initiated, client-rejected, default)" \

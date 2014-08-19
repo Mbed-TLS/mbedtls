@@ -1130,7 +1130,7 @@ send_request:
                 case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
                     printf( " connection was closed gracefully\n" );
                     ret = 0;
-                    goto reconnect;
+                    goto close_notify;
 
                 case 0:
                 case POLARSSL_ERR_NET_CONN_RESET:
@@ -1165,7 +1165,32 @@ send_request:
         goto send_request;
 
     /*
-     * 7c. Reconnect?
+     * 8. Done, cleanly close the connection
+     */
+close_notify:
+    printf( "  . Closing the connection..." );
+
+    while( ( ret = ssl_close_notify( &ssl ) ) < 0 )
+    {
+        if( ret == POLARSSL_ERR_NET_CONN_RESET )
+        {
+            printf( " ok (already closed by peer)\n" );
+            ret = 0;
+            goto reconnect;
+        }
+
+        if( ret != POLARSSL_ERR_NET_WANT_READ &&
+            ret != POLARSSL_ERR_NET_WANT_WRITE )
+        {
+            printf( " failed\n  ! ssl_close_notify returned %d\n\n", ret );
+            goto reconnect;
+        }
+    }
+
+    printf( " ok\n" );
+
+    /*
+     * 9. Reconnect?
      */
 reconnect:
     if( opt.reconnect != 0 )

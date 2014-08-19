@@ -14,6 +14,8 @@ Bugfix
      renegotation was pending, and on client when a HelloRequest was received.
    * Server-initiated renegotiation would fail with non-blocking I/O if the
      write callback returned WANT_WRITE when requesting renegotiation.
+   * ssl_close_notify() could send more than one message in some circumstances
+     with non-blocking I/O.
 
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no

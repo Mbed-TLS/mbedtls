@@ -1946,6 +1946,40 @@ run_test    "DTLS cookie: enabled, IPv6" \
             -c "received hello verify request" \
             -S "SSL - The requested feature is not available"
 
+# Tests for receiving fragmented handshake messages with DTLS
+
+requires_gnutls
+run_test    "DTLS reassembly: no fragmentation (gnutls server)" \
+            "$G_SRV -u --mtu 2048 -a" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -C "found fragmented DTLS handshake message" \
+            -C "error"
+
+requires_gnutls
+run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
+            "$G_SRV -u --mtu 512" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+requires_gnutls
+run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
+            "$G_SRV -u --mtu 128" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+requires_gnutls
+run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
+            "$G_SRV -u --mtu 128" \
+            "$P_CLI dtls=1 nbio=2 debug_level=2" \
+            0 \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
 # Final report
 
 echo "------------------------------------------------------------------------"

@@ -1890,7 +1890,10 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
          * Done if we already have enough data.
          */
         if( nb_want <= ssl->in_left)
+        {
+            SSL_DEBUG_MSG( 2, ( "<= fetch input" ) );
             return( 0 );
+        }
 
         /*
          * A record can't be split accross datagrams. If we need to read but
@@ -2125,16 +2128,176 @@ int ssl_write_record( ssl_context *ssl )
 }
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
+/*
+ * Mark bits in bitmask (used for DTLS HS reassembly)
+ */
+static void ssl_bitmask_set( unsigned char *mask, size_t offset, size_t len )
+{
+    unsigned int start_bits, end_bits;
+
+    start_bits = 8 - ( offset % 8 );
+    if( start_bits != 8 )
+    {
+        size_t first_byte_idx = offset / 8;
+
+        offset += start_bits; /* Now offset % 8 == 0 */
+        len -= start_bits;
+
+        for( ; start_bits != 0; start_bits-- )
+            mask[first_byte_idx] |= 1 << ( start_bits - 1 );
+    }
+
+    end_bits = len % 8;
+    if( end_bits != 0 )
+    {
+        size_t last_byte_idx = ( offset + len ) / 8;
+
+        len -= end_bits; /* Now len % 8 == 0 */
+
+        for( ; end_bits != 0; end_bits-- )
+            mask[last_byte_idx] |= 1 << ( 8 - end_bits );
+    }
+
+    memset( mask + offset / 8, 0xFF, len / 8 );
+}
+
+/*
+ * Check that bitmask is full
+ */
+static int ssl_bitmask_check( unsigned char *mask, size_t len )
+{
+    size_t i;
+
+    for( i = 0; i < len / 8; i++ )
+        if( mask[i] != 0xFF )
+            return( -1 );
+
+    for( i = 0; i < len % 8; i++ )
+        if( ( mask[len / 8] & ( 1 << ( 7 - i ) ) ) == 0 )
+            return( -1 );
+
+    return( 0 );
+}
+
+/*
+ * Reassemble fragmented DTLS handshake messages.
+ *
+ * Use a temporary buffer for reassembly, divided in two parts:
+ * - the first holds the reassembled message (including handshake header),
+ * - the second holds a bitmask indicating which parts of the message
+ *   (excluding headers) have been received so far.
+ */
 static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
 {
+    unsigned char *msg, *bitmask;
+    size_t frag_len, frag_off;
+    size_t msg_len = ssl->in_hslen - 12; /* Without headers */
+
     if( ssl->handshake == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "not supported outside handshake (for now)" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
-    SSL_DEBUG_MSG( 1, ( "TODO (WIP)" ) );
-    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    /*
+     * For first fragment, check size and allocate buffer
+     */
+    if( ssl->handshake->hs_msg == NULL )
+    {
+        size_t alloc_len;
+
+        SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",
+                            msg_len ) );
+
+        if( ssl->in_hslen > SSL_MAX_CONTENT_LEN )
+        {
+            SSL_DEBUG_MSG( 1, ( "handshake message too large" ) );
+            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+
+        /* The bitmask needs one bit per byte of message excluding header */
+        alloc_len = 12 + msg_len + msg_len / 8 + ( msg_len % 8 != 0 );
+
+        ssl->handshake->hs_msg = polarssl_malloc( alloc_len );
+        if( ssl->handshake->hs_msg == NULL )
+        {
+            SSL_DEBUG_MSG( 1, ( "malloc failed (%d bytes)", alloc_len ) );
+            return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+        }
+
+        memset( ssl->handshake->hs_msg, 0, alloc_len );
+
+        /* Prepare final header: copy msg_type, length and message_seq,
+         * then add standardised fragment_offset and fragment_length */
+        memcpy( ssl->handshake->hs_msg, ssl->in_msg, 6 );
+        memset( ssl->handshake->hs_msg + 6, 0, 3 );
+        memcpy( ssl->handshake->hs_msg + 9,
+                ssl->handshake->hs_msg + 1, 3 );
+    }
+    else
+    {
+        /* Make sure msg_type, length, message_seq are consistent */
+        if( memcmp( ssl->handshake->hs_msg, ssl->in_msg, 6 ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "fragment header mismatch" ) );
+            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        }
+    }
+
+    msg = ssl->handshake->hs_msg + 12;
+    bitmask = msg + msg_len;
+
+    /*
+     * Check and copy current fragment
+     */
+    frag_off = ( ssl->in_msg[6]  << 16 ) |
+               ( ssl->in_msg[7]  << 8  ) |
+                 ssl->in_msg[8];
+    frag_len = ( ssl->in_msg[9]  << 16 ) |
+               ( ssl->in_msg[10] << 8  ) |
+                 ssl->in_msg[11];
+
+    if( frag_off + frag_len > msg_len )
+    {
+        SSL_DEBUG_MSG( 1, ( "invalid fragment offset/len: %d + %d > %d",
+                          frag_off, frag_len, msg_len ) );
+        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+    }
+
+    if( frag_len + 12 > ssl->in_msglen )
+    {
+        SSL_DEBUG_MSG( 1, ( "invalid fragment length: %d + 12 > %d",
+                          frag_len, ssl->in_msglen ) );
+        return( POLARSSL_ERR_SSL_INVALID_RECORD );
+    }
+
+    SSL_DEBUG_MSG( 2, ( "adding fragment, offset = %d, length = %d",
+                        frag_off, frag_len ) );
+
+    memcpy( msg + frag_off, ssl->in_msg + 12, frag_len );
+    ssl_bitmask_set( bitmask, frag_off, frag_len );
+
+    /*
+     * Do we have the complete message by now?
+     * If yes, finalize it, else ask to read the next record.
+     */
+    if( ssl_bitmask_check( bitmask, msg_len ) != 0 )
+    {
+        SSL_DEBUG_MSG( 2, ( "message is not complete yet" ) );
+        return( POLARSSL_ERR_NET_WANT_READ );
+    }
+
+    SSL_DEBUG_MSG( 2, ( "handshake message completed" ) );
+
+    memcpy( ssl->in_msg, ssl->handshake->hs_msg, ssl->in_hslen );
+
+    polarssl_free( ssl->handshake->hs_msg );
+    ssl->handshake->hs_msg = NULL;
+
+    SSL_DEBUG_BUF( 3, "reassembled handshake message",
+                   ssl->in_msg, ssl->in_hslen );
+
+    return( 0 );
 }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 
@@ -2156,10 +2319,15 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
 
         // TODO: DTLS: check message_seq
 
-        /* Is this message fragmented? */
-        if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
-            memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
+        /* Reassemble if current message is fragmented or reassembly is
+         * already in progress */
+        if( ssl->in_msglen < ssl->in_hslen ||
+            memcmp( ssl->in_msg + 6, "\0\0\0",        3 ) != 0 ||
+            memcmp( ssl->in_msg + 9, ssl->in_msg + 1, 3 ) != 0 ||
+            ( ssl->handshake != NULL && ssl->handshake->hs_msg != NULL ) )
         {
+            SSL_DEBUG_MSG( 2, ( "found fragmented DTLS handshake message" ) );
+
             if( ( ret = ssl_reassemble_dtls_handshake( ssl ) ) != 0 )
             {
                 SSL_DEBUG_RET( 1, "ssl_reassemble_dtls_handshake", ret );
@@ -4990,6 +5158,7 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     polarssl_free( handshake->verify_cookie );
+    polarssl_free( handshake->hs_msg );
 #endif
 
     polarssl_zeroize( handshake, sizeof( ssl_handshake_params ) );

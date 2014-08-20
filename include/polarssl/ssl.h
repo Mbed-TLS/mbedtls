@@ -625,6 +625,7 @@ struct _ssl_handshake_params
                                               Srv: unused                    */
     unsigned char verify_cookie_len;    /*!<  Cli: cookie length
                                               Srv: flag for sending a cookie */
+    unsigned char *hs_msg;              /*!<  Reassembled handshake message  */
 #endif
 
     /*

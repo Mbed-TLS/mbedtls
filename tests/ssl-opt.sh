@@ -14,9 +14,13 @@ set -u
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
 : ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system
+: ${GNUTLS_CLI:=gnutls-cli}
+: ${GNUTLS_SERV:=gnutls-serv}
 
 O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
+G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
+G_CLI="$GNUTLS_CLI"
 
 TESTS=0
 FAILS=0
@@ -72,6 +76,20 @@ requires_openssl_with_sslv2() {
         fi
     fi
     if [ "$OPENSSL_HAS_SSL2" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+# skip next test if GnuTLS isn't available
+requires_gnutls() {
+    if [ -z "${GNUTLS_AVAILABLE:-}" ]; then
+        if ( which "$GNUTLS_CLI" && which "$GNUTLS_SERV" ) >/dev/null; then
+            GNUTLS_AVAILABLE="YES"
+        else
+            GNUTLS_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$GNUTLS_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -320,6 +338,8 @@ P_SRV="$P_SRV server_port=$PORT"
 P_CLI="$P_CLI server_port=$PORT"
 O_SRV="$O_SRV -accept $PORT"
 O_CLI="$O_CLI -connect localhost:$PORT"
+G_SRV="$G_SRV -p $PORT"
+G_CLI="$G_CLI -p $PORT"
 
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
@@ -560,6 +580,13 @@ run_test    "Max fragment length #3" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension"
+
+run_test    "Max fragment length #4 (GnuTLS server)" \
+            "$G_SRV" \
+            "$P_CLI debug_level=4 max_frag_len=4096" \
+            0 \
+            -c "client hello, adding max_fragment_length extension" \
+            -c "found max_fragment_length extension"
 
 # Tests for renegotiation
 

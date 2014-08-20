@@ -2124,20 +2124,55 @@ int ssl_write_record( ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
+{
+    if( ssl->handshake == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "not supported outside handshake (for now)" ) );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+
+    SSL_DEBUG_MSG( 1, ( "TODO (WIP)" ) );
+    return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+
 static int ssl_prepare_handshake_record( ssl_context *ssl )
 {
     ssl->in_hslen  = ssl->transport == SSL_TRANSPORT_DATAGRAM ? 12 : 4;
-    ssl->in_hslen += ( ssl->in_msg[2] << 8 ) | ssl->in_msg[3];
+    ssl->in_hslen += ( ssl->in_msg[1] << 16 ) |
+                     ( ssl->in_msg[2] << 8  ) |
+                       ssl->in_msg[3];
 
     SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
                         " %d, type = %d, hslen = %d",
                         ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
 
-    /* We don't handle handshake messages larger than one record (for now) */
-    if( ssl->in_msg[1] != 0 ||
-        ssl->in_msglen < ssl->in_hslen )
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
-        SSL_DEBUG_MSG( 1, ( "handshake fragmentation not supported" ) );
+        int ret;
+
+        // TODO: DTLS: check message_seq
+
+        /* Is this message fragmented? */
+        if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
+            memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
+        {
+            if( ( ret = ssl_reassemble_dtls_handshake( ssl ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "ssl_reassemble_dtls_handshake", ret );
+                return( ret );
+            }
+        }
+    }
+    else
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+    /* With TLS we don't handle fragmentation (for now) */
+    if( ssl->in_msglen < ssl->in_hslen )
+    {
+        SSL_DEBUG_MSG( 1, ( "TLS handshake fragmentation not supported" ) );
         return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
@@ -2155,17 +2190,6 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
         ! ( ssl->endpoint == SSL_IS_SERVER &&
             ssl->state == SSL_HANDSHAKE_OVER ) )
     {
-        // TODO: DTLS: check message_seq
-
-        /* For now we don't support fragmentation, so make sure
-         * fragment_offset == 0 and fragment_length == length */
-        if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
-            memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "handshake fragmentation not supported" ) );
-            return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
-        }
-
         memmove( ssl->in_msg + 4, ssl->in_msg + 12, ssl->in_hslen - 12 );
         ssl->in_hslen -= 8;
     }

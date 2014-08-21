@@ -47,6 +47,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * ASN.1 DER decoding routines
  */
@@ -311,7 +316,7 @@ int asn1_get_alg( unsigned char **p,
 
     if( *p == end )
     {
-        memset( params, 0, sizeof(asn1_buf) );
+        polarssl_zeroize( params, sizeof(asn1_buf) );
         return( 0 );
     }
 
@@ -356,7 +361,7 @@ void asn1_free_named_data( asn1_named_data *cur )
     polarssl_free( cur->oid.p );
     polarssl_free( cur->val.p );
 
-    memset( cur, 0, sizeof( asn1_named_data ) );
+    polarssl_zeroize( cur, sizeof( asn1_named_data ) );
 }
 
 void asn1_free_named_data_list( asn1_named_data **head )

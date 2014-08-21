@@ -235,32 +235,33 @@ run_test() {
     fi
 
     # check other assertions
+    # lines beginning with == are added by valgrind, ignore them
     while [ $# -gt 0 ]
     do
         case $1 in
             "-s")
-                if grep "$2" $SRV_OUT >/dev/null; then :; else
+                if grep -v '^==' $SRV_OUT | grep "$2" >/dev/null; then :; else
                     fail "-s $2"
                     return
                 fi
                 ;;
 
             "-c")
-                if grep "$2" $CLI_OUT >/dev/null; then :; else
+                if grep -v '^==' $CLI_OUT | grep "$2" >/dev/null; then :; else
                     fail "-c $2"
                     return
                 fi
                 ;;
 
             "-S")
-                if grep "$2" $SRV_OUT >/dev/null; then
+                if grep -v '^==' $SRV_OUT | grep "$2" >/dev/null; then
                     fail "-S $2"
                     return
                 fi
                 ;;
 
             "-C")
-                if grep "$2" $CLI_OUT >/dev/null; then
+                if grep -v '^==' $CLI_OUT | grep "$2" >/dev/null; then
                     fail "-C $2"
                     return
                 fi
@@ -352,12 +353,20 @@ trap cleanup INT TERM HUP
 
 # Basic test
 
+# Checks that:
+# - things work with all ciphersuites active (used with config-full in all.sh)
+# - the expected (highest security) parameters are selected
+#   ("signature_algorithm ext: 6" means SHA-512 (highest common hash))
 run_test    "Default" \
-            "$P_SRV" \
+            "$P_SRV debug_level=3" \
             "$P_CLI" \
             0 \
-            -S "Last error was" \
-            -C "Last error was"
+            -s "Protocol is TLSv1.2" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            -s "client hello v3, signature_algorithm ext: 6" \
+            -s "ECDHE curve: secp521r1" \
+            -S "error" \
+            -C "error"
 
 # Test for SSLv2 ClientHello
 

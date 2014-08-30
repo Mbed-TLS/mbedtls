@@ -1193,11 +1193,10 @@ run_test    "keyUsage srv #2 (RSA, keyEncipherment -> RSA)" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-"
 
-# add psk to leave an option for client to send SERVERQUIT
 run_test    "keyUsage srv #3 (RSA, keyAgreement -> fail)" \
-            "$P_SRV psk=abc123 key_file=data_files/server2.key \
+            "$P_SRV key_file=data_files/server2.key \
              crt_file=data_files/server2.ku-ka.crt" \
-            "$P_CLI psk=badbad" \
+            "$P_CLI" \
             1 \
             -C "Ciphersuite is "
 
@@ -1216,11 +1215,10 @@ run_test    "keyUsage srv #5 (ECDSA, keyAgreement -> ECDH-)" \
             0 \
             -c "Ciphersuite is TLS-ECDH-"
 
-# add psk to leave an option for client to send SERVERQUIT
 run_test    "keyUsage srv #6 (ECDSA, keyEncipherment -> fail)" \
-            "$P_SRV psk=abc123 key_file=data_files/server5.key \
+            "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ke.crt" \
-            "$P_CLI psk=badbad" \
+            "$P_CLI" \
             1 \
             -C "Ciphersuite is "
 

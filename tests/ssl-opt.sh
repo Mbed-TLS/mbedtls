@@ -150,6 +150,23 @@ wait_server_start() {
     fi
 }
 
+# wait for client to terminate and set CLI_EXIT
+# must be called right after starting the client
+wait_client_done() {
+    CLI_PID=$!
+
+    ( sleep "$DOG_DELAY"; echo "TIMEOUT" >> $CLI_OUT; kill $CLI_PID ) &
+    WATCHDOG_PID=$!
+
+    wait $CLI_PID
+    CLI_EXIT=$?
+
+    kill $WATCHDOG_PID
+    wait $WATCHDOG_PID
+
+    echo "EXIT: $CLI_EXIT" >> $CLI_OUT
+}
+
 # Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -192,10 +209,10 @@ run_test() {
     $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
     wait_server_start
+
     echo "$CLI_CMD" > $CLI_OUT
-    eval "$CLI_CMD" >> $CLI_OUT 2>&1
-    CLI_EXIT=$?
-    echo "EXIT: $CLI_EXIT" >> $CLI_OUT
+    eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
+    wait_client_done
 
     # kill the server
     kill $SRV_PID

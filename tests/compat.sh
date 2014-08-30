@@ -806,6 +806,23 @@ cleanup() {
     exit 1
 }
 
+# wait for client to terminate and set EXIT
+# must be called right after starting the client
+wait_client_done() {
+    CLI_PID=$!
+
+    ( sleep "$DOG_DELAY"; echo "TIMEOUT" >> $CLI_OUT; kill $CLI_PID ) &
+    WATCHDOG_PID=$!
+
+    wait $CLI_PID
+    EXIT=$?
+
+    kill $WATCHDOG_PID
+    wait $WATCHDOG_PID
+
+    echo "EXIT: $EXIT" >> $CLI_OUT
+}
+
 # run_client <name> <cipher>
 run_client() {
     # announce what we're going to do
@@ -823,8 +840,8 @@ run_client() {
             CLIENT_CMD="$OPENSSL_CMD s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
-            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1
-            EXIT=$?
+            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1 &
+            wait_client_done
 
             if [ "$EXIT" == "0" ]; then
                 RESULT=0
@@ -841,8 +858,8 @@ run_client() {
             CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 localhost"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
-            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1
-            EXIT=$?
+            ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1 &
+            wait_client_done
 
             if [ "$EXIT" == "0" ]; then
                 RESULT=0
@@ -866,8 +883,8 @@ run_client() {
             fi
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
-            $CLIENT_CMD >> $CLI_OUT 2>&1
-            EXIT=$?
+            $CLIENT_CMD >> $CLI_OUT 2>&1 &
+            wait_client_done
 
             case $EXIT in
                 "0")    RESULT=0    ;;
@@ -961,6 +978,13 @@ PORT="1$(echo $PORT | tail -c 5)"
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"
+
+# client timeout delay: be more patient with valgrind
+if [ "$MEMCHECK" -gt 0 ]; then
+    DOG_DELAY=30
+else
+    DOG_DELAY=10
+fi
 
 trap cleanup INT TERM HUP
 

@@ -69,7 +69,7 @@ get_options() {
 # skip next test if OpenSSL can't send SSLv2 ClientHello
 requires_openssl_with_sslv2() {
     if [ -z "${OPENSSL_HAS_SSL2:-}" ]; then
-        if openssl ciphers -ssl2 >/dev/null 2>&1; then
+        if $OPENSSL_CMD ciphers -ssl2 >/dev/null 2>&1; then
             OPENSSL_HAS_SSL2="YES"
         else
             OPENSSL_HAS_SSL2="NO"

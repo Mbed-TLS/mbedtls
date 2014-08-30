@@ -771,6 +771,28 @@ run_test    "Renegotiation #11 (nbio, enabled, server-initiated)" \
             -s "=> renegotiate" \
             -s "write hello request"
 
+run_test    "Renegotiation #12 (openssl server)" \
+            "$O_SRV" \
+            "$P_CLI debug_level=4 exchanges=1 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -C "ssl_handshake returned" \
+            -C "error" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
+
+run_test    "Renegotiation #13 (gnutls server)" \
+            "$G_SRV" \
+            "$P_CLI debug_level=4 exchanges=1 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -C "ssl_handshake returned" \
+            -C "error" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
+
 # Tests for auth_mode
 
 run_test    "Authentication #1 (server badcert, client required)" \

@@ -954,9 +954,6 @@ for PEER in $PEERS; do
     esac
 done
 
-# used by watchdog
-MAIN_PID="$$"
-
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"
 PORT="1$(echo $PORT | tail -c 5)"

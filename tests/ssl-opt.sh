@@ -381,7 +381,7 @@ run_test    "SSLv2 ClientHello: reference" \
 # Adding a SSL2-only suite makes OpenSSL client send SSLv2 ClientHello
 requires_openssl_with_sslv2
 run_test    "SSLv2 ClientHello: actual test" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=2" \
             "$O_CLI -cipher 'DES-CBC-MD5:ALL'" \
             0 \
             -s "parse client hello v2" \
@@ -390,13 +390,13 @@ run_test    "SSLv2 ClientHello: actual test" \
 # Tests for Truncated HMAC extension
 
 run_test    "Truncated HMAC: reference" \
-            "$P_SRV debug_level=5" \
+            "$P_SRV debug_level=4" \
             "$P_CLI trunc_hmac=0 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -s "dumping 'computed mac' (20 bytes)"
 
 run_test    "Truncated HMAC: actual test" \
-            "$P_SRV debug_level=5" \
+            "$P_SRV debug_level=4" \
             "$P_CLI trunc_hmac=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -s "dumping 'computed mac' (10 bytes)"
@@ -404,8 +404,8 @@ run_test    "Truncated HMAC: actual test" \
 # Tests for Session Tickets
 
 run_test    "Session resume using tickets: basic" \
-            "$P_SRV debug_level=4 tickets=1" \
-            "$P_CLI debug_level=4 tickets=1 reconnect=1" \
+            "$P_SRV debug_level=3 tickets=1" \
+            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -418,8 +418,8 @@ run_test    "Session resume using tickets: basic" \
             -c "a session has been resumed"
 
 run_test    "Session resume using tickets: cache disabled" \
-            "$P_SRV debug_level=4 tickets=1 cache_max=0" \
-            "$P_CLI debug_level=4 tickets=1 reconnect=1" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0" \
+            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -432,8 +432,8 @@ run_test    "Session resume using tickets: cache disabled" \
             -c "a session has been resumed"
 
 run_test    "Session resume using tickets: timeout" \
-            "$P_SRV debug_level=4 tickets=1 cache_max=0 ticket_timeout=1" \
-            "$P_CLI debug_level=4 tickets=1 reconnect=1 reco_delay=2" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0 ticket_timeout=1" \
+            "$P_CLI debug_level=3 tickets=1 reconnect=1 reco_delay=2" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -447,7 +447,7 @@ run_test    "Session resume using tickets: timeout" \
 
 run_test    "Session resume using tickets: openssl server" \
             "$O_SRV" \
-            "$P_CLI debug_level=4 tickets=1 reconnect=1" \
+            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -c "found session_ticket extension" \
@@ -455,7 +455,7 @@ run_test    "Session resume using tickets: openssl server" \
             -c "a session has been resumed"
 
 run_test    "Session resume using tickets: openssl client" \
-            "$P_SRV debug_level=4 tickets=1" \
+            "$P_SRV debug_level=3 tickets=1" \
             "( $O_CLI -sess_out $SESSION; \
                $O_CLI -sess_in $SESSION; \
                rm -f $SESSION )" \
@@ -469,8 +469,8 @@ run_test    "Session resume using tickets: openssl client" \
 # Tests for Session Resume based on session-ID and cache
 
 run_test    "Session resume using cache: tickets enabled on client" \
-            "$P_SRV debug_level=4 tickets=0" \
-            "$P_CLI debug_level=4 tickets=1 reconnect=1" \
+            "$P_SRV debug_level=3 tickets=0" \
+            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -483,8 +483,8 @@ run_test    "Session resume using cache: tickets enabled on client" \
             -c "a session has been resumed"
 
 run_test    "Session resume using cache: tickets enabled on server" \
-            "$P_SRV debug_level=4 tickets=1" \
-            "$P_CLI debug_level=4 tickets=0 reconnect=1" \
+            "$P_SRV debug_level=3 tickets=1" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
             0 \
             -C "client hello, adding session ticket extension" \
             -S "found session ticket extension" \
@@ -497,8 +497,8 @@ run_test    "Session resume using cache: tickets enabled on server" \
             -c "a session has been resumed"
 
 run_test    "Session resume using cache: cache_max=0" \
-            "$P_SRV debug_level=4 tickets=0 cache_max=0" \
-            "$P_CLI debug_level=4 tickets=0 reconnect=1" \
+            "$P_SRV debug_level=3 tickets=0 cache_max=0" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -506,8 +506,8 @@ run_test    "Session resume using cache: cache_max=0" \
             -C "a session has been resumed"
 
 run_test    "Session resume using cache: cache_max=1" \
-            "$P_SRV debug_level=4 tickets=0 cache_max=1" \
-            "$P_CLI debug_level=4 tickets=0 reconnect=1" \
+            "$P_SRV debug_level=3 tickets=0 cache_max=1" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -515,8 +515,8 @@ run_test    "Session resume using cache: cache_max=1" \
             -c "a session has been resumed"
 
 run_test    "Session resume using cache: timemout > delay" \
-            "$P_SRV debug_level=4 tickets=0" \
-            "$P_CLI debug_level=4 tickets=0 reconnect=1 reco_delay=0" \
+            "$P_SRV debug_level=3 tickets=0" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -524,8 +524,8 @@ run_test    "Session resume using cache: timemout > delay" \
             -c "a session has been resumed"
 
 run_test    "Session resume using cache: timeout < delay" \
-            "$P_SRV debug_level=4 tickets=0 cache_timeout=1" \
-            "$P_CLI debug_level=4 tickets=0 reconnect=1 reco_delay=2" \
+            "$P_SRV debug_level=3 tickets=0 cache_timeout=1" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -533,8 +533,8 @@ run_test    "Session resume using cache: timeout < delay" \
             -C "a session has been resumed"
 
 run_test    "Session resume using cache: no timeout" \
-            "$P_SRV debug_level=4 tickets=0 cache_timeout=0" \
-            "$P_CLI debug_level=4 tickets=0 reconnect=1 reco_delay=2" \
+            "$P_SRV debug_level=3 tickets=0 cache_timeout=0" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -542,7 +542,7 @@ run_test    "Session resume using cache: no timeout" \
             -c "a session has been resumed"
 
 run_test    "Session resume using cache: openssl client" \
-            "$P_SRV debug_level=4 tickets=0" \
+            "$P_SRV debug_level=3 tickets=0" \
             "( $O_CLI -sess_out $SESSION; \
                $O_CLI -sess_in $SESSION; \
                rm -f $SESSION )" \
@@ -555,7 +555,7 @@ run_test    "Session resume using cache: openssl client" \
 
 run_test    "Session resume using cache: openssl server" \
             "$O_SRV" \
-            "$P_CLI debug_level=4 tickets=0 reconnect=1" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
             0 \
             -C "found session_ticket extension" \
             -C "parse new session ticket" \
@@ -564,8 +564,8 @@ run_test    "Session resume using cache: openssl server" \
 # Tests for Max Fragment Length extension
 
 run_test    "Max fragment length: not used, reference" \
-            "$P_SRV debug_level=4" \
-            "$P_CLI debug_level=4" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
             0 \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
@@ -573,8 +573,8 @@ run_test    "Max fragment length: not used, reference" \
             -C "found max_fragment_length extension"
 
 run_test    "Max fragment length: used by client" \
-            "$P_SRV debug_level=4" \
-            "$P_CLI debug_level=4 max_frag_len=4096" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
@@ -582,8 +582,8 @@ run_test    "Max fragment length: used by client" \
             -c "found max_fragment_length extension"
 
 run_test    "Max fragment length: used by server" \
-            "$P_SRV debug_level=4 max_frag_len=4096" \
-            "$P_CLI debug_level=4" \
+            "$P_SRV debug_level=3 max_frag_len=4096" \
+            "$P_CLI debug_level=3" \
             0 \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
@@ -593,7 +593,7 @@ run_test    "Max fragment length: used by server" \
 requires_gnutls
 run_test    "Max fragment length: gnutls server" \
             "$G_SRV" \
-            "$P_CLI debug_level=4 max_frag_len=4096" \
+            "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
             -c "client hello, adding max_fragment_length extension" \
             -c "found max_fragment_length extension"
@@ -601,8 +601,8 @@ run_test    "Max fragment length: gnutls server" \
 # Tests for renegotiation
 
 run_test    "Renegotiation: none, for reference" \
-            "$P_SRV debug_level=4 exchanges=2" \
-            "$P_CLI debug_level=4 exchanges=2" \
+            "$P_SRV debug_level=3 exchanges=2" \
+            "$P_CLI debug_level=3 exchanges=2" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -614,8 +614,8 @@ run_test    "Renegotiation: none, for reference" \
             -S "write hello request"
 
 run_test    "Renegotiation: client-initiated" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=1" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -627,8 +627,8 @@ run_test    "Renegotiation: client-initiated" \
             -S "write hello request"
 
 run_test    "Renegotiation: server-initiated" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=1" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -640,8 +640,8 @@ run_test    "Renegotiation: server-initiated" \
             -s "write hello request"
 
 run_test    "Renegotiation: double" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -653,8 +653,8 @@ run_test    "Renegotiation: double" \
             -s "write hello request"
 
 run_test    "Renegotiation: client-initiated, server-rejected" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=0" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=0" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             1 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -668,8 +668,8 @@ run_test    "Renegotiation: client-initiated, server-rejected" \
             -c "failed"
 
 run_test    "Renegotiation: server-initiated, client-rejected, default" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=0" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -683,9 +683,9 @@ run_test    "Renegotiation: server-initiated, client-rejected, default" \
             -S "failed"
 
 run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1 \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=-1" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=0" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -700,9 +700,9 @@ run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
 
 # delay 2 for 1 alert record + 1 application data record
 run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1 \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=2" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=0" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -716,9 +716,9 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
             -S "failed"
 
 run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1 \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=0" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=0" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -731,9 +731,9 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
             -s "SSL - An unexpected message was received from our peer"
 
 run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
-            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 renegotiate=1 \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=0" \
-            "$P_CLI debug_level=4 exchanges=2 renegotiation=1" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -747,8 +747,8 @@ run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             -S "failed"
 
 run_test    "Renegotiation: nbio, client-initiated" \
-            "$P_SRV debug_level=4 nbio=2 exchanges=2 renegotiation=1" \
-            "$P_CLI debug_level=4 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1" \
+            "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -760,8 +760,8 @@ run_test    "Renegotiation: nbio, client-initiated" \
             -S "write hello request"
 
 run_test    "Renegotiation: nbio, server-initiated" \
-            "$P_SRV debug_level=4 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
-            "$P_CLI debug_level=4 nbio=2 exchanges=2 renegotiation=1" \
+            "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -774,7 +774,7 @@ run_test    "Renegotiation: nbio, server-initiated" \
 
 run_test    "Renegotiation: openssl server, client-initiated" \
             "$O_SRV" \
-            "$P_CLI debug_level=4 exchanges=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
@@ -785,7 +785,7 @@ run_test    "Renegotiation: openssl server, client-initiated" \
 
 run_test    "Renegotiation: gnutls server, client-initiated" \
             "$G_SRV" \
-            "$P_CLI debug_level=4 exchanges=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
@@ -799,7 +799,7 @@ run_test    "Renegotiation: gnutls server, client-initiated" \
 run_test    "Authentication: server badcert, client required" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
-            "$P_CLI debug_level=2 auth_mode=required" \
+            "$P_CLI debug_level=1 auth_mode=required" \
             1 \
             -c "x509_verify_cert() returned" \
             -c "! self-signed or not signed by a trusted CA" \
@@ -809,7 +809,7 @@ run_test    "Authentication: server badcert, client required" \
 run_test    "Authentication: server badcert, client optional" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
-            "$P_CLI debug_level=2 auth_mode=optional" \
+            "$P_CLI debug_level=1 auth_mode=optional" \
             0 \
             -c "x509_verify_cert() returned" \
             -c "! self-signed or not signed by a trusted CA" \
@@ -819,7 +819,7 @@ run_test    "Authentication: server badcert, client optional" \
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
-            "$P_CLI debug_level=2 auth_mode=none" \
+            "$P_CLI debug_level=1 auth_mode=none" \
             0 \
             -C "x509_verify_cert() returned" \
             -C "! self-signed or not signed by a trusted CA" \
@@ -827,8 +827,8 @@ run_test    "Authentication: server badcert, client none" \
             -C "X509 - Certificate verification failed"
 
 run_test    "Authentication: client badcert, server required" \
-            "$P_SRV debug_level=4 auth_mode=required" \
-            "$P_CLI debug_level=4 crt_file=data_files/server5-badsign.crt \
+            "$P_SRV debug_level=3 auth_mode=required" \
+            "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
             1 \
             -S "skip write certificate request" \
@@ -844,8 +844,8 @@ run_test    "Authentication: client badcert, server required" \
             -s "X509 - Certificate verification failed"
 
 run_test    "Authentication: client badcert, server optional" \
-            "$P_SRV debug_level=4 auth_mode=optional" \
-            "$P_CLI debug_level=4 crt_file=data_files/server5-badsign.crt \
+            "$P_SRV debug_level=3 auth_mode=optional" \
+            "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
             0 \
             -S "skip write certificate request" \
@@ -861,8 +861,8 @@ run_test    "Authentication: client badcert, server optional" \
             -S "X509 - Certificate verification failed"
 
 run_test    "Authentication: client badcert, server none" \
-            "$P_SRV debug_level=4 auth_mode=none" \
-            "$P_CLI debug_level=4 crt_file=data_files/server5-badsign.crt \
+            "$P_SRV debug_level=3 auth_mode=none" \
+            "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
             0 \
             -s "skip write certificate request" \
@@ -878,8 +878,8 @@ run_test    "Authentication: client badcert, server none" \
             -S "X509 - Certificate verification failed"
 
 run_test    "Authentication: client no cert, server optional" \
-            "$P_SRV debug_level=4 auth_mode=optional" \
-            "$P_CLI debug_level=4 crt_file=none key_file=none" \
+            "$P_SRV debug_level=3 auth_mode=optional" \
+            "$P_CLI debug_level=3 crt_file=none key_file=none" \
             0 \
             -S "skip write certificate request" \
             -C "skip parse certificate request" \
@@ -895,7 +895,7 @@ run_test    "Authentication: client no cert, server optional" \
             -S "X509 - Certificate verification failed"
 
 run_test    "Authentication: openssl client no cert, server optional" \
-            "$P_SRV debug_level=4 auth_mode=optional" \
+            "$P_SRV debug_level=3 auth_mode=optional" \
             "$O_CLI" \
             0 \
             -S "skip write certificate request" \
@@ -906,7 +906,7 @@ run_test    "Authentication: openssl client no cert, server optional" \
 
 run_test    "Authentication: client no cert, openssl server optional" \
             "$O_SRV -verify 10" \
-            "$P_CLI debug_level=4 crt_file=none key_file=none" \
+            "$P_CLI debug_level=3 crt_file=none key_file=none" \
             0 \
             -C "skip parse certificate request" \
             -c "got a certificate request" \
@@ -915,8 +915,8 @@ run_test    "Authentication: client no cert, openssl server optional" \
             -C "! ssl_handshake returned"
 
 run_test    "Authentication: client no cert, ssl3" \
-            "$P_SRV debug_level=4 auth_mode=optional force_version=ssl3" \
-            "$P_CLI debug_level=4 crt_file=none key_file=none" \
+            "$P_SRV debug_level=3 auth_mode=optional force_version=ssl3" \
+            "$P_CLI debug_level=3 crt_file=none key_file=none" \
             0 \
             -S "skip write certificate request" \
             -C "skip parse certificate request" \
@@ -934,7 +934,7 @@ run_test    "Authentication: client no cert, ssl3" \
 # tests for SNI
 
 run_test    "SNI: no SNI callback" \
-            "$P_SRV debug_level=4 server_addr=127.0.0.1 \
+            "$P_SRV debug_level=3 server_addr=127.0.0.1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             "$P_CLI debug_level=0 server_addr=127.0.0.1 \
              server_name=localhost" \
@@ -944,7 +944,7 @@ run_test    "SNI: no SNI callback" \
              -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 run_test    "SNI: matching cert 1" \
-            "$P_SRV debug_level=4 server_addr=127.0.0.1 \
+            "$P_SRV debug_level=3 server_addr=127.0.0.1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
             "$P_CLI debug_level=0 server_addr=127.0.0.1 \
@@ -955,7 +955,7 @@ run_test    "SNI: matching cert 1" \
              -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 run_test    "SNI: matching cert 2" \
-            "$P_SRV debug_level=4 server_addr=127.0.0.1 \
+            "$P_SRV debug_level=3 server_addr=127.0.0.1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
             "$P_CLI debug_level=0 server_addr=127.0.0.1 \
@@ -966,7 +966,7 @@ run_test    "SNI: matching cert 2" \
              -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
 
 run_test    "SNI: no matching cert" \
-            "$P_SRV debug_level=4 server_addr=127.0.0.1 \
+            "$P_SRV debug_level=3 server_addr=127.0.0.1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key" \
             "$P_CLI debug_level=0 server_addr=127.0.0.1 \
@@ -1113,8 +1113,8 @@ run_test    "Version check: srv min 1.2, cli max 1.1 -> fail" \
 if grep '^#define POLARSSL_SSL_ALPN' $CONFIG_H >/dev/null; then
 
 run_test    "ALPN: none" \
-            "$P_SRV debug_level=4" \
-            "$P_CLI debug_level=4" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
             0 \
             -C "client hello, adding alpn extension" \
             -S "found alpn extension" \
@@ -1125,8 +1125,8 @@ run_test    "ALPN: none" \
             -S "Application Layer Protocol is"
 
 run_test    "ALPN: client only" \
-            "$P_SRV debug_level=4" \
-            "$P_CLI debug_level=4 alpn=abc,1234" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 alpn=abc,1234" \
             0 \
             -c "client hello, adding alpn extension" \
             -s "found alpn extension" \
@@ -1137,8 +1137,8 @@ run_test    "ALPN: client only" \
             -S "Application Layer Protocol is"
 
 run_test    "ALPN: server only" \
-            "$P_SRV debug_level=4 alpn=abc,1234" \
-            "$P_CLI debug_level=4" \
+            "$P_SRV debug_level=3 alpn=abc,1234" \
+            "$P_CLI debug_level=3" \
             0 \
             -C "client hello, adding alpn extension" \
             -S "found alpn extension" \
@@ -1149,8 +1149,8 @@ run_test    "ALPN: server only" \
             -s "Application Layer Protocol is (none)"
 
 run_test    "ALPN: both, common cli1-srv1" \
-            "$P_SRV debug_level=4 alpn=abc,1234" \
-            "$P_CLI debug_level=4 alpn=abc,1234" \
+            "$P_SRV debug_level=3 alpn=abc,1234" \
+            "$P_CLI debug_level=3 alpn=abc,1234" \
             0 \
             -c "client hello, adding alpn extension" \
             -s "found alpn extension" \
@@ -1161,8 +1161,8 @@ run_test    "ALPN: both, common cli1-srv1" \
             -s "Application Layer Protocol is abc"
 
 run_test    "ALPN: both, common cli2-srv1" \
-            "$P_SRV debug_level=4 alpn=abc,1234" \
-            "$P_CLI debug_level=4 alpn=1234,abc" \
+            "$P_SRV debug_level=3 alpn=abc,1234" \
+            "$P_CLI debug_level=3 alpn=1234,abc" \
             0 \
             -c "client hello, adding alpn extension" \
             -s "found alpn extension" \
@@ -1173,8 +1173,8 @@ run_test    "ALPN: both, common cli2-srv1" \
             -s "Application Layer Protocol is abc"
 
 run_test    "ALPN: both, common cli1-srv2" \
-            "$P_SRV debug_level=4 alpn=abc,1234" \
-            "$P_CLI debug_level=4 alpn=1234,abcde" \
+            "$P_SRV debug_level=3 alpn=abc,1234" \
+            "$P_CLI debug_level=3 alpn=1234,abcde" \
             0 \
             -c "client hello, adding alpn extension" \
             -s "found alpn extension" \
@@ -1185,8 +1185,8 @@ run_test    "ALPN: both, common cli1-srv2" \
             -s "Application Layer Protocol is 1234"
 
 run_test    "ALPN: both, no common" \
-            "$P_SRV debug_level=4 alpn=abc,123" \
-            "$P_CLI debug_level=4 alpn=1234,abcde" \
+            "$P_SRV debug_level=3 alpn=abc,123" \
+            "$P_CLI debug_level=3 alpn=1234,abcde" \
             1 \
             -c "client hello, adding alpn extension" \
             -s "found alpn extension" \
@@ -1251,7 +1251,7 @@ run_test    "keyUsage srv: ECDSA, keyEncipherment -> fail" \
 run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, RSA: OK" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ds_ke.crt" \
-            "$P_CLI debug_level=2 \
+            "$P_CLI debug_level=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -C "bad certificate (usage extensions)" \
@@ -1261,7 +1261,7 @@ run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, RSA: OK" \
 run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, DHE-RSA: OK" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ds_ke.crt" \
-            "$P_CLI debug_level=2 \
+            "$P_CLI debug_level=1 \
              force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -C "bad certificate (usage extensions)" \
@@ -1271,7 +1271,7 @@ run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, DHE-RSA: OK" \
 run_test    "keyUsage cli: KeyEncipherment, RSA: OK" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
-            "$P_CLI debug_level=2 \
+            "$P_CLI debug_level=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -C "bad certificate (usage extensions)" \
@@ -1281,7 +1281,7 @@ run_test    "keyUsage cli: KeyEncipherment, RSA: OK" \
 run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
-            "$P_CLI debug_level=2 \
+            "$P_CLI debug_level=1 \
              force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
             1 \
             -c "bad certificate (usage extensions)" \
@@ -1291,7 +1291,7 @@ run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
 run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
-            "$P_CLI debug_level=2 \
+            "$P_CLI debug_level=1 \
              force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -C "bad certificate (usage extensions)" \
@@ -1301,7 +1301,7 @@ run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
 run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
-            "$P_CLI debug_level=2 \
+            "$P_CLI debug_level=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             1 \
             -c "bad certificate (usage extensions)" \
@@ -1312,7 +1312,7 @@ run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
 # server-side checking of client cert
 
 run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
-            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
             0 \
@@ -1320,7 +1320,7 @@ run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
             -S "Processing of the Certificate handshake message failed"
 
 run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (soft)" \
-            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
             0 \
@@ -1328,7 +1328,7 @@ run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (soft)" \
             -S "Processing of the Certificate handshake message failed"
 
 run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (hard)" \
-            "$P_SRV debug_level=2 auth_mode=required" \
+            "$P_SRV debug_level=1 auth_mode=required" \
             "$O_CLI -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
             1 \
@@ -1336,7 +1336,7 @@ run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (hard)" \
             -s "Processing of the Certificate handshake message failed"
 
 run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
-            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.ku-ds.crt" \
             0 \
@@ -1344,7 +1344,7 @@ run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
             -S "Processing of the Certificate handshake message failed"
 
 run_test    "keyUsage cli-auth: ECDSA, KeyAgreement: fail (soft)" \
-            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.ku-ka.crt" \
             0 \
@@ -1383,7 +1383,7 @@ run_test    "extKeyUsage srv: codeSign -> fail" \
 run_test    "extKeyUsage cli: serverAuth -> OK" \
             "$O_SRV -key data_files/server5.key \
              -cert data_files/server5.eku-srv.crt" \
-            "$P_CLI debug_level=2" \
+            "$P_CLI debug_level=1" \
             0 \
             -C "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
@@ -1392,7 +1392,7 @@ run_test    "extKeyUsage cli: serverAuth -> OK" \
 run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
             "$O_SRV -key data_files/server5.key \
              -cert data_files/server5.eku-srv_cli.crt" \
-            "$P_CLI debug_level=2" \
+            "$P_CLI debug_level=1" \
             0 \
             -C "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
@@ -1401,7 +1401,7 @@ run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
 run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
             "$O_SRV -key data_files/server5.key \
              -cert data_files/server5.eku-cs_any.crt" \
-            "$P_CLI debug_level=2" \
+            "$P_CLI debug_level=1" \
             0 \
             -C "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
@@ -1410,7 +1410,7 @@ run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
 run_test    "extKeyUsage cli: codeSign -> fail" \
             "$O_SRV -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
-            "$P_CLI debug_level=2" \
+            "$P_CLI debug_level=1" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
@@ -1419,7 +1419,7 @@ run_test    "extKeyUsage cli: codeSign -> fail" \
 # Tests for extendedKeyUsage, part 3: server-side checking of client cert
 
 run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
-            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.eku-cli.crt" \
             0 \
@@ -1427,7 +1427,7 @@ run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
-            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.eku-srv_cli.crt" \
             0 \
@@ -1435,7 +1435,7 @@ run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
-            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.eku-cs_any.crt" \
             0 \
@@ -1443,7 +1443,7 @@ run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
-            "$P_SRV debug_level=2 auth_mode=optional" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
             0 \
@@ -1451,7 +1451,7 @@ run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
             -S "Processing of the Certificate handshake message failed"
 
 run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
-            "$P_SRV debug_level=2 auth_mode=required" \
+            "$P_SRV debug_level=1 auth_mode=required" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
             1 \

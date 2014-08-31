@@ -97,12 +97,11 @@ requires_gnutls() {
 # print_name <name>
 print_name() {
     echo -n "$1 "
-    LEN=`echo "$1" | wc -c`
-    LEN=`echo 72 - $LEN | bc`
+    LEN=$(( 72 - `echo "$1" | wc -c` ))
     for i in `seq 1 $LEN`; do echo -n '.'; done
     echo -n ' '
 
-    TESTS=`echo $TESTS + 1 | bc`
+    TESTS=$(( $TESTS + 1 ))
 }
 
 # fail <message>
@@ -114,7 +113,7 @@ fail() {
     cp $CLI_OUT o-cli-${TESTS}.log
     echo "  ! outputs saved to o-srv-${TESTS}.log and o-cli-${TESTS}.log"
 
-    FAILS=`echo $FAILS + 1 | bc`
+    FAILS=$(( $FAILS + 1 ))
 }
 
 # is_polar <cmd_line>
@@ -190,7 +189,7 @@ run_test() {
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
         echo "SKIP"
-        SKIPS=`echo $SKIPS + 1 | bc`
+        SKIPS=$(( $SKIPS + 1 ))
         return
     fi
 
@@ -1845,7 +1844,7 @@ if [ $FAILS = 0 ]; then
 else
     echo -n "FAILED"
 fi
-PASSES=`echo $TESTS - $FAILS | bc`
+PASSES=$(( $TESTS - $FAILS ))
 echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
 
 exit $FAILS

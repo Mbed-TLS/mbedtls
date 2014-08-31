@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Test interop with OpenSSL and GnuTLS (and self-op while at it).
 #
@@ -19,10 +19,10 @@ else
 fi
 
 # initialise counters
-let "tests = 0"
-let "failed = 0"
-let "skipped = 0"
-let "srvmem = 0"
+TESTS=0
+FAILED=0
+SKIPPED=0
+SRVMEM=0
 
 # default commands, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
@@ -791,7 +791,7 @@ stop_server() {
     if [ "$MEMCHECK" -gt 0 ]; then
         if is_polar "$SERVER_CMD" && has_mem_err $SRV_OUT; then
             echo "  ! Server had memory errors"
-            let "srvmem++"
+            SRVMEM=$(( $SRVMEM + 1 ))
             return
         fi
     fi
@@ -826,12 +826,12 @@ wait_client_done() {
 # run_client <name> <cipher>
 run_client() {
     # announce what we're going to do
-    let "tests++"
+    TESTS=$(( $TESTS + 1 ))
     VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-    TITLE="${1:0:1}->${SERVER_NAME:0:1} $MODE,$VERIF $2"
+    TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
+    TITLE="$TITLE $MODE,$VERIF $2"
     echo -n "$TITLE "
-    LEN=`echo "$TITLE" | wc -c`
-    LEN=`echo 72 - $LEN | bc`
+    LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
     for i in `seq 1 $LEN`; do echo -n '.'; done; echo -n ' '
 
     # run the command and interpret result
@@ -843,7 +843,7 @@ run_client() {
             ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1 &
             wait_client_done
 
-            if [ "$EXIT" == "0" ]; then
+            if [ $EXIT -eq 0 ]; then
                 RESULT=0
             else
                 if grep 'Cipher is (NONE)' $CLI_OUT >/dev/null; then
@@ -861,7 +861,7 @@ run_client() {
             ( echo -e 'GET HTTP/1.0'; echo; ) | $CLIENT_CMD >> $CLI_OUT 2>&1 &
             wait_client_done
 
-            if [ "$EXIT" == "0" ]; then
+            if [ $EXIT -eq 0 ]; then
                 RESULT=0
             else
                 RESULT=2
@@ -915,14 +915,14 @@ run_client() {
             ;;
         "1")
             echo SKIP
-            let "skipped++"
+            SKIPPED=$(( $SKIPPED + 1 ))
             ;;
         "2")
             echo FAIL
-            cp $SRV_OUT c-srv-${tests}.log
-            cp $CLI_OUT c-cli-${tests}.log
-            echo "  ! outputs saved to c-srv-${tests}.log, c-cli-${tests}.log"
-            let "failed++"
+            cp $SRV_OUT c-srv-${TESTS}.log
+            cp $CLI_OUT c-cli-${TESTS}.log
+            echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
+            FAILED=$(( $FAILED + 1 ))
             ;;
     esac
 
@@ -1080,7 +1080,7 @@ done
 
 echo "------------------------------------------------------------------------"
 
-if (( failed != 0 || srvmem != 0 ));
+if [ $FAILED -ne 0 -o $SRVMEM -ne 0 ];
 then
     echo -n "FAILED"
 else
@@ -1088,13 +1088,13 @@ else
 fi
 
 if [ "$MEMCHECK" -gt 0 ]; then
-    MEMREPORT=", $srvmem server memory errors"
+    MEMREPORT=", $SRVMEM server memory errors"
 else
     MEMREPORT=""
 fi
 
-let "passed = tests - failed"
-echo " ($passed / $tests tests ($skipped skipped$MEMREPORT))"
+PASSED=$(( $TESTS - $FAILED ))
+echo " ($PASSED / $TESTS tests ($SKIPPED skipped$MEMREPORT))"
 
-let "failed += srvmem"
-exit $failed
+FAILED=$(( $FAILED + $SRVMEM ))
+exit $FAILED

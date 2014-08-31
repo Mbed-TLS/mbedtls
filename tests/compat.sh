@@ -926,6 +926,15 @@ run_client() {
             cp $SRV_OUT c-srv-${TESTS}.log
             cp $CLI_OUT c-cli-${TESTS}.log
             echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
+
+            if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot ]; then
+                echo "  ! server output:"
+                cat c-srv-${TESTS}.log
+                echo "  ! ==================================================="
+                echo "  ! client output:"
+                cat c-cli-${TESTS}.log
+            fi
+
             FAILED=$(( $FAILED + 1 ))
             ;;
     esac

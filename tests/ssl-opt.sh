@@ -113,6 +113,14 @@ fail() {
     mv $CLI_OUT o-cli-${TESTS}.log
     echo "  ! outputs saved to o-srv-${TESTS}.log and o-cli-${TESTS}.log"
 
+    if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot ]; then
+        echo "  ! server output:"
+        cat o-srv-${TESTS}.log
+        echo "  ! ============================================================"
+        echo "  ! client output:"
+        cat o-cli-${TESTS}.log
+    fi
+
     FAILS=$(( $FAILS + 1 ))
 }
 

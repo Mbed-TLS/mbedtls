@@ -17,7 +17,7 @@ set -u
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 
-O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+O_SRV="$OPENSSL_CMD s_server -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 G_CLI="$GNUTLS_CLI"
@@ -250,7 +250,8 @@ run_test() {
 
     # run the commands
     echo "$SRV_CMD" > $SRV_OUT
-    $SRV_CMD >> $SRV_OUT 2>&1 &
+    # for servers without -www, eg openssl with DTLS
+    yes blabla | $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
     wait_server_start
 
@@ -834,7 +835,7 @@ run_test    "Renegotiation: nbio, server-initiated" \
             -s "write hello request"
 
 run_test    "Renegotiation: openssl server, client-initiated" \
-            "$O_SRV" \
+            "$O_SRV -www" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -1979,6 +1980,37 @@ run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
+
+run_test    "DTLS reassembly: no fragmentation (openssl server)" \
+            "$O_SRV -dtls1 -mtu 2048" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -C "found fragmented DTLS handshake message" \
+            -C "error"
+
+# Not working yet
+#run_test    "DTLS reassembly: fragmentation (openssl server)" \
+#            "$O_SRV -dtls1 -mtu 256" \
+#            "$P_CLI dtls=1 debug_level=2" \
+#            0 \
+#            -c "found fragmented DTLS handshake message" \
+#            -C "error"
+#
+#run_test    "DTLS reassembly: fragmentation (openssl server)" \
+#            "$O_SRV -dtls1 -mtu 256" \
+#            "$P_CLI dtls=1 debug_level=2" \
+#            0 \
+#            -c "found fragmented DTLS handshake message" \
+#            -C "error"
+#
+#run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
+#            "$O_SRV -dtls1 -mtu 256" \
+#            "$P_CLI dtls=1 nbio=2 debug_level=2" \
+#            0 \
+#            -c "found fragmented DTLS handshake message" \
+#            -C "error"
+
+# TODO: fragmentation with renegotiation, openssl + gnutls
 
 # Final report
 

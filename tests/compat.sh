@@ -783,7 +783,7 @@ start_server() {
     sleep 1
 }
 
-# terminate the running server (closing it cleanly if it is ours)
+# terminate the running server
 stop_server() {
     kill $PROCESS_ID 2>/dev/null
     wait $PROCESS_ID 2>/dev/null
@@ -802,7 +802,8 @@ stop_server() {
 # kill the running server (used when killed by signal)
 cleanup() {
     rm -f $SRV_OUT $CLI_OUT
-    kill $PROCESS_ID
+    kill $PROCESS_ID >/dev/null 2>&1
+    kill $WATCHDOG_PID >/dev/null 2>&1
     exit 1
 }
 

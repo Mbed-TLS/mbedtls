@@ -95,6 +95,15 @@ requires_gnutls() {
     fi
 }
 
+# skip next test if valgrind is in use (temporary)
+not_with_valgrind() {
+    if [ $MEMCHECK -gt 0 ]; then
+        SKIP_NEXT="YES"
+    else
+        SKIP_NEXT="NO"
+    fi
+}
+
 # skip next test if IPv6 isn't available on this host
 requires_ipv6() {
     if [ -z "${HAS_IPV6:-}" ]; then
@@ -1950,6 +1959,7 @@ run_test    "DTLS cookie: enabled, IPv6" \
 # Tests for receiving fragmented handshake messages with DTLS
 
 requires_gnutls
+not_with_valgrind
 run_test    "DTLS reassembly: no fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 2048 -a" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -1958,6 +1968,7 @@ run_test    "DTLS reassembly: no fragmentation (gnutls server)" \
             -C "error"
 
 requires_gnutls
+not_with_valgrind
 run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 512" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -1966,6 +1977,7 @@ run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
             -C "error"
 
 requires_gnutls
+not_with_valgrind
 run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 128" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -1974,6 +1986,7 @@ run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
             -C "error"
 
 requires_gnutls
+not_with_valgrind
 run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             "$G_SRV -u --mtu 128" \
             "$P_CLI dtls=1 nbio=2 debug_level=2" \
@@ -1981,6 +1994,7 @@ run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind
 run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             "$O_SRV -dtls1 -mtu 2048" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -1988,6 +2002,7 @@ run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             -C "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind
 run_test    "DTLS reassembly: fragmentation (openssl server)" \
             "$O_SRV -dtls1 -mtu 256" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -1995,6 +2010,7 @@ run_test    "DTLS reassembly: fragmentation (openssl server)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind
 run_test    "DTLS reassembly: fragmentation (openssl server)" \
             "$O_SRV -dtls1 -mtu 256" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -2002,6 +2018,7 @@ run_test    "DTLS reassembly: fragmentation (openssl server)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind
 run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             "$O_SRV -dtls1 -mtu 256" \
             "$P_CLI dtls=1 nbio=2 debug_level=2" \

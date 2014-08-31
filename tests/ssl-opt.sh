@@ -891,6 +891,18 @@ run_test    "Renegotiation: DTLS, server-initiated" \
             -s "=> renegotiate" \
             -s "write hello request"
 
+not_with_valgrind
+run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
+            "$G_SRV -u --mtu 4096" \
+            "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -C "ssl_handshake returned" \
+            -C "error" \
+            -s "Extra-header:"
+
 # Tests for auth_mode
 
 run_test    "Authentication: server badcert, client required" \

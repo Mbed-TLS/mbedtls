@@ -109,8 +109,8 @@ fail() {
     echo "FAIL"
     echo "  ! $1"
 
-    cp $SRV_OUT o-srv-${TESTS}.log
-    cp $CLI_OUT o-cli-${TESTS}.log
+    mv $SRV_OUT o-srv-${TESTS}.log
+    mv $CLI_OUT o-cli-${TESTS}.log
     echo "  ! outputs saved to o-srv-${TESTS}.log and o-cli-${TESTS}.log"
 
     FAILS=$(( $FAILS + 1 ))

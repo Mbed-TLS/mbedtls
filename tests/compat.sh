@@ -6,17 +6,10 @@
 # with and without client authentication.
 #
 # Peer version requirements:
-# - OpenSSL 1.0.1e 11 Feb 2013
+# - OpenSSL 1.0.1e 11 Feb 2013 (probably since 1.0.1, tested with 1.0.1e)
 # - GnuTLS 3.2.15 (probably works since 3.2.12 but tested only with 3.2.15)
 
 set -u
-
-# test if those two are set in the environment before assigning defaults
-if [ -n "${GNUTLS_CLI:-}" -a -n "${GNUTLS_SERV:-}" ]; then
-    GNUTLS_AVAILABLE=1
-else
-    GNUTLS_AVAILABLE=0
-fi
 
 # initialise counters
 TESTS=0
@@ -31,6 +24,21 @@ SRVMEM=0
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 
+# do we have a recent enough GnuTLS?
+if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null; then
+    eval $( $GNUTLS_CLI --version | head -n1 | sed 's/.* \([0-9]*\)\.\([0-9]\)*\.\([0-9]*\)$/MAJOR="\1" MINOR="\2" PATCH="\3"/' )
+    if [ $MAJOR -lt 3 -o \
+        \( $MAJOR -eq 3 -a $MINOR -lt 2 \) -o \
+        \( $MAJOR -eq 3 -a $MINOR -eq 2 -a $PATCH -lt 15 \) ]
+    then
+        PEER_GNUTLS=""
+    else
+        PEER_GNUTLS=" GnuTLS"
+    fi
+else
+    PEER_GNUTLS=""
+fi
+
 # default values for options
 MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
@@ -39,12 +47,7 @@ FILTER=""
 EXCLUDE='NULL\|DES-CBC-' # avoid plain DES but keep 3DES-EDE-CBC (PolarSSL), DES-CBC3 (OpenSSL)
 VERBOSE=""
 MEMCHECK=0
-# GnuTLS not enabled by default
-if [ "$GNUTLS_AVAILABLE" -gt 0 ]; then
-    PEERS="OpenSSL PolarSSL GnuTLS"
-else
-    PEERS="OpenSSL PolarSSL"
-fi
+PEERS="OpenSSL$PEER_GNUTLS PolarSSL"
 
 print_usage() {
     echo "Usage: $0"

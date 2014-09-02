@@ -2140,6 +2140,16 @@ static void ssl_bitmask_set( unsigned char *mask, size_t offset, size_t len )
     {
         size_t first_byte_idx = offset / 8;
 
+        /* Special case */
+        if( len <= start_bits )
+        {
+            for( ; len != 0; len-- )
+                mask[first_byte_idx] |= 1 << ( start_bits - len );
+
+            /* Avoid potential issues with offset or len becoming invalid */
+            return;
+        }
+
         offset += start_bits; /* Now offset % 8 == 0 */
         len -= start_bits;
 

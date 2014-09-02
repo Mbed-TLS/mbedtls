@@ -2006,6 +2006,34 @@ run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+requires_gnutls
+not_with_valgrind
+run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
+            "$G_SRV -u --mtu 256" \
+            "$P_CLI debug_level=3 dtls=1 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "found fragmented DTLS handshake message" \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -C "ssl_handshake returned" \
+            -C "error" \
+            -s "Extra-header:"
+
+requires_gnutls
+not_with_valgrind
+run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
+            "$G_SRV -u --mtu 256" \
+            "$P_CLI debug_level=3 nbio=2 dtls=1 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "found fragmented DTLS handshake message" \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -C "ssl_handshake returned" \
+            -C "error" \
+            -s "Extra-header:"
+
 not_with_valgrind
 run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             "$O_SRV -dtls1 -mtu 2048" \
@@ -2037,8 +2065,6 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
-
-# TODO: fragmentation with renegotiation, openssl + gnutls
 
 # Final report
 

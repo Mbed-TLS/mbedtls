@@ -2033,9 +2033,9 @@ int ssl_write_record( ssl_context *ssl )
             /* Write message_seq and update it, except for HelloRequest */
             if( ssl->out_msg[0] != SSL_HS_HELLO_REQUEST )
             {
-                ssl->out_msg[4] = ( ssl->handshake->msg_seq >> 8 ) & 0xFF;
-                ssl->out_msg[5] = ( ssl->handshake->msg_seq      ) & 0xFF;
-                ++( ssl->handshake->msg_seq );
+                ssl->out_msg[4] = ( ssl->handshake->out_msg_seq >> 8 ) & 0xFF;
+                ssl->out_msg[5] = ( ssl->handshake->out_msg_seq      ) & 0xFF;
+                ++( ssl->handshake->out_msg_seq );
             }
             else
             {
@@ -4784,7 +4784,7 @@ static int ssl_start_renegotiation( ssl_context *ssl )
         ssl->endpoint == SSL_IS_SERVER &&
         ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
     {
-        ssl->handshake->msg_seq = 1;
+        ssl->handshake->out_msg_seq = 1;
     }
 #endif
 

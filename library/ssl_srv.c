@@ -1292,7 +1292,10 @@ static int ssl_parse_client_hello( ssl_context *ssl )
          * Copy the client's handshake message_seq on initial handshakes
          */
         if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
-            ssl->handshake->msg_seq = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
+        {
+            ssl->handshake->out_msg_seq = ( ssl->in_msg[4] << 8 ) |
+                                            ssl->in_msg[5];
+        }
 
         // TODO: DTLS: check message_seq on non-initial handshakes?
         // (or already done in ssl_read_record?)

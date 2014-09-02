@@ -620,7 +620,8 @@ struct _ssl_handshake_params
 #endif
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
-    unsigned int msg_seq;               /*!<  DTLS handshake sequence number */
+    unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
+    unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
     unsigned char *verify_cookie;       /*!<  Cli: HelloVerifyRequest cookie
                                               Srv: unused                    */
     unsigned char verify_cookie_len;    /*!<  Cli: cookie length

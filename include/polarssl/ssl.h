@@ -779,8 +779,8 @@ struct _ssl_context
     size_t in_msglen;           /*!< record header: message length    */
     size_t in_left;             /*!< amount of data read so far       */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
-    size_t next_record_offset;  /*!< offset of the next record in datagram,
-                                     or 0 if none */
+    size_t next_record_offset;  /*!< offset of the next record in datagram
+                                     (equal to in_left if none)       */
 #endif
 
     size_t in_hslen;            /*!< current handshake message length */

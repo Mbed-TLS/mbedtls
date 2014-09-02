@@ -1832,7 +1832,7 @@ static int ssl_decompress_buf( ssl_context *ssl )
  * with datagram transport (DTLS) on success ssl->in_left >= nb_want,
  * since we always read a whole datagram at once.
  *
- * For DTLS, It is up to the caller to set ssl->next_record_offset when
+ * For DTLS, it is up to the caller to set ssl->next_record_offset when
  * they're done reading a record.
  */
 int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
@@ -2289,6 +2289,31 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "handshake message completed" ) );
 
+    if( ssl->in_left > ssl->next_record_offset )
+    {
+        /*
+         * We've got more data in the buffer after the current record,
+         * that we don't want to overwrite. Move it before writing the
+         * reassembled message, and adjust in_left and next_record_offset.
+         */
+        unsigned char *cur_remain = ssl->in_hdr + ssl->next_record_offset;
+        unsigned char *new_remain = ssl->in_msg + ssl->in_hslen;
+        size_t remain_len = ssl->in_left - ssl->next_record_offset;
+
+        /* First compute and check new lengths */
+        ssl->next_record_offset = new_remain - ssl->in_hdr;
+        ssl->in_left = ssl->next_record_offset + remain_len;
+
+        if( ssl->in_left > SSL_BUFFER_LEN -
+                           (size_t)( ssl->in_hdr - ssl->in_buf ) )
+        {
+            SSL_DEBUG_MSG( 1, ( "reassembled message too large for buffer" ) );
+            return( POLARSSL_ERR_SSL_BUFFER_TOO_SMALL );
+        }
+
+        memmove( new_remain, cur_remain, remain_len );
+    }
+
     memcpy( ssl->in_msg, ssl->handshake->hs_msg, ssl->in_hslen );
 
     polarssl_free( ssl->handshake->hs_msg );
@@ -2408,6 +2433,8 @@ int ssl_read_record( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
         return( ret );
     }
+
+    SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, ssl_hdr_len( ssl ) );
 
     ssl->in_msgtype =  ssl->in_hdr[0];
     ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];

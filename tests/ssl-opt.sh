@@ -1988,27 +1988,26 @@ run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             -C "found fragmented DTLS handshake message" \
             -C "error"
 
-# Not working yet
-#run_test    "DTLS reassembly: fragmentation (openssl server)" \
-#            "$O_SRV -dtls1 -mtu 256" \
-#            "$P_CLI dtls=1 debug_level=2" \
-#            0 \
-#            -c "found fragmented DTLS handshake message" \
-#            -C "error"
-#
-#run_test    "DTLS reassembly: fragmentation (openssl server)" \
-#            "$O_SRV -dtls1 -mtu 256" \
-#            "$P_CLI dtls=1 debug_level=2" \
-#            0 \
-#            -c "found fragmented DTLS handshake message" \
-#            -C "error"
-#
-#run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
-#            "$O_SRV -dtls1 -mtu 256" \
-#            "$P_CLI dtls=1 nbio=2 debug_level=2" \
-#            0 \
-#            -c "found fragmented DTLS handshake message" \
-#            -C "error"
+run_test    "DTLS reassembly: fragmentation (openssl server)" \
+            "$O_SRV -dtls1 -mtu 256" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+run_test    "DTLS reassembly: fragmentation (openssl server)" \
+            "$O_SRV -dtls1 -mtu 256" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
+            "$O_SRV -dtls1 -mtu 256" \
+            "$P_CLI dtls=1 nbio=2 debug_level=2" \
+            0 \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
 
 # TODO: fragmentation with renegotiation, openssl + gnutls
 

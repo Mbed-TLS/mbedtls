@@ -2338,10 +2338,16 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
 
 static int ssl_prepare_handshake_record( ssl_context *ssl )
 {
-    ssl->in_hslen  = ssl->transport == SSL_TRANSPORT_DATAGRAM ? 12 : 4;
-    ssl->in_hslen += ( ssl->in_msg[1] << 16 ) |
-                     ( ssl->in_msg[2] << 8  ) |
-                       ssl->in_msg[3];
+    if( ssl->in_msglen < ssl_hs_hdr_len( ssl ) )
+    {
+        SSL_DEBUG_MSG( 1, ( "handshake message too short: %d",
+                            ssl->in_msglen ) );
+    }
+
+    ssl->in_hslen = ssl_hs_hdr_len( ssl ) + (
+                    ( ssl->in_msg[1] << 16 ) |
+                    ( ssl->in_msg[2] << 8  ) |
+                      ssl->in_msg[3] );
 
     SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
                         " %d, type = %d, hslen = %d",

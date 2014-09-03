@@ -784,7 +784,8 @@ struct _ssl_context
                                      (equal to in_left if none)       */
 #endif
 
-    size_t in_hslen;            /*!< current handshake message length */
+    size_t in_hslen;            /*!< current handshake message length,
+                                     including the handshake header   */
     int nb_zero;                /*!< # of 0-length encrypted messages */
     int record_read;            /*!< record is already present        */
 
@@ -1946,6 +1947,17 @@ static inline size_t ssl_hdr_len( const ssl_context *ssl )
     ((void) ssl);
 #endif
     return( 5 );
+}
+
+static inline size_t ssl_hs_hdr_len( const ssl_context *ssl )
+{
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        return( 12 );
+#else
+    ((void) ssl);
+#endif
+    return( 4 );
 }
 
 /* constant-time buffer comparison */

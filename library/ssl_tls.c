@@ -2469,6 +2469,13 @@ int ssl_read_record( ssl_context *ssl )
         return( ret );
     }
 
+    /*
+     * ContentType type;
+     * ProtocolVersion version;
+     * uint16 epoch;            // DTLS only
+     * uint48 sequence_number;  // DTLS only
+     * uint16 length;
+     */
     SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, ssl_hdr_len( ssl ) );
 
     ssl->in_msgtype =  ssl->in_hdr[0];
@@ -2510,6 +2517,23 @@ int ssl_read_record( ssl_context *ssl )
         SSL_DEBUG_MSG( 1, ( "minor version mismatch" ) );
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
+
+    /* Check epoch with DTLS */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        unsigned int exp_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
+        unsigned int rec_epoch = ( ssl->in_hdr[3] << 8 ) | ssl->in_hdr[4];
+
+        if( exp_epoch != rec_epoch )
+        {
+            SSL_DEBUG_MSG( 1, ( "discarding record from another epoch: "
+                                "expected %d, received %d",
+                                 exp_epoch,   rec_epoch ) );
+            return( POLARSSL_ERR_NET_WANT_READ );
+        }
+    }
+#endif
 
     /* Check length against the size of our buffer */
     if( ssl->in_msglen > SSL_BUFFER_LEN

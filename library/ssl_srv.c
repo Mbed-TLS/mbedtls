@@ -1293,12 +1293,27 @@ static int ssl_parse_client_hello( ssl_context *ssl )
          */
         if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
         {
-            ssl->handshake->out_msg_seq = ( ssl->in_msg[4] << 8 ) |
-                                            ssl->in_msg[5];
+            unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
+                                         ssl->in_msg[5];
+            ssl->handshake->out_msg_seq = cli_msg_seq;
+            ssl->handshake->in_msg_seq  = cli_msg_seq + 1;
         }
+        else
+        {
+            /* This couldn't be done in ssl_prepare_handshake_record() */
+            unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
+                                         ssl->in_msg[5];
 
-        // TODO: DTLS: check message_seq on non-initial handshakes?
-        // (or already done in ssl_read_record?)
+            if( cli_msg_seq != ssl->handshake->in_msg_seq )
+            {
+                SSL_DEBUG_MSG( 1, ( "bad client hello message_seq: "
+                                    "%d (expected %d)", cli_msg_seq,
+                                    ssl->handshake->in_msg_seq ) );
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+
+            ssl->handshake->in_msg_seq++;
+        }
 
         /*
          * For now we don't support fragmentation, so make sure

@@ -2246,8 +2246,8 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
     }
     else
     {
-        /* Make sure msg_type, length, message_seq are consistent */
-        if( memcmp( ssl->handshake->hs_msg, ssl->in_msg, 6 ) != 0 )
+        /* Make sure msg_type and length are consistent */
+        if( memcmp( ssl->handshake->hs_msg, ssl->in_msg, 4 ) != 0 )
         {
             SSL_DEBUG_MSG( 1, ( "fragment header mismatch" ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
@@ -2357,8 +2357,18 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
         int ret;
+        unsigned int recv_msg_seq = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
 
-        // TODO: DTLS: check message_seq
+        /* ssl->handshake is NULL when receiving ClientHello for renego */
+        if( ssl->handshake != NULL &&
+            recv_msg_seq != ssl->handshake->in_msg_seq )
+        {
+            SSL_DEBUG_MSG( 2, ( "dropping out-of-order message: "
+                                "message_seq = %d, expected = %d",
+                                recv_msg_seq, ssl->handshake->in_msg_seq ) );
+            return( POLARSSL_ERR_NET_WANT_READ );
+        }
+        /* Wait until message completion to increment in_msg_seq */
 
         /* Reassemble if current message is fragmented or reassembly is
          * already in progress */
@@ -2387,6 +2397,15 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
 
     if( ssl->state != SSL_HANDSHAKE_OVER )
         ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+
+    /* Handshake message is complete, increment counter */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL )
+    {
+        ssl->handshake->in_msg_seq++;
+    }
+#endif
 
     /*
      * For DTLS, we move data so that is looks like TLS handshake format to
@@ -4787,10 +4806,12 @@ static int ssl_start_renegotiation( ssl_context *ssl )
      * the ServerHello will have message_seq = 1" */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        ssl->endpoint == SSL_IS_SERVER &&
         ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
     {
-        ssl->handshake->out_msg_seq = 1;
+        if( ssl->endpoint == SSL_IS_SERVER )
+            ssl->handshake->out_msg_seq = 1;
+        else
+            ssl->handshake->in_msg_seq = 1;
     }
 #endif
 
@@ -4967,6 +4988,14 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
             else
             {
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+                /* DTLS clients need to know renego is server-initiated */
+                if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+                    ssl->endpoint == SSL_IS_CLIENT )
+                {
+                    ssl->renegotiation = SSL_RENEGOTIATION_PENDING;
+                }
+#endif
                 ret = ssl_start_renegotiation( ssl );
                 if( ret == POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO )
                 {

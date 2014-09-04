@@ -41,6 +41,7 @@ test/o_p_test
 test/selftest
 test/ssl_cert_test
 test/ssl_test
+test/udp_proxy
 util/pem2der
 util/strerror
 x509/cert_app

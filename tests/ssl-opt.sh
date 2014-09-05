@@ -13,6 +13,7 @@ set -u
 # default values, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
+: ${P_PXY:=../programs/test/udp_proxy}
 : ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
@@ -132,14 +133,23 @@ fail() {
 
     mv $SRV_OUT o-srv-${TESTS}.log
     mv $CLI_OUT o-cli-${TESTS}.log
-    echo "  ! outputs saved to o-srv-${TESTS}.log and o-cli-${TESTS}.log"
+    if [ -n "$PXY_CMD" ]; then
+        mv $PXY_OUT o-pxy-${TESTS}.log
+    fi
+    echo "  ! outputs saved to o-XXX-${TESTS}.log"
 
     if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot ]; then
         echo "  ! server output:"
         cat o-srv-${TESTS}.log
-        echo "  ! ============================================================"
+        echo "  ! ========================================================"
         echo "  ! client output:"
         cat o-cli-${TESTS}.log
+        if [ -n "$PXY_CMD" ]; then
+            echo "  ! ========================================================"
+            echo "  ! proxy output:"
+            cat o-pxy-${TESTS}.log
+        fi
+        echo ""
     fi
 
     FAILS=$(( $FAILS + 1 ))
@@ -170,9 +180,9 @@ wait_server_start() {
 
         # make a tight loop, server usually takes less than 1 sec to start
         if [ "$DTLS" -eq 1 ]; then
-            until lsof -nbi UDP:"$PORT" | grep UDP >/dev/null; do :; done
+            until lsof -nbi UDP:"$SRV_PORT" | grep UDP >/dev/null; do :; done
         else
-            until lsof -nbi TCP:"$PORT" | grep LISTEN >/dev/null; do :; done
+            until lsof -nbi TCP:"$SRV_PORT" | grep LISTEN >/dev/null; do :; done
         fi
 
         kill $WATCHDOG_PID
@@ -201,24 +211,21 @@ wait_client_done() {
 
 # check if the given command uses dtls and sets global variable DTLS
 detect_dtls() {
-    if echo "$1" | grep ' dtls=1 \| -dtls1\| -u ' >/dev/null; then
+    if echo "$1" | grep 'dtls=1\|-dtls1\|-u' >/dev/null; then
         DTLS=1
     else
         DTLS=0
     fi
 }
 
-# Usage: run_test name srv_cmd cli_cmd cli_exit [option [...]]
+# Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
 #           -S pattern  pattern that must be absent in server output
 #           -C pattern  pattern that must be absent in client output
 run_test() {
     NAME="$1"
-    SRV_CMD="$2"
-    CLI_CMD="$3"
-    CLI_EXPECT="$4"
-    shift 4
+    shift 1
 
     if echo "$NAME" | grep "$FILTER" | grep -v "$EXCLUDE" >/dev/null; then :
     else
@@ -235,6 +242,27 @@ run_test() {
         return
     fi
 
+    # does this test use a proxy?
+    if [ "X$1" = "X-p" ]; then
+        PXY_CMD="$2"
+        shift 2
+    else
+        PXY_CMD=""
+    fi
+
+    # get commands and client output
+    SRV_CMD="$1"
+    CLI_CMD="$2"
+    CLI_EXPECT="$3"
+    shift 3
+
+    # fix client port
+    if [ -n "$PXY_CMD" ]; then
+        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$PXY_PORT/g )
+    else
+        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$SRV_PORT/g )
+    fi
+
     # update DTLS variable
     detect_dtls "$SRV_CMD"
 
@@ -249,8 +277,15 @@ run_test() {
     fi
 
     # run the commands
+    if [ -n "$PXY_CMD" ]; then
+        echo "$PXY_CMD" > $PXY_OUT
+        eval "$PXY_CMD" >> $PXY_OUT 2>&1 &
+        PXY_PID=$!
+        # assume proxy starts faster than server
+    fi
+
     echo "$SRV_CMD" > $SRV_OUT
-    # for servers without -www, eg openssl with DTLS
+    # "yes" is for servers without -www (openssl with DTLS)
     yes blabla | $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
     wait_server_start
@@ -259,9 +294,13 @@ run_test() {
     eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
     wait_client_done
 
-    # kill the server
+    # terminate the server (and the proxy)
     kill $SRV_PID
     wait $SRV_PID
+    if [ -n "$PXY_CMD" ]; then
+        kill $PXY_PID
+        wait $PXY_PID
+    fi
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero
@@ -292,7 +331,7 @@ run_test() {
     if [ \( "$CLI_EXPECT" = 0 -a "$CLI_EXIT" != 0 \) -o \
          \( "$CLI_EXPECT" != 0 -a "$CLI_EXIT" = 0 \) ]
     then
-        fail "bad client exit code"
+        fail "bad client exit code (expected $CLI_EXPECT, got $CLI_EXIT)"
         return
     fi
 
@@ -350,13 +389,16 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
-    rm -f $SRV_OUT $CLI_OUT
+    rm -f $SRV_OUT $CLI_OUT $PXY_OUT
 }
 
 cleanup() {
-    rm -f $CLI_OUT $SRV_OUT $SESSION
+    rm -f $CLI_OUT $SRV_OUT $PXY_OUT $SESSION
     kill $SRV_PID >/dev/null 2>&1
     kill $WATCHDOG_PID >/dev/null 2>&1
+    if [ -n "$PXY_CMD" ]; then
+        kill $PXY_PID >/dev/null 2>&1
+    fi
     exit 1
 }
 
@@ -373,6 +415,10 @@ if [ ! -x "$P_SRV" ]; then
 fi
 if [ ! -x "$P_CLI" ]; then
     echo "Command '$P_CLI' is not an executable file"
+    exit 1
+fi
+if [ ! -x "$P_PXY" ]; then
+    echo "Command '$P_PXY' is not an executable file"
     exit 1
 fi
 if which $OPENSSL_CMD >/dev/null 2>&1; then :; else
@@ -392,21 +438,26 @@ else
     DOG_DELAY=10
 fi
 
-# Pick a "unique" port in the range 10000-19999.
-PORT="0000$$"
-PORT="1$(echo $PORT | tail -c 5)"
+# Pick a "unique" server port in the range 10000-19999, and a proxy port
+PORT_BASE="0000$$"
+PORT_BASE="$( echo -n $PORT_BASE | tail -c 4 )"
+SRV_PORT="1$PORT_BASE"
+PXY_PORT="2$PORT_BASE"
+unset PORT_BASE
 
 # fix commands to use this port, force IPv4 while at it
-P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$PORT"
-P_CLI="$P_CLI server_addr=127.0.0.1 server_port=$PORT"
-O_SRV="$O_SRV -accept $PORT"
-O_CLI="$O_CLI -connect localhost:$PORT"
-G_SRV="$G_SRV -p $PORT"
-G_CLI="$G_CLI -p $PORT"
+P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
+P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
+P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT"
+O_SRV="$O_SRV -accept $SRV_PORT"
+O_CLI="$O_CLI -connect localhost:+SRV_PORT"
+G_SRV="$G_SRV -p $SRV_PORT"
+G_CLI="$G_CLI -p +SRV_PORT"
 
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"
+PXY_OUT="pxy_out.$$"
 SESSION="session.$$"
 
 SKIP_NEXT="NO"
@@ -2045,6 +2096,14 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
+
+# Temporary test for ability to use the UDP proxy
+
+run_test    "DTLS proxy usability test" \
+            -p "$P_PXY" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0
 
 # Final report
 

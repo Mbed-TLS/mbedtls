@@ -85,6 +85,8 @@ int main( void )
     "                        duplicate 1 packet every N packets\n"          \
     "    delay=%%d            default: 0 (no delayed packets)\n"            \
     "                        delay 1 packet every N packets\n"              \
+    "    drop=%%d             default: 0 (no dropped packets)\n"            \
+    "                        drop 1 packet every N packets\n"               \
     "\n"
 
 /*
@@ -99,6 +101,7 @@ static struct options
 
     int duplicate;              /* duplicate 1 in N packets (none if 0)     */
     int delay;                  /* delay 1 packet in N (none if 0)          */
+    int drop;                   /* drop 1 packet in N (none if 0)           */
 } opt;
 
 /*
@@ -106,6 +109,7 @@ static struct options
  */
 static int dupl_cnt;
 static int delay_cnt;
+static int drop_cnt;
 
 /* Do not always start with the same state */
 static void randomize_counters( void )
@@ -118,6 +122,8 @@ static void randomize_counters( void )
         dupl_cnt = rand() % opt.duplicate;
     if( opt.delay != 0 )
         delay_cnt = rand() % opt.delay;
+    if( opt.drop != 0 )
+        drop_cnt = rand() % opt.drop;
 }
 
 static void exit_usage( const char *name, const char *value )
@@ -140,6 +146,7 @@ static void get_options( int argc, char *argv[] )
     opt.server_port    = DFL_SERVER_PORT;
     opt.listen_addr    = DFL_LISTEN_ADDR;
     opt.listen_port    = DFL_LISTEN_PORT;
+    /* Other members default to 0 */
 
     for( i = 1; i < argc; i++ )
     {
@@ -174,6 +181,12 @@ static void get_options( int argc, char *argv[] )
         {
             opt.delay = atoi( q );
             if( opt.delay < 0 || opt.delay > 10 || opt.delay == 1 )
+                exit_usage( p, q );
+        }
+        else if( strcmp( p, "drop" ) == 0 )
+        {
+            opt.drop = atoi( q );
+            if( opt.drop < 0 || opt.drop > 10 || opt.drop == 1 )
                 exit_usage( p, q );
         }
         else
@@ -281,8 +294,14 @@ int handle_message( const char *way, int dst, int src )
     cur.dst  = &dst;
     print_packet( &cur, NULL );
 
-    /* do we want to delay it? */
-    if( opt.delay != 0 &&
+    /* do we want to drop, delay, or forward it? */
+    if( opt.drop != 0 &&
+        strcmp( cur.type, "ApplicationData" ) != 0 &&
+        ++drop_cnt == opt.drop )
+    {
+        drop_cnt = 0;
+    }
+    else if( opt.delay != 0 &&
         strcmp( cur.type, "ApplicationData" ) != 0 &&
         ++delay_cnt == opt.delay )
     {
@@ -291,7 +310,7 @@ int handle_message( const char *way, int dst, int src )
     }
     else
     {
-        /* not delayed: forward (and possibly duplicate) it */
+        /* forward and possibly duplicate */
         if( ( ret = send_packet( &cur, "forwarded" ) ) != 0 )
             return( ret );
 

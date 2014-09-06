@@ -69,17 +69,6 @@ int main( void )
 #define DFL_LISTEN_ADDR         "localhost"
 #define DFL_LISTEN_PORT         5556
 
-/*
- * global options
- */
-struct options
-{
-    const char *server_addr;    /* address to forward packets to            */
-    int server_port;            /* port to forward packets to               */
-    const char *listen_addr;    /* address for accepting client connections */
-    int listen_port;            /* port for accepting client connections    */
-} opt;
-
 #define USAGE                                                               \
     "\n usage: udp_proxy param=<>...\n"                                     \
     "\n acceptable parameters:\n"                                           \
@@ -89,8 +78,24 @@ struct options
     "    listen_port=%%d      default: 4433\n"                              \
     "\n"
 
-static void exit_usage( void )
+/*
+ * global options
+ */
+static struct options
 {
+    const char *server_addr;    /* address to forward packets to            */
+    int server_port;            /* port to forward packets to               */
+    const char *listen_addr;    /* address for accepting client connections */
+    int listen_port;            /* port for accepting client connections    */
+} opt;
+
+static void exit_usage( const char *name, const char *value )
+{
+    if( value == NULL )
+        printf( " unknown option: %s\n", name );
+    else
+        printf( " option %s: illegal value: %s\n", name, value );
+
     printf( USAGE );
     exit( 1 );
 }
@@ -109,7 +114,7 @@ static void get_options( int argc, char *argv[] )
     {
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
-            exit_usage();
+            exit_usage( p, NULL );
         *q++ = '\0';
 
         if( strcmp( p, "server_addr" ) == 0 )
@@ -118,7 +123,7 @@ static void get_options( int argc, char *argv[] )
         {
             opt.server_port = atoi( q );
             if( opt.server_port < 1 || opt.server_port > 65535 )
-                exit_usage();
+                exit_usage( p, q );
         }
         else if( strcmp( p, "listen_addr" ) == 0 )
             opt.listen_addr = q;
@@ -126,10 +131,41 @@ static void get_options( int argc, char *argv[] )
         {
             opt.listen_port = atoi( q );
             if( opt.listen_port < 1 || opt.listen_port > 65535 )
-                exit_usage();
+                exit_usage( p, q );
         }
         else
-            exit_usage();
+            exit_usage( p, NULL );
+    }
+}
+
+static const char *msg_type( unsigned char *msg, size_t len )
+{
+    if( len < 1 )                           return( "Invalid" );
+    switch( msg[0] )
+    {
+        case SSL_MSG_CHANGE_CIPHER_SPEC:    return( "ChangeCipherSpec" );
+        case SSL_MSG_ALERT:                 return( "Alert" );
+        case SSL_MSG_APPLICATION_DATA:      return( "ApplicationData" );
+        case SSL_MSG_HANDSHAKE:             break; /* See below */
+        default:                            return( "Unknown" );
+    }
+
+    if( len < 13 )                          return( "Invalid handshake" );
+    switch( msg[13] )
+    {
+        case SSL_HS_HELLO_REQUEST:          return( "HelloRequest" );
+        case SSL_HS_CLIENT_HELLO:           return( "ClientHello" );
+        case SSL_HS_SERVER_HELLO:           return( "ServerHello" );
+        case SSL_HS_HELLO_VERIFY_REQUEST:   return( "HelloVerifyRequest" );
+        case SSL_HS_NEW_SESSION_TICKET:     return( "NewSessionTicket" );
+        case SSL_HS_CERTIFICATE:            return( "Certificate" );
+        case SSL_HS_SERVER_KEY_EXCHANGE:    return( "ServerKeyExchange" );
+        case SSL_HS_CERTIFICATE_REQUEST:    return( "CertificateRequest" );
+        case SSL_HS_SERVER_HELLO_DONE:      return( "ServerHelloDone" );
+        case SSL_HS_CERTIFICATE_VERIFY:     return( "CertificateVerify" );
+        case SSL_HS_CLIENT_KEY_EXCHANGE:    return( "ClientKeyExchange" );
+        case SSL_HS_FINISHED:               return( "Finished" );
+        default:                            return( "Unkown handshake" );
     }
 }
 
@@ -145,10 +181,12 @@ int handle_message( const char *way, int dst, int src )
         return( ret );
     }
 
-    printf( "  .. %s: %d bytes forwarded\n", way, ret );
+    len = ret;
+    type = msg_type( buf, len );
+    printf( "  > %s: %s (%u bytes)\n", way, type, len );
 
-    len = (size_t) ret;
 
+    printf( "  < %s: %s (%u bytes): forwarded\n", way, type, len );
     if( ( ret = net_send( &dst, buf, len ) ) <= 0 )
     {
         printf( "  ! net_send returned %d\n", ret );
@@ -173,7 +211,7 @@ int main( int argc, char *argv[] )
     get_options( argc, argv );
 
     /*
-     * 0. Connect to the server
+     * 0. "Connect" to the server
      */
     printf( "  . Connect to server on UDP/%s/%d ...",
             opt.server_addr, opt.server_port );

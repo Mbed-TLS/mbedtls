@@ -40,9 +40,13 @@ int main( void )
 
 #include "polarssl/net.h"
 #include "polarssl/error.h"
+#include "polarssl/ssl.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#if defined(POLARSSL_HAVE_TIME)
+#include <time.h>
+#endif
 
 /* For select() */
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
@@ -76,6 +80,9 @@ int main( void )
     "    server_port=%%d      default: 4433\n"                              \
     "    listen_addr=%%d      default: localhost\n"                         \
     "    listen_port=%%d      default: 4433\n"                              \
+    "\n"                                                                    \
+    "    duplicate=%%d        default: 0 (no duplication)\n"                \
+    "                        duplicate 1 packet every N packet\n"           \
     "\n"
 
 /*
@@ -87,7 +94,25 @@ static struct options
     int server_port;            /* port to forward packets to               */
     const char *listen_addr;    /* address for accepting client connections */
     int listen_port;            /* port for accepting client connections    */
+
+    int duplicate;              /* duplicate 1 in N packets (none if 0)     */
 } opt;
+
+/*
+ * global variables
+ */
+static int dupl_cnt;
+
+/* Do not always start with the same state */
+static void randomize_counters( void )
+{
+#if defined(POLARSSL_HAVE_TIME)
+    srand( time( NULL ) );
+#endif
+
+    if( opt.duplicate != 0 )
+        dupl_cnt = rand() % opt.duplicate;
+}
 
 static void exit_usage( const char *name, const char *value )
 {
@@ -133,6 +158,12 @@ static void get_options( int argc, char *argv[] )
             if( opt.listen_port < 1 || opt.listen_port > 65535 )
                 exit_usage( p, q );
         }
+        else if( strcmp( p, "duplicate" ) == 0 )
+        {
+            opt.duplicate = atoi( q );
+            if( opt.duplicate < 0 || opt.duplicate > 10 )
+                exit_usage( p, q );
+        }
         else
             exit_usage( p, NULL );
     }
@@ -173,7 +204,8 @@ int handle_message( const char *way, int dst, int src )
 {
     unsigned char buf[MAX_MSG_SIZE] = { 0 };
     int ret;
-    size_t len;
+    unsigned len;
+    const char *type;
 
     if( ( ret = net_recv( &src, buf, sizeof( buf ) ) ) <= 0 )
     {
@@ -185,6 +217,22 @@ int handle_message( const char *way, int dst, int src )
     type = msg_type( buf, len );
     printf( "  > %s: %s (%u bytes)\n", way, type, len );
 
+    /* Don't duplicate Application Data, only handshake covered */
+    // Don't duplicate CSS for now (TODO later)
+    if( opt.duplicate != 0 &&
+        strcmp( type, "ChangeCipherSpec" ) != 0 &&
+        strcmp( type, "ApplicationData" ) != 0 &&
+        ++dupl_cnt == opt.duplicate )
+    {
+        dupl_cnt = 0;
+        printf( "  < %s: %s (%u bytes): duplicate\n", way, type, len );
+
+        if( ( ret = net_send( &dst, buf, len ) ) <= 0 )
+        {
+            printf( "  ! net_send returned %d\n", ret );
+            return( ret );
+        }
+    }
 
     printf( "  < %s: %s (%u bytes): forwarded\n", way, type, len );
     if( ( ret = net_send( &dst, buf, len ) ) <= 0 )
@@ -209,6 +257,7 @@ int main( int argc, char *argv[] )
     fd_set read_fds;
 
     get_options( argc, argv );
+    randomize_counters();
 
     /*
      * 0. "Connect" to the server

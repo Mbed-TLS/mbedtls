@@ -4970,6 +4970,25 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                   ssl->in_hslen != 4 ) )
             {
                 SSL_DEBUG_MSG( 1, ( "handshake received (not HelloRequest)" ) );
+
+                /* With DTLS, drop the packet (probably from last handshake) */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+                if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+                    return( POLARSSL_ERR_NET_WANT_READ );
+#endif
+                return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+            }
+
+            if( ssl->endpoint == SSL_IS_SERVER &&
+                ssl->in_msg[0] != SSL_HS_CLIENT_HELLO )
+            {
+                SSL_DEBUG_MSG( 1, ( "handshake received (not ClientHello)" ) );
+
+                /* With DTLS, drop the packet (probably from last handshake) */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+                if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+                    return( POLARSSL_ERR_NET_WANT_READ );
+#endif
                 return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
             }
 
@@ -4978,7 +4997,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                   ssl->allow_legacy_renegotiation ==
                                                 SSL_LEGACY_NO_RENEGOTIATION ) )
             {
-                SSL_DEBUG_MSG( 3, ( "ignoring renegotiation, sending alert" ) );
+                SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
 
 #if defined(POLARSSL_SSL_PROTO_SSL3)
                 if( ssl->minor_ver == SSL_MINOR_VERSION_0 )

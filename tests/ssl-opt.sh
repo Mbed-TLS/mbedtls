@@ -2097,13 +2097,28 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# Temporary test for ability to use the UDP proxy
+# Tests with UDP proxy emulating unreliable transport
 
-run_test    "DTLS proxy usability test" \
+run_test    "DTLS proxy: reference" \
             -p "$P_PXY" \
             "$P_SRV dtls=1" \
             "$P_CLI dtls=1" \
-            0
+            0 \
+            -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: some duplication" \
+            -p "$P_PXY duplicate=3" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: lots of duplication" \
+            -p "$P_PXY duplicate=1" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -c "HTTP/1.0 200 OK"
 
 # Final report
 

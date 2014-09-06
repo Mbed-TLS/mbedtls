@@ -66,7 +66,7 @@ int main( void )
 #include <unistd.h>
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
-#define MAX_MSG_SIZE            18445 /* 2^14 + 2048 + 13 */
+#define MAX_MSG_SIZE            4096 /* Reasonable max size for our tests */
 
 #define DFL_SERVER_ADDR         "localhost"
 #define DFL_SERVER_PORT         4433
@@ -82,7 +82,9 @@ int main( void )
     "    listen_port=%%d      default: 4433\n"                              \
     "\n"                                                                    \
     "    duplicate=%%d        default: 0 (no duplication)\n"                \
-    "                        duplicate 1 packet every N packet\n"           \
+    "                        duplicate 1 packet every N packets\n"          \
+    "    delay=%%d            default: 0 (no delayed packets)\n"            \
+    "                        delay 1 packet every N packets\n"              \
     "\n"
 
 /*
@@ -96,12 +98,14 @@ static struct options
     int listen_port;            /* port for accepting client connections    */
 
     int duplicate;              /* duplicate 1 in N packets (none if 0)     */
+    int delay;                  /* delay 1 packet in N (none if 0)          */
 } opt;
 
 /*
- * global variables
+ * global counters
  */
 static int dupl_cnt;
+static int delay_cnt;
 
 /* Do not always start with the same state */
 static void randomize_counters( void )
@@ -112,12 +116,14 @@ static void randomize_counters( void )
 
     if( opt.duplicate != 0 )
         dupl_cnt = rand() % opt.duplicate;
+    if( opt.delay != 0 )
+        delay_cnt = rand() % opt.delay;
 }
 
 static void exit_usage( const char *name, const char *value )
 {
     if( value == NULL )
-        printf( " unknown option: %s\n", name );
+        printf( " unknown option or missing value: %s\n", name );
     else
         printf( " option %s: illegal value: %s\n", name, value );
 
@@ -164,6 +170,12 @@ static void get_options( int argc, char *argv[] )
             if( opt.duplicate < 0 || opt.duplicate > 10 )
                 exit_usage( p, q );
         }
+        else if( strcmp( p, "delay" ) == 0 )
+        {
+            opt.delay = atoi( q );
+            if( opt.delay < 0 || opt.delay > 10 || opt.delay == 1 )
+                exit_usage( p, q );
+        }
         else
             exit_usage( p, NULL );
     }
@@ -200,48 +212,99 @@ static const char *msg_type( unsigned char *msg, size_t len )
     }
 }
 
-int handle_message( const char *way, int dst, int src )
+typedef struct
 {
-    unsigned char buf[MAX_MSG_SIZE] = { 0 };
-    int ret;
-    unsigned len;
+    void *dst;
+    const char *way;
     const char *type;
+    unsigned len;
+    unsigned char buf[MAX_MSG_SIZE];
+} packet;
 
-    if( ( ret = net_recv( &src, buf, sizeof( buf ) ) ) <= 0 )
+/* Print packet. Outgoing packets come with a reason (forward, dupl, etc.) */
+void print_packet( const packet *p, const char *why )
+{
+    if( why == NULL )
+        printf( "  > %s: %s (%u bytes)\n", p->way, p->type, p->len );
+    else
+        printf( "  < %s: %s (%u bytes): %s\n", p->way, p->type, p->len, why );
+    fflush( stdout );
+}
+
+int send_packet( const packet *p, const char *why )
+{
+    int ret;
+
+    print_packet( p, why );
+    if( ( ret = net_send( p->dst, p->buf, p->len ) ) <= 0 )
     {
-        printf( "  ! net_recv returned %d\n", ret );
+        printf( "  ! net_send returned %d\n", ret );
         return( ret );
     }
-
-    len = ret;
-    type = msg_type( buf, len );
-    printf( "  > %s: %s (%u bytes)\n", way, type, len );
 
     /* Don't duplicate Application Data, only handshake covered */
     // Don't duplicate CSS for now (TODO later)
     if( opt.duplicate != 0 &&
-        strcmp( type, "ChangeCipherSpec" ) != 0 &&
-        strcmp( type, "ApplicationData" ) != 0 &&
+        strcmp( p->type, "ApplicationData" ) != 0 &&
+        strcmp( p->type, "ChangeCipherSpec" ) != 0 &&
         ++dupl_cnt == opt.duplicate )
     {
         dupl_cnt = 0;
-        printf( "  < %s: %s (%u bytes): duplicate\n", way, type, len );
+        print_packet( p, "duplicated" );
 
-        if( ( ret = net_send( &dst, buf, len ) ) <= 0 )
+        if( ( ret = net_send( p->dst, p->buf, p->len ) ) <= 0 )
         {
             printf( "  ! net_send returned %d\n", ret );
             return( ret );
         }
     }
 
-    printf( "  < %s: %s (%u bytes): forwarded\n", way, type, len );
-    if( ( ret = net_send( &dst, buf, len ) ) <= 0 )
+    return( 0 );
+}
+
+int handle_message( const char *way, int dst, int src )
+{
+    int ret;
+    packet cur;
+    static packet prev;
+
+    /* receivec packet */
+    if( ( ret = net_recv( &src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
     {
-        printf( "  ! net_send returned %d\n", ret );
+        printf( "  ! net_recv returned %d\n", ret );
         return( ret );
     }
 
-    fflush( stdout );
+    cur.len  = ret;
+    cur.type = msg_type( cur.buf, cur.len );
+    cur.way  = way;
+    cur.dst  = &dst;
+    print_packet( &cur, NULL );
+
+    /* do we want to delay it? */
+    if( opt.delay != 0 &&
+        strcmp( cur.type, "ApplicationData" ) != 0 &&
+        ++delay_cnt == opt.delay )
+    {
+        delay_cnt = 0;
+        memcpy( &prev, &cur, sizeof( packet ) );
+    }
+    else
+    {
+        /* not delayed: forward (and possibly duplicate) it */
+        if( ( ret = send_packet( &cur, "forwarded" ) ) != 0 )
+            return( ret );
+
+        /* send previously delayed message if any */
+        if( prev.dst != NULL )
+        {
+            ret = send_packet( &prev, "delayed" );
+            memset( &prev, 0, sizeof( packet ) );
+            if( ret != 0 )
+                return( ret );
+        }
+    }
+
     return( 0 );
 }
 

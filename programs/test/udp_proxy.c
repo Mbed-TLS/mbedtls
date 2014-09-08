@@ -85,6 +85,7 @@ int main( void )
     "                        duplicate 1 packet every N packets\n"          \
     "    delay=%%d            default: 0 (no delayed packets)\n"            \
     "                        delay 1 packet every N packets\n"              \
+    "    delay_ccs=%%d        default: 0 (don't delay ChangeCipherSuite)\n" \
     "    drop=%%d             default: 0 (no dropped packets)\n"            \
     "                        drop 1 packet every N packets\n"               \
     "\n"
@@ -101,6 +102,7 @@ static struct options
 
     int duplicate;              /* duplicate 1 in N packets (none if 0)     */
     int delay;                  /* delay 1 packet in N (none if 0)          */
+    int delay_ccs;              /* delay ChangeCipherSpec                   */
     int drop;                   /* drop 1 packet in N (none if 0)           */
 } opt;
 
@@ -181,6 +183,12 @@ static void get_options( int argc, char *argv[] )
         {
             opt.delay = atoi( q );
             if( opt.delay < 0 || opt.delay > 10 || opt.delay == 1 )
+                exit_usage( p, q );
+        }
+        else if( strcmp( p, "delay_ccs" ) == 0 )
+        {
+            opt.delay_ccs = atoi( q );
+            if( opt.delay_ccs < 0 || opt.delay_ccs > 1 )
                 exit_usage( p, q );
         }
         else if( strcmp( p, "drop" ) == 0 )
@@ -301,9 +309,11 @@ int handle_message( const char *way, int dst, int src )
     {
         drop_cnt = 0;
     }
-    else if( opt.delay != 0 &&
-        strcmp( cur.type, "ApplicationData" ) != 0 &&
-        ++delay_cnt == opt.delay )
+    else if( ( opt.delay_ccs == 1 &&
+               strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
+             ( opt.delay != 0 &&
+               strcmp( cur.type, "ApplicationData" ) != 0 &&
+               ++delay_cnt == opt.delay ) )
     {
         delay_cnt = 0;
         memcpy( &prev, &cur, sizeof( packet ) );

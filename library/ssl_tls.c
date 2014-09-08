@@ -2426,56 +2426,18 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
     return( 0 );
 }
 
-int ssl_read_record( ssl_context *ssl )
+/*
+ * ContentType type;
+ * ProtocolVersion version;
+ * uint16 epoch;            // DTLS only
+ * uint48 sequence_number;  // DTLS only
+ * uint16 length;
+ */
+static int ssl_parse_record_header( ssl_context *ssl )
 {
-    int ret, done = 0;
+    int ret;
     int major_ver, minor_ver;
 
-    SSL_DEBUG_MSG( 2, ( "=> read record" ) );
-
-    /*
-     * With DTLS, we cheated on in_hslen to make the handshake message look
-     * like TLS format, restore the truth now
-     */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->in_hslen != 0 && ssl->transport == SSL_TRANSPORT_DATAGRAM )
-        ssl->in_hslen += 8;
-#endif
-
-    if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
-    {
-        /*
-         * Get next Handshake message in the current record
-         */
-        ssl->in_msglen -= ssl->in_hslen;
-
-        memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
-                 ssl->in_msglen );
-
-        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
-            return( ret );
-
-        return( 0 );
-    }
-
-    ssl->in_hslen = 0;
-
-    /*
-     * Read the record header and validate it
-     */
-    if( ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
-        return( ret );
-    }
-
-    /*
-     * ContentType type;
-     * ProtocolVersion version;
-     * uint16 epoch;            // DTLS only
-     * uint48 sequence_number;  // DTLS only
-     * uint16 length;
-     */
     SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, ssl_hdr_len( ssl ) );
 
     ssl->in_msgtype =  ssl->in_hdr[0];
@@ -2584,23 +2546,15 @@ int ssl_read_record( ssl_context *ssl )
 #endif
     }
 
-    /*
-     * Read and optionally decrypt the message contents
-     */
-    if( ( ret = ssl_fetch_input( ssl,
-                                 ssl_hdr_len( ssl ) + ssl->in_msglen ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
-        return( ret );
-    }
+    return( 0 );
+}
 
-    /* Done reading this record, get ready for the next one */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-        ssl->next_record_offset = ssl->in_msglen + ssl_hdr_len( ssl );
-    else
-#endif
-        ssl->in_left = 0;
+/*
+ * If applicable, decrypt (and decompress) record content
+ */
+static int ssl_prepare_record_content( ssl_context *ssl )
+{
+    int ret, done = 0;
 
     SSL_DEBUG_BUF( 4, "input record from network",
                    ssl->in_hdr, ssl_hdr_len( ssl ) + ssl->in_msglen );
@@ -2663,6 +2617,78 @@ int ssl_read_record( ssl_context *ssl )
     }
 #endif /* POLARSSL_ZLIB_SUPPORT */
 
+    return( 0 );
+}
+
+int ssl_read_record( ssl_context *ssl )
+{
+    int ret;
+
+    SSL_DEBUG_MSG( 2, ( "=> read record" ) );
+
+    /*
+     * With DTLS, we cheated on in_hslen to make the handshake message look
+     * like TLS format, restore the truth now
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->in_hslen != 0 && ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl->in_hslen += 8;
+#endif
+
+    if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
+    {
+        /*
+         * Get next Handshake message in the current record
+         */
+        ssl->in_msglen -= ssl->in_hslen;
+
+        memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
+                 ssl->in_msglen );
+
+        if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
+            return( ret );
+
+        return( 0 );
+    }
+
+    ssl->in_hslen = 0;
+
+    /*
+     * Read the record header and parse it
+     */
+    if( ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+        return( ret );
+    }
+
+    if( ( ret = ssl_parse_record_header( ssl ) ) != 0 )
+        return( ret );
+
+    /*
+     * Read and optionally decrypt the message contents
+     */
+    if( ( ret = ssl_fetch_input( ssl,
+                                 ssl_hdr_len( ssl ) + ssl->in_msglen ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+        return( ret );
+    }
+
+    /* Done reading this record, get ready for the next one */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl->next_record_offset = ssl->in_msglen + ssl_hdr_len( ssl );
+    else
+#endif
+        ssl->in_left = 0;
+
+    if( ( ret = ssl_prepare_record_content( ssl ) ) != 0 )
+        return( ret );
+
+    /*
+     * Handle particular types of records
+     */
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
     {
         if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )

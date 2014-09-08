@@ -32,6 +32,8 @@ Changes
      RSA is disabled, larger if POLARSSL_MPI_MAX_SIZE is larger.
    * ssl_read() now returns POLARSSL_ERR_NET_WANT_READ rather than
      POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE on harmless alerts.
+   * POLARSSL_MPI_MAX_SIZE now defaults to 1024 in order to allow 8192 bits
+     RSA keys.
 
 = PolarSSL 1.3.8 released 2014-07-11
 Security

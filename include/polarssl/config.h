@@ -2113,7 +2113,7 @@
 
 /* MPI / BIGNUM options */
 //#define POLARSSL_MPI_WINDOW_SIZE            6 /**< Maximum windows size used. */
-//#define POLARSSL_MPI_MAX_SIZE             512 /**< Maximum number of bytes for usable MPIs. */
+//#define POLARSSL_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */
 
 /* CTR_DRBG options */
 //#define CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */

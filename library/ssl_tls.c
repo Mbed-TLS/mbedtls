@@ -2579,14 +2579,6 @@ static int ssl_prepare_record_content( ssl_context *ssl )
     {
         if( ( ret = ssl_decrypt_buf( ssl ) ) != 0 )
         {
-#if defined(POLARSSL_SSL_ALERT_MESSAGES)
-            if( ret == POLARSSL_ERR_SSL_INVALID_MAC )
-            {
-                ssl_send_alert_message( ssl,
-                                        SSL_ALERT_LEVEL_FATAL,
-                                        SSL_ALERT_MSG_BAD_RECORD_MAC );
-            }
-#endif
             SSL_DEBUG_RET( 1, "ssl_decrypt_buf", ret );
             return( ret );
         }
@@ -2620,6 +2612,12 @@ static int ssl_prepare_record_content( ssl_context *ssl )
     return( 0 );
 }
 
+/*
+ * Read a record.
+ *
+ * For DTLS, silently ignore invalid records (RFC 4.1.2.7.)
+ * and continue reading until a valid record is found.
+ */
 int ssl_read_record( ssl_context *ssl )
 {
     int ret;
@@ -2656,6 +2654,9 @@ int ssl_read_record( ssl_context *ssl )
     /*
      * Read the record header and parse it
      */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+read_record_header:
+#endif
     if( ( ret = ssl_fetch_input( ssl, ssl_hdr_len( ssl ) ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
@@ -2663,7 +2664,22 @@ int ssl_read_record( ssl_context *ssl )
     }
 
     if( ( ret = ssl_parse_record_header( ssl ) ) != 0 )
+    {
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        {
+            /* Ignore bad record and get next one; drop the whole datagram
+             * since current header cannot be trusted to find the next record
+             * in current datagram */
+            ssl->next_record_offset = 0;
+            ssl->in_left = 0;
+
+            SSL_DEBUG_MSG( 2, ( "discarding invalid record" ) );
+            goto read_record_header;
+        }
+#endif
         return( ret );
+    }
 
     /*
      * Read and optionally decrypt the message contents
@@ -2684,7 +2700,35 @@ int ssl_read_record( ssl_context *ssl )
         ssl->in_left = 0;
 
     if( ( ret = ssl_prepare_record_content( ssl ) ) != 0 )
-        return( ret );
+    {
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        {
+            /* Silently discard invalid records */
+            if( ret == POLARSSL_ERR_SSL_INVALID_RECORD ||
+                ret == POLARSSL_ERR_SSL_INVALID_MAC )
+            {
+                SSL_DEBUG_MSG( 2, ( "discarding invalid record" ) );
+                goto read_record_header;
+            }
+
+            return( ret );
+        }
+        else
+#endif
+        {
+            /* Error out (and send alert) on invalid records */
+#if defined(POLARSSL_SSL_ALERT_MESSAGES)
+            if( ret == POLARSSL_ERR_SSL_INVALID_MAC )
+            {
+                ssl_send_alert_message( ssl,
+                        SSL_ALERT_LEVEL_FATAL,
+                        SSL_ALERT_MSG_BAD_RECORD_MAC );
+            }
+#endif
+            return( ret );
+        }
+    }
 
     /*
      * Handle particular types of records

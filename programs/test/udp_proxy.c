@@ -297,10 +297,8 @@ int send_packet( const packet *p, const char *why )
     }
 
     /* Don't duplicate Application Data, only handshake covered */
-    // Don't duplicate CSS for now (TODO later)
     if( opt.duplicate != 0 &&
         strcmp( p->type, "ApplicationData" ) != 0 &&
-        strcmp( p->type, "ChangeCipherSpec" ) != 0 &&
         ++dupl_cnt == opt.duplicate )
     {
         dupl_cnt = 0;
@@ -322,7 +320,7 @@ int handle_message( const char *way, int dst, int src )
     packet cur;
     static packet prev;
 
-    /* receivec packet */
+    /* receive packet */
     if( ( ret = net_recv( &src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
     {
         printf( "  ! net_recv returned %d\n", ret );

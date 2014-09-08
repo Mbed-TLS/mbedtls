@@ -90,6 +90,7 @@ int main( void )
     "                        drop 1 packet every N packets\n"               \
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
     "                        drop packets larger than N bytes\n"            \
+    "    bad_ad=%%d           default: 0 (don't add bad ApplicationData)\n" \
     "\n"
 
 /*
@@ -107,6 +108,7 @@ static struct options
     int delay_ccs;              /* delay ChangeCipherSpec                   */
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
+    int bad_ad;                 /* inject corrupted ApplicationData record  */
 } opt;
 
 /*
@@ -206,6 +208,12 @@ static void get_options( int argc, char *argv[] )
             if( opt.mtu < 0 || opt.mtu > MAX_MSG_SIZE )
                 exit_usage( p, q );
         }
+        else if( strcmp( p, "bad_ad" ) == 0 )
+        {
+            opt.bad_ad = atoi( q );
+            if( opt.bad_ad < 0 || opt.bad_ad > 1 )
+                exit_usage( p, q );
+        }
         else
             exit_usage( p, NULL );
     }
@@ -264,6 +272,22 @@ void print_packet( const packet *p, const char *why )
 int send_packet( const packet *p, const char *why )
 {
     int ret;
+
+    /* insert corrupted ApplicationData record? */
+    if( opt.bad_ad &&
+        strcmp( p->type, "ApplicationData" ) == 0 )
+    {
+        unsigned char buf[MAX_MSG_SIZE];
+        memcpy( buf, p->buf, p->len );
+        ++buf[p->len - 1];
+
+        print_packet( p, "corrupted" );
+        if( ( ret = net_send( p->dst, buf, p->len ) ) <= 0 )
+        {
+            printf( "  ! net_send returned %d\n", ret );
+            return( ret );
+        }
+    }
 
     print_packet( p, why );
     if( ( ret = net_send( p->dst, p->buf, p->len ) ) <= 0 )

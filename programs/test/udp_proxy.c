@@ -88,6 +88,8 @@ int main( void )
     "    delay_ccs=%%d        default: 0 (don't delay ChangeCipherSuite)\n" \
     "    drop=%%d             default: 0 (no dropped packets)\n"            \
     "                        drop 1 packet every N packets\n"               \
+    "    mtu=%%d              default: 0 (unlimited)\n"                     \
+    "                        drop packets larger than N bytes\n"            \
     "\n"
 
 /*
@@ -104,6 +106,7 @@ static struct options
     int delay;                  /* delay 1 packet in N (none if 0)          */
     int delay_ccs;              /* delay ChangeCipherSpec                   */
     int drop;                   /* drop 1 packet in N (none if 0)           */
+    int mtu;                    /* drop packets larger than this            */
 } opt;
 
 /*
@@ -195,6 +198,12 @@ static void get_options( int argc, char *argv[] )
         {
             opt.drop = atoi( q );
             if( opt.drop < 0 || opt.drop > 10 || opt.drop == 1 )
+                exit_usage( p, q );
+        }
+        else if( strcmp( p, "mtu" ) == 0 )
+        {
+            opt.mtu = atoi( q );
+            if( opt.mtu < 0 || opt.mtu > MAX_MSG_SIZE )
                 exit_usage( p, q );
         }
         else
@@ -303,9 +312,11 @@ int handle_message( const char *way, int dst, int src )
     print_packet( &cur, NULL );
 
     /* do we want to drop, delay, or forward it? */
-    if( opt.drop != 0 &&
-        strcmp( cur.type, "ApplicationData" ) != 0 &&
-        ++drop_cnt == opt.drop )
+    if( ( opt.mtu != 0 &&
+          cur.len > (unsigned) opt.mtu ) ||
+        ( opt.drop != 0 &&
+          strcmp( cur.type, "ApplicationData" ) != 0 &&
+          ++drop_cnt == opt.drop ) )
     {
         drop_cnt = 0;
     }

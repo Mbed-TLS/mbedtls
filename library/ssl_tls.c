@@ -2342,6 +2342,7 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
     {
         SSL_DEBUG_MSG( 1, ( "handshake message too short: %d",
                             ssl->in_msglen ) );
+        return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
 
     ssl->in_hslen = ssl_hs_hdr_len( ssl ) + (
@@ -2642,6 +2643,9 @@ int ssl_read_record( ssl_context *ssl )
 
         memmove( ssl->in_msg, ssl->in_msg + ssl->in_hslen,
                  ssl->in_msglen );
+
+        SSL_DEBUG_BUF( 4, "remaining content in record",
+                           ssl->in_msg, ssl->in_msglen );
 
         if( ( ret = ssl_prepare_handshake_record( ssl ) ) != 0 )
             return( ret );

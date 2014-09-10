@@ -1791,7 +1791,6 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
             ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
         {
-            ssl_hs_rm_dtls_hdr( ssl );
             ssl->record_read = 1;
             goto exit;
         }
@@ -2082,18 +2081,6 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
         return( 0 );
     }
 
-    /*
-     *     0  .   0   handshake type
-     *     1  .   3   handshake length
-     *     4  .   4   cert type count
-     *     5  .. m-1  cert types
-     *     m  .. m+1  sig alg length (TLS 1.2 only)
-     *    m+1 .. n-1  SignatureAndHashAlgorithms (TLS 1.2 only)
-     *     n  .. n+1  length of all DNs
-     *    n+2 .. n+3  length of DN 1
-     *    n+4 .. ...  Distinguished Name #1
-     *    ... .. ...  length of DN 2, etc.
-     */
     if( ssl->record_read == 0 )
     {
         if( ( ret = ssl_read_record( ssl ) ) != 0 )
@@ -2101,8 +2088,6 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
             SSL_DEBUG_RET( 1, "ssl_read_record", ret );
             return( ret );
         }
-
-        ssl_hs_rm_dtls_hdr( ssl );
 
         if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
         {
@@ -2130,20 +2115,28 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
     // TODO: handshake_failure alert for an anonymous server to request
     // client authentication
 
+    /*
+     *  struct {
+     *      ClientCertificateType certificate_types<1..2^8-1>;
+     *      SignatureAndHashAlgorithm
+     *        supported_signature_algorithms<2^16-1>; -- TLS 1.2 only
+     *      DistinguishedName certificate_authorities<0..2^16-1>;
+     *  } CertificateRequest;
+     */
     buf = ssl->in_msg;
 
     // Retrieve cert types
     //
-    cert_type_len = buf[4];
+    cert_type_len = buf[ssl_hs_hdr_len( ssl )];
     n = cert_type_len;
 
-    if( ssl->in_hslen < 6 + n )
+    if( ssl->in_hslen < ssl_hs_hdr_len( ssl ) + 2 + n )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
     }
 
-    p = buf + 5;
+    p = buf + ssl_hs_hdr_len( ssl ) + 1;
     while( cert_type_len > 0 )
     {
 #if defined(POLARSSL_RSA_C)
@@ -2177,14 +2170,14 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
     {
         /* Ignored, see comments about hash in write_certificate_verify */
         // TODO: should check the signature part against our pk_key though
-        size_t sig_alg_len = ( ( buf[5 + n] <<  8 )
-                             | ( buf[6 + n]       ) );
+        size_t sig_alg_len = ( ( buf[ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
+                             | ( buf[ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
 
-        p = buf + 7 + n;
+        p = buf + ssl_hs_hdr_len( ssl ) + 3 + n;
         m += 2;
         n += sig_alg_len;
 
-        if( ssl->in_hslen < 6 + n )
+        if( ssl->in_hslen < ssl_hs_hdr_len( ssl ) + 2 + n )
         {
             SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
@@ -2194,11 +2187,11 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
 
     /* Ignore certificate_authorities, we only have one cert anyway */
     // TODO: should not send cert if no CA matches
-    dn_len = ( ( buf[5 + m + n] <<  8 )
-             | ( buf[6 + m + n]       ) );
+    dn_len = ( ( buf[ssl_hs_hdr_len( ssl ) + 1 + m + n] <<  8 )
+             | ( buf[ssl_hs_hdr_len( ssl ) + 2 + m + n]       ) );
 
     n += dn_len;
-    if( ssl->in_hslen != 7 + m + n )
+    if( ssl->in_hslen != ssl_hs_hdr_len( ssl ) + 3 + m + n )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
@@ -2228,8 +2221,6 @@ static int ssl_parse_server_hello_done( ssl_context *ssl )
             return( ret );
         }
 
-        ssl_hs_rm_dtls_hdr( ssl );
-
         if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
         {
             SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
@@ -2238,7 +2229,7 @@ static int ssl_parse_server_hello_done( ssl_context *ssl )
     }
     ssl->record_read = 0;
 
-    if( ssl->in_hslen  != 4 ||
+    if( ssl->in_hslen  != ssl_hs_hdr_len( ssl ) ||
         ssl->in_msg[0] != SSL_HS_SERVER_HELLO_DONE )
     {
         SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );

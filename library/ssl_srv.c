@@ -3018,6 +3018,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         return( ret );
     }
 
+    ssl_hs_rm_dtls_hdr( ssl );
+
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
         SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
@@ -3309,6 +3311,8 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "ssl_read_record", ret );
         return( ret );
     }
+
+    ssl_hs_rm_dtls_hdr( ssl );
 
     ssl->state++;
 

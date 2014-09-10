@@ -1974,6 +1974,23 @@ static inline int safer_memcmp( const void *a, const void *b, size_t n )
     return( diff );
 }
 
+/*
+ * Temporary function while transitionning away from memmove()
+ * on received DTLS handshake messages
+ */
+static inline void ssl_hs_rm_dtls_hdr( ssl_context *ssl )
+{
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        memmove( ssl->in_msg + 4, ssl->in_msg + 12, ssl->in_hslen - 12 );
+        ssl->in_hslen -= 8;
+    }
+#else
+    (void) ssl;
+#endif
+}
+
 #ifdef __cplusplus
 }
 #endif

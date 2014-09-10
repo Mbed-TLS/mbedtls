@@ -2408,22 +2408,6 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
     }
 #endif
 
-    /*
-     * For DTLS, we move data so that is looks like TLS handshake format to
-     * other functions.
-     * Except on server after the initial handshake (wait until after
-     * update_checksum() in ssl_parse_client_hello()).
-     */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        ! ( ssl->endpoint == SSL_IS_SERVER &&
-            ssl->state == SSL_HANDSHAKE_OVER ) )
-    {
-        memmove( ssl->in_msg + 4, ssl->in_msg + 12, ssl->in_hslen - 12 );
-        ssl->in_hslen -= 8;
-    }
-#endif /* POLARSSL_SSL_PROTO_DTLS */
-
     return( 0 );
 }
 
@@ -2625,16 +2609,8 @@ int ssl_read_record( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
-    /*
-     * With DTLS, we cheated on in_hslen to make the handshake message look
-     * like TLS format, restore the truth now
-     */
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->in_hslen != 0 && ssl->transport == SSL_TRANSPORT_DATAGRAM )
-        ssl->in_hslen += 8;
-#endif
-
-    if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
+    /* Temporarily disabled */
+    if( ( 0 ) && ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
     {
         /*
          * Get next Handshake message in the current record
@@ -3000,6 +2976,8 @@ int ssl_parse_certificate( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "ssl_read_record", ret );
         return( ret );
     }
+
+    ssl_hs_rm_dtls_hdr( ssl );
 
     ssl->state++;
 
@@ -3812,6 +3790,8 @@ int ssl_parse_finished( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "ssl_read_record", ret );
         return( ret );
     }
+
+    ssl_hs_rm_dtls_hdr( ssl );
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
@@ -5041,7 +5021,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
             if( ssl->endpoint == SSL_IS_CLIENT &&
                 ( ssl->in_msg[0] != SSL_HS_HELLO_REQUEST ||
-                  ssl->in_hslen != 4 ) )
+                  ssl->in_hslen != ssl_hs_hdr_len( ssl ) ) )
             {
                 SSL_DEBUG_MSG( 1, ( "handshake received (not HelloRequest)" ) );
 

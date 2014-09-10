@@ -1069,6 +1069,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
+    ssl_hs_rm_dtls_hdr( ssl );
+
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
@@ -1774,6 +1776,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( ret );
     }
 
+    ssl_hs_rm_dtls_hdr( ssl );
+
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
@@ -2098,6 +2102,8 @@ static int ssl_parse_certificate_request( ssl_context *ssl )
             return( ret );
         }
 
+        ssl_hs_rm_dtls_hdr( ssl );
+
         if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
         {
             SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
@@ -2221,6 +2227,8 @@ static int ssl_parse_server_hello_done( ssl_context *ssl )
             SSL_DEBUG_RET( 1, "ssl_read_record", ret );
             return( ret );
         }
+
+        ssl_hs_rm_dtls_hdr( ssl );
 
         if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
         {
@@ -2647,6 +2655,8 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "ssl_read_record", ret );
         return( ret );
     }
+
+    ssl_hs_rm_dtls_hdr( ssl );
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {

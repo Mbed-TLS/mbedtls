@@ -3259,7 +3259,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 static int ssl_parse_certificate_verify( ssl_context *ssl )
 {
     int ret = POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t sa_len, sig_len;
+    size_t i, sig_len;
     unsigned char hash[48];
     unsigned char *hash_start = hash;
     size_t hashlen;
@@ -3296,8 +3296,6 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( ret );
     }
 
-    ssl_hs_rm_dtls_hdr( ssl );
-
     ssl->state++;
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
@@ -3312,20 +3310,18 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-    /*
-     *     0  .   0   handshake type
-     *     1  .   3   handshake length
-     *     4  .   5   sig alg (TLS 1.2 only)
-     *    4+n .  5+n  signature length (n = sa_len)
-     *    6+n . 6+n+m signature (m = sig_len)
-     */
+    i = ssl_hs_hdr_len( ssl );
 
+    /*
+     *  struct {
+     *     SignatureAndHashAlgorithm algorithm; -- TLS 1.2 only
+     *     opaque signature<0..2^16-1>;
+     *  } DigitallySigned;
+     */
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1) || \
     defined(POLARSSL_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver != SSL_MINOR_VERSION_3 )
     {
-        sa_len = 0;
-
         md_alg = POLARSSL_MD_NONE;
         hashlen = 36;
 
@@ -3344,12 +3340,10 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
-        sa_len = 2;
-
         /*
          * Hash
          */
-        if( ssl->in_msg[4] != ssl->handshake->verify_sig_alg )
+        if( ssl->in_msg[i] != ssl->handshake->verify_sig_alg )
         {
             SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
@@ -3361,10 +3355,12 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         /* Info from md_alg will be used instead */
         hashlen = 0;
 
+        i++;
+
         /*
          * Signature
          */
-        if( ( pk_alg = ssl_pk_alg_from_sig( ssl->in_msg[5] ) )
+        if( ( pk_alg = ssl_pk_alg_from_sig( ssl->in_msg[i] ) )
                         == POLARSSL_PK_NONE )
         {
             SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
@@ -3380,6 +3376,8 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
             SSL_DEBUG_MSG( 1, ( "sig_alg doesn't match cert key" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
         }
+
+        i++;
     }
     else
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
@@ -3388,9 +3386,10 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
-    sig_len = ( ssl->in_msg[4 + sa_len] << 8 ) | ssl->in_msg[5 + sa_len];
+    sig_len = ( ssl->in_msg[i] << 8 ) | ssl->in_msg[i+1];
+    i += 2;
 
-    if( sa_len + sig_len + 6 != ssl->in_hslen )
+    if( i + sig_len != ssl->in_hslen )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
@@ -3398,7 +3397,7 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 
     if( ( ret = pk_verify( &ssl->session_negotiate->peer_cert->pk,
                            md_alg, hash_start, hashlen,
-                           ssl->in_msg + 6 + sa_len, sig_len ) ) != 0 )
+                           ssl->in_msg + i, sig_len ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "pk_verify", ret );
         return( ret );

@@ -3007,6 +3007,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 {
     int ret;
     const ssl_ciphersuite_t *ciphersuite_info;
+    unsigned char *p, *end;
 
     ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
@@ -3018,7 +3019,8 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         return( ret );
     }
 
-    ssl_hs_rm_dtls_hdr( ssl );
+    p = ssl->in_msg + ssl_hs_hdr_len( ssl );
+    end = ssl->in_msg + ssl->in_hslen;
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
@@ -3035,9 +3037,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_RSA )
     {
-        unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_hslen;
-
         if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
@@ -3075,7 +3074,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDH_ECDSA )
     {
         if( ( ret = ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                        ssl->in_msg + 4, ssl->in_hslen - 4 ) ) != 0 )
+                                      p, end - p) ) != 0 )
         {
             SSL_DEBUG_RET( 1, "ecdh_read_public", ret );
             return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
@@ -3103,9 +3102,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK )
     {
-        unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_hslen;
-
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
@@ -3130,9 +3126,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
     {
-        unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_hslen;
-
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
@@ -3157,9 +3150,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_DHE_PSK )
     {
-        unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_hslen;
-
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
@@ -3189,9 +3179,6 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_PSK )
     {
-        unsigned char *p = ssl->in_msg + 4;
-        unsigned char *end = ssl->in_msg + ssl->in_hslen;
-
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
@@ -3219,10 +3206,7 @@ static int ssl_parse_client_key_exchange( ssl_context *ssl )
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA )
     {
-        if( ( ret = ssl_parse_encrypted_pms( ssl,
-                                             ssl->in_msg + 4,
-                                             ssl->in_msg + ssl->in_hslen,
-                                             0 ) ) != 0 )
+        if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 0 ) ) != 0 )
         {
             SSL_DEBUG_RET( 1, ( "ssl_parse_parse_encrypted_pms_secret" ), ret );
             return( ret );

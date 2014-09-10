@@ -1723,15 +1723,6 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
     int ret;
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
     unsigned char *p, *end;
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-    size_t sig_len, params_len;
-    unsigned char hash[64];
-    md_type_t md_alg = POLARSSL_MD_NONE;
-    size_t hashlen;
-    pk_type_t pk_alg = POLARSSL_PK_NONE;
-#endif
 
     SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 
@@ -1864,8 +1855,12 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
+        size_t sig_len, hashlen;
+        unsigned char hash[64];
+        md_type_t md_alg = POLARSSL_MD_NONE;
+        pk_type_t pk_alg = POLARSSL_PK_NONE;
         unsigned char *params = ssl->in_msg + ssl_hs_hdr_len( ssl );
-        params_len = p - params;
+        size_t params_len = p - params;
 
         /*
          * Handle the digitally-signed structure

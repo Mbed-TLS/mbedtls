@@ -3330,6 +3330,12 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
     {
+        if( i + 2 > ssl->in_hslen )
+        {
+            SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
+            return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        }
+
         /*
          * Hash
          */
@@ -3374,6 +3380,12 @@ static int ssl_parse_certificate_verify( ssl_context *ssl )
     {
         SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    if( i + 2 > ssl->in_hslen )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
     sig_len = ( ssl->in_msg[i] << 8 ) | ssl->in_msg[i+1];

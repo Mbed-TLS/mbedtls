@@ -959,7 +959,7 @@ static int ssl_parse_alpn_ext( ssl_context *ssl,
 #if defined(POLARSSL_SSL_PROTO_DTLS)
 static int ssl_parse_hello_verify_request( ssl_context *ssl )
 {
-    const unsigned char *p = ssl->in_msg + 4;
+    const unsigned char *p = ssl->in_msg + ssl_hs_hdr_len( ssl );
     int major_ver, minor_ver;
     unsigned char cookie_len;
 
@@ -1069,8 +1069,6 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    ssl_hs_rm_dtls_hdr( ssl );
-
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
@@ -1089,6 +1087,8 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         }
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
+
+    ssl_hs_rm_dtls_hdr( ssl );
 
     if( ssl->in_hslen < 42 ||
         buf[0] != SSL_HS_SERVER_HELLO )

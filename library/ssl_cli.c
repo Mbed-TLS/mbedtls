@@ -1032,13 +1032,6 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
-    /*
-     *     0  .   0   handshake type
-     *     1  .   3   handshake length
-     *     4  .   5   protocol version
-     *     6  .   9   UNIX time()
-     *    10  .  37   random bytes
-     */
     buf = ssl->in_msg;
 
     if( ( ret = ssl_read_record( ssl ) ) != 0 )
@@ -1088,18 +1081,29 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 
-    ssl_hs_rm_dtls_hdr( ssl );
-
-    if( ssl->in_hslen < 42 ||
+    if( ssl->in_hslen < 38 + ssl_hs_hdr_len( ssl ) ||
         buf[0] != SSL_HS_SERVER_HELLO )
     {
         SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
-    SSL_DEBUG_BUF( 3, "server hello, version", buf + 4, 2 );
+    /*
+     *  0   .  1    server_version
+     *  2   . 33    random (maybe including 4 bytes of Unix time)
+     * 34   . 34    session_id length = n
+     * 35   . 34+n  session_id
+     * 35+n . 36+n  cipher_suite
+     * 37+n . 37+n  compression_method
+     *
+     * 38+n . 39+n  extensions length (optional)
+     * 40+n .  ..   extensions
+     */
+    buf += ssl_hs_hdr_len( ssl );
+
+    SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
     ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
-                      ssl->transport, buf + 4 );
+                      ssl->transport, buf + 0 );
 
     if( ssl->major_ver < ssl->min_major_ver ||
         ssl->minor_ver < ssl->min_minor_ver ||
@@ -1119,18 +1123,18 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     }
 
 #if defined(POLARSSL_DEBUG_C)
-    t = ( (uint32_t) buf[6] << 24 )
-      | ( (uint32_t) buf[7] << 16 )
-      | ( (uint32_t) buf[8] <<  8 )
-      | ( (uint32_t) buf[9]       );
+    t = ( (uint32_t) buf[2] << 24 )
+      | ( (uint32_t) buf[3] << 16 )
+      | ( (uint32_t) buf[4] <<  8 )
+      | ( (uint32_t) buf[5]       );
     SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
 #endif
 
-    memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
+    memcpy( ssl->handshake->randbytes + 32, buf + 2, 32 );
 
-    n = buf[38];
+    n = buf[34];
 
-    SSL_DEBUG_BUF( 3,   "server hello, random bytes", buf + 6, 32 );
+    SSL_DEBUG_BUF( 3,   "server hello, random bytes", buf + 2, 32 );
 
     if( n > 32 )
     {
@@ -1138,27 +1142,19 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
-    /*
-     *    38  .  38   session id length
-     *    39  . 38+n  session id
-     *   39+n . 40+n  chosen ciphersuite
-     *   41+n . 41+n  chosen compression alg.
-     *   42+n . 43+n  extensions length
-     *   44+n . 44+n+m extensions
-     */
-    if( ssl->in_hslen > 43 + n )
+    if( ssl->in_hslen > 39 + n )
     {
-        ext_len = ( ( buf[42 + n] <<  8 )
-                  | ( buf[43 + n]       ) );
+        ext_len = ( ( buf[38 + n] <<  8 )
+                  | ( buf[39 + n]       ) );
 
         if( ( ext_len > 0 && ext_len < 4 ) ||
-            ssl->in_hslen != 44 + n + ext_len )
+            ssl->in_hslen != ssl_hs_hdr_len( ssl ) + 40 + n + ext_len )
         {
             SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
     }
-    else if( ssl->in_hslen == 42 + n )
+    else if( ssl->in_hslen == 38 + n )
     {
         ext_len = 0;
     }
@@ -1169,12 +1165,12 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     }
 
     /* ciphersuite (used later) */
-    i = ( buf[39 + n] << 8 ) | buf[40 + n];
+    i = ( buf[35 + n] << 8 ) | buf[36 + n];
 
     /*
      * Read and check compression
      */
-    comp = buf[41 + n];
+    comp = buf[37 + n];
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
     accept_comp = 1;
@@ -1209,7 +1205,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
 
     SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
-    SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
+    SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 35, n );
 
     /*
      * Check if the session can be resumed
@@ -1219,7 +1215,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         ssl->session_negotiate->ciphersuite != i ||
         ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->length != n ||
-        memcmp( ssl->session_negotiate->id, buf + 39, n ) != 0 )
+        memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
     {
         ssl->state++;
         ssl->handshake->resume = 0;
@@ -1229,7 +1225,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         ssl->session_negotiate->ciphersuite = i;
         ssl->session_negotiate->compression = comp;
         ssl->session_negotiate->length = n;
-        memcpy( ssl->session_negotiate->id, buf + 39, n );
+        memcpy( ssl->session_negotiate->id, buf + 35, n );
     }
     else
     {
@@ -1246,7 +1242,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
                    ssl->handshake->resume ? "a" : "no" ) );
 
     SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d", i ) );
-    SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[41 + n] ) );
+    SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[37 + n] ) );
 
     i = 0;
     while( 1 )
@@ -1275,7 +1271,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     }
     ssl->session_negotiate->compression = comp;
 
-    ext = buf + 44 + n;
+    ext = buf + 40 + n;
 
     SSL_DEBUG_MSG( 2, ( "server hello, total extension length: %d", ext_len ) );
 

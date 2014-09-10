@@ -2634,6 +2634,7 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
     uint32_t lifetime;
     size_t ticket_len;
     unsigned char *ticket;
+    const unsigned char *msg;
 
     SSL_DEBUG_MSG( 2, ( "=> parse new session ticket" ) );
 
@@ -2642,8 +2643,6 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
         SSL_DEBUG_RET( 1, "ssl_read_record", ret );
         return( ret );
     }
-
-    ssl_hs_rm_dtls_hdr( ssl );
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
@@ -2657,25 +2656,25 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
      *     opaque ticket<0..2^16-1>;
      * } NewSessionTicket;
      *
-     * 0  .  0   handshake message type
-     * 1  .  3   handshake message length
-     * 4  .  7   ticket_lifetime_hint
-     * 8  .  9   ticket_len (n)
-     * 10 .  9+n ticket content
+     * 0  .  3   ticket_lifetime_hint
+     * 4  .  5   ticket_len (n)
+     * 6  .  5+n ticket content
      */
     if( ssl->in_msg[0] != SSL_HS_NEW_SESSION_TICKET ||
-        ssl->in_hslen < 10 )
+        ssl->in_hslen < 6 + ssl_hs_hdr_len( ssl ) )
     {
         SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
     }
 
-    lifetime = ( ssl->in_msg[4] << 24 ) | ( ssl->in_msg[5] << 16 ) |
-               ( ssl->in_msg[6] <<  8 ) | ( ssl->in_msg[7]       );
+    msg = ssl->in_msg + ssl_hs_hdr_len( ssl );
 
-    ticket_len = ( ssl->in_msg[8] << 8 ) | ( ssl->in_msg[9] );
+    lifetime = ( msg[0] << 24 ) | ( msg[1] << 16 ) |
+               ( msg[2] <<  8 ) | ( msg[3]       );
 
-    if( ticket_len + 10 != ssl->in_hslen )
+    ticket_len = ( msg[4] << 8 ) | ( msg[5] );
+
+    if( ticket_len + 6 + ssl_hs_hdr_len( ssl ) != ssl->in_hslen )
     {
         SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
@@ -2705,7 +2704,7 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 
-    memcpy( ticket, ssl->in_msg + 10, ticket_len );
+    memcpy( ticket, msg + 6, ticket_len );
 
     ssl->session_negotiate->ticket = ticket;
     ssl->session_negotiate->ticket_len = ticket_len;

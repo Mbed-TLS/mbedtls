@@ -3791,8 +3791,6 @@ int ssl_parse_finished( ssl_context *ssl )
         return( ret );
     }
 
-    ssl_hs_rm_dtls_hdr( ssl );
-
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
         SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
@@ -3803,13 +3801,14 @@ int ssl_parse_finished( ssl_context *ssl )
     hash_len = ( ssl->minor_ver == SSL_MINOR_VERSION_0 ) ? 36 : 12;
 
     if( ssl->in_msg[0] != SSL_HS_FINISHED ||
-        ssl->in_hslen  != 4 + hash_len )
+        ssl->in_hslen  != ssl_hs_hdr_len( ssl ) + hash_len )
     {
         SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( safer_memcmp( ssl->in_msg + 4, buf, hash_len ) != 0 )
+    if( safer_memcmp( ssl->in_msg + ssl_hs_hdr_len( ssl ),
+                      buf, hash_len ) != 0 )
     {
         SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_FINISHED );

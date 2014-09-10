@@ -2609,8 +2609,7 @@ int ssl_read_record( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> read record" ) );
 
-    /* Temporarily disabled */
-    if( ( 0 ) && ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
+    if( ssl->in_hslen != 0 && ssl->in_hslen < ssl->in_msglen )
     {
         /*
          * Get next Handshake message in the current record

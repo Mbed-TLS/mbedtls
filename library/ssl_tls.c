@@ -2977,8 +2977,6 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( ret );
     }
 
-    ssl_hs_rm_dtls_hdr( ssl );
-
     ssl->state++;
 
 #if defined(POLARSSL_SSL_PROTO_SSL3)
@@ -3032,18 +3030,22 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    if( ssl->in_msg[0] != SSL_HS_CERTIFICATE || ssl->in_hslen < 10 )
+    if( ssl->in_msg[0] != SSL_HS_CERTIFICATE ||
+        ssl->in_hslen < ssl_hs_hdr_len( ssl ) + 3 + 3 )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
+    i = ssl_hs_hdr_len( ssl );
+
     /*
      * Same message structure as in ssl_write_certificate()
      */
-    n = ( ssl->in_msg[5] << 8 ) | ssl->in_msg[6];
+    n = ( ssl->in_msg[i+1] << 8 ) | ssl->in_msg[i+2];
 
-    if( ssl->in_msg[4] != 0 || ssl->in_hslen != 7 + n )
+    if( ssl->in_msg[i] != 0 ||
+        ssl->in_hslen != n + 3 + ssl_hs_hdr_len( ssl ) )
     {
         SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
         return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
@@ -3066,7 +3068,7 @@ int ssl_parse_certificate( ssl_context *ssl )
 
     x509_crt_init( ssl->session_negotiate->peer_cert );
 
-    i = 7;
+    i += 3;
 
     while( i < ssl->in_hslen )
     {

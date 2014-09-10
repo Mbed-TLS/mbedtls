@@ -1776,8 +1776,6 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( ret );
     }
 
-    ssl_hs_rm_dtls_hdr( ssl );
-
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
         SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
@@ -1793,6 +1791,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
             ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK )
         {
+            ssl_hs_rm_dtls_hdr( ssl );
             ssl->record_read = 1;
             goto exit;
         }
@@ -1801,9 +1800,9 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    p   = ssl->in_msg + 4;
+    p   = ssl->in_msg + ssl_hs_hdr_len( ssl );
     end = ssl->in_msg + ssl->in_hslen;
-    SSL_DEBUG_BUF( 3,   "server key exchange", p, ssl->in_hslen - 4 );
+    SSL_DEBUG_BUF( 3,   "server key exchange", p, end - p );
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
@@ -1870,7 +1869,8 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA )
     {
-        params_len = p - ( ssl->in_msg + 4 );
+        unsigned char *params = ssl->in_msg + ssl_hs_hdr_len( ssl );
+        params_len = p - params;
 
         /*
          * Handle the digitally-signed structure
@@ -1954,12 +1954,12 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
              */
             md5_starts( &md5 );
             md5_update( &md5, ssl->handshake->randbytes, 64 );
-            md5_update( &md5, ssl->in_msg + 4, params_len );
+            md5_update( &md5, params, params_len );
             md5_finish( &md5, hash );
 
             sha1_starts( &sha1 );
             sha1_update( &sha1, ssl->handshake->randbytes, 64 );
-            sha1_update( &sha1, ssl->in_msg + 4, params_len );
+            sha1_update( &sha1, params, params_len );
             sha1_finish( &sha1, hash + 16 );
 
             md5_free(  &md5  );
@@ -1995,7 +1995,7 @@ static int ssl_parse_server_key_exchange( ssl_context *ssl )
 
             md_starts( &ctx );
             md_update( &ctx, ssl->handshake->randbytes, 64 );
-            md_update( &ctx, ssl->in_msg + 4, params_len );
+            md_update( &ctx, params, params_len );
             md_finish( &ctx, hash );
             md_free( &ctx );
         }

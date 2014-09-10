@@ -3720,11 +3720,17 @@ int ssl_write_finished( ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+#define SSL_MAX_HASH_LEN 36
+#else
+#define SSL_MAX_HASH_LEN 12
+#endif
+
 int ssl_parse_finished( ssl_context *ssl )
 {
     int ret;
     unsigned int hash_len;
-    unsigned char buf[36];
+    unsigned char buf[SSL_MAX_HASH_LEN];
 
     SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
 
@@ -3738,8 +3744,6 @@ int ssl_parse_finished( ssl_context *ssl )
     ssl->transform_in = ssl->transform_negotiate;
     ssl->session_in = ssl->session_negotiate;
 
-    /* Input counter/epoch not used with DTLS right now,
-     * but it doesn't hurt to have this part ready */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
@@ -3798,8 +3802,13 @@ int ssl_parse_finished( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    // TODO TLS/1.2 Hash length is determined by cipher suite (Page 63)
-    hash_len = ( ssl->minor_ver == SSL_MINOR_VERSION_0 ) ? 36 : 12;
+    /* There is currently no ciphersuite using another length with TLS 1.2 */
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+    if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
+        hash_len = 36;
+    else
+#endif
+        hash_len = 12;
 
     if( ssl->in_msg[0] != SSL_HS_FINISHED ||
         ssl->in_hslen  != ssl_hs_hdr_len( ssl ) + hash_len )

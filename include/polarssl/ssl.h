@@ -725,8 +725,7 @@ struct _ssl_context
 
     void *p_rng;                /*!< context for the RNG function     */
     void *p_dbg;                /*!< context for the debug function   */
-    void *p_recv;               /*!< context for reading operations   */
-    void *p_send;               /*!< context for writing operations   */
+    void *p_bio;                /*!< context for I/O operations   */
     void *p_get_cache;          /*!< context for cache retrieval      */
     void *p_set_cache;          /*!< context for cache store          */
     void *p_hw_data;            /*!< context for HW acceleration      */
@@ -1069,9 +1068,13 @@ void ssl_set_dbg( ssl_context *ssl,
  *
  * \param ssl      SSL context
  * \param f_recv   read callback
- * \param p_recv   read parameter
+ * \param p_recv   read parameter (must be equal to write parameter)
  * \param f_send   write callback
- * \param p_send   write parameter
+ * \param p_send   write parameter (must be equal to read parameter)
+ *
+ * \warning        It is required that p_recv == p_send. Otherwise, the first
+ *                 attempt at sending or receiving will result in a
+ *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA error.
  */
 void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,

@@ -1842,6 +1842,13 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 
     SSL_DEBUG_MSG( 2, ( "=> fetch input" ) );
 
+    if( ssl->f_recv == NULL && ssl->f_recv_timeout == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "Bad usage of ssl_set_bio() "
+                            "or ssl_set_bio_timeout()" ) );
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     if( nb_want > SSL_BUFFER_LEN - (size_t)( ssl->in_hdr - ssl->in_buf ) )
     {
         SSL_DEBUG_MSG( 1, ( "requesting more data than fits" ) );
@@ -1907,7 +1914,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
         }
 
         len = SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
-        ret = ssl->f_recv( ssl->p_recv, ssl->in_hdr, len );
+        ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
 
         SSL_DEBUG_RET( 2, "ssl->f_recv", ret );
 
@@ -1928,7 +1935,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
         while( ssl->in_left < nb_want )
         {
             len = nb_want - ssl->in_left;
-            ret = ssl->f_recv( ssl->p_recv, ssl->in_hdr + ssl->in_left, len );
+            ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr + ssl->in_left, len );
 
             SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                            ssl->in_left, nb_want ) );
@@ -1959,6 +1966,13 @@ int ssl_flush_output( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> flush output" ) );
 
+    if( ssl->f_send == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "Bad usage of ssl_set_bio() "
+                            "or ssl_set_bio_timeout()" ) );
+        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     /* Avoid incrementing counter if data is flushed */
     if( ssl->out_left == 0 )
     {
@@ -1973,7 +1987,7 @@ int ssl_flush_output( ssl_context *ssl )
 
         buf = ssl->out_hdr + ssl_hdr_len( ssl ) +
               ssl->out_msglen - ssl->out_left;
-        ret = ssl->f_send( ssl->p_send, buf, ssl->out_left );
+        ret = ssl->f_send( ssl->p_bio, buf, ssl->out_left );
 
         SSL_DEBUG_RET( 2, "ssl->f_send", ret );
 
@@ -4299,10 +4313,17 @@ void ssl_set_bio( ssl_context *ssl,
             int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
             int (*f_send)(void *, const unsigned char *, size_t), void *p_send )
 {
+    if( p_recv != p_send )
+    {
+        ssl->f_recv = NULL;
+        ssl->f_send = NULL;
+        ssl->p_bio  = NULL;
+        return;
+    }
+
     ssl->f_recv     = f_recv;
     ssl->f_send     = f_send;
-    ssl->p_recv     = p_recv;
-    ssl->p_send     = p_send;
+    ssl->p_bio      = p_send;
 }
 
 void ssl_set_session_cache( ssl_context *ssl,

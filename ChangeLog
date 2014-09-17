@@ -1,5 +1,13 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= PolarSSL 1.4.0 (DTLS branch) released 2014-10-22
+Features
+   * Support for DTLS 1.0 and 1.2
+
+API Changes
+   * net_connect() and net_bind() have a new 'proto' argument to choose
+     between TCP and UDP, using the macros NET_PROTO_TCP or NET_PROTO_UDP.
+
 = PolarSSL 1.3.9 released 2014-10-20
 Security
    * Lowest common hash was selected from signature_algorithms extension in

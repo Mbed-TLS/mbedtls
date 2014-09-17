@@ -1,5 +1,5 @@
 /*
- *  TCP networking functions
+ *  TCP/IP or UDP/IP networking functions
  *
  *  Copyright (C) 2006-2014, Brainspark B.V.
  *

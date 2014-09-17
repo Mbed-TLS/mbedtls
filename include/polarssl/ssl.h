@@ -713,13 +713,17 @@ struct _ssl_context
     int min_major_ver;          /*!< min. major version used          */
     int min_minor_ver;          /*!< min. minor version used          */
 
+    unsigned char timeout;      /*!< DTLS: initial value of the timeout
+                                     for handshake retransmission     */
+
     /*
      * Callbacks (RNG, debug, I/O, verification)
      */
     int  (*f_rng)(void *, unsigned char *, size_t);
     void (*f_dbg)(void *, int, const char *);
-    int (*f_recv)(void *, unsigned char *, size_t);
     int (*f_send)(void *, const unsigned char *, size_t);
+    int (*f_recv)(void *, unsigned char *, size_t);
+    int (*f_recv_timeout)(void *, unsigned char *, size_t, unsigned char);
     int (*f_get_cache)(void *, ssl_session *);
     int (*f_set_cache)(void *, const ssl_session *);
 
@@ -985,17 +989,22 @@ int ssl_session_reset( ssl_context *ssl );
 void ssl_set_endpoint( ssl_context *ssl, int endpoint );
 
 /**
- * \brief          Set the transport type (TLS or DTLS).
- *                 Default: TLS
+ * \brief           Set the transport type (TLS or DTLS).
+ *                  Default: TLS
  *
- * \param ssl      SSL context
+ * \param ssl       SSL context
  * \param transport transport type:
  *                  SSL_TRANSPORT_STREAM for TLS,
  *                  SSL_TRANSPORT_DATAGRAM for DTLS.
- * \return         0 on success or POLARSSL_ERR_SSL_BAD_INPUT_DATA
+ * \return          0 on success or POLARSSL_ERR_SSL_BAD_INPUT_DATA
  *
  * \note            If DTLS is selected and max and/or min version are less
  *                  than TLS 1.1 (DTLS 1.0) they are upped to that value.
+ *
+ * \note            Regarding I/O callbacks, you must either [TODO-DTLS:
+ *                  unimplemented yet: provide a recv callback that doesn't
+ *                  block], or one that handles timeouts, see
+ *                  ssl_set_bio_timeout()
  */
 int ssl_set_transport( ssl_context *ssl, int transport );
 
@@ -1079,6 +1088,36 @@ void ssl_set_dbg( ssl_context *ssl,
 void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
         int (*f_send)(void *, const unsigned char *, size_t), void *p_send );
+
+/**
+ * \brief          Set the underlying BIO callbacks for write, read and
+ *                 read-with-timeout.
+ *
+ * \param ssl      SSL context
+ * \param p_bio    parameter (context) shared by BIO callbacks
+ * \param f_send   write callback
+ * \param f_recv   read callback
+ * \param f_recv_timeout read callback with timeout.
+ *                 The last argument of the callback is the timeout in seconds
+ * \param timeout  Value of the recv timeout in seconds. (For DTLS, also the
+ *                 initial value of the handshake retransmission timeout.)
+ *
+ * \note           f_recv_timeout is required for DTLS, [TODO-TLS:
+ *                 unimplmented yet: unless f_recv performs non-blocking
+ *                 reads].
+ *
+ * \note           f_recv_timeout must actually block until it receives
+ *                 something or times out (or is interrupted by a signal)
+ *
+ * \note           TODO: with TLS, f_recv_timeout and timeout are ignored for
+ *                 now.
+ */
+void ssl_set_bio_timeout( ssl_context *ssl,
+        void *p_bio,
+        int (*f_send)(void *, const unsigned char *, size_t),
+        int (*f_recv)(void *, unsigned char *, size_t),
+        int (*f_recv_timeout)(void *, unsigned char *, size_t, unsigned char),
+        unsigned char timeout );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
 /**

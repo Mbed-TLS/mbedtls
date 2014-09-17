@@ -4326,6 +4326,20 @@ void ssl_set_bio( ssl_context *ssl,
     ssl->p_bio      = p_send;
 }
 
+void ssl_set_bio_timeout( ssl_context *ssl,
+        void *p_bio,
+        int (*f_send)(void *, const unsigned char *, size_t),
+        int (*f_recv)(void *, unsigned char *, size_t),
+        int (*f_recv_timeout)(void *, unsigned char *, size_t, unsigned char),
+        unsigned char timeout )
+{
+    ssl->p_bio          = p_bio;
+    ssl->f_send         = f_send;
+    ssl->f_recv         = f_recv;
+    ssl->f_recv_timeout = f_recv_timeout;
+    ssl->timeout        = timeout;
+}
+
 void ssl_set_session_cache( ssl_context *ssl,
         int (*f_get_cache)(void *, ssl_session *), void *p_get_cache,
         int (*f_set_cache)(void *, const ssl_session *), void *p_set_cache )

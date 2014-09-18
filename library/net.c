@@ -583,6 +583,49 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
     return( ret );
 }
 
+#if defined(POLARSSL_HAVE_TIME)
+/*
+ * Read at most 'len' characters, blocking for at most 'timeout' seconds
+ */
+int net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
+                      unsigned char timeout )
+{
+    int ret;
+    struct timeval tv;
+    fd_set read_fds;
+    int fd = *((int *) ctx);
+
+    FD_ZERO( &read_fds );
+    FD_SET( fd, &read_fds );
+
+    tv.tv_sec  = timeout;
+    tv.tv_usec = 0;
+
+    ret = select( fd + 1, &read_fds, NULL, NULL, &tv );
+
+    /* Zero fds ready means we timed out */
+    if( ret == 0 )
+        return( POLARSSL_ERR_NET_TIMEOUT );
+
+    if( ret < 0 )
+    {
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
+        if( WSAGetLastError() == WSAEINTR )
+            return( POLARSSL_ERR_NET_WANT_READ );
+#else
+        if( errno == EINTR )
+            return( POLARSSL_ERR_NET_WANT_READ );
+#endif
+
+        return( POLARSSL_ERR_NET_RECV_FAILED );
+    }
+
+    /* This call will not block */
+    return( net_recv( ctx, buf, len ) );
+}
+#endif /* POLARSSL_HAVE_TIME */
+
 /*
  * Write at most 'len' characters
  */

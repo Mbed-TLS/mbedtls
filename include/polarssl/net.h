@@ -27,9 +27,14 @@
 #ifndef POLARSSL_NET_H
 #define POLARSSL_NET_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
+#include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
+
 #include <string.h>
 
-#define POLARSSL_ERR_NET_UNKNOWN_HOST                      -0x0056  /**< Failed to get an IP address for the given hostname. */
 #define POLARSSL_ERR_NET_SOCKET_FAILED                     -0x0042  /**< Failed to open a socket. */
 #define POLARSSL_ERR_NET_CONNECT_FAILED                    -0x0044  /**< The connection to the given server / port failed. */
 #define POLARSSL_ERR_NET_BIND_FAILED                       -0x0046  /**< Binding of the socket failed. */
@@ -40,6 +45,8 @@
 #define POLARSSL_ERR_NET_CONN_RESET                        -0x0050  /**< Connection was reset by peer. */
 #define POLARSSL_ERR_NET_WANT_READ                         -0x0052  /**< Connection requires a read call. */
 #define POLARSSL_ERR_NET_WANT_WRITE                        -0x0054  /**< Connection requires a write call. */
+#define POLARSSL_ERR_NET_UNKNOWN_HOST                      -0x0056  /**< Failed to get an IP address for the given hostname. */
+#define POLARSSL_ERR_NET_TIMEOUT                           -0x0011  /**< The operation timed out. */
 
 #define POLARSSL_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
 
@@ -159,6 +166,31 @@ int net_recv( void *ctx, unsigned char *buf, size_t len );
  *                 indicates write() is blocking.
  */
 int net_send( void *ctx, const unsigned char *buf, size_t len );
+
+#if defined(POLARSSL_HAVE_TIME)
+/**
+ * \brief          Read at most 'len' characters, blocking for at most
+ *                 'timeout' seconds. If no error occurs, the actual amount
+ *                 read is returned.
+ *
+ * \param ctx      Socket
+ * \param buf      The buffer to write to
+ * \param len      Maximum length of the buffer
+ * \param timeout  Maximum number of seconds to wait for data
+ *
+ * \return         This function returns the number of bytes received,
+ *                 or a non-zero error code:
+ *                 POLARSSL_ERR_NET_TIMEOUT if the operation timed out,
+ *                 POLARSSL_ERR_NET_WANT_READ if interrupted by a signal.
+ *
+ * \note           This function will block (until data becomes available or
+ *                 timeout is reached) even if the socket is set to
+ *                 non-blocking. Handling timeouts with non-blocking reads
+ *                 requires a different strategy.
+ */
+int net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
+                      unsigned char timeout );
+#endif /* POLARSSL_HAVE_TIME */
 
 /**
  * \brief          Gracefully shutdown the connection

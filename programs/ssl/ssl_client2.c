@@ -942,9 +942,15 @@ int main( int argc, char *argv[] )
     ssl_set_dbg( &ssl, my_debug, stdout );
 
     if( opt.nbio == 2 )
-        ssl_set_bio( &ssl, my_recv, &server_fd, my_send, &server_fd );
+        ssl_set_bio_timeout( &ssl, &server_fd, my_send, my_recv, NULL, 0 );
     else
-        ssl_set_bio( &ssl, net_recv, &server_fd, net_send, &server_fd );
+        ssl_set_bio_timeout( &ssl, &server_fd, net_send, net_recv,
+#if defined(POLARSSL_HAVE_TIME)
+                             net_recv_timeout,
+#else
+                             NULL,
+#endif
+                             0 );
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( ( ret = ssl_set_session_tickets( &ssl, opt.tickets ) ) != 0 )

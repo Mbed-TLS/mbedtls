@@ -1591,9 +1591,15 @@ reset:
     }
 
     if( opt.nbio == 2 )
-        ssl_set_bio( &ssl, my_recv, &client_fd, my_send, &client_fd );
+        ssl_set_bio_timeout( &ssl, &client_fd, my_send, my_recv, NULL, 0 );
     else
-        ssl_set_bio( &ssl, net_recv, &client_fd, net_send, &client_fd );
+        ssl_set_bio_timeout( &ssl, &client_fd, net_send, net_recv,
+#if defined(POLARSSL_HAVE_TIME)
+                             net_recv_timeout,
+#else
+                             NULL,
+#endif
+                             0 );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     if( opt.transport == SSL_TRANSPORT_DATAGRAM )

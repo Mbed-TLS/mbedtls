@@ -129,6 +129,7 @@ int net_set_block( int fd );
  */
 int net_set_nonblock( int fd );
 
+#if defined(POLARSSL_HAVE_TIME)
 /**
  * \brief          Portable usleep helper
  *
@@ -138,6 +139,7 @@ int net_set_nonblock( int fd );
  *                 select()'s timeout granularity (typically, 10ms).
  */
 void net_usleep( unsigned long usec );
+#endif
 
 /**
  * \brief          Read at most 'len' characters. If no error occurs,

@@ -2113,13 +2113,36 @@ static void ssl_swap_epochs( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 3, ( "swap epochs" ) );
 
+    /* Swap transforms */
     tmp_transform                     = ssl->transform_out;
     ssl->transform_out                = ssl->handshake->alt_transform_out;
     ssl->handshake->alt_transform_out = tmp_transform;
 
+    /* Swap epoch + sequence_number */
     memcpy( tmp_out_ctr,                 ssl->out_ctr,                8 );
     memcpy( ssl->out_ctr,                ssl->handshake->alt_out_ctr, 8 );
     memcpy( ssl->handshake->alt_out_ctr, tmp_out_ctr,                 8 );
+
+    /* Adjust to the newly activated transform */
+    if( ssl->transform_out != NULL &&
+        ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+    {
+        ssl->out_msg = ssl->out_iv + ssl->transform_out->ivlen -
+                                     ssl->transform_out->fixed_ivlen;
+    }
+    else
+        ssl->out_msg = ssl->out_iv;
+
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_activate != NULL )
+    {
+        if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_OUTBOUND ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_hw_record_activate", ret );
+            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+        }
+    }
+#endif
 }
 
 /*
@@ -2148,6 +2171,15 @@ int ssl_resend( ssl_context *ssl )
         int ret;
         ssl_flight_item *cur = ssl->handshake->cur_msg;
 
+        /* Swap epochs before sending Finished: we can't do it after
+         * sending ChangeCipherSpec, in case write returns WANT_READ.
+         * Must be done before copying, may change out_msg pointer */
+        if( cur->type == SSL_MSG_HANDSHAKE &&
+            cur->p[0] == SSL_HS_FINISHED )
+        {
+            ssl_swap_epochs( ssl );
+        }
+
         memcpy( ssl->out_msg, cur->p, cur->len );
         ssl->out_msglen = cur->len;
         ssl->out_msgtype = cur->type;
@@ -2155,14 +2187,6 @@ int ssl_resend( ssl_context *ssl )
         ssl->handshake->cur_msg = cur->next;
 
         SSL_DEBUG_BUF( 3, "resent handshake message header", ssl->out_msg, 12 );
-
-        /* Swap epochs before sending Finished: we can't do it right after
-         * sending ChangeCipherSpec, in case write returns WANT_READ */
-        if( ssl->out_msgtype == SSL_MSG_HANDSHAKE &&
-            ssl->out_msg[0] == SSL_HS_FINISHED )
-        {
-            ssl_swap_epochs( ssl );
-        }
 
         if( ( ret = ssl_write_record( ssl ) ) != 0 )
         {

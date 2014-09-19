@@ -1805,6 +1805,11 @@ have_ciphersuite:
 
     ssl->state++;
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl_recv_flight_completed( ssl );
+#endif
+
     SSL_DEBUG_MSG( 2, ( "<= parse client hello" ) );
 
     return( 0 );
@@ -3484,6 +3489,16 @@ int ssl_handshake_server_step( ssl_context *ssl )
 
     if( ( ret = ssl_flush_output( ssl ) ) != 0 )
         return( ret );
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL &&
+        ssl->handshake->retransmit_state == SSL_RETRANS_SENDING )
+    {
+        if( ( ret = ssl_resend( ssl ) ) != 0 )
+            return( ret );
+    }
+#endif
 
     switch( ssl->state )
     {

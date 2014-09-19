@@ -644,6 +644,12 @@ struct _ssl_handshake_params
     unsigned char retransmit_state;     /*!<  Retransmission state           */
     ssl_flight_item *flight;            /*!<  Current outgoing flight        */
     ssl_flight_item *cur_msg;           /*!<  Current message in flight      */
+    unsigned int in_flight_start_seq;   /*!<  Minimum message sequence in the
+                                              flight being received          */
+    ssl_transform *alt_transform_out;   /*!<  Alternative transform for
+                                              resending messages             */
+    unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
+                                              for resending messages         */
 #endif
 
     /*
@@ -719,7 +725,8 @@ struct _ssl_key_cert
 struct _ssl_flight_item
 {
     unsigned char *p;       /*!< message, including handshake headers   */
-    size_t len;             /*!< length of hs_msg                       */
+    size_t len;             /*!< length of p                            */
+    unsigned char type;     /*!< type of the message: handshake or CCS  */
     ssl_flight_item *next;  /*!< next handshake message(s)              */
 };
 #endif /* POLARSSL_SSL_PROTO_DTLS */
@@ -2030,6 +2037,11 @@ static inline size_t ssl_hs_hdr_len( const ssl_context *ssl )
 #endif
     return( 4 );
 }
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+void ssl_recv_flight_completed( ssl_context *ssl );
+int ssl_resend( ssl_context *ssl );
+#endif
 
 /* constant-time buffer comparison */
 static inline int safer_memcmp( const void *a, const void *b, size_t n )

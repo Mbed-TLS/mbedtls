@@ -1011,6 +1011,8 @@ static int ssl_parse_hello_verify_request( ssl_context *ssl )
     ssl->state = SSL_CLIENT_HELLO;
     ssl_reset_checksum( ssl );
 
+    ssl_recv_flight_completed( ssl );
+
     SSL_DEBUG_MSG( 2, ( "<= parse hello verify request" ) );
 
     return( 0 );
@@ -2229,6 +2231,11 @@ static int ssl_parse_server_hello_done( ssl_context *ssl )
 
     ssl->state++;
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl_recv_flight_completed( ssl );
+#endif
+
     SSL_DEBUG_MSG( 2, ( "<= parse server hello done" ) );
 
     return( 0 );
@@ -2733,6 +2740,16 @@ int ssl_handshake_client_step( ssl_context *ssl )
 
     if( ( ret = ssl_flush_output( ssl ) ) != 0 )
         return( ret );
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL &&
+        ssl->handshake->retransmit_state == SSL_RETRANS_SENDING )
+    {
+        if( ( ret = ssl_resend( ssl ) ) != 0 )
+            return( ret );
+    }
+#endif
 
     switch( ssl->state )
     {

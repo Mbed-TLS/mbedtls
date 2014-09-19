@@ -243,6 +243,14 @@
 #define SSL_SESSION_TICKETS_DISABLED     0
 #define SSL_SESSION_TICKETS_ENABLED      1
 
+/*
+ * DTLS retransmission states, see RFC 6347 4.2.4
+ */
+#define SSL_RETRANS_PREPARING       0
+#define SSL_RETRANS_SENDING         1
+#define SSL_RETRANS_WAITING         2
+#define SSL_RETRANS_FINISHED        3
+
 /**
  * \name SECTION: Module settings
  *
@@ -511,6 +519,9 @@ typedef struct _ssl_ticket_keys ssl_ticket_keys;
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 typedef struct _ssl_key_cert ssl_key_cert;
 #endif
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+typedef struct _ssl_flight_item ssl_flight_item;
+#endif
 
 /*
  * This structure is used for storing current session data.
@@ -622,11 +633,17 @@ struct _ssl_handshake_params
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
+
     unsigned char *verify_cookie;       /*!<  Cli: HelloVerifyRequest cookie
                                               Srv: unused                    */
     unsigned char verify_cookie_len;    /*!<  Cli: cookie length
                                               Srv: flag for sending a cookie */
+
     unsigned char *hs_msg;              /*!<  Reassembled handshake message  */
+
+    unsigned char retransmit_state;     /*!<  Retransmission state           */
+    ssl_flight_item *flight;            /*!<  Current outgoing flight        */
+    ssl_flight_item *cur_msg;           /*!<  Current message in flight      */
 #endif
 
     /*
@@ -694,6 +711,18 @@ struct _ssl_key_cert
     ssl_key_cert *next;             /*!< next key/cert pair         */
 };
 #endif /* POLARSSL_X509_CRT_PARSE_C */
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+/*
+ * List of handshake messages kept around for resending
+ */
+struct _ssl_flight_item
+{
+    unsigned char *p;       /*!< message, including handshake headers   */
+    size_t len;             /*!< length of hs_msg                       */
+    ssl_flight_item *next;  /*!< next handshake message(s)              */
+};
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
 struct _ssl_context
 {

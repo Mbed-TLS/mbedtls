@@ -2013,8 +2013,116 @@ int ssl_flush_output( ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+/*
+ * Append current handshake message to current outgoing flight
+ */
+static int ssl_flight_append( ssl_context *ssl )
+{
+    ssl_flight_item *msg;
+
+    /* Allocate space for current message */
+    if( ( msg = polarssl_malloc( sizeof(  ssl_flight_item ) ) ) == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed",
+                            sizeof( ssl_flight_item ) ) );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    }
+
+    if( ( msg->p = polarssl_malloc( ssl->out_msglen ) ) == NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed", ssl->out_msglen ) );
+        return( POLARSSL_ERR_SSL_MALLOC_FAILED );
+    }
+
+    /* Copy current handshake message with headers */
+    memcpy( msg->p, ssl->out_msg, ssl->out_msglen );
+    msg->len = ssl->out_msglen;
+    msg->next = NULL;
+
+    /* Append to the current flight */
+    if( ssl->handshake->flight == NULL )
+    {
+        ssl->handshake->flight  = msg;
+        ssl->handshake->cur_msg = msg;
+    }
+    else
+    {
+        ssl_flight_item *cur = ssl->handshake->flight;
+        while( cur->next != NULL )
+            cur = cur->next;
+        cur->next = msg;
+    }
+
+    return( 0 );
+}
+
+/*
+ * Free the current flight of handshake messages
+ */
+static void ssl_flight_free( ssl_flight_item *flight )
+{
+    ssl_flight_item *cur = flight;
+    ssl_flight_item *next;
+
+    while( cur != NULL )
+    {
+        next = cur->next;
+
+        polarssl_free( cur->p );
+        polarssl_free( cur );
+
+        cur = next;
+    }
+}
+
+/*
+ * Send current flight of messages.
+ *
+ * Need to remember the current message in case flush_output returns
+ * WANT_WRITE, causing us to exit this function and come back later.
+ */
+static int ssl_send_current_flight( ssl_context *ssl )
+{
+    ssl->handshake->retransmit_state = SSL_RETRANS_SENDING;
+
+    SSL_DEBUG_MSG( 2, ( "=> ssl_send_current_flight" ) );
+
+    while( ssl->handshake->cur_msg != NULL )
+    {
+        int ret;
+        ssl_flight_item *cur = ssl->handshake->cur_msg;
+
+        ssl->out_msglen = cur->len;
+        memcpy( ssl->out_msg, cur->p, ssl->out_msglen );
+        ssl->out_msgtype = SSL_MSG_HANDSHAKE;
+
+        ssl->handshake->cur_msg = cur->next;
+
+        SSL_DEBUG_BUF( 3, "resent handshake message header", ssl->out_msg, 12 );
+
+        if( ( ret = ssl_write_record( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+            return( ret );
+        }
+    }
+
+    ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
+
+    SSL_DEBUG_MSG( 2, ( "<= ssl_send_current_flight" ) );
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+
 /*
  * Record layer functions
+ */
+
+/*
+ * Write current record.
+ * Uses ssl->out_msgtype, ssl->out_msglen and bytes at ssl->out_msg.
  */
 int ssl_write_record( ssl_context *ssl )
 {
@@ -2023,6 +2131,15 @@ int ssl_write_record( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write record" ) );
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL &&
+        ssl->handshake->retransmit_state == SSL_RETRANS_SENDING )
+    {
+        ; /* Skip special handshake treatment when resending */
+    }
+    else
+#endif
     if( ssl->out_msgtype == SSL_MSG_HANDSHAKE )
     {
         ssl->out_msg[1] = (unsigned char)( ( len - 4 ) >> 16 );
@@ -2066,6 +2183,22 @@ int ssl_write_record( ssl_context *ssl )
         if( ssl->out_msg[0] != SSL_HS_HELLO_REQUEST )
             ssl->handshake->update_checksum( ssl, ssl->out_msg, len );
     }
+
+    /* Save handshake and CCS messages for resending */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL &&
+        ssl->handshake->retransmit_state == SSL_RETRANS_PREPARING &&
+        ( ssl->out_msgtype == SSL_MSG_CHANGE_CIPHER_SPEC ||
+          ssl->out_msgtype == SSL_MSG_HANDSHAKE ) )
+    {
+        if( ( ret = ssl_flight_append( ssl ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_flight_append", ret );
+            return( ret );
+        }
+    }
+#endif
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
     if( ssl->transform_out != NULL &&
@@ -5372,6 +5505,7 @@ void ssl_handshake_free( ssl_handshake_params *handshake )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     polarssl_free( handshake->verify_cookie );
     polarssl_free( handshake->hs_msg );
+    ssl_flight_free( handshake->flight );
 #endif
 
     polarssl_zeroize( handshake, sizeof( ssl_handshake_params ) );

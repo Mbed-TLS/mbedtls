@@ -1913,13 +1913,33 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
+        // TODO-DTLS: for now, use constant timeout = 1 sec/datagram
         len = SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
-        ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
+        if( ssl->f_recv_timeout != NULL &&
+            ssl->handshake != NULL ) /* No resend outside handshake */
+        {
+            ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len, 1 );
+        }
+        else
+            ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
 
         SSL_DEBUG_RET( 2, "ssl->f_recv", ret );
 
         if( ret == 0 )
             return( POLARSSL_ERR_SSL_CONN_EOF );
+
+        if( ret == POLARSSL_ERR_NET_TIMEOUT )
+        {
+            SSL_DEBUG_MSG( 2, ( "recv timeout" ) );
+
+            if( ( ret = ssl_resend( ssl ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "ssl_resend", ret );
+                return( ret );
+            }
+
+            return( POLARSSL_ERR_NET_WANT_READ );
+        }
 
         if( ret < 0 )
             return( ret );
@@ -2576,9 +2596,27 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
         if( ssl->handshake != NULL &&
             recv_msg_seq != ssl->handshake->in_msg_seq )
         {
-            SSL_DEBUG_MSG( 2, ( "dropping out-of-order message: "
-                                "message_seq = %d, expected = %d",
-                                recv_msg_seq, ssl->handshake->in_msg_seq ) );
+            if( recv_msg_seq < ssl->handshake->in_flight_start_seq )
+            {
+                SSL_DEBUG_MSG( 2, ( "received message from last flight, "
+                                    "message_seq = %d, start_of_flight = %d",
+                                    recv_msg_seq,
+                                    ssl->handshake->in_flight_start_seq ) );
+
+                if( ( ret = ssl_resend( ssl ) ) != 0 )
+                {
+                    SSL_DEBUG_RET( 1, "ssl_resend", ret );
+                    return( ret );
+                }
+            }
+            else
+            {
+                SSL_DEBUG_MSG( 2, ( "dropping out-of-order message: "
+                                    "message_seq = %d, expected = %d",
+                                    recv_msg_seq,
+                                    ssl->handshake->in_msg_seq ) );
+            }
+
             return( POLARSSL_ERR_NET_WANT_READ );
         }
         /* Wait until message completion to increment in_msg_seq */

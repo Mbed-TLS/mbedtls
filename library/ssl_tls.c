@@ -2620,7 +2620,9 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
         if( ssl->handshake != NULL &&
             recv_msg_seq != ssl->handshake->in_msg_seq )
         {
-            if( recv_msg_seq < ssl->handshake->in_flight_start_seq )
+            /* No sane server ever retransmits HelloVerifyRequest */
+            if( recv_msg_seq < ssl->handshake->in_flight_start_seq &&
+                ssl->in_msg[0] != SSL_HS_HELLO_VERIFY_REQUEST )
             {
                 SSL_DEBUG_MSG( 2, ( "received message from last flight, "
                                     "message_seq = %d, start_of_flight = %d",

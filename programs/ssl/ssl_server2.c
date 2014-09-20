@@ -572,7 +572,7 @@ int psk_callback( void *p_info, ssl_context *ssl,
 }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-static int listen_fd;
+static int listen_fd, client_fd = -1;
 
 /* Interruption handler to ensure clean exit (for valgrind testing) */
 #if !defined(_WIN32)
@@ -582,13 +582,13 @@ void term_handler( int sig )
     ((void) sig);
     received_sigterm = 1;
     net_close( listen_fd ); /* causes net_accept() to abort */
+    net_close( client_fd ); /* causes net_read() to abort */
 }
 #endif
 
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges;
-    int client_fd = -1;
     int version_suites[4][2];
     unsigned char buf[IO_BUF_LEN];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1386,6 +1386,15 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 
 reset:
+#if !defined(_WIN32)
+    if( received_sigterm )
+    {
+        printf( " interrupted by SIGTERM\n" );
+        ret = 0;
+        goto exit;
+    }
+#endif
+
 #ifdef POLARSSL_ERROR_C
     if( ret != 0 )
     {

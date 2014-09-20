@@ -116,6 +116,11 @@ requires_ipv6() {
     fi
 }
 
+# multiply the client timeout delay by the given factor for the next test
+needs_more_time() {
+    CLI_DELAY_FACTOR=$1
+}
+
 # print_name <name>
 print_name() {
     echo -n "$1 "
@@ -197,13 +202,16 @@ wait_server_start() {
 wait_client_done() {
     CLI_PID=$!
 
-    ( sleep "$DOG_DELAY"; echo "TIMEOUT" >> $CLI_OUT; kill $CLI_PID ) &
+    CLI_DELAY=$(( $DOG_DELAY * $CLI_DELAY_FACTOR ))
+    CLI_DELAY_FACTOR=1
+
+    ( sleep $CLI_DELAY; echo "TIMEOUT" >> $CLI_OUT; kill $CLI_PID ) &
     WATCHDOG_PID=$!
 
     wait $CLI_PID
     CLI_EXIT=$?
 
-    kill $WATCHDOG_PID
+    kill $WATCHDOG_PID >/dev/null 2>&1
     wait $WATCHDOG_PID
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
@@ -298,7 +306,7 @@ run_test() {
     kill $SRV_PID
     wait $SRV_PID
     if [ -n "$PXY_CMD" ]; then
-        kill $PXY_PID
+        kill $PXY_PID >/dev/null 2>&1
         wait $PXY_PID
     fi
 
@@ -437,6 +445,7 @@ else
     START_DELAY=1
     DOG_DELAY=10
 fi
+CLI_DELAY_FACTOR=1
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy port
 PORT_BASE="0000$$"
@@ -2125,6 +2134,32 @@ run_test    "DTLS proxy: lots of duplication" \
 
 run_test    "DTLS proxy: inject invalid AD record" \
             -p "$P_PXY bad_ad=1" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: drop a few packets" \
+            -p "$P_PXY drop=10" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 2
+run_test    "DTLS proxy: drop a bit more packets" \
+            -p "$P_PXY drop=6" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 3
+run_test    "DTLS proxy: drop more packets" \
+            -p "$P_PXY drop=3" \
             "$P_SRV dtls=1" \
             "$P_CLI dtls=1" \
             0 \

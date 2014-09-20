@@ -181,7 +181,7 @@ wait_server_start() {
     if which lsof >/dev/null; then
         # make sure we don't loop forever
         ( sleep "$DOG_DELAY"; echo "SERVERSTART TIMEOUT"; kill $MAIN_PID ) &
-        WATCHDOG_PID=$!
+        DOG_PID=$!
 
         # make a tight loop, server usually takes less than 1 sec to start
         if [ "$DTLS" -eq 1 ]; then
@@ -190,8 +190,8 @@ wait_server_start() {
             until lsof -nbi TCP:"$SRV_PORT" | grep LISTEN >/dev/null; do :; done
         fi
 
-        kill $WATCHDOG_PID
-        wait $WATCHDOG_PID
+        kill $DOG_PID >/dev/null 2>&1
+        wait $DOG_PID
     else
         sleep "$START_DELAY"
     fi
@@ -206,13 +206,13 @@ wait_client_done() {
     CLI_DELAY_FACTOR=1
 
     ( sleep $CLI_DELAY; echo "TIMEOUT" >> $CLI_OUT; kill $CLI_PID ) &
-    WATCHDOG_PID=$!
+    DOG_PID=$!
 
     wait $CLI_PID
     CLI_EXIT=$?
 
-    kill $WATCHDOG_PID >/dev/null 2>&1
-    wait $WATCHDOG_PID
+    kill $DOG_PID >/dev/null 2>&1
+    wait $DOG_PID
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
 }
@@ -287,7 +287,7 @@ run_test() {
     # run the commands
     if [ -n "$PXY_CMD" ]; then
         echo "$PXY_CMD" > $PXY_OUT
-        eval "$PXY_CMD" >> $PXY_OUT 2>&1 &
+        $PXY_CMD >> $PXY_OUT 2>&1 &
         PXY_PID=$!
         # assume proxy starts faster than server
     fi
@@ -402,11 +402,10 @@ run_test() {
 
 cleanup() {
     rm -f $CLI_OUT $SRV_OUT $PXY_OUT $SESSION
-    kill $SRV_PID >/dev/null 2>&1
-    kill $WATCHDOG_PID >/dev/null 2>&1
-    if [ -n "$PXY_CMD" ]; then
-        kill $PXY_PID >/dev/null 2>&1
-    fi
+    test -n "${SRV_PID:-}" && kill $SRV_PID >/dev/null 2>&1
+    test -n "${PXY_PID:-}" && kill $PXY_PID >/dev/null 2>&1
+    test -n "${CLI_PID:-}" && kill $CLI_PID >/dev/null 2>&1
+    test -n "${DOG_PID:-}" && kill $DOG_PID >/dev/null 2>&1
     exit 1
 }
 

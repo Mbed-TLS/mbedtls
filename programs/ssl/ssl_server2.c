@@ -1511,6 +1511,15 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
 
 reset:
+#if !defined(_WIN32)
+    if( received_sigterm )
+    {
+        printf( " interrupted by SIGTERM\n" );
+        ret = 0;
+        goto exit;
+    }
+#endif
+
 #ifdef POLARSSL_ERROR_C
     if( ret != 0 )
     {

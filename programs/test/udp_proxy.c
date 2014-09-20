@@ -66,6 +66,11 @@ int main( void )
 #include <unistd.h>
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
+/* For gettimeofday() */
+#if !defined(_WIN32)
+#include <sys/time.h>
+#endif
+
 #define MAX_MSG_SIZE            4096 /* Reasonable max size for our tests */
 
 #define DFL_SERVER_ADDR         "localhost"
@@ -250,6 +255,27 @@ static const char *msg_type( unsigned char *msg, size_t len )
     }
 }
 
+/* Return elapsed time in milliseconds since the first call */
+static unsigned long ellapsed_time( void )
+{
+#if defined(_WIN32)
+    return( 0 );
+#else
+    static struct timeval ref = { 0, 0 };
+    struct timeval now;
+
+    if( ref.tv_sec == 0 && ref.tv_usec == 0 )
+    {
+        gettimeofday( &ref, NULL );
+        return( 0 );
+    }
+
+    gettimeofday( &now, NULL );
+    return( 1000 * ( now.tv_sec  - ref.tv_sec )
+                 + ( now.tv_usec - ref.tv_usec ) / 1000 );
+#endif
+}
+
 typedef struct
 {
     void *dst;
@@ -263,9 +289,11 @@ typedef struct
 void print_packet( const packet *p, const char *why )
 {
     if( why == NULL )
-        printf( "  > %s: %s (%u bytes)\n", p->way, p->type, p->len );
+        printf( "  %05lu %s %s (%u bytes)\n",
+                ellapsed_time(), p->way, p->type, p->len );
     else
-        printf( "  < %s: %s (%u bytes): %s\n", p->way, p->type, p->len, why );
+        printf( "        %s %s (%u bytes): %s\n",
+                p->way, p->type, p->len, why );
     fflush( stdout );
 }
 
@@ -450,13 +478,15 @@ int main( int argc, char *argv[] )
 
         if( FD_ISSET( client_fd, &read_fds ) )
         {
-            if( ( ret = handle_message( "c2s", server_fd, client_fd ) ) != 0 )
+            if( ( ret = handle_message( "S <- C",
+                                        server_fd, client_fd ) ) != 0 )
                 goto exit;
         }
 
         if( FD_ISSET( server_fd, &read_fds ) )
         {
-            if( ( ret = handle_message( "s2c", client_fd, server_fd ) ) != 0 )
+            if( ( ret = handle_message( "S -> C",
+                                        client_fd, server_fd ) ) != 0 )
                 goto exit;
         }
     }

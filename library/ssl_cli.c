@@ -2686,6 +2686,7 @@ static int ssl_parse_new_session_ticket( ssl_context *ssl )
 
     /* We're not waiting for a NewSessionTicket message any more */
     ssl->handshake->new_session_ticket = 0;
+    ssl->state = SSL_SERVER_CHANGE_CIPHER_SPEC;
 
     /*
      * Zero-length ticket means the server changed his mind and doesn't want
@@ -2748,6 +2749,16 @@ int ssl_handshake_client_step( ssl_context *ssl )
     {
         if( ( ret = ssl_resend( ssl ) ) != 0 )
             return( ret );
+    }
+#endif
+
+    /* Change state now, so that it is right in ssl_read_record(), used
+     * by DTLS for dropping out-of-sequence ChangeCipherSpec records */
+#if defined(POLARSSL_SSL_SESSION_TICKETS)
+    if( ssl->state == SSL_SERVER_CHANGE_CIPHER_SPEC &&
+        ssl->handshake->new_session_ticket != 0 )
+    {
+        ssl->state = SSL_SERVER_NEW_SESSION_TICKET;
     }
 #endif
 
@@ -2823,13 +2834,14 @@ int ssl_handshake_client_step( ssl_context *ssl )
         *        ChangeCipherSpec
         *        Finished
         */
-       case SSL_SERVER_CHANGE_CIPHER_SPEC:
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
-           if( ssl->handshake->new_session_ticket != 0 )
-               ret = ssl_parse_new_session_ticket( ssl );
-           else
+       case SSL_SERVER_NEW_SESSION_TICKET:
+           ret = ssl_parse_new_session_ticket( ssl );
+           break;
 #endif
-               ret = ssl_parse_change_cipher_spec( ssl );
+
+       case SSL_SERVER_CHANGE_CIPHER_SPEC:
+           ret = ssl_parse_change_cipher_spec( ssl );
            break;
 
        case SSL_SERVER_FINISHED:

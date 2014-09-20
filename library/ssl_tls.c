@@ -2637,7 +2637,7 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
             }
             else
             {
-                SSL_DEBUG_MSG( 2, ( "dropping out-of-order message: "
+                SSL_DEBUG_MSG( 2, ( "dropping out-of-sequence message: "
                                     "message_seq = %d, expected = %d",
                                     recv_msg_seq,
                                     ssl->handshake->in_msg_seq ) );
@@ -3016,6 +3016,20 @@ read_record_header:
             return( POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY );
         }
     }
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        /* Drop unexpected ChangeCipherSpec messages */
+        if( ssl->in_msgtype == SSL_MSG_CHANGE_CIPHER_SPEC &&
+            ssl->state != SSL_CLIENT_CHANGE_CIPHER_SPEC &&
+            ssl->state != SSL_SERVER_CHANGE_CIPHER_SPEC )
+        {
+            SSL_DEBUG_MSG( 2, ( "dropping unexpected ChangeCipherSpec" ) );
+            return( POLARSSL_ERR_NET_WANT_READ );
+        }
+    }
+#endif
 
     SSL_DEBUG_MSG( 2, ( "<= read record" ) );
 

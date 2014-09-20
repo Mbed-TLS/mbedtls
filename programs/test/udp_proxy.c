@@ -44,9 +44,7 @@ int main( void )
 
 #include <stdio.h>
 #include <stdlib.h>
-#if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
-#endif
 
 /* For select() */
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
@@ -87,15 +85,17 @@ int main( void )
     "    listen_port=%%d      default: 4433\n"                              \
     "\n"                                                                    \
     "    duplicate=%%d        default: 0 (no duplication)\n"                \
-    "                        duplicate 1 packet every N packets\n"          \
+    "                        duplicate about 1:N packets randomly\n"        \
     "    delay=%%d            default: 0 (no delayed packets)\n"            \
-    "                        delay 1 packet every N packets\n"              \
+    "                        delay about 1:N packets randomly\n"            \
     "    delay_ccs=%%d        default: 0 (don't delay ChangeCipherSuite)\n" \
     "    drop=%%d             default: 0 (no dropped packets)\n"            \
-    "                        drop 1 packet every N packets\n"               \
+    "                        drop about 1:N packets randomly\n"             \
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
     "                        drop packets larger than N bytes\n"            \
     "    bad_ad=%%d           default: 0 (don't add bad ApplicationData)\n" \
+    "\n"                                                                    \
+    "    seed=%%d             default: (use current time)\n"                \
     "\n"
 
 /*
@@ -114,29 +114,9 @@ static struct options
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
     int bad_ad;                 /* inject corrupted ApplicationData record  */
+
+    unsigned int seed;          /* seed for "random" events                 */
 } opt;
-
-/*
- * global counters
- */
-static int dupl_cnt;
-static int delay_cnt;
-static int drop_cnt;
-
-/* Do not always start with the same state */
-static void randomize_counters( void )
-{
-#if defined(POLARSSL_HAVE_TIME)
-    srand( time( NULL ) );
-#endif
-
-    if( opt.duplicate != 0 )
-        dupl_cnt = rand() % opt.duplicate;
-    if( opt.delay != 0 )
-        delay_cnt = rand() % opt.delay;
-    if( opt.drop != 0 )
-        drop_cnt = rand() % opt.drop;
-}
 
 static void exit_usage( const char *name, const char *value )
 {
@@ -186,13 +166,13 @@ static void get_options( int argc, char *argv[] )
         else if( strcmp( p, "duplicate" ) == 0 )
         {
             opt.duplicate = atoi( q );
-            if( opt.duplicate < 0 || opt.duplicate > 10 )
+            if( opt.duplicate < 0 || opt.duplicate > 20 )
                 exit_usage( p, q );
         }
         else if( strcmp( p, "delay" ) == 0 )
         {
             opt.delay = atoi( q );
-            if( opt.delay < 0 || opt.delay > 10 || opt.delay == 1 )
+            if( opt.delay < 0 || opt.delay > 20 || opt.delay == 1 )
                 exit_usage( p, q );
         }
         else if( strcmp( p, "delay_ccs" ) == 0 )
@@ -204,7 +184,7 @@ static void get_options( int argc, char *argv[] )
         else if( strcmp( p, "drop" ) == 0 )
         {
             opt.drop = atoi( q );
-            if( opt.drop < 0 || opt.drop > 10 || opt.drop == 1 )
+            if( opt.drop < 0 || opt.drop > 20 || opt.drop == 1 )
                 exit_usage( p, q );
         }
         else if( strcmp( p, "mtu" ) == 0 )
@@ -217,6 +197,12 @@ static void get_options( int argc, char *argv[] )
         {
             opt.bad_ad = atoi( q );
             if( opt.bad_ad < 0 || opt.bad_ad > 1 )
+                exit_usage( p, q );
+        }
+        else if( strcmp( p, "seed" ) == 0 )
+        {
+            opt.seed = atoi( q );
+            if( opt.seed == 0 )
                 exit_usage( p, q );
         }
         else
@@ -327,9 +313,8 @@ int send_packet( const packet *p, const char *why )
     /* Don't duplicate Application Data, only handshake covered */
     if( opt.duplicate != 0 &&
         strcmp( p->type, "ApplicationData" ) != 0 &&
-        ++dupl_cnt == opt.duplicate )
+        rand() % opt.duplicate == 0 )
     {
-        dupl_cnt = 0;
         print_packet( p, "duplicated" );
 
         if( ( ret = net_send( p->dst, p->buf, p->len ) ) <= 0 )
@@ -369,9 +354,9 @@ int handle_message( const char *way, int dst, int src )
           strcmp( cur.type, "NewSessionTicket" ) != 0 && // temporary
           strcmp( cur.type, "ChangeCipherSpec" ) != 0 && // temporary
           strcmp( cur.type, "Unknown handshake" ) != 0 && // temporary
-          ++drop_cnt == opt.drop ) )
+          rand() % opt.drop == 0 ) )
     {
-        drop_cnt = 0;
+        ; /* Nothing to do */
     }
     else if( ( opt.delay_ccs == 1 &&
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
@@ -380,9 +365,8 @@ int handle_message( const char *way, int dst, int src )
                strcmp( cur.type, "NewSessionTicket" ) != 0 && // temporary
                strcmp( cur.type, "ChangeCipherSpec" ) != 0 && // temporary
                strcmp( cur.type, "Unknown handshake" ) != 0 && // temporary
-               ++delay_cnt == opt.delay ) )
+               rand() % opt.delay == 0 ) )
     {
-        delay_cnt = 0;
         memcpy( &prev, &cur, sizeof( packet ) );
     }
     else
@@ -416,7 +400,22 @@ int main( int argc, char *argv[] )
     fd_set read_fds;
 
     get_options( argc, argv );
-    randomize_counters();
+
+    /*
+     * Decisions to drop/delay/duplicate packets are pseudo-random: dropping
+     * exactly 1 in N packets would lead to problems when a flight has exactly
+     * N packets: the same packet would be dropped on every resend.
+     *
+     * In order to be able to reproduce problems reliably, the seed may be
+     * specified explicitly.
+     */
+    if( opt.seed == 0 )
+    {
+        opt.seed = time( NULL );
+        printf( "  . Pseudo-random seed: %u\n", opt.seed );
+    }
+
+    srand( opt.seed );
 
     /*
      * 0. "Connect" to the server

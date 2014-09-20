@@ -251,7 +251,7 @@ static const char *msg_type( unsigned char *msg, size_t len )
         case SSL_HS_CERTIFICATE_VERIFY:     return( "CertificateVerify" );
         case SSL_HS_CLIENT_KEY_EXCHANGE:    return( "ClientKeyExchange" );
         case SSL_HS_FINISHED:               return( "Finished" );
-        default:                            return( "Unkown handshake" );
+        default:                            return( "Unknown handshake" );
     }
 }
 
@@ -366,6 +366,9 @@ int handle_message( const char *way, int dst, int src )
           cur.len > (unsigned) opt.mtu ) ||
         ( opt.drop != 0 &&
           strcmp( cur.type, "ApplicationData" ) != 0 &&
+          strcmp( cur.type, "NewSessionTicket" ) != 0 && // temporary
+          strcmp( cur.type, "ChangeCipherSpec" ) != 0 && // temporary
+          strcmp( cur.type, "Unknown handshake" ) != 0 && // temporary
           ++drop_cnt == opt.drop ) )
     {
         drop_cnt = 0;
@@ -374,6 +377,9 @@ int handle_message( const char *way, int dst, int src )
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
              ( opt.delay != 0 &&
                strcmp( cur.type, "ApplicationData" ) != 0 &&
+               strcmp( cur.type, "NewSessionTicket" ) != 0 && // temporary
+               strcmp( cur.type, "ChangeCipherSpec" ) != 0 && // temporary
+               strcmp( cur.type, "Unknown handshake" ) != 0 && // temporary
                ++delay_cnt == opt.delay ) )
     {
         delay_cnt = 0;

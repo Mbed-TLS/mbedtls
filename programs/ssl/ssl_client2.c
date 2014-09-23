@@ -1330,7 +1330,7 @@ reconnect:
             goto exit;
         }
 
-        if( ( ret = net_connect( &server_fd, opt.server_name, opt.server_port,
+        if( ( ret = net_connect( &server_fd, opt.server_addr, opt.server_port,
                                  opt.transport == SSL_TRANSPORT_STREAM ?
                                  NET_PROTO_TCP : NET_PROTO_UDP ) ) != 0 )
         {

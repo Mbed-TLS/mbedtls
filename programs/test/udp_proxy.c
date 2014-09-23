@@ -69,7 +69,7 @@ int main( void )
 #include <sys/time.h>
 #endif
 
-#define MAX_MSG_SIZE            4096 /* Reasonable max size for our tests */
+#define MAX_MSG_SIZE            16384 + 2048 /* max record/datagram size */
 
 #define DFL_SERVER_ADDR         "localhost"
 #define DFL_SERVER_PORT         4433

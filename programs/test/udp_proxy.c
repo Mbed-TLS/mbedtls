@@ -88,7 +88,7 @@ int main( void )
     "                        duplicate about 1:N packets randomly\n"        \
     "    delay=%%d            default: 0 (no delayed packets)\n"            \
     "                        delay about 1:N packets randomly\n"            \
-    "    delay_ccs=%%d        default: 0 (don't delay ChangeCipherSuite)\n" \
+    "    delay_ccs=%%d        default: 0 (don't delay ChangeCipherSpec)\n" \
     "    drop=%%d             default: 0 (no dropped packets)\n"            \
     "                        drop about 1:N packets randomly\n"             \
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
@@ -351,9 +351,6 @@ int handle_message( const char *way, int dst, int src )
           cur.len > (unsigned) opt.mtu ) ||
         ( opt.drop != 0 &&
           strcmp( cur.type, "ApplicationData" ) != 0 &&
-          strcmp( cur.type, "NewSessionTicket" ) != 0 && // temporary
-          strcmp( cur.type, "ChangeCipherSpec" ) != 0 && // temporary
-          strcmp( cur.type, "Unknown handshake" ) != 0 && // temporary
           rand() % opt.drop == 0 ) )
     {
         ; /* Nothing to do */
@@ -362,9 +359,6 @@ int handle_message( const char *way, int dst, int src )
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
              ( opt.delay != 0 &&
                strcmp( cur.type, "ApplicationData" ) != 0 &&
-               strcmp( cur.type, "NewSessionTicket" ) != 0 && // temporary
-               strcmp( cur.type, "ChangeCipherSpec" ) != 0 && // temporary
-               strcmp( cur.type, "Unknown handshake" ) != 0 && // temporary
                rand() % opt.delay == 0 ) )
     {
         memcpy( &prev, &cur, sizeof( packet ) );

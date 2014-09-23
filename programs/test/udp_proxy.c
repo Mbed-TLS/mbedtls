@@ -327,11 +327,17 @@ int send_packet( const packet *p, const char *why )
     return( 0 );
 }
 
+static packet prev;
+
+void clear_pending( void )
+{
+    memset( &prev, 0, sizeof( packet ) );
+}
+
 int handle_message( const char *way, int dst, int src )
 {
     int ret;
     packet cur;
-    static packet prev;
 
     /* receive packet */
     if( ( ret = net_recv( &src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
@@ -446,6 +452,7 @@ int main( int argc, char *argv[] )
     /*
      * 2. Wait until a client connects
      */
+accept:
     printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
@@ -458,21 +465,46 @@ int main( int argc, char *argv[] )
     printf( " ok\n" );
     fflush( stdout );
 
+    printf( "  . Re-bind on UDP/%s/%d ...",
+            opt.listen_addr, opt.listen_port );
+    fflush( stdout );
+
+    if( ( ret = net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
+                          NET_PROTO_UDP ) ) != 0 )
+    {
+        printf( " failed\n  ! net_bind returned %d\n\n", ret );
+        goto exit;
+    }
+
+    printf( " ok\n" );
+
     /*
      * 3. Forward packets forever (kill the process to terminate it)
      */
-    nb_fds = ( client_fd > server_fd ? client_fd : server_fd ) + 1;
+    nb_fds = client_fd;
+    if( nb_fds < server_fd )
+        nb_fds = server_fd;
+    if( nb_fds < listen_fd )
+        nb_fds = listen_fd;
+    ++nb_fds;
 
     while( 1 )
     {
         FD_ZERO( &read_fds );
         FD_SET( server_fd, &read_fds );
         FD_SET( client_fd, &read_fds );
+        FD_SET( listen_fd, &read_fds );
 
         if( ( ret = select( nb_fds, &read_fds, NULL, NULL, NULL ) ) <= 0 )
         {
             perror( "select" );
             goto exit;
+        }
+
+        if( FD_ISSET( listen_fd, &read_fds ) )
+        {
+            clear_pending();
+            goto accept;
         }
 
         if( FD_ISSET( client_fd, &read_fds ) )

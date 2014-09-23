@@ -294,7 +294,7 @@ run_test() {
 
     echo "$SRV_CMD" > $SRV_OUT
     # "yes" is for servers without -www (openssl with DTLS)
-    yes blabla | $SRV_CMD >> $SRV_OUT 2>&1 &
+    yes "HTTP/1.0 200 OK" | $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
     wait_server_start
 
@@ -2084,14 +2084,14 @@ run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             -C "found fragmented DTLS handshake message" \
             -C "error"
 
-run_test    "DTLS reassembly: fragmentation (openssl server)" \
-            "$O_SRV -dtls1 -mtu 256" \
+run_test    "DTLS reassembly: some fragmentation (openssl server)" \
+            "$O_SRV -dtls1 -mtu 768" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-run_test    "DTLS reassembly: fragmentation (openssl server)" \
+run_test    "DTLS reassembly: more fragmentation (openssl server)" \
             "$O_SRV -dtls1 -mtu 256" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
@@ -2134,6 +2134,40 @@ run_test    "DTLS proxy: lots of duplication" \
 run_test    "DTLS proxy: inject invalid AD record" \
             -p "$P_PXY bad_ad=1" \
             "$P_SRV dtls=1" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "discarding invalid record" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: delay ChangeCipherSpec" \
+            -p "$P_PXY bad_ad=1" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "discarding invalid record" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: delay a few packets" \
+            -p "$P_PXY delay=10" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: delay a bit more packets" \
+            -p "$P_PXY delay=6" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: delay more packets" \
+            -p "$P_PXY delay=3" \
+            "$P_SRV dtls=1" \
             "$P_CLI dtls=1" \
             0 \
             -s "Extra-header:" \
@@ -2159,6 +2193,15 @@ run_test    "DTLS proxy: drop a bit more packets" \
 needs_more_time 3
 run_test    "DTLS proxy: drop more packets" \
             -p "$P_PXY drop=3" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 2
+run_test    "DTLS proxy: 3d (drop + delay + duplicate)" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1" \
             "$P_CLI dtls=1" \
             0 \

@@ -2297,7 +2297,7 @@ int ssl_write_record( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL &&
-        ssl->handshake->retransmit_state == SSL_RETRANS_PREPARING &&
+        ssl->handshake->retransmit_state != SSL_RETRANS_SENDING &&
         ( ssl->out_msgtype == SSL_MSG_CHANGE_CIPHER_SPEC ||
           ssl->out_msgtype == SSL_MSG_HANDSHAKE ) )
     {
@@ -2873,6 +2873,8 @@ static int ssl_prepare_record_content( ssl_context *ssl )
     return( 0 );
 }
 
+static void ssl_handshake_wrapup_free_hs_transform( ssl_context *ssl );
+
 /*
  * Read a record.
  *
@@ -2984,6 +2986,46 @@ read_record_header:
             return( ret );
         }
     }
+
+    /*
+     * When we sent the last flight of the handshake, we MUST respond to a
+     * retransmit of the peer's previous flight with a retransmit. (In
+     * practice, only the Finished message will make it, other messages
+     * including CCS use the old transform so they're dropped as invalid.)
+     *
+     * If the record we received is not a handshake message, however, it
+     * means the peer received our last flight so we can clean up
+     * handshake info.
+     *
+     * This check needs to be done before prepare_handshake() due to an edge
+     * case: if the client immediately requests renegotiation, this
+     * finishes the current handshake first, avoiding the new ClientHello
+     * being mistaken for an ancient message in the current handshake.
+     */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL &&
+        ssl->handshake->retransmit_state == SSL_RETRANS_FINISHED )
+    {
+        if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
+                ssl->in_msg[0] == SSL_HS_FINISHED )
+        {
+            SSL_DEBUG_MSG( 2, ( "received retransmit of last flight" ) );
+
+            if( ( ret = ssl_resend( ssl ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "ssl_resend", ret );
+                return( ret );
+            }
+
+            return( POLARSSL_ERR_NET_WANT_READ );
+        }
+        else
+        {
+            ssl_handshake_wrapup_free_hs_transform( ssl );
+        }
+    }
+#endif
 
     /*
      * Handle particular types of records
@@ -3859,11 +3901,9 @@ static void ssl_calc_finished_tls_sha384(
 #endif /* POLARSSL_SHA512_C */
 #endif /* POLARSSL_SSL_PROTO_TLS1_2 */
 
-void ssl_handshake_wrapup( ssl_context *ssl )
+static void ssl_handshake_wrapup_free_hs_transform( ssl_context *ssl )
 {
-    int resume = ssl->handshake->resume;
-
-    SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
+    SSL_DEBUG_MSG( 3, ( "=> handshake wrapup: final free" ) );
 
     /*
      * Free our handshake params
@@ -3872,14 +3912,8 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     polarssl_free( ssl->handshake );
     ssl->handshake = NULL;
 
-    if( ssl->renegotiation == SSL_RENEGOTIATION )
-    {
-        ssl->renegotiation =  SSL_RENEGOTIATION_DONE;
-        ssl->renego_records_seen = 0;
-    }
-
     /*
-     * Switch in our now active transform context
+     * Free the previous transform and swith in the current one
      */
     if( ssl->transform )
     {
@@ -3889,6 +3923,24 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     ssl->transform = ssl->transform_negotiate;
     ssl->transform_negotiate = NULL;
 
+    SSL_DEBUG_MSG( 3, ( "<= handshake wrapup: final free" ) );
+}
+
+void ssl_handshake_wrapup( ssl_context *ssl )
+{
+    int resume = ssl->handshake->resume;
+
+    SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
+
+    if( ssl->renegotiation == SSL_RENEGOTIATION )
+    {
+        ssl->renegotiation =  SSL_RENEGOTIATION_DONE;
+        ssl->renego_records_seen = 0;
+    }
+
+    /*
+     * Free the previous session and switch in the current one
+     */
     if( ssl->session )
     {
         ssl_session_free( ssl->session );
@@ -3907,6 +3959,18 @@ void ssl_handshake_wrapup( ssl_context *ssl )
         if( ssl->f_set_cache( ssl->p_set_cache, ssl->session ) != 0 )
             SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
     }
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake->flight != NULL )
+    {
+        /* Keep last flight around in case we need to resend it:
+         * we need the handshake and transform structures for that */
+        SSL_DEBUG_MSG( 3, ( "skip freeing handshake and transform" ) );
+    }
+    else
+#endif
+        ssl_handshake_wrapup_free_hs_transform( ssl );
 
     ssl->state++;
 
@@ -5312,6 +5376,19 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
     size_t n;
 
     SSL_DEBUG_MSG( 2, ( "=> read" ) );
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake != NULL &&
+        ssl->handshake->retransmit_state == SSL_RETRANS_SENDING )
+    {
+        if( ( ret = ssl_flush_output( ssl ) ) != 0 )
+            return( ret );
+
+        if( ( ret = ssl_resend( ssl ) ) != 0 )
+            return( ret );
+    }
+#endif
 
     if( ssl->state != SSL_HANDSHAKE_OVER )
     {

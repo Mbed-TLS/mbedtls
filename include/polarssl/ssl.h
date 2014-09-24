@@ -1637,7 +1637,7 @@ int ssl_renegotiate( ssl_context *ssl );
  *
  * \param ssl      SSL context
  * \param buf      buffer that will hold the data
- * \param len      how many bytes must be read
+ * \param len      maximum number of bytes to read
  *
  * \return         This function returns the number of bytes read, 0 for EOF,
  *                 or a negative error code.

@@ -2182,28 +2182,8 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-run_test    "DTLS proxy: delay a few packets" \
-            -p "$P_PXY delay=10" \
-            "$P_SRV dtls=1 debug_level=1" \
-            "$P_CLI dtls=1 debug_level=1" \
-            0 \
-            -C "replayed record" \
-            -S "replayed record" \
-            -s "Extra-header:" \
-            -c "HTTP/1.0 200 OK"
-
-run_test    "DTLS proxy: delay a bit more packets" \
-            -p "$P_PXY delay=6" \
-            "$P_SRV dtls=1 debug_level=1" \
-            "$P_CLI dtls=1 debug_level=1" \
-            0 \
-            -C "replayed record" \
-            -S "replayed record" \
-            -s "Extra-header:" \
-            -c "HTTP/1.0 200 OK"
-
 needs_more_time 2
-run_test    "DTLS proxy: delay more packets" \
+run_test    "DTLS proxy: delay packets heavily" \
             -p "$P_PXY delay=3" \
             "$P_SRV dtls=1 debug_level=1" \
             "$P_CLI dtls=1 debug_level=1" \
@@ -2213,25 +2193,8 @@ run_test    "DTLS proxy: delay more packets" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-run_test    "DTLS proxy: drop a few packets" \
-            -p "$P_PXY drop=10" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
-            0 \
-            -s "Extra-header:" \
-            -c "HTTP/1.0 200 OK"
-
-needs_more_time 2
-run_test    "DTLS proxy: drop a bit more packets" \
-            -p "$P_PXY drop=6" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
-            0 \
-            -s "Extra-header:" \
-            -c "HTTP/1.0 200 OK"
-
 needs_more_time 3
-run_test    "DTLS proxy: drop more packets" \
+run_test    "DTLS proxy: drop packets heavily" \
             -p "$P_PXY drop=3" \
             "$P_SRV dtls=1" \
             "$P_CLI dtls=1" \
@@ -2239,11 +2202,60 @@ run_test    "DTLS proxy: drop more packets" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+# now try a variety of handshake flows with "unreliable connection"
+
 needs_more_time 2
-run_test    "DTLS proxy: 3d (drop + delay + duplicate)" \
+run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
+            "$P_SRV dtls=1 tickets=0 auth_mode=none psk=abc123" \
+            "$P_CLI dtls=1 tickets=0 psk=abc123 \
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 2
+run_test    "DTLS proxy: 3d, \"short\" RSA handshake" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dtls=1 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 tickets=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 2
+run_test    "DTLS proxy: 3d, \"short\" (no ticket, no cli_auth) FS handshake" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dtls=1 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 tickets=0" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 2
+run_test    "DTLS proxy: 3d, FS, client auth" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dtls=1 tickets=0 auth_mode=required" \
+            "$P_CLI dtls=1 tickets=0" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 2
+run_test    "DTLS proxy: 3d, FS, ticket" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dtls=1 tickets=1 auth_mode=none" \
+            "$P_CLI dtls=1 tickets=1" \
+            0 \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 2
+run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dtls=1 tickets=1 auth_mode=required" \
+            "$P_CLI dtls=1 tickets=1" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"

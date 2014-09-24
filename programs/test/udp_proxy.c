@@ -365,6 +365,7 @@ int handle_message( const char *way, int dst, int src )
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
              ( opt.delay != 0 &&
                strcmp( cur.type, "ApplicationData" ) != 0 &&
+               prev.dst == NULL &&
                rand() % opt.delay == 0 ) )
     {
         memcpy( &prev, &cur, sizeof( packet ) );

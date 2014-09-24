@@ -65,6 +65,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_pkparse		test_suite_pkwrite		\
 		test_suite_pk									\
 		test_suite_rsa			test_suite_shax			\
+		test_suite_ssl									\
 		test_suite_x509parse	test_suite_x509write	\
 		test_suite_xtea			test_suite_version
 
@@ -373,6 +374,10 @@ test_suite_rsa: test_suite_rsa.c $(DEP)
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_shax: test_suite_shax.c $(DEP)
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_ssl: test_suite_ssl.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

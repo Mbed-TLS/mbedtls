@@ -264,7 +264,7 @@ static unsigned long ellapsed_time( void )
 
 typedef struct
 {
-    void *dst;
+    int dst;
     const char *way;
     const char *type;
     unsigned len;
@@ -286,6 +286,7 @@ void print_packet( const packet *p, const char *why )
 int send_packet( const packet *p, const char *why )
 {
     int ret;
+    int dst = p->dst;
 
     /* insert corrupted ApplicationData record? */
     if( opt.bad_ad &&
@@ -296,7 +297,7 @@ int send_packet( const packet *p, const char *why )
         ++buf[p->len - 1];
 
         print_packet( p, "corrupted" );
-        if( ( ret = net_send( p->dst, buf, p->len ) ) <= 0 )
+        if( ( ret = net_send( &dst, buf, p->len ) ) <= 0 )
         {
             printf( "  ! net_send returned %d\n", ret );
             return( ret );
@@ -304,7 +305,7 @@ int send_packet( const packet *p, const char *why )
     }
 
     print_packet( p, why );
-    if( ( ret = net_send( p->dst, p->buf, p->len ) ) <= 0 )
+    if( ( ret = net_send( &dst, p->buf, p->len ) ) <= 0 )
     {
         printf( "  ! net_send returned %d\n", ret );
         return( ret );
@@ -317,7 +318,7 @@ int send_packet( const packet *p, const char *why )
     {
         print_packet( p, "duplicated" );
 
-        if( ( ret = net_send( p->dst, p->buf, p->len ) ) <= 0 )
+        if( ( ret = net_send( &dst, p->buf, p->len ) ) <= 0 )
         {
             printf( "  ! net_send returned %d\n", ret );
             return( ret );
@@ -349,7 +350,7 @@ int handle_message( const char *way, int dst, int src )
     cur.len  = ret;
     cur.type = msg_type( cur.buf, cur.len );
     cur.way  = way;
-    cur.dst  = &dst;
+    cur.dst  = dst;
     print_packet( &cur, NULL );
 
     /* do we want to drop, delay, or forward it? */
@@ -365,7 +366,7 @@ int handle_message( const char *way, int dst, int src )
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
              ( opt.delay != 0 &&
                strcmp( cur.type, "ApplicationData" ) != 0 &&
-               prev.dst == NULL &&
+               prev.dst == 0 &&
                rand() % opt.delay == 0 ) )
     {
         memcpy( &prev, &cur, sizeof( packet ) );
@@ -377,7 +378,7 @@ int handle_message( const char *way, int dst, int src )
             return( ret );
 
         /* send previously delayed message if any */
-        if( prev.dst != NULL )
+        if( prev.dst != 0 )
         {
             ret = send_packet( &prev, "delayed" );
             memset( &prev, 0, sizeof( packet ) );

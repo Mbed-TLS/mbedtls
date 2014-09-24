@@ -116,6 +116,13 @@ requires_ipv6() {
     fi
 }
 
+# skip the next test if valgrind is in use
+not_with_valgrind() {
+    if [ "$MEMCHECK" -gt 0 ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # multiply the client timeout delay by the given factor for the next test
 needs_more_time() {
     CLI_DELAY_FACTOR=$1
@@ -2107,10 +2114,11 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
 
 # Tests with UDP proxy emulating unreliable transport
 
+not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: reference" \
             -p "$P_PXY" \
-            "$P_SRV dtls=1 debug_level=1" \
-            "$P_CLI dtls=1 debug_level=1" \
+            "$P_SRV dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2" \
             0 \
             -C "replayed record" \
             -S "replayed record" \
@@ -2118,30 +2126,37 @@ run_test    "DTLS proxy: reference" \
             -S "record from another epoch" \
             -C "discarding invalid record" \
             -S "discarding invalid record" \
+            -C "resend" \
+            -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: duplicate every packet" \
             -p "$P_PXY duplicate=1" \
-            "$P_SRV dtls=1 debug_level=1" \
-            "$P_CLI dtls=1 debug_level=1" \
+            "$P_SRV dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "replayed record" \
             -s "replayed record" \
             -c "discarding invalid record" \
             -s "discarding invalid record" \
+            -C "resend" \
+            -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 run_test    "DTLS proxy: duplicate every packet, server anti-replay off" \
             -p "$P_PXY duplicate=1" \
-            "$P_SRV dtls=1 debug_level=1 anti_replay=0" \
-            "$P_CLI dtls=1 debug_level=1" \
+            "$P_SRV dtls=1 debug_level=2 anti_replay=0" \
+            "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "replayed record" \
             -S "replayed record" \
             -c "discarding invalid record" \
             -s "discarding invalid record" \
+            -c "resend" \
+            -s "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

@@ -2115,19 +2115,13 @@ run_test    "DTLS proxy: reference" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-run_test    "DTLS proxy: some duplication" \
-            -p "$P_PXY duplicate=3" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
-            0 \
-            -s "Extra-header:" \
-            -c "HTTP/1.0 200 OK"
-
-run_test    "DTLS proxy: lots of duplication" \
+run_test    "DTLS proxy: duplicate every packet" \
             -p "$P_PXY duplicate=1" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
+            "$P_SRV dtls=1 debug_level=1" \
+            "$P_CLI dtls=1 debug_level=1" \
             0 \
+            -c "replayed record" \
+            -s "replayed record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
@@ -2165,6 +2159,7 @@ run_test    "DTLS proxy: delay a bit more packets" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+needs_more_time 2
 run_test    "DTLS proxy: delay more packets" \
             -p "$P_PXY delay=3" \
             "$P_SRV dtls=1" \

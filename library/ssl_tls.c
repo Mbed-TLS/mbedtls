@@ -2104,6 +2104,10 @@ static void ssl_flight_free( ssl_flight_item *flight )
     }
 }
 
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+static void ssl_dtls_replay_reset( ssl_context *ssl );
+#endif
+
 /*
  * Swap transform_out and out_ctr with the alternative ones
  */
@@ -2830,7 +2834,7 @@ static int ssl_parse_record_header( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
 
-    /* Check epoch with DTLS */
+    /* Check epoch (and sequence number) with DTLS */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
@@ -2839,13 +2843,21 @@ static int ssl_parse_record_header( ssl_context *ssl )
 
         if( exp_epoch != rec_epoch )
         {
-            SSL_DEBUG_MSG( 1, ( "discarding record from another epoch: "
+            SSL_DEBUG_MSG( 1, ( "record from another epoch: "
                                 "expected %d, received %d",
                                  exp_epoch,   rec_epoch ) );
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( POLARSSL_ERR_SSL_INVALID_RECORD );
         }
-    }
+
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+        if( ssl_dtls_replay_check( ssl ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "replayed record" ) );
+            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        }
 #endif
+    }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
     /* Check length against the size of our buffer */
     if( ssl->in_msglen > SSL_BUFFER_LEN
@@ -2958,6 +2970,14 @@ static int ssl_prepare_record_content( ssl_context *ssl )
         ssl->in_len[1] = (unsigned char)( ssl->in_msglen      );
     }
 #endif /* POLARSSL_ZLIB_SUPPORT */
+
+#if defined(POLARSSL_SSL_PROTO_DTLS) && \
+    defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl_dtls_replay_update( ssl );
+    }
+#endif
 
     return( 0 );
 }
@@ -4197,8 +4217,9 @@ int ssl_parse_finished( ssl_context *ssl )
     {
         unsigned char i;
 
-        /* Set sequence_number to zero */
-        memset( ssl->in_ctr + 2, 0, 6 );
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+        ssl_dtls_replay_reset( ssl );
+#endif
 
         /* Increment epoch */
         for( i = 2; i > 0; i-- )
@@ -4546,6 +4567,9 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->in_left = 0;
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     ssl->next_record_offset = 0;
+#endif
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+    ssl_dtls_replay_reset( ssl );
 #endif
 
     ssl->in_hslen = 0;

@@ -914,15 +914,6 @@
 #define POLARSSL_SSL_PROTO_DTLS
 
 /**
- * \def POLARSSL_SSL_DTLS_ANTI_REPLAY
- *
- * Enable support for the anti-replay mechanism in DTLS.
- *
- * Comment this to disable anti-replay in DTLS.
- */
-#define POLARSSL_SSL_DTLS_ANTI_REPLAY
-
-/**
  * \def POLARSSL_SSL_ALPN
  *
  * Enable support for Application Layer Protocol Negotiation.
@@ -931,6 +922,18 @@
  * Comment this macro to disable support for ALPN.
  */
 #define POLARSSL_SSL_ALPN
+
+/**
+ * \def POLARSSL_SSL_DTLS_ANTI_REPLAY
+ *
+ * Enable support for the anti-replay mechanism in DTLS.
+ *
+ * Requires: POLARSSL_SSL_TLS_C
+ *           POLARSSL_POLARSSL_PROTO_DTLS
+ *
+ * Comment this to disable anti-replay in DTLS.
+ */
+#define POLARSSL_SSL_DTLS_ANTI_REPLAY
 
 /**
  * \def POLARSSL_SSL_DTLS_HELLO_VERIFY

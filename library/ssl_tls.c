@@ -2970,8 +2970,7 @@ static int ssl_prepare_record_content( ssl_context *ssl )
     }
 #endif /* POLARSSL_ZLIB_SUPPORT */
 
-#if defined(POLARSSL_SSL_PROTO_DTLS) && \
-    defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
         ssl_dtls_replay_update( ssl );

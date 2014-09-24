@@ -822,6 +822,10 @@ struct _ssl_context
     size_t next_record_offset;  /*!< offset of the next record in datagram
                                      (equal to in_left if none)       */
 #endif
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+    uint64_t in_window_top;     /*!< last validated record seq_num    */
+    uint64_t in_window;         /*!< bitmask for replay detection     */
+#endif
 
     size_t in_hslen;            /*!< current handshake message length,
                                      including the handshake header   */
@@ -2041,6 +2045,12 @@ static inline size_t ssl_hs_hdr_len( const ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
 void ssl_recv_flight_completed( ssl_context *ssl );
 int ssl_resend( ssl_context *ssl );
+#endif
+
+/* Visible for testing purposes only */
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+int ssl_dtls_replay_check( ssl_context *ssl );
+void ssl_dtls_replay_update( ssl_context *ssl );
 #endif
 
 /* constant-time buffer comparison */

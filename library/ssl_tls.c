@@ -2695,6 +2695,90 @@ static int ssl_prepare_handshake_record( ssl_context *ssl )
 }
 
 /*
+ * DTLS anti-replay: RFC 6347 4.1.2.6
+ *
+ * - in_window_top is the highest record sequence number seen
+ * - the lsb of in_window is set iff in_window_top - 1 has been seen
+ *   ...
+ *   the msb of in_window is set iff in_window_top - 64 has been seen
+ */
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+static void ssl_dtls_replay_reset( ssl_context *ssl )
+{
+    ssl->in_window_top = 0;
+    ssl->in_window = 0;
+}
+
+static inline uint64_t ssl_load_six_bytes( unsigned char *buf )
+{
+    return( ( (uint64_t) buf[0] << 40 ) |
+            ( (uint64_t) buf[1] << 32 ) |
+            ( (uint64_t) buf[2] << 24 ) |
+            ( (uint64_t) buf[3] << 16 ) |
+            ( (uint64_t) buf[4] <<  8 ) |
+            ( (uint64_t) buf[5]       ) );
+}
+
+/*
+ * Return 0 if sequence number is acceptable, -1 otherwise
+ */
+int ssl_dtls_replay_check( ssl_context *ssl )
+{
+    uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
+    uint64_t bit;
+
+    if( rec_seqnum > ssl->in_window_top )
+        return( 0 );
+
+    if( rec_seqnum == ssl->in_window_top )
+        return( -1 );
+
+    bit = ssl->in_window_top - rec_seqnum - 1;
+
+    if( bit >= 64 )
+        return( -1 );
+
+    if( ( ssl->in_window & ( (uint64_t) 1 << bit ) ) != 0 )
+        return( -1 );
+
+    return( 0 );
+}
+
+/*
+ * Update replay window on new validated record
+ */
+void ssl_dtls_replay_update( ssl_context *ssl )
+{
+    uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
+
+    if( rec_seqnum > ssl->in_window_top )
+    {
+        /* Update window_top and the contents of the window */
+        uint64_t shift = rec_seqnum - ssl->in_window_top;
+
+        if( shift >= 64 )
+            ssl->in_window = 0;
+        else
+            ssl->in_window <<= shift;
+
+        ssl->in_window_top = rec_seqnum;
+    }
+    else if( rec_seqnum == ssl->in_window_top )
+    {
+        ; /* Can't happen, but anyway, nothing to do if it happened */
+    }
+    else
+    {
+        /* Mark that number as seen in the current window */
+        uint64_t bit = ssl->in_window_top - rec_seqnum - 1;
+
+        if( bit < 64 ) /* Always true, but be extra sure */
+            ssl->in_window |= (uint64_t) 1 << bit;
+    }
+}
+#endif /* POLARSSL_SSL_DTLS_ANTI_REPLAY */
+
+/*
  * ContentType type;
  * ProtocolVersion version;
  * uint16 epoch;            // DTLS only

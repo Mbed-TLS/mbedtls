@@ -808,7 +808,9 @@ struct _ssl_context
      * Record layer (incoming data)
      */
     unsigned char *in_buf;      /*!< input buffer                     */
-    unsigned char *in_ctr;      /*!< 64-bit incoming message counter  */
+    unsigned char *in_ctr;      /*!< 64-bit incoming message counter
+                                     TLS: maintained by us
+                                     DTLS: read from peer             */
     unsigned char *in_hdr;      /*!< start of record header           */
     unsigned char *in_len;      /*!< two-bytes message length field   */
     unsigned char *in_iv;       /*!< ivlen-byte IV                    */
@@ -819,6 +821,7 @@ struct _ssl_context
     size_t in_msglen;           /*!< record header: message length    */
     size_t in_left;             /*!< amount of data read so far       */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
+    uint16_t in_epoch;          /*!< DTLS epoch for incoming records  */
     size_t next_record_offset;  /*!< offset of the next record in datagram
                                      (equal to in_left if none)       */
 #endif

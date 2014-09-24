@@ -1708,7 +1708,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
-        ; /* in_ctr handled differently in DTLS */
+        ; /* in_ctr read from peer, not maintained internally */
     }
     else
 #endif
@@ -2838,14 +2838,13 @@ static int ssl_parse_record_header( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
-        unsigned int exp_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
-        unsigned int rec_epoch = ( ssl->in_hdr[3] << 8 ) | ssl->in_hdr[4];
+        unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
 
-        if( exp_epoch != rec_epoch )
+        if( rec_epoch != ssl->in_epoch )
         {
             SSL_DEBUG_MSG( 1, ( "record from another epoch: "
                                 "expected %d, received %d",
-                                 exp_epoch,   rec_epoch ) );
+                                 ssl->in_epoch, rec_epoch ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
         }
 
@@ -3040,7 +3039,7 @@ read_record_header:
             ssl->next_record_offset = 0;
             ssl->in_left = 0;
 
-            SSL_DEBUG_MSG( 2, ( "discarding invalid record" ) );
+            SSL_DEBUG_MSG( 1, ( "discarding invalid record" ) );
             goto read_record_header;
         }
 #endif
@@ -3074,7 +3073,7 @@ read_record_header:
             if( ret == POLARSSL_ERR_SSL_INVALID_RECORD ||
                 ret == POLARSSL_ERR_SSL_INVALID_MAC )
             {
-                SSL_DEBUG_MSG( 2, ( "discarding invalid record" ) );
+                SSL_DEBUG_MSG( 1, ( "discarding invalid record" ) );
                 goto read_record_header;
             }
 
@@ -3677,6 +3676,54 @@ int ssl_parse_change_cipher_spec( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC );
     }
 
+    /*
+     * Switch to our negotiated transform and session parameters for inbound
+     * data.
+     */
+    SSL_DEBUG_MSG( 3, ( "switching to new transform spec for inbound data" ) );
+    ssl->transform_in = ssl->transform_negotiate;
+    ssl->session_in = ssl->session_negotiate;
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+        ssl_dtls_replay_reset( ssl );
+#endif
+
+        /* Increment epoch */
+        if( ++ssl->in_epoch == 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
+            return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+        }
+    }
+    else
+#endif /* POLARSSL_SSL_PROTO_DTLS */
+    memset( ssl->in_ctr, 0, 8 );
+
+    /*
+     * Set the in_msg pointer to the correct location based on IV length
+     */
+    if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
+    {
+        ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen -
+                      ssl->transform_negotiate->fixed_ivlen;
+    }
+    else
+        ssl->in_msg = ssl->in_iv;
+
+#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
+    if( ssl_hw_record_activate != NULL )
+    {
+        if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_INBOUND ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_hw_record_activate", ret );
+            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
+        }
+    }
+#endif
+
     ssl->state++;
 
     SSL_DEBUG_MSG( 2, ( "<= parse change cipher spec" ) );
@@ -4204,61 +4251,6 @@ int ssl_parse_finished( ssl_context *ssl )
 
     ssl->handshake->calc_finished( ssl, buf, ssl->endpoint ^ 1 );
 
-    /*
-     * Switch to our negotiated transform and session parameters for inbound
-     * data.
-     */
-    SSL_DEBUG_MSG( 3, ( "switching to new transform spec for inbound data" ) );
-    ssl->transform_in = ssl->transform_negotiate;
-    ssl->session_in = ssl->session_negotiate;
-
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-    {
-        unsigned char i;
-
-#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
-        ssl_dtls_replay_reset( ssl );
-#endif
-
-        /* Increment epoch */
-        for( i = 2; i > 0; i-- )
-            if( ++ssl->in_ctr[i - 1] != 0 )
-                break;
-
-        /* The loop goes to its end iff the counter is wrapping */
-        if( i == 0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
-            return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
-        }
-    }
-    else
-#endif /* POLARSSL_SSL_PROTO_DTLS */
-    memset( ssl->in_ctr, 0, 8 );
-
-    /*
-     * Set the in_msg pointer to the correct location based on IV length
-     */
-    if( ssl->minor_ver >= SSL_MINOR_VERSION_2 )
-    {
-        ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen -
-                      ssl->transform_negotiate->fixed_ivlen;
-    }
-    else
-        ssl->in_msg = ssl->in_iv;
-
-#if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
-    if( ssl_hw_record_activate != NULL )
-    {
-        if( ( ret = ssl_hw_record_activate( ssl, SSL_CHANNEL_INBOUND ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ssl_hw_record_activate", ret );
-            return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
-        }
-    }
-#endif
-
     if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_read_record", ret );
@@ -4567,6 +4559,7 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->in_left = 0;
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     ssl->next_record_offset = 0;
+    ssl->in_epoch = 0;
 #endif
 #if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
     ssl_dtls_replay_reset( ssl );

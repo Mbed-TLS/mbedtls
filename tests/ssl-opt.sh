@@ -2109,9 +2109,15 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
 
 run_test    "DTLS proxy: reference" \
             -p "$P_PXY" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
+            "$P_SRV dtls=1 debug_level=1" \
+            "$P_CLI dtls=1 debug_level=1" \
             0 \
+            -C "replayed record" \
+            -S "replayed record" \
+            -C "record from another epoch" \
+            -S "record from another epoch" \
+            -C "discarding invalid record" \
+            -S "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
@@ -2122,49 +2128,61 @@ run_test    "DTLS proxy: duplicate every packet" \
             0 \
             -c "replayed record" \
             -s "replayed record" \
+            -c "discarding invalid record" \
+            -s "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 run_test    "DTLS proxy: inject invalid AD record" \
             -p "$P_PXY bad_ad=1" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_SRV dtls=1 debug_level=1" \
+            "$P_CLI dtls=1 debug_level=1" \
             0 \
             -c "discarding invalid record" \
+            -s "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 run_test    "DTLS proxy: delay ChangeCipherSpec" \
-            -p "$P_PXY bad_ad=1" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1 debug_level=2" \
+            -p "$P_PXY delay_ccs=1" \
+            "$P_SRV dtls=1 debug_level=1" \
+            "$P_CLI dtls=1 debug_level=1" \
             0 \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -c "discarding invalid record" \
+            -s "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 run_test    "DTLS proxy: delay a few packets" \
             -p "$P_PXY delay=10" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
+            "$P_SRV dtls=1 debug_level=1" \
+            "$P_CLI dtls=1 debug_level=1" \
             0 \
+            -C "replayed record" \
+            -S "replayed record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 run_test    "DTLS proxy: delay a bit more packets" \
             -p "$P_PXY delay=6" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
+            "$P_SRV dtls=1 debug_level=1" \
+            "$P_CLI dtls=1 debug_level=1" \
             0 \
+            -C "replayed record" \
+            -S "replayed record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
 needs_more_time 2
 run_test    "DTLS proxy: delay more packets" \
             -p "$P_PXY delay=3" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
+            "$P_SRV dtls=1 debug_level=1" \
+            "$P_CLI dtls=1 debug_level=1" \
             0 \
+            -C "replayed record" \
+            -S "replayed record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

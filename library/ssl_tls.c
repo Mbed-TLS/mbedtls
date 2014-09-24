@@ -1705,17 +1705,24 @@ static int ssl_decrypt_buf( ssl_context *ssl )
     else
         ssl->nb_zero = 0;
 
-    /* Input counter not used with DTLS right now,
-     * but it doesn't hurt to have this part ready */
-    for( i = 8; i > ssl_ep_len( ssl ); i-- )
-        if( ++ssl->in_ctr[i - 1] != 0 )
-            break;
-
-    /* The loop goes to its end iff the counter is wrapping */
-    if( i == ssl_ep_len( ssl ) )
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
-        SSL_DEBUG_MSG( 1, ( "incoming message counter would wrap" ) );
-        return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+        ; /* in_ctr handled differently in DTLS */
+    }
+    else
+#endif
+    {
+        for( i = 8; i > ssl_ep_len( ssl ); i-- )
+            if( ++ssl->in_ctr[i - 1] != 0 )
+                break;
+
+        /* The loop goes to its end iff the counter is wrapping */
+        if( i == ssl_ep_len( ssl ) )
+        {
+            SSL_DEBUG_MSG( 1, ( "incoming message counter would wrap" ) );
+            return( POLARSSL_ERR_SSL_COUNTER_WRAPPING );
+        }
     }
 
     SSL_DEBUG_MSG( 2, ( "<= decrypt buf" ) );

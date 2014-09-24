@@ -122,6 +122,7 @@ int main( int argc, char *argv[] )
 #define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           SSL_TRANSPORT_STREAM
 #define DFL_COOKIES             1
+#define DFL_ANTI_REPLAY         -1
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -184,6 +185,7 @@ struct options
     const char *dhm_file;       /* the file with the DH parameters          */
     int transport;              /* TLS or DTLS?                             */
     int cookies;                /* Use cookies for DTLS? -1 to break them   */
+    int anti_replay;            /* Use anti-replay for DTLS? -1 for default */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -310,9 +312,16 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
 #define USAGE_COOKIES \
     "    cookies=0/1/-1      default: 1 (enabled)\n"        \
-    "                        0: disabled, -1: broken\n"
+    "                        0: disabled, -1: library default (broken)\n"
 #else
 #define USAGE_COOKIES ""
+#endif
+
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+#define USAGE_ANTI_REPLAY \
+    "    anti_replay=0/1      default: (library default = enabled)\n"
+#else
+#define USAGE_ANTI_REPLAY ""
 #endif
 
 #define USAGE \
@@ -340,6 +349,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     USAGE_TICKETS                                           \
     USAGE_CACHE                                             \
     USAGE_COOKIES                                           \
+    USAGE_ANTI_REPLAY                                       \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_ALPN                                              \
     "\n"                                                    \
@@ -740,6 +750,7 @@ int main( int argc, char *argv[] )
     opt.dhm_file            = DFL_DHM_FILE;
     opt.transport           = DFL_TRANSPORT;
     opt.cookies             = DFL_COOKIES;
+    opt.anti_replay         = DFL_ANTI_REPLAY;
 
     for( i = 1; i < argc; i++ )
     {
@@ -961,6 +972,12 @@ int main( int argc, char *argv[] )
         {
             opt.cookies = atoi( q );
             if( opt.cookies < -1 || opt.cookies > 1)
+                goto usage;
+        }
+        else if( strcmp( p, "anti_replay" ) == 0 )
+        {
+            opt.anti_replay = atoi( q );
+            if( opt.anti_replay < 0 || opt.anti_replay > 1)
                 goto usage;
         }
         else if( strcmp( p, "sni" ) == 0 )
@@ -1400,6 +1417,13 @@ int main( int argc, char *argv[] )
         {
             ; /* Nothing to do */
         }
+
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+        if( opt.anti_replay != DFL_ANTI_REPLAY )
+        {
+            ssl_set_dtls_anti_replay( &ssl, opt.anti_replay );
+        }
+#endif
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 

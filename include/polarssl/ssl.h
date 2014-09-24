@@ -229,6 +229,9 @@
 #define SSL_RENEGOTIATION_DISABLED      0
 #define SSL_RENEGOTIATION_ENABLED       1
 
+#define SSL_ANTI_REPLAY_DISABLED        0
+#define SSL_ANTI_REPLAY_ENABLED         1
+
 #define SSL_RENEGOTIATION_NOT_ENFORCED  -1
 #define SSL_RENEGO_MAX_RECORDS_DEFAULT  16
 
@@ -828,6 +831,7 @@ struct _ssl_context
 #if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
     uint64_t in_window_top;     /*!< last validated record seq_num    */
     uint64_t in_window;         /*!< bitmask for replay detection     */
+    char anti_replay;           /*!< is anti-replay on?               */
 #endif
 
     size_t in_hslen;            /*!< current handshake message length,
@@ -1245,6 +1249,19 @@ void ssl_set_dtls_cookies( ssl_context *ssl,
                            ssl_cookie_check_t *f_cookie_check,
                            void *p_cookie );
 #endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
+
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+/**
+ * \brief          Enable or disable anti-replay protection for DTLS.
+ *                 (DTLS only, no effect on TLS.)
+ *                 Default: enebled.
+ *
+ * \param ssl      SSL context
+ * \param mode     SSL_ANTI_REPLAY_ENABLED or SSL_ANTI_REPLAY_DISABLED.
+ */
+void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode );
+#endif /* POLARSSL_SSL_DTLS_ANTI_REPLAY */
+
 
 /**
  * \brief          Set the session cache callbacks (server-side only)

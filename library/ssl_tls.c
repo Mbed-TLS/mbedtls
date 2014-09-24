@@ -2733,6 +2733,9 @@ int ssl_dtls_replay_check( ssl_context *ssl )
     uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
     uint64_t bit;
 
+    if( ssl->anti_replay == SSL_ANTI_REPLAY_DISABLED )
+        return( 0 );
+
     if( rec_seqnum > ssl->in_window_top )
         return( 0 );
 
@@ -2753,6 +2756,9 @@ int ssl_dtls_replay_check( ssl_context *ssl )
 void ssl_dtls_replay_update( ssl_context *ssl )
 {
     uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
+
+    if( ssl->anti_replay == SSL_ANTI_REPLAY_DISABLED )
+        return;
 
     if( rec_seqnum > ssl->in_window_top )
     {
@@ -4528,6 +4534,10 @@ int ssl_init( ssl_context *ssl )
     ssl->f_cookie_check = ssl_cookie_check_dummy;
 #endif
 
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+    ssl->anti_replay = SSL_ANTI_REPLAY_ENABLED;
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
 
@@ -4744,6 +4754,13 @@ int ssl_set_transport( ssl_context *ssl, int transport )
 
     return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 }
+
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode )
+{
+    ssl->anti_replay = mode;
+}
+#endif
 
 void ssl_set_authmode( ssl_context *ssl, int authmode )
 {

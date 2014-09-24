@@ -2133,6 +2133,18 @@ run_test    "DTLS proxy: duplicate every packet" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+run_test    "DTLS proxy: duplicate every packet, server anti-replay off" \
+            -p "$P_PXY duplicate=1" \
+            "$P_SRV dtls=1 debug_level=1 anti_replay=0" \
+            "$P_CLI dtls=1 debug_level=1" \
+            0 \
+            -c "replayed record" \
+            -S "replayed record" \
+            -c "discarding invalid record" \
+            -s "discarding invalid record" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
 run_test    "DTLS proxy: inject invalid AD record" \
             -p "$P_PXY bad_ad=1" \
             "$P_SRV dtls=1 debug_level=1" \

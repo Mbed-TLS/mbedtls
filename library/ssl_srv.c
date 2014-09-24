@@ -1164,6 +1164,9 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+read_record_header:
+#endif
     /*
      * If renegotiating, then the input was read with ssl_read_record(),
      * otherwise read it ourselves manually in order to support SSLv2
@@ -1235,6 +1238,19 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         }
 
         memcpy( ssl->out_ctr + 2, ssl->in_ctr + 2, 6 );
+
+#if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
+        if( ssl_dtls_replay_check( ssl ) != 0 )
+        {
+            SSL_DEBUG_MSG( 1, ( "replayed record, discarding" ) );
+            ssl->next_record_offset = 0;
+            ssl->in_left = 0;
+            goto read_record_header;
+        }
+
+        /* No MAC to check yet, so we can update right now */
+        ssl_dtls_replay_update( ssl );
+#endif
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 

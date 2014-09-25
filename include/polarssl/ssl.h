@@ -248,6 +248,13 @@
 
 /*
  * DTLS retransmission states, see RFC 6347 4.2.4
+ *
+ * Warning: the state is sometimes explicit sometimes implicit!
+ * - PREPARING is explicit (but could be implicit from ssl->state)
+ * - SENDING is merged in PREPARING for initial sends, explicit for resends
+ * - WAITING is usually implicit from ssl->state, except after resend
+ * - FINISHED is explicit (but could be implicit from state)
+ * TODO-DTLS: clean that up
  */
 #define SSL_RETRANS_PREPARING       0
 #define SSL_RETRANS_SENDING         1

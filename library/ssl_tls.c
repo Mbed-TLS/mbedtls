@@ -2206,7 +2206,10 @@ int ssl_resend( ssl_context *ssl )
         }
     }
 
-    ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
+    if( ssl->state == SSL_HANDSHAKE_OVER )
+        ssl->handshake->retransmit_state = SSL_RETRANS_FINISHED;
+    else
+        ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
 
     SSL_DEBUG_MSG( 2, ( "<= ssl_resend" ) );
 

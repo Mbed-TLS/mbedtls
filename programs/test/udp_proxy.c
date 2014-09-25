@@ -79,21 +79,22 @@ int main( void )
 #define USAGE                                                               \
     "\n usage: udp_proxy param=<>...\n"                                     \
     "\n acceptable parameters:\n"                                           \
-    "    server_addr=%%d      default: localhost\n"                         \
+    "    server_addr=%%s      default: localhost\n"                         \
     "    server_port=%%d      default: 4433\n"                              \
-    "    listen_addr=%%d      default: localhost\n"                         \
+    "    listen_addr=%%s      default: localhost\n"                         \
     "    listen_port=%%d      default: 4433\n"                              \
     "\n"                                                                    \
     "    duplicate=%%d        default: 0 (no duplication)\n"                \
     "                        duplicate about 1:N packets randomly\n"        \
     "    delay=%%d            default: 0 (no delayed packets)\n"            \
     "                        delay about 1:N packets randomly\n"            \
-    "    delay_ccs=%%d        default: 0 (don't delay ChangeCipherSpec)\n" \
+    "    delay_ccs=0/1       default: 0 (don't delay ChangeCipherSpec)\n"   \
     "    drop=%%d             default: 0 (no dropped packets)\n"            \
     "                        drop about 1:N packets randomly\n"             \
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
     "                        drop packets larger than N bytes\n"            \
-    "    bad_ad=%%d           default: 0 (don't add bad ApplicationData)\n" \
+    "    bad_ad=0/1          default: 0 (don't add bad ApplicationData)\n"  \
+    "    protect_hvr=0/1     default: 0 (don't protect HelloVerifyRequest)\n" \
     "\n"                                                                    \
     "    seed=%%d             default: (use current time)\n"                \
     "\n"
@@ -114,6 +115,7 @@ static struct options
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
     int bad_ad;                 /* inject corrupted ApplicationData record  */
+    int protect_hvr;            /* never drop or delay HelloVerifyRequest   */
 
     unsigned int seed;          /* seed for "random" events                 */
 } opt;
@@ -197,6 +199,12 @@ static void get_options( int argc, char *argv[] )
         {
             opt.bad_ad = atoi( q );
             if( opt.bad_ad < 0 || opt.bad_ad > 1 )
+                exit_usage( p, q );
+        }
+        else if( strcmp( p, "protect_hvr" ) == 0 )
+        {
+            opt.protect_hvr = atoi( q );
+            if( opt.protect_hvr < 0 || opt.protect_hvr > 1 )
                 exit_usage( p, q );
         }
         else if( strcmp( p, "seed" ) == 0 )
@@ -366,6 +374,8 @@ int handle_message( const char *way, int dst, int src )
           cur.len > (unsigned) opt.mtu ) ||
         ( opt.drop != 0 &&
           strcmp( cur.type, "ApplicationData" ) != 0 &&
+          ! ( opt.protect_hvr &&
+              strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
           rand() % opt.drop == 0 ) )
     {
         ; /* Nothing to do */
@@ -374,6 +384,8 @@ int handle_message( const char *way, int dst, int src )
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
              ( opt.delay != 0 &&
                strcmp( cur.type, "ApplicationData" ) != 0 &&
+               ! ( opt.protect_hvr &&
+                   strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
                prev.dst == 0 &&
                rand() % opt.delay == 0 ) )
     {

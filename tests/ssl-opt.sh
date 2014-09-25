@@ -2260,6 +2260,19 @@ run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+needs_more_time 4
+run_test    "DTLS proxy: 3d, min handshake, client-initiated renegotiation" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dtls=1 tickets=0 auth_mode=none psk=abc123
+             renegotiation=1 debug_level=2" \
+            "$P_CLI dtls=1 tickets=0 psk=abc123 renegotiate=1 debug_level=2
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
+            0 \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
 # Final report
 
 echo "------------------------------------------------------------------------"

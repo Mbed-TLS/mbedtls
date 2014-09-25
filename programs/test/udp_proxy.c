@@ -222,7 +222,15 @@ static const char *msg_type( unsigned char *msg, size_t len )
         default:                            return( "Unknown" );
     }
 
-    if( len < 13 )                          return( "Invalid handshake" );
+    if( len < 13 + 12 )                     return( "Invalid handshake" );
+
+    /*
+     * Our handshake message are less than 2^16 bytes long, so they should
+     * have 0 as the first byte of length, frag_offset and frag_length.
+     * Otherwise, assume they are encrypted.
+     */
+    if( msg[14] || msg[19] || msg[22] )     return( "Encrypted handshake" );
+
     switch( msg[13] )
     {
         case SSL_HS_HELLO_REQUEST:          return( "HelloRequest" );

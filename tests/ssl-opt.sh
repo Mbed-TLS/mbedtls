@@ -18,7 +18,7 @@ set -u
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 
-O_SRV="$OPENSSL_CMD s_server -cert data_files/server5.crt -key data_files/server5.key"
+O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 G_CLI="$GNUTLS_CLI"
@@ -172,6 +172,28 @@ is_polar() {
     echo "$1" | grep 'ssl_server2\|ssl_client2' > /dev/null
 }
 
+# openssl s_server doesn't have -www with DTLS
+check_osrv_dtls() {
+    if echo "$SRV_CMD" | grep 's_server.*-dtls' >/dev/null; then
+        NEEDS_INPUT=1
+        SRV_CMD="$( echo $SRV_CMD | sed s/-www// )"
+    else
+        NEEDS_INPUT=0
+    fi
+}
+
+# provide input to commands that need it
+provide_input() {
+    if [ $NEEDS_INPUT -eq 0 ]; then
+        return
+    fi
+
+    while true; do
+        echo "HTTP/1.0 200 OK"
+        sleep 1
+    done
+}
+
 # has_mem_err <log_file_name>
 has_mem_err() {
     if ( grep -F 'All heap blocks were freed -- no leaks are possible' "$1" &&
@@ -299,9 +321,9 @@ run_test() {
         # assume proxy starts faster than server
     fi
 
+    check_osrv_dtls
     echo "$SRV_CMD" > $SRV_OUT
-    # "yes" is for servers without -www (openssl with DTLS)
-    yes "HTTP/1.0 200 OK" | $SRV_CMD >> $SRV_OUT 2>&1 &
+    provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
     wait_server_start
 

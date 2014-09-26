@@ -367,12 +367,11 @@ static unsigned char dropped[2048] = { 0 };
 void update_dropped( const packet *p )
 {
     size_t id = p->len % sizeof( dropped );
-
-    ++dropped[id];
-
     const unsigned char *end = p->buf + p->len;
     const unsigned char *cur = p->buf;
     size_t len = ( ( cur[11] << 8 ) | cur[12] ) + 13;
+
+    ++dropped[id];
 
     /* Avoid counting single record twice */
     if( len == p->len )

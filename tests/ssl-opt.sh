@@ -2170,7 +2170,6 @@ run_test    "DTLS proxy: reference" \
             -S "record from another epoch" \
             -C "discarding invalid record" \
             -S "discarding invalid record" \
-            -C "resend" \
             -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -2185,7 +2184,6 @@ run_test    "DTLS proxy: duplicate every packet" \
             -s "replayed record" \
             -c "discarding invalid record" \
             -s "discarding invalid record" \
-            -C "resend" \
             -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"

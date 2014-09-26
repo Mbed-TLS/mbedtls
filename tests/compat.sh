@@ -728,11 +728,11 @@ setup_arguments()
             ;;
         "dtls1")
             G_PRIO_MODE="+VERS-DTLS1.0"
-            G_MODE="-u --mtu 16383" # we don't handle HS fragmentation yet
+            G_MODE="-u"
             ;;
         "dtls1_2")
             G_PRIO_MODE="+VERS-DTLS1.2"
-            G_MODE="-u --mtu 16383" # we don't handle HS fragmentation yet
+            G_MODE="-u"
             ;;
         *)
             echo "error: invalid mode: $MODE" >&2
@@ -746,8 +746,7 @@ setup_arguments()
 
     # with OpenSSL 1.0.1h, -www, -WWW and -HTTP break DTLS handshakes
     if is_dtls "$MODE"; then
-        # temporary until we support handshake fragmentation
-        O_SERVER_ARGS="$O_SERVER_ARGS -mtu 16383"
+        O_SERVER_ARGS="$O_SERVER_ARGS"
     else
         O_SERVER_ARGS="$O_SERVER_ARGS -www"
     fi

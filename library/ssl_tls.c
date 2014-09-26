@@ -3454,10 +3454,10 @@ int ssl_parse_certificate( ssl_context *ssl )
     if( ssl->endpoint  == SSL_IS_SERVER &&
         ssl->minor_ver != SSL_MINOR_VERSION_0 )
     {
-        if( ssl->in_hslen   == 7                    &&
+        if( ssl->in_hslen   == 3 + ssl_hs_hdr_len( ssl ) &&
             ssl->in_msgtype == SSL_MSG_HANDSHAKE    &&
             ssl->in_msg[0]  == SSL_HS_CERTIFICATE   &&
-            memcmp( ssl->in_msg + 4, "\0\0\0", 3 ) == 0 )
+            memcmp( ssl->in_msg + ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
         {
             SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
 

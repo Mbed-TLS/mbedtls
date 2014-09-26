@@ -2024,6 +2024,28 @@ run_test    "DTLS cookie: enabled, IPv6" \
             -c "received hello verify request" \
             -S "SSL - The requested feature is not available"
 
+# Tests for various cases of client authentication with DTLS
+# (focused on handshake flows and message parsing)
+
+run_test    "DTLS client auth: required" \
+            "$P_SRV dtls=1 auth_mode=required" \
+            "$P_CLI dtls=1" \
+            0 \
+            -s "Verifying peer X.509 certificate... ok"
+
+run_test    "DTLS client auth: optional, client has no cert" \
+            "$P_SRV dtls=1 auth_mode=optional" \
+            "$P_CLI dtls=1 crt_file=none key_file=none" \
+            0 \
+            -s "! no client certificate sent"
+
+run_test    "DTLS client auth: optional, client has no cert" \
+            "$P_SRV dtls=1 auth_mode=none" \
+            "$P_CLI dtls=1 crt_file=none key_file=none debug_level=2" \
+            0 \
+            -c "skip write certificate$" \
+            -s "! no client certificate sent"
+
 # Tests for receiving fragmented handshake messages with DTLS
 
 requires_gnutls

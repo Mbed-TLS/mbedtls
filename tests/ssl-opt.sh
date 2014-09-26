@@ -2156,7 +2156,7 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# Tests with UDP proxy emulating unreliable transport
+# Tests for specific things with "unreliable" UDP connection
 
 not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: reference" \
@@ -2226,27 +2226,7 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 2
-run_test    "DTLS proxy: delay packets heavily" \
-            -p "$P_PXY delay=3" \
-            "$P_SRV dtls=1 debug_level=1" \
-            "$P_CLI dtls=1 debug_level=1" \
-            0 \
-            -C "replayed record" \
-            -S "replayed record" \
-            -s "Extra-header:" \
-            -c "HTTP/1.0 200 OK"
-
-needs_more_time 3
-run_test    "DTLS proxy: drop packets heavily" \
-            -p "$P_PXY drop=3" \
-            "$P_SRV dtls=1" \
-            "$P_CLI dtls=1" \
-            0 \
-            -s "Extra-header:" \
-            -c "HTTP/1.0 200 OK"
-
-# now try a variety of handshake flows with "unreliable connection"
+# Tests for "randomly unreliable connection": try a variety of flows and peers
 
 needs_more_time 2
 run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
@@ -2317,7 +2297,7 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renegotiation" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 3
+needs_more_time 2
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 2048" \
@@ -2326,7 +2306,7 @@ run_test    "DTLS proxy: 3d, openssl server" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 4
+needs_more_time 3
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 768" \
@@ -2335,7 +2315,7 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-needs_more_time 3
+needs_more_time 2
 run_test    "DTLS proxy: 3d, gnutls server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 2048 -a" \
@@ -2344,7 +2324,7 @@ run_test    "DTLS proxy: 3d, gnutls server" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
-needs_more_time 4
+needs_more_time 3
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 512" \

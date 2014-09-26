@@ -351,10 +351,49 @@ void clear_pending( void )
     memset( &prev, 0, sizeof( packet ) );
 }
 
+/*
+ * Avoid dropping or delaying a packet that was already dropped twice: this
+ * only results in uninteresting timeouts. We can't rely on type to identify
+ * packets, since during renegotiation they're all encrypted.  So, rely on
+ * size mod 2048 (which is usually just size).
+ */
+static unsigned char dropped[2048] = { 0 };
+#define DROP_MAX 2
+
+/*
+ * OpenSSL groups packets in a datagram the first time it sends them, but not
+ * when it resends them. Count every record as seen the first time.
+ */
+void update_dropped( const packet *p )
+{
+    size_t id = p->len % sizeof( dropped );
+
+    ++dropped[id];
+
+    const unsigned char *end = p->buf + p->len;
+    const unsigned char *cur = p->buf;
+    size_t len = ( ( cur[11] << 8 ) | cur[12] ) + 13;
+
+    /* Avoid counting single record twice */
+    if( len == p->len )
+        return;
+
+    while( cur < end )
+    {
+        size_t len = ( ( cur[11] << 8 ) | cur[12] ) + 13;
+
+        id = len % sizeof( dropped );
+        ++dropped[id];
+
+        cur += len;
+    }
+}
+
 int handle_message( const char *way, int dst, int src )
 {
     int ret;
     packet cur;
+    size_t id;
 
     /* receive packet */
     if( ( ret = net_recv( &src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
@@ -369,6 +408,8 @@ int handle_message( const char *way, int dst, int src )
     cur.dst  = dst;
     print_packet( &cur, NULL );
 
+    id = cur.len % sizeof( dropped );
+
     /* do we want to drop, delay, or forward it? */
     if( ( opt.mtu != 0 &&
           cur.len > (unsigned) opt.mtu ) ||
@@ -376,9 +417,10 @@ int handle_message( const char *way, int dst, int src )
           strcmp( cur.type, "ApplicationData" ) != 0 &&
           ! ( opt.protect_hvr &&
               strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
+          dropped[id] < DROP_MAX &&
           rand() % opt.drop == 0 ) )
     {
-        ; /* Nothing to do */
+        update_dropped( &cur );
     }
     else if( ( opt.delay_ccs == 1 &&
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
@@ -387,6 +429,7 @@ int handle_message( const char *way, int dst, int src )
                ! ( opt.protect_hvr &&
                    strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
                prev.dst == 0 &&
+               dropped[id] < DROP_MAX &&
                rand() % opt.delay == 0 ) )
     {
         memcpy( &prev, &cur, sizeof( packet ) );
@@ -526,6 +569,7 @@ accept:
         if( FD_ISSET( listen_fd, &read_fds ) )
         {
             clear_pending();
+            memset( dropped, 0, sizeof( dropped ) );
             goto accept;
         }
 

@@ -2052,7 +2052,7 @@ static int ssl_write_hello_verify_request( ssl_context *ssl )
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = SSL_HS_HELLO_VERIFY_REQUEST;
 
-    ssl->state = SSL_CLIENT_HELLO;
+    ssl->state = SSL_SERVER_HELLO_VERIFY_REQUEST_SENT;
 
     if( ( ret = ssl_write_record( ssl ) ) != 0 )
     {
@@ -2084,13 +2084,7 @@ static int ssl_write_server_hello( ssl_context *ssl )
         SSL_DEBUG_MSG( 2, ( "client hello was not authenticated" ) );
         SSL_DEBUG_MSG( 2, ( "<= write server hello" ) );
 
-        if( ( ret = ssl_write_hello_verify_request( ssl ) ) != 0 )
-        {
-            SSL_DEBUG_RET( 1, "ssl_write_hello_verify_request", ret );
-            return( ret );
-        }
-
-        return( POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED );
+        return( ssl_write_hello_verify_request( ssl ) );
     }
 #endif /* POLARSSL_SSL_DTLS_HELLO_VERIFY */
 
@@ -3533,6 +3527,11 @@ int ssl_handshake_server_step( ssl_context *ssl )
         case SSL_CLIENT_HELLO:
             ret = ssl_parse_client_hello( ssl );
             break;
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+        case SSL_SERVER_HELLO_VERIFY_REQUEST_SENT:
+            return( POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED );
+#endif
 
         /*
          *  ==>   ServerHello

@@ -2046,6 +2046,16 @@ run_test    "DTLS cookie: enabled, IPv6" \
             -c "received hello verify request" \
             -S "SSL - The requested feature is not available"
 
+run_test    "DTLS cookie: enabled, nbio" \
+            "$P_SRV dtls=1 nbio=2 debug_level=2" \
+            "$P_CLI dtls=1 nbio=2 debug_level=2" \
+            0 \
+            -s "cookie verification failed" \
+            -s "cookie verification passed" \
+            -S "cookie verification skipped" \
+            -c "received hello verify request" \
+            -S "SSL - The requested feature is not available"
+
 # Tests for various cases of client authentication with DTLS
 # (focused on handshake flows and message parsing)
 

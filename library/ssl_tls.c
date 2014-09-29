@@ -78,6 +78,37 @@ static inline size_t ssl_ep_len( const ssl_context *ssl )
     return( 0 );
 }
 
+
+/*
+ * Timers (WIP)
+ */
+#if defined(POLARSSL_TIMING_C)
+/*
+ * Start a timer.
+ * Passing millisecs = 0 cancels a running timer.
+ * The timer is already running iff time_limit != 0.
+ */
+void ssl_set_timer( ssl_context *ssl, unsigned long millisecs )
+{
+    ssl->time_limit = millisecs;
+    get_timer( &ssl->time_info, 1 );
+}
+
+/*
+ * Return -1 is timer is expired, 0 if it isn't.
+ */
+int ssl_check_timer( ssl_context *ssl )
+{
+    if( ssl->time_limit != 0 &&
+        get_timer( &ssl->time_info, 0 ) > ssl->time_limit )
+    {
+        return( -1 );
+    }
+
+    return( 0 );
+}
+#endif
+
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /*
  * Convert max_fragment_length codes to length.

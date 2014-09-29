@@ -76,6 +76,10 @@
 #include "zlib.h"
 #endif
 
+#if defined(POLARSSL_TIMING_C)
+#include "timing.h"
+#endif
+
 #if defined(POLARSSL_HAVE_TIME)
 #include <time.h>
 #endif
@@ -813,6 +817,14 @@ struct _ssl_context
     ssl_transform *transform_out;       /*!<  current transform params (in)   */
     ssl_transform *transform;           /*!<  negotiated transform params     */
     ssl_transform *transform_negotiate; /*!<  transform params in negotiation */
+
+    /*
+     * Timers (WIP)
+     */
+#if defined(POLARSSL_TIMING_C)
+    struct hr_time time_info;
+    unsigned long time_limit;
+#endif
 
     /*
      * Record layer (incoming data)

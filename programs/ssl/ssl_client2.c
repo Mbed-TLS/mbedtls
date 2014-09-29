@@ -946,7 +946,7 @@ int main( int argc, char *argv[] )
     else
         ssl_set_bio_timeout( &ssl, &server_fd, net_send, net_recv,
 #if defined(POLARSSL_HAVE_TIME)
-                             net_recv_timeout,
+                             opt.nbio == 0 ? net_recv_timeout : NULL,
 #else
                              NULL,
 #endif

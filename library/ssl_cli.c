@@ -759,6 +759,11 @@ static int ssl_write_client_hello( ssl_context *ssl )
 
     ssl->state++;
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl_send_flight_completed( ssl );
+#endif
+
     if( ( ret = ssl_write_record( ssl ) ) != 0 )
     {
         SSL_DEBUG_RET( 1, "ssl_write_record", ret );

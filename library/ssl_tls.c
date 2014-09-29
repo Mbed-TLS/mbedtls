@@ -1961,12 +1961,14 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
         else
             ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
 
-        SSL_DEBUG_RET( 2, "ssl->f_recv", ret );
+        SSL_DEBUG_RET( 2, "ssl->f_recv(_timeout)", ret );
 
         if( ret == 0 )
             return( POLARSSL_ERR_SSL_CONN_EOF );
 
-        if( ret == POLARSSL_ERR_NET_TIMEOUT )
+        if( ret == POLARSSL_ERR_NET_TIMEOUT ||
+            ( ret == POLARSSL_ERR_NET_WANT_READ &&
+              ssl_check_timer( ssl ) != 0 ) )
         {
             SSL_DEBUG_MSG( 2, ( "recv timeout" ) );
 
@@ -2206,6 +2208,9 @@ int ssl_resend( ssl_context *ssl )
         ssl_swap_epochs( ssl );
 
         ssl->handshake->retransmit_state = SSL_RETRANS_SENDING;
+
+        /* Cancel running timer */
+        ssl_set_timer( ssl, 0 );
     }
 
     while( ssl->handshake->cur_msg != NULL )
@@ -2242,6 +2247,9 @@ int ssl_resend( ssl_context *ssl )
     else
         ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
 
+    /* WIP: hardcoded 1 sec will be replaced */
+    ssl_set_timer( ssl, 1000 );
+
     SSL_DEBUG_MSG( 2, ( "<= ssl_resend" ) );
 
     return( 0 );
@@ -2260,6 +2268,9 @@ void ssl_recv_flight_completed( ssl_context *ssl )
     /* The next incoming flight will start with this msg_seq */
     ssl->handshake->in_flight_start_seq = ssl->handshake->in_msg_seq;
 
+    /* Cancel timer */
+    ssl_set_timer( ssl, 0 );
+
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
         ssl->in_msg[0] == SSL_HS_FINISHED )
     {
@@ -2267,6 +2278,23 @@ void ssl_recv_flight_completed( ssl_context *ssl )
     }
     else
         ssl->handshake->retransmit_state = SSL_RETRANS_PREPARING;
+}
+
+/*
+ * To be called when the last message of an outgoing flight is send.
+ */
+void ssl_send_flight_completed( ssl_context *ssl )
+{
+    /* WIP: hardcoded 1 sec is temporary */
+    ssl_set_timer( ssl, 1000 );
+
+    if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
+        ssl->in_msg[0] == SSL_HS_FINISHED )
+    {
+        ssl->handshake->retransmit_state = SSL_RETRANS_FINISHED;
+    }
+    else
+        ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
 }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 
@@ -3152,7 +3180,7 @@ read_record_header:
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL &&
-        ssl->handshake->retransmit_state == SSL_RETRANS_FINISHED )
+        ssl->state == SSL_HANDSHAKE_OVER )
     {
         if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
                 ssl->in_msg[0] == SSL_HS_FINISHED )
@@ -4261,6 +4289,11 @@ int ssl_write_finished( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        ssl_send_flight_completed( ssl );
 #endif
 
     if( ( ret = ssl_write_record( ssl ) ) != 0 )

@@ -253,12 +253,8 @@
 /*
  * DTLS retransmission states, see RFC 6347 4.2.4
  *
- * Warning: the state is sometimes explicit sometimes implicit!
- * - PREPARING is explicit (but could be implicit from ssl->state)
- * - SENDING is merged in PREPARING for initial sends, explicit for resends
- * - WAITING is usually implicit from ssl->state, except after resend
- * - FINISHED is explicit (but could be implicit from state)
- * TODO-DTLS: clean that up
+ * The SENDING state is merged in PREPARING for initial sends,
+ * but is distinct for resends.
  */
 #define SSL_RETRANS_PREPARING       0
 #define SSL_RETRANS_SENDING         1
@@ -2082,6 +2078,7 @@ static inline size_t ssl_hs_hdr_len( const ssl_context *ssl )
 }
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
+void ssl_send_flight_completed( ssl_context *ssl );
 void ssl_recv_flight_completed( ssl_context *ssl );
 int ssl_resend( ssl_context *ssl );
 #endif

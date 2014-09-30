@@ -545,6 +545,9 @@ accept:
     /*
      * 3. Forward packets forever (kill the process to terminate it)
      */
+    clear_pending();
+    memset( dropped, 0, sizeof( dropped ) );
+
     nb_fds = client_fd;
     if( nb_fds < server_fd )
         nb_fds = server_fd;
@@ -566,24 +569,20 @@ accept:
         }
 
         if( FD_ISSET( listen_fd, &read_fds ) )
-        {
-            clear_pending();
-            memset( dropped, 0, sizeof( dropped ) );
             goto accept;
-        }
 
         if( FD_ISSET( client_fd, &read_fds ) )
         {
             if( ( ret = handle_message( "S <- C",
                                         server_fd, client_fd ) ) != 0 )
-                goto exit;
+                goto accept;
         }
 
         if( FD_ISSET( server_fd, &read_fds ) )
         {
             if( ( ret = handle_message( "S -> C",
                                         client_fd, server_fd ) ) != 0 )
-                goto exit;
+                goto accept;
         }
     }
 

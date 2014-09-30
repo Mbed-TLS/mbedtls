@@ -261,6 +261,13 @@
 #define SSL_RETRANS_WAITING         2
 #define SSL_RETRANS_FINISHED        3
 
+/*
+ * Default range for DTLS retransmission timer value, in milliseconds.
+ * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
+ */
+#define SSL_DTLS_TIMEOUT_DFL_MIN    1000
+#define SSL_DTLS_TIMEOUT_DFL_MAX   60000
+
 /**
  * \name SECTION: Module settings
  *
@@ -652,6 +659,7 @@ struct _ssl_handshake_params
 
     unsigned char *hs_msg;              /*!<  Reassembled handshake message  */
 
+    uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
     unsigned char retransmit_state;     /*!<  Retransmission state           */
     ssl_flight_item *flight;            /*!<  Current outgoing flight        */
     ssl_flight_item *cur_msg;           /*!<  Current message in flight      */

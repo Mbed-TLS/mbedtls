@@ -88,7 +88,7 @@ static inline size_t ssl_ep_len( const ssl_context *ssl )
  * Passing millisecs = 0 cancels a running timer.
  * The timer is already running iff time_limit != 0.
  */
-void ssl_set_timer( ssl_context *ssl, unsigned long millisecs )
+void ssl_set_timer( ssl_context *ssl, uint32_t millisecs )
 {
     ssl->time_limit = millisecs;
     get_timer( &ssl->time_info, 1 );
@@ -108,6 +108,40 @@ int ssl_check_timer( ssl_context *ssl )
     return( 0 );
 }
 #endif
+
+/*
+ * Double the retransmit timeout value, within the allowed range,
+ * returning -1 if the maximum value has already been reached.
+ */
+static int ssl_double_retransmit_timeout( ssl_context *ssl )
+{
+    uint32_t new_timeout;
+
+    if( ssl->handshake->retransmit_timeout >= SSL_DTLS_TIMEOUT_DFL_MAX )
+        return( -1 );
+
+    new_timeout = 2 * ssl->handshake->retransmit_timeout;
+
+    /* Avoid arithmetic overflow and range overflow */
+    if( new_timeout < ssl->handshake->retransmit_timeout ||
+        new_timeout > SSL_DTLS_TIMEOUT_DFL_MAX )
+    {
+        new_timeout = SSL_DTLS_TIMEOUT_DFL_MAX;
+    }
+
+    ssl->handshake->retransmit_timeout = new_timeout;
+    SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
+                        ssl->handshake->retransmit_timeout ) );
+
+    return( 0 );
+}
+
+static void ssl_reset_retransmit_timeout( ssl_context *ssl )
+{
+    ssl->handshake->retransmit_timeout = SSL_DTLS_TIMEOUT_DFL_MIN;
+    SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
+                        ssl->handshake->retransmit_timeout ) );
+}
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /*
@@ -1951,12 +1985,12 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
-        // TODO-DTLS: for now, use constant timeout = 1 sec/datagram
         len = SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
         if( ssl->f_recv_timeout != NULL &&
-            ssl->handshake != NULL ) /* No resend outside handshake */
+            ssl->handshake != NULL ) /* No timeout outside handshake */
         {
-            ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len, 1 );
+            ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len,
+                                   ssl->handshake->retransmit_timeout / 1000 );
         }
         else
             ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
@@ -1971,6 +2005,12 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
               ssl_check_timer( ssl ) != 0 ) )
         {
             SSL_DEBUG_MSG( 2, ( "recv timeout" ) );
+
+            if( ssl_double_retransmit_timeout( ssl ) != 0 )
+            {
+                SSL_DEBUG_MSG( 1, ( "handshake timeout" ) );
+                return( POLARSSL_ERR_NET_TIMEOUT );
+            }
 
             if( ( ret = ssl_resend( ssl ) ) != 0 )
             {
@@ -2247,8 +2287,7 @@ int ssl_resend( ssl_context *ssl )
     else
         ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
 
-    /* WIP: hardcoded 1 sec will be replaced */
-    ssl_set_timer( ssl, 1000 );
+    ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
 
     SSL_DEBUG_MSG( 2, ( "<= ssl_resend" ) );
 
@@ -2268,8 +2307,9 @@ void ssl_recv_flight_completed( ssl_context *ssl )
     /* The next incoming flight will start with this msg_seq */
     ssl->handshake->in_flight_start_seq = ssl->handshake->in_msg_seq;
 
-    /* Cancel timer */
+    /* Cancel timer and reset timeout value */
     ssl_set_timer( ssl, 0 );
+    ssl_reset_retransmit_timeout( ssl );
 
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
         ssl->in_msg[0] == SSL_HS_FINISHED )
@@ -2285,8 +2325,7 @@ void ssl_recv_flight_completed( ssl_context *ssl )
  */
 void ssl_send_flight_completed( ssl_context *ssl )
 {
-    /* WIP: hardcoded 1 sec is temporary */
-    ssl_set_timer( ssl, 1000 );
+    ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
 
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
         ssl->in_msg[0] == SSL_HS_FINISHED )
@@ -4489,16 +4528,19 @@ static int ssl_handshake_init( ssl_context *ssl )
     ssl->handshake->key_cert = ssl->key_cert;
 #endif
 
+    /*
+     * We may not know yet if we're using DTLS,
+     * so always initiliase DTLS-specific fields.
+     */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-    {
-        ssl->handshake->alt_transform_out = ssl->transform_out;
+    ssl->handshake->alt_transform_out = ssl->transform_out;
 
-        if( ssl->endpoint == SSL_IS_CLIENT )
-            ssl->handshake->retransmit_state = SSL_RETRANS_PREPARING;
-        else
-            ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
-    }
+    ssl->handshake->retransmit_timeout = SSL_DTLS_TIMEOUT_DFL_MIN;
+
+    if( ssl->endpoint == SSL_IS_CLIENT )
+        ssl->handshake->retransmit_state = SSL_RETRANS_PREPARING;
+    else
+        ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
 #endif
 
     return( 0 );

@@ -117,16 +117,16 @@ static int ssl_double_retransmit_timeout( ssl_context *ssl )
 {
     uint32_t new_timeout;
 
-    if( ssl->handshake->retransmit_timeout >= SSL_DTLS_TIMEOUT_DFL_MAX )
+    if( ssl->handshake->retransmit_timeout >= ssl->hs_timeout_max )
         return( -1 );
 
     new_timeout = 2 * ssl->handshake->retransmit_timeout;
 
     /* Avoid arithmetic overflow and range overflow */
     if( new_timeout < ssl->handshake->retransmit_timeout ||
-        new_timeout > SSL_DTLS_TIMEOUT_DFL_MAX )
+        new_timeout > ssl->hs_timeout_max )
     {
-        new_timeout = SSL_DTLS_TIMEOUT_DFL_MAX;
+        new_timeout = ssl->hs_timeout_max;
     }
 
     ssl->handshake->retransmit_timeout = new_timeout;
@@ -138,7 +138,7 @@ static int ssl_double_retransmit_timeout( ssl_context *ssl )
 
 static void ssl_reset_retransmit_timeout( ssl_context *ssl )
 {
-    ssl->handshake->retransmit_timeout = SSL_DTLS_TIMEOUT_DFL_MIN;
+    ssl->handshake->retransmit_timeout = ssl->hs_timeout_min;
     SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
                         ssl->handshake->retransmit_timeout ) );
 }
@@ -4535,7 +4535,7 @@ static int ssl_handshake_init( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     ssl->handshake->alt_transform_out = ssl->transform_out;
 
-    ssl->handshake->retransmit_timeout = SSL_DTLS_TIMEOUT_DFL_MIN;
+    ssl->handshake->retransmit_timeout = ssl->hs_timeout_min;
 
     if( ssl->endpoint == SSL_IS_CLIENT )
         ssl->handshake->retransmit_state = SSL_RETRANS_PREPARING;
@@ -4645,6 +4645,11 @@ int ssl_init( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
     ssl->anti_replay = SSL_ANTI_REPLAY_ENABLED;
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    ssl->hs_timeout_min = SSL_DTLS_TIMEOUT_DFL_MIN;
+    ssl->hs_timeout_max = SSL_DTLS_TIMEOUT_DFL_MAX;
 #endif
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
@@ -4868,6 +4873,14 @@ int ssl_set_transport( ssl_context *ssl, int transport )
 void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode )
 {
     ssl->anti_replay = mode;
+}
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max )
+{
+    ssl->hs_timeout_min = min;
+    ssl->hs_timeout_max = max;
 }
 #endif
 

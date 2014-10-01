@@ -831,6 +831,13 @@ struct _ssl_context
     unsigned long time_limit;
 #endif
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    uint32_t hs_timeout_min;    /*!< initial value of the handshake
+                                     retransmission timeout             */
+    uint32_t hs_timeout_max;    /*!< maximum value of the handshake
+                                     retransmission timeout             */
+#endif
+
     /*
      * Record layer (incoming data)
      */
@@ -1286,6 +1293,25 @@ void ssl_set_dtls_cookies( ssl_context *ssl,
 void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode );
 #endif /* POLARSSL_SSL_DTLS_ANTI_REPLAY */
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+/**
+ * \brief          Set retransmit timeout values for the DTLS handshale.
+ *                 (DTLS only, no effect on TLS.)
+ *
+ * \param ssl      SSL context
+ * \param min      Initial timeout value in milliseconds.
+ *                 Default: 1000 (1 second).
+ * \param max      Maximum timeout value in milliseconds.
+ *                 Default: 60000 (60 seconds).
+ *
+ * \note           Default values are from RFC 6347 section 4.2.4.1.
+ *
+ * \note           Higher values for initial timeout may increase average
+ *                 handshake latency. Lower values may increase the risk of
+ *                 network congestion by causing more retransmissions.
+ */
+void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max );
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
 /**
  * \brief          Set the session cache callbacks (server-side only)

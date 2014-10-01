@@ -585,10 +585,10 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
 
 #if defined(POLARSSL_HAVE_TIME)
 /*
- * Read at most 'len' characters, blocking for at most 'timeout' seconds
+ * Read at most 'len' characters, blocking for at most 'timeout' ms
  */
 int net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
-                      unsigned char timeout )
+                      uint32_t timeout )
 {
     int ret;
     struct timeval tv;
@@ -598,8 +598,8 @@ int net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
     FD_ZERO( &read_fds );
     FD_SET( fd, &read_fds );
 
-    tv.tv_sec  = timeout;
-    tv.tv_usec = 0;
+    tv.tv_sec  = timeout / 1000;
+    tv.tv_usec = ( timeout % 1000 ) * 1000;
 
     ret = select( fd + 1, &read_fds, NULL, NULL, &tv );
 

@@ -1990,7 +1990,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             ssl->handshake != NULL ) /* No timeout outside handshake */
         {
             ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len,
-                                   ssl->handshake->retransmit_timeout / 1000 );
+                                       ssl->handshake->retransmit_timeout );
         }
         else
             ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
@@ -4936,8 +4936,8 @@ void ssl_set_bio_timeout( ssl_context *ssl,
         void *p_bio,
         int (*f_send)(void *, const unsigned char *, size_t),
         int (*f_recv)(void *, unsigned char *, size_t),
-        int (*f_recv_timeout)(void *, unsigned char *, size_t, unsigned char),
-        unsigned char timeout )
+        int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t),
+        uint32_t timeout )
 {
     ssl->p_bio          = p_bio;
     ssl->f_send         = f_send;

@@ -35,6 +35,15 @@
 
 #include <string.h>
 
+#if defined(POLARSSL_HAVE_TIME)
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
+#include <basetsd.h>
+typedef UINT32 uint32_t;
+#else
+#include <inttypes.h>
+#endif
+#endif /* POLARSSL_HAVE_TIME */
+
 #define POLARSSL_ERR_NET_SOCKET_FAILED                     -0x0042  /**< Failed to open a socket. */
 #define POLARSSL_ERR_NET_CONNECT_FAILED                    -0x0044  /**< The connection to the given server / port failed. */
 #define POLARSSL_ERR_NET_BIND_FAILED                       -0x0046  /**< Binding of the socket failed. */
@@ -178,7 +187,7 @@ int net_send( void *ctx, const unsigned char *buf, size_t len );
  * \param ctx      Socket
  * \param buf      The buffer to write to
  * \param len      Maximum length of the buffer
- * \param timeout  Maximum number of seconds to wait for data
+ * \param timeout  Maximum number of milliseconds to wait for data
  *
  * \return         This function returns the number of bytes received,
  *                 or a non-zero error code:
@@ -191,7 +200,7 @@ int net_send( void *ctx, const unsigned char *buf, size_t len );
  *                 requires a different strategy.
  */
 int net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
-                      unsigned char timeout );
+                      uint32_t timeout );
 #endif /* POLARSSL_HAVE_TIME */
 
 /**

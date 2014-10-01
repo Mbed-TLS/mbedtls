@@ -778,7 +778,7 @@ struct _ssl_context
     void (*f_dbg)(void *, int, const char *);
     int (*f_send)(void *, const unsigned char *, size_t);
     int (*f_recv)(void *, unsigned char *, size_t);
-    int (*f_recv_timeout)(void *, unsigned char *, size_t, unsigned char);
+    int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t);
     int (*f_get_cache)(void *, ssl_session *);
     int (*f_set_cache)(void *, const ssl_session *);
 
@@ -1194,8 +1194,8 @@ void ssl_set_bio_timeout( ssl_context *ssl,
         void *p_bio,
         int (*f_send)(void *, const unsigned char *, size_t),
         int (*f_recv)(void *, unsigned char *, size_t),
-        int (*f_recv_timeout)(void *, unsigned char *, size_t, unsigned char),
-        unsigned char timeout );
+        int (*f_recv_timeout)(void *, unsigned char *, size_t, uint32_t),
+        uint32_t timeout );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
 /**

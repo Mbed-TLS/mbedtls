@@ -4942,7 +4942,7 @@ void ssl_set_bio_timeout( ssl_context *ssl,
     ssl->f_send         = f_send;
     ssl->f_recv         = f_recv;
     ssl->f_recv_timeout = f_recv_timeout;
-    ssl->timeout        = timeout;
+    ssl->read_timeout   = timeout;
 }
 
 void ssl_set_session_cache( ssl_context *ssl,

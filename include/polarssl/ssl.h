@@ -770,8 +770,7 @@ struct _ssl_context
     int min_major_ver;          /*!< min. major version used          */
     int min_minor_ver;          /*!< min. minor version used          */
 
-    unsigned char timeout;      /*!< DTLS: initial value of the timeout
-                                     for handshake retransmission     */
+    uint32_t read_timeout;      /*!< timeout for ssl_read in milliseconds */
 
     /*
      * Callbacks (RNG, debug, I/O, verification)
@@ -1081,9 +1080,8 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint );
  * \note            If DTLS is selected and max and/or min version are less
  *                  than TLS 1.1 (DTLS 1.0) they are upped to that value.
  *
- * \note            Regarding I/O callbacks, you must either [TODO-DTLS:
- *                  unimplemented yet: provide a recv callback that doesn't
- *                  block], or one that handles timeouts, see
+ * \note            For DTLS, you must either provide a recv callback that
+ *                  doesn't block, or one that handles timeouts, see
  *                  ssl_set_bio_timeout()
  */
 int ssl_set_transport( ssl_context *ssl, int transport );
@@ -1179,18 +1177,12 @@ void ssl_set_bio( ssl_context *ssl,
  * \param f_recv   read callback
  * \param f_recv_timeout read callback with timeout.
  *                 The last argument of the callback is the timeout in seconds
- * \param timeout  Value of the recv timeout in seconds. (For DTLS, also the
- *                 initial value of the handshake retransmission timeout.)
+ * \param timeout  value of the ssl_read() timeout in milliseconds
  *
- * \note           f_recv_timeout is required for DTLS, [TODO-TLS:
- *                 unimplmented yet: unless f_recv performs non-blocking
- *                 reads].
+ * \note           f_recv_timeout is required for DTLS, unless f_recv performs
+ *                 non-blocking reads.
  *
- * \note           f_recv_timeout must actually block until it receives
- *                 something or times out (or is interrupted by a signal)
- *
- * \note           TODO: with TLS, f_recv_timeout and timeout are ignored for
- *                 now.
+ * \note           TODO: timeout not supported with TLS yet
  */
 void ssl_set_bio_timeout( ssl_context *ssl,
         void *p_bio,

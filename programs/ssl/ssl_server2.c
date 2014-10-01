@@ -93,6 +93,7 @@ int main( int argc, char *argv[] )
 #define DFL_SERVER_PORT         4433
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
+#define DFL_READ_TIMEOUT        0
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -158,6 +159,7 @@ struct options
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     int nbio;                   /* should I/O be blocking?                  */
+    uint32_t read_timeout;      /* timeout on ssl_read() in milliseconds    */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the server certificate     */
@@ -345,6 +347,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "    read_timeout=%%d     default: 0 (no timeout)\n"    \
     "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_COOKIES                                           \
@@ -736,6 +739,7 @@ int main( int argc, char *argv[] )
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.nbio                = DFL_NBIO;
+    opt.read_timeout        = DFL_READ_TIMEOUT;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -806,6 +810,8 @@ int main( int argc, char *argv[] )
             if( opt.nbio < 0 || opt.nbio > 2 )
                 goto usage;
         }
+        else if( strcmp( p, "read_timeout" ) == 0 )
+            opt.read_timeout = atoi( q );
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
@@ -1632,7 +1638,7 @@ reset:
 #else
                              NULL,
 #endif
-                             0 );
+                             opt.read_timeout );
 
 #if defined(POLARSSL_SSL_DTLS_HELLO_VERIFY)
     if( opt.transport == SSL_TRANSPORT_DATAGRAM )

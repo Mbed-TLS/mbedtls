@@ -1930,6 +1930,8 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
+        uint32_t timeout;
+
         /*
          * The point is, we need to always read a full datagram at once, so we
          * sometimes read more then requested, and handle the additional data.
@@ -1986,12 +1988,16 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
         }
 
         len = SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
-        if( ssl->f_recv_timeout != NULL &&
-            ssl->handshake != NULL ) /* No timeout outside handshake */
-        {
-            ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len,
-                                       ssl->handshake->retransmit_timeout );
-        }
+
+        if( ssl->state != SSL_HANDSHAKE_OVER )
+            timeout = ssl->handshake->retransmit_timeout;
+        else
+            timeout = ssl->read_timeout;
+
+        SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
+
+        if( ssl->f_recv_timeout != NULL && timeout != 0 )
+            ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len, timeout );
         else
             ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
 
@@ -2006,19 +2012,24 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
         {
             SSL_DEBUG_MSG( 2, ( "recv timeout" ) );
 
-            if( ssl_double_retransmit_timeout( ssl ) != 0 )
+            if( ssl->state != SSL_HANDSHAKE_OVER )
             {
-                SSL_DEBUG_MSG( 1, ( "handshake timeout" ) );
-                return( POLARSSL_ERR_NET_TIMEOUT );
+                if( ssl_double_retransmit_timeout( ssl ) != 0 )
+                {
+                    SSL_DEBUG_MSG( 1, ( "handshake timeout" ) );
+                    return( POLARSSL_ERR_NET_TIMEOUT );
+                }
+
+                if( ( ret = ssl_resend( ssl ) ) != 0 )
+                {
+                    SSL_DEBUG_RET( 1, "ssl_resend", ret );
+                    return( ret );
+                }
+
+                return( POLARSSL_ERR_NET_WANT_READ );
             }
 
-            if( ( ret = ssl_resend( ssl ) ) != 0 )
-            {
-                SSL_DEBUG_RET( 1, "ssl_resend", ret );
-                return( ret );
-            }
-
-            return( POLARSSL_ERR_NET_WANT_READ );
+            return( POLARSSL_ERR_NET_TIMEOUT );
         }
 
         if( ret < 0 )
@@ -4226,6 +4237,9 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake->flight != NULL )
     {
+        /* Cancel handshake timer */
+        ssl_set_timer( ssl, 0 );
+
         /* Keep last flight around in case we need to resend it:
          * we need the handshake and transform structures for that */
         SSL_DEBUG_MSG( 3, ( "skip freeing handshake and transform" ) );
@@ -5649,6 +5663,10 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
     if( ssl->in_offt == NULL )
     {
+        /* Start timer if not already running */
+        if( ssl->time_limit == 0 )
+            ssl_set_timer( ssl, ssl->read_timeout );
+
         if( ! record_read )
         {
             if( ( ret = ssl_read_record( ssl ) ) != 0 )
@@ -5799,6 +5817,9 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
         }
 
         ssl->in_offt = ssl->in_msg;
+
+        /* We're going to return something now, cancel timer */
+        ssl_set_timer( ssl, 0 );
     }
 
     n = ( len < ssl->in_msglen )

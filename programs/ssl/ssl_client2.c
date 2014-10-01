@@ -75,6 +75,7 @@ int main( int argc, char *argv[] )
 #define DFL_REQUEST_SIZE        -1
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
+#define DFL_READ_TIMEOUT        0
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -112,6 +113,7 @@ struct options
     int server_port;            /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
     int nbio;                   /* should I/O be blocking?                  */
+    uint32_t read_timeout;      /* timeout on ssl_read() in milliseconds    */
     const char *request_page;   /* page on server to request                */
     int request_size;           /* pad request with header to requested size */
     const char *ca_file;        /* the file with the CA certificate(s)      */
@@ -311,6 +313,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "    read_timeout=%%d     default: 0 (no timeout)\n"    \
     "\n"                                                    \
     USAGE_DTLS                                              \
     "\n"                                                    \
@@ -408,6 +411,7 @@ int main( int argc, char *argv[] )
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.nbio                = DFL_NBIO;
+    opt.read_timeout        = DFL_READ_TIMEOUT;
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.request_size        = DFL_REQUEST_SIZE;
     opt.ca_file             = DFL_CA_FILE;
@@ -473,6 +477,8 @@ int main( int argc, char *argv[] )
             if( opt.nbio < 0 || opt.nbio > 2 )
                 goto usage;
         }
+        else if( strcmp( p, "read_timeout" ) == 0 )
+            opt.read_timeout = atoi( q );
         else if( strcmp( p, "request_page" ) == 0 )
             opt.request_page = q;
         else if( strcmp( p, "request_size" ) == 0 )
@@ -982,7 +988,7 @@ int main( int argc, char *argv[] )
 #else
                              NULL,
 #endif
-                             0 );
+                             opt.read_timeout );
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( ( ret = ssl_set_session_tickets( &ssl, opt.tickets ) ) != 0 )

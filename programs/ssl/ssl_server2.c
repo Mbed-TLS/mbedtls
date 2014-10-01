@@ -123,6 +123,8 @@ int main( int argc, char *argv[] )
 #define DFL_TRANSPORT           SSL_TRANSPORT_STREAM
 #define DFL_COOKIES             1
 #define DFL_ANTI_REPLAY         -1
+#define DFL_HS_TO_MIN           0
+#define DFL_HS_TO_MAX           0
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -186,6 +188,8 @@ struct options
     int transport;              /* TLS or DTLS?                             */
     int cookies;                /* Use cookies for DTLS? -1 to break them   */
     int anti_replay;            /* Use anti-replay for DTLS? -1 for default */
+    uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
+    uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -319,9 +323,18 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 
 #if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
 #define USAGE_ANTI_REPLAY \
-    "    anti_replay=0/1      default: (library default = enabled)\n"
+    "    anti_replay=0/1     default: (library default = enabled)\n"
 #else
 #define USAGE_ANTI_REPLAY ""
+#endif
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+#define USAGE_DTLS \
+    "    dtls=%%d             default: 0 (TLS)\n"                           \
+    "    hs_timeout=%%d-%%d    default: (library default: 1000-60000)\n"    \
+    "                        range of DTLS handshake timeouts in millisecs\n"
+#else
+#define USAGE_DTLS ""
 #endif
 
 #define USAGE \
@@ -329,10 +342,13 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "\n acceptable parameters:\n"                           \
     "    server_addr=%%d      default: (all interfaces)\n"  \
     "    server_port=%%d      default: 4433\n"              \
-    "    dtls=%%d             default: 0 (TLS)\n"           \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "\n"                                                    \
+    USAGE_DTLS                                              \
+    USAGE_COOKIES                                           \
+    USAGE_ANTI_REPLAY                                       \
     "\n"                                                    \
     "    auth_mode=%%s        default: \"optional\"\n"      \
     "                        options: none, optional, required\n" \
@@ -346,10 +362,9 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "    renegotiate=%%d      default: 0 (disabled)\n"      \
     "    renego_delay=%%d     default: -2 (library default)\n" \
     "    exchanges=%%d        default: 1\n"                 \
+    "\n"                                                    \
     USAGE_TICKETS                                           \
     USAGE_CACHE                                             \
-    USAGE_COOKIES                                           \
-    USAGE_ANTI_REPLAY                                       \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_ALPN                                              \
     "\n"                                                    \
@@ -751,6 +766,8 @@ int main( int argc, char *argv[] )
     opt.transport           = DFL_TRANSPORT;
     opt.cookies             = DFL_COOKIES;
     opt.anti_replay         = DFL_ANTI_REPLAY;
+    opt.hs_to_min           = DFL_HS_TO_MIN;
+    opt.hs_to_max           = DFL_HS_TO_MAX;
 
     for( i = 1; i < argc; i++ )
     {
@@ -978,6 +995,16 @@ int main( int argc, char *argv[] )
         {
             opt.anti_replay = atoi( q );
             if( opt.anti_replay < 0 || opt.anti_replay > 1)
+                goto usage;
+        }
+        else if( strcmp( p, "hs_timeout" ) == 0 )
+        {
+            if( ( p = strchr( q, '-' ) ) == NULL )
+                goto usage;
+            *p++ = '\0';
+            opt.hs_to_min = atoi( q );
+            opt.hs_to_max = atoi( p );
+            if( opt.hs_to_min == 0 || opt.hs_to_max < opt.hs_to_min )
                 goto usage;
         }
         else if( strcmp( p, "sni" ) == 0 )
@@ -1341,11 +1368,16 @@ int main( int argc, char *argv[] )
     ssl_set_endpoint( &ssl, SSL_IS_SERVER );
     ssl_set_authmode( &ssl, opt.auth_mode );
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ( ret = ssl_set_transport( &ssl, opt.transport ) ) != 0 )
     {
         printf( " failed\n  ! selected transport is not available\n" );
         goto exit;
     }
+
+    if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
+        ssl_set_handshake_timeout( &ssl, opt.hs_to_min, opt.hs_to_max );
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     if( ( ret = ssl_set_max_frag_len( &ssl, opt.mfl_code ) ) != 0 )

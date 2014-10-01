@@ -96,6 +96,8 @@ int main( int argc, char *argv[] )
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
 #define DFL_TRANSPORT           SSL_TRANSPORT_STREAM
+#define DFL_HS_TO_MIN           0
+#define DFL_HS_TO_MAX           0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -134,6 +136,8 @@ struct options
     int tickets;                /* enable / disable session tickets         */
     const char *alpn_string;    /* ALPN supported protocols                 */
     int transport;              /* TLS or DTLS?                             */
+    uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
+    uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -286,6 +290,15 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_ALPN ""
 #endif /* POLARSSL_SSL_ALPN */
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+#define USAGE_DTLS \
+    "    dtls=%%d             default: 0 (TLS)\n"                           \
+    "    hs_timeout=%%d-%%d    default: (library default: 1000-60000)\n"    \
+    "                        range of DTLS handshake timeouts in millisecs\n"
+#else
+#define USAGE_DTLS ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -295,10 +308,11 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    request_page=%%s     default: \".\"\n"             \
     "    request_size=%%d     default: about 34 (basic request)\n" \
     "                        (minimum: 0, max: 16384)\n" \
-    "    dtls=%%d             default: 0 (TLS)\n"           \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "\n"                                                    \
+    USAGE_DTLS                                              \
     "\n"                                                    \
     "    auth_mode=%%s        default: \"optional\"\n"      \
     "                        options: none, optional, required\n" \
@@ -416,6 +430,9 @@ int main( int argc, char *argv[] )
     opt.reco_delay          = DFL_RECO_DELAY;
     opt.tickets             = DFL_TICKETS;
     opt.alpn_string         = DFL_ALPN_STRING;
+    opt.transport           = DFL_TRANSPORT;
+    opt.hs_to_min           = DFL_HS_TO_MIN;
+    opt.hs_to_max           = DFL_HS_TO_MAX;
 
     for( i = 1; i < argc; i++ )
     {
@@ -627,6 +644,16 @@ int main( int argc, char *argv[] )
         {
             opt.trunc_hmac = atoi( q );
             if( opt.trunc_hmac < 0 || opt.trunc_hmac > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "hs_timeout" ) == 0 )
+        {
+            if( ( p = strchr( q, '-' ) ) == NULL )
+                goto usage;
+            *p++ = '\0';
+            opt.hs_to_min = atoi( q );
+            opt.hs_to_max = atoi( p );
+            if( opt.hs_to_min == 0 || opt.hs_to_max < opt.hs_to_min )
                 goto usage;
         }
         else
@@ -906,11 +933,16 @@ int main( int argc, char *argv[] )
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
     ssl_set_authmode( &ssl, opt.auth_mode );
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ( ret = ssl_set_transport( &ssl, opt.transport ) ) != 0 )
     {
         printf( " failed\n  ! selected transport is not available\n" );
         goto exit;
     }
+
+    if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
+        ssl_set_handshake_timeout( &ssl, opt.hs_to_min, opt.hs_to_max );
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     if( ( ret = ssl_set_max_frag_len( &ssl, opt.mfl_code ) ) != 0 )

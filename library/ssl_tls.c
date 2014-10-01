@@ -2307,9 +2307,8 @@ void ssl_recv_flight_completed( ssl_context *ssl )
     /* The next incoming flight will start with this msg_seq */
     ssl->handshake->in_flight_start_seq = ssl->handshake->in_msg_seq;
 
-    /* Cancel timer and reset timeout value */
+    /* Cancel timer */
     ssl_set_timer( ssl, 0 );
-    ssl_reset_retransmit_timeout( ssl );
 
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
         ssl->in_msg[0] == SSL_HS_FINISHED )
@@ -2325,6 +2324,7 @@ void ssl_recv_flight_completed( ssl_context *ssl )
  */
 void ssl_send_flight_completed( ssl_context *ssl )
 {
+    ssl_reset_retransmit_timeout( ssl );
     ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
 
     if( ssl->in_msgtype == SSL_MSG_HANDSHAKE &&
@@ -4535,8 +4535,7 @@ static int ssl_handshake_init( ssl_context *ssl )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     ssl->handshake->alt_transform_out = ssl->transform_out;
 
-    ssl->handshake->retransmit_timeout = ssl->hs_timeout_min;
-
+    // TODO: not the right place, we may not know endpoint yet
     if( ssl->endpoint == SSL_IS_CLIENT )
         ssl->handshake->retransmit_state = SSL_RETRANS_PREPARING;
     else

@@ -255,6 +255,8 @@
  *
  * The SENDING state is merged in PREPARING for initial sends,
  * but is distinct for resends.
+ *
+ * Note: initial state is wrong for server, but is not used anyway.
  */
 #define SSL_RETRANS_PREPARING       0
 #define SSL_RETRANS_SENDING         1

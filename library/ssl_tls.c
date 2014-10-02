@@ -88,7 +88,7 @@ static inline size_t ssl_ep_len( const ssl_context *ssl )
  * Passing millisecs = 0 cancels a running timer.
  * The timer is already running iff time_limit != 0.
  */
-void ssl_set_timer( ssl_context *ssl, uint32_t millisecs )
+static void ssl_set_timer( ssl_context *ssl, uint32_t millisecs )
 {
     ssl->time_limit = millisecs;
     get_timer( &ssl->time_info, 1 );
@@ -97,7 +97,7 @@ void ssl_set_timer( ssl_context *ssl, uint32_t millisecs )
 /*
  * Return -1 is timer is expired, 0 if it isn't.
  */
-int ssl_check_timer( ssl_context *ssl )
+static int ssl_check_timer( ssl_context *ssl )
 {
     if( ssl->time_limit != 0 &&
         get_timer( &ssl->time_info, 0 ) > ssl->time_limit )

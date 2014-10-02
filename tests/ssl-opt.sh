@@ -2305,6 +2305,20 @@ run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -c "HTTP/1.0 200 OK"
 
 needs_more_time 4
+run_test    "DTLS proxy: 3d, min handshake, resumption" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
+             psk=abc123 debug_level=3" \
+            "$P_CLI dtls=1 hs_timeout=250-10000 tickets=0 psk=abc123 \
+             debug_level=3 reconnect=1 read_timeout=1000 max_resend=10 \
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
+            0 \
+            -s "a session has been resumed" \
+            -c "a session has been resumed" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \

@@ -1987,30 +1987,42 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
         }
 
-        len = SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
+        SSL_DEBUG_MSG( 3, ( "current timer: %u", ssl->time_limit ) );
 
-        if( ssl->state != SSL_HANDSHAKE_OVER )
-            timeout = ssl->handshake->retransmit_timeout;
+        /*
+         * Don't even try to read if time's out already.
+         * This avoids by-passing the timer when repeatedly receiving messages
+         * that will end up being dropped.
+         */
+        if( ssl_check_timer( ssl ) != 0 )
+            ret = POLARSSL_ERR_NET_TIMEOUT;
         else
-            timeout = ssl->read_timeout;
-
-        SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
-
-        if( ssl->f_recv_timeout != NULL && timeout != 0 )
-            ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len, timeout );
-        else
-            ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
-
-        SSL_DEBUG_RET( 2, "ssl->f_recv(_timeout)", ret );
-
-        if( ret == 0 )
-            return( POLARSSL_ERR_SSL_CONN_EOF );
-
-        if( ret == POLARSSL_ERR_NET_TIMEOUT ||
-            ( ret == POLARSSL_ERR_NET_WANT_READ &&
-              ssl_check_timer( ssl ) != 0 ) )
         {
-            SSL_DEBUG_MSG( 2, ( "recv timeout" ) );
+            len = SSL_BUFFER_LEN - ( ssl->in_hdr - ssl->in_buf );
+
+            if( ssl->state != SSL_HANDSHAKE_OVER )
+                timeout = ssl->handshake->retransmit_timeout;
+            else
+                timeout = ssl->read_timeout;
+
+            SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
+
+            if( ssl->f_recv_timeout != NULL && timeout != 0 )
+                ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len,
+                                                                    timeout );
+            else
+                ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
+
+            SSL_DEBUG_RET( 2, "ssl->f_recv(_timeout)", ret );
+
+            if( ret == 0 )
+                return( POLARSSL_ERR_SSL_CONN_EOF );
+        }
+
+        if( ret == POLARSSL_ERR_NET_TIMEOUT )
+        {
+            SSL_DEBUG_MSG( 2, ( "timeout" ) );
+            ssl_set_timer( ssl, 0 );
 
             if( ssl->state != SSL_HANDSHAKE_OVER )
             {
@@ -2028,8 +2040,6 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 
                 return( POLARSSL_ERR_NET_WANT_READ );
             }
-
-            return( POLARSSL_ERR_NET_TIMEOUT );
         }
 
         if( ret < 0 )
@@ -2259,9 +2269,6 @@ int ssl_resend( ssl_context *ssl )
         ssl_swap_epochs( ssl );
 
         ssl->handshake->retransmit_state = SSL_RETRANS_SENDING;
-
-        /* Cancel running timer */
-        ssl_set_timer( ssl, 0 );
     }
 
     while( ssl->handshake->cur_msg != NULL )
@@ -2296,9 +2303,10 @@ int ssl_resend( ssl_context *ssl )
     if( ssl->state == SSL_HANDSHAKE_OVER )
         ssl->handshake->retransmit_state = SSL_RETRANS_FINISHED;
     else
+    {
         ssl->handshake->retransmit_state = SSL_RETRANS_WAITING;
-
-    ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
+        ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
+    }
 
     SSL_DEBUG_MSG( 2, ( "<= ssl_resend" ) );
 

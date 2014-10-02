@@ -2939,6 +2939,28 @@ static int ssl_parse_record_header( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_INVALID_RECORD );
     }
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+    {
+        /* Drop unexpected ChangeCipherSpec messages */
+        if( ssl->in_msgtype == SSL_MSG_CHANGE_CIPHER_SPEC &&
+            ssl->state != SSL_CLIENT_CHANGE_CIPHER_SPEC &&
+            ssl->state != SSL_SERVER_CHANGE_CIPHER_SPEC )
+        {
+            SSL_DEBUG_MSG( 1, ( "dropping unexpected ChangeCipherSpec" ) );
+            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        }
+
+        /* Drop unexpected ApplicationData records */
+        if( ssl->in_msgtype == SSL_MSG_APPLICATION_DATA &&
+            ssl->state != SSL_HANDSHAKE_OVER )
+        {
+            SSL_DEBUG_MSG( 1, ( "dropping unexpected ApplicationData" ) );
+            return( POLARSSL_ERR_SSL_INVALID_RECORD );
+        }
+    }
+#endif
+
     /* Check version */
     if( major_ver != ssl->major_ver )
     {
@@ -3283,20 +3305,6 @@ read_record_header:
             return( POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY );
         }
     }
-
-#if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
-    {
-        /* Drop unexpected ChangeCipherSpec messages */
-        if( ssl->in_msgtype == SSL_MSG_CHANGE_CIPHER_SPEC &&
-            ssl->state != SSL_CLIENT_CHANGE_CIPHER_SPEC &&
-            ssl->state != SSL_SERVER_CHANGE_CIPHER_SPEC )
-        {
-            SSL_DEBUG_MSG( 2, ( "dropping unexpected ChangeCipherSpec" ) );
-            return( POLARSSL_ERR_NET_WANT_READ );
-        }
-    }
-#endif
 
     SSL_DEBUG_MSG( 2, ( "<= read record" ) );
 

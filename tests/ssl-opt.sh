@@ -959,7 +959,8 @@ run_test    "Renegotiation: DTLS, client-initiated" \
 
 run_test    "Renegotiation: DTLS, server-initiated" \
             "$P_SRV debug_level=3 dtls=1 exchanges=2 renegotiation=1 renegotiate=1" \
-            "$P_CLI debug_level=3 dtls=1 exchanges=2 renegotiation=1" \
+            "$P_CLI debug_level=3 dtls=1 exchanges=2 renegotiation=1 \
+             read_timeout=1000 max_resend=2" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \

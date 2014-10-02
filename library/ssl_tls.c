@@ -109,6 +109,7 @@ int ssl_check_timer( ssl_context *ssl )
 }
 #endif
 
+#if defined(POLARSSL_SSL_PROTO_DTLS)
 /*
  * Double the retransmit timeout value, within the allowed range,
  * returning -1 if the maximum value has already been reached.
@@ -142,6 +143,7 @@ static void ssl_reset_retransmit_timeout( ssl_context *ssl )
     SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
                         ssl->handshake->retransmit_timeout ) );
 }
+#endif /* POLARSSL_SSL_PROTO_DTLS */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /*
@@ -5679,9 +5681,11 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
     if( ssl->in_offt == NULL )
     {
+#if defined(POLARSSL_TIMING_C)
         /* Start timer if not already running */
         if( ssl->time_limit == 0 )
             ssl_set_timer( ssl, ssl->read_timeout );
+#endif
 
         if( ! record_read )
         {
@@ -5834,8 +5838,10 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
         ssl->in_offt = ssl->in_msg;
 
+#if defined(POLARSSL_TIMING_C)
         /* We're going to return something now, cancel timer */
         ssl_set_timer( ssl, 0 );
+#endif
     }
 
     n = ( len < ssl->in_msglen )

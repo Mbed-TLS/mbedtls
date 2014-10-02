@@ -990,7 +990,8 @@ int main( int argc, char *argv[] )
     ssl_set_dbg( &ssl, my_debug, stdout );
 
     if( opt.nbio == 2 )
-        ssl_set_bio_timeout( &ssl, &server_fd, my_send, my_recv, NULL, 0 );
+        ssl_set_bio_timeout( &ssl, &server_fd, my_send, my_recv, NULL,
+                             opt.read_timeout );
     else
         ssl_set_bio_timeout( &ssl, &server_fd, net_send, net_recv,
 #if defined(POLARSSL_HAVE_TIME)
@@ -1389,6 +1390,17 @@ reconnect:
                                  NET_PROTO_TCP : NET_PROTO_UDP ) ) != 0 )
         {
             printf( " failed\n  ! net_connect returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+
+        if( opt.nbio > 0 )
+            ret = net_set_nonblock( server_fd );
+        else
+            ret = net_set_block( server_fd );
+        if( ret != 0 )
+        {
+            printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
+                    -ret );
             goto exit;
         }
 

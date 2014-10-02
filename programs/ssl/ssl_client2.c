@@ -76,6 +76,7 @@ int main( int argc, char *argv[] )
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
 #define DFL_READ_TIMEOUT        0
+#define DFL_MAX_RESEND          0
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -114,6 +115,7 @@ struct options
     int debug_level;            /* level of debugging                       */
     int nbio;                   /* should I/O be blocking?                  */
     uint32_t read_timeout;      /* timeout on ssl_read() in milliseconds    */
+    int max_resend;             /* DTLS times to resend on read timeout     */
     const char *request_page;   /* page on server to request                */
     int request_size;           /* pad request with header to requested size */
     const char *ca_file;        /* the file with the CA certificate(s)      */
@@ -314,6 +316,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
     "    read_timeout=%%d     default: 0 (no timeout)\n"    \
+    "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
     "\n"                                                    \
@@ -412,6 +415,7 @@ int main( int argc, char *argv[] )
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.nbio                = DFL_NBIO;
     opt.read_timeout        = DFL_READ_TIMEOUT;
+    opt.max_resend          = DFL_MAX_RESEND;
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.request_size        = DFL_REQUEST_SIZE;
     opt.ca_file             = DFL_CA_FILE;
@@ -479,6 +483,12 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "read_timeout" ) == 0 )
             opt.read_timeout = atoi( q );
+        else if( strcmp( p, "max_resend" ) == 0 )
+        {
+            opt.max_resend = atoi( q );
+            if( opt.max_resend < 0 )
+                goto usage;
+        }
         else if( strcmp( p, "request_page" ) == 0 )
             opt.request_page = q;
         else if( strcmp( p, "request_size" ) == 0 )
@@ -1284,6 +1294,12 @@ send_request:
         {
             switch( ret )
             {
+                case POLARSSL_ERR_NET_TIMEOUT:
+                    printf( " timeout\n" );
+                    if( opt.max_resend-- > 0 )
+                        goto send_request;
+                    goto exit;
+
                 case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
                     printf( " connection was closed gracefully\n" );
                     ret = 0;

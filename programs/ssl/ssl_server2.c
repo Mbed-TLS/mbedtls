@@ -1748,16 +1748,111 @@ data_exchange:
     printf( "  < Read from client:" );
     fflush( stdout );
 
-    do
+    /*
+     * TLS and DTLS need different reading styles (stream vs datagram)
+     */
+    if( opt.transport == SSL_TRANSPORT_STREAM )
     {
-        int terminated = 0;
+        do
+        {
+            int terminated = 0;
+            len = sizeof( buf ) - 1;
+            memset( buf, 0, sizeof( buf ) );
+            ret = ssl_read( &ssl, buf, len );
+
+            if( ret == POLARSSL_ERR_NET_WANT_READ ||
+                ret == POLARSSL_ERR_NET_WANT_WRITE )
+                continue;
+
+            if( ret <= 0 )
+            {
+                switch( ret )
+                {
+                    case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
+                        printf( " connection was closed gracefully\n" );
+                        goto close_notify;
+
+                    case 0:
+                    case POLARSSL_ERR_NET_CONN_RESET:
+                        printf( " connection was reset by peer\n" );
+                        ret = POLARSSL_ERR_NET_CONN_RESET;
+                        goto reset;
+
+                    default:
+                        printf( " ssl_read returned -0x%x\n", -ret );
+                        goto reset;
+                }
+            }
+
+            if( ssl_get_bytes_avail( &ssl ) == 0 )
+            {
+                len = ret;
+                buf[len] = '\0';
+                printf( " %d bytes read\n\n%s\n", len, (char *) buf );
+
+                /* End of message should be detected according to the syntax of the
+                 * application protocol (eg HTTP), just use a dummy test here. */
+                if( buf[len - 1] == '\n' )
+                    terminated = 1;
+            }
+            else
+            {
+                int extra_len, ori_len;
+                unsigned char *larger_buf;
+
+                ori_len = ret;
+                extra_len = ssl_get_bytes_avail( &ssl );
+
+                larger_buf = polarssl_malloc( ori_len + extra_len + 1 );
+                if( larger_buf == NULL )
+                {
+                    printf( "  ! memory allocation failed\n" );
+                    ret = 1;
+                    goto reset;
+                }
+
+                memset( larger_buf, 0, ori_len + extra_len );
+                memcpy( larger_buf, buf, ori_len );
+
+                /* This read should never fail and get the whole cached data */
+                ret = ssl_read( &ssl, larger_buf + ori_len, extra_len );
+                if( ret != extra_len ||
+                    ssl_get_bytes_avail( &ssl ) != 0 )
+                {
+                    printf( "  ! ssl_read failed on cached data\n" );
+                    ret = 1;
+                    goto reset;
+                }
+
+                larger_buf[ori_len + extra_len] = '\0';
+                printf( " %u bytes read (%u + %u)\n\n%s\n",
+                        ori_len + extra_len, ori_len, extra_len,
+                        (char *) larger_buf );
+
+                /* End of message should be detected according to the syntax of the
+                 * application protocol (eg HTTP), just use a dummy test here. */
+                if( larger_buf[ori_len + extra_len - 1] == '\n' )
+                    terminated = 1;
+
+                polarssl_free( larger_buf );
+            }
+
+            if( terminated )
+            {
+                ret = 0;
+                break;
+            }
+        }
+        while( 1 );
+    }
+    else /* Not stream, so datagram */
+    {
         len = sizeof( buf ) - 1;
         memset( buf, 0, sizeof( buf ) );
-        ret = ssl_read( &ssl, buf, len );
 
-        if( ret == POLARSSL_ERR_NET_WANT_READ ||
-            ret == POLARSSL_ERR_NET_WANT_WRITE )
-            continue;
+        do ret = ssl_read( &ssl, buf, len );
+        while( ret == POLARSSL_ERR_NET_WANT_READ ||
+               ret == POLARSSL_ERR_NET_WANT_WRITE );
 
         if( ret <= 0 )
         {
@@ -1765,13 +1860,14 @@ data_exchange:
             {
                 case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
                     printf( " connection was closed gracefully\n" );
+                    ret = 0;
                     goto close_notify;
 
                 case 0:
                 case POLARSSL_ERR_NET_CONN_RESET:
                     printf( " connection was reset by peer\n" );
-                    ret = POLARSSL_ERR_NET_CONN_RESET;
-                    goto reset;
+                        ret = POLARSSL_ERR_NET_CONN_RESET;
+                        goto reset;
 
                 default:
                     printf( " ssl_read returned -0x%x\n", -ret );
@@ -1779,66 +1875,11 @@ data_exchange:
             }
         }
 
-        if( ssl_get_bytes_avail( &ssl ) == 0 )
-        {
-            len = ret;
-            buf[len] = '\0';
-            printf( " %d bytes read\n\n%s\n", len, (char *) buf );
-
-            /* End of message should be detected according to the syntax of the
-             * application protocol (eg HTTP), just use a dummy test here. */
-            if( buf[len - 1] == '\n' )
-                terminated = 1;
-        }
-        else
-        {
-            int extra_len, ori_len;
-            unsigned char *larger_buf;
-
-            ori_len = ret;
-            extra_len = ssl_get_bytes_avail( &ssl );
-
-            larger_buf = polarssl_malloc( ori_len + extra_len + 1 );
-            if( larger_buf == NULL )
-            {
-                printf( "  ! memory allocation failed\n" );
-                ret = 1;
-                goto reset;
-            }
-
-            memset( larger_buf, 0, ori_len + extra_len );
-            memcpy( larger_buf, buf, ori_len );
-
-            /* This read should never fail and get the whole cached data */
-            ret = ssl_read( &ssl, larger_buf + ori_len, extra_len );
-            if( ret != extra_len ||
-                ssl_get_bytes_avail( &ssl ) != 0 )
-            {
-                printf( "  ! ssl_read failed on cached data\n" );
-                ret = 1;
-                goto reset;
-            }
-
-            larger_buf[ori_len + extra_len] = '\0';
-            printf( " %u bytes read (%u + %u)\n\n%s\n",
-                    ori_len + extra_len, ori_len, extra_len,
-                    (char *) larger_buf );
-
-            /* End of message should be detected according to the syntax of the
-             * application protocol (eg HTTP), just use a dummy test here. */
-            if( larger_buf[ori_len + extra_len - 1] == '\n' )
-                terminated = 1;
-
-            polarssl_free( larger_buf );
-        }
-
-        if( terminated )
-        {
-            ret = 0;
-            break;
-        }
+        len = ret;
+        buf[len] = '\0';
+        printf( " %d bytes read\n\n%s", len, (char *) buf );
+        ret = 0;
     }
-    while( 1 );
 
     /*
      * 7a. Request renegotiation while client is waiting for input from us.

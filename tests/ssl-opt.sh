@@ -2360,6 +2360,36 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+needs_more_time 4
+run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5 protect_len=41" \
+            "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
+             psk=abc123 renegotiate=1 renegotiation=1 exchanges=2 \
+             debug_level=2" \
+            "$P_CLI dtls=1 hs_timeout=250-10000 tickets=0 psk=abc123 \
+             renegotiation=1 exchanges=2 debug_level=2 \
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
+            0 \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
+needs_more_time 4
+run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5 protect_len=41" \
+            "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
+             psk=abc123 renegotiate=1 renegotiation=1 exchanges=2 \
+             debug_level=2 nbio=2" \
+            "$P_CLI dtls=1 hs_timeout=250-10000 tickets=0 psk=abc123 \
+             renegotiation=1 exchanges=2 debug_level=2 nbio=2 \
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
+            0 \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
 needs_more_time 3
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \

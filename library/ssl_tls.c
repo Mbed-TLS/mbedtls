@@ -2961,9 +2961,12 @@ static int ssl_parse_record_header( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
         }
 
-        /* Drop unexpected ApplicationData records */
+        /* Drop unexpected ApplicationData records,
+         * except at the beginning of renegotiations */
         if( ssl->in_msgtype == SSL_MSG_APPLICATION_DATA &&
-            ssl->state != SSL_HANDSHAKE_OVER )
+            ssl->state != SSL_HANDSHAKE_OVER &&
+            ! ( ssl->renegotiation == SSL_RENEGOTIATION &&
+                ssl->state == SSL_SERVER_HELLO ) )
         {
             SSL_DEBUG_MSG( 1, ( "dropping unexpected ApplicationData" ) );
             return( POLARSSL_ERR_SSL_INVALID_RECORD );
@@ -5839,8 +5842,10 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
         ssl->in_offt = ssl->in_msg;
 
 #if defined(POLARSSL_TIMING_C)
-        /* We're going to return something now, cancel timer */
-        ssl_set_timer( ssl, 0 );
+        /* We're going to return something now, cancel timer,
+         * except if handshake (renegotiation) is in progress */
+        if( ssl->state == SSL_HANDSHAKE_OVER )
+            ssl_set_timer( ssl, 0 );
 #endif
     }
 

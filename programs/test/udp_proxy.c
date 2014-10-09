@@ -95,6 +95,7 @@ int main( void )
     "                        drop packets larger than N bytes\n"            \
     "    bad_ad=0/1          default: 0 (don't add bad ApplicationData)\n"  \
     "    protect_hvr=0/1     default: 0 (don't protect HelloVerifyRequest)\n" \
+    "    protect_len=%%d     default: (don't protect packets of this size)\n" \
     "\n"                                                                    \
     "    seed=%%d             default: (use current time)\n"                \
     "\n"
@@ -116,6 +117,7 @@ static struct options
     int mtu;                    /* drop packets larger than this            */
     int bad_ad;                 /* inject corrupted ApplicationData record  */
     int protect_hvr;            /* never drop or delay HelloVerifyRequest   */
+    int protect_len;            /* never drop/delay packet of the given size*/
 
     unsigned int seed;          /* seed for "random" events                 */
 } opt;
@@ -205,6 +207,12 @@ static void get_options( int argc, char *argv[] )
         {
             opt.protect_hvr = atoi( q );
             if( opt.protect_hvr < 0 || opt.protect_hvr > 1 )
+                exit_usage( p, q );
+        }
+        else if( strcmp( p, "protect_len" ) == 0 )
+        {
+            opt.protect_len = atoi( q );
+            if( opt.protect_len < 0 )
                 exit_usage( p, q );
         }
         else if( strcmp( p, "seed" ) == 0 )
@@ -416,6 +424,7 @@ int handle_message( const char *way, int dst, int src )
           strcmp( cur.type, "ApplicationData" ) != 0 &&
           ! ( opt.protect_hvr &&
               strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
+          cur.len != (size_t) opt.protect_len &&
           dropped[id] < DROP_MAX &&
           rand() % opt.drop == 0 ) )
     {
@@ -428,6 +437,7 @@ int handle_message( const char *way, int dst, int src )
                ! ( opt.protect_hvr &&
                    strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
                prev.dst == 0 &&
+               cur.len != (size_t) opt.protect_len &&
                dropped[id] < DROP_MAX &&
                rand() % opt.delay == 0 ) )
     {

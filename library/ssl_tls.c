@@ -5302,12 +5302,20 @@ const char *ssl_get_alpn_protocol( const ssl_context *ssl )
 static int ssl_check_version( const ssl_context *ssl, int major, int minor )
 {
     if( major < SSL_MIN_MAJOR_VERSION || major > SSL_MAX_MAJOR_VERSION ||
-        minor < SSL_MIN_MINOR_VERSION || minor > SSL_MAX_MINOR_VERSION ||
-        ( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-          minor < SSL_MINOR_VERSION_2 ) )
+        minor < SSL_MIN_MINOR_VERSION || minor > SSL_MAX_MINOR_VERSION )
     {
         return( -1 );
     }
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
+        minor < SSL_MINOR_VERSION_2 )
+    {
+        return( -1 );
+    }
+#else
+    ((void) ssl);
+#endif
 
     return( 0 );
 }
@@ -5788,8 +5796,8 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
             else
             {
-#if defined(POLARSSL_SSL_PROTO_DTLS)
                 /* DTLS clients need to know renego is server-initiated */
+#if defined(POLARSSL_SSL_PROTO_DTLS)
                 if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
                     ssl->endpoint == SSL_IS_CLIENT )
                 {

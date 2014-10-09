@@ -1182,8 +1182,11 @@ read_record_header:
     buf = ssl->in_hdr;
 
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
-    if( ssl->transport == SSL_TRANSPORT_STREAM && ( buf[0] & 0x80 ) != 0 )
-        return ssl_parse_client_hello_v2( ssl );
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+    if( ssl->transport == SSL_TRANSPORT_STREAM )
+#endif
+        if( ( buf[0] & 0x80 ) != 0 )
+            return ssl_parse_client_hello_v2( ssl );
 #endif
 
     SSL_DEBUG_BUF( 4, "record header", buf, ssl_hdr_len( ssl ) );

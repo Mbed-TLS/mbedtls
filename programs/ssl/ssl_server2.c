@@ -1949,24 +1949,13 @@ data_exchange:
 close_notify:
     printf( "  . Closing the connection..." );
 
-    while( ( ret = ssl_close_notify( &ssl ) ) < 0 )
-    {
-        if( ret == POLARSSL_ERR_NET_CONN_RESET )
-        {
-            printf( " ok (already closed by peer)\n" );
-            ret = 0;
-            goto reset;
-        }
+    /* No error checking, the connection might be closed already */
+    do
+        ret = ssl_close_notify( &ssl );
+    while( ret == POLARSSL_ERR_NET_WANT_WRITE );
+    ret = 0;
 
-        if( ret != POLARSSL_ERR_NET_WANT_READ &&
-            ret != POLARSSL_ERR_NET_WANT_WRITE )
-        {
-            printf( " failed\n  ! ssl_close_notify returned %d\n\n", ret );
-            goto reset;
-        }
-    }
-
-    printf( " ok\n" );
+    printf( " done\n" );
     goto reset;
 
     /*

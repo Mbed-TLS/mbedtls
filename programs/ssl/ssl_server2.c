@@ -869,7 +869,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "exchanges" ) == 0 )
         {
             opt.exchanges = atoi( q );
-            if( opt.exchanges < 1 )
+            if( opt.exchanges < 0 )
                 goto usage;
         }
         else if( strcmp( p, "min_version" ) == 0 )
@@ -1739,6 +1739,9 @@ reset:
         printf( "%s\n", buf );
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
+
+    if( opt.exchanges == 0 )
+        goto close_notify;
 
     exchanges = opt.exchanges;
 data_exchange:

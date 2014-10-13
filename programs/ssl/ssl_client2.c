@@ -1211,16 +1211,36 @@ send_request:
         if( len >= 1 ) buf[len - 1] = '\n';
     }
 
-    for( written = 0, frags = 0; written < len; written += ret, frags++ )
+    if( opt.transport == SSL_TRANSPORT_STREAM )
     {
-        while( ( ret = ssl_write( &ssl, buf + written, len - written ) ) <= 0 )
+        for( written = 0, frags = 0; written < len; written += ret, frags++ )
         {
-            if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+            while( ( ret = ssl_write( &ssl, buf + written, len - written ) )
+                           <= 0 )
             {
-                printf( " failed\n  ! ssl_write returned -0x%x\n\n", -ret );
-                goto exit;
+                if( ret != POLARSSL_ERR_NET_WANT_READ &&
+                    ret != POLARSSL_ERR_NET_WANT_WRITE )
+                {
+                    printf( " failed\n  ! ssl_write returned -0x%x\n\n", -ret );
+                    goto exit;
+                }
             }
         }
+    }
+    else /* Not stream, so datagram */
+    {
+        do ret = ssl_write( &ssl, buf, len );
+        while( ret == POLARSSL_ERR_NET_WANT_READ ||
+               ret == POLARSSL_ERR_NET_WANT_WRITE );
+
+        if( ret < 0 )
+        {
+            printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+            goto exit;
+        }
+
+        frags = 1;
+        written = ret;
     }
 
     buf[written] = '\0';

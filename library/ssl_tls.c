@@ -2688,6 +2688,17 @@ static int ssl_reassemble_dtls_handshake( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "handshake message completed" ) );
 
+    if( frag_len + 12 < ssl->in_msglen )
+    {
+        /*
+         * We'got more handshake messages in the same record.
+         * This case is not handled now because no know implementation does
+         * that and it's hard to test, so we prefer to fail cleanly for now.
+         */
+        SSL_DEBUG_MSG( 1, ( "last fragment not alone in its record" ) );
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+
     if( ssl->in_left > ssl->next_record_offset )
     {
         /*

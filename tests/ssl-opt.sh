@@ -748,6 +748,39 @@ run_test    "Max fragment length: gnutls server" \
             -c "client hello, adding max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
+run_test    "Max fragment length: client, message just fits" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 max_frag_len=2048 request_size=2048" \
+            0 \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension" \
+            -c "2048 bytes written in 1 fragments" \
+            -s "2048 bytes read"
+
+run_test    "Max fragment length: client, larger message" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 max_frag_len=2048 request_size=2345" \
+            0 \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension" \
+            -c "2345 bytes written in 2 fragments" \
+            -s "2048 bytes read" \
+            -s "297 bytes read"
+
+run_test    "Max fragment length: client, larger message" \
+            "$P_SRV debug_level=3 dtls=1" \
+            "$P_CLI debug_level=3 dtls=1 max_frag_len=2048 request_size=2345" \
+            1 \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension" \
+            -c "fragment larger than.*maximum"
+
 # Tests for renegotiation
 
 run_test    "Renegotiation: none, for reference" \

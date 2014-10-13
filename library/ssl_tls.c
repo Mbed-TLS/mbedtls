@@ -5894,8 +5894,9 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
 {
     int ret;
-    size_t n;
-    unsigned int max_len = SSL_MAX_CONTENT_LEN;
+#if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
+    unsigned int max_len;
+#endif
 
     SSL_DEBUG_MSG( 2, ( "=> write" ) );
 
@@ -5922,9 +5923,22 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
     {
         max_len = mfl_code_to_length[ssl->session_out->mfl_code];
     }
-#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
-    n = ( len < max_len) ? len : max_len;
+    if( len > max_len )
+    {
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+        if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
+        {
+            SSL_DEBUG_MSG( 1, ( "fragment larger than the (negotiated) "
+                                "maximum fragment length: %d > %d",
+                                len, max_len ) );
+            return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        }
+        else
+#endif
+            len = max_len;
+    }
+#endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
     if( ssl->out_left != 0 )
     {
@@ -5936,9 +5950,9 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
     }
     else
     {
-        ssl->out_msglen  = n;
+        ssl->out_msglen  = len;
         ssl->out_msgtype = SSL_MSG_APPLICATION_DATA;
-        memcpy( ssl->out_msg, buf, n );
+        memcpy( ssl->out_msg, buf, len );
 
         if( ( ret = ssl_write_record( ssl ) ) != 0 )
         {
@@ -5949,7 +5963,7 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
 
     SSL_DEBUG_MSG( 2, ( "<= write" ) );
 
-    return( (int) n );
+    return( (int) len );
 }
 
 /*

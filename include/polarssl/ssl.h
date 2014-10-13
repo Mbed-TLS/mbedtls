@@ -1946,6 +1946,12 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
  * \note           When this function returns POLARSSL_ERR_NET_WANT_WRITE,
  *                 it must be called later with the *same* arguments,
  *                 until it returns a positive value.
+ *
+ * \note           When DTLS is in use, and a maximum fragment length was
+ *                 either set with \c ssl_set_max_frag_len() or negotiated by
+ *                 the peer, len must not not be greater than the maximum
+ *                 fragment length, or POLARSSL_ERR_SSL_BAD_INPUT_DATA is
+ *                 returned.
  */
 int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len );
 

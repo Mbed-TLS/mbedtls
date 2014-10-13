@@ -1279,10 +1279,17 @@ void ssl_set_dtls_cookies( ssl_context *ssl,
 /**
  * \brief          Enable or disable anti-replay protection for DTLS.
  *                 (DTLS only, no effect on TLS.)
- *                 Default: enebled.
+ *                 Default: enabled.
  *
  * \param ssl      SSL context
  * \param mode     SSL_ANTI_REPLAY_ENABLED or SSL_ANTI_REPLAY_DISABLED.
+ *
+ * \warning        Disabling this is a security risk unless the application
+ *                 protocol handles duplicated packets in a safe way. You
+ *                 should not disable this without careful consideration.
+ *                 However, if your application already detects duplicated
+ *                 packets and needs information about them to adjust its
+ *                 transmission strategy, then you'll want to disable this.
  */
 void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode );
 #endif /* POLARSSL_SSL_DTLS_ANTI_REPLAY */

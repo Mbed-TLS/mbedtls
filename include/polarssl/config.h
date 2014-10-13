@@ -931,6 +931,9 @@
  * Requires: POLARSSL_SSL_TLS_C
  *           POLARSSL_POLARSSL_PROTO_DTLS
  *
+ * \warning Disabling this is often a security risk!
+ * See ssl_set_dtls_anti_replay() for details.
+ *
  * Comment this to disable anti-replay in DTLS.
  */
 #define POLARSSL_SSL_DTLS_ANTI_REPLAY
@@ -944,6 +947,8 @@
  * amplifiers in DoS attacks against other hosts. It should always be enabled
  * unless you know for sure amplification cannot be a problem in the
  * environment in which your server operates.
+ *
+ * \warning Disabling this can ba a security risk! (see above)
  *
  * Requires: POLARSSL_SSL_SRV_C
  *           POLARSSL_POLARSSL_PROTO_DTLS

@@ -1875,12 +1875,6 @@ data_exchange:
                     ret = 0;
                     goto close_notify;
 
-                case 0:
-                case POLARSSL_ERR_NET_CONN_RESET:
-                    printf( " connection was reset by peer\n" );
-                        ret = POLARSSL_ERR_NET_CONN_RESET;
-                        goto reset;
-
                 default:
                     printf( " ssl_read returned -0x%x\n", -ret );
                     goto reset;

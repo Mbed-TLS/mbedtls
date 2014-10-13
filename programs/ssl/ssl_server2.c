@@ -1683,17 +1683,26 @@ reset:
     printf( "  . Performing the SSL/TLS handshake..." );
     fflush( stdout );
 
-    while( ( ret = ssl_handshake( &ssl ) ) != 0 )
-    {
-        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
-        {
-            printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
-            goto reset;
-        }
-    }
+    do ret = ssl_handshake( &ssl );
+    while( ret == POLARSSL_ERR_NET_WANT_READ ||
+           ret == POLARSSL_ERR_NET_WANT_WRITE );
 
-    printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
-            ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
+    if( ret == POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED )
+    {
+        printf( " hello verification requested\n" );
+        ret = 0;
+        goto reset;
+    }
+    else if( ret != 0 )
+    {
+        printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
+        goto reset;
+    }
+    else /* ret == 0 */
+    {
+        printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
+                ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
+    }
 
 #if defined(POLARSSL_SSL_ALPN)
     if( opt.alpn_string != NULL )

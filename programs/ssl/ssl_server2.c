@@ -1436,7 +1436,7 @@ int main( int argc, char *argv[] )
             if( ( ret = ssl_cookie_setup( &cookie_ctx,
                                           ctr_drbg_random, &ctr_drbg ) ) != 0 )
             {
-                printf( " failed\n  ! ssl_setup_hvr_key returned %d\n\n", ret );
+                printf( " failed\n  ! ssl_cookie_setup returned %d\n\n", ret );
                 goto exit;
             }
 

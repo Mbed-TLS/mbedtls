@@ -349,7 +349,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, tail_len, server_fd, i, written, frags;
+    int ret = 0, len, tail_len, server_fd, i, written, frags, retry_left;
     unsigned char buf[SSL_MAX_CONTENT_LEN + 1];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[POLARSSL_PSK_MAX_LEN];
@@ -1181,6 +1181,7 @@ int main( int argc, char *argv[] )
     /*
      * 6. Write the GET request
      */
+    retry_left = opt.max_resend;
 send_request:
     printf( "  > Write to server:" );
     fflush( stdout );
@@ -1317,7 +1318,7 @@ send_request:
             {
                 case POLARSSL_ERR_NET_TIMEOUT:
                     printf( " timeout\n" );
-                    if( opt.max_resend-- > 0 )
+                    if( retry_left-- > 0 )
                         goto send_request;
                     goto exit;
 

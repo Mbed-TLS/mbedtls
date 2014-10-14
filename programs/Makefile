@@ -33,6 +33,7 @@ APPS =	aes/aescrypt2	aes/crypt_and_hash	\
 	pkey/rsa_decrypt	pkey/rsa_encrypt	\
 	pkey/rsa_sign		pkey/rsa_verify		\
 	pkey/rsa_sign_pss	pkey/rsa_verify_pss \
+	ssl/dtls_client		ssl/dtls_server		\
 	ssl/ssl_client1		ssl/ssl_client2		\
 	ssl/ssl_server		ssl/ssl_server2		\
 	ssl/ssl_fork_server						\
@@ -173,6 +174,14 @@ random/gen_random_havege: random/gen_random_havege.c ../library/libpolarssl.a
 random/gen_random_ctr_drbg: random/gen_random_ctr_drbg.c ../library/libpolarssl.a
 	echo   "  CC    random/gen_random_ctr_drbg.c"
 	$(CC) $(CFLAGS) $(OFLAGS) random/gen_random_ctr_drbg.c $(LDFLAGS) -o $@
+
+ssl/dtls_client: ssl/dtls_client.c ../library/libpolarssl.a
+	echo   "  CC    ssl/dtls_client.c"
+	$(CC) $(CFLAGS) $(OFLAGS) ssl/dtls_client.c  $(LDFLAGS) -o $@
+
+ssl/dtls_server: ssl/dtls_server.c ../library/libpolarssl.a
+	echo   "  CC    ssl/dtls_server.c"
+	$(CC) $(CFLAGS) $(OFLAGS) ssl/dtls_server.c  $(LDFLAGS) -o $@
 
 ssl/ssl_client1: ssl/ssl_client1.c ../library/libpolarssl.a
 	echo   "  CC    ssl/ssl_client1.c"

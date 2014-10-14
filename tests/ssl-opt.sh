@@ -2250,15 +2250,53 @@ run_test    "DTLS proxy: duplicate every packet, server anti-replay off" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-run_test    "DTLS proxy: inject invalid AD record" \
+run_test    "DTLS proxy: inject invalid AD record, default badmac_limit" \
             -p "$P_PXY bad_ad=1" \
             "$P_SRV dtls=1 debug_level=1" \
-            "$P_CLI dtls=1 debug_level=1" \
+            "$P_CLI dtls=1 debug_level=1 read_timeout=100" \
             0 \
             -c "discarding invalid record" \
             -s "discarding invalid record" \
             -s "Extra-header:" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed"
+
+run_test    "DTLS proxy: inject invalid AD record, badmac_limit 1" \
+            -p "$P_PXY bad_ad=1" \
+            "$P_SRV dtls=1 debug_level=1 badmac_limit=1" \
+            "$P_CLI dtls=1 debug_level=1 read_timeout=100" \
+            1 \
+            -C "discarding invalid record" \
+            -S "discarding invalid record" \
+            -S "Extra-header:" \
+            -C "HTTP/1.0 200 OK" \
+            -s "too many records with bad MAC" \
+            -s "Verification of the message MAC failed"
+
+run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2" \
+            -p "$P_PXY bad_ad=1" \
+            "$P_SRV dtls=1 debug_level=1 badmac_limit=2" \
+            "$P_CLI dtls=1 debug_level=1 read_timeout=100" \
+            0 \
+            -c "discarding invalid record" \
+            -s "discarding invalid record" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed"
+
+run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2, exchanges 2"\
+            -p "$P_PXY bad_ad=1" \
+            "$P_SRV dtls=1 debug_level=1 badmac_limit=2 exchanges=2" \
+            "$P_CLI dtls=1 debug_level=1 read_timeout=100 exchanges=2" \
+            1 \
+            -c "discarding invalid record" \
+            -s "discarding invalid record" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -s "too many records with bad MAC" \
+            -s "Verification of the message MAC failed"
 
 run_test    "DTLS proxy: delay ChangeCipherSpec" \
             -p "$P_PXY delay_ccs=1" \

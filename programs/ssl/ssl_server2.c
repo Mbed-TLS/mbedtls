@@ -126,6 +126,7 @@ int main( int argc, char *argv[] )
 #define DFL_ANTI_REPLAY         -1
 #define DFL_HS_TO_MIN           0
 #define DFL_HS_TO_MAX           0
+#define DFL_BADMAC_LIMIT        -1
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -192,6 +193,7 @@ struct options
     int anti_replay;            /* Use anti-replay for DTLS? -1 for default */
     uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
     uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
+    int badmac_limit;           /* Limit of records with bad MAC            */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -325,9 +327,16 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 
 #if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
 #define USAGE_ANTI_REPLAY \
-    "    anti_replay=0/1     default: (library default = enabled)\n"
+    "    anti_replay=0/1     default: (library default: enabled)\n"
 #else
 #define USAGE_ANTI_REPLAY ""
+#endif
+
+#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+#define USAGE_BADMAC_LIMIT \
+    "    badmac_limit=%%d     default: (library default: disabled)\n"
+#else
+#define USAGE_BADMAC_LIMIT ""
 #endif
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
@@ -352,6 +361,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     USAGE_DTLS                                              \
     USAGE_COOKIES                                           \
     USAGE_ANTI_REPLAY                                       \
+    USAGE_BADMAC_LIMIT                                      \
     "\n"                                                    \
     "    auth_mode=%%s        default: \"optional\"\n"      \
     "                        options: none, optional, required\n" \
@@ -772,6 +782,7 @@ int main( int argc, char *argv[] )
     opt.anti_replay         = DFL_ANTI_REPLAY;
     opt.hs_to_min           = DFL_HS_TO_MIN;
     opt.hs_to_max           = DFL_HS_TO_MAX;
+    opt.badmac_limit        = DFL_BADMAC_LIMIT;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1001,6 +1012,12 @@ int main( int argc, char *argv[] )
         {
             opt.anti_replay = atoi( q );
             if( opt.anti_replay < 0 || opt.anti_replay > 1)
+                goto usage;
+        }
+        else if( strcmp( p, "badmac_limit" ) == 0 )
+        {
+            opt.badmac_limit = atoi( q );
+            if( opt.badmac_limit < 0 )
                 goto usage;
         }
         else if( strcmp( p, "hs_timeout" ) == 0 )
@@ -1458,9 +1475,12 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_SSL_DTLS_ANTI_REPLAY)
         if( opt.anti_replay != DFL_ANTI_REPLAY )
-        {
             ssl_set_dtls_anti_replay( &ssl, opt.anti_replay );
-        }
+#endif
+
+#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+        if( opt.badmac_limit != DFL_BADMAC_LIMIT )
+            ssl_set_dtls_badmac_limit( &ssl, opt.badmac_limit );
 #endif
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */

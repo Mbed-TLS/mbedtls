@@ -22,6 +22,7 @@ Bugfix
      with non-blocking I/O.
    * Fix compiler warnings on iOS (found by Sander Niemeijer).
    * x509_crt_parse() did not increase total_failed on PEM error
+   * Fix compile error with armcc in mpi_is_prime()
 
 Changes
    * Ciphersuites using SHA-256 or SHA-384 now require TLS 1.x (there is no

@@ -2057,7 +2057,11 @@ int mpi_is_prime( mpi *X,
                   void *p_rng )
 {
     int ret;
-    const mpi XX = { 1, X->n, X->p }; /* Abs(X) */
+    mpi XX;
+
+    XX.s = 1;
+    XX.n = X->n;
+    XX.p = X->p;
 
     if( mpi_cmp_int( &XX, 0 ) == 0 ||
         mpi_cmp_int( &XX, 1 ) == 0 )

@@ -3238,6 +3238,15 @@ read_record_header:
             if( ret == POLARSSL_ERR_SSL_INVALID_RECORD ||
                 ret == POLARSSL_ERR_SSL_INVALID_MAC )
             {
+#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+                if( ssl->badmac_limit != 0 &&
+                    ++ssl->badmac_seen >= ssl->badmac_limit )
+                {
+                    SSL_DEBUG_MSG( 1, ( "too many records with bad MAC" ) );
+                    return( POLARSSL_ERR_SSL_INVALID_MAC );
+                }
+#endif
+
                 SSL_DEBUG_MSG( 1, ( "discarding invalid record" ) );
                 goto read_record_header;
             }
@@ -4920,6 +4929,13 @@ int ssl_set_transport( ssl_context *ssl, int transport )
 void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode )
 {
     ssl->anti_replay = mode;
+}
+#endif
+
+#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+void ssl_set_dtls_badmac_limit( ssl_context *ssl, unsigned limit )
+{
+    ssl->badmac_limit = limit;
 }
 #endif
 

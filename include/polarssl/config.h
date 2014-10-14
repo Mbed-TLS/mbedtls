@@ -929,7 +929,7 @@
  * Enable support for the anti-replay mechanism in DTLS.
  *
  * Requires: POLARSSL_SSL_TLS_C
- *           POLARSSL_POLARSSL_PROTO_DTLS
+ *           POLARSSL_SSL_PROTO_DTLS
  *
  * \warning Disabling this is often a security risk!
  * See ssl_set_dtls_anti_replay() for details.
@@ -951,11 +951,22 @@
  * \warning Disabling this can ba a security risk! (see above)
  *
  * Requires: POLARSSL_SSL_SRV_C
- *           POLARSSL_POLARSSL_PROTO_DTLS
+ *           POLARSSL_SSL_PROTO_DTLS
  *
  * Comment this to disable support for HelloVerifyRequest.
  */
 #define POLARSSL_SSL_DTLS_HELLO_VERIFY
+
+/**
+ * \def POLARSSL_SSL_DTLS_BADMAC_LIMIT
+ *
+ * Enable support for a limit of records with bad MAC.
+ *
+ * See ssl_set_dtls_badmac_limit().
+ *
+ * Requires: POLARSSL_SSL_PROTO_DTLS
+ */
+#define POLARSSL_SSL_DTLS_BADMAC_LIMIT
 
 /**
  * \def POLARSSL_SSL_SESSION_TICKETS

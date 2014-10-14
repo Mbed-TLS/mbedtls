@@ -772,6 +772,11 @@ struct _ssl_context
 
     uint32_t read_timeout;      /*!< timeout for ssl_read in milliseconds */
 
+#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+    unsigned badmac_limit;      /*!< limit of records with a bad MAC    */
+    unsigned badmac_seen;       /*!< records with a bad MAC received    */
+#endif
+
     /*
      * Callbacks (RNG, debug, I/O, verification)
      */
@@ -1293,6 +1298,33 @@ void ssl_set_dtls_cookies( ssl_context *ssl,
  */
 void ssl_set_dtls_anti_replay( ssl_context *ssl, char mode );
 #endif /* POLARSSL_SSL_DTLS_ANTI_REPLAY */
+
+#if defined(POLARSSL_SSL_DTLS_BADMAC_LIMIT)
+/**
+ * \brief          Set a limit on the number of records with a bad MAC
+ *                 before terminating the connection.
+ *                 (DTLS only, no effect on TLS.)
+ *                 Default: 0 (disabled).
+ *
+ * \param ssl      SSL context
+ * \param limit    Limit, or 0 to disable.
+ *
+ * \note           If the limit is N, then the connection is terminated when
+ *                 the Nth non-authentic record is seen.
+ *
+ * \note           Records with an invalid header are not counted, only the
+ *                 ones going through the authentication-decryption phase.
+ *
+ * \note           This is a security trade-off related to the fact that it's
+ *                 often relatively easy for an active attacker ot inject UDP
+ *                 datagrams. On one hand, setting a low limit here makes it
+ *                 easier for such an attacker to forcibly terminated a
+ *                 connection. On the other hand, a high limit or no limit
+ *                 might make us waste resources checking authentication on
+ *                 many bogus packets.
+ */
+void ssl_set_dtls_badmac_limit( ssl_context *ssl, unsigned limit );
+#endif /* POLARSSL_DTLS_BADMAC_LIMIT */
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
 /**

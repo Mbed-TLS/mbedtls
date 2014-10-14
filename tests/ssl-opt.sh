@@ -2470,7 +2470,7 @@ needs_more_time 6
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 2048" \
-            "$P_CLI dtls=1 hs_timeout=250-10000" \
+            "$P_CLI dtls=1 hs_timeout=250-60000" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -2479,7 +2479,7 @@ needs_more_time 6
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 768" \
-            "$P_CLI dtls=1 hs_timeout=250-10000" \
+            "$P_CLI dtls=1 hs_timeout=250-60000" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -2488,7 +2488,7 @@ needs_more_time 6
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 768" \
-            "$P_CLI dtls=1 hs_timeout=250-10000 nbio=2" \
+            "$P_CLI dtls=1 hs_timeout=250-60000 nbio=2" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -2497,7 +2497,7 @@ needs_more_time 6
 run_test    "DTLS proxy: 3d, gnutls server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 2048 -a" \
-            "$P_CLI dtls=1 hs_timeout=250-10000" \
+            "$P_CLI dtls=1 hs_timeout=250-60000" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"
@@ -2506,7 +2506,7 @@ needs_more_time 6
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 512" \
-            "$P_CLI dtls=1 hs_timeout=250-10000" \
+            "$P_CLI dtls=1 hs_timeout=250-60000" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"
@@ -2515,7 +2515,7 @@ needs_more_time 6
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 512" \
-            "$P_CLI dtls=1 hs_timeout=250-10000 nbio=2" \
+            "$P_CLI dtls=1 hs_timeout=250-60000 nbio=2" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"

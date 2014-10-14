@@ -223,8 +223,9 @@
 #endif
 
 #if defined(POLARSSL_SSL_PROTO_DTLS) && (       \
-    !defined(POLARSSL_SSL_PROTO_TLS1_1) &&      \
-    !defined(POLARSSL_SSL_PROTO_TLS1_2) )
+    ( !defined(POLARSSL_SSL_PROTO_TLS1_1) &&      \
+      !defined(POLARSSL_SSL_PROTO_TLS1_2) ) ||    \
+    !defined(POLARSSL_TIMING_C) )
 #error "POLARSSL_SSL_PROTO_DTLS defined, but not all prerequisites"
 #endif
 

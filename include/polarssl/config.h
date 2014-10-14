@@ -908,6 +908,11 @@
  *
  * Requires: POLARSSL_SSL_PROTO_TLS1_1
  *        or POLARSSL_SSL_PROTO_TLS1_2
+ *           POLARSSL_TIMING_C
+ *
+ * \note Dependency on TIMING_C may be replaced by something more flexible
+ * (callbacks or abstraction layer in the next major version). Please contact
+ * us if you're having issues with this dependency.
  *
  * Comment this macro to disable support for DTLS
  */

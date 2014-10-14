@@ -79,10 +79,7 @@ static inline size_t ssl_ep_len( const ssl_context *ssl )
 }
 
 
-/*
- * Timers (WIP)
- */
-#if defined(POLARSSL_TIMING_C)
+#if defined(POLARSSL_SSL_PROTO_DTLS)
 /*
  * Start a timer.
  * Passing millisecs = 0 cancels a running timer.
@@ -107,9 +104,7 @@ static int ssl_check_timer( ssl_context *ssl )
 
     return( 0 );
 }
-#endif
 
-#if defined(POLARSSL_SSL_PROTO_DTLS)
 /*
  * Double the retransmit timeout value, within the allowed range,
  * returning -1 if the maximum value has already been reached.
@@ -5755,7 +5750,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
     if( ssl->in_offt == NULL )
     {
-#if defined(POLARSSL_TIMING_C)
+#if defined(POLARSSL_SSL_PROTO_DTLS)
         /* Start timer if not already running */
         if( ssl->time_limit == 0 )
             ssl_set_timer( ssl, ssl->read_timeout );
@@ -5912,7 +5907,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 
         ssl->in_offt = ssl->in_msg;
 
-#if defined(POLARSSL_TIMING_C)
+#if defined(POLARSSL_SSL_PROTO_DTLS)
         /* We're going to return something now, cancel timer,
          * except if handshake (renegotiation) is in progress */
         if( ssl->state == SSL_HANDSHAKE_OVER )

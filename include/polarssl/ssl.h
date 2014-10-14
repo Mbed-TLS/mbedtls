@@ -76,7 +76,7 @@
 #include "zlib.h"
 #endif
 
-#if defined(POLARSSL_TIMING_C)
+#if defined(POLARSSL_SSL_PROTO_DTLS)
 #include "timing.h"
 #endif
 
@@ -830,14 +830,11 @@ struct _ssl_context
     ssl_transform *transform_negotiate; /*!<  transform params in negotiation */
 
     /*
-     * Timers (WIP)
+     * Timers
      */
-#if defined(POLARSSL_TIMING_C)
-    struct hr_time time_info;
-    unsigned long time_limit;
-#endif
-
 #if defined(POLARSSL_SSL_PROTO_DTLS)
+    struct hr_time time_info;   /*!< timer context                      */
+    unsigned long time_limit;   /*!< limit for the running timer        */
     uint32_t hs_timeout_min;    /*!< initial value of the handshake
                                      retransmission timeout             */
     uint32_t hs_timeout_max;    /*!< maximum value of the handshake

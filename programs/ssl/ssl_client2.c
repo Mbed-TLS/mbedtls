@@ -1099,6 +1099,11 @@ int main( int argc, char *argv[] )
     printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
             ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
 
+    if( ( ret = ssl_get_record_expansion( &ssl ) ) >= 0 )
+        printf( "    [ Record expansion is %d ]\n", ret );
+    else
+        printf( "    [ Record expansion is unknown (compression) ]\n" );
+
 #if defined(POLARSSL_SSL_ALPN)
     if( opt.alpn_string != NULL )
     {

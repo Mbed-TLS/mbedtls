@@ -1856,6 +1856,18 @@ const char *ssl_get_ciphersuite( const ssl_context *ssl );
  */
 const char *ssl_get_version( const ssl_context *ssl );
 
+/**
+ * \brief          Return the (maximum) number of bytes added by the record
+ *                 layer: header + encryption/MAC overhead (inc. padding)
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Current maximum record expansion in bytes, or
+ *                 POLARSSL_ERR_FEATURE_UNAVAILABLE if compression is enabled,
+ *                 which makes expansion much less predictable
+ */
+int ssl_get_record_expansion( const ssl_context *ssl );
+
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 /**
  * \brief          Return the peer certificate from the current connection

@@ -5476,6 +5476,40 @@ const char *ssl_get_version( const ssl_context *ssl )
     }
 }
 
+int ssl_get_record_expansion( const ssl_context *ssl )
+{
+    int transform_expansion;
+    const ssl_transform *transform = ssl->transform_out;
+
+#if defined(POLARSSL_ZLIB_SUPPORT)
+    if( ssl->session_out->compression != SSL_COMPRESS_NULL )
+        return( POLARSSL_ERR_SSL_FEATURE_UNAVAILABLE );
+#endif
+
+    if( transform == NULL )
+        return( ssl_hdr_len( ssl ) );
+
+    switch( cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
+    {
+        case POLARSSL_MODE_GCM:
+        case POLARSSL_MODE_CCM:
+        case POLARSSL_MODE_STREAM:
+            transform_expansion = transform->minlen;
+            break;
+
+        case POLARSSL_MODE_CBC:
+            transform_expansion = transform->maclen
+                      + cipher_get_block_size( &transform->cipher_ctx_enc );
+            break;
+
+        default:
+            SSL_DEBUG_MSG( 0, ( "should never happen" ) );
+            return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    return( ssl_hdr_len( ssl ) + transform_expansion );
+}
+
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 const x509_crt *ssl_get_peer_cert( const ssl_context *ssl )
 {

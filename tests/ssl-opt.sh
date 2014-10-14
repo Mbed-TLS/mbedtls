@@ -266,6 +266,7 @@ run_test() {
 
     if echo "$NAME" | grep "$FILTER" | grep -v "$EXCLUDE" >/dev/null; then :
     else
+        SKIP_NEXT="NO"
         return
     fi
 
@@ -2255,8 +2256,8 @@ run_test    "DTLS proxy: inject invalid AD record, default badmac_limit" \
             "$P_SRV dtls=1 debug_level=1" \
             "$P_CLI dtls=1 debug_level=1 read_timeout=100" \
             0 \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "discarding invalid record (mac)" \
+            -s "discarding invalid record (mac)" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK" \
             -S "too many records with bad MAC" \
@@ -2267,8 +2268,8 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 1" \
             "$P_SRV dtls=1 debug_level=1 badmac_limit=1" \
             "$P_CLI dtls=1 debug_level=1 read_timeout=100" \
             1 \
-            -C "discarding invalid record" \
-            -S "discarding invalid record" \
+            -C "discarding invalid record (mac)" \
+            -S "discarding invalid record (mac)" \
             -S "Extra-header:" \
             -C "HTTP/1.0 200 OK" \
             -s "too many records with bad MAC" \
@@ -2279,8 +2280,8 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2" \
             "$P_SRV dtls=1 debug_level=1 badmac_limit=2" \
             "$P_CLI dtls=1 debug_level=1 read_timeout=100" \
             0 \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "discarding invalid record (mac)" \
+            -s "discarding invalid record (mac)" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK" \
             -S "too many records with bad MAC" \
@@ -2291,8 +2292,8 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2, exchanges 2"\
             "$P_SRV dtls=1 debug_level=1 badmac_limit=2 exchanges=2" \
             "$P_CLI dtls=1 debug_level=1 read_timeout=100 exchanges=2" \
             1 \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "discarding invalid record (mac)" \
+            -s "discarding invalid record (mac)" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK" \
             -s "too many records with bad MAC" \

@@ -3199,7 +3199,7 @@ read_record_header:
             ssl->next_record_offset = 0;
             ssl->in_left = 0;
 
-            SSL_DEBUG_MSG( 1, ( "discarding invalid record" ) );
+            SSL_DEBUG_MSG( 1, ( "discarding invalid record (header)" ) );
             goto read_record_header;
         }
 #endif
@@ -3242,7 +3242,7 @@ read_record_header:
                 }
 #endif
 
-                SSL_DEBUG_MSG( 1, ( "discarding invalid record" ) );
+                SSL_DEBUG_MSG( 1, ( "discarding invalid record (mac)" ) );
                 goto read_record_header;
             }
 

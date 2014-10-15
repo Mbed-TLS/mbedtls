@@ -8,6 +8,7 @@ API Changes
    * net_connect() and net_bind() have a new 'proto' argument to choose
      between TCP and UDP, using the macros NET_PROTO_TCP or NET_PROTO_UDP.
    * ssl_set_bio() now requires that p_send == p_recv.
+   * ssl_set_bio() is deprecated in favor of ssl_set_bio_timeout().
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

@@ -1166,6 +1166,8 @@ void ssl_set_dbg( ssl_context *ssl,
  * \warning        It is required that p_recv == p_send. Otherwise, the first
  *                 attempt at sending or receiving will result in a
  *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA error.
+ *
+ * \deprecated     Superseded by ssl_set_bio_timeout().
  */
 void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,

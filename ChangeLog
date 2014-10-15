@@ -4,6 +4,9 @@ PolarSSL ChangeLog (Sorted per branch, date)
 Features
    * Support for DTLS 1.0 and 1.2
 
+Features
+  * Support for DTLS 1.0 and 1.2 (RFC 6347).
+
 API Changes
    * net_connect() and net_bind() have a new 'proto' argument to choose
      between TCP and UDP, using the macros NET_PROTO_TCP or NET_PROTO_UDP.

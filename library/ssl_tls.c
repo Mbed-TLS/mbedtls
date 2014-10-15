@@ -1889,6 +1889,10 @@ static int ssl_decompress_buf( ssl_context *ssl )
 }
 #endif /* POLARSSL_ZLIB_SUPPORT */
 
+#if defined(POLARSSL_SSL_SRV_C)
+static int ssl_write_hello_request( ssl_context *ssl );
+#endif
+
 /*
  * Fill the input message buffer by appending data to it.
  * The amount of data already fetched is in ssl->in_left.
@@ -2037,6 +2041,19 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 
                 return( POLARSSL_ERR_NET_WANT_READ );
             }
+#if defined(POLARSSL_SSL_SRV_C)
+            else if( ssl->endpoint == SSL_IS_SERVER &&
+                     ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
+            {
+                if( ( ret = ssl_write_hello_request( ssl ) ) != 0 )
+                {
+                    SSL_DEBUG_RET( 1, "ssl_write_hello_request", ret );
+                    return( ret );
+                }
+
+                return( POLARSSL_ERR_NET_WANT_READ );
+            }
+#endif /* POLARSSL_SSL_SRV_C */
         }
 
         if( ret < 0 )
@@ -5722,15 +5739,17 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
     SSL_DEBUG_MSG( 2, ( "=> read" ) );
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake != NULL &&
-        ssl->handshake->retransmit_state == SSL_RETRANS_SENDING )
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM )
     {
         if( ( ret = ssl_flush_output( ssl ) ) != 0 )
             return( ret );
 
-        if( ( ret = ssl_resend( ssl ) ) != 0 )
-            return( ret );
+        if( ssl->handshake != NULL &&
+            ssl->handshake->retransmit_state == SSL_RETRANS_SENDING )
+        {
+            if( ( ret = ssl_resend( ssl ) ) != 0 )
+                return( ret );
+        }
     }
 #endif
 
@@ -5912,6 +5931,21 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
          * except if handshake (renegotiation) is in progress */
         if( ssl->state == SSL_HANDSHAKE_OVER )
             ssl_set_timer( ssl, 0 );
+
+        /* If we requested renego but received AppData, resend HelloRequest.
+         * Do it now, after setting in_offt, to avoid taking this branch
+         * again if ssl_write_hello_request() returns WANT_WRITE */
+#if defined(POLARSSL_SSL_SRV_C)
+        if( ssl->endpoint == SSL_IS_SERVER &&
+            ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
+        {
+            if( ( ret = ssl_write_hello_request( ssl ) ) != 0 )
+            {
+                SSL_DEBUG_RET( 1, "ssl_write_hello_request", ret );
+                return( ret );
+            }
+        }
+#endif /* POLARSSL_SSL_SRV_C */
 #endif
     }
 

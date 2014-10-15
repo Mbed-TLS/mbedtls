@@ -1891,6 +1891,33 @@ static int ssl_decompress_buf( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_SRV_C)
 static int ssl_write_hello_request( ssl_context *ssl );
+
+#if defined(POLARSSL_SSL_PROTO_DTLS)
+static int ssl_resend_hello_request( ssl_context *ssl )
+{
+    /* If renegotiation is not enforced, retransmit until we would reach max
+     * timeout if we were using the usual handshake doubling scheme */
+    if( ssl->renego_max_records < 0 )
+    {
+        uint32_t ratio = ssl->hs_timeout_max / ssl->hs_timeout_min + 1;
+        unsigned char doublings = 1;
+
+        while( ratio != 0 )
+        {
+            ++doublings;
+            ratio >>= 1;
+        }
+
+        if( ++ssl->renego_records_seen > doublings )
+        {
+            SSL_DEBUG_MSG( 0, ( "no longer retransmitting hello request" ) );
+            return( 0 );
+        }
+    }
+
+    return( ssl_write_hello_request( ssl ) );
+}
+#endif
 #endif
 
 /*
@@ -2045,9 +2072,9 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
             else if( ssl->endpoint == SSL_IS_SERVER &&
                      ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
             {
-                if( ( ret = ssl_write_hello_request( ssl ) ) != 0 )
+                if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
                 {
-                    SSL_DEBUG_RET( 1, "ssl_write_hello_request", ret );
+                    SSL_DEBUG_RET( 1, "ssl_resend_hello_request", ret );
                     return( ret );
                 }
 
@@ -5900,14 +5927,15 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
         }
         else if( ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
         {
-            ssl->renego_records_seen++;
 
-            if( ssl->renego_max_records >= 0 &&
-                ssl->renego_records_seen > ssl->renego_max_records )
+            if( ssl->renego_max_records >= 0 )
             {
-                SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
-                                    "but not honored by client" ) );
-                return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+                if( ++ssl->renego_records_seen > ssl->renego_max_records )
+                {
+                    SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
+                                        "but not honored by client" ) );
+                    return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
+                }
             }
         }
 
@@ -5939,9 +5967,9 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
         if( ssl->endpoint == SSL_IS_SERVER &&
             ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
         {
-            if( ( ret = ssl_write_hello_request( ssl ) ) != 0 )
+            if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
             {
-                SSL_DEBUG_RET( 1, "ssl_write_hello_request", ret );
+                SSL_DEBUG_RET( 1, "ssl_resend_hello_request", ret );
                 return( ret );
             }
         }

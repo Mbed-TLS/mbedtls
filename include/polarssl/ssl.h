@@ -224,7 +224,7 @@
 
 #define SSL_INITIAL_HANDSHAKE           0
 #define SSL_RENEGOTIATION               1   /* In progress */
-#define SSL_RENEGOTIATION_DONE          2   /* Done */
+#define SSL_RENEGOTIATION_DONE          2   /* Done or aborted */
 #define SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
 
 #define SSL_LEGACY_RENEGOTIATION        0
@@ -760,7 +760,9 @@ struct _ssl_context
     int state;                  /*!< SSL handshake: current state     */
     int transport;              /*!< Transport: stream or datagram    */
     int renegotiation;          /*!< Initial or renegotiation         */
-    int renego_records_seen;    /*!< Records since renego request     */
+    int renego_records_seen;    /*!< Records since renego request, or with DTLS,
+                                  number of retransmissions of request if
+                                  renego_max_records is < 0           */
 
     int major_ver;              /*!< equal to  SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
@@ -1816,7 +1818,7 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
 void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
 
 /**
- * \brief          Enforce server-requested renegotiation.
+ * \brief          Enforce renegotiation requests.
  *                 (Default: enforced, max_records = 16)
  *
  *                 When we request a renegotiation, the peer can comply or
@@ -1831,6 +1833,15 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
  *
  *                 The optimal value is highly dependent on the specific usage
  *                 scenario.
+ *
+ * \note           With DTLS and server-initiated renegotiation, the
+ *                 HelloRequest is retransmited every time ssl_read() times
+ *                 out or receives Application Data, until:
+ *                 - max_records records have beens seen, if it is >= 0, or
+ *                 - the number of retransmits that would happen during an
+ *                 actual handshake has been reached.
+ *                 Please remember the request might be lost a few times
+ *                 if you consider setting max_records to a really low value.
  *
  * \warning        On client, the grace period can only happen during
  *                 ssl_read(), as opposed to ssl_write() and ssl_renegotiate()

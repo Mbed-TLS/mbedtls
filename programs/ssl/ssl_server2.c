@@ -1914,9 +1914,9 @@ data_exchange:
 
     /*
      * 7a. Request renegotiation while client is waiting for input from us.
-     * (only if we're going to exhange more data afterwards)
+     * (only on the first exchange, to be able to test retransmission)
      */
-    if( opt.renegotiate && exchanges > 1 )
+    if( opt.renegotiate && exchanges == opt.exchanges )
     {
         printf( "  . Requestion renegotiation..." );
         fflush( stdout );

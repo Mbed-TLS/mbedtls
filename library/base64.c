@@ -147,14 +147,31 @@ int base64_decode( unsigned char *dst, size_t *dlen,
     uint32_t j, x;
     unsigned char *p;
 
+    /* First pass: check for validity and get output length */
     for( i = n = j = 0; i < slen; i++ )
     {
+        /* Skip spaces before checking for EOL */
+        x = 0;
+        while( i < slen && src[i] == ' ' )
+        {
+            ++i;
+            ++x;
+        }
+
+        /* Spaces at end of buffer are OK */
+        if( i == slen )
+            break;
+
         if( ( slen - i ) >= 2 &&
             src[i] == '\r' && src[i + 1] == '\n' )
             continue;
 
         if( src[i] == '\n' )
             continue;
+
+        /* Space inside a line is an error */
+        if( x != 0 )
+            return( POLARSSL_ERR_BASE64_INVALID_CHARACTER );
 
         if( src[i] == '=' && ++j > 2 )
             return( POLARSSL_ERR_BASE64_INVALID_CHARACTER );
@@ -182,7 +199,7 @@ int base64_decode( unsigned char *dst, size_t *dlen,
 
    for( j = 3, n = x = 0, p = dst; i > 0; i--, src++ )
    {
-        if( *src == '\r' || *src == '\n' )
+        if( *src == '\r' || *src == '\n' || *src == ' ' )
             continue;
 
         j -= ( base64_dec_map[*src] == 64 );

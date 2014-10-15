@@ -33,7 +33,7 @@ void base64_decode( char *src_string, char *dst_string, int result )
     unsigned char src_str[1000];
     unsigned char dst_str[1000];
     size_t len = 1000;
-    int res; 
+    int res;
 
     memset(src_str, 0x00, 1000);
     memset(dst_str, 0x00, 1000);
@@ -92,6 +92,28 @@ void base64_decode_hex( char *src, char *dst_hex, int dst_buf_size,
 exit:
     polarssl_free( dst );
     polarssl_free( res );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void base64_decode_hex_src( char *src_hex, char *dst_ref, int result )
+{
+    unsigned char dst[1000] = { 0 };
+    unsigned char *src;
+    size_t src_len, len;
+
+    src = unhexify_alloc( src_hex, &src_len );
+
+    len = sizeof( dst );
+    TEST_ASSERT( base64_decode( dst, &len, src, src_len ) == result );
+    if( result == 0 )
+    {
+        TEST_ASSERT( len == strlen( dst_ref ) );
+        TEST_ASSERT( memcmp( dst, dst_ref, len ) == 0 );
+    }
+
+exit:
+    polarssl_free( src );
 }
 /* END_CASE */
 

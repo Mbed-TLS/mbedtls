@@ -642,6 +642,10 @@ X509 Certificate verification #74 (signed by selfsigned trusted without CA bit)
 depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_SHA256_C
 x509_verify:"data_files/server6-ss-child.crt":"data_files/server5-selfsigned.crt":"data_files/crl.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_NOT_TRUSTED:"NULL"
 
+X509 Certificate verification #75 (encoding mismatch)
+depends_on:POLARSSL_PEM_PARSE_C
+x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl.pem":"NULL":0:0:"NULL"
+
 X509 Parse Selftest
 depends_on:POLARSSL_SHA1_C:POLARSSL_PEM_PARSE_C:POLARSSL_CERTS_C
 x509_selftest:

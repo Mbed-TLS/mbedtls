@@ -2197,6 +2197,7 @@ static int ssl_flight_append( ssl_context *ssl )
     if( ( msg->p = polarssl_malloc( ssl->out_msglen ) ) == NULL )
     {
         SSL_DEBUG_MSG( 1, ( "malloc %d bytes failed", ssl->out_msglen ) );
+        polarssl_free( msg );
         return( POLARSSL_ERR_SSL_MALLOC_FAILED );
     }
 

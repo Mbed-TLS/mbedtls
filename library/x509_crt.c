@@ -1529,8 +1529,10 @@ static int x509_crt_verifycrl( x509_crt *crt, x509_crt *ca,
 }
 #endif /* POLARSSL_X509_CRL_PARSE_C */
 
-// Equal == 0, inequal == 1
-static int x509_name_cmp( const void *s1, const void *s2, size_t len )
+/*
+ * Like memcmp, but case-insensitive and always returns -1 if different
+ */
+static int x509_memcasecmp( const void *s1, const void *s2, size_t len )
 {
     size_t i;
     unsigned char diff;
@@ -1550,12 +1552,16 @@ static int x509_name_cmp( const void *s1, const void *s2, size_t len )
             continue;
         }
 
-        return( 1 );
+        return( -1 );
     }
 
     return( 0 );
 }
 
+/*
+ * Return 1 if match, 0 if not
+ * TODO: inverted return value!
+ */
 static int x509_wildcard_verify( const char *cn, x509_buf *name )
 {
     size_t i;
@@ -1577,7 +1583,7 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
         return( 0 );
 
     if( cn_len - cn_idx == name->len - 1 &&
-        x509_name_cmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
+        x509_memcasecmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
     {
         return( 1 );
     }
@@ -1859,7 +1865,7 @@ int x509_crt_verify( x509_crt *crt,
             while( cur != NULL )
             {
                 if( cur->buf.len == cn_len &&
-                    x509_name_cmp( cn, cur->buf.p, cn_len ) == 0 )
+                    x509_memcasecmp( cn, cur->buf.p, cn_len ) == 0 )
                     break;
 
                 if( cur->buf.len > 2 &&
@@ -1880,7 +1886,7 @@ int x509_crt_verify( x509_crt *crt,
                 if( OID_CMP( OID_AT_CN, &name->oid ) )
                 {
                     if( name->val.len == cn_len &&
-                        x509_name_cmp( name->val.p, cn, cn_len ) == 0 )
+                        x509_memcasecmp( name->val.p, cn, cn_len ) == 0 )
                         break;
 
                     if( name->val.len > 2 &&

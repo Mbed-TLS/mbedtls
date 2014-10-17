@@ -875,7 +875,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 {
     int ret, i, comp;
     size_t n;
-    size_t ext_len = 0;
+    size_t ext_len;
     unsigned char *buf, *ext;
     int renegotiation_info_seen = 0;
     int handshake_failure = 0;
@@ -981,7 +981,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
      *   42+n . 43+n  extensions length
      *   44+n . 44+n+m extensions
      */
-    if( ssl->in_hslen > 42 + n )
+    if( ssl->in_hslen > 43 + n )
     {
         ext_len = ( ( buf[42 + n] <<  8 )
                   | ( buf[43 + n]       ) );
@@ -992,6 +992,15 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
+    }
+    else if( ssl->in_hslen == 42 + n )
+    {
+        ext_len = 0;
+    }
+    else
+    {
+        SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
     i = ( buf[39 + n] << 8 ) | buf[40 + n];

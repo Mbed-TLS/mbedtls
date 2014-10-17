@@ -528,6 +528,13 @@ static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
         return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
+    /* Should never happen unless client duplicates the extension */
+    if( ssl->handshake->curves != NULL )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
     /* Don't allow our peer to make us allocate too much memory,
      * and leave room for a final 0 */
     our_size = list_size / 2 + 1;

@@ -7,6 +7,9 @@ Security
    * Remotely-triggerable memory leak when parsing some X.509 certificates
      (server is not affected if it doesn't ask for a client certificate).
      (Found using Codenomicon Defensics.)
+   * Remotely-triggerable memory leak when parsing crafted ClientHello
+     (not affected is ECC support was compiled out).
+     (Found using Codenomicon Defensics.)
 
 Bugfix
    * Support escaping of commas in x509_string_to_names()

@@ -1592,6 +1592,65 @@ static int x509_wildcard_verify( const char *cn, x509_buf *name )
 }
 
 /*
+ * Compare two X.509 strings, case-insensitive, and allowing for some encoding
+ * variations (but not all).
+ *
+ * Return 0 if equal, -1 otherwise.
+ */
+static int x509_string_cmp( const x509_buf *a, const x509_buf *b )
+{
+    if( a->tag == b->tag &&
+        a->len == b->len &&
+        memcmp( a->p, b->p, b->len ) == 0 )
+    {
+        return( 0 );
+    }
+
+    if( ( a->tag == ASN1_UTF8_STRING || a->tag == ASN1_PRINTABLE_STRING ) &&
+        ( b->tag == ASN1_UTF8_STRING || b->tag == ASN1_PRINTABLE_STRING ) &&
+        a->len == b->len &&
+        x509_memcasecmp( a->p, b->p, b->len ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( -1 );
+}
+
+/*
+ * Compare two X.509 Names (aka rdnSequence).
+ *
+ * See RFC 5280 section 7.1, though we don't implement the whole algorithm:
+ * we sometimes return unequal when the full algorithm would return equal,
+ * but never the other way. (In particular, we don't do Unicode normalisation
+ * or space folding.)
+ *
+ * Return 0 if equal, -1 otherwise.
+ */
+static int x509_name_cmp( const x509_name *a, const x509_name *b )
+{
+    if( a == NULL && b == NULL )
+        return( 0 );
+
+    if( a == NULL || b == NULL )
+        return( -1 );
+
+    /* type */
+    if( a->oid.tag != b->oid.tag ||
+        a->oid.len != b->oid.len ||
+        memcmp( a->oid.p, b->oid.p, b->oid.len ) != 0 )
+    {
+        return( -1 );
+    }
+
+    /* value */
+    if( x509_string_cmp( &a->val, &b->val ) != 0 )
+        return( -1 );
+
+    return( x509_name_cmp( a->next, b->next ) );
+}
+
+/*
  * Check if 'parent' is a suitable parent (signing CA) for 'child'.
  * Return 0 if yes, -1 if not.
  *
@@ -1605,12 +1664,8 @@ static int x509_crt_check_parent( const x509_crt *child,
     int need_ca_bit;
 
     /* Parent must be the issuer */
-    if( child->issuer_raw.len != parent->subject_raw.len ||
-        memcmp( child->issuer_raw.p, parent->subject_raw.p,
-                child->issuer_raw.len ) != 0 )
-    {
+    if( x509_name_cmp( &child->issuer, &parent->subject ) != 0 )
         return( -1 );
-    }
 
     /* Parent must have the basicConstraints CA bit set as a general rule */
     need_ca_bit = 1;

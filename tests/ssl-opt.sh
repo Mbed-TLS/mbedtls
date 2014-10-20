@@ -447,6 +447,8 @@ run_test    "Fallback SCSV: default" \
             "$P_CLI debug_level=3 force_version=tls1_1" \
             0 \
             -C "adding FALLBACK_SCSV" \
+            -S "received FALLBACK_SCSV" \
+            -S "inapropriate fallback" \
             -C "is a fatal alert message (msg 86)"
 
 run_test    "Fallback SCSV: explicitly disabled" \
@@ -454,13 +456,26 @@ run_test    "Fallback SCSV: explicitly disabled" \
             "$P_CLI debug_level=3 force_version=tls1_1 fallback=0" \
             0 \
             -C "adding FALLBACK_SCSV" \
+            -S "received FALLBACK_SCSV" \
+            -S "inapropriate fallback" \
             -C "is a fatal alert message (msg 86)"
 
 run_test    "Fallback SCSV: enabled" \
             "$P_SRV" \
             "$P_CLI debug_level=3 force_version=tls1_1 fallback=1" \
+            1 \
+            -c "adding FALLBACK_SCSV" \
+            -s "received FALLBACK_SCSV" \
+            -s "inapropriate fallback" \
+            -c "is a fatal alert message (msg 86)"
+
+run_test    "Fallback SCSV: enabled, max version" \
+            "$P_SRV" \
+            "$P_CLI debug_level=3 fallback=1" \
             0 \
             -c "adding FALLBACK_SCSV" \
+            -s "received FALLBACK_SCSV" \
+            -S "inapropriate fallback" \
             -C "is a fatal alert message (msg 86)"
 
 requires_openssl_with_fallback_scsv
@@ -478,6 +493,30 @@ run_test    "Fallback SCSV: enabled, openssl server" \
             1 \
             -c "adding FALLBACK_SCSV" \
             -c "is a fatal alert message (msg 86)"
+
+requires_openssl_with_fallback_scsv
+run_test    "Fallback SCSV: disabled, openssl client" \
+            "$P_SRV" \
+            "$O_CLI -tls1_1" \
+            0 \
+            -S "received FALLBACK_SCSV" \
+            -S "inapropriate fallback"
+
+requires_openssl_with_fallback_scsv
+run_test    "Fallback SCSV: enabled, openssl client" \
+            "$P_SRV" \
+            "$O_CLI -tls1_1 -fallback_scsv" \
+            1 \
+            -s "received FALLBACK_SCSV" \
+            -s "inapropriate fallback"
+
+requires_openssl_with_fallback_scsv
+run_test    "Fallback SCSV: enabled, max version, openssl client" \
+            "$P_SRV" \
+            "$O_CLI -fallback_scsv" \
+            0 \
+            -s "received FALLBACK_SCSV" \
+            -S "inapropriate fallback"
 
 # Tests for Session Tickets
 

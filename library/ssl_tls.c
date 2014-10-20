@@ -472,12 +472,44 @@ int ssl_derive_keys( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
         if( ssl->handshake->extended_ms == SSL_EXTENDED_MS_ENABLED )
+        {
+            unsigned char session_hash[48];
+            size_t hash_len;
+
             SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
-        // XXX to be continued, WIP
+
+            ssl->handshake->calc_verify( ssl, session_hash );
+
+#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+            if( ssl->minor_ver == SSL_MINOR_VERSION_3 )
+            {
+#if defined(POLARSSL_SHA512_C)
+                if( ssl->transform_negotiate->ciphersuite_info->mac ==
+                    POLARSSL_MD_SHA384 )
+                {
+                    hash_len = 48;
+                }
+                else
+#endif
+                    hash_len = 32;
+            }
+            else
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+                hash_len = 36;
+
+            SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );
+
+            handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                "extended master secret",
+                                session_hash, hash_len, session->master, 48 );
+
+        }
+        else
 #endif
         handshake->tls_prf( handshake->premaster, handshake->pmslen,
                             "master secret",
                             handshake->randbytes, 64, session->master, 48 );
+
 
         polarssl_zeroize( handshake->premaster, sizeof(handshake->premaster) );
     }

@@ -2326,12 +2326,6 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
-    if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
-        return( ret );
-    }
-
     ssl->out_msglen  = i + n;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = SSL_HS_CLIENT_KEY_EXCHANGE;
@@ -2356,8 +2350,15 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    int ret;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
+
+    if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
+        return( ret );
+    }
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
@@ -2384,6 +2385,12 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     unsigned int hashlen;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
+
+    if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
+        return( ret );
+    }
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||

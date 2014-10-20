@@ -3977,6 +3977,13 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
     }
 }
 
+#if defined(POLARSSL_SSL_FALLBACK_SCSV) && defined(POLARSSL_SSL_CLI_C)
+void ssl_set_fallback( ssl_context *ssl, char fallback )
+{
+    ssl->fallback = fallback;
+}
+#endif
+
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
 {

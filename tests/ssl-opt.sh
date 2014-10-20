@@ -440,6 +440,41 @@ run_test    "Truncated HMAC: actual test" \
             0 \
             -s "dumping 'computed mac' (10 bytes)"
 
+# Tests for Extended Master Secret extension
+
+run_test    "Extended Master Secret: default" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "client hello, adding extended_master_secret extension" \
+            -s "found extended master secret extension" \
+            -s "server hello, adding extended master secret extension" \
+            -c "found extended_master_secret extension" \
+            -c "using extended master secret" \
+            -s "using extended master secret"
+
+run_test    "Extended Master Secret: client enabled, server disabled" \
+            "$P_SRV debug_level=3 extended_ms=0" \
+            "$P_CLI debug_level=3 extended_ms=1" \
+            0 \
+            -c "client hello, adding extended_master_secret extension" \
+            -s "found extended master secret extension" \
+            -S "server hello, adding extended master secret extension" \
+            -C "found extended_master_secret extension" \
+            -C "using extended master secret" \
+            -S "using extended master secret"
+
+run_test    "Extended Master Secret: client disabled, server enabled" \
+            "$P_SRV debug_level=3 extended_ms=1" \
+            "$P_CLI debug_level=3 extended_ms=0" \
+            0 \
+            -C "client hello, adding extended_master_secret extension" \
+            -S "found extended master secret extension" \
+            -S "server hello, adding extended master secret extension" \
+            -C "found extended_master_secret extension" \
+            -C "using extended master secret" \
+            -S "using extended master secret"
+
 # Tests for FALLBACK_SCSV
 
 run_test    "Fallback SCSV: default" \

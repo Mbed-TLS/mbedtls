@@ -470,6 +470,11 @@ int ssl_derive_keys( ssl_context *ssl )
         SSL_DEBUG_BUF( 3, "premaster secret", handshake->premaster,
                        handshake->pmslen );
 
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+        if( ssl->handshake->extended_ms == SSL_EXTENDED_MS_ENABLED )
+            SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
+        // XXX to be continued, WIP
+#endif
         handshake->tls_prf( handshake->premaster, handshake->pmslen,
                             "master secret",
                             handshake->randbytes, 64, session->master, 48 );
@@ -3437,6 +3442,10 @@ int ssl_init( ssl_context *ssl )
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
 
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+    ssl->extended_ms = SSL_EXTENDED_MS_ENABLED;
+#endif
+
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl->ticket_lifetime = SSL_DEFAULT_TICKET_LIFETIME;
 #endif
@@ -3981,6 +3990,13 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
 void ssl_set_fallback( ssl_context *ssl, char fallback )
 {
     ssl->fallback = fallback;
+}
+#endif
+
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+void ssl_set_extended_master_secret( ssl_context *ssl, char ems )
+{
+    ssl->extended_ms = ems;
 }
 #endif
 

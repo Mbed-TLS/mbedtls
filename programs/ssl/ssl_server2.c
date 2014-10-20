@@ -116,6 +116,7 @@ int main( int argc, char *argv[] )
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
 #define DFL_DHM_FILE            NULL
+#define DFL_EXTENDED_MS         -1
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -176,6 +177,7 @@ struct options
     char *sni;                  /* string describing sni information        */
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
+    char extended_ms;           /* allow negotiation of extended MS?        */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -299,6 +301,13 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 #define USAGE_ALPN ""
 #endif /* POLARSSL_SSL_ALPN */
 
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+#define USAGE_EMS \
+    "    extended_ms=0/1     default: (library default: on)\n"
+#else
+#define USAGE_EMS ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -324,6 +333,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_ALPN                                              \
+    USAGE_EMS                                               \
     "\n"                                                    \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
@@ -713,6 +723,7 @@ int main( int argc, char *argv[] )
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.dhm_file            = DFL_DHM_FILE;
+    opt.extended_ms         = DFL_EXTENDED_MS;
 
     for( i = 1; i < argc; i++ )
     {
@@ -879,6 +890,15 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "alpn" ) == 0 )
         {
             opt.alpn_string = q;
+        }
+        else if( strcmp( p, "extended_ms" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0: opt.extended_ms = SSL_EXTENDED_MS_DISABLED; break;
+                case 1: opt.extended_ms = SSL_EXTENDED_MS_ENABLED; break;
+                default: goto usage;
+            }
         }
         else if( strcmp( p, "tickets" ) == 0 )
         {
@@ -1255,6 +1275,11 @@ int main( int argc, char *argv[] )
         printf( " failed\n  ! ssl_set_max_frag_len returned %d\n\n", ret );
         goto exit;
     };
+#endif
+
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+    if( opt.extended_ms != DFL_EXTENDED_MS )
+        ssl_set_extended_master_secret( &ssl, opt.extended_ms );
 #endif
 
 #if defined(POLARSSL_SSL_ALPN)

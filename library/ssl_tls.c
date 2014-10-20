@@ -3338,7 +3338,7 @@ static int ssl_handshake_init( ssl_context *ssl )
             (ssl_session *) polarssl_malloc( sizeof(ssl_session) );
     }
 
-    if( ssl->handshake == NULL)
+    if( ssl->handshake == NULL )
     {
         ssl->handshake = (ssl_handshake_params *)
             polarssl_malloc( sizeof(ssl_handshake_params) );

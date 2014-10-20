@@ -497,8 +497,8 @@ void net_usleep( unsigned long usec )
 {
     struct timeval tv;
     tv.tv_sec  = 0;
-#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || \
-    (defined(__APPLE__) && defined(__MACH__)))
+#if !defined(_WIN32) && ( defined(__unix__) || defined(__unix) || \
+    ( defined(__APPLE__) && defined(__MACH__) ) )
     tv.tv_usec = (suseconds_t) usec;
 #else
     tv.tv_usec = usec;

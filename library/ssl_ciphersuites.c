@@ -260,7 +260,7 @@ static const int ciphersuite_preference[] =
     TLS_PSK_WITH_NULL_SHA256,
     TLS_PSK_WITH_NULL_SHA,
 
-#endif
+#endif /* SSL_CIPHERSUITES */
     0
 };
 

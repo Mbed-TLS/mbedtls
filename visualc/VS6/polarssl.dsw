@@ -378,6 +378,36 @@ Package=<4>
 
 ###############################################################################
 
+Project: "dtls_client"=.\dtls_client.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "dtls_server"=.\dtls_server.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "ssl_client1"=.\ssl_client1.dsp - Package Owner=<4>
 
 Package=<5>
@@ -559,6 +589,21 @@ Package=<4>
 ###############################################################################
 
 Project: "ssl_test"=.\ssl_test.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name polarssl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "udp_proxy"=.\udp_proxy.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

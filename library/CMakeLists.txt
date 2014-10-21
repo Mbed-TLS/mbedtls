@@ -119,7 +119,7 @@ endif()
 
 if(USE_SHARED_POLARSSL_LIBRARY)
 	add_library(polarssl SHARED ${src})
-	set_target_properties(polarssl PROPERTIES VERSION 1.3.9 SOVERSION 7)
+	set_target_properties(polarssl PROPERTIES VERSION 1.4.0 SOVERSION 8)
 
 	target_link_libraries(polarssl ${libs})
 

@@ -301,6 +301,10 @@ SOURCE=..\..\library\ssl_cli.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\library\ssl_cookie.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\library\ssl_srv.c
 # End Source File
 # Begin Source File
@@ -586,6 +590,10 @@ SOURCE=..\..\include\polarssl\ssl_cache.h
 # Begin Source File
 
 SOURCE=..\..\include\polarssl\ssl_ciphersuites.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\polarssl\ssl_cookie.h
 # End Source File
 # Begin Source File
 

@@ -2,9 +2,6 @@ PolarSSL ChangeLog (Sorted per branch, date)
 
 = PolarSSL 1.4.0 (DTLS branch) released 2014-10-22
 Features
-   * Support for DTLS 1.0 and 1.2
-
-Features
   * Support for DTLS 1.0 and 1.2 (RFC 6347).
 
 API Changes

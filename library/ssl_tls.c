@@ -4018,11 +4018,8 @@ int ssl_close_notify( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> write close notify" ) );
 
-    if( ( ret = ssl_flush_output( ssl ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "ssl_flush_output", ret );
-        return( ret );
-    }
+    if( ssl->out_left != 0 )
+        return( ssl_flush_output( ssl ) );
 
     if( ssl->state == SSL_HANDSHAKE_OVER )
     {
@@ -4036,7 +4033,7 @@ int ssl_close_notify( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "<= write close notify" ) );
 
-    return( ret );
+    return( 0 );
 }
 
 void ssl_transform_free( ssl_transform *transform )

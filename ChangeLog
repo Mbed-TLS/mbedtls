@@ -10,6 +10,8 @@ Security
 Bugfix
    * Fix potential bad read in parsing ServerHello (found by Adrien
      Vialletelle).
+   * ssl_close_notify() could send more than one message in some circumstances
+     with non-blocking I/O.
 
 Changes
    * X.509 certificates with more than one AttributeTypeAndValue per

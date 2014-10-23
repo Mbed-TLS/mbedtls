@@ -12,6 +12,7 @@ Bugfix
      Vialletelle).
    * ssl_close_notify() could send more than one message in some circumstances
      with non-blocking I/O.
+   * x509_crt_parse() did not increase total_failed on PEM error
 
 Changes
    * X.509 certificates with more than one AttributeTypeAndValue per

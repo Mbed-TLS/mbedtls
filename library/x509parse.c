@@ -1490,6 +1490,7 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
                 if( first_error == 0 )
                     first_error = ret;
 
+                total_failed++;
                 continue;
             }
             else

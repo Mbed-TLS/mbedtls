@@ -375,6 +375,8 @@ int main( int argc, char *argv[] )
     memset( &rsa, 0, sizeof( rsa_context ) );
     memset( &ssl, 0, sizeof( ssl_context ) );
 
+    memset( buf, 0, sizeof( buf ) );
+
     if( argc == 0 )
     {
     usage:

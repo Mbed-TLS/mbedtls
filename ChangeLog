@@ -14,6 +14,7 @@ Bugfix
      with non-blocking I/O.
    * x509_crt_parse() did not increase total_failed on PEM error
    * Fix compiler warnings on iOS (found by Sander Niemeijer).
+   * Don't print uninitialised buffer in ssl_mail_client (found by Marc Abel).
 
 Changes
    * X.509 certificates with more than one AttributeTypeAndValue per

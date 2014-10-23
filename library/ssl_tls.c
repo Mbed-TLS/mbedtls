@@ -3930,11 +3930,20 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                     SSL_DEBUG_RET( 1, "ssl_renegotiate", ret );
                     return( ret );
                 }
-
-                return( POLARSSL_ERR_NET_WANT_READ );
             }
+
+            /* Tell the user to call ssl_read() again */
+            return( POLARSSL_ERR_NET_WANT_READ );
         }
-        else if( ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
+
+        /* Fatal and closure alerts handled by ssl_read_record() */
+        if( ssl->in_msgtype == SSL_MSG_ALERT )
+        {
+            SSL_DEBUG_MSG( 2, ( "ignoring non-fatal non-closure alert" ) );
+            return( POLARSSL_ERR_NET_WANT_READ );
+        }
+
+        if( ssl->in_msgtype != SSL_MSG_APPLICATION_DATA )
         {
             SSL_DEBUG_MSG( 1, ( "bad application data message" ) );
             return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );

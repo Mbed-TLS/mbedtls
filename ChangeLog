@@ -16,10 +16,14 @@ Bugfix
    * Fix compiler warnings on iOS (found by Sander Niemeijer).
    * Don't print uninitialised buffer in ssl_mail_client (found by Marc Abel).
    * Fix net_accept() regarding non-blocking sockets (found by Luca Pesce).
+   * ssl_read() could return non-application data records on server while
+     renegotation was pending, and on client when a HelloRequest was received.
 
 Changes
    * X.509 certificates with more than one AttributeTypeAndValue per
      RelativeDistinguishedName are not accepted any more.
+   * ssl_read() now returns POLARSSL_ERR_NET_WANT_READ rather than
+     POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE on harmless alerts.
 
 = Version 1.2.11 released 2014-07-11
 Features

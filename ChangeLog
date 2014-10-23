@@ -25,6 +25,7 @@ Changes
      RelativeDistinguishedName are not accepted any more.
    * ssl_read() now returns POLARSSL_ERR_NET_WANT_READ rather than
      POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE on harmless alerts.
+   * Accept spaces at end of line or end of buffer in base64_decode().
 
 = Version 1.2.11 released 2014-07-11
 Features

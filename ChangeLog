@@ -1,5 +1,16 @@
 PolarSSL ChangeLog
 
+= Version 1.2.12 released 2014-10-??
+
+Security
+   * Remotely-triggerable memory leak when parsing some X.509 certificates
+     (server is not affected if it doesn't ask for a client certificate).
+     (Found using Codenomicon Defensics.)
+
+Changes
+   * X.509 certificates with more than one AttributeTypeAndValue per
+     RelativeDistinguishedName are not accepted any more.
+
 = Version 1.2.11 released 2014-07-11
 Features
    * Entropy module now supports seed writing and reading

@@ -283,48 +283,38 @@ static int x509_get_attr_type_value( unsigned char **p,
  *  AttributeType ::= OBJECT IDENTIFIER
  *
  *  AttributeValue ::= ANY DEFINED BY AttributeType
+ *
+ *  We restrict RelativeDistinguishedName to be a set of 1 element. This is
+ *  the most common case, and our x509_name structure currently can't handle
+ *  more than that.
  */
 static int x509_get_name( unsigned char **p,
                           const unsigned char *end,
                           x509_name *cur )
 {
     int ret;
-    size_t len;
-    const unsigned char *end2;
-    x509_name *use; 
-    
-    if( ( ret = asn1_get_tag( p, end, &len,
+    size_t set_len;
+    const unsigned char *end_set;
+
+    /*
+     * parse first SET, restricted to 1 element
+     */
+    if( ( ret = asn1_get_tag( p, end, &set_len,
             ASN1_CONSTRUCTED | ASN1_SET ) ) != 0 )
         return( POLARSSL_ERR_X509_CERT_INVALID_NAME + ret );
 
-    end2 = end;
-    end  = *p + len;
-    use = cur;
+    end_set = *p + set_len;
 
-    do
-    {
-        if( ( ret = x509_get_attr_type_value( p, end, use ) ) != 0 )
-            return( ret );
-        
-        if( *p != end )
-        {
-            use->next = (x509_name *) malloc(
-                    sizeof( x509_name ) );
+    if( ( ret = x509_get_attr_type_value( p, end_set, cur ) ) != 0 )
+        return( ret );
 
-            if( use->next == NULL )
-                return( POLARSSL_ERR_X509_MALLOC_FAILED );
-            
-            memset( use->next, 0, sizeof( x509_name ) );
-
-            use = use->next;
-        }
-    }
-    while( *p != end );
+    if( *p != end_set )
+        return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
 
     /*
      * recurse until end of SEQUENCE is reached
      */
-    if( *p == end2 )
+    if( *p == end )
         return( 0 );
 
     cur->next = (x509_name *) malloc(
@@ -335,7 +325,7 @@ static int x509_get_name( unsigned char **p,
 
     memset( cur->next, 0, sizeof( x509_name ) );
 
-    return( x509_get_name( p, end2, cur->next ) );
+    return( x509_get_name( p, end, cur->next ) );
 }
 
 /*

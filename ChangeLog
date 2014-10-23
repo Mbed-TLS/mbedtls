@@ -15,6 +15,7 @@ Bugfix
    * x509_crt_parse() did not increase total_failed on PEM error
    * Fix compiler warnings on iOS (found by Sander Niemeijer).
    * Don't print uninitialised buffer in ssl_mail_client (found by Marc Abel).
+   * Fix net_accept() regarding non-blocking sockets (found by Luca Pesce).
 
 Changes
    * X.509 certificates with more than one AttributeTypeAndValue per

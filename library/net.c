@@ -325,7 +325,12 @@ void net_usleep( unsigned long usec )
 {
     struct timeval tv;
     tv.tv_sec  = 0;
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || \
+    (defined(__APPLE__) && defined(__MACH__)))
+    tv.tv_usec = (suseconds_t) usec;
+#else
     tv.tv_usec = usec;
+#endif
     select( 0, NULL, NULL, NULL, &tv );
 }
 
@@ -335,7 +340,7 @@ void net_usleep( unsigned long usec )
 int net_recv( void *ctx, unsigned char *buf, size_t len )
 {
     int fd = *((int *) ctx);
-    int ret = read( fd, buf, len );
+    int ret = (int) read( fd, buf, len );
 
     if( ret < 0 )
     {
@@ -365,7 +370,7 @@ int net_recv( void *ctx, unsigned char *buf, size_t len )
 int net_send( void *ctx, const unsigned char *buf, size_t len )
 {
     int fd = *((int *) ctx);
-    int ret = write( fd, buf, len );
+    int ret = (int) write( fd, buf, len );
 
     if( ret < 0 )
     {

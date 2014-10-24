@@ -1,6 +1,6 @@
 PolarSSL ChangeLog
 
-= Version 1.2.12 released 2014-10-??
+= Version 1.2.12 released 2014-10-24
 
 Security
    * Remotely-triggerable memory leak when parsing some X.509 certificates

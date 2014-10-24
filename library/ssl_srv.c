@@ -648,8 +648,11 @@ static int ssl_parse_extended_ms_ext( ssl_context *ssl,
 
     ((void) buf);
 
-    if( ssl->extended_ms == SSL_EXTENDED_MS_ENABLED )
+    if( ssl->extended_ms == SSL_EXTENDED_MS_ENABLED &&
+        ssl->minor_ver != SSL_MINOR_VERSION_0 )
+    {
         ssl->handshake->extended_ms = SSL_EXTENDED_MS_ENABLED;
+    }
 
     return( 0 );
 }
@@ -1686,7 +1689,8 @@ static void ssl_write_extended_ms_ext( ssl_context *ssl,
 {
     unsigned char *p = buf;
 
-    if( ssl->handshake->extended_ms == SSL_EXTENDED_MS_DISABLED )
+    if( ssl->handshake->extended_ms == SSL_EXTENDED_MS_DISABLED ||
+        ssl->minor_ver == SSL_MINOR_VERSION_0 )
     {
         *olen = 0;
         return;

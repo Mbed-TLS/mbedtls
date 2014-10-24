@@ -365,7 +365,8 @@ static void ssl_write_extended_ms_ext( ssl_context *ssl,
 {
     unsigned char *p = buf;
 
-    if( ssl->extended_ms == SSL_EXTENDED_MS_DISABLED )
+    if( ssl->extended_ms == SSL_EXTENDED_MS_DISABLED ||
+        ssl->max_minor_ver == SSL_MINOR_VERSION_0 )
     {
         *olen = 0;
         return;
@@ -816,6 +817,7 @@ static int ssl_parse_extended_ms_ext( ssl_context *ssl,
                                          size_t len )
 {
     if( ssl->extended_ms == SSL_EXTENDED_MS_DISABLED ||
+        ssl->minor_ver == SSL_MINOR_VERSION_0 ||
         len != 0 )
     {
         return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );

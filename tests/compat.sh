@@ -102,6 +102,10 @@ get_options() {
         esac
         shift
     done
+
+    # sanitize some options (modes checked later)
+    VERIFIES="$( echo $VERIFIES | tr [a-z] [A-Z] )"
+    TYPES="$( echo $TYPES | tr [a-z] [A-Z] )"
 }
 
 log() {

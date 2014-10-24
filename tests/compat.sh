@@ -26,14 +26,19 @@ SRVMEM=0
 
 # do we have a recent enough GnuTLS?
 if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null; then
-    eval $( $GNUTLS_CLI --version | head -n1 | sed 's/.* \([0-9]*\)\.\([0-9]\)*\.\([0-9]*\)$/MAJOR="\1" MINOR="\2" PATCH="\3"/' )
-    if [ $MAJOR -lt 3 -o \
-        \( $MAJOR -eq 3 -a $MINOR -lt 2 \) -o \
-        \( $MAJOR -eq 3 -a $MINOR -eq 2 -a $PATCH -lt 15 \) ]
-    then
-        PEER_GNUTLS=""
-    else
+    G_VER="$( $GNUTLS_CLI --version | head -n1 )"
+    if echo "$G_VER" | grep '@VERSION@' > /dev/null; then # git version
         PEER_GNUTLS=" GnuTLS"
+    else
+        eval $( echo $G_VER | sed 's/.* \([0-9]*\)\.\([0-9]\)*\.\([0-9]*\)$/MAJOR="\1" MINOR="\2" PATCH="\3"/' )
+        if [ $MAJOR -lt 3 -o \
+            \( $MAJOR -eq 3 -a $MINOR -lt 2 \) -o \
+            \( $MAJOR -eq 3 -a $MINOR -eq 2 -a $PATCH -lt 15 \) ]
+        then
+            PEER_GNUTLS=""
+        else
+            PEER_GNUTLS=" GnuTLS"
+        fi
     fi
 else
     PEER_GNUTLS=""

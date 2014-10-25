@@ -1,5 +1,16 @@
-option(USE_STATIC_POLARSSL_LIBRARY "Build PolarSSL static library." ON)
-option(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL shared library." OFF)
+# Use the standard CMake flag to drive the shared object build.
+if(DEFINED BUILD_SHARED_LIBS AND NOT DEFINED USE_STATIC_POLARSSL_LIBRARY AND NOT DEFINED USE_SHARED_POLARSSL_LIBRARY)
+  set(USE_STATIC_POLARSSL_LIBRARY ON)
+  if(BUILD_SHARED_LIBS)
+    set(USE_SHARED_POLARSSL_LIBRARY ON)
+  else()
+    set(USE_SHARED_POLARSSL_LIBRARY OFF)
+  endif()
+else()
+  option(USE_STATIC_POLARSSL_LIBRARY "Build PolarSSL static library." ON)
+  option(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL shared library." OFF)
+endif()
+
 option(LINK_WITH_PTHREAD "Explicitly link PolarSSL library to pthread." OFF)
 
 set(src

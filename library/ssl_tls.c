@@ -1071,6 +1071,15 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> encrypt buf" ) );
 
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+    if( ssl->session_out != NULL &&
+        ssl->session_out->encrypt_then_mac == SSL_ETM_ENABLED )
+    {
+        // WIP
+        SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
+    }
+#endif
+
     /*
      * Add MAC before encrypt, except for AEAD modes
      */
@@ -3474,6 +3483,10 @@ int ssl_init( ssl_context *ssl )
     memset( ssl-> in_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
 
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+    ssl->encrypt_then_mac = SSL_ETM_ENABLED;
+#endif
+
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
     ssl->extended_ms = SSL_EXTENDED_MS_ENABLED;
 #endif
@@ -4022,6 +4035,13 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
 void ssl_set_fallback( ssl_context *ssl, char fallback )
 {
     ssl->fallback = fallback;
+}
+#endif
+
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+void ssl_set_encrypt_then_mac( ssl_context *ssl, char etm )
+{
+    ssl->encrypt_then_mac = etm;
 }
 #endif
 

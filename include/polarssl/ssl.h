@@ -212,6 +212,9 @@
 #define SSL_EXTENDED_MS_DISABLED        0
 #define SSL_EXTENDED_MS_ENABLED         1
 
+#define SSL_ETM_DISABLED                0
+#define SSL_ETM_ENABLED                 1
+
 #define SSL_COMPRESS_NULL               0
 #define SSL_COMPRESS_DEFLATE            1
 
@@ -409,6 +412,7 @@
 
 #define TLS_EXT_ALPN                        16
 
+#define TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
 #define TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
 #define TLS_EXT_SESSION_TICKET              35
@@ -548,6 +552,10 @@ struct _ssl_session
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
     int trunc_hmac;             /*!< flag for truncated hmac activation   */
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+    int encrypt_then_mac;       /*!< flag for EtM activation                */
+#endif
 };
 
 /*
@@ -712,6 +720,9 @@ struct _ssl_context
 
 #if defined(POLARSSL_SSL_FALLBACK_SCSV) && defined(POLARSSL_SSL_CLI_C)
     char fallback;              /*!< flag for fallback connections    */
+#endif
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+    char encrypt_then_mac;      /*!< flag for encrypt-then-mac        */
 #endif
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
     char extended_ms;           /*!< flag for extended master secret  */
@@ -1424,6 +1435,21 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor );
  */
 void ssl_set_fallback( ssl_context *ssl, char fallback );
 #endif /* POLARSSL_SSL_FALLBACK_SCSV && POLARSSL_SSL_CLI_C */
+
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+/**
+ * \brief           Enable or disable Encrypt-then-MAC
+ *                  (Default: SSL_ETM_ENABLED)
+ *
+ * \note            This should always be enabled, it is a security
+ *                  improvement, and should not cause any interoperability
+ *                  issue (used only if the peer supports it too).
+ *
+ * \param ssl       SSL context
+ * \param etm       SSL_ETM_ENABLED or SSL_ETM_DISABLED
+ */
+void ssl_set_encrypt_then_mac( ssl_context *ssl, char etm );
+#endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
 
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
 /**

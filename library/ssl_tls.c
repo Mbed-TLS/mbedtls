@@ -1060,6 +1060,41 @@ static void ssl_mac( md_context_t *md_ctx, unsigned char *secret,
 }
 #endif /* POLARSSL_SSL_PROTO_SSL3 */
 
+#define MAC_NONE        0
+#define MAC_PLAINTEXT   1
+#define MAC_CIPHERTEXT  2
+
+/*
+ * Is MAC applied on ciphertext, cleartext or not at all?
+ */
+static char ssl_get_mac_order( ssl_context *ssl,
+                               const ssl_session *session,
+                               cipher_mode_t mode )
+{
+#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
+    if( mode == POLARSSL_MODE_STREAM )
+        return( MAC_PLAINTEXT );
+#endif
+
+#if defined(POLARSSL_CIPHER_MODE_CBC) && \
+  ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) )
+    if( mode == POLARSSL_MODE_CBC )
+    {
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+        if( session != NULL && session->encrypt_then_mac == SSL_ETM_ENABLED )
+        {
+            SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
+            return( MAC_CIPHERTEXT );
+        }
+#endif
+
+        return( MAC_PLAINTEXT );
+    }
+#endif
+
+    return( MAC_NONE );
+}
+
 /*
  * Encryption/decryption functions
  */
@@ -1068,26 +1103,20 @@ static int ssl_encrypt_buf( ssl_context *ssl )
     size_t i;
     const cipher_mode_t mode = cipher_get_cipher_mode(
                                         &ssl->transform_out->cipher_ctx_enc );
+    char mac_order;
 
     SSL_DEBUG_MSG( 2, ( "=> encrypt buf" ) );
 
-#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
-    if( ssl->session_out != NULL &&
-        ssl->session_out->encrypt_then_mac == SSL_ETM_ENABLED )
-    {
-        // WIP
-        SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
-    }
-#endif
+    mac_order = ssl_get_mac_order( ssl, ssl->session_out, mode );
 
     /*
-     * Add MAC before encrypt, except for AEAD modes
+     * Add MAC before if needed
      */
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER) ||     \
     ( defined(POLARSSL_CIPHER_MODE_CBC) &&                                  \
       ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
-    if( mode != POLARSSL_MODE_GCM &&
-        mode != POLARSSL_MODE_CCM )
+    if( mac_order == MAC_PLAINTEXT
+            || mac_order == MAC_CIPHERTEXT ) // WIP!
     {
 #if defined(POLARSSL_SSL_PROTO_SSL3)
         if( ssl->minor_ver == SSL_MINOR_VERSION_0 )
@@ -1358,6 +1387,7 @@ static int ssl_decrypt_buf( ssl_context *ssl )
       ( defined(POLARSSL_AES_C) || defined(POLARSSL_CAMELLIA_C) ) )
     size_t padlen = 0, correct = 1;
 #endif
+    char mac_order;
 
     SSL_DEBUG_MSG( 2, ( "=> decrypt buf" ) );
 
@@ -1367,6 +1397,9 @@ static int ssl_decrypt_buf( ssl_context *ssl )
                        ssl->in_msglen, ssl->transform_in->minlen ) );
         return( POLARSSL_ERR_SSL_INVALID_MAC );
     }
+
+    mac_order = ssl_get_mac_order( ssl, ssl->session_in, mode );
+    (void) mac_order; // WIP
 
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
     if( mode == POLARSSL_MODE_STREAM )
@@ -1762,6 +1795,10 @@ static int ssl_decrypt_buf( ssl_context *ssl )
 
     return( 0 );
 }
+
+#undef MAC_NONE
+#undef MAC_PLAINTEXT
+#undef MAC_CIPHERTEXT
 
 #if defined(POLARSSL_ZLIB_SUPPORT)
 /*

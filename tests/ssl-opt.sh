@@ -443,7 +443,8 @@ run_test    "Truncated HMAC: actual test" \
 # Tests for Encrypt-then-MAC extension
 
 run_test    "Encrypt then MAC: default" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
@@ -454,7 +455,8 @@ run_test    "Encrypt then MAC: default" \
             -s "using encrypt then mac"
 
 run_test    "Encrypt then MAC: client enabled, server disabled" \
-            "$P_SRV debug_level=3 etm=0" \
+            "$P_SRV debug_level=3 etm=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3 etm=1" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
@@ -465,7 +467,8 @@ run_test    "Encrypt then MAC: client enabled, server disabled" \
             -S "using encrypt then mac"
 
 run_test    "Encrypt then MAC: client disabled, server enabled" \
-            "$P_SRV debug_level=3 etm=1" \
+            "$P_SRV debug_level=3 etm=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3 etm=0" \
             0 \
             -C "client hello, adding encrypt_then_mac extension" \
@@ -476,7 +479,8 @@ run_test    "Encrypt then MAC: client disabled, server enabled" \
             -S "using encrypt then mac"
 
 run_test    "Encrypt then MAC: client SSLv3, server enabled" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3 force_version=ssl3" \
             0 \
             -C "client hello, adding encrypt_then_mac extension" \
@@ -487,7 +491,8 @@ run_test    "Encrypt then MAC: client SSLv3, server enabled" \
             -S "using encrypt then mac"
 
 run_test    "Encrypt then MAC: client enabled, server SSLv3" \
-            "$P_SRV debug_level=3 force_version=ssl3" \
+            "$P_SRV debug_level=3 force_version=ssl3 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \

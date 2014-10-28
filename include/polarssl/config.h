@@ -821,6 +821,10 @@
  * renegotiation), since it actually fixes a more fundamental issue in the
  * original SSL/TLS design, and has implications beyond Triple Handshake.
  *
+ * Requires: POLARSSL_SSL_PROTO_TLS1    or
+ *           POLARSSL_SSL_PROTO_TLS1_1  or
+ *           POLARSSL_SSL_PROTO_TLS1_2
+ *
  * Comment this macro to disable support for Extended Master Secret.
  */
 #define POLARSSL_SSL_EXTENDED_MASTER_SECRET

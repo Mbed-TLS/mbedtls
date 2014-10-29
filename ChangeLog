@@ -1,5 +1,11 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= PolarSSL 1.3.z branch
+
+Changes
+   * Use deterministic nonces for AEAD ciphers in TLS by default (possible to
+     switch back to random with POLARSSL_SSL_AEAD_RANDOM_IV in config.h).
+
 = PolarSSL 1.3.9 released 2014-10-20
 Security
    * Lowest common hash was selected from signature_algorithms extension in

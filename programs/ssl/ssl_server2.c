@@ -101,7 +101,7 @@ int main( int argc, char *argv[] )
 #define DFL_FORCE_CIPHER        0
 #define DFL_VERSION_SUITES      NULL
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
-#define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
+#define DFL_ALLOW_LEGACY        -2
 #define DFL_RENEGOTIATE         0
 #define DFL_RENEGO_DELAY        -2
 #define DFL_EXCHANGES           1
@@ -316,7 +316,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     USAGE_PSK                                               \
     "\n"                                                    \
     "    renegotiation=%%d    default: 1 (enabled)\n"       \
-    "    allow_legacy=%%d     default: 0 (disabled)\n"      \
+    "    allow_legacy=%%d     default: (library default: no)\n"      \
     "    renegotiate=%%d      default: 0 (disabled)\n"      \
     "    renego_delay=%%d     default: -2 (library default)\n" \
     "    exchanges=%%d        default: 1\n"                 \
@@ -781,9 +781,13 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
-            opt.allow_legacy = atoi( q );
-            if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
-                goto usage;
+            switch( atoi( q ) )
+            {
+                case -1: opt.allow_legacy = SSL_LEGACY_BREAK_HANDSHAKE; break;
+                case 0:  opt.allow_legacy = SSL_LEGACY_NO_RENEGOTIATION; break;
+                case 1:  opt.allow_legacy = SSL_LEGACY_ALLOW_RENEGOTIATION; break;
+                default: goto usage;
+            }
         }
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
@@ -1311,7 +1315,8 @@ int main( int argc, char *argv[] )
     }
 
     ssl_set_renegotiation( &ssl, opt.renegotiation );
-    ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+    if( opt.allow_legacy != DFL_ALLOW_LEGACY )
+        ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
     if( opt.renego_delay != DFL_RENEGO_DELAY )
         ssl_set_renegotiation_enforced( &ssl, opt.renego_delay );
 

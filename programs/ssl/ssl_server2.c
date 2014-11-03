@@ -299,6 +299,15 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 #define USAGE_ALPN ""
 #endif /* POLARSSL_SSL_ALPN */
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+#define USAGE_RENEGO \
+    "    renegotiation=%%d    default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled)\n"      \
+    "    renego_delay=%%d     default: -2 (library default)\n"
+#else
+#define USAGE_RENEGO ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -315,10 +324,8 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "\n"                                                    \
     USAGE_PSK                                               \
     "\n"                                                    \
-    "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: (library default: no)\n"      \
-    "    renegotiate=%%d      default: 0 (disabled)\n"      \
-    "    renego_delay=%%d     default: -2 (library default)\n" \
+    USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     USAGE_TICKETS                                           \
     USAGE_CACHE                                             \
@@ -1314,11 +1321,13 @@ int main( int argc, char *argv[] )
                                           SSL_MINOR_VERSION_3 );
     }
 
-    ssl_set_renegotiation( &ssl, opt.renegotiation );
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    ssl_set_renegotiation( &ssl, opt.renegotiation );
     if( opt.renego_delay != DFL_RENEGO_DELAY )
         ssl_set_renegotiation_enforced( &ssl, opt.renego_delay );
+#endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     if( strcmp( opt.ca_path, "none" ) != 0 &&
@@ -1611,6 +1620,7 @@ data_exchange:
      * 7a. Request renegotiation while client is waiting for input from us.
      * (only if we're going to exhange more data afterwards)
      */
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     if( opt.renegotiate && exchanges > 1 )
     {
         printf( "  . Requestion renegotiation..." );
@@ -1628,6 +1638,7 @@ data_exchange:
 
         printf( " ok\n" );
     }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
     /*
      * 7. Write the 200 Response

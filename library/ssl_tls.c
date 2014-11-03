@@ -2595,6 +2595,7 @@ int ssl_parse_certificate( ssl_context *ssl )
 
     SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     /*
      * On client, make sure the server cert doesn't change during renego to
      * avoid "triple handshake" attack: https://secure-resumption.com/
@@ -2618,6 +2619,7 @@ int ssl_parse_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
         }
     }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
     if( ssl->authmode != SSL_VERIFY_NONE )
     {
@@ -3060,11 +3062,13 @@ void ssl_handshake_wrapup( ssl_context *ssl )
     polarssl_free( ssl->handshake );
     ssl->handshake = NULL;
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_RENEGOTIATION )
     {
         ssl->renegotiation =  SSL_RENEGOTIATION_DONE;
         ssl->renego_records_seen = 0;
     }
+#endif
 
     /*
      * Switch in our now active transform context
@@ -3123,8 +3127,10 @@ int ssl_write_finished( ssl_context *ssl )
     // TODO TLS/1.2 Hash length is determined by cipher suite (Page 63)
     hash_len = ( ssl->minor_ver == SSL_MINOR_VERSION_0 ) ? 36 : 12;
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl->verify_data_len = hash_len;
     memcpy( ssl->own_verify_data, ssl->out_msg + 4, hash_len );
+#endif
 
     ssl->out_msglen  = 4 + hash_len;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
@@ -3244,8 +3250,10 @@ int ssl_parse_finished( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_BAD_HS_FINISHED );
     }
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl->verify_data_len = hash_len;
     memcpy( ssl->peer_verify_data, buf, hash_len );
+#endif
 
     if( ssl->handshake->resume != 0 )
     {
@@ -3394,7 +3402,9 @@ int ssl_init( ssl_context *ssl )
 
     ssl_set_ciphersuites( ssl, ssl_list_ciphersuites() );
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl->renego_max_records = SSL_RENEGO_MAX_RECORDS_DEFAULT;
+#endif
 
 #if defined(POLARSSL_DHM_C)
     if( ( ret = mpi_read_string( &ssl->dhm_P, 16,
@@ -3460,12 +3470,16 @@ int ssl_session_reset( ssl_context *ssl )
     int ret;
 
     ssl->state = SSL_HELLO_REQUEST;
+
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl->renegotiation = SSL_INITIAL_HANDSHAKE;
-    ssl->secure_renegotiation = SSL_LEGACY_RENEGOTIATION;
+    ssl->renego_records_seen = 0;
 
     ssl->verify_data_len = 0;
     memset( ssl->own_verify_data, 0, 36 );
     memset( ssl->peer_verify_data, 0, 36 );
+#endif
+    ssl->secure_renegotiation = SSL_LEGACY_RENEGOTIATION;
 
     ssl->in_offt = NULL;
 
@@ -3485,8 +3499,6 @@ int ssl_session_reset( ssl_context *ssl )
 
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;
-
-    ssl->renego_records_seen = 0;
 
     memset( ssl->out_ctr, 0, SSL_BUFFER_LEN );
     memset( ssl->in_ctr, 0, SSL_BUFFER_LEN );
@@ -4004,20 +4016,22 @@ int ssl_set_truncated_hmac( ssl_context *ssl, int truncate )
 }
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
-void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )
-{
-    ssl->disable_renegotiation = renegotiation;
-}
-
 void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy )
 {
     ssl->allow_legacy_renegotiation = allow_legacy;
+}
+
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )
+{
+    ssl->disable_renegotiation = renegotiation;
 }
 
 void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records )
 {
     ssl->renego_max_records = max_records;
 }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
@@ -4147,6 +4161,7 @@ int ssl_handshake( ssl_context *ssl )
     return( ret );
 }
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
 #if defined(POLARSSL_SSL_SRV_C)
 /*
  * Write HelloRequest to request renegotiation on server
@@ -4258,6 +4273,7 @@ int ssl_renegotiate( ssl_context *ssl )
 
     return( ret );
 }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
 /*
  * Receive application data decrypted from the SSL layer
@@ -4313,6 +4329,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
             }
         }
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
         if( ssl->in_msgtype == SSL_MSG_HANDSHAKE )
         {
             SSL_DEBUG_MSG( 1, ( "received handshake message" ) );
@@ -4393,6 +4410,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                 return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
             }
         }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
         /* Fatal and closure alerts handled by ssl_read_record() */
         if( ssl->in_msgtype == SSL_MSG_ALERT )

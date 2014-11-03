@@ -284,6 +284,14 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_ALPN ""
 #endif /* POLARSSL_SSL_ALPN */
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+#define USAGE_RENEGO \
+    "    renegotiation=%%d    default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled)\n"
+#else
+#define USAGE_RENEGO ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -303,9 +311,8 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "\n"                                                    \
     USAGE_PSK                                               \
     "\n"                                                    \
-    "    renegotiation=%%d    default: 1 (enabled)\n"       \
     "    allow_legacy=%%d     default: (library default: no)\n"      \
-    "    renegotiate=%%d      default: 0 (disabled)\n"      \
+    USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
     USAGE_TIME                                              \
@@ -914,9 +921,11 @@ int main( int argc, char *argv[] )
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 
-    ssl_set_renegotiation( &ssl, opt.renegotiation );
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    ssl_set_renegotiation( &ssl, opt.renegotiation );
+#endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     if( strcmp( opt.ca_path, "none" ) != 0 &&
@@ -1044,6 +1053,7 @@ int main( int argc, char *argv[] )
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     if( opt.renegotiate )
     {
         /*
@@ -1063,6 +1073,7 @@ int main( int argc, char *argv[] )
         }
         printf( " ok\n" );
     }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
     /*
      * 6. Write the GET request

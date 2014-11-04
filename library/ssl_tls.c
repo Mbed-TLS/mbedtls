@@ -4273,6 +4273,33 @@ int ssl_renegotiate( ssl_context *ssl )
 
     return( ret );
 }
+
+/*
+ * Check record counters and renegotiate if they're above the limit.
+ */
+static int ssl_check_ctr_renegotiate( ssl_context *ssl )
+{
+    static const unsigned char ctr_limit[8] = {
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00
+    };
+
+    if( ssl->state != SSL_HANDSHAKE_OVER ||
+        ssl->renegotiation == SSL_RENEGOTIATION_PENDING ||
+        ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED )
+    {
+        return( 0 );
+    }
+
+    // TODO: adapt for DTLS
+    if( memcmp( ssl->in_ctr,  ctr_limit, 8 ) <= 0 &&
+        memcmp( ssl->out_ctr, ctr_limit, 8 ) <= 0 )
+    {
+        return( 0 );
+    }
+
+    SSL_DEBUG_MSG( 2, ( "record counter about to wrap: renegotiate" ) );
+    return( ssl_renegotiate( ssl ) );
+}
 #endif /* POLARSSL_SSL_RENEGOTIATION */
 
 /*
@@ -4284,6 +4311,14 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
     size_t n;
 
     SSL_DEBUG_MSG( 2, ( "=> read" ) );
+
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
+        return( ret );
+    }
+#endif
 
     if( ssl->state != SSL_HANDSHAKE_OVER )
     {
@@ -4456,6 +4491,14 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
     unsigned int max_len = SSL_MAX_CONTENT_LEN;
 
     SSL_DEBUG_MSG( 2, ( "=> write" ) );
+
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    if( ( ret = ssl_check_ctr_renegotiate( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_check_ctr_renegotiate", ret );
+        return( ret );
+    }
+#endif
 
     if( ssl->state != SSL_HANDSHAKE_OVER )
     {

@@ -1357,17 +1357,18 @@ static int ssl_encrypt_buf( ssl_context *ssl )
              * MAC(MAC_write_key, seq_num +
              *     TLSCipherText.type +
              *     TLSCipherText.version +
-             *     TLSCipherText.length +
+             *     length_of( (IV +) ENC(...) ) +
              *     IV + // except for TLS 1.0
              *     ENC(content + padding + padding_length));
              */
-            size_t final_len = ssl->out_msglen + ssl->transform_out->maclen;
             unsigned char pseudo_hdr[13];
 
             memcpy( pseudo_hdr +  0, ssl->out_ctr, 8 );
             memcpy( pseudo_hdr +  8, ssl->out_hdr, 3 );
-            pseudo_hdr[11] = (unsigned char)( ( final_len >> 8 ) & 0xFF );
-            pseudo_hdr[12] = (unsigned char)( ( final_len      ) & 0xFF );
+            pseudo_hdr[11] = (unsigned char)( ( ssl->out_msglen >> 8 ) & 0xFF );
+            pseudo_hdr[12] = (unsigned char)( ( ssl->out_msglen      ) & 0xFF );
+
+            SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
 
             md_hmac_update( &ssl->transform_out->md_ctx_enc, pseudo_hdr, 13 );
             md_hmac_update( &ssl->transform_out->md_ctx_enc,
@@ -1570,13 +1571,19 @@ static int ssl_decrypt_buf( ssl_context *ssl )
         if( mac_order == MAC_CIPHERTEXT )
         {
             unsigned char computed_mac[POLARSSL_SSL_MAX_MAC_SIZE];
+            unsigned char pseudo_hdr[13];
 
             dec_msglen -= ssl->transform_in->maclen;
             ssl->in_msglen -= ssl->transform_in->maclen;
 
-            // TODO: adjust for DTLS
-            md_hmac_update( &ssl->transform_in->md_ctx_dec,
-                             ssl->in_ctr, 13 );
+            memcpy( pseudo_hdr +  0, ssl->in_ctr, 8 );
+            memcpy( pseudo_hdr +  8, ssl->in_hdr, 3 );
+            pseudo_hdr[11] = (unsigned char)( ( ssl->in_msglen >> 8 ) & 0xFF );
+            pseudo_hdr[12] = (unsigned char)( ( ssl->in_msglen      ) & 0xFF );
+
+            SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
+
+            md_hmac_update( &ssl->transform_in->md_ctx_dec, pseudo_hdr, 13 );
             md_hmac_update( &ssl->transform_in->md_ctx_dec,
                              ssl->in_iv, ssl->in_msglen );
             md_hmac_finish( &ssl->transform_in->md_ctx_dec, computed_mac );

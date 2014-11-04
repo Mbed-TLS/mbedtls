@@ -3248,6 +3248,12 @@ void ssl_handshake_wrapup( ssl_context *ssl )
 
     if( ssl->session )
     {
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+        /* RFC 7366 3.1: keep the EtM state */
+        ssl->session_negotiate->encrypt_then_mac =
+                  ssl->session->encrypt_then_mac;
+#endif
+
         ssl_session_free( ssl->session );
         polarssl_free( ssl->session );
     }

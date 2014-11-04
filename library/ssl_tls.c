@@ -3476,8 +3476,8 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->renego_records_seen = 0;
 
     ssl->verify_data_len = 0;
-    memset( ssl->own_verify_data, 0, 36 );
-    memset( ssl->peer_verify_data, 0, 36 );
+    memset( ssl->own_verify_data, 0, SSL_VERIFY_DATA_MAX_LEN );
+    memset( ssl->peer_verify_data, 0, SSL_VERIFY_DATA_MAX_LEN );
 #endif
     ssl->secure_renegotiation = SSL_LEGACY_RENEGOTIATION;
 

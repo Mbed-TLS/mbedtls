@@ -305,6 +305,15 @@
                         )
 
 /*
+ * Length of the verify data for secure renegotiation
+ */
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+#define SSL_VERIFY_DATA_MAX_LEN 36
+#else
+#define SSL_VERIFY_DATA_MAX_LEN 12
+#endif
+
+/*
  * Signaling ciphersuite values (SCSV)
  */
 #define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
@@ -867,8 +876,8 @@ struct _ssl_context
                                               secure renegotiation           */
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     size_t verify_data_len;             /*!<  length of verify data stored   */
-    char own_verify_data[36];           /*!<  previous handshake verify data */
-    char peer_verify_data[36];          /*!<  previous handshake verify data */
+    char own_verify_data[SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
+    char peer_verify_data[SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
 #endif
 };
 

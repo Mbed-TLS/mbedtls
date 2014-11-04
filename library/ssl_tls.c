@@ -601,12 +601,23 @@ int ssl_derive_keys( ssl_context *ssl )
         {
             /*
              * GenericBlockCipher:
-             * first multiple of blocklen greater than maclen
-             * + IV except for SSL3 and TLS 1.0
+             * 1. if EtM is in use: one block plus MAC
+             *    otherwise: * first multiple of blocklen greater than maclen
+             * 2. IV except for SSL3 and TLS 1.0
              */
-            transform->minlen = transform->maclen
-                                + cipher_info->block_size
-                                - transform->maclen % cipher_info->block_size;
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+            if( session->encrypt_then_mac == SSL_ETM_ENABLED )
+            {
+                transform->minlen = transform->maclen
+                                  + cipher_info->block_size;
+            }
+            else
+#endif
+            {
+                transform->minlen = transform->maclen
+                                  + cipher_info->block_size
+                                  - transform->maclen % cipher_info->block_size;
+            }
 
 #if defined(POLARSSL_SSL_PROTO_SSL3) || defined(POLARSSL_SSL_PROTO_TLS1)
             if( ssl->minor_ver == SSL_MINOR_VERSION_0 ||

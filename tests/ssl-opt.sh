@@ -1864,6 +1864,13 @@ run_test    "Small packet TLS 1.0 BlockCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
+run_test    "Small packet TLS 1.0 BlockCipher without EtM" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1 etm=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
 run_test    "Small packet TLS 1.0 BlockCipher truncated MAC" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1 \
@@ -1883,6 +1890,13 @@ run_test    "Small packet TLS 1.0 StreamCipher truncated MAC" \
 run_test    "Small packet TLS 1.1 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.1 BlockCipher without EtM" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_1 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 1 bytes read"
@@ -1913,6 +1927,13 @@ run_test    "Small packet TLS 1.1 StreamCipher truncated MAC" \
 run_test    "Small packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 BlockCipher without EtM" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 1 bytes read"

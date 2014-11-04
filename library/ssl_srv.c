@@ -1721,9 +1721,26 @@ static void ssl_write_encrypt_then_mac_ext( ssl_context *ssl,
                                             size_t *olen )
 {
     unsigned char *p = buf;
+    const ssl_ciphersuite_t *suite = NULL;
+    const cipher_info_t *cipher = NULL;
 
     if( ssl->session_negotiate->encrypt_then_mac == SSL_EXTENDED_MS_DISABLED ||
         ssl->minor_ver == SSL_MINOR_VERSION_0 )
+    {
+        *olen = 0;
+        return;
+    }
+
+    /*
+     * RFC 7366: "If a server receives an encrypt-then-MAC request extension
+     * from a client and then selects a stream or Authenticated Encryption
+     * with Associated Data (AEAD) ciphersuite, it MUST NOT send an
+     * encrypt-then-MAC response extension back to the client."
+     */
+    if( ( suite = ssl_ciphersuite_from_id(
+                    ssl->session_negotiate->ciphersuite ) ) == NULL ||
+        ( cipher = cipher_info_from_type( suite->cipher ) ) == NULL ||
+        cipher->mode != POLARSSL_MODE_CBC )
     {
         *olen = 0;
         return;

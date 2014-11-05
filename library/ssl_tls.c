@@ -3404,6 +3404,8 @@ int ssl_init( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl->renego_max_records = SSL_RENEGO_MAX_RECORDS_DEFAULT;
+    memset( ssl->renego_period, 0xFF, 7 );
+    ssl->renego_period[7] = 0x00;
 #endif
 
 #if defined(POLARSSL_DHM_C)
@@ -4031,6 +4033,12 @@ void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records )
 {
     ssl->renego_max_records = max_records;
 }
+
+void ssl_set_renegotiation_period( ssl_context *ssl,
+                                   const unsigned char period[8] )
+{
+    memcpy( ssl->renego_period, period, 8 );
+}
 #endif /* POLARSSL_SSL_RENEGOTIATION */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
@@ -4279,10 +4287,6 @@ int ssl_renegotiate( ssl_context *ssl )
  */
 static int ssl_check_ctr_renegotiate( ssl_context *ssl )
 {
-    static const unsigned char ctr_limit[8] = {
-        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00
-    };
-
     if( ssl->state != SSL_HANDSHAKE_OVER ||
         ssl->renegotiation == SSL_RENEGOTIATION_PENDING ||
         ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED )
@@ -4291,13 +4295,13 @@ static int ssl_check_ctr_renegotiate( ssl_context *ssl )
     }
 
     // TODO: adapt for DTLS
-    if( memcmp( ssl->in_ctr,  ctr_limit, 8 ) <= 0 &&
-        memcmp( ssl->out_ctr, ctr_limit, 8 ) <= 0 )
+    if( memcmp( ssl->in_ctr,  ssl->renego_period, 8 ) <= 0 &&
+        memcmp( ssl->out_ctr, ssl->renego_period, 8 ) <= 0 )
     {
         return( 0 );
     }
 
-    SSL_DEBUG_MSG( 2, ( "record counter about to wrap: renegotiate" ) );
+    SSL_DEBUG_MSG( 0, ( "record counter limit reached: renegotiate" ) );
     return( ssl_renegotiate( ssl ) );
 }
 #endif /* POLARSSL_SSL_RENEGOTIATION */

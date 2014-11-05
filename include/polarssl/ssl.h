@@ -830,6 +830,8 @@ struct _ssl_context
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
     int renego_max_records;             /*!<  grace period for renegotiation */
+    unsigned char renego_period[8];     /*!<  value of the record counters
+                                              that triggers renegotiation    */
 #endif
     int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
@@ -1543,6 +1545,26 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
  *                 it but allow for a grace period of max_records records.
  */
 void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records );
+
+/**
+ * \brief          Set record counter threshold for periodic renegotiation.
+ *                 (Default: 2^64 - 256.)
+ *
+ *                 Renegotiation is automatically triggered when a record
+ *                 counter (outgoing or ingoing) crosses the defined
+ *                 threshold. The default value is meant to prevent the
+ *                 connection from being closed when the counter is about to
+ *                 reached its maximal value (it is not allowed to wrap).
+ *
+ *                 Lower values can be used to enforce policies such as "keys
+ *                 must be refreshed every N packets with cipher X".
+ *
+ * \param ssl      SSL context
+ * \param period   The threshold value: a big-endian 64-bit number.
+ *                 Set to 2^64 - 1 to disable periodic renegotiation
+ */
+void ssl_set_renegotiation_period( ssl_context *ssl,
+                                   const unsigned char period[8] );
 #endif /* POLARSSL_SSL_RENEGOTIATION */
 
 /**

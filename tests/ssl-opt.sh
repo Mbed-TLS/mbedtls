@@ -770,6 +770,70 @@ run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+run_test    "Renegotiation: periodic, just below period" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
+            0 \
+            -C "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -S "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -S "record counter limit reached: renegotiate" \
+            -C "=> renegotiate" \
+            -S "=> renegotiate" \
+            -S "write hello request" \
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
+
+run_test    "Renegotiation: periodic, just above period" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_CLI debug_level=3 exchanges=3 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -s "record counter limit reached: renegotiate" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request" \
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
+
+run_test    "Renegotiation: periodic, two times period" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_CLI debug_level=3 exchanges=6 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -s "record counter limit reached: renegotiate" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request" \
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
+
+run_test    "Renegotiation: periodic, above period, disabled" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=0 renego_period=3" \
+            "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
+            0 \
+            -C "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -S "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -S "record counter limit reached: renegotiate" \
+            -C "=> renegotiate" \
+            -S "=> renegotiate" \
+            -S "write hello request" \
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
+
 run_test    "Renegotiation: nbio, client-initiated" \
             "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1" \
             "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \

@@ -658,6 +658,17 @@ static int ssl_write_client_hello( ssl_context *ssl )
         *p++ = (unsigned char)( ciphersuites[i]      );
     }
 
+    /* Some versions of OpenSSL don't handle it correctly if not at end */
+#if defined(POLARSSL_SSL_FALLBACK_SCSV)
+    if( ssl->fallback == SSL_IS_FALLBACK )
+    {
+        SSL_DEBUG_MSG( 3, ( "adding FALLBACK_SCSV" ) );
+        *p++ = (unsigned char)( SSL_FALLBACK_SCSV >> 8 );
+        *p++ = (unsigned char)( SSL_FALLBACK_SCSV      );
+        n++;
+    }
+#endif
+
     *q++ = (unsigned char)( n >> 7 );
     *q++ = (unsigned char)( n << 1 );
 

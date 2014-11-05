@@ -812,6 +812,23 @@
 //#define POLARSSL_SSL_DEBUG_ALL
 
 /**
+ * \def POLARSSL_SSL_FALLBACK_SCSV
+ *
+ * Enable support for FALLBACK_SCSV (draft-ietf-tls-downgrade-scsv-00).
+ *
+ * For servers, it is recommended to always enable this, unless you support
+ * only one version of TLS, or know for sure that none of your clients
+ * implements a fallback strategy.
+ *
+ * For clients, you only need this if you're using a fallback strategy, which
+ * is not recommended in the first place, unless you absolutely need it to
+ * interoperate with buggy (version-intolerant) servers.
+ *
+ * Comment this macro to disable support for FALLBACK_SCSV
+ */
+#define POLARSSL_SSL_FALLBACK_SCSV
+
+/**
  * \def POLARSSL_SSL_HW_RECORD_ACCEL
  *
  * Enable hooking functions in SSL module for hardware acceleration of

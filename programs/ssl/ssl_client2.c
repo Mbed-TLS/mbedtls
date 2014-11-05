@@ -100,6 +100,7 @@ int main( int argc, char *argv[] )
 #define DFL_TRANSPORT           SSL_TRANSPORT_STREAM
 #define DFL_HS_TO_MIN           0
 #define DFL_HS_TO_MAX           0
+#define DFL_FALLBACK            -1
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -142,6 +143,7 @@ struct options
     int transport;              /* TLS or DTLS?                             */
     uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
     uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
+    int fallback;               /* is this a fallback connection?           */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -303,6 +305,13 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_DTLS ""
 #endif
 
+#if defined(POLARSSL_SSL_FALLBACK_SCSV)
+#define USAGE_FALLBACK \
+    "    fallback=0/1        default: (library default: off)\n"
+#else
+#define USAGE_FALLBACK ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -336,6 +345,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
     USAGE_ALPN                                              \
+    USAGE_FALLBACK                                          \
     "\n"                                                    \
     "    min_version=%%s      default: \"\" (ssl3)\n"       \
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
@@ -441,6 +451,7 @@ int main( int argc, char *argv[] )
     opt.transport           = DFL_TRANSPORT;
     opt.hs_to_min           = DFL_HS_TO_MIN;
     opt.hs_to_max           = DFL_HS_TO_MAX;
+    opt.fallback            = DFL_FALLBACK;
 
     for( i = 1; i < argc; i++ )
     {
@@ -564,6 +575,15 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "alpn" ) == 0 )
         {
             opt.alpn_string = q;
+        }
+        else if( strcmp( p, "fallback" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0: opt.fallback = SSL_IS_NOT_FALLBACK; break;
+                case 1: opt.fallback = SSL_IS_FALLBACK; break;
+                default: goto usage;
+            }
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
@@ -1069,6 +1089,11 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
+
+#if defined(POLARSSL_SSL_FALLBACK_SCSV)
+    if( opt.fallback != DFL_FALLBACK )
+        ssl_set_fallback( &ssl, opt.fallback );
+#endif
 
     printf( " ok\n" );
 

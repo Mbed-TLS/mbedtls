@@ -283,6 +283,13 @@
 #error "POLARSSL_SSL_DTLS_BADMAC_LIMIT  defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC) &&   \
+    !defined(POLARSSL_SSL_PROTO_TLS1)   &&      \
+    !defined(POLARSSL_SSL_PROTO_TLS1_1) &&      \
+    !defined(POLARSSL_SSL_PROTO_TLS1_2)
+#error "POLARSSL_SSL_ENCRYPT_THEN_MAC defined, but not all prerequsites"
+#endif
+
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET) && \
     !defined(POLARSSL_SSL_PROTO_TLS1)   &&          \
     !defined(POLARSSL_SSL_PROTO_TLS1_1) &&          \

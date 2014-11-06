@@ -362,14 +362,14 @@ run_test() {
     if is_polar "$SRV_CMD"; then
         if grep "Performing the SSL/TLS handshake" $SRV_OUT >/dev/null; then :;
         else
-            fail "server failed to start"
+            fail "server or client failed to reach handshake stage"
             return
         fi
     fi
     if is_polar "$CLI_CMD"; then
         if grep "Performing the SSL/TLS handshake" $CLI_OUT >/dev/null; then :;
         else
-            fail "client failed to start"
+            fail "server or client failed to reach handshake stage"
             return
         fi
     fi
@@ -566,6 +566,92 @@ run_test    "Truncated HMAC: actual test" \
             "$P_CLI trunc_hmac=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -s "dumping 'computed mac' (10 bytes)"
+
+# Tests for Encrypt-then-MAC extension
+
+run_test    "Encrypt then MAC: default" \
+            "$P_SRV debug_level=3 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "client hello, adding encrypt_then_mac extension" \
+            -s "found encrypt then mac extension" \
+            -s "server hello, adding encrypt then mac extension" \
+            -c "found encrypt_then_mac extension" \
+            -c "using encrypt then mac" \
+            -s "using encrypt then mac"
+
+run_test    "Encrypt then MAC: client enabled, server disabled" \
+            "$P_SRV debug_level=3 etm=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=3 etm=1" \
+            0 \
+            -c "client hello, adding encrypt_then_mac extension" \
+            -s "found encrypt then mac extension" \
+            -S "server hello, adding encrypt then mac extension" \
+            -C "found encrypt_then_mac extension" \
+            -C "using encrypt then mac" \
+            -S "using encrypt then mac"
+
+run_test    "Encrypt then MAC: client enabled, aead cipher" \
+            "$P_SRV debug_level=3 etm=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI debug_level=3 etm=1" \
+            0 \
+            -c "client hello, adding encrypt_then_mac extension" \
+            -s "found encrypt then mac extension" \
+            -S "server hello, adding encrypt then mac extension" \
+            -C "found encrypt_then_mac extension" \
+            -C "using encrypt then mac" \
+            -S "using encrypt then mac"
+
+run_test    "Encrypt then MAC: client enabled, stream cipher" \
+            "$P_SRV debug_level=3 etm=1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI debug_level=3 etm=1" \
+            0 \
+            -c "client hello, adding encrypt_then_mac extension" \
+            -s "found encrypt then mac extension" \
+            -S "server hello, adding encrypt then mac extension" \
+            -C "found encrypt_then_mac extension" \
+            -C "using encrypt then mac" \
+            -S "using encrypt then mac"
+
+run_test    "Encrypt then MAC: client disabled, server enabled" \
+            "$P_SRV debug_level=3 etm=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=3 etm=0" \
+            0 \
+            -C "client hello, adding encrypt_then_mac extension" \
+            -S "found encrypt then mac extension" \
+            -S "server hello, adding encrypt then mac extension" \
+            -C "found encrypt_then_mac extension" \
+            -C "using encrypt then mac" \
+            -S "using encrypt then mac"
+
+run_test    "Encrypt then MAC: client SSLv3, server enabled" \
+            "$P_SRV debug_level=3 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=3 force_version=ssl3" \
+            0 \
+            -C "client hello, adding encrypt_then_mac extension" \
+            -S "found encrypt then mac extension" \
+            -S "server hello, adding encrypt then mac extension" \
+            -C "found encrypt_then_mac extension" \
+            -C "using encrypt then mac" \
+            -S "using encrypt then mac"
+
+run_test    "Encrypt then MAC: client enabled, server SSLv3" \
+            "$P_SRV debug_level=3 force_version=ssl3 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "client hello, adding encrypt_then_mac extension" \
+            -s "found encrypt then mac extension" \
+            -S "server hello, adding encrypt then mac extension" \
+            -C "found encrypt_then_mac extension" \
+            -C "using encrypt then mac" \
+            -S "using encrypt then mac"
 
 # Tests for Extended Master Secret extension
 
@@ -1972,6 +2058,13 @@ run_test    "Small packet TLS 1.0 BlockCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
+run_test    "Small packet TLS 1.0 BlockCipher without EtM" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1 etm=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
 run_test    "Small packet TLS 1.0 BlockCipher truncated MAC" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1 \
@@ -1991,6 +2084,13 @@ run_test    "Small packet TLS 1.0 StreamCipher truncated MAC" \
 run_test    "Small packet TLS 1.1 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.1 BlockCipher without EtM" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_1 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 1 bytes read"
@@ -2021,6 +2121,13 @@ run_test    "Small packet TLS 1.1 StreamCipher truncated MAC" \
 run_test    "Small packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.2 BlockCipher without EtM" \
+            "$P_SRV" \
+            "$P_CLI request_size=1 force_version=tls1_2 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 1 bytes read"

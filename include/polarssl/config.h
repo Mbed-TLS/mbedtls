@@ -811,6 +811,24 @@
  */
 //#define POLARSSL_SSL_DEBUG_ALL
 
+/** \def POLARSSL_SSL_ENCRYPT_THEN_MAC
+ *
+ * Enable support for Encrypt-then-MAC, RFC 7366.
+ *
+ * This allows peers that both support it to use a more robust protection for
+ * ciphersuites using CBC, providing deep resistance against timing attacks
+ * on the padding or underlying cipher.
+ *
+ * This only affects CBC ciphersuites, and is useless if none is defined.
+ *
+ * Requires: POLARSSL_SSL_PROTO_TLS1    or
+ *           POLARSSL_SSL_PROTO_TLS1_1  or
+ *           POLARSSL_SSL_PROTO_TLS1_2
+ *
+ * Comment this macro to disable support for Encrypt-then-MAC
+ */
+#define POLARSSL_SSL_ENCRYPT_THEN_MAC
+
 /** \def POLARSSL_SSL_EXTENDED_MASTER_SECRET
  *
  * Enable support for Extended Master Secret, aka Session Hash

@@ -1103,6 +1103,11 @@ static char ssl_get_mac_order( ssl_context *ssl,
     }
 #endif
 
+    /* Unused if AEAD is the only option */
+    ((void) ssl);
+    ((void) session);
+    ((void) mode);
+
     return( MAC_NONE );
 }
 

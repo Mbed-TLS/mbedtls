@@ -101,6 +101,7 @@ int main( int argc, char *argv[] )
 #define DFL_HS_TO_MIN           0
 #define DFL_HS_TO_MAX           0
 #define DFL_FALLBACK            -1
+#define DFL_EXTENDED_MS         -1
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -144,6 +145,7 @@ struct options
     uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
     uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
     int fallback;               /* is this a fallback connection?           */
+    char extended_ms;           /* negotiate extended master secret?        */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )
@@ -312,6 +314,13 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_FALLBACK ""
 #endif
 
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+#define USAGE_EMS \
+    "    extended_ms=0/1     default: (library default: on)\n"
+#else
+#define USAGE_EMS ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -346,6 +355,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     USAGE_TRUNC_HMAC                                        \
     USAGE_ALPN                                              \
     USAGE_FALLBACK                                          \
+    USAGE_EMS                                               \
     "\n"                                                    \
     "    min_version=%%s      default: \"\" (ssl3)\n"       \
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
@@ -452,6 +462,7 @@ int main( int argc, char *argv[] )
     opt.hs_to_min           = DFL_HS_TO_MIN;
     opt.hs_to_max           = DFL_HS_TO_MAX;
     opt.fallback            = DFL_FALLBACK;
+    opt.extended_ms         = DFL_EXTENDED_MS;
 
     for( i = 1; i < argc; i++ )
     {
@@ -582,6 +593,15 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.fallback = SSL_IS_NOT_FALLBACK; break;
                 case 1: opt.fallback = SSL_IS_FALLBACK; break;
+                default: goto usage;
+            }
+        }
+        else if( strcmp( p, "extended_ms" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0: opt.extended_ms = SSL_EXTENDED_MS_DISABLED; break;
+                case 1: opt.extended_ms = SSL_EXTENDED_MS_ENABLED; break;
                 default: goto usage;
             }
         }
@@ -995,6 +1015,11 @@ int main( int argc, char *argv[] )
             printf( " failed\n  ! ssl_set_truncated_hmac returned %d\n\n", ret );
             goto exit;
         }
+#endif
+
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+    if( opt.extended_ms != DFL_EXTENDED_MS )
+        ssl_set_extended_master_secret( &ssl, opt.extended_ms );
 #endif
 
 #if defined(POLARSSL_SSL_ALPN)

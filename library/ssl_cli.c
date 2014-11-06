@@ -359,6 +359,32 @@ static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+static void ssl_write_extended_ms_ext( ssl_context *ssl,
+                                       unsigned char *buf, size_t *olen )
+{
+    unsigned char *p = buf;
+
+    if( ssl->extended_ms == SSL_EXTENDED_MS_DISABLED ||
+        ssl->max_minor_ver == SSL_MINOR_VERSION_0 )
+    {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding extended_master_secret "
+                        "extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_EXTENDED_MASTER_SECRET >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_EXTENDED_MASTER_SECRET      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 0x00;
+
+    *olen = 4;
+}
+#endif /* POLARSSL_SSL_EXTENDED_MASTER_SECRET */
+
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 static void ssl_write_session_ticket_ext( ssl_context *ssl,
                                           unsigned char *buf, size_t *olen )
@@ -744,6 +770,11 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+    ssl_write_extended_ms_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#endif
+
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
@@ -866,6 +897,26 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
     return( 0 );
 }
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+static int ssl_parse_extended_ms_ext( ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         size_t len )
+{
+    if( ssl->extended_ms == SSL_EXTENDED_MS_DISABLED ||
+        ssl->minor_ver == SSL_MINOR_VERSION_0 ||
+        len != 0 )
+    {
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    ((void) buf);
+
+    ssl->handshake->extended_ms = SSL_EXTENDED_MS_ENABLED;
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 static int ssl_parse_session_ticket_ext( ssl_context *ssl,
@@ -1343,6 +1394,19 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
             break;
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+        case TLS_EXT_EXTENDED_MASTER_SECRET:
+            SSL_DEBUG_MSG( 3, ( "found extended_master_secret extension" ) );
+
+            if( ( ret = ssl_parse_extended_ms_ext( ssl,
+                            ext + 4, ext_size ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            break;
+#endif /* POLARSSL_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
         case TLS_EXT_SESSION_TICKET:
@@ -2453,12 +2517,6 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
-    if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
-    {
-        SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
-        return( ret );
-    }
-
     ssl->out_msglen  = i + n;
     ssl->out_msgtype = SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = SSL_HS_CLIENT_KEY_EXCHANGE;
@@ -2483,8 +2541,15 @@ static int ssl_write_client_key_exchange( ssl_context *ssl )
 static int ssl_write_certificate_verify( ssl_context *ssl )
 {
     const ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    int ret;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
+
+    if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
+        return( ret );
+    }
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||
@@ -2511,6 +2576,12 @@ static int ssl_write_certificate_verify( ssl_context *ssl )
     unsigned int hashlen;
 
     SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
+
+    if( ( ret = ssl_derive_keys( ssl ) ) != 0 )
+    {
+        SSL_DEBUG_RET( 1, "ssl_derive_keys", ret );
+        return( ret );
+    }
 
     if( ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_PSK ||
         ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ||

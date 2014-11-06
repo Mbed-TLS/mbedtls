@@ -177,6 +177,9 @@ typedef struct
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng );
 
+    /** Check public-private key pair */
+    int (*check_pair_func)( const void *pub, const void *prv );
+
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
 
@@ -425,6 +428,16 @@ int pk_encrypt( pk_context *ctx,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Check if a public-private pair of keys matches.
+ *
+ * \param pub       Context holding a public key.
+ * \param prv       Context holding a private (and public) key.
+ *
+ * \return          0 on success or POLARSSL_ERR_PK_BAD_INPUT_DATA
+ */
+int pk_check_pair( const pk_context *pub, const pk_context *prv );
 
 /**
  * \brief           Export debug information

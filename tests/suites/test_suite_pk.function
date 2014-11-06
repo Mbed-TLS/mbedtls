@@ -80,6 +80,24 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:POLARSSL_PK_PARSE_C */
+void pk_check_pair( char *pub_file, char *prv_file, int ret )
+{
+    pk_context pub, prv;
+
+    pk_init( &pub );
+    pk_init( &prv );
+
+    TEST_ASSERT( pk_parse_public_keyfile( &pub, pub_file ) == 0 );
+    TEST_ASSERT( pk_parse_keyfile( &prv, prv_file, NULL ) == 0 );
+
+    TEST_ASSERT( pk_check_pair( &pub, &prv ) == ret );
+
+    pk_free( &pub );
+    pk_free( &prv );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_RSA_C */
 void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
                        int mod, int radix_N, char *input_N, int radix_E,

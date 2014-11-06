@@ -125,6 +125,12 @@ static int rsa_encrypt_wrap( void *ctx,
                 f_rng, p_rng, RSA_PUBLIC, ilen, input, output ) );
 }
 
+static int rsa_check_pair_wrap( const void *pub, const void *prv )
+{
+    return( rsa_check_pub_priv( (const rsa_context *) pub,
+                                (const rsa_context *) prv ) );
+}
+
 static void *rsa_alloc_wrap( void )
 {
     void *ctx = polarssl_malloc( sizeof( rsa_context ) );
@@ -163,6 +169,7 @@ const pk_info_t rsa_info = {
     rsa_sign_wrap,
     rsa_decrypt_wrap,
     rsa_encrypt_wrap,
+    rsa_check_pair_wrap,
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
@@ -234,6 +241,12 @@ static int eckey_sign_wrap( void *ctx, md_type_t md_alg,
 
 #endif /* POLARSSL_ECDSA_C */
 
+static int eckey_check_pair( const void *pub, const void *prv )
+{
+    return( ecp_check_pub_priv( (const ecp_keypair *) pub,
+                                (const ecp_keypair *) prv ) );
+}
+
 static void *eckey_alloc_wrap( void )
 {
     void *ctx = polarssl_malloc( sizeof( ecp_keypair ) );
@@ -271,6 +284,7 @@ const pk_info_t eckey_info = {
 #endif
     NULL,
     NULL,
+    eckey_check_pair,
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
@@ -294,6 +308,7 @@ const pk_info_t eckeydh_info = {
     NULL,
     NULL,
     NULL,
+    eckey_check_pair,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */
@@ -367,6 +382,7 @@ const pk_info_t ecdsa_info = {
     ecdsa_sign_wrap,
     NULL,
     NULL,
+    eckey_check_pair,   /* Compatible key structures */
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */
@@ -444,6 +460,7 @@ const pk_info_t rsa_alt_info = {
     rsa_alt_sign_wrap,
     rsa_alt_decrypt_wrap,
     NULL,
+    NULL,                   /* No public key */
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
     NULL,

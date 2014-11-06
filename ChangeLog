@@ -5,6 +5,7 @@ PolarSSL ChangeLog (Sorted per branch, date)
 Changes
    * Use deterministic nonces for AEAD ciphers in TLS by default (possible to
      switch back to random with POLARSSL_SSL_AEAD_RANDOM_IV in config.h).
+   * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

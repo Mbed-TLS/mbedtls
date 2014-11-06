@@ -275,7 +275,6 @@ cleanup:
     return( 0 );
 }
 
-#if !defined(POLARSSL_RSA_NO_CRT)
 /*
  * Generate or update blinding values, see section 10 of:
  *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
@@ -329,7 +328,6 @@ cleanup:
 
     return( ret );
 }
-#endif /* !POLARSSL_RSA_NO_CRT */
 
 /*
  * Do an RSA private key operation
@@ -343,7 +341,6 @@ int rsa_private( rsa_context *ctx,
     int ret;
     size_t olen;
     mpi T, T1, T2;
-#if !defined(POLARSSL_RSA_NO_CRT)
     mpi *Vi, *Vf;
 
     /*
@@ -361,7 +358,6 @@ int rsa_private( rsa_context *ctx,
     Vi = &ctx->Vi;
     Vf = &ctx->Vf;
 #endif
-#endif /* !POLARSSL_RSA_NO_CRT */
 
     mpi_init( &T ); mpi_init( &T1 ); mpi_init( &T2 );
 
@@ -372,11 +368,6 @@ int rsa_private( rsa_context *ctx,
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
-#if defined(POLARSSL_RSA_NO_CRT)
-    ((void) f_rng);
-    ((void) p_rng);
-    MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
-#else
     if( f_rng != NULL )
     {
         /*
@@ -388,6 +379,9 @@ int rsa_private( rsa_context *ctx,
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
+#if defined(POLARSSL_RSA_NO_CRT)
+    MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
+#else
     /*
      * faster decryption using the CRT
      *
@@ -409,6 +403,7 @@ int rsa_private( rsa_context *ctx,
      */
     MPI_CHK( mpi_mul_mpi( &T1, &T, &ctx->Q ) );
     MPI_CHK( mpi_add_mpi( &T, &T2, &T1 ) );
+#endif /* POLARSSL_RSA_NO_CRT */
 
     if( f_rng != NULL )
     {
@@ -419,14 +414,13 @@ int rsa_private( rsa_context *ctx,
         MPI_CHK( mpi_mul_mpi( &T, &T, Vf ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
-#endif /* POLARSSL_RSA_NO_CRT */
 
     olen = ctx->len;
     MPI_CHK( mpi_write_binary( &T, output, olen ) );
 
 cleanup:
     mpi_free( &T ); mpi_free( &T1 ); mpi_free( &T2 );
-#if !defined(POLARSSL_RSA_NO_CRT) && defined(POLARSSL_THREADING_C)
+#if defined(POLARSSL_THREADING_C)
     mpi_free( &Vi_copy ); mpi_free( &Vf_copy );
 #endif
 
@@ -1425,10 +1419,8 @@ int rsa_copy( rsa_context *dst, const rsa_context *src )
     MPI_CHK( mpi_copy( &dst->RP, &src->RP ) );
     MPI_CHK( mpi_copy( &dst->RQ, &src->RQ ) );
 
-#if !defined(POLARSSL_RSA_NO_CRT)
     MPI_CHK( mpi_copy( &dst->Vi, &src->Vi ) );
     MPI_CHK( mpi_copy( &dst->Vf, &src->Vf ) );
-#endif
 
     dst->padding = src->padding;
     dst->hash_id = src->hash_id;
@@ -1445,9 +1437,7 @@ cleanup:
  */
 void rsa_free( rsa_context *ctx )
 {
-#if !defined(POLARSSL_RSA_NO_CRT)
     mpi_free( &ctx->Vi ); mpi_free( &ctx->Vf );
-#endif
     mpi_free( &ctx->RQ ); mpi_free( &ctx->RP ); mpi_free( &ctx->RN );
     mpi_free( &ctx->QP ); mpi_free( &ctx->DQ ); mpi_free( &ctx->DP );
     mpi_free( &ctx->Q  ); mpi_free( &ctx->P  ); mpi_free( &ctx->D );

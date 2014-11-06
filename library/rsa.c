@@ -241,6 +241,26 @@ cleanup:
 }
 
 /*
+ * Check if contexts holding a public and private key match
+ */
+int rsa_check_pub_priv( const rsa_context *pub, const rsa_context *prv )
+{
+    if( rsa_check_pubkey( pub ) != 0 ||
+        rsa_check_privkey( prv ) != 0 )
+    {
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+    }
+
+    if( mpi_cmp_mpi( &pub->N, &prv->N ) != 0 ||
+        mpi_cmp_mpi( &pub->E, &prv->E ) != 0 )
+    {
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+    }
+
+    return( 0 );
+}
+
+/*
  * Do an RSA public key operation
  */
 int rsa_public( rsa_context *ctx,

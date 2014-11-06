@@ -190,6 +190,17 @@ int rsa_check_pubkey( const rsa_context *ctx );
 int rsa_check_privkey( const rsa_context *ctx );
 
 /**
+ * \brief          Check a public-private RSA key pair.
+ *                 Check each of the contexts, and make sure they match.
+ *
+ * \param pub      RSA context holding the public key
+ * \param prv      RSA context holding the private key
+ *
+ * \return         0 if successful, or an POLARSSL_ERR_RSA_XXX error code
+ */
+int rsa_check_pub_priv( const rsa_context *pub, const rsa_context *prv );
+
+/**
  * \brief          Do an RSA public key operation
  *
  * \param ctx      RSA context

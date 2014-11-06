@@ -1128,7 +1128,9 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     unsigned int comp_len;
     unsigned int ext_len = 0;
     unsigned char *buf, *p, *ext;
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
+#endif
     int handshake_failure = 0;
     const int *ciphersuites;
     const ssl_ciphersuite_t *ciphersuite_info;
@@ -1376,9 +1378,9 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
                 return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
             }
+            renegotiation_info_seen = 1;
 #endif /* POLARSSL_SSL_RENEGOTIATION */
             ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
-            renegotiation_info_seen = 1;
             break;
         }
     }
@@ -1413,7 +1415,9 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 
         case TLS_EXT_RENEGOTIATION_INFO:
             SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
+#if defined(POLARSSL_SSL_RENEGOTIATION)
             renegotiation_info_seen = 1;
+#endif
 
             ret = ssl_parse_renegotiation_info( ssl, ext + 4, ext_size );
             if( ret != 0 )

@@ -674,6 +674,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
+    /* olen unused if all extensions are disabled */
+    ((void) olen);
+
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
 
@@ -892,7 +895,9 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     size_t n;
     size_t ext_len;
     unsigned char *buf, *ext;
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
+#endif
     int handshake_failure = 0;
 #if defined(POLARSSL_DEBUG_C)
     uint32_t t;
@@ -1126,7 +1131,9 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         {
         case TLS_EXT_RENEGOTIATION_INFO:
             SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
+#if defined(POLARSSL_SSL_RENEGOTIATION)
             renegotiation_info_seen = 1;
+#endif
 
             if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4,
                                                       ext_size ) ) != 0 )

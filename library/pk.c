@@ -306,18 +306,24 @@ int pk_encrypt( pk_context *ctx,
 int pk_check_pair( const pk_context *pub, const pk_context *prv )
 {
     if( pub == NULL || pub->pk_info == NULL ||
-        prv == NULL || prv->pk_info == NULL )
+        prv == NULL || prv->pk_info == NULL ||
+        prv->pk_info->check_pair_func == NULL )
     {
         return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
     }
 
-    if( pub->pk_info != prv->pk_info ||
-        pub->pk_info->check_pair_func == NULL )
+    if( prv->pk_info->type == POLARSSL_PK_RSA_ALT )
     {
-        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+        if( pub->pk_info->type != POLARSSL_PK_RSA )
+            return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+    }
+    else
+    {
+        if( pub->pk_info != prv->pk_info )
+            return( POLARSSL_ERR_PK_TYPE_MISMATCH );
     }
 
-    return( pub->pk_info->check_pair_func( pub->pk_ctx, prv->pk_ctx ) );
+    return( prv->pk_info->check_pair_func( pub->pk_ctx, prv->pk_ctx ) );
 }
 
 /*

@@ -117,9 +117,10 @@ static int rsa_encrypt_wrap( void *ctx,
                     unsigned char *output, size_t *olen, size_t osize,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    ((void) osize);
-
     *olen = ((rsa_context *) ctx)->len;
+
+    if( *olen > osize )
+        return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
 
     return( rsa_pkcs1_encrypt( (rsa_context *) ctx,
                 f_rng, p_rng, RSA_PUBLIC, ilen, input, output ) );
@@ -435,6 +436,34 @@ static int rsa_alt_decrypt_wrap( void *ctx,
                 RSA_PRIVATE, olen, input, output, osize ) );
 }
 
+static int rsa_alt_check_pair( const void *pub, const void *prv )
+{
+    unsigned char sig[POLARSSL_MPI_MAX_SIZE];
+    unsigned char hash[32];
+    size_t sig_len = 0;
+    int ret;
+
+    if( rsa_alt_get_size( prv ) != rsa_get_size( pub ) )
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+
+    memset( hash, 0x2a, sizeof( hash ) );
+
+    if( ( ret = rsa_alt_sign_wrap( (void *) prv, POLARSSL_MD_NONE,
+                                   hash, sizeof( hash ),
+                                   sig, &sig_len, NULL, NULL ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( rsa_verify_wrap( (void *) pub, POLARSSL_MD_NONE,
+                         hash, sizeof( hash ), sig, sig_len ) != 0 )
+    {
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+    }
+
+    return( 0 );
+}
+
 static void *rsa_alt_alloc_wrap( void )
 {
     void *ctx = polarssl_malloc( sizeof( rsa_alt_context ) );
@@ -460,7 +489,7 @@ const pk_info_t rsa_alt_info = {
     rsa_alt_sign_wrap,
     rsa_alt_decrypt_wrap,
     NULL,
-    NULL,                   /* No public key */
+    rsa_alt_check_pair,
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
     NULL,

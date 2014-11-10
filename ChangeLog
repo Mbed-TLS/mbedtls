@@ -13,6 +13,9 @@ Security
      (TLS server is not affected if it doesn't ask for a client certificate)
      found using Codenomicon Defensics).
 
+Bugfix
+   * Fix potential undefined behaviour in Camellia.
+
 Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
    * Forbid repeated extensions in X.509 certificates.

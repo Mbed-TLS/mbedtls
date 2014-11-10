@@ -293,14 +293,14 @@ static void camellia_feistel(const uint32_t x[2], const uint32_t k[2], uint32_t 
     I0 = x[0] ^ k[0];
     I1 = x[1] ^ k[1];
 
-    I0 = (SBOX1((I0 >> 24) & 0xFF) << 24) |
-         (SBOX2((I0 >> 16) & 0xFF) << 16) |
-         (SBOX3((I0 >>  8) & 0xFF) <<  8) |
-         (SBOX4((I0      ) & 0xFF)      );
-    I1 = (SBOX2((I1 >> 24) & 0xFF) << 24) |
-         (SBOX3((I1 >> 16) & 0xFF) << 16) |
-         (SBOX4((I1 >>  8) & 0xFF) <<  8) |
-         (SBOX1((I1      ) & 0xFF)      );
+    I0 = ((uint32_t) SBOX1((I0 >> 24) & 0xFF) << 24) |
+         ((uint32_t) SBOX2((I0 >> 16) & 0xFF) << 16) |
+         ((uint32_t) SBOX3((I0 >>  8) & 0xFF) <<  8) |
+         ((uint32_t) SBOX4((I0      ) & 0xFF)      );
+    I1 = ((uint32_t) SBOX2((I1 >> 24) & 0xFF) << 24) |
+         ((uint32_t) SBOX3((I1 >> 16) & 0xFF) << 16) |
+         ((uint32_t) SBOX4((I1 >>  8) & 0xFF) <<  8) |
+         ((uint32_t) SBOX1((I1      ) & 0xFF)      );
 
     I0 ^= (I1 << 8) | (I1 >> 24);
     I1 ^= (I0 << 16) | (I0 >> 16);

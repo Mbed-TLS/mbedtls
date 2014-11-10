@@ -9,6 +9,8 @@ Bugfix
    * User set CFLAGS were ignore by Cmake with gcc (introduced in 1.3.9, found
      by Julian Ospald).
    * Fix potential undefined behaviour in Camellia.
+   * Fix potential failure in ECDSA signatures when POLARSSL_ECP_MAX_BITS is a
+     multiple of 8 (found by Gergely Budai).
 
 Changes
    * Use deterministic nonces for AEAD ciphers in TLS by default (possible to

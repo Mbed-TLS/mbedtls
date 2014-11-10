@@ -18,7 +18,7 @@ if(CMAKE_COMPILER_IS_CLANG)
   set(CMAKE_C_FLAGS_RELEASE "-O2")
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
   set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
-  set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fno-omit-frame-pointer -g3 -O1 -Werror")
+  set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fno-omit-frame-pointer -g3 -O1 -Werror")
   set(CMAKE_C_FLAGS_CHECK "-O1 -Werror")
 endif(CMAKE_COMPILER_IS_CLANG)
 

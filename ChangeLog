@@ -6,6 +6,9 @@ Security
    * Fix remotely-triggerable uninitialised pointer dereference caused by
      crafted X.509 certificate (server is not affected if it doesn't ask for a
      client certificate) (found using Codenomicon Defensics).
+   * Fix remotely-triggerable memory leak caused by crafted X.509 certificates
+     (server is not affected if it doesn't ask for a client certificate)
+     (found using Codenomicon Defensics).
 
 Features
    * Add function pk_check_pair() to test if public and private keys match.

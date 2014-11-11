@@ -19,11 +19,13 @@ if(CMAKE_COMPILER_IS_CLANG)
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
   set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
   set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fno-omit-frame-pointer -g3 -O1 -Werror")
+  # note: can add -fsanitize-memory-track-origins=2 for debugging with memsan
+  set(CMAKE_C_FLAGS_MEMSAN "-fsanitize=memory -fno-omit-frame-pointer -fno-optimize-sibling-calls -g3 -O1 -Werror")
   set(CMAKE_C_FLAGS_CHECK "-O1 -Werror")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan Check CheckFull"
+    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan MemSan Check CheckFull"
     FORCE)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")

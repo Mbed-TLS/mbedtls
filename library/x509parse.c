@@ -866,6 +866,9 @@ static int x509_get_subject_alt_name( unsigned char **p,
         /* Allocate and assign next pointer */
         if (*p < end)
         {
+            if( cur->next != NULL )
+                return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS );
+
             cur->next = (asn1_sequence *) malloc(
                  sizeof( asn1_sequence ) );
 

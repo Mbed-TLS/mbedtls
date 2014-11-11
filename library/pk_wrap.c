@@ -436,6 +436,7 @@ static int rsa_alt_decrypt_wrap( void *ctx,
                 RSA_PRIVATE, olen, input, output, osize ) );
 }
 
+#if defined(POLARSSL_RSA_C)
 static int rsa_alt_check_pair( const void *pub, const void *prv )
 {
     unsigned char sig[POLARSSL_MPI_MAX_SIZE];
@@ -463,6 +464,7 @@ static int rsa_alt_check_pair( const void *pub, const void *prv )
 
     return( 0 );
 }
+#endif /* POLARSSL_RSA_C */
 
 static void *rsa_alt_alloc_wrap( void )
 {
@@ -489,7 +491,11 @@ const pk_info_t rsa_alt_info = {
     rsa_alt_sign_wrap,
     rsa_alt_decrypt_wrap,
     NULL,
+#if defined(POLARSSL_RSA_C)
     rsa_alt_check_pair,
+#else
+    NULL,
+#endif
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
     NULL,

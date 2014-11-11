@@ -2,6 +2,11 @@ PolarSSL ChangeLog
 
 = Version 1.2.z released not yet
 
+Security
+   * Fix remotely-triggerable uninitialised pointer dereference caused by
+     crafted X.509 certificate (TLS server is not affected if it doesn't ask
+     for a client certificate) (found using Codenomicon Defensics).
+
 Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
 

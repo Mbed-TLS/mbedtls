@@ -1636,25 +1636,30 @@ static int x509_string_cmp( const x509_buf *a, const x509_buf *b )
  */
 static int x509_name_cmp( const x509_name *a, const x509_name *b )
 {
-    if( a == NULL && b == NULL )
-        return( 0 );
-
-    if( a == NULL || b == NULL )
-        return( -1 );
-
-    /* type */
-    if( a->oid.tag != b->oid.tag ||
-        a->oid.len != b->oid.len ||
-        memcmp( a->oid.p, b->oid.p, b->oid.len ) != 0 )
+    /* Avoid recursion, it might not be optimised by the compiler */
+    while( a != NULL || b != NULL )
     {
-        return( -1 );
+        if( a == NULL || b == NULL )
+            return( -1 );
+
+        /* type */
+        if( a->oid.tag != b->oid.tag ||
+            a->oid.len != b->oid.len ||
+            memcmp( a->oid.p, b->oid.p, b->oid.len ) != 0 )
+        {
+            return( -1 );
+        }
+
+        /* value */
+        if( x509_string_cmp( &a->val, &b->val ) != 0 )
+            return( -1 );
+
+        a = a->next;
+        b = b->next;
     }
 
-    /* value */
-    if( x509_string_cmp( &a->val, &b->val ) != 0 )
-        return( -1 );
-
-    return( x509_name_cmp( a->next, b->next ) );
+    /* a == NULL == b */
+    return( 0 );
 }
 
 /*

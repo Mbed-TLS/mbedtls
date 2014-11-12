@@ -9,6 +9,9 @@ Security
    * Fix remotely-triggerable memory leak caused by crafted X.509 certificates
      (TLS server is not affected if it doesn't ask for a client certificate)
      (found using Codenomicon Defensics).
+   * Fix potential stack overflow while parsing crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate)
+     found using Codenomicon Defensics).
 
 Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.

@@ -3341,14 +3341,14 @@ static int ssl_handshake_init( ssl_context *ssl )
      */
     if( ssl->transform_negotiate == NULL )
     {
-        ssl->transform_negotiate =
-            (ssl_transform *) polarssl_malloc( sizeof(ssl_transform) );
+        ssl->transform_negotiate = (ssl_transform *) polarssl_malloc(
+                             sizeof(ssl_transform) );
     }
 
     if( ssl->session_negotiate == NULL )
     {
-        ssl->session_negotiate =
-            (ssl_session *) polarssl_malloc( sizeof(ssl_session) );
+        ssl->session_negotiate = (ssl_session *) polarssl_malloc(
+                           sizeof(ssl_session) );
     }
 
     if( ssl->handshake == NULL )

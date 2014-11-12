@@ -243,8 +243,8 @@ static int x509_get_entries( unsigned char **p,
             if( cur_entry->next == NULL )
                 return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
+            memset( cur_entry->next, 0, sizeof( x509_crl_entry ) );
             cur_entry = cur_entry->next;
-            memset( cur_entry, 0, sizeof( x509_crl_entry ) );
         }
     }
 
@@ -294,8 +294,8 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
         }
 
+        x509_crl_init( crl->next );
         crl = crl->next;
-        x509_crl_init( crl );
     }
 
 #if defined(POLARSSL_PEM_PARSE_C)
@@ -532,8 +532,8 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
         }
 
+        x509_crl_init( crl->next );
         crl = crl->next;
-        x509_crl_init( crl );
 
         return( x509_crl_parse( crl, buf, buflen ) );
     }

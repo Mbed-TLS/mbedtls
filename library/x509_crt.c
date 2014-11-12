@@ -819,8 +819,8 @@ int x509_crt_parse_der( x509_crt *chain, const unsigned char *buf,
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
         prev = crt;
+        x509_crt_init( crt->next );
         crt = crt->next;
-        x509_crt_init( crt );
     }
 
     if( ( ret = x509_crt_parse_der_core( crt, buf, buflen ) ) != 0 )

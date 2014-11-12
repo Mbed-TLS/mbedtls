@@ -481,6 +481,10 @@ static int x509_get_crt_ext( unsigned char **p,
             continue;
         }
 
+        /* Forbid repeated extensions */
+        if( ( crt->ext_types & ext_type ) != 0 )
+            return( POLARSSL_ERR_X509_INVALID_EXTENSIONS );
+
         crt->ext_types |= ext_type;
 
         switch( ext_type )

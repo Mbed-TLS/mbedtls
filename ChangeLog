@@ -4,10 +4,13 @@ PolarSSL ChangeLog (Sorted per branch, date)
 
 Security
    * Fix remotely-triggerable uninitialised pointer dereference caused by
-     crafted X.509 certificate (server is not affected if it doesn't ask for a
+     crafted X.509 certificate (TLS server is not affected if it doesn't ask for a
      client certificate) (found using Codenomicon Defensics).
    * Fix remotely-triggerable memory leak caused by crafted X.509 certificates
-     (server is not affected if it doesn't ask for a client certificate)
+     (TLS server is not affected if it doesn't ask for a client certificate)
+     (found using Codenomicon Defensics).
+   * Fix potential stack overflow while parsing crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate)
      (found using Codenomicon Defensics).
 
 Features

@@ -1,5 +1,10 @@
 PolarSSL ChangeLog
 
+= Version 1.2.z released not yet
+
+Changes
+   * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
+
 = Version 1.2.12 released 2014-10-24
 
 Security

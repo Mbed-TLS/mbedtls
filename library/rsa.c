@@ -276,41 +276,35 @@ int rsa_private( rsa_context *ctx,
         return( POLARSSL_ERR_RSA_BAD_INPUT_DATA );
     }
 
-#if defined(POLARSSL_RSA_NO_CRT)
-    ((void) f_rng);
-    ((void) p_rng);
-    MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
-#else
+    /*
+     * Blinding: T = T * Vi mod N
+     */
     if( f_rng != NULL )
     {
         int count = 0;
 
-        /*
-         * Blinding
-         * T = T * Vi mod N
-         */
-        /* Unblinding value: Vf = random number */
+        /* Unblinding value: Vf = random number relatively prime to N */
         do {
             if( count++ > 10 )
                 return( POLARSSL_ERR_RSA_RNG_FAILED );
 
+            /* Use Vi as a temporary variable here */
             MPI_CHK( mpi_fill_random( &Vf, ctx->len - 1, f_rng, p_rng ) );
             MPI_CHK( mpi_gcd( &Vi, &Vf, &ctx->N ) );
         } while( mpi_cmp_int( &Vi, 1 ) != 0 );
-
-        /* Mathematically speaking, the algorithm should check Vf
-         * against 0, P and Q (Vf should be relatively prime to N, and 0 < Vf < N),
-         * so that Vf^-1 exists.
-         */
 
         /* Blinding value: Vi =  Vf^(-e) mod N */
         MPI_CHK( mpi_inv_mod( &Vi, &Vf, &ctx->N ) );
         MPI_CHK( mpi_exp_mod( &Vi, &Vi, &ctx->E, &ctx->N, &ctx->RN ) );
 
+        /* Apply blinding */
         MPI_CHK( mpi_mul_mpi( &T, &T, &Vi ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
 
+#if defined(POLARSSL_RSA_NO_CRT)
+    MPI_CHK( mpi_exp_mod( &T, &T, &ctx->D, &ctx->N, &ctx->RN ) );
+#else
     /*
      * faster decryption using the CRT
      *
@@ -332,6 +326,7 @@ int rsa_private( rsa_context *ctx,
      */
     MPI_CHK( mpi_mul_mpi( &T1, &T, &ctx->Q ) );
     MPI_CHK( mpi_add_mpi( &T, &T2, &T1 ) );
+#endif /* POLARSSL_RSA_NO_CRT */
 
     if( f_rng != NULL )
     {
@@ -342,7 +337,6 @@ int rsa_private( rsa_context *ctx,
         MPI_CHK( mpi_mul_mpi( &T, &T, &Vf ) );
         MPI_CHK( mpi_mod_mpi( &T, &T, &ctx->N ) );
     }
-#endif
 
     olen = ctx->len;
     MPI_CHK( mpi_write_binary( &T, output, olen ) );

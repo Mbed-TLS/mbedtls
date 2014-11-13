@@ -5,27 +5,29 @@ string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wlogical-op")
-  set(CMAKE_C_FLAGS_RELEASE "-O2")
-  set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
-  set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
-  set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fno-omit-frame-pointer -g3 -O1 -Werror")
-  set(CMAKE_C_FLAGS_CHECK "-O1 -Werror")
-  set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
+  set(CMAKE_C_FLAGS_RELEASE     "-O2")
+  set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
+  set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
+  set(CMAKE_C_FLAGS_ASAN        "-Werror -fsanitize=address -fno-common -O3")
+  set(CMAKE_C_FLAGS_ASANDBG     "-Werror -fsanitize=address -fno-common -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls ")
+  set(CMAKE_C_FLAGS_CHECK       "-Werror -O1")
+  set(CMAKE_C_FLAGS_CHECKFULL   "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNUCC)
 
 if(CMAKE_COMPILER_IS_CLANG)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wpointer-arith -Wdocumentation -Wunreachable-code")
-  set(CMAKE_C_FLAGS_RELEASE "-O2")
-  set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
-  set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 --coverage")
-  set(CMAKE_C_FLAGS_ASAN "-fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fno-omit-frame-pointer -g3 -O1 -Werror")
-  # note: can add -fsanitize-memory-track-origins=2 for debugging with memsan
-  set(CMAKE_C_FLAGS_MEMSAN "-fsanitize=memory -fno-omit-frame-pointer -fno-optimize-sibling-calls -g3 -O1 -Werror")
-  set(CMAKE_C_FLAGS_CHECK "-O1 -Werror")
+  set(CMAKE_C_FLAGS_RELEASE     "-O2")
+  set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
+  set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
+  set(CMAKE_C_FLAGS_ASAN        "-Werror -fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover -O3")
+  set(CMAKE_C_FLAGS_ASANDBG     "-Werror -fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls ")
+  set(CMAKE_C_FLAGS_MEMSAN      "-Werror -fsanitize=memory -O3")
+  set(CMAKE_C_FLAGS_MEMSANDBG   "-Werror -fsanitize=memory -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2")
+  set(CMAKE_C_FLAGS_CHECK       "-Werror -O1")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan MemSan Check CheckFull"
+    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
     FORCE)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")

@@ -77,6 +77,11 @@ Switching build modes in CMake is simple. For debug mode, enter at the command l
 
     cmake -D CMAKE_BUILD_TYPE:String="Debug" .
 
+Note that, with CMake, if you want to change the compiler or its options after you already ran CMake, you need to clear its cache first, eg (using GNU find)::
+
+    find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
+    CC=gcc CFLAGS='-fstack-protector-strong -Wa,--noexecstack' cmake .
+
 In order to run the tests, enter::
 
     make test

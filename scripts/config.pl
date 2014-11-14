@@ -6,10 +6,11 @@ use warnings;
 use strict;
 
 my $usage = <<EOU;
-$0 [-f <file>] full
 $0 [-f <file>] unset <name>
 $0 [-f <file>] set <name> [<value>]
 EOU
+# for our eyes only:
+# $0 [-f <file>] full
 
 # Things that shouldn't be enabled with "full".
 # Notes:

@@ -93,6 +93,8 @@ rsa_pkcs1_sign:message_hex_string:padding_mode:digest:mod:radix_P:input_P:radix_
         sha4( message_str, msg_len, hash_result, 0 );
         break;
 #endif
+    default:
+        ; /* do nothing */
     }
 
     TEST_ASSERT( rsa_pkcs1_sign( &ctx, rnd_pseudo_rand, &rnd_info, RSA_PRIVATE, {digest}, 0, hash_result, output ) == {result} );
@@ -169,6 +171,8 @@ rsa_pkcs1_verify:message_hex_string:padding_mode:digest:mod:radix_N:input_N:radi
         sha4( message_str, msg_len, hash_result, 0 );
         break;
 #endif
+    default:
+        ; /* do nothing */
     }
 
     TEST_ASSERT( rsa_pkcs1_verify( &ctx, NULL, NULL, RSA_PUBLIC, {digest}, 0, hash_result, result_str ) == {result} );

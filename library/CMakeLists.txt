@@ -54,9 +54,12 @@ set(libs ws2_32)
 endif(WIN32)
 
 if(CMAKE_COMPILER_IS_GNUCC)
-  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS_CHECK} -Wmissing-declarations -Wmissing-prototypes")
-  set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")
 endif(CMAKE_COMPILER_IS_GNUCC)
+
+if(CMAKE_COMPILER_IS_CLANG)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wunreachable-code")
+endif(CMAKE_COMPILER_IS_CLANG)
 
 if (NOT USE_STATIC_POLARSSL_LIBRARY AND NOT USE_SHARED_POLARSSL_LIBRARY)
 	message(FATAL_ERROR "Need to choose static or shared polarssl build!")

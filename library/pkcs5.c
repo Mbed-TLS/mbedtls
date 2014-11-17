@@ -214,30 +214,40 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
         return( ret );
 
     if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
+    {
+        md_free_ctx( &md_ctx );
         return( ret );
+    }
 
     if ( ( ret = pkcs5_pbkdf2_hmac( &md_ctx, pwd, pwdlen, salt.p, salt.len,
                                     iterations, keylen, key ) ) != 0 )
     {
-        return( ret );
+        goto cleanup;
     }
 
     if( ( ret = cipher_setkey( &cipher_ctx, key, keylen, mode ) ) != 0 )
-        return( ret );
+        goto cleanup;
 
     if( ( ret = cipher_reset( &cipher_ctx, iv ) ) != 0 )
-        return( ret );
+        goto cleanup;
 
     if( ( ret = cipher_update( &cipher_ctx, data, datalen,
                                 output, &olen ) ) != 0 )
     {
-        return( ret );
+        goto cleanup;
     }
 
     if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
-        return( POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH );
+    {
+        ret = POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH;
+        goto cleanup;
+    }
 
-    return( 0 );
+cleanup:
+    md_free_ctx( &md_ctx );
+    cipher_free_ctx( &cipher_ctx );
+
+    return( ret );
 }
 
 int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,

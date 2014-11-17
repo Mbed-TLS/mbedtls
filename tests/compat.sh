@@ -4,6 +4,8 @@ MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
 OPENSSL=openssl
 
+FAILED=0
+
 for VERIFY in $VERIFIES;
 do
 if [ "X$VERIFY" = "XYES" ];
@@ -107,6 +109,7 @@ do
         echo Ciphersuite not supported in client
     elif [ "$EXIT" != "0" ];
     then
+        FAILED=1
         echo Failed
         echo $RESULT
     else
@@ -133,6 +136,7 @@ do
         then
             echo "Ciphersuite not supported in server"
         else
+            FAILED=1
             echo Failed
             echo ../programs/ssl/ssl_server2 $P_SERVER_ARGS 
             echo $OPENSSL s_client -$MODE -cipher $i $O_CLIENT_ARGS 
@@ -173,6 +177,7 @@ do
         echo Ciphersuite not supported in client
     elif [ "$EXIT" != "0" ];
     then
+        FAILED=1
         echo Failed
         echo $RESULT
     else
@@ -183,3 +188,5 @@ kill $PROCESS_ID
 
 done
 done
+
+exit $FAILED

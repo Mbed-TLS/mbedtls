@@ -38,9 +38,9 @@
 #define POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT             -0x1E80  /**< PBE ASN.1 data not as expected. */
 #define POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH              -0x1E00  /**< Given private key password does not allow for correct decryption. */
 
-#define PKCS12_DERIVE_KEY       1   /*< encryption/decryption key */
-#define PKCS12_DERIVE_IV        2   /*< initialization vector     */
-#define PKCS12_DERIVE_MAC_KEY   3   /*< integrity / MAC key       */
+#define PKCS12_DERIVE_KEY       1   /**< encryption/decryption key */
+#define PKCS12_DERIVE_IV        2   /**< initialization vector     */
+#define PKCS12_DERIVE_MAC_KEY   3   /**< integrity / MAC key       */
 
 #define PKCS12_PBE_DECRYPT      0
 #define PKCS12_PBE_ENCRYPT      1

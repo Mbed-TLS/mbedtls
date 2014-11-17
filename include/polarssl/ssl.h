@@ -802,9 +802,9 @@ void ssl_set_own_cert( ssl_context *ssl, x509_cert *own_cert,
  * \param ssl      SSL context
  * \param own_cert own public certificate chain
  * \param rsa_key  alternate implementation private RSA key
- * \param rsa_decrypt_func  alternate implementation of \c rsa_pkcs1_decrypt()
- * \param rsa_sign_func     alternate implementation of \c rsa_pkcs1_sign()
- * \param rsa_key_len_func  function returning length of RSA key in bytes
+ * \param rsa_decrypt  alternate implementation of \c rsa_pkcs1_decrypt()
+ * \param rsa_sign     alternate implementation of \c rsa_pkcs1_sign()
+ * \param rsa_key_len  function returning length of RSA key in bytes
  */
 void ssl_set_own_cert_alt( ssl_context *ssl, x509_cert *own_cert,
                            void *rsa_key,

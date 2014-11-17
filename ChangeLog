@@ -15,6 +15,7 @@ Security
 
 Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
+   * Forbid repeated extensions in X.509 certificates.
 
 = Version 1.2.12 released 2014-10-24
 

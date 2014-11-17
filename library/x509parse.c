@@ -894,6 +894,37 @@ static int x509_get_subject_alt_name( unsigned char **p,
     return( 0 );
 }
 
+static int x509_get_crt_ext_type( const x509_buf *oid )
+{
+    if( ( OID_SIZE( OID_BASIC_CONSTRAINTS ) == oid->len ) &&
+          memcmp( oid->p, OID_BASIC_CONSTRAINTS, oid->len ) == 0 )
+    {
+        return( EXT_BASIC_CONSTRAINTS );
+    }
+    else if( ( OID_SIZE( OID_NS_CERT_TYPE ) == oid->len ) &&
+               memcmp( oid->p, OID_NS_CERT_TYPE, oid->len ) == 0 )
+    {
+        return( EXT_NS_CERT_TYPE );
+    }
+    else if( ( OID_SIZE( OID_KEY_USAGE ) == oid->len ) &&
+               memcmp( oid->p, OID_KEY_USAGE, oid->len ) == 0 )
+    {
+        return( EXT_KEY_USAGE );
+    }
+    else if( ( OID_SIZE( OID_EXTENDED_KEY_USAGE ) == oid->len ) &&
+               memcmp( oid->p, OID_EXTENDED_KEY_USAGE, oid->len ) == 0 )
+    {
+        return( EXT_EXTENDED_KEY_USAGE );
+    }
+    else if( ( OID_SIZE( OID_SUBJECT_ALT_NAME ) == oid->len ) &&
+               memcmp( oid->p, OID_SUBJECT_ALT_NAME, oid->len ) == 0 )
+    {
+        return( EXT_SUBJECT_ALT_NAME );
+    }
+
+    return( -1 );
+}
+
 /*
  * X.509 v3 extensions
  *
@@ -927,6 +958,7 @@ static int x509_get_crt_ext( unsigned char **p,
          */
         x509_buf extn_oid = {0, 0, NULL};
         int is_critical = 0; /* DEFAULT FALSE */
+        int ext_type = 0;
 
         if( ( ret = asn1_get_tag( p, end, &len,
                 ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
@@ -966,52 +998,9 @@ static int x509_get_crt_ext( unsigned char **p,
         /*
          * Detect supported extensions
          */
-        if( ( OID_SIZE( OID_BASIC_CONSTRAINTS ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_BASIC_CONSTRAINTS, extn_oid.len ) == 0 )
-        {
-            /* Parse basic constraints */
-            if( ( ret = x509_get_basic_constraints( p, end_ext_octet,
-                    &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_BASIC_CONSTRAINTS;
-        }
-        else if( ( OID_SIZE( OID_NS_CERT_TYPE ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_NS_CERT_TYPE, extn_oid.len ) == 0 )
-        {
-            /* Parse netscape certificate type */
-            if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
-                    &crt->ns_cert_type ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_NS_CERT_TYPE;
-        }
-        else if( ( OID_SIZE( OID_KEY_USAGE ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_KEY_USAGE, extn_oid.len ) == 0 )
-        {
-            /* Parse key usage */
-            if( ( ret = x509_get_key_usage( p, end_ext_octet,
-                    &crt->key_usage ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_KEY_USAGE;
-        }
-        else if( ( OID_SIZE( OID_EXTENDED_KEY_USAGE ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_EXTENDED_KEY_USAGE, extn_oid.len ) == 0 )
-        {
-            /* Parse extended key usage */
-            if( ( ret = x509_get_ext_key_usage( p, end_ext_octet,
-                    &crt->ext_key_usage ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_EXTENDED_KEY_USAGE;
-        }
-        else if( ( OID_SIZE( OID_SUBJECT_ALT_NAME ) == extn_oid.len ) &&
-                memcmp( extn_oid.p, OID_SUBJECT_ALT_NAME, extn_oid.len ) == 0 )
-        {
-            /* Parse extended key usage */
-            if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
-                    &crt->subject_alt_names ) ) != 0 )
-                return ( ret );
-            crt->ext_types |= EXT_SUBJECT_ALT_NAME;
-        }
-        else
+        ext_type = x509_get_crt_ext_type( &extn_oid );
+
+        if( ext_type < 0 )
         {
             /* No parser found, skip extension */
             *p = end_ext_octet;
@@ -1024,6 +1013,54 @@ static int x509_get_crt_ext( unsigned char **p,
                         POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
             }
 #endif
+            continue;
+        }
+
+        /* Forbid repeated extensions */
+        if( ( crt->ext_types & ext_type ) != 0 )
+            return( POLARSSL_ERR_X509_CERT_INVALID_EXTENSIONS );
+
+        crt->ext_types |= ext_type;
+
+        switch( ext_type )
+        {
+        case EXT_BASIC_CONSTRAINTS:
+            /* Parse basic constraints */
+            if( ( ret = x509_get_basic_constraints( p, end_ext_octet,
+                    &crt->ca_istrue, &crt->max_pathlen ) ) != 0 )
+                return( ret );
+            break;
+
+        case EXT_KEY_USAGE:
+            /* Parse key usage */
+            if( ( ret = x509_get_key_usage( p, end_ext_octet,
+                    &crt->key_usage ) ) != 0 )
+                return( ret );
+            break;
+
+        case EXT_EXTENDED_KEY_USAGE:
+            /* Parse extended key usage */
+            if( ( ret = x509_get_ext_key_usage( p, end_ext_octet,
+                    &crt->ext_key_usage ) ) != 0 )
+                return( ret );
+            break;
+
+        case EXT_SUBJECT_ALT_NAME:
+            /* Parse subject alt name */
+            if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
+                    &crt->subject_alt_names ) ) != 0 )
+                return( ret );
+            break;
+
+        case EXT_NS_CERT_TYPE:
+            /* Parse netscape certificate type */
+            if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
+                    &crt->ns_cert_type ) ) != 0 )
+                return( ret );
+            break;
+
+        default:
+            return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
         }
     }
 

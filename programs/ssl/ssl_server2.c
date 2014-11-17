@@ -656,8 +656,9 @@ int main( int argc, char *argv[] )
 #endif
 
 #if !defined(_WIN32)
-    /* Abort cleanly on SIGTERM */
+    /* Abort cleanly on SIGTERM and SIGINT */
     signal( SIGTERM, term_handler );
+    signal( SIGINT, term_handler );
 #endif
 
     if( argc == 0 )
@@ -1412,7 +1413,7 @@ reset:
 #if !defined(_WIN32)
         if( received_sigterm )
         {
-            printf( " interrupted by SIGTERM\n" );
+            printf( " interrupted by signal\n" );
             ret = 0;
             goto exit;
         }

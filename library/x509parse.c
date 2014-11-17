@@ -193,6 +193,11 @@ static int x509_get_alg( unsigned char **p,
         return( POLARSSL_ERR_X509_CERT_INVALID_ALG + ret );
 
     end = *p + len;
+
+    if( len < 1 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_ALG +
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
     alg->tag = **p;
 
     if( ( ret = asn1_get_tag( p, end, &alg->len, ASN1_OID ) ) != 0 )
@@ -240,6 +245,11 @@ static int x509_get_attr_type_value( unsigned char **p,
         return( POLARSSL_ERR_X509_CERT_INVALID_NAME + ret );
 
     oid = &cur->oid;
+
+    if( len < 1 )
+        return( POLARSSL_ERR_X509_CERT_INVALID_NAME +
+                POLARSSL_ERR_ASN1_OUT_OF_DATA );
+
     oid->tag = **p;
 
     if( ( ret = asn1_get_tag( p, end, &oid->len, ASN1_OID ) ) != 0 )

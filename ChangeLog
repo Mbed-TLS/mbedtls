@@ -12,6 +12,8 @@ Security
    * Fix potential stack overflow while parsing crafted X.509 certificates
      (TLS server is not affected if it doesn't ask for a client certificate)
      found using Codenomicon Defensics).
+   * Fix buffer overread of size 1 when parsing crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate).
 
 Bugfix
    * Fix potential undefined behaviour in Camellia.

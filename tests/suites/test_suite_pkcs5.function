@@ -35,5 +35,7 @@ pbkdf2_hmac:hash:hex_password_string:hex_salt_string:it_cnt:key_len:result_key_s
 
     hexify( dst_str, key, {key_len} );
     TEST_ASSERT( strcmp( (char *) dst_str, {result_key_string} ) == 0 );
+
+    md_free_ctx( &ctx );
 }
 END_CASE

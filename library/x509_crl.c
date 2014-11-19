@@ -489,52 +489,54 @@ int x509_crl_parse_der( x509_crl *chain,
  */
 int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen )
 {
+#if defined(POLARSSL_PEM_PARSE_C)
     int ret;
+    size_t use_len;
+    pem_context pem;
+    int is_pem = 0;
 
     if( chain == NULL || buf == NULL )
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
-#if defined(POLARSSL_PEM_PARSE_C)
-    size_t use_len;
-    pem_context pem;
-
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
-                           "-----BEGIN X509 CRL-----",
-                           "-----END X509 CRL-----",
-                           buf, NULL, 0, &use_len );
-
-    if( ret == 0 )
+    do
     {
-        /*
-         * Was PEM encoded
-         */
-        buflen -= use_len;
-        buf += use_len;
+        pem_init( &pem );
+        ret = pem_read_buffer( &pem,
+                               "-----BEGIN X509 CRL-----",
+                               "-----END X509 CRL-----",
+                               buf, NULL, 0, &use_len );
 
-        if( ( ret = x509_crl_parse_der( chain, pem.buf, pem.buflen ) ) != 0 )
+        if( ret == 0 )
+        {
+            /*
+             * Was PEM encoded
+             */
+            is_pem = 1;
+
+            buflen -= use_len;
+            buf += use_len;
+
+            if( ( ret = x509_crl_parse_der( chain,
+                                            pem.buf, pem.buflen ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            pem_free( &pem );
+        }
+        else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        {
+            pem_free( &pem );
             return( ret );
+        }
+    }
+    while( is_pem && buflen > 0 );
 
-        pem_free( &pem );
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
+    if( is_pem )
+        return( 0 );
     else
 #endif /* POLARSSL_PEM_PARSE_C */
-    {
-        if( ( ret = x509_crl_parse_der( chain, buf, buflen ) ) != 0 )
-            return( ret );
-
-        buflen = 0;
-    }
-
-    if( buflen > 0 )
-        return( x509_crl_parse( chain, buf, buflen ) );
-
-    return( 0 );
+        return( x509_crl_parse_der( chain, buf, buflen ) );
 }
 
 #if defined(POLARSSL_FS_IO)

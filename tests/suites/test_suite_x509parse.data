@@ -646,6 +646,30 @@ X509 Certificate verification #75 (encoding mismatch)
 depends_on:POLARSSL_PEM_PARSE_C
 x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #76 (multiple CRLs, not revoked)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_SHA256_C:POLARSSL_RSA_C
+x509_verify:"data_files/server5.crt":"data_files/test-ca_cat12.crt":"data_files/crl_cat_ec-rsa.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #77 (multiple CRLs, revoked)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_SHA256_C:POLARSSL_RSA_C
+x509_verify:"data_files/server6.crt":"data_files/test-ca_cat12.crt":"data_files/crl_cat_ec-rsa.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
+
+X509 Certificate verification #78 (multiple CRLs, revoked by second)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_SHA256_C:POLARSSL_RSA_C
+x509_verify:"data_files/server6.crt":"data_files/test-ca_cat12.crt":"data_files/crl_cat_rsa-ec.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
+
+X509 Certificate verification #79 (multiple CRLs, revoked by future)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_SHA256_C:POLARSSL_RSA_C
+x509_verify:"data_files/server6.crt":"data_files/test-ca_cat12.crt":"data_files/crl_cat_ecfut-rsa.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED|BADCRL_FUTURE:"NULL"
+
+X509 Certificate verification #80 (multiple CRLs, first future, revoked by second)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_SHA256_C:POLARSSL_RSA_C
+x509_verify:"data_files/server1.crt":"data_files/test-ca_cat12.crt":"data_files/crl_cat_ecfut-rsa.pem":"NULL":POLARSSL_ERR_X509_CERT_VERIFY_FAILED:BADCERT_REVOKED:"NULL"
+
+X509 Certificate verification #81 (multiple CRLs, none relevant)
+depends_on:POLARSSL_PEM_PARSE_C:POLARSSL_ECDSA_C:POLARSSL_ECP_DP_SECP384R1_ENABLED:POLARSSL_ECP_DP_SECP256R1_ENABLED:POLARSSL_SHA256_C:POLARSSL_RSA_C
+x509_verify:"data_files/enco-cert-utf8str.pem":"data_files/enco-ca-prstr.pem":"data_files/crl_cat_rsa-ec.pem":"NULL":0:0:"NULL"
+
 X509 Parse Selftest
 depends_on:POLARSSL_SHA1_C:POLARSSL_PEM_PARSE_C:POLARSSL_CERTS_C
 x509_selftest:

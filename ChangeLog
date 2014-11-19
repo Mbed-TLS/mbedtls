@@ -15,6 +15,7 @@ Security
 
 Features
    * Add function pk_check_pair() to test if public and private keys match.
+   * Add x509_crl_parse_der().
 
 Bugfix
    * User set CFLAGS were ignore by Cmake with gcc (introduced in 1.3.9, found

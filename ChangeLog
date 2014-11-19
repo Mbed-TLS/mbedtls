@@ -29,6 +29,7 @@ Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
    * ssl_set_own_cert() now returns an error on key-certificate mismatch.
    * Forbid repeated extensions in X.509 certificates.
+   * debug_print_buf() now prints a text view in addition to hexadecimal.
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

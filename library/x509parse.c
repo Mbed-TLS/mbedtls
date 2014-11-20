@@ -1582,20 +1582,16 @@ int x509parse_crt( x509_cert *chain, const unsigned char *buf, size_t buflen )
 }
 
 /*
- * Parse one or more CRLs and add them to the chained list
+ * Parse one  CRLs in DER format and append it to the chained list
  */
-int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
+static int x509_crl_parse_der( x509_crl *chain,
+                               const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
     unsigned char *p, *end;
-    x509_crl *crl;
-#if defined(POLARSSL_PEM_C)
-    size_t use_len;
-    pem_context pem;
-#endif
-
-    crl = chain;
+    x509_buf sig_params1, sig_params2;
+    x509_crl *crl = chain;
 
     /*
      * Check for valid input
@@ -1603,13 +1599,16 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
     if( crl == NULL || buf == NULL )
         return( POLARSSL_ERR_X509_INVALID_INPUT );
 
-    while( crl->version != 0 && crl->next != NULL )
-        crl = crl->next;
+    memset( &sig_params1, 0, sizeof( x509_buf ) );
+    memset( &sig_params2, 0, sizeof( x509_buf ) );
 
     /*
      * Add new CRL on the end of the chain if needed.
      */
-    if ( crl->version != 0 && crl->next == NULL)
+    while( crl->version != 0 && crl->next != NULL )
+        crl = crl->next;
+
+    if( crl->version != 0 && crl->next == NULL )
     {
         crl->next = (x509_crl *) malloc( sizeof( x509_crl ) );
 
@@ -1619,66 +1618,22 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
             return( POLARSSL_ERR_X509_MALLOC_FAILED );
         }
 
+        memset( crl->next, 0, sizeof( x509_crl ) );
         crl = crl->next;
-        memset( crl, 0, sizeof( x509_crl ) );
     }
 
-#if defined(POLARSSL_PEM_C)
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
-                           (char *) "-----BEGIN X509 CRL-----",
-                           (char *) "-----END X509 CRL-----",
-                           buf, NULL, 0, &use_len );
-
-    if( ret == 0 )
-    {
-        /*
-         * Was PEM encoded
-         */
-        buflen -= use_len;
-        buf += use_len;
-
-        /*
-         * Steal PEM buffer
-         */
-        p = pem.buf;
-        pem.buf = NULL;
-        len = pem.buflen;
-        pem_free( &pem );
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
-    else
-    {
-        /*
-         * nope, copy the raw DER data
-         */
-        p = (unsigned char *) malloc( len = buflen );
-
-        if( p == NULL )
-            return( POLARSSL_ERR_X509_MALLOC_FAILED );
-
-        memcpy( p, buf, buflen );
-
-        buflen = 0;
-    }
-#else
-    p = (unsigned char *) malloc( len = buflen );
-
-    if( p == NULL )
+    /*
+     * Copy raw DER-encoded CRL
+     */
+    if( ( p = malloc( buflen ) ) == NULL )
         return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
     memcpy( p, buf, buflen );
 
-    buflen = 0;
-#endif
-
     crl->raw.p = p;
-    crl->raw.len = len;
-    end = p + len;
+    crl->raw.len = buflen;
+
+    end = p + buflen;
 
     /*
      * CertificateList  ::=  SEQUENCE  {
@@ -1852,23 +1807,62 @@ int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
     }
 
-    if( buflen > 0 )
-    {
-        crl->next = (x509_crl *) malloc( sizeof( x509_crl ) );
-
-        if( crl->next == NULL )
-        {
-            x509_crl_free( crl );
-            return( POLARSSL_ERR_X509_MALLOC_FAILED );
-        }
-
-        crl = crl->next;
-        memset( crl, 0, sizeof( x509_crl ) );
-
-        return( x509parse_crl( crl, buf, buflen ) );
-    }
-
     return( 0 );
+}
+
+/*
+ * Parse one or more CRLs and add them to the chained list
+ */
+int x509parse_crl( x509_crl *chain, const unsigned char *buf, size_t buflen )
+{
+#if defined(POLARSSL_PEM_C)
+    int ret;
+    size_t use_len;
+    pem_context pem;
+    int is_pem = 0;
+
+    if( chain == NULL || buf == NULL )
+        return( POLARSSL_ERR_X509_INVALID_INPUT );
+
+    do
+    {
+        pem_init( &pem );
+        ret = pem_read_buffer( &pem,
+                               (char *) "-----BEGIN X509 CRL-----",
+                               (char *) "-----END X509 CRL-----",
+                               buf, NULL, 0, &use_len );
+
+        if( ret == 0 )
+        {
+            /*
+             * Was PEM encoded
+             */
+            is_pem = 1;
+
+            buflen -= use_len;
+            buf += use_len;
+
+            if( ( ret = x509_crl_parse_der( chain,
+                                            pem.buf, pem.buflen ) ) != 0 )
+            {
+                return( ret );
+            }
+
+            pem_free( &pem );
+        }
+        else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+        {
+            pem_free( &pem );
+            return( ret );
+        }
+    }
+    while( is_pem && buflen > 0 );
+
+    if( is_pem )
+        return( 0 );
+    else
+#endif /* POLARSSL_PEM_C */
+        return( x509_crl_parse_der( chain, buf, buflen ) );
 }
 
 #if defined(POLARSSL_FS_IO)

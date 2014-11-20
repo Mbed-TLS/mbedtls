@@ -6,8 +6,8 @@
 # CMake configuration. After this script is run, the CMake cache is lost and
 # CMake is not initialised any more!
 #
-# Assumes gcc and clang (recent enough for using ASan) are available,
-# as well as cmake and valgrind.
+# Assumes gcc and clang (recent enough for using ASan with gcc and MemSen with
+# clang) are available, as well as cmake and GNU find.
 
 # Abort on errors (and uninitiliased variables)
 set -eu
@@ -24,11 +24,8 @@ MEMORY=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        -m1)
+        -m*)
             MEMORY=1
-            ;;
-        -m2)
-            MEMORY=2
             ;;
         *)
             echo "Unknown argument: '$1'" >&2
@@ -60,7 +57,8 @@ msg()
 {
     echo ""
     echo "******************************************************************"
-    echo "* $1"
+    echo "* $1 "
+    echo -n "* "; date
     echo "******************************************************************"
 }
 
@@ -72,27 +70,19 @@ msg()
 #
 # Indicative running times are given for reference.
 
-msg "build: cmake, -Werror (gcc)" # ~ 1 min
+msg "build: cmake, gcc, ASan" # ~ 1 min
 cleanup
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
-msg "test: main suites with valgrind" # ~ 2 min 10s
-make memcheck
-
-msg "build: with ASan (clang)" # ~ 1 min
-cleanup
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=ASan .
-make
+msg "test: main suites and selftest (ASan build)" # ~ 10s + 30s
+make test
+programs/test/selftest
 
 msg "test: ssl-opt.sh (ASan build)" # ~ 1 min 10s
 cd tests
 ./ssl-opt.sh
 cd ..
-
-msg "test: main suites and selftest (ASan build)" # ~ 10s + 30s
-make test
-programs/test/selftest
 
 msg "test: ref-configs (ASan build)" # ~ 4 min 45 s
 tests/scripts/test-ref-configs.pl
@@ -107,15 +97,15 @@ cd tests
 ./compat.sh
 cd ..
 
-msg "build: cmake, full config" # ~ 40s
+msg "build: cmake, full config, clang" # ~ 40s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # too slow for tests
-cmake -D CMAKE_BUILD_TYPE:String=Check .
+CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
 make
 
-msg "test: main suites (full config)"
+msg "test: main suites (full config)" # ~ 30s (?)
 make test
 
 msg "test: ssl-opt.sh default (full config)"
@@ -132,22 +122,30 @@ msg "build: Unix make, -O2 (gcc)" # ~ 30s
 cleanup
 CC=gcc make
 
-# Optional parts that take a long time to run
+msg "build: MSan (clang)" # ~ 1 min 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset POLARSSL_AESNI_C # memsan doesn't grok asm
+CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
+make
 
-if [ "$MEMORY" -ge 1 ]; then
-    msg "test: ssl-opt --memcheck (-02 build)" # ~ 8 min
+msg "test: main suites (MSan)" # ~ 15s
+make test
+
+msg "test: ssl-opt.sh (MSan)" # ~ 1 min
+cd tests
+./ssl-opt.sh
+cd ..
+
+# Optional part(s)
+
+if [ "$MEMORY" -gt 0 ]; then
+    msg "test: compat.sh (MSan)" # ~ 6 min 20s
     cd tests
-    ./ssl-opt.sh --memcheck
+    ./compat.sh
     cd ..
-
-    if [ "$MEMORY" -ge 2 ]; then
-        msg "test: compat --memcheck (-02 build)" # ~ 42 min
-        cd tests
-        ./compat.sh --memcheck
-        cd ..
-    fi
 fi
 
-echo "Done."
+msg "Done, cleaning up"
 cleanup
 

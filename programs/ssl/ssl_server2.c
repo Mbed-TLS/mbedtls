@@ -653,6 +653,12 @@ reset:
         len = ret;
         printf( " %d bytes read\n\n%s", len, (char *) buf );
 
+        if( len >= 10 && memcmp( buf, "SERVERQUIT", 10 ) == 0 )
+        {
+            ret = 0;
+            goto exit;
+        }
+
         if( ret > 0 )
             break;
     }

@@ -913,8 +913,7 @@
 /**
  * \def POLARSSL_SSL_ALPN
  *
- * Enable support for Application Layer Protocol Negotiation.
- * draft-ietf-tls-applayerprotoneg-05
+ * Enable support for RFC 7301 Application Layer Protocol Negotiation.
  *
  * Comment this macro to disable support for ALPN.
  */

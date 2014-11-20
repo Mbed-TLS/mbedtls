@@ -599,6 +599,7 @@ int ssl_derive_keys( ssl_context *ssl )
     /*
      * Finally setup the cipher contexts, IVs and MAC secrets.
      */
+#if defined(POLARSSL_SSL_CLI_C)
     if( ssl->endpoint == SSL_IS_CLIENT )
     {
         key1 = keyblk + transform->maclen * 2;
@@ -617,6 +618,9 @@ int ssl_derive_keys( ssl_context *ssl )
                 iv_copy_len );
     }
     else
+#endif /* POLARSSL_SSL_CLI_C */
+#if defined(POLARSSL_SSL_SRV_C)
+    if( ssl->endpoint == SSL_IS_SERVER )
     {
         key1 = keyblk + transform->maclen * 2 + transform->keylen;
         key2 = keyblk + transform->maclen * 2;
@@ -632,6 +636,12 @@ int ssl_derive_keys( ssl_context *ssl )
         memcpy( transform->iv_dec, key1 + transform->keylen,  iv_copy_len );
         memcpy( transform->iv_enc, key1 + transform->keylen + iv_copy_len,
                 iv_copy_len );
+    }
+    else
+#endif /* POLARSSL_SSL_SRV_C */
+    {
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
 #if defined(POLARSSL_SSL_PROTO_SSL3)
@@ -2362,6 +2372,7 @@ int ssl_write_certificate( ssl_context *ssl )
         return( 0 );
     }
 
+#if defined(POLARSSL_SSL_CLI_C)
     if( ssl->endpoint == SSL_IS_CLIENT )
     {
         if( ssl->client_auth == 0 )
@@ -2389,7 +2400,9 @@ int ssl_write_certificate( ssl_context *ssl )
         }
 #endif /* POLARSSL_SSL_PROTO_SSL3 */
     }
-    else /* SSL_IS_SERVER */
+#endif /* POLARSSL_SSL_CLI_C */
+#if defined(POLARSSL_SSL_SRV_C)
+    if( ssl->endpoint == SSL_IS_SERVER )
     {
         if( ssl_own_cert( ssl ) == NULL )
         {
@@ -2397,6 +2410,7 @@ int ssl_write_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED );
         }
     }
+#endif
 
     SSL_DEBUG_CRT( 3, "own certificate", ssl_own_cert( ssl ) );
 
@@ -2472,6 +2486,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         return( 0 );
     }
 
+#if defined(POLARSSL_SSL_SRV_C)
     if( ssl->endpoint == SSL_IS_SERVER &&
         ( ssl->authmode == SSL_VERIFY_NONE ||
           ciphersuite_info->key_exchange == POLARSSL_KEY_EXCHANGE_RSA_PSK ) )
@@ -2481,6 +2496,7 @@ int ssl_parse_certificate( ssl_context *ssl )
         ssl->state++;
         return( 0 );
     }
+#endif
 
     if( ( ret = ssl_read_record( ssl ) ) != 0 )
     {
@@ -2490,6 +2506,7 @@ int ssl_parse_certificate( ssl_context *ssl )
 
     ssl->state++;
 
+#if defined(POLARSSL_SSL_SRV_C)
 #if defined(POLARSSL_SSL_PROTO_SSL3)
     /*
      * Check if the client sent an empty certificate
@@ -2534,6 +2551,7 @@ int ssl_parse_certificate( ssl_context *ssl )
     }
 #endif /* POLARSSL_SSL_PROTO_TLS1 || POLARSSL_SSL_PROTO_TLS1_1 || \
           POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* POLARSSL_SSL_SRV_C */
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
@@ -2612,6 +2630,7 @@ int ssl_parse_certificate( ssl_context *ssl )
      * On client, make sure the server cert doesn't change during renego to
      * avoid "triple handshake" attack: https://secure-resumption.com/
      */
+#if defined(POLARSSL_SSL_CLI_C)
     if( ssl->endpoint == SSL_IS_CLIENT &&
         ssl->renegotiation == SSL_RENEGOTIATION )
     {
@@ -2631,6 +2650,7 @@ int ssl_parse_certificate( ssl_context *ssl )
             return( POLARSSL_ERR_SSL_BAD_HS_CERTIFICATE );
         }
     }
+#endif /* POLARSSL_SSL_CLI_C */
 
     if( ssl->authmode != SSL_VERIFY_NONE )
     {
@@ -3149,10 +3169,14 @@ int ssl_write_finished( ssl_context *ssl )
      */
     if( ssl->handshake->resume != 0 )
     {
+#if defined(POLARSSL_SSL_CLI_C)
         if( ssl->endpoint == SSL_IS_CLIENT )
             ssl->state = SSL_HANDSHAKE_WRAPUP;
-        else
+#endif
+#if defined(POLARSSL_SSL_SRV_C)
+        if( ssl->endpoint == SSL_IS_SERVER )
             ssl->state = SSL_CLIENT_CHANGE_CIPHER_SPEC;
+#endif
     }
     else
         ssl->state++;
@@ -3262,11 +3286,14 @@ int ssl_parse_finished( ssl_context *ssl )
 
     if( ssl->handshake->resume != 0 )
     {
+#if defined(POLARSSL_SSL_CLI_C)
         if( ssl->endpoint == SSL_IS_CLIENT )
             ssl->state = SSL_CLIENT_CHANGE_CIPHER_SPEC;
-
+#endif
+#if defined(POLARSSL_SSL_SRV_C)
         if( ssl->endpoint == SSL_IS_SERVER )
             ssl->state = SSL_HANDSHAKE_WRAPUP;
+#endif
     }
     else
         ssl->state++;
@@ -3604,7 +3631,8 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint )
 {
     ssl->endpoint   = endpoint;
 
-#if defined(POLARSSL_SSL_SESSION_TICKETS)
+#if defined(POLARSSL_SSL_SESSION_TICKETS) && \
+    defined(POLARSSL_SSL_CLI_C)
     if( endpoint == SSL_IS_CLIENT )
         ssl->session_tickets = SSL_SESSION_TICKETS_ENABLED;
 #endif
@@ -3651,6 +3679,7 @@ void ssl_set_bio( ssl_context *ssl,
     ssl->p_send     = p_send;
 }
 
+#if defined(POLARSSL_SSL_SRV_C)
 void ssl_set_session_cache( ssl_context *ssl,
         int (*f_get_cache)(void *, ssl_session *), void *p_get_cache,
         int (*f_set_cache)(void *, const ssl_session *), void *p_set_cache )
@@ -3660,7 +3689,9 @@ void ssl_set_session_cache( ssl_context *ssl,
     ssl->f_set_cache = f_set_cache;
     ssl->p_set_cache = p_set_cache;
 }
+#endif /* POLARSSL_SSL_SRV_C */
 
+#if defined(POLARSSL_SSL_CLI_C)
 int ssl_set_session( ssl_context *ssl, const ssl_session *session )
 {
     int ret;
@@ -3680,6 +3711,7 @@ int ssl_set_session( ssl_context *ssl, const ssl_session *session )
 
     return( 0 );
 }
+#endif /* POLARSSL_SSL_CLI_C */
 
 void ssl_set_ciphersuites( ssl_context *ssl, const int *ciphersuites )
 {
@@ -4037,8 +4069,10 @@ int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
 {
     ssl->session_tickets = use_tickets;
 
+#if defined(POLARSSL_SSL_CLI_C)
     if( ssl->endpoint == SSL_IS_CLIENT )
         return( 0 );
+#endif
 
     if( ssl->f_rng == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
@@ -4105,6 +4139,7 @@ const x509_crt *ssl_get_peer_cert( const ssl_context *ssl )
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+#if defined(POLARSSL_SSL_CLI_C)
 int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
 {
     if( ssl == NULL ||
@@ -4117,6 +4152,7 @@ int ssl_get_session( const ssl_context *ssl, ssl_session *dst )
 
     return( ssl_session_copy( dst, ssl->session ) );
 }
+#endif /* POLARSSL_SSL_CLI_C */
 
 /*
  * Perform a single step of the SSL handshake
@@ -4129,7 +4165,6 @@ int ssl_handshake_step( ssl_context *ssl )
     if( ssl->endpoint == SSL_IS_CLIENT )
         ret = ssl_handshake_client_step( ssl );
 #endif
-
 #if defined(POLARSSL_SSL_SRV_C)
     if( ssl->endpoint == SSL_IS_SERVER )
         ret = ssl_handshake_server_step( ssl );
@@ -4330,6 +4365,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
         {
             SSL_DEBUG_MSG( 1, ( "received handshake message" ) );
 
+#if defined(POLARSSL_SSL_CLI_C)
             if( ssl->endpoint == SSL_IS_CLIENT &&
                 ( ssl->in_msg[0] != SSL_HS_HELLO_REQUEST ||
                   ssl->in_hslen != 4 ) )
@@ -4337,6 +4373,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                 SSL_DEBUG_MSG( 1, ( "handshake received (not HelloRequest)" ) );
                 return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
             }
+#endif
 
             if( ssl->disable_renegotiation == SSL_RENEGOTIATION_DISABLED ||
                 ( ssl->secure_renegotiation == SSL_LEGACY_RENEGOTIATION &&

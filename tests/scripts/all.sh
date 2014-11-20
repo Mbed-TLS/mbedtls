@@ -63,41 +63,41 @@ msg()
 }
 
 # The test ordering tries to optimize for the following criteria:
-# 1. Catch possible problems early, by running first test that run quickly
+# 1. Catch possible problems early, by running first tests that run quickly
 #    and/or are more likely to fail than others (eg I use Clang most of the
 #    time, so start with a GCC build).
 # 2. Minimize total running time, by avoiding useless rebuilds
 #
 # Indicative running times are given for reference.
 
-msg "build: cmake, gcc, ASan" # ~ 1 min
+msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
-msg "test: main suites and selftest (ASan build)" # ~ 10s + 30s
+msg "test: main suites and selftest (ASan build)" # ~ 50s
 make test
 programs/test/selftest
 
-msg "test: ssl-opt.sh (ASan build)" # ~ 1 min 10s
+msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
 cd tests
 ./ssl-opt.sh
 cd ..
 
-msg "test/build: ref-configs (ASan build)" # ~ 4 min 45 s
+msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
 tests/scripts/test-ref-configs.pl
 
-# Most issues are likely to be caught at this point
+# Most frequent issues are likely to be caught at this point
 
 msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make
 
-msg "test: compat.sh (ASan build)" # ~ 7 min 30s
+msg "test: compat.sh (ASan build)" # ~ 6 min
 cd tests
 ./compat.sh
 cd ..
 
-msg "build: cmake, full config, clang" # ~ 40s
+msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
@@ -105,15 +105,15 @@ scripts/config.pl unset POLARSSL_MEMORY_BACKTRACE # too slow for tests
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check .
 make
 
-msg "test: main suites (full config)" # ~ 30s (?)
+msg "test: main suites (full config)" # ~ 5s
 make test
 
-msg "test: ssl-opt.sh default (full config)" # < 5s
+msg "test: ssl-opt.sh default (full config)" # ~ 1s
 cd tests
 ./ssl-opt.sh -f Default
 cd ..
 
-msg "test: compat.sh 3DES & NULL (full config)" # ~ 2 min
+msg "test: compat.sh DES & NULL (full config)" # ~ 2 min
 cd tests
 ./compat.sh -e '^$' -f 'NULL\|3DES-EDE-CBC\|DES-CBC3'
 cd ..
@@ -127,14 +127,14 @@ msg "build: Unix make, -O2 (gcc)" # ~ 30s
 cleanup
 CC=gcc make
 
-msg "build: MSan (clang)" # ~ 1 min 30s
+msg "build: MSan (clang)" # ~ 1 min 20s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl unset POLARSSL_AESNI_C # memsan doesn't grok asm
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
 make
 
-msg "test: main suites (MSan)" # ~ 15s
+msg "test: main suites (MSan)" # ~ 10s
 make test
 
 msg "test: ssl-opt.sh (MSan)" # ~ 1 min

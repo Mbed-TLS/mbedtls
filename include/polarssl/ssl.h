@@ -1027,7 +1027,8 @@ void ssl_set_bio( ssl_context *ssl,
 #if defined(POLARSSL_SSL_SRV_C)
 /**
  * \brief          Set the session cache callbacks (server-side only)
- *                 If not set, no session resuming is done.
+ *                 If not set, no session resuming is done (except if session
+ *                 tickets are enabled too).
  *
  *                 The session cache has the responsibility to check for stale
  *                 entries based on timeout. See RFC 5246 for recommendations.

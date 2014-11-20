@@ -45,6 +45,18 @@
  * \{
  */
 
+#if !defined(POLARSSL_X509_MAX_INTERMEDIATE_CA)
+/**
+ * Maximum number of intermediate CAs in a verification chain.
+ * That is, maximum length of the chain, excluding the end-entity certificate
+ * and the trusted root certificate.
+ *
+ * Set this to a low value to prevent an adversary from making you waste
+ * resources verifying an overlong certificate chain.
+ */
+#define POLARSSL_X509_MAX_INTERMEDIATE_CA   8
+#endif
+
 /**
  * \name X509 Error codes
  * \{

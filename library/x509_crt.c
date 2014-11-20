@@ -1834,6 +1834,13 @@ static int x509_crt_verify_child(
     x509_crt *grandparent;
     const md_info_t *md_info;
 
+    /* path_cnt is 0 for the first intermediate CA */
+    if( 1 + path_cnt > POLARSSL_X509_MAX_INTERMEDIATE_CA )
+    {
+        *flags |= BADCERT_NOT_TRUSTED;
+        return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+    }
+
     if( x509_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
 

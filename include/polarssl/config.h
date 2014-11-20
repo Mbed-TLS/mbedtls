@@ -2185,6 +2185,9 @@
 /* Debug options */
 //#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */
 
+/* X509 options */
+//#define POLARSSL_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
+
 /* \} name SECTION: Module configuration options */
 
 #include "check_config.h"

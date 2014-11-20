@@ -70,6 +70,9 @@ msg()
 #
 # Indicative running times are given for reference.
 
+msg "test: recursion.pl" # < 1s
+scripts/recursion.pl library/*.c
+
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup
 CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

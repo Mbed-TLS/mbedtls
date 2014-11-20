@@ -84,7 +84,7 @@ cd tests
 ./ssl-opt.sh
 cd ..
 
-msg "test: ref-configs (ASan build)" # ~ 4 min 45 s
+msg "test/build: ref-configs (ASan build)" # ~ 4 min 45 s
 tests/scripts/test-ref-configs.pl
 
 # Most issues are likely to be caught at this point
@@ -108,15 +108,20 @@ make
 msg "test: main suites (full config)" # ~ 30s (?)
 make test
 
-msg "test: ssl-opt.sh default (full config)"
+msg "test: ssl-opt.sh default (full config)" # < 5s
 cd tests
 ./ssl-opt.sh -f Default
 cd ..
 
-msg "test: compat.sh 3DES & NULL (full config)"
+msg "test: compat.sh 3DES & NULL (full config)" # ~ 2 min
 cd tests
 ./compat.sh -e '^$' -f 'NULL\|3DES-EDE-CBC\|DES-CBC3'
 cd ..
+
+msg "test/build: curves.pl (gcc)" # ~ 5 min (?)
+cleanup
+cmake -D CMAKE_BUILD_TYPE:String=Debug .
+tests/scripts/curves.pl
 
 msg "build: Unix make, -O2 (gcc)" # ~ 30s
 cleanup

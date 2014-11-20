@@ -22,6 +22,8 @@ Bugfix
 Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
    * Forbid repeated extensions in X.509 certificates.
+   * Add compile-time option POLARSSL_X509_MAX_INTERMEDIATE_CA to limit the
+     length of an X.509 verification chain (default = 8).
 
 = Version 1.2.12 released 2014-10-24
 

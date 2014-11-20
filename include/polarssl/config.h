@@ -1021,6 +1021,10 @@
 //
 #define SSL_MAX_CONTENT_LEN             16384 /**< Size of the input / output buffer */
 
+// X509 options
+//
+#define POLARSSL_X509_MAX_INTERMEDIATE_CA   8 /**< Maximum number of intermediate CAs in a verification chain. */
+
 #endif /* POLARSSL_CONFIG_OPTIONS */
 
 /* \} name */

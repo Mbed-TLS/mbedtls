@@ -3502,6 +3502,13 @@ static int x509parse_verify_child(
     unsigned char hash[64];
     x509_cert *grandparent;
 
+    /* path_cnt is 0 for the first intermediate CA */
+    if( 1 + path_cnt > POLARSSL_X509_MAX_INTERMEDIATE_CA )
+    {
+        *flags |= BADCERT_NOT_TRUSTED;
+        return( POLARSSL_ERR_X509_CERT_VERIFY_FAILED );
+    }
+
     if( x509parse_time_expired( &child->valid_to ) )
         *flags |= BADCERT_EXPIRED;
 

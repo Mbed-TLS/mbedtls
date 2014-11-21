@@ -549,7 +549,7 @@ int x509_crl_parse_file( x509_crl *chain, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = x509_crl_parse( chain, buf, n );

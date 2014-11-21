@@ -638,6 +638,14 @@ int pk_write_pubkey( unsigned char **p, unsigned char *start,
                      const pk_context *key );
 #endif /* POLARSSL_PK_WRITE_C */
 
+/*
+ * Internal module functions. You probably do not want to use these unless you
+ * know you do.
+ */
+#if defined(POLARSSL_FS_IO)
+int pk_load_file( const char *path, unsigned char **buf, size_t *n );
+#endif
+
 #ifdef __cplusplus
 }
 #endif

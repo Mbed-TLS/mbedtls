@@ -1710,6 +1710,9 @@ exit:
     }
 #endif
 
+    printf( "  . Cleaning up..." );
+    fflush( stdout );
+
     if( client_fd != -1 )
         net_close( client_fd );
 
@@ -1747,6 +1750,8 @@ exit:
 #endif
     memory_buffer_alloc_free();
 #endif
+
+    printf( " done.\n" );
 
 #if defined(_WIN32)
     printf( "  + Press Enter to exit this program.\n" );

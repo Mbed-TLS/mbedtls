@@ -1044,6 +1044,9 @@ static int ssl_encrypt_buf( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 2, ( "=> encrypt buf" ) );
 
+    SSL_DEBUG_BUF( 4, "before encrypt: output payload",
+                      ssl->out_msg, ssl->out_msglen );
+
     /*
      * Add MAC before encrypt, except for AEAD modes
      */
@@ -1101,9 +1104,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
         SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
                             "including %d bytes of padding",
                        ssl->out_msglen, 0 ) );
-
-        SSL_DEBUG_BUF( 4, "before encrypt: output payload",
-                       ssl->out_msg, ssl->out_msglen );
 
         if( ( ret = cipher_crypt( &ssl->transform_out->cipher_ctx_enc,
                                    ssl->transform_out->iv_enc,
@@ -1185,9 +1185,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                             "including %d bytes of padding",
                        ssl->out_msglen, 0 ) );
 
-        SSL_DEBUG_BUF( 4, "before encrypt: output payload",
-                       ssl->out_msg, ssl->out_msglen );
-
         /*
          * Encrypt and authenticate
          */
@@ -1267,9 +1264,6 @@ static int ssl_encrypt_buf( ssl_context *ssl )
                             "including %d bytes of IV and %d bytes of padding",
                             ssl->out_msglen, ssl->transform_out->ivlen,
                             padlen + 1 ) );
-
-        SSL_DEBUG_BUF( 4, "before encrypt: output payload",
-                       ssl->out_iv, ssl->out_msglen );
 
         if( ( ret = cipher_crypt( &ssl->transform_out->cipher_ctx_enc,
                                    ssl->transform_out->iv_enc,

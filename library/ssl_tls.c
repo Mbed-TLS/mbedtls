@@ -4074,6 +4074,9 @@ int ssl_set_session_tickets( ssl_context *ssl, int use_tickets )
         return( 0 );
 #endif
 
+    if( use_tickets == SSL_SESSION_TICKETS_DISABLED )
+        return( 0 );
+
     if( ssl->f_rng == NULL )
         return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
 

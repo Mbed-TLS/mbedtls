@@ -48,7 +48,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	pkey/rsa_sign_pss$(EXEXT)	pkey/rsa_verify_pss$(EXEXT)	\
 	ssl/ssl_client1$(EXEXT)		ssl/ssl_client2$(EXEXT)		\
 	ssl/ssl_server$(EXEXT)		ssl/ssl_server2$(EXEXT)		\
-	ssl/ssl_fork_server$(EXEXT)					\
+	ssl/ssl_fork_server$(EXEXT)	ssl/mini_client$(EXEXT)		\
 	ssl/ssl_mail_client$(EXEXT)	random/gen_entropy$(EXEXT)	\
 	random/gen_random_havege$(EXEXT)				\
 	random/gen_random_ctr_drbg$(EXEXT)				\
@@ -213,6 +213,10 @@ ssl/ssl_pthread_server$(EXEXT): ssl/ssl_pthread_server.c ../library/libmbedtls.a
 ssl/ssl_mail_client$(EXEXT): ssl/ssl_mail_client.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_mail_client.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_mail_client.c   $(LDFLAGS) -o $@
+
+ssl/mini_client$(EXEXT): ssl/mini_client.c ../library/libmbedtls.a
+	echo   "  CC    ssl/mini_client.c"
+	$(CC) $(CFLAGS) $(OFLAGS) ssl/mini_client.c   $(LDFLAGS) -o $@
 
 test/ssl_cert_test$(EXEXT): test/ssl_cert_test.c ../library/libmbedtls.a
 	echo   "  CC    test/ssl_cert_test.c"

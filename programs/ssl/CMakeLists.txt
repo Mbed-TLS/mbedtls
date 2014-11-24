@@ -11,6 +11,7 @@ set(targets
      ssl_server
      ssl_fork_server
      ssl_mail_client
+     mini_client
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)
@@ -38,6 +39,9 @@ target_link_libraries(ssl_fork_server ${libs})
 
 add_executable(ssl_mail_client ssl_mail_client.c)
 target_link_libraries(ssl_mail_client ${libs})
+
+add_executable(mini_client mini_client.c)
+target_link_libraries(mini_client ${libs})
 
 if(THREADS_FOUND)
     add_executable(ssl_pthread_server ssl_pthread_server.c)

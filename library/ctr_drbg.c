@@ -118,6 +118,9 @@ static int block_cipher_df( unsigned char *output,
 
     int i, j, buf_len, use_len;
 
+    if( data_len > CTR_DRBG_MAX_SEED_INPUT )
+        return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+
     memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
 
     /*
@@ -233,6 +236,11 @@ void ctr_drbg_update( ctr_drbg_context *ctx,
 
     if( add_len > 0 )
     {
+        /* MAX_INPUT would be more logical here, but we have to match
+         * block_cipher_df()'s limits since we can't propagate errors */
+        if( add_len > CTR_DRBG_MAX_SEED_INPUT )
+            add_len = CTR_DRBG_MAX_SEED_INPUT;
+
         block_cipher_df( add_input, additional, add_len );
         ctr_drbg_update_internal( ctx, add_input );
     }

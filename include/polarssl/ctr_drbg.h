@@ -154,6 +154,10 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
  * \param ctx           CTR_DRBG context
  * \param additional    Additional data to update state with
  * \param add_len       Length of additional data
+ *
+ * \note                If add_len is greater than CTR_DRBG_MAX_SEED_INPUT,
+ *                      only the first CTR_DRBG_MAX_SEED_INPUT bytes are used,
+ *                      the remaining ones are silently discarded.
  */
 void ctr_drbg_update( ctr_drbg_context *ctx,
                       const unsigned char *additional, size_t add_len );

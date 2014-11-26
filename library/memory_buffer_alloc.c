@@ -484,7 +484,8 @@ static void buffer_alloc_free( void *ptr )
     if( old == NULL )
     {
         hdr->next_free = heap.first_free;
-        heap.first_free->prev_free = hdr;
+        if( heap.first_free != NULL )
+            heap.first_free->prev_free = hdr;
         heap.first_free = hdr;
     }
 

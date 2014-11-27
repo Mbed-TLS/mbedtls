@@ -1,0 +1,16 @@
+/* BEGIN_HEADER */
+#include <polarssl/memory_buffer_alloc.h>
+#define TEST_SUITE_MEMORY_BUFFER_ALLOC
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:POLARSSL_MEMORY_BUFFER_ALLOC_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:POLARSSL_SELF_TEST */
+void memory_buffer_alloc_self_test( )
+{
+    TEST_ASSERT( memory_buffer_alloc_self_test( 0 ) == 0 );
+}
+/* END_CASE */

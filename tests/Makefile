@@ -59,6 +59,7 @@ APPS =	test_suite_aes.ecb		test_suite_aes.cbc		\
 		test_suite_hmac_drbg.nopr						\
 		test_suite_hmac_drbg.pr							\
 		test_suite_md			test_suite_mdx			\
+		test_suite_memory_buffer_alloc					\
 		test_suite_mpi			test_suite_pbkdf2		\
 		test_suite_pem									\
 		test_suite_pkcs1_v21	test_suite_pkcs5		\
@@ -333,6 +334,10 @@ test_suite_md: test_suite_md.c $(DEP)
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 
 test_suite_mdx: test_suite_mdx.c $(DEP)
+	echo   "  CC    	$@.c"
+	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
+
+test_suite_memory_buffer_alloc: test_suite_memory_buffer_alloc.c $(DEP)
 	echo   "  CC    	$@.c"
 	$(CC) $(CFLAGS) $(OFLAGS) $@.c	$(LDFLAGS) -o $@
 

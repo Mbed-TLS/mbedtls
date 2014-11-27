@@ -18,6 +18,9 @@ Security
 Bugfix
    * Stack buffer overflow if ctr_drbg_update() is called with too large
      add_len (found by Jean-Philippe Aumasson) (not triggerable remotely).
+   * Possible buffer overflow of length at most POLARSSL_MEMORY_ALIGN_MULTIPLE
+     if memory_buffer_alloc_init() was called with buf not aligned and len not
+     a multiple of POLARSSL_MEMORY_ALIGN_MULTIPLE.
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

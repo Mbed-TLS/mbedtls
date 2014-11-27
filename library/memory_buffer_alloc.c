@@ -563,9 +563,11 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 
     if( (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
+        /* Adjust len first since buf is used in the computation */
+        len -= POLARSSL_MEMORY_ALIGN_MULTIPLE
+             - (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
         buf += POLARSSL_MEMORY_ALIGN_MULTIPLE
              - (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
-        len -= (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
     }
 
     heap.buf = buf;
@@ -623,9 +625,9 @@ static int check_all_free( )
 
 int memory_buffer_alloc_self_test( int verbose )
 {
-    int ret = 0;
     unsigned char buf[1024];
-    unsigned char *p, *q, *r;
+    unsigned char *p, *q, *r, *end;
+    int ret = 0;
 
     if( verbose != 0 )
         polarssl_printf( "  MBA test #1 (basic alloc-free cycle): " );
@@ -646,6 +648,9 @@ int memory_buffer_alloc_self_test( int verbose )
 
     TEST_ASSERT( check_all_free( ) == 0 );
 
+    /* Memorize end to compare with the next test */
+    end = heap.buf + heap.len;
+
     memory_buffer_alloc_free( );
 
     if( verbose != 0 )
@@ -655,6 +660,8 @@ int memory_buffer_alloc_self_test( int verbose )
         polarssl_printf( "  MBA test #2 (buf not aligned): " );
 
     memory_buffer_alloc_init( buf + 1, sizeof( buf ) - 1 );
+
+    TEST_ASSERT( heap.buf + heap.len == end );
 
     p = polarssl_malloc( 1 );
     q = polarssl_malloc( 128 );

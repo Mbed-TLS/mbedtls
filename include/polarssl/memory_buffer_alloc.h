@@ -115,6 +115,15 @@ void memory_buffer_alloc_status( void );
  */
 int memory_buffer_alloc_verify( void );
 
+#if defined(POLARSSL_SELF_TEST)
+/**
+ * \brief          Checkup routine
+ *
+ * \return         0 if successful, or 1 if a test failed
+ */
+int memory_buffer_alloc_self_test( int verbose );
+#endif
+
 #ifdef __cplusplus
 }
 #endif

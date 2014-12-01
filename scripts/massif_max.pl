@@ -15,7 +15,7 @@ open my $fh, '<', $ARGV[0] or die;
 { local $/ = 'snapshot='; @snaps = <$fh>; }
 close $fh or die;
 
-my $max = 0;
+my ($max, $max_heap, $max_he, $max_stack) = (0, 0, 0, 0);
 for (@snaps)
 {
     my ($heap, $heap_extra, $stack) = m{
@@ -25,7 +25,9 @@ for (@snaps)
     }xm;
     next unless defined $heap;
     my $total = $heap + $heap_extra + $stack;
-    $max = $total if $total > $max;
+    if( $total > $max ) {
+        ($max, $max_heap, $max_he, $max_stack) = ($total, $heap, $heap_extra, $stack);
+    }
 }
 
-printf "$max\n";
+printf "$max (heap $max_heap+$max_he, stack $max_stack)\n";

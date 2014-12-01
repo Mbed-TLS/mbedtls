@@ -41,6 +41,7 @@ do_config()
     echo ""
     echo "config-$NAME:"
     cp configs/config-$NAME.h $CONFIG_H
+    scripts/config.pl unset POLARSSL_SSL_SRV_C
 
     for FLAG in $UNSET_LIST; do
         scripts/config.pl unset $FLAG

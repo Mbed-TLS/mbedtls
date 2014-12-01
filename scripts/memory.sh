@@ -9,7 +9,11 @@
 set -eu
 
 CONFIG_H='include/polarssl/config.h'
+
 CLIENT='mini_client'
+
+CFLAGS_EXEC=-fno-asynchronous-unwind-tables
+CFLAGS_MEM=-g3
 
 if [ -r $CONFIG_H ]; then :; else
     echo "$CONFIG_H not found" >&2
@@ -25,6 +29,59 @@ if git status | grep -F $CONFIG_H >/dev/null 2>&1; then
     echo "config.h not clean" >&2
     exit 1
 fi
+
+# make measurements with one configuration
+# usage: do_config <name> <unset-list> <server-args>
+do_config()
+{
+    NAME=$1
+    UNSET_LIST=$2
+    SERVER_ARGS=$3
+
+    echo ""
+    echo "config-$NAME:"
+    cp configs/config-$NAME.h $CONFIG_H
+
+    for FLAG in $UNSET_LIST; do
+        scripts/config.pl unset $FLAG
+    done
+
+    printf "    Executable size... "
+
+    make clean
+    CFLAGS=$CFLAGS_EXEC make OFLAGS=-Os lib >/dev/null 2>&1
+    cd programs
+    CFLAGS=$CFLAGS_EXEC make OFLAGS=-Os ssl/$CLIENT >/dev/null
+    strip ssl/$CLIENT
+    stat -f '%z' ssl/$CLIENT
+    cd ..
+
+    printf "    Peak ram usage... "
+
+    make clean
+    CFLAGS=$CFLAGS_MEM make OFLAGS=-Os lib >/dev/null 2>&1
+    cd programs
+    CFLAGS=$CFLAGS_MEM make OFLAGS=-Os ssl/$CLIENT >/dev/null
+    cd ..
+
+    ./ssl_server2 $SERVER_ARGS >/dev/null &
+    SRV_PID=$!
+    sleep 1;
+
+    if valgrind --tool=massif --stacks=yes programs/ssl/$CLIENT >/dev/null 2>&1
+    then
+        FAILED=0
+    else
+        echo "client failed" >&2
+        FAILED=1
+    fi
+
+    kill $SRV_PID
+    wait $SRV_PID
+
+    scripts/massif_max.pl massif.out.*
+    mv massif.out.* massif-$NAME.$$
+}
 
 # preparation
 
@@ -42,94 +99,15 @@ cp programs/ssl/ssl_server2 .
 
 echo "done"
 
-# first config
+# actual measurements
 
-echo ""
-echo "config-ccm-psk-tls1_2:"
-cp configs/config-ccm-psk-tls1_2.h $CONFIG_H
+do_config   "ccm-psk-tls1_2" \
+            "" \
+            "psk=000102030405060708090A0B0C0D0E0F"
 
-printf "    Executable size... "
-
-make clean
-CFLAGS=-fno-asynchronous-unwind-tables make OFLAGS=-Os lib >/dev/null 2>&1
-cd programs
-CFLAGS=-fno-asynchronous-unwind-tables make OFLAGS=-Os ssl/$CLIENT >/dev/null
-strip ssl/$CLIENT
-stat -c'%s' ssl/$CLIENT
-cd ..
-
-printf "    Peak ram usage... "
-
-make clean
-CFLAGS=-g3 make OFLAGS=-Os lib >/dev/null 2>&1
-cd programs
-CFLAGS=-g3 make OFLAGS=-Os ssl/$CLIENT >/dev/null
-cd ..
-
-./ssl_server2 psk=000102030405060708090A0B0C0D0E0F >/dev/null &
-SRV_PID=$!
-sleep 1;
-
-if valgrind --tool=massif --stacks=yes programs/ssl/$CLIENT >/dev/null 2>&1
-then
-    FAILED=0
-else
-    echo "client failed" >&2
-    FAILED=1
-fi
-
-kill $SRV_PID
-wait $SRV_PID
-
-scripts/massif_max.pl massif.out.*
-mv massif.out.* massif-ccm-psk.$$
-
-# second config
-
-echo ""
-echo "config-suite-b:"
-cp configs/config-suite-b.h $CONFIG_H
-scripts/config.pl unset POLARSSL_BASE64_C
-scripts/config.pl unset POLARSSL_PEM_PARSE_C
-scripts/config.pl unset POLARSSL_CERTS_C
-
-printf "    Executable size... "
-
-make clean
-CFLAGS=-fno-asynchronous-unwind-tables make OFLAGS=-Os lib >/dev/null 2>&1
-cd programs
-CFLAGS=-fno-asynchronous-unwind-tables make OFLAGS=-Os ssl/$CLIENT >/dev/null
-strip ssl/$CLIENT
-stat -c'%s' ssl/$CLIENT
-cd ..
-
-printf "    Peak ram usage... "
-
-make clean
-CFLAGS=-g3 make OFLAGS=-Os lib >/dev/null 2>&1
-cd programs
-CFLAGS=-g3 make OFLAGS=-Os ssl/$CLIENT >/dev/null
-cd ..
-
-rm -f massif.out.*
-
-./ssl_server2 >/dev/null &
-SRV_PID=$!
-sleep 1;
-
-if valgrind --tool=massif --stacks=yes programs/ssl/$CLIENT >/dev/null 2>&1
-then
-    FAILED=0
-else
-    echo "client failed" >&2
-    FAILED=1
-fi
-
-kill $SRV_PID
-wait $SRV_PID
-
-scripts/massif_max.pl massif.out.*
-mv massif.out.* massif-suite-b.$$
+do_config   "suite-b" \
+            "POLARSSL_BASE64_C POLARSSL_PEM_PARSE_C POLARSSL_CERTS_C" \
+            ""
 
 # cleanup
 

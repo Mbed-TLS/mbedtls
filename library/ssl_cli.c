@@ -142,7 +142,11 @@ static void ssl_write_renegotiation_ext( ssl_context *ssl,
     *olen = 5 + ssl->verify_data_len;
 }
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+/*
+ * Only if we handle at least one key exchange that needs signatures.
+ */
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
 static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
                                                 unsigned char *buf,
                                                 size_t *olen )
@@ -236,7 +240,8 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
 
     *olen = 6 + sig_alg_len;
 }
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 static void ssl_write_supported_elliptic_curves_ext( ssl_context *ssl,
@@ -628,7 +633,8 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ssl_write_renegotiation_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
     ssl_write_signature_algorithms_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif

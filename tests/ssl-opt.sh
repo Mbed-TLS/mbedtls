@@ -34,10 +34,10 @@ EXCLUDE='^$'
 
 print_usage() {
     echo "Usage: $0 [options]"
-    echo -e "  -h|--help\tPrint this help."
-    echo -e "  -m|--memcheck\tCheck memory leaks and errors."
-    echo -e "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')"
-    echo -e "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')"
+    printf "  -h|--help\tPrint this help.\n"
+    printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
+    printf "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')\n"
+    printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
 }
 
 get_options() {
@@ -96,10 +96,10 @@ requires_gnutls() {
 
 # print_name <name>
 print_name() {
-    echo -n "$1 "
+    printf "$1 "
     LEN=$(( 72 - `echo "$1" | wc -c` ))
-    for i in `seq 1 $LEN`; do echo -n '.'; done
-    echo -n ' '
+    for i in `seq 1 $LEN`; do printf '.'; done
+    printf ' '
 
     TESTS=$(( $TESTS + 1 ))
 }
@@ -148,7 +148,8 @@ wait_server_start() {
         WATCHDOG_PID=$!
 
         # make a tight loop, server usually takes less than 1 sec to start
-        until lsof -nbi TCP:"$PORT" | grep LISTEN >/dev/null; do :; done
+        until lsof -nbi TCP:"$PORT" 2>/dev/null | grep LISTEN >/dev/null; 
+        do :; done
 
         kill $WATCHDOG_PID
         wait $WATCHDOG_PID
@@ -1848,9 +1849,9 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
 echo "------------------------------------------------------------------------"
 
 if [ $FAILS = 0 ]; then
-    echo -n "PASSED"
+    printf "PASSED"
 else
-    echo -n "FAILED"
+    printf "FAILED"
 fi
 PASSES=$(( $TESTS - $FAILS ))
 echo " ($PASSES / $TESTS tests ($SKIPS skipped))"

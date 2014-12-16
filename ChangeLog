@@ -24,6 +24,7 @@ Bugfix
      in 1.2.12).
    * Fix unchecked return code in x509_crt_parse_path() on Windows (found by
      Peter Vaskovic).
+   * Fix assembly selection for MIPS64 (thanks to James Cowgill).
 
 Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.

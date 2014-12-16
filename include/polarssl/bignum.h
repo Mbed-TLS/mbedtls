@@ -148,7 +148,7 @@ typedef uint32_t t_udbl;
           defined(__ppc64__) || defined(__powerpc64__) || \
           defined(__ia64__)  || defined(__alpha__)     || \
           (defined(__sparc__) && defined(__arch64__))  || \
-          defined(__s390x__) ) )
+          defined(__s390x__) || defined(__mips64) ) )
        #define POLARSSL_HAVE_INT64
        typedef  int64_t t_sint;
        typedef uint64_t t_uint;

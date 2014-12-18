@@ -61,9 +61,8 @@
 #include "polarssl/ecdh.h"
 #include "polarssl/error.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#include "polarssl/memory_buffer_alloc.h"
 #endif
 
 #if defined _MSC_VER && !defined snprintf
@@ -182,6 +181,9 @@ int main( int argc, char *argv[] )
     unsigned char tmp[200];
     char title[TITLE_LEN];
     todo_list todo;
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    unsigned char malloc_buf[1000000] = { 0 };
+#endif
 
     if( argc == 1 )
         memset( &todo, 1, sizeof( todo ) );
@@ -243,6 +245,9 @@ int main( int argc, char *argv[] )
 
     polarssl_printf( "\n" );
 
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    memory_buffer_alloc_init( malloc_buf, sizeof( malloc_buf ) );
+#endif
     memset( buf, 0xAA, sizeof( buf ) );
     memset( tmp, 0xBB, sizeof( tmp ) );
 
@@ -641,6 +646,13 @@ int main( int argc, char *argv[] )
     }
 #endif
     polarssl_printf( "\n" );
+
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(POLARSSL_MEMORY_DEBUG)
+    memory_buffer_alloc_status();
+#endif
+    memory_buffer_alloc_free();
+#endif
 
 #if defined(_WIN32)
     polarssl_printf( "  Press Enter to exit this program.\n" );

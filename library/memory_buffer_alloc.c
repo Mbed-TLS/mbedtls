@@ -75,7 +75,6 @@ typedef struct
     size_t          len;
     memory_header   *first;
     memory_header   *first_free;
-    size_t          current_alloc_size;
     int             verify;
 #if defined(POLARSSL_MEMORY_DEBUG)
     size_t          malloc_count;

@@ -519,6 +519,24 @@ void memory_buffer_alloc_status()
         debug_chain();
     }
 }
+
+void memory_buffer_alloc_max_get( size_t *max_used, size_t *max_blocks )
+{
+    *max_used   = heap.maximum_used;
+    *max_blocks = heap.maximum_header_count;
+}
+
+void memory_buffer_alloc_max_reset( void )
+{
+    heap.maximum_used = 0;
+    heap.maximum_header_count = 0;
+}
+
+void memory_buffer_alloc_cur_get( size_t *cur_used, size_t *cur_blocks )
+{
+    *cur_used   = heap.total_used;
+    *cur_blocks = heap.header_count;
+}
 #endif /* POLARSSL_MEMORY_DEBUG */
 
 #if defined(POLARSSL_THREADING_C)

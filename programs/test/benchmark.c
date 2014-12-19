@@ -36,6 +36,18 @@
 #define polarssl_exit       exit
 #endif
 
+/*
+ * For heap usage estimates, we need an estimate of the overhead per allocated
+ * block. ptmalloc2/3 (used in gnu libc for instance) uses 2 size_t per block,
+ * so use that as our baseline.
+ */
+#define MEM_BLOCK_OVERHEAD  ( 2 * sizeof( size_t ) )
+
+/*
+ * Size to use for the malloc buffer if MEMORY_BUFFER_ALLOC_C is defined.
+ */
+#define HEAP_SIZE       (1u << 16)  // 64k
+
 #if defined(POLARSSL_TIMING_C)
 #include "polarssl/timing.h"
 
@@ -113,12 +125,43 @@ do {                                                                    \
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );          \
 } while( 0 )
 
+#if defined(POLARSSL_ERROR_C)
+#define PRINT_ERROR                                                     \
+        polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
+        polarssl_printf( "FAILED: %s\n", tmp );
+#else
+#define PRINT_ERROR                                                     \
+        polarssl_printf( "FAILED: -0x%04x\n", -ret );
+#endif
+
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
+
+#define MEMORY_MEASURE_INIT                                             \
+    size_t max_used, max_blocks, max_bytes;                             \
+    size_t prv_used, prv_blocks;                                        \
+    memory_buffer_alloc_cur_get( &prv_used, &prv_blocks );              \
+    memory_buffer_alloc_max_reset( );
+
+#define MEMORY_MEASURE_PRINT( title_len )                               \
+    memory_buffer_alloc_max_get( &max_used, &max_blocks );              \
+    for( i = 12 - title_len; i != 0; i-- ) polarssl_printf( " " );      \
+    max_used -= prv_used;                                               \
+    max_blocks -= prv_blocks;                                           \
+    max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \
+    polarssl_printf( "%6u heap bytes", (unsigned) max_bytes );
+
+#else
+#define MEMORY_MEASURE_INIT( l )
+#define MEMORY_MEASURE_PRINT
+#endif
+
 #define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
 do {                                                                    \
     unsigned long i;                                                    \
     int ret;                                                            \
+    MEMORY_MEASURE_INIT;                                                \
                                                                         \
-    polarssl_printf( HEADER_FORMAT, TITLE );                                     \
+    polarssl_printf( HEADER_FORMAT, TITLE );                            \
     fflush( stdout );                                                   \
     set_alarm( 3 );                                                     \
                                                                         \
@@ -130,10 +173,14 @@ do {                                                                    \
                                                                         \
     if( ret != 0 )                                                      \
     {                                                                   \
-PRINT_ERROR;                                                            \
+        PRINT_ERROR;                                                    \
     }                                                                   \
     else                                                                \
-        polarssl_printf( "%9lu " TYPE "/s\n", i / 3 );                           \
+    {                                                                   \
+        polarssl_printf( "%6lu " TYPE "/s", i / 3 );                             \
+        MEMORY_MEASURE_PRINT( sizeof( TYPE ) + 1 );                     \
+        polarssl_printf( "\n" );                                                 \
+    }                                                                   \
 } while( 0 )
 
 #if !defined(POLARSSL_TIMING_C)
@@ -166,6 +213,26 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
     return( 0 );
 }
 
+/*
+ * Clear some memory that was used to prepare the context
+ */
+#if defined(POLARSSL_ECP_C)
+void ecp_clear_precomputed( ecp_group *grp )
+{
+    if( grp->T != NULL )
+    {
+        size_t i;
+        for( i = 0; i < grp->T_size; i++ )
+            ecp_point_free( &grp->T[i] );
+        polarssl_free( grp->T );
+    }
+    grp->T = NULL;
+    grp->T_size = 0;
+}
+#else
+#define ecp_clear_precomputed( g )
+#endif
+
 unsigned char buf[BUFSIZE];
 
 typedef struct {
@@ -182,7 +249,7 @@ int main( int argc, char *argv[] )
     char title[TITLE_LEN];
     todo_list todo;
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    unsigned char malloc_buf[1000000] = { 0 };
+    unsigned char malloc_buf[HEAP_SIZE] = { 0 };
 #endif
 
     if( argc == 1 )
@@ -591,6 +658,7 @@ int main( int argc, char *argv[] )
 
             if( ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
                 polarssl_exit( 1 );
+            ecp_clear_precomputed( &ecdsa.grp );
 
             polarssl_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
@@ -598,6 +666,25 @@ int main( int argc, char *argv[] )
                     ret = ecdsa_write_signature( &ecdsa, buf, curve_info->size,
                                                 tmp, &sig_len, myrand, NULL ) );
 
+            ecdsa_free( &ecdsa );
+        }
+
+        for( curve_info = ecp_curve_list();
+             curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+             curve_info++ )
+        {
+            ecdsa_init( &ecdsa );
+
+            if( ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 ||
+                ecdsa_write_signature( &ecdsa, buf, curve_info->size,
+                                               tmp, &sig_len, myrand, NULL ) != 0 )
+            {
+                exit( 1 );
+            }
+            ecp_clear_precomputed( &ecdsa.grp );
+
+            snprintf( title, sizeof( title ), "ECDSA-%s",
+                                              curve_info->name );
             TIME_PUBLIC( title, "verify",
                     ret = ecdsa_read_signature( &ecdsa, buf, curve_info->size,
                                                 tmp, sig_len ) );
@@ -627,6 +714,7 @@ int main( int argc, char *argv[] )
             {
                 polarssl_exit( 1 );
             }
+            ecp_clear_precomputed( &ecdh.grp );
 
             polarssl_snprintf( title, sizeof( title ), "ECDHE-%s",
                                               curve_info->name );
@@ -635,6 +723,25 @@ int main( int argc, char *argv[] )
                                              myrand, NULL );
                     ret |= ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );
+            ecdh_free( &ecdh );
+        }
+
+        for( curve_info = ecp_curve_list();
+             curve_info->grp_id != POLARSSL_ECP_DP_NONE;
+             curve_info++ )
+        {
+            ecdh_init( &ecdh );
+
+            if( ecp_use_known_dp( &ecdh.grp, curve_info->grp_id ) != 0 ||
+                ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                                  myrand, NULL ) != 0 ||
+                ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 ||
+                ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                                  myrand, NULL ) != 0 )
+            {
+                exit( 1 );
+            }
+            ecp_clear_precomputed( &ecdh.grp );
 
             polarssl_snprintf( title, sizeof( title ), "ECDH-%s",
                                               curve_info->name );
@@ -645,12 +752,10 @@ int main( int argc, char *argv[] )
         }
     }
 #endif
+
     polarssl_printf( "\n" );
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#if defined(POLARSSL_MEMORY_DEBUG)
-    memory_buffer_alloc_status();
-#endif
     memory_buffer_alloc_free();
 #endif
 

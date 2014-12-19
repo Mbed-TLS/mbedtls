@@ -244,7 +244,7 @@ typedef struct {
 
 int main( int argc, char *argv[] )
 {
-    int keysize, i;
+    int i;
     unsigned char tmp[200];
     char title[TITLE_LEN];
     todo_list todo;
@@ -385,6 +385,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_CIPHER_MODE_CBC)
     if( todo.aes_cbc )
     {
+        int keysize;
         aes_context aes;
         aes_init( &aes );
         for( keysize = 128; keysize <= 256; keysize += 64 )
@@ -404,6 +405,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_GCM_C)
     if( todo.aes_gcm )
     {
+        int keysize;
         gcm_context gcm;
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
@@ -424,6 +426,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_CCM_C)
     if( todo.aes_ccm )
     {
+        int keysize;
         ccm_context ccm;
         for( keysize = 128; keysize <= 256; keysize += 64 )
         {
@@ -446,6 +449,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_CAMELLIA_C) && defined(POLARSSL_CIPHER_MODE_CBC)
     if( todo.camellia )
     {
+        int keysize;
         camellia_context camellia;
         camellia_init( &camellia );
         for( keysize = 128; keysize <= 256; keysize += 64 )
@@ -467,6 +471,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_BLOWFISH_C) && defined(POLARSSL_CIPHER_MODE_CBC)
     if( todo.blowfish )
     {
+        int keysize;
         blowfish_context blowfish;
         blowfish_init( &blowfish );
 
@@ -571,6 +576,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_RSA_C) && defined(POLARSSL_GENPRIME)
     if( todo.rsa )
     {
+        int keysize;
         rsa_context rsa;
         for( keysize = 1024; keysize <= 4096; keysize *= 2 )
         {

@@ -112,6 +112,10 @@ int main( int argc, char *argv[] )
     }
 
     mode = atoi( argv[1] );
+    memset(IV, 0, sizeof(IV));
+    memset(key, 0, sizeof(key));
+    memset(digest, 0, sizeof(digest));
+    memset(buffer, 0, sizeof(buffer));
 
     if( mode != MODE_ENCRYPT && mode != MODE_DECRYPT )
     {

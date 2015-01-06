@@ -1657,6 +1657,10 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
  * \note           When this function returns POLARSSL_ERR_NET_WANT_WRITE,
  *                 it must be called later with the *same* arguments,
  *                 until it returns a positive value.
+ *
+ * \note           This function may write less than the number of bytes
+ *                 requested if len is greater than the maximum record length.
+ *                 For arbitrary-sized messages, it should be called in a loop.
  */
 int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len );
 

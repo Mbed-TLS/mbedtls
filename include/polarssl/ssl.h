@@ -784,6 +784,9 @@ struct _ssl_context
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char mfl_code;     /*!< MaxFragmentLength chosen by us   */
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+    unsigned char split_done;  /*!< flag for record splitting        */
+#endif
 
     /*
      * PKI layer

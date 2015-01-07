@@ -822,6 +822,18 @@
 //#define POLARSSL_SSL_HW_RECORD_ACCEL
 
 /**
+ * \def POLARSSL_SSL_CBC_RECORD_SPLITTING
+ *
+ * Enable 1/n-1 record splitting for CBC mode in SSLv3 and TLS 1.0.
+ *
+ * This is a countermeasure to the BEAST attack, which also minimizes the risk
+ * of interoperability issues compared to sending 0-length records.
+ *
+ * Comment this macro to disable 1/n-1 record splitting.
+ */
+#define POLARSSL_SSL_CBC_RECORD_SPLITTING
+
+/**
  * \def POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
  *
  * Enable support for receiving and parsing SSLv2 Client Hello messages for the

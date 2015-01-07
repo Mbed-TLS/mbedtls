@@ -238,6 +238,9 @@
 #define SSL_SESSION_TICKETS_DISABLED     0
 #define SSL_SESSION_TICKETS_ENABLED      1
 
+#define SSL_CBC_RECORD_SPLITTING_DISABLED   -1
+#define SSL_CBC_RECORD_SPLITTING_ENABLED     0
+
 /**
  * \name SECTION: Module settings
  *
@@ -785,7 +788,8 @@ struct _ssl_context
     unsigned char mfl_code;     /*!< MaxFragmentLength chosen by us   */
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 #if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-    unsigned char split_done;  /*!< flag for record splitting        */
+    char split_done;            /*!< flag for record splitting:
+                                     -1 disabled, 0 todo, 1 done      */
 #endif
 
     /*
@@ -1419,6 +1423,21 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
  */
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+/**
+ * \brief          Enable / Disable 1/n-1 record splitting
+ *                 (Default: SSL_CBC_RECORD_SPLITTING_ENABLED)
+ *
+ * \note           Only affects SSLv3 and TLS 1.0, not higher versions.
+ *                 Does not affect non-CBC ciphersuites in any version.
+ *
+ * \param ssl      SSL context
+ * \param split    SSL_CBC_RECORD_SPLITTING_ENABLED or
+ *                 SSL_CBC_RECORD_SPLITTING_DISABLED
+ */
+void ssl_set_cbc_record_splitting( ssl_context *ssl, char split );
+#endif /* POLARSSL_SSL_CBC_RECORD_SPLITTING */
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 /**

@@ -3483,7 +3483,8 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->out_msglen = 0;
     ssl->out_left = 0;
 #if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-    ssl->split_done = 0;
+    if( ssl->split_done != SSL_CBC_RECORD_SPLITTING_DISABLED )
+        ssl->split_done = 0;
 #endif
 
     ssl->transform_in = NULL;
@@ -4007,6 +4008,13 @@ int ssl_set_truncated_hmac( ssl_context *ssl, int truncate )
 }
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+void ssl_set_cbc_record_splitting( ssl_context *ssl, char split )
+{
+    ssl->split_done = split;
+}
+#endif
+
 void ssl_set_renegotiation( ssl_context *ssl, int renegotiation )
 {
     ssl->disable_renegotiation = renegotiation;
@@ -4503,15 +4511,17 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
  * Write application data, doing 1/n-1 splitting if necessary.
  *
  * With non-blocking I/O, ssl_write_real() may return WANT_WRITE,
- * then the caller wil call us again with the same arguments.
+ * then the caller will call us again with the same arguments, so
+ * remember wether we already did the split or not.
  */
 #if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
 int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
 {
     int ret;
 
-    if( ssl->minor_ver > SSL_MINOR_VERSION_1 ||
-        len == 0 ||
+    if( ssl->split_done == SSL_CBC_RECORD_SPLITTING_DISABLED ||
+        len <= 1 ||
+        ssl->minor_ver > SSL_MINOR_VERSION_1 ||
         cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc )
                                 != POLARSSL_MODE_CBC )
     {
@@ -4525,7 +4535,7 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
             return( ret );
     }
 
-    if( ssl->split_done == 1 && len > 1 )
+    if( ssl->split_done == 1 )
     {
         ssl->split_done = 0;
         if( ( ret = ssl_write_real( ssl, buf + 1, len - 1 ) ) < 0 )

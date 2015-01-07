@@ -1684,7 +1684,8 @@ run_test    "Small packet TLS 1.2 BlockCipher" \
 
 run_test    "Small packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_2 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
             -s "Read from client: 1 bytes read"
 
@@ -1729,7 +1730,7 @@ run_test    "Small packet TLS 1.2 AEAD shorter tag" \
 
 run_test    "Large packet SSLv3 BlockCipher" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=ssl3 \
+            "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 16384 bytes read"
@@ -1743,14 +1744,14 @@ run_test    "Large packet SSLv3 StreamCipher" \
 
 run_test    "Large packet TLS 1.0 BlockCipher" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1 \
+            "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1 \
+            "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
              trunc_hmac=1" \
             0 \
@@ -1803,7 +1804,8 @@ run_test    "Large packet TLS 1.2 BlockCipher" \
 
 run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1_2 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
+            "$P_CLI request_size=16384 force_version=tls1_2 \
+             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
             -s "Read from client: 16384 bytes read"
 

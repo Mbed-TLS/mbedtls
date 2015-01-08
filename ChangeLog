@@ -1,5 +1,10 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= PolarSSL 1.3.10 released ???
+
+Features
+   * Support for 1/n-1 record splitting, a countermeasure against BEAST.
+
 = PolarSSL 1.3.9 released 2014-10-20
 Security
    * Lowest common hash was selected from signature_algorithms extension in

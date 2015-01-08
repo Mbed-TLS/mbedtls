@@ -426,6 +426,62 @@ run_test    "Truncated HMAC: actual test" \
             0 \
             -s "dumping 'computed mac' (10 bytes)"
 
+# Tests for CBC 1/n-1 record splitting
+
+run_test    "CBC Record splitting: TLS 1.2, no splitting" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             request_size=123 force_version=tls1_2" \
+            0 \
+            -s "Read from client: 123 bytes read" \
+            -S "Read from client: 1 bytes read" \
+            -S "122 bytes read"
+
+run_test    "CBC Record splitting: TLS 1.1, no splitting" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             request_size=123 force_version=tls1_1" \
+            0 \
+            -s "Read from client: 123 bytes read" \
+            -S "Read from client: 1 bytes read" \
+            -S "122 bytes read"
+
+run_test    "CBC Record splitting: TLS 1.0, splitting" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             request_size=123 force_version=tls1" \
+            0 \
+            -S "Read from client: 123 bytes read" \
+            -s "Read from client: 1 bytes read" \
+            -s "122 bytes read"
+
+run_test    "CBC Record splitting: SSLv3, splitting" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             request_size=123 force_version=ssl3" \
+            0 \
+            -S "Read from client: 123 bytes read" \
+            -s "Read from client: 1 bytes read" \
+            -s "122 bytes read"
+
+run_test    "CBC Record splitting: TLS 1.0 RC4, no splitting" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
+             request_size=123 force_version=tls1" \
+            0 \
+            -s "Read from client: 123 bytes read" \
+            -S "Read from client: 1 bytes read" \
+            -S "122 bytes read"
+
+run_test    "CBC Record splitting: TLS 1.0, splitting disabled" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             request_size=123 force_version=tls1 recsplit=0" \
+            0 \
+            -s "Read from client: 123 bytes read" \
+            -S "Read from client: 1 bytes read" \
+            -S "122 bytes read"
+
 # Tests for Session Tickets
 
 run_test    "Session resume using tickets: basic" \

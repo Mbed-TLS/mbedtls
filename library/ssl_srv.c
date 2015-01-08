@@ -903,7 +903,7 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( ssl_context *ssl )
 {
-    int ret;
+    int ret, got_common_suite;
     unsigned int i, j;
     size_t n;
     unsigned int ciph_len, sess_len, chal_len;
@@ -1072,6 +1072,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         }
     }
 
+    got_common_suite = 0;
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     ciphersuite_info = NULL;
 #if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
@@ -1089,6 +1090,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
                 p[2] != ( ( ciphersuites[i]      ) & 0xFF ) )
                 continue;
 
+            got_common_suite = 1;
+
             if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
                                                &ciphersuite_info ) ) != 0 )
                 return( ret );
@@ -1098,9 +1101,17 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         }
     }
 
-    SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
-
-    return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    if( got_common_suite )
+    {
+        SSL_DEBUG_MSG( 1, ( "got ciphersuites in common, "
+                            "but none of them usable" ) );
+        return( POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE );
+    }
+    else
+    {
+        SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
+        return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    }
 
 have_ciphersuite_v2:
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
@@ -1132,7 +1143,7 @@ have_ciphersuite_v2:
 
 static int ssl_parse_client_hello( ssl_context *ssl )
 {
-    int ret;
+    int ret, got_common_suite;
     unsigned int i, j;
     size_t n;
     unsigned int ciph_len, sess_len;
@@ -1552,6 +1563,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      * (At the end because we need information from the EC-based extensions
      * and certificate from the SNI callback triggered by the SNI extension.)
      */
+    got_common_suite = 0;
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     ciphersuite_info = NULL;
 #if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
@@ -1568,6 +1580,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                 p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )
                 continue;
 
+            got_common_suite = 1;
+
             if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
                                                &ciphersuite_info ) ) != 0 )
                 return( ret );
@@ -1577,12 +1591,19 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         }
     }
 
-    SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
-
-    if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
-        return( ret );
-
-    return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    if( got_common_suite )
+    {
+        SSL_DEBUG_MSG( 1, ( "got ciphersuites in common, "
+                            "but none of them usable" ) );
+        ssl_send_fatal_handshake_failure( ssl );
+        return( POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE );
+    }
+    else
+    {
+        SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
+        ssl_send_fatal_handshake_failure( ssl );
+        return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    }
 
 have_ciphersuite:
     ssl->session_negotiate->ciphersuite = ciphersuites[i];

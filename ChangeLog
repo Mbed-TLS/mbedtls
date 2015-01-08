@@ -6,6 +6,11 @@ Features
    * Certificate selection based on signature hash, prefering SHA-1 over SHA-2
      for pre-1.2 clients when multiple certificates are available.
 
+Changes
+   * A specific error is now returned when there are ciphersuites in common
+     but none of them is usable due to external factors such as no certificate
+     with a suitable (extended)KeyUsage or curvem or no PSK set.
+
 = PolarSSL 1.3.9 released 2014-10-20
 Security
    * Lowest common hash was selected from signature_algorithms extension in

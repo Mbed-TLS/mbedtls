@@ -452,6 +452,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - A counter would wrap (eg, too many messages exchanged)" );
         if( use_ret == -(POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO) )
             snprintf( buf, buflen, "SSL - Unexpected message at ServerHello in renegotiation" );
+        if( use_ret == -(POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE) )
+            snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)

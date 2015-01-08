@@ -749,11 +749,11 @@ static int ssl_parse_alpn_ext( ssl_context *ssl,
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 /*
- * Return 1 if the given EC key uses the given curve, 0 otherwise
+ * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
  */
 #if defined(POLARSSL_ECDSA_C)
-static int ssl_key_matches_curves( pk_context *pk,
-                                   const ecp_curve_info **curves )
+static int ssl_check_key_curve( pk_context *pk,
+                                const ecp_curve_info **curves )
 {
     const ecp_curve_info **crv = curves;
     ecp_group_id grp_id = pk_ec( *pk )->grp.id;
@@ -761,11 +761,11 @@ static int ssl_key_matches_curves( pk_context *pk,
     while( *crv != NULL )
     {
         if( (*crv)->grp_id == grp_id )
-            return( 1 );
+            return( 0 );
         crv++;
     }
 
-    return( 0 );
+    return( -1 );
 }
 #endif /* POLARSSL_ECDSA_C */
 
@@ -810,7 +810,7 @@ static int ssl_pick_cert( ssl_context *ssl,
 
 #if defined(POLARSSL_ECDSA_C)
         if( pk_alg == POLARSSL_PK_ECDSA &&
-            ! ssl_key_matches_curves( cur->key, ssl->handshake->curves ) )
+            ssl_check_key_curve( cur->key, ssl->handshake->curves ) != 0 )
             continue;
 #endif
 
@@ -838,8 +838,8 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
     suite_info = ssl_ciphersuite_from_id( suite_id );
     if( suite_info == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found", suite_id ) );
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     if( suite_info->min_minor_ver > ssl->minor_ver ||

@@ -776,7 +776,7 @@ static int ssl_check_key_curve( pk_context *pk,
 static int ssl_pick_cert( ssl_context *ssl,
                           const ssl_ciphersuite_t * ciphersuite_info )
 {
-    ssl_key_cert *cur, *list;
+    ssl_key_cert *cur, *list, *fallback = NULL;
     pk_type_t pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
@@ -814,15 +814,36 @@ static int ssl_pick_cert( ssl_context *ssl,
             continue;
 #endif
 
+        /*
+         * Try to select a SHA-1 certificate for pre-1.2 clients, but still
+         * present them a SHA-higher cert rather than failing if it's the only
+         * one we got that satisfies the other conditions.
+         */
+        if( ssl->minor_ver < SSL_MINOR_VERSION_3 &&
+            cur->cert->sig_md != POLARSSL_MD_SHA1 )
+        {
+            if( fallback == NULL )
+                fallback = cur;
+            continue;
+        }
+
         /* If we get there, we got a winner */
         break;
     }
 
-    if( cur == NULL )
-        return( -1 );
+    if( cur != NULL )
+    {
+        ssl->handshake->key_cert = cur;
+        return( 0 );
+    }
 
-    ssl->handshake->key_cert = cur;
-    return( 0 );
+    if( fallback != NULL )
+    {
+        ssl->handshake->key_cert = fallback;
+        return( 0 );
+    }
+
+    return( -1 );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 

@@ -1,5 +1,11 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= PolarSSL 1.3.10 released ???
+
+Features
+   * Certificate selection based on signature hash, prefering SHA-1 over SHA-2
+     for pre-1.2 clients when multiple certificates are available.
+
 = PolarSSL 1.3.9 released 2014-10-20
 Security
    * Lowest common hash was selected from signature_algorithms extension in

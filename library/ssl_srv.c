@@ -809,14 +809,13 @@ static int ssl_pick_cert( ssl_context *ssl,
         }
 
 #if defined(POLARSSL_ECDSA_C)
-        if( pk_alg == POLARSSL_PK_ECDSA )
-        {
-            if( ssl_key_matches_curves( cur->key, ssl->handshake->curves ) )
-                break;
-        }
-        else
+        if( pk_alg == POLARSSL_PK_ECDSA &&
+            ! ssl_key_matches_curves( cur->key, ssl->handshake->curves ) )
+            continue;
 #endif
-            break;
+
+        /* If we get there, we got a winner */
+        break;
     }
 
     if( cur == NULL )

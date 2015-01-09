@@ -1487,15 +1487,15 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
 
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
 /**
- * \brief          Activate negotiation of truncated HMAC (Client only)
- *                 (Default: SSL_TRUNC_HMAC_ENABLED)
+ * \brief          Activate negotiation of truncated HMAC
+ *                 (Default: SSL_TRUNC_HMAC_DISABLED on client,
+ *                           SSL_TRUNC_HMAC_ENABLED on server.)
  *
  * \param ssl      SSL context
  * \param truncate Enable or disable (SSL_TRUNC_HMAC_ENABLED or
  *                                    SSL_TRUNC_HMAC_DISABLED)
  *
- * \return         O if successful,
- *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side
+ * \return         Always 0.
  */
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */

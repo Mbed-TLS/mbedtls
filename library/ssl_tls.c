@@ -3782,6 +3782,11 @@ void ssl_set_endpoint( ssl_context *ssl, int endpoint )
     if( endpoint == SSL_IS_CLIENT )
         ssl->session_tickets = SSL_SESSION_TICKETS_ENABLED;
 #endif
+
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+    if( endpoint == SSL_IS_SERVER )
+        ssl->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
+#endif
 }
 
 void ssl_set_authmode( ssl_context *ssl, int authmode )
@@ -4203,9 +4208,6 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate )
 {
-    if( ssl->endpoint != SSL_IS_CLIENT )
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
-
     ssl->trunc_hmac = truncate;
 
     return( 0 );

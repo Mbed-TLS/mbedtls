@@ -629,7 +629,8 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
 
     ((void) buf);
 
-    ssl->session_negotiate->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
+    if( ssl->trunc_hmac == SSL_TRUNC_HMAC_ENABLED )
+        ssl->session_negotiate->trunc_hmac = SSL_TRUNC_HMAC_ENABLED;
 
     return( 0 );
 }

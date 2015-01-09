@@ -1,5 +1,11 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= PolarSSL 1.3.10 released ???
+
+Features
+   * Add support for getrandom() syscall on recent Linux kernels with Glibc or
+     a compatible enough libc (eg uClibc).
+
 = PolarSSL 1.3.9 released 2014-10-20
 Security
    * Lowest common hash was selected from signature_algorithms extension in

@@ -209,6 +209,9 @@
 #define SSL_IS_NOT_FALLBACK             0
 #define SSL_IS_FALLBACK                 1
 
+#define SSL_EXTENDED_MS_DISABLED        0
+#define SSL_EXTENDED_MS_ENABLED         1
+
 #define SSL_COMPRESS_NULL               0
 #define SSL_COMPRESS_DEFLATE            1
 
@@ -405,6 +408,8 @@
 #define TLS_EXT_SIG_ALG                     13
 
 #define TLS_EXT_ALPN                        16
+
+#define TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
 #define TLS_EXT_SESSION_TICKET              35
 
@@ -657,6 +662,9 @@ struct _ssl_handshake_params
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     int new_session_ticket;             /*!< use NewSessionTicket?    */
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+    int extended_ms;                    /*!< use Extended Master Secret? */
+#endif
 };
 
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
@@ -704,6 +712,9 @@ struct _ssl_context
 
 #if defined(POLARSSL_SSL_FALLBACK_SCSV) && defined(POLARSSL_SSL_CLI_C)
     char fallback;              /*!< flag for fallback connections    */
+#endif
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+    char extended_ms;           /*!< flag for extended master secret  */
 #endif
 
     /*
@@ -1413,6 +1424,21 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor );
  */
 void ssl_set_fallback( ssl_context *ssl, char fallback );
 #endif /* POLARSSL_SSL_FALLBACK_SCSV && POLARSSL_SSL_CLI_C */
+
+#if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
+/**
+ * \brief           Enable or disable Extended Master Secret negotiation.
+ *                  (Default: SSL_EXTENDED_MS_ENABLED)
+ *
+ * \note            This should always be enabled, it is a security fix to the
+ *                  protocol, and should not cause any interoperability issue
+ *                  (used only if the peer supports it too).
+ *
+ * \param ssl       SSL context
+ * \param ems       SSL_EXTENDED_MS_ENABLED or SSL_EXTENDED_MS_DISABLED
+ */
+void ssl_set_extended_master_secret( ssl_context *ssl, char ems );
+#endif /* POLARSSL_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /**

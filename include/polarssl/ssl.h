@@ -238,6 +238,9 @@
 #define SSL_SESSION_TICKETS_DISABLED     0
 #define SSL_SESSION_TICKETS_ENABLED      1
 
+#define SSL_ARC4_ENABLED                0
+#define SSL_ARC4_DISABLED               1
+
 /**
  * \name SECTION: Module settings
  *
@@ -696,6 +699,8 @@ struct _ssl_context
     int max_minor_ver;          /*!< max. minor version used          */
     int min_major_ver;          /*!< min. major version used          */
     int min_minor_ver;          /*!< min. minor version used          */
+
+    char arc4_disabled;         /*!< flag for disabling RC4           */
 
     /*
      * Callbacks (RNG, debug, I/O, verification)
@@ -1384,6 +1389,21 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor );
  *                 SSL_MINOR_VERSION_3 supported)
  */
 void ssl_set_min_version( ssl_context *ssl, int major, int minor );
+
+/**
+ * \brief          Disable or enable support for RC4
+ *                 (Default: SSL_ARC4_ENABLED)
+ *
+ * \note           Though the default is RC4 for compatibility reasons in the
+ *                 1.3 branch, the recommended value is SSL_ARC4_DISABLED.
+ *
+ * \note           This function will likely be removed in future versions as
+ *                 RC4 will then be disabled by default at compile time.
+ *
+ * \param ssl      SSL context
+ * \param arc4     SSL_ARC4_ENABLED or SSL_ARC4_DISABLED
+ */
+void ssl_set_arc4_support( ssl_context *ssl, char arc4 );
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /**

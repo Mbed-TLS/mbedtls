@@ -667,7 +667,7 @@ setup_arguments()
             exit 1;
     esac
 
-    P_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
+    P_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE arc4=1"
     O_SERVER_ARGS="-accept $PORT -www -cipher NULL,ALL -$MODE"
     G_SERVER_ARGS="-p $PORT --http"
     G_SERVER_PRIO="EXPORT:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"

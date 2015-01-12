@@ -88,6 +88,7 @@ int main( int argc, char *argv[] )
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         SSL_MINOR_VERSION_1
 #define DFL_MAX_VERSION         -1
+#define DFL_ARC4                SSL_ARC4_DISABLED
 #define DFL_AUTH_MODE           SSL_VERIFY_REQUIRED
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          0
@@ -125,6 +126,7 @@ struct options
     int exchanges;              /* number of data exchanges                 */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
+    int arc4;                   /* flag for arc4 suites support             */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
@@ -316,6 +318,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "\n"                                                    \
     "    min_version=%%s      default: \"\" (ssl3)\n"       \
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
+    "    arc4=%%d             default: 0 (disabled)\n"      \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
     "    auth_mode=%%s        default: \"required\"\n"      \
@@ -406,6 +409,7 @@ int main( int argc, char *argv[] )
     opt.exchanges           = DFL_EXCHANGES;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
+    opt.arc4                = DFL_ARC4;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
@@ -544,6 +548,15 @@ int main( int argc, char *argv[] )
                 opt.max_version = SSL_MINOR_VERSION_3;
             else
                 goto usage;
+        }
+        else if( strcmp( p, "arc4" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0:     opt.arc4 = SSL_ARC4_DISABLED;   break;
+                case 1:     opt.arc4 = SSL_ARC4_ENABLED;    break;
+                default:    goto usage;
+            }
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
@@ -907,8 +920,11 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+    /* RC4 setting is redundant if we use only one ciphersuite */
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
+    else
+        ssl_set_arc4_support( &ssl, opt.arc4 );
 
     ssl_set_renegotiation( &ssl, opt.renegotiation );
     ssl_legacy_renegotiation( &ssl, opt.allow_legacy );

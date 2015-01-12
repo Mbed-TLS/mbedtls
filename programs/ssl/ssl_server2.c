@@ -107,6 +107,7 @@ int main( int argc, char *argv[] )
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         SSL_MINOR_VERSION_1
 #define DFL_MAX_VERSION         -1
+#define DFL_ARC4                SSL_ARC4_DISABLED
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
@@ -167,6 +168,7 @@ struct options
     int exchanges;              /* number of data exchanges                 */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
+    int arc4;                   /* flag for arc4 suites support             */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int tickets;                /* enable / disable session tickets         */
@@ -327,6 +329,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "\n"                                                    \
     "    min_version=%%s      default: \"ssl3\"\n"          \
     "    max_version=%%s      default: \"tls1_2\"\n"        \
+    "    arc4=%%d             default: 0 (disabled)\n"      \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2\n"     \
     "\n"                                                                \
@@ -704,6 +707,7 @@ int main( int argc, char *argv[] )
     opt.exchanges           = DFL_EXCHANGES;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
+    opt.arc4                = DFL_ARC4;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.tickets             = DFL_TICKETS;
@@ -826,6 +830,15 @@ int main( int argc, char *argv[] )
                 opt.max_version = SSL_MINOR_VERSION_3;
             else
                 goto usage;
+        }
+        else if( strcmp( p, "arc4" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0:     opt.arc4 = SSL_ARC4_DISABLED;   break;
+                case 1:     opt.arc4 = SSL_ARC4_ENABLED;    break;
+                default:    goto usage;
+            }
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
@@ -1293,6 +1306,8 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
+    else
+        ssl_set_arc4_support( &ssl, opt.arc4 );
 
     if( opt.version_suites != NULL )
     {

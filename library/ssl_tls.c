@@ -3977,6 +3977,11 @@ void ssl_set_min_version( ssl_context *ssl, int major, int minor )
     }
 }
 
+void ssl_set_arc4_support( ssl_context *ssl, char arc4 )
+{
+    ssl->arc4_disabled = arc4;
+}
+
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
 {

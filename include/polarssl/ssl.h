@@ -206,6 +206,9 @@
 #define SSL_IS_CLIENT                   0
 #define SSL_IS_SERVER                   1
 
+#define SSL_IS_NOT_FALLBACK             0
+#define SSL_IS_FALLBACK                 1
+
 #define SSL_COMPRESS_NULL               0
 #define SSL_COMPRESS_DEFLATE            1
 
@@ -308,6 +311,7 @@
  * Signaling ciphersuite values (SCSV)
  */
 #define SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
+#define SSL_FALLBACK_SCSV               0x5600 /**< draft-ietf-tls-downgrade-scsv-00 */
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)
@@ -365,6 +369,7 @@
 #define SSL_ALERT_MSG_PROTOCOL_VERSION      70  /* 0x46 */
 #define SSL_ALERT_MSG_INSUFFICIENT_SECURITY 71  /* 0x47 */
 #define SSL_ALERT_MSG_INTERNAL_ERROR        80  /* 0x50 */
+#define SSL_ALERT_MSG_INAPROPRIATE_FALLBACK 86  /* 0x56 */
 #define SSL_ALERT_MSG_USER_CANCELED         90  /* 0x5A */
 #define SSL_ALERT_MSG_NO_RENEGOTIATION     100  /* 0x64 */
 #define SSL_ALERT_MSG_UNSUPPORTED_EXT      110  /* 0x6E */
@@ -696,6 +701,10 @@ struct _ssl_context
     int max_minor_ver;          /*!< max. minor version used          */
     int min_major_ver;          /*!< min. major version used          */
     int min_minor_ver;          /*!< min. minor version used          */
+
+#if defined(POLARSSL_SSL_FALLBACK_SCSV) && defined(POLARSSL_SSL_CLI_C)
+    char fallback;              /*!< flag for fallback connections    */
+#endif
 
     /*
      * Callbacks (RNG, debug, I/O, verification)
@@ -1367,7 +1376,6 @@ const char *ssl_get_alpn_protocol( const ssl_context *ssl );
  */
 void ssl_set_max_version( ssl_context *ssl, int major, int minor );
 
-
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
  *                 (Default: SSL_MIN_MAJOR_VERSION, SSL_MIN_MINOR_VERSION)
@@ -1382,6 +1390,29 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor );
  *                 SSL_MINOR_VERSION_3 supported)
  */
 void ssl_set_min_version( ssl_context *ssl, int major, int minor );
+
+#if defined(POLARSSL_SSL_FALLBACK_SCSV) && defined(POLARSSL_SSL_CLI_C)
+/**
+ * \brief          Set the fallback flag (client-side only).
+ *                 (Default: SSL_IS_NOT_FALLBACK).
+ *
+ * \note           Set to SSL_IS_FALLBACK when preparing a fallback
+ *                 connection, that is a connection with max_version set to a
+ *                 lower value than the value you're willing to use. Such
+ *                 fallback connections are not recommended but are sometimes
+ *                 necessary to interoperate with buggy (version-intolerant)
+ *                 servers.
+ *
+ * \warning        You should NOT set this to SSL_IS_FALLBACK for
+ *                 non-fallback connections! This would appear to work for a
+ *                 while, then cause failures when the server is upgraded to
+ *                 support a newer TLS version.
+ *
+ * \param ssl      SSL context
+ * \param fallback SSL_IS_NOT_FALLBACK or SSL_IS_FALLBACK
+ */
+void ssl_set_fallback( ssl_context *ssl, char fallback );
+#endif /* POLARSSL_SSL_FALLBACK_SCSV && POLARSSL_SSL_CLI_C */
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /**

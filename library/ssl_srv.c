@@ -1052,6 +1052,30 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         }
     }
 
+#if defined(POLARSSL_SSL_FALLBACK_SCSV)
+    for( i = 0, p = buf + 6; i < ciph_len; i += 3, p += 3 )
+    {
+        if( p[0] == 0 &&
+            p[1] == (unsigned char)( ( SSL_FALLBACK_SCSV >> 8 ) & 0xff ) &&
+            p[2] == (unsigned char)( ( SSL_FALLBACK_SCSV      ) & 0xff ) )
+        {
+            SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
+
+            if( ssl->minor_ver < ssl->max_minor_ver )
+            {
+                SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
+
+                ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
+                                        SSL_ALERT_MSG_INAPROPRIATE_FALLBACK );
+
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+
+            break;
+        }
+    }
+#endif /* POLARSSL_SSL_FALLBACK_SCSV */
+
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     ciphersuite_info = NULL;
 #if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
@@ -1364,6 +1388,29 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             break;
         }
     }
+
+#if defined(POLARSSL_SSL_FALLBACK_SCSV)
+    for( i = 0, p = buf + 41 + sess_len; i < ciph_len; i += 2, p += 2 )
+    {
+        if( p[0] == (unsigned char)( ( SSL_FALLBACK_SCSV >> 8 ) & 0xff ) &&
+            p[1] == (unsigned char)( ( SSL_FALLBACK_SCSV      ) & 0xff ) )
+        {
+            SSL_DEBUG_MSG( 0, ( "received FALLBACK_SCSV" ) );
+
+            if( ssl->minor_ver < ssl->max_minor_ver )
+            {
+                SSL_DEBUG_MSG( 0, ( "inapropriate fallback" ) );
+
+                ssl_send_alert_message( ssl, SSL_ALERT_LEVEL_FATAL,
+                                        SSL_ALERT_MSG_INAPROPRIATE_FALLBACK );
+
+                return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+
+            break;
+        }
+    }
+#endif /* POLARSSL_SSL_FALLBACK_SCSV */
 
     ext = buf + 44 + sess_len + ciph_len + comp_len;
 

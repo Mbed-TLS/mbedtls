@@ -135,7 +135,7 @@ struct options
     int tickets;                /* enable / disable session tickets         */
     const char *alpn_string;    /* ALPN supported protocols                 */
     int fallback;               /* is this a fallback connection?           */
-    char extended_ms;           /* negotiate extended master secret?        */
+    int extended_ms;            /* negotiate extended master secret?        */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )

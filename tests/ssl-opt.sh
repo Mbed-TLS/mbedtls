@@ -35,10 +35,10 @@ EXCLUDE='^$'
 
 print_usage() {
     echo "Usage: $0 [options]"
-    echo -e "  -h|--help\tPrint this help."
-    echo -e "  -m|--memcheck\tCheck memory leaks and errors."
-    echo -e "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')"
-    echo -e "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')"
+    printf "  -h|--help\tPrint this help.\n"
+    printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
+    printf "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')\n"
+    printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
 }
 
 get_options() {
@@ -145,10 +145,10 @@ needs_more_time() {
 
 # print_name <name>
 print_name() {
-    echo -n "$1 "
+    printf "$1 "
     LEN=$(( 72 - `echo "$1" | wc -c` ))
-    for i in `seq 1 $LEN`; do echo -n '.'; done
-    echo -n ' '
+    for i in `seq 1 $LEN`; do printf '.'; done
+    printf ' '
 
     TESTS=$(( $TESTS + 1 ))
 }
@@ -229,9 +229,11 @@ wait_server_start() {
 
         # make a tight loop, server usually takes less than 1 sec to start
         if [ "$DTLS" -eq 1 ]; then
-            until lsof -nbi UDP:"$SRV_PORT" | grep UDP >/dev/null; do :; done
+            until lsof -nbi UDP:"$SRV_PORT" 2>/dev/null | grep UDP >/dev/null;
+            do :; done
         else
-            until lsof -nbi TCP:"$SRV_PORT" | grep LISTEN >/dev/null; do :; done
+            until lsof -nbi TCP:"$SRV_PORT" 2>/dev/null | grep LISTEN >/dev/null;
+            do :; done
         fi
 
         kill $DOG_PID >/dev/null 2>&1
@@ -2782,9 +2784,9 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
 echo "------------------------------------------------------------------------"
 
 if [ $FAILS = 0 ]; then
-    echo -n "PASSED"
+    printf "PASSED"
 else
-    echo -n "FAILED"
+    printf "FAILED"
 fi
 PASSES=$(( $TESTS - $FAILS ))
 echo " ($PASSES / $TESTS tests ($SKIPS skipped))"

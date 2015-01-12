@@ -104,8 +104,10 @@ if(ENABLE_TESTING)
     )
 
   ADD_CUSTOM_TARGET(memcheck
+    COMMAND sed -i.bak s+/usr/bin/valgrind+`which valgrind`+ DartConfiguration.tcl
     COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
     COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
     COMMAND rm -f memcheck.log
+    COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
     )
 endif()

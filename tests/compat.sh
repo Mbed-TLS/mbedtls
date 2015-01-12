@@ -56,16 +56,16 @@ PEERS="OpenSSL$PEER_GNUTLS PolarSSL"
 
 print_usage() {
     echo "Usage: $0"
-    echo -e "  -h|--help\tPrint this help."
-    echo -e "  -f|--filter\tOnly matching ciphersuites are tested (Default: '$FILTER')"
-    echo -e "  -e|--exclude\tMatching ciphersuites are excluded (Default: '$EXCLUDE')"
-    echo -e "  -m|--modes\tWhich modes to perform (Default: '$MODES')"
-    echo -e "  -t|--types\tWhich key exchange type to perform (Default: '$TYPES')"
-    echo -e "  -V|--verify\tWhich verification modes to perform (Default: '$VERIFIES')"
-    echo -e "  -p|--peers\tWhich peers to use (Default: '$PEERS')"
-    echo -e "            \tAlso available: GnuTLS (needs v3.2.15 or higher)"
-    echo -e "  -M|--memcheck\tCheck memory leaks and errors."
-    echo -e "  -v|--verbose\tSet verbose output."
+    printf "  -h|--help\tPrint this help.\n"
+    printf "  -f|--filter\tOnly matching ciphersuites are tested (Default: '$FILTER')\n"
+    printf "  -e|--exclude\tMatching ciphersuites are excluded (Default: '$EXCLUDE')\n"
+    printf "  -m|--modes\tWhich modes to perform (Default: '$MODES')\n"
+    printf "  -t|--types\tWhich key exchange type to perform (Default: '$TYPES')\n"
+    printf "  -V|--verify\tWhich verification modes to perform (Default: '$VERIFIES')\n"
+    printf "  -p|--peers\tWhich peers to use (Default: '$PEERS')\n"
+    printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
+    printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
+    printf "  -v|--verbose\tSet verbose output.\n"
 }
 
 get_options() {
@@ -166,7 +166,7 @@ filter()
   done
 
   # normalize whitespace
-  echo "$NEW_LIST" | sed -e 's/[[:space:]]\+/ /g' -e 's/^ //' -e 's/ $//'
+  echo "$NEW_LIST" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//'
 }
 
 # OpenSSL 1.0.1h with -Verify wants a ClientCertificate message even for
@@ -923,9 +923,9 @@ run_client() {
     VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
     TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
     TITLE="$TITLE $MODE,$VERIF $2"
-    echo -n "$TITLE "
+    printf "$TITLE "
     LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
-    for i in `seq 1 $LEN`; do echo -n '.'; done; echo -n ' '
+    for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
@@ -1201,9 +1201,9 @@ echo "------------------------------------------------------------------------"
 
 if [ $FAILED -ne 0 -o $SRVMEM -ne 0 ];
 then
-    echo -n "FAILED"
+    printf "FAILED"
 else
-    echo -n "PASSED"
+    printf "PASSED"
 fi
 
 if [ "$MEMCHECK" -gt 0 ]; then

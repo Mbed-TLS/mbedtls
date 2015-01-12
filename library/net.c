@@ -464,7 +464,7 @@ int net_accept( int bind_fd, int *client_fd, void *client_ip )
         /* UDP: wait for a message, but keep it in the queue */
         char buf[1] = { 0 };
 
-        ret = recvfrom( bind_fd, buf, 0, MSG_PEEK,
+        ret = recvfrom( bind_fd, buf, sizeof( buf ), MSG_PEEK,
                         (struct sockaddr *) &client_addr, &n );
     }
 

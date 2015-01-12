@@ -1372,8 +1372,10 @@ void ssl_set_max_version( ssl_context *ssl, int major, int minor );
  * \brief          Set the minimum accepted SSL/TLS protocol version
  *                 (Default: SSL_MIN_MAJOR_VERSION, SSL_MIN_MINOR_VERSION)
  *
- *                 Note: Input outside of the SSL_MAX_XXXXX_VERSION and
- *                       SSL_MIN_XXXXX_VERSION range is ignored.
+ * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
+ *                 SSL_MIN_XXXXX_VERSION range is ignored.
+ *
+ * \note           SSL_MINOR_VERSION_0 (SSL v3) should be avoided.
  *
  * \param ssl      SSL context
  * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)

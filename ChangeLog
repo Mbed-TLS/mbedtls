@@ -1,5 +1,9 @@
 PolarSSL ChangeLog (Sorted per branch, date)
 
+= PolarSSL 1.3.10 released ???
+Changes
+   * Example programs for SSL client and server now disable SSLv3 by default.
+
 = PolarSSL 1.3.9 released 2014-10-20
 Security
    * Lowest common hash was selected from signature_algorithms extension in

@@ -86,7 +86,7 @@ int main( int argc, char *argv[] )
 #define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
 #define DFL_RENEGOTIATE         0
 #define DFL_EXCHANGES           1
-#define DFL_MIN_VERSION         -1
+#define DFL_MIN_VERSION         SSL_MINOR_VERSION_1
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_REQUIRED
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE

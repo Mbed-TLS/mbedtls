@@ -4846,7 +4846,7 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
         return( ssl_write_real( ssl, buf, len ) );
     }
 
-    if( ssl->split_done == 0 )
+    if( ssl->split_done != 1 )
     {
         ssl->split_done = 1;
         if( ( ret = ssl_write_real( ssl, buf, 1 ) ) < 0 )

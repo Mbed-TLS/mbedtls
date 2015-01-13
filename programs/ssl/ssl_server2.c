@@ -180,8 +180,8 @@ struct options
     char *sni;                  /* string describing sni information        */
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
-    char extended_ms;           /* allow negotiation of extended MS?        */
-    char etm;                   /* allow negotiation of encrypt-then-MAC?   */
+    int extended_ms;            /* allow negotiation of extended MS?        */
+    int etm;                    /* allow negotiation of encrypt-then-MAC?   */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )

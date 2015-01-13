@@ -137,7 +137,7 @@ struct options
     const char *alpn_string;    /* ALPN supported protocols                 */
     int fallback;               /* is this a fallback connection?           */
     int extended_ms;            /* negotiate extended master secret?        */
-    char etm;                   /* negotiate encrypt then mac?     ?        */
+    int etm;                    /* negotiate encrypt then mac?              */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )

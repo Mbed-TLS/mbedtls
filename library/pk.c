@@ -301,6 +301,32 @@ int pk_encrypt( pk_context *ctx,
 }
 
 /*
+ * Check public-private key pair
+ */
+int pk_check_pair( const pk_context *pub, const pk_context *prv )
+{
+    if( pub == NULL || pub->pk_info == NULL ||
+        prv == NULL || prv->pk_info == NULL ||
+        prv->pk_info->check_pair_func == NULL )
+    {
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+    }
+
+    if( prv->pk_info->type == POLARSSL_PK_RSA_ALT )
+    {
+        if( pub->pk_info->type != POLARSSL_PK_RSA )
+            return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+    }
+    else
+    {
+        if( pub->pk_info != prv->pk_info )
+            return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+    }
+
+    return( prv->pk_info->check_pair_func( pub->pk_ctx, prv->pk_ctx ) );
+}
+
+/*
  * Get key size in bits
  */
 size_t pk_get_size( const pk_context *ctx )

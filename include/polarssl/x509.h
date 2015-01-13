@@ -45,6 +45,18 @@
  * \{
  */
 
+#if !defined(POLARSSL_X509_MAX_INTERMEDIATE_CA)
+/**
+ * Maximum number of intermediate CAs in a verification chain.
+ * That is, maximum length of the chain, excluding the end-entity certificate
+ * and the trusted root certificate.
+ *
+ * Set this to a low value to prevent an adversary from making you waste
+ * resources verifying an overlong certificate chain.
+ */
+#define POLARSSL_X509_MAX_INTERMEDIATE_CA   8
+#endif
+
 /**
  * \name X509 Error codes
  * \{
@@ -295,7 +307,6 @@ int x509_get_serial( unsigned char **p, const unsigned char *end,
                      x509_buf *serial );
 int x509_get_ext( unsigned char **p, const unsigned char *end,
                   x509_buf *ext, int tag );
-int x509_load_file( const char *path, unsigned char **buf, size_t *n );
 int x509_sig_alg_gets( char *buf, size_t size, const x509_buf *sig_oid,
                        pk_type_t pk_alg, md_type_t md_alg,
                        const void *sig_opts );

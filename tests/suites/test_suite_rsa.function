@@ -590,6 +590,74 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void rsa_check_pubpriv( int mod, int radix_Npub, char *input_Npub,
+                        int radix_Epub, char *input_Epub,
+                        int radix_P, char *input_P, int radix_Q,
+                        char *input_Q, int radix_N, char *input_N,
+                        int radix_E, char *input_E, int radix_D, char *input_D,
+                        int radix_DP, char *input_DP, int radix_DQ,
+                        char *input_DQ, int radix_QP, char *input_QP,
+                        int result )
+{
+    rsa_context pub, prv;
+
+    rsa_init( &pub, RSA_PKCS_V15, 0 );
+    rsa_init( &prv, RSA_PKCS_V15, 0 );
+
+    pub.len = mod / 8;
+    prv.len = mod / 8;
+
+    if( strlen( input_Npub ) )
+    {
+        TEST_ASSERT( mpi_read_string( &pub.N, radix_Npub, input_Npub ) == 0 );
+    }
+    if( strlen( input_Epub ) )
+    {
+        TEST_ASSERT( mpi_read_string( &pub.E, radix_Epub, input_Epub ) == 0 );
+    }
+
+    if( strlen( input_P ) )
+    {
+        TEST_ASSERT( mpi_read_string( &prv.P, radix_P, input_P ) == 0 );
+    }
+    if( strlen( input_Q ) )
+    {
+        TEST_ASSERT( mpi_read_string( &prv.Q, radix_Q, input_Q ) == 0 );
+    }
+    if( strlen( input_N ) )
+    {
+        TEST_ASSERT( mpi_read_string( &prv.N, radix_N, input_N ) == 0 );
+    }
+    if( strlen( input_E ) )
+    {
+        TEST_ASSERT( mpi_read_string( &prv.E, radix_E, input_E ) == 0 );
+    }
+    if( strlen( input_D ) )
+    {
+        TEST_ASSERT( mpi_read_string( &prv.D, radix_D, input_D ) == 0 );
+    }
+    if( strlen( input_DP ) )
+    {
+        TEST_ASSERT( mpi_read_string( &prv.DP, radix_DP, input_DP ) == 0 );
+    }
+    if( strlen( input_DQ ) )
+    {
+        TEST_ASSERT( mpi_read_string( &prv.DQ, radix_DQ, input_DQ ) == 0 );
+    }
+    if( strlen( input_QP ) )
+    {
+        TEST_ASSERT( mpi_read_string( &prv.QP, radix_QP, input_QP ) == 0 );
+    }
+
+    TEST_ASSERT( rsa_check_pub_priv( &pub, &prv ) == result );
+
+exit:
+    rsa_free( &pub );
+    rsa_free( &prv );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:POLARSSL_CTR_DRBG_C:POLARSSL_ENTROPY_C */
 void rsa_gen_key( int nrbits, int exponent, int result)
 {

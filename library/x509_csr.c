@@ -310,7 +310,7 @@ int x509_csr_parse_file( x509_csr *csr, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = x509_csr_parse( csr, buf, n );

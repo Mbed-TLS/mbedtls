@@ -100,11 +100,23 @@ typedef struct _x509_crl
 x509_crl;
 
 /**
- * \brief          Parse one or more CRLs and add them
- *                 to the chained list
+ * \brief          Parse a DER-encoded CRL and append it to the chained list
  *
  * \param chain    points to the start of the chain
- * \param buf      buffer holding the CRL data
+ * \param buf      buffer holding the CRL data in DER format
+ * \param buflen   size of the buffer
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int x509_crl_parse_der( x509_crl *chain,
+                        const unsigned char *buf, size_t buflen );
+/**
+ * \brief          Parse one or more CRLs and append them to the chained list
+ *
+ * \note           Mutliple CRLs are accepted only if using PEM format
+ *
+ * \param chain    points to the start of the chain
+ * \param buf      buffer holding the CRL data in PEM or DER format
  * \param buflen   size of the buffer
  *
  * \return         0 if successful, or a specific X509 or PEM error code
@@ -113,11 +125,12 @@ int x509_crl_parse( x509_crl *chain, const unsigned char *buf, size_t buflen );
 
 #if defined(POLARSSL_FS_IO)
 /**
- * \brief          Load one or more CRLs and add them
- *                 to the chained list
+ * \brief          Load one or more CRLs and append them to the chained list
+ *
+ * \note           Mutliple CRLs are accepted only if using PEM format
  *
  * \param chain    points to the start of the chain
- * \param path     filename to read the CRLs from
+ * \param path     filename to read the CRLs from (in PEM or DER encoding)
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */

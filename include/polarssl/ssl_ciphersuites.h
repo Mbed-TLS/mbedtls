@@ -233,7 +233,9 @@ extern "C" {
 #define TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8      0xC0AE  /**< TLS 1.2 */
 #define TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8      0xC0AF  /**< TLS 1.2 */
 
-/* Reminder: update _ssl_premaster_secret when adding a new key exchange */
+/* Reminder: update _ssl_premaster_secret when adding a new key exchange.
+ * Reminder: update POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED below.
+ */
 typedef enum {
     POLARSSL_KEY_EXCHANGE_NONE = 0,
     POLARSSL_KEY_EXCHANGE_RSA,
@@ -247,6 +249,17 @@ typedef enum {
     POLARSSL_KEY_EXCHANGE_ECDH_RSA,
     POLARSSL_KEY_EXCHANGE_ECDH_ECDSA,
 } key_exchange_type_t;
+
+#if defined(POLARSSL_KEY_EXCHANGE_RSA_ENABLED)          || \
+    defined(POLARSSL_KEY_EXCHANGE_DHE_RSA_ENABLED)      || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_RSA_ENABLED)    || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
+    defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)      || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)    || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
+    defined(POLARSSL_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#define POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED
+#endif
 
 typedef struct _ssl_ciphersuite_t ssl_ciphersuite_t;
 

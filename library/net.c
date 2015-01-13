@@ -496,12 +496,12 @@ int net_set_nonblock( int fd )
 void net_usleep( unsigned long usec )
 {
     struct timeval tv;
-    tv.tv_sec  = 0;
+    tv.tv_sec  = usec / 1000000;
 #if !defined(_WIN32) && ( defined(__unix__) || defined(__unix) || \
     ( defined(__APPLE__) && defined(__MACH__) ) )
-    tv.tv_usec = (suseconds_t) usec;
+    tv.tv_usec = (suseconds_t) usec % 1000000;
 #else
-    tv.tv_usec = usec;
+    tv.tv_usec = usec % 1000000;
 #endif
     select( 0, NULL, NULL, NULL, &tv );
 }

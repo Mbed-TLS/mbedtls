@@ -35,5 +35,5 @@ depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C:POLARSSL_ECP_DP_SECP521R1_ENABLED
 pk_write_key_check:"data_files/ec_521_prv.pem"
 
 Private key write check EC Brainpool 512 bits
-depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C:POLARSSL_ECP_DP_SECP192R1_ENABLED
+depends_on:POLARSSL_ECP_C:POLARSSL_BASE64_C:POLARSSL_ECP_DP_BP512R1_ENABLED
 pk_write_key_check:"data_files/ec_bp512_prv.pem"

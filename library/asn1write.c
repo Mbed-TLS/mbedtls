@@ -327,6 +327,8 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
             return( NULL );
         }
 
+        memcpy( cur->oid.p, oid, oid_len );
+
         cur->val.len = val_len;
         cur->val.p = polarssl_malloc( val_len );
         if( cur->val.p == NULL )
@@ -335,8 +337,6 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
             polarssl_free( cur );
             return( NULL );
         }
-
-        memcpy( cur->oid.p, oid, oid_len );
 
         cur->next = *head;
         *head = cur;

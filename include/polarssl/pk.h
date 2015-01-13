@@ -177,6 +177,9 @@ typedef struct
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng );
 
+    /** Check public-private key pair */
+    int (*check_pair_func)( const void *pub, const void *prv );
+
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
 
@@ -427,6 +430,16 @@ int pk_encrypt( pk_context *ctx,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
+ * \brief           Check if a public-private pair of keys matches.
+ *
+ * \param pub       Context holding a public key.
+ * \param prv       Context holding a private (and public) key.
+ *
+ * \return          0 on success or POLARSSL_ERR_PK_BAD_INPUT_DATA
+ */
+int pk_check_pair( const pk_context *pub, const pk_context *prv );
+
+/**
  * \brief           Export debug information
  *
  * \param ctx       Context to use
@@ -624,6 +637,14 @@ int pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
 int pk_write_pubkey( unsigned char **p, unsigned char *start,
                      const pk_context *key );
 #endif /* POLARSSL_PK_WRITE_C */
+
+/*
+ * Internal module functions. You probably do not want to use these unless you
+ * know you do.
+ */
+#if defined(POLARSSL_FS_IO)
+int pk_load_file( const char *path, unsigned char **buf, size_t *n );
+#endif
 
 #ifdef __cplusplus
 }

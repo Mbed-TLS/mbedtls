@@ -117,12 +117,19 @@ static int rsa_encrypt_wrap( void *ctx,
                     unsigned char *output, size_t *olen, size_t osize,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    ((void) osize);
-
     *olen = ((rsa_context *) ctx)->len;
+
+    if( *olen > osize )
+        return( POLARSSL_ERR_RSA_OUTPUT_TOO_LARGE );
 
     return( rsa_pkcs1_encrypt( (rsa_context *) ctx,
                 f_rng, p_rng, RSA_PUBLIC, ilen, input, output ) );
+}
+
+static int rsa_check_pair_wrap( const void *pub, const void *prv )
+{
+    return( rsa_check_pub_priv( (const rsa_context *) pub,
+                                (const rsa_context *) prv ) );
 }
 
 static void *rsa_alloc_wrap( void )
@@ -163,6 +170,7 @@ const pk_info_t rsa_info = {
     rsa_sign_wrap,
     rsa_decrypt_wrap,
     rsa_encrypt_wrap,
+    rsa_check_pair_wrap,
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
@@ -234,6 +242,12 @@ static int eckey_sign_wrap( void *ctx, md_type_t md_alg,
 
 #endif /* POLARSSL_ECDSA_C */
 
+static int eckey_check_pair( const void *pub, const void *prv )
+{
+    return( ecp_check_pub_priv( (const ecp_keypair *) pub,
+                                (const ecp_keypair *) prv ) );
+}
+
 static void *eckey_alloc_wrap( void )
 {
     void *ctx = polarssl_malloc( sizeof( ecp_keypair ) );
@@ -271,6 +285,7 @@ const pk_info_t eckey_info = {
 #endif
     NULL,
     NULL,
+    eckey_check_pair,
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
@@ -294,6 +309,7 @@ const pk_info_t eckeydh_info = {
     NULL,
     NULL,
     NULL,
+    eckey_check_pair,
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */
@@ -367,6 +383,7 @@ const pk_info_t ecdsa_info = {
     ecdsa_sign_wrap,
     NULL,
     NULL,
+    eckey_check_pair,   /* Compatible key structures */
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */
@@ -419,6 +436,36 @@ static int rsa_alt_decrypt_wrap( void *ctx,
                 RSA_PRIVATE, olen, input, output, osize ) );
 }
 
+#if defined(POLARSSL_RSA_C)
+static int rsa_alt_check_pair( const void *pub, const void *prv )
+{
+    unsigned char sig[POLARSSL_MPI_MAX_SIZE];
+    unsigned char hash[32];
+    size_t sig_len = 0;
+    int ret;
+
+    if( rsa_alt_get_size( prv ) != rsa_get_size( pub ) )
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+
+    memset( hash, 0x2a, sizeof( hash ) );
+
+    if( ( ret = rsa_alt_sign_wrap( (void *) prv, POLARSSL_MD_NONE,
+                                   hash, sizeof( hash ),
+                                   sig, &sig_len, NULL, NULL ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( rsa_verify_wrap( (void *) pub, POLARSSL_MD_NONE,
+                         hash, sizeof( hash ), sig, sig_len ) != 0 )
+    {
+        return( POLARSSL_ERR_RSA_KEY_CHECK_FAILED );
+    }
+
+    return( 0 );
+}
+#endif /* POLARSSL_RSA_C */
+
 static void *rsa_alt_alloc_wrap( void )
 {
     void *ctx = polarssl_malloc( sizeof( rsa_alt_context ) );
@@ -444,6 +491,11 @@ const pk_info_t rsa_alt_info = {
     rsa_alt_sign_wrap,
     rsa_alt_decrypt_wrap,
     NULL,
+#if defined(POLARSSL_RSA_C)
+    rsa_alt_check_pair,
+#else
+    NULL,
+#endif
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
     NULL,

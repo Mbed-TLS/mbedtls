@@ -599,6 +599,32 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void ecp_check_pub_priv( int id_pub, char *Qx_pub, char *Qy_pub,
+                         int id, char *d, char *Qx, char *Qy, int ret )
+{
+    ecp_keypair pub, prv;
+
+    ecp_keypair_init( &pub );
+    ecp_keypair_init( &prv );
+
+    if( id_pub != POLARSSL_ECP_DP_NONE )
+        TEST_ASSERT( ecp_use_known_dp( &pub.grp, id_pub ) == 0 );
+    TEST_ASSERT( ecp_point_read_string( &pub.Q, 16, Qx_pub, Qy_pub ) == 0 );
+
+    if( id != POLARSSL_ECP_DP_NONE )
+        TEST_ASSERT( ecp_use_known_dp( &prv.grp, id ) == 0 );
+    TEST_ASSERT( ecp_point_read_string( &prv.Q, 16, Qx, Qy ) == 0 );
+    TEST_ASSERT( mpi_read_string( &prv.d, 16, d ) == 0 );
+
+    TEST_ASSERT( ecp_check_pub_priv( &pub, &prv ) == ret );
+
+exit:
+    ecp_keypair_free( &pub );
+    ecp_keypair_free( &prv );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ecp_gen_keypair( int id )
 {
     ecp_group grp;

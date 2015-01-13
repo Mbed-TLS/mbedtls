@@ -782,6 +782,18 @@
 #define POLARSSL_SELF_TEST
 
 /**
+ * \def POLARSSL_SSL_AEAD_RANDOM_IV
+ *
+ * Generate a random IV rather than using the record sequence number as a
+ * nonce for ciphersuites using and AEAD algorithm (GCM or CCM).
+ *
+ * Using the sequence number is generally recommended.
+ *
+ * Uncomment this macro to always use random IVs with AEAD ciphersuites.
+ */
+//#define POLARSSL_SSL_AEAD_RANDOM_IV
+
+/**
  * \def POLARSSL_SSL_ALL_ALERT_MESSAGES
  *
  * Enable sending of alert messages in case of encountered errors as per RFC.
@@ -954,8 +966,7 @@
 /**
  * \def POLARSSL_SSL_ALPN
  *
- * Enable support for Application Layer Protocol Negotiation.
- * draft-ietf-tls-applayerprotoneg-05
+ * Enable support for RFC 7301 Application Layer Protocol Negotiation.
  *
  * Comment this macro to disable support for ALPN.
  */
@@ -2225,6 +2236,9 @@
 
 /* Debug options */
 //#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */
+
+/* X509 options */
+//#define POLARSSL_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
 
 /* \} name SECTION: Module configuration options */
 

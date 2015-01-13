@@ -718,6 +718,15 @@ run_test    "CBC Record splitting: TLS 1.0, splitting disabled" \
             -S "Read from client: 1 bytes read" \
             -S "122 bytes read"
 
+run_test    "CBC Record splitting: TLS 1.0, splitting, nbio" \
+            "$P_SRV nbio=2" \
+            "$P_CLI nbio=2 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             request_size=123 force_version=tls1" \
+            0 \
+            -S "Read from client: 123 bytes read" \
+            -s "Read from client: 1 bytes read" \
+            -s "122 bytes read"
+
 # Tests for Session Tickets
 
 run_test    "Session resume using tickets: basic" \

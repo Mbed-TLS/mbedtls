@@ -3717,6 +3717,10 @@ int ssl_session_reset( ssl_context *ssl )
     ssl->out_msgtype = 0;
     ssl->out_msglen = 0;
     ssl->out_left = 0;
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+    if( ssl->split_done != SSL_CBC_RECORD_SPLITTING_DISABLED )
+        ssl->split_done = 0;
+#endif
 
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;
@@ -4263,6 +4267,13 @@ int ssl_set_truncated_hmac( ssl_context *ssl, int truncate )
 }
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+void ssl_set_cbc_record_splitting( ssl_context *ssl, char split )
+{
+    ssl->split_done = split;
+}
+#endif
+
 void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy )
 {
     ssl->allow_legacy_renegotiation = allow_legacy;
@@ -4741,7 +4752,11 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
 /*
  * Send application data to be encrypted by the SSL layer
  */
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+static int ssl_write_real( ssl_context *ssl, const unsigned char *buf, size_t len )
+#else
 int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
+#endif
 {
     int ret;
     size_t n;
@@ -4809,6 +4824,45 @@ int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
 
     return( (int) n );
 }
+
+/*
+ * Write application data, doing 1/n-1 splitting if necessary.
+ *
+ * With non-blocking I/O, ssl_write_real() may return WANT_WRITE,
+ * then the caller will call us again with the same arguments, so
+ * remember wether we already did the split or not.
+ */
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len )
+{
+    int ret;
+
+    if( ssl->split_done == SSL_CBC_RECORD_SPLITTING_DISABLED ||
+        len <= 1 ||
+        ssl->minor_ver > SSL_MINOR_VERSION_1 ||
+        cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc )
+                                != POLARSSL_MODE_CBC )
+    {
+        return( ssl_write_real( ssl, buf, len ) );
+    }
+
+    if( ssl->split_done == 0 )
+    {
+        ssl->split_done = 1;
+        if( ( ret = ssl_write_real( ssl, buf, 1 ) ) < 0 )
+            return( ret );
+    }
+
+    if( ssl->split_done == 1 )
+    {
+        ssl->split_done = 0;
+        if( ( ret = ssl_write_real( ssl, buf + 1, len - 1 ) ) < 0 )
+            return( ret );
+    }
+
+    return( ret + 1 );
+}
+#endif /* POLARSSL_SSL_CBC_RECORD_SPLITTING */
 
 /*
  * Notify the peer that the connection is being closed

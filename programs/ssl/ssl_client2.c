@@ -91,6 +91,7 @@ int main( int argc, char *argv[] )
 #define DFL_AUTH_MODE           SSL_VERIFY_REQUIRED
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          0
+#define DFL_RECSPLIT            -1
 #define DFL_RECONNECT           0
 #define DFL_RECO_DELAY          0
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
@@ -131,6 +132,7 @@ struct options
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
+    int recsplit;               /* enable record splitting?                 */
     int reconnect;              /* attempt to resume session                */
     int reco_delay;             /* delay in seconds before resuming session */
     int tickets;                /* enable / disable session tickets         */
@@ -275,6 +277,13 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+#define USAGE_RECSPLIT \
+    "    recplit=%%d          default: (library default)\n"
+#else
+#define USAGE_RECSPLIT
+#endif
+
 #if defined(POLARSSL_TIMING_C)
 #define USAGE_TIME \
     "    reco_delay=%%d       default: 0 seconds\n"
@@ -350,6 +359,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     USAGE_FALLBACK                                          \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
+    USAGE_RECSPLIT                                          \
     "\n"                                                    \
     "    min_version=%%s      default: \"\" (ssl3)\n"       \
     "    max_version=%%s      default: \"\" (tls1_2)\n"     \
@@ -446,6 +456,7 @@ int main( int argc, char *argv[] )
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
+    opt.recsplit            = DFL_RECSPLIT;
     opt.reconnect           = DFL_RECONNECT;
     opt.reco_delay          = DFL_RECO_DELAY;
     opt.tickets             = DFL_TICKETS;
@@ -669,6 +680,12 @@ int main( int argc, char *argv[] )
         {
             opt.trunc_hmac = atoi( q );
             if( opt.trunc_hmac < 0 || opt.trunc_hmac > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "recsplit" ) == 0 )
+        {
+            opt.recsplit = atoi( q );
+            if( opt.recsplit < 0 || opt.recsplit > 1 )
                 goto usage;
         }
         else
@@ -961,6 +978,13 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
     if( opt.etm != DFL_ETM )
         ssl_set_encrypt_then_mac( &ssl, opt.etm );
+#endif
+
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+    if( opt.recsplit != DFL_RECSPLIT )
+        ssl_set_cbc_record_splitting( &ssl, opt.recsplit
+                                    ? SSL_CBC_RECORD_SPLITTING_ENABLED
+                                    : SSL_CBC_RECORD_SPLITTING_DISABLED );
 #endif
 
 #if defined(POLARSSL_SSL_ALPN)

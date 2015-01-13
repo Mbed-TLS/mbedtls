@@ -2,11 +2,12 @@ PolarSSL ChangeLog (Sorted per branch, date)
 
 = 1.3 branch
 
-Reminder: bump SONAME for ABI change (FALLBACK_SCSV, session-hash)
+Reminder: bump SONAME for ABI change (FALLBACK_SCSV, session-hash, EtM)
 
 Features
    * Add support for FALLBACK_SCSV (draft-ietf-tls-downgrade-scsv)
    * Add support for Extended Master Secret (draft-ietf-tls-session-hash)
+   * Add support for Encrypt-then-MAC (RFC 7366)
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

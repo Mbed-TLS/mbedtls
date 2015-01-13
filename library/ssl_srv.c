@@ -635,6 +635,29 @@ static int ssl_parse_truncated_hmac_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+static int ssl_parse_encrypt_then_mac_ext( ssl_context *ssl,
+                                      const unsigned char *buf,
+                                      size_t len )
+{
+    if( len != 0 )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    ((void) buf);
+
+    if( ssl->encrypt_then_mac == SSL_ETM_ENABLED &&
+        ssl->minor_ver != SSL_MINOR_VERSION_0 )
+    {
+        ssl->session_negotiate->encrypt_then_mac = SSL_ETM_ENABLED;
+    }
+
+    return( 0 );
+}
+#endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
+
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
 static int ssl_parse_extended_ms_ext( ssl_context *ssl,
                                       const unsigned char *buf,
@@ -1523,6 +1546,16 @@ static int ssl_parse_client_hello( ssl_context *ssl )
             break;
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+        case TLS_EXT_ENCRYPT_THEN_MAC:
+            SSL_DEBUG_MSG( 3, ( "found encrypt then mac extension" ) );
+
+            ret = ssl_parse_encrypt_then_mac_ext( ssl, ext + 4, ext_size );
+            if( ret != 0 )
+                return( ret );
+            break;
+#endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
+
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
         case TLS_EXT_EXTENDED_MASTER_SECRET:
             SSL_DEBUG_MSG( 3, ( "found extended master secret extension" ) );
@@ -1681,6 +1714,49 @@ static void ssl_write_truncated_hmac_ext( ssl_context *ssl,
     *olen = 4;
 }
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
+
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+static void ssl_write_encrypt_then_mac_ext( ssl_context *ssl,
+                                            unsigned char *buf,
+                                            size_t *olen )
+{
+    unsigned char *p = buf;
+    const ssl_ciphersuite_t *suite = NULL;
+    const cipher_info_t *cipher = NULL;
+
+    if( ssl->session_negotiate->encrypt_then_mac == SSL_EXTENDED_MS_DISABLED ||
+        ssl->minor_ver == SSL_MINOR_VERSION_0 )
+    {
+        *olen = 0;
+        return;
+    }
+
+    /*
+     * RFC 7366: "If a server receives an encrypt-then-MAC request extension
+     * from a client and then selects a stream or Authenticated Encryption
+     * with Associated Data (AEAD) ciphersuite, it MUST NOT send an
+     * encrypt-then-MAC response extension back to the client."
+     */
+    if( ( suite = ssl_ciphersuite_from_id(
+                    ssl->session_negotiate->ciphersuite ) ) == NULL ||
+        ( cipher = cipher_info_from_type( suite->cipher ) ) == NULL ||
+        cipher->mode != POLARSSL_MODE_CBC )
+    {
+        *olen = 0;
+        return;
+    }
+
+    SSL_DEBUG_MSG( 3, ( "server hello, adding encrypt then mac extension" ) );
+
+    *p++ = (unsigned char)( ( TLS_EXT_ENCRYPT_THEN_MAC >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( TLS_EXT_ENCRYPT_THEN_MAC      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 0x00;
+
+    *olen = 4;
+}
+#endif /* POLARSSL_SSL_ENCRYPT_THEN_MAC */
 
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
 static void ssl_write_extended_ms_ext( ssl_context *ssl,
@@ -2009,6 +2085,11 @@ static int ssl_write_server_hello( ssl_context *ssl )
 
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
     ssl_write_truncated_hmac_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#endif
+
+#if defined(POLARSSL_SSL_ENCRYPT_THEN_MAC)
+    ssl_write_encrypt_then_mac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
 

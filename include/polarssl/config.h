@@ -887,6 +887,24 @@
 //#define POLARSSL_SSL_HW_RECORD_ACCEL
 
 /**
+ * \def POLARSSL_SSL_DISABLE_RENEGOTIATION
+ *
+ * Disable support for TLS renegotiation.
+ *
+ * The two main uses of renegotiation are (1) refresh keys on long-lived
+ * connections and (2) client authentication after the initial handshake.
+ * If you don't need renegotiation, it's probably better to disable it, since
+ * it has been associated with security issues in the past and is easy to
+ * misuse/misunderstand.
+ *
+ * Warning: in the next stable branch, this switch will be replaced by
+ * POLARSSL_SSL_RENEGOTIATION to enable support for renegotiation.
+ *
+ * Uncomment this to disable support for renegotiation.
+ */
+//#define POLARSSL_SSL_DISABLE_RENEGOTIATION
+
+/**
  * \def POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
  *
  * Enable support for receiving and parsing SSLv2 Client Hello messages for the

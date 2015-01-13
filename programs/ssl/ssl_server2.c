@@ -101,9 +101,10 @@ int main( int argc, char *argv[] )
 #define DFL_FORCE_CIPHER        0
 #define DFL_VERSION_SUITES      NULL
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
-#define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
+#define DFL_ALLOW_LEGACY        -2
 #define DFL_RENEGOTIATE         0
 #define DFL_RENEGO_DELAY        -2
+#define DFL_RENEGO_PERIOD       -1
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
@@ -166,6 +167,7 @@ struct options
     int allow_legacy;           /* allow legacy renegotiation               */
     int renegotiate;            /* attempt renegotiation?                   */
     int renego_delay;           /* delay before enforcing renegotiation     */
+    int renego_period;          /* period for automatic renegotiation       */
     int exchanges;              /* number of data exchanges                 */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
@@ -317,6 +319,16 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 #define USAGE_ETM ""
 #endif
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+#define USAGE_RENEGO \
+    "    renegotiation=%%d    default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled)\n"      \
+    "    renego_delay=%%d     default: -2 (library default)\n" \
+    "    renego_period=%%d    default: (library default)\n"
+#else
+#define USAGE_RENEGO ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -333,10 +345,8 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     "\n"                                                    \
     USAGE_PSK                                               \
     "\n"                                                    \
-    "    renegotiation=%%d    default: 1 (enabled)\n"       \
-    "    allow_legacy=%%d     default: 0 (disabled)\n"      \
-    "    renegotiate=%%d      default: 0 (disabled)\n"      \
-    "    renego_delay=%%d     default: -2 (library default)\n" \
+    "    allow_legacy=%%d     default: (library default: no)\n"      \
+    USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     USAGE_TICKETS                                           \
     USAGE_CACHE                                             \
@@ -621,6 +631,9 @@ int main( int argc, char *argv[] )
     entropy_context entropy;
     ctr_drbg_context ctr_drbg;
     ssl_context ssl;
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    unsigned char renego_period[8] = { 0 };
+#endif
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     x509_crt cacert;
     x509_crt srvcert;
@@ -722,6 +735,7 @@ int main( int argc, char *argv[] )
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.renegotiate         = DFL_RENEGOTIATE;
     opt.renego_delay        = DFL_RENEGO_DELAY;
+    opt.renego_period       = DFL_RENEGO_PERIOD;
     opt.exchanges           = DFL_EXCHANGES;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
@@ -804,9 +818,13 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
-            opt.allow_legacy = atoi( q );
-            if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
-                goto usage;
+            switch( atoi( q ) )
+            {
+                case -1: opt.allow_legacy = SSL_LEGACY_BREAK_HANDSHAKE; break;
+                case 0:  opt.allow_legacy = SSL_LEGACY_NO_RENEGOTIATION; break;
+                case 1:  opt.allow_legacy = SSL_LEGACY_ALLOW_RENEGOTIATION; break;
+                default: goto usage;
+            }
         }
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
@@ -817,6 +835,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "renego_delay" ) == 0 )
         {
             opt.renego_delay = atoi( q );
+        }
+        else if( strcmp( p, "renego_period" ) == 0 )
+        {
+            opt.renego_period = atoi( q );
+            if( opt.renego_period < 2 || opt.renego_period > 255 )
+                goto usage;
         }
         else if( strcmp( p, "exchanges" ) == 0 )
         {
@@ -1361,10 +1385,20 @@ int main( int argc, char *argv[] )
                                           SSL_MINOR_VERSION_3 );
     }
 
+    if( opt.allow_legacy != DFL_ALLOW_LEGACY )
+        ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl_set_renegotiation( &ssl, opt.renegotiation );
-    ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+
     if( opt.renego_delay != DFL_RENEGO_DELAY )
         ssl_set_renegotiation_enforced( &ssl, opt.renego_delay );
+
+    if( opt.renego_period != DFL_RENEGO_PERIOD )
+    {
+        renego_period[7] = opt.renego_period;
+        ssl_set_renegotiation_period( &ssl, renego_period );
+    }
+#endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     if( strcmp( opt.ca_path, "none" ) != 0 &&
@@ -1666,6 +1700,7 @@ data_exchange:
      * 7a. Request renegotiation while client is waiting for input from us.
      * (only if we're going to exhange more data afterwards)
      */
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     if( opt.renegotiate && exchanges > 1 )
     {
         printf( "  . Requestion renegotiation..." );
@@ -1683,6 +1718,7 @@ data_exchange:
 
         printf( " ok\n" );
     }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
     /*
      * 7. Write the 200 Response

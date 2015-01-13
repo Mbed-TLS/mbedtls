@@ -83,7 +83,7 @@ int main( int argc, char *argv[] )
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_FORCE_CIPHER        0
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
-#define DFL_ALLOW_LEGACY        SSL_LEGACY_NO_RENEGOTIATION
+#define DFL_ALLOW_LEGACY        -2
 #define DFL_RENEGOTIATE         0
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         -1
@@ -311,6 +311,14 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 #define USAGE_ETM ""
 #endif
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+#define USAGE_RENEGO \
+    "    renegotiation=%%d    default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled)\n"
+#else
+#define USAGE_RENEGO ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -330,9 +338,8 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "\n"                                                    \
     USAGE_PSK                                               \
     "\n"                                                    \
-    "    renegotiation=%%d    default: 1 (enabled)\n"       \
-    "    allow_legacy=%%d     default: 0 (disabled)\n"      \
-    "    renegotiate=%%d      default: 0 (disabled)\n"      \
+    "    allow_legacy=%%d     default: (library default: no)\n"      \
+    USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
     USAGE_TIME                                              \
@@ -514,9 +521,13 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
-            opt.allow_legacy = atoi( q );
-            if( opt.allow_legacy < 0 || opt.allow_legacy > 1 )
-                goto usage;
+            switch( atoi( q ) )
+            {
+                case -1: opt.allow_legacy = SSL_LEGACY_BREAK_HANDSHAKE; break;
+                case 0:  opt.allow_legacy = SSL_LEGACY_NO_RENEGOTIATION; break;
+                case 1:  opt.allow_legacy = SSL_LEGACY_ALLOW_RENEGOTIATION; break;
+                default: goto usage;
+            }
         }
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
@@ -980,8 +991,11 @@ int main( int argc, char *argv[] )
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         ssl_set_ciphersuites( &ssl, opt.force_ciphersuite );
 
+    if( opt.allow_legacy != DFL_ALLOW_LEGACY )
+        ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl_set_renegotiation( &ssl, opt.renegotiation );
-    ssl_legacy_renegotiation( &ssl, opt.allow_legacy );
+#endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     if( strcmp( opt.ca_path, "none" ) != 0 &&
@@ -1113,6 +1127,7 @@ int main( int argc, char *argv[] )
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     if( opt.renegotiate )
     {
         /*
@@ -1132,6 +1147,7 @@ int main( int argc, char *argv[] )
         }
         printf( " ok\n" );
     }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
     /*
      * 6. Write the GET request

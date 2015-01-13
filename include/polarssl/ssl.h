@@ -32,6 +32,12 @@
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
+
+/* Temporary compatibility trick for the current stable branch */
+#if !defined(POLARSSL_SSL_DISABLE_RENEGOTIATION)
+#define POLARSSL_SSL_RENEGOTIATION
+#endif
+
 #include "net.h"
 #include "bignum.h"
 #include "ecp.h"
@@ -312,6 +318,15 @@
                         + SSL_MAC_ADD                       \
                         + SSL_PADDING_ADD                   \
                         )
+
+/*
+ * Length of the verify data for secure renegotiation
+ */
+#if defined(POLARSSL_SSL_PROTO_SSL3)
+#define SSL_VERIFY_DATA_MAX_LEN 36
+#else
+#define SSL_VERIFY_DATA_MAX_LEN 12
+#endif
 
 /*
  * Signaling ciphersuite values (SCSV)
@@ -708,7 +723,9 @@ struct _ssl_context
      */
     int state;                  /*!< SSL handshake: current state     */
     int renegotiation;          /*!< Initial or renegotiation         */
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     int renego_records_seen;    /*!< Records since renego request     */
+#endif
 
     int major_ver;              /*!< equal to  SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
@@ -841,9 +858,13 @@ struct _ssl_context
     int authmode;                       /*!<  verification mode       */
     int client_auth;                    /*!<  flag for client auth.   */
     int verify_result;                  /*!<  verification result     */
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     int disable_renegotiation;          /*!<  enable/disable renegotiation   */
-    int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     int renego_max_records;             /*!<  grace period for renegotiation */
+    unsigned char renego_period[8];     /*!<  value of the record counters
+                                              that triggers renegotiation    */
+#endif
+    int allow_legacy_renegotiation;     /*!<  allow legacy renegotiation     */
     const int *ciphersuite_list[4];     /*!<  allowed ciphersuites / version */
 #if defined(POLARSSL_SSL_SET_CURVES)
     const ecp_group_id *curve_list;     /*!<  allowed curves                 */
@@ -892,9 +913,11 @@ struct _ssl_context
      */
     int secure_renegotiation;           /*!<  does peer support legacy or
                                               secure renegotiation           */
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     size_t verify_data_len;             /*!<  length of verify data stored   */
-    char own_verify_data[36];           /*!<  previous handshake verify data */
-    char peer_verify_data[36];          /*!<  previous handshake verify data */
+    char own_verify_data[SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
+    char peer_verify_data[SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
+#endif
 };
 
 #if defined(POLARSSL_SSL_HW_RECORD_ACCEL)
@@ -1534,6 +1557,7 @@ int ssl_set_session_tickets( ssl_context *ssl, int use_tickets );
 void ssl_set_session_ticket_lifetime( ssl_context *ssl, int lifetime );
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
 /**
  * \brief          Enable / Disable renegotiation support for connection when
  *                 initiated by peer
@@ -1548,6 +1572,7 @@ void ssl_set_session_ticket_lifetime( ssl_context *ssl, int lifetime );
  *                                             SSL_RENEGOTIATION_DISABLED)
  */
 void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
 /**
  * \brief          Prevent or allow legacy renegotiation.
@@ -1578,8 +1603,9 @@ void ssl_set_renegotiation( ssl_context *ssl, int renegotiation );
  */
 void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
 /**
- * \brief          Enforce server-requested renegotiation.
+ * \brief          Enforce requested renegotiation.
  *                 (Default: enforced, max_records = 16)
  *
  *                 When we request a renegotiation, the peer can comply or
@@ -1607,6 +1633,27 @@ void ssl_legacy_renegotiation( ssl_context *ssl, int allow_legacy );
  *                 it but allow for a grace period of max_records records.
  */
 void ssl_set_renegotiation_enforced( ssl_context *ssl, int max_records );
+
+/**
+ * \brief          Set record counter threshold for periodic renegotiation.
+ *                 (Default: 2^64 - 256.)
+ *
+ *                 Renegotiation is automatically triggered when a record
+ *                 counter (outgoing or ingoing) crosses the defined
+ *                 threshold. The default value is meant to prevent the
+ *                 connection from being closed when the counter is about to
+ *                 reached its maximal value (it is not allowed to wrap).
+ *
+ *                 Lower values can be used to enforce policies such as "keys
+ *                 must be refreshed every N packets with cipher X".
+ *
+ * \param ssl      SSL context
+ * \param period   The threshold value: a big-endian 64-bit number.
+ *                 Set to 2^64 - 1 to disable periodic renegotiation
+ */
+void ssl_set_renegotiation_period( ssl_context *ssl,
+                                   const unsigned char period[8] );
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
 /**
  * \brief          Return the number of data bytes available to read
@@ -1710,6 +1757,7 @@ int ssl_handshake( ssl_context *ssl );
  */
 int ssl_handshake_step( ssl_context *ssl );
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
 /**
  * \brief          Initiate an SSL renegotiation on the running connection.
  *                 Client: perform the renegotiation right now.
@@ -1721,6 +1769,7 @@ int ssl_handshake_step( ssl_context *ssl );
  * \return         0 if successful, or any ssl_handshake() return value.
  */
 int ssl_renegotiate( ssl_context *ssl );
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
 /**
  * \brief          Read at most 'len' application data bytes

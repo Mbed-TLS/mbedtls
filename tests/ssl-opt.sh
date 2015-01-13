@@ -20,7 +20,7 @@ set -u
 O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
-G_CLI="$GNUTLS_CLI"
+G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
 
 TESTS=0
 FAILS=0
@@ -380,7 +380,7 @@ P_CLI="$P_CLI server_port=$PORT"
 O_SRV="$O_SRV -accept $PORT"
 O_CLI="$O_CLI -connect localhost:$PORT"
 G_SRV="$G_SRV -p $PORT"
-G_CLI="$G_CLI -p $PORT"
+G_CLI="$G_CLI -p $PORT localhost"
 
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
@@ -1007,6 +1007,70 @@ run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+run_test    "Renegotiation: periodic, just below period" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
+            0 \
+            -C "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -S "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -S "record counter limit reached: renegotiate" \
+            -C "=> renegotiate" \
+            -S "=> renegotiate" \
+            -S "write hello request" \
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
+
+run_test    "Renegotiation: periodic, just above period" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_CLI debug_level=3 exchanges=3 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -s "record counter limit reached: renegotiate" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request" \
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
+
+run_test    "Renegotiation: periodic, two times period" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
+            "$P_CLI debug_level=3 exchanges=6 renegotiation=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -s "record counter limit reached: renegotiate" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request" \
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
+
+run_test    "Renegotiation: periodic, above period, disabled" \
+            "$P_SRV debug_level=3 exchanges=9 renegotiation=0 renego_period=3" \
+            "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
+            0 \
+            -C "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -S "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -S "record counter limit reached: renegotiate" \
+            -C "=> renegotiate" \
+            -S "=> renegotiate" \
+            -S "write hello request" \
+            -S "SSL - An unexpected message was received from our peer" \
+            -S "failed"
+
 run_test    "Renegotiation: nbio, client-initiated" \
             "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1" \
             "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
@@ -1040,20 +1104,102 @@ run_test    "Renegotiation: openssl server, client-initiated" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
-            -C "ssl_handshake returned" \
+            -C "ssl_hanshake() returned" \
             -C "error" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
-run_test    "Renegotiation: gnutls server, client-initiated" \
-            "$G_SRV" \
+run_test    "Renegotiation: gnutls server strict, client-initiated" \
+            "$G_SRV --priority=NORMAL:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
-            -C "ssl_handshake returned" \
+            -C "ssl_hanshake() returned" \
             -C "error" \
             -c "HTTP/1.0 200 [Oo][Kk]"
+
+run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
+            "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
+            1 \
+            -c "client hello, adding renegotiation extension" \
+            -C "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -c "ssl_handshake() returned" \
+            -c "error" \
+            -C "HTTP/1.0 200 [Oo][Kk]"
+
+run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
+            "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
+             allow_legacy=0" \
+            1 \
+            -c "client hello, adding renegotiation extension" \
+            -C "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -c "ssl_handshake() returned" \
+            -c "error" \
+            -C "HTTP/1.0 200 [Oo][Kk]"
+
+run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
+            "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
+             allow_legacy=1" \
+            0 \
+            -c "client hello, adding renegotiation extension" \
+            -C "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -C "ssl_hanshake() returned" \
+            -C "error" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
+
+# Test for the "secure renegotation" extension only (no actual renegotiation)
+
+run_test    "Renego ext: gnutls server strict, client default" \
+            "$G_SRV --priority=NORMAL:%SAFE_RENEGOTIATION" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "found renegotiation extension" \
+            -C "error" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
+
+run_test    "Renego ext: gnutls server unsafe, client default" \
+            "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -C "found renegotiation extension" \
+            -C "error" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
+
+run_test    "Renego ext: gnutls server unsafe, client break legacy" \
+            "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            "$P_CLI debug_level=3 allow_legacy=-1" \
+            1 \
+            -C "found renegotiation extension" \
+            -c "error" \
+            -C "HTTP/1.0 200 [Oo][Kk]"
+
+run_test    "Renego ext: gnutls client strict, server default" \
+            "$P_SRV debug_level=3" \
+            "$G_CLI --priority=NORMAL:%SAFE_RENEGOTIATION" \
+            0 \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
+            -s "server hello, secure renegotiation extension"
+
+run_test    "Renego ext: gnutls client unsafe, server default" \
+            "$P_SRV debug_level=3" \
+            "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            0 \
+            -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
+            -S "server hello, secure renegotiation extension"
+
+run_test    "Renego ext: gnutls client unsafe, server break legacy" \
+            "$P_SRV debug_level=3 allow_legacy=-1" \
+            "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            1 \
+            -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
+            -S "server hello, secure renegotiation extension"
 
 # Tests for auth_mode
 

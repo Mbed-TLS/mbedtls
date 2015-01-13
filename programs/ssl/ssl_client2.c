@@ -1284,24 +1284,10 @@ send_request:
 close_notify:
     printf( "  . Closing the connection..." );
 
-    while( ( ret = ssl_close_notify( &ssl ) ) < 0 )
-    {
-        if( ret == POLARSSL_ERR_NET_CONN_RESET )
-        {
-            printf( " ok (already closed by peer)\n" );
-            ret = 0;
-            goto reconnect;
-        }
+    /* Don't check for errors, the connection might already be closed */
+    ssl_close_notify( &ssl );
 
-        if( ret != POLARSSL_ERR_NET_WANT_READ &&
-            ret != POLARSSL_ERR_NET_WANT_WRITE )
-        {
-            printf( " failed\n  ! ssl_close_notify returned %d\n\n", ret );
-            goto reconnect;
-        }
-    }
-
-    printf( " ok\n" );
+    printf( " done\n" );
 
     /*
      * 9. Reconnect?

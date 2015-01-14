@@ -1749,7 +1749,7 @@ data_exchange:
 
     buf[written] = '\0';
     printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
-
+    ret = 0;
 
     /*
      * 7b. Continue doing data exchanges?

@@ -656,6 +656,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
             ciphersuite_info->max_minor_ver < ssl->min_minor_ver )
             continue;
 
+        if( ssl->arc4_disabled == SSL_ARC4_DISABLED &&
+            ciphersuite_info->cipher == POLARSSL_CIPHER_ARC4_128 )
+            continue;
+
         SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
                        ciphersuites[i] ) );
 
@@ -1018,6 +1022,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     int renegotiation_info_seen = 0;
 #endif
     int handshake_failure = 0;
+    const ssl_ciphersuite_t *suite_info;
 #if defined(POLARSSL_DEBUG_C)
     uint32_t t;
 #endif
@@ -1201,6 +1206,16 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
     SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d", i ) );
     SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[41 + n] ) );
+
+    suite_info = ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite );
+    if( suite_info == NULL ||
+        ( ssl->arc4_disabled &&
+          suite_info->cipher == POLARSSL_CIPHER_ARC4_128 ) )
+    {
+        SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+        return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
 
     i = 0;
     while( 1 )

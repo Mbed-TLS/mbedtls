@@ -31,6 +31,8 @@ Features
    * Support for 1/n-1 record splitting, a countermeasure against BEAST.
    * Certificate selection based on signature hash, prefering SHA-1 over SHA-2
      for pre-1.2 clients when multiple certificates are available.
+   * Add support for getrandom() syscall on recent Linux kernels with Glibc or
+     a compatible enough libc (eg uClibc).
 
 Bugfix
    * Stack buffer overflow if ctr_drbg_update() is called with too large

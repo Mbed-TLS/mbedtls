@@ -56,6 +56,8 @@ Changes
    * A specific error is now returned when there are ciphersuites in common
      but none of them is usable due to external factors such as no certificate
      with a suitable (extended)KeyUsage or curve or no PSK set.
+   * It is now possible to disable neogtiation of truncated HMAC server-side
+     at runtime with ssl_set_truncated_hmac().
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

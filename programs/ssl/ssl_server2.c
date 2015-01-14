@@ -110,6 +110,7 @@ int main( int argc, char *argv[] )
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_OPTIONAL
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
+#define DFL_TRUNC_HMAC          -1
 #define DFL_TICKETS             SSL_SESSION_TICKETS_ENABLED
 #define DFL_TICKET_TIMEOUT      -1
 #define DFL_CACHE_MAX           -1
@@ -173,6 +174,7 @@ struct options
     int max_version;            /* maximum protocol version accepted        */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
+    int trunc_hmac;             /* accept truncated hmac?                   */
     int tickets;                /* enable / disable session tickets         */
     int ticket_timeout;         /* session ticket lifetime                  */
     int cache_max;              /* max number of session cache entries      */
@@ -297,6 +299,13 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+#define USAGE_TRUNC_HMAC \
+    "    trunc_hmac=%%d       default: library default\n"
+#else
+#define USAGE_TRUNC_HMAC ""
+#endif
+
 #if defined(POLARSSL_SSL_ALPN)
 #define USAGE_ALPN \
     "    alpn=%%s             default: \"\" (disabled)\n"   \
@@ -351,6 +360,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     USAGE_TICKETS                                           \
     USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
+    USAGE_TRUNC_HMAC                                        \
     USAGE_ALPN                                              \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
@@ -741,6 +751,7 @@ int main( int argc, char *argv[] )
     opt.max_version         = DFL_MAX_VERSION;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
+    opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.tickets             = DFL_TICKETS;
     opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
     opt.cache_max           = DFL_CACHE_MAX;
@@ -926,6 +937,15 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "alpn" ) == 0 )
         {
             opt.alpn_string = q;
+        }
+        else if( strcmp( p, "trunc_hmac" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0: opt.trunc_hmac = SSL_TRUNC_HMAC_DISABLED; break;
+                case 1: opt.trunc_hmac = SSL_TRUNC_HMAC_ENABLED; break;
+                default: goto usage;
+            }
         }
         else if( strcmp( p, "extended_ms" ) == 0 )
         {
@@ -1320,6 +1340,11 @@ int main( int argc, char *argv[] )
         printf( " failed\n  ! ssl_set_max_frag_len returned %d\n\n", ret );
         goto exit;
     };
+#endif
+
+#if defined(POLARSSL_SSL_TRUNCATED_HMAC)
+    if( opt.trunc_hmac != DFL_TRUNC_HMAC )
+        ssl_set_truncated_hmac( &ssl, opt.trunc_hmac );
 #endif
 
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)

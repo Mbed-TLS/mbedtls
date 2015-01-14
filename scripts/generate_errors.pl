@@ -46,7 +46,7 @@ close(FORMAT_FILE);
 
 $/ = $line_separator;
 
-open(GREP, "/bin/grep \"define POLARSSL_ERR_\" $include_dir/* |") || die("Failure when calling grep: $!");
+open(GREP, "grep \"define POLARSSL_ERR_\" $include_dir/* |") || die("Failure when calling grep: $!");
 
 my $ll_old_define = "";
 my $hl_old_define = "";

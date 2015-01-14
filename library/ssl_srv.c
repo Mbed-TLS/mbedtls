@@ -801,11 +801,11 @@ static int ssl_parse_alpn_ext( ssl_context *ssl,
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 /*
- * Return 1 if the given EC key uses the given curve, 0 otherwise
+ * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
  */
 #if defined(POLARSSL_ECDSA_C)
-static int ssl_key_matches_curves( pk_context *pk,
-                                   const ecp_curve_info **curves )
+static int ssl_check_key_curve( pk_context *pk,
+                                const ecp_curve_info **curves )
 {
     const ecp_curve_info **crv = curves;
     ecp_group_id grp_id = pk_ec( *pk )->grp.id;
@@ -813,11 +813,11 @@ static int ssl_key_matches_curves( pk_context *pk,
     while( *crv != NULL )
     {
         if( (*crv)->grp_id == grp_id )
-            return( 1 );
+            return( 0 );
         crv++;
     }
 
-    return( 0 );
+    return( -1 );
 }
 #endif /* POLARSSL_ECDSA_C */
 
@@ -828,7 +828,7 @@ static int ssl_key_matches_curves( pk_context *pk,
 static int ssl_pick_cert( ssl_context *ssl,
                           const ssl_ciphersuite_t * ciphersuite_info )
 {
-    ssl_key_cert *cur, *list;
+    ssl_key_cert *cur, *list, *fallback = NULL;
     pk_type_t pk_alg = ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
@@ -861,21 +861,41 @@ static int ssl_pick_cert( ssl_context *ssl,
         }
 
 #if defined(POLARSSL_ECDSA_C)
-        if( pk_alg == POLARSSL_PK_ECDSA )
-        {
-            if( ssl_key_matches_curves( cur->key, ssl->handshake->curves ) )
-                break;
-        }
-        else
+        if( pk_alg == POLARSSL_PK_ECDSA &&
+            ssl_check_key_curve( cur->key, ssl->handshake->curves ) != 0 )
+            continue;
 #endif
-            break;
+
+        /*
+         * Try to select a SHA-1 certificate for pre-1.2 clients, but still
+         * present them a SHA-higher cert rather than failing if it's the only
+         * one we got that satisfies the other conditions.
+         */
+        if( ssl->minor_ver < SSL_MINOR_VERSION_3 &&
+            cur->cert->sig_md != POLARSSL_MD_SHA1 )
+        {
+            if( fallback == NULL )
+                fallback = cur;
+            continue;
+        }
+
+        /* If we get there, we got a winner */
+        break;
     }
 
-    if( cur == NULL )
-        return( -1 );
+    if( cur != NULL )
+    {
+        ssl->handshake->key_cert = cur;
+        return( 0 );
+    }
 
-    ssl->handshake->key_cert = cur;
-    return( 0 );
+    if( fallback != NULL )
+    {
+        ssl->handshake->key_cert = fallback;
+        return( 0 );
+    }
+
+    return( -1 );
 }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
@@ -891,8 +911,8 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
     suite_info = ssl_ciphersuite_from_id( suite_id );
     if( suite_info == NULL )
     {
-        SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found", suite_id ) );
-        return( POLARSSL_ERR_SSL_BAD_INPUT_DATA );
+        SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
     if( suite_info->min_minor_ver > ssl->minor_ver ||
@@ -935,7 +955,7 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
 #if defined(POLARSSL_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( ssl_context *ssl )
 {
-    int ret;
+    int ret, got_common_suite;
     unsigned int i, j;
     size_t n;
     unsigned int ciph_len, sess_len, chal_len;
@@ -1133,6 +1153,7 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     }
 #endif /* POLARSSL_SSL_FALLBACK_SCSV */
 
+    got_common_suite = 0;
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     ciphersuite_info = NULL;
 #if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
@@ -1150,6 +1171,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
                 p[2] != ( ( ciphersuites[i]      ) & 0xFF ) )
                 continue;
 
+            got_common_suite = 1;
+
             if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
                                                &ciphersuite_info ) ) != 0 )
                 return( ret );
@@ -1159,9 +1182,17 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
         }
     }
 
-    SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
-
-    return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    if( got_common_suite )
+    {
+        SSL_DEBUG_MSG( 1, ( "got ciphersuites in common, "
+                            "but none of them usable" ) );
+        return( POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE );
+    }
+    else
+    {
+        SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
+        return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    }
 
 have_ciphersuite_v2:
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
@@ -1193,7 +1224,7 @@ have_ciphersuite_v2:
 
 static int ssl_parse_client_hello( ssl_context *ssl )
 {
-    int ret;
+    int ret, got_common_suite;
     unsigned int i, j;
     size_t n;
     unsigned int ciph_len, sess_len;
@@ -1675,6 +1706,7 @@ static int ssl_parse_client_hello( ssl_context *ssl )
      * (At the end because we need information from the EC-based extensions
      * and certificate from the SNI callback triggered by the SNI extension.)
      */
+    got_common_suite = 0;
     ciphersuites = ssl->ciphersuite_list[ssl->minor_ver];
     ciphersuite_info = NULL;
 #if defined(POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
@@ -1691,6 +1723,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
                 p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )
                 continue;
 
+            got_common_suite = 1;
+
             if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
                                                &ciphersuite_info ) ) != 0 )
                 return( ret );
@@ -1700,12 +1734,19 @@ static int ssl_parse_client_hello( ssl_context *ssl )
         }
     }
 
-    SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
-
-    if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
-        return( ret );
-
-    return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    if( got_common_suite )
+    {
+        SSL_DEBUG_MSG( 1, ( "got ciphersuites in common, "
+                            "but none of them usable" ) );
+        ssl_send_fatal_handshake_failure( ssl );
+        return( POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE );
+    }
+    else
+    {
+        SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
+        ssl_send_fatal_handshake_failure( ssl );
+        return( POLARSSL_ERR_SSL_NO_CIPHER_CHOSEN );
+    }
 
 have_ciphersuite:
     ssl->session_negotiate->ciphersuite = ciphersuites[i];

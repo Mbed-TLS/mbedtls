@@ -29,6 +29,8 @@ Features
      length of an X.509 verification chain.
    * Support for renegotiation can now be disabled at compile-time
    * Support for 1/n-1 record splitting, a countermeasure against BEAST.
+   * Certificate selection based on signature hash, prefering SHA-1 over SHA-2
+     for pre-1.2 clients when multiple certificates are available.
 
 Bugfix
    * Stack buffer overflow if ctr_drbg_update() is called with too large
@@ -51,6 +53,9 @@ Changes
    * debug_print_buf() now prints a text view in addition to hexadecimal.
    * Skip writing and parsing signature_algorithm extension if none of the
      key exchanges enabled needs certificates.
+   * A specific error is now returned when there are ciphersuites in common
+     but none of them is usable due to external factors such as no certificate
+     with a suitable (extended)KeyUsage or curve or no PSK set.
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

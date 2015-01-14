@@ -414,7 +414,7 @@ run_test    "RC4: server disabled, client enabled" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             1 \
-            -s "SSL - The server has no ciphersuites in common"
+            -s "SSL - None of the common ciphersuites is usable"
 
 run_test    "RC4: server enabled, client disabled" \
             "$P_SRV force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
@@ -426,6 +426,7 @@ run_test    "RC4: both enabled" \
             "$P_SRV arc4=1" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
+            -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - The server has no ciphersuites in common"
 
 # Test for SSLv2 ClientHello
@@ -529,7 +530,7 @@ run_test    "Encrypt then MAC: client enabled, aead cipher" \
 run_test    "Encrypt then MAC: client enabled, stream cipher" \
             "$P_SRV debug_level=3 etm=1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
-            "$P_CLI debug_level=3 etm=1" \
+            "$P_CLI debug_level=3 etm=1 arc4=1" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
             -s "found encrypt then mac extension" \
@@ -551,7 +552,7 @@ run_test    "Encrypt then MAC: client disabled, server enabled" \
             -S "using encrypt then mac"
 
 run_test    "Encrypt then MAC: client SSLv3, server enabled" \
-            "$P_SRV debug_level=3 \
+            "$P_SRV debug_level=3 min_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3 force_version=ssl3" \
             0 \
@@ -565,7 +566,7 @@ run_test    "Encrypt then MAC: client SSLv3, server enabled" \
 run_test    "Encrypt then MAC: client enabled, server SSLv3" \
             "$P_SRV debug_level=3 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
             -s "found encrypt then mac extension" \
@@ -610,7 +611,7 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
             -S "using extended master secret"
 
 run_test    "Extended Master Secret: client SSLv3, server enabled" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 min_version=ssl3" \
             "$P_CLI debug_level=3 force_version=ssl3" \
             0 \
             -C "client hello, adding extended_master_secret extension" \
@@ -622,7 +623,7 @@ run_test    "Extended Master Secret: client SSLv3, server enabled" \
 
 run_test    "Extended Master Secret: client enabled, server SSLv3" \
             "$P_SRV debug_level=3 force_version=ssl3" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -739,7 +740,7 @@ run_test    "CBC Record splitting: TLS 1.0, splitting" \
             -s "122 bytes read"
 
 run_test    "CBC Record splitting: SSLv3, splitting" \
-            "$P_SRV" \
+            "$P_SRV min_version=ssl3" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
              request_size=123 force_version=ssl3" \
             0 \
@@ -748,7 +749,7 @@ run_test    "CBC Record splitting: SSLv3, splitting" \
             -s "122 bytes read"
 
 run_test    "CBC Record splitting: TLS 1.0 RC4, no splitting" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              request_size=123 force_version=tls1" \
             0 \

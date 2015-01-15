@@ -172,7 +172,7 @@ $function_pre_code
 $param_defs
     if( cnt != $param_count )
     {
-        fprintf( stderr, "\\nIncorrect argument count (%d != %d)\\n", cnt, $param_count );
+        polarssl_fprintf( stderr, "\\nIncorrect argument count (%d != %d)\\n", cnt, $param_count );
         return( 2 );
     }
 

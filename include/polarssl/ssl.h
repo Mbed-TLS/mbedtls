@@ -444,7 +444,7 @@ union _ssl_premaster_secret
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
     unsigned char _pms_rsa_psk[52 + POLARSSL_PSK_MAX_LEN];      /* RFC 4279 4 */
 #endif
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     unsigned char _pms_ecdhe_psk[4 + POLARSSL_ECP_MAX_BYTES
                                    + POLARSSL_PSK_MAX_LEN];     /* RFC 5489 2 */
 #endif

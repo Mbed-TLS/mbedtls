@@ -158,8 +158,6 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     if( ssl->max_minor_ver != SSL_MINOR_VERSION_3 )
         return;
 
-    SSL_DEBUG_MSG( 3, ( "client hello, adding signature_algorithms extension" ) );
-
     /*
      * Prepare signature_algorithms extension (TLS 1.2)
      */
@@ -207,6 +205,11 @@ static void ssl_write_signature_algorithms_ext( ssl_context *ssl,
     sig_alg_list[sig_alg_len++] = SSL_SIG_ECDSA;
 #endif
 #endif /* POLARSSL_ECDSA_C */
+
+    if (sig_alg_len == 0)
+	return;
+
+    SSL_DEBUG_MSG( 3, ( "client hello, adding signature_algorithms extension" ) );
 
     /*
      * enum {

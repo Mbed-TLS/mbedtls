@@ -347,7 +347,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
     "\n"                                                    \
-    "    auth_mode=%%s        default: \"optional\"\n"      \
+    "    auth_mode=%%s        default: \"required\"\n"      \
     "                        options: none, optional, required\n" \
     USAGE_IO                                                \
     "\n"                                                    \
@@ -372,8 +372,6 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     "    arc4=%%d             default: 0 (disabled)\n"      \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: ssl3, tls1, tls1_1, tls1_2\n" \
-    "    auth_mode=%%s        default: \"required\"\n"      \
-    "                        options: none, optional, required\n" \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"

@@ -29,6 +29,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -52,7 +61,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO and/or "
+    polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
             "not defined.\n" );
     return( 0 );
@@ -207,13 +216,13 @@ int main( int argc, char *argv[] )
     {
     usage:
         ret = 1;
-        printf( USAGE );
+        polarssl_printf( USAGE );
 #if defined(POLARSSL_ECP_C)
-        printf( " availabled ec_curve values:\n" );
+        polarssl_printf( " availabled ec_curve values:\n" );
         curve_info = ecp_curve_list();
-        printf( "    %s (default)\n", curve_info->name );
+        polarssl_printf( "    %s (default)\n", curve_info->name );
         while( ( ++curve_info )->name != NULL )
-            printf( "    %s\n", curve_info->name );
+            polarssl_printf( "    %s\n", curve_info->name );
 #endif
         goto exit;
     }
@@ -277,7 +286,7 @@ int main( int argc, char *argv[] )
             goto usage;
     }
 
-    printf( "\n  . Seeding the random number generator..." );
+    polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     entropy_init( &entropy );
@@ -287,11 +296,11 @@ int main( int argc, char *argv[] )
         if( ( ret = entropy_add_source( &entropy, dev_random_entropy_poll,
                                         NULL, DEV_RANDOM_THRESHOLD ) ) != 0 )
         {
-            printf( " failed\n  ! entropy_add_source returned -0x%04x\n", -ret );
+            polarssl_printf( " failed\n  ! entropy_add_source returned -0x%04x\n", -ret );
             goto exit;
         }
 
-        printf("\n    Using /dev/random, so can take a long time! " );
+        polarssl_printf("\n    Using /dev/random, so can take a long time! " );
         fflush( stdout );
     }
 #endif /* !_WIN32 && POLARSSL_FS_IO */
@@ -300,19 +309,19 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned -0x%04x\n", -ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned -0x%04x\n", -ret );
         goto exit;
     }
 
     /*
      * 1.1. Generate the key
      */
-    printf( "\n  . Generating the private key ..." );
+    polarssl_printf( "\n  . Generating the private key ..." );
     fflush( stdout );
 
     if( ( ret = pk_init_ctx( &key, pk_info_from_type( opt.type ) ) ) != 0 )
     {
-        printf( " failed\n  !  pk_init_ctx returned -0x%04x", -ret );
+        polarssl_printf( " failed\n  !  pk_init_ctx returned -0x%04x", -ret );
         goto exit;
     }
 
@@ -323,7 +332,7 @@ int main( int argc, char *argv[] )
                            opt.rsa_keysize, 65537 );
         if( ret != 0 )
         {
-            printf( " failed\n  !  rsa_gen_key returned -0x%04x", -ret );
+            polarssl_printf( " failed\n  !  rsa_gen_key returned -0x%04x", -ret );
             goto exit;
         }
     }
@@ -336,21 +345,21 @@ int main( int argc, char *argv[] )
                           ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
-            printf( " failed\n  !  rsa_gen_key returned -0x%04x", -ret );
+            polarssl_printf( " failed\n  !  rsa_gen_key returned -0x%04x", -ret );
             goto exit;
         }
     }
     else
 #endif /* POLARSSL_ECP_C */
     {
-        printf( " failed\n  !  key type not supported\n" );
+        polarssl_printf( " failed\n  !  key type not supported\n" );
         goto exit;
     }
 
     /*
      * 1.2 Print the key
      */
-    printf( " ok\n  . Key information:\n" );
+    polarssl_printf( " ok\n  . Key information:\n" );
 
 #if defined(POLARSSL_RSA_C)
     if( pk_get_type( &key ) == POLARSSL_PK_RSA )
@@ -371,7 +380,7 @@ int main( int argc, char *argv[] )
     if( pk_get_type( &key ) == POLARSSL_PK_ECKEY )
     {
         ecp_keypair *ecp = pk_ec( key );
-        printf( "curve: %s\n",
+        polarssl_printf( "curve: %s\n",
                 ecp_curve_info_from_grp_id( ecp->grp.id )->name );
         mpi_write_file( "X_Q:   ", &ecp->Q.X, 16, NULL );
         mpi_write_file( "Y_Q:   ", &ecp->Q.Y, 16, NULL );
@@ -379,20 +388,20 @@ int main( int argc, char *argv[] )
     }
     else
 #endif
-        printf("  ! key type not supported\n");
+        polarssl_printf("  ! key type not supported\n");
 
     /*
      * 1.3 Export key
      */
-    printf( "  . Writing key to file..." );
+    polarssl_printf( "  . Writing key to file..." );
 
     if( ( ret = write_private_key( &key, opt.filename ) ) != 0 )
     {
-        printf( " failed\n" );
+        polarssl_printf( " failed\n" );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
 exit:
 
@@ -400,9 +409,9 @@ exit:
     {
 #ifdef POLARSSL_ERROR_C
         polarssl_strerror( ret, buf, sizeof( buf ) );
-        printf( " - %s\n", buf );
+        polarssl_printf( " - %s\n", buf );
 #else
-        printf("\n");
+        polarssl_printf("\n");
 #endif
     }
 
@@ -411,7 +420,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

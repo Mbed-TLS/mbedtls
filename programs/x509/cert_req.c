@@ -29,6 +29,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,7 +55,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_X509_CSR_WRITE_C and/or POLARSSL_FS_IO and/or "
+    polarssl_printf( "POLARSSL_X509_CSR_WRITE_C and/or POLARSSL_FS_IO and/or "
             "POLARSSL_PK_PARSE_C and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C "
             "not defined.\n");
@@ -153,7 +162,7 @@ int main( int argc, char *argv[] )
     if( argc == 0 )
     {
     usage:
-        printf( USAGE );
+        polarssl_printf( USAGE );
         ret = 1;
         goto exit;
     }
@@ -254,7 +263,7 @@ int main( int argc, char *argv[] )
     /*
      * 0. Seed the PRNG
      */
-    printf( "  . Seeding the random number generator..." );
+    polarssl_printf( "  . Seeding the random number generator..." );
     fflush( stdout );
 
     entropy_init( &entropy );
@@ -262,58 +271,58 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  !  ctr_drbg_init returned %d", ret );
+        polarssl_printf( " failed\n  !  ctr_drbg_init returned %d", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 1.0. Check the subject name for validity
      */
-    printf( "  . Checking subjet name..." );
+    polarssl_printf( "  . Checking subjet name..." );
     fflush( stdout );
 
     if( ( ret = x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )
     {
-        printf( " failed\n  !  x509write_csr_set_subject_name returned %d", ret );
+        polarssl_printf( " failed\n  !  x509write_csr_set_subject_name returned %d", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 1.1. Load the key
      */
-    printf( "  . Loading the private key ..." );
+    polarssl_printf( "  . Loading the private key ..." );
     fflush( stdout );
 
     ret = pk_parse_keyfile( &key, opt.filename, NULL );
 
     if( ret != 0 )
     {
-        printf( " failed\n  !  pk_parse_keyfile returned %d", ret );
+        polarssl_printf( " failed\n  !  pk_parse_keyfile returned %d", ret );
         goto exit;
     }
 
     x509write_csr_set_key( &req, &key );
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 1.2. Writing the request
      */
-    printf( "  . Writing the certificate request ..." );
+    polarssl_printf( "  . Writing the certificate request ..." );
     fflush( stdout );
 
     if( ( ret = write_certificate_request( &req, opt.output_file,
                                            ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        printf( " failed\n  !  write_certifcate_request %d", ret );
+        polarssl_printf( " failed\n  !  write_certifcate_request %d", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
 exit:
 
@@ -321,9 +330,9 @@ exit:
     {
 #ifdef POLARSSL_ERROR_C
         polarssl_strerror( ret, buf, sizeof( buf ) );
-        printf( " - %s\n", buf );
+        polarssl_printf( " - %s\n", buf );
 #else
-        printf("\n");
+        polarssl_printf("\n");
 #endif
     }
 
@@ -333,7 +342,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

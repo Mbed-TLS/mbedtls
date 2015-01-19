@@ -24,13 +24,16 @@
 #ifndef POLARSSL_BIGNUM_H
 #define POLARSSL_BIGNUM_H
 
-#include <stdio.h>
 #include <string.h>
 
 #if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
 #else
 #include POLARSSL_CONFIG_FILE
+#endif
+
+#if defined(POLARSSL_FS_IO)
+#include <stdio.h>
 #endif
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)

@@ -32,10 +32,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
-
-#if defined(EFIX64) || defined(EFI32)
 #include <stdio.h>
-#endif
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #if !defined  snprintf

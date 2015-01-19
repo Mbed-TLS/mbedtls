@@ -172,7 +172,7 @@
 #include "polarssl/xtea.h"
 #endif
 
-
+#include <stdio.h>
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \

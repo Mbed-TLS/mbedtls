@@ -27,6 +27,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #if defined(_WIN32)
 #include <windows.h>
 #if !defined(_WIN32_WCE)
@@ -60,7 +69,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_CIPHER_C and/or POLARSSL_MD_C not defined.\n");
+    polarssl_printf("POLARSSL_CIPHER_C and/or POLARSSL_MD_C not defined.\n");
     return( 0 );
 }
 #else
@@ -102,28 +111,28 @@ int main( int argc, char *argv[] )
     {
         const int *list;
 
-        printf( USAGE );
+        polarssl_printf( USAGE );
 
-        printf( "Available ciphers:\n" );
+        polarssl_printf( "Available ciphers:\n" );
         list = cipher_list();
         while( *list )
         {
             cipher_info = cipher_info_from_type( *list );
-            printf( "  %s\n", cipher_info->name );
+            polarssl_printf( "  %s\n", cipher_info->name );
             list++;
         }
 
-        printf( "\nAvailable message digests:\n" );
+        polarssl_printf( "\nAvailable message digests:\n" );
         list = md_list();
         while( *list )
         {
             md_info = md_info_from_type( *list );
-            printf( "  %s\n", md_info->name );
+            polarssl_printf( "  %s\n", md_info->name );
             list++;
         }
 
 #if defined(_WIN32)
-        printf( "\n  Press Enter to exit this program.\n" );
+        polarssl_printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
 
@@ -134,25 +143,25 @@ int main( int argc, char *argv[] )
 
     if( mode != MODE_ENCRYPT && mode != MODE_DECRYPT )
     {
-        fprintf( stderr, "invalid operation mode\n" );
+        polarssl_fprintf( stderr, "invalid operation mode\n" );
         goto exit;
     }
 
     if( strcmp( argv[2], argv[3] ) == 0 )
     {
-        fprintf( stderr, "input and output filenames must differ\n" );
+        polarssl_fprintf( stderr, "input and output filenames must differ\n" );
         goto exit;
     }
 
     if( ( fin = fopen( argv[2], "rb" ) ) == NULL )
     {
-        fprintf( stderr, "fopen(%s,rb) failed\n", argv[2] );
+        polarssl_fprintf( stderr, "fopen(%s,rb) failed\n", argv[2] );
         goto exit;
     }
 
     if( ( fout = fopen( argv[3], "wb+" ) ) == NULL )
     {
-        fprintf( stderr, "fopen(%s,wb+) failed\n", argv[3] );
+        polarssl_fprintf( stderr, "fopen(%s,wb+) failed\n", argv[3] );
         goto exit;
     }
 
@@ -162,19 +171,19 @@ int main( int argc, char *argv[] )
     cipher_info = cipher_info_from_string( argv[4] );
     if( cipher_info == NULL )
     {
-        fprintf( stderr, "Cipher '%s' not found\n", argv[4] );
+        polarssl_fprintf( stderr, "Cipher '%s' not found\n", argv[4] );
         goto exit;
     }
     if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info) ) != 0 )
     {
-        fprintf( stderr, "cipher_init_ctx failed\n" );
+        polarssl_fprintf( stderr, "cipher_init_ctx failed\n" );
         goto exit;
     }
 
     md_info = md_info_from_string( argv[5] );
     if( md_info == NULL )
     {
-        fprintf( stderr, "Message Digest '%s' not found\n", argv[5] );
+        polarssl_fprintf( stderr, "Message Digest '%s' not found\n", argv[5] );
         goto exit;
     }
     md_init_ctx( &md_ctx, md_info);
@@ -228,7 +237,7 @@ int main( int argc, char *argv[] )
 
     if( li_size.LowPart == 0xFFFFFFFF && GetLastError() != NO_ERROR )
     {
-        fprintf( stderr, "SetFilePointer(0,FILE_END) failed\n" );
+        polarssl_fprintf( stderr, "SetFilePointer(0,FILE_END) failed\n" );
         goto exit;
     }
 
@@ -244,7 +253,7 @@ int main( int argc, char *argv[] )
 
     if( fseek( fin, 0, SEEK_SET ) < 0 )
     {
-        fprintf( stderr, "fseek(0,SEEK_SET) failed\n" );
+        polarssl_fprintf( stderr, "fseek(0,SEEK_SET) failed\n" );
         goto exit;
     }
 
@@ -280,7 +289,7 @@ int main( int argc, char *argv[] )
          */
         if( fwrite( IV, 1, 16, fout ) != 16 )
         {
-            fprintf( stderr, "fwrite(%d bytes) failed\n", 16 );
+            polarssl_fprintf( stderr, "fwrite(%d bytes) failed\n", 16 );
             goto exit;
         }
 
@@ -305,17 +314,17 @@ int main( int argc, char *argv[] )
         if( cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
                            POLARSSL_ENCRYPT ) != 0 )
         {
-            fprintf( stderr, "cipher_setkey() returned error\n");
+            polarssl_fprintf( stderr, "cipher_setkey() returned error\n");
             goto exit;
         }
         if( cipher_set_iv( &cipher_ctx, IV, 16 ) != 0 )
         {
-            fprintf( stderr, "cipher_set_iv() returned error\n");
+            polarssl_fprintf( stderr, "cipher_set_iv() returned error\n");
             goto exit;
         }
         if( cipher_reset( &cipher_ctx ) != 0 )
         {
-            fprintf( stderr, "cipher_reset() returned error\n");
+            polarssl_fprintf( stderr, "cipher_reset() returned error\n");
             goto exit;
         }
 
@@ -331,13 +340,13 @@ int main( int argc, char *argv[] )
 
             if( fread( buffer, 1, ilen, fin ) != ilen )
             {
-                fprintf( stderr, "fread(%ld bytes) failed\n", (long) ilen );
+                polarssl_fprintf( stderr, "fread(%ld bytes) failed\n", (long) ilen );
                 goto exit;
             }
 
             if( cipher_update( &cipher_ctx, buffer, ilen, output, &olen ) != 0 )
             {
-                fprintf( stderr, "cipher_update() returned error\n");
+                polarssl_fprintf( stderr, "cipher_update() returned error\n");
                 goto exit;
             }
 
@@ -345,21 +354,21 @@ int main( int argc, char *argv[] )
 
             if( fwrite( output, 1, olen, fout ) != olen )
             {
-                fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
+                polarssl_fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
                 goto exit;
             }
         }
 
         if( cipher_finish( &cipher_ctx, output, &olen ) != 0 )
         {
-            fprintf( stderr, "cipher_finish() returned error\n" );
+            polarssl_fprintf( stderr, "cipher_finish() returned error\n" );
             goto exit;
         }
         md_hmac_update( &md_ctx, output, olen );
 
         if( fwrite( output, 1, olen, fout ) != olen )
         {
-            fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
+            polarssl_fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
             goto exit;
         }
 
@@ -370,7 +379,7 @@ int main( int argc, char *argv[] )
 
         if( fwrite( digest, 1, md_get_size( md_info ), fout ) != md_get_size( md_info ) )
         {
-            fprintf( stderr, "fwrite(%d bytes) failed\n", md_get_size( md_info ) );
+            polarssl_fprintf( stderr, "fwrite(%d bytes) failed\n", md_get_size( md_info ) );
             goto exit;
         }
     }
@@ -388,14 +397,14 @@ int main( int argc, char *argv[] )
          */
         if( filesize < 16 + md_get_size( md_info ) )
         {
-            fprintf( stderr, "File too short to be encrypted.\n" );
+            polarssl_fprintf( stderr, "File too short to be encrypted.\n" );
             goto exit;
         }
 
         if( ( ( filesize - md_get_size( md_info ) ) % 
                 cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {
-            fprintf( stderr, "File content not a multiple of the block size (%d).\n",
+            polarssl_fprintf( stderr, "File content not a multiple of the block size (%d).\n",
                      cipher_get_block_size( &cipher_ctx ));
             goto exit;
         }
@@ -410,7 +419,7 @@ int main( int argc, char *argv[] )
          */
         if( fread( buffer, 1, 16, fin ) != 16 )
         {
-            fprintf( stderr, "fread(%d bytes) failed\n", 16 );
+            polarssl_fprintf( stderr, "fread(%d bytes) failed\n", 16 );
             goto exit;
         }
 
@@ -437,19 +446,19 @@ int main( int argc, char *argv[] )
         if( cipher_setkey( &cipher_ctx, digest, cipher_info->key_length,
                            POLARSSL_DECRYPT ) != 0 )
         {
-            fprintf( stderr, "cipher_setkey() returned error\n" );
+            polarssl_fprintf( stderr, "cipher_setkey() returned error\n" );
             goto exit;
         }
 
         if( cipher_set_iv( &cipher_ctx, IV, 16 ) != 0 )
         {
-            fprintf( stderr, "cipher_set_iv() returned error\n" );
+            polarssl_fprintf( stderr, "cipher_set_iv() returned error\n" );
             goto exit;
         }
 
         if( cipher_reset( &cipher_ctx ) != 0 )
         {
-            fprintf( stderr, "cipher_reset() returned error\n" );
+            polarssl_fprintf( stderr, "cipher_reset() returned error\n" );
             goto exit;
         }
 
@@ -463,7 +472,7 @@ int main( int argc, char *argv[] )
             if( fread( buffer, 1, cipher_get_block_size( &cipher_ctx ), fin ) !=
                 (size_t) cipher_get_block_size( &cipher_ctx ) )
             {
-                fprintf( stderr, "fread(%d bytes) failed\n",
+                polarssl_fprintf( stderr, "fread(%d bytes) failed\n",
                     cipher_get_block_size( &cipher_ctx ) );
                 goto exit;
             }
@@ -473,13 +482,13 @@ int main( int argc, char *argv[] )
                                cipher_get_block_size( &cipher_ctx ),
                                output, &olen ) != 0 )
             {
-                fprintf( stderr, "cipher_update() returned error\n" );
+                polarssl_fprintf( stderr, "cipher_update() returned error\n" );
                 goto exit;
             }
 
             if( fwrite( output, 1, olen, fout ) != olen )
             {
-                fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
+                polarssl_fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
                 goto exit;
             }
         }
@@ -491,7 +500,7 @@ int main( int argc, char *argv[] )
 
         if( fread( buffer, 1, md_get_size( md_info ), fin ) != md_get_size( md_info ) )
         {
-            fprintf( stderr, "fread(%d bytes) failed\n", md_get_size( md_info ) );
+            polarssl_fprintf( stderr, "fread(%d bytes) failed\n", md_get_size( md_info ) );
             goto exit;
         }
 
@@ -502,7 +511,7 @@ int main( int argc, char *argv[] )
 
         if( diff != 0 )
         {
-            fprintf( stderr, "HMAC check failed: wrong key, "
+            polarssl_fprintf( stderr, "HMAC check failed: wrong key, "
                              "or file corrupted.\n" );
             goto exit;
         }
@@ -514,7 +523,7 @@ int main( int argc, char *argv[] )
 
         if( fwrite( output, 1, olen, fout ) != olen )
         {
-            fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
+            polarssl_fprintf( stderr, "fwrite(%ld bytes) failed\n", (long) olen );
             goto exit;
         }
     }

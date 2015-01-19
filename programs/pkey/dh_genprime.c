@@ -26,6 +26,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdio.h>
 
 #include "polarssl/bignum.h"
@@ -47,7 +56,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_FS_IO and/or POLARSSL_CTR_DRBG_C and/or "
            "POLARSSL_GENPRIME not defined.\n");
     return( 0 );
@@ -70,31 +79,31 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mpi_read_string( &G, 10, GENERATOR ) ) != 0 )
     {
-        printf( " failed\n  ! mpi_read_string returned %d\n", ret );
+        polarssl_printf( " failed\n  ! mpi_read_string returned %d\n", ret );
         goto exit;
     }
 
-    printf( "\nWARNING: You should not generate and use your own DHM primes\n" );
-    printf( "         unless you are very certain of what you are doing!\n" );
-    printf( "         Failing to follow this instruction may result in\n" );
-    printf( "         weak security for your connections! Use the\n" );
-    printf( "         predefined DHM parameters from dhm.h instead!\n\n" );
-    printf( "============================================================\n\n" );
+    polarssl_printf( "\nWARNING: You should not generate and use your own DHM primes\n" );
+    polarssl_printf( "         unless you are very certain of what you are doing!\n" );
+    polarssl_printf( "         Failing to follow this instruction may result in\n" );
+    polarssl_printf( "         weak security for your connections! Use the\n" );
+    polarssl_printf( "         predefined DHM parameters from dhm.h instead!\n\n" );
+    polarssl_printf( "============================================================\n\n" );
 
-    printf( "  ! Generating large primes may take minutes!\n" );
+    polarssl_printf( "  ! Generating large primes may take minutes!\n" );
 
-    printf( "\n  . Seeding the random number generator..." );
+    polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    printf( " ok\n  . Generating the modulus, please wait..." );
+    polarssl_printf( " ok\n  . Generating the modulus, please wait..." );
     fflush( stdout );
 
     /*
@@ -103,49 +112,49 @@ int main( int argc, char *argv[] )
     if( ( ret = mpi_gen_prime( &P, DH_P_SIZE, 1,
                                ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        printf( " failed\n  ! mpi_gen_prime returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! mpi_gen_prime returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n  . Verifying that Q = (P-1)/2 is prime..." );
+    polarssl_printf( " ok\n  . Verifying that Q = (P-1)/2 is prime..." );
     fflush( stdout );
 
     if( ( ret = mpi_sub_int( &Q, &P, 1 ) ) != 0 )
     {
-        printf( " failed\n  ! mpi_sub_int returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! mpi_sub_int returned %d\n\n", ret );
         goto exit;
     }
 
     if( ( ret = mpi_div_int( &Q, NULL, &Q, 2 ) ) != 0 )
     {
-        printf( " failed\n  ! mpi_div_int returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! mpi_div_int returned %d\n\n", ret );
         goto exit;
     }
 
     if( ( ret = mpi_is_prime( &Q, ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        printf( " failed\n  ! mpi_is_prime returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! mpi_is_prime returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n  . Exporting the value in dh_prime.txt..." );
+    polarssl_printf( " ok\n  . Exporting the value in dh_prime.txt..." );
     fflush( stdout );
 
     if( ( fout = fopen( "dh_prime.txt", "wb+" ) ) == NULL )
     {
         ret = 1;
-        printf( " failed\n  ! Could not create dh_prime.txt\n\n" );
+        polarssl_printf( " failed\n  ! Could not create dh_prime.txt\n\n" );
         goto exit;
     }
 
     if( ( ret = mpi_write_file( "P = ", &P, 16, fout ) != 0 ) ||
         ( ret = mpi_write_file( "G = ", &G, 16, fout ) != 0 ) )
     {
-        printf( " failed\n  ! mpi_write_file returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! mpi_write_file returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n\n" );
+    polarssl_printf( " ok\n\n" );
     fclose( fout );
 
 exit:
@@ -155,7 +164,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  Press Enter to exit this program.\n" );
+    polarssl_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

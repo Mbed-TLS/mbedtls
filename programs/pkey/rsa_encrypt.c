@@ -26,6 +26,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
@@ -41,7 +50,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_ENTROPY_C and/or POLARSSL_FS_IO and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
@@ -63,16 +72,16 @@ int main( int argc, char *argv[] )
 
     if( argc != 2 )
     {
-        printf( "usage: rsa_encrypt <string of max 100 characters>\n" );
+        polarssl_printf( "usage: rsa_encrypt <string of max 100 characters>\n" );
 
 #if defined(_WIN32)
-        printf( "\n" );
+        polarssl_printf( "\n" );
 #endif
 
         goto exit;
     }
 
-    printf( "\n  . Seeding the random number generator..." );
+    polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     entropy_init( &entropy );
@@ -80,17 +89,17 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    printf( "\n  . Reading public key from rsa_pub.txt" );
+    polarssl_printf( "\n  . Reading public key from rsa_pub.txt" );
     fflush( stdout );
 
     if( ( f = fopen( "rsa_pub.txt", "rb" ) ) == NULL )
     {
         ret = 1;
-        printf( " failed\n  ! Could not open rsa_pub.txt\n" \
+        polarssl_printf( " failed\n  ! Could not open rsa_pub.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
@@ -100,7 +109,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
         ( ret = mpi_read_file( &rsa.E, 16, f ) ) != 0 )
     {
-        printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
         goto exit;
     }
 
@@ -110,7 +119,7 @@ int main( int argc, char *argv[] )
 
     if( strlen( argv[1] ) > 100 )
     {
-        printf( " Input data larger than 100 characters.\n\n" );
+        polarssl_printf( " Input data larger than 100 characters.\n\n" );
         goto exit;
     }
 
@@ -119,14 +128,14 @@ int main( int argc, char *argv[] )
     /*
      * Calculate the RSA encryption of the hash.
      */
-    printf( "\n  . Generating the RSA encrypted value" );
+    polarssl_printf( "\n  . Generating the RSA encrypted value" );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_encrypt( &rsa, ctr_drbg_random, &ctr_drbg,
                                    RSA_PUBLIC, strlen( argv[1] ),
                                    input, buf ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
         goto exit;
     }
 
@@ -136,24 +145,24 @@ int main( int argc, char *argv[] )
     if( ( f = fopen( "result-enc.txt", "wb+" ) ) == NULL )
     {
         ret = 1;
-        printf( " failed\n  ! Could not create %s\n\n", "result-enc.txt" );
+        polarssl_printf( " failed\n  ! Could not create %s\n\n", "result-enc.txt" );
         goto exit;
     }
 
     for( i = 0; i < rsa.len; i++ )
-        fprintf( f, "%02X%s", buf[i],
+        polarssl_fprintf( f, "%02X%s", buf[i],
                  ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
 
     fclose( f );
 
-    printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
+    polarssl_printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
 
 exit:
     ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

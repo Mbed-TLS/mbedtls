@@ -26,6 +26,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
@@ -39,7 +48,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
@@ -57,22 +66,22 @@ int main( int argc, char *argv[] )
 
     if( argc != 2 )
     {
-        printf( "usage: rsa_sign <filename>\n" );
+        polarssl_printf( "usage: rsa_sign <filename>\n" );
 
 #if defined(_WIN32)
-        printf( "\n" );
+        polarssl_printf( "\n" );
 #endif
 
         goto exit;
     }
 
-    printf( "\n  . Reading private key from rsa_priv.txt" );
+    polarssl_printf( "\n  . Reading private key from rsa_priv.txt" );
     fflush( stdout );
 
     if( ( f = fopen( "rsa_priv.txt", "rb" ) ) == NULL )
     {
         ret = 1;
-        printf( " failed\n  ! Could not open rsa_priv.txt\n" \
+        polarssl_printf( " failed\n  ! Could not open rsa_priv.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
@@ -88,7 +97,7 @@ int main( int argc, char *argv[] )
         ( ret = mpi_read_file( &rsa.DQ, 16, f ) ) != 0 ||
         ( ret = mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
     {
-        printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
         goto exit;
     }
 
@@ -96,11 +105,11 @@ int main( int argc, char *argv[] )
 
     fclose( f );
 
-    printf( "\n  . Checking the private key" );
+    polarssl_printf( "\n  . Checking the private key" );
     fflush( stdout );
     if( ( ret = rsa_check_privkey( &rsa ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_check_privkey failed with -0x%0x\n", -ret );
+        polarssl_printf( " failed\n  ! rsa_check_privkey failed with -0x%0x\n", -ret );
         goto exit;
     }
 
@@ -108,19 +117,19 @@ int main( int argc, char *argv[] )
      * Compute the SHA-1 hash of the input file,
      * then calculate the RSA signature of the hash.
      */
-    printf( "\n  . Generating the RSA/SHA-1 signature" );
+    polarssl_printf( "\n  . Generating the RSA/SHA-1 signature" );
     fflush( stdout );
 
     if( ( ret = sha1_file( argv[1], hash ) ) != 0 )
     {
-        printf( " failed\n  ! Could not open or read %s\n\n", argv[1] );
+        polarssl_printf( " failed\n  ! Could not open or read %s\n\n", argv[1] );
         goto exit;
     }
 
     if( ( ret = rsa_pkcs1_sign( &rsa, NULL, NULL, RSA_PRIVATE, POLARSSL_MD_SHA1,
                                 20, hash, buf ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_sign returned -0x%0x\n\n", -ret );
+        polarssl_printf( " failed\n  ! rsa_pkcs1_sign returned -0x%0x\n\n", -ret );
         goto exit;
     }
 
@@ -132,22 +141,22 @@ int main( int argc, char *argv[] )
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
         ret = 1;
-        printf( " failed\n  ! Could not create %s\n\n", argv[1] );
+        polarssl_printf( " failed\n  ! Could not create %s\n\n", argv[1] );
         goto exit;
     }
 
     for( i = 0; i < rsa.len; i++ )
-        fprintf( f, "%02X%s", buf[i],
+        polarssl_fprintf( f, "%02X%s", buf[i],
                  ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
 
     fclose( f );
 
-    printf( "\n  . Done (created \"%s\")\n\n", argv[1] );
+    polarssl_printf( "\n  . Done (created \"%s\")\n\n", argv[1] );
 
 exit:
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

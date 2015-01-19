@@ -26,6 +26,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -68,7 +77,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_TIMING_C not defined.\n");
+    polarssl_printf("POLARSSL_TIMING_C not defined.\n");
     return( 0 );
 }
 #else
@@ -100,7 +109,7 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
 do {                                                                    \
     unsigned long i, j, tsc;                                            \
                                                                         \
-    printf( HEADER_FORMAT, TITLE );                                     \
+    polarssl_printf( HEADER_FORMAT, TITLE );                                     \
     fflush( stdout );                                                   \
                                                                         \
     set_alarm( 1 );                                                     \
@@ -115,17 +124,17 @@ do {                                                                    \
         CODE;                                                           \
     }                                                                   \
                                                                         \
-    printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,       \
+    polarssl_printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,       \
                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );          \
 } while( 0 )
 
 #if defined(POLARSSL_ERROR_C)
 #define PRINT_ERROR                                                     \
         polarssl_strerror( ret, ( char * )tmp, sizeof( tmp ) );         \
-        printf( "FAILED: %s\n", tmp );
+        polarssl_printf( "FAILED: %s\n", tmp );
 #else
 #define PRINT_ERROR                                                     \
-        printf( "FAILED: -0x%04x\n", -ret );
+        polarssl_printf( "FAILED: -0x%04x\n", -ret );
 #endif
 
 #define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
@@ -133,7 +142,7 @@ do {                                                                    \
     unsigned long i;                                                    \
     int ret;                                                            \
                                                                         \
-    printf( HEADER_FORMAT, TITLE );                                     \
+    polarssl_printf( HEADER_FORMAT, TITLE );                                     \
     fflush( stdout );                                                   \
     set_alarm( 3 );                                                     \
                                                                         \
@@ -148,7 +157,7 @@ do {                                                                    \
 PRINT_ERROR;                                                            \
     }                                                                   \
     else                                                                \
-        printf( "%9lu " TYPE "/s\n", i / 3 );                           \
+        polarssl_printf( "%9lu " TYPE "/s\n", i / 3 );                           \
 } while( 0 )
 
 unsigned char buf[BUFSIZE];
@@ -225,13 +234,13 @@ int main( int argc, char *argv[] )
                 todo.ecdh = 1;
             else
             {
-                printf( "Unrecognized option: %s\n", argv[i] );
-                printf( "Available options: " OPTIONS );
+                polarssl_printf( "Unrecognized option: %s\n", argv[i] );
+                polarssl_printf( "Available options: " OPTIONS );
             }
         }
     }
 
-    printf( "\n" );
+    polarssl_printf( "\n" );
 
     memset( buf, 0xAA, sizeof( buf ) );
     memset( tmp, 0xBB, sizeof( tmp ) );
@@ -631,10 +640,10 @@ int main( int argc, char *argv[] )
         }
     }
 #endif
-    printf( "\n" );
+    polarssl_printf( "\n" );
 
 #if defined(_WIN32)
-    printf( "  Press Enter to exit this program.\n" );
+    polarssl_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

@@ -26,6 +26,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 
@@ -37,7 +46,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_CTR_DRBG_C or POLARSSL_ENTROPY_C not defined.\n");
+    polarssl_printf("POLARSSL_CTR_DRBG_C or POLARSSL_ENTROPY_C not defined.\n");
     return( 0 );
 }
 #else
@@ -51,13 +60,13 @@ int main( int argc, char *argv[] )
 
     if( argc < 2 )
     {
-        fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
+        polarssl_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
         return( 1 );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        printf( "failed to open '%s' for writing.\n", argv[0] );
+        polarssl_printf( "failed to open '%s' for writing.\n", argv[0] );
         return( 1 );
     }
 
@@ -65,7 +74,7 @@ int main( int argc, char *argv[] )
     ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy, (const unsigned char *) "RANDOM_GEN", 10 );
     if( ret != 0 )
     {
-        printf( "failed in ctr_drbg_init: %d\n", ret );
+        polarssl_printf( "failed in ctr_drbg_init: %d\n", ret );
         goto cleanup;
     }
     ctr_drbg_set_prediction_resistance( &ctr_drbg, CTR_DRBG_PR_OFF );
@@ -75,17 +84,17 @@ int main( int argc, char *argv[] )
 
     if( ret == POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR )
     {
-        printf( "Failed to open seedfile. Generating one.\n" );
+        polarssl_printf( "Failed to open seedfile. Generating one.\n" );
         ret = ctr_drbg_write_seed_file( &ctr_drbg, "seedfile" );
         if( ret != 0 )
         {
-            printf( "failed in ctr_drbg_write_seed_file: %d\n", ret );
+            polarssl_printf( "failed in ctr_drbg_write_seed_file: %d\n", ret );
             goto cleanup;
         }
     }
     else if( ret != 0 )
     {
-        printf( "failed in ctr_drbg_update_seed_file: %d\n", ret );
+        polarssl_printf( "failed in ctr_drbg_update_seed_file: %d\n", ret );
         goto cleanup;
     }
 #endif
@@ -95,13 +104,13 @@ int main( int argc, char *argv[] )
         ret = ctr_drbg_random( &ctr_drbg, buf, sizeof( buf ) );
         if( ret != 0 )
         {
-            printf("failed!\n");
+            polarssl_printf("failed!\n");
             goto cleanup;
         }
 
         fwrite( buf, 1, sizeof( buf ), f );
 
-        printf( "Generating 32Mb of data in file '%s'... %04.1f" \
+        polarssl_printf( "Generating 32Mb of data in file '%s'... %04.1f" \
                 "%% done\r", argv[1], (100 * (float) (i + 1)) / k );
         fflush( stdout );
     }
@@ -109,7 +118,7 @@ int main( int argc, char *argv[] )
     ret = 0;
 
 cleanup:
-    printf("\n");
+    polarssl_printf("\n");
 
     fclose( f );
     ctr_drbg_free( &ctr_drbg );

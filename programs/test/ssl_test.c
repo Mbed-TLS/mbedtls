@@ -26,6 +26,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -49,7 +58,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_SSL_CLI_C and/or POLARSSL_NET_C and/or "
            "POLARSSL_RSA_C and/or POLARSSL_CTR_DRBG_C and/or "
@@ -131,7 +140,7 @@ static unsigned long int lcppm5( unsigned long int *state )
 static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < ((struct options *) ctx)->debug_level )
-        fprintf( stderr, "%s", str );
+        polarssl_fprintf( stderr, "%s", str );
 }
 
 /*
@@ -175,7 +184,7 @@ static int ssl_test( struct options *opt )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( "  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( "  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
@@ -192,13 +201,13 @@ static int ssl_test( struct options *opt )
         if( ( ret = net_connect( &client_fd, opt->server_name,
                                              opt->server_port ) ) != 0 )
         {
-            printf( "  ! net_connect returned %d\n\n", ret );
+            polarssl_printf( "  ! net_connect returned %d\n\n", ret );
             return( ret );
         }
 
         if( ( ret = ssl_init( &ssl ) ) != 0 )
         {
-            printf( "  ! ssl_init returned %d\n\n", ret );
+            polarssl_printf( "  ! ssl_init returned %d\n\n", ret );
             goto exit;
         }
 
@@ -208,14 +217,14 @@ static int ssl_test( struct options *opt )
     if( opt->opmode == OPMODE_SERVER )
     {
 #if !defined(POLARSSL_CERTS_C)
-        printf("POLARSSL_CERTS_C not defined.\n");
+        polarssl_printf("POLARSSL_CERTS_C not defined.\n");
         goto exit;
 #else
         ret =  x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
                                strlen( test_srv_crt ) );
         if( ret != 0 )
         {
-            printf( "  !  x509_crt_parse returned %d\n\n", ret );
+            polarssl_printf( "  !  x509_crt_parse returned %d\n\n", ret );
             goto exit;
         }
 
@@ -223,7 +232,7 @@ static int ssl_test( struct options *opt )
                                strlen( test_ca_list ) );
         if( ret != 0 )
         {
-            printf( "  !  x509_crt_parse returned %d\n\n", ret );
+            polarssl_printf( "  !  x509_crt_parse returned %d\n\n", ret );
             goto exit;
         }
 
@@ -231,7 +240,7 @@ static int ssl_test( struct options *opt )
                              strlen( test_srv_key ), NULL, 0 );
         if( ret != 0 )
         {
-            printf( "  !  pk_parse_key returned %d\n\n", ret );
+            polarssl_printf( "  !  pk_parse_key returned %d\n\n", ret );
             goto exit;
         }
 #endif
@@ -241,20 +250,20 @@ static int ssl_test( struct options *opt )
             if( ( ret = net_bind( &server_fd, NULL,
                                    opt->server_port ) ) != 0 )
             {
-                printf( "  ! net_bind returned %d\n\n", ret );
+                polarssl_printf( "  ! net_bind returned %d\n\n", ret );
                 return( ret );
             }
         }
 
         if( ( ret = net_accept( server_fd, &client_fd, NULL ) ) != 0 )
         {
-            printf( "  ! net_accept returned %d\n\n", ret );
+            polarssl_printf( "  ! net_accept returned %d\n\n", ret );
             return( ret );
         }
 
         if( ( ret = ssl_init( &ssl ) ) != 0 )
         {
-            printf( "  ! ssl_init returned %d\n\n", ret );
+            polarssl_printf( "  ! ssl_init returned %d\n\n", ret );
             return( ret );
         }
 
@@ -262,7 +271,7 @@ static int ssl_test( struct options *opt )
         ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
         if( ( ret = ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
             goto exit;
         }
     }
@@ -281,17 +290,17 @@ static int ssl_test( struct options *opt )
     {
         if( ( ret = net_set_nonblock( client_fd ) ) != 0 )
         {
-            printf( "  ! net_set_nonblock returned %d\n\n", ret );
+            polarssl_printf( "  ! net_set_nonblock returned %d\n\n", ret );
             return( ret );
         }
     }
 
-     read_buf = (unsigned char *) malloc( opt->buffer_size );
-    write_buf = (unsigned char *) malloc( opt->buffer_size );
+     read_buf = (unsigned char *) polarssl_malloc( opt->buffer_size );
+    write_buf = (unsigned char *) polarssl_malloc( opt->buffer_size );
 
     if( read_buf == NULL || write_buf == NULL )
     {
-        printf( "  ! malloc(%d bytes) failed\n\n", opt->buffer_size );
+        polarssl_printf( "  ! polarssl_malloc(%d bytes) failed\n\n", opt->buffer_size );
         goto exit;
     }
 
@@ -333,7 +342,7 @@ static int ssl_test( struct options *opt )
             if( ret < 0 && ret != POLARSSL_ERR_NET_WANT_READ &&
                 ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
-                printf( "  ! ssl_write returned %d\n\n", ret );
+                polarssl_printf( "  ! ssl_write returned %d\n\n", ret );
                 break;
             }
         }
@@ -357,7 +366,7 @@ static int ssl_test( struct options *opt )
                         (unsigned char) lcppm5( read_state ) )
                     {
                         ret = 1;
-                        printf( "  ! plaintext mismatch\n\n" );
+                        polarssl_printf( "  ! plaintext mismatch\n\n" );
                         goto exit;
                     }
                 }
@@ -379,7 +388,7 @@ static int ssl_test( struct options *opt )
             if( ret < 0 && ret != POLARSSL_ERR_NET_WANT_READ &&
                 ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
-                printf( "  ! ssl_read returned %d\n\n", ret );
+                polarssl_printf( "  ! ssl_read returned %d\n\n", ret );
                 break;
             }
         }
@@ -458,15 +467,15 @@ int main( int argc, char *argv[] )
     if( argc == 1 )
     {
     usage:
-        printf( USAGE );
+        polarssl_printf( USAGE );
 
         list = ssl_list_ciphersuites();
         while( *list )
         {
-            printf("    %s\n", ssl_get_ciphersuite_name( *list ) );
+            polarssl_printf("    %s\n", ssl_get_ciphersuite_name( *list ) );
             list++;
         }
-        printf("\n");
+        polarssl_printf("\n");
         goto exit;
     }
 
@@ -611,7 +620,7 @@ int main( int argc, char *argv[] )
 exit:
 
 #if defined(_WIN32)
-    printf( "  Press Enter to exit this program.\n" );
+    polarssl_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

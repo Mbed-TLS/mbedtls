@@ -29,6 +29,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,7 +51,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_X509_CRL_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
@@ -81,7 +90,7 @@ int main( int argc, char *argv[] )
     if( argc == 0 )
     {
     usage:
-        printf( USAGE );
+        polarssl_printf( USAGE );
         goto exit;
     }
 
@@ -103,39 +112,39 @@ int main( int argc, char *argv[] )
     /*
      * 1.1. Load the CRL
      */
-    printf( "\n  . Loading the CRL ..." );
+    polarssl_printf( "\n  . Loading the CRL ..." );
     fflush( stdout );
 
     ret = x509_crl_parse_file( &crl, opt.filename );
 
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509_crl_parse_file returned %d\n\n", ret );
+        polarssl_printf( " failed\n  !  x509_crl_parse_file returned %d\n\n", ret );
         x509_crl_free( &crl );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 1.2 Print the CRL
      */
-    printf( "  . CRL information    ...\n" );
+    polarssl_printf( "  . CRL information    ...\n" );
     ret = x509_crl_info( (char *) buf, sizeof( buf ) - 1, "      ", &crl );
     if( ret == -1 )
     {
-        printf( " failed\n  !  x509_crl_info returned %d\n\n", ret );
+        polarssl_printf( " failed\n  !  x509_crl_info returned %d\n\n", ret );
         x509_crl_free( &crl );
         goto exit;
     }
 
-    printf( "%s\n", buf );
+    polarssl_printf( "%s\n", buf );
 
 exit:
     x509_crl_free( &crl );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

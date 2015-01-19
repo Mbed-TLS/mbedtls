@@ -31,8 +31,6 @@
 #else
 #define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
-#define polarssl_malloc     malloc
-#define polarssl_free       free
 #endif
 
 #include "polarssl/havege.h"

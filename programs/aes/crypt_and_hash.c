@@ -32,8 +32,6 @@
 #else
 #define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
-#define polarssl_malloc     malloc
-#define polarssl_free       free
 #endif
 
 #if defined(_WIN32)

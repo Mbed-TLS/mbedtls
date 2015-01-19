@@ -66,6 +66,7 @@ Changes
      at runtime with ssl_set_truncated_hmac().
    * Example programs for SSL client and server now disable SSLv3 by default.
    * Example programs for SSL client and server now disable RC4 by default.
+   * Use platform.h in all test suites and programs.
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

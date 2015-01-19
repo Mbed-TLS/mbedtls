@@ -49,6 +49,7 @@ Bugfix
      multiple of 8 (found by Gergely Budai).
    * Fix unchecked return code in x509_crt_parse_path() on Windows (found by
      Peter Vaskovic).
+   * Fix assembly selection for MIPS64 (thanks to James Cowgill).
 
 Changes
    * Use deterministic nonces for AEAD ciphers in TLS by default (possible to

@@ -226,16 +226,23 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && defined(POLARSSL_MEMORY_DEBUG)
         memory_buffer_alloc_status();
 #endif
+    }
 
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+    memory_buffer_alloc_free();
+
+    if( ( ret = memory_buffer_alloc_self_test( v ) ) != 0 )
+        return( ret );
+#endif
+
+    if( v != 0 )
+    {
         printf( "  [ All tests passed ]\n\n" );
 #if defined(_WIN32)
         printf( "  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
     }
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-    memory_buffer_alloc_free();
-#endif
 
     return( ret );
 }

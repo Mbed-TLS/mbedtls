@@ -146,8 +146,8 @@ struct options
     uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
     uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
     int fallback;               /* is this a fallback connection?           */
-    char extended_ms;           /* negotiate extended master secret?        */
-    char etm;                   /* negotiate encrypt then mac?     ?        */
+    int extended_ms;            /* negotiate extended master secret?        */
+    int etm;                    /* negotiate encrypt then mac?              */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )

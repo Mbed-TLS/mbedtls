@@ -19,6 +19,19 @@ Features
    * Add support for Extended Master Secret (draft-ietf-tls-session-hash)
    * Add support for Encrypt-then-MAC (RFC 7366)
 
+Security
+   * NULL pointer dereference in the buffer-based allocator when the buffer is
+     full and polarssl_free() is called (found by Jean-Philippe Aumasson)
+     (only possible if POLARSSL_MEMORY_BUFFER_ALLOC_C is enabled, which it is
+     not by default).
+
+Bugfix
+   * Stack buffer overflow if ctr_drbg_update() is called with too large
+     add_len (found by Jean-Philippe Aumasson) (not triggerable remotely).
+   * Possible buffer overflow of length at most POLARSSL_MEMORY_ALIGN_MULTIPLE
+     if memory_buffer_alloc_init() was called with buf not aligned and len not
+     a multiple of POLARSSL_MEMORY_ALIGN_MULTIPLE.
+
 = PolarSSL 1.3.9 released 2014-10-20
 Security
    * Lowest common hash was selected from signature_algorithms extension in

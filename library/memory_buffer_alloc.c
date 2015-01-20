@@ -484,7 +484,8 @@ static void buffer_alloc_free( void *ptr )
     if( old == NULL )
     {
         hdr->next_free = heap.first_free;
-        heap.first_free->prev_free = hdr;
+        if( heap.first_free != NULL )
+            heap.first_free->prev_free = hdr;
         heap.first_free = hdr;
     }
 
@@ -562,9 +563,11 @@ int memory_buffer_alloc_init( unsigned char *buf, size_t len )
 
     if( (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE )
     {
+        /* Adjust len first since buf is used in the computation */
+        len -= POLARSSL_MEMORY_ALIGN_MULTIPLE
+             - (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
         buf += POLARSSL_MEMORY_ALIGN_MULTIPLE
              - (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
-        len -= (size_t) buf % POLARSSL_MEMORY_ALIGN_MULTIPLE;
     }
 
     heap.buf = buf;
@@ -585,5 +588,136 @@ void memory_buffer_alloc_free()
 #endif
     polarssl_zeroize( &heap, sizeof(buffer_alloc_ctx) );
 }
+
+#if defined(POLARSSL_SELF_TEST)
+static int check_pointer( void *p )
+{
+    if( p == NULL )
+        return( -1 );
+
+    if( (size_t) p % POLARSSL_MEMORY_ALIGN_MULTIPLE != 0 )
+        return( -1 );
+
+    return( 0 );
+}
+
+static int check_all_free( )
+{
+    if( heap.current_alloc_size != 0 ||
+        heap.first != heap.first_free ||
+        (void *) heap.first != (void *) heap.buf )
+    {
+        return( -1 );
+    }
+
+    return( 0 );
+}
+
+#define TEST_ASSERT( condition )            \
+    if( ! (condition) )                     \
+    {                                       \
+        if( verbose != 0 )                  \
+            polarssl_printf( "failed\n" );  \
+                                            \
+        ret = 1;                            \
+        goto cleanup;                       \
+    }
+
+int memory_buffer_alloc_self_test( int verbose )
+{
+    unsigned char buf[1024];
+    unsigned char *p, *q, *r, *end;
+    int ret = 0;
+
+    if( verbose != 0 )
+        polarssl_printf( "  MBA test #1 (basic alloc-free cycle): " );
+
+    memory_buffer_alloc_init( buf, sizeof( buf ) );
+
+    p = polarssl_malloc( 1 );
+    q = polarssl_malloc( 128 );
+    r = polarssl_malloc( 16 );
+
+    TEST_ASSERT( check_pointer( p ) == 0 &&
+                 check_pointer( q ) == 0 &&
+                 check_pointer( r ) == 0 );
+
+    polarssl_free( r );
+    polarssl_free( q );
+    polarssl_free( p );
+
+    TEST_ASSERT( check_all_free( ) == 0 );
+
+    /* Memorize end to compare with the next test */
+    end = heap.buf + heap.len;
+
+    memory_buffer_alloc_free( );
+
+    if( verbose != 0 )
+        polarssl_printf( "passed\n" );
+
+    if( verbose != 0 )
+        polarssl_printf( "  MBA test #2 (buf not aligned): " );
+
+    memory_buffer_alloc_init( buf + 1, sizeof( buf ) - 1 );
+
+    TEST_ASSERT( heap.buf + heap.len == end );
+
+    p = polarssl_malloc( 1 );
+    q = polarssl_malloc( 128 );
+    r = polarssl_malloc( 16 );
+
+    TEST_ASSERT( check_pointer( p ) == 0 &&
+                 check_pointer( q ) == 0 &&
+                 check_pointer( r ) == 0 );
+
+    polarssl_free( r );
+    polarssl_free( q );
+    polarssl_free( p );
+
+    TEST_ASSERT( check_all_free( ) == 0 );
+
+    memory_buffer_alloc_free( );
+
+    if( verbose != 0 )
+        polarssl_printf( "passed\n" );
+
+    if( verbose != 0 )
+        polarssl_printf( "  MBA test #3 (full): " );
+
+    memory_buffer_alloc_init( buf, sizeof( buf ) );
+
+    p = polarssl_malloc( sizeof( buf ) - sizeof( memory_header ) );
+
+    TEST_ASSERT( check_pointer( p ) == 0 );
+    TEST_ASSERT( polarssl_malloc( 1 ) == NULL );
+
+    polarssl_free( p );
+
+    p = polarssl_malloc( sizeof( buf ) - 2 * sizeof( memory_header ) - 16 );
+    q = polarssl_malloc( 16 );
+
+    TEST_ASSERT( check_pointer( p ) == 0 && check_pointer( q ) == 0 );
+    TEST_ASSERT( polarssl_malloc( 1 ) == NULL );
+
+    polarssl_free( q );
+
+    TEST_ASSERT( polarssl_malloc( 17 ) == NULL );
+
+    polarssl_free( p );
+
+    TEST_ASSERT( check_all_free( ) == 0 );
+
+    memory_buffer_alloc_free( );
+
+    if( verbose != 0 )
+        polarssl_printf( "passed\n" );
+
+cleanup:
+    memory_buffer_alloc_free( );
+
+    return( ret );
+}
+#endif /* POLARSSL_SELF_TEST */
 
 #endif /* POLARSSL_MEMORY_BUFFER_ALLOC_C */

@@ -211,7 +211,8 @@ int main()
     char buf[5000];
     char *params[50];
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && \
+    !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
     unsigned char alloc_buf[1000000];
     memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
 #endif
@@ -298,7 +299,8 @@ int main()
     fprintf( stdout, " (%d / %d tests (%d skipped))\n",
              total_tests - total_errors, total_tests, total_skipped );
 
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) && \
+    !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
 #if defined(POLARSSL_MEMORY_DEBUG)
     memory_buffer_alloc_status();
 #endif

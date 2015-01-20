@@ -71,7 +71,7 @@ static void polarssl_zeroize( void *v, size_t n ) {
 /*
  * Load all data from a file into a given buffer.
  */
-static int load_file( const char *path, unsigned char **buf, size_t *n )
+int pk_load_file( const char *path, unsigned char **buf, size_t *n )
 {
     FILE *f;
     long size;
@@ -120,7 +120,7 @@ int pk_parse_keyfile( pk_context *ctx,
     size_t n;
     unsigned char *buf;
 
-    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     if( pwd == NULL )
@@ -144,7 +144,7 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = pk_parse_public_key( ctx, buf, n );

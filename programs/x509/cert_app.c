@@ -188,6 +188,7 @@ int main( int argc, char *argv[] )
     {
     usage:
         printf( USAGE );
+        ret = 2;
         goto exit;
     }
 
@@ -499,6 +500,9 @@ exit:
     printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
+
+    if( ret < 0 )
+        ret = 1;
 
     return( ret );
 }

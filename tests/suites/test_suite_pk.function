@@ -1,6 +1,10 @@
 /* BEGIN_HEADER */
 #include <polarssl/pk.h>
 
+/* For error codes */
+#include <polarssl/ecp.h>
+#include <polarssl/rsa.h>
+
 static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 
 #define RSA_KEY_SIZE 512
@@ -77,6 +81,35 @@ void pk_utils( int type, int size, int len, char *name )
 
 exit:
     pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:POLARSSL_PK_PARSE_C:POLARSSL_FS_IO */
+void pk_check_pair( char *pub_file, char *prv_file, int ret )
+{
+    pk_context pub, prv, alt;
+
+    pk_init( &pub );
+    pk_init( &prv );
+    pk_init( &alt );
+
+    TEST_ASSERT( pk_parse_public_keyfile( &pub, pub_file ) == 0 );
+    TEST_ASSERT( pk_parse_keyfile( &prv, prv_file, NULL ) == 0 );
+
+    TEST_ASSERT( pk_check_pair( &pub, &prv ) == ret );
+
+#if defined(POLARSSL_RSA_C)
+    if( pk_get_type( &prv ) == POLARSSL_PK_RSA )
+    {
+        TEST_ASSERT( pk_init_ctx_rsa_alt( &alt, pk_rsa( prv ),
+                     rsa_decrypt_func, rsa_sign_func, rsa_key_len_func ) == 0 );
+        TEST_ASSERT( pk_check_pair( &pub, &alt ) == ret );
+    }
+#endif
+
+    pk_free( &pub );
+    pk_free( &prv );
+    pk_free( &alt );
 }
 /* END_CASE */
 

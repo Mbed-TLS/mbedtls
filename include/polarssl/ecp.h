@@ -413,6 +413,8 @@ int ecp_point_read_binary( const ecp_group *grp, ecp_point *P,
  * \param buf       $(Start of input buffer)
  * \param len       Buffer length
  *
+ * \note            buf is updated to point right after the ECPoint on exit
+ *
  * \return          O if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
  *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if input is invalid
@@ -478,6 +480,8 @@ int ecp_use_known_dp( ecp_group *grp, ecp_group_id index );
  * \param grp       Destination group
  * \param buf       &(Start of input buffer)
  * \param len       Buffer length
+ *
+ * \note            buf is updated to point right after ECParameters on exit
  *
  * \return          O if successful,
  *                  POLARSSL_ERR_MPI_XXX if initialization failed
@@ -634,6 +638,18 @@ int ecp_gen_keypair( ecp_group *grp, mpi *d, ecp_point *Q,
  */
 int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Check a public-private key pair
+ *
+ * \param pub       Keypair structure holding a public key
+ * \param prv       Keypair structure holding a private (plus public) key
+ *
+ * \return          0 if successfull (keys are valid and match), or
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA, or
+ *                  a POLARSSL_ERR_ECP_XXX or POLARSSL_ERR_MPI_XXX code.
+ */
+int ecp_check_pub_priv( const ecp_keypair *pub, const ecp_keypair *prv );
 
 #if defined(POLARSSL_SELF_TEST)
 /**

@@ -18,7 +18,7 @@ them, you can pick one of the following methods:
 
    Or, using cmake:
 
-    rm CMakeCache.txt
+    find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
     CFLAGS="-I$PWD/configs -DPOLARSSL_CONFIG_FILE='<foo.h>'" cmake .
     make
 

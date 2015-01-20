@@ -1897,6 +1897,48 @@ int ecp_gen_key( ecp_group_id grp_id, ecp_keypair *key,
     return( ecp_gen_keypair( &key->grp, &key->d, &key->Q, f_rng, p_rng ) );
 }
 
+/*
+ * Check a public-private key pair
+ */
+int ecp_check_pub_priv( const ecp_keypair *pub, const ecp_keypair *prv )
+{
+    int ret;
+    ecp_point Q;
+    ecp_group grp;
+
+    if( pub->grp.id == POLARSSL_ECP_DP_NONE ||
+        pub->grp.id != prv->grp.id ||
+        mpi_cmp_mpi( &pub->Q.X, &prv->Q.X ) ||
+        mpi_cmp_mpi( &pub->Q.Y, &prv->Q.Y ) ||
+        mpi_cmp_mpi( &pub->Q.Z, &prv->Q.Z ) )
+    {
+        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
+    }
+
+    ecp_point_init( &Q );
+    ecp_group_init( &grp );
+
+    /* ecp_mul() needs a non-const group... */
+    ecp_group_copy( &grp, &prv->grp );
+
+    /* Also checks d is valid */
+    MPI_CHK( ecp_mul( &grp, &Q, &prv->d, &prv->grp.G, NULL, NULL ) );
+
+    if( mpi_cmp_mpi( &Q.X, &prv->Q.X ) ||
+        mpi_cmp_mpi( &Q.Y, &prv->Q.Y ) ||
+        mpi_cmp_mpi( &Q.Z, &prv->Q.Z ) )
+    {
+        ret = POLARSSL_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+cleanup:
+    ecp_point_free( &Q );
+    ecp_group_free( &grp );
+
+    return( ret );
+}
+
 #if defined(POLARSSL_SELF_TEST)
 
 /*

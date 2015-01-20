@@ -491,7 +491,7 @@ union _ssl_premaster_secret
 #if defined(POLARSSL_KEY_EXCHANGE_RSA_PSK_ENABLED)
     unsigned char _pms_rsa_psk[52 + POLARSSL_PSK_MAX_LEN];      /* RFC 4279 4 */
 #endif
-#if defined(POLARSSL_KEY_EXCHANGE_DHE_PSK_ENABLED)
+#if defined(POLARSSL_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     unsigned char _pms_ecdhe_psk[4 + POLARSSL_ECP_MAX_BYTES
                                    + POLARSSL_PSK_MAX_LEN];     /* RFC 5489 2 */
 #endif
@@ -1204,6 +1204,7 @@ void ssl_set_bio( ssl_context *ssl,
         int (*f_recv)(void *, unsigned char *, size_t), void *p_recv,
         int (*f_send)(void *, const unsigned char *, size_t), void *p_send );
 
+#if defined(POLARSSL_SSL_SRV_C)
 /**
  * \brief          Set the underlying BIO callbacks for write, read and
  *                 read-with-timeout.
@@ -1380,7 +1381,8 @@ void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max );
 
 /**
  * \brief          Set the session cache callbacks (server-side only)
- *                 If not set, no session resuming is done.
+ *                 If not set, no session resuming is done (except if session
+ *                 tickets are enabled too).
  *
  *                 The session cache has the responsibility to check for stale
  *                 entries based on timeout. See RFC 5246 for recommendations.
@@ -1418,7 +1420,9 @@ void ssl_set_handshake_timeout( ssl_context *ssl, uint32_t min, uint32_t max );
 void ssl_set_session_cache( ssl_context *ssl,
         int (*f_get_cache)(void *, ssl_session *), void *p_get_cache,
         int (*f_set_cache)(void *, const ssl_session *), void *p_set_cache );
+#endif /* POLARSSL_SSL_SRV_C */
 
+#if defined(POLARSSL_SSL_CLI_C)
 /**
  * \brief          Request resumption of session (client-side only)
  *                 Session data is copied from presented session structure.
@@ -1434,6 +1438,7 @@ void ssl_set_session_cache( ssl_context *ssl,
  * \sa             ssl_get_session()
  */
 int ssl_set_session( ssl_context *ssl, const ssl_session *session );
+#endif /* POLARSSL_SSL_CLI_C */
 
 /**
  * \brief               Set the list of allowed ciphersuites and the preference
@@ -2011,6 +2016,7 @@ int ssl_get_record_expansion( const ssl_context *ssl );
 const x509_crt *ssl_get_peer_cert( const ssl_context *ssl );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
+#if defined(POLARSSL_SSL_CLI_C)
 /**
  * \brief          Save session in order to resume it later (client-side only)
  *                 Session data is copied to presented session structure.
@@ -2028,6 +2034,7 @@ const x509_crt *ssl_get_peer_cert( const ssl_context *ssl );
  * \sa             ssl_set_session()
  */
 int ssl_get_session( const ssl_context *ssl, ssl_session *session );
+#endif /* POLARSSL_SSL_CLI_C */
 
 /**
  * \brief          Perform the SSL handshake

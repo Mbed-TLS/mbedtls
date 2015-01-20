@@ -495,7 +495,8 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
     return( 0 );
 }
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
 static int ssl_parse_signature_algorithms_ext( ssl_context *ssl,
                                                const unsigned char *buf,
                                                size_t len )
@@ -539,7 +540,8 @@ have_sig_alg:
 
     return( 0 );
 }
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 static int ssl_parse_supported_elliptic_curves( ssl_context *ssl,
@@ -1703,7 +1705,8 @@ read_record_header:
                 return( ret );
             break;
 
-#if defined(POLARSSL_SSL_PROTO_TLS1_2)
+#if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
+    defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
         case TLS_EXT_SIG_ALG:
             SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
             if( ssl->renegotiation == SSL_RENEGOTIATION )
@@ -1713,7 +1716,8 @@ read_record_header:
             if( ret != 0 )
                 return( ret );
             break;
-#endif /* POLARSSL_SSL_PROTO_TLS1_2 */
+#endif /* POLARSSL_SSL_PROTO_TLS1_2 &&
+          POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
         case TLS_EXT_SUPPORTED_ELLIPTIC_CURVES:

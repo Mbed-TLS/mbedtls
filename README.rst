@@ -2,6 +2,15 @@
 README for PolarSSL
 ===================
 
+Configuration
+=============
+
+PolarSSL should build out of the box on most systems. Some platform specific options are available in the fully-documented configuration file *include/polarssl/config.h*, which is also the place where features can be selected.
+This file can be edited manually, or in a more programmatic way using the Perl
+script *scripts/config.pl* (use *--help* for usage instructions).
+
+Compiler options can be set using standard variables such as *CC* and *CFLAGS* when using the Make and CMake build system (see below).
+
 Compiling
 =========
 
@@ -39,7 +48,7 @@ In order to build the source using CMake, just enter at the command line::
 
     make
 
-There are 5 different active build modes specified within the CMake buildsystem:
+There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 
 - Release.
   This generates the default code without any unnecessary information in the binary files.
@@ -49,12 +58,29 @@ There are 5 different active build modes specified within the CMake buildsystem:
   This generates code coverage information in addition to debug information.
 - ASan.
   This instruments the code with AddressSanitizer to check for memory errors.
+  (This includes LeakSanitizer, with recent version of gcc and clang.)
+  (With recent version of clang, this mode also intruments the code with
+  UndefinedSanitizer to check for undefined behaviour.)
+- ASanDbg.
+  Same as ASan but slower, with debug information and better stack traces.
+- MemSan.
+  This intruments the code with MemorySanitizer to check for uninitialised
+  memory reads. Experimental, needs recent clang on Linux/x86_64.
+- MemSanDbg.
+  Same as ASan but slower, with debug information, better stack traces and
+  origin tracking.
 - Check.
-  This activates more compiler warnings and treats them as errors.
+  This activates the compiler warnings that depend on optimisation and treats
+  all warnings as errors.
 
 Switching build modes in CMake is simple. For debug mode, enter at the command line:
 
     cmake -D CMAKE_BUILD_TYPE:String="Debug" .
+
+Note that, with CMake, if you want to change the compiler or its options after you already ran CMake, you need to clear its cache first, eg (using GNU find)::
+
+    find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
+    CC=gcc CFLAGS='-fstack-protector-strong -Wa,--noexecstack' cmake .
 
 In order to run the tests, enter::
 
@@ -76,6 +102,13 @@ Tests
 =====
 
 PolarSSL includes an elaborate test suite in *tests/* that initially requires Perl to generate the tests files (e.g. *test_suite_mpi.c*). These files are generates from a **function file** (e.g. *suites/test_suite_mpi.function*) and a **data file** (e.g. *suites/test_suite_mpi.data*). The **function file** contains the template for each test function. The **data file** contains the test cases, specified as parameters that should be pushed into a template function.
+
+For machines with a Unix shell and OpenSSL (and optionnally GnuTLS) installed, additional test scripts are available:
+
+- *tests/ssl-opt.sh* runs integration tests for various TLS options (renegotiation, resumption, etc.) and tests interoperability of these options with other implementations.
+- *tests/compat.sh* tests interoperability of every ciphersuite with other implementations.
+- *tests/scripts/test-ref-configs.pl* test builds in various reduced configurations.
+- *tests/scripts/all.sh* runs a combination of the above tests with various build options (eg ASan).
 
 Configurations
 ==============

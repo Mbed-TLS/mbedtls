@@ -123,6 +123,7 @@ void debug_print_buf( const ssl_context *ssl, int level,
                       unsigned char *buf, size_t len )
 {
     char str[512];
+    char txt[17];
     size_t i, maxlen = sizeof( str ) - 1, idx = 0;
 
     if( ssl->f_dbg == NULL || level > debug_threshold )
@@ -138,6 +139,7 @@ void debug_print_buf( const ssl_context *ssl, int level,
     ssl->f_dbg( ssl->p_dbg, level, str );
 
     idx = 0;
+    memset( txt, 0, sizeof( txt ) );
     for( i = 0; i < len; i++ )
     {
         if( i >= 4096 )
@@ -147,9 +149,11 @@ void debug_print_buf( const ssl_context *ssl, int level,
         {
             if( i > 0 )
             {
-                snprintf( str + idx, maxlen - idx, "\n" );
+                snprintf( str + idx, maxlen - idx, "  %s\n", txt );
                 ssl->f_dbg( ssl->p_dbg, level, str );
+
                 idx = 0;
+                memset( txt, 0, sizeof( txt ) );
             }
 
             if( debug_log_mode == POLARSSL_DEBUG_LOG_FULL )
@@ -162,11 +166,15 @@ void debug_print_buf( const ssl_context *ssl, int level,
 
         idx += snprintf( str + idx, maxlen - idx, " %02x",
                          (unsigned int) buf[i] );
+        txt[i % 16] = ( buf[i] > 31 && buf[i] < 127 ) ? buf[i] : '.' ;
     }
 
     if( len > 0 )
     {
-        snprintf( str + idx, maxlen - idx, "\n" );
+        for( /* i = i */; i % 16 != 0; i++ )
+            idx += snprintf( str + idx, maxlen - idx, "   " );
+
+        snprintf( str + idx, maxlen - idx, "  %s\n", txt );
         ssl->f_dbg( ssl->p_dbg, level, str );
     }
 }

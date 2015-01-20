@@ -333,7 +333,7 @@ cleanup:
 #if POLARSSL_ECP_MAX_BYTES > 124
 #error "POLARSSL_ECP_MAX_BYTES bigger than expected, please fix MAX_SIG_LEN"
 #endif
-#define MAX_SIG_LEN ( 3 + 2 * ( 2 + POLARSSL_ECP_MAX_BYTES ) )
+#define MAX_SIG_LEN ( 3 + 2 * ( 3 + POLARSSL_ECP_MAX_BYTES ) )
 
 /*
  * Convert a signature (given by context) to ASN.1

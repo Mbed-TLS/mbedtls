@@ -14,16 +14,29 @@ API Changes
 
 Reminder: bump SONAME for ABI change (FALLBACK_SCSV, session-hash, EtM)
 
-Features
-   * Add support for FALLBACK_SCSV (draft-ietf-tls-downgrade-scsv)
-   * Add support for Extended Master Secret (draft-ietf-tls-session-hash)
-   * Add support for Encrypt-then-MAC (RFC 7366)
-
 Security
    * NULL pointer dereference in the buffer-based allocator when the buffer is
      full and polarssl_free() is called (found by Jean-Philippe Aumasson)
      (only possible if POLARSSL_MEMORY_BUFFER_ALLOC_C is enabled, which it is
      not by default).
+   * Fix remotely-triggerable uninitialised pointer dereference caused by
+     crafted X.509 certificate (TLS server is not affected if it doesn't ask for a
+     client certificate) (found using Codenomicon Defensics).
+   * Fix remotely-triggerable memory leak caused by crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate)
+     (found using Codenomicon Defensics).
+   * Fix potential stack overflow while parsing crafted X.509 certificates
+     (TLS server is not affected if it doesn't ask for a client certificate)
+     (found using Codenomicon Defensics).
+
+Features
+   * Add support for FALLBACK_SCSV (draft-ietf-tls-downgrade-scsv)
+   * Add support for Extended Master Secret (draft-ietf-tls-session-hash)
+   * Add support for Encrypt-then-MAC (RFC 7366)
+   * Add function pk_check_pair() to test if public and private keys match.
+   * Add x509_crl_parse_der().
+   * Add compile-time option POLARSSL_X509_MAX_INTERMEDIATE_CA to limit the
+     length of an X.509 verification chain.
 
 Bugfix
    * Stack buffer overflow if ctr_drbg_update() is called with too large
@@ -31,6 +44,21 @@ Bugfix
    * Possible buffer overflow of length at most POLARSSL_MEMORY_ALIGN_MULTIPLE
      if memory_buffer_alloc_init() was called with buf not aligned and len not
      a multiple of POLARSSL_MEMORY_ALIGN_MULTIPLE.
+   * User set CFLAGS were ignore by Cmake with gcc (introduced in 1.3.9, found
+     by Julian Ospald).
+   * Fix potential undefined behaviour in Camellia.
+   * Fix potential failure in ECDSA signatures when POLARSSL_ECP_MAX_BITS is a
+     multiple of 8 (found by Gergely Budai).
+
+Changes
+   * Use deterministic nonces for AEAD ciphers in TLS by default (possible to
+     switch back to random with POLARSSL_SSL_AEAD_RANDOM_IV in config.h).
+   * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.
+   * ssl_set_own_cert() now returns an error on key-certificate mismatch.
+   * Forbid repeated extensions in X.509 certificates.
+   * debug_print_buf() now prints a text view in addition to hexadecimal.
+   * Skip writing and parsing signature_algorithm extension if none of the
+     key exchanges enabled needs certificates.
 
 = PolarSSL 1.3.9 released 2014-10-20
 Security

@@ -537,6 +537,27 @@ run_test    "Default" \
             -S "error" \
             -C "error"
 
+# Tests for rc4 option
+
+run_test    "RC4: server disabled, client enabled" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            1 \
+            -s "SSL - None of the common ciphersuites is usable"
+
+run_test    "RC4: server enabled, client disabled" \
+            "$P_SRV force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI" \
+            1 \
+            -s "SSL - The server has no ciphersuites in common"
+
+run_test    "RC4: both enabled" \
+            "$P_SRV arc4=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The server has no ciphersuites in common"
+
 # Test for SSLv2 ClientHello
 
 requires_openssl_with_sslv2
@@ -638,7 +659,7 @@ run_test    "Encrypt then MAC: client enabled, aead cipher" \
 run_test    "Encrypt then MAC: client enabled, stream cipher" \
             "$P_SRV debug_level=3 etm=1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
-            "$P_CLI debug_level=3 etm=1" \
+            "$P_CLI debug_level=3 etm=1 arc4=1" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
             -s "found encrypt then mac extension" \
@@ -660,7 +681,7 @@ run_test    "Encrypt then MAC: client disabled, server enabled" \
             -S "using encrypt then mac"
 
 run_test    "Encrypt then MAC: client SSLv3, server enabled" \
-            "$P_SRV debug_level=3 \
+            "$P_SRV debug_level=3 min_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             "$P_CLI debug_level=3 force_version=ssl3" \
             0 \
@@ -674,7 +695,7 @@ run_test    "Encrypt then MAC: client SSLv3, server enabled" \
 run_test    "Encrypt then MAC: client enabled, server SSLv3" \
             "$P_SRV debug_level=3 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding encrypt_then_mac extension" \
             -s "found encrypt then mac extension" \
@@ -719,7 +740,7 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
             -S "using extended master secret"
 
 run_test    "Extended Master Secret: client SSLv3, server enabled" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 min_version=ssl3" \
             "$P_CLI debug_level=3 force_version=ssl3" \
             0 \
             -C "client hello, adding extended_master_secret extension" \
@@ -731,7 +752,7 @@ run_test    "Extended Master Secret: client SSLv3, server enabled" \
 
 run_test    "Extended Master Secret: client enabled, server SSLv3" \
             "$P_SRV debug_level=3 force_version=ssl3" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI debug_level=3 min_version=ssl3" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -848,7 +869,7 @@ run_test    "CBC Record splitting: TLS 1.0, splitting" \
             -s "122 bytes read"
 
 run_test    "CBC Record splitting: SSLv3, splitting" \
-            "$P_SRV" \
+            "$P_SRV min_version=ssl3" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
              request_size=123 force_version=ssl3" \
             0 \
@@ -857,7 +878,7 @@ run_test    "CBC Record splitting: SSLv3, splitting" \
             -s "122 bytes read"
 
 run_test    "CBC Record splitting: TLS 1.0 RC4, no splitting" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              request_size=123 force_version=tls1" \
             0 \
@@ -1616,7 +1637,7 @@ run_test    "Authentication: client no cert, openssl server optional" \
 
 run_test    "Authentication: client no cert, ssl3" \
             "$P_SRV debug_level=3 auth_mode=optional force_version=ssl3" \
-            "$P_CLI debug_level=3 crt_file=none key_file=none" \
+            "$P_CLI debug_level=3 crt_file=none key_file=none min_version=ssl3" \
             0 \
             -S "skip write certificate request" \
             -C "skip parse certificate request" \
@@ -2294,14 +2315,14 @@ run_test    "PSK callback: wrong key" \
 # Tests for ciphersuites per version
 
 run_test    "Per-version suites: SSL3" \
-            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_SRV min_version=ssl3 version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=ssl3" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-3DES-EDE-CBC-SHA"
 
 run_test    "Per-version suites: TLS 1.0" \
-            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
-            "$P_CLI force_version=tls1" \
+            "$P_SRV arc4=1 version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-RC4-128-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI force_version=tls1 arc4=1" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-RC4-128-SHA"
 
@@ -2334,14 +2355,14 @@ run_test    "ssl_get_bytes_avail: extra data" \
 # Tests for small packets
 
 run_test    "Small packet SSLv3 BlockCipher" \
-            "$P_SRV" \
+            "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=1 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small packet SSLv3 StreamCipher" \
-            "$P_SRV" \
+            "$P_SRV min_version=ssl3 arc4=1" \
             "$P_CLI request_size=1 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
@@ -2370,7 +2391,7 @@ run_test    "Small packet TLS 1.0 BlockCipher truncated MAC" \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small packet TLS 1.0 StreamCipher truncated MAC" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=1 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
@@ -2392,7 +2413,7 @@ run_test    "Small packet TLS 1.1 BlockCipher without EtM" \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small packet TLS 1.1 StreamCipher" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=1 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
@@ -2407,7 +2428,7 @@ run_test    "Small packet TLS 1.1 BlockCipher truncated MAC" \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small packet TLS 1.1 StreamCipher truncated MAC" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=1 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
@@ -2444,14 +2465,14 @@ run_test    "Small packet TLS 1.2 BlockCipher truncated MAC" \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small packet TLS 1.2 StreamCipher" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=1 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small packet TLS 1.2 StreamCipher truncated MAC" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=1 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
@@ -2475,14 +2496,14 @@ run_test    "Small packet TLS 1.2 AEAD shorter tag" \
 # Test for large packets
 
 run_test    "Large packet SSLv3 BlockCipher" \
-            "$P_SRV" \
+            "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet SSLv3 StreamCipher" \
-            "$P_SRV" \
+            "$P_SRV min_version=ssl3 arc4=1" \
             "$P_CLI request_size=16384 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
@@ -2504,7 +2525,7 @@ run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.0 StreamCipher truncated MAC" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
@@ -2519,7 +2540,7 @@ run_test    "Large packet TLS 1.1 BlockCipher" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
@@ -2534,7 +2555,7 @@ run_test    "Large packet TLS 1.1 BlockCipher truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher truncated MAC" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \
@@ -2564,14 +2585,14 @@ run_test    "Large packet TLS 1.2 BlockCipher truncated MAC" \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
             -s "Read from client: 16384 bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher truncated MAC" \
-            "$P_SRV" \
+            "$P_SRV arc4=1" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
              trunc_hmac=1" \

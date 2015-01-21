@@ -269,6 +269,9 @@
 #define SSL_CBC_RECORD_SPLITTING_DISABLED   -1
 #define SSL_CBC_RECORD_SPLITTING_ENABLED     0
 
+#define SSL_ARC4_ENABLED                0
+#define SSL_ARC4_DISABLED               1
+
 /*
  * DTLS retransmission states, see RFC 6347 4.2.4
  *
@@ -830,6 +833,7 @@ struct _ssl_context
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)
     char extended_ms;           /*!< flag for extended master secret  */
 #endif
+    char arc4_disabled;         /*!< flag for disabling RC4           */
 
     /*
      * Callbacks (RNG, debug, I/O, verification)
@@ -1766,6 +1770,11 @@ int ssl_set_max_version( ssl_context *ssl, int major, int minor );
  * \brief          Set the minimum accepted SSL/TLS protocol version
  *                 (Default: SSL_MIN_MAJOR_VERSION, SSL_MIN_MINOR_VERSION)
  *
+ * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
+ *                 SSL_MIN_XXXXX_VERSION range is ignored.
+ *
+ * \note           SSL_MINOR_VERSION_0 (SSL v3) should be avoided.
+ *
  * \param ssl      SSL context
  * \param major    Major version number (only SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (SSL_MINOR_VERSION_0,
@@ -1830,6 +1839,21 @@ void ssl_set_encrypt_then_mac( ssl_context *ssl, char etm );
  */
 void ssl_set_extended_master_secret( ssl_context *ssl, char ems );
 #endif /* POLARSSL_SSL_EXTENDED_MASTER_SECRET */
+
+/**
+ * \brief          Disable or enable support for RC4
+ *                 (Default: SSL_ARC4_ENABLED)
+ *
+ * \note           Though the default is RC4 for compatibility reasons in the
+ *                 1.3 branch, the recommended value is SSL_ARC4_DISABLED.
+ *
+ * \note           This function will likely be removed in future versions as
+ *                 RC4 will then be disabled by default at compile time.
+ *
+ * \param ssl      SSL context
+ * \param arc4     SSL_ARC4_ENABLED or SSL_ARC4_DISABLED
+ */
+void ssl_set_arc4_support( ssl_context *ssl, char arc4 );
 
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 /**

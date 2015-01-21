@@ -956,6 +956,10 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
         return( 0 );
 #endif
 
+    if( ssl->arc4_disabled == SSL_ARC4_DISABLED &&
+            suite_info->cipher == POLARSSL_CIPHER_ARC4_128 )
+        return( 0 );
+
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     if( ssl_ciphersuite_uses_ec( suite_info ) &&
         ( ssl->handshake->curves == NULL ||

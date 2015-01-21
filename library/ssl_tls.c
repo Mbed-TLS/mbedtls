@@ -5679,6 +5679,11 @@ void ssl_set_extended_master_secret( ssl_context *ssl, char ems )
 }
 #endif
 
+void ssl_set_arc4_support( ssl_context *ssl, char arc4 )
+{
+    ssl->arc4_disabled = arc4;
+}
+
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
 int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code )
 {

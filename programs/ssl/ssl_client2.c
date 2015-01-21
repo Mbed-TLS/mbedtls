@@ -1176,7 +1176,7 @@ int main( int argc, char *argv[] )
     if( opt.min_version != -1 )
     {
         ret = ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
-        if( ret != 0 )
+        if( ret != 0 && opt.min_version != DFL_MIN_VERSION )
         {
             printf( " failed\n  ! selected min_version is not available\n" );
             goto exit;

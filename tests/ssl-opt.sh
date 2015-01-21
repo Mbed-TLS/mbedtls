@@ -558,16 +558,43 @@ run_test    "SSLv2 ClientHello: actual test" \
 
 # Tests for Truncated HMAC extension
 
-run_test    "Truncated HMAC: reference" \
+run_test    "Truncated HMAC: client default, server default" \
             "$P_SRV debug_level=4" \
-            "$P_CLI trunc_hmac=0 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
-            -s "dumping 'computed mac' (20 bytes)"
+            -s "dumping 'computed mac' (20 bytes)" \
+            -S "dumping 'computed mac' (10 bytes)"
 
-run_test    "Truncated HMAC: actual test" \
+run_test    "Truncated HMAC: client disabled, server default" \
             "$P_SRV debug_level=4" \
-            "$P_CLI trunc_hmac=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             trunc_hmac=0" \
             0 \
+            -s "dumping 'computed mac' (20 bytes)" \
+            -S "dumping 'computed mac' (10 bytes)"
+
+run_test    "Truncated HMAC: client enabled, server default" \
+            "$P_SRV debug_level=4" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -S "dumping 'computed mac' (20 bytes)" \
+            -s "dumping 'computed mac' (10 bytes)"
+
+run_test    "Truncated HMAC: client enabled, server disabled" \
+            "$P_SRV debug_level=4 trunc_hmac=0" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -s "dumping 'computed mac' (20 bytes)" \
+            -S "dumping 'computed mac' (10 bytes)"
+
+run_test    "Truncated HMAC: client enabled, server enabled" \
+            "$P_SRV debug_level=4 trunc_hmac=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             trunc_hmac=1" \
+            0 \
+            -S "dumping 'computed mac' (20 bytes)" \
             -s "dumping 'computed mac' (10 bytes)"
 
 # Tests for Encrypt-then-MAC extension
@@ -1604,6 +1631,60 @@ run_test    "Authentication: client no cert, ssl3" \
             -C "! ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
+# Tests for certificate selection based on SHA verson
+
+run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
+            "$P_SRV crt_file=data_files/server5.crt \
+                    key_file=data_files/server5.key \
+                    crt_file2=data_files/server5-sha1.crt \
+                    key_file2=data_files/server5.key" \
+            "$P_CLI force_version=tls1_2" \
+            0 \
+            -c "signed using.*ECDSA with SHA256" \
+            -C "signed using.*ECDSA with SHA1"
+
+run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
+            "$P_SRV crt_file=data_files/server5.crt \
+                    key_file=data_files/server5.key \
+                    crt_file2=data_files/server5-sha1.crt \
+                    key_file2=data_files/server5.key" \
+            "$P_CLI force_version=tls1_1" \
+            0 \
+            -C "signed using.*ECDSA with SHA256" \
+            -c "signed using.*ECDSA with SHA1"
+
+run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
+            "$P_SRV crt_file=data_files/server5.crt \
+                    key_file=data_files/server5.key \
+                    crt_file2=data_files/server5-sha1.crt \
+                    key_file2=data_files/server5.key" \
+            "$P_CLI force_version=tls1" \
+            0 \
+            -C "signed using.*ECDSA with SHA256" \
+            -c "signed using.*ECDSA with SHA1"
+
+run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
+            "$P_SRV crt_file=data_files/server5.crt \
+                    key_file=data_files/server5.key \
+                    crt_file2=data_files/server6.crt \
+                    key_file2=data_files/server6.key" \
+            "$P_CLI force_version=tls1_1" \
+            0 \
+            -c "serial number.*09" \
+            -c "signed using.*ECDSA with SHA256" \
+            -C "signed using.*ECDSA with SHA1"
+
+run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
+            "$P_SRV crt_file=data_files/server6.crt \
+                    key_file=data_files/server6.key \
+                    crt_file2=data_files/server5.crt \
+                    key_file2=data_files/server5.key" \
+            "$P_CLI force_version=tls1_1" \
+            0 \
+            -c "serial number.*0A" \
+            -c "signed using.*ECDSA with SHA256" \
+            -C "signed using.*ECDSA with SHA1"
+
 # tests for SNI
 
 run_test    "SNI: no SNI callback" \
@@ -2152,7 +2233,7 @@ run_test    "PSK callback: psk, no callback" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             0 \
-            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -2161,7 +2242,7 @@ run_test    "PSK callback: no psk, no callback" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             1 \
-            -s "SSL - The server has no ciphersuites in common" \
+            -s "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -2170,7 +2251,7 @@ run_test    "PSK callback: callback overrides other settings" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             1 \
-            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - None of the common ciphersuites is usable" \
             -s "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -2179,7 +2260,7 @@ run_test    "PSK callback: first id matches" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=dead" \
             0 \
-            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -2188,7 +2269,7 @@ run_test    "PSK callback: second id matches" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
-            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -2197,7 +2278,7 @@ run_test    "PSK callback: no match" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=ghi psk=beef" \
             1 \
-            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - None of the common ciphersuites is usable" \
             -s "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -2206,7 +2287,7 @@ run_test    "PSK callback: wrong key" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=beef" \
             1 \
-            -S "SSL - The server has no ciphersuites in common" \
+            -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -s "SSL - Verification of the message MAC failed"
 

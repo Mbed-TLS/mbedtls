@@ -92,7 +92,7 @@ int main( int argc, char *argv[] )
 #define DFL_MAX_VERSION         -1
 #define DFL_AUTH_MODE           SSL_VERIFY_REQUIRED
 #define DFL_MFL_CODE            SSL_MAX_FRAG_LEN_NONE
-#define DFL_TRUNC_HMAC          0
+#define DFL_TRUNC_HMAC          -1
 #define DFL_RECSPLIT            -1
 #define DFL_RECONNECT           0
 #define DFL_RECO_DELAY          0
@@ -274,7 +274,7 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
 
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
 #define USAGE_TRUNC_HMAC                                    \
-    "    trunc_hmac=%%d       default: 0 (disabled)\n"
+    "    trunc_hmac=%%d       default: library default\n"
 #else
 #define USAGE_TRUNC_HMAC ""
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
@@ -740,9 +740,12 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "trunc_hmac" ) == 0 )
         {
-            opt.trunc_hmac = atoi( q );
-            if( opt.trunc_hmac < 0 || opt.trunc_hmac > 1 )
-                goto usage;
+            switch( atoi( q ) )
+            {
+                case 0: opt.trunc_hmac = SSL_TRUNC_HMAC_DISABLED; break;
+                case 1: opt.trunc_hmac = SSL_TRUNC_HMAC_ENABLED; break;
+                default: goto usage;
+            }
         }
         else if( strcmp( p, "hs_timeout" ) == 0 )
         {
@@ -1057,12 +1060,8 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
-    if( opt.trunc_hmac != 0 )
-        if( ( ret = ssl_set_truncated_hmac( &ssl, SSL_TRUNC_HMAC_ENABLED ) ) != 0 )
-        {
-            printf( " failed\n  ! ssl_set_truncated_hmac returned %d\n\n", ret );
-            goto exit;
-        }
+    if( opt.trunc_hmac != DFL_TRUNC_HMAC )
+        ssl_set_truncated_hmac( &ssl, opt.trunc_hmac );
 #endif
 
 #if defined(POLARSSL_SSL_EXTENDED_MASTER_SECRET)

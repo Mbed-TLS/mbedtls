@@ -158,6 +158,7 @@
 #define POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO       -0x6B00  /**< Unexpected message at ServerHello in renegotiation. */
 #define POLARSSL_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80  /**< DTLS client must retry for hello verification */
 #define POLARSSL_ERR_SSL_BUFFER_TOO_SMALL                  -0x6A00  /**< A buffer is too small to receive or write a message */
+#define POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6980  /**< None of the common ciphersuites is usable (eg, no suitable certificate) */
 
 /*
  * Various constants
@@ -1851,15 +1852,15 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
 
 #if defined(POLARSSL_SSL_TRUNCATED_HMAC)
 /**
- * \brief          Activate negotiation of truncated HMAC (Client only)
- *                 (Default: SSL_TRUNC_HMAC_ENABLED)
+ * \brief          Activate negotiation of truncated HMAC
+ *                 (Default: SSL_TRUNC_HMAC_DISABLED on client,
+ *                           SSL_TRUNC_HMAC_ENABLED on server.)
  *
  * \param ssl      SSL context
  * \param truncate Enable or disable (SSL_TRUNC_HMAC_ENABLED or
  *                                    SSL_TRUNC_HMAC_DISABLED)
  *
- * \return         O if successful,
- *                 POLARSSL_ERR_SSL_BAD_INPUT_DATA if used server-side
+ * \return         Always 0.
  */
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */

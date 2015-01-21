@@ -456,6 +456,8 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
             snprintf( buf, buflen, "SSL - DTLS client must retry for hello verification" );
         if( use_ret == -(POLARSSL_ERR_SSL_BUFFER_TOO_SMALL) )
             snprintf( buf, buflen, "SSL - A buffer is too small to receive or write a message" );
+        if( use_ret == -(POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE) )
+            snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)

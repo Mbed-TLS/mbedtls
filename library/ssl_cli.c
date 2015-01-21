@@ -114,6 +114,7 @@ static void ssl_write_hostname_ext( ssl_context *ssl,
 }
 #endif /* POLARSSL_SSL_SERVER_NAME_INDICATION */
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
 static void ssl_write_renegotiation_ext( ssl_context *ssl,
                                          unsigned char *buf,
                                          size_t *olen )
@@ -141,6 +142,7 @@ static void ssl_write_renegotiation_ext( ssl_context *ssl,
 
     *olen = 5 + ssl->verify_data_len;
 }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
 /*
  * Only if we handle at least one key exchange that needs signatures.
@@ -562,7 +564,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
         return( POLARSSL_ERR_SSL_NO_RNG );
     }
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+#endif
     {
         ssl->major_ver = ssl->min_major_ver;
         ssl->minor_ver = ssl->min_minor_ver;
@@ -615,7 +619,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
      */
     n = ssl->session_negotiate->length;
 
-    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE || n < 16 || n > 32 ||
+    if( n < 16 || n > 32 ||
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+        ssl->renegotiation != SSL_INITIAL_HANDSHAKE ||
+#endif
         ssl->handshake->resume == 0 )
     {
         n = 0;
@@ -626,8 +633,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
      * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
      * generate and include a Session ID in the TLS ClientHello."
      */
-    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE &&
-        ssl->session_negotiate->ticket != NULL &&
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+#endif
+    if( ssl->session_negotiate->ticket != NULL &&
         ssl->session_negotiate->ticket_len != 0 )
     {
         ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id, 32 );
@@ -682,8 +691,12 @@ static int ssl_write_client_hello( ssl_context *ssl )
     q = p;
     p += 2;
 
-    /* Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV */
+    /*
+     * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+     */
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+#endif
     {
         *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
         *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO      );
@@ -775,8 +788,10 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     ssl_write_renegotiation_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
+#endif
 
 #if defined(POLARSSL_SSL_PROTO_TLS1_2) && \
     defined(POLARSSL_KEY_EXCHANGE__WITH_CERT__ENABLED)
@@ -822,6 +837,9 @@ static int ssl_write_client_hello( ssl_context *ssl )
     ext_len += olen;
 #endif
 
+    /* olen unused if all extensions are disabled */
+    ((void) olen);
+
     SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
 
@@ -860,21 +878,8 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
 {
     int ret;
 
-    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
-    {
-        if( len != 1 || buf[0] != 0x0 )
-        {
-            SSL_DEBUG_MSG( 1, ( "non-zero length renegotiated connection field" ) );
-
-            if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
-                return( ret );
-
-            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
-        }
-
-        ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
-    }
-    else
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE )
     {
         /* Check verify-data in constant-time. The length OTOH is no secret */
         if( len    != 1 + ssl->verify_data_len * 2 ||
@@ -884,13 +889,28 @@ static int ssl_parse_renegotiation_info( ssl_context *ssl,
             safer_memcmp( buf + 1 + ssl->verify_data_len,
                           ssl->peer_verify_data, ssl->verify_data_len ) != 0 )
         {
-            SSL_DEBUG_MSG( 1, ( "non-matching renegotiated connection field" ) );
+            SSL_DEBUG_MSG( 1, ( "non-matching renegotiation info" ) );
 
             if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
                 return( ret );
 
             return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
+    }
+    else
+#endif /* POLARSSL_SSL_RENEGOTIATION */
+    {
+        if( len != 1 || buf[0] != 0x00 )
+        {
+            SSL_DEBUG_MSG( 1, ( "non-zero length renegotiation info" ) );
+
+            if( ( ret = ssl_send_fatal_handshake_failure( ssl ) ) != 0 )
+                return( ret );
+
+            return( POLARSSL_ERR_SSL_BAD_HS_SERVER_HELLO );
+        }
+
+        ssl->secure_renegotiation = SSL_SECURE_RENEGOTIATION;
     }
 
     return( 0 );
@@ -1150,7 +1170,9 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     size_t ext_len;
     unsigned char *buf, *ext;
     unsigned char comp, accept_comp;
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
+#endif
     int handshake_failure = 0;
 #if defined(POLARSSL_DEBUG_C)
     uint32_t t;
@@ -1168,6 +1190,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
 
     if( ssl->in_msgtype != SSL_MSG_HANDSHAKE )
     {
+#if defined(POLARSSL_SSL_RENEGOTIATION)
         if( ssl->renegotiation == SSL_RENEGOTIATION )
         {
             ssl->renego_records_seen++;
@@ -1183,6 +1206,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
             SSL_DEBUG_MSG( 1, ( "non-handshake message during renego" ) );
             return( POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO );
         }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
         SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( POLARSSL_ERR_SSL_UNEXPECTED_MESSAGE );
@@ -1336,8 +1360,10 @@ static int ssl_parse_server_hello( ssl_context *ssl )
     /*
      * Check if the session can be resumed
      */
-    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE ||
-        ssl->handshake->resume == 0 || n == 0 ||
+    if( ssl->handshake->resume == 0 || n == 0 ||
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+        ssl->renegotiation != SSL_INITIAL_HANDSHAKE ||
+#endif
         ssl->session_negotiate->ciphersuite != i ||
         ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->length != n ||
@@ -1418,7 +1444,9 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         {
         case TLS_EXT_RENEGOTIATION_INFO:
             SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
+#if defined(POLARSSL_SSL_RENEGOTIATION)
             renegotiation_info_seen = 1;
+#endif
 
             if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4,
                                                       ext_size ) ) != 0 )
@@ -1538,6 +1566,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
         handshake_failure = 1;
     }
+#if defined(POLARSSL_SSL_RENEGOTIATION)
     else if( ssl->renegotiation == SSL_RENEGOTIATION &&
              ssl->secure_renegotiation == SSL_SECURE_RENEGOTIATION &&
              renegotiation_info_seen == 0 )
@@ -1559,6 +1588,7 @@ static int ssl_parse_server_hello( ssl_context *ssl )
         SSL_DEBUG_MSG( 1, ( "renegotiation_info extension present (legacy)" ) );
         handshake_failure = 1;
     }
+#endif /* POLARSSL_SSL_RENEGOTIATION */
 
     if( handshake_failure == 1 )
     {

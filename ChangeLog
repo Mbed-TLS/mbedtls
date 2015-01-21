@@ -37,6 +37,7 @@ Features
    * Add x509_crl_parse_der().
    * Add compile-time option POLARSSL_X509_MAX_INTERMEDIATE_CA to limit the
      length of an X.509 verification chain.
+   * Support for renegotiation can now be disabled at compile-time
 
 Bugfix
    * Stack buffer overflow if ctr_drbg_update() is called with too large

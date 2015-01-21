@@ -1345,7 +1345,12 @@ read_record_header:
     msg_len = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
 
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+    if( ssl->renegotiation != SSL_INITIAL_HANDSHAKE )
+    {
+        /* Set by ssl_read_record() */
+        msg_len = ssl->in_hslen;
+    }
+    else
 #endif
     {
         if( msg_len > SSL_MAX_CONTENT_LEN )
@@ -1367,11 +1372,6 @@ read_record_header:
         else
 #endif
             ssl->in_left = 0;
-    }
-    else
-    {
-        /* Set by ssl_read_record() */
-        msg_len = ssl->in_hslen;
     }
 
     buf = ssl->in_msg;

@@ -2079,7 +2079,7 @@ static int ssl_decompress_buf( ssl_context *ssl )
 }
 #endif /* POLARSSL_ZLIB_SUPPORT */
 
-#if defined(POLARSSL_SSL_SRV_C)
+#if defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_SSL_RENEGOTIATION)
 static int ssl_write_hello_request( ssl_context *ssl );
 
 #if defined(POLARSSL_SSL_PROTO_DTLS)
@@ -2108,7 +2108,7 @@ static int ssl_resend_hello_request( ssl_context *ssl )
     return( ssl_write_hello_request( ssl ) );
 }
 #endif
-#endif
+#endif /* POLARSSL_SSL_SRV_C && POLARSSL_SSL_RENEGOTIATION */
 
 /*
  * Fill the input message buffer by appending data to it.
@@ -2258,7 +2258,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 
                 return( POLARSSL_ERR_NET_WANT_READ );
             }
-#if defined(POLARSSL_SSL_SRV_C)
+#if defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_SSL_RENEGOTIATION)
             else if( ssl->endpoint == SSL_IS_SERVER &&
                      ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
             {
@@ -2270,7 +2270,7 @@ int ssl_fetch_input( ssl_context *ssl, size_t nb_want )
 
                 return( POLARSSL_ERR_NET_WANT_READ );
             }
-#endif /* POLARSSL_SSL_SRV_C */
+#endif /* POLARSSL_SSL_SRV_C && POLARSSL_SSL_RENEGOTIATION */
         }
 
         if( ret < 0 )
@@ -6274,7 +6274,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
         /* If we requested renego but received AppData, resend HelloRequest.
          * Do it now, after setting in_offt, to avoid taking this branch
          * again if ssl_write_hello_request() returns WANT_WRITE */
-#if defined(POLARSSL_SSL_SRV_C)
+#if defined(POLARSSL_SSL_SRV_C) && defined(POLARSSL_SSL_RENEGOTIATION)
         if( ssl->endpoint == SSL_IS_SERVER &&
             ssl->renegotiation == SSL_RENEGOTIATION_PENDING )
         {
@@ -6284,7 +6284,7 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len )
                 return( ret );
             }
         }
-#endif /* POLARSSL_SSL_SRV_C */
+#endif /* POLARSSL_SSL_SRV_C && POLARSSL_SSL_RENEGOTIATION */
 #endif
     }
 

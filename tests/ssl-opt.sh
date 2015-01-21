@@ -847,6 +847,15 @@ run_test    "CBC Record splitting: TLS 1.0, splitting disabled" \
             -S "Read from client: 1 bytes read" \
             -S "122 bytes read"
 
+run_test    "CBC Record splitting: TLS 1.0, splitting, nbio" \
+            "$P_SRV nbio=2" \
+            "$P_CLI nbio=2 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
+             request_size=123 force_version=tls1" \
+            0 \
+            -S "Read from client: 123 bytes read" \
+            -s "Read from client: 1 bytes read" \
+            -s "122 bytes read"
+
 # Tests for Session Tickets
 
 run_test    "Session resume using tickets: basic" \
@@ -1241,9 +1250,10 @@ run_test    "Renegotiation: periodic, just below period" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
+# one extra exchange to be able to complete renego
 run_test    "Renegotiation: periodic, just above period" \
             "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
-            "$P_CLI debug_level=3 exchanges=3 renegotiation=1" \
+            "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -1259,7 +1269,7 @@ run_test    "Renegotiation: periodic, just above period" \
 
 run_test    "Renegotiation: periodic, two times period" \
             "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3" \
-            "$P_CLI debug_level=3 exchanges=6 renegotiation=1" \
+            "$P_CLI debug_level=3 exchanges=7 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \

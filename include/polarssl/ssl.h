@@ -947,7 +947,7 @@ struct _ssl_context
     unsigned char mfl_code;     /*!< MaxFragmentLength chosen by us   */
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
 #if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
-    char split_done;            /*!< flag for record splitting:
+    signed char split_done;     /*!< flag for record splitting:
                                      -1 disabled, 0 todo, 1 done      */
 #endif
 

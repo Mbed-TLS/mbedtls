@@ -265,6 +265,9 @@
 #define SSL_SESSION_TICKETS_DISABLED     0
 #define SSL_SESSION_TICKETS_ENABLED      1
 
+#define SSL_CBC_RECORD_SPLITTING_DISABLED   -1
+#define SSL_CBC_RECORD_SPLITTING_ENABLED     0
+
 /*
  * DTLS retransmission states, see RFC 6347 4.2.4
  *
@@ -943,6 +946,10 @@ struct _ssl_context
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char mfl_code;     /*!< MaxFragmentLength chosen by us   */
 #endif /* POLARSSL_SSL_MAX_FRAGMENT_LENGTH */
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+    char split_done;            /*!< flag for record splitting:
+                                     -1 disabled, 0 todo, 1 done      */
+#endif
 
     /*
      * PKI layer
@@ -1857,6 +1864,21 @@ int ssl_set_max_frag_len( ssl_context *ssl, unsigned char mfl_code );
 int ssl_set_truncated_hmac( ssl_context *ssl, int truncate );
 #endif /* POLARSSL_SSL_TRUNCATED_HMAC */
 
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING)
+/**
+ * \brief          Enable / Disable 1/n-1 record splitting
+ *                 (Default: SSL_CBC_RECORD_SPLITTING_ENABLED)
+ *
+ * \note           Only affects SSLv3 and TLS 1.0, not higher versions.
+ *                 Does not affect non-CBC ciphersuites in any version.
+ *
+ * \param ssl      SSL context
+ * \param split    SSL_CBC_RECORD_SPLITTING_ENABLED or
+ *                 SSL_CBC_RECORD_SPLITTING_DISABLED
+ */
+void ssl_set_cbc_record_splitting( ssl_context *ssl, char split );
+#endif /* POLARSSL_SSL_CBC_RECORD_SPLITTING */
+
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
 /**
  * \brief          Enable / Disable session tickets
@@ -2147,11 +2169,13 @@ int ssl_read( ssl_context *ssl, unsigned char *buf, size_t len );
  *                 it must be called later with the *same* arguments,
  *                 until it returns a positive value.
  *
- * \note           When DTLS is in use, and a maximum fragment length was
- *                 either set with \c ssl_set_max_frag_len() or negotiated by
- *                 the peer, len must not not be greater than the maximum
- *                 fragment length, or POLARSSL_ERR_SSL_BAD_INPUT_DATA is
- *                 returned.
+ * \note           If the requested length is greater than the maximum
+ *                 fragment length (either the built-in limit or the one set
+ *                 or negotiated with the peer), then:
+ *                 - with TLS, less bytes than requested are written. (In
+ *                 order to write larger messages, this function should be
+ *                 called in a loop.)
+ *                 - with DTLS, POLARSSL_ERR_SSL_BAD_INPUT_DATA is returned.
  */
 int ssl_write( ssl_context *ssl, const unsigned char *buf, size_t len );
 

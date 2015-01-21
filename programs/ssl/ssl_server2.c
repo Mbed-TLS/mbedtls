@@ -192,14 +192,14 @@ struct options
     char *sni;                  /* string describing sni information        */
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
+    int extended_ms;            /* allow negotiation of extended MS?        */
+    int etm;                    /* allow negotiation of encrypt-then-MAC?   */
     int transport;              /* TLS or DTLS?                             */
     int cookies;                /* Use cookies for DTLS? -1 to break them   */
     int anti_replay;            /* Use anti-replay for DTLS? -1 for default */
     uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
     uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
     int badmac_limit;           /* Limit of records with bad MAC            */
-    char extended_ms;           /* allow negotiation of extended MS?        */
-    char etm;                   /* allow negotiation of encrypt-then-MAC?   */
 } opt;
 
 static void my_debug( void *ctx, int level, const char *str )

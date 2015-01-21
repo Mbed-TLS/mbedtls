@@ -303,6 +303,11 @@
 #error "POLARSSL_SSL_SESSION_TICKETS_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_SSL_CBC_RECORD_SPLITTING) && \
+    !defined(POLARSSL_SSL_PROTO_SSL3) && !defined(POLARSSL_SSL_PROTO_TLS1)
+#error "POLARSSL_SSL_CBC_RECORD_SPLITTING defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && \
         !defined(POLARSSL_X509_CRT_PARSE_C)
 #error "POLARSSL_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"

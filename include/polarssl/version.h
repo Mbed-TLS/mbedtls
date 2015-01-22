@@ -26,7 +26,7 @@
  */
 /*
  * This set of compile-time defines and run-time variables can be used to
- * determine the version number of the PolarSSL library used.
+ * determine the version number of the mbed TLS library used.
  */
 #ifndef POLARSSL_VERSION_H
 #define POLARSSL_VERSION_H
@@ -52,7 +52,7 @@
  */
 #define POLARSSL_VERSION_NUMBER         0x01030900
 #define POLARSSL_VERSION_STRING         "1.3.9"
-#define POLARSSL_VERSION_STRING_FULL    "PolarSSL 1.3.9"
+#define POLARSSL_VERSION_STRING_FULL    "mbed TLS 1.3.9"
 
 #if defined(POLARSSL_VERSION_C)
 
@@ -77,9 +77,9 @@ unsigned int version_get_number( void );
 void version_get_string( char *string );
 
 /**
- * Get the full version string ("PolarSSL x.y.z").
+ * Get the full version string ("mbed TLS x.y.z").
  *
- * \param string    The string that will receive the value. The PolarSSL version
+ * \param string    The string that will receive the value. The mbed TLS version
  *                  string will use 18 bytes AT MOST including a terminating
  *                  null byte.
  *                  (So the buffer should be at least 18 bytes to receive this
@@ -89,12 +89,12 @@ void version_get_string_full( char *string );
 
 /**
  * \brief           Check if support for a feature was compiled into this
- *                  PolarSSL binary. This allows you to see at runtime if the
+ *                  mbed TLS binary. This allows you to see at runtime if the
  *                  library was for instance compiled with or without
  *                  Multi-threading support.
  *
  *                  Note: only checks against defines in the sections "System
- *                        support", "PolarSSL modules" and "PolarSSL feature
+ *                        support", "mbed TLS modules" and "mbed TLS feature
  *                        support" in config.h
  *
  * \param feature   The string for the define to check (e.g. "POLARSSL_AES_C")

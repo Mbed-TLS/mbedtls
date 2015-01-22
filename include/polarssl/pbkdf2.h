@@ -60,7 +60,7 @@ extern "C" {
  * \param key_length            Length of generated key
  * \param output   Generated key. Must be at least as big as key_length
  *
- * \returns        0 on success, or a PolarSSL error code if verification fails.
+ * \returns        0 on success, or a POLARSSL_ERR_xxx code if verification fails.
  */
 int pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
                  size_t plen, const unsigned char *salt, size_t slen,

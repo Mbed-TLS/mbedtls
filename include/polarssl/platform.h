@@ -1,7 +1,7 @@
 /**
  * \file platform.h
  *
- * \brief PolarSSL Platform abstraction layer
+ * \brief mbed TLS Platform abstraction layer
  *
  *  Copyright (C) 2006-2014, Brainspark B.V.
  *

@@ -367,7 +367,7 @@ int x509write_crt_set_validity( x509write_cert *ctx, const char *not_before,
  * \brief           Set the issuer name for a Certificate
  *                  Issuer names should contain a comma-separated list
  *                  of OID types and values:
- *                  e.g. "C=NL,O=Offspark,CN=PolarSSL CA"
+ *                  e.g. "C=UK,O=ARM,CN=mbed TLS CA"
  *
  * \param ctx           CRT context to use
  * \param issuer_name   issuer name to set
@@ -382,7 +382,7 @@ int x509write_crt_set_issuer_name( x509write_cert *ctx,
  * \brief           Set the subject name for a Certificate
  *                  Subject names should contain a comma-separated list
  *                  of OID types and values:
- *                  e.g. "C=NL,O=Offspark,CN=PolarSSL Server 1"
+ *                  e.g. "C=UK,O=ARM,CN=mbed TLS Server 1"
  *
  * \param ctx           CRT context to use
  * \param subject_name  subject name to set

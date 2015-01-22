@@ -1,7 +1,7 @@
 /**
  * \file ssl_ciphersuites.h
  *
- * \brief SSL Ciphersuites for PolarSSL
+ * \brief SSL Ciphersuites for mbed TLS
  *
  *  Copyright (C) 2006-2013, Brainspark B.V.
  *

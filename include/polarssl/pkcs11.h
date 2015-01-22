@@ -62,7 +62,7 @@ typedef struct {
 } pkcs11_context;
 
 /**
- * Fill in a PolarSSL certificate, based on the given PKCS11 helper certificate.
+ * Fill in a mbed TLS certificate, based on the given PKCS11 helper certificate.
  *
  * \param cert          X.509 certificate to fill
  * \param pkcs11h_cert  PKCS #11 helper certificate

@@ -313,7 +313,7 @@ static int x509_get_ext_key_usage( unsigned char **p,
  *      nameAssigner            [0]     DirectoryString OPTIONAL,
  *      partyName               [1]     DirectoryString }
  *
- * NOTE: PolarSSL only parses and uses dNSName at this point.
+ * NOTE: we only parse and use dNSName at this point.
  */
 static int x509_get_subject_alt_name( unsigned char **p,
                                       const unsigned char *end,

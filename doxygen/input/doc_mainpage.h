@@ -4,23 +4,23 @@
  */
 
 /**
- * @mainpage PolarSSL v1.3.9 source code documentation
+ * @mainpage mbed TLS v1.3.9 source code documentation
  *
- * This documentation describes the internal structure of PolarSSL.  It was
+ * This documentation describes the internal structure of mbed TLS.  It was
  * automatically generated from specially formatted comment blocks in
- * PolarSSL's source code using Doxygen.  (See
+ * mbed TLS's source code using Doxygen.  (See
  * http://www.stack.nl/~dimitri/doxygen/ for more information on Doxygen)
  *
- * PolarSSL has a simple setup: it provides the ingredients for an SSL/TLS
+ * mbed TLS has a simple setup: it provides the ingredients for an SSL/TLS
  * implementation. These ingredients are listed as modules in the
  * \ref mainpage_modules "Modules section". This "Modules section" introduces
  * the high-level module concepts used throughout this documentation.\n
- * Some examples of PolarSSL usage can be found in the \ref mainpage_examples
+ * Some examples of mbed TLS usage can be found in the \ref mainpage_examples
  * "Examples section".
  *
  * @section mainpage_modules Modules
  *
- * PolarSSL supports SSLv3 up to TLSv1.2 communication by providing the
+ * mbed TLS supports SSLv3 up to TLSv1.2 communication by providing the
  * following:
  * - TCP/IP communication functions: listen, connect, accept, read/write.
  * - SSL/TLS communication functions: init, handshake, read/write.
@@ -34,7 +34,7 @@
  * into an SSL server/client solution that utilises a X.509 PKI. Examples of
  * such implementations are amply provided with the source code.
  *
- * Note that PolarSSL does not provide a control channel or (multiple) session
+ * Note that mbed TLS does not provide a control channel or (multiple) session
  * handling without additional work from the developer.
  *
  * @section mainpage_examples Examples

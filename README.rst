@@ -1,11 +1,11 @@
 ===================
-README for PolarSSL
+README for mbed TLS
 ===================
 
 Configuration
 =============
 
-PolarSSL should build out of the box on most systems. Some platform specific options are available in the fully-documented configuration file *include/polarssl/config.h*, which is also the place where features can be selected.
+mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully-documented configuration file *include/polarssl/config.h*, which is also the place where features can be selected.
 This file can be edited manually, or in a more programmatic way using the Perl
 script *scripts/config.pl* (use *--help* for usage instructions).
 
@@ -14,7 +14,7 @@ Compiler options can be set using standard variables such as *CC* and *CFLAGS* w
 Compiling
 =========
 
-There are currently three active build systems within the PolarSSL releases:
+There are currently three active build systems within the mbed TLS releases:
 
 - Make
 - CMake
@@ -35,7 +35,7 @@ In order to run the tests, enter::
 
     make check
 
-Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the PolarSSL Knowledge Base <https://polarssl.org/kb>`_ for articles on your platform or issue.
+Depending on your platform, you might run into some issues. Please check the Makefiles in *library/*, *programs/* and *tests/* for options to manually add or remove for specific platforms. You can also check `the mbed TLS Knowledge Base <https://polarssl.org/kb>`_ for articles on your platform or issue.
 
 In case you find that you need to do something else as well, please let us know what, so we can add it to the KB.
 
@@ -101,7 +101,7 @@ We've included example programs for a lot of different features and uses in *pro
 Tests
 =====
 
-PolarSSL includes an elaborate test suite in *tests/* that initially requires Perl to generate the tests files (e.g. *test_suite_mpi.c*). These files are generates from a **function file** (e.g. *suites/test_suite_mpi.function*) and a **data file** (e.g. *suites/test_suite_mpi.data*). The **function file** contains the template for each test function. The **data file** contains the test cases, specified as parameters that should be pushed into a template function.
+mbed TLS includes an elaborate test suite in *tests/* that initially requires Perl to generate the tests files (e.g. *test_suite_mpi.c*). These files are generates from a **function file** (e.g. *suites/test_suite_mpi.function*) and a **data file** (e.g. *suites/test_suite_mpi.data*). The **function file** contains the template for each test function. The **data file** contains the test cases, specified as parameters that should be pushed into a template function.
 
 For machines with a Unix shell and OpenSSL (and optionnally GnuTLS) installed, additional test scripts are available:
 
@@ -129,7 +129,7 @@ Process
 #. `Check for open issues <https://github.com/polarssl/polarssl/issues>`_ or
    `start a discussion <https://polarssl.org/discussions>`_ around a feature
    idea or a bug.
-#. Fork the `PolarSSL repository on Github <https://github.com/polarssl/polarssl>`_
+#. Fork the `mbed TLS repository on Github <https://github.com/polarssl/polarssl>`_
    to start making your changes.
 #. Write a test which shows that the bug was fixed or that the feature works
    as expected.

@@ -1,7 +1,7 @@
 /**
  * \file cipher_wrap.c
  *
- * \brief Generic cipher wrapper for PolarSSL
+ * \brief Generic cipher wrapper for mbed TLS
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *

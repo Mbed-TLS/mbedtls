@@ -16,12 +16,12 @@
 //#define POLARSSL_HAVE_TIME /* Optionally used in Hello messages */
 /* Other POLARSSL_HAVE_XXX flags irrelevant for this configuration */
 
-/* PolarSSL feature support */
+/* mbed TLS feature support */
 #define POLARSSL_KEY_EXCHANGE_PSK_ENABLED
 #define POLARSSL_SSL_PROTO_TLS1_2
 #define POLARSSL_SSL_DISABLE_RENEGOTIATION
 
-/* PolarSSL modules */
+/* mbed TLS modules */
 #define POLARSSL_AES_C
 #define POLARSSL_CCM_C
 #define POLARSSL_CIPHER_C

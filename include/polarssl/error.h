@@ -102,7 +102,7 @@ extern "C" {
 #endif
 
 /**
- * \brief Translate a PolarSSL error code into a string representation,
+ * \brief Translate a mbed TLS error code into a string representation,
  *        Result is truncated if necessary and always includes a terminating
  *        null byte.
  *

@@ -386,7 +386,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_SSL_NO_CLIENT_CERTIFICATE) )
             snprintf( buf, buflen, "SSL - No client certification received from the client, but required by the authentication mode" );
         if( use_ret == -(POLARSSL_ERR_SSL_CERTIFICATE_TOO_LARGE) )
-            snprintf( buf, buflen, "SSL - DESCRIPTION MISSING" );
+            snprintf( buf, buflen, "SSL - Our own certificate(s) is/are too large to send in an SSL message" );
         if( use_ret == -(POLARSSL_ERR_SSL_CERTIFICATE_REQUIRED) )
             snprintf( buf, buflen, "SSL - The own certificate is not set, but needed by the server" );
         if( use_ret == -(POLARSSL_ERR_SSL_PRIVATE_KEY_REQUIRED) )

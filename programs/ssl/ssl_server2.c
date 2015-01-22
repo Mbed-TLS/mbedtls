@@ -687,7 +687,7 @@ void term_handler( int sig )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, written, frags, exchanges;
+    int ret = 0, len, written, frags, exchanges_left;
     int version_suites[4][2];
     unsigned char buf[IO_BUF_LEN];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1902,7 +1902,7 @@ reset:
     if( opt.exchanges == 0 )
         goto close_notify;
 
-    exchanges = opt.exchanges;
+    exchanges_left = opt.exchanges;
 data_exchange:
     /*
      * 6. Read the HTTP Request
@@ -2042,7 +2042,7 @@ data_exchange:
      * (only on the first exchange, to be able to test retransmission)
      */
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( opt.renegotiate && exchanges == opt.exchanges )
+    if( opt.renegotiate && exchanges_left == opt.exchanges )
     {
         printf( "  . Requestion renegotiation..." );
         fflush( stdout );
@@ -2115,7 +2115,7 @@ data_exchange:
     /*
      * 7b. Continue doing data exchanges?
      */
-    if( --exchanges > 0 )
+    if( --exchanges_left > 0 )
         goto data_exchange;
 
     /*
@@ -2125,8 +2125,7 @@ close_notify:
     printf( "  . Closing the connection..." );
 
     /* No error checking, the connection might be closed already */
-    do
-        ret = ssl_close_notify( &ssl );
+    do ret = ssl_close_notify( &ssl );
     while( ret == POLARSSL_ERR_NET_WANT_WRITE );
     ret = 0;
 

@@ -495,7 +495,7 @@ CLI_DELAY_FACTOR=1
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy port
 PORT_BASE="0000$$"
-PORT_BASE="$( echo -n $PORT_BASE | tail -c 5 )"
+PORT_BASE="$( printf $PORT_BASE | tail -c 4 )"
 SRV_PORT="1$PORT_BASE"
 PXY_PORT="2$PORT_BASE"
 unset PORT_BASE

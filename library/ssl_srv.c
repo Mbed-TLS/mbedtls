@@ -1294,10 +1294,12 @@ read_record_header:
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
 #endif
-    if( ( ret = ssl_fetch_input( ssl, 5 ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
-        return( ret );
+        if( ( ret = ssl_fetch_input( ssl, 5 ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+            return( ret );
+        }
     }
 
     buf = ssl->in_hdr;
@@ -1351,8 +1353,11 @@ read_record_header:
     /* For DTLS if this is the initial handshake, remember the client sequence
      * number to use it in our next message (RFC 6347 4.2.1) */
 #if defined(POLARSSL_SSL_PROTO_DTLS)
-    if( ssl->transport == SSL_TRANSPORT_DATAGRAM &&
-        ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+    if( ssl->transport == SSL_TRANSPORT_DATAGRAM 
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+        && ssl->renegotiation == SSL_INITIAL_HANDSHAKE
+#endif
+        )
     {
         /* Epoch should be 0 for initial handshakes */
         if( ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0 )

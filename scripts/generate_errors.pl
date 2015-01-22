@@ -56,13 +56,22 @@ my $hl_code_check = "";
 
 my $headers = "";
 
+my %error_codes_seen;
+
 while (my $line = <GREP>)
 {
     next if ($line =~ /compat-1.2.h/);
     my ($error_name, $error_code) = $line =~ /(POLARSSL_ERR_\w+)\s+\-(0x\w+)/;
     my ($description) = $line =~ /\/\*\*< (.*?)\.? \*\//;
+
+    die "Duplicated error code: $error_code ($error_name)\n"
+        if( $error_codes_seen{$error_code}++ );
+
     $description =~ s/\\/\\\\/g;
-    $description = "DESCRIPTION MISSING" if ($description eq "");
+    if ($description eq "") {
+        $description = "DESCRIPTION MISSING";
+        warn "Missing description for $error_name\n";
+    }
 
     my ($module_name) = $error_name =~ /^POLARSSL_ERR_([^_]+)/;
 

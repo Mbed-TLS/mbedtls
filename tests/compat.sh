@@ -774,7 +774,7 @@ start_server() {
         [Gg]nu*)
             SERVER_CMD="$GNUTLS_SERV $G_SERVER_ARGS --priority $G_SERVER_PRIO"
             ;;
-        [Pp]olar*)
+        mbed*)
             SERVER_CMD="$P_SRV $P_SERVER_ARGS"
             if [ "$MEMCHECK" -gt 0 ]; then
                 SERVER_CMD="valgrind --leak-check=full $SERVER_CMD"
@@ -889,7 +889,7 @@ run_client() {
             fi
             ;;
 
-        [Pp]olar*)
+        mbed*)
             CLIENT_CMD="$P_CLI $P_CLIENT_ARGS force_ciphersuite=$2"
             if [ "$MEMCHECK" -gt 0 ]; then
                 CLIENT_CMD="valgrind --leak-check=full $CLIENT_CMD"
@@ -985,7 +985,7 @@ fi
 
 for PEER in $PEERS; do
     case "$PEER" in
-        [Pp]olar*|[Oo]pen*|[Gg]nu*)
+        mbed*|[Oo]pen*|[Gg]nu*)
             ;;
         *)
             echo "Unknown peers: $PEER" >&2
@@ -1069,7 +1069,7 @@ for VERIFY in $VERIFIES; do
 
                     ;;
 
-                [Pp]olar*)
+                mbed*)
 
                     reset_ciphersuites
                     add_common_ciphersuites

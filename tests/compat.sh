@@ -49,10 +49,10 @@ MODES="ssl3 tls1 tls1_1 tls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
-EXCLUDE='NULL\|DES-CBC-' # avoid plain DES but keep 3DES-EDE-CBC (PolarSSL), DES-CBC3 (OpenSSL)
+EXCLUDE='NULL\|DES-CBC-' # avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
 VERBOSE=""
 MEMCHECK=0
-PEERS="OpenSSL$PEER_GNUTLS PolarSSL"
+PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 
 print_usage() {
     echo "Usage: $0"
@@ -1029,13 +1029,13 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$P_CIPHERS" ]; then
                         start_server "OpenSSL"
                         for i in $P_CIPHERS; do
-                            run_client PolarSSL $i
+                            run_client mbedTLS $i
                         done
                         stop_server
                     fi
 
                     if [ "X" != "X$O_CIPHERS" ]; then
-                        start_server "PolarSSL"
+                        start_server "mbedTLS"
                         for i in $O_CIPHERS; do
                             run_client OpenSSL $i
                         done
@@ -1054,13 +1054,13 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$P_CIPHERS" ]; then
                         start_server "GnuTLS"
                         for i in $P_CIPHERS; do
-                            run_client PolarSSL $i
+                            run_client mbedTLS $i
                         done
                         stop_server
                     fi
 
                     if [ "X" != "X$G_CIPHERS" ]; then
-                        start_server "PolarSSL"
+                        start_server "mbedTLS"
                         for i in $G_CIPHERS; do
                             run_client GnuTLS $i
                         done
@@ -1079,9 +1079,9 @@ for VERIFY in $VERIFIES; do
                     filter_ciphersuites
 
                     if [ "X" != "X$P_CIPHERS" ]; then
-                        start_server "PolarSSL"
+                        start_server "mbedTLS"
                         for i in $P_CIPHERS; do
-                            run_client PolarSSL $i
+                            run_client mbedTLS $i
                         done
                         stop_server
                     fi

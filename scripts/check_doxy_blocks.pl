@@ -4,7 +4,7 @@
 #
 # More precisely, look for normal comment block containing '\'.
 # Of course one could use doxygen warnings, eg with:
-#   sed -e '/EXTRACT/s/YES/NO/' doxygen/polarssl.doxyfile | doxygen -
+#   sed -e '/EXTRACT/s/YES/NO/' doxygen/mbedtls.doxyfile | doxygen -
 # but that would warn about any undocumented item, while our goal is to find
 # items that are documented, but not marked as such by mistake.
 

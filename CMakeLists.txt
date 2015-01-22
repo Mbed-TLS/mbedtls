@@ -81,7 +81,7 @@ if(ENABLE_PROGRAMS)
 endif()
 
 ADD_CUSTOM_TARGET(apidoc
-                  COMMAND doxygen doxygen/polarssl.doxyfile
+                  COMMAND doxygen doxygen/mbedtls.doxyfile
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(ENABLE_TESTING)

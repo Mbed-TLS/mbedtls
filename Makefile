@@ -76,7 +76,7 @@ lcov:
 
 apidoc:
 	mkdir -p apidoc
-	doxygen doxygen/polarssl.doxyfile
+	doxygen doxygen/mbedtls.doxyfile
 
 apidoc_clean:
 	if [ -d apidoc ] ;			\

@@ -77,8 +77,8 @@ mv tmp include/polarssl/version.h
 sed -e "s/version:\".\+/version:\"$VERSION\"/g" < tests/suites/test_suite_version.data > tmp
 mv tmp tests/suites/test_suite_version.data
 
-[ $VERBOSE ] && echo "Bumping PROJECT_NAME in doxygen/polarssl.doxyfile and doxygen/input/doc_mainpage.h"
-for i in doxygen/polarssl.doxyfile doxygen/input/doc_mainpage.h;
+[ $VERBOSE ] && echo "Bumping PROJECT_NAME in doxygen/mbedtls.doxyfile and doxygen/input/doc_mainpage.h"
+for i in doxygen/mbedtls.doxyfile doxygen/input/doc_mainpage.h;
 do
   sed -e "s/mbed TLS v[0-9\.]\+/mbed TLS v$VERSION/g" < $i > tmp
   mv tmp $i

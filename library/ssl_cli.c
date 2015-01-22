@@ -605,16 +605,18 @@ static int ssl_write_client_hello( ssl_context *ssl )
      */
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
-#endif
-    if( ssl->session_negotiate->ticket != NULL &&
-        ssl->session_negotiate->ticket_len != 0 )
     {
-        ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id, 32 );
+#endif
+        if( ssl->session_negotiate->ticket != NULL &&
+                ssl->session_negotiate->ticket_len != 0 )
+        {
+            ret = ssl->f_rng( ssl->p_rng, ssl->session_negotiate->id, 32 );
 
-        if( ret != 0 )
-            return( ret );
+            if( ret != 0 )
+                return( ret );
 
-        ssl->session_negotiate->length = n = 32;
+            ssl->session_negotiate->length = n = 32;
+        }
     }
 #endif /* POLARSSL_SSL_SESSION_TICKETS */
 

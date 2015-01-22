@@ -1248,10 +1248,12 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
 #endif
-    if( ( ret = ssl_fetch_input( ssl, 5 ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
-        return( ret );
+        if( ( ret = ssl_fetch_input( ssl, 5 ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+            return( ret );
+        }
     }
 
     buf = ssl->in_hdr;
@@ -1301,10 +1303,12 @@ static int ssl_parse_client_hello( ssl_context *ssl )
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
 #endif
-    if( ( ret = ssl_fetch_input( ssl, 5 + n ) ) != 0 )
     {
-        SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
-        return( ret );
+        if( ( ret = ssl_fetch_input( ssl, 5 + n ) ) != 0 )
+        {
+            SSL_DEBUG_RET( 1, "ssl_fetch_input", ret );
+            return( ret );
+        }
     }
 
     buf = ssl->in_msg;

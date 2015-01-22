@@ -1803,8 +1803,10 @@ data_exchange:
 close_notify:
     printf( "  . Closing the connection..." );
 
-    /* Don't check for errors, the connection might already be closed */
-    ssl_close_notify( &ssl );
+    /* No error checking, the connection might be closed already */
+    do ret = ssl_close_notify( &ssl );
+    while( ret == POLARSSL_ERR_NET_WANT_WRITE );
+    ret = 0;
 
     printf( " done\n" );
     goto reset;

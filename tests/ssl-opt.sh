@@ -537,6 +537,13 @@ run_test    "Default" \
             -S "error" \
             -C "error"
 
+run_test    "Default, DTLS" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0 \
+            -s "Protocol is DTLSv1.2" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384"
+
 # Tests for rc4 option
 
 run_test    "RC4: server disabled, client enabled" \

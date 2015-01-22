@@ -633,18 +633,6 @@ static int ssl_write_client_hello( ssl_context *ssl )
     // Skip writing ciphersuite length for now
     p += 2;
 
-    /*
-     * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
-     */
-#if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
-#endif
-    {
-        *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
-        *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO      );
-        n++;
-    }
-
     for( i = 0; ciphersuites[i] != 0; i++ )
     {
         ciphersuite_info = ssl_ciphersuite_from_id( ciphersuites[i] );
@@ -666,6 +654,18 @@ static int ssl_write_client_hello( ssl_context *ssl )
         n++;
         *p++ = (unsigned char)( ciphersuites[i] >> 8 );
         *p++ = (unsigned char)( ciphersuites[i]      );
+    }
+
+    /*
+     * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+     */
+#if defined(POLARSSL_SSL_RENEGOTIATION)
+    if( ssl->renegotiation == SSL_INITIAL_HANDSHAKE )
+#endif
+    {
+        *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
+        *p++ = (unsigned char)( SSL_EMPTY_RENEGOTIATION_INFO      );
+        n++;
     }
 
     /* Some versions of OpenSSL don't handle it correctly if not at end */

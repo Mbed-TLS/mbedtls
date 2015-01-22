@@ -1,5 +1,5 @@
 /*
- *  Test application that shows some PolarSSL and OpenSSL compatibility
+ *  Test application that shows some mbed TLS and OpenSSL compatibility
  *
  *  Copyright (C) 2011-2012 Brainspark B.V.
  *
@@ -103,7 +103,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    printf( "  . Reading private key from %s into PolarSSL ...", argv[1] );
+    printf( "  . Reading private key from %s into mbed TLS ...", argv[1] );
     fflush( stdout );
 
     pk_init( &p_pk );
@@ -152,7 +152,7 @@ int main( int argc, char *argv[] )
     /*
      * Calculate the RSA encryption with public key.
      */
-    printf( "  . Generating the RSA encrypted value with PolarSSL (RSA_PUBLIC)  ..." );
+    printf( "  . Generating the RSA encrypted value with mbed TLS (RSA_PUBLIC)  ..." );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_encrypt( p_rsa, ctr_drbg_random, &ctr_drbg, RSA_PUBLIC, strlen( argv[2] ), input, p_pub_encrypted ) ) != 0 )
@@ -178,7 +178,7 @@ int main( int argc, char *argv[] )
     /*
      * Calculate the RSA encryption with private key.
      */
-    printf( "  . Generating the RSA encrypted value with PolarSSL (RSA_PRIVATE) ..." );
+    printf( "  . Generating the RSA encrypted value with mbed TLS (RSA_PRIVATE) ..." );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_encrypt( p_rsa, ctr_drbg_random, &ctr_drbg, RSA_PRIVATE, strlen( argv[2] ), input, p_priv_encrypted ) ) != 0 )
@@ -206,7 +206,7 @@ int main( int argc, char *argv[] )
     /*
      * Calculate the RSA decryption with private key.
      */
-    printf( "  . Generating the RSA decrypted value for OpenSSL (PUBLIC) with PolarSSL (PRIVATE) ..." );
+    printf( "  . Generating the RSA decrypted value for OpenSSL (PUBLIC) with mbed TLS (PRIVATE) ..." );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_decrypt( p_rsa, ctr_drbg_random, &ctr_drbg, RSA_PRIVATE, &olen, o_pub_encrypted, p_pub_decrypted, 1024 ) ) != 0 )
@@ -216,7 +216,7 @@ int main( int argc, char *argv[] )
     else
         printf( " passed\n");
 
-    printf( "  . Generating the RSA decrypted value for PolarSSL (PUBLIC) with OpenSSL (PRIVATE) ..." );
+    printf( "  . Generating the RSA decrypted value for mbed TLS (PUBLIC) with OpenSSL (PRIVATE) ..." );
     fflush( stdout );
 
     if( ( ret = RSA_private_decrypt( p_rsa->len, p_pub_encrypted, o_pub_decrypted, o_rsa, RSA_PKCS1_PADDING ) ) == -1 )
@@ -230,7 +230,7 @@ int main( int argc, char *argv[] )
     /*
      * Calculate the RSA decryption with public key.
      */
-    printf( "  . Generating the RSA decrypted value for OpenSSL (PRIVATE) with PolarSSL (PUBLIC) ..." );
+    printf( "  . Generating the RSA decrypted value for OpenSSL (PRIVATE) with mbed TLS (PUBLIC) ..." );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_decrypt( p_rsa, NULL, NULL, RSA_PUBLIC, &olen, o_priv_encrypted, p_priv_decrypted, 1024 ) ) != 0 )
@@ -240,7 +240,7 @@ int main( int argc, char *argv[] )
     else
         printf( " passed\n");
 
-    printf( "  . Generating the RSA decrypted value for PolarSSL (PRIVATE) with OpenSSL (PUBLIC) ..." );
+    printf( "  . Generating the RSA decrypted value for mbed TLS (PRIVATE) with OpenSSL (PUBLIC) ..." );
     fflush( stdout );
 
     if( ( ret = RSA_public_decrypt( p_rsa->len, p_priv_encrypted, o_priv_decrypted, o_rsa, RSA_PKCS1_PADDING ) ) == -1 )
@@ -252,10 +252,10 @@ int main( int argc, char *argv[] )
         printf( " passed\n");
 
     printf( "\n" );
-    printf( "String value (OpenSSL Public Encrypt, PolarSSL Private Decrypt): '%s'\n", p_pub_decrypted );
-    printf( "String value (PolarSSL Public Encrypt, OpenSSL Private Decrypt): '%s'\n", o_pub_decrypted );
-    printf( "String value (OpenSSL Private Encrypt, PolarSSL Public Decrypt): '%s'\n", p_priv_decrypted );
-    printf( "String value (PolarSSL Private Encrypt, OpenSSL Public Decrypt): '%s'\n", o_priv_decrypted );
+    printf( "String value (OpenSSL Public Encrypt, mbed TLS Private Decrypt): '%s'\n", p_pub_decrypted );
+    printf( "String value (mbed TLS Public Encrypt, OpenSSL Private Decrypt): '%s'\n", o_pub_decrypted );
+    printf( "String value (OpenSSL Private Encrypt, mbed TLS Public Decrypt): '%s'\n", p_priv_decrypted );
+    printf( "String value (mbed TLS Private Encrypt, OpenSSL Public Decrypt): '%s'\n", o_priv_decrypted );
 
 exit:
     ctr_drbg_free( &ctr_drbg );

@@ -63,8 +63,8 @@ int main( int argc, char *argv[] )
 #define DFL_SUBJECT_PWD         ""
 #define DFL_ISSUER_PWD          ""
 #define DFL_OUTPUT_FILENAME     "cert.crt"
-#define DFL_SUBJECT_NAME        "CN=Cert,O=PolarSSL,C=NL"
-#define DFL_ISSUER_NAME         "CN=CA,O=PolarSSL,C=NL"
+#define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
+#define DFL_ISSUER_NAME         "CN=CA,O=mbed TLS,C=UK"
 #define DFL_NOT_BEFORE          "20010101000000"
 #define DFL_NOT_AFTER           "20301231235959"
 #define DFL_SERIAL              "1"
@@ -142,12 +142,12 @@ int write_certificate( x509write_cert *crt, const char *output_file,
     USAGE_CSR                                           \
     "    subject_key=%%s      default: subject.key\n"   \
     "    subject_pwd=%%s      default: (empty)\n"       \
-    "    subject_name=%%s     default: CN=Cert,O=PolarSSL,C=NL\n"   \
+    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
     "\n"                                                \
     "    issuer_crt=%%s       default: (empty)\n"       \
     "                        If issuer_crt is specified, issuer_name is\n"  \
     "                        ignored!\n"                \
-    "    issuer_name=%%s      default: CN=CA,O=PolarSSL,C=NL\n"     \
+    "    issuer_name=%%s      default: CN=CA,O=mbed TLS,C=UK\n"     \
     "\n"                                                \
     "    selfsign=%%d         default: 0 (false)\n"     \
     "                        If selfsign is enabled, issuer_name and\n" \

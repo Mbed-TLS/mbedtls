@@ -805,9 +805,9 @@ int main( int argc, char *argv[] )
     printf( "  > Write content to server:" );
     fflush( stdout );
 
-    len = sprintf( (char *) buf, "From: %s\r\nSubject: PolarSSL Test mail\r\n\r\n"
+    len = sprintf( (char *) buf, "From: %s\r\nSubject: mbed TLS Test mail\r\n\r\n"
             "This is a simple test mail from the "
-            "PolarSSL mail client example.\r\n"
+            "mbed TLS mail client example.\r\n"
             "\r\n"
             "Enjoy!", opt.mail_from );
     ret = write_ssl_data( &ssl, buf, len );

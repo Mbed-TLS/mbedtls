@@ -631,7 +631,7 @@ void term_handler( int sig )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len, written, frags, exchanges;
+    int ret = 0, len, written, frags, exchanges_left;
     int version_suites[4][2];
     unsigned char buf[IO_BUF_LEN];
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1636,7 +1636,7 @@ reset:
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
-    exchanges = opt.exchanges;
+    exchanges_left = opt.exchanges;
 data_exchange:
     /*
      * 6. Read the HTTP Request
@@ -1741,7 +1741,7 @@ data_exchange:
      * (only if we're going to exhange more data afterwards)
      */
 #if defined(POLARSSL_SSL_RENEGOTIATION)
-    if( opt.renegotiate && exchanges > 1 )
+    if( opt.renegotiate && exchanges_left > 1 )
     {
         printf( "  . Requestion renegotiation..." );
         fflush( stdout );
@@ -1794,7 +1794,7 @@ data_exchange:
     /*
      * 7b. Continue doing data exchanges?
      */
-    if( --exchanges > 0 )
+    if( --exchanges_left > 0 )
         goto data_exchange;
 
     /*

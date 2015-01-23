@@ -1710,11 +1710,11 @@ size_t ssl_get_bytes_avail( const ssl_context *ssl );
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or a combination of:
- *                      BADCERT_EXPIRED
- *                      BADCERT_REVOKED
- *                      BADCERT_CN_MISMATCH
- *                      BADCERT_NOT_TRUSTED
+ * \return         0 if successful,
+ *                 -1 if result is not available (eg because the handshake was
+ *                 aborted too early), or
+ *                 a combination of BADCERT_xxx and BADCRL_xxx flags, see
+ *                 x509.h
  */
 int ssl_get_verify_result( const ssl_context *ssl );
 

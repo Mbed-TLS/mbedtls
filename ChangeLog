@@ -50,6 +50,8 @@ Bugfix
    * Fix unchecked return code in x509_crt_parse_path() on Windows (found by
      Peter Vaskovic).
    * Fix assembly selection for MIPS64 (thanks to James Cowgill).
+   * ssl_get_verify_result() now works even if the handshake was aborted due
+     to a failed verification (found by Fredrik Axelsson).
 
 Changes
    * Use deterministic nonces for AEAD ciphers in TLS by default (possible to

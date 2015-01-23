@@ -3,7 +3,7 @@
  *
  * \brief OpenSSL wrapper (definitions, inline functions).
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2010, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>

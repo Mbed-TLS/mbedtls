@@ -18,7 +18,7 @@
 #define POLARSSL_HAVE_TIME
 #define POLARSSL_HAVE_IPV6
 
-/* PolarSSL feature support */
+/* mbed TLS feature support */
 #define POLARSSL_CIPHER_MODE_CBC
 #define POLARSSL_CIPHER_PADDING_PKCS7
 #define POLARSSL_ECP_DP_SECP256K1_ENABLED
@@ -27,7 +27,7 @@
 #define POLARSSL_ERROR_STRERROR_DUMMY
 #define POLARSSL_FS_IO
 
-/* PolarSSL modules */
+/* mbed TLS modules */
 #define POLARSSL_AESNI_C
 #define POLARSSL_AES_C
 #define POLARSSL_ASN1_PARSE_C

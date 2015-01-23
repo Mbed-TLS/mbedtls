@@ -1,9 +1,9 @@
 /*
  *  Certificate request generation
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
+ *  This file is part of mbed TLS (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *
  *  All rights reserved.
@@ -57,7 +57,7 @@ int main( int argc, char *argv[] )
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_DEBUG_LEVEL         0
 #define DFL_OUTPUT_FILENAME     "cert.req"
-#define DFL_SUBJECT_NAME        "CN=Cert,O=PolarSSL,C=NL"
+#define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
 #define DFL_KEY_USAGE           0
 #define DFL_NS_CERT_TYPE        0
 
@@ -109,7 +109,7 @@ int write_certificate_request( x509write_csr *req, const char *output_file,
     "    filename=%%s         default: keyfile.key\n"   \
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "    output_file=%%s      default: cert.req\n"      \
-    "    subject_name=%%s     default: CN=Cert,O=PolarSSL,C=NL\n"   \
+    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \

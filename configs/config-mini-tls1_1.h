@@ -13,14 +13,14 @@
 #define POLARSSL_HAVE_TIME
 #define POLARSSL_HAVE_IPV6
 
-/* PolarSSL feature support */
+/* mbed TLS feature support */
 #define POLARSSL_CIPHER_MODE_CBC
 #define POLARSSL_PKCS1_V15
 #define POLARSSL_KEY_EXCHANGE_RSA_ENABLED
 #define POLARSSL_SSL_PROTO_TLS1_1
 #define POLARSSL_SSL_DISABLE_RENEGOTIATION
 
-/* PolarSSL modules */
+/* mbed TLS modules */
 #define POLARSSL_AES_C
 #define POLARSSL_ASN1_PARSE_C
 #define POLARSSL_ASN1_WRITE_C

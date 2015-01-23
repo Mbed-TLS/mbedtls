@@ -3,9 +3,9 @@
  *
  * \brief X.509 certificate signing request parsing and writing
  *
- *  Copyright (C) 2006-2014, Brainspark B.V.
+ *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
+ *  This file is part of mbed TLS (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *
  *  All rights reserved.
@@ -164,7 +164,7 @@ void x509write_csr_init( x509write_csr *ctx );
  * \brief           Set the subject name for a CSR
  *                  Subject names should contain a comma-separated list
  *                  of OID types and values:
- *                  e.g. "C=NL,O=Offspark,CN=PolarSSL Server 1"
+ *                  e.g. "C=UK,O=ARM,CN=mbed TLS Server 1"
  *
  * \param ctx           CSR context to use
  * \param subject_name  subject name to set

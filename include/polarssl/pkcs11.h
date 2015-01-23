@@ -5,9 +5,9 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2014, Brainspark B.V.
+ *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
+ *  This file is part of mbed TLS (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *
  *  All rights reserved.
@@ -62,7 +62,7 @@ typedef struct {
 } pkcs11_context;
 
 /**
- * Fill in a PolarSSL certificate, based on the given PKCS11 helper certificate.
+ * Fill in a mbed TLS certificate, based on the given PKCS11 helper certificate.
  *
  * \param cert          X.509 certificate to fill
  * \param pkcs11h_cert  PKCS #11 helper certificate

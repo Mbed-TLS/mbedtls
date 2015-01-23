@@ -49,10 +49,10 @@ MODES="ssl3 tls1 tls1_1 tls1_2 dtls1 dtls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
-EXCLUDE='NULL\|DES-CBC-' # avoid plain DES but keep 3DES-EDE-CBC (PolarSSL), DES-CBC3 (OpenSSL)
+EXCLUDE='NULL\|DES-CBC-' # avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
 VERBOSE=""
 MEMCHECK=0
-PEERS="OpenSSL$PEER_GNUTLS PolarSSL"
+PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 
 print_usage() {
     echo "Usage: $0"
@@ -853,7 +853,7 @@ start_server() {
         [Gg]nu*)
             SERVER_CMD="$GNUTLS_SERV $G_SERVER_ARGS --priority $G_SERVER_PRIO"
             ;;
-        [Pp]olar*)
+        mbed*)
             SERVER_CMD="$P_SRV $P_SERVER_ARGS"
             if [ "$MEMCHECK" -gt 0 ]; then
                 SERVER_CMD="valgrind --leak-check=full $SERVER_CMD"
@@ -983,7 +983,7 @@ run_client() {
             fi
             ;;
 
-        [Pp]olar*)
+        mbed*)
             CLIENT_CMD="$P_CLI $P_CLIENT_ARGS force_ciphersuite=$2"
             if [ "$MEMCHECK" -gt 0 ]; then
                 CLIENT_CMD="valgrind --leak-check=full $CLIENT_CMD"
@@ -1079,7 +1079,7 @@ fi
 
 for PEER in $PEERS; do
     case "$PEER" in
-        [Pp]olar*|[Oo]pen*|[Gg]nu*)
+        mbed*|[Oo]pen*|[Gg]nu*)
             ;;
         *)
             echo "Unknown peers: $PEER" >&2
@@ -1126,13 +1126,13 @@ for VERIFY in $VERIFIES; do
                         start_server "OpenSSL"
                         for i in $P_CIPHERS; do
                             check_openssl_server_bug $i
-                            run_client PolarSSL $i
+                            run_client mbedTLS $i
                         done
                         stop_server
                     fi
 
                     if [ "X" != "X$O_CIPHERS" ]; then
-                        start_server "PolarSSL"
+                        start_server "mbedTLS"
                         for i in $O_CIPHERS; do
                             run_client OpenSSL $i
                         done
@@ -1151,13 +1151,13 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$P_CIPHERS" ]; then
                         start_server "GnuTLS"
                         for i in $P_CIPHERS; do
-                            run_client PolarSSL $i
+                            run_client mbedTLS $i
                         done
                         stop_server
                     fi
 
                     if [ "X" != "X$G_CIPHERS" ]; then
-                        start_server "PolarSSL"
+                        start_server "mbedTLS"
                         for i in $G_CIPHERS; do
                             run_client GnuTLS $i
                         done
@@ -1166,7 +1166,7 @@ for VERIFY in $VERIFIES; do
 
                     ;;
 
-                [Pp]olar*)
+                mbed*)
 
                     reset_ciphersuites
                     add_common_ciphersuites
@@ -1176,9 +1176,9 @@ for VERIFY in $VERIFIES; do
                     filter_ciphersuites
 
                     if [ "X" != "X$P_CIPHERS" ]; then
-                        start_server "PolarSSL"
+                        start_server "mbedTLS"
                         for i in $P_CIPHERS; do
-                            run_client PolarSSL $i
+                            run_client mbedTLS $i
                         done
                         stop_server
                     fi

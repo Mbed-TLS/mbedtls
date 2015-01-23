@@ -3,9 +3,9 @@
  *
  * \brief Configuration options (set of defines)
  *
- *  Copyright (C) 2006-2014, Brainspark B.V.
+ *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
+ *  This file is part of mbed TLS (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *
  *  All rights reserved.
@@ -119,7 +119,7 @@
  *
  * Enable the memory allocation layer.
  *
- * By default PolarSSL uses the system-provided malloc() and free().
+ * By default mbed TLS uses the system-provided malloc() and free().
  * This allows different allocators (self-implemented or provided) to be
  * provided to the platform abstraction layer.
  *
@@ -153,10 +153,10 @@
 /**
  * \def POLARSSL_PLATFORM_XXX_ALT
  *
- * Uncomment a macro to let PolarSSL support the function in the platform
+ * Uncomment a macro to let mbed TLS support the function in the platform
  * abstraction layer.
  *
- * Example: In case you uncomment POLARSSL_PLATFORM_PRINTF_ALT, PolarSSL will
+ * Example: In case you uncomment POLARSSL_PLATFORM_PRINTF_ALT, mbed TLS will
  * provide a function "platform_set_printf()" that allows you to set an
  * alternative printf function pointer.
  *
@@ -170,7 +170,7 @@
 /* \} name SECTION: System support */
 
 /**
- * \name SECTION: PolarSSL feature support
+ * \name SECTION: mbed TLS feature support
  *
  * This section sets support for features that are or are not needed
  * within the modules that are enabled.
@@ -193,12 +193,12 @@
 /**
  * \def POLARSSL_XXX_ALT
  *
- * Uncomment a macro to let PolarSSL use your alternate core implementation of
+ * Uncomment a macro to let mbed TLS use your alternate core implementation of
  * a symmetric or hash algorithm (e.g. platform specific assembly optimized
  * implementations). Keep in mind that the function prototypes should remain
  * the same.
  *
- * Example: In case you uncomment POLARSSL_AES_ALT, PolarSSL will no longer
+ * Example: In case you uncomment POLARSSL_AES_ALT, mbed TLS will no longer
  * provide the "struct aes_context" definition and omit the base function
  * declarations and implementations. "aes_alt.h" will be included from
  * "aes.h" to include the new function definitions.
@@ -797,7 +797,7 @@
  * \def POLARSSL_SSL_ALL_ALERT_MESSAGES
  *
  * Enable sending of alert messages in case of encountered errors as per RFC.
- * If you choose not to send the alert messages, PolarSSL can still communicate
+ * If you choose not to send the alert messages, mbed TLS can still communicate
  * with other servers, only debugging of failures is harder.
  *
  * The advantage of not sending alert messages, is that no information is given
@@ -1225,12 +1225,12 @@
  * Uncomment to enable use of ZLIB
  */
 //#define POLARSSL_ZLIB_SUPPORT
-/* \} name SECTION: PolarSSL feature support */
+/* \} name SECTION: mbed TLS feature support */
 
 /**
- * \name SECTION: PolarSSL modules
+ * \name SECTION: mbed TLS modules
  *
- * This section enables or disables entire modules in PolarSSL
+ * This section enables or disables entire modules in mbed TLS
  * \{
  */
 
@@ -1762,7 +1762,7 @@
  * Module:  library/memory_buffer_alloc.c
  *
  * Requires: POLARSSL_PLATFORM_C
- *           POLARSSL_PLATFORM_MEMORY (to use it within PolarSSL)
+ *           POLARSSL_PLATFORM_MEMORY (to use it within mbed TLS)
  *
  * Enable this module to enable the buffer memory allocator.
  */
@@ -2117,7 +2117,7 @@
  * \def POLARSSL_THREADING_C
  *
  * Enable the threading abstraction layer.
- * By default PolarSSL assumes it is used in a non-threaded environment or that
+ * By default mbed TLS assumes it is used in a non-threaded environment or that
  * contexts are not shared between threads. If you do intend to use contexts
  * between threads, you will need to enable this layer to prevent race
  * conditions.
@@ -2130,7 +2130,7 @@
  * You will have to enable either POLARSSL_THREADING_ALT or
  * POLARSSL_THREADING_PTHREAD.
  *
- * Enable this layer to allow use of mutexes within PolarSSL
+ * Enable this layer to allow use of mutexes within mbed TLS
  */
 //#define POLARSSL_THREADING_C
 
@@ -2267,7 +2267,7 @@
  */
 #define POLARSSL_XTEA_C
 
-/* \} name SECTION: PolarSSL modules */
+/* \} name SECTION: mbed TLS modules */
 
 /**
  * \name SECTION: Module configuration options

@@ -3,9 +3,9 @@
  *
  * \brief SSL/TLS functions.
  *
- *  Copyright (C) 2006-2014, Brainspark B.V.
+ *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
+ *  This file is part of mbed TLS (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *
  *  All rights reserved.
@@ -1480,8 +1480,8 @@ int ssl_set_session( ssl_context *ssl, const ssl_session *session );
  *                      order. First in the list has the highest preference.
  *                      (Overrides all version specific lists)
  *
- *                      Note: The PolarSSL SSL server uses its own preferences
- *                      over the preference of the connection SSL client unless
+ *                      Note: The server uses its own preferences
+ *                      over the preference of the client unless
  *                      POLARSSL_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
  *
  * \param ssl           SSL context
@@ -1564,7 +1564,7 @@ int ssl_set_own_cert_rsa( ssl_context *ssl, x509_crt *own_cert,
 #endif /* POLARSSL_RSA_C */
 
 /**
- * \brief          Set own certificate and alternate non-PolarSSL RSA private
+ * \brief          Set own certificate and external RSA private
  *                 key and handling callbacks, such as the PKCS#11 wrappers
  *                 or any other external private key handler.
  *                 (see the respective RSA functions in rsa.h for documentation

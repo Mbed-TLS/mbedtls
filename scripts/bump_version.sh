@@ -69,7 +69,7 @@ cat include/polarssl/version.h |                                    \
     sed -e "s/_VERSION_PATCH .\+/_VERSION_PATCH  $PATCH/" |    \
     sed -e "s/_VERSION_NUMBER .\+/_VERSION_NUMBER         $VERSION_NR/" |    \
     sed -e "s/_VERSION_STRING .\+/_VERSION_STRING         \"$VERSION\"/" |    \
-    sed -e "s/_VERSION_STRING_FULL .\+/_VERSION_STRING_FULL    \"PolarSSL $VERSION\"/" \
+    sed -e "s/_VERSION_STRING_FULL .\+/_VERSION_STRING_FULL    \"mbed TLS $VERSION\"/" \
     > tmp
 mv tmp include/polarssl/version.h
 
@@ -77,10 +77,10 @@ mv tmp include/polarssl/version.h
 sed -e "s/version:\".\+/version:\"$VERSION\"/g" < tests/suites/test_suite_version.data > tmp
 mv tmp tests/suites/test_suite_version.data
 
-[ $VERBOSE ] && echo "Bumping PROJECT_NAME in doxygen/polarssl.doxyfile and doxygen/input/doc_mainpage.h"
-for i in doxygen/polarssl.doxyfile doxygen/input/doc_mainpage.h;
+[ $VERBOSE ] && echo "Bumping PROJECT_NAME in doxygen/mbedtls.doxyfile and doxygen/input/doc_mainpage.h"
+for i in doxygen/mbedtls.doxyfile doxygen/input/doc_mainpage.h;
 do
-  sed -e "s/PolarSSL v[0-9\.]\+/PolarSSL v$VERSION/g" < $i > tmp
+  sed -e "s/mbed TLS v[0-9\.]\+/mbed TLS v$VERSION/g" < $i > tmp
   mv tmp $i
 done
 

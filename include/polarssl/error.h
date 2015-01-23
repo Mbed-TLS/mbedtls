@@ -3,9 +3,9 @@
  *
  * \brief Error to string translation
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
+ *  This file is part of mbed TLS (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *
  *  All rights reserved.
@@ -102,7 +102,7 @@ extern "C" {
 #endif
 
 /**
- * \brief Translate a PolarSSL error code into a string representation,
+ * \brief Translate a mbed TLS error code into a string representation,
  *        Result is truncated if necessary and always includes a terminating
  *        null byte.
  *

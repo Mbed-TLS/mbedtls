@@ -3,9 +3,9 @@
  *
  * \brief PKCS#12 Personal Information Exchange Syntax
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of PolarSSL (http://www.polarssl.org)
+ *  This file is part of mbed TLS (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *
  *  All rights reserved.
@@ -61,7 +61,7 @@ extern "C" {
  * \param len        data length
  * \param output     the output buffer
  *
- * \return           0 if successful, or a PolarSSL error code
+ * \return           0 if successful, or a POLARSSL_ERR_xxx code
  */
 int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
                              const unsigned char *pwd,  size_t pwdlen,
@@ -82,7 +82,7 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
  * \param len        data length
  * \param output     the output buffer
  *
- * \return           0 if successful, or a PolarSSL error code
+ * \return           0 if successful, or a POLARSSL_ERR_xxx code
  */
 int pkcs12_pbe( asn1_buf *pbe_params, int mode,
                 cipher_type_t cipher_type, md_type_t md_type,

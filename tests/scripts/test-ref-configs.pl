@@ -16,7 +16,7 @@ my %configs = (
     'config-mini-tls1_1.h'
         => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
     'config-suite-b.h'
-        => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p PolarSSL",
+        => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
     'config-picocoin.h'
         => 0,
     'config-ccm-psk-tls1_2.h'

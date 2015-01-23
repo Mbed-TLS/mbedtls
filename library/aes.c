@@ -69,12 +69,12 @@ static void polarssl_zeroize( void *v, size_t n ) {
 #endif
 
 #ifndef PUT_UINT32_LE
-#define PUT_UINT32_LE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n)       );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n) >> 24 );       \
+#define PUT_UINT32_LE(n,b,i)                                    \
+{                                                               \
+    (b)[(i)    ] = (unsigned char) ( ( (n)       ) & 0xFF );    \
+    (b)[(i) + 1] = (unsigned char) ( ( (n) >>  8 ) & 0xFF );    \
+    (b)[(i) + 2] = (unsigned char) ( ( (n) >> 16 ) & 0xFF );    \
+    (b)[(i) + 3] = (unsigned char) ( ( (n) >> 24 ) & 0xFF );    \
 }
 #endif
 

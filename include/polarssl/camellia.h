@@ -122,6 +122,14 @@ int camellia_crypt_ecb( camellia_context *ctx,
  *                 Length should be a multiple of the block
  *                 size (16 bytes)
  *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
  * \param ctx      CAMELLIA context
  * \param mode     CAMELLIA_ENCRYPT or CAMELLIA_DECRYPT
  * \param length   length of the input data
@@ -147,6 +155,14 @@ int camellia_crypt_cbc( camellia_context *ctx,
  * Note: Due to the nature of CFB you should use the same key schedule for
  * both encryption and decryption. So a context initialized with
  * camellia_setkey_enc() for both CAMELLIA_ENCRYPT and CAMELLIE_DECRYPT.
+ *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
  *
  * \param ctx      CAMELLIA context
  * \param mode     CAMELLIA_ENCRYPT or CAMELLIA_DECRYPT

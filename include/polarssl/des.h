@@ -214,6 +214,14 @@ int des_crypt_ecb( des_context *ctx,
 /**
  * \brief          DES-CBC buffer encryption/decryption
  *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
  * \param ctx      DES context
  * \param mode     DES_ENCRYPT or DES_DECRYPT
  * \param length   length of the input data
@@ -245,6 +253,14 @@ int des3_crypt_ecb( des3_context *ctx,
 #if defined(POLARSSL_CIPHER_MODE_CBC)
 /**
  * \brief          3DES-CBC buffer encryption/decryption
+ *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
  *
  * \param ctx      3DES context
  * \param mode     DES_ENCRYPT or DES_DECRYPT

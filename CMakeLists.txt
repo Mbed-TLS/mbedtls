@@ -103,7 +103,7 @@ if(ENABLE_TESTING)
     COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
     COMMAND lcov --remove all.info -o final.info '*.h'
     COMMAND gendesc tests/Descriptions.txt -o descriptions
-    COMMAND genhtml --title mbed TLS --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+    COMMAND genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
     COMMAND rm -f files.info tests.info all.info final.info descriptions
     )
 

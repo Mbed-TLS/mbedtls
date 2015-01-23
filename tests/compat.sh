@@ -199,7 +199,7 @@ filter_ciphersuites()
         esac
     fi
 
-    # For GnuTLS client -> PolarSSL server,
+    # For GnuTLS client -> mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
     if [ "X$VERIFY" = "XYES" ] && is_dtls "$MODE"; then
         G_CIPHERS=""

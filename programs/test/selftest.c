@@ -57,7 +57,7 @@
 #include "polarssl/timing.h"
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#include "polarssl/memory.h"
+#include "polarssl/memory_buffer_alloc.h"
 #endif
 
 int main( int argc, char *argv[] )

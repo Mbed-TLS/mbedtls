@@ -79,7 +79,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#include "polarssl/memory.h"
+#include "polarssl/memory_buffer_alloc.h"
 #endif
 
 #define DFL_SERVER_ADDR         NULL

@@ -1,7 +1,3 @@
-#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#include "polarssl/memory.h"
-#endif
-
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else

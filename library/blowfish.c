@@ -4,7 +4,6 @@
  *  Copyright (C) 2012-2014, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (http://www.polarssl.org)
- *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

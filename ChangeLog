@@ -20,6 +20,9 @@ Bugfix
    * Fix memory leaks in PKCS#5 and PKCS#12.
    * Stack buffer overflow if ctr_drbg_update() is called with too large
      add_len (found by Jean-Philippe Aumasson) (not triggerable remotely).
+   * Fix bug in MPI/bugnum on s390/s390x (reported by Dan Horák) (introduced
+     in 1.2.12).
+
 
 Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.

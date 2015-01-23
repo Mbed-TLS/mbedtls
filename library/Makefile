@@ -75,7 +75,15 @@ static: libpolarssl.a
 
 shared: libpolarssl.$(DLEXT) libpolarssl.so
 
-libpolarssl.a: $(OBJS)
+libpolarssl.a: libmbedtls.a
+	echo "  LN    $@ -> $?"
+ifndef WINDOWS
+	ln -sf $? $@
+else
+	copy /y /b $? $@
+endif
+
+libmbedtls.a: $(OBJS)
 	echo "  AR    $@"
 	$(AR) r $@ $(OBJS)
 	echo "  RL    $@"
@@ -103,8 +111,8 @@ libpolarssl.dll: $(OBJS)
 
 clean:
 ifndef WINDOWS
-	rm -f *.o libpolarssl.*
+	rm -f *.o libpolarssl.* libmbedtls.*
 endif
 ifdef WINDOWS
-	del /Q /F *.o libpolarssl.*
+	del /Q /F *.o libpolarssl.* libmbedtls.*
 endif

@@ -10,7 +10,7 @@ OFLAGS	= -O2
 LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
 
 ifndef SHARED
-DEP=../library/libpolarssl.a
+DEP=../library/libmbedtls.a
 CHECK_PRELOAD=
 else
 DEP=../library/libpolarssl.so

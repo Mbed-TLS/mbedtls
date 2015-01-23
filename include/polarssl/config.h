@@ -1679,6 +1679,7 @@
 /**
  * \def POLARSSL_MEMORY_C
  * Deprecated since 1.3.5. Please use POLARSSL_PLATFORM_MEMORY instead.
+ * Depends on: POLARSSL_PLATFORM_C
  */
 //#define POLARSSL_MEMORY_C
 

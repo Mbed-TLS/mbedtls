@@ -32,10 +32,6 @@
 
 #include <stdlib.h>
 
-#if defined(POLARSSL_MEMORY_C) && !defined(POLARSSL_PLATFORM_MEMORY)
-#define POLARSSL_PLATFORM_MEMORY
-#endif
-
 #include "platform.h"
 #include "memory_buffer_alloc.h"
 

@@ -81,7 +81,7 @@ libpolarssl.a: $(OBJS)
 	echo "  RL    $@"
 	$(AR) s $@
 
-libpolarssl.${DLEXT}: libpolarssl.a
+libpolarssl.${DLEXT}: $(OBJS)
 	echo "  LD    $@"
 	$(CC) ${LDFLAGS} -shared -Wl,-soname,$(SONAME) -o $@ $(OBJS)
 
@@ -89,11 +89,11 @@ libpolarssl.so: libpolarssl.${DLEXT}
 	echo "  LN    $@ -> libpolarssl.${DLEXT}"
 	ln -sf libpolarssl.${DLEXT} $@
 
-libpolarssl.dylib: libpolarssl.a
+libpolarssl.dylib: $(OBJS)
 	echo "  LD    $@"
 	$(CC) ${LDFLAGS} -dynamiclib -o $@ $(OBJS)
 
-libpolarssl.dll: libpolarssl.a
+libpolarssl.dll: $(OBJS)
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS) -lws2_32 -lwinmm -lgdi32
 

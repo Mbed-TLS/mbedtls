@@ -990,6 +990,8 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
 
     w_ret = MultiByteToWideChar( CP_ACP, 0, filename, len, szDir,
                                  MAX_PATH - 3 );
+    if( w_ret == 0 )
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
 
     hFind = FindFirstFileW( szDir, &file_data );
     if( hFind == INVALID_HANDLE_VALUE )
@@ -1007,6 +1009,8 @@ int x509_crt_parse_path( x509_crt *chain, const char *path )
                                      lstrlenW( file_data.cFileName ),
                                      p, len - 1,
                                      NULL, NULL );
+        if( w_ret == 0 )
+            return( POLARSSL_ERR_X509_FILE_IO_ERROR );
 
         w_ret = x509_crt_parse_file( chain, filename );
         if( w_ret < 0 )

@@ -47,6 +47,8 @@ Bugfix
    * Fix potential undefined behaviour in Camellia.
    * Fix potential failure in ECDSA signatures when POLARSSL_ECP_MAX_BITS is a
      multiple of 8 (found by Gergely Budai).
+   * Fix unchecked return code in x509_crt_parse_path() on Windows (found by
+     Peter Vaskovic).
 
 Changes
    * Use deterministic nonces for AEAD ciphers in TLS by default (possible to

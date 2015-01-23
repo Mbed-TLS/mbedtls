@@ -39,11 +39,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
   endif(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
-option(USE_PKCS11_HELPER_LIBRARY "Build PolarSSL with the pkcs11-helper library." OFF)
+option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
 
-option(ENABLE_ZLIB_SUPPORT "Build PolarSSL with zlib library." OFF)
-option(ENABLE_PROGRAMS "Build PolarSSL programs." ON)
-option(ENABLE_TESTING "Build PolarSSL tests." ON)
+option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
+option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
+option(ENABLE_TESTING "Build mbed TLS tests." ON)
 
 if(ENABLE_TESTING)
   enable_testing()
@@ -103,7 +103,7 @@ if(ENABLE_TESTING)
     COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
     COMMAND lcov --remove all.info -o final.info '*.h'
     COMMAND gendesc tests/Descriptions.txt -o descriptions
-    COMMAND genhtml --title PolarSSL --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+    COMMAND genhtml --title mbed TLS --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
     COMMAND rm -f files.info tests.info all.info final.info descriptions
     )
 

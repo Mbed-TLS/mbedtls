@@ -1,4 +1,4 @@
-option(INSTALL_POLARSSL_HEADERS "Install PolarSSL headers." ON)
+option(INSTALL_POLARSSL_HEADERS "Install mbed TLS headers." ON)
 
 if(INSTALL_POLARSSL_HEADERS)
 

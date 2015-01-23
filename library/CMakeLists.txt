@@ -1,6 +1,6 @@
-option(USE_STATIC_POLARSSL_LIBRARY "Build PolarSSL static library." ON)
-option(USE_SHARED_POLARSSL_LIBRARY "Build PolarSSL shared library." OFF)
-option(LINK_WITH_PTHREAD "Explicitly link PolarSSL library to pthread." OFF)
+option(USE_STATIC_POLARSSL_LIBRARY "Build mbed TLS static library." ON)
+option(USE_SHARED_POLARSSL_LIBRARY "Build mbed TLS shared library." OFF)
+option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
 
 set(src
      aes.c

@@ -9,6 +9,10 @@
 #define polarssl_free       free
 #endif
 
+#if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
+#include "polarssl/memory_buffer_alloc.h"
+#endif
+
 static int test_errors = 0;
 
 SUITE_PRE_DEP

@@ -63,12 +63,9 @@
 #include <time.h>
 #endif
 
-#if defined(EFIX64) || defined(EFI32)
 #include <stdio.h>
-#endif
 
 #if defined(POLARSSL_FS_IO)
-#include <stdio.h>
 #if !defined(_WIN32) || defined(EFIX64) || defined(EFI32)
 #include <sys/types.h>
 #include <sys/stat.h>

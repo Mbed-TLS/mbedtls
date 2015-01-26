@@ -6,8 +6,8 @@
 # CMake configuration. After this script is run, the CMake cache is lost and
 # CMake is not initialised any more!
 #
-# Assumes gcc and clang (recent enough for using ASan with gcc and MemSen with
-# clang) are available, as well as cmake and GNU find.
+# Assumes gcc and clang (recent enough for using ASan with gcc and MemSan with
+# clang, or valgrind) are available, as well as cmake and a "good" find.
 
 # Abort on errors (and uninitiliased variables)
 set -eu
@@ -25,7 +25,7 @@ MEMORY=0
 while [ $# -gt 0 ]; do
     case "$1" in
         -m*)
-            MEMORY=1
+            MEMORY=${1#-m}
             ;;
         *)
             echo "Unknown argument: '$1'" >&2
@@ -58,7 +58,7 @@ msg()
     echo ""
     echo "******************************************************************"
     echo "* $1 "
-    echo -n "* "; date
+    printf "* "; date
     echo "******************************************************************"
 }
 
@@ -130,6 +130,9 @@ msg "build: Unix make, -O2 (gcc)" # ~ 30s
 cleanup
 CC=gcc make
 
+# MemSan currently only available on Linux
+if [ `uname` = 'Linux' ]; then
+
 msg "build: MSan (clang)" # ~ 1 min 20s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -154,6 +157,36 @@ if [ "$MEMORY" -gt 0 ]; then
     ./compat.sh
     cd ..
 fi
+
+else # no MemSan
+
+msg "build: Release (clang)"
+cleanup
+CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
+make
+
+msg "test: main suites valgrind (Release)"
+make test
+
+# Optional part(s)
+# Currently broken, programs don't seem to receive signals
+# under valgrind on OS X
+
+if [ "$MEMORY" -gt 0 ]; then
+    msg "test: ssl-opt.sh --memcheck (Release)"
+    cd tests
+    ./ssl-opt.sh --memcheck
+    cd ..
+fi
+
+if [ "$MEMORY" -gt 1 ]; then
+    msg "test: compat.sh --memcheck (Release)"
+    cd tests
+    ./compat.sh --memcheck
+    cd ..
+fi
+
+fi # MemSan
 
 msg "Done, cleaning up"
 cleanup

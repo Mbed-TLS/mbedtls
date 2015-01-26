@@ -62,7 +62,7 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        polarssl_printf( "failed to open '%s' for writing.\n", argv[0] );
+        polarssl_printf( "failed to open '%s' for writing.\n", argv[1] );
         return( 1 );
     }
 
@@ -79,14 +79,15 @@ int main( int argc, char *argv[] )
 
         fwrite( buf, 1, sizeof( buf ), f );
 
-        polarssl_printf( "Generating 32Mb of data in file '%s'... %04.1f" \
-                "%% done\r", argv[1], (100 * (float) (i + 1)) / k );
+        polarssl_printf( "Generating %ldkb of data in file '%s'... %04.1f" \
+                "%% done\r", (long)(sizeof(buf) * k / 1024), argv[1], (100 * (float) (i + 1)) / k );
         fflush( stdout );
     }
 
     ret = 0;
 
 cleanup:
+    printf( "\n" );
 
     fclose( f );
     entropy_free( &entropy );

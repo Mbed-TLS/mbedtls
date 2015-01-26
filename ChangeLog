@@ -35,6 +35,8 @@ Features
      a compatible enough libc (eg uClibc).
    * Add ssl_set_arc4_support() to make it easier to disable RC4 at runtime
      while using the default ciphersuite list.
+   * Added new error codes and debug messages about selection of
+     ciphersuite/certificate.
 
 Bugfix
    * Stack buffer overflow if ctr_drbg_update() is called with too large

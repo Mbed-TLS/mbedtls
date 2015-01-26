@@ -149,7 +149,7 @@
 #define POLARSSL_ERR_SSL_INTERNAL_ERROR                    -0x6C00  /**< Internal error (eg, unexpected failure in lower-level module) */
 #define POLARSSL_ERR_SSL_COUNTER_WRAPPING                  -0x6B80  /**< A counter would wrap (eg, too many messages exchanged). */
 #define POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO       -0x6B00  /**< Unexpected message at ServerHello in renegotiation. */
-#define POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6A80  /**< None of the common ciphersuites is usable (eg, no suitable certificate) */
+#define POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6A80  /**< None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). */
 
 /*
  * Various constants

@@ -4,7 +4,7 @@
 # - for VS6: main project (library) file, individual app files, workspace
 # - for VS2010: main file, individual apps, solution file
 #
-# Must be run from PolarSSL root or scripts directory.
+# Must be run from mbedTLS root or scripts directory.
 # Takes no argument.
 
 use warnings;
@@ -15,17 +15,17 @@ my $vs6_dir = "visualc/VS6";
 my $vs6_ext = "dsp";
 my $vs6_app_tpl_file = "scripts/data_files/vs6-app-template.$vs6_ext";
 my $vs6_main_tpl_file = "scripts/data_files/vs6-main-template.$vs6_ext";
-my $vs6_main_file = "$vs6_dir/polarssl.$vs6_ext";
+my $vs6_main_file = "$vs6_dir/mbedtls.$vs6_ext";
 my $vs6_wsp_tpl_file = "scripts/data_files/vs6-workspace-template.dsw";
-my $vs6_wsp_file = "$vs6_dir/polarssl.dsw";
+my $vs6_wsp_file = "$vs6_dir/mbedtls.dsw";
 
 my $vsx_dir = "visualc/VS2010";
 my $vsx_ext = "vcxproj";
 my $vsx_app_tpl_file = "scripts/data_files/vs2010-app-template.$vsx_ext";
 my $vsx_main_tpl_file = "scripts/data_files/vs2010-main-template.$vsx_ext";
-my $vsx_main_file = "$vsx_dir/PolarSSL.$vsx_ext";
+my $vsx_main_file = "$vsx_dir/mbedTLS.$vsx_ext";
 my $vsx_sln_tpl_file = "scripts/data_files/vs2010-sln-template.sln";
-my $vsx_sln_file = "$vsx_dir/PolarSSL.sln";
+my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
 my $programs_dir = 'programs';
 my $header_dir = 'include/polarssl';
@@ -51,7 +51,7 @@ Package=<5>\r
 Package=<4>\r
 {{{\r
     Begin Project Dependency\r
-    Project_Dep_Name polarssl\r
+    Project_Dep_Name mbedtls\r
     End Project Dependency\r
 }}}\r
 \r
@@ -115,7 +115,7 @@ sub content_to_file {
 sub gen_app_guid {
     my ($path) = @_;
 
-    my $guid = md5_hex( "PolarSSL:$path" );
+    my $guid = md5_hex( "mbedTLS:$path" );
     $guid =~ s/(.{8})(.{4})(.{4})(.{4})(.{12})/\U{$1-$2-$3-$4-$5}/;
 
     return $guid;
@@ -222,7 +222,7 @@ sub gen_vsx_solution {
 sub main {
     if( ! check_dirs() ) {
         chdir '..' or die;
-        check_dirs or die "Must but run from PolarSSL root or scripts dir\n";
+        check_dirs or die "Must but run from mbedTLS root or scripts dir\n";
     }
 
     my @app_list = get_app_list();

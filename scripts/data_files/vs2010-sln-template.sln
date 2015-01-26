@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PolarSSL", "PolarSSL.vcxproj", "{46CF2D25-6A36-4189-B59C-E4815388E554}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbedTLS", "mbedTLS.vcxproj", "{46CF2D25-6A36-4189-B59C-E4815388E554}"
 EndProject
 APP_ENTRIES
 Global

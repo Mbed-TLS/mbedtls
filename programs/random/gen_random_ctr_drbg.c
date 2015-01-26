@@ -104,8 +104,8 @@ int main( int argc, char *argv[] )
 
         fwrite( buf, 1, sizeof( buf ), f );
 
-        printf( "Generating 32Mb of data in file '%s'... %04.1f" \
-                "%% done\r", argv[1], (100 * (float) (i + 1)) / k );
+        printf( "Generating %ldkb of data in file '%s'... %04.1f" \
+                "%% done\r", (long)(sizeof(buf) * k / 1024), argv[1], (100 * (float) (i + 1)) / k );
         fflush( stdout );
     }
 

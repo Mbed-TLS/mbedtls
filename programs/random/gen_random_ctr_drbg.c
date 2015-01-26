@@ -60,7 +60,7 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        printf( "failed to open '%s' for writing.\n", argv[0] );
+        printf( "failed to open '%s' for writing.\n", argv[1] );
         return( 1 );
     }
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(POLARSSL C)
+project(MBEDTLS C)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
@@ -98,8 +98,8 @@ if(ENABLE_TESTING)
 
   ADD_CUSTOM_TARGET(lcov
     COMMAND rm -rf Coverage
-    COMMAND lcov --capture --initial --directory library/CMakeFiles/polarssl.dir -o files.info
-    COMMAND lcov --capture --directory library/CMakeFiles/polarssl.dir -o tests.info
+    COMMAND lcov --capture --initial --directory library/CMakeFiles/mbedtls.dir -o files.info
+    COMMAND lcov --capture --directory library/CMakeFiles/mbedtls.dir -o tests.info
     COMMAND lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
     COMMAND lcov --remove all.info -o final.info '*.h'
     COMMAND gendesc tests/Descriptions.txt -o descriptions

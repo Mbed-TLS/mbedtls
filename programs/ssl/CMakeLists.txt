@@ -2,7 +2,7 @@ set(THREADS_USE_PTHREADS_WIN32 true)
 find_package(Threads)
 
 set(libs
-     polarssl
+     mbedtls
 )
 
 set(targets

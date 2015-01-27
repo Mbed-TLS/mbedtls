@@ -5,7 +5,7 @@
 
 CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
 OFLAGS	= -O2
-LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
+LDFLAGS	+= -L../library -lmbedtls $(SYS_LDFLAGS)
 
 ifdef DEBUG
 CFLAGS += -g3

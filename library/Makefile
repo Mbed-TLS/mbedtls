@@ -68,7 +68,7 @@ OBJS=	aes.o		aesni.o		arc4.o			\
 ifndef SHARED
 all: static
 else
-all: shared
+all: shared static
 endif
 
 static: libpolarssl.a

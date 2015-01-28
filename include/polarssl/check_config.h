@@ -181,6 +181,11 @@
 #error "POLARSSL_PEM_WRITE_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_PK_C) && \
+    ( !defined(POLARSSL_RSA_C) && !defined(POLARSSL_ECP_C) )
+#error "POLARSSL_PK_C defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_PK_PARSE_C) && !defined(POLARSSL_PK_C)
 #error "POLARSSL_PK_PARSE_C defined, but not all prerequisites"
 #endif

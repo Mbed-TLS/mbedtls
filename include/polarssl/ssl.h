@@ -149,7 +149,7 @@
 #define POLARSSL_ERR_SSL_INTERNAL_ERROR                    -0x6C00  /**< Internal error (eg, unexpected failure in lower-level module) */
 #define POLARSSL_ERR_SSL_COUNTER_WRAPPING                  -0x6B80  /**< A counter would wrap (eg, too many messages exchanged). */
 #define POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO       -0x6B00  /**< Unexpected message at ServerHello in renegotiation. */
-#define POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6A80  /**< None of the common ciphersuites is usable (eg, no suitable certificate) */
+#define POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6A80  /**< None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). */
 
 /*
  * Various constants
@@ -1710,11 +1710,11 @@ size_t ssl_get_bytes_avail( const ssl_context *ssl );
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or a combination of:
- *                      BADCERT_EXPIRED
- *                      BADCERT_REVOKED
- *                      BADCERT_CN_MISMATCH
- *                      BADCERT_NOT_TRUSTED
+ * \return         0 if successful,
+ *                 -1 if result is not available (eg because the handshake was
+ *                 aborted too early), or
+ *                 a combination of BADCERT_xxx and BADCRL_xxx flags, see
+ *                 x509.h
  */
 int ssl_get_verify_result( const ssl_context *ssl );
 

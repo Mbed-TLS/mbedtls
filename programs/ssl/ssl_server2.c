@@ -26,6 +26,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #if !defined(POLARSSL_ENTROPY_C) ||  \
     !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_SRV_C) || \
     !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
@@ -35,7 +44,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_ENTROPY_C and/or "
+    polarssl_printf("POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
@@ -44,13 +53,6 @@ int main( int argc, char *argv[] )
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION) && defined(POLARSSL_FS_IO)
 #define POLARSSL_SNI
-#endif
-
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#define polarssl_malloc     malloc
-#define polarssl_free       free
 #endif
 
 #if defined(_WIN32)
@@ -189,7 +191,7 @@ static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);
 
-    fprintf( (FILE *) ctx, "%s", str );
+    polarssl_fprintf( (FILE *) ctx, "%s", str );
     fflush(  (FILE *) ctx  );
 }
 
@@ -710,19 +712,19 @@ int main( int argc, char *argv[] )
         if( ret == 0 )
             ret = 1;
 
-        printf( USAGE );
+        polarssl_printf( USAGE );
 
         list = ssl_list_ciphersuites();
         while( *list )
         {
-            printf(" %-42s", ssl_get_ciphersuite_name( *list ) );
+            polarssl_printf(" %-42s", ssl_get_ciphersuite_name( *list ) );
             list++;
             if( !*list )
                 break;
-            printf(" %s\n", ssl_get_ciphersuite_name( *list ) );
+            polarssl_printf(" %s\n", ssl_get_ciphersuite_name( *list ) );
             list++;
         }
-        printf("\n");
+        polarssl_printf("\n");
         goto exit;
     }
 
@@ -1019,14 +1021,14 @@ int main( int argc, char *argv[] )
         if( opt.max_version != -1 &&
             ciphersuite_info->min_minor_ver > opt.max_version )
         {
-            printf("forced ciphersuite not allowed with this protocol version\n");
+            polarssl_printf("forced ciphersuite not allowed with this protocol version\n");
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
             ciphersuite_info->max_minor_ver < opt.min_version )
         {
-            printf("forced ciphersuite not allowed with this protocol version\n");
+            polarssl_printf("forced ciphersuite not allowed with this protocol version\n");
             ret = 2;
             goto usage;
         }
@@ -1056,7 +1058,7 @@ int main( int argc, char *argv[] )
 
         if( i != 4 )
         {
-            printf( "too few values for version_suites\n" );
+            polarssl_printf( "too few values for version_suites\n" );
             ret = 1;
             goto exit;
         }
@@ -1070,7 +1072,7 @@ int main( int argc, char *argv[] )
 
             if( version_suites[i][0] == 0 )
             {
-                printf( "unknown ciphersuite: '%s'\n", name[i] );
+                polarssl_printf( "unknown ciphersuite: '%s'\n", name[i] );
                 ret = 2;
                 goto usage;
             }
@@ -1083,7 +1085,7 @@ int main( int argc, char *argv[] )
      */
     if( unhexify( psk, opt.psk, &psk_len ) != 0 )
     {
-        printf( "pre-shared key not valid hex\n" );
+        polarssl_printf( "pre-shared key not valid hex\n" );
         goto exit;
     }
 
@@ -1091,7 +1093,7 @@ int main( int argc, char *argv[] )
     {
         if( ( psk_info = psk_parse( opt.psk_list ) ) == NULL )
         {
-            printf( "psk_list invalid" );
+            polarssl_printf( "psk_list invalid" );
             goto exit;
         }
     }
@@ -1120,7 +1122,7 @@ int main( int argc, char *argv[] )
     /*
      * 0. Initialize the RNG and the session data
      */
-    printf( "\n  . Seeding the random number generator..." );
+    polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     entropy_init( &entropy );
@@ -1128,17 +1130,17 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned -0x%x\n", -ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned -0x%x\n", -ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
      * 1.1. Load the trusted CA
      */
-    printf( "  . Loading the CA root certificate ..." );
+    polarssl_printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
 
 #if defined(POLARSSL_FS_IO)
@@ -1160,21 +1162,21 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        printf("POLARSSL_CERTS_C not defined.");
+        polarssl_printf("POLARSSL_CERTS_C not defined.");
     }
 #endif
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
+        polarssl_printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
-    printf( " ok (%d skipped)\n", ret );
+    polarssl_printf( " ok (%d skipped)\n", ret );
 
     /*
      * 1.2. Load own certificate and private key
      */
-    printf( "  . Loading the server cert. and key..." );
+    polarssl_printf( "  . Loading the server cert. and key..." );
     fflush( stdout );
 
 #if defined(POLARSSL_FS_IO)
@@ -1183,7 +1185,7 @@ int main( int argc, char *argv[] )
         key_cert_init++;
         if( ( ret = x509_crt_parse_file( &srvcert, opt.crt_file ) ) != 0 )
         {
-            printf( " failed\n  !  x509_crt_parse_file returned -0x%x\n\n",
+            polarssl_printf( " failed\n  !  x509_crt_parse_file returned -0x%x\n\n",
                     -ret );
             goto exit;
         }
@@ -1193,13 +1195,13 @@ int main( int argc, char *argv[] )
         key_cert_init++;
         if( ( ret = pk_parse_keyfile( &pkey, opt.key_file, "" ) ) != 0 )
         {
-            printf( " failed\n  !  pk_parse_keyfile returned -0x%x\n\n", -ret );
+            polarssl_printf( " failed\n  !  pk_parse_keyfile returned -0x%x\n\n", -ret );
             goto exit;
         }
     }
     if( key_cert_init == 1 )
     {
-        printf( " failed\n  !  crt_file without key_file or vice-versa\n\n" );
+        polarssl_printf( " failed\n  !  crt_file without key_file or vice-versa\n\n" );
         goto exit;
     }
 
@@ -1208,7 +1210,7 @@ int main( int argc, char *argv[] )
         key_cert_init2++;
         if( ( ret = x509_crt_parse_file( &srvcert2, opt.crt_file2 ) ) != 0 )
         {
-            printf( " failed\n  !  x509_crt_parse_file(2) returned -0x%x\n\n",
+            polarssl_printf( " failed\n  !  x509_crt_parse_file(2) returned -0x%x\n\n",
                     -ret );
             goto exit;
         }
@@ -1218,14 +1220,14 @@ int main( int argc, char *argv[] )
         key_cert_init2++;
         if( ( ret = pk_parse_keyfile( &pkey2, opt.key_file2, "" ) ) != 0 )
         {
-            printf( " failed\n  !  pk_parse_keyfile(2) returned -0x%x\n\n",
+            polarssl_printf( " failed\n  !  pk_parse_keyfile(2) returned -0x%x\n\n",
                     -ret );
             goto exit;
         }
     }
     if( key_cert_init2 == 1 )
     {
-        printf( " failed\n  !  crt_file2 without key_file2 or vice-versa\n\n" );
+        polarssl_printf( " failed\n  !  crt_file2 without key_file2 or vice-versa\n\n" );
         goto exit;
     }
 #endif
@@ -1237,7 +1239,7 @@ int main( int argc, char *argv[] )
         strcmp( opt.key_file2, "none" ) != 0 )
     {
 #if !defined(POLARSSL_CERTS_C)
-        printf( "Not certificated or key provided, and \n"
+        polarssl_printf( "Not certificated or key provided, and \n"
                 "POLARSSL_CERTS_C not defined!\n" );
         goto exit;
 #else
@@ -1246,14 +1248,14 @@ int main( int argc, char *argv[] )
                                     (const unsigned char *) test_srv_crt_rsa,
                                     strlen( test_srv_crt_rsa ) ) ) != 0 )
         {
-            printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
+            polarssl_printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
             goto exit;
         }
         if( ( ret = pk_parse_key( &pkey,
                                   (const unsigned char *) test_srv_key_rsa,
                                   strlen( test_srv_key_rsa ), NULL, 0 ) ) != 0 )
         {
-            printf( " failed\n  !  pk_parse_key returned -0x%x\n\n", -ret );
+            polarssl_printf( " failed\n  !  pk_parse_key returned -0x%x\n\n", -ret );
             goto exit;
         }
         key_cert_init = 2;
@@ -1263,14 +1265,14 @@ int main( int argc, char *argv[] )
                                     (const unsigned char *) test_srv_crt_ec,
                                     strlen( test_srv_crt_ec ) ) ) != 0 )
         {
-            printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n", -ret );
+            polarssl_printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n", -ret );
             goto exit;
         }
         if( ( ret = pk_parse_key( &pkey2,
                                   (const unsigned char *) test_srv_key_ec,
                                   strlen( test_srv_key_ec ), NULL, 0 ) ) != 0 )
         {
-            printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n", -ret );
+            polarssl_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n", -ret );
             goto exit;
         }
         key_cert_init2 = 2;
@@ -1278,66 +1280,66 @@ int main( int argc, char *argv[] )
 #endif /* POLARSSL_CERTS_C */
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
 #if defined(POLARSSL_DHM_C) && defined(POLARSSL_FS_IO)
     if( opt.dhm_file != NULL )
     {
-        printf( "  . Loading DHM parameters..." );
+        polarssl_printf( "  . Loading DHM parameters..." );
         fflush( stdout );
 
         if( ( ret = dhm_parse_dhmfile( &dhm, opt.dhm_file ) ) != 0 )
         {
-            printf( " failed\n  ! dhm_parse_dhmfile returned -0x%04X\n\n",
+            polarssl_printf( " failed\n  ! dhm_parse_dhmfile returned -0x%04X\n\n",
                      -ret );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
     }
 #endif
 
 #if defined(POLARSSL_SNI)
     if( opt.sni != NULL )
     {
-        printf( "  . Setting up SNI information..." );
+        polarssl_printf( "  . Setting up SNI information..." );
         fflush( stdout );
 
         if( ( sni_info = sni_parse( opt.sni ) ) == NULL )
         {
-            printf( " failed\n" );
+            polarssl_printf( " failed\n" );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
     }
 #endif /* POLARSSL_SNI */
 
     /*
      * 2. Setup the listening TCP socket
      */
-    printf( "  . Bind on tcp://localhost:%-4d/ ...", opt.server_port );
+    polarssl_printf( "  . Bind on tcp://localhost:%-4d/ ...", opt.server_port );
     fflush( stdout );
 
     if( ( ret = net_bind( &listen_fd, opt.server_addr,
                                       opt.server_port ) ) != 0 )
     {
-        printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
+        polarssl_printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 3. Setup stuff
      */
-    printf( "  . Setting up the SSL/TLS structure..." );
+    polarssl_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
     if( ( ret = ssl_init( &ssl ) ) != 0 )
     {
-        printf( " failed\n  ! ssl_init returned -0x%x\n\n", -ret );
+        polarssl_printf( " failed\n  ! ssl_init returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -1347,7 +1349,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_MAX_FRAGMENT_LENGTH)
     if( ( ret = ssl_set_max_frag_len( &ssl, opt.mfl_code ) ) != 0 )
     {
-        printf( " failed\n  ! ssl_set_max_frag_len returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! ssl_set_max_frag_len returned %d\n\n", ret );
         goto exit;
     };
 #endif
@@ -1371,7 +1373,7 @@ int main( int argc, char *argv[] )
     if( opt.alpn_string != NULL )
         if( ( ret = ssl_set_alpn_protocols( &ssl, alpn_list ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_set_alpn_protocols returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_set_alpn_protocols returned %d\n\n", ret );
             goto exit;
         }
 #endif
@@ -1393,7 +1395,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_SESSION_TICKETS)
     if( ( ret = ssl_set_session_tickets( &ssl, opt.tickets ) ) != 0 )
     {
-        printf( " failed\n  ! ssl_set_session_tickets returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! ssl_set_session_tickets returned %d\n\n", ret );
         goto exit;
     }
 
@@ -1446,13 +1448,13 @@ int main( int argc, char *argv[] )
     if( key_cert_init )
         if( ( ret = ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
             goto exit;
         }
     if( key_cert_init2 )
         if( ( ret = ssl_set_own_cert( &ssl, &srvcert2, &pkey2 ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
             goto exit;
         }
 #endif
@@ -1470,7 +1472,7 @@ int main( int argc, char *argv[] )
                            strlen( opt.psk_identity ) );
         if( ret != 0 )
         {
-            printf( "  failed\n  ssl_set_psk returned -0x%04X\n\n", - ret );
+            polarssl_printf( "  failed\n  ssl_set_psk returned -0x%04X\n\n", - ret );
             goto exit;
         }
     }
@@ -1493,7 +1495,7 @@ int main( int argc, char *argv[] )
 
     if( ret != 0 )
     {
-        printf( "  failed\n  ssl_set_dh_param returned -0x%04X\n\n", - ret );
+        polarssl_printf( "  failed\n  ssl_set_dh_param returned -0x%04X\n\n", - ret );
         goto exit;
     }
 #endif
@@ -1504,7 +1506,7 @@ int main( int argc, char *argv[] )
     if( opt.max_version != -1 )
         ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
 reset:
 #if !defined(_WIN32)
@@ -1521,7 +1523,7 @@ reset:
     {
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
-        printf("Last error was: %d - %s\n\n", ret, error_buf );
+        polarssl_printf("Last error was: %d - %s\n\n", ret, error_buf );
     }
 #endif
 
@@ -1535,7 +1537,7 @@ reset:
      */
     client_fd = -1;
 
-    printf( "  . Waiting for a remote connection ..." );
+    polarssl_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
     if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
@@ -1543,13 +1545,13 @@ reset:
 #if !defined(_WIN32)
         if( received_sigterm )
         {
-            printf( " interrupted by signal\n" );
+            polarssl_printf( " interrupted by signal\n" );
             ret = 0;
             goto exit;
         }
 #endif
 
-        printf( " failed\n  ! net_accept returned -0x%x\n\n", -ret );
+        polarssl_printf( " failed\n  ! net_accept returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -1559,7 +1561,7 @@ reset:
         ret = net_set_block( client_fd );
     if( ret != 0 )
     {
-        printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n", -ret );
+        polarssl_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -1568,31 +1570,31 @@ reset:
     else
         ssl_set_bio( &ssl, net_recv, &client_fd, net_send, &client_fd );
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 4. Handshake
      */
-    printf( "  . Performing the SSL/TLS handshake..." );
+    polarssl_printf( "  . Performing the SSL/TLS handshake..." );
     fflush( stdout );
 
     while( ( ret = ssl_handshake( &ssl ) ) != 0 )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
-            printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
+            polarssl_printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
             goto reset;
         }
     }
 
-    printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
+    polarssl_printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
             ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
 
 #if defined(POLARSSL_SSL_ALPN)
     if( opt.alpn_string != NULL )
     {
         const char *alp = ssl_get_alpn_protocol( &ssl );
-        printf( "    [ Application Layer Protocol is %s ]\n",
+        polarssl_printf( "    [ Application Layer Protocol is %s ]\n",
                 alp ? alp : "(none)" );
     }
 #endif
@@ -1601,35 +1603,35 @@ reset:
     /*
      * 5. Verify the server certificate
      */
-    printf( "  . Verifying peer X.509 certificate..." );
+    polarssl_printf( "  . Verifying peer X.509 certificate..." );
 
     if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
     {
-        printf( " failed\n" );
+        polarssl_printf( " failed\n" );
 
         if( !ssl_get_peer_cert( &ssl ) )
-            printf( "  ! no client certificate sent\n" );
+            polarssl_printf( "  ! no client certificate sent\n" );
 
         if( ( ret & BADCERT_EXPIRED ) != 0 )
-            printf( "  ! client certificate has expired\n" );
+            polarssl_printf( "  ! client certificate has expired\n" );
 
         if( ( ret & BADCERT_REVOKED ) != 0 )
-            printf( "  ! client certificate has been revoked\n" );
+            polarssl_printf( "  ! client certificate has been revoked\n" );
 
         if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-            printf( "  ! self-signed or not signed by a trusted CA\n" );
+            polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
 
-        printf( "\n" );
+        polarssl_printf( "\n" );
     }
     else
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
     if( ssl_get_peer_cert( &ssl ) )
     {
-        printf( "  . Peer certificate information    ...\n" );
+        polarssl_printf( "  . Peer certificate information    ...\n" );
         x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
                        ssl_get_peer_cert( &ssl ) );
-        printf( "%s\n", buf );
+        polarssl_printf( "%s\n", buf );
     }
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
@@ -1638,7 +1640,7 @@ data_exchange:
     /*
      * 6. Read the HTTP Request
      */
-    printf( "  < Read from client:" );
+    polarssl_printf( "  < Read from client:" );
     fflush( stdout );
 
     do
@@ -1657,17 +1659,17 @@ data_exchange:
             switch( ret )
             {
                 case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
-                    printf( " connection was closed gracefully\n" );
+                    polarssl_printf( " connection was closed gracefully\n" );
                     goto close_notify;
 
                 case 0:
                 case POLARSSL_ERR_NET_CONN_RESET:
-                    printf( " connection was reset by peer\n" );
+                    polarssl_printf( " connection was reset by peer\n" );
                     ret = POLARSSL_ERR_NET_CONN_RESET;
                     goto reset;
 
                 default:
-                    printf( " ssl_read returned -0x%x\n", -ret );
+                    polarssl_printf( " ssl_read returned -0x%x\n", -ret );
                     goto reset;
             }
         }
@@ -1676,7 +1678,7 @@ data_exchange:
         {
             len = ret;
             buf[len] = '\0';
-            printf( " %d bytes read\n\n%s\n", len, (char *) buf );
+            polarssl_printf( " %d bytes read\n\n%s\n", len, (char *) buf );
 
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
@@ -1694,7 +1696,7 @@ data_exchange:
             larger_buf = polarssl_malloc( ori_len + extra_len + 1 );
             if( larger_buf == NULL )
             {
-                printf( "  ! memory allocation failed\n" );
+                polarssl_printf( "  ! memory allocation failed\n" );
                 ret = 1;
                 goto reset;
             }
@@ -1707,13 +1709,13 @@ data_exchange:
             if( ret != extra_len ||
                 ssl_get_bytes_avail( &ssl ) != 0 )
             {
-                printf( "  ! ssl_read failed on cached data\n" );
+                polarssl_printf( "  ! ssl_read failed on cached data\n" );
                 ret = 1;
                 goto reset;
             }
 
             larger_buf[ori_len + extra_len] = '\0';
-            printf( " %u bytes read (%u + %u)\n\n%s\n",
+            polarssl_printf( " %u bytes read (%u + %u)\n\n%s\n",
                     ori_len + extra_len, ori_len, extra_len,
                     (char *) larger_buf );
 
@@ -1740,7 +1742,7 @@ data_exchange:
 #if defined(POLARSSL_SSL_RENEGOTIATION)
     if( opt.renegotiate && exchanges_left > 1 )
     {
-        printf( "  . Requestion renegotiation..." );
+        polarssl_printf( "  . Requestion renegotiation..." );
         fflush( stdout );
 
         while( ( ret = ssl_renegotiate( &ssl ) ) != 0 )
@@ -1748,19 +1750,19 @@ data_exchange:
             if( ret != POLARSSL_ERR_NET_WANT_READ &&
                 ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
-                printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
+                polarssl_printf( " failed\n  ! ssl_renegotiate returned %d\n\n", ret );
                 goto reset;
             }
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
     }
 #endif /* POLARSSL_SSL_RENEGOTIATION */
 
     /*
      * 7. Write the 200 Response
      */
-    printf( "  > Write to client:" );
+    polarssl_printf( "  > Write to client:" );
     fflush( stdout );
 
     len = sprintf( (char *) buf, HTTP_RESPONSE,
@@ -1772,13 +1774,13 @@ data_exchange:
         {
             if( ret == POLARSSL_ERR_NET_CONN_RESET )
             {
-                printf( " failed\n  ! peer closed the connection\n\n" );
+                polarssl_printf( " failed\n  ! peer closed the connection\n\n" );
                 goto reset;
             }
 
             if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
-                printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+                polarssl_printf( " failed\n  ! ssl_write returned %d\n\n", ret );
                 goto reset;
             }
         }
@@ -1786,6 +1788,7 @@ data_exchange:
 
     buf[written] = '\0';
     printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
+    polarssl_printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
     ret = 0;
 
     /*
@@ -1798,14 +1801,15 @@ data_exchange:
      * 8. Done, cleanly close the connection
      */
 close_notify:
-    printf( "  . Closing the connection..." );
+    polarssl_printf( "  . Closing the connection..." );
 
     /* No error checking, the connection might be closed already */
     do ret = ssl_close_notify( &ssl );
     while( ret == POLARSSL_ERR_NET_WANT_WRITE );
     ret = 0;
 
-    printf( " done\n" );
+    polarssl_printf( " done\n" );
+
     goto reset;
 
     /*
@@ -1817,7 +1821,7 @@ exit:
     {
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
-        printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
+        polarssl_printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
 
@@ -1865,7 +1869,7 @@ exit:
     printf( " done.\n" );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

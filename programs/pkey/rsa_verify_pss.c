@@ -26,6 +26,12 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
@@ -47,7 +53,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_SHA1_C and/or POLARSSL_PK_PARSE_C and/or "
            "POLARSSL_FS_IO not defined.\n");
     return( 0 );
@@ -67,29 +73,29 @@ int main( int argc, char *argv[] )
 
     if( argc != 3 )
     {
-        printf( "usage: rsa_verify_pss <key_file> <filename>\n" );
+        polarssl_printf( "usage: rsa_verify_pss <key_file> <filename>\n" );
 
 #if defined(_WIN32)
-        printf( "\n" );
+        polarssl_printf( "\n" );
 #endif
 
         goto exit;
     }
 
-    printf( "\n  . Reading public key from '%s'", argv[1] );
+    polarssl_printf( "\n  . Reading public key from '%s'", argv[1] );
     fflush( stdout );
 
     if( ( ret = pk_parse_public_keyfile( &pk, argv[1] ) ) != 0 )
     {
-        printf( " failed\n  ! Could not read key from '%s'\n", argv[1] );
-        printf( "  ! pk_parse_public_keyfile returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! Could not read key from '%s'\n", argv[1] );
+        polarssl_printf( "  ! pk_parse_public_keyfile returned %d\n\n", ret );
         goto exit;
     }
 
     if( !pk_can_do( &pk, POLARSSL_PK_RSA ) )
     {
         ret = 1;
-        printf( " failed\n  ! Key is not an RSA key\n" );
+        polarssl_printf( " failed\n  ! Key is not an RSA key\n" );
         goto exit;
     }
 
@@ -103,7 +109,7 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
-        printf( "\n  ! Could not open %s\n\n", filename );
+        polarssl_printf( "\n  ! Could not open %s\n\n", filename );
         goto exit;
     }
 
@@ -116,23 +122,23 @@ int main( int argc, char *argv[] )
      * Compute the SHA-1 hash of the input file and compare
      * it with the hash decrypted from the RSA signature.
      */
-    printf( "\n  . Verifying the RSA/SHA-1 signature" );
+    polarssl_printf( "\n  . Verifying the RSA/SHA-1 signature" );
     fflush( stdout );
 
     if( ( ret = sha1_file( argv[2], hash ) ) != 0 )
     {
-        printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
+        polarssl_printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
         goto exit;
     }
 
     if( ( ret = pk_verify( &pk, POLARSSL_MD_SHA1, hash, 0,
                            buf, i ) ) != 0 )
     {
-        printf( " failed\n  ! pk_verify returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! pk_verify returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( "\n  . OK (the decrypted SHA-1 hash matches)\n\n" );
+    polarssl_printf( "\n  . OK (the decrypted SHA-1 hash matches)\n\n" );
 
     ret = 0;
 
@@ -140,7 +146,7 @@ exit:
     pk_free( &pk );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

@@ -26,6 +26,12 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
@@ -72,7 +78,7 @@ int main( int argc, char *argv[] )
     else
     {
         v = 1;
-        printf( "\n" );
+        polarssl_printf( "\n" );
     }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -215,7 +221,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #else
-    printf( " POLARSSL_SELF_TEST not defined.\n" );
+    polarssl_printf( " POLARSSL_SELF_TEST not defined.\n" );
 #endif
 
     if( v != 0 )
@@ -234,9 +240,9 @@ int main( int argc, char *argv[] )
 
     if( v != 0 )
     {
-        printf( "  [ All tests passed ]\n\n" );
+        polarssl_printf( "  [ All tests passed ]\n\n" );
 #if defined(_WIN32)
-        printf( "  Press Enter to exit this program.\n" );
+        polarssl_printf( "  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
     }

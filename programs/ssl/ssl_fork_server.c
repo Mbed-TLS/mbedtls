@@ -26,6 +26,13 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#endif
+
 #if defined(_WIN32)
 #include <windows.h>
 #endif
@@ -62,7 +69,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_ENTROPY_C "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_CERTS_C and/or POLARSSL_ENTROPY_C "
            "and/or POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_SRV_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_CTR_DRBG_C and/or POLARSSL_X509_CRT_PARSE_C and/or "
@@ -75,7 +82,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("_WIN32 defined. This application requires fork() and signals "
+    polarssl_printf("_WIN32 defined. This application requires fork() and signals "
            "to work correctly.\n");
     return( 0 );
 }
@@ -87,7 +94,7 @@ static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < DEBUG_LEVEL )
     {
-        fprintf( (FILE *) ctx, "%s", str );
+        polarssl_fprintf( (FILE *) ctx, "%s", str );
         fflush(  (FILE *) ctx  );
     }
 }
@@ -120,23 +127,23 @@ int main( int argc, char *argv[] )
     /*
      * 0. Initial seeding of the RNG
      */
-    printf( "\n  . Initial seeding of the random generator..." );
+    polarssl_printf( "\n  . Initial seeding of the random generator..." );
     fflush( stdout );
 
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 1. Load the certificates and private RSA key
      */
-    printf( "  . Loading the server cert. and key..." );
+    polarssl_printf( "  . Loading the server cert. and key..." );
     fflush( stdout );
 
     /*
@@ -148,7 +155,7 @@ int main( int argc, char *argv[] )
                           strlen( test_srv_crt ) );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
+        polarssl_printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
@@ -156,7 +163,7 @@ int main( int argc, char *argv[] )
                           strlen( test_ca_list ) );
     if( ret != 0 )
     {
-        printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
+        polarssl_printf( " failed\n  !  x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
@@ -164,25 +171,25 @@ int main( int argc, char *argv[] )
                           strlen( test_srv_key ), NULL, 0 );
     if( ret != 0 )
     {
-        printf( " failed\n  !  pk_parse_key returned %d\n\n", ret );
+        polarssl_printf( " failed\n  !  pk_parse_key returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 2. Setup the listening TCP socket
      */
-    printf( "  . Bind on https://localhost:4433/ ..." );
+    polarssl_printf( "  . Bind on https://localhost:4433/ ..." );
     fflush( stdout );
 
     if( ( ret = net_bind( &listen_fd, NULL, 4433 ) ) != 0 )
     {
-        printf( " failed\n  ! net_bind returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! net_bind returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     while( 1 )
     {
@@ -192,16 +199,16 @@ int main( int argc, char *argv[] )
         client_fd = -1;
         memset( &ssl, 0, sizeof( ssl ) );
 
-        printf( "  . Waiting for a remote connection ..." );
+        polarssl_printf( "  . Waiting for a remote connection ..." );
         fflush( stdout );
 
         if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
         {
-            printf( " failed\n  ! net_accept returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! net_accept returned %d\n\n", ret );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         /*
          * 3.5. Forking server thread
@@ -209,16 +216,16 @@ int main( int argc, char *argv[] )
 
         pid = fork();
 
-        printf( "  . Forking to handle connection ..." );
+        polarssl_printf( "  . Forking to handle connection ..." );
         fflush( stdout );
 
         if( pid < 0 )
         {
-            printf(" failed\n  ! fork returned %d\n\n", pid );
+            polarssl_printf(" failed\n  ! fork returned %d\n\n", pid );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         if( pid != 0 )
         {
@@ -226,7 +233,7 @@ int main( int argc, char *argv[] )
                                          (const unsigned char *) "parent",
                                          6 ) ) != 0 )
             {
-                printf( " failed\n  ! ctr_drbg_reseed returned %d\n", ret );
+                polarssl_printf( " failed\n  ! ctr_drbg_reseed returned %d\n", ret );
                 goto exit;
             }
 
@@ -239,24 +246,24 @@ int main( int argc, char *argv[] )
         /*
          * 4. Setup stuff
          */
-        printf( "  . Setting up the SSL data...." );
+        polarssl_printf( "  . Setting up the SSL data...." );
         fflush( stdout );
 
         if( ( ret = ctr_drbg_reseed( &ctr_drbg,
                                      (const unsigned char *) "child",
                                      5 ) ) != 0 )
         {
-            printf( " failed\n  ! ctr_drbg_reseed returned %d\n", ret );
+            polarssl_printf( " failed\n  ! ctr_drbg_reseed returned %d\n", ret );
             goto exit;
         }
 
         if( ( ret = ssl_init( &ssl ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_init returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_init returned %d\n\n", ret );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         ssl_set_endpoint( &ssl, SSL_IS_SERVER );
         ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
@@ -275,31 +282,31 @@ int main( int argc, char *argv[] )
         ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
         if( ( ret = ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
             goto exit;
         }
 
         /*
          * 5. Handshake
          */
-        printf( "  . Performing the SSL/TLS handshake..." );
+        polarssl_printf( "  . Performing the SSL/TLS handshake..." );
         fflush( stdout );
 
         while( ( ret = ssl_handshake( &ssl ) ) != 0 )
         {
             if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
-                printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
+                polarssl_printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
                 goto exit;
             }
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         /*
          * 6. Read the HTTP Request
          */
-        printf( "  < Read from client:" );
+        polarssl_printf( "  < Read from client:" );
         fflush( stdout );
 
         do
@@ -316,15 +323,15 @@ int main( int argc, char *argv[] )
                 switch( ret )
                 {
                     case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
-                        printf( " connection was closed gracefully\n" );
+                        polarssl_printf( " connection was closed gracefully\n" );
                         break;
 
                     case POLARSSL_ERR_NET_CONN_RESET:
-                        printf( " connection was reset by peer\n" );
+                        polarssl_printf( " connection was reset by peer\n" );
                         break;
 
                     default:
-                        printf( " ssl_read returned %d\n", ret );
+                        polarssl_printf( " ssl_read returned %d\n", ret );
                         break;
                 }
 
@@ -332,14 +339,14 @@ int main( int argc, char *argv[] )
             }
 
             len = ret;
-            printf( " %d bytes read\n\n%s", len, (char *) buf );
+            polarssl_printf( " %d bytes read\n\n%s", len, (char *) buf );
         }
         while( 0 );
 
         /*
          * 7. Write the 200 Response
          */
-        printf( "  > Write to client:" );
+        polarssl_printf( "  > Write to client:" );
         fflush( stdout );
 
         len = sprintf( (char *) buf, HTTP_RESPONSE,
@@ -351,18 +358,18 @@ int main( int argc, char *argv[] )
             {
                 if( ret == POLARSSL_ERR_NET_CONN_RESET )
                 {
-                    printf( " failed\n  ! peer closed the connection\n\n" );
+                    polarssl_printf( " failed\n  ! peer closed the connection\n\n" );
                     goto exit;
                 }
 
                 if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
                 {
-                    printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+                    polarssl_printf( " failed\n  ! ssl_write returned %d\n\n", ret );
                     goto exit;
                 }
             }
             len = ret;
-            printf( " %d bytes written\n\n%s\n", len, (char *) buf );
+            polarssl_printf( " %d bytes written\n\n%s\n", len, (char *) buf );
 
             m_sleep( 1000 );
         }
@@ -383,7 +390,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  Press Enter to exit this program.\n" );
+    polarssl_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

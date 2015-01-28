@@ -26,6 +26,12 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include <stdio.h>
 
 #include "polarssl/md5.h"
@@ -36,7 +42,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_MD5_C not defined.\n");
+    polarssl_printf("POLARSSL_MD5_C not defined.\n");
     return( 0 );
 }
 #else
@@ -49,17 +55,17 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf( "\n  MD5('%s') = ", str );
+    polarssl_printf( "\n  MD5('%s') = ", str );
 
     md5( (unsigned char *) str, 13, digest );
 
     for( i = 0; i < 16; i++ )
-        printf( "%02x", digest[i] );
+        polarssl_printf( "%02x", digest[i] );
 
-    printf( "\n\n" );
+    polarssl_printf( "\n\n" );
 
 #if defined(_WIN32)
-    printf( "  Press Enter to exit this program.\n" );
+    polarssl_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

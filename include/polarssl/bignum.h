@@ -24,13 +24,16 @@
 #ifndef POLARSSL_BIGNUM_H
 #define POLARSSL_BIGNUM_H
 
-#include <stdio.h>
 #include <string.h>
 
 #if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
 #else
 #include POLARSSL_CONFIG_FILE
+#endif
+
+#if defined(POLARSSL_FS_IO)
+#include <stdio.h>
 #endif
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
@@ -145,7 +148,7 @@ typedef uint32_t t_udbl;
           defined(__ppc64__) || defined(__powerpc64__) || \
           defined(__ia64__)  || defined(__alpha__)     || \
           (defined(__sparc__) && defined(__arch64__))  || \
-          defined(__s390x__) ) )
+          defined(__s390x__) || defined(__mips64) ) )
        #define POLARSSL_HAVE_INT64
        typedef  int64_t t_sint;
        typedef uint64_t t_uint;

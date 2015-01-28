@@ -839,10 +839,18 @@ static int ssl_pick_cert( ssl_context *ssl,
     if( pk_alg == POLARSSL_PK_NONE )
         return( 0 );
 
+    SSL_DEBUG_MSG( 3, ( "ciphersuite requires certificate" ) );
+
     for( cur = list; cur != NULL; cur = cur->next )
     {
+        SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
+                          cur->cert );
+
         if( ! pk_can_do( cur->key, pk_alg ) )
+        {
+            SSL_DEBUG_MSG( 3, ( "certificate mismatch: key type" ) );
             continue;
+        }
 
         /*
          * This avoids sending the client a cert it'll reject based on
@@ -855,13 +863,18 @@ static int ssl_pick_cert( ssl_context *ssl,
         if( ssl_check_cert_usage( cur->cert, ciphersuite_info,
                                   SSL_IS_SERVER ) != 0 )
         {
+            SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
+                                "(extended) key usage extension" ) );
             continue;
         }
 
 #if defined(POLARSSL_ECDSA_C)
         if( pk_alg == POLARSSL_PK_ECDSA &&
             ssl_check_key_curve( cur->key, ssl->handshake->curves ) != 0 )
+        {
+            SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
             continue;
+        }
 #endif
 
         /*
@@ -874,22 +887,27 @@ static int ssl_pick_cert( ssl_context *ssl,
         {
             if( fallback == NULL )
                 fallback = cur;
+            {
+                SSL_DEBUG_MSG( 3, ( "certificate not preferred: "
+                                    "sha-2 with pre-TLS 1.2 client" ) );
             continue;
+            }
         }
 
         /* If we get there, we got a winner */
         break;
     }
 
+    if( cur == NULL )
+        cur = fallback;
+
+
+    /* Do not update ssl->handshake->key_cert unless the is a match */
     if( cur != NULL )
     {
         ssl->handshake->key_cert = cur;
-        return( 0 );
-    }
-
-    if( fallback != NULL )
-    {
-        ssl->handshake->key_cert = fallback;
+        SSL_DEBUG_CRT( 3, "selected certificate chain, certificate",
+                          ssl->handshake->key_cert->cert );
         return( 0 );
     }
 
@@ -913,19 +931,31 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
         return( POLARSSL_ERR_SSL_INTERNAL_ERROR );
     }
 
+    SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %s", suite_info->name ) );
+
     if( suite_info->min_minor_ver > ssl->minor_ver ||
         suite_info->max_minor_ver < ssl->minor_ver )
+    {
+        SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: version" ) );
         return( 0 );
+    }
 
     if( ssl->arc4_disabled == SSL_ARC4_DISABLED &&
             suite_info->cipher == POLARSSL_CIPHER_ARC4_128 )
+    {
+        SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: rc4" ) );
         return( 0 );
+    }
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
     if( ssl_ciphersuite_uses_ec( suite_info ) &&
         ( ssl->handshake->curves == NULL ||
           ssl->handshake->curves[0] == NULL ) )
+    {
+        SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
+                            "no common elliptic curve" ) );
         return( 0 );
+    }
 #endif
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -935,7 +965,10 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
         ssl->f_psk == NULL &&
         ( ssl->psk == NULL || ssl->psk_identity == NULL ||
           ssl->psk_identity_len == 0 || ssl->psk_len == 0 ) )
+    {
+        SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no pre-shared key" ) );
         return( 0 );
+    }
 #endif
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
@@ -947,7 +980,11 @@ static int ssl_ciphersuite_match( ssl_context *ssl, int suite_id,
      * This must be done last since we modify the key_cert list.
      */
     if( ssl_pick_cert( ssl, suite_info ) != 0 )
+    {
+        SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
+                            "no suitable certificate" ) );
         return( 0 );
+    }
 #endif
 
     *ciphersuite_info = suite_info;
@@ -1197,6 +1234,8 @@ static int ssl_parse_client_hello_v2( ssl_context *ssl )
     }
 
 have_ciphersuite_v2:
+    SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s", ciphersuite_info->name ) );
+
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
     ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );
@@ -1755,6 +1794,8 @@ static int ssl_parse_client_hello( ssl_context *ssl )
     }
 
 have_ciphersuite:
+    SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s", ciphersuite_info->name ) );
+
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->transform_negotiate->ciphersuite_info = ciphersuite_info;
     ssl_optimize_checksum( ssl, ssl->transform_negotiate->ciphersuite_info );

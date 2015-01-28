@@ -172,7 +172,7 @@
 #include "polarssl/xtea.h"
 #endif
 
-
+#include <stdio.h>
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
@@ -450,7 +450,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_SSL_WAITING_SERVER_HELLO_RENEGO) )
             snprintf( buf, buflen, "SSL - Unexpected message at ServerHello in renegotiation" );
         if( use_ret == -(POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE) )
-            snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate)" );
+            snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)

@@ -26,6 +26,12 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -42,7 +48,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_ERROR_C and/or POLARSSL_ERROR_STRERROR_DUMMY not defined.\n");
+    polarssl_printf("POLARSSL_ERROR_C and/or POLARSSL_ERROR_STRERROR_DUMMY not defined.\n");
     return( 0 );
 }
 #else
@@ -53,7 +59,7 @@ int main( int argc, char *argv[] )
 
     if( argc != 2 )
     {
-        printf( USAGE );
+        polarssl_printf( USAGE );
         return( 0 );
     }
 
@@ -63,7 +69,7 @@ int main( int argc, char *argv[] )
         val = strtol( argv[1], &end, 16 );
         if( *end != '\0' )
         {
-            printf( USAGE );
+            polarssl_printf( USAGE );
             return( 0 );
         }
     }
@@ -74,11 +80,11 @@ int main( int argc, char *argv[] )
     {
         char error_buf[200];
         polarssl_strerror( val, error_buf, 200 );
-        printf("Last error was: -0x%04x - %s\n\n", (int) -val, error_buf );
+        polarssl_printf("Last error was: -0x%04x - %s\n\n", (int) -val, error_buf );
     }
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

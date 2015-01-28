@@ -26,6 +26,12 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
@@ -41,7 +47,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_FS_IO and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");
     return( 0 );
@@ -65,16 +71,16 @@ int main( int argc, char *argv[] )
 
     if( argc != 1 )
     {
-        printf( "usage: rsa_decrypt\n" );
+        polarssl_printf( "usage: rsa_decrypt\n" );
 
 #if defined(_WIN32)
-        printf( "\n" );
+        polarssl_printf( "\n" );
 #endif
 
         goto exit;
     }
 
-    printf( "\n  . Seeding the random number generator..." );
+    polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     entropy_init( &entropy );
@@ -82,16 +88,16 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    printf( "\n  . Reading private key from rsa_priv.txt" );
+    polarssl_printf( "\n  . Reading private key from rsa_priv.txt" );
     fflush( stdout );
 
     if( ( f = fopen( "rsa_priv.txt", "rb" ) ) == NULL )
     {
-        printf( " failed\n  ! Could not open rsa_priv.txt\n" \
+        polarssl_printf( " failed\n  ! Could not open rsa_priv.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
     }
@@ -107,7 +113,7 @@ int main( int argc, char *argv[] )
         ( ret = mpi_read_file( &rsa.DQ, 16, f ) ) != 0 ||
         ( ret = mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
     {
-        printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! mpi_read_file returned %d\n\n", ret );
         goto exit;
     }
 
@@ -122,7 +128,7 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( "result-enc.txt", "rb" ) ) == NULL )
     {
-        printf( "\n  ! Could not open %s\n\n", "result-enc.txt" );
+        polarssl_printf( "\n  ! Could not open %s\n\n", "result-enc.txt" );
         goto exit;
     }
 
@@ -136,27 +142,27 @@ int main( int argc, char *argv[] )
 
     if( i != rsa.len )
     {
-        printf( "\n  ! Invalid RSA signature format\n\n" );
+        polarssl_printf( "\n  ! Invalid RSA signature format\n\n" );
         goto exit;
     }
 
     /*
      * Decrypt the encrypted RSA data and print the result.
      */
-    printf( "\n  . Decrypting the encrypted data" );
+    polarssl_printf( "\n  . Decrypting the encrypted data" );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_decrypt( &rsa, ctr_drbg_random, &ctr_drbg,
                                    RSA_PRIVATE, &i, buf, result,
                                    1024 ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( "\n  . OK\n\n" );
+    polarssl_printf( "\n  . OK\n\n" );
 
-    printf( "The decrypted result is: '%s'\n\n", result );
+    polarssl_printf( "The decrypted result is: '%s'\n\n", result );
 
     ret = 0;
 
@@ -165,7 +171,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

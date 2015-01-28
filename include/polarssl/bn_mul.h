@@ -680,7 +680,7 @@
     );
 #endif /* Alpha */
 
-#if defined(__mips__) && !defined(__mips64__)
+#if defined(__mips__) && !defined(__mips64)
 
 #define MULADDC_INIT                    \
     asm(                                \

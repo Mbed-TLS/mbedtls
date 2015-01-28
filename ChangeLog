@@ -54,6 +54,10 @@ Bugfix
    * Fix assembly selection for MIPS64 (thanks to James Cowgill).
    * ssl_get_verify_result() now works even if the handshake was aborted due
      to a failed verification (found by Fredrik Axelsson).
+   * Skip writing and parsing signature_algorithm extension if none of the
+     key exchanges enabled needs certificates. This fixes a possible interop
+     issue with some servers when a zero-length extension was sent. (Reported
+     by Peter Dettman.)
 
 Changes
    * Use deterministic nonces for AEAD ciphers in TLS by default (possible to
@@ -62,8 +66,6 @@ Changes
    * ssl_set_own_cert() now returns an error on key-certificate mismatch.
    * Forbid repeated extensions in X.509 certificates.
    * debug_print_buf() now prints a text view in addition to hexadecimal.
-   * Skip writing and parsing signature_algorithm extension if none of the
-     key exchanges enabled needs certificates.
    * A specific error is now returned when there are ciphersuites in common
      but none of them is usable due to external factors such as no certificate
      with a suitable (extended)KeyUsage or curve or no PSK set.

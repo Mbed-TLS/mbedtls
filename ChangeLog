@@ -58,6 +58,7 @@ Bugfix
      key exchanges enabled needs certificates. This fixes a possible interop
      issue with some servers when a zero-length extension was sent. (Reported
      by Peter Dettman.)
+   * On a 0-length input, base64_encode() did not correctly set output length.
 
 Changes
    * Use deterministic nonces for AEAD ciphers in TLS by default (possible to

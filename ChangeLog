@@ -25,6 +25,14 @@ Bugfix
    * Fix unchecked return code in x509_crt_parse_path() on Windows (found by
      Peter Vaskovic).
    * Fix assembly selection for MIPS64 (thanks to James Cowgill).
+   * ssl_get_verify_result() now works even if the handshake was aborted due
+     to a failed verification (found by Fredrik Axelsson).
+   * Skip writing and parsing signature_algorithm extension if none of the
+     key exchanges enabled needs certificates. This fixes a possible interop
+     issue with some servers when a zero-length extension was sent. (Reported
+     by Peter Dettman.)
+   * On a 0-length input, base64_encode() did not correctly set output length
+     (found by Hendrik van den Boogaard).
 
 Changes
    * Blind RSA private operations even when POLARSSL_RSA_NO_CRT is defined.

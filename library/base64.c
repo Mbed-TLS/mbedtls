@@ -72,7 +72,10 @@ int base64_encode( unsigned char *dst, size_t *dlen,
     unsigned char *p;
 
     if( slen == 0 )
+    {
+        *dlen = 0;
         return( 0 );
+    }
 
     n = (slen << 3) / 6;
 

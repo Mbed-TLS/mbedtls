@@ -1017,6 +1017,8 @@
  *
  * Enable support for RFC 6066 server name indication (SNI) in SSL.
  *
+ * Requires: POLARSSL_X509_CRT_PARSE_C
+ *
  * Comment this macro to disable support for server name indication in SSL
  */
 #define POLARSSL_SSL_SERVER_NAME_INDICATION

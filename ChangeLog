@@ -6,7 +6,7 @@ Reminder: bump SONAME for ABI change (FALLBACK_SCSV, session-hash, EtM)
 
 Security
    * NULL pointer dereference in the buffer-based allocator when the buffer is
-     full and polarssl_free() is called (found by Jean-Philippe Aumasson)
+     full and polarssl_free() is called (found by Mark Hasemeyer)
      (only possible if POLARSSL_MEMORY_BUFFER_ALLOC_C is enabled, which it is
      not by default).
    * Fix remotely-triggerable uninitialised pointer dereference caused by

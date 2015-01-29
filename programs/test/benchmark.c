@@ -151,8 +151,8 @@ do {                                                                    \
     polarssl_printf( "%6u heap bytes", (unsigned) max_bytes );
 
 #else
-#define MEMORY_MEASURE_INIT( l )
-#define MEMORY_MEASURE_PRINT
+#define MEMORY_MEASURE_INIT
+#define MEMORY_MEASURE_PRINT( title_len )
 #endif
 
 #define TIME_PUBLIC( TITLE, TYPE, CODE )                                \

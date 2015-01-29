@@ -1720,7 +1720,7 @@ reset:
 #if !defined(_WIN32)
     if( received_sigterm )
     {
-        printf( " interrupted by SIGTERM\n" );
+        polarssl_printf( " interrupted by SIGTERM\n" );
         ret = 0;
         goto exit;
     }
@@ -2108,7 +2108,6 @@ data_exchange:
     }
 
     buf[written] = '\0';
-    printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
     polarssl_printf( " %d bytes written in %d fragments\n\n%s\n", written, frags, (char *) buf );
     ret = 0;
 
@@ -2146,7 +2145,7 @@ exit:
     }
 #endif
 
-    printf( "  . Cleaning up..." );
+    polarssl_printf( "  . Cleaning up..." );
     fflush( stdout );
 
     if( client_fd != -1 )
@@ -2190,7 +2189,7 @@ exit:
     memory_buffer_alloc_free();
 #endif
 
-    printf( " done.\n" );
+    polarssl_printf( " done.\n" );
 
 #if defined(_WIN32)
     polarssl_printf( "  + Press Enter to exit this program.\n" );

@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2012-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -114,6 +114,14 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
  *                 Length should be a multiple of the block
  *                 size (8 bytes)
  *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
  * \param ctx      Blowfish context
  * \param mode     BLOWFISH_ENCRYPT or BLOWFISH_DECRYPT
  * \param length   length of the input data
@@ -135,6 +143,14 @@ int blowfish_crypt_cbc( blowfish_context *ctx,
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 /**
  * \brief          Blowfish CFB buffer encryption/decryption.
+ *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
  *
  * \param ctx      Blowfish context
  * \param mode     BLOWFISH_ENCRYPT or BLOWFISH_DECRYPT

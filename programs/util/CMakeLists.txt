@@ -1,5 +1,5 @@
 set(libs
-     polarssl
+     mbedtls
 )
 
 add_executable(strerror strerror.c)

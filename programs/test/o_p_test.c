@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2011-2012 ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,12 @@
 #include "polarssl/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
 #endif
 
 #include <string.h>
@@ -51,7 +57,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
@@ -82,7 +88,7 @@ int main( int argc, char *argv[] )
                     (const unsigned char *) pers,
                     strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
     ERR_load_crypto_strings();
@@ -91,38 +97,38 @@ int main( int argc, char *argv[] )
 
     if( argc != 3 )
     {
-        printf( "usage: o_p_test <keyfile with private_key> <string of max 100 characters>\n" );
+        polarssl_printf( "usage: o_p_test <keyfile with private_key> <string of max 100 characters>\n" );
 
 #ifdef WIN32
-        printf( "\n" );
+        polarssl_printf( "\n" );
 #endif
 
         goto exit;
     }
 
-    printf( "  . Reading private key from %s into mbed TLS ...", argv[1] );
+    polarssl_printf( "  . Reading private key from %s into mbed TLS ...", argv[1] );
     fflush( stdout );
 
     pk_init( &p_pk );
     if( pk_parse_keyfile( &p_pk, argv[1], NULL ) != 0 )
     {
         ret = 1;
-        printf( " failed\n  ! Could not load key.\n\n" );
+        polarssl_printf( " failed\n  ! Could not load key.\n\n" );
         goto exit;
     }
 
     if( !pk_can_do( &p_pk, POLARSSL_PK_RSA ) )
     {
         ret = 1;
-        printf( " failed\n  ! Key is not an RSA key\n" );
+        polarssl_printf( " failed\n  ! Key is not an RSA key\n" );
         goto exit;
     }
 
     p_rsa = pk_rsa( p_pk );
 
-    printf( " passed\n");
+    polarssl_printf( " passed\n");
 
-    printf( "  . Reading private key from %s into OpenSSL  ...", argv[1] );
+    polarssl_printf( "  . Reading private key from %s into OpenSSL  ...", argv[1] );
     fflush( stdout );
 
     key_file = fopen( argv[1], "r" );
@@ -131,16 +137,16 @@ int main( int argc, char *argv[] )
     if( o_rsa == NULL )
     {
         ret = 1;
-        printf( " failed\n  ! Could not load key.\n\n" );
+        polarssl_printf( " failed\n  ! Could not load key.\n\n" );
         goto exit;
     }
 
-    printf( " passed\n");
-    printf( "\n" );
+    polarssl_printf( " passed\n");
+    polarssl_printf( "\n" );
 
     if( strlen( argv[1] ) > 100 )
     {
-        printf( " Input data larger than 100 characters.\n\n" );
+        polarssl_printf( " Input data larger than 100 characters.\n\n" );
         goto exit;
     }
 
@@ -149,117 +155,117 @@ int main( int argc, char *argv[] )
     /*
      * Calculate the RSA encryption with public key.
      */
-    printf( "  . Generating the RSA encrypted value with mbed TLS (RSA_PUBLIC)  ..." );
+    polarssl_printf( "  . Generating the RSA encrypted value with mbed TLS (RSA_PUBLIC)  ..." );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_encrypt( p_rsa, ctr_drbg_random, &ctr_drbg, RSA_PUBLIC, strlen( argv[2] ), input, p_pub_encrypted ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
         goto exit;
     }
     else
-        printf( " passed\n");
+        polarssl_printf( " passed\n");
 
-    printf( "  . Generating the RSA encrypted value with OpenSSL (PUBLIC)       ..." );
+    polarssl_printf( "  . Generating the RSA encrypted value with OpenSSL (PUBLIC)       ..." );
     fflush( stdout );
 
     if( ( ret = RSA_public_encrypt( strlen( argv[2] ), input, o_pub_encrypted, o_rsa, RSA_PKCS1_PADDING ) ) == -1 )
     {
         unsigned long code = ERR_get_error();
-        printf( " failed\n  ! RSA_public_encrypt returned %d %s\n\n", ret, ERR_error_string( code, NULL ) );
+        polarssl_printf( " failed\n  ! RSA_public_encrypt returned %d %s\n\n", ret, ERR_error_string( code, NULL ) );
         goto exit;
     }
     else
-        printf( " passed\n");
+        polarssl_printf( " passed\n");
 
     /*
      * Calculate the RSA encryption with private key.
      */
-    printf( "  . Generating the RSA encrypted value with mbed TLS (RSA_PRIVATE) ..." );
+    polarssl_printf( "  . Generating the RSA encrypted value with mbed TLS (RSA_PRIVATE) ..." );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_encrypt( p_rsa, ctr_drbg_random, &ctr_drbg, RSA_PRIVATE, strlen( argv[2] ), input, p_priv_encrypted ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! rsa_pkcs1_encrypt returned %d\n\n", ret );
         goto exit;
     }
     else
-        printf( " passed\n");
+        polarssl_printf( " passed\n");
 
-    printf( "  . Generating the RSA encrypted value with OpenSSL (PRIVATE)      ..." );
+    polarssl_printf( "  . Generating the RSA encrypted value with OpenSSL (PRIVATE)      ..." );
     fflush( stdout );
 
     if( ( ret = RSA_private_encrypt( strlen( argv[2] ), input, o_priv_encrypted, o_rsa, RSA_PKCS1_PADDING ) ) == -1 )
     {
         unsigned long code = ERR_get_error();
-        printf( " failed\n  ! RSA_private_encrypt returned %d %s\n\n", ret, ERR_error_string( code, NULL ) );
+        polarssl_printf( " failed\n  ! RSA_private_encrypt returned %d %s\n\n", ret, ERR_error_string( code, NULL ) );
         goto exit;
     }
     else
-        printf( " passed\n");
+        polarssl_printf( " passed\n");
 
-    printf( "\n" );
+    polarssl_printf( "\n" );
 
     /*
      * Calculate the RSA decryption with private key.
      */
-    printf( "  . Generating the RSA decrypted value for OpenSSL (PUBLIC) with mbed TLS (PRIVATE) ..." );
+    polarssl_printf( "  . Generating the RSA decrypted value for OpenSSL (PUBLIC) with mbed TLS (PRIVATE) ..." );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_decrypt( p_rsa, ctr_drbg_random, &ctr_drbg, RSA_PRIVATE, &olen, o_pub_encrypted, p_pub_decrypted, 1024 ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );
     }
     else
-        printf( " passed\n");
+        polarssl_printf( " passed\n");
 
-    printf( "  . Generating the RSA decrypted value for mbed TLS (PUBLIC) with OpenSSL (PRIVATE) ..." );
+    polarssl_printf( "  . Generating the RSA decrypted value for mbed TLS (PUBLIC) with OpenSSL (PRIVATE) ..." );
     fflush( stdout );
 
     if( ( ret = RSA_private_decrypt( p_rsa->len, p_pub_encrypted, o_pub_decrypted, o_rsa, RSA_PKCS1_PADDING ) ) == -1 )
     {
         unsigned long code = ERR_get_error();
-        printf( " failed\n  ! RSA_private_decrypt returned %d %s\n\n", ret, ERR_error_string( code, NULL ) );
+        polarssl_printf( " failed\n  ! RSA_private_decrypt returned %d %s\n\n", ret, ERR_error_string( code, NULL ) );
     }
     else
-        printf( " passed\n");
+        polarssl_printf( " passed\n");
 
     /*
      * Calculate the RSA decryption with public key.
      */
-    printf( "  . Generating the RSA decrypted value for OpenSSL (PRIVATE) with mbed TLS (PUBLIC) ..." );
+    polarssl_printf( "  . Generating the RSA decrypted value for OpenSSL (PRIVATE) with mbed TLS (PUBLIC) ..." );
     fflush( stdout );
 
     if( ( ret = rsa_pkcs1_decrypt( p_rsa, NULL, NULL, RSA_PUBLIC, &olen, o_priv_encrypted, p_priv_decrypted, 1024 ) ) != 0 )
     {
-        printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! rsa_pkcs1_decrypt returned %d\n\n", ret );
     }
     else
-        printf( " passed\n");
+        polarssl_printf( " passed\n");
 
-    printf( "  . Generating the RSA decrypted value for mbed TLS (PRIVATE) with OpenSSL (PUBLIC) ..." );
+    polarssl_printf( "  . Generating the RSA decrypted value for mbed TLS (PRIVATE) with OpenSSL (PUBLIC) ..." );
     fflush( stdout );
 
     if( ( ret = RSA_public_decrypt( p_rsa->len, p_priv_encrypted, o_priv_decrypted, o_rsa, RSA_PKCS1_PADDING ) ) == -1 )
     {
         unsigned long code = ERR_get_error();
-        printf( " failed\n  ! RSA_public_decrypt returned %d %s\n\n", ret, ERR_error_string( code, NULL ) );
+        polarssl_printf( " failed\n  ! RSA_public_decrypt returned %d %s\n\n", ret, ERR_error_string( code, NULL ) );
     }
     else
-        printf( " passed\n");
+        polarssl_printf( " passed\n");
 
-    printf( "\n" );
-    printf( "String value (OpenSSL Public Encrypt, mbed TLS Private Decrypt): '%s'\n", p_pub_decrypted );
-    printf( "String value (mbed TLS Public Encrypt, OpenSSL Private Decrypt): '%s'\n", o_pub_decrypted );
-    printf( "String value (OpenSSL Private Encrypt, mbed TLS Public Decrypt): '%s'\n", p_priv_decrypted );
-    printf( "String value (mbed TLS Private Encrypt, OpenSSL Public Decrypt): '%s'\n", o_priv_decrypted );
+    polarssl_printf( "\n" );
+    polarssl_printf( "String value (OpenSSL Public Encrypt, mbed TLS Private Decrypt): '%s'\n", p_pub_decrypted );
+    polarssl_printf( "String value (mbed TLS Public Encrypt, OpenSSL Private Decrypt): '%s'\n", o_pub_decrypted );
+    polarssl_printf( "String value (OpenSSL Private Encrypt, mbed TLS Public Decrypt): '%s'\n", p_priv_decrypted );
+    polarssl_printf( "String value (mbed TLS Private Encrypt, OpenSSL Public Decrypt): '%s'\n", o_priv_decrypted );
 
 exit:
     ctr_drbg_free( &ctr_drbg );
     entropy_free( &entropy );
 
 #ifdef WIN32
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

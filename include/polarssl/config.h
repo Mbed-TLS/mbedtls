@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1082,6 +1082,8 @@
  *
  * Enable support for RFC 6066 server name indication (SNI) in SSL.
  *
+ * Requires: POLARSSL_X509_CRT_PARSE_C
+ *
  * Comment this macro to disable support for server name indication in SSL
  */
 #define POLARSSL_SSL_SERVER_NAME_INDICATION
@@ -1746,6 +1748,7 @@
 /**
  * \def POLARSSL_MEMORY_C
  * Deprecated since 1.3.5. Please use POLARSSL_PLATFORM_MEMORY instead.
+ * Depends on: POLARSSL_PLATFORM_C
  */
 //#define POLARSSL_MEMORY_C
 

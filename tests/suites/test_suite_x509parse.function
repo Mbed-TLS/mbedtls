@@ -445,8 +445,6 @@ void x509_parse_rsassa_pss_params( char *hex_params, int params_tag,
     my_ret = x509_get_rsassa_pss_params( &params, &my_msg_md, &my_mgf_md,
                                          &my_salt_len );
 
-    if( my_ret != ref_ret ) printf( "\n%04X\n", - my_ret );
-
     TEST_ASSERT( my_ret == ref_ret );
 
     if( ref_ret == 0 )

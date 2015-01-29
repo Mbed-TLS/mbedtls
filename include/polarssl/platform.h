@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,11 @@
 #include "config.h"
 #else
 #include POLARSSL_CONFIG_FILE
+#endif
+
+/* Temporary compability hack for to keep the deprecated MEMORY_C working */
+#if defined(POLARSSL_MEMORY_C) && !defined(POLARSSL_PLATFORM_MEMORY)
+#define POLARSSL_PLATFORM_MEMORY
 #endif
 
 #include <stdio.h>

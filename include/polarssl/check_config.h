@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -156,6 +156,10 @@
 #error "POLARSSL_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_MEMORY_C) && !defined(POLARSSL_PLATFORM_C)
+#error "POLARSSL_MEMORY_C defined, but not all prerequisites"
+#endif
+
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C) &&                          \
     ( !defined(POLARSSL_PLATFORM_C) || !defined(POLARSSL_PLATFORM_MEMORY) )
 #error "POLARSSL_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
@@ -175,6 +179,11 @@
 
 #if defined(POLARSSL_PEM_WRITE_C) && !defined(POLARSSL_BASE64_C)
 #error "POLARSSL_PEM_WRITE_C defined, but not all prerequisites"
+#endif
+
+#if defined(POLARSSL_PK_C) && \
+    ( !defined(POLARSSL_RSA_C) && !defined(POLARSSL_ECP_C) )
+#error "POLARSSL_PK_C defined, but not all prerequisites"
 #endif
 
 #if defined(POLARSSL_PK_PARSE_C) && !defined(POLARSSL_PK_C)

@@ -7,14 +7,14 @@ CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-state
 			-Wno-unused-function -Wno-unused-value
 
 OFLAGS	= -O2
-LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
+LDFLAGS	+= -L../library -lmbedtls $(SYS_LDFLAGS)
 
 ifndef SHARED
-DEP=../library/libpolarssl.a
+DEP=../library/libmbedtls.a
 CHECK_PRELOAD=
 else
-DEP=../library/libpolarssl.so
-CHECK_PRELOAD= LD_PRELOAD=../library/libpolarssl.so
+DEP=../library/libmbedtls.so
+CHECK_PRELOAD= LD_PRELOAD=../library/libmbedtls.so
 endif
 
 ifdef DEBUG

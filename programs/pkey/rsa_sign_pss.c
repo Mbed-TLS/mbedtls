@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,12 @@
 #include "polarssl/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
 #endif
 
 #include <string.h>
@@ -49,7 +55,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_RSA_C and/or POLARSSL_SHA1_C and/or "
            "POLARSSL_PK_PARSE_C and/or POLARSSL_FS_IO and/or "
            "POLARSSL_CTR_DRBG_C not defined.\n");
@@ -74,41 +80,41 @@ int main( int argc, char *argv[] )
 
     if( argc != 3 )
     {
-        printf( "usage: rsa_sign_pss <key_file> <filename>\n" );
+        polarssl_printf( "usage: rsa_sign_pss <key_file> <filename>\n" );
 
 #if defined(_WIN32)
-        printf( "\n" );
+        polarssl_printf( "\n" );
 #endif
 
         goto exit;
     }
 
-    printf( "\n  . Seeding the random number generator..." );
+    polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    printf( "\n  . Reading private key from '%s'", argv[1] );
+    polarssl_printf( "\n  . Reading private key from '%s'", argv[1] );
     fflush( stdout );
 
     if( ( ret = pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
     {
         ret = 1;
-        printf( " failed\n  ! Could not read key from '%s'\n", argv[1] );
-        printf( "  ! pk_parse_public_keyfile returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! Could not read key from '%s'\n", argv[1] );
+        polarssl_printf( "  ! pk_parse_public_keyfile returned %d\n\n", ret );
         goto exit;
     }
 
     if( !pk_can_do( &pk, POLARSSL_PK_RSA ) )
     {
         ret = 1;
-        printf( " failed\n  ! Key is not an RSA key\n" );
+        polarssl_printf( " failed\n  ! Key is not an RSA key\n" );
         goto exit;
     }
 
@@ -118,19 +124,19 @@ int main( int argc, char *argv[] )
      * Compute the SHA-1 hash of the input file,
      * then calculate the RSA signature of the hash.
      */
-    printf( "\n  . Generating the RSA/SHA-1 signature" );
+    polarssl_printf( "\n  . Generating the RSA/SHA-1 signature" );
     fflush( stdout );
 
     if( ( ret = sha1_file( argv[2], hash ) ) != 0 )
     {
-        printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
+        polarssl_printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
         goto exit;
     }
 
     if( ( ret = pk_sign( &pk, POLARSSL_MD_SHA1, hash, 0, buf, &olen,
                          ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        printf( " failed\n  ! pk_sign returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! pk_sign returned %d\n\n", ret );
         goto exit;
     }
 
@@ -142,19 +148,19 @@ int main( int argc, char *argv[] )
     if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {
         ret = 1;
-        printf( " failed\n  ! Could not create %s\n\n", filename );
+        polarssl_printf( " failed\n  ! Could not create %s\n\n", filename );
         goto exit;
     }
 
     if( fwrite( buf, 1, olen, f ) != olen )
     {
-        printf( "failed\n  ! fwrite failed\n\n" );
+        polarssl_printf( "failed\n  ! fwrite failed\n\n" );
         goto exit;
     }
 
     fclose( f );
 
-    printf( "\n  . Done (created \"%s\")\n\n", filename );
+    polarssl_printf( "\n  . Done (created \"%s\")\n\n", filename );
 
 exit:
     pk_free( &pk );
@@ -162,7 +168,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

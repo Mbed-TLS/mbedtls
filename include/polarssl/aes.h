@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -129,6 +129,14 @@ int aes_crypt_ecb( aes_context *ctx,
  *                 Length should be a multiple of the block
  *                 size (16 bytes)
  *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
  * \param ctx      AES context
  * \param mode     AES_ENCRYPT or AES_DECRYPT
  * \param length   length of the input data
@@ -154,6 +162,14 @@ int aes_crypt_cbc( aes_context *ctx,
  * both encryption and decryption. So a context initialized with
  * aes_setkey_enc() for both AES_ENCRYPT and AES_DECRYPT.
  *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
  * \param ctx      AES context
  * \param mode     AES_ENCRYPT or AES_DECRYPT
  * \param length   length of the input data
@@ -178,6 +194,14 @@ int aes_crypt_cfb128( aes_context *ctx,
  * Note: Due to the nature of CFB you should use the same key schedule for
  * both encryption and decryption. So a context initialized with
  * aes_setkey_enc() for both AES_ENCRYPT and AES_DECRYPT.
+ *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
  *
  * \param ctx      AES context
  * \param mode     AES_ENCRYPT or AES_DECRYPT

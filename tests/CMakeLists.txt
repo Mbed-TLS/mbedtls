@@ -1,5 +1,5 @@
 set(libs
-     polarssl
+     mbedtls
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)
@@ -20,7 +20,7 @@ function(add_test_suite suite_name)
     add_custom_command(
         OUTPUT test_suite_${data_name}.c
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl ${CMAKE_CURRENT_SOURCE_DIR}/suites test_suite_${suite_name} test_suite_${data_name}
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl polarssl suites/helpers.function suites/main_test.function suites/test_suite_${suite_name}.function suites/test_suite_${data_name}.data
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl mbedtls suites/helpers.function suites/main_test.function suites/test_suite_${suite_name}.function suites/test_suite_${data_name}.data
     )
 
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})

@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2006-2010, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -680,7 +680,7 @@
     );
 #endif /* Alpha */
 
-#if defined(__mips__) && !defined(__mips64__)
+#if defined(__mips__) && !defined(__mips64)
 
 #define MULADDC_INIT                    \
     asm(                                \

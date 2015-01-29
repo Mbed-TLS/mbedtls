@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,13 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
@@ -37,7 +44,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_MD_C not defined.\n");
+    polarssl_printf("POLARSSL_MD_C not defined.\n");
     return( 0 );
 }
 #else
@@ -46,10 +53,10 @@ static int generic_wrapper( const md_info_t *md_info, char *filename, unsigned c
     int ret = md_file( md_info, filename, sum );
 
     if( ret == 1 )
-        fprintf( stderr, "failed to open: %s\n", filename );
+        polarssl_fprintf( stderr, "failed to open: %s\n", filename );
 
     if( ret == 2 )
-        fprintf( stderr, "failed to read: %s\n", filename );
+        polarssl_fprintf( stderr, "failed to read: %s\n", filename );
 
     return( ret );
 }
@@ -63,9 +70,9 @@ static int generic_print( const md_info_t *md_info, char *filename )
         return( 1 );
 
     for( i = 0; i < md_info->size; i++ )
-        printf( "%02x", sum[i] );
+        polarssl_printf( "%02x", sum[i] );
 
-    printf( "  %s\n", filename );
+    polarssl_printf( "  %s\n", filename );
     return( 0 );
 }
 
@@ -82,7 +89,7 @@ static int generic_check( const md_info_t *md_info, char *filename )
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
-        printf( "failed to open: %s\n", filename );
+        polarssl_printf( "failed to open: %s\n", filename );
         return( 1 );
     }
 
@@ -99,13 +106,13 @@ static int generic_check( const md_info_t *md_info, char *filename )
 
         if( n < (size_t) 2 * md_info->size + 4 )
         {
-            printf("No '%s' hash found on line.\n", md_info->name);
+            polarssl_printf("No '%s' hash found on line.\n", md_info->name);
             continue;
         }
 
         if( line[2 * md_info->size] != ' ' || line[2 * md_info->size + 1] != ' ' )
         {
-            printf("No '%s' hash found on line.\n", md_info->name);
+            polarssl_printf("No '%s' hash found on line.\n", md_info->name);
             continue;
         }
 
@@ -133,7 +140,7 @@ static int generic_check( const md_info_t *md_info, char *filename )
         if( diff != 0 )
         {
             nb_err2++;
-            fprintf( stderr, "wrong checksum: %s\n", line + 66 );
+            polarssl_fprintf( stderr, "wrong checksum: %s\n", line + 66 );
         }
 
         n = sizeof( line );
@@ -141,13 +148,13 @@ static int generic_check( const md_info_t *md_info, char *filename )
 
     if( nb_err1 != 0 )
     {
-        printf( "WARNING: %d (out of %d) input files could "
+        polarssl_printf( "WARNING: %d (out of %d) input files could "
                 "not be read\n", nb_err1, nb_tot1 );
     }
 
     if( nb_err2 != 0 )
     {
-        printf( "WARNING: %d (out of %d) computed checksums did "
+        polarssl_printf( "WARNING: %d (out of %d) computed checksums did "
                 "not match\n", nb_err2, nb_tot2 );
     }
 
@@ -168,20 +175,20 @@ int main( int argc, char *argv[] )
     {
         const int *list;
 
-        printf( "print mode:  generic_sum <md> <file> <file> ...\n" );
-        printf( "check mode:  generic_sum <md> -c <checksum file>\n" );
+        polarssl_printf( "print mode:  generic_sum <md> <file> <file> ...\n" );
+        polarssl_printf( "check mode:  generic_sum <md> -c <checksum file>\n" );
 
-        printf( "\nAvailable message digests:\n" );
+        polarssl_printf( "\nAvailable message digests:\n" );
         list = md_list();
         while( *list )
         {
             md_info = md_info_from_type( *list );
-            printf( "  %s\n", md_info->name );
+            polarssl_printf( "  %s\n", md_info->name );
             list++;
         }
 
 #if defined(_WIN32)
-        printf( "\n  Press Enter to exit this program.\n" );
+        polarssl_printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
 
@@ -194,12 +201,12 @@ int main( int argc, char *argv[] )
     md_info = md_info_from_string( argv[1] );
     if( md_info == NULL )
     {
-        fprintf( stderr, "Message Digest '%s' not found\n", argv[1] );
+        polarssl_fprintf( stderr, "Message Digest '%s' not found\n", argv[1] );
         return( 1 );
     }
     if( md_init_ctx( &md_ctx, md_info) )
     {
-        fprintf( stderr, "Failed to initialize context.\n" );
+        polarssl_fprintf( stderr, "Failed to initialize context.\n" );
         return( 1 );
     }
 

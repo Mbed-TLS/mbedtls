@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,12 @@
 #include "polarssl/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
 #endif
 
 #include "polarssl/entropy.h"
@@ -54,7 +60,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_ECDSA_C and/or "
+    polarssl_printf("POLARSSL_ECDSA_C and/or "
            "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C not defined\n");
     return( 0 );
 }
@@ -65,11 +71,11 @@ static void dump_buf( const char *title, unsigned char *buf, size_t len )
 {
     size_t i;
 
-    printf( "%s", title );
+    polarssl_printf( "%s", title );
     for( i = 0; i < len; i++ )
-        printf("%c%c", "0123456789ABCDEF" [buf[i] / 16],
+        polarssl_printf("%c%c", "0123456789ABCDEF" [buf[i] / 16],
                        "0123456789ABCDEF" [buf[i] % 16] );
-    printf( "\n" );
+    polarssl_printf( "\n" );
 }
 
 static void dump_pubkey( const char *title, ecdsa_context *key )
@@ -80,7 +86,7 @@ static void dump_pubkey( const char *title, ecdsa_context *key )
     if( ecp_point_write_binary( &key->grp, &key->Q,
                 POLARSSL_ECP_PF_UNCOMPRESSED, &len, buf, sizeof buf ) != 0 )
     {
-        printf("internal error\n");
+        polarssl_printf("internal error\n");
         return;
     }
 
@@ -111,10 +117,10 @@ int main( int argc, char *argv[] )
 
     if( argc != 1 )
     {
-        printf( "usage: ecdsa\n" );
+        polarssl_printf( "usage: ecdsa\n" );
 
 #if defined(_WIN32)
-        printf( "\n" );
+        polarssl_printf( "\n" );
 #endif
 
         goto exit;
@@ -123,7 +129,7 @@ int main( int argc, char *argv[] )
     /*
      * Generate a key pair for signing
      */
-    printf( "\n  . Seeding the random number generator..." );
+    polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     entropy_init( &entropy );
@@ -131,28 +137,28 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    printf( " ok\n  . Generating key pair..." );
+    polarssl_printf( " ok\n  . Generating key pair..." );
     fflush( stdout );
 
     if( ( ret = ecdsa_genkey( &ctx_sign, ECPARAMS,
                               ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        printf( " failed\n  ! ecdsa_genkey returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ecdsa_genkey returned %d\n", ret );
         goto exit;
     }
 
-    printf( " ok (key size: %d bits)\n", (int) ctx_sign.grp.pbits );
+    polarssl_printf( " ok (key size: %d bits)\n", (int) ctx_sign.grp.pbits );
 
     dump_pubkey( "  + Public key: ", &ctx_sign );
 
     /*
      * Sign some message hash
      */
-    printf( "  . Signing message..." );
+    polarssl_printf( "  . Signing message..." );
     fflush( stdout );
 
     if( ( ret = ecdsa_write_signature( &ctx_sign,
@@ -160,10 +166,10 @@ int main( int argc, char *argv[] )
                                        sig, &sig_len,
                                        ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        printf( " failed\n  ! ecdsa_genkey returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ecdsa_genkey returned %d\n", ret );
         goto exit;
     }
-    printf( " ok (signature length = %u)\n", (unsigned int) sig_len );
+    polarssl_printf( " ok (signature length = %u)\n", (unsigned int) sig_len );
 
     dump_buf( "  + Hash: ", hash, sizeof hash );
     dump_buf( "  + Signature: ", sig, sig_len );
@@ -184,18 +190,18 @@ int main( int argc, char *argv[] )
      * chose to use a new one in order to make it clear that the verifying
      * context only needs the public key (Q), and not the private key (d).
      */
-    printf( "  . Preparing verification context..." );
+    polarssl_printf( "  . Preparing verification context..." );
     fflush( stdout );
 
     if( ( ret = ecp_group_copy( &ctx_verify.grp, &ctx_sign.grp ) ) != 0 )
     {
-        printf( " failed\n  ! ecp_group_copy returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ecp_group_copy returned %d\n", ret );
         goto exit;
     }
 
     if( ( ret = ecp_copy( &ctx_verify.Q, &ctx_sign.Q ) ) != 0 )
     {
-        printf( " failed\n  ! ecp_copy returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ecp_copy returned %d\n", ret );
         goto exit;
     }
 
@@ -204,23 +210,23 @@ int main( int argc, char *argv[] )
     /*
      * Verify signature
      */
-    printf( " ok\n  . Verifying signature..." );
+    polarssl_printf( " ok\n  . Verifying signature..." );
     fflush( stdout );
 
     if( ( ret = ecdsa_read_signature( &ctx_verify,
                                       hash, sizeof( hash ),
                                       sig, sig_len ) ) != 0 )
     {
-        printf( " failed\n  ! ecdsa_read_signature returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ecdsa_read_signature returned %d\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
 exit:
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -82,7 +82,10 @@ int base64_encode( unsigned char *dst, size_t *dlen,
     unsigned char *p;
 
     if( slen == 0 )
+    {
+        *dlen = 0;
         return( 0 );
+    }
 
     n = ( slen << 3 ) / 6;
 

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2014, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -172,7 +172,7 @@
 #include "polarssl/xtea.h"
 #endif
 
-
+#include <stdio.h>
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
@@ -454,7 +454,7 @@ void polarssl_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(POLARSSL_ERR_SSL_BUFFER_TOO_SMALL) )
             snprintf( buf, buflen, "SSL - A buffer is too small to receive or write a message" );
         if( use_ret == -(POLARSSL_ERR_SSL_NO_USABLE_CIPHERSUITE) )
-            snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate)" );
+            snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages)" );
 #endif /* POLARSSL_SSL_TLS_C */
 
 #if defined(POLARSSL_X509_USE_C) || defined(POLARSSL_X509_CREATE_C)

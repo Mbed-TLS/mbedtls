@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,13 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#endif
+
 #include "polarssl/havege.h"
 
 #include <time.h>
@@ -37,7 +44,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_HAVEGE_C not defined.\n");
+    polarssl_printf("POLARSSL_HAVEGE_C not defined.\n");
     return( 0 );
 }
 #else
@@ -51,13 +58,13 @@ int main( int argc, char *argv[] )
 
     if( argc < 2 )
     {
-        fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
+        polarssl_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
         return( 1 );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        printf( "failed to open '%s' for writing.\n", argv[0] );
+        polarssl_printf( "failed to open '%s' for writing.\n", argv[1] );
         return( 1 );
     }
 
@@ -69,7 +76,7 @@ int main( int argc, char *argv[] )
     {
         if( havege_random( &hs, buf, sizeof( buf ) ) != 0 )
         {
-            printf( "Failed to get random from source.\n" );
+            polarssl_printf( "Failed to get random from source.\n" );
 
             ret = 1;
             goto exit;
@@ -77,15 +84,15 @@ int main( int argc, char *argv[] )
 
         fwrite( buf, sizeof( buf ), 1, f );
 
-        printf( "Generating 32Mb of data in file '%s'... %04.1f" \
-                "%% done\r", argv[1], (100 * (float) (i + 1)) / k );
+        polarssl_printf( "Generating %ldkb of data in file '%s'... %04.1f" \
+                "%% done\r", (long)(sizeof(buf) * k / 1024), argv[1], (100 * (float) (i + 1)) / k );
         fflush( stdout );
     }
 
     if( t == time( NULL ) )
         t--;
 
-    printf(" \n ");
+    polarssl_printf(" \n ");
 
 exit:
     havege_free( &hs );

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,13 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
@@ -37,7 +44,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
+    polarssl_printf("POLARSSL_SHA1_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -46,10 +53,10 @@ static int sha1_wrapper( char *filename, unsigned char *sum )
     int ret = sha1_file( filename, sum );
 
     if( ret == 1 )
-        fprintf( stderr, "failed to open: %s\n", filename );
+        polarssl_fprintf( stderr, "failed to open: %s\n", filename );
 
     if( ret == 2 )
-        fprintf( stderr, "failed to read: %s\n", filename );
+        polarssl_fprintf( stderr, "failed to read: %s\n", filename );
 
     return( ret );
 }
@@ -63,9 +70,9 @@ static int sha1_print( char *filename )
         return( 1 );
 
     for( i = 0; i < 20; i++ )
-        printf( "%02x", sum[i] );
+        polarssl_printf( "%02x", sum[i] );
 
-    printf( "  %s\n", filename );
+    polarssl_printf( "  %s\n", filename );
     return( 0 );
 }
 
@@ -82,7 +89,7 @@ static int sha1_check( char *filename )
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
-        printf( "failed to open: %s\n", filename );
+        polarssl_printf( "failed to open: %s\n", filename );
         return( 1 );
     }
 
@@ -127,7 +134,7 @@ static int sha1_check( char *filename )
         if( diff != 0 )
         {
             nb_err2++;
-            fprintf( stderr, "wrong checksum: %s\n", line + 42 );
+            polarssl_fprintf( stderr, "wrong checksum: %s\n", line + 42 );
         }
 
         n = sizeof( line );
@@ -137,13 +144,13 @@ static int sha1_check( char *filename )
 
     if( nb_err1 != 0 )
     {
-        printf( "WARNING: %d (out of %d) input files could "
+        polarssl_printf( "WARNING: %d (out of %d) input files could "
                 "not be read\n", nb_err1, nb_tot1 );
     }
 
     if( nb_err2 != 0 )
     {
-        printf( "WARNING: %d (out of %d) computed checksums did "
+        polarssl_printf( "WARNING: %d (out of %d) computed checksums did "
                 "not match\n", nb_err2, nb_tot2 );
     }
 
@@ -156,11 +163,11 @@ int main( int argc, char *argv[] )
 
     if( argc == 1 )
     {
-        printf( "print mode:  sha1sum <file> <file> ...\n" );
-        printf( "check mode:  sha1sum -c <checksum file>\n" );
+        polarssl_printf( "print mode:  sha1sum <file> <file> ...\n" );
+        polarssl_printf( "check mode:  sha1sum -c <checksum file>\n" );
 
 #if defined(_WIN32)
-        printf( "\n  Press Enter to exit this program.\n" );
+        polarssl_printf( "\n  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
 

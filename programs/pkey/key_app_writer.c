@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,12 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,7 +46,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
+    polarssl_printf( "POLARSSL_PK_WRITE_C and/or POLARSSL_FS_IO not defined.\n" );
     return( 0 );
 }
 #else
@@ -201,7 +207,7 @@ int main( int argc, char *argv[] )
     {
     usage:
         ret = 1;
-        printf( USAGE );
+        polarssl_printf( USAGE );
         goto exit;
     }
 
@@ -258,13 +264,13 @@ int main( int argc, char *argv[] )
 
     if( opt.mode == MODE_NONE && opt.output_mode != OUTPUT_MODE_NONE )
     {
-        printf( "\nCannot output a key without reading one.\n");
+        polarssl_printf( "\nCannot output a key without reading one.\n");
         goto exit;
     }
 
     if( opt.mode == MODE_PUBLIC && opt.output_mode == OUTPUT_MODE_PRIVATE )
     {
-        printf( "\nCannot output a private key from a public key.\n");
+        polarssl_printf( "\nCannot output a private key from a public key.\n");
         goto exit;
     }
 
@@ -273,7 +279,7 @@ int main( int argc, char *argv[] )
         /*
          * 1.1. Load the key
          */
-        printf( "\n  . Loading the private key ..." );
+        polarssl_printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
         ret = pk_parse_keyfile( &key, opt.filename, NULL );
@@ -281,16 +287,16 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-            printf( " failed\n  !  pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         /*
          * 1.2 Print the key
          */
-        printf( "  . Key information    ...\n" );
+        polarssl_printf( "  . Key information    ...\n" );
 
 #if defined(POLARSSL_RSA_C)
         if( pk_get_type( &key ) == POLARSSL_PK_RSA )
@@ -318,7 +324,7 @@ int main( int argc, char *argv[] )
         }
         else
 #endif
-            printf("key type not supported yet\n");
+            polarssl_printf("key type not supported yet\n");
 
     }
     else if( opt.mode == MODE_PUBLIC )
@@ -326,7 +332,7 @@ int main( int argc, char *argv[] )
         /*
          * 1.1. Load the key
          */
-        printf( "\n  . Loading the public key ..." );
+        polarssl_printf( "\n  . Loading the public key ..." );
         fflush( stdout );
 
         ret = pk_parse_public_keyfile( &key, opt.filename );
@@ -334,16 +340,16 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             polarssl_strerror( ret, (char *) buf, sizeof(buf) );
-            printf( " failed\n  !  pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
+            polarssl_printf( " failed\n  !  pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         /*
          * 1.2 Print the key
          */
-        printf( "  . Key information    ...\n" );
+        polarssl_printf( "  . Key information    ...\n" );
 
 #if defined(POLARSSL_RSA_C)
         if( pk_get_type( &key ) == POLARSSL_PK_RSA )
@@ -364,7 +370,7 @@ int main( int argc, char *argv[] )
         }
         else
 #endif
-            printf("key type not supported yet\n");
+            polarssl_printf("key type not supported yet\n");
     }
     else
         goto usage;
@@ -384,16 +390,16 @@ exit:
     {
 #ifdef POLARSSL_ERROR_C
         polarssl_strerror( ret, buf, sizeof( buf ) );
-        printf( " - %s\n", buf );
+        polarssl_printf( " - %s\n", buf );
 #else
-        printf("\n");
+        polarssl_printf("\n");
 #endif
     }
 
     pk_free( &key );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

@@ -5,7 +5,7 @@
 
 CFLAGS	+= -I../include -D_FILE_OFFSET_BITS=64 -Wall -W -Wdeclaration-after-statement
 OFLAGS	= -O2
-LDFLAGS	+= -L../library -lpolarssl $(SYS_LDFLAGS)
+LDFLAGS	+= -L../library -lmbedtls $(SYS_LDFLAGS)
 
 ifdef DEBUG
 CFLAGS += -g3
@@ -59,199 +59,203 @@ endif
 
 all: $(APPS)
 
-aes/aescrypt2: aes/aescrypt2.c ../library/libpolarssl.a
+aes/aescrypt2: aes/aescrypt2.c ../library/libmbedtls.a
 	echo   "  CC    aes/aescrypt2.c"
 	$(CC) $(CFLAGS) $(OFLAGS) aes/aescrypt2.c    $(LDFLAGS) -o $@
 
-aes/crypt_and_hash: aes/crypt_and_hash.c ../library/libpolarssl.a
+aes/crypt_and_hash: aes/crypt_and_hash.c ../library/libmbedtls.a
 	echo   "  CC    aes/crypt_and_hash.c"
 	$(CC) $(CFLAGS) $(OFLAGS) aes/crypt_and_hash.c $(LDFLAGS) -o $@
 
-hash/hello: hash/hello.c ../library/libpolarssl.a
+hash/hello: hash/hello.c ../library/libmbedtls.a
 	echo   "  CC    hash/hello.c"
 	$(CC) $(CFLAGS) $(OFLAGS) hash/hello.c       $(LDFLAGS) -o $@
 
-hash/generic_sum: hash/generic_sum.c ../library/libpolarssl.a
+hash/generic_sum: hash/generic_sum.c ../library/libmbedtls.a
 	echo   "  CC    hash/generic_sum.c"
 	$(CC) $(CFLAGS) $(OFLAGS) hash/generic_sum.c $(LDFLAGS) -o $@
 
-hash/md5sum: hash/md5sum.c ../library/libpolarssl.a
+hash/md5sum: hash/md5sum.c ../library/libmbedtls.a
 	echo   "  CC    hash/md5sum.c"
 	$(CC) $(CFLAGS) $(OFLAGS) hash/md5sum.c      $(LDFLAGS) -o $@
 
-hash/sha1sum: hash/sha1sum.c ../library/libpolarssl.a
+hash/sha1sum: hash/sha1sum.c ../library/libmbedtls.a
 	echo   "  CC    hash/sha1sum.c"
 	$(CC) $(CFLAGS) $(OFLAGS) hash/sha1sum.c     $(LDFLAGS) -o $@
 
-hash/sha2sum: hash/sha2sum.c ../library/libpolarssl.a
+hash/sha2sum: hash/sha2sum.c ../library/libmbedtls.a
 	echo   "  CC    hash/sha2sum.c"
 	$(CC) $(CFLAGS) $(OFLAGS) hash/sha2sum.c     $(LDFLAGS) -o $@
 
-pkey/dh_client: pkey/dh_client.c ../library/libpolarssl.a
+pkey/dh_client: pkey/dh_client.c ../library/libmbedtls.a
 	echo   "  CC    pkey/dh_client.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/dh_client.c   $(LDFLAGS) -o $@
 
-pkey/dh_genprime: pkey/dh_genprime.c ../library/libpolarssl.a
+pkey/dh_genprime: pkey/dh_genprime.c ../library/libmbedtls.a
 	echo   "  CC    pkey/dh_genprime.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/dh_genprime.c $(LDFLAGS) -o $@
 
-pkey/dh_server: pkey/dh_server.c ../library/libpolarssl.a
+pkey/dh_server: pkey/dh_server.c ../library/libmbedtls.a
 	echo   "  CC    pkey/dh_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/dh_server.c   $(LDFLAGS) -o $@
 
-pkey/ecdsa: pkey/ecdsa.c ../library/libpolarssl.a
+pkey/ecdsa: pkey/ecdsa.c ../library/libmbedtls.a
 	echo   "  CC    pkey/ecdsa.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/ecdsa.c       $(LDFLAGS) -o $@
 
-pkey/gen_key: pkey/gen_key.c ../library/libpolarssl.a
+pkey/gen_key: pkey/gen_key.c ../library/libmbedtls.a
 	echo   "  CC    pkey/gen_key.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/gen_key.c   $(LDFLAGS) -o $@
 
-pkey/key_app: pkey/key_app.c ../library/libpolarssl.a
+pkey/key_app: pkey/key_app.c ../library/libmbedtls.a
 	echo   "  CC    pkey/key_app.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/key_app.c   $(LDFLAGS) -o $@
 
-pkey/key_app_writer: pkey/key_app_writer.c ../library/libpolarssl.a
+pkey/key_app_writer: pkey/key_app_writer.c ../library/libmbedtls.a
 	echo   "  CC    pkey/key_app_writer.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/key_app_writer.c   $(LDFLAGS) -o $@
 
-pkey/mpi_demo: pkey/mpi_demo.c ../library/libpolarssl.a
+pkey/mpi_demo: pkey/mpi_demo.c ../library/libmbedtls.a
 	echo   "  CC    pkey/mpi_demo.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/mpi_demo.c    $(LDFLAGS) -o $@
 
-pkey/pk_decrypt: pkey/pk_decrypt.c ../library/libpolarssl.a
+pkey/pk_decrypt: pkey/pk_decrypt.c ../library/libmbedtls.a
 	echo   "  CC    pkey/pk_decrypt.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/pk_decrypt.c    $(LDFLAGS) -o $@
 
-pkey/pk_encrypt: pkey/pk_encrypt.c ../library/libpolarssl.a
+pkey/pk_encrypt: pkey/pk_encrypt.c ../library/libmbedtls.a
 	echo   "  CC    pkey/pk_encrypt.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/pk_encrypt.c    $(LDFLAGS) -o $@
 
-pkey/pk_sign: pkey/pk_sign.c ../library/libpolarssl.a
+pkey/pk_sign: pkey/pk_sign.c ../library/libmbedtls.a
 	echo   "  CC    pkey/pk_sign.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/pk_sign.c    $(LDFLAGS) -o $@
 
-pkey/pk_verify: pkey/pk_verify.c ../library/libpolarssl.a
+pkey/pk_verify: pkey/pk_verify.c ../library/libmbedtls.a
 	echo   "  CC    pkey/pk_verify.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/pk_verify.c  $(LDFLAGS) -o $@
 
-pkey/rsa_genkey: pkey/rsa_genkey.c ../library/libpolarssl.a
+pkey/rsa_genkey: pkey/rsa_genkey.c ../library/libmbedtls.a
 	echo   "  CC    pkey/rsa_genkey.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_genkey.c  $(LDFLAGS) -o $@
 
-pkey/rsa_sign: pkey/rsa_sign.c ../library/libpolarssl.a
+pkey/rsa_sign: pkey/rsa_sign.c ../library/libmbedtls.a
 	echo   "  CC    pkey/rsa_sign.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_sign.c    $(LDFLAGS) -o $@
 
-pkey/rsa_verify: pkey/rsa_verify.c ../library/libpolarssl.a
+pkey/rsa_verify: pkey/rsa_verify.c ../library/libmbedtls.a
 	echo   "  CC    pkey/rsa_verify.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_verify.c  $(LDFLAGS) -o $@
 
-pkey/rsa_sign_pss: pkey/rsa_sign_pss.c ../library/libpolarssl.a
+pkey/rsa_sign_pss: pkey/rsa_sign_pss.c ../library/libmbedtls.a
 	echo   "  CC    pkey/rsa_sign_pss.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_sign_pss.c    $(LDFLAGS) -o $@
 
-pkey/rsa_verify_pss: pkey/rsa_verify_pss.c ../library/libpolarssl.a
+pkey/rsa_verify_pss: pkey/rsa_verify_pss.c ../library/libmbedtls.a
 	echo   "  CC    pkey/rsa_verify_pss.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_verify_pss.c  $(LDFLAGS) -o $@
 
-pkey/rsa_decrypt: pkey/rsa_decrypt.c ../library/libpolarssl.a
+pkey/rsa_decrypt: pkey/rsa_decrypt.c ../library/libmbedtls.a
 	echo   "  CC    pkey/rsa_decrypt.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_decrypt.c    $(LDFLAGS) -o $@
 
-pkey/rsa_encrypt: pkey/rsa_encrypt.c ../library/libpolarssl.a
+pkey/rsa_encrypt: pkey/rsa_encrypt.c ../library/libmbedtls.a
 	echo   "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(CFLAGS) $(OFLAGS) pkey/rsa_encrypt.c    $(LDFLAGS) -o $@
 
-random/gen_entropy: random/gen_entropy.c ../library/libpolarssl.a
+random/gen_entropy: random/gen_entropy.c ../library/libmbedtls.a
 	echo   "  CC    random/gen_entropy.c"
 	$(CC) $(CFLAGS) $(OFLAGS) random/gen_entropy.c $(LDFLAGS) -o $@
 
-random/gen_random_havege: random/gen_random_havege.c ../library/libpolarssl.a
+random/gen_random_havege: random/gen_random_havege.c ../library/libmbedtls.a
 	echo   "  CC    random/gen_random_havege.c"
 	$(CC) $(CFLAGS) $(OFLAGS) random/gen_random_havege.c $(LDFLAGS) -o $@
 
-random/gen_random_ctr_drbg: random/gen_random_ctr_drbg.c ../library/libpolarssl.a
+random/gen_random_ctr_drbg: random/gen_random_ctr_drbg.c ../library/libmbedtls.a
 	echo   "  CC    random/gen_random_ctr_drbg.c"
 	$(CC) $(CFLAGS) $(OFLAGS) random/gen_random_ctr_drbg.c $(LDFLAGS) -o $@
 
-ssl/dtls_client: ssl/dtls_client.c ../library/libpolarssl.a
+ssl/dtls_client: ssl/dtls_client.c ../library/libmbedtls.a
 	echo   "  CC    ssl/dtls_client.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/dtls_client.c  $(LDFLAGS) -o $@
 
-ssl/dtls_server: ssl/dtls_server.c ../library/libpolarssl.a
+ssl/dtls_server: ssl/dtls_server.c ../library/libmbedtls.a
 	echo   "  CC    ssl/dtls_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/dtls_server.c  $(LDFLAGS) -o $@
 
-ssl/ssl_client1: ssl/ssl_client1.c ../library/libpolarssl.a
+ssl/ssl_client1: ssl/ssl_client1.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_client1.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_client1.c  $(LDFLAGS) -o $@
 
-ssl/ssl_client2: ssl/ssl_client2.c ../library/libpolarssl.a
+ssl/ssl_client2: ssl/ssl_client2.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_client2.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_client2.c  $(LDFLAGS) -o $@
 
-ssl/ssl_server: ssl/ssl_server.c ../library/libpolarssl.a
+ssl/ssl_server: ssl/ssl_server.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_server.c   $(LDFLAGS) -o $@
 
-ssl/ssl_server2: ssl/ssl_server2.c ../library/libpolarssl.a
+ssl/ssl_server2: ssl/ssl_server2.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_server2.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_server2.c   $(LDFLAGS) -o $@
 
-ssl/ssl_fork_server: ssl/ssl_fork_server.c ../library/libpolarssl.a
+ssl/ssl_fork_server: ssl/ssl_fork_server.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_fork_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_fork_server.c   $(LDFLAGS) -o $@
 
-ssl/ssl_pthread_server: ssl/ssl_pthread_server.c ../library/libpolarssl.a
+ssl/ssl_pthread_server: ssl/ssl_pthread_server.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_pthread_server.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_pthread_server.c   $(LDFLAGS) -o $@ -lpthread
 
-ssl/ssl_mail_client: ssl/ssl_mail_client.c ../library/libpolarssl.a
+ssl/ssl_mail_client: ssl/ssl_mail_client.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_mail_client.c"
 	$(CC) $(CFLAGS) $(OFLAGS) ssl/ssl_mail_client.c   $(LDFLAGS) -o $@
 
-test/ssl_cert_test: test/ssl_cert_test.c ../library/libpolarssl.a
+test/ssl_cert_test: test/ssl_cert_test.c ../library/libmbedtls.a
 	echo   "  CC    test/ssl_cert_test.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/ssl_cert_test.c   $(LDFLAGS) -o $@
 
-test/benchmark: test/benchmark.c ../library/libpolarssl.a
+test/benchmark: test/benchmark.c ../library/libmbedtls.a
 	echo   "  CC    test/benchmark.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/benchmark.c   $(LDFLAGS) -o $@
 
-test/selftest: test/selftest.c ../library/libpolarssl.a
+test/selftest: test/selftest.c ../library/libmbedtls.a
 	echo   "  CC    test/selftest.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/selftest.c    $(LDFLAGS) -o $@
 
-test/ssl_test: test/ssl_test.c ../library/libpolarssl.a
+test/ssl_test: test/ssl_test.c ../library/libmbedtls.a
 	echo   "  CC    test/ssl_test.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/ssl_test.c    $(LDFLAGS) -o $@
 
+<<<<<<< HEAD
 test/udp_proxy: test/udp_proxy.c ../library/libpolarssl.a
 	echo   "  CC    test/udp_proxy.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/udp_proxy.c    $(LDFLAGS) -o $@
 
 test/o_p_test: test/o_p_test.c ../library/libpolarssl.a
+=======
+test/o_p_test: test/o_p_test.c ../library/libmbedtls.a
+>>>>>>> development
 	echo   "  CC    test/o_p_test.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/o_p_test.c    $(LDFLAGS) -o $@ -lssl -lcrypto
 
-util/pem2der: util/pem2der.c ../library/libpolarssl.a
+util/pem2der: util/pem2der.c ../library/libmbedtls.a
 	echo   "  CC    util/pem2der.c"
 	$(CC) $(CFLAGS) $(OFLAGS) util/pem2der.c    $(LDFLAGS) -o $@
 
-util/strerror: util/strerror.c ../library/libpolarssl.a
+util/strerror: util/strerror.c ../library/libmbedtls.a
 	echo   "  CC    util/strerror.c"
 	$(CC) $(CFLAGS) $(OFLAGS) util/strerror.c    $(LDFLAGS) -o $@
 
-x509/cert_app: x509/cert_app.c ../library/libpolarssl.a
+x509/cert_app: x509/cert_app.c ../library/libmbedtls.a
 	echo   "  CC    x509/cert_app.c"
 	$(CC) $(CFLAGS) $(OFLAGS) x509/cert_app.c    $(LDFLAGS) -o $@
 
-x509/crl_app: x509/crl_app.c ../library/libpolarssl.a
+x509/crl_app: x509/crl_app.c ../library/libmbedtls.a
 	echo   "  CC    x509/crl_app.c"
 	$(CC) $(CFLAGS) $(OFLAGS) x509/crl_app.c    $(LDFLAGS) -o $@
 
-x509/cert_req: x509/cert_req.c ../library/libpolarssl.a
+x509/cert_req: x509/cert_req.c ../library/libmbedtls.a
 	echo   "  CC    x509/cert_req.c"
 	$(CC) $(CFLAGS) $(OFLAGS) x509/cert_req.c    $(LDFLAGS) -o $@
 

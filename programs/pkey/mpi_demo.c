@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2011, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,12 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #include <stdio.h>
 
 #include "polarssl/bignum.h"
@@ -36,7 +42,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_FS_IO not defined.\n");
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -56,11 +62,11 @@ int main( int argc, char *argv[] )
     mpi_read_string( &E, 10,  "257" );
     mpi_mul_mpi( &N, &P, &Q );
 
-    printf( "\n  Public key:\n\n" );
+    polarssl_printf( "\n  Public key:\n\n" );
     mpi_write_file( "  N = ", &N, 10, NULL );
     mpi_write_file( "  E = ", &E, 10, NULL );
 
-    printf( "\n  Private key:\n\n" );
+    polarssl_printf( "\n  Private key:\n\n" );
     mpi_write_file( "  P = ", &P, 10, NULL );
     mpi_write_file( "  Q = ", &Q, 10, NULL );
 
@@ -73,24 +79,24 @@ int main( int argc, char *argv[] )
     mpi_write_file( "  D = E^-1 mod (P-1)*(Q-1) = ",
                     &D, 10, NULL );
 #else
-    printf("\nTest skipped (POLARSSL_GENPRIME not defined).\n\n");
+    polarssl_printf("\nTest skipped (POLARSSL_GENPRIME not defined).\n\n");
 #endif
     mpi_read_string( &X, 10, "55555" );
     mpi_exp_mod( &Y, &X, &E, &N, NULL );
     mpi_exp_mod( &Z, &Y, &D, &N, NULL );
 
-    printf( "\n  RSA operation:\n\n" );
+    polarssl_printf( "\n  RSA operation:\n\n" );
     mpi_write_file( "  X (plaintext)  = ", &X, 10, NULL );
     mpi_write_file( "  Y (ciphertext) = X^E mod N = ", &Y, 10, NULL );
     mpi_write_file( "  Z (decrypted)  = Y^D mod N = ", &Z, 10, NULL );
-    printf( "\n" );
+    polarssl_printf( "\n" );
 
     mpi_free( &E ); mpi_free( &P ); mpi_free( &Q ); mpi_free( &N );
     mpi_free( &H ); mpi_free( &D ); mpi_free( &X ); mpi_free( &Y );
     mpi_free( &Z );
 
 #if defined(_WIN32)
-    printf( "  Press Enter to exit this program.\n" );
+    polarssl_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

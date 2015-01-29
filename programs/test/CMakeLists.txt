@@ -1,7 +1,7 @@
 FIND_PACKAGE(OpenSSL)
 
 set(libs
-     polarssl
+     mbedtls
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)

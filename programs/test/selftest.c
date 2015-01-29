@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
  *
- *  This file is part of mbed TLS (https://www.polarssl.org)
+ *  This file is part of mbed TLS (https://polarssl.org)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,12 @@
 #include "polarssl/config.h"
 #else
 #include POLARSSL_CONFIG_FILE
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
 #endif
 
 #include <string.h>
@@ -57,7 +63,7 @@
 #include "polarssl/timing.h"
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)
-#include "polarssl/memory.h"
+#include "polarssl/memory_buffer_alloc.h"
 #endif
 
 int main( int argc, char *argv[] )
@@ -72,7 +78,7 @@ int main( int argc, char *argv[] )
     else
     {
         v = 1;
-        printf( "\n" );
+        polarssl_printf( "\n" );
     }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -215,7 +221,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #else
-    printf( " POLARSSL_SELF_TEST not defined.\n" );
+    polarssl_printf( " POLARSSL_SELF_TEST not defined.\n" );
 #endif
 
     if( v != 0 )
@@ -234,9 +240,9 @@ int main( int argc, char *argv[] )
 
     if( v != 0 )
     {
-        printf( "  [ All tests passed ]\n\n" );
+        polarssl_printf( "  [ All tests passed ]\n\n" );
 #if defined(_WIN32)
-        printf( "  Press Enter to exit this program.\n" );
+        polarssl_printf( "  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
     }

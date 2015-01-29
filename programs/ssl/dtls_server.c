@@ -26,6 +26,13 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#endif
+
 #if !defined(POLARSSL_SSL_SRV_C) || !defined(POLARSSL_SSL_PROTO_DTLS) ||    \
     !defined(POLARSSL_SSL_COOKIE_C) || !defined(POLARSSL_NET_C) ||          \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
@@ -73,7 +80,7 @@ static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);
 
-    fprintf( (FILE *) ctx, "%s", str );
+    polarssl_fprintf( (FILE *) ctx, "%s", str );
     fflush(  (FILE *) ctx  );
 }
 

@@ -1491,7 +1491,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ( ret = ssl_set_transport( &ssl, opt.transport ) ) != 0 )
     {
-        printf( " failed\n  ! selected transport is not available\n" );
+        polarssl_printf( " failed\n  ! selected transport is not available\n" );
         goto exit;
     }
 
@@ -1565,7 +1565,7 @@ int main( int argc, char *argv[] )
             if( ( ret = ssl_cookie_setup( &cookie_ctx,
                                           ctr_drbg_random, &ctr_drbg ) ) != 0 )
             {
-                printf( " failed\n  ! ssl_cookie_setup returned %d\n\n", ret );
+                polarssl_printf( " failed\n  ! ssl_cookie_setup returned %d\n\n", ret );
                 goto exit;
             }
 
@@ -1699,7 +1699,7 @@ int main( int argc, char *argv[] )
         ret = ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
         if( ret != 0 && opt.min_version != DFL_MIN_VERSION )
         {
-            printf( " failed\n  ! selected min_version is not available\n" );
+            polarssl_printf( " failed\n  ! selected min_version is not available\n" );
             goto exit;
         }
     }
@@ -1709,7 +1709,7 @@ int main( int argc, char *argv[] )
         ret = ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
         if( ret != 0 )
         {
-            printf( " failed\n  ! selected max_version is not available\n" );
+            polarssl_printf( " failed\n  ! selected max_version is not available\n" );
             goto exit;
         }
     }
@@ -1790,7 +1790,7 @@ reset:
         if( ( ret = ssl_set_client_transport_id( &ssl, client_ip,
                                                sizeof( client_ip ) ) ) != 0 )
         {
-            printf( " failed\n  ! "
+            polarssl_printf( " failed\n  ! "
                     "ssl_set_client_tranport_id() returned -0x%x\n\n", -ret );
             goto exit;
         }
@@ -1805,7 +1805,7 @@ reset:
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( opt.transport == SSL_TRANSPORT_DATAGRAM )
     {
-        printf( "  . Re-bind on udp://%s:%-4d/ ...",
+        polarssl_printf( "  . Re-bind on udp://%s:%-4d/ ...",
                 opt.server_addr ? opt.server_addr : "*",
                 opt.server_port );
         fflush( stdout );
@@ -1813,11 +1813,11 @@ reset:
         if( ( ret = net_bind( &listen_fd, opt.server_addr,
                               opt.server_port, NET_PROTO_UDP ) ) != 0 )
         {
-            printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
+            polarssl_printf( " failed\n  ! net_bind returned -0x%x\n\n", -ret );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
     }
 #endif /* POLARSSL_SSL_PROTO_DTLS */
 
@@ -1949,7 +1949,7 @@ data_exchange:
             {
                 len = ret;
                 buf[len] = '\0';
-                printf( " %d bytes read\n\n%s\n", len, (char *) buf );
+                polarssl_printf( " %d bytes read\n\n%s\n", len, (char *) buf );
 
                 /* End of message should be detected according to the syntax of the
                  * application protocol (eg HTTP), just use a dummy test here. */
@@ -1967,7 +1967,7 @@ data_exchange:
                 larger_buf = polarssl_malloc( ori_len + extra_len + 1 );
                 if( larger_buf == NULL )
                 {
-                    printf( "  ! memory allocation failed\n" );
+                    polarssl_printf( "  ! memory allocation failed\n" );
                     ret = 1;
                     goto reset;
                 }
@@ -1980,13 +1980,13 @@ data_exchange:
                 if( ret != extra_len ||
                     ssl_get_bytes_avail( &ssl ) != 0 )
                 {
-                    printf( "  ! ssl_read failed on cached data\n" );
+                    polarssl_printf( "  ! ssl_read failed on cached data\n" );
                     ret = 1;
                     goto reset;
                 }
 
                 larger_buf[ori_len + extra_len] = '\0';
-                printf( " %u bytes read (%u + %u)\n\n%s\n",
+                polarssl_printf( " %u bytes read (%u + %u)\n\n%s\n",
                         ori_len + extra_len, ori_len, extra_len,
                         (char *) larger_buf );
 
@@ -2020,19 +2020,19 @@ data_exchange:
             switch( ret )
             {
                 case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
-                    printf( " connection was closed gracefully\n" );
+                    polarssl_printf( " connection was closed gracefully\n" );
                     ret = 0;
                     goto close_notify;
 
                 default:
-                    printf( " ssl_read returned -0x%x\n", -ret );
+                    polarssl_printf( " ssl_read returned -0x%x\n", -ret );
                     goto reset;
             }
         }
 
         len = ret;
         buf[len] = '\0';
-        printf( " %d bytes read\n\n%s", len, (char *) buf );
+        polarssl_printf( " %d bytes read\n\n%s", len, (char *) buf );
         ret = 0;
     }
 
@@ -2099,7 +2099,7 @@ data_exchange:
 
         if( ret < 0 )
         {
-            printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_write returned %d\n\n", ret );
             goto reset;
         }
 

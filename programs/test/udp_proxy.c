@@ -26,11 +26,17 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#endif
+
 #if !defined(POLARSSL_NET_C)
 #include <stdio.h>
 int main( void )
 {
-    printf( "POLARSSL_NET_C not defined.\n" );
+    polarssl_printf( "POLARSSL_NET_C not defined.\n" );
     return( 0 );
 }
 #else
@@ -122,11 +128,11 @@ static struct options
 static void exit_usage( const char *name, const char *value )
 {
     if( value == NULL )
-        printf( " unknown option or missing value: %s\n", name );
+        polarssl_printf( " unknown option or missing value: %s\n", name );
     else
-        printf( " option %s: illegal value: %s\n", name, value );
+        polarssl_printf( " option %s: illegal value: %s\n", name, value );
 
-    printf( USAGE );
+    polarssl_printf( USAGE );
     exit( 1 );
 }
 
@@ -296,10 +302,10 @@ typedef struct
 void print_packet( const packet *p, const char *why )
 {
     if( why == NULL )
-        printf( "  %05lu %s %s (%u bytes)\n",
+        polarssl_printf( "  %05lu %s %s (%u bytes)\n",
                 ellapsed_time(), p->way, p->type, p->len );
     else
-        printf( "        %s %s (%u bytes): %s\n",
+        polarssl_printf( "        %s %s (%u bytes): %s\n",
                 p->way, p->type, p->len, why );
     fflush( stdout );
 }
@@ -320,7 +326,7 @@ int send_packet( const packet *p, const char *why )
         print_packet( p, "corrupted" );
         if( ( ret = net_send( &dst, buf, p->len ) ) <= 0 )
         {
-            printf( "  ! net_send returned %d\n", ret );
+            polarssl_printf( "  ! net_send returned %d\n", ret );
             return( ret );
         }
     }
@@ -328,7 +334,7 @@ int send_packet( const packet *p, const char *why )
     print_packet( p, why );
     if( ( ret = net_send( &dst, p->buf, p->len ) ) <= 0 )
     {
-        printf( "  ! net_send returned %d\n", ret );
+        polarssl_printf( "  ! net_send returned %d\n", ret );
         return( ret );
     }
 
@@ -341,7 +347,7 @@ int send_packet( const packet *p, const char *why )
 
         if( ( ret = net_send( &dst, p->buf, p->len ) ) <= 0 )
         {
-            printf( "  ! net_send returned %d\n", ret );
+            polarssl_printf( "  ! net_send returned %d\n", ret );
             return( ret );
         }
     }
@@ -402,7 +408,7 @@ int handle_message( const char *way, int dst, int src )
     /* receive packet */
     if( ( ret = net_recv( &src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
     {
-        printf( "  ! net_recv returned %d\n", ret );
+        polarssl_printf( "  ! net_recv returned %d\n", ret );
         return( ret );
     }
 
@@ -483,7 +489,7 @@ int main( int argc, char *argv[] )
     if( opt.seed == 0 )
     {
         opt.seed = time( NULL );
-        printf( "  . Pseudo-random seed: %u\n", opt.seed );
+        polarssl_printf( "  . Pseudo-random seed: %u\n", opt.seed );
     }
 
     srand( opt.seed );
@@ -491,63 +497,63 @@ int main( int argc, char *argv[] )
     /*
      * 0. "Connect" to the server
      */
-    printf( "  . Connect to server on UDP/%s/%d ...",
+    polarssl_printf( "  . Connect to server on UDP/%s/%d ...",
             opt.server_addr, opt.server_port );
     fflush( stdout );
 
     if( ( ret = net_connect( &server_fd, opt.server_addr, opt.server_port,
                              NET_PROTO_UDP ) ) != 0 )
     {
-        printf( " failed\n  ! net_connect returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! net_connect returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 1. Setup the "listening" UDP socket
      */
-    printf( "  . Bind on UDP/%s/%d ...",
+    polarssl_printf( "  . Bind on UDP/%s/%d ...",
             opt.listen_addr, opt.listen_port );
     fflush( stdout );
 
     if( ( ret = net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
                           NET_PROTO_UDP ) ) != 0 )
     {
-        printf( " failed\n  ! net_bind returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! net_bind returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 2. Wait until a client connects
      */
 accept:
-    printf( "  . Waiting for a remote connection ..." );
+    polarssl_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
     if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
     {
-        printf( " failed\n  ! net_accept returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! net_accept returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
     fflush( stdout );
 
-    printf( "  . Re-bind on UDP/%s/%d ...",
+    polarssl_printf( "  . Re-bind on UDP/%s/%d ...",
             opt.listen_addr, opt.listen_port );
     fflush( stdout );
 
     if( ( ret = net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
                           NET_PROTO_UDP ) ) != 0 )
     {
-        printf( " failed\n  ! net_bind returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! net_bind returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 3. Forward packets forever (kill the process to terminate it)
@@ -600,7 +606,7 @@ exit:
     {
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
-        printf( "Last error was: -0x%04X - %s\n\n", - ret, error_buf );
+        polarssl_printf( "Last error was: -0x%04X - %s\n\n", - ret, error_buf );
         fflush( stdout );
     }
 #endif
@@ -612,7 +618,7 @@ exit:
         net_close( listen_fd );
 
 #if defined(_WIN32)
-    printf( "  Press Enter to exit this program.\n" );
+    polarssl_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

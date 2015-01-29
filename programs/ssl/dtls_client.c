@@ -26,6 +26,13 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#endif
+
 #if !defined(POLARSSL_SSL_CLI_C) || !defined(POLARSSL_SSL_PROTO_DTLS) ||    \
     !defined(POLARSSL_NET_C) ||                                             \
     !defined(POLARSSL_ENTROPY_C) || !defined(POLARSSL_CTR_DRBG_C) ||        \
@@ -38,7 +45,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf( "POLARSSL_SSL_CLI_C and/or POLARSSL_SSL_PROTO_DTLS and/or "
+    polarssl_printf( "POLARSSL_SSL_CLI_C and/or POLARSSL_SSL_PROTO_DTLS and/or "
             "POLARSSL_NET_C and/or "
             "POLARSSL_ENTROPY_C and/or POLARSSL_CTR_DRBG_C and/or "
             "POLARSSL_X509_CRT_PARSE_C and/or POLARSSL_RSA_C and/or "
@@ -72,7 +79,7 @@ static void my_debug( void *ctx, int level, const char *str )
 {
     ((void) level);
 
-    fprintf( (FILE *) ctx, "%s", str );
+    polarssl_fprintf( (FILE *) ctx, "%s", str );
     fflush(  (FILE *) ctx  );
 }
 
@@ -101,7 +108,7 @@ int main( int argc, char *argv[] )
     memset( &ssl, 0, sizeof( ssl_context ) );
     x509_crt_init( &cacert );
 
-    printf( "\n  . Seeding the random number generator..." );
+    polarssl_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
     entropy_init( &entropy );
@@ -109,16 +116,16 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+        polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 0. Initialize certificates
      */
-    printf( "  . Loading the CA root certificate ..." );
+    polarssl_printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
 
 #if defined(POLARSSL_CERTS_C)
@@ -126,46 +133,46 @@ int main( int argc, char *argv[] )
                           strlen( test_ca_list ) );
 #else
     ret = 1;
-    printf("POLARSSL_CERTS_C not defined.");
+    polarssl_printf("POLARSSL_CERTS_C not defined.");
 #endif
 
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
+        polarssl_printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
-    printf( " ok (%d skipped)\n", ret );
+    polarssl_printf( " ok (%d skipped)\n", ret );
 
     /*
      * 1. Start the connection
      */
-    printf( "  . Connecting to udp/%s/%4d...", SERVER_NAME,
+    polarssl_printf( "  . Connecting to udp/%s/%4d...", SERVER_NAME,
                                                SERVER_PORT );
     fflush( stdout );
 
     if( ( ret = net_connect( &server_fd, SERVER_ADDR,
                                          SERVER_PORT, NET_PROTO_UDP ) ) != 0 )
     {
-        printf( " failed\n  ! net_connect returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! net_connect returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 2. Setup stuff
      */
-    printf( "  . Setting up the DTLS structure..." );
+    polarssl_printf( "  . Setting up the DTLS structure..." );
     fflush( stdout );
 
     if( ( ret = ssl_init( &ssl ) ) != 0 )
     {
-        printf( " failed\n  ! ssl_init returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! ssl_init returned %d\n\n", ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     ssl_set_endpoint( &ssl, SSL_IS_CLIENT );
     ssl_set_transport( &ssl, SSL_TRANSPORT_DATAGRAM );
@@ -186,7 +193,7 @@ int main( int argc, char *argv[] )
     /*
      * 4. Handshake
      */
-    printf( "  . Performing the SSL/TLS handshake..." );
+    polarssl_printf( "  . Performing the SSL/TLS handshake..." );
     fflush( stdout );
 
     do ret = ssl_handshake( &ssl );
@@ -195,46 +202,46 @@ int main( int argc, char *argv[] )
 
     if( ret != 0 )
     {
-        printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
+        polarssl_printf( " failed\n  ! ssl_handshake returned -0x%x\n\n", -ret );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 5. Verify the server certificate
      */
-    printf( "  . Verifying peer X.509 certificate..." );
+    polarssl_printf( "  . Verifying peer X.509 certificate..." );
 
     /* In real life, we would have used SSL_VERIFY_REQUIRED so that the
      * handshake would not succeed if the peer's cert is bad.  Even if we used
      * SSL_VERIFY_OPTIONAL, we would bail out here if ret != 0 */
     if( ( ret = ssl_get_verify_result( &ssl ) ) != 0 )
     {
-        printf( " failed\n" );
+        polarssl_printf( " failed\n" );
 
         if( ( ret & BADCERT_EXPIRED ) != 0 )
-            printf( "  ! server certificate has expired\n" );
+            polarssl_printf( "  ! server certificate has expired\n" );
 
         if( ( ret & BADCERT_REVOKED ) != 0 )
-            printf( "  ! server certificate has been revoked\n" );
+            polarssl_printf( "  ! server certificate has been revoked\n" );
 
         if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-            printf( "  ! CN mismatch (expected CN=%s)\n", SERVER_NAME );
+            polarssl_printf( "  ! CN mismatch (expected CN=%s)\n", SERVER_NAME );
 
         if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-            printf( "  ! self-signed or not signed by a trusted CA\n" );
+            polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
 
-        printf( "\n" );
+        polarssl_printf( "\n" );
     }
     else
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
     /*
      * 6. Write the echo request
      */
 send_request:
-    printf( "  > Write to server:" );
+    polarssl_printf( "  > Write to server:" );
     fflush( stdout );
 
     len = sizeof( MESSAGE ) - 1;
@@ -245,17 +252,17 @@ send_request:
 
     if( ret < 0 )
     {
-        printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+        polarssl_printf( " failed\n  ! ssl_write returned %d\n\n", ret );
         goto exit;
     }
 
     len = ret;
-    printf( " %d bytes written\n\n%s\n\n", len, MESSAGE );
+    polarssl_printf( " %d bytes written\n\n%s\n\n", len, MESSAGE );
 
     /*
      * 7. Read the echo response
      */
-    printf( "  < Read from server:" );
+    polarssl_printf( "  < Read from server:" );
     fflush( stdout );
 
     len = sizeof( buf ) - 1;
@@ -270,37 +277,37 @@ send_request:
         switch( ret )
         {
             case POLARSSL_ERR_NET_TIMEOUT:
-                printf( " timeout\n\n" );
+                polarssl_printf( " timeout\n\n" );
                 if( retry_left-- > 0 )
                     goto send_request;
                 goto exit;
 
             case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
-                printf( " connection was closed gracefully\n" );
+                polarssl_printf( " connection was closed gracefully\n" );
                 ret = 0;
                 goto close_notify;
 
             default:
-                printf( " ssl_read returned -0x%x\n\n", -ret );
+                polarssl_printf( " ssl_read returned -0x%x\n\n", -ret );
                 goto exit;
         }
     }
 
     len = ret;
-    printf( " %d bytes read\n\n%s\n\n", len, buf );
+    polarssl_printf( " %d bytes read\n\n%s\n\n", len, buf );
 
     /*
      * 8. Done, cleanly close the connection
      */
 close_notify:
-    printf( "  . Closing the connection..." );
+    polarssl_printf( "  . Closing the connection..." );
 
     /* No error checking, the connection might be closed already */
     do ret = ssl_close_notify( &ssl );
     while( ret == POLARSSL_ERR_NET_WANT_WRITE );
     ret = 0;
 
-    printf( " done\n" );
+    polarssl_printf( " done\n" );
 
     /*
      * 9. Final clean-ups and exit
@@ -312,7 +319,7 @@ exit:
     {
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
-        printf( "Last error was: %d - %s\n\n", ret, error_buf );
+        polarssl_printf( "Last error was: %d - %s\n\n", ret, error_buf );
     }
 #endif
 
@@ -325,7 +332,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

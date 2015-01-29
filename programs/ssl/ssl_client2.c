@@ -1058,7 +1058,7 @@ int main( int argc, char *argv[] )
 #if defined(POLARSSL_SSL_PROTO_DTLS)
     if( ( ret = ssl_set_transport( &ssl, opt.transport ) ) != 0 )
     {
-        printf( " failed\n  ! selected transport is not available\n" );
+        polarssl_printf( " failed\n  ! selected transport is not available\n" );
         goto exit;
     }
 
@@ -1180,7 +1180,7 @@ int main( int argc, char *argv[] )
         ret = ssl_set_min_version( &ssl, SSL_MAJOR_VERSION_3, opt.min_version );
         if( ret != 0 && opt.min_version != DFL_MIN_VERSION )
         {
-            printf( " failed\n  ! selected min_version is not available\n" );
+            polarssl_printf( " failed\n  ! selected min_version is not available\n" );
             goto exit;
         }
     }
@@ -1190,7 +1190,7 @@ int main( int argc, char *argv[] )
         ret = ssl_set_max_version( &ssl, SSL_MAJOR_VERSION_3, opt.max_version );
         if( ret != 0 )
         {
-            printf( " failed\n  ! selected max_version is not available\n" );
+            polarssl_printf( " failed\n  ! selected max_version is not available\n" );
             goto exit;
         }
     }
@@ -1230,9 +1230,9 @@ int main( int argc, char *argv[] )
             ssl_get_version( &ssl ), ssl_get_ciphersuite( &ssl ) );
 
     if( ( ret = ssl_get_record_expansion( &ssl ) ) >= 0 )
-        printf( "    [ Record expansion is %d ]\n", ret );
+        polarssl_printf( "    [ Record expansion is %d ]\n", ret );
     else
-        printf( "    [ Record expansion is unknown (compression) ]\n" );
+        polarssl_printf( "    [ Record expansion is unknown (compression) ]\n" );
 
 #if defined(POLARSSL_SSL_ALPN)
     if( opt.alpn_string != NULL )
@@ -1373,7 +1373,7 @@ send_request:
 
         if( ret < 0 )
         {
-            printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_write returned %d\n\n", ret );
             goto exit;
         }
 
@@ -1410,25 +1410,25 @@ send_request:
                 switch( ret )
                 {
                     case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
-                        printf( " connection was closed gracefully\n" );
+                        polarssl_printf( " connection was closed gracefully\n" );
                         ret = 0;
                         goto close_notify;
 
                     case 0:
                     case POLARSSL_ERR_NET_CONN_RESET:
-                        printf( " connection was reset by peer\n" );
+                        polarssl_printf( " connection was reset by peer\n" );
                         ret = 0;
                         goto reconnect;
 
                     default:
-                        printf( " ssl_read returned -0x%x\n", -ret );
+                        polarssl_printf( " ssl_read returned -0x%x\n", -ret );
                         goto exit;
                 }
             }
 
             len = ret;
             buf[len] = '\0';
-            printf( " %d bytes read\n\n%s", len, (char *) buf );
+            polarssl_printf( " %d bytes read\n\n%s", len, (char *) buf );
 
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
@@ -1539,7 +1539,7 @@ reconnect:
             ret = net_set_block( server_fd );
         if( ret != 0 )
         {
-            printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
+            polarssl_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
                     -ret );
             goto exit;
         }

@@ -227,15 +227,11 @@ test/ssl_test: test/ssl_test.c ../library/libmbedtls.a
 	echo   "  CC    test/ssl_test.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/ssl_test.c    $(LDFLAGS) -o $@
 
-<<<<<<< HEAD
-test/udp_proxy: test/udp_proxy.c ../library/libpolarssl.a
+test/udp_proxy: test/udp_proxy.c ../library/libmbedtls.a
 	echo   "  CC    test/udp_proxy.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/udp_proxy.c    $(LDFLAGS) -o $@
 
-test/o_p_test: test/o_p_test.c ../library/libpolarssl.a
-=======
 test/o_p_test: test/o_p_test.c ../library/libmbedtls.a
->>>>>>> development
 	echo   "  CC    test/o_p_test.c"
 	$(CC) $(CFLAGS) $(OFLAGS) test/o_p_test.c    $(LDFLAGS) -o $@ -lssl -lcrypto
 

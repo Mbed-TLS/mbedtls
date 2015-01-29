@@ -87,7 +87,7 @@ int main( int argc, char *argv[] )
     ret = 0;
 
 cleanup:
-    printf( "\n" );
+    polarssl_printf( "\n" );
 
     fclose( f );
     entropy_free( &entropy );

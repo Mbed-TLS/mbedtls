@@ -29,6 +29,7 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#define polarssl_snprintf   snprintf
 #define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
 #endif
@@ -1197,7 +1198,7 @@ send_request:
     polarssl_printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
+    len = polarssl_snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
                     opt.request_page );
     tail_len = strlen( GET_REQUEST_END );
 

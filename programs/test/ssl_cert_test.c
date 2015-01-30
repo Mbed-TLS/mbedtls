@@ -29,6 +29,7 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#define polarssl_snprintf   snprintf
 #define polarssl_printf     printf
 #endif
 
@@ -149,7 +150,7 @@ int main( int argc, char *argv[] )
         x509_crt_init( &clicert );
         pk_init( &pk );
 
-        snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
+        polarssl_snprintf(name, 512, "ssl/test-ca/%s", client_certificates[i]);
 
         polarssl_printf( "  . Loading the client certificate %s...", name );
         fflush( stdout );
@@ -198,7 +199,7 @@ int main( int argc, char *argv[] )
         /*
          * 1.5. Load own private key
          */
-        snprintf(name, 512, "ssl/test-ca/%s", client_private_keys[i]);
+        polarssl_snprintf(name, 512, "ssl/test-ca/%s", client_private_keys[i]);
 
         polarssl_printf( "  . Loading the client private key %s...", name );
         fflush( stdout );

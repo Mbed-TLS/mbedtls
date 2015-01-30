@@ -33,6 +33,7 @@
 #define polarssl_exit       exit
 #define polarssl_printf     printf
 #define polarssl_snprintf   snprintf
+#define polarssl_exit       exit
 #endif
 
 #if defined(POLARSSL_TIMING_C)

@@ -3,6 +3,7 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_exit       exit
 #define polarssl_free       free
 #define polarssl_malloc     malloc

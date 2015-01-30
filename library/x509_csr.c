@@ -50,6 +50,7 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#define polarssl_snprintf   snprintf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
@@ -390,16 +391,16 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
     p = buf;
     n = size;
 
-    ret = snprintf( p, n, "%sCSR version   : %d",
+    ret = polarssl_snprintf( p, n, "%sCSR version   : %d",
                                prefix, csr->version );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssubject name  : ", prefix );
+    ret = polarssl_snprintf( p, n, "\n%ssubject name  : ", prefix );
     SAFE_SNPRINTF();
     ret = x509_dn_gets( p, n, &csr->subject );
     SAFE_SNPRINTF();
 
-    ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
+    ret = polarssl_snprintf( p, n, "\n%ssigned using  : ", prefix );
     SAFE_SNPRINTF();
 
     ret = x509_sig_alg_gets( p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
@@ -412,7 +413,7 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
         return( ret );
     }
 
-    ret = snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
+    ret = polarssl_snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
                           (int) pk_get_size( &csr->pk ) );
     SAFE_SNPRINTF();
 

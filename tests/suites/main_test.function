@@ -8,6 +8,7 @@
 #define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
+#define polarssl_exit       exit
 #endif
 
 static int test_errors = 0;
@@ -275,7 +276,7 @@ int main()
         {
             polarssl_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
             fclose(file);
-            exit( 2 );
+            polarssl_exit( 2 );
         }
         else
             total_errors++;

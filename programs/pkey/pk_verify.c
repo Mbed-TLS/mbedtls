@@ -32,6 +32,7 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#define polarssl_snprintf   snprintf
 #define polarssl_printf     printf
 #define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
@@ -100,7 +101,7 @@ int main( int argc, char *argv[] )
      * Extract the signature from the text file
      */
     ret = 1;
-    snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
+    polarssl_snprintf( filename, sizeof(filename), "%s.sig", argv[2] );
 
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {

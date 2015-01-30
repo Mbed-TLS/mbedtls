@@ -192,6 +192,11 @@
 #error "POLARSSL_PKCS11_C defined, but not all prerequisites"
 #endif
 
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT) && ( defined(_WIN32)\
+    && !defined(EFIX64) && !defined(EFI32) )
+#error "POLARSSL_PLATFORM_SNPRINTF_ALT defined but not available on Windows"
+#endif
+
 #if defined(POLARSSL_RSA_C) && ( !defined(POLARSSL_BIGNUM_C) ||         \
     !defined(POLARSSL_OID_C) )
 #error "POLARSSL_RSA_C defined, but not all prerequisites"

@@ -49,6 +49,9 @@ extern "C" {
 
 #if !defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
 #include <stdlib.h>
+#if !defined(POLARSSL_PLATFORM_STD_SNPRINTF)
+#define POLARSSL_PLATFORM_STD_SNPRINTF   snprintf /**< Default snprintf to use  */
+#endif
 #if !defined(POLARSSL_PLATFORM_STD_PRINTF)
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
 #endif
@@ -90,6 +93,25 @@ int platform_set_malloc_free( void * (*malloc_func)( size_t ),
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif /* POLARSSL_PLATFORM_ENTROPY */
+
+/*
+ * The function pointers for snprintf
+ */
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
+extern int (*polarssl_snprintf)( char * s, size_t n, const char * format, ... );
+
+/**
+ * \brief   Set your own snprintf function pointer
+ *
+ * \param snprintf_func   the snprintf function implementation
+ *
+ * \return              0
+ */
+int platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
+                                                 const char * format, ... ) );
+#else /* POLARSSL_PLATFORM_SNPRINTF_ALT */
+#define polarssl_snprintf   snprintf
+#endif /* POLARSSL_PLATFORM_SNPRINTF_ALT */
 
 /*
  * The function pointers for printf

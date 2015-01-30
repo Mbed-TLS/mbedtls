@@ -159,9 +159,13 @@
  *
  * All these define require POLARSSL_PLATFORM_C to be defined!
  *
+ * WARNING: POLARSSL_PLATFORM_SNPRINTF_ALT is not available on Windows
+ * for compatibility reasons.
+ *
  * Uncomment a macro to enable alternate implementation of specific base
  * platform function
  */
+//#define POLARSSL_PLATFORM_SNPRINTF_ALT
 //#define POLARSSL_PLATFORM_PRINTF_ALT
 //#define POLARSSL_PLATFORM_FPRINTF_ALT
 /* \} name SECTION: System support */
@@ -1890,7 +1894,7 @@
  * \def POLARSSL_PLATFORM_C
  *
  * Enable the platform abstraction layer that allows you to re-assign
- * functions like malloc(), free(), printf(), fprintf()
+ * functions like malloc(), free(), snprintf(), printf(), fprintf()
  *
  * Module:  library/platform.c
  * Caller:  Most other .c files
@@ -2238,6 +2242,7 @@
 //#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include if POLARSSL_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
 //#define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_SNPRINTF 	snprintf /**< Default snprintf to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use, can be undefined */
 

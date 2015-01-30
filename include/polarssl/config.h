@@ -171,6 +171,7 @@
 //#define POLARSSL_PLATFORM_SNPRINTF_ALT
 //#define POLARSSL_PLATFORM_PRINTF_ALT
 //#define POLARSSL_PLATFORM_FPRINTF_ALT
+//#define POLARSSL_PLATFORM_EXIT_ALT
 /* \} name SECTION: System support */
 
 /**
@@ -1800,7 +1801,7 @@
  * \def POLARSSL_PLATFORM_C
  *
  * Enable the platform abstraction layer that allows you to re-assign
- * functions like malloc(), free(), snprintf(), printf(), fprintf()
+ * functions like malloc(), free(), snprintf(), printf(), fprintf(), exit()
  *
  * Module:  library/platform.c
  * Caller:  Most other .c files
@@ -2148,9 +2149,10 @@
 //#define POLARSSL_PLATFORM_STD_MEM_HDR <stdlib.h> /**< Header to include if POLARSSL_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
 //#define POLARSSL_PLATFORM_STD_MALLOC   malloc /**< Default allocator to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use, can be undefined */
-//#define POLARSSL_PLATFORM_STD_SNPRINTF 	snprintf /**< Default snprintf to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_SNPRINTF    snprintf /**< Default snprintf to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_FPRINTF fprintf /**< Default fprintf to use, can be undefined */
+//#define POLARSSL_PLATFORM_STD_EXIT    exit /**< Default exit to use, can be undefined */
 
 /* SSL Cache options */
 //#define SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */

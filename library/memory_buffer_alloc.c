@@ -37,9 +37,11 @@
 #include "polarssl/platform.h"
 #else
 #include <stdio.h>
+#define polarssl_exit    exit
 #define polarssl_fprintf fprintf
 #endif /* POLARSSL_PLATFORM_C */
 #endif /* POLARSSL_MEMORY_DEBUG */
+
 #if defined(POLARSSL_MEMORY_BACKTRACE)
 #include <execinfo.h>
 #endif
@@ -273,7 +275,7 @@ static void *buffer_alloc_malloc( size_t len )
         polarssl_fprintf( stderr, "FATAL: block in free_list but allocated "
                                   "data\n" );
 #endif
-        exit( 1 );
+        polarssl_exit( 1 );
     }
 
 #if defined(POLARSSL_MEMORY_DEBUG)
@@ -312,7 +314,7 @@ static void *buffer_alloc_malloc( size_t len )
 #endif
 
         if( ( heap.verify & MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
-            exit( 1 );
+            polarssl_exit( 1 );
 
         return( ( (unsigned char *) cur ) + sizeof(memory_header) );
     }
@@ -367,7 +369,7 @@ static void *buffer_alloc_malloc( size_t len )
 #endif
 
     if( ( heap.verify & MEMORY_VERIFY_ALLOC ) && verify_chain() != 0 )
-        exit( 1 );
+        polarssl_exit( 1 );
 
     return( ( (unsigned char *) cur ) + sizeof(memory_header) );
 }
@@ -386,14 +388,14 @@ static void buffer_alloc_free( void *ptr )
         polarssl_fprintf( stderr, "FATAL: polarssl_free() outside of managed "
                                   "space\n" );
 #endif
-        exit( 1 );
+        polarssl_exit( 1 );
     }
 
     p -= sizeof(memory_header);
     hdr = (memory_header *) p;
 
     if( verify_header( hdr ) != 0 )
-        exit( 1 );
+        polarssl_exit( 1 );
 
     if( hdr->alloc != 1 )
     {
@@ -401,7 +403,7 @@ static void buffer_alloc_free( void *ptr )
         polarssl_fprintf( stderr, "FATAL: polarssl_free() on unallocated "
                                   "data\n" );
 #endif
-        exit( 1 );
+        polarssl_exit( 1 );
     }
 
     hdr->alloc = 0;
@@ -491,7 +493,7 @@ static void buffer_alloc_free( void *ptr )
 #endif
 
     if( ( heap.verify & MEMORY_VERIFY_FREE ) && verify_chain() != 0 )
-        exit( 1 );
+        polarssl_exit( 1 );
 }
 
 void memory_buffer_set_verify( int verify )

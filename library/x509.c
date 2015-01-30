@@ -77,6 +77,8 @@
 #endif
 #endif
 
+#define CHECK_STATUS(a) {int ret = a; if(ret){return ret;};}
+
 /*
  *  CertificateSerialNumber  ::=  INTEGER
  */
@@ -452,6 +454,23 @@ int x509_get_name( unsigned char **p, const unsigned char *end,
     return( x509_get_name( p, end, cur->next ) );
 }
 
+static inline int x509_parse_int( unsigned char **p, 
+                                  unsigned int digit_count,
+                                  int *result )
+{
+    unsigned char digit;
+    *result = 0;
+    while( digit_count-- > 0 )
+    {
+        digit = *(*p)++;
+        if( digit > '9' || digit < '0' )
+            return( POLARSSL_ERR_X509_INVALID_DATE );
+        *result *= 10;
+        *result += digit - '0';
+    }
+    return( 0 );
+}
+
 /*
  *  Time ::= CHOICE {
  *       utcTime        UTCTime,
@@ -462,7 +481,6 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
 {
     int ret;
     size_t len;
-    char date[64];
     unsigned char tag;
 
     if( ( end - *p ) < 1 )
@@ -479,19 +497,25 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        memset( date,  0, sizeof( date ) );
-        memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
-                len : sizeof( date ) - 1 );
-
-        if( sscanf( date, "%2d%2d%2d%2d%2d%2dZ",
-                    &time->year, &time->mon, &time->day,
-                    &time->hour, &time->min, &time->sec ) < 5 )
+        if( len < 11 )
             return( POLARSSL_ERR_X509_INVALID_DATE );
+
+        CHECK_STATUS( x509_parse_int( p, 2, &time->year ) );
+        CHECK_STATUS( x509_parse_int( p, 2, &time->mon ) );
+        CHECK_STATUS( x509_parse_int( p, 2, &time->day ) );
+        CHECK_STATUS( x509_parse_int( p, 2, &time->hour ) );
+        CHECK_STATUS( x509_parse_int( p, 2, &time->min ) );
+        if ( len == 13 || len == 12 )
+            CHECK_STATUS( x509_parse_int( p, 2, &time->sec ) )
+        else
+            time->sec = 0;
+
+        if( len == 13 && *(*p)++ != 'Z' ){
+            return( POLARSSL_ERR_X509_INVALID_DATE );
+        }
 
         time->year +=  100 * ( time->year < 50 );
         time->year += 1900;
-
-        *p += len;
 
         return( 0 );
     }
@@ -503,16 +527,22 @@ int x509_get_time( unsigned char **p, const unsigned char *end,
         if( ret != 0 )
             return( POLARSSL_ERR_X509_INVALID_DATE + ret );
 
-        memset( date,  0, sizeof( date ) );
-        memcpy( date, *p, ( len < sizeof( date ) - 1 ) ?
-                len : sizeof( date ) - 1 );
-
-        if( sscanf( date, "%4d%2d%2d%2d%2d%2dZ",
-                    &time->year, &time->mon, &time->day,
-                    &time->hour, &time->min, &time->sec ) < 5 )
+        if( len < 13 )
             return( POLARSSL_ERR_X509_INVALID_DATE );
 
-        *p += len;
+        CHECK_STATUS( x509_parse_int( p, 4, &time->year ) );
+        CHECK_STATUS( x509_parse_int( p, 2, &time->mon ) );
+        CHECK_STATUS( x509_parse_int( p, 2, &time->day ) );
+        CHECK_STATUS( x509_parse_int( p, 2, &time->hour ) );
+        CHECK_STATUS( x509_parse_int( p, 2, &time->min ) );
+        if ( len == 15 || len == 14 )
+            CHECK_STATUS( x509_parse_int( p, 2, &time->sec ) )
+        else
+            time->sec = 0;
+
+        if( len >= 15 && *(*p)++ != 'Z' ){
+            return( POLARSSL_ERR_X509_INVALID_DATE );
+        }
 
         return( 0 );
     }

@@ -47,7 +47,7 @@ static int unhexify(unsigned char *obuf, const char *ibuf)
 {
     unsigned char c, c2;
     int len = strlen(ibuf) / 2;
-    assert(!(strlen(ibuf) %1)); // must be even number of bytes
+    assert( strlen(ibuf) % 2 == 0 ); // must be even number of bytes
 
     while (*ibuf != 0)
     {

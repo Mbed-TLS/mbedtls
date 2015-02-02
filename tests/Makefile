@@ -412,9 +412,9 @@ ifndef WINDOWS
 	do																		\
 		echo " - $${i}";													\
 		RESULT=`$(CHECK_PRELOAD) ./$${i} | grep -v 'PASS$$' | grep -v -- '----' | grep -v '^$$'`;	\
-		FAILED=`echo $$RESULT |grep FAILED`; 								\
+		PASSED=`echo $$RESULT |grep PASSED`; 								\
 		echo "   $$RESULT";													\
-		if [ "$$FAILED" != "" ];											\
+		if [ "$$PASSED" == "" ];											\
 		then																\
 			echo "**** Failed ***************";								\
 			RETURN=1;														\

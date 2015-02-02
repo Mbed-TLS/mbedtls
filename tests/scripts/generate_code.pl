@@ -6,11 +6,11 @@ use strict;
 my $suite_dir = shift or die "Missing suite directory";
 my $suite_name = shift or die "Missing suite name";
 my $data_name = shift or die "Missing data name";
+my $test_main_file = do { my $arg = shift; defined($arg) ? $arg :  $suite_dir."/main_test.function" };
 my $test_file = $data_name.".c";
 my $test_helper_file = $suite_dir."/helpers.function";
 my $test_case_file = $suite_dir."/".$suite_name.".function";
 my $test_case_data = $suite_dir."/".$data_name.".data";
-my $test_main_file = $suite_dir."/main_test.function";
 
 my $line_separator = $/;
 undef $/;
@@ -172,7 +172,7 @@ $function_pre_code
 $param_defs
     if( cnt != $param_count )
     {
-        fprintf( stderr, "\\nIncorrect argument count (%d != %d)\\n", cnt, $param_count );
+        polarssl_fprintf( stderr, "\\nIncorrect argument count (%d != %d)\\n", cnt, $param_count );
         return( 2 );
     }
 

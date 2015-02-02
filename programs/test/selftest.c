@@ -29,6 +29,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
@@ -75,7 +84,7 @@ int main( int argc, char *argv[] )
     else
     {
         v = 1;
-        printf( "\n" );
+        polarssl_printf( "\n" );
     }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -218,7 +227,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #else
-    printf( " POLARSSL_SELF_TEST not defined.\n" );
+    polarssl_printf( " POLARSSL_SELF_TEST not defined.\n" );
 #endif
 
     if( v != 0 )
@@ -227,9 +236,9 @@ int main( int argc, char *argv[] )
         memory_buffer_alloc_status();
 #endif
 
-        printf( "  [ All tests passed ]\n\n" );
+        polarssl_printf( "  [ All tests passed ]\n\n" );
 #if defined(_WIN32)
-        printf( "  Press Enter to exit this program.\n" );
+        polarssl_printf( "  Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
 #endif
     }

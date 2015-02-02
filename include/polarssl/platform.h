@@ -49,6 +49,9 @@ extern "C" {
 
 #if !defined(POLARSSL_PLATFORM_NO_STD_FUNCTIONS)
 #include <stdlib.h>
+#if !defined(POLARSSL_PLATFORM_STD_SNPRINTF)
+#define POLARSSL_PLATFORM_STD_SNPRINTF   snprintf /**< Default snprintf to use  */
+#endif
 #if !defined(POLARSSL_PLATFORM_STD_PRINTF)
 #define POLARSSL_PLATFORM_STD_PRINTF   printf /**< Default printf to use  */
 #endif
@@ -60,6 +63,9 @@ extern "C" {
 #endif
 #if !defined(POLARSSL_PLATFORM_STD_FREE)
 #define POLARSSL_PLATFORM_STD_FREE       free /**< Default free to use */
+#endif
+#if !defined(POLARSSL_PLATFORM_STD_EXIT)
+#define POLARSSL_PLATFORM_STD_EXIT      exit /**< Default free to use */
 #endif
 #else /* POLARSSL_PLATFORM_NO_STD_FUNCTIONS */
 #if defined(POLARSSL_PLATFORM_STD_MEM_HDR)
@@ -92,6 +98,25 @@ int platform_set_malloc_free( void * (*malloc_func)( size_t ),
 #endif /* POLARSSL_PLATFORM_ENTROPY */
 
 /*
+ * The function pointers for snprintf
+ */
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
+extern int (*polarssl_snprintf)( char * s, size_t n, const char * format, ... );
+
+/**
+ * \brief   Set your own snprintf function pointer
+ *
+ * \param snprintf_func   the snprintf function implementation
+ *
+ * \return              0
+ */
+int platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
+                                                 const char * format, ... ) );
+#else /* POLARSSL_PLATFORM_SNPRINTF_ALT */
+#define polarssl_snprintf   snprintf
+#endif /* POLARSSL_PLATFORM_SNPRINTF_ALT */
+
+/*
  * The function pointers for printf
  */
 #if defined(POLARSSL_PLATFORM_PRINTF_ALT)
@@ -115,11 +140,36 @@ int platform_set_printf( int (*printf_func)( const char *, ... ) );
 #if defined(POLARSSL_PLATFORM_FPRINTF_ALT)
 extern int (*polarssl_fprintf)( FILE *stream, const char *format, ... );
 
+/**
+ * \brief   Set your own fprintf function pointer
+ *
+ * \param fprintf_func   the fprintf function implementation
+ *
+ * \return              0
+ */
 int platform_set_fprintf( int (*fprintf_func)( FILE *stream, const char *,
                                                ... ) );
 #else
 #define polarssl_fprintf    fprintf
-#endif
+#endif /* POLARSSL_PLATFORM_FPRINTF_ALT */
+
+/*
+ * The function pointers for exit
+ */
+#if defined(POLARSSL_PLATFORM_EXIT_ALT)
+extern void (*polarssl_exit)( int status );
+
+/**
+ * \brief   Set your own exit function pointer
+ *
+ * \param exit_func   the exit function implementation
+ *
+ * \return              0
+ */
+int platform_set_exit( void (*exit_func)( int status ) );
+#else
+#define polarssl_exit   exit
+#endif /* POLARSSL_PLATFORM_EXIT_ALT */
 
 #ifdef __cplusplus
 }

@@ -29,6 +29,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,7 +54,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BASE64_C and/or POLARSSL_FS_IO not defined.\n");
+    polarssl_printf("POLARSSL_BASE64_C and/or POLARSSL_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -124,7 +133,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     *n = (size_t) size;
 
     if( *n + 1 == 0 ||
-        ( *buf = (unsigned char *) malloc( *n + 1 ) ) == NULL )
+        ( *buf = (unsigned char *) polarssl_malloc( *n + 1 ) ) == NULL )
     {
         fclose( f );
         return( -1 );
@@ -191,7 +200,7 @@ int main( int argc, char *argv[] )
     if( argc == 0 )
     {
     usage:
-        printf( USAGE );
+        polarssl_printf( USAGE );
         goto exit;
     }
 
@@ -217,7 +226,7 @@ int main( int argc, char *argv[] )
     /*
      * 1.1. Load the PEM file
      */
-    printf( "\n  . Loading the PEM file ..." );
+    polarssl_printf( "\n  . Loading the PEM file ..." );
     fflush( stdout );
 
     ret = load_file( opt.filename, &pem_buffer, &pem_size );
@@ -227,16 +236,16 @@ int main( int argc, char *argv[] )
 #ifdef POLARSSL_ERROR_C
         polarssl_strerror( ret, buf, 1024 );
 #endif
-        printf( " failed\n  !  load_file returned %d - %s\n\n", ret, buf );
+        polarssl_printf( " failed\n  !  load_file returned %d - %s\n\n", ret, buf );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 1.2. Convert from PEM to DER
      */
-    printf( "  . Converting from PEM to DER ..." );
+    polarssl_printf( "  . Converting from PEM to DER ..." );
     fflush( stdout );
 
     if( ( ret = convert_pem_to_der( pem_buffer, pem_size, der_buffer, &der_size ) ) != 0 )
@@ -244,16 +253,16 @@ int main( int argc, char *argv[] )
 #ifdef POLARSSL_ERROR_C
         polarssl_strerror( ret, buf, 1024 );
 #endif
-        printf( " failed\n  !  convert_pem_to_der %d - %s\n\n", ret, buf );
+        polarssl_printf( " failed\n  !  convert_pem_to_der %d - %s\n\n", ret, buf );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
     /*
      * 1.3. Write the DER file
      */
-    printf( "  . Writing the DER file ..." );
+    polarssl_printf( "  . Writing the DER file ..." );
     fflush( stdout );
 
     ret = write_file( opt.output_file, der_buffer, der_size );
@@ -263,17 +272,17 @@ int main( int argc, char *argv[] )
 #ifdef POLARSSL_ERROR_C
         polarssl_strerror( ret, buf, 1024 );
 #endif
-        printf( " failed\n  !  write_file returned %d - %s\n\n", ret, buf );
+        polarssl_printf( " failed\n  !  write_file returned %d - %s\n\n", ret, buf );
         goto exit;
     }
 
-    printf( " ok\n" );
+    polarssl_printf( " ok\n" );
 
 exit:
     free( pem_buffer );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

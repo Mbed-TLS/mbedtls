@@ -5,8 +5,10 @@
 #include "polarssl/platform.h"
 #else
 #define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
+#define polarssl_exit       exit
 #endif
 
 static int test_errors = 0;
@@ -21,8 +23,8 @@ static int test_assert( int correct, const char *test )
 
     test_errors++;
     if( test_errors == 1 )
-        printf( "FAILED\n" );
-    printf( "  %s\n", test );
+        polarssl_printf( "FAILED\n" );
+    polarssl_printf( "  %s\n", test );
 
     return( 1 );
 }
@@ -37,7 +39,7 @@ int verify_string( char **str )
     if( (*str)[0] != '"' ||
         (*str)[strlen( *str ) - 1] != '"' )
     {
-        printf( "Expected string (with \"\") for parameter and got: %s\n", *str );
+        polarssl_printf( "Expected string (with \"\") for parameter and got: %s\n", *str );
         return( -1 );
     }
 
@@ -90,7 +92,7 @@ int verify_int( char *str, int *value )
 
 MAPPING_CODE
 
-    printf( "Expected integer for parameter and got: %s\n", str );
+    polarssl_printf( "Expected integer for parameter and got: %s\n", str );
     return( -1 );
 }
 
@@ -116,7 +118,7 @@ int dispatch_test(int cnt, char *params[50])
 #if defined(TEST_SUITE_ACTIVE)
 DISPATCH_FUNCTION
     {
-        fprintf( stdout, "FAILED\nSkipping unknown test function '%s'\n", params[0] );
+        polarssl_fprintf( stdout, "FAILED\nSkipping unknown test function '%s'\n", params[0] );
         fflush( stdout );
         return( 1 );
     }
@@ -219,7 +221,7 @@ int main()
     file = fopen( filename, "r" );
     if( file == NULL )
     {
-        fprintf( stderr, "Failed to open\n" );
+        polarssl_fprintf( stderr, "Failed to open\n" );
         return( 1 );
     }
 
@@ -229,11 +231,11 @@ int main()
 
         if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
             break;
-        fprintf( stdout, "%s%.66s", test_errors ? "\n" : "", buf );
-        fprintf( stdout, " " );
+        polarssl_fprintf( stdout, "%s%.66s", test_errors ? "\n" : "", buf );
+        polarssl_fprintf( stdout, " " );
         for( i = strlen( buf ) + 1; i < 67; i++ )
-            fprintf( stdout, "." );
-        fprintf( stdout, " " );
+            polarssl_fprintf( stdout, "." );
+        polarssl_fprintf( stdout, " " );
         fflush( stdout );
 
         total_tests++;
@@ -262,19 +264,19 @@ int main()
         if( skip == 1 || ret == 3 )
         {
             total_skipped++;
-            fprintf( stdout, "----\n" );
+            polarssl_fprintf( stdout, "----\n" );
             fflush( stdout );
         }
         else if( ret == 0 && test_errors == 0 )
         {
-            fprintf( stdout, "PASS\n" );
+            polarssl_fprintf( stdout, "PASS\n" );
             fflush( stdout );
         }
         else if( ret == 2 )
         {
-            fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
+            polarssl_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
             fclose(file);
-            exit( 2 );
+            polarssl_exit( 2 );
         }
         else
             total_errors++;
@@ -283,19 +285,19 @@ int main()
             break;
         if( strlen(buf) != 0 )
         {
-            fprintf( stderr, "Should be empty %d\n", (int) strlen(buf) );
+            polarssl_fprintf( stderr, "Should be empty %d\n", (int) strlen(buf) );
             return( 1 );
         }
     }
     fclose(file);
 
-    fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");
+    polarssl_fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");
     if( total_errors == 0 )
-        fprintf( stdout, "PASSED" );
+        polarssl_fprintf( stdout, "PASSED" );
     else
-        fprintf( stdout, "FAILED" );
+        polarssl_fprintf( stdout, "FAILED" );
 
-    fprintf( stdout, " (%d / %d tests (%d skipped))\n",
+    polarssl_fprintf( stdout, " (%d / %d tests (%d skipped))\n",
              total_tests - total_errors, total_tests, total_skipped );
 
 #if defined(POLARSSL_MEMORY_BUFFER_ALLOC_C)

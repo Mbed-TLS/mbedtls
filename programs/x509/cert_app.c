@@ -29,6 +29,15 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -49,7 +58,7 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
+    polarssl_printf("POLARSSL_BIGNUM_C and/or POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
            "POLARSSL_NET_C and/or POLARSSL_RSA_C and/or "
            "POLARSSL_X509_CRT_PARSE_C and/or POLARSSL_FS_IO and/or "
@@ -92,7 +101,7 @@ static void my_debug( void *ctx, int level, const char *str )
 {
     if( level < opt.debug_level )
     {
-        fprintf( (FILE *) ctx, "%s", str );
+        polarssl_fprintf( (FILE *) ctx, "%s", str );
         fflush(  (FILE *) ctx  );
     }
 }
@@ -102,33 +111,33 @@ static int my_verify( void *data, x509_crt *crt, int depth, int *flags )
     char buf[1024];
     ((void) data);
 
-    printf( "\nVerify requested for (Depth %d):\n", depth );
+    polarssl_printf( "\nVerify requested for (Depth %d):\n", depth );
     x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
-    printf( "%s", buf );
+    polarssl_printf( "%s", buf );
 
     if( ( (*flags) & BADCERT_EXPIRED ) != 0 )
-        printf( "  ! server certificate has expired\n" );
+        polarssl_printf( "  ! server certificate has expired\n" );
 
     if( ( (*flags) & BADCERT_REVOKED ) != 0 )
-        printf( "  ! server certificate has been revoked\n" );
+        polarssl_printf( "  ! server certificate has been revoked\n" );
 
     if( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
-        printf( "  ! CN mismatch\n" );
+        polarssl_printf( "  ! CN mismatch\n" );
 
     if( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
-        printf( "  ! self-signed or not signed by a trusted CA\n" );
+        polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
 
     if( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
-        printf( "  ! CRL not trusted\n" );
+        polarssl_printf( "  ! CRL not trusted\n" );
 
     if( ( (*flags) & BADCRL_EXPIRED ) != 0 )
-        printf( "  ! CRL expired\n" );
+        polarssl_printf( "  ! CRL expired\n" );
 
     if( ( (*flags) & BADCERT_OTHER ) != 0 )
-        printf( "  ! other (unknown) flag\n" );
+        polarssl_printf( "  ! other (unknown) flag\n" );
 
     if ( ( *flags ) == 0 )
-        printf( "  This certificate has no flags\n" );
+        polarssl_printf( "  This certificate has no flags\n" );
 
     return( 0 );
 }
@@ -187,7 +196,7 @@ int main( int argc, char *argv[] )
     if( argc == 0 )
     {
     usage:
-        printf( USAGE );
+        polarssl_printf( USAGE );
         goto exit;
     }
 
@@ -258,7 +267,7 @@ int main( int argc, char *argv[] )
     /*
      * 1.1. Load the trusted CA
      */
-    printf( "  . Loading the CA root certificate ..." );
+    polarssl_printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
 
     if( strlen( opt.ca_path ) )
@@ -274,18 +283,18 @@ int main( int argc, char *argv[] )
 
     if( ret < 0 )
     {
-        printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
+        polarssl_printf( " failed\n  !  x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
-    printf( " ok (%d skipped)\n", ret );
+    polarssl_printf( " ok (%d skipped)\n", ret );
 
 #if defined(POLARSSL_X509_CRL_PARSE_C)
     if( strlen( opt.crl_file ) )
     {
         if( ( ret = x509_crl_parse_file( &cacrl, opt.crl_file ) ) != 0 )
         {
-            printf( " failed\n  !  x509_crl_parse returned -0x%x\n\n", -ret );
+            polarssl_printf( " failed\n  !  x509_crl_parse returned -0x%x\n\n", -ret );
             goto exit;
         }
 
@@ -302,43 +311,43 @@ int main( int argc, char *argv[] )
         /*
          * 1.1. Load the certificate(s)
          */
-        printf( "\n  . Loading the certificate(s) ..." );
+        polarssl_printf( "\n  . Loading the certificate(s) ..." );
         fflush( stdout );
 
         ret = x509_crt_parse_file( &crt, opt.filename );
 
         if( ret < 0 )
         {
-            printf( " failed\n  !  x509_crt_parse_file returned %d\n\n", ret );
+            polarssl_printf( " failed\n  !  x509_crt_parse_file returned %d\n\n", ret );
             x509_crt_free( &crt );
             goto exit;
         }
 
         if( opt.permissive == 0 && ret > 0 )
         {
-            printf( " failed\n  !  x509_crt_parse failed to parse %d certificates\n\n", ret );
+            polarssl_printf( " failed\n  !  x509_crt_parse failed to parse %d certificates\n\n", ret );
             x509_crt_free( &crt );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         /*
          * 1.2 Print the certificate(s)
          */
         while( cur != NULL )
         {
-            printf( "  . Peer certificate information    ...\n" );
+            polarssl_printf( "  . Peer certificate information    ...\n" );
             ret = x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
                                  cur );
             if( ret == -1 )
             {
-                printf( " failed\n  !  x509_crt_info returned %d\n\n", ret );
+                polarssl_printf( " failed\n  !  x509_crt_info returned %d\n\n", ret );
                 x509_crt_free( &crt );
                 goto exit;
             }
 
-            printf( "%s\n", buf );
+            polarssl_printf( "%s\n", buf );
 
             cur = cur->next;
         }
@@ -348,29 +357,29 @@ int main( int argc, char *argv[] )
          */
         if( verify )
         {
-            printf( "  . Verifying X.509 certificate..." );
+            polarssl_printf( "  . Verifying X.509 certificate..." );
 
             if( ( ret = x509_crt_verify( &crt, &cacert, &cacrl, NULL, &flags,
                                          my_verify, NULL ) ) != 0 )
             {
-                printf( " failed\n" );
+                polarssl_printf( " failed\n" );
 
                 if( ( ret & BADCERT_EXPIRED ) != 0 )
-                    printf( "  ! server certificate has expired\n" );
+                    polarssl_printf( "  ! server certificate has expired\n" );
 
                 if( ( ret & BADCERT_REVOKED ) != 0 )
-                    printf( "  ! server certificate has been revoked\n" );
+                    polarssl_printf( "  ! server certificate has been revoked\n" );
 
                 if( ( ret & BADCERT_CN_MISMATCH ) != 0 )
-                    printf( "  ! CN mismatch (expected CN=%s)\n", opt.server_name );
+                    polarssl_printf( "  ! CN mismatch (expected CN=%s)\n", opt.server_name );
 
                 if( ( ret & BADCERT_NOT_TRUSTED ) != 0 )
-                    printf( "  ! self-signed or not signed by a trusted CA\n" );
+                    polarssl_printf( "  ! self-signed or not signed by a trusted CA\n" );
 
-                printf( "\n" );
+                polarssl_printf( "\n" );
             }
             else
-                printf( " ok\n" );
+                polarssl_printf( " ok\n" );
         }
 
         x509_crt_free( &crt );
@@ -380,7 +389,7 @@ int main( int argc, char *argv[] )
         /*
          * 1. Initialize the RNG and the session data
          */
-        printf( "\n  . Seeding the random number generator..." );
+        polarssl_printf( "\n  . Seeding the random number generator..." );
         fflush( stdout );
 
         entropy_init( &entropy );
@@ -388,23 +397,23 @@ int main( int argc, char *argv[] )
                                    (const unsigned char *) pers,
                                    strlen( pers ) ) ) != 0 )
         {
-            printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
+            polarssl_printf( " failed\n  ! ctr_drbg_init returned %d\n", ret );
             goto exit;
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         /*
          * 2. Start the connection
          */
-        printf( "  . SSL connection to tcp/%s/%-4d...", opt.server_name,
+        polarssl_printf( "  . SSL connection to tcp/%s/%-4d...", opt.server_name,
                                                         opt.server_port );
         fflush( stdout );
 
         if( ( ret = net_connect( &server_fd, opt.server_name,
                                              opt.server_port ) ) != 0 )
         {
-            printf( " failed\n  ! net_connect returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! net_connect returned %d\n\n", ret );
             goto exit;
         }
 
@@ -413,7 +422,7 @@ int main( int argc, char *argv[] )
          */
         if( ( ret = ssl_init( &ssl ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_init returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_init returned %d\n\n", ret );
             goto exit;
         }
 
@@ -434,14 +443,14 @@ int main( int argc, char *argv[] )
 
         if( ( ret = ssl_set_own_cert( &ssl, &clicert, &pkey ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_set_own_cert returned %d\n\n", ret );
             goto exit;
         }
 
 #if defined(POLARSSL_SSL_SERVER_NAME_INDICATION)
         if( ( ret = ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
         {
-            printf( " failed\n  ! ssl_set_hostname returned %d\n\n", ret );
+            polarssl_printf( " failed\n  ! ssl_set_hostname returned %d\n\n", ret );
             goto exit;
         }
 #endif
@@ -453,28 +462,28 @@ int main( int argc, char *argv[] )
         {
             if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
             {
-                printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
+                polarssl_printf( " failed\n  ! ssl_handshake returned %d\n\n", ret );
                 ssl_free( &ssl );
                 goto exit;
             }
         }
 
-        printf( " ok\n" );
+        polarssl_printf( " ok\n" );
 
         /*
          * 5. Print the certificate
          */
-        printf( "  . Peer certificate information    ...\n" );
+        polarssl_printf( "  . Peer certificate information    ...\n" );
         ret = x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
                              ssl.session->peer_cert );
         if( ret == -1 )
         {
-            printf( " failed\n  !  x509_crt_info returned %d\n\n", ret );
+            polarssl_printf( " failed\n  !  x509_crt_info returned %d\n\n", ret );
             ssl_free( &ssl );
             goto exit;
         }
 
-        printf( "%s\n", buf );
+        polarssl_printf( "%s\n", buf );
 
         ssl_close_notify( &ssl );
         ssl_free( &ssl );
@@ -496,7 +505,7 @@ exit:
     entropy_free( &entropy );
 
 #if defined(_WIN32)
-    printf( "  + Press Enter to exit this program.\n" );
+    polarssl_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
 

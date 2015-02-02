@@ -40,6 +40,12 @@
 #include "polarssl/x509.h"
 #endif
 
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_snprintf snprintf
+#endif
+
 #include <stdio.h>
 
 /*
@@ -655,7 +661,7 @@ int oid_get_numeric_string( char *buf, size_t size,
     /* First byte contains first two dots */
     if( oid->len > 0 )
     {
-        ret = snprintf( p, n, "%d.%d", oid->p[0] / 40, oid->p[0] % 40 );
+        ret = polarssl_snprintf( p, n, "%d.%d", oid->p[0] / 40, oid->p[0] % 40 );
         SAFE_SNPRINTF();
     }
 
@@ -672,7 +678,7 @@ int oid_get_numeric_string( char *buf, size_t size,
         if( !( oid->p[i] & 0x80 ) )
         {
             /* Last byte */
-            ret = snprintf( p, n, ".%d", value );
+            ret = polarssl_snprintf( p, n, ".%d", value );
             SAFE_SNPRINTF();
             value = 0;
         }

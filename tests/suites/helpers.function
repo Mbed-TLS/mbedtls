@@ -6,6 +6,10 @@
 #define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
+#define polarssl_exit       exit
+#define polarssl_fprintf    fprintf
+#define polarssl_printf     printf
+#define polarssl_snprintf   snprintf
 #endif
 
 #ifdef _MSC_VER
@@ -15,6 +19,7 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

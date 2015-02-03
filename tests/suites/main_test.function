@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string.h>
 
 #if defined(POLARSSL_PLATFORM_C)

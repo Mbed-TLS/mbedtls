@@ -148,6 +148,16 @@
 //#define POLARSSL_PLATFORM_NO_STD_FUNCTIONS
 
 /**
+ * \def POLARSSL_PLATFORM_ENABLE_FUNCTION_MACROS
+ *
+ * TO-DO: ADD DESCRIPTION & ANY WARNINGS ETC
+ *
+ * Requires: POLARSSL_PLATFORM_C
+ *
+ */
+//#define POLARSSL_PLATFORM_ENABLE_FUNCTION_MACROS
+
+/**
  * \def POLARSSL_PLATFORM_XXX_ALT
  *
  * Uncomment a macro to let mbed TLS support the function in the platform
@@ -2247,6 +2257,13 @@
 //#define POLARSSL_PLATFORM_STD_FPRINTF      fprintf /**< Default fprintf to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_PRINTF        printf /**< Default printf to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_SNPRINTF    snprintf /**< Default snprintf to use, can be undefined */
+
+//#define POLARSSL_PLATFORM_MALLOC_MACRO        malloc /**< Default allocator macro to use, can be undefined */
+//#define POLARSSL_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
+//#define POLARSSL_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
+//#define POLARSSL_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
+//#define POLARSSL_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
+//#define POLARSSL_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
 
 /* SSL Cache options */
 //#define SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */

@@ -2,6 +2,10 @@
 
 # Measure heap usage (and perfomance) of ECC operations with various values of
 # the relevant tunable compile-time parameters.
+#
+# Usage (preferably on a 32-bit platform):
+# cmake -D CMAKE_BUILD_TYPE=Release .
+# scripts/ecc-heap.sh | tee ecc-heap.log
 
 set -eu
 
@@ -45,6 +49,7 @@ cat << EOF >$CONFIG_H
 #define POLARSSL_ECP_DP_SECP256R1_ENABLED
 #define POLARSSL_ECP_DP_SECP384R1_ENABLED
 #define POLARSSL_ECP_DP_SECP521R1_ENABLED
+#define POLARSSL_ECP_DP_M255_ENABLED
 
 #include "check_config.h"
 

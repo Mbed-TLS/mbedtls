@@ -704,6 +704,9 @@ int main( int argc, char *argv[] )
     if( todo.ecdh )
     {
         ecdh_context ecdh;
+#if defined(POLARSSL_ECP_DP_M255_ENABLED)
+        mpi z;
+#endif
         const ecp_curve_info *curve_info;
         size_t olen;
 
@@ -732,6 +735,27 @@ int main( int argc, char *argv[] )
             ecdh_free( &ecdh );
         }
 
+        /* Curve25519 needs to be handled separately */
+#if defined(POLARSSL_ECP_DP_M255_ENABLED)
+        ecdh_init( &ecdh );
+        mpi_init( &z );
+
+        if( ecp_use_known_dp( &ecdh.grp, POLARSSL_ECP_DP_M255 ) != 0 ||
+            ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
+        {
+            exit( 1 );
+        }
+
+        TIME_PUBLIC(  "ECDHE-Curve25519", "handshake",
+                ret |= ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q,
+                                        myrand, NULL );
+                ret |= ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
+                                            myrand, NULL ) );
+
+        ecdh_free( &ecdh );
+        mpi_free( &z );
+#endif
+
         for( curve_info = ecp_curve_list();
              curve_info->grp_id != POLARSSL_ECP_DP_NONE;
              curve_info++ )
@@ -756,6 +780,27 @@ int main( int argc, char *argv[] )
                                              myrand, NULL ) );
             ecdh_free( &ecdh );
         }
+
+        /* Curve25519 needs to be handled separately */
+#if defined(POLARSSL_ECP_DP_M255_ENABLED)
+        ecdh_init( &ecdh );
+        mpi_init( &z );
+
+        if( ecp_use_known_dp( &ecdh.grp, POLARSSL_ECP_DP_M255 ) != 0 ||
+            ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
+                             myrand, NULL ) != 0 ||
+            ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )
+        {
+            exit( 1 );
+        }
+
+        TIME_PUBLIC(  "ECDH-Curve25519", "handshake",
+                ret |= ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
+                                            myrand, NULL ) );
+
+        ecdh_free( &ecdh );
+        mpi_free( &z );
+#endif
     }
 #endif
 

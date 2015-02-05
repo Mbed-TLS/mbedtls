@@ -1652,6 +1652,10 @@ static int x509_name_cmp( const x509_name *a, const x509_name *b )
         if( x509_string_cmp( &a->val, &b->val ) != 0 )
             return( -1 );
 
+        /* structure of the list of sets */
+        if( a->next_merged != b->next_merged )
+            return( -1 );
+
         a = a->next;
         b = b->next;
     }

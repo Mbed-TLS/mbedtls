@@ -155,6 +155,7 @@ typedef struct _asn1_named_data
     asn1_buf oid;                   /**< The object identifier. */
     asn1_buf val;                   /**< The named value. */
     struct _asn1_named_data *next;  /**< The next entry in the sequence. */
+    unsigned char next_merged;      /**< Merge next item into the current one? */
 }
 asn1_named_data;
 

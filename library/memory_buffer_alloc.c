@@ -611,7 +611,10 @@ static int check_pointer( void *p )
 
 static int check_all_free( )
 {
-    if( heap.current_alloc_size != 0 ||
+    if(
+#if defined(POLARSSL_MEMORY_DEBUG)
+        heap.total_used != 0 ||
+#endif
         heap.first != heap.first_free ||
         (void *) heap.first != (void *) heap.buf )
     {

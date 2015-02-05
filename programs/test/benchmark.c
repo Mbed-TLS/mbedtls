@@ -106,7 +106,7 @@
 do {                                                                    \
     unsigned long i, j, tsc;                                            \
                                                                         \
-    polarssl_printf( HEADER_FORMAT, TITLE );                                     \
+    polarssl_printf( HEADER_FORMAT, TITLE );                            \
     fflush( stdout );                                                   \
                                                                         \
     set_alarm( 1 );                                                     \
@@ -121,8 +121,9 @@ do {                                                                    \
         CODE;                                                           \
     }                                                                   \
                                                                         \
-    polarssl_printf( "%9lu Kb/s,  %9lu cycles/byte\n", i * BUFSIZE / 1024,       \
-                    ( hardclock() - tsc ) / ( j * BUFSIZE ) );          \
+    polarssl_printf( "%9lu Kb/s,  %9lu cycles/byte\n",                  \
+                     i * BUFSIZE / 1024,                                \
+                     ( hardclock() - tsc ) / ( j * BUFSIZE ) );         \
 } while( 0 )
 
 #if defined(POLARSSL_ERROR_C)
@@ -177,9 +178,9 @@ do {                                                                    \
     }                                                                   \
     else                                                                \
     {                                                                   \
-        polarssl_printf( "%6lu " TYPE "/s", i / 3 );                             \
+        polarssl_printf( "%6lu " TYPE "/s", i / 3 );                    \
         MEMORY_MEASURE_PRINT( sizeof( TYPE ) + 1 );                     \
-        polarssl_printf( "\n" );                                                 \
+        polarssl_printf( "\n" );                                        \
     }                                                                   \
 } while( 0 )
 

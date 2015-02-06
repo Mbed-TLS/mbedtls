@@ -30,7 +30,7 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#include <string.h>
+#include <stddef.h>
 
 #if !defined(POLARSSL_ARC4_ALT)
 // Regular implementation

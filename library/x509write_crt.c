@@ -39,6 +39,8 @@
 #include "polarssl/asn1write.h"
 #include "polarssl/sha1.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #endif /* POLARSSL_PEM_WRITE_C */

@@ -1,6 +1,9 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
+#define polarssl_printf     printf
+#define polarssl_fprintf    fprintf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif

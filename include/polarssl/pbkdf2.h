@@ -27,9 +27,9 @@
 #ifndef POLARSSL_PBKDF2_H
 #define POLARSSL_PBKDF2_H
 
-#include <string.h>
-
 #include "md.h"
+
+#include <stddef.h>
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>

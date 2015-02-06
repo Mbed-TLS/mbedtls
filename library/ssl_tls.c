@@ -39,6 +39,8 @@
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_X509_CRT_PARSE_C) && \
     defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
 #include "polarssl/oid.h"
@@ -47,11 +49,10 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
     !defined(EFI32)

@@ -30,6 +30,9 @@
 
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
+
+#include <string.h>
+
 #if defined(POLARSSL_ECP_C)
 #include "polarssl/ecp.h"
 #endif
@@ -37,12 +40,10 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
-#include <stdio.h>
 
 #if defined(POLARSSL_HAVE_TIME)
 #include <time.h>

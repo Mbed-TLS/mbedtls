@@ -35,15 +35,20 @@
 
 #include "polarssl/ctr_drbg.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_FS_IO)
 #include <stdio.h>
 #endif
 
+#if defined(POLARSSL_SELF_TEST)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST */
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
@@ -442,8 +447,6 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
 #endif /* POLARSSL_FS_IO */
 
 #if defined(POLARSSL_SELF_TEST)
-
-#include <stdio.h>
 
 static unsigned char entropy_source_pr[96] =
     { 0xc1, 0x80, 0x81, 0xa6, 0x5d, 0x44, 0x02, 0x16,

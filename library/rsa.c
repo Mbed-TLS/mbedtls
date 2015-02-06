@@ -37,16 +37,20 @@
 #include "polarssl/rsa.h"
 #include "polarssl/oid.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PKCS1_V21)
 #include "polarssl/md.h"
 #endif
 
+#if defined(POLARSSL_PKCS1_V15) && !defined(__OpenBSD__)
 #include <stdlib.h>
-#include <stdio.h>
+#endif
 
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
 #endif
 

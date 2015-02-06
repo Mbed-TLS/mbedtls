@@ -36,6 +36,7 @@
 #include "polarssl/md_wrap.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
     !defined(EFI32)

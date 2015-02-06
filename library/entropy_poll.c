@@ -32,6 +32,7 @@
 #include "polarssl/entropy_poll.h"
 
 #if defined(POLARSSL_TIMING_C)
+#include <string.h>
 #include "polarssl/timing.h"
 #endif
 #if defined(POLARSSL_HAVEGE_C)

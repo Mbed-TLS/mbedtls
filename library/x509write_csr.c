@@ -37,12 +37,12 @@
 #include "polarssl/oid.h"
 #include "polarssl/asn1write.h"
 
+#include <string.h>
+#include <stdlib.h>
+
 #if defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #endif
-
-#include <string.h>
-#include <stdlib.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {

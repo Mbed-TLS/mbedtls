@@ -24,13 +24,13 @@
 #ifndef POLARSSL_ENTROPY_POLL_H
 #define POLARSSL_ENTROPY_POLL_H
 
-#include <string.h>
-
 #if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
 #else
 #include POLARSSL_CONFIG_FILE
 #endif
+
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

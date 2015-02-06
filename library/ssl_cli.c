@@ -31,15 +31,15 @@
 #include "polarssl/debug.h"
 #include "polarssl/ssl.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
-#include <stdio.h>
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>

@@ -33,20 +33,19 @@
 #include <string.h>
 
 #if defined(POLARSSL_MEMORY_DEBUG)
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
 #include <stdio.h>
-#endif
+#define polarssl_fprintf fprintf
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_MEMORY_DEBUG */
 #if defined(POLARSSL_MEMORY_BACKTRACE)
 #include <execinfo.h>
 #endif
 
 #if defined(POLARSSL_THREADING_C)
 #include "polarssl/threading.h"
-#endif
-
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#define polarssl_fprintf fprintf
 #endif
 
 /* Implementation that should never be optimized out by the compiler */

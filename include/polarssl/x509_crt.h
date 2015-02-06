@@ -31,7 +31,6 @@
 #endif
 
 #include "x509.h"
-
 #include "x509_crl.h"
 
 /**

@@ -31,8 +31,8 @@
 #include "polarssl/debug.h"
 
 #include <stdarg.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #if !defined  snprintf

@@ -39,6 +39,17 @@
 
 #include "polarssl/ccm.h"
 
+#include <string.h>
+
+#if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#include <stdio.h>
+#define polarssl_printf printf
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
+
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -333,14 +344,6 @@ int ccm_auth_decrypt( ccm_context *ctx, size_t length,
 
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
-
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#include <stdio.h>
-#define polarssl_printf printf
-#endif
-
 /*
  * Examples 1 to 3 from SP800-38C Appendix C
  */

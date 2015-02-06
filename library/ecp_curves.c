@@ -30,6 +30,8 @@
 
 #include "polarssl/ecp.h"
 
+#include <string.h>
+
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline
 #else

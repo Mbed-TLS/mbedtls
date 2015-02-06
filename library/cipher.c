@@ -35,6 +35,9 @@
 #include "polarssl/cipher.h"
 #include "polarssl/cipher_wrap.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 #if defined(POLARSSL_GCM_C)
 #include "polarssl/gcm.h"
 #endif
@@ -42,8 +45,6 @@
 #if defined(POLARSSL_CCM_C)
 #include "polarssl/ccm.h"
 #endif
-
-#include <stdlib.h>
 
 #if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
 #define POLARSSL_CIPHER_MODE_STREAM

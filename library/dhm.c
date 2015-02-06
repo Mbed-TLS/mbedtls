@@ -35,6 +35,8 @@
 
 #include "polarssl/dhm.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif

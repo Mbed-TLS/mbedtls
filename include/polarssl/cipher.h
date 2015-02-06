@@ -33,6 +33,8 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
+#include <stddef.h>
+
 #if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
 #define POLARSSL_CIPHER_MODE_AEAD
 #endif
@@ -40,8 +42,6 @@
 #if defined(POLARSSL_CIPHER_MODE_CBC)
 #define POLARSSL_CIPHER_MODE_WITH_PADDING
 #endif
-
-#include <string.h>
 
 #if defined(_MSC_VER) && !defined(inline)
 #define inline _inline

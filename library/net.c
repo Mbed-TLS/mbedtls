@@ -30,6 +30,8 @@
 
 #include "polarssl/net.h"
 
+#include <string.h>
+
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
 

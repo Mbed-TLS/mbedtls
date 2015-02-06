@@ -40,15 +40,20 @@
 
 #include "polarssl/gcm.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_AESNI_C)
 #include "polarssl/aesni.h"
 #endif
 
+#if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
 #define polarssl_printf printf
-#endif
+#endif /* POLARSSL_PLATFORM_C */
+#endif /* POLARSSL_SELF_TEST && POLARSSL_AES_C */
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -496,9 +501,6 @@ void gcm_free( gcm_context *ctx )
 }
 
 #if defined(POLARSSL_SELF_TEST) && defined(POLARSSL_AES_C)
-
-#include <stdio.h>
-
 /*
  * AES-GCM test vectors from:
  *

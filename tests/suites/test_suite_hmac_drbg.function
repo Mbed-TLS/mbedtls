@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include <polarssl/hmac_drbg.h>
 
+#include <string.h>
+
 typedef struct
 {
     unsigned char *p;

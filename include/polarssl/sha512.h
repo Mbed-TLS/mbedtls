@@ -30,7 +30,7 @@
 #include POLARSSL_CONFIG_FILE
 #endif
 
-#include <string.h>
+#include <stddef.h>
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
   #define UL64(x) x##ui64

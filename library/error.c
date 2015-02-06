@@ -28,9 +28,12 @@
 
 #if defined(POLARSSL_ERROR_C) || defined(POLARSSL_ERROR_STRERROR_DUMMY)
 #include "polarssl/error.h"
+#include <string.h>
 #endif
 
 #if defined(POLARSSL_ERROR_C)
+
+#include <stdio.h>
 
 #if defined(POLARSSL_AES_C)
 #include "polarssl/aes.h"
@@ -171,9 +174,6 @@
 #if defined(POLARSSL_XTEA_C)
 #include "polarssl/xtea.h"
 #endif
-
-#include <stdio.h>
-#include <string.h>
 
 #if defined(_MSC_VER) && !defined  snprintf && !defined(EFIX64) && \
     !defined(EFI32)
@@ -745,8 +745,6 @@ void error_strerror( int ret, char *buf, size_t buflen )
 #else /* POLARSSL_ERROR_C */
 
 #if defined(POLARSSL_ERROR_STRERROR_DUMMY)
-
-#include <string.h>
 
 /*
  * Provide an non-function in case POLARSSL_ERROR_C is not defined

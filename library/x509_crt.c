@@ -40,6 +40,10 @@
 
 #include "polarssl/x509_crt.h"
 #include "polarssl/oid.h"
+
+#include <stdio.h>
+#include <string.h>
+
 #if defined(POLARSSL_PEM_PARSE_C)
 #include "polarssl/pem.h"
 #endif
@@ -47,6 +51,7 @@
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
@@ -55,22 +60,19 @@
 #include "polarssl/threading.h"
 #endif
 
-#include <string.h>
-#include <stdlib.h>
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #include <windows.h>
 #else
 #include <time.h>
 #endif
 
-#include <stdio.h>
-
 #if defined(POLARSSL_FS_IO)
+#include <stdio.h>
 #if !defined(_WIN32) || defined(EFIX64) || defined(EFI32)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#endif
+#endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
 /* Implementation that should never be optimized out by the compiler */

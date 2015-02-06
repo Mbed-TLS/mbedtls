@@ -37,6 +37,8 @@
 #include "polarssl/ecdsa.h"
 #include "polarssl/asn1write.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
 #include "polarssl/hmac_drbg.h"
 #endif

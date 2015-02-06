@@ -38,15 +38,17 @@
 #include "polarssl/bignum.h"
 #include "polarssl/bn_mul.h"
 
+#include <string.h>
+
 #if defined(POLARSSL_PLATFORM_C)
 #include "polarssl/platform.h"
 #else
+#include <stdio.h>
+#include <stdlib.h>
 #define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
-
-#include <stdlib.h>
 
 /* Implementation that should never be optimized out by the compiler */
 static void polarssl_zeroize( void *v, size_t n ) {

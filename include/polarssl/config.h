@@ -120,8 +120,14 @@
  * This allows different allocators (self-implemented or provided) to be
  * provided to the platform abstraction layer.
  *
- * Enabling POLARSSL_PLATFORM_MEMORY will provide "platform_set_malloc_free()"
- * to allow you to set an alternative malloc() and free() function pointer.
+ * Enabling POLARSSL_PLATFORM_MEMORY without the
+ * POLARSSL_PLATFORM_{FREE,MALLOC}_MACROs will provide
+ * "platform_set_malloc_free()" allowing you to set an alternative malloc() and
+ * free() function pointer at runtime.
+ *
+ * Enabling POLARSSL_PLATFORM_MEMORY and specifying
+ * POLARSSL_PLATFORM_{MALLOC,FREE}_MACROs will allow you to specify the
+ * alternate function at compile time.
  *
  * Requires: POLARSSL_PLATFORM_C
  *
@@ -138,7 +144,8 @@
  * This makes sure there are no linking errors on platforms that do not support
  * these functions. You will HAVE to provide alternatives, either at runtime
  * via the platform_set_xxx() functions or at compile time by setting
- * the POLARSSL_PLATFORM_STD_XXX defines.
+ * the POLARSSL_PLATFORM_STD_XXX defines, or enabling a
+ * POLARSSL_PLATFORM_XXX_MACRO.
  *
  * Requires: POLARSSL_PLATFORM_C
  *
@@ -146,16 +153,6 @@
  * platform layer.
  */
 //#define POLARSSL_PLATFORM_NO_STD_FUNCTIONS
-
-/**
- * \def POLARSSL_PLATFORM_ENABLE_FUNCTION_MACROS
- *
- * TO-DO: ADD DESCRIPTION & ANY WARNINGS ETC
- *
- * Requires: POLARSSL_PLATFORM_C
- *
- */
-//#define POLARSSL_PLATFORM_ENABLE_FUNCTION_MACROS
 
 /**
  * \def POLARSSL_PLATFORM_XXX_ALT
@@ -171,6 +168,9 @@
  *
  * WARNING: POLARSSL_PLATFORM_SNPRINTF_ALT is not available on Windows
  * for compatibility reasons.
+ *
+ * WARNING: POLARSSL_PLATFORM_XXX_ALT cannot be defined at the same time as
+ * POLARSSL_PLATFORM_XXX_MACRO!
  *
  * Uncomment a macro to enable alternate implementation of specific base
  * platform function
@@ -1907,6 +1907,10 @@
  * Enable the platform abstraction layer that allows you to re-assign
  * functions like malloc(), free(), snprintf(), printf(), fprintf(), exit()
  *
+ * Enabling POLARSSL_PLATFORM_C enables to use of POLARSSL_PLATFORM_XXX_ALT
+ * or POLARSSL_PLATFORM_XXX_MACRO directives, allowing the functions mentioned
+ * above to be specified at runtime or compile time respectively.
+ *
  * Module:  library/platform.c
  * Caller:  Most other .c files
  *
@@ -2258,6 +2262,8 @@
 //#define POLARSSL_PLATFORM_STD_PRINTF        printf /**< Default printf to use, can be undefined */
 //#define POLARSSL_PLATFORM_STD_SNPRINTF    snprintf /**< Default snprintf to use, can be undefined */
 
+/* To Use Function Macros POLARSSL_PLATFORM_C must be enabled 							*/
+/* POLARSSL_PLATFORM_XXX_MACRO and POLARSSL_PLATFORM_XXX_ALT cannot both be defined 	*/
 //#define POLARSSL_PLATFORM_MALLOC_MACRO        malloc /**< Default allocator macro to use, can be undefined */
 //#define POLARSSL_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
 //#define POLARSSL_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */

@@ -97,43 +97,18 @@ int platform_set_malloc_free( void * (*malloc_func)( size_t ),
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif /* POLARSSL_PLATFORM_MEMORY */
-
-/*
- * The function pointers for snprintf
- */
-#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
-extern int (*polarssl_snprintf)( char * s, size_t n, const char * format, ... );
-
-/**
- * \brief   Set your own snprintf function pointer
- *
- * \param snprintf_func   the snprintf function implementation
- *
- * \return              0
- */
-int platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
-                                                 const char * format, ... ) );
-#else /* POLARSSL_PLATFORM_SNPRINTF_ALT */
-#define polarssl_snprintf   snprintf
-#endif /* POLARSSL_PLATFORM_SNPRINTF_ALT */
-
-/*
- * The function pointers for printf
- */
-#if defined(POLARSSL_PLATFORM_PRINTF_ALT)
-extern int (*polarssl_printf)( const char *format, ... );
-
-/**
- * \brief   Set your own printf function pointer
- *
- * \param printf_func   the printf function implementation
- *
- * \return              0
- */
-int platform_set_printf( int (*printf_func)( const char *, ... ) );
-#else /* POLARSSL_PLATFORM_PRINTF_ALT */
-#define polarssl_printf     printf
-#endif /* POLARSSL_PLATFORM_PRINTF_ALT */
+#else /* POLARSSL_PLATFORM_ENTROPY */
+#if defined(POLARSSL_PLATFORM_FREE_MACRO)
+#define polarssl_free    POLARSSL_PLATFORM_FREE_MACRO
+#else
+#define polarssl_free    free
+#endif /* POLARSSL_PLATFORM_FREE_MACRO */
+#if defined(POLARSSL_PLATFORM_MALLOC_MACRO)
+#define polarssl_malloc    POLARSSL_PLATFORM_MALLOC_MACRO
+#else
+#define polarssl_malloc    malloc
+#endif /* POLARSSL_PLATFORM_MALLOC_MACRO */
+#endif /* POLARSSL_PLATFORM_ENTROPY */
 
 /*
  * The function pointers for fprintf
@@ -151,8 +126,57 @@ extern int (*polarssl_fprintf)( FILE *stream, const char *format, ... );
 int platform_set_fprintf( int (*fprintf_func)( FILE *stream, const char *,
                                                ... ) );
 #else
+#if defined(POLARSSL_PLATFORM_FPRINTF_MACRO)
+#define polarssl_fprintf    POLARSSL_PLATFORM_FPRINTF_MACRO
+#else
 #define polarssl_fprintf    fprintf
+#endif /* POLARSSL_PLATFORM_FPRINTF_MACRO */
 #endif /* POLARSSL_PLATFORM_FPRINTF_ALT */
+
+/*
+ * The function pointers for printf
+ */
+#if defined(POLARSSL_PLATFORM_PRINTF_ALT)
+extern int (*polarssl_printf)( const char *format, ... );
+
+/**
+ * \brief   Set your own printf function pointer
+ *
+ * \param printf_func   the printf function implementation
+ *
+ * \return              0
+ */
+int platform_set_printf( int (*printf_func)( const char *, ... ) );
+#else /* !POLARSSL_PLATFORM_PRINTF_ALT */
+#if defined(POLARSSL_PLATFORM_PRINTF_MACRO)
+#define polarssl_printf     POLARSSL_PLATFORM_PRINTF_MACRO
+#else
+#define polarssl_printf     printf
+#endif /* POLARSSL_PLATFORM_PRINTF_MACRO */
+#endif /* POLARSSL_PLATFORM_PRINTF_ALT */
+
+/*
+ * The function pointers for snprintf
+ */
+#if defined(POLARSSL_PLATFORM_SNPRINTF_ALT)
+extern int (*polarssl_snprintf)( char * s, size_t n, const char * format, ... );
+
+/**
+ * \brief   Set your own snprintf function pointer
+ *
+ * \param snprintf_func   the snprintf function implementation
+ *
+ * \return              0
+ */
+int platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
+                                                 const char * format, ... ) );
+#else /* POLARSSL_PLATFORM_SNPRINTF_ALT */
+#if defined(POLARSSL_PLATFORM_SNPRINTF_MACRO)
+#define polarssl_snprintf   POLARSSL_PLATFORM_SNPRINTF_MACRO
+#else
+#define polarssl_snprintf   snprintf
+#endif /* POLARSSL_PLATFORM_SNPRINTF_MACRO */
+#endif /* POLARSSL_PLATFORM_SNPRINTF_ALT */
 
 /*
  * The function pointers for exit
@@ -169,7 +193,11 @@ extern void (*polarssl_exit)( int status );
  */
 int platform_set_exit( void (*exit_func)( int status ) );
 #else
+#if defined(POLARSSL_PLATFORM_EXIT_MACRO)
+#define polarssl_exit   POLARSSL_PLATFORM_EXIT_MACRO
+#else
 #define polarssl_exit   exit
+#endif /* POLARSSL_PLATFORM_EXIT_MACRO */
 #endif /* POLARSSL_PLATFORM_EXIT_ALT */
 
 #ifdef __cplusplus
